@@ -11,7 +11,7 @@ record Names(List<String> xs, List<String> Xs){
     assert Xs.stream().allMatch(s->TokenKind.validate(s,"generic type name", TokenKind.UpId));
   }
   boolean xIn(String x){ return xs.contains(x); }
-  boolean XIn(String X){ return xs.contains(X); }
+  boolean XIn(String X){ return Xs.contains(X); }
   Names add(List<String> xs, List<String> Xs){
     return new Names(Push.of(this.xs(),xs),Push.of(this.Xs(),Xs));
   }

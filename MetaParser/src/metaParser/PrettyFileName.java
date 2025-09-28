@@ -1,4 +1,4 @@
-package message;
+package metaParser;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,7 +31,7 @@ public class PrettyFileName{//This is all gpt unchecked heuristic
         Path cwd = Paths.get("").toAbsolutePath().normalize();
         Path rel = p.startsWith(cwd) ? cwd.relativize(p) : p;
 
-        // Or collapse to ~/… when under home
+        // Or collapse to ~/... when under home
         String homeProp = System.getProperty("user.home");
         if (homeProp != null && !homeProp.isBlank()) {
           Path home = Paths.get(homeProp).toAbsolutePath().normalize();
@@ -69,29 +69,29 @@ public class PrettyFileName{//This is all gpt unchecked heuristic
     int n = parts.length;
 
     // Handle edge-y cases
-    if (n <= 2) return "…" + tail(s, maxLen - 1);
+    if (n <= 2) return "..." + tail(s, maxLen - 1);
 
     String first = parts[abs ? 1 : 0];      // skip empty segment for absolute paths
     String last = parts[n - 1];
     String penult = parts[n - 2];
 
-    String candidate = (abs ? "/" : "") + first + "/…/" + penult + "/" + last;
+    String candidate = (abs ? "/" : "") + first + "/.../" + penult + "/" + last;
     if (candidate.length() <= maxLen) return candidate;
 
     // Try keeping just the tail
     String tail2 = penult + "/" + last;
-    String t2 = (abs ? "/…/" : "…/") + tail2;
+    String t2 = (abs ? "/.../" : ".../") + tail2;
     if (t2.length() <= maxLen) return t2;
 
     // Last resort: ensure basename is visible
-    String onlyLast = (abs ? "/…/" : "…/") + last;
+    String onlyLast = (abs ? "/.../" : ".../") + last;
     if (onlyLast.length() <= maxLen) return onlyLast;
     // Trim basename from the left if still too long
     String base = last;
     if (base.length() > maxLen - 1) {
       base = base.substring(base.length() - (maxLen - 1));
     }
-    return "…" + base;
+    return "..." + base;
   }
 
   private static String tail(String s, int maxLen) {

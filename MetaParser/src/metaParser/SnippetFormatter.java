@@ -1,8 +1,7 @@
-package message;
+package metaParser;
 
-import files.Pos;
-import static offensiveUtils.Require.*;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /** Formats source snippets with carets.
@@ -33,10 +32,9 @@ public final class SnippetFormatter{
     catch (Throwable e){ return s.get().toString(); }
     return caret(src, span);    
   }
-  public String caret(String src, Pos p){ return caret(src, Span.of(p, p)); }
-
   public String caret(String src, Span s){
-    assert nonNull(src,s);
+    Objects.requireNonNull(src);
+    Objects.requireNonNull(s);
     String[] lines= splitLines(src);
     int width= lineNumberWidth(lines.length);
     return s.isSingleLine()
@@ -45,11 +43,11 @@ public final class SnippetFormatter{
   }
 
   private String caretSingleLine(String[] lines, Span s, int width){
-    int line= clamp(s.start().line(), 1, lines.length);
+    int line= clamp(s.startLine(), 1, lines.length);
     String raw= getLine(lines, line);
 
-    int aCol= Math.max(1, s.start().column());
-    int bCol= Math.max(aCol, s.end().column());
+    int aCol= Math.max(1, s.startCol());
+    int bCol= Math.max(aCol, s.endCol());
 
     int aVis= tabWidth > 0 ? visualCol(raw, aCol, tabWidth) : aCol;
     int visLen= tabWidth > 0 ? visualDelta(raw, aCol, bCol, tabWidth) : (bCol - aCol);
@@ -65,11 +63,11 @@ public final class SnippetFormatter{
   }
 
   private String caretMultiLine(String[] lines, Span s, int width){
-    int aLine= clamp(s.start().line(), 1, lines.length);
-    int bLine= clamp(s.end().line(),   1, lines.length);
+    int aLine= clamp(s.startLine(), 1, lines.length);
+    int bLine= clamp(s.endLine(),   1, lines.length);
 
-    int aCol= Math.max(1, s.start().column());
-    int bCol= Math.max(1, s.end().column());
+    int aCol= Math.max(1, s.startCol());
+    int bCol= Math.max(1, s.endCol());
 
     String rawA= getLine(lines, aLine);
     String rawB= getLine(lines, bLine);

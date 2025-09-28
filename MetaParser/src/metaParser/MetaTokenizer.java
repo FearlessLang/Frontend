@@ -1,30 +1,38 @@
 package metaParser;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class MetaTokenizer<T extends Token<T,TK>, TK extends TokenKind>{
+public abstract class MetaTokenizer<T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames>{
   private final List<TK> kinds;
   private final TK sof;
   private final TK eof;
-  private String input;
+  private final URI fileName;
+  private final String input;
   private int pos;
   private int line;
   private int col;
   //the true tokens, ignore any special marker
-  public MetaTokenizer(List<TK> tks, TK sof, TK eof){
+  public MetaTokenizer(URI fileName, String input, List<TK> tks, TK sof, TK eof){
     this.sof= sof;
     this.eof= eof;
-    this.kinds= tks; 
+    this.kinds= tks;
+    this.fileName= fileName;
+    this.input= input;
     }
-  public List<T> tokenize(String i){
-    input= i; pos=0; line=1; col=1;
+  private final RuntimeException error(){ 
+    return errFactory().unrecognizedTextAt(line,col,"");
+    //can we somehow syntetize something about this token?
+    }  
+
+  public List<T> tokenize(int _line, int _col){
+    pos=0; this.line=_line; this.col=_col;
     var out= new ArrayList<T>();
     out.add(make(sof,"", line, col,List.of()));
     while (pos < input.length()){
@@ -35,18 +43,7 @@ public abstract class MetaTokenizer<T extends Token<T,TK>, TK extends TokenKind>
     out.add(make(eof,"", line, col,List.of()));
     return Collections.unmodifiableList(out);
   }
-  private final RuntimeException error(){ return unrecognizedTokenError(line,col); }  
-  public RuntimeException unrecognizedTokenError(int line,int col){
-    return new RuntimeException("Unrecognized token at "+line+":"+col+".");
-  }
-  public RuntimeException unclosedError(T open, Set<TK> validClosers){
-    return new RuntimeException("Unclosed group starting at "+open.line()+":"+open.column()+
-      " ("+open.kind()+"); expected one of: "+validClosers+".");
-  }
-  public RuntimeException unopenedCloserError(T open,T closer){
-    return new RuntimeException("Unopened closer "+closer.kind()+" at "+closer.line()+":"+closer.column()+
-      " while parsing group opened by "+open.kind()+" at "+open.line()+":"+open.column()+".");
-  }  
+  public abstract ErrFactory<E,TK> errFactory();
   public abstract T make(TK kind, String text, int line, int col, List<T> tokens);
   private Optional<T> current(TK kind){
     return kind
@@ -67,12 +64,18 @@ public abstract class MetaTokenizer<T extends Token<T,TK>, TK extends TokenKind>
     matched.codePoints().forEach(this::advanceSingle);
     pos += matched.length();
   }
-  public List<T> tokenize(String i,
-      Map<TK,Map<TK,TK>> openClose){
-    var ts= tokenize(i);
+  /// 1,1 is good default for line/col
+  public Tokens<T,TK> tokenize(Map<TK,Map<TK,TK>> openClose,int line, int col){
+    var ts= tokenize(line,col);
     var closers= openClose.values().stream()
       .flatMap(s->s.keySet().stream())
       .collect(Collectors.toSet());
-    return new TokenTrees<T,TK>(closers,openClose,this).of(ts).tokens();
+    var tree= new TokenTrees<T,TK,E>(closers,openClose,this).of(ts).tokens();
+    assert ts.size() > 2;
+    var first= ts.get(1);//ts.getFirst() is SOF
+    var last= ts.get(ts.size()-2);//ts.getLast() is EOF
+    Span base= metaParser.Token.makeSpan(fileName,first,last);
+    return new Tokens<T,TK>(base,ts,tree);
   }
+  public URI fileName(){ return fileName; }
 }

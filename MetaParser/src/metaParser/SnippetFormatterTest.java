@@ -1,12 +1,10 @@
-package message;
+package metaParser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URI;
 
 import org.junit.jupiter.api.Test;
-
-import files.Pos;
 
 /**
  * Tests for SnippetFormatter (new contract):
@@ -42,7 +40,7 @@ public class SnippetFormatterTest {
       if(c == '\n'){ line++; col = 1; } else { col++; }
     }
 
-    var span = Span.of(Pos.of(file, sLine, sCol), Pos.of(file, eLine, eCol));
+    var span = new Span(file, sLine, sCol, eLine, eCol);
     String out = fmt.caret(src.toString(), span);
     assertEquals(expected, out);
   }

@@ -8,8 +8,6 @@ import utils.Bug;
 import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
 
-enum RC { imm, mut, read, iso, mutH, readH }
-
 record TName(String s, int arity){
   public TName{
     assert arity >= 0 : "arity < 0: "+arity;

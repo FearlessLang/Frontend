@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import files.Pos;
-
 public class Parse {
   public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t->!t.ignored()).toList();
   public static final Map<TokenKind,Map<TokenKind,TokenKind>> map= Map.of(
@@ -21,16 +19,16 @@ public class Parse {
     input= input.replace("\r\n", "\n").replace("\r", "\n");
     if (!input.isEmpty() && input.charAt(0) == '\uFEFF'){ input = input.substring(1); }
     new Validate().of(input);
-    var t= new Tokenizer(kinds, _SOF, _EOF);
-    var tree= t.tokenize(input, map);
-    var p= new Parser(new Pos(fileName,0,0),new Names(List.of(),List.of()),tree);
-    return p.parseAll(Parser::parseFileFull);
+    var t= new Tokenizer(fileName,input,kinds, _SOF, _EOF);
+    var all= t.tokenize(map,1,1);
+    var p= new Parser(all.span(),new Names(List.of(),List.of()),all.tokenTree());
+    return p.parseAll("full file",Parser::parseFileFull);
   }
-  static E from(Pos base, Names names,String input){
-    var t= new Tokenizer(kinds, _SOF, _EOF);
-    var tree= t.tokenize(input, map);
-    var p= new Parser(base,names,tree);
-    return p.parseAll(Parser::parseEFull);    
+  static E from(URI fileName, Names names,String input, int line, int col){
+    var t= new Tokenizer(fileName,input,kinds, _SOF, _EOF);
+    var all= t.tokenize(map,line,col);
+    var p= new Parser(all.span(),new Names(List.of(),List.of()),all.tokenTree());
+    return p.parseAll("string interpolation expression",Parser::parseEFull);    
   }
   // ASCII whitelist
   private static final String allowed=

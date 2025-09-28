@@ -1,4 +1,4 @@
-package fearlessParser;
+/*package fearlessParser;
 
 import java.util.*;
 
@@ -31,10 +31,6 @@ public final class ParserErrors {
     }
     return dp[n][m];
   }
-/*  public static FearlessException unexpected(Token t, TokenKind... expected){
-    String human = "Unexpected token "+tk(t)+(expected.length==0? "" : ". "+showExpected(expected));
-    return Code.UnexpectedToken.of(t, human);
-  }*/
   public static FearlessException disallowedReadHMutH(Token t){
     return Code.UnexpectedToken.of("""
       Capabilities readH and mutH are not allowed on closures
@@ -64,9 +60,6 @@ public final class ParserErrors {
       The variable(s) are only in scope for the remaining posts of this call chain.
       """);
   }
-/*  public static FearlessException rcOnlyCallSquareNeedsNoComma(){
-    return Code.UnexpectedToken.of("After `[RC]` you may omit the comma if there are no type arguments");
-  }*/
   public static FearlessException parameterNameExpected(){
     return Code.UnexpectedToken.of("Parameter name expected");
   }
@@ -87,4 +80,4 @@ public final class ParserErrors {
       ?"No generic parameters are declared here."
       :"Declared generics: "+String.join(", ", Xs)));
   }
-}
+}*/

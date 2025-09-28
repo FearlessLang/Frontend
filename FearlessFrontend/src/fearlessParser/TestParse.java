@@ -380,6 +380,36 @@ Error 1  UnexpectedToken
 A:{ .m -> (Block#.let x={5}) .use(x) }
 """);}
 
+
+@Test void doubleComma(){fail("""
+In file: [###]/in_memory0.fear
+While inspecting method parameters declaration
+001|A:{ .m(a,,b):C }
+   |         ^
+002|
+
+Searching for type name: Unexpected end of group after
+While inspecting method declaration
+001|A:{ .m(a,,b):C }
+   |    ^~~~~~~~~~
+002|
+
+While inspecting type declaration
+001|A:{ .m(a,,b):C }
+   |  ^~~~~~~~~~~~~~
+002|
+
+While inspecting type declaration
+001|A:{ .m(a,,b):C }
+   |^~~~~~~~~~~~~~~~
+002|
+
+Error 2  EndOfGroup
+""","""
+A:{ .m(a,,b):C }
+""");}
+
+
 //A:{ .m(): -> ::.two( Block#.let x={5}, x ) }
 //errors that could get better err messages: forgot ; may be detected by multiple -> in meth
 //forgot : or added : in D:{..} //may be as well formedness later on? with : D must be new, without :, D must exists

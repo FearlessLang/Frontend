@@ -7,18 +7,26 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 public abstract class MetaParser<
-    P extends MetaParser<P,T,TK>,    
+    P extends MetaParser<P,T,TK,E>,    
     T extends Token<T,TK>,
-    TK extends TokenKind>{
+    TK extends TokenKind,
+    E extends RuntimeException & HasFrames>{
+  private final Span span;
   private final List<T> ts;
   private int index= 0;
   private int limit;
   public abstract P self();
-  public abstract P make(List<T> tokens);
-  public MetaParser(List<T> ts){ this.ts= ts; this.limit= ts.size(); }
-  public <R> R parseAll(Rule<P,T,TK,R> r){
-    var res= r.parse(this.self());
-    if(index != limit){ throw unconsumedTokensError(); }
+  public abstract boolean skip(T token);
+  public abstract P make(Span span,List<T> tokens);
+  public abstract ErrFactory<E,TK> errFactory();
+  public MetaParser(Span span, List<T> ts){ this.span= span; this.ts= ts; this.limit= ts.size(); }
+  public <R> R parseAll(String frameName, Rule<P,T,TK,E,R> r){
+    R res; try{ res= r.parse(this.self()); }
+    catch(RuntimeException|Error t){ 
+      if (!frameName.isEmpty() && t instanceof HasFrames f){ f.addFrame(new Frame(frameName,span())); }
+      throw t;
+    }
+    if(index != limit){ throw errFactory().extraContent(span); }
     return res;
   }
   public boolean end(){ return limit == index; }
@@ -47,7 +55,7 @@ public abstract class MetaParser<
   }
   public final T expectAny(String what){
     var t= peek();
-    if (t.isEmpty()){ throw unexpectedEndOfGroupError(what,ts.get(limit-1)); }
+    if (t.isEmpty()){ throw errFactory().missing(spanLast(), what, List.of()); }
     var tt= t.get();
     index++;
     return tt;
@@ -55,37 +63,22 @@ public abstract class MetaParser<
   @SafeVarargs
   public final T expect(String what,TK... kinds){
     var t= peek();
-    if (t.isEmpty()){ throw unexpectedEndOfGroupError(what,ts.get(limit-1)); }
+    if (t.isEmpty()){ throw errFactory().missing(spanLast(),what,List.of(kinds)); }
     var tt= t.get();
     var allowed= tt.is(kinds);
-    if (!allowed){ throw unexpectedTokenError(what,tt,List.of(kinds)); }
+    if (!allowed){ throw errFactory().missingButFound(remainingSpan(),what,tt.content(),List.of(kinds)); }
     index++;
     return tt;
   }
   @SafeVarargs
   public final T expectLast(String what, TK... kinds){
     var last= peekLast();
-    if (last.isEmpty()){ throw unexpectedEndOfGroupError(what,ts.get(limit-1)); }
+    if (last.isEmpty()){ throw errFactory().missing(span(),what,List.of(kinds)); }
     var t= last.get();
     var allowed= t.is(kinds);
-    if (!allowed){ throw unexpectedTokenError(what,t,List.of(kinds)); }
+    if (!allowed){ throw errFactory().missingButFound(span(),what,t.toString(),List.of(kinds)); }
     limit--;
     return t;
-  }
-
-  public RuntimeException unconsumedTokensError(){
-    var next = ts.get(index);
-    return new RuntimeException("Expected end of input, found "+PrettyToken.show(next)+" (index="+index+"/"+limit+").");
-  }
-  public RuntimeException unexpectedEndOfGroupError(String what,T last){
-    return new RuntimeException("Searching for "+what+": Unexpected end of group after "+PrettyToken.show(last)+".");
-  }
-  //TODO: why is this dead code?
-  /*public RuntimeException unexpectedStartOfGroupError(String what,T first){
-    return new RuntimeException("Searching for "+what+": Unexpected start of group before "+PrettyToken.show(first)+".");
-  }*/
-  public RuntimeException unexpectedTokenError(String what, T got, List<TK> expected){
-    return new RuntimeException("Searching for "+what+": Unexpected "+PrettyToken.show(got)+"; expected: "+expected+".");
   }
   public boolean peekIf(Predicate<T> p){
     return peek().map(p::test).orElse(false);
@@ -121,54 +114,91 @@ public abstract class MetaParser<
   }
   
   //ParseSplitters
-  public <R> R parseGroup(Rule<P,T,TK,R> r){
+  public <R> R parseGroup(String frameName, Rule<P,T,TK,E,R> r){
     var tsIn= ts.get(index).tokens();
     if(tsIn.isEmpty()){ throw new IllegalStateException("Expected a grouped token (with children), got "+PrettyToken.show(ts.get(index))+"."); }
-    var nested= make(tsIn);
-    var res= nested.parseAll(r);
+    var nested= make(spanAround(index,index),tsIn);
+    var res= nested.parseAll(frameName,r);
     index++;
     return res;
   }
-  public <R> R parseRemaining(Rule<P,T,TK,R> r){
+  public Span spanAround(int low, int high){
+    if (low == ts.size()){ low -= 1; }
+    if (high == low - 1){ high = low; }
+    assert low >= 0 && low < ts.size():
+      "";
+    assert high >= 0 && high < ts.size():
+      "";
+    assert high >= low;
+    var here = span(ts.get(low),ts.get(high));
+    if (here.isPresent()) { return here.get(); }
+    int startLine= this.span.startLine();
+    int  startCol= this.span.startCol();
+    int   endLine= this.span.endLine();
+    int    endCol= this.span.endCol();
+    for (int i= low ; i >= 0; i--){//starts with low in case high was the failure point
+      var s= span(ts.get(i));
+      if (s.isPresent()){
+        startLine = s.get().endLine();
+        startCol  = s.get().endCol();
+        break;
+      }
+    }
+    for (int i= high; i < ts.size(); i++){//starts with high in case low was the failure point
+      var s= span(ts.get(i));
+      if (s.isPresent()){ 
+        endLine = s.get().startLine();
+        endCol  = s.get().startCol();
+        break;
+      }
+    }
+    return new Span(span.fileName(), startLine, startCol, endLine, endCol);   
+  }
+  public <R> R parseRemaining(String frameName, Rule<P,T,TK,E,R> r){
     var tsIn= ts.subList(index, limit);
+    var s= spanAround(index,limit-1);
     if(tsIn.isEmpty()){ throw new IllegalStateException("Expected a grouped token (with children), got "+PrettyToken.show(ts.get(index))+"."); }
-    var nested= make(tsIn);
-    var res= nested.parseAll(r);
+    var nested= make(s,tsIn);
+    var res= nested.parseAll(frameName, r);
     index = limit;
     return res;
   }
   
   ///Must advance p.index() by >= 1; will be called until p.end() holds
   ///Returns the amount of last consumed token to drop as separators
-  public interface NextCut<P extends MetaParser<P,T,TK>, T extends Token<T,TK>, TK extends TokenKind>{ int cutAt(P p); }
-  public interface Rule<P extends MetaParser<P,T,TK>, T extends Token<T,TK>, TK extends TokenKind, R> { R parse(P p); }
+  public interface NextCut<P extends MetaParser<P,T,TK,E>, T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames>{ int cutAt(P p); }
+  public interface Rule<P extends MetaParser<P,T,TK,E>, T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames, R> { R parse(P p); }
   //public interface RuleArg<A,P extends MetaParser<P,T,TK>, T extends Token<T,TK>, TK extends TokenKind, R> { R parse(A a, P p); }
   
-  public <R> List<R> splitBy(NextCut<P,T,TK> probe, Rule<P,T,TK,R> elem){
+  public <R> List<R> splitBy(String frameName, NextCut<P,T,TK,E> probe, Rule<P,T,TK,E,R> elem){
     var parts= _splitBy(probe);
-    var res= parts.stream().map(this::make).map(p -> p.parseAll(elem)).toList();
+    var res= parts.stream().map(p -> p.parseAll(frameName, elem)).toList();
     index = limit;//only update outer parser if no failures
     return res;
   }
-  private final List<List<T>> _splitBy(NextCut<P,T,TK> probe){
+  private final List<P> _splitBy(NextCut<P,T,TK,E> probe){
     var slice= ts.subList(index, limit);
-    P splitterParser= make(slice);
-    var parts= new ArrayList<List<T>>();
+    var s= spanAround(index,limit-1);
+    P splitterParser= make(s,slice);
+    var parts= new ArrayList<P>();
     while (!splitterParser.end()){
       int start= splitterParser.index();
       int drop= probe.cutAt(splitterParser);
       if (drop < 0){ throw new IllegalStateException("NextCut.cutAt retuned negative " + drop); }
       int end= splitterParser.index();
       if (start >= end){ throw new IllegalStateException("split probe did not advance (start="+start+", end="+end+")"); }
-      parts.add(List.copyOf(slice.subList(start, end-drop)));
+      var tsi= List.copyOf(slice.subList(start, end-drop));
+      var si= splitterParser.spanAround(start,(end-1)-drop);
+      parts.add(make(si,tsi));
     }
     return parts;
   }
-  public <R> List<R> parseGroupSep(String what,Rule<P,T,TK,R> r,TK open, TK close, NextCut<P,T,TK> probe){
-    return parseGroup(p->{
-      p.expect(what,open);
-      p.expectLast(what,close);
-      return p.splitBy(probe,r);
+  public <R> List<R> parseGroupSep(String frameNameOut, String frameNameIn, Rule<P,T,TK,E,R> r,TK open, TK close, NextCut<P,T,TK,E> probe){
+    String label= frameNameOut.isEmpty()?frameNameIn:frameNameOut;
+    return parseGroup(frameNameOut,p->{
+      p.expect(label,open);
+      p.expectLast(label,close);
+      return p.splitBy(frameNameIn,probe,r);
     });
   }
 
@@ -177,16 +207,18 @@ public abstract class MetaParser<
   ///Parses a non empty list of tokens from the start of this parser.
   ///Must be a proper division.
   ///The probe accepting all the token signals no prefix. 
-  public final <R> Optional<R> parseUpTo(NextCut<P,T,TK> probe, Rule<P,T,TK,R> first){
+  public final <R> Optional<R> parseUpTo(String frameName, NextCut<P,T,TK,E> probe, Rule<P,T,TK,E,R> first){
     var slice= ts.subList(index, limit);
-    P splitterParser= make(slice);
+    var s= spanAround(index, limit-1);
+    P splitterParser= make(s,slice);
     int drop= probe.cutAt(splitterParser);
     if (drop < 0){ throw new IllegalStateException("NextCut.cutAt retuned negative " + drop); }
     int end= splitterParser.index();
     if (end == 0){ throw new IllegalStateException("split probe did not advance (start="+0+", end="+end+")"); }
     if(splitterParser.end()){ return Optional.empty(); }//split not found
-    P firstParser= make(List.copyOf(slice.subList(0, end-drop)));
-    var res= firstParser.parseAll(first);
+    var firstS= splitterParser.spanAround(0,(end-1)-drop);
+    P firstParser= make(firstS,List.copyOf(slice.subList(0, end-drop)));
+    var res= firstParser.parseAll(frameName, first);
     this.index+= end;//mark the tokens as eaten
     return Optional.of(res);
   }
@@ -225,50 +257,47 @@ public abstract class MetaParser<
     }
     sb.append(']');
   }
-  private Optional<T> firstLeaf(List<T> ts, Predicate<T> skip){
+  private Optional<T> firstLeaf(List<T> ts){
     for (var t:ts){
-      Optional<T> leaf= firstLeaf(t,skip);
+      Optional<T> leaf= firstLeaf(t);
       if (leaf.isPresent()){ return leaf; }
     }
     return Optional.empty();
   }
-  private Optional<T> firstLeaf(T t, Predicate<T> skip){
-    if (skip.test(t)){ return Optional.empty(); } 
+  private Optional<T> firstLeaf(T t){
+    if (skip(t)){ return Optional.empty(); } 
     if (t.tokens().isEmpty()){ return Optional.of(t); }
-    return firstLeaf(t.tokens(),skip);
+    return firstLeaf(t.tokens());
   }
-  private Optional<T> lastLeaf(List<T> ts, Predicate<T> skip){
+  private Optional<T> lastLeaf(List<T> ts){
     for (var t:ts.reversed()){
-      Optional<T> leaf= lastLeaf(t,skip);
+      Optional<T> leaf= lastLeaf(t);
       if (leaf.isPresent()){ return leaf; }
     }
     return Optional.empty();
   }
-  private Optional<T> lastLeaf(T t, Predicate<T> skip){
-    if (skip.test(t)){ return Optional.empty(); } 
+  private Optional<T> lastLeaf(T t){
+    if (skip(t)){ return Optional.empty(); } 
     if (t.tokens().isEmpty()){ return Optional.of(t); }
-    return lastLeaf(t.tokens(),skip);
+    return lastLeaf(t.tokens());
   }
-  public Span span(Predicate<T> skip){
-    T first= firstLeaf(ts,skip).orElseThrow(()-> new IllegalStateException("Invalid span for "+this));
-    T last=  lastLeaf(ts,skip).orElseThrow(()-> new IllegalStateException("Invalid span for "+this));
-    return span(first,last);
+  public Span span(){ return span; }
+  public Span spanLast(){ return span(ts.get(limit-1)).get(); }
+  public Span remainingSpan(){ return span(ts.get(index),ts.get(limit)).get(); }
+  public Optional<Span> span(T low, T high){//not equal to span(List.of(low,high))
+    return firstLeaf(low)
+      .flatMap(first->lastLeaf(high)
+        .map(last->makeSpan(first,last)));
   }
-  public Span span(T t, Predicate<T> skip){
-    System.out.println(this);
-    T first= firstLeaf(t,skip).orElseThrow(()-> new IllegalStateException("Invalid span for "+this));
-    T last=  lastLeaf(t,skip).orElseThrow(()-> new IllegalStateException("Invalid span for "+this));
-    return span(first,last);
+  public Optional<Span> span(List<T> ts){
+    return firstLeaf(ts)
+      .flatMap(first->lastLeaf(ts)
+        .map(last->makeSpan(first,last)));
   }
-  private Span span(T first, T last){
-    int l = last.line();
-    int c = last.column();
-    for (int i = 0; i < last.content().length();) {
-      int cp= last.content().codePointAt(i);
-      i += Character.charCount(cp);
-      if (cp == '\n'){ l += 1; c = 1; } else { c += 1; }
-    }
-    return new Span(first.line(),first.column(),l,c-1);
+  public Optional<Span> span(T t){
+    return firstLeaf(t)
+      .flatMap(first->lastLeaf(t)
+        .map(last->makeSpan(first,last)));
   }
-  public record Span(int startLine, int startCol, int endLine, int endCol){}
+  private Span makeSpan(T first, T last){ return Token.makeSpan(span.fileName(), first, last); }
 }

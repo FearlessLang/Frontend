@@ -1,8 +1,10 @@
-package message;
+package metaParser;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 public record Message(String msg,int priority){
   public static final SnippetFormatter base= SnippetFormatter.builder()
@@ -12,17 +14,18 @@ public record Message(String msg,int priority){
       .showLineNumbers(true)
       .tabWidth(4)
       .build();
-  public static List<Message> of(SourceOracle o, List<Frame> fs, String msg){
+  public static List<Message> of(Function<URI,String> o, List<Frame> fs, String msg){
     return allMessages(new Message(msg,1),o,fs);
   }
-  private static List<Message> allMessages(Message m, SourceOracle o, List<Frame> fs){
+  private static List<Message> allMessages(Message m, Function<URI,String> o, List<Frame> fs){
     var out= new ArrayList<Message>(fs.size()+1);
     for (int i= 0; i < fs.size(); i++){
       Frame f= fs.get(i);
-      Span s= f.s().get();
+      Span s= f.s();
+      String name= f.name();
       int pr= 10 + i;
-      String body= "While inspecting " +f.name()+"\n"+ 
-        base.caret(()->o.loadString(s.fileName()),s);
+      String body= "While inspecting " +name+"\n"+ 
+        base.caret(()->o.apply(s.fileName()),s);
       if (i == 0) { body = "In file: "+PrettyFileName.displayFileName(s.fileName()) +"\n"+ body; }
       out.add(new Message(body, pr));
     }

@@ -5,6 +5,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
+
+import metaParser.Frame;
+import metaParser.HasFrames;
+import metaParser.Message;
 import utils.Push;
 
 public final class FearlessException extends RuntimeException implements HasFrames{
