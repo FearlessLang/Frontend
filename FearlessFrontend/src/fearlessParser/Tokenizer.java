@@ -6,6 +6,7 @@ import java.util.List;
 import message.FearlessErrFactory;
 import message.FearlessException;
 import metaParser.MetaTokenizer;
+import metaParser.Span;
 
 public class Tokenizer extends MetaTokenizer<Token,TokenKind,FearlessException>{
 
@@ -19,7 +20,7 @@ public class Tokenizer extends MetaTokenizer<Token,TokenKind,FearlessException>{
     var res= super.tokenize(line, col);
     res.stream().forEach(t->{
       if(!t.kind().bad()){ return; }
-      throw errFactory().unrecognizedTextAt(t.line(),t.column(),t.content());
+      throw errFactory().unrecognizedTextAt(new Span(fileName(),t.line(),t.column(),t.line(),t.column()),t.content());
     });
     return res;
   }

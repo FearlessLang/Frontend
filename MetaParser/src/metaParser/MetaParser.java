@@ -10,7 +10,7 @@ public abstract class MetaParser<
     P extends MetaParser<P,T,TK,E>,    
     T extends Token<T,TK>,
     TK extends TokenKind,
-    E extends RuntimeException & HasFrames>{
+    E extends RuntimeException & HasFrames<?>>{
   private final Span span;
   private final List<T> ts;
   private int index= 0;
@@ -166,17 +166,17 @@ public abstract class MetaParser<
   
   ///Must advance p.index() by >= 1; will be called until p.end() holds
   ///Returns the amount of last consumed token to drop as separators
-  public interface NextCut<P extends MetaParser<P,T,TK,E>, T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames>{ int cutAt(P p); }
-  public interface Rule<P extends MetaParser<P,T,TK,E>, T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames, R> { R parse(P p); }
+  public interface NextCut<P extends MetaParser<P,T,TK,E>, T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames<?>>{ int cutAt(P p); }
+  public interface Rule<P extends MetaParser<P,T,TK,E>, T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames<?>, R> { R parse(P p); }
   //public interface RuleArg<A,P extends MetaParser<P,T,TK>, T extends Token<T,TK>, TK extends TokenKind, R> { R parse(A a, P p); }
   
   public <R> List<R> splitBy(String frameName, NextCut<P,T,TK,E> probe, Rule<P,T,TK,E,R> elem){
-    var parts= _splitBy(probe);
+    var parts= _splitBy(frameName, probe);
     var res= parts.stream().map(p -> p.parseAll(frameName, elem)).toList();
     index = limit;//only update outer parser if no failures
     return res;
   }
-  private final List<P> _splitBy(NextCut<P,T,TK,E> probe){
+  private final List<P> _splitBy(String frameName, NextCut<P,T,TK,E> probe){
     var slice= ts.subList(index, limit);
     var s= spanAround(index,limit-1);
     P splitterParser= make(s,slice);
@@ -184,9 +184,15 @@ public abstract class MetaParser<
     while (!splitterParser.end()){
       int start= splitterParser.index();
       int drop= probe.cutAt(splitterParser);
-      if (drop < 0){ throw new IllegalStateException("NextCut.cutAt retuned negative " + drop); }
       int end= splitterParser.index();
-      if (start >= end){ throw new IllegalStateException("split probe did not advance (start="+start+", end="+end+")"); }
+      if (drop < 0 || start > end - drop){
+        var at= splitterParser.spanAround(start, Math.max(start, start));
+        throw errFactory().badProbeDropIn(frameName, at, start, end, drop); 
+        }
+      if (start >= end){
+        var at = splitterParser.spanAround(start, Math.max(start, start));
+        throw errFactory().probeStalledIn(frameName, at, start, end);
+      }      
       var tsi= List.copyOf(slice.subList(start, end-drop));
       var si= splitterParser.spanAround(start,(end-1)-drop);
       parts.add(make(si,tsi));
@@ -282,8 +288,11 @@ public abstract class MetaParser<
     return lastLeaf(t.tokens());
   }
   public Span span(){ return span; }
-  public Span spanLast(){ return span(ts.get(limit-1)).get(); }
-  public Span remainingSpan(){ return span(ts.get(index),ts.get(limit)).get(); }
+  public Span spanLast(){
+    if (limit - 1 < 0){ return span; }
+    return span(ts.get(limit - 1)).orElse(span); 
+  }
+  public Span remainingSpan(){ return span(ts.get(index),ts.get(limit)).orElse(span); }
   public Optional<Span> span(T low, T high){//not equal to span(List.of(low,high))
     return firstLeaf(low)
       .flatMap(first->lastLeaf(high)

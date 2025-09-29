@@ -27,7 +27,7 @@ public class Parse {
   static E from(URI fileName, Names names,String input, int line, int col){
     var t= new Tokenizer(fileName,input,kinds, _SOF, _EOF);
     var all= t.tokenize(map,line,col);
-    var p= new Parser(all.span(),new Names(List.of(),List.of()),all.tokenTree());
+    var p= new Parser(all.span(),names,all.tokenTree());
     return p.parseAll("string interpolation expression",Parser::parseEFull);    
   }
   // ASCII whitelist

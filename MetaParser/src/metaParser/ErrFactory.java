@@ -3,10 +3,10 @@ package metaParser;
 import java.util.Collection;
 import java.util.List;
 
-public interface ErrFactory<E extends RuntimeException & HasFrames, TK extends TokenKind>{
+public interface ErrFactory<E extends RuntimeException & HasFrames<?>, TK extends TokenKind>{
 
-  E illegalCharIn(int line, int col, String what);
-  E unrecognizedTextAt(int line, int col, String what);
+  E illegalCharAt(Span at, String what);
+  E unrecognizedTextAt(Span at, String what);
 
   E unclosedIn(String what, Span openedAt, Collection<TK> expectedClosers);
   E unopenedIn(String what, Span closerAt);
@@ -16,6 +16,6 @@ public interface ErrFactory<E extends RuntimeException & HasFrames, TK extends T
   E missingButFound(Span at, String what, String found, Collection<TK> expectedLabels);
   E extraContent(Span from);
 
-  E probeStalledIn(String groupLabel, String probeName, int startIdx, int endIdx);
-  E badProbeDropIn(String groupLabel, String probeName, int startIdx, int endIdx, int drop);
+  E probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx);
+  E badProbeDropIn(String groupLabel, Span at, int startIdx, int endIdx, int drop);
 }

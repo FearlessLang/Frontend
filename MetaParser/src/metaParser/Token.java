@@ -33,7 +33,7 @@ public interface Token<T extends Token<T,TK>, TK extends TokenKind> {
   }
 }
 //all below properly package private
-record TokenTrees<T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames>(
+record TokenTrees<T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames<?>>(
     Set<TK> closers,
     Map<TK,Map<TK,TK>> openClose,
     MetaTokenizer<T,TK,E> tokenizer){
@@ -54,7 +54,7 @@ record TokenTrees<T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeE
     return Token.makeSpan(tokenizer.fileName(), first, last);
   }
 }
-record Builder<T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames>
+record Builder<T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames<?>>
   (TokenTrees<T,TK,E> ctx, ArrayList<T> output, ListIterator<T> i){
   Token<T,TK> myOpen(){ return output.getFirst(); }
   T build(T open){

@@ -39,15 +39,16 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
   }
   boolean hasPost(){ return peek(DotName,Op,UStrInterHash,UStrLine,SStrInterHash,SStrLine); }
   E parseAtom(){
-    if(peek(LowerId)){ return parseX(); }
+    if(peek(LowercaseId)){ return parseX(); }
     if(peek(_RoundGroup)){ return parseGroup("expression in round parenthesis",Parser::parseRound); }
     if(peek(ColonColon)){ return parseImplicit(); }
     if(peek(UStrInterHash,UStrLine)){ return parseStrInter(false,empty()); }
     if(peek(SStrInterHash,SStrLine)){ return parseStrInter(true,empty()); }
     if(peek(_CurlyGroup)){ return parseGroup("object literal", Parser::parseLiteral); }
+    var rcSpan= peek().map(t->span(t).orElse(span()));
     Optional<RC> rc= parseOptRC();
     var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH).orElse(false);
-    if(invalid){ throw errFactory().disallowedReadHMutH(rc.get()); }
+    if(invalid){ throw errFactory().disallowedReadHMutH(rcSpan.get(), rc.get()); }
     var isDec=//Dec starts with D[Bs]: or D:
          peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup), t->t.is(Colon))
       || peekOrder(t->t.isTypeName(), t->t.is(Colon));
@@ -70,9 +71,9 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     return new T.C(c.withArity(ts.size()), of(ts));    
   }
   TName parseTName(){
-    var c= expect("type name", Token.typeName).content();
-    if(names.XIn(c)){ throw errFactory().typeNameConflictsGeneric(c); }
-    return new TName(c,0);
+    var c= expect("type name", Token.typeName);
+    if(names.XIn(c.content())){ throw errFactory().typeNameConflictsGeneric(c,span(c).get()); }
+    return new TName(c.content(),0);
   }
   T parseT(){ //T    ::= C | RC C | X | RC X | read/imm X
     if(fwdIf(peek(ReadImm))){ return new T.ReadImmX(parseTX()); }
@@ -82,14 +83,14 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     return rc.map(r->(T)new T.RCX(r, res)).orElse(res);
   }
   T.X parseDecTX(){
-    var c= expect("Generic type name declaration", UpId).content();
-    if(names.XIn(c)){ throw errFactory().nameRedeclared(c); }
-    return new T.X(c);
+    var c= expect("Generic type name declaration", UppercaseId);
+    if(names.XIn(c.content())){ throw errFactory().nameRedeclared(c,span(c).get()); }
+    return new T.X(c.content());
   }
   T.X parseTX(){
-    var c= expect("type name", UpId).content();
-    if(!names.XIn(c)){ throw errFactory().genericNotInScope(c, names.Xs()); }
-    return new T.X(c);    
+    var c= expect("type name", UppercaseId);
+    if(!names.XIn(c.content())){ throw errFactory().genericNotInScope(c,span(c).get(), names.Xs()); }
+    return new T.X(c.content());
   }
   E parsePost(E receiver){
     if(peek(UStrInterHash,UStrLine)){ return parseStrInter(false,of(receiver)); }
@@ -99,30 +100,30 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     Pos pos= pos();
     if(peek(_RoundGroup)){
       List<E> es = parseGroupSep("","arguments list",Parser::parseE,ORound,CRound,commaExp);
-      return new E.Call(receiver, m.withArity(es.size()), sq, true,empty(),es,pos);
+      return new E.Call(receiver, m.withArity(es.size()), sq, true, empty(), es, pos);
     }
     Optional<XPat> xpat= parseIf(eqSugar(),()->fwd(parseXPat()));    
     if (end() || hasPost()){
-      if (xpat.isPresent()){ throw errFactory().missingExprAfterEq(); }
+      if (xpat.isPresent()){ throw errFactory().missingExprAfterEq(remainingSpan()); }
       return new E.Call(receiver, m, sq, false,empty(),List.of(), pos);
     }
     List<E> atom= List.of(parseAtom());//we need to avoid parsing the posts
     updateNames(names.add(xsOf(xpat).toList(), List.of()));//zero if xpat is empty
     return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,atom,pos);//note: arity 2 is special case for = sugar 
   }
-  boolean eqSugar(){ return peekOrder(t->t.is(LowerId,_CurlyGroup),t->t.is(Eq)); }
+  boolean eqSugar(){ return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq)); }
   MName parseMName(){
     String n= expect("method name", DotName,Op).content();
     return new MName(n,0);
     }
   MName parseDotName(){ return new MName(expect("method name",DotName).content(),0); }
   XPat parseXPat(){
-    if(peek(LowerId)){ return new XPat.Name(parseDecX()); }
-    if(!peek(_CurlyGroup)){ throw errFactory().parameterNameExpected();}   
+    if(peek(LowercaseId)){ return new XPat.Name(parseDecX()); }
+    if(!peek(_CurlyGroup)){ throw errFactory().parameterNameExpected(remainingSpan());}
     var res= parseGroup("nominalPattern",Parser::parseDestruct);
-    var errSpaceBeforeId= peek(LowerId,UnsignedInt,UpId);
+    var errSpaceBeforeId= peek(LowercaseId,UnsignedInt,UppercaseId);
     if(!errSpaceBeforeId){return res;}
-    throw errFactory().spaceBeforeId();
+    throw errFactory().spaceBeforeId(span(peek().get()).get());
   }
   XPat.Destruct parseDestruct(){
     expect("nominal pattern",OCurly);
@@ -164,13 +165,13 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     return new E.Round(parseE());
     }
   E.X parseX(){
-    var x= expect("parameter name",LowerId);
-    if(!names.xIn(x.content())){ throw errFactory().nameNotInScope(x, names.xs()); } 
+    var x= expect("parameter name",LowercaseId);
+    if(!names.xIn(x.content())){ throw errFactory().nameNotInScope(x, span(x).get(), names.xs()); } 
     return new E.X(x.content(),pos(x));
   }
   E.X parseDecX(){
-    var x= expect("parameter declaration",LowerId);
-    if(names.xIn(x.content())){ throw errFactory().nameRedeclared(x.content()); }
+    var x= expect("parameter declaration",LowercaseId);
+    if(names.xIn(x.content())){ throw errFactory().nameRedeclared(x,span(x).get()); }
     return new E.X(x.content(),pos(x));
   }
   E.Literal parseLiteral(){
@@ -215,7 +216,7 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
   Sig parseSig(){
     var rc= parseOptRC();
     var m= parseIf(peek(DotName,Op),this::parseMName);
-    var bs= parseIf(peek(_SquareGroup),()->parseGroup("generic types declaration",Parser::parseBs));//TODO: now we can simply comma split with the right probe
+    var bs= parseIf(peek(_SquareGroup),this::parseBs);
     boolean hasPar=peek(_RoundGroup);
     List<Parameter> ps= hasPar
       ?parseGroupSep("","method parameters declaration",Parser::parseParameter,ORound,CRound,commaSkip)
@@ -230,7 +231,7 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     }
   Optional<T> parseOptT(){ return parseIf(fwdIf(peek(Colon)),this::parseT); }
   Parameter parseParameter(){
-    Optional<XPat> x= parseIf(peek(LowerId,_CurlyGroup),this::parseXPat);
+    Optional<XPat> x= parseIf(peek(LowercaseId,_CurlyGroup),this::parseXPat);
     if(x.isPresent()){ return new Parameter(x, parseOptT()); }
     T t= parseT();
     return new Parameter(x,of(t));
@@ -245,7 +246,7 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     String op= opT.content();
     if(op.equals("**")){ return new B(x,new StarStar()); }
     if(op.equals("*")){ return new B(x,new Star()); }
-    throw errFactory().badBound(x.name());
+    throw errFactory().badBound(x.name(),span(opT).get());
   }
   List<RC> parseRCs(){ return splitBy("generic bounds declaration",commaSkip,Parser::parseRC); }
   
@@ -267,7 +268,7 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     //Dec in e will be parsed with empty Xs, funnelling handled by well formedness later
     Optional<List<T.C>> cs= parseIf(!peek(_CurlyGroup),this::parseImpl);
     assert peek(_CurlyGroup);
-    E.Literal l= parseGroup("type declaration",Parser::parseLiteral);
+    E.Literal l= parseGroup("type declaration body",Parser::parseLiteral);
     return new Declaration(c,bs,cs.orElse(List.of()),l);
   }
   FileFull parseFileFull(){
@@ -281,8 +282,8 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     expectLast("",_EOF);
     return parseE();
     }
-  boolean isTName(Token t){ return t.is(UpId,Float,SignedInt,UnsignedInt,SignedRational,SStr,UStr) && !names.XIn(t.content()); }
-  boolean isX(Token t){ return t.is(UpId) && names.XIn(t.content()); }
+  boolean isTName(Token t){ return t.is(UppercaseId,Float,SignedInt,UnsignedInt,SignedRational,SStr,UStr) && !names.XIn(t.content()); }
+  boolean isX(Token t){ return t.is(UppercaseId) && names.XIn(t.content()); }
   Pos pos(){ return new Pos(span().fileName(),span().startLine(),span().startCol()); }
   Pos pos(Token t){ return new Pos(span().fileName(),t.line(),t.column()); }
   <R> Optional<R> parseIf(boolean cond, Supplier<R> s){
@@ -319,18 +320,5 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
   NextCut<Parser,Token,TokenKind,FearlessException> commaExp=   Parser::onCommaExp;
   NextCut<Parser,Token,TokenKind,FearlessException> anyLeft=    p->{ p.expectAny(""); return 0; };
   
-  /*@Override public RuntimeException unconsumedTokensError(){
-    var next = peek().get();
-    return Code.ExtraTokenInGroup.of("Expected end of group, found "+PrettyToken.show(next));
-  }*/
-  /*@Override public RuntimeException unexpectedEndOfGroupError(String what,Span span){
-    return Code.EndOfGroup.of("Searching for "+what+": Unexpected end of group after "+span+".");
-  }*/
-//  @Override public RuntimeException unexpectedStartOfGroupError(String what,Token first){
-//    return new RuntimeException("Searching for "+what+": Unexpected start of group before "+PrettyToken.show(first)+".");
-//  }
-  /*@Override public RuntimeException unexpectedTokenError(String what, Token got, List<TokenKind> expected){
-    return Code.UnexpectedToken.of("Searching for "+what+": Unexpected "+PrettyToken.show(got)+"; expected: "+expected+".");
-  }*/
   @Override public FearlessErrFactory errFactory(){ return new FearlessErrFactory(); }
 }

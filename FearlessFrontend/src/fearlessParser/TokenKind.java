@@ -66,8 +66,8 @@ public enum TokenKind implements metaParser.TokenKind {
   SStr("'(?:\\x5C[nt'\\x5C]|[^'\\x5C\\x0A])*'"),
 
   DotName("\\._*[a-z][A-Za-z0-9_]*`*"),
-  UpId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*`*"),//correctly allows only one '.' since packages are not nested inside each others  
-  LowerId("_*[a-z][A-Za-z0-9_]*`*"),
+  UppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*`*"),//correctly allows only one '.' since packages are not nested inside each others  
+  LowercaseId("_*[a-z][A-Za-z0-9_]*`*"),
 
    //\  /  #  *   -   +   %  <  >  =  !  &   ^   ~   ?   :   |
   //[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F:\\x7C#]

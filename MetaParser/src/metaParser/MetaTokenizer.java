@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public abstract class MetaTokenizer<T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames>{
+public abstract class MetaTokenizer<T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeException & HasFrames<?>>{
   private final List<TK> kinds;
   private final TK sof;
   private final TK eof;
@@ -25,11 +25,10 @@ public abstract class MetaTokenizer<T extends Token<T,TK>, TK extends TokenKind,
     this.kinds= tks;
     this.fileName= fileName;
     this.input= input;
-    }
+  }
   private final RuntimeException error(){ 
-    return errFactory().unrecognizedTextAt(line,col,"");
-    //can we somehow syntetize something about this token?
-    }  
+    return errFactory().unrecognizedTextAt(new Span(fileName,line,col,line,col),"");
+  }  
 
   public List<T> tokenize(int _line, int _col){
     pos=0; this.line=_line; this.col=_col;

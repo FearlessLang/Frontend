@@ -2,8 +2,6 @@ package fearlessParser;
 
 import static org.junit.Assert.*;
 
-import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.Test;
 
 import files.Pos;
@@ -23,7 +21,7 @@ class TestParse {
       .put(0, input)
       .build();
     FearlessException err= assertThrows(FearlessException.class,()->Parse.from(SourceOracle.defaultDbgUri(0), input));
-    var rres= err.render(o).stream().map(m->m.msg()).collect(Collectors.joining("\n"));
+    var rres= err.render(o);
     Err.strCmp(expectedErr,rres);
   }  
 @Test void mini(){ok("""
@@ -325,86 +323,43 @@ A:{ .m -> (Block#.let x={5}) .use(5) }
 
 @Test void missingReturnType(){fail("""
 In file: [###]/in_memory0.fear
-While inspecting method signature
-001|A:{ .m(): -> (Block#.let x={5}) .use(x) }
-   |    ^~~~~
-002|
 
-Searching for type name: Unexpected end of group after Colon `:` @1:9.
-While inspecting method declaration
-001|A:{ .m(): -> (Block#.let x={5}) .use(x) }
-   |    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-002|
+001| A:{ .m(): -> (Block#.let x={5}) .use(x) }
+   | ----~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~--
 
-While inspecting type declaration
-001|A:{ .m(): -> (Block#.let x={5}) .use(x) }
-   |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-002|
-
-While inspecting type declaration
-001|A:{ .m(): -> (Block#.let x={5}) .use(x) }
-   |^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-002|
-
-Error 2  EndOfGroup
+While inspecting method signature > method declaration > type declaration body > type declaration > full file
+Missing type name. Expected: UppercaseId
+Error 2  UnexpectedToken
 ""","""
 A:{ .m(): -> (Block#.let x={5}) .use(x) }
 """);}
+//TODO: here the right error would be 'invalid expression'
 @Test void useOutOfScope1(){fail("""
 In file: [###]/in_memory0.fear
-While inspecting arguments list
-001|A:{ .m -> (Block#.let x={5}) .use(x) }
-   |                                  ^
-002|
 
+001| A:{ .m -> (Block#.let x={5}) .use(x) }
+   | ----~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~--
+
+While inspecting arguments list > method declaration > type declaration body > type declaration > full file
 Name `x` is not in scope
 No names are in scope here.
 
-While inspecting method declaration
-001|A:{ .m -> (Block#.let x={5}) .use(x) }
-   |    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-002|
-
-While inspecting type declaration
-001|A:{ .m -> (Block#.let x={5}) .use(x) }
-   |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-002|
-
-While inspecting type declaration
-001|A:{ .m -> (Block#.let x={5}) .use(x) }
-   |^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-002|
-
-Error 1  UnexpectedToken
+Error 2  UnexpectedToken
 ""","""
 A:{ .m -> (Block#.let x={5}) .use(x) }
 """);}
 
 
+//TODO: the right error here would be "missing expression". How to get it? 
 @Test void doubleComma(){fail("""
 In file: [###]/in_memory0.fear
-While inspecting method parameters declaration
-001|A:{ .m(a,,b):C }
-   |         ^
-002|
 
-Searching for type name: Unexpected end of group after
-While inspecting method declaration
-001|A:{ .m(a,,b):C }
-   |    ^~~~~~~~~~
-002|
+001| A:{ .m(a,,b):C }
+   | ----~~~~~^~~~~--
 
-While inspecting type declaration
-001|A:{ .m(a,,b):C }
-   |  ^~~~~~~~~~~~~~
-002|
-
-While inspecting type declaration
-001|A:{ .m(a,,b):C }
-   |^~~~~~~~~~~~~~~~
-002|
-
-Error 2  EndOfGroup
+While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
+Missing type name. Expected: UppercaseId
+Error 2  UnexpectedToken
 ""","""
 A:{ .m(a,,b):C }
 """);}

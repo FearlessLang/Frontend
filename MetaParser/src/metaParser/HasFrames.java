@@ -1,3 +1,6 @@
 package metaParser;
 
-public interface HasFrames{ void addFrame(Frame f); }
+public interface HasFrames<S>{
+  S addFrame(Frame f);
+  default S addSpan(Span s){ return this.addFrame(new Frame("",s)); }
+}

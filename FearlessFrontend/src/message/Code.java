@@ -17,11 +17,11 @@ public enum Code{
   
   Err2,//etc, of course with better names
   ;  
-  public FearlessException of(BiFunction<SourceOracle,List<Frame>,List<Message>> f){ return new FearlessException(this, f); }
+  public FearlessException of(BiFunction<SourceOracle,List<Frame>,String> f){ return new FearlessException(this, f); }
   public FearlessException of(String msg){ return this.of((o,fs)->Message.of(o::loadString,fs,msg)); }
   public FearlessException of(Supplier<String> msg){ return this.of((o,fs)->Message.of(o::loadString,fs,msg.get())); }
   
-  public Message toMessage(){
-    return new Message("Error "+this.ordinal()+"  "+this.name(),0);
+  public String toString(){
+    return "Error "+this.ordinal()+"  "+this.name();
   }
 }

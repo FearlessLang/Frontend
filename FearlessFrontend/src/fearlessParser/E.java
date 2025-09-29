@@ -11,7 +11,7 @@ import static offensiveUtils.Require.*;
 record TName(String s, int arity){
   public TName{
     assert arity >= 0 : "arity < 0: "+arity;
-    assert validate(s,"TName", UpId,UnsignedInt, SignedInt, SignedRational, Float, UStr, SStr);
+    assert validate(s,"TName", UppercaseId,UnsignedInt, SignedInt, SignedRational, Float, UStr, SStr);
   }
   public TName withArity(int arity){ return new TName(s,arity); }
 }
@@ -54,7 +54,7 @@ sealed interface E {
   Pos pos();
   <R> R accept(EVisitor<R> v);
   record X(String name, Pos pos) implements E{
-    public X{ assert validate(name, "parameter name",LowerId); }
+    public X{ assert validate(name, "parameter name",LowercaseId); }
     public <R> R accept(EVisitor<R> v){ return v.visitX(this); }
     public String toString(){ return name; }
   }
