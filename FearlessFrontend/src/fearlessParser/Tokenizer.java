@@ -20,7 +20,7 @@ public class Tokenizer extends MetaTokenizer<Token,TokenKind,FearlessException>{
     var res= super.tokenize(line, col);
     res.stream().forEach(t->{
       if(!t.kind().bad()){ return; }
-      throw errFactory().unrecognizedTextAt(new Span(fileName(),t.line(),t.column(),t.line(),t.column()),t.content());
+      throw errFactory().badTokenAt(new Span(fileName(),t.line(),t.column(),t.line(),t.column()),t.kind(),t.content());
     });
     return res;
   }

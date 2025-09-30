@@ -3,6 +3,7 @@ package metaParser;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -40,10 +41,11 @@ record TokenTrees<T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeE
   TK closesMe(TK open,TK close){//null for not valid closing
     return openClose.getOrDefault(open,Map.of()).get(close);
   }
-  Set<TK> closers(TK open){//null for not valid opener
+  List<TK> closers(TK open){//null for not valid opener
     assert openClose.containsKey(open):
       "";
-    return openClose.get(open).keySet();
+    return openClose.get(open).keySet()
+      .stream().sorted(Comparator.comparing(TK::priority)).toList();
   }
   T of(List<T> ts){
     var it= ts.listIterator();
@@ -68,8 +70,9 @@ record Builder<T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeExce
         myOpen().column(),
         Collections.unmodifiableList(output));
     }
-    String openStr= open.kind().toString();//TODO: should we enrich the generics to pass the use Token, they may have methods for pretty printing etc
-    throw ctx.tokenizer().errFactory().unclosedIn(openStr, ctx.spanOf(open,current), ctx.closers(open.kind()));
+    throw new Error("Unreachable");
+    //String openStr= open.content();
+    //throw ctx.tokenizer().errFactory().unclosedIn(openStr, ctx.spanOf(open,current), ctx.closers(open.kind()));
   }
   boolean commit(T open,T t){
     TK end= ctx.closesMe(open.kind(),t.kind());
@@ -82,7 +85,9 @@ record Builder<T extends Token<T,TK>, TK extends TokenKind,E extends RuntimeExce
     }
     boolean regular= !ctx.closers().contains(t.kind());
     if(regular){ return !output.add(t); }
-    String groupLabel= t.kind().toString();
-    throw ctx.tokenizer().errFactory().unopenedIn(groupLabel, ctx.spanOf(open,t));
+    Span s= ctx.spanOf(open,t);
+    boolean eof= t.kind().equals(ctx.tokenizer().eof());
+    if(!eof){ throw ctx.tokenizer().errFactory().unopenedIn(t.content(), s); } 
+    throw ctx.tokenizer().errFactory().unclosedIn(open.content(), s, ctx.closers(open.kind()));    
   }
 }

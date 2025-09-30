@@ -18,6 +18,8 @@ public abstract class MetaTokenizer<T extends Token<T,TK>, TK extends TokenKind,
   private int pos;
   private int line;
   private int col;
+  public TK sof(){ return sof; }
+  public TK eof(){ return eof; }
   //the true tokens, ignore any special marker
   public MetaTokenizer(URI fileName, String input, List<TK> tks, TK sof, TK eof){
     this.sof= sof;

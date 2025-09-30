@@ -73,9 +73,9 @@ public enum TokenKind implements metaParser.TokenKind {
   //[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F:\\x7C#]
   //forbid:  /*   */   //
   //(?!/\\x2A|\\x2A/|//)
-  BadOpDigit( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C#])*[\\x2B\\x2D](?=\\d)" ),
-  BadOpLine ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C#])*\\x7C(?=[\\x22'])" ),
-  Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C#])+" ),
+  BadOpDigit( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])*[\\x2B\\x2D](?=\\d)" ),
+  BadOpLine ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])*\\x7C(?=[\\x22'])" ),
+  Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+" ),
   //IMPORTANT: BadOp* must precede Op so bad forms win ties of equal length.
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases  
   _XId("_*[A-Z][A-Za-z0-9_]*`*"),
@@ -99,7 +99,7 @@ public enum TokenKind implements metaParser.TokenKind {
   }
   @Override public TokenMatch matcher(){ return match; }
   @Override public boolean hidden(){ return hidden; }
-  public boolean ignored(){ return this.name().startsWith("_"); }
+  public boolean syntetic(){ return this.name().startsWith("_"); }
   public boolean bad(){ return this.name().startsWith("Bad"); }
   @Override public String toString(){ return displayName; }
   @Override public int priority(){ return this.ordinal(); }

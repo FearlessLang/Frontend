@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import metaParser.Span;
+
 public class Parse {
-  public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t->!t.ignored()).toList();
+  public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t->!t.syntetic()).toList();
   public static final Map<TokenKind,Map<TokenKind,TokenKind>> map= Map.of(
       _SOF,Map.of(_EOF,_All),
       ORound,Map.of(CRound,_RoundGroup),
@@ -18,7 +20,7 @@ public class Parse {
   public static FileFull from(URI fileName,String input){
     input= input.replace("\r\n", "\n").replace("\r", "\n");
     if (!input.isEmpty() && input.charAt(0) == '\uFEFF'){ input = input.substring(1); }
-    new Validate().of(input);
+    new Validate(fileName).of(input);
     var t= new Tokenizer(fileName,input,kinds, _SOF, _EOF);
     var all= t.tokenize(map,1,1);
     var p= new Parser(all.span(),new Names(List.of(),List.of()),all.tokenTree());
@@ -39,13 +41,14 @@ public class Parse {
     "`'\"!?@#$%^&_|~\\" +
     " \n";
   static class Validate{
-    int line = 1; int col = 1;
+    final URI file; int line = 1; int col = 1;
+    Validate(URI file){ this.file = file; }
     void of(String src){ src.codePoints().forEach(this::ofSingle); }
     void ofSingle(int cp){
       boolean ok= allowed.indexOf(cp) >= 0;
       if (!ok){
-        var err= "Illegal character " + String.format("U+%04X", cp) + " at line=" + line + ", col=" + col;
-        throw new IllegalArgumentException(err);
+        var at = new Span(file, line, col, line, col);
+        throw new message.FearlessErrFactory().illegalCharAt(at, cp);
       }
       if (cp == '\n'){ line++; col = 1; } else { col++; }
     }

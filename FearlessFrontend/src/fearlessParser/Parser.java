@@ -53,6 +53,9 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
          peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup), t->t.is(Colon))
       || peekOrder(t->t.isTypeName(), t->t.is(Colon));
     if(isDec){ return new E.DeclarationLiteral(rc,parseDeclaration()); }
+    if(!peek(Token.typeName)){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
+    //the expect above is guaranteed to go in error, the list of tokens is cherry picked to produce
+    //and intuitive error message
     return parseTypedLiteral(rc);
   }
   RC parseRC(){ return RC.valueOf(expect("reference capability",RCap).content()); }
@@ -123,7 +126,7 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     var res= parseGroup("nominalPattern",Parser::parseDestruct);
     var errSpaceBeforeId= peek(LowercaseId,UnsignedInt,UppercaseId);
     if(!errSpaceBeforeId){return res;}
-    throw errFactory().spaceBeforeId(span(peek().get()).get());
+    throw errFactory().spaceBeforeId(span(peek().get()).get(),peek().get().content());
   }
   XPat.Destruct parseDestruct(){
     expect("nominal pattern",OCurly);
@@ -199,11 +202,24 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     };
     return xp.get().accept(v);
   }
+  String repeated(List<String> ss){
+    var seen= new java.util.HashSet<String>();
+    for (var s : ss){ if (!seen.add(s)){ return s; } }
+    return "";
+  }
+  void checkValidNew_xs(List<String> xs){
+    var x= repeated(xs);
+    if (!x.isEmpty()){ throw errFactory().duplicateParamInMethodSignature(span(), x); }
+  }
+  void checkValidNew_Xs(List<String> Xs){
+    var x= repeated(Xs);
+    if (!x.isEmpty()){ throw errFactory().duplicateGenericInMethodSignature(span(), x); }
+  }  
   M parseMethod(){//assumes to be called on only the tokens of this specific method
     Optional<Sig> sig= parseUpTo("method signature",arrowSkip,Parser::parseSig);
     if(sig.isPresent()){
-      var xs=sig.get().parameters().stream().flatMap(p->xsOf(p.xp())).toList();
-      var Xs=sig.get().bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
+      var xs= sig.get().parameters().stream().flatMap(p->xsOf(p.xp())).toList();
+      var Xs= sig.get().bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
       updateNames(names.add(xs,Xs));
       return new M(sig,of(parseE()));
     }
@@ -223,6 +239,12 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
       :parseNakedParameters();
     Optional<T> t= parseOptT();
     m = m.map(_m->_m.withArity(ps.size()));
+    
+    var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();
+    var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
+    checkValidNew_xs(xs);
+    checkValidNew_Xs(Xs);
+
     return new Sig(rc,m,bs,hasPar,ps,t);
   }
   List<Parameter> parseNakedParameters(){
@@ -283,7 +305,6 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     return parseE();
     }
   boolean isTName(Token t){ return t.is(UppercaseId,Float,SignedInt,UnsignedInt,SignedRational,SStr,UStr) && !names.XIn(t.content()); }
-  boolean isX(Token t){ return t.is(UppercaseId) && names.XIn(t.content()); }
   Pos pos(){ return new Pos(span().fileName(),span().startLine(),span().startCol()); }
   Pos pos(Token t){ return new Pos(span().fileName(),t.line(),t.column()); }
   <R> Optional<R> parseIf(boolean cond, Supplier<R> s){
@@ -305,10 +326,6 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
       var t= expectAny("");
       if(t.is(Comma) && !peek(RCap)){ return 1; }
     }
-    return 0;
-  }
-  int onSequence(TokenKind... kinds){
-    while(peek(kinds)){ expectAny(""); }
     return 0;
   }
   NextCut<Parser,Token,TokenKind,FearlessException> commaSkip=  p->p.splitOn(Skipped,Comma);

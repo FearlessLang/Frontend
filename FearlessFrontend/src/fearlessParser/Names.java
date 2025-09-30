@@ -13,11 +13,15 @@ record Names(List<String> xs, List<String> Xs){
   boolean xIn(String x){ return xs.contains(x); }
   boolean XIn(String X){ return Xs.contains(X); }
   Names add(List<String> xs, List<String> Xs){
+    assert compatible(xs,Xs);
     return new Names(Push.of(this.xs(),xs),Push.of(this.Xs(),Xs));
   }
   Names addXs(List<String> Xs){
+    assert compatible(List.of(),Xs);
     return new Names(xs,Push.of(this.Xs(),Xs));
   }
+  //TODO: this, or some variant of this should be used to get good errors before
+  //adding new bindings
   boolean compatible(List<String> xs, List<String> Xs){
     return xs.stream().distinct().count() == (long)xs.size()
       &&   Xs.stream().distinct().count() == (long)Xs.size()

@@ -63,7 +63,8 @@ public abstract class MetaParser<
   @SafeVarargs
   public final T expect(String what,TK... kinds){
     var t= peek();
-    if (t.isEmpty()){ throw errFactory().missing(spanLast(),what,List.of(kinds)); }
+    if (t.isEmpty()){ throw errFactory()
+      .missing(spanLast(),what,List.of(kinds)); }
     var tt= t.get();
     var allowed= tt.is(kinds);
     if (!allowed){ throw errFactory().missingButFound(remainingSpan(),what,tt.content(),List.of(kinds)); }
@@ -292,7 +293,10 @@ public abstract class MetaParser<
     if (limit - 1 < 0){ return span; }
     return span(ts.get(limit - 1)).orElse(span); 
   }
-  public Span remainingSpan(){ return span(ts.get(index),ts.get(limit)).orElse(span); }
+  public Span remainingSpan(){
+    if(end()){ return spanLast(); }
+    return span(ts.get(index),ts.get(limit-1)).orElse(span); 
+  }
   public Optional<Span> span(T low, T high){//not equal to span(List.of(low,high))
     return firstLeaf(low)
       .flatMap(first->lastLeaf(high)

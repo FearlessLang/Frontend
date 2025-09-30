@@ -1,6 +1,6 @@
 package fearlessParser;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -328,12 +328,11 @@ In file: [###]/in_memory0.fear
    | ----~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
-Missing type name. Expected: UppercaseId
+Missing type name. Expected: "TypeName"
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(): -> (Block#.let x={5}) .use(x) }
 """);}
-//TODO: here the right error would be 'invalid expression'
 @Test void useOutOfScope1(){fail("""
 In file: [###]/in_memory0.fear
 
@@ -349,8 +348,6 @@ Error 2  UnexpectedToken
 A:{ .m -> (Block#.let x={5}) .use(x) }
 """);}
 
-
-//TODO: the right error here would be "missing expression". How to get it? 
 @Test void doubleComma(){fail("""
 In file: [###]/in_memory0.fear
 
@@ -358,11 +355,341 @@ In file: [###]/in_memory0.fear
    | ----~~~~~^~~~~--
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
-Missing type name. Expected: UppercaseId
+Missing type name. Expected: "TypeName"
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(a,,b):C }
 """);}
+
+@Test void doubleCommaArg(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m(x:C):C->x.foo(,) }
+   | ----~~~~~~~~~~~~~~~~~^~--
+
+While inspecting arguments list > method declaration > type declaration body > type declaration > full file
+Missing expression. Expected: "name", "TypeName", "(", "{"
+Error 2  UnexpectedToken
+""","""
+A:{ .m(x:C):C->x.foo(,) }
+""");}
+
+@Test void err_illegal_tab_char(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{      .m(x:C):C->x.foo(,) }
+   |     ^^^^
+
+While inspecting the file
+Illegal character [TAB 0x09]
+Error 2  UnexpectedToken
+""","""
+A:{ \t .m(x:C):C->x.foo(,) }
+""");}
+
+@Test void err_unclosed_curly_in_decl(){fail("""
+In file: [###]in_memory0.fear
+
+001| A:{
+   |   ^
+
+While inspecting the file
+File ended while parsing "{".
+Expected one of: "}id", "}"
+Error 0  Unclosed
+""","""
+A:{
+""");}
+
+@Test void err_unclosed_curly_long(){fail("""
+In file: [###]in_memory0.fear
+
+001|   { fdfdds
+   | ... 0 lines ...
+001| A:{ fdfdds
+   |
+   | ... 6 lines ...
+008| fff
+
+While inspecting the file
+File ended while parsing "{".
+Expected one of: "}id", "}"
+Error 0  Unclosed
+""","""
+A:{ fdfdds
+dsdds
+fssdf
+sdf()fg
+g
+
+  gg
+fff
+""");}
+
+@Test void err_unopened_curly_top(){fail("""
+In file: [###]in_memory0.fear
+
+001| A: a b c } f e
+   | ^^^^^^^^^^
+
+While inspecting the file
+Unopened "}"
+Error 1  Unopened
+""","""
+A: a b c } f e
+""");}
+@Test void err_bad_expr(){fail("""
+In file: [###]in_memory0.fear
+
+001| A:{ .m -> :+45 }
+   | ----~~~~~~^^^^--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Missing expression.
+Found instead: ":".
+But that is not one of : "name", "TypeName", "(", "{"
+Error 2  UnexpectedToken
+""","""
+A:{ .m -> :+45 }
+""");}
+@Test void err_bad_open_square_with_space(){fail("""
+In file: [###]in_memory0.fear
+
+001| A:{ x -> x.foo [read] }
+   |                ^
+
+While inspecting the file
+Unrecognized text "[".
+`[` here is parsed as a generic/RC argument opener and must follow the name with no space.
+Write `Foo[Bar]` not `Foo [Bar]`.
+Write `x.foo[read]` not `x.foo [read]`.
+
+Error 2  UnexpectedToken
+""","""
+A:{ x -> x.foo [read] }
+""");}
+@Test void err_bad_op_line_pipe_before_quote(){fail("""
+In file: [###]in_memory0.fear
+
+001| A:{ .m -> +|'a'
+   |           ^
+
+While inspecting the file
+Unrecognized text "+|".
+A '|' immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
+Operators can also contain `|`, making it ambiguous what, for example, `<--|'foo'` means.
+It could be the `<--` operator followed by `|'foo'` but also the `<--|` operator followed by `'foo'`.
+Please add spaces to clarify:  `<--| 'foo'`   or   `<-- |'foo'`
+
+Error 2  UnexpectedToken
+""","""
+A:{ .m -> +|'a'
+  }
+""");}
+@Test void err_disallowed_readH_on_closure(){fail("""
+In file: [###]in_memory0.fear
+
+001| A:{ .m -> readH +5{} }
+   | ----~~~~~~^^^^^~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Capability readH used.
+Capabilities readH and mutH are not allowed on closures
+Use one of read, mut, imm, iso.
+
+Error 2  UnexpectedToken
+""","""
+A:{ .m -> readH +5{} }
+""");}
+@Test void err_disallowed_mutH_on_closure(){fail("""
+In file: [###]in_memory0.fear
+
+001| A:{ .m -> mutH -5{} }
+   | ----~~~~~~^^^^~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Capability mutH used.
+Capabilities readH and mutH are not allowed on closures
+Use one of read, mut, imm, iso.
+
+Error 2  UnexpectedToken
+""","""
+A:{ .m -> mutH -5{} }
+""");}
+@Test void err_missing_expr_after_eq_sugar(){fail("""
+In file: [###]in_memory0.fear
+
+001| A:{ .m -> Block#.let x= .use(x) }
+   | ----~~~~~~~~~~~~~~~~~~~~^^^^^^^--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Missing expression after `=` in the equals sugar.
+Use: `.m x = expression` or `.m {a,b} = expression`.
+
+Error 2  UnexpectedToken
+""","""
+A:{ .m -> Block#.let x= .use(x) }
+""");}
+
+@Test void err_name_redeclared_param(){fail("""
+In file: [###]in_memory0.fear
+
+001| A:{ .m(x,x) -> x }
+   | ----^^^^^^^~~~~~--
+
+While inspecting method signature > method declaration > type declaration body > type declaration > full file
+A method signature cannot declare multiple parameters with the same name
+Parameter `x` is repeated
+Error 2  UnexpectedToken
+""","""
+A:{ .m(x,x) -> x }
+""");}
+
+//@Test void err_generic_not_in_scope_in_sig(){fail("""
+//""","""
+//A:{ .m(x:X):X -> x }
+//""");}//NOPE, that becomes just a type name
+
+@Test void err_type_name_conflicts_with_generic_in_impl(){fail("""
+In file: [###]in_memory0.fear
+
+001| A[X]: X {}
+   | ------^---
+
+While inspecting super types declaration > type declaration > full file
+Name `X` is used as a type name, but  `X` is already a generic type parameter in scope
+Error 2  UnexpectedToken
+""","""
+A[X]: X {}
+""");}
+
+@Test void err_bad_generic_bound_operator(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A[X:***]:{}
+   | --~~^^^----
+
+While inspecting generic bounds declaration > type declaration > full file
+Invalid bound for generic X
+Only '*' or '**' are allowed here
+Write: X:*   meaning mut,read,imm
+   or: X:**  meaning everything
+
+Error 2  UnexpectedToken
+""","""
+A[X:***]:{}
+""");}
+
+@Test void err_name_redeclared_param2(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m(x,x) -> x }
+   | ----^^^^^^^~~~~~--
+
+While inspecting method signature > method declaration > type declaration body > type declaration > full file
+A method signature cannot declare multiple parameters with the same name
+Parameter `x` is repeated
+Error 2  UnexpectedToken
+""","""
+A:{ .m(x,x) -> x }
+""");
+}
+
+@Test void err_space_before_destruct_id(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m({.a} Bob:X):X }
+   | -------~~~~~^^^~~-----
+
+While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
+Found spacing between closed curly and destruct id "Bob".
+There need to be no space between the closed curly and the destruct id.
+Error 2  UnexpectedToken
+""","""
+A:{ .m({.a} Bob:X):X }
+""");
+}
+
+@Test void err_illegal_nbsp_char(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{·.m():X }
+   |    ^
+
+While inspecting the file
+Illegal character [NBSP 0x00A0]
+Error 2  UnexpectedToken
+""",
+"A:{\u00A0.m():X }");
+}
+
+//U+200D first, then NBSP, BOM, RLO
+@Test void err_illegal_zwj_char_and_more(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{\u00B7\u00B7\uFFFD\uFFFD.m():X }
+   |    ^
+
+While inspecting the file
+Illegal character [ZWJ 0x200D]
+Error 2  UnexpectedToken
+""",
+"A:{\u200D\u00A0\uFEFF\u202E.m():X }");
+}
+
+//U+202E first, then NBSP, ZWJ, ZWNJ
+@Test void err_illegal_rlo_char_and_more(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{\uFFFD\u00B7\u00B7\u00B7.m():X }
+   |    ^
+
+While inspecting the file
+Illegal character [RLO 0x202E]
+Error 2  UnexpectedToken
+""",
+"A:{\u202E\u00A0\u200D\u200C.m():X }");
+}
+
+// U+FEFF first, then ZWSP, IDEOGRAPHIC SPACE
+@Test void err_illegal_bom_char_and_more(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{\uFFFD\u00B7\u00B7.m():X }
+   |    ^
+
+While inspecting the file
+Illegal character [BOM 0xFEFF]
+Error 2  UnexpectedToken
+""",
+"A:{\uFEFF\u200B\u3000.m():X }");
+}
+// U+3000 first, then ZWSP, RLM, NBSP
+@Test void err_illegal_ideographic_space_and_more(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{\u00B7\u00B7\uFFFD\u00B7.m():X }
+   |    ^
+
+While inspecting the file
+Illegal character [IDEOGRAPHIC SPACE 0x3000]
+Error 2  UnexpectedToken
+""",
+"A:{\u3000\u200B\u200F\u00A0.m():X }");
+}
+// 😀 first, then NBSP, ZWJ
+@Test void err_illegal_emoji_and_more(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{\uFFFD\u00B7\u00B7.m():X }
+   |    ^
+
+While inspecting the file
+Illegal character "\\uD83D\\uDE00"
+Error 2  UnexpectedToken
+""",
+"A:{\uD83D\uDE00\u00A0\u200D.m():X }");
+}
 
 
 //A:{ .m(): -> ::.two( Block#.let x={5}, x ) }

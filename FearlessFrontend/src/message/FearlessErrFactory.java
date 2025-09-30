@@ -10,36 +10,20 @@ import fearlessParser.Token;
 import fearlessParser.TokenKind;
 import metaParser.ErrFactory;
 import metaParser.Frame;
+import metaParser.Message;
 import metaParser.Span;
 import static offensiveUtils.Require.*;
 
 public final class FearlessErrFactory implements ErrFactory<FearlessException,TokenKind>{
   private static String maybe(String prefix, boolean cond, String tail){ return cond ? prefix + tail : ""; }
-  private static String joinOrEmpty(Collection<? extends Object> items){
-    return items.isEmpty() ? "" : items.stream().map(Object::toString).collect(Collectors.joining(", "));
-  }
-  @Override public FearlessException illegalCharAt(Span at, String what){
-    String head= what.isBlank()
-      ? "Illegal character"
-      : "Illegal character in " + what;
+
+  @Override public FearlessException illegalCharAt(Span at, int cp){
+    String head= "Illegal character "+Message.displayChar(cp);
     return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
   }
-  @Override public FearlessException unrecognizedTextAt(Span at, String what){
-    String head= what.isBlank()
-      ? "Unrecognized text"
-      : "Unrecognized text in " + what;
-    return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
-  }
-  @Override public FearlessException unclosedIn(String what, Span openedAt, Collection<TokenKind> expectedClosers){
-    assert nonNull(what, openedAt, expectedClosers);
-    String exp= joinOrEmpty(expectedClosers);
-    String head= "Unclosed " + what;
-    String msg= head + maybe(". Expected one of: ", !exp.isEmpty(), exp);
-    return Code.Unclosed.of(msg).addSpan(openedAt);
-  }
-  @Override public FearlessException unopenedIn(String groupLabel, Span closerAt){
-    assert nonNull(groupLabel, closerAt);
-    String head= "Unopened " + groupLabel;
+  @Override public FearlessException unopenedIn(String what, Span closerAt){
+    assert nonNull(what, closerAt);
+    String head= "Unopened " + Message.displayString(what);
     return Code.Unopened.of(head).addSpan(closerAt);
   }
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels){
@@ -53,8 +37,8 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
     assert nonNull(at,what,expectedLabels);
     String exp= joinOrEmpty(expectedLabels);
     String msg= "Missing " + (what.isBlank() ? "element" : what)
-      +" at " + at+". Found instead: "+ found
-      + maybe(". But that is not one of : ", !expectedLabels.isEmpty(), exp);
+      +".\nFound instead: "+ Message.displayString(found)+"."
+      + maybe("\nBut that is not one of : ", !expectedLabels.isEmpty(), exp);
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   @Override public FearlessException extraContent(Span from){
@@ -74,7 +58,7 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
   public FearlessException disallowedReadHMutH(Span at, RC rc){
     return Code.UnexpectedToken.of(
       "Capability "+rc+"""
-      used.
+       used.
       Capabilities readH and mutH are not allowed on closures
       Use one of read, mut, imm, iso.      
       """).addSpan(at);
@@ -93,26 +77,29 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
     return Code.UnexpectedToken.of("Name `"+c.content()+"` already in scope").addSpan(at);
   }
   public FearlessException typeNameConflictsGeneric(Token name, Span at){
-    return Code.UnexpectedToken.of("Type name `"+name.content()+"` conflicts with a generic parameter in scope").addSpan(at);
+    return Code.UnexpectedToken.of("Name `"+name.content()+"` is used as a type name, but  `"+name.content()+"` is already a generic type parameter in scope").addSpan(at);
   }
   public FearlessException missingExprAfterEq(Span at){
     return Code.UnexpectedToken.of("""
-      Missing expression after `=` in continuation-passing sugar
-      Use: `.m x = expr` or `.m {a,b}= expr`
-      The variable(s) are only in scope for the remaining posts of this call chain.
+      Missing expression after `=` in the equals sugar.
+      Use: `.m x = expression` or `.m {a,b} = expression`.
       """).addSpan(at);
   }
   public FearlessException parameterNameExpected(Span at){
     return Code.UnexpectedToken.of("Parameter name expected").addSpan(at);
   }
-  public FearlessException spaceBeforeId(Span at){
-    return Code.UnexpectedToken.of("no space between closed curly and destruct id").addSpan(at);
+  public FearlessException spaceBeforeId(Span at, String id){
+    return Code.UnexpectedToken.of(
+      "Found spacing between closed curly and destruct id \""+ id+"\"."
+      +"\nThere need to be no space between the closed curly and the destruct id.")
+      .addSpan(at);
   }
   public FearlessException badBound(String name, Span at){
     return Code.UnexpectedToken.of("Invalid bound for generic "+name+"""
+      
       Only '*' or '**' are allowed here
-      Write: X:*   // inferred mut,read,imm
-         or: X:**  // inferred everything"
+      Write: X:*   meaning mut,read,imm
+         or: X:**  meaning everything
       """).addSpan(at);
   }
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
@@ -121,6 +108,26 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
       (Xs.isEmpty()
         ? "No generic parameters are declared here."
         : "Declared generics: " + String.join(", ", Xs))).addSpan(at);
+  }
+  public FearlessException duplicateParamInMethodSignature(Span at, String name){
+    return Code.UnexpectedToken.of("""
+      A method signature cannot declare multiple parameters with the same name
+      Parameter `"""+name+"""
+      ` is repeated""").addSpan(at);
+  }
+  public FearlessException duplicateGenericInMethodSignature(Span at, String name){
+    return Code.UnexpectedToken.of("""
+      A method signature cannot declare multiple generic type parameters with the same name
+      Generic type parameter `"""+name+"""
+      ` is repeated""").addSpan(at);
+  }
+  @Override public FearlessException unclosedIn(String what, Span openedAt, Collection<TokenKind> expectedClosers){
+    assert nonNull(what, openedAt, expectedClosers);
+    String exp= joinOrEmpty(expectedClosers);
+    String msg=
+      "File ended while parsing " + Message.displayString(what) + "."
+     + maybe("\nExpected one of: ", !exp.isEmpty(), exp);
+    return Code.Unclosed.of(msg).addSpan(openedAt);
   }
   private static Optional<String> suggest(String bad, Collection<String> pool){
     int best = Integer.MAX_VALUE;
@@ -144,5 +151,91 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
       }
     }
     return dp[n][m];
+  }
+  private static String joinOrEmpty(Collection<? extends Object> items){
+    if (items.isEmpty()){ return ""; }
+    return items.stream()
+      .map(FearlessErrFactory::labelOf)
+      .collect(Collectors.joining(", "));
+  }
+
+  private static String labelOf(Object o){
+    if (!(o instanceof fearlessParser.TokenKind tk)){ return String.valueOf(o); }
+    var res= switch (tk) {
+      case ORound -> "(";
+      case CRound -> ")";
+      case OCurly -> "{";
+      case CCurly -> "}";
+      case CCurlyId -> "}id";
+      case OSquareArg -> "[";
+      case CSquare -> "]";
+      case Comma -> ",";
+      case SemiColon -> ";";
+      case ColonColon -> "::";
+      case Colon -> ":";
+      case Eq -> "=";
+      case BackTick -> "`";
+      case Arrow -> "->";
+      case DotName -> ".name";
+      case LowercaseId -> "name";
+      case UppercaseId -> "TypeName";
+      case UStr -> "\"...\"";
+      case SStr -> "'...'";
+      case UStrLine -> "|\"...";
+      case SStrLine -> "|'...";
+      case UStrInterHash -> "#|\"...";
+      case SStrInterHash -> "#|'...";
+      case RCap -> "reference capability";
+      case ReadImm -> "read/imm";
+      default -> tk.name();
+    };
+    return Message.displayString(res);
+  }
+  /*@Override public FearlessException unrecognizedTextAt(Span at, String what){
+    String head= what.isBlank()
+      ? "Unrecognized text."
+      : "Unrecognized text " + Message.displayString(what)+".";
+    return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
+  }*/
+  public FearlessException badTokenAt(Span at, TokenKind kind, String text){
+    String head = text.isBlank()
+      ? "Unrecognized text."
+      : "Unrecognized text " + Message.displayString(text) + ".";
+
+    String hint = switch (kind) {
+      case BadOpLine -> """
+A '|' immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
+Operators can also contain `|`, making it ambiguous what, for example, `<--|'foo'` means.
+It could be the `<--` operator followed by `|'foo'` but also the `<--|` operator followed by `'foo'`. 
+Please add spaces to clarify:  `<--| 'foo'`   or   `<-- |'foo'`
+""";
+      case BadOpDigit -> """
+An operator followed by a digit is parsed as a signed number (e.g. `+5`, `-3`).
+Operators can also contain `+` and `-`, making it ambiguous what, for example, `<--5` means.
+It could be the `<--` operator followed by `5` but also the `<-` operator followed by `-5`.
+Please add spaces to clarify:  `<-- 5`   or   `<- -5`
+""";
+      case BadOSquare -> """
+`[` here is parsed as a generic/RC argument opener and must follow the name with no space.
+Write `Foo[Bar]` not `Foo [Bar]`.
+Write `x.foo[read]` not `x.foo [read]`.
+""";
+
+      case BadFloat -> """
+Float literals must have a sign and digits on both sides of '.'
+Examples: `+1.0`, `-0.5`, `+12.0e-3`.
+Fearless does not allow float literals of form `1.2` or `.2`
+""";
+
+      case BadRational -> """
+Rational literals must have a sign.
+Examples: `+1/2`, `-3/4`.
+Fearless does not allow rational literals of form `1/2`
+""";
+      default -> null;
+    };
+
+    String msg = (hint == null) ? head : head + "\n" + hint;
+    return Code.UnexpectedToken.of(msg).addSpan(at);
   }
 }
