@@ -337,10 +337,10 @@ A:{ .m(): -> (Block#.let x={5}) .use(x) }
 In file: [###]/in_memory0.fear
 
 001| A:{ .m -> (Block#.let x={5}) .use(x) }
-   | ----~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~--
+   | ----------~~~~~~~~~~~~~~~~~~~~~~~~^~--
 
-While inspecting arguments list > method declaration > type declaration body > type declaration > full file
-Name `x` is not in scope
+While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
+Name "x" is not in scope
 No names are in scope here.
 
 Error 2  UnexpectedToken
@@ -365,9 +365,9 @@ A:{ .m(a,,b):C }
 In file: [###]/in_memory0.fear
 
 001| A:{ .m(x:C):C->x.foo(,) }
-   | ----~~~~~~~~~~~~~~~~~^~--
+   | ---------------~~~~~~^~--
 
-While inspecting arguments list > method declaration > type declaration body > type declaration > full file
+While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression. Expected: "name", "TypeName", "(", "{"
 Error 2  UnexpectedToken
 ""","""
@@ -401,13 +401,12 @@ Error 0  Unclosed
 A:{
 """);}
 
+// \n\ is to avoid autoremoval of leading spaces
 @Test void err_unclosed_curly_long(){fail("""
 In file: [###]in_memory0.fear
 
-001|   { fdfdds
-   | ... 0 lines ...
 001| A:{ fdfdds
-   |
+   | \n\
    | ... 6 lines ...
 008| fff
 
@@ -424,6 +423,164 @@ g
 
   gg
 fff
+""");}
+
+@Test void multi_inside_signature_doubleComma(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{
+002| `self
+003| .m(a,,b):C -> self
+   | ~~~~~^~~~~--------
+004| //comment
+005| }
+
+While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
+Missing type name. Expected: "TypeName"
+Error 2  UnexpectedToken
+""","""
+A:{
+`self
+.m(a,,b):C -> self
+//comment
+}
+""");}
+
+@Test void ok_comma_single_arg(){ok("""
+FileFull[renames=[],decs=[
+Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.m,arity=1]],bs=Optional.empty,hasParenthesis=true,parameters=[
+Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=C,arity=0],ts=Optional.empty]]]]],
+t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=C,arity=0],ts=Optional.empty]]]]],
+body=Optional[Call[Call[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=Block,arity=0],ts=Optional.empty]]]
+MName[s=#,arity=0]false[]]
+MName[s=.let,arity=2]falseName[x=z][Literal[
+M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=5,arity=0],ts=Optional.empty]]]]]]]
+MName[s=.use,arity=1]true[z]]
+MName[s=.use,arity=1]true[z]]]]]]]
+""","""
+A:{
+.m(x:C):C ->
+Block#.let z={5}
+.use(z,)
+.use(z)
+}
+""");}
+@Test void multi_caret_middle_nameNotInScope(){fail("""
+In file: [###]/in_memory0.fear
+
+003| Block#.let x={5}
+004| .use(x)
+005| .use(y)
+   |      ^
+
+While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
+Name "y" is not in scope
+In scope: "x"
+Error 2  UnexpectedToken
+""","""
+A:{
+.m ->
+Block#.let x={5}
+.use(x)
+.use(y)
+}
+""");}
+
+@Test void multi_caret_last_nameNotInScope(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m ->
+003| .use(y)
+   | ^^^^^^^
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Missing expression.
+Found instead: ".use".
+But that is not one of : "name", "TypeName", "(", "{"
+Error 2  UnexpectedToken
+""","""
+A:{
+.m ->
+.use(y)
+}
+""");}
+
+@Test void multi_args_missing_expr_multiline(){fail("""
+In file: [###]/in_memory0.fear
+
+003| x.foo(
+004|  ,)
+   |  ^
+
+While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
+Missing expression. Expected: "name", "TypeName", "(", "{"
+Error 2  UnexpectedToken
+""","""
+A:{
+.m(x:C):C ->
+x.foo(
+ ,)
+}
+""");}
+
+@Test void multi_firstContentLine_nameNotInScope_body(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{//comment1
+002| .m -> y;//removing this semicol should give a clear missing separator error
+   | ^^^^^^^
+003| .n -> {}
+004| /*comment2*/}//comment3
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Name "y" is not in scope
+No names are in scope here.
+
+Error 2  UnexpectedToken
+""","""
+A:{//comment1
+.m -> y;//removing this semicol should give a clear missing separator error
+.n -> {}
+/*comment2*/}//comment3
+""");}
+
+@Test void multi_firstContentLine_nameNotInScope_body2(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{
+002| .m -> y;//removing this semicol should give a clear missing separator error
+   | ^^^^^^^
+003| .n -> {}
+004| }
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Name "y" is not in scope
+No names are in scope here.
+
+Error 2  UnexpectedToken
+""","""
+A:{
+.m -> y;//removing this semicol should give a clear missing separator error
+.n -> {}
+}
+""");}
+
+@Test void multi_firstContentLine_nameNotInScope_body_NoSemi(){fail("""
+In file: [###]/in_memory0.fear
+
+002| .m -> y
+003| .n -> {}
+   |    ^^
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing ";", operator or method name here or before
+Error 6  MissingSeparator
+""","""
+A:{
+.m -> y
+.n -> {}
+}
 """);}
 
 @Test void err_unopened_curly_top(){fail("""
@@ -460,9 +617,9 @@ In file: [###]in_memory0.fear
 
 While inspecting the file
 Unrecognized text "[".
-`[` here is parsed as a generic/RC argument opener and must follow the name with no space.
-Write `Foo[Bar]` not `Foo [Bar]`.
-Write `x.foo[read]` not `x.foo [read]`.
+"[" here is parsed as a generic/RC argument opener and must follow the name with no space.
+Write "Foo[Bar]" not "Foo [Bar]".
+Write "x.foo[read]" not "x.foo [read]".
 
 Error 2  UnexpectedToken
 ""","""
@@ -476,9 +633,9 @@ In file: [###]in_memory0.fear
 
 While inspecting the file
 Unrecognized text "+|".
-A '|' immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
-Operators can also contain `|`, making it ambiguous what, for example, `<--|'foo'` means.
-It could be the `<--` operator followed by `|'foo'` but also the `<--|` operator followed by `'foo'`.
+A "|" immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
+Operators can also contain "|", making it ambiguous what, for example, `<--|'foo'` means.
+It could be the "<--" operator followed by `|'foo'` but also the "<--|" operator followed by `'foo'`.
 Please add spaces to clarify:  `<--| 'foo'`   or   `<-- |'foo'`
 
 Error 2  UnexpectedToken
@@ -492,7 +649,7 @@ In file: [###]in_memory0.fear
 001| A:{ .m -> readH +5{} }
    | ----~~~~~~^^^^^~~~~~--
 
-While inspecting method declaration > type declaration body > type declaration > full file
+While inspecting method body > method declaration > type declaration body > type declaration > full file
 Capability readH used.
 Capabilities readH and mutH are not allowed on closures
 Use one of read, mut, imm, iso.
@@ -507,7 +664,7 @@ In file: [###]in_memory0.fear
 001| A:{ .m -> mutH -5{} }
    | ----~~~~~~^^^^~~~~~--
 
-While inspecting method declaration > type declaration body > type declaration > full file
+While inspecting method body > method declaration > type declaration body > type declaration > full file
 Capability mutH used.
 Capabilities readH and mutH are not allowed on closures
 Use one of read, mut, imm, iso.
@@ -520,11 +677,11 @@ A:{ .m -> mutH -5{} }
 In file: [###]in_memory0.fear
 
 001| A:{ .m -> Block#.let x= .use(x) }
-   | ----~~~~~~~~~~~~~~~~~~~~^^^^^^^--
+   | ----------~~~~~~~~~~~~~~^^^^^^^--
 
-While inspecting method declaration > type declaration body > type declaration > full file
-Missing expression after `=` in the equals sugar.
-Use: `.m x = expression` or `.m {a,b} = expression`.
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Missing expression after "=" in the equals sugar.
+Use: ".m x = expression" or ".m {a,b} = expression".
 
 Error 2  UnexpectedToken
 ""","""
@@ -539,7 +696,7 @@ In file: [###]in_memory0.fear
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple parameters with the same name
-Parameter `x` is repeated
+Parameter "x" is repeated
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(x,x) -> x }
@@ -557,7 +714,7 @@ In file: [###]in_memory0.fear
    | ------^---
 
 While inspecting super types declaration > type declaration > full file
-Name `X` is used as a type name, but  `X` is already a generic type parameter in scope
+Name "X" is used as a type name, but  "X" is already a generic type parameter in scope
 Error 2  UnexpectedToken
 ""","""
 A[X]: X {}
@@ -588,7 +745,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple parameters with the same name
-Parameter `x` is repeated
+Parameter "x" is repeated
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(x,x) -> x }

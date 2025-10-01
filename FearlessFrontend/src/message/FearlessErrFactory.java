@@ -2,7 +2,6 @@ package message;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import fearlessParser.RC;
@@ -11,6 +10,7 @@ import fearlessParser.TokenKind;
 import metaParser.ErrFactory;
 import metaParser.Frame;
 import metaParser.Message;
+import metaParser.NameSuggester;
 import metaParser.Span;
 import static offensiveUtils.Require.*;
 
@@ -65,24 +65,23 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
   }
   public FearlessException nameNotInScope(Token name, Span at, Collection<String> inScope){
     return Code.UnexpectedToken.of(() -> {
-      var maybe= suggest(name.content(), inScope);
+      var maybe= NameSuggester.suggest(name.content(), inScope);
       var scope= inScope.isEmpty()
         ? "No names are in scope here.\n"
-        : "In scope: " + String.join(", ", inScope) + "\n";
-      return "Name `"+name.content()+"` is not in scope\n" + scope
-        + maybe.map(s -> "did you mean `"+s+"` ?").orElse("");
+        : maybe.orElse("");
+      return "Name "+Message.displayString(name.content())+" is not in scope\n" + scope;
     }).addSpan(at);
   }
   public FearlessException nameRedeclared(Token c, Span at){
-    return Code.UnexpectedToken.of("Name `"+c.content()+"` already in scope").addSpan(at);
+    return Code.UnexpectedToken.of("Name "+Message.displayString(c.content())+" already in scope").addSpan(at);
   }
   public FearlessException typeNameConflictsGeneric(Token name, Span at){
-    return Code.UnexpectedToken.of("Name `"+name.content()+"` is used as a type name, but  `"+name.content()+"` is already a generic type parameter in scope").addSpan(at);
+    return Code.UnexpectedToken.of("Name "+Message.displayString(name.content())+" is used as a type name, but  "+Message.displayString(name.content())+" is already a generic type parameter in scope").addSpan(at);
   }
   public FearlessException missingExprAfterEq(Span at){
     return Code.UnexpectedToken.of("""
-      Missing expression after `=` in the equals sugar.
-      Use: `.m x = expression` or `.m {a,b} = expression`.
+      Missing expression after "=" in the equals sugar.
+      Use: ".m x = expression" or ".m {a,b} = expression".
       """).addSpan(at);
   }
   public FearlessException parameterNameExpected(Span at){
@@ -104,22 +103,20 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
   }
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
     return Code.UnexpectedToken.of(() ->
-      "Generic type `"+X.content()+"` is not in scope\n" +
+      "Generic type "+Message.displayString(X.content())+" is not in scope\n" +
       (Xs.isEmpty()
         ? "No generic parameters are declared here."
         : "Declared generics: " + String.join(", ", Xs))).addSpan(at);
   }
   public FearlessException duplicateParamInMethodSignature(Span at, String name){
-    return Code.UnexpectedToken.of("""
-      A method signature cannot declare multiple parameters with the same name
-      Parameter `"""+name+"""
-      ` is repeated""").addSpan(at);
+    return Code.UnexpectedToken.of(
+      "A method signature cannot declare multiple parameters with the same name\n"
+      +"Parameter "+Message.displayString(name)+" is repeated").addSpan(at);
   }
   public FearlessException duplicateGenericInMethodSignature(Span at, String name){
-    return Code.UnexpectedToken.of("""
-      A method signature cannot declare multiple generic type parameters with the same name
-      Generic type parameter `"""+name+"""
-      ` is repeated""").addSpan(at);
+    return Code.UnexpectedToken.of(
+      "A method signature cannot declare multiple generic type parameters with the same name\n"
+      +"Generic type parameter "+Message.displayString(name)+" is repeated").addSpan(at);
   }
   @Override public FearlessException unclosedIn(String what, Span openedAt, Collection<TokenKind> expectedClosers){
     assert nonNull(what, openedAt, expectedClosers);
@@ -128,29 +125,6 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
       "File ended while parsing " + Message.displayString(what) + "."
      + maybe("\nExpected one of: ", !exp.isEmpty(), exp);
     return Code.Unclosed.of(msg).addSpan(openedAt);
-  }
-  private static Optional<String> suggest(String bad, Collection<String> pool){
-    int best = Integer.MAX_VALUE;
-    String pick = null;
-    for (var s: pool){
-      int d = dist(bad, s);
-      if (d < best){ best = d; pick = s; }
-    }
-    return (pick != null && best <= Math.max(1, bad.length()/3))
-      ? Optional.of(pick) : Optional.empty();
-  }
-  private static int dist(String a, String b){
-    int n= a.length(), m= b.length();
-    int[][] dp= new int[n+1][m+1];
-    for(int i=0;i<=n;i++) dp[i][0]=i;
-    for(int j=0;j<=m;j++) dp[0][j]=j;
-    for(int i=1;i<=n;i++){
-      for(int j=1;j<=m;j++){
-        int c= (a.charAt(i-1)==b.charAt(j-1)?0:1);
-        dp[i][j]=Math.min(Math.min(dp[i-1][j]+1, dp[i][j-1]+1), dp[i-1][j-1]+c);
-      }
-    }
-    return dp[n][m];
   }
   private static String joinOrEmpty(Collection<? extends Object> items){
     if (items.isEmpty()){ return ""; }
@@ -191,12 +165,17 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
     };
     return Message.displayString(res);
   }
-  /*@Override public FearlessException unrecognizedTextAt(Span at, String what){
+  @Override public FearlessException unrecognizedTextAt(Span at, String what){
     String head= what.isBlank()
       ? "Unrecognized text."
       : "Unrecognized text " + Message.displayString(what)+".";
     return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
-  }*/
+  }
+  public FearlessException missingSemicolonOrOperator(Span at){
+    return Code.MissingSeparator.of(
+      "There is a missing \";\", operator or method name here or before").addFrame(new Frame("", at));
+  }
+
   public FearlessException badTokenAt(Span at, TokenKind kind, String text){
     String head = text.isBlank()
       ? "Unrecognized text."
@@ -204,33 +183,33 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
 
     String hint = switch (kind) {
       case BadOpLine -> """
-A '|' immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
-Operators can also contain `|`, making it ambiguous what, for example, `<--|'foo'` means.
-It could be the `<--` operator followed by `|'foo'` but also the `<--|` operator followed by `'foo'`. 
+A "|" immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
+Operators can also contain "|", making it ambiguous what, for example, `<--|'foo'` means.
+It could be the "<--" operator followed by `|'foo'` but also the "<--|" operator followed by `'foo'`. 
 Please add spaces to clarify:  `<--| 'foo'`   or   `<-- |'foo'`
 """;
       case BadOpDigit -> """
-An operator followed by a digit is parsed as a signed number (e.g. `+5`, `-3`).
-Operators can also contain `+` and `-`, making it ambiguous what, for example, `<--5` means.
-It could be the `<--` operator followed by `5` but also the `<-` operator followed by `-5`.
-Please add spaces to clarify:  `<-- 5`   or   `<- -5`
+An operator followed by a digit is parsed as a signed number (e.g. "+5", "-3").
+Operators can also contain "+" and "-", making it ambiguous what, for example, "<--5" means.
+It could be the "<--" operator followed by "5" but also the "<-" operator followed by "-5".
+Please add spaces to clarify:  "<-- 5"   or   "<- -5"
 """;
       case BadOSquare -> """
-`[` here is parsed as a generic/RC argument opener and must follow the name with no space.
-Write `Foo[Bar]` not `Foo [Bar]`.
-Write `x.foo[read]` not `x.foo [read]`.
+"[" here is parsed as a generic/RC argument opener and must follow the name with no space.
+Write "Foo[Bar]" not "Foo [Bar]".
+Write "x.foo[read]" not "x.foo [read]".
 """;
 
       case BadFloat -> """
 Float literals must have a sign and digits on both sides of '.'
-Examples: `+1.0`, `-0.5`, `+12.0e-3`.
-Fearless does not allow float literals of form `1.2` or `.2`
+Examples: "+1.0", "-0.5", "+12.0e-3".
+Fearless does not allow float literals of form "1.2" or ".2"
 """;
 
       case BadRational -> """
 Rational literals must have a sign.
-Examples: `+1/2`, `-3/4`.
-Fearless does not allow rational literals of form `1/2`
+Examples: "+1/2", "-3/4".
+Fearless does not allow rational literals of form "1/2"
 """;
       default -> null;
     };

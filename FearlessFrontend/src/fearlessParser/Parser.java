@@ -221,14 +221,17 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
       var xs= sig.get().parameters().stream().flatMap(p->xsOf(p.xp())).toList();
       var Xs= sig.get().bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
       updateNames(names.add(xs,Xs));
-      return new M(sig,of(parseE()));
+      return new M(sig,of(parseMethodBody()));
     }
     boolean hasSig= peek(DotName,Op,RCap)
       || peekOrder(t->t.is(RCap), t->t.is(DotName,Op));
     if(!hasSig){ return new M(empty(),of(parseMethodBody())); }
     return new M(of(parseSig()),empty());    
   }
-  E parseMethodBody(){ return  parseRemaining("method body",Parser::parseE); }
+  E parseMethodBody(){
+    guard(Parser::checkAbruptExprEnd);
+    return  parseRemaining("method body",Parser::parseE); 
+    }
   Sig parseSig(){
     var rc= parseOptRC();
     var m= parseIf(peek(DotName,Op),this::parseMName);
@@ -328,6 +331,34 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     }
     return 0;
   }
+  public void checkAbruptExprEnd(){
+    absurd();
+    eatAtom();    
+    while (!end()){ eatPost(); eatAtom(); }
+  }
+  private void absurd(){
+    var absurd= peek(Colon,Arrow);//will add more when we find other absurd cases
+    if(absurd){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
+  }
+  private void eatAtom(){
+    if(peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq))){ expectAny("");expectAny(""); }
+    var simple= peek(LowercaseId,_RoundGroup,ColonColon,_CurlyGroup);
+    if (fwdIf(simple)){ return; }
+    var interp= peek(UStrInterHash,UStrLine,SStrInterHash,SStrLine);
+    if(interp){ while(fwdIf(peek(UStrInterHash,UStrLine,SStrInterHash,SStrLine))){} return; }
+    fwdIf(peek(RCap));
+    fwdIf(peekOrder(t->t.isTypeName()));
+    fwdIf(peek(_SquareGroup));
+    if(fwdIf(peek(Colon))){ while(fwdIf(peek(Comma,UppercaseId,_SquareGroup))){} }
+    fwdIf(peek(_CurlyGroup));
+  }
+  private void eatPost(){
+    if(!hasPost()){
+      throw this.errFactory().missingSemicolonOrOperator(spanAround(index(),index())); }
+    expectAny("");
+    fwdIf(peek(_SquareGroup));
+  }
+
   NextCut<Parser,Token,TokenKind,FearlessException> commaSkip=  p->p.splitOn(Skipped,Comma);
   NextCut<Parser,Token,TokenKind,FearlessException> semiSkip=   p->p.splitOn(Skipped,SemiColon);
   NextCut<Parser,Token,TokenKind,FearlessException> arrowSkip=  p->p.splitOn(Skipped,Arrow);

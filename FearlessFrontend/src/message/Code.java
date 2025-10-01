@@ -14,6 +14,7 @@ public enum Code{
   EndOfGroup,
   ExtraTokenInGroup,
   ProbeError,
+  MissingSeparator,
   
   Err2,//etc, of course with better names
   ;  

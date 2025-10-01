@@ -3,6 +3,7 @@ package metaParser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
@@ -228,6 +229,17 @@ public abstract class MetaParser<
     var res= firstParser.parseAll(frameName, first);
     this.index+= end;//mark the tokens as eaten
     return Optional.of(res);
+  }
+  /** Runs a well-formedness check on the remaining tokens.
+   *  - Runs on a separate parser to protect advance/trim on the outer parser.
+   *  - The check need NOT consume everything.
+   *  - Represent a failed check by throwing E
+   */
+  public void guard(Consumer<P> check){
+    var slice= ts.subList(index, limit);
+    var s= spanAround(index, limit-1);
+    P shadow= make(s, slice);
+    check.accept(shadow);
   }
   public enum SplitMode{Skipped,Left,Right}
   public int splitOn(SplitMode split, TK k){

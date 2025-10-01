@@ -14,9 +14,103 @@ public record Message(String msg,int priority){
   // Rendering constants (mirrors SnippetFormatter defaults you liked)
   private static final int TAB_WIDTH = 4;
   private static final int MIN_LN_WIDTH = 3;
+  //---------
+//inside metaParser.Message
 
+ /** Build the final single-string error message (lines 1..11 as per spec). */
+ public static String of(Function<URI,String> loader, List<Frame> frames, String msg){
+   if (frames == null || frames.isEmpty()) return msg;
+   dbgSpans("RAW FRAMES", frames);
+   // 1) containment (bottom-up clamp)
+   List<Frame> contained = ensureContainment(frames);
+   dbgSpans("AFTER CONTAINMENT", contained);   
+   // 2) invisibleCharacters trimming (shrink both ends to visible)
+   List<Frame> visible = trimInvisible(loader, contained);
+   dbgSpans("AFTER TRIM", visible);
+   // 3) grouping (pick up to 3 single-line spans + first multiline)
+   Grouping g = group(visible);
+
+   // Source + precomputed line-number width
+   String src = Objects.requireNonNull(loader.apply(g.file()));
+   String[] lines = splitLines(src);
+   int width = lineNumberWidth(lines.length);
+
+   // 4) single-line caret (on caretLine) using - ~ ^ for outer/mid/inner
+   String caretLine = makeCaretLine(lines, g, width);
+
+   // 5) final render
+   String body = (g.multiLine() != null)
+     ? renderMulti(lines, g, width, caretLine)   // << changed: use new renderer
+     : renderTwo(lines, g, width, caretLine);
+
+   // Header (line 1), blank (line 2)
+   String header= "In file: " + PrettyFileName.displayFileName(g.file());
+
+   String framesLine= "While inspecting " + frames.stream()
+     .filter(f->!f.name().isBlank()).map(Frame::name)
+     .collect(Collectors.joining(" > "));
+   if(framesLine.length()=="While inspecting ".length()){
+     framesLine= "While inspecting the file";
+   }
+   return header + "\n\n" + body + "\n\n" + framesLine + "\n" + msg;
+ }
+
+
+  private static String numbered(String[] lines, int lineNum, int width){
+    String raw = get(lines, lineNum);
+    String display = expandTabs(raw, TAB_WIDTH);
+    return padLineNum(lineNum, width) + '|' + ' ' + display;
+  }
+
+/*private static String renderMulti(String[] lines, Grouping g, int width, String caretLine){
+ Span group = g.multiLine();
+ int start = group.startLine();
+ int end   = group.endLine();
+ int caret = g.caretLine();
+
+ int beforeCount = caret - start - 1;         // lines strictly between start..caret
+ int afterCount  = end   - caret - 1;         // lines strictly between caret..end
+
+ boolean caretAtStart = caret == start;
+ boolean caretAtEnd   = caret == end;
+
+ if (caretAtStart){
+   // 4 lines
+   String l1 = numberedCaret(lines, caret, width);
+   String l2 = caretLine;
+   String l3 = (afterCount == 1)
+     ? numbered(lines, caret + 1, width)
+     : elided(width, afterCount);
+   String l4 = numbered(lines, end, width);
+   return String.join("\n", l1, l2, l3, l4);
+ } else if (caretAtEnd){
+   // 4 lines
+   String l1 = numbered(lines, start, width);
+   String l2 = (beforeCount == 1)
+     ? numbered(lines, caret - 1, width)
+     : elided(width, beforeCount);
+   String l3 = numberedCaret(lines, caret, width);
+   String l4 = caretLine;
+   return String.join("\n", l1, l2, l3, l4);
+ } else {
+   // caret strictly inside -> 6 lines
+   String l1 = numbered(lines, start, width);
+   String l2 = (beforeCount == 1)
+     ? numbered(lines, caret - 1, width)
+     : elided(width, beforeCount);
+   String l3 = numberedCaret(lines, caret, width);
+   String l4 = caretLine;
+   String l5 = (afterCount == 1)
+     ? numbered(lines, caret + 1, width)
+     : elided(width, afterCount);
+   String l6 = numbered(lines, end, width);
+   return String.join("\n", l1, l2, l3, l4, l5, l6);
+ }
+}
+  */
+  
   /** Build the final single-string error message (lines 1..11 as per spec). */
-  public static String of(Function<URI,String> loader, List<Frame> frames, String msg){
+  /*public static String of(Function<URI,String> loader, List<Frame> frames, String msg){
     if (frames == null || frames.isEmpty()) return msg;
 
     // 1) containment (bottom-up clamp)
@@ -53,7 +147,7 @@ public record Message(String msg,int priority){
     // Lines 1..(8 or 4) as specified; FearlessException.render() appends line 11 (the code).
     // We also insert the blank separator above the frames line.
     return header + "\n\n" + body + "\n\n" + framesLine + "\n" + msg;
-  }
+  }*/
 
   // ===== Phase 1: containment ===================================================
 
@@ -178,20 +272,6 @@ public record Message(String msg,int priority){
   
   // ===== Phase 5: final rendering ===============================================
 
-  /** 6-line render when a multiline span exists. */
-  private static String renderSix(String[] lines, Grouping g, int width, String caretLine){
-    Span group = g.multiLine();
-    // Lines: 1) group start (left-trim to group start), 2) skipped before caret,
-    // 3) caret line text, 4) caret, 5) skipped after caret, 6) group end (right-trim to end)
-    String l1 = lineWithLeftPad(lines, group.startLine(), width, group.startCol());
-    String l2 = elided(width, g.caretLine() - group.startLine() - 1);
-    String l3 = numberedCaret(lines, g.caretLine(), width);
-    String l4 = caretLine;
-    String l5 = elided(width, group.endLine() - g.caretLine() - 1);
-    String l6 = lineRightTrim(lines, group.endLine(), width, group.endCol());
-    return String.join("\n", l1, l2, l3, l4, l5, l6);
-  }
-
   /** 2-line render fallback when there is no multiline span. */
   private static String renderTwo(String[] lines, Grouping g, int width, String caretLine){
     String l1 = numberedCaret(lines, g.caretLine(), width);
@@ -201,23 +281,6 @@ public record Message(String msg,int priority){
 
   // ----- numbered code line helpers ---------------------------------------------
 
-  private static String lineWithLeftPad(String[] lines, int lineNum, int width, int startCol){
-    String raw = get(lines, lineNum);
-    String display = expandTabs(raw, TAB_WIDTH);
-    int visStart = visualCol(raw, startCol, TAB_WIDTH);
-    int keepFrom = Math.max(1, Math.min(visStart, display.length())); // visual index (1-based)
-    String leftSpaces = repeat(' ', keepFrom - 1);
-    String rest = (keepFrom - 1 < display.length()) ? display.substring(keepFrom - 1) : "";
-    return padLineNum(lineNum, width) + '|' + ' ' + leftSpaces + rest;
-  }
-  private static String lineRightTrim(String[] lines, int lineNum, int width, int endCol){
-    String raw = get(lines, lineNum);
-    String display = expandTabs(raw, TAB_WIDTH);
-    int visEnd = visualCol(raw, endCol, TAB_WIDTH); // caret draws at this col; content up to visEnd
-    int to = Math.max(0, Math.min(visEnd, display.length()));
-    String cut = display.substring(0, to);
-    return padLineNum(lineNum, width) + '|' + ' ' + cut;
-  }
   private static String elided(int width, int count){
     return repeat(' ', width) + '|' + ' ' + "... " + Math.max(0, count) + " line" + (count==1 ? " ..." : "s ...");
   }
@@ -400,7 +463,7 @@ public record Message(String msg,int priority){
     if (n == 1) return displayChar(s.codePointAt(0));
 
     StringBuilder out = new StringBuilder(s.length() + 2);
-    out.append('"');
+    out.append('\"');
     for (int i = 0; i < s.length(); ){
       int cp = s.codePointAt(i);
       i += Character.charCount(cp);
@@ -420,11 +483,9 @@ public record Message(String msg,int priority){
           }
       }
     }
-    out.append('"');
+    out.append('\"');
     return out.toString();
   }
-  //---
-//===== Phase 4: caret line construction =======================================
 
 private static String makeCaretLine(String[] lines, Grouping g, int width){
  String raw = get(lines, g.caretLine());
@@ -509,4 +570,63 @@ private static String sanitizeForCaret(String s){
  return out.toString();
 }
 
+
+//helper: push either an elision counter or the single in-between line
+private static void addElision(List<String> out, String[] lines, int width, int count, int oneLineNum){
+if (count == 1){
+ out.add(numbered(lines, oneLineNum, width));
+} else if (count > 1){
+ out.add(elided(width, count));
+}
+}
+
+private static String renderMulti(String[] lines, Grouping g, int width, String caretLine){
+Span group = g.multiLine();
+int start = group.startLine();
+int end   = group.endLine();
+int caret = g.caretLine();
+
+int beforeCount = caret - start - 1;  // lines strictly between start..caret
+int afterCount  = end   - caret - 1;  // lines strictly between caret..end
+
+boolean caretAtStart = caret == start;
+boolean caretAtEnd   = caret == end;
+
+java.util.ArrayList<String> out = new java.util.ArrayList<>();
+
+if (caretAtStart){
+ // 4 or 3 lines (if afterCount == 0)
+ out.add(numberedCaret(lines, caret, width));
+ out.add(caretLine);
+ addElision(out, lines, width, afterCount, caret + 1);
+ out.add(numbered(lines, end, width));
+} else if (caretAtEnd){
+ // 4 or 3 lines (if beforeCount == 0)
+ out.add(numbered(lines, start, width));
+ addElision(out, lines, width, beforeCount, caret - 1);
+ out.add(numberedCaret(lines, caret, width));
+ out.add(caretLine);
+} else {
+ // caret strictly inside -> up to 6 lines (drops sides with 0 omitted)
+ out.add(numbered(lines, start, width));
+ addElision(out, lines, width, beforeCount, caret - 1);
+ out.add(numberedCaret(lines, caret, width));
+ out.add(caretLine);
+ addElision(out, lines, width, afterCount, caret + 1);
+ out.add(numbered(lines, end, width));
+}
+return String.join("\n", out);
+}
+//--- tiny debug helpers ---
+private static void dbgSpans(String label, java.util.List<metaParser.Frame> fs){
+System.err.println("\n=== " + label + " ===");
+for (int i = 0; i < fs.size(); i++){
+ var f = fs.get(i);
+ var s = f.s();
+ String name = (f.name() == null || f.name().isBlank()) ? "(anon)" : f.name();
+ String kind = s.isSingleLine() ? "single" : "multi";
+ System.err.printf("#%02d %-30s [%d:%d .. %d:%d] (%s)%n",
+   i, name, s.startLine(), s.startCol(), s.endLine(), s.endCol(), kind);
+}
+}
 }

@@ -6,7 +6,7 @@ import java.util.List;
 public interface ErrFactory<E extends RuntimeException & HasFrames<?>, TK extends TokenKind>{
 
   E illegalCharAt(Span at, int cp);
-  //E unrecognizedTextAt(Span at, String what);
+  E unrecognizedTextAt(Span at, String what);
 
   E unclosedIn(String what, Span openedAt, Collection<TK> expectedClosers);
   E unopenedIn(String what, Span closerAt);
