@@ -1,6 +1,6 @@
 package fearlessParser;
 
-import static fearlessParser.TokenKind.Float;
+import static fearlessParser.TokenKind.SignedFloat;
 import static fearlessParser.TokenKind.SStr;
 import static fearlessParser.TokenKind.SignedInt;
 import static fearlessParser.TokenKind.SignedRational;
@@ -15,5 +15,5 @@ public record Token(
   ) implements metaParser.Token<Token,TokenKind>{
   public String toString(){return kind.name()+"|"+content;}
   boolean isTypeName(){ return is(typeName); }
-  public static final TokenKind[] typeName= new TokenKind[]{UppercaseId,Float,SignedInt,UnsignedInt,SignedRational,SStr,UStr};
+  public static final TokenKind[] typeName= new TokenKind[]{UppercaseId,SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr};
 }

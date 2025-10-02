@@ -46,7 +46,7 @@ public enum TokenKind implements metaParser.TokenKind {
       "[0-9](?:[0-9_]*[0-9])?\\x2E(?:[0-9](?:[0-9_]*[0-9])?)"
      +"(?:[eE][\\x2B\\x2D]?[0-9](?:[0-9_]*[0-9])?)?"),
   // Signed float: +12.34, -1.0e-3 ; requires at least one digit on each side of '.'
-  Float(
+  SignedFloat(
     "[+-](?:[0-9](?:[0-9_]*[0-9])?)\\.(?:[0-9](?:[0-9_]*[0-9])?)"
     + "(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?"),
 

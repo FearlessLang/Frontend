@@ -679,7 +679,7 @@ In file: [###]in_memory0.fear
 
 While inspecting the file
 Unrecognized text "[".
-"[" here is parsed as a generic/RC argument opener and must follow the name with no space.
+Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 
@@ -1474,9 +1474,10 @@ A:{
 }
 """); }
 
+//NOTE: kept in safe encoding for easier debuggability
 @Test void inter_unicode_ok(){ ok("""
 [###]
-[cafe\u00E9, // same text but unicode line string\\n]
+[cafe\\u00E9, // same text but unicode line string\\n]
 [###]
 ""","""
 A:{
@@ -1645,113 +1646,78 @@ x ->
 }
 """); }
 
-//3) Block comment contains stray braces that must be ignored by brace counting: ok; fail variant removes the real closer.
-@Disabled @Test void inter_block_comment_with_braces_ok(){ ok("""
-xxxx
+//this ends up as two valid interpolations with broken code inside
+@Test void inter_block_comment_not_shield_braces1(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| #|'P { a /* }  {  */ + 3 } Q
+   | ---------^------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Unrecognized text.
+Error 2  UnexpectedToken
 ""","""
 A:{
 .m:Str ->
-#|'P { a /* { not real } not real */ + 3 } Q
+#|'P { a /* }  {  */ + 3 } Q
 }
 """); }
 
-@Disabled @Test void inter_block_comment_with_braces_real_closer_missing_fail(){ fail("""
-xxxx
+//this ends up as a double opener
+@Test void inter_block_comment_not_shield_braces2(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| #|'P { a /* {  }  */ + 3 } Q
+   | -----^^^^^^^^---------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+String interpolation placeholder opened inside interpolation expression.
+Note: "{" can not be used in single "#" interpolation expressions. Use at least "##".
+Error 7  InterpolationNoClose
 ""","""
 A:{
 .m:Str ->
-#|'P { a /* { not real } not real */ + 3   // missing real }
-|'Q
+#|'P { a /* {  }  */ + 3 } Q
 }
 """); }
 
-//4) Newlines inside expression with a missing ')' deep inside: fail; then close it.
-@Disabled @Test void inter_multiline_expr_missing_paren_fail(){ fail("""
-xxxx
+@Test void inter_double_hash_late_single_closer_ok(){ ok("""
+[###]
+[H1,\\nH2\\n]
+[###]
 ""","""
 A:{
-.m:Str ->
-#|'start { x.foo(1,
-|'  2
-} 'end
-}
-"""); }
-
-@Disabled @Test void inter_multiline_expr_missing_paren_ok(){ ok("""
-xxxx
-""","""
-A:{
-.m:Str ->
-#|'start { x.foo(1,
-|'  2) }
-|'end
-}
-"""); }
-
-//5) With '##', later line uses single '}' to close: mismatch -> fail; then use '}}'.
-@Disabled @Test void inter_double_hash_late_single_closer_fail(){ fail("""
-xxxx
-""","""
-A:{
-.m:Str ->
-##|'H1 {{ x + 1 }
+x ->
+##|'H1 {{ x +++++ +1 }}
 |'H2
 }
 """); }
 
-@Disabled @Test void inter_double_hash_late_single_closer_ok(){ ok("""
-xxxx
+@Test void inter_trailing_comma_inside_braces_ok(){ ok("""
+[###]
 ""","""
 A:{
-.m:Str ->
-##|'H1 {{ x + 1 }}
-|'H2
-}
-"""); }
-
-//6) Two interpolations; second broken by a comment on the closer line.
-@Disabled @Test void inter_two_interps_second_broken_by_comment_fail(){ fail("""
-xxxx
-""","""
-A:{
-.m:Str ->
-#|'pre {B.foo(C)} mid { x
-|'  + 2 } // ok closer for the first one was earlier, but here we comment out next '}' (none present)
-}
-"""); }
-
-@Disabled @Test void inter_two_interps_second_broken_by_comment_ok(){ ok("""
-xxxx
-""","""
-A:{
-.m:Str ->
-#|'pre {B.foo(C)} mid { x
-|'  + 2 } done
-}
-"""); }
-
-//7) Trailing comma inside braces: fail; then provide an expr.
-@Disabled @Test void inter_trailing_comma_inside_braces_fail(){ fail("""
-xxxx
-""","""
-A:{
-.m:Str ->
+x ->
 #|'x { x.bar(1,) } y
 }
 """); }
 
-@Disabled @Test void inter_trailing_comma_inside_braces_ok(){ ok("""
-xxxx
-""","""
-A:{
-.m:Str ->
-#|'x { x.bar(1,2) } y
-}
-"""); }
+@Test void inter_square_arg_space_inside_braces_fail(){ fail("""
+In file: [###]/in_memory0.fear
 
-//8) Bad square-arg spacing inside braces: fail; then fix.
-@Disabled @Test void inter_square_arg_space_inside_braces_fail(){ fail("""
-xxxx
+002| .m:Str ->
+003| #|'S { x.foo [read] } T
+   | -------------^---------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Unrecognized text "[".
+Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+Write "Foo[Bar]" not "Foo [Bar]".
+Write "x.foo[read]" not "x.foo [read]".
+
+Error 2  UnexpectedToken
 ""","""
 A:{
 .m:Str ->
@@ -1759,95 +1725,65 @@ A:{
 }
 """); }
 
-@Disabled @Test void inter_square_arg_space_inside_braces_ok(){ ok("""
-xxxx
+@Test void inter_square_arg_space_inside_braces_ok(){ ok("""
+[###]
 ""","""
-A:{
-.m:Str ->
-#|'S { x.foo[read] } T
+A:{ x -> #|'S { x.foo[read] } T
 }
 """); }
 
-//9) Receiver before interpolation; line comment swallows '}' on same line: fail; then fix by moving '}'.
-@Disabled @Test void inter_receiver_line_comment_eats_closer_fail(){ fail("""
-xxxx
+@Test void inter_receiver_line_comment_eats_closer(){ ok("""
+[###]
+[pre,post\\n]
+[###]
 ""","""
 A:{
 .m(x:X):Str ->
-x.b(1,2) |'pre { z+1 // swallow }
-|'post
+x.b(1,2) #|'pre { x + 1 } post
 }
 """); }
 
-@Disabled @Test void inter_receiver_line_comment_eats_closer_ok(){ ok("""
-xxxx
-""","""
-A:{
-.m(x:X):Str ->
-x.b(1,2) |'pre { z+1 } post
-}
-"""); }
-
-//10) Interpolation-as-expression, then chained call on next line; comment breaks arg list.
-@Disabled @Test void inter_expr_then_chain_comment_breaks_args_fail(){ fail("""
-xxxx
+@Test void inter_expr_then_chain(){ ok("""
+[###]
 ""","""
 A:{
 .m:Str ->
-#|'ok {1+2}
-.c( // whoops
+#|'ok {1 + 2}
+.c( // new line is not an issue here
 )
 }
 """); }
 
-@Disabled @Test void inter_expr_then_chain_comment_breaks_args_ok(){ ok("""
-xxxx
-""","""
-A:{
-.m:Str ->
-#|'ok {1+2}
-.c(3)
-}
-"""); }
+@Test void good_error_for_plus_minus(){ fail("""
+In file: [###]/in_memory0.fear
 
-//11) Deep block with comments between tokens inside braces; fail version misses '}' of inner closure.
-@Disabled @Test void inter_deep_block_with_inner_closure_missing_fail(){ fail("""
-xxxx
-""","""
-A:{
-.m:Str ->
-#|'alpha { Block#.let /* space */ x={5  // missing inner }
-|'  .use(x) } omega
-}
-"""); }
+001| A:{ .m -> 1+2 }
+   | ----~~~~~~~^^--
 
-@Disabled @Test void inter_deep_block_with_inner_closure_missing_ok(){ ok("""
-xxxx
+While inspecting method declaration > type declaration body > type declaration > full file
+Here "+2" is seen as a single signed literal, not as a +/- operator followed by a literal.
+Write "1 + 2" not "1+2".
+Write "+1 + +2" not "+1+2".
+Write "+0.53 + +2.32" not "0.53+2.32".
+Write "+3/2 + +4/5" not "3/2+4/5".
+Error 2  UnexpectedToken
 ""","""
-A:{
-.m:Str ->
-#|'alpha { Block#.let /* space */ x={5} // fixed
-|'  .use(x) } omega
-}
+A:{ .m -> 1+2 }
 """); }
+//TODO: discussion: does it needs to be an error?
+//if we somehow twist it to adjust, is
+// a+2 == a + 2 or a + +2
+// a+2.0 == a + 2.0 (still broken) or a + +2.0
+// a+2/3 == a + 2/3 (still broken) or a + +2/3
 
-//12) Mixed curly counts in same multiline with comments near one of them.
-//  Under '##', a single-brace {expr} should be literal; fail tries to close with single '}'.
-@Disabled @Test void inter_mixed_counts_with_comments_fail(){ fail("""
-xxxx
+
+@Test void inter_mixed_counts_with_comments_ok(){ ok("""
+[###]
+[head {literal} and,\\ntail\\n]
+[###]
 ""","""
 A:{
-.m:Str ->
-##|'head {literal} and {{ x /* c */ + 1 }
-|'tail
-}
-"""); }
-
-@Disabled @Test void inter_mixed_counts_with_comments_ok(){ ok("""
-xxxx
-""","""
-A:{
-.m:Str ->
+x ->
 ##|'head {literal} and {{ x /* c */ + 1 }}
 |'tail
 }

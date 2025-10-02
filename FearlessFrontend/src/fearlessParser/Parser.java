@@ -318,7 +318,7 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     guard(Parser::checkAbruptExprEnd);
     return  parseRemaining("interpolation expression",Parser::parseE); 
   }
-  boolean isTName(Token t){ return t.is(UppercaseId,Float,SignedInt,UnsignedInt,SignedRational,SStr,UStr) && !names.XIn(t.content()); }
+  boolean isTName(Token t){ return t.is(UppercaseId,SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr) && !names.XIn(t.content()); }
   Pos pos(){ return new Pos(span().fileName(),span().startLine(),span().startCol()); }
   Pos pos(Token t){ return new Pos(span().fileName(),t.line(),t.column()); }
   <R> Optional<R> parseIf(boolean cond, Supplier<R> s){
@@ -364,10 +364,10 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     fwdIf(peek(_CurlyGroup));
   }
   private void eatPost(){
-    if(!hasPost()){
-      throw this.errFactory().missingSemicolonOrOperator(spanAround(index(),index())); }
-    expectAny("");
-    fwdIf(peek(_SquareGroup));
+    if(fwdIf(hasPost())){ fwdIf(peek(_SquareGroup)); return; }
+    var signed= peek(SignedInt,SignedFloat,SignedRational);
+    if (signed){ throw this.errFactory().signedLiteral(spanAround(index(),index()),expectAny("")); }
+    throw this.errFactory().missingSemicolonOrOperator(spanAround(index(),index()));    
   }
 
   NextCut<Parser,Token,TokenKind,FearlessException> commaSkip=  p->p.splitOn(Skipped,Comma);

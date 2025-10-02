@@ -11,7 +11,7 @@ import static offensiveUtils.Require.*;
 record TName(String s, int arity){
   public TName{
     assert arity >= 0 : "arity < 0: "+arity;
-    assert validate(s,"TName", UppercaseId,UnsignedInt, SignedInt, SignedRational, Float, UStr, SStr);
+    assert validate(s,"TName", UppercaseId,UnsignedInt, SignedInt, SignedRational, SignedFloat, UStr, SStr);
   }
   public TName withArity(int arity){ return new TName(s,arity); }
 }

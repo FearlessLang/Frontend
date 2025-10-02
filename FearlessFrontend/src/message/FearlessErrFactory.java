@@ -187,7 +187,17 @@ public class FearlessErrFactory implements ErrFactory<FearlessException,TokenKin
   }
   public FearlessException missingSemicolonOrOperator(Span at){
     return Code.MissingSeparator.of(
-      "There is a missing \";\", operator or method name here or before").addFrame(new Frame("", at));
+      "There is a missing \";\", operator or method name here or before").addSpan(at);
+  }
+  public FearlessException signedLiteral(Span at,Token t){
+    return Code.UnexpectedToken.of(
+      "Here "+Message.displayString(t.content())
+      +" is seen as a single signed literal, not as a +/- operator followed by a literal.\n"
+      +"Write \"1 + 2\" not \"1+2\".\n"
+      +"Write \"+1 + +2\" not \"+1+2\".\n"
+      +"Write \"+0.53 + +2.32\" not \"0.53+2.32\".\n"
+      +"Write \"+3/2 + +4/5\" not \"3/2+4/5\"."
+      ).addSpan(at);
   }
 
   public FearlessException badTokenAt(Span at, TokenKind kind, String text){
@@ -209,7 +219,7 @@ It could be the "<--" operator followed by "5" but also the "<-" operator follow
 Please add spaces to clarify:  "<-- 5"   or   "<- -5"
 """;
       case BadOSquare -> """
-"[" here is parsed as a generic/RC argument opener and must follow the name with no space.
+Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 """;
