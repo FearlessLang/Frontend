@@ -2,6 +2,7 @@ package fearlessParser;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import files.Pos;
@@ -328,7 +329,8 @@ In file: [###]/in_memory0.fear
    | ----~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
-Missing type name. Expected: "TypeName"
+Missing type name.
+Expected "TypeName".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(): -> (Block#.let x={5}) .use(x) }
@@ -348,6 +350,62 @@ Error 2  UnexpectedToken
 A:{ .m -> (Block#.let x={5}) .use(x) }
 """);}
 
+@Test void useOutOfScope2(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m ->
+002| ( (Block#.let x={5}) .use(x) )
+   | --------------------------^---
+
+While inspecting arguments list > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
+Name "x" is not in scope
+No names are in scope here.
+
+Error 2  UnexpectedToken
+""","""
+A:{ .m -> 
+( (Block#.let x={5}) .use(x) )
+ }
+""");}
+
+@Test void useOutOfScope3(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m ->
+002| (   (  (Block#.let x={5}) .use(x)       )      )
+   | ----~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~-------
+
+While inspecting arguments list > expression in round parenthesis > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
+Name "x" is not in scope
+No names are in scope here.
+
+Error 2  UnexpectedToken
+""","""
+A:{ .m -> 
+(   (  (Block#.let x={5}) .use(x)       )      )
+ }
+""");}
+
+
+@Test void eqNoExprRounds(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m ->
+002| (   (    Block#.let x= .use(x)    )      )
+   | ----~~~~~~~~~~~~~~~~~~~^^^^^^^~~~~~-------
+
+While inspecting expression in round parenthesis > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
+Missing expression after "=" in the equals sugar.
+Use: ".m x = expression" or ".m {a,b} = expression".
+
+Error 2  UnexpectedToken
+""","""
+A:{ .m -> 
+(   (    Block#.let x= .use(x)    )      )
+ }
+""");}
+
+
 @Test void doubleComma(){fail("""
 In file: [###]/in_memory0.fear
 
@@ -355,7 +413,8 @@ In file: [###]/in_memory0.fear
    | ----~~~~~^~~~~--
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
-Missing type name. Expected: "TypeName"
+Missing type name.
+Expected "TypeName".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(a,,b):C }
@@ -368,7 +427,8 @@ In file: [###]/in_memory0.fear
    | ---------------~~~~~~^~--
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
-Missing expression. Expected: "name", "TypeName", "(", "{"
+Missing expression.
+Expected one of: "name", "TypeName", "(", "{".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(x:C):C->x.foo(,) }
@@ -394,8 +454,8 @@ In file: [###]in_memory0.fear
    |   ^
 
 While inspecting the file
-File ended while parsing "{".
-Expected one of: "}id", "}"
+File ended while parsing a "{" group.
+Expected one of: "}id", "}".
 Error 0  Unclosed
 ""","""
 A:{
@@ -411,8 +471,8 @@ In file: [###]in_memory0.fear
 008| fff
 
 While inspecting the file
-File ended while parsing "{".
-Expected one of: "}id", "}"
+File ended while parsing a "{" group.
+Expected one of: "}id", "}".
 Error 0  Unclosed
 ""","""
 A:{ fdfdds
@@ -436,7 +496,8 @@ In file: [###]/in_memory0.fear
 005| }
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
-Missing type name. Expected: "TypeName"
+Missing type name.
+Expected "TypeName".
 Error 2  UnexpectedToken
 ""","""
 A:{
@@ -497,7 +558,7 @@ In file: [###]/in_memory0.fear
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: ".use".
-But that is not one of : "name", "TypeName", "(", "{"
+But that is not one of: "name", "TypeName", "(", "{".
 Error 2  UnexpectedToken
 ""","""
 A:{
@@ -514,7 +575,8 @@ In file: [###]/in_memory0.fear
    |  ^
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
-Missing expression. Expected: "name", "TypeName", "(", "{"
+Missing expression.
+Expected one of: "name", "TypeName", "(", "{".
 Error 2  UnexpectedToken
 ""","""
 A:{
@@ -529,7 +591,7 @@ In file: [###]/in_memory0.fear
 
 001| A:{//comment1
 002| .m -> y;//removing this semicol should give a clear missing separator error
-   | ^^^^^^^
+   | ------^
 003| .n -> {}
 004| /*comment2*/}//comment3
 
@@ -550,7 +612,7 @@ In file: [###]/in_memory0.fear
 
 001| A:{
 002| .m -> y;//removing this semicol should give a clear missing separator error
-   | ^^^^^^^
+   | ------^
 003| .n -> {}
 004| }
 
@@ -604,7 +666,7 @@ In file: [###]in_memory0.fear
 While inspecting method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: ":".
-But that is not one of : "name", "TypeName", "(", "{"
+But that is not one of: "name", "TypeName", "(", "{".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m -> :+45 }
@@ -847,6 +909,949 @@ Error 2  UnexpectedToken
 """,
 "A:{\uD83D\uDE00\u00A0\u200D.m():X }");
 }
+
+@Test void inter_deep_bad_equals_sugar_fail(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| #|'Head { Block#.let x= .use(x) } Tail
+   | ----------~~~~~~~~~~~~~~^^^^^^^-------
+
+While inspecting interpolation expression > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+Missing expression after "=" in the equals sugar.
+Use: ".m x = expression" or ".m {a,b} = expression".
+
+Error 2  UnexpectedToken
+""","""
+A:{
+.m:Str ->
+#|'Head { Block#.let x= .use(x) } Tail
+}
+"""); }
+
+
+@Test void inter_deep_bad_equals_sugar_fail_twice_a(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| #|'Head { Block#.let x= .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End
+   | ----------~~~~~~~~~~~~~~^^^^^^^-------------------------------------------------
+
+While inspecting interpolation expression > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+Missing expression after "=" in the equals sugar.
+Use: ".m x = expression" or ".m {a,b} = expression".
+
+Error 2  UnexpectedToken
+""","""
+A:{
+.m:Str ->
+#|'Head { Block#.let x= .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End 
+}
+"""); }
+
+@Test void inter_deep_bad_equals_sugar_fail_twice_b(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m(x):Str ->
+003| #|'Head { Block#.let    .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End
+   | ------------------------------------------~~~~~~~~~~~~~~~^^^^^^^^^^^------------
+
+While inspecting interpolation expression > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+Missing expression after "=" in the equals sugar.
+Use: ".m x = expression" or ".m {a,b} = expression".
+
+Error 2  UnexpectedToken
+""","""
+A:{
+.m(x):Str ->
+#|'Head { Block#.let    .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End 
+}
+"""); }
+
+
+@Test void inter_deep_bad_equals_sugar_fail_round(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| #|'Head {     ( /*a*/ (Block#.let x= .use(x)) /*bb*/ ) } Tail
+   | --------------~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^~~~~~~~~~~-------
+
+While inspecting expression in round parenthesis > expression in round parenthesis > interpolation expression > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+Missing expression after "=" in the equals sugar.
+Use: ".m x = expression" or ".m {a,b} = expression".
+
+Error 2  UnexpectedToken
+""","""
+A:{
+.m:Str ->
+#|'Head {     ( /*a*/ (Block#.let x= .use(x)) /*bb*/ ) } Tail
+}
+"""); }
+
+@Test void badClose_noOpen(){ fail("""
+In file: [###]in_memory0.fear
+
+002| .m:Str ->
+003| #|'Head } ss
+   | --^^^^^^^---
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Unopened string interpolation placeholder
+Error 8  InterpolationNoOpen
+""","""
+A:{
+.m:Str ->
+#|'Head } ss
+}
+"""); }
+
+@Test void inter_deep_bad_equals_sugar_ok(){ fail("""
+In file: [###]in_memory0.fear
+
+002| .m:Str ->
+003| #|'Head { Block#.let x={5} .use(x) } Tail
+   | --------^^^^^^^^^^^^^^^^-----------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+String interpolation placeholder opened inside interpolation expression.
+Note: "{" can not be used in single "#" interpolation expressions. Use at least "##".
+Error 7  InterpolationNoClose
+""","""
+A:{
+.m:Str ->
+#|'Head { Block#.let x={5} .use(x) } Tail
+}
+"""); }
+
+@Test void inter_deep_ok(){ ok("""
+[###]
+body=Optional[Inter[true][2]
+[Head,Tail\\n]
+[Call[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=Block,arity=0],ts=Optional.empty]]]
+MName[s=#,arity=0]false[]]MName[s=.let,arity=2]falseName[x=x][Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=5,arity=0],ts=Optional.empty]]]]]]]
+MName[s=.use,arity=1]true[x]]]]]]]]
+""","""
+A:{
+.m:Str ->
+##|'Head {{ Block#.let x={5} .use(x) }} Tail
+}
+"""); }
+
+@Test void inter_hash_no_opener_early_close_fail(){ fail("""
+In file: [###]in_memory0.fear
+
+002| .m:Str ->
+003| #|" foo } bar
+   | --^^^^^^^----
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Unopened string interpolation placeholder
+Error 8  InterpolationNoOpen
+""","""
+A:{
+.m:Str ->
+#|" foo } bar
+}
+"""); }
+
+@Test void inter_hash_early_close_then_opener_fail(){ fail("""
+In file: [###]in_memory0.fear
+
+002| .m:Str ->
+003| #|' foo } bar {B.foo(C)} end
+   | --^^^^^^^-------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Unopened string interpolation placeholder
+Error 8  InterpolationNoOpen
+""","""
+A:{
+.m:Str ->
+#|' foo } bar {B.foo(C)} end
+}
+"""); }
+
+@Test void inter_hash_h1_ok_simple_expr1(){ ok("""
+[###]
+body=Optional[Inter[true][1][pre,post\\n]
+[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=B,arity=0],
+[###]
+""","""
+A:{
+.m:Str ->
+#|' pre {B.foo(C)} post
+}
+"""); }
+
+@Test void inter_hash_h1_ok_simple_expr2(){ ok("""
+[###]
+body=Optional[Inter[true][1][$pre$,$post$,$dada$\\n]
+[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=B,arity=0],
+[###]
+""","""
+A:{
+.m:Str ->
+#|'$pre${B.foo(C)}$post${B}$dada$
+}
+"""); }
+
+@Test void inter_hash_h1_ok_round_parens_only(){ ok("""
+[###]
+""","""
+A:{
+.m(x:X,y:X):Str ->
+#|' pre { x.plus(y) } post
+}
+"""); }
+
+@Test void inter_hash_outer_curly_leftovers_literal_ok(){ ok("""
+[###]
+body=Optional[Inter[true][1][a{{,}}b\\n][
+Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=B,arity=0],
+ts=Optional.empty]]]
+MName[s=.foo,arity=1]true[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=C,arity=0],ts=Optional.empty]]]]]]]]]]
+""","""
+A:{
+.m:Str ->
+#|' a {{{B.foo(C)}}} b
+}
+"""); }
+
+@Test void inter_hash_after_closer_literal_close_brace_fail(){ fail("""
+In file: [###]in_memory0.fear
+
+002| .m:Str ->
+003| #|' pre {B.foo(C)} } tail
+   | -----------------^^^-----
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Unopened string interpolation placeholder
+Error 8  InterpolationNoOpen
+""","""
+A:{
+.m:Str ->
+#|' pre {B.foo(C)} } tail
+}
+"""); }
+
+@Test void inter_hash_multi_interpolations_h1_ok_5x(){ ok("""
+[###]body=Optional[Inter[true][1]
+[aa,b,ccc{,}d{,}ee,z\\n][x1,x2,x3,x4,x5]]]]]]]
+""","""
+A:{
+.m(x1,x2,x3,x4,x5):Str ->
+#|' aa{x1} b {x2}ccc{{x3}} d {{x4}} ee{x5} z
+}
+"""); }
+
+@Test void inter_hash_h2_ok_curly_in_body(){ ok("""
+[###]
+""","""
+A:{
+.m:Str ->
+##|' Head {{ Block#.let x={5} .use(x) }} Tail
+}
+"""); }
+
+@Test void inter_hash_h2_adjacent_closers_fail_require_space(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| ##|' pre {{ +5{}}} post
+   | --------------^--------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Interpolation expression ended while parsing a "{" group.
+Expected one of: "}id", "}".
+Error 0  Unclosed
+""","""
+A:{
+.m:Str ->
+##|' pre {{ +5{}}} post
+}
+"""); }
+
+//ok because spaces
+@Test void inter_hash_h2_adjacent_closers_ok_with_space(){ ok("""
+[###]
+""","""
+A:{
+.m:Str ->
+##|' pre {{ +5{} }} post
+}
+"""); }
+
+@Test void inter_hash_h2_two_interpolations_back_to_back_ok(){ ok("""
+[###]body=Optional[Inter[true][2]
+[a,,z\\n]
+[Call[###]
+""","""
+A:{
+.m:Str ->
+##|' a {{B.foo(C)}}{{B.foo(C)}} z
+}
+"""); }
+
+@Test void inter_hash_h2_early_shortclose_before_opener(){ ok("""
+[###]
+""","""
+A:{
+.m:Str ->
+##|' foo } bar {{B.foo(C)}} end
+}
+"""); }
+
+@Test void inter_hash_h2_after_closer_literal_close_brace(){ ok("""
+[###]
+""","""
+A:{
+.m:Str ->
+##|' pre {{B.foo(C)}} } tail
+}
+"""); }
+
+@Test void inter_hash_multi_interpolations_h2_ok_5x(){ ok("""
+[###]
+""","""
+A:{
+.m:Str ->
+##|' a {{B.foo(C)}} b {{B.foo(C)}} c {{B.foo(C)}} d {{B.foo(C)}} e {{B.foo(C)}} z
+}
+"""); }
+
+@Test void inter_hash_h3_fail(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| ###|' pre {{{ +5{} }} mid
+   | ----^^^^^^^^^------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Unclosed string interpolation placeholder
+Error 7  InterpolationNoClose
+""","""
+A:{
+.m:Str ->
+###|' pre {{{ +5{} }} mid
+}
+"""); }
+@Test void inter_hash_h3_pass(){ ok("""
+[###]
+""","""
+A:{
+.m:Str ->
+###|' pre {{{ +5{} }}} mid
+}
+"""); }
+
+@Test void inter_hash_h3_outer_leftovers_literal_ok(){ ok("""
+[###]
+[aa {,} bb\\n]
+[###]
+""","""
+A:{
+.m:Str ->
+###|' aa {{{{B.foo(C)}}}} bb
+}
+"""); }
+
+@Test void inter_hash_h4_simple_ok(){ ok("""
+[###]
+[head,tail\\n]
+[###]
+""","""
+A:{
+.m:Str ->
+####|' head {{{{B.foo(C)}}}} tail
+}
+"""); }
+
+@Test void doubleclose_h4(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| ####|' {{{{B.foo(C)}}}} ddd }}}} end
+   | ----------------------^^^^^^^^^^----
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Unopened string interpolation placeholder
+Error 8  InterpolationNoOpen
+""","""
+A:{
+.m:Str ->
+####|' {{{{B.foo(C)}}}} ddd }}}} end
+}
+"""); }
+
+@Test void inter_hash_mixed_outer_openers_literal(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| #|' L {{R {{B.foo(C)}} R}} L
+   | ------^^^^^-----------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+String interpolation placeholder opened inside interpolation expression.
+Note: "{" can not be used in single "#" interpolation expressions. Use at least "##".
+Error 7  InterpolationNoClose
+""","""
+A:{
+.m:Str ->
+#|' L {{R {{B.foo(C)}} R}} L
+}
+"""); }
+
+@Test void inter_hash_line_with_no_hash_ok_literal_brace(){ ok("""
+[###]
+""","""
+A:{
+.m:Str ->
+|' this is always fine: } and { both literal
+}
+"""); }
+
+@Test void inter_hash_h1_many_interps_and_text_ok(){ ok("""
+[###]
+[a,bc,de,fg,hi,j\\n]
+[###]
+""","""
+A:{
+.m:Str ->
+#|' a {B.foo(C)} b c {B.foo(C)} d e {B.foo(C)} f g {B.foo(C)} h i {B.foo(C)} j
+}
+"""); }
+
+@Test void inter_hash_h2_unclosed_due_to_missing_third_brace_fail(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| ##|' start {{ foo.bar{ baz .toList }} end
+   | ---------------------^^^^^^^^^^^^^-------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Interpolation expression ended while parsing a "{" group.
+Expected one of: "}id", "}".
+Error 0  Unclosed
+""","""
+A:{
+.m:Str ->
+##|' start {{ foo.bar{ baz .toList }} end
+}
+"""); }
+
+@Test void inter_hash_h2_fix_unclosed_with_space_and_extra_closer_ok(){ ok("""
+[###]
+""","""
+A:{
+.m:Str ->
+##|' start {{ Foo.bar{ Baz .toList } }} end
+}
+"""); }
+
+
+@Test void inter_hash_brace_mismatch_first_fail(){ ok("""
+[###]
+[a{,}b\\n]
+[###]
+""","""
+A:{
+.m:Str ->
+#|'a{{B.foo(C)}}b
+}
+"""); }
+
+@Test void inter_hash_brace_mismatch_first_ok(){ ok("""
+[###]
+[a,b\\n]
+[###]
+""","""
+A:{
+.m:Str ->
+##|'a{{B.foo(C)}}b
+}
+"""); }
+
+@Test void inter_two_interps_second_bad_fail(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| #|'pre{B.foo(C)}mid{x.bar(1,2}post
+   | -------------------------^^^^-----
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Interpolation expression ended while parsing a "(" group.
+Expected ")".
+Error 0  Unclosed
+""","""
+A:{
+.m:Str ->
+#|'pre{B.foo(C)}mid{x.bar(1,2}post
+}
+"""); }
+
+@Test void inter_two_interps_second_bad_ok(){ ok("""
+[###]
+[pre,mid,post\\n]
+[###]
+""","""
+A:{
+x ->
+#|'pre{B.foo(C)}mid{x.bar(1,2)}post
+}
+"""); }
+
+@Test void inter_expr_then_chain_bad_args_fail(){ fail("""
+In file: [###]/in_memory0.fear
+
+003| #|'ok'
+004| #|'and then
+005| .c(,)
+   |    ^
+
+While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
+Missing expression.
+Expected one of: "name", "TypeName", "(", "{".
+Error 2  UnexpectedToken
+""","""
+A:{
+.m:Str ->
+#|'ok'
+#|'and then
+.c(,)
+}
+"""); }
+
+@Test void inter_expr_then_chain_bad_args_ok(){ ok("""
+[###]
+[ok'\\nand then\\n]
+[###]
+""","""
+A:{
+.m{.x}A ->
+#|'ok'
+|'and then
+.c(xA)
+}
+"""); }
+
+@Test void ok_no_interpolation(){ ok("""
+[###]
+""","""
+A:{
+.m(x:X):Str ->
+x.b(1,2) |'pre{,}post
+.d(3)
+}
+"""); }
+@Test void fail_with_interpolation(){ fail("""
+In file: [###]/in_memory0.fear
+
+003| x.b(1,2) #|'pre{,}post
+   |                 ^
+004| .d(3)
+
+While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+Missing expression.
+Found instead: ",".
+But that is not one of: "name", "TypeName", "(", "{".
+Error 2  UnexpectedToken
+""","""
+A:{
+.m(x:X):Str ->
+x.b(1,2) #|'pre{,}post
+.d(3)
+}
+"""); }
+
+@Test void inter_ascii_illegal_char_is_not_unicode(){ ok("""
+[###]
+[cafe\\u00E9, // unicode inside simple string is just \\ u X X X X\\n]
+[###]
+""","""
+A:{
+.m:Str ->
+#|'cafe\\u00E9{B.foo(C)} // unicode inside simple string is just \\ u X X X X
+}
+"""); }
+
+@Test void inter_unicode_ok(){ ok("""
+[###]
+[cafe\u00E9, // same text but unicode line string\\n]
+[###]
+""","""
+A:{
+.m:Str ->
+#|"cafe\\u00E9{B.foo(C)} // same text but unicode line string
+}
+"""); }
+
+@Test void inter_op_before_line_string_unicode_fail(){ fail("""
+In file: [###]/in_memory0.fear
+
+003|  ^-^|"a"
+   |  ^
+
+While inspecting the file
+Unrecognized text "^-^|".
+A "|" immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
+Operators can also contain "|", making it ambiguous what, for example, `<--|'foo'` means.
+It could be the "<--" operator followed by `|'foo'` but also the "<--|" operator followed by `'foo'`.
+Please add spaces to clarify:  `<--| 'foo'`   or   `<-- |'foo'`
+
+Error 2  UnexpectedToken
+""","""
+A:{ .m -> 
+ |"b
+ ^-^|"a"
+}
+"""); }
+
+@Test void inter_op_before_line_string_unicode_ok(){ ok("""
+[###]
+""","""
+A:{ .m ->
+ |"b
+ ^-^
+ |"a"
+}
+"""); }
+
+@Test void different_hashes1(){ ok("""
+[###]
+[L1,\\nL2 {{x.bar(1)}}\\n]
+[###]
+""","""
+A:{
+.m:Str ->
+#|'L1 {B.foo(C)}
+|'L2 {{x.bar(1)}}
+}
+"""); }
+
+@Test void different_hashes2(){ ok("""
+[###]
+[L1,\\nL2 {x.bar(1)}\\n]
+[###]
+
+""","""
+A:{
+.m:Str ->
+#|'L1 {B.foo(C)}
+|'L2 {x.bar(1)}
+}
+"""); }
+
+@Test void inter_two_and_three(){ ok("""
+[###]
+[head,mid{,}tail\\n]
+[###]
+""","""
+A:{
+dd ->
+##|'head {{B.foo(C)}} mid {{{dd}}} tail
+}
+"""); }
+
+@Test void inter_mix(){ ok("""
+[###]body=Optional[
+Inter[false][4][one\\n][]
+Inter[true][3][two\\n][]
+]]]]]]
+""","""
+A:{
+.m:Str ->
+####|"one
+###|'two
+}
+"""); }
+
+@Test void inter_mix_other(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+   | ... 2 lines ...
+005| x.y() |'two {B.foo(C)}'
+   | ^
+006| .z(3)
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing ";", operator or method name here or before
+Error 6  MissingSeparator
+""","""
+A:{
+.m:Str ->
+#|'one'
+.k(1)
+x.y() |'two {B.foo(C)}'
+.z(3)
+}
+"""); }
+
+@Test void comment_ok(){ ok("""
+[###]
+[pre,is cut out\\npost\\n]
+[###]
+""","""
+A:{
+x ->
+#|'pre { x + 1 // comment seen as part of string, thus } is cut out
+|'post
+}
+"""); }
+
+@Test void never_new_line_inter(){ fail("""
+In file: [###]/in_memory0.fear
+
+004| } 'post
+   |   ^
+
+While inspecting the file
+Unrecognized text.
+Error 2  UnexpectedToken
+""","""
+A:{
+x ->
+#|'pre { x + 1 // not even comment allows new lines in interpolation
+} 'post
+}
+"""); }
+
+@Test void inter_unclosed_block_comment_fail(){ fail("""
+In file: [###]/in_memory0.fear
+
+002| .m:Str ->
+003| #|'A { x + /* start
+   | --^^^^-------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Unclosed string interpolation placeholder
+Error 7  InterpolationNoClose
+""","""
+A:{
+.m:Str ->
+#|'A { x + /* start
+}
+"""); }
+
+@Test void inter_unclosed_block_comment_ok(){ ok("""
+[###]
+[A,\\nB\\n]
+[###]
+""","""
+A:{
+x ->
+#|'A { x + /* start */ 2 }
+|'B
+}
+"""); }
+
+//3) Block comment contains stray braces that must be ignored by brace counting: ok; fail variant removes the real closer.
+@Disabled @Test void inter_block_comment_with_braces_ok(){ ok("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'P { a /* { not real } not real */ + 3 } Q
+}
+"""); }
+
+@Disabled @Test void inter_block_comment_with_braces_real_closer_missing_fail(){ fail("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'P { a /* { not real } not real */ + 3   // missing real }
+|'Q
+}
+"""); }
+
+//4) Newlines inside expression with a missing ')' deep inside: fail; then close it.
+@Disabled @Test void inter_multiline_expr_missing_paren_fail(){ fail("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'start { x.foo(1,
+|'  2
+} 'end
+}
+"""); }
+
+@Disabled @Test void inter_multiline_expr_missing_paren_ok(){ ok("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'start { x.foo(1,
+|'  2) }
+|'end
+}
+"""); }
+
+//5) With '##', later line uses single '}' to close: mismatch -> fail; then use '}}'.
+@Disabled @Test void inter_double_hash_late_single_closer_fail(){ fail("""
+xxxx
+""","""
+A:{
+.m:Str ->
+##|'H1 {{ x + 1 }
+|'H2
+}
+"""); }
+
+@Disabled @Test void inter_double_hash_late_single_closer_ok(){ ok("""
+xxxx
+""","""
+A:{
+.m:Str ->
+##|'H1 {{ x + 1 }}
+|'H2
+}
+"""); }
+
+//6) Two interpolations; second broken by a comment on the closer line.
+@Disabled @Test void inter_two_interps_second_broken_by_comment_fail(){ fail("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'pre {B.foo(C)} mid { x
+|'  + 2 } // ok closer for the first one was earlier, but here we comment out next '}' (none present)
+}
+"""); }
+
+@Disabled @Test void inter_two_interps_second_broken_by_comment_ok(){ ok("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'pre {B.foo(C)} mid { x
+|'  + 2 } done
+}
+"""); }
+
+//7) Trailing comma inside braces: fail; then provide an expr.
+@Disabled @Test void inter_trailing_comma_inside_braces_fail(){ fail("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'x { x.bar(1,) } y
+}
+"""); }
+
+@Disabled @Test void inter_trailing_comma_inside_braces_ok(){ ok("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'x { x.bar(1,2) } y
+}
+"""); }
+
+//8) Bad square-arg spacing inside braces: fail; then fix.
+@Disabled @Test void inter_square_arg_space_inside_braces_fail(){ fail("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'S { x.foo [read] } T
+}
+"""); }
+
+@Disabled @Test void inter_square_arg_space_inside_braces_ok(){ ok("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'S { x.foo[read] } T
+}
+"""); }
+
+//9) Receiver before interpolation; line comment swallows '}' on same line: fail; then fix by moving '}'.
+@Disabled @Test void inter_receiver_line_comment_eats_closer_fail(){ fail("""
+xxxx
+""","""
+A:{
+.m(x:X):Str ->
+x.b(1,2) |'pre { z+1 // swallow }
+|'post
+}
+"""); }
+
+@Disabled @Test void inter_receiver_line_comment_eats_closer_ok(){ ok("""
+xxxx
+""","""
+A:{
+.m(x:X):Str ->
+x.b(1,2) |'pre { z+1 } post
+}
+"""); }
+
+//10) Interpolation-as-expression, then chained call on next line; comment breaks arg list.
+@Disabled @Test void inter_expr_then_chain_comment_breaks_args_fail(){ fail("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'ok {1+2}
+.c( // whoops
+)
+}
+"""); }
+
+@Disabled @Test void inter_expr_then_chain_comment_breaks_args_ok(){ ok("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'ok {1+2}
+.c(3)
+}
+"""); }
+
+//11) Deep block with comments between tokens inside braces; fail version misses '}' of inner closure.
+@Disabled @Test void inter_deep_block_with_inner_closure_missing_fail(){ fail("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'alpha { Block#.let /* space */ x={5  // missing inner }
+|'  .use(x) } omega
+}
+"""); }
+
+@Disabled @Test void inter_deep_block_with_inner_closure_missing_ok(){ ok("""
+xxxx
+""","""
+A:{
+.m:Str ->
+#|'alpha { Block#.let /* space */ x={5} // fixed
+|'  .use(x) } omega
+}
+"""); }
+
+//12) Mixed curly counts in same multiline with comments near one of them.
+//  Under '##', a single-brace {expr} should be literal; fail tries to close with single '}'.
+@Disabled @Test void inter_mixed_counts_with_comments_fail(){ fail("""
+xxxx
+""","""
+A:{
+.m:Str ->
+##|'head {literal} and {{ x /* c */ + 1 }
+|'tail
+}
+"""); }
+
+@Disabled @Test void inter_mixed_counts_with_comments_ok(){ ok("""
+xxxx
+""","""
+A:{
+.m:Str ->
+##|'head {literal} and {{ x /* c */ + 1 }}
+|'tail
+}
+"""); }
 
 
 //A:{ .m(): -> ::.two( Block#.let x={5}, x ) }

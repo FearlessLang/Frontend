@@ -14,8 +14,7 @@ import metaParser.NameSuggester;
 import metaParser.Span;
 import static offensiveUtils.Require.*;
 
-public final class FearlessErrFactory implements ErrFactory<FearlessException,TokenKind>{
-  private static String maybe(String prefix, boolean cond, String tail){ return cond ? prefix + tail : ""; }
+public class FearlessErrFactory implements ErrFactory<FearlessException,TokenKind>{
 
   @Override public FearlessException illegalCharAt(Span at, int cp){
     String head= "Illegal character "+Message.displayChar(cp);
@@ -28,17 +27,16 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
   }
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels){
     assert nonNull(at,what,expectedLabels);
-    String exp= joinOrEmpty(expectedLabels);
     String label= what.isBlank() ? "element" : what;
-    String msg = "Missing " + label + maybe(". Expected: ", !exp.isEmpty(), exp);
+    String msg = "Missing " + label + "."
+    +(expectedLabels.isEmpty()?"":("\nExpected "+joinOrEmpty(expectedLabels)));
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   @Override public FearlessException missingButFound(Span at, String what, String found, Collection<TokenKind> expectedLabels){
     assert nonNull(at,what,expectedLabels);
-    String exp= joinOrEmpty(expectedLabels);
-    String msg= "Missing " + (what.isBlank() ? "element" : what)
+        String msg= "Missing " + (what.isBlank() ? "element" : what)
       +".\nFound instead: "+ Message.displayString(found)+"."
-      + maybe("\nBut that is not one of : ", !expectedLabels.isEmpty(), exp);
+      +(expectedLabels.isEmpty()?"":("\nBut that is not "+joinOrEmpty(expectedLabels)));
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   @Override public FearlessException extraContent(Span from){
@@ -55,6 +53,20 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
       + " in " + groupLabel + " at [" + startIdx + ".." + endIdx + "]";
     return Code.ProbeError.of(msg).addSpan(at);
   }
+  public FearlessException noClose(Span at){
+    return Code.InterpolationNoClose.of(
+      "Unclosed string interpolation placeholder").addSpan(at);
+  }
+  public FearlessException noOpen(Span at){
+    return Code.InterpolationNoOpen.of(
+      "Unopened string interpolation placeholder").addSpan(at);
+  }
+  public FearlessException moreOpen(Span at){
+    return Code.InterpolationNoClose.of(
+      "String interpolation placeholder opened inside interpolation expression.\n"
+      +"Note: \"{\" can not be used in single \"#\" interpolation expressions. Use at least \"##\".").addSpan(at);
+  }
+
   public FearlessException disallowedReadHMutH(Span at, RC rc){
     return Code.UnexpectedToken.of(
       "Capability "+rc+"""
@@ -118,19 +130,21 @@ public final class FearlessErrFactory implements ErrFactory<FearlessException,To
       "A method signature cannot declare multiple generic type parameters with the same name\n"
       +"Generic type parameter "+Message.displayString(name)+" is repeated").addSpan(at);
   }
+  public String context(){return "File ended while parsing a "; }
   @Override public FearlessException unclosedIn(String what, Span openedAt, Collection<TokenKind> expectedClosers){
     assert nonNull(what, openedAt, expectedClosers);
-    String exp= joinOrEmpty(expectedClosers);
     String msg=
-      "File ended while parsing " + Message.displayString(what) + "."
-     + maybe("\nExpected one of: ", !exp.isEmpty(), exp);
+      context() + Message.displayString(what) + " group."
+      +(expectedClosers.isEmpty()?"":("\nExpected "+joinOrEmpty(expectedClosers)));
     return Code.Unclosed.of(msg).addSpan(openedAt);
   }
   private static String joinOrEmpty(Collection<? extends Object> items){
     if (items.isEmpty()){ return ""; }
-    return items.stream()
-      .map(FearlessErrFactory::labelOf)
-      .collect(Collectors.joining(", "));
+    var res= items.stream()
+    .map(FearlessErrFactory::labelOf)
+    .collect(Collectors.joining(", "))+".";
+    if (items.size() == 1){ return res; }
+    return "one of: "+res;
   }
 
   private static String labelOf(Object o){

@@ -61,94 +61,6 @@ public record Message(String msg,int priority){
     String display = expandTabs(raw, TAB_WIDTH);
     return padLineNum(lineNum, width) + '|' + ' ' + display;
   }
-
-/*private static String renderMulti(String[] lines, Grouping g, int width, String caretLine){
- Span group = g.multiLine();
- int start = group.startLine();
- int end   = group.endLine();
- int caret = g.caretLine();
-
- int beforeCount = caret - start - 1;         // lines strictly between start..caret
- int afterCount  = end   - caret - 1;         // lines strictly between caret..end
-
- boolean caretAtStart = caret == start;
- boolean caretAtEnd   = caret == end;
-
- if (caretAtStart){
-   // 4 lines
-   String l1 = numberedCaret(lines, caret, width);
-   String l2 = caretLine;
-   String l3 = (afterCount == 1)
-     ? numbered(lines, caret + 1, width)
-     : elided(width, afterCount);
-   String l4 = numbered(lines, end, width);
-   return String.join("\n", l1, l2, l3, l4);
- } else if (caretAtEnd){
-   // 4 lines
-   String l1 = numbered(lines, start, width);
-   String l2 = (beforeCount == 1)
-     ? numbered(lines, caret - 1, width)
-     : elided(width, beforeCount);
-   String l3 = numberedCaret(lines, caret, width);
-   String l4 = caretLine;
-   return String.join("\n", l1, l2, l3, l4);
- } else {
-   // caret strictly inside -> 6 lines
-   String l1 = numbered(lines, start, width);
-   String l2 = (beforeCount == 1)
-     ? numbered(lines, caret - 1, width)
-     : elided(width, beforeCount);
-   String l3 = numberedCaret(lines, caret, width);
-   String l4 = caretLine;
-   String l5 = (afterCount == 1)
-     ? numbered(lines, caret + 1, width)
-     : elided(width, afterCount);
-   String l6 = numbered(lines, end, width);
-   return String.join("\n", l1, l2, l3, l4, l5, l6);
- }
-}
-  */
-  
-  /** Build the final single-string error message (lines 1..11 as per spec). */
-  /*public static String of(Function<URI,String> loader, List<Frame> frames, String msg){
-    if (frames == null || frames.isEmpty()) return msg;
-
-    // 1) containment (bottom-up clamp)
-    List<Frame> contained = ensureContainment(frames);
-
-    // 2) invisibleCharacters trimming (shrink both ends to visible)
-    List<Frame> visible = trimInvisible(loader, contained);
-
-    // 3) grouping (pick up to 3 single-line spans + first multiline)
-    Grouping g = group(visible);
-
-    // Source + precomputed line-number width
-    String src = Objects.requireNonNull(loader.apply(g.file()));
-    String[] lines = splitLines(src);
-    int width = lineNumberWidth(lines.length);
-
-    // 4) single-line caret (on caretLine) using - ~ ^ for outer/mid/inner
-    String caretLine = makeCaretLine(lines, g, width);
-
-    // 5) final 6-line (or 2-line) render
-    String body = (g.multiLine() != null)
-      ? renderSix(lines, g, width, caretLine)
-      : renderTwo(lines, g, width, caretLine);
-
-    // Header (line 1), blank (line 2)
-    String header= "In file: " + PrettyFileName.displayFileName(g.file());
-
-    String framesLine= "While inspecting " + frames.stream()
-      .filter(f->!f.name().isBlank()).map(Frame::name)
-      .collect(Collectors.joining(" > "));
-    if(framesLine.length()=="While inspecting ".length()){
-      framesLine= "While inspecting the file";
-    }
-    // Lines 1..(8 or 4) as specified; FearlessException.render() appends line 11 (the code).
-    // We also insert the blank separator above the frames line.
-    return header + "\n\n" + body + "\n\n" + framesLine + "\n" + msg;
-  }*/
-
   // ===== Phase 1: containment ===================================================
 
   private static List<Frame> ensureContainment(List<Frame> fs){
@@ -254,17 +166,13 @@ public record Message(String msg,int priority){
   }
 
   private static List<Span> pickUpToThree(List<Span> singles){
-    if (singles.size() <= 3) return List.copyOf(singles);
+    if (singles.size() <= 3) return List.copyOf(singles.reversed());
     Span first = singles.getFirst(), last = singles.getLast();
     double avg = (lenInclusive(first) + lenInclusive(last)) / 2.0;
     Span mid = singles.subList(1, singles.size()-1).stream()
       .min(Comparator.comparingDouble(s -> Math.abs(lenInclusive(s) - avg)))
       .orElse(singles.get(1));
-    ArrayList<Span> out = new ArrayList<>(3);
-    out.add(first); out.add(mid); out.add(last);
-    out.sort(Comparator.comparingInt(Message::lenInclusive).reversed()); // outer (-), middle (~), inner (^)
-
-    return List.copyOf(out);
+    return List.of(last,mid,first);
   }
   private static int lenInclusive(Span s){ return Math.max(1, s.endCol() - s.startCol() + 1); }
 

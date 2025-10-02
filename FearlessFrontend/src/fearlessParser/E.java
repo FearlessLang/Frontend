@@ -109,8 +109,9 @@ sealed interface E {
       assert eq(strings.size(),es.size()+1,"string interpolation");
     }
     public <R> R accept(EVisitor<R> v){ return v.visitStringInter(this); }
-    public String toString(){ return "Inter["+simple+"]"
-      +receiver.map(Object::toString).orElse("")
+    public String toString(){ return
+      receiver.map(Object::toString).orElse("")
+      +"Inter["+simple+"]"
       +hashCounts+strings.stream().map(s->s.replace("\n","\\n")).toList()+es;
     }
   }

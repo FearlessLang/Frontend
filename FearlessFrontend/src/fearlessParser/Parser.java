@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import fearlessParser.XPat.Destruct;
@@ -152,15 +153,24 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
       ? t->t.is(SStrInterHash,SStrLine)
       : t->t.is(UStrInterHash,UStrLine);
     List<StringInfo> contents= new ArrayList<>();
-    while(peekIf(cond)){ contents.add(new StringInfo(expectAny("").content())); }
+    while(peekIf(cond)){ contents.add(new StringInfo(expectAny(""),this::interOnNoClose,this::interOnNoOpen,this::interOnMoreOpen)); }
     List<Integer> hashes= contents.stream().map(i->i.hashCount).toList();
     List<String> parts= StringInfo.mergeParts(contents);
     List<E> es= contents.stream()
-      .flatMap(i->i.inter.stream())
-      .map(s->Parse.from(span().fileName(),names,s,pos.line(),pos.column()))
+      .flatMap(i->IntStream.range(0,i.inter.size()).mapToObj(
+        j->Parse.from(span().fileName(),names,i.inter.get(j),i.line,i.col+i.starts.get(j))))
       .toList();
     return new E.StringInter(isSimple,receiver,hashes,parts, es, pos);
   }
+  Span lastT(int i,int j){
+    setIndex(index()-1);
+    var t= expectAny("");
+    var fn= span().fileName();
+    return new Span(fn,t.line(), t.column()+i, t.line(), t.column() + j);
+  }
+  void interOnNoClose(int i,int j){ throw errFactory().noClose(lastT(i,j)); }
+  void interOnNoOpen(int i,int j){ throw errFactory().noOpen(lastT(i,j)); }
+  void interOnMoreOpen(int i,int j){ throw errFactory().moreOpen(lastT(i,j)); }
   E.Implicit parseImplicit(){ return new E.Implicit(pos(expect("",ColonColon))); }
   E.Round parseRound(){
     expect("expression in round parenthesis",ORound);
@@ -301,12 +311,13 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     expectLast("",_EOF);
     List<Declaration> ds= splitBy("type declaration",curlyLeft,Parser::parseDeclaration);
     return new FileFull(List.of(),ds);
-    }
+  }
   E parseEFull(){
     expect("",_SOF);
     expectLast("",_EOF);
-    return parseE();
-    }
+    guard(Parser::checkAbruptExprEnd);
+    return  parseRemaining("interpolation expression",Parser::parseE); 
+  }
   boolean isTName(Token t){ return t.is(UppercaseId,Float,SignedInt,UnsignedInt,SignedRational,SStr,UStr) && !names.XIn(t.content()); }
   Pos pos(){ return new Pos(span().fileName(),span().startLine(),span().startCol()); }
   Pos pos(Token t){ return new Pos(span().fileName(),t.line(),t.column()); }
@@ -337,7 +348,7 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     while (!end()){ eatPost(); eatAtom(); }
   }
   private void absurd(){
-    var absurd= peek(Colon,Arrow);//will add more when we find other absurd cases
+    var absurd= peek(Colon,Arrow,BackTick,Eq,Comma,SemiColon);//will add more when we find other absurd cases
     if(absurd){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
   }
   private void eatAtom(){

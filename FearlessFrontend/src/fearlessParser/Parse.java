@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import message.FearlessErrFactory;
 import metaParser.Span;
 
 public class Parse {
@@ -27,10 +28,15 @@ public class Parse {
     return p.parseAll("full file",Parser::parseFileFull);
   }
   static E from(URI fileName, Names names,String input, int line, int col){
-    var t= new Tokenizer(fileName,input,kinds, _SOF, _EOF);
+    System.out.println("["+input+"]"+col);
+    var t= new Tokenizer(fileName,input,kinds, _SOF, _EOF){
+      @Override public FearlessErrFactory errFactory(){ return new FearlessErrFactory(){
+        @Override public String context(){ return "Interpolation expression ended while parsing a "; }
+      }; }
+    };
     var all= t.tokenize(map,line,col);
     var p= new Parser(all.span(),names,all.tokenTree());
-    return p.parseAll("string interpolation expression",Parser::parseEFull);    
+    return p.parseAll("string interpolation expression",Parser::parseEFull);
   }
   // ASCII whitelist
   private static final String allowed=
