@@ -1,14 +1,11 @@
 package fearlessParser;
 
-import static fearlessParser.TokenKind.SignedFloat;
-import static fearlessParser.TokenKind.SStr;
-import static fearlessParser.TokenKind.SignedInt;
-import static fearlessParser.TokenKind.SignedRational;
-import static fearlessParser.TokenKind.UStr;
-import static fearlessParser.TokenKind.UnsignedInt;
-import static fearlessParser.TokenKind.UppercaseId;
+import static fearlessParser.TokenKind.*;
 
 import java.util.List;
+
+import files.Pos;
+import metaParser.Span;
 
 public record Token(
   TokenKind kind, String content, int line, int column, List<Token> tokens
@@ -16,4 +13,16 @@ public record Token(
   public String toString(){return kind.name()+"|"+content;}
   boolean isTypeName(){ return is(typeName); }
   public static final TokenKind[] typeName= new TokenKind[]{UppercaseId,SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr};
+  public Token tokenFirstHalf(int length){
+    assert tokens.isEmpty();
+    assert content.length() >= length;
+    return new Token(kind,content.substring(0, length),line,column,tokens);
+  }
+  public Token tokenSecondHalf(int length){
+    assert tokens.isEmpty();
+    assert content.length() >= length;
+    Token first=tokenFirstHalf(length);
+    Span s= first.span(Pos.UNKNOWN.fileName());
+    return new Token(kind,content.substring(length),s.endLine(),s.endCol()+1,tokens);
+  }
 }

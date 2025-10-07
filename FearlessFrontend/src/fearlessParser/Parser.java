@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import fearlessParser.E.X;
 import fearlessParser.XPat.Destruct;
 import fearlessParser.XPat.Name;
 import files.Pos;
@@ -22,7 +23,7 @@ import static java.util.Optional.empty;
 import static metaParser.MetaParser.SplitMode.*;
 
 
-public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>{
+public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
   Names names;
   Parser(Span base, Names names, List<Token> ts){
     super(base,ts); this.names= names;
@@ -271,7 +272,16 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     T t= parseT();
     return new Parameter(x,of(t));
   }
-  List<B> parseBs(){ return parseGroupSep("","generic bounds declaration",Parser::parseB, OSquareArg, CSquare, commaB); }
+  List<B> parseBs(){ 
+    return parseGroup("",p->{
+      p.expect("generic bounds declaration",OSquareArg);
+      p.expectLast("generic bounds declaration",CSquare);
+      var res= p.splitBy("generic bounds declaration",commaB,Parser::parseB);
+      var Xs= res.stream().map(b->b.x().name()).toList();
+      checkValidNew_Xs(Xs);
+      return res;
+    });
+  }
   B parseB(){//note: not always a single B on the tokens
     T.X x= parseDecTX();
     if(end()){ return new B(x,new RCS(List.of())); }
@@ -291,6 +301,18 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
       p->p.splitBy("super types declaration",commaSkip,Parser::parseC)
     ).get();
   }
+  Declaration parseTopDeclaration(){
+    updateNames(names.add(List.of("this"),List.of()));
+    var res= parseDeclaration();
+    var notThis=res.l().thisName().map(n->!n.name().equals("this"));
+    if(notThis.isEmpty()){ return res; }
+    X x= res.l().thisName().get();
+    var s= span(x.pos(),x.name().length());
+    throw errFactory().badTopSelfName(s, x.name());
+  }
+  public Span span(Pos pos, int size){
+    return new Span(pos.fileName(), pos.line(), pos.column(),pos.line(),pos.column()+size); 
+  }
   Declaration parseDeclaration(){
     var c= parseTName();
     Optional<List<B>> bs= parseIf(peek(_SquareGroup),this::parseBs);
@@ -309,14 +331,14 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
   FileFull parseFileFull(){
     expect("",_SOF);
     expectLast("",_EOF);
-    List<Declaration> ds= splitBy("type declaration",curlyLeft,Parser::parseDeclaration);
+    List<Declaration> ds= splitBy("type declaration",curlyLeft,Parser::parseTopDeclaration);
     return new FileFull(List.of(),ds);
   }
   E parseEFull(){
     expect("",_SOF);
     expectLast("",_EOF);
     guard(Parser::checkAbruptExprEnd);
-    return  parseRemaining("interpolation expression",Parser::parseE); 
+    return parseE(); 
   }
   boolean isTName(Token t){ return t.is(UppercaseId,SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr) && !names.XIn(t.content()); }
   Pos pos(){ return new Pos(span().fileName(),span().startLine(),span().startCol()); }
@@ -370,14 +392,14 @@ public class Parser extends MetaParser<Parser,Token,TokenKind,FearlessException>
     throw this.errFactory().missingSemicolonOrOperator(spanAround(index(),index()));    
   }
 
-  NextCut<Parser,Token,TokenKind,FearlessException> commaSkip=  p->p.splitOn(Skipped,Comma);
-  NextCut<Parser,Token,TokenKind,FearlessException> semiSkip=   p->p.splitOn(Skipped,SemiColon);
-  NextCut<Parser,Token,TokenKind,FearlessException> arrowSkip=  p->p.splitOn(Skipped,Arrow);
-  NextCut<Parser,Token,TokenKind,FearlessException> curlyLeft=  p->p.splitOn(Left,_CurlyGroup);
-  NextCut<Parser,Token,TokenKind,FearlessException> curlyRight= p->p.splitOn(Right,_CurlyGroup);
-  NextCut<Parser,Token,TokenKind,FearlessException> commaB=     Parser::onCommaB;
-  NextCut<Parser,Token,TokenKind,FearlessException> commaExp=   Parser::onCommaExp;
-  NextCut<Parser,Token,TokenKind,FearlessException> anyLeft=    p->{ p.expectAny(""); return 0; };
+  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> commaSkip=  p->p.splitOn(Skipped,Comma);
+  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> semiSkip=   p->p.splitOn(Skipped,SemiColon);
+  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> arrowSkip=  p->p.splitOn(Skipped,Arrow);
+  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> curlyLeft=  p->p.splitOn(Left,_CurlyGroup);
+  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> curlyRight= p->p.splitOn(Right,_CurlyGroup);
+  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> commaB=     Parser::onCommaB;
+  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> commaExp=   Parser::onCommaExp;
+  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> anyLeft=    p->{ p.expectAny(""); return 0; };
   
   @Override public FearlessErrFactory errFactory(){ return new FearlessErrFactory(); }
 }

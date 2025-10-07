@@ -9,8 +9,9 @@ public enum TokenKind implements metaParser.TokenKind {
   Ws("\\s+", true),
   LineComment("//[^\\n]*", true),
   BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", true),
-  //UnclosedBlockComment("(?s)/\\*(?!.*?\\*/).*"),
-
+  BadUnclosedBlockComment("(?s)/\\*(?!.*?\\*/).*"),
+  BadUnopenedBlockCommentClose("\\*/"),
+  
   UStrInterHash("#{1,}\\|\"[^\\n]*"),
   SStrInterHash("#{1,}\\|'[^\\n]*"),
   UStrLine("\\|\"[^\\n]*"),
@@ -22,7 +23,7 @@ public enum TokenKind implements metaParser.TokenKind {
   OCurly("\\{"),
   CCurlyId("\\}[A-Za-z0-9_]+`*"),
   CCurly("\\}"),
-  OSquareArg("(?<=[A-Za-z0-9_`])\\["),//correctly not working for preceding literals
+  OSquareArg("(?<=[A-Za-z0-9_`\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])\\["),//correctly not working for preceding literals
   BadOSquare("\\["),
   CSquare("\\]"),
   Comma(","),
@@ -56,6 +57,8 @@ public enum TokenKind implements metaParser.TokenKind {
   // Unsigned int: 0, 42, 1_000_000
   UnsignedInt("[0-9](?:[0-9_]*[0-9])?"),
 
+  BadUStrUnclosed("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*(?=\\x0A|\\z)"),
+  BadSStrUnclosed("'(?:\\x5C[nt'\\x5C]|[^'\\x5C\\x0A])*(?=\\x0A|\\z)"),
   // Normal strings with escapes; newlines not allowed inside
   //UStr("\"(?:\\\\.|[^\"\\\\\\r\\n])*\""),//broken
   //SStr("'(?:\\\\.|[^'\\\\\\r\\n])*'"),
@@ -69,7 +72,7 @@ public enum TokenKind implements metaParser.TokenKind {
   UppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*`*"),//correctly allows only one '.' since packages are not nested inside each others  
   LowercaseId("_*[a-z][A-Za-z0-9_]*`*"),
 
-   //\  /  #  *   -   +   %  <  >  =  !  &   ^   ~   ?   :   |
+   //\  /  #  *   -   +   %  <  >  =  !  &   ^   ~   ?     |
   //[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F:\\x7C#]
   //forbid:  /*   */   //
   //(?!/\\x2A|\\x2A/|//)
@@ -98,7 +101,7 @@ public enum TokenKind implements metaParser.TokenKind {
     this.hidden = hidden;
   }
   @Override public TokenMatch matcher(){ return match; }
-  @Override public boolean hidden(){ return hidden; }
+  public boolean hidden(){ return hidden; }
   public boolean syntetic(){ return this.name().startsWith("_"); }
   public boolean bad(){ return this.name().startsWith("Bad"); }
   @Override public String toString(){ return displayName; }

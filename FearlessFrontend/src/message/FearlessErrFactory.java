@@ -2,53 +2,50 @@ package message;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import fearlessParser.Parser;
 import fearlessParser.RC;
 import fearlessParser.Token;
 import fearlessParser.TokenKind;
+import static fearlessParser.TokenKind.*;
+import fearlessParser.Tokenizer;
 import metaParser.ErrFactory;
 import metaParser.Frame;
 import metaParser.Message;
 import metaParser.NameSuggester;
 import metaParser.Span;
+import metaParser.TokenProcessor;
+import utils.Bug;
+
 import static offensiveUtils.Require.*;
 
-public class FearlessErrFactory implements ErrFactory<FearlessException,TokenKind>{
+public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
 
-  @Override public FearlessException illegalCharAt(Span at, int cp){
+  @Override public FearlessException illegalCharAt(Span at, int cp, Tokenizer tokenizer){
     String head= "Illegal character "+Message.displayChar(cp);
     return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
   }
-  @Override public FearlessException unopenedIn(String what, Span closerAt){
-    assert nonNull(what, closerAt);
-    String head= "Unopened " + Message.displayString(what);
-    return Code.Unopened.of(head).addSpan(closerAt);
-  }
-  @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels){
+  @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels, Parser parser){
     assert nonNull(at,what,expectedLabels);
     String label= what.isBlank() ? "element" : what;
-    String msg = "Missing " + label + "."
-    +(expectedLabels.isEmpty()?"":("\nExpected "+joinOrEmpty(expectedLabels)));
+    String msg = "Missing " + label + ".\n"+expected(expectedLabels);
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
-  @Override public FearlessException missingButFound(Span at, String what, String found, Collection<TokenKind> expectedLabels){
-    assert nonNull(at,what,expectedLabels);
-        String msg= "Missing " + (what.isBlank() ? "element" : what)
-      +".\nFound instead: "+ Message.displayString(found)+"."
-      +(expectedLabels.isEmpty()?"":("\nBut that is not "+joinOrEmpty(expectedLabels)));
-    return Code.UnexpectedToken.of(msg).addSpan(at);
-  }
-  @Override public FearlessException extraContent(Span from){
+
+  @Override public FearlessException extraContent(Span from, Parser parser){
     assert nonNull(from);
     String msg= "Extra content in the current group";
     return Code.ExtraTokenInGroup.of(msg).addSpan(from);
   }
-  @Override public FearlessException probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx){
+  @Override public FearlessException probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx, Parser parser){
     String head= "Probe stalled while scanning " + groupLabel;
     return Code.ProbeError.of(head).addSpan(at);
   }
-  @Override public FearlessException badProbeDropIn(String groupLabel, Span at, int startIdx, int endIdx, int drop){
+  @Override public FearlessException badProbeDropIn(String groupLabel, Span at, int startIdx, int endIdx, int drop, Parser parser){
     String msg= "Probe returned invalid drop=" + drop
       + " in " + groupLabel + " at [" + startIdx + ".." + endIdx + "]";
     return Code.ProbeError.of(msg).addSpan(at);
@@ -131,22 +128,26 @@ public class FearlessErrFactory implements ErrFactory<FearlessException,TokenKin
       +"Generic type parameter "+Message.displayString(name)+" is repeated").addSpan(at);
   }
   public String context(){return "File ended while parsing a "; }
-  @Override public FearlessException unclosedIn(String what, Span openedAt, Collection<TokenKind> expectedClosers){
-    assert nonNull(what, openedAt, expectedClosers);
-    String msg=
-      context() + Message.displayString(what) + " group."
-      +(expectedClosers.isEmpty()?"":("\nExpected "+joinOrEmpty(expectedClosers)));
-    return Code.Unclosed.of(msg).addSpan(openedAt);
+  private static String expected(Collection<? extends Object> items){
+    return (items.isEmpty() ? "" : ("Expected " + _joinOrEmpty(items)));
   }
-  private static String joinOrEmpty(Collection<? extends Object> items){
+  private static String _joinOrEmpty(Collection<? extends Object> items){
     if (items.isEmpty()){ return ""; }
     var res= items.stream()
     .map(FearlessErrFactory::labelOf)
-    .collect(Collectors.joining(", "))+".";
+    .collect(Collectors.joining(", "))+".\n";
     if (items.size() == 1){ return res; }
     return "one of: "+res;
   }
-
+  private static String describeFree(Token t){
+    return switch (t.kind()){
+      case LineComment -> "a line comment (\"//\")";
+      case BlockComment -> "a block comment (\"/* ... */\")";
+      case UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash -> "a string literal";
+    default -> throw Bug.of();
+  };
+  }
+  
   private static String labelOf(Object o){
     if (!(o instanceof fearlessParser.TokenKind tk)){ return String.valueOf(o); }
     var res= switch (tk) {
@@ -179,7 +180,7 @@ public class FearlessErrFactory implements ErrFactory<FearlessException,TokenKin
     };
     return Message.displayString(res);
   }
-  @Override public FearlessException unrecognizedTextAt(Span at, String what){
+  @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     String head= what.isBlank()
       ? "Unrecognized text."
       : "Unrecognized text " + Message.displayString(what)+".";
@@ -205,7 +206,7 @@ public class FearlessErrFactory implements ErrFactory<FearlessException,TokenKin
       ? "Unrecognized text."
       : "Unrecognized text " + Message.displayString(text) + ".";
 
-    String hint = switch (kind) {
+    String hint= switch (kind){
       case BadOpLine -> """
 A "|" immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
 Operators can also contain "|", making it ambiguous what, for example, `<--|'foo'` means.
@@ -241,4 +242,392 @@ Fearless does not allow rational literals of form "1/2"
     String msg = (hint == null) ? head : head + "\n" + hint;
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
+  public Map<TokenKind, TokenProcessor<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory>> badTokensMap(){
+    return Map.ofEntries(
+      Map.entry(Ws,           (_,_,_) -> Stream.empty()),
+      Map.entry(LineComment,  (_,_,_) -> Stream.empty()),
+      Map.entry(BlockComment, (_,_,_) -> Stream.empty()),
+
+      Map.entry(BadUStrUnclosed, (idx, t, tz) ->frontOrBack(idx,t,tz,'\"')),
+      Map.entry(BadSStrUnclosed, (idx, t, tz) ->frontOrBack(idx,t,tz,'\'')),
+    
+      // (A) Unterminated block comment: highlight opener, add EOF frame
+      Map.entry(BadUnclosedBlockComment, (_, t, tz) -> {
+        var file = tz.fileName();
+        Span s= t.span(file);
+        int lineEnd= t.content().indexOf('\n');
+        if (lineEnd != -1){ s = new Span(file,s.startLine(),s.startCol(),s.startLine(),s.startCol()+lineEnd); }
+        throw Code.UnexpectedToken
+          .of("Unterminated block comment. Add \"*/\" to close it.")
+          .addSpan(s);
+      }),
+      Map.entry(TokenKind.BadUnopenedBlockCommentClose, this::strayBlockCommentCloser),
+      str(BadOpLine,"""
+A "|" immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
+Operators can also contain "|", making it ambiguous what, for example, `<--|'foo'` means.
+It could be the "<--" operator followed by `|'foo'` but also the "<--|" operator followed by `'foo'`. 
+Please add spaces to disambiguate:  `<--| 'foo'`   or   `<-- |'foo'`
+"""),     
+      str(BadOpDigit,"""
+An operator followed by a digit is parsed as a signed number (e.g. "+5", "-3").
+Operators can also contain "+" and "-", making it ambiguous what, for example, "<--5" means.
+It could be the "<--" operator followed by "5" but also the "<-" operator followed by "-5".
+Please add spaces to disambiguate:  "<-- 5"   or   "<- -5"
+"""),
+      str(BadOSquare,"""
+Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+Write "Foo[Bar]" not "Foo [Bar]".
+Write "x.foo[read]" not "x.foo [read]".
+"""),
+      str(BadFloat,"""
+Float literals must have a sign and digits on both sides of ".".
+Examples: "+1.0", "-0.5", "+12.0e-3".
+Fearless does not allow float literals of form "1.2" or ".2".
+"""), 
+      str(BadRational,"""
+Rational literals must have a sign.
+Examples: "+1/2", "-3/4".
+Fearless does not allow rational literals of form "1/2"
+""")
+    );
+  }
+  private Map.Entry<TokenKind, TokenProcessor<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>> str(TokenKind tk, String s){
+    return Map.entry(tk, (_,t,tz) -> {
+      String head= t.content().isBlank()
+        ? "Unrecognized text."
+        : "Unrecognized text " + Message.displayString(t.content()) + ".";
+
+      throw Code.UnexpectedToken.of(head+"\n"+s).addSpan(t.span(tz.fileName())); 
+      });
+  }
+  private Stream<Token> strayBlockCommentCloser(int idx, Token t, Tokenizer tokenizer){
+    var file= tokenizer.fileName();
+    var hit= findPseudoOpenerBefore(idx, tokenizer);
+    var base= t.span(file);
+    if (hit.isEmpty()){
+      throw Code.UnexpectedToken
+        .of("Unopened block comment close \"*/\". Remove it or add a matching \"/*\" before.")
+        .addSpan(base);
+      }
+    var h= hit.get();
+    Span s= h.span(file);
+    assert s.isSingleLine();
+    int line= s.startLine();
+    int index= h.content().indexOf("/*");
+    Span primary= new Span(file,line, s.startCol()+index, base.endLine(), base.endCol());
+    String where= "inside "+describeFree(h);
+   throw Code.UnexpectedToken.of(
+     "Unopened block comment close \"*/\".\n"
+   + "Found a \"/*\" " + where + " before this point.\n"
+   + "Did you mean to place the opener outside the string/comment?")
+     .addSpan(primary);
+  }
+  private Optional<Token> findPseudoOpenerBefore(int idx, Tokenizer tz){
+    var all= tz.allTokens();
+    for (int j= idx - 1; j >= 0; j--){
+      var p = all.get(j);
+      if (p.is(BlockComment,_SOF)){ return Optional.empty(); }
+      if (p.is(LineComment, UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash)){
+        if (p.content().contains("/*")){ return Optional.of(p); }
+      }
+    }
+    throw Bug.unreachable();
+  }
+  private String errStart(int quoteChar){
+    return "String literal " + Message.displayChar(quoteChar)
+    + " reaches the end of the line.\n";
+  }
+  private FearlessException errNoInfo(Span at, int quoteChar){ return Code.UnexpectedToken.of(errStart(quoteChar)).addSpan(at); }
+  private FearlessException errEatAfter(Span at, int quoteChar){
+    return Code.UnexpectedToken.of(errStart(quoteChar)
+    + "A comment opening sign is present later on this line; did you mean to close the string before it?"
+      ).addSpan(at); 
+    }
+  private FearlessException errEatBefore(Span at, int quoteChar){
+    return Code.UnexpectedToken.of(errStart(quoteChar)
+    + "A preceding block comment \"/* ... */\" on this line contains that quote.\n"
+    + "Did it swallow the intended opening quote?"
+      ).addSpan(at); 
+    }
+  private Stream<Token> frontOrBack(int idx, Token t, Tokenizer tz, int quoteChar){
+    var file= tz.fileName();
+    var text= t.content();
+    Span b= t.span(file);
+    assert b.isSingleLine();
+    //If '//' or '/*' is inside the bad string, trim span to stop before it.
+    int openSL = text.indexOf("//");
+    int openML = text.indexOf("/*");
+    int idxComment= openSL==-1?openML:openML==-1?openSL:Math.min(openSL, openML);
+    if (idxComment >= 0){      
+      Span after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
+      throw errEatAfter(after, quoteChar);      
+    }
+    //If immediately before this token (ignoring whitespace) we have a BlockComment
+    // that ENDS on THIS SAME LINE, and its *last line* contains this quoteChar,
+    // then it probably swallowed the intended opening quote.
+    var all= tz.allTokens();
+    int j= idx - 1;
+    while (j > 0 && !all.get(j).is(BlockComment)){ j -= 1; }
+    Token prev= all.get(j);     
+    if (!prev.is(BlockComment)){ throw errNoInfo(b, quoteChar); }
+    Span s= prev.span(file);
+    if (s.endLine() != t.line()){ throw errNoInfo(b, quoteChar); }
+    int quote= prev.content().lastIndexOf(quoteChar);
+    int nl= prev.content().lastIndexOf("\n");
+    boolean swallowedByComment = quote > 0 && quote > nl;
+    if (!swallowedByComment){ throw errNoInfo(b, quoteChar); }
+    var line= b.endLine();
+    var endCol= b.startCol()+1;//invert the caret
+    var startCol= s.endCol()-(prev.content().length()-quote);
+    Span before= new Span(file,line,startCol,line,endCol);
+    throw errEatBefore(before, quoteChar);
+  }
+  @Override public FearlessException groupHalt(
+      Token open, Token stop, Collection<TokenKind> expectedClosers, LikelyCause likely,
+      Tokenizer tokenizer){
+    assert nonNull(open, stop, expectedClosers, tokenizer, likely);
+
+    var file= tokenizer.fileName();
+    boolean sof= open.is(_SOF);
+    boolean eof= stop.is(_EOF);
+    boolean isCloser= stop.is(CRound, CSquare, CCurly, CCurlyId);
+    boolean isBarrier= !eof && !isCloser;
+
+    String openLabel= labelOf(open.kind());
+    String stopLabel= eof ? "end of group" : labelOf(stop.kind());
+    String base=
+      sof
+        ?"Unopened " + stopLabel + ".\n"
+      :eof
+        ? context() + openLabel + " group.\n"
+      : isBarrier
+        ? "Unclosed " + openLabel + " group before " + stopLabel + ".\n"
+        : ("Wrong closer for " + openLabel + " group.\nFound instead: " + stopLabel + ".\n");
+    String hint= switch (likely){
+      case MissingCloser -> "Hint: insert the expected closer before " + stopLabel + ".\n";
+      case StrayCloser   -> "Hint: remove this closer or add its matching opener before it.\n";
+      case StrayOpener   -> "Hint: remove the opener at the earlier position.\n";
+      case MissingOpener -> "Hint: insert the matching opener before this closer.\n";
+      case Unknown       -> "";
+    };
+    var span = eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
+    var code= sof ? Code.Unopened : (eof || isBarrier) ? Code.Unclosed : Code.UnexpectedToken;
+    return code.of(base + (sof?"":expected(expectedClosers)) + hint).addSpan(span);
+  }
+  @Override public FearlessException eatenCloserBetween(
+      Token open, Token stop, Collection<TokenKind> expectedClosers,
+      Token hiddenFragment, Token hiddenContainer, Tokenizer tokenizer){
+    assert nonNull(open, stop, expectedClosers, hiddenFragment, hiddenContainer, tokenizer);
+
+    var file= tokenizer.fileName();
+    String where= describeFree(hiddenContainer);
+    String msg=
+      "Unclosed " + labelOf(open.kind()) + " group.\n"
+    + expected(expectedClosers)
+    + "Found a matching closer inside " + where + " between here and the stopping point.\n"
+    + "Did you mean to place the closer outside " + where + "?\n";
+    var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
+    var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
+    return Code.Unclosed.of(msg).addSpan(primary).addSpan(secondary);
+  }
+  @Override public FearlessException eatenOpenerBetween(
+      Token open, Token stop, Collection<TokenKind> expectedClosers,
+      Token hiddenFragment, Token hiddenContainer, Tokenizer tokenizer){
+    assert nonNull(open, stop, expectedClosers, hiddenFragment, hiddenContainer, tokenizer);
+
+    var file= tokenizer.fileName();
+    String where= describeFree(hiddenContainer);
+    String msg=
+      "Unopened " + labelOf(stop.kind()) + ".\n"
+    + "Found a matching opener hidden inside " + where + " before this point.\n"
+    + "Did you mean to place the opener outside " + where + "?";
+    var primary= metaParser.Token.makeSpan(file, hiddenFragment, stop);
+    var secondary= metaParser.Token.makeSpan(file, hiddenContainer, stop);
+    return Code.Unopened.of(msg).addSpan(primary).addSpan(secondary);
+  }
+  @Override public FearlessException runOfClosersBefore(
+      Token open, Token stop, Collection<TokenKind> expectedClosers,
+      List<Token> runOfClosers, Tokenizer tokenizer){
+    assert nonNull(open, stop, expectedClosers, runOfClosers, tokenizer);
+    assert !runOfClosers.isEmpty();
+
+    var file= tokenizer.fileName();
+    var k= runOfClosers.get(0).kind();
+    String msg=
+      "Unclosed " + labelOf(open.kind()) + " group.\n"
+    + expected(expectedClosers)
+    + "A contiguous run of " + labelOf(k) + " appears before this point; a closer may be missing earlier.";
+
+    var runSpan= metaParser.Token.makeSpan(file, runOfClosers.get(0), runOfClosers.get(runOfClosers.size()-1));
+    var primary= metaParser.Token.makeSpan(file, open, stop);
+    return Code.Unclosed.of(msg).addSpan(runSpan).addSpan(primary);
+  }
+  @Override public FearlessException runOfOpenersBefore(
+      Token open, Token badCloser, Collection<TokenKind> expectedClosers,
+      List<Token> runOfOpeners, Tokenizer tokenizer){
+    assert nonNull(open, badCloser, expectedClosers, runOfOpeners, tokenizer);
+    assert !runOfOpeners.isEmpty();
+
+    var file= tokenizer.fileName();
+    var k= runOfOpeners.get(0).kind();
+    String msg =
+      "Unopened " + labelOf(badCloser.kind()) + ".\n"
+    + "A contiguous run of " + labelOf(k) + " appears before this point; an opener may be missing earlier.";
+
+    var pileSpan = metaParser.Token.makeSpan(file, runOfOpeners.get(0), runOfOpeners.get(runOfOpeners.size()-1));
+    var primary  = metaParser.Token.makeSpan(file, runOfOpeners.get(0), badCloser);
+    return Code.Unopened.of(msg).addSpan(pileSpan).addSpan(primary);
+  }
+
+  @Override public FearlessException missingButFound(
+      Span at, String what, Token found, Collection<TokenKind> expectedTokens, Parser parser){
+    assert nonNull(at, what, found, expectedTokens);
+    String msg=
+      "Missing " + (what.isBlank() ? "element" : what) + ".\n"
+    + "Found instead: " + Message.displayString(found.content()) + ".\n"
+    + expected(expectedTokens);
+    return Code.UnexpectedToken.of(msg).addSpan(at);
+  }
+  public FearlessException badTopSelfName(Span at, String name){
+    String msg= "Self name "+name+" invalid in a top level type.\n"
+      + "Top level types self names can only be \"`this\".\n";
+    return Code.UnexpectedToken.of(msg).addSpan(at);
+  }
 }
+
+/*@Override public FearlessException unexpectedCloser(Token open, Token badCloser, Collection<TokenKind> expectedClosers, Tokenizer tokenizer){
+assert nonNull(open, badCloser, expectedClosers, tokenizer);
+var file= tokenizer.fileName();
+var openS= open.span(file);
+var eof= badCloser.is(_EOF);
+var badS= (eof
+  ?tokenizer.allTokens().get(tokenizer.allTokens().size()-2) 
+  :badCloser)
+  .span(file);
+assert !eof || !open.is(_SOF);
+String what= eof
+  ? context() + Message.displayString(open.content())+ " group.\n"
+  : "Unopened "+ Message.displayString(badCloser.content()) + " group.\n";
+String baseMsg= what + (expectedClosers.isEmpty()?"":("Expected "+joinOrEmpty(expectedClosers)));
+
+if(eof){
+  // (  ")"
+  return Code.Unclosed.of(baseMsg).addSpan(openS); 
+  }
+//TODO: this needs to be called also if start is not SOF
+if(open.is(_SOF)){
+  char badOpener= openerForCloser(badCloser.kind());
+  Optional<Token> pseudo= pseudoOpenerBetween(tokenizer,0, badCloser, badOpener);
+  if (!pseudo.isPresent()){ return Code.Unclosed.of(baseMsg).addSpan(badS); }
+  Token from = pseudo.get();
+  var msg= baseMsg+
+    "A matching opener " + Message.displayChar(badOpener) 
+  + " appears inside a string/comment earlier. ";
+  Span s= metaParser.Token.makeSpan(file, from, badCloser);
+  return Code.Unclosed.of(msg).addSpan(s);
+}
+char closerChar= closerCharOf(expectedClosers);
+var suspect= tokenizer.allTokens().stream()
+  .filter(tok -> isBetween(tok, openS, badS))
+  .filter(tok -> isStringOrComment(tok))
+  .filter(tok -> tok.content().indexOf(closerChar) != -1)
+  .findFirst();
+if (suspect.isEmpty()){ return Code.Unclosed.of(baseMsg).addSpan(metaParser.Token.makeSpan(file,open,badCloser)); }
+var where= switch (suspect.get().kind()){
+  case LineComment -> "a line comment (\"//\")";
+  case BlockComment -> "a block comment (\"/* ... * /\")";
+  case UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash -> "a string literal";
+  default -> throw Bug.unreachable();
+};
+int pos= suspect.get().content().indexOf(closerChar);
+assert pos != -1;
+Token split= suspect.get().tokenSecondHalf(pos);
+Span suggestion= metaParser.Token.makeSpan(tokenizer.fileName(),open, split);
+String msg=
+  baseMsg
+  + "Found " + Message.displayChar(closerChar) + " inside " + where + ".\n"
+  + "Was that intended to close the group?\n";
+return Code.Unclosed.of(msg).addSpan(suggestion);
+}
+private boolean isStringOrComment(Token t){ return t.is(LineComment, BlockComment,UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash); }
+
+private boolean isBetween(Token tok, Span start, Span end){
+int tl= tok.line();
+int tc= tok.column();
+boolean afterStart= (tl > start.startLine()) || (tl == start.startLine() && tc > start.startCol());
+boolean beforeEnd= (tl < end.endLine())   || (tl == end.endLine()   && tc <= end.endCol());
+return afterStart && beforeEnd;
+}
+private char closerCharOf(Collection<TokenKind> closers){
+assert closers.size() == 1 || closers.size() == 2;
+if (closers.contains(CCurly) || closers.contains(CCurlyId)){ return '}'; }
+if (closers.contains(CRound)){ return ')'; }
+if (closers.contains(CSquare)){ return ']'; }
+throw Bug.unreachable();
+}
+private char openerForCloser(TokenKind closer){
+return switch (closer){
+  case CCurly, CCurlyId -> '{';
+  case CRound           -> '(';
+  case CSquare          -> '[';
+  default               -> throw Bug.unreachable();
+};
+}
+//if we added/remove one it would work: this strategy is weak, add more errors and all error quality degenerate
+//A EOF with pending open
+//A add: search for some candidate closers points after the pending open
+// - there is a pile of closed parenthesis, if we added one it would work
+// - comments and str literals with the closer
+// - opener is "(" and we hit a semicolon not protected by {} () []
+// - opener is "[" and we hit {, ( or other tokens that are never inside a [ block
+//A remove: if we remove it and re run the token tree, would it work? //poor, kind of always works
+//B badClose with pending open
+//B add (satisfy closer): search for surrogate openers before the pending open
+// - there is a pile of open parenthesis, if we added one it would work
+// - comments and str literals with the expected opener
+// - closer is ")" and we hit a semicolon or "{" not protected by {} () []
+// - opener is "]" and we hit },[,) or other tokens that are never inside a [ block
+//B add (satisfy opener): search for surrogate closers before the badCloser
+// - there is a pile of closed parenthesis, if we added one it would work
+// - comments and str literals with the expected closer  
+// - opener is "(" and we hit a semicolon or "}" not protected by {} () []
+// - opener is "[" and we hit {,],( or other tokens that are never inside a [ block
+//B remove bad closer : if we remove it and re run the token tree, would it work?
+//B remove pending open: if we remove it and re run the token tree, would it work? //can both 'work'? no right?
+//C badClose with no pending open
+//C add (satisfy closer): search for surrogate openers before the pending open
+// - there is a pile of open parenthesis, if we added one it would work
+// - comments and str literals with the expected opener
+// - closer is ")" and we hit a semicolon or "{" not protected by {} () []
+// - opener is "]" and we hit },[,) or other tokens that are never inside a [ block
+
+private Optional<Token> swimUp(List<Token> all, Token open, Token badCloser, Function<Token,Optional<Token>> f){
+int start= all.indexOf(open);
+int end= all.indexOf(badCloser);
+assert start != -1;
+assert end != -1;
+assert end >= start;
+return all.subList(start,end).reversed().stream()
+  .map(t->f.apply(t)).filter(Optional::isPresent)
+  .findFirst().orElse(Optional.empty());
+}
+private Optional<Token> swimDown(List<Token> all, Token open, Token badCloser, Function<Token,Optional<Token>> f){
+int start= all.indexOf(open);
+int end= all.indexOf(badCloser);
+assert start != -1;
+assert end != -1;
+assert end >= start;
+return all.subList(start,end).reversed().stream()
+  .map(t->f.apply(t)).filter(Optional::isPresent)
+  .findFirst().orElse(Optional.empty());
+}*/
+/*  private 
+
+  if (isStringOrComment(t)){
+    int k= t.content().lastIndexOf(openerCh);
+    if (k != -1){ return Optional.of(t.tokenSecondHalf(k)); }
+  }
+  //TODO: if t is the right opener, mark the span between the two?
+}
+
+*/

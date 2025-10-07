@@ -54,14 +54,14 @@ public final class NameSuggester {
 
     // 1) Optional "In scope:" line (kept compact & deterministic).
     if (candidates.size() <= MAX_SCOPE_TO_LIST) {
-      out.append("In scope: ").append(candidates.stream().map(Message::displayString).collect(Collectors.joining(", "))).append('\n');
+      out.append("In scope: ").append(candidates.stream().map(Message::displayString).collect(Collectors.joining(", "))).append(".\n");
     }
 
     // 2) Compute similarity scores; pick a confident single suggestion or none.
     Suggestion best = pickBest(name, candidates);
 
     if (best != null && best.isConfident) {
-      out.append("did you mean `").append(best.value).append("` ?").append('\n');
+      out.append("did you mean `").append(best.value).append("` ?\n");
     }
 
     if (out.length() == 0) return Optional.empty(); // nothing to show

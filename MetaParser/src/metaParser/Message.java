@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -17,7 +18,10 @@ public record Message(String msg,int priority){
   //---------
 //inside metaParser.Message
 
- /** Build the final single-string error message (lines 1..11 as per spec). */
+ private static Optional<String> optCaretLine(String[] lines, Grouping g, int width){
+   if (g.singles.isEmpty()){ return Optional.empty(); }
+   return Optional.of(makeCaretLine(lines, g, width));
+ }
  public static String of(Function<URI,String> loader, List<Frame> frames, String msg){
    if (frames == null || frames.isEmpty()) return msg;
    dbgSpans("RAW FRAMES", frames);
@@ -36,11 +40,11 @@ public record Message(String msg,int priority){
    int width = lineNumberWidth(lines.length);
 
    // 4) single-line caret (on caretLine) using - ~ ^ for outer/mid/inner
-   String caretLine = makeCaretLine(lines, g, width);
+   Optional<String> caretLine = optCaretLine(lines, g, width);
 
    // 5) final render
    String body = (g.multiLine() != null)
-     ? renderMulti(lines, g, width, caretLine)   // << changed: use new renderer
+     ? renderMulti(lines, g, width, caretLine)
      : renderTwo(lines, g, width, caretLine);
 
    // Header (line 1), blank (line 2)
@@ -181,10 +185,9 @@ public record Message(String msg,int priority){
   // ===== Phase 5: final rendering ===============================================
 
   /** 2-line render fallback when there is no multiline span. */
-  private static String renderTwo(String[] lines, Grouping g, int width, String caretLine){
+  private static String renderTwo(String[] lines, Grouping g, int width, Optional<String> caretLine){
     String l1 = numberedCaret(lines, g.caretLine(), width);
-    String l2 = caretLine;
-    return l1 + "\n" + l2;
+    return l1 + "\n" + caretLine.orElse("");
   }
 
   // ----- numbered code line helpers ---------------------------------------------
@@ -488,7 +491,7 @@ if (count == 1){
 }
 }
 
-private static String renderMulti(String[] lines, Grouping g, int width, String caretLine){
+private static String renderMulti(String[] lines, Grouping g, int width, Optional<String> caretLine){
 Span group = g.multiLine();
 int start = group.startLine();
 int end   = group.endLine();
@@ -500,12 +503,12 @@ int afterCount  = end   - caret - 1;  // lines strictly between caret..end
 boolean caretAtStart = caret == start;
 boolean caretAtEnd   = caret == end;
 
-java.util.ArrayList<String> out = new java.util.ArrayList<>();
+ArrayList<String> out = new ArrayList<>();
 
 if (caretAtStart){
  // 4 or 3 lines (if afterCount == 0)
  out.add(numberedCaret(lines, caret, width));
- out.add(caretLine);
+ caretLine.ifPresent(out::add);
  addElision(out, lines, width, afterCount, caret + 1);
  out.add(numbered(lines, end, width));
 } else if (caretAtEnd){
@@ -513,13 +516,13 @@ if (caretAtStart){
  out.add(numbered(lines, start, width));
  addElision(out, lines, width, beforeCount, caret - 1);
  out.add(numberedCaret(lines, caret, width));
- out.add(caretLine);
+ caretLine.ifPresent(out::add);
 } else {
  // caret strictly inside -> up to 6 lines (drops sides with 0 omitted)
  out.add(numbered(lines, start, width));
  addElision(out, lines, width, beforeCount, caret - 1);
  out.add(numberedCaret(lines, caret, width));
- out.add(caretLine);
+ caretLine.ifPresent(out::add);
  addElision(out, lines, width, afterCount, caret + 1);
  out.add(numbered(lines, end, width));
 }

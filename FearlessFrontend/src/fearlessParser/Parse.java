@@ -4,38 +4,50 @@ import static fearlessParser.TokenKind.*;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import message.FearlessErrFactory;
+import metaParser.MetaParser;
 import metaParser.Span;
+import metaParser.TokenTreeSpec;
 
 public class Parse {
   public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t->!t.syntetic()).toList();
-  public static final Map<TokenKind,Map<TokenKind,TokenKind>> map= Map.of(
-      _SOF,Map.of(_EOF,_All),
-      ORound,Map.of(CRound,_RoundGroup),
-      OSquareArg,Map.of(CSquare,_SquareGroup),
-      OCurly,Map.of(CCurly,  _CurlyGroup,
-                    CCurlyId,_CurlyGroup));
+  private static final TokenTreeSpec<Token,TokenKind> map= new TokenTreeSpec<Token,TokenKind>()
+    .addOpenClose(_SOF,_EOF,_All)
+    .addOpenClose(ORound,CRound,_RoundGroup)
+    .addOpenClose(OSquareArg,CSquare,_SquareGroup)
+    .addOpenClose(OCurly,CCurly,_CurlyGroup)
+    .addOpenClose(OCurly,CCurlyId,_CurlyGroup)
+    ;
   public static FileFull from(URI fileName,String input){
-    input= input.replace("\r\n", "\n").replace("\r", "\n");
-    if (!input.isEmpty() && input.charAt(0) == '\uFEFF'){ input = input.substring(1); }
-    new Validate(fileName).of(input);
-    var t= new Tokenizer(fileName,input,kinds, _SOF, _EOF);
-    var all= t.tokenize(map,1,1);
-    var p= new Parser(all.span(),new Names(List.of(),List.of()),all.tokenTree());
+    Tokenizer t= new Tokenizer()
+      .input(fileName,input)
+      .tokenKinds(kinds,_SOF,_EOF)
+      .startingPosition(1,1)
+      .setErrFactory(new FearlessErrFactory())
+      .whiteList(allowed)
+      .tokenize()
+      .postTokenize(new FearlessErrFactory().badTokensMap())
+      .buildTokenTree(map);
+    var p= new Parser(t.span(),new Names(List.of(),List.of()),t.tokenTree());
     return p.parseAll("full file",Parser::parseFileFull);
   }
   static E from(URI fileName, Names names,String input, int line, int col){
-    System.out.println("["+input+"]"+col);
-    var t= new Tokenizer(fileName,input,kinds, _SOF, _EOF){
-      @Override public FearlessErrFactory errFactory(){ return new FearlessErrFactory(){
-        @Override public String context(){ return "Interpolation expression ended while parsing a "; }
-      }; }
-    };
-    var all= t.tokenize(map,line,col);
-    var p= new Parser(all.span(),names,all.tokenTree());
+    Span s=new Token(SStrInterHash,input,line,col,List.of()).span(fileName);
+    Tokenizer t= MetaParser.computeInFrame("string interpolation expression", s, ()->
+      new Tokenizer()
+        .input(fileName,input)
+        .tokenKinds(kinds,_SOF,_EOF)
+        .startingPosition(line,col)
+        .setErrFactory(new FearlessErrFactory(){
+          @Override public String context(){ return "Interpolation expression ended while parsing a "; }
+          })
+        //not needed .whiteList(allowed)
+        .tokenize()
+        .postTokenize(new FearlessErrFactory().badTokensMap())
+        .buildTokenTree(map));
+    var p= new Parser(t.span(),names,t.tokenTree());
     return p.parseAll("string interpolation expression",Parser::parseEFull);
   }
   // ASCII whitelist
@@ -46,17 +58,4 @@ public class Parse {
     "+-*/=<>,.;:()[]{}" +
     "`'\"!?@#$%^&_|~\\" +
     " \n";
-  static class Validate{
-    final URI file; int line = 1; int col = 1;
-    Validate(URI file){ this.file = file; }
-    void of(String src){ src.codePoints().forEach(this::ofSingle); }
-    void ofSingle(int cp){
-      boolean ok= allowed.indexOf(cp) >= 0;
-      if (!ok){
-        var at = new Span(file, line, col, line, col);
-        throw new message.FearlessErrFactory().illegalCharAt(at, cp);
-      }
-      if (cp == '\n'){ line++; col = 1; } else { col++; }
-    }
-  }
 }
