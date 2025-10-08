@@ -35,6 +35,8 @@ public class Parse {
     .addOpenerEater(OCurly,t->splitOn(t,"{",false))
     ;
   private static Optional<Token> splitOn(Token t, String s,boolean first){
+    var free= t.is(BlockComment, LineComment, UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash);
+    if(!free){ return Optional.empty(); }
     int index= t.content().indexOf(s);
     if (index == -1){ return Optional.empty(); }
     if(first){ return Optional.of(t.tokenFirstHalf(index+1)); }

@@ -2,7 +2,6 @@ package fearlessParser;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import files.Pos;
@@ -159,8 +158,18 @@ body=Optional[this]]]]]]
 ""","""
 A:{.foo:A->this; }
 """);}
-@Disabled @Test void use_selfBadBackTick(){fail("""
-xxxx
+@Test void use_selfBadBackTick(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ 'x .foo:A->A + A; } //ill formed: the first layer has to be 'this or nothing
+   |   ^^^^^^^^^^^^^^^^^^^^^------------------------------------------
+
+While inspecting the file
+Unclosed "{" group.
+Found a matching closer inside a string literal between here and the stopping point.
+Did you mean to place the closer outside the string literal?
+Otherwise expected one of: "}id", "}".
+Error 0  Unclosed
 ""","""
 A:{ 'x .foo:A->A + A; } //ill formed: the first layer has to be 'this or nothing
 """);}
@@ -2101,7 +2110,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Unopened block comment close "*/".
-Found a "/*" inside a line comment ("//") before this point.
+Found a "/*" inside a line comment "//" before this point.
 Did you mean to place the opener outside the string/comment?
 Error 2  UnexpectedToken
 """, """
@@ -2215,194 +2224,438 @@ A:{
 """);
 }
 
-//===== eatenCloserBetween (closer hidden in string/comment) ====================
-@Disabled @Test void eatenCloserInDblQuote_thenWrongCloserParen(){
-fail(""" 
-xxxx
-""",""" 
+@Test void eatenCloserInDblQuote_thenWrongCloserParen(){
+fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> "price is } dollars" ) }
+   |   ^^^^^^^^^^^^^^^^^^^^^^^---------
+
+While inspecting the file
+Unclosed "{" group.
+Found a matching closer inside a string literal between here and the stopping point.
+Did you mean to place the closer outside the string literal?
+Otherwise expected one of: "}id", "}".
+Error 0  Unclosed
+""","""
 A:{ .m:Str -> "price is } dollars" ) }
 """);}
 
-@Disabled @Test void eatenCloserInSglQuote_thenWrongCloserParen(){
+@Test void eatenCloserInSglQuote_thenWrongCloserParen(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> 'oops } here' ) }
+   |   ^^^^^^^^^^^^^^^^^^^------
+
+While inspecting the file
+Unclosed "{" group.
+Found a matching closer inside a string literal between here and the stopping point.
+Did you mean to place the closer outside the string literal?
+Otherwise expected one of: "}id", "}".
+Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> 'oops } here' ) }
 """);}
 
-@Disabled @Test void eatenCloserInLineStr_thenWrongCloserParen(){
+@Test void eatenCloserInLineStr_thenWrongCloserParen(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> |"hello } world" ) }
+   |   ^^^^^^^^^^^^^^^^^^^^^-----------
+
+While inspecting the file
+Unclosed "{" group.
+Found a matching closer inside a string literal between here and the stopping point.
+Did you mean to place the closer outside the string literal?
+Otherwise expected one of: "}id", "}".
+Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> |"hello } world" ) }
 """);}
 
-@Disabled @Test void eatenCloserInBlockComment_thenWrongCloserParen(){
+@Test void eatenCloserInBlockComment_thenWrongCloserParen(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> /* } inside */ ) }
+   |   ^^^^^^^^^^^^^^^^----------
+
+While inspecting the file
+Unclosed "{" group.
+Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
+Did you mean to place the closer outside the block comment "/* ... */"?
+Otherwise expected one of: "}id", "}".
+Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> /* } inside */ ) }
 """);}
 
-@Disabled @Test void eatenCloserInLineComment_thenWrongCloserParen(){
+@Test void eatenCloserInLineComment_thenWrongCloserParen(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> // } swallowed
+   |   ^^^^^^^^^^^^^^^^----------
+
+While inspecting the file
+Unclosed "{" group.
+Found a matching closer inside a line comment "//" between here and the stopping point.
+Did you mean to place the closer outside the line comment "//"?
+Otherwise expected one of: "}id", "}".
+Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> // } swallowed
 ) }
 """);}
 
-@Disabled @Test void eatenRoundCloserInString_thenStopByCurly(){
+@Test void eatenRoundCloserInString_thenStopByCurly(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> ( ")]" + " has ) here ) inside" }
+   |               ^^^^--
+
+While inspecting the file
+Unclosed "(" group.
+Found a matching closer inside a string literal between here and the stopping point.
+Did you mean to place the closer outside the string literal?
+Otherwise expected ")".
+Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> ( ")]" + " has ) here ) inside" } 
 """);}
 
-@Disabled @Test void eatenSquareCloserInString_thenStopByParen(){
+@Test void eatenSquareCloserInString_thenStopByParen(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> W[ "list ] marker" ) ] }
+   |                ^^^^^^^^^--------
+
+While inspecting the file
+Unclosed "[" group.
+Found a matching closer inside a string literal between here and the stopping point.
+Did you mean to place the closer outside the string literal?
+Otherwise expected "]".
+Error 0  Unclosed
 """,""" 
-A:{ .m:Str -> [ "list ] marker" ) ] }
+A:{ .m:Str -> W[ "list ] marker" ) ] }
 """);}
 
-@Disabled @Test void eatenCurlyCloserInString_thenEOF(){
-fail(""" 
-xxxx
-""",""" 
+@Test void eatenCurlyCloserInString_thenEOF(){
+fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> { "inner } hidden"
+   |               ^^^^^^^^^^--------
+
+While inspecting the file
+Unclosed "{" group.
+Found a matching closer inside a string literal between here and the stopping point.
+Did you mean to place the closer outside the string literal?
+Otherwise expected one of: "}id", "}".
+Error 0  Unclosed
+""","""
 A:{ .m:Str -> { "inner } hidden"
 """);}
 
-@Disabled @Test void eatenCurlyCloserInBlockComment_thenEOF(){
+@Test void eatenCurlyCloserInBlockComment_thenEOF(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> { /* } hidden */
+   |               ^^^^^^----------
+
+While inspecting the file
+Unclosed "{" group.
+Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
+Did you mean to place the closer outside the block comment "/* ... */"?
+Otherwise expected one of: "}id", "}".
+Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> { /* } hidden */ 
 """);}
 
-@Disabled @Test void eatenSquareCloserInBlockComment_thenWrongCloserCurly(){
+@Test void eatenSquareCloserInBlockComment_thenWrongCloserCurly(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> Foo[ /* ] hidden */ } ]
+   |                  ^^^^^^----------
+
+While inspecting the file
+Unclosed "[" group.
+Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
+Did you mean to place the closer outside the block comment "/* ... */"?
+Otherwise expected "]".
+Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> Foo[ /* ] hidden */ } ]
 """);}
 
-//===== eatenOpenerBetween (opener hidden earlier; stray closer now) ============
-
-@Disabled @Test void eatenRoundOpenerInDblQuote_thenStrayParen(){
+@Test void eatenRoundOpenerInDblQuote_thenStrayParen(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> "call (" ) }
+   |               ------^^^^
+
+While inspecting the file
+Unopened ")".
+Found a matching opener hidden inside a string literal before this point.
+Did you mean to place the opener outside the string literal?
+Error 1  Unopened
 """,""" 
 A:{ .m:Str -> "call (" ) }
 """);}
 
-@Disabled @Test void eatenRoundOpenerInLineComment_thenStrayParen(){
+@Test void eatenRoundOpenerInLineComment_thenStrayParen(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> // ( swallowed
+002| ) }
+
+While inspecting the file
+Unopened ")".
+Found a matching opener hidden inside a line comment "//" before this point.
+Did you mean to place the opener outside the line comment "//"?
+Error 1  Unopened
 """,""" 
 A:{ .m:Str -> // ( swallowed
 ) }
 """);}
 
-@Disabled @Test void eatenSquareOpenerInBlockComment_thenStrayBracket(){
+@Test void eatenSquareOpenerInBlockComment_thenStrayBracket(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> /* [ hidden */ ] }
+   |               ---^^^^^^^^^^^^^
+
+While inspecting the file
+Unopened "]".
+Found a matching opener hidden inside a block comment "/* ... */" before this point.
+Did you mean to place the opener outside the block comment "/* ... */"?
+Error 1  Unopened
 """,""" 
 A:{ .m:Str -> /* [ hidden */ ] }
 """);}
 
-@Disabled @Test void eatenCurlyOpenerInDblQuote_thenStrayCurly(){
+@Test void eatenCurlyOpenerInDblQuote_thenStrayCurly(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| .m:Str -> "start { here" }
+   |           -------^^^^^^^^^
+
+While inspecting the file
+Unopened "}".
+Found a matching opener hidden inside a string literal before this point.
+Did you mean to place the opener outside the string literal?
+Error 1  Unopened
 """,""" 
 .m:Str -> "start { here" } 
 """);}
 
-@Disabled @Test void eatenRoundOpenerInBlockComment_thenStrayParenDeep(){
-fail(""" 
-xxxx
-""",""" 
+@Test void eatenRoundOpenerInBlockComment_thenStrayParenDeep(){
+fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
+   |                     ---^^^^^^^^^^
+
+While inspecting the file
+Unopened ")".
+Found a matching opener hidden inside a block comment "/* ... */" before this point.
+Did you mean to place the opener outside the block comment "/* ... */"?
+Error 1  Unopened
+""","""
 A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
 """);}
 
-@Disabled @Test void eatenSquareOpenerInLineStr_thenStrayBracket(){
-fail(""" 
-xxxx
-""",""" 
+@Test void eatenSquareOpenerInLineStr_thenStrayBracket(){
+fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> |"vec [ x" ] }
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Unclosed "{" group.
+Found a matching closer inside a string literal between here and the stopping point.
+Did you mean to place the closer outside the string literal?
+Otherwise expected one of: "}id", "}".
+Error 0  Unclosed
+""","""
 A:{ .m:Str -> |"vec [ x" ] }
 """);}
 
-//===== runOfClosersBefore (suggests missing closer earlier) ====================
-
-@Disabled @Test void runOfRoundClosersBeforeStop(){
+@Test void runOfRoundClosersBeforeStop(){
 fail(""" 
-xxxx
-""",""" 
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> ((1 + 2)) ) }
+   |   ^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: ")".
+This ")" may be unintended.
+Otherwise expected one of: "}id", "}".
+Error 2  UnexpectedToken
+""","""
 A:{ .m:Str -> ((1 + 2)) ) }
 """);}
 
-@Disabled @Test void runOfSquareClosersBeforeStop(){
+@Test void runOfSquareClosersBeforeStop(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> Foo[Bar] ] ) }
+   |   ^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: "]".
+Expected one of: "}id", "}".
+Error 2  UnexpectedToken
 """,""" 
 A:{ .m:Str -> Foo[Bar] ] ) }
 """);}
 
-@Disabled @Test void runOfRoundClosersThenWrongCurly(){
+@Test void runOfRoundClosersThenWrongCurly(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m(a,b):Str -> (a + b)) }
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: ")".
+This ")" may be unintended.
+Otherwise expected one of: "}id", "}".
+Error 2  UnexpectedToken
 """,""" 
 A:{ .m(a,b):Str -> (a + b)) } 
 """);}
 
-@Disabled @Test void runOfSquareClosersThenWrongParen(){
+@Test void runOfSquareClosersThenWrongParen(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> A[a,b]] ) }
+   |   ^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: "]".
+Expected one of: "}id", "}".
+Error 2  UnexpectedToken
 """,""" 
 A:{ .m:Str -> A[a,b]] ) }
 """);}
 
-@Disabled @Test void runOfRoundClosersNearEOF(){
+@Test void runOfRoundClosersNearEOF(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m(foo,bar):Str -> (foo + bar))
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: ")".
+This ")" may be unintended.
+Otherwise expected one of: "}id", "}".
+Error 2  UnexpectedToken
 """,""" 
 A:{ .m(foo,bar):Str -> (foo + bar)) 
 """);}
 
-@Disabled @Test void runOfSquareClosersNearEOF(){
+@Test void runOfSquareClosersNearEOF(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> A[x,y,z]]
+   |   ^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: "]".
+This "]" may be unintended.
+Otherwise expected one of: "}id", "}".
+Error 2  UnexpectedToken
 """,""" 
 A:{ .m:Str -> A[x,y,z]] 
 """);}
 
-//===== runOfOpenersBefore (pile of openers before an unopened closer) =========
-
-@Disabled @Test void runOfRoundOpenersBeforeStrayParen(){
+@Test void runOfRoundOpenersBeforeStrayParen(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: ")".
+This ")" may be unintended.
+Otherwise expected one of: "}id", "}".
+Error 2  UnexpectedToken
 """,""" 
 A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
 """);}
 
-@Disabled @Test void runOfSquareOpenersBeforeStrayBracket(){
+@Test void runOfSquareOpenersBeforeStrayBracket(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
+   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: "]".
+Expected one of: "}id", "}".
+Error 2  UnexpectedToken
 """,""" 
 A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
 """);}
 
-@Disabled @Test void runOfRoundOpenersTightBeforeStrayParen(){
+@Test void runOfRoundOpenersTightBeforeStrayParen(){
 fail(""" 
-xxxx
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> (((x))) ) }
+   |   ^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: ")".
+This ")" may be unintended.
+Otherwise expected one of: "}id", "}".
+Error 2  UnexpectedToken
 """,""" 
 A:{ .m:Str -> (((x))) ) }
 """);}
 
-@Disabled @Test void runOfSquareOpenersTightBeforeStrayBracket(){
+@Test void runOfSquareOpenersTightBeforeStrayBracket(){
 fail(""" 
-xxxxFor the runs, what if
-we instead use the runs position to do an add/remove re run, then drum back to the base error?
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> A[B[X]] ] }
+   |   ^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: "]".
+This "]" may be unintended.
+Otherwise expected one of: "}id", "}".
+Error 2  UnexpectedToken
 """,""" 
 A:{ .m:Str -> A[B[X]] ] }
 """);}
@@ -2563,9 +2816,9 @@ In file: ~/.../___DBG___/in_memory0.fear
 
 While inspecting the file
 Unclosed "{" group.
-Expected one of: "}id", "}".
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside a string literal?
+Did you mean to place the closer outside the string literal?
+Otherwise expected one of: "}id", "}".
 Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> { "json } aaa" 

@@ -143,10 +143,10 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   private static String describeFree(Token t){
     return switch (t.kind()){
-      case LineComment -> "a line comment (\"//\")";
-      case BlockComment -> "a block comment (\"/* ... */\")";
-      case UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash -> "a string literal";
-    default -> throw Bug.of();
+      case LineComment -> " line comment \"//\"";
+      case BlockComment -> " block comment \"/* ... */\"";
+      case UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash -> " string literal";
+    default -> throw new Error(t.toString());
   };
   }
   
@@ -317,7 +317,7 @@ Fearless does not allow rational literals of form "1/2"
     int line= s.startLine();
     int index= h.content().indexOf("/*");
     Span primary= new Span(file,line, s.startCol()+index, base.endLine(), base.endCol());
-    String where= "inside "+describeFree(h);
+    String where= "inside a"+describeFree(h);
    throw Code.UnexpectedToken.of(
      "Unopened block comment close \"*/\".\n"
    + "Found a \"/*\" " + where + " before this point.\n"
@@ -426,9 +426,9 @@ Fearless does not allow rational literals of form "1/2"
     String where= describeFree(hiddenContainer);
     String msg=
       "Unclosed " + labelOf(open.kind()) + " group.\n"
-    + expected(expectedClosers)
-    + "Found a matching closer inside " + where + " between here and the stopping point.\n"
-    + "Did you mean to place the closer outside " + where + "?\n";
+    + "Found a matching closer inside a" + where + " between here and the stopping point.\n"
+    + "Did you mean to place the closer outside the" + where + "?\n"
+    + expected("Otherwise expected ",expectedClosers);
     var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
     var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
     return Code.Unclosed.of(msg).addSpan(primary).addSpan(secondary);
@@ -442,8 +442,8 @@ Fearless does not allow rational literals of form "1/2"
     String where= describeFree(hiddenContainer);
     String msg=
       "Unopened " + labelOf(stop.kind()) + ".\n"
-    + "Found a matching opener hidden inside " + where + " before this point.\n"
-    + "Did you mean to place the opener outside " + where + "?";
+    + "Found a matching opener hidden inside a" + where + " before this point.\n"
+    + "Did you mean to place the opener outside the" + where + "?";
     var primary= metaParser.Token.makeSpan(file, hiddenFragment, stop);
     var secondary= metaParser.Token.makeSpan(file, hiddenContainer, stop);
     return Code.Unopened.of(msg).addSpan(primary).addSpan(secondary);
@@ -497,140 +497,3 @@ Fearless does not allow rational literals of form "1/2"
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
 }
-
-/*@Override public FearlessException unexpectedCloser(Token open, Token badCloser, Collection<TokenKind> expectedClosers, Tokenizer tokenizer){
-assert nonNull(open, badCloser, expectedClosers, tokenizer);
-var file= tokenizer.fileName();
-var openS= open.span(file);
-var eof= badCloser.is(_EOF);
-var badS= (eof
-  ?tokenizer.allTokens().get(tokenizer.allTokens().size()-2) 
-  :badCloser)
-  .span(file);
-assert !eof || !open.is(_SOF);
-String what= eof
-  ? context() + Message.displayString(open.content())+ " group.\n"
-  : "Unopened "+ Message.displayString(badCloser.content()) + " group.\n";
-String baseMsg= what + (expectedClosers.isEmpty()?"":("Expected "+joinOrEmpty(expectedClosers)));
-
-if(eof){
-  // (  ")"
-  return Code.Unclosed.of(baseMsg).addSpan(openS); 
-  }
-//TODO: this needs to be called also if start is not SOF
-if(open.is(_SOF)){
-  char badOpener= openerForCloser(badCloser.kind());
-  Optional<Token> pseudo= pseudoOpenerBetween(tokenizer,0, badCloser, badOpener);
-  if (!pseudo.isPresent()){ return Code.Unclosed.of(baseMsg).addSpan(badS); }
-  Token from = pseudo.get();
-  var msg= baseMsg+
-    "A matching opener " + Message.displayChar(badOpener) 
-  + " appears inside a string/comment earlier. ";
-  Span s= metaParser.Token.makeSpan(file, from, badCloser);
-  return Code.Unclosed.of(msg).addSpan(s);
-}
-char closerChar= closerCharOf(expectedClosers);
-var suspect= tokenizer.allTokens().stream()
-  .filter(tok -> isBetween(tok, openS, badS))
-  .filter(tok -> isStringOrComment(tok))
-  .filter(tok -> tok.content().indexOf(closerChar) != -1)
-  .findFirst();
-if (suspect.isEmpty()){ return Code.Unclosed.of(baseMsg).addSpan(metaParser.Token.makeSpan(file,open,badCloser)); }
-var where= switch (suspect.get().kind()){
-  case LineComment -> "a line comment (\"//\")";
-  case BlockComment -> "a block comment (\"/* ... * /\")";
-  case UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash -> "a string literal";
-  default -> throw Bug.unreachable();
-};
-int pos= suspect.get().content().indexOf(closerChar);
-assert pos != -1;
-Token split= suspect.get().tokenSecondHalf(pos);
-Span suggestion= metaParser.Token.makeSpan(tokenizer.fileName(),open, split);
-String msg=
-  baseMsg
-  + "Found " + Message.displayChar(closerChar) + " inside " + where + ".\n"
-  + "Was that intended to close the group?\n";
-return Code.Unclosed.of(msg).addSpan(suggestion);
-}
-private boolean isStringOrComment(Token t){ return t.is(LineComment, BlockComment,UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash); }
-
-private boolean isBetween(Token tok, Span start, Span end){
-int tl= tok.line();
-int tc= tok.column();
-boolean afterStart= (tl > start.startLine()) || (tl == start.startLine() && tc > start.startCol());
-boolean beforeEnd= (tl < end.endLine())   || (tl == end.endLine()   && tc <= end.endCol());
-return afterStart && beforeEnd;
-}
-private char closerCharOf(Collection<TokenKind> closers){
-assert closers.size() == 1 || closers.size() == 2;
-if (closers.contains(CCurly) || closers.contains(CCurlyId)){ return '}'; }
-if (closers.contains(CRound)){ return ')'; }
-if (closers.contains(CSquare)){ return ']'; }
-throw Bug.unreachable();
-}
-private char openerForCloser(TokenKind closer){
-return switch (closer){
-  case CCurly, CCurlyId -> '{';
-  case CRound           -> '(';
-  case CSquare          -> '[';
-  default               -> throw Bug.unreachable();
-};
-}
-//if we added/remove one it would work: this strategy is weak, add more errors and all error quality degenerate
-//A EOF with pending open
-//A add: search for some candidate closers points after the pending open
-// - there is a pile of closed parenthesis, if we added one it would work
-// - comments and str literals with the closer
-// - opener is "(" and we hit a semicolon not protected by {} () []
-// - opener is "[" and we hit {, ( or other tokens that are never inside a [ block
-//A remove: if we remove it and re run the token tree, would it work? //poor, kind of always works
-//B badClose with pending open
-//B add (satisfy closer): search for surrogate openers before the pending open
-// - there is a pile of open parenthesis, if we added one it would work
-// - comments and str literals with the expected opener
-// - closer is ")" and we hit a semicolon or "{" not protected by {} () []
-// - opener is "]" and we hit },[,) or other tokens that are never inside a [ block
-//B add (satisfy opener): search for surrogate closers before the badCloser
-// - there is a pile of closed parenthesis, if we added one it would work
-// - comments and str literals with the expected closer  
-// - opener is "(" and we hit a semicolon or "}" not protected by {} () []
-// - opener is "[" and we hit {,],( or other tokens that are never inside a [ block
-//B remove bad closer : if we remove it and re run the token tree, would it work?
-//B remove pending open: if we remove it and re run the token tree, would it work? //can both 'work'? no right?
-//C badClose with no pending open
-//C add (satisfy closer): search for surrogate openers before the pending open
-// - there is a pile of open parenthesis, if we added one it would work
-// - comments and str literals with the expected opener
-// - closer is ")" and we hit a semicolon or "{" not protected by {} () []
-// - opener is "]" and we hit },[,) or other tokens that are never inside a [ block
-
-private Optional<Token> swimUp(List<Token> all, Token open, Token badCloser, Function<Token,Optional<Token>> f){
-int start= all.indexOf(open);
-int end= all.indexOf(badCloser);
-assert start != -1;
-assert end != -1;
-assert end >= start;
-return all.subList(start,end).reversed().stream()
-  .map(t->f.apply(t)).filter(Optional::isPresent)
-  .findFirst().orElse(Optional.empty());
-}
-private Optional<Token> swimDown(List<Token> all, Token open, Token badCloser, Function<Token,Optional<Token>> f){
-int start= all.indexOf(open);
-int end= all.indexOf(badCloser);
-assert start != -1;
-assert end != -1;
-assert end >= start;
-return all.subList(start,end).reversed().stream()
-  .map(t->f.apply(t)).filter(Optional::isPresent)
-  .findFirst().orElse(Optional.empty());
-}*/
-/*  private 
-
-  if (isStringOrComment(t)){
-    int k= t.content().lastIndexOf(openerCh);
-    if (k != -1){ return Optional.of(t.tokenSecondHalf(k)); }
-  }
-  //TODO: if t is the right opener, mark the span between the two?
-}
-
-*/
