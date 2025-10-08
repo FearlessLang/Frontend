@@ -10,12 +10,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public abstract class MetaTokenizer<
     T extends Token<T,TK>,
@@ -152,14 +150,10 @@ public abstract class MetaTokenizer<
     assertMonotonic(allTokens);
     return self();
   }
-  private final TokenProcessor<T,TK,E,Tokenizer,Parser,Err> identity= (_,t,_)->Stream.of(t);
-  public Tokenizer postTokenize(Map<TK,TokenProcessor<T,TK,E,Tokenizer,Parser,Err>> map){
+  public Tokenizer postTokenize(TokenProcessor.Map<T,TK,E,Tokenizer,Parser,Err> map){
     assert !allTokens.isEmpty(): "call method .postTokenizer after .tokenize";
-    postTokens= withFrozen(()->IntStream.range(0,allTokens.size()).boxed().flatMap(i->{
-      var t= allTokens.get(i);
-      var repl = map.getOrDefault(t.kind(), identity).process(i, t, self());
-      return Objects.requireNonNull(repl, "TokenProcessor must not return null");
-      }).toList());
+    postTokens= withFrozen(()->IntStream.range(0,allTokens.size()).boxed()
+      .flatMap(i->map.process(i,allTokens.get(i),self())).toList());
     assertMonotonic(postTokens);
     return self();
   } 

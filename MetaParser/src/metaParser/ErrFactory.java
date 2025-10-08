@@ -54,20 +54,6 @@ public interface ErrFactory<
     T open, T stop, Collection<TK> expectedClosers,
     T hiddenFragment, T hiddenContainer,
     Tokenizer tokenizer);
-  
-  ///A contiguous run of matching closers for 'open' appears before 'stop'
-  ///(contiguous ignoring trivia), suggesting a closer is missing earlier.
-  E runOfClosersBefore(
-    T open, T stop, Collection<TK> expectedClosers,
-    List<T> runOfClosers,
-    Tokenizer tokenizer);
-
-  ///A contiguous run of matching openers appears before 'stop'
-  ///(contiguous ignoring trivia), suggesting an opener is missing earlier.
-  E runOfOpenersBefore(
-    T open, T badCloser, Collection<TK> expectedClosers,
-    List<T> runOfOpeners,        
-    Tokenizer tokenizer);
 
   // == Parser-time diagnostics ================================================
 

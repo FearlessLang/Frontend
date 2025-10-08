@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import message.BadTokens;
 import message.FearlessErrFactory;
 import metaParser.MetaParser;
 import metaParser.Span;
@@ -23,7 +24,7 @@ public class Parse {
     .addOpenClose(OCurly,CCurlyId,_CurlyGroup)
     
     .addBarriers(ORound,Set.of(SemiColon,Arrow,BackTick))
-    .addBarriers(OSquareArg,Set.of(SemiColon))//TODO: specify complement?
+    .addBarriers(OSquareArg,Set.of(SemiColon,Arrow,BackTick,LowercaseId,ORound,OCurly,DotName))
     
     .addCloserEater(CRound,t->splitOn(t,")",true))
     .addCloserEater(CSquare,t->splitOn(t,"]",true))
@@ -50,7 +51,7 @@ public class Parse {
       .setErrFactory(new FearlessErrFactory())
       .whiteList(allowed)
       .tokenize()
-      .postTokenize(new FearlessErrFactory().badTokensMap())
+      .postTokenize(new BadTokens().badTokensMap())
       .buildTokenTree(map);
     var p= new Parser(t.span(),new Names(List.of(),List.of()),t.tokenTree());
     return p.parseAll("full file",Parser::parseFileFull);
@@ -67,7 +68,7 @@ public class Parse {
           })
         //not needed .whiteList(allowed)
         .tokenize()
-        .postTokenize(new FearlessErrFactory().badTokensMap())
+        .postTokenize(new BadTokens().badTokensMap())
         .buildTokenTree(map));
     var p= new Parser(t.span(),names,t.tokenTree());
     return p.parseAll("string interpolation expression",Parser::parseEFull);

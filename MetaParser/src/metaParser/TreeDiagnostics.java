@@ -2,10 +2,7 @@ package metaParser;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.IntStream;
-
 import metaParser.ErrFactory.LikelyCause;
-
 import static metaParser.ErrFactory.LikelyCause.*;
 
 record TreeDiagnostics<
@@ -21,8 +18,6 @@ record TreeDiagnostics<
     return Optional.<E>empty()
     .or(()->tryEatenCloserBetween(open, badCloser))
     .or(()->tryEatenOpenerBetween(open, badCloser))
-    .or(()->tryRunOfClosersBefore(open, badCloser))
-    .or(()->tryRunOfOpenersBefore(open, badCloser))
     .or(()->tryRemoveClose(open, badCloser))
     .or(()->tryRemoveOpen(open, badCloser))
     .orElseGet(()->baseError(open,badCloser));
@@ -30,7 +25,6 @@ record TreeDiagnostics<
   E onBadBarrier(T open, T barrier){
     return Optional.<E>empty()
       .or(()->tryEatenCloserBetween(open, barrier))
-      .or(()->tryRunOfClosersBefore(open, barrier))
       .or(()->tryRemoveClose(open, barrier))
       .or(()->tryRemoveOpen(open, barrier))
       .orElseGet(()->baseError(open, barrier));
@@ -83,36 +77,6 @@ record TreeDiagnostics<
   private Optional<E> tryEatenCloserBetween(T open, T stop){ return tryEatenBetween(open, stop, false); }
   private Optional<E> tryEatenOpenerBetween(T open, T stop){ return tryEatenBetween(open, stop, true); }
 
-  private Optional<E> tryRunOfClosersBefore(T open, T stop){
-    return findRunOfClosersBefore(open, stop)
-      .map(run->runOfClosersBefore(open, stop, closersForOpener(open.kind()), run));
-  }
-  private Optional<E> tryRunOfOpenersBefore(T open, T stop){
-    if (!spec.closers.contains(stop.kind())){ return Optional.empty(); }
-    return findRunOfOpenersBefore(open, stop)
-        .map(run->runOfOpenersBefore(open, stop, closersForOpener(open.kind()), run));
-  }
-  private long count(List<T> ts, int i, List<TK> want){
-    return ts.subList(i, i+6).stream().filter(t->want.contains(t.kind())).count();
-  }
-  private Optional<List<T>> findRunOfClosersBefore(T open, T stop){
-    var ts= betweenExclusive(open, stop,tz.tokensForTree());
-    if(ts.size() < 6){ return Optional.empty(); }
-    var want= closersForOpener(open.kind());
-    return IntStream.range(0, ts.size() - 6).boxed()
-      .filter(i->count(ts,i,want) >= 3)
-      .findFirst()
-      .map(i->ts.subList(i,i+6));
-  }
-  private Optional<List<T>> findRunOfOpenersBefore(T open, T stop){
-    var ts= betweenExclusive(open, stop,tz.tokensForTree()).reversed();
-    if(ts.size() < 6){ return Optional.empty(); }
-    var want= closersForOpener(open.kind());
-    return IntStream.range(0, ts.size() - 6).boxed()
-      .filter(i->count(ts,i,want) >= 3)
-      .findFirst()
-      .map(i->ts.subList(i,i+6));
-  }
   private List<T> betweenExclusive(T a, T b, List<T> tokens){
     int start= tokens.indexOf(a);
     int end= tokens.indexOf(b);
@@ -124,11 +88,5 @@ record TreeDiagnostics<
   }
   private E eaterOpenerBetween(T open, T stop, List<TK> expect, T frag, T token){
     return tz.errFactory().eatenOpenerBetween(open, stop, expect, frag, token, tz.self());
-  }
-  private E runOfClosersBefore(T open, T stop, List<TK> expect, List<T> run){
-    return tz.errFactory().runOfClosersBefore(open, stop, expect, run, tz.self());
-  }
-  private E runOfOpenersBefore(T open, T stop, List<TK> expect, List<T> run){
-    return tz.errFactory().runOfOpenersBefore(open, stop, expect, run, tz.self());
   }
 }

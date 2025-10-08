@@ -20,8 +20,6 @@ record Names(List<String> xs, List<String> Xs){
     assert compatible(List.of(),Xs);
     return new Names(xs,Push.of(this.Xs(),Xs));
   }
-  //TODO: this, or some variant of this should be used to get good errors before
-  //adding new bindings
   boolean compatible(List<String> xs, List<String> Xs){
     return xs.stream().distinct().count() == (long)xs.size()
       &&   Xs.stream().distinct().count() == (long)Xs.size()

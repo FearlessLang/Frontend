@@ -24,13 +24,13 @@ public record Message(String msg,int priority){
  }
  public static String of(Function<URI,String> loader, List<Frame> frames, String msg){
    if (frames == null || frames.isEmpty()) return msg;
-   dbgSpans("RAW FRAMES", frames);
+   //dbgSpans("RAW FRAMES", frames);
    // 1) containment (bottom-up clamp)
    List<Frame> contained = ensureContainment(frames);
-   dbgSpans("AFTER CONTAINMENT", contained);   
+   //dbgSpans("AFTER CONTAINMENT", contained);   
    // 2) invisibleCharacters trimming (shrink both ends to visible)
    List<Frame> visible = trimInvisible(loader, contained);
-   dbgSpans("AFTER TRIM", visible);
+   //dbgSpans("AFTER TRIM", visible);
    // 3) grouping (pick up to 3 single-line spans + first multiline)
    Grouping g = group(visible);
 
@@ -528,16 +528,16 @@ if (caretAtStart){
 }
 return String.join("\n", out);
 }
-//--- tiny debug helpers ---
-private static void dbgSpans(String label, java.util.List<metaParser.Frame> fs){
-System.err.println("\n=== " + label + " ===");
-for (int i = 0; i < fs.size(); i++){
- var f = fs.get(i);
- var s = f.s();
- String name = (f.name() == null || f.name().isBlank()) ? "(anon)" : f.name();
- String kind = s.isSingleLine() ? "single" : "multi";
- System.err.printf("#%02d %-30s [%d:%d .. %d:%d] (%s)%n",
-   i, name, s.startLine(), s.startCol(), s.endLine(), s.endCol(), kind);
-}
-}
+  @SuppressWarnings("unused")
+  private static void dbgSpans(String label, java.util.List<metaParser.Frame> fs){
+    System.err.println("\n=== " + label + " ===");
+    for (int i = 0; i < fs.size(); i++){
+      var f = fs.get(i);
+      var s = f.s();
+      String name = (f.name() == null || f.name().isBlank()) ? "(anon)" : f.name();
+      String kind = s.isSingleLine() ? "single" : "multi";
+      System.err.printf("#%02d %-30s [%d:%d .. %d:%d] (%s)%n",
+       i, name, s.startLine(), s.startCol(), s.endLine(), s.endCol(), kind);
+    }
+  }
 }

@@ -1880,12 +1880,6 @@ Error 2  UnexpectedToken
 ""","""
 A:{ .m -> 1+2 }
 """); }
-//TODO: discussion: does it needs to be an error?
-//if we somehow twist it to adjust, is
-// a+2 == a + 2 or a + +2
-// a+2.0 == a + 2.0 (still broken) or a + +2.0
-// a+2/3 == a + 2/3 (still broken) or a + +2/3
-
 
 @Test void inter_mixed_counts_with_comments_ok(){ ok("""
 [###]
@@ -2547,8 +2541,8 @@ A:{ .m(a,b):Str -> (a + b)) }
 fail(""" 
 In file: [###]/in_memory0.fear
 
-001| A:{ .m:Str -> A[a,b]] ) }
-   |   ^^^^^^^^^^^^^^^^^^^
+001| A:{ .m:Str -> A[mut,imm]] ) }
+   |   ^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting the file
 Wrong closer for "{" group.
@@ -2556,7 +2550,7 @@ Found instead: "]".
 Expected one of: "}id", "}".
 Error 2  UnexpectedToken
 """,""" 
-A:{ .m:Str -> A[a,b]] ) }
+A:{ .m:Str -> A[mut,imm]] ) }
 """);}
 
 @Test void runOfRoundClosersNearEOF(){
@@ -2580,7 +2574,7 @@ A:{ .m(foo,bar):Str -> (foo + bar))
 fail(""" 
 In file: [###]/in_memory0.fear
 
-001| A:{ .m:Str -> A[x,y,z]]
+001| A:{ .m:Str -> A[X,Y,Z]]
    |   ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting the file
@@ -2590,7 +2584,7 @@ This "]" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 2  UnexpectedToken
 """,""" 
-A:{ .m:Str -> A[x,y,z]] 
+A:{ .m:Str -> A[X,Y,Z]] 
 """);}
 
 @Test void runOfRoundOpenersBeforeStrayParen(){
@@ -2780,13 +2774,12 @@ fail("""
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> ( Foo[ { a } ) ] }
-   |                    ^^^^^^^^^
+   |                    ^^^
 
 While inspecting the file
-Wrong closer for "[" group.
-Found instead: ")".
+Unclosed "[" group before "{".
 Expected "]".
-Error 2  UnexpectedToken
+Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> ( Foo[ { a } ) ] }
 """);}
