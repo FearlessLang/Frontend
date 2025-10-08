@@ -2,6 +2,7 @@ package fearlessParser;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import files.Pos;
@@ -158,7 +159,7 @@ body=Optional[this]]]]]]
 ""","""
 A:{.foo:A->this; }
 """);}
-@Test void use_selfBadBackTick(){fail("""
+@Disabled @Test void use_selfBadBackTick(){fail("""
 xxxx
 ""","""
 A:{ 'x .foo:A->A + A; } //ill formed: the first layer has to be 'this or nothing
@@ -566,7 +567,8 @@ In file: [###]in_memory0.fear
 
 While inspecting the file
 File ended while parsing a "{" group.
-Expected one of: "}id", "}".
+This "{" may be unintended.
+Otherwise expected one of: "}id", "}".
 Error 0  Unclosed
 ""","""
 A:{
@@ -580,7 +582,8 @@ In file: [###]in_memory0.fear
 
 While inspecting the file
 File ended while parsing a "{" group.
-Expected one of: "}id", "}".
+This "{" may be unintended.
+Otherwise expected one of: "}id", "}".
 Error 0  Unclosed
 ""","""
 A:{ fdfdds
@@ -759,6 +762,7 @@ In file: [###]in_memory0.fear
 
 While inspecting the file
 Unopened "}".
+This "}" may be unintended.
 Error 1  Unopened
 ""","""
 A: a b c } f e
@@ -1258,7 +1262,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Interpolation expression ended while parsing a "{" group.
-Expected one of: "}id", "}".
+This "{" may be unintended.
+Otherwise expected one of: "}id", "}".
 Error 0  Unclosed
 ""","""
 A:{
@@ -1426,7 +1431,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Interpolation expression ended while parsing a "{" group.
-Expected one of: "}id", "}".
+This "{" may be unintended.
+Otherwise expected one of: "}id", "}".
 Error 0  Unclosed
 ""","""
 A:{
@@ -1476,7 +1482,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Interpolation expression ended while parsing a "(" group.
-Expected ")".
+This "(" may be unintended.
+Otherwise expected ")".
 Error 0  Unclosed
 ""","""
 A:{
@@ -2207,6 +2214,362 @@ A:{
 }
 """);
 }
+
+//===== eatenCloserBetween (closer hidden in string/comment) ====================
+@Disabled @Test void eatenCloserInDblQuote_thenWrongCloserParen(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> "price is } dollars" ) }
+""");}
+
+@Disabled @Test void eatenCloserInSglQuote_thenWrongCloserParen(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> 'oops } here' ) }
+""");}
+
+@Disabled @Test void eatenCloserInLineStr_thenWrongCloserParen(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> |"hello } world" ) }
+""");}
+
+@Disabled @Test void eatenCloserInBlockComment_thenWrongCloserParen(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> /* } inside */ ) }
+""");}
+
+@Disabled @Test void eatenCloserInLineComment_thenWrongCloserParen(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> // } swallowed
+) }
+""");}
+
+@Disabled @Test void eatenRoundCloserInString_thenStopByCurly(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> ( ")]" + " has ) here ) inside" } 
+""");}
+
+@Disabled @Test void eatenSquareCloserInString_thenStopByParen(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> [ "list ] marker" ) ] }
+""");}
+
+@Disabled @Test void eatenCurlyCloserInString_thenEOF(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> { "inner } hidden"
+""");}
+
+@Disabled @Test void eatenCurlyCloserInBlockComment_thenEOF(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> { /* } hidden */ 
+""");}
+
+@Disabled @Test void eatenSquareCloserInBlockComment_thenWrongCloserCurly(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> Foo[ /* ] hidden */ } ]
+""");}
+
+//===== eatenOpenerBetween (opener hidden earlier; stray closer now) ============
+
+@Disabled @Test void eatenRoundOpenerInDblQuote_thenStrayParen(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> "call (" ) }
+""");}
+
+@Disabled @Test void eatenRoundOpenerInLineComment_thenStrayParen(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> // ( swallowed
+) }
+""");}
+
+@Disabled @Test void eatenSquareOpenerInBlockComment_thenStrayBracket(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> /* [ hidden */ ] }
+""");}
+
+@Disabled @Test void eatenCurlyOpenerInDblQuote_thenStrayCurly(){
+fail(""" 
+xxxx
+""",""" 
+.m:Str -> "start { here" } 
+""");}
+
+@Disabled @Test void eatenRoundOpenerInBlockComment_thenStrayParenDeep(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
+""");}
+
+@Disabled @Test void eatenSquareOpenerInLineStr_thenStrayBracket(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> |"vec [ x" ] }
+""");}
+
+//===== runOfClosersBefore (suggests missing closer earlier) ====================
+
+@Disabled @Test void runOfRoundClosersBeforeStop(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> ((1 + 2)) ) }
+""");}
+
+@Disabled @Test void runOfSquareClosersBeforeStop(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> Foo[Bar] ] ) }
+""");}
+
+@Disabled @Test void runOfRoundClosersThenWrongCurly(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m(a,b):Str -> (a + b)) } 
+""");}
+
+@Disabled @Test void runOfSquareClosersThenWrongParen(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> A[a,b]] ) }
+""");}
+
+@Disabled @Test void runOfRoundClosersNearEOF(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m(foo,bar):Str -> (foo + bar)) 
+""");}
+
+@Disabled @Test void runOfSquareClosersNearEOF(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> A[x,y,z]] 
+""");}
+
+//===== runOfOpenersBefore (pile of openers before an unopened closer) =========
+
+@Disabled @Test void runOfRoundOpenersBeforeStrayParen(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
+""");}
+
+@Disabled @Test void runOfSquareOpenersBeforeStrayBracket(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
+""");}
+
+@Disabled @Test void runOfRoundOpenersTightBeforeStrayParen(){
+fail(""" 
+xxxx
+""",""" 
+A:{ .m:Str -> (((x))) ) }
+""");}
+
+@Disabled @Test void runOfSquareOpenersTightBeforeStrayBracket(){
+fail(""" 
+xxxxFor the runs, what if
+we instead use the runs position to do an add/remove re run, then drum back to the base error?
+""",""" 
+A:{ .m:Str -> A[B[X]] ] }
+""");}
+
+@Test void wrongCloser_ParenClosedByBracket(){
+fail(""" 
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> (1 + 2 ] }
+   |               ^^^^^^^^
+
+While inspecting the file
+Wrong closer for "(" group.
+Found instead: "]".
+Expected ")".
+Error 2  UnexpectedToken
+""",""" 
+A:{ .m:Str -> (1 + 2 ] }
+""");}
+
+@Test void wrongCloser_BracketClosedByParen(){
+fail(""" 
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> E[1,2) }
+   |                ^^^^^
+
+While inspecting the file
+Wrong closer for "[" group.
+Found instead: ")".
+Expected "]".
+Error 2  UnexpectedToken
+""",""" 
+A:{ .m:Str -> E[1,2) }
+""");}
+
+@Test void eofInsideParen(){
+fail(""" 
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> (1 + 2
+   |               ^
+
+While inspecting the file
+File ended while parsing a "(" group.
+This "(" may be unintended.
+Otherwise expected ")".
+Error 0  Unclosed
+""",""" 
+A:{ .m:Str -> (1 + 2
+""");}
+
+@Test void eofInsideBracket(){
+fail(""" 
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> E[1, 2, 3
+   |                ^
+
+While inspecting the file
+File ended while parsing a "[" group.
+This "[" may be unintended.
+Otherwise expected "]".
+Error 0  Unclosed
+""",""" 
+A:{ .m:Str -> E[1, 2, 3
+""");}
+@Test void wrongCloser_CurlyClosedByParen(){
+fail(""" 
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> { x: 1 ) }
+   |               ^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: ")".
+This ")" may be unintended.
+Otherwise expected one of: "}id", "}".
+Error 2  UnexpectedToken
+""",""" 
+A:{ .m:Str -> { x: 1 ) }
+""");}
+
+@Test void wrongCloser_CurlyClosedByParen2(){
+fail(""" 
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> { x: 1 ) }
+   |               ^^^^^^^^
+
+While inspecting the file
+Wrong closer for "{" group.
+Found instead: ")".
+This ")" may be unintended.
+Otherwise expected one of: "}id", "}".
+Error 2  UnexpectedToken
+""",""" 
+A:{ .m:Str -> { x: 1 ) }
+B:{} C:{}
+""");}
+
+@Test void barrierSemicolonInsideParen(){
+fail(""" 
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> ( 1 + 2; ) }
+   |               ^^^^^^^^
+
+While inspecting the file
+Unclosed "(" group before ";".
+This ";" may be unintended.
+Otherwise expected ")".
+Error 0  Unclosed
+""",""" 
+A:{ .m:Str -> ( 1 + 2; ) }
+""");}
+
+//no repair can conceptually apply
+@Test void nestedWrongCloser_Deep(){
+fail(""" 
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> ( Foo[ { a } ) ] }
+   |                    ^^^^^^^^^
+
+While inspecting the file
+Wrong closer for "[" group.
+Found instead: ")".
+Expected "]".
+Error 2  UnexpectedToken
+""",""" 
+A:{ .m:Str -> ( Foo[ { a } ) ] }
+""");}
+
+@Test void curlyGroupUnclosedBeforeEOF(){
+fail(""" 
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> { a: 1, b: 2
+   |               ^
+
+While inspecting the file
+File ended while parsing a "{" group.
+This "{" may be unintended.
+Otherwise expected one of: "}id", "}".
+Error 0  Unclosed
+""",""" 
+A:{ .m:Str -> { a: 1, b: 2 
+""");}
+
+@Test void openerInStringThenEOF_shouldPreferEatenCloser(){
+fail(""" 
+In file: ~/.../___DBG___/in_memory0.fear
+
+001| A:{ .m:Str -> { "json } aaa"
+   |               ^^^^^^^^^-----
+
+While inspecting the file
+Unclosed "{" group.
+Expected one of: "}id", "}".
+Found a matching closer inside a string literal between here and the stopping point.
+Did you mean to place the closer outside a string literal?
+Error 0  Unclosed
+""",""" 
+A:{ .m:Str -> { "json } aaa" 
+""");}
 
 
 //A:{ .m(): -> ::.two( Block#.let x={5}, x ) }

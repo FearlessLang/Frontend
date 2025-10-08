@@ -1,173 +1,134 @@
 package metaParser;
 
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
-//TODO: checkGPT
-public final class TreeDiagnostics<
+import java.util.stream.IntStream;
+
+import metaParser.ErrFactory.LikelyCause;
+
+import static metaParser.ErrFactory.LikelyCause.*;
+
+record TreeDiagnostics<
     T extends Token<T,TK>,
     TK extends TokenKind,
     E extends RuntimeException & HasFrames<E>,
     Tokenizer extends MetaTokenizer<T,TK,E,Tokenizer,Parser,Err>,
     Parser extends MetaParser<T,TK,E,Tokenizer,Parser,Err>,
     Err extends ErrFactory<T,TK,E,Tokenizer,Parser,Err>
->{
-  private final Tokenizer tz;
-  private final TokenTreeSpec<T,TK> spec;
-  // index helpers over the full token stream
-  private final List<T> stream;
-  private IdentityHashMap<T,Integer> indexByTok;
-
-  public TreeDiagnostics(TokenTreeSpec<T,TK> spec, Tokenizer tz){
-    this.tz = tz;
-    this.spec = spec;
-    this.stream = tz.allTokens();
-  }
-
-  // ==== public entry points ====================================================
-
-  E onBadBarrier(T open, T barrier){
-    // prefer specific hints; if none, report MissingCloser at barrier
-    if (tryEatenCloserBetween(open, barrier)){ return eatenCloserBetween(open, barrier); }
-    if (tryRunOfClosersBefore(open, barrier)){ return runOfClosersBefore(open,barrier); }
-
-    return tz.errFactory().groupHalt(
-      open, barrier, expectedClosersFor(open.kind()),
-      ErrFactory.LikelyCause.MissingCloser, tz.self());
-  }
-  E eatenCloserBetween(T open, T stop){ throw new Error("Todo"); }
-  E eatenOpenerBetween(T open, T stop){ throw new Error("Todo"); }
-  E runOfClosersBefore(T open, T stop){ throw new Error("Todo"); }
-  E runOfOpenersBefore(T open, T stop){ throw new Error("Todo"); }
+  >(TokenTreeSpec<T,TK> spec, Tokenizer tz){
 
   public E onBadCloser(T open, T badCloser){
-    if (tryEatenCloserBetween(open, badCloser)){ return eatenCloserBetween(open, badCloser); }
-    if (tryEatenOpenerBetween(open, badCloser)){ return eatenOpenerBetween(open, badCloser); }
-    if (tryRunOfClosersBefore(open, badCloser)){ return runOfClosersBefore(open,badCloser); }
-    if (tryRunOfOpenersBefore(open, badCloser)){ return runOfOpenersBefore(open,badCloser); }
-
-    throw tz.errFactory().groupHalt(
-      open, badCloser, expectedClosersFor(open.kind()),
-      ErrFactory.LikelyCause.Unknown, tz.self());
+    return Optional.<E>empty()
+    .or(()->tryEatenCloserBetween(open, badCloser))
+    .or(()->tryEatenOpenerBetween(open, badCloser))
+    .or(()->tryRunOfClosersBefore(open, badCloser))
+    .or(()->tryRunOfOpenersBefore(open, badCloser))
+    .or(()->tryRemoveClose(open, badCloser))
+    .or(()->tryRemoveOpen(open, badCloser))
+    .orElseGet(()->baseError(open,badCloser));
+  }
+  E onBadBarrier(T open, T barrier){
+    return Optional.<E>empty()
+      .or(()->tryEatenCloserBetween(open, barrier))
+      .or(()->tryRunOfClosersBefore(open, barrier))
+      .or(()->tryRemoveClose(open, barrier))
+      .or(()->tryRemoveOpen(open, barrier))
+      .orElseGet(()->baseError(open, barrier));
   }
 
-  //public void onEOF(T open){..} NO! this is covered by the case where stop is EOF
-
-  /** Hidden expected closer inside a token between open..stop. */
-  private boolean tryEatenCloserBetween(T open, T stop){
-    var expect = expectedClosersFor(open.kind());
-    for (var closerK : expect){
-      var eater = spec.closerEaters.get(closerK);
-      if (eater == null) continue;
-      for (var tok : betweenExclusive(open, stop)){
-        Optional<T> frag = eater.apply(tok);
-        if (frag.isPresent()){
-          throw tz.errFactory().eatenCloserBetween(
-            open, stop, expect, frag.get(), tok, tz.self());
+  private E baseError(T open, T stop){ return error(open,stop,Unknown); }
+  private E error(T open, T stop, LikelyCause l){
+    return tz.errFactory().groupHalt(open, stop, closersForOpener(open.kind()),l, tz.self());
+  }
+  private List<TK> openerForCloser(TK closer){
+    return spec.openClose.entrySet().stream()
+      .filter(e->e.getValue().containsKey(closer))
+      .map(e->e.getKey()).toList();
+  }
+  private List<TK> closersForOpener(TK opener){
+    var m= spec.openClose.get(opener);
+    assert m != null : "unknown opener " + opener;
+    return m.keySet().stream().sorted(
+      (a,b)->Integer.compare(a.priority(), b.priority())).toList();
+  }
+  private Optional<E> tryEatenBetween(T open, T stop, boolean onOpen){
+    var expect= !onOpen?closersForOpener(open.kind()):openerForCloser(stop.kind());
+    //var expect= closersForOpener(open.kind());
+    for (var e : expect){
+      var eater= (onOpen?spec.openerEaters:spec.closerEaters).get(e);
+      if (eater == null){ continue; }
+      var ts= betweenExclusive(open, stop,tz.allTokens());
+      for (var tok : onOpen?ts.reversed():ts){
+        Optional<T> frag= eater.apply(tok);
+        if (frag.isPresent()){ return Optional.of(onOpen
+          ?eaterOpenerBetween(open, stop, expect, frag.get(), tok)
+          :eaterCloserBetween(open, stop, expect, frag.get(), tok));
         }
       }
     }
-    return false;
+    return Optional.empty();    
   }
-
-  /** Hidden opener-for-stop inside a token between open..stop. */
-  private boolean tryEatenOpenerBetween(T open, T stop){
-    if (!spec.closers.contains(stop.kind())) return false;
-    TK needOp = openerForCloser(stop.kind());
-    var eater = spec.openerEaters.get(needOp);
-    if (eater == null) return false;
-    for (var tok : betweenExclusive(open, stop)){
-      Optional<T> frag = eater.apply(tok);
-      if (frag.isPresent()){
-        throw tz.errFactory().eatenOpenerBetween(
-          open, stop, expectedClosersFor(open.kind()), frag.get(), tok, tz.self());
-      }
-    }
-    return false;
+  private Optional<E> tryRemoveClose(T open, T stop){ return tryRemove(open,stop,StrayCloser,stop); }
+  private Optional<E> tryRemoveOpen(T open, T stop){ return tryRemove(open,stop,StrayOpener,open); }
+  @SuppressWarnings("unchecked")
+  private Optional<E> tryRemove(T open, T stop, LikelyCause l, T remove){
+    if(remove.is(tz.sof(),tz.eof())){ return Optional.empty(); }
+    List<T> ts= tz.tokensForTree().stream().filter(t->t!=remove).toList();
+    int res1= TokenTreeBulder.ofRecovery(spec,tz, tz.tokensForTree());
+    int res2= TokenTreeBulder.ofRecovery(spec,tz, ts);
+    var progress= ts.size() == res2 || res2 >= res1 + 5;
+    if (!progress){ return Optional.empty(); }
+    return Optional.of(error(open,stop,l));    
   }
+  private Optional<E> tryEatenCloserBetween(T open, T stop){ return tryEatenBetween(open, stop, false); }
+  private Optional<E> tryEatenOpenerBetween(T open, T stop){ return tryEatenBetween(open, stop, true); }
 
-  /** Contiguous run of expected closers right before stop (pile-of-closers). */
-  private boolean tryRunOfClosersBefore(T open, T stop){
-    var run = findRunOfClosersBefore(open, stop);
-    if (!run.isEmpty()){
-      throw tz.errFactory().runOfClosersBefore(
-        open, stop, expectedClosersFor(open.kind()), run, tz.self());
-    }
-    return false;
+  private Optional<E> tryRunOfClosersBefore(T open, T stop){
+    return findRunOfClosersBefore(open, stop)
+      .map(run->runOfClosersBefore(open, stop, closersForOpener(open.kind()), run));
   }
-
-  /** Contiguous run of the opener that matches stop’s closer (pile-of-openers). */
-  private boolean tryRunOfOpenersBefore(T open, T stop){
-    if (!spec.closers.contains(stop.kind())) return false;
-    var run = findRunOfOpenersBefore(stop);
-    if (!run.isEmpty()){
-      throw tz.errFactory().runOfOpenersBefore(
-        open, stop, expectedClosersFor(open.kind()), run, tz.self());
-    }
-    return false;
+  private Optional<E> tryRunOfOpenersBefore(T open, T stop){
+    if (!spec.closers.contains(stop.kind())){ return Optional.empty(); }
+    return findRunOfOpenersBefore(open, stop)
+        .map(run->runOfOpenersBefore(open, stop, closersForOpener(open.kind()), run));
   }
-
-  // ==== low-level scans (seed heuristics; extend later) ========================
-
-  private List<T> findRunOfClosersBefore(T open, T stop){
-    var want = expectedClosersFor(open.kind());
-    var out = new ArrayList<T>();
-    int j = pos(stop) - 1;
-    while (j >= 0){
-      var t = stream.get(j);
-      if (want.contains(t.kind())){ out.addFirst(t); j--; continue; }
-      break; // TODO: tolerate minimal trivia here
-    }
-    // heuristic: require 2+ to call it a "pile"
-    return out.size() >= 2 ? List.copyOf(out) : List.of();
+  private long count(List<T> ts, int i, List<TK> want){
+    return ts.subList(i, i+6).stream().filter(t->want.contains(t.kind())).count();
   }
-
-  private List<T> findRunOfOpenersBefore(T stop){
-    TK needOp = openerForCloser(stop.kind());
-    var out = new ArrayList<T>();
-    int j = pos(stop) - 1;
-    while (j >= 0){
-      var t = stream.get(j);
-      if (t.is(needOp)){ out.addFirst(t); j--; continue; }
-      break; // TODO: tolerate minimal trivia here
-    }
-    return out.size() >= 2 ? List.copyOf(out) : List.of();
+  private Optional<List<T>> findRunOfClosersBefore(T open, T stop){
+    var ts= betweenExclusive(open, stop,tz.tokensForTree());
+    if(ts.size() < 6){ return Optional.empty(); }
+    var want= closersForOpener(open.kind());
+    return IntStream.range(0, ts.size() - 6).boxed()
+      .filter(i->count(ts,i,want) >= 3)
+      .findFirst()
+      .map(i->ts.subList(i,i+6));
   }
-
-  // ==== tiny helpers ===========================================================
-
-  private List<TK> expectedClosersFor(TK opener){
-    var m = spec.openClose.get(opener);
-    assert m != null : "unknown opener " + opener;
-    return m.keySet().stream().sorted((a,b)->Integer.compare(a.priority(), b.priority())).toList();
+  private Optional<List<T>> findRunOfOpenersBefore(T open, T stop){
+    var ts= betweenExclusive(open, stop,tz.tokensForTree()).reversed();
+    if(ts.size() < 6){ return Optional.empty(); }
+    var want= closersForOpener(open.kind());
+    return IntStream.range(0, ts.size() - 6).boxed()
+      .filter(i->count(ts,i,want) >= 3)
+      .findFirst()
+      .map(i->ts.subList(i,i+6));
   }
-
-  private TK openerForCloser(TK closer){
-    TK found = null;
-    for (var e : spec.openClose.entrySet()){
-      if (e.getValue().containsKey(closer)){
-        assert found == null : "ambiguous closer " + closer;
-        found = e.getKey();
-      }
-    }
-    assert found != null : "no opener for closer " + closer;
-    return found;
+  private List<T> betweenExclusive(T a, T b, List<T> tokens){
+    int start= tokens.indexOf(a);
+    int end= tokens.indexOf(b);
+    assert start < end : "order mismatch";
+    return tokens.subList(start + 1, end);
   }
-
-  private int pos(T t){
-    if (indexByTok == null){
-      indexByTok = new IdentityHashMap<>();
-      for (int i = 0; i < stream.size(); i++) indexByTok.put(stream.get(i), i);
-    }
-    Integer p = indexByTok.get(t);
-    assert p != null : "token not in stream";
-    return p;
+  private E eaterCloserBetween(T open, T stop, List<TK> expect, T frag, T token){
+    return tz.errFactory().eatenCloserBetween(open, stop, expect, frag, token, tz.self());
   }
-
-  private List<T> betweenExclusive(T a, T b){
-    int i = pos(a), j = pos(b);
-    assert i < j : "order mismatch";
-    return stream.subList(i + 1, j);
+  private E eaterOpenerBetween(T open, T stop, List<TK> expect, T frag, T token){
+    return tz.errFactory().eatenOpenerBetween(open, stop, expect, frag, token, tz.self());
+  }
+  private E runOfClosersBefore(T open, T stop, List<TK> expect, List<T> run){
+    return tz.errFactory().runOfClosersBefore(open, stop, expect, run, tz.self());
+  }
+  private E runOfOpenersBefore(T open, T stop, List<TK> expect, List<T> run){
+    return tz.errFactory().runOfOpenersBefore(open, stop, expect, run, tz.self());
   }
 }

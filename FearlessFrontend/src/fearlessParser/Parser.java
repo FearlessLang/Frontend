@@ -125,7 +125,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   XPat parseXPat(){
     if(peek(LowercaseId)){ return new XPat.Name(parseDecX()); }
     if(!peek(_CurlyGroup)){ throw errFactory().parameterNameExpected(remainingSpan());}
-    var res= parseGroup("nominalPattern",Parser::parseDestruct);
+    var res= parseGroup("nominal pattern",Parser::parseDestruct);
     var errSpaceBeforeId= peek(LowercaseId,UnsignedInt,UppercaseId);
     if(!errSpaceBeforeId){return res;}
     throw errFactory().spaceBeforeId(span(peek().get()).get(),peek().get().content());

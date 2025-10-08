@@ -78,10 +78,10 @@ public abstract class MetaTokenizer<
     s = s.replace('\u2028', '\n').replace('\u2029', '\n').replace('\u0085', '\n'); // Unicode separators to LF (LS, PS, NEL)
     return s;
   }
-  Tokenizer input(URI fileName){
+  public Tokenizer input(URI fileName){
     return input(fileName, StandardCharsets.UTF_8);
   }
-  Tokenizer input(URI fileName, Charset charset){
+  public Tokenizer input(URI fileName, Charset charset){
     Objects.requireNonNull(fileName, "fileName");
     Objects.requireNonNull(charset, "charset");
     if (!"file".equalsIgnoreCase(fileName.getScheme())){
@@ -90,8 +90,8 @@ public abstract class MetaTokenizer<
     return input(Path.of(fileName),charset);
     
   }
-  Tokenizer input(Path path){ return input(path,StandardCharsets.UTF_8); }
-  Tokenizer input(Path path, Charset charset){
+  public Tokenizer input(Path path){ return input(path,StandardCharsets.UTF_8); }
+  public Tokenizer input(Path path, Charset charset){
     Objects.requireNonNull(path, "path");
     String raw; try{raw= Files.readString(path, charset); }
     catch (IOException ex){ throw new UncheckedIOException(ex); }
@@ -163,14 +163,14 @@ public abstract class MetaTokenizer<
     assertMonotonic(postTokens);
     return self();
   } 
+  List<T> tokensForTree(){ return postTokens == null ? allTokens : postTokens; }
   public Tokenizer buildTokenTree(TokenTreeSpec<T,TK> spec){
     assert !frozen : "cannot call .buildTokenTree during .tokenize, .postTokenize, .buildTokenTree";
     assert !allTokens.isEmpty(): "call method .buildTokenTree after .tokenize";
-    var tmp= postTokens == null ? allTokens : postTokens;
+    var tmp= tokensForTree();
     assert tmp.get(0).kind() == sof : "first token must be SOF";
     assert tmp.get(tmp.size()-1).kind() == eof : "last token must be EOF";
-    tree = withFrozen(() -> 
-      new TokenTrees<T,TK,E,Tokenizer,Parser,Err>(spec, self()).of(tmp).tokens());
+    tree = withFrozen(() -> TokenTreeBulder.of(spec, self(),tmp));
     return self();
   }
   public URI fileName(){

@@ -4,6 +4,8 @@ import static fearlessParser.TokenKind.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import message.FearlessErrFactory;
@@ -19,7 +21,25 @@ public class Parse {
     .addOpenClose(OSquareArg,CSquare,_SquareGroup)
     .addOpenClose(OCurly,CCurly,_CurlyGroup)
     .addOpenClose(OCurly,CCurlyId,_CurlyGroup)
+    
+    .addBarriers(ORound,Set.of(SemiColon,Arrow,BackTick))
+    .addBarriers(OSquareArg,Set.of(SemiColon))//TODO: specify complement?
+    
+    .addCloserEater(CRound,t->splitOn(t,")",true))
+    .addCloserEater(CSquare,t->splitOn(t,"]",true))
+    .addCloserEater(CCurly,t->splitOn(t,"}",true))
+    .addCloserEater(CCurlyId,t->splitOn(t,"}",true))
+    
+    .addOpenerEater(ORound,t->splitOn(t,"(",false))
+    .addOpenerEater(OSquareArg,t->splitOn(t,"[",false))
+    .addOpenerEater(OCurly,t->splitOn(t,"{",false))
     ;
+  private static Optional<Token> splitOn(Token t, String s,boolean first){
+    int index= t.content().indexOf(s);
+    if (index == -1){ return Optional.empty(); }
+    if(first){ return Optional.of(t.tokenFirstHalf(index+1)); }
+    return Optional.of(t.tokenSecondHalf(index));
+  }
   public static FileFull from(URI fileName,String input){
     Tokenizer t= new Tokenizer()
       .input(fileName,input)

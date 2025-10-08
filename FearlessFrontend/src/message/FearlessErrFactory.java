@@ -128,9 +128,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +"Generic type parameter "+Message.displayString(name)+" is repeated").addSpan(at);
   }
   public String context(){return "File ended while parsing a "; }
-  private static String expected(Collection<? extends Object> items){
-    return (items.isEmpty() ? "" : ("Expected " + _joinOrEmpty(items)));
+  private static String expected(Collection<? extends Object> items){ return expected("Expected ",items); }
+  private static String expected(String pre, Collection<? extends Object> items){
+    return (items.isEmpty() ? "" : (pre + _joinOrEmpty(items)));
   }
+
   private static String _joinOrEmpty(Collection<? extends Object> items){
     if (items.isEmpty()){ return ""; }
     var res= items.stream()
@@ -404,15 +406,16 @@ Fearless does not allow rational literals of form "1/2"
         ? "Unclosed " + openLabel + " group before " + stopLabel + ".\n"
         : ("Wrong closer for " + openLabel + " group.\nFound instead: " + stopLabel + ".\n");
     String hint= switch (likely){
-      case MissingCloser -> "Hint: insert the expected closer before " + stopLabel + ".\n";
-      case StrayCloser   -> "Hint: remove this closer or add its matching opener before it.\n";
-      case StrayOpener   -> "Hint: remove the opener at the earlier position.\n";
-      case MissingOpener -> "Hint: insert the matching opener before this closer.\n";
+      case MissingCloser -> "Insert the expected closer before " + stopLabel + ".\n";
+      case StrayCloser   -> "This "+stopLabel+" may be unintended.\n";
+      case StrayOpener   -> "This "+openLabel+" may be unintended.\n";
+      case MissingOpener -> "Insert the matching opener before this closer.\n";
       case Unknown       -> "";
     };
+    var expected= sof?"":expected(hint.isEmpty()?"Expected ":"Otherwise expected ",expectedClosers);
     var span = eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
     var code= sof ? Code.Unopened : (eof || isBarrier) ? Code.Unclosed : Code.UnexpectedToken;
-    return code.of(base + (sof?"":expected(expectedClosers)) + hint).addSpan(span);
+    return code.of(base + hint+ expected).addSpan(span);
   }
   @Override public FearlessException eatenCloserBetween(
       Token open, Token stop, Collection<TokenKind> expectedClosers,
