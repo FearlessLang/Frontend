@@ -1,9 +1,34 @@
 package fearlessFullGrammar;
 
-import static offensiveUtils.Require.unmodifiable;
+import static fearlessParser.TokenKind.*;
+import static offensiveUtils.Require.*;
 
 import java.util.List;
+import java.util.Optional;
 
-public record FileFull(List<Declaration> decs){
-  public FileFull{ assert unmodifiable(decs, "FileFull.decs"); }
+public record FileFull(
+  String name,
+  Optional<Role> role,
+  List<Map> maps,
+  List<Use> uses,
+  List<Declaration> decs
+  ){
+  public FileFull{
+    assert validate(name,"pkgName", _pkgName);
+    assert unmodifiable(uses, "FileFull.uses");
+    assert unmodifiable(maps, "FileFull.maps");
+    assert unmodifiable(decs, "FileFull.decs"); 
+  }
+  public enum RoleName{base,core,driver,worker,framework,accumulator,tool,app}
+  public record Role(RoleName role,int index){
+    public Role{
+      assert index >= 0 && index < 1000: index;
+      assert nonNull(role);
+      }
+  }
+  public record Use(TName in,TName out){public Use{assert nonNull(in,out); }}
+  public record Map(String in,String out){ public Map{
+    assert validate(in,"map.in", _pkgName);
+    assert validate(out,"map.out", _pkgName);
+  }}
 }

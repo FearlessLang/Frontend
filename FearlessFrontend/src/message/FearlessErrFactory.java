@@ -163,7 +163,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       case SStrInterHash -> "#|'...";
       case RCap -> "reference capability";
       case ReadImm -> "read/imm";
-      default -> tk.name();
+      case _pkgName -> "id starting with a-z followed by any amount of a-z0-9 or the _ symbol";
+      default -> tk.matcher().toString();
     };
     return Message.displayString(res);
   }

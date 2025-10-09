@@ -26,49 +26,49 @@ class TestParse {
     Err.strCmp(expectedErr,rres);
   }  
 @Test void mini(){ok("""
-FileFull[ decs=[
+FileFull[[###] decs=[
   Declaration[name=TName[s=A, arity=0], bs=Optional.empty, cs=[], l=Literal[]]]]
 ""","""
 A:{}
 """);}
 @Test void decl_generics_plain(){ok("""
-FileFull[ decs=[
+FileFull[[###] decs=[
 Declaration[name=TName[s=Pair, arity=2], bs=Optional[[B[x=X[name=X], bt=RCS[rcs=[]]], B[x=X[name=Y], bt=RCS[rcs=[]]]]], cs=[], l=Literal[]]]]
 ""","""
 Pair[X,Y]:{}
 """);}
 @Test void decl_generics_with_rcs(){ok("""
-FileFull[ decs=[
+FileFull[[###] decs=[
 Declaration[name=TName[s=Box, arity=1], bs=Optional[[B[x=X[name=X], bt=RCS[rcs=[imm]]]]], cs=[], l=Literal[]]]]
 ""","""
 Box[X:imm]:{}
 """);}
 @Test void decl_generics_star1(){ok("""
-FileFull[ decs=[
+FileFull[[###] decs=[
 Declaration[name=TName[s=Vec, arity=1], bs=Optional[[B[x=X[name=X], bt=Star[]]]], cs=[], l=Literal[]]]]
 ""","""
 Vec[X: *]:{}
 """);}
 @Test void decl_generics_star2(){ok("""
-FileFull[ decs=[
+FileFull[[###] decs=[
 Declaration[name=TName[s=Vec, arity=1], bs=Optional[[B[x=X[name=X], bt=Star[]]]], cs=[], l=Literal[]]]]
 ""","""
 Vec[X:*]:{}
 """);}
 @Test void decl_generics_starstar1(){ok("""
-FileFull[ decs=[
+FileFull[[###] decs=[
 Declaration[name=TName[s=Graph, arity=1], bs=Optional[[B[x=X[name=X], bt=StarStar[]]]], cs=[], l=Literal[]]]]
 ""","""
 Graph[X: **]:{}
 """);}
 @Test void decl_generics_starstar2(){ok("""
-FileFull[ decs=[
+FileFull[[###] decs=[
 Declaration[name=TName[s=Graph, arity=1], bs=Optional[[B[x=X[name=X], bt=StarStar[]]]], cs=[], l=Literal[]]]]
 ""","""
 Graph[X:**]:{}
 """);}
 @Test void decl_generics_use(){ok("""
-FileFull[decs=[Declaration[name=TName[s=Pair,arity=2],
+FileFull[[###]decs=[Declaration[name=TName[s=Pair,arity=2],
 bs=Optional[[B[x=X[name=X],bt=RCS[rcs=[]]],B[x=X[name=Y],bt=RCS[rcs=[]]]]],cs=[],
 l=Literal[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[
 MName[s=.x,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[X[name=X]]]],
@@ -153,7 +153,7 @@ Error 2  UnexpectedToken""","""
 A[X]:{.foo:AA->B[X]:{.bar:BB->BB}; }
 """);}
 @Test void use_this(){ok("""
-FileFull[decs=[Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+FileFull[[###]decs=[Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.foo,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=A,arity=0],ts=Optional.empty]]]]],
 body=Optional[this]]]]]]
 ""","""
@@ -189,7 +189,7 @@ A:{ `abc .foo:A->A + A; } //ill formed: the first layer has to be `this or nothi
 """);}
 
 @Test void use_self_inner(){ok("""
-FileFull[decs=[Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+FileFull[[###]decs=[Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.foo,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=A,arity=0],ts=Optional.empty]]]]],
 body=Optional[DeclarationLiteralDeclaration[name=TName[s=B,arity=0],bs=Optional.empty,cs=[],
 l=Literalx[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.foo,arity=2]],bs=Optional.empty,hasParenthesis=false,parameters=[Parameter[xp=Optional[Name[x=y]],t=Optional.empty],Parameter[xp=Optional[Name[x=a]],t=Optional.empty]],t=Optional.empty]],body=Optional[Call[Call[this]MName[s=+,arity=1]false[x]]MName[s=+,arity=1]false[a]]]]]]]]]]]
@@ -198,7 +198,7 @@ A:{ .foo:A->B:{`x .foo y,a -> this + x + a; } }
 """);}
 
 @Test void method_with_parens_and_ret(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=Id, arity=0], bs=Optional.empty, cs=[], l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty, m=Optional[MName[s=.id, arity=1]], bs=Optional.empty, hasParenthesis=true, 
 parameters=[Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
@@ -207,7 +207,7 @@ body=Optional[x]]]]]]
 Id:{ .id(x:X):X -> x }
 """);}
 @Test void method_without_parens_sig_form(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=NoPar,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.one,arity=1]],bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
@@ -216,7 +216,7 @@ t=Optional.empty]],body=Optional[x]]]]]]
 NoPar:{ .one x:X -> x }
 """);}
 @Test void abstract_method_only_sig(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=Abs,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.abs,arity=1]],bs=Optional.empty,hasParenthesis=true,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
@@ -226,7 +226,7 @@ body=Optional.empty]]]]]
 Abs:{ .abs(x:X):X }
 """);}
 @Test void call_inside_body_simple_dotname(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=Sum,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[
 Sig[rc=Optional.empty,m=Optional[MName[s=.sum,arity=2]],bs=Optional.empty,hasParenthesis=true,parameters=[
@@ -238,7 +238,7 @@ body=Optional[Call[x]MName[s=.plus,arity=1]true[y]]]]]]]
 Sum:{ .sum(x:X,y:X):X -> x.plus(y) }
 """);}
 @Test void round_group_in_body(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=Par,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.paren,arity=1]],bs=Optional.empty,hasParenthesis=true,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
@@ -248,7 +248,7 @@ body=Optional[(x)]]]]]]
 Par:{ .paren(x:X):X -> (x) }
 """);}
 @Test void typed_literal_in_body_unsigned(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=Lit,arity=0],bs=Optional.empty,cs=[],l=Literal[M[
 sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.lit,arity=0]],bs=Optional.empty,hasParenthesis=true,parameters=[],
 t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=+45,arity=0],ts=Optional.empty]]]]],
@@ -258,7 +258,7 @@ Literal[]]]]]]]
 Lit:{ .lit(): +45 -> +45{} }//:+45 would (correctly) trigger BadOpDigit :+
 """);}
 @Test void typed_literal_in_body_with_rc(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=Lit2,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.lit2,arity=0]],bs=Optional.empty,hasParenthesis=true,parameters=[],
 t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=+45,arity=0],ts=Optional.empty]]]]],
@@ -282,7 +282,7 @@ body=Optional[self]
 B:{Selfy:{`self .me:Selfy -> self}}
 """);}
 @Test void stringInterpol_s(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.a,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=Str,arity=0],ts=Optional.empty]]]]],
 body=Optional[Inter[true][0,0][abc\\ndef\\n][]]]]]]]
@@ -293,7 +293,7 @@ A:{.a:Str ->
 }
 """);}
 @Test void stringInterpol_s_e(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.a,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=Str,arity=0],ts=Optional.empty]]]]],
 body=Optional[Inter[true][1,0][ab,c\\ndef\\n]
@@ -306,7 +306,7 @@ A:{.a:Str ->
 }
 """);}
 @Test void calls_1(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
@@ -317,7 +317,7 @@ body=Optional[Call[x]MName[s=#,arity=1]false[y]]]]]]]
 A:{x,y ->x#y;}
 """);}
 @Test void calls_2(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
@@ -328,7 +328,7 @@ body=Optional[Call[x]MName[s=#,arity=1]true[y]]]]]]]
 A:{x,y, ->x#(y);}
 """);}
 @Test void calls_3(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
@@ -339,7 +339,7 @@ body=Optional[Call[x]MName[s=++,arity=1]false[y]]]]]]]
 A:{x,y ->x++y}
 """);}
 @Test void calls_4(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
@@ -351,7 +351,7 @@ A:{x,y ->x .foo y}
 """);}
 
 @Test void calls_5(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
@@ -363,7 +363,7 @@ A:{x,y ->::.foo y}
 """);}
 
 @Test void eq_1(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional.empty,body=Optional[
 Call[Call[Call[
@@ -377,7 +377,7 @@ A:{Block#.let x= {5} .return {x*2} }
 """);}
 
 @Test void calls_square_rc_only(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],
@@ -388,7 +388,7 @@ CallSquare[rc=Optional[read],ts=[]]false[]]]]]]]
 A:{ x -> x.foo[read] }
 """);}
 @Test void calls_square_rc_only_comma_ok(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],
@@ -399,7 +399,7 @@ CallSquare[rc=Optional[read],ts=[]]false[]]]]]]]
 A:{ x -> x.foo[read,] }
 """);}
 @Test void calls_square_rc_T(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty]],
@@ -410,7 +410,7 @@ CallSquare[rc=Optional[read],ts=[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=
 A:{ x -> x.foo[read,X] }
 """);}
 @Test void mini_inner_Declaration(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[
 MName[s=.m,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],
@@ -420,7 +420,7 @@ A:{ .m -> B:{} }
 """);}
 
 @Test void destructEq(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.m,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],
 body=Optional[Call[Call[Call[
@@ -434,7 +434,7 @@ MName[s=.use,arity=2]true[sizeBob,ageBob]]]]]]]
 A:{ .m -> Block#.let {.name.size,.age}Bob = {} .use(sizeBob,ageBob) }
 """);}
 @Test void eRound1(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.m,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],body=Optional[
 Call[(Call[Call[
@@ -629,7 +629,7 @@ A:{
 """);}
 
 @Test void ok_comma_single_arg(){ok("""
-FileFull[decs=[
+FileFull[[###]decs=[
 Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.m,arity=1]],bs=Optional.empty,hasParenthesis=true,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=C,arity=0],ts=Optional.empty]]]]],
@@ -1894,8 +1894,7 @@ x ->
 }
 """); }
 
-@Test void bad_dq_str_eol_with_line_comment(){
-  fail("""
+@Test void bad_dq_str_eol_with_line_comment(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     "foo // comment
@@ -1912,8 +1911,7 @@ A:{
 }
 """);}
 
-@Test void bad_sq_str_eol_with_line_comment(){
-  fail("""
+@Test void bad_sq_str_eol_with_line_comment(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     'bar // comment
@@ -1931,8 +1929,7 @@ A:{
 """);
 }
 
-@Test void bad_sq_str_eol_with_line_comment2(){
-  fail("""
+@Test void bad_sq_str_eol_with_line_comment2(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     'bar /* comment */
@@ -1950,8 +1947,7 @@ A:{
 """);
 }
 
-@Test void bad_sq_str_eol_with_line_comment3(){
-  fail("""
+@Test void bad_sq_str_eol_with_line_comment3(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     'bar /* comment
@@ -1970,8 +1966,7 @@ A:{
 """);
 }
 
-@Test void bad_dq_str_eol_plain_no_comment(){
-  fail("""
+@Test void bad_dq_str_eol_plain_no_comment(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     "no close here
@@ -1988,8 +1983,7 @@ A:{
 """);
 }
 
-@Test void bad_sq_str_eol_plain_no_comment(){
-  fail("""
+@Test void bad_sq_str_eol_plain_no_comment(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     'no close here
@@ -2006,8 +2000,7 @@ A:{
 """);
 }
 
-@Test void bad_dq_str_opener_swallowed_by_block_comment_tail(){
-  fail("""
+@Test void bad_dq_str_opener_swallowed_by_block_comment_tail(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     /* something with a " on this last line */ "text that doesn't close
@@ -2026,8 +2019,7 @@ A:{
 """);
 }
 
-@Test void stray_block_comment_closer_with_pseudo_opener_in_string(){
-  fail("""
+@Test void stray_block_comment_closer_with_pseudo_opener_in_string(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     "this looks like /* an opener but is inside a string"
@@ -2049,8 +2041,7 @@ A:{
 """);
 }
 
-@Test void stray_block_comment_closer_with_pseudo_opener_in_string2(){
-  fail("""
+@Test void stray_block_comment_closer_with_pseudo_opener_in_string2(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     "this looks like /* an opener but is inside a string" some other text */
@@ -2069,8 +2060,7 @@ A:{
 """);
 }
 
-@Test void stray_block_comment_closer_with_pseudo_opener_in_string3(){
-  fail("""
+@Test void stray_block_comment_closer_with_pseudo_opener_in_string3(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     "this looks like /* an opener but is inside a string"
@@ -2096,8 +2086,7 @@ A:{
 }
 
 
-@Test void stray_block_comment_closer_with_pseudo_opener_in_line_comment(){
-  fail("""
+@Test void stray_block_comment_closer_with_pseudo_opener_in_line_comment(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     // not really opening: /*
@@ -2117,8 +2106,7 @@ A:{
 """);
 }
 
-@Test void stray_block_comment_closer_basic_no_pseudo_opener_and_prior_real_block_comment_exists(){
-  fail("""
+@Test void stray_block_comment_closer_basic_no_pseudo_opener_and_prior_real_block_comment_exists(){fail("""
 In file: [###]/in_memory0.fear
 
 004|     */
@@ -2136,8 +2124,7 @@ A:{
 """);
 }
 
-@Test void bad_unclosed_block_comment_runs_to_eof_with_eof_frame(){
-  fail("""
+@Test void bad_unclosed_block_comment_runs_to_eof_with_eof_frame(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     /* never closed
@@ -2154,8 +2141,7 @@ A:{
 """);
 }
 
-@Test void bad_op_digit_minus_or_plus_before_digit_is_signed_literal(){
-  fail("""
+@Test void bad_op_digit_minus_or_plus_before_digit_is_signed_literal(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     <--5
@@ -2177,8 +2163,7 @@ A:{
 }
 
 
-@Test void bad_float_requires_sign_and_digits_both_sides_of_dot(){
-  fail("""
+@Test void bad_float_requires_sign_and_digits_both_sides_of_dot(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     1.2
@@ -2198,8 +2183,7 @@ A:{
 """);
 }
 
-@Test void bad_rational_requires_sign(){
-  fail("""
+@Test void bad_rational_requires_sign(){fail("""
 In file: [###]/in_memory0.fear
 
 003|     1/2
@@ -2219,8 +2203,7 @@ A:{
 """);
 }
 
-@Test void eatenCloserInDblQuote_thenWrongCloserParen(){
-fail("""
+@Test void eatenCloserInDblQuote_thenWrongCloserParen(){fail("""
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> "price is } dollars" ) }
@@ -2236,8 +2219,7 @@ Error 0  Unclosed
 A:{ .m:Str -> "price is } dollars" ) }
 """);}
 
-@Test void eatenCloserInSglQuote_thenWrongCloserParen(){
-fail(""" 
+@Test void eatenCloserInSglQuote_thenWrongCloserParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> 'oops } here' ) }
@@ -2253,8 +2235,7 @@ Error 0  Unclosed
 A:{ .m:Str -> 'oops } here' ) }
 """);}
 
-@Test void eatenCloserInLineStr_thenWrongCloserParen(){
-fail(""" 
+@Test void eatenCloserInLineStr_thenWrongCloserParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> |"hello } world" ) }
@@ -2270,8 +2251,7 @@ Error 0  Unclosed
 A:{ .m:Str -> |"hello } world" ) }
 """);}
 
-@Test void eatenCloserInBlockComment_thenWrongCloserParen(){
-fail(""" 
+@Test void eatenCloserInBlockComment_thenWrongCloserParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> /* } inside */ ) }
@@ -2287,8 +2267,7 @@ Error 0  Unclosed
 A:{ .m:Str -> /* } inside */ ) }
 """);}
 
-@Test void eatenCloserInLineComment_thenWrongCloserParen(){
-fail(""" 
+@Test void eatenCloserInLineComment_thenWrongCloserParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> // } swallowed
@@ -2305,8 +2284,7 @@ A:{ .m:Str -> // } swallowed
 ) }
 """);}
 
-@Test void eatenRoundCloserInString_thenStopByCurly(){
-fail(""" 
+@Test void eatenRoundCloserInString_thenStopByCurly(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> ( ")]" + " has ) here ) inside" }
@@ -2322,8 +2300,7 @@ Error 0  Unclosed
 A:{ .m:Str -> ( ")]" + " has ) here ) inside" } 
 """);}
 
-@Test void eatenSquareCloserInString_thenStopByParen(){
-fail(""" 
+@Test void eatenSquareCloserInString_thenStopByParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> W[ "list ] marker" ) ] }
@@ -2339,8 +2316,7 @@ Error 0  Unclosed
 A:{ .m:Str -> W[ "list ] marker" ) ] }
 """);}
 
-@Test void eatenCurlyCloserInString_thenEOF(){
-fail("""
+@Test void eatenCurlyCloserInString_thenEOF(){fail("""
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> { "inner } hidden"
@@ -2356,8 +2332,7 @@ Error 0  Unclosed
 A:{ .m:Str -> { "inner } hidden"
 """);}
 
-@Test void eatenCurlyCloserInBlockComment_thenEOF(){
-fail(""" 
+@Test void eatenCurlyCloserInBlockComment_thenEOF(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> { /* } hidden */
@@ -2373,8 +2348,7 @@ Error 0  Unclosed
 A:{ .m:Str -> { /* } hidden */ 
 """);}
 
-@Test void eatenSquareCloserInBlockComment_thenWrongCloserCurly(){
-fail(""" 
+@Test void eatenSquareCloserInBlockComment_thenWrongCloserCurly(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> Foo[ /* ] hidden */ } ]
@@ -2390,8 +2364,7 @@ Error 0  Unclosed
 A:{ .m:Str -> Foo[ /* ] hidden */ } ]
 """);}
 
-@Test void eatenRoundOpenerInDblQuote_thenStrayParen(){
-fail(""" 
+@Test void eatenRoundOpenerInDblQuote_thenStrayParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> "call (" ) }
@@ -2406,8 +2379,7 @@ Error 1  Unopened
 A:{ .m:Str -> "call (" ) }
 """);}
 
-@Test void eatenRoundOpenerInLineComment_thenStrayParen(){
-fail(""" 
+@Test void eatenRoundOpenerInLineComment_thenStrayParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> // ( swallowed
@@ -2423,8 +2395,7 @@ A:{ .m:Str -> // ( swallowed
 ) }
 """);}
 
-@Test void eatenSquareOpenerInBlockComment_thenStrayBracket(){
-fail(""" 
+@Test void eatenSquareOpenerInBlockComment_thenStrayBracket(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> /* [ hidden */ ] }
@@ -2439,8 +2410,7 @@ Error 1  Unopened
 A:{ .m:Str -> /* [ hidden */ ] }
 """);}
 
-@Test void eatenCurlyOpenerInDblQuote_thenStrayCurly(){
-fail(""" 
+@Test void eatenCurlyOpenerInDblQuote_thenStrayCurly(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| .m:Str -> "start { here" }
@@ -2455,8 +2425,7 @@ Error 1  Unopened
 .m:Str -> "start { here" } 
 """);}
 
-@Test void eatenRoundOpenerInBlockComment_thenStrayParenDeep(){
-fail("""
+@Test void eatenRoundOpenerInBlockComment_thenStrayParenDeep(){fail("""
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
@@ -2471,8 +2440,7 @@ Error 1  Unopened
 A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
 """);}
 
-@Test void eatenSquareOpenerInLineStr_thenStrayBracket(){
-fail("""
+@Test void eatenSquareOpenerInLineStr_thenStrayBracket(){fail("""
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> |"vec [ x" ] }
@@ -2488,8 +2456,7 @@ Error 0  Unclosed
 A:{ .m:Str -> |"vec [ x" ] }
 """);}
 
-@Test void runOfRoundClosersBeforeStop(){
-fail(""" 
+@Test void runOfRoundClosersBeforeStop(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> ((1 + 2)) ) }
@@ -2505,8 +2472,7 @@ Error 2  UnexpectedToken
 A:{ .m:Str -> ((1 + 2)) ) }
 """);}
 
-@Test void runOfSquareClosersBeforeStop(){
-fail(""" 
+@Test void runOfSquareClosersBeforeStop(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> Foo[Bar] ] ) }
@@ -2521,8 +2487,7 @@ Error 2  UnexpectedToken
 A:{ .m:Str -> Foo[Bar] ] ) }
 """);}
 
-@Test void runOfRoundClosersThenWrongCurly(){
-fail(""" 
+@Test void runOfRoundClosersThenWrongCurly(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m(a,b):Str -> (a + b)) }
@@ -2538,8 +2503,7 @@ Error 2  UnexpectedToken
 A:{ .m(a,b):Str -> (a + b)) } 
 """);}
 
-@Test void runOfSquareClosersThenWrongParen(){
-fail(""" 
+@Test void runOfSquareClosersThenWrongParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> A[mut,imm]] ) }
@@ -2554,8 +2518,7 @@ Error 2  UnexpectedToken
 A:{ .m:Str -> A[mut,imm]] ) }
 """);}
 
-@Test void runOfRoundClosersNearEOF(){
-fail(""" 
+@Test void runOfRoundClosersNearEOF(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m(foo,bar):Str -> (foo + bar))
@@ -2571,8 +2534,7 @@ Error 2  UnexpectedToken
 A:{ .m(foo,bar):Str -> (foo + bar)) 
 """);}
 
-@Test void runOfSquareClosersNearEOF(){
-fail(""" 
+@Test void runOfSquareClosersNearEOF(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> A[X,Y,Z]]
@@ -2588,8 +2550,7 @@ Error 2  UnexpectedToken
 A:{ .m:Str -> A[X,Y,Z]] 
 """);}
 
-@Test void runOfRoundOpenersBeforeStrayParen(){
-fail(""" 
+@Test void runOfRoundOpenersBeforeStrayParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
@@ -2605,8 +2566,7 @@ Error 2  UnexpectedToken
 A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
 """);}
 
-@Test void runOfSquareOpenersBeforeStrayBracket(){
-fail(""" 
+@Test void runOfSquareOpenersBeforeStrayBracket(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
@@ -2621,8 +2581,7 @@ Error 2  UnexpectedToken
 A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
 """);}
 
-@Test void runOfRoundOpenersTightBeforeStrayParen(){
-fail(""" 
+@Test void runOfRoundOpenersTightBeforeStrayParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> (((x))) ) }
@@ -2638,8 +2597,7 @@ Error 2  UnexpectedToken
 A:{ .m:Str -> (((x))) ) }
 """);}
 
-@Test void runOfSquareOpenersTightBeforeStrayBracket(){
-fail(""" 
+@Test void runOfSquareOpenersTightBeforeStrayBracket(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> A[B[X]] ] }
@@ -2655,8 +2613,7 @@ Error 2  UnexpectedToken
 A:{ .m:Str -> A[B[X]] ] }
 """);}
 
-@Test void wrongCloser_ParenClosedByBracket(){
-fail(""" 
+@Test void wrongCloser_ParenClosedByBracket(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> (1 + 2 ] }
@@ -2671,8 +2628,7 @@ Error 2  UnexpectedToken
 A:{ .m:Str -> (1 + 2 ] }
 """);}
 
-@Test void wrongCloser_BracketClosedByParen(){
-fail(""" 
+@Test void wrongCloser_BracketClosedByParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> E[1,2) }
@@ -2687,8 +2643,7 @@ Error 2  UnexpectedToken
 A:{ .m:Str -> E[1,2) }
 """);}
 
-@Test void eofInsideParen(){
-fail(""" 
+@Test void eofInsideParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> (1 + 2
@@ -2703,8 +2658,7 @@ Error 0  Unclosed
 A:{ .m:Str -> (1 + 2
 """);}
 
-@Test void eofInsideBracket(){
-fail(""" 
+@Test void eofInsideBracket(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> E[1, 2, 3
@@ -2718,8 +2672,7 @@ Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> E[1, 2, 3
 """);}
-@Test void wrongCloser_CurlyClosedByParen(){
-fail(""" 
+@Test void wrongCloser_CurlyClosedByParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> { x: 1 ) }
@@ -2735,8 +2688,7 @@ Error 2  UnexpectedToken
 A:{ .m:Str -> { x: 1 ) }
 """);}
 
-@Test void wrongCloser_CurlyClosedByParen2(){
-fail(""" 
+@Test void wrongCloser_CurlyClosedByParen2(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> { x: 1 ) }
@@ -2753,8 +2705,7 @@ A:{ .m:Str -> { x: 1 ) }
 B:{} C:{}
 """);}
 
-@Test void barrierSemicolonInsideParen(){
-fail(""" 
+@Test void barrierSemicolonInsideParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> ( 1 + 2; ) }
@@ -2770,8 +2721,7 @@ A:{ .m:Str -> ( 1 + 2; ) }
 """);}
 
 //no repair can conceptually apply
-@Test void nestedWrongCloser_Deep(){
-fail(""" 
+@Test void nestedWrongCloser_Deep(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> ( Foo[ { a } ) ] }
@@ -2785,8 +2735,7 @@ Error 0  Unclosed
 A:{ .m:Str -> ( Foo[ { a } ) ] }
 """);}
 
-@Test void curlyGroupUnclosedBeforeEOF(){
-fail(""" 
+@Test void curlyGroupUnclosedBeforeEOF(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> { a: 1, b: 2
@@ -2801,8 +2750,7 @@ Error 0  Unclosed
 A:{ .m:Str -> { a: 1, b: 2 
 """);}
 
-@Test void openerInStringThenEOF_shouldPreferEatenCloser(){
-fail(""" 
+@Test void openerInStringThenEOF_shouldPreferEatenCloser(){fail(""" 
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> { "json } aaa"
@@ -2818,9 +2766,96 @@ Error 0  Unclosed
 A:{ .m:Str -> { "json } aaa" 
 """);}
 
+@Test void pkgName(){ok(""" 
+FileFull[name=foo_bar,[###]
+""","""
+package foo_bar 
+A:{} 
+""");}
+@Test void pkgNameUppercase(){fail(""" 
+In file: [###]/in_memory0.fear
 
-//A:{ .m(): -> ::.two( Block#.let x={5}, x ) }
-//errors that could get better err messages: forgot ; may be detected by multiple -> in meth
-//forgot : or added : in D:{..} //may be as well formedness later on? with : D must be new, without :, D must exists
-//.foo atom atom or .foo atom,atom -> missing parenthesis
+001| package fooBar
+002| A:{}
+
+While inspecting full file
+Missing package name.
+Found instead: "fooBar".
+Expected "id starting with a-z followed by any amount of a-z0-9 or the _ symbol".
+Error 2  UnexpectedToken
+""","""
+package fooBar 
+A:{} 
+""");}
+@Test void pkgNameEmpty(){ok(""" 
+FileFull[name=foo_bar42,[###]
+""","""
+package foo_bar42
+""");}
+@Test void pkgNameSymbol(){fail(""" 
+In file: [###]/in_memory0.fear
+
+001| package foo$bar
+   |            ^
+
+While inspecting the file
+Unrecognized text.
+Error 2  UnexpectedToken
+""","""
+package foo$bar
+A:{} 
+""");}
+
+@Test void pkgMispelled(){fail(""" 
+In file: [###]/in_memory0.fear
+
+001| pakage foo_bar
+002| A:{}
+
+While inspecting full file
+Missing package keyword.
+Found instead: "pakage".
+Expected "package".
+Error 2  UnexpectedToken
+""","""
+pakage foo_bar
+A:{} 
+""");}
+
+@Test void pkgRoleMap(){ok(""" 
+FileFull[name=foo_bar,
+role=Optional[Role[role=framework,index=42]],
+maps=[Map[in=goo,out=boo],Map[in=gor,out=goo]],
+uses=[],
+decs=[Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[]]]]
+""","""
+package foo_bar
+role framework042
+map goo as boo
+map gor as goo
+A:{}
+""");}
+
+@Test void tNameWithDot(){ok("""
+[###]
+C[name=TName[s=foo.Bar,arity=0],ts=Optional.empty]]]]],body=Optional.empty]]]]] 
+""","""
+A:{ .m: foo.Bar }
+""");}
+
+@Test void pkgFull(){ok("""
+[###]
+maps=[Map[in=goo,out=boo],Map[in=gor,out=goo]],
+uses=[Use[in=TName[s=foo.Bar,arity=0],out=TName[s=Baz,arity=0]],
+      Use[in=TName[s=base.SStr,arity=0],out=TName[s=Str,arity=0]]],
+[###][s=A,arity=0],bs=Optional.empty,cs=[C[name=TName[s=base.Main,arity=0],ts=Optional.empty]],l=Literal[]]]] 
+""","""
+package foo_bar
+role framework042
+map goo as boo
+map gor as goo
+use foo.Bar as Baz
+use base.SStr as Str
+A: base.Main{ }
+""");}
 }

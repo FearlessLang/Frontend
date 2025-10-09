@@ -14,6 +14,7 @@ import message.FearlessErrFactory;
 import message.FearlessException;
 import metaParser.MetaParser;
 import metaParser.Span;
+import utils.Bug;
 
 import static fearlessParser.TokenKind.*;
 import static java.util.Optional.of;
@@ -329,8 +330,61 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   FileFull parseFileFull(){
     expect("",_SOF);
     expectLast("",_EOF);
+    var head= parseHead();    
     List<Declaration> ds= splitBy("type declaration",curlyLeft,Parser::parseTopDeclaration);
-    return new FileFull(ds);
+    if(head.isEmpty()){ return new FileFull("a",Optional.empty(),List.of(),List.of(),ds); }
+    var h= head.get();
+    return new FileFull(h.name(),h.role(),h.maps(),h.uses(),ds);
+  }
+  boolean peekValidate(TokenKind kind, TokenKind validation){
+    Optional<Token> res= peek();
+    if(res.isEmpty()){ return false; }
+    try{ TokenKind.validate(res.get().content(),"",validation); return true; }
+    catch(IllegalArgumentException iae){ return false; } 
+  }
+  Token expectValidate(String human, TokenKind kind, TokenKind validation){
+    var ok= peekValidate(kind, validation);
+    if (ok){ return expect(human,kind); }
+    expect(human,validation);//will throw reasonable error
+    throw Bug.unreachable();
+  }
+  Optional<FileFull.Role> parseRole(){
+    var hasRole= peekValidate(LowercaseId,_role);
+    if (!hasRole){ return Optional.empty(); }
+    expectValidate("role keyword",LowercaseId,_role);
+    var roleName= expectValidate("role keyword",LowercaseId,_roleName).content();
+    int num= Integer.parseInt(roleName.substring(roleName.length()-3));
+    roleName= roleName.substring(0,roleName.length()-3);
+    return Optional.of(new FileFull.Role(FileFull.RoleName.valueOf(roleName),num));
+  }
+  List<FileFull.Map> parseMap(){
+    List<FileFull.Map> res= new ArrayList<>();
+    while(fwdIf(peekValidate(LowercaseId,_map))){
+      var pkgName1= expectValidate("package name",LowercaseId,_pkgName).content();
+      expectValidate("as keyword",LowercaseId,_as);
+      var pkgName2= expectValidate("package name",LowercaseId,_pkgName).content();
+      res.add(new FileFull.Map(pkgName1,pkgName2));
+    }
+    return List.copyOf(res);
+  }
+  List<FileFull.Use> parseUse(){
+    List<FileFull.Use> res= new ArrayList<>();
+    while(fwdIf(peekValidate(LowercaseId,_use))){
+      var t1= parseTName();
+      expectValidate("as keyword",LowercaseId,_as);
+      var t2= parseTName();
+      res.add(new FileFull.Use(t1,t2));
+    }
+    return List.copyOf(res);
+  }
+  Optional<FileFull> parseHead(){
+    if (!peek(LowercaseId)) { return Optional.empty(); }
+    expectValidate("package keyword",LowercaseId,_package);
+    var pkgName= expectValidate("package name",LowercaseId,_pkgName).content();
+    var role= parseRole();
+    var map= parseMap();
+    var use= parseUse();
+    return Optional.of(new FileFull(pkgName,role,map,use,List.of()));
   }
   E parseEFull(){
     expect("",_SOF);

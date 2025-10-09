@@ -28,17 +28,12 @@ public enum TokenKind implements metaParser.TokenKind {
   CSquare("\\]"),
   Comma(","),
   SemiColon(";"),
-  //ColonColonName("::_*[a-z][A-Za-z0-9_]*`*"),
   ColonColon("::"),
   Colon(":"),
   Eq("="),
   BackTick("`"), 
   ReadImm("read/imm"),//note: must be before read
   RCap("readH|mutH|imm|iso|read|mut"),
-  
-  //Use("use"),//In the parsing we will have to recognize valid lowIds in the header
-  //As("as"),//rename and as tokens will be valid example of xs
-
   BadRational(
      "[0-9](?:[0-9_]*[0-9])?/[0-9](?:[0-9_]*[0-9])?"),
   SignedRational("[+-][0-9](?:[0-9_]*[0-9])?/[0-9](?:[0-9_]*[0-9])?"),
@@ -50,13 +45,10 @@ public enum TokenKind implements metaParser.TokenKind {
   SignedFloat(
     "[+-](?:[0-9](?:[0-9_]*[0-9])?)\\.(?:[0-9](?:[0-9_]*[0-9])?)"
     + "(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?"),
-
   // Signed int: +45, -10, +1_000
   SignedInt("[+-][0-9](?:[0-9_]*[0-9])?"),
-
   // Unsigned int: 0, 42, 1_000_000
   UnsignedInt("[0-9](?:[0-9_]*[0-9])?"),
-
   BadUStrUnclosed("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*(?=\\x0A|\\z)"),
   BadSStrUnclosed("'(?:\\x5C[nt'\\x5C]|[^'\\x5C\\x0A])*(?=\\x0A|\\z)"),
   // Normal strings with escapes; newlines not allowed inside
@@ -71,7 +63,6 @@ public enum TokenKind implements metaParser.TokenKind {
   DotName("\\._*[a-z][A-Za-z0-9_]*`*"),
   UppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*`*"),//correctly allows only one '.' since packages are not nested inside each others  
   LowercaseId("_*[a-z][A-Za-z0-9_]*`*"),
-
    //\  /  #  *   -   +   %  <  >  =  !  &   ^   ~   ?     |
   //[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F:\\x7C#]
   //forbid:  /*   */   //
@@ -82,6 +73,13 @@ public enum TokenKind implements metaParser.TokenKind {
   //IMPORTANT: BadOp* must precede Op so bad forms win ties of equal length.
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases  
   _XId("_*[A-Z][A-Za-z0-9_]*`*"),
+  _pkgName("[a-z][a-z0-9_]*"),
+  _package("package"),
+  _role("role"),
+  _roleName("(?:base|core|driver|worker|framework|accumulator|tool|app)[0-9][0-9][0-9]"),
+  _use("use"),
+  _map("map"),
+  _as("as"),
   _EOF(""),
   _SOF(""),
   _All(""),
