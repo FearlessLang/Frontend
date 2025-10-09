@@ -2803,7 +2803,7 @@ A:{ .m:Str -> { a: 1, b: 2
 
 @Test void openerInStringThenEOF_shouldPreferEatenCloser(){
 fail(""" 
-In file: ~/.../___DBG___/in_memory0.fear
+In file: [###]/in_memory0.fear
 
 001| A:{ .m:Str -> { "json } aaa"
    |               ^^^^^^^^^-----
