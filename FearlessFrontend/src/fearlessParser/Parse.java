@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import fearlessFullGrammar.E;
+import fearlessFullGrammar.FileFull;
 import message.BadTokens;
 import message.FearlessErrFactory;
 import metaParser.MetaParser;

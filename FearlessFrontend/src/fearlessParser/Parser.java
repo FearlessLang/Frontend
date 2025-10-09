@@ -8,9 +8,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import fearlessParser.E.X;
-import fearlessParser.XPat.Destruct;
-import fearlessParser.XPat.Name;
+import fearlessFullGrammar.*;
 import files.Pos;
 import message.FearlessErrFactory;
 import message.FearlessException;
@@ -203,10 +201,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   Stream<String> xsOf(Optional<XPat> xp){
     if(xp.isEmpty()){ return Stream.of(); }
     var v= new XPatVisitor<Stream<String>>(){
-      @Override public Stream<String> visitXPatName(Name n){
+      @Override public Stream<String> visitXPatName(XPat.Name n){
         return Stream.of(n.x().name());
       }
-      @Override public Stream<String> visitXPatDestruct(Destruct d){
+      @Override public Stream<String> visitXPatDestruct(XPat.Destruct d){
         String id= d.id().orElse("");
         return d.extract().stream().map(e->e.getLast().s().substring(1)+id);
       }
@@ -284,13 +282,13 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   B parseB(){//note: not always a single B on the tokens
     T.X x= parseDecTX();
-    if(end()){ return new B(x,new RCS(List.of())); }
+    if(end()){ return new B(x,new B.RCS(List.of())); }
     expect("generic bounds",Colon);
-    if(!peek(Op)){ return new B(x,new RCS(parseRCs())); }
+    if(!peek(Op)){ return new B(x,new B.RCS(parseRCs())); }
     var opT= expect("** or *",Op);
     String op= opT.content();
-    if(op.equals("**")){ return new B(x,new StarStar()); }
-    if(op.equals("*")){ return new B(x,new Star()); }
+    if(op.equals("**")){ return new B(x,new B.StarStar()); }
+    if(op.equals("*")){ return new B(x,new B.Star()); }
     throw errFactory().badBound(x.name(),span(opT).get());
   }
   List<RC> parseRCs(){ return splitBy("generic bounds declaration",commaSkip,Parser::parseRC); }
@@ -306,7 +304,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var res= parseDeclaration();
     var notThis=res.l().thisName().map(n->!n.name().equals("this"));
     if(notThis.isEmpty()){ return res; }
-    X x= res.l().thisName().get();
+    E.X x= res.l().thisName().get();
     var s= span(x.pos(),x.name().length());
     throw errFactory().badTopSelfName(s, x.name());
   }
@@ -332,7 +330,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     expect("",_SOF);
     expectLast("",_EOF);
     List<Declaration> ds= splitBy("type declaration",curlyLeft,Parser::parseTopDeclaration);
-    return new FileFull(List.of(),ds);
+    return new FileFull(ds);
   }
   E parseEFull(){
     expect("",_SOF);
