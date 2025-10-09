@@ -2858,4 +2858,117 @@ use foo.Bar as Baz
 use base.SStr as Str
 A: base.Main{ }
 """);}
+
+@Test void pkgName_leadingUnderscore_fail(){ fail("""
+[###]
+""","""
+package _foo
+A:{}
+"""); }
+
+@Test void pkgName_reserved_con_fail(){ fail("""
+[###]
+""","""
+package con
+A:{}
+"""); }
+
+@Test void pkgName_reserved_prn_fail(){ fail("""
+[###]
+""","""
+package prn
+A:{}
+"""); }
+
+@Test void pkgName_reserved_aux_fail(){ fail("""
+[###]
+""","""
+package aux
+A:{}
+"""); }
+
+@Test void pkgName_reserved_nul_fail(){ fail("""
+[###]
+""","""
+package nul
+A:{}
+"""); }
+
+@Test void pkgName_reserved_com1_fail(){ fail("""
+[###]
+""","""
+package com1
+A:{}
+"""); }
+
+@Test void pkgName_reserved_lpt9_fail(){ fail("""
+[###]
+""","""
+package lpt9
+A:{}
+"""); }
+
+@Test void pkgName_reserved_con_withBlockComments_fail(){ fail("""
+[###]
+""","""
+package /* pre */ con /* post */
+A:{}
+"""); }
+
+@Test void pkgName_reserved_com9_tightComments_fail(){ fail("""
+[###]
+""","""
+package/*x*/com9/*y*/
+A:{}
+"""); }
+
+@Test void pkgName_reserved_nul_withLineCommentAfter_fail(){ fail("""
+[###]
+""","""
+package nul // device name on Windows
+A:{}
+"""); }
+
+@Test void pkgName_valid_con1_ok(){ ok("""
+[###]
+""","""
+package con1
+A:{}
+"""); }
+
+@Test void pkgName_valid_con_foo_ok(){ ok("""
+[###]
+""","""
+package con_foo
+A:{}
+"""); }
+
+@Test void pkgName_valid_lpt10_ok(){ ok("""
+[###]
+""","""
+package lpt10
+A:{}
+"""); }
+
+@Test void pkgName_valid_com0_ok(){ ok("""
+[###]
+""","""
+package com0
+A:{}
+"""); }
+
+@Test void pkgName_valid_manyUnderscores_ok(){ ok("""
+[###]
+""","""
+package foo_bar_baz_123
+A:{}
+"""); }
+
+@Test void pkgName_valid_commentsAroundName_ok(){ ok("""
+[###]
+""","""
+package/*a*/foo_bar/*b*/
+A:{}
+"""); }
+
 }

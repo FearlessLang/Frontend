@@ -73,7 +73,7 @@ public enum TokenKind implements metaParser.TokenKind {
   //IMPORTANT: BadOp* must precede Op so bad forms win ties of equal length.
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases  
   _XId("_*[A-Z][A-Za-z0-9_]*`*"),
-  _pkgName("[a-z][a-z0-9_]*"),
+  _pkgName("(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*"),   
   _package("package"),
   _role("role"),
   _roleName("(?:base|core|driver|worker|framework|accumulator|tool|app)[0-9][0-9][0-9]"),

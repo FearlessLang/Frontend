@@ -25,6 +25,7 @@ public record FileFull(
       assert index >= 0 && index < 1000: index;
       assert nonNull(role);
       }
+    public String toString(){ return "role "+role.name()+"index"; }
   }
   public record Use(TName in,TName out){public Use{assert nonNull(in,out); }}
   public record Map(String in,String out){ public Map{

@@ -17,6 +17,7 @@ public enum Code{
   MissingSeparator,
   InterpolationNoClose,
   InterpolationNoOpen,
+  WellFormedness,
   Err2,//etc, of course with better names
   ;  
   public FearlessException of(BiFunction<SourceOracle,List<Frame>,String> f){ return new FearlessException(this, f); }
