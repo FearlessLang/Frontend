@@ -14,7 +14,7 @@ public record FileFull(
   List<Declaration> decs
   ){
   public FileFull{
-    assert validate(name,"pkgName", _pkgName);
+    assert name.isEmpty() || validate(name,"pkgName", _pkgName);
     assert unmodifiable(uses, "FileFull.uses");
     assert unmodifiable(maps, "FileFull.maps");
     assert unmodifiable(decs, "FileFull.decs"); 
@@ -25,11 +25,12 @@ public record FileFull(
       assert index >= 0 && index < 1000: index;
       assert nonNull(role);
       }
-    public String toString(){ return "role "+role.name()+"index"; }
+    public String toString(){ return "role "+role.name()+index; }
   }
   public record Use(TName in,TName out){public Use{assert nonNull(in,out); }}
-  public record Map(String in,String out){ public Map{
+  public record Map(String in,String out, String target){ public Map{
     assert validate(in,"map.in", _pkgName);
     assert validate(out,"map.out", _pkgName);
+    assert validate(target,"map.target", _pkgName);
   }}
 }

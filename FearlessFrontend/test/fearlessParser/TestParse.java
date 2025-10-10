@@ -532,7 +532,7 @@ A:{ .m ->
 In file: [###]/in_memory0.fear
 
 001| A:{ .m(a,,b):C }
-   | ----~~~~~^~~~~--
+   | ----~~~~^~~~~~--
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
 Missing type name.
@@ -612,7 +612,7 @@ In file: [###]/in_memory0.fear
 001| A:{
 002| `self
 003| .m(a,,b):C -> self
-   | ~~~~~^~~~~--------
+   | ~~~~^~~~~~--------
 004| //comment
 005| }
 
@@ -2769,70 +2769,90 @@ A:{ .m:Str -> { "json } aaa"
 @Test void pkgName(){ok(""" 
 FileFull[name=foo_bar,[###]
 ""","""
-package foo_bar 
+package foo_bar; 
 A:{} 
 """);}
 @Test void pkgNameUppercase(){fail(""" 
 In file: [###]/in_memory0.fear
 
-001| package fooBar
+001| package fooBar;
+   | ~~~~~~~~^^^^^^-
 002| A:{}
 
-While inspecting full file
+While inspecting header element > file header > full file
 Missing package name.
 Found instead: "fooBar".
 Expected "id starting with a-z followed by any amount of a-z0-9 or the _ symbol".
 Error 2  UnexpectedToken
 ""","""
-package fooBar 
+package fooBar;
 A:{} 
 """);}
 @Test void pkgNameEmpty(){ok(""" 
 FileFull[name=foo_bar42,[###]
 ""","""
-package foo_bar42
+package foo_bar42;
 """);}
 @Test void pkgNameSymbol(){fail(""" 
 In file: [###]/in_memory0.fear
 
-001| package foo$bar
+001| package foo$bar;
    |            ^
 
 While inspecting the file
 Unrecognized text.
 Error 2  UnexpectedToken
 ""","""
-package foo$bar
+package foo$bar;
 A:{} 
 """);}
 
 @Test void pkgMispelled(){fail(""" 
 In file: [###]/in_memory0.fear
 
-001| pakage foo_bar
+001| pakage foo_bar;
+   | ^^^^^^~~~~~~~~-
 002| A:{}
 
-While inspecting full file
-Missing package keyword.
+While inspecting header element > file header > full file
+Missing "package" keyword.
 Found instead: "pakage".
 Expected "package".
 Error 2  UnexpectedToken
 ""","""
-pakage foo_bar
+pakage foo_bar;
+A:{} 
+""");}
+
+
+@Test void extraContentInCurrentGroupError(){fail(""" 
+In file: [###]/in_memory0.fear
+
+001| package foo_bar beer baz;
+   | ~~~~~~~~~~~~~~~~^^^^^^^^-
+002| A:{}
+
+While inspecting header element > file header > full file
+Missing semicolon.
+Found instead: "beer".
+Expected ";".
+Error 2  UnexpectedToken
+""","""
+package foo_bar beer baz;
 A:{} 
 """);}
 
 @Test void pkgRoleMap(){ok(""" 
-FileFull[name=foo_bar,
-role=Optional[Role[role=framework,index=42]],
-maps=[Map[in=goo,out=boo],Map[in=gor,out=goo]],
+FileFull[name=foo_bar,role=Optional[roleframework42],
+maps=[Map[in=goo,out=boo,target=foo_bar],
+Map[in=gor,out=goo,target=foo]],
 uses=[],
 decs=[Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[]]]]
 ""","""
-package foo_bar
-role framework042
-map goo as boo
-map gor as goo
+package foo_bar;
+role framework042;
+map goo as boo in foo_bar;
+map gor as goo in foo;
 A:{}
 """);}
 
@@ -2845,17 +2865,81 @@ A:{ .m: foo.Bar }
 
 @Test void pkgFull(){ok("""
 [###]
-maps=[Map[in=goo,out=boo],Map[in=gor,out=goo]],
-uses=[Use[in=TName[s=foo.Bar,arity=0],out=TName[s=Baz,arity=0]],
-      Use[in=TName[s=base.SStr,arity=0],out=TName[s=Str,arity=0]]],
-[###][s=A,arity=0],bs=Optional.empty,cs=[C[name=TName[s=base.Main,arity=0],ts=Optional.empty]],l=Literal[]]]] 
+""","""
+package foo_bar;
+role framework042;
+map goo as boo in baz;
+map gor as goo in beer;
+use foo.Bar as Baz;
+use base.SStr as Str;
+A: base.Main{ }
+""");}
+
+@Test void noSemi1(){fail("""
+In file: [###]/in_memory0.fear
+
+001| package foo_bar
+002| role framework042;
+   | ^^^^^^^^^^^^^^^^^
+
+While inspecting header element > file header > full file
+Missing semicolon.
+Found instead: "role".
+Expected ";".
+Error 2  UnexpectedToken
 ""","""
 package foo_bar
+role framework042;
+map goo as boo in baz;
+map gor as goo in beer;
+use foo.Bar as Baz;
+use base.SStr as Str;
+A: base.Main{ }
+""");}
+
+@Test void noSemi2(){fail("""
+In file: [###]/in_memory0.fear
+
+002| role framework042
+003| map goo as boo in baz;
+   | ^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting header element > file header > full file
+Missing semicolon.
+Found instead: "map".
+Expected ";".
+Error 2  UnexpectedToken
+""","""
+package foo_bar;
 role framework042
-map goo as boo
-map gor as goo
-use foo.Bar as Baz
-use base.SStr as Str
+map goo as boo in baz;
+map gor as goo in beer;
+use foo.Bar as Baz;
+use base.SStr as Str;
+A: base.Main{ }
+""");}
+
+@Test void pkgFullBadMap(){fail("""
+In file: [###]/in_memory0.fear
+
+001| package foo_bar;
+002| role framework042;
+003| map goo as boo;
+   | -----------^^^
+   | ... 2 lines ...
+006| use base.SStr as Str;
+
+While inspecting header element > file header > full file
+Missing "in" keyword.
+Expected "in".
+Error 2  UnexpectedToken 
+""","""
+package foo_bar;
+role framework042;
+map goo as boo;
+map gor as goo;
+use foo.Bar as Baz;
+use base.SStr as Str;
 A: base.Main{ }
 """);}
 
@@ -2932,42 +3016,42 @@ A:{}
 @Test void pkgName_valid_con1_ok(){ ok("""
 [###]
 ""","""
-package con1
+package con1;
 A:{}
 """); }
 
 @Test void pkgName_valid_con_foo_ok(){ ok("""
 [###]
 ""","""
-package con_foo
+package con_foo;
 A:{}
 """); }
 
 @Test void pkgName_valid_lpt10_ok(){ ok("""
 [###]
 ""","""
-package lpt10
+package lpt10;
 A:{}
 """); }
 
 @Test void pkgName_valid_com0_ok(){ ok("""
 [###]
 ""","""
-package com0
+package com0;
 A:{}
 """); }
 
 @Test void pkgName_valid_manyUnderscores_ok(){ ok("""
 [###]
 ""","""
-package foo_bar_baz_123
+package foo_bar_baz_123;
 A:{}
 """); }
 
 @Test void pkgName_valid_commentsAroundName_ok(){ ok("""
 [###]
 ""","""
-package/*a*/foo_bar/*b*/
+package/*a*/foo_bar/*b*/;
 A:{}
 """); }
 

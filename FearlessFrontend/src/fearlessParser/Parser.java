@@ -39,6 +39,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return e;
   }
   boolean hasPost(){ return peek(DotName,Op,UStrInterHash,UStrLine,SStrInterHash,SStrLine); }
+  boolean isDec(){//Dec starts with D[Bs]: or D:
+    return peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup), t->t.is(Colon))
+        || peekOrder(t->t.isTypeName(), t->t.is(Colon));
+  }
   E parseAtom(){
     if(peek(LowercaseId)){ return parseX(); }
     if(peek(_RoundGroup)){ return parseGroup("expression in round parenthesis",Parser::parseRound); }
@@ -50,10 +54,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     Optional<RC> rc= parseOptRC();
     var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH).orElse(false);
     if(invalid){ throw errFactory().disallowedReadHMutH(rcSpan.get(), rc.get()); }
-    var isDec=//Dec starts with D[Bs]: or D:
-         peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup), t->t.is(Colon))
-      || peekOrder(t->t.isTypeName(), t->t.is(Colon));
-    if(isDec){ return new E.DeclarationLiteral(rc,parseDeclaration()); }
+    if(isDec()){ return new E.DeclarationLiteral(rc,parseDeclaration()); }
     if(!peek(Token.typeName)){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
     //the expect above is guaranteed to go in error, the list of tokens is cherry picked to produce
     //and intuitive error message
@@ -226,7 +227,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (!x.isEmpty()){ throw errFactory().duplicateGenericInMethodSignature(span(), x); }
   }  
   M parseMethod(){//assumes to be called on only the tokens of this specific method
-    Optional<Sig> sig= parseUpTo("method signature",arrowSkip,Parser::parseSig);
+    Optional<Sig> sig= parseUpTo("method signature",false,arrowSkip,Parser::parseSig);
     if(sig.isPresent()){
       var xs= sig.get().parameters().stream().flatMap(p->xsOf(p.xp())).toList();
       var Xs= sig.get().bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
@@ -295,7 +296,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   List<RC> parseRCs(){ return splitBy("generic bounds declaration",commaSkip,Parser::parseRC); }
   
   List<T.C> parseImpl(){
-    return parseUpTo("",
+    return parseUpTo("",true,
       curlyRight,
       p->p.splitBy("super types declaration",commaSkip,Parser::parseC)
     ).get();
@@ -322,19 +323,18 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     }
     expect("type declaration (:) symbol",Colon);
     //Dec in e will be parsed with empty Xs, funnelling handled by well formedness later
-    Optional<List<T.C>> cs= parseIf(!peek(_CurlyGroup),this::parseImpl);
+    List<T.C> cs= this.parseImpl();
     assert peek(_CurlyGroup);
     E.Literal l= parseGroup("type declaration body",Parser::parseLiteral);
-    return new Declaration(c,bs,cs.orElse(List.of()),l);
+    return new Declaration(c,bs,cs,l);
   }
   FileFull parseFileFull(){
     expect("",_SOF);
     expectLast("",_EOF);
-    var head= parseHead();    
+    var head=parseUpToOrAll("file header", headEnd,Parser::parseHeader);
     List<Declaration> ds= splitBy("type declaration",curlyLeft,Parser::parseTopDeclaration);
-    if(head.isEmpty()){ return new FileFull("a",Optional.empty(),List.of(),List.of(),ds); }
-    var h= head.get();
-    return new FileFull(h.name(),h.role(),h.maps(),h.uses(),ds);
+    String pkg= head.pkg.isEmpty()?"":head.pkg.getFirst();
+    return new FileFull(pkg,head.role.stream().findFirst(),List.copyOf(head.map),List.copyOf(head.use),ds);
   }
   boolean peekValidate(TokenKind kind, TokenKind validation){
     Optional<Token> res= peek();
@@ -343,48 +343,71 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     catch(IllegalArgumentException iae){ return false; } 
   }
   Token expectValidate(String human, TokenKind kind, TokenKind validation){
-    var ok= peekValidate(kind, validation);
+    var ok= peekValidate(kind, validation);    
     if (ok){ return expect(human,kind); }
-    expect(human,validation);//will throw reasonable error
+    try{ expect(human,validation); }
+    catch(FearlessException fe){ throw fe.addSpan(spanAround(index(),index()));}
     throw Bug.unreachable();
   }
-  Optional<FileFull.Role> parseRole(){
-    var hasRole= peekValidate(LowercaseId,_role);
-    if (!hasRole){ return Optional.empty(); }
-    expectValidate("role keyword",LowercaseId,_role);
-    var roleName= expectValidate("role keyword",LowercaseId,_roleName).content();
+  Void parsePackage(HeadAcc acc){
+    var empty= acc.pkg.isEmpty() && acc.role.isEmpty() && acc.map.isEmpty() && acc.use.isEmpty();
+    if(!empty){ throw errFactory().disallowedPackageNotEmpty(spanLast()); }
+    var pkgName= expectValidate("package name",LowercaseId,_pkgName);
+    acc.pkg.add(pkgName.content());
+    errNoSemi(); return null;
+  }
+  Void parseRole(HeadAcc acc){
+    if(!acc.role.isEmpty()){ throw errFactory().disallowedRoleNotEmpty(spanLast()); }
+    var roleName= expectValidate("\"role\" keyword",LowercaseId,_roleName).content();
     int num= Integer.parseInt(roleName.substring(roleName.length()-3));
     roleName= roleName.substring(0,roleName.length()-3);
-    return Optional.of(new FileFull.Role(FileFull.RoleName.valueOf(roleName),num));
+    acc.role.add(new FileFull.Role(FileFull.RoleName.valueOf(roleName),num));
+    errNoSemi(); return null;
   }
-  List<FileFull.Map> parseMap(){
-    List<FileFull.Map> res= new ArrayList<>();
-    while(fwdIf(peekValidate(LowercaseId,_map))){
-      var pkgName1= expectValidate("package name",LowercaseId,_pkgName).content();
-      expectValidate("as keyword",LowercaseId,_as);
-      var pkgName2= expectValidate("package name",LowercaseId,_pkgName).content();
-      res.add(new FileFull.Map(pkgName1,pkgName2));
-    }
-    return List.copyOf(res);
+  Void parseMap(HeadAcc acc){
+    var in= expectValidate("package name",LowercaseId,_pkgName).content();
+    expectValidate("\"as\" keyword",LowercaseId,_as);
+    var out= expectValidate("package name",LowercaseId,_pkgName).content();
+    expectValidate("\"in\" keyword",LowercaseId,_in);
+    var target= expectValidate("package name",LowercaseId,_pkgName).content();
+    var dup= acc.map.stream().anyMatch(m->m.in().equals(in) && m.out().equals(out));
+    if(dup){ throw errFactory().duplicatedMap(spanLast(), "("+target+","+in+")"); }
+    acc.map.add(new FileFull.Map(in,out,target));
+    errNoSemi(); return null;
   }
-  List<FileFull.Use> parseUse(){
-    List<FileFull.Use> res= new ArrayList<>();
-    while(fwdIf(peekValidate(LowercaseId,_use))){
-      var t1= parseTName();
-      expectValidate("as keyword",LowercaseId,_as);
-      var t2= parseTName();
-      res.add(new FileFull.Use(t1,t2));
-    }
-    return List.copyOf(res);
+  Void parseUse(HeadAcc acc){
+    var t1= parseTName();
+    expectValidate("\"as\" keyword",LowercaseId,_as);
+    var t2= parseTName();
+    var dupS= acc.use.stream().anyMatch(u->u.in().equals(t1));
+    var dupD= acc.use.stream().anyMatch(u->u.out().equals(t2));
+    if(dupS){ throw errFactory().duplicatedUseSource(spanLast(), t1.s()); }
+    if(dupD){ throw errFactory().duplicatedUseDest(spanLast(), t2.s()); }
+    acc.use.add(new FileFull.Use(t1,t2));
+    errNoSemi(); return null;
   }
-  Optional<FileFull> parseHead(){
-    if (!peek(LowercaseId)) { return Optional.empty(); }
-    expectValidate("package keyword",LowercaseId,_package);
-    var pkgName= expectValidate("package name",LowercaseId,_pkgName).content();
-    var role= parseRole();
-    var map= parseMap();
-    var use= parseUse();
-    return Optional.of(new FileFull(pkgName,role,map,use,List.of()));
+  record HeadAcc(ArrayList<String>pkg, ArrayList<FileFull.Role>role,ArrayList<FileFull.Map>map,ArrayList<FileFull.Use>use){
+    HeadAcc(){this(new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new ArrayList<>());}
+  }
+  void errNoSemi(){
+    if(end()){ return; }
+    expect("semicolon",SemiColon);
+  }
+  Void parseHeaderElement(HeadAcc acc){
+    if(fwdIf(peekValidate(LowercaseId,_package))){ return parsePackage(acc); };
+    if(fwdIf(peekValidate(LowercaseId,_role))){ return parseRole(acc); };
+    if(fwdIf(peekValidate(LowercaseId,_map))){ return parseMap(acc); };
+    if(fwdIf(peekValidate(LowercaseId,_use))){ return parseUse(acc); };
+    if(acc.pkg.isEmpty()){ expectValidate("\"package\" keyword",LowercaseId,_package); }
+    expect("header keyword \"role\", \"map\" or \"use\"",_role,_map,_use);
+    throw Bug.unreachable();
+  }
+  HeadAcc parseHeader(){
+    HeadAcc acc= new HeadAcc();
+    if (!peek(LowercaseId)) { return acc; }
+    expectLast("semicolon", SemiColon);
+    splitBy("header element", semiSkip,p->p.parseHeaderElement(acc));
+    return acc;
   }
   E parseEFull(){
     expect("",_SOF);
@@ -414,6 +437,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       var t= expectAny("");
       if(t.is(Comma) && !peek(RCap)){ return 1; }
     }
+    return 0;
+  }
+  int headEnd(){
+    while(!end() && !isDec()){ expectAny(""); }
     return 0;
   }
   public void checkAbruptExprEnd(){
@@ -449,6 +476,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> arrowSkip=  p->p.splitOn(Skipped,Arrow);
   NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> curlyLeft=  p->p.splitOn(Left,_CurlyGroup);
   NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> curlyRight= p->p.splitOn(Right,_CurlyGroup);
+  //NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> headKwRight= p->p.splitOn(Right,
+  //      t->TokenKind.validate(t.content(),_role,_use,_map));
+  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> headEnd=    Parser::headEnd;
   NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> commaB=     Parser::onCommaB;
   NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> commaExp=   Parser::onCommaExp;
   NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> anyLeft=    p->{ p.expectAny(""); return 0; };

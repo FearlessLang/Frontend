@@ -66,6 +66,7 @@ public interface ErrFactory<
   ///Extra tokens remain within the current parsed group.
   E extraContent(Span from, Parser parser);
 
+  //TODO: are those two methods actually triggered? comment them to check
   ///A probing parse strategy stalled while scanning a group.
   E probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx, Parser parser);
 

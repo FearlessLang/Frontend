@@ -38,7 +38,7 @@ public abstract class MetaParser<
       if (!frameName.isEmpty() && t instanceof HasFrames f){ f.addFrame(new Frame(frameName,span())); }
       throw t;
     }
-    if(index != limit){ throw errFactory().extraContent(span,self()); }
+    if(index != limit){ throw errFactory().extraContent(remainingSpan(),self()); }
     return res;
   }
   public boolean end(){ return limit == index; }
@@ -136,13 +136,14 @@ public abstract class MetaParser<
     return res;
   }
   public Span spanAround(int low, int high){
+    if (ts.isEmpty()){ return span; }
     if (low == ts.size()){ low -= 1; }
-    if (high == low - 1){ high = low; }
+    if (high == ts.size() || high < 0){ high = ts.size() - 1; }
+    if (low > high){ low = high; }
     assert low >= 0 && low < ts.size():
       "";
     assert high >= 0 && high < ts.size():
       "";
-    assert high >= low;
     var here = span(ts.get(low),ts.get(high));
     if (here.isPresent()) { return here.get(); }
     int startLine= this.span.startLine();
@@ -195,7 +196,6 @@ public abstract class MetaParser<
       Parser extends MetaParser<T,TK,E,Tokenizer,Parser,Err>,
       Err extends ErrFactory<T,TK,E,Tokenizer,Parser,Err>,
       R> { R parse(Parser p); }
-  //public interface RuleArg<A,P extends MetaParser<P,T,TK>, T extends Token<T,TK>, TK extends TokenKind, R> { R parse(A a, P p); }
   
   public <R> List<R> splitBy(String frameName, NextCut<T,TK,E,Tokenizer,Parser,Err> probe, Rule<T,TK,E,Tokenizer,Parser,Err,R> elem){
     var parts= _splitBy(frameName, probe);
@@ -205,21 +205,14 @@ public abstract class MetaParser<
   }
   private final List<Parser> _splitBy(String frameName, NextCut<T,TK,E,Tokenizer,Parser,Err> probe){
     var slice= ts.subList(index, limit);
-    var s= spanAround(index,limit-1);
+    var s= spanAround(index,Math.max(index,limit-1));
     Parser splitterParser= make(s,slice);
     var parts= new ArrayList<Parser>();
     while (!splitterParser.end()){
       int start= splitterParser.index();
       int drop= probe.cutAt(splitterParser);
       int end= splitterParser.index();
-      if (drop < 0 || start > end - drop){
-        var at= splitterParser.spanAround(start, Math.max(start, start));
-        throw errFactory().badProbeDropIn(frameName, at, start, end, drop,self()); 
-        }
-      if (start >= end){
-        var at = splitterParser.spanAround(start, Math.max(start, start));
-        throw errFactory().probeStalledIn(frameName, at, start, end,self());
-      }      
+      checkProbeError(false,start, end, drop, splitterParser, frameName);
       var tsi= List.copyOf(slice.subList(start, end-drop));
       var si= splitterParser.spanAround(start,(end-1)-drop);
       parts.add(make(si,tsi));
@@ -237,17 +230,30 @@ public abstract class MetaParser<
 
   ///Suitable to divide two non empty lists of tokens, especially if
   ///the division can not be easily located by looking at a few tokens forward.
-  ///Parses a non empty list of tokens from the start of this parser.
-  ///Must be a proper division.
-  ///The probe accepting all the token signals no prefix. 
-  public final <R> Optional<R> parseUpTo(String frameName, NextCut<T,TK,E,Tokenizer,Parser,Err> probe, Rule<T,TK,E,Tokenizer,Parser,Err,R> first){
+  ///Parses a (possibly empty) list of tokens from the start of this parser.
+  ///If the probe eats all the tokens, all the tokens are parsed.
+  ///The probe accepting all the token signals no prefix.
+  ///The probe returns the number of tokens to drop. This number must be between 0 and the number of consumed tokens.  
+  public final <R> R parseUpToOrAll(String frameName, NextCut<T,TK,E,Tokenizer,Parser,Err> probe, Rule<T,TK,E,Tokenizer,Parser,Err,R> first){
+    var res= parseUpTo(frameName, true, probe, first);
+    if (res.isPresent()){ return res.get(); }
+    return parseAll(frameName,first);
+  }  
+  ///Suitable to divide two non empty lists of tokens, especially if
+  ///the division can not be easily located by looking at a few tokens forward.
+  ///Parses a (non empty) list of tokens from the start of this parser.
+  ///(set parameter emptyAllowed=true to allow a non progressing probe)
+  ///Must be a proper division, that is, if the probe eats all the tokens we get an Optional.empty() result.
+  ///The probe accepting all the token signals no prefix.
+  ///The probe returns the number of tokens to drop. This number must be between 0 and the number of consumed tokens.  
+  public final <R> Optional<R> parseUpTo(String frameName, boolean emptyAllowed, NextCut<T,TK,E,Tokenizer,Parser,Err> probe, Rule<T,TK,E,Tokenizer,Parser,Err,R> first){
     var slice= ts.subList(index, limit);
     var s= spanAround(index, limit-1);
     Parser splitterParser= make(s,slice);
+    int start= splitterParser.index();
     int drop= probe.cutAt(splitterParser);
-    if (drop < 0){ throw new IllegalStateException("NextCut.cutAt retuned negative " + drop); }
     int end= splitterParser.index();
-    if (end == 0){ throw new IllegalStateException("split probe did not advance (start="+0+", end="+end+")"); }
+    checkProbeError(emptyAllowed,start, end, drop, splitterParser, frameName);
     if(splitterParser.end()){ return Optional.empty(); }//split not found
     var firstS= splitterParser.spanAround(0,(end-1)-drop);
     Parser firstParser= make(firstS,List.copyOf(slice.subList(0, end-drop)));
@@ -266,15 +272,27 @@ public abstract class MetaParser<
     Parser shadow= make(s, slice);
     check.accept(shadow);
   }
+  private void checkProbeError(boolean emptyAllowed, int start, int end, int drop, Parser splitterParser, String frameName){
+    if (drop < 0 || start > end - drop){
+      var at= splitterParser.spanAround(start, start);
+      throw errFactory().badProbeDropIn(frameName, at, start, end, drop,self()); 
+      }
+    if (!emptyAllowed && start >= end){
+      var at = splitterParser.spanAround(start, start);
+      throw errFactory().probeStalledIn(frameName, at, start, end,self());
+    }
+  }
   public enum SplitMode{Skipped,Left,Right}
-  public int splitOn(SplitMode split, TK k){
+  public int splitOn(SplitMode split, TK k){ return splitOn(split,t->t.is(k)); }
+  public int splitOn(SplitMode split, Predicate<T> p){
+    fwdIf(index() != 0 && !end() && split == SplitMode.Right);
     while(!end()){
       var t= expectAny("");
-      if (!t.is(k)){ continue; }
+      if (!p.test(t)){ continue; }
       return switch(split){
-      case Skipped-> 1;
-      case Left-> 0;
-      case Right-> back(0);
+        case Skipped-> 1;
+        case Left-> 0;
+        case Right-> back(0);
       };
     }
     return 0;

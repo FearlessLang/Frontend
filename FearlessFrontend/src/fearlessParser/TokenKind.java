@@ -80,6 +80,7 @@ public enum TokenKind implements metaParser.TokenKind {
   _use("use"),
   _map("map"),
   _as("as"),
+  _in("in"),
   _EOF(""),
   _SOF(""),
   _All(""),
@@ -106,6 +107,10 @@ public enum TokenKind implements metaParser.TokenKind {
   @Override public int priority(){ return this.ordinal(); }
   
   public static boolean validate(String input, String what, TokenKind... kinds){
+    if (validate(input,kinds)){ return true; }
+    throw new IllegalArgumentException("["+input+"] is not a valid "+what);
+  }
+  public static boolean validate(String input, TokenKind... kinds){
     Objects.requireNonNull(input);
     Objects.requireNonNull(kinds);
     for (TokenKind k: kinds){
@@ -113,6 +118,6 @@ public enum TokenKind implements metaParser.TokenKind {
       var all= m.isPresent() && m.get().length() == input.length();
       if (all){ return true; }
     }
-    throw new IllegalArgumentException("["+input+"] is not a valid "+what);
+    return false;
   }
 }

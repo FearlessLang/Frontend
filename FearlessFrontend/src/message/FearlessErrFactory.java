@@ -66,6 +66,33 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       Use one of read, mut, imm, iso.      
       """).addSpan(at);
   }
+  public FearlessException disallowedPackageNotEmpty(Span at){
+    return Code.UnexpectedToken.of(
+      "The package declaration must be at the very beginning of the file.\n"
+    ).addSpan(at);
+  }
+  public FearlessException disallowedRoleNotEmpty(Span at){
+    return Code.UnexpectedToken.of(
+      "There can be a single role declaration in the file header.\n"
+    ).addSpan(at);
+  }
+  public FearlessException duplicatedMap(Span at, String what){
+    return Code.UnexpectedToken.of(
+      "There is already an entry in the mapping for "+what+".\n"
+    ).addSpan(at);
+  }
+  public FearlessException duplicatedUseSource(Span at, String what){
+    return Code.UnexpectedToken.of(
+        "There is already an entry in the using with source "+what+".\n"
+    ).addSpan(at);
+  }
+  public FearlessException duplicatedUseDest(Span at, String what){
+    return Code.UnexpectedToken.of(
+        "There is already an entry in the using with destination "+what+".\n"
+    ).addSpan(at);
+  }
+
+
   public FearlessException nameNotInScope(Token name, Span at, Collection<String> inScope){
     return Code.UnexpectedToken.of(() -> {
       var maybe= NameSuggester.suggest(name.content(), inScope);
