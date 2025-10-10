@@ -38,7 +38,7 @@ public abstract class MetaParser<
       if (!frameName.isEmpty() && t instanceof HasFrames f){ f.addFrame(new Frame(frameName,span())); }
       throw t;
     }
-    if(index != limit){ throw errFactory().extraContent(remainingSpan(),self()); }
+    if(index != limit){ throw errFactory().extraContent(remainingSpan(), "", List.of(),self()); }
     return res;
   }
   public boolean end(){ return limit == index; }
@@ -92,6 +92,11 @@ public abstract class MetaParser<
     if (!allowed){ throw errFactory().missingButFound(span(),what,t,List.of(kinds),self()); }
     limit--;
     return t;
+  }
+  @SafeVarargs
+  public final void expectEnd(String what,TK... kinds){
+    if (end()){ return; }
+    throw errFactory().extraContent(remainingSpan(),what,List.of(kinds),self());
   }
   public boolean peekIf(Predicate<T> p){
     return peek().map(p::test).orElse(false);

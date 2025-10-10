@@ -30,9 +30,12 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
 
-  @Override public FearlessException extraContent(Span from, Parser parser){
-    assert nonNull(from);
-    String msg= "Extra content in the current group";
+  @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
+    assert nonNull(from,parser,expectedTerminatorTokens);
+    String msg= "Extra content in the current group.\n";
+    if (!expectedTerminatorTokens.isEmpty()){
+      msg += expected("Instead, expected "+what+": ",expectedTerminatorTokens);
+    }
     return Code.ExtraTokenInGroup.of(msg).addSpan(from);
   }
   @Override public FearlessException probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx, Parser parser){

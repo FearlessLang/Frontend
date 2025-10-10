@@ -64,7 +64,7 @@ public interface ErrFactory<
   E missingButFound(Span at, String what, T found, Collection<TK> expectedTokens, Parser parser);
 
   ///Extra tokens remain within the current parsed group.
-  E extraContent(Span from, Parser parser);
+  E extraContent(Span from, String what, Collection<TK> expectedTerminatorTokens, Parser parser);
 
   //TODO: are those two methods actually triggered? comment them to check
   ///A probing parse strategy stalled while scanning a group.

@@ -225,8 +225,13 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   void checkValidNew_Xs(List<String> Xs){
     var x= repeated(Xs);
     if (!x.isEmpty()){ throw errFactory().duplicateGenericInMethodSignature(span(), x); }
-  }  
-  M parseMethod(){//assumes to be called on only the tokens of this specific method
+  }
+  M parseMethod(){
+    var res= parseMethodAux();
+    expectEnd("semicolon or closed curly", SemiColon,CCurly);
+    return res;
+  }
+  M parseMethodAux(){//assumes to be called on only the tokens of this specific method
     Optional<Sig> sig= parseUpTo("method signature",false,arrowSkip,Parser::parseSig);
     if(sig.isPresent()){
       var xs= sig.get().parameters().stream().flatMap(p->xsOf(p.xp())).toList();
@@ -349,22 +354,20 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     catch(FearlessException fe){ throw fe.addSpan(spanAround(index(),index()));}
     throw Bug.unreachable();
   }
-  Void parsePackage(HeadAcc acc){
+  void parsePackage(HeadAcc acc){
     var empty= acc.pkg.isEmpty() && acc.role.isEmpty() && acc.map.isEmpty() && acc.use.isEmpty();
     if(!empty){ throw errFactory().disallowedPackageNotEmpty(spanLast()); }
     var pkgName= expectValidate("package name",LowercaseId,_pkgName);
     acc.pkg.add(pkgName.content());
-    errNoSemi(); return null;
   }
-  Void parseRole(HeadAcc acc){
+  void parseRole(HeadAcc acc){
     if(!acc.role.isEmpty()){ throw errFactory().disallowedRoleNotEmpty(spanLast()); }
     var roleName= expectValidate("\"role\" keyword",LowercaseId,_roleName).content();
     int num= Integer.parseInt(roleName.substring(roleName.length()-3));
     roleName= roleName.substring(0,roleName.length()-3);
     acc.role.add(new FileFull.Role(FileFull.RoleName.valueOf(roleName),num));
-    errNoSemi(); return null;
   }
-  Void parseMap(HeadAcc acc){
+  void parseMap(HeadAcc acc){
     var in= expectValidate("package name",LowercaseId,_pkgName).content();
     expectValidate("\"as\" keyword",LowercaseId,_as);
     var out= expectValidate("package name",LowercaseId,_pkgName).content();
@@ -373,9 +376,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var dup= acc.map.stream().anyMatch(m->m.in().equals(in) && m.out().equals(out));
     if(dup){ throw errFactory().duplicatedMap(spanLast(), "("+target+","+in+")"); }
     acc.map.add(new FileFull.Map(in,out,target));
-    errNoSemi(); return null;
   }
-  Void parseUse(HeadAcc acc){
+  void parseUse(HeadAcc acc){
     var t1= parseTName();
     expectValidate("\"as\" keyword",LowercaseId,_as);
     var t2= parseTName();
@@ -384,20 +386,16 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if(dupS){ throw errFactory().duplicatedUseSource(spanLast(), t1.s()); }
     if(dupD){ throw errFactory().duplicatedUseDest(spanLast(), t2.s()); }
     acc.use.add(new FileFull.Use(t1,t2));
-    errNoSemi(); return null;
   }
   record HeadAcc(ArrayList<String>pkg, ArrayList<FileFull.Role>role,ArrayList<FileFull.Map>map,ArrayList<FileFull.Use>use){
     HeadAcc(){this(new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new ArrayList<>());}
   }
-  void errNoSemi(){
-    if(end()){ return; }
-    expect("semicolon",SemiColon);
-  }
+  Void endHE(){ expectEnd("semicolon", SemiColon); return null;}
   Void parseHeaderElement(HeadAcc acc){
-    if(fwdIf(peekValidate(LowercaseId,_package))){ return parsePackage(acc); };
-    if(fwdIf(peekValidate(LowercaseId,_role))){ return parseRole(acc); };
-    if(fwdIf(peekValidate(LowercaseId,_map))){ return parseMap(acc); };
-    if(fwdIf(peekValidate(LowercaseId,_use))){ return parseUse(acc); };
+    if(fwdIf(peekValidate(LowercaseId,_package))){ parsePackage(acc); return endHE(); }
+    if(fwdIf(peekValidate(LowercaseId,_role))){ parseRole(acc); return endHE(); }
+    if(fwdIf(peekValidate(LowercaseId,_map))){ parseMap(acc); return endHE(); }
+    if(fwdIf(peekValidate(LowercaseId,_use))){ parseUse(acc); return endHE(); }
     if(acc.pkg.isEmpty()){ expectValidate("\"package\" keyword",LowercaseId,_package); }
     expect("header keyword \"role\", \"map\" or \"use\"",_role,_map,_use);
     throw Bug.unreachable();

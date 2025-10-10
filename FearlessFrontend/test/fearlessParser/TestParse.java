@@ -2833,10 +2833,9 @@ In file: [###]/in_memory0.fear
 002| A:{}
 
 While inspecting header element > file header > full file
-Missing semicolon.
-Found instead: "beer".
-Expected ";".
-Error 2  UnexpectedToken
+Extra content in the current group.
+Instead, expected semicolon: ";".
+Error 4  ExtraTokenInGroup
 ""","""
 package foo_bar beer baz;
 A:{} 
@@ -2883,10 +2882,9 @@ In file: [###]/in_memory0.fear
    | ^^^^^^^^^^^^^^^^^
 
 While inspecting header element > file header > full file
-Missing semicolon.
-Found instead: "role".
-Expected ";".
-Error 2  UnexpectedToken
+Extra content in the current group.
+Instead, expected semicolon: ";".
+Error 4  ExtraTokenInGroup
 ""","""
 package foo_bar
 role framework042;
@@ -2905,10 +2903,9 @@ In file: [###]/in_memory0.fear
    | ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting header element > file header > full file
-Missing semicolon.
-Found instead: "map".
-Expected ";".
-Error 2  UnexpectedToken
+Extra content in the current group.
+Instead, expected semicolon: ";".
+Error 4  ExtraTokenInGroup
 ""","""
 package foo_bar;
 role framework042
@@ -2918,6 +2915,20 @@ use foo.Bar as Baz;
 use base.SStr as Str;
 A: base.Main{ }
 """);}
+
+@Test void noSemi3(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A: base.Main{ .foo->A .beer->B}
+   | --------------~~~~~~~~~~~~~^^~-
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing ";", operator or method name here or before
+Error 6  MissingSeparator
+""","""
+A: base.Main{ .foo->A .beer->B}
+""");}
+
 
 @Test void pkgFullBadMap(){fail("""
 In file: [###]/in_memory0.fear
