@@ -2,7 +2,6 @@ package fearlessParser;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import fearlessFullGrammar.FileFull;
@@ -28,48 +27,48 @@ class TestParse {
   }  
 @Test void mini(){ok("""
 FileFull[[###] decs=[
-  Declaration[name=TName[s=A, arity=0], bs=Optional.empty, cs=[], l=Literal[]]]]
+  Declaration[name=A/0, bs=Optional.empty, cs=[], l=Literal[]]]]
 ""","""
 A:{}
 """);}
 @Test void decl_generics_plain(){ok("""
 FileFull[[###] decs=[
-Declaration[name=TName[s=Pair, arity=2], bs=Optional[[B[x=X[name=X], bt=RCS[rcs=[]]], B[x=X[name=Y], bt=RCS[rcs=[]]]]], cs=[], l=Literal[]]]]
+Declaration[name=Pair/2, bs=Optional[[B[x=X[name=X], bt=RCS[rcs=[]]], B[x=X[name=Y], bt=RCS[rcs=[]]]]], cs=[], l=Literal[]]]]
 ""","""
 Pair[X,Y]:{}
 """);}
 @Test void decl_generics_with_rcs(){ok("""
 FileFull[[###] decs=[
-Declaration[name=TName[s=Box, arity=1], bs=Optional[[B[x=X[name=X], bt=RCS[rcs=[imm]]]]], cs=[], l=Literal[]]]]
+Declaration[name=Box/1, bs=Optional[[B[x=X[name=X], bt=RCS[rcs=[imm]]]]], cs=[], l=Literal[]]]]
 ""","""
 Box[X:imm]:{}
 """);}
 @Test void decl_generics_star1(){ok("""
 FileFull[[###] decs=[
-Declaration[name=TName[s=Vec, arity=1], bs=Optional[[B[x=X[name=X], bt=Star[]]]], cs=[], l=Literal[]]]]
+Declaration[name=Vec/1, bs=Optional[[B[x=X[name=X], bt=Star[]]]], cs=[], l=Literal[]]]]
 ""","""
 Vec[X: *]:{}
 """);}
 @Test void decl_generics_star2(){ok("""
 FileFull[[###] decs=[
-Declaration[name=TName[s=Vec, arity=1], bs=Optional[[B[x=X[name=X], bt=Star[]]]], cs=[], l=Literal[]]]]
+Declaration[name=Vec/1, bs=Optional[[B[x=X[name=X], bt=Star[]]]], cs=[], l=Literal[]]]]
 ""","""
 Vec[X:*]:{}
 """);}
 @Test void decl_generics_starstar1(){ok("""
 FileFull[[###] decs=[
-Declaration[name=TName[s=Graph, arity=1], bs=Optional[[B[x=X[name=X], bt=StarStar[]]]], cs=[], l=Literal[]]]]
+Declaration[name=Graph/1, bs=Optional[[B[x=X[name=X], bt=StarStar[]]]], cs=[], l=Literal[]]]]
 ""","""
 Graph[X: **]:{}
 """);}
 @Test void decl_generics_starstar2(){ok("""
 FileFull[[###] decs=[
-Declaration[name=TName[s=Graph, arity=1], bs=Optional[[B[x=X[name=X], bt=StarStar[]]]], cs=[], l=Literal[]]]]
+Declaration[name=Graph/1, bs=Optional[[B[x=X[name=X], bt=StarStar[]]]], cs=[], l=Literal[]]]]
 ""","""
 Graph[X:**]:{}
 """);}
 @Test void decl_generics_use(){ok("""
-FileFull[[###]decs=[Declaration[name=TName[s=Pair,arity=2],
+FileFull[[###]decs=[Declaration[name=Pair/2,
 bs=Optional[[B[x=X[name=X],bt=RCS[rcs=[]]],B[x=X[name=Y],bt=RCS[rcs=[]]]]],cs=[],
 l=Literal[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[
 MName[s=.x,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[X[name=X]]]],
@@ -154,8 +153,8 @@ Error 2  UnexpectedToken""","""
 A[X]:{.foo:AA->B[X]:{.bar:BB->BB}; }
 """);}
 @Test void use_this(){ok("""
-FileFull[[###]decs=[Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.foo,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=A,arity=0],ts=Optional.empty]]]]],
+FileFull[[###]decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.foo,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
 body=Optional[this]]]]]]
 ""","""
 A:{.foo:A->this; }
@@ -190,9 +189,9 @@ A:{ `abc .foo:A->A + A; } //ill formed: the first layer has to be `this or nothi
 """);}
 
 @Test void use_self_inner(){ok("""
-FileFull[[###]decs=[Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.foo,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=A,arity=0],ts=Optional.empty]]]]],
-body=Optional[DeclarationLiteralDeclaration[name=TName[s=B,arity=0],bs=Optional.empty,cs=[],
+FileFull[[###]decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.foo,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
+body=Optional[DeclarationLiteralDeclaration[name=B/0,bs=Optional.empty,cs=[],
 l=Literalx[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.foo,arity=2]],bs=Optional.empty,hasParenthesis=false,parameters=[Parameter[xp=Optional[Name[x=y]],t=Optional.empty],Parameter[xp=Optional[Name[x=a]],t=Optional.empty]],t=Optional.empty]],body=Optional[Call[Call[this]MName[s=+,arity=1]false[x]]MName[s=+,arity=1]false[a]]]]]]]]]]]
 ""","""
 A:{ .foo:A->B:{`x .foo y,a -> this + x + a; } }
@@ -200,70 +199,70 @@ A:{ .foo:A->B:{`x .foo y,a -> this + x + a; } }
 
 @Test void method_with_parens_and_ret(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=Id, arity=0], bs=Optional.empty, cs=[], l=Literal[
+Declaration[name=Id/0, bs=Optional.empty, cs=[], l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty, m=Optional[MName[s=.id, arity=1]], bs=Optional.empty, hasParenthesis=true, 
-parameters=[Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
+parameters=[Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 body=Optional[x]]]]]]
 ""","""
 Id:{ .id(x:X):X -> x }
 """);}
 @Test void method_without_parens_sig_form(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=NoPar,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=NoPar/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.one,arity=1]],bs=Optional.empty,hasParenthesis=false,parameters=[
-Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
+Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 t=Optional.empty]],body=Optional[x]]]]]]
 ""","""
 NoPar:{ .one x:X -> x }
 """);}
 @Test void abstract_method_only_sig(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=Abs,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=Abs/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.abs,arity=1]],bs=Optional.empty,hasParenthesis=true,parameters=[
-Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
-t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
+Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
+t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 body=Optional.empty]]]]]
 ""","""
 Abs:{ .abs(x:X):X }
 """);}
 @Test void call_inside_body_simple_dotname(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=Sum,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=Sum/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[
 Sig[rc=Optional.empty,m=Optional[MName[s=.sum,arity=2]],bs=Optional.empty,hasParenthesis=true,parameters=[
-Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]],
-Parameter[xp=Optional[Name[x=y]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
-t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
+Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]],
+Parameter[xp=Optional[Name[x=y]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
+t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 body=Optional[Call[x]MName[s=.plus,arity=1]true[y]]]]]]]
 ""","""
 Sum:{ .sum(x:X,y:X):X -> x.plus(y) }
 """);}
 @Test void round_group_in_body(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=Par,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=Par/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.paren,arity=1]],bs=Optional.empty,hasParenthesis=true,parameters=[
-Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
-t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]],
+Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
+t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 body=Optional[(x)]]]]]]
 ""","""
 Par:{ .paren(x:X):X -> (x) }
 """);}
 @Test void typed_literal_in_body_unsigned(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=Lit,arity=0],bs=Optional.empty,cs=[],l=Literal[M[
+Declaration[name=Lit/0,bs=Optional.empty,cs=[],l=Literal[M[
 sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.lit,arity=0]],bs=Optional.empty,hasParenthesis=true,parameters=[],
-t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=+45,arity=0],ts=Optional.empty]]]]],
-body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=+45,arity=0],ts=Optional.empty]]
+t=Optional[RCC[rc=Optional.empty,c=C[name=+45/0,ts=Optional.empty]]]]],
+body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=+45/0,ts=Optional.empty]]
 Literal[]]]]]]]
 ""","""
 Lit:{ .lit(): +45 -> +45{} }//:+45 would (correctly) trigger BadOpDigit :+
 """);}
 @Test void typed_literal_in_body_with_rc(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=Lit2,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=Lit2/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.lit2,arity=0]],bs=Optional.empty,hasParenthesis=true,parameters=[],
-t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=+45,arity=0],ts=Optional.empty]]]]],
-body=Optional[TypedLiteralRCC[rc=Optional[read],c=C[name=TName[s=+45,arity=0],ts=Optional.empty]]
+t=Optional[RCC[rc=Optional.empty,c=C[name=+45/0,ts=Optional.empty]]]]],
+body=Optional[TypedLiteralRCC[rc=Optional[read],c=C[name=+45/0,ts=Optional.empty]]
 Literal[]]]]]]]
 ""","""
 Lit2:{ .lit2(): +45 -> read +45{} }
@@ -284,8 +283,8 @@ B:{Selfy:{`self .me:Selfy -> self}}
 """);}
 @Test void stringInterpol_s(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.a,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=Str,arity=0],ts=Optional.empty]]]]],
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.a,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],
 body=Optional[Inter[true][0,0][abc\\ndef\\n][]]]]]]]
 ""","""
 A:{.a:Str -> 
@@ -295,11 +294,11 @@ A:{.a:Str ->
 """);}
 @Test void stringInterpol_s_e(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.a,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=Str,arity=0],ts=Optional.empty]]]]],
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.a,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],
 body=Optional[Inter[true][1,0][ab,c\\ndef\\n]
-[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=B,arity=0],ts=Optional.empty]]]
-MName[s=.foo,arity=1]true[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=C,arity=0],ts=Optional.empty]]]]]]]]]]
+[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=B/0,ts=Optional.empty]]]
+MName[s=.foo,arity=1]true[TypedLiteralRCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]]]]]]]
 ""","""
 A:{.a:Str ->
   #|'ab{B.foo(C)}c
@@ -308,7 +307,7 @@ A:{.a:Str ->
 """);}
 @Test void calls_1(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
@@ -319,7 +318,7 @@ A:{x,y ->x#y;}
 """);}
 @Test void calls_2(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
@@ -330,7 +329,7 @@ A:{x,y, ->x#(y);}
 """);}
 @Test void calls_3(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
@@ -341,7 +340,7 @@ A:{x,y ->x++y}
 """);}
 @Test void calls_4(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
@@ -353,7 +352,7 @@ A:{x,y ->x .foo y}
 
 @Test void calls_5(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
@@ -365,21 +364,21 @@ A:{x,y ->::.foo y}
 
 @Test void eq_1(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional.empty,body=Optional[
 Call[Call[Call[
-TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=Block,arity=0],ts=Optional.empty]]]
+TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
 MName[s=#,arity=0]false[]]
-MName[s=.let,arity=2]falseName[x=x][Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=5,arity=0],ts=Optional.empty]]]]]]]
+MName[s=.let,arity=2]falseName[x=x][Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]
 MName[s=.return,arity=1]false[Literal[M[sig=Optional.empty,body=Optional[
-Call[x]MName[s=*,arity=1]false[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=2,arity=0],ts=Optional.empty]]]]]]]]]]]]]
+Call[x]MName[s=*,arity=1]false[TypedLiteralRCC[rc=Optional.empty,c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]
 ""","""
 A:{Block#.let x= {5} .return {x*2} }
 """);}
 
 @Test void calls_square_rc_only(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],
 t=Optional.empty]],t=Optional.empty]],
@@ -390,7 +389,7 @@ A:{ x -> x.foo[read] }
 """);}
 @Test void calls_square_rc_only_comma_ok(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],
 t=Optional.empty]],t=Optional.empty]],
@@ -401,31 +400,31 @@ A:{ x -> x.foo[read,] }
 """);}
 @Test void calls_square_rc_T(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty]],
 t=Optional.empty]],
 body=Optional[Call[x]MName[s=.foo,arity=0]
-CallSquare[rc=Optional[read],ts=[RCC[rc=Optional.empty,c=C[name=TName[s=X,arity=0],ts=Optional.empty]]]]false[]]]]]]]
+CallSquare[rc=Optional[read],ts=[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]false[]]]]]]]
 ""","""
 A:{ x -> x.foo[read,X] }
 """);}
 @Test void mini_inner_Declaration(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[
 MName[s=.m,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],
-body=Optional[DeclarationLiteralDeclaration[name=TName[s=B,arity=0],bs=Optional.empty,cs=[],l=Literal[]]]]]]]]
+body=Optional[DeclarationLiteralDeclaration[name=B/0,bs=Optional.empty,cs=[],l=Literal[]]]]]]]]
 ""","""
 A:{ .m -> B:{} }
 """);}
 
 @Test void destructEq(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.m,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],
 body=Optional[Call[Call[Call[
-TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=Block,arity=0],ts=Optional.empty]]]
+TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
 MName[s=#,arity=0]false[]]
 MName[s=.let,arity=2]false
 Destruct[extract=[[MName[s=.name,arity=0],MName[s=.size,arity=0]],[MName[s=.age,arity=0]]],
@@ -436,15 +435,15 @@ A:{ .m -> Block#.let {.name.size,.age}Bob = {} .use(sizeBob,ageBob) }
 """);}
 @Test void eRound1(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.m,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],body=Optional[
 Call[(Call[Call[
-TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=Block,arity=0],ts=Optional.empty]]]
+TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
 MName[s=#,arity=0]false[]]
 MName[s=.let,arity=2]falseName[x=x]
-[Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=5,arity=0],ts=Optional.empty]]]]]])]
+[Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]])]
 MName[s=.use,arity=1]true
-[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=5,arity=0],ts=Optional.empty]]]]]]]]]
+[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]]]
 ""","""
 A:{ .m -> (Block#.let x={5}) .use(5) }
 """);}
@@ -631,14 +630,14 @@ A:{
 
 @Test void ok_comma_single_arg(){ok("""
 FileFull[[###]decs=[
-Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[
+Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.m,arity=1]],bs=Optional.empty,hasParenthesis=true,parameters=[
-Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=C,arity=0],ts=Optional.empty]]]]],
-t=Optional[RCC[rc=Optional.empty,c=C[name=TName[s=C,arity=0],ts=Optional.empty]]]]],
-body=Optional[Call[Call[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=Block,arity=0],ts=Optional.empty]]]
+Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]],
+t=Optional[RCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]],
+body=Optional[Call[Call[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
 MName[s=#,arity=0]false[]]
 MName[s=.let,arity=2]falseName[x=z][Literal[
-M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=5,arity=0],ts=Optional.empty]]]]]]]
+M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]
 MName[s=.use,arity=1]true[z]]
 MName[s=.use,arity=1]true[z]]]]]]]
 ""","""
@@ -1138,8 +1137,8 @@ A:{
 [###]
 body=Optional[Inter[true][2]
 [Head,Tail\\n]
-[Call[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=Block,arity=0],ts=Optional.empty]]]
-MName[s=#,arity=0]false[]]MName[s=.let,arity=2]falseName[x=x][Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=5,arity=0],ts=Optional.empty]]]]]]]
+[Call[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
+MName[s=#,arity=0]false[]]MName[s=.let,arity=2]falseName[x=x][Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]
 MName[s=.use,arity=1]true[x]]]]]]]]
 ""","""
 A:{
@@ -1185,7 +1184,7 @@ A:{
 @Test void inter_hash_h1_ok_simple_expr1(){ ok("""
 [###]
 body=Optional[Inter[true][1][pre,post\\n]
-[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=B,arity=0],
+[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=B/0,
 [###]
 ""","""
 A:{
@@ -1197,7 +1196,7 @@ A:{
 @Test void inter_hash_h1_ok_simple_expr2(){ ok("""
 [###]
 body=Optional[Inter[true][1][$pre$,$post$,$dada$\\n]
-[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=B,arity=0],
+[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=B/0,
 [###]
 ""","""
 A:{
@@ -1218,9 +1217,9 @@ A:{
 @Test void inter_hash_outer_curly_leftovers_literal_ok(){ ok("""
 [###]
 body=Optional[Inter[true][1][a{{,}}b\\n][
-Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=B,arity=0],
+Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=B/0,
 ts=Optional.empty]]]
-MName[s=.foo,arity=1]true[TypedLiteralRCC[rc=Optional.empty,c=C[name=TName[s=C,arity=0],ts=Optional.empty]]]]]]]]]]
+MName[s=.foo,arity=1]true[TypedLiteralRCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]]]]]]]
 ""","""
 A:{
 .m:Str ->
@@ -2858,7 +2857,7 @@ FileFull[name=foo_bar,role=Optional[roleframework42],
 maps=[Map[in=goo,out=boo,target=foo_bar],
 Map[in=gor,out=goo,target=foo]],
 uses=[],
-decs=[Declaration[name=TName[s=A,arity=0],bs=Optional.empty,cs=[],l=Literal[]]]]
+decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[]]]]
 ""","""
 package foo_bar;
 role framework042;
@@ -2869,7 +2868,7 @@ A:{}
 
 @Test void tNameWithDot(){ok("""
 [###]
-C[name=TName[s=foo.Bar,arity=0],ts=Optional.empty]]]]],body=Optional.empty]]]]] 
+C[name=foo.Bar/0,ts=Optional.empty]]]]],body=Optional.empty]]]]] 
 ""","""
 A:{ .m: foo.Bar }
 """);}
@@ -3296,9 +3295,9 @@ In file: [###]/in_memory0.fear
    | ---------^^^----------------------------------------------
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-String interpolation has malformed unicode.
+UStr has malformed unicode.
 Surrogate half not allowed; write the scalar code point instead.
-Error 9  InterpolationBadUnicode
+Error 9  BadUnicode
 ""","""
 A:{ .m:Str ->
 #|"bad: {\\uD83D} // lone surrogate, invalid in unicode run
@@ -3312,9 +3311,9 @@ In file: [###]/in_memory0.fear
    | ---------^^^^^^^^^---------------------------
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-String interpolation has malformed unicode.
-Invalid hex digit in \\u. Use 0-9a-fA-F only.
-Error 9  InterpolationBadUnicode
+UStr has malformed unicode.
+At most 6 hex digits allowed for \\u.
+Error 9  BadUnicode
 ""","""
 A:{ .m:Str ->
 #|"bad: {\\u10FFFFF}" // 7 hex digits, invalid
@@ -3328,9 +3327,9 @@ In file: [###]/in_memory0.fear
    | ---------^^^-----------------------------
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-String interpolation has malformed unicode.
+UStr has malformed unicode.
 Missing 1..6 hex digits after \\u.
-Error 9  InterpolationBadUnicode
+Error 9  BadUnicode
 ""","""
 A:{ .m:Str ->
 #|"bad: {\\u}" // requires 1..6 hex digits
@@ -3344,9 +3343,10 @@ In file: ~/OneDrive/Desktop/Java2025_24/ws/FearlessFrontendTest/___DBG___/in_mem
    | --------------^---------------------------------------
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-String interpolation has malformed unicode.
+UStr has malformed unicode.
 Unicode run must start with \\u.
-Error 9  InterpolationBadUnicode
+Found [SPACE ( ) 0x20].
+Error 9  BadUnicode
 ""","""
 A:{ .m:Str ->
 #|"bad: {\\u61 \\u301}" // spaces not allowed in payload
@@ -3360,9 +3360,9 @@ In file: [###]/in_memory0.fear
    | ---------^^^^^^^^^------------------------------------------
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-String interpolation has malformed unicode.
+UStr has malformed unicode.
 Code point > 0x10FFFF is invalid.
-Error 9  InterpolationBadUnicode
+Error 9  BadUnicode
 ""","""
 A:{ .m:Str ->
 #|"bad: {\\u1F6801}" // glued extra hex; should be two tokens
@@ -3399,4 +3399,180 @@ A:{ .m:Str ->
 #|"bad: {U\\uE9}" // payload must start with backslash-u
 }"""); }
 
+@Test void uStrBase1(){ ok("""
+[###]
+c=C[name="aaa"/0:"aaa"
+[###]
+""","""
+A:{ .m:Str -> "aaa"}
+"""); }
+
+@Test void uStrBase2(){ ok("""
+[###]
+c=C[name="aa\\na"/0:"aa\\na"
+[###]
+""","""
+A:{ .m:Str -> "aa\\na"}
+"""); }
+//Arguably, Message.displayStr makes this not that obvious
+@Test void uStrBase3(){ ok("""
+[###]
+c=C[name="aa\\ta"/0:"aa\\ta"
+[###]
+""","""
+A:{ .m:Str -> "aa\\ta"}
+"""); }
+@Test void uStrBase4(){ ok("""
+[###]
+c=C[name="aa{\\u0032}bb"/0:"aa2bb"
+[###]
+""","""
+A:{ .m:Str -> "aa{\\u0032}bb"}//digit 2
+"""); }
+@Test void uStrBase5(){ ok("""
+[###]
+c=C[name="aa{\\u0032\\u0033}{\\u0034}bb"/0:"aa234bb"
+[###]
+""","""
+A:{ .m:Str -> "aa{\\u0032\\u0033}{\\u0034}bb"}//digits 234
+"""); }
+@Test void uStrBase6(){ ok("""
+[###]
+c=C[name="{\\u0032\\u0033}{\\u0034}"/0:"234"
+[###]
+""","""
+A:{ .m:Str -> "{\\u0032\\u0033}{\\u0034}"}//digits 234
+"""); }
+@Test void uStr_err_bare_u_outside(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> "bad: \\u00E9" } // \\u outside {}
+   | ----~~~~~~~~~~~~~~~~~~~~~^^-------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+UStr has malformed unicode.
+\\u must be used in a "{..}" group. (eg. {\\u34\\u35}).
+Error 9  BadUnicode
+""","""
+A:{ .m:Str -> "bad: \\u00E9" } // \\u outside {}
+"""); }
+
+@Test void uStr_err_unknown_escape_x(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> "oops: \\x" } // unknown escape \\x
+   |               ^
+
+While inspecting the file
+Unrecognized text.
+Error 2  UnexpectedToken
+""","""
+A:{ .m:Str -> "oops: \\x" } // unknown escape \\x
+"""); }
+
+@Test void uStr_err_unclosed_block(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> "bad: {\\uE9" } // missing closing }
+   | --~~~~~~~~~~~~~~~~~~~~~~~^~~---------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+UStr has malformed unicode.
+Unclosed '{' for unicode payload.
+Error 9  BadUnicode
+""","""
+A:{ .m:Str -> "bad: {\\uE9" } // missing closing }
+"""); }
+
+@Test void uStr_err_empty_block(){ ok("""
+[###]C[name="bad:{}"/0:"bad:{}",[###]
+""","""
+A:{ .m:Str -> "bad: {}" } // just curly
+"""); }
+
+@Test void uStr_err_not_starting_with_u(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> "bad: {x\\uE9}" } // payload must start with \\u
+   | ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~------------------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+UStr has malformed unicode.
+\\u must be used in a "{..}" group. (eg. {\\u34\\u35}).
+Error 9  BadUnicode
+""","""
+A:{ .m:Str -> "bad: {x\\uE9}" } // payload must start with \\u
+"""); }
+
+@Test void uStr_err_space_in_payload(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> "bad: {\\u61 \\u301}" } // spaces not allowed inside payload
+   | ~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~-------------------------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+UStr has malformed unicode.
+Unicode run must start with \\u.
+Found [SPACE ( ) 0x20].
+Error 9  BadUnicode
+""","""
+A:{ .m:Str -> "bad: {\\u61 \\u301}" } // spaces not allowed inside payload
+"""); }
+
+@Test void uStr_err_invalid_hex_char(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> "bad: {\\u12G7}" } // 'G' is not a hex digit
+   | --~~~~~~~~~~~~~~~~~~~~~~^^~~~~~--------------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+UStr has malformed unicode.
+Unicode run must start with \\u.
+Found "G".
+Error 9  BadUnicode
+""","""
+A:{ .m:Str -> "bad: {\\u12G7}" } // 'G' is not a hex digit
+"""); }
+
+@Test void uStr_err_too_many_digits(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> "bad: {\\u10FFFFF}" } // 7 hex digits
+   | ----~~~~~~~~~~~~~~~~^^^^^^^^^~~~------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+UStr has malformed unicode.
+At most 6 hex digits allowed for \\u.
+Error 9  BadUnicode
+""","""
+A:{ .m:Str -> "bad: {\\u10FFFFF}" } // 7 hex digits
+"""); }
+
+@Test void uStr_err_surrogate_half(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> "bad: {\\uD83D}" } // lone surrogate half not allowed
+   | ~~~~~~~~~~~~~~~~~~~~^^^~~~~~~~~-----------------------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+UStr has malformed unicode.
+Surrogate half not allowed; write the scalar code point instead.
+Error 9  BadUnicode
+""","""
+A:{ .m:Str -> "bad: {\\uD83D}" } // lone surrogate half not allowed
+"""); }
+
+@Test void uStr_err_glued_hex(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str -> "bad: {\\u1F6801}" } // hex digit glued to previous token; > 0x10FFFF
+   | ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^~~~~-------------------------------------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+UStr has malformed unicode.
+Code point > 0x10FFFF is invalid.
+Error 9  BadUnicode
+""","""
+A:{ .m:Str -> "bad: {\\u1F6801}" } // hex digit glued to previous token; > 0x10FFFF
+"""); }
 }

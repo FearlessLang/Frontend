@@ -58,6 +58,7 @@ public enum TokenKind implements metaParser.TokenKind {
   //SStr("'(?:\\\\.|[^'\\\\\\r\\n])*'"),
   UStr("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*\\x22","\"...\""),
     // "(?:\[ntu"\]|[^"\\n])*"//we will need to handle \ u in post?
+    //\ u will need to be only in a {} to write {\ uxxx\ uxxx}etc
     //if we want no unicode in the source, how to handle |"  with no escapes?
     //solution: we allow{\ u...}, again, handled in post. (note, I can not write \ and u without space in valid java :-/
   SStr("'(?:\\x5C[nt'\\x5C]|[^'\\x5C\\x0A])*'","'...'"),

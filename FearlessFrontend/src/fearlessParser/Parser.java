@@ -78,7 +78,11 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   TName parseTName(){
     var c= expect("type name", Token.typeName);
     if(names.XIn(c.content())){ throw errFactory().typeNameConflictsGeneric(c,span(c).get()); }
-    return new TName(c.content(),0);
+    var s= c.content();
+    if(!s.startsWith("\"")){ return new TName(s,0,""); }
+    s = new ClassicDecoder(
+      s.substring(1, s.length()-1), 0, this::interBadUnicode).of();
+    return new TName(c.content(),0,s);
   }
   T parseT(){ //T    ::= C | RC C | X | RC X | read/imm X
     if(fwdIf(peek(ReadImm))){ return new T.ReadImmX(parseTX()); }
@@ -167,6 +171,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     setIndex(index()-1);
     var t= expectAny("");
     var fn= span().fileName();
+    assert j>i;
     return new Span(fn,t.line(), t.column()+i, t.line(), t.column() + j);
   }
   void interOnNoClose(int i,int j){ throw errFactory().noClose(lastT(i,j)); }

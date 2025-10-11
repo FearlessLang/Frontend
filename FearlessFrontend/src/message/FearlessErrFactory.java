@@ -61,8 +61,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +"Note: \"{\" can not be used in single \"#\" interpolation expressions. Use at least \"##\".").addSpan(at);
   }
   public FearlessException badUnicode(Span at,String msg){
-    return Code.InterpolationBadUnicode.of(
-      "String interpolation has malformed unicode.\n"
+    return Code.BadUnicode.of(
+      "UStr has malformed unicode.\n"
       +msg+".\n").addSpan(at);
   }
 

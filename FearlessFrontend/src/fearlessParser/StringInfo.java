@@ -3,6 +3,7 @@ package fearlessParser;
 import java.util.*;
 import java.util.function.BiConsumer;
 
+import metaParser.Message;
 import utils.Bug;
 
 class StringInfo{
@@ -12,10 +13,8 @@ class StringInfo{
   final List<Integer> starts= new ArrayList<>();
   final int line;
   final int col;
-  //TODO: may change the two consumers to rangeMsg too
   interface RangeMsg{ void accept(int from, int to, String msg); }
   StringInfo(Token tok, BiConsumer<Integer,Integer> onNoClose, BiConsumer<Integer,Integer> onNoOpen, BiConsumer<Integer,Integer> onMoreOpen, RangeMsg onBadUnicode){
-  //StringInfo(Token tok, BiConsumer<Integer,Integer> onNoClose, BiConsumer<Integer,Integer> onNoOpen, BiConsumer<Integer,Integer> onMoreOpen){
     this.line= tok.line();
     this.col= tok.column();
     String s= tok.content();
@@ -101,20 +100,19 @@ final class PayloadParsing {
     while (i < s.length()){ readUVarToken(); }
     return out.toString();
   }
-  private RuntimeException report(int fromRel, int size, String msg){
-    onBadUnicode.accept(startIndex + fromRel, startIndex + Math.min(fromRel + size,s.length()), msg);
+  RuntimeException report(int fromRel, int size, String msg){
+    onBadUnicode.accept(startIndex + fromRel, startIndex + fromRel + size, msg);
     return Bug.unreachable();
   }
   private void readUVarToken(){
     lastTokStart = i;
     if (!match('\\') || !match('u')){
-      throw report(lastTokStart, 1, "Unicode run must start with \\u");
+      throw report(lastTokStart, 1, "Unicode run must start with \\u.\nFound "+Message.displayChar(s.charAt(i)));
     }
     int cp= readHex1to6();
     if (cp < 0){
-      int digits= Math.max(0, i - (lastTokStart + 2));
-      if (digits == 0){ report(lastTokStart, 2, "Missing 1..6 hex digits after \\u"); }
-      if (digits > 6){ report(lastTokStart, 2 + digits, "At most 6 hex digits allowed for \\\\u"); }
+      if (cp == -10){ throw report(lastTokStart, 2, "Missing 1..6 hex digits after \\u"); }
+      if (cp == -100){ throw report(lastTokStart, 8, "At most 6 hex digits allowed for \\u"); }
       throw report(lastTokStart, i, "Invalid hex digit in \\u. Use 0-9a-fA-F only");
     }
     checkValidScalar(cp);
@@ -130,12 +128,12 @@ final class PayloadParsing {
     while (i < s.length()){
       int v= hexVal(s.charAt(i));
       if (v < 0){ break; }
-      if (digits == 6){ return -1; }
+      if (digits == 6){ return -100; }
       cp = (cp << 4) | v;
       i++;
       digits++;
     }
-    if (digits == 0){ return -1; }
+    if (digits == 0){ return -10; }
     return cp;
   }
   private void checkValidScalar(int cp){
