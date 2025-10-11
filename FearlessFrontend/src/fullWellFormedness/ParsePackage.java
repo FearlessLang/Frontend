@@ -36,10 +36,9 @@ public class ParsePackage {
       .forEach(e->{ throw WellFormednessErrors.notClean(e.getKey(),e.getValue()); });
     List<Declaration> ds= all.values().stream().flatMap(f->f.decs().stream()).toList();
     var head= all.get(headPkg);
-    //TODO: during parsing, if repeated use/map, give good error (position is available then)
     if (head.role().isEmpty()){ WellFormednessErrors.noRole(headPkg,head ); }
     var res= new Package(head.name(),head.role().get(),ds);
-    var uses = new HashMap<TName,TName>();
+    var uses = new HashMap<TName,String>();
     for (var u: head.uses()){ uses.put(u.in(),u.out()); }
     res = applyUses(res,uses);
     var map = new HashMap<String,String>();
@@ -50,7 +49,7 @@ public class ParsePackage {
     return res;
   }
   Package applyMap(Package p,Map<String,String> map){ throw Bug.todo(); }
-  Package applyUses(Package p, Map<TName,TName> uses){ throw Bug.todo(); }
+  Package applyUses(Package p, Map<TName,String> uses){ throw Bug.todo(); }
   URI afterPackage(String pkgName, Set<URI> uris){
     assert nonNull(uris);
     assert validate("",pkgName,_pkgName);

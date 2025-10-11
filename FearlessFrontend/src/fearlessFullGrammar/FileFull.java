@@ -27,7 +27,8 @@ public record FileFull(
       }
     public String toString(){ return "role "+role.name()+index; }
   }
-  public record Use(TName in,TName out){public Use{assert nonNull(in,out); }}
+  public record Use(TName in,String out){
+    public Use{assert nonNull(in,out); assert validate(out,"Use.out",_XId);}}
   public record Map(String in,String out, String target){ public Map{
     assert validate(in,"map.in", _pkgName);
     assert validate(out,"map.out", _pkgName);

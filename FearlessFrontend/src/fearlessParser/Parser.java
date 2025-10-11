@@ -93,7 +93,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new T.X(c.content());
   }
   T.X parseTX(){
-    var c= expect("type name", UppercaseId);
+    var c= expectValidate("type name", UppercaseId,_XId);
     if(!names.XIn(c.content())){ throw errFactory().genericNotInScope(c,span(c).get(), names.Xs()); }
     return new T.X(c.content());
   }
@@ -154,7 +154,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       ? t->t.is(SStrInterHash,SStrLine)
       : t->t.is(UStrInterHash,UStrLine);
     List<StringInfo> contents= new ArrayList<>();
-    while(peekIf(cond)){ contents.add(new StringInfo(expectAny(""),this::interOnNoClose,this::interOnNoOpen,this::interOnMoreOpen)); }
+    while(peekIf(cond)){ contents.add(new StringInfo(expectAny(""),this::interOnNoClose,this::interOnNoOpen,this::interOnMoreOpen,this::interBadUnicode)); }
     List<Integer> hashes= contents.stream().map(i->i.hashCount).toList();
     List<String> parts= StringInfo.mergeParts(contents);
     List<E> es= contents.stream()
@@ -172,6 +172,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   void interOnNoClose(int i,int j){ throw errFactory().noClose(lastT(i,j)); }
   void interOnNoOpen(int i,int j){ throw errFactory().noOpen(lastT(i,j)); }
   void interOnMoreOpen(int i,int j){ throw errFactory().moreOpen(lastT(i,j)); }
+  void interBadUnicode(int i, int j, String msg){throw errFactory().badUnicode(lastT(i,j),msg);}
   E.Implicit parseImplicit(){ return new E.Implicit(pos(expect("",ColonColon))); }
   E.Round parseRound(){
     expect("expression in round parenthesis",ORound);
@@ -373,18 +374,18 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var out= expectValidate("package name",LowercaseId,_pkgName).content();
     expectValidate("\"in\" keyword",LowercaseId,_in);
     var target= expectValidate("package name",LowercaseId,_pkgName).content();
-    var dup= acc.map.stream().anyMatch(m->m.in().equals(in) && m.out().equals(out));
+    var dup= acc.map.stream().anyMatch(m->m.in().equals(in) && m.target().equals(target));
     if(dup){ throw errFactory().duplicatedMap(spanLast(), "("+target+","+in+")"); }
     acc.map.add(new FileFull.Map(in,out,target));
   }
   void parseUse(HeadAcc acc){
     var t1= parseTName();
     expectValidate("\"as\" keyword",LowercaseId,_as);
-    var t2= parseTName();
+    var t2= expectValidate("simple type name", UppercaseId,_XId).content();
     var dupS= acc.use.stream().anyMatch(u->u.in().equals(t1));
     var dupD= acc.use.stream().anyMatch(u->u.out().equals(t2));
     if(dupS){ throw errFactory().duplicatedUseSource(spanLast(), t1.s()); }
-    if(dupD){ throw errFactory().duplicatedUseDest(spanLast(), t2.s()); }
+    if(dupD){ throw errFactory().duplicatedUseDest(spanLast(), t2); }
     acc.use.add(new FileFull.Use(t1,t2));
   }
   record HeadAcc(ArrayList<String>pkg, ArrayList<FileFull.Role>role,ArrayList<FileFull.Map>map,ArrayList<FileFull.Use>use){

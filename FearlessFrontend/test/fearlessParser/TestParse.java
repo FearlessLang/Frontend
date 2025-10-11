@@ -2,6 +2,7 @@ package fearlessParser;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import fearlessFullGrammar.FileFull;
@@ -456,7 +457,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected "TypeName".
+Expected "type name".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(): -> (Block#.let x={5}) .use(x) }
@@ -536,7 +537,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected "TypeName".
+Expected "type name".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(a,,b):C }
@@ -550,7 +551,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
-Expected one of: "name", "TypeName", "(", "{".
+Expected one of: "name", "type name", "(", "{".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(x:C):C->x.foo(,) }
@@ -618,7 +619,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected "TypeName".
+Expected "type name".
 Error 2  UnexpectedToken
 ""","""
 A:{
@@ -679,7 +680,7 @@ In file: [###]/in_memory0.fear
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: ".use".
-Expected one of: "name", "TypeName", "(", "{".
+Expected one of: "name", "type name", "(", "{".
 Error 2  UnexpectedToken
 ""","""
 A:{
@@ -697,7 +698,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
-Expected one of: "name", "TypeName", "(", "{".
+Expected one of: "name", "type name", "(", "{".
 Error 2  UnexpectedToken
 ""","""
 A:{
@@ -786,7 +787,7 @@ In file: [###]in_memory0.fear
 While inspecting method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: ":".
-Expected one of: "name", "TypeName", "(", "{".
+Expected one of: "name", "type name", "(", "{".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m -> :+45 }
@@ -1523,7 +1524,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
-Expected one of: "name", "TypeName", "(", "{".
+Expected one of: "name", "type name", "(", "{".
 Error 2  UnexpectedToken
 ""","""
 A:{
@@ -1566,7 +1567,7 @@ In file: [###]/in_memory0.fear
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: ",".
-Expected one of: "name", "TypeName", "(", "{".
+Expected one of: "name", "type name", "(", "{".
 Error 2  UnexpectedToken
 ""","""
 A:{
@@ -1587,7 +1588,7 @@ A:{
 }
 """); }
 
-//NOTE: kept in safe encoding for easier debuggability
+//NOTE: This is still not unicode
 @Test void inter_unicode_ok(){ ok("""
 [###]
 [cafe\\u00E9, // same text but unicode line string\\n]
@@ -1596,6 +1597,17 @@ A:{
 A:{
 .m:Str ->
 #|"cafe\\u00E9{B.foo(C)} // same text but unicode line string
+}
+"""); }
+
+@Test void inter_unicode_okEmbedded(){ ok("""
+[###]
+[cafe\u00E9, // same text but actual unicode\\n]
+[###]
+""","""
+A:{
+.m:Str ->
+#|"cafe{\\u00E9}{B.foo(C)} // same text but actual unicode
 }
 """); }
 
@@ -3065,5 +3077,326 @@ A:{}
 package/*a*/foo_bar/*b*/;
 A:{}
 """); }
+
+@Test void pkgDupMap(){ fail("""
+In file: ~/OneDrive/Desktop/Java2025_24/ws/FearlessFrontendTest/___DBG___/in_memory0.fear
+
+001| package foo;
+002| map a as b1 in c;
+003| map a as b2 in c;
+   | ---------------^
+
+While inspecting header element > file header > full file
+There is already an entry in the mapping for (c,a).
+Error 2  UnexpectedToken
+""","""
+package foo;
+map a as b1 in c;
+map a as b2 in c;
+"""); }
+
+@Test void pkgDupMapOk(){ ok("""
+[###]
+""","""
+package foo;
+map a1 as b in c;
+map a2 as b in c;
+"""); }
+
+@Test void pkgDupUse1(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| package foo;
+002| use a1.B as B1;
+003| use a1.B as B2;
+   | ------------^^
+
+While inspecting header element > file header > full file
+There is already an entry in the using with source "a1.B".
+Error 2  UnexpectedToken
+""","""
+package foo;
+use a1.B as B1;
+use a1.B as B2;
+"""); }
+
+@Test void pkgDupUse2(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| package foo;
+002| use a1.F as F1;
+003| use a2.F as F1;
+   | ------------^^
+
+While inspecting header element > file header > full file
+There is already an entry in the using with destination "F1".
+Error 2  UnexpectedToken
+""","""
+package foo;
+use a1.F as F1;
+use a2.F as F1;
+"""); }
+
+@Test void pkgDupUse3(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| package foo;
+002| use a1.F as beer.F1;
+   | ------------^^^^^^^
+003| use a2.F as F2;
+
+While inspecting header element > file header > full file
+Missing simple type name.
+Found instead: "beer.F1".
+Expected "type name".
+Error 2  UnexpectedToken
+""","""
+package foo;
+use a1.F as beer.F1;
+use a2.F as F2;
+"""); }
+@Test void pkgBadUse(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| package foo;
+002| use a1 as F1;
+   | ----^^^^^^^^
+
+While inspecting header element > file header > full file
+Missing type name.
+Found instead: "a1".
+Expected one of: "type name", "signed number (eg. -23.0045)", "signed number (eg. -23)", "unsigned number (eg. 23)", "signed rational number (eg. +2.2/3.4)", "'...'", "\\"...\\"".
+Error 2  UnexpectedToken
+""","""
+package foo;
+use a1 as F1;
+"""); }
+@Test void inter_unicode_no_unicode(){ ok("""
+[###]
+Inter[false][1][e:\\uE9"\\n][]
+[###]
+""","""
+A:{ .m:Str ->
+#|"e:\\uE9"
+}"""); }
+
+@Test void inter_unicode_okOne(){ ok("""
+[###]
+Inter[false][1][é333\\n][]
+[###]
+""","""
+A:{ .m:Str ->
+#|"{\\uE9} 333
+}"""); }
+@Test void inter_unicode_okAdjacentMany(){ ok("""
+[###]
+Inter[false][1][
+\u00E9\uD83D\uDE80\u0915\u093F\u0061\u0301\uD83D\uDC69\u200D\uD83D\uDCBB\uD83C\uDDF3\uD83C\uDDFF"\\n
+][]
+[###]
+""","""
+A:{ .m:Str ->
+#|"{\\uE9\\u1F680\\u915\\u93F\\u61\\u301\\u1F469\\u200D\\u1F4BB\\u1F1F3\\u1F1FF}"
+}"""); }
+
+@Test void inter_unicode_okZWJ(){ ok("""
+[###]
+Inter[false][1][
+dev: \uD83D\uDC69\u200D\uD83D\uDCBB"\\n
+][]
+[###]
+""","""
+A:{ .m:Str ->
+#|"dev: {\\u1F469\\u200D\\u1F4BB}"
+}"""); }
+
+@Test void inter_unicode_okFlagNZ(){ ok("""
+[###]
+Inter[false][1][
+flag: \uD83C\uDDF3\uD83C\uDDFF"\\n
+][]
+[###]
+""","""
+A:{ .m:Str ->
+#|"flag: {\\u1F1F3\\u1F1FF}"
+}"""); }
+
+@Test void inter_unicode_okCombining(){ ok("""
+[###]
+Inter[false][1][
+a':, BB\u0061\u0301AA,CC\\n
+][Call[[###]],Call[[###]]]
+[###]
+""","""
+A:{ .m:Str ->
+#|"a': {1 + 2} BB {\\u61\\u301}AA {3 * 4}CC
+}"""); }
+
+@Test void inter_unicode_okMaxScalar(){ ok("""
+[###]
+Inter[false][1][
+max: [###]\\n
+][]
+[###]
+""","""
+A:{ .m:Str ->
+#|"max: {\\u10FFFF}
+}"""); }
+
+@Test void inter_unicode_okMixedCaseHex(){ ok("""
+[###]
+Inter[false][1][
+mix: \u20ac\u00E9\\n
+][]
+[###]
+""","""
+A:{ .m:Str ->
+#|"mix: {\\u20ac\\uE9}
+}"""); }
+
+@Test void inter_unicode_okDoubleHashes(){ ok("""
+[###]
+Inter[false][2][
+double \u00E9 braces\\n
+][]
+[###]
+""","""
+A:{ .m:Str ->
+##|"double {{\\uE9}} braces
+}"""); }
+
+@Test void inter_unicode_okMultiplePayloads(){ ok("""
+[###]
+Inter[false][1][
+\u0001\u0002\u0003\u0004\\n
+][]
+[###]
+""","""
+A:{ .m:Str ->
+#|"{\\u1\\u2}{\\u3\\u4}
+}"""); }
+
+@Test void inter_unicode_okMultilineMerge(){ ok("""
+[###]
+Inter[false][1,2][
+line1 \u0010\\nline2 \u0020"\\n
+][]
+[###]
+""","""
+A:{ .m:Str ->
+#|"line1 {\\u0010}
+##|"line2 {{\\u0020}}"
+}"""); }
+
+@Test void inter_unicode_failLoneSurrogate(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str ->
+002| #|"bad: {\\uD83D} // lone surrogate, invalid in unicode run
+   | ---------^^^----------------------------------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+String interpolation has malformed unicode.
+Surrogate half not allowed; write the scalar code point instead.
+Error 9  InterpolationBadUnicode
+""","""
+A:{ .m:Str ->
+#|"bad: {\\uD83D} // lone surrogate, invalid in unicode run
+}"""); }
+
+@Test void inter_unicode_failTooManyHex(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str ->
+002| #|"bad: {\\u10FFFFF}" // 7 hex digits, invalid
+   | ---------^^^^^^^^^---------------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+String interpolation has malformed unicode.
+Invalid hex digit in \\u. Use 0-9a-fA-F only.
+Error 9  InterpolationBadUnicode
+""","""
+A:{ .m:Str ->
+#|"bad: {\\u10FFFFF}" // 7 hex digits, invalid
+}"""); }
+
+@Test void inter_unicode_failZeroDigits(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str ->
+002| #|"bad: {\\u}" // requires 1..6 hex digits
+   | ---------^^^-----------------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+String interpolation has malformed unicode.
+Missing 1..6 hex digits after \\u.
+Error 9  InterpolationBadUnicode
+""","""
+A:{ .m:Str ->
+#|"bad: {\\u}" // requires 1..6 hex digits
+}"""); }
+
+@Test void inter_unicode_failSpaceInside(){ fail("""
+In file: ~/OneDrive/Desktop/Java2025_24/ws/FearlessFrontendTest/___DBG___/in_memory0.fear
+
+001| A:{ .m:Str ->
+002| #|"bad: {\\u61 \\u301}" // spaces not allowed in payload
+   | --------------^---------------------------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+String interpolation has malformed unicode.
+Unicode run must start with \\u.
+Error 9  InterpolationBadUnicode
+""","""
+A:{ .m:Str ->
+#|"bad: {\\u61 \\u301}" // spaces not allowed in payload
+}"""); }
+
+@Test void inter_unicode_failGluedHex(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str ->
+002| #|"bad: {\\u1F6801}" // glued extra hex; should be two tokens
+   | ---------^^^^^^^^^------------------------------------------
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+String interpolation has malformed unicode.
+Code point > 0x10FFFF is invalid.
+Error 9  InterpolationBadUnicode
+""","""
+A:{ .m:Str ->
+#|"bad: {\\u1F6801}" // glued extra hex; should be two tokens
+}"""); }
+
+@Test void inter_unicode_failEmptyPayload(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str ->
+002| #|"bad: {}" // empty payload -> not a unicode run; interpolation should error
+   | ---------^-------------------------------------------------------------------
+
+While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+Missing expression.
+Expected one of: "name", "type name", "(", "{".
+Error 2  UnexpectedToken
+""","""
+A:{ .m:Str ->
+#|"bad: {}" // empty payload -> not a unicode run; interpolation should error
+}"""); }
+
+@Test void inter_unicode_failWrongStarter(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:Str ->
+002| #|"bad: {U\\uE9}" // payload must start with backslash-u
+   | ---------~~^^^~----------------------------------------
+
+While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+Name "uE9" is not in scope
+In scope: "this".
+Error 2  UnexpectedToken""","""
+A:{ .m:Str ->
+#|"bad: {U\\uE9}" // payload must start with backslash-u
+}"""); }
 
 }

@@ -60,6 +60,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "String interpolation placeholder opened inside interpolation expression.\n"
       +"Note: \"{\" can not be used in single \"#\" interpolation expressions. Use at least \"##\".").addSpan(at);
   }
+  public FearlessException badUnicode(Span at,String msg){
+    return Code.InterpolationBadUnicode.of(
+      "String interpolation has malformed unicode.\n"
+      +msg+".\n").addSpan(at);
+  }
 
   public FearlessException disallowedReadHMutH(Span at, RC rc){
     return Code.UnexpectedToken.of(
@@ -86,12 +91,12 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException duplicatedUseSource(Span at, String what){
     return Code.UnexpectedToken.of(
-        "There is already an entry in the using with source "+what+".\n"
+        "There is already an entry in the using with source "+Message.displayString(what)+".\n"
     ).addSpan(at);
   }
   public FearlessException duplicatedUseDest(Span at, String what){
     return Code.UnexpectedToken.of(
-        "There is already an entry in the using with destination "+what+".\n"
+        "There is already an entry in the using with destination "+Message.displayString(what)+".\n"
     ).addSpan(at);
   }
 
@@ -167,36 +172,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   private static String labelOf(Object o){
     if (!(o instanceof fearlessParser.TokenKind tk)){ return String.valueOf(o); }
-    var res= switch (tk) {
-      case ORound -> "(";
-      case CRound -> ")";
-      case OCurly -> "{";
-      case CCurly -> "}";
-      case CCurlyId -> "}id";
-      case OSquareArg -> "[";
-      case CSquare -> "]";
-      case Comma -> ",";
-      case SemiColon -> ";";
-      case ColonColon -> "::";
-      case Colon -> ":";
-      case Eq -> "=";
-      case BackTick -> "`";
-      case Arrow -> "->";
-      case DotName -> ".name";
-      case LowercaseId -> "name";
-      case UppercaseId -> "TypeName";
-      case UStr -> "\"...\"";
-      case SStr -> "'...'";
-      case UStrLine -> "|\"...";
-      case SStrLine -> "|'...";
-      case UStrInterHash -> "#|\"...";
-      case SStrInterHash -> "#|'...";
-      case RCap -> "reference capability";
-      case ReadImm -> "read/imm";
-      case _pkgName -> "id starting with a-z followed by any amount of a-z0-9 or the _ symbol";
-      default -> tk.matcher().toString();
-    };
-    return Message.displayString(res);
+    return Message.displayString(tk.human);
   }
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     String head= what.isBlank()

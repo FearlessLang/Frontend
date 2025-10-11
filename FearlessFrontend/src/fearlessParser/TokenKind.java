@@ -6,26 +6,26 @@ import metaParser.TokenMatch;
 
 
 public enum TokenKind implements metaParser.TokenKind {
-  Ws("\\s+", true),
-  LineComment("//[^\\n]*", true),
-  BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", true),
+  Ws("\\s+", true," white space or new line"),
+  LineComment("//[^\\n]*", true, "//.."),
+  BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", true,"/*..*/"),
   BadUnclosedBlockComment("(?s)/\\*(?!.*?\\*/).*"),
   BadUnopenedBlockCommentClose("\\*/"),
   
-  UStrInterHash("#{1,}\\|\"[^\\n]*"),
-  SStrInterHash("#{1,}\\|'[^\\n]*"),
-  UStrLine("\\|\"[^\\n]*"),
-  SStrLine("\\|'[^\\n]*"),
-
+  UStrInterHash("#{1,}\\|\"[^\\n]*","#|\"..."),
+  SStrInterHash("#{1,}\\|'[^\\n]*","#|'..."),
+  UStrLine("\\|\"[^\\n]*","|\"..."),
+  SStrLine("\\|'[^\\n]*","|'..."),
+    
   Arrow("->"),
-  ORound("\\("),
-  CRound("\\)"),
-  OCurly("\\{"),
-  CCurlyId("\\}[A-Za-z0-9_]+`*"),
-  CCurly("\\}"),
-  OSquareArg("(?<=[A-Za-z0-9_`\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])\\["),//correctly not working for preceding literals
+  ORound("\\(","("),
+  CRound("\\)",")"),
+  OCurly("\\{","{"),
+  CCurlyId("\\}[A-Za-z0-9_]+`*","}id"),
+  CCurly("\\}","}"),
+  OSquareArg("(?<=[A-Za-z0-9_`\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])\\[","["),//correctly not working for preceding literals
   BadOSquare("\\["),
-  CSquare("\\]"),
+  CSquare("\\]","]"),
   Comma(","),
   SemiColon(";"),
   ColonColon("::"),
@@ -33,71 +33,77 @@ public enum TokenKind implements metaParser.TokenKind {
   Eq("="),
   BackTick("`"), 
   ReadImm("read/imm"),//note: must be before read
-  RCap("readH|mutH|imm|iso|read|mut"),
+  RCap("readH|mutH|imm|iso|read|mut","reference capability"),
   BadRational(
-     "[0-9](?:[0-9_]*[0-9])?/[0-9](?:[0-9_]*[0-9])?"),
-  SignedRational("[+-][0-9](?:[0-9_]*[0-9])?/[0-9](?:[0-9_]*[0-9])?"),
+    "(?:[0-9](?:[0-9_]*[0-9])?(?:\\x2E[0-9](?:[0-9_]*[0-9])?)?)/(?:[0-9](?:[0-9_]*[0-9])?(?:\\x2E[0-9](?:[0-9_]*[0-9])?)?)"),
+  SignedRational(
+    "[+-](?:[0-9](?:[0-9_]*[0-9])?(?:\\x2E[0-9](?:[0-9_]*[0-9])?)?)/(?:[0-9](?:[0-9_]*[0-9])?(?:\\x2E[0-9](?:[0-9_]*[0-9])?)?)",
+    "signed rational number (eg. +2.2/3.4)"),
 
   BadFloat(
-      "[0-9](?:[0-9_]*[0-9])?\\x2E(?:[0-9](?:[0-9_]*[0-9])?)"
-     +"(?:[eE][\\x2B\\x2D]?[0-9](?:[0-9_]*[0-9])?)?"),
+    "[0-9](?:[0-9_]*[0-9])?\\x2E(?:[0-9](?:[0-9_]*[0-9])?)"
+    +"(?:[eE][\\x2B\\x2D]?[0-9](?:[0-9_]*[0-9])?)?"),
   // Signed float: +12.34, -1.0e-3 ; requires at least one digit on each side of '.'
   SignedFloat(
     "[+-](?:[0-9](?:[0-9_]*[0-9])?)\\.(?:[0-9](?:[0-9_]*[0-9])?)"
-    + "(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?"),
+    + "(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?","signed number (eg. -23.0045)"),
   // Signed int: +45, -10, +1_000
-  SignedInt("[+-][0-9](?:[0-9_]*[0-9])?"),
+  SignedInt("[+-][0-9](?:[0-9_]*[0-9])?","signed number (eg. -23)"),
   // Unsigned int: 0, 42, 1_000_000
-  UnsignedInt("[0-9](?:[0-9_]*[0-9])?"),
+  UnsignedInt("[0-9](?:[0-9_]*[0-9])?","unsigned number (eg. 23)"),
   BadUStrUnclosed("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*(?=\\x0A|\\z)"),
   BadSStrUnclosed("'(?:\\x5C[nt'\\x5C]|[^'\\x5C\\x0A])*(?=\\x0A|\\z)"),
   // Normal strings with escapes; newlines not allowed inside
   //UStr("\"(?:\\\\.|[^\"\\\\\\r\\n])*\""),//broken
   //SStr("'(?:\\\\.|[^'\\\\\\r\\n])*'"),
-  UStr("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*\\x22"),
+  UStr("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*\\x22","\"...\""),
     // "(?:\[ntu"\]|[^"\\n])*"//we will need to handle \ u in post?
     //if we want no unicode in the source, how to handle |"  with no escapes?
     //solution: we allow{\ u...}, again, handled in post. (note, I can not write \ and u without space in valid java :-/
-  SStr("'(?:\\x5C[nt'\\x5C]|[^'\\x5C\\x0A])*'"),
+  SStr("'(?:\\x5C[nt'\\x5C]|[^'\\x5C\\x0A])*'","'...'"),
 
-  DotName("\\._*[a-z][A-Za-z0-9_]*`*"),
-  UppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*`*"),//correctly allows only one '.' since packages are not nested inside each others  
-  LowercaseId("_*[a-z][A-Za-z0-9_]*`*"),
+  DotName("\\._*[a-z][A-Za-z0-9_]*`*",".name"),
+  UppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*`*","type name"),//correctly allows only one '.' since packages are not nested inside each others  
+  LowercaseId("_*[a-z][A-Za-z0-9_]*`*","name"),
    //\  /  #  *   -   +   %  <  >  =  !  &   ^   ~   ?     |
   //[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F:\\x7C#]
   //forbid:  /*   */   //
   //(?!/\\x2A|\\x2A/|//)
   BadOpDigit( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])*[\\x2B\\x2D](?=\\d)" ),
   BadOpLine ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])*\\x7C(?=[\\x22'])" ),
-  Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+" ),
+  Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+","binary operator (eg. +, *, -"),
   //IMPORTANT: BadOp* must precede Op so bad forms win ties of equal length.
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases  
-  _XId("_*[A-Z][A-Za-z0-9_]*`*"),
-  _pkgName("(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*"),   
+  _XId("_*[A-Z][A-Za-z0-9_]*`*","type name"),
+  _pkgName("(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*",
+    "id starting with a-z followed by any amount of a-z0-9 or the _ symbol"),   
   _package("package"),
   _role("role"),
-  _roleName("(?:base|core|driver|worker|framework|accumulator|tool|app)[0-9][0-9][0-9]"),
+  _roleName("(?:base|core|driver|worker|framework|accumulator|tool|app)[0-9][0-9][0-9]"," role name followed by rank (eg. core023, app000, framework999)"),
   _use("use"),
   _map("map"),
   _as("as"),
   _in("in"),
-  _EOF(""),
-  _SOF(""),
-  _All(""),
-  _CurlyGroup(""),
-  _SquareGroup(""),
-  _RoundGroup(""); 
+  _EOF("","end of file"),
+  _SOF("","start of file"),
+  _All("","full file"),
+  _CurlyGroup("","group in {..}"),
+  _SquareGroup("","group in [..]"),
+  _RoundGroup("","group in (..)"); 
 
   private final String displayName;
   private final TokenMatch match;
   private final boolean hidden;
+  public final String human;
 
-  TokenKind(String regex){ this(regex,false); }
+  TokenKind(String regex){ this(regex,false,regex); }
+  TokenKind(String regex, String human){ this(regex,false,human); }
 
-  TokenKind(String regex, boolean hidden){
+  TokenKind(String regex, boolean hidden, String human){
     this.displayName = name();
     this.match = TokenMatch.fromRegex(regex);
     this.hidden = hidden;
+    this.human = human;
   }
   @Override public TokenMatch matcher(){ return match; }
   public boolean hidden(){ return hidden; }
