@@ -13,5 +13,4 @@ public record Span(URI fileName, int startLine, int startCol, int endLine, int e
     return PrettyFileName.displayFileName(fileName)+"["+startLine+":"+startCol+".."+endLine+":"+endCol+"]";
   }
   public boolean isSingleLine(){ return startLine == endLine; }
-
 }

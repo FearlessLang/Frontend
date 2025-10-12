@@ -2,7 +2,13 @@ package message;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import fearlessFullGrammar.M;
+import fearlessFullGrammar.MName;
+import fearlessParser.HasImplicitVisitor;
 import fearlessParser.Parser;
 import fearlessParser.RC;
 import fearlessParser.Token;
@@ -14,6 +20,7 @@ import metaParser.Frame;
 import metaParser.Message;
 import metaParser.NameSuggester;
 import metaParser.Span;
+import utils.Bug;
 
 import static offensiveUtils.Require.*;
 
@@ -74,6 +81,14 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       Use one of read, mut, imm, iso.      
       """).addSpan(at);
   }
+  public FearlessException disallowedSigRC(Span at, RC rc){
+    return Code.UnexpectedToken.of(
+      "Capability "+rc+"""
+       used.
+      Capabilities iso, readH and mutH are not allowed on method declarations.
+      Use one of read, mut, imm.      
+      """).addSpan(at);
+  }
   public FearlessException disallowedPackageNotEmpty(Span at){
     return Code.UnexpectedToken.of(
       "The package declaration must be at the very beginning of the file.\n"
@@ -113,8 +128,61 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   public FearlessException nameRedeclared(Token c, Span at){
     return Code.UnexpectedToken.of("Name "+Message.displayString(c.content())+" already in scope").addSpan(at);
   }
+  private <X> X redeclaredElement(List<X> es){
+    int i= 0;
+    for (var e:es){
+      int first= i++;
+      int last=  es.lastIndexOf(e);
+      if (first != last){ return e; }
+    }
+    throw Bug.unreachable();
+  }
+  private Span redeclaredMethSpan(List<M> ms,Predicate<M> p, Span at){
+    M m= ms.reversed().stream().filter(p).findFirst().get();
+    return new Span(at.fileName(),m.pos().line(),m.pos().column(),m.pos().line(),m.pos().column() + 100);  
+  }
+  private Span redeclaredMethSpan(List<M> ms,MName n, Span at){
+    Predicate<M> p= mi->mi.sig()
+      .map(s->s.m().equals(Optional.of(n)))
+      .orElse(false);
+    return redeclaredMethSpan(ms,p,at);
+  }
+  private Span redeclaredMethSpan(List<M> ms, int count, Span at){
+    Predicate<M> p= mi->parCount(mi) == count;
+    return redeclaredMethSpan(ms,p,at);
+  }
+  public FearlessException methNameRedeclared(List<M> ms,List<MName> names, Span at){
+    var name= redeclaredElement(names);
+    Span s= redeclaredMethSpan(ms,name,at);
+    return Code.WellFormedness.of(
+      "Method "+Message.displayString(name.s())+" redeclared.\n"
+    + "A method with the same name is already present above.\n")
+      .addSpan(s).addSpan(at);
+  }
+  public int parCount(M m){
+    if(m.sig().isPresent() && m.sig().get().m().isPresent()){ return -1; }
+    var hasImplcit= m.body().map(e->e.accept(new HasImplicitVisitor())).orElse(false);
+    return m.sig().map(s->s.parameters().size()).orElse(0) + (hasImplcit?1:0);    
+  }
+  public FearlessException methNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
+    var count= redeclaredElement(noNames);
+    Span s= redeclaredMethSpan(ms,count,at);
+    return Code.WellFormedness.of(
+      "Method with inferred name and "+count+" parameter redeclared.\n"
+    + "A method with the inferred name and the same parameter count is already present above.\n")
+      .addSpan(s).addSpan(at);
+  }
   public FearlessException typeNameConflictsGeneric(Token name, Span at){
     return Code.UnexpectedToken.of("Name "+Message.displayString(name.content())+" is used as a type name, but  "+Message.displayString(name.content())+" is already a generic type parameter in scope").addSpan(at);
+  }
+  public FearlessException privateTypeName(Token name, Span at){
+    var sep= name.content().indexOf("._");
+    String sName= name.content().substring(sep+1);
+    String pName= name.content().substring(0,sep);
+    return Code.UnexpectedToken.of(
+      "Code is attempting to use private name "+Message.displayString(sName)
+      +" from package "+Message.displayString(pName)
+      +".\nType names starting with \"_\" can only be used in their own package, and only by their simple name.\n").addSpan(at);
   }
   public FearlessException missingExprAfterEq(Span at){
     return Code.UnexpectedToken.of("""

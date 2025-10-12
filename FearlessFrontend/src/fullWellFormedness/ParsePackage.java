@@ -13,11 +13,10 @@ import fearlessFullGrammar.FileFull.Role;
 import fearlessFullGrammar.TName;
 import fearlessParser.Parse;
 import message.SourceOracle;
-import utils.Bug;
 import static offensiveUtils.Require.*;
 import static fearlessParser.TokenKind.*;
 
-public class ParsePackage {
+public class ParsePackage{
   Package of(List<FileFull.Map> override, List<URI> files, SourceOracle o){
     Map<URI,FileFull> all= new LinkedHashMap<>();
     for(var u : files){
@@ -40,16 +39,14 @@ public class ParsePackage {
     var res= new Package(head.name(),head.role().get(),ds);
     var uses = new HashMap<TName,String>();
     for (var u: head.uses()){ uses.put(u.in(),u.out()); }
-    res = applyUses(res,uses);
-    var map = new HashMap<String,String>();
-    for (var m: head.maps()){ map.put(m.in(),m.out()); }
-    for (var m: override){ map.put(m.in(),m.out()); }
-    res = applyMap(res,map);
-    wellFormed(res);
+    res = new ApplyUses().applyUses(res,uses);
+    var map = new HashMap<TargetIn,String>();
+    for (var m: head.maps()){ map.put(new TargetIn(m.target(),m.in()),m.out()); }
+    for (var m: override){ map.put(new TargetIn(m.target(),m.in()),m.out()); }
+    res = new ApplyMap().applyMap(res,map);
+    new WellFormed().wellFormed(res);
     return res;
   }
-  Package applyMap(Package p,Map<String,String> map){ throw Bug.todo(); }
-  Package applyUses(Package p, Map<TName,String> uses){ throw Bug.todo(); }
   URI afterPackage(String pkgName, Set<URI> uris){
     assert nonNull(uris);
     assert validate("",pkgName,_pkgName);
@@ -65,9 +62,8 @@ public class ParsePackage {
       String base= name.substring(0,dot);
       return base.equals(pkgName);
       }).toList();
-     if (heads.size() == 1){ return heads.getFirst(); }
-     throw WellFormednessErrors.expectedSingleUriForPackage(heads,pkgName);
+    if (heads.size() == 1){ return heads.getFirst(); }
+    throw WellFormednessErrors.expectedSingleUriForPackage(heads,pkgName);
   }
-  boolean wellFormed(Package p){ throw Bug.todo(); }
 }
 record Package(String name, Role role, List<Declaration> decs){}

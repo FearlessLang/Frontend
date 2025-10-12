@@ -3575,4 +3575,269 @@ Error 9  BadUnicode
 ""","""
 A:{ .m:Str -> "bad: {\\u1F6801}" } // hex digit glued to previous token; > 0x10FFFF
 """); }
+
+@Test void prType1(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m:foo._Bar }
+   | ----~~~^^^^^^^^--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Code is attempting to use private name "_Bar" from package "foo".
+Type names starting with "_" can only be used in their own package, and only by their simple name.
+Error 2  UnexpectedToken
+""","""
+A:{ .m:foo._Bar }
+"""); }
+
+@Test void prType2(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| package bla;
+002| use foo._Beer as Beer;
+   | ----^^^^^^^^^--------
+
+While inspecting header element > file header > full file
+Code is attempting to use private name "_Beer" from package "foo".
+Type names starting with "_" can only be used in their own package, and only by their simple name.
+Error 2  UnexpectedToken
+""","""
+package bla;
+use foo._Beer as Beer;
+A:{  }
+"""); }
+
+@Test void badDec(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| foo.A:{  }
+   | ^^^^^-----
+
+While inspecting type declaration > full file
+Missing simple type name.
+Found instead: "foo.A".
+Expected "type name".
+Error 2  UnexpectedToken
+""","""
+foo.A:{  }
+"""); }
+
+@Test void badTName(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .foo:aux.Bar }
+   |          ^^^^^^^
+
+While inspecting the file
+Unrecognized text "aux.Bar".
+package names are restricted to be valid filenames on all operative systems.
+Names like aux, nul, lpt2 are invalid on windows.
+Error 2  UnexpectedToken
+""","""
+A:{ .foo:aux.Bar }
+"""); }
+
+@Test void mutMethOk(){ ok("""
+[###]
+""","""
+A:{ mut .foo:Bar }
+"""); }
+@Test void isoMethBad(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ iso .foo:Bar }
+   | ----^^^~~~~~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Capability iso used.
+Capabilities readH and mutH are not allowed on closures
+Use one of read, mut, imm, iso.
+Error 2  UnexpectedToken
+""","""
+A:{ iso .foo:Bar }
+"""); }
+@Test void readHMethBad(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ readH .foo:Bar }
+   | ----^^^^^~~~~~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Capability readH used.
+Capabilities readH and mutH are not allowed on closures
+Use one of read, mut, imm, iso.
+Error 2  UnexpectedToken
+
+""","""
+A:{ readH .foo:Bar }
+"""); }
+@Test void mutHMethBad(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ mutH .foo:Bar }
+   | ----^^^^~~~~~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Capability mutH used.
+Capabilities readH and mutH are not allowed on closures
+Use one of read, mut, imm, iso.
+Error 2  UnexpectedToken
+""","""
+A:{ mutH .foo:Bar }
+"""); }
+@Test void redeclaredMeth1(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{
+   | ... 3 lines ...
+005|  read .foo:Beer;
+   |  ^^^^^^^^^^^^^^^
+   | ... 3 lines ...
+009|  }
+
+While inspecting type declaration body > type declaration > full file
+Method ".foo" redeclared.
+A method with the same name is already present above.
+Error 10  WellFormedness
+""","""
+A:{
+ mut .baz:Bar;
+ mut .foo:Bar;
+ mut .middle:Bar;
+ read .foo:Beer;
+ mut .ban:Bar->Block#
+   .let x={2}
+   .return{x};
+ }
+"""); }
+
+@Test void redeclaredMeth2(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{
+   | ... 4 lines ...
+006|  mut .ban(y):Bar->Block#
+   |  ^^^^^^^^^^^^^^^^^^^^^^^
+   | ... 2 lines ...
+009|  }
+
+While inspecting type declaration body > type declaration > full file
+Method ".ban" redeclared.
+A method with the same name is already present above.
+Error 10  WellFormedness
+""","""
+A:{
+ mut .ban(x):Bar;
+ mut .foo:Bar;
+ mut .middle:Bar;
+ read .foo:Beer;
+ mut .ban(y):Bar->Block#
+   .let x={2}
+   .return{x};
+ }
+"""); }
+
+@Test void redeclaredMeth3(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{
+   | ... 3 lines ...
+005|  read .foo:Beer;
+   |  ^^^^^^^^^^^^^^^
+   | ... 3 lines ...
+009|  }
+
+While inspecting type declaration body > type declaration > full file
+Method ".foo" redeclared.
+A method with the same name is already present above.
+Error 10  WellFormedness
+""","""
+A:{
+ mut .ban(x,y):Bar;
+ mut .foo:Bar;
+ mut .middle:Bar;
+ read .foo:Beer;
+ mut .ban(y):Bar->Block#
+   .let x={2}
+   .return{x};
+ }
+"""); }
+
+@Test void redeclaredMethAnon1(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{
+   | ... 3 lines ...
+005|  b->b;
+   |  ^^^^^
+   | ... 3 lines ...
+009|  }
+
+While inspecting type declaration body > type declaration > full file
+Method with inferred name and 1 parameter redeclared.
+A method with the inferred name and the same parameter count is already present above.
+Error 10  WellFormedness
+""","""
+A:{
+ mut .ban(x,y):Bar;
+ a->a;
+ (a,b)->a;
+ b->b;
+ mut .ban(y):Bar->Block#
+   .let x={2}
+   .return{x};
+ }
+"""); }
+
+@Test void redeclaredMethAnon2(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{
+   | ... 3 lines ...
+005|  b->:: .foo;
+   |  ^^^^^^^^^^^
+   | ... 3 lines ...
+009|  }
+
+While inspecting type declaration body > type declaration > full file
+Method with inferred name and 2 parameter redeclared.
+A method with the inferred name and the same parameter count is already present above.
+Error 10  WellFormedness
+""","""
+A:{
+ mut .ban(x,y):Bar;
+ a,b,c,d,e,f->a;
+ (a,b)->a;
+ b->:: .foo;
+ mut .ban(y):Bar->Block#
+   .let x={2}
+   .return{x};
+ }
+"""); }
+
+@Test void redeclaredMethAnon3(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{
+   | ... 3 lines ...
+005|  (a,b)->a;
+   |  ^^^^^^^^^
+   | ... 3 lines ...
+009|  }
+
+While inspecting type declaration body > type declaration > full file
+Method with inferred name and 2 parameter redeclared.
+A method with the inferred name and the same parameter count is already present above.
+Error 10  WellFormedness
+""","""
+A:{
+ mut .ban(x,y):Bar;
+ a,b,c,d,e,f->a;
+ b->:: .foo;
+ (a,b)->a;
+ mut .ban(y):Bar->Block#
+   .let x={2}
+   .return{x};
+ }
+"""); }
 }

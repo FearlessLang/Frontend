@@ -59,9 +59,9 @@ public sealed interface E {
       +targs.map(Object::toString).orElse("")
       +pars+pat.map(Object::toString).orElse("")+es; }
   }
-  record StringInter(boolean simple, Optional<E> receiver, List<Integer> hashCounts, List<String> strings, List<E> es,Pos pos) implements E{
+  record StringInter(boolean simple, Optional<E> e, List<Integer> hashCounts, List<String> strings, List<E> es,Pos pos) implements E{
     public StringInter{
-      assert nonNull(receiver);
+      assert nonNull(e);
       assert unmodifiable(hashCounts,"string # counts");
       assert unmodifiable(strings,"string parts");
       assert unmodifiable(es,"string es");
@@ -69,7 +69,7 @@ public sealed interface E {
     }
     public <R> R accept(EVisitor<R> v){ return v.visitStringInter(this); }
     public String toString(){ return
-      receiver.map(Object::toString).orElse("")
+      e.map(Object::toString).orElse("")
       +"Inter["+simple+"]"
       +hashCounts+strings.stream().map(s->s.replace("\n","\\n")).toList()+es;
     }

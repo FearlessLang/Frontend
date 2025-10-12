@@ -79,6 +79,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var c= expect("type name", Token.typeName);
     if(names.XIn(c.content())){ throw errFactory().typeNameConflictsGeneric(c,span(c).get()); }
     var s= c.content();
+    if(s.contains("._")){ throw errFactory().privateTypeName(c,span(c).get()); }
     if(!s.startsWith("\"")){ return new TName(s,0,""); }
     s = new ClassicDecoder(
       s.substring(1, s.length()-1), 0, this::interBadUnicode).of();
@@ -196,16 +197,27 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   E.Literal parseLiteral(){
     Pos pos= pos();
-    expect("object literal",OCurly);
-    expectLast("object literal",CCurly);
+    Token start= expect("object literal",OCurly);
+    Token end= expectLast("object literal",CCurly);
     Optional<E.X> thisName= empty();
     if(fwdIf(peek(BackTick))){
       thisName = of(parseDecX());
       updateNames(names.add(List.of(thisName.get().name()),List.of()));
       }
     List<M> ms= splitBy("method declaration",semiSkip,Parser::parseMethod);
+    checkRedeclaration(start, end, ms, pos);
     return new E.Literal(thisName,ms,pos);
     }
+  private void checkRedeclaration(Token start, Token end, List<M> ms, Pos pos){
+    List<MName> names= ms.stream()
+      .flatMap(m->m.sig().flatMap(s->s.m()).stream()).toList();
+    long count1= names.stream().distinct().count();
+    if (names.size() > count1){ throw errFactory().methNameRedeclared(ms,names,span(start,end).get()); }
+    List<Integer> noNames= ms.stream()
+      .map(errFactory()::parCount).filter(i->i != -1).toList();
+    long count2= noNames.stream().distinct().count();
+    if (noNames.size() > count2){ throw errFactory().methNoNameRedeclared(ms,noNames,span(start,end).get()); }
+  }
   Stream<String> xsOf(Optional<XPat> xp){
     if(xp.isEmpty()){ return Stream.of(); }
     var v= new XPatVisitor<Stream<String>>(){
@@ -238,24 +250,28 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return res;
   }
   M parseMethodAux(){//assumes to be called on only the tokens of this specific method
+    Pos pos= pos();
     Optional<Sig> sig= parseUpTo("method signature",false,arrowSkip,Parser::parseSig);
     if(sig.isPresent()){
       var xs= sig.get().parameters().stream().flatMap(p->xsOf(p.xp())).toList();
       var Xs= sig.get().bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
       updateNames(names.add(xs,Xs));
-      return new M(sig,of(parseMethodBody()));
+      return new M(sig,of(parseMethodBody()),pos);
     }
     boolean hasSig= peek(DotName,Op,RCap)
       || peekOrder(t->t.is(RCap), t->t.is(DotName,Op));
-    if(!hasSig){ return new M(empty(),of(parseMethodBody())); }
-    return new M(of(parseSig()),empty());    
+    if(!hasSig){ return new M(empty(),of(parseMethodBody()),pos); }
+    return new M(of(parseSig()),empty(),pos);
   }
   E parseMethodBody(){
     guard(Parser::checkAbruptExprEnd);
     return  parseRemaining("method body",Parser::parseE); 
     }
   Sig parseSig(){
+    var rcSpan= peek().map(t->span(t).orElse(span()));
     var rc= parseOptRC();
+    var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH || _rc==RC.iso).orElse(false);
+    if(invalid){ throw errFactory().disallowedReadHMutH(rcSpan.get(), rc.get()); }
     var m= parseIf(peek(DotName,Op),this::parseMName);
     var bs= parseIf(peek(_SquareGroup),this::parseBs);
     boolean hasPar=peek(_RoundGroup);
@@ -326,6 +342,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   Declaration parseDeclaration(){
     var c= parseTName();
+    var _= expectValidate(back("simple type name"), UppercaseId,_XId); //to get error if of form foo.Bar
     Optional<List<B>> bs= parseIf(peek(_SquareGroup),this::parseBs);
     if(bs.isPresent()){
       var Xs= bs.get().stream().map(b->b.x().name()).toList();
@@ -420,7 +437,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return parseE(); 
   }
   boolean isTName(Token t){ return t.is(UppercaseId,SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr) && !names.XIn(t.content()); }
-  Pos pos(){ return new Pos(span().fileName(),span().startLine(),span().startCol()); }
+  Pos pos(){
+    Span s= spanAround(index(),index());
+    return new Pos(s.fileName(),s.startLine(),s.startCol()); 
+  }
   Pos pos(Token t){ return new Pos(span().fileName(),t.line(),t.column()); }
   <R> Optional<R> parseIf(boolean cond, Supplier<R> s){
     if(!cond){ return empty(); }

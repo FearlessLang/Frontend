@@ -49,7 +49,12 @@ Fearless does not allow float literals of form "1.2" or ".2".
 Rational literals must have a sign.
 Examples: "+1/2", "-3/4".
 Fearless does not allow rational literals of form "1/2"
-""");}
+""")
+      .putStr(BadUppercaseId,Code.UnexpectedToken::of,"""
+package names are restricted to be valid filenames on all operative systems.
+Names like aux, nul, lpt2 are invalid on windows.
+""")
+;}
   private Stream<Token> strayBlockCommentCloser(int idx, Token t, Tokenizer tokenizer){
     var file= tokenizer.fileName();
     var hit= findPseudoOpenerBefore(idx, tokenizer);
