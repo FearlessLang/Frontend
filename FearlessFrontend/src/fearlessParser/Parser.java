@@ -49,7 +49,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if(peek(ColonColon)){ return parseImplicit(); }
     if(peek(UStrInterHash,UStrLine)){ return parseStrInter(false,empty()); }
     if(peek(SStrInterHash,SStrLine)){ return parseStrInter(true,empty()); }
-    if(peek(_CurlyGroup)){ return parseGroup("object literal", p->p.parseLiteral(false)); }
+    if(peek(_CurlyGroup)){ return parseGroup("object literal", p->p.parseLiteral(false,false)); }
     var rcSpan= peek().map(t->span(t).orElse(span()));
     Optional<RC> rc= parseOptRC();
     var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH).orElse(false);
@@ -67,7 +67,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var c= new T.RCC(rc, parseC());
     var isCurly= peek(_CurlyGroup);
     if(!isCurly){ return new E.TypedLiteral(c,empty(),pos); }
-    return new E.TypedLiteral(c,of(parseGroup("typed literal",p->p.parseLiteral(false))),pos);
+    return new E.TypedLiteral(c,of(parseGroup("typed literal",p->p.parseLiteral(false,true))),pos);
   }
   T.C parseC(){
     var c= parseTName();
@@ -92,14 +92,15 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     T.X res= parseTX();
     return rc.map(r->(T)new T.RCX(r, res)).orElse(res);
   }
-  T.X parseDecTX(){
+  T.X parseDecTX(boolean mustNew){
     var c= expect("Generic type name declaration", UppercaseId);
-    if(names.XIn(c.content())){ throw errFactory().nameRedeclared(c,span(c).get()); }
+    if(mustNew && names.XIn(c.content())){ throw errFactory().nameRedeclared(c,span(c).get()); }
+    if(!mustNew && !names.XIn(c.content())){ throw errFactory().genericNotInScope(c, span(c).get(), names.Xs()); }
     return new T.X(c.content());
   }
   T.X parseTX(){
     var c= expectValidate("type name", UppercaseId,_XId);
-    if(!names.XIn(c.content())){ throw errFactory().genericNotInScope(c,span(c).get(), names.Xs()); }
+    if(!names.XIn(c.content())){ throw errFactory().genericNotInScope(c, span(c).get(), names.Xs()); }
     return new T.X(c.content());
   }
   E parsePost(E receiver){
@@ -195,7 +196,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if(names.xIn(x.content())){ throw errFactory().nameRedeclared(x,span(x).get()); }
     return new E.X(x.content(),pos(x));
   }
-  E.Literal parseLiteral(boolean top){
+  E.Literal parseLiteral(boolean top, boolean typed){
     Pos pos= pos();
     Token start= expect("object literal",OCurly);
     Token end= expectLast("object literal",CCurly);
@@ -210,7 +211,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       updateNames(names.add(List.of(thisName.get().name()),List.of()));
       }
     if (top && thisName.isEmpty()){ updateNames(names.add(List.of("this"),List.of())); }
-    List<M> ms= splitBy("method declaration",semiSkip,p->p.parseMethod(top));
+    List<M> ms= splitBy("method declaration",semiSkip,p->p.parseMethod(top,typed));
     checkRedeclaration(start, end, ms, pos);
     return new E.Literal(thisName,ms,pos);
     }
@@ -250,14 +251,25 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var x= repeated(Xs);
     if (!x.isEmpty()){ throw errFactory().duplicateGenericInMethodSignature(span(), x); }
   }
-  M parseMethod(boolean top){
-    var res= parseMethodAux(top);
+  void checkTyped(Sig sig){
+    boolean err= false;
+    boolean mustType= sig.t().isPresent()
+      || sig.bs().isPresent()
+      || sig.parameters().stream().anyMatch(p->p.t().isPresent());
+    
+    if (!mustType){ err= sig.rc().isPresent(); }
+    if (mustType){ err= sig.t().isEmpty() || sig.parameters().stream().anyMatch(p->p.t().isEmpty()); }
+    if (!err){ return; }
+    throw errFactory().disallowedSig(span(),sig);
+  }
+  M parseMethod(boolean top, boolean typed){
+    var res= parseMethodAux(top,typed);
     expectEnd("semicolon or closed curly", SemiColon,CCurly);
     return res;
   }
-  M parseMethodAux(boolean top){//assumes to be called on only the tokens of this specific method
+  M parseMethodAux(boolean top, boolean typed){//assumes to be called on only the tokens of this specific method
     Pos pos= pos();
-    Optional<Sig> sig= parseUpTo("method signature",false,arrowSkip,Parser::parseSig);
+    Optional<Sig> sig= parseUpTo("method signature",false,arrowSkip,p->p.parseSig(typed));
     if(sig.isPresent()){
       var xs= sig.get().parameters().stream().flatMap(p->xsOf(p.xp())).toList();
       var Xs= sig.get().bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
@@ -267,7 +279,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     boolean hasSig= peek(DotName,Op,RCap)
       || peekOrder(t->t.is(RCap), t->t.is(DotName,Op));
     if(!hasSig){ return new M(empty(),of(parseMethodBody()),pos); }
-    var res= new M(of(parseSig()),empty(),pos);
+    var res= new M(of(parseSig(typed)),empty(),pos);
     if(!top){ throw errFactory().noAbstractMethod(res.sig().get(),span(pos, 100)); }
     return res;
   }
@@ -275,13 +287,13 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     guard(Parser::checkAbruptExprEnd);
     return  parseRemaining("method body",Parser::parseE); 
     }
-  Sig parseSig(){
+  Sig parseSig(boolean typed){
     var rcSpan= peek().map(t->span(t).orElse(span()));
     var rc= parseOptRC();
     var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH || _rc==RC.iso).orElse(false);
     if(invalid){ throw errFactory().disallowedReadHMutH(rcSpan.get(), rc.get()); }
     var m= parseIf(peek(DotName,Op),this::parseMName);
-    var bs= parseIf(peek(_SquareGroup),this::parseBs);
+    var bs= parseIf(peek(_SquareGroup),()->parseBs(true));
     boolean hasPar=peek(_RoundGroup);
     List<Parameter> ps= hasPar
       ?parseGroupSep("","method parameters declaration",Parser::parseParameter,ORound,CRound,commaSkip)
@@ -293,8 +305,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
     checkValidNew_xs(xs);
     checkValidNew_Xs(Xs);
-
-    return new Sig(rc,m,bs,hasPar,ps,t);
+    var res= new Sig(rc,m,bs,hasPar,ps,t);
+    if (!typed){ checkTyped(res); }
+    return res;
   }
   List<Parameter> parseNakedParameters(){
     if(peek(Colon)){ return List.of(); }
@@ -307,18 +320,18 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     T t= parseT();
     return new Parameter(x,of(t));
   }
-  List<B> parseBs(){ 
+  List<B> parseBs(boolean mustNew){ 
     return parseGroup("",p->{
       p.expect("generic bounds declaration",OSquareArg);
       p.expectLast("generic bounds declaration",CSquare);
-      var res= p.splitBy("generic bounds declaration",commaB,Parser::parseB);
+      var res= p.splitBy("generic bounds declaration",commaB,pi->pi.parseB(mustNew));
       var Xs= res.stream().map(b->b.x().name()).toList();
       checkValidNew_Xs(Xs);
       return res;
     });
   }
-  B parseB(){//note: not always a single B on the tokens
-    T.X x= parseDecTX();
+  B parseB(boolean mustNew){
+    T.X x= parseDecTX(mustNew);
     if(end()){ return new B(x,new B.RCS(List.of())); }
     expect("generic bounds",Colon);
     if(!peek(Op)){ return new B(x,new B.RCS(parseRCs())); }
@@ -340,31 +353,31 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (dup){ throw errFactory().duplicatedImpl(res, spanAround(back(start), index())); }
     return res;
   }
-  Declaration parseTopDeclaration(){ return parseDeclaration(true); }
   public Span span(Pos pos, int size){
     return new Span(pos.fileName(), pos.line(), pos.column(),pos.line(),pos.column()+size); 
   }
   Declaration parseDeclaration(boolean top){
     var c= parseTName();
     var _= expectValidate(back("simple type name"), UppercaseId,_XId); //to get error if of form foo.Bar
-    Optional<List<B>> bs= parseIf(peek(_SquareGroup),this::parseBs);
+    Optional<List<B>> bs= parseIf(peek(_SquareGroup),()->this.parseBs(top));//TODO: fails here for funnelling, here it MUST repeat instead of can not repeat
     if(bs.isPresent()){
       var Xs= bs.get().stream().map(b->b.x().name()).toList();
-      updateNames(names.addXs(Xs));
+      if (top){ updateNames(names.addXs(Xs)); }
+      else    { updateNames(names.setFunnelledXs(Xs)); }
       c = c.withArity(bs.get().size());
     }
     expect("type declaration (:) symbol",Colon);
     
     List<T.C> cs= this.parseImpl();
     assert peek(_CurlyGroup);
-    E.Literal l= parseGroup("type declaration body",p->p.parseLiteral(top));
+    E.Literal l= parseGroup("type declaration body",p->p.parseLiteral(top,true));
     return new Declaration(c,bs,cs,l);
   }
   FileFull parseFileFull(){
     expect("",_SOF);
     expectLast("",_EOF);
     var head=parseUpToOrAll("file header", headEnd,Parser::parseHeader);
-    List<Declaration> ds= splitBy("type declaration",curlyLeft,Parser::parseTopDeclaration);
+    List<Declaration> ds= splitBy("type declaration",curlyLeft,p->p.parseDeclaration(true));
     String pkg= head.pkg.isEmpty()?"":head.pkg.getFirst();
     return new FileFull(pkg,head.role.stream().findFirst(),List.copyOf(head.map),List.copyOf(head.use),ds);
   }
@@ -498,18 +511,15 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (signed){ throw this.errFactory().signedLiteral(spanAround(index(),index()),expectAny("")); }
     throw this.errFactory().missingSemicolonOrOperator(spanAround(index(),index()));    
   }
-
-  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> commaSkip=  p->p.splitOn(Skipped,Comma);
-  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> semiSkip=   p->p.splitOn(Skipped,SemiColon);
-  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> arrowSkip=  p->p.splitOn(Skipped,Arrow);
-  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> curlyLeft=  p->p.splitOn(Left,_CurlyGroup);
-  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> curlyRight= p->p.splitOn(Right,_CurlyGroup);
-  //NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> headKwRight= p->p.splitOn(Right,
-  //      t->TokenKind.validate(t.content(),_role,_use,_map));
-  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> headEnd=    Parser::headEnd;
-  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> commaB=     Parser::onCommaB;
-  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> commaExp=   Parser::onCommaExp;
-  NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> anyLeft=    p->{ p.expectAny(""); return 0; };
-  
+  interface Cut extends NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{}
+  Cut commaSkip=  p->p.splitOn(Skipped,Comma);
+  Cut semiSkip=   p->p.splitOn(Skipped,SemiColon);
+  Cut arrowSkip=  p->p.splitOn(Skipped,Arrow);
+  Cut curlyLeft=  p->p.splitOn(Left,_CurlyGroup);
+  Cut curlyRight= p->p.splitOn(Right,_CurlyGroup);
+  Cut headEnd=    Parser::headEnd;
+  Cut commaB=     Parser::onCommaB;
+  Cut commaExp=   Parser::onCommaExp;
+  Cut anyLeft=    p->{ p.expectAny(""); return 0; };  
   @Override public FearlessErrFactory errFactory(){ return new FearlessErrFactory(); }
 }

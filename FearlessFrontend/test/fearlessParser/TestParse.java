@@ -141,16 +141,23 @@ Error 2  UnexpectedToken
 ""","""
 A:{.foo[X]:A->B:{.bar[X]:B->B}; }
 """);}
-@Test void type_type_repeat(){fail("""
+@Test void type_type_repeatFunnel(){ok("""
+[###][B[x=X[name=X],bt=RCS[rcs=[]]]]],cs=[],l=[###]
+""","""
+A[X]:{.foo:AA->B[X]:{.bar:BB->BB}; }
+""");}
+@Test void type_type_noFunnel(){fail("""
 In file: [###]/in_memory0.fear
 
-001| A[X]:{.foo:AA->B[X]:{.bar:BB->BB}; }
+001| A[X]:{.foo:AA->B[C]:{.bar:BB->BB}; }
    | ---------------~~^~~~~~~~~~~~~~~~---
 
 While inspecting generic bounds declaration > method body > method declaration > type declaration body > type declaration > full file
-Name "X" already in scope
-Error 2  UnexpectedToken""","""
-A[X]:{.foo:AA->B[X]:{.bar:BB->BB}; }
+Generic type "C" is not in scope
+Declared generics: X
+Error 2  UnexpectedToken
+""","""
+A[X]:{.foo:AA->B[C]:{.bar:BB->BB}; }
 """);}
 @Test void use_this(){ok("""
 FileFull[[###]decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
@@ -3895,4 +3902,59 @@ A:{
 [###]""","""
 A:B{`this .foo->this }
 """); }
+
+@Test void partialSigType1(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ { .foo x:Bar->B; } }
+   | ----~~^^^^^^^^^^~~~~~~--
+
+While inspecting method signature > method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+A literal signature can only be either fully typed or fully untyped.
+Signature ".foo x: Bar" has some, but not all, type informations.
+Error 10  WellFormedness
+""","""
+A:{ { .foo x:Bar->B; } }
+"""); }
+
+@Test void partialSigType2(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ { mut .foo->B; } }
+   | ----~~^^^^^^^^~~~~~~--
+
+While inspecting method signature > method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+A literal signature can only be either fully typed or fully untyped.
+Signature "mut .foo" has some, but not all, type informations.
+Error 10  WellFormedness
+""","""
+A:{ { mut .foo->B; } }
+"""); }
+@Test void partialSigType3(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ { .foo[X]->B; } }
+   | ----~~^^^^^^^~~~~~~--
+
+While inspecting method signature > method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+A literal signature can only be either fully typed or fully untyped.
+Signature ".foo[X]" has some, but not all, type informations.
+Error 10  WellFormedness
+""","""
+A:{ { .foo[X]->B; } }
+"""); }
+@Test void partialSigType4(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ { mut .foo(x:Bar)->B; } }
+   | ----~~^^^^^^^^^^^^^^^~~~~~~--
+
+While inspecting method signature > method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+A literal signature can only be either fully typed or fully untyped.
+Signature "mut .foo(x: Bar)" has some, but not all, type informations.
+Error 10  WellFormedness
+""","""
+A:{ { mut .foo(x:Bar)->B; } }
+"""); }
 }
+//TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

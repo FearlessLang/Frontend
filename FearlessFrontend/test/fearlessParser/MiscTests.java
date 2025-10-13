@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 public class MiscTests {
   @Test void XIn_checks_Xs_not_xs(){
-    var n = new Names(List.of("a"), List.of("X","Y"));
+    var n = new Names(List.of("a"), List.of("X","Y"),List.of());
     assertTrue(n.XIn("X"));
     assertFalse(n.XIn("a"));
   }
