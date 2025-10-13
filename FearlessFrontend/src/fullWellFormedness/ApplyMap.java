@@ -29,7 +29,7 @@ public class ApplyMap {
   }
 }
 record ApplyMapVisitor(Function<String,String> f) implements EVisitor<E>,TVisitor<T>{
-  @Override public T visitX(T.X x){ return x; }
+  @Override public T visitTX(T.X x){ return x; }
   @Override public T visitRCX(T.RCX x){ return x; }
   @Override public T visitReadImmX(T.ReadImmX x){ return x; }
   @Override public T visitRCC(T.RCC c){

@@ -16,7 +16,7 @@ public sealed interface T {
   <R> R accept(TVisitor<R> v);
   record X(String name) implements T{
     public X{assert validate(name,"generic type name", _XId);}
-    public <R> R accept(TVisitor<R> v){ return v.visitX(this); }
+    public <R> R accept(TVisitor<R> v){ return v.visitTX(this); }
   }
   record RCX(RC rc, X x) implements T{
     public RCX{assert nonNull(rc,x);}

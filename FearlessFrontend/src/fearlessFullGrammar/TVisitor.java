@@ -6,7 +6,7 @@ import java.util.function.Function;
 import fearlessParser.RC;
 
 public interface TVisitor<R>{
-  R visitX(T.X x);
+  R visitTX(T.X x);
   R visitRCX(T.RCX x);
   R visitReadImmX(T.ReadImmX x);
   R visitRCC(T.RCC c);

@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 
 import fearlessFullGrammar.M;
 import fearlessFullGrammar.MName;
+import fearlessFullGrammar.Sig;
+import fearlessFullGrammar.T;
+import fearlessFullGrammar.ToString;
 import fearlessParser.HasImplicitVisitor;
 import fearlessParser.Parser;
 import fearlessParser.RC;
@@ -114,7 +117,12 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
         "There is already an entry in the using with destination "+Message.displayString(what)+".\n"
     ).addSpan(at);
   }
-
+  public FearlessException duplicatedImpl(List<T.C> cs, Span at){
+    T.C c= redeclaredElement(cs);
+    return Code.WellFormedness.of(
+      "Duplicated supertype in type declaration: "+Message.displayString(ToString.c(c))+".\n"
+    ).addSpan(at);
+  }
 
   public FearlessException nameNotInScope(Token name, Span at, Collection<String> inScope){
     return Code.UnexpectedToken.of(() -> {
@@ -225,22 +233,18 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +"Generic type parameter "+Message.displayString(name)+" is repeated").addSpan(at);
   }
   public String context(){return "File ended while parsing a "; }
-  private static String expected(Collection<? extends Object> items){ return expected("Expected ",items); }
-  private static String expected(String pre, Collection<? extends Object> items){
+  private static String expected(Collection<TokenKind> items){ return expected("Expected ",items); }
+  private static String expected(String pre, Collection<TokenKind> items){
     return (items.isEmpty() ? "" : (pre + _joinOrEmpty(items)));
   }
 
-  private static String _joinOrEmpty(Collection<? extends Object> items){
+  private static String _joinOrEmpty(Collection<TokenKind> items){
     if (items.isEmpty()){ return ""; }
     var res= items.stream()
-    .map(FearlessErrFactory::labelOf)
+    .map(tk->Message.displayString(tk.human))
     .collect(Collectors.joining(", "))+".\n";
     if (items.size() == 1){ return res; }
     return "one of: "+res;
-  }
-  private static String labelOf(Object o){
-    if (!(o instanceof fearlessParser.TokenKind tk)){ return String.valueOf(o); }
-    return Message.displayString(tk.human);
   }
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     String head= what.isBlank()
@@ -315,8 +319,8 @@ Fearless does not allow rational literals of form "1/2"
     boolean isCloser= stop.is(CRound, CSquare, CCurly, CCurlyId);
     boolean isBarrier= !eof && !isCloser;
 
-    String openLabel= labelOf(open.kind());
-    String stopLabel= eof ? "end of group" : labelOf(stop.kind());
+    String openLabel= Message.displayString(open.kind().human);
+    String stopLabel= eof ? "end of group" : Message.displayString(stop.kind().human);
     String base=
       sof
         ?"Unopened " + stopLabel + ".\n"
@@ -345,7 +349,7 @@ Fearless does not allow rational literals of form "1/2"
     var file= tokenizer.fileName();
     String where= BadTokens.describeFree(hiddenContainer);
     String msg=
-      "Unclosed " + labelOf(open.kind()) + " group.\n"
+      "Unclosed " + Message.displayString(open.kind().human) + " group.\n"
     + "Found a matching closer inside a" + where + " between here and the stopping point.\n"
     + "Did you mean to place the closer outside the" + where + "?\n"
     + expected("Otherwise expected ",expectedClosers);
@@ -361,7 +365,7 @@ Fearless does not allow rational literals of form "1/2"
     var file= tokenizer.fileName();
     String where= BadTokens.describeFree(hiddenContainer);
     String msg=
-      "Unopened " + labelOf(stop.kind()) + ".\n"
+      "Unopened " + Message.displayString(stop.kind().human) + ".\n"
     + "Found a matching opener hidden inside a" + where + " before this point.\n"
     + "Did you mean to place the opener outside the" + where + "?";
     var primary= metaParser.Token.makeSpan(file, hiddenFragment, stop);
@@ -381,6 +385,11 @@ Fearless does not allow rational literals of form "1/2"
   public FearlessException badTopSelfName(Span at, String name){
     String msg= "Self name "+name+" invalid in a top level type.\n"
       + "Top level types self names can only be \"`this\".\n";
-    return Code.UnexpectedToken.of(msg).addSpan(at);
+    return Code.WellFormedness.of(msg).addSpan(at);
+  }
+  public FearlessException noAbstractMethod(Sig sig, Span at){
+    String msg= "Abstract method declaration for "+Message.displayString(ToString.sig(sig))
+      +".\nOnly top level methods can be abstract.\n";
+    return Code.WellFormedness.of(msg).addSpan(at);
   }
 }

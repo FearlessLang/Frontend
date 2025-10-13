@@ -10,7 +10,7 @@ import fearlessParser.RC;
 
 public record B(T.X x, BT bt){
   public B{ assert nonNull(x,bt);}
-  public interface BT{}
+  public sealed interface BT{}
   public record Star() implements BT{}
   public record StarStar() implements BT{}
   public record RCS(List<RC> rcs) implements BT{

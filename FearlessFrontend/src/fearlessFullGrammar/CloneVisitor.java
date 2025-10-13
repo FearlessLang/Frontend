@@ -1,10 +1,7 @@
 package fearlessFullGrammar;
 
-import fearlessFullGrammar.E;
 import fearlessFullGrammar.E.*;
-import fearlessFullGrammar.T;
 import fearlessFullGrammar.T.*;
-import fearlessFullGrammar.T.X;
 import fearlessFullGrammar.XPat.Destruct;
 import fearlessFullGrammar.XPat.Name;
 
@@ -12,12 +9,12 @@ public class CloneVisitor implements EVisitor<E>,TVisitor<T>,XPatVisitor<XPat>{
   @Override public XPat visitXPatName(Name n){   return null;  }
   @Override public XPat visitXPatDestruct(Destruct d){    return null; }
   
-  @Override public T visitX(X x){ return null; }
+  @Override public T visitTX(T.X x){ return null; }
   @Override public T visitRCX(RCX x){ return null; }
   @Override public T visitReadImmX(ReadImmX x){ return null; }
   @Override public T visitRCC(RCC c){  return null; }
   
-  @Override public E visitX(fearlessFullGrammar.E.X n){ return null; }
+  @Override public E visitX(E.X n){ return null; }
   @Override public E visitRound(Round r){ return null; }
   @Override public E visitImplicit(Implicit n){  return null;  }
   @Override public E visitTypedLiteral(TypedLiteral t){  return null; }

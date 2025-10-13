@@ -180,10 +180,10 @@ In file: [###]/in_memory0.fear
 001| A:{ `abc .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
    | ~~~~~^^^~~~~~~~~~~~~~~~~~---------------------------------------------------------
 
-While inspecting type declaration > full file
+While inspecting type declaration body > type declaration > full file
 Self name abc invalid in a top level type.
 Top level types self names can only be "`this".
-Error 2  UnexpectedToken
+Error 10  WellFormedness
 ""","""
 A:{ `abc .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
 """);}
@@ -610,8 +610,8 @@ fff
 In file: [###]/in_memory0.fear
 
 001| A:{
-002| `self
-003| .m(a,,b):C -> self
+002| \n\
+003| .m(a,,b):C -> this
    | ~~~~^~~~~~--------
 004| //comment
 005| }
@@ -622,8 +622,8 @@ Expected "type name".
 Error 2  UnexpectedToken
 ""","""
 A:{
-`self
-.m(a,,b):C -> self
+
+.m(a,,b):C -> this
 //comment
 }
 """);}
@@ -3839,5 +3839,60 @@ A:{
    .let x={2}
    .return{x};
  }
+"""); }
+
+@Test void duplicatedSupertypeOk(){ ok("""
+[###][
+C[name=B/0,ts=Optional.empty],
+C[name=C/0,ts=Optional.empty],
+C[name=D/0,ts=Optional.empty]
+][###]
+""","""
+A:B,C,D{
+ mut .ban(y):Bar->Block#
+   .let x={2}
+   .return{x};
+ }
+"""); }
+@Test void duplicatedSupertype1(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:B,C,B,D{
+   |   ^^^^^^^
+   | ... 3 lines ...
+005|  }
+
+While inspecting type declaration > full file
+Duplicated supertype in type declaration: "B".
+Error 10  WellFormedness
+""","""
+A:B,C,B,D{
+ mut .ban(y):Bar->Block#
+   .let x={2}
+   .return{x};
+ }
+"""); }
+
+@Test void absMeth(){ fail("""
+In file: [###]/in_memory0.fear
+
+002|  mut .ban(y):Bar->
+003|    {`self .foo:Bar;};
+   |    -------^^^^^^^^--
+
+While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+Abstract method declaration for ".foo: Bar".
+Only top level methods can be abstract.
+Error 10  WellFormedness
+""","""
+A:{
+ mut .ban(y):Bar->
+   {`self .foo:Bar;};
+ }
+"""); }
+
+@Test void explicitThis(){ ok("""
+[###]""","""
+A:B{`this .foo->this }
 """); }
 }
