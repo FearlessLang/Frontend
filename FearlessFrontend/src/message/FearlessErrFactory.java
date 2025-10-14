@@ -3,6 +3,7 @@ package message;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -11,7 +12,6 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.Sig;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.ToString;
-import fearlessParser.HasImplicitVisitor;
 import fearlessParser.Parser;
 import fearlessParser.RC;
 import fearlessParser.Token;
@@ -44,7 +44,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     assert nonNull(from,parser,expectedTerminatorTokens);
     String msg= "Extra content in the current group.\n";
     if (!expectedTerminatorTokens.isEmpty()){
-      msg += expected("Instead, expected "+what+": ",expectedTerminatorTokens);
+      var instead= "Instead, expected "+what;
+      msg += expected("",instead+": ",instead+" one of: ",expectedTerminatorTokens,tk->tk.human);
     }
     return Code.ExtraTokenInGroup.of(msg).addSpan(from);
   }
@@ -175,8 +176,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public int parCount(M m){
     if(m.sig().isPresent() && m.sig().get().m().isPresent()){ return -1; }
-    var hasImplcit= m.body().map(e->e.accept(new HasImplicitVisitor())).orElse(false);
-    return m.sig().map(s->s.parameters().size()).orElse(0) + (hasImplcit?1:0);    
+    return m.sig().map(s->s.parameters().size()).orElse(0) + (m.hasImplicit()?1:0);    
   }
   public FearlessException methNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
     var count= redeclaredElement(noNames);
@@ -223,10 +223,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
     return Code.UnexpectedToken.of(() ->
-      "Generic type "+Message.displayString(X.content())+" is not in scope\n" +
-      (Xs.isEmpty()
-        ? "No generic parameters are declared here."
-        : "Declared generics: " + String.join(", ", Xs))).addSpan(at);
+      "Generic type "+Message.displayString(X.content())+" is not in scope.\n" +
+      expected(
+        "No generic parameters are declared here",
+        "Declared generics: ","Declared generics: ",
+        Xs,s->s)).addSpan(at);
   }
   public FearlessException duplicateParamInMethodSignature(Span at, String name){
     return Code.UnexpectedToken.of(
@@ -239,18 +240,14 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +"Generic type parameter "+Message.displayString(name)+" is repeated").addSpan(at);
   }
   public String context(){return "File ended while parsing a "; }
-  private static String expected(Collection<TokenKind> items){ return expected("Expected ",items); }
-  private static String expected(String pre, Collection<TokenKind> items){
-    return (items.isEmpty() ? "" : (pre + _joinOrEmpty(items)));
-  }
-
-  private static String _joinOrEmpty(Collection<TokenKind> items){
-    if (items.isEmpty()){ return ""; }
-    var res= items.stream()
-    .map(tk->Message.displayString(tk.human))
-    .collect(Collectors.joining(", "))+".\n";
-    if (items.size() == 1){ return res; }
-    return "one of: "+res;
+  private static String expected(Collection<TokenKind> items){ return expected("","Expected: ","Expected one of: ",items,tk->tk.human); }
+  private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
+    if (items.isEmpty()){ return pre0.isEmpty()? "" : pre0+".\n"; }
+    String res= items.stream()
+        .map(e->Message.displayString(f.apply(e)))
+        .collect(Collectors.joining(", "));
+    if (items.size() == 1){ return pre1 + res + ".\n"; }
+    return preMany + res + ".\n";
   }
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     String head= what.isBlank()
@@ -342,7 +339,8 @@ Fearless does not allow rational literals of form "1/2"
       case MissingOpener -> "Insert the matching opener before this closer.\n";
       case Unknown       -> "";
     };
-    var expected= sof?"":expected(hint.isEmpty()?"Expected ":"Otherwise expected ",expectedClosers);
+    var other= hint.isEmpty()?"Expected":"Otherwise expected";
+    var expected= sof?"":expected("",other+": ", other+" one of: ",expectedClosers,tk->tk.human);
     var span = eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
     var code= sof ? Code.Unopened : (eof || isBarrier) ? Code.Unclosed : Code.UnexpectedToken;
     return code.of(base + hint+ expected).addSpan(span);
@@ -354,11 +352,13 @@ Fearless does not allow rational literals of form "1/2"
 
     var file= tokenizer.fileName();
     String where= BadTokens.describeFree(hiddenContainer);
+    var other= "Otherwise expected";
     String msg=
       "Unclosed " + Message.displayString(open.kind().human) + " group.\n"
     + "Found a matching closer inside a" + where + " between here and the stopping point.\n"
     + "Did you mean to place the closer outside the" + where + "?\n"
-    + expected("Otherwise expected ",expectedClosers);
+    + expected("",other+": ", other+" one of: ",expectedClosers,tk->tk.human);
+
     var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
     var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
     return Code.Unclosed.of(msg).addSpan(primary).addSpan(secondary);

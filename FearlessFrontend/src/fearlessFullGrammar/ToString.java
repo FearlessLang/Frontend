@@ -1,7 +1,10 @@
 package fearlessFullGrammar;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
+
 import fearlessFullGrammar.E.*;
 import fearlessFullGrammar.T.*;
 import fearlessFullGrammar.XPat.Destruct;
@@ -51,7 +54,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
   @Override public StringBuilder visitXPatDestruct(Destruct d){ return append("{",
     d.extract(),
     ns->ns.forEach(n->append(n.s())),
-    ", ",
+    ",",
     "}").append(d.id().orElse(""));
   }  
   @Override public StringBuilder visitTX(T.X x){ return append(x.name()); }
@@ -81,7 +84,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
   }
   @Override public StringBuilder visitLiteral(Literal c){
     append("{");
-    c.thisName().ifPresent(n->append("`").append(n.name()).append(" "));
+    c.thisName().ifPresent(n->append("`").append(n.name()));
     c.methods().forEach(this::visitInnerM);
     return append("}");
   }
@@ -89,28 +92,30 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     c.e().accept(this).append(" ").append(c.name().s());
     c.targs().ifPresent(cs ->{
       append("[");
-      cs.rc().ifPresent(rc->append(rc.name()).append(", "));
-      append("", cs.ts(), t -> t.accept(this), ", ", "]");
+      cs.rc().ifPresent(rc->append(rc.name()));
+      if (cs.rc().isPresent() && !cs.ts().isEmpty()){ append(","); }
+      append("", cs.ts(), t -> t.accept(this), ",", "]");
       });
-    append(c.pars()?"(":" ");
+    append(c.pars()?"(":(c.es().isEmpty()?"":" "));
     c.pat().ifPresent(pat->pat.accept(this));
     append("",c.es(),e->e.accept(this),", ","");
-    append(c.pars()?"(":"");
+    append(c.pars()?")":"");
     return res;
   }
   @Override public StringBuilder visitStringInter(StringInter i){
     i.e().ifPresent(e->e.accept(this).append(" "));
+    String nl= i.simple()?"|'":"|\"";
     append("\n");
+    var it= i.hashCounts().listIterator();
+    append("#".repeat(it.next())+nl);
     for (int j= 0; j < i.es().size(); j++){
-      int c= i.hashCounts().get(j);
-      append("#".repeat(c));
-      append(i.simple()?"|'":"|\"");
-      append(i.strings().get(j)).append("{".repeat(c));     
+      appendMultiline(i.strings().get(j),it,h->"\n" + ("#".repeat(h)) + nl);
+      int c= i.hashCounts().get(it.previousIndex());
+      append("{".repeat(c));
       i.es().get(j).accept(this).append("}".repeat(c));
     }
-    append("#".repeat(i.hashCounts().getLast()));
-    append(i.simple()?"|'":"|\"");
-    return append(i.strings().getLast());
+    appendMultiline(i.strings().getLast(),it,h->"\n" + ("#".repeat(h)) + nl);
+    return res;
   }
   @Override public Declaration visitInnerDeclaration(Declaration d){
     append(d.name().s());
@@ -122,6 +127,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     return d;
     }
   @Override public M visitInnerM(M m){
+    append(" ");
     m.sig().ifPresent(this::visitInnerSig);
     if (m.sig().isPresent() && m.body().isPresent()){ append(" -> "); }
     m.body().ifPresent(e->e.accept(this));
@@ -130,7 +136,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
   }
   @Override public T.C visitInnerC(T.C c){
     append(c.name().s());
-    c.ts().ifPresent(ts->append("[",ts,t->t.accept(this),", ","]"));
+    c.ts().ifPresent(ts->append("[",ts,t->t.accept(this),",","]"));
     return c;
   }
   @Override public Sig visitInnerSig(Sig s){
@@ -166,4 +172,15 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
   @Override public XPat visitInnerXPat(XPat x){ throw Bug.unreachable(); }
   @Override public CallSquare visitInnerCallSquare(CallSquare c){ throw Bug.unreachable(); }
   @Override public RCC visitInnerRCC(RCC t){ throw Bug.unreachable(); }
+  private <EE> void appendMultiline(String s, Iterator<EE> it, Function<EE,String> f){
+    int from= 0;
+    int i;
+    while ((i = s.indexOf('\n', from)) != -1){
+      res.append(s, from, i);
+      from = i + 1;
+      if (it.hasNext()){ res.append(f.apply(it.next())); }
+      else{ res.append('\n'); }
+    }
+    res.append(s, from, s.length());
+  }
 }

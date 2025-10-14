@@ -40,10 +40,11 @@ public class ParsePackage{
     var uses = new HashMap<TName,String>();
     for (var u: head.uses()){ uses.put(u.in(),u.out()); }
     res = new ApplyUses().applyUses(res,uses);
-    var map = new HashMap<TargetIn,String>();
-    for (var m: head.maps()){ map.put(new TargetIn(m.target(),m.in()),m.out()); }
-    for (var m: override){ map.put(new TargetIn(m.target(),m.in()),m.out()); }
-    res = new ApplyMap().applyMap(res,map);
+    //TODO:
+    //var map = new HashMap<TargetIn,String>();
+    //for (var m: head.maps()){ map.put(new TargetIn(m.target(),m.in()),m.out()); }
+    //for (var m: override){ map.put(new TargetIn(m.target(),m.in()),m.out()); }
+    //res = new ApplyMap().applyMap(res,map);
     new WellFormed().wellFormed(res);
     return res;
   }

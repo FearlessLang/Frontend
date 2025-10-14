@@ -72,6 +72,13 @@ public abstract class MetaParser<
     index++;
     return tt;
   }
+  public final T expectAnyLast(String what){
+    var t= peekLast();
+    if (t.isEmpty()){ throw errFactory().missing(spanLast(), what, List.of(),self()); }
+    var tt= t.get();
+    limit--;
+    return tt;
+  }
   @SafeVarargs
   public final T expect(String what,TK... kinds){
     var t= peek();
@@ -217,7 +224,7 @@ public abstract class MetaParser<
       int start= splitterParser.index();
       int drop= probe.cutAt(splitterParser);
       int end= splitterParser.index();
-      checkProbeError(false,start, end, drop, splitterParser, frameName);
+      ((MetaParser<T,TK,E,Tokenizer,Parser,Err>)splitterParser).checkProbeErrorFront(false,start, end, drop, frameName);
       var tsi= List.copyOf(slice.subList(start, end-drop));
       var si= splitterParser.spanAround(start,(end-1)-drop);
       parts.add(make(si,tsi));
@@ -239,8 +246,8 @@ public abstract class MetaParser<
   ///If the probe eats all the tokens, all the tokens are parsed.
   ///The probe accepting all the token signals no prefix.
   ///The probe returns the number of tokens to drop. This number must be between 0 and the number of consumed tokens.  
-  public final <R> R parseUpToOrAll(String frameName, NextCut<T,TK,E,Tokenizer,Parser,Err> probe, Rule<T,TK,E,Tokenizer,Parser,Err,R> first){
-    var res= parseUpTo(frameName, true, probe, first);
+  public final <R> R parseFrontOrAll(String frameName, NextCut<T,TK,E,Tokenizer,Parser,Err> probe, Rule<T,TK,E,Tokenizer,Parser,Err,R> first){
+    var res= parseFront(frameName, true, probe, first);
     if (res.isPresent()){ return res.get(); }
     return parseAll(frameName,first);
   }  
@@ -251,19 +258,42 @@ public abstract class MetaParser<
   ///Must be a proper division, that is, if the probe eats all the tokens we get an Optional.empty() result.
   ///The probe accepting all the token signals no prefix.
   ///The probe returns the number of tokens to drop. This number must be between 0 and the number of consumed tokens.  
-  public final <R> Optional<R> parseUpTo(String frameName, boolean emptyAllowed, NextCut<T,TK,E,Tokenizer,Parser,Err> probe, Rule<T,TK,E,Tokenizer,Parser,Err,R> first){
+  public final <R> Optional<R> parseFront(String frameName, boolean emptyAllowed, NextCut<T,TK,E,Tokenizer,Parser,Err> probe, Rule<T,TK,E,Tokenizer,Parser,Err,R> first){
     var slice= ts.subList(index, limit);
     var s= spanAround(index, limit-1);
     Parser splitterParser= make(s,slice);
     int start= splitterParser.index();
     int drop= probe.cutAt(splitterParser);
     int end= splitterParser.index();
-    checkProbeError(emptyAllowed,start, end, drop, splitterParser, frameName);
+    ((MetaParser<T,TK,E,Tokenizer,Parser,Err>)splitterParser).checkProbeErrorFront(emptyAllowed,start, end, drop, frameName);
     if(splitterParser.end()){ return Optional.empty(); }//split not found
     var firstS= splitterParser.spanAround(0,(end-1)-drop);
     Parser firstParser= make(firstS,List.copyOf(slice.subList(0, end-drop)));
     var res= firstParser.parseAll(frameName, first);
     this.index+= end;//mark the tokens as eaten
+    return Optional.of(res);
+  }
+  ///Suitable to divide two non empty lists of tokens, especially if
+  ///the division can not be easily located by looking at a few tokens backwards.
+  ///Parses a (non empty) list of tokens from the start of this parser.
+  ///(set parameter emptyAllowed=true to allow a non progressing probe)
+  ///Must be a proper division, that is, if the probe eats all the tokens we get an Optional.empty() result.
+  ///The probe accepting all the token signals no prefix.
+  ///The probe returns the number of tokens to drop. This number must be between 0 and the number of consumed tokens.  
+  public final <R> Optional<R> parseBack(String frameName, boolean emptyAllowed, NextCut<T,TK,E,Tokenizer,Parser,Err> probe, Rule<T,TK,E,Tokenizer,Parser,Err,R> first){
+    var slice= ts.subList(index, limit);
+    var s= spanAround(index, limit-1);
+    Parser splitterParser= make(s,slice);
+    int start= splitterParser.limit();
+    int drop= probe.cutAt(splitterParser);
+    int end= splitterParser.limit();
+    ((MetaParser<T,TK,E,Tokenizer,Parser,Err>)splitterParser).checkProbeErrorFront(emptyAllowed,end, start, drop, frameName);
+    //TODO: test if the errors make sense by just swapping start/end    
+    if(splitterParser.end()){ return Optional.empty(); }//split not found
+    var lastS= splitterParser.spanAround(end + drop, limit - 1);
+    Parser firstParser= make(lastS,List.copyOf(slice.subList(end + drop, limit)));
+    var res= firstParser.parseAll(frameName, first);
+    this.limit += end;//mark the tokens as eaten
     return Optional.of(res);
   }
   /** Runs a well-formedness check on the remaining tokens.
@@ -277,13 +307,13 @@ public abstract class MetaParser<
     Parser shadow= make(s, slice);
     check.accept(shadow);
   }
-  private void checkProbeError(boolean emptyAllowed, int start, int end, int drop, Parser splitterParser, String frameName){
+  private void checkProbeErrorFront(boolean emptyAllowed, int start, int end, int drop, String frameName){
     if (drop < 0 || start > end - drop){
-      var at= splitterParser.spanAround(start, start);
+      var at= spanAround(start, start);
       throw errFactory().badProbeDropIn(frameName, at, start, end, drop,self()); 
       }
     if (!emptyAllowed && start >= end){
-      var at = splitterParser.spanAround(start, start);
+      var at = spanAround(start, start);
       throw errFactory().probeStalledIn(frameName, at, start, end,self());
     }
   }

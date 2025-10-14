@@ -227,16 +227,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   Stream<String> xsOf(Optional<XPat> xp){
     if(xp.isEmpty()){ return Stream.of(); }
-    var v= new XPatVisitor<Stream<String>>(){
-      @Override public Stream<String> visitXPatName(XPat.Name n){
-        return Stream.of(n.x().name());
-      }
-      @Override public Stream<String> visitXPatDestruct(XPat.Destruct d){
-        String id= d.id().orElse("");
-        return d.extract().stream().map(e->e.getLast().s().substring(1)+id);
-      }
-    };
-    return xp.get().accept(v);
+    return xp.get().parameterNames();
   }
   String repeated(List<String> ss){
     var seen= new java.util.HashSet<String>();
@@ -251,35 +242,40 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var x= repeated(Xs);
     if (!x.isEmpty()){ throw errFactory().duplicateGenericInMethodSignature(span(), x); }
   }
-  void checkTyped(Sig sig){
+  void checkTyped(Sig sig, boolean implicit){
     boolean err= false;
     boolean mustType= sig.t().isPresent()
       || sig.bs().isPresent()
       || sig.parameters().stream().anyMatch(p->p.t().isPresent());
     
     if (!mustType){ err= sig.rc().isPresent(); }
-    if (mustType){ err= sig.t().isEmpty() || sig.parameters().stream().anyMatch(p->p.t().isEmpty()); }
-    if (!err){ return; }
-    throw errFactory().disallowedSig(span(),sig);
+    if (mustType){ err= !sig.fullyTyped() || implicit; }
+    if (err){ throw errFactory().disallowedSig(span(),sig); }
   }
   M parseMethod(boolean top, boolean typed){
     var res= parseMethodAux(top,typed);
     expectEnd("semicolon or closed curly", SemiColon,CCurly);
     return res;
   }
+  M parseMethodWithSig(Sig sig, Pos pos, boolean typed){
+    var xs= sig.parameters().stream().flatMap(p->xsOf(p.xp())).toList();
+    var Xs= sig.bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
+    updateNames(names.add(xs,Xs));
+    var res= new M(of(sig),of(parseMethodBody()),pos);
+    if (!typed){ checkTyped(sig, res.hasImplicit()); }
+    return res;
+  }
   M parseMethodAux(boolean top, boolean typed){//assumes to be called on only the tokens of this specific method
-    Pos pos= pos();
-    Optional<Sig> sig= parseUpTo("method signature",false,arrowSkip,p->p.parseSig(typed));
-    if(sig.isPresent()){
-      var xs= sig.get().parameters().stream().flatMap(p->xsOf(p.xp())).toList();
-      var Xs= sig.get().bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
-      updateNames(names.add(xs,Xs));
-      return new M(sig,of(parseMethodBody()),pos);
-    }
+    Pos pos= pos();    
+    Optional<M> m= parseFront("method signature",false,arrowSkip,Parser::parseSig)
+      .map(s->parseMethodWithSig(s,pos,typed));
+    if (m.isPresent()){ return m.get(); }
     boolean hasSig= peek(DotName,Op,RCap)
       || peekOrder(t->t.is(RCap), t->t.is(DotName,Op));
     if(!hasSig){ return new M(empty(),of(parseMethodBody()),pos); }
-    var res= new M(of(parseSig(typed)),empty(),pos);
+    Sig sig= parseSig();
+    var res= new M(of(sig),empty(),pos);
+    if (!typed){ checkTyped(sig,false); }
     if(!top){ throw errFactory().noAbstractMethod(res.sig().get(),span(pos, 100)); }
     return res;
   }
@@ -287,27 +283,25 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     guard(Parser::checkAbruptExprEnd);
     return  parseRemaining("method body",Parser::parseE); 
     }
-  Sig parseSig(boolean typed){
+  Sig parseSig(){
     var rcSpan= peek().map(t->span(t).orElse(span()));
     var rc= parseOptRC();
     var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH || _rc==RC.iso).orElse(false);
     if(invalid){ throw errFactory().disallowedReadHMutH(rcSpan.get(), rc.get()); }
     var m= parseIf(peek(DotName,Op),this::parseMName);
     var bs= parseIf(peek(_SquareGroup),()->parseBs(true));
+    var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
+    checkValidNew_Xs(Xs);
+    updateNames(names.addXs(Xs));//added both inside and outside since different parsers
     boolean hasPar=peek(_RoundGroup);
     List<Parameter> ps= hasPar
       ?parseGroupSep("","method parameters declaration",Parser::parseParameter,ORound,CRound,commaSkip)
       :parseNakedParameters();
     Optional<T> t= parseOptT();
     m = m.map(_m->_m.withArity(ps.size()));
-    
-    var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();
-    var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
+    var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();    
     checkValidNew_xs(xs);
-    checkValidNew_Xs(Xs);
-    var res= new Sig(rc,m,bs,hasPar,ps,t);
-    if (!typed){ checkTyped(res); }
-    return res;
+    return new Sig(rc,m,bs,hasPar,ps,t);
   }
   List<Parameter> parseNakedParameters(){
     if(peek(Colon)){ return List.of(); }
@@ -345,7 +339,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   
   List<T.C> parseImpl(){
     int start= index();
-    var res= parseUpTo("",true,
+    var res= parseFront("",true,
       curlyRight,
       p->p.splitBy("super types declaration",commaSkip,Parser::parseC)
     ).get();
@@ -376,7 +370,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   FileFull parseFileFull(){
     expect("",_SOF);
     expectLast("",_EOF);
-    var head=parseUpToOrAll("file header", headEnd,Parser::parseHeader);
+    var head=parseFrontOrAll("file header", headEnd,Parser::parseHeader);
     List<Declaration> ds= splitBy("type declaration",curlyLeft,p->p.parseDeclaration(true));
     String pkg= head.pkg.isEmpty()?"":head.pkg.getFirst();
     return new FileFull(pkg,head.role.stream().findFirst(),List.copyOf(head.map),List.copyOf(head.use),ds);

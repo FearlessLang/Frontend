@@ -153,8 +153,8 @@ In file: [###]/in_memory0.fear
    | ---------------~~^~~~~~~~~~~~~~~~---
 
 While inspecting generic bounds declaration > method body > method declaration > type declaration body > type declaration > full file
-Generic type "C" is not in scope
-Declared generics: X
+Generic type "C" is not in scope.
+Declared generics: "X".
 Error 2  UnexpectedToken
 ""","""
 A[X]:{.foo:AA->B[C]:{.bar:BB->BB}; }
@@ -463,7 +463,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected "type name".
+Expected: "type name".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(): -> (Block#.let x={5}) .use(x) }
@@ -543,7 +543,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected "type name".
+Expected: "type name".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m(a,,b):C }
@@ -625,7 +625,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected "type name".
+Expected: "type name".
 Error 2  UnexpectedToken
 ""","""
 A:{
@@ -1500,7 +1500,7 @@ In file: [###]/in_memory0.fear
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Interpolation expression ended while parsing a "(" group.
 This "(" may be unintended.
-Otherwise expected ")".
+Otherwise expected: ")".
 Error 0  Unclosed
 ""","""
 A:{
@@ -2312,7 +2312,7 @@ While inspecting the file
 Unclosed "(" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
-Otherwise expected ")".
+Otherwise expected: ")".
 Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> ( ")]" + " has ) here ) inside" } 
@@ -2328,7 +2328,7 @@ While inspecting the file
 Unclosed "[" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
-Otherwise expected "]".
+Otherwise expected: "]".
 Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> W[ "list ] marker" ) ] }
@@ -2376,7 +2376,7 @@ While inspecting the file
 Unclosed "[" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
 Did you mean to place the closer outside the block comment "/* ... */"?
-Otherwise expected "]".
+Otherwise expected: "]".
 Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> Foo[ /* ] hidden */ } ]
@@ -2640,7 +2640,7 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 Wrong closer for "(" group.
 Found instead: "]".
-Expected ")".
+Expected: ")".
 Error 2  UnexpectedToken
 """,""" 
 A:{ .m:Str -> (1 + 2 ] }
@@ -2655,7 +2655,7 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 Wrong closer for "[" group.
 Found instead: ")".
-Expected "]".
+Expected: "]".
 Error 2  UnexpectedToken
 """,""" 
 A:{ .m:Str -> E[1,2) }
@@ -2670,7 +2670,7 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 File ended while parsing a "(" group.
 This "(" may be unintended.
-Otherwise expected ")".
+Otherwise expected: ")".
 Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> (1 + 2
@@ -2685,7 +2685,7 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 File ended while parsing a "[" group.
 This "[" may be unintended.
-Otherwise expected "]".
+Otherwise expected: "]".
 Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> E[1, 2, 3
@@ -2732,7 +2732,7 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 Unclosed "(" group before ";".
 This ";" may be unintended.
-Otherwise expected ")".
+Otherwise expected: ")".
 Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> ( 1 + 2; ) }
@@ -2747,7 +2747,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Unclosed "[" group before "{".
-Expected "]".
+Expected: "]".
 Error 0  Unclosed
 """,""" 
 A:{ .m:Str -> ( Foo[ { a } ) ] }
@@ -2800,7 +2800,7 @@ In file: [###]/in_memory0.fear
 While inspecting header element > file header > full file
 Missing package name.
 Found instead: "fooBar".
-Expected "id starting with a-z followed by any amount of a-z0-9 or the _ symbol".
+Expected: "id starting with a-z followed by any amount of a-z0-9 or the _ symbol".
 Error 2  UnexpectedToken
 ""","""
 package fooBar;
@@ -2835,7 +2835,7 @@ In file: [###]/in_memory0.fear
 While inspecting header element > file header > full file
 Missing "package" keyword.
 Found instead: "pakage".
-Expected "package".
+Expected: "package".
 Error 2  UnexpectedToken
 ""","""
 pakage foo_bar;
@@ -2960,7 +2960,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting header element > file header > full file
 Missing "in" keyword.
-Expected "in".
+Expected: "in".
 Error 2  UnexpectedToken 
 ""","""
 package foo_bar;
@@ -3154,7 +3154,7 @@ In file: [###]/in_memory0.fear
 While inspecting header element > file header > full file
 Missing simple type name.
 Found instead: "beer.F1".
-Expected "type name".
+Expected: "type name".
 Error 2  UnexpectedToken
 ""","""
 package foo;
@@ -3623,7 +3623,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration > full file
 Missing simple type name.
 Found instead: "foo.A".
-Expected "type name".
+Expected: "type name".
 Error 2  UnexpectedToken
 ""","""
 foo.A:{  }
@@ -3907,9 +3907,9 @@ A:B{`this .foo->this }
 In file: [###]/in_memory0.fear
 
 001| A:{ { .foo x:Bar->B; } }
-   | ----~~^^^^^^^^^^~~~~~~--
+   | ----~~^^^^^^^^^^^^^~~~--
 
-While inspecting method signature > method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
 Signature ".foo x: Bar" has some, but not all, type informations.
 Error 10  WellFormedness
@@ -3921,9 +3921,9 @@ A:{ { .foo x:Bar->B; } }
 In file: [###]/in_memory0.fear
 
 001| A:{ { mut .foo->B; } }
-   | ----~~^^^^^^^^~~~~~~--
+   | ----~~^^^^^^^^^^^~~~--
 
-While inspecting method signature > method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
 Signature "mut .foo" has some, but not all, type informations.
 Error 10  WellFormedness
@@ -3934,9 +3934,9 @@ A:{ { mut .foo->B; } }
 In file: [###]/in_memory0.fear
 
 001| A:{ { .foo[X]->B; } }
-   | ----~~^^^^^^^~~~~~~--
+   | ----~~^^^^^^^^^^~~~--
 
-While inspecting method signature > method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
 Signature ".foo[X]" has some, but not all, type informations.
 Error 10  WellFormedness
@@ -3947,14 +3947,89 @@ A:{ { .foo[X]->B; } }
 In file: [###]/in_memory0.fear
 
 001| A:{ { mut .foo(x:Bar)->B; } }
-   | ----~~^^^^^^^^^^^^^^^~~~~~~--
+   | ----~~^^^^^^^^^^^^^^^^^^~~~--
 
-While inspecting method signature > method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
 Signature "mut .foo(x: Bar)" has some, but not all, type informations.
 Error 10  WellFormedness
 ""","""
 A:{ { mut .foo(x:Bar)->B; } }
+"""); }
+@Test void recOrderFree1(){ ok("""
+[###]RCS[rcs=[mut,imm]][###]
+""","""
+A[X:mut,imm]:{}
+"""); }
+@Test void recOrderFree2(){ ok("""
+[###]RCS[rcs=[imm,mut]][###]
+""","""
+A[X:imm,mut]:{}
+"""); }
+@Test void readImmX1(){ ok("""
+[###][ReadImmX[x=X[name=X]]][###]
+""","""
+A:{ .t[X](x:mut X, y:read/imm X):X -> x }
+"""); }
+@Test void readImmX2(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .t[Y](x:mut X, y:read/imm X):X -> x }
+   | -------------------~~~~~~~~~~~^----------
+
+While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
+Generic type "X" is not in scope.
+Declared generics: "Y".
+Error 2  UnexpectedToken
+""","""
+A:{ .t[Y](x:mut X, y:read/imm X):X -> x }
+"""); }
+@Test void multiLine(){ ok("""
+[###]
+Inter[true][0,1,2,3,0,1][
+a\\n
+b\\n
+c\\n
+d\\n
+e\\n
+f\\n
+][]]]]]]]
+""","""
+A:{ 
+|'a
+#|'b
+##|'c
+###|'d
+|'e
+#|'f
+
+}
+"""); }
+@Test void implicit1(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ { .foo:Bar -> :: .a } }
+   | ----~~^^^^^^^^^^^^^^^^^~~--
+
+While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+A literal signature can only be either fully typed or fully untyped.
+Signature ".foo: Bar" has some, but not all, type informations.
+Error 10  WellFormedness
+""","""
+A:{ { .foo:Bar -> :: .a } }
+"""); }
+@Test void implicit2(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ { mut .foo -> :: .a } }
+   | ----~~^^^^^^^^^^^^^^^^^~~--
+
+While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+A literal signature can only be either fully typed or fully untyped.
+Signature "mut .foo" has some, but not all, type informations.
+Error 10  WellFormedness
+""","""
+A:{ { mut .foo -> :: .a } }
 """); }
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

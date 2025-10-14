@@ -2,29 +2,29 @@ package fearlessFullGrammar;
 
 import static fearlessParser.TokenKind._XId;
 import static fearlessParser.TokenKind.validate;
-import static offensiveUtils.Require.eq;
-import static offensiveUtils.Require.nonNull;
-import static offensiveUtils.Require.unmodifiable;
-import static offensiveUtils.Require.validOpt;
-
+import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
-
 import fearlessParser.RC;
+import inferenceGrammar.IT;
 
 public sealed interface T {
   <R> R accept(TVisitor<R> v);
+  IT toIT();
   record X(String name) implements T{
     public X{assert validate(name,"generic type name", _XId);}
     public <R> R accept(TVisitor<R> v){ return v.visitTX(this); }
+    public IT.X toIT(){ return new IT.X(name); }
   }
   record RCX(RC rc, X x) implements T{
     public RCX{assert nonNull(rc,x);}
     public <R> R accept(TVisitor<R> v){ return v.visitRCX(this); }
+    public IT.RCX toIT(){ return new IT.RCX(rc,x.toIT()); }
   }
   record ReadImmX(X x) implements T{
     public ReadImmX{assert nonNull(x);}
     public <R> R accept(TVisitor<R> v){ return v.visitReadImmX(this); }
+    public IT.ReadImmX toIT(){ return new IT.ReadImmX(x.toIT()); }
   }
   record C(TName name, Optional<List<T>> ts){
     public C{
@@ -37,5 +37,8 @@ public sealed interface T {
   record RCC(Optional<RC> rc, C c) implements T{
     public RCC{ nonNull(rc,c); }
     public <R> R accept(TVisitor<R> v){ return v.visitRCC(this); }
+    public IT.RCC toIT(){
+      List<IT> ts= c.ts().orElse(List.of()).stream().map(t->t.toIT()).toList();
+      return new IT.RCC(rc.orElse(RC.imm),new IT.C(c.name(),ts)); }
   }
 }

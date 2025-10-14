@@ -22,7 +22,7 @@ public sealed interface E {
     public <R> R accept(EVisitor<R> v){ return v.visitRound(this); }
     public String toString(){ return "("+e+")"; }
   }
-  record Literal(Optional<E.X> thisName, List<M> methods,Pos pos) implements E{
+  record Literal(Optional<E.X> thisName, List<M> methods, Pos pos) implements E{
     public Literal{
       assert unmodifiable(methods, "L.Full.methods");
       assert nonNull(thisName);
@@ -30,7 +30,7 @@ public sealed interface E {
     public <R> R accept(EVisitor<R> v){ return v.visitLiteral(this); }
     public String toString(){ return "Literal"+thisName.map(Object::toString).orElse("")+methods; }
   }
-  record TypedLiteral(T.RCC t,Optional<Literal> l,Pos pos) implements E{
+  record TypedLiteral(T.RCC t, Optional<Literal> l,Pos pos) implements E{
     public TypedLiteral{ assert nonNull(t,l); }
     public <R> R accept(EVisitor<R> v){ return v.visitTypedLiteral(this); }
     public String toString(){ return "TypedLiteral"+t+l.map(Object::toString).orElse(""); }

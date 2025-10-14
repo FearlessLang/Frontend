@@ -18,4 +18,7 @@ public record Sig(
     assert nonNull(rc,m,bs,parameters,t);
     assert validOpt(m,_m->eq(_m.arity(),parameters.size(),"Method name arity"));
   }
+  public boolean fullyTyped(){
+    return !(m.isEmpty() || t.isEmpty() || parameters.stream().anyMatch(p->p.t().isEmpty()));
+  }
 }
