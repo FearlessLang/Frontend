@@ -6,15 +6,17 @@ import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
 import fearlessParser.RC;
+import files.Pos;
 import inferenceGrammar.IT;
 
 public sealed interface T {
   <R> R accept(TVisitor<R> v);
   IT toIT();
-  record X(String name) implements T{
+  record X(String name, Pos pos) implements T{
     public X{assert validate(name,"generic type name", _XId);}
     public <R> R accept(TVisitor<R> v){ return v.visitTX(this); }
     public IT.X toIT(){ return new IT.X(name); }
+    public String toString(){ return "X[name="+name+"]";}
   }
   record RCX(RC rc, X x) implements T{
     public RCX{assert nonNull(rc,x);}

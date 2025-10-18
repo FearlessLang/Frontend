@@ -4,6 +4,7 @@ import static offensiveUtils.Require.nonNull;
 import static offensiveUtils.Require.unmodifiable;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import fearlessFullGrammar.TName;
 import files.Pos;
@@ -15,4 +16,9 @@ public record Declaration(TName name, List<B> bs, List<T.C> cs, E.Literal l){
     assert unmodifiable(cs,"Declaration.cs");
   }
   Pos pos(){ return l.pos(); }
+  public String toString(){
+    var bsS= bs.stream().map(Object::toString).collect(Collectors.joining(", "));
+    var csS= cs.stream().map(Object::toString).collect(Collectors.joining(", "));
+    return name.s()+"["+bsS+"]:"+csS+l;
+  }
 }

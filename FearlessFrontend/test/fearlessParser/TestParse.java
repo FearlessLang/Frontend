@@ -71,9 +71,9 @@ Graph[X:**]:{}
 FileFull[[###]decs=[Declaration[name=Pair/2,
 bs=Optional[[B[x=X[name=X],bt=RCS[rcs=[]]],B[x=X[name=Y],bt=RCS[rcs=[]]]]],cs=[],
 l=Literal[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[
-MName[s=.x,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[X[name=X]]]],
+.x],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[X[name=X]]]],
 body=Optional.empty],
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.y,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[X[name=Y]]]],
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.y],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[X[name=Y]]]],
 body=Optional.empty]]]]]
 ""","""
 Pair[X,Y]:{ .x:X; .y:Y;}
@@ -161,7 +161,7 @@ A[X]:{.foo:AA->B[C]:{.bar:BB->BB}; }
 """);}
 @Test void use_this(){ok("""
 FileFull[[###]decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.foo,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.foo],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
 body=Optional[this]]]]]]
 ""","""
 A:{.foo:A->this; }
@@ -197,9 +197,9 @@ A:{ `abc .foo:A->A + A; } //ill formed: the first layer has to be `this or nothi
 
 @Test void use_self_inner(){ok("""
 FileFull[[###]decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.foo,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.foo],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
 body=Optional[DeclarationLiteralDeclaration[name=B/0,bs=Optional.empty,cs=[],
-l=Literalx[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.foo,arity=2]],bs=Optional.empty,hasParenthesis=false,parameters=[Parameter[xp=Optional[Name[x=y]],t=Optional.empty],Parameter[xp=Optional[Name[x=a]],t=Optional.empty]],t=Optional.empty]],body=Optional[Call[Call[this]MName[s=+,arity=1]false[x]]MName[s=+,arity=1]false[a]]]]]]]]]]]
+l=Literalx[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.foo],bs=Optional.empty,hasParenthesis=false,parameters=[Parameter[xp=Optional[Name[x=y]],t=Optional.empty],Parameter[xp=Optional[Name[x=a]],t=Optional.empty]],t=Optional.empty]],body=Optional[Call[Call[this]+false[x]]+false[a]]]]]]]]]]]
 ""","""
 A:{ .foo:A->B:{`x .foo y,a -> this + x + a; } }
 """);}
@@ -207,7 +207,7 @@ A:{ .foo:A->B:{`x .foo y,a -> this + x + a; } }
 @Test void method_with_parens_and_ret(){ok("""
 FileFull[[###]decs=[
 Declaration[name=Id/0, bs=Optional.empty, cs=[], l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty, m=Optional[MName[s=.id, arity=1]], bs=Optional.empty, hasParenthesis=true, 
+M[sig=Optional[Sig[rc=Optional.empty, m=Optional[.id], bs=Optional.empty, hasParenthesis=true, 
 parameters=[Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 body=Optional[x]]]]]]
 ""","""
@@ -216,7 +216,7 @@ Id:{ .id(x:X):X -> x }
 @Test void method_without_parens_sig_form(){ok("""
 FileFull[[###]decs=[
 Declaration[name=NoPar/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.one,arity=1]],bs=Optional.empty,hasParenthesis=false,parameters=[
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.one],bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 t=Optional.empty]],body=Optional[x]]]]]]
 ""","""
@@ -225,7 +225,7 @@ NoPar:{ .one x:X -> x }
 @Test void abstract_method_only_sig(){ok("""
 FileFull[[###]decs=[
 Declaration[name=Abs/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.abs,arity=1]],bs=Optional.empty,hasParenthesis=true,parameters=[
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.abs],bs=Optional.empty,hasParenthesis=true,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 body=Optional.empty]]]]]
@@ -236,18 +236,18 @@ Abs:{ .abs(x:X):X }
 FileFull[[###]decs=[
 Declaration[name=Sum/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[
-Sig[rc=Optional.empty,m=Optional[MName[s=.sum,arity=2]],bs=Optional.empty,hasParenthesis=true,parameters=[
+Sig[rc=Optional.empty,m=Optional[.sum],bs=Optional.empty,hasParenthesis=true,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]],
 Parameter[xp=Optional[Name[x=y]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
-body=Optional[Call[x]MName[s=.plus,arity=1]true[y]]]]]]]
+body=Optional[Call[x].plustrue[y]]]]]]]
 ""","""
 Sum:{ .sum(x:X,y:X):X -> x.plus(y) }
 """);}
 @Test void round_group_in_body(){ok("""
 FileFull[[###]decs=[
 Declaration[name=Par/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.paren,arity=1]],bs=Optional.empty,hasParenthesis=true,parameters=[
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.paren],bs=Optional.empty,hasParenthesis=true,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 body=Optional[(x)]]]]]]
@@ -257,7 +257,7 @@ Par:{ .paren(x:X):X -> (x) }
 @Test void typed_literal_in_body_unsigned(){ok("""
 FileFull[[###]decs=[
 Declaration[name=Lit/0,bs=Optional.empty,cs=[],l=Literal[M[
-sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.lit,arity=0]],bs=Optional.empty,hasParenthesis=true,parameters=[],
+sig=Optional[Sig[rc=Optional.empty,m=Optional[.lit],bs=Optional.empty,hasParenthesis=true,parameters=[],
 t=Optional[RCC[rc=Optional.empty,c=C[name=+45/0,ts=Optional.empty]]]]],
 body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=+45/0,ts=Optional.empty]]
 Literal[]]]]]]]
@@ -267,7 +267,7 @@ Lit:{ .lit(): +45 -> +45{} }//:+45 would (correctly) trigger BadOpDigit :+
 @Test void typed_literal_in_body_with_rc(){ok("""
 FileFull[[###]decs=[
 Declaration[name=Lit2/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.lit2,arity=0]],bs=Optional.empty,hasParenthesis=true,parameters=[],
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.lit2],bs=Optional.empty,hasParenthesis=true,parameters=[],
 t=Optional[RCC[rc=Optional.empty,c=C[name=+45/0,ts=Optional.empty]]]]],
 body=Optional[TypedLiteralRCC[rc=Optional[read],c=C[name=+45/0,ts=Optional.empty]]
 Literal[]]]]]]]
@@ -291,7 +291,7 @@ B:{Selfy:{`self .me:Selfy -> self}}
 @Test void stringInterpol_s(){ok("""
 FileFull[[###]decs=[
 Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.a,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.a],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],
 body=Optional[Inter[true][0,0][abc\\ndef\\n][]]]]]]]
 ""","""
 A:{.a:Str -> 
@@ -302,10 +302,10 @@ A:{.a:Str ->
 @Test void stringInterpol_s_e(){ok("""
 FileFull[[###]decs=[
 Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.a,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.a],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],
 body=Optional[Inter[true][1,0][ab,c\\ndef\\n]
 [Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=B/0,ts=Optional.empty]]]
-MName[s=.foo,arity=1]true[TypedLiteralRCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]]]]]]]
+.footrue[TypedLiteralRCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]]]]]]]
 ""","""
 A:{.a:Str ->
   #|'ab{B.foo(C)}c
@@ -319,7 +319,7 @@ M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParen
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
 t=Optional.empty]],
-body=Optional[Call[x]MName[s=#,arity=1]false[y]]]]]]]
+body=Optional[Call[x]#false[y]]]]]]]
 ""","""
 A:{x,y ->x#y;}
 """);}
@@ -330,7 +330,7 @@ M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParen
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
 t=Optional.empty]],
-body=Optional[Call[x]MName[s=#,arity=1]true[y]]]]]]]
+body=Optional[Call[x]#true[y]]]]]]]
 ""","""
 A:{x,y, ->x#(y);}
 """);}
@@ -341,7 +341,7 @@ M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParen
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
 t=Optional.empty]],
-body=Optional[Call[x]MName[s=++,arity=1]false[y]]]]]]]
+body=Optional[Call[x]++false[y]]]]]]]
 ""","""
 A:{x,y ->x++y}
 """);}
@@ -352,7 +352,7 @@ M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParen
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
 t=Optional.empty]],
-body=Optional[Call[x]MName[s=.foo,arity=1]false[y]]]]]]]
+body=Optional[Call[x].foofalse[y]]]]]]]
 ""","""
 A:{x,y ->x .foo y}
 """);}
@@ -364,7 +364,7 @@ M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParen
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
 t=Optional.empty]],
-body=Optional[Call[::]MName[s=.foo,arity=1]false[y]]]]]]]
+body=Optional[Call[::].foofalse[y]]]]]]]
 ""","""
 A:{x,y ->::.foo y}
 """);}
@@ -375,10 +375,10 @@ Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional.empty,body=Optional[
 Call[Call[Call[
 TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
-MName[s=#,arity=0]false[]]
-MName[s=.let,arity=2]falseName[x=x][Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]
-MName[s=.return,arity=1]false[Literal[M[sig=Optional.empty,body=Optional[
-Call[x]MName[s=*,arity=1]false[TypedLiteralRCC[rc=Optional.empty,c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]
+#false[]]
+.letfalseName[x=x][Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]
+.returnfalse[Literal[M[sig=Optional.empty,body=Optional[
+Call[x]*false[TypedLiteralRCC[rc=Optional.empty,c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]
 ""","""
 A:{Block#.let x= {5} .return {x*2} }
 """);}
@@ -389,7 +389,7 @@ Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],
 t=Optional.empty]],t=Optional.empty]],
-body=Optional[Call[x]MName[s=.foo,arity=0]
+body=Optional[Call[x].foo
 CallSquare[rc=Optional[read],ts=[]]false[]]]]]]]
 ""","""
 A:{ x -> x.foo[read] }
@@ -400,7 +400,7 @@ Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],
 t=Optional.empty]],t=Optional.empty]],
-body=Optional[Call[x]MName[s=.foo,arity=0]
+body=Optional[Call[x].foo
 CallSquare[rc=Optional[read],ts=[]]false[]]]]]]]
 ""","""
 A:{ x -> x.foo[read,] }
@@ -411,7 +411,7 @@ Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional.empty]],
 t=Optional.empty]],
-body=Optional[Call[x]MName[s=.foo,arity=0]
+body=Optional[Call[x].foo
 CallSquare[rc=Optional[read],ts=[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]false[]]]]]]]
 ""","""
 A:{ x -> x.foo[read,X] }
@@ -420,7 +420,7 @@ A:{ x -> x.foo[read,X] }
 FileFull[[###]decs=[
 Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[
-MName[s=.m,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],
+.m],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],
 body=Optional[DeclarationLiteralDeclaration[name=B/0,bs=Optional.empty,cs=[],l=Literal[]]]]]]]]
 ""","""
 A:{ .m -> B:{} }
@@ -429,27 +429,27 @@ A:{ .m -> B:{} }
 @Test void destructEq(){ok("""
 FileFull[[###]decs=[
 Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.m,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.m],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],
 body=Optional[Call[Call[Call[
 TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
-MName[s=#,arity=0]false[]]
-MName[s=.let,arity=2]false
-Destruct[extract=[[MName[s=.name,arity=0],MName[s=.size,arity=0]],[MName[s=.age,arity=0]]],
+#false[]]
+.letfalse
+Destruct[extract=[[.name,.size],[.age]],
 id=Optional[Bob]][Literal[]]]
-MName[s=.use,arity=2]true[sizeBob,ageBob]]]]]]]
+.usetrue[sizeBob,ageBob]]]]]]]
 ""","""
 A:{ .m -> Block#.let {.name.size,.age}Bob = {} .use(sizeBob,ageBob) }
 """);}
 @Test void eRound1(){ok("""
 FileFull[[###]decs=[
 Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.m,arity=0]],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],body=Optional[
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.m],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],body=Optional[
 Call[(Call[Call[
 TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
-MName[s=#,arity=0]false[]]
-MName[s=.let,arity=2]falseName[x=x]
+#false[]]
+.letfalseName[x=x]
 [Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]])]
-MName[s=.use,arity=1]true
+.usetrue
 [TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]]]
 ""","""
 A:{ .m -> (Block#.let x={5}) .use(5) }
@@ -638,15 +638,15 @@ A:{
 @Test void ok_comma_single_arg(){ok("""
 FileFull[[###]decs=[
 Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[MName[s=.m,arity=1]],bs=Optional.empty,hasParenthesis=true,parameters=[
+M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.m],bs=Optional.empty,hasParenthesis=true,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]],
 t=Optional[RCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]],
 body=Optional[Call[Call[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
-MName[s=#,arity=0]false[]]
-MName[s=.let,arity=2]falseName[x=z][Literal[
+#false[]]
+.letfalseName[x=z][Literal[
 M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]
-MName[s=.use,arity=1]true[z]]
-MName[s=.use,arity=1]true[z]]]]]]]
+.usetrue[z]]
+.usetrue[z]]]]]]]
 ""","""
 A:{
 .m(x:C):C ->
@@ -1145,8 +1145,8 @@ A:{
 body=Optional[Inter[true][2]
 [Head,Tail\\n]
 [Call[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
-MName[s=#,arity=0]false[]]MName[s=.let,arity=2]falseName[x=x][Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]
-MName[s=.use,arity=1]true[x]]]]]]]]
+#false[]].letfalseName[x=x][Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]
+.usetrue[x]]]]]]]]
 ""","""
 A:{
 .m:Str ->
@@ -1226,7 +1226,7 @@ A:{
 body=Optional[Inter[true][1][a{{,}}b\\n][
 Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=B/0,
 ts=Optional.empty]]]
-MName[s=.foo,arity=1]true[TypedLiteralRCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]]]]]]]
+.footrue[TypedLiteralRCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]]]]]]]
 ""","""
 A:{
 .m:Str ->

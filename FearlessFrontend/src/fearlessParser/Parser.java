@@ -80,10 +80,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if(names.XIn(c.content())){ throw errFactory().typeNameConflictsGeneric(c,span(c).get()); }
     var s= c.content();
     if(s.contains("._")){ throw errFactory().privateTypeName(c,span(c).get()); }
-    if(!s.startsWith("\"")){ return new TName(s,0,""); }
+    if(!s.startsWith("\"")){ return new TName(s,0,"",pos(c)); }
     s = new ClassicDecoder(
       s.substring(1, s.length()-1), 0, this::interBadUnicode).of();
-    return new TName(c.content(),0,s);
+    return new TName(c.content(),0,s,pos(c));
   }
   T parseT(){ //T    ::= C | RC C | X | RC X | read/imm X
     if(fwdIf(peek(ReadImm))){ return new T.ReadImmX(parseTX()); }
@@ -96,12 +96,12 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var c= expect("Generic type name declaration", UppercaseId);
     if(mustNew && names.XIn(c.content())){ throw errFactory().nameRedeclared(c,span(c).get()); }
     if(!mustNew && !names.XIn(c.content())){ throw errFactory().genericNotInScope(c, span(c).get(), names.Xs()); }
-    return new T.X(c.content());
+    return new T.X(c.content(),pos(c));
   }
   T.X parseTX(){
     var c= expectValidate("type name", UppercaseId,_XId);
     if(!names.XIn(c.content())){ throw errFactory().genericNotInScope(c, span(c).get(), names.Xs()); }
-    return new T.X(c.content());
+    return new T.X(c.content(),pos(c));
   }
   E parsePost(E receiver){
     if(peek(UStrInterHash,UStrLine)){ return parseStrInter(false,of(receiver)); }
@@ -347,13 +347,13 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (dup){ throw errFactory().duplicatedImpl(res, spanAround(back(start), index())); }
     return res;
   }
-  public Span span(Pos pos, int size){
+  public static Span span(Pos pos, int size){
     return new Span(pos.fileName(), pos.line(), pos.column(),pos.line(),pos.column()+size); 
   }
   Declaration parseDeclaration(boolean top){
     var c= parseTName();
     var _= expectValidate(back("simple type name"), UppercaseId,_XId); //to get error if of form foo.Bar
-    Optional<List<B>> bs= parseIf(peek(_SquareGroup),()->this.parseBs(top));//TODO: fails here for funnelling, here it MUST repeat instead of can not repeat
+    Optional<List<B>> bs= parseIf(peek(_SquareGroup),()->this.parseBs(top));
     if(bs.isPresent()){
       var Xs= bs.get().stream().map(b->b.x().name()).toList();
       if (top){ updateNames(names.addXs(Xs)); }

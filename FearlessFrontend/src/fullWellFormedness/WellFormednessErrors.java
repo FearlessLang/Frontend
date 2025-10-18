@@ -3,10 +3,19 @@ package fullWellFormedness;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import fearlessFullGrammar.FileFull;
+import fearlessFullGrammar.T;
+import fearlessFullGrammar.T.X;
+import fearlessFullGrammar.TName;
+import fearlessParser.Parser;
+import fearlessParser.RC;
 import message.Code;
 import message.FearlessException;
+import metaParser.Message;
+import utils.Bug;
 
 public final class WellFormednessErrors {
   private WellFormednessErrors(){}
@@ -103,4 +112,60 @@ public final class WellFormednessErrors {
      .append(uri)
      .toString();
    }
+
+ public static FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
+   for(TName n:names){ 
+     var clash= keySet.contains(n.s());
+     if (!clash){ continue; }
+     return Code.WellFormedness.of(
+       "Name clash: name "+Message.displayString(n.s())+" is declared in package "+pkgName+".\n"
+       +"Name "+Message.displayString(n.s())+" is also used in a \"use\" directive.\n"
+       ).addSpan(Parser.span(n.pos(),n.s().length()));
+   }
+   throw Bug.unreachable();
+ }
+ public static FearlessException usedUndeclaredName(TName tn, Package p){
+   var at= Parser.span(tn.pos(),tn.s().length());
+   var definedWithOtherArity= p.names().decNames().stream().allMatch(tni->tni.s().equals(tn.s()));
+   if (definedWithOtherArity){
+     return Code.WellFormedness.of(
+       "Name: "+Message.displayString(tn.s())+" is not declared with arity "+tn.arity()+" in package "+p.name()+".\n"
+     + "Did you accidentally add/omit a generic type parameter?\n"
+       ).addSpan(at);     
+   }
+   return Code.WellFormedness.of(
+     "Undeclared name: name "+Message.displayString(tn.s())+" is not declared in package "+p.name()+".\n"
+     ).addSpan(at);
+   }
+ public static FearlessException genericTypeVariableShadowTName(String pkgName, Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
+   var mergeAllXs= allXs.values().stream().flatMap(Set::stream).toList();
+   for(var n : mergeAllXs){
+     var clashDec= allNames.contains(n.name());
+     var clashUse= use.contains(n.name());
+     if (clashDec || clashUse){ return shadowMsg(pkgName,n,clashUse); }
+   }
+   throw Bug.unreachable();
+ }
+ private static FearlessException shadowMsg(String pkgName, T.X n, boolean use){
+   return Code.WellFormedness.of(
+     "Gemeric type parameter "+Message.displayString(n.name())+" declared in package "+pkgName+".\n"
+     + "Name "+Message.displayString(n.name())+" is also used "
+     + (use?"in a \"use\" directive.\n":"as a type name.\n")
+     ).addSpan(Parser.span(n.pos(),n.name().length()));
+  }
+
+ public static FearlessException duplicatedBound(List<RC> es, T.X n){
+   var dup= es.stream()
+     .filter(e->es.stream().filter(ei->ei.equals(e)).count()>1)
+     .findFirst().get();
+   return Code.WellFormedness.of(
+       "Duplicate reference capability in the generic type parameter "+Message.displayString(n.name())+".\n"
+       + "Reference capability "+Message.displayString(dup.name())+" is repeated.\n"
+       ).addSpan(Parser.span(n.pos(),n.name().length()));
+    }
+  public static FearlessException duplicatedName(TName name) {
+    return Code.WellFormedness.of(
+      "Duplicate type declaration for "+Message.displayString(name.s())+".\n"
+      ).addSpan(Parser.span(name.pos(),name.s().length()));
+  }
 }

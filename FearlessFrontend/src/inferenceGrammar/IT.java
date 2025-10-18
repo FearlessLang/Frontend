@@ -36,5 +36,7 @@ public sealed interface IT {
     public RCC{ nonNull(rc,c); }
     public String toString(){ return rc.name()+" "+c; }
   }
-  enum U implements IT{ Instance; }
+  enum U implements IT{ Instance; 
+    public String toString(){ return "?";}
+  }
 }

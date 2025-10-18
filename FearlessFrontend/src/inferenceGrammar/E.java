@@ -18,15 +18,13 @@ public sealed interface E {
     public X{ assert nonNull(t) && validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name+":"+t; }
   }
-  record Literal(String thisName, List<Sig> sigs, List<Impl> impls, IT t, Pos pos) implements E{
+  record Literal(String thisName, List<M> ms, IT t, Pos pos) implements E{
     public Literal{
-      assert unmodifiable(sigs, "L.sigs");
-      assert unmodifiable(impls, "L.impls");
+      assert unmodifiable(ms, "L.ms");
       assert nonNull(thisName,t);
     }
     public String toString(){ return "{`"+thisName
-      + sigs.stream().map(Object::toString).collect(Collectors.joining(";"))
-      + impls.stream().map(Object::toString).collect(Collectors.joining(";"))
+      + ms.stream().map(Object::toString).collect(Collectors.joining(""))
       +"}:"+t; }
   }
   record Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, IT t, Pos pos) implements E{

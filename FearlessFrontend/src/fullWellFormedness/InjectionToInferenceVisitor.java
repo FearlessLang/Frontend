@@ -1,5 +1,7 @@
 package fullWellFormedness;
 
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -16,13 +18,12 @@ import files.Pos;
 import inferenceGrammar.T;
 import inferenceGrammar.E;
 import inferenceGrammar.IT;
-import inferenceGrammar.Impl;
+import inferenceGrammar.M;
 import inferenceGrammar.B;
-import inferenceGrammar.Sig;
 import inferenceGrammar.Declaration;
 import fearlessFullGrammar.TName;
 
-public record InjectionToInferenceVisitor(List<String> implicits, Function<String,String> f, List<Declaration> decs)
+public record InjectionToInferenceVisitor(List<String> implicits, Function<TName,TName> f, List<Declaration> decs, Package pkg, List<List<B>> bsInScope, FreshPrefix freshF)
     implements fearlessFullGrammar.EVisitor<inferenceGrammar.E>,fearlessFullGrammar.TVisitor<T>{
   static final inferenceGrammar.IT u= IT.U.Instance;
   static fearlessFullGrammar.E.Literal empty(Pos pos){ return new fearlessFullGrammar.E.Literal(Optional.empty(),List.of(),pos); }
@@ -33,10 +34,8 @@ public record InjectionToInferenceVisitor(List<String> implicits, Function<Strin
     return new T.RCC(c.rc().orElse(RC.imm),visitC(c.c()));
   }
   public T.C visitC(fearlessFullGrammar.T.C c){
-    var tName= c.name().s();//TODO: apply the rename mapping/add our pkg name
-    var tStr= c.name().asUStrLit();
-    var arity= c.name().arity();
-    var tNameMap= new TName(f.apply(tName),arity,tStr);
+    var tName= c.name();
+    var tNameMap= f.apply(tName);
     var ts= c.ts().orElse(List.of());
     return new T.C(tNameMap,mapT(ts));
   }
@@ -55,32 +54,34 @@ public record InjectionToInferenceVisitor(List<String> implicits, Function<Strin
     case XPat.Destruct(var _, var _) -> freshPName();
     };
   }  
-  List<Sig> mapSig(List<fearlessFullGrammar.M> ms){ return ms.stream().flatMap(this::visitMSig).toList(); }
-  List<Impl> mapImpl(List<fearlessFullGrammar.M> ms){ return ms.stream().flatMap(this::visitMImpl).toList(); }
-  Stream<Sig> visitMSig(fearlessFullGrammar.M mm){
-    if (mm.sig().isEmpty() || mm.hasImplicit()){ return Stream.of(); }
+  List<M> mapM(List<fearlessFullGrammar.M> ms){ return ms.stream().map(this::visitM).toList(); }
+  M visitM(fearlessFullGrammar.M m){ return new M(visitMSig(m),visitMImpl(m)); }
+  Optional<M.Sig> visitMSig(fearlessFullGrammar.M mm){
+    if (mm.sig().isEmpty() || mm.hasImplicit()){ return Optional.empty(); }
     fearlessFullGrammar.Sig s= mm.sig().get();
-    if (!s.fullyTyped()){ return Stream.of(); }
+    if (!s.fullyTyped()){ return Optional.empty(); }
     RC rc= s.rc().orElse(RC.imm);
     MName m= s.m().get();
     List<B> bs= s.bs().map(this::mapB).orElse(List.of());
     List<T> ts= mapPT(s.parameters());
     T res= s.t().get().accept(this);
-    return Stream.of(new Sig(rc,m,bs,ts,res,mm.pos()));
+    return Optional.of(new M.Sig(rc,m,bs,ts,res,mm.pos()));
   }
-  Stream<Impl> visitMImpl(fearlessFullGrammar.M m){
-    if (m.body().isEmpty()){ return Stream.of(); }
+  Optional<M.Impl> visitMImpl(fearlessFullGrammar.M m){
+    if (m.body().isEmpty()){ return Optional.empty(); }
+    m.sig().ifPresent(s->bsInScope.add(s.bs().map(this::mapB).orElse(List.of())));
     var body= m.body().get();
     var original= m.sig().map(s->s.parameters()).orElse(List.of());
     List<String> ps= mapPX(original);
     List<XE> xpats= xpats(ps,original,m.pos());
     if (!xpats.isEmpty()){ throw Bug.todo(); }
     //if xpats, make the Block //TODO: body=...
-    if(m.hasImplicit()){ var p= freshPName(); ps = Push.of(ps,p); implicits.add(p); }
+    if (m.hasImplicit()){ var p= freshPName(); ps = Push.of(ps,p); implicits.add(p); }
     E e= body.accept(this);
-    if(m.hasImplicit()){ implicits.removeLast(); }
+    m.sig().ifPresent(_->bsInScope.removeLast());
+    if (m.hasImplicit()){ implicits.removeLast(); }
     Optional<MName> name= m.sig().flatMap(s->s.m());
-    return Stream.of(new Impl(name,ps,e));
+    return Optional.of(new M.Impl(name,ps,e));
   }
   record XE(String x, E e){}
   boolean isXPat(fearlessFullGrammar.Parameter p){
@@ -108,43 +109,69 @@ public record InjectionToInferenceVisitor(List<String> implicits, Function<Strin
   @Override public E visitRound(fearlessFullGrammar.E.Round r){ return r.e().accept(this); }
   @Override public E visitImplicit(fearlessFullGrammar.E.Implicit n){  return new E.X(implicits.getLast(),u,n.pos());  }
   @Override public E visitTypedLiteral(fearlessFullGrammar.E.TypedLiteral t){
-    TName fresh= freshTName();
+    var summon= t.l().map(l->l.methods().isEmpty()).orElse(true);
     T.RCC c= visitRCC(t.t());
+    if (summon){ return new E.Type(c,u,t.pos()); }
+    TName fresh= freshF.freshTopType(c.c().name());
     E.Literal l= visitLiteral(t.l().orElseGet(()->empty(t.pos())));
-    List<B> bs= freeBs(l);
+    List<B> bs= freeBs(c,l);
     List<T> Xs= bs.stream().map(b->(T)b.x()).toList();
     decs.add(new Declaration(fresh,bs,List.of(c.c()),l));
-    return new E.Type(new T.RCC(c.rc(),new T.C(fresh, Xs)),u,t.pos());
+    return new E.Type(new T.RCC(c.rc(),new T.C(fresh.withArity(Xs.size()), Xs)),u,t.pos());
   }
-  private TName freshTName(){ throw Bug.todo(); }//will need the visited chain
   private String freshPName(){ throw Bug.todo(); }//will need the visited chain
-  public B visitB(fearlessFullGrammar.B b){ throw Bug.todo(); }
-  private List<B> freeBs(E.Literal l){ throw Bug.todo(); }//will need the 
-  //storage of Bs in scope
+  public B visitB(fearlessFullGrammar.B b){
+    return new B(visitTX(b.x()),switch(b.bt()){
+    case fearlessFullGrammar.B.Star()->List.of(RC.imm,RC.mut,RC.read);
+    case fearlessFullGrammar.B.StarStar()->List.of(RC.imm, RC.mut, RC.read, RC.iso, RC.mutH, RC.readH);
+    case fearlessFullGrammar.B.RCS(List<RC> rcs)-> rcs.isEmpty()
+      ?List.of(RC.imm)
+      :inDeclarationOrder(rcs,b.x());
+    });
+  }
+  private static List<RC> inDeclarationOrder(List<RC> es, fearlessFullGrammar.T.X x){
+    if (es.size() != new HashSet<>(es).size()){
+      throw WellFormednessErrors.duplicatedBound(es,x);
+    }
+    return es.stream().sorted(Comparator.comparingInt(Enum::ordinal)).toList();
+  }
+  private List<B> freeBs(T.RCC c, E.Literal l){
+    return Stream.concat(new FreeXs().ftvE(l),new FreeXs().ftvT(c))
+      .map(x->xB(x)).toList();
+  }
+  B xB(T.X x){ return bsInScope.stream().flatMap(List::stream).filter(b->b.x().equals(x)).findFirst().get(); }
   @Override public E visitDeclarationLiteral(fearlessFullGrammar.E.DeclarationLiteral c){
-    TName name= c.dec().name();//TODO: apply the rename mapping/add our pkg name
-    E.Literal l= visitLiteral(c.dec().l());
-    List<B> bs= c.dec().bs().orElse(List.of()).stream().map(b->visitB(b)).toList();
-    List<T> Xs= bs.stream().map(b->(T)b.x()).toList();
-    List<T.C> cs= mapC(c.dec().cs());
+    var dec= addDeclaration(c.dec(),false);
+    List<T> Xs= dec.bs().stream().map(b->(T)b.x()).toList();
     RC rc= c.rc().orElse(RC.imm);
-    T.C newC= new T.C(name, Xs);
-    decs.add(new Declaration(name,bs,cs,l));
+    T.C newC= new T.C(dec.name(), Xs);
     return new E.Type(new T.RCC(rc,newC),u,c.pos());
-  }  
+  }
+  public Declaration addDeclaration(fearlessFullGrammar.Declaration d, boolean top){
+    TName name= d.name();
+    List<B> bs= d.bs().map(this::mapB).orElse(List.of());
+    bsInScope.add(bs);    
+    E.Literal l= visitLiteral(d.l(),top);
+    List<T.C> cs= mapC(d.cs());
+    var res= new Declaration(f.apply(name),bs,cs,l);
+    decs.add(res);
+    bsInScope.removeLast();
+    return res;
+  }
   @Override public E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){
-    //Optional<E.X> thisName, List<M> methods, Pos pos
-    String thisName= l.thisName().map(n->n.name()).orElseGet(()->freshPName());
-    List<Sig> sigs= mapSig(l.methods());
-    List<Impl> impls= mapImpl(l.methods());
+    return visitLiteral(l,false);
+  }
+  public E.Literal visitLiteral(fearlessFullGrammar.E.Literal l, boolean top){
+    String thisName= l.thisName().map(n->n.name()).orElseGet(()->top?"this":"_");
+    List<M> ms= mapM(l.methods());
     //TODO: if inferred name -> just extract sigs,impls form l.methods()
     //if given name, should use meths as in the paper ( only need info in the top level decls)
     //can this be relaxed here (just extract) and then enriched outside in visitDeclarationLiteral?
-    return new E.Literal(thisName, sigs, impls, u, l.pos());
+    return new E.Literal(thisName, ms, u, l.pos());
   }
   @Override public E visitCall(fearlessFullGrammar.E.Call c){
     if (c.pat().isPresent()){ throw Bug.todo(); }
-    if (c.targs().isPresent()){ return visitICall(c); }
+    if (c.targs().isEmpty()){ return visitICall(c); }
     E e= c.e().accept(this);
     var targs= c.targs().get();
     List<E> es= mapE(c.es());

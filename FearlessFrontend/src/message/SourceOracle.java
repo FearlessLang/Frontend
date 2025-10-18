@@ -6,9 +6,12 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+
+import utils.Bug;
 
 /** SourceOracle
  * - RealFS: disk-backed with in-memory overlays for tentative edits.
@@ -23,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public interface SourceOracle {
   CharSequence load(URI uri);
   boolean exists(URI uri);
+  List<URI> allFiles();
   void putOverlay(URI uri, String text);
   void removeOverlay(URI uri);
   boolean hasOverlay(URI uri);
@@ -70,13 +74,14 @@ public interface SourceOracle {
     @Override public boolean hasOverlay(URI uri){
       return overlays.containsKey(normalize(uri));
     }
+    @Override public List<URI> allFiles(){ throw Bug.todo(); }
   }
 
   static Debug.Builder debugBuilder(){ return new Debug.Builder(); }
 
   final class Debug implements SourceOracle{
     private final ConcurrentHashMap<URI,String> map;
-
+    @Override public List<URI> allFiles(){ return map.entrySet().stream().map(e->e.getKey()).toList(); }
     private Debug(Map<URI,String> seed){ this.map= new ConcurrentHashMap<>(seed); }
 
     @Override public CharSequence load(URI uri){
@@ -97,8 +102,8 @@ public interface SourceOracle {
         URI u = Path.of(pathLike).toAbsolutePath().normalize().toUri();
         return putURI(u, content);
       }
-      public Debug build(){ return new Debug(Map.copyOf(seed)); }
       public Builder put(int index,String content){ return putURI(defaultDbgUri(index), content); }
+      public Debug build(){ return new Debug(Map.copyOf(seed)); }
     }
   }
 }

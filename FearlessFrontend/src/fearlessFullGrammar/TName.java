@@ -9,16 +9,25 @@ import static fearlessParser.TokenKind.UnsignedInt;
 import static fearlessParser.TokenKind.UppercaseId;
 import static fearlessParser.TokenKind.validate;
 
+import files.Pos;
 import metaParser.Message;
 
-public record TName(String s, int arity,String asUStrLit){
+public record TName(String s, int arity,String asUStrLit,Pos pos){
   public TName{
     assert arity >= 0 : "arity < 0: "+arity;
     assert validate(s,"TName", UppercaseId,UnsignedInt, SignedInt, SignedRational, SignedFloat, UStr, SStr);
   }
-  public TName withArity(int arity){ return new TName(s,arity,asUStrLit); }
+  public TName withArity(int arity){ return new TName(s,arity,asUStrLit,pos); }
   public String toString(){
     if(asUStrLit.isEmpty()){ return s+"/"+arity;}
     return s+"/"+arity+":"+Message.displayString(asUStrLit);
+  }
+  public String pkgName(){
+    int i= s.indexOf(".");
+    return i == -1 ? "" : s.substring(0, i);
+  }
+  public String simpleName(){
+    int i= s.indexOf(".");
+    return i == -1 ? s : s.substring(i + 1, s.length());
   }
 }
