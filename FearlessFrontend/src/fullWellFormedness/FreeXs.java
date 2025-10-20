@@ -1,6 +1,7 @@
 package fullWellFormedness;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import inferenceGrammar.B;
 import inferenceGrammar.E;
@@ -18,17 +19,16 @@ public class FreeXs {
     case Type(var type,_,_) -> ftvT(type);
   };}
   Stream<T.X> ftvM(M m){
-    List<T.X> domBs= m.sig().map(sig->dom(sig.bs())).orElse(List.of());
+    List<T.X> domBs= m.sig().bs().map(bs->dom(bs)).orElse(List.of());
     return Stream.concat(
-      m.sig().stream().flatMap(this::ftvS),
+      ftvS(m.sig()),
       m.impl().stream().flatMap(this::ftvI)
     ).filter(x->!domBs.contains(x));
   }
   List<T.X> dom(List<B> bs){ return bs.stream().map(B::x).toList(); }
-  Stream<T.X> ftvS(M.Sig m){
-    return Stream.concat(ftvTs(m.ts()),ftvT(m.ret()));
-  }
+  Stream<T.X> ftvS(M.Sig m){ return Stream.concat(ftvOTs(m.ts()),ftvT(m.ret())); }
   Stream<T.X> ftvI(M.Impl m){ return ftvE(m.e()); }
+  Stream<T.X> ftvT(Optional<T> o){ return o.map(t->ftvT(t)).orElse(Stream.of()); }
   Stream<T.X> ftvT(T t){ return switch(t){
     case T.X x -> Stream.of(x);
     case T.RCX(_, var x) -> Stream.of(x);
@@ -44,6 +44,7 @@ public class FreeXs {
   };} 
   Stream<T.X> ftvEs(List<E> es){ return es.stream().flatMap(this::ftvE); }
   Stream<T.X> ftvMs(List<M> ms){ return ms.stream().flatMap(this::ftvM); }
+  Stream<T.X> ftvOTs(List<Optional<T>> ts){ return ts.stream().flatMap(this::ftvT); }
   Stream<T.X> ftvTs(List<T> ts){ return ts.stream().flatMap(this::ftvT); }
   Stream<T.X> ftvITs(List<IT> ts){ return ts.stream().flatMap(this::ftvIT); }
 }

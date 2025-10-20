@@ -2,6 +2,8 @@ package fullWellFormedness;
 import java.util.*;
 
 import fearlessFullGrammar.TName;
+import inferenceGrammar.T;
+
 import static offensiveUtils.Require.*;
 
 public final class FreshPrefix {
@@ -20,17 +22,21 @@ public final class FreshPrefix {
     for (TName tn : p.names().decNames()){ usedTopTypes.add(tn.simpleName()); }
     for (String s: p.map().keySet()){ usedTopTypes.add(s); }
     for (var e : p.names().allXs().entrySet()){
-      var owner= e.getKey();
       var names= new HashSet<String>();
       for (var x : e.getValue()){ names.add(x.name()); }
-      usedGen.put(owner, names);
+      usedGen.put(e.getKey(), names);
       allGenericNames.addAll(names);
     }
     for (var e : p.names().allParameters().entrySet()){
       usedVar.put(e.getKey(), new HashSet<>(e.getValue()));
-    }    
+    }
+    assert usedGen.keySet().equals(usedVar.keySet());
+    for (TName owner : usedGen.keySet()){
+      genSeq.put(owner, new HashMap<>());
+      varSeq.put(owner, new HashMap<>());
+    }
   }
-  public TName freshTopType(TName hint){
+  public TName freshTopType(TName hint, int arity){
     assert nonNull(hint);
     String base= sanitizeBase(hint.simpleName(), true);
       int n= topSeq.getOrDefault(base, 1);
@@ -40,15 +46,22 @@ public final class FreshPrefix {
         if (!commit){ n++; continue; }
         usedTopTypes.add(cand);
         topSeq.put(base, n + 1);
-        return new TName(pkgName+"."+cand,hint.arity(),"",hint.pos());
+        var res= new TName(pkgName+"."+cand,arity,"",hint.pos());
+        aliasOwner(hint,res);
+        return res;
       }
     }
-    public String freshGeneric(TName owner, String hint) {
+    public boolean isFreshGeneric(TName owner, T.X x){//used where we know it is a valid generic elsewhere (so already not a top type)
+      Set<String> scope= usedGen.get(owner);
+      return !scope.contains(x.name());// && !usedTopTypes.contains(x.name());
+    }
+    public String freshGeneric(TName owner, String hint){
       assert nonNull(owner,hint);
+      assert pkgName.equals(owner.pkgName());
       String base= sanitizeBase(hint, true);
-      Map<String,Integer> seq= genSeq.computeIfAbsent(owner, _ -> new HashMap<>());
+      Map<String,Integer> seq= genSeq.get(owner);
       int n= seq.getOrDefault(base, 1);
-      Set<String> scope= usedGen.computeIfAbsent(owner, _ -> new HashSet<>());
+      Set<String> scope= usedGen.get(owner);
       while (true){
         String cand= encodeBijective(n, up) + "_" + base;
         var commit= !scope.contains(cand) && !usedTopTypes.contains(cand);
@@ -61,10 +74,11 @@ public final class FreshPrefix {
     }
     public String freshVar(TName owner, String hint) {
       assert nonNull(owner,hint);
+      assert pkgName.equals(owner.pkgName());
       String base= sanitizeBase(hint, false);
-      Map<String,Integer> seq= varSeq.computeIfAbsent(owner, _ -> new HashMap<>());
+      Map<String,Integer> seq= varSeq.get(owner);
       int n= seq.getOrDefault(base, 1);
-      Set<String> scope= usedVar.computeIfAbsent(owner, _ -> new HashSet<>());
+      Set<String> scope= usedVar.get(owner);
       while (true){
         String cand = encodeBijective(n, low) + "_" + base;
         if (scope.contains(cand)){ n++; continue; }
@@ -72,6 +86,21 @@ public final class FreshPrefix {
         seq.put(base, n + 1);
         return cand;
       }
+    }
+    private void aliasOwner(TName original, TName alias){
+      assert nonNull(original, alias);
+      assert pkgName.equals(original.pkgName());
+      assert pkgName.equals(alias.pkgName());
+      var gen= usedGen.get(original);
+      var vars= usedVar.get(original);
+      var gSeq = genSeq.get(original);
+      var vSeq = varSeq.get(original);
+      assert nonNull(gen,vars,gSeq,vSeq);
+      assert !usedGen.containsKey(alias) && !usedVar.containsKey(alias);
+      usedGen.put(alias, gen);
+      usedVar.put(alias, vars);      
+      genSeq.put(alias, gSeq);
+      varSeq.put(alias, vSeq);
     }
     private static String sanitizeBase(String raw, boolean type) {
       String s= raw.replaceAll("[^A-Za-z0-9_]", "");

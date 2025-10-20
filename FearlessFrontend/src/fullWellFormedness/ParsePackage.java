@@ -7,24 +7,26 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
-import fearlessFullGrammar.FileFull.Role;
 import fearlessParser.Parse;
 import message.SourceOracle;
 import static offensiveUtils.Require.*;
 import static fearlessParser.TokenKind.*;
 
 public class ParsePackage{
-  public List<inferenceGrammar.Declaration> of(List<FileFull.Map> override, List<URI> files, SourceOracle o, int steps){
+  public List<inferenceGrammarB.Declaration> of(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, int steps){
     Map<URI,FileFull> all= new LinkedHashMap<>();
     for(var u : files){
       var str= o.loadString(u);
       var f= Parse.from(u, str);
       all.put(u, f);
     }
-    return infer(merge(override,all),steps);
+    Package p= merge(override,all);
+    var fresh= new FreshPrefix(p);
+    List<inferenceGrammar.Declaration> iDecs= new ToInference().of(p,other,fresh);
+    List<inferenceGrammarB.Declaration> res= new Methods(p.name(),iDecs,other,fresh).of();
+    return res;//TODO: (later) inference here using 'steps
   }
   Package merge(List<FileFull.Map> override, Map<URI,FileFull> all){
     String pkgName= all.values().iterator().next().name();
@@ -42,10 +44,6 @@ public class ParsePackage{
     accUse(pkgName,map,head.uses());
     var names= DeclaredNames.of(pkgName,ds,Collections.unmodifiableMap(map));
     return new Package(pkgName,head.role().get(),map,ds,names);
-  }
-  List<inferenceGrammar.Declaration> infer(Package p, int steps){
-    var iDecs= new ToInference().of(p,p.map());
-    return iDecs;//TODO: (later) inference here using 'steps
   }
   void acc(String n, HashMap<String,String> map, List<FileFull.Map> maps){
     for (var m: maps){ if (n.equals(m.target())){ map.put(m.out(),m.in()); } }
@@ -79,4 +77,3 @@ public class ParsePackage{
     throw WellFormednessErrors.expectedSingleUriForPackage(heads,pkgName);
   }
 }
-record Package(String name, Role role, HashMap<String,String> map, List<Declaration> decs, DeclaredNames names){}

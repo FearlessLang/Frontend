@@ -13,7 +13,7 @@ import fearlessFullGrammar.TName;
 public record DeclaredNames(Set<TName> decNames, Map<TName,Set<T.X>> allXs, Map<TName,Set<String>> allParameters){
   static public DeclaredNames of(String pkgName, List<Declaration> ds, Map<String,String> map){
     var v= new AllDeclaredNames();
-    ds.forEach(v::visitTopDeclaration);
+    ds.forEach(d->v.visitTopDeclaration(d,pkgName));
     var allDecs= Collections.unmodifiableSet(v.decNames);
     var allXs= Collections.unmodifiableMap(v.Xs);
     var disj= Collections.disjoint(allDecs.stream().map(tn->tn.s()).toList(),map.keySet());

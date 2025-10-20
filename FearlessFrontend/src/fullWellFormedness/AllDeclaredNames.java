@@ -15,14 +15,15 @@ public class AllDeclaredNames implements EVisitor<Void>{
   Map<TName,Set<String>> xs= new LinkedHashMap<>();
   LinkedHashSet<String> lastTopNames;
   LinkedHashSet<T.X> lastTopXs;
-  public void visitTopDeclaration(Declaration d){
+  public void visitTopDeclaration(Declaration d,String pkgName){
     lastTopNames= new LinkedHashSet<>();
     lastTopXs= new LinkedHashSet<>();
     visitInnerDeclaration(d);
     assert !xs.containsKey(d.name());
     assert !Xs.containsKey(d.name());
-    xs.put(d.name(), Collections.unmodifiableSet(lastTopNames));
-    Xs.put(d.name(), Collections.unmodifiableSet(lastTopXs));
+    var n= d.name().withPkgName(pkgName);
+    xs.put(n, Collections.unmodifiableSet(lastTopNames));
+    Xs.put(n, Collections.unmodifiableSet(lastTopXs));
     
   }
   @Override public B visitInnerB(B b){ lastTopXs.add(b.x()); return b; }

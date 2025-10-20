@@ -2,6 +2,7 @@ package fullWellFormedness;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,8 @@ import fearlessFullGrammar.T.X;
 import fearlessFullGrammar.TName;
 import fearlessParser.Parser;
 import fearlessParser.RC;
+import inferenceGrammar.Declaration;
+import inferenceGrammar.M;
 import message.Code;
 import message.FearlessException;
 import metaParser.Message;
@@ -167,5 +170,51 @@ public final class WellFormednessErrors {
     return Code.WellFormedness.of(
       "Duplicate type declaration for "+Message.displayString(name.s())+".\n"
       ).addSpan(Parser.span(name.pos(),name.s().length()));
+  }
+  public static FearlessException circularImplements(Map<TName, Declaration> rem){
+    TName name = findCycleNode(rem);
+    return Code.WellFormedness.of(
+      "Circular implementation relation found involving "+Message.displayString(name.s())+".\n"
+      ).addSpan(Parser.span(name.pos(),name.s().length()));
+  }
+  private static TName findCycleNode(Map<TName,Declaration> rem){
+    var color= new HashMap<TName,Integer>(rem.size());
+    for (var k : rem.keySet()){
+      var hit= dfs(rem,k,color);
+      if (hit != null){ return hit; }
+    }
+    throw Bug.unreachable();
+  }
+  private static TName dfs(Map<TName,Declaration> rem,TName u,Map<TName,Integer> color){
+    Integer cu= color.get(u);
+    if (cu != null){ return cu == 1 ? u : null; }
+    color.put(u,1);
+    for(var c:rem.get(u).cs()){
+      if(!rem.containsKey(c.name())){ continue; }
+      var hit= dfs(rem,c.name(),color);
+      if (hit != null){ return hit; }
+    }
+    color.put(u,2);
+    return null;
+  }
+  public static FearlessException noSourceToInferFrom(M m){
+    return Code.WellFormedness.of(//Note: an 'origin' is likely to be a fresh name anyway
+      "Can not infer signature of method "+formatSig(m.sig())+".\n"
+    + "No supertype has a method with "+m.sig().ts().size()+" parameters.\n"
+      ).addSpan(Parser.span(m.sig().pos(),100));
+  }
+  private static String formatSig(M.Sig s){
+    String res= s.toString().replace("[?]","").replace(" ("," <no_name>(");
+    res= res.substring(1);    
+    if (res.startsWith("? ")){ res= res.substring(2); }
+    if (res.endsWith(";")){ res= res.substring(0,res.length()-1); }
+    return Message.displayString(res);
+  }
+
+  public static FearlessException noRetNoInference(M m){
+    return Code.WellFormedness.of(
+      "Can not infer return type of method "+formatSig(m.sig())+".\n"
+    + "No supertype has a method named "+Message.displayString(m.sig().m().get().s())+" with "+m.sig().ts().size()+" parameters.\n"
+      ).addSpan(Parser.span(m.sig().pos(),100));
   }
 }

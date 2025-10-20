@@ -17,6 +17,10 @@ public record TName(String s, int arity,String asUStrLit,Pos pos){
     assert arity >= 0 : "arity < 0: "+arity;
     assert validate(s,"TName", UppercaseId,UnsignedInt, SignedInt, SignedRational, SignedFloat, UStr, SStr);
   }
+  public TName withPkgName(String pkg){
+    assert pkgName().isEmpty();
+    return new TName(pkg+"."+s,arity,asUStrLit,pos);
+  }
   public TName withArity(int arity){ return new TName(s,arity,asUStrLit,pos); }
   public String toString(){
     if(asUStrLit.isEmpty()){ return s+"/"+arity;}
