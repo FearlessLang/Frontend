@@ -12,7 +12,7 @@ public sealed interface E {
   Pos pos();
   <R> R accept(EVisitor<R> v);
   record X(String name, Pos pos) implements E{
-    public X{ assert validate(name, "parameter name",LowercaseId); }
+    public X{ assert validate(name, "parameter name",LowercaseId,Underscore); }
     public <R> R accept(EVisitor<R> v){ return v.visitX(this); }
     public String toString(){ return name; }
   }

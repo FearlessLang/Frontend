@@ -1,12 +1,3 @@
-  /*static FileFull file(int i, String input, SourceOracle o){
-    try{ return Parse.from(SourceOracle.defaultDbgUri(i), input); }
-    catch(FearlessException fe){ System.out.println(fe.render(o)); throw fe; }
-  }
-  static List<FileFull> files(List<String> input){
-    var o= oracle(input);
-    return IntStream.range(0, input.size()).mapToObj(i->file(i,input.get(i),o)).toList();
-  }*/
-
 package inferenceGrammar;
 
 import java.net.URI;
@@ -22,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import fullWellFormedness.ParsePackage;
 import message.FearlessException;
 import message.SourceOracle;
-import utils.Bug;
 import utils.Err;
 
 public class TestInference {
@@ -46,7 +36,7 @@ public class TestInference {
   }
   static List<inferenceGrammarB.Declaration> parsePackage(SourceOracle o){
     return new ParsePackage()
-      .of(List.of(),o.allFiles(),o,_->{throw Bug.todo();},0);
+      .of(List.of(),o.allFiles(),o,DbgBlock.dbg(),0);
   }
   static void ok(String expected, String head, List<String> input){
     var o= oracle("p",head,input);
@@ -384,15 +374,20 @@ C:A{::; z->::}
 D:A{z->::.bar {::.foo(D)}}
 """));}
 
-//TODO: next is ::
-//TODO: next is meth, sources and 5a
-/*
-A:{m}
-B:A{}
-C:A{}
----
+@Test void baseBlock(){ok("""
+[###]
+""",List.of(DbgBlock.baseBody));}
 
-User:B,C{}
+@Test void baseLet(){ok("""
+ (z, a_impl)->a_impl:?.bar({`_ ? [?](?):?; (b_impl)->b_impl:?.foo(imm p.D[]:?):?;}:?):?; imm #[](imm p.A[]):imm p.A[];}
+""",List.of("""
+A:{ #:A->Block#.let x={A}.return {x} }
+"""));}
 
-*/
+@Test void xpat1(){ok("""
+ (z, a_impl)->a_impl:?.bar({`_ ? [?](?):?; (b_impl)->b_impl:?.foo(imm p.D[]:?):?;}:?):?; imm #[](imm p.A[]):imm p.A[];}
+""",List.of("""
+A:{ #(A):A }
+B:A{ #{.a.b,.c.d}3->b3+d3 }
+"""));}
 }

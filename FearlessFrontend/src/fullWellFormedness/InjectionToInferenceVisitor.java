@@ -91,8 +91,7 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     var original= m.sig().map(s->s.parameters()).orElse(List.of());
     List<String> ps= mapPX(original);
     List<XE> xpats= xpats(ps,original,m.pos());
-    if (!xpats.isEmpty()){ throw Bug.todo(); }
-    //if xpats, make the Block //TODO: body=...
+    if (!xpats.isEmpty()){ body = makeXPatsBody(body,xpats); }
     if (m.hasImplicit()){ var p= freshF.freshVar(tops.getLast(), "impl"); ps = Push.of(ps,p); implicits.add(p); }
     E e= body.accept(this);
     m.sig().ifPresent(_->bsInScope.removeLast());
@@ -100,7 +99,23 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     Optional<MName> name= m.sig().flatMap(s->s.m());
     return Optional.of(new M.Impl(name,ps,e));
   }
-  record XE(String x, E e){}
+  private fearlessFullGrammar.E makeXPatsBody(fearlessFullGrammar.E body, List<XE> xes){
+    var p= body.pos();
+    //Block#.let x1={e1}.. .let xn={en}.return{body}
+    var block0= new fearlessFullGrammar.T.RCC(
+      Optional.of(RC.imm),
+      new fearlessFullGrammar.T.C(new TName("base.Block",0,"",p),Optional.of(List.of())));
+    fearlessFullGrammar.E blockE= new fearlessFullGrammar.E.TypedLiteral(block0, Optional.empty(),p);
+    blockE = new fearlessFullGrammar.E.Call(blockE, new MName("#",0),Optional.empty(),false,Optional.empty(),List.of(),p);
+    for(var xe:xes){
+      var xp= Optional.<fearlessFullGrammar.XPat>of(new fearlessFullGrammar.XPat.Name(new fearlessFullGrammar.E.X(xe.x,p)));
+      var e= new fearlessFullGrammar.E.Literal(Optional.empty(),List.of(new fearlessFullGrammar.M(Optional.empty(),Optional.of(xe.e), false,p) ),p);
+      blockE = new fearlessFullGrammar.E.Call(blockE, new MName(".let",2),Optional.empty(),false,xp,List.of(e),p); 
+      }
+    var b= new fearlessFullGrammar.E.Literal(Optional.empty(),List.of(new fearlessFullGrammar.M(Optional.empty(),Optional.of(body), false,p) ),p);
+    return new fearlessFullGrammar.E.Call(blockE, new MName(".return",1),Optional.empty(),false,Optional.empty(),List.of(b),p);
+  }
+  record XE(String x, fearlessFullGrammar.E e){}
   boolean isXPat(fearlessFullGrammar.Parameter p){
     return p.xp().isPresent() && p.xp().get() instanceof XPat.Destruct; 
   }
@@ -118,8 +133,8 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
       .mapToObj(i->xpat(pat.extract().get(i),patterns.get(i),fresh,pos));
   }
   XE xpat(List<MName> pat, String x, String fresh, Pos pos){
-    E res= new E.X(fresh, u, pos);
-    for (MName m:pat){ res= new E.ICall(res,m,List.of(), u, pos); }
+    fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, pos);
+    for (MName m:pat){ res= new fearlessFullGrammar.E.Call(res,m,Optional.empty(),false,Optional.empty(),List.of(), pos); }
     return new XE(fresh,res);
   }
   @Override public E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(),u,x.pos()); }

@@ -1,7 +1,6 @@
 package fullWellFormedness;
 
 import fearlessFullGrammar.TName;
+import inferenceGrammarB.Declaration;
 
-public interface OtherPackages{
-  inferenceGrammarB.Declaration of(TName name);
-}
+public interface OtherPackages{ Declaration of(TName name); }

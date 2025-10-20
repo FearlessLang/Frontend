@@ -129,7 +129,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     }
   MName parseDotName(){ return new MName(expect("method name",DotName).content(),0); }
   XPat parseXPat(){
-    if(peek(LowercaseId)){ return new XPat.Name(parseDecX()); }
+    if(peek(LowercaseId,Underscore)){ return new XPat.Name(parseDecX()); }
     if(!peek(_CurlyGroup)){ throw errFactory().parameterNameExpected(remainingSpan());}
     var res= parseGroup("nominal pattern",Parser::parseDestruct);
     var errSpaceBeforeId= peek(LowercaseId,UnsignedInt,UppercaseId);
@@ -192,7 +192,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new E.X(x.content(),pos(x));
   }
   E.X parseDecX(){
-    var x= expect("parameter declaration",LowercaseId);
+    var x= expect("parameter declaration",LowercaseId,Underscore);
     if(names.xIn(x.content())){ throw errFactory().nameRedeclared(x,span(x).get()); }
     return new E.X(x.content(),pos(x));
   }
@@ -227,7 +227,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   Stream<String> xsOf(Optional<XPat> xp){
     if(xp.isEmpty()){ return Stream.of(); }
-    return xp.get().parameterNames();
+    return xp.get().parameterNames().filter(x->!x.equals("_"));
   }
   String repeated(List<String> ss){
     var seen= new java.util.HashSet<String>();
@@ -309,7 +309,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     }
   Optional<T> parseOptT(){ return parseIf(fwdIf(peek(Colon)),this::parseT); }
   Parameter parseParameter(){
-    Optional<XPat> x= parseIf(peek(LowercaseId,_CurlyGroup),this::parseXPat);
+    Optional<XPat> x= parseIf(peek(LowercaseId,Underscore,_CurlyGroup),this::parseXPat);
     if(x.isPresent()){ return new Parameter(x, parseOptT()); }
     T t= parseT();
     return new Parameter(x,of(t));
