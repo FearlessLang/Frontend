@@ -379,15 +379,67 @@ D:A{z->::.bar {::.foo(D)}}
 """,List.of(DbgBlock.baseBody));}
 
 @Test void baseLet(){ok("""
- (z, a_impl)->a_impl:?.bar({`_ ? [?](?):?; (b_impl)->b_impl:?.foo(imm p.D[]:?):?;}:?):?; imm #[](imm p.A[]):imm p.A[];}
-""",List.of("""
+p.A[]:{`this\
+ imm #[]:imm p.A[];\
+ #()->imm base.Block[]:?#():?\
+.let({`_ ? [?]:?; ()->imm p.A[]:?;}:?,\
+{`_ ? [?](?,?):?; (x, a_eqS)->a_eqS:?\
+.return({`_ ? [?]:?; ()->x:?;}:?):?;}:?):?;}
+""","role app000;use base.Block as Block;",List.of("""
 A:{ #:A->Block#.let x={A}.return {x} }
 """));}
 
 @Test void xpat1(){ok("""
- (z, a_impl)->a_impl:?.bar({`_ ? [?](?):?; (b_impl)->b_impl:?.foo(imm p.D[]:?):?;}:?):?; imm #[](imm p.A[]):imm p.A[];}
+p.A[]:{`this imm #[](imm p.A[]):imm p.A[];}
+p.B[]:p.A[]{`this\
+ imm #[](imm p.A[]):imm p.A[];\
+ #(a_div)->imm base.Block[]:?#():?\
+.let(\
+{`_ ? [?]:?; ()->a_div:?.a():?.b():?;}:?,\
+{`_ ? [?](?,?):?; (b3, b_eqS)->b_eqS:?;}:?\
+):?\
+.let(\
+{`_ ? [?]:?; ()->a_div:?.c():?.d():?;}:?,\
+{`_ ? [?](?,?):?; (d3, a_eqS)->a_eqS:?;}:?):?\
+.return({`_ ? [?]:?; ()->b3:?+(d3:?):?;}:?):?;}
 """,List.of("""
 A:{ #(A):A }
 B:A{ #{.a.b,.c.d}3->b3+d3 }
+"""));}
+
+@Test void eqDeep(){ok("""
+p.A[]:{`this imm .bar[](imm p.A[]):imm p.A[];}
+p.B[]:p.A[]{`this\
+ imm .bar[](imm p.A[]):imm p.A[];\
+ (a_impl)->a_impl:?\
+.foo():?\
+.let(\
+imm base.1[]:?,\
+{`_ ? [?](?,?):?;\
+ (x, a_eqS)->a_eqS:?\
+.bla(imm base.2[]:?):?\
+.let(imm base.3[]:?,{`_ ? [?](?,?):?;\
+ (y, b_eqS)->b_eqS:?\
+.beer(imm base.4[]:?):?;}:?):?;}:?):?;}
+""",List.of("""
+A:{ .bar(A):A}
+B:A{ ::.foo.let x=1 .bla 2 .let y= 3 .beer 4}
+"""));}
+
+@Test void eqImplicit(){ok("""
+p.A[]:{`this imm .bar[](imm p.A[]):imm p.A[];}
+p.B[]:p.A[]{`this\
+ imm .bar[](imm p.A[]):imm p.A[];\
+ (a_impl)->a_impl:?\
+.foo():?\
+.let(a_impl:?,{`_ ? [?](?,?):?;\
+ (x, a_eqS)->a_eqS:?\
+.bla(a_impl:?):?\
+.let(a_impl:?,{`_ ? [?](?,?):?;\
+ (y, b_eqS)->b_eqS:?\
+.beer(a_impl:?):?;}:?):?;}:?):?;}
+""",List.of("""
+A:{ .bar(A):A}
+B:A{ ::.foo.let x=:: .bla :: .let y= :: .beer ::}
 """));}
 }

@@ -118,9 +118,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       if (xpat.isPresent()){ throw errFactory().missingExprAfterEq(remainingSpan()); }
       return new E.Call(receiver, m, sq, false,empty(),List.of(), pos);
     }
-    List<E> atom= List.of(parseAtom());//we need to avoid parsing the posts
+    E atom= parseAtom();//we need to avoid parsing the posts if e0 + e1 + e2
     updateNames(names.add(xsOf(xpat).toList(), List.of()));//zero if xpat is empty
-    return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,atom,pos);//note: arity 2 is special case for = sugar 
+    if (xpat.isPresent()){ atom = parsePost(atom); while(!end()){ atom = parsePost(atom); } }
+    return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar 
   }
   boolean eqSugar(){ return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq)); }
   MName parseMName(){

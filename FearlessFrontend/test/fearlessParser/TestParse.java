@@ -370,15 +370,12 @@ A:{x,y ->::.foo y}
 """);}
 
 @Test void eq_1(){ok("""
-FileFull[[###]decs=[
-Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional.empty,body=Optional[
-Call[Call[Call[
-TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
-#false[]]
-.letfalseName[x=x][Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]
-.returnfalse[Literal[M[sig=Optional.empty,body=Optional[
-Call[x]*false[TypedLiteralRCC[rc=Optional.empty,c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]
+[###]
+letfalseName[x=x]
+[Call[Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]
+.returnfalse[Literal[M[sig=Optional.empty,body=
+Optional[Call[x]*false[TypedLiteralRCC[rc=Optional.empty,
+c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]]
 ""","""
 A:{Block#.let x= {5} .return {x*2} }
 """);}
@@ -427,32 +424,28 @@ A:{ .m -> B:{} }
 """);}
 
 @Test void destructEq(){ok("""
-FileFull[[###]decs=[
-Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.m],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],
-body=Optional[Call[Call[Call[
-TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
+[###]
+Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=
+Block/0,ts=Optional.empty]]]
 #false[]]
-.letfalse
-Destruct[extract=[[.name,.size],[.age]],
-id=Optional[Bob]][Literal[]]]
-.usetrue[sizeBob,ageBob]]]]]]]
+.letfalseDestruct[extract=[[.name,.size],[.age]],
+id=Optional[Bob]][Call[Literal[]]
+.usetrue[sizeBob,ageBob]]]]]]]]
 ""","""
 A:{ .m -> Block#.let {.name.size,.age}Bob = {} .use(sizeBob,ageBob) }
 """);}
 @Test void eRound1(){ok("""
-FileFull[[###]decs=[
-Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.m],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],body=Optional[
-Call[(Call[Call[
-TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
+[###]
+Call[(Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=
+Block/0,ts=Optional.empty]]]
 #false[]]
-.letfalseName[x=x]
-[Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]])]
-.usetrue
-[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]]]
+.letfalseName[x=x][Call[Literal[M[sig=Optional.empty,body=Optional[
+TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]
+.barfalse[]]
+)]
+.usetrue[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]]]
 ""","""
-A:{ .m -> (Block#.let x={5}) .use(5) }
+A:{ .m -> (Block#.let x={5}.bar) .use(5) }
 """);}
 
 @Test void missingReturnType(){fail("""
@@ -468,26 +461,40 @@ Error 2  UnexpectedToken
 ""","""
 A:{ .m(): -> (Block#.let x={5}) .use(x) }
 """);}
-@Test void useOutOfScope1(){fail("""
+@Test void useOutOfScopeBad(){fail("""
 In file: [###]/in_memory0.fear
 
 001| A:{ .m -> (Block#.let x={5}) .use(x) }
-   | ----------~~~~~~~~~~~~~~~~~~~~~~~~^~--
+   | ----------~~~~~~~~~~~~~~^^^~----------
+
+While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
+Missing method name.
+Expected one of: ".name", "binary operator (eg. +, *, -)".
+Error 2  UnexpectedToken
+""","""
+A:{ .m -> (Block#.let x={5}) .use(x) }
+""");}
+
+@Test void useOutOfScope1(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A:{ .m -> (Block#.let x={5}.bar) .use(x) }
+   | ----------~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~--
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Name "x" is not in scope
 In scope: "this".
 Error 2  UnexpectedToken
 ""","""
-A:{ .m -> (Block#.let x={5}) .use(x) }
+A:{ .m -> (Block#.let x={5}.bar) .use(x) }
 """);}
 
 @Test void useOutOfScope2(){fail("""
 In file: [###]/in_memory0.fear
 
 001| A:{ .m ->
-002| ( (Block#.let x={5}) .use(x) )
-   | --------------------------^---
+002| ( (Block#.let x={5}.bar) .use(x) )
+   | ------------------------------^---
 
 While inspecting arguments list > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Name "x" is not in scope
@@ -495,7 +502,7 @@ In scope: "this".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m -> 
-( (Block#.let x={5}) .use(x) )
+( (Block#.let x={5}.bar) .use(x) )
  }
 """);}
 
@@ -503,8 +510,8 @@ A:{ .m ->
 In file: [###]/in_memory0.fear
 
 001| A:{ .m ->
-002| (   (  (Block#.let x={5}) .use(x)       )      )
-   | ----~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~-------
+002| (   (  (Block#.let x={5}.bar) .use(x)       )      )
+   | ----~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~-------
 
 While inspecting arguments list > expression in round parenthesis > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Name "x" is not in scope
@@ -512,7 +519,7 @@ In scope: "this".
 Error 2  UnexpectedToken
 ""","""
 A:{ .m -> 
-(   (  (Block#.let x={5}) .use(x)       )      )
+(   (  (Block#.let x={5}.bar) .use(x)       )      )
  }
 """);}
 
@@ -636,17 +643,12 @@ A:{
 """);}
 
 @Test void ok_comma_single_arg(){ok("""
-FileFull[[###]decs=[
-Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.m],bs=Optional.empty,hasParenthesis=true,parameters=[
-Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]],
-t=Optional[RCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]],
-body=Optional[Call[Call[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
+[###]
+Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
 #false[]]
-.letfalseName[x=z][Literal[
-M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]
+.letfalseName[x=z][Call[Call[Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]
 .usetrue[z]]
-.usetrue[z]]]]]]]
+.usetrue[z]]]]]]]]
 ""","""
 A:{
 .m(x:C):C ->
@@ -1144,9 +1146,9 @@ A:{
 [###]
 body=Optional[Inter[true][2]
 [Head,Tail\\n]
-[Call[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
-#false[]].letfalseName[x=x][Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]
-.usetrue[x]]]]]]]]
+[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
+#false[]].letfalseName[x=x][Call[Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]
+.usetrue[x]]]]]]]]]
 ""","""
 A:{
 .m:Str ->

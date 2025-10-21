@@ -97,7 +97,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
       append("", cs.ts(), t -> t.accept(this), ",", "]");
       });
     append(c.pars()?"(":(c.es().isEmpty()?"":" "));
-    c.pat().ifPresent(pat->pat.accept(this));
+    c.pat().ifPresent(pat->pat.accept(this).append("= "));
     append("",c.es(),e->e.accept(this),", ","");
     append(c.pars()?")":"");
     return res;

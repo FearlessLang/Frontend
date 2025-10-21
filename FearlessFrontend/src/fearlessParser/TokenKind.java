@@ -76,7 +76,7 @@ public enum TokenKind implements metaParser.TokenKind {
   //(?!/\\x2A|\\x2A/|//)
   BadOpDigit( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])*[\\x2B\\x2D](?=\\d)" ),
   BadOpLine ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])*\\x7C(?=[\\x22'])" ),
-  Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+","binary operator (eg. +, *, -"),
+  Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+","binary operator (eg. +, *, -)"),
   //IMPORTANT: BadOp* must precede Op so bad forms win ties of equal length.
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases  
   _XId("_*[A-Z][A-Za-z0-9_]*`*","type name"),

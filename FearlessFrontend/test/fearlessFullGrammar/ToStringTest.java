@@ -348,4 +348,8 @@ public class ToStringTest {
   @Test void literal_thisname_only_no_methods(){ok(
     "A: { .m -> B: {`s};}\n",
     "A:{ .m -> B:{`s} }");}
+  @Test void eqSugar(){ok(
+    "A: { .m -> Block # .let x= { 5;} .var y= { 6;} .return { x + y;};}\n",
+    "A:{ .m -> Block#.let x= {5} .var y={6} .return{x+y} }");}
+
 }
