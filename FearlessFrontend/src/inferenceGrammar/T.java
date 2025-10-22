@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
+import metaParser.Message;
 
 public sealed interface T {
   record X(String name) implements T{
@@ -30,7 +31,11 @@ public sealed interface T {
       assert unmodifiable(ts,"T.C.args");
       assert eq(ts.size(), name.arity(),"Type arity");
     }
-    public String toString(){ return name.s()+"["+ts.stream().map(Object::toString).collect(Collectors.joining(","))+"]"; }
+    public String toString(){
+      String displayed= name.s();
+      if (!name.asStrLit().isEmpty()){ displayed += ":"+Message.displayString(name.asStrLit()); }
+      return displayed+"["+ts.stream().map(Object::toString).collect(Collectors.joining(","))+"]";
+    }
   }
   record RCC(RC rc, C c) implements T{
     public RCC{ nonNull(rc,c); }

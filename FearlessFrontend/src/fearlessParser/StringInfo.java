@@ -6,14 +6,14 @@ import java.util.function.BiConsumer;
 import metaParser.Message;
 import utils.Bug;
 
-class StringInfo{
+public class StringInfo{
   final int hashCount;
   final List<String> parts= new ArrayList<>();
   final List<String> inter= new ArrayList<>();
   final List<Integer> starts= new ArrayList<>();
   final int line;
   final int col;
-  interface RangeMsg{ void accept(int from, int to, String msg); }
+  public interface RangeMsg{ void accept(int from, int to, String msg); }
   StringInfo(Token tok, BiConsumer<Integer,Integer> onNoClose, BiConsumer<Integer,Integer> onNoOpen, BiConsumer<Integer,Integer> onMoreOpen, RangeMsg onBadUnicode){
     this.line= tok.line();
     this.col= tok.column();

@@ -9,10 +9,10 @@ public final class ClassicDecoder{
  private final StringBuilder out= new StringBuilder();
  private int i= 0;
  private boolean lastCurly= false;
- ClassicDecoder(String s, int base, StringInfo.RangeMsg onErr){
+ public ClassicDecoder(String s, int base, StringInfo.RangeMsg onErr){
    this.s= s; this.base= base; this.onErr= onErr;
  }
- String of(){
+ public String of(){
    while (i < s.length()){
      char c = s.charAt(i);
      if (c == '\\'){ handleEscape(); continue; }

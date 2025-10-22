@@ -442,4 +442,58 @@ p.B[]:p.A[]{`this\
 A:{ .bar(A):A}
 B:A{ ::.foo.let x=:: .bla :: .let y= :: .beer ::}
 """));}
+
+@Test void strLit1(){ok("""
+p.A[]:{`this\
+ imm .foo[]:imm p.A[];\
+ .foo()->imm base.SStrProcs[]:?\
+.add(imm base.SStrInterElement:" foo "[]:?,imm p.A[]:?):?\
+.build(imm base.SStrInterElement:" bar\\n beer\\n"[]:?):?;}
+""",List.of("""
+A:{ .foo:A -> 
+  #|' foo {A} bar
+  #|' beer
+}
+"""));}
+@Test void strLit2(){ok("""
+p.A[]:{`this\
+ imm .foo[]:imm p.A[];\
+ .foo()->imm base.UStrProcs[]:?\
+.add(imm base.UStrInterElement:" foo "[]:?,imm p.A[]:?):?\
+.build(imm base.UStrInterElement:" bar\\n beer\\n"[]:?):?;}
+""",List.of("""
+A:{ .foo:A -> 
+  #|" foo {A} bar
+  #|" beer
+}
+"""));}
+@Test void strLit3(){ok("""
+p.A[]:{`this\
+ imm .foo[]:imm p.A[];\
+ .foo()->imm p.A[]:?\
+.foo(\
+imm base.UStrProcs[]:?\
+.add(imm base.UStrInterElement:" foo "[]:?,imm p.A[]:?):?\
+.build(imm base.UStrInterElement:" bar\\n beer\\n"[]:?):?\
+):?;}
+""",List.of("""
+A:{ .foo:A -> A.foo(
+  #|" foo {A} bar
+  #|" beer
+)}
+"""));}
+@Test void strLit4(){ok("""
+p.A[]:{`this\
+ imm .foo[]:imm p.A[];\
+ .foo()->imm p.A[]:?\
+.foo(imm base.UStrProcs[]:?\
+.add(imm base.UStrInterElement:" foo "[]:?,imm p.A[]:?):?\
+.build(imm base.UStrInterElement:" bar\\n beer\\n"[]:?):?\
+):?;}
+""",List.of("""
+A:{ .foo:A -> A.foo
+  #|" foo {A} bar
+  #|" beer
+}
+"""));}
 }

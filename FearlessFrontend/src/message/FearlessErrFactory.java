@@ -398,4 +398,10 @@ Fearless does not allow rational literals of form "1/2"
       +".\nOnly top level methods can be abstract.\n";
     return Code.WellFormedness.of(msg).addSpan(at);
   }
+  public FearlessException inconsistentStrInter(Span at,boolean simpleToU){
+    String base= simpleToU ? "Simple" : "Unicode";
+    String alt= simpleToU ? "Unicode" : "Simple";
+    String msg= "String interpolation changes midway from "+base+" to "+alt+".\n";
+    return Code.UnexpectedToken.of(msg).addSpan(at);
+  }
 }

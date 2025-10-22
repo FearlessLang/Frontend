@@ -113,6 +113,26 @@ MF[A:**, B:**, R:**]: { mut #(a: A, b: B): R }
 MF[A:**, B:**, C:**, R:**]: { mut #(a: A, b: B, c: C): R }
 MF[A:**, B:**, C:**, D:**, R:**]: { mut #(a: A, b: B, c: C, d: D): R }
 
+ToSStr:{ read .sStr: SStr }
+ToUStr:{ read .uStr: UStr }
+SStr:{}
+UStr:{}
+
+SStrProcs:{
+  imm .add(a:SStr,b:ToSStr): mut SStrProc -> this.add(a,b);
+  }
+SStrProc:{
+  mut .add(a:SStr,b:ToSStr): mut SStrProc -> this.add(a,b);
+  mut .build(a:SStr): SStr-> a;
+  }
+UStrProcs:{
+  imm .add(a:UStr,b:ToUStr): mut UStrProc -> this.add(a,b);
+  }
+UStrProc:{
+  mut .add(a:UStr,b:ToUStr): mut UStrProc -> this.add(a,b);
+  mut .build(a:UStr): UStr-> a;
+  }
+
 BoolMatch[R:**]:{
   mut .true: R;
   mut .false: R;

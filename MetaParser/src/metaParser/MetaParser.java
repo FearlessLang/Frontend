@@ -86,7 +86,8 @@ public abstract class MetaParser<
       .missing(spanLast(),what,List.of(kinds),self()); }
     var tt= t.get();
     var allowed= tt.is(kinds);
-    if (!allowed){ throw errFactory().missingButFound(remainingSpan(),what,tt,List.of(kinds),self()); }
+    if (!allowed){ throw errFactory()
+      .missingButFound(firstLeaf(tt).flatMap(this::span).orElse(remainingSpan()),what,tt,List.of(kinds),self()); }
     index++;
     return tt;
   }

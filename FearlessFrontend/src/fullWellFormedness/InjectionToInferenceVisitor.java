@@ -236,8 +236,25 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     List<E> es= mapE(c.es());
     return new E.ICall(e, c.name(), es, u, c.pos());
   }
-  @Override public E visitStringInter(fearlessFullGrammar.E.StringInter i){ throw Bug.todo(); }
-  
+  //TODO: search and replace other cases where we can use typedLiteral
+  private fearlessFullGrammar.E.TypedLiteral typedLiteral(String str,String txt,Pos p){
+    var tn= new TName(str, 0,txt,p);
+    var c= new fearlessFullGrammar.T.C(tn,of(List.of()));
+    return new fearlessFullGrammar.E.TypedLiteral(new fearlessFullGrammar.T.RCC(empty(),c), empty(), p);    
+  }
+  @Override public E visitStringInter(fearlessFullGrammar.E.StringInter i){
+    String name= i.simple()?"base.SStr":"base.UStr";
+    var add= new fearlessFullGrammar.MName(".add",2);
+    var build= new fearlessFullGrammar.MName(".build",1);
+    var topE= i.e().orElseGet(()->typedLiteral(name+"Procs", "",i.pos()));
+    for (int j= 0; j < i.es().size(); j++){
+      var stri= typedLiteral(name+"InterElement",i.strings().get(j),i.pos());
+      topE = new fearlessFullGrammar.E.Call(topE,add,empty(),true,empty(),List.of(stri,i.es().get(j)),i.pos());
+    }
+    var strLast= typedLiteral(name+"InterElement",i.strings().getLast(),i.pos());
+    var desugared= new fearlessFullGrammar.E.Call(topE,build,empty(),true,empty(),List.of(strLast),i.pos());
+    return desugared.accept(this); 
+  }  
   @Override public XPat visitInnerXPat(fearlessFullGrammar.XPat x){ throw Bug.unreachable(); }
   @Override public fearlessFullGrammar.M visitInnerM(fearlessFullGrammar.M m){ throw Bug.unreachable(); }
   @Override public fearlessFullGrammar.Sig visitInnerSig(fearlessFullGrammar.Sig s){ throw Bug.unreachable(); }

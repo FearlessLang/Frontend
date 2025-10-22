@@ -3,7 +3,6 @@ package fearlessParser;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
-
 import fearlessFullGrammar.FileFull;
 import files.Pos;
 import message.FearlessException;
@@ -683,7 +682,7 @@ In file: [###]/in_memory0.fear
 
 002| .m ->
 003| .use(y)
-   | ^^^^^^^
+   | ^^^^---
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
@@ -790,7 +789,7 @@ A: a b c } f e
 In file: [###]in_memory0.fear
 
 001| A:{ .m -> :+45 }
-   | ----~~~~~~^^^^--
+   | ----~~~~~~^~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Missing expression.
@@ -1561,15 +1560,15 @@ A:{
 ""","""
 A:{
 .m(x:X):Str ->
-x.b(1,2) |'pre{,}post
+x.b(1,2): |'pre{,}post
 .d(3)
 }
 """); }
 @Test void fail_with_interpolation(){ fail("""
 In file: [###]/in_memory0.fear
 
-003| x.b(1,2) #|'pre{,}post
-   |                 ^-
+003| x.b(1,2) :#|'pre{,}post
+   |                  ^-
 004| .d(3)
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
@@ -1580,7 +1579,7 @@ Error 2  UnexpectedToken
 ""","""
 A:{
 .m(x:X):Str ->
-x.b(1,2) #|'pre{,}post
+x.b(1,2) :#|'pre{,}post
 .d(3)
 }
 """); }
@@ -1685,7 +1684,25 @@ dd ->
 }
 """); }
 
-@Test void inter_mix(){ ok("""
+@Test void inter_mixBad(){ fail("""
+In file: [###]/in_memory0.fear
+
+003| ####|"one
+004| ###|'two
+   | ^^^^^^^^
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+String interpolation changes midway from Unicode to Simple.
+Error 2  UnexpectedToken
+""","""
+A:{
+.m:Str ->
+####|"one
+###|'two
+}
+"""); }
+
+@Test void inter_mixOk(){ ok("""
 [###]body=Optional[
 Inter[false][4][one\\n][]
 Inter[true][3][two\\n][]
@@ -1694,7 +1711,7 @@ Inter[true][3][two\\n][]
 A:{
 .m:Str ->
 ####|"one
-###|'two
+:###|'two
 }
 """); }
 
@@ -1870,7 +1887,7 @@ A:{ x -> #|'S { x.foo[read] } T
 ""","""
 A:{
 .m(x:X):Str ->
-x.b(1,2) #|'pre { x + 1 } post
+x.b(1,2) : #|'pre { x + 1 } post
 }
 """); }
 
@@ -3168,7 +3185,7 @@ In file: [###]/in_memory0.fear
 
 001| package foo;
 002| use a1 as F1;
-   | ----^^^^^^^^
+   | ----^^------
 
 While inspecting header element > file header > full file
 Missing type name.
@@ -4033,5 +4050,60 @@ Error 10  WellFormedness
 ""","""
 A:{ { mut .foo -> :: .a } }
 """); }
+
+//TODO: is this what we want, with the \n inside it?
+//Overall, what about escape in simple str?
+//what if we had 'abc'.nl.q+'def' for 'abc\n\'def' and the \ has no special meaning in SStr?
+//on the other side, UStr should support {\\u34\n\t\\u45} or something: 
+//basically any slashy should be allowed in the {}s
+//at that point, it opens the question to allow \n out of {} to be two characters.
+@Test void simpleStrLiteral(){ ok("""
+[###].foo[###]
+TypedLiteralRCC[rc=Optional.empty,c=C[name='aaa\\nbbb'/0:"aaa\\\\nbbb",
+ts=Optional.empty]]]]]]]]
+""","""
+A:{ .foo:SStr -> 'aaa\\nbbb' }
+"""); }
+@Test void forgotSemiStart1(){fail("""
+In file: [###]/in_memory0.fear
+
+001| A{ .foo:A->
+   |  ^
+   | ... 3 lines ...
+005|  }
+
+While inspecting type declaration > full file
+Missing type declaration (:) symbol.
+Found instead: "".
+Expected: ":".
+Error 2  UnexpectedToken
+""","""
+A{ .foo:A->
+ this.foo
+ .foo
+ .foo
+ }
+""");}
+@Test void forgotSemiStart2(){fail("""
+In file: [###]/in_memory0.fear
+
+003| A{ .foo:A ->
+   |  ^
+   | ... 2 lines ...
+006| }
+
+While inspecting type declaration > full file
+Missing type declaration (:) symbol.
+Found instead: "".
+Expected: ":".
+Error 2  UnexpectedToken
+""","""
+package foo;
+role app000;
+A{ .foo:A -> 
+  #|' foo {A} bar
+  #|' beer
+}
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

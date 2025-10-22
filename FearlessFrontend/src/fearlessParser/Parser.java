@@ -38,7 +38,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     while(!end()){ e = parsePost(e); }
     return e;
   }
-  boolean hasPost(){ return peek(DotName,Op,UStrInterHash,UStrLine,SStrInterHash,SStrLine); }
+  boolean hasPost(){ return peek(DotName,Op,Colon); }
   boolean isDec(){//Dec starts with D[Bs]: or D:
     return peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup), t->t.is(Colon))
         || peekOrder(t->t.isTypeName(), t->t.is(Colon));
@@ -80,10 +80,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if(names.XIn(c.content())){ throw errFactory().typeNameConflictsGeneric(c,span(c).get()); }
     var s= c.content();
     if(s.contains("._")){ throw errFactory().privateTypeName(c,span(c).get()); }
-    if(!s.startsWith("\"")){ return new TName(s,0,"",pos(c)); }
-    s = new ClassicDecoder(
-      s.substring(1, s.length()-1), 0, this::interBadUnicode).of();
-    return new TName(c.content(),0,s,pos(c));
+    return TName.of(c.content(),0,pos(c),this::interBadUnicode);
   }
   T parseT(){ //T    ::= C | RC C | X | RC X | read/imm X
     if(fwdIf(peek(ReadImm))){ return new T.ReadImmX(parseTX()); }
@@ -104,8 +101,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new T.X(c.content(),pos(c));
   }
   E parsePost(E receiver){
-    if(peek(UStrInterHash,UStrLine)){ return parseStrInter(false,of(receiver)); }
-    if(peek(SStrInterHash,SStrLine)){ return parseStrInter(true, of(receiver)); }
+    if(fwdIf(peekOrder(t->t.is(Colon),t->t.is(UStrInterHash,UStrLine)))){ return parseStrInter(false,of(receiver)); }
+    if(fwdIf(peekOrder(t->t.is(Colon),t->t.is(SStrInterHash,SStrLine)))){ return parseStrInter(true, of(receiver)); }
     MName m= parseMName();
     Optional<E.CallSquare> sq= parseIf(peek(_SquareGroup),()->parseGroup("method call generic parameters",Parser::parseCallSquare));
     Pos pos= pos();
@@ -155,13 +152,12 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     List<T> ts= splitBy("genericTypes",commaSkip,Parser::parseT);
     return new E.CallSquare(rc, ts);
   }
+  Predicate<Token> moreStrInter(boolean isSimple){ return isSimple ? t->t.is(SStrInterHash,SStrLine) : t->t.is(UStrInterHash,UStrLine); }
   E.StringInter parseStrInter(boolean isSimple, Optional<E> receiver){
     Pos pos= pos();
-    Predicate<Token> cond= isSimple
-      ? t->t.is(SStrInterHash,SStrLine)
-      : t->t.is(UStrInterHash,UStrLine);
     List<StringInfo> contents= new ArrayList<>();
-    while(peekIf(cond)){ contents.add(new StringInfo(expectAny(""),this::interOnNoClose,this::interOnNoOpen,this::interOnMoreOpen,this::interBadUnicode)); }
+    while(peekIf(moreStrInter(isSimple))){ contents.add(new StringInfo(expectAny(""),this::interOnNoClose,this::interOnNoOpen,this::interOnMoreOpen,this::interBadUnicode)); }
+    if (peekIf(moreStrInter(!isSimple))){ throw errFactory().inconsistentStrInter(span(expectAny("")).get(),isSimple); }
     List<Integer> hashes= contents.stream().map(i->i.hashCount).toList();
     List<String> parts= StringInfo.mergeParts(contents);
     List<E> es= contents.stream()
@@ -463,7 +459,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     while(!end()){
       var t= expectAny("");
       if(t.is(Comma) && !inColon){ return 1; }
-      if(t.is(_CurlyGroup)){ inColon = false; }
+      if(!t.is(_SquareGroup,Comma,UppercaseId)){ inColon = false; } //purposely not allowing SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr even if valid TNames
       if(t.is(Colon)){ inColon = true;}
     }
     return 0;
@@ -475,10 +471,14 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     }
     return 0;
   }
-  int headEnd(){
-    while(!end() && !isDec()){ expectAny(""); }
-    return 0;
-  }
+  boolean guessHeadEnd(){    //while(!end() && !isDec()){ expectAny(""); }//this gives bad errors if, for example, forget colon in A:{} vs A{}
+    return end()
+      || isDec()
+      || peek(_CurlyGroup,_RoundGroup,_SquareGroup)
+      || peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup,_CurlyGroup,_RoundGroup))
+      || peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup,_CurlyGroup,_RoundGroup))
+  ;}
+  int headEnd(){ while(!guessHeadEnd()){ expectAny(""); } return 0; }
   public void checkAbruptExprEnd(){
     absurd();
     eatAtom();    
