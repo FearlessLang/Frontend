@@ -676,4 +676,86 @@ A1:{ .foo[X:imm]():A1;}
 A2:{ .foo[X:imm]():A1;}
 B[X:imm]:A1,A2{ .foo()->this.foo }
 """));}
+@Test void ambigMethName1(){fail("""
+In file: [###]/in_memory0.fear
+
+004| B:A1,A2{ this.foo }
+   |          ^^^^^^^^^^
+
+While inspecting the file
+Can not infer the name for method with 0 parameters.
+Many abstract methods with 0 parameters could be selected:
+Candidates: ".foo", ".bar".
+Error 10  WellFormedness
+""",List.of("""
+A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
+A2:{ .bar():A1; .baz:A1->this.baz}
+B:A1,A2{ this.foo }
+"""));}
+@Test void ambigMethName2(){fail("""
+In file: [###]/in_memory0.fear
+
+004| B:A1,A2{ y->this.foo }
+   |          ^^^^^^^^^^^^^
+
+While inspecting the file
+Can not infer the name for method with 1 parameters.
+Many methods with 1 parameters could be selected:
+Candidates: ".baz", ".beer".
+Error 10  WellFormedness
+""",List.of("""
+A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
+A2:{ .bar():A1; .baz:A1->this.baz}
+B:A1,A2{ y->this.foo }
+"""));}
+
+@Test void diamondOk(){ok("""
+p.A1:{`this .foo:p.A1; .foo()->this:?;}
+p.A2:p.A1{`this .foo:p.A1;}
+p.A3:p.A1{`this .foo:p.A1;}
+p.B:p.A1, p.A2, p.A3{`this .foo:p.A1;}
+""",List.of("""
+A1:{ .foo():A1->this;}
+A2:A1{ }
+A3:A1{ }
+B:A2,A3{ }
+"""));}
+
+@Test void diamondBad1(){fail("""
+In file: [###]/in_memory0.fear
+
+005| B:A2,A3{ }
+   | ^^^^^^^^^^
+
+While inspecting the file
+Ambiguos implementation for method ".foo" with 0 parameters.
+Different options are present in the implemented types: 
+Candidates: "p.A2", "p.A1".
+Type "p.B" must declare a method ".foo" explicitly implementing the desired behaviour.
+Error 10  WellFormedness
+""",List.of("""
+A1:{ .foo():A1->this;}
+A2:A1{ .foo->this; }
+A3:A1{ }
+B:A2,A3{ }
+"""));}
+
+@Test void diamondBad2(){fail("""
+In file: [###]/in_memory0.fear
+
+005| B:A2,A3{ }
+   | ^^^^^^^^^^
+
+While inspecting the file
+Ambiguos implementation for method ".foo" with 0 parameters.
+Different options are present in the implemented types: 
+Candidates: "p.A2", "p.A3".
+Type "p.B" must declare a method ".foo" explicitly implementing the desired behaviour.
+Error 10  WellFormedness
+""",List.of("""
+A1:{ .foo():A1->this;}
+A2:A1{ .foo->this; }
+A3:A1{ .foo->this; }
+B:A2,A3{ }
+"""));}
 }

@@ -18,6 +18,7 @@ import fullWellFormedness.Methods.Agreement;
 import inferenceGrammar.B;
 import inferenceGrammar.Declaration;
 import inferenceGrammar.M;
+import inferenceGrammarB.M.Sig;
 import metaParser.Message;
 import utils.Bug;
 
@@ -222,15 +223,34 @@ public final class WellFormednessErrors {
   public static FearlessException agreement(Agreement at, List<?> res, String msg){
     return Code.WellFormedness.of(
       msg+ " for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
-      + "Different options are present in the implemented types: "+res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
-      + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
+    + "Different options are present in the implemented types: "+res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
+    + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
       ).addSpan(Parser.span(at.pos(),100));
   }
   public static FearlessException agreementSize(Agreement at, List<List<B>> res) {
     return Code.WellFormedness.of(
       "Number of generic type parameters disagreement for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
-      + "Different options are present in the implemented types: "+res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
-      + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
+    + "Different options are present in the implemented types: "+res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
+    + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
       ).addSpan(Parser.span(at.pos(),100));
    }
+  public static FearlessException ambiguosImpl(boolean abs, M m, List<inferenceGrammarB.M.Sig> options){
+    return Code.WellFormedness.of(
+      "Can not infer the name for method with "+m.sig().ts().size()+" parameters.\n"
+    + "Many"+(abs?" abstract":"")+" methods with "+m.sig().ts().size()+" parameters could be selected:\n"
+    + "Candidates: "+options.stream()
+        .map(mi->Message.displayString(mi.m().s()))
+        .collect(Collectors.joining(", "))+".\n"
+      ).addSpan(Parser.span(m.sig().pos(),100));
+  }
+  public static FearlessException ambiguousImplementationFor(List<Sig> ss, List<TName> options, Agreement at) {
+    return Code.WellFormedness.of(
+      "Ambiguos implementation for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
+    + "Different options are present in the implemented types:\n"
+    + "Candidates: "+options.stream()
+        .map(mi->Message.displayString(mi.s()))
+        .collect(Collectors.joining(", "))+".\n"
+    + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly implementing the desired behaviour.\n"
+      ).addSpan(Parser.span(at.pos(),100));
+  }
 }

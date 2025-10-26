@@ -108,11 +108,11 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
       ss.removeIf(s->s.m().arity()==arity && s.abs()?match.add(s):false);
       var count= namesCount(match);
       if (count == 1){ res.add(pairWithSig(match,m,origin)); continue; }
-      if (count > 1){ throw Bug.todo(); }//error ambiguos abstract impl
+      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(true,m,match); }
       ss.removeIf(s->s.m().arity()==arity?match.add(s):false);
       count= namesCount(match);
       if (count == 1){ res.add(pairWithSig(match,m,origin)); continue; }
-      if (count > 1){ throw Bug.todo(); }//error ambiguos impl
+      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(false,m,match); }
       throw WellFormednessErrors.noSourceToInferFrom(m);
     }
     Map<MName,List<M.Sig>> map= ss.stream().collect(Collectors.groupingBy(s->s.m()));
@@ -149,7 +149,7 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
         "Type disagreement about argument "+i)).toList();
     T res= agreement(at,ss.stream().map(e->e.ret()),"Return type disagreement");
     var impl= ss.stream().filter(e->!e.abs()).map(e->e.origin()).distinct().toList();
-    if (impl.size() > 1){ throw Bug.todo(); }//more then one implemented
+    if (impl.size() > 1){ throw WellFormednessErrors.ambiguousImplementationFor(ss,impl,at); }
     if (impl.size() == 1){ origin = impl.getFirst(); }
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,impl.isEmpty(),ss.getFirst().pos());
     return new M(sig,Optional.empty());
