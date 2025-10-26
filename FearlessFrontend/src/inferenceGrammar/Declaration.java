@@ -17,8 +17,8 @@ public record Declaration(TName name, List<B> bs, List<T.C> cs, E.Literal l){
   }
   Pos pos(){ return l.pos(); }
   public String toString(){
-    var bsS= bs.stream().map(Object::toString).collect(Collectors.joining(", "));
+    var bsS= bs.isEmpty()?"":"["+bs.stream().map(Object::toString).collect(Collectors.joining(", "))+"]";
     var csS= cs.stream().map(Object::toString).collect(Collectors.joining(", "));
-    return name.s()+"["+bsS+"]:"+csS+l;
+    return name.s()+bsS+":"+csS+l;
   }
 }

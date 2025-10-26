@@ -1,4 +1,4 @@
-package fullWellFormedness;
+package message;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -6,17 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import java.util.stream.Collectors;
+import fullWellFormedness.Package;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.T.X;
 import fearlessFullGrammar.TName;
 import fearlessParser.Parser;
 import fearlessParser.RC;
+import fullWellFormedness.Methods.Agreement;
+import inferenceGrammar.B;
 import inferenceGrammar.Declaration;
 import inferenceGrammar.M;
-import message.Code;
-import message.FearlessException;
 import metaParser.Message;
 import utils.Bug;
 
@@ -217,4 +218,19 @@ public final class WellFormednessErrors {
     + "No supertype has a method named "+Message.displayString(m.sig().m().get().s())+" with "+m.sig().ts().size()+" parameters.\n"
       ).addSpan(Parser.span(m.sig().pos(),100));
   }
+
+  public static FearlessException agreement(Agreement at, List<?> res, String msg){
+    return Code.WellFormedness.of(
+      msg+ " for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
+      + "Different options are present in the implemented types: "+res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
+      + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
+      ).addSpan(Parser.span(at.pos(),100));
+  }
+  public static FearlessException agreementSize(Agreement at, List<List<B>> res) {
+    return Code.WellFormedness.of(
+      "Number of generic type parameters disagreement for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
+      + "Different options are present in the implemented types: "+res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
+      + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
+      ).addSpan(Parser.span(at.pos(),100));
+   }
 }

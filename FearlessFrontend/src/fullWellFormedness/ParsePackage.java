@@ -11,6 +11,8 @@ import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import fearlessParser.Parse;
 import message.SourceOracle;
+import message.WellFormednessErrors;
+
 import static offensiveUtils.Require.*;
 import static fearlessParser.TokenKind.*;
 

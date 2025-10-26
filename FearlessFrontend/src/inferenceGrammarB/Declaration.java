@@ -19,9 +19,9 @@ public record Declaration(TName name, List<B> bs, List<T.C> cs, String thisName,
     assert unmodifiable(ms,"Declaration.ms");
   }
   public String toString(){
-    var bsS= bs.stream().map(Object::toString).collect(Collectors.joining(", "));
+    var bsS= bs.isEmpty()?"":"["+bs.stream().map(Object::toString).collect(Collectors.joining(", "))+"]";
     var csS= cs.stream().map(Object::toString).collect(Collectors.joining(", "));
     var msS= ms.stream().map(Object::toString).collect(Collectors.joining(""));
-    return name.s()+"["+bsS+"]:"+csS+"{`"+thisName+msS+"}";
+    return name.s()+bsS+":"+csS+"{`"+thisName+msS+"}";
   }
 }

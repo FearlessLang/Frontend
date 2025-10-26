@@ -7,6 +7,8 @@ import java.util.Set;
 
 import fearlessFullGrammar.*;
 import fearlessFullGrammar.E.*;
+import message.WellFormednessErrors;
+
 import java.util.Map;
 import utils.Bug;
 public class AllDeclaredNames implements EVisitor<Void>{

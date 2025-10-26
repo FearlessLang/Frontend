@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import fearlessFullGrammar.TName;
 import inferenceGrammar.Declaration;
+import message.WellFormednessErrors;
 
 public class ToInference {
   List<Declaration> of(Package p, OtherPackages other, FreshPrefix fresh){

@@ -9,7 +9,7 @@ import static fearlessParser.TokenKind.UnsignedInt;
 import static fearlessParser.TokenKind.UppercaseId;
 import static fearlessParser.TokenKind.validate;
 
-import fearlessParser.ClassicDecoder;
+import fearlessParser.UStrDecoder;
 import fearlessParser.StringInfo;
 import files.Pos;
 import metaParser.Message;
@@ -42,7 +42,7 @@ public record TName(String s, int arity,String asStrLit,Pos pos){
   }
   public static TName of(String name, int arity, Pos p, StringInfo.RangeMsg err){
     String s= "";
-    if(name.startsWith("\"")){ s = new ClassicDecoder(name.substring(1, name.length()-1), 0, err).of(); }
+    if(name.startsWith("\"")){ s = new UStrDecoder(name.substring(1, name.length()-1), 0, err).of(); }
     if(name.startsWith("'")){ s = name.substring(1, name.length()-1); }//TODO: what about \n etc?
     return new TName(name,arity,s,p);
   }

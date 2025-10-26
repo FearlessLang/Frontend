@@ -16,6 +16,7 @@ import fearlessFullGrammar.XPat;
 import fearlessParser.RC;
 import files.Pos;
 import inferenceGrammar.T;
+import message.WellFormednessErrors;
 import inferenceGrammar.E;
 import inferenceGrammar.IT;
 import inferenceGrammar.M;
@@ -158,6 +159,7 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
   }
   B xB(T.X x){ return bsInScope.stream().flatMap(List::stream).filter(b->b.x().equals(x)).findFirst().get(); }
   @Override public E visitDeclarationLiteral(fearlessFullGrammar.E.DeclarationLiteral c){
+    freshF.aliasOwner(this.tops.getLast(), f.apply(c.dec().name()));
     var dec= addDeclaration(c.dec(),false);
     List<T> Xs= dec.bs().stream().map(b->(T)b.x()).toList();
     RC rc= c.rc().orElse(RC.imm);

@@ -2,14 +2,14 @@ package fearlessParser;
 
 import utils.Bug;
 
-public final class ClassicDecoder{
+public final class UStrDecoder{
  private final String s;
  private final int base; // absolute offset of s in the token, if any
  private final StringInfo.RangeMsg onErr;
  private final StringBuilder out= new StringBuilder();
  private int i= 0;
  private boolean lastCurly= false;
- public ClassicDecoder(String s, int base, StringInfo.RangeMsg onErr){
+ public UStrDecoder(String s, int base, StringInfo.RangeMsg onErr){
    this.s= s; this.base= base; this.onErr= onErr;
  }
  public String of(){

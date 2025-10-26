@@ -39,84 +39,84 @@ public final class FreshPrefix {
   public TName freshTopType(TName hint, int arity){
     assert nonNull(hint);
     String base= sanitizeBase(hint.simpleName(), true);
-      int n= topSeq.getOrDefault(base, 1);
-      while (true){
-        String cand= encodeBijective(n, up) + "_" + base;
-        var commit= !usedTopTypes.contains(cand) && !allGenericNames.contains(cand);
-        if (!commit){ n++; continue; }
-        usedTopTypes.add(cand);
-        topSeq.put(base, n + 1);
-        var res= new TName(pkgName+"."+cand,arity,"",hint.pos());
-        aliasOwner(hint,res);
-        return res;
-      }
-    }
-    public boolean isFreshGeneric(TName owner, T.X x){//used where we know it is a valid generic elsewhere (so already not a top type)
-      Set<String> scope= usedGen.get(owner);
-      return !scope.contains(x.name());// && !usedTopTypes.contains(x.name());
-    }
-    public String freshGeneric(TName owner, String hint){
-      assert nonNull(owner,hint);
-      assert pkgName.equals(owner.pkgName());
-      String base= sanitizeBase(hint, true);
-      Map<String,Integer> seq= genSeq.get(owner);
-      int n= seq.getOrDefault(base, 1);
-      Set<String> scope= usedGen.get(owner);
-      while (true){
-        String cand= encodeBijective(n, up) + "_" + base;
-        var commit= !scope.contains(cand) && !usedTopTypes.contains(cand);
-        if (!commit){ n++; continue; }
-        scope.add(cand);
-        allGenericNames.add(cand);
-        seq.put(base, n + 1);
-        return cand;
-      }
-    }
-    public String freshVar(TName owner, String hint) {
-      assert nonNull(owner,hint);
-      assert pkgName.equals(owner.pkgName());
-      String base= sanitizeBase(hint, false);
-      Map<String,Integer> seq= varSeq.get(owner);
-      int n= seq.getOrDefault(base, 1);
-      Set<String> scope= usedVar.get(owner);
-      while (true){
-        String cand = encodeBijective(n, low) + "_" + base;
-        if (scope.contains(cand)){ n++; continue; }
-        scope.add(cand);
-        seq.put(base, n + 1);
-        return cand;
-      }
-    }
-    private void aliasOwner(TName original, TName alias){
-      assert nonNull(original, alias);
-      assert pkgName.equals(original.pkgName());
-      assert pkgName.equals(alias.pkgName());
-      var gen= usedGen.get(original);
-      var vars= usedVar.get(original);
-      var gSeq = genSeq.get(original);
-      var vSeq = varSeq.get(original);
-      assert nonNull(gen,vars,gSeq,vSeq);
-      assert !usedGen.containsKey(alias) && !usedVar.containsKey(alias);
-      usedGen.put(alias, gen);
-      usedVar.put(alias, vars);      
-      genSeq.put(alias, gSeq);
-      varSeq.put(alias, vSeq);
-    }
-    private static String sanitizeBase(String raw, boolean type) {
-      String s= raw.replaceAll("[^A-Za-z0-9_]", "");
-      if (s.isEmpty()){ s = type ? "T" : "v"; }
-      if (!Character.isLetter(s.charAt(0))){ s = (type ? "T" : "v") + s; }
-      return (s.length() <= 4) ? s : s.substring(0, 4);
-    }
-    private static String encodeBijective(int n, char[] alphabet){
-      int base= alphabet.length;
-      StringBuilder sb= new StringBuilder(4);
-      int x= n;
-      while (x > 0){
-        x--;
-        sb.append(alphabet[x % base]);
-        x /= base;
-      }
-      return sb.reverse().toString();
+    int n= topSeq.getOrDefault(base, 1);
+    while (true){
+      String cand= encodeBijective(n, up) + "_" + base;
+      var commit= !usedTopTypes.contains(cand) && !allGenericNames.contains(cand);
+      if (!commit){ n++; continue; }
+      usedTopTypes.add(cand);
+      topSeq.put(base, n + 1);
+      var res= new TName(pkgName+"."+cand,arity,"",hint.pos());
+      aliasOwner(hint,res);
+      return res;
     }
   }
+  public boolean isFreshGeneric(TName owner, T.X x){//used where we know it is a valid generic elsewhere (so already not a top type)
+    Set<String> scope= usedGen.get(owner);
+    return !scope.contains(x.name());// && !usedTopTypes.contains(x.name());
+  }
+  public String freshGeneric(TName owner, String hint){
+    assert nonNull(owner,hint);
+    assert pkgName.equals(owner.pkgName());
+    String base= sanitizeBase(hint, true);
+    Map<String,Integer> seq= genSeq.get(owner);
+    int n= seq.getOrDefault(base, 1);
+    Set<String> scope= usedGen.get(owner);
+    while (true){
+      String cand= encodeBijective(n, up) + "_" + base;
+      var commit= !scope.contains(cand) && !usedTopTypes.contains(cand);
+      if (!commit){ n++; continue; }
+      scope.add(cand);
+      allGenericNames.add(cand);
+      seq.put(base, n + 1);
+      return cand;
+    }
+  }
+  public String freshVar(TName owner, String hint) {
+    assert nonNull(owner,hint);
+    assert pkgName.equals(owner.pkgName());
+    String base= sanitizeBase(hint, false);
+    Map<String,Integer> seq= varSeq.get(owner);
+    int n= seq.getOrDefault(base, 1);
+    Set<String> scope= usedVar.get(owner);
+    while (true){
+      String cand = encodeBijective(n, low) + "_" + base;
+      if (scope.contains(cand)){ n++; continue; }
+      scope.add(cand);
+      seq.put(base, n + 1);
+      return cand;
+    }
+  }
+  public void aliasOwner(TName original, TName alias){
+    assert nonNull(original, alias);
+    assert pkgName.equals(original.pkgName());
+    assert pkgName.equals(alias.pkgName()): pkgName+" -- "+alias;
+    var gen= usedGen.get(original);
+    var vars= usedVar.get(original);
+    var gSeq = genSeq.get(original);
+    var vSeq = varSeq.get(original);
+    assert nonNull(gen,vars,gSeq,vSeq);
+    assert !usedGen.containsKey(alias) && !usedVar.containsKey(alias);
+    usedGen.put(alias, gen);
+    usedVar.put(alias, vars);      
+    genSeq.put(alias, gSeq);
+    varSeq.put(alias, vSeq);
+  }
+  private static String sanitizeBase(String raw, boolean type) {
+    String s= raw.replaceAll("[^A-Za-z0-9_]", "");
+    if (s.isEmpty()){ s = type ? "T" : "v"; }
+    if (!Character.isLetter(s.charAt(0))){ s = (type ? "T" : "v") + s; }
+    return (s.length() <= 4) ? s : s.substring(0, 4);
+  }
+  private static String encodeBijective(int n, char[] alphabet){
+    int base= alphabet.length;
+    StringBuilder sb= new StringBuilder(4);
+    int x= n;
+    while (x > 0){
+      x--;
+      sb.append(alphabet[x % base]);
+      x /= base;
+    }
+    return sb.reverse().toString();
+  }
+}

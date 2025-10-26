@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.TName;
+import message.WellFormednessErrors;
 
 public record DeclaredNames(Set<TName> decNames, Map<TName,Set<T.X>> allXs, Map<TName,Set<String>> allParameters){
   static public DeclaredNames of(String pkgName, List<Declaration> ds, Map<String,String> map){

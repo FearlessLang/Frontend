@@ -13,9 +13,11 @@ import java.util.stream.Stream;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
+import files.Pos;
 import inferenceGrammar.B;
 import inferenceGrammar.Declaration;
 import inferenceGrammarB.M;
+import message.WellFormednessErrors;
 import utils.Bug;
 import inferenceGrammar.T;
 
@@ -120,31 +122,33 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
   long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m()).count(); }
   M pairWithSig(List<M.Sig> ss, inferenceGrammar.M m, TName origin){
     if (ss.isEmpty()){ return toM(m,origin); }
-    var s= m.sig();
-    RC rc= s.rc().orElseGet(()->agreementRC(ss.stream().map(e->e.rc()),"reference capability disagreement"));
+    var s= m.sig();    
+    var at= new Agreement(origin, ss.getFirst().m(), m.sig().pos());
+    RC rc= s.rc().orElseGet(()->agreement(at,ss.stream().map(e->e.rc()),"Reference capability disagreement"));
     MName name= ss.getFirst().m();
-    List<B> bs= s.bs().orElseGet(()->agreementBs(ss.stream().map(e->e.bs()),"generic bounds disagreement"));
-    List<T> ts= IntStream.range(0, s.ts().size()).mapToObj(i->pairWithTs(i, s.ts().get(i),ss)).toList();
-    T res= s.ret().orElseGet(()->agreementT(ss.stream().map(e->e.ret()),"returun type disagreement"));
+    List<B> bs= s.bs().orElseGet(()->agreementBs(at,ss.stream().map(e->e.bs())));
+    List<T> ts= IntStream.range(0, s.ts().size()).mapToObj(i->pairWithTs(at,i, s.ts().get(i),ss)).toList();
+    T res= s.ret().orElseGet(()->agreement(at,ss.stream().map(e->e.ret()),"Return type disagreement"));
     boolean abs= m.impl().isEmpty();
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.pos());
     return new M(sig,m.impl());
   }
-  T pairWithTs(int i, Optional<T> t,List<M.Sig> ss){
-    return t.orElseGet(()->agreementT(ss.stream().map(e->e.ts().get(i)),
-      "Type argument "+i+"reference capability disagreement")); 
+  T pairWithTs(Agreement at, int i, Optional<T> t,List<M.Sig> ss){
+    return t.orElseGet(()->agreement(at,ss.stream().map(e->e.ts().get(i)),
+      "Type disagreement about argument "+i)); 
   }
   M pairWithSig(List<M.Sig> ss, TName origin){
     assert !ss.isEmpty();
     if (ss.size() == 1){ return toM(ss.getFirst()); }
-    RC rc= agreementRC(ss.stream().map(e->e.rc()),"reference capability disagreement");
+    var at= new Agreement(origin,ss.getFirst().m(),origin.pos());
+    RC rc= agreement(at,ss.stream().map(e->e.rc()),"Reference capability disagreement");
     MName name= ss.getFirst().m();
-    List<B> bs= agreementBs(ss.stream().map(e->e.bs()),"generic bounds disagreement");
+    List<B> bs= agreementBs(at,ss.stream().map(e->e.bs()));
     List<T> ts= IntStream.range(0, name.arity()).mapToObj(
-      i->agreementT(ss.stream().map(e->e.ts().get(i)),
-        "Type argument "+i+"reference capability disagreement")).toList();
-    T res= agreementT(ss.stream().map(e->e.ret()),"returun type disagreement");
-    var impl= ss.stream().filter(e->e.abs()).map(e->e.origin()).distinct().toList();
+      i->agreement(at,ss.stream().map(e->e.ts().get(i)),
+        "Type disagreement about argument "+i)).toList();
+    T res= agreement(at,ss.stream().map(e->e.ret()),"Return type disagreement");
+    var impl= ss.stream().filter(e->!e.abs()).map(e->e.origin()).distinct().toList();
     if (impl.size() > 1){ throw Bug.todo(); }//more then one implemented
     if (impl.size() == 1){ origin = impl.getFirst(); }
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,impl.isEmpty(),ss.getFirst().pos());
@@ -162,80 +166,29 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.pos());
     return new M(sig,m.impl());
   }
-  List<B> agreementBs(Stream<List<B>> es, String msg){
+  <RR> RR agreement(Agreement at,Stream<RR> es, String msg){
     var res= es.distinct().toList();
     if (res.size() == 1){ return res.getFirst(); }
-    throw Bug.todo();//err using res and msg
+    throw WellFormednessErrors.agreement(at,res,msg);
   }
-  T agreementT(Stream<T> es, String msg){
-    var res= es.distinct().toList();
-    if (res.size() == 1){ return res.getFirst(); }
-    throw Bug.todo();//err using res and msg
+  public record Agreement(TName cName, MName mName, Pos pos){}
+  
+  List<B> agreementBs(Agreement at,Stream<List<B>> es){
+    var res= es.distinct().toList();    
+    if (res.size() == 1){ return normalizeBs(at.cName,res.getFirst()); }
+    var sizes= res.stream().map(List::size).distinct().count();
+    if (sizes!= 1){ throw WellFormednessErrors.agreementSize(at,res); }
+    var bounds= res.stream().map(l->l.stream().map(e->e.rcs()).toList()).distinct().count();
+    if (bounds== 1){ return normalizeBs(at.cName, res.getFirst()); }
+    throw WellFormednessErrors.agreement(at,res,"Generic bounds disagreement");
   }
-  RC agreementRC(Stream<RC> es, String msg){
-    var res= es.distinct().toList();
-    if (res.size() == 1){ return res.getFirst(); }
-    throw Bug.todo();//err using res and msg    
-  }
-}
-  /*
-  private void collect(T.C c, Set<TName> visited, Set<T.C> out){
-    if (!visited.add(c.name())){ throw WellFormednessErrors.circularImplements(c.name()); }
-    if (!out.add(c)){ return; }
-    for (T.C next : expandOnce(c)){
-      var in= next.name().pkgName().equals(pkg.name());
-      if (in){ collect(next, visited, out); }
-      else{ out.add(next); out.addAll(other.impl(next)); }
-    }
-    visited.remove(c.name());//other branches may see n with different Ts
-  }
-  private List<T.C> expandImplements(List<T.C> cs){
-    Set<T.C> out = new HashSet<>();
-    cs.forEach(c->collect(c, new HashSet<>(), out));
-    return out.stream()
-      .sorted(Comparator.comparing(Object::toString))
+  private List<B> normalizeBs(TName t, List<B> candidate){
+    return candidate.stream()
+      .map(e->new B(freshG(t,e.x()),e.rcs()))
       .toList();
   }
-  private List<T.C> expandOnce(T.C c){
-    if (!c.name().pkgName().equals(pkg.name())){ return other.impl(c); }
-    assert c.name().pkgName().equals(pkg.name());
-    var d= pkg.get(c.name());
-    List<inferenceGrammar.T.C> cs= mapC(d.cs());
-    if (d.bs().isEmpty()){ assert c.ts().isEmpty(); return cs; }
-    List<inferenceGrammar.T.X> xs= d.bs().get().stream().map(b->visitTX(b.x())).toList();
-    return TypeRename.ofTC(cs,xs,c.ts());
+  private T.X freshG(TName t, T.X x){
+    if (fresh.isFreshGeneric(t,x)){ return x; }
+    return new T.X(fresh.freshGeneric(t, x.name()));
   }
-
-/*List<M> sources(T.C c){
-  List<M> direct= 
-  List<M> inherted=
-}*/
-/*overrideOk(D[Ts]) holds iff ∀ mtype1 ∈ sources(D[Ts]), mtype2 ∈ sources(D[Ts]),
-if name(mtype1) = name(mtype2) then mtype1 ≃ mtype2
-*/
-
-/*mtype1 ≃ mtype2
- m[∆]:RC_ T1..Tn -> T0 ≃ m[∆]:RC_ T1..Tn -> T0
-*/
-
-/*implementOk(D[Ts]) holds iff
-∀ mtype1 ∈ sources(D[Ts]), mtype2 ∈ sources(D[Ts]), conflict(mtype1, mtype2) implies
-∃ mtype3 ∈ sources(D[Ts]) such that mtype3 ≤ mtype1
-*/
-
-/*alternative(mtype1, mtype2) iff
-RCi Di[_] = recvT(mtypei)
-D1 ≠ D2
-name(mtype1) = name(mtype2)
-*/
-
-/*conflict(mtype1, mtype2) iff
-alternative(mtype1, mtype2)
-not abs(mtype1) or not abs(mtype2)
-*/
-
-/*meth(D[Ts], m) = mtype iff
-mtype ∈ sources(D[Ts])
-name(mtype) = m
-∀mtype′ ∈ sources(D[Ts]), if conflict(mtype, mtype′) then mtype ≤ mtype′ 
- */
+}

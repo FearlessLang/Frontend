@@ -14,7 +14,7 @@ public record M(Sig sig, Optional<Impl> impl){
   public String toString(){ return sig + impl.map(Object::toString).orElse(""); }
   public record Sig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<Optional<T>> ts, Optional<T> ret, Pos pos){
     public String toString(){
-      var bsS= bs.isEmpty() ? "[?]" : "["+bs.get().stream().map(Object::toString).collect(Collectors.joining(","))+"]";
+      var bsS= bs.isEmpty() ? "[?]" : bs.get().isEmpty()?"":"["+bs.get().stream().map(Object::toString).collect(Collectors.joining(","))+"]";
       var tsS= ts.isEmpty() ? "" : "("+ts.stream().map(this::t).collect(Collectors.joining(","))+")";
       var rcS= rc.isPresent()?rc.get().toString():"?";
       var mS= m.isPresent()?m.get().toString():"";

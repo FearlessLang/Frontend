@@ -34,11 +34,15 @@ public sealed interface T {
     public String toString(){
       String displayed= name.s();
       if (!name.asStrLit().isEmpty()){ displayed += ":"+Message.displayString(name.asStrLit()); }
+      if (ts.isEmpty()){ return displayed; }
       return displayed+"["+ts.stream().map(Object::toString).collect(Collectors.joining(","))+"]";
     }
   }
   record RCC(RC rc, C c) implements T{
     public RCC{ nonNull(rc,c); }
-    public String toString(){ return rc.name()+" "+c; }
+    public String toString(){
+      if (rc == RC.imm){ return c.toString(); }
+      return rc.name()+" "+c;
+    }
   }
 }
