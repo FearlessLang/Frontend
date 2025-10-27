@@ -46,7 +46,7 @@ public final class FreshPrefix {
       if (!commit){ n++; continue; }
       usedTopTypes.add(cand);
       topSeq.put(base, n + 1);
-      var res= new TName(pkgName+"."+cand,arity,"",hint.pos());
+      var res= new TName(pkgName+"."+cand,arity,hint.pos());
       aliasOwner(hint,res);
       return res;
     }

@@ -19,7 +19,7 @@ public class ToInference {
       }
       if (numStr(tn)){ return tn.withPkgName("base"); }
       var mapped= p.map().get(tn.s());
-      if (mapped != null){ return new TName(mapped,tn.arity(),tn.asStrLit(),tn.pos()); } //if mapped is not defined with any arity
+      if (mapped != null){ return new TName(mapped,tn.arity(),tn.pos()); } //if mapped is not defined with any arity
       var defined= p.names().decNames().stream().anyMatch(tni->tni.equals(tn));//this also checks arity
       if (defined){ return tn.withPkgName(p.name()); }
       throw WellFormednessErrors.usedUndeclaredName(tn,p);

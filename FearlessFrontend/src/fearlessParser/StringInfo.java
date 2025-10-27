@@ -14,7 +14,7 @@ public class StringInfo{
   final int line;
   final int col;
   public interface RangeMsg{ void accept(int from, int to, String msg); }
-  StringInfo(Token tok, BiConsumer<Integer,Integer> onNoClose, BiConsumer<Integer,Integer> onNoOpen, BiConsumer<Integer,Integer> onMoreOpen, RangeMsg onBadUnicode){
+  StringInfo(Token tok, BiConsumer<Integer,Integer> onNoClose, BiConsumer<Integer,Integer> onNoOpen, BiConsumer<Integer,Integer> onMoreOpen){
     this.line= tok.line();
     this.col= tok.column();
     String s= tok.content();
@@ -29,7 +29,7 @@ public class StringInfo{
     i += Character.charCount('|');
     assert i < n : "Missing quote after '|'";
     int q = s.codePointAt(i);
-    assert q == '\'' || q == '"' : "Expected ' or \" after '|'";
+    assert q == '`' || q == '"' : "Expected ` or \" after '|'";
     i += Character.charCount(q);
     this.hashCount= h;
     String t= s.substring(i);
@@ -50,7 +50,7 @@ public class StringInfo{
       if (moreOpen != -1){ onMoreOpen.accept(nextOpen+1+h,moreOpen+1+h+h); }
       appendParts(t.substring(posCut, nextOpen));
       String payload= t.substring(nextOpen + h, nextClose);
-      dispatchPayLoad(payload,nextOpen + h + 2 + h, onBadUnicode);
+      dispatchPayLoad(payload,nextOpen + h + 2 + h);
       posCut = nextClose + h;
       while (t.startsWith("}", nextClose + h)){ nextClose += 1; }
       posSearch = nextClose + h;
@@ -63,11 +63,7 @@ public class StringInfo{
     if (add){ parts.add(nextStr); return; }
     addToLast(parts,nextStr);
   }
-  void dispatchPayLoad(String payload, int next, RangeMsg onBadUnicode){
-    if (!payload.isEmpty() && payload.charAt(0) == '\\'){
-      var decoded= new PayloadParsing(next,payload,onBadUnicode).of();
-      if (decoded!=null){ addToLast(parts, decoded); return; }
-    }
+  void dispatchPayLoad(String payload, int next){
     inter.add(payload);
     starts.add(next);  
   }
@@ -81,73 +77,5 @@ public class StringInfo{
       addToLast(out,"\n");
     }
     return List.copyOf(out);//because it trims to size too
-  }
-}
-//Parses payloads like: \ uE9\ u1F680\ u915\ u93F...
-final class PayloadParsing {
-  private final String s;
-  private int i= 0;
-  final private int startIndex;
-  private int lastTokStart= 0;
-  final StringInfo.RangeMsg onBadUnicode;
-  private final StringBuilder out= new StringBuilder();
-  PayloadParsing(int startIndex,String s, StringInfo.RangeMsg onBadUnicode){
-    this.startIndex= startIndex;
-    this.s= s;
-    this.onBadUnicode= onBadUnicode;
-    }
-  String of(){
-    while (i < s.length()){ readUVarToken(); }
-    return out.toString();
-  }
-  RuntimeException report(int fromRel, int size, String msg){
-    onBadUnicode.accept(startIndex + fromRel, startIndex + fromRel + size, msg);
-    return Bug.unreachable();
-  }
-  private void readUVarToken(){
-    lastTokStart = i;
-    if (!match('\\') || !match('u')){
-      throw report(lastTokStart, 1, "Unicode run must start with \\u.\nFound "+Message.displayChar(s.charAt(i)));
-    }
-    int cp= readHex1to6();
-    if (cp < 0){
-      if (cp == -10){ throw report(lastTokStart, 2, "Missing 1..6 hex digits after \\u"); }
-      if (cp == -100){ throw report(lastTokStart, 8, "At most 6 hex digits allowed for \\u"); }
-      throw report(lastTokStart, i, "Invalid hex digit in \\u. Use 0-9a-fA-F only");
-    }
-    checkValidScalar(cp);
-    out.append(Character.toChars(cp));
-  }
-  private boolean match(char c){
-    if (i < s.length() && s.charAt(i) == c){ i++; return true; }
-    return false;
-  }
-  private int readHex1to6(){
-    int cp= 0;
-    int digits= 0;
-    while (i < s.length()){
-      int v= hexVal(s.charAt(i));
-      if (v < 0){ break; }
-      if (digits == 6){ return -100; }
-      cp = (cp << 4) | v;
-      i++;
-      digits++;
-    }
-    if (digits == 0){ return -10; }
-    return cp;
-  }
-  private void checkValidScalar(int cp){
-    if (cp >= 0xD800 && cp <= 0xDFFF){
-      throw report(lastTokStart, 2, "Surrogate half not allowed; write the scalar code point instead");
-    }
-    if (cp > 0x10FFFF){
-      report(lastTokStart, i, "Code point > 0x10FFFF is invalid");
-    }    
-  }
-  private static int hexVal(char c){
-    if (c >= '0' && c <= '9'){ return c - '0'; }
-    if (c >= 'a' && c <= 'f'){ return 10 + (c - 'a'); }
-    if (c >= 'A' && c <= 'F'){ return 10 + (c - 'A'); }
-    return -1;
   }
 }

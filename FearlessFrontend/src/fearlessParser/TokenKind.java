@@ -13,17 +13,17 @@ public enum TokenKind implements metaParser.TokenKind {
   BadUnopenedBlockCommentClose("\\*/"),
   
   UStrInterHash("#{1,}\\|\"[^\\n]*","#|\"..."),
-  SStrInterHash("#{1,}\\|'[^\\n]*","#|'..."),
+  SStrInterHash("#{1,}\\|`[^\\n]*","#|`..."),
   UStrLine("\\|\"[^\\n]*","|\"..."),
-  SStrLine("\\|'[^\\n]*","|'..."),
+  SStrLine("\\|`[^\\n]*","|`..."),
     
   Arrow("->"),
   ORound("\\(","("),
   CRound("\\)",")"),
   OCurly("\\{","{"),
-  CCurlyId("\\}[A-Za-z0-9_]+`*","}id"),
+  CCurlyId("\\}[A-Za-z0-9_]+'*","}id"),
   CCurly("\\}","}"),
-  OSquareArg("(?<=[A-Za-z0-9_`\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])\\[","["),//correctly not working for preceding literals
+  OSquareArg("(?<=[A-Za-z0-9_'\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])\\[","["),//correctly not working for preceding literals
   BadOSquare("\\["),
   CSquare("\\]","]"),
   Underscore("_","underscore"),
@@ -32,7 +32,7 @@ public enum TokenKind implements metaParser.TokenKind {
   ColonColon("::"),
   Colon(":"),
   Eq("="),
-  BackTick("`"), 
+  SQuote("'"), 
   ReadImm("read/imm"),//note: must be before read
   RCap("readH|mutH|imm|iso|read|mut","reference capability"),
   BadRational(
@@ -53,33 +53,33 @@ public enum TokenKind implements metaParser.TokenKind {
   // Unsigned int: 0, 42, 1_000_000
   UnsignedInt("[0-9](?:[0-9_]*[0-9])?","unsigned number (eg. 23)"),
   BadUStrUnclosed("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*(?=\\x0A|\\z)"),
-  BadSStrUnclosed("'(?:\\x5C[nt'\\x5C]|[^'\\x5C\\x0A])*(?=\\x0A|\\z)"),
+  BadSStrUnclosed("`(?:\\x5C[nt`\\x5C]|[^`\\x5C\\x0A])*(?=\\x0A|\\z)"),
   // Normal strings with escapes; newlines not allowed inside
   //UStr("\"(?:\\\\.|[^\"\\\\\\r\\n])*\""),//broken
-  //SStr("'(?:\\\\.|[^'\\\\\\r\\n])*'"),
+  //SStr("`(?:\\\\.|[^`\\\\\\r\\n])*`"),
   UStr("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*\\x22","\"...\""),
     // "(?:\[ntu"\]|[^"\\n])*"//we will need to handle \ u in post?
     //\ u will need to be only in a {} to write {\ uxxx\ uxxx}etc
     //if we want no unicode in the source, how to handle |"  with no escapes?
     //solution: we allow{\ u...}, again, handled in post. (note, I can not write \ and u without space in valid java :-/
-  SStr("'(?:\\x5C[nt'\\x5C]|[^'\\x5C\\x0A])*'","'...'"),
+  SStr("`(?:\\x5C[nt`\\x5C]|[^`\\x5C\\x0A])*`","`...`"),
 
-  DotName("\\._*[a-z][A-Za-z0-9_]*`*",".name"),
+  DotName("\\._*[a-z][A-Za-z0-9_]*'*",".name"),
   UppercaseId(
-    "(?:(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*`*",
+    "(?:(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*",
     "type name"),//correctly allows only one '.' since packages are not nested inside each others  
-  BadUppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*`*"),
-  LowercaseId("_*[a-z][A-Za-z0-9_]*`*","name"),
+  BadUppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*"),
+  LowercaseId("_*[a-z][A-Za-z0-9_]*'*","name"),
    //\  /  #  *   -   +   %  <  >  =  !  &   ^   ~   ?     |
   //[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F:\\x7C#]
   //forbid:  /*   */   //
   //(?!/\\x2A|\\x2A/|//)
   BadOpDigit( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])*[\\x2B\\x2D](?=\\d)" ),
-  BadOpLine ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])*\\x7C(?=[\\x22'])" ),
+  BadOpLine ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])*\\x7C(?=[\\x22`])" ),
   Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+","binary operator (eg. +, *, -)"),
   //IMPORTANT: BadOp* must precede Op so bad forms win ties of equal length.
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases  
-  _XId("_*[A-Z][A-Za-z0-9_]*`*","type name"),
+  _XId("_*[A-Z][A-Za-z0-9_]*'*","type name"),
   _pkgName("(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*",
     "id starting with a-z followed by any amount of a-z0-9 or the _ symbol"),   
   _package("package"),

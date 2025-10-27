@@ -71,12 +71,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "String interpolation placeholder opened inside interpolation expression.\n"
       +"Note: \"{\" can not be used in single \"#\" interpolation expressions. Use at least \"##\".").addSpan(at);
   }
-  public FearlessException badUnicode(Span at,String msg){
-    return Code.BadUnicode.of(
-      "UStr has malformed unicode.\n"
-      +msg+".\n").addSpan(at);
-  }
-
   public FearlessException disallowedReadHMutH(Span at, RC rc){
     return Code.UnexpectedToken.of(
       "Capability "+rc+"""
@@ -257,7 +251,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException missingSemicolonOrOperator(Span at){
     return Code.MissingSeparator.of(
-      "There is a missing \";\", operator or method name here or before").addSpan(at);
+      "There is a missing \";\", operator or method name here or before.\n").addSpan(at);
   }
   public FearlessException signedLiteral(Span at,Token t){
     return Code.UnexpectedToken.of(
@@ -268,48 +262,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +"Write \"+0.53 + +2.32\" not \"0.53+2.32\".\n"
       +"Write \"+3/2 + +4/5\" not \"3/2+4/5\"."
       ).addSpan(at);
-  }
-
-  public FearlessException badTokenAt(Span at, TokenKind kind, String text){
-    String head = text.isBlank()
-      ? "Unrecognized text."
-      : "Unrecognized text " + Message.displayString(text) + ".";
-
-    String hint= switch (kind){
-      case BadOpLine -> """
-A "|" immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
-Operators can also contain "|", making it ambiguous what, for example, `<--|'foo'` means.
-It could be the "<--" operator followed by `|'foo'` but also the "<--|" operator followed by `'foo'`. 
-Please add spaces to clarify:  `<--| 'foo'`   or   `<-- |'foo'`
-""";
-      case BadOpDigit -> """
-An operator followed by a digit is parsed as a signed number (e.g. "+5", "-3").
-Operators can also contain "+" and "-", making it ambiguous what, for example, "<--5" means.
-It could be the "<--" operator followed by "5" but also the "<-" operator followed by "-5".
-Please add spaces to clarify:  "<-- 5"   or   "<- -5"
-""";
-      case BadOSquare -> """
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
-Write "Foo[Bar]" not "Foo [Bar]".
-Write "x.foo[read]" not "x.foo [read]".
-""";
-
-      case BadFloat -> """
-Float literals must have a sign and digits on both sides of '.'
-Examples: "+1.0", "-0.5", "+12.0e-3".
-Fearless does not allow float literals of form "1.2" or ".2"
-""";
-
-      case BadRational -> """
-Rational literals must have a sign.
-Examples: "+1/2", "-3/4".
-Fearless does not allow rational literals of form "1/2"
-""";
-      default -> null;
-    };
-
-    String msg = (hint == null) ? head : head + "\n" + hint;
-    return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   @Override public FearlessException groupHalt(
       Token open, Token stop, Collection<TokenKind> expectedClosers, LikelyCause likely,
@@ -390,7 +342,7 @@ Fearless does not allow rational literals of form "1/2"
   }
   public FearlessException badTopSelfName(Span at, String name){
     String msg= "Self name "+name+" invalid in a top level type.\n"
-      + "Top level types self names can only be \"`this\".\n";
+      + "Top level types self names can only be \" 'this \".\n";
     return Code.WellFormedness.of(msg).addSpan(at);
   }
   public FearlessException noAbstractMethod(Sig sig, Span at){

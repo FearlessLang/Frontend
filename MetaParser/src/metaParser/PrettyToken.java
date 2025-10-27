@@ -8,6 +8,6 @@ public class PrettyToken{
   }
   public static <T extends Token<T,TK>, TK extends TokenKind> String show(T t){
     if(!t.tokens().isEmpty()){ return t.kind()+"@"+t.line()+":"+t.column(); }
-    return t.kind()+"`"+showText(t.content())+"`@"+t.line()+":"+t.column();
+    return t.kind()+"\""+showText(t.content())+"\"@"+t.line()+":"+t.column();
   }
 }

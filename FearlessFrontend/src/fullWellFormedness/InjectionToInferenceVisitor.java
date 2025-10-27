@@ -106,7 +106,7 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     //Block#.let x1={e1}.. .let xn={en}.return{body}
     var block0= new fearlessFullGrammar.T.RCC(
       of(RC.imm),
-      new fearlessFullGrammar.T.C(new TName("base.Block",0,"",p),of(List.of())));
+      new fearlessFullGrammar.T.C(new TName("base.Block",0,p),of(List.of())));
     fearlessFullGrammar.E blockE= new fearlessFullGrammar.E.TypedLiteral(block0, empty(),p);
     blockE = new fearlessFullGrammar.E.Call(blockE, new MName("#",0),empty(),false,empty(),List.of(),p);
     for(var xe:xes){
@@ -239,21 +239,22 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     return new E.ICall(e, c.name(), es, u, c.pos());
   }
   //TODO: search and replace other cases where we can use typedLiteral
-  private fearlessFullGrammar.E.TypedLiteral typedLiteral(String str,String txt,Pos p){
-    var tn= new TName(str, 0,txt,p);
+  private fearlessFullGrammar.E.TypedLiteral typedLiteral(String str,Pos p){
+    var tn= new TName(str, 0,p);
     var c= new fearlessFullGrammar.T.C(tn,of(List.of()));
     return new fearlessFullGrammar.E.TypedLiteral(new fearlessFullGrammar.T.RCC(empty(),c), empty(), p);    
   }
   @Override public E visitStringInter(fearlessFullGrammar.E.StringInter i){
     String name= i.simple()?"base.SStr":"base.UStr";
+    String term= i.simple()?"`":"\"";
     var add= new fearlessFullGrammar.MName(".add",2);
     var build= new fearlessFullGrammar.MName(".build",1);
-    var topE= i.e().orElseGet(()->typedLiteral(name+"Procs", "",i.pos()));
+    var topE= i.e().orElseGet(()->typedLiteral(name+"Procs",i.pos()));
     for (int j= 0; j < i.es().size(); j++){
-      var stri= typedLiteral(name+"InterElement",i.strings().get(j),i.pos());
+      var stri= typedLiteral("base."+term+i.strings().get(j)+term,i.pos());
       topE = new fearlessFullGrammar.E.Call(topE,add,empty(),true,empty(),List.of(stri,i.es().get(j)),i.pos());
     }
-    var strLast= typedLiteral(name+"InterElement",i.strings().getLast(),i.pos());
+    var strLast= typedLiteral("base."+term+i.strings().getLast()+term,i.pos());
     var desugared= new fearlessFullGrammar.E.Call(topE,build,empty(),true,empty(),List.of(strLast),i.pos());
     return desugared.accept(this); 
   }  

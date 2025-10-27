@@ -59,7 +59,7 @@ public class TestInference {
   //TODO: role? should be inferred as app000 if none? now there is an error.
   //if we keep it, test for the error.
 @Test void base(){ok("""
-p.A:{`this}
+p.A:{'this}
 ""","""
 role app000;
 use a.B as B;
@@ -75,7 +75,7 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 Name clash: name "B" is declared in package p.
 Name "B" is also used in a "use" directive.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 role app000;
 use a.B as B;
@@ -83,14 +83,14 @@ use a.B as B;
 B:{}
 """));}
 @Test void meth(){ok("""
-p.A:{`this .foo:p.A; .foo()->p.A:?;}
+p.A:{'this .foo:p.A; .foo()->p.A:?;}
 """,List.of("""
 A:{ .foo:A-> A}
 """));}
 
 @Test void decls_crossRef_param_and_return(){ ok("""
-p.A:{`this .id:p.A; .id()->p.A:?;}
-p.C:{`this}
+p.A:{'this .id:p.A; .id()->p.A:?;}
+p.C:{'this}
 """,List.of(
 "A:{ .id:A->A }",
 "C:{}"));}
@@ -104,13 +104,13 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Undeclared name: name "Z" is not declared in package p.
-Error 10  WellFormedness
+Error 9  WellFormedness
 """,List.of(
 "A:{ .f:Z->A }"));}
 
 @Test void use_alias_happy_path(){ok(
 """
-p.A:{`this .m:c.D; .m()->c.D:?;}
+p.A:{'this .m:c.D; .m()->c.D:?;}
 ""","role app000;\nuse c.D as D;\n",List.of(
 "A:{ .m:D->D }"));}
 
@@ -124,19 +124,19 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 Name clash: name "D" is declared in package p.
 Name "D" is also used in a "use" directive.
-Error 10  WellFormedness
+Error 9  WellFormedness
 """,
 "role app000;\nuse c.D as D;\n",List.of(
 "D:{}"));}
 
 @Test void round_elimination_in_simple_positions(){ok(
-"p.A:{`this .id:p.A; .id()->p.A:?;}",
+"p.A:{'this .id:p.A; .id()->p.A:?;}",
 "role app000;\n",List.of(
 "A:{ .id:A->((A)) }"));}
 
 @Test void extract_multiple_sigs_no_impls(){ok(
 """
-p.A:{`this\
+p.A:{'this\
  .a:p.A;\
  .a()->p.A:?;\
  .b:p.A;\
@@ -156,13 +156,13 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 Can not infer return type of method ".use(p.A):?".
 No supertype has a method named ".use" with 1 parameters.
-Error 10  WellFormedness
+Error 9  WellFormedness
 """,
 "role app000;\n", List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }"));}
 
 @Test void visitCall_base_ok(){ok("""
-p.A:{`this\
+p.A:{'this\
  .id:p.A;\
  .id()->p.A:?;\
  .id[X:imm](p.A):p.A;\
@@ -184,7 +184,7 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 Name clash: name "A" is declared in package p.
 Name "A" is also used in a "use" directive.
-Error 10  WellFormedness
+Error 9  WellFormedness
 """,
 "role app000;\nuse extpkg.A as A;\n",List.of(
 "A:{}", 
@@ -198,7 +198,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Undeclared name: name "D" is not declared in package p.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","role app000;\n",List.of(
 "A:{ .m:D->D }"));}
 
@@ -210,7 +210,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Duplicate type declaration for "A".
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","role app000;\n",List.of(
 "B:{} A:{}","A:{}"));}
 @Test void duplicate_decl_same_name_nested(){fail("""
@@ -221,15 +221,15 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Duplicate type declaration for "A".
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","role app000;\n",List.of(
 "B:{.foo:A-> A:{} }","A:{}"));}
 
 @Test void opt_explicit(){ok("""
-p.Opt[T:imm]:{`this .match[R:imm](p.OptMatch[T,R]):R; .match(m)->m:?.empty():?;}
-p.OptMatch[T:imm, R:imm]:{`this .empty:R; .some(T):R;}
-p.Opts:{`this #[T:imm](T):p.Opt[T]; #(t)->p.Some[T]:?;}
-p.Some[T:imm]:p.Opt[T]{`_ .match[R:imm](p.OptMatch[T,R]):R; .match(m)->m:?.some(t:?):?;}
+p.Opt[T:imm]:{'this .match[R:imm](p.OptMatch[T,R]):R; .match(m)->m:?.empty():?;}
+p.OptMatch[T:imm, R:imm]:{'this .empty:R; .some(T):R;}
+p.Opts:{'this #[T:imm](T):p.Opt[T]; #(t)->p.Some[T]:?;}
+p.Some[T:imm]:p.Opt[T]{'_ .match[R:imm](p.OptMatch[T,R]):R; .match(m)->m:?.some(t:?):?;}
 """,List.of("""
 Opt[T]: {
   .match[R](m: OptMatch[T,R]): R -> m.empty
@@ -243,9 +243,9 @@ Opts: {
   }
 """));}
 @Test void opt_implicit(){ok("""
-p.Opt[T:imm]:{`this .match[R:imm](p.OptMatch[T,R]):R; .match(m)->m:?.empty():?;}
-p.OptMatch[T:imm, R:imm]:{`this .empty:R; .some(T):R;}
-p.Opts:{`this #[T:imm](T):p.Opt[T]; #(t)->{`_ ? .match[?](?):?; .match(m)->m:?.some(t:?):?;}:?;}
+p.Opt[T:imm]:{'this .match[R:imm](p.OptMatch[T,R]):R; .match(m)->m:?.empty():?;}
+p.OptMatch[T:imm, R:imm]:{'this .empty:R; .some(T):R;}
+p.Opts:{'this #[T:imm](T):p.Opt[T]; #(t)->{'_ ? .match[?](?):?; .match(m)->m:?.some(t:?):?;}:?;}
 """,List.of("""
 Opt[T]: {
   .match[R](m: OptMatch[T,R]): R -> m.empty
@@ -259,30 +259,30 @@ Opts: {
   }
 """));}
 @Test void base_literal_inference_0(){ok("""
-p.A:{`this .a[R:imm](p.F[R]):R; .a(f)->f:?#():?;}
-p.F[R:imm]:{`this #:R;}
-p.User:{`this .use:p.User; .use()->p.A:?.a({`_ ? [?]:?; ()->p.User:?;}:?):?;}
+p.A:{'this .a[R:imm](p.F[R]):R; .a(f)->f:?#():?;}
+p.F[R:imm]:{'this #:R;}
+p.User:{'this .use:p.User; .use()->p.A:?.a({'_ ? [?]:?; ()->p.User:?;}:?):?;}
 """,List.of("""
 F[R]:{#:R}
 A:{ .a[R](f:F[R]):R->f#; }
 User:{ .use:User->A.a{User}}
 """));}
 @Test void base_typed_literal_inference_0(){ok("""
-p.A:{`this .a[R:imm](p.F[R]):R; .a(f)->f:?#():?;}
-p.A_F:p.F[p.User]{`_ #:p.User; ()->p.User:?;}
-p.F[R:imm]:{`this #:R;}
-p.User:{`this .use:p.User; .use()->p.A:?.a(p.A_F:?):?;}
+p.A:{'this .a[R:imm](p.F[R]):R; .a(f)->f:?#():?;}
+p.A_F:p.F[p.User]{'_ #:p.User; ()->p.User:?;}
+p.F[R:imm]:{'this #:R;}
+p.User:{'this .use:p.User; .use()->p.A:?.a(p.A_F:?):?;}
 """,List.of("""
 F[R]:{#:R}
 A:{ .a[R](f:F[R]):R->f#; }
 User:{ .use:User->A.a F[User]{User}}
 """));}
 @Test void base_typed_literal_inference_freshClash1(){ok("""
-p.A:{`this .a[R:imm](p.F[R]):R; .a(f)->f:?#():?;}
-p.A_F:{`this}
-p.C_F:p.F[p.User]{`_ #:p.User; ()->p.User:?;}
-p.F[R:imm]:{`this #:R;}
-p.User:{`this .use:p.User; .use()->p.A:?.a(p.C_F:?):?;}
+p.A:{'this .a[R:imm](p.F[R]):R; .a(f)->f:?#():?;}
+p.A_F:{'this}
+p.C_F:p.F[p.User]{'_ #:p.User; ()->p.User:?;}
+p.F[R:imm]:{'this #:R;}
+p.User:{'this .use:p.User; .use()->p.A:?.a(p.C_F:?):?;}
 ""","role app000;\nuse c.D as B_F;\n",List.of("""
 F[R]:{#:R}
 A_F:{}
@@ -291,11 +291,11 @@ User:{ .use:User->A.a F[User]{User}}
 """));}
 
 @Test void base_typed_literal_inference_freshClash2(){ok("""
-p.A:{`this .a[R:imm](p.F[R]):R; .a(f)->f:?#():?;}
-p.B_F:{`this}
-p.C_F:p.F[p.User]{`_ #:p.User; ()->p.User:?;}
-p.F[R:imm]:{`this #:R;}
-p.User:{`this .use:p.User; .use()->p.A:?.a(p.C_F:?):?;}
+p.A:{'this .a[R:imm](p.F[R]):R; .a(f)->f:?#():?;}
+p.B_F:{'this}
+p.C_F:p.F[p.User]{'_ #:p.User; ()->p.User:?;}
+p.F[R:imm]:{'this #:R;}
+p.User:{'this .use:p.User; .use()->p.A:?.a(p.C_F:?):?;}
 ""","role app000;\nuse c.D as A_F;\n",List.of("""
 F[R]:{#:R}
 B_F:{}
@@ -303,9 +303,9 @@ A:{ .a[R](f:F[R]):R->f#; }
 User:{ .use:User->A.a F[User]{User}}
 """));}
 @Test void importImpl(){ok("""
-p.A:p.B, p.C{`this}
-p.B:p.C{`this}
-p.C:{`this}
+p.A:p.B, p.C{'this}
+p.B:p.C{'this}
+p.C:{'this}
 ""","role app000;\n",List.of("""
 A:B{}
 B:C{}
@@ -314,44 +314,44 @@ C:{}
 @Test void circular1(){fail("""
 In file: [###]/in_memory0.fear
 
-002| A:B{}
+003| B:A{}
    |   ^^^
 
 While inspecting the file
-Circular implementation relation found involving "p.B".
-Error 10  WellFormedness
+Circular implementation relation found involving "p.A".
+Error 9  WellFormedness
 ""","role app000;\n",List.of("""
 A:B{}
 B:A{}
 """));}
 @Test void circular2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###]/in_memory1.fear
 
-002| A:B{}
+002| B:A{}
    |   ^^^
 
 While inspecting the file
-Circular implementation relation found involving "p.B".
-Error 10  WellFormedness
+Circular implementation relation found involving "p.A".
+Error 9  WellFormedness
 ""","role app000;\n",List.of("""
 A:B{}
 ""","""
 B:A{}
 """));}
 @Test void importSig(){ok("""
-p.A:p.B, p.C{`this .foo:p.C;}
-p.B:p.C{`this .foo:p.C; .foo()->p.C:?.foo():?;}
-p.C:{`this .foo:p.C;}
+p.A:p.B, p.C{'this .foo:p.C;}
+p.B:p.C{'this .foo:p.C; .foo()->p.C:?.foo():?;}
+p.C:{'this .foo:p.C;}
 ""","role app000;\n",List.of("""
 A:B{}
 B:C{ .foo->C.foo}
 C:{.foo:C;}
 """));}
 @Test void implicit1(){ok("""
-p.A:{`this #(p.A):p.A;}
-p.B:p.A{`this #(p.A):p.A; (a_impl)->a_impl:?;}
-p.C:p.A{`this #(p.A):p.A; (a_impl)->a_impl:?#(a_impl:?):?;}
-p.D:p.A{`this #(p.A):p.A; (a_impl)->a_impl:?#():?#():?;}
+p.A:{'this #(p.A):p.A;}
+p.B:p.A{'this #(p.A):p.A; (a_impl)->a_impl:?;}
+p.C:p.A{'this #(p.A):p.A; (a_impl)->a_impl:?#(a_impl:?):?;}
+p.D:p.A{'this #(p.A):p.A; (a_impl)->a_impl:?#():?#():?;}
 """,List.of("""
 A:{ #(x:A):A }
 B:A{::}
@@ -360,13 +360,13 @@ D:A{::# #}
 """));}
 
 @Test void implicit2(){ok("""
-p.A:{`this #(p.A):p.A; #(p.A,p.A):p.A;}
-p.B:p.A{`this #(p.A):p.A;\
+p.A:{'this #(p.A):p.A; #(p.A,p.A):p.A;}
+p.B:p.A{'this #(p.A):p.A;\
  (a_impl)->a_impl:?; #(p.A,p.A):p.A;}
-p.C:p.A{`this #(p.A):p.A;\
+p.C:p.A{'this #(p.A):p.A;\
  (a_impl)->a_impl:?; #(p.A,p.A):p.A; (z, b_impl)->b_impl:?;}
-p.D:p.A{`this #(p.A,p.A):p.A;\
- (z, a_impl)->a_impl:?.bar({`_ ? [?](?):?; (b_impl)->b_impl:?.foo(p.D:?):?;}:?):?; #(p.A):p.A;}
+p.D:p.A{'this #(p.A,p.A):p.A;\
+ (z, a_impl)->a_impl:?.bar({'_ ? [?](?):?; (b_impl)->b_impl:?.foo(p.D:?):?;}:?):?; #(p.A):p.A;}
 """,List.of("""
 A:{ #(x:A):A; #(x:A,y:A):A }
 B:A{::}
@@ -379,46 +379,46 @@ D:A{z->::.bar {::.foo(D)}}
 """,List.of(DbgBlock.baseBody));}
 
 @Test void baseLet(){ok("""
-p.A:{`this\
+p.A:{'this\
  #:p.A;\
  #()->base.Block:?#():?\
-.let({`_ ? [?]:?; ()->p.A:?;}:?,\
-{`_ ? [?](?,?):?; (x, a_eqS)->a_eqS:?\
-.return({`_ ? [?]:?; ()->x:?;}:?):?;}:?):?;}
+.let({'_ ? [?]:?; ()->p.A:?;}:?,\
+{'_ ? [?](?,?):?; (x, a_eqS)->a_eqS:?\
+.return({'_ ? [?]:?; ()->x:?;}:?):?;}:?):?;}
 ""","role app000;use base.Block as Block;",List.of("""
 A:{ #:A->Block#.let x={A}.return {x} }
 """));}
 
 @Test void xpat1(){ok("""
-p.A:{`this #(p.A):p.A;}
-p.B:p.A{`this\
+p.A:{'this #(p.A):p.A;}
+p.B:p.A{'this\
  #(p.A):p.A;\
  #(a_div)->base.Block:?#():?\
 .let(\
-{`_ ? [?]:?; ()->a_div:?.a():?.b():?;}:?,\
-{`_ ? [?](?,?):?; (b3, b_eqS)->b_eqS:?;}:?\
+{'_ ? [?]:?; ()->a_div:?.a():?.b():?;}:?,\
+{'_ ? [?](?,?):?; (b3, b_eqS)->b_eqS:?;}:?\
 ):?\
 .let(\
-{`_ ? [?]:?; ()->a_div:?.c():?.d():?;}:?,\
-{`_ ? [?](?,?):?; (d3, a_eqS)->a_eqS:?;}:?):?\
-.return({`_ ? [?]:?; ()->b3:?+(d3:?):?;}:?):?;}
+{'_ ? [?]:?; ()->a_div:?.c():?.d():?;}:?,\
+{'_ ? [?](?,?):?; (d3, a_eqS)->a_eqS:?;}:?):?\
+.return({'_ ? [?]:?; ()->b3:?+(d3:?):?;}:?):?;}
 """,List.of("""
 A:{ #(A):A }
 B:A{ #{.a.b,.c.d}3->b3+d3 }
 """));}
 
 @Test void eqDeep(){ok("""
-p.A:{`this .bar(p.A):p.A;}
-p.B:p.A{`this\
+p.A:{'this .bar(p.A):p.A;}
+p.B:p.A{'this\
  .bar(p.A):p.A;\
  (a_impl)->a_impl:?\
 .foo():?\
 .let(\
 base.1:?,\
-{`_ ? [?](?,?):?;\
+{'_ ? [?](?,?):?;\
  (x, a_eqS)->a_eqS:?\
 .bla(base.2:?):?\
-.let(base.3:?,{`_ ? [?](?,?):?;\
+.let(base.3:?,{'_ ? [?](?,?):?;\
  (y, b_eqS)->b_eqS:?\
 .beer(base.4:?):?;}:?):?;}:?):?;}
 """,List.of("""
@@ -427,15 +427,15 @@ B:A{ ::.foo.let x=1 .bla 2 .let y= 3 .beer 4}
 """));}
 
 @Test void eqImplicit(){ok("""
-p.A:{`this .bar(p.A):p.A;}
-p.B:p.A{`this\
+p.A:{'this .bar(p.A):p.A;}
+p.B:p.A{'this\
  .bar(p.A):p.A;\
  (a_impl)->a_impl:?\
 .foo():?\
-.let(a_impl:?,{`_ ? [?](?,?):?;\
+.let(a_impl:?,{'_ ? [?](?,?):?;\
  (x, a_eqS)->a_eqS:?\
 .bla(a_impl:?):?\
-.let(a_impl:?,{`_ ? [?](?,?):?;\
+.let(a_impl:?,{'_ ? [?](?,?):?;\
  (y, b_eqS)->b_eqS:?\
 .beer(a_impl:?):?;}:?):?;}:?):?;}
 """,List.of("""
@@ -444,23 +444,23 @@ B:A{ ::.foo.let x=:: .bla :: .let y= :: .beer ::}
 """));}
 
 @Test void strLit1(){ok("""
-p.A:{`this\
+p.A:{'this\
  .foo:p.A;\
  .foo()->base.SStrProcs:?\
-.add(base.SStrInterElement:" foo ":?,p.A:?):?\
-.build(base.SStrInterElement:" bar\\n beer\\n":?):?;}
+.add(base.` foo `:?,p.A:?):?\
+.build(base.` bar\n beer\n`:?):?;}
 """,List.of("""
 A:{ .foo:A -> 
-  #|' foo {A} bar
-  #|' beer
+  #|` foo {A} bar
+  #|` beer
 }
 """));}
 @Test void strLit2(){ok("""
-p.A:{`this\
+p.A:{'this\
  .foo:p.A;\
  .foo()->base.UStrProcs:?\
-.add(base.UStrInterElement:" foo ":?,p.A:?):?\
-.build(base.UStrInterElement:" bar\\n beer\\n":?):?;}
+.add(base." foo ":?,p.A:?):?\
+.build(base." bar\n beer\n":?):?;}
 """,List.of("""
 A:{ .foo:A -> 
   #|" foo {A} bar
@@ -468,13 +468,13 @@ A:{ .foo:A ->
 }
 """));}
 @Test void strLit3(){ok("""
-p.A:{`this\
+p.A:{'this\
  .foo:p.A;\
  .foo()->p.A:?\
 .foo(\
 base.UStrProcs:?\
-.add(base.UStrInterElement:" foo ":?,p.A:?):?\
-.build(base.UStrInterElement:" bar\\n beer\\n":?):?\
+.add(base." foo ":?,p.A:?):?\
+.build(base." bar\n beer\n":?):?\
 ):?;}
 """,List.of("""
 A:{ .foo:A -> A.foo(
@@ -483,12 +483,12 @@ A:{ .foo:A -> A.foo(
 )}
 """));}
 @Test void strLit4(){ok("""
-p.A:{`this\
+p.A:{'this\
  .foo:p.A;\
  .foo()->p.A:?\
 .foo(base.UStrProcs:?\
-.add(base.UStrInterElement:" foo ":?,p.A:?):?\
-.build(base.UStrInterElement:" bar\\n beer\\n":?):?\
+.add(base." foo ":?,p.A:?):?\
+.build(base." bar\n beer\n":?):?\
 ):?;}
 """,List.of("""
 A:{ .foo:A -> A.foo
@@ -506,7 +506,7 @@ While inspecting the file
 Reference capability disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "mut", "imm".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 10  WellFormedness
+Error 9  WellFormedness
 """,List.of("""
 A1:{ mut .foo:A1;}
 A2:{ imm .foo:A1;}
@@ -522,7 +522,7 @@ While inspecting the file
 Reference capability disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "mut", "imm".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 10  WellFormedness
+Error 9  WellFormedness
 """,List.of("""
 A1:{ mut .foo:A1;}
 A2:{ imm .foo:A1;}
@@ -538,16 +538,16 @@ While inspecting the file
 Reference capability disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "mut", "imm".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 10  WellFormedness
+Error 9  WellFormedness
 """,List.of("""
 A1:{ mut .foo:A1;}
 A2:{ .foo:A1;}
 B:A1,A2{ }
 """));}
 @Test void rcAgreement1(){ok("""
-p.A1:{`this .foo:p.A1;}
-p.A2:{`this .foo:p.A1;}
-p.B:p.A1, p.A2{`this\
+p.A1:{'this .foo:p.A1;}
+p.A2:{'this .foo:p.A1;}
+p.B:p.A1, p.A2{'this\
  .foo:p.A1; .foo()->p.A1:?;}
 """,List.of("""
 A1:{ imm .foo:A1;}
@@ -556,9 +556,9 @@ B:A1,A2{ .foo->A1 }
 """));}
 
 @Test void rcAgreement2(){ok("""
-p.A1:{`this .foo:p.A1;}
-p.A2:{`this .foo:p.A1;}
-p.B:p.A1, p.A2{`this .foo:p.A1;}
+p.A1:{'this .foo:p.A1;}
+p.A2:{'this .foo:p.A1;}
+p.B:p.A1, p.A2{'this .foo:p.A1;}
 """,List.of("""
 A1:{ imm .foo:A1;}
 A2:{ .foo:A1;}
@@ -575,7 +575,7 @@ While inspecting the file
 Return type disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 10  WellFormedness""",List.of("""
+Error 9  WellFormedness""",List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
 B:A1,A2{ }
@@ -590,7 +590,7 @@ While inspecting the file
 Return type disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 10  WellFormedness""",List.of("""
+Error 9  WellFormedness""",List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
 B:A1,A2{ .foo->this.foo}
@@ -605,7 +605,7 @@ While inspecting the file
 Type disagreement about argument 1 for method ".foo" with 2 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 10  WellFormedness""",List.of("""
+Error 9  WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
 B:A1,A2{ }
@@ -620,7 +620,7 @@ While inspecting the file
 Type disagreement about argument 1 for method ".foo" with 2 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 10  WellFormedness""",List.of("""
+Error 9  WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
 B:A1,A2{ .foo(a,b)->this.foo}
@@ -635,7 +635,7 @@ While inspecting the file
 Number of generic type parameters disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 10  WellFormedness""",List.of("""
+Error 9  WellFormedness""",List.of("""
 A1:{ .foo[X:imm]():A1;}
 A2:{ .foo():A1;}
 B:A1,A2{}
@@ -650,15 +650,15 @@ While inspecting the file
 Number of generic type parameters disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 10  WellFormedness""",List.of("""
+Error 9  WellFormedness""",List.of("""
 A1:{ .foo[X:imm]():A1;}
 A2:{ .foo():A1;}
 B:A1,A2{ .foo()->this.foo }
 """));}
 @Test void boundDisagreement3(){ok("""
-p.A1:{`this .foo[X:imm]:p.A1;}
-p.A2:{`this .foo[Y:imm]:p.A1;}
-p.B:p.A1, p.A2{`this\
+p.A1:{'this .foo[X:imm]:p.A1;}
+p.A2:{'this .foo[Y:imm]:p.A1;}
+p.B:p.A1, p.A2{'this\
  .foo[X:imm]:p.A1; .foo()->this:?.foo():?;}
 """,List.of("""
 A1:{ .foo[X:imm]():A1;}
@@ -666,9 +666,9 @@ A2:{ .foo[Y:imm]():A1;}
 B:A1,A2{ .foo()->this.foo }
 """));}
 @Test void boundAgreementAlpha(){ok("""
-p.A1:{`this .foo[X:imm]:p.A1;}
-p.A2:{`this .foo[X:imm]:p.A1;}
-p.B[X:imm]:p.A1, p.A2{`this\
+p.A1:{'this .foo[X:imm]:p.A1;}
+p.A2:{'this .foo[X:imm]:p.A1;}
+p.B[X:imm]:p.A1, p.A2{'this\
  .foo[A_X:imm]:p.A1;\
  .foo()->this:?.foo():?;}
 """,List.of("""
@@ -686,7 +686,7 @@ While inspecting the file
 Can not infer the name for method with 0 parameters.
 Many abstract methods with 0 parameters could be selected:
 Candidates: ".foo", ".bar".
-Error 10  WellFormedness
+Error 9  WellFormedness
 """,List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
 A2:{ .bar():A1; .baz:A1->this.baz}
@@ -702,7 +702,7 @@ While inspecting the file
 Can not infer the name for method with 1 parameters.
 Many methods with 1 parameters could be selected:
 Candidates: ".baz", ".beer".
-Error 10  WellFormedness
+Error 9  WellFormedness
 """,List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
 A2:{ .bar():A1; .baz:A1->this.baz}
@@ -710,10 +710,10 @@ B:A1,A2{ y->this.foo }
 """));}
 
 @Test void diamondOk(){ok("""
-p.A1:{`this .foo:p.A1; .foo()->this:?;}
-p.A2:p.A1{`this .foo:p.A1;}
-p.A3:p.A1{`this .foo:p.A1;}
-p.B:p.A1, p.A2, p.A3{`this .foo:p.A1;}
+p.A1:{'this .foo:p.A1; .foo()->this:?;}
+p.A2:p.A1{'this .foo:p.A1;}
+p.A3:p.A1{'this .foo:p.A1;}
+p.B:p.A1, p.A2, p.A3{'this .foo:p.A1;}
 """,List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ }
@@ -732,7 +732,7 @@ Ambiguos implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
 Candidates: "p.A2", "p.A1".
 Type "p.B" must declare a method ".foo" explicitly implementing the desired behaviour.
-Error 10  WellFormedness
+Error 9  WellFormedness
 """,List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ .foo->this; }
@@ -751,7 +751,7 @@ Ambiguos implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
 Candidates: "p.A2", "p.A3".
 Type "p.B" must declare a method ".foo" explicitly implementing the desired behaviour.
-Error 10  WellFormedness
+Error 9  WellFormedness
 """,List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ .foo->this; }
@@ -759,3 +759,18 @@ A3:A1{ .foo->this; }
 B:A2,A3{ }
 """));}
 }
+//TODO: most While inspecting the file
+//need to be refined, need method to 'add frame' (search for existing)
+//swap ` and ' again, but remove all the \ stuff in SStr
+//UString \ only meaningful inside {}s
+//UStr {} can contain spaces, new lines and //comments?
+//Or, encourage |"{..}
+//that can have new lines+comments between lines
+//Is this an argument for the same syntax in UStr and SStr?
+// #|"{U+`1FB0A 23D01`} 
+//caching can then remove the extra run time computation
+//TODO: remove the 'classing encoder', make sure to unify the grammars of " and ', both single and multi line.
+//Tons of tests will die
+//the concept of uStr in TName will die 
+
+//add '...' and #|' as bad tokens

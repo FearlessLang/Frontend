@@ -25,8 +25,8 @@ public class Parse {
     .addOpenClose(OCurly,CCurly,_CurlyGroup)
     .addOpenClose(OCurly,CCurlyId,_CurlyGroup)
     
-    .addBarriers(ORound,Set.of(SemiColon,Arrow,BackTick))
-    .addBarriers(OSquareArg,Set.of(SemiColon,Arrow,BackTick,LowercaseId,ORound,OCurly,DotName))
+    .addBarriers(ORound,Set.of(SemiColon,Arrow,SQuote))
+    .addBarriers(OSquareArg,Set.of(SemiColon,Arrow,SQuote,LowercaseId,ORound,OCurly,DotName))
     
     .addCloserEater(CRound,t->splitOn(t,")",true))
     .addCloserEater(CSquare,t->splitOn(t,"]",true))

@@ -168,7 +168,7 @@ A:{.foo:A->this; }
 @Test void use_selfBadBackTick(){fail("""
 In file: [###]/in_memory0.fear
 
-001| A:{ 'x .foo:A->A + A; } //ill formed: the first layer has to be 'this or nothing
+001| A:{ `x .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
    |   ^^^^^^^^^^^^^^^^^^^^^------------------------------------------
 
 While inspecting the file
@@ -178,20 +178,20 @@ Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
 Error 0  Unclosed
 ""","""
-A:{ 'x .foo:A->A + A; } //ill formed: the first layer has to be 'this or nothing
+A:{ `x .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
 """);}
 @Test void use_self(){fail("""
 In file: [###]/in_memory0.fear
 
-001| A:{ `abc .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
+001| A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be 'this or nothing
    | ~~~~~^^^~~~~~~~~~~~~~~~~~---------------------------------------------------------
 
 While inspecting type declaration body > type declaration > full file
 Self name abc invalid in a top level type.
-Top level types self names can only be "`this".
-Error 10  WellFormedness
+Top level types self names can only be " 'this ".
+Error 9  WellFormedness
 ""","""
-A:{ `abc .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
+A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be 'this or nothing
 """);}
 
 @Test void use_self_inner(){ok("""
@@ -200,7 +200,7 @@ M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.foo],bs=Optional.empty,hasParen
 body=Optional[DeclarationLiteralDeclaration[name=B/0,bs=Optional.empty,cs=[],
 l=Literalx[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.foo],bs=Optional.empty,hasParenthesis=false,parameters=[Parameter[xp=Optional[Name[x=y]],t=Optional.empty],Parameter[xp=Optional[Name[x=a]],t=Optional.empty]],t=Optional.empty]],body=Optional[Call[Call[this]+false[x]]+false[a]]]]]]]]]]]
 ""","""
-A:{ .foo:A->B:{`x .foo y,a -> this + x + a; } }
+A:{ .foo:A->B:{'x .foo y,a -> this + x + a; } }
 """);}
 
 @Test void method_with_parens_and_ret(){ok("""
@@ -278,14 +278,14 @@ Lit2:{ .lit2(): +45 -> read +45{} }
 body=Optional[self]
 [###]
 ""","""
-A:{Selfy:{`self .me():Selfy -> self}}
+A:{Selfy:{'self .me():Selfy -> self}}
 """);}
 @Test void literal_with_thisname_and_method2(){ok("""
 [###]
 body=Optional[self]
 [###]
 ""","""
-B:{Selfy:{`self .me:Selfy -> self}}
+B:{Selfy:{'self .me:Selfy -> self}}
 """);}
 @Test void stringInterpol_s(){ok("""
 FileFull[[###]decs=[
@@ -294,8 +294,8 @@ M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.a],bs=Optional.empty,hasParenth
 body=Optional[Inter[true][0,0][abc\\ndef\\n][]]]]]]]
 ""","""
 A:{.a:Str -> 
-  |'abc
-  |'def
+  |`abc
+  |`def
 }
 """);}
 @Test void stringInterpol_s_e(){ok("""
@@ -307,8 +307,8 @@ body=Optional[Inter[true][1,0][ab,c\\ndef\\n]
 .footrue[TypedLiteralRCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]]]]]]]
 ""","""
 A:{.a:Str ->
-  #|'ab{B.foo(C)}c
-  |'def
+  #|`ab{B.foo(C)}c
+  |`def
 }
 """);}
 @Test void calls_1(){ok("""
@@ -763,7 +763,7 @@ In file: [###]/in_memory0.fear
    |    ^^
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing ";", operator or method name here or before
+There is a missing ";", operator or method name here or before.
 Error 6  MissingSeparator
 ""","""
 A:{
@@ -817,18 +817,15 @@ A:{ x -> x.foo [read] }
 @Test void err_bad_op_line_pipe_before_quote(){fail("""
 In file: [###]in_memory0.fear
 
-001| A:{ .m -> +|'a'
+001| A:{ .m -> +|`a'
    |           ^^
 
 While inspecting the file
 Unrecognized text "+|".
-A "|" immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
-Operators can also contain "|", making it ambiguous what, for example, `<--|'foo'` means.
-It could be the "<--" operator followed by `|'foo'` but also the "<--|" operator followed by `'foo'`.
-Please add spaces to disambiguate:  `<--| 'foo'`   or   `<-- |'foo'`
+A "|" immediately before a quote starts [###].
 Error 2  UnexpectedToken
 ""","""
-A:{ .m -> +|'a'
+A:{ .m -> +|`a'
   }
 """);}
 @Test void err_disallowed_readH_on_closure(){fail("""
@@ -1036,7 +1033,7 @@ Error 2  UnexpectedToken
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| #|'Head { Block#.let x= .use(x) } Tail
+003| #|`Head { Block#.let x= .use(x) } Tail
    | ----------~~~~~~~~~~~~~~^^^^^^^~~-----
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
@@ -1046,7 +1043,7 @@ Error 2  UnexpectedToken
 ""","""
 A:{
 .m:Str ->
-#|'Head { Block#.let x= .use(x) } Tail
+#|`Head { Block#.let x= .use(x) } Tail
 }
 """); }
 
@@ -1055,7 +1052,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| #|'Head { Block#.let x= .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End
+003| #|`Head { Block#.let x= .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End
    | ----------~~~~~~~~~~~~~~^^^^^^^~~-----------------------------------------------
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
@@ -1065,7 +1062,7 @@ Error 2  UnexpectedToken
 ""","""
 A:{
 .m:Str ->
-#|'Head { Block#.let x= .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End 
+#|`Head { Block#.let x= .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End 
 }
 """); }
 
@@ -1073,7 +1070,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 002| .m(x):Str ->
-003| #|'Head { Block#.let    .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End
+003| #|`Head { Block#.let    .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End
    | ------------------------------------------~~~~~~~~~~~~~~~^^^^^^^^^^^~~----------
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
@@ -1083,7 +1080,7 @@ Error 2  UnexpectedToken
 ""","""
 A:{
 .m(x):Str ->
-#|'Head { Block#.let    .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End 
+#|`Head { Block#.let    .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End 
 }
 """); }
 
@@ -1092,7 +1089,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| #|'Head {     ( /*a*/ (Block#.let x= .use(x)) /*bb*/ ) } Tail
+003| #|`Head {     ( /*a*/ (Block#.let x= .use(x)) /*bb*/ ) } Tail
    | --------------~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^~~~~~~~~~~-------
 
 While inspecting expression in round parenthesis > expression in round parenthesis > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
@@ -1102,7 +1099,7 @@ Error 2  UnexpectedToken
 ""","""
 A:{
 .m:Str ->
-#|'Head {     ( /*a*/ (Block#.let x= .use(x)) /*bb*/ ) } Tail
+#|`Head {     ( /*a*/ (Block#.let x= .use(x)) /*bb*/ ) } Tail
 }
 """); }
 
@@ -1110,7 +1107,7 @@ A:{
 In file: [###]in_memory0.fear
 
 002| .m:Str ->
-003| #|'Head } ss
+003| #|`Head } ss
    | --^^^^^^^---
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
@@ -1119,7 +1116,7 @@ Error 8  InterpolationNoOpen
 ""","""
 A:{
 .m:Str ->
-#|'Head } ss
+#|`Head } ss
 }
 """); }
 
@@ -1127,7 +1124,7 @@ A:{
 In file: [###]in_memory0.fear
 
 002| .m:Str ->
-003| #|'Head { Block#.let x={5} .use(x) } Tail
+003| #|`Head { Block#.let x={5} .use(x) } Tail
    | --------^^^^^^^^^^^^^^^^-----------------
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
@@ -1137,7 +1134,7 @@ Error 7  InterpolationNoClose
 ""","""
 A:{
 .m:Str ->
-#|'Head { Block#.let x={5} .use(x) } Tail
+#|`Head { Block#.let x={5} .use(x) } Tail
 }
 """); }
 
@@ -1151,7 +1148,7 @@ body=Optional[Inter[true][2]
 ""","""
 A:{
 .m:Str ->
-##|'Head {{ Block#.let x={5} .use(x) }} Tail
+##|`Head {{ Block#.let x={5} .use(x) }} Tail
 }
 """); }
 
@@ -1176,7 +1173,7 @@ A:{
 In file: [###]in_memory0.fear
 
 002| .m:Str ->
-003| #|' foo } bar {B.foo(C)} end
+003| #|` foo } bar {B.foo(C)} end
    | --^^^^^^^-------------------
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
@@ -1185,7 +1182,7 @@ Error 8  InterpolationNoOpen
 ""","""
 A:{
 .m:Str ->
-#|' foo } bar {B.foo(C)} end
+#|` foo } bar {B.foo(C)} end
 }
 """); }
 
@@ -1197,7 +1194,7 @@ body=Optional[Inter[true][1][pre,post\\n]
 ""","""
 A:{
 .m:Str ->
-#|' pre {B.foo(C)} post
+#|` pre {B.foo(C)} post
 }
 """); }
 
@@ -1209,7 +1206,7 @@ body=Optional[Inter[true][1][$pre$,$post$,$dada$\\n]
 ""","""
 A:{
 .m:Str ->
-#|'$pre${B.foo(C)}$post${B}$dada$
+#|`$pre${B.foo(C)}$post${B}$dada$
 }
 """); }
 
@@ -1218,7 +1215,7 @@ A:{
 ""","""
 A:{
 .m(x:X,y:X):Str ->
-#|' pre { x.plus(y) } post
+#|` pre { x.plus(y) } post
 }
 """); }
 
@@ -1231,7 +1228,7 @@ ts=Optional.empty]]]
 ""","""
 A:{
 .m:Str ->
-#|' a {{{B.foo(C)}}} b
+#|` a {{{B.foo(C)}}} b
 }
 """); }
 
@@ -1239,7 +1236,7 @@ A:{
 In file: [###]in_memory0.fear
 
 002| .m:Str ->
-003| #|' pre {B.foo(C)} } tail
+003| #|` pre {B.foo(C)} } tail
    | -----------------^^^-----
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
@@ -1248,7 +1245,7 @@ Error 8  InterpolationNoOpen
 ""","""
 A:{
 .m:Str ->
-#|' pre {B.foo(C)} } tail
+#|` pre {B.foo(C)} } tail
 }
 """); }
 
@@ -1258,7 +1255,7 @@ A:{
 ""","""
 A:{
 .m(x1,x2,x3,x4,x5):Str ->
-#|' aa{x1} b {x2}ccc{{x3}} d {{x4}} ee{x5} z
+#|` aa{x1} b {x2}ccc{{x3}} d {{x4}} ee{x5} z
 }
 """); }
 
@@ -1267,7 +1264,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-##|' Head {{ Block#.let x={5} .use(x) }} Tail
+##|` Head {{ Block#.let x={5} .use(x) }} Tail
 }
 """); }
 
@@ -1275,7 +1272,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| ##|' pre {{ +5{}}} post
+003| ##|` pre {{ +5{}}} post
    | ------------~~^--------
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
@@ -1286,7 +1283,7 @@ Error 0  Unclosed
 ""","""
 A:{
 .m:Str ->
-##|' pre {{ +5{}}} post
+##|` pre {{ +5{}}} post
 }
 """); }
 
@@ -1296,7 +1293,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-##|' pre {{ +5{} }} post
+##|` pre {{ +5{} }} post
 }
 """); }
 
@@ -1307,7 +1304,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-##|' a {{B.foo(C)}}{{B.foo(C)}} z
+##|` a {{B.foo(C)}}{{B.foo(C)}} z
 }
 """); }
 
@@ -1316,7 +1313,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-##|' foo } bar {{B.foo(C)}} end
+##|` foo } bar {{B.foo(C)}} end
 }
 """); }
 
@@ -1325,7 +1322,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-##|' pre {{B.foo(C)}} } tail
+##|` pre {{B.foo(C)}} } tail
 }
 """); }
 
@@ -1334,7 +1331,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-##|' a {{B.foo(C)}} b {{B.foo(C)}} c {{B.foo(C)}} d {{B.foo(C)}} e {{B.foo(C)}} z
+##|` a {{B.foo(C)}} b {{B.foo(C)}} c {{B.foo(C)}} d {{B.foo(C)}} e {{B.foo(C)}} z
 }
 """); }
 
@@ -1342,7 +1339,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| ###|' pre {{{ +5{} }} mid
+003| ###|` pre {{{ +5{} }} mid
    | ----^^^^^^^^^------------
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
@@ -1351,7 +1348,7 @@ Error 7  InterpolationNoClose
 ""","""
 A:{
 .m:Str ->
-###|' pre {{{ +5{} }} mid
+###|` pre {{{ +5{} }} mid
 }
 """); }
 @Test void inter_hash_h3_pass(){ ok("""
@@ -1359,7 +1356,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-###|' pre {{{ +5{} }}} mid
+###|` pre {{{ +5{} }}} mid
 }
 """); }
 
@@ -1370,7 +1367,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-###|' aa {{{{B.foo(C)}}}} bb
+###|` aa {{{{B.foo(C)}}}} bb
 }
 """); }
 
@@ -1381,7 +1378,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-####|' head {{{{B.foo(C)}}}} tail
+####|` head {{{{B.foo(C)}}}} tail
 }
 """); }
 
@@ -1389,7 +1386,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| ####|' {{{{B.foo(C)}}}} ddd }}}} end
+003| ####|` {{{{B.foo(C)}}}} ddd }}}} end
    | ----------------------^^^^^^^^^^----
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
@@ -1398,7 +1395,7 @@ Error 8  InterpolationNoOpen
 ""","""
 A:{
 .m:Str ->
-####|' {{{{B.foo(C)}}}} ddd }}}} end
+####|` {{{{B.foo(C)}}}} ddd }}}} end
 }
 """); }
 
@@ -1406,7 +1403,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| #|' L {{R {{B.foo(C)}} R}} L
+003| #|` L {{R {{B.foo(C)}} R}} L
    | ------^^^^^-----------------
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
@@ -1416,7 +1413,7 @@ Error 7  InterpolationNoClose
 ""","""
 A:{
 .m:Str ->
-#|' L {{R {{B.foo(C)}} R}} L
+#|` L {{R {{B.foo(C)}} R}} L
 }
 """); }
 
@@ -1425,7 +1422,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-|' this is always fine: } and { both literal
+|` this is always fine: } and { both literal
 }
 """); }
 
@@ -1436,7 +1433,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-#|' a {B.foo(C)} b c {B.foo(C)} d e {B.foo(C)} f g {B.foo(C)} h i {B.foo(C)} j
+#|` a {B.foo(C)} b c {B.foo(C)} d e {B.foo(C)} f g {B.foo(C)} h i {B.foo(C)} j
 }
 """); }
 
@@ -1444,7 +1441,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| ##|' start {{ foo.bar{ baz .toList }} end
+003| ##|` start {{ foo.bar{ baz .toList }} end
    | --------------~~~~~~~^~~~~~~~~~~~~-------
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
@@ -1455,7 +1452,7 @@ Error 0  Unclosed
 ""","""
 A:{
 .m:Str ->
-##|' start {{ foo.bar{ baz .toList }} end
+##|` start {{ foo.bar{ baz .toList }} end
 }
 """); }
 
@@ -1464,7 +1461,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-##|' start {{ Foo.bar{ Baz .toList } }} end
+##|` start {{ Foo.bar{ Baz .toList } }} end
 }
 """); }
 
@@ -1476,7 +1473,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-#|'a{{B.foo(C)}}b
+#|`a{{B.foo(C)}}b
 }
 """); }
 
@@ -1487,7 +1484,7 @@ A:{
 ""","""
 A:{
 .m:Str ->
-##|'a{{B.foo(C)}}b
+##|`a{{B.foo(C)}}b
 }
 """); }
 
@@ -1495,7 +1492,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| #|'pre{B.foo(C)}mid{x.bar(1,2}post
+003| #|`pre{B.foo(C)}mid{x.bar(1,2}post
    | --------------------~~~~~^~~~-----
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
@@ -1506,7 +1503,7 @@ Error 0  Unclosed
 ""","""
 A:{
 .m:Str ->
-#|'pre{B.foo(C)}mid{x.bar(1,2}post
+#|`pre{B.foo(C)}mid{x.bar(1,2}post
 }
 """); }
 
@@ -1517,15 +1514,15 @@ A:{
 ""","""
 A:{
 x ->
-#|'pre{B.foo(C)}mid{x.bar(1,2)}post
+#|`pre{B.foo(C)}mid{x.bar(1,2)}post
 }
 """); }
 
 @Test void inter_expr_then_chain_bad_args_fail(){ fail("""
 In file: [###]/in_memory0.fear
 
-003| #|'ok'
-004| #|'and then
+003| #|`ok'
+004| #|`and then
 005| .c(,)
    |    ^
 
@@ -1536,8 +1533,8 @@ Error 2  UnexpectedToken
 ""","""
 A:{
 .m:Str ->
-#|'ok'
-#|'and then
+#|`ok'
+#|`and then
 .c(,)
 }
 """); }
@@ -1549,8 +1546,8 @@ A:{
 ""","""
 A:{
 .m{.x}A ->
-#|'ok'
-|'and then
+#|`ok'
+|`and then
 .c(xA)
 }
 """); }
@@ -1560,14 +1557,14 @@ A:{
 ""","""
 A:{
 .m(x:X):Str ->
-x.b(1,2): |'pre{,}post
+x.b(1,2): |`pre{,}post
 .d(3)
 }
 """); }
 @Test void fail_with_interpolation(){ fail("""
 In file: [###]/in_memory0.fear
 
-003| x.b(1,2) :#|'pre{,}post
+003| x.b(1,2) :#|`pre{,}post
    |                  ^-
 004| .d(3)
 
@@ -1579,7 +1576,7 @@ Error 2  UnexpectedToken
 ""","""
 A:{
 .m(x:X):Str ->
-x.b(1,2) :#|'pre{,}post
+x.b(1,2) :#|`pre{,}post
 .d(3)
 }
 """); }
@@ -1591,7 +1588,7 @@ x.b(1,2) :#|'pre{,}post
 ""","""
 A:{
 .m:Str ->
-#|'cafe\\u00E9{B.foo(C)} // unicode inside simple string is just \\ u X X X X
+#|`cafe\\u00E9{B.foo(C)} // unicode inside simple string is just \\ u X X X X
 }
 """); }
 
@@ -1607,16 +1604,6 @@ A:{
 }
 """); }
 
-@Test void inter_unicode_okEmbedded(){ ok("""
-[###]
-[cafe\u00E9, // same text but actual unicode\\n]
-[###]
-""","""
-A:{
-.m:Str ->
-#|"cafe{\\u00E9}{B.foo(C)} // same text but actual unicode
-}
-"""); }
 
 @Test void inter_op_before_line_string_unicode_fail(){ fail("""
 In file: [###]/in_memory0.fear
@@ -1626,10 +1613,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Unrecognized text "^-^|".
-A "|" immediately before a quote starts a line string (e.g. `|"abc"` or `|'abc'`).
-Operators can also contain "|", making it ambiguous what, for example, `<--|'foo'` means.
-It could be the "<--" operator followed by `|'foo'` but also the "<--|" operator followed by `'foo'`.
-Please add spaces to disambiguate:  `<--| 'foo'`   or   `<-- |'foo'`
+A "|" immediately before a quote starts a [###].
 Error 2  UnexpectedToken
 ""","""
 A:{ .m -> 
@@ -1655,8 +1639,8 @@ A:{ .m ->
 ""","""
 A:{
 .m:Str ->
-#|'L1 {B.foo(C)}
-|'L2 {{x.bar(1)}}
+#|`L1 {B.foo(C)}
+|`L2 {{x.bar(1)}}
 }
 """); }
 
@@ -1668,8 +1652,8 @@ A:{
 ""","""
 A:{
 .m:Str ->
-#|'L1 {B.foo(C)}
-|'L2 {x.bar(1)}
+#|`L1 {B.foo(C)}
+|`L2 {x.bar(1)}
 }
 """); }
 
@@ -1680,7 +1664,7 @@ A:{
 ""","""
 A:{
 dd ->
-##|'head {{B.foo(C)}} mid {{{dd}}} tail
+##|`head {{B.foo(C)}} mid {{{dd}}} tail
 }
 """); }
 
@@ -1688,7 +1672,7 @@ dd ->
 In file: [###]/in_memory0.fear
 
 003| ####|"one
-004| ###|'two
+004| ###|`two
    | ^^^^^^^^
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
@@ -1698,7 +1682,7 @@ Error 2  UnexpectedToken
 A:{
 .m:Str ->
 ####|"one
-###|'two
+###|`two
 }
 """); }
 
@@ -1711,7 +1695,7 @@ Inter[true][3][two\\n][]
 A:{
 .m:Str ->
 ####|"one
-:###|'two
+:###|`two
 }
 """); }
 
@@ -1720,19 +1704,19 @@ In file: [###]/in_memory0.fear
 
 002| .m:Str ->
    | ... 2 lines ...
-005| x.y() |'two {B.foo(C)}'
+005| x.y() |`two {B.foo(C)}'
    | ^
 006| .z(3)
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing ";", operator or method name here or before
+There is a missing ";", operator or method name here or before.
 Error 6  MissingSeparator
 ""","""
 A:{
 .m:Str ->
-#|'one'
+#|`one'
 .k(1)
-x.y() |'two {B.foo(C)}'
+x.y() |`two {B.foo(C)}'
 .z(3)
 }
 """); }
@@ -1744,25 +1728,25 @@ x.y() |'two {B.foo(C)}'
 ""","""
 A:{
 x ->
-#|'pre { x + 1 // comment seen as part of string, thus } is cut out
-|'post
+#|`pre { x + 1 // comment seen as part of string, thus } is cut out
+|`post
 }
 """); }
 
 @Test void never_new_line_inter(){ fail("""
 In file: [###]/in_memory0.fear
 
-004| } 'post
+004| } `post
    |   ^^^^^
 
 While inspecting the file
-String literal [SQUOTE (') 0x27] reaches the end of the line.
+String literal [BACKTICK (`) 0x60] reaches the end of the line.
 Error 2  UnexpectedToken
 ""","""
 A:{
 x ->
-#|'pre { x + 1 // not even comment allows new lines in interpolation
-} 'post
+#|`pre { x + 1 // not even comment allows new lines in interpolation
+} `post
 }
 """); }
 
@@ -1770,7 +1754,7 @@ x ->
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| #|'A { x + /* start
+003| #|`A { x + /* start
    | --^^^^-------------
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
@@ -1779,7 +1763,7 @@ Error 7  InterpolationNoClose
 ""","""
 A:{
 .m:Str ->
-#|'A { x + /* start
+#|`A { x + /* start
 }
 """); }
 
@@ -1790,8 +1774,8 @@ A:{
 ""","""
 A:{
 x ->
-#|'A { x + /* start */ 2 }
-|'B
+#|`A { x + /* start */ 2 }
+|`B
 }
 """); }
 
@@ -1800,7 +1784,7 @@ x ->
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| #|'P { a /* }  {  */ + 3 } Q
+003| #|`P { a /* }  {  */ + 3 } Q
    | -------~~^^-----------------
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
@@ -1809,7 +1793,7 @@ Error 2  UnexpectedToken
 ""","""
 A:{
 .m:Str ->
-#|'P { a /* }  {  */ + 3 } Q
+#|`P { a /* }  {  */ + 3 } Q
 }
 """); }
 
@@ -1818,7 +1802,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| #|'P { a /* {  }  */ + 3 } Q
+003| #|`P { a /* {  }  */ + 3 } Q
    | -----^^^^^^^^---------------
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
@@ -1828,7 +1812,7 @@ Error 7  InterpolationNoClose
 ""","""
 A:{
 .m:Str ->
-#|'P { a /* {  }  */ + 3 } Q
+#|`P { a /* {  }  */ + 3 } Q
 }
 """); }
 
@@ -1839,8 +1823,8 @@ A:{
 ""","""
 A:{
 x ->
-##|'H1 {{ x +++++ +1 }}
-|'H2
+##|`H1 {{ x +++++ +1 }}
+|`H2
 }
 """); }
 
@@ -1849,7 +1833,7 @@ x ->
 ""","""
 A:{
 x ->
-#|'x { x.bar(1,) } y
+#|`x { x.bar(1,) } y
 }
 """); }
 
@@ -1857,7 +1841,7 @@ x ->
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-003| #|'S { x.foo [read] } T
+003| #|`S { x.foo [read] } T
    | -------~~~~~~^~~~~~----
 
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
@@ -1869,14 +1853,14 @@ Error 2  UnexpectedToken
 ""","""
 A:{
 .m:Str ->
-#|'S { x.foo [read] } T
+#|`S { x.foo [read] } T
 }
 """); }
 
 @Test void inter_square_arg_space_inside_braces_ok(){ ok("""
 [###]
 ""","""
-A:{ x -> #|'S { x.foo[read] } T
+A:{ x -> #|`S { x.foo[read] } T
 }
 """); }
 
@@ -1887,7 +1871,7 @@ A:{ x -> #|'S { x.foo[read] } T
 ""","""
 A:{
 .m(x:X):Str ->
-x.b(1,2) : #|'pre { x + 1 } post
+x.b(1,2) : #|`pre { x + 1 } post
 }
 """); }
 
@@ -1896,7 +1880,7 @@ x.b(1,2) : #|'pre { x + 1 } post
 ""","""
 A:{
 .m:Str ->
-#|'ok {1 + 2}
+#|`ok {1 + 2}
 .c( // new line is not an issue here
 )
 }
@@ -1926,8 +1910,8 @@ A:{ .m -> 1+2 }
 ""","""
 A:{
 x ->
-##|'head {literal} and {{ x /* c */ + 1 }}
-|'tail
+##|`head {literal} and {{ x /* c */ + 1 }}
+|`tail
 }
 """); }
 
@@ -1951,17 +1935,17 @@ A:{
 @Test void bad_sq_str_eol_with_line_comment(){fail("""
 In file: [###]/in_memory0.fear
 
-003|     'bar // comment
+003|     `bar // comment
    |     ^^^^^^
 
 While inspecting the file
-String literal [SQUOTE (') 0x27] reaches the end of the line.
+String literal [BACKTICK (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
 Error 2  UnexpectedToken
 """, """
 A:{
   .m:Str ->
-    'bar // comment
+    `bar // comment
 }
 """);
 }
@@ -1969,17 +1953,17 @@ A:{
 @Test void bad_sq_str_eol_with_line_comment2(){fail("""
 In file: [###]/in_memory0.fear
 
-003|     'bar /* comment */
+003|     `bar /* comment */
    |     ^^^^^^
 
 While inspecting the file
-String literal [SQUOTE (') 0x27] reaches the end of the line.
+String literal [BACKTICK (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
 Error 2  UnexpectedToken
 """, """
 A:{
   .m:Str ->
-    'bar /* comment */
+    `bar /* comment */
 }
 """);
 }
@@ -1987,17 +1971,17 @@ A:{
 @Test void bad_sq_str_eol_with_line_comment3(){fail("""
 In file: [###]/in_memory0.fear
 
-003|     'bar /* comment
+003|     `bar /* comment
    |     ^^^^^^
 
 While inspecting the file
-String literal [SQUOTE (') 0x27] reaches the end of the line.
+String literal [BACKTICK (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
 Error 2  UnexpectedToken
 """, """
 A:{
   .m:Str ->
-    'bar /* comment 
+    `bar /* comment 
     */
 }
 """);
@@ -2023,16 +2007,16 @@ A:{
 @Test void bad_sq_str_eol_plain_no_comment(){fail("""
 In file: [###]/in_memory0.fear
 
-003|     'no close here
+003|     `no close here
    |     ^^^^^^^^^^^^^^
 
 While inspecting the file
-String literal [SQUOTE (') 0x27] reaches the end of the line.
+String literal [BACKTICK (`) 0x60] reaches the end of the line.
 Error 2  UnexpectedToken
 """, """
 A:{
   .m:Str ->
-    'no close here
+    `no close here
 }
 """);
 }
@@ -2189,7 +2173,7 @@ Unrecognized text "<--".
 An operator followed by a digit is parsed as a signed number (e.g. "+5", "-3").
 Operators can also contain "+" and "-", making it ambiguous what, for example, "<--5" means.
 It could be the "<--" operator followed by "5" but also the "<-" operator followed by "-5".
-Please add spaces to disambiguate:  "<-- 5"   or   "<- -5"
+Please add spaces to disambiguate:  "<-- 5"   or   "<- -5".
 Error 2  UnexpectedToken
 """, """
 A:{
@@ -2230,7 +2214,7 @@ While inspecting the file
 Unrecognized text "1/2".
 Rational literals must have a sign.
 Examples: "+1/2", "-3/4".
-Fearless does not allow rational literals of form "1/2"
+Fearless does not allow rational literals of form "1/2".
 Error 2  UnexpectedToken
 """, """
 A:{
@@ -2259,7 +2243,7 @@ A:{ .m:Str -> "price is } dollars" ) }
 @Test void eatenCloserInSglQuote_thenWrongCloserParen(){fail(""" 
 In file: [###]/in_memory0.fear
 
-001| A:{ .m:Str -> 'oops } here' ) }
+001| A:{ .m:Str -> `oops } here` ) }
    |   ^^^^^^^^^^^^^^^^^^^------
 
 While inspecting the file
@@ -2269,7 +2253,7 @@ Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
 Error 0  Unclosed
 """,""" 
-A:{ .m:Str -> 'oops } here' ) }
+A:{ .m:Str -> `oops } here` ) }
 """);}
 
 @Test void eatenCloserInLineStr_thenWrongCloserParen(){fail(""" 
@@ -2960,7 +2944,7 @@ In file: [###]/in_memory0.fear
    | --------------~~~~~~~~~~~~~^^~-
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing ";", operator or method name here or before
+There is a missing ";", operator or method name here or before.
 Error 6  MissingSeparator
 ""","""
 A: base.Main{ .foo->A .beer->B}
@@ -3190,7 +3174,7 @@ In file: [###]/in_memory0.fear
 While inspecting header element > file header > full file
 Missing type name.
 Found instead: "a1".
-Expected one of: "type name", "signed number (eg. -23.0045)", "signed number (eg. -23)", "unsigned number (eg. 23)", "signed rational number (eg. +2.2/3.4)", "'...'", "\\"...\\"".
+Expected one of: "type name", "signed number (eg. -23.0045)", "signed number (eg. -23)", "unsigned number (eg. 23)", "signed rational number (eg. +2.2/3.4)", "`...`", "\\"...\\"".
 Error 2  UnexpectedToken
 ""","""
 package foo;
@@ -3203,195 +3187,6 @@ Inter[false][1][e:\\uE9"\\n][]
 ""","""
 A:{ .m:Str ->
 #|"e:\\uE9"
-}"""); }
-
-@Test void inter_unicode_okOne(){ ok("""
-[###]
-Inter[false][1][é333\\n][]
-[###]
-""","""
-A:{ .m:Str ->
-#|"{\\uE9} 333
-}"""); }
-@Test void inter_unicode_okAdjacentMany(){ ok("""
-[###]
-Inter[false][1][
-\u00E9\uD83D\uDE80\u0915\u093F\u0061\u0301\uD83D\uDC69\u200D\uD83D\uDCBB\uD83C\uDDF3\uD83C\uDDFF"\\n
-][]
-[###]
-""","""
-A:{ .m:Str ->
-#|"{\\uE9\\u1F680\\u915\\u93F\\u61\\u301\\u1F469\\u200D\\u1F4BB\\u1F1F3\\u1F1FF}"
-}"""); }
-
-@Test void inter_unicode_okZWJ(){ ok("""
-[###]
-Inter[false][1][
-dev: \uD83D\uDC69\u200D\uD83D\uDCBB"\\n
-][]
-[###]
-""","""
-A:{ .m:Str ->
-#|"dev: {\\u1F469\\u200D\\u1F4BB}"
-}"""); }
-
-@Test void inter_unicode_okFlagNZ(){ ok("""
-[###]
-Inter[false][1][
-flag: \uD83C\uDDF3\uD83C\uDDFF"\\n
-][]
-[###]
-""","""
-A:{ .m:Str ->
-#|"flag: {\\u1F1F3\\u1F1FF}"
-}"""); }
-
-@Test void inter_unicode_okCombining(){ ok("""
-[###]
-Inter[false][1][
-a':, BB\u0061\u0301AA,CC\\n
-][Call[[###]],Call[[###]]]
-[###]
-""","""
-A:{ .m:Str ->
-#|"a': {1 + 2} BB {\\u61\\u301}AA {3 * 4}CC
-}"""); }
-
-@Test void inter_unicode_okMaxScalar(){ ok("""
-[###]
-Inter[false][1][
-max: [###]\\n
-][]
-[###]
-""","""
-A:{ .m:Str ->
-#|"max: {\\u10FFFF}
-}"""); }
-
-@Test void inter_unicode_okMixedCaseHex(){ ok("""
-[###]
-Inter[false][1][
-mix: \u20ac\u00E9\\n
-][]
-[###]
-""","""
-A:{ .m:Str ->
-#|"mix: {\\u20ac\\uE9}
-}"""); }
-
-@Test void inter_unicode_okDoubleHashes(){ ok("""
-[###]
-Inter[false][2][
-double \u00E9 braces\\n
-][]
-[###]
-""","""
-A:{ .m:Str ->
-##|"double {{\\uE9}} braces
-}"""); }
-
-@Test void inter_unicode_okMultiplePayloads(){ ok("""
-[###]
-Inter[false][1][
-\u0001\u0002\u0003\u0004\\n
-][]
-[###]
-""","""
-A:{ .m:Str ->
-#|"{\\u1\\u2}{\\u3\\u4}
-}"""); }
-
-@Test void inter_unicode_okMultilineMerge(){ ok("""
-[###]
-Inter[false][1,2][
-line1 \u0010\\nline2 \u0020"\\n
-][]
-[###]
-""","""
-A:{ .m:Str ->
-#|"line1 {\\u0010}
-##|"line2 {{\\u0020}}"
-}"""); }
-
-@Test void inter_unicode_failLoneSurrogate(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str ->
-002| #|"bad: {\\uD83D} // lone surrogate, invalid in unicode run
-   | ---------^^^----------------------------------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-Surrogate half not allowed; write the scalar code point instead.
-Error 9  BadUnicode
-""","""
-A:{ .m:Str ->
-#|"bad: {\\uD83D} // lone surrogate, invalid in unicode run
-}"""); }
-
-@Test void inter_unicode_failTooManyHex(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str ->
-002| #|"bad: {\\u10FFFFF}" // 7 hex digits, invalid
-   | ---------^^^^^^^^^---------------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-At most 6 hex digits allowed for \\u.
-Error 9  BadUnicode
-""","""
-A:{ .m:Str ->
-#|"bad: {\\u10FFFFF}" // 7 hex digits, invalid
-}"""); }
-
-@Test void inter_unicode_failZeroDigits(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str ->
-002| #|"bad: {\\u}" // requires 1..6 hex digits
-   | ---------^^^-----------------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-Missing 1..6 hex digits after \\u.
-Error 9  BadUnicode
-""","""
-A:{ .m:Str ->
-#|"bad: {\\u}" // requires 1..6 hex digits
-}"""); }
-
-@Test void inter_unicode_failSpaceInside(){ fail("""
-In file: ~/OneDrive/Desktop/Java2025_24/ws/FearlessFrontendTest/___DBG___/in_memory0.fear
-
-001| A:{ .m:Str ->
-002| #|"bad: {\\u61 \\u301}" // spaces not allowed in payload
-   | --------------^---------------------------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-Unicode run must start with \\u.
-Found [SPACE ( ) 0x20].
-Error 9  BadUnicode
-""","""
-A:{ .m:Str ->
-#|"bad: {\\u61 \\u301}" // spaces not allowed in payload
-}"""); }
-
-@Test void inter_unicode_failGluedHex(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str ->
-002| #|"bad: {\\u1F6801}" // glued extra hex; should be two tokens
-   | ---------^^^^^^^^^------------------------------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-Code point > 0x10FFFF is invalid.
-Error 9  BadUnicode
-""","""
-A:{ .m:Str ->
-#|"bad: {\\u1F6801}" // glued extra hex; should be two tokens
 }"""); }
 
 @Test void inter_unicode_failEmptyPayload(){ fail("""
@@ -3427,7 +3222,7 @@ A:{ .m:Str ->
 
 @Test void uStrBase1(){ ok("""
 [###]
-c=C[name="aaa"/0:"aaa"
+c=C[name="aaa"/0
 [###]
 ""","""
 A:{ .m:Str -> "aaa"}
@@ -3435,52 +3230,10 @@ A:{ .m:Str -> "aaa"}
 
 @Test void uStrBase2(){ ok("""
 [###]
-c=C[name="aa\\na"/0:"aa\\na"
+c=C[name="aa\\na"/0
 [###]
 ""","""
 A:{ .m:Str -> "aa\\na"}
-"""); }
-//Arguably, Message.displayStr makes this not that obvious
-@Test void uStrBase3(){ ok("""
-[###]
-c=C[name="aa\\ta"/0:"aa\\ta"
-[###]
-""","""
-A:{ .m:Str -> "aa\\ta"}
-"""); }
-@Test void uStrBase4(){ ok("""
-[###]
-c=C[name="aa{\\u0032}bb"/0:"aa2bb"
-[###]
-""","""
-A:{ .m:Str -> "aa{\\u0032}bb"}//digit 2
-"""); }
-@Test void uStrBase5(){ ok("""
-[###]
-c=C[name="aa{\\u0032\\u0033}{\\u0034}bb"/0:"aa234bb"
-[###]
-""","""
-A:{ .m:Str -> "aa{\\u0032\\u0033}{\\u0034}bb"}//digits 234
-"""); }
-@Test void uStrBase6(){ ok("""
-[###]
-c=C[name="{\\u0032\\u0033}{\\u0034}"/0:"234"
-[###]
-""","""
-A:{ .m:Str -> "{\\u0032\\u0033}{\\u0034}"}//digits 234
-"""); }
-@Test void uStr_err_bare_u_outside(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str -> "bad: \\u00E9" } // \\u outside {}
-   | ----~~~~~~~~~~~~~~~~~~~~~^^-------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-\\u must be used in a "{..}" group. (eg. {\\u34\\u35}).
-Error 9  BadUnicode
-""","""
-A:{ .m:Str -> "bad: \\u00E9" } // \\u outside {}
 """); }
 
 @Test void uStr_err_unknown_escape_x(){ fail("""
@@ -3496,110 +3249,10 @@ Error 2  UnexpectedToken
 A:{ .m:Str -> "oops: \\x" } // unknown escape \\x
 """); }
 
-@Test void uStr_err_unclosed_block(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str -> "bad: {\\uE9" } // missing closing }
-   | --~~~~~~~~~~~~~~~~~~~~~~~^~~---------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-Unclosed '{' for unicode payload.
-Error 9  BadUnicode
-""","""
-A:{ .m:Str -> "bad: {\\uE9" } // missing closing }
-"""); }
-
 @Test void uStr_err_empty_block(){ ok("""
-[###]C[name="bad:{}"/0:"bad:{}",[###]
+[###]C[name="bad:{}"/0,[###]
 ""","""
 A:{ .m:Str -> "bad: {}" } // just curly
-"""); }
-
-@Test void uStr_err_not_starting_with_u(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str -> "bad: {x\\uE9}" } // payload must start with \\u
-   | ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~------------------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-\\u must be used in a "{..}" group. (eg. {\\u34\\u35}).
-Error 9  BadUnicode
-""","""
-A:{ .m:Str -> "bad: {x\\uE9}" } // payload must start with \\u
-"""); }
-
-@Test void uStr_err_space_in_payload(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str -> "bad: {\\u61 \\u301}" } // spaces not allowed inside payload
-   | ~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~-------------------------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-Unicode run must start with \\u.
-Found [SPACE ( ) 0x20].
-Error 9  BadUnicode
-""","""
-A:{ .m:Str -> "bad: {\\u61 \\u301}" } // spaces not allowed inside payload
-"""); }
-
-@Test void uStr_err_invalid_hex_char(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str -> "bad: {\\u12G7}" } // 'G' is not a hex digit
-   | --~~~~~~~~~~~~~~~~~~~~~~^^~~~~~--------------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-Unicode run must start with \\u.
-Found "G".
-Error 9  BadUnicode
-""","""
-A:{ .m:Str -> "bad: {\\u12G7}" } // 'G' is not a hex digit
-"""); }
-
-@Test void uStr_err_too_many_digits(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str -> "bad: {\\u10FFFFF}" } // 7 hex digits
-   | ----~~~~~~~~~~~~~~~~^^^^^^^^^~~~------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-At most 6 hex digits allowed for \\u.
-Error 9  BadUnicode
-""","""
-A:{ .m:Str -> "bad: {\\u10FFFFF}" } // 7 hex digits
-"""); }
-
-@Test void uStr_err_surrogate_half(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str -> "bad: {\\uD83D}" } // lone surrogate half not allowed
-   | ~~~~~~~~~~~~~~~~~~~~^^^~~~~~~~~-----------------------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-Surrogate half not allowed; write the scalar code point instead.
-Error 9  BadUnicode
-""","""
-A:{ .m:Str -> "bad: {\\uD83D}" } // lone surrogate half not allowed
-"""); }
-
-@Test void uStr_err_glued_hex(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str -> "bad: {\\u1F6801}" } // hex digit glued to previous token; > 0x10FFFF
-   | ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^~~~~-------------------------------------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-UStr has malformed unicode.
-Code point > 0x10FFFF is invalid.
-Error 9  BadUnicode
-""","""
-A:{ .m:Str -> "bad: {\\u1F6801}" } // hex digit glued to previous token; > 0x10FFFF
 """); }
 
 @Test void prType1(){ fail("""
@@ -3724,7 +3377,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method ".foo" redeclared.
 A method with the same name is already present above.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{
  mut .baz:Bar;
@@ -3750,7 +3403,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method ".ban" redeclared.
 A method with the same name is already present above.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{
  mut .ban(x):Bar;
@@ -3776,7 +3429,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method ".foo" redeclared.
 A method with the same name is already present above.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3802,7 +3455,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3828,7 +3481,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3854,7 +3507,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3890,7 +3543,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting type declaration > full file
 Duplicated supertype in type declaration: "B".
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:B,C,B,D{
  mut .ban(y):Bar->Block#
@@ -3903,23 +3556,23 @@ A:B,C,B,D{
 In file: [###]/in_memory0.fear
 
 002|  mut .ban(y):Bar->
-003|    {`self .foo:Bar;};
+003|    {'self .foo:Bar;};
    |    -------^^^^^^^^--
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 Abstract method declaration for ".foo: Bar".
 Only top level methods can be abstract.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{
  mut .ban(y):Bar->
-   {`self .foo:Bar;};
+   {'self .foo:Bar;};
  }
 """); }
 
 @Test void explicitThis(){ ok("""
 [###]""","""
-A:B{`this .foo->this }
+A:B{'this .foo->this }
 """); }
 
 @Test void partialSigType1(){ fail("""
@@ -3931,7 +3584,7 @@ In file: [###]/in_memory0.fear
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
 Signature ".foo x: Bar" has some, but not all, type informations.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{ { .foo x:Bar->B; } }
 """); }
@@ -3945,7 +3598,7 @@ In file: [###]/in_memory0.fear
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
 Signature "mut .foo" has some, but not all, type informations.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{ { mut .foo->B; } }
 """); }
@@ -3958,7 +3611,7 @@ In file: [###]/in_memory0.fear
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
 Signature ".foo[X]" has some, but not all, type informations.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{ { .foo[X]->B; } }
 """); }
@@ -3971,7 +3624,7 @@ In file: [###]/in_memory0.fear
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
 Signature "mut .foo(x: Bar)" has some, but not all, type informations.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{ { mut .foo(x:Bar)->B; } }
 """); }
@@ -4015,12 +3668,12 @@ f\\n
 ][]]]]]]]
 ""","""
 A:{ 
-|'a
-#|'b
-##|'c
-###|'d
-|'e
-#|'f
+|`a
+#|`b
+##|`c
+###|`d
+|`e
+#|`f
 
 }
 """); }
@@ -4033,7 +3686,7 @@ In file: [###]/in_memory0.fear
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
 Signature ".foo: Bar" has some, but not all, type informations.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{ { .foo:Bar -> :: .a } }
 """); }
@@ -4046,7 +3699,7 @@ In file: [###]/in_memory0.fear
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
 Signature "mut .foo" has some, but not all, type informations.
-Error 10  WellFormedness
+Error 9  WellFormedness
 ""","""
 A:{ { mut .foo -> :: .a } }
 """); }
@@ -4059,10 +3712,10 @@ A:{ { mut .foo -> :: .a } }
 //at that point, it opens the question to allow \n out of {} to be two characters.
 @Test void simpleStrLiteral(){ ok("""
 [###].foo[###]
-TypedLiteralRCC[rc=Optional.empty,c=C[name='aaa\\nbbb'/0:"aaa\\\\nbbb",
+TypedLiteralRCC[rc=Optional.empty,c=C[name=`aaa\\nbbb`/0,
 ts=Optional.empty]]]]]]]]
 ""","""
-A:{ .foo:SStr -> 'aaa\\nbbb' }
+A:{ .foo:SStr -> `aaa\\nbbb` }
 """); }
 @Test void forgotSemiStart1(){fail("""
 In file: [###]/in_memory0.fear
@@ -4101,8 +3754,8 @@ Error 2  UnexpectedToken
 package foo;
 role app000;
 A{ .foo:A -> 
-  #|' foo {A} bar
-  #|' beer
+  #|` foo {A} bar
+  #|` beer
 }
 """);}
 }

@@ -23,7 +23,7 @@ public sealed interface E {
       assert unmodifiable(ms, "L.ms");
       assert nonNull(thisName,t);
     }
-    public String toString(){ return "{`"+thisName
+    public String toString(){ return "{'"+thisName
       + ms.stream().map(Object::toString).collect(Collectors.joining(""))
       +"}:"+t; }
   }

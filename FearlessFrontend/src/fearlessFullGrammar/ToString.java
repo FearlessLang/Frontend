@@ -84,7 +84,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
   }
   @Override public StringBuilder visitLiteral(Literal c){
     append("{");
-    c.thisName().ifPresent(n->append("`").append(n.name()));
+    c.thisName().ifPresent(n->append("'").append(n.name()));
     c.methods().forEach(this::visitInnerM);
     return append("}");
   }
@@ -104,7 +104,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
   }
   @Override public StringBuilder visitStringInter(StringInter i){
     i.e().ifPresent(e->e.accept(this).append(" "));
-    String nl= i.simple()?"|'":"|\"";
+    String nl= i.simple()?"|`":"|\"";
     append("\n");
     var it= i.hashCounts().listIterator();
     append("#".repeat(it.next())+nl);

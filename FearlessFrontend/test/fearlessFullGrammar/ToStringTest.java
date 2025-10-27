@@ -120,8 +120,8 @@ public class ToStringTest {
     "A: { .u({.p.q,.r}s) -> rs;}\n",
     "A:{ .u({.p.q,.r}s) -> rs }"); }
   @Test void this_name_in_literal(){ ok(
-    "Selfy: {`this .me -> this;}\n",
-    "Selfy:{`this .me -> this}"); }
+    "Selfy: {'this .me -> this;}\n",
+    "Selfy:{'this .me -> this}"); }
   @Test void package_header_is_ignored_in_print(){ ok(
     "A: {}\nB: {}\n",
     "package foo_bar; A:{} B:{}");}
@@ -229,15 +229,15 @@ public class ToStringTest {
     "A: { x, y -> :: .foo y;}\n",
     "A:{ x, y -> :: .foo y }");}
   @Test void string_inter_simple_s_quote_line(){ ok(
-    "A: { .a: Str -> \n|'abc\n;}\n",
-    "A:{.a:Str -> \n  |'abc\n}");}
+    "A: { .a: Str -> \n|`abc\n;}\n",
+    "A:{.a:Str -> \n  |`abc\n}");}
   @Test void string_inter_hash_expr_oneMismatch(){ ok(
-    "A: { .a: Str -> \n####|'pre {B.foo(C)} post\n;}\n",
-    "A:{.a:Str ->\n####|'pre {B.foo(C)} post\n}");
+    "A: { .a: Str -> \n####|`pre {B.foo(C)} post\n;}\n",
+    "A:{.a:Str ->\n####|`pre {B.foo(C)} post\n}");
   }
   @Test void string_inter_hash_expr_one(){ ok(
-      "A: { .a: Str -> \n#|'pre {B .foo(C)} post\n;}\n",
-      "A:{.a:Str ->\n#|'pre {B.foo(C)} post\n}");
+      "A: { .a: Str -> \n#|`pre {B .foo(C)} post\n;}\n",
+      "A:{.a:Str ->\n#|`pre {B.foo(C)} post\n}");
     }
   @Test void multiple_decls_joined(){ ok(
     "A: { .id(x: X): X -> x;}\nB: {}\n",
@@ -322,11 +322,11 @@ public class ToStringTest {
     "A: { .u(x, {.p.q}R, {.a,.b}S): R -> qR;}\n",
     "A:{ .u(x, {.p.q}R, {.a,.b}S): R -> qR }");}
   @Test void decl_literal_with_thisname_and_multi_methods(){ ok(
-    "A: { .m -> B: {`s .a -> this; .b x -> x;};}\n",
-    "A:{ .m -> B:{`s .a -> this; .b x -> x;} }");}
+    "A: { .m -> B: {'s .a -> this; .b x -> x;};}\n",
+    "A:{ .m -> B:{'s .a -> this; .b x -> x;} }");}
   @Test void decl_literal_with_rc_prefix_and_thisname(){ok(
-    "A: { .m -> read B: {`s};}\n",
-    "A:{ .m -> read B:{`s} }");}
+    "A: { .m -> read B: {'s};}\n",
+    "A:{ .m -> read B:{'s} }");}
   @Test void implicit_receiver_then_dot_call(){ok(
     "A: { x -> :: .a x;}\n",
     "A:{ x -> :: .a x }");}
@@ -346,8 +346,8 @@ public class ToStringTest {
     "A: { x, y -> (x) .foo y;}\n",
     "A:{ x, y -> (x) .foo y }");}
   @Test void literal_thisname_only_no_methods(){ok(
-    "A: { .m -> B: {`s};}\n",
-    "A:{ .m -> B:{`s} }");}
+    "A: { .m -> B: {'s};}\n",
+    "A:{ .m -> B:{'s} }");}
   @Test void eqSugar(){ok(
     "A: { .m -> Block # .let x= { 5;} .var y= { 6;} .return { x + y;};}\n",
     "A:{ .m -> Block#.let x= {5} .var y={6} .return{x+y} }");}

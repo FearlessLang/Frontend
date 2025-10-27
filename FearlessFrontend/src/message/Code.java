@@ -17,7 +17,6 @@ public enum Code{
   MissingSeparator,
   InterpolationNoClose,
   InterpolationNoOpen,
-  BadUnicode,
   WellFormedness,
   Err2,//etc, of course with better names
   ;  

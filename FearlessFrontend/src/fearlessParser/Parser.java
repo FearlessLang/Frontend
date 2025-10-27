@@ -80,7 +80,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if(names.XIn(c.content())){ throw errFactory().typeNameConflictsGeneric(c,span(c).get()); }
     var s= c.content();
     if(s.contains("._")){ throw errFactory().privateTypeName(c,span(c).get()); }
-    return TName.of(c.content(),0,pos(c),this::interBadUnicode);
+    return TName.of(c.content(),0,pos(c));
   }
   T parseT(){ //T    ::= C | RC C | X | RC X | read/imm X
     if(fwdIf(peek(ReadImm))){ return new T.ReadImmX(parseTX()); }
@@ -156,7 +156,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   E.StringInter parseStrInter(boolean isSimple, Optional<E> receiver){
     Pos pos= pos();
     List<StringInfo> contents= new ArrayList<>();
-    while(peekIf(moreStrInter(isSimple))){ contents.add(new StringInfo(expectAny(""),this::interOnNoClose,this::interOnNoOpen,this::interOnMoreOpen,this::interBadUnicode)); }
+    while(peekIf(moreStrInter(isSimple))){ contents.add(new StringInfo(expectAny(""),this::interOnNoClose,this::interOnNoOpen,this::interOnMoreOpen)); }
     if (peekIf(moreStrInter(!isSimple))){ throw errFactory().inconsistentStrInter(span(expectAny("")).get(),isSimple); }
     List<Integer> hashes= contents.stream().map(i->i.hashCount).toList();
     List<String> parts= StringInfo.mergeParts(contents);
@@ -176,7 +176,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   void interOnNoClose(int i,int j){ throw errFactory().noClose(lastT(i,j)); }
   void interOnNoOpen(int i,int j){ throw errFactory().noOpen(lastT(i,j)); }
   void interOnMoreOpen(int i,int j){ throw errFactory().moreOpen(lastT(i,j)); }
-  void interBadUnicode(int i, int j, String msg){throw errFactory().badUnicode(lastT(i,j),msg);}
   E.Implicit parseImplicit(){ return new E.Implicit(pos(expect("",ColonColon))); }
   E.Round parseRound(){
     expect("expression in round parenthesis",ORound);
@@ -198,7 +197,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     Token start= expect("object literal",OCurly);
     Token end= expectLast("object literal",CCurly);
     Optional<E.X> thisName= empty();
-    if(fwdIf(peek(BackTick))){
+    if(fwdIf(peek(SQuote))){
       var n= parseDecX();
       thisName = of(n);
       if(top && !n.name().equals("this")){
@@ -485,7 +484,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     while (!end()){ eatPost(); eatAtom(); }
   }
   private void absurd(){
-    var absurd= peek(Colon,Arrow,BackTick,Eq,Comma,SemiColon);//will add more when we find other absurd cases
+    var absurd= peek(Colon,Arrow,SQuote,Eq,Comma,SemiColon);//will add more when we find other absurd cases
     if(absurd){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
   }
   private void eatAtom(){

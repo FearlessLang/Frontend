@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  *  - Compute similarity (normalized Levenshtein) for each candidate.
  *  - If exactly one candidate clears a strong threshold AND is clearly
  *    better than the runner-up (by MARGIN), add:
- *      "did you mean `foo` ?"
+ *      "did you mean "foo" ?"
  *  - If suggestions are ambiguous or weak, we show only the "In scope" line
  *    (if any) and skip the "did you mean" line to avoid misleading hints.
  */
@@ -61,7 +61,7 @@ public final class NameSuggester {
     Suggestion best = pickBest(name, candidates);
 
     if (best != null && best.isConfident) {
-      out.append("did you mean `").append(best.value).append("` ?\n");
+      out.append("did you mean \"").append(best.value).append("\" ?\n");
     }
 
     if (out.length() == 0) return Optional.empty(); // nothing to show
