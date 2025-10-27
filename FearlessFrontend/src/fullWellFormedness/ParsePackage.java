@@ -1,6 +1,7 @@
 package fullWellFormedness;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -9,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
+import fearlessFullGrammar.TName;
 import fearlessParser.Parse;
 import message.SourceOracle;
 import message.WellFormednessErrors;
@@ -24,13 +26,13 @@ public class ParsePackage{
       var f= Parse.from(u, str);
       all.put(u, f);
     }
-    Package p= merge(override,all);
+    Package p= merge(override,all,other);
     var fresh= new FreshPrefix(p);
     List<inferenceGrammar.Declaration> iDecs= new ToInference().of(p,other,fresh);
     List<inferenceGrammarB.Declaration> res= new Methods(p.name(),iDecs,other,fresh).of();
     return res;//TODO: (later) inference here using 'steps
   }
-  Package merge(List<FileFull.Map> override, Map<URI,FileFull> all){
+  Package merge(List<FileFull.Map> override, Map<URI,FileFull> all, OtherPackages other){
     String pkgName= all.values().iterator().next().name();
     assert all.values().stream().allMatch(f->f.name().equals(pkgName));
     URI headPkg= afterPackage(pkgName,all.keySet());
@@ -43,7 +45,7 @@ public class ParsePackage{
     var map= new HashMap<String,String>();
     acc(pkgName,map,head.maps());
     acc(pkgName,map,override);
-    accUse(pkgName,map,head.uses());
+    accUse(pkgName,map,head.uses(),other);
     var names= DeclaredNames.of(pkgName,ds,Collections.unmodifiableMap(map));
     return new Package(pkgName,head.role().get(),map,ds,names);
   }
@@ -51,11 +53,14 @@ public class ParsePackage{
     for (var m: maps){ if (n.equals(m.target())){ map.put(m.out(),m.in()); } }
     //map a as b in c //inside c, replace b with a
   }
-  void accUse(String n, HashMap<String,String> map, List<FileFull.Use> uses){
-    for (var u: uses){
+  void accUse(String n, HashMap<String,String> map, List<FileFull.Use> uses, OtherPackages other){
+    Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
+    for (var u : uses){
       var p= u.in().pkgName();
       p = map.getOrDefault(p,p);//if "" will return "" anyway
       map.put(u.out(),p+"."+u.in().simpleName());
+      var ok= otherDom.stream().anyMatch(e->e.s().equals(u.in().s()));
+      if (!ok){ throw WellFormednessErrors.unkownUseHead(u.in()); }    
     }
     //map a as b in c
     //use b.F as bF // replace bF with a.F

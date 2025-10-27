@@ -1,8 +1,10 @@
 package inferenceGrammar;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import fearlessFullGrammar.TName;
 import fullWellFormedness.OtherPackages;
 import fullWellFormedness.ParsePackage;
 import inferenceGrammarB.Declaration;
@@ -10,9 +12,18 @@ import message.SourceOracle;
 import utils.Bug;
 
 class DbgBlock{
+  static OtherPackages err(){
+    return new OtherPackages(){
+      public Declaration of(TName name){ throw Bug.of(); }
+      public Collection<TName> dom(){ throw Bug.of(); }
+    };
+  }
   static OtherPackages dbg(){
     var ds= all().stream().collect(Collectors.toMap(d->d.name(),d->d));
-    return ds::get;
+    return new OtherPackages(){
+      public Declaration of(TName name){ return ds.get(name); }
+      public Collection<TName> dom(){ return ds.keySet(); }
+    }; 
   }
   static String baseHead="""
     package base;
@@ -253,6 +264,6 @@ _DecidedBlock:{
       .put("baseBody.fear","package base;\n"+baseBody)
       .build();
     return new ParsePackage()
-      .of(List.of(),o.allFiles(),o,_->{throw Bug.todo();},0);
+      .of(List.of(),o.allFiles(),o,err(),0);
   }
 }

@@ -142,6 +142,12 @@ public final class WellFormednessErrors {
      "Undeclared name: name "+Message.displayString(tn.s())+" is not declared in package "+p.name()+".\n"
      ).addSpan(at);
    }
+  public static FearlessException unkownUseHead(TName tn){
+   var at= Parser.span(tn.pos(),tn.s().length());
+   return Code.WellFormedness.of(
+     "\"use\" directive referes to undeclared name: name "+Message.displayString(tn.simpleName())+" is not declared in package "+tn.pkgName()+".\n"
+     ).addSpan(at);
+   }
  public static FearlessException genericTypeVariableShadowTName(String pkgName, Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
    var mergeAllXs= allXs.values().stream().flatMap(Set::stream).toList();
    for(var n : mergeAllXs){

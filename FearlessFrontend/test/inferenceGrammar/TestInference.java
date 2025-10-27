@@ -62,7 +62,6 @@ public class TestInference {
 p.A:{'this}
 ""","""
 role app000;
-use a.B as B;
 """,List.of("""
 A:{}
 """));}
@@ -78,7 +77,7 @@ Name "B" is also used in a "use" directive.
 Error 9  WellFormedness
 ""","""
 role app000;
-use a.B as B;
+use base.Block as B;
 """,List.of("""
 B:{}
 """));}
@@ -110,8 +109,8 @@ Error 9  WellFormedness
 
 @Test void use_alias_happy_path(){ok(
 """
-p.A:{'this .m:c.D; .m()->c.D:?;}
-""","role app000;\nuse c.D as D;\n",List.of(
+p.A:{'this .m:base.Void; .m()->base.Void:?;}
+""","role app000;\nuse base.Void as D;\n",List.of(
 "A:{ .m:D->D }"));}
 
 @Test void use_alias_clash_with_declared(){fail(
@@ -126,7 +125,7 @@ Name clash: name "D" is declared in package p.
 Name "D" is also used in a "use" directive.
 Error 9  WellFormedness
 """,
-"role app000;\nuse c.D as D;\n",List.of(
+"role app000;\nuse base.Void as D;\n",List.of(
 "D:{}"));}
 
 @Test void round_elimination_in_simple_positions(){ok(
@@ -186,7 +185,7 @@ Name clash: name "A" is declared in package p.
 Name "A" is also used in a "use" directive.
 Error 9  WellFormedness
 """,
-"role app000;\nuse extpkg.A as A;\n",List.of(
+"role app000;\nuse base.Void as A;\n",List.of(
 "A:{}", 
 "C:{ .f:A->A }"));} // ambiguous A: local and alias
 
@@ -283,7 +282,7 @@ p.A_F:{'this}
 p.C_F:p.F[p.User]{'_ #:p.User; ()->p.User:?;}
 p.F[R:imm]:{'this #:R;}
 p.User:{'this .use:p.User; .use()->p.A:?.a(p.C_F:?):?;}
-""","role app000;\nuse c.D as B_F;\n",List.of("""
+""","role app000;\nuse base.Void as B_F;\n",List.of("""
 F[R]:{#:R}
 A_F:{}
 A:{ .a[R](f:F[R]):R->f#; }
@@ -296,7 +295,7 @@ p.B_F:{'this}
 p.C_F:p.F[p.User]{'_ #:p.User; ()->p.User:?;}
 p.F[R:imm]:{'this #:R;}
 p.User:{'this .use:p.User; .use()->p.A:?.a(p.C_F:?):?;}
-""","role app000;\nuse c.D as A_F;\n",List.of("""
+""","role app000;\nuse base.Void as A_F;\n",List.of("""
 F[R]:{#:R}
 B_F:{}
 A:{ .a[R](f:F[R]):R->f#; }
@@ -758,6 +757,36 @@ A2:A1{ .foo->this; }
 A3:A1{ .foo->this; }
 B:A2,A3{ }
 """));}
+
+@Test void badUppercaseRole(){fail("""
+In file: [###]/p.fear
+
+001| package p;
+002| role App000;
+   | -----^^^^^^
+
+While inspecting header element > file header > full file
+Missing "role" keyword.
+Found instead: "App000".
+Expected: " one of: base, core, driver, worker, framework, accumulator, tool, app followed by rank (eg. core023, app000, framework999)".
+Error 2  UnexpectedToken
+""","role App000;",List.of("""
+B:{ }
+"""));}
+
+@Test void undefinedUse(){fail("""
+In file: [###]/p.fear
+
+002| role app000; use base.AAAA as BBB;
+   |                  ^^^^^^^^^
+
+While inspecting the file
+"use" directive referes to undeclared name: name "AAAA" is not declared in package base.
+Error 9  WellFormedness
+""","role app000; use base.AAAA as BBB;",List.of("""
+B:{ }
+"""));}
+
 }
 //TODO: most While inspecting the file
 //need to be refined, need method to 'add frame' (search for existing)

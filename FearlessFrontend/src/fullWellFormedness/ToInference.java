@@ -25,7 +25,6 @@ public class ToInference {
       throw WellFormednessErrors.usedUndeclaredName(tn,p);
       //here, we know it is not defined (either at all or with the right arity)
     };
-    //TODO: if an use does not correspond to a defName in the other package, we should get an error here
     ArrayList<Declaration> decs= new ArrayList<>();
     var v= new InjectionToInferenceVisitor(new ArrayList<>(),new ArrayList<>(),f,decs,p,new ArrayList<>(),other,fresh);
     p.decs().forEach(di->v.addDeclaration(di,true));

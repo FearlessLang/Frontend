@@ -104,10 +104,7 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
   private fearlessFullGrammar.E makeXPatsBody(fearlessFullGrammar.E body, List<XE> xes){
     var p= body.pos();
     //Block#.let x1={e1}.. .let xn={en}.return{body}
-    var block0= new fearlessFullGrammar.T.RCC(
-      of(RC.imm),
-      new fearlessFullGrammar.T.C(new TName("base.Block",0,p),of(List.of())));
-    fearlessFullGrammar.E blockE= new fearlessFullGrammar.E.TypedLiteral(block0, empty(),p);
+    fearlessFullGrammar.E blockE=typedLiteral("base.Block",p); 
     blockE = new fearlessFullGrammar.E.Call(blockE, new MName("#",0),empty(),false,empty(),List.of(),p);
     for(var xe:xes){
       var xp= new fearlessFullGrammar.XPat.Name(new fearlessFullGrammar.E.X(xe.x,p));
@@ -238,7 +235,6 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     List<E> es= mapE(c.es());
     return new E.ICall(e, c.name(), es, u, c.pos());
   }
-  //TODO: search and replace other cases where we can use typedLiteral
   private fearlessFullGrammar.E.TypedLiteral typedLiteral(String str,Pos p){
     var tn= new TName(str, 0,p);
     var c= new fearlessFullGrammar.T.C(tn,of(List.of()));

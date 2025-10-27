@@ -84,7 +84,9 @@ public enum TokenKind implements metaParser.TokenKind {
     "id starting with a-z followed by any amount of a-z0-9 or the _ symbol"),   
   _package("package"),
   _role("role"),
-  _roleName("(?:base|core|driver|worker|framework|accumulator|tool|app)[0-9][0-9][0-9]"," role name followed by rank (eg. core023, app000, framework999)"),
+  _roleName("(?:base|core|driver|worker|framework|accumulator|tool|app)[0-9][0-9][0-9]",
+    " one of: base, core, driver, worker, framework, accumulator, tool, app "
+    +"followed by rank (eg. core023, app000, framework999)"),
   _use("use"),
   _map("map"),
   _as("as"),
