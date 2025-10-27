@@ -52,18 +52,18 @@ public enum TokenKind implements metaParser.TokenKind {
   SignedInt("[+-][0-9](?:[0-9_]*[0-9])?","signed number (eg. -23)"),
   // Unsigned int: 0, 42, 1_000_000
   UnsignedInt("[0-9](?:[0-9_]*[0-9])?","unsigned number (eg. 23)"),
-  BadUStrUnclosed("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*(?=\\x0A|\\z)"),
-  BadSStrUnclosed("`(?:\\x5C[nt`\\x5C]|[^`\\x5C\\x0A])*(?=\\x0A|\\z)"),
-  // Normal strings with escapes; newlines not allowed inside
-  //UStr("\"(?:\\\\.|[^\"\\\\\\r\\n])*\""),//broken
-  //SStr("`(?:\\\\.|[^`\\\\\\r\\n])*`"),
-  UStr("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*\\x22","\"...\""),
-    // "(?:\[ntu"\]|[^"\\n])*"//we will need to handle \ u in post?
-    //\ u will need to be only in a {} to write {\ uxxx\ uxxx}etc
-    //if we want no unicode in the source, how to handle |"  with no escapes?
-    //solution: we allow{\ u...}, again, handled in post. (note, I can not write \ and u without space in valid java :-/
-  SStr("`(?:\\x5C[nt`\\x5C]|[^`\\x5C\\x0A])*`","`...`"),
+  //UStr("\"(?:\\\\.|[^\"\\\\\\r\\n])*\""),//well known broken version
+  //SStr("`(?:\\\\.|[^`\\\\\\r\\n])*`"),//well known broken version
 
+  //Old with escapes BadUStrUnclosed("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*(?=\\x0A|\\z)"),
+  //Old with escapes BadSStrUnclosed("`(?:\\x5C[nt`\\x5C]|[^`\\x5C\\x0A])*(?=\\x0A|\\z)"),
+  //Old Normal strings with escapes; newlines not allowed inside
+  //Old with escapes UStr("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*\\x22","\"...\""),
+  //Old with escapes SStr("`(?:\\x5C[nt`\\x5C]|[^`\\x5C\\x0A])*`","`...`"),
+  BadUStrUnclosed("\\x22[^\\x22\\x0A]*(?=\\x0A|\\z)"),
+  BadSStrUnclosed("`[^`\\x0A]*(?=\\x0A|\\z)"),
+  UStr("\\x22[^\\x22\\x0A]*\\x22","\"...\""),
+  SStr("`[^`\\x0A]*`","`...`"),
   DotName("\\._*[a-z][A-Za-z0-9_]*'*",".name"),
   UppercaseId(
     "(?:(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*",

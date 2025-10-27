@@ -761,16 +761,5 @@ B:A2,A3{ }
 }
 //TODO: most While inspecting the file
 //need to be refined, need method to 'add frame' (search for existing)
-//swap ` and ' again, but remove all the \ stuff in SStr
-//UString \ only meaningful inside {}s
-//UStr {} can contain spaces, new lines and //comments?
-//Or, encourage |"{..}
-//that can have new lines+comments between lines
-//Is this an argument for the same syntax in UStr and SStr?
-// #|"{U+`1FB0A 23D01`} 
-//caching can then remove the extra run time computation
-//TODO: remove the 'classing encoder', make sure to unify the grammars of " and ', both single and multi line.
-//Tons of tests will die
-//the concept of uStr in TName will die 
-
-//add '...' and #|' as bad tokens
+// #|"{U+`1FB0A 23D01`}
+//TODO: add '...' and #|' as bad tokens

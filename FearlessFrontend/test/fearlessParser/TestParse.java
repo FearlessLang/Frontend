@@ -3236,17 +3236,12 @@ c=C[name="aa\\na"/0
 A:{ .m:Str -> "aa\\na"}
 """); }
 
-@Test void uStr_err_unknown_escape_x(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ .m:Str -> "oops: \\x" } // unknown escape \\x
-   |               ^
-
-While inspecting the file
-Unrecognized text.
-Error 2  UnexpectedToken
+@Test void uStr_err_unknown_escape_xButNoEscapesExists(){ ok("""
+[###]
+[TypedLiteralRCC[rc=Optional.empty,
+c=C[name="oops:\\x"/0,ts=Optional.empty]]]]]]]]
 ""","""
-A:{ .m:Str -> "oops: \\x" } // unknown escape \\x
+A:{ .m:Str -> "oops: \\x" } // unknown escape \\x but no escapes in Fearless
 """); }
 
 @Test void uStr_err_empty_block(){ ok("""
