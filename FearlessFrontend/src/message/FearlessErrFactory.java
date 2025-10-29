@@ -295,7 +295,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     var expected= sof?"":expected("",other+": ", other+" one of: ",expectedClosers,tk->tk.human);
     var span = eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
     var code= sof ? Code.Unopened : (eof || isBarrier) ? Code.Unclosed : Code.UnexpectedToken;
-    return code.of(base + hint+ expected).addSpan(span);
+    return code.of(base + hint+ expected).addFrame("groups of parenthesis",span);
   }
   @Override public FearlessException eatenCloserBetween(
       Token open, Token stop, Collection<TokenKind> expectedClosers,
@@ -313,7 +313,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
 
     var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
     var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
-    return Code.Unclosed.of(msg).addSpan(primary).addSpan(secondary);
+    return Code.Unclosed.of(msg).addFrame("groups of parenthesis",primary).addSpan(secondary);
   }
   @Override public FearlessException eatenOpenerBetween(
       Token open, Token stop, Collection<TokenKind> expectedClosers,
@@ -328,7 +328,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     + "Did you mean to place the opener outside the" + where + "?";
     var primary= metaParser.Token.makeSpan(file, hiddenFragment, stop);
     var secondary= metaParser.Token.makeSpan(file, hiddenContainer, stop);
-    return Code.Unopened.of(msg).addSpan(primary).addSpan(secondary);
+    return Code.Unopened.of(msg).addSpan(primary).addFrame("groups of parenthesis",secondary);
   }
 
   @Override public FearlessException missingButFound(

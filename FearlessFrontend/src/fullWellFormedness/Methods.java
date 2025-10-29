@@ -108,11 +108,11 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
       ss.removeIf(s->s.m().arity()==arity && s.abs()?match.add(s):false);
       var count= namesCount(match);
       if (count == 1){ res.add(pairWithSig(match,m,origin)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(true,m,match); }
+      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(origin,true,m,match); }
       ss.removeIf(s->s.m().arity()==arity?match.add(s):false);
       count= namesCount(match);
       if (count == 1){ res.add(pairWithSig(match,m,origin)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(false,m,match); }
+      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(origin,false,m,match); }
       throw WellFormednessErrors.noSourceToInferFrom(m);
     }
     Map<MName,List<M.Sig>> map= ss.stream().collect(Collectors.groupingBy(s->s.m()));
@@ -161,7 +161,7 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
     MName name= s.m().get();
     List<B> bs= s.bs().orElse(List.of());
     List<T> ts= s.ts().stream().map(t->t.orElseThrow(Bug::todo)).toList();
-    T res= s.ret().orElseThrow(()->WellFormednessErrors.noRetNoInference(m));
+    T res= s.ret().orElseThrow(()->WellFormednessErrors.noRetNoInference(origin,m));
     boolean abs= m.impl().isEmpty();
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.pos());
     return new M(sig,m.impl());

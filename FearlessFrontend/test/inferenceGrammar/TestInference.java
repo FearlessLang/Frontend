@@ -71,7 +71,7 @@ In file: [###]/in_memory0.fear
 002| B:{}
    | ^^
 
-While inspecting the file
+While inspecting a type name
 Name clash: name "B" is declared in package p.
 Name "B" is also used in a "use" directive.
 Error 9  WellFormedness
@@ -101,7 +101,7 @@ In file: [###]/in_memory0.fear
 002| A:{ .f:Z->A }
    |        ^^
 
-While inspecting the file
+While inspecting a type name
 Undeclared name: name "Z" is not declared in package p.
 Error 9  WellFormedness
 """,List.of(
@@ -120,7 +120,7 @@ In file: [###]/in_memory0.fear
 002| D:{}
    | ^^
 
-While inspecting the file
+While inspecting a type name
 Name clash: name "D" is declared in package p.
 Name "D" is also used in a "use" directive.
 Error 9  WellFormedness
@@ -152,7 +152,7 @@ In file: [###]/in_memory0.fear
 002| A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }
    |                                            ^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "A"
 Can not infer return type of method ".use(p.A):?".
 No supertype has a method named ".use" with 1 parameters.
 Error 9  WellFormedness
@@ -180,7 +180,7 @@ In file: [###]/in_memory0.fear
 002| A:{}
    | ^^
 
-While inspecting the file
+While inspecting a type name
 Name clash: name "A" is declared in package p.
 Name "A" is also used in a "use" directive.
 Error 9  WellFormedness
@@ -195,7 +195,7 @@ In file: [###]/in_memory0.fear
 002| A:{ .m:D->D }
    |        ^^
 
-While inspecting the file
+While inspecting a type name
 Undeclared name: name "D" is not declared in package p.
 Error 9  WellFormedness
 ""","role app000;\n",List.of(
@@ -207,7 +207,7 @@ In file: [###]/in_memory0.fear
 002| B:{} A:{}
    |      ^^
 
-While inspecting the file
+While inspecting a type name
 Duplicate type declaration for "A".
 Error 9  WellFormedness
 ""","role app000;\n",List.of(
@@ -218,7 +218,7 @@ In file: [###]/in_memory0.fear
 002| B:{.foo:A-> A:{} }
    |             ^^
 
-While inspecting the file
+While inspecting a type name
 Duplicate type declaration for "A".
 Error 9  WellFormedness
 ""","role app000;\n",List.of(
@@ -316,7 +316,7 @@ In file: [###]/in_memory0.fear
 003| B:A{}
    |   ^^^
 
-While inspecting the file
+While inspecting type declarations
 Circular implementation relation found involving "p.A".
 Error 9  WellFormedness
 ""","role app000;\n",List.of("""
@@ -329,7 +329,7 @@ In file: [###]/in_memory1.fear
 002| B:A{}
    |   ^^^
 
-While inspecting the file
+While inspecting type declarations
 Circular implementation relation found involving "p.A".
 Error 9  WellFormedness
 ""","role app000;\n",List.of("""
@@ -501,7 +501,7 @@ In file: [###]/in_memory0.fear
 004| B:A1,A2{ .foo -> A1 }
    |          ^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Reference capability disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "mut", "imm".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
@@ -517,7 +517,7 @@ In file: [###]/in_memory0.fear
 004| B:A1,A2{ }
    | ^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Reference capability disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "mut", "imm".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
@@ -533,7 +533,7 @@ In file: [###]/in_memory0.fear
 004| B:A1,A2{ }
    | ^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Reference capability disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "mut", "imm".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
@@ -570,7 +570,7 @@ In file: [###]/in_memory0.fear
 004| B:A1,A2{ }
    | ^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Return type disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
@@ -585,7 +585,7 @@ In file: [###]/in_memory0.fear
 004| B:A1,A2{ .foo->this.foo}
    |          ^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Return type disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
@@ -600,7 +600,7 @@ In file: [###]/in_memory0.fear
 004| B:A1,A2{ }
    | ^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Type disagreement about argument 1 for method ".foo" with 2 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
@@ -615,7 +615,7 @@ In file: [###]/in_memory0.fear
 004| B:A1,A2{ .foo(a,b)->this.foo}
    |          ^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Type disagreement about argument 1 for method ".foo" with 2 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
@@ -630,7 +630,7 @@ In file: [###]/in_memory0.fear
 004| B:A1,A2{}
    | ^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Number of generic type parameters disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
@@ -645,7 +645,7 @@ In file: [###]/in_memory0.fear
 004| B:A1,A2{ .foo()->this.foo }
    |          ^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Number of generic type parameters disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
@@ -681,7 +681,7 @@ In file: [###]/in_memory0.fear
 004| B:A1,A2{ this.foo }
    |          ^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Can not infer the name for method with 0 parameters.
 Many abstract methods with 0 parameters could be selected:
 Candidates: ".foo", ".bar".
@@ -697,7 +697,7 @@ In file: [###]/in_memory0.fear
 004| B:A1,A2{ y->this.foo }
    |          ^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Can not infer the name for method with 1 parameters.
 Many methods with 1 parameters could be selected:
 Candidates: ".baz", ".beer".
@@ -726,7 +726,7 @@ In file: [###]/in_memory0.fear
 005| B:A2,A3{ }
    | ^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Ambiguos implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
 Candidates: "p.A2", "p.A1".
@@ -745,7 +745,7 @@ In file: [###]/in_memory0.fear
 005| B:A2,A3{ }
    | ^^^^^^^^^^
 
-While inspecting the file
+While inspecting type declaration "B"
 Ambiguos implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
 Candidates: "p.A2", "p.A3".
@@ -780,7 +780,7 @@ In file: [###]/p.fear
 002| role app000; use base.AAAA as BBB;
    |                  ^^^^^^^^^
 
-While inspecting the file
+While inspecting package header
 "use" directive referes to undeclared name: name "AAAA" is not declared in package base.
 Error 9  WellFormedness
 ""","role app000; use base.AAAA as BBB;",List.of("""
@@ -788,7 +788,4 @@ B:{ }
 """));}
 
 }
-//TODO: most While inspecting the file
-//need to be refined, need method to 'add frame' (search for existing)
-// #|"{U+`1FB0A 23D01`}
-//TODO: add '...' and #|' as bad tokens
+//TODO: in the guide somewhere show #|" foo{#U+`AB02`} for arbitrary Unicode

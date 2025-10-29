@@ -27,12 +27,12 @@ public interface TokenProcessor<
       map.put(kind, p);
       return this;
     }
-    public Map<T,TK,E,Tokenizer,Parser,Err> putStr(TK kind, Function<String,E> f, String str){
+    public Map<T,TK,E,Tokenizer,Parser,Err> putStr(TK kind, Function<String,E> f, String str, String frame){
       return put(kind, (_,t,tz) -> {
         String head= t.content().isBlank()
           ? "Unrecognized text."
           : "Unrecognized text " + Message.displayString(t.content()) + ".";
-        throw f.apply(head+"\n"+str).addSpan(t.span(tz.fileName())); 
+        throw f.apply(head+"\n"+str).addFrame(frame,t.span(tz.fileName())); 
         });
     }
 

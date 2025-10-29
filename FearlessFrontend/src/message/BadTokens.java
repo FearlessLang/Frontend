@@ -22,38 +22,46 @@ public class BadTokens {
       .put(BadUStrUnclosed, (idx, t, tz) ->frontOrBack(idx,t,tz,'\"'))
       .put(BadSStrUnclosed, (idx, t, tz) ->frontOrBack(idx,t,tz,'`'))
       .put(BadUnclosedBlockComment, (_, t, tz) -> badBlockComment(tz,t))
-      .put(TokenKind.BadUnopenedBlockCommentClose, this::strayBlockCommentCloser)
+      .put(BadUnopenedBlockCommentClose, this::strayBlockCommentCloser)
       .putStr(BadOpLine,Code.UnexpectedToken::of,"""
 A "|" immediately before a quote starts a line string (e.g. |"abc or |`abc).
 Operators can also contain "|", making it ambiguous what, for example, <--|`foo` means.
 It could be the "<--" operator followed by |`foo` but also the "<--|" operator followed by `foo`. 
 Please add spaces to disambiguate:  <--| `foo`   or   <-- |`foo`.
-""")    
+""","common ambiguities")    
       .putStr(BadOpDigit,Code.UnexpectedToken::of,"""
 An operator followed by a digit is parsed as a signed number (e.g. "+5", "-3").
 Operators can also contain "+" and "-", making it ambiguous what, for example, "<--5" means.
 It could be the "<--" operator followed by "5" but also the "<-" operator followed by "-5".
 Please add spaces to disambiguate:  "<-- 5"   or   "<- -5".
-""")
+""","common ambiguities")
       .putStr(BadOSquare,Code.UnexpectedToken::of,"""
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
-""")
+""","common ambiguities")
       .putStr(BadFloat,Code.UnexpectedToken::of,"""
 Float literals must have a sign and digits on both sides of ".".
 Examples: "+1.0", "-0.5", "+12.0e-3".
 Fearless does not allow float literals of form "1.2" or ".2".
-""")
+""","numbers")
       .putStr(BadRational,Code.UnexpectedToken::of,"""
 Rational literals must have a sign.
 Examples: "+1/2", "-3/4".
 Fearless does not allow rational literals of form "1/2".
-""")
+""","numbers")
       .putStr(BadUppercaseId,Code.UnexpectedToken::of,"""
 package names are restricted to be valid filenames on all operative systems.
 Names like aux, nul, lpt2 are invalid on windows.
-""")
+""","package names")
+      .putStr(BadSStrLineQuote,Code.UnexpectedToken::of,"""
+Simple string lines start with " |` " or " #|` ", not " |' " or " #|' ";
+that is: use back tick (`) instead of single quote (').
+""","common ambiguities")
+      .putStr(BadSStrQuote,Code.UnexpectedToken::of,"""
+Simple string literals are of form " `...` ", not " '...' ";
+that is: use back ticks (`) instead of single quotes (').
+""","common ambiguities")
 ;}
   private Stream<Token> strayBlockCommentCloser(int idx, Token t, Tokenizer tokenizer){
     var file= tokenizer.fileName();
@@ -62,7 +70,7 @@ Names like aux, nul, lpt2 are invalid on windows.
     if (hit.isEmpty()){
       throw Code.UnexpectedToken
         .of("Unopened block comment close \"*/\". Remove it or add a matching \"/*\" before.")
-        .addSpan(base);
+        .addFrame("comments",base);
       }
     var h= hit.get();
     Span s= h.span(file);
@@ -75,7 +83,7 @@ Names like aux, nul, lpt2 are invalid on windows.
      "Unopened block comment close \"*/\".\n"
    + "Found a \"/*\" " + where + " before this point.\n"
    + "Did you mean to place the opener outside the string/comment?")
-     .addSpan(primary);
+     .addFrame("comments",primary);
   }
   public static String describeFree(Token t){
     return switch (t.kind()){
@@ -101,17 +109,17 @@ Names like aux, nul, lpt2 are invalid on windows.
     return "String literal " + Message.displayChar(quoteChar)
     + " reaches the end of the line.\n";
   }
-  private FearlessException errNoInfo(Span at, int quoteChar){ return Code.UnexpectedToken.of(errStart(quoteChar)).addSpan(at); }
+  private FearlessException errNoInfo(Span at, int quoteChar){ return Code.UnexpectedToken.of(errStart(quoteChar)).addFrame("a string literal",at); }
   private FearlessException errEatAfter(Span at, int quoteChar){
     return Code.UnexpectedToken.of(errStart(quoteChar)
     + "A comment opening sign is present later on this line; did you mean to close the string before it?"
-      ).addSpan(at); 
+      ).addFrame("a string literal", at);
     }
   private FearlessException errEatBefore(Span at, int quoteChar){
     return Code.UnexpectedToken.of(errStart(quoteChar)
     + "A preceding block comment \"/* ... */\" on this line contains that quote.\n"
     + "Did it swallow the intended opening quote?"
-      ).addSpan(at); 
+      ).addFrame("a string literal",at); 
     }
   private Stream<Token> badBlockComment(Tokenizer tz, Token t){
     var file = tz.fileName();
@@ -120,7 +128,7 @@ Names like aux, nul, lpt2 are invalid on windows.
     if (lineEnd != -1){ s = new Span(file,s.startLine(),s.startCol(),s.startLine(),s.startCol()+lineEnd); }
     throw Code.UnexpectedToken
       .of("Unterminated block comment. Add \"*/\" to close it.")
-      .addSpan(s);
+      .addFrame("a block comment", s);
     }
   private Stream<Token> frontOrBack(int idx, Token t, Tokenizer tz, int quoteChar){
     var file= tz.fileName();

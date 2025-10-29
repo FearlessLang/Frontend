@@ -171,7 +171,7 @@ In file: [###]/in_memory0.fear
 001| A:{ `x .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
    |   ^^^^^^^^^^^^^^^^^^^^^------------------------------------------
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
@@ -183,15 +183,15 @@ A:{ `x .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
 @Test void use_self(){fail("""
 In file: [###]/in_memory0.fear
 
-001| A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be 'this or nothing
-   | ~~~~~^^^~~~~~~~~~~~~~~~~~---------------------------------------------------------
+001| A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be this or nothing
+   | ~~~~~^^^~~~~~~~~~~~~~~~~~--------------------------------------------------------
 
 While inspecting type declaration body > type declaration > full file
 Self name abc invalid in a top level type.
 Top level types self names can only be " 'this ".
 Error 9  WellFormedness
 ""","""
-A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be 'this or nothing
+A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be this or nothing
 """);}
 
 @Test void use_self_inner(){ok("""
@@ -588,7 +588,7 @@ In file: [###]in_memory0.fear
 001| A:{
    |   ^
 
-While inspecting the file
+While inspecting groups of parenthesis
 File ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
@@ -603,7 +603,7 @@ In file: [###]in_memory0.fear
 001| A:{ fdfdds
    |   ^
 
-While inspecting the file
+While inspecting groups of parenthesis
 File ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
@@ -778,7 +778,7 @@ In file: [###]in_memory0.fear
 001| A: a b c } f e
    | ^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unopened "}".
 This "}" may be unintended.
 Error 1  Unopened
@@ -805,7 +805,7 @@ In file: [###]in_memory0.fear
 001| A:{ x -> x.foo [read] }
    |                ^
 
-While inspecting the file
+While inspecting common ambiguities
 Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
@@ -820,7 +820,7 @@ In file: [###]in_memory0.fear
 001| A:{ .m -> +|`a'
    |           ^^
 
-While inspecting the file
+While inspecting common ambiguities
 Unrecognized text "+|".
 A "|" immediately before a quote starts [###].
 Error 2  UnexpectedToken
@@ -1275,7 +1275,7 @@ In file: [###]/in_memory0.fear
 003| ##|` pre {{ +5{}}} post
    | ------------~~^--------
 
-While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+While inspecting groups of parenthesis > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Interpolation expression ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
@@ -1444,7 +1444,7 @@ In file: [###]/in_memory0.fear
 003| ##|` start {{ foo.bar{ baz .toList }} end
    | --------------~~~~~~~^~~~~~~~~~~~~-------
 
-While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+While inspecting groups of parenthesis > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Interpolation expression ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
@@ -1495,7 +1495,7 @@ In file: [###]/in_memory0.fear
 003| #|`pre{B.foo(C)}mid{x.bar(1,2}post
    | --------------------~~~~~^~~~-----
 
-While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+While inspecting groups of parenthesis > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Interpolation expression ended while parsing a "(" group.
 This "(" may be unintended.
 Otherwise expected: ")".
@@ -1611,7 +1611,7 @@ In file: [###]/in_memory0.fear
 003|  ^-^|"a"
    |  ^^^^
 
-While inspecting the file
+While inspecting common ambiguities
 Unrecognized text "^-^|".
 A "|" immediately before a quote starts a [###].
 Error 2  UnexpectedToken
@@ -1739,7 +1739,7 @@ In file: [###]/in_memory0.fear
 004| } `post
    |   ^^^^^
 
-While inspecting the file
+While inspecting a string literal
 String literal [BACKTICK (`) 0x60] reaches the end of the line.
 Error 2  UnexpectedToken
 ""","""
@@ -1787,7 +1787,7 @@ In file: [###]/in_memory0.fear
 003| #|`P { a /* }  {  */ + 3 } Q
    | -------~~^^-----------------
 
-While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+While inspecting a block comment > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Unterminated block comment. Add "*/" to close it.
 Error 2  UnexpectedToken
 ""","""
@@ -1844,7 +1844,7 @@ In file: [###]/in_memory0.fear
 003| #|`S { x.foo [read] } T
    | -------~~~~~~^~~~~~----
 
-While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
+While inspecting common ambiguities > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
@@ -1921,7 +1921,7 @@ In file: [###]/in_memory0.fear
 003|     "foo // comment
    |     ^^^^^^
 
-While inspecting the file
+While inspecting a string literal
 String literal [DQUOTE (") 0x22] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
 Error 2  UnexpectedToken
@@ -1938,7 +1938,7 @@ In file: [###]/in_memory0.fear
 003|     `bar // comment
    |     ^^^^^^
 
-While inspecting the file
+While inspecting a string literal
 String literal [BACKTICK (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
 Error 2  UnexpectedToken
@@ -1956,7 +1956,7 @@ In file: [###]/in_memory0.fear
 003|     `bar /* comment */
    |     ^^^^^^
 
-While inspecting the file
+While inspecting a string literal
 String literal [BACKTICK (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
 Error 2  UnexpectedToken
@@ -1974,7 +1974,7 @@ In file: [###]/in_memory0.fear
 003|     `bar /* comment
    |     ^^^^^^
 
-While inspecting the file
+While inspecting a string literal
 String literal [BACKTICK (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
 Error 2  UnexpectedToken
@@ -1993,7 +1993,7 @@ In file: [###]/in_memory0.fear
 003|     "no close here
    |     ^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting a string literal
 String literal [DQUOTE (") 0x22] reaches the end of the line.
 Error 2  UnexpectedToken
 """, """
@@ -2010,7 +2010,7 @@ In file: [###]/in_memory0.fear
 003|     `no close here
    |     ^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting a string literal
 String literal [BACKTICK (`) 0x60] reaches the end of the line.
 Error 2  UnexpectedToken
 """, """
@@ -2027,7 +2027,7 @@ In file: [###]/in_memory0.fear
 003|     /* something with a " on this last line */ "text that doesn't close
    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting a string literal
 String literal [DQUOTE (") 0x22] reaches the end of the line.
 A preceding block comment "/* ... */" on this line contains that quote.
 Did it swallow the intended opening quote?
@@ -2047,7 +2047,7 @@ In file: [###]/in_memory0.fear
 004|     some other text
 005|     */
 
-While inspecting the file
+While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
 Did you mean to place the opener outside the string/comment?
@@ -2068,7 +2068,7 @@ In file: [###]/in_memory0.fear
 003|     "this looks like /* an opener but is inside a string" some other text */
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
 Did you mean to place the opener outside the string/comment?
@@ -2088,7 +2088,7 @@ In file: [###]/in_memory0.fear
    | ... 4 lines ...
 008|     */
 
-While inspecting the file
+While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
 Did you mean to place the opener outside the string/comment?
@@ -2113,7 +2113,7 @@ In file: [###]/in_memory0.fear
 003|     // not really opening: /*
 004|     */
 
-While inspecting the file
+While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a line comment "//" before this point.
 Did you mean to place the opener outside the string/comment?
@@ -2133,7 +2133,7 @@ In file: [###]/in_memory0.fear
 004|     */
    |     ^^
 
-While inspecting the file
+While inspecting comments
 Unopened block comment close "*/". Remove it or add a matching "/*" before.
 Error 2  UnexpectedToken
 """, """
@@ -2151,7 +2151,7 @@ In file: [###]/in_memory0.fear
 003|     /* never closed
    |     ^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting a block comment
 Unterminated block comment. Add "*/" to close it.
 Error 2  UnexpectedToken
 """, """
@@ -2168,7 +2168,7 @@ In file: [###]/in_memory0.fear
 003|     <--5
    |     ^^^
 
-While inspecting the file
+While inspecting common ambiguities
 Unrecognized text "<--".
 An operator followed by a digit is parsed as a signed number (e.g. "+5", "-3").
 Operators can also contain "+" and "-", making it ambiguous what, for example, "<--5" means.
@@ -2190,7 +2190,7 @@ In file: [###]/in_memory0.fear
 003|     1.2
    |     ^^^
 
-While inspecting the file
+While inspecting numbers
 Unrecognized text "1.2".
 Float literals must have a sign and digits on both sides of ".".
 Examples: "+1.0", "-0.5", "+12.0e-3".
@@ -2210,7 +2210,7 @@ In file: [###]/in_memory0.fear
 003|     1/2
    |     ^^^
 
-While inspecting the file
+While inspecting numbers
 Unrecognized text "1/2".
 Rational literals must have a sign.
 Examples: "+1/2", "-3/4".
@@ -2230,7 +2230,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> "price is } dollars" ) }
    |   ^^^^^^^^^^^^^^^^^^^^^^^---------
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
@@ -2246,7 +2246,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> `oops } here` ) }
    |   ^^^^^^^^^^^^^^^^^^^------
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
@@ -2262,7 +2262,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> |"hello } world" ) }
    |   ^^^^^^^^^^^^^^^^^^^^^-----------
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
@@ -2278,7 +2278,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> /* } inside */ ) }
    |   ^^^^^^^^^^^^^^^^----------
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
 Did you mean to place the closer outside the block comment "/* ... */"?
@@ -2294,7 +2294,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> // } swallowed
    |   ^^^^^^^^^^^^^^^^----------
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a line comment "//" between here and the stopping point.
 Did you mean to place the closer outside the line comment "//"?
@@ -2311,7 +2311,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> ( ")]" + " has ) here ) inside" }
    |               ^^^^--
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "(" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
@@ -2327,7 +2327,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> W[ "list ] marker" ) ] }
    |                ^^^^^^^^^--------
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "[" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
@@ -2343,7 +2343,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> { "inner } hidden"
    |               ^^^^^^^^^^--------
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
@@ -2359,7 +2359,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> { /* } hidden */
    |               ^^^^^^----------
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
 Did you mean to place the closer outside the block comment "/* ... */"?
@@ -2375,7 +2375,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> Foo[ /* ] hidden */ } ]
    |                  ^^^^^^----------
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "[" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
 Did you mean to place the closer outside the block comment "/* ... */"?
@@ -2391,7 +2391,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> "call (" ) }
    |               ------^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a string literal before this point.
 Did you mean to place the opener outside the string literal?
@@ -2406,7 +2406,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> // ( swallowed
 002| ) }
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a line comment "//" before this point.
 Did you mean to place the opener outside the line comment "//"?
@@ -2422,7 +2422,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> /* [ hidden */ ] }
    |               ---^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unopened "]".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
 Did you mean to place the opener outside the block comment "/* ... */"?
@@ -2437,7 +2437,7 @@ In file: [###]/in_memory0.fear
 001| .m:Str -> "start { here" }
    |           -------^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unopened "}".
 Found a matching opener hidden inside a string literal before this point.
 Did you mean to place the opener outside the string literal?
@@ -2452,7 +2452,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
    |                     ---^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
 Did you mean to place the opener outside the block comment "/* ... */"?
@@ -2467,7 +2467,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> |"vec [ x" ] }
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
@@ -2483,7 +2483,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> ((1 + 2)) ) }
    |   ^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
@@ -2499,7 +2499,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> Foo[Bar] ] ) }
    |   ^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
 Expected one of: "}id", "}".
@@ -2514,7 +2514,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m(a,b):Str -> (a + b)) }
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
@@ -2530,7 +2530,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> A[mut,imm]] ) }
    |   ^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
 Expected one of: "}id", "}".
@@ -2545,7 +2545,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m(foo,bar):Str -> (foo + bar))
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
@@ -2561,7 +2561,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> A[X,Y,Z]]
    |   ^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
 This "]" may be unintended.
@@ -2577,7 +2577,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
@@ -2593,7 +2593,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
 Expected one of: "}id", "}".
@@ -2608,7 +2608,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> (((x))) ) }
    |   ^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
@@ -2624,7 +2624,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> A[B[X]] ] }
    |   ^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
 This "]" may be unintended.
@@ -2640,7 +2640,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> (1 + 2 ] }
    |               ^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "(" group.
 Found instead: "]".
 Expected: ")".
@@ -2655,7 +2655,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> E[1,2) }
    |                ^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "[" group.
 Found instead: ")".
 Expected: "]".
@@ -2670,7 +2670,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> (1 + 2
    |               ^
 
-While inspecting the file
+While inspecting groups of parenthesis
 File ended while parsing a "(" group.
 This "(" may be unintended.
 Otherwise expected: ")".
@@ -2685,7 +2685,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> E[1, 2, 3
    |                ^
 
-While inspecting the file
+While inspecting groups of parenthesis
 File ended while parsing a "[" group.
 This "[" may be unintended.
 Otherwise expected: "]".
@@ -2699,7 +2699,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> { x: 1 ) }
    |               ^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
@@ -2715,7 +2715,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> { x: 1 ) }
    |               ^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
@@ -2732,7 +2732,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> ( 1 + 2; ) }
    |               ^^^^^^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "(" group before ";".
 This ";" may be unintended.
 Otherwise expected: ")".
@@ -2748,7 +2748,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> ( Foo[ { a } ) ] }
    |                    ^^^
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "[" group before "{".
 Expected: "]".
 Error 0  Unclosed
@@ -2762,7 +2762,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> { a: 1, b: 2
    |               ^
 
-While inspecting the file
+While inspecting groups of parenthesis
 File ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
@@ -2777,7 +2777,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .m:Str -> { "json } aaa"
    |               ^^^^^^^^^-----
 
-While inspecting the file
+While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
@@ -3302,7 +3302,7 @@ In file: [###]/in_memory0.fear
 001| A:{ .foo:aux.Bar }
    |          ^^^^^^^
 
-While inspecting the file
+While inspecting package names
 Unrecognized text "aux.Bar".
 package names are restricted to be valid filenames on all operative systems.
 Names like aux, nul, lpt2 are invalid on windows.
@@ -3699,12 +3699,6 @@ Error 9  WellFormedness
 A:{ { mut .foo -> :: .a } }
 """); }
 
-//TODO: is this what we want, with the \n inside it?
-//Overall, what about escape in simple str?
-//what if we had 'abc'.nl.q+'def' for 'abc\n\'def' and the \ has no special meaning in SStr?
-//on the other side, UStr should support {\\u34\n\t\\u45} or something: 
-//basically any slashy should be allowed in the {}s
-//at that point, it opens the question to allow \n out of {} to be two characters.
 @Test void simpleStrLiteral(){ ok("""
 [###].foo[###]
 TypedLiteralRCC[rc=Optional.empty,c=C[name=`aaa\\nbbb`/0,
@@ -3751,6 +3745,46 @@ role app000;
 A{ .foo:A -> 
   #|` foo {A} bar
   #|` beer
+}
+""");}
+
+@Test void badSQuote1(){fail("""
+In file: [###]/in_memory0.fear
+
+003|   .let foo={'bar'}
+   |             ^^^^^
+
+While inspecting common ambiguities
+Unrecognized text "'bar'".
+Simple string literals are of form " `...` ", not " '...' ";
+that is: use back ticks (`) instead of single quotes (').
+Error 2  UnexpectedToken
+""","""
+A{ .foo:A -> 
+  Block#
+  .let foo={'bar'}
+  .return {Void}
+}
+""");}
+@Test void badSQuote2(){fail("""
+In file: [###]/in_memory0.fear
+
+004|    |'bar
+   |    ^^^^^
+
+While inspecting common ambiguities
+Unrecognized text "|'bar".
+Simple string lines start with " |` " or " #|` ", not " |' " or " #|' ";
+that is: use back tick (`) instead of single quote (').
+Error 2  UnexpectedToken
+""","""
+A{ .foo:A -> 
+  Block#
+  .let foo={
+   |'bar
+   |'beer
+  }
+  .return {Void}
 }
 """);}
 }

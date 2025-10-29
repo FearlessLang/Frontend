@@ -14,6 +14,7 @@ import fearlessFullGrammar.T.X;
 import fearlessFullGrammar.TName;
 import fearlessParser.Parser;
 import fearlessParser.RC;
+import files.Pos;
 import fullWellFormedness.Methods.Agreement;
 import inferenceGrammar.B;
 import inferenceGrammar.Declaration;
@@ -125,7 +126,7 @@ public final class WellFormednessErrors {
      return Code.WellFormedness.of(
        "Name clash: name "+Message.displayString(n.s())+" is declared in package "+pkgName+".\n"
        +"Name "+Message.displayString(n.s())+" is also used in a \"use\" directive.\n"
-       ).addSpan(Parser.span(n.pos(),n.s().length()));
+       ).addFrame("a type name",Parser.span(n.pos(),n.s().length()));
    }
    throw Bug.unreachable();
  }
@@ -136,17 +137,17 @@ public final class WellFormednessErrors {
      return Code.WellFormedness.of(
        "Name: "+Message.displayString(tn.s())+" is not declared with arity "+tn.arity()+" in package "+p.name()+".\n"
      + "Did you accidentally add/omit a generic type parameter?\n"
-       ).addSpan(at);     
+       ).addFrame("a type name",at);
    }
    return Code.WellFormedness.of(
      "Undeclared name: name "+Message.displayString(tn.s())+" is not declared in package "+p.name()+".\n"
-     ).addSpan(at);
+     ).addFrame("a type name",at);
    }
   public static FearlessException unkownUseHead(TName tn){
    var at= Parser.span(tn.pos(),tn.s().length());
    return Code.WellFormedness.of(
      "\"use\" directive referes to undeclared name: name "+Message.displayString(tn.simpleName())+" is not declared in package "+tn.pkgName()+".\n"
-     ).addSpan(at);
+     ).addFrame("package header",at);
    }
  public static FearlessException genericTypeVariableShadowTName(String pkgName, Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
    var mergeAllXs= allXs.values().stream().flatMap(Set::stream).toList();
@@ -162,7 +163,7 @@ public final class WellFormednessErrors {
      "Gemeric type parameter "+Message.displayString(n.name())+" declared in package "+pkgName+".\n"
      + "Name "+Message.displayString(n.name())+" is also used "
      + (use?"in a \"use\" directive.\n":"as a type name.\n")
-     ).addSpan(Parser.span(n.pos(),n.name().length()));
+     ).addFrame("a type name",Parser.span(n.pos(),n.name().length()));
   }
 
  public static FearlessException duplicatedBound(List<RC> es, T.X n){
@@ -177,13 +178,13 @@ public final class WellFormednessErrors {
   public static FearlessException duplicatedName(TName name) {
     return Code.WellFormedness.of(
       "Duplicate type declaration for "+Message.displayString(name.s())+".\n"
-      ).addSpan(Parser.span(name.pos(),name.s().length()));
+      ).addFrame("a type name",Parser.span(name.pos(),name.s().length()));
   }
   public static FearlessException circularImplements(Map<TName, Declaration> rem){
     TName name = findCycleNode(rem);
     return Code.WellFormedness.of(
       "Circular implementation relation found involving "+Message.displayString(name.s())+".\n"
-      ).addSpan(Parser.span(name.pos(),name.s().length()));
+      ).addFrame("type declarations",Parser.span(name.pos(),name.s().length()));
   }
   private static TName findCycleNode(Map<TName,Declaration> rem){
     var color= new HashMap<TName,Integer>(rem.size());
@@ -218,45 +219,47 @@ public final class WellFormednessErrors {
     if (res.endsWith(";")){ res= res.substring(0,res.length()-1); }
     return Message.displayString(res);
   }
-
-  public static FearlessException noRetNoInference(M m){
-    return Code.WellFormedness.of(
-      "Can not infer return type of method "+formatSig(m.sig())+".\n"
-    + "No supertype has a method named "+Message.displayString(m.sig().m().get().s())+" with "+m.sig().ts().size()+" parameters.\n"
-      ).addSpan(Parser.span(m.sig().pos(),100));
-  }
-
   public static FearlessException agreement(Agreement at, List<?> res, String msg){
-    return Code.WellFormedness.of(
+    return agreement(at,Code.WellFormedness.of(
       msg+ " for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types: "+res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
     + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
-      ).addSpan(Parser.span(at.pos(),100));
+      ));
   }
   public static FearlessException agreementSize(Agreement at, List<List<B>> res) {
-    return Code.WellFormedness.of(
+    return agreement(at,Code.WellFormedness.of(
       "Number of generic type parameters disagreement for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types: "+res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
     + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
-      ).addSpan(Parser.span(at.pos(),100));
+      ));
    }
-  public static FearlessException ambiguosImpl(boolean abs, M m, List<inferenceGrammarB.M.Sig> options){
-    return Code.WellFormedness.of(
+  public static FearlessException ambiguosImpl(TName origin,boolean abs, M m, List<inferenceGrammarB.M.Sig> options){
+    return agreement(origin,m.sig().pos(),Code.WellFormedness.of(
       "Can not infer the name for method with "+m.sig().ts().size()+" parameters.\n"
     + "Many"+(abs?" abstract":"")+" methods with "+m.sig().ts().size()+" parameters could be selected:\n"
     + "Candidates: "+options.stream()
         .map(mi->Message.displayString(mi.m().s()))
         .collect(Collectors.joining(", "))+".\n"
-      ).addSpan(Parser.span(m.sig().pos(),100));
+      ));
   }
-  public static FearlessException ambiguousImplementationFor(List<Sig> ss, List<TName> options, Agreement at) {
-    return Code.WellFormedness.of(
+  public static FearlessException ambiguousImplementationFor(List<Sig> ss, List<TName> options, Agreement at){
+    return agreement(at,Code.WellFormedness.of(
       "Ambiguos implementation for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types:\n"
     + "Candidates: "+options.stream()
         .map(mi->Message.displayString(mi.s()))
         .collect(Collectors.joining(", "))+".\n"
     + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly implementing the desired behaviour.\n"
-      ).addSpan(Parser.span(at.pos(),100));
+      ));
+  }
+  public static FearlessException noRetNoInference(TName origin, M m){
+    return agreement(origin,m.sig().pos(),Code.WellFormedness.of(
+      "Can not infer return type of method "+formatSig(m.sig())+".\n"
+    + "No supertype has a method named "+Message.displayString(m.sig().m().get().s())+" with "+m.sig().ts().size()+" parameters.\n"
+      ));
+  }
+  private static FearlessException agreement(Agreement at,FearlessException err){ return agreement(at.cName(),at.pos(),err); }
+  private static FearlessException agreement(TName origin, Pos pos,FearlessException err){
+    return err.addFrame("type declaration "+Message.displayString(origin.simpleName()),Parser.span(pos,100));
   }
 }
