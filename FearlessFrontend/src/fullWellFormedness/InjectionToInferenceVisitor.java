@@ -136,19 +136,19 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     for (MName m:pat){ res= new fearlessFullGrammar.E.Call(res,m,empty(),false,empty(),List.of(), pos); }
     return new XE(x,res);
   }
-  @Override public E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(),u,x.pos()); }
+  @Override public E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(),x.pos()); }
   @Override public E visitRound(fearlessFullGrammar.E.Round r){ return r.e().accept(this); }
-  @Override public E visitImplicit(fearlessFullGrammar.E.Implicit n){  return new E.X(implicits.getLast(),u,n.pos());  }
+  @Override public E visitImplicit(fearlessFullGrammar.E.Implicit n){  return new E.X(implicits.getLast(),n.pos());  }
   @Override public E visitTypedLiteral(fearlessFullGrammar.E.TypedLiteral t){
     var summon= t.l().map(l->l.methods().isEmpty()).orElse(true);
     T.RCC c= visitRCC(t.t());
-    if (summon){ return new E.Type(c,u,t.pos()); }
+    if (summon){ return new E.Type(c,t.pos()); }
     E.Literal l= visitLiteral(t.l().orElseGet(()->emptyL(t.pos())));
     List<B> bs= freeBs(c,l);
     List<T> Xs= bs.stream().map(b->(T)b.x()).toList();
     TName fresh= freshF.freshTopType(c.c().name(),Xs.size());
     decs.add(new Declaration(fresh,bs,List.of(c.c()),l));
-    return new E.Type(new T.RCC(c.rc(),new T.C(fresh, Xs)),u,t.pos());
+    return new E.Type(new T.RCC(c.rc(),new T.C(fresh, Xs)),t.pos());
   }
   private List<B> freeBs(T.RCC c, E.Literal l){
     return Stream.concat(new FreeXs().ftvE(l),new FreeXs().ftvT(c))
@@ -161,7 +161,7 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     List<T> Xs= dec.bs().stream().map(b->(T)b.x()).toList();
     RC rc= c.rc().orElse(RC.imm);
     T.C newC= new T.C(dec.name(), Xs);
-    return new E.Type(new T.RCC(rc,newC),u,c.pos());
+    return new E.Type(new T.RCC(rc,newC),c.pos());
   }
   public Declaration addDeclaration(fearlessFullGrammar.Declaration d, boolean top){
     TName name= f.apply(d.name());
@@ -181,7 +181,7 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
   public E.Literal visitLiteral(fearlessFullGrammar.E.Literal l, boolean top){
     String thisName= l.thisName().map(n->n.name()).orElseGet(()->top?"this":"_");
     List<M> ms= mapM(l.methods());
-    return new E.Literal(thisName, ms, u, l.pos());
+    return new E.Literal(thisName, ms, l.pos());
   }
   @Override public E visitCall(fearlessFullGrammar.E.Call c){
     if (c.pat().isPresent()){ c = desugarCPat(c); }
@@ -190,7 +190,7 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     var targs= c.targs().get();
     List<E> es= mapE(c.es());
     List<IT> ts= mapIT(targs.ts());
-    return new E.Call(e, c.name(), targs.rc(), ts, es, u, c.pos());
+    return new E.Call(e, c.name(), targs.rc(), ts, es, c.pos());
   }
   private Call desugarCPat(Call c){
     var pat= c.pat().get();

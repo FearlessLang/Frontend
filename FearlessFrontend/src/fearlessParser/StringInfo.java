@@ -3,9 +3,6 @@ package fearlessParser;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-import metaParser.Message;
-import utils.Bug;
-
 public class StringInfo{
   final int hashCount;
   final List<String> parts= new ArrayList<>();

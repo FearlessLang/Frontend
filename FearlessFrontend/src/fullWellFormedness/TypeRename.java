@@ -76,4 +76,11 @@ public class TypeRename{
     var i= xs.indexOf(x); 
     return i == -1 ? x : ts.get(i);
   }
+  public static IT tToIT(inferenceGrammar.T t){return switch(t){
+    case inferenceGrammar.T.X(var name) -> new IT.X(name);
+    case inferenceGrammar.T.ReadImmX(var x) -> new IT.ReadImmX(new IT.X(x.name()));
+    case inferenceGrammar.T.RCX(var rc,var x) -> new IT.RCX(rc,new IT.X(x.name()));
+    case inferenceGrammar.T.RCC(var rc, var c) -> new IT.RCC(rc,new IT.C(c.name(),
+      c.ts().stream().map(ti->tToIT(ti)).toList()));
+  };}
 }

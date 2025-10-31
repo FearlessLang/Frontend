@@ -13,6 +13,7 @@ import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 
 public sealed interface IT {
+  default boolean isTV(){ return true; }
   record X(String name) implements IT{
     public X{ assert validate(name,"generic type name", _XId); }
     public String toString(){ return name; }
@@ -35,8 +36,10 @@ public sealed interface IT {
   record RCC(RC rc, C c) implements IT{
     public RCC{ nonNull(rc,c); }
     public String toString(){ return rc.name()+" "+c; }
+    public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
   }
   enum U implements IT{ Instance; 
     public String toString(){ return "?";}
+    public boolean isTV(){ return false; }
   }
 }

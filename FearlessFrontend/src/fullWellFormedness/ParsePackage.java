@@ -30,7 +30,7 @@ public class ParsePackage{
     var fresh= new FreshPrefix(p);
     List<inferenceGrammar.Declaration> iDecs= new ToInference().of(p,other,fresh);
     List<inferenceGrammarB.Declaration> res= new Methods(p.name(),iDecs,other,fresh).of();
-    return res;//TODO: (later) inference here using 'steps
+    return InjectionSteps.steps(res,steps);
   }
   Package merge(List<FileFull.Map> override, Map<URI,FileFull> all, OtherPackages other){
     String pkgName= all.values().iterator().next().name();
