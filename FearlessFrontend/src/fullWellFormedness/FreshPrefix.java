@@ -2,7 +2,6 @@ package fullWellFormedness;
 import java.util.*;
 
 import fearlessFullGrammar.TName;
-import inferenceGrammar.T;
 
 import static offensiveUtils.Require.*;
 
@@ -51,9 +50,9 @@ public final class FreshPrefix {
       return res;
     }
   }
-  public boolean isFreshGeneric(TName owner, T.X x){//used where we know it is a valid generic elsewhere (so already not a top type)
+  public boolean isFreshGeneric(TName owner, String x){//used where we know it is a valid generic elsewhere (so already not a top type)
     Set<String> scope= usedGen.get(owner);
-    return !scope.contains(x.name());// && !usedTopTypes.contains(x.name());
+    return !scope.contains(x);// && !usedTopTypes.contains(x.name());
   }
   public String freshGeneric(TName owner, String hint){
     assert nonNull(owner,hint);

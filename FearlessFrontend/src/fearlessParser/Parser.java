@@ -211,11 +211,18 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     checkRedeclaration(start, end, ms, pos);
     return new E.Literal(thisName,ms,pos);
     }
+  public record RCMName(Optional<RC> rc,MName name){}
+  private Stream<RCMName> declaredName(M m){
+    return m.sig()
+      .flatMap(s->s.m().map(n->new RCMName(s.rc(),n)))
+      .stream();
+  }
   private void checkRedeclaration(Token start, Token end, List<M> ms, Pos pos){
-    List<MName> names= ms.stream()
-      .flatMap(m->m.sig().flatMap(s->s.m()).stream()).toList();
+    List<RCMName> names= ms.stream().flatMap(this::declaredName).toList();
     long count1= names.stream().distinct().count();
     if (names.size() > count1){ throw errFactory().methNameRedeclared(ms,names,span(start,end).get()); }
+    //TODO:may want to add that if any name in names have RC for a MName,
+    //then all need explicit RC
     List<Integer> noNames= ms.stream()
       .map(errFactory()::parCount).filter(i->i != -1).toList();
     long count2= noNames.stream().distinct().count();

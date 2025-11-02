@@ -22,12 +22,12 @@ public final class Gamma {
   private int depth= 0;
   Gamma() { marks[0] = 0; visVer[0] = 0L; depth = 1; }
 
-  void newScope(){
+  public void newScope(){
     marks[depth]  =  size;
     visVer[depth] = visVer[depth - 1];
     depth++;
   }
-  void popScope() {
+  public void popScope() {
     assert depth > 1 : "cannot pop root";
     int newSize = marks[depth - 1];
     for (int i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i] = null; ts[i] = null; }//removing this line still requires on demand maps clean up.
@@ -35,9 +35,9 @@ public final class Gamma {
     depth--;
   }  
   
-  IT get(String x){ return ts[indexOf(x)]; }//purposely fail with indexOf -1 == offensive programming
+  public IT get(String x){ return ts[indexOf(x)]; }//purposely fail with indexOf -1 == offensive programming
 
-  void declare(String x, IT t){
+  public void declare(String x, IT t){
     assert indexOf(x) < 0 : "duplicate: " + x;
     assert size < maxBindings;
     //var old= xs[size]; if (old != null){ idx.remove(old); }//if we instead do not clean the map
@@ -49,12 +49,12 @@ public final class Gamma {
     size++;
   } 
   
-  void update(String x, IT t){
+  public void update(String x, IT t){
     int i= indexOf(x);
     ts[i]= t;
     stampVisibleFrom(declDepth[i]);
   }
-  long visibleVersion(){ return visVer[depth - 1]; }
+  public long visibleVersion(){ return visVer[depth - 1]; }
   
   private int indexOf(String x){
     assert x != null;

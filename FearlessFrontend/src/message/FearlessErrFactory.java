@@ -8,7 +8,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import fearlessFullGrammar.M;
-import fearlessFullGrammar.MName;
 import fearlessFullGrammar.Sig;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.ToString;
@@ -150,9 +149,9 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     M m= ms.reversed().stream().filter(p).findFirst().get();
     return new Span(at.fileName(),m.pos().line(),m.pos().column(),m.pos().line(),m.pos().column() + 100);  
   }
-  private Span redeclaredMethSpan(List<M> ms,MName n, Span at){
+  private Span redeclaredMethSpan(List<M> ms,Parser.RCMName n, Span at){
     Predicate<M> p= mi->mi.sig()
-      .map(s->s.m().equals(Optional.of(n)))
+      .map(s->s.m().equals(Optional.of(n.name())) && s.rc().equals(n.rc()))
       .orElse(false);
     return redeclaredMethSpan(ms,p,at);
   }
@@ -160,11 +159,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     Predicate<M> p= mi->parCount(mi) == count;
     return redeclaredMethSpan(ms,p,at);
   }
-  public FearlessException methNameRedeclared(List<M> ms,List<MName> names, Span at){
+  public FearlessException methNameRedeclared(List<M> ms,List<Parser.RCMName> names, Span at){
     var name= redeclaredElement(names);
     Span s= redeclaredMethSpan(ms,name,at);
     return Code.WellFormedness.of(
-      "Method "+Message.displayString(name.s())+" redeclared.\n"
+      "Method "+Message.displayString(name.name().s())+" redeclared.\n"
     + "A method with the same name is already present above.\n")
       .addSpan(s).addSpan(at);
   }

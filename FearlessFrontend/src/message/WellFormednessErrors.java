@@ -238,7 +238,7 @@ public final class WellFormednessErrors {
       "Can not infer the name for method with "+m.sig().ts().size()+" parameters.\n"
     + "Many"+(abs?" abstract":"")+" methods with "+m.sig().ts().size()+" parameters could be selected:\n"
     + "Candidates: "+options.stream()
-        .map(mi->Message.displayString(mi.m().s()))
+        .map(mi->Message.displayString(mi.rc()+" "+mi.m().s()))
         .collect(Collectors.joining(", "))+".\n"
       ));
   }

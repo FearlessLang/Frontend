@@ -3364,8 +3364,8 @@ In file: [###]/in_memory0.fear
 
 001| A:{
    | ... 3 lines ...
-005|  read .foo:Beer;
-   |  ^^^^^^^^^^^^^^^
+005|  mut .foo:Beer;
+   |  ^^^^^^^^^^^^^^
    | ... 3 lines ...
 009|  }
 
@@ -3378,7 +3378,7 @@ A:{
  mut .baz:Bar;
  mut .foo:Bar;
  mut .middle:Bar;
- read .foo:Beer;
+ mut .foo:Beer;
  mut .ban:Bar->Block#
    .let x={2}
    .return{x};
@@ -3416,8 +3416,8 @@ In file: [###]/in_memory0.fear
 
 001| A:{
    | ... 3 lines ...
-005|  read .foo:Beer;
-   |  ^^^^^^^^^^^^^^^
+005|  mut .foo:Beer;
+   |  ^^^^^^^^^^^^^^
    | ... 3 lines ...
 009|  }
 
@@ -3430,7 +3430,7 @@ A:{
  mut .ban(x,y):Bar;
  mut .foo:Bar;
  mut .middle:Bar;
- read .foo:Beer;
+ mut .foo:Beer;
  mut .ban(y):Bar->Block#
    .let x={2}
    .return{x};

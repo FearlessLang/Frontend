@@ -495,54 +495,6 @@ A:{ .foo:A -> A.foo
   #|" beer
 }
 """));}
-@Test void rcDisagreement1(){fail("""
-In file: [###]/in_memory0.fear
-
-004| B:A1,A2{ .foo -> A1 }
-   |          ^^^^^^^^^^^^
-
-While inspecting type declaration "B"
-Reference capability disagreement for method ".foo" with 0 parameters.
-Different options are present in the implemented types: "mut", "imm".
-Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 9  WellFormedness
-""",List.of("""
-A1:{ mut .foo:A1;}
-A2:{ imm .foo:A1;}
-B:A1,A2{ .foo -> A1 }
-"""));}
-@Test void rcDisagreement2(){fail("""
-In file: [###]/in_memory0.fear
-
-004| B:A1,A2{ }
-   | ^^^^^^^^^^
-
-While inspecting type declaration "B"
-Reference capability disagreement for method ".foo" with 0 parameters.
-Different options are present in the implemented types: "mut", "imm".
-Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 9  WellFormedness
-""",List.of("""
-A1:{ mut .foo:A1;}
-A2:{ imm .foo:A1;}
-B:A1,A2{ }
-"""));}
-@Test void rcDisagreement3(){fail("""
-In file: [###]/in_memory0.fear
-
-004| B:A1,A2{ }
-   | ^^^^^^^^^^
-
-While inspecting type declaration "B"
-Reference capability disagreement for method ".foo" with 0 parameters.
-Different options are present in the implemented types: "mut", "imm".
-Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 9  WellFormedness
-""",List.of("""
-A1:{ mut .foo:A1;}
-A2:{ .foo:A1;}
-B:A1,A2{ }
-"""));}
 @Test void rcAgreement1(){ok("""
 p.A1:{'this .foo:p.A1;}
 p.A2:{'this .foo:p.A1;}
@@ -684,7 +636,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Can not infer the name for method with 0 parameters.
 Many abstract methods with 0 parameters could be selected:
-Candidates: ".foo", ".bar".
+Candidates: "imm .foo", "imm .bar".
 Error 9  WellFormedness
 """,List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
@@ -700,7 +652,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Can not infer the name for method with 1 parameters.
 Many methods with 1 parameters could be selected:
-Candidates: ".baz", ".beer".
+Candidates: "imm .baz", "imm .beer".
 Error 9  WellFormedness
 """,List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
@@ -786,6 +738,78 @@ Error 9  WellFormedness
 ""","role app000; use base.AAAA as BBB;",List.of("""
 B:{ }
 """));}
+@Test void rcOverloadingOk1(){ok("""
+p.A1:{'this .foo:p.A1;}
+p.A2:{'this mut .foo:p.A2;}
+p.B:p.A1, p.A2{'this\
+ .foo:p.A1;\
+ .foo()->p.B:?;\
+ mut .foo:p.A2;\
+ .foo()->p.B:?;\
+}
+""",List.of("""
+A1:{ imm .foo():A1; }
+A2:{ mut .foo():A2; }
+B:A1,A2{ .foo->B; }
+"""));}
 
+@Test void rcOverloadingOk2(){fail("""
+In file: [###]/in_memory0.fear
+
+004| B:A1,A2{ A1 }
+   |          ^^^^
+
+While inspecting type declaration "B"
+Can not infer the name for method with 0 parameters.
+Many abstract methods with 0 parameters could be selected:
+Candidates: "mut .foo", "imm .foo".
+Error 9  WellFormedness
+""",List.of("""
+A1:{ mut .foo:A1;}
+A2:{ imm .foo:A1;}
+B:A1,A2{ A1 }
+"""));}
+
+@Test void rcOverloadingOk3(){ok("""
+p.A1:{'this mut .foo:p.A1;}
+p.A2:{'this .foo:p.A2;}
+p.B:p.A1, p.A2{'this mut .foo:p.A1; .foo:p.A2;}
+""",List.of("""
+A1:{ mut .foo:A1;}
+A2:{ imm .foo:A2;}
+B:A1,A2{ mut .foo:A1; imm .foo:A2; }
+"""));}
+
+@Test void rcOverloadingOk4(){ok("""
+p.A1:{'this mut .foo:p.A1;}
+p.A2:{'this .foo:p.A2;}
+p.B:p.A1, p.A2{'this mut .foo:p.A1; .foo:p.A2;}
+""",List.of("""
+A1:{ mut .foo:A1;}
+A2:{ imm .foo:A2;}
+B:A1,A2{ }
+"""));}
+
+@Test void rcOverlaoad1(){ok("""
+p.A1:{'this mut .foo:p.A1;}
+p.A2:{'this .foo:p.A1;}
+p.B:p.A1, p.A2{'this mut .foo:p.A1; .foo:p.A1;}
+""",List.of("""
+A1:{ mut .foo:A1;}
+A2:{ imm .foo:A1;}
+B:A1,A2{ }
+"""));}
+@Test void rcOverlaoad2(){ok("""
+p.A1:{'this mut .foo:p.A1;}
+p.A2:{'this .foo:p.A1;}
+p.B:p.A1, p.A2{'this mut .foo:p.A1; .foo:p.A1;}
+""",List.of("""
+A1:{ mut .foo:A1;}
+A2:{ .foo:A1;}
+B:A1,A2{ }
+"""));}
+
+//TODO: if some error about rc disagreement can not be triggered any more, they should become asserts
+//search for 'Reference capability disagreement'
 }
 //TODO: in the guide somewhere show #|" foo{#U+`AB02`} for arbitrary Unicode

@@ -22,7 +22,7 @@ public sealed interface E {
     public String toString(){ return name+":"+t; }
     public E withT(IT t){ return new X(name,t,pos,t.isTV()); }
   }
-  record Literal(String thisName, List<M> ms, IT t, Pos pos, int g) implements E{
+  record Literal(String thisName, List<M> ms, IT t, Pos pos, long g) implements E{
     public Literal(String thisName, List<M> ms, Pos pos){ this(thisName,ms,IT.U.Instance,pos,0);}
     public Literal{
       assert unmodifiable(ms, "L.ms");
@@ -34,22 +34,24 @@ public sealed interface E {
       + ms.stream().map(Object::toString).collect(Collectors.joining(""))
       +"}:"+t; }
   }
-  record Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, IT t, Pos pos, boolean isEV, int g) implements E{
+  record Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, IT t, Pos pos, boolean isEV, long g) implements E{
     public Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, Pos pos){ this(e,name,rc,targs,es,IT.U.Instance,pos,false,0);}
     public Call{
       assert nonNull(e,name,rc,targs,t);
       assert unmodifiable(es, "E.Call.es");
     }
+    public Call withG(long g){ return new Call(e,name,rc,targs,es,t,pos,isEV,g); }
     public E withT(IT t){ return new Call(e,name,rc,targs,es,t,pos,t.isTV(),g); }
     public String toString(){ return ""+e+name+"["+rc+","
       +targs.stream().map(Object::toString).collect(Collectors.joining(","))+"]("
       +es.stream().map(Object::toString).collect(Collectors.joining(","))+"):"+t;
     }
   }
-  record ICall(E e, MName name, List<E> es, IT t, Pos pos, int g) implements E{
-  public ICall(E e, MName name, List<E> es, IT t, Pos pos){ this(e,name,es,IT.U.Instance,pos,0);}
+  record ICall(E e, MName name, List<E> es, IT t, Pos pos, long g) implements E{
+    public ICall(E e, MName name, List<E> es, IT t, Pos pos){ this(e,name,es,IT.U.Instance,pos,0);}
     public boolean isEV(){ return false; }
     public E withT(IT t){ return new ICall(e,name,es,t,pos,g); }
+    //public ICall withG(long g){ return new ICall(e,name,es,t,pos,g); }
     public String toString(){ return ""+e+name+"("
         +es.stream().map(Object::toString).collect(Collectors.joining(","))+"):"+t;
       }

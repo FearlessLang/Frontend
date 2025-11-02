@@ -8,31 +8,30 @@ import inferenceGrammar.T;
 import utils.Bug;
 
 public class TypeRename{
-  static List<T.C> ofTC(List<T.C> csi, List<T.X> xs, List<T> ts){
-    return csi.stream().map(c->new T.C(c.name(), ofT(c.ts(),xs,ts))).toList();
-  }  
-  static IT of(IT t, List<IT.X> xs, List<IT> ts){ return switch(t){
-    case IT.X x -> getOrSame(x,xs,ts);
+  static List<T.C> ofTC(List<T.C> csi, List<String> xs, List<T> ts){ return csi.stream().map(c->of(c,xs,ts)).toList(); }
+  static T.C of(T.C c, List<String> xs, List<T> ts){ return new T.C(c.name(), ofT(c.ts(),xs,ts)); }
+  static IT of(IT t, List<String> xs, List<IT> ts){ return switch(t){
+    case IT.X x -> getOrSame(x,x.name(),xs,ts);
     case IT.RCX(RC rc, var x) -> withRC(of(x,xs,ts),rc);
     case IT.RCC(RC rc, var c) -> new IT.RCC(rc,new IT.C(c.name(),ofIT(c.ts(),xs,ts)));
     case IT.ReadImmX(var x) -> readImm(of(x,xs,ts));
     case IT.U _ -> throw Bug.unreachable();
   };}
-  static T of(T t, List<T.X> xs, List<T> ts){ return switch(t){
-    case T.X x -> getOrSame(x,xs,ts);
+  static T of(T t, List<String> xs, List<T> ts){ return switch(t){
+    case T.X x -> getOrSame(x,x.name(),xs,ts);
     case T.RCX(RC rc, var x) -> withRC(of(x,xs,ts),rc);
     case T.RCC(RC rc, var c) -> new T.RCC(rc,new T.C(c.name(),ofT(c.ts(),xs,ts)));
     case T.ReadImmX(var x) -> readImm(of(x,xs,ts));
   };}
-  static fearlessFullGrammar.T of(fearlessFullGrammar.T t, List<fearlessFullGrammar.T.X> xs, List<fearlessFullGrammar.T> ts){ return switch(t){
-    case fearlessFullGrammar.T.X x -> getOrSame(x,xs,ts);
+  static fearlessFullGrammar.T of(fearlessFullGrammar.T t, List<String> xs, List<fearlessFullGrammar.T> ts){ return switch(t){
+    case fearlessFullGrammar.T.X x -> getOrSame(x,x.name(),xs,ts);
     case fearlessFullGrammar.T.RCX(RC rc, var x) -> withRC(of(x,xs,ts),rc);
     case fearlessFullGrammar.T.RCC(var rc, var c) -> new fearlessFullGrammar.T.RCC(rc,new fearlessFullGrammar.T.C(c.name(),c.ts().map(tsi->ofFT(tsi,xs,ts))));
     case fearlessFullGrammar.T.ReadImmX(var x) -> readImm(of(x,xs,ts));
   };}
-  static List<IT> ofIT(List<IT> tsi ,List<IT.X> xs, List<IT> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
-  static List<T> ofT(List<T> tsi, List<T.X> xs, List<T> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
-  static List<fearlessFullGrammar.T> ofFT(List<fearlessFullGrammar.T> tsi, List<fearlessFullGrammar.T.X> xs, List<fearlessFullGrammar.T> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
+  static List<IT> ofIT(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
+  static List<T> ofT(List<T> tsi, List<String> xs, List<T> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
+  static List<fearlessFullGrammar.T> ofFT(List<fearlessFullGrammar.T> tsi, List<String> xs, List<fearlessFullGrammar.T> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
   static IT readImm(IT t){return switch(t){
     case IT.X x -> new IT.ReadImmX(x);
     case IT.ReadImmX rix -> rix;
@@ -72,8 +71,8 @@ public class TypeRename{
     case fearlessFullGrammar.T.RCC(_, var c) -> new fearlessFullGrammar.T.RCC(Optional.of(rc), c);
   };}
   static RC readImm(RC rc){ return rc == RC.imm || rc == RC.iso ? RC.imm: RC.read; }
-  static <A> A getOrSame(A x, List<? extends A> xs, List<A> ts){
-    var i= xs.indexOf(x); 
+  static <A> A getOrSame(A x, String name,List<String> xs, List<A> ts){
+    var i= xs.indexOf(name); 
     return i == -1 ? x : ts.get(i);
   }
   public static IT tToIT(inferenceGrammar.T t){return switch(t){
