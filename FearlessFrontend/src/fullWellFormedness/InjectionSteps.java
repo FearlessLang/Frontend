@@ -84,6 +84,18 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
       if (oe == e){ return e; }
       e= oe;  
     }
+  }
+  private List<E> nextStar(Gamma g, List<E> es){
+    long old= g.visibleVersion();
+    boolean same= true;
+    var res= new ArrayList<E>(es.size());
+    for (E ei:es){
+      E next=nextStar(g,ei);
+      same &= next == ei;
+      res.add(next);
+    }
+    if (same && old == g.visibleVersion()){ return es; }
+    return Collections.unmodifiableList(res);
   }  
   E next(Gamma g, E e){ return switch (e){
     case E.X x -> nextX(g,x);
@@ -146,12 +158,15 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
     return new MSig(m.sig().rc(),bs,tsRes,tRet);
   }
   private List<IT> normXs(int n){ return IntStream.range(0, n).<IT>mapToObj(i->new IT.X("$"+i)).toList(); }
-  private List<String> normXsStr(int n){ return IntStream.range(0, n).mapToObj(i->"$"+i).toList(); }  
+  private List<String> normXsStr(int n){ return IntStream.range(0, n).mapToObj(i->"$"+i).toList(); }
+    //TODO: could cache 0-100 qMarks
+  private List<IT> qMarks(int n){ return IntStream.range(0, n).<IT>mapToObj(_->IT.U.Instance).toList(); }
+  private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i->i==n?t:IT.U.Instance).toList(); }
   //-----------Metarules
   private E nextX(Gamma g, E.X x){ 
     var t1= g.get(x.name());
     var t2= x.t();
-    if (t1==t2){ return x; }//just performance
+    if (t1.equals(t2)) { return x; }
     var t3= meet(t1,t2);
     g.update(x.name(),t3);
     return x.withT(t3);
@@ -159,14 +174,14 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
   private E nextT(Gamma g, E.Type t){
     var t1= preferred(t.type());
     var t2= t.t();
-    if (t1.equals(t2)) { return t; }//this line is just for performance
+    if (t1.equals(t2)) { return t; }
     var t3= meet(t1,t2);
     return t.withT(t3);
   }
   private E nextIC(Gamma g, E.ICall c){
     if (c.g() == g.visibleVersion()){ return c; }
     var e= nextStar(g,c.e());
-    var es= c.es().stream().map(ei->nextStar(g,ei)).toList();
+    var es= nextStar(g,c.es());
     if (!(e.t() instanceof IT.RCC rcc)){ return new E.ICall(e,c.name(),es,c.t(),c.pos(),g.visibleVersion()); }
     MSig m= methodHeader(rcc,c.name(),Optional.empty());
     List<IT> ts= qMarks(m.bs().size());
@@ -174,18 +189,15 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
       .mapToObj(i->meet(es.get(i),TypeRename.of(m.ts().get(i),m.bs(),ts)))
       .toList();
     var t= meet(c.t(),TypeRename.of(m.ret(),m.bs(),ts));
-    var isVal= !ts.isEmpty() && e.isEV() && es.stream().allMatch(E::isEV);
+    var isVal= ts.isEmpty() && e.isEV() && es.stream().allMatch(E::isEV);
     var call= new E.Call(e,c.name(),Optional.of(m.rc()),ts,es1,t,c.pos(),isVal, 0);
-    return nextC(g,call);
+    return call;
   }
-  //TODO: could cache 0-100 qMarks
-  private List<IT> qMarks(int n){ return IntStream.range(0, n).<IT>mapToObj(_->IT.U.Instance).toList(); }
-  private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i->i==n?t:IT.U.Instance).toList(); }
   private E nextC(Gamma g, E.Call c){
     if (c.isEV() || c.g() == g.visibleVersion()){ return c; }
     var e= nextStar(g,c.e());
-    var es= c.es().stream().map(ei->nextStar(g,ei)).toList();
-    if (!(c.e().t() instanceof IT.RCC rcc)){ return c.withG(g.visibleVersion()); }
+    var es= nextStar(g, c.es());
+    if (!(e.t() instanceof IT.RCC rcc)){ return c.withG(g.visibleVersion()); }
     MSig m= methodHeader(rcc,c.name(),c.rc());
     RC rc= c.rc().orElse(m.rc());
     assert m.ts().size() == es.size();
@@ -198,8 +210,9 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
     var es1= IntStream.range(0, es.size())
       .mapToObj(i->meet(es.get(i),TypeRename.of(m.ts().get(i),m.bs(),targs)))
       .toList();
+    //if (e==c.e() && es == c.es() && targs==c.targs()){ return c.withG(g.visibleVersion()); }//TODO: need more work
     var isVal= e.isEV() && es.stream().allMatch(E::isEV) && targs.stream().allMatch(IT::isTV); 
-    return new E.Call(e, c.name(), Optional.of(rc),c.targs(),es1,it, c.pos(),isVal,g.visibleVersion()); 
+    return new E.Call(e, c.name(), Optional.of(rc),targs,es1,it, c.pos(),isVal,0); 
   }
   private E nextL(Gamma g, E.Literal c){
     if (!(c.t() instanceof IT.RCC)){ return c; }
