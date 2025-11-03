@@ -42,4 +42,9 @@ public sealed interface IT {
     public String toString(){ return "?";}
     public boolean isTV(){ return false; }
   }
+  enum Err implements IT{ Instance; 
+    public String toString(){ return "Err";}
+    public boolean isTV(){ return true; }
+  }
+
 }

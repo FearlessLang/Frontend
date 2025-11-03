@@ -86,13 +86,14 @@ public final class Gamma {
     }
     return sb.toString();
   }
-  public static Gamma of(List<String> xs2, List<T> ts2){
+  public static Gamma of(List<String> xs2, List<T> ts2,String self,T t){
     Gamma res= new Gamma();
     assert xs2.size() == ts2.size();
     IntStream.range(0, xs2.size())
       .filter(i->!xs2.get(i).equals("_"))
       .forEach(i->
       res.declare(xs2.get(i),TypeRename.tToIT(ts2.get(i))));
+    if (!self.equals("_")){ res.declare(self, TypeRename.tToIT(t)); }
     return res;
   }
 }

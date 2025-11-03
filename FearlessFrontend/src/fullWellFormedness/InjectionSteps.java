@@ -21,43 +21,44 @@ import utils.Bug;
 import utils.Push;
 
 public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration> dsMap){
-  public static List<Declaration> steps(List<Declaration> res, int steps){
+  public static List<Declaration> steps(List<Declaration> in){
     HashMap<TName,Declaration> dsMap= new HashMap<>();
-    for (var d:res){ dsMap.put(d.name(), d); }
-    var s= new InjectionSteps(new ArrayList<>(res),dsMap);
+    for (var d:in){ dsMap.put(d.name(), d); }
+    var s= new InjectionSteps(new ArrayList<>(in),dsMap);
     //ds.size will grow during iteration
-    for (int i= 0; i < s.ds.size(); i += 1){ steps = stepDec(steps, s, s.ds.get(i)); }    
-    return s.ds;
+    List<Declaration> res= new ArrayList<>();
+    for (int i= 0; i < s.ds.size(); i += 1){ res.add(stepDec(s, s.ds.get(i))); }    
+    return res;
   }
-  private static int stepDec(int steps, InjectionSteps s, Declaration di) {
-    for (var m:di.ms()){
-      if (m.impl().isEmpty()){ continue; }
-      E ei= meet(m.impl().get().e(),TypeRename.tToIT(m.sig().ret()));
-      Gamma g= Gamma.of(m.impl().get().xs(),m.sig().ts());
-      while (steps-->0){
-        if(end(ei)){ break; }
-        var oe= s.next(g,ei);
-        if(oe == ei){ break; }
-        ei= oe;
-      }
-    }
-    return steps;
+  private static Declaration stepDec(InjectionSteps s, Declaration di){
+    var ms= di.ms().stream().map(m->{
+      if (m.impl().isEmpty()){ return m; }
+      var i= m.impl().get();
+      List<T> thisTypeTs= di.bs().stream().<T>map(b->b.x()).toList();
+      var thisType= new T.RCC(m.sig().rc(),new T.C(di.name(),thisTypeTs));
+      E ei= meet(i.e(),TypeRename.tToIT(m.sig().ret()));      
+      Gamma g= Gamma.of(i.xs(),m.sig().ts(),di.thisName(),thisType);
+      ei= s.nextStar(g, ei);
+      return new M(m.sig(),Optional.of(new inferenceGrammar.M.Impl(i.m(),i.xs(),ei)));
+    }).toList();
+    return di.withMs(ms);
   }
   static E meet(E e, IT t){ return e.withT(meet(e.t(),t)); }
   static IT meet(IT t1, IT t2){ 
     if (t2 == IT.U.Instance){ return t1; }
     if (t1 == IT.U.Instance){ return t2; }
     if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){
-      if (!x1.rc().equals(x2.rc())){ throw Bug.todo(); }
-      if (!x1.c().name().equals(x2.c().name())){ throw Bug.todo(); }
+      if (!x1.rc().equals(x2.rc())){ return IT.Err.Instance; }
+      if (!x1.c().name().equals(x2.c().name())){ return IT.Err.Instance; }
+      if (x1.c().ts().size() != x2.c().ts().size()){ return IT.Err.Instance; }//TODO: or assert?
       var ts= meet(x1.c().ts(),x2.c().ts());
       return new IT.RCC(x1.rc(),new IT.C(x1.c().name(),ts));
     }
     if (t1.equals(t2)){ return t1; }
-    throw Bug.todo();
+    return IT.Err.Instance;
     }
   static List<IT> meet(List<IT> t1, List<IT> t2){
-    if (t1.size() != t2.size()){ throw Bug.todo(); }
+    assert t1.size() == t2.size(): "should have gone in Err before";
     return IntStream.range(0,t1.size())
       .mapToObj(i->meet(t1.get(i),t2.get(i)))
       .toList();
@@ -77,7 +78,13 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
     return Collections.unmodifiableList(res);
   }
   static boolean end(E e){ return e.isEV(); }
-  
+  E nextStar(Gamma g,E e){
+    while (true){
+      var oe= next(g,e);
+      if (oe == e){ return e; }
+      e= oe;  
+    }
+  }  
   E next(Gamma g, E e){ return switch (e){
     case E.X x -> nextX(g,x);
     case E.Literal l -> nextL(g,l);
@@ -85,14 +92,6 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
     case E.ICall c -> nextIC(g,c);
     case E.Type t -> nextT(g,t);
   };}
-  private E nextX(Gamma g, E.X x){ 
-    var t1= g.get(x.name());
-    var t2= x.t();
-    if (t1.equals(t2)){ return x; }
-    var t3= meet(t1,t2);
-    g.update(x.name(),t3);
-    return x.withT(t3);
-  }
   private List<String> dom(List<inferenceGrammar.B> bs){ return bs.stream().map(b->b.x().name()).toList(); }
   private IT preferred(T.RCC type){
     var d= dsMap.get(type.c().name());
@@ -102,53 +101,6 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
     assert cs.getFirst().ts().size() == 1;
     T wid= TypeRename.of(cs.getFirst().ts().getFirst(), dom(d.bs()), type.c().ts());
     return TypeRename.tToIT(wid);
-  }
-  private E nextT(Gamma g, E.Type t){
-    var t1= preferred(t.type());
-    var t2= t.t();
-    if (t1.equals(t2)) { return t; }
-    var t3= meet(t1,t2);
-    return t.withT(t3);
-  }
-  E nextStar(Gamma g,E e){
-    while (true){
-      var oe= next(g,e);
-      if (oe == e){ return e; }
-      e= oe;  
-    }
-  }
-  private E nextIC(Gamma g, E.ICall c){
-    if (c.g() == g.visibleVersion()){ return c; }
-    var e= nextStar(g,c.e());
-    if (!(e.t() instanceof IT.RCC rcc)){ return new E.ICall(e,c.name(),c.es(),c.t(),c.pos(),g.visibleVersion()); }
-    MSig m= methodSig(rcc,c.name(),Optional.empty());
-    List<IT> ts= qMarks(m.bs().size());
-    var call= new E.Call(e,c.name(),Optional.of(m.rc()),ts,c.es(),c.t(),c.pos(),false, 0);
-    return nextC(g,call);
-  }
-  //TODO: could cache 0-100 qMarks
-  private List<IT> qMarks(int n){ return IntStream.range(0, n).<IT>mapToObj(_->IT.U.Instance).toList(); }
-  private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i->i==n?t:IT.U.Instance).toList(); }
-  private E nextC(Gamma g, E.Call c){
-    if (c.isEV() || c.g() == g.visibleVersion()){ return c; }
-    var e= nextStar(g,c.e());
-    var es= c.es().stream().map(ei->nextStar(g,ei)).toList();
-    if (! (c.e().t() instanceof IT.RCC rcc)){ return c.withG(g.visibleVersion()); }
-    MSig m= methodSig(rcc,c.name(),c.rc());
-    RC rc= c.rc().orElse(m.rc());
-    assert m.ts().size() == es.size();
-    List<List<IT>> tss= Stream.concat(
-      IntStream.range(0, c.es().size())
-        .mapToObj(i->refine(m.bs(),c.targs(),m.ts().get(i),es.get(i).t())),
-      Stream.of(refine(m.bs(),c.targs(),m.ret(),c.t()),c.targs())
-      ).toList();
-    var targs= meet(tss);
-    var it= meet(c.t(),TypeRename.of(m.ret(),m.bs(),targs));    
-    var es1= IntStream.range(0, es.size())
-      .mapToObj(i->meet(es.get(i),TypeRename.of(m.ts().get(i),m.bs(),targs)))
-      .toList();
-    var isVal= e.isEV() && es.stream().allMatch(E::isEV) && targs.stream().allMatch(IT::isTV); 
-    return new E.Call(e, c.name(), Optional.of(rc),c.targs(),es1,it, c.pos(),isVal,g.visibleVersion()); 
   }
   public record MSig(RC rc, List<String> bs, List<IT> ts, IT ret){}
   private RC overloadNorm(RC rc){ return switch(rc){
@@ -174,7 +126,7 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
     var immOne= ms.stream().filter(m->m.sig().rc()==RC.imm).findFirst();
     return immOne.or(()->readOne).orElseThrow(Bug::todo);
   }
-  private MSig methodSig(IT.RCC rcc, MName name,Optional<RC> favorite){
+  private MSig methodHeader(IT.RCC rcc, MName name,Optional<RC> favorite){
     var d= dsMap.get(rcc.c().name());
     Stream<M> ms= d.ms().stream().filter(m->m.sig().m().equals(name));
     M m= favorite
@@ -193,39 +145,88 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
     IT tRet= TypeRename.of(TypeRename.tToIT(m.sig().ret()),xs,ts);
     return new MSig(m.sig().rc(),bs,tsRes,tRet);
   }
-  private List<IT> normXs(int n){
-    return IntStream.range(0, n).<IT>mapToObj(i->new IT.X("$"+i)).toList();
+  private List<IT> normXs(int n){ return IntStream.range(0, n).<IT>mapToObj(i->new IT.X("$"+i)).toList(); }
+  private List<String> normXsStr(int n){ return IntStream.range(0, n).mapToObj(i->"$"+i).toList(); }  
+  //-----------Metarules
+  private E nextX(Gamma g, E.X x){ 
+    var t1= g.get(x.name());
+    var t2= x.t();
+    if (t1==t2){ return x; }//just performance
+    var t3= meet(t1,t2);
+    g.update(x.name(),t3);
+    return x.withT(t3);
   }
-  private List<String> normXsStr(int n){
-    return IntStream.range(0, n).mapToObj(i->"$"+i).toList();
+  private E nextT(Gamma g, E.Type t){
+    var t1= preferred(t.type());
+    var t2= t.t();
+    if (t1.equals(t2)) { return t; }//this line is just for performance
+    var t3= meet(t1,t2);
+    return t.withT(t3);
   }
-
+  private E nextIC(Gamma g, E.ICall c){
+    if (c.g() == g.visibleVersion()){ return c; }
+    var e= nextStar(g,c.e());
+    var es= c.es().stream().map(ei->nextStar(g,ei)).toList();
+    if (!(e.t() instanceof IT.RCC rcc)){ return new E.ICall(e,c.name(),es,c.t(),c.pos(),g.visibleVersion()); }
+    MSig m= methodHeader(rcc,c.name(),Optional.empty());
+    List<IT> ts= qMarks(m.bs().size());
+    var es1= IntStream.range(0, es.size())
+      .mapToObj(i->meet(es.get(i),TypeRename.of(m.ts().get(i),m.bs(),ts)))
+      .toList();
+    var t= meet(c.t(),TypeRename.of(m.ret(),m.bs(),ts));
+    var isVal= !ts.isEmpty() && e.isEV() && es.stream().allMatch(E::isEV);
+    var call= new E.Call(e,c.name(),Optional.of(m.rc()),ts,es1,t,c.pos(),isVal, 0);
+    return nextC(g,call);
+  }
+  //TODO: could cache 0-100 qMarks
+  private List<IT> qMarks(int n){ return IntStream.range(0, n).<IT>mapToObj(_->IT.U.Instance).toList(); }
+  private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i->i==n?t:IT.U.Instance).toList(); }
+  private E nextC(Gamma g, E.Call c){
+    if (c.isEV() || c.g() == g.visibleVersion()){ return c; }
+    var e= nextStar(g,c.e());
+    var es= c.es().stream().map(ei->nextStar(g,ei)).toList();
+    if (!(c.e().t() instanceof IT.RCC rcc)){ return c.withG(g.visibleVersion()); }
+    MSig m= methodHeader(rcc,c.name(),c.rc());
+    RC rc= c.rc().orElse(m.rc());
+    assert m.ts().size() == es.size();
+    var targs= meet(Stream.concat(
+      IntStream.range(0, c.es().size())
+        .mapToObj(i->refine(m.bs(),m.ts().get(i),es.get(i).t())),
+      Stream.of(refine(m.bs(),m.ret(),c.t()),c.targs())
+      ).toList());
+    var it= meet(c.t(),TypeRename.of(m.ret(),m.bs(),targs));
+    var es1= IntStream.range(0, es.size())
+      .mapToObj(i->meet(es.get(i),TypeRename.of(m.ts().get(i),m.bs(),targs)))
+      .toList();
+    var isVal= e.isEV() && es.stream().allMatch(E::isEV) && targs.stream().allMatch(IT::isTV); 
+    return new E.Call(e, c.name(), Optional.of(rc),c.targs(),es1,it, c.pos(),isVal,g.visibleVersion()); 
+  }
   private E nextL(Gamma g, E.Literal c){
     if (!(c.t() instanceof IT.RCC)){ return c; }
     if (c.isEV() || c.g() == g.visibleVersion()){ return c; }
     throw Bug.todo();
   }
-
-  List<IT> refine(List<String> xs, List<IT> ts, IT t, IT t1){ return switch(t){
-    case IT.X x -> refineXs(xs,ts,x,t1);
-    case IT.RCX(RC _, IT.X x) -> refineXs(xs,ts,x,t1);
-    case IT.ReadImmX(IT.X x) -> refineXs(xs,ts,x,t1);
-    case IT.RCC(RC _, IT.C c) -> propagateXs(xs,ts,c,t1);
-    case IT.U _ -> qMarks(xs.size());
+  List<IT> refine(List<String> xs,IT t, IT t1){ return switch(t){
+    case IT.X x -> refineXs(xs,x,t1);
+    case IT.RCX(RC _, IT.X x) -> refineXs(xs,x,t1);
+    case IT.ReadImmX(IT.X x) -> refineXs(xs,x,t1);
+    case IT.RCC(RC _, IT.C c) -> propagateXs(xs,c,t1);
+    case IT.U _   -> qMarks(xs.size());
+    case IT.Err _ -> qMarks(xs.size());
   };}
-  List<IT> refineXs(List<String> xs, List<IT> ts, IT.X x, IT t1){
+  List<IT> refineXs(List<String> xs, IT.X x, IT t1){
     var i= xs.indexOf(x.name());
     assert i != -1;//TODO: can we trigger this?
     return qMarks(i,t1,xs.size());
   }
-  List<IT> propagateXs(List<String> xs, List<IT> ts, IT.C c, IT t1){
+  List<IT> propagateXs(List<String> xs, IT.C c, IT t1){
     if (!(t1 instanceof IT.RCC cc)){ throw Bug.todo(); }
     if (!cc.c().name().equals(c.name())){ throw Bug.todo(); }
     assert cc.c().ts().size() == c.ts().size();
     List<List<IT>> res=IntStream.range(0,c.ts().size())
-      .mapToObj(i->refine(xs,ts,c.ts().get(i),cc.c().ts().get(i)))
+      .mapToObj(i->refine(xs,c.ts().get(i),cc.c().ts().get(i)))
       .toList();
-    return meet(res);
+    return res.isEmpty()?qMarks(xs.size()):meet(res);
   }
 }
 /*
@@ -290,9 +291,15 @@ _______
   X1..Xn X X'1..X'k ⊢ X=T : ?1..?n T ?1..?k
 //selects an X inside Xs' by splitting Xs' as X1..Xn X X1'..Xk'
 
+---------------------------------------------------(refine?)
+  X1..Xn⊢ ?=T : ?1..?n
+
+---------------------------------------------------(refineErr)
+  X1..Xn⊢ Err=T : ?1..?n
+
   ∀ i∈0..n Xs ⊢ Ti=T'i  : Tsi 
 --------------------------------------------------(propagateXs)
-  Xs ⊢ C[T1..Tn]=C[T'1..T'n] : Ts1⊓..⊓Tsn
+  Xs ⊢ C[T1..Tn]=C[T'1..T'n] : ?1..?n⊓Ts1⊓..⊓Tsn  //the first ?s are needed if n==0
 _______
 #Define classJoin(C[Ts], MH) = C[Ts1]
   classJoin(C[Ts], m[X1..Xk](_ : T1 .. _ : Tn) : T0 ) = C[Ts']
@@ -313,16 +320,20 @@ _______
   Γ, x:T1 ⊢ x:T2 ==> Γ, x:T1 ⊓ T2 ⊢ x:T1 ⊓ T2
 
   ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
-  typeOf(e'0) = ?
+  methodHeader(e'0,m) undefined// may be typeOf(e'0) not of form C[_], or m not exists
 -------------------------------------- (call)
   Γ0 ⊢ e0.m(e1..en):T ==> Γ(i+1) ⊢ e'0.m(e'1..e'n):T
 
   ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
   methodHeader(e'0,m) = m[X1..Xk](_:T1.._:Tn):T0
   ∀ i∈0..n T'i = Ti[X1..Xk=?1..?k]
-  ∀ i∈1..k Γ(i-1) ⊢ ei⊓T'i ==>* Γi ⊢ e'i
 -------------------------------------- (callI)
   Γ0 ⊢ e0.m(e1..en):T ==> Γ(i+1) ⊢ e'0.m[?1..?k](e'1⊓T'1..e'n⊓T'n):T⊓T'0
+
+  ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
+  methodHeader(e'0,m) undefined
+----------------------------------------------------------- (callRNope)
+  Γ0 ⊢ e0.m[Ts](e1..en):T ==> Γ(n+1) ⊢ e'0.m[Ts](e'1⊓T'1..e'n⊓T'n):T
 
   ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
   methodHeader(e'0,m) = m[Xs](_:T1.._:Tn):T0

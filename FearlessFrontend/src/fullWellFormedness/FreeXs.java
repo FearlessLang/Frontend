@@ -41,6 +41,7 @@ public class FreeXs {
     case IT.ReadImmX(var x) -> ftvIT(x);
     case IT.RCC(_, var c) -> ftvITs(c.ts());
     case IT.U.Instance -> Stream.of();
+    case IT.Err.Instance -> Stream.of();
   };} 
   Stream<T.X> ftvEs(List<E> es){ return es.stream().flatMap(this::ftvE); }
   Stream<T.X> ftvMs(List<M> ms){ return ms.stream().flatMap(this::ftvM); }

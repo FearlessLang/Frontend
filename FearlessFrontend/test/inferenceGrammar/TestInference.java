@@ -34,26 +34,31 @@ public class TestInference {
     try{ return r.get(); }
     catch(FearlessException fe){ System.out.println(fe.render(o)); throw fe; }
   }
-  static List<inferenceGrammarB.Declaration> parsePackage(SourceOracle o){
+  static List<inferenceGrammarB.Declaration> parsePackage(SourceOracle o,boolean infer){
     return new ParsePackage()
-      .of(List.of(),o.allFiles(),o,DbgBlock.dbg(),0);
+      .of(List.of(),o.allFiles(),o,DbgBlock.dbg(),infer);
   }
-  static void ok(String expected, String head, List<String> input){
+  static void ok(String expected, String head, List<String> input, boolean infer){
     var o= oracle("p",head,input);
-    var res= printError(()->parsePackage(o),o);
+    var res= printError(()->parsePackage(o,infer),o);
     var got= res.stream()
       .map(Object::toString)
       .collect(Collectors.joining("\n"))+"\n";
     Err.strCmp(expected,got);
   }
+  static void ok(String expected, String head, List<String> input){ ok(expected,head,input,false); }
+  static void okI(String expected, String head, List<String> input){ ok(expected,head,input,true); }
   static void ok(String expected, List<String> input){ ok(expected,"role app000;",input); }
+  static void okI(String expected, List<String> input){ ok(expected,"role app000;",input,true); }
   
-  static void fail(String expected, String head, List<String> input){
+  static void fail(String expected, String head, List<String> input, boolean infer){
     var o= oracle("p",head,input);
-    FearlessException fe= assertThrows(FearlessException.class, ()->parsePackage(o));
+    FearlessException fe= assertThrows(FearlessException.class, ()->parsePackage(o,infer));
     var got= fe.render(o);
     Err.strCmp(expected,got);
   }
+    static void fail(String expected, String head, List<String> input){ fail(expected,head,input,false); }
+    static void failI(String expected, String head, List<String> input){ fail(expected,head,input,true); }
   static void fail(String expected, List<String> input){ fail(expected,"role app000;",input); }
 
   //TODO: role? should be inferred as app000 if none? now there is an error.
@@ -808,6 +813,22 @@ A1:{ mut .foo:A1;}
 A2:{ .foo:A1;}
 B:A1,A2{ }
 """));}
+
+@Test void inferMini(){okI("""
+p.A:{'this\
+ .foo:p.A;\
+ .foo()->this:imm p.A[].foo[imm]():imm p.A[];}
+""",List.of("""
+A:{.foo:A->this.foo}
+"""));}
+@Test void inferMini2(){okI("""
+p.A:{'this\
+ .foo[X:imm](X):X;\
+ .foo(x)->this:imm p.A[].foo[imm,X](x:X):X;}
+""",List.of("""
+A:{.foo[X](x:X):X->this.foo(x)}
+"""));}
+
 
 //TODO: if some error about rc disagreement can not be triggered any more, they should become asserts
 //search for 'Reference capability disagreement'

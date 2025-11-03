@@ -42,7 +42,9 @@ public sealed interface E {
     }
     public Call withG(long g){ return new Call(e,name,rc,targs,es,t,pos,isEV,g); }
     public E withT(IT t){ return new Call(e,name,rc,targs,es,t,pos,t.isTV(),g); }
-    public String toString(){ return ""+e+name+"["+rc+","
+    public String toString(){ 
+      var open= rc.isEmpty()? "[" : targs.isEmpty() ? "["+rc.get() : "["+rc.get()+",";
+      return ""+e+name+open
       +targs.stream().map(Object::toString).collect(Collectors.joining(","))+"]("
       +es.stream().map(Object::toString).collect(Collectors.joining(","))+"):"+t;
     }

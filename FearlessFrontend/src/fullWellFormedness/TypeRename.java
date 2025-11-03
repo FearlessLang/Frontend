@@ -16,6 +16,7 @@ public class TypeRename{
     case IT.RCC(RC rc, var c) -> new IT.RCC(rc,new IT.C(c.name(),ofIT(c.ts(),xs,ts)));
     case IT.ReadImmX(var x) -> readImm(of(x,xs,ts));
     case IT.U _ -> throw Bug.unreachable();
+    case IT.Err _ -> throw Bug.unreachable();
   };}
   static T of(T t, List<String> xs, List<T> ts){ return switch(t){
     case T.X x -> getOrSame(x,x.name(),xs,ts);
@@ -37,7 +38,8 @@ public class TypeRename{
     case IT.ReadImmX rix -> rix;
     case IT.RCX(RC rc, _) -> withRC(t,readImm(rc));
     case IT.RCC(RC rc, _) -> withRC(t,readImm(rc));
-    case IT.U _ -> throw Bug.unreachable();
+    case IT.U _   -> throw Bug.unreachable();
+    case IT.Err _ -> throw Bug.unreachable();
   };}
   static T readImm(T t){return switch(t){
     case T.X x -> new T.ReadImmX(x);
@@ -56,7 +58,8 @@ public class TypeRename{
     case IT.ReadImmX _ -> throw Bug.unreachable();
     case IT.RCX(_, var x) -> new IT.RCX(rc,x);
     case IT.RCC(_, var c) -> new IT.RCC(rc, c);
-    case IT.U _ -> throw Bug.unreachable();
+    case IT.U _   -> throw Bug.unreachable();
+    case IT.Err _ -> throw Bug.unreachable();
   };}
   static T withRC(T t, RC rc){return switch(t){
     case T.X x -> new T.RCX(rc,x);

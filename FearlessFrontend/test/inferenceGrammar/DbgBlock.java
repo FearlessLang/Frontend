@@ -265,6 +265,6 @@ _DecidedBlock:{
       .put("baseBody.fear","package base;\n"+baseBody)
       .build();
     return new ParsePackage()
-      .of(List.of(),o.allFiles(),o,err(),0);
+      .of(List.of(),o.allFiles(),o,err(),false);
   }
 }
