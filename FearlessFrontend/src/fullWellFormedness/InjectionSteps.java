@@ -16,7 +16,9 @@ import inferenceGrammar.Gamma;
 import inferenceGrammar.IT;
 import inferenceGrammar.T;
 import inferenceGrammarB.Declaration;
+import inferenceGrammarB.M;
 import utils.Bug;
+import utils.Push;
 
 public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration> dsMap){
   public static List<Declaration> steps(List<Declaration> res, int steps){
@@ -114,7 +116,7 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
       if (oe == e){ return e; }
       e= oe;  
     }
-  }//TODO: could remove all Optional<E> and use ret == input to signal no output
+  }
   private E nextIC(Gamma g, E.ICall c){
     if (c.g() == g.visibleVersion()){ return c; }
     var e= nextStar(g,c.e());
@@ -141,26 +143,68 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
       Stream.of(refine(m.bs(),c.targs(),m.ret(),c.t()),c.targs())
       ).toList();
     var targs= meet(tss);
-    var it= c.t();//TODO: this needs to be met with m.ret()[m.bs()/targs]
-    //then all es met with m.ts()[m.bs()/targs]
+    var it= meet(c.t(),TypeRename.of(m.ret(),m.bs(),targs));    
+    var es1= IntStream.range(0, es.size())
+      .mapToObj(i->meet(es.get(i),TypeRename.of(m.ts().get(i),m.bs(),targs)))
+      .toList();
     var isVal= e.isEV() && es.stream().allMatch(E::isEV) && targs.stream().allMatch(IT::isTV); 
-    return new E.Call(e, c.name(), Optional.of(rc),c.targs(),es,it, c.pos(),isVal,g.visibleVersion()); 
+    return new E.Call(e, c.name(), Optional.of(rc),c.targs(),es1,it, c.pos(),isVal,g.visibleVersion()); 
   }
   public record MSig(RC rc, List<String> bs, List<IT> ts, IT ret){}
-  private MSig methodSig(IT.RCC rcc, MName name,Optional<RC> favorite){
-    //TODO: will use the rc of t, or favorite to select overload
-    var d= dsMap.get(rcc.c().name());
-    var ms= d.ms().stream().filter(m->m.sig().m().equals(name)).toList();//TODO: could be findAny but list helps debugging
-    //TODO: there can be more then one, one for each RC of the receiver
-    //We need to update the 5a inference for it, then update here
-    //Remember that a method with name and implementation but no RC can be desugared to satisfy
-    //multiple methods with same name and different RC.
-    if (ms.size() != 1){ throw Bug.todo(); }
-    //var bs=dom(m.bs());
-    var n= ms.getFirst().sig().bs().size();
+  private RC overloadNorm(RC rc){ return switch(rc){
+    case imm->RC.imm;
+    case iso->RC.mut;
+    case mut->RC.mut;
+    case mutH->RC.mut;
+    case read->RC.read;    
+    case readH->RC.read;
+  };}
+  private M oneFromExplicitRC(List<M> ms){
+    if (ms.size() == 1){ return ms.getFirst(); }
     throw Bug.todo();
   }
-  private E nextL(Gamma g, E.Literal c){ throw Bug.todo(); }
+  private M oneFromGuessRC(List<M> ms, RC rc){
+    var readOne= ms.stream().filter(m->m.sig().rc()==RC.read).findFirst();
+    if (rc== RC.read){ return readOne.orElseThrow(Bug::todo); }
+    if (rc== RC.mut){
+      var mutOne= ms.stream().filter(m->m.sig().rc()==RC.mut).findFirst();
+      return mutOne.or(()->readOne).orElseThrow(Bug::todo);
+    }
+    assert rc== RC.imm;
+    var immOne= ms.stream().filter(m->m.sig().rc()==RC.imm).findFirst();
+    return immOne.or(()->readOne).orElseThrow(Bug::todo);
+  }
+  private MSig methodSig(IT.RCC rcc, MName name,Optional<RC> favorite){
+    var d= dsMap.get(rcc.c().name());
+    Stream<M> ms= d.ms().stream().filter(m->m.sig().m().equals(name));
+    M m= favorite
+      .map(rc->oneFromExplicitRC(ms.filter(mi->mi.sig().rc().equals(rc)).toList()))
+      .orElseGet(()->oneFromGuessRC(ms.toList(),overloadNorm(rcc.rc())));
+    //(RC rc, List<String> bs, List<IT> ts, IT ret)
+    List<String> xs= Stream.concat(d.bs().stream(),m.sig().bs().stream())
+      .map(b->b.x().name()).toList();
+    assert xs.stream().distinct().count() == xs.size();
+    var normXs= normXs(m.sig().bs().size());
+    List<String> bs= normXsStr(m.sig().bs().size());
+    var ts= Push.of(rcc.c().ts(),normXs);
+    List<IT> tsRes= m.sig().ts().stream()
+      .map(t->TypeRename.of(TypeRename.tToIT(t),xs,ts))
+      .toList();//using normXs since it could be that rcc.ts contains X in m.bs()
+    IT tRet= TypeRename.of(TypeRename.tToIT(m.sig().ret()),xs,ts);
+    return new MSig(m.sig().rc(),bs,tsRes,tRet);
+  }
+  private List<IT> normXs(int n){
+    return IntStream.range(0, n).<IT>mapToObj(i->new IT.X("$"+i)).toList();
+  }
+  private List<String> normXsStr(int n){
+    return IntStream.range(0, n).mapToObj(i->"$"+i).toList();
+  }
+
+  private E nextL(Gamma g, E.Literal c){
+    if (!(c.t() instanceof IT.RCC)){ return c; }
+    if (c.isEV() || c.g() == g.visibleVersion()){ return c; }
+    throw Bug.todo();
+  }
 
   List<IT> refine(List<String> xs, List<IT> ts, IT t, IT t1){ return switch(t){
     case IT.X x -> refineXs(xs,ts,x,t1);
@@ -184,22 +228,6 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
     return meet(res);
   }
 }
-/*  
-_______
-#Define Xs,Ts ⊢ T -> T' : Ts' //sub notation used in (refine)
-
----------------------------------------------------(refineXs)
-  X1..Xn X X'1..X'k,Ts ⊢ X -> T : ?1..?n T ?1..?k
-//selects an X inside Xs' by splitting Xs' as X1..Xn X X1'..Xk'
-
-  ∀ i∈0..n Xs,Ts ⊢ Ti  -> T'i  : Tsi 
---------------------------------------------------(propagateXs)
-  Xs,Ts ⊢ C[T1..Tn] -> C[T'1..T'n] : Ts1⊓..⊓Tsn
-
-
-
-*/  
-
 /*
 
 FJ inference
@@ -211,7 +239,7 @@ cM  ::= VMH { return ce }
 M   ::= VMH { return e  }
 VM  ::= m[Xs](x1:VT1 .. xn:VTn):VT { return ve }
 VT  ::= C[VTs] | X
-T   ::= C[Ts]  | X | ?
+T   ::= C[Ts]  | X | ? | Err
 fe  ::= x | new C[VTs](){ fMs } | fe.m[VTs](fes) | fe.m(fes) | xs -> fe
 ce  ::= x | new C[VTs](){ cMs } | ce.m[VTs](ces)
 e   ::= x:T | new C[Ts](){ Ms }:T | e.m[Ts](es):T | (xs->e):T | e.m(es):T
@@ -241,24 +269,105 @@ Obvious selectors:
 - methodHeader(e,m)= methodHeader(typeOf(e),m)
 //Note: methodHeader(C[Ts],m) already applies [Xs=Ts]
 Substitution: T[Xs=Ts] //standard
-
-#Define e ⊓ T = e'
-  withType(e,typeOf(e) ⊓ T)
-
-#Define Γ ⊢/ e //read as Γ,e does not reduce
-  ¬∃ Γ',e'.(Γ ⊢ e ==> Γ' ⊢ e')
-
+_______
 #Define T ⊓ T' = T" and Ts ⊓ Ts' = Ts" //meet operator
 - (T1..Tn) ⊓ (T'1..T'n) = (T1⊓T'1 .. Tn⊓T'n)
 - ? ⊓ T = T
 - T ⊓ ? = T
 - X ⊓ X = X
 - C[Ts] ⊓ C[Ts'] = C[Ts⊓Ts']
-//Note: if X ≠ X' then X ⊓ X' is undefined
-//Expected properties (where defined): commutative, idempotent, associative
+- T ⊓ T' = Err otherwise //that, meet is always defined
+_______
+#Define e ⊓ T = e'
+  withType(e,typeOf(e) ⊓ T)
+_______
+#Define Γ ⊢/ e //read as Γ,e does not reduce
+  ¬∃ Γ',e'.(Γ ⊢ e ==> Γ' ⊢ e')
+_______
+#Define Xs ⊢ T=T' : Ts' //sub notation used in (refine)
 
-Rules for Γ ⊢ e ==> Γ' ⊢ e'
+---------------------------------------------------(refineXs)
+  X1..Xn X X'1..X'k ⊢ X=T : ?1..?n T ?1..?k
+//selects an X inside Xs' by splitting Xs' as X1..Xn X X1'..Xk'
 
+  ∀ i∈0..n Xs ⊢ Ti=T'i  : Tsi 
+--------------------------------------------------(propagateXs)
+  Xs ⊢ C[T1..Tn]=C[T'1..T'n] : Ts1⊓..⊓Tsn
+_______
+#Define classJoin(C[Ts], MH) = C[Ts1]
+  classJoin(C[Ts], m[X1..Xk](_ : T1 .. _ : Tn) : T0 ) = C[Ts']
+  with //~= is alpha renaming so that m has X1..Xk and Xs disj X1..Xk //needed?
+  interface C[Xs] { _ IMH  _ } ~in Ds
+  IMH = m[X1..Xk](_ : IT1 .. _ : ITn) : IT0
+  forall i in 0..n Xs |- ITi=Ti : Tsi
+  Ts' = Ts⊓Ts0⊓..⊓Tsn //ret type plus args
+_______
+#Define Γ ⊢ e ==>* Γ' ⊢ e' //read as reduce as much as possible
+  Γ ⊢ e ==>* Γ ⊢ e if ¬∃ Γ',e' such that Γ ⊢ e ==> Γ' ⊢ e' 
+  Γ ⊢ e ==>* Γ ⊢ e if Γ ⊢ e ==> Γ ⊢ e
+  Γ ⊢ e ==>* Γ" ⊢ e" if Γ ⊢ e ==> Γ' ⊢ e' and Γ' ⊢ e' ==>* Γ" ⊢ e"   
+_______
+#Define Γ ⊢ e ==> Γ' ⊢ e'
+
+-------------------------------------- (x)     //loop is now handled by ==>*
+  Γ, x:T1 ⊢ x:T2 ==> Γ, x:T1 ⊓ T2 ⊢ x:T1 ⊓ T2
+
+  ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
+  typeOf(e'0) = ?
+-------------------------------------- (call)
+  Γ0 ⊢ e0.m(e1..en):T ==> Γ(i+1) ⊢ e'0.m(e'1..e'n):T
+
+  ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
+  methodHeader(e'0,m) = m[X1..Xk](_:T1.._:Tn):T0
+  ∀ i∈0..n T'i = Ti[X1..Xk=?1..?k]
+  ∀ i∈1..k Γ(i-1) ⊢ ei⊓T'i ==>* Γi ⊢ e'i
+-------------------------------------- (callI)
+  Γ0 ⊢ e0.m(e1..en):T ==> Γ(i+1) ⊢ e'0.m[?1..?k](e'1⊓T'1..e'n⊓T'n):T⊓T'0
+
+  ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
+  methodHeader(e'0,m) = m[Xs](_:T1.._:Tn):T0
+  ∀ i∈1..n Xs ⊢ Ti=typeOf(e'i) : Ts'i //args
+  Xs ⊢ T0=T : Ts' //ret type
+  Ts" = Ts ⊓ Ts'1 ⊓ .. ⊓ Ts'n ⊓ Ts'  
+  ∀ i∈0..n T'i = Ti[Xs=Ts"]
+----------------------------------------------------------- (callR)
+  Γ0 ⊢ e0.m[Ts](e1..en):T ==> Γ(n+1) ⊢ e'0.m[Ts"](e'1⊓T'1..e'n⊓T'n):T⊓T'0
+
+  m is the only abs meth of C
+  methodHeader(C[Ts],m)= m[Xs'](_:T1.._:Tn):T0  
+  M = m[Xs'](x1:T1 .. xn:Tn): T0 { return e0⊓T0; }
+----------------------------------------------------------- (lambda)
+  Γ ⊢ (x1..xn->e0) : C[Ts] ==> Γ ⊢ new C[Ts](){ M }:C[Ts]
+
+  methodHeader(C[Ts1],m) = m[Xs](_:T"1.._:T"n):T"0 
+  e1 = new C[Ts1    ](){ M1 ..Mn  } : C[Ts1    ]
+  e2 = new C[Ts(n+1)](){ M'1..M'n } : C[Ts(n+1)]
+  ∀ i∈1..n  Γi;C[Tsi] ⊢ Mi ==>* Γ(i+1);C[Ts(i+1)] ⊢ M'i
+----------------------------------------------------------- (anon)
+  Γ1 ⊢ e1 ==> Γ(n+1) ⊢ e2
+
+  M  = m[Xs](x1:T1      .. xn:Tn     ) : T0  { return e0;  }//step1
+  M' = m[Xs](x1:T'1⊓T"1 .. xn:T'n⊓T"n) : T'0 { return e'0; }//step5
+  Γ, x1:T1 .. xn:Tn ⊢ e0 ==>* Γ', x1:T'1 .. xn:T'n ⊢ e'0    //step2
+  classJoin( C[Ts], m[Xs](x1:T'1 .. xn:T'n):T'0 ) = C[Ts']  //step3
+  methodHeader(C[Ts'],m) = m[Xs](_:T"1.._:T"n):T"0          //step4
+----------------------------------------------------------- (meth)
+  Γ;C[Ts] ⊢ M ==>* Γ';C[Ts'] ⊢ M'
+
+Optimizing (avoiding) re entries://not quite working?
+Once a Γ ⊢ e ==>* Γ' ⊢ e' completed,
+we know that Γ" ⊢ e' ==>* Γ" ⊢ e' if: //that is, no progress
+  Γ0 = FV(e') //gets a gamma since syntax has x:T
+  ∀ x in dom(Γ0) Γ0(x) = Γ"(x)
+This also means that
+Once a Γ ⊢ e ==>* Γ' ⊢ ev completed, Γ" ⊢ ev ==>* Γ1 ⊢ ev' can be emulated by:
+ Γ0 = FV(ev) and ev = ev'
+ Γ1 = Γ0 ⊓ Γ"
+
+
+//-----------------------
+//Old set up
+//---------------------
   T1 ⊓ T2 = T3
   T1 ≠ T2
 -------------------------------------- (x)
@@ -282,7 +391,6 @@ Rules for Γ ⊢ e ==> Γ' ⊢ e'
   Γ ⊢ e.m(e1..ek):T ==> Γ ⊢ e.m[?1..?n](e1⊓T'1..ek⊓T'k):T⊓T'0
 
   ∀ i∈0..n Γ⊢/ei
-  methodHeader(e0,m)= m[Xs](_:T1.._:Tn _:T _:_):_
   Γ ⊢ e ==> Γ' ⊢ e'
 -------------------------------------------------- (ctx-arg)
   Γ ⊢ e0.m[Ts](e1..en e es'):T0 ==> Γ' ⊢ e0.m[Ts](e1..en e' es'):T0
@@ -296,50 +404,23 @@ Rules for Γ ⊢ e ==> Γ' ⊢ e'
   methodHeader(e0,m) = m[Xs](_ : T1 .. _ : Tn) : T0
   ∀ i∈0..n Γ⊢/ei
   ∀ i∈0..n T'i = Ti[Xs=Ts"]
-  ∀ i∈1..n Xs,Ts ⊢ Ti -> typeOf(ei) : Tsi'
+  ∀ i∈1..n Xs,Ts ⊢ Ti -> typeOf(ei) : Ts'i
   Xs,Ts ⊢ T' -> T : Ts'
-  Ts" = Ts ⊓ Ts1 ⊓ .. ⊓ Tsn ⊓ Ts'
+  Ts" = Ts ⊓ Ts'1 ⊓ .. ⊓ Ts'n ⊓ Ts'
   T ≠ T⊓T'0 or Ts" ≠ Ts
 ----------------------------------------------------------- (refine)
   Γ ⊢ e0.m[Ts](e1..en):T ==> Γ ⊢ e0.m[Ts"](e1⊓T'1..en⊓T'n):T⊓T'0
-_______
-#Define Xs,Ts ⊢ T -> T' : Ts' //sub notation used in (refine)
 
----------------------------------------------------(refineXs)
-  X1..Xn X X'1..X'k,Ts ⊢ X -> T : ?1..?n T ?1..?k
-//selects an X inside Xs' by splitting Xs' as X1..Xn X X1'..Xk'
-
-  ∀ i∈0..n Xs,Ts ⊢ Ti  -> T'i  : Tsi 
---------------------------------------------------(propagateXs)
-  Xs,Ts ⊢ C[T1..Tn] -> C[T'1..T'n] : Ts1⊓..⊓Tsn
-
-//--- back to metarules for small step inference ---
-
+  methodHeader(C[Ts1],m) = m[Xs](_:T"1.._:T"n):T"0 
   e1 = new C[Ts1](){ vMs, M1, Ms } : C[Ts1]
   e2 = new C[Ts2](){ vMs, M2, Ms } : C[Ts2]
   M1 = m[Xs](x1:T1  .. xn:Tn)  : T0  { return e0;  }
   M2 = m[Xs](x1:T'1 .. xn:T'n) : T'0 { return e'0; }
-  Γ1, x1:T1 .. xn:Tn ⊢ e0 ==> Γ2, x1:T'1 .. xn:T'n ⊢ e'0
+  Γ1, x1:T1⊓T"1 .. xn:Tn⊓T"n ⊢ e0⊓T"0 ==> Γ2, x1:T'1 .. xn:T'n ⊢ e'0
   T'0 = typeOf(e'0)
   classJoin( C[Ts1], m[Xs](x1:T'1 .. xn:T'n):T'0 ) = C[Ts2]
 ----------------------------------------------------------- (enter)
   Γ1 ⊢ e1 ==> Γ2 ⊢ e2
-
-//Ds and thus methodHeader(e,m) change after this step?!?!
-//(fearless only)
-
-_______
-#Define classJoin(C[Ts], MH) = C[Ts1]
-  classJoin(C[Ts], m[X1..Xk](_ : T1 .. _ : Tn) : T0 ) = C[Ts']
-  with
-  interface C[Xs] { _ IMH  _ } ~in Ds
-  //~= is alpha renaming so that m has X1..Xk and Xs disj X1..Xk
-  IMH = m[X1..Xk](_ : IT1 .. _ : ITn) : IT0
-  Xs disjoint X1..Xk
-  forall i in 0..n Xs,Ts |- ITi -> Ti : Tsi
-  Ts' = Ts⊓Ts0⊓..⊓Tsn //ret type plus args
-
-
 
 
 */
