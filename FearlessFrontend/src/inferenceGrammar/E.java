@@ -33,6 +33,7 @@ public sealed interface E {
     public String toString(){ return "{'"+thisName
       + ms.stream().map(Object::toString).collect(Collectors.joining(""))
       +"}:"+t; }
+    public Literal withMs(List<M> ms){ return new Literal(thisName,ms,t,pos,0); }
   }
   record Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, IT t, Pos pos, boolean isEV, long g) implements E{
     public Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, Pos pos){ this(e,name,rc,targs,es,IT.U.Instance,pos,false,0);}
@@ -58,8 +59,8 @@ public sealed interface E {
         +es.stream().map(Object::toString).collect(Collectors.joining(","))+"):"+t;
       }
   }
-  record Type(T.RCC type, IT t, Pos pos, boolean isEV) implements E{
-    public Type(T.RCC type, Pos pos){ this(type,IT.U.Instance,pos,false); }
+  record Type(IT.RCC type, IT t, Pos pos, boolean isEV) implements E{
+    public Type(IT.RCC type, Pos pos){ this(type,IT.U.Instance,pos,false); }
     public E withT(IT t){ return new Type(type,t,pos,t.isTV()); }
     public String toString(){ return ""+type+":"+t; }
   }

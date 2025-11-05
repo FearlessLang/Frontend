@@ -1,6 +1,6 @@
 package inferenceGrammarB;
 
-import static offensiveUtils.Require.nonNull;
+import static offensiveUtils.Require.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,10 +11,14 @@ import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import files.Pos;
 import inferenceGrammar.B;
-import inferenceGrammar.T;
-public record M(Sig sig, Optional<inferenceGrammar.M.Impl> impl){
-  public M{ assert nonNull(sig,impl); }
-  public String toString(){ return sig + impl.map(Object::toString).orElse(""); }
+import inferenceGrammar.E;
+public record M(Sig sig, List<String> xs, Optional<E> e){
+  public M{ assert nonNull(sig,e); assert unmodifiable(xs,"par names"); }
+  public String toString(){
+    var args= "";
+    if (!xs.isEmpty()){ args= "("+xs.stream().collect(Collectors.joining(", "))+")"; }
+    return sig + args+ (e.isPresent()? "->"+e.get()+";" : ""); 
+  }
   public record Sig(RC rc, MName m, List<B> bs, List<T> ts, T ret, TName origin, boolean abs, Pos pos){
     public String toString(){
       var bsS= bs.isEmpty()?"":"["+bs.stream().map(Object::toString).collect(Collectors.joining(","))+"]";

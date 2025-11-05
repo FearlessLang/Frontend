@@ -19,15 +19,16 @@ import fearlessParser.RC;
 import files.Pos;
 import inferenceGrammar.B;
 import inferenceGrammar.Declaration;
-import inferenceGrammarB.M;
-import inferenceGrammarB.M.Sig;
+import inferenceGrammar.IT;
+import inferenceGrammar.M;
+import inferenceGrammar.M.Sig;
+import inferenceGrammarB.T;
 import message.WellFormednessErrors;
 import utils.Bug;
-import inferenceGrammar.T;
 
 public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages other, FreshPrefix fresh){
   void mayAdd(List<Declaration> layer, Declaration d, Map<TName, Declaration> rem){
-    for (T.C c : d.cs()){
+    for (IT.C c : d.cs()){
       var nope= pkgName.equals(c.name().pkgName()) && rem.containsKey(c.name());
       if (nope) { return; }
     }
@@ -55,16 +56,16 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
     return cache.values().stream().sorted(Comparator.comparing(d->d.name().s())).toList();
   }
   List<inferenceGrammarB.Declaration> of(List<Declaration> ds, Map<TName, inferenceGrammarB.Declaration> cache){
-    return ds.stream().map(d->expandDeclaration(d,cache)).toList();
+    return ds.stream().map(d->injectDeclaration(expandDeclaration(d,cache))).toList();
   }
-  record CsMs(List<T.C> cs, List<M.Sig> sigs){}
-  CsMs fetch(inferenceGrammarB.Declaration d, T.C c){
+  record CsMs(List<IT.C> cs, List<inferenceGrammar.M.Sig> sigs){}
+  CsMs fetch(inferenceGrammarB.Declaration d, IT.C c){
     List<String> xs= d.bs().stream().map(b->b.x().name()).toList();
-    var cs1= TypeRename.ofTC(d.cs(),xs,c.ts());
+    var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
     var sigs= d.ms().stream().map(m->alphaSig(m,xs,c)).toList();
     return new CsMs(cs1,sigs);
   }
-  private M.Sig alphaSig(M m, List<String> xs, T.C c){
+  private inferenceGrammar.M.Sig alphaSig(inferenceGrammarB.M m, List<String> xs, IT.C c){
     var s= m.sig();
     var fullXs= new ArrayList<>(xs);
     var fullTs= new ArrayList<>(c.ts());
@@ -74,73 +75,84 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
       if (fresh.isFreshGeneric(c.name(),x)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
-      var newX= new T.X(fresh.freshGeneric(c.name(),x));
+      var newX= new IT.X(fresh.freshGeneric(c.name(),x));
       fullTs.add(newX);
       newBs.add(new B(newX,b.rcs()));
     }
-    List<T> newTs= TypeRename.ofT(s.ts(),fullXs,fullTs);
-    T newRet= TypeRename.of(s.ret(),fullXs,fullTs);
-    return new M.Sig(s.rc(),s.m(),newBs,newTs,newRet,s.origin(),s.abs(),s.pos());
+    List<Optional<IT>> newTs= TypeRename.ofITOpt(TypeRename.tToIT(s.ts()),fullXs,fullTs);
+    IT newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
+    return new inferenceGrammar.M.Sig(
+      Optional.of(s.rc()),Optional.of(s.m()),Optional.of(newBs),newTs,Optional.of(newRet),Optional.of(s.origin()),s.abs(),s.pos());
   } 
   private inferenceGrammarB.Declaration from(TName name, Map<TName, inferenceGrammarB.Declaration> cache){
     if (name.pkgName().equals(pkgName)){ return cache.get(name); }
     return other.of(name);
   }
-  private inferenceGrammarB.Declaration expandDeclaration(Declaration d, Map<TName, inferenceGrammarB.Declaration> cache){
+  private Declaration expandDeclaration(Declaration d, Map<TName, inferenceGrammarB.Declaration> cache){
     List<CsMs> ds= d.cs().stream()
       .map(c->fetch(from(c.name(),cache),c))
       .toList();
-    List<T.C> allCs= Stream.concat(d.cs().stream(),ds.stream().flatMap(dsi->dsi.cs().stream()))
-      .distinct().sorted(Comparator.comparing(Object::toString)).toList();
+    List<IT.C> allCs= Stream.concat(
+      d.cs().stream(),
+      ds.stream().flatMap(dsi->dsi.cs().stream()))
+        .distinct().sorted(Comparator.comparing(Object::toString)).toList();
     List<M.Sig> allSig= ds.stream().flatMap(dsi->dsi.sigs().stream()).toList();
-    List<inferenceGrammar.M> named= inferMNames(d.l().ms(),new ArrayList<>(allSig),d.name());
+    List<M> named= inferMNames(d.l().ms(),new ArrayList<>(allSig),d.name());
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d.name());
-    return new inferenceGrammarB.Declaration(d.name(),d.bs(),allCs,d.l().thisName(),allMs,d.l().pos());
-  }  
+    return new Declaration(d.name(),d.bs(),allCs,d.l().withMs(allMs));
+  }
+  private inferenceGrammarB.Declaration injectDeclaration(Declaration d){
+    List<T.C> cs= TypeRename.itcToTC(d.cs());
+    List<inferenceGrammarB.M> ms= TypeRename.itmToM(d.l().ms());
+    return new inferenceGrammarB.Declaration(d.name(),d.bs(),cs,d.l().thisName(),ms,d.l().pos());
+  } 
   inferenceGrammar.M withName(MName name,inferenceGrammar.M m){
     assert m.impl().isPresent() && m.sig().m().isEmpty();
-    inferenceGrammar.M.Sig s= m.sig();
-    s= new inferenceGrammar.M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.pos());
+    M.Sig s= m.sig();
+    s= new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.pos());
     return new inferenceGrammar.M(s,m.impl());
   } 
-  List<inferenceGrammar.M> inferMNames(List<inferenceGrammar.M> ms, ArrayList<M.Sig> ss, TName origin){
-    List<inferenceGrammar.M> res= new ArrayList<>();
+  inferenceGrammar.M.Sig injectSig(inferenceGrammarB.M.Sig s){
+    throw Bug.todo();
+  }
+  List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, TName origin){
+    List<M> res= new ArrayList<>();
     for (var m: ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
       var name= m.sig().m().get();
       var match= new ArrayList<M.Sig>();
-      ss.removeIf(s->s.m().equals(name)?match.add(s):false);
+      ss.removeIf(s->s.m().get().equals(name)?match.add(s):false);
       res.add(m);
     }
     for (var m: ms){//for methods WITHOUT name
       if (m.sig().m().isPresent()){ continue; }
       var arity= m.sig().ts().size();
       var match= new ArrayList<M.Sig>();
-      ss.removeIf(s->s.m().arity()==arity && s.abs()?match.add(s):false);
+      ss.removeIf(s->s.m().get().arity()==arity && s.abs()?match.add(s):false);
       var count= namesCount(match);
-      if (count == 1){ res.add(withName(match.getFirst().m(),m)); continue; }
+      if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
       if (count > 1){ throw WellFormednessErrors.ambiguosImpl(origin,true,m,match); }
-      ss.removeIf(s->s.m().arity()==arity?match.add(s):false);
+      ss.removeIf(s->s.m().get().arity()==arity?match.add(s):false);
       count= namesCount(match);
-      if (count == 1){ res.add(withName(match.getFirst().m(),m)); continue; }
+      if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
       if (count > 1){ throw WellFormednessErrors.ambiguosImpl(origin,false,m,match); }
       throw WellFormednessErrors.noSourceToInferFrom(m);
     }
     return res;
   }
-  List<M> pairWithSig(List<inferenceGrammar.M> ms, ArrayList<M.Sig> ss, TName origin){
+  List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, TName origin){
     List<M> res= new ArrayList<>();
     for (var m: ms){
       var name= m.sig().m().get();
       var rc= m.sig().rc();
       var match= new LinkedHashMap<RC,List<M.Sig>>();
-      ss.removeIf(s->s.m().equals(name) && (rc.isEmpty() || rc.get().equals(s.rc()))?acc(match,s):false);
+      ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))?acc(match,s):false);
       if (match.isEmpty()){ res.add(pairWithSig(List.of(),m,origin)); }
       for (var matches:match.values()){ res.add(pairWithSig(Collections.unmodifiableList(matches),m,origin)); }
     }
     ss.stream()
       .collect(Collectors.groupingBy(
-        s -> new Parser.RCMName(Optional.of(s.rc()), s.m()),
+        s -> new Parser.RCMName(s.rc(), s.m().get()),
         LinkedHashMap::new,
         Collectors.toList()))
       .values()
@@ -148,54 +160,54 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
     return List.copyOf(res);
   }
   private boolean acc(HashMap<RC, List<Sig>> match, Sig s){
-    match.computeIfAbsent(s.rc(),_->new ArrayList<>()).add(s);
+    match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s);
     return true;
   }
   long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m()).count(); }
   M pairWithSig(List<M.Sig> ss, inferenceGrammar.M m, TName origin){
-    if (ss.isEmpty()){ return toM(m,origin); }
+    if (ss.isEmpty()){ return toCompleteM(m,origin); }
     var s= m.sig();    
-    var at= new Agreement(origin, ss.getFirst().m(), m.sig().pos());
-    MName name= ss.getFirst().m();
-    List<B> bs= s.bs().orElseGet(()->agreementBs(at,ss.stream().map(e->e.bs())));
-    List<T> ts= IntStream.range(0, s.ts().size()).mapToObj(i->pairWithTs(at,i, s.ts().get(i),ss)).toList();
-    T res= s.ret().orElseGet(()->agreement(at,ss.stream().map(e->e.ret()),"Return type disagreement"));
+    var at= new Agreement(origin, ss.getFirst().m().get(), m.sig().pos());
+    MName name= ss.getFirst().m().get();
+    List<B> bs= s.bs().orElseGet(()->agreementBs(at,ss.stream().map(e->e.bs().get())));
+    List<Optional<IT>> ts= IntStream.range(0, s.ts().size()).mapToObj(i->Optional.of(pairWithTs(at,i, s.ts().get(i),ss))).toList();
+    IT res= s.ret().orElseGet(()->agreement(at,ss.stream().map(e->e.ret().get()),"Return type disagreement"));
     boolean abs= m.impl().isEmpty();
-    RC rc= s.rc().orElseGet(()->agreement(at,ss.stream().map(e->e.rc()),"Reference capability disagreement"));
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.pos());
+    RC rc= s.rc().orElseGet(()->agreement(at,ss.stream().map(e->e.rc().get()),"Reference capability disagreement"));
+    M.Sig sig= new M.Sig(Optional.of(rc),Optional.of(name),Optional.of(bs),ts,Optional.of(res),Optional.of(origin),abs,s.pos());
     return new M(sig,m.impl());
   }
-  T pairWithTs(Agreement at, int i, Optional<T> t,List<M.Sig> ss){
-    return t.orElseGet(()->agreement(at,ss.stream().map(e->e.ts().get(i)),
+  IT pairWithTs(Agreement at, int i, Optional<IT> t,List<M.Sig> ss){
+    return t.orElseGet(()->agreement(at,ss.stream().map(e->e.ts().get(i).get()),
       "Type disagreement about argument "+i)); 
   }
   M pairWithSig(List<M.Sig> ss, TName origin){
     assert !ss.isEmpty();
-    if (ss.size() == 1){ return toM(ss.getFirst()); }
-    var at= new Agreement(origin,ss.getFirst().m(),origin.pos());
-    MName name= ss.getFirst().m();
-    List<B> bs= agreementBs(at,ss.stream().map(e->e.bs()));
-    List<T> ts= IntStream.range(0, name.arity()).mapToObj(
-      i->agreement(at,ss.stream().map(e->e.ts().get(i)),
-        "Type disagreement about argument "+i)).toList();
-    T res= agreement(at,ss.stream().map(e->e.ret()),"Return type disagreement");
-    var impl= ss.stream().filter(e->!e.abs()).map(e->e.origin()).distinct().toList();
+    if (ss.size() == 1){ return toCompleteM(ss.getFirst()); }
+    var at= new Agreement(origin,ss.getFirst().m().get(),origin.pos());
+    MName name= ss.getFirst().m().get();
+    List<B> bs= agreementBs(at,ss.stream().map(e->e.bs().get()));
+    List<Optional<IT>> ts= IntStream.range(0, name.arity()).mapToObj(
+      i->Optional.of(agreement(at,ss.stream().map(e->e.ts().get(i).get()),
+        "Type disagreement about argument "+i))).toList();
+    IT res= agreement(at,ss.stream().map(e->e.ret().get()),"Return type disagreement");
+    var impl= ss.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
     if (impl.size() > 1){ throw WellFormednessErrors.ambiguousImplementationFor(ss,impl,at); }
     if (impl.size() == 1){ origin = impl.getFirst(); }
-        RC rc= agreement(at,ss.stream().map(e->e.rc()),"Reference capability disagreement");
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,impl.isEmpty(),ss.getFirst().pos());
+    RC rc= agreement(at,ss.stream().map(e->e.rc().get()),"Reference capability disagreement");
+    M.Sig sig= new M.Sig(Optional.of(rc),Optional.of(name),Optional.of(bs),ts,Optional.of(res),Optional.of(origin),impl.isEmpty(),ss.getFirst().pos());
     return new M(sig,Optional.empty());
   }
-  M toM(M.Sig s){ return new M(s,Optional.empty()); }
-  M toM(inferenceGrammar.M m,TName origin){
+  M toCompleteM(M.Sig s){ return new M(s,Optional.empty()); }
+  M toCompleteM(inferenceGrammar.M m,TName origin){
     var s= m.sig();
     RC rc=s.rc().orElse(RC.imm);
     MName name= s.m().get();
     List<B> bs= s.bs().orElse(List.of());
-    List<T> ts= s.ts().stream().map(t->t.orElseThrow(Bug::todo)).toList();
-    T res= s.ret().orElseThrow(()->WellFormednessErrors.noRetNoInference(origin,m));
+    List<Optional<IT>> ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(Bug::todo))).toList();
+    Optional<IT> res= Optional.of(s.ret().orElseThrow(()->WellFormednessErrors.noRetNoInference(origin,m)));
     boolean abs= m.impl().isEmpty();
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.pos());
+    M.Sig sig= new M.Sig(Optional.of(rc),Optional.of(name),Optional.of(bs),ts,res,Optional.of(origin),abs,s.pos());
     return new M(sig,m.impl());
   }
   <RR> RR agreement(Agreement at,Stream<RR> es, String msg){
@@ -220,8 +232,8 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
       .map(e->new B(freshG(t,e.x()),e.rcs()))
       .toList();
   }
-  private T.X freshG(TName t, T.X x){
+  private IT.X freshG(TName t, IT.X x){
     if (fresh.isFreshGeneric(t,x.name())){ return x; }
-    return new T.X(fresh.freshGeneric(t, x.name()));
+    return new IT.X(fresh.freshGeneric(t, x.name()));
   }
 }

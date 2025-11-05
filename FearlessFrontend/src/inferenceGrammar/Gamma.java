@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import fullWellFormedness.TypeRename;
-
 public final class Gamma {
   private static final int maxBindings= 4096;
   private static final int maxDepth=     256;
@@ -86,14 +84,14 @@ public final class Gamma {
     }
     return sb.toString();
   }
-  public static Gamma of(List<String> xs2, List<T> ts2,String self,T t){
+  public static Gamma of(List<String> xs2, List<IT> ts2,String self,IT t){
     Gamma res= new Gamma();
     assert xs2.size() == ts2.size();
     IntStream.range(0, xs2.size())
       .filter(i->!xs2.get(i).equals("_"))
       .forEach(i->
-      res.declare(xs2.get(i),TypeRename.tToIT(ts2.get(i))));
-    if (!self.equals("_")){ res.declare(self, TypeRename.tToIT(t)); }
+      res.declare(xs2.get(i),ts2.get(i)));
+    if (!self.equals("_")){ res.declare(self, t); }
     return res;
   }
 }

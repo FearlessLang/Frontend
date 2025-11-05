@@ -2,13 +2,19 @@ package fullWellFormedness;
 
 import java.util.List;
 import java.util.Optional;
+
+import fearlessFullGrammar.TName;
 import fearlessParser.RC;
+import files.Pos;
+import inferenceGrammar.E;
 import inferenceGrammar.IT;
-import inferenceGrammar.T;
+import inferenceGrammarB.T;
 import utils.Bug;
 
 public class TypeRename{
+  static List<IT.C> ofITC(List<IT.C> csi, List<String> xs, List<IT> ts){ return csi.stream().map(c->of(c,xs,ts)).toList(); }
   static List<T.C> ofTC(List<T.C> csi, List<String> xs, List<T> ts){ return csi.stream().map(c->of(c,xs,ts)).toList(); }
+  static IT.C of(IT.C c, List<String> xs, List<IT> ts){ return new IT.C(c.name(), ofIT(c.ts(),xs,ts)); }
   static T.C of(T.C c, List<String> xs, List<T> ts){ return new T.C(c.name(), ofT(c.ts(),xs,ts)); }
   static IT of(IT t, List<String> xs, List<IT> ts){ return switch(t){
     case IT.X x -> getOrSame(x,x.name(),xs,ts);
@@ -31,6 +37,7 @@ public class TypeRename{
     case fearlessFullGrammar.T.ReadImmX(var x) -> readImm(of(x,xs,ts));
   };}
   static List<IT> ofIT(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
+  static List<Optional<IT>> ofITOpt(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti,xs,ts))).toList(); }
   static List<T> ofT(List<T> tsi, List<String> xs, List<T> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
   static List<fearlessFullGrammar.T> ofFT(List<fearlessFullGrammar.T> tsi, List<String> xs, List<fearlessFullGrammar.T> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
   static IT readImm(IT t){return switch(t){
@@ -78,11 +85,44 @@ public class TypeRename{
     var i= xs.indexOf(name); 
     return i == -1 ? x : ts.get(i);
   }
-  public static IT tToIT(inferenceGrammar.T t){return switch(t){
-    case inferenceGrammar.T.X(var name) -> new IT.X(name);
-    case inferenceGrammar.T.ReadImmX(var x) -> new IT.ReadImmX(new IT.X(x.name()));
-    case inferenceGrammar.T.RCX(var rc,var x) -> new IT.RCX(rc,new IT.X(x.name()));
-    case inferenceGrammar.T.RCC(var rc, var c) -> new IT.RCC(rc,new IT.C(c.name(),
-      c.ts().stream().map(ti->tToIT(ti)).toList()));
+  public static List<IT.C> tcToITC(List<T.C> cs){
+    return cs.stream().map(TypeRename::tcToITC).toList();
+  }
+  public static List<IT> tToIT(List<T> cs){
+    return cs.stream().map(TypeRename::tToIT).toList();
+  }
+  public static T.C itcToTC(IT.C c){
+    return new T.C(c.name(),c.ts().stream().map(ti->itToT(ti)).toList());  
+  }
+  public static List<T.C> itcToTC(List<IT.C> cs){
+    return cs.stream().map(TypeRename::itcToTC).toList();  
+  }
+  public static IT.C tcToITC(T.C c){
+    return new IT.C(c.name(),c.ts().stream().map(ti->tToIT(ti)).toList());
+  }
+  public static IT tToIT(T t){return switch(t){
+    case T.X(var name) -> new IT.X(name);
+    case T.ReadImmX(var x) -> new IT.ReadImmX(new IT.X(x.name()));
+    case T.RCX(var rc,var x) -> new IT.RCX(rc,new IT.X(x.name()));
+    case T.RCC(var rc, var c) -> new IT.RCC(rc,tcToITC(c));
   };}
+  public static T itToT(IT t){return switch(t){
+    case IT.X(var name) -> new T.X(name);
+    case IT.ReadImmX(var x) -> new T.ReadImmX(new T.X(x.name()));
+    case IT.RCX(var rc,var x) -> new T.RCX(rc,new T.X(x.name()));
+    case IT.RCC(var rc, var c) -> new T.RCC(rc,itcToTC(c));
+    case IT.U _  -> new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.UNKNOWN), List.of()));
+    case IT.Err _ ->new T.RCC(RC.imm,new T.C(new TName("base.InferErr", 0, Pos.UNKNOWN), List.of()));
+  };}
+  
+  public static inferenceGrammarB.M itmToM(inferenceGrammar.M m){
+    var s= m.sig();
+    List<T> ts= s.ts().stream().map(t->TypeRename.itToT(t.get())).toList();
+    T t= TypeRename.itToT(s.ret().get());
+    var sig= new inferenceGrammarB.M.Sig(s.rc().get(),s.m().get(),s.bs().get(),ts,t,s.origin().get(),s.abs(),s.pos());
+    List<String> xs= m.impl().isEmpty()?List.of():m.impl().get().xs();
+    Optional<E> e= m.impl().map(i->i.e());
+    return new inferenceGrammarB.M(sig,xs,e);
+  }
+  public static List<inferenceGrammarB.M> itmToM(List<inferenceGrammar.M> ms){ return ms.stream().map(TypeRename::itmToM).toList(); } 
 }

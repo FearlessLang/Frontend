@@ -19,7 +19,6 @@ import fullWellFormedness.Methods.Agreement;
 import inferenceGrammar.B;
 import inferenceGrammar.Declaration;
 import inferenceGrammar.M;
-import inferenceGrammarB.M.Sig;
 import metaParser.Message;
 import utils.Bug;
 
@@ -222,7 +221,8 @@ public final class WellFormednessErrors {
   public static FearlessException agreement(Agreement at, List<?> res, String msg){
     return agreement(at,Code.WellFormedness.of(
       msg+ " for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
-    + "Different options are present in the implemented types: "+res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
+    + "Different options are present in the implemented types: "+res.stream()
+      .map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
     + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
       ));
   }
@@ -233,16 +233,16 @@ public final class WellFormednessErrors {
     + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
       ));
    }
-  public static FearlessException ambiguosImpl(TName origin,boolean abs, M m, List<inferenceGrammarB.M.Sig> options){
+  public static FearlessException ambiguosImpl(TName origin,boolean abs, M m, List<inferenceGrammar.M.Sig> options){
     return agreement(origin,m.sig().pos(),Code.WellFormedness.of(
       "Can not infer the name for method with "+m.sig().ts().size()+" parameters.\n"
     + "Many"+(abs?" abstract":"")+" methods with "+m.sig().ts().size()+" parameters could be selected:\n"
     + "Candidates: "+options.stream()
-        .map(mi->Message.displayString(mi.rc()+" "+mi.m().s()))
+        .map(mi->Message.displayString(mi.rc().get()+" "+mi.m().get().s()))
         .collect(Collectors.joining(", "))+".\n"
       ));
   }
-  public static FearlessException ambiguousImplementationFor(List<Sig> ss, List<TName> options, Agreement at){
+  public static FearlessException ambiguousImplementationFor(List<M.Sig> ss, List<TName> options, Agreement at){
     return agreement(at,Code.WellFormedness.of(
       "Ambiguos implementation for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types:\n"

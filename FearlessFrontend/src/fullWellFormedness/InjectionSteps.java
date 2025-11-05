@@ -14,9 +14,9 @@ import fearlessParser.RC;
 import inferenceGrammar.E;
 import inferenceGrammar.Gamma;
 import inferenceGrammar.IT;
-import inferenceGrammar.T;
 import inferenceGrammarB.Declaration;
 import inferenceGrammarB.M;
+import inferenceGrammarB.T;
 import utils.Bug;
 import utils.Push;
 
@@ -32,14 +32,14 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
   }
   private static Declaration stepDec(InjectionSteps s, Declaration di){
     var ms= di.ms().stream().map(m->{
-      if (m.impl().isEmpty()){ return m; }
-      var i= m.impl().get();
-      List<T> thisTypeTs= di.bs().stream().<T>map(b->b.x()).toList();
-      var thisType= new T.RCC(m.sig().rc(),new T.C(di.name(),thisTypeTs));
-      E ei= meet(i.e(),TypeRename.tToIT(m.sig().ret()));      
-      Gamma g= Gamma.of(i.xs(),m.sig().ts(),di.thisName(),thisType);
+      if (m.e().isEmpty()){ return m; }
+      var e= m.e().get();
+      List<IT> thisTypeTs= di.bs().stream().<IT>map(b->b.x()).toList();
+      var thisType= new IT.RCC(m.sig().rc(),new IT.C(di.name(),thisTypeTs));
+      E ei= meet(e,TypeRename.tToIT(m.sig().ret()));      
+      Gamma g= Gamma.of(m.xs(),TypeRename.tToIT(m.sig().ts()),di.thisName(),thisType);
       ei= s.nextStar(g, ei);
-      return new M(m.sig(),Optional.of(new inferenceGrammar.M.Impl(i.m(),i.xs(),ei)));
+      return new M(m.sig(),m.xs(),Optional.of(ei));
     }).toList();
     return di.withMs(ms);
   }
@@ -105,14 +105,14 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
     case E.Type t -> nextT(g,t);
   };}
   private List<String> dom(List<inferenceGrammar.B> bs){ return bs.stream().map(b->b.x().name()).toList(); }
-  private IT preferred(T.RCC type){
+  private IT preferred(IT.RCC type){
     var d= dsMap.get(type.c().name());
     var cs= d.cs().stream().filter(c->c.name().s().equals("base.WidenTo")).toList();
-    if (cs.size() == 0){ return TypeRename.tToIT(type); } 
+    if (cs.size() == 0){ return type; } 
     assert cs.size() == 1;//TODO: add a well formed error for this and for Sealed
     assert cs.getFirst().ts().size() == 1;
-    T wid= TypeRename.of(cs.getFirst().ts().getFirst(), dom(d.bs()), type.c().ts());
-    return TypeRename.tToIT(wid);
+    IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom(d.bs()), type.c().ts());
+    return wid;
   }
   public record MSig(RC rc, List<String> bs, List<IT> ts, IT ret){}
   private RC overloadNorm(RC rc){ return switch(rc){
@@ -217,8 +217,29 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
   private E nextL(Gamma g, E.Literal c){
     if (!(c.t() instanceof IT.RCC)){ return c; }
     if (c.isEV() || c.g() == g.visibleVersion()){ return c; }
+    //List<M> ms=c.ms();//TODO: need a manual loop that keeps identity if possible
+    //TODO: this has to jumpt from inferenceGrammar to inferenceGrammarB
     throw Bug.todo();
   }
+  private M nextM(Gamma g, T.RCC rcc, M m){
+    throw Bug.todo();  
+  }
+  /*
+  e1 = new C[Ts1    ](){ M1 ..Mn  } : C[Ts1    ]
+  e2 = new C[Ts(n+1)](){ M'1..M'n } : C[Ts(n+1)]
+  ∀ i∈1..n  Γi;C[Tsi] ⊢ Mi ==>* Γ(i+1);C[Ts(i+1)] ⊢ M'i
+----------------------------------------------------------- (anon)
+  Γ1 ⊢ e1 ==> Γ(n+1) ⊢ e2
+
+  M  = m[Xs](x1:T1     ..xn:Tn     ) : T0  { return e0;  }                 //step1
+  M' = m[Xs](x1:T'1⊓T"1..xn:T'n⊓T"n) : typeOf(e'0)⊓ T"0 {return e'0⊓ T"0;} //step5
+  Γ, this:C[Ts],x1:T1..xn:Tn⊢ e0 ==>* Γ',this:_, x1:T'1..xn:T'n ⊢ e'0     //step2
+  classJoin( C[Ts], m[Xs](x1:T'1 .. xn:T'n):T'0 ) = C[Ts']                 //step3
+  methodHeader(C[Ts'],m) = m[Xs](_:T"1.._:T"n):T"0                         //step4
+
+----------------------------------------------------------- (meth)
+  Γ;C[Ts] ⊢ M ==>* Γ';C[Ts'] ⊢ M'
+  */
   List<IT> refine(List<String> xs,IT t, IT t1){ return switch(t){
     case IT.X x -> refineXs(xs,x,t1);
     case IT.RCX(RC _, IT.X x) -> refineXs(xs,x,t1);
@@ -246,35 +267,25 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
 
 FJ inference
 
-D   ::= interface C[Xs] { fMs , VMHs }
-VMH ::= m[Xs](x1:VT1 .. xn:VTn):VT
-fM  ::= VMH { return fe }
-cM  ::= VMH { return ce }
-M   ::= VMH { return e  }
-VM  ::= m[Xs](x1:VT1 .. xn:VTn):VT { return ve }
-VT  ::= C[VTs] | X
+D   ::= interface C[Xs] { fMs , FMHs }
+FMH ::= m[Xs](x1:FT1 .. xn:FTn):FT
+fM  ::= FMH { return fe }
+cM  ::= FMH { return ce }
+M   ::= MH { return e  }
+FT  ::= C[FTs] | X
 T   ::= C[Ts]  | X | ? | Err
-fe  ::= x | new C[VTs](){ fMs } | fe.m[VTs](fes) | fe.m(fes) | xs -> fe
-ce  ::= x | new C[VTs](){ cMs } | ce.m[VTs](ces)
+fe  ::= x | new C[FTs](){ fMs } | fe.m[FTs](fes) | fe.m(fes) | xs -> fe
+ce  ::= x   | new C[FTs](){ cMs } | ce.m[FTs](ces)
 e   ::= x:T | new C[Ts](){ Ms }:T | e.m[Ts](es):T | (xs->e):T | e.m(es):T
-ve  ::= x:VT | new C[VTs](){ VMs }:VT | ve.m[VTs](ves):VT
-VΓ  ::= x1:VT1 .. xn:VTn
 Γ   ::= x1:T1  .. xn:Tn
-//Implicit non terminals
-Xs  ::= X1..Xn
-Ts  ::= T1..Tn
-VTs ::= VT1..VTn
-es  ::= e1..en
-//Note: e1..en is empty if n=0; e0..en instead has at least 1 element
-//Γ and VΓ are maps, so the order of elements is irrelevant
 
 Pipeline for every method body
-containing a full-expression fe under VΓ with return VT
+containing a full-expression fe under Γ (including 'this') with return FT
 
-- e := inferenceOf(fe, VT)
-- VΓ ⊢ e ==>⋆ Γ' ⊢ ve //VΓ extracted from the method signature
+- e := inferenceOf(fe, FT)
+- Γ ⊢ e ==>* Γ' ⊢ e //Γ and FT extracted from the method signature
 - lower(ve) = ce
-- VΓ ⊢ ce : VT //finally, typing the method body
+- Γ ⊢ ce : FT //finally, typing the method body
 
 Obvious selectors:
 - typeOf(e) = T
@@ -292,7 +303,7 @@ _______
 - C[Ts] ⊓ C[Ts'] = C[Ts⊓Ts']
 - T ⊓ T' = Err otherwise //that, meet is always defined
 _______
-#Define e ⊓ T = e'
+#Define e ⊓ T = e'  //NOTE: we may want not to propagate Err on an e
   withType(e,typeOf(e) ⊓ T)
 _______
 #Define Γ ⊢/ e //read as Γ,e does not reduce
@@ -329,6 +340,7 @@ _______
 _______
 #Define Γ ⊢ e ==> Γ' ⊢ e'
 
+//NOTE: we may want not to propagate Err on a Γ
 -------------------------------------- (x)     //loop is now handled by ==>*
   Γ, x:T1 ⊢ x:T2 ==> Γ, x:T1 ⊓ T2 ⊢ x:T1 ⊓ T2
 
@@ -351,8 +363,8 @@ _______
   ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
   methodHeader(e'0,m) = m[Xs](_:T1.._:Tn):T0
   ∀ i∈1..n Xs ⊢ Ti=typeOf(e'i) : Ts'i //args
-  Xs ⊢ T0=T : Ts' //ret type
-  Ts" = Ts ⊓ Ts'1 ⊓ .. ⊓ Ts'n ⊓ Ts'  
+  Xs ⊢ T0=T : Ts'0 //ret type
+  Ts" = Ts ⊓ Ts'0 ⊓ .. ⊓ Ts'n  
   ∀ i∈0..n T'i = Ti[Xs=Ts"]
 ----------------------------------------------------------- (callR)
   Γ0 ⊢ e0.m[Ts](e1..en):T ==> Γ(n+1) ⊢ e'0.m[Ts"](e'1⊓T'1..e'n⊓T'n):T⊓T'0
@@ -360,21 +372,27 @@ _______
   m is the only abs meth of C
   methodHeader(C[Ts],m)= m[Xs'](_:T1.._:Tn):T0  
   M = m[Xs'](x1:T1 .. xn:Tn): T0 { return e0⊓T0; }
+  //NOTE: 'this' changes scope here, how to handle it?
 ----------------------------------------------------------- (lambda)
   Γ ⊢ (x1..xn->e0) : C[Ts] ==> Γ ⊢ new C[Ts](){ M }:C[Ts]
 
-  methodHeader(C[Ts1],m) = m[Xs](_:T"1.._:T"n):T"0 
+  there is no m  that is the only abs meth of C with n parameters
+----------------------------------------------------------- (lambdaNope)
+  Γ ⊢ (x1..xn->e0) : C[Ts] ==> Γ ⊢ (x1..xn->e0) : C[Ts]
+
+
   e1 = new C[Ts1    ](){ M1 ..Mn  } : C[Ts1    ]
   e2 = new C[Ts(n+1)](){ M'1..M'n } : C[Ts(n+1)]
   ∀ i∈1..n  Γi;C[Tsi] ⊢ Mi ==>* Γ(i+1);C[Ts(i+1)] ⊢ M'i
 ----------------------------------------------------------- (anon)
   Γ1 ⊢ e1 ==> Γ(n+1) ⊢ e2
 
-  M  = m[Xs](x1:T1      .. xn:Tn     ) : T0  { return e0;  }//step1
-  M' = m[Xs](x1:T'1⊓T"1 .. xn:T'n⊓T"n) : T'0 { return e'0; }//step5
-  Γ, x1:T1 .. xn:Tn ⊢ e0 ==>* Γ', x1:T'1 .. xn:T'n ⊢ e'0    //step2
-  classJoin( C[Ts], m[Xs](x1:T'1 .. xn:T'n):T'0 ) = C[Ts']  //step3
-  methodHeader(C[Ts'],m) = m[Xs](_:T"1.._:T"n):T"0          //step4
+  M  = m[Xs](x1:T1     ..xn:Tn     ) : T0  { return e0;  }                 //step1
+  M' = m[Xs](x1:T'1⊓T"1..xn:T'n⊓T"n) : typeOf(e'0)⊓ T"0 {return e'0⊓ T"0;} //step5
+  Γ, this:C[Ts],x1:T1..xn:Tn⊢ e0 ==>* Γ',this:_, x1:T'1..xn:T'n ⊢ e'0     //step2
+  classJoin( C[Ts], m[Xs](x1:T'1 .. xn:T'n):T'0 ) = C[Ts']                 //step3
+  methodHeader(C[Ts'],m) = m[Xs](_:T"1.._:T"n):T"0                         //step4
+
 ----------------------------------------------------------- (meth)
   Γ;C[Ts] ⊢ M ==>* Γ';C[Ts'] ⊢ M'
 
@@ -387,7 +405,6 @@ This also means that
 Once a Γ ⊢ e ==>* Γ' ⊢ ev completed, Γ" ⊢ ev ==>* Γ1 ⊢ ev' can be emulated by:
  Γ0 = FV(ev) and ev = ev'
  Γ1 = Γ0 ⊓ Γ"
-
 
 //-----------------------
 //Old set up

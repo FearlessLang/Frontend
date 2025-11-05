@@ -31,11 +31,14 @@ public sealed interface IT {
       assert unmodifiable(ts,"T.C.args");
       assert eq(ts.size(), name.arity(),"Type arity");
     }
-    public String toString(){ return name.s()+"["+ts.stream().map(Object::toString).collect(Collectors.joining(","))+"]"; }
+    public String toString(){
+      if (ts.isEmpty()){ return name.s(); } 
+      return name.s()+"["+ts.stream().map(Object::toString).collect(Collectors.joining(","))+"]"; 
+    }
   }
   record RCC(RC rc, C c) implements IT{
     public RCC{ nonNull(rc,c); }
-    public String toString(){ return rc.name()+" "+c; }
+    public String toString(){ return rc==RC.imm? ""+c : rc.name()+" "+c; }
     public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
   }
   enum U implements IT{ Instance; 
