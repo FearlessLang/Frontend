@@ -22,18 +22,19 @@ public sealed interface E {
     public String toString(){ return name+":"+t; }
     public E withT(IT t){ return new X(name,t,pos,t.isTV()); }
   }
-  record Literal(String thisName, List<M> ms, IT t, Pos pos, long g) implements E{
-    public Literal(String thisName, List<M> ms, Pos pos){ this(thisName,ms,IT.U.Instance,pos,0);}
+  record Literal(String thisName, List<M> ms, IT t, Pos pos, boolean infA, long g) implements E{
+    public Literal(String thisName, List<M> ms, Pos pos){ this(thisName,ms,IT.U.Instance,pos,false,0);}
     public Literal{
       assert unmodifiable(ms, "L.ms");
       assert nonNull(thisName,t);
     }
     public boolean isEV(){ return false; }
-    public E withT(IT t){ return new Literal(thisName,ms,t,pos,g); }
+    public E withT(IT t){ return new Literal(thisName,ms,t,pos,infA,g); }
     public String toString(){ return "{'"+thisName
       + ms.stream().map(Object::toString).collect(Collectors.joining(""))
       +"}:"+t; }
-    public Literal withMs(List<M> ms){ return new Literal(thisName,ms,t,pos,0); }
+    public Literal withMs(List<M> ms, boolean infA){ return new Literal(thisName,ms,t,pos,infA,0); }
+    public Literal withFlag(long g){ return new Literal(thisName,ms,t,pos,infA,g); }
   }
   record Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, IT t, Pos pos, boolean isEV, long g) implements E{
     public Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, Pos pos){ this(e,name,rc,targs,es,IT.U.Instance,pos,false,0);}

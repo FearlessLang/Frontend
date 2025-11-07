@@ -19,6 +19,7 @@ import fearlessParser.RC;
 import files.Pos;
 import inferenceGrammar.B;
 import inferenceGrammar.Declaration;
+import inferenceGrammar.E;
 import inferenceGrammar.IT;
 import inferenceGrammar.M;
 import inferenceGrammar.M.Sig;
@@ -26,7 +27,10 @@ import inferenceGrammarB.T;
 import message.WellFormednessErrors;
 import utils.Bug;
 
-public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages other, FreshPrefix fresh){
+public record Methods(
+  String pkgName, List<Declaration> iDecs,
+  OtherPackages other, FreshPrefix fresh,
+      Map<TName, inferenceGrammarB.Declaration> cache){
   void mayAdd(List<Declaration> layer, Declaration d, Map<TName, Declaration> rem){
     for (IT.C c : d.cs()){
       var nope= pkgName.equals(c.name().pkgName()) && rem.containsKey(c.name());
@@ -49,14 +53,13 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
   }
   public List<inferenceGrammarB.Declaration> of(){
     var layers= layer(iDecs,pkgName);
-    Map<TName, inferenceGrammarB.Declaration> cache = new HashMap<>();
     for(var l : layers){ 
-      for (var d : of(l,cache)){ cache.put(d.name(), d); }
+      for (var d : of(l)){ cache.put(d.name(), d); }
     }
     return cache.values().stream().sorted(Comparator.comparing(d->d.name().s())).toList();
   }
-  List<inferenceGrammarB.Declaration> of(List<Declaration> ds, Map<TName, inferenceGrammarB.Declaration> cache){
-    return ds.stream().map(d->injectDeclaration(expandDeclaration(d,cache))).toList();
+  List<inferenceGrammarB.Declaration> of(List<Declaration> ds){
+    return ds.stream().map(d->injectDeclaration(expandDeclaration(d))).toList();
   }
   record CsMs(List<IT.C> cs, List<inferenceGrammar.M.Sig> sigs){}
   CsMs fetch(inferenceGrammarB.Declaration d, IT.C c){
@@ -88,7 +91,7 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
     if (name.pkgName().equals(pkgName)){ return cache.get(name); }
     return other.of(name);
   }
-  private Declaration expandDeclaration(Declaration d, Map<TName, inferenceGrammarB.Declaration> cache){
+  public Declaration expandDeclaration(Declaration d){
     List<CsMs> ds= d.cs().stream()
       .map(c->fetch(from(c.name(),cache),c))
       .toList();
@@ -99,7 +102,13 @@ public record Methods(String pkgName, List<Declaration> iDecs, OtherPackages oth
     List<M.Sig> allSig= ds.stream().flatMap(dsi->dsi.sigs().stream()).toList();
     List<M> named= inferMNames(d.l().ms(),new ArrayList<>(allSig),d.name());
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d.name());
-    return new Declaration(d.name(),d.bs(),allCs,d.l().withMs(allMs));
+    return new Declaration(d.name(),d.bs(),allCs,d.l().withMs(allMs,true));
+  }
+  public E.Literal expandLiteral(E.Literal l, IT.C c){
+    List<M.Sig> allSig= l.ms().stream().map(m->m.sig()).toList();
+    List<M> named= inferMNames(l.ms(),new ArrayList<>(allSig),c.name());
+    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),c.name());
+    return l.withMs(allMs,true);
   }
   private inferenceGrammarB.Declaration injectDeclaration(Declaration d){
     List<T.C> cs= TypeRename.itcToTC(d.cs());

@@ -16,15 +16,14 @@ import inferenceGrammar.Gamma;
 import inferenceGrammar.IT;
 import inferenceGrammarB.Declaration;
 import inferenceGrammarB.M;
-import inferenceGrammarB.T;
 import utils.Bug;
 import utils.Push;
 
-public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration> dsMap){
-  public static List<Declaration> steps(List<Declaration> in){
+public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TName,Declaration> dsMap){
+  public static List<Declaration> steps(Methods meths, List<Declaration> in){
     HashMap<TName,Declaration> dsMap= new HashMap<>();
     for (var d:in){ dsMap.put(d.name(), d); }
-    var s= new InjectionSteps(new ArrayList<>(in),dsMap);
+    var s= new InjectionSteps(meths,new ArrayList<>(in),dsMap);
     //ds.size will grow during iteration
     List<Declaration> res= new ArrayList<>();
     for (int i= 0; i < s.ds.size(); i += 1){ res.add(stepDec(s, s.ds.get(i))); }    
@@ -96,7 +95,7 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
     }
     if (same && old == g.visibleVersion()){ return es; }
     return Collections.unmodifiableList(res);
-  }  
+  }
   E next(Gamma g, E e){ return switch (e){
     case E.X x -> nextX(g,x);
     case E.Literal l -> nextL(g,l);
@@ -214,23 +213,45 @@ public record InjectionSteps(ArrayList<Declaration> ds,HashMap<TName,Declaration
     var isVal= e.isEV() && es.stream().allMatch(E::isEV) && targs.stream().allMatch(IT::isTV); 
     return new E.Call(e, c.name(), Optional.of(rc),targs,es1,it, c.pos(),isVal,0); 
   }
-  private E nextL(Gamma g, E.Literal c){
-    if (!(c.t() instanceof IT.RCC)){ return c; }
-    if (c.isEV() || c.g() == g.visibleVersion()){ return c; }
-    //List<M> ms=c.ms();//TODO: need a manual loop that keeps identity if possible
-    //TODO: this has to jumpt from inferenceGrammar to inferenceGrammarB
+  private E nextL(Gamma g, E.Literal l){
+    if (!(l.t() instanceof IT.RCC rcc)){ return l; }
+    if (l.isEV() || l.g() == g.visibleVersion()){ return l; }
+    if (!l.infA()){ l= meths.expandLiteral(l,rcc.c()); }
+    long old= g.visibleVersion();
+    boolean same= true;
+    var res= new ArrayList<inferenceGrammar.M>(l.ms().size());
+    List<IT> ts= rcc.c().ts();
+    for (var mi: l.ms()){
+      TSM next= nextMStar(g,l.thisName(),rcc,ts,mi);
+      same &= next.m == mi & ts == next.ts;
+      res.add(next.m);
+      ts = next.ts;
+    }
+    if (same && old == g.visibleVersion()){ return l.withFlag(g.visibleVersion()); }
+    var ms= Collections.unmodifiableList(res);
+    IT t= new IT.RCC(rcc.rc(),new IT.C(rcc.c().name(),ts));
+    return new E.Literal(l.thisName(),ms,t,l.pos(),true,0);
+  }
+  record TSM(List<IT> ts, inferenceGrammar.M m){}
+  private TSM nextMStar(Gamma g, String thisN, IT.RCC rcc, List<IT> ts, inferenceGrammar.M m){
+    IT t= new IT.RCC(rcc.rc(),new IT.C(rcc.c().name(),ts));
+    g.newScope();
+    g.declare(thisN, t);
+    var size= m.sig().m().get().arity();
+    var xs= m.impl().get().xs();
+    var args= m.sig().ts();
+    for(int i= 0; i < size; i += 1){
+      g.declare(xs.get(i), args.get(i).get());
+    }
+    E e= nextStar(g,m.impl().get().e());
+    //read all the vars and get args' and ret'
+    g.popScope();
+    //call classJoin
+    //improve meth header
+    //return new method
     throw Bug.todo();
   }
-  private M nextM(Gamma g, T.RCC rcc, M m){
-    throw Bug.todo();  
-  }
   /*
-  e1 = new C[Ts1    ](){ M1 ..Mn  } : C[Ts1    ]
-  e2 = new C[Ts(n+1)](){ M'1..M'n } : C[Ts(n+1)]
-  ∀ i∈1..n  Γi;C[Tsi] ⊢ Mi ==>* Γ(i+1);C[Ts(i+1)] ⊢ M'i
------------------------------------------------------------ (anon)
-  Γ1 ⊢ e1 ==> Γ(n+1) ⊢ e2
-
   M  = m[Xs](x1:T1     ..xn:Tn     ) : T0  { return e0;  }                 //step1
   M' = m[Xs](x1:T'1⊓T"1..xn:T'n⊓T"n) : typeOf(e'0)⊓ T"0 {return e'0⊓ T"0;} //step5
   Γ, this:C[Ts],x1:T1..xn:Tn⊢ e0 ==>* Γ',this:_, x1:T'1..xn:T'n ⊢ e'0     //step2

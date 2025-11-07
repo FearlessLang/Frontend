@@ -12,7 +12,7 @@ import inferenceGrammar.IT;
 public class FreeXs {
   Stream<IT.X> ftvE(E e){ return switch(e){
     case X(_, _, _,_) -> Stream.of();
-    case Literal(_, var ms,_,_,_) -> ftvMs(ms);
+    case Literal(_, var ms,_,_,_,_) -> ftvMs(ms);
     case Call(var ei, _,_, var targs, var es,_,_,_,_) -> Stream.concat(ftvE(ei),Stream.concat(ftvTs(targs),ftvEs(es)));
     case ICall(var ei,_, var es,_,_,_) -> Stream.concat(ftvE(ei),ftvEs(es));
     case Type(var type,_,_,_) -> ftvT(type);
