@@ -23,9 +23,10 @@ public record M(Sig sig, List<String> xs, Optional<E> e){
     public String toString(){
       var bsS= bs.isEmpty()?"":"["+bs.stream().map(Object::toString).collect(Collectors.joining(","))+"]";
       var tsS= ts.isEmpty() ? "" : "("+ts.stream().map(Object::toString).collect(Collectors.joining(","))+")";
-      var rcS= rc==RC.imm?"":rc.toString()+" ";
+      var rcS= rc==RC.imm?"":rc.toString()+" ";      
+      var ori= "@"+origin.s();      
       var mS= m.toString();
-      return " "+rcS+mS+bsS+tsS+":"+ret+";";
+      return " "+rcS+mS+bsS+tsS+":"+ret+ori+";";
     }
   }
 }

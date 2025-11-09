@@ -12,12 +12,12 @@ import inferenceGrammar.IT;
 public class FreeXs {
   Stream<IT.X> ftvE(E e){ return switch(e){
     case X(_, _, _,_) -> Stream.of();
-    case Literal(_, var ms,_,_,_,_) -> ftvMs(ms);
+    case Literal l -> l.bs().stream().map(b->b.x());
     case Call(var ei, _,_, var targs, var es,_,_,_,_) -> Stream.concat(ftvE(ei),Stream.concat(ftvTs(targs),ftvEs(es)));
     case ICall(var ei,_, var es,_,_,_) -> Stream.concat(ftvE(ei),ftvEs(es));
-    case Type(var type,_,_,_) -> ftvT(type);
+    case Type(var t,_,_,_) -> ftvT(t);
   };}
-  Stream<IT.X> ftvM(M m){
+  private Stream<IT.X> ftvM(M m){
     List<String> domBs= m.sig().bs().map(bs->dom(bs)).orElse(List.of());
     return Stream.concat(
       ftvS(m.sig()),
@@ -37,7 +37,7 @@ public class FreeXs {
     case IT.Err.Instance -> Stream.of();
   };}
   Stream<IT.X> ftvEs(List<E> es){ return es.stream().flatMap(this::ftvE); }
-  Stream<IT.X> ftvMs(List<M> ms){ return ms.stream().flatMap(this::ftvM); }
+  Stream<IT.X> ftvMs(List<M> ms){ return ms.stream().flatMap(this::ftvM); }//TODO: will have to be used to compute the inferred bs?
   Stream<IT.X> ftvOTs(List<Optional<IT>> ts){ return ts.stream().flatMap(this::ftvT); }
   Stream<IT.X> ftvTs(List<IT> ts){ return ts.stream().flatMap(this::ftvT); }
 }

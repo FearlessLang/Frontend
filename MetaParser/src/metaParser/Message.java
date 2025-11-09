@@ -23,43 +23,30 @@ public record Message(String msg,int priority){
    return Optional.of(makeCaretLine(lines, g, width));
  }
  public static String of(Function<URI,String> loader, List<Frame> frames, String msg){
-   if (frames == null || frames.isEmpty()) return msg;
-   //dbgSpans("RAW FRAMES", frames);
-   // 1) containment (bottom-up clamp)
-   List<Frame> contained = ensureContainment(frames);
-   //dbgSpans("AFTER CONTAINMENT", contained);   
-   // 2) invisibleCharacters trimming (shrink both ends to visible)
-   List<Frame> visible = trimInvisible(loader, contained);
-   //dbgSpans("AFTER TRIM", visible);
-   // 3) grouping (pick up to 3 single-line spans + first multiline)
-   Grouping g = group(visible);
-
-   // Source + precomputed line-number width
-   String src = Objects.requireNonNull(loader.apply(g.file()));
-   String[] lines = splitLines(src);
-   int width = lineNumberWidth(lines.length);
-
-   // 4) single-line caret (on caretLine) using - ~ ^ for outer/mid/inner
-   Optional<String> caretLine = optCaretLine(lines, g, width);
-
-   // 5) final render
-   String body = (g.multiLine() != null)
-     ? renderMulti(lines, g, width, caretLine)
-     : renderTwo(lines, g, width, caretLine);
-
-   // Header (line 1), blank (line 2)
-   String header= "In file: " + PrettyFileName.displayFileName(g.file());
-
-   String framesLine= "While inspecting " + frames.stream()
-     .filter(f->!f.name().isBlank()).map(Frame::name)
-     .collect(Collectors.joining(" > "));
-   if(framesLine.length()=="While inspecting ".length()){
-     framesLine= "While inspecting the file";
+   try{ return _of(loader,frames,msg); }
+   catch(Throwable e){ throw new Error("Exception while formatting the following error:\n"+msg,e); }
    }
-   return header + "\n\n" + body + "\n\n" + framesLine + "\n" + msg;
- }
-
-
+ private static String _of(Function<URI,String> loader, List<Frame> frames, String msg){
+    if (frames == null || frames.isEmpty()) return msg;
+    List<Frame> contained = ensureContainment(frames);
+    List<Frame> visible = trimInvisible(loader, contained);
+    Grouping g = group(visible);
+    String src= Objects.requireNonNull(loader.apply(g.file()));
+    String[] lines= splitLines(src);
+    int width= lineNumberWidth(lines.length);
+    Optional<String> caretLine= optCaretLine(lines, g, width);
+    String body= (g.multiLine() != null)
+      ? renderMulti(lines, g, width, caretLine)
+      : renderTwo(lines, g, width, caretLine);
+    String header= "In file: " + PrettyFileName.displayFileName(g.file());
+    String framesLine= "While inspecting " + frames.stream()
+      .filter(f->!f.name().isBlank()).map(Frame::name)
+      .collect(Collectors.joining(" > "));
+    if (framesLine.length() == "While inspecting ".length()){
+      framesLine= "While inspecting the file";
+    }
+    return header + "\n\n" + body + "\n\n" + framesLine + "\n" + msg;
+  }
   private static String numbered(String[] lines, int lineNum, int width){
     String raw = get(lines, lineNum);
     String display = expandTabs(raw, TAB_WIDTH);

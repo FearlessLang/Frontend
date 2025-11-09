@@ -18,36 +18,36 @@ import fearlessParser.Parser;
 import fearlessParser.RC;
 import files.Pos;
 import inferenceGrammar.B;
-import inferenceGrammar.Declaration;
 import inferenceGrammar.E;
 import inferenceGrammar.IT;
 import inferenceGrammar.M;
 import inferenceGrammar.M.Sig;
 import inferenceGrammarB.T;
 import message.WellFormednessErrors;
+import optimizedTypes.LiteralDeclarations;
 import utils.Bug;
 
 public record Methods(
-  String pkgName, List<Declaration> iDecs,
+  String pkgName, List<E.Literal> iDecs,
   OtherPackages other, FreshPrefix fresh,
       Map<TName, inferenceGrammarB.Declaration> cache){
-  void mayAdd(List<Declaration> layer, Declaration d, Map<TName, Declaration> rem){
+  void mayAdd(List<E.Literal> layer, E.Literal d, Map<TName,E.Literal> rem){
     for (IT.C c : d.cs()){
       var nope= pkgName.equals(c.name().pkgName()) && rem.containsKey(c.name());
       if (nope) { return; }
     }
     layer.add(d);
   }
-  List<List<Declaration>> layer(List<Declaration> decs, String pkgName){
-    Map<TName, Declaration> rem = new HashMap<>();
-    for (Declaration d : decs){ rem.put(d.name(), d); }
-    List<List<Declaration>> out= new ArrayList<>();
+  List<List<E.Literal>> layer(List<E.Literal> decs, String pkgName){
+    Map<TName, E.Literal> rem = new HashMap<>();
+    for (E.Literal d : decs){ rem.put(d.name(), d); }
+    List<List<E.Literal>> out= new ArrayList<>();
     while (!rem.isEmpty()){
-      List<Declaration> layer= new ArrayList<>();
-      for (Declaration d : rem.values()){ mayAdd(layer,d,rem); }
+      List<E.Literal> layer= new ArrayList<>();
+      for (E.Literal d : rem.values()){ mayAdd(layer,d,rem); }
       if (layer.isEmpty()){ throw WellFormednessErrors.circularImplements(rem); }
       out.add(layer);
-      for (Declaration d : layer){ rem.remove(d.name()); }
+      for (E.Literal d : layer){ rem.remove(d.name()); }
     }
     return out;
   }
@@ -58,24 +58,24 @@ public record Methods(
     }
     return cache.values().stream().sorted(Comparator.comparing(d->d.name().s())).toList();
   }
-  List<inferenceGrammarB.Declaration> of(List<Declaration> ds){
+  List<inferenceGrammarB.Declaration> of(List<E.Literal> ds){
     return ds.stream().map(d->injectDeclaration(expandDeclaration(d))).toList();
   }
   record CsMs(List<IT.C> cs, List<inferenceGrammar.M.Sig> sigs){}
-  CsMs fetch(inferenceGrammarB.Declaration d, IT.C c){
+  CsMs fetch(inferenceGrammarB.Declaration d, IT.C c,TName outName){
     List<String> xs= d.bs().stream().map(b->b.x().name()).toList();
     var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
-    var sigs= d.ms().stream().map(m->alphaSig(m,xs,c)).toList();
+    var sigs= d.ms().stream().map(m->alphaSig(m,xs,c,outName)).toList();
     return new CsMs(cs1,sigs);
   }
-  private inferenceGrammar.M.Sig alphaSig(inferenceGrammarB.M m, List<String> xs, IT.C c){
+  private inferenceGrammar.M.Sig alphaSig(inferenceGrammarB.M m, List<String> xs, IT.C c, TName outName){
     var s= m.sig();
     var fullXs= new ArrayList<>(xs);
     var fullTs= new ArrayList<>(c.ts());
     var newBs= new ArrayList<B>(s.bs().size());
     for(B b: s.bs()){//TODO: performance: skip lists above if bs is empty
       var x= b.x().name();
-      if (fresh.isFreshGeneric(c.name(),x)){ newBs.add(b); continue; }
+      if (fresh.isFreshGeneric(outName,x)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
       var newX= new IT.X(fresh.freshGeneric(c.name(),x));
@@ -89,31 +89,35 @@ public record Methods(
   } 
   private inferenceGrammarB.Declaration from(TName name, Map<TName, inferenceGrammarB.Declaration> cache){
     if (name.pkgName().equals(pkgName)){ return cache.get(name); }
-    return other.of(name);
+    var res= other.of(name);
+    if (res != null){ return res; }
+    assert name.pkgName().equals("base"):"Undefined name "+name;
+    return LiteralDeclarations.from(name,other);
   }
-  public Declaration expandDeclaration(Declaration d){
+  //TODO: why both expandDeclaration and expandLiteral? 
+  public E.Literal expandDeclaration(E.Literal d){
     List<CsMs> ds= d.cs().stream()
-      .map(c->fetch(from(c.name(),cache),c))
+      .map(c->fetch(from(c.name(),cache),c,d.name()))
       .toList();
     List<IT.C> allCs= Stream.concat(
       d.cs().stream(),
       ds.stream().flatMap(dsi->dsi.cs().stream()))
         .distinct().sorted(Comparator.comparing(Object::toString)).toList();
     List<M.Sig> allSig= ds.stream().flatMap(dsi->dsi.sigs().stream()).toList();
-    List<M> named= inferMNames(d.l().ms(),new ArrayList<>(allSig),d.name());
+    List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d.name());
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d.name());
-    return new Declaration(d.name(),d.bs(),allCs,d.l().withMs(allMs,true));
+    return d.withCsMs(allCs,allMs,true);
   }
-  public E.Literal expandLiteral(E.Literal l, IT.C c){
-    List<M.Sig> allSig= l.ms().stream().map(m->m.sig()).toList();
-    List<M> named= inferMNames(l.ms(),new ArrayList<>(allSig),c.name());
+  public E.Literal expandLiteral(E.Literal d, IT.C c){
+    List<M.Sig> allSig= fetch(from(c.name(),cache),c,d.name()).sigs();
+    List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),c.name());
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),c.name());
-    return l.withMs(allMs,true);
+    return d.withMs(allMs,true);
   }
-  private inferenceGrammarB.Declaration injectDeclaration(Declaration d){
+  private inferenceGrammarB.Declaration injectDeclaration(E.Literal d){
     List<T.C> cs= TypeRename.itcToTC(d.cs());
-    List<inferenceGrammarB.M> ms= TypeRename.itmToM(d.l().ms());
-    return new inferenceGrammarB.Declaration(d.name(),d.bs(),cs,d.l().thisName(),ms,d.l().pos());
+    List<inferenceGrammarB.M> ms= TypeRename.itmToM(d.ms());
+    return new inferenceGrammarB.Declaration(d.name(),d.bs(),cs,d.thisName(),ms,d.pos());
   } 
   inferenceGrammar.M withName(MName name,inferenceGrammar.M m){
     assert m.impl().isPresent() && m.sig().m().isEmpty();
@@ -124,7 +128,9 @@ public record Methods(
   inferenceGrammar.M.Sig injectSig(inferenceGrammarB.M.Sig s){
     throw Bug.todo();
   }
+  
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, TName origin){
+    assert ss.stream().allMatch(M.Sig::isFull);
     List<M> res= new ArrayList<>();
     for (var m: ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }

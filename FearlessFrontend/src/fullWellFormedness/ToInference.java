@@ -5,11 +5,12 @@ import java.util.List;
 import java.util.function.Function;
 
 import fearlessFullGrammar.TName;
-import inferenceGrammar.Declaration;
+import fearlessParser.RC;
+import inferenceGrammar.E;
 import message.WellFormednessErrors;
 
 public class ToInference {
-  List<Declaration> of(Package p, OtherPackages other, FreshPrefix fresh){
+  List<E.Literal> of(Package p, OtherPackages other, FreshPrefix fresh){
     Function<TName,TName> f= tn->{
       var pN= tn.pkgName();
       if (!pN.isEmpty()){
@@ -25,9 +26,9 @@ public class ToInference {
       throw WellFormednessErrors.usedUndeclaredName(tn,p);
       //here, we know it is not defined (either at all or with the right arity)
     };
-    ArrayList<Declaration> decs= new ArrayList<>();
+    ArrayList<E.Literal> decs= new ArrayList<>();
     var v= new InjectionToInferenceVisitor(new ArrayList<>(),new ArrayList<>(),f,decs,p,new ArrayList<>(),other,fresh);
-    p.decs().forEach(di->v.addDeclaration(di,true));
+    p.decs().forEach(di->v.addDeclaration(RC.imm,di,true));
     return List.copyOf(decs);
   }
   boolean numStr(TName n){ return "+-1234567890\"\'".contains(n.s().substring(0,1)); }

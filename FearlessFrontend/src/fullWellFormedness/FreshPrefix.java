@@ -52,6 +52,7 @@ public final class FreshPrefix {
   }
   public boolean isFreshGeneric(TName owner, String x){//used where we know it is a valid generic elsewhere (so already not a top type)
     Set<String> scope= usedGen.get(owner);
+    assert scope != null : owner;
     return !scope.contains(x);// && !usedTopTypes.contains(x.name());
   }
   public String freshGeneric(TName owner, String hint){
@@ -88,7 +89,7 @@ public final class FreshPrefix {
   }
   public void aliasOwner(TName original, TName alias){
     assert nonNull(original, alias);
-    assert pkgName.equals(original.pkgName());
+    assert pkgName.equals(original.pkgName()): pkgName+" -- "+original;
     assert pkgName.equals(alias.pkgName()): pkgName+" -- "+alias;
     var gen= usedGen.get(original);
     var vars= usedVar.get(original);

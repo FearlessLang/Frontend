@@ -12,6 +12,7 @@ import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.TName;
 import fearlessParser.Parse;
+import inferenceGrammar.E;
 import message.SourceOracle;
 import message.WellFormednessErrors;
 
@@ -28,10 +29,10 @@ public class ParsePackage{
     }
     Package p= merge(override,all,other);
     var fresh= new FreshPrefix(p);
-    List<inferenceGrammar.Declaration> iDecs= new ToInference().of(p,other,fresh);
+    List<E.Literal> iDecs= new ToInference().of(p,other,fresh);
     var meths= new Methods(p.name(),iDecs,other,fresh,new HashMap<>());
     List<inferenceGrammarB.Declaration> res= meths.of();
-    return infer?InjectionSteps.steps(meths,res):res;
+    return infer?InjectionSteps.steps(meths,res,other):res;
   }
   Package merge(List<FileFull.Map> override, Map<URI,FileFull> all, OtherPackages other){
     String pkgName= all.values().iterator().next().name();

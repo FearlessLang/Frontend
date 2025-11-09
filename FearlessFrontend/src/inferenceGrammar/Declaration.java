@@ -1,4 +1,4 @@
-package inferenceGrammar;
+/*package inferenceGrammar;
 
 import static offensiveUtils.Require.nonNull;
 import static offensiveUtils.Require.unmodifiable;
@@ -21,4 +21,4 @@ public record Declaration(TName name, List<B> bs, List<IT.C> cs, E.Literal l){
     var csS= cs.stream().map(Object::toString).collect(Collectors.joining(", "));
     return name.s()+bsS+":"+csS+l;
   }
-}
+}*/

@@ -19,7 +19,7 @@ public class TypeRename{
   static IT of(IT t, List<String> xs, List<IT> ts){ return switch(t){
     case IT.X x -> getOrSame(x,x.name(),xs,ts);
     case IT.RCX(RC rc, var x) -> withRC(of(x,xs,ts),rc);
-    case IT.RCC(RC rc, var c) -> new IT.RCC(rc,new IT.C(c.name(),ofIT(c.ts(),xs,ts)));
+    case IT.RCC rcc -> rcc.withTs(ofIT(rcc.c().ts(),xs,ts));
     case IT.ReadImmX(var x) -> readImm(of(x,xs,ts));
     case IT.U _ -> throw Bug.unreachable();
     case IT.Err _ -> throw Bug.unreachable();

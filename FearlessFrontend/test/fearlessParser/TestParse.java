@@ -2850,7 +2850,7 @@ A:{}
 In file: [###]/in_memory0.fear
 
 001| package foo_bar beer baz;
-   | ~~~~~~~~~~~~~~~~^^^^^^^^-
+   | ----------------^^^^~~~~-
 002| A:{}
 
 While inspecting header element > file header > full file
@@ -2900,7 +2900,7 @@ In file: [###]/in_memory0.fear
 
 001| package foo_bar
 002| role framework042;
-   | ^^^^^^^^^^^^^^^^^
+   | ^^^^-------------
 
 While inspecting header element > file header > full file
 Extra content in the current group.
@@ -2921,7 +2921,7 @@ In file: [###]/in_memory0.fear
 
 002| role framework042
 003| map goo as boo in baz;
-   | ^^^^^^^^^^^^^^^^^^^^^
+   | ^^^------------------
 
 While inspecting header element > file header > full file
 Extra content in the current group.
@@ -3786,6 +3786,23 @@ A{ .foo:A ->
   }
   .return {Void}
 }
+""");}
+@Test void badStackGuide(){fail("""
+In file: [###]/in_memory0.fear
+
+002|   .empty: R,
+   |            ^
+003|   .elem(top:T, tail: Stack[T]): R,
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Extra content in the current group.
+Instead, expected semicolon or closed curly one of: ";", "}".
+Error 4  ExtraTokenInGroup
+""","""
+StackMatch[T,R]: {
+  .empty: R,
+  .elem(top:T, tail: Stack[T]): R,
+  }
 """);}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

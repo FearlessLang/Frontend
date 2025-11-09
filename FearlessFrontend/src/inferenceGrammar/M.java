@@ -19,15 +19,19 @@ public record M(Sig sig, Optional<Impl> impl){
       var bsS= bs.isEmpty() ? "[?]" : bs.get().isEmpty()?"":"["+bs.get().stream().map(Object::toString).collect(Collectors.joining(","))+"]";
       var tsS= ts.isEmpty() ? "" : "("+ts.stream().map(this::t).collect(Collectors.joining(","))+")";
       var rcS= rc.isPresent()?rc.get().toString():"?";
+      var ori= origin.map(o->"@"+o.s()).orElse("@!");
       var mS= m.isPresent()?m.get().toString():"";
-      return " "+rcS+" "+mS+bsS+tsS+":"+t(ret)+";";
+      return " "+rcS+" "+mS+bsS+tsS+":"+t(ret)+ori+";";
     }
     private String t(Optional<IT> ot){ return ot.map(Object::toString).orElse("?"); }
+    public Sig refine(List<Optional<IT>> ts, Optional<IT> ret){ return new Sig(rc,m,bs,ts,ret,origin,abs,pos); }
+    public boolean isFull(){ return rc.isPresent() && m.isPresent() && bs.isPresent() && ts.stream().allMatch(Optional::isPresent) && ret.isPresent(); }
   }
   public record Impl(Optional<MName> m, List<String> xs, E e){
     public String toString(){
       var xsC= xs.stream().collect(Collectors.joining(", "));
       return " "+m.map(n->n.s()).orElse("")+"("+xsC+")->"+e+";";
     }
+    public Impl withE(E e){ return new Impl(m,xs,e); }
   }
 }

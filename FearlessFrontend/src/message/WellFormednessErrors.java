@@ -17,7 +17,7 @@ import fearlessParser.RC;
 import files.Pos;
 import fullWellFormedness.Methods.Agreement;
 import inferenceGrammar.B;
-import inferenceGrammar.Declaration;
+import inferenceGrammar.E;
 import inferenceGrammar.M;
 import metaParser.Message;
 import utils.Bug;
@@ -131,7 +131,7 @@ public final class WellFormednessErrors {
  }
  public static FearlessException usedUndeclaredName(TName tn, Package p){
    var at= Parser.span(tn.pos(),tn.s().length());
-   var definedWithOtherArity= p.names().decNames().stream().allMatch(tni->tni.s().equals(tn.s()));
+   var definedWithOtherArity= p.names().decNames().stream().anyMatch(tni->tni.s().equals(tn.s()));
    if (definedWithOtherArity){
      return Code.WellFormedness.of(
        "Name: "+Message.displayString(tn.s())+" is not declared with arity "+tn.arity()+" in package "+p.name()+".\n"
@@ -179,13 +179,13 @@ public final class WellFormednessErrors {
       "Duplicate type declaration for "+Message.displayString(name.s())+".\n"
       ).addFrame("a type name",Parser.span(name.pos(),name.s().length()));
   }
-  public static FearlessException circularImplements(Map<TName, Declaration> rem){
+  public static FearlessException circularImplements(Map<TName,E.Literal> rem){
     TName name = findCycleNode(rem);
     return Code.WellFormedness.of(
       "Circular implementation relation found involving "+Message.displayString(name.s())+".\n"
       ).addFrame("type declarations",Parser.span(name.pos(),name.s().length()));
   }
-  private static TName findCycleNode(Map<TName,Declaration> rem){
+  private static TName findCycleNode(Map<TName,E.Literal> rem){
     var color= new HashMap<TName,Integer>(rem.size());
     for (var k : rem.keySet()){
       var hit= dfs(rem,k,color);
@@ -193,7 +193,7 @@ public final class WellFormednessErrors {
     }
     throw Bug.unreachable();
   }
-  private static TName dfs(Map<TName,Declaration> rem,TName u,Map<TName,Integer> color){
+  private static TName dfs(Map<TName,E.Literal> rem,TName u,Map<TName,Integer> color){
     Integer cu= color.get(u);
     if (cu != null){ return cu == 1 ? u : null; }
     color.put(u,1);
@@ -212,7 +212,10 @@ public final class WellFormednessErrors {
       ).addSpan(Parser.span(m.sig().pos(),100));
   }
   private static String formatSig(M.Sig s){
-    String res= s.toString().replace("[?]","").replace(" ("," <no_name>(");
+    String res= s.toString()
+      .replace("[?]","")
+      .replace(" ("," <no_name>(")
+      .replace("@!","");
     res= res.substring(1);    
     if (res.startsWith("? ")){ res= res.substring(2); }
     if (res.endsWith(";")){ res= res.substring(0,res.length()-1); }

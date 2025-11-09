@@ -127,6 +127,19 @@ MF[A:**, B:**, R:**]: { mut #(a: A, b: B): R }
 MF[A:**, B:**, C:**, R:**]: { mut #(a: A, b: B, c: C): R }
 MF[A:**, B:**, C:**, D:**, R:**]: { mut #(a: A, b: B, c: C, d: D): R }
 
+Nat:Sealed,WidenTo[Nat]{}
+Zero:Nat{}
+One:Nat{}
+Two:Nat{}
+Three:Nat{}
+Four:Nat{}
+Five:Nat{}
+Six:Nat{}
+Seven:Nat{}
+Eight:Nat{}
+Nine:Nat{}
+Ten:Nat{}
+
 ToSStr:{ read .sStr: SStr }
 ToUStr:{ read .uStr: UStr }
 SStr:{}

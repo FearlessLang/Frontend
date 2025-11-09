@@ -46,7 +46,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       var instead= "Instead, expected "+what;
       msg += expected("",instead+": ",instead+" one of: ",expectedTerminatorTokens,tk->tk.human);
     }
-    return Code.ExtraTokenInGroup.of(msg).addSpan(from);
+    var here= parser.peek().get().span(from.fileName());
+    return Code.ExtraTokenInGroup.of(msg).addSpan(here).addSpan(from);
   }
   @Override public FearlessException probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx, Parser parser){
     String head= "Probe stalled while scanning " + groupLabel;
