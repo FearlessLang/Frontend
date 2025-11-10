@@ -69,7 +69,7 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     return new M.Sig(s.rc(),s.m(),bs,ts,res,empty(),mm.body().isEmpty(),mm.pos());
   }
   public B visitB(fearlessFullGrammar.B b){
-    return new B(visitTX(b.x()),switch(b.bt()){
+    return new B(b.x().name(),switch(b.bt()){
     case fearlessFullGrammar.B.Star()->List.of(RC.imm,RC.mut,RC.read);
     case fearlessFullGrammar.B.StarStar()->List.of(RC.imm, RC.mut, RC.read, RC.iso, RC.mutH, RC.readH);
     case fearlessFullGrammar.B.RCS(List<RC> rcs)-> rcs.isEmpty()
@@ -138,7 +138,7 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
   @Override public E visitRound(fearlessFullGrammar.E.Round r){ return r.e().accept(this); }
   @Override public E visitImplicit(fearlessFullGrammar.E.Implicit n){  return new E.X(implicits.getLast(),n.pos());  }
   @Override public E visitTypedLiteral(fearlessFullGrammar.E.TypedLiteral t){
-    if (t.l().isEmpty()){ return new E.Type(visitRCC(t.t()),u,t.pos(),false); }
+    if (t.l().isEmpty()){ return new E.Type(visitRCC(t.t()),t.pos()); }
     List<IT.C> impl= List.of(visitC(t.t().c()));
     List<fearlessFullGrammar.M> ms0= t.l().map(l->l.methods()).orElse(List.of());
     List<M> ms= mapM(ms0);
@@ -152,7 +152,7 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     decs.add(l);
     return l;
   }
-  B xB(IT.X x){ return bsInScope.stream().flatMap(List::stream).filter(b->b.x().equals(x)).findFirst().get(); }
+  B xB(String x){ return bsInScope.stream().flatMap(List::stream).filter(b->b.x().equals(x)).findFirst().get(); }
   
   @Override public E visitDeclarationLiteral(fearlessFullGrammar.E.DeclarationLiteral c){
     freshF.aliasOwner(this.tops.getLast(), f.apply(c.dec().name()));

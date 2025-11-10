@@ -63,7 +63,7 @@ public record Methods(
   }
   record CsMs(List<IT.C> cs, List<inferenceGrammar.M.Sig> sigs){}
   CsMs fetch(inferenceGrammarB.Declaration d, IT.C c,TName outName){
-    List<String> xs= d.bs().stream().map(b->b.x().name()).toList();
+    List<String> xs= d.bs().stream().map(b->b.x()).toList();
     var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
     var sigs= d.ms().stream().map(m->alphaSig(m,xs,c,outName)).toList();
     return new CsMs(cs1,sigs);
@@ -74,13 +74,13 @@ public record Methods(
     var fullTs= new ArrayList<>(c.ts());
     var newBs= new ArrayList<B>(s.bs().size());
     for(B b: s.bs()){//TODO: performance: skip lists above if bs is empty
-      var x= b.x().name();
+      var x= b.x();
       if (fresh.isFreshGeneric(outName,x)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
       var newX= new IT.X(fresh.freshGeneric(c.name(),x));
       fullTs.add(newX);
-      newBs.add(new B(newX,b.rcs()));
+      newBs.add(new B(newX.name(),b.rcs()));
     }
     List<Optional<IT>> newTs= TypeRename.ofITOpt(TypeRename.tToIT(s.ts()),fullXs,fullTs);
     IT newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
@@ -106,15 +106,15 @@ public record Methods(
     List<M.Sig> allSig= ds.stream().flatMap(dsi->dsi.sigs().stream()).toList();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d.name());
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d.name());
-    return d.withCsMs(allCs,allMs,true);
+    return d.withCsMs(allCs,allMs);
   }
   public E.Literal expandLiteral(E.Literal d, IT.C c){
     List<M.Sig> allSig= fetch(from(c.name(),cache),c,d.name()).sigs();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),c.name());
-    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),c.name());
-    return d.withMs(allMs,true);
+    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),c.name()).stream().filter(m->m.impl().isPresent()).toList();
+    return d.withMs(allMs);
   }
-  private inferenceGrammarB.Declaration injectDeclaration(E.Literal d){
+  inferenceGrammarB.Declaration injectDeclaration(E.Literal d){
     List<T.C> cs= TypeRename.itcToTC(d.cs());
     List<inferenceGrammarB.M> ms= TypeRename.itmToM(d.ms());
     return new inferenceGrammarB.Declaration(d.name(),d.bs(),cs,d.thisName(),ms,d.pos());
@@ -247,8 +247,8 @@ public record Methods(
       .map(e->new B(freshG(t,e.x()),e.rcs()))
       .toList();
   }
-  private IT.X freshG(TName t, IT.X x){
-    if (fresh.isFreshGeneric(t,x.name())){ return x; }
-    return new IT.X(fresh.freshGeneric(t, x.name()));
+  private String freshG(TName t, String x){
+    if (fresh.isFreshGeneric(t,x)){ return x; }
+    return fresh.freshGeneric(t, x);
   }
 }

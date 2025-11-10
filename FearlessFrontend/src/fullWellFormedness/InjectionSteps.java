@@ -12,12 +12,12 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import inferenceGrammar.E;
+import inferenceGrammar.E.Literal;
 import inferenceGrammar.Gamma;
 import inferenceGrammar.IT;
 import inferenceGrammarB.Declaration;
 import inferenceGrammarB.M;
 import utils.Bug;
-import utils.Push;
 
 public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TName,Declaration> dsMap,OtherPackages other){
   public static List<Declaration> steps(Methods meths, List<Declaration> in, OtherPackages other){
@@ -34,7 +34,7 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     var ms= di.ms().stream().map(m->{
       if (m.e().isEmpty()){ return m; }
       var e= m.e().get();
-      List<IT> thisTypeTs= di.bs().stream().<IT>map(b->b.x()).toList();
+      List<IT> thisTypeTs= di.bs().stream().<IT>map(b->new IT.X(b.x())).toList();
       var thisType= new IT.RCC(m.sig().rc(),new IT.C(di.name(),thisTypeTs));
       E ei= meet(e,TypeRename.tToIT(m.sig().ret()));      
       Gamma g= Gamma.of(m.xs(),TypeRename.tToIT(m.sig().ts()),di.thisName(),thisType);
@@ -48,9 +48,12 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     if (t2 == IT.U.Instance){ return t1; }
     if (t1 == IT.U.Instance){ return t2; }
     if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){
-      if (!x1.rc().equals(x2.rc())){ return IT.Err.Instance; }
-      if (!x1.c().name().equals(x2.c().name())){ return IT.Err.Instance; }
-      if (x1.c().ts().size() != x2.c().ts().size()){ return IT.Err.Instance; }//TODO: or assert?
+      if (!x1.rc().equals(x2.rc())){ 
+      return IT.Err.Instance; }
+      if (!x1.c().name().equals(x2.c().name())){
+       return IT.Err.Instance; }
+      if (x1.c().ts().size() != x2.c().ts().size()){
+       return IT.Err.Instance; }//TODO: or assert?
       var ts= meet(x1.c().ts(),x2.c().ts());
       return x1.withTs(ts);
     }
@@ -78,10 +81,12 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     return Collections.unmodifiableList(res);
   }
   static boolean end(E e){ return e.isEV(); }
-  E nextStar(Gamma g,E e){
+  E nextStar(Gamma g, E e){
+    if (e.done(g)){ return e; }
     while (true){
+      var s= g.snapshot();
       var oe= next(g,e);
-      if (oe == e){ return e; }
+      if (oe == e && !g.changed(s)){ e.sign(g); return e; }
       e= oe;  
     }
   }
@@ -97,7 +102,7 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     return Collections.unmodifiableList(res);
   }
   private List<E> nextStar(Gamma g, List<E> es){
-    long old= g.visibleVersion();
+    var s= g.snapshot();
     boolean same= true;
     var res= new ArrayList<E>(es.size());
     for (E ei:es){
@@ -105,7 +110,7 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
       same &= next == ei;
       res.add(next);
     }
-    if (same && old == g.visibleVersion()){ return es; }
+    if (same && !g.changed(s)){ return es; }
     return Collections.unmodifiableList(res);
   }
   E next(Gamma g, E e){ return switch (e){
@@ -115,7 +120,7 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     case E.ICall c -> nextIC(g,c);
     case E.Type c -> nextT(g,c);
   };}
-  private List<String> dom(List<inferenceGrammar.B> bs){ return bs.stream().map(b->b.x().name()).toList(); }
+  private List<String> dom(List<inferenceGrammar.B> bs){ return bs.stream().map(b->b.x()).toList(); }
   Declaration getDec(TName name){
     var d= dsMap.get(name);
     if (d != null){ return d; }
@@ -159,27 +164,26 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
       .orElseGet(()->oneFromGuessRC(ms.toList(),overloadNorm(rcc.rc())));
     if (om.isEmpty()){ return Optional.empty(); }
     M m= om.get();
-    //(RC rc, List<String> bs, List<IT> ts, IT ret)
-    List<String> xs= Stream.concat(d.bs().stream(),m.sig().bs().stream())
-      .map(b->b.x().name()).toList();
+    List<String> xs= d.bs().stream()//Stream.concat(d.bs().stream(),m.sig().bs().stream())
+      .map(b->b.x()).toList();
     assert xs.stream().distinct().count() == xs.size();
-    var normXs= normXs(m.sig().bs().size());
-    List<String> bs= normXsStr(m.sig().bs().size());
-    var ts= Push.of(rcc.c().ts(),normXs);
+    //var normXs= normXs(m.sig().bs().size());
+    List<String> bs= m.sig().bs().stream().map(b->b.x()).toList();//normXsStr(m.sig().bs().size());
+    var ts= rcc.c().ts();//Push.of(rcc.c().ts(),normXs);
     List<IT> tsRes= m.sig().ts().stream()
       .map(t->TypeRename.of(TypeRename.tToIT(t),xs,ts))
-      .toList();//using normXs since it could be that rcc.ts contains X in m.bs()
+      .toList();
     IT tRet= TypeRename.of(TypeRename.tToIT(m.sig().ret()),xs,ts);
     return Optional.of(new MSig(m.sig().rc(),bs,tsRes,tRet));
   }
-  private List<IT> normXs(int n){ return IntStream.range(0, n).<IT>mapToObj(i->new IT.X("$"+i)).toList(); }
-  private List<String> normXsStr(int n){ return IntStream.range(0, n).mapToObj(i->"$"+i).toList(); }
+  //private List<IT> normXs(int n){ return IntStream.range(0, n).<IT>mapToObj(i->new IT.X("$"+i)).toList(); }
+  //private List<String> normXsStr(int n){ return IntStream.range(0, n).mapToObj(i->"$"+i).toList(); }
     //TODO: could cache 0-100 qMarks
   private List<IT> qMarks(int n){ return IntStream.range(0, n).<IT>mapToObj(_->IT.U.Instance).toList(); }
   private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i->i==n?t:IT.U.Instance).toList(); }
   //-----------Metarules
   private E nextX(Gamma g, E.X x){ 
-    var t1= g.get(x.name());
+    var t1= g.get(x.name());//TODO: this may repeat if entered back in the same scope? no if meth header properly updated?
     var t2= x.t();
     if (t1.equals(t2)) { return x; }
     var t3= meet(t1,t2);
@@ -187,38 +191,34 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     return x.withT(t3);
   }
   private E nextT(Gamma g, E.Type t){
-    var t1= preferred(t.type());//TODO: preferred need to be called also on the literals
+    var t1= preferred(t.type());
     var t2= t.t();
     if (t1.equals(t2)) { return t; }
     var t3= meet(t1,t2);
     return t.withT(t3);
   }
   private E nextIC(Gamma g, E.ICall c){
-    if (c.g() == g.visibleVersion()){ return c; }
     var e= nextStar(g,c.e());
     var es= nextStar(g,c.es());
-    if (!(e.t() instanceof IT.RCC rcc)){ return new E.ICall(e,c.name(),es,c.t(),c.pos(),g.visibleVersion()); }
+    if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e,es); }
     Optional<MSig> om= methodHeader(rcc,c.name(),Optional.empty());
-    if (om.isEmpty()){ return new E.ICall(e,c.name(),es,c.t(),c.pos(),g.visibleVersion()); }
+    if (om.isEmpty()){ return c.withEEs(e,es); }
     MSig m= om.get();
     List<IT> ts= qMarks(m.bs().size());
     var es1= IntStream.range(0, es.size())
       .mapToObj(i->meet(es.get(i),TypeRename.of(m.ts().get(i),m.bs(),ts)))
       .toList();
     var t= meet(c.t(),TypeRename.of(m.ret(),m.bs(),ts));
-    var isVal= ts.isEmpty() && e.isEV() && es.stream().allMatch(E::isEV);
-    var call= new E.Call(e,c.name(),Optional.of(m.rc()),ts,es1,t,c.pos(),isVal, 0);
-    return call;
+    var call= new E.Call(e,c.name(),Optional.of(m.rc()),ts,es1,c.pos());
+    return call.withT(t);
   }
   private E nextC(Gamma g, E.Call c){
-    if (c.isEV() || c.g() == g.visibleVersion()){ return c; }
+    //if (c.isEV()){ return c; }
     var e= nextStar(g,c.e());
     var es= nextStar(g, c.es());
-    if (!(e.t() instanceof IT.RCC rcc)){
-      return new E.Call(e,c.name(),c.rc(),c.targs(),es,c.t(),c.pos(),false,g.visibleVersion()); 
-    }
+    if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e,es); }
     Optional<MSig> om= methodHeader(rcc,c.name(),c.rc());
-    if (om.isEmpty()){ return new E.Call(e,c.name(),c.rc(),c.targs(),es,c.t(),c.pos(),false,g.visibleVersion()); }
+    if (om.isEmpty()){ return c.withEEs(e,es); }
     MSig m= om.get();
     RC rc= c.rc().orElse(m.rc());
     assert m.ts().size() == es.size();
@@ -229,42 +229,51 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
       ).toList());
     var it= meet(c.t(),TypeRename.of(m.ret(),m.bs(),targs));
     var es1 = meet(es, m, targs);
-    if (e==c.e() && es == c.es() && targs.equals(c.targs())  && it.equals(c.t())){ return c.withFlag(g.visibleVersion()); }
-    var isVal= e.isEV() && es.stream().allMatch(E::isEV) && targs.stream().allMatch(IT::isTV); 
-    return new E.Call(e, c.name(), Optional.of(rc),targs,es1,it, c.pos(),isVal,0); 
+    if (e == c.e() && es == c.es() && targs.equals(c.targs())  && it.equals(c.t())){ return c; } 
+    return c.withMore(e,rc,targs,es1,it); 
   }
   private E nextL(Gamma g, E.Literal l){
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
-    if (l.g() == g.visibleVersion()){ return l; }
-    //TODO: if has rc use preferred(T.RCC) for the type, but
-    //still run the inference for the methods, not classJoin??
-    //Also, if the inferred type is a value no classJoin??
-    
-    //TODO: when we get a fully evaluated class head, we need to 'add to declarations'
-    //this will require to move from 5a to 5b. The literal 'also' stays in place, but we need the declaration
-    //for this types. Also, this is where we move the this type from the impl to the outer.
-    //Can this could cause 'Err' before and they would stay later??
+    if (l.rc().isPresent() && !l.t().isTV()){ 
+      List<IT> xs= l.bs().stream().<IT>map(b->new IT.X(b.x())).toList();
+      var c= new IT.C(l.name(),xs);
+      var t1= preferred(new IT.RCC(l.rc().get(),c));
+      l = l.withT(t1);
+    }
     //if (l.isEV()){ return l; }
     if (!l.infA()){ l= meths.expandLiteral(l,rcc.c()); }
-    long old= g.visibleVersion();
+    var s= g.snapshot();
     boolean same= true;
     var res= new ArrayList<inferenceGrammar.M>(l.ms().size());
     List<IT> ts= rcc.c().ts();
     for (var mi: l.ms()){
       TSM next= nextMStar(g,l.thisName(),rcc,ts,mi);
-      same &= next.m.sig().equals(mi.sig()) & ts.equals(next.ts);
+      same &= 
+        next.m.sig().equals(mi.sig())
+        && next.m.impl().get().e() == mi.impl().get().e() 
+        && next.ts.equals(ts);
       res.add(next.m);
       ts = next.ts;
     }
-    if (same && old == g.visibleVersion()){ return l.withFlag(g.visibleVersion()); }
+    if (same && !g.changed(s)){ return l; }
     var ms= Collections.unmodifiableList(res);
     IT t= rcc.withTs(ts);
-    return l.withMsT(ms,t,true);
+    return commitToTable(l.withMsT(ms,t),t);
   }
+  private Literal commitToTable(E.Literal l, IT t){
+    if (l.rc().isPresent() || !t.isTV() || !(t instanceof IT.RCC rcc)){ return l; }
+    assert l.cs().isEmpty();
+    l = new E.Literal(Optional.of(rcc.rc()),l.name(),l.bs(),List.of(rcc.c()),l.thisName(),l.ms(), t, l.pos(), true, l.g());
+    var resD= meths.injectDeclaration(l);
+    this.ds.add(resD);
+    this.dsMap.put(l.name(),resD);
+    return l;
+  }  
   record TSM(List<IT> ts, inferenceGrammar.M m){}
   private TSM nextMStar(Gamma g, String thisN, IT.RCC rcc, List<IT> ts, inferenceGrammar.M m){
     IT.RCC t= rcc.withTs(ts);
-    var size= m.sig().m().get().arity();
+    MName mName= m.sig().m().get();
+    var size= mName.arity();
     var xs= m.impl().get().xs();
     var args= m.sig().ts();
     g.newScope();
@@ -272,9 +281,26 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     for(int i= 0; i < size; i += 1){ g.declare(xs.get(i), args.get(i).get()); }
     E e= nextStar(g,m.impl().get().e());
     args= xs.stream().map(x->Optional.of(g.get(x))).toList(); 
-    var improvedSig= m.sig().refine(args, Optional.of(e.t()));
+    var improvedSig= m.sig().withTsT(args, Optional.of(e.t()));
     g.popScope();
-    return classJoin(t,improvedSig,m.impl());
+    var ret= improvedSig.ret().get();
+    ts= rcc.c().ts();
+    var sigTs= improvedSig.ts();
+    var Xs= getDec(rcc.c().name()).bs().stream().map(b->b.x()).toList();
+    MSig imh= methodHeader(rcc,mName,improvedSig.rc()).get();
+    ts= meet(Stream.concat(
+      IntStream.range(0, imh.ts().size())
+        .mapToObj(i->refine(Xs,imh.ts().get(i),sigTs.get(i).get())),
+      Stream.of(refine(Xs,imh.ret(),ret),ts)
+      ).toList());
+    rcc= rcc.withTs(ts);
+    MSig improvedM= methodHeader(rcc,mName,improvedSig.rc()).get();
+    assert improvedM.bs.equals(improvedSig.bs().get().stream().map(b->b.x()).toList()):
+      ""+methodHeader(rcc,mName,improvedSig.rc())+improvedM.bs+ " "+improvedSig.bs().get(); 
+    var sigRes= improvedSig.withTsT(improvedM.ts().stream().map(Optional::of).toList(),Optional.of(improvedM.ret()));
+    e = meet(e,sigRes.ret().get());
+    var mRes= new inferenceGrammar.M(sigRes,Optional.of(m.impl().get().withE(e)));
+    return new TSM(rcc.c().ts(),mRes);
   }
   List<IT> refine(List<String> xs,IT t, IT t1){
     if( t1 instanceof IT.U){ qMarks(xs.size()); } 
@@ -289,7 +315,7 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
   }
   List<IT> refineXs(List<String> xs, IT.X x, IT t1){
     var i= xs.indexOf(x.name());
-    assert i != -1;//TODO: can we trigger this?
+    if (i == -1){ return qMarks(xs.size()); }
     return qMarks(i,t1,xs.size());
   }
   List<IT> propagateXs(List<String> xs, IT.C c, IT t1){
@@ -301,38 +327,6 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
       .mapToObj(i->refine(xs,c.ts().get(i),cc.c().ts().get(i)))
       .toList();
     return res.isEmpty()?qMarks(xs.size()):meet(res);
-  }
-  //TODO: merge classJoin with the metarule
-  TSM classJoin(IT.RCC rcc, inferenceGrammar.M.Sig sig, Optional<inferenceGrammar.M.Impl> impl){
-    var ts= rcc.c().ts();
-    var xs= getDec(rcc.c().name()).bs().stream().map(b->b.x().name()).toList();
-    MSig imh= methodHeader(rcc,sig.m().get(),sig.rc()).get();
-    ts= meet(Stream.concat(
-      IntStream.range(0, imh.ts().size())
-        .mapToObj(i->refine(xs,imh.ts().get(i),sig.ts().get(i).get())),
-      Stream.of(refine(xs,imh.ret(),sig.ret().get()),ts)
-      ).toList());
-    rcc= rcc.withTs(ts);
-    MSig improvedM= methodHeader(rcc,sig.m().get(),sig.rc()).get();
-    var sigRes= sig.refine(improvedM.ts().stream().map(Optional::of).toList(),Optional.of(improvedM.ret()));
-    impl= impl.map(i->i.withE(meet(i.e(),sigRes.ret().get())));
-    var mRes= new inferenceGrammar.M(sigRes,impl);
-    return new TSM(rcc.c().ts(),mRes);
-    //TODO: Big mistake. We need to instead turn the lambda into a new anon typed literal when
-    //we remove all the ?? from the head. Or do we?
-    //what if some ? survives anyway?
-    //if the C[Ts] becomes a value, export to class table
-    //Also, if lambda in receiver position, export to class table immediately (or even before steps?)
-    //Option: 
-    // 1- make the inference only start from the original top methods
-    // 2- add a name to all of the literals, export them to the table
-    // 3- when a name is reached in the expression inference, it must be that was not top!!
-    // (we could even keep the literal body in both positions)
-    //Thus, the literal is never there, and all is typed literal.
-    //{...} --> FreshName[FTV]:?{..}:IT
-    //so we remove the 'Typed E', and..
-    //the 'this' now will use the FreshName
-    //TODO: make the long g into a proper mutable object, and then the labeller will be the stepStar method (only)
   }
 }
 /*
@@ -384,8 +378,12 @@ _______
 #Define Xs ⊢ T=T' : Ts' //sub notation used in (refine)
 
 ---------------------------------------------------(refineXs)
-  X1..Xn X X'1..X'k ⊢ X=T : ?1..?n T ?1..?k
-//selects an X inside Xs' by splitting Xs' as X1..Xn X X1'..Xk'
+  X1..Xn X X'1..X'k ⊢ X=T : ?1..?n T ?1..?k //selects an X inside Xs' by splitting Xs' as X1..Xn X X1'..Xk'
+
+  X notin X1..Xn //can happen when we refine class generics and method generics are in scope
+---------------------------------------------------(refineXsNope)
+  X1..Xn ⊢ X=T : ?1..?n
+
 
 ---------------------------------------------------(refine?)
   X1..Xn⊢ ?=T : ?1..?n
@@ -471,7 +469,7 @@ _______
   interface C[Xs'] { _ m[Xs](_:IT1 .. _:ITn):IT0 _ } in Ds
   forall i in 0..n Xs' |- ITi=T'i : Tsi
   Ts' = Ts⊓Ts0⊓..⊓Tsn
-  methodHeader(C[Ts'],m) = m[Xs](_:T"1.._:T"n):T"0
+  methodHeader(C[Ts'],m) = m[Xs](_:T"1.._:T"n):T"0// confirm that FV(Ts') disjoint Xs always holds?
   M' = m[Xs](x1:T'1⊓T"1 .. xn:T'n⊓T"n):T'0⊓T"0 { return e'⊓T"0; }
 ------------------------------------------------------------------ (meth)
   Γ;C[Ts] ⊢ M ==>* Γ';C[Ts'] ⊢ M'
