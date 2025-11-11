@@ -11,7 +11,7 @@ import inferenceGrammar.IT;
 import inferenceGrammarB.T;
 import utils.Bug;
 
-public class TypeRename{
+public class TypeRename{//TODO: can optimize away rewritings when xs/ts are empty.
   static List<IT.C> ofITC(List<IT.C> csi, List<String> xs, List<IT> ts){ return csi.stream().map(c->of(c,xs,ts)).toList(); }
   static List<T.C> ofTC(List<T.C> csi, List<String> xs, List<T> ts){ return csi.stream().map(c->of(c,xs,ts)).toList(); }
   static IT.C of(IT.C c, List<String> xs, List<IT> ts){ return new IT.C(c.name(), ofIT(c.ts(),xs,ts)); }

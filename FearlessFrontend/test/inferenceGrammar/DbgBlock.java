@@ -126,8 +126,8 @@ MF[A:**,R:**]: { mut #(a: A): R }
 MF[A:**, B:**, R:**]: { mut #(a: A, b: B): R }
 MF[A:**, B:**, C:**, R:**]: { mut #(a: A, b: B, c: C): R }
 MF[A:**, B:**, C:**, D:**, R:**]: { mut #(a: A, b: B, c: C, d: D): R }
-
-Nat:Sealed,WidenTo[Nat]{}
+Nope:{![T:**]:T}
+Nat:Sealed,WidenTo[Nat]{ +(Nat):Nat->Nope!; *(Nat):Nat->Nope! }
 Zero:Nat{}
 One:Nat{}
 Two:Nat{}

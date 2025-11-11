@@ -3,6 +3,7 @@ package optimizedTypes;
 import java.util.List;
 
 import fearlessFullGrammar.TName;
+import fearlessParser.RC;
 import fearlessParser.TokenKind;
 import files.Pos;
 import fullWellFormedness.OtherPackages;
@@ -18,8 +19,12 @@ public class LiteralDeclarations {
   public static TName baseInt= new TName("base.Int",0,Pos.UNKNOWN);
   public static TName baseNum= new TName("base.Num",0,Pos.UNKNOWN);
   public static TName baseFloat= new TName("base.Float",0,Pos.UNKNOWN);
-  static private Declaration of(TName name,TName lit){ 
-    return new Declaration(name,List.of(),List.of(new T.C(lit,List.of())),"this",List.of(),Pos.UNKNOWN);
+  public static TName widen= new TName("base.WidenTo",1,Pos.UNKNOWN);
+  static private Declaration of(TName name,TName lit){
+    var c= new T.C(lit,List.of());
+    var self= new T.RCC(RC.imm,c);
+    var w= new T.C(widen,List.of(self));
+    return new Declaration(name,List.of(),List.of(c,w),"this",List.of(),Pos.UNKNOWN);
   }
   public static Declaration from(TName name, OtherPackages other){
     assert name.pkgName().equals("base");

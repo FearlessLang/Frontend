@@ -37,7 +37,7 @@ public class FreeXs {
     case IT.Err.Instance -> Stream.of();
   };}
   Stream<String> ftvEs(List<E> es){ return es.stream().flatMap(this::ftvE); }
-  Stream<String> ftvMs(List<M> ms){ return ms.stream().flatMap(this::ftvM); }//TODO: will have to be used to compute the inferred bs?
+  Stream<String> ftvMs(List<M> ms){ return ms.stream().flatMap(this::ftvM); }
   Stream<String> ftvOTs(List<Optional<IT>> ts){ return ts.stream().flatMap(this::ftvT); }
   Stream<String> ftvTs(List<IT> ts){ return ts.stream().flatMap(this::ftvT); }
 }

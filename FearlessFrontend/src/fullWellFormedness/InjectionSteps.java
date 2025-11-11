@@ -12,14 +12,13 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import inferenceGrammar.E;
-import inferenceGrammar.E.Literal;
 import inferenceGrammar.Gamma;
 import inferenceGrammar.IT;
 import inferenceGrammarB.Declaration;
 import inferenceGrammarB.M;
 import utils.Bug;
 
-public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TName,Declaration> dsMap,OtherPackages other){
+public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TName,Declaration> dsMap,OtherPackages other){
   public static List<Declaration> steps(Methods meths, List<Declaration> in, OtherPackages other){
     HashMap<TName,Declaration> dsMap= new HashMap<>();
     for (var d:in){ dsMap.put(d.name(), d); }
@@ -49,11 +48,10 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     if (t1 == IT.U.Instance){ return t2; }
     if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){
       if (!x1.rc().equals(x2.rc())){ 
-      return IT.Err.Instance; }
+        return IT.Err.Instance; }
       if (!x1.c().name().equals(x2.c().name())){
-       return IT.Err.Instance; }
-      if (x1.c().ts().size() != x2.c().ts().size()){
-       return IT.Err.Instance; }//TODO: or assert?
+        return IT.Err.Instance; }
+      assert x1.c().ts().size() == x2.c().ts().size();
       var ts= meet(x1.c().ts(),x2.c().ts());
       return x1.withTs(ts);
     }
@@ -121,17 +119,16 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     case E.Type c -> nextT(g,c);
   };}
   private List<String> dom(List<inferenceGrammar.B> bs){ return bs.stream().map(b->b.x()).toList(); }
-  Declaration getDec(TName name){
-    var d= dsMap.get(name);
-    if (d != null){ return d; }
-    return other.of(name);
-  }
+
+  Declaration getDec(TName name){ return meths.from(name,dsMap); }
+  
   private IT preferred(IT.RCC type){
     var d= getDec(type.c().name());
     assert d != null : type;
     var cs= d.cs().stream().filter(c->c.name().s().equals("base.WidenTo")).toList();
     if (cs.size() == 0){ return type; } 
     assert cs.size() == 1;//TODO: add a well formed error for this and for Sealed
+    //That is, only one WidenTo is allowed. Note that other interfaces may be implemented multiple times instead (with different generics)
     assert cs.getFirst().ts().size() == 1;
     IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom(d.bs()), type.c().ts());
     return wid;
@@ -154,16 +151,21 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     if (rc== RC.read){ return readOne; }
     if (rc== RC.mut){ return ms.stream().filter(m->m.sig().rc()==RC.mut).findFirst(); }
     assert rc== RC.imm;
-    return ms.stream().filter(m->m.sig().rc()==RC.imm).findFirst();
+    return ms.stream()
+      .filter(m->m.sig().rc()==RC.imm)
+      .findFirst().or(()->readOne);
   }
-  private Optional<MSig> methodHeader(IT.RCC rcc, MName name,Optional<RC> favorite){
+  public interface InstanceData<R>{ R apply(IT.RCC rcc, Declaration d, M m); }
+  private <R> Optional<R> methodHeaderAnd(IT.RCC rcc,MName name,Optional<RC> favorite,InstanceData<R> f){
     var d= getDec(rcc.c().name());
     Stream<M> ms= d.ms().stream().filter(m->m.sig().m().equals(name));
     Optional<M> om= favorite
       .map(rc->oneFromExplicitRC(ms.filter(mi->mi.sig().rc().equals(rc)).toList()))
       .orElseGet(()->oneFromGuessRC(ms.toList(),overloadNorm(rcc.rc())));
     if (om.isEmpty()){ return Optional.empty(); }
-    M m= om.get();
+    return Optional.of(f.apply(rcc,d,om.get()));
+  }
+  private MSig methodHeaderInstance(IT.RCC rcc,Declaration d,M m){
     List<String> xs= d.bs().stream()//Stream.concat(d.bs().stream(),m.sig().bs().stream())
       .map(b->b.x()).toList();
     assert xs.stream().distinct().count() == xs.size();
@@ -174,12 +176,15 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
       .map(t->TypeRename.of(TypeRename.tToIT(t),xs,ts))
       .toList();
     IT tRet= TypeRename.of(TypeRename.tToIT(m.sig().ret()),xs,ts);
-    return Optional.of(new MSig(m.sig().rc(),bs,tsRes,tRet));
+    return new MSig(m.sig().rc(),bs,tsRes,tRet);
   }
+  private Optional<MSig> methodHeader(IT.RCC rcc,MName name,Optional<RC> favorite){ return methodHeaderAnd(rcc,name,favorite,this::methodHeaderInstance); }
   //private List<IT> normXs(int n){ return IntStream.range(0, n).<IT>mapToObj(i->new IT.X("$"+i)).toList(); }
   //private List<String> normXsStr(int n){ return IntStream.range(0, n).mapToObj(i->"$"+i).toList(); }
-    //TODO: could cache 0-100 qMarks
-  private List<IT> qMarks(int n){ return IntStream.range(0, n).<IT>mapToObj(_->IT.U.Instance).toList(); }
+  private static List<IT> _qMarks(int n){ return IntStream.range(0, n).<IT>mapToObj(_->IT.U.Instance).toList(); }
+  static List<List<IT>> smallQMarks=IntStream.range(0, 100)
+    .mapToObj(i->_qMarks(i)).toList();
+  private List<IT> qMarks(int n){ return n < 100 ? smallQMarks.get(n): _qMarks(n); }
   private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i->i==n?t:IT.U.Instance).toList(); }
   //-----------Metarules
   private E nextX(Gamma g, E.X x){ 
@@ -222,17 +227,21 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     MSig m= om.get();
     RC rc= c.rc().orElse(m.rc());
     assert m.ts().size() == es.size();
-    var targs= meet(Stream.concat(
-      IntStream.range(0, c.es().size())
-        .mapToObj(i->refine(m.bs(),m.ts().get(i),es.get(i).t())),
-      Stream.of(refine(m.bs(),m.ret(),c.t()),c.targs())
-      ).toList());
+    List<IT> targs= newTargs(c, es, m);
     var it= meet(c.t(),TypeRename.of(m.ret(),m.bs(),targs));
     var es1 = meet(es, m, targs);
     if (e == c.e() && es == c.es() && targs.equals(c.targs())  && it.equals(c.t())){ return c; } 
     return c.withMore(e,rc,targs,es1,it); 
   }
+  private List<IT> newTargs(E.Call c, List<E> es, MSig m){
+    if(m.bs().isEmpty()){ return List.of(); }
+    var a= IntStream.range(0, c.es().size())
+      .mapToObj(i->refine(m.bs(),m.ts().get(i),es.get(i).t()));
+    var r= Stream.of(refine(m.bs(),m.ret(),c.t()),c.targs());
+    return meet(Stream.concat(a,r).toList());
+  }
   private E nextL(Gamma g, E.Literal l){
+    //we should convert it into an E.Type
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
     if (l.rc().isPresent() && !l.t().isTV()){ 
       List<IT> xs= l.bs().stream().<IT>map(b->new IT.X(b.x())).toList();
@@ -247,6 +256,7 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     var res= new ArrayList<inferenceGrammar.M>(l.ms().size());
     List<IT> ts= rcc.c().ts();
     for (var mi: l.ms()){
+      if (mi.impl().isEmpty()){ continue; }//we are also keeping methods from supertypes, and not all will be in need of implementation
       TSM next= nextMStar(g,l.thisName(),rcc,ts,mi);
       same &= 
         next.m.sig().equals(mi.sig())
@@ -255,14 +265,16 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
       res.add(next.m);
       ts = next.ts;
     }
-    if (same && !g.changed(s)){ return l; }
+    if (same && !g.changed(s)){ return commitToTable(l,rcc); }
     var ms= Collections.unmodifiableList(res);
     IT t= rcc.withTs(ts);
     return commitToTable(l.withMsT(ms,t),t);
   }
-  private Literal commitToTable(E.Literal l, IT t){
+  private E commitToTable(E.Literal l, IT t){
     if (l.rc().isPresent() || !t.isTV() || !(t instanceof IT.RCC rcc)){ return l; }
     assert l.cs().isEmpty();
+    var noMeth= l.ms().stream().allMatch(m->m.impl().isEmpty());
+    if (noMeth){ return new E.Type(rcc,rcc,l.pos(), true, l.g()); }
     l = new E.Literal(Optional.of(rcc.rc()),l.name(),l.bs(),List.of(rcc.c()),l.thisName(),l.ms(), t, l.pos(), true, l.g());
     var resD= meths.injectDeclaration(l);
     this.ds.add(resD);
@@ -287,11 +299,11 @@ public record InjectionSteps(Methods meths, ArrayList<Declaration> ds,HashMap<TN
     ts= rcc.c().ts();
     var sigTs= improvedSig.ts();
     var Xs= getDec(rcc.c().name()).bs().stream().map(b->b.x()).toList();
-    MSig imh= methodHeader(rcc,mName,improvedSig.rc()).get();
+    M.Sig imh= methodHeaderAnd(rcc,mName,improvedSig.rc(),(_,_,mi)->mi).get().sig();
     ts= meet(Stream.concat(
       IntStream.range(0, imh.ts().size())
-        .mapToObj(i->refine(Xs,imh.ts().get(i),sigTs.get(i).get())),
-      Stream.of(refine(Xs,imh.ret(),ret),ts)
+        .mapToObj(i->refine(Xs,TypeRename.tToIT(imh.ts().get(i)),sigTs.get(i).get())),
+      Stream.of(refine(Xs,TypeRename.tToIT(imh.ret()),ret),ts)
       ).toList());
     rcc= rcc.withTs(ts);
     MSig improvedM= methodHeader(rcc,mName,improvedSig.rc()).get();

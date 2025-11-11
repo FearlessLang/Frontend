@@ -61,7 +61,10 @@ public final class Gamma {
     for(int s= d; s < depth; s++){ envHash[s] ^= cold ^ cnew; }
     ts[i] = t;
   }
-  public boolean represents(GammaSignature sig){ return sig.hash == envHash[depth - 1]; }
+  public boolean represents(GammaSignature sig){
+    //return false;
+    return sig.hash == envHash[depth - 1];
+  }
   public void sign(GammaSignature sig){ sig.hash = envHash[depth - 1]; }
   public long snapshot(){ return envHash[depth - 1]; }
   public boolean changed(long shot){ return shot != envHash[depth - 1]; }

@@ -57,7 +57,7 @@ public sealed interface E {
       if (rc.isPresent() && rc.get() != RC.imm){ res= rc.get()+" "; }
       res += name.s();
       if (!bs.isEmpty()){ res += "["+bs.stream().map(Object::toString).collect(Collectors.joining(","))+"]"; }
-      if (rc.isEmpty()){ res += ":@"; }
+      if (rc.isEmpty()){ res += ":$?"; }
       else { res += ":" +cs.stream().map(Object::toString).collect(Collectors.joining(", ")); }
       if (ms.isEmpty()){ return res+":"+t; }
       res += "{'"+thisName;

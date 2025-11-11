@@ -72,8 +72,8 @@ public record Methods(
     var s= m.sig();
     var fullXs= new ArrayList<>(xs);
     var fullTs= new ArrayList<>(c.ts());
-    var newBs= new ArrayList<B>(s.bs().size());
-    for(B b: s.bs()){//TODO: performance: skip lists above if bs is empty
+    List<B> newBs= s.bs().isEmpty()?List.of():new ArrayList<B>(s.bs().size());
+    for(B b: s.bs()){
       var x= b.x();
       if (fresh.isFreshGeneric(outName,x)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
@@ -87,7 +87,7 @@ public record Methods(
     return new inferenceGrammar.M.Sig(
       Optional.of(s.rc()),Optional.of(s.m()),Optional.of(newBs),newTs,Optional.of(newRet),Optional.of(s.origin()),s.abs(),s.pos());
   } 
-  private inferenceGrammarB.Declaration from(TName name, Map<TName, inferenceGrammarB.Declaration> cache){
+  public inferenceGrammarB.Declaration from(TName name, Map<TName, inferenceGrammarB.Declaration> cache){
     if (name.pkgName().equals(pkgName)){ return cache.get(name); }
     var res= other.of(name);
     if (res != null){ return res; }
@@ -111,7 +111,7 @@ public record Methods(
   public E.Literal expandLiteral(E.Literal d, IT.C c){
     List<M.Sig> allSig= fetch(from(c.name(),cache),c,d.name()).sigs();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),c.name());
-    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),c.name()).stream().filter(m->m.impl().isPresent()).toList();
+    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),c.name());
     return d.withMs(allMs);
   }
   inferenceGrammarB.Declaration injectDeclaration(E.Literal d){

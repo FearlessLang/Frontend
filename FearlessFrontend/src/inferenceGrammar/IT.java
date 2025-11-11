@@ -48,7 +48,7 @@ public sealed interface IT {
   }
   enum Err implements IT{ Instance; 
     public String toString(){ return "Err";}
-    public boolean isTV(){ return true; }
+    //public boolean isTV(){ return true; }//the default
   }
 
 }
