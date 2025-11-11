@@ -1,20 +1,21 @@
 package inferenceGrammar;
-
-import static offensiveUtils.Require.nonNull;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import files.Pos;
+import static offensiveUtils.Require.*;
+
 public record M(Sig sig, Optional<Impl> impl){
   public M{ assert nonNull(sig,impl); }
   public String toString(){ return sig + impl.map(Object::toString).orElse(""); }
   public record Sig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<Optional<IT>> ts, Optional<IT> ret, Optional<TName> origin, boolean abs, Pos pos){
-    //TODO: add constructor taking all non optional and delagate. The refactor
+    public Sig{ assert nonNull(rc,m,bs,ts,ret,origin); assert validOpt(bs,_bs->unmodifiable(_bs,"bounds")); }
+    public Sig(RC rc, MName m, List<B> bs, List<Optional<IT>> ts, IT ret, TName origin, boolean abs, Pos pos){
+      this(Optional.of(rc),Optional.of(m),Optional.of(bs),ts,Optional.of(ret),Optional.of(origin),abs,pos);
+    }
     public String toString(){
       var bsS= bs.isEmpty() ? "[?]" : bs.get().isEmpty()?"":"["+bs.get().stream().map(Object::toString).collect(Collectors.joining(","))+"]";
       var tsS= ts.isEmpty() ? "" : "("+ts.stream().map(this::t).collect(Collectors.joining(","))+")";

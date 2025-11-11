@@ -84,8 +84,7 @@ public record Methods(
     }
     List<Optional<IT>> newTs= TypeRename.ofITOpt(TypeRename.tToIT(s.ts()),fullXs,fullTs);
     IT newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
-    return new inferenceGrammar.M.Sig(
-      Optional.of(s.rc()),Optional.of(s.m()),Optional.of(newBs),newTs,Optional.of(newRet),Optional.of(s.origin()),s.abs(),s.pos());
+    return new inferenceGrammar.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),s.pos());
   } 
   public inferenceGrammarB.Declaration from(TName name, Map<TName, inferenceGrammarB.Declaration> cache){
     if (name.pkgName().equals(pkgName)){ return cache.get(name); }
@@ -94,7 +93,6 @@ public record Methods(
     assert name.pkgName().equals("base"):"Undefined name "+name;
     return LiteralDeclarations.from(name,other);
   }
-  //TODO: why both expandDeclaration and expandLiteral? 
   public E.Literal expandDeclaration(E.Literal d){
     List<CsMs> ds= d.cs().stream()
       .map(c->fetch(from(c.name(),cache),c,d.name()))
@@ -108,8 +106,8 @@ public record Methods(
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d.name());
     return d.withCsMs(allCs,allMs);
   }
-  public E.Literal expandLiteral(E.Literal d, IT.C c){
-    List<M.Sig> allSig= fetch(from(c.name(),cache),c,d.name()).sigs();
+  public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
+    List<M.Sig> allSig= fetch(from(c.name(),cache),c,d.name()).sigs();//expandLiteral works on an incomplete literal with the cs list not there yet
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),c.name());
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),c.name());
     return d.withMs(allMs);
@@ -189,7 +187,7 @@ public record Methods(
     IT res= s.ret().orElseGet(()->agreement(at,ss.stream().map(e->e.ret().get()),"Return type disagreement"));
     boolean abs= m.impl().isEmpty();
     RC rc= s.rc().orElseGet(()->agreement(at,ss.stream().map(e->e.rc().get()),"Reference capability disagreement"));
-    M.Sig sig= new M.Sig(Optional.of(rc),Optional.of(name),Optional.of(bs),ts,Optional.of(res),Optional.of(origin),abs,s.pos());
+    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.pos());
     return new M(sig,m.impl());
   }
   IT pairWithTs(Agreement at, int i, Optional<IT> t,List<M.Sig> ss){
@@ -210,7 +208,7 @@ public record Methods(
     if (impl.size() > 1){ throw WellFormednessErrors.ambiguousImplementationFor(ss,impl,at); }
     if (impl.size() == 1){ origin = impl.getFirst(); }
     RC rc= agreement(at,ss.stream().map(e->e.rc().get()),"Reference capability disagreement");
-    M.Sig sig= new M.Sig(Optional.of(rc),Optional.of(name),Optional.of(bs),ts,Optional.of(res),Optional.of(origin),impl.isEmpty(),ss.getFirst().pos());
+    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,impl.isEmpty(),ss.getFirst().pos());
     return new M(sig,Optional.empty());
   }
   M toCompleteM(M.Sig s){ return new M(s,Optional.empty()); }
@@ -220,9 +218,9 @@ public record Methods(
     MName name= s.m().get();
     List<B> bs= s.bs().orElse(List.of());
     List<Optional<IT>> ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(Bug::todo))).toList();
-    Optional<IT> res= Optional.of(s.ret().orElseThrow(()->WellFormednessErrors.noRetNoInference(origin,m)));
+    IT res= s.ret().orElseThrow(()->WellFormednessErrors.noRetNoInference(origin,m));
     boolean abs= m.impl().isEmpty();
-    M.Sig sig= new M.Sig(Optional.of(rc),Optional.of(name),Optional.of(bs),ts,res,Optional.of(origin),abs,s.pos());
+    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.pos());
     return new M(sig,m.impl());
   }
   <RR> RR agreement(Agreement at,Stream<RR> es, String msg){

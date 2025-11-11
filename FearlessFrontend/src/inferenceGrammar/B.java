@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import fearlessParser.RC;
-//TODO: x should just be a string
 public record B(String x, List<RC> rcs){
   public B{ assert nonNull(x) && unmodifiable(rcs,"B.rcs") && !rcs.isEmpty(); }
   public String toString(){
