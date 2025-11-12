@@ -62,6 +62,9 @@ public record Methods(
     return ds.stream().map(d->injectDeclaration(expandDeclaration(d))).toList();
   }
   record CsMs(List<IT.C> cs, List<inferenceGrammar.M.Sig> sigs){}
+  //TODO: performance: currently fetch rewrites for the class generics
+  //but we are likely to also do the rewriting for the meth generics very soon later.
+  //can we merge the two steps?
   CsMs fetch(inferenceGrammarB.Declaration d, IT.C c,TName outName){
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
@@ -181,14 +184,26 @@ public record Methods(
     if (ss.isEmpty()){ return toCompleteM(m,origin); }
     var s= m.sig();    
     var at= new Agreement(origin, ss.getFirst().m().get(), m.sig().pos());
-    MName name= ss.getFirst().m().get();
-    List<B> bs= s.bs().orElseGet(()->agreementBs(at,ss.stream().map(e->e.bs().get())));
-    List<Optional<IT>> ts= IntStream.range(0, s.ts().size()).mapToObj(i->Optional.of(pairWithTs(at,i, s.ts().get(i),ss))).toList();
-    IT res= s.ret().orElseGet(()->agreement(at,ss.stream().map(e->e.ret().get()),"Return type disagreement"));
+    List<B> bs= agreementWithSize(ss, s, at);
+    var ssAligned= alignMethodSigsTo(ss, bs);
+    MName name= ssAligned.getFirst().m().get();
+    List<Optional<IT>> ts= IntStream.range(0, s.ts().size()).mapToObj(i->Optional.of(pairWithTs(at,i, s.ts().get(i),ssAligned))).toList();
+    IT res= s.ret().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.ret().get()),"Return type disagreement"));
     boolean abs= m.impl().isEmpty();
-    RC rc= s.rc().orElseGet(()->agreement(at,ss.stream().map(e->e.rc().get()),"Reference capability disagreement"));
+    RC rc= s.rc().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.rc().get()),"Reference capability disagreement"));
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.pos());
     return new M(sig,m.impl());
+  }
+  private List<B> agreementWithSize(List<M.Sig> ss, Sig s, Agreement at){
+    if (s.bs().isEmpty()){ return agreementBs(at, ss.stream().map(e->e.bs().get())); }
+    var userBs= s.bs().get();
+    int userArity= userBs.size();
+    var superBsList = ss.stream().map(e->e.bs().get()).toList();
+    var superArities = superBsList.stream().map(List::size).distinct().toList();
+    if (superArities.size() == 1 && superArities.getFirst() == userArity){ return userBs; }
+    if (superArities.size() != 1){ throw WellFormednessErrors.agreementSize(at, superBsList); }
+    int superArity= superArities.getFirst();
+    throw WellFormednessErrors.methodGenericArityDisagreesWithSupers(at, userArity, superArity, userBs, superBsList.getFirst());
   }
   IT pairWithTs(Agreement at, int i, Optional<IT> t,List<M.Sig> ss){
     return t.orElseGet(()->agreement(at,ss.stream().map(e->e.ts().get(i).get()),
@@ -198,19 +213,21 @@ public record Methods(
     assert !ss.isEmpty();
     if (ss.size() == 1){ return toCompleteM(ss.getFirst()); }
     var at= new Agreement(origin,ss.getFirst().m().get(),origin.pos());
-    MName name= ss.getFirst().m().get();
     List<B> bs= agreementBs(at,ss.stream().map(e->e.bs().get()));
+    var ssAligned = alignMethodSigsTo(ss, bs);
+    MName name= ssAligned.getFirst().m().get();
     List<Optional<IT>> ts= IntStream.range(0, name.arity()).mapToObj(
-      i->Optional.of(agreement(at,ss.stream().map(e->e.ts().get(i).get()),
+      i->Optional.of(agreement(at,ssAligned.stream().map(e->e.ts().get(i).get()),
         "Type disagreement about argument "+i))).toList();
-    IT res= agreement(at,ss.stream().map(e->e.ret().get()),"Return type disagreement");
-    var impl= ss.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
-    if (impl.size() > 1){ throw WellFormednessErrors.ambiguousImplementationFor(ss,impl,at); }
+    IT res= agreement(at,ssAligned.stream().map(e->e.ret().get()),"Return type disagreement");
+    var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
+    if (impl.size() > 1){ throw WellFormednessErrors.ambiguousImplementationFor(ssAligned,impl,at); }
     if (impl.size() == 1){ origin = impl.getFirst(); }
-    RC rc= agreement(at,ss.stream().map(e->e.rc().get()),"Reference capability disagreement");
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,impl.isEmpty(),ss.getFirst().pos());
+    RC rc= agreement(at,ssAligned.stream().map(e->e.rc().get()),"Reference capability disagreement");
+    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,impl.isEmpty(),ssAligned.getFirst().pos());
     return new M(sig,Optional.empty());
   }
+  
   M toCompleteM(M.Sig s){ return new M(s,Optional.empty()); }
   M toCompleteM(inferenceGrammar.M m,TName origin){
     var s= m.sig();
@@ -248,5 +265,17 @@ public record Methods(
   private String freshG(TName t, String x){
     if (fresh.isFreshGeneric(t,x)){ return x; }
     return fresh.freshGeneric(t, x);
+  }
+  private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }
+  private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){
+    assert superSig.isFull();
+    if (superSig.bs().get().isEmpty()){ return superSig; }
+    var fromXs = superSig.bs().get().stream().map(B::x).toList();
+    var toITs  = targetBs.stream().<IT>map(b -> new IT.X(b.x())).toList();
+    assert fromXs.size() == toITs.size() : "mismatched method generic arity";
+    var renamedTs  = TypeRename.ofOptITOpt(superSig.ts(), fromXs, toITs);
+    var renamedRet = superSig.ret().map(it -> TypeRename.of(it, fromXs, toITs));
+    return new M.Sig(superSig.rc(), superSig.m(), Optional.of(targetBs),
+      renamedTs, renamedRet, superSig.origin(), superSig.abs(), superSig.pos());
   }
 }

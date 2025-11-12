@@ -236,6 +236,16 @@ public final class WellFormednessErrors {
     + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
       ));
    }
+   public static FearlessException methodGenericArityDisagreesWithSupers(Agreement at, int userArity, int superArity, List<B> userBs, List<B> superBs){
+    return agreement(at, Code.WellFormedness.of(
+      "Method "+Message.displayString(at.mName().s())+" declares "+userArity+" generic parameter(s), "
+    + "but supertypes declare "+superArity+".\n"
+    + "Local declaration: "+Message.displayString(userBs.toString())+".\n"
+    + "From supertypes: "+Message.displayString(superBs.toString())+".\n"
+    + "Change the local arity to "+superArity+", or adjust supertypes.\n"
+    ));
+  }
+
   public static FearlessException ambiguosImpl(TName origin,boolean abs, M m, List<inferenceGrammar.M.Sig> options){
     return agreement(origin,m.sig().pos(),Code.WellFormedness.of(
       "Can not infer the name for method with "+m.sig().ts().size()+" parameters.\n"

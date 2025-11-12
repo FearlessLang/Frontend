@@ -19,6 +19,7 @@ public class TypeRename{
     if (xs.isEmpty()){ return c; }
     return new IT.C(c.name(), ofIT(c.ts(),xs,ts)); }
   static IT of(IT t, List<String> xs, List<IT> ts){
+    assert xs.size() == ts.size();
     if (xs.isEmpty()){ return t; }
     return switch(t){
       case IT.X x -> getOrSame(x,x.name(),xs,ts);
@@ -33,6 +34,7 @@ public class TypeRename{
     if (xs.isEmpty()){ return tsi; }
     return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
   static List<Optional<IT>> ofITOpt(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti,xs,ts))).toList(); }
+  static List<Optional<IT>> ofOptITOpt(List<Optional<IT>> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti.get(),xs,ts))).toList(); }
   static IT readImm(IT t){return switch(t){
     case IT.X x -> new IT.ReadImmX(x);
     case IT.ReadImmX rix -> rix;
@@ -51,7 +53,7 @@ public class TypeRename{
   };}
 
   static RC readImm(RC rc){ return rc == RC.imm || rc == RC.iso ? RC.imm: RC.read; }
-  static <A> A getOrSame(A x, String name,List<String> xs, List<A> ts){
+  static <A> A getOrSame(A x, String name, List<String> xs, List<A> ts){
     var i= xs.indexOf(name); 
     return i == -1 ? x : ts.get(i);
   }

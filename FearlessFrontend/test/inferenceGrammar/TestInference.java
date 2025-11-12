@@ -8,6 +8,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import fullWellFormedness.ParsePackage;
@@ -831,6 +832,78 @@ User:{
   .bar->this.foo(User,{::})
   }
 """));}
+
+@Test void inferAlpha_MultiSuper_DifferentBounds_ShouldDisagree(){ fail("""
+In file: [###]/in_memory0.fear
+
+005| D:A,C{}
+   | ^^^^^^^
+
+While inspecting type declaration "D"
+Generic bounds disagreement for method ".id" with 1 parameters.
+Different options are present in the implemented types: "[X:imm]", "[Y:read]".
+Type "p.D" must declare a method ".id" explicitly chosing the desired option.
+Error 9  WellFormedness
+""", List.of("""
+Box[K]:{.get:K;}
+A:{.id[X:imm](x:Box[X]):X}
+C:{.id[Y:read](y:Box[Y]):Y}
+D:A,C{}
+"""));}
+
+@Test void inferAlpha_ArityMismatch_BetweenSupers_OrOverride(){ fail("""
+In file: [###]/in_memory0.fear
+
+003| E:A{.m[U](u:U,g:U):U} // mismatch on method generic arity and params
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "E"
+Method ".m" declares 1 generic parameter(s), but supertypes declare 2.
+Local declaration: "[U:imm]".
+From supertypes: "[X:imm, Y:imm]".
+Change the local arity to 2, or adjust supertypes.
+Error 9  WellFormedness
+""", List.of("""
+A:{.m[X,Y](x:X,y:Y):X}
+E:A{.m[U](u:U,g:U):U} // mismatch on method generic arity and params
+"""));}
+
+@Test void inferAlpha_ClassParamNameCollides_WithMethodParamName(){ fail("""
+In file: [###]/in_memory0.fear
+
+001| package p;
+   | ... 2 lines ...
+004| B[X]:A{.id[X](b:Box[X])->b.get} // class X vs method X
+   | -------~~~~^~~~~~~~~~~~--------
+
+While inspecting generic bounds declaration > method signature > method declaration > type declaration body > type declaration > full file
+Name "X" already in scope
+Error 2  UnexpectedToken
+""", List.of("""
+Box[K]:{.get:K;}
+A:{.id[X](x:Box[X]):X}
+B[X]:A{.id[X](b:Box[X])->b.get} // class X vs method X
+"""));}
+
+@Test void inferAlpha_MergeTwoSupers_SwappedOrder_NestedArgs(){ fail("""
+In file: [###]/in_memory0.fear
+
+006| D:A,C{}
+   | ^^^^^^^
+
+While inspecting type declaration "D"
+Type disagreement about argument 0 for method ".m" with 1 parameters.
+Different options are present in the implemented types: "p.Twice[p.Pair[X,Y]]", "p.Twice[p.Pair[Y,X]]".
+Type "p.D" must declare a method ".m" explicitly chosing the desired option.
+Error 9  WellFormedness
+""", List.of("""
+Pair[AA,BB]:{.fst:AA;.snd:BB;}
+Twice[T]:{.get:Pair[T,T];}
+A:{.m[X,Y](t:Twice[Pair[X,Y]]):X}
+C:{.m[U,V](t:Twice[Pair[V,U]]):U}
+D:A,C{}
+"""));
+}
 
 }
 //TODO: in the guide somewhere show #|" foo{#U+`AB02`} for arbitrary Unicode

@@ -2,6 +2,7 @@ package inferenceGrammar;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class TestInferenceSteps {
@@ -329,11 +330,272 @@ Z4ExampleFluent: { #(ns: Stack[Nat]): Nat -> ns
   }
 """));}
 
+@Test void boundChangesName(){okI("""
+p.A:{'this .m[X:imm](p.Foo[X]):X@p.A;}
+p.B1:p.A{'this\
+ .m[Y:imm](p.Foo[Y]):Y@p.B1;\
+(z)->z:p.Foo[Y].get[imm]():Y;}
+p.B2:p.A{'this\
+ .m[Y:imm](p.Foo[Y]):Y@p.B2;\
+(z)->z:p.Foo[Y].beer[imm,Y]():Y;}
+p.Foo[K:imm]:{'this\
+ .get:K@p.Foo;\
+ .beer[G:imm]:G@p.Foo;}
+""",List.of("""
+Foo[K]:{.get:K; .beer[G]:G;}
+A:{.m[X](x:Foo[X]):X}
+B1:A{.m[Y](z)->z.get}
+B2:A{.m[Y](z)->z.beer[Y]}
+"""));}
 
+@Test void inferAlpha_Rename_SingleSuper_UserNamesWin(){ okI("""
+p.A:{'this .id[X:imm](p.Box[X]):X@p.A;}
+p.B:p.A{'this .id[T:imm](p.Box[T]):T@p.B;\
+(b)->b:p.Box[T].get[imm]():T;}
+p.Box[K:imm]:{'this .get:K@p.Box;}
+""", List.of("""
+Box[K]:{.get:K;}
+A:{.id[X](x:Box[X]):X}
+B:A{.id[T](b:Box[T])->b.get}
+"""));
+}
 
-//TODO: make sure to test the following:
-//method .m[X](x:Foo[X]):X implemented is specified as .m[Y](z)->...
-//check that the inference 5a must get z:Foo[Y]
+@Test void inferAlpha_Rename_SwapOrderInOverride(){ okI("""
+p.A:{'this .pick[X:imm,Y:imm](p.Pair[X,Y]):Y@p.A;}
+p.B:p.A{'this .pick[U:imm,V:imm](p.Pair[V,U]):V@p.B;\
+(p)->p:p.Pair[V,U].fst[imm]():V;}
+p.Pair[AA:imm, BB:imm]:{'this .fst:AA@p.Pair; .snd:BB@p.Pair;}
+""", List.of("""
+Pair[AA,BB]:{.fst:AA;.snd:BB;}
+A:{.pick[X,Y](p:Pair[X,Y]):Y}
+B:A{.pick[U,V](p:Pair[V,U])->p.fst}
+"""));
+}
+
+@Test void inferAlpha_MultiSuper_SameBounds_SameMeaning_DifferentNames(){ okI("""
+p.A:{'this .id[X:imm](p.Box[X]):X@p.A;}
+p.Box[K:imm]:{'this .get:K@p.Box;}
+p.C:{'this .id[Y:imm](p.Box[Y]):Y@p.C;}
+p.D:p.A, p.C{'this .id[X:imm](p.Box[X]):X@p.D;}
+""", List.of("""
+Box[K]:{.get:K;}
+A:{.id[X:imm](x:Box[X]):X}
+C:{.id[Y:imm](y:Box[Y]):Y}
+D:A,C{}
+"""));
+}
+
+@Test void inferAlpha_DefaultImplVsAbstract_PickAlignedImpl(){ okI("""
+p.A:{'this .id[X:imm](p.Box[X]):X@p.A;}
+p.Box[K:imm]:{'this .get:K@p.Box;}
+p.C:{'this .id[Y:imm](p.Box[Y]):Y@p.C;(y)->y:p.Box[Y].get[imm]():Y;}
+p.D:p.A, p.C{'this .id[X:imm](p.Box[X]):X@p.C;}
+""", List.of("""
+Box[K]:{.get:K;}
+A:{.id[X](x:Box[X]):X}
+C:{.id[Y](y:Box[Y]):Y->y.get} // has impl
+D:A,C{} // merge supertypes; impl origin should be C after alignment
+"""));
+}
+//-------------
+@Disabled @Test void inferAlpha_GenericMethod_LambdaImplements_Generic_OverrideDifferentNames(){okI("""
+""", List.of("""
+Conv:{ .apply[S1,S2](s:S1):S2 }  // generic method, no base.F
+A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
+B:A{
+  .use[U1,V1](x:U1,c:Conv):V1 -> c.apply[U1,V1](x)
+}
+"""));}
+
+@Disabled @Test void inferAlpha_MergeTwoSupers_SameShape_DifferentNames_LambdaUsesOuterBs(){okI("""
+""", List.of("""
+Conv:{ .apply[S1,S2](s:S1):S2 }
+A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
+C:{ .use[U1,V1](u:U1,k:Conv):V1 }
+D:A,C{
+  .use[P1,Q1](p:P1,m:Conv):Q1 -> m.apply[P1,Q1](p)
+}
+"""));}
+
+@Disabled @Test void inferAlpha_ReturnsObjectWhoseMethodIsGeneric_LambdaInsideOverride(){okI("""
+""", List.of("""
+Mapper:{ .map[S1,S2](s:S1):S2 }
+A:{ .mk[X1,Y1]():Mapper }
+B:A{
+  .mk[U1,V1]():Mapper -> Mapper{
+    '_
+    imm .map[R1,S1](r:R1):S1@Mapper;
+    .map(r)->r // instantiate later at [U1,U1] or [V1,V1], types align via alpha
+  }:Mapper
+}
+"""));}
+
+@Disabled @Test void inferAlpha_OverloadedGenericMethods_InSameLambda_DifferentArities(){okI("""
+""", List.of("""
+Ops:{
+  .a[S1](s:S1):S1;
+  .a[S2,T2](s:S2,t:T2):S2;
+}
+A:{ .mk[X1]():Ops }
+B:A{
+  .mk[U1]():Ops -> Ops{
+    '_
+    imm .a[R1](r:R1):R1@Ops;                .a(r)->r;
+    imm .a[R2,S2](r:R2,s:S2):R2@Ops;        .a(r,s)->r;
+  }:Ops
+}
+"""));}
+
+@Disabled @Test void inferAlpha_NestedLambda_ReturnsObject_WhoseMethodReturnsObject_WithGenericMethod(){okI("""
+""", List.of("""
+Id:{ .id[S1](s:S1):S1 }
+Maker:{ .make[X1]():Id }
+
+A:{ .mk[Y1]():Maker }
+B:A{
+  .mk[U1]():Maker -> Maker{
+    '_
+    imm .make[R1]():Id@Maker;
+    .make()->Id{
+      '_
+      imm .id[T1](t:T1):T1@Id;
+      .id(t)->t
+    }:Id
+  }:Maker
+}
+"""));}
+
+@Disabled @Test void inferAlpha_MergeSupers_ReturnsGenericMethodObject_OverrideRenames(){okI("""
+""", List.of("""
+Comb:{ .pair[S1,T1](s:S1,t:T1):Pair[S1,T1] }
+Pair[A1,B1]:{ .fst:A1; .snd:B1; }
+
+A:{ .mk[X1,Y1]():Comb }
+C:{ .mk[U1,V1]():Comb }
+D:A,C{
+  .mk[P1,Q1]():Comb -> Comb{
+    '_
+    imm .pair[R1,S1](r:R1,s:S1):Pair[R1,S1]@Comb;
+    .pair(r,s)->{ .fst->r; .snd->s; }
+  }:Comb
+}
+"""));}
+
+@Disabled @Test void inferAlpha_ClassAndMethodGenericsInteract_NoShadowing_NestedUse(){okI("""
+""", List.of("""
+Box[T0]:{ .get:T0 }
+X:{ .lift[X1](b:Box[X1]): Box[X1] }
+A[T0]:X{
+  .lift[U1](b:Box[U1]): Box[U1] -> b // trivial, but exercises class T0 + method U1
+}
+"""));}
+
+@Disabled @Test void inferAlpha_TransitiveImport_A_B_C_LeafRenamesAndUsesNestedGenericObject(){okI("""
+""", List.of("""
+Conv:{ .apply[S1,S2](s:S1):S2 }
+A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
+B:A{}
+C:B{
+  .use[U1,V1](x:U1,c:Conv):V1 -> {
+    // build a helper object with its own generic method and use it
+    Helper:{ .twice[R1](r:R1):R1 } // generic method
+    var h = Helper{ '_ imm .twice[Q1](q:Q1):Q1@Helper; .twice(q)->q }:Helper;
+    // still call the Conv generic method, making sure bs line up
+    h.twice[V1]( c.apply[U1,V1](x) )
+  }
+}
+"""));}
+
+@Disabled @Test void inferAlpha_MultiLevel_ReturnsOverloadedGenericObject_ArityOverload(){okI("""
+""", List.of("""
+Ops:{
+  .sel[S1](s:S1):S1;
+  .sel[S2,T2](s:S2,t:T2):S2;
+}
+A:{ .mk[X1]():Ops }
+B:A{}
+C:B{
+  .mk[U1]():Ops -> Ops{
+    '_
+    imm .sel[R1](r:R1):R1@Ops;           .sel(r)->r;
+    imm .sel[R2,S2](r:R2,s:S2):R2@Ops;   .sel(r,s)->r;
+  }:Ops
+}
+"""));}
+
+@Disabled @Test void inferAlpha_GenericMethodCallsAnotherGenericMethod_OnParameterObject(){okI("""
+""", List.of("""
+Proj:{ .fst[S1,T1](p:Pair[S1,T1]):S1 }
+Pair[A1,B1]:{ .fst:A1; .snd:B1; }
+A:{ .left[X1,Y1](p:Pair[X1,Y1], pr:Proj):X1 }
+B:A{
+  .left[U1,V1](p:Pair[U1,V1], pr:Proj):U1 -> pr.fst[U1,V1](p)
+}
+"""));}
+
+@Disabled @Test void inferAlpha_ReturnsGenericMethodObject_ThatCallsCallerBsInside(){okI("""
+""", List.of("""
+Ap:{ .ap[S1,T1](x:S1):T1 }
+A:{ .mk[X1,Y1]():Ap }
+B:A{
+  .mk[U1,V1]():Ap -> Ap{
+    '_
+    imm .ap[R1,S1](r:R1):S1@Ap;
+    .ap(r)->{
+      // fabricate a value by bouncing through an identity object with generic method
+      Id:{ .id[Q1](q:Q1):Q1 }
+      Id{ '_ imm .id[W1](w:W1):W1@Id; .id(w)->w }:Id .id[S1]( /* some S1 value */ r )
+    }
+  }:Ap
+}
+"""));}
+
+@Test void inferAlpha_TwoSupersAgree_LeafOmitsBs_UseAgreementBs_ThenAlign(){okI("""
+""", List.of("""
+Conv:{ .apply[S1,S2](s:S1):S2 }
+A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
+C:{ .use[U1,V1](u:U1,c:Conv):V1 }
+D:A,C{
+  .use(x,c)-> c.apply[ /* inferred X/Y */ ](x) // omit local bs; force agreementBs then align
+}
+"""));}
+
+@Disabled @Test void inferAlpha_DeepNest_3Levels_GenericMethods_AllAligned(){okI("""
+""", List.of("""
+L1:{ .m1[A1,B1](a:A1):B1 }
+L2:{ .m2[C1,D1](c:C1,l:L1):D1 }
+L3:{ .m3[E1,F1](e:E1,l:L2):F1 }
+
+A:{ .go[X1,Y1](x:X1,l:L3):Y1 }
+B:A{
+  .go[U1,V1](x:U1,l:L3):V1 -> l.m3[U1,V1](x, L2{
+    '_
+    imm .m2[R1,S1](r:R1,l1:L1):S1@L2;
+    .m2(r,l1)-> l1.m1[R1,S1](r)
+  }:L2)
+}
+"""));
+}
+
+//---------
+@Test void boundMustAlpha(){okI("""
+p.A:{'this .m[X:imm](p.Foo[X]):X@p.A;}
+p.B1[X:imm]:p.A{'this\
+ .m[B_X:imm](p.Foo[B_X]):B_X@p.B1;\
+(z)->z:p.Foo[B_X].get[imm]():B_X;}
+p.B2[X:imm]:p.A{'this\
+ .m[A_X:imm](p.Foo[A_X]):A_X@p.B2;\
+(z)->z:p.Foo[A_X].beer[imm,Err]():Err;}//Oh Now, here it overrides the user type
+p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
+""",List.of("""
+Foo[K]:{.get:K; .beer[G]:G;}
+A:{.m[X](x:Foo[X]):X}
+B1[X]:A{.m(z)->z.get}
+B2[X]:A{.m(z)->z.beer[X]}
+"""));}
+//The above could be solved by comparing the input and the result on the top level inference steps.
+//arguably, this could be applied when making the transition inference->core
+//TODO: when committing to class table consider replacing all the bodies with Void or Magic! to avoid worst case shenario quadratic memory consumption.
 
 //TODO: if some error about rc disagreement can not be triggered any more, they should become asserts
 //search for 'Reference capability disagreement'
