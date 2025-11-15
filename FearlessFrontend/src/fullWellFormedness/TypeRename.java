@@ -6,6 +6,7 @@ import java.util.Optional;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import files.Pos;
+import fullWellFormedness.InjectionSteps.MSig;
 import inferenceGrammar.E;
 import inferenceGrammar.IT;
 import inferenceGrammarB.T;
@@ -96,46 +97,16 @@ public class TypeRename{
     Optional<E> e= m.impl().map(i->i.e());
     return new inferenceGrammarB.M(sig,xs,e);
   }
-  public static List<inferenceGrammarB.M> itmToM(List<inferenceGrammar.M> ms){ return ms.stream().map(TypeRename::itmToM).toList(); } 
+  public static List<inferenceGrammarB.M> itmToM(List<inferenceGrammar.M> ms){ return ms.stream().map(TypeRename::itmToM).toList(); }
+  public static MSig normalizeHeaderBs(MSig header, inferenceGrammar.M.Sig sig){
+    if (sig.bs().isEmpty()){ assert header.bs().isEmpty() : "header has generics but implementation has none: " + header + " / " + sig; return header; }
+    var targetBs= sig.bs().get().stream().map(b -> b.x()).toList();
+    if (header.bs().equals(targetBs)){ return header; }
+    assert header.bs().size() == targetBs.size() : "generic arity mismatch header=" + header.bs() + " impl=" + targetBs;
+    var fromXs= header.bs();
+    var toITs= targetBs.stream().<IT>map(IT.X::new).toList();
+    var renamedTs= ofIT(header.ts(), fromXs, toITs);
+    var renamedRet= of(header.ret(), fromXs, toITs);
+    return new MSig(header.rc(), targetBs, renamedTs, renamedRet);
+  } 
 }
-
-  /*static T withRC(T t, RC rc){return switch(t){
-    case T.X x -> new T.RCX(rc,x);
-    case T.ReadImmX _ -> throw Bug.unreachable();
-    case T.RCX(_, var x) -> new T.RCX(rc,x);
-    case T.RCC(_, var c) -> new T.RCC(rc, c);
-  };}*/
-  /*static fearlessFullGrammar.T withRC(fearlessFullGrammar.T t, RC rc){return switch(t){
-    case fearlessFullGrammar.T.X x -> new fearlessFullGrammar.T.RCX(rc,x);
-    case fearlessFullGrammar.T.ReadImmX _ -> throw Bug.unreachable();
-    case fearlessFullGrammar.T.RCX(_, var x) -> new fearlessFullGrammar.T.RCX(rc,x);
-    case fearlessFullGrammar.T.RCC(_, var c) -> new fearlessFullGrammar.T.RCC(Optional.of(rc), c);
-  };}*/
-    /*static T readImm(T t){return switch(t){
-    case T.X x -> new T.ReadImmX(x);
-    case T.ReadImmX rix -> rix;
-    case T.RCX(RC rc, _) -> withRC(t,readImm(rc));
-    case T.RCC(RC rc, _) -> withRC(t,readImm(rc));
-  };}*/
-  /*static fearlessFullGrammar.T readImm(fearlessFullGrammar.T t){return switch(t){
-    case fearlessFullGrammar.T.X x -> new fearlessFullGrammar.T.ReadImmX(x);
-    case fearlessFullGrammar.T.ReadImmX rix -> rix;
-    case fearlessFullGrammar.T.RCX(RC rc, _) -> withRC(t,readImm(rc));
-    case fearlessFullGrammar.T.RCC(var rc, _) -> withRC(t,readImm(rc.orElse(RC.imm)));
-  };}*/
-    /*static T of(T t, List<String> xs, List<T> ts){ return switch(t){
-    case T.X x -> getOrSame(x,x.name(),xs,ts);
-    case T.RCX(RC rc, var x) -> withRC(of(x,xs,ts),rc);
-    case T.RCC(RC rc, var c) -> new T.RCC(rc,new T.C(c.name(),ofT(c.ts(),xs,ts)));
-    case T.ReadImmX(var x) -> readImm(of(x,xs,ts));
-  };}
-  static fearlessFullGrammar.T of(fearlessFullGrammar.T t, List<String> xs, List<fearlessFullGrammar.T> ts){ return switch(t){
-    case fearlessFullGrammar.T.X x -> getOrSame(x,x.name(),xs,ts);
-    case fearlessFullGrammar.T.RCX(RC rc, var x) -> withRC(of(x,xs,ts),rc);
-    case fearlessFullGrammar.T.RCC(var rc, var c) -> new fearlessFullGrammar.T.RCC(rc,new fearlessFullGrammar.T.C(c.name(),c.ts().map(tsi->ofFT(tsi,xs,ts))));
-    case fearlessFullGrammar.T.ReadImmX(var x) -> readImm(of(x,xs,ts));
-  };}*/
-  //static List<T.C> ofTC(List<T.C> csi, List<String> xs, List<T> ts){ return csi.stream().map(c->of(c,xs,ts)).toList(); }
-  //static T.C of(T.C c, List<String> xs, List<T> ts){ return new T.C(c.name(), ofT(c.ts(),xs,ts)); }
-  //static List<T> ofT(List<T> tsi, List<String> xs, List<T> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
-  //static List<fearlessFullGrammar.T> ofFT(List<fearlessFullGrammar.T> tsi, List<String> xs, List<fearlessFullGrammar.T> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }

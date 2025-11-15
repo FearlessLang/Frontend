@@ -23,7 +23,7 @@ import inferenceGrammar.B;
 import fearlessFullGrammar.TName;
 import static java.util.Optional.*;
 
-public record InjectionToInferenceVisitor(List<TName> tops, List<String> implicits, Function<TName,TName> f, List<E.Literal> decs, Package pkg, List<List<B>> bsInScope, OtherPackages other, FreshPrefix freshF)
+public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<String> implicits, Function<TName,TName> f, List<E.Literal> decs, Package pkg, List<List<B>> bsInScope, OtherPackages other, FreshPrefix freshF)
     implements fearlessFullGrammar.EVisitor<inferenceGrammar.E>,fearlessFullGrammar.TVisitor<IT>{
   static final inferenceGrammar.IT u= IT.U.Instance;
   static fearlessFullGrammar.E.Literal emptyL(Pos pos){ return new fearlessFullGrammar.E.Literal(empty(),List.of(),pos); }
@@ -41,7 +41,6 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
   }
   List<E> mapE(List<fearlessFullGrammar.E> es){ return es.stream().map(e->e.accept(this)).toList(); }
   List<IT> mapT(List<fearlessFullGrammar.T> ts){ return ts.stream().map(t->t.accept(this)).toList(); }
-  List<IT> mapIT(List<fearlessFullGrammar.T> ts){ return ts.stream().map(t->t.toIT()).toList(); }
   List<IT.C> mapC(List<fearlessFullGrammar.T.C> cs){ return cs.stream().map(t->visitC(t)).toList(); }
   List<B> mapB(List<fearlessFullGrammar.B> bs){ return bs.stream().map(b->visitB(b)).toList(); }
   List<Optional<IT>> mapPT(List<fearlessFullGrammar.Parameter> ps){ return ps.stream().map(p->p.t().map(ti->ti.accept(this))).toList(); }
@@ -144,11 +143,12 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     List<M> ms= mapM(ms0);
     List<B> bs= Stream.concat(new FreeXs().ftvMs(ms),new FreeXs().ftvT(visitRCC(t.t())))
       .map(x->xB(x)).toList();
-    TName fresh= freshF.freshTopType(tops.getFirst(),bs.size());
+    TName fresh= freshF.freshTopType(tops.getLast(),bs.size());
     String thisName= t.l().isEmpty()
       ?"_"
       :t.l().get().thisName().map(n->n.name()).orElse("_");  
     var l= new E.Literal(Optional.of(t.t().rc().orElse(RC.imm)),fresh,bs,impl,thisName, ms, t.pos());
+    //l = meths.expandDeclaration(l);//TODO: circular behaviour, see other commented occurence of expandDeclaration
     decs.add(l);
     return l;
   }
@@ -167,6 +167,25 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     List<IT.C> cs= mapC(d.cs());    
     List<M> ms= mapM(d.l().methods());
     E.Literal l= new E.Literal(Optional.of(rc),name,bs,cs,thisName, ms, d.l().pos());      
+    //l = meths.expandDeclaration(l);
+    //TODO: No: meths need the cache ready to do the expansion.
+    //the cache depends on layers,
+    //layers are computed after the inference right now
+    //so either we compute the layers/cache early or we do not expand in this phase
+    //if no FV is captured, they could be added out (and be implemented again)
+    //if no FV is captured, they could be replaced with a typed literal since no need to connect with outer inference
+    //connection with outer inference is small anyway? or can it be relevant?
+    //if has FV and we want connection with inference, must stay in?
+    //overall redesign of 5a?
+    /*goals:
+    -layering
+    -sugar expansion
+    -expansion of cs and sigs when types are known
+    -what is the top map needed for?? does it needs the bodies?
+    //TODO: if we revert all the above, remember to remove the Methods parameter from the injection inference visitor
+    
+    
+    */
     decs.add(l);
     bsInScope.removeLast();
     return l;
@@ -184,7 +203,7 @@ public record InjectionToInferenceVisitor(List<TName> tops, List<String> implici
     E e= c.e().accept(this);
     var targs= c.targs().get();
     List<E> es= mapE(c.es());
-    List<IT> ts= mapIT(targs.ts());
+    List<IT> ts= mapT(targs.ts());
     return new E.Call(e, c.name(), targs.rc(), ts, es, c.pos());
   }
   private Call desugarCPat(Call c){

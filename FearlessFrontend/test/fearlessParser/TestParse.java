@@ -3804,5 +3804,23 @@ StackMatch[T,R]: {
   .elem(top:T, tail: Stack[T]): R,
   }
 """);}
+
+@Test void badUseOfK(){ok("""
+[###]
+m=Optional[.foo2][###]
+m=Optional[.k],bs=Optional[[B[x=X[name=K][###]
+.kCallSquare[rc=Optional.empty,ts=[RCC[rc=Optional.empty,
+c=C[name=K/0,ts=Optional.empty]]]]false[]]]]]]]
+""","""
+GG[A,B]:{ .apply[C,D](A,B,C):D }
+Baba[C,D]:GG[Any,Any]{}
+Any:{![T]:T->Any![T]}
+User:{
+  .withGG[A1,B1](GG[A1,B1]):User;
+  .foo1[C,D]:User->this.withGG[C,D]({a,b,c->Any!});
+  .foo2[C,D]:User->KK:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[K];
+}
+""");}
+
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

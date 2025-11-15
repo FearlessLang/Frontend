@@ -8,7 +8,6 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import fullWellFormedness.ParsePackage;
@@ -278,10 +277,11 @@ User:{ .use:User->A.a{User}}
 """));}
 @Test void base_typed_literal_inference_0(){ok("""
 p.A:{'this .a[R:imm](p.F[R]):R@p.A;(f)->f:?#():?;}
-p.A_F:p.F[p.User]{'_ #:p.User@p.A_F;->p.User:?;}
+p.A_User:p.F[p.User]{'_ #:p.User@p.A_User;->p.User:?;}
 p.F[R:imm]:{'this #:R@p.F;}
-p.User:{'this .use:p.User@p.User;->p.A:?.a(\
-p.A_F:p.F[p.User]{'_ ? [?]:?@!; ()->p.User:?;}:?):?;}
+p.User:{'this\
+ .use:p.User@p.User;\
+->p.A:?.a(p.A_User:p.F[p.User]{'_ ? [?]:?@!; ()->p.User:?;}:?):?;}
 """,List.of("""
 F[R]:{#:R}
 A:{ .a[R](f:F[R]):R->f#; }
@@ -290,11 +290,11 @@ User:{ .use:User->A.a F[User]{User}}
 @Test void base_typed_literal_inference_freshClash1(){ok("""
 p.A:{'this .a[R:imm](p.F[R]):R@p.A;(f)->f:?#():?;}
 p.A_F:{'this}
-p.C_F:p.F[p.User]{'_ #:p.User@p.C_F;->p.User:?;}
+p.A_User:p.F[p.User]{'_ #:p.User@p.A_User;->p.User:?;}
 p.F[R:imm]:{'this #:R@p.F;}
 p.User:{'this\
- .use:p.User@p.User;->p.A:?.a(\
-p.C_F:p.F[p.User]{'_ ? [?]:?@!; ()->p.User:?;}:?):?;}
+ .use:p.User@p.User;\
+->p.A:?.a(p.A_User:p.F[p.User]{'_ ? [?]:?@!; ()->p.User:?;}:?):?;}
 ""","role app000;\nuse base.Void as B_F;\n",List.of("""
 F[R]:{#:R}
 A_F:{}
@@ -304,12 +304,12 @@ User:{ .use:User->A.a F[User]{User}}
 
 @Test void base_typed_literal_inference_freshClash2(){ok("""
 p.A:{'this .a[R:imm](p.F[R]):R@p.A;(f)->f:?#():?;}
+p.A_User:p.F[p.User]{'_ #:p.User@p.A_User;->p.User:?;}
 p.B_F:{'this}
-p.C_F:p.F[p.User]{'_ #:p.User@p.C_F;->p.User:?;}
 p.F[R:imm]:{'this #:R@p.F;}
 p.User:{'this\
- .use:p.User@p.User;->p.A:?.a(\
-p.C_F:p.F[p.User]{'_ ? [?]:?@!; ()->p.User:?;}:?):?;}
+ .use:p.User@p.User;\
+->p.A:?.a(p.A_User:p.F[p.User]{'_ ? [?]:?@!; ()->p.User:?;}:?):?;}
 ""","role app000;\nuse base.Void as A_F;\n",List.of("""
 F[R]:{#:R}
 B_F:{}
@@ -633,6 +633,7 @@ A1:{ .foo[X:imm]():A1;}
 A2:{ .foo[X:imm]():A1;}
 B[X:imm]:A1,A2{ .foo()->this.foo }
 """));}
+
 @Test void ambigMethName1(){fail("""
 In file: [###]/in_memory0.fear
 
@@ -756,17 +757,12 @@ A2:{ mut .foo():A2; }
 B:A1,A2{ .foo->B; }
 """));}
 
-@Test void rcOverloadingOk2(){fail("""
-In file: [###]/in_memory0.fear
-
-004| B:A1,A2{ A1 }
-   |          ^^^^
-
-While inspecting type declaration "B"
-Can not infer the name for method with 0 parameters.
-Many abstract methods with 0 parameters could be selected:
-Candidates: "mut .foo", "imm .foo".
-Error 9  WellFormedness
+@Test void rcOverloadingOk2(){ok("""
+p.A1:{'this mut .foo:p.A1@p.A1;}
+p.A2:{'this .foo:p.A1@p.A2;}
+p.B:p.A1, p.A2{'this\
+ mut .foo:p.A1@p.B;->p.A1:?;\
+ .foo:p.A1@p.B;->p.A1:?;}
 """,List.of("""
 A1:{ mut .foo:A1;}
 A2:{ imm .foo:A1;}
@@ -902,8 +898,49 @@ Twice[T]:{.get:Pair[T,T];}
 A:{.m[X,Y](t:Twice[Pair[X,Y]]):X}
 C:{.m[U,V](t:Twice[Pair[V,U]]):U}
 D:A,C{}
-"""));
+"""));}
+
+@Test void nested5a(){ok("""
+p.A_User:p.GG{'_ .apply[F_A0:imm](F_A0):F_A0@p.A_User;(a2)->a2:?;}
+p.B_User:p.GG{'_ .apply[C_A0:imm](C_A0):C_A0@p.B_User;(a4)->a4:?;}
+p.C_User:p.GG{'_ .apply[A_A0:imm](A_A0):A_A0@p.C_User;(a3)->this:?.withGG(p.B_User:p.GG{'_ ? [?](?):?@!; (a4)->a4:?;}:?):?;}
+p.D_User:p.GG{'_ .apply[B_A0:imm](B_A0):B_A0@p.D_User;(a5)->a5:?;}
+p.E_User:p.GG{'_ .apply[D_A0:imm](D_A0):D_A0@p.E_User;(a4)->this:?.withGG(p.D_User:p.GG{'_ ? [?](?):?@!; (a5)->a5:?;}:?):?;}
+p.F_User:p.GG{'_ .apply[E_A0:imm](E_A0):E_A0@p.F_User;(a3)->this:?.withGG(p.E_User:p.GG{'_ ? [?](?):?@!; (a4)->this:?.withGG(p.D_User:p.GG{'_ ? [?](?):?@!; (a5)->a5:?;}:?):?;}:?):?;}
+p.GG:{'this .apply[A0:imm](A0):A0@p.GG;}
+p.User:{'this .withGG(p.GG):p.User@p.User; .id1[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p.A_User:p.GG{'_ ? [?](?):?@!; (a2)->a2:?;}:?):?; .id2[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p.C_User:p.GG{'_ ? [?](?):?@!; (a3)->this:?.withGG(p.B_User:p.GG{'_ ? [?](?):?@!; (a4)->a4:?;}:?):?;}:?):?; .id3[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p.F_User:p.GG{'_ ? [?](?):?@!; (a3)->this:?.withGG(p.E_User:p.GG{'_ ? [?](?):?@!; (a4)->this:?.withGG(p.D_User:p.GG{'_ ? [?](?):?@!; (a5)->a5:?;}:?):?;}:?):?;}:?):?;}
+""", List.of("""
+GG:{ .apply[A0](A0):A0 }
+User:{
+  .withGG(GG):User;
+  .id1[A0,A1]:User->this.withGG GG{a2->a2};
+  .id2[A0,A1]:User->this.withGG GG{a3->this.withGG GG{a4->a4}};
+  .id3[A0,A1]:User->this.withGG GG{a3->this.withGG GG{a4->this.withGG GG{a5->a5}};
+  }
 }
+"""));}
+
+@Test void abcdBadK(){fail("""
+In file: [###]/in_memory0.fear
+
+008|   .foo2[C,D]:User->KK:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[K];
+   |                                                                     ^^
+
+While inspecting a type name
+Undeclared name: name "K" is not declared in package p.
+Error 9  WellFormedness
+""", List.of("""
+GG[A,B]:{ .apply[C,D](A,B,C):D }
+Baba[C,D]:GG[Any,Any]{}
+Any:{![T]:T->Any![T]}
+User:{
+  .withGG[A1,B1](GG[A1,B1]):User;
+  .foo1[C,D]:User->this.withGG[C,D]({a,b,c->Any!});
+  .foo2[C,D]:User->KK:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[K];
+}
+"""));}
+
+
 
 }
 //TODO: in the guide somewhere show #|" foo{#U+`AB02`} for arbitrary Unicode

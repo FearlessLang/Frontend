@@ -9,8 +9,8 @@ import fearlessParser.RC;
 import inferenceGrammar.E;
 import message.WellFormednessErrors;
 
-public class ToInference {
-  List<E.Literal> of(Package p, OtherPackages other, FreshPrefix fresh){
+public class ToInference{
+  List<E.Literal> of(Package p, Methods meths, OtherPackages other, FreshPrefix fresh){
     Function<TName,TName> f= tn->{
       var pN= tn.pkgName();
       if (!pN.isEmpty()){
@@ -27,7 +27,7 @@ public class ToInference {
       //here, we know it is not defined (either at all or with the right arity)
     };
     ArrayList<E.Literal> decs= new ArrayList<>();
-    var v= new InjectionToInferenceVisitor(new ArrayList<>(),new ArrayList<>(),f,decs,p,new ArrayList<>(),other,fresh);
+    var v= new InjectionToInferenceVisitor(meths, new ArrayList<>(),new ArrayList<>(),f,decs,p,new ArrayList<>(),other,fresh);
     p.decs().forEach(di->v.addDeclaration(RC.imm,di,true));
     return List.copyOf(decs);
   }

@@ -31,7 +31,11 @@ public class AllDeclaredNames implements EVisitor<Void>{
   @Override public B visitInnerB(B b){ lastTopXs.add(b.x()); return b; }
   @Override public Parameter visitInnerParameter(Parameter p){ p.xp().ifPresent(this::visitInnerXPat); return p; }
   @Override public XPat visitInnerXPat(XPat x){ x.parameterNames().forEach(lastTopNames::add); return x; }
-  @Override public Sig visitInnerSig(Sig s){ s.parameters().forEach(this::visitInnerParameter); return s; }
+  @Override public Sig visitInnerSig(Sig s){
+    s.bs().ifPresent(bs->bs.forEach(this::visitInnerB));
+    s.parameters().forEach(this::visitInnerParameter);
+    return s;
+  }
 
   @Override public Declaration visitInnerDeclaration(Declaration d){
     if (!decNames.add(d.name())){ throw WellFormednessErrors.duplicatedName(d.name()); }

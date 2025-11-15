@@ -25,7 +25,8 @@ public record M(Sig sig, Optional<Impl> impl){
       return " "+rcS+" "+mS+bsS+tsS+":"+t(ret)+ori+";";
     }
     private String t(Optional<IT> ot){ return ot.map(Object::toString).orElse("?"); }
-    public Sig withTsT(List<Optional<IT>> ts, Optional<IT> ret){ return new Sig(rc,m,bs,ts,ret,origin,abs,pos); }
+    public Sig withTsT(List<Optional<IT>> ts, IT ret){ return new Sig(rc,m,bs,ts,Optional.of(ret),origin,abs,pos); }
+    public Sig withBsTsT(List<B> bs, List<Optional<IT>> ts, IT ret){ return new Sig(rc,m,Optional.of(bs),ts,Optional.of(ret),origin,abs,pos); }
     public boolean isFull(){ return rc.isPresent() && m.isPresent() && bs.isPresent() && ts.stream().allMatch(Optional::isPresent) && ret.isPresent(); }
   }
   public record Impl(Optional<MName> m, List<String> xs, E e){

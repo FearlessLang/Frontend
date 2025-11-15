@@ -280,7 +280,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     this.ds.add(resD);
     this.dsMap.put(l.name(),resD);
     return l;
-  }  
+  }
   record TSM(List<IT> ts, inferenceGrammar.M m){}
   private TSM nextMStar(Gamma g, String thisN, IT.RCC rcc, List<IT> ts, inferenceGrammar.M m){
     IT.RCC t= rcc.withTs(ts);
@@ -293,7 +293,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     for(int i= 0; i < size; i += 1){ g.declare(xs.get(i), args.get(i).get()); }
     E e= nextStar(g,m.impl().get().e());
     args= xs.stream().map(x->Optional.of(g.get(x))).toList(); 
-    var improvedSig= m.sig().withTsT(args, Optional.of(e.t()));
+    var improvedSig= m.sig().withTsT(args, e.t());
     g.popScope();
     var ret= improvedSig.ret().get();
     ts= rcc.c().ts();
@@ -307,15 +307,16 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
       ).toList());
     rcc= rcc.withTs(ts);
     MSig improvedM= methodHeader(rcc,mName,improvedSig.rc()).get();
+    improvedM = TypeRename.normalizeHeaderBs(improvedM, improvedSig);
     assert improvedM.bs.equals(improvedSig.bs().get().stream().map(b->b.x()).toList()):
       ""+methodHeader(rcc,mName,improvedSig.rc())+improvedM.bs+ " "+improvedSig.bs().get(); 
-    var sigRes= improvedSig.withTsT(improvedM.ts().stream().map(Optional::of).toList(),Optional.of(improvedM.ret()));
+    var sigRes= improvedSig.withTsT(improvedM.ts().stream().map(Optional::of).toList(),improvedM.ret());
     e = meet(e,sigRes.ret().get());
     var mRes= new inferenceGrammar.M(sigRes,Optional.of(m.impl().get().withE(e)));
     return new TSM(rcc.c().ts(),mRes);
   }
   List<IT> refine(List<String> xs,IT t, IT t1){
-    if( t1 instanceof IT.U){ qMarks(xs.size()); } 
+    if( t1 instanceof IT.U){ return qMarks(xs.size()); } 
     return switch(t){
       case IT.X x -> refineXs(xs,x,t1);
       case IT.RCX(RC _, IT.X x) -> refineXs(xs,x,t1);
@@ -344,7 +345,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
 /*
 
 FJ inference
-
+program ::= Ds
 D   ::= interface C[Xs] { fMs , FMHs }
 FMH ::= m[Xs](x1:FT1 .. xn:FTn):FT
 fM  ::= FMH { return fe }
@@ -361,8 +362,8 @@ Pipeline for every method body
 containing a full-expression fe under Γ (including 'this') with return FT
 
 - e := inferenceOf(fe, FT)
-- Γ ⊢ e ==>* Γ' ⊢ e //Γ and FT extracted from the method signature
-- lower(ve) = ce
+- Γ ⊢ e ==>* Γ' ⊢ e' //Γ and FT extracted from the method signature
+- lower(fe,e') = ce
 - Γ ⊢ ce : FT //finally, typing the method body
 
 Obvious selectors:
@@ -371,6 +372,7 @@ Obvious selectors:
 - methodHeader(T,m) = m[Xs](x1 : T1 .. xn : Tn) : T0
 - methodHeader(e,m)= methodHeader(typeOf(e),m)
 //Note: methodHeader(C[Ts],m) already applies [Xs=Ts]
+
 Substitution: T[Xs=Ts] //standard
 _______
 #Define T ⊓ T' = T" and Ts ⊓ Ts' = Ts" //meet operator
@@ -381,21 +383,18 @@ _______
 - C[Ts] ⊓ C[Ts'] = C[Ts⊓Ts']
 - T ⊓ T' = Err otherwise //that, meet is always defined
 _______
-#Define e ⊓ T = e'  //NOTE: we may want not to propagate Err on an e
+#Define e ⊓ T = e'
   withType(e,typeOf(e) ⊓ T)
-_______
-#Define Γ ⊢/ e //read as Γ,e does not reduce
-  ¬∃ Γ',e'.(Γ ⊢ e ==> Γ' ⊢ e')
 _______
 #Define Xs ⊢ T=T' : Ts' //sub notation used in (refine)
 
 ---------------------------------------------------(refineXs)
-  X1..Xn X X'1..X'k ⊢ X=T : ?1..?n T ?1..?k //selects an X inside Xs' by splitting Xs' as X1..Xn X X1'..Xk'
+  X1..Xn X X'1..X'k ⊢ X=T : ?1..?n T ?1..?k
+  //selects an X inside Xs' by splitting Xs' as X1..Xn X X1'..Xk'
 
   X notin X1..Xn //can happen when we refine class generics and method generics are in scope
 ---------------------------------------------------(refineXsNope)
   X1..Xn ⊢ X=T : ?1..?n
-
 
 ---------------------------------------------------(refine?)
   X1..Xn⊢ ?=T : ?1..?n
@@ -403,9 +402,10 @@ _______
 ---------------------------------------------------(refineErr)
   X1..Xn⊢ Err=T : ?1..?n
 
-  ∀ i∈0..k Xs ⊢ Ti=T'i  : Tsi 
+  ∀ i∈1..k Xs ⊢ Ti=T'i  : Tsi 
 --------------------------------------------------(propagateXs)
-  X1..Xn ⊢ C[T1..Tk]=C[T'1..T'k] : ?1..?n⊓Ts1⊓..⊓Tsk  //the first ?s are needed if n==0
+  X1..Xn ⊢ C[T1..Tk]=C[T'1..T'k] : ?1..?n⊓Ts1⊓..⊓Tsk
+  //the first ?s are needed if n==0
 
 --------------------------------------------------(propagateXs?)
   X1..Xn ⊢ C[Ts]=? : ?1..?n
@@ -416,26 +416,23 @@ _______
   either C != C' or size(Ts) != size(Ts')   
 --------------------------------------------------(propagateXsDiff)
   X1..Xn ⊢ C[Ts]=C'[Ts'] : ?1..?n
-
-    
-//On the (not) need of alpha: if no need of alpha in methSig (since two universes)
-//then the X1..Xk is still not alphaed, thus is still the same of what methSig can give us here?
 _______
 #Define Γ ⊢ e ==>* Γ' ⊢ e' //read as reduce as much as possible
   Γ ⊢ e ==>* Γ ⊢ e if ¬∃ Γ',e' such that Γ ⊢ e ==> Γ' ⊢ e' 
   Γ ⊢ e ==>* Γ ⊢ e if Γ ⊢ e ==> Γ ⊢ e
   Γ ⊢ e ==>* Γ" ⊢ e" if Γ ⊢ e ==> Γ' ⊢ e' and Γ' ⊢ e' ==>* Γ" ⊢ e"   
+  //and Γ', e' != Γ, e
 _______
 #Define Γ ⊢ e ==> Γ' ⊢ e'
 
-//NOTE: we may want not to propagate Err on a Γ
--------------------------------------- (x)     //loop is now handled by ==>*
+-------------------------------------- (x)     //loop handled by ==>*
   Γ, x:T1 ⊢ x:T2 ==> Γ, x:T1 ⊓ T2 ⊢ x:T1 ⊓ T2
 
   ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
-  methodHeader(e'0,m) undefined// may be typeOf(e'0) not of form C[_], or m not exists
+  methodHeader(e'0,m) undefined
+  // may be because typeOf(e'0) not of form C[_], or m not exists in C[_]
 -------------------------------------- (call)
-  Γ0 ⊢ e0.m(e1..en):T ==> Γ(i+1) ⊢ e'0.m(e'1..e'n):T
+  Γ0 ⊢ e0.m(e1..en):T ==> Γ(n+1) ⊢ e'0.m(e'1..e'n):T
 
   ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
   methodHeader(e'0,m) = m[X1..Xk](_:T1.._:Tn):T0
@@ -457,17 +454,16 @@ _______
 ----------------------------------------------------------- (callR)
   Γ0 ⊢ e0.m[Ts](e1..en):T ==> Γ(n+1) ⊢ e'0.m[Ts"](e'1⊓T'1..e'n⊓T'n):T⊓T'0
 
-  m is the only abs meth of C
-  methodHeader(C[Ts],m)= m[Xs'](_:T1.._:Tn):T0  
+  m is the only abs meth of C with n parameters
+  methodHeader(C[Ts],m)= m[Xs'](_:T1.._:Tn):T0
   M = m[Xs'](x1:T1 .. xn:Tn): T0 { return e0⊓T0; }
   //NOTE: 'this' changes scope here, how to handle it?
 ----------------------------------------------------------- (lambda)
   Γ ⊢ (x1..xn->e0) : C[Ts] ==> Γ ⊢ new C[Ts](){ M }:C[Ts]
 
-  there is no m  that is the only abs meth of C with n parameters
+  there is no m with n parameters that is the only abs meth of C
 ----------------------------------------------------------- (lambdaNope)
   Γ ⊢ (x1..xn->e0) : C[Ts] ==> Γ ⊢ (x1..xn->e0) : C[Ts]
-
 
   e1 = new C[Ts1    ](){ M1 ..Mn  } : C[Ts1    ]
   e2 = new C[Ts(n+1)](){ M'1..M'n } : C[Ts(n+1)]
@@ -478,14 +474,28 @@ _______
   M  = m[Xs](x1:T1 .. xn:Tn):_ { return e; }
   Γ, this:C[Ts],x1:T1 .. xn:Tn⊢ e ==>* Γ',this:_,x1:T'1 .. xn:T'n ⊢ e'
   T'0 = typeOf(e')
-  interface C[Xs'] { _ m[Xs](_:IT1 .. _:ITn):IT0 _ } in Ds
-  forall i in 0..n Xs' |- ITi=T'i : Tsi
+  interface C[Xs'] { _ m[Xs](_:FT1 .. _:FTn):FT0 _ } in Ds
+  forall i in 0..n Xs' |- FTi=T'i : Tsi
   Ts' = Ts⊓Ts0⊓..⊓Tsn
-  methodHeader(C[Ts'],m) = m[Xs](_:T"1.._:T"n):T"0// confirm that FV(Ts') disjoint Xs always holds?
+  methodHeader(C[Ts'],m) = m[Xs](_:T"1.._:T"n):T"0
+  //TODO: confirm that FV(Ts') disjoint Xs always holds?
   M' = m[Xs](x1:T'1⊓T"1 .. xn:T'n⊓T"n):T'0⊓T"0 { return e'⊓T"0; }
 ------------------------------------------------------------------ (meth)
   Γ;C[Ts] ⊢ M ==>* Γ';C[Ts'] ⊢ M'
 
+//-------------------------------- less then 150 lines of formalism
+TODO: formally define angelicElaborate and the statement
+Ds |- angelicElaborate(Γ,fe,T,ce)
+TODO: read https://kelloggm.github.io/martinjkellogg.com/papers/ase2023-camera-ready.pdf
+if there is a unique elaboration, my system finds it
+(x)->e: F[A,B] MyF[A,B]
+MyF[A,B]:F[A,B]{}
+
+//(xs)->e:? if this can not be unlocked, we never enter into e
+
+_______
+#Define Γ ⊢/ e //read as Γ,e does not reduce (unused)
+  ¬∃ Γ',e'.(Γ ⊢ e ==> Γ' ⊢ e')
 
 Optimizing (avoiding) re entries://not quite working?
 Once a Γ ⊢ e ==>* Γ' ⊢ e' completed,
@@ -496,4 +506,10 @@ This also means that
 Once a Γ ⊢ e ==>* Γ' ⊢ ev completed, Γ" ⊢ ev ==>* Γ1 ⊢ ev' can be emulated by:
  Γ0 = FV(ev) and ev = ev'
  Γ1 = Γ0 ⊓ Γ"
+
+
+//On the (not) need of alpha: if no need of alpha in methSig (since two universes)
+//then the X1..Xk is still not alphaed, thus is still the same of what methSig can give us here?
+
+
 */

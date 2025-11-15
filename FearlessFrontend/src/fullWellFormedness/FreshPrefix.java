@@ -87,6 +87,11 @@ public final class FreshPrefix {
       return cand;
     }
   }
+  //Aliasing is deliberate to keep in sink:
+  //we may add new type/names/generics to the outer or the inner,
+  //and they both need to know about it to avoid those names.
+  //They are contained into each other, so to avoid all kinds of hiding,
+  //they need to avoid each other names in addition to their own.
   public void aliasOwner(TName original, TName alias){
     assert nonNull(original, alias);
     assert pkgName.equals(original.pkgName()): pkgName+" -- "+original;

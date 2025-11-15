@@ -29,16 +29,16 @@ public class ParsePackage{
     }
     Package p= merge(override,all,other);
     var fresh= new FreshPrefix(p);
-    List<E.Literal> iDecs= new ToInference().of(p,other,fresh);
-    var meths= new Methods(p.name(),iDecs,other,fresh,new HashMap<>());
-    List<inferenceGrammarB.Declaration> res= meths.of();
+    var meths= new Methods(p.name(),other,fresh,new HashMap<>());
+    List<E.Literal> iDecs= new ToInference().of(p,meths,other,fresh);
+    List<inferenceGrammarB.Declaration> res= meths.of(iDecs);
     return infer?InjectionSteps.steps(meths,res,other):res;
   }
   Package merge(List<FileFull.Map> override, Map<URI,FileFull> all, OtherPackages other){
     String pkgName= all.values().iterator().next().name();
     assert all.values().stream().allMatch(f->f.name().equals(pkgName));
     URI headPkg= afterPackage(pkgName,all.keySet());
-    all.entrySet().stream().filter(e->e.getKey() != headPkg)
+    all.entrySet().stream().filter(e->!e.getKey().equals(headPkg))
       .filter(e->!(e.getValue().maps().isEmpty() && e.getValue().uses().isEmpty() && e.getValue().role().isEmpty()))
       .forEach(e->{ throw WellFormednessErrors.notClean(e.getKey(),e.getValue()); });
     List<Declaration> ds= all.values().stream().flatMap(f->f.decs().stream()).toList();

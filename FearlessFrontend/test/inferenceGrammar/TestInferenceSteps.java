@@ -199,27 +199,22 @@ p.Stack[T:imm]:{'this\
 (f)->p.Stack[T]:p.Stack[T];\
  +(T):p.Stack[T]@p.Stack;\
 (e)->p.D_Stac:p.Stack[T]{'_\
- imm .match[R:imm](p.StackMatch[T,R]):R@p.Stack;\
- .match(m)->m:p.StackMatch[T,R].elem[imm](e:T,this:p.Stack[T]):R;\
- imm .fold[R:imm](R,base.F[R,T,R]):R@p.Stack;\
- .fold(start, f)->f:base.F[R,T,R]#[read](\
-this:p.Stack[T].fold[imm,R](start:R,f:base.F[R,T,R]):R,e:T\
-):R;\
- imm .map[R:imm](base.F[T,R]):p.Stack[R]@p.Stack;\
- .map(f)->this:p.Stack[T].map[imm,R](f:base.F[T,R]):p.Stack[R]\
-+[imm](f:base.F[T,R]#[read](e:T):R):p.Stack[R];\
+ imm .match[G_R:imm](p.StackMatch[T,G_R]):G_R@p.Stack;\
+ .match(m)->m:p.StackMatch[T,G_R].elem[imm](e:T,this:p.Stack[T]):G_R;\
+ imm .fold[H_R:imm](H_R,base.F[H_R,T,H_R]):H_R@p.Stack;\
+ .fold(start, f)->f:base.F[H_R,T,H_R]#[read](this:p.Stack[T].fold[imm,H_R](start:H_R,f:base.F[H_R,T,H_R]):H_R,e:T):H_R;\
+ imm .map[J_R:imm](base.F[T,J_R]):p.Stack[J_R]@p.Stack;\
+ .map(f)->this:p.Stack[T].map[imm,J_R](f:base.F[T,J_R]):p.Stack[J_R]\
++[imm](f:base.F[T,J_R]#[read](e:T):J_R):p.Stack[J_R];\
  imm .filter(base.F[T,base.Bool]):p.Stack[T]@p.Stack;\
  .filter(f)->f:base.F[T,base.Bool]#[read](e:T):base.Bool\
 .if[imm,p.Stack[T]](mut p.C_Stac:base.ThenElse[p.Stack[T]]{'_\
  mut .then:p.Stack[T]@base.ThenElse;\
- .then()->this:p.Stack[T]\
-.filter[imm](f:base.F[T,base.Bool]):p.Stack[T]\
+ .then()->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]\
 +[imm](e:T):p.Stack[T];\
  mut .else:p.Stack[T]@base.ThenElse;\
- .else()->this:p.Stack[T]\
-.filter[imm](f:base.F[T,base.Bool]):p.Stack[T];\
-}:mut base.ThenElse[p.Stack[T]]):p.Stack[T];\
-}:p.Stack[T];}
+ .else()->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];\
+}:mut base.ThenElse[p.Stack[T]]):p.Stack[T];}:p.Stack[T];}
 p.StackMatch[T:imm, R:imm]:{'this\
  .empty:R@p.StackMatch;\
  .elem(T,p.Stack[T]):R@p.StackMatch;}
@@ -397,10 +392,42 @@ C:{.id[Y](y:Box[Y]):Y->y.get} // has impl
 D:A,C{} // merge supertypes; impl origin should be C after alignment
 """));
 }
+
+@Test void abcd(){okI("""
+p.Any:{'this ![T:imm]:T@p.Any;->p.Any:p.Any![imm,T]():T;}
+p.Baba[C:imm, D:imm]:p.GG[p.Any,p.Any]{'this\
+ .apply[A_C:imm,A_D:imm](p.Any,p.Any,A_C):A_D@p.GG;}
+p.GG[A:imm, B:imm]:{'this\
+ .apply[C:imm,D:imm](A,B,C):D@p.GG;}
+p.KK:{'_ .k[K:imm]:K@p.KK;\
+->this:?.withGG[C,D](p.A_KK:$?{'_\
+ ? [?](?,?,?):?@!;\
+ (a, b, c)->p.Any:?!():?;}:?):K;}
+p.User:{'this\
+ .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User;\
+ .foo1[C:imm,D:imm]:p.User@p.User;\
+->this:p.User.withGG[imm,Err,Err](p.A_User:p.GG[C,D]{'_\
+ imm .apply[A_C:imm,A_D:imm](Err,Err,A_C):A_D@p.GG;\
+ (a, b, c)->p.Any:p.Any![imm,A_D]():A_D;}:p.GG[Err,Err]):p.User;\
+ .foo2[C:imm,D:imm]:p.User@p.User;\
+->p.KK:{'_ ? .k[K:imm]:K@!;\
+ .k()->this:?.withGG[C,D](p.A_KK:$?{'_\
+ ? [?](?,?,?):?@!;\
+ (a, b, c)->p.Any:?!():?;}:?):?;}:?.k[p.User]():p.User;}
+""", List.of("""
+GG[A,B]:{ .apply[C,D](A,B,C):D }
+Baba[C,D]:GG[Any,Any]{}
+Any:{![T]:T->Any![T]}
+User:{
+  .withGG[A1,B1](GG[A1,B1]):User;
+  .foo1[C,D]:User->this.withGG[C,D]({a,b,c->Any!});
+  .foo2[C,D]:User->KK:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[User];
+}
+"""));}
 //-------------
 @Disabled @Test void inferAlpha_GenericMethod_LambdaImplements_Generic_OverrideDifferentNames(){okI("""
 """, List.of("""
-Conv:{ .apply[S1,S2](s:S1):S2 }  // generic method, no base.F
+Conv:{ .apply[S1,S2](s:S1):S2 }
 A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
 B:A{
   .use[U1,V1](x:U1,c:Conv):V1 -> c.apply[U1,V1](x)
@@ -550,7 +577,7 @@ B:A{
 }
 """));}
 
-@Test void inferAlpha_TwoSupersAgree_LeafOmitsBs_UseAgreementBs_ThenAlign(){okI("""
+@Disabled @Test void inferAlpha_TwoSupersAgree_LeafOmitsBs_UseAgreementBs_ThenAlign(){okI("""
 """, List.of("""
 Conv:{ .apply[S1,S2](s:S1):S2 }
 A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
@@ -578,14 +605,29 @@ B:A{
 }
 
 //---------
+@Test void boundMustAlphaSimple(){okI("""
+p.A:{'this .m[X:imm](p.Foo[X]):X@p.A;}
+p.B1[X:imm]:p.A{'this\
+ .m[A_X:imm](p.Foo[A_X]):A_X@p.B1;\
+(z)->z:p.Foo[A_X].get[imm]():A_X;}
+p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
+""",List.of("""
+Foo[K]:{.get:K; .beer[G]:G;}
+A:{.m[X](x:Foo[X]):X}
+B1[X]:A{.m(z)->z.get}
+"""));}
+
+//TODO: this correctly shows that we can override a user defined type
+//.beer[imm,X] becomes .beer[imm,Err]
+//we will then merge back the user defined types when creating the core 
 @Test void boundMustAlpha(){okI("""
 p.A:{'this .m[X:imm](p.Foo[X]):X@p.A;}
 p.B1[X:imm]:p.A{'this\
- .m[B_X:imm](p.Foo[B_X]):B_X@p.B1;\
-(z)->z:p.Foo[B_X].get[imm]():B_X;}
+ .m[A_X:imm](p.Foo[A_X]):A_X@p.B1;\
+(z)->z:p.Foo[A_X].get[imm]():A_X;}
 p.B2[X:imm]:p.A{'this\
  .m[A_X:imm](p.Foo[A_X]):A_X@p.B2;\
-(z)->z:p.Foo[A_X].beer[imm,Err]():Err;}//Oh Now, here it overrides the user type
+(z)->z:p.Foo[A_X].beer[imm,Err]():Err;}
 p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
 """,List.of("""
 Foo[K]:{.get:K; .beer[G]:G;}

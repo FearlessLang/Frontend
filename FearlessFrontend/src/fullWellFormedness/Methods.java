@@ -28,9 +28,8 @@ import optimizedTypes.LiteralDeclarations;
 import utils.Bug;
 
 public record Methods(
-  String pkgName, List<E.Literal> iDecs,
-  OtherPackages other, FreshPrefix fresh,
-      Map<TName, inferenceGrammarB.Declaration> cache){
+    String pkgName, OtherPackages other, FreshPrefix fresh,
+    Map<TName, inferenceGrammarB.Declaration> cache){
   void mayAdd(List<E.Literal> layer, E.Literal d, Map<TName,E.Literal> rem){
     for (IT.C c : d.cs()){
       var nope= pkgName.equals(c.name().pkgName()) && rem.containsKey(c.name());
@@ -51,14 +50,14 @@ public record Methods(
     }
     return out;
   }
-  public List<inferenceGrammarB.Declaration> of(){
+  public List<inferenceGrammarB.Declaration> of(List<E.Literal> iDecs){
     var layers= layer(iDecs,pkgName);
     for(var l : layers){ 
-      for (var d : of(l)){ cache.put(d.name(), d); }
+      for (var d : ofLayer(l)){ cache.put(d.name(), d); }
     }
     return cache.values().stream().sorted(Comparator.comparing(d->d.name().s())).toList();
   }
-  List<inferenceGrammarB.Declaration> of(List<E.Literal> ds){
+  private List<inferenceGrammarB.Declaration> ofLayer(List<E.Literal> ds){
     return ds.stream().map(d->injectDeclaration(expandDeclaration(d))).toList();
   }
   record CsMs(List<IT.C> cs, List<inferenceGrammar.M.Sig> sigs){}
@@ -81,15 +80,20 @@ public record Methods(
       if (fresh.isFreshGeneric(outName,x)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
-      var newX= new IT.X(fresh.freshGeneric(c.name(),x));
+      var newX= new IT.X(fresh.freshGeneric(outName,x));
       fullTs.add(newX);
       newBs.add(new B(newX.name(),b.rcs()));
     }
     List<Optional<IT>> newTs= TypeRename.ofITOpt(TypeRename.tToIT(s.ts()),fullXs,fullTs);
     IT newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
     return new inferenceGrammar.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),s.pos());
-  } 
+  }
   public inferenceGrammarB.Declaration from(TName name, Map<TName, inferenceGrammarB.Declaration> cache){
+    var res= _from(name, cache);
+    assert res != null: "In pkgName="+pkgName+", name not found: "+name+" current domain is:\n"+cache.keySet();
+    return res;
+  }
+  private inferenceGrammarB.Declaration _from(TName name, Map<TName, inferenceGrammarB.Declaration> cache){
     if (name.pkgName().equals(pkgName)){ return cache.get(name); }
     var res= other.of(name);
     if (res != null){ return res; }
@@ -111,6 +115,7 @@ public record Methods(
   }
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
     List<M.Sig> allSig= fetch(from(c.name(),cache),c,d.name()).sigs();//expandLiteral works on an incomplete literal with the cs list not there yet
+    //var ms= refreshed(d.ms(), c);
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),c.name());
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),c.name());
     return d.withMs(allMs);
@@ -148,6 +153,7 @@ public record Methods(
       var count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
       if (count > 1){ throw WellFormednessErrors.ambiguosImpl(origin,true,m,match); }
+      assert match.isEmpty();
       ss.removeIf(s->s.m().get().arity()==arity?match.add(s):false);
       count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
@@ -179,7 +185,7 @@ public record Methods(
     match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s);
     return true;
   }
-  long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m()).count(); }
+  long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m().get()).distinct().count(); }
   M pairWithSig(List<M.Sig> ss, inferenceGrammar.M m, TName origin){
     if (ss.isEmpty()){ return toCompleteM(m,origin); }
     var s= m.sig();    
@@ -250,11 +256,13 @@ public record Methods(
   
   List<B> agreementBs(Agreement at,Stream<List<B>> es){
     var res= es.distinct().toList();    
-    if (res.size() == 1){ return normalizeBs(at.cName,res.getFirst()); }
+    //if (res.size() == 1){ return normalizeBs(at.cName,res.getFirst()); }
+    if (res.size() == 1){ return res.getFirst(); }//TODO: what is correct? this or the above? why?
     var sizes= res.stream().map(List::size).distinct().count();
     if (sizes!= 1){ throw WellFormednessErrors.agreementSize(at,res); }
     var bounds= res.stream().map(l->l.stream().map(e->e.rcs()).toList()).distinct().count();
-    if (bounds== 1){ return normalizeBs(at.cName, res.getFirst()); }
+    //if (bounds== 1){ return normalizeBs(at.cName, res.getFirst()); }
+    if (bounds== 1){ return res.getFirst(); }//TODO: what is correct? this or the above? why?
     throw WellFormednessErrors.agreement(at,res,"Generic bounds disagreement");
   }
   private List<B> normalizeBs(TName t, List<B> candidate){
