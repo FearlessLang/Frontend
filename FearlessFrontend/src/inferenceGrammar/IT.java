@@ -15,7 +15,7 @@ import fearlessParser.RC;
 public sealed interface IT {
   default boolean isTV(){ return true; }
   record X(String name) implements IT{
-    public X{ assert name.startsWith("$")||validate(name,"generic type name", _XId); }
+    public X{ assert validate(name,"generic type name", _XId); }
     public String toString(){ return name; }
   }
   record RCX(RC rc, X x) implements IT{
@@ -51,7 +51,7 @@ public sealed interface IT {
   }
   enum Err implements IT{ Instance; 
     public String toString(){ return "Err";}
-    //public boolean isTV(){ return true; }//the default
+    //public boolean isTV(){ return true; }//the default: We do accept Err as a real type
   }
 
 }

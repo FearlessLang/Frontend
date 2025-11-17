@@ -167,7 +167,7 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
     List<fearlessFullGrammar.M> ms0= t.l().map(l->l.methods()).orElse(List.of());
     List<M> ms= mapM(ms0);
     List<B> bs= Stream.concat(new FreeXs().ftvMs(ms),new FreeXs().ftvT(visitRCC(t.t())))
-      .map(x->xB(x)).toList();
+      .distinct().map(x->xB(x)).toList();
     TName fresh= freshF.freshTopType(tops.getLast(),bs.size());
     String thisName= t.l().isEmpty()
       ?"_"
@@ -176,7 +176,12 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
     decs.add(l);
     return l;
   }
-  B xB(String x){ return bsInScope.stream().flatMap(List::stream).filter(b->b.x().equals(x)).findFirst().get(); }
+  B xB(String x){ 
+    return bsInScope.stream()
+      .flatMap(List::stream)
+      .filter(b->b.x().equals(x)).findFirst()
+      .orElseThrow(() -> Bug.of("Free type variable " + x + " not in bsInScope"));
+  }
   
   @Override public E visitDeclarationLiteral(fearlessFullGrammar.E.DeclarationLiteral c){
     freshF.aliasOwner(this.tops.getLast(), f.apply(c.dec().name()));
@@ -198,7 +203,7 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
   @Override public E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){
     String thisName= l.thisName().map(n->n.name()).orElse("_");
     List<M> ms= mapM(l.methods());
-    List<B> bs= new FreeXs().ftvMs(ms).map(x->xB(x)).toList();    
+    List<B> bs= new FreeXs().ftvMs(ms).distinct().map(x->xB(x)).toList();    
     TName fresh= freshF.freshTopType(this.tops.getLast(),bs.size());  
     return new E.Literal(Optional.empty(),fresh,bs,List.of(),thisName, ms, l.pos());
   }

@@ -255,7 +255,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     List<IT> ts= rcc.c().ts();
     for (var mi: l.ms()){
       if (mi.impl().isEmpty()){ res.add(mi); continue; }//we are also keeping methods from supertypes, and not all will be in need of implementation
-      TSM next= nextMStar(g,l.thisName(),selfPrecise,rcc,ts,mi);
+      TSM next= nextMStar(g,l.thisName(),dsMap.containsKey(l.name()),selfPrecise,rcc,ts,mi);
       same &= 
         next.m.sig().equals(mi.sig())
         && next.m.impl().get().e() == mi.impl().get().e() 
@@ -285,8 +285,9 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     );
   }
   record TSM(List<IT> ts, inferenceGrammar.M m){}
-  private TSM nextMStar(Gamma g, String thisN, Optional<IT.RCC> selfPrecise, IT.RCC rcc, List<IT> ts, inferenceGrammar.M m){
+  private TSM nextMStar(Gamma g, String thisN, boolean committed, Optional<IT.RCC> selfPrecise, IT.RCC rcc, List<IT> ts, inferenceGrammar.M m){
     assert selfPrecise.isEmpty() || rcc.isTV();
+    assert m.impl().isPresent();
     rcc = rcc.withTs(ts);
     IT selfT= selfPrecise.<IT>map(it->it).orElse(IT.U.Instance);
     MName mName= m.sig().m().get();
@@ -299,7 +300,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     E e= nextStar(g,m.impl().get().e());
     args= xs.stream().map(x->Optional.of(g.get(x))).toList(); 
     g.popScope();
-    if (selfPrecise.isPresent()){
+    if (committed){
       var mRes= new inferenceGrammar.M(m.sig(),Optional.of(m.impl().get().withE(e)));
       return new TSM(rcc.c().ts(),mRes);
     }

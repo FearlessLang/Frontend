@@ -15,7 +15,10 @@ public class AllDeclaredNames implements EVisitor<Void>{
   Set<TName> decNames= new LinkedHashSet<>();
   Map<TName,Set<T.X>> Xs= new LinkedHashMap<>();
   Map<TName,Set<String>> xs= new LinkedHashMap<>();
+  // lastTopNames: all parameter names and this-names appearing anywhere
+  // in the current top Declaration (including nested DeclarationLiteral)
   LinkedHashSet<String> lastTopNames;
+  // lastTopXs: all generic Bs appearing anywhere in the the current top Declaration
   LinkedHashSet<T.X> lastTopXs;
   public void visitTopDeclaration(Declaration d,String pkgName){
     lastTopNames= new LinkedHashSet<>();
@@ -38,6 +41,7 @@ public class AllDeclaredNames implements EVisitor<Void>{
   }
 
   @Override public Declaration visitInnerDeclaration(Declaration d){
+    //Note: there is never any kind of shadowing allowed in fearless. Also, nested names do live in the top level scope
     if (!decNames.add(d.name())){ throw WellFormednessErrors.duplicatedName(d.name()); }
     d.bs().ifPresent(bs->bs.forEach(this::visitInnerB));
     d.l().accept(this);
