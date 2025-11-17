@@ -940,6 +940,31 @@ User:{
 }
 """));}
 
+@Test void inLineAnonObject1(){ok("""
+p.Bla:{'_ .bla:p.User@p.Bla;->p.User:?;}
+p.User:{'this\
+ .m:p.User@p.User;\
+->p.Bla:{'_\
+ ? .bla[?]:p.User@!; .bla()->p.User:?;}:?.bla():?;}
+""",List.of("""
+User:{.m:User->
+ Bla:{.bla:User->User;}.bla
+}
+"""));}
+
+@Test void inLineAnonObject2(){ok("""
+p.A_User:{'_\
+ .bla:p.User@p.A_User;\
+->p.User:?;}
+p.User:{'this\
+ .m:p.User@p.User;\
+->p.A_User:{'_\
+ ? .bla[?]:p.User@!; .bla()->p.User:?;}:?.bla():?;}
+""",List.of("""
+User:{.m:User->
+ {.bla:User->User;}.bla
+}
+"""));}
 
 
 }

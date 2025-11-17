@@ -2,7 +2,6 @@ package inferenceGrammar;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class TestInferenceSteps {
@@ -214,7 +213,8 @@ p.Stack[T:imm]:{'this\
 +[imm](e:T):p.Stack[T];\
  mut .else:p.Stack[T]@base.ThenElse;\
  .else()->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];\
-}:mut base.ThenElse[p.Stack[T]]):p.Stack[T];}:p.Stack[T];}
+}:mut base.ThenElse[p.Stack[T]]):p.Stack[T];\
+ imm +(T):p.Stack[T]@p.Stack;}:p.Stack[T];}
 p.StackMatch[T:imm, R:imm]:{'this\
  .empty:R@p.StackMatch;\
  .elem(T,p.Stack[T]):R@p.StackMatch;}
@@ -406,14 +406,16 @@ p.KK:{'_ .k[K:imm]:K@p.KK;\
 p.User:{'this\
  .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User;\
  .foo1[C:imm,D:imm]:p.User@p.User;\
-->this:p.User.withGG[imm,Err,Err](p.A_User:p.GG[C,D]{'_\
- imm .apply[A_C:imm,A_D:imm](Err,Err,A_C):A_D@p.GG;\
- (a, b, c)->p.Any:p.Any![imm,A_D]():A_D;}:p.GG[Err,Err]):p.User;\
- .foo2[C:imm,D:imm]:p.User@p.User;\
-->p.KK:{'_ ? .k[K:imm]:K@!;\
- .k()->this:?.withGG[C,D](p.A_KK:$?{'_\
- ? [?](?,?,?):?@!;\
- (a, b, c)->p.Any:?!():?;}:?):?;}:?.k[p.User]():p.User;}
+->this:p.User.withGG[imm,C,D](p.A_User:p.GG[C,D]{'_\
+ imm .apply[A_C:imm,A_D:imm](A_C,A_D,A_C):A_D@p.GG;\
+ (a, b, c)->p.Any:p.Any![imm,A_D]():A_D;}:p.GG[C,D]):p.User;\
+ .foo2[C:imm,D:imm]:p.User@p.User;->p.KK:{'_\
+ imm .k[K:imm]:K@p.KK;\
+ .k()->this:p.User.withGG[imm,C,D](p.A_KK:p.GG[C,D]{'_\
+ imm .apply[B_C:imm,B_D:imm](B_C,B_D,B_C):B_D@p.GG;\
+ (a, b, c)->p.Any:p.Any![imm,B_D]():B_D;\
+}:p.GG[C,D]):p.User;\
+}:p.KK.k[imm,p.User]():p.User;}
 """, List.of("""
 GG[A,B]:{ .apply[C,D](A,B,C):D }
 Baba[C,D]:GG[Any,Any]{}
@@ -424,8 +426,11 @@ User:{
   .foo2[C,D]:User->KK:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[User];
 }
 """));}
-//-------------
-@Disabled @Test void inferAlpha_GenericMethod_LambdaImplements_Generic_OverrideDifferentNames(){okI("""
+@Test void inferAlpha_GenericMethod_LambdaImplements_Generic_OverrideDifferentNames(){okI("""
+p.A:{'this .use[X1:imm,Y1:imm](X1,p.Conv):Y1@p.A;}
+p.B:p.A{'this .use[U1:imm,V1:imm](U1,p.Conv):V1@p.B;\
+(x, c)->c:p.Conv.apply[imm,U1,V1](x:U1):V1;}
+p.Conv:{'this .apply[S1:imm,S2:imm](S1):S2@p.Conv;}
 """, List.of("""
 Conv:{ .apply[S1,S2](s:S1):S2 }
 A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
@@ -434,177 +439,6 @@ B:A{
 }
 """));}
 
-@Disabled @Test void inferAlpha_MergeTwoSupers_SameShape_DifferentNames_LambdaUsesOuterBs(){okI("""
-""", List.of("""
-Conv:{ .apply[S1,S2](s:S1):S2 }
-A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
-C:{ .use[U1,V1](u:U1,k:Conv):V1 }
-D:A,C{
-  .use[P1,Q1](p:P1,m:Conv):Q1 -> m.apply[P1,Q1](p)
-}
-"""));}
-
-@Disabled @Test void inferAlpha_ReturnsObjectWhoseMethodIsGeneric_LambdaInsideOverride(){okI("""
-""", List.of("""
-Mapper:{ .map[S1,S2](s:S1):S2 }
-A:{ .mk[X1,Y1]():Mapper }
-B:A{
-  .mk[U1,V1]():Mapper -> Mapper{
-    '_
-    imm .map[R1,S1](r:R1):S1@Mapper;
-    .map(r)->r // instantiate later at [U1,U1] or [V1,V1], types align via alpha
-  }:Mapper
-}
-"""));}
-
-@Disabled @Test void inferAlpha_OverloadedGenericMethods_InSameLambda_DifferentArities(){okI("""
-""", List.of("""
-Ops:{
-  .a[S1](s:S1):S1;
-  .a[S2,T2](s:S2,t:T2):S2;
-}
-A:{ .mk[X1]():Ops }
-B:A{
-  .mk[U1]():Ops -> Ops{
-    '_
-    imm .a[R1](r:R1):R1@Ops;                .a(r)->r;
-    imm .a[R2,S2](r:R2,s:S2):R2@Ops;        .a(r,s)->r;
-  }:Ops
-}
-"""));}
-
-@Disabled @Test void inferAlpha_NestedLambda_ReturnsObject_WhoseMethodReturnsObject_WithGenericMethod(){okI("""
-""", List.of("""
-Id:{ .id[S1](s:S1):S1 }
-Maker:{ .make[X1]():Id }
-
-A:{ .mk[Y1]():Maker }
-B:A{
-  .mk[U1]():Maker -> Maker{
-    '_
-    imm .make[R1]():Id@Maker;
-    .make()->Id{
-      '_
-      imm .id[T1](t:T1):T1@Id;
-      .id(t)->t
-    }:Id
-  }:Maker
-}
-"""));}
-
-@Disabled @Test void inferAlpha_MergeSupers_ReturnsGenericMethodObject_OverrideRenames(){okI("""
-""", List.of("""
-Comb:{ .pair[S1,T1](s:S1,t:T1):Pair[S1,T1] }
-Pair[A1,B1]:{ .fst:A1; .snd:B1; }
-
-A:{ .mk[X1,Y1]():Comb }
-C:{ .mk[U1,V1]():Comb }
-D:A,C{
-  .mk[P1,Q1]():Comb -> Comb{
-    '_
-    imm .pair[R1,S1](r:R1,s:S1):Pair[R1,S1]@Comb;
-    .pair(r,s)->{ .fst->r; .snd->s; }
-  }:Comb
-}
-"""));}
-
-@Disabled @Test void inferAlpha_ClassAndMethodGenericsInteract_NoShadowing_NestedUse(){okI("""
-""", List.of("""
-Box[T0]:{ .get:T0 }
-X:{ .lift[X1](b:Box[X1]): Box[X1] }
-A[T0]:X{
-  .lift[U1](b:Box[U1]): Box[U1] -> b // trivial, but exercises class T0 + method U1
-}
-"""));}
-
-@Disabled @Test void inferAlpha_TransitiveImport_A_B_C_LeafRenamesAndUsesNestedGenericObject(){okI("""
-""", List.of("""
-Conv:{ .apply[S1,S2](s:S1):S2 }
-A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
-B:A{}
-C:B{
-  .use[U1,V1](x:U1,c:Conv):V1 -> {
-    // build a helper object with its own generic method and use it
-    Helper:{ .twice[R1](r:R1):R1 } // generic method
-    var h = Helper{ '_ imm .twice[Q1](q:Q1):Q1@Helper; .twice(q)->q }:Helper;
-    // still call the Conv generic method, making sure bs line up
-    h.twice[V1]( c.apply[U1,V1](x) )
-  }
-}
-"""));}
-
-@Disabled @Test void inferAlpha_MultiLevel_ReturnsOverloadedGenericObject_ArityOverload(){okI("""
-""", List.of("""
-Ops:{
-  .sel[S1](s:S1):S1;
-  .sel[S2,T2](s:S2,t:T2):S2;
-}
-A:{ .mk[X1]():Ops }
-B:A{}
-C:B{
-  .mk[U1]():Ops -> Ops{
-    '_
-    imm .sel[R1](r:R1):R1@Ops;           .sel(r)->r;
-    imm .sel[R2,S2](r:R2,s:S2):R2@Ops;   .sel(r,s)->r;
-  }:Ops
-}
-"""));}
-
-@Disabled @Test void inferAlpha_GenericMethodCallsAnotherGenericMethod_OnParameterObject(){okI("""
-""", List.of("""
-Proj:{ .fst[S1,T1](p:Pair[S1,T1]):S1 }
-Pair[A1,B1]:{ .fst:A1; .snd:B1; }
-A:{ .left[X1,Y1](p:Pair[X1,Y1], pr:Proj):X1 }
-B:A{
-  .left[U1,V1](p:Pair[U1,V1], pr:Proj):U1 -> pr.fst[U1,V1](p)
-}
-"""));}
-
-@Disabled @Test void inferAlpha_ReturnsGenericMethodObject_ThatCallsCallerBsInside(){okI("""
-""", List.of("""
-Ap:{ .ap[S1,T1](x:S1):T1 }
-A:{ .mk[X1,Y1]():Ap }
-B:A{
-  .mk[U1,V1]():Ap -> Ap{
-    '_
-    imm .ap[R1,S1](r:R1):S1@Ap;
-    .ap(r)->{
-      // fabricate a value by bouncing through an identity object with generic method
-      Id:{ .id[Q1](q:Q1):Q1 }
-      Id{ '_ imm .id[W1](w:W1):W1@Id; .id(w)->w }:Id .id[S1]( /* some S1 value */ r )
-    }
-  }:Ap
-}
-"""));}
-
-@Disabled @Test void inferAlpha_TwoSupersAgree_LeafOmitsBs_UseAgreementBs_ThenAlign(){okI("""
-""", List.of("""
-Conv:{ .apply[S1,S2](s:S1):S2 }
-A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
-C:{ .use[U1,V1](u:U1,c:Conv):V1 }
-D:A,C{
-  .use(x,c)-> c.apply[ /* inferred X/Y */ ](x) // omit local bs; force agreementBs then align
-}
-"""));}
-
-@Disabled @Test void inferAlpha_DeepNest_3Levels_GenericMethods_AllAligned(){okI("""
-""", List.of("""
-L1:{ .m1[A1,B1](a:A1):B1 }
-L2:{ .m2[C1,D1](c:C1,l:L1):D1 }
-L3:{ .m3[E1,F1](e:E1,l:L2):F1 }
-
-A:{ .go[X1,Y1](x:X1,l:L3):Y1 }
-B:A{
-  .go[U1,V1](x:U1,l:L3):V1 -> l.m3[U1,V1](x, L2{
-    '_
-    imm .m2[R1,S1](r:R1,l1:L1):S1@L2;
-    .m2(r,l1)-> l1.m1[R1,S1](r)
-  }:L2)
-}
-"""));
-}
-
-//---------
 @Test void boundMustAlphaSimple(){okI("""
 p.A:{'this .m[X:imm](p.Foo[X]):X@p.A;}
 p.B1[X:imm]:p.A{'this\
@@ -616,6 +450,34 @@ Foo[K]:{.get:K; .beer[G]:G;}
 A:{.m[X](x:Foo[X]):X}
 B1[X]:A{.m(z)->z.get}
 """));}
+
+@Test void inLineAnonObject1(){okI("""
+p.Bla:{'_ .bla:p.User@p.Bla;->p.User:p.User;}
+p.User:{'this\
+ .m:p.User@p.User;\
+->p.Bla:{'_\
+ imm .bla:p.User@p.Bla;\
+ .bla()->p.User:p.User;\
+}:p.Bla.bla[imm]():p.User;}
+""",List.of("""
+User:{.m:User->
+ Bla:{.bla:User->User;}.bla
+}
+"""));}
+
+@Test void inLineAnonObject2(){okI("""
+p.A_User:{'_ .bla:p.User@p.A_User;->p.User:p.User;}
+p.User:{'this\
+ .m:p.User@p.User;\
+->p.A_User:{'_ imm\
+ .bla:p.User@p.A_User;\
+ .bla()->p.User:p.User;}:p.A_User.bla[imm]():p.User;}
+""",List.of("""
+User:{.m:User->
+ {.bla:User->User;}.bla
+}
+"""));}
+
 
 //TODO: this correctly shows that we can override a user defined type
 //.beer[imm,X] becomes .beer[imm,Err]

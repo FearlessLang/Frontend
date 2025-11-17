@@ -40,7 +40,10 @@ public sealed interface IT {
     public RCC{ nonNull(rc,c); }
     public String toString(){ return rc==RC.imm? ""+c : rc.name()+" "+c; }
     public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
-    public RCC withTs(List<IT> ts){ return new IT.RCC(rc,new IT.C(c.name(),ts)); }
+    public RCC withTs(List<IT> ts){
+      if (ts == c.ts()){ return this; }
+      return new IT.RCC(rc,new IT.C(c.name(),ts));
+    }
   }
   enum U implements IT{ Instance; 
     public String toString(){ return "?";}

@@ -265,7 +265,7 @@ public record Methods(
     if (bounds== 1){ return res.getFirst(); }//TODO: what is correct? this or the above? why?
     throw WellFormednessErrors.agreement(at,res,"Generic bounds disagreement");
   }
-  private List<B> normalizeBs(TName t, List<B> candidate){
+  /*private List<B> normalizeBs(TName t, List<B> candidate){
     return candidate.stream()
       .map(e->new B(freshG(t,e.x()),e.rcs()))
       .toList();
@@ -273,7 +273,7 @@ public record Methods(
   private String freshG(TName t, String x){
     if (fresh.isFreshGeneric(t,x)){ return x; }
     return fresh.freshGeneric(t, x);
-  }
+  }*/
   private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){
     assert superSig.isFull();

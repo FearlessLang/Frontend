@@ -84,7 +84,8 @@ public class TypeRename{
     case IT.ReadImmX(var x) -> new T.ReadImmX(new T.X(x.name()));
     case IT.RCX(var rc,var x) -> new T.RCX(rc,new T.X(x.name()));
     case IT.RCC(var rc, var c) -> new T.RCC(rc,itcToTC(c));
-    case IT.U _  -> new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.UNKNOWN), List.of()));
+    case IT.U _ -> throw Bug.of();
+    //case IT.U _  -> new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.UNKNOWN), List.of()));
     case IT.Err _ ->new T.RCC(RC.imm,new T.C(new TName("base.InferErr", 0, Pos.UNKNOWN), List.of()));
   };}
   
@@ -108,5 +109,5 @@ public class TypeRename{
     var renamedTs= ofIT(header.ts(), fromXs, toITs);
     var renamedRet= of(header.ret(), fromXs, toITs);
     return new MSig(header.rc(), targetBs, renamedTs, renamedRet);
-  } 
+  }
 }

@@ -133,6 +133,31 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
     for (MName m:pat){ res= new fearlessFullGrammar.E.Call(res,m,empty(),false,empty(),List.of(), pos); }
     return new XE(x,res);
   }
+  private fearlessFullGrammar.E stripRound(fearlessFullGrammar.E e){
+    while (e instanceof fearlessFullGrammar.E.Round r){ e = r.e(); }
+    return e;
+  }
+  private Optional<fearlessFullGrammar.E.Literal> asLambdaReceiver(fearlessFullGrammar.E e){
+    e = stripRound(e);
+    if (e instanceof fearlessFullGrammar.E.Literal l){ return Optional.of(l); }
+    return Optional.empty();
+  }  
+  E visitReceiver(fearlessFullGrammar.E e){
+    var ol= asLambdaReceiver(e);
+    if (ol.isEmpty()){ return e.accept(this); }
+    var l=ol.get();
+    String thisName= l.thisName().map(n->n.name()).orElse("_");
+    List<M> ms= mapM(l.methods());
+    List<B> bs= new FreeXs().ftvMs(ms).map(x->xB(x)).toList();    
+    TName name= freshF.freshTopType(this.tops.getLast(),bs.size());
+    tops.add(name);
+    bsInScope.add(bs);
+    List<IT.C> cs= List.of();
+    E.Literal ll= new E.Literal(Optional.of(RC.imm),name,bs,cs,thisName, ms, l.pos());      
+    decs.add(ll);
+    bsInScope.removeLast();
+    return ll;
+  }
   @Override public E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(),x.pos()); }
   @Override public E visitRound(fearlessFullGrammar.E.Round r){ return r.e().accept(this); }
   @Override public E visitImplicit(fearlessFullGrammar.E.Implicit n){  return new E.X(implicits.getLast(),n.pos());  }
@@ -148,7 +173,6 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
       ?"_"
       :t.l().get().thisName().map(n->n.name()).orElse("_");  
     var l= new E.Literal(Optional.of(t.t().rc().orElse(RC.imm)),fresh,bs,impl,thisName, ms, t.pos());
-    //l = meths.expandDeclaration(l);//TODO: circular behaviour, see other commented occurence of expandDeclaration
     decs.add(l);
     return l;
   }
@@ -167,25 +191,6 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
     List<IT.C> cs= mapC(d.cs());    
     List<M> ms= mapM(d.l().methods());
     E.Literal l= new E.Literal(Optional.of(rc),name,bs,cs,thisName, ms, d.l().pos());      
-    //l = meths.expandDeclaration(l);
-    //TODO: No: meths need the cache ready to do the expansion.
-    //the cache depends on layers,
-    //layers are computed after the inference right now
-    //so either we compute the layers/cache early or we do not expand in this phase
-    //if no FV is captured, they could be added out (and be implemented again)
-    //if no FV is captured, they could be replaced with a typed literal since no need to connect with outer inference
-    //connection with outer inference is small anyway? or can it be relevant?
-    //if has FV and we want connection with inference, must stay in?
-    //overall redesign of 5a?
-    /*goals:
-    -layering
-    -sugar expansion
-    -expansion of cs and sigs when types are known
-    -what is the top map needed for?? does it needs the bodies?
-    //TODO: if we revert all the above, remember to remove the Methods parameter from the injection inference visitor
-    
-    
-    */
     decs.add(l);
     bsInScope.removeLast();
     return l;
@@ -200,7 +205,7 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
   @Override public E visitCall(fearlessFullGrammar.E.Call c){
     if (c.pat().isPresent()){ c = desugarCPat(c); }
     if (c.targs().isEmpty()){ return visitICall(c); }
-    E e= c.e().accept(this);
+    E e= visitReceiver(c.e());
     var targs= c.targs().get();
     List<E> es= mapE(c.es());
     List<IT> ts= mapT(targs.ts());
@@ -245,7 +250,7 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
     case fearlessFullGrammar.E.StringInter e -> e.e().isEmpty()?e: extractAtom(e.e().get());
   };}
   public E visitICall(fearlessFullGrammar.E.Call c){
-    E e= c.e().accept(this);
+    E e= visitReceiver(c.e());
     List<E> es= mapE(c.es());
     return new E.ICall(e, c.name(), es, u, c.pos());
   }

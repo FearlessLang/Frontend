@@ -166,21 +166,19 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     return Optional.of(f.apply(rcc,d,om.get()));
   }
   private MSig methodHeaderInstance(IT.RCC rcc,Declaration d,M m){
-    List<String> xs= d.bs().stream()//Stream.concat(d.bs().stream(),m.sig().bs().stream())
-      .map(b->b.x()).toList();
+    List<String> xs= d.bs().stream().map(b->b.x()).toList();
     assert xs.stream().distinct().count() == xs.size();
-    //var normXs= normXs(m.sig().bs().size());
-    List<String> bs= m.sig().bs().stream().map(b->b.x()).toList();//normXsStr(m.sig().bs().size());
-    var ts= rcc.c().ts();//Push.of(rcc.c().ts(),normXs);
+    List<String> bs= m.sig().bs().stream().map(b->b.x()).toList();
+    var ts= rcc.c().ts();
     List<IT> tsRes= m.sig().ts().stream()
       .map(t->TypeRename.of(TypeRename.tToIT(t),xs,ts))
       .toList();
     IT tRet= TypeRename.of(TypeRename.tToIT(m.sig().ret()),xs,ts);
     return new MSig(m.sig().rc(),bs,tsRes,tRet);
   }
-  private Optional<MSig> methodHeader(IT.RCC rcc,MName name,Optional<RC> favorite){ return methodHeaderAnd(rcc,name,favorite,this::methodHeaderInstance); }
-  //private List<IT> normXs(int n){ return IntStream.range(0, n).<IT>mapToObj(i->new IT.X("$"+i)).toList(); }
-  //private List<String> normXsStr(int n){ return IntStream.range(0, n).mapToObj(i->"$"+i).toList(); }
+  private Optional<MSig> methodHeader(IT.RCC rcc,MName name,Optional<RC> favorite){
+    return methodHeaderAnd(rcc,name,favorite,this::methodHeaderInstance);
+    }
   private static List<IT> _qMarks(int n){ return IntStream.range(0, n).<IT>mapToObj(_->IT.U.Instance).toList(); }
   static List<List<IT>> smallQMarks=IntStream.range(0, 100)
     .mapToObj(i->_qMarks(i)).toList();
@@ -218,7 +216,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     return call.withT(t);
   }
   private E nextC(Gamma g, E.Call c){
-    //if (c.isEV()){ return c; }
+    //if (c.isEV()){ return c; }//TODO: should we just remove this concept? is it used anywhere?
     var e= nextStar(g,c.e());
     var es= nextStar(g, c.es());
     if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e,es); }
@@ -240,15 +238,15 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     var r= Stream.of(refine(m.bs(),m.ret(),c.t()),c.targs());
     return meet(Stream.concat(a,r).toList());
   }
+  private Optional<IT.RCC> preciseSelf(E.Literal l){
+    if (l.rc().isEmpty()){ return Optional.empty(); }
+    var xs= l.bs().stream().<IT>map(b->new IT.X(b.x())).toList();
+    return Optional.of(new IT.RCC(l.rc().get(),new IT.C(l.name(),xs)));
+  }
   private E nextL(Gamma g, E.Literal l){
-    //we should convert it into an E.Type
+    var selfPrecise= preciseSelf(l); 
+    if (l.rc().isPresent() && l.t() instanceof IT.U){ l = l.withT(preferred(selfPrecise.get())); }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
-    if (l.rc().isPresent() && !l.t().isTV()){ 
-      List<IT> xs= l.bs().stream().<IT>map(b->new IT.X(b.x())).toList();
-      var c= new IT.C(l.name(),xs);
-      var t1= preferred(new IT.RCC(l.rc().get(),c));
-      l = l.withT(t1);
-    }
     //if (l.isEV()){ return l; }
     if (!l.infA()){ l= meths.expandLiteral(l,rcc.c()); }
     var s= g.snapshot();
@@ -256,8 +254,8 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     var res= new ArrayList<inferenceGrammar.M>(l.ms().size());
     List<IT> ts= rcc.c().ts();
     for (var mi: l.ms()){
-      if (mi.impl().isEmpty()){ continue; }//we are also keeping methods from supertypes, and not all will be in need of implementation
-      TSM next= nextMStar(g,l.thisName(),rcc,ts,mi);
+      if (mi.impl().isEmpty()){ res.add(mi); continue; }//we are also keeping methods from supertypes, and not all will be in need of implementation
+      TSM next= nextMStar(g,l.thisName(),selfPrecise,rcc,ts,mi);
       same &= 
         next.m.sig().equals(mi.sig())
         && next.m.impl().get().e() == mi.impl().get().e() 
@@ -271,34 +269,46 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     return commitToTable(l.withMsT(ms,t),t);
   }
   private E commitToTable(E.Literal l, IT t){
-    if (l.rc().isPresent() || !t.isTV() || !(t instanceof IT.RCC rcc)){ return l; }
+    if (l.rc().isPresent() || !t.isTV() || !(t instanceof IT.RCC rcc) || hasU(l.ms())){ return l; }
     assert l.cs().isEmpty();
     var noMeth= l.ms().stream().allMatch(m->m.impl().isEmpty());
-    if (noMeth){ return new E.Type(rcc,rcc,l.pos(), true, l.g()); }
+    if (noMeth){ return new E.Type(rcc,rcc,l.pos(), true, l.g()); }//TODO: what if it was not a fresh name but a user defined name?
     l = new E.Literal(Optional.of(rcc.rc()),l.name(),l.bs(),List.of(rcc.c()),l.thisName(),l.ms(), t, l.pos(), true, l.g());
     var resD= meths.injectDeclaration(l);
     this.ds.add(resD);
     this.dsMap.put(l.name(),resD);
     return l;
   }
+  private static boolean hasU(List<inferenceGrammar.M> ms){
+    return !ms.stream().allMatch(m->
+      m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t->t.get().isTV())
+    );
+  }
   record TSM(List<IT> ts, inferenceGrammar.M m){}
-  private TSM nextMStar(Gamma g, String thisN, IT.RCC rcc, List<IT> ts, inferenceGrammar.M m){
-    IT.RCC t= rcc.withTs(ts);
+  private TSM nextMStar(Gamma g, String thisN, Optional<IT.RCC> selfPrecise, IT.RCC rcc, List<IT> ts, inferenceGrammar.M m){
+    assert selfPrecise.isEmpty() || rcc.isTV();
+    rcc = rcc.withTs(ts);
+    IT selfT= selfPrecise.<IT>map(it->it).orElse(IT.U.Instance);
     MName mName= m.sig().m().get();
     var size= mName.arity();
     var xs= m.impl().get().xs();
     var args= m.sig().ts();
     g.newScope();
-    g.declare(thisN, t);
+    g.declare(thisN, selfT);
     for(int i= 0; i < size; i += 1){ g.declare(xs.get(i), args.get(i).get()); }
     E e= nextStar(g,m.impl().get().e());
     args= xs.stream().map(x->Optional.of(g.get(x))).toList(); 
-    var improvedSig= m.sig().withTsT(args, e.t());
     g.popScope();
+    if (selfPrecise.isPresent()){
+      var mRes= new inferenceGrammar.M(m.sig(),Optional.of(m.impl().get().withE(e)));
+      return new TSM(rcc.c().ts(),mRes);
+    }
+    var improvedSig= m.sig().withTsT(args, e.t());
     var ret= improvedSig.ret().get();
     ts= rcc.c().ts();
     var sigTs= improvedSig.ts();
     var Xs= getDec(rcc.c().name()).bs().stream().map(b->b.x()).toList();
+    //Note: imh has the Xs in place, both type and meth. No rename needed 
     M.Sig imh= methodHeaderAnd(rcc,mName,improvedSig.rc(),(_,_,mi)->mi).get().sig();
     ts= meet(Stream.concat(
       IntStream.range(0, imh.ts().size())
@@ -308,6 +318,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     rcc= rcc.withTs(ts);
     MSig improvedM= methodHeader(rcc,mName,improvedSig.rc()).get();
     improvedM = TypeRename.normalizeHeaderBs(improvedM, improvedSig);
+    //Overall we should apply normalizeHeaderBs only if selfPrecise is absent; otherwise assert that the Xs are the righ ones
     assert improvedM.bs.equals(improvedSig.bs().get().stream().map(b->b.x()).toList()):
       ""+methodHeader(rcc,mName,improvedSig.rc())+improvedM.bs+ " "+improvedSig.bs().get(); 
     var sigRes= improvedSig.withTsT(improvedM.ts().stream().map(Optional::of).toList(),improvedM.ret());
@@ -315,6 +326,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     var mRes= new inferenceGrammar.M(sigRes,Optional.of(m.impl().get().withE(e)));
     return new TSM(rcc.c().ts(),mRes);
   }
+ 
   List<IT> refine(List<String> xs,IT t, IT t1){
     if( t1 instanceof IT.U){ return qMarks(xs.size()); } 
     return switch(t){
