@@ -97,7 +97,8 @@ public record Methods(
     if (name.pkgName().equals(pkgName)){ return cache.get(name); }
     var res= other.of(name);
     if (res != null){ return res; }
-    assert name.pkgName().equals("base"):"Undefined name "+name;
+    assert name.pkgName().equals("base") && LiteralDeclarations.isPrimitiveLiteral(name.simpleName()):
+      "Undefined name "+name;
     return LiteralDeclarations.from(name,other);
   }
   public E.Literal expandDeclaration(E.Literal d){
@@ -108,6 +109,7 @@ public record Methods(
       d.cs().stream(),
       ds.stream().flatMap(dsi->dsi.cs().stream()))
         .distinct().sorted(Comparator.comparing(Object::toString)).toList();
+    checkMagicSupertypes(d.name(), allCs);
     List<M.Sig> allSig= ds.stream().flatMap(dsi->dsi.sigs().stream()).toList();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d.name());
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d.name());
@@ -119,6 +121,15 @@ public record Methods(
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),c.name());
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),c.name());
     return d.withMs(allMs);
+  }
+  private void checkMagicSupertypes(TName owner, List<IT.C> allCs){
+    var widen= allCs.stream()
+      .filter(c -> c.name().s().equals("base.WidenTo"))
+      .toList();
+    if (widen.size() > 1){ throw WellFormednessErrors.multipleWidenTo(owner, widen); }
+    var sealed = allCs.stream()
+      .filter(c -> c.name().s().equals("base.Sealed"))
+      .toList();
   }
   inferenceGrammarB.Declaration injectDeclaration(E.Literal d){
     List<T.C> cs= TypeRename.itcToTC(d.cs());

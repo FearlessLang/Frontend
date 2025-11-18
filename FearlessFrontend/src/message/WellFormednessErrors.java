@@ -5,9 +5,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import fullWellFormedness.Package;
+import java.util.stream.Stream;
+
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.T.X;
@@ -18,8 +21,11 @@ import files.Pos;
 import fullWellFormedness.Methods.Agreement;
 import inferenceGrammar.B;
 import inferenceGrammar.E;
+import inferenceGrammar.IT;
 import inferenceGrammar.M;
 import metaParser.Message;
+import metaParser.NameSuggester;
+import metaParser.Span;
 import utils.Bug;
 
 public final class WellFormednessErrors {
@@ -64,14 +70,14 @@ public final class WellFormednessErrors {
   }
   private static String buildMessageSingleUriForPackage(List<URI> heads, String pkgName){
     if (heads.isEmpty()){
-      return "No file named after package '" + pkgName + "'.\n"
+      return "No file named after package \"" + pkgName + "\".\n"
         + "Expected exactly one URI whose last path segment is '"
         + pkgName + ".<ext>'.";
     }
     StringBuilder sb= new StringBuilder();
-    sb.append("Ambiguous files for package '")
+    sb.append("Ambiguous files for package \"")
       .append(pkgName)
-      .append("'.\n")
+      .append("\".\n")
       .append("Found ")
       .append(heads.size())
       .append(" candidates:\n");
@@ -118,34 +124,130 @@ public final class WellFormednessErrors {
      .toString();
    }
 
- public static FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
-   for(TName n:names){ 
-     var clash= keySet.contains(n.s());
-     if (!clash){ continue; }
-     return Code.WellFormedness.of(
-       "Name clash: name "+Message.displayString(n.s())+" is declared in package "+pkgName+".\n"
-       +"Name "+Message.displayString(n.s())+" is also used in a \"use\" directive.\n"
-       ).addFrame("a type name",Parser.span(n.pos(),n.s().length()));
-   }
-   throw Bug.unreachable();
- }
- public static FearlessException usedUndeclaredName(TName tn, Package p){
-   var at= Parser.span(tn.pos(),tn.s().length());
-   var definedWithOtherArity= p.names().decNames().stream().anyMatch(tni->tni.s().equals(tn.s()));
-   if (definedWithOtherArity){
-     return Code.WellFormedness.of(
-       "Name: "+Message.displayString(tn.s())+" is not declared with arity "+tn.arity()+" in package "+p.name()+".\n"
-     + "Did you accidentally add/omit a generic type parameter?\n"
-       ).addFrame("a type name",at);
-   }
-   return Code.WellFormedness.of(
-     "Undeclared name: name "+Message.displayString(tn.s())+" is not declared in package "+p.name()+".\n"
-     ).addFrame("a type name",at);
-   }
+  public static FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
+    for(TName n:names){ 
+      var clash= keySet.contains(n.s());
+      if (!clash){ continue; }
+      return Code.WellFormedness.of(
+        "Name clash: name "+Message.displayString(n.s())+" is declared in package \""+pkgName+"\".\n"
+        +"Name "+Message.displayString(n.s())+" is also used in a \"use\" directive.\n"
+        ).addFrame("a type name",Parser.span(n.pos(),n.s().length()));
+    }
+    throw Bug.unreachable();
+  }
+  public static FearlessException usedUndeclaredName(TName tn, String contextPkg, List<TName> scope, List<TName> all){
+    return new UndeclaredNameContext(tn, contextPkg, scope, all,
+      all.stream().map(TName::pkgName).filter(p -> !p.isEmpty()).distinct().sorted().toList(),
+      tn.pkgName(),tn.simpleName()
+      ).build();
+  }
+  private record UndeclaredNameContext(
+      TName tn, String contextPkg, List<TName> scope, List<TName> all,
+      List<String> allPkgs, String typedPkg, String typedSimple){
+    FearlessException build(){
+      return pkgDoesNotExist()
+        .or(this::otherArity)
+        .orElseGet(this::undeclaredInPkg);
+    }
+    private Optional<FearlessException> pkgDoesNotExist(){
+      if(typedPkg.isEmpty()){ return Optional.empty(); }
+      if (allPkgs.contains(typedPkg)){ return Optional.empty(); }
+      StringBuilder msg= new StringBuilder()
+        .append("Package ")
+        .append(Message.displayString(typedPkg))
+        .append(" does not exist.\n");
+      NameSuggester.suggest(typedPkg, allPkgs)
+        .ifPresent(sug -> msg.append(sug).append("\n"));
+      return Optional.of(make(msg));
+    }
+    private <A,R> List<R> userMap(Function<A,R> f,Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
+    private Optional<FearlessException> otherArity(){
+      List<TName> candidates= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
+      var arities= userMap(TName::arity,candidates.stream()
+        .filter(t -> t.simpleName().equals(typedSimple)));
+      assert !arities.contains(tn.arity());
+      if (arities.isEmpty()){ return Optional.empty(); }
+      StringBuilder msg= new StringBuilder()
+        .append("Name ")
+        .append(Message.displayString(typedSimple))
+        .append(" is not declared with arity ")
+        .append(tn.arity())
+        .append(" in package \"")
+        .append(typedPkg.isEmpty() ? contextPkg : typedPkg)
+        .append("\".\n")
+        .append("Available arities here: ")
+        .append(arities.stream().map(Object::toString).collect(Collectors.joining(", ")))
+        .append(".\n")
+        .append("Did you accidentally add/omit a generic type parameter?\n");
+      return Optional.of(make(msg));
+    }
+    //--
+    private FearlessException undeclaredInPkg(){
+      List<TName> inPkg= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
+      var simpleInPkg= simpleNames(inPkg);
+      StringBuilder msg= new StringBuilder()
+        .append("Type ")
+        .append(Message.displayString(typedSimple))
+        .append(" is not declared in package ")
+        .append(relevantPkgMsg())
+        .append(".\n");
+      NameSuggester.suggest(typedSimple, simpleInPkg)
+        .ifPresent(sug -> msg.append(sug).append("\n"));
+      var bestLocal= NameSuggester.bestName(typedSimple, simpleInPkg);
+      if (bestLocal.isEmpty()){ addCrossPackageSuggestion(msg,inPkg); }
+      addOtherPkgNote(msg);
+      return make(msg);
+    }
+    private void addCrossPackageSuggestion(StringBuilder msg, List<TName> inPkg){
+      if (!typedPkg.isEmpty()){ return; }
+      assert !all.stream().anyMatch(t -> t.simpleName().equals(typedSimple));
+      List<String> candidates= userMap(TName::simpleName,
+        all.stream().filter(t -> !t.pkgName().equals(contextPkg)));
+      if (candidates.isEmpty()){ return; }
+      var bestSimpleOpt= NameSuggester.bestName(typedSimple, candidates);
+      if (bestSimpleOpt.isEmpty()){ return; }
+      String bestSimple= bestSimpleOpt.get();
+      List<String> fqMatches= userMap(TName::s,
+        all.stream().filter(t -> t.simpleName().equals(bestSimple)));
+      if (fqMatches.size() != 1){ return; }
+      String fq= fqMatches.get(0);
+      msg.append("Did you mean ")
+        .append(Message.displayString(fq))
+        .append(" ?").append(addUse);
+    }
+    private String relevantPkgMsg(){
+      return "\""+(typedPkg.isEmpty()
+        ? contextPkg+"\" and is not made visible via \"use\""
+        : typedPkg+"\"");
+    }
+    private List<TName> typesInPkg(String pkg){
+      return all.stream().filter(t -> t.pkgName().equals(pkg)).toList();
+    }
+    private List<String> simpleNames(List<TName> xs){ return userMap(TName::simpleName,xs.stream()); }
+    private void addOtherPkgNote(StringBuilder msg){
+      List<String> elsewhere= userMap(TName::s, all.stream()
+        .filter(t -> !t.pkgName().equals(typedPkg))
+        .filter(t -> t.simpleName().equals(typedSimple)));
+      if (elsewhere.isEmpty()){ return; }
+      msg.append("Note: a type with this simple name exists in other package(s):\n  ")
+        .append(String.join(", ", elsewhere))
+        .append(addUse);
+    }
+    private static String addUse="\nAdd a \"use\" or write the fully qualified name.\n";
+    private FearlessException make(StringBuilder msg){
+      trimTrailingNewline(msg);
+      return Code.WellFormedness.of(msg.toString()).addFrame("a type name", at()); }
+    private Span at(){ return Parser.span(tn.pos(), tn.s().length()); }
+  }
+  private static void trimTrailingNewline(StringBuilder sb){
+    int len= sb.length();
+    if (len > 0 && sb.charAt(len - 1) == '\n'){ sb.setLength(len - 1); }
+  }
+
   public static FearlessException unkownUseHead(TName tn){
    var at= Parser.span(tn.pos(),tn.s().length());
    return Code.WellFormedness.of(
-     "\"use\" directive referes to undeclared name: name "+Message.displayString(tn.simpleName())+" is not declared in package "+tn.pkgName()+".\n"
+     "\"use\" directive referes to undeclared name: name "+Message.displayString(tn.simpleName())+" is not declared in package \""+tn.pkgName()+"\".\n"
      ).addFrame("package header",at);
    }
  public static FearlessException genericTypeVariableShadowTName(String pkgName, Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
@@ -159,7 +261,7 @@ public final class WellFormednessErrors {
  }
  private static FearlessException shadowMsg(String pkgName, T.X n, boolean use){
    return Code.WellFormedness.of(
-     "Gemeric type parameter "+Message.displayString(n.name())+" declared in package "+pkgName+".\n"
+     "Gemeric type parameter "+Message.displayString(n.name())+" declared in package \""+pkgName+"\".\n"
      + "Name "+Message.displayString(n.name())+" is also used "
      + (use?"in a \"use\" directive.\n":"as a type name.\n")
      ).addFrame("a type name",Parser.span(n.pos(),n.name().length()));
@@ -271,6 +373,21 @@ public final class WellFormednessErrors {
     + "No supertype has a method named "+Message.displayString(m.sig().m().get().s())+" with "+m.sig().ts().size()+" parameters.\n"
       ));
   }
+  public static FearlessException multipleWidenTo(TName owner, List<IT.C> widen){
+    var msg= new StringBuilder()
+      .append("Type ")
+      .append(Message.displayString(owner.s()))
+      .append(" implements base.WidenTo more than once.\n")
+      .append("At most one base.WidenTo[T] supertype is allowed, ")
+      .append("because it defines the preferred widened type.\n")
+      .append("Found the following base.WidenTo supertypes:\n")
+      .append(widen.stream()
+        .map(c -> "  - " + Message.displayString(c.toString()))
+        .collect(Collectors.joining("\n")));
+    return Code.WellFormedness.of(msg.toString())
+      .addSpan(Parser.span(owner.pos(), owner.simpleName().length()));
+  }
+
   private static FearlessException agreement(Agreement at,FearlessException err){ return agreement(at.cName(),at.pos(),err); }
   private static FearlessException agreement(TName origin, Pos pos,FearlessException err){
     return err.addFrame("type declaration "+Message.displayString(origin.simpleName()),Parser.span(pos,100));

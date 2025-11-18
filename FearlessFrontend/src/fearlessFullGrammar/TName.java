@@ -19,6 +19,10 @@ public record TName(String s, int arity,Pos pos){
     assert pkgName().isEmpty();
     return new TName(pkg+"."+s,arity,pos);
   }
+  public TName withoutPkgName(){
+    assert !pkgName().isEmpty();
+    return new TName(simpleName(),arity,pos);
+  }
   public TName withOverridePkgName(String pkg){
     return new TName(pkg+"."+simpleName(),arity,pos);
   }

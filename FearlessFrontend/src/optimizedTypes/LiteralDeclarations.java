@@ -20,6 +20,7 @@ public class LiteralDeclarations {
   public static TName baseNum= new TName("base.Num",0,Pos.UNKNOWN);
   public static TName baseFloat= new TName("base.Float",0,Pos.UNKNOWN);
   public static TName widen= new TName("base.WidenTo",1,Pos.UNKNOWN);
+  public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
   static private Declaration of(TName name,TName lit){
     var c= new T.C(lit,List.of());
     var self= new T.RCC(RC.imm,c);

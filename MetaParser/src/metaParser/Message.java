@@ -10,27 +10,24 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public record Message(String msg,int priority){
+public record Message(String msg, int priority){
 
-  // Rendering constants (mirrors SnippetFormatter defaults you liked)
-  private static final int TAB_WIDTH = 4;
-  private static final int MIN_LN_WIDTH = 3;
-  //---------
-//inside metaParser.Message
+  private static final int tabWidth= 4;
+  private static final int minLineWidth= 3;
 
- private static Optional<String> optCaretLine(String[] lines, Grouping g, int width){
-   if (g.singles.isEmpty()){ return Optional.empty(); }
-   return Optional.of(makeCaretLine(lines, g, width));
- }
- public static String of(Function<URI,String> loader, List<Frame> frames, String msg){
-   try{ return _of(loader,frames,msg); }
-   catch(Throwable e){ throw new Error("Exception while formatting the following error:\n"+msg,e); }
-   }
- private static String _of(Function<URI,String> loader, List<Frame> frames, String msg){
+  private static Optional<String> optCaretLine(String[] lines, Grouping g, int width){
+    if (g.singles.isEmpty()){ return Optional.empty(); }
+    return Optional.of(makeCaretLine(lines, g, width));
+  }
+  public static String of(Function<URI,String> loader, List<Frame> frames, String msg){
+    try{ return _of(loader,frames,msg); }
+    catch(Throwable e){ throw new Error("Exception while formatting the following error:\n"+msg,e); }
+  }
+  private static String _of(Function<URI,String> loader, List<Frame> frames, String msg){
     if (frames == null || frames.isEmpty()) return msg;
-    List<Frame> contained = ensureContainment(frames);
-    List<Frame> visible = trimInvisible(loader, contained);
-    Grouping g = group(visible);
+    List<Frame> contained= ensureContainment(frames);
+    List<Frame> visible= trimInvisible(loader, contained);
+    Grouping g= group(visible);
     String src= Objects.requireNonNull(loader.apply(g.file()));
     String[] lines= splitLines(src);
     int width= lineNumberWidth(lines.length);
@@ -49,11 +46,9 @@ public record Message(String msg,int priority){
   }
   private static String numbered(String[] lines, int lineNum, int width){
     String raw = get(lines, lineNum);
-    String display = expandTabs(raw, TAB_WIDTH);
+    String display = expandTabs(raw, tabWidth);
     return padLineNum(lineNum, width) + '|' + ' ' + display;
   }
-  // ===== Phase 1: containment ===================================================
-
   private static List<Frame> ensureContainment(List<Frame> fs){
     ArrayList<Frame> out = new ArrayList<>(fs);
     if (out.size() <= 1) return List.copyOf(out);
@@ -68,18 +63,13 @@ public record Message(String msg,int priority){
     int sL = Math.max(s.startLine(), c.startLine());
     int eL = Math.min(s.endLine(),   c.endLine());
     if (sL > eL){ sL = c.startLine(); eL = c.startLine(); }
-
     int sC = (sL==s.startLine()&&sL==c.startLine()) ? Math.max(s.startCol(), c.startCol())
              : (sL==c.startLine() ? c.startCol() : s.startCol());
     int eC = (eL==s.endLine()&&eL==c.endLine()) ? Math.min(s.endCol(), c.endCol())
              : (eL==c.endLine() ? c.endCol() : s.endCol());
     if (sL == eL && sC > eC) sC = eC;
-
     return new Span(s.fileName(), sL, Math.max(1, sC), eL, Math.max(1, eC));
   }
-
-  // ===== Phase 2: invisibleCharacters trimming ==================================
-
   private static List<Frame> trimInvisible(Function<URI,String> loader, List<Frame> fs){
     ArrayList<Frame> out = new ArrayList<>(fs.size());
     for (Frame f : fs){
@@ -89,53 +79,49 @@ public record Message(String msg,int priority){
     return List.copyOf(out);
   }
   private static Span shrinkToVisible(Function<URI,String> loader, Span s){
-    String src = Objects.requireNonNull(loader.apply(s.fileName()));
-    String[] lines = splitLines(src);
-
-    Pos a = nextVisible(lines, new Pos(s.startLine(), s.startCol()), new Pos(s.endLine(), s.endCol()));
-    Pos b = prevVisible(lines, a, new Pos(s.endLine(), s.endCol()));
+    String src= Objects.requireNonNull(loader.apply(s.fileName()));
+    String[] lines= splitLines(src);
+    Pos a= nextVisible(lines, new Pos(s.startLine(), s.startCol()), new Pos(s.endLine(), s.endCol()));
+    Pos b= prevVisible(lines, a, new Pos(s.endLine(), s.endCol()));
     return new Span(s.fileName(), a.line, a.col, b.line, b.col);
   }
   private static Pos nextVisible(String[] lines, Pos p, Pos limit){
-    int line = clamp(p.line, 1, lines.length), col = Math.max(1, p.col);
+    int line= clamp(p.line, 1, lines.length), col = Math.max(1, p.col);
     while (beforeOrEqual(line, col, limit)){
-      String ln = get(lines, line);
-      if (col <= ln.length()){
-        char ch = ln.charAt(col - 1);
-        if (isVisible(ch)) return new Pos(line, col);
-        col++;
-      } else { line++; col = 1; }
+      String ln= get(lines, line);
+      if (col > ln.length()){ line++; col = 1; continue; }
+      char ch= ln.charAt(col - 1);
+      if (isVisible(ch)){ return new Pos(line, col); }
+      col++;
     }
     return limit;
   }
   private static Pos prevVisible(String[] lines, Pos start, Pos p){
-    int line = clamp(p.line, 1, lines.length), col = Math.max(1, p.col);
+    int line= clamp(p.line, 1, lines.length);
+    int col= Math.max(1, p.col);
     while (afterOrEqual(line, col, start)){
-      String ln = get(lines, line);
-      if (col >= 1){
-        if (col <= ln.length()){
-          char ch = ln.charAt(col - 1);
-          if (isVisible(ch)) return new Pos(line, col);
-        }
-        col--;
-        if (col < 1){ line--; if (line < start.line) break; col = Math.max(1, get(lines, line).length()); }
-      }
+      String ln= get(lines, line);
+      if (col < 1){ continue; }
+      var visible= col <= ln.length() && isVisible(ln.charAt(col - 1)); 
+      if (visible){ return new Pos(line, col); }
+      col--;
+      if (col >= 1){ continue; }
+      line--;
+      if (line < start.line){ return new Pos(start.line, start.col); }
+      col = Math.max(1, get(lines, line).length());
     }
     return new Pos(start.line, start.col);
   }
   private static boolean isVisible(char c){ return c!=' ' && c!='\t' && c!='\n' && c!='\r'; }
 
-  // ===== Phase 3: grouping =======================================================
-
   private record Grouping(URI file, List<Span> singles, Span multiLine, int caretLine){}
 
   private static Grouping group(List<Frame> fs){
-    List<Span> spans = fs.stream().map(Frame::s).toList();
-    URI file = spans.getLast().fileName();
-
-    // Take initial chain of single-line spans, but only those on the same line as the innermost single.
-    ArrayList<Span> leadingSingles = new ArrayList<>();
+    List<Span> spans= fs.stream().map(Frame::s).toList();
+    URI file= spans.getLast().fileName();
+    ArrayList<Span> leadingSingles= new ArrayList<>();
     for (Span s : spans){ if (s.isSingleLine()) leadingSingles.add(s); else break; }
+    //TODO: GPT file reviewed up to here, review the rest
     if (!leadingSingles.isEmpty()){
       int targetLine = leadingSingles.getLast().startLine();
       leadingSingles.removeIf(s -> s.startLine() != targetLine || !s.isSingleLine());
@@ -195,7 +181,7 @@ public record Message(String msg,int priority){
 
   private static int lineNumberWidth(int totalLines){
     int digits = String.valueOf(Math.max(1, totalLines)).length();
-    return Math.max(MIN_LN_WIDTH, digits);
+    return Math.max(minLineWidth, digits);
   }
   private static String padLineNum(int n, int w){
     String s = Integer.toString(Math.max(0, n));
@@ -389,7 +375,7 @@ private static String makeCaretLine(String[] lines, Grouping g, int width){
  String raw = get(lines, g.caretLine());
  // Only the caret-bearing line is sanitized for display;
  // geometry (columns/lengths) is computed from RAW with tab math.
- String safeDisplay = sanitizeForCaret(expandTabs(raw, TAB_WIDTH));
+ String safeDisplay = sanitizeForCaret(expandTabs(raw, tabWidth));
 
  // decide marks so a single span uses '^'
  List<Span> sps = g.singles();
@@ -405,8 +391,8 @@ private static String makeCaretLine(String[] lines, Grouping g, int width){
  int rightMost = 0;
  for (int i = 0; i < n; i++){
    Span s = sps.get(i);
-   int aVis = visualCol(raw, s.startCol(), TAB_WIDTH);
-   int len  = visualDelta(raw, s.startCol(), s.endCol(), TAB_WIDTH);
+   int aVis = visualCol(raw, s.startCol(), tabWidth);
+   int len  = visualDelta(raw, s.startCol(), s.endCol(), tabWidth);
    int bVis = aVis + Math.max(1, len) - 1; // ensure at least 1 column
    rightMost = Math.max(rightMost, bVis);
  }
@@ -417,8 +403,8 @@ private static String makeCaretLine(String[] lines, Grouping g, int width){
 
  for (int i = 0; i < n; i++){
    Span s = sps.get(i);
-   int aVis = visualCol(raw, s.startCol(), TAB_WIDTH);
-   int len  = visualDelta(raw, s.startCol(), s.endCol(), TAB_WIDTH);
+   int aVis = visualCol(raw, s.startCol(), tabWidth);
+   int len  = visualDelta(raw, s.startCol(), s.endCol(), tabWidth);
    int a = Math.max(1, aVis);
    int b = Math.max(a, Math.min(aVis + Math.max(1, len) - 1, rightMost));
    for (int c = a; c <= b; c++){
@@ -435,7 +421,7 @@ private static String makeCaretLine(String[] lines, Grouping g, int width){
 //identical to numbered(), except we sanitize the display to be monospace-safe.
 private static String numberedCaret(String[] lines, int lineNum, int width){
  String raw = get(lines, lineNum);
- String display = sanitizeForCaret(expandTabs(raw, TAB_WIDTH));
+ String display = sanitizeForCaret(expandTabs(raw, tabWidth));
  return padLineNum(lineNum, width) + '|' + ' ' + display;
 }
 

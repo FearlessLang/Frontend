@@ -75,7 +75,7 @@ In file: [###]/in_memory0.fear
    | ^^
 
 While inspecting a type name
-Name clash: name "B" is declared in package p.
+Name clash: name "B" is declared in package "p".
 Name "B" is also used in a "use" directive.
 Error 9  WellFormedness
 ""","""
@@ -105,7 +105,8 @@ In file: [###]/in_memory0.fear
    |        ^^
 
 While inspecting a type name
-Undeclared name: name "Z" is not declared in package p.
+Type "Z" is not declared in package "p" and is not made visible via "use".
+In scope: "A".
 Error 9  WellFormedness
 """,List.of(
 "A:{ .f:Z->A }"));}
@@ -124,7 +125,7 @@ In file: [###]/in_memory0.fear
    | ^^
 
 While inspecting a type name
-Name clash: name "D" is declared in package p.
+Name clash: name "D" is declared in package "p".
 Name "D" is also used in a "use" directive.
 Error 9  WellFormedness
 """,
@@ -176,7 +177,7 @@ In file: [###]/in_memory0.fear
    | ^^
 
 While inspecting a type name
-Name clash: name "A" is declared in package p.
+Name clash: name "A" is declared in package "p".
 Name "A" is also used in a "use" directive.
 Error 9  WellFormedness
 """,
@@ -191,7 +192,8 @@ In file: [###]/in_memory0.fear
    |        ^^
 
 While inspecting a type name
-Undeclared name: name "D" is not declared in package p.
+Type "D" is not declared in package "p" and is not made visible via "use".
+In scope: "A".
 Error 9  WellFormedness
 ""","role app000;\n",List.of(
 "A:{ .m:D->D }"));}
@@ -740,7 +742,7 @@ In file: [###]/p.fear
    |                  ^^^^^^^^^
 
 While inspecting package header
-"use" directive referes to undeclared name: name "AAAA" is not declared in package base.
+"use" directive referes to undeclared name: name "AAAA" is not declared in package "base".
 Error 9  WellFormedness
 ""","role app000; use base.AAAA as BBB;",List.of("""
 B:{ }
@@ -818,7 +820,8 @@ In file: [###]/in_memory0.fear
    |                 ^^
 
 While inspecting a type name
-Name: "F" is not declared with arity 2 in package p.
+Name "F" is not declared with arity 2 in package "p".
+Available arities here: 0.
 Did you accidentally add/omit a generic type parameter?
 Error 9  WellFormedness
 """,List.of("""
@@ -927,7 +930,8 @@ In file: [###]/in_memory0.fear
    |                                                                     ^^
 
 While inspecting a type name
-Undeclared name: name "K" is not declared in package p.
+Type "K" is not declared in package "p" and is not made visible via "use".
+In scope: "Any", "Baba", "GG", "KK", "User".
 Error 9  WellFormedness
 """, List.of("""
 GG[A,B]:{ .apply[C,D](A,B,C):D }
@@ -966,6 +970,252 @@ User:{.m:User->
 }
 """));}
 
+@Test void magicWidenErrMispelled(){fail("""
+In file: [###]/in_memory0.fear
+
+002| A:base.Widen[A]{}
+   |   ^^^^^^^^^^^
+
+While inspecting a type name
+Type "Widen" is not declared in package "base".
+Did you mean "WidenTo" ?
+Error 9  WellFormedness
+""",List.of("""
+A:base.Widen[A]{}
+B:base.Widen[B]{}
+C:A,B{}
+"""));}
+
+@Test void magicWidenErr(){fail("""
+In file: [###]/in_memory0.fear
+
+004| C:A,B{}
+   | ^^
+
+While inspecting the file
+Type "p.C" implements base.WidenTo more than once.
+At most one base.WidenTo[T] supertype is allowed, because it defines the preferred widened type.
+Found the following base.WidenTo supertypes:
+  - "base.WidenTo[p.A]"
+  - "base.WidenTo[p.B]"
+Error 9  WellFormedness
+""",List.of("""
+A:base.WidenTo[A]{}
+B:base.WidenTo[B]{}
+C:A,B{}
+"""));}
+
+@Test void bareSimple_undefined_noSuggestions_noOtherPkg(){fail("""
+In file: [###]/in_memory0.fear
+
+004|   .foo(x:Missing):Missing;
+   |          ^^^^^^^^
+
+While inspecting a type name
+Type "Missing" is not declared in package "p" and is not made visible via "use".
+In scope: "User".
+Error 9  WellFormedness
+""",List.of("""
+User:{
+ 'this
+  .foo(x:Missing):Missing;
+}
+"""));}
+
+@Test void bareSimple_suggestFromScope(){fail("""
+In file: [###]/in_memory0.fear
+
+005|   .foo(x:Fod):Fod;
+   |          ^^^^
+
+While inspecting a type name
+Type "Fod" is not declared in package "p" and is not made visible via "use".
+Did you mean "Food" ?
+In scope: "Food", "User".
+Error 9  WellFormedness
+""",List.of("""
+Food:{}
+User:{
+ 'this
+  .foo(x:Fod):Fod;
+}
+"""));}
+
+@Test void bareSimple_onlyInOtherPackage_crossPackageNote(){fail("""
+In file: [###]/in_memory0.fear
+
+004|   .foo(x:GG):G;
+   |          ^^^
+
+While inspecting a type name
+Type "GG" is not declared in package "p" and is not made visible via "use".
+In scope: "G", "User".
+Error 9  WellFormedness
+""","""
+role app000;
+use base.F as G;
+""",List.of("""
+User:{
+ 'this
+  .foo(x:GG):G;
+}
+"""));}
+
+@Test void bareSimple_onlyInOtherPackage_crossPackageImported(){fail("""
+In file: [###]/in_memory0.fear
+
+004|   .foo(x:F):F;
+   |          ^^
+
+While inspecting a type name
+Type "F" is not declared in package "p" and is not made visible via "use".
+In scope: "User".
+Note: a type with this simple name exists in other package(s):
+  base.F
+Add a "use" or write the fully qualified name.
+Error 9  WellFormedness
+""","""
+role app000;
+//use base.F as G;
+""",List.of("""
+User:{
+ 'this
+  .foo(x:F):F;
+}
+"""));}
+
+@Test void bareSimple_suggestAndCrossPackageNote(){fail("""
+In file: [###]/in_memory0.fear
+
+004|   .foo(xs:Blok):Blok;
+   |           ^^^^^
+
+While inspecting a type name
+Type "Blok" is not declared in package "p" and is not made visible via "use".
+In scope: "User".
+Did you mean "base.Block" ?
+Add a "use" or write the fully qualified name.
+Error 9  WellFormedness
+""",List.of("""
+User:{
+ 'this
+  .foo(xs:Blok):Blok;
+}
+"""));}
+
+@Test void explicitPackage_pkgDoesNotExist_withSuggestion(){fail("""
+In file: [###]/in_memory0.fear
+
+003|   .foo(x:bsae.F):bsae.F;
+   |          ^^^^^^^
+
+While inspecting a type name
+Package "bsae" does not exist.
+In scope: "base".
+Error 9  WellFormedness
+//this is also failing our expectations.
+//First, the package names are not 'concepts in scope'
+//Then, we are not getting the suggestion for Did...base
+""","""
+role app000;
+use base.F as F;
+""",List.of("""
+User:{
+  .foo(x:bsae.F):bsae.F;
+}
+"""));}
+
+@Test void explicitPackage_typeNotInThatPackage_noArityIssue(){fail("""
+In file: [###]/in_memory0.fear
+
+003|   .foo(x:base.Foo):base.Foo;
+   |          ^^^^^^^^^
+
+While inspecting a type name
+Type "Foo" is not declared in package "base".
+Error 9  WellFormedness
+""","""
+role app000;
+use base.F as F;
+""",List.of("""
+User:{
+  .foo(x:base.Foo):base.Foo;
+}
+"""));}
+
+@Test void explicitPackage_arityMismatch_listsAvailableArities(){fail("""
+In file: [###]/in_memory0.fear
+
+003|   .foo[X,Y](x:base.Block[X,Y]):base.Block[X,Y];
+   |               ^^^^^^^^^^^
+
+While inspecting a type name
+Name "Block" is not declared with arity 2 in package "base".
+Available arities here: 0, 1.
+Did you accidentally add/omit a generic type parameter?
+Error 9  WellFormedness
+""","""
+role app000;
+//use base.Block as Block;
+""",List.of("""
+User:{
+  .foo[X,Y](x:base.Block[X,Y]):base.Block[X,Y];
+}
+"""));}
+
+@Test void bareSimple_arityMismatch_prefersLocalAndShowsArities(){fail("""
+In file: [###]/in_memory0.fear
+
+003|   .foo[X,Y](x:base.Block[X,Y]):base.Block[X,Y];
+   |               ^^^^^^^^^^^
+
+While inspecting a type name
+Name "Block" is not declared with arity 2 in package "base".
+Available arities here: 0, 1.
+Did you accidentally add/omit a generic type parameter?
+Error 9  WellFormedness
+//Ok, this does not even throw... this is a big deal
+""","""
+role app000;
+use base.Block as Block;
+""",List.of("""
+User:{
+  .foo[X,Y](x:Block[X,Y]):Block[X,Y];
+}
+"""));}
+@Test void bareSimple_caseTypos_suggestsCorrectCase(){fail("""
+In file: [###]/in_memory0.fear
+
+003| User:{ .foo(x:FOo):FOo; }
+   |               ^^^^
+
+While inspecting a type name
+Type "FOo" is not declared in package "p" and is not made visible via "use".
+Did you mean "Foo" ?
+In scope: "Foo", "User".
+Error 9  WellFormedness
+""",List.of("""
+Foo:{}
+User:{ .foo(x:FOo):FOo; }
+"""));}
+
+@Test void bareSimple_inScopeListing_whenManyCandidates(){fail("""
+In file: [###]/in_memory0.fear
+
+005| User:{ .foo(x:Abc):Abc; }
+   |               ^^^^
+
+While inspecting a type name
+Type "Abc" is not declared in package "p" and is not made visible via "use".
+In scope: "Aaa", "Abb", "Acc", "User".
+Error 9  WellFormedness
+""",List.of("""
+Aaa:{}
+Abb:{}
+Acc:{}
+User:{ .foo(x:Abc):Abc; }
+"""));}
 
 }
 //TODO: in the guide somewhere show #|" foo{#U+`AB02`} for arbitrary Unicode
+//TODO: well formedness for Sealed still missing
