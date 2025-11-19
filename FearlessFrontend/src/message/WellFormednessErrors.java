@@ -123,7 +123,6 @@ public final class WellFormednessErrors {
      .append(uri)
      .toString();
    }
-
   public static FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
     for(TName n:names){ 
       var clash= keySet.contains(n.s());
@@ -135,6 +134,7 @@ public final class WellFormednessErrors {
     }
     throw Bug.unreachable();
   }
+  //----Starting the undeclared name long error
   public static FearlessException usedUndeclaredName(TName tn, String contextPkg, List<TName> scope, List<TName> all){
     return new UndeclaredNameContext(tn, contextPkg, scope, all,
       all.stream().map(TName::pkgName).filter(p -> !p.isEmpty()).distinct().sorted().toList(),
@@ -156,8 +156,16 @@ public final class WellFormednessErrors {
         .append("Package ")
         .append(Message.displayString(typedPkg))
         .append(" does not exist.\n");
-      NameSuggester.suggest(typedPkg, allPkgs)
-        .ifPresent(sug -> msg.append(sug).append("\n"));
+        NameSuggester.suggest(typedPkg, allPkgs,(_,cs,best)->{
+          best.ifPresent(b -> msg
+            .append("Did you mean ")
+            .append(Message.displayString(b))
+            .append(" ?\n"));
+          msg.append("Visible packages: ")
+            .append(cs.stream().map(Message::displayString).collect(Collectors.joining(", ")))
+            .append(".\n");
+          return null;
+          });
       return Optional.of(make(msg));
     }
     private <A,R> List<R> userMap(Function<A,R> f,Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
@@ -181,7 +189,6 @@ public final class WellFormednessErrors {
         .append("Did you accidentally add/omit a generic type parameter?\n");
       return Optional.of(make(msg));
     }
-    //--
     private FearlessException undeclaredInPkg(){
       List<TName> inPkg= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
       var simpleInPkg= simpleNames(inPkg);
@@ -190,30 +197,12 @@ public final class WellFormednessErrors {
         .append(Message.displayString(typedSimple))
         .append(" is not declared in package ")
         .append(relevantPkgMsg())
-        .append(".\n");
-      NameSuggester.suggest(typedSimple, simpleInPkg)
-        .ifPresent(sug -> msg.append(sug).append("\n"));
-      var bestLocal= NameSuggester.bestName(typedSimple, simpleInPkg);
-      if (bestLocal.isEmpty()){ addCrossPackageSuggestion(msg,inPkg); }
-      addOtherPkgNote(msg);
+        .append(".\n")
+        .append(NameSuggester.suggest(typedSimple, simpleInPkg));
+      if (!typedPkg.isEmpty()){ addOtherPkgNotePkgExplicit(msg); return make(msg); }
+      var noBestLocal= NameSuggester.bestName(typedSimple, simpleInPkg).isEmpty();
+      if (noBestLocal){ addOtherPkgNotePkgImplicit(msg); }
       return make(msg);
-    }
-    private void addCrossPackageSuggestion(StringBuilder msg, List<TName> inPkg){
-      if (!typedPkg.isEmpty()){ return; }
-      assert !all.stream().anyMatch(t -> t.simpleName().equals(typedSimple));
-      List<String> candidates= userMap(TName::simpleName,
-        all.stream().filter(t -> !t.pkgName().equals(contextPkg)));
-      if (candidates.isEmpty()){ return; }
-      var bestSimpleOpt= NameSuggester.bestName(typedSimple, candidates);
-      if (bestSimpleOpt.isEmpty()){ return; }
-      String bestSimple= bestSimpleOpt.get();
-      List<String> fqMatches= userMap(TName::s,
-        all.stream().filter(t -> t.simpleName().equals(bestSimple)));
-      if (fqMatches.size() != 1){ return; }
-      String fq= fqMatches.get(0);
-      msg.append("Did you mean ")
-        .append(Message.displayString(fq))
-        .append(" ?").append(addUse);
     }
     private String relevantPkgMsg(){
       return "\""+(typedPkg.isEmpty()
@@ -224,16 +213,29 @@ public final class WellFormednessErrors {
       return all.stream().filter(t -> t.pkgName().equals(pkg)).toList();
     }
     private List<String> simpleNames(List<TName> xs){ return userMap(TName::simpleName,xs.stream()); }
-    private void addOtherPkgNote(StringBuilder msg){
-      List<String> elsewhere= userMap(TName::s, all.stream()
+    private void addOtherPkgNotePkgExplicit(StringBuilder msg){
+      var sameSimpleOther= userMap(TName::s, all.stream()
         .filter(t -> !t.pkgName().equals(typedPkg))
         .filter(t -> t.simpleName().equals(typedSimple)));
-      if (elsewhere.isEmpty()){ return; }
-      msg.append("Note: a type with this simple name exists in other package(s):\n  ")
-        .append(String.join(", ", elsewhere))
-        .append(addUse);
+      addOptionsList(sameSimpleOther, msg);
     }
-    private static String addUse="\nAdd a \"use\" or write the fully qualified name.\n";
+    private void addOtherPkgNotePkgImplicit(StringBuilder msg){
+      var other= all.stream().filter(t -> !t.pkgName().equals(contextPkg)).toList();
+      if (other.isEmpty()){ return; }
+      var simpleCandidates= userMap(TName::simpleName,other.stream());
+      NameSuggester.bestName(typedSimple, simpleCandidates)
+        .ifPresent(bestSimple->addOptionsList(
+          userMap(TName::s,all.stream().filter(t -> t.simpleName().equals(bestSimple))),
+          msg));
+    }
+    void addOptionsList(List<String> ss, StringBuilder msg){
+      if (ss.isEmpty()){ return; }
+      msg.append("Did you mean ")
+        .append(ss.stream().map(Message::displayString).collect(Collectors.joining(" or ")))
+        .append(" ?\n")
+        .append(addUse);
+    }    
+    private static String addUse="Add a \"use\" or write the fully qualified name.\n";
     private FearlessException make(StringBuilder msg){
       trimTrailingNewline(msg);
       return Code.WellFormedness.of(msg.toString()).addFrame("a type name", at()); }

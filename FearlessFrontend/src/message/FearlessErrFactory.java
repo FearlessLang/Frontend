@@ -127,10 +127,9 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
 
   public FearlessException nameNotInScope(Token name, Span at, List<String> inScope){
     return Code.UnexpectedToken.of(() -> {
-      var maybe= NameSuggester.suggest(name.content(), inScope);
       var scope= inScope.isEmpty()
         ? "No names are in scope here.\n"
-        : maybe.orElse("");
+        : NameSuggester.suggest(name.content(), inScope);
       return "Name "+Message.displayString(name.content())+" is not in scope\n" + scope;
     }).addSpan(at);
   }

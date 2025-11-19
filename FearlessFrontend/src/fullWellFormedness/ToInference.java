@@ -24,7 +24,7 @@ public class ToInference{
     var otherTypes= other.dom();
     var declared= p.names().decNames();
     var imported= p.map().entrySet().stream()
-      .filter(e->TokenKind.validate(e.getKey(), TokenKind.UppercaseId))
+      .filter(e->TokenKind.validate(e.getKey(), TokenKind.UppercaseId))//TODO: check how the map is created. Is it really just Uppercase + lowercase as two disjoint options?
       .flatMap(e->otherTypes.stream()
         .filter(t->t.s().equals(e.getValue()))
         .map(t->new TName(p.name()+"."+e.getKey(), t.arity(),t.pos()))
@@ -39,7 +39,12 @@ public class ToInference{
       if (pN.isEmpty()){
         if (LiteralDeclarations.isPrimitiveLiteral(tn.s())){ return tn.withPkgName("base"); }
         var mapped= p.map().get(tn.s());
-        if (mapped != null){ return new TName(mapped,tn.arity(),tn.pos()); } //if mapped is not defined with any arity
+        if (mapped != null){
+          var res= new TName(mapped,tn.arity(),tn.pos());
+          var ok= other.dom().stream().anyMatch(t->t.equals(res));
+          if (!ok){ throw undeclaredType(tn,res.pkgName(),p,other); }
+          return res;
+        }
         return fCurrent(p,tn,tn.withPkgName(p.name()),false,other);
       }
       var mPN= p.map().get(pN);

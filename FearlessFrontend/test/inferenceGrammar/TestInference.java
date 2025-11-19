@@ -1070,8 +1070,7 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Type "F" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
-Note: a type with this simple name exists in other package(s):
-  base.F
+Did you mean "base.F" ?
 Add a "use" or write the fully qualified name.
 Error 9  WellFormedness
 ""","""
@@ -1106,22 +1105,20 @@ User:{
 @Test void explicitPackage_pkgDoesNotExist_withSuggestion(){fail("""
 In file: [###]/in_memory0.fear
 
-003|   .foo(x:bsae.F):bsae.F;
-   |          ^^^^^^^
+003|   .foo(x:basee.F):basee.F;
+   |          ^^^^^^^^
 
 While inspecting a type name
-Package "bsae" does not exist.
-In scope: "base".
+Package "basee" does not exist.
+Did you mean "base" ?
+Visible packages: "base".
 Error 9  WellFormedness
-//this is also failing our expectations.
-//First, the package names are not 'concepts in scope'
-//Then, we are not getting the suggestion for Did...base
 ""","""
 role app000;
 use base.F as F;
 """,List.of("""
 User:{
-  .foo(x:bsae.F):bsae.F;
+  .foo(x:basee.F):basee.F;
 }
 """));}
 
@@ -1166,15 +1163,14 @@ User:{
 @Test void bareSimple_arityMismatch_prefersLocalAndShowsArities(){fail("""
 In file: [###]/in_memory0.fear
 
-003|   .foo[X,Y](x:base.Block[X,Y]):base.Block[X,Y];
-   |               ^^^^^^^^^^^
+003|   .foo[X,Y](x:Block[X,Y]):Block[X,Y];
+   |               ^^^^^^
 
 While inspecting a type name
 Name "Block" is not declared with arity 2 in package "base".
 Available arities here: 0, 1.
 Did you accidentally add/omit a generic type parameter?
 Error 9  WellFormedness
-//Ok, this does not even throw... this is a big deal
 ""","""
 role app000;
 use base.Block as Block;

@@ -3,19 +3,20 @@ package metaParser;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Given a target name and a set of candidate names, produce a small
- * multi-line suggestion block, or empty if nothing worth showing.
+/** Given a target name and a set of candidate names, compute a "best" match
+ * (if any) and let a Renderer decide how to show it.
  *
- * Output policy (tweakable via constants below):
- *  - If candidates are few (<= MAX_SCOPE_TO_LIST), list them deterministically:
- *      "In scope: a, b, c"
+ * The default suggest(..) builds a small multi-line suggestion block, but
+ * you can plug your own Renderer to format things differently while reusing
+ * the same scoring / policy logic.
+ *
+ * Policy:
+ *  - If candidates are few (<= maxScopeToList), list them deterministically.
  *  - Compute similarity (normalized Levenshtein) for each candidate.
  *  - If exactly one candidate clears a strong threshold AND is clearly
- *    better than the runner-up (by MARGIN), add:
- *      "Did you mean "foo" ?"
- *  - If suggestions are ambiguous or weak, we show only the "In scope" line
- *    (if any) and skip the "Did you mean" line to avoid misleading hints.
+ *    better than the runner-up (by margin), that becomes "best".
+ *  - If suggestions are ambiguous or weak, best is empty.
+ *  - The default suggest(..) returns "" when there is nothing worth showing.
  */
 public final class NameSuggester {
   /** If there are this many or fewer names, show the "In scope:" line. */
@@ -26,69 +27,87 @@ public final class NameSuggester {
   private static final double sameFirstBonus= 0.03;
   /** Require top-1 to beat top-2 by at least this margin to avoid ambiguity. */
   private static final double margin= 0.08;
-  
+
+  public interface Renderer<R>{
+    R render(String target, List<String> candidates, Optional<String> best);
+  }  
   private NameSuggester() {}
+
+  /** Just the best name, or empty if nothing confident enough. */
   public static Optional<String> bestName(String name, List<String> candidates){
-    assert ! (name == null || name.isEmpty() || candidates == null);
-    if (candidates.isEmpty()){ return Optional.empty(); }
-    return bestSuggestion(name, candidates).map(s -> s.value);
+    return candidates.contains(name)
+      ? Optional.of(name)
+      : suggest(name, candidates, (_, _, best) -> best);
   }
-  public static Optional<String> suggest(String name, List<String> candidates){
-    StringBuilder out= new StringBuilder();
-    bestName(name, candidates)
-      .ifPresent(best -> out.append("Did you mean ").append(Message.displayString(best)).append(" ?\n"));
-    if (candidates.size() <= maxScopeToList){out
-      .append("In scope: ")
-      .append(candidates.stream().map(Message::displayString).collect(Collectors.joining(", ")))
-      .append(".\n");
-    }
-    if (out.length() == 0){ return Optional.empty(); }
-    if (out.charAt(out.length() - 1) == '\n'){ out.setLength(out.length() - 1); }
-    return Optional.of(out.toString());
+  /**
+   * Default textual rendering:
+   *  """
+   *  Did you mean "Foo" ?
+   *  In scope: "A", "B", "C".
+   *  """
+   *  Can be the empty string if there is no confident guess and there are too many names in scope.
+   */
+  public static String suggest(String name, List<String> candidates){
+    return suggest(name, candidates, (_, cs, best) -> {
+      StringBuilder out= new StringBuilder();
+      best.ifPresent(b -> out
+        .append("Did you mean ")
+        .append(Message.displayString(b))
+        .append(" ?\n"));
+      if (cs.size() <= maxScopeToList){
+        out.append("In scope: ")
+          .append(cs.stream().map(Message::displayString).collect(Collectors.joining(", ")))
+          .append(".\n");
+      }
+      return out.toString();
+    });
   }
-  private static Optional<Suggestion> bestSuggestion(String target, List<String> candidates){
-    if (candidates.isEmpty()){ return Optional.empty(); }
-    Suggestion best= pickBest(target, candidates);
-    if (best == null || !best.isConfident){ return Optional.empty(); }
-    return Optional.of(best);
+  /**Generic continuation-style API: reuse scoring + policy, customize rendering.
+  * @param name       user specified name (that is not found in candidate names) 
+  * @param candidates non empty, distinct and sorted candidate names
+  * @param renderer   receives (target, candidates, best)
+  * @return the result of calling renderer.render
+  */
+  public static <R> R suggest(String name, List<String> candidates, Renderer<R> renderer){
+    assert ! (name == null || name.isEmpty() || candidates == null || candidates.isEmpty());
+    assert candidates.equals(candidates.stream().distinct().sorted().toList());
+    assert candidates.stream().allMatch(s->!s.isEmpty());
+    assert !candidates.contains(name);
+    var best= pickBest(name, candidates);
+    return renderer.render(name, candidates, best);
   }
-  private static Suggestion pickBest(String target, List<String> candidates) {
-    String t= target;
+  private static Optional<String> pickBest(String t, List<String> candidates){
     boolean tLower= isAllLower(t);
     boolean tUpper= isAllUpper(t);
-
+    char first= Character.toLowerCase(t.charAt(0));
     List<Suggestion> scored= new ArrayList<>(candidates.size());
-    for (String c : candidates) {
+    for (String c: candidates){
       double base= normalizedLevenshtein(t, c);
-      var applyBonus= !t.isEmpty() && !c.isEmpty()
-        && Character.toLowerCase(t.charAt(0)) == Character.toLowerCase(c.charAt(0));
-      if (applyBonus){ base += sameFirstBonus; }
+      if (first == Character.toLowerCase(c.charAt(0))){ base += sameFirstBonus; }
       var isSimilarCase= (tLower && isAllLower(c)) || (tUpper && isAllUpper(c));
       if (isSimilarCase){ base += 0.01; }
-      double score= clamp01(base);
-      scored.add(new Suggestion(c, score));
+      scored.add(new Suggestion(c, clamp01(base)));
     }
-    if (scored.isEmpty()){ return null; }
     scored.sort(Comparator
-      .comparingDouble((Suggestion s) -> s.score).reversed()
-      .thenComparingInt(s -> Math.abs(s.value.length() - target.length()))
+      .<Suggestion>comparingDouble(s -> -s.score)
+      .thenComparingInt(s -> Math.abs(s.value.length() - t.length()))
       .thenComparing(s -> s.value));
-
-    Suggestion top= scored.get(0);
+    var top= scored.get(0);
     double topScore= top.score;
     double runnerUp= scored.size() > 1 ? scored.get(1).score : -1;
     boolean strongEnough= topScore >= strongSimilarity;
     boolean clearMargin= (runnerUp < 0) || (topScore - runnerUp >= margin);
-    top.isConfident = strongEnough && clearMargin;
-    return top;
+    if (!strongEnough || !clearMargin){ return Optional.empty(); }
+    return Optional.of(top.value);
   }
+  private record Suggestion(String value,double score){}  
   /** Normalized similarity in [0,1] via Levenshtein edit distance. */
   private static double normalizedLevenshtein(String a, String b) {
-    if (a.equals(b)) return 1.0;
-    int max = Math.max(a.length(), b.length());
-    if (max == 0) return 1.0;
-    int d = levenshtein(a, b);
-    return 1.0 - (d / (double) max);
+    if (a.equals(b)){ return 1.0; }
+    int max= Math.max(a.length(), b.length());
+    if (max == 0){ return 1.0; }
+    int d= levenshtein(a, b);
+    return 1.0 - (d / (double)max);
   }
   /** Classic O(n*m) Levenshtein; small and dependency-free. */
   private static int levenshtein(String a, String b) {
@@ -96,48 +115,28 @@ public final class NameSuggester {
     int m= b.length();
     if (n == 0){ return m; }
     if (m == 0){ return n; }
-
     int[] prev= new int[m + 1];
     int[] curr= new int[m + 1];
-
-    for (int j= 0; j <= m; j++){ prev[j] = j; }
-
+    for (int j= 0; j <= m; j++){ prev[j]= j; }
     for (int i= 1; i <= n; i++){
-      curr[0] = i;
-      char ca = a.charAt(i - 1);
-      for (int j = 1; j <= m; j++) {
-        char cb = b.charAt(j - 1);
-        int cost = (ca == cb) ? 0 : 1;
-        curr[j] = Math.min(Math.min(curr[j - 1] + 1, prev[j] + 1), prev[j - 1] + cost);
+      curr[0]= i;
+      char ca= a.charAt(i - 1);
+      for (int j= 1; j <= m; j++){
+        char cb= b.charAt(j - 1);
+        int cost= (ca == cb) ? 0 : 1;
+        curr[j]= Math.min(Math.min(curr[j - 1] + 1, prev[j] + 1), prev[j - 1] + cost);
       }
-      int[] tmp = prev;
-      prev = curr;
-      curr = tmp;
+      int[] tmp= prev;
+      prev= curr;
+      curr= tmp;
     }
     return prev[m];
   }
   private static boolean isAllLower(String s){
-    if (s.isEmpty()){ return false; }
-    for (int i= 0; i < s.length(); i++) {
-      char c= s.charAt(i);
-      if (Character.isLetter(c) && !Character.isLowerCase(c)){ return false; }
-    }
-    return true;
+    return s.chars().allMatch(c->!Character.isLetter(c) || Character.isLowerCase(c));
   }
-  private static boolean isAllUpper(String s) {
-    if (s.isEmpty()){ return false; }
-    for (int i= 0; i < s.length(); i++) {
-      char c= s.charAt(i);
-      if (Character.isLetter(c) && !Character.isUpperCase(c)){ return false; }
-    }
-    return true;
+  private static boolean isAllUpper(String s){
+    return s.chars().allMatch(c->!Character.isLetter(c) || Character.isUpperCase(c));
   }
   private static double clamp01(double x){ return (x < 0) ? 0 : (x > 1 ? 1 : x); }
-
-  private static final class Suggestion {
-    final String value;
-    final double score;
-    boolean isConfident;
-    Suggestion(String value, double score) { this.value = value; this.score = score; }
-  }
 }
