@@ -16,6 +16,7 @@ public final class FreshPrefix {
   private final Map<TName, Set<String>> usedVar= new HashMap<>();
   private final Map<TName, Map<String,Integer>> varSeq= new HashMap<>();
   private final String pkgName;
+  private final Map<TName,TName> anonSuperT= new HashMap<>();
   public FreshPrefix(Package p){
     pkgName= p.name();
     for (TName tn : p.names().decNames()){ usedTopTypes.add(tn.simpleName()); }
@@ -50,6 +51,9 @@ public final class FreshPrefix {
       return res;
     }
   }
+  public void registerAnonSuperT(TName fresh,TName base){ anonSuperT.put(fresh, base); }
+  public Optional<TName> anonSuperT(TName t){ return Optional.ofNullable(anonSuperT.get(t)); }
+  
   public boolean isFreshGeneric(TName owner, String x){//used where we know it is a valid generic elsewhere (so already not a top type)
     Set<String> scope= usedGen.get(owner);
     assert scope != null : owner;

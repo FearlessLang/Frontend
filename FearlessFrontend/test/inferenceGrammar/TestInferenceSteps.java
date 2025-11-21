@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 public class TestInferenceSteps {
   static void okI(String expected, List<String> input){ TestInference.ok(expected,"role app000;",input,true); }
   static void okI(String expected, String head, List<String> input){ TestInference.ok(expected,head,input,true); }
+  static void failI(String expected, List<String> input){ TestInference.fail(expected,"role app000;",input,true); }
+  static void failI(String expected, String head, List<String> input){ TestInference.fail(expected,head,input,true); }  
 @Test void inferMini(){okI("""
 p.A:{'this\
  .foo:p.A@p.A;->this:p.A.foo[imm]():p.A;}
@@ -27,7 +29,7 @@ p.User:{'this\
  .bar:p.User@p.User;\
 ->this:p.User.foo[imm,p.User](\
 p.User:p.User,\
-p.A_User:p.F[p.User,p.User]{'_ imm #(p.User):p.User@p.F;\
+p.A_User:p.F[p.User,p.User]{'_ imm #(p.User):p.User@p.A_User;\
  (a_impl)->a_impl:p.User;}:p.F[p.User,p.User]):p.User;}
 """,List.of("""
 F[A,B]:{#(A):B}
@@ -42,6 +44,7 @@ role app000;
 use base.Nat as Nat;
 use base.F as F;
 use base.Bool  as Bool;
+use base.Void as Void;
 """;
 static String stackStart="""
 StackMatch[T,R]: {
@@ -71,7 +74,7 @@ p.Z0ExampleSum:{'this\
  #(p.Stack[base.Nat]):base.Nat@p.Z0ExampleSum;\
 (ns)->ns:p.Stack[base.Nat].fold[imm,base.Nat](\
 base.0:base.Nat,p.A_Z0Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@base.F;\
+ read #(base.Nat,base.Nat):base.Nat@p.A_Z0Ex;\
  (n1, n2)->n1:base.Nat+[imm](n2:base.Nat):base.Nat;\
 }:base.F[base.Nat,base.Nat,base.Nat]):base.Nat;}
 """,importMini,List.of(stackStart+"""
@@ -86,7 +89,7 @@ p.Z1ExampleTimes:{'this\
 .fold[imm,base.Nat](\
 base.1:base.Nat,\
 p.A_Z1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@base.F;\
+ read #(base.Nat,base.Nat):base.Nat@p.A_Z1Ex;\
  (n1, n2)->n1:base.Nat*[imm](n2:base.Nat):base.Nat;\
 }:base.F[base.Nat,base.Nat,base.Nat]):base.Nat;}
 """,importMini,List.of(stackStart+"""
@@ -101,9 +104,9 @@ p.Z2Example:{'this\
 (ns)->ns:p.Stack[base.Nat]\
 .match[imm,base.Nat](\
 p.A_Z2Ex:p.StackMatch[base.Nat,base.Nat]{'_\
- imm .empty:base.Nat@p.StackMatch;\
+ imm .empty:base.Nat@p.A_Z2Ex;\
  .empty()->base.0:base.Nat;\
- imm .elem(base.Nat,p.Stack[base.Nat]):base.Nat@p.StackMatch;\
+ imm .elem(base.Nat,p.Stack[base.Nat]):base.Nat@p.A_Z2Ex;\
  .elem(top, tail)->top:base.Nat\
 +[imm](this:p.Z2Example.sum[imm](tail:p.Stack[base.Nat]):base.Nat):base.Nat;\
 }:p.StackMatch[base.Nat,base.Nat]):base.Nat;}
@@ -124,9 +127,9 @@ p.Z3ExampleAdd5:{'this\
 (ns)->ns:p.Stack[base.Nat]\
 .match[imm,p.Stack[base.Nat]](\
 p.B_Z3Ex:p.StackMatch[base.Nat,p.Stack[base.Nat]]{'_\
- imm .empty:p.Stack[base.Nat]@p.StackMatch;\
+ imm .empty:p.Stack[base.Nat]@p.B_Z3Ex;\
  .empty()->p.Stack[base.Nat]:p.Stack[base.Nat];\
- imm .elem(base.Nat,p.Stack[base.Nat]):p.Stack[base.Nat]@p.StackMatch;\
+ imm .elem(base.Nat,p.Stack[base.Nat]):p.Stack[base.Nat]@p.B_Z3Ex;\
  .elem(top, tail)->p.Z3ExampleAdd5:p.Z3ExampleAdd5\
 .add5[imm](tail:p.Stack[base.Nat]):p.Stack[base.Nat]\
 +[imm](top:base.Nat+[imm](base.5:base.Nat):base.Nat):p.Stack[base.Nat];\
@@ -147,16 +150,16 @@ p.Z4ExampleFluent:{'this\
  #(p.Stack[base.Nat]):base.Nat@p.Z4ExampleFluent;\
 (ns)->ns:p.Stack[base.Nat].map[imm,base.Nat](\
 p.A_Z4Ex:base.F[base.Nat,base.Nat]{'_\
- read #(base.Nat):base.Nat@base.F;\
+ read #(base.Nat):base.Nat@p.A_Z4Ex;\
  (n)->n:base.Nat+[imm](base.10:base.Nat):base.Nat;\
 }:base.F[base.Nat,base.Nat]):p.Stack[base.Nat]\
 .map[imm,base.Nat](\
 p.B_Z4Ex:base.F[base.Nat,base.Nat]{'_\
- read #(base.Nat):base.Nat@base.F;\
+ read #(base.Nat):base.Nat@p.B_Z4Ex;\
  (n)->n:base.Nat*[imm](base.3:base.Nat):base.Nat;\
 }:base.F[base.Nat,base.Nat]):p.Stack[base.Nat].fold[imm,base.Nat](\
 base.0:base.Nat,p.C_Z4Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@base.F;\
+ read #(base.Nat,base.Nat):base.Nat@p.C_Z4Ex;\
  (n1, n2)->n1:base.Nat+[imm](n2:base.Nat):base.Nat;\
 }:base.F[base.Nat,base.Nat,base.Nat]\
 ):base.Nat;\
@@ -198,20 +201,20 @@ p.Stack[T:imm]:{'this\
 (f)->p.Stack[T]:p.Stack[T];\
  +(T):p.Stack[T]@p.Stack;\
 (e)->p.D_Stac:p.Stack[T]{'_\
- imm .match[G_R:imm](p.StackMatch[T,G_R]):G_R@p.Stack;\
+ imm .match[G_R:imm](p.StackMatch[T,G_R]):G_R@p.D_Stac;\
  .match(m)->m:p.StackMatch[T,G_R].elem[imm](e:T,this:p.Stack[T]):G_R;\
- imm .fold[H_R:imm](H_R,base.F[H_R,T,H_R]):H_R@p.Stack;\
+ imm .fold[H_R:imm](H_R,base.F[H_R,T,H_R]):H_R@p.D_Stac;\
  .fold(start, f)->f:base.F[H_R,T,H_R]#[read](this:p.Stack[T].fold[imm,H_R](start:H_R,f:base.F[H_R,T,H_R]):H_R,e:T):H_R;\
- imm .map[J_R:imm](base.F[T,J_R]):p.Stack[J_R]@p.Stack;\
+ imm .map[J_R:imm](base.F[T,J_R]):p.Stack[J_R]@p.D_Stac;\
  .map(f)->this:p.Stack[T].map[imm,J_R](f:base.F[T,J_R]):p.Stack[J_R]\
 +[imm](f:base.F[T,J_R]#[read](e:T):J_R):p.Stack[J_R];\
- imm .filter(base.F[T,base.Bool]):p.Stack[T]@p.Stack;\
+ imm .filter(base.F[T,base.Bool]):p.Stack[T]@p.D_Stac;\
  .filter(f)->f:base.F[T,base.Bool]#[read](e:T):base.Bool\
 .if[imm,p.Stack[T]](mut p.C_Stac:base.ThenElse[p.Stack[T]]{'_\
- mut .then:p.Stack[T]@base.ThenElse;\
+ mut .then:p.Stack[T]@p.C_Stac;\
  .then()->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]\
 +[imm](e:T):p.Stack[T];\
- mut .else:p.Stack[T]@base.ThenElse;\
+ mut .else:p.Stack[T]@p.C_Stac;\
  .else()->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];\
 }:mut base.ThenElse[p.Stack[T]]):p.Stack[T];\
  imm +(T):p.Stack[T]@p.Stack;}:p.Stack[T];}
@@ -227,7 +230,7 @@ p.Z0ExampleSum:{'this\
  #(p.Stack[base.Nat]):base.Nat@p.Z0ExampleSum;\
 (ns)->ns:p.Stack[base.Nat].fold[imm,base.Nat](\
 base.Zero:base.Nat,p.A_Z0Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@base.F;\
+ read #(base.Nat,base.Nat):base.Nat@p.A_Z0Ex;\
  (n1, n2)->n1:base.Nat+[imm](n2:base.Nat):base.Nat;\
 }:base.F[base.Nat,base.Nat,base.Nat]):base.Nat;}
 """,importTo10,List.of(stackStart+"""
@@ -242,7 +245,7 @@ p.Z1ExampleTimes:{'this\
 .fold[imm,base.Nat](\
 base.One:base.Nat,\
 p.A_Z1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@base.F;\
+ read #(base.Nat,base.Nat):base.Nat@p.A_Z1Ex;\
  (n1, n2)->n1:base.Nat*[imm](n2:base.Nat):base.Nat;\
 }:base.F[base.Nat,base.Nat,base.Nat]):base.Nat;}
 """,importTo10,List.of(stackStart+"""
@@ -257,9 +260,9 @@ p.Z2Example:{'this\
 (ns)->ns:p.Stack[base.Nat]\
 .match[imm,base.Nat](\
 p.A_Z2Ex:p.StackMatch[base.Nat,base.Nat]{'_\
- imm .empty:base.Nat@p.StackMatch;\
+ imm .empty:base.Nat@p.A_Z2Ex;\
  .empty()->base.Zero:base.Nat;\
- imm .elem(base.Nat,p.Stack[base.Nat]):base.Nat@p.StackMatch;\
+ imm .elem(base.Nat,p.Stack[base.Nat]):base.Nat@p.A_Z2Ex;\
  .elem(top, tail)->top:base.Nat\
 +[imm](this:p.Z2Example.sum[imm](tail:p.Stack[base.Nat]):base.Nat):base.Nat;\
 }:p.StackMatch[base.Nat,base.Nat]):base.Nat;}
@@ -280,9 +283,9 @@ p.Z3ExampleAdd5:{'this\
 (ns)->ns:p.Stack[base.Nat]\
 .match[imm,p.Stack[base.Nat]](\
 p.B_Z3Ex:p.StackMatch[base.Nat,p.Stack[base.Nat]]{'_\
- imm .empty:p.Stack[base.Nat]@p.StackMatch;\
+ imm .empty:p.Stack[base.Nat]@p.B_Z3Ex;\
  .empty()->p.Stack[base.Nat]:p.Stack[base.Nat];\
- imm .elem(base.Nat,p.Stack[base.Nat]):p.Stack[base.Nat]@p.StackMatch;\
+ imm .elem(base.Nat,p.Stack[base.Nat]):p.Stack[base.Nat]@p.B_Z3Ex;\
  .elem(top, tail)->p.Z3ExampleAdd5:p.Z3ExampleAdd5\
 .add5[imm](tail:p.Stack[base.Nat]):p.Stack[base.Nat]\
 +[imm](top:base.Nat+[imm](base.Five:base.Nat):base.Nat):p.Stack[base.Nat];\
@@ -303,16 +306,16 @@ p.Z4ExampleFluent:{'this\
  #(p.Stack[base.Nat]):base.Nat@p.Z4ExampleFluent;\
 (ns)->ns:p.Stack[base.Nat].map[imm,base.Nat](\
 p.A_Z4Ex:base.F[base.Nat,base.Nat]{'_\
- read #(base.Nat):base.Nat@base.F;\
+ read #(base.Nat):base.Nat@p.A_Z4Ex;\
  (n)->n:base.Nat+[imm](base.Ten:base.Nat):base.Nat;\
 }:base.F[base.Nat,base.Nat]):p.Stack[base.Nat]\
 .map[imm,base.Nat](\
 p.B_Z4Ex:base.F[base.Nat,base.Nat]{'_\
- read #(base.Nat):base.Nat@base.F;\
+ read #(base.Nat):base.Nat@p.B_Z4Ex;\
  (n)->n:base.Nat*[imm](base.Three:base.Nat):base.Nat;\
 }:base.F[base.Nat,base.Nat]):p.Stack[base.Nat].fold[imm,base.Nat](\
 base.Zero:base.Nat,p.C_Z4Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@base.F;\
+ read #(base.Nat,base.Nat):base.Nat@p.C_Z4Ex;\
  (n1, n2)->n1:base.Nat+[imm](n2:base.Nat):base.Nat;\
 }:base.F[base.Nat,base.Nat,base.Nat]\
 ):base.Nat;\
@@ -407,12 +410,12 @@ p.User:{'this\
  .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User;\
  .foo1[C:imm,D:imm]:p.User@p.User;\
 ->this:p.User.withGG[imm,C,D](p.A_User:p.GG[C,D]{'_\
- imm .apply[A_C:imm,A_D:imm](A_C,A_D,A_C):A_D@p.GG;\
+ imm .apply[A_C:imm,A_D:imm](A_C,A_D,A_C):A_D@p.A_User;\
  (a, b, c)->p.Any:p.Any![imm,A_D]():A_D;}:p.GG[C,D]):p.User;\
  .foo2[C:imm,D:imm]:p.User@p.User;->p.KK:{'_\
  imm .k[K:imm]:K@p.KK;\
  .k()->this:p.User.withGG[imm,C,D](p.A_KK:p.GG[C,D]{'_\
- imm .apply[B_C:imm,B_D:imm](B_C,B_D,B_C):B_D@p.GG;\
+ imm .apply[B_C:imm,B_D:imm](B_C,B_D,B_C):B_D@p.A_KK;\
  (a, b, c)->p.Any:p.Any![imm,B_D]():B_D;\
 }:p.GG[C,D]):p.User;\
 }:p.KK.k[imm,p.User]():p.User;}
@@ -476,6 +479,122 @@ p.User:{'this\
 User:{.m:User->
  {.bla:User->User;}.bla
 }
+"""));}
+
+@Test void regressionMethodHeaderAndGet1(){okI("""
+p.A:{'this}
+p.User:{'this\
+ .m:p.A@p.User;\
+->p.A_User:p.A{'_ imm .m:p.A@p.A_User; .m()->p.A:p.A;}:p.A;}
+""",List.of("""
+A:{}
+User:{ .m:A->{ .m:A->A;}; }
+"""));}
+
+@Test void regressionMethodHeaderAndGet2(){failI("""
+In file: [###]/in_memory0.fear
+
+003| User:{ .m:A->{ .m->A;}; }
+   |                ^^^^^^^^^^
+
+While inspecting literal implementing type "p.A"
+Can not infer return type of method ".m:?".
+No supertype has a method named ".m" with 0 parameters.
+Error 9  WellFormedness
+""",List.of("""
+A:{}
+User:{ .m:A->{ .m->A;}; }
+"""));}
+
+@Test void badSealedOutNoInference(){failI("""
+In file: [###]/in_memory0.fear
+
+003| User:base.Void{ .m:A->A }
+   | ^^^^^
+
+While inspecting type declaration "User"
+Type "User" implements sealed type"base.Void".
+Sealed types can only be implemented in ther own package.
+Type "User" is defined in package "p".
+Type "Void" is defined in package "base".
+Error 9  WellFormedness
+""",List.of("""
+A:{}
+User:base.Void{ .m:A->A }
+"""));}
+
+//Controversial, but I think it should fail
+@Test void badSealedOutEmpty(){failI("""
+In file: [###]/in_memory0.fear
+
+003| User:base.Void{}
+   | ^^^^^
+
+While inspecting type declaration "User"
+Type "User" implements sealed type"base.Void".
+Sealed types can only be implemented in ther own package.
+Type "User" is defined in package "p".
+Type "Void" is defined in package "base".
+Error 9  WellFormedness
+""",List.of("""
+A:{}
+User:base.Void{}
+"""));}
+
+@Test void badSealedOutInferenceUsed(){failI("""
+In file: [###]/in_memory0.fear
+
+003| User:Void{ .m:A->A }
+   | ^^^^^
+
+While inspecting type declaration "User"
+Type "User" implements sealed type"base.Void".
+Sealed types can only be implemented in ther own package.
+Type "User" is defined in package "p".
+Type "Void" is defined in package "base".
+Error 9  WellFormedness
+""",importMini,List.of("""
+A:{}
+User:Void{ .m:A->A }
+"""));}
+
+@Test void badSealedOutInferenceInner(){failI("""
+In file: [###]/in_memory0.fear
+
+003| User:{ .m:base.Void->{ .m:A->A;}; }
+   | ^^^^^^
+
+While inspecting literal implementing type "base.Void"
+Literal implementing type "base.Void" implements sealed type"base.Void".
+Sealed types can only be implemented in ther own package.
+Literal implementing type "base.Void" is defined in package "p".
+Type "Void" is defined in package "base".
+Error 9  WellFormedness
+""",List.of("""
+A:{}
+User:{ .m:base.Void->{ .m:A->A;}; }
+"""));}
+
+//This instead should pass, to allow True/False as values
+@Test void badSealedOutInferenceInnerEmpty(){okI("""
+p.A:{'this}
+p.User:{'this\
+ .m:base.Void@p.User;\
+->base.Void:base.Void;}
+""",List.of("""
+A:{}
+User:{ .m:base.Void->{ }; }
+"""));}
+
+
+@Test void expandDeclarationStages(){okI("""
+p.A:{'this .m:base.Nat@p.A;->base.1:base.Nat;}
+p.B:p.A{'this .m:base.Nat@p.B;->base.2:base.Nat;}
+p.C:p.A, p.B{'this .m:base.Nat@p.B;}
+""",List.of("""
+A: { .m():base.Nat -> 1; }
+B:A{ .m():base.Nat -> 2; }
+C:B{}
 """));}
 
 

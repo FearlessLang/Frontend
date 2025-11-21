@@ -17,6 +17,7 @@ import inferenceGrammar.IT;
 import inferenceGrammarB.Declaration;
 import inferenceGrammarB.M;
 import utils.Bug;
+import utils.Push;
 
 public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TName,Declaration> dsMap,OtherPackages other){
   public static List<Declaration> steps(Methods meths, List<Declaration> in, OtherPackages other){
@@ -162,7 +163,8 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     Optional<M> om= favorite
       .map(rc->oneFromExplicitRC(ms.filter(mi->mi.sig().rc().equals(rc)).toList()))
       .orElseGet(()->oneFromGuessRC(ms.toList(),overloadNorm(rcc.rc())));
-    if (om.isEmpty()){ return Optional.empty(); }
+    if (om.isEmpty()){ 
+    return Optional.empty(); }
     return Optional.of(f.apply(rcc,d,om.get()));
   }
   private MSig methodHeaderInstance(IT.RCC rcc,Declaration d,M m){
@@ -248,7 +250,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     if (l.rc().isPresent() && l.t() instanceof IT.U){ l = l.withT(preferred(selfPrecise.get())); }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
     //if (l.isEV()){ return l; }
-    if (!l.infA()){ l= meths.expandLiteral(l,rcc.c()); }
+    if (!l.infA()){ assert l.cs().isEmpty(); l= meths.expandLiteral(l,rcc.c()); }
     var s= g.snapshot();
     boolean same= true;
     var res= new ArrayList<inferenceGrammar.M>(l.ms().size());
@@ -273,7 +275,9 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     assert l.cs().isEmpty();
     var noMeth= l.ms().stream().allMatch(m->m.impl().isEmpty());
     if (noMeth){ return new E.Type(rcc,rcc,l.pos(), true, l.g()); }//TODO: what if it was not a fresh name but a user defined name?
-    l = new E.Literal(Optional.of(rcc.rc()),l.name(),l.bs(),List.of(rcc.c()),l.thisName(),l.ms(), t, l.pos(), true, l.g());
+    List<IT.C> cs= Push.of(rcc.c(),meths.fetchCs(rcc.c()));
+    meths.checkMagicSupertypes(l.name(),cs);
+    l = new E.Literal(Optional.of(rcc.rc()),l.name(),l.bs(),cs,l.thisName(),l.ms(), t, l.pos(), true, l.g());
     var resD= meths.injectDeclaration(l);
     this.ds.add(resD);
     this.dsMap.put(l.name(),resD);
@@ -308,9 +312,15 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     var ret= improvedSig.ret().get();
     ts= rcc.c().ts();
     var sigTs= improvedSig.ts();
+    //Note: imh has the Xs in place, both type and meth. No rename needed
+    var omh= methodHeaderAnd(rcc,mName,improvedSig.rc(),(_,_,mi)->mi);
+    if (omh.isEmpty()){
+      var impl= m.impl().get().withE(meet(e,ret));
+      var mRes= new inferenceGrammar.M(improvedSig,Optional.of(impl));
+      return new TSM(ts,mRes);
+    }
     var Xs= getDec(rcc.c().name()).bs().stream().map(b->b.x()).toList();
-    //Note: imh has the Xs in place, both type and meth. No rename needed 
-    M.Sig imh= methodHeaderAnd(rcc,mName,improvedSig.rc(),(_,_,mi)->mi).get().sig();
+    var imh= omh.get().sig();
     ts= meet(Stream.concat(
       IntStream.range(0, imh.ts().size())
         .mapToObj(i->refine(Xs,TypeRename.tToIT(imh.ts().get(i)),sigTs.get(i).get())),
@@ -370,7 +380,7 @@ fe  ::= x | new C[FTs](){ fMs } | fe.m[FTs](fes) | fe.m(fes) | xs -> fe
 ce  ::= x   | new C[FTs](){ cMs } | ce.m[FTs](ces)
 e   ::= x:T | new C[Ts](){ Ms }:T | e.m[Ts](es):T | (xs->e):T | e.m(es):T
 Γ   ::= x1:T1  .. xn:Tn
-
+//Note: in this restricted language the anon inner class can ONLY define methods in C (not new ones)
 Pipeline for every method body
 containing a full-expression fe under Γ (including 'this') with return FT
 
@@ -495,6 +505,8 @@ _______
   M' = m[Xs](x1:T'1⊓T"1 .. xn:T'n⊓T"n):T'0⊓T"0 { return e'⊓T"0; }
 ------------------------------------------------------------------ (meth)
   Γ;C[Ts] ⊢ M ==>* Γ';C[Ts'] ⊢ M'
+//Note: in a more complete language we should consider the case where
+//methodHeader(C[Ts],m) is undefined; for example, m is new in this anon
 
 //-------------------------------- less then 150 lines of formalism
 TODO: formally define angelicElaborate and the statement

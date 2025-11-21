@@ -18,6 +18,7 @@ import fearlessFullGrammar.TName;
 import fearlessParser.Parser;
 import fearlessParser.RC;
 import files.Pos;
+import fullWellFormedness.FreshPrefix;
 import fullWellFormedness.Methods.Agreement;
 import inferenceGrammar.B;
 import inferenceGrammar.E;
@@ -325,23 +326,23 @@ public final class WellFormednessErrors {
     if (res.endsWith(";")){ res= res.substring(0,res.length()-1); }
     return Message.displayString(res);
   }
-  public static FearlessException agreement(Agreement at, List<?> res, String msg){
-    return agreement(at,Code.WellFormedness.of(
+  public static FearlessException agreement(Agreement at, FreshPrefix fresh, List<?> res, String msg){
+    return agreement(at,fresh,Code.WellFormedness.of(
       msg+ " for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types: "+res.stream()
       .map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
     + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
       ));
   }
-  public static FearlessException agreementSize(Agreement at, List<List<B>> res) {
-    return agreement(at,Code.WellFormedness.of(
+  public static FearlessException agreementSize(Agreement at, FreshPrefix fresh, List<List<B>> res) {
+    return agreement(at,fresh,Code.WellFormedness.of(
       "Number of generic type parameters disagreement for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types: "+res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
     + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
       ));
    }
-   public static FearlessException methodGenericArityDisagreesWithSupers(Agreement at, int userArity, int superArity, List<B> userBs, List<B> superBs){
-    return agreement(at, Code.WellFormedness.of(
+   public static FearlessException methodGenericArityDisagreesWithSupers(Agreement at, FreshPrefix fresh, int userArity, int superArity, List<B> userBs, List<B> superBs){
+    return agreement(at,fresh,Code.WellFormedness.of(
       "Method "+Message.displayString(at.mName().s())+" declares "+userArity+" generic parameter(s), "
     + "but supertypes declare "+superArity+".\n"
     + "Local declaration: "+Message.displayString(userBs.toString())+".\n"
@@ -350,8 +351,8 @@ public final class WellFormednessErrors {
     ));
   }
 
-  public static FearlessException ambiguosImpl(TName origin,boolean abs, M m, List<inferenceGrammar.M.Sig> options){
-    return agreement(origin,m.sig().pos(),Code.WellFormedness.of(
+  public static FearlessException ambiguosImpl(TName origin, FreshPrefix fresh, boolean abs, M m, List<inferenceGrammar.M.Sig> options){
+    return agreement(origin,fresh,m.sig().pos(),Code.WellFormedness.of(
       "Can not infer the name for method with "+m.sig().ts().size()+" parameters.\n"
     + "Many"+(abs?" abstract":"")+" methods with "+m.sig().ts().size()+" parameters could be selected:\n"
     + "Candidates: "+options.stream()
@@ -359,8 +360,8 @@ public final class WellFormednessErrors {
         .collect(Collectors.joining(", "))+".\n"
       ));
   }
-  public static FearlessException ambiguousImplementationFor(List<M.Sig> ss, List<TName> options, Agreement at){
-    return agreement(at,Code.WellFormedness.of(
+  public static FearlessException ambiguousImplementationFor(List<M.Sig> ss, List<TName> options, Agreement at, FreshPrefix fresh){
+    return agreement(at,fresh,Code.WellFormedness.of(
       "Ambiguos implementation for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types:\n"
     + "Candidates: "+options.stream()
@@ -369,8 +370,8 @@ public final class WellFormednessErrors {
     + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly implementing the desired behaviour.\n"
       ));
   }
-  public static FearlessException noRetNoInference(TName origin, M m){
-    return agreement(origin,m.sig().pos(),Code.WellFormedness.of(
+  public static FearlessException noRetNoInference(TName origin, M m, FreshPrefix fresh){
+    return agreement(origin,fresh,m.sig().pos(),Code.WellFormedness.of(
       "Can not infer return type of method "+formatSig(m.sig())+".\n"
     + "No supertype has a method named "+Message.displayString(m.sig().m().get().s())+" with "+m.sig().ts().size()+" parameters.\n"
       ));
@@ -389,9 +390,37 @@ public final class WellFormednessErrors {
     return Code.WellFormedness.of(msg.toString())
       .addSpan(Parser.span(owner.pos(), owner.simpleName().length()));
   }
-
-  private static FearlessException agreement(Agreement at,FearlessException err){ return agreement(at.cName(),at.pos(),err); }
-  private static FearlessException agreement(TName origin, Pos pos,FearlessException err){
-    return err.addFrame("type declaration "+Message.displayString(origin.simpleName()),Parser.span(pos,100));
+  public static FearlessException extendedSealed(TName owner,FreshPrefix fresh, TName isSealed){
+    String ownerPkg= owner.pkgName();
+    String sealedPkg= isSealed.pkgName();
+    assert !ownerPkg.equals(sealedPkg);
+    String ctx= typeContextLabel("Type ","Literal implementing type ", owner,fresh);
+    var msg= new StringBuilder()
+      .append(ctx)
+      .append(" implements sealed type")
+      .append(Message.displayString(isSealed.s()))
+      .append(".\nSealed types can only be implemented in ther own package.\n")
+      .append(ctx)      
+      .append(" is defined in package ")
+      .append(Message.displayString(ownerPkg))
+      .append(".\nType ")
+      .append(Message.displayString(isSealed.simpleName()))
+      .append(" is defined in package ")
+      .append(Message.displayString(sealedPkg))
+      .append(".\n");
+    return Code.WellFormedness.of(msg.toString())
+      .addFrame(typeContextLabel(owner, fresh),Parser.span(owner.pos(), owner.simpleName().length()));
+  }
+  private static FearlessException agreement(Agreement at, FreshPrefix fresh, FearlessException err){ return agreement(at.cName(), fresh, at.pos(), err); }
+  private static FearlessException agreement(TName origin, FreshPrefix fresh, Pos pos, FearlessException err){
+    return err.addFrame(typeContextLabel(origin, fresh), Parser.span(pos,100));
+  }
+  private static String typeContextLabel(String onT, String onLit,TName origin, FreshPrefix fresh){
+    var base= fresh.anonSuperT(origin);
+    if (base.isEmpty()){ return onT+Message.displayString(origin.simpleName()); }
+    return onLit+Message.displayString(base.get().s());
+  }
+  private static String typeContextLabel(TName origin, FreshPrefix fresh){
+    return typeContextLabel("type declaration ","literal implementing type ",origin,fresh);
   }
 }

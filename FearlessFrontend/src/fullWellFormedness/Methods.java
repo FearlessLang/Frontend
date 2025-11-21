@@ -64,11 +64,17 @@ public record Methods(
   //TODO: performance: currently fetch rewrites for the class generics
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps?
-  CsMs fetch(inferenceGrammarB.Declaration d, IT.C c,TName outName){
+  CsMs fetch(IT.C c,TName outName){
+    inferenceGrammarB.Declaration d= from(c.name(),cache); 
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
     var sigs= d.ms().stream().map(m->alphaSig(m,xs,c,outName)).toList();
     return new CsMs(cs1,sigs);
+  }
+  List<IT.C> fetchCs(IT.C c){
+    inferenceGrammarB.Declaration d= from(c.name(),cache);
+    List<String> xs= d.bs().stream().map(b->b.x()).toList();
+    return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
   }
   private inferenceGrammar.M.Sig alphaSig(inferenceGrammarB.M m, List<String> xs, IT.C c, TName outName){
     var s= m.sig();
@@ -102,35 +108,45 @@ public record Methods(
     return LiteralDeclarations.from(name,other);
   }
   public E.Literal expandDeclaration(E.Literal d){
-    List<CsMs> ds= d.cs().stream()
-      .map(c->fetch(from(c.name(),cache),c,d.name()))
-      .toList();
+    List<CsMs> ds= d.cs().stream().map(c->fetch(c,d.name())).toList();
     List<IT.C> allCs= Stream.concat(
       d.cs().stream(),
       ds.stream().flatMap(dsi->dsi.cs().stream()))
         .distinct().sorted(Comparator.comparing(Object::toString)).toList();
-    checkMagicSupertypes(d.name(), allCs);
     List<M.Sig> allSig= ds.stream().flatMap(dsi->dsi.sigs().stream()).toList();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d.name());
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d.name());
+    checkMagicSupertypes(d.name(), allCs);
     return d.withCsMs(allCs,allMs);
   }
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
-    List<M.Sig> allSig= fetch(from(c.name(),cache),c,d.name()).sigs();//expandLiteral works on an incomplete literal with the cs list not there yet
+    fresh.registerAnonSuperT(d.name(),c.name());
+    List<M.Sig> allSig= fetch(c,d.name()).sigs();//expandLiteral works on an incomplete literal with the cs list not there yet
     //var ms= refreshed(d.ms(), c);
-    List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),c.name());
-    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),c.name());
+    List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d.name());
+    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d.name());
     return d.withMs(allMs);
   }
-  private void checkMagicSupertypes(TName owner, List<IT.C> allCs){
+  public void checkMagicSupertypes(TName owner, List<IT.C> allCs){
     var widen= allCs.stream()
       .filter(c -> c.name().s().equals("base.WidenTo"))
       .toList();
     if (widen.size() > 1){ throw WellFormednessErrors.multipleWidenTo(owner, widen); }
-    var sealed = allCs.stream()
+    var hasSealed= allCs.stream()
       .filter(c -> c.name().s().equals("base.Sealed"))
-      .toList();
+      .count() != 0;
+    if (!hasSealed){ return; }
+    allCs.stream()
+      .filter(c->!c.name().pkgName().equals(owner.pkgName()))
+      .forEach(c->notSealed(c.name(),owner));
   }
+  void notSealed(TName target, TName owner){
+    boolean hasSealed= other.of(target).cs().stream()
+    .filter(c -> c.name().s().equals("base.Sealed")).count() != 0;
+    if (!hasSealed){ return; }
+    throw WellFormednessErrors.extendedSealed(owner,fresh, target);
+  }
+
   inferenceGrammarB.Declaration injectDeclaration(E.Literal d){
     List<T.C> cs= TypeRename.itcToTC(d.cs());
     List<inferenceGrammarB.M> ms= TypeRename.itmToM(d.ms());
@@ -163,12 +179,12 @@ public record Methods(
       ss.removeIf(s->s.m().get().arity()==arity && s.abs()?match.add(s):false);
       var count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(origin,true,m,match); }
+      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(origin,fresh,true,m,match); }
       assert match.isEmpty();
       ss.removeIf(s->s.m().get().arity()==arity?match.add(s):false);
       count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(origin,false,m,match); }
+      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(origin,fresh,false,m,match); }
       throw WellFormednessErrors.noSourceToInferFrom(m);
     }
     return res;
@@ -197,6 +213,7 @@ public record Methods(
     return true;
   }
   long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m().get()).distinct().count(); }
+    
   M pairWithSig(List<M.Sig> ss, inferenceGrammar.M m, TName origin){
     if (ss.isEmpty()){ return toCompleteM(m,origin); }
     var s= m.sig();    
@@ -218,9 +235,9 @@ public record Methods(
     var superBsList = ss.stream().map(e->e.bs().get()).toList();
     var superArities = superBsList.stream().map(List::size).distinct().toList();
     if (superArities.size() == 1 && superArities.getFirst() == userArity){ return userBs; }
-    if (superArities.size() != 1){ throw WellFormednessErrors.agreementSize(at, superBsList); }
+    if (superArities.size() != 1){ throw WellFormednessErrors.agreementSize(at,fresh, superBsList); }
     int superArity= superArities.getFirst();
-    throw WellFormednessErrors.methodGenericArityDisagreesWithSupers(at, userArity, superArity, userBs, superBsList.getFirst());
+    throw WellFormednessErrors.methodGenericArityDisagreesWithSupers(at,fresh, userArity, superArity, userBs, superBsList.getFirst());
   }
   IT pairWithTs(Agreement at, int i, Optional<IT> t,List<M.Sig> ss){
     return t.orElseGet(()->agreement(at,ss.stream().map(e->e.ts().get(i).get()),
@@ -238,7 +255,7 @@ public record Methods(
         "Type disagreement about argument "+i))).toList();
     IT res= agreement(at,ssAligned.stream().map(e->e.ret().get()),"Return type disagreement");
     var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
-    if (impl.size() > 1){ throw WellFormednessErrors.ambiguousImplementationFor(ssAligned,impl,at); }
+    if (impl.size() > 1){ throw WellFormednessErrors.ambiguousImplementationFor(ssAligned,impl,at,fresh); }
     if (impl.size() == 1){ origin = impl.getFirst(); }
     RC rc= agreement(at,ssAligned.stream().map(e->e.rc().get()),"Reference capability disagreement");
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,impl.isEmpty(),ssAligned.getFirst().pos());
@@ -252,7 +269,7 @@ public record Methods(
     MName name= s.m().get();
     List<B> bs= s.bs().orElse(List.of());
     List<Optional<IT>> ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(Bug::todo))).toList();
-    IT res= s.ret().orElseThrow(()->WellFormednessErrors.noRetNoInference(origin,m));
+    IT res= s.ret().orElseThrow(()->WellFormednessErrors.noRetNoInference(origin,m,fresh));
     boolean abs= m.impl().isEmpty();
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.pos());
     return new M(sig,m.impl());
@@ -261,7 +278,7 @@ public record Methods(
     var res= es.distinct().toList();
     if (res.size() == 1){ return res.getFirst(); }
     assert !msg.equals("Reference capability disagreement"): "Triggered example where RC diagreement still happens";
-    throw WellFormednessErrors.agreement(at,res,msg);
+    throw WellFormednessErrors.agreement(at,fresh,res,msg);
   }
   public record Agreement(TName cName, MName mName, Pos pos){}
   
@@ -270,11 +287,11 @@ public record Methods(
     //if (res.size() == 1){ return normalizeBs(at.cName,res.getFirst()); }
     if (res.size() == 1){ return res.getFirst(); }//TODO: what is correct? this or the above? why?
     var sizes= res.stream().map(List::size).distinct().count();
-    if (sizes!= 1){ throw WellFormednessErrors.agreementSize(at,res); }
+    if (sizes!= 1){ throw WellFormednessErrors.agreementSize(at,fresh,res); }
     var bounds= res.stream().map(l->l.stream().map(e->e.rcs()).toList()).distinct().count();
     //if (bounds== 1){ return normalizeBs(at.cName, res.getFirst()); }
     if (bounds== 1){ return res.getFirst(); }//TODO: what is correct? this or the above? why?
-    throw WellFormednessErrors.agreement(at,res,"Generic bounds disagreement");
+    throw WellFormednessErrors.agreement(at,fresh,res,"Generic bounds disagreement");
   }
   /*private List<B> normalizeBs(TName t, List<B> candidate){
     return candidate.stream()
