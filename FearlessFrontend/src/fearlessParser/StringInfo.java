@@ -18,10 +18,7 @@ public class StringInfo{
     int n= s.length();
     int i= 0;
     int h= 0;
-    while (i < n && s.codePointAt(i) == '#'){ //count leading '#'
-      h++;
-      i += Character.charCount('#');
-    }
+    while (i < n && s.charAt(i) == '#'){ h++; i++; }
     assert i < n && s.codePointAt(i) == '|' : "Expected '|'";
     i += Character.charCount('|');
     assert i < n : "Missing quote after '|'";

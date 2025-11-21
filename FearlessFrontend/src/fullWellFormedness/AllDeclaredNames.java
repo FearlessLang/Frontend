@@ -27,9 +27,10 @@ public class AllDeclaredNames implements EVisitor<Void>{
     assert !xs.containsKey(d.name());
     assert !Xs.containsKey(d.name());
     var n= d.name().withPkgName(pkgName);
+    assert !xs.containsKey(n);
+    assert !Xs.containsKey(n);
     xs.put(n, Collections.unmodifiableSet(lastTopNames));
-    Xs.put(n, Collections.unmodifiableSet(lastTopXs));
-    
+    Xs.put(n, Collections.unmodifiableSet(lastTopXs));    
   }
   @Override public B visitInnerB(B b){ lastTopXs.add(b.x()); return b; }
   @Override public Parameter visitInnerParameter(Parameter p){ p.xp().ifPresent(this::visitInnerXPat); return p; }

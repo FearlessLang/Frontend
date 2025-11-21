@@ -20,7 +20,4 @@ public interface EVisitor<R>{
   Declaration visitInnerDeclaration(Declaration d);
   default MName visitInnerMName(MName n){ return n; }
   default E.X visitInnerX(E.X n){ return n; }
-  //default <RR> List<RR> mapEs(List<E> es, Function<E,RR> f){ return es.stream().map(f).toList(); }
-  //default <RR> List<RR> mapBs(List<B> bs, Function<B,RR> f){ return bs.stream().map(f).toList(); }
-  //default <RR> List<RR> mapPs(List<Parameter> ps, Function<Parameter,RR> f){ return ps.stream().map(f).toList(); }
 }

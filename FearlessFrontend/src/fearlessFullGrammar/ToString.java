@@ -40,16 +40,14 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
   }
   StringBuilder res= new StringBuilder();
   StringBuilder append(String s){ return res.append(s); }
-  <EE>StringBuilder append(String start, List<EE> es, Consumer<EE> c,String sep, String end){
+  <EE>StringBuilder append(String start, List<EE> es, Consumer<EE> c, String sep, String end){
     append(start);
-    boolean first= true;
-    for (int i= 0; i < es.size(); i++){
-      if (!first){ append(sep); }
-      first= false;
+    for(int i= 0; i < es.size(); i += 1){
+      if(i > 0){ append(sep); }
       c.accept(es.get(i));
     }
-    return append(end); 
-    }
+    return append(end);
+  }    
   @Override public StringBuilder visitXPatName(Name n){ return n.x().accept(this);  }
   @Override public StringBuilder visitXPatDestruct(Destruct d){ return append("{",
     d.extract(),

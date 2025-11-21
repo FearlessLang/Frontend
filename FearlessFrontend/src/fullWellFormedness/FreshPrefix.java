@@ -61,7 +61,7 @@ public final class FreshPrefix {
   }
   public String freshGeneric(TName owner, String hint){
     assert nonNull(owner,hint);
-    assert pkgName.equals(owner.pkgName());
+    assert pkgName.equals(owner.pkgName());//hint instead can be from another pkg no problem
     String base= sanitizeBase(hint, true);
     Map<String,Integer> seq= genSeq.get(owner);
     int n= seq.getOrDefault(base, 1);

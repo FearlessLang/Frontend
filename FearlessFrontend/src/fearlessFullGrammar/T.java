@@ -37,7 +37,7 @@ public sealed interface T {
     }
   }
   record RCC(Optional<RC> rc, C c) implements T{
-    public RCC{ nonNull(rc,c); }
+    public RCC{ assert nonNull(rc,c); }
     public <R> R accept(TVisitor<R> v){ return v.visitRCC(this); }
     public IT.RCC toIT(){
       List<IT> ts= c.ts().orElse(List.of()).stream().map(t->t.toIT()).toList();

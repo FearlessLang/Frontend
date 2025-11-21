@@ -246,13 +246,12 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (!x.isEmpty()){ throw errFactory().duplicateGenericInMethodSignature(span(), x); }
   }
   void checkTyped(Sig sig, boolean implicit){
-    boolean err= false;
     boolean mustType= sig.t().isPresent()
       || sig.bs().isPresent()
       || sig.parameters().stream().anyMatch(p->p.t().isPresent());
-    
-    if (!mustType){ err= sig.rc().isPresent(); }
-    if (mustType){ err= !sig.fullyTyped() || implicit; }
+    boolean err= mustType
+      ? (!sig.fullyTyped() || implicit)
+      : sig.rc().isPresent();
     if (err){ throw errFactory().disallowedSig(span(),sig); }
   }
   M parseMethod(boolean top, boolean typed){
@@ -375,7 +374,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     expectLast("",_EOF);
     var head=parseFrontOrAll("file header", headEnd,Parser::parseHeader);
     List<Declaration> ds= splitBy("type declaration",curlyLeft,p->p.parseDeclaration(true));
-    String pkg= head.pkg.isEmpty()?"":head.pkg.getFirst();
+    String pkg= head.pkg.isEmpty()?"":head.pkg.getFirst();//List.copyOf() correct here: head explicitly has updatable lists for accumulation
     return new FileFull(pkg,head.role.stream().findFirst(),List.copyOf(head.map),List.copyOf(head.use),ds);
   }
   boolean peekValidate(TokenKind kind, TokenKind validation){
@@ -481,7 +480,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return end()
       || isDec()
       || peek(_CurlyGroup,_RoundGroup,_SquareGroup)
-      || peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup,_CurlyGroup,_RoundGroup))
       || peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup,_CurlyGroup,_RoundGroup))
   ;}
   int headEnd(){ while(!guessHeadEnd()){ expectAny(""); } return 0; }

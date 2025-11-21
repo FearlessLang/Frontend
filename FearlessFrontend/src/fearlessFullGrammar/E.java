@@ -25,13 +25,13 @@ public sealed interface E {
   record Literal(Optional<E.X> thisName, List<M> methods, Pos pos) implements E{
     public Literal{
       assert unmodifiable(methods, "L.Full.methods");
-      assert nonNull(thisName);
+      assert nonNull(thisName,pos);
     }
     public <R> R accept(EVisitor<R> v){ return v.visitLiteral(this); }
     public String toString(){ return "Literal"+thisName.map(Object::toString).orElse("")+methods; }
   }
   record TypedLiteral(T.RCC t, Optional<Literal> l,Pos pos) implements E{
-    public TypedLiteral{ assert nonNull(t,l); }
+    public TypedLiteral{ assert nonNull(t,l,pos); }
     public <R> R accept(EVisitor<R> v){ return v.visitTypedLiteral(this); }
     public String toString(){ return "TypedLiteral"+t+l.map(Object::toString).orElse(""); }
   }
@@ -47,7 +47,7 @@ public sealed interface E {
   }
   record Call(E e, MName name, Optional<CallSquare> targs, boolean pars, Optional<XPat> pat, List<E> es, Pos pos) implements E{
     public Call{
-      assert nonNull(e,name,targs,pat);
+      assert nonNull(e,name,targs,pat,pos);
       assert unmodifiable(es, "E.Call.es");
       assert pat.isPresent() || eq(es.size(),name.arity(),"Call arity");
       assert pars || es.size() < 2;
@@ -61,7 +61,7 @@ public sealed interface E {
   }
   record StringInter(boolean simple, Optional<E> e, List<Integer> hashCounts, List<String> strings, List<E> es,Pos pos) implements E{
     public StringInter{
-      assert nonNull(e);
+      assert nonNull(e,pos);
       assert unmodifiable(hashCounts,"string # counts");
       assert unmodifiable(strings,"string parts");
       assert unmodifiable(es,"string es");
