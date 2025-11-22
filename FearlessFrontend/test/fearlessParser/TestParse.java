@@ -3371,7 +3371,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".foo" redeclared.
-A method with the same name is already present above.
+A method with the same name, arity and reference capability is already present.
 Error 9  WellFormedness
 ""","""
 A:{
@@ -3397,7 +3397,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".ban" redeclared.
-A method with the same name is already present above.
+A method with the same name, arity and reference capability is already present.
 Error 9  WellFormedness
 ""","""
 A:{
@@ -3423,7 +3423,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".foo" redeclared.
-A method with the same name is already present above.
+A method with the same name, arity and reference capability is already present.
 Error 9  WellFormedness
 ""","""
 A:{

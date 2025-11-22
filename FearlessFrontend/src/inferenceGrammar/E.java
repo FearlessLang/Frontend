@@ -15,25 +15,24 @@ import files.Pos;
 public sealed interface E {
   Pos pos();
   IT t();
-  boolean isEV();
   E withT(IT t);
   default void sign(Gamma gamma){ gamma.sign(g()); }
   default boolean done(Gamma gamma){ return gamma.represents(g()); }
   Gamma.GammaSignature g();
-  record X(String name, IT t, Pos pos, boolean isEV, Gamma.GammaSignature g) implements E{
-    public X(String name, Pos pos){ this(name,IT.U.Instance,pos,false,new Gamma.GammaSignature()); }
+  record X(String name, IT t, Pos pos, Gamma.GammaSignature g) implements E{
+    public X(String name, Pos pos){ this(name,IT.U.Instance,pos,new Gamma.GammaSignature()); }
     public X{ assert nonNull(t) && validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name+":"+t; }
     public E withT(IT t){
       if (t.equals(this.t)){ return this; }
-      return new X(name,t,pos,t.isTV(),g.clear());
+      return new X(name,t,pos,g.clear());
     }
   }
-  record Type(IT.RCC type, IT t, Pos pos, boolean isEV, Gamma.GammaSignature g) implements E{
-    public Type(IT.RCC type, Pos pos){ this(type,IT.U.Instance,pos,false,new Gamma.GammaSignature()); }
+  record Type(IT.RCC type, IT t, Pos pos, Gamma.GammaSignature g) implements E{
+    public Type(IT.RCC type, Pos pos){ this(type,IT.U.Instance,pos,new Gamma.GammaSignature()); }
     public E withT(IT t){
       if (t.equals(this.t)){ return this; }
-      return new Type(type,t,pos,t.isTV(),g.clear());
+      return new Type(type,t,pos,g.clear());
     }
     public String toString(){ return ""+type+":"+t; }
   }
@@ -46,7 +45,6 @@ public sealed interface E {
       assert unmodifiable(ms, "L.ms");
       assert nonNull(name,thisName,t);
     }
-    public boolean isEV(){ return false; }
     public E.Literal withT(IT t){
       if (t.equals(this.t)){ return this; }
       return new Literal(rc,name,bs,cs,thisName,ms,t,pos,infA,g.clear());
@@ -78,28 +76,26 @@ public sealed interface E {
       return new Literal(rc,name,bs,cs,thisName,ms,t,pos,true,g.clear());
     }
   }
-  record Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, IT t, Pos pos, boolean isEV, Gamma.GammaSignature g) implements E{
+  record Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, IT t, Pos pos, Gamma.GammaSignature g) implements E{
     public Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, Pos pos){
-      this(e,name,rc,targs,es,IT.U.Instance,pos,targs.isEmpty() && e.isEV() && es.stream().allMatch(E::isEV),new Gamma.GammaSignature());
+      this(e,name,rc,targs,es,IT.U.Instance,pos,new Gamma.GammaSignature());
     }
     public Call{
       assert nonNull(e,name,rc,targs,t);
       assert unmodifiable(es, "E.Call.es");
     }
     public Call withMore(E e,RC rc,List<IT> targs,List<E> es,IT t){
-      if (e == this.e && Optional.of(rc).equals(this.rc) && targs.equals(this.targs) && es == this.es && t.equals(this.t)){ return this; }
-      var isVal= e.isEV() && es.stream().allMatch(E::isEV) && targs.stream().allMatch(IT::isTV); 
-      return new E.Call(e, name, Optional.of(rc),targs,es,t,pos,isVal,g.clear());
+      if (e == this.e && Optional.of(rc).equals(this.rc) && targs.equals(this.targs) && es == this.es && t.equals(this.t)){ return this; } 
+      return new E.Call(e, name, Optional.of(rc),targs,es,t,pos,g.clear());
     }
     public Call withEEs(E e,List<E> es){
       if (e == this.e && es == this.es){ return this; }
-      var isVal= e.isEV() && es.stream().allMatch(E::isEV) && targs.stream().allMatch(IT::isTV); 
-      return new E.Call(e, name, rc,targs,es,t,pos,isVal,g.clear());
+      return new E.Call(e, name, rc,targs,es,t,pos,g.clear());
     }
 
     public Call withT(IT t){
       if (t.equals(this.t)){ return this; }
-      return new Call(e,name,rc,targs,es,t,pos,t.isTV(),g.clear());
+      return new Call(e,name,rc,targs,es,t,pos,g.clear());
     }
     public String toString(){ 
       var open= rc.isEmpty()? "[" : targs.isEmpty() ? "["+rc.get() : "["+rc.get()+",";
@@ -110,7 +106,6 @@ public sealed interface E {
   }
   record ICall(E e, MName name, List<E> es, IT t, Pos pos, Gamma.GammaSignature g) implements E{
     public ICall(E e, MName name, List<E> es, IT t, Pos pos){ this(e,name,es,IT.U.Instance,pos,new Gamma.GammaSignature());}
-    public boolean isEV(){ return false; }
     public E withT(IT t){
       if (t.equals(this.t)){ return this; }
       return new ICall(e,name,es,t,pos,g.clear()); 

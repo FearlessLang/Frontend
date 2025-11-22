@@ -100,30 +100,22 @@ public final class WellFormednessErrors {
     int i= p.lastIndexOf('/');
     return i >= 0 ? p.substring(i + 1) : p;
   }
-  private static String baseName(String name){
-    int j= name.lastIndexOf('.');
-    return j >= 0 ? name.substring(0, j) : name;
+  public static FearlessException noRole(URI uri, FileFull f){
+    return Code.WellFormedness.of(() -> buildMessageNoRole(uri, f)).addSpan(new Span(uri,0,0,1,1));
   }
-  private static String extension(String name){
-    int j= name.lastIndexOf('.');
-    return j >= 0 && j + 1 < name.length() ? name.substring(j + 1) : "";
-  }
- public static FearlessException noRole(URI uri, FileFull f){
-   return Code.WellFormedness.of(() -> buildMessageNoRole(uri, f)).addSpan(new Span(uri,0,0,1,1));
- }
- private static String buildMessageNoRole(URI uri, FileFull f){
-   return new StringBuilder()
-    .append("Missing role declaration in package head file.\n")
-    .append("Every package must declare its role: base, core, driver, worker, framework, accumulator, tool, or app.\n")
-    .append("The package head file is the file whose name matches the package name.\n")
-    .append("Add a top-level role line to that file. For example:\n")
-    .append("package myCoolGame;\n")
-    .append("role app999;\n")
-    .append("use base.Main as Main;\n")
-    .append("MyGame:Main{s->Debug#(`Hello world`)}\n")
-    .append("\n")
-    .append("As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.\n")
-    .toString();
+  private static String buildMessageNoRole(URI uri, FileFull f){
+    return new StringBuilder()
+      .append("Missing role declaration in package head file.\n")
+      .append("Every package must declare its role: base, core, driver, worker, framework, accumulator, tool, or app.\n")
+      .append("The package head file is the file whose name matches the package name.\n")
+      .append("Add a top-level role line to that file. For example:\n")
+      .append("package myCoolGame;\n")
+      .append("role app999;\n")
+      .append("use base.Main as Main;\n")
+      .append("MyGame:Main{s->Debug#(`Hello world`)}\n")
+      .append("\n")
+      .append("As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.\n")
+      .toString();
   }
   public static FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
     for(TName n:names){ 
@@ -136,7 +128,6 @@ public final class WellFormednessErrors {
     }
     throw Bug.unreachable();
   }
-  //----Starting the undeclared name long error
   public static FearlessException usedUndeclaredName(TName tn, String contextPkg, List<TName> scope, List<TName> all){
     return new UndeclaredNameContext(tn, contextPkg, scope, all,
       all.stream().map(TName::pkgName).filter(p -> !p.isEmpty()).distinct().sorted().toList(),

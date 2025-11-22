@@ -80,7 +80,6 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     }
     return Collections.unmodifiableList(res);
   }
-  static boolean end(E e){ return e.isEV(); }
   E nextStar(Gamma g, E e){
     if (e.done(g)){ return e; }
     while (true){
@@ -129,8 +128,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     assert d != null : type;
     var cs= d.cs().stream().filter(c->c.name().s().equals("base.WidenTo")).toList();
     if (cs.size() == 0){ return type; } 
-    assert cs.size() == 1;//TODO: add a well formed error for this and for Sealed
-    //That is, only one WidenTo is allowed. Note that other interfaces may be implemented multiple times instead (with different generics)
+    assert cs.size() == 1;
     assert cs.getFirst().ts().size() == 1;
     IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom(d.bs()), type.c().ts());
     return wid;
@@ -148,7 +146,6 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     if (ms.size() == 1){ return Optional.of(ms.getFirst()); }
     return Optional.empty();
   }
-  //TODO: test explicitly that is ill formed to have more then one meth with same name and rc
   private Optional<M> oneFromGuessRC(List<M> ms, RC rc){
     Optional<M> readOne= OneOr.opt("not well formed ms",ms.stream().filter(m->m.sig().rc()==RC.read));
     if (rc== RC.read){ return readOne; }
@@ -219,7 +216,6 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     return call.withT(t);
   }
   private E nextC(Gamma g, E.Call c){
-    //if (c.isEV()){ return c; }//TODO: should we just remove this concept? is it used anywhere?
     var e= nextStar(g,c.e());
     var es= nextStar(g, c.es());
     if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e,es); }
@@ -250,7 +246,6 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     var selfPrecise= preciseSelf(l); 
     if (l.rc().isPresent() && l.t() instanceof IT.U){ l = l.withT(preferred(selfPrecise.get())); }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
-    //if (l.isEV()){ return l; }
     if (!l.infA()){ assert l.cs().isEmpty(); l= meths.expandLiteral(l,rcc.c()); }
     var s= g.snapshot();
     boolean same= true;
@@ -275,7 +270,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     if (l.rc().isPresent() || !t.isTV() || !(t instanceof IT.RCC rcc) || hasU(l.ms())){ return l; }
     assert l.cs().isEmpty();
     var noMeth= l.ms().stream().allMatch(m->m.impl().isEmpty());
-    if (noMeth){ return new E.Type(rcc,rcc,l.pos(), true, l.g()); }//TODO: what if it was not a fresh name but a user defined name?
+    if (noMeth){ return new E.Type(rcc,rcc,l.pos(), l.g()); }//TODO: what if it was not a fresh name but a user defined name?
     List<IT.C> cs= Push.of(rcc.c(),meths.fetchCs(rcc.c()));
     meths.checkMagicSupertypes(l.name(),cs);
     l = new E.Literal(Optional.of(rcc.rc()),l.name(),l.bs(),cs,l.thisName(),l.ms(), t, l.pos(), true, l.g());

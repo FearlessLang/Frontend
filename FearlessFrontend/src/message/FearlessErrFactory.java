@@ -164,7 +164,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     Span s= redeclaredMethSpan(ms,name,at);
     return Code.WellFormedness.of(
       "Method "+Message.displayString(name.name().s())+" redeclared.\n"
-    + "A method with the same name is already present above.\n")
+    + "A method with the same name, arity and reference capability is already present.\n")
       .addSpan(s).addSpan(at);
   }
   public int parCount(M m){

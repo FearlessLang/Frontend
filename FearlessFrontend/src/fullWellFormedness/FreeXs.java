@@ -11,11 +11,11 @@ import inferenceGrammar.IT;
 
 public class FreeXs {
   Stream<String> ftvE(E e){ return switch(e){
-    case X(_, _, _,_,_) -> Stream.of();
+    case X(_,_,_,_) -> Stream.of();
     case Literal l -> l.bs().stream().map(b->b.x()); //Correct since bs will contain all the ftv found anywhere in the literal
-    case Call(var ei, _,_, var targs, var es,_,_,_,_) -> Stream.concat(ftvE(ei),Stream.concat(ftvTs(targs),ftvEs(es)));
+    case Call(var ei, _,_, var targs, var es,_,_,_) -> Stream.concat(ftvE(ei),Stream.concat(ftvTs(targs),ftvEs(es)));
     case ICall(var ei,_, var es,_,_,_) -> Stream.concat(ftvE(ei),ftvEs(es));
-    case Type(var t,_,_,_,_) -> ftvT(t);
+    case Type(var t,_,_,_) -> ftvT(t);
   };}
   private Stream<String> ftvM(M m){
     List<String> domBs= m.sig().bs().map(bs->dom(bs)).orElse(List.of());

@@ -1314,7 +1314,22 @@ Error 9  WellFormedness
 A:{.m:base.Void}
 B:{base.Void}//forgot to implement A
 """));}
+//Tested also here, but note that this is ensured by the parsing already
+@Test void overOverloading(){fail("""
+In file: [###]/in_memory0.fear
 
+001| package p;
+002| A:{imm .m:base.Void; imm .m:base.Void}
+   | --~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration body > type declaration > full file
+Method ".m" redeclared.
+A method with the same name, arity and reference capability is already present.
+Error 9  WellFormedness
+""",
+List.of("""
+A:{imm .m:base.Void; imm .m:base.Void}
+"""));}
 
 }
 //TODO: in the guide somewhere show #|" foo{#U+`AB02`} for arbitrary Unicode
