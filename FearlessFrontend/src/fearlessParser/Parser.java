@@ -77,10 +77,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   TName parseTName(){
     var c= expect("type name", Token.typeName);
-    if(names.XIn(c.content())){ throw errFactory().typeNameConflictsGeneric(c,span(c).get()); }
     var s= c.content();
+    if(names.XIn(s)){ throw errFactory().typeNameConflictsGeneric(c,span(c).get()); }
     if(s.contains("._")){ throw errFactory().privateTypeName(c,span(c).get()); }
-    return TName.of(c.content(),0,pos(c));
+    return TName.of(s,0,pos(c));
   }
   T parseT(){ //T    ::= C | RC C | X | RC X | read/imm X
     if(fwdIf(peek(ReadImm))){ return new T.ReadImmX(parseTX()); }

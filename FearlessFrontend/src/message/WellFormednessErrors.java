@@ -26,6 +26,7 @@ import inferenceGrammar.IT;
 import inferenceGrammar.M;
 import metaParser.Message;
 import metaParser.NameSuggester;
+import metaParser.PrettyFileName;
 import metaParser.Span;
 import utils.Bug;
 
@@ -71,31 +72,28 @@ public final class WellFormednessErrors {
   }
   private static String buildMessageSingleUriForPackage(List<URI> heads, String pkgName){
     if (heads.isEmpty()){
-      return "No file named after package \"" + pkgName + "\".\n"
-        + "Expected exactly one URI whose last path segment is '"
-        + pkgName + ".<ext>'.";
+      return "No package head file found for package \"" + pkgName + "\".\n"
+      + "Each package must have exactly one source file whose name matches the package name.\n"
+      + "For example, for package \"" + pkgName + "\" you would typically have a file named\n"
+      + "    " + pkgName + ".fear\n"
+      + "in  some folder inside the project folder.\n";
     }
-    StringBuilder sb= new StringBuilder();
-    sb.append("Ambiguous files for package \"")
+    StringBuilder sb= new StringBuilder()
+      .append("Ambiguous package head file for package \"")
       .append(pkgName)
       .append("\".\n")
       .append("Found ")
       .append(heads.size())
-      .append(" candidates:\n");
+      .append(" files that look like package head candidates:\n");
     heads.forEach(u->sb
       .append("  - ")
-      .append(u)
-      .append("  (name=")
-      .append(lastSegment(u))
-      .append(", base=")
-      .append(baseName(lastSegment(u)))
-      .append(", ext=")
-      .append(extension(lastSegment(u)))
-      .append(")\n"));
-   sb.append("Rename or remove duplicates so only one file has basename '")
-     .append(pkgName)
-     .append("'.");
-   return sb.toString();
+      .append(PrettyFileName.displayFileName(u))
+      .append("\n"));
+    sb.append("There must be exactly one source file whose name matches the package name.\n")
+      .append("Rename or remove the extra files so that only one file is named \"")
+      .append(pkgName)
+      .append(".fear\".");
+    return sb.toString();
   }
   private static String lastSegment(URI u){
     String p= u.getPath();
@@ -111,19 +109,22 @@ public final class WellFormednessErrors {
     return j >= 0 && j + 1 < name.length() ? name.substring(j + 1) : "";
   }
  public static FearlessException noRole(URI uri, FileFull f){
-   return Code.WellFormedness.of(() -> buildMessageNoRole(uri, f));
+   return Code.WellFormedness.of(() -> buildMessageNoRole(uri, f)).addSpan(new Span(uri,0,0,1,1));
  }
  private static String buildMessageNoRole(URI uri, FileFull f){
-   String file= lastSegment(uri);
    return new StringBuilder()
-     .append("Missing role in head file: ")
-     .append(file)
-     .append('\n')
-     .append("A top-level 'role' declaration is required in the package head file.\n")
-     .append("URI: ")
-     .append(uri)
-     .toString();
-   }
+    .append("Missing role declaration in package head file.\n")
+    .append("Every package must declare its role: base, core, driver, worker, framework, accumulator, tool, or app.\n")
+    .append("The package head file is the file whose name matches the package name.\n")
+    .append("Add a top-level role line to that file. For example:\n")
+    .append("package myCoolGame;\n")
+    .append("role app999;\n")
+    .append("use base.Main as Main;\n")
+    .append("MyGame:Main{s->Debug#(`Hello world`)}\n")
+    .append("\n")
+    .append("As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.\n")
+    .toString();
+  }
   public static FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
     for(TName n:names){ 
       var clash= keySet.contains(n.s());

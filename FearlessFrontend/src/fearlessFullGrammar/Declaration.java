@@ -16,7 +16,8 @@ public record Declaration(TName name, Optional<List<B>> bs, List<T.C> cs, E.Lite
     assert validOpt(bs,b->{
       unmodifiable(b, "E.TypeDeclarationLiteral.bs");
       eq(name.arity(),b.size(),"E.TypeDeclarationLiteral.bs");
-    });    
+    });
+    assert unmodifiable(cs,"Declaration.cs");    
   }
   public Pos pos(){ return l.pos(); }
 }

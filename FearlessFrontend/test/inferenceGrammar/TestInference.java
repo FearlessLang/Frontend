@@ -59,8 +59,6 @@ public class TestInference {
     static void failI(String expected, String head, List<String> input){ fail(expected,head,input,true); }
   static void fail(String expected, List<String> input){ fail(expected,"role app000;",input); }
 
-  //TODO: role? should be inferred as app000 if none? now there is an error.
-  //if we keep it, test for the error.
 @Test void base(){ok("""
 p.A:{'this}
 ""","""
@@ -68,6 +66,31 @@ role app000;
 """,List.of("""
 A:{}
 """));}
+
+@Test void baseInfer(){fail("""
+In file: [###]/p.fear
+
+001| package p;
+   | ^
+
+While inspecting the file
+Missing role declaration in package head file.
+Every package must declare its role: base, core, driver, worker, framework, accumulator, tool, or app.
+The package head file is the file whose name matches the package name.
+Add a top-level role line to that file. For example:
+package myCoolGame;
+role app999;
+use base.Main as Main;
+MyGame:Main{s->Debug#(`Hello world`)}
+
+As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
+Error 9  WellFormedness
+""","""
+""",List.of("""
+A:{}
+"""));}
+
+
 @Test void same(){fail("""
 In file: [###]/in_memory0.fear
 
@@ -1211,6 +1234,87 @@ Abb:{}
 Acc:{}
 User:{ .foo(x:Abc):Abc; }
 """));}
+
+@Test void genericTypeVarShadowsTName(){fail("""
+In file: [###]/in_memory1.fear
+
+002| Y[X:imm]:{}
+   |   ^^
+
+While inspecting a type name
+Gemeric type parameter "X" declared in package "p".
+Name "X" is also used as a type name.
+Error 9  WellFormedness
+""",
+  List.of("""
+X:{}
+""",
+"""
+Y[X:imm]:{}
+"""));}
+
+@Test void sameTypeInTwoFiles(){fail("""
+In file: [###]/in_memory0.fear
+
+002| X:{.foo:base.Void}
+   | ^^
+
+While inspecting a type name
+Duplicate type declaration for "X".
+Error 9  WellFormedness
+""",
+  List.of("""
+X:{.foo:base.Void}
+""",
+"""
+X:{.bar:base.Void}
+"""));}
+
+@Test void duplicateBoundType(){fail("""
+In file: [###]/in_memory0.fear
+
+002| X[A:imm,mut,imm]:{.bar:base.Void}
+   |   ^^
+
+While inspecting the file
+Duplicate reference capability in the generic type parameter "A".
+Reference capability "imm" is repeated.
+Error 9  WellFormedness
+""",
+  List.of("""
+X[A:imm,mut,imm]:{.bar:base.Void}
+"""));}
+@Test void duplicateBoundMeth(){fail("""
+In file: [###]/in_memory0.fear
+
+002| X:{.bar[A:imm,mut,imm]:base.Void}
+   |         ^^
+
+While inspecting the file
+Duplicate reference capability in the generic type parameter "A".
+Reference capability "imm" is repeated.
+Error 9  WellFormedness
+""",
+  List.of("""
+X:{.bar[A:imm,mut,imm]:base.Void}
+"""));}
+
+@Test void noSource(){fail("""
+In file: [###]/in_memory0.fear
+
+003| B:{base.Void}//forgot to implement A
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Can not infer signature of method ":?".
+No supertype has a method with 0 parameters.
+Error 9  WellFormedness
+""",
+  List.of("""
+A:{.m:base.Void}
+B:{base.Void}//forgot to implement A
+"""));}
+
 
 }
 //TODO: in the guide somewhere show #|" foo{#U+`AB02`} for arbitrary Unicode

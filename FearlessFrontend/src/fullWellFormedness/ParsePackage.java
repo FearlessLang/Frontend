@@ -43,7 +43,7 @@ public class ParsePackage{
       .forEach(e->{ throw WellFormednessErrors.notClean(e.getKey(),e.getValue()); });
     List<Declaration> ds= all.values().stream().flatMap(f->f.decs().stream()).toList();
     var head= all.get(headPkg);
-    if (head.role().isEmpty()){ throw WellFormednessErrors.noRole(headPkg,head ); }
+    if (head.role().isEmpty()){ throw WellFormednessErrors.noRole(headPkg,head); }
     var map= new HashMap<String,String>();
     acc(pkgName,map,head.maps());
     acc(pkgName,map,override);

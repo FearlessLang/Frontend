@@ -10,7 +10,6 @@ import fearlessFullGrammar.T.*;
 import fearlessFullGrammar.XPat.Destruct;
 import fearlessFullGrammar.XPat.Name;
 import fearlessParser.RC;
-import utils.Bug;
 
 public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>,XPatVisitor<StringBuilder>{
   public static String declaration(Declaration d){ 
@@ -101,6 +100,8 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     return res;
   }
   @Override public StringBuilder visitStringInter(StringInter i){
+    assert i.hashCounts().size() >= 1;
+    assert i.strings().size() == i.es().size() + 1;
     i.e().ifPresent(e->e.accept(this).append(" "));
     String nl= i.simple()?"|`":"|\"";
     append("\n");
@@ -115,7 +116,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     appendMultiline(i.strings().getLast(),it,h->"\n" + ("#".repeat(h)) + nl);
     return res;
   }
-  @Override public Declaration visitInnerDeclaration(Declaration d){
+  private Declaration visitInnerDeclaration(Declaration d){
     append(d.name().s());
     d.bs().ifPresent(bs->append("[",bs,this::visitInnerB,",","]"));
     append(": ");
@@ -124,7 +125,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     visitLiteral(d.l());
     return d;
     }
-  @Override public M visitInnerM(M m){
+  private M visitInnerM(M m){
     append(" ");
     m.sig().ifPresent(this::visitInnerSig);
     if (m.sig().isPresent() && m.body().isPresent()){ append(" -> "); }
@@ -132,12 +133,12 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     append(";");
     return m; 
   }
-  @Override public T.C visitInnerC(T.C c){
+  private T.C visitInnerC(T.C c){
     append(c.name().s());
     c.ts().ifPresent(ts->append("[",ts,t->t.accept(this),",","]"));
     return c;
   }
-  @Override public Sig visitInnerSig(Sig s){
+  private Sig visitInnerSig(Sig s){
     var p= s.hasParenthesis();
     s.rc().ifPresent(rc->append(rc.name()).append(" "));
     s.m().ifPresent(m->append(m.s()).append(p||s.parameters().isEmpty()?"":" "));
@@ -148,7 +149,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     s.t().ifPresent(t->{append(": "); t.accept(this);});
     return s;
   }
-  @Override public B visitInnerB(B b){
+  private B visitInnerB(B b){
     b.x().accept(this);
     switch(b.bt()){
       case B.Star() -> append(":*");
@@ -160,16 +161,12 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
       };
     return b; 
     }
-  @Override public Parameter visitInnerParameter(Parameter p){
+  private Parameter visitInnerParameter(Parameter p){
     p.xp().ifPresent(xp->xp.accept(this));
     if(p.xp().isPresent() && p.t().isPresent()){ append(": "); }
     p.t().ifPresent(t->t.accept(this));
     return p;
-  }  
-  @Override public Literal visitInnerLiteral(Literal l){ throw Bug.unreachable(); }
-  @Override public XPat visitInnerXPat(XPat x){ throw Bug.unreachable(); }
-  @Override public CallSquare visitInnerCallSquare(CallSquare c){ throw Bug.unreachable(); }
-  @Override public RCC visitInnerRCC(RCC t){ throw Bug.unreachable(); }
+  }
   private <EE> void appendMultiline(String s, Iterator<EE> it, Function<EE,String> f){
     int from= 0;
     int i;

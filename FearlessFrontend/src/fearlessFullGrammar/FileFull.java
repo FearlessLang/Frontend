@@ -15,6 +15,7 @@ public record FileFull(
   ){
   public FileFull{
     assert name.isEmpty() || validate(name,"pkgName", _pkgName);
+    assert nonNull(role);
     assert unmodifiable(uses, "FileFull.uses");
     assert unmodifiable(maps, "FileFull.maps");
     assert unmodifiable(decs, "FileFull.decs"); 

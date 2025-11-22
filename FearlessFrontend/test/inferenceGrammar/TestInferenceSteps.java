@@ -586,7 +586,6 @@ A:{}
 User:{ .m:base.Void->{ }; }
 """));}
 
-
 @Test void expandDeclarationStages(){okI("""
 p.A:{'this .m:base.Nat@p.A;->base.1:base.Nat;}
 p.B:p.A{'this .m:base.Nat@p.B;->base.2:base.Nat;}
@@ -597,6 +596,105 @@ B:A{ .m():base.Nat -> 2; }
 C:B{}
 """));}
 
+//The Err below is ok, associated to t:Err and not impacting the method signature
+//it is produced by subtype read/imm T > T not being considered
+@Test void genericInterfaces(){okI("""
+p.Box[T:imm,mut,read]:{'this\
+ mut .expose:T@p.Box;\
+ read .get:read/imm T@p.Box;}
+p.MakeBox:{'this\
+ #[T:imm,mut,read](T):mut p.Box[T]@p.MakeBox;\
+(t)->mut p.A_Make:p.Box[T]{'_\
+ mut .expose:T@p.A_Make;\
+ .expose()->t:Err;\
+ read .get:read/imm T@p.A_Make;\
+ .get()->t:Err;}:mut p.Box[T];}
+p.MyB:p.Box[p.MakeBox]{'this\
+ .foo:p.MyB@p.MyB;\
+->p.MyB:p.MyB;\
+ mut .expose:p.MakeBox@p.Box;\
+ read .get:p.MakeBox@p.Box;}
+""",List.of("""
+Box[T:*]:{
+  mut .expose:T;
+  read .get: read/imm T;
+}
+MakeBox:{#[T:*](t:T):mut Box[T]->{.expose->t; .get->t}}
+
+MyB:Box[MakeBox]{ .foo:MyB->{}}
+
+
+"""));}
+//The results below are actually correct: the method stays read/imm X if not overridden by user.
+//Overriding would work since it is subtype indeed.
+@Test void genericInterfacesImpl(){okI("""
+p.A1:p.Box[p.MakeBox]{'this\
+ mut .expose:p.MakeBox@p.Box; read .get:p.MakeBox@p.Box;}
+p.A2[X:imm]:p.Box[X]{'this\
+ mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
+p.A3[X:mut]:p.Box[X]{'this\
+ mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
+p.A4[X:read]:p.Box[X]{'this\
+ mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
+p.Box[###]
+p.MakeBox:[###]
+""",List.of("""
+Box[T:*]:{
+  mut .expose:T;
+  read .get: read/imm T;
+}
+MakeBox:{#[T:*](t:T):mut Box[T]->{.expose->t; .get->t}}
+
+A1:Box[MakeBox]{ }
+A2[X:imm]:Box[X]{ }
+A3[X:mut]:Box[X]{ }
+A4[X:read]:Box[X]{ }
+"""));}
+
+@Test void typeRenamePath(){ okI("""
+p.Box[T:imm,mut,read]:{'this}
+p.User:{'this\
+ read .idX[X:imm](X):X@p.User;\
+ read .idReadX[X:imm](X):read/imm X@p.User;\
+ read .idBox[X:imm](X):p.Box[X]@p.User;}
+""", List.of("""
+Box[T:*]:{
+}
+User:{'this
+  read .idX[X:imm](x:X):X;
+  read .idReadX[X:imm](x:X):read/imm X;
+  read .idBox[X:imm](x:X):Box[X];
+}
+"""));}
+
+@Test void overloadNorm_receivers_basic(){okI("""
+p.A:{'this\
+ .a:p.A@p.A;->p.A:p.A;\
+ read .a:p.A@p.A;->p.A:p.A;\
+ mut .a:p.A@p.A;->p.A:p.A;}
+p.IdUser:{'this\
+ .m1(p.A):p.A@p.IdUser;(x)->x:p.A.a[imm]():p.A;\
+ .m2(read p.A):p.A@p.IdUser;(x)->x:read p.A.a[read]():p.A;\
+ .m3(mut p.A):p.A@p.IdUser;(x)->x:mut p.A.a[mut]():p.A;\
+ .m4(iso p.A):p.A@p.IdUser;(x)->x:iso p.A.a[mut]():p.A;\
+ .m5(readH p.A):p.A@p.IdUser;(x)->x:readH p.A.a[read]():p.A;\
+ .m6(mutH p.A):p.A@p.IdUser;(x)->x:mutH p.A.a[mut]():p.A;}
+""",
+  List.of("""
+A:{
+  imm .a:A->A;
+  read .a:A->A;
+  mut .a:A->A; 
+}
+IdUser:{
+  .m1(x:imm A):A->x.a;
+  .m2(x:read A):A->x.a;
+  .m3(x:mut A):A->x.a;
+  .m4(x:iso A):A->x.a;
+  .m5(x:readH A):A->x.a;
+  .m6(x:mutH A):A->x.a;
+}
+"""));}
 
 //TODO: this correctly shows that we can override a user defined type
 //.beer[imm,X] becomes .beer[imm,Err]

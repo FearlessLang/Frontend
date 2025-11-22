@@ -17,6 +17,7 @@ import inferenceGrammar.IT;
 import inferenceGrammarB.Declaration;
 import inferenceGrammarB.M;
 import utils.Bug;
+import utils.OneOr;
 import utils.Push;
 
 public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TName,Declaration> dsMap,OtherPackages other){
@@ -147,20 +148,20 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     if (ms.size() == 1){ return Optional.of(ms.getFirst()); }
     return Optional.empty();
   }
+  //TODO: test explicitly that is ill formed to have more then one meth with same name and rc
   private Optional<M> oneFromGuessRC(List<M> ms, RC rc){
-    var readOne= ms.stream().filter(m->m.sig().rc()==RC.read).findFirst();
+    Optional<M> readOne= OneOr.opt("not well formed ms",ms.stream().filter(m->m.sig().rc()==RC.read));
     if (rc== RC.read){ return readOne; }
-    if (rc== RC.mut){ return ms.stream().filter(m->m.sig().rc()==RC.mut).findFirst(); }
+    if (rc== RC.mut){ return OneOr.opt("not well formed ms",ms.stream().filter(m->m.sig().rc()==RC.mut)); }
     assert rc== RC.imm;
-    return ms.stream()
-      .filter(m->m.sig().rc()==RC.imm)
-      .findFirst().or(()->readOne);
+    return OneOr.opt("not well formed ms",ms.stream()
+      .filter(m->m.sig().rc()==RC.imm)).or(()->readOne);
   }
   public interface InstanceData<R>{ R apply(IT.RCC rcc, Declaration d, M m); }
   private <R> Optional<R> methodHeaderAnd(IT.RCC rcc,MName name,Optional<RC> favorite,InstanceData<R> f){
     var d= getDec(rcc.c().name());
     Stream<M> ms= d.ms().stream().filter(m->m.sig().m().equals(name));
-    Optional<M> om= favorite
+    Optional<M> om= favorite//ms is used only one time: we use .map (returning Optional<Optional<M>>) not .flatMap 
       .map(rc->oneFromExplicitRC(ms.filter(mi->mi.sig().rc().equals(rc)).toList()))
       .orElseGet(()->oneFromGuessRC(ms.toList(),overloadNorm(rcc.rc())));
     if (om.isEmpty()){ 

@@ -277,16 +277,5 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
     var strLast= typedLiteral("base."+term+i.strings().getLast()+term,i.pos());
     var desugared= new fearlessFullGrammar.E.Call(topE,build,empty(),true,empty(),List.of(strLast),i.pos());
     return desugared.accept(this); 
-  }  
-  @Override public XPat visitInnerXPat(fearlessFullGrammar.XPat x){ throw Bug.unreachable(); }
-  @Override public fearlessFullGrammar.M visitInnerM(fearlessFullGrammar.M m){ throw Bug.unreachable(); }
-  @Override public fearlessFullGrammar.Sig visitInnerSig(fearlessFullGrammar.Sig s){ throw Bug.unreachable(); }
-  @Override public Parameter visitInnerParameter(fearlessFullGrammar.Parameter p){ throw Bug.unreachable(); }
-  @Override public fearlessFullGrammar.B visitInnerB(fearlessFullGrammar.B b){ throw Bug.unreachable(); }
-  @Override public fearlessFullGrammar.E.Literal visitInnerLiteral(fearlessFullGrammar.E.Literal l){ throw Bug.unreachable(); }
-  @Override public fearlessFullGrammar.Declaration visitInnerDeclaration(fearlessFullGrammar.Declaration d){ throw Bug.unreachable(); }
-  
-  @Override public fearlessFullGrammar.T.RCC visitInnerRCC(fearlessFullGrammar.T.RCC t){ throw Bug.unreachable(); }
-  @Override public fearlessFullGrammar.E.CallSquare visitInnerCallSquare(fearlessFullGrammar.E.CallSquare c){ throw Bug.unreachable(); }
-
+  }
 }

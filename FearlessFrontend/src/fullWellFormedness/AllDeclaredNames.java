@@ -8,9 +8,8 @@ import java.util.Set;
 import fearlessFullGrammar.*;
 import fearlessFullGrammar.E.*;
 import message.WellFormednessErrors;
-
 import java.util.Map;
-import utils.Bug;
+
 public class AllDeclaredNames implements EVisitor<Void>{
   Set<TName> decNames= new LinkedHashSet<>();
   Map<TName,Set<T.X>> Xs= new LinkedHashMap<>();
@@ -32,16 +31,16 @@ public class AllDeclaredNames implements EVisitor<Void>{
     xs.put(n, Collections.unmodifiableSet(lastTopNames));
     Xs.put(n, Collections.unmodifiableSet(lastTopXs));    
   }
-  @Override public B visitInnerB(B b){ lastTopXs.add(b.x()); return b; }
-  @Override public Parameter visitInnerParameter(Parameter p){ p.xp().ifPresent(this::visitInnerXPat); return p; }
-  @Override public XPat visitInnerXPat(XPat x){ x.parameterNames().forEach(lastTopNames::add); return x; }
-  @Override public Sig visitInnerSig(Sig s){
+  private B visitInnerB(B b){ lastTopXs.add(b.x()); return b; }
+  private Parameter visitInnerParameter(Parameter p){ p.xp().ifPresent(this::visitInnerXPat); return p; }
+  private XPat visitInnerXPat(XPat x){ x.parameterNames().forEach(lastTopNames::add); return x; }
+  private Sig visitInnerSig(Sig s){
     s.bs().ifPresent(bs->bs.forEach(this::visitInnerB));
     s.parameters().forEach(this::visitInnerParameter);
     return s;
   }
 
-  @Override public Declaration visitInnerDeclaration(Declaration d){
+  private Declaration visitInnerDeclaration(Declaration d){
     //Note: there is never any kind of shadowing allowed in fearless. Also, nested names do live in the top level scope
     if (!decNames.add(d.name())){ throw WellFormednessErrors.duplicatedName(d.name()); }
     d.bs().ifPresent(bs->bs.forEach(this::visitInnerB));
@@ -53,7 +52,7 @@ public class AllDeclaredNames implements EVisitor<Void>{
     c.methods().forEach(this::visitInnerM);
     return null;
   }
-  @Override public M visitInnerM(M m){
+  private M visitInnerM(M m){
     m.sig().ifPresent(this::visitInnerSig);
     m.body().ifPresent(e->e.accept(this));
     return m;
@@ -79,7 +78,4 @@ public class AllDeclaredNames implements EVisitor<Void>{
     i.es().forEach(e->e.accept(this));
     return null;
   }
-  @Override public CallSquare visitInnerCallSquare(CallSquare c){ throw Bug.unreachable(); }
-  @Override public Literal visitInnerLiteral(Literal l){ throw Bug.unreachable(); }
-  @Override public T.RCC visitInnerRCC(T.RCC t){ throw Bug.unreachable(); }
 }
