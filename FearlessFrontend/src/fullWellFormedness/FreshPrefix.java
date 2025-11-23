@@ -4,42 +4,38 @@ import java.util.*;
 import fearlessFullGrammar.TName;
 
 import static offensiveUtils.Require.*;
+import fearlessFullGrammar.T;
 
 public record FreshPrefix(
     Set<String> usedTopTypes,
     Map<String,Integer> topSeq,
     Set<String> allGenericNames,
-    Map<TName, Set<String>> usedGen,
-    Map<TName, Map<String,Integer>> genSeq,
-    Map<TName, Set<String>> usedVar,
-    Map<TName, Map<String,Integer>> varSeq,
+    Map<TName,OwnerState> owners,
     String pkgName,
-    Map<TName,TName> anonSuperT) {
+    Map<TName,TName> anonSuperT){
   private static final char[] up= "ABCDEFGHJKMNPQRSTUVWXYZ".toCharArray();
   private static final char[] low= "abcdefghjkmnpqrstuvwxyz".toCharArray();
+  private static record OwnerState(
+      Set<String> gen,
+      Map<String,Integer> genSeq,
+      Set<String> vars,
+      Map<String,Integer> varSeq){}
   public FreshPrefix(Package p){
-    this(new HashSet<>(),new HashMap<>(),
-      new HashSet<>(),new HashMap<>(),new HashMap<>(),
-      new HashMap<>(),new HashMap<>(),p.name(),new HashMap<>());
+    this(new HashSet<>(),new HashMap<>(),new HashSet<>(),new HashMap<>(),p.name(),new HashMap<>());
     for (TName tn : p.names().decNames()){ usedTopTypes().add(tn.simpleName()); }
-    for (String s: p.map().keySet()){ usedTopTypes().add(s); }
-    for (var e : p.names().allXs().entrySet()){
-      var names= new HashSet<String>();
-      for (var x : e.getValue()){ names.add(x.name()); }
-      usedGen().put(e.getKey(), names);
-      allGenericNames().addAll(names);
-    }
-    for (var e : p.names().allParameters().entrySet()){
-      usedVar().put(e.getKey(), new HashSet<>(e.getValue()));
-    }
-    assert usedGen().keySet().equals(usedVar().keySet());
-    for (TName owner : usedGen().keySet()){
-      genSeq().put(owner, new HashMap<>());
-      varSeq().put(owner, new HashMap<>());
+    for (String s : p.map().keySet()){ usedTopTypes().add(s); }
+    var xs= p.names().allXs();
+    var params= p.names().allParameters();
+    assert xs.keySet().equals(params.keySet());
+    for (var owner : xs.keySet()){
+      var genNames= new HashSet<String>();
+      for (T.X x : xs.get(owner)){ genNames.add(x.name()); }
+      allGenericNames().addAll(genNames);
+      var vars= new HashSet<>(params.get(owner));
+      owners().put(owner,new OwnerState(genNames,new HashMap<>(),vars,new HashMap<>()));
     }
   }
-  public TName freshTopType(TName hint, int arity){
-    assert nonNull(hint);
+  public TName freshTopType(TName hint,int arity){
     String base= sanitizeBase(hint.simpleName(), true);
     int n= topSeq.getOrDefault(base, 1);
     while (true){
@@ -55,19 +51,19 @@ public record FreshPrefix(
   }
   public void registerAnonSuperT(TName fresh,TName base){ anonSuperT.put(fresh, base); }
   public Optional<TName> anonSuperT(TName t){ return Optional.ofNullable(anonSuperT.get(t)); }
-  
-  public boolean isFreshGeneric(TName owner, String x){//used where we know it is a valid generic elsewhere (so already not a top type)
-    Set<String> scope= usedGen.get(owner);
-    assert scope != null : owner;
-    return !scope.contains(x);// && !usedTopTypes.contains(x.name());
+  public boolean isFreshGeneric(TName owner,String x){
+    var st= owners.get(owner);
+    assert st != null : owner;
+    return !st.gen().contains(x);
   }
-  public String freshGeneric(TName owner, String hint){
-    assert nonNull(owner,hint);
-    assert pkgName.equals(owner.pkgName());//hint instead can be from another pkg no problem
+  public String freshGeneric(TName owner,String hint){
+    assert pkgName.equals(owner.pkgName());
+    var st= owners.get(owner);
+    assert st != null : owner;
     String base= sanitizeBase(hint, true);
-    Map<String,Integer> seq= genSeq.get(owner);
+    Map<String,Integer> seq= st.genSeq();
     int n= seq.getOrDefault(base, 1);
-    Set<String> scope= usedGen.get(owner);
+    Set<String> scope= st.gen();
     while (true){
       String cand= encodeBijective(n, up) + "_" + base;
       var commit= !scope.contains(cand) && !usedTopTypes.contains(cand);
@@ -78,55 +74,45 @@ public record FreshPrefix(
       return cand;
     }
   }
-  public String freshVar(TName owner, String hint) {
+  public String freshVar(TName owner,String hint){
     assert nonNull(owner,hint);
     assert pkgName.equals(owner.pkgName());
+    var st= owners.get(owner);
+    assert st != null : owner;
     String base= sanitizeBase(hint, false);
-    Map<String,Integer> seq= varSeq.get(owner);
+    Map<String,Integer> seq= st.varSeq();
     int n= seq.getOrDefault(base, 1);
-    Set<String> scope= usedVar.get(owner);
+    Set<String> scope= st.vars();
     while (true){
-      String cand = encodeBijective(n, low) + "_" + base;
+      String cand= encodeBijective(n, low) + "_" + base;
       if (scope.contains(cand)){ n++; continue; }
       scope.add(cand);
       seq.put(base, n + 1);
       return cand;
     }
   }
-  //Aliasing is deliberate to keep in sink:
-  //we may add new type/names/generics to the outer or the inner,
-  //and they both need to know about it to avoid those names.
-  //They are contained into each other, so to avoid all kinds of hiding,
-  //they need to avoid each other names in addition to their own.
-  public void aliasOwner(TName original, TName alias){
-    assert nonNull(original, alias);
+  public void aliasOwner(TName original,TName alias){// aliasing is deliberate: owner and alias share the same OwnerState
     assert pkgName.equals(original.pkgName()): pkgName+" -- "+original;
     assert pkgName.equals(alias.pkgName()): pkgName+" -- "+alias;
-    var gen= usedGen.get(original);
-    var vars= usedVar.get(original);
-    var gSeq = genSeq.get(original);
-    var vSeq = varSeq.get(original);
-    assert nonNull(gen,vars,gSeq,vSeq);
-    assert !usedGen.containsKey(alias) && !usedVar.containsKey(alias);
-    usedGen.put(alias, gen);
-    usedVar.put(alias, vars);      
-    genSeq.put(alias, gSeq);
-    varSeq.put(alias, vSeq);
+    var st= owners.get(original);
+    assert st != null : original;
+    assert !owners.containsKey(alias);
+    owners.put(alias, st);
   }
-  private static String sanitizeBase(String raw, boolean type) {
+  private static String sanitizeBase(String raw,boolean type){
     String s= raw.replaceAll("[^A-Za-z0-9_]", "");
-    if (s.isEmpty()){ s = type ? "T" : "v"; }
-    if (!Character.isLetter(s.charAt(0))){ s = (type ? "T" : "v") + s; }
+    if (s.isEmpty()){ s= type ? "T" : "v"; }
+    if (!Character.isLetter(s.charAt(0))){ s= (type ? "T" : "v") + s; }
     return (s.length() <= 4) ? s : s.substring(0, 4);
   }
-  private static String encodeBijective(int n, char[] alphabet){
+  private static String encodeBijective(int n,char[] alphabet){
     int base= alphabet.length;
     StringBuilder sb= new StringBuilder(4);
     int x= n;
     while (x > 0){
       x--;
       sb.append(alphabet[x % base]);
-      x /= base;
+      x/= base;
     }
     return sb.reverse().toString();
   }
