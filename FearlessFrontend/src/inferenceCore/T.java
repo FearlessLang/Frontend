@@ -1,4 +1,4 @@
-package inferenceGrammarB;
+package inferenceCore;
 
 import static fearlessParser.TokenKind._XId;
 import static fearlessParser.TokenKind.validate;

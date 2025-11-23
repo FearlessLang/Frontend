@@ -1,9 +1,9 @@
-package fullWellFormedness;
+package pkgmerge;
 
 import java.util.Collection;
 
 import fearlessFullGrammar.TName;
-import inferenceGrammarB.Declaration;
+import inferenceCore.Declaration;
 
 public interface OtherPackages{
   Declaration of(TName name);

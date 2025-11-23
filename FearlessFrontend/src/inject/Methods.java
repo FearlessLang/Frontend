@@ -1,4 +1,4 @@
-package fullWellFormedness;
+package inject;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,19 +17,21 @@ import fearlessFullGrammar.TName;
 import fearlessParser.Parser;
 import fearlessParser.RC;
 import files.Pos;
-import inferenceGrammar.B;
-import inferenceGrammar.E;
-import inferenceGrammar.IT;
-import inferenceGrammar.M;
-import inferenceGrammar.M.Sig;
-import inferenceGrammarB.T;
+import inference.B;
+import inference.E;
+import inference.IT;
+import inference.M;
+import inference.M.Sig;
+import inferenceCore.T;
 import message.WellFormednessErrors;
+import naming.FreshPrefix;
 import optimizedTypes.LiteralDeclarations;
+import pkgmerge.OtherPackages;
 import utils.Bug;
 
 public record Methods(
     String pkgName, OtherPackages other, FreshPrefix fresh,
-    Map<TName, inferenceGrammarB.Declaration> cache){
+    Map<TName, inferenceCore.Declaration> cache){
   void mayAdd(List<E.Literal> layer, E.Literal d, Map<TName,E.Literal> rem){
     for (IT.C c : d.cs()){
       var nope= pkgName.equals(c.name().pkgName()) && rem.containsKey(c.name());
@@ -50,33 +52,33 @@ public record Methods(
     }
     return out;
   }
-  public List<inferenceGrammarB.Declaration> of(List<E.Literal> iDecs){
+  public List<inferenceCore.Declaration> of(List<E.Literal> iDecs){
     var layers= layer(iDecs);
     for(var l : layers){ 
       for (var d : ofLayer(l)){ cache.put(d.name(), d); }
     }
     return cache.values().stream().sorted(Comparator.comparing(d->d.name().s())).toList();
   }
-  private List<inferenceGrammarB.Declaration> ofLayer(List<E.Literal> ds){
+  private List<inferenceCore.Declaration> ofLayer(List<E.Literal> ds){
     return ds.stream().map(d->injectDeclaration(expandDeclaration(d))).toList();
   }
-  record CsMs(List<IT.C> cs, List<inferenceGrammar.M.Sig> sigs){}
+  record CsMs(List<IT.C> cs, List<inference.M.Sig> sigs){}
   //TODO: performance: currently fetch rewrites for the class generics
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps?
   CsMs fetch(IT.C c,TName outName){
-    inferenceGrammarB.Declaration d= from(c.name()); 
+    inferenceCore.Declaration d= from(c.name()); 
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
     var sigs= d.ms().stream().map(m->alphaSig(m,xs,c,outName)).toList();
     return new CsMs(cs1,sigs);
   }
   List<IT.C> fetchCs(IT.C c){
-    inferenceGrammarB.Declaration d= from(c.name());
+    inferenceCore.Declaration d= from(c.name());
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
   }
-  private inferenceGrammar.M.Sig alphaSig(inferenceGrammarB.M m, List<String> xs, IT.C c, TName outName){
+  private inference.M.Sig alphaSig(inferenceCore.M m, List<String> xs, IT.C c, TName outName){
     var s= m.sig();
     var fullXs= new ArrayList<>(xs);
     var fullTs= new ArrayList<>(c.ts());
@@ -92,14 +94,14 @@ public record Methods(
     }
     List<Optional<IT>> newTs= TypeRename.ofITOpt(TypeRename.tToIT(s.ts()),fullXs,fullTs);
     IT newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
-    return new inferenceGrammar.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),s.pos());
+    return new inference.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),s.pos());
   }
-  public inferenceGrammarB.Declaration from(TName name){
+  public inferenceCore.Declaration from(TName name){
     var res= _from(name);
     assert res != null: "In pkgName="+pkgName+", name not found: "+name+" current domain is:\n"+cache.keySet();
     return res;
   }
-  private inferenceGrammarB.Declaration _from(TName name){
+  private inferenceCore.Declaration _from(TName name){
     if (name.pkgName().equals(pkgName)){ return cache.get(name); }
     var res= other.of(name);
     if (res != null){ return res; }
@@ -147,16 +149,16 @@ public record Methods(
     throw WellFormednessErrors.extendedSealed(owner,fresh, target);
   }
 
-  inferenceGrammarB.Declaration injectDeclaration(E.Literal d){
+  inferenceCore.Declaration injectDeclaration(E.Literal d){
     List<T.C> cs= TypeRename.itcToTC(d.cs());
-    List<inferenceGrammarB.M> ms= TypeRename.itmToM(d.ms());
-    return new inferenceGrammarB.Declaration(d.name(),d.bs(),cs,d.thisName(),ms,d.pos());
+    List<inferenceCore.M> ms= TypeRename.itmToM(d.ms());
+    return new inferenceCore.Declaration(d.name(),d.bs(),cs,d.thisName(),ms,d.pos());
   } 
-  inferenceGrammar.M withName(MName name,inferenceGrammar.M m){
+  inference.M withName(MName name,inference.M m){
     assert m.impl().isPresent() && m.sig().m().isEmpty();
     M.Sig s= m.sig();
     s= new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.pos());
-    return new inferenceGrammar.M(s,m.impl());
+    return new inference.M(s,m.impl());
   } 
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, TName origin){
     assert ss.stream().allMatch(M.Sig::isFull);
@@ -210,7 +212,7 @@ public record Methods(
   }
   long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m().get()).distinct().count(); }
     
-  M pairWithSig(List<M.Sig> ss, inferenceGrammar.M m, TName origin){
+  M pairWithSig(List<M.Sig> ss, inference.M m, TName origin){
     if (ss.isEmpty()){ return toCompleteM(m,origin); }
     var s= m.sig();    
     var at= new Agreement(origin, ss.getFirst().m().get(), m.sig().pos());
@@ -259,7 +261,7 @@ public record Methods(
   }
   
   M toCompleteM(M.Sig s){ return new M(s,Optional.empty()); }
-  M toCompleteM(inferenceGrammar.M m,TName origin){
+  M toCompleteM(inference.M m,TName origin){
     var s= m.sig();
     RC rc=s.rc().orElse(RC.imm);
     MName name= s.m().get();

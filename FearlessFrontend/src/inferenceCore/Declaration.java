@@ -1,4 +1,4 @@
-package inferenceGrammarB;
+package inferenceCore;
 
 import static offensiveUtils.Require.nonNull;
 import static offensiveUtils.Require.unmodifiable;
@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import fearlessFullGrammar.TName;
 import files.Pos;
-import inferenceGrammar.B;
+import inference.B;
 
 public record Declaration(TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Pos pos){
   public Declaration{

@@ -1,7 +1,8 @@
-package fullWellFormedness;
+package naming;
 import java.util.*;
 
 import fearlessFullGrammar.TName;
+import pkgmerge.Package;
 
 import static offensiveUtils.Require.*;
 import fearlessFullGrammar.T;

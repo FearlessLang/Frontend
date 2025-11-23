@@ -1,4 +1,4 @@
-package fullWellFormedness;
+package pkgmerge;
 
 import java.net.URI;
 import java.util.Collection;
@@ -12,15 +12,19 @@ import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.TName;
 import fearlessParser.Parse;
-import inferenceGrammar.E;
+import inference.E;
+import inject.InjectionSteps;
+import inject.Methods;
 import message.SourceOracle;
 import message.WellFormednessErrors;
+import naming.FreshPrefix;
+import toInfer.ToInference;
 
 import static offensiveUtils.Require.*;
 import static fearlessParser.TokenKind.*;
 
 public class ParsePackage{
-  public List<inferenceGrammarB.Declaration> of(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
+  public List<inferenceCore.Declaration> of(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
     Map<URI,FileFull> all= new LinkedHashMap<>();
     for(var u : files){
       var str= o.loadString(u);
@@ -31,7 +35,7 @@ public class ParsePackage{
     var fresh= new FreshPrefix(p);
     var meths= new Methods(p.name(),other,fresh,new LinkedHashMap<>());
     List<E.Literal> iDecs= new ToInference().of(p,meths,other,fresh);
-    List<inferenceGrammarB.Declaration> res= meths.of(iDecs);
+    List<inferenceCore.Declaration> res= meths.of(iDecs);
     return infer?InjectionSteps.steps(meths,res,other):res;
   }
   Package merge(List<FileFull.Map> override, Map<URI,FileFull> all, OtherPackages other){

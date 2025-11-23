@@ -1,4 +1,4 @@
-package fullWellFormedness;
+package toInfer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,10 +8,14 @@ import java.util.stream.Stream;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import fearlessParser.TokenKind;
-import inferenceGrammar.E;
+import inference.E;
+import inject.Methods;
 import message.FearlessException;
 import message.WellFormednessErrors;
+import naming.FreshPrefix;
 import optimizedTypes.LiteralDeclarations;
+import pkgmerge.OtherPackages;
+import pkgmerge.Package;
 
 public class ToInference{
   private TName fCurrent(Package p, TName simple, TName full, boolean withPkg, OtherPackages other){
@@ -33,7 +37,7 @@ public class ToInference{
     var all= Stream.concat(declared.stream(), otherTypes.stream()).toList();
     return WellFormednessErrors.usedUndeclaredName(tn, contextPkg, scope, all);
   }
-  List<E.Literal> of(Package p, Methods meths, OtherPackages other, FreshPrefix fresh){
+  public List<E.Literal> of(Package p, Methods meths, OtherPackages other, FreshPrefix fresh){
     Function<TName,TName> f= tn->{
       var pN= tn.pkgName();
       if (pN.isEmpty()){

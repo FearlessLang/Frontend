@@ -1,4 +1,4 @@
-package fullWellFormedness;
+package toInfer;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -15,17 +15,21 @@ import fearlessFullGrammar.Parameter;
 import fearlessFullGrammar.XPat;
 import fearlessParser.RC;
 import files.Pos;
+import inference.B;
+import inference.E;
+import inference.IT;
+import inference.M;
+import inject.Methods;
 import message.WellFormednessErrors;
-import inferenceGrammar.E;
-import inferenceGrammar.IT;
-import inferenceGrammar.M;
-import inferenceGrammar.B;
+import naming.FreshPrefix;
+import pkgmerge.OtherPackages;
+import pkgmerge.Package;
 import fearlessFullGrammar.TName;
 import static java.util.Optional.*;
 
 public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<String> implicits, Function<TName,TName> f, List<E.Literal> decs, Package pkg, List<List<B>> bsInScope, OtherPackages other, FreshPrefix freshF)
-    implements fearlessFullGrammar.EVisitor<inferenceGrammar.E>,fearlessFullGrammar.TVisitor<IT>{
-  static final inferenceGrammar.IT u= IT.U.Instance;
+    implements fearlessFullGrammar.EVisitor<inference.E>,fearlessFullGrammar.TVisitor<IT>{
+  static final inference.IT u= IT.U.Instance;
   static fearlessFullGrammar.E.Literal emptyL(Pos pos){ return new fearlessFullGrammar.E.Literal(empty(),List.of(),pos); }
   @Override public IT.X visitTX(fearlessFullGrammar.T.X x){ return new IT.X(x.name()); }
   @Override public IT visitReadImmX(fearlessFullGrammar.T.ReadImmX x){ return new IT.ReadImmX(visitTX(x.x())); }

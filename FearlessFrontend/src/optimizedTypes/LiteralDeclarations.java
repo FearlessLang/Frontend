@@ -6,9 +6,9 @@ import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import fearlessParser.TokenKind;
 import files.Pos;
-import fullWellFormedness.OtherPackages;
-import inferenceGrammarB.Declaration;
-import inferenceGrammarB.T;
+import inferenceCore.Declaration;
+import inferenceCore.T;
+import pkgmerge.OtherPackages;
 import utils.Bug;
 
 

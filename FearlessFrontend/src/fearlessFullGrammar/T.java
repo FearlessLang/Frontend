@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import fearlessParser.RC;
 import files.Pos;
-import inferenceGrammar.IT;
+import inference.IT;
 
 public sealed interface T {
   <R> R accept(TVisitor<R> v);

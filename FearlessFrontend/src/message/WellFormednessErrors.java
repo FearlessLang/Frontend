@@ -18,16 +18,16 @@ import fearlessFullGrammar.TName;
 import fearlessParser.Parser;
 import fearlessParser.RC;
 import files.Pos;
-import fullWellFormedness.FreshPrefix;
-import fullWellFormedness.Methods.Agreement;
-import inferenceGrammar.B;
-import inferenceGrammar.E;
-import inferenceGrammar.IT;
-import inferenceGrammar.M;
+import inference.B;
+import inference.E;
+import inference.IT;
+import inference.M;
+import inject.Methods.Agreement;
 import metaParser.Message;
 import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
+import naming.FreshPrefix;
 import utils.Bug;
 
 public final class WellFormednessErrors {
@@ -349,7 +349,7 @@ public final class WellFormednessErrors {
     ));
   }
 
-  public static FearlessException ambiguousImpl(TName origin, FreshPrefix fresh, boolean abs, M m, List<inferenceGrammar.M.Sig> options){
+  public static FearlessException ambiguousImpl(TName origin, FreshPrefix fresh, boolean abs, M m, List<inference.M.Sig> options){
     return agreement(origin,fresh,m.sig().pos(),Code.WellFormedness.of(
       "Cannot infer the name for method with "+m.sig().ts().size()+" parameters.\n"
     + "Many"+(abs?" abstract":"")+" methods with "+m.sig().ts().size()+" parameters could be selected:\n"

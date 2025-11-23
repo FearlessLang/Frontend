@@ -1,13 +1,14 @@
-package fullWellFormedness;
+package toInfer;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import inferenceGrammar.B;
-import inferenceGrammar.E;
-import inferenceGrammar.E.*;
-import inferenceGrammar.M;
-import inferenceGrammar.IT;
+
+import inference.B;
+import inference.E;
+import inference.IT;
+import inference.M;
+import inference.E.*;
 
 public class FreeXs {
   Stream<String> ftvE(E e){ return switch(e){

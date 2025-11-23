@@ -1,4 +1,4 @@
-package fullWellFormedness;
+package pkgmerge;
 
 import java.util.Collections;
 import java.util.List;

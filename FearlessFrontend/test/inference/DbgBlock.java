@@ -1,14 +1,14 @@
-package inferenceGrammar;
+package inference;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import fearlessFullGrammar.TName;
-import fullWellFormedness.OtherPackages;
-import fullWellFormedness.ParsePackage;
-import inferenceGrammarB.Declaration;
+import inferenceCore.Declaration;
 import message.SourceOracle;
+import pkgmerge.OtherPackages;
+import pkgmerge.ParsePackage;
 import utils.Bug;
 
 class DbgBlock{

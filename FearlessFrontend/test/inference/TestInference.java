@@ -1,4 +1,4 @@
-package inferenceGrammar;
+package inference;
 
 import java.net.URI;
 import java.util.List;
@@ -10,9 +10,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import fullWellFormedness.ParsePackage;
 import message.FearlessException;
 import message.SourceOracle;
+import pkgmerge.ParsePackage;
 import utils.Err;
 
 public class TestInference {
@@ -34,7 +34,7 @@ public class TestInference {
     try{ return r.get(); }
     catch(FearlessException fe){ System.out.println(fe.render(o)); throw fe; }
   }
-  static List<inferenceGrammarB.Declaration> parsePackage(SourceOracle o,boolean infer){
+  static List<inferenceCore.Declaration> parsePackage(SourceOracle o,boolean infer){
     return new ParsePackage()
       .of(List.of(),o.allFiles(),o,DbgBlock.dbg(),infer);
   }

@@ -1,4 +1,4 @@
-package inferenceGrammar;
+package inference;
 
 import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;

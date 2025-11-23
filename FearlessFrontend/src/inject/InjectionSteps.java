@@ -1,4 +1,4 @@
-package fullWellFormedness;
+package inject;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,11 +10,12 @@ import java.util.stream.Stream;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
-import inferenceGrammar.E;
-import inferenceGrammar.Gamma;
-import inferenceGrammar.IT;
-import inferenceGrammarB.Declaration;
-import inferenceGrammarB.M;
+import inference.E;
+import inference.Gamma;
+import inference.IT;
+import inferenceCore.Declaration;
+import inferenceCore.M;
+import pkgmerge.OtherPackages;
 import utils.Bug;
 import utils.OneOr;
 import utils.Push;
@@ -247,7 +248,7 @@ public record InjectionSteps(Methods meths,OtherPackages other){
     if (!l.infA()){ assert l.cs().isEmpty(); l= meths.expandLiteral(l,rcc.c()); }
     var s= g.snapshot();
     boolean same= true;
-    var res= new ArrayList<inferenceGrammar.M>(l.ms().size());
+    var res= new ArrayList<inference.M>(l.ms().size());
     List<IT> ts= rcc.c().ts();
     for (var mi: l.ms()){
       if (mi.impl().isEmpty()){ res.add(mi); continue; }//we are also keeping methods from supertypes, and not all will be in need of implementation
@@ -276,13 +277,13 @@ public record InjectionSteps(Methods meths,OtherPackages other){
     meths.cache().put(resD.name(),resD);//can we simply remove dsMap and use meth cache all the time?
     return l;
   }
-  private static boolean hasU(List<inferenceGrammar.M> ms){
+  private static boolean hasU(List<inference.M> ms){
     return !ms.stream().allMatch(m->
       m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t->t.get().isTV())
     );
   }
-  record TSM(List<IT> ts, inferenceGrammar.M m){}
-  private TSM nextMStar(Gamma g, String thisN, boolean committed, Optional<IT.RCC> selfPrecise, IT.RCC rcc, List<IT> ts, inferenceGrammar.M m){
+  record TSM(List<IT> ts, inference.M m){}
+  private TSM nextMStar(Gamma g, String thisN, boolean committed, Optional<IT.RCC> selfPrecise, IT.RCC rcc, List<IT> ts, inference.M m){
     assert selfPrecise.isEmpty() || rcc.isTV();
     assert m.impl().isPresent();
     rcc = rcc.withTs(ts);
@@ -298,7 +299,7 @@ public record InjectionSteps(Methods meths,OtherPackages other){
     args= xs.stream().map(x->Optional.of(g.get(x))).toList(); 
     g.popScope();
     if (committed){
-      var mRes= new inferenceGrammar.M(m.sig(),Optional.of(m.impl().get().withE(e)));
+      var mRes= new inference.M(m.sig(),Optional.of(m.impl().get().withE(e)));
       return new TSM(rcc.c().ts(),mRes);
     }
     var improvedSig= m.sig().withTsT(args, e.t());
@@ -309,7 +310,7 @@ public record InjectionSteps(Methods meths,OtherPackages other){
     var omh= methodHeaderAnd(rcc,mName,improvedSig.rc(),(_,_,mi)->mi);
     if (omh.isEmpty()){
       var impl= m.impl().get().withE(meet(e,ret));
-      var mRes= new inferenceGrammar.M(improvedSig,Optional.of(impl));
+      var mRes= new inference.M(improvedSig,Optional.of(impl));
       return new TSM(ts,mRes);
     }
     var Xs= getDec(rcc.c().name()).bs().stream().map(b->b.x()).toList();
@@ -327,7 +328,7 @@ public record InjectionSteps(Methods meths,OtherPackages other){
       ""+methodHeader(rcc,mName,improvedSig.rc())+improvedM.bs+ " "+improvedSig.bs().get(); 
     var sigRes= improvedSig.withTsT(improvedM.ts().stream().map(Optional::of).toList(),improvedM.ret());
     e = meet(e,sigRes.ret().get());
-    var mRes= new inferenceGrammar.M(sigRes,Optional.of(m.impl().get().withE(e)));
+    var mRes= new inference.M(sigRes,Optional.of(m.impl().get().withE(e)));
     return new TSM(rcc.c().ts(),mRes);
   }
  

@@ -1,4 +1,4 @@
-package inferenceGrammar;
+package inference;
 
 import static offensiveUtils.Require.nonNull;
 import static offensiveUtils.Require.unmodifiable;
