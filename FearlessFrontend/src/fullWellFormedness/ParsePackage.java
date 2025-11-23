@@ -29,7 +29,7 @@ public class ParsePackage{
     }
     Package p= merge(override,all,other);
     var fresh= new FreshPrefix(p);
-    var meths= new Methods(p.name(),other,fresh,new HashMap<>());
+    var meths= new Methods(p.name(),other,fresh,new LinkedHashMap<>());
     List<E.Literal> iDecs= new ToInference().of(p,meths,other,fresh);
     List<inferenceGrammarB.Declaration> res= meths.of(iDecs);
     return infer?InjectionSteps.steps(meths,res,other):res;

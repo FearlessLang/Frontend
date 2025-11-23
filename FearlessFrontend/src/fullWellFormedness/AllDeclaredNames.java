@@ -23,8 +23,6 @@ public class AllDeclaredNames implements EVisitor<Void>{
     lastTopNames= new LinkedHashSet<>();
     lastTopXs= new LinkedHashSet<>();
     visitInnerDeclaration(d);
-    assert !xs.containsKey(d.name());
-    assert !Xs.containsKey(d.name());
     var n= d.name().withPkgName(pkgName);
     assert !xs.containsKey(n);
     assert !Xs.containsKey(n);

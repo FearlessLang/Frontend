@@ -37,7 +37,7 @@ public record Methods(
     }
     layer.add(d);
   }
-  List<List<E.Literal>> layer(List<E.Literal> decs, String pkgName){
+  List<List<E.Literal>> layer(List<E.Literal> decs){
     Map<TName, E.Literal> rem = new HashMap<>();
     for (E.Literal d : decs){ rem.put(d.name(), d); }
     List<List<E.Literal>> out= new ArrayList<>();
@@ -51,7 +51,7 @@ public record Methods(
     return out;
   }
   public List<inferenceGrammarB.Declaration> of(List<E.Literal> iDecs){
-    var layers= layer(iDecs,pkgName);
+    var layers= layer(iDecs);
     for(var l : layers){ 
       for (var d : ofLayer(l)){ cache.put(d.name(), d); }
     }
@@ -65,14 +65,14 @@ public record Methods(
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps?
   CsMs fetch(IT.C c,TName outName){
-    inferenceGrammarB.Declaration d= from(c.name(),cache); 
+    inferenceGrammarB.Declaration d= from(c.name()); 
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
     var sigs= d.ms().stream().map(m->alphaSig(m,xs,c,outName)).toList();
     return new CsMs(cs1,sigs);
   }
   List<IT.C> fetchCs(IT.C c){
-    inferenceGrammarB.Declaration d= from(c.name(),cache);
+    inferenceGrammarB.Declaration d= from(c.name());
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
   }
@@ -94,12 +94,12 @@ public record Methods(
     IT newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
     return new inferenceGrammar.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),s.pos());
   }
-  public inferenceGrammarB.Declaration from(TName name, Map<TName, inferenceGrammarB.Declaration> cache){
-    var res= _from(name, cache);
+  public inferenceGrammarB.Declaration from(TName name){
+    var res= _from(name);
     assert res != null: "In pkgName="+pkgName+", name not found: "+name+" current domain is:\n"+cache.keySet();
     return res;
   }
-  private inferenceGrammarB.Declaration _from(TName name, Map<TName, inferenceGrammarB.Declaration> cache){
+  private inferenceGrammarB.Declaration _from(TName name){
     if (name.pkgName().equals(pkgName)){ return cache.get(name); }
     var res= other.of(name);
     if (res != null){ return res; }
@@ -158,10 +158,6 @@ public record Methods(
     s= new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.pos());
     return new inferenceGrammar.M(s,m.impl());
   } 
-  inferenceGrammar.M.Sig injectSig(inferenceGrammarB.M.Sig s){
-    throw Bug.todo();
-  }
-  
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, TName origin){
     assert ss.stream().allMatch(M.Sig::isFull);
     List<M> res= new ArrayList<>();
@@ -283,25 +279,14 @@ public record Methods(
   public record Agreement(TName cName, MName mName, Pos pos){}
   
   List<B> agreementBs(Agreement at,Stream<List<B>> es){
-    var res= es.distinct().toList();    
-    //if (res.size() == 1){ return normalizeBs(at.cName,res.getFirst()); }
-    if (res.size() == 1){ return res.getFirst(); }//TODO: what is correct? this or the above? why?
+    var res= es.distinct().toList();
+    if (res.size() == 1){ return res.getFirst(); }
     var sizes= res.stream().map(List::size).distinct().count();
     if (sizes!= 1){ throw WellFormednessErrors.agreementSize(at,fresh,res); }
     var bounds= res.stream().map(l->l.stream().map(e->e.rcs()).toList()).distinct().count();
-    //if (bounds== 1){ return normalizeBs(at.cName, res.getFirst()); }
-    if (bounds== 1){ return res.getFirst(); }//TODO: what is correct? this or the above? why?
+    if (bounds== 1){ return res.getFirst(); }
     throw WellFormednessErrors.agreement(at,fresh,res,"Generic bounds disagreement");
   }
-  /*private List<B> normalizeBs(TName t, List<B> candidate){
-    return candidate.stream()
-      .map(e->new B(freshG(t,e.x()),e.rcs()))
-      .toList();
-  }
-  private String freshG(TName t, String x){
-    if (fresh.isFreshGeneric(t,x)){ return x; }
-    return fresh.freshGeneric(t, x);
-  }*/
   private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){
     assert superSig.isFull();

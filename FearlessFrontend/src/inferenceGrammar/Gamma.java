@@ -25,7 +25,6 @@ public final class Gamma {
   private int depth= 0;
 
   private HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
-  boolean indexActive(){ return size > indexThreshold; }
   public Gamma(){ marks[0]= 0; envHash[0]= 0L; depth= 1; }
   public void newScope(){
     marks[depth]= size;
@@ -70,7 +69,7 @@ public final class Gamma {
   public boolean changed(long shot){ return shot != envHash[depth - 1]; }
   private int indexOf(String x){
     assert x != null;
-    if (indexActive()){
+    if (size > indexThreshold){
       Integer i= idx.get(x);
       return i != null ? i : -1;
     }

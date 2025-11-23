@@ -141,22 +141,26 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
     e = stripRound(e);
     if (e instanceof fearlessFullGrammar.E.Literal l){ return Optional.of(l); }
     return Optional.empty();
-  }  
-  E visitReceiver(fearlessFullGrammar.E e){
+  }
+  private E.Literal liftLiteral(Optional<RC> rc,Stream<String> bs,List<IT.C> impl,Optional<String> thisName, List<M> ms, Pos pos){
+    var _bs= bs.distinct().map(this::xB).toList();
+    var name= freshF.freshTopType(this.tops.getLast(),_bs.size());
+    return new E.Literal(rc,name,_bs,impl,thisName.orElse("_"), ms,pos);
+  }
+  private E visitReceiver(fearlessFullGrammar.E e){
     var ol= asLambdaReceiver(e);
     if (ol.isEmpty()){ return e.accept(this); }
-    var l=ol.get();
-    String thisName= l.thisName().map(n->n.name()).orElse("_");
-    List<M> ms= mapM(l.methods());
-    List<B> bs= new FreeXs().ftvMs(ms).map(x->xB(x)).toList();    
-    TName name= freshF.freshTopType(this.tops.getLast(),bs.size());
-    tops.add(name);
-    bsInScope.add(bs);
-    List<IT.C> cs= List.of();
-    E.Literal ll= new E.Literal(Optional.of(RC.imm),name,bs,cs,thisName, ms, l.pos());      
-    decs.add(ll);
-    bsInScope.removeLast();
-    return ll;
+    var ms= mapM(ol.get().methods());
+    var name= ol.get().thisName().map(n->n.name());
+    var l= liftLiteral(Optional.of(RC.imm),new FreeXs().ftvMs(ms),List.of(),name,ms,ol.get().pos());
+    tops.add(l.name());
+    decs.add(l);
+    return l;
+  }
+  @Override public E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){ 
+    var ms= mapM(l.methods());
+    var name= l.thisName().map(n->n.name());
+    return liftLiteral(Optional.empty(),new FreeXs().ftvMs(ms),List.of(),name,ms,l.pos());
   }
   @Override public E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(),x.pos()); }
   @Override public E visitRound(fearlessFullGrammar.E.Round r){ return r.e().accept(this); }
@@ -165,24 +169,20 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
     if (t.l().isEmpty()){ return new E.Type(visitRCC(t.t()),t.pos()); }
     List<IT.C> impl= List.of(visitC(t.t().c()));
     List<fearlessFullGrammar.M> ms0= t.l().map(l->l.methods()).orElse(List.of());
-    List<M> ms= mapM(ms0);
-    List<B> bs= Stream.concat(new FreeXs().ftvMs(ms),new FreeXs().ftvT(visitRCC(t.t())))
-      .distinct().map(x->xB(x)).toList();
-    TName fresh= freshF.freshTopType(tops.getLast(),bs.size());
-    String thisName= t.l().isEmpty()
-      ?"_"
-      :t.l().get().thisName().map(n->n.name()).orElse("_");  
-    var l= new E.Literal(Optional.of(t.t().rc().orElse(RC.imm)),fresh,bs,impl,thisName, ms, t.pos());
+    Optional<String> thisName= t.l().flatMap(l->l.thisName().map(n->n.name()));
+    var ms= mapM(ms0);
+    Stream<String> bs= Stream.concat(
+      new FreeXs().ftvMs(ms),new FreeXs().ftvT(visitRCC(t.t())));
+    E.Literal l= liftLiteral(Optional.of(t.t().rc().orElse(RC.imm)),bs,impl,thisName, ms,t.pos());
     decs.add(l);
     return l;
   }
-  B xB(String x){ 
+  B xB(String x){
     return bsInScope.stream()
       .flatMap(List::stream)
       .filter(b->b.x().equals(x)).findFirst()
       .orElseThrow(() -> Bug.of("Free type variable " + x + " not in bsInScope"));
-  }
-  
+  }  
   @Override public E visitDeclarationLiteral(fearlessFullGrammar.E.DeclarationLiteral c){
     freshF.aliasOwner(this.tops.getLast(), f.apply(c.dec().name()));
     return addDeclaration(c.rc().orElse(RC.imm),c.dec(),false);
@@ -199,13 +199,6 @@ public record InjectionToInferenceVisitor(Methods meths, List<TName> tops, List<
     decs.add(l);
     bsInScope.removeLast();
     return l;
-  }
-  @Override public E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){
-    String thisName= l.thisName().map(n->n.name()).orElse("_");
-    List<M> ms= mapM(l.methods());
-    List<B> bs= new FreeXs().ftvMs(ms).distinct().map(x->xB(x)).toList();    
-    TName fresh= freshF.freshTopType(this.tops.getLast(),bs.size());  
-    return new E.Literal(Optional.empty(),fresh,bs,List.of(),thisName, ms, l.pos());
   }
   @Override public E visitCall(fearlessFullGrammar.E.Call c){
     if (c.pat().isPresent()){ c = desugarCPat(c); }

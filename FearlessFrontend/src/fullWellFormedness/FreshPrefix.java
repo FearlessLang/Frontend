@@ -5,35 +5,37 @@ import fearlessFullGrammar.TName;
 
 import static offensiveUtils.Require.*;
 
-public final class FreshPrefix {
+public record FreshPrefix(
+    Set<String> usedTopTypes,
+    Map<String,Integer> topSeq,
+    Set<String> allGenericNames,
+    Map<TName, Set<String>> usedGen,
+    Map<TName, Map<String,Integer>> genSeq,
+    Map<TName, Set<String>> usedVar,
+    Map<TName, Map<String,Integer>> varSeq,
+    String pkgName,
+    Map<TName,TName> anonSuperT) {
   private static final char[] up= "ABCDEFGHJKMNPQRSTUVWXYZ".toCharArray();
   private static final char[] low= "abcdefghjkmnpqrstuvwxyz".toCharArray();
-  private final Set<String> usedTopTypes= new HashSet<>();
-  private final Map<String,Integer> topSeq= new HashMap<>();
-  private final Set<String> allGenericNames= new HashSet<>();
-  private final Map<TName, Set<String>> usedGen= new HashMap<>();
-  private final Map<TName, Map<String,Integer>> genSeq= new HashMap<>();
-  private final Map<TName, Set<String>> usedVar= new HashMap<>();
-  private final Map<TName, Map<String,Integer>> varSeq= new HashMap<>();
-  private final String pkgName;
-  private final Map<TName,TName> anonSuperT= new HashMap<>();
   public FreshPrefix(Package p){
-    pkgName= p.name();
-    for (TName tn : p.names().decNames()){ usedTopTypes.add(tn.simpleName()); }
-    for (String s: p.map().keySet()){ usedTopTypes.add(s); }
+    this(new HashSet<>(),new HashMap<>(),
+      new HashSet<>(),new HashMap<>(),new HashMap<>(),
+      new HashMap<>(),new HashMap<>(),p.name(),new HashMap<>());
+    for (TName tn : p.names().decNames()){ usedTopTypes().add(tn.simpleName()); }
+    for (String s: p.map().keySet()){ usedTopTypes().add(s); }
     for (var e : p.names().allXs().entrySet()){
       var names= new HashSet<String>();
       for (var x : e.getValue()){ names.add(x.name()); }
-      usedGen.put(e.getKey(), names);
-      allGenericNames.addAll(names);
+      usedGen().put(e.getKey(), names);
+      allGenericNames().addAll(names);
     }
     for (var e : p.names().allParameters().entrySet()){
-      usedVar.put(e.getKey(), new HashSet<>(e.getValue()));
+      usedVar().put(e.getKey(), new HashSet<>(e.getValue()));
     }
-    assert usedGen.keySet().equals(usedVar.keySet());
-    for (TName owner : usedGen.keySet()){
-      genSeq.put(owner, new HashMap<>());
-      varSeq.put(owner, new HashMap<>());
+    assert usedGen().keySet().equals(usedVar().keySet());
+    for (TName owner : usedGen().keySet()){
+      genSeq().put(owner, new HashMap<>());
+      varSeq().put(owner, new HashMap<>());
     }
   }
   public TName freshTopType(TName hint, int arity){

@@ -20,15 +20,14 @@ import utils.Bug;
 import utils.OneOr;
 import utils.Push;
 
-public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TName,Declaration> dsMap,OtherPackages other){
+public record InjectionSteps(Methods meths,OtherPackages other){
   public static List<Declaration> steps(Methods meths, List<Declaration> in, OtherPackages other){
-    HashMap<TName,Declaration> dsMap= new HashMap<>();
-    for (var d:in){ dsMap.put(d.name(), d); }
-    var s= new InjectionSteps(meths,new ArrayList<>(in),dsMap,other);
-    //ds.size will grow during iteration
-    int size= s.ds.size();
+    var s= new InjectionSteps(meths,other);
+    //meths.cache().size will grow during iteration
+    int size= meths.cache().size();
+    var es= new ArrayList<Declaration>(meths.cache().values());//is linkedMashMap, so order is preserved
     List<Declaration> res= new ArrayList<>();
-    for (int i= 0; i < size; i += 1){ res.add(stepDec(s, s.ds.get(i))); }    
+    for (int i= 0; i < size; i += 1){ res.add(stepDec(s, es.get(i))); }    
     return res;
   }
   private static Declaration stepDec(InjectionSteps s, Declaration di){
@@ -119,9 +118,8 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     case E.ICall c -> nextIC(g,c);
     case E.Type c -> nextT(g,c);
   };}
-  private List<String> dom(List<inferenceGrammar.B> bs){ return bs.stream().map(b->b.x()).toList(); }
 
-  Declaration getDec(TName name){ return meths.from(name,dsMap); }
+  Declaration getDec(TName name){ return meths.from(name); }
   
   private IT preferred(IT.RCC type){
     var d= getDec(type.c().name());
@@ -130,7 +128,8 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     if (cs.size() == 0){ return type; } 
     assert cs.size() == 1;
     assert cs.getFirst().ts().size() == 1;
-    IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom(d.bs()), type.c().ts());
+    var dom= d.bs().stream().map(b->b.x()).toList();
+    IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom, type.c().ts());
     return wid;
   }
   public record MSig(RC rc, List<String> bs, List<IT> ts, IT ret){}
@@ -253,7 +252,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     List<IT> ts= rcc.c().ts();
     for (var mi: l.ms()){
       if (mi.impl().isEmpty()){ res.add(mi); continue; }//we are also keeping methods from supertypes, and not all will be in need of implementation
-      TSM next= nextMStar(g,l.thisName(),dsMap.containsKey(l.name()),selfPrecise,rcc,ts,mi);
+      TSM next= nextMStar(g,l.thisName(),meths.cache().containsKey(l.name()),selfPrecise,rcc,ts,mi);
       same &= 
         next.m.sig().equals(mi.sig())
         && next.m.impl().get().e() == mi.impl().get().e() 
@@ -275,8 +274,7 @@ public record InjectionSteps(Methods meths,ArrayList<Declaration> ds,HashMap<TNa
     meths.checkMagicSupertypes(l.name(),cs);
     l = new E.Literal(Optional.of(rcc.rc()),l.name(),l.bs(),cs,l.thisName(),l.ms(), t, l.pos(), true, l.g());
     var resD= meths.injectDeclaration(l);
-    this.ds.add(resD);
-    this.dsMap.put(l.name(),resD);
+    meths.cache().put(resD.name(),resD);//can we simply remove dsMap and use meth cache all the time?
     return l;
   }
   private static boolean hasU(List<inferenceGrammar.M> ms){
