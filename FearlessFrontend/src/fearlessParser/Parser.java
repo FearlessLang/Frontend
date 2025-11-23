@@ -410,7 +410,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     expectValidate("\"in\" keyword",LowercaseId,_in);
     var target= expectValidate("package name",LowercaseId,_pkgName).content();
     var dup= acc.map.stream().anyMatch(m->m.in().equals(in) && m.target().equals(target));
-    if(dup){ throw errFactory().duplicatedMap(spanLast(), "("+target+","+in+")"); }
+    if(dup){ throw errFactory().duplicatedMap(spanLast(),in,target); }
     acc.map.add(new FileFull.Map(in,out,target));
   }
   void parseUse(HeadAcc acc){

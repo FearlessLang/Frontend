@@ -51,8 +51,8 @@ Examples: "+1/2", "-3/4".
 Fearless does not allow rational literals of form "1/2".
 ""","numbers")
       .putStr(BadUppercaseId,Code.UnexpectedToken::of,"""
-package names are restricted to be valid filenames on all operative systems.
-Names like aux, nul, lpt2 are invalid on windows.
+Package names are restricted to be valid filenames on all operating systems.
+Names like aux, nul, lpt2 are invalid on Windows.
 ""","package names")
       .putStr(BadSStrLineQuote,Code.UnexpectedToken::of,"""
 Simple string lines start with " |` " or " #|` ", not " |' " or " #|' ";
@@ -69,7 +69,7 @@ that is: use back ticks (`) instead of single quotes (').
     var base= t.span(file);
     if (hit.isEmpty()){
       throw Code.UnexpectedToken
-        .of("Unopened block comment close \"*/\". Remove it or add a matching \"/*\" before.")
+        .of("Unopened block comment close \"*/\".\nRemove it, or add a matching \"/*\" earlier on.")
         .addFrame("comments",base);
       }
     var h= hit.get();

@@ -33,50 +33,48 @@ import utils.Bug;
 public final class WellFormednessErrors {
   private WellFormednessErrors(){}
 
-  public static FearlessException notClean(URI uri, FileFull f){    
-    return Code.WellFormedness.of(() -> buildMessageNotClean(uri,f));
+  public static FearlessException notClean(URI uri, FileFull f){
+    return Code.WellFormedness.of(() -> buildMessageNotClean(f))
+      .addSpan(new Span(uri,0,0,1,1));
   }
-  private static String buildMessageNotClean(URI uri, FileFull f){
-   String file= lastSegment(uri);
-   List<String> bullets= new ArrayList<>();
-   if (!f.maps().isEmpty()){ bullets.add("maps: " + previewList(f.maps(), 5)); }
-   if (!f.uses().isEmpty()){ bullets.add("uses: " + previewList(f.uses(), 8)); }
-   if (!f.role().isEmpty()){ bullets.add("role: " + f.role().get()+"\n"); }
-   StringBuilder sb= new StringBuilder()
-     .append("File is not the package head, but contains package head directives: ")
-     .append(file)
-     .append('\n')
-     .append("Expected empty sections: maps, uses, role.\n");
-   if (!bullets.isEmpty()){
-     sb.append("Found non-empty:\n");
-     bullets.forEach(b->sb.append("  - ").append(b).append('\n'));
-   }
-   sb.append("URI: ").append(uri);
-   return sb.toString();
- }
- private static String previewList(List<?> c, int limit){
-   StringBuilder sb = new StringBuilder();
-   sb.append('[');
-   int i = 0;
-   for (var x : c){
-     if (i > 0) sb.append(", ");
-     if (i == limit){ sb.append("..."); break; }
-     sb.append(String.valueOf(x));
-     i++;
-   }
-   sb.append("] (size=").append(c.size()).append(')');
-   return sb.toString();
- }
+  private static String buildMessageNotClean(FileFull f){
+    List<String> bullets= new ArrayList<>();
+    if (!f.maps().isEmpty()){ bullets.add("maps: " + previewList(f.maps(), 5)); }
+    if (!f.uses().isEmpty()){ bullets.add("uses: " + previewList(f.uses(), 8)); }
+    if (!f.role().isEmpty()){ bullets.add("role: " + f.role().get()); }
+    StringBuilder sb= new StringBuilder()
+      .append("File is not the package head, but contains package head directives.\n")
+      .append("It should not contain any directives like maps, uses or role.\n");
+    assert !bullets.isEmpty();
+    sb.append("Found non-empty:\n");
+    bullets.forEach(b->sb.append("  - ").append(b).append('\n'));
+    return sb.toString();
+  }
+  private static String previewList(List<?> c, int limit){
+    StringBuilder sb = new StringBuilder();
+    int i = 0;
+    for (var x : c){
+      if (i > 0) sb.append(", ");
+      if (i == limit){
+        sb.append("...").append(" (size=").append(c.size()).append(')');
+        return sb.toString();
+      }
+      sb.append(String.valueOf(x));
+      i++;
+    }
+    return sb.toString();
+  }
+  
   public static FearlessException expectedSingleUriForPackage(List<URI> heads, String pkgName){
     return Code.WellFormedness.of(() -> buildMessageSingleUriForPackage(heads, pkgName));
   }
   private static String buildMessageSingleUriForPackage(List<URI> heads, String pkgName){
     if (heads.isEmpty()){
-      return "No package head file found for package \"" + pkgName + "\".\n"
+      return "No package head file found for package " + Message.displayString(pkgName) + ".\n"
       + "Each package must have exactly one source file whose name matches the package name.\n"
-      + "For example, for package \"" + pkgName + "\" you would typically have a file named\n"
+      + "For example, for package " + Message.displayString(pkgName) + " you would typically have a file named\n"
       + "    " + pkgName + ".fear\n"
-      + "in  some folder inside the project folder.\n";
+      + "in some folder inside the project folder.\n";
     }
     StringBuilder sb= new StringBuilder()
       .append("Ambiguous package head file for package \"")
@@ -94,11 +92,6 @@ public final class WellFormednessErrors {
       .append(pkgName)
       .append(".fear\".");
     return sb.toString();
-  }
-  private static String lastSegment(URI u){
-    String p= u.getPath();
-    int i= p.lastIndexOf('/');
-    return i >= 0 ? p.substring(i + 1) : p;
   }
   public static FearlessException noRole(URI uri, FileFull f){
     return Code.WellFormedness.of(() -> buildMessageNoRole(uri, f)).addSpan(new Span(uri,0,0,1,1));
@@ -122,7 +115,7 @@ public final class WellFormednessErrors {
       var clash= keySet.contains(n.s());
       if (!clash){ continue; }
       return Code.WellFormedness.of(
-        "Name clash: name "+Message.displayString(n.s())+" is declared in package \""+pkgName+"\".\n"
+        "Name clash: name "+Message.displayString(n.s())+" is declared in package "+Message.displayString(pkgName)+".\n"
         +"Name "+Message.displayString(n.s())+" is also used in a \"use\" directive.\n"
         ).addFrame("a type name",Parser.span(n.pos(),n.s().length()));
     }
@@ -162,24 +155,29 @@ public final class WellFormednessErrors {
       return Optional.of(make(msg));
     }
     private <A,R> List<R> userMap(Function<A,R> f,Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
+
     private Optional<FearlessException> otherArity(){
       List<TName> candidates= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
       var arities= userMap(TName::arity,candidates.stream()
         .filter(t -> t.simpleName().equals(typedSimple)));
       assert !arities.contains(tn.arity());
       if (arities.isEmpty()){ return Optional.empty(); }
+      String targetPkg = typedPkg.isEmpty() ? contextPkg : typedPkg;
       StringBuilder msg= new StringBuilder()
+        .append("Name ").append(Message.displayString(typedSimple))
+        .append(" is not declared with ").append(tn.arity())
+        .append(" generic parameter(s) in package ")
+        .append(Message.displayString(targetPkg))
+        .append(".\n")
         .append("Name ")
         .append(Message.displayString(typedSimple))
-        .append(" is not declared with arity ")
-        .append(tn.arity())
-        .append(" in package \"")
-        .append(typedPkg.isEmpty() ? contextPkg : typedPkg)
-        .append("\".\n")
-        .append("Available arities here: ")
-        .append(arities.stream().map(Object::toString).collect(Collectors.joining(", ")))
-        .append(".\n")
-        .append("Did you accidentally add/omit a generic type parameter?\n");
+        .append(" is only declared with ");
+      if (arities.size() == 1){ msg.append(arities.getFirst()).append(" generic parameter(s)"); }
+      else{msg
+        .append("the following numbers of generic parameters: ")
+        .append(arities.stream().map(Object::toString).collect(Collectors.joining(", ")));
+      }
+      msg.append(".\nDid you accidentally add or omit a generic type parameter?\n");
       return Optional.of(make(msg));
     }
     private FearlessException undeclaredInPkg(){
@@ -198,10 +196,10 @@ public final class WellFormednessErrors {
       return make(msg);
     }
     private String relevantPkgMsg(){
-      return "\""+(typedPkg.isEmpty()
-        ? contextPkg+"\" and is not made visible via \"use\""
-        : typedPkg+"\"");
+      if (!typedPkg.isEmpty()){ return Message.displayString(typedPkg); }
+      return Message.displayString(contextPkg)+" and is not made visible via \"use\"";
     }
+    
     private List<TName> typesInPkg(String pkg){
       return all.stream().filter(t -> t.pkgName().equals(pkg)).toList();
     }
@@ -238,13 +236,14 @@ public final class WellFormednessErrors {
     int len= sb.length();
     if (len > 0 && sb.charAt(len - 1) == '\n'){ sb.setLength(len - 1); }
   }
-
-  public static FearlessException unkownUseHead(TName tn){
-   var at= Parser.span(tn.pos(),tn.s().length());
-   return Code.WellFormedness.of(
-     "\"use\" directive referes to undeclared name: name "+Message.displayString(tn.simpleName())+" is not declared in package \""+tn.pkgName()+"\".\n"
-     ).addFrame("package header",at);
-   }
+  public static FearlessException unknownUseHead(TName tn){
+    var at= Parser.span(tn.pos(),tn.s().length());
+    return Code.WellFormedness.of(
+      "\"use\" directive refers to undeclared name: type "
+      +Message.displayString(tn.simpleName())
+      +" is not declared in package " + Message.displayString(tn.pkgName()) + ".\n"
+    ).addFrame("package header", at);
+  }
  public static FearlessException genericTypeVariableShadowTName(String pkgName, Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
    var mergeAllXs= allXs.values().stream().flatMap(Set::stream).toList();
    for(var n : mergeAllXs){
@@ -256,7 +255,8 @@ public final class WellFormednessErrors {
  }
  private static FearlessException shadowMsg(String pkgName, T.X n, boolean use){
    return Code.WellFormedness.of(
-     "Gemeric type parameter "+Message.displayString(n.name())+" declared in package \""+pkgName+"\".\n"
+     "Generic type parameter " + Message.displayString(n.name())
+     +" is declared in package \"" + pkgName + "\".\n"
      + "Name "+Message.displayString(n.name())+" is also used "
      + (use?"in a \"use\" directive.\n":"as a type name.\n")
      ).addFrame("a type name",Parser.span(n.pos(),n.name().length()));
@@ -304,7 +304,7 @@ public final class WellFormednessErrors {
   }
   public static FearlessException noSourceToInferFrom(M m){
     return Code.WellFormedness.of(//Note: an 'origin' is likely to be a fresh name anyway
-      "Can not infer signature of method "+formatSig(m.sig())+".\n"
+      "Cannot infer signature of method "+formatSig(m.sig())+".\n"
     + "No supertype has a method with "+m.sig().ts().size()+" parameters.\n"
       ).addSpan(Parser.span(m.sig().pos(),100));
   }
@@ -323,29 +323,35 @@ public final class WellFormednessErrors {
       msg+ " for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types: "+res.stream()
       .map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
-    + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
+    + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly choosing the desired option.\n"
       ));
   }
   public static FearlessException agreementSize(Agreement at, FreshPrefix fresh, List<List<B>> res) {
     return agreement(at,fresh,Code.WellFormedness.of(
-      "Number of generic type parameters disagreement for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
-    + "Different options are present in the implemented types: "+res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
-    + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly chosing the desired option.\n"
+    "The number of generic type parameters disagrees for method "
+    + Message.displayString(at.mName().s())
+    + " with " + at.mName().arity() + " parameters.\n"
+    + "Different options are present in the implemented types: "
+    + res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
+    + "Type "+Message.displayString(at.cName().s())
+    + " cannot implement all of those types.\n"
       ));
    }
    public static FearlessException methodGenericArityDisagreesWithSupers(Agreement at, FreshPrefix fresh, int userArity, int superArity, List<B> userBs, List<B> superBs){
     return agreement(at,fresh,Code.WellFormedness.of(
-      "Method "+Message.displayString(at.mName().s())+" declares "+userArity+" generic parameter(s), "
-    + "but supertypes declare "+superArity+".\n"
-    + "Local declaration: "+Message.displayString(userBs.toString())+".\n"
-    + "From supertypes: "+Message.displayString(superBs.toString())+".\n"
-    + "Change the local arity to "+superArity+", or adjust supertypes.\n"
+      "Method " + Message.displayString(at.mName().s())
+    + " declares " + userArity + " generic parameter(s), "
+    + "but supertypes declare " + superArity + ".\n"
+    + "Local declaration: " + Message.displayString(userBs.toString()) + ".\n"
+    + "From supertypes: " + Message.displayString(superBs.toString()) + ".\n"
+    + "Change the local number of generic parameters to "
+    + superArity + ", or adjust the supertypes.\n" 
     ));
   }
 
-  public static FearlessException ambiguosImpl(TName origin, FreshPrefix fresh, boolean abs, M m, List<inferenceGrammar.M.Sig> options){
+  public static FearlessException ambiguousImpl(TName origin, FreshPrefix fresh, boolean abs, M m, List<inferenceGrammar.M.Sig> options){
     return agreement(origin,fresh,m.sig().pos(),Code.WellFormedness.of(
-      "Can not infer the name for method with "+m.sig().ts().size()+" parameters.\n"
+      "Cannot infer the name for method with "+m.sig().ts().size()+" parameters.\n"
     + "Many"+(abs?" abstract":"")+" methods with "+m.sig().ts().size()+" parameters could be selected:\n"
     + "Candidates: "+options.stream()
         .map(mi->Message.displayString(mi.rc().get()+" "+mi.m().get().s()))
@@ -353,8 +359,8 @@ public final class WellFormednessErrors {
       ));
   }
   public static FearlessException ambiguousImplementationFor(List<M.Sig> ss, List<TName> options, Agreement at, FreshPrefix fresh){
-    return agreement(at,fresh,Code.WellFormedness.of(
-      "Ambiguos implementation for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
+    return agreement(at,fresh,Code.WellFormedness.of(    
+      "Ambiguous implementation for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types:\n"
     + "Candidates: "+options.stream()
         .map(mi->Message.displayString(mi.s()))
@@ -364,7 +370,7 @@ public final class WellFormednessErrors {
   }
   public static FearlessException noRetNoInference(TName origin, M m, FreshPrefix fresh){
     return agreement(origin,fresh,m.sig().pos(),Code.WellFormedness.of(
-      "Can not infer return type of method "+formatSig(m.sig())+".\n"
+      "Cannot infer return type of method "+formatSig(m.sig())+".\n"
     + "No supertype has a method named "+Message.displayString(m.sig().m().get().s())+" with "+m.sig().ts().size()+" parameters.\n"
       ));
   }
@@ -389,9 +395,9 @@ public final class WellFormednessErrors {
     String ctx= typeContextLabel("Type ","Literal implementing type ", owner,fresh);
     var msg= new StringBuilder()
       .append(ctx)
-      .append(" implements sealed type")
+      .append(" implements sealed type ")
       .append(Message.displayString(isSealed.s()))
-      .append(".\nSealed types can only be implemented in ther own package.\n")
+      .append(".\nSealed types can only be implemented in their own package.\n")
       .append(ctx)      
       .append(" is defined in package ")
       .append(Message.displayString(ownerPkg))

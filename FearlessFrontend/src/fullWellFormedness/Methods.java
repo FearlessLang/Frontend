@@ -175,12 +175,12 @@ public record Methods(
       ss.removeIf(s->s.m().get().arity()==arity && s.abs()?match.add(s):false);
       var count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(origin,fresh,true,m,match); }
+      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin,fresh,true,m,match); }
       assert match.isEmpty();
       ss.removeIf(s->s.m().get().arity()==arity?match.add(s):false);
       count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguosImpl(origin,fresh,false,m,match); }
+      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin,fresh,false,m,match); }
       throw WellFormednessErrors.noSourceToInferFrom(m);
     }
     return res;

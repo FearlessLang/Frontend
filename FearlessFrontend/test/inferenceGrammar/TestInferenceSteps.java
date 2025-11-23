@@ -498,9 +498,9 @@ In file: [###]/in_memory0.fear
    |                ^^^^^^^^^^
 
 While inspecting literal implementing type "p.A"
-Can not infer return type of method ".m:?".
+Cannot infer return type of method ".m:?".
 No supertype has a method named ".m" with 0 parameters.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 A:{}
 User:{ .m:A->{ .m->A;}; }
@@ -513,11 +513,11 @@ In file: [###]/in_memory0.fear
    | ^^^^^
 
 While inspecting type declaration "User"
-Type "User" implements sealed type"base.Void".
-Sealed types can only be implemented in ther own package.
+Type "User" implements sealed type "base.Void".
+Sealed types can only be implemented in their own package.
 Type "User" is defined in package "p".
 Type "Void" is defined in package "base".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 A:{}
 User:base.Void{ .m:A->A }
@@ -531,11 +531,11 @@ In file: [###]/in_memory0.fear
    | ^^^^^
 
 While inspecting type declaration "User"
-Type "User" implements sealed type"base.Void".
-Sealed types can only be implemented in ther own package.
+Type "User" implements sealed type "base.Void".
+Sealed types can only be implemented in their own package.
 Type "User" is defined in package "p".
 Type "Void" is defined in package "base".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 A:{}
 User:base.Void{}
@@ -548,11 +548,11 @@ In file: [###]/in_memory0.fear
    | ^^^^^
 
 While inspecting type declaration "User"
-Type "User" implements sealed type"base.Void".
-Sealed types can only be implemented in ther own package.
+Type "User" implements sealed type "base.Void".
+Sealed types can only be implemented in their own package.
 Type "User" is defined in package "p".
 Type "Void" is defined in package "base".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,importMini,List.of("""
 A:{}
 User:Void{ .m:A->A }
@@ -565,11 +565,11 @@ In file: [###]/in_memory0.fear
    | ^^^^^^
 
 While inspecting literal implementing type "base.Void"
-Literal implementing type "base.Void" implements sealed type"base.Void".
-Sealed types can only be implemented in ther own package.
+Literal implementing type "base.Void" implements sealed type "base.Void".
+Sealed types can only be implemented in their own package.
 Literal implementing type "base.Void" is defined in package "p".
 Type "Void" is defined in package "base".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 A:{}
 User:{ .m:base.Void->{ .m:A->A;}; }
@@ -718,6 +718,6 @@ B2[X]:A{.m(z)->z.beer[X]}
 //arguably, this could be applied when making the transition inference->core
 //TODO: when committing to class table consider replacing all the bodies with Void or Magic! to avoid worst case shenario quadratic memory consumption.
 
-//TODO: if some error about rc disagreement can not be triggered any more, they should become asserts
+//TODO: if some error about rc disagreement cannot be triggered any more, they should become asserts
 //search for 'Reference capability disagreement'
 }

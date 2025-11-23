@@ -62,7 +62,7 @@ public class ParsePackage{
       p = map.getOrDefault(p,p);//if "" will return "" anyway
       map.put(u.out(),p+"."+u.in().simpleName());
       var ok= otherDom.stream().anyMatch(e->e.s().equals(u.in().s()));
-      if (!ok){ throw WellFormednessErrors.unkownUseHead(u.in()); }    
+      if (!ok){ throw WellFormednessErrors.unknownUseHead(u.in()); }    
     }
     //map a as b in c
     //use b.F as bF // replace bF with a.F

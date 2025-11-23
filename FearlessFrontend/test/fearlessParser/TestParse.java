@@ -86,7 +86,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration > full file
 A method signature cannot declare multiple generic type parameters with the same name
 Generic type parameter "X" is repeated
-Error 2  UnexpectedToken""","""
+Error 2 UnexpectedToken""","""
 Pair[X,X]:{ .x:X; .y:X;}
 """);}
 @Test void meth_generics_use_repeat(){fail("""
@@ -98,7 +98,7 @@ In file: [###]/in_memory0.fear
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple generic type parameters with the same name
 Generic type parameter "X" is repeated
-Error 2  UnexpectedToken""","""
+Error 2 UnexpectedToken""","""
 Pairs:{.of[X,X]():A->A;}
 """);}
 
@@ -111,7 +111,7 @@ In file: [###]/in_memory0.fear
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple generic type parameters with the same name
 Generic type parameter "X" is repeated
-Error 2  UnexpectedToken""","""
+Error 2 UnexpectedToken""","""
 Pairs:{#[X,X]():A->A;}
 """);}//here we need to fix the tokenizer
 
@@ -122,8 +122,8 @@ In file: [###]/in_memory0.fear
    | ------------------------~~~~~^~~~~~~~~---
 
 While inspecting generic bounds declaration > method declaration > type declaration body > type declaration > full file
-Name "X" already in scope
-Error 2  UnexpectedToken
+Name "X" already in scope.
+Error 2 UnexpectedToken
 ""","""
 Pair[X,Y]:{ .x:X; .y:Y; .foo[X](x:X):X; }
 """);}
@@ -135,8 +135,8 @@ In file: [###]/in_memory0.fear
    | --------------~~~~~~~~^~~~~~~~---
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Name "X" already in scope
-Error 2  UnexpectedToken
+Name "X" already in scope.
+Error 2 UnexpectedToken
 ""","""
 A:{.foo[X]:A->B:{.bar[X]:B->B}; }
 """);}
@@ -154,7 +154,7 @@ In file: [###]/in_memory0.fear
 While inspecting generic bounds declaration > method body > method declaration > type declaration body > type declaration > full file
 Generic type "C" is not in scope.
 Declared generics: "X".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A[X]:{.foo:AA->B[C]:{.bar:BB->BB}; }
 """);}
@@ -176,7 +176,7 @@ Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 ""","""
 A:{ `x .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
 """);}
@@ -187,9 +187,9 @@ In file: [###]/in_memory0.fear
    | ~~~~~^^^~~~~~~~~~~~~~~~~~--------------------------------------------------------
 
 While inspecting type declaration body > type declaration > full file
-Self name abc invalid in a top level type.
-Top level types self names can only be " 'this ".
-Error 9  WellFormedness
+Self name "abc" is invalid in a top level type.
+Top level types self names can only be "this".
+Error 9 WellFormedness
 ""","""
 A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be this or nothing
 """);}
@@ -456,7 +456,7 @@ In file: [###]/in_memory0.fear
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
 Expected: "type name".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m(): -> (Block#.let x={5}) .use(x) }
 """);}
@@ -469,7 +469,7 @@ In file: [###]/in_memory0.fear
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Missing method name.
 Expected one of: ".name", "binary operator (eg. +, *, -)".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> (Block#.let x={5}) .use(x) }
 """);}
@@ -483,7 +483,7 @@ In file: [###]/in_memory0.fear
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Name "x" is not in scope
 In scope: "this".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> (Block#.let x={5}.bar) .use(x) }
 """);}
@@ -498,7 +498,7 @@ In file: [###]/in_memory0.fear
 While inspecting arguments list > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Name "x" is not in scope
 In scope: "this".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> 
 ( (Block#.let x={5}.bar) .use(x) )
@@ -515,7 +515,7 @@ In file: [###]/in_memory0.fear
 While inspecting arguments list > expression in round parenthesis > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Name "x" is not in scope
 In scope: "this".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> 
 (   (  (Block#.let x={5}.bar) .use(x)       )      )
@@ -533,7 +533,7 @@ In file: [###]/in_memory0.fear
 While inspecting expression in round parenthesis > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
 Use: ".m x = expression" or ".m {a,b} = expression".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> 
 (   (    Block#.let x= .use(x)    )      )
@@ -550,7 +550,7 @@ In file: [###]/in_memory0.fear
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
 Missing type name.
 Expected: "type name".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m(a,,b):C }
 """);}
@@ -564,7 +564,7 @@ In file: [###]/in_memory0.fear
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Expected one of: "name", "type name", "(", "{".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m(x:C):C->x.foo(,) }
 """);}
@@ -577,7 +577,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Illegal character [TAB 0x09]
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ \t .m(x:C):C->x.foo(,) }
 """);}
@@ -592,7 +592,7 @@ While inspecting groups of parenthesis
 File ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 ""","""
 A:{
 """);}
@@ -607,7 +607,7 @@ While inspecting groups of parenthesis
 File ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 ""","""
 A:{ fdfdds
 dsdds
@@ -632,7 +632,7 @@ In file: [###]/in_memory0.fear
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
 Expected: "type name".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 
@@ -667,7 +667,7 @@ In file: [###]/in_memory0.fear
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Name "y" is not in scope
 In scope: "this", "x".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m ->
@@ -688,7 +688,7 @@ While inspecting method body > method declaration > type declaration body > type
 Missing expression.
 Found instead: ".use".
 Expected one of: "name", "type name", "(", "{".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m ->
@@ -706,7 +706,7 @@ In file: [###]/in_memory0.fear
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Expected one of: "name", "type name", "(", "{".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m(x:C):C ->
@@ -727,7 +727,7 @@ In file: [###]/in_memory0.fear
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Name "y" is not in scope
 In scope: "this".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{//comment1
 .m -> y;//removing this semicol should give a clear missing separator error
@@ -747,7 +747,7 @@ In file: [###]/in_memory0.fear
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Name "y" is not in scope
 In scope: "this".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m -> y;//removing this semicol should give a clear missing separator error
@@ -763,8 +763,8 @@ In file: [###]/in_memory0.fear
    |    ^^
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing ";", operator or method name here or before.
-Error 6  MissingSeparator
+There is a missing semicolon ";", operator, or method name here or earlier.
+Error 6 MissingSeparator
 ""","""
 A:{
 .m -> y
@@ -781,7 +781,7 @@ In file: [###]in_memory0.fear
 While inspecting groups of parenthesis
 Unopened "}".
 This "}" may be unintended.
-Error 1  Unopened
+Error 1 Unopened
 ""","""
 A: a b c } f e
 """);}
@@ -795,7 +795,7 @@ While inspecting method declaration > type declaration body > type declaration >
 Missing expression.
 Found instead: ":".
 Expected one of: "name", "type name", "(", "{".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> :+45 }
 """);}
@@ -810,7 +810,7 @@ Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ x -> x.foo [read] }
 """);}
@@ -823,7 +823,7 @@ In file: [###]in_memory0.fear
 While inspecting common ambiguities
 Unrecognized text "+|".
 A "|" immediately before a quote starts [###].
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> +|`a'
   }
@@ -838,7 +838,7 @@ While inspecting method body > method declaration > type declaration body > type
 Capability readH used.
 Capabilities readH and mutH are not allowed on closures
 Use one of read, mut, imm, iso.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> readH +5{} }
 """);}
@@ -852,7 +852,7 @@ While inspecting method body > method declaration > type declaration body > type
 Capability mutH used.
 Capabilities readH and mutH are not allowed on closures
 Use one of read, mut, imm, iso.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> mutH -5{} }
 """);}
@@ -865,7 +865,7 @@ In file: [###]in_memory0.fear
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
 Use: ".m x = expression" or ".m {a,b} = expression".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> Block#.let x= .use(x) }
 """);}
@@ -879,7 +879,7 @@ In file: [###]in_memory0.fear
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple parameters with the same name
 Parameter "x" is repeated
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m(x,x) -> x }
 """);}
@@ -896,8 +896,8 @@ In file: [###]in_memory0.fear
    | ------^---
 
 While inspecting super types declaration > type declaration > full file
-Name "X" is used as a type name, but  "X" is already a generic type parameter in scope
-Error 2  UnexpectedToken
+Name "X" is used as a type name, but "X" is already a generic type parameter in scope.
+Error 2 UnexpectedToken
 ""","""
 A[X]: X {}
 """);}
@@ -909,11 +909,11 @@ In file: [###]/in_memory0.fear
    | --~~^^^----
 
 While inspecting generic bounds declaration > type declaration > full file
-Invalid bound for generic X
+Invalid bound for generic "X"
 Only '*' or '**' are allowed here
 Write: X:*   meaning mut,read,imm
-   or: X:**  meaning everything
-Error 2  UnexpectedToken
+   or: X:**  meaning everything.
+Error 2 UnexpectedToken
 ""","""
 A[X:***]:{}
 """);}
@@ -927,7 +927,7 @@ In file: [###]/in_memory0.fear
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple parameters with the same name
 Parameter "x" is repeated
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m(x,x) -> x }
 """);
@@ -941,8 +941,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
 Found spacing between closed curly and destruct id "Bob".
-There need to be no space between the closed curly and the destruct id.
-Error 2  UnexpectedToken
+There must be no space between the closed curly and the destruct id.
+Error 2 UnexpectedToken
 ""","""
 A:{ .m({.a} Bob:X):X }
 """);
@@ -956,7 +956,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Illegal character [NBSP 0x00A0]
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,
 "A:{\u00A0.m():X }");
 }
@@ -970,7 +970,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Illegal character [ZWJ 0x200D]
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,
 "A:{\u200D\u00A0\uFEFF\u202E.m():X }");
 }
@@ -984,7 +984,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Illegal character [RLO 0x202E]
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,
 "A:{\u202E\u00A0\u200D\u200C.m():X }");
 }
@@ -998,7 +998,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Illegal character [BOM 0xFEFF]
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,
 "A:{\uFEFF\u200B\u3000.m():X }");
 }
@@ -1011,7 +1011,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Illegal character [IDEOGRAPHIC SPACE 0x3000]
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,
 "A:{\u3000\u200B\u200F\u00A0.m():X }");
 }
@@ -1024,7 +1024,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Illegal character "\\uD83D\\uDE00"
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,
 "A:{\uD83D\uDE00\u00A0\u200D.m():X }");
 }
@@ -1039,7 +1039,7 @@ In file: [###]/in_memory0.fear
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
 Use: ".m x = expression" or ".m {a,b} = expression".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m:Str ->
@@ -1058,7 +1058,7 @@ In file: [###]/in_memory0.fear
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
 Use: ".m x = expression" or ".m {a,b} = expression".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m:Str ->
@@ -1076,7 +1076,7 @@ In file: [###]/in_memory0.fear
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
 Use: ".m x = expression" or ".m {a,b} = expression".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m(x):Str ->
@@ -1095,7 +1095,7 @@ In file: [###]/in_memory0.fear
 While inspecting expression in round parenthesis > expression in round parenthesis > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
 Use: ".m x = expression" or ".m {a,b} = expression".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m:Str ->
@@ -1112,7 +1112,7 @@ In file: [###]in_memory0.fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Unopened string interpolation placeholder
-Error 8  InterpolationNoOpen
+Error 8 InterpolationNoOpen
 ""","""
 A:{
 .m:Str ->
@@ -1129,8 +1129,8 @@ In file: [###]in_memory0.fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 String interpolation placeholder opened inside interpolation expression.
-Note: "{" can not be used in single "#" interpolation expressions. Use at least "##".
-Error 7  InterpolationNoClose
+Note: "{" cannot be used in single "#" interpolation expressions. Use at least "##".
+Error 7 InterpolationNoClose
 ""","""
 A:{
 .m:Str ->
@@ -1161,7 +1161,7 @@ In file: [###]in_memory0.fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Unopened string interpolation placeholder
-Error 8  InterpolationNoOpen
+Error 8 InterpolationNoOpen
 ""","""
 A:{
 .m:Str ->
@@ -1178,7 +1178,7 @@ In file: [###]in_memory0.fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Unopened string interpolation placeholder
-Error 8  InterpolationNoOpen
+Error 8 InterpolationNoOpen
 ""","""
 A:{
 .m:Str ->
@@ -1241,7 +1241,7 @@ In file: [###]in_memory0.fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Unopened string interpolation placeholder
-Error 8  InterpolationNoOpen
+Error 8 InterpolationNoOpen
 ""","""
 A:{
 .m:Str ->
@@ -1279,7 +1279,7 @@ While inspecting groups of parenthesis > string interpolation expression > metho
 Interpolation expression ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 ""","""
 A:{
 .m:Str ->
@@ -1344,7 +1344,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Unclosed string interpolation placeholder
-Error 7  InterpolationNoClose
+Error 7 InterpolationNoClose
 ""","""
 A:{
 .m:Str ->
@@ -1391,7 +1391,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Unopened string interpolation placeholder
-Error 8  InterpolationNoOpen
+Error 8 InterpolationNoOpen
 ""","""
 A:{
 .m:Str ->
@@ -1408,8 +1408,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 String interpolation placeholder opened inside interpolation expression.
-Note: "{" can not be used in single "#" interpolation expressions. Use at least "##".
-Error 7  InterpolationNoClose
+Note: "{" cannot be used in single "#" interpolation expressions. Use at least "##".
+Error 7 InterpolationNoClose
 ""","""
 A:{
 .m:Str ->
@@ -1448,7 +1448,7 @@ While inspecting groups of parenthesis > string interpolation expression > metho
 Interpolation expression ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 ""","""
 A:{
 .m:Str ->
@@ -1499,7 +1499,7 @@ While inspecting groups of parenthesis > string interpolation expression > metho
 Interpolation expression ended while parsing a "(" group.
 This "(" may be unintended.
 Otherwise expected: ")".
-Error 0  Unclosed
+Error 0 Unclosed
 ""","""
 A:{
 .m:Str ->
@@ -1529,7 +1529,7 @@ In file: [###]/in_memory0.fear
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Expected one of: "name", "type name", "(", "{".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m:Str ->
@@ -1572,7 +1572,7 @@ While inspecting string interpolation expression > method body > method declarat
 Missing expression.
 Found instead: ",".
 Expected one of: "name", "type name", "(", "{".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m(x:X):Str ->
@@ -1614,7 +1614,7 @@ In file: [###]/in_memory0.fear
 While inspecting common ambiguities
 Unrecognized text "^-^|".
 A "|" immediately before a quote starts a [###].
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> 
  |"b
@@ -1677,7 +1677,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 String interpolation changes midway from Unicode to Simple.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m:Str ->
@@ -1709,8 +1709,8 @@ In file: [###]/in_memory0.fear
 006| .z(3)
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing ";", operator or method name here or before.
-Error 6  MissingSeparator
+There is a missing semicolon ";", operator, or method name here or earlier.
+Error 6 MissingSeparator
 ""","""
 A:{
 .m:Str ->
@@ -1741,7 +1741,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting a string literal
 String literal [BACKTICK (`) 0x60] reaches the end of the line.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 x ->
@@ -1759,7 +1759,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Unclosed string interpolation placeholder
-Error 7  InterpolationNoClose
+Error 7 InterpolationNoClose
 ""","""
 A:{
 .m:Str ->
@@ -1789,7 +1789,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting a block comment > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Unterminated block comment. Add "*/" to close it.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m:Str ->
@@ -1807,8 +1807,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 String interpolation placeholder opened inside interpolation expression.
-Note: "{" can not be used in single "#" interpolation expressions. Use at least "##".
-Error 7  InterpolationNoClose
+Note: "{" cannot be used in single "#" interpolation expressions. Use at least "##".
+Error 7 InterpolationNoClose
 ""","""
 A:{
 .m:Str ->
@@ -1849,7 +1849,7 @@ Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{
 .m:Str ->
@@ -1898,7 +1898,7 @@ Write "1 + 2" not "1+2".
 Write "+1 + +2" not "+1+2".
 Write "+0.53 + +2.32" not "0.53+2.32".
 Write "+3/2 + +4/5" not "3/2+4/5".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m -> 1+2 }
 """); }
@@ -1924,7 +1924,7 @@ In file: [###]/in_memory0.fear
 While inspecting a string literal
 String literal [DQUOTE (") 0x22] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -1941,7 +1941,7 @@ In file: [###]/in_memory0.fear
 While inspecting a string literal
 String literal [BACKTICK (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -1959,7 +1959,7 @@ In file: [###]/in_memory0.fear
 While inspecting a string literal
 String literal [BACKTICK (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -1977,7 +1977,7 @@ In file: [###]/in_memory0.fear
 While inspecting a string literal
 String literal [BACKTICK (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -1995,7 +1995,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting a string literal
 String literal [DQUOTE (") 0x22] reaches the end of the line.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2012,7 +2012,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting a string literal
 String literal [BACKTICK (`) 0x60] reaches the end of the line.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2031,7 +2031,7 @@ While inspecting a string literal
 String literal [DQUOTE (") 0x22] reaches the end of the line.
 A preceding block comment "/* ... */" on this line contains that quote.
 Did it swallow the intended opening quote?
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2051,7 +2051,7 @@ While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
 Did you mean to place the opener outside the string/comment?
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2072,7 +2072,7 @@ While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
 Did you mean to place the opener outside the string/comment?
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2092,7 +2092,7 @@ While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
 Did you mean to place the opener outside the string/comment?
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2117,7 +2117,7 @@ While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a line comment "//" before this point.
 Did you mean to place the opener outside the string/comment?
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2134,8 +2134,9 @@ In file: [###]/in_memory0.fear
    |     ^^
 
 While inspecting comments
-Unopened block comment close "*/". Remove it or add a matching "/*" before.
-Error 2  UnexpectedToken
+Unopened block comment close "*/".
+Remove it, or add a matching "/*" earlier on.
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2153,7 +2154,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting a block comment
 Unterminated block comment. Add "*/" to close it.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2174,7 +2175,7 @@ An operator followed by a digit is parsed as a signed number (e.g. "+5", "-3").
 Operators can also contain "+" and "-", making it ambiguous what, for example, "<--5" means.
 It could be the "<--" operator followed by "5" but also the "<-" operator followed by "-5".
 Please add spaces to disambiguate:  "<-- 5"   or   "<- -5".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2195,7 +2196,7 @@ Unrecognized text "1.2".
 Float literals must have a sign and digits on both sides of ".".
 Examples: "+1.0", "-0.5", "+12.0e-3".
 Fearless does not allow float literals of form "1.2" or ".2".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2215,7 +2216,7 @@ Unrecognized text "1/2".
 Rational literals must have a sign.
 Examples: "+1/2", "-3/4".
 Fearless does not allow rational literals of form "1/2".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """, """
 A:{
   .m:Str ->
@@ -2235,7 +2236,7 @@ Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 ""","""
 A:{ .m:Str -> "price is } dollars" ) }
 """);}
@@ -2251,7 +2252,7 @@ Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> `oops } here` ) }
 """);}
@@ -2267,7 +2268,7 @@ Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> |"hello } world" ) }
 """);}
@@ -2283,7 +2284,7 @@ Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
 Did you mean to place the closer outside the block comment "/* ... */"?
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> /* } inside */ ) }
 """);}
@@ -2299,7 +2300,7 @@ Unclosed "{" group.
 Found a matching closer inside a line comment "//" between here and the stopping point.
 Did you mean to place the closer outside the line comment "//"?
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> // } swallowed
 ) }
@@ -2316,7 +2317,7 @@ Unclosed "(" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
 Otherwise expected: ")".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> ( ")]" + " has ) here ) inside" } 
 """);}
@@ -2332,7 +2333,7 @@ Unclosed "[" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
 Otherwise expected: "]".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> W[ "list ] marker" ) ] }
 """);}
@@ -2348,7 +2349,7 @@ Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 ""","""
 A:{ .m:Str -> { "inner } hidden"
 """);}
@@ -2364,7 +2365,7 @@ Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
 Did you mean to place the closer outside the block comment "/* ... */"?
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> { /* } hidden */ 
 """);}
@@ -2380,7 +2381,7 @@ Unclosed "[" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
 Did you mean to place the closer outside the block comment "/* ... */"?
 Otherwise expected: "]".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> Foo[ /* ] hidden */ } ]
 """);}
@@ -2395,7 +2396,7 @@ While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a string literal before this point.
 Did you mean to place the opener outside the string literal?
-Error 1  Unopened
+Error 1 Unopened
 """,""" 
 A:{ .m:Str -> "call (" ) }
 """);}
@@ -2410,7 +2411,7 @@ While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a line comment "//" before this point.
 Did you mean to place the opener outside the line comment "//"?
-Error 1  Unopened
+Error 1 Unopened
 """,""" 
 A:{ .m:Str -> // ( swallowed
 ) }
@@ -2426,7 +2427,7 @@ While inspecting groups of parenthesis
 Unopened "]".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
 Did you mean to place the opener outside the block comment "/* ... */"?
-Error 1  Unopened
+Error 1 Unopened
 """,""" 
 A:{ .m:Str -> /* [ hidden */ ] }
 """);}
@@ -2441,7 +2442,7 @@ While inspecting groups of parenthesis
 Unopened "}".
 Found a matching opener hidden inside a string literal before this point.
 Did you mean to place the opener outside the string literal?
-Error 1  Unopened
+Error 1 Unopened
 """,""" 
 .m:Str -> "start { here" } 
 """);}
@@ -2456,7 +2457,7 @@ While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
 Did you mean to place the opener outside the block comment "/* ... */"?
-Error 1  Unopened
+Error 1 Unopened
 ""","""
 A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
 """);}
@@ -2472,7 +2473,7 @@ Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 ""","""
 A:{ .m:Str -> |"vec [ x" ] }
 """);}
@@ -2488,7 +2489,7 @@ Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m:Str -> ((1 + 2)) ) }
 """);}
@@ -2503,7 +2504,7 @@ While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
 Expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m:Str -> Foo[Bar] ] ) }
 """);}
@@ -2519,7 +2520,7 @@ Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m(a,b):Str -> (a + b)) } 
 """);}
@@ -2534,7 +2535,7 @@ While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
 Expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m:Str -> A[mut,imm]] ) }
 """);}
@@ -2550,7 +2551,7 @@ Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m(foo,bar):Str -> (foo + bar)) 
 """);}
@@ -2566,7 +2567,7 @@ Wrong closer for "{" group.
 Found instead: "]".
 This "]" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m:Str -> A[X,Y,Z]] 
 """);}
@@ -2582,7 +2583,7 @@ Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
 """);}
@@ -2597,7 +2598,7 @@ While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
 Expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
 """);}
@@ -2613,7 +2614,7 @@ Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m:Str -> (((x))) ) }
 """);}
@@ -2629,7 +2630,7 @@ Wrong closer for "{" group.
 Found instead: "]".
 This "]" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m:Str -> A[B[X]] ] }
 """);}
@@ -2644,7 +2645,7 @@ While inspecting groups of parenthesis
 Wrong closer for "(" group.
 Found instead: "]".
 Expected: ")".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m:Str -> (1 + 2 ] }
 """);}
@@ -2659,7 +2660,7 @@ While inspecting groups of parenthesis
 Wrong closer for "[" group.
 Found instead: ")".
 Expected: "]".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m:Str -> E[1,2) }
 """);}
@@ -2674,7 +2675,7 @@ While inspecting groups of parenthesis
 File ended while parsing a "(" group.
 This "(" may be unintended.
 Otherwise expected: ")".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> (1 + 2
 """);}
@@ -2689,7 +2690,7 @@ While inspecting groups of parenthesis
 File ended while parsing a "[" group.
 This "[" may be unintended.
 Otherwise expected: "]".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> E[1, 2, 3
 """);}
@@ -2704,7 +2705,7 @@ Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m:Str -> { x: 1 ) }
 """);}
@@ -2720,7 +2721,7 @@ Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 """,""" 
 A:{ .m:Str -> { x: 1 ) }
 B:{} C:{}
@@ -2736,7 +2737,7 @@ While inspecting groups of parenthesis
 Unclosed "(" group before ";".
 This ";" may be unintended.
 Otherwise expected: ")".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> ( 1 + 2; ) }
 """);}
@@ -2751,7 +2752,7 @@ In file: [###]/in_memory0.fear
 While inspecting groups of parenthesis
 Unclosed "[" group before "{".
 Expected: "]".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> ( Foo[ { a } ) ] }
 """);}
@@ -2766,7 +2767,7 @@ While inspecting groups of parenthesis
 File ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> { a: 1, b: 2 
 """);}
@@ -2782,7 +2783,7 @@ Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
-Error 0  Unclosed
+Error 0 Unclosed
 """,""" 
 A:{ .m:Str -> { "json } aaa" 
 """);}
@@ -2804,7 +2805,7 @@ While inspecting header element > file header > full file
 Missing package name.
 Found instead: "fooBar".
 Expected: "id starting with a-z followed by any amount of a-z0-9 or the _ symbol".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 package fooBar;
 A:{} 
@@ -2822,7 +2823,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting the file
 Unrecognized text.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 package foo$bar;
 A:{} 
@@ -2839,7 +2840,7 @@ While inspecting header element > file header > full file
 Missing "package" keyword.
 Found instead: "pakage".
 Expected: "package".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 pakage foo_bar;
 A:{} 
@@ -2856,7 +2857,7 @@ In file: [###]/in_memory0.fear
 While inspecting header element > file header > full file
 Extra content in the current group.
 Instead, expected semicolon: ";".
-Error 4  ExtraTokenInGroup
+Error 4 ExtraTokenInGroup
 ""","""
 package foo_bar beer baz;
 A:{} 
@@ -2864,8 +2865,7 @@ A:{}
 
 @Test void pkgRoleMap(){ok(""" 
 FileFull[name=foo_bar,role=Optional[roleframework42],
-maps=[Map[in=goo,out=boo,target=foo_bar],
-Map[in=gor,out=goo,target=foo]],
+maps=[map goo as boo in foo_bar,map gor as goo in foo],
 uses=[],
 decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[]]]]
 ""","""
@@ -2905,7 +2905,7 @@ In file: [###]/in_memory0.fear
 While inspecting header element > file header > full file
 Extra content in the current group.
 Instead, expected semicolon: ";".
-Error 4  ExtraTokenInGroup
+Error 4 ExtraTokenInGroup
 ""","""
 package foo_bar
 role framework042;
@@ -2926,7 +2926,7 @@ In file: [###]/in_memory0.fear
 While inspecting header element > file header > full file
 Extra content in the current group.
 Instead, expected semicolon: ";".
-Error 4  ExtraTokenInGroup
+Error 4 ExtraTokenInGroup
 ""","""
 package foo_bar;
 role framework042
@@ -2944,8 +2944,8 @@ In file: [###]/in_memory0.fear
    | --------------~~~~~~~~~~~~~^^~-
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing ";", operator or method name here or before.
-Error 6  MissingSeparator
+There is a missing semicolon ";", operator, or method name here or earlier.
+Error 6 MissingSeparator
 ""","""
 A: base.Main{ .foo->A .beer->B}
 """);}
@@ -2964,7 +2964,7 @@ In file: [###]/in_memory0.fear
 While inspecting header element > file header > full file
 Missing "in" keyword.
 Expected: "in".
-Error 2  UnexpectedToken 
+Error 2 UnexpectedToken 
 ""","""
 package foo_bar;
 role framework042;
@@ -3096,8 +3096,8 @@ In file: ~/OneDrive/Desktop/Java2025_24/ws/FearlessFrontendTest/___DBG___/in_mem
    | ---------------^
 
 While inspecting header element > file header > full file
-There is already an entry in the mapping for (c,a).
-Error 2  UnexpectedToken
+There is already an entry in the mapping for "a" in "c".
+Error 2 UnexpectedToken
 ""","""
 package foo;
 map a as b1 in c;
@@ -3122,7 +3122,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting header element > file header > full file
 There is already an entry in the using with source "a1.B".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 package foo;
 use a1.B as B1;
@@ -3139,7 +3139,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting header element > file header > full file
 There is already an entry in the using with destination "F1".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 package foo;
 use a1.F as F1;
@@ -3158,7 +3158,7 @@ While inspecting header element > file header > full file
 Missing simple type name.
 Found instead: "beer.F1".
 Expected: "type name".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 package foo;
 use a1.F as beer.F1;
@@ -3175,7 +3175,7 @@ While inspecting header element > file header > full file
 Missing type name.
 Found instead: "a1".
 Expected one of: "type name", "signed number (eg. -23.0045)", "signed number (eg. -23)", "unsigned number (eg. 23)", "signed rational number (eg. +2.2/3.4)", "`...`", "\\"...\\"".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 package foo;
 use a1 as F1;
@@ -3199,7 +3199,7 @@ In file: [###]/in_memory0.fear
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Expected one of: "name", "type name", "(", "{".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m:Str ->
 #|"bad: {}" // empty payload -> not a unicode run; interpolation should error
@@ -3215,7 +3215,7 @@ In file: [###]/in_memory0.fear
 While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Name "uE9" is not in scope
 In scope: "this".
-Error 2  UnexpectedToken""","""
+Error 2 UnexpectedToken""","""
 A:{ .m:Str ->
 #|"bad: {U\\uE9}" // payload must start with backslash-u
 }"""); }
@@ -3259,7 +3259,7 @@ In file: [###]/in_memory0.fear
 While inspecting method declaration > type declaration body > type declaration > full file
 Code is attempting to use private name "_Bar" from package "foo".
 Type names starting with "_" can only be used in their own package, and only by their simple name.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .m:foo._Bar }
 """); }
@@ -3274,7 +3274,7 @@ In file: [###]/in_memory0.fear
 While inspecting header element > file header > full file
 Code is attempting to use private name "_Beer" from package "foo".
 Type names starting with "_" can only be used in their own package, and only by their simple name.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 package bla;
 use foo._Beer as Beer;
@@ -3291,7 +3291,7 @@ While inspecting type declaration > full file
 Missing simple type name.
 Found instead: "foo.A".
 Expected: "type name".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 foo.A:{  }
 """); }
@@ -3304,9 +3304,9 @@ In file: [###]/in_memory0.fear
 
 While inspecting package names
 Unrecognized text "aux.Bar".
-package names are restricted to be valid filenames on all operative systems.
-Names like aux, nul, lpt2 are invalid on windows.
-Error 2  UnexpectedToken
+Package names are restricted to be valid filenames on all operating systems.
+Names like aux, nul, lpt2 are invalid on Windows.
+Error 2 UnexpectedToken
 ""","""
 A:{ .foo:aux.Bar }
 """); }
@@ -3326,7 +3326,7 @@ While inspecting method declaration > type declaration body > type declaration >
 Capability iso used.
 Capabilities readH and mutH are not allowed on closures
 Use one of read, mut, imm, iso.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ iso .foo:Bar }
 """); }
@@ -3340,7 +3340,7 @@ While inspecting method declaration > type declaration body > type declaration >
 Capability readH used.
 Capabilities readH and mutH are not allowed on closures
 Use one of read, mut, imm, iso.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 
 ""","""
 A:{ readH .foo:Bar }
@@ -3355,7 +3355,7 @@ While inspecting method declaration > type declaration body > type declaration >
 Capability mutH used.
 Capabilities readH and mutH are not allowed on closures
 Use one of read, mut, imm, iso.
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ mutH .foo:Bar }
 """); }
@@ -3372,7 +3372,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method ".foo" redeclared.
 A method with the same name, arity and reference capability is already present.
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 A:{
  mut .baz:Bar;
@@ -3398,7 +3398,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method ".ban" redeclared.
 A method with the same name, arity and reference capability is already present.
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 A:{
  mut .ban(x):Bar;
@@ -3424,7 +3424,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method ".foo" redeclared.
 A method with the same name, arity and reference capability is already present.
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3450,7 +3450,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3476,7 +3476,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3502,7 +3502,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3538,7 +3538,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting type declaration > full file
 Duplicated supertype in type declaration: "B".
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 A:B,C,B,D{
  mut .ban(y):Bar->Block#
@@ -3557,7 +3557,7 @@ In file: [###]/in_memory0.fear
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 Abstract method declaration for ".foo: Bar".
 Only top level methods can be abstract.
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 A:{
  mut .ban(y):Bar->
@@ -3578,8 +3578,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
-Signature ".foo x: Bar" has some, but not all, type informations.
-Error 9  WellFormedness
+Signature ".foo x: Bar" has some, but not all, type information.
+Error 9 WellFormedness
 ""","""
 A:{ { .foo x:Bar->B; } }
 """); }
@@ -3592,8 +3592,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
-Signature "mut .foo" has some, but not all, type informations.
-Error 9  WellFormedness
+Signature "mut .foo" has some, but not all, type information.
+Error 9 WellFormedness
 ""","""
 A:{ { mut .foo->B; } }
 """); }
@@ -3605,8 +3605,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
-Signature ".foo[X]" has some, but not all, type informations.
-Error 9  WellFormedness
+Signature ".foo[X]" has some, but not all, type information.
+Error 9 WellFormedness
 ""","""
 A:{ { .foo[X]->B; } }
 """); }
@@ -3618,8 +3618,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
-Signature "mut .foo(x: Bar)" has some, but not all, type informations.
-Error 9  WellFormedness
+Signature "mut .foo(x: Bar)" has some, but not all, type information.
+Error 9 WellFormedness
 ""","""
 A:{ { mut .foo(x:Bar)->B; } }
 """); }
@@ -3647,7 +3647,7 @@ In file: [###]/in_memory0.fear
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Generic type "X" is not in scope.
 Declared generics: "Y".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A:{ .t[Y](x:mut X, y:read/imm X):X -> x }
 """); }
@@ -3680,8 +3680,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
-Signature ".foo: Bar" has some, but not all, type informations.
-Error 9  WellFormedness
+Signature ".foo: Bar" has some, but not all, type information.
+Error 9 WellFormedness
 ""","""
 A:{ { .foo:Bar -> :: .a } }
 """); }
@@ -3693,8 +3693,8 @@ In file: [###]/in_memory0.fear
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
-Signature "mut .foo" has some, but not all, type informations.
-Error 9  WellFormedness
+Signature "mut .foo" has some, but not all, type information.
+Error 9 WellFormedness
 ""","""
 A:{ { mut .foo -> :: .a } }
 """); }
@@ -3718,7 +3718,7 @@ While inspecting type declaration > full file
 Missing type declaration (:) symbol.
 Found instead: "".
 Expected: ":".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A{ .foo:A->
  this.foo
@@ -3738,7 +3738,7 @@ While inspecting type declaration > full file
 Missing type declaration (:) symbol.
 Found instead: "".
 Expected: ":".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 package foo;
 role app000;
@@ -3758,7 +3758,7 @@ While inspecting common ambiguities
 Unrecognized text "'bar'".
 Simple string literals are of form " `...` ", not " '...' ";
 that is: use back ticks (`) instead of single quotes (').
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A{ .foo:A -> 
   Block#
@@ -3776,7 +3776,7 @@ While inspecting common ambiguities
 Unrecognized text "|'bar".
 Simple string lines start with " |` " or " #|` ", not " |' " or " #|' ";
 that is: use back tick (`) instead of single quote (').
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","""
 A{ .foo:A -> 
   Block#
@@ -3797,7 +3797,7 @@ In file: [###]/in_memory0.fear
 While inspecting method declaration > type declaration body > type declaration > full file
 Extra content in the current group.
 Instead, expected semicolon or closed curly one of: ";", "}".
-Error 4  ExtraTokenInGroup
+Error 4 ExtraTokenInGroup
 ""","""
 StackMatch[T,R]: {
   .empty: R,

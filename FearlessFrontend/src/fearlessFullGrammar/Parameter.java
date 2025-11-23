@@ -6,7 +6,7 @@ import utils.Bug;
 
 public record Parameter(Optional<XPat> xp, Optional<T> t){
   public Parameter{ assert xp.isPresent() || t.isPresent(); }//can be both
-  XPat toXPat(){//but if it is both we can not call those two methods
+  XPat toXPat(){//but if it is both we cannot call those two methods
     if(xp.isEmpty() || t.isPresent()){ throw Bug.of(); }
     return xp.get();
   }

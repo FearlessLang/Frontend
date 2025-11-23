@@ -69,7 +69,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   public FearlessException moreOpen(Span at){
     return Code.InterpolationNoClose.of(
       "String interpolation placeholder opened inside interpolation expression.\n"
-      +"Note: \"{\" can not be used in single \"#\" interpolation expressions. Use at least \"##\".").addSpan(at);
+      +"Note: \"{\" cannot be used in single \"#\" interpolation expressions. Use at least \"##\".").addSpan(at);
   }
   public FearlessException disallowedReadHMutH(Span at, RC rc){
     return Code.UnexpectedToken.of(
@@ -90,7 +90,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   public FearlessException disallowedSig(Span at, Sig sig){
     return Code.WellFormedness.of(
       "A literal signature can only be either fully typed or fully untyped.\n"
-    + "Signature "+Message.displayString(ToString.sig(sig))+" has some, but not all, type informations.\n"
+    + "Signature "+Message.displayString(ToString.sig(sig))+" has some, but not all, type information.\n"
       ).addSpan(at);
   }
   public FearlessException disallowedPackageNotEmpty(Span at){
@@ -103,9 +103,9 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "There can be a single role declaration in the file header.\n"
     ).addSpan(at);
   }
-  public FearlessException duplicatedMap(Span at, String what){
+  public FearlessException duplicatedMap(Span at, String what, String in){
     return Code.UnexpectedToken.of(
-      "There is already an entry in the mapping for "+what+".\n"
+      "There is already an entry in the mapping for "+Message.displayString(what)+" in "+Message.displayString(in)+".\n"
     ).addSpan(at);
   }
   public FearlessException duplicatedUseSource(Span at, String what){
@@ -134,7 +134,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     }).addSpan(at);
   }
   public FearlessException nameRedeclared(Token c, Span at){
-    return Code.UnexpectedToken.of("Name "+Message.displayString(c.content())+" already in scope").addSpan(at);
+    return Code.UnexpectedToken.of("Name "+Message.displayString(c.content())+" already in scope.").addSpan(at);
   }
   private <X> X redeclaredElement(List<X> es){
     int i= 0;
@@ -167,7 +167,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     + "A method with the same name, arity and reference capability is already present.\n")
       .addSpan(s).addSpan(at);
   }
-  public int parCount(M m){
+  public int parCount(M m){//-1 == explicitly named method
     if(m.sig().isPresent() && m.sig().get().m().isPresent()){ return -1; }
     return m.sig().map(s->s.parameters().size()).orElse(0) + (m.hasImplicit()?1:0);    
   }
@@ -180,7 +180,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       .addSpan(s).addSpan(at);
   }
   public FearlessException typeNameConflictsGeneric(Token name, Span at){
-    return Code.UnexpectedToken.of("Name "+Message.displayString(name.content())+" is used as a type name, but  "+Message.displayString(name.content())+" is already a generic type parameter in scope").addSpan(at);
+    return Code.UnexpectedToken.of("Name "+Message.displayString(name.content())+" is used as a type name, but "+Message.displayString(name.content())+" is already a generic type parameter in scope.").addSpan(at);
   }
   public FearlessException privateTypeName(Token name, Span at){
     var sep= name.content().indexOf("._");
@@ -202,16 +202,16 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException spaceBeforeId(Span at, String id){
     return Code.UnexpectedToken.of(
-      "Found spacing between closed curly and destruct id \""+ id+"\"."
-      +"\nThere need to be no space between the closed curly and the destruct id.")
+      "Found spacing between closed curly and destruct id "+Message.displayString(id)+"."
+      +"\nThere must be no space between the closed curly and the destruct id.")
       .addSpan(at);
   }
-  public FearlessException badBound(String name, Span at){
-    return Code.UnexpectedToken.of("Invalid bound for generic "+name+"""
+  public FearlessException badBound(String name, Span at){  
+    return Code.UnexpectedToken.of("Invalid bound for generic "+Message.displayString(name)+"""
       
       Only '*' or '**' are allowed here
       Write: X:*   meaning mut,read,imm
-         or: X:**  meaning everything
+         or: X:**  meaning everything.
       """).addSpan(at);
   }
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
@@ -250,7 +250,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException missingSemicolonOrOperator(Span at){
     return Code.MissingSeparator.of(
-      "There is a missing \";\", operator or method name here or before.\n").addSpan(at);
+      "There is a missing semicolon \";\", operator, or method name here or earlier.\n"
+      ).addSpan(at);
   }
   public FearlessException signedLiteral(Span at,Token t){
     return Code.UnexpectedToken.of(
@@ -340,8 +341,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   public FearlessException badTopSelfName(Span at, String name){
-    String msg= "Self name "+name+" invalid in a top level type.\n"
-      + "Top level types self names can only be \" 'this \".\n";
+    String msg= "Self name "+Message.displayString(name)+" is invalid in a top level type.\n"
+      + "Top level types self names can only be \"this\".\n";
     return Code.WellFormedness.of(msg).addSpan(at);
   }
   public FearlessException noAbstractMethod(Sig sig, Span at){

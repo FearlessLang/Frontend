@@ -84,7 +84,7 @@ use base.Main as Main;
 MyGame:Main{s->Debug#(`Hello world`)}
 
 As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 """,List.of("""
 A:{}
@@ -100,13 +100,35 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Name clash: name "B" is declared in package "p".
 Name "B" is also used in a "use" directive.
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 role app000;
 use base.Block as B;
 """,List.of("""
 B:{}
 """));}
+
+@Test void manyHeads(){fail("""
+In file: [###]/in_memory0.fear
+
+001| package p;
+   | ^
+
+While inspecting the file
+File is not the package head, but contains package head directives.
+It should not contain any directives like maps, uses or role.
+Found non-empty:
+  - uses: use base.Void as Void
+Error 9 WellFormedness
+""","""
+role app000;
+use base.Block as B;
+""",List.of("""
+use base.Void as Void;
+B:{}
+"""));}
+
+
 @Test void meth(){ok("""
 p.A:{'this .foo:p.A@p.A;->p.A:?;}
 """,List.of("""
@@ -130,7 +152,7 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Type "Z" is not declared in package "p" and is not made visible via "use".
 In scope: "A".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of(
 "A:{ .f:Z->A }"));}
 
@@ -150,7 +172,7 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Name clash: name "D" is declared in package "p".
 Name "D" is also used in a "use" directive.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,
 "role app000;\nuse base.Void as D;\n",List.of(
 "D:{}"));}
@@ -176,9 +198,9 @@ In file: [###]/in_memory0.fear
    |                                            ^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Can not infer return type of method ".use(p.A):?".
+Cannot infer return type of method ".use(p.A):?".
 No supertype has a method named ".use" with 1 parameters.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,
 "role app000;\n", List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }"));}
@@ -202,7 +224,7 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Name clash: name "A" is declared in package "p".
 Name "A" is also used in a "use" directive.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,
 "role app000;\nuse base.Void as A;\n",List.of(
 "A:{}", 
@@ -217,7 +239,7 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Type "D" is not declared in package "p" and is not made visible via "use".
 In scope: "A".
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","role app000;\n",List.of(
 "A:{ .m:D->D }"));}
 
@@ -229,7 +251,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting a type name
 Duplicate type declaration for "A".
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","role app000;\n",List.of(
 "B:{} A:{}","A:{}"));}
 @Test void duplicate_decl_same_name_nested(){fail("""
@@ -240,7 +262,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting a type name
 Duplicate type declaration for "A".
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","role app000;\n",List.of(
 "B:{.foo:A-> A:{} }","A:{}"));}
 
@@ -358,7 +380,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting type declarations
 Circular implementation relation found involving "p.A".
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","role app000;\n",List.of("""
 A:B{}
 B:A{}
@@ -371,7 +393,7 @@ In file: [###]/in_memory1.fear
 
 While inspecting type declarations
 Circular implementation relation found involving "p.A".
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","role app000;\n",List.of("""
 A:B{}
 ""","""
@@ -558,8 +580,8 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Return type disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
-Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 9  WellFormedness""",List.of("""
+Type "p.B" must declare a method ".foo" explicitly choosing the desired option.
+Error 9 WellFormedness""",List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
 B:A1,A2{ }
@@ -573,8 +595,8 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Return type disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
-Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 9  WellFormedness""",List.of("""
+Type "p.B" must declare a method ".foo" explicitly choosing the desired option.
+Error 9 WellFormedness""",List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
 B:A1,A2{ .foo->this.foo}
@@ -588,8 +610,8 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Type disagreement about argument 1 for method ".foo" with 2 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
-Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 9  WellFormedness""",List.of("""
+Type "p.B" must declare a method ".foo" explicitly choosing the desired option.
+Error 9 WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
 B:A1,A2{ }
@@ -603,8 +625,8 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Type disagreement about argument 1 for method ".foo" with 2 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
-Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 9  WellFormedness""",List.of("""
+Type "p.B" must declare a method ".foo" explicitly choosing the desired option.
+Error 9 WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
 B:A1,A2{ .foo(a,b)->this.foo}
@@ -616,10 +638,11 @@ In file: [###]/in_memory0.fear
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Number of generic type parameters disagreement for method ".foo" with 0 parameters.
+The number of generic type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
-Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 9  WellFormedness""",List.of("""
+Type "p.B" cannot implement all of those types.
+Error 9 WellFormedness
+""",List.of("""
 A1:{ .foo[X:imm]():A1;}
 A2:{ .foo():A1;}
 B:A1,A2{}
@@ -631,10 +654,11 @@ In file: [###]/in_memory0.fear
    |          ^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Number of generic type parameters disagreement for method ".foo" with 0 parameters.
+The number of generic type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
-Type "p.B" must declare a method ".foo" explicitly chosing the desired option.
-Error 9  WellFormedness""",List.of("""
+Type "p.B" cannot implement all of those types.
+Error 9 WellFormedness
+""",List.of("""
 A1:{ .foo[X:imm]():A1;}
 A2:{ .foo():A1;}
 B:A1,A2{ .foo()->this.foo }
@@ -666,10 +690,10 @@ In file: [###]/in_memory0.fear
    |          ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Can not infer the name for method with 0 parameters.
+Cannot infer the name for method with 0 parameters.
 Many abstract methods with 0 parameters could be selected:
 Candidates: "imm .foo", "imm .bar".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
 A2:{ .bar():A1; .baz:A1->this.baz}
@@ -682,10 +706,10 @@ In file: [###]/in_memory0.fear
    |          ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Can not infer the name for method with 1 parameters.
+Cannot infer the name for method with 1 parameters.
 Many methods with 1 parameters could be selected:
 Candidates: "imm .baz", "imm .beer".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
 A2:{ .bar():A1; .baz:A1->this.baz}
@@ -711,11 +735,11 @@ In file: [###]/in_memory0.fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Ambiguos implementation for method ".foo" with 0 parameters.
+Ambiguous implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
 Candidates: "p.A2", "p.A1".
 Type "p.B" must declare a method ".foo" explicitly implementing the desired behaviour.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ .foo->this; }
@@ -730,11 +754,11 @@ In file: [###]/in_memory0.fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Ambiguos implementation for method ".foo" with 0 parameters.
+Ambiguous implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
 Candidates: "p.A2", "p.A3".
 Type "p.B" must declare a method ".foo" explicitly implementing the desired behaviour.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ .foo->this; }
@@ -753,7 +777,7 @@ While inspecting header element > file header > full file
 Missing "role" keyword.
 Found instead: "App000".
 Expected: " one of: base, core, driver, worker, framework, accumulator, tool, app followed by rank (eg. core023, app000, framework999)".
-Error 2  UnexpectedToken
+Error 2 UnexpectedToken
 ""","role App000;",List.of("""
 B:{ }
 """));}
@@ -765,8 +789,8 @@ In file: [###]/p.fear
    |                  ^^^^^^^^^
 
 While inspecting package header
-"use" directive referes to undeclared name: name "AAAA" is not declared in package "base".
-Error 9  WellFormedness
+"use" directive refers to undeclared name: type "AAAA" is not declared in package "base".
+Error 9 WellFormedness
 ""","role app000; use base.AAAA as BBB;",List.of("""
 B:{ }
 """));}
@@ -843,10 +867,10 @@ In file: [###]/in_memory0.fear
    |                 ^^
 
 While inspecting a type name
-Name "F" is not declared with arity 2 in package "p".
-Available arities here: 0.
-Did you accidentally add/omit a generic type parameter?
-Error 9  WellFormedness
+Name "F" is not declared with 2 generic parameter(s) in package "p".
+Name "F" is only declared with 0 generic parameter(s).
+Did you accidentally add or omit a generic type parameter?
+Error 9 WellFormedness
 """,List.of("""
 F:{#[A,B](A):B}
 User:{
@@ -864,8 +888,8 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "D"
 Generic bounds disagreement for method ".id" with 1 parameters.
 Different options are present in the implemented types: "[X:imm]", "[Y:read]".
-Type "p.D" must declare a method ".id" explicitly chosing the desired option.
-Error 9  WellFormedness
+Type "p.D" must declare a method ".id" explicitly choosing the desired option.
+Error 9 WellFormedness
 """, List.of("""
 Box[K]:{.get:K;}
 A:{.id[X:imm](x:Box[X]):X}
@@ -883,8 +907,8 @@ While inspecting type declaration "E"
 Method ".m" declares 1 generic parameter(s), but supertypes declare 2.
 Local declaration: "[U:imm]".
 From supertypes: "[X:imm, Y:imm]".
-Change the local arity to 2, or adjust supertypes.
-Error 9  WellFormedness
+Change the local number of generic parameters to 2, or adjust the supertypes.
+Error 9 WellFormedness
 """, List.of("""
 A:{.m[X,Y](x:X,y:Y):X}
 E:A{.m[U](u:U,g:U):U} // mismatch on method generic arity and params
@@ -899,8 +923,8 @@ In file: [###]/in_memory0.fear
    | -------~~~~^~~~~~~~~~~~--------
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > type declaration > full file
-Name "X" already in scope
-Error 2  UnexpectedToken
+Name "X" already in scope.
+Error 2 UnexpectedToken
 """, List.of("""
 Box[K]:{.get:K;}
 A:{.id[X](x:Box[X]):X}
@@ -916,8 +940,8 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "D"
 Type disagreement about argument 0 for method ".m" with 1 parameters.
 Different options are present in the implemented types: "p.Twice[p.Pair[X,Y]]", "p.Twice[p.Pair[Y,X]]".
-Type "p.D" must declare a method ".m" explicitly chosing the desired option.
-Error 9  WellFormedness
+Type "p.D" must declare a method ".m" explicitly choosing the desired option.
+Error 9 WellFormedness
 """, List.of("""
 Pair[AA,BB]:{.fst:AA;.snd:BB;}
 Twice[T]:{.get:Pair[T,T];}
@@ -955,7 +979,7 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Type "K" is not declared in package "p" and is not made visible via "use".
 In scope: "Any", "Baba", "GG", "KK", "User".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """, List.of("""
 GG[A,B]:{ .apply[C,D](A,B,C):D }
 Baba[C,D]:GG[Any,Any]{}
@@ -1002,7 +1026,7 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Type "Widen" is not declared in package "base".
 Did you mean "WidenTo" ?
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 A:base.Widen[A]{}
 B:base.Widen[B]{}
@@ -1021,7 +1045,7 @@ At most one base.WidenTo[T] supertype is allowed, because it defines the preferr
 Found the following base.WidenTo supertypes:
   - "base.WidenTo[p.A]"
   - "base.WidenTo[p.B]"
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 A:base.WidenTo[A]{}
 B:base.WidenTo[B]{}
@@ -1037,7 +1061,7 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Type "Missing" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 User:{
  'this
@@ -1055,7 +1079,7 @@ While inspecting a type name
 Type "Fod" is not declared in package "p" and is not made visible via "use".
 Did you mean "Food" ?
 In scope: "Food", "User".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 Food:{}
 User:{
@@ -1073,7 +1097,7 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Type "GG" is not declared in package "p" and is not made visible via "use".
 In scope: "G", "User".
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 role app000;
 use base.F as G;
@@ -1095,7 +1119,7 @@ Type "F" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
 Did you mean "base.F" ?
 Add a "use" or write the fully qualified name.
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 role app000;
 //use base.F as G;
@@ -1117,7 +1141,7 @@ Type "Blok" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
 Did you mean "base.Block" ?
 Add a "use" or write the fully qualified name.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 User:{
  'this
@@ -1135,7 +1159,7 @@ While inspecting a type name
 Package "basee" does not exist.
 Did you mean "base" ?
 Visible packages: "base".
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 role app000;
 use base.F as F;
@@ -1153,7 +1177,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting a type name
 Type "Foo" is not declared in package "base".
-Error 9  WellFormedness
+Error 9 WellFormedness
 ""","""
 role app000;
 use base.F as F;
@@ -1170,10 +1194,10 @@ In file: [###]/in_memory0.fear
    |               ^^^^^^^^^^^
 
 While inspecting a type name
-Name "Block" is not declared with arity 2 in package "base".
-Available arities here: 0, 1.
-Did you accidentally add/omit a generic type parameter?
-Error 9  WellFormedness
+Name "Block" is not declared with 2 generic parameter(s) in package "base".
+Name "Block" is only declared with the following numbers of generic parameters: 0, 1.
+Did you accidentally add or omit a generic type parameter?
+Error 9 WellFormedness
 ""","""
 role app000;
 //use base.Block as Block;
@@ -1190,10 +1214,10 @@ In file: [###]/in_memory0.fear
    |               ^^^^^^
 
 While inspecting a type name
-Name "Block" is not declared with arity 2 in package "base".
-Available arities here: 0, 1.
-Did you accidentally add/omit a generic type parameter?
-Error 9  WellFormedness
+Name "Block" is not declared with 2 generic parameter(s) in package "base".
+Name "Block" is only declared with the following numbers of generic parameters: 0, 1.
+Did you accidentally add or omit a generic type parameter?
+Error 9 WellFormedness
 ""","""
 role app000;
 use base.Block as Block;
@@ -1212,7 +1236,7 @@ While inspecting a type name
 Type "FOo" is not declared in package "p" and is not made visible via "use".
 Did you mean "Foo" ?
 In scope: "Foo", "User".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 Foo:{}
 User:{ .foo(x:FOo):FOo; }
@@ -1227,7 +1251,7 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Type "Abc" is not declared in package "p" and is not made visible via "use".
 In scope: "Aaa", "Abb", "Acc", "User".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,List.of("""
 Aaa:{}
 Abb:{}
@@ -1242,9 +1266,9 @@ In file: [###]/in_memory1.fear
    |   ^^
 
 While inspecting a type name
-Gemeric type parameter "X" declared in package "p".
+Generic type parameter "X" is declared in package "p".
 Name "X" is also used as a type name.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,
   List.of("""
 X:{}
@@ -1261,7 +1285,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting a type name
 Duplicate type declaration for "X".
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,
   List.of("""
 X:{.foo:base.Void}
@@ -1279,7 +1303,7 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 Duplicate reference capability in the generic type parameter "A".
 Reference capability "imm" is repeated.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,
   List.of("""
 X[A:imm,mut,imm]:{.bar:base.Void}
@@ -1293,7 +1317,7 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 Duplicate reference capability in the generic type parameter "A".
 Reference capability "imm" is repeated.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,
   List.of("""
 X:{.bar[A:imm,mut,imm]:base.Void}
@@ -1306,9 +1330,9 @@ In file: [###]/in_memory0.fear
    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting the file
-Can not infer signature of method ":?".
+Cannot infer signature of method ":?".
 No supertype has a method with 0 parameters.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,
   List.of("""
 A:{.m:base.Void}
@@ -1325,7 +1349,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method ".m" redeclared.
 A method with the same name, arity and reference capability is already present.
-Error 9  WellFormedness
+Error 9 WellFormedness
 """,
 List.of("""
 A:{imm .m:base.Void; imm .m:base.Void}
