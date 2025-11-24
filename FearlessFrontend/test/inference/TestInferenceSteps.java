@@ -397,28 +397,14 @@ D:A,C{} // merge supertypes; impl origin should be C after alignment
 }
 
 @Test void abcd(){okI("""
-p.GG[A:imm, B:imm]:{'this\
- .apply[C:imm,D:imm](A,B,C):D@p.GG;}
-p.KK:{'_ .k[K:imm]:K@p.KK;\
-->this:?.withGG[C,D](p.A_KK:$?{'_\
- ? [?](?,?,?):?@!;\
- (a, b, c)->p.Any:?!():?;}:?):K;}
-p.User:{'this\
- .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User;\
- .foo1[C:imm,D:imm]:p.User@p.User;\
-->this:p.User.withGG[imm,C,D](p.A_User:p.GG[C,D]{'_\
- imm .apply[A_C:imm,A_D:imm](A_C,A_D,A_C):A_D@p.A_User;\
- (a, b, c)->p.Any:p.Any![imm,A_D]():A_D;}:p.GG[C,D]):p.User;\
- .foo2[C:imm,D:imm]:p.User@p.User;->p.KK:{'_\
- imm .k[K:imm]:K@p.KK;\
- .k()->this:p.User.withGG[imm,C,D](p.A_KK:p.GG[C,D]{'_\
- imm .apply[B_C:imm,B_D:imm](B_C,B_D,B_C):B_D@p.A_KK;\
- (a, b, c)->p.Any:p.Any![imm,B_D]():B_D;\
-}:p.GG[C,D]):p.User;\
-}:p.KK.k[imm,p.User]():p.User;}
+p.GG[A:imm, B:imm]:{'this .apply[C:imm,D:imm](A,B,C):D@p.GG;}
+p.KK:{'_ .k[K:imm]:K@p.KK;->this:?.withGG[C,D](p.B_User:$?{'_ ? [?](?,?,?):?@!; (a, b, c)->p.Any:?!():?;}:?):K;}
+p.User:{'this .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User;\
+ .foo1[C:imm,D:imm]:p.User@p.User;->this:p.User.withGG[imm,C,D](p.A_User:p.GG[C,D]{'_ imm .apply[A_C:imm,A_D:imm](A_C,A_D,A_C):A_D@p.A_User;\
+ (a, b, c)->p.Any:p.Any![imm,A_D]():A_D;}:p.GG[C,D]):p.User; .foo2[C:imm,D:imm]:p.User@p.User;->p.KK:{'_ imm .k[K:imm]:K@p.KK;\
+ .k()->this:p.User.withGG[imm,C,D](p.B_User:p.GG[C,D]{'_ imm .apply[B_C:imm,B_D:imm](B_C,B_D,B_C):B_D@p.B_User; (a, b, c)->p.Any:p.Any![imm,B_D]():B_D;}:p.GG[C,D]):p.User;}:p.KK.k[imm,p.User]():p.User;}
 p.Any:{'this ![T:imm]:T@p.Any;->p.Any:p.Any![imm,T]():T;}
-p.Baba[C:imm, D:imm]:p.GG[p.Any,p.Any]{'this\
- .apply[A_C:imm,A_D:imm](p.Any,p.Any,A_C):A_D@p.GG;}
+p.Baba[C:imm, D:imm]:p.GG[p.Any,p.Any]{'this .apply[A_C:imm,A_D:imm](p.Any,p.Any,A_C):A_D@p.GG;}
 """, List.of("""
 GG[A,B]:{ .apply[C,D](A,B,C):D }
 Baba[C,D]:GG[Any,Any]{}

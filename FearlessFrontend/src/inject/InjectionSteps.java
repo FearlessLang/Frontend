@@ -21,7 +21,7 @@ import utils.OneOr;
 import utils.Push;
 
 public record InjectionSteps(Methods meths,OtherPackages other){
-  public static List<Declaration> steps(Methods meths, List<Declaration> in, OtherPackages other){
+  public static List<Declaration> steps(Methods meths, OtherPackages other){
     var s= new InjectionSteps(meths,other);
     //meths.cache().size will grow during iteration
     int size= meths.cache().size();
@@ -143,8 +143,9 @@ public record InjectionSteps(Methods meths,OtherPackages other){
   };}
   private Optional<M> oneFromExplicitRC(List<M> ms){
     if (ms.size() == 1){ return Optional.of(ms.getFirst()); }
+    assert ms.isEmpty():"Ambiguous method header for explicit RC";
     return Optional.empty();
-  }
+  }  
   private Optional<M> oneFromGuessRC(List<M> ms, RC rc){
     Optional<M> readOne= OneOr.opt("not well formed ms",ms.stream().filter(m->m.sig().rc()==RC.read));
     if (rc== RC.read){ return readOne; }
@@ -231,6 +232,7 @@ public record InjectionSteps(Methods meths,OtherPackages other){
   }
   private List<IT> newTargs(E.Call c, List<E> es, MSig m){
     if(m.bs().isEmpty()){ return List.of(); }
+    assert c.targs().isEmpty() || c.targs().size() == m.bs().size();
     var a= IntStream.range(0, c.es().size())
       .mapToObj(i->refine(m.bs(),m.ts().get(i),es.get(i).t()));
     var r= Stream.of(refine(m.bs(),m.ret(),c.t()),c.targs());

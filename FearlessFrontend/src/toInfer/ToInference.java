@@ -61,8 +61,11 @@ public class ToInference{
       throw undeclaredType(tn,p.name(),p,other);
     };
     ArrayList<E.Literal> decs= new ArrayList<>();
-    var v= new InjectionToInferenceVisitor(meths, new ArrayList<>(),new ArrayList<>(),f,decs,p,new ArrayList<>(),other,fresh);
-    p.decs().forEach(di->v.addDeclaration(RC.imm,di,true));
+    p.decs().forEach(di->{
+      TName name= f.apply(di.name());
+      var v= new InjectionToInferenceVisitor(meths,name,new ArrayList<>(),f,decs,p,new ArrayList<>(),other,fresh);
+      v.addDeclaration(name,RC.imm,di,true);
+    });
     return List.copyOf(decs);
   }
 }

@@ -105,7 +105,7 @@ public sealed interface E {
     }
   }
   record ICall(E e, MName name, List<E> es, IT t, Pos pos, Gamma.GammaSignature g) implements E{
-    public ICall(E e, MName name, List<E> es, IT t, Pos pos){ this(e,name,es,IT.U.Instance,pos,new Gamma.GammaSignature());}
+    public ICall(E e, MName name, List<E> es, Pos pos){ this(e,name,es,IT.U.Instance,pos,new Gamma.GammaSignature());}
     public E withT(IT t){
       if (t.equals(this.t)){ return this; }
       return new ICall(e,name,es,t,pos,g.clear()); 

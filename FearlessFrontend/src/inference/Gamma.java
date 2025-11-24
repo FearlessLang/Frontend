@@ -7,7 +7,8 @@ import java.util.stream.IntStream;
 public final class Gamma {
  public final static class GammaSignature {
     long hash;
-    public GammaSignature clear(){ hash = 0; return this;}
+    //public GammaSignature clear(){ hash = 0; return this;}//more performance
+    public GammaSignature clear(){ return new GammaSignature(); }//more safe
     @Override public boolean equals(Object o){ return true; }
     @Override public int hashCode(){ return 0; }
   }

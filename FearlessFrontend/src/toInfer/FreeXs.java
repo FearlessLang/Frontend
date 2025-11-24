@@ -10,6 +10,8 @@ import inference.IT;
 import inference.M;
 import inference.E.*;
 
+// Only for free type vars the programmer *wrote*
+// Expression ITs are inferred derived data and ignored here.
 public class FreeXs {
   Stream<String> ftvE(E e){ return switch(e){
     case X(_,_,_,_) -> Stream.of();
