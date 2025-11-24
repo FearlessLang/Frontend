@@ -44,6 +44,7 @@ public sealed interface E {
       assert unmodifiable(cs,"L.cs");
       assert unmodifiable(ms, "L.ms");
       assert nonNull(name,thisName,t);
+      assert cs.isEmpty() || rc.isPresent();
     }
     public E.Literal withT(IT t){
       if (t.equals(this.t)){ return this; }
@@ -51,7 +52,6 @@ public sealed interface E {
     }
     public String toString(){
       String res= "";
-      assert cs.isEmpty() || rc.isPresent();
       if (rc.isPresent() && rc.get() != RC.imm){ res= rc.get()+" "; }
       res += name.s();
       if (!bs.isEmpty()){ res += "["+bs.stream().map(Object::toString).collect(Collectors.joining(","))+"]"; }

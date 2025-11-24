@@ -19,6 +19,8 @@ import pkgmerge.Package;
 
 public class ToInference{
   private TName fCurrent(Package p, TName simple, TName full, boolean withPkg, OtherPackages other){
+    assert simple.pkgName().isEmpty();
+    assert p.names().decNames().stream().allMatch(n -> n.pkgName().isEmpty());
     var defined= p.names().decNames().stream()
       .anyMatch(tni->tni.equals(simple)); //this also checks arity
     if (defined){ return full; } //here, we know it is not defined (either at all or with the right arity)
@@ -28,7 +30,7 @@ public class ToInference{
     var otherTypes= other.dom();
     var declared= p.names().decNames();
     var imported= p.map().entrySet().stream()
-      .filter(e->TokenKind.validate(e.getKey(), TokenKind.UppercaseId))//TODO: check how the map is created. Is it really just Uppercase + lowercase as two disjoint options?
+      .filter(e->TokenKind.isKind(e.getKey(), TokenKind.UppercaseId))//TODO: check how the map is created. Is it really just Uppercase + lowercase as two disjoint options?
       .flatMap(e->otherTypes.stream()
         .filter(t->t.s().equals(e.getValue()))
         .map(t->new TName(p.name()+"."+e.getKey(), t.arity(),t.pos()))

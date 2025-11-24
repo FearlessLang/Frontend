@@ -41,8 +41,8 @@ public class TypeRename{
     case IT.ReadImmX rix -> rix;
     case IT.RCX(RC rc, _) -> withRC(t,readImm(rc));
     case IT.RCC(RC rc, _) -> withRC(t,readImm(rc));
-    case IT.U _   -> throw Bug.unreachable();
-    case IT.Err _ -> throw Bug.unreachable();
+    case IT.U _   -> t;
+    case IT.Err _ -> t;
   };}
   static IT withRC(IT t, RC rc){return switch(t){
     case IT.X x -> new IT.RCX(rc,x);

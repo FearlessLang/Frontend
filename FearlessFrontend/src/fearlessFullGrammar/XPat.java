@@ -1,7 +1,6 @@
 package fearlessFullGrammar;
 
-import static fearlessParser.TokenKind.CCurlyId;
-import static fearlessParser.TokenKind.validate;
+import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.nonNull;
 import static offensiveUtils.Require.unmodifiable;
 import static offensiveUtils.Require.validOpt;

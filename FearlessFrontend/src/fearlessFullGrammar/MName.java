@@ -1,8 +1,6 @@
 package fearlessFullGrammar;
 
-import static fearlessParser.TokenKind.DotName;
-import static fearlessParser.TokenKind.Op;
-import static fearlessParser.TokenKind.validate;
+import static fearlessParser.TokenKind.*;
 
 public record MName(String s, int arity){
   public MName{

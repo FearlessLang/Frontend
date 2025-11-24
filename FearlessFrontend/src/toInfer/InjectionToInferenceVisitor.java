@@ -56,8 +56,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     case XPat.Name(var x) -> x.name();
     case XPat.Destruct(var _, var _) -> freshF.freshVar(currentTop, "div");
     };
-  }  
-  List<M> mapM(List<fearlessFullGrammar.M> ms){ return ms.stream().map(this::visitM).toList(); }
+  } 
+  List<M> mapM(List<fearlessFullGrammar.M> ms){ return ms.stream().map(this::visitM).toList(); } 
   M visitM(fearlessFullGrammar.M m){ return new M(visitMSig(m),visitMImpl(m)); }
   M.Sig visitMSig(fearlessFullGrammar.M mm){
     if(mm.sig().isEmpty()){

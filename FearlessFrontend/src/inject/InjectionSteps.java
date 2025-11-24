@@ -158,9 +158,12 @@ public record InjectionSteps(Methods meths,OtherPackages other){
   private <R> Optional<R> methodHeaderAnd(IT.RCC rcc,MName name,Optional<RC> favorite,InstanceData<R> f){
     var d= getDec(rcc.c().name());
     Stream<M> ms= d.ms().stream().filter(m->m.sig().m().equals(name));
-    Optional<M> om= favorite//ms is used only one time: we use .map (returning Optional<Optional<M>>) not .flatMap 
-      .map(rc->oneFromExplicitRC(ms.filter(mi->mi.sig().rc().equals(rc)).toList()))
-      .orElseGet(()->oneFromGuessRC(ms.toList(),overloadNorm(rcc.rc())));
+    Optional<M> om= favorite.isPresent()
+      ? oneFromExplicitRC(ms.filter(mi -> mi.sig().rc().equals(favorite.get())).toList())
+      : oneFromGuessRC(ms.toList(), overloadNorm(rcc.rc()));
+    //Optional<M> om= favorite//had to replace this perfectly reasonable code with the above because all AIs could not understand it. 
+    //  .map(rc->oneFromExplicitRC(ms.filter(mi->mi.sig().rc().equals(rc)).toList()))
+    //  .orElseGet(()->oneFromGuessRC(ms.toList(),overloadNorm(rcc.rc())));
     if (om.isEmpty()){ 
     return Optional.empty(); }
     return Optional.of(f.apply(rcc,d,om.get()));

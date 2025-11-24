@@ -121,10 +121,10 @@ public enum TokenKind implements metaParser.TokenKind {
   @Override public int priority(){ return this.ordinal(); }
   
   public static boolean validate(String input, String what, TokenKind... kinds){
-    if (validate(input,kinds)){ return true; }
+    if (isKind(input,kinds)){ return true; }
     throw new IllegalArgumentException("["+input+"] is not a valid "+what);
   }
-  public static boolean validate(String input, TokenKind... kinds){
+  public static boolean isKind(String input, TokenKind... kinds){
     Objects.requireNonNull(input);
     Objects.requireNonNull(kinds);
     for (TokenKind k: kinds){

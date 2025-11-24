@@ -1,13 +1,6 @@
 package fearlessFullGrammar;
 
-import static fearlessParser.TokenKind.SStr;
-import static fearlessParser.TokenKind.SignedFloat;
-import static fearlessParser.TokenKind.SignedInt;
-import static fearlessParser.TokenKind.SignedRational;
-import static fearlessParser.TokenKind.UStr;
-import static fearlessParser.TokenKind.UnsignedInt;
-import static fearlessParser.TokenKind.UppercaseId;
-import static fearlessParser.TokenKind.validate;
+import static fearlessParser.TokenKind.*;
 import files.Pos;
 
 public record TName(String s, int arity,Pos pos){

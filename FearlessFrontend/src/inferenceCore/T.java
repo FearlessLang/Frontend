@@ -1,7 +1,6 @@
 package inferenceCore;
 
-import static fearlessParser.TokenKind._XId;
-import static fearlessParser.TokenKind.validate;
+import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.eq;
 import static offensiveUtils.Require.nonNull;
 import static offensiveUtils.Require.unmodifiable;

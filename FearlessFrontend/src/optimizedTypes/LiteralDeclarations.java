@@ -32,10 +32,10 @@ public class LiteralDeclarations {
     String s= name.simpleName();
     if (s.startsWith("`")){  return of(name,baseSStr); }
     if (s.startsWith("\"")){ return of(name,baseUStr); }
-    if (TokenKind.validate(s,TokenKind.UnsignedInt)){ return of(name,baseNat); }
-    if (TokenKind.validate(s,TokenKind.SignedInt)){ return of(name,baseInt); }
-    if (TokenKind.validate(s,TokenKind.SignedFloat)){ return of(name,baseFloat); }
-    if (TokenKind.validate(s,TokenKind.SignedRational)){ return of(name,baseNum); }    
+    if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return of(name,baseNat); }
+    if (TokenKind.isKind(s,TokenKind.SignedInt)){ return of(name,baseInt); }
+    if (TokenKind.isKind(s,TokenKind.SignedFloat)){ return of(name,baseFloat); }
+    if (TokenKind.isKind(s,TokenKind.SignedRational)){ return of(name,baseNum); }    
     throw Bug.unreachable();
 
   }
