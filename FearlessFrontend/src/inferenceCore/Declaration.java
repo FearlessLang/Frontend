@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import fearlessFullGrammar.TName;
 import files.Pos;
-import inference.B;
 
 public record Declaration(TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Pos pos){
   public Declaration{

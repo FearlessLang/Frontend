@@ -1,4 +1,4 @@
-package inference;
+package inferenceCore;
 
 import static offensiveUtils.Require.nonNull;
 import static offensiveUtils.Require.unmodifiable;

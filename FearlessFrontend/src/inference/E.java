@@ -11,6 +11,7 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import files.Pos;
+import inferenceCore.B;
 
 public sealed interface E {
   Pos pos();
@@ -29,6 +30,7 @@ public sealed interface E {
     }
   }
   record Type(IT.RCC type, IT t, Pos pos, Gamma.GammaSignature g) implements E{
+    public Type{ assert nonNull(type,t,pos,g); }
     public Type(IT.RCC type, Pos pos){ this(type,IT.U.Instance,pos,new Gamma.GammaSignature()); }
     public E withT(IT t){
       if (t.equals(this.t)){ return this; }
@@ -83,6 +85,7 @@ public sealed interface E {
     public Call{
       assert nonNull(e,name,rc,targs,t);
       assert unmodifiable(es, "E.Call.es");
+      assert unmodifiable(targs, "E.Call.targs");
     }
     public Call withMore(E e,RC rc,List<IT> targs,List<E> es,IT t){
       if (e == this.e && Optional.of(rc).equals(this.rc) && targs.equals(this.targs) && es == this.es && t.equals(this.t)){ return this; } 

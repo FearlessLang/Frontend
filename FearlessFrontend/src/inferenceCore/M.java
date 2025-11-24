@@ -10,7 +10,6 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import files.Pos;
-import inference.B;
 import inference.E;
 public record M(Sig sig, List<String> xs, Optional<E> e){
   public M{ assert nonNull(sig,e); assert unmodifiable(xs,"par names"); }

@@ -187,7 +187,7 @@ public record InjectionSteps(Methods meths,OtherPackages other){
     .mapToObj(i->_qMarks(i)).toList();//Safe: Stream.toList returns an unmodifiable list; and it is used also in _qMarks
   private List<IT> qMarks(int n){ return n < 100 ? smallQMarks.get(n): _qMarks(n); }
   private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i->i==n?t:IT.U.Instance).toList(); }
-  //-----------Metarules
+  
   private E nextX(Gamma g, E.X x){ 
     var t1= g.get(x.name());//TODO: this may repeat if entered back in the same scope? no if meth header properly updated?
     var t2= x.t();

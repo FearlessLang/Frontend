@@ -58,15 +58,12 @@ public class TypeRename{
     var i= xs.indexOf(name); 
     return i == -1 ? x : ts.get(i);
   }
-  public static List<IT.C> tcToITC(List<T.C> cs){
-    return cs.stream().map(TypeRename::tcToITC).toList();
-  }
-  public static List<IT> tToIT(List<T> cs){
-    return cs.stream().map(TypeRename::tToIT).toList();
-  }
-  public static T.C itcToTC(IT.C c){
-    return new T.C(c.name(),c.ts().stream().map(ti->itToT(ti)).toList());  
-  }
+  public static List<IT.C> tcToITC(List<T.C> cs){ return cs.stream().map(TypeRename::tcToITC).toList(); }
+  public static List<IT> tToIT(List<T> cs){ return cs.stream().map(TypeRename::tToIT).toList(); }
+  public static List<T> itToT(List<IT> cs){ return cs.stream().map(TypeRename::itToT).toList(); }
+  public static List<T> itOptToT(List<Optional<IT>> ts){ return ts.stream().map(ti->itToT(ti.get())).toList(); }
+  
+  public static T.C itcToTC(IT.C c){ return new T.C(c.name(),c.ts().stream().map(ti->itToT(ti)).toList()); }
   public static List<T.C> itcToTC(List<IT.C> cs){
     return cs.stream().map(TypeRename::itcToTC).toList();  
   }

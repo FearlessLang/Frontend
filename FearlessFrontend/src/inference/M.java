@@ -6,6 +6,8 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import files.Pos;
+import inferenceCore.B;
+
 import static offensiveUtils.Require.*;
 
 public record M(Sig sig, Optional<Impl> impl){

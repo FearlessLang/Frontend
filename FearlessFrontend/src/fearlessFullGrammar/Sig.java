@@ -1,12 +1,8 @@
 package fearlessFullGrammar;
 
-import static offensiveUtils.Require.eq;
-import static offensiveUtils.Require.nonNull;
-import static offensiveUtils.Require.validOpt;
-
+import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
-
 import fearlessParser.RC;
 
 public record Sig(
@@ -15,7 +11,8 @@ public record Sig(
   List<Parameter> parameters, Optional<T> t
   ){
   public Sig{
-    assert nonNull(rc,m,bs,parameters,t);
+    assert nonNull(rc,m,bs,t);
+    assert unmodifiable(parameters,"Sig.parameters");
     assert validOpt(m,_m->eq(_m.arity(),parameters.size(),"Method name arity"));
   }
   public boolean fullyTyped(){
