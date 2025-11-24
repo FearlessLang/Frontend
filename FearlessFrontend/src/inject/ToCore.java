@@ -43,10 +43,12 @@ public class ToCore {
     var i= m.impl().get();
     return new core.M(s,i.xs(),Optional.of(i.e()));
   }
-  core.M.Sig sig(inference.M.Sig s){
+  inferenceCore.M.Sig sig(inference.M.Sig s){
+    //TODO: this should assert that the recreated inferenceCore.M.Sig is equals to the one in the inference computed class table
+    //This will require adding a parameter to such table 
     var ts= TypeRename.itOptToT(s.ts());
     var ret= TypeRename.itToT(s.ret().get());
-    return new core.M.Sig(s.rc().get(),s.m().get(),s.bs().get(),ts,ret,s.origin().get(),s.pos());
+    return new inferenceCore.M.Sig(s.rc().get(),s.m().get(),s.bs().get(),ts,ret,s.origin().get(),s.abs(),s.pos());
   }  
   private static List<String> _under(int n){ return IntStream.range(0, n).mapToObj(_->"_").toList(); }
   static List<List<String>> smallUnder=IntStream.range(0, 100).mapToObj(i->_under(i)).toList();

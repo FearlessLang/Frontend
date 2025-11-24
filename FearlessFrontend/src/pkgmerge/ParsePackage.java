@@ -24,7 +24,11 @@ import static offensiveUtils.Require.*;
 import static fearlessParser.TokenKind.*;
 
 public class ParsePackage{
-  public List<inferenceCore.Declaration> of(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
+  /*public List<core.E.Literal> of(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other){
+    var inf= of(override,files,o,other);
+    
+    }*/
+  public Methods methods(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other){
     Map<URI,FileFull> all= new LinkedHashMap<>();
     for(var u : files){
       var str= o.loadString(u);
@@ -33,8 +37,11 @@ public class ParsePackage{
     }
     Package p= merge(override,all,other);
     var fresh= new FreshPrefix(p);
-    var meths= new Methods(p.name(),other,fresh,new LinkedHashMap<>());
-    List<E.Literal> iDecs= new ToInference().of(p,meths,other,fresh);
+    return new Methods(p,other,fresh,new LinkedHashMap<>());  
+    }
+  public List<inferenceCore.Declaration> of(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
+    var meths= methods(override,files, o,other);
+    List<E.Literal> iDecs= new ToInference().of(meths.p(),meths,other,meths.fresh());
     List<inferenceCore.Declaration> res= meths.of(iDecs);//TODO: res only for stages of testing?
     return infer?InjectionSteps.steps(meths,other):res;
   }

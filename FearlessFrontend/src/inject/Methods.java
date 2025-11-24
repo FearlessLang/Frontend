@@ -27,14 +27,15 @@ import message.WellFormednessErrors;
 import naming.FreshPrefix;
 import optimizedTypes.LiteralDeclarations;
 import pkgmerge.OtherPackages;
+import pkgmerge.Package;
 import utils.Bug;
 
 public record Methods(
-    String pkgName, OtherPackages other, FreshPrefix fresh,
+    Package p, OtherPackages other, FreshPrefix fresh,
     Map<TName, inferenceCore.Declaration> cache){
   void mayAdd(List<E.Literal> layer, E.Literal d, Map<TName,E.Literal> rem){
     for (IT.C c : d.cs()){
-      var nope= pkgName.equals(c.name().pkgName()) && rem.containsKey(c.name());
+      var nope= p.name().equals(c.name().pkgName()) && rem.containsKey(c.name());
       if (nope) { return; }
     }
     layer.add(d);
@@ -98,11 +99,11 @@ public record Methods(
   }
   public inferenceCore.Declaration from(TName name){
     var res= _from(name);
-    assert res != null: "In pkgName="+pkgName+", name not found: "+name+" current domain is:\n"+cache.keySet();
+    assert res != null: "In pkgName="+p.name()+", name not found: "+name+" current domain is:\n"+cache.keySet();
     return res;
   }
   private inferenceCore.Declaration _from(TName name){
-    if (name.pkgName().equals(pkgName)){ return cache.get(name); }
+    if (name.pkgName().equals(p.name())){ return cache.get(name); }
     var res= other.of(name);
     if (res != null){ return res; }
     assert name.pkgName().equals("base") && LiteralDeclarations.isPrimitiveLiteral(name.simpleName()):

@@ -26,7 +26,7 @@ public record InjectionSteps(Methods meths,OtherPackages other){
     //meths.cache().size will grow during iteration
     int size= meths.cache().size();
     var es= new ArrayList<Declaration>(meths.cache().values());//is linkedMashMap, so order is preserved
-    List<Declaration> res= new ArrayList<>();
+    List<Declaration> res= new ArrayList<>();//TODO: no, this needs to be core.E.Literal
     for (int i= 0; i < size; i += 1){ res.add(stepDec(s, es.get(i))); }    
     return res;
   }
