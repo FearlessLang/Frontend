@@ -40,7 +40,7 @@ public record FreshPrefix(
     String base= sanitizeBase(hint.simpleName(), true);
     int n= topSeq.getOrDefault(base, 1);
     while (true){
-      String cand= encodeBijective(n, up) + "_" + base;
+      String cand= "_"+encodeBijective(n, up) + base;//all fresh names should start with _ to be pkg private
       var commit= !usedTopTypes.contains(cand) && !allGenericNames.contains(cand);
       if (!commit){ n++; continue; }
       usedTopTypes.add(cand);
@@ -66,7 +66,7 @@ public record FreshPrefix(
     int n= seq.getOrDefault(base, 1);
     Set<String> scope= st.gen();
     while (true){
-      String cand= encodeBijective(n, up) + "_" + base;
+      String cand= "_" + encodeBijective(n, up) + base;
       var commit= !scope.contains(cand) && !usedTopTypes.contains(cand);
       if (!commit){ n++; continue; }
       scope.add(cand);
@@ -85,7 +85,7 @@ public record FreshPrefix(
     int n= seq.getOrDefault(base, 1);
     Set<String> scope= st.vars();
     while (true){
-      String cand= encodeBijective(n, low) + "_" + base;
+      String cand= "_" + encodeBijective(n, low) + base;
       if (scope.contains(cand)){ n++; continue; }
       scope.add(cand);
       seq.put(base, n + 1);
@@ -101,7 +101,7 @@ public record FreshPrefix(
     owners.put(alias, st);
   }
   private static String sanitizeBase(String raw,boolean type){
-    String s= raw.replaceAll("[^A-Za-z0-9_]", "");
+    String s= raw.replaceAll("[^A-Za-z0-9]", "");
     if (s.isEmpty()){ s= type ? "T" : "v"; }
     if (!Character.isLetter(s.charAt(0))){ s= (type ? "T" : "v") + s; }
     return (s.length() <= 4) ? s : s.substring(0, 4);

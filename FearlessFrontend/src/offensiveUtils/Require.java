@@ -62,4 +62,23 @@ public final class Require {
     m.forEach(p);//the consumer itself would throw the error
     return true;
   }
+  public static <E> boolean unmodifiableDistinct(List<E> xs, String what){
+    unmodifiable(xs, what);
+    int n= xs.size();
+    if (n <= 1){ return true; }
+    if (n <= 32){
+      for(int i= 0; i < n; i++){
+        var xi= xs.get(i);
+        for(int j= i + 1; j < n; j++){
+          if (xi == xs.get(j)){ throw new IllegalArgumentException(what+" must have distinct elements (==)"); }
+        }
+      }
+      return true;
+    }
+    var seen= Collections.newSetFromMap(new java.util.IdentityHashMap<E,Boolean>());
+    for (var x: xs){
+      if (!seen.add(x)){ throw new IllegalArgumentException(what+" must have distinct elements (==)"); }
+    }
+    return true;
+  }
 }

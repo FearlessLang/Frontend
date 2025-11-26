@@ -2,12 +2,11 @@ package optimizedTypes;
 
 import java.util.List;
 
+import core.T;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import fearlessParser.TokenKind;
 import files.Pos;
-import inferenceCore.Declaration;
-import inferenceCore.T;
 import pkgmerge.OtherPackages;
 import utils.Bug;
 
@@ -21,13 +20,13 @@ public class LiteralDeclarations {
   public static TName baseFloat= new TName("base.Float",0,Pos.UNKNOWN);
   public static TName widen= new TName("base.WidenTo",1,Pos.UNKNOWN);
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
-  static private Declaration of(TName name,TName lit){
+  static private core.E.Literal of(TName name,TName lit){
     var c= new T.C(lit,List.of());
     var self= new T.RCC(RC.imm,c);
     var w= new T.C(widen,List.of(self));
-    return new Declaration(name,List.of(),List.of(c,w),"this",List.of(),Pos.UNKNOWN);
+    return new core.E.Literal(RC.imm,name,List.of(),List.of(c,w),"this",List.of(),Pos.UNKNOWN);
   }
-  public static Declaration from(TName name, OtherPackages other){
+  public static core.E.Literal from(TName name, OtherPackages other){
     assert name.pkgName().equals("base");
     String s= name.simpleName();
     if (s.startsWith("`")){  return of(name,baseSStr); }

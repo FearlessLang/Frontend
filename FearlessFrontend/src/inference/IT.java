@@ -1,9 +1,7 @@
 package inference;
 
 import static fearlessParser.TokenKind.*;
-import static offensiveUtils.Require.eq;
-import static offensiveUtils.Require.nonNull;
-import static offensiveUtils.Require.unmodifiable;
+import static offensiveUtils.Require.*;
 
 import java.util.List;
 import java.util.stream.Collectors;

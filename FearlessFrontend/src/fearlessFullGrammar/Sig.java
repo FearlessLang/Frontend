@@ -12,7 +12,7 @@ public record Sig(
   ){
   public Sig{
     assert nonNull(rc,m,bs,t);
-    assert unmodifiable(parameters,"Sig.parameters");
+    assert unmodifiableDistinct(parameters,"Sig.parameters");
     assert validOpt(m,_m->eq(_m.arity(),parameters.size(),"Method name arity"));
   }
   public boolean fullyTyped(){

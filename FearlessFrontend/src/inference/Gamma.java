@@ -113,7 +113,7 @@ public final class Gamma {
     IntStream.range(0, xs2.size())
       .filter(i -> !xs2.get(i).equals("_"))
       .forEach(i -> res.declare(xs2.get(i), ts2.get(i)));
-    if(!self.equals("_")) res.declare(self, t);
+    if (!self.equals("_")){ res.declare(self, t); }
     return res;
   }
 }

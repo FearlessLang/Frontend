@@ -1,4 +1,4 @@
-package inferenceCore;
+package core;
 
 import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.eq;

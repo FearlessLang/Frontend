@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import core.B;
+import core.T;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.Parser;
@@ -21,8 +23,6 @@ import inference.E;
 import inference.IT;
 import inference.M;
 import inference.M.Sig;
-import inferenceCore.B;
-import inferenceCore.T;
 import message.WellFormednessErrors;
 import naming.FreshPrefix;
 import optimizedTypes.LiteralDeclarations;
@@ -32,7 +32,7 @@ import utils.Bug;
 
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
-    Map<TName, inferenceCore.Declaration> cache){
+    Map<TName, core.E.Literal> cache){
   void mayAdd(List<E.Literal> layer, E.Literal d, Map<TName,E.Literal> rem){
     for (IT.C c : d.cs()){
       var nope= p.name().equals(c.name().pkgName()) && rem.containsKey(c.name());
@@ -53,33 +53,38 @@ public record Methods(
     }
     return out;
   }
-  public List<inferenceCore.Declaration> of(List<E.Literal> iDecs){
+  public List<inference.E.Literal> of(List<E.Literal> iDecs){
+    //iDecs = iDecs.stream().filter(l->l.thisName().equals("this")).toList(); 
+    var acc= new ArrayList<E.Literal>();
     var layers= layer(iDecs);
-    for(var l : layers){ 
-      for (var d : ofLayer(l)){ cache.put(d.name(), d); }
-    }
-    return cache.values().stream().sorted(Comparator.comparing(d->d.name().s())).toList();
+    for(var l : layers){ for (var d : ofLayer(l,acc)){ cache.put(d.name(), d); } }
+    return acc;
   }
-  private List<inferenceCore.Declaration> ofLayer(List<E.Literal> ds){
-    return ds.stream().map(d->injectDeclaration(expandDeclaration(d))).toList();
+  private List<core.E.Literal> ofLayer(List<E.Literal> ds, ArrayList<E.Literal> acc){
+    return ds.stream().map(d->{
+      //assert d.thisName().equals("this"):d.thisName();
+      var e= expandDeclaration(d);
+      if (d.thisName().equals("this")){ acc.add(e); }
+      return injectDeclaration(e);
+    }).toList();
   }
   record CsMs(List<IT.C> cs, List<inference.M.Sig> sigs){}
   //TODO: performance: currently fetch rewrites for the class generics
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps?
   CsMs fetch(IT.C c,TName outName){
-    inferenceCore.Declaration d= from(c.name()); 
+    core.E.Literal d= from(c.name()); 
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
-    var sigs= d.ms().stream().map(m->alphaSig(m,xs,c,outName)).toList();
+    List<inference.M.Sig> sigs= d.ms().stream().<inference.M.Sig>map(m->alphaSig(m,xs,c,outName)).toList();
     return new CsMs(cs1,sigs);
   }
   List<IT.C> fetchCs(IT.C c){
-    inferenceCore.Declaration d= from(c.name());
+    core.E.Literal d= from(c.name());
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
   }
-  private inference.M.Sig alphaSig(inferenceCore.M m, List<String> xs, IT.C c, TName outName){
+  private inference.M.Sig alphaSig(core.M m, List<String> xs, IT.C c, TName outName){
     var s= m.sig();
     var fullXs= new ArrayList<>(xs);
     var fullTs= new ArrayList<>(c.ts());
@@ -97,12 +102,12 @@ public record Methods(
     IT newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
     return new inference.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),s.pos());
   }
-  public inferenceCore.Declaration from(TName name){
+  public core.E.Literal from(TName name){
     var res= _from(name);
     assert res != null: "In pkgName="+p.name()+", name not found: "+name+" current domain is:\n"+cache.keySet();
     return res;
   }
-  private inferenceCore.Declaration _from(TName name){
+  private core.E.Literal _from(TName name){
     if (name.pkgName().equals(p.name())){ return cache.get(name); }
     var res= other.of(name);
     if (res != null){ return res; }
@@ -125,7 +130,6 @@ public record Methods(
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
     fresh.registerAnonSuperT(d.name(),c.name());
     List<M.Sig> allSig= fetch(c,d.name()).sigs();//expandLiteral works on an incomplete literal with the cs list not there yet
-    //var ms= refreshed(d.ms(), c);
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d.name());
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d.name());
     return d.withMs(allMs);
@@ -150,20 +154,23 @@ public record Methods(
     throw WellFormednessErrors.extendedSealed(owner,fresh, target);
   }
 
-  inferenceCore.Declaration injectDeclaration(E.Literal d){
+  core.E.Literal injectDeclaration(E.Literal d){
     List<T.C> cs= TypeRename.itcToTC(d.cs());
-    List<inferenceCore.M> ms= TypeRename.itmToM(d.ms());
-    return new inferenceCore.Declaration(d.name(),d.bs(),cs,d.thisName(),ms,d.pos());
-  } 
+    p().log().logInferenceDeclaration(d, cs);
+    List<core.M> ms= new ToCore().msSyntetic(d.ms());
+    return new core.E.Literal(d.rc().orElse(RC.imm),d.name(),d.bs(),cs,d.thisName(),ms,d.pos());
+  }
   inference.M withName(MName name,inference.M m){
     assert m.impl().isPresent() && m.sig().m().isEmpty();
     M.Sig s= m.sig();
     s= new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.pos());
     return new inference.M(s,m.impl());
-  } 
+  }
+  //--
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, TName origin){
     assert ss.stream().allMatch(M.Sig::isFull);
-    List<M> res= new ArrayList<>();
+    List<M> res= new ArrayList<>(ms.size());
+    boolean changed= false;
     for (var m: ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
       var name= m.sig().m().get();
@@ -173,6 +180,7 @@ public record Methods(
     }
     for (var m: ms){//for methods WITHOUT name
       if (m.sig().m().isPresent()){ continue; }
+      changed = true;
       var arity= m.sig().ts().size();
       var match= new ArrayList<M.Sig>();
       ss.removeIf(s->s.m().get().arity()==arity && s.abs()?match.add(s):false);
@@ -186,27 +194,41 @@ public record Methods(
       if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin,fresh,false,m,match); }
       throw WellFormednessErrors.noSourceToInferFrom(m);
     }
-    return res;
+    return changed ? List.copyOf(res) : ms;
   }
   List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, TName origin){
     List<M> res= new ArrayList<>();
-    for (var m: ms){
+    boolean changed= false;
+    for (var m: ms){ 
       var name= m.sig().m().get();
       var rc= m.sig().rc();
-      var match= new LinkedHashMap<RC,List<M.Sig>>();
+      var match= new LinkedHashMap<RC,List<M.Sig>>();    
       ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))?acc(match,s):false);
-      if (match.isEmpty()){ res.add(pairWithSig(List.of(),m,origin)); }
-      for (var matches:match.values()){ res.add(pairWithSig(Collections.unmodifiableList(matches),m,origin)); }
+      if (match.isEmpty()){
+        var m2= pairWithSig(List.of(),m,origin);
+        changed |= m2 != m;
+        res.add(m2);
+        continue;
+      }
+      for (var matches: match.values()){
+        var m2= pairWithSig(Collections.unmodifiableList(matches),m,origin);
+        changed |= m2 != m;
+        res.add(m2);
+      }
     }
-    ss.stream()
-      .collect(Collectors.groupingBy(
-        s -> new Parser.RCMName(s.rc(), s.m().get()),
-        LinkedHashMap::new,
-        Collectors.toList()))
-      .values()
-      .forEach(v -> res.add(pairWithSig(v, origin)));
-    return List.copyOf(res);
-  }
+    if (!ss.isEmpty()){
+      changed= true;
+      ss.stream()
+        .collect(Collectors.groupingBy(
+          s -> new Parser.RCMName(s.rc(), s.m().get()),
+          LinkedHashMap::new,
+          Collectors.toList()))
+        .values()
+        .forEach(v -> res.add(pairWithSig(v, origin)));
+    }
+    assert !changed == res.equals(ms): changed;
+    return changed ? List.copyOf(res) : ms;
+  } 
   private boolean acc(HashMap<RC, List<Sig>> match, Sig s){
     match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s);
     return true;

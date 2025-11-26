@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import fearlessFullGrammar.TName;
-import inferenceCore.Declaration;
 import message.SourceOracle;
 import pkgmerge.OtherPackages;
 import pkgmerge.ParsePackage;
@@ -14,14 +13,14 @@ import utils.Bug;
 class DbgBlock{
   static OtherPackages err(){
     return new OtherPackages(){
-      public Declaration of(TName name){ throw Bug.of(); }
+      public core.E.Literal of(TName name){ throw Bug.of(); }
       public Collection<TName> dom(){ throw Bug.of(); }
     };
   }
   static OtherPackages dbg(){
     var ds= all().stream().collect(Collectors.toMap(d->d.name(),d->d));
     return new OtherPackages(){
-      public Declaration of(TName name){ return ds.get(name); }
+      public core.E.Literal of(TName name){ return ds.get(name); }
       public Collection<TName> dom(){ return ds.keySet(); }
     }; 
   }
@@ -274,12 +273,12 @@ _DecidedBlock:{
   }
 }
 """;
-  static List<Declaration> all(){
+  static List<core.E.Literal> all(){
     var o= SourceOracle.debugBuilder()
       .put("base.fear",baseHead)
       .put("baseBody.fear","package base;\n"+baseBody)
       .build();
     return new ParsePackage()
-      .of(List.of(),o.allFiles(),o,err(),false);
+      .of(List.of(),o.allFiles(),o,err());
   }
 }

@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import core.B;
 import utils.Bug;
 import utils.Push;
 import fearlessFullGrammar.E.Call;
@@ -18,7 +20,6 @@ import files.Pos;
 import inference.E;
 import inference.IT;
 import inference.M;
-import inferenceCore.B;
 import inject.Methods;
 import message.WellFormednessErrors;
 import naming.FreshPrefix;
@@ -27,7 +28,9 @@ import pkgmerge.Package;
 import fearlessFullGrammar.TName;
 import static java.util.Optional.*;
 
-public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, List<E.Literal> decs, Package pkg, List<List<B>> bsInScope, OtherPackages other, FreshPrefix freshF)
+import java.util.ArrayList;
+
+public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs, Package pkg, List<List<B>> bsInScope, OtherPackages other, FreshPrefix freshF)
     implements fearlessFullGrammar.EVisitor<inference.E>,fearlessFullGrammar.TVisitor<IT>{
   static final inference.IT u= IT.U.Instance;
   static fearlessFullGrammar.E.Literal emptyL(Pos pos){ return new fearlessFullGrammar.E.Literal(empty(),List.of(),pos); }

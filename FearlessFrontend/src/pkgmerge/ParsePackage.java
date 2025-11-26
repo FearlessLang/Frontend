@@ -24,10 +24,6 @@ import static offensiveUtils.Require.*;
 import static fearlessParser.TokenKind.*;
 
 public class ParsePackage{
-  /*public List<core.E.Literal> of(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other){
-    var inf= of(override,files,o,other);
-    
-    }*/
   public Methods methods(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other){
     Map<URI,FileFull> all= new LinkedHashMap<>();
     for(var u : files){
@@ -39,11 +35,22 @@ public class ParsePackage{
     var fresh= new FreshPrefix(p);
     return new Methods(p,other,fresh,new LinkedHashMap<>());  
     }
-  public List<inferenceCore.Declaration> of(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
+  public Methods ofMethods(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
     var meths= methods(override,files, o,other);
     List<E.Literal> iDecs= new ToInference().of(meths.p(),meths,other,meths.fresh());
-    List<inferenceCore.Declaration> res= meths.of(iDecs);//TODO: res only for stages of testing?
-    return infer?InjectionSteps.steps(meths,other):res;
+    iDecs= meths.of(iDecs);
+    if (!infer){ return meths; }
+    var res= InjectionSteps.steps(meths,iDecs);
+    meths.p().log().logs().add("~-----------");
+    for (var r:res){meths.p().log().logs().add("~"+r.toString()); }
+    return meths;
+  }
+  //TODO: this will be used in the next phase, for type system
+  public List<core.E.Literal> of(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other){
+    var meths= methods(override,files, o,other);
+    List<E.Literal> iDecs= new ToInference().of(meths.p(),meths,other,meths.fresh());
+    iDecs= meths.of(iDecs);
+    return InjectionSteps.steps(meths,iDecs);
   }
   Package merge(List<FileFull.Map> override, Map<URI,FileFull> all, OtherPackages other){
     String pkgName= all.values().iterator().next().name();
@@ -60,7 +67,7 @@ public class ParsePackage{
     acc(pkgName,map,override);
     accUse(pkgName,map,head.uses(),other);
     var names= DeclaredNames.of(pkgName,ds,Collections.unmodifiableMap(map));
-    return new Package(pkgName,head.role().get(),map,ds,names);
+    return new Package(pkgName,head.role().get(),map,ds,names,Package.logger());
   }
   void acc(String n, HashMap<String,String> map, List<FileFull.Map> maps){
     for (var m: maps){ if (n.equals(m.target())){ map.put(m.out(),m.in()); } }

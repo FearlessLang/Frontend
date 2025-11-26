@@ -24,7 +24,7 @@ public sealed interface E {
   }
   record Literal(Optional<E.X> thisName, List<M> methods, Pos pos) implements E{
     public Literal{
-      assert unmodifiable(methods, "L.Full.methods");
+      assert unmodifiableDistinct(methods, "L.Full.methods");
       assert nonNull(thisName,pos);
     }
     public <R> R accept(EVisitor<R> v){ return v.visitLiteral(this); }

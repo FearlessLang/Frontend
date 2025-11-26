@@ -11,6 +11,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import core.B;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.T.X;
@@ -21,7 +22,6 @@ import files.Pos;
 import inference.E;
 import inference.IT;
 import inference.M;
-import inferenceCore.B;
 import inject.Methods.Agreement;
 import metaParser.Message;
 import metaParser.NameSuggester;

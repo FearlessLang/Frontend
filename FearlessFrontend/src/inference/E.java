@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import core.B;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import files.Pos;
-import inferenceCore.B;
 
 public sealed interface E {
   Pos pos();
@@ -40,11 +40,14 @@ public sealed interface E {
   }
   // **rc is present implies no inference needed**
   record Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, IT t, Pos pos, boolean infA, Gamma.GammaSignature g) implements E{
-    public Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, Pos pos){ this(rc,name,bs,cs,thisName,ms,IT.U.Instance,pos,false,new Gamma.GammaSignature());}
+    public Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, Pos pos){
+      this(rc,name,bs,cs,thisName,ms,IT.U.Instance,pos,false,new Gamma.GammaSignature());
+    }
+    
     public Literal{
-      assert unmodifiable(bs,"L.bs");
+      assert unmodifiableDistinct(bs,"L.bs");
       assert unmodifiable(cs,"L.cs");
-      assert unmodifiable(ms, "L.ms");
+      assert unmodifiableDistinct(ms, "L.ms");
       assert nonNull(name,thisName,t);
       assert cs.isEmpty() || rc.isPresent();
     }
@@ -66,15 +69,17 @@ public sealed interface E {
       return res;
     }
     public Literal withMs(List<M> ms){
-      if (infA == true && ms == this.ms){ return this; } 
+      if (infA && ms == this.ms){ return this; } 
       return new Literal(rc,name,bs,cs,thisName,ms,t,pos,true,g.clear());
     }
     public Literal withMsT(List<M> ms, IT t){
-      if (infA == true && ms == this.ms && t.equals(this.t)){ return this; }
+      if (infA && ms == this.ms && t.equals(this.t)){ return this; }
+      assert ms == this.ms || !ms.equals(this.ms) : "Allocated equal MS:\n"+ms;
       return new Literal(rc,name,bs,cs,thisName,ms,t,pos,true,g.clear());
     }
     public Literal withCsMs(List<IT.C> cs, List<M> ms){
-      if (infA == true && cs.equals(this.cs) && ms == this.ms){ return this; }
+      if (infA && cs.equals(this.cs) && ms == this.ms){ return this; }
+      assert ms == this.ms || !ms.equals(this.ms) : "Allocated equal MS:\n"+ms;
       return new Literal(rc,name,bs,cs,thisName,ms,t,pos,true,g.clear());
     }
   }

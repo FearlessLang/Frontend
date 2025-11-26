@@ -3,23 +3,37 @@ package core;
 import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import fearlessFullGrammar.MName;
-import fearlessFullGrammar.TName;
-import inferenceCore.B;
-import inferenceCore.T;
-import inferenceCore.M.Sig;
 import fearlessParser.RC;
-import files.Pos;
-import inference.E;
-
-public record M(Sig s, List<String> xs, Optional<E> e){
-  /*public record Sig(RC rc, MName m, List<B> bs, List<T> ts, T res, TName origin, Pos pos){
-    public Sig{
-      assert nonNull(rc,m,res,origin);
-      assert unmodifiable(bs,"Sig.bs");
-      assert unmodifiable(ts,"Sig.bs");
-      assert eq(m.arity(),ts.size(),"Method name arity");
-    }}*/
-  public M{ assert nonNull(s,e); assert unmodifiable(xs,"M.xs"); }
+public record M(Sig sig, List<String> xs, Optional<core.E> e){
+  public M{ assert nonNull(sig,e); assert unmodifiable(xs,"M.xs"); }
+  public String _toString(){
+    String _xs="";//TODO: change those patterns with ?: and or introduce a helper
+    if (!xs.isEmpty()){ _xs = "("+xs.stream().map(Object::toString).collect(Collectors.joining(","))+")"; }
+    String _e=e.isEmpty()?"":"->"+e.get();
+    return ""+sig+_xs+_e;
+  }
+  public String toString(){
+    assert xs.size()==sig.ts().size();
+    var sb= new StringBuilder();
+    if (sig.rc()!=RC.imm){ sb.append(sig.rc()).append(' '); }
+    sb.append(sig.m());
+    if (!sig.bs().isEmpty()){sb
+      .append('[')
+      .append(sig.bs().stream().map(Object::toString).collect(Collectors.joining(",")))
+      .append(']');
+    }
+    if (!xs.isEmpty()){
+      sb.append('(');
+      for (int i= 0; i < xs.size(); i += 1){
+        if (i>0){ sb.append(", "); }
+        sb.append(xs.get(i)).append(':').append(sig.ts().get(i));
+      }
+      sb.append(')');
+    }
+    sb.append(':').append(sig.ret());
+    e.ifPresent(body->sb.append("->").append(body));
+    return sb.toString();
+  }
 }

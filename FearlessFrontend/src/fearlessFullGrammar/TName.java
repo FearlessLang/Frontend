@@ -7,6 +7,8 @@ public record TName(String s, int arity,Pos pos){
   public TName{
     assert arity >= 0 : "arity < 0: "+arity;
     assert s.indexOf(".") != -1 || validate(s,"TName", UppercaseId,UnsignedInt, SignedInt, SignedRational, SignedFloat, UStr, SStr);
+    //assert s.chars().filter(c -> c == '_').count() <= 1:
+    //  "";//TODO: temporary, to check no double freshing, not really working since some names start with _
   }
   public TName withPkgName(String pkg){
     assert pkgName().isEmpty();

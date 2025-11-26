@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import inject.Methods;
 import message.FearlessException;
 import message.SourceOracle;
 import pkgmerge.ParsePackage;
@@ -34,16 +35,14 @@ public class TestInference {
     try{ return r.get(); }
     catch(FearlessException fe){ System.out.println(fe.render(o)); throw fe; }
   }
-  static List<inferenceCore.Declaration> parsePackage(SourceOracle o,boolean infer){
+  static Methods parsePackage(SourceOracle o,boolean infer){
     return new ParsePackage()
-      .of(List.of(),o.allFiles(),o,DbgBlock.dbg(),infer);
+      .ofMethods(List.of(),o.allFiles(),o,DbgBlock.dbg(),infer);
   }
   static void ok(String expected, String head, List<String> input, boolean infer){
     var o= oracle("p",head,input);
     var res= printError(()->parsePackage(o,infer),o);
-    var got= res.stream()
-      .map(Object::toString)
-      .collect(Collectors.joining("\n"))+"\n";
+    var got= res.p().log().logs().stream().sorted().collect(Collectors.joining("\n"));
     Err.strCmp(expected,got);
   }
   static void ok(String expected, String head, List<String> input){ ok(expected,head,input,false); }
@@ -267,15 +266,14 @@ Error 9 WellFormedness
 "B:{.foo:A-> A:{} }","A:{}"));}
 
 @Test void opt_explicit(){ok("""
-p.Opt[T:imm]:{'this\
- .match[R:imm](p.OptMatch[T,R]):R@p.Opt;(m)->m:?.empty():?;}
 p.OptMatch[T:imm, R:imm]:{'this\
  .empty:R@p.OptMatch;\
  .some(T):R@p.OptMatch;}
+p.Opt[T:imm]:{'this\
+ .match[R:imm](p.OptMatch[T,R]):R@p.Opt;(m)->m:?.empty():?;}
 p.Opts:{'this\
  #[T:imm](T):p.Opt[T]@p.Opts;(t)->p.Some[T:imm]:p.Opt[T]{'_\
- ? .match[?](?):?@!;\
- .match(m)->m:?.some(t:?):?;}:?;}
+ ? .match[?](?):?@!;(m)->m:?.some(t:?):?;}:?;}
 p.Some[T:imm]:p.Opt[T]{'_\
  .match[R:imm](p.OptMatch[T,R]):R@p.Some;(m)->m:?.some(t:?):?;}
 """,List.of("""
@@ -291,14 +289,14 @@ Opts: {
   }
 """));}
 @Test void opt_implicit(){ok("""
-p.Opt[T:imm]:{'this\
- .match[R:imm](p.OptMatch[T,R]):R@p.Opt;(m)->m:?.empty():?;}
 p.OptMatch[T:imm, R:imm]:{'this\
  .empty:R@p.OptMatch; .some(T):R@p.OptMatch;}
+p.Opt[T:imm]:{'this\
+ .match[R:imm](p.OptMatch[T,R]):R@p.Opt;(m)->m:?.empty():?;}
 p.Opts:{'this\
  #[T:imm](T):p.Opt[T]@p.Opts;\
-(t)->p.A_Opts:$?{'_ ? .match[?](?):?@!;\
- .match(m)->m:?.some(t:?):?;}:?;}
+(t)->p._AOpts:$?{'_ ? .match[?](?):?@!;\
+(m)->m:?.some(t:?):?;}:?;}
 """,List.of("""
 Opt[T]: {
   .match[R](m: OptMatch[T,R]): R -> m.empty
@@ -316,7 +314,7 @@ p.A:{'this .a[R:imm](p.F[R]):R@p.A;(f)->f:?#():?;}
 p.F[R:imm]:{'this #:R@p.F;}
 p.User:{'this\
  .use:p.User@p.User;\
-->p.A:?.a(p.A_User:$?{'_ ? [?]:?@!; ()->p.User:?;}:?):?;}
+->p.A:?.a(p._AUser:$?{'_ ? [?]:?@!;->p.User:?;}:?):?;}
 """,List.of("""
 F[R]:{#:R}
 A:{ .a[R](f:F[R]):R->f#; }
@@ -324,11 +322,11 @@ User:{ .use:User->A.a{User}}
 """));}
 @Test void base_typed_literal_inference_0(){ok("""
 p.A:{'this .a[R:imm](p.F[R]):R@p.A;(f)->f:?#():?;}
-p.A_User:p.F[p.User]{'_ #:p.User@p.A_User;->p.User:?;}
 p.F[R:imm]:{'this #:R@p.F;}
 p.User:{'this\
  .use:p.User@p.User;\
-->p.A:?.a(p.A_User:p.F[p.User]{'_ ? [?]:?@!; ()->p.User:?;}:?):?;}
+->p.A:?.a(p._AUser:p.F[p.User]{'_ ? [?]:?@!;->p.User:?;}:?):?;}
+p._AUser:p.F[p.User]{'_ #:p.User@p._AUser;->p.User:?;}
 """,List.of("""
 F[R]:{#:R}
 A:{ .a[R](f:F[R]):R->f#; }
@@ -336,30 +334,30 @@ User:{ .use:User->A.a F[User]{User}}
 """));}
 @Test void base_typed_literal_inference_freshClash1(){ok("""
 p.A:{'this .a[R:imm](p.F[R]):R@p.A;(f)->f:?#():?;}
-p.A_F:{'this}
-p.A_User:p.F[p.User]{'_ #:p.User@p.A_User;->p.User:?;}
 p.F[R:imm]:{'this #:R@p.F;}
 p.User:{'this\
  .use:p.User@p.User;\
-->p.A:?.a(p.A_User:p.F[p.User]{'_ ? [?]:?@!; ()->p.User:?;}:?):?;}
-""","role app000;\nuse base.Void as B_F;\n",List.of("""
+->p.A:?.a(p._AUser:p.F[p.User]{'_ ? [?]:?@!;->p.User:?;}:?):?;}
+p._AF:{'this}
+p._AUser:p.F[p.User]{'_ #:p.User@p._AUser;->p.User:?;}
+""","role app000;\nuse base.Void as _BF;\n",List.of("""
 F[R]:{#:R}
-A_F:{}
+_AF:{}
 A:{ .a[R](f:F[R]):R->f#; }
 User:{ .use:User->A.a F[User]{User}}
 """));}
 
 @Test void base_typed_literal_inference_freshClash2(){ok("""
 p.A:{'this .a[R:imm](p.F[R]):R@p.A;(f)->f:?#():?;}
-p.A_User:p.F[p.User]{'_ #:p.User@p.A_User;->p.User:?;}
-p.B_F:{'this}
 p.F[R:imm]:{'this #:R@p.F;}
 p.User:{'this\
  .use:p.User@p.User;\
-->p.A:?.a(p.A_User:p.F[p.User]{'_ ? [?]:?@!; ()->p.User:?;}:?):?;}
-""","role app000;\nuse base.Void as A_F;\n",List.of("""
+->p.A:?.a(p._AUser:p.F[p.User]{'_ ? [?]:?@!;->p.User:?;}:?):?;}
+p._AUser:p.F[p.User]{'_ #:p.User@p._AUser;->p.User:?;}
+p._BF:{'this}
+""","role app000;\nuse base.Void as _AF;\n",List.of("""
 F[R]:{#:R}
-B_F:{}
+_BF:{}
 A:{ .a[R](f:F[R]):R->f#; }
 User:{ .use:User->A.a F[User]{User}}
 """));}
@@ -410,9 +408,9 @@ C:{.foo:C;}
 """));}
 @Test void implicit1(){ok("""
 p.A:{'this #(p.A):p.A@p.A;}
-p.B:p.A{'this #(p.A):p.A@p.B;(a_impl)->a_impl:?;}
-p.C:p.A{'this #(p.A):p.A@p.C;(a_impl)->a_impl:?#(a_impl:?):?;}
-p.D:p.A{'this #(p.A):p.A@p.D;(a_impl)->a_impl:?#():?#():?;}
+p.B:p.A{'this #(p.A):p.A@p.B;(_aimpl)->_aimpl:?;}
+p.C:p.A{'this #(p.A):p.A@p.C;(_aimpl)->_aimpl:?#(_aimpl:?):?;}
+p.D:p.A{'this #(p.A):p.A@p.D;(_aimpl)->_aimpl:?#():?#():?;}
 """,List.of("""
 A:{ #(x:A):A }
 B:A{::}
@@ -422,9 +420,9 @@ D:A{::# #}
 
 @Test void implicit2(){ok("""
 p.A:{'this #(p.A):p.A@p.A; #(p.A,p.A):p.A@p.A;}
-p.B:p.A{'this #(p.A):p.A@p.B;(a_impl)->a_impl:?; #(p.A,p.A):p.A@p.A;}
-p.C:p.A{'this #(p.A):p.A@p.C;(a_impl)->a_impl:?; #(p.A,p.A):p.A@p.C;(z, b_impl)->b_impl:?;}
-p.D:p.A{'this #(p.A,p.A):p.A@p.D;(z, a_impl)->a_impl:?.bar(p.A_D:$?{'_ ? [?](?):?@!; (b_impl)->b_impl:?.foo(p.D:?):?;}:?):?; #(p.A):p.A@p.A;}
+p.B:p.A{'this #(p.A):p.A@p.B;(_aimpl)->_aimpl:?; #(p.A,p.A):p.A@p.A;}
+p.C:p.A{'this #(p.A):p.A@p.C;(_aimpl)->_aimpl:?; #(p.A,p.A):p.A@p.C;(z, _bimpl)->_bimpl:?;}
+p.D:p.A{'this #(p.A,p.A):p.A@p.D;(z, _aimpl)->_aimpl:?.bar(p._AD:$?{'_ ? [?](?):?@!;(_bimpl)->_bimpl:?.foo(p.D:?):?;}:?):?; #(p.A):p.A@p.A;}
 """,List.of("""
 A:{ #(x:A):A; #(x:A,y:A):A }
 B:A{::}
@@ -440,10 +438,10 @@ D:A{z->::.bar {::.foo(D)}}
 p.A:{'this\
  #:p.A@p.A;->base.Block:?#():?\
 .let(\
-p.A_A:$?{'_ ? [?]:?@!; ()->p.A:?;}:?,\
-p.C_A:$?{'_ ? [?](?,?):?@!;\
- (x, a_eqS)->a_eqS:?\
-.return(p.B_A:$?{'_ ? [?]:?@!; ()->x:?;}:?):?;}:?):?;}
+p._AA:$?{'_ ? [?]:?@!;->p.A:?;}:?,\
+p._CA:$?{'_ ? [?](?,?):?@!;\
+(x, _aeqS)->_aeqS:?\
+.return(p._BA:$?{'_ ? [?]:?@!;->x:?;}:?):?;}:?):?;}
 ""","role app000;use base.Block as Block;",List.of("""
 A:{ #:A->Block#.let x={A}.return {x} }
 """));}
@@ -452,17 +450,17 @@ A:{ #:A->Block#.let x={A}.return {x} }
 p.A:{'this #(p.A):p.A@p.A;}
 p.B:p.A{'this\
  #(p.A):p.A@p.B;\
-(a_div)->base.Block:?#():?\
-.let(p.A_B:$?{'_ ? [?]:?@!; ()->a_div:?\
+(_adiv)->base.Block:?#():?\
+.let(p._AB:$?{'_ ? [?]:?@!;->_adiv:?\
 .a():?.b():?;}:?,\
-p.B_B:$?{'_ ? [?](?,?):?@!;\
- (b3, b_eqS)->b_eqS:?;}:?):?\
-.let(p.C_B:$?{'_ ? [?]:?@!;\
- ()->a_div:?.c():?.d():?;}:?,\
-p.D_B:$?{'_ ? [?](?,?):?@!;\
- (d3, a_eqS)->a_eqS:?;}:?):?\
-.return(p.E_B:$?{'_ ? [?]:?@!;\
- ()->b3:?+(d3:?):?;}:?):?;}
+p._BB:$?{'_ ? [?](?,?):?@!;\
+(b3, _beqS)->_beqS:?;}:?):?\
+.let(p._CB:$?{'_ ? [?]:?@!;\
+->_adiv:?.c():?.d():?;}:?,\
+p._DB:$?{'_ ? [?](?,?):?@!;\
+(d3, _aeqS)->_aeqS:?;}:?):?\
+.return(p._EB:$?{'_ ? [?]:?@!;\
+->b3:?+(d3:?):?;}:?):?;}
 """,List.of("""
 A:{ #(A):A }
 B:A{ #{.a.b,.c.d}3->b3+d3 }
@@ -471,13 +469,13 @@ B:A{ #{.a.b,.c.d}3->b3+d3 }
 @Test void eqDeep(){ok("""
 p.A:{'this .bar(p.A):p.A@p.A;}
 p.B:p.A{'this\
- .bar(p.A):p.A@p.B;(a_impl)->a_impl:?\
+ .bar(p.A):p.A@p.B;(_aimpl)->_aimpl:?\
 .foo():?.let(\
 base.1:?,\
-p.B_B:$?{'_ ? [?](?,?):?@!;\
- (x, a_eqS)->a_eqS:?.bla(base.2:?):?\
-.let(base.3:?,p.A_B:$?{'_ ? [?](?,?):?@!;\
- (y, b_eqS)->b_eqS:?.beer(base.4:?):?;}:?):?;}:?):?;}
+p._BB:$?{'_ ? [?](?,?):?@!;\
+(x, _aeqS)->_aeqS:?.bla(base.2:?):?\
+.let(base.3:?,p._AB:$?{'_ ? [?](?,?):?@!;\
+(y, _beqS)->_beqS:?.beer(base.4:?):?;}:?):?;}:?):?;}
 """,List.of("""
 A:{ .bar(A):A}
 B:A{ ::.foo.let x=1 .bla 2 .let y= 3 .beer 4}
@@ -486,13 +484,13 @@ B:A{ ::.foo.let x=1 .bla 2 .let y= 3 .beer 4}
 @Test void eqImplicit(){ok("""
 p.A:{'this .bar(p.A):p.A@p.A;}
 p.B:p.A{'this\
- .bar(p.A):p.A@p.B;(a_impl)->a_impl:?.foo():?.let(\
-a_impl:?,p.B_B:$?{'_\
+ .bar(p.A):p.A@p.B;(_aimpl)->_aimpl:?.foo():?.let(\
+_aimpl:?,p._BB:$?{'_\
  ? [?](?,?):?@!;\
- (x, a_eqS)->a_eqS:?.bla(a_impl:?):?.let(\
-a_impl:?,p.A_B:$?{'_\
+(x, _aeqS)->_aeqS:?.bla(_aimpl:?):?.let(\
+_aimpl:?,p._AB:$?{'_\
  ? [?](?,?):?@!;\
- (y, b_eqS)->b_eqS:?.beer(a_impl:?):?;}:?):?;}:?):?;}
+(y, _beqS)->_beqS:?.beer(_aimpl:?):?;}:?):?;}:?):?;}
 """,List.of("""
 A:{ .bar(A):A}
 B:A{ ::.foo.let x=:: .bla :: .let y= :: .beer ::}
@@ -676,7 +674,7 @@ B:A1,A2{ .foo()->this.foo }
 p.A1:{'this .foo[X:imm]:p.A1@p.A1;}
 p.A2:{'this .foo[X:imm]:p.A1@p.A2;}
 p.B[X:imm]:p.A1, p.A2{'this\
- .foo[A_X:imm]:p.A1@p.B;->this:?.foo():?;}
+ .foo[_AX:imm]:p.A1@p.B;->this:?.foo():?;}
 """,List.of("""
 A1:{ .foo[X:imm]():A1;}
 A2:{ .foo[X:imm]():A1;}
@@ -879,7 +877,7 @@ User:{
   }
 """));}
 
-@Test void inferAlpha_MultiSuper_DifferentBounds_ShouldDisagree(){ fail("""
+@Test void inferAlph_AMultiSuper_DifferentBounds_ShouldDisagree(){ fail("""
 In file: [###]/in_memory0.fear
 
 005| D:A,C{}
@@ -897,7 +895,7 @@ C:{.id[Y:read](y:Box[Y]):Y}
 D:A,C{}
 """));}
 
-@Test void inferAlpha_ArityMismatch_BetweenSupers_OrOverride(){ fail("""
+@Test void inferAlph_AArityMismatch_BetweenSupers_OrOverride(){ fail("""
 In file: [###]/in_memory0.fear
 
 003| E:A{.m[U](u:U,g:U):U} // mismatch on method generic arity and params
@@ -914,7 +912,7 @@ A:{.m[X,Y](x:X,y:Y):X}
 E:A{.m[U](u:U,g:U):U} // mismatch on method generic arity and params
 """));}
 
-@Test void inferAlpha_ClassParamNameCollides_WithMethodParamName(){ fail("""
+@Test void inferAlph_AClassParamNameCollides_WithMethodParamName(){ fail("""
 In file: [###]/in_memory0.fear
 
 001| package p;
@@ -931,7 +929,7 @@ A:{.id[X](x:Box[X]):X}
 B[X]:A{.id[X](b:Box[X])->b.get} // class X vs method X
 """));}
 
-@Test void inferAlpha_MergeTwoSupers_SwappedOrder_NestedArgs(){ fail("""
+@Test void inferAlph_AMergeTwoSupers_SwappedOrder_NestedArgs(){ fail("""
 In file: [###]/in_memory0.fear
 
 006| D:A,C{}
@@ -951,14 +949,14 @@ D:A,C{}
 """));}
 
 @Test void nested5a(){ok("""
-p.A_User:p.GG{'_ .apply[F_A0:imm](F_A0):F_A0@p.A_User;(a2)->a2:?;}
-p.B_User:p.GG{'_ .apply[C_A0:imm](C_A0):C_A0@p.B_User;(a4)->a4:?;}
-p.C_User:p.GG{'_ .apply[A_A0:imm](A_A0):A_A0@p.C_User;(a3)->this:?.withGG(p.B_User:p.GG{'_ ? [?](?):?@!; (a4)->a4:?;}:?):?;}
-p.D_User:p.GG{'_ .apply[B_A0:imm](B_A0):B_A0@p.D_User;(a5)->a5:?;}
-p.E_User:p.GG{'_ .apply[D_A0:imm](D_A0):D_A0@p.E_User;(a4)->this:?.withGG(p.D_User:p.GG{'_ ? [?](?):?@!; (a5)->a5:?;}:?):?;}
-p.F_User:p.GG{'_ .apply[E_A0:imm](E_A0):E_A0@p.F_User;(a3)->this:?.withGG(p.E_User:p.GG{'_ ? [?](?):?@!; (a4)->this:?.withGG(p.D_User:p.GG{'_ ? [?](?):?@!; (a5)->a5:?;}:?):?;}:?):?;}
 p.GG:{'this .apply[A0:imm](A0):A0@p.GG;}
-p.User:{'this .withGG(p.GG):p.User@p.User; .id1[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p.A_User:p.GG{'_ ? [?](?):?@!; (a2)->a2:?;}:?):?; .id2[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p.C_User:p.GG{'_ ? [?](?):?@!; (a3)->this:?.withGG(p.B_User:p.GG{'_ ? [?](?):?@!; (a4)->a4:?;}:?):?;}:?):?; .id3[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p.F_User:p.GG{'_ ? [?](?):?@!; (a3)->this:?.withGG(p.E_User:p.GG{'_ ? [?](?):?@!; (a4)->this:?.withGG(p.D_User:p.GG{'_ ? [?](?):?@!; (a5)->a5:?;}:?):?;}:?):?;}:?):?;}
+p.User:{'this .withGG(p.GG):p.User@p.User; .id1[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p._AUser:p.GG{'_ ? [?](?):?@!;(a2)->a2:?;}:?):?; .id2[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p._CUser:p.GG{'_ ? [?](?):?@!;(a3)->this:?.withGG(p._BUser:p.GG{'_ ? [?](?):?@!;(a4)->a4:?;}:?):?;}:?):?; .id3[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p._FUser:p.GG{'_ ? [?](?):?@!;(a3)->this:?.withGG(p._EUser:p.GG{'_ ? [?](?):?@!;(a4)->this:?.withGG(p._DUser:p.GG{'_ ? [?](?):?@!;(a5)->a5:?;}:?):?;}:?):?;}:?):?;}
+p._AUser:p.GG{'_ .apply[_EA0:imm](_EA0):_EA0@p._AUser;(a2)->a2:?;}
+p._BUser:p.GG{'_ .apply[_CA0:imm](_CA0):_CA0@p._BUser;(a4)->a4:?;}
+p._CUser:p.GG{'_ .apply[_BA0:imm](_BA0):_BA0@p._CUser;(a3)->this:?.withGG(p._BUser:p.GG{'_ ? [?](?):?@!;(a4)->a4:?;}:?):?;}
+p._DUser:p.GG{'_ .apply[_FA0:imm](_FA0):_FA0@p._DUser;(a5)->a5:?;}
+p._EUser:p.GG{'_ .apply[_DA0:imm](_DA0):_DA0@p._EUser;(a4)->this:?.withGG(p._DUser:p.GG{'_ ? [?](?):?@!;(a5)->a5:?;}:?):?;}
+p._FUser:p.GG{'_ .apply[_AA0:imm](_AA0):_AA0@p._FUser;(a3)->this:?.withGG(p._EUser:p.GG{'_ ? [?](?):?@!;(a4)->this:?.withGG(p._DUser:p.GG{'_ ? [?](?):?@!;(a5)->a5:?;}:?):?;}:?):?;}
 """, List.of("""
 GG:{ .apply[A0](A0):A0 }
 User:{
@@ -996,7 +994,7 @@ p.Bla:{'_ .bla:p.User@p.Bla;->p.User:?;}
 p.User:{'this\
  .m:p.User@p.User;\
 ->p.Bla:{'_\
- ? .bla[?]:p.User@!; .bla()->p.User:?;}:?.bla():?;}
+ ? .bla[?]:p.User@!;->p.User:?;}:?.bla():?;}
 """,List.of("""
 User:{.m:User->
  Bla:{.bla:User->User;}.bla
@@ -1004,13 +1002,13 @@ User:{.m:User->
 """));}
 
 @Test void inLineAnonObject2(){ok("""
-p.A_User:{'_\
- .bla:p.User@p.A_User;\
-->p.User:?;}
 p.User:{'this\
  .m:p.User@p.User;\
-->p.A_User:{'_\
- ? .bla[?]:p.User@!; .bla()->p.User:?;}:?.bla():?;}
+->p._AUser:{'_\
+ ? .bla[?]:p.User@!;->p.User:?;}:?.bla():?;}
+p._AUser:{'_\
+ .bla:p.User@p._AUser;\
+->p.User:?;}
 """,List.of("""
 User:{.m:User->
  {.bla:User->User;}.bla

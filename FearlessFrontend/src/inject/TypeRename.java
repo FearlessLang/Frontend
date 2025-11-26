@@ -3,13 +3,11 @@ package inject;
 import java.util.List;
 import java.util.Optional;
 
+import core.T;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import files.Pos;
-import inference.E;
 import inference.IT;
-import inferenceCore.T;
-import inject.InjectionSteps.MSig;
 import utils.Bug;
 
 public class TypeRename{
@@ -85,17 +83,6 @@ public class TypeRename{
     //case IT.U _  -> new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.UNKNOWN), List.of()));
     case IT.Err _ ->new T.RCC(RC.imm,new T.C(new TName("base.InferErr", 0, Pos.UNKNOWN), List.of()));
   };}
-  
-  public static inferenceCore.M itmToM(inference.M m){
-    var s= m.sig();
-    List<T> ts= s.ts().stream().map(t->TypeRename.itToT(t.get())).toList();
-    T t= TypeRename.itToT(s.ret().get());
-    var sig= new inferenceCore.M.Sig(s.rc().get(),s.m().get(),s.bs().get(),ts,t,s.origin().get(),s.abs(),s.pos());
-    List<String> xs= m.impl().isEmpty()?List.of():m.impl().get().xs();
-    Optional<E> e= m.impl().map(i->i.e());
-    return new inferenceCore.M(sig,xs,e);
-  }
-  public static List<inferenceCore.M> itmToM(List<inference.M> ms){ return ms.stream().map(TypeRename::itmToM).toList(); }
   public static MSig normalizeHeaderBs(MSig header, inference.M.Sig sig){
     if (sig.bs().isEmpty()){ assert header.bs().isEmpty() : "header has generics but implementation has none: " + header + " / " + sig; return header; }
     var targetBs= sig.bs().get().stream().map(b -> b.x()).toList();

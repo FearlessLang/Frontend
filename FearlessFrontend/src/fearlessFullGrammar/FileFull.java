@@ -16,9 +16,9 @@ public record FileFull(
   public FileFull{
     assert name.isEmpty() || validate(name,"pkgName", _pkgName);
     assert nonNull(role);
-    assert unmodifiable(uses, "FileFull.uses");
-    assert unmodifiable(maps, "FileFull.maps");
-    assert unmodifiable(decs, "FileFull.decs"); 
+    assert unmodifiableDistinct(uses, "FileFull.uses");
+    assert unmodifiableDistinct(maps, "FileFull.maps");
+    assert unmodifiableDistinct(decs, "FileFull.decs"); 
   }
   public enum RoleName{base,core,driver,worker,framework,accumulator,tool,app}
   public record Role(RoleName role,int index){

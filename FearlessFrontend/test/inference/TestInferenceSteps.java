@@ -10,27 +10,27 @@ public class TestInferenceSteps {
   static void failI(String expected, List<String> input){ TestInference.fail(expected,"role app000;",input,true); }
   static void failI(String expected, String head, List<String> input){ TestInference.fail(expected,head,input,true); }  
 @Test void inferMini(){okI("""
-p.A:{'this\
- .foo:p.A@p.A;->this:p.A.foo[imm]():p.A;}
+p.A:{'this .foo:p.A@p.A;->this:?.foo():?;}
+~-----------
+~imm p.A:{'this .foo:p.A->this.foo[imm]}
+
 """,List.of("""
 A:{.foo:A->this.foo}
 """));}
 @Test void inferMini2(){okI("""
-p.A:{'this\
- .foo[X:imm](X):X@p.A;(x)->this:p.A.foo[imm,X](x:X):X;}
+p.A:{'this .foo[X:imm](X):X@p.A;(x)->this:?.foo(x:?):?;}
+~-----------
+~imm p.A:{'this .foo[X:imm](x:X):X->this.foo[imm,X](x)}
 """,List.of("""
 A:{.foo[X](x:X):X->this.foo(x)}
 """));}
 @Test void inferMini3(){okI("""
 p.F[A:imm, B:imm]:{'this #(A):B@p.F;}
-p.User:{'this\
- .foo[X:imm](X,p.F[X,X]):X@p.User;\
-(x, f)->f:p.F[X,X]#[imm](x:X):X;\
- .bar:p.User@p.User;\
-->this:p.User.foo[imm,p.User](\
-p.User:p.User,\
-p.A_User:p.F[p.User,p.User]{'_ imm #(p.User):p.User@p.A_User;\
- (a_impl)->a_impl:p.User;}:p.F[p.User,p.User]):p.User;}
+p.User:{'this .foo[X:imm](X,p.F[X,X]):X@p.User;(x, f)->f:?#(x:?):?; .bar:p.User@p.User;->this:?.foo(p.User:?,p._AUser:$?{'_ ? [?](?):?@!;(_aimpl)->_aimpl:?;}:?):?;}
+p._AUser:p.F[p.User,p.User]{'_ #(p.User):p.User@p._AUser;(_aimpl)->_aimpl:p.User;}
+~-----------
+~imm p.F[A:imm,B:imm]:{'this #(_:A):B}
+~imm p.User:{'this .foo[X:imm](x:X, f:p.F[X,X]):X->f#[imm](x); .bar:p.User->this.foo[imm,p.User](p.User, imm p._AUser:p.F[p.User,p.User]{'_ #(_aimpl:p.User):p.User->_aimpl})}
 """,List.of("""
 F[A,B]:{#(A):B}
 User:{
@@ -68,48 +68,42 @@ Stack[T]: {
   }
 """;
 @Test void inferStackGuideExampleSumLit(){okI("""
-p.StackMatch[T:imm, R:imm]:{[###]}
-p.Stack[T:imm]:{[###]}
-p.Z0ExampleSum:{'this\
- #(p.Stack[base.Nat]):base.Nat@p.Z0ExampleSum;\
-(ns)->ns:p.Stack[base.Nat].fold[imm,base.Nat](\
-base.0:base.Nat,p.A_Z0Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@p.A_Z0Ex;\
- (n1, n2)->n1:base.Nat+[imm](n2:base.Nat):base.Nat;\
-}:base.F[base.Nat,base.Nat,base.Nat]):base.Nat;}
+[###]~-----------
+~imm p.StackMatch[###]
+~imm p.Stack[###]
+~imm p.Z0ExampleSum:{'this #(ns:p.Stack[base.Nat]):base.Nat\
+->ns.fold[imm,base.Nat](base.0,\
+ imm p._AZ0Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
+ read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
 """,importMini,List.of(stackStart+"""
 Z0ExampleSum: { #(ns: Stack[Nat]): Nat -> ns.fold(0, { n1,n2 -> n1 + n2 })  }
 """));}
 @Test void inferStackGuideExampleTimesLit(){okI("""
-p.Z1ExampleTimes:{'this\
- #(p.Stack[base.Nat]):base.Nat@p.Z1ExampleTimes;\
-(ns)->ns:p.Stack[base.Nat]\
-.fold[imm,base.Nat](\
-base.1:base.Nat,\
-p.A_Z1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@p.A_Z1Ex;\
- (n1, n2)->n1:base.Nat*[imm](n2:base.Nat):base.Nat;\
-}:base.F[base.Nat,base.Nat,base.Nat]):base.Nat;}
-p.StackMatch[T:imm, R:imm]:{[###]}
-p.Stack[T:imm]:{[###]}
+p.StackMatch[###]
+p.Stack[###]
+p.Z1ExampleTimes:{'this #(p.Stack[base.Nat]):base.Nat@p.Z1ExampleTimes;(ns)->ns:?.fold(base.1:?,p._AZ1Ex:$?{'_ ? [?](?,?):?@!;(n1, n2)->n1:?*(n2:?):?;}:?):?;}
+p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_ read #(base.Nat,base.Nat):base.Nat@p._AZ1Ex;(n1, n2)->n1:?*(n2:base.Nat):base.Nat;}
+p._CStac:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}
+p._DStac:p.Stack[T]{'_ .match[_GR:imm](p.StackMatch[T,_GR]):_GR@p._DStac;(m)->m:p.StackMatch[T,_GR].elem[imm](e:T,this:p.Stack[T]):_GR; .fold[_HR:imm](_HR,base.F[_HR,T,_HR]):_HR@p._DStac;(start, f)->f:base.F[_HR,T,_HR]#[read](this:p.Stack[T].fold[imm,_HR](start:_HR,f:base.F[_HR,T,_HR]):_HR,e:T):_HR; .map[_JR:imm](base.F[T,_JR]):p.Stack[_JR]@p._DStac;(f)->this:p.Stack[T].map[imm,_JR](f:base.F[T,_JR]):p.Stack[_JR]+[imm](f:base.F[T,_JR]#[read](e:T):_JR):p.Stack[_JR]; .filter(base.F[T,base.Bool]):p.Stack[T]@p._DStac;(f)->f:base.F[T,base.Bool]#[read](e:T):base.Bool.if[imm,p.Stack[T]](mut p._CStac:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}:mut base.ThenElse[p.Stack[T]]):p.Stack[T]; +(T):p.Stack[T]@p.Stack;}
+~-----------
+~imm p.StackMatch[###]
+~imm p.Stack[###]
+~imm p.Z1ExampleTimes:{'this #(ns:p.Stack[base.Nat]):base.Nat\
+->ns.fold[imm,base.Nat](base.1, imm p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
+ read #(n1:base.Nat, n2:base.Nat):base.Nat->n1*[imm](n2)})}
 """,importMini,List.of(stackStart+"""
 Z1ExampleTimes: { #(ns: Stack[Nat]): Nat -> ns.fold(1, { n1,n2 -> n1 * n2 })  }
 """));}
 
 @Test void inferStackGuideExampleSumMatchLit(){okI("""
-p.Z2Example:{'this\
- .sum(p.Stack[base.Nat]):base.Nat@p.Z2Example;\
-(ns)->ns:p.Stack[base.Nat]\
-.match[imm,base.Nat](\
-p.A_Z2Ex:p.StackMatch[base.Nat,base.Nat]{'_\
- imm .empty:base.Nat@p.A_Z2Ex;\
- .empty()->base.0:base.Nat;\
- imm .elem(base.Nat,p.Stack[base.Nat]):base.Nat@p.A_Z2Ex;\
- .elem(top, tail)->top:base.Nat\
-+[imm](this:p.Z2Example.sum[imm](tail:p.Stack[base.Nat]):base.Nat):base.Nat;\
-}:p.StackMatch[base.Nat,base.Nat]):base.Nat;}
-p.StackMatch[T:imm, R:imm]:{[###]}
-p.Stack[T:imm]:{[###]}
+[###]~-----------
+~imm p.StackMatch[###]
+~imm p.Stack[###]
+~imm p.Z2Example:{'this .sum(ns:p.Stack[base.Nat]):base.Nat\
+->ns.match[imm,base.Nat](imm p._AZ2Ex:p.StackMatch[base.Nat,base.Nat]{'_\
+ .empty:base.Nat->base.0;\
+ .elem(top:base.Nat, tail:p.Stack[base.Nat]):base.Nat\
+->top+[imm](this.sum[imm](tail))})}
 """,importMini,List.of(stackStart+"""
 Z2Example: {
   .sum(ns: Stack[Nat]): Nat -> ns.match{
@@ -120,20 +114,16 @@ Z2Example: {
 """));}
 
 @Test void inferStackGuideExampleAdd5Lit(){okI("""
-p.StackMatch[T:imm, R:imm]:{[###]}
-p.Stack[T:imm]:{[###]}
-p.Z3ExampleAdd5:{'this\
- .add5(p.Stack[base.Nat]):p.Stack[base.Nat]@p.Z3ExampleAdd5;\
-(ns)->ns:p.Stack[base.Nat]\
-.match[imm,p.Stack[base.Nat]](\
-p.B_Z3Ex:p.StackMatch[base.Nat,p.Stack[base.Nat]]{'_\
- imm .empty:p.Stack[base.Nat]@p.B_Z3Ex;\
- .empty()->p.Stack[base.Nat]:p.Stack[base.Nat];\
- imm .elem(base.Nat,p.Stack[base.Nat]):p.Stack[base.Nat]@p.B_Z3Ex;\
- .elem(top, tail)->p.Z3ExampleAdd5:p.Z3ExampleAdd5\
-.add5[imm](tail:p.Stack[base.Nat]):p.Stack[base.Nat]\
-+[imm](top:base.Nat+[imm](base.5:base.Nat):base.Nat):p.Stack[base.Nat];\
-}:p.StackMatch[base.Nat,p.Stack[base.Nat]]):p.Stack[base.Nat];}
+[###]~-----------
+~imm p.StackMatch[T:imm,R:imm]:{[###]}
+~imm p.Stack[T:imm]:{[###]}
+~imm p.Z3ExampleAdd5:{'this\
+ .add5(ns:p.Stack[base.Nat]):p.Stack[base.Nat]->\
+ns.match[imm,p.Stack[base.Nat]](\
+imm p._BZ3Ex:p.StackMatch[base.Nat,p.Stack[base.Nat]]{'_\
+ .empty:p.Stack[base.Nat]->p.Stack[base.Nat];\
+ .elem(top:base.Nat, tail:p.Stack[base.Nat]):p.Stack[base.Nat]->\
+p.Z3ExampleAdd5.add5[imm](tail)+[imm](top+[imm](base.5))})}
 """,importTo10,List.of(stackStart+"""
 Z3ExampleAdd5:{
   .add5(ns: Stack[Nat]): Stack[Nat] -> ns.match{
@@ -144,26 +134,18 @@ Z3ExampleAdd5:{
 """));}
 
 @Test void inferStackGuideExampleFluentLit(){okI("""
-p.StackMatch[T:imm, R:imm]:{[###]}
-p.Stack[T:imm]:{[###]}
-p.Z4ExampleFluent:{'this\
- #(p.Stack[base.Nat]):base.Nat@p.Z4ExampleFluent;\
-(ns)->ns:p.Stack[base.Nat].map[imm,base.Nat](\
-p.A_Z4Ex:base.F[base.Nat,base.Nat]{'_\
- read #(base.Nat):base.Nat@p.A_Z4Ex;\
- (n)->n:base.Nat+[imm](base.10:base.Nat):base.Nat;\
-}:base.F[base.Nat,base.Nat]):p.Stack[base.Nat]\
-.map[imm,base.Nat](\
-p.B_Z4Ex:base.F[base.Nat,base.Nat]{'_\
- read #(base.Nat):base.Nat@p.B_Z4Ex;\
- (n)->n:base.Nat*[imm](base.3:base.Nat):base.Nat;\
-}:base.F[base.Nat,base.Nat]):p.Stack[base.Nat].fold[imm,base.Nat](\
-base.0:base.Nat,p.C_Z4Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@p.C_Z4Ex;\
- (n1, n2)->n1:base.Nat+[imm](n2:base.Nat):base.Nat;\
-}:base.F[base.Nat,base.Nat,base.Nat]\
-):base.Nat;\
-}
+[###]~-----------
+~imm p.StackMatch[T:imm,R:imm]:{[###]}
+~imm p.Stack[T:imm]:{[###]}
+~imm p.Z4ExampleFluent:{'this\
+ #(ns:p.Stack[base.Nat]):base.Nat->ns\
+.map[imm,base.Nat](imm p._AZ4Ex:base.F[base.Nat,base.Nat]{'_\
+ read #(n:base.Nat):base.Nat->n+[imm](base.10)})\
+.map[imm,base.Nat](imm p._BZ4Ex:base.F[base.Nat,base.Nat]{'_\
+ read #(n:base.Nat):base.Nat->n*[imm](base.3)})\
+.fold[imm,base.Nat](base.0,\
+ imm p._CZ4Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
+ read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
 """,importMini,List.of(stackStart+"""
 Z4ExampleFluent: { #(ns: Stack[Nat]): Nat -> ns
   .map { n -> n + 10 }
@@ -191,81 +173,100 @@ use base.Ten   as Ten;
 """; 
 @Test void inferStackGuideExampleBase(){okI("""
 p.StackMatch[T:imm, R:imm]:{'this\
- .empty:R@p.StackMatch;\
- .elem(T,p.Stack[T]):R@p.StackMatch;}
+ .empty:R@p.StackMatch; .elem(T,p.Stack[T]):R@p.StackMatch;}
 p.Stack[T:imm]:{'this\
- .match[R:imm](p.StackMatch[T,R]):R@p.Stack;\
-(m)->m:p.StackMatch[T,R].empty[imm]():R;\
- .fold[R:imm](R,base.F[R,T,R]):R@p.Stack;\
-(start, f)->start:R;\
- .map[R:imm](base.F[T,R]):p.Stack[R]@p.Stack;\
-(f)->p.Stack[R]:p.Stack[R];\
- .filter(base.F[T,base.Bool]):p.Stack[T]@p.Stack;\
-(f)->p.Stack[T]:p.Stack[T];\
- +(T):p.Stack[T]@p.Stack;\
-(e)->p.D_Stac:p.Stack[T]{'_\
- imm .match[G_R:imm](p.StackMatch[T,G_R]):G_R@p.D_Stac;\
- .match(m)->m:p.StackMatch[T,G_R].elem[imm](e:T,this:p.Stack[T]):G_R;\
- imm .fold[H_R:imm](H_R,base.F[H_R,T,H_R]):H_R@p.D_Stac;\
- .fold(start, f)->f:base.F[H_R,T,H_R]#[read](this:p.Stack[T].fold[imm,H_R](start:H_R,f:base.F[H_R,T,H_R]):H_R,e:T):H_R;\
- imm .map[J_R:imm](base.F[T,J_R]):p.Stack[J_R]@p.D_Stac;\
- .map(f)->this:p.Stack[T].map[imm,J_R](f:base.F[T,J_R]):p.Stack[J_R]\
-+[imm](f:base.F[T,J_R]#[read](e:T):J_R):p.Stack[J_R];\
- imm .filter(base.F[T,base.Bool]):p.Stack[T]@p.D_Stac;\
- .filter(f)->f:base.F[T,base.Bool]#[read](e:T):base.Bool\
-.if[imm,p.Stack[T]](mut p.C_Stac:base.ThenElse[p.Stack[T]]{'_\
- mut .then:p.Stack[T]@p.C_Stac;\
- .then()->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]\
+ .match[R:imm](p.StackMatch[T,R]):R@p.Stack;(m)->m:?.empty():?;\
+ .fold[R:imm](R,base.F[R,T,R]):R@p.Stack;(start, f)->start:?;\
+ .map[R:imm](base.F[T,R]):p.Stack[R]@p.Stack;(f)->p._AStac:$?:?;\
+ .filter(base.F[T,base.Bool]):p.Stack[T]@p.Stack;(f)->p._BStac:$?:?;\
+ +(T):p.Stack[T]@p.Stack;(e)->p._DStac:$?{'_ ?\
+ .match[?](?):?@!;(m)->m:?.elem(e:?,this:?):?;\
+ ? .fold[?](?,?):?@!;(start, f)->f:?#(this:?.fold(start:?,f:?):?,e:?):?; ?\
+ .map[?](?):?@!;(f)->this:?.map(f:?):?+(f:?#(e:?):?):?; ?\
+ .filter[?](?):?@!;(f)->f:?#(e:?):?.if(p._CStac:$?{'_ ?\
+ .then[?]:?@!;->this:?.filter(f:?):?+(e:?):?; ?\
+ .else[?]:?@!;->this:?.filter(f:?):?;}:?):?;}:?;}
+p._CStac:base.ThenElse[p.Stack[T]]{'_\
+ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](\
+f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:T):p.Stack[T];\
+ mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](\
+f:base.F[T,base.Bool]):p.Stack[T];}
+p._DStac:p.Stack[T]{'_\
+ .match[_GR:imm](p.StackMatch[T,_GR]):_GR@p._DStac;\
+(m)->m:p.StackMatch[T,_GR].elem[imm](e:T,this:p.Stack[T]):_GR;\
+ .fold[_HR:imm](_HR,base.F[_HR,T,_HR]):_HR@p._DStac;\
+(start, f)->f:base.F[_HR,T,_HR]#[read](\
+this:p.Stack[T].fold[imm,_HR](\
+start:_HR,f:base.F[_HR,T,_HR]):_HR,e:T):_HR;\
+ .map[_JR:imm](base.F[T,_JR]):p.Stack[_JR]@p._DStac;\
+(f)->this:p.Stack[T].map[imm,_JR](f:base.F[T,_JR]):p.Stack[_JR]\
++[imm](f:base.F[T,_JR]#[read](e:T):_JR):p.Stack[_JR];\
+ .filter(base.F[T,base.Bool]):p.Stack[T]@p._DStac;\
+(f)->f:base.F[T,base.Bool]#[read](e:T):base.Bool.if[imm,p.Stack[T]](\
+mut p._CStac:base.ThenElse[p.Stack[T]]{'_\
+ mut .then:p.Stack[T]@p._CStac;\
+->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]\
 +[imm](e:T):p.Stack[T];\
- mut .else:p.Stack[T]@p.C_Stac;\
- .else()->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];\
-}:mut base.ThenElse[p.Stack[T]]):p.Stack[T];\
- imm +(T):p.Stack[T]@p.Stack;}:p.Stack[T];}
+ mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](\
+f:base.F[T,base.Bool]):p.Stack[T];}:mut base.ThenElse[p.Stack[T]]):p.Stack[T];\
+ +(T):p.Stack[T]@p.Stack;}
+~-----------
+~imm p.StackMatch[T:imm,R:imm]:{'this\
+ .empty:R; .elem(_:T, _:p.Stack[T]):R}
+~imm p.Stack[T:imm]:{'this\
+ .match[R:imm](m:p.StackMatch[T,R]):R->m.empty[imm];\
+ .fold[R:imm](start:R, f:base.F[R,T,R]):R->start;\
+ .map[R:imm](f:base.F[T,R]):p.Stack[R]->p.Stack[R];\
+ .filter(f:base.F[T,base.Bool]):p.Stack[T]->p.Stack[T];\
+ +(e:T):p.Stack[T]->imm p._DStac:p.Stack[T]{'_\
+ .match[_GR:imm](m:p.StackMatch[T,_GR]):_GR->m.elem[imm](e, this);\
+ .fold[_HR:imm](start:_HR, f:base.F[_HR,T,_HR]):_HR->f#[read](\
+this.fold[imm,_HR](start, f), e);\
+ .map[_JR:imm](f:base.F[T,_JR]):p.Stack[_JR]->\
+this.map[imm,_JR](f)+[imm](f#[read](e));\
+ .filter(f:base.F[T,base.Bool]):p.Stack[T]->\
+f#[read](e).if[imm,p.Stack[T]](mut p._CStac:base.ThenElse[p.Stack[T]]{'_\
+ mut .then:p.Stack[T]->this.filter[imm](f)+[imm](e);\
+ mut .else:p.Stack[T]->this.filter[imm](f)});\
+ +(_:T):p.Stack[T]}}
 """,importTo10,List.of(stackStart));}
+//Note: the last +(_:T):p.Stack[T] is correct, the (not printed) source would point to the origin of the method and impl 
 
 @Test void inferStackGuideExampleSum(){okI("""
-p.StackMatch[T:imm, R:imm]:{[###]}
-p.Stack[T:imm]:{[###]}
-p.Z0ExampleSum:{'this\
- #(p.Stack[base.Nat]):base.Nat@p.Z0ExampleSum;\
-(ns)->ns:p.Stack[base.Nat].fold[imm,base.Nat](\
-base.Zero:base.Nat,p.A_Z0Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@p.A_Z0Ex;\
- (n1, n2)->n1:base.Nat+[imm](n2:base.Nat):base.Nat;\
-}:base.F[base.Nat,base.Nat,base.Nat]):base.Nat;}
+[###]~-----------
+~imm p.StackMatch[T:imm,R:imm]:{[###]}
+~imm p.Stack[T:imm]:{[###]}
+~imm p.Z0ExampleSum:{'this\
+ #(ns:p.Stack[base.Nat]):base.Nat->\
+ns.fold[imm,base.Nat](base.Zero,\
+ imm p._AZ0Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
+ read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
 """,importTo10,List.of(stackStart+"""
 Z0ExampleSum: { #(ns: Stack[Nat]): Nat -> ns.fold(Zero, { n1,n2 -> n1 + n2 })  }
 """));}
 @Test void inferStackGuideExampleTimes(){okI("""
-p.Z1ExampleTimes:{'this\
- #(p.Stack[base.Nat]):base.Nat@p.Z1ExampleTimes;\
-(ns)->ns:p.Stack[base.Nat]\
-.fold[imm,base.Nat](\
-base.One:base.Nat,\
-p.A_Z1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@p.A_Z1Ex;\
- (n1, n2)->n1:base.Nat*[imm](n2:base.Nat):base.Nat;\
-}:base.F[base.Nat,base.Nat,base.Nat]):base.Nat;}
-p.StackMatch[T:imm, R:imm]:{[###]}
-p.Stack[T:imm]:{[###]}
+[###]~-----------
+~imm p.StackMatch[T:imm,R:imm]:{[###]}
+~imm p.Stack[T:imm]:{[###]}
+~imm p.Z1ExampleTimes:{'this\
+ #(ns:p.Stack[base.Nat]):base.Nat->\
+ns.fold[imm,base.Nat](base.One,\
+ imm p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
+ read #(n1:base.Nat, n2:base.Nat):base.Nat->n1*[imm](n2)})}
 """,importTo10,List.of(stackStart+"""
 Z1ExampleTimes: { #(ns: Stack[Nat]): Nat -> ns.fold(One, { n1,n2 -> n1 * n2 })  }
 """));}
 
 @Test void inferStackGuideExampleSumMatch(){okI("""
-p.Z2Example:{'this\
- .sum(p.Stack[base.Nat]):base.Nat@p.Z2Example;\
-(ns)->ns:p.Stack[base.Nat]\
-.match[imm,base.Nat](\
-p.A_Z2Ex:p.StackMatch[base.Nat,base.Nat]{'_\
- imm .empty:base.Nat@p.A_Z2Ex;\
- .empty()->base.Zero:base.Nat;\
- imm .elem(base.Nat,p.Stack[base.Nat]):base.Nat@p.A_Z2Ex;\
- .elem(top, tail)->top:base.Nat\
-+[imm](this:p.Z2Example.sum[imm](tail:p.Stack[base.Nat]):base.Nat):base.Nat;\
-}:p.StackMatch[base.Nat,base.Nat]):base.Nat;}
-p.StackMatch[T:imm, R:imm]:{[###]}
-p.Stack[T:imm]:{[###]}
+[###]~-----------
+~imm p.StackMatch[###]
+~imm p.Stack[###]
+~imm p.Z2Example:{'this .sum(ns:p.Stack[base.Nat]):base.Nat\
+->ns.match[imm,base.Nat](\
+imm p._AZ2Ex:p.StackMatch[base.Nat,base.Nat]{'_\
+ .empty:base.Nat->base.Zero;\
+ .elem(top:base.Nat, tail:p.Stack[base.Nat]):base.Nat\
+->top+[imm](this.sum[imm](tail))})}
 """,importTo10,List.of(stackStart+"""
 Z2Example: {
   .sum(ns: Stack[Nat]): Nat -> ns.match{
@@ -276,20 +277,15 @@ Z2Example: {
 """));}
 
 @Test void inferStackGuideExampleAdd5(){okI("""
-p.StackMatch[T:imm, R:imm]:{[###]}
-p.Stack[T:imm]:{[###]}
-p.Z3ExampleAdd5:{'this\
- .add5(p.Stack[base.Nat]):p.Stack[base.Nat]@p.Z3ExampleAdd5;\
-(ns)->ns:p.Stack[base.Nat]\
-.match[imm,p.Stack[base.Nat]](\
-p.B_Z3Ex:p.StackMatch[base.Nat,p.Stack[base.Nat]]{'_\
- imm .empty:p.Stack[base.Nat]@p.B_Z3Ex;\
- .empty()->p.Stack[base.Nat]:p.Stack[base.Nat];\
- imm .elem(base.Nat,p.Stack[base.Nat]):p.Stack[base.Nat]@p.B_Z3Ex;\
- .elem(top, tail)->p.Z3ExampleAdd5:p.Z3ExampleAdd5\
-.add5[imm](tail:p.Stack[base.Nat]):p.Stack[base.Nat]\
-+[imm](top:base.Nat+[imm](base.Five:base.Nat):base.Nat):p.Stack[base.Nat];\
-}:p.StackMatch[base.Nat,p.Stack[base.Nat]]):p.Stack[base.Nat];}
+[###]~-----------
+~imm p.StackMatch[T:imm,R:imm]:{[###]}
+~imm p.Stack[T:imm]:{[###]}
+~imm p.Z3ExampleAdd5:{'this .add5(ns:p.Stack[base.Nat]):p.Stack[base.Nat]\
+->ns.match[imm,p.Stack[base.Nat]](\
+imm p._BZ3Ex:p.StackMatch[base.Nat,p.Stack[base.Nat]]{'_\
+ .empty:p.Stack[base.Nat]->p.Stack[base.Nat];\
+ .elem(top:base.Nat, tail:p.Stack[base.Nat]):p.Stack[base.Nat]\
+->p.Z3ExampleAdd5.add5[imm](tail)+[imm](top+[imm](base.Five))})}
 """,importTo10,List.of(stackStart+"""
 Z3ExampleAdd5:{
   .add5(ns: Stack[Nat]): Stack[Nat] -> ns.match{
@@ -300,26 +296,16 @@ Z3ExampleAdd5:{
 """));}
 
 @Test void inferStackGuideExampleFluent(){okI("""
-p.StackMatch[T:imm, R:imm]:{[###]}
-p.Stack[T:imm]:{[###]}
-p.Z4ExampleFluent:{'this\
- #(p.Stack[base.Nat]):base.Nat@p.Z4ExampleFluent;\
-(ns)->ns:p.Stack[base.Nat].map[imm,base.Nat](\
-p.A_Z4Ex:base.F[base.Nat,base.Nat]{'_\
- read #(base.Nat):base.Nat@p.A_Z4Ex;\
- (n)->n:base.Nat+[imm](base.Ten:base.Nat):base.Nat;\
-}:base.F[base.Nat,base.Nat]):p.Stack[base.Nat]\
-.map[imm,base.Nat](\
-p.B_Z4Ex:base.F[base.Nat,base.Nat]{'_\
- read #(base.Nat):base.Nat@p.B_Z4Ex;\
- (n)->n:base.Nat*[imm](base.Three:base.Nat):base.Nat;\
-}:base.F[base.Nat,base.Nat]):p.Stack[base.Nat].fold[imm,base.Nat](\
-base.Zero:base.Nat,p.C_Z4Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
- read #(base.Nat,base.Nat):base.Nat@p.C_Z4Ex;\
- (n1, n2)->n1:base.Nat+[imm](n2:base.Nat):base.Nat;\
-}:base.F[base.Nat,base.Nat,base.Nat]\
-):base.Nat;\
-}
+[###]~-----------
+~imm p.StackMatch[###]
+~imm p.Stack[###]
+~imm p.Z4ExampleFluent:{'this #(ns:p.Stack[base.Nat]):base.Nat\
+->ns.map[imm,base.Nat](imm p._AZ4Ex:base.F[base.Nat,base.Nat]{'_\
+ read #(n:base.Nat):base.Nat->n+[imm](base.Ten)})\
+.map[imm,base.Nat](imm p._BZ4Ex:base.F[base.Nat,base.Nat]{'_\
+ read #(n:base.Nat):base.Nat->n*[imm](base.Three)})\
+.fold[imm,base.Nat](base.Zero, imm p._CZ4Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
+ read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
 """,importTo10,List.of(stackStart+"""
 Z4ExampleFluent: { #(ns: Stack[Nat]): Nat -> ns
   .map { n -> n + Ten }
@@ -329,16 +315,15 @@ Z4ExampleFluent: { #(ns: Stack[Nat]): Nat -> ns
 """));}
 
 @Test void boundChangesName(){okI("""
-p.Foo[K:imm]:{'this\
- .get:K@p.Foo;\
- .beer[G:imm]:G@p.Foo;}
 p.A:{'this .m[X:imm](p.Foo[X]):X@p.A;}
-p.B1:p.A{'this\
- .m[Y:imm](p.Foo[Y]):Y@p.B1;\
-(z)->z:p.Foo[Y].get[imm]():Y;}
-p.B2:p.A{'this\
- .m[Y:imm](p.Foo[Y]):Y@p.B2;\
-(z)->z:p.Foo[Y].beer[imm,Y]():Y;}
+p.B1:p.A{'this .m[Y:imm](p.Foo[Y]):Y@p.B1;(z)->z:?.get():?;}
+p.B2:p.A{'this .m[Y:imm](p.Foo[Y]):Y@p.B2;(z)->z:?.beer[Y]():?;}
+p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
+~-----------
+~imm p.A:{'this .m[X:imm](_:p.Foo[X]):X}
+~imm p.B1:p.A{'this .m[Y:imm](z:p.Foo[Y]):Y->z.get[imm]}
+~imm p.B2:p.A{'this .m[Y:imm](z:p.Foo[Y]):Y->z.beer[imm,Y]}
+~imm p.Foo[K:imm]:{'this .get:K; .beer[G:imm]:G}
 """,List.of("""
 Foo[K]:{.get:K; .beer[G]:G;}
 A:{.m[X](x:Foo[X]):X}
@@ -347,10 +332,13 @@ B2:A{.m[Y](z)->z.beer[Y]}
 """));}
 
 @Test void inferAlpha_Rename_SingleSuper_UserNamesWin(){ okI("""
-p.Box[K:imm]:{'this .get:K@p.Box;}
 p.A:{'this .id[X:imm](p.Box[X]):X@p.A;}
-p.B:p.A{'this .id[T:imm](p.Box[T]):T@p.B;\
-(b)->b:p.Box[T].get[imm]():T;}
+p.B:p.A{'this .id[T:imm](p.Box[T]):T@p.B;(b)->b:?.get():?;}
+p.Box[K:imm]:{'this .get:K@p.Box;}
+~-----------
+~imm p.A:{'this .id[X:imm](_:p.Box[X]):X}
+~imm p.B:p.A{'this .id[T:imm](b:p.Box[T]):T->b.get[imm]}
+~imm p.Box[K:imm]:{'this .get:K}
 """, List.of("""
 Box[K]:{.get:K;}
 A:{.id[X](x:Box[X]):X}
@@ -360,9 +348,12 @@ B:A{.id[T](b:Box[T])->b.get}
 
 @Test void inferAlpha_Rename_SwapOrderInOverride(){ okI("""
 p.A:{'this .pick[X:imm,Y:imm](p.Pair[X,Y]):Y@p.A;}
+p.B:p.A{'this .pick[U:imm,V:imm](p.Pair[V,U]):V@p.B;(p)->p:?.fst():?;}
 p.Pair[AA:imm, BB:imm]:{'this .fst:AA@p.Pair; .snd:BB@p.Pair;}
-p.B:p.A{'this .pick[U:imm,V:imm](p.Pair[V,U]):V@p.B;\
-(p)->p:p.Pair[V,U].fst[imm]():V;}
+~-----------
+~imm p.A:{'this .pick[X:imm,Y:imm](_:p.Pair[X,Y]):Y}
+~imm p.B:p.A{'this .pick[U:imm,V:imm](p:p.Pair[V,U]):V->p.fst[imm]}
+~imm p.Pair[AA:imm,BB:imm]:{'this .fst:AA; .snd:BB}
 """, List.of("""
 Pair[AA,BB]:{.fst:AA;.snd:BB;}
 A:{.pick[X,Y](p:Pair[X,Y]):Y}
@@ -371,10 +362,15 @@ B:A{.pick[U,V](p:Pair[V,U])->p.fst}
 }
 
 @Test void inferAlpha_MultiSuper_SameBounds_SameMeaning_DifferentNames(){ okI("""
-p.Box[K:imm]:{'this .get:K@p.Box;}
 p.A:{'this .id[X:imm](p.Box[X]):X@p.A;}
+p.Box[K:imm]:{'this .get:K@p.Box;}
 p.C:{'this .id[Y:imm](p.Box[Y]):Y@p.C;}
 p.D:p.A, p.C{'this .id[X:imm](p.Box[X]):X@p.D;}
+~-----------
+~imm p.A:{'this .id[X:imm](_:p.Box[X]):X}
+~imm p.Box[K:imm]:{'this .get:K}
+~imm p.C:{'this .id[Y:imm](_:p.Box[Y]):Y}
+~imm p.D:p.A, p.C{'this .id[X:imm](_:p.Box[X]):X}
 """, List.of("""
 Box[K]:{.get:K;}
 A:{.id[X:imm](x:Box[X]):X}
@@ -384,27 +380,36 @@ D:A,C{}
 }
 
 @Test void inferAlpha_DefaultImplVsAbstract_PickAlignedImpl(){ okI("""
-p.Box[K:imm]:{'this .get:K@p.Box;}
 p.A:{'this .id[X:imm](p.Box[X]):X@p.A;}
-p.C:{'this .id[Y:imm](p.Box[Y]):Y@p.C;(y)->y:p.Box[Y].get[imm]():Y;}
+p.Box[K:imm]:{'this .get:K@p.Box;}
+p.C:{'this .id[Y:imm](p.Box[Y]):Y@p.C;(y)->y:?.get():?;}
 p.D:p.A, p.C{'this .id[X:imm](p.Box[X]):X@p.C;}
+~-----------
+~imm p.A:{'this .id[X:imm](_:p.Box[X]):X}
+~imm p.Box[K:imm]:{'this .get:K}
+~imm p.C:{'this .id[Y:imm](y:p.Box[Y]):Y->y.get[imm]}
+~imm p.D:p.A, p.C{'this .id[X:imm](_:p.Box[X]):X}
 """, List.of("""
 Box[K]:{.get:K;}
 A:{.id[X](x:Box[X]):X}
 C:{.id[Y](y:Box[Y]):Y->y.get} // has impl
-D:A,C{} // merge supertypes; impl origin should be C after alignment
+D:A,C{} // merge supertypes; impl origin is in C after alignment
 """));
 }
-
+//Not double checked after change in print style. What was this checking?
 @Test void abcd(){okI("""
+p.Any:{'this ![T:imm]:T@p.Any;->p.Any:?![T]():?;}
+p.Baba[C:imm, D:imm]:p.GG[p.Any,p.Any]{'this .apply[_AC:imm,_AD:imm](p.Any,p.Any,_AC):_AD@p.GG;}
 p.GG[A:imm, B:imm]:{'this .apply[C:imm,D:imm](A,B,C):D@p.GG;}
-p.KK:{'_ .k[K:imm]:K@p.KK;->this:?.withGG[C,D](p.B_User:$?{'_ ? [?](?,?,?):?@!; (a, b, c)->p.Any:?!():?;}:?):K;}
-p.User:{'this .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User;\
- .foo1[C:imm,D:imm]:p.User@p.User;->this:p.User.withGG[imm,C,D](p.A_User:p.GG[C,D]{'_ imm .apply[A_C:imm,A_D:imm](A_C,A_D,A_C):A_D@p.A_User;\
- (a, b, c)->p.Any:p.Any![imm,A_D]():A_D;}:p.GG[C,D]):p.User; .foo2[C:imm,D:imm]:p.User@p.User;->p.KK:{'_ imm .k[K:imm]:K@p.KK;\
- .k()->this:p.User.withGG[imm,C,D](p.B_User:p.GG[C,D]{'_ imm .apply[B_C:imm,B_D:imm](B_C,B_D,B_C):B_D@p.B_User; (a, b, c)->p.Any:p.Any![imm,B_D]():B_D;}:p.GG[C,D]):p.User;}:p.KK.k[imm,p.User]():p.User;}
-p.Any:{'this ![T:imm]:T@p.Any;->p.Any:p.Any![imm,T]():T;}
-p.Baba[C:imm, D:imm]:p.GG[p.Any,p.Any]{'this .apply[A_C:imm,A_D:imm](p.Any,p.Any,A_C):A_D@p.GG;}
+p.KK:{'_ .k[K:imm]:K@p.KK;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}
+p.User:{'this .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User; .foo1[C:imm,D:imm]:p.User@p.User;->this:?.withGG[C,D](p._AUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?; .foo2[C:imm,D:imm]:p.User@p.User;->p.KK:{'_ ? .k[K:imm]:K@!;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}:?.k[p.User]():?;}
+p._AUser:p.GG[C,D]{'_ .apply[_AC:imm,_AD:imm](_AC,_AD,_AC):_AD@p._AUser;(a, b, c)->p.Any:p.Any![imm,?]():_AD;}
+p._BUser:p.GG[C,D]{'_ .apply[_BC:imm,_BD:imm](_BC,_BD,_BC):_BD@p._BUser;(a, b, c)->p.Any:p.Any![imm,?]():_BD;}
+~-----------
+~imm p.Any:{'this ![T:imm]:T->p.Any![imm,T]}
+~imm p.Baba[C:imm,D:imm]:p.GG[p.Any,p.Any]{'this .apply[_AC:imm,_AD:imm](_:p.Any, _:p.Any, _:_AC):_AD}
+~imm p.GG[A:imm,B:imm]:{'this .apply[C:imm,D:imm](_:A, _:B, _:C):D}
+~imm p.User:{'this .withGG[A1:imm,B1:imm](_:p.GG[A1,B1]):p.User; .foo1[C:imm,D:imm]:p.User->this.withGG[imm,C,D](imm p._AUser:p.GG[C,D]{'_ .apply[_AC:imm,_AD:imm](a:_AC, b:_AD, c:_AC):_AD->p.Any![imm,_AD]}); .foo2[C:imm,D:imm]:p.User->imm p.KK:{'_ .k[K:imm]:K->this.withGG[imm,C,D](imm p._BUser:p.GG[C,D]{'_ .apply[_BC:imm,_BD:imm](a:_BC, b:_BD, c:_BC):_BD->p.Any![imm,_BD]})}.k[imm,p.User]}
 """, List.of("""
 GG[A,B]:{ .apply[C,D](A,B,C):D }
 Baba[C,D]:GG[Any,Any]{}
@@ -417,9 +422,12 @@ User:{
 """));}
 @Test void inferAlpha_GenericMethod_LambdaImplements_Generic_OverrideDifferentNames(){okI("""
 p.A:{'this .use[X1:imm,Y1:imm](X1,p.Conv):Y1@p.A;}
+p.B:p.A{'this .use[U1:imm,V1:imm](U1,p.Conv):V1@p.B;(x, c)->c:?.apply[U1,V1](x:?):?;}
 p.Conv:{'this .apply[S1:imm,S2:imm](S1):S2@p.Conv;}
-p.B:p.A{'this .use[U1:imm,V1:imm](U1,p.Conv):V1@p.B;\
-(x, c)->c:p.Conv.apply[imm,U1,V1](x:U1):V1;}
+~-----------
+~imm p.A:{'this .use[X1:imm,Y1:imm](_:X1, _:p.Conv):Y1}
+~imm p.B:p.A{'this .use[U1:imm,V1:imm](x:U1, c:p.Conv):V1->c.apply[imm,U1,V1](x)}
+~imm p.Conv:{'this .apply[S1:imm,S2:imm](_:S1):S2}
 """, List.of("""
 Conv:{ .apply[S1,S2](s:S1):S2 }
 A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
@@ -429,11 +437,13 @@ B:A{
 """));}
 
 @Test void boundMustAlphaSimple(){okI("""
-p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
 p.A:{'this .m[X:imm](p.Foo[X]):X@p.A;}
-p.B1[X:imm]:p.A{'this\
- .m[A_X:imm](p.Foo[A_X]):A_X@p.B1;\
-(z)->z:p.Foo[A_X].get[imm]():A_X;}
+p.B1[X:imm]:p.A{'this .m[_AX:imm](p.Foo[_AX]):_AX@p.B1;(z)->z:?.get():?;}
+p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
+~-----------
+~imm p.A:{'this .m[X:imm](_:p.Foo[X]):X}
+~imm p.B1[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.get[imm]}
+~imm p.Foo[K:imm]:{'this .get:K; .beer[G:imm]:G}
 """,List.of("""
 Foo[K]:{.get:K; .beer[G]:G;}
 A:{.m[X](x:Foo[X]):X}
@@ -441,13 +451,9 @@ B1[X]:A{.m(z)->z.get}
 """));}
 
 @Test void inLineAnonObject1(){okI("""
-p.Bla:{'_ .bla:p.User@p.Bla;->p.User:p.User;}
-p.User:{'this\
- .m:p.User@p.User;\
-->p.Bla:{'_\
- imm .bla:p.User@p.Bla;\
- .bla()->p.User:p.User;\
-}:p.Bla.bla[imm]():p.User;}
+[###]~-----------
+~imm p.User:{'this\
+ .m:p.User->imm p.Bla:{'_ .bla:p.User->p.User}.bla[imm]}
 """,List.of("""
 User:{.m:User->
  Bla:{.bla:User->User;}.bla
@@ -455,12 +461,8 @@ User:{.m:User->
 """));}
 
 @Test void inLineAnonObject2(){okI("""
-p.User:{'this\
- .m:p.User@p.User;\
-->p.A_User:{'_ imm\
- .bla:p.User@p.A_User;\
- .bla()->p.User:p.User;}:p.A_User.bla[imm]():p.User;}
-p.A_User:{'_ .bla:p.User@p.A_User;->p.User:p.User;}
+[###]~-----------
+~imm p.User:{'this .m:p.User->imm p._AUser:{'_ .bla:p.User->p.User}.bla[imm]}
 """,List.of("""
 User:{.m:User->
  {.bla:User->User;}.bla
@@ -469,9 +471,11 @@ User:{.m:User->
 
 @Test void regressionMethodHeaderAndGet1(){okI("""
 p.A:{'this}
-p.User:{'this\
- .m:p.A@p.User;\
-->p.A_User:p.A{'_ imm .m:p.A@p.A_User; .m()->p.A:p.A;}:p.A;}
+p.User:{'this .m:p.A@p.User;->p._AUser:$?{'_ ? .m[?]:p.A@!;->p.A:?;}:?;}
+p._AUser:p.A{'_ .m:p.A@p._AUser;->p.A:p.A;}
+~-----------
+~imm p.A:{'this }
+~imm p.User:{'this .m:p.A->imm p._AUser:p.A{'_ .m:p.A->p.A}}
 """,List.of("""
 A:{}
 User:{ .m:A->{ .m:A->A;}; }
@@ -562,20 +566,39 @@ User:{ .m:base.Void->{ .m:A->A;}; }
 """));}
 
 //This instead should pass, to allow True/False as values
-@Test void badSealedOutInferenceInnerEmpty(){okI("""
+//Note how it seem to go to p._AUser:$?:? in the middle.
+//Correct since the user specified {}
+@Test void sealedOutInferenceInnerEmpty(){okI("""
 p.A:{'this}
-p.User:{'this\
- .m:base.Void@p.User;\
-->base.Void:base.Void;}
+p.User:{'this .m:base.Void@p.User;->p._AUser:$?:?;}
+~-----------
+~imm p.A:{'this }
+~imm p.User:{'this .m:base.Void->base.Void}
 """,List.of("""
 A:{}
 User:{ .m:base.Void->{ }; }
 """));}
+//This would not compile, but this test is about inference only
+@Test void sealedOutInferenceInnerEmptyExplicit(){okI("""
+p.A:{'this}
+p.User:{'this .m:base.Void@p.User;->base.Block:?;}
+~-----------
+~imm p.A:{'this }
+~imm p.User:{'this .m:base.Void->base.Block}
+""",List.of("""
+A:{}
+User:{ .m:base.Void->base.Block; }
+"""));}
+
 
 @Test void expandDeclarationStages(){okI("""
-p.A:{'this .m:base.Nat@p.A;->base.1:base.Nat;}
-p.B:p.A{'this .m:base.Nat@p.B;->base.2:base.Nat;}
+p.A:{'this .m:base.Nat@p.A;->base.1:?;}
+p.B:p.A{'this .m:base.Nat@p.B;->base.2:?;}
 p.C:p.A, p.B{'this .m:base.Nat@p.B;}
+~-----------
+~imm p.A:{'this .m:base.Nat->base.1}
+~imm p.B:p.A{'this .m:base.Nat->base.2}
+~imm p.C:p.A, p.B{'this .m:base.Nat}
 """,List.of("""
 A: { .m():base.Nat -> 1; }
 B:A{ .m():base.Nat -> 2; }
@@ -585,45 +608,39 @@ C:B{}
 //The Err below is ok, associated to t:Err and not impacting the method signature
 //it is produced by subtype read/imm T > T not being considered
 @Test void genericInterfaces(){okI("""
-p.Box[T:imm,mut,read]:{'this\
- mut .expose:T@p.Box;\
- read .get:read/imm T@p.Box;}
-p.MakeBox:{'this\
- #[T:imm,mut,read](T):mut p.Box[T]@p.MakeBox;\
-(t)->mut p.A_Make:p.Box[T]{'_\
- mut .expose:T@p.A_Make;\
- .expose()->t:Err;\
- read .get:read/imm T@p.A_Make;\
- .get()->t:Err;}:mut p.Box[T];}
-p.MyB:p.Box[p.MakeBox]{'this\
- .foo:p.MyB@p.MyB;\
-->p.MyB:p.MyB;\
- mut .expose:p.MakeBox@p.Box;\
- read .get:p.MakeBox@p.Box;}
+p.Box[T:imm,mut,read]:{'this mut .expose:T@p.Box; read .get:read/imm T@p.Box;}
+p.MakeBox:{'this #[T:imm,mut,read](T):mut p.Box[T]@p.MakeBox;(t)->p._AMake:$?{'_ ? .expose[?]:?@!;->t:?; ? .get[?]:?@!;->t:?;}:?;}
+p.MyB:p.Box[p.MakeBox]{'this .foo:p.MyB@p.MyB;->p._AMyB:$?:?; mut .expose:p.MakeBox@p.Box; read .get:p.MakeBox@p.Box;}
+p._AMake:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:read/imm T@p._AMake;->t:Err;}
+~-----------
+~imm p.Box[T:imm,mut,read]:{'this mut .expose:T; read .get:read/imm T}
+~imm p.MakeBox:{'this #[T:imm,mut,read](t:T):mut p.Box[T]->mut p._AMake:p.Box[T]{'_ mut .expose:T->t; read .get:read/imm T->t}}
+~imm p.MyB:p.Box[p.MakeBox]{'this .foo:p.MyB->p.MyB; mut .expose:p.MakeBox; read .get:p.MakeBox}
 """,List.of("""
 Box[T:*]:{
   mut .expose:T;
   read .get: read/imm T;
 }
 MakeBox:{#[T:*](t:T):mut Box[T]->{.expose->t; .get->t}}
-
 MyB:Box[MakeBox]{ .foo:MyB->{}}
-
-
 """));}
 //The results below are actually correct: the method stays read/imm X if not overridden by user.
 //Overriding would work since it is subtype indeed.
 @Test void genericInterfacesImpl(){okI("""
+p.A1:p.Box[p.MakeBox]{'this mut .expose:p.MakeBox@p.Box; read .get:p.MakeBox@p.Box;}
+p.A2[X:imm]:p.Box[X]{'this mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
+p.A3[X:mut]:p.Box[X]{'this mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
+p.A4[X:read]:p.Box[X]{'this mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
 p.Box[###]
 p.MakeBox:[###]
-p.A4[X:read]:p.Box[X]{'this\
- mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
-p.A3[X:mut]:p.Box[X]{'this\
- mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
-p.A1:p.Box[p.MakeBox]{'this\
- mut .expose:p.MakeBox@p.Box; read .get:p.MakeBox@p.Box;}
-p.A2[X:imm]:p.Box[X]{'this\
- mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
+p._AMake:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:read/imm T@p._AMake;->t:Err;}
+~-----------
+~imm p.A1:p.Box[p.MakeBox]{'this mut .expose:p.MakeBox; read .get:p.MakeBox}
+~imm p.A2[X:imm]:p.Box[X]{'this mut .expose:X; read .get:read/imm X}
+~imm p.A3[X:mut]:p.Box[X]{'this mut .expose:X; read .get:read/imm X}
+~imm p.A4[X:read]:p.Box[X]{'this mut .expose:X; read .get:read/imm X}
+~imm p.Box[T:imm,mut,read]:{'this mut .expose:T; read .get:read/imm T}
+~imm p.MakeBox:{'this #[T:imm,mut,read](t:T):mut p.Box[T]->mut p._AMake:p.Box[T]{'_ mut .expose:T->t; read .get:read/imm T->t}}
 """,List.of("""
 Box[T:*]:{
   mut .expose:T;
@@ -639,10 +656,10 @@ A4[X:read]:Box[X]{ }
 
 @Test void typeRenamePath(){ okI("""
 p.Box[T:imm,mut,read]:{'this}
-p.User:{'this\
- read .idX[X:imm](X):X@p.User;\
- read .idReadX[X:imm](X):read/imm X@p.User;\
- read .idBox[X:imm](X):p.Box[X]@p.User;}
+p.User:{'this read .idX[X:imm](X):X@p.User; read .idReadX[X:imm](X):read/imm X@p.User; read .idBox[X:imm](X):p.Box[X]@p.User;}
+~-----------
+~imm p.Box[T:imm,mut,read]:{'this }
+~imm p.User:{'this read .idX[X:imm](_:X):X; read .idReadX[X:imm](_:X):read/imm X; read .idBox[X:imm](_:X):p.Box[X]}
 """, List.of("""
 Box[T:*]:{
 }
@@ -654,17 +671,17 @@ User:{'this
 """));}
 
 @Test void overloadNorm_receivers_basic(){okI("""
-p.A:{'this\
- .a:p.A@p.A;->p.A:p.A;\
- read .a:p.A@p.A;->p.A:p.A;\
- mut .a:p.A@p.A;->p.A:p.A;}
-p.IdUser:{'this\
- .m1(p.A):p.A@p.IdUser;(x)->x:p.A.a[imm]():p.A;\
- .m2(read p.A):p.A@p.IdUser;(x)->x:read p.A.a[read]():p.A;\
- .m3(mut p.A):p.A@p.IdUser;(x)->x:mut p.A.a[mut]():p.A;\
- .m4(iso p.A):p.A@p.IdUser;(x)->x:iso p.A.a[mut]():p.A;\
- .m5(readH p.A):p.A@p.IdUser;(x)->x:readH p.A.a[read]():p.A;\
- .m6(mutH p.A):p.A@p.IdUser;(x)->x:mutH p.A.a[mut]():p.A;}
+p.A:{'this .a:p.A@p.A;->p.A:?; read .a:p.A@p.A;->p.A:?; mut .a:p.A@p.A;->p.A:?;}
+p.IdUser:{'this .m1(p.A):p.A@p.IdUser;(x)->x:?.a():?; .m2(read p.A):p.A@p.IdUser;(x)->x:?.a():?; .m3(mut p.A):p.A@p.IdUser;(x)->x:?.a():?; .m4(iso p.A):p.A@p.IdUser;(x)->x:?.a():?; .m5(readH p.A):p.A@p.IdUser;(x)->x:?.a():?; .m6(mutH p.A):p.A@p.IdUser;(x)->x:?.a():?;}
+~-----------
+~imm p.A:{'this .a:p.A->p.A; read .a:p.A->p.A; mut .a:p.A->p.A}
+~imm p.IdUser:{'this\
+ .m1(x:p.A):p.A->x.a[imm];\
+ .m2(x:read p.A):p.A->x.a[read];\
+ .m3(x:mut p.A):p.A->x.a[mut];\
+ .m4(x:iso p.A):p.A->x.a[mut];\
+ .m5(x:readH p.A):p.A->x.a[read];\
+ .m6(x:mutH p.A):p.A->x.a[mut]}
 """,
   List.of("""
 A:{
@@ -682,18 +699,53 @@ IdUser:{
 }
 """));}
 
+//Here we declare absorb as taking zero args.
+//Thus, we can not infer # generics, the method does not exists.
+//TODO: this needs to move to type system and have a good error there
+@Test void usesLocalTypeForInferenceBadArgCount(){okI("""
+p.Absorb:{'this #[T:imm]:base.Void@p.Absorb;->base.Void:?;}
+p.Foo:{'this .m:p.Point@p.Foo;->p.Point:{'_ ? .x[?]:base.Nat@!;->base.0:?; ? .y[?]:base.Nat@!;->base.0:?;}:?;}
+p.Point:{'_ .x:base.Nat@p.Point;->base.0:?; .y:base.Nat@p.Point;->base.0:?;}
+p.User1:{'this .bla(p.Point):base.Void@p.User1;(p)->p.Absorb:?#(p:?):?;}
+p.User2:{'this .bla(p.Point):base.Void@p.User2;(p)->p.Absorb:?#(p:?.x():?):?;}
+~-----------
+~imm p.Absorb:{'this #[T:imm]:base.Void->base.Void}
+~imm p.Foo:{'this .m:p.Point->imm p.Point:{'_ .x:base.Nat->base.0; .y:base.Nat->base.0}}
+~imm p.User1:{'this .bla(p:p.Point):base.Void->p.Absorb#[imm](p)}
+~imm p.User2:{'this .bla(p:p.Point):base.Void->p.Absorb#[imm](p.x[imm])}
+""",List.of("""
+Foo:{ .m : Point -> Point:{ .x:base.Nat->0; .y:base.Nat->0;} }
+Absorb:{ #[T]:base.Void -> base.Void; }
+User1:{ .bla(p:Point):base.Void -> Absorb#p; }
+User2:{ .bla(p:Point):base.Void -> Absorb#(p.x); }
+"""));}
+
+@Test void usesLocalTypeForInference(){okI("""
+[###]~-----------
+~imm p.Absorb:{'this #[T:imm](_:T):base.Void->base.Void}
+~imm p.Foo:{'this .m:p.Point->imm p.Point:{'_ .x:base.Nat->base.0; .y:base.Nat->base.0}}
+~imm p.User1:{'this .bla(p:p.Point):base.Void->p.Absorb#[imm,p.Point](p)}
+~imm p.User2:{'this .bla(p:p.Point):base.Void->p.Absorb#[imm,base.Nat](p.x[imm])}
+""",List.of("""
+Foo:{ .m : Point -> Point:{ .x:base.Nat->0; .y:base.Nat->0;} }
+Absorb:{ #[T](T):base.Void -> base.Void; }
+User1:{ .bla(p:Point):base.Void -> Absorb#p; }
+User2:{ .bla(p:Point):base.Void -> Absorb#(p.x); }
+"""));}
+
 //TODO: this correctly shows that we can override a user defined type
 //.beer[imm,X] becomes .beer[imm,Err]
 //we will then merge back the user defined types when creating the core 
 @Test void boundMustAlpha(){okI("""
-p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
 p.A:{'this .m[X:imm](p.Foo[X]):X@p.A;}
-p.B2[X:imm]:p.A{'this\
- .m[A_X:imm](p.Foo[A_X]):A_X@p.B2;\
-(z)->z:p.Foo[A_X].beer[imm,Err]():Err;}
-p.B1[X:imm]:p.A{'this\
- .m[A_X:imm](p.Foo[A_X]):A_X@p.B1;\
-(z)->z:p.Foo[A_X].get[imm]():A_X;}
+p.B1[X:imm]:p.A{'this .m[_AX:imm](p.Foo[_AX]):_AX@p.B1;(z)->z:?.get():?;}
+p.B2[X:imm]:p.A{'this .m[_AX:imm](p.Foo[_AX]):_AX@p.B2;(z)->z:?.beer[X]():?;}
+p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
+~-----------
+~imm p.A:{'this .m[X:imm](_:p.Foo[X]):X}
+~imm p.B1[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.get[imm]}
+~imm p.B2[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.beer[imm,base.InferErr]}
+~imm p.Foo[K:imm]:{'this .get:K; .beer[G:imm]:G}
 """,List.of("""
 Foo[K]:{.get:K; .beer[G]:G;}
 A:{.m[X](x:Foo[X]):X}

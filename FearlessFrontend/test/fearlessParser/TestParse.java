@@ -3822,5 +3822,26 @@ User:{
 }
 """);}
 
+
+@Test void usesLocalTypeForInference(){fail("""
+In file: [###]/in_memory0.fear
+
+001| Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
+   | --------------------~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^--
+   | ... 2 lines ...
+004| User2:{.bla(p:Point):base.Void->Absorb#p.x;}
+
+While inspecting type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Method with inferred name and 1 parameter redeclared.
+A method with the inferred name and the same parameter count is already present above.
+Error 9 WellFormedness
+Need decent error, here I'm using x and y instead of .x and .y
+""","""
+Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
+Absorb:{ #[T]:base.Void->base.Void; }
+User1:{.bla(p:Point):base.Void->Absorb#p;}
+User2:{.bla(p:Point):base.Void->Absorb#p.x;}
+""");}
+
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

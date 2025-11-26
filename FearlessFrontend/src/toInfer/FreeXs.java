@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import core.B;
 import inference.E;
 import inference.IT;
 import inference.M;
 import inference.E.*;
-import inferenceCore.B;
 
 // Only for free type vars the programmer *wrote*
 // Expression ITs are inferred derived data and ignored here.
