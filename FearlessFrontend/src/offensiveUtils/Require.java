@@ -28,7 +28,7 @@ public final class Require {
       return jdkUmodLists.contains(xs.getClass().getName());
   }
   public static <E> boolean unmodifiable(List<E> xs, String what){
-    if(isKnownJdkUnmodifiableList(xs)){ return true; }
+    if (isKnownJdkUnmodifiableList(xs)){ return true; }
     throw new IllegalArgumentException(what+" must be unmodifiable. Name is: "+xs.getClass().getName());
   }
   public static <K,V> boolean unmodifiable(SequencedMap<K,V> m, String what){
@@ -67,9 +67,9 @@ public final class Require {
     int n= xs.size();
     if (n <= 1){ return true; }
     if (n <= 32){
-      for(int i= 0; i < n; i++){
+      for (int i= 0; i < n; i++){
         var xi= xs.get(i);
-        for(int j= i + 1; j < n; j++){
+        for (int j= i + 1; j < n; j++){
           if (xi == xs.get(j)){ throw new IllegalArgumentException(what+" must have distinct elements (==)"); }
         }
       }

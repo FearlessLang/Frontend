@@ -57,7 +57,7 @@ public record Methods(
     //iDecs = iDecs.stream().filter(l->l.thisName().equals("this")).toList(); 
     var acc= new ArrayList<E.Literal>();
     var layers= layer(iDecs);
-    for(var l : layers){ for (var d : ofLayer(l,acc)){ cache.put(d.name(), d); } }
+    for (var l : layers){ for (var d : ofLayer(l,acc)){ cache.put(d.name(), d); } }
     return acc;
   }
   private List<core.E.Literal> ofLayer(List<E.Literal> ds, ArrayList<E.Literal> acc){
@@ -89,7 +89,7 @@ public record Methods(
     var fullXs= new ArrayList<>(xs);
     var fullTs= new ArrayList<>(c.ts());
     List<B> newBs= s.bs().isEmpty()?List.of():new ArrayList<B>(s.bs().size());
-    for(B b: s.bs()){
+    for (B b: s.bs()){
       var x= b.x();
       if (fresh.isFreshGeneric(outName,x)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);

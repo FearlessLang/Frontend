@@ -38,7 +38,7 @@ public interface SourceOracle {
   /** Utility: best-effort normalization for file: URIs, pass-through otherwise. */
   static URI normalize(URI uri){
     Objects.requireNonNull(uri);
-    try{ if(isFile(uri)){ return Path.of(uri).toAbsolutePath().normalize().toUri(); } }
+    try{ if (isFile(uri)){ return Path.of(uri).toAbsolutePath().normalize().toUri(); } }
     catch(Exception ignore){}
     return uri.normalize();
   }
@@ -53,16 +53,16 @@ public interface SourceOracle {
     @Override public CharSequence load(URI uri){
       URI k= normalize(uri);
       String over= overlays.get(k);
-      if(over != null){ return over; }
+      if (over != null){ return over; }
       try{
-        if(!isFile(k)){ throw new IllegalArgumentException("RealFS only supports file: URIs, got "+k); }
+        if (!isFile(k)){ throw new IllegalArgumentException("RealFS only supports file: URIs, got "+k); }
         return Files.readString(Path.of(k), cs);
       }catch(IOException e){ throw new UncheckedIOException(e); }
     }
     @Override public boolean exists(URI uri){
       URI k = normalize(uri);
-      if(overlays.containsKey(k)){ return true; }
-      if(!isFile(k)){ return false; }
+      if (overlays.containsKey(k)){ return true; }
+      if (!isFile(k)){ return false; }
       return Files.exists(Path.of(k));
     }
     @Override public void putOverlay(URI uri, String text){

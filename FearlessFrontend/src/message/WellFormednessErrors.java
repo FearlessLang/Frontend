@@ -111,7 +111,7 @@ public final class WellFormednessErrors {
       .toString();
   }
   public static FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
-    for(TName n:names){ 
+    for (TName n:names){ 
       var clash= keySet.contains(n.s());
       if (!clash){ continue; }
       return Code.WellFormedness.of(
@@ -136,7 +136,7 @@ public final class WellFormednessErrors {
         .orElseGet(this::undeclaredInPkg);
     }
     private Optional<FearlessException> pkgDoesNotExist(){
-      if(typedPkg.isEmpty()){ return Optional.empty(); }
+      if (typedPkg.isEmpty()){ return Optional.empty(); }
       if (allPkgs.contains(typedPkg)){ return Optional.empty(); }
       StringBuilder msg= new StringBuilder()
         .append("Package ")
@@ -246,7 +246,7 @@ public final class WellFormednessErrors {
   }
  public static FearlessException genericTypeVariableShadowTName(String pkgName, Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
    var mergeAllXs= allXs.values().stream().flatMap(Set::stream).toList();
-   for(var n : mergeAllXs){
+   for (var n : mergeAllXs){
      var clashDec= allNames.contains(n.name());
      var clashUse= use.contains(n.name());
      if (clashDec || clashUse){ return shadowMsg(pkgName,n,clashUse); }
@@ -294,8 +294,8 @@ public final class WellFormednessErrors {
     Integer cu= color.get(u);
     if (cu != null){ return cu == 1 ? u : null; }
     color.put(u,1);
-    for(var c:rem.get(u).cs()){
-      if(!rem.containsKey(c.name())){ continue; }
+    for (var c:rem.get(u).cs()){
+      if (!rem.containsKey(c.name())){ continue; }
       var hit= dfs(rem,c.name(),color);
       if (hit != null){ return hit; }
     }

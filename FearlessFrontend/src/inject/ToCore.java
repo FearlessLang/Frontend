@@ -13,7 +13,7 @@ import utils.Bug;
 import utils.OneOr;
 
 public class ToCore{
-  core.E of(inference.E exp, inference.E orig){ return switch(exp){
+  core.E of(inference.E exp, inference.E orig){ return switch (exp){
     case inference.E.X(var name, _, Pos pos, _) -> x(name,pos);
     case inference.E.Type(var type, _, Pos pos, _) -> type(type,pos);
     case inference.E.Literal le -> literal(le,litLike(orig,le));
@@ -79,7 +79,7 @@ public class ToCore{
   }
   private static record CallLike(inference.E e,List<inference.E> es,Optional<RC> rc,List<IT> targs){}
   private static CallLike callLike(inference.E o,MName name){
-    return switch(o){
+    return switch (o){
       case inference.E.Call(var e, var n, var rc, var targs, var es, _, _, _) -> {
         assert n.equals(name);
         yield new CallLike(e,es,rc,targs);

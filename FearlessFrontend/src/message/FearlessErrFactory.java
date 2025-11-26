@@ -170,7 +170,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       .addSpan(s).addSpan(at);
   }
   public int parCount(M m){//-1 == explicitly named method
-    if(m.sig().isPresent() && m.sig().get().m().isPresent()){ return -1; }
+    if (m.sig().isPresent() && m.sig().get().m().isPresent()){ return -1; }
     return m.sig().map(s->s.parameters().size()).orElse(0) + (m.hasImplicit()?1:0);    
   }
   public FearlessException missingDotBeforeMethodName(Span at, String name){

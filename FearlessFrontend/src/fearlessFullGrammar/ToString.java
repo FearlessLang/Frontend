@@ -41,8 +41,8 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
   StringBuilder append(String s){ return res.append(s); }
   <EE>StringBuilder append(String start, List<EE> es, Consumer<EE> c, String sep, String end){
     append(start);
-    for(int i= 0; i < es.size(); i += 1){
-      if(i > 0){ append(sep); }
+    for (int i= 0; i < es.size(); i += 1){
+      if (i > 0){ append(sep); }
       c.accept(es.get(i));
     }
     return append(end);
@@ -121,7 +121,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     d.bs().ifPresent(bs->append("[",bs,this::visitInnerB,",","]"));
     append(": ");
     append("",d.cs(),this::visitInnerC,", ","");
-    if(!d.cs().isEmpty()){ append(" "); }
+    if (!d.cs().isEmpty()){ append(" "); }
     visitLiteral(d.l());
     return d;
     }
@@ -151,11 +151,11 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
   }
   private B visitInnerB(B b){
     b.x().accept(this);
-    switch(b.bt()){
+    switch (b.bt()){
       case B.Star() -> append(":*");
       case B.StarStar() -> append(":**");
       case B.RCS(List<RC> rcs) -> {
-        if(rcs.isEmpty()){ return b; }
+        if (rcs.isEmpty()){ return b; }
         append(":",rcs,rc->append(rc.name()),",","");
         }
       };
@@ -163,7 +163,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     }
   private Parameter visitInnerParameter(Parameter p){
     p.xp().ifPresent(xp->xp.accept(this));
-    if(p.xp().isPresent() && p.t().isPresent()){ append(": "); }
+    if (p.xp().isPresent() && p.t().isPresent()){ append(": "); }
     p.t().ifPresent(t->t.accept(this));
     return p;
   }

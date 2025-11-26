@@ -74,9 +74,9 @@ public record InjectionSteps(Methods meths){
     int size= first.size();
     assert tss.stream().allMatch(ts->ts.size() == size);
     var res= new ArrayList<IT>(size);
-    for(int i= 0; i < size; i++){
+    for (int i= 0; i < size; i++){
       var curr= first.get(i);
-      for(int j= 1; j < tss.size(); j++){
+      for (int j= 1; j < tss.size(); j++){
         curr= meet(curr,tss.get(j).get(i));
       }
       res.add(curr);
@@ -97,7 +97,7 @@ public record InjectionSteps(Methods meths){
   private List<E> meet(List<E> es, MSig m, List<IT> targs){
     boolean same= true;
     var res= new ArrayList<E>(es.size());
-    for(int i= 0; i < es.size(); i += 1){
+    for (int i= 0; i < es.size(); i += 1){
       E next= meet(es.get(i),TypeRename.of(m.ts().get(i),m.bs(),targs));
       same &= next == es.get(i);
       res.add(next);
@@ -138,7 +138,7 @@ public record InjectionSteps(Methods meths){
     IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom, type.c().ts());
     return wid;
   }
-  private RC overloadNorm(RC rc){ return switch(rc){
+  private RC overloadNorm(RC rc){ return switch (rc){
     case imm->RC.imm;
     case iso->RC.mut;
     case mut->RC.mut;
@@ -166,9 +166,6 @@ public record InjectionSteps(Methods meths){
     Optional<core.M> om= favorite.isPresent()
       ? oneFromExplicitRC(ms.filter(mi -> mi.sig().rc().equals(favorite.get())).toList())
       : oneFromGuessRC(ms.toList(), overloadNorm(rcc.rc()));
-    //Optional<M> om= favorite//had to replace this perfectly reasonable code with the above because all AIs could not understand it. 
-    //  .map(rc->oneFromExplicitRC(ms.filter(mi->mi.sig().rc().equals(rc)).toList()))
-    //  .orElseGet(()->oneFromGuessRC(ms.toList(),overloadNorm(rcc.rc())));
     if (om.isEmpty()){ return Optional.empty(); }
     return Optional.of(f.apply(rcc,d,om.get()));
   }
@@ -238,7 +235,7 @@ public record InjectionSteps(Methods meths){
     return c.withMore(e,rc,targs,es1,it); 
   }
   private List<IT> newTargs(E.Call c, List<E> es, MSig m){
-    if(m.bs().isEmpty()){ return List.of(); }
+    if (m.bs().isEmpty()){ return List.of(); }
     assert c.targs().isEmpty() || c.targs().size() == m.bs().size();
     var a= IntStream.range(0, c.es().size())
       .mapToObj(i->refine(m.bs(),m.ts().get(i),es.get(i).t()));
@@ -295,7 +292,7 @@ public record InjectionSteps(Methods meths){
     assert old.size() == n;
     boolean changed= false;
     ArrayList<Optional<IT>> out= new ArrayList<>(n);
-    for(int i= 0; i < n; i++){
+    for (int i= 0; i < n; i++){
       var x= xs.get(i);
       var oi= old.get(i);
       if ("_".equals(x)){ out.add(oi); continue; }
@@ -321,7 +318,7 @@ public record InjectionSteps(Methods meths){
     var args= sig0.ts();
     g.newScope();
     g.declare(thisN, selfT);
-    for(int i= 0; i < size; i += 1){ g.declare(xs.get(i), args.get(i).get()); }
+    for (int i= 0; i < size; i += 1){ g.declare(xs.get(i), args.get(i).get()); }
     E e= nextStar(g,impl0.e());
     args= updateArgs(xs,args, g);
     g.popScope();
@@ -360,8 +357,8 @@ public record InjectionSteps(Methods meths){
     return new TSM(rcc.c().ts(),new inference.M(sigRes,Optional.of(impl)));
   }
   List<IT> refine(List<String> xs,IT t, IT t1){
-    if( t1 instanceof IT.U){ return qMarks(xs.size()); } 
-    return switch(t){
+    if (t1 instanceof IT.U){ return qMarks(xs.size()); } 
+    return switch (t){
       case IT.X x -> refineXs(xs,x,t1);
       case IT.RCX(RC _, IT.X x) -> refineXs(xs,x,t1);
       case IT.ReadImmX(IT.X x) -> refineXs(xs,x,t1);

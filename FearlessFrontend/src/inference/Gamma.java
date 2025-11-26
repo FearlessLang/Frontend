@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 public final class Gamma {
+ ///As for `Pos`, intentionally equals/hashCode are classifying all GammaSignature as equals.
+ ///This is so that it is logically ignored by equals/hashCode of records containing them. 
  public final static class GammaSignature {
     long hash;
     //public GammaSignature clear(){ hash = 0; return this;}//more performance
@@ -35,14 +37,14 @@ public final class Gamma {
   public void popScope(){
     assert depth > 1 : "cannot pop root";
     int newSize= marks[depth - 1];
-    for(int i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i] = null; ts[i] = null; }
+    for (int i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i] = null; ts[i] = null; }
     size = newSize;
     depth--;
   }
   public IT get(String x){ return ts[indexOf(x)]; } // offensive: throws on -1
 
   public void declare(String x, IT t){
-    if("_".equals(x)){ return; }
+    if ("_".equals(x)){ return; }
     assert indexOf(x) < 0 : "duplicate: " + x;
     assert size < maxBindings;
     xs[size] = x;
@@ -54,11 +56,11 @@ public final class Gamma {
   }
   public void update(String x, IT t){
     int i= indexOf(x);
-    if(ts[i].equals(t)){ return; }
+    if (ts[i].equals(t)){ return; }
     long cold= contrib(xs[i], ts[i]);
     long cnew= contrib(xs[i], t);
     int d= declDepth[i];
-    for(int s= d; s < depth; s++){ envHash[s] ^= cold ^ cnew; }
+    for (int s= d; s < depth; s++){ envHash[s] ^= cold ^ cnew; }
     ts[i] = t;
   }
   public boolean represents(GammaSignature sig){
@@ -94,12 +96,12 @@ public final class Gamma {
 
   @Override public String toString(){
     StringBuilder sb = new StringBuilder();
-    for(int s = 0; s < depth; s++){
+    for (int s = 0; s < depth; s++){
       int start = marks[s];
       int end   = (s + 1 < depth) ? marks[s + 1] : size;
       sb.append('[');
-      for(int i = start; i < end; i++){
-        if(i > start) sb.append(',');
+      for (int i = start; i < end; i++){
+        if (i > start) sb.append(',');
         sb.append(xs[i]).append("->").append(ts[i]);
       }
       sb.append(']');

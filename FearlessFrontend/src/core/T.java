@@ -35,7 +35,7 @@ public sealed interface T {
     }
   }
   record RCC(RC rc, C c) implements T{
-    public RCC{ nonNull(rc,c); }
+    public RCC{ assert nonNull(rc,c); }
     public String toString(){
       if (rc == RC.imm){ return c.toString(); }
       return rc.name()+" "+c;

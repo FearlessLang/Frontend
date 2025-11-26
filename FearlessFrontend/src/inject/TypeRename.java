@@ -20,7 +20,7 @@ public class TypeRename{
   static IT of(IT t, List<String> xs, List<IT> ts){
     assert xs.size() == ts.size();
     if (xs.isEmpty()){ return t; }
-    return switch(t){
+    return switch (t){
       case IT.X x -> getOrSame(x,x.name(),xs,ts);
       case IT.RCX(RC rc, var x) -> withRC(of(x,xs,ts),rc);
       case IT.RCC rcc -> rcc.withTs(ofIT(rcc.c().ts(),xs,ts));
@@ -34,7 +34,7 @@ public class TypeRename{
     return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
   static List<Optional<IT>> ofITOpt(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti,xs,ts))).toList(); }
   static List<Optional<IT>> ofOptITOpt(List<Optional<IT>> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti.get(),xs,ts))).toList(); }
-  static IT readImm(IT t){return switch(t){
+  static IT readImm(IT t){return switch (t){
     case IT.X x -> new IT.ReadImmX(x);
     case IT.ReadImmX rix -> rix;
     case IT.RCX(RC rc, _) -> withRC(t,readImm(rc));
@@ -42,7 +42,7 @@ public class TypeRename{
     case IT.U _   -> t;
     case IT.Err _ -> t;
   };}
-  static IT withRC(IT t, RC rc){return switch(t){
+  static IT withRC(IT t, RC rc){return switch (t){
     case IT.X x -> new IT.RCX(rc,x);
     case IT.ReadImmX _ -> throw Bug.unreachable();
     case IT.RCX(_, var x) -> new IT.RCX(rc,x);
@@ -68,19 +68,18 @@ public class TypeRename{
   public static IT.C tcToITC(T.C c){
     return new IT.C(c.name(),c.ts().stream().map(ti->tToIT(ti)).toList());
   }
-  public static IT tToIT(T t){return switch(t){
+  public static IT tToIT(T t){return switch (t){
     case T.X(var name) -> new IT.X(name);
     case T.ReadImmX(var x) -> new IT.ReadImmX(new IT.X(x.name()));
     case T.RCX(var rc,var x) -> new IT.RCX(rc,new IT.X(x.name()));
     case T.RCC(var rc, var c) -> new IT.RCC(rc,tcToITC(c));
   };}
-  public static T itToT(IT t){return switch(t){
+  public static T itToT(IT t){return switch (t){
     case IT.X(var name) -> new T.X(name);
     case IT.ReadImmX(var x) -> new T.ReadImmX(new T.X(x.name()));
     case IT.RCX(var rc,var x) -> new T.RCX(rc,new T.X(x.name()));
     case IT.RCC(var rc, var c) -> new T.RCC(rc,itcToTC(c));
-    case IT.U _ -> throw Bug.of();
-    //case IT.U _  -> new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.UNKNOWN), List.of()));
+    case IT.U _ -> throw Bug.of();// bug is good for testing, it will be replaced with this later: new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.UNKNOWN), List.of()));
     case IT.Err _ ->new T.RCC(RC.imm,new T.C(new TName("base.InferErr", 0, Pos.UNKNOWN), List.of()));
   };}
   public static MSig normalizeHeaderBs(MSig header, inference.M.Sig sig){

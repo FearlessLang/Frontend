@@ -20,12 +20,12 @@ public class TestInference {
   static SourceOracle oracle(String pkgName, String head, List<String> input){
     var o= SourceOracle.debugBuilder();
     o.put(pkgName+".fear", "package "+pkgName+";\n"+head);
-    for(int i= 0; i < input.size(); i+=1){ o = o.put(i,"package "+pkgName+";\n"+input.get(i));}      
+    for (int i= 0; i < input.size(); i+=1){ o = o.put(i,"package "+pkgName+";\n"+input.get(i));}      
     return o.build();
   }
   static SourceOracle oracle(List<String> input){
     var o= SourceOracle.debugBuilder();
-    for(int i= 0; i < input.size(); i+=1){ o = o.put(i,input.get(i));}
+    for (int i= 0; i < input.size(); i+=1){ o = o.put(i,input.get(i));}
     return o.build();
   }
   static List<URI> filesUri(int size){

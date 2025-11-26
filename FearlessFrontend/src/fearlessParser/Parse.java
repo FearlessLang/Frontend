@@ -39,10 +39,10 @@ public class Parse {
     ;
   private static Optional<Token> splitOn(Token t, String s,boolean first){
     var free= t.is(BlockComment, LineComment, UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash);
-    if(!free){ return Optional.empty(); }
+    if (!free){ return Optional.empty(); }
     int index= t.content().indexOf(s);
     if (index == -1){ return Optional.empty(); }
-    if(first){ return Optional.of(t.tokenFirstHalf(index+1)); }
+    if (first){ return Optional.of(t.tokenFirstHalf(index+1)); }
     return Optional.of(t.tokenSecondHalf(index));
   }
   public static FileFull from(URI fileName,String input){

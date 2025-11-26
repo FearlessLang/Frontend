@@ -7,7 +7,11 @@ import java.util.stream.Collectors;
 
 import fearlessParser.RC;
 public record M(Sig sig, List<String> xs, Optional<core.E> e){
-  public M{ assert nonNull(sig,e); assert unmodifiable(xs,"M.xs"); }
+  public M{
+    assert nonNull(sig,e);
+    assert unmodifiable(xs,"M.xs");
+    assert xs.size() == sig.ts().size();
+  }
   public String _toString(){
     String _xs="";//TODO: change those patterns with ?: and or introduce a helper
     if (!xs.isEmpty()){ _xs = "("+xs.stream().map(Object::toString).collect(Collectors.joining(","))+")"; }
@@ -15,7 +19,6 @@ public record M(Sig sig, List<String> xs, Optional<core.E> e){
     return ""+sig+_xs+_e;
   }
   public String toString(){
-    assert xs.size()==sig.ts().size();
     var sb= new StringBuilder();
     if (sig.rc()!=RC.imm){ sb.append(sig.rc()).append(' '); }
     sb.append(sig.m());

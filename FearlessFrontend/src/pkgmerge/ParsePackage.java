@@ -26,7 +26,7 @@ import static fearlessParser.TokenKind.*;
 public class ParsePackage{
   public Methods methods(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other){
     Map<URI,FileFull> all= new LinkedHashMap<>();
-    for(var u : files){
+    for (var u : files){
       var str= o.loadString(u);
       var f= Parse.from(u, str);
       all.put(u, f);

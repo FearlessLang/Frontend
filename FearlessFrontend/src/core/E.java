@@ -20,8 +20,6 @@ public sealed interface E {
   record Type(T.RCC type, Pos pos) implements E{
     public Type{ assert nonNull(type,pos); }
     public String toString(){ return type.toString();}}
-  //Literal(RC rc, TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Pos pos) implements E{
-  //Declaration(   TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Pos pos){
   record Literal(RC rc, TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Pos pos) implements E{
     public Literal{
       assert unmodifiableDistinct(bs,"L.bs");
@@ -48,7 +46,7 @@ public sealed interface E {
       String _targs= "["+rc;
       if (!targs.isEmpty()){ _targs += ","+targs.stream().map(Object::toString).collect(Collectors.joining(",")); }
       String _es= "";
-      if(!es.isEmpty()){ _es = "("+es.stream().map(Object::toString).collect(Collectors.joining(", "))+")"; }
+      if (!es.isEmpty()){ _es = "("+es.stream().map(Object::toString).collect(Collectors.joining(", "))+")"; }
       return ""+e+name+_targs+"]"+_es;
     }
   }

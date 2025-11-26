@@ -52,14 +52,6 @@ public enum TokenKind implements metaParser.TokenKind {
   SignedInt("[+-][0-9](?:[0-9_]*[0-9])?","signed number (eg. -23)"),
   // Unsigned int: 0, 42, 1_000_000
   UnsignedInt("[0-9](?:[0-9_]*[0-9])?","unsigned number (eg. 23)"),
-  //UStr("\"(?:\\\\.|[^\"\\\\\\r\\n])*\""),//well known broken version
-  //SStr("`(?:\\\\.|[^`\\\\\\r\\n])*`"),//well known broken version
-
-  //Old with escapes BadUStrUnclosed("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*(?=\\x0A|\\z)"),
-  //Old with escapes BadSStrUnclosed("`(?:\\x5C[nt`\\x5C]|[^`\\x5C\\x0A])*(?=\\x0A|\\z)"),
-  //Old Normal strings with escapes; newlines not allowed inside
-  //Old with escapes UStr("\\x22(?:\\x5C[ntu\\x22\\x5C]|[^\\x22\\x5C\\x0A])*\\x22","\"...\""),
-  //Old with escapes SStr("`(?:\\x5C[nt`\\x5C]|[^`\\x5C\\x0A])*`","`...`"),
   BadUStrUnclosed("\\x22[^\\x22\\x0A]*(?=\\x0A|\\z)"),
   BadSStrUnclosed("`[^`\\x0A]*(?=\\x0A|\\z)"),
   UStr("\\x22[^\\x22\\x0A]*\\x22","\"...\""),

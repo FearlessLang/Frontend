@@ -13,7 +13,7 @@ import inference.E.*;
 // Only for free type vars the programmer *wrote*
 // Expression ITs are inferred derived data and ignored here.
 public class FreeXs {
-  Stream<String> ftvE(E e){ return switch(e){
+  Stream<String> ftvE(E e){ return switch (e){
     case X(_,_,_,_) -> Stream.of();
     case Literal l -> l.bs().stream().map(b->b.x()); //Correct since bs will contain all the ftv found anywhere in the literal
     case Call(var ei, _,_, var targs, var es,_,_,_) -> Stream.concat(ftvE(ei),Stream.concat(ftvTs(targs),ftvEs(es)));
@@ -31,7 +31,7 @@ public class FreeXs {
   Stream<String> ftvS(M.Sig m){ return Stream.concat(ftvOTs(m.ts()),ftvT(m.ret())); }
   Stream<String> ftvI(M.Impl m){ return ftvE(m.e()); }
   Stream<String> ftvT(Optional<IT> o){ return o.map(t->ftvT(t)).orElse(Stream.of()); }
-  Stream<String> ftvT(IT t){ return switch(t){
+  Stream<String> ftvT(IT t){ return switch (t){
     case IT.X x -> Stream.of(x.name());
     case IT.RCX(_, var x) -> Stream.of(x.name());
     case IT.ReadImmX(var x) -> Stream.of(x.name());

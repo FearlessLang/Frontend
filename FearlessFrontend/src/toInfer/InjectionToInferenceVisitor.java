@@ -53,9 +53,9 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   List<Optional<IT>> mapPT(List<fearlessFullGrammar.Parameter> ps){ return ps.stream().map(p->p.t().map(ti->ti.accept(this))).toList(); }
   List<String> mapPX(List<fearlessFullGrammar.Parameter> ps){ return ps.stream().map(this::parameterToName).toList(); }
   String parameterToName(fearlessFullGrammar.Parameter p){
-    if( p.xp().isEmpty()){ return "_"; }
+    if ( p.xp().isEmpty()){ return "_"; }
     XPat xp= p.xp().get();
-    return switch(xp){
+    return switch (xp){
     case XPat.Name(var x) -> x.name();
     case XPat.Destruct(var _, var _) -> freshF.freshVar(currentTop, "div");
     };
@@ -63,7 +63,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   List<M> mapM(List<fearlessFullGrammar.M> ms){ return ms.stream().map(this::visitM).toList(); } 
   M visitM(fearlessFullGrammar.M m){ return new M(visitMSig(m),visitMImpl(m)); }
   M.Sig visitMSig(fearlessFullGrammar.M mm){
-    if(mm.sig().isEmpty()){
+    if (mm.sig().isEmpty()){
       List<Optional<IT>> ts= !mm.hasImplicit()?List.of():List.of(empty());
       return new M.Sig(empty(),empty(),empty(),ts,empty(),empty(),false,mm.pos()); 
     }
@@ -75,7 +75,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     return new M.Sig(s.rc(),s.m(),bs,ts,res,empty(),mm.body().isEmpty(),mm.pos());
   }
   public B visitB(fearlessFullGrammar.B b){
-    return new B(b.x().name(),switch(b.bt()){
+    return new B(b.x().name(),switch (b.bt()){
     case fearlessFullGrammar.B.Star()->List.of(RC.imm,RC.mut,RC.read);
     case fearlessFullGrammar.B.StarStar()->List.of(RC.imm, RC.mut, RC.read, RC.iso, RC.mutH, RC.readH);
     case fearlessFullGrammar.B.RCS(List<RC> rcs)-> rcs.isEmpty()
@@ -110,7 +110,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     //Block#.let x1={e1}.. .let xn={en}.return{body}
     fearlessFullGrammar.E blockE=typedLiteral("base.Block",p); 
     blockE = new fearlessFullGrammar.E.Call(blockE, new MName("#",0),empty(),false,empty(),List.of(),p);
-    for(var xe:xes){
+    for (var xe:xes){
       var xp= new fearlessFullGrammar.XPat.Name(new fearlessFullGrammar.E.X(xe.x,p));
       var e= new fearlessFullGrammar.E.Literal(empty(),List.of(new fearlessFullGrammar.M(empty(),of(xe.e), false,p) ),p);
       blockE = new fearlessFullGrammar.E.Call(blockE, new MName(".let",2),empty(),false,of(xp),List.of(e),p); 
@@ -228,7 +228,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     return new fearlessFullGrammar.E.Call(
       c.e(),c.name(),c.targs(),true,empty(),List.of(par1,par2), c.pos());
   }
-  private fearlessFullGrammar.E replaceAtom(fearlessFullGrammar.E par, fearlessFullGrammar.E atom){ return switch(par){
+  private fearlessFullGrammar.E replaceAtom(fearlessFullGrammar.E par, fearlessFullGrammar.E atom){ return switch (par){
     case fearlessFullGrammar.E.X _ -> atom;
     case fearlessFullGrammar.E.Round _ -> atom;
     case fearlessFullGrammar.E.Literal _ -> atom;
@@ -241,7 +241,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
       e.isEmpty()?atom
       :new fearlessFullGrammar.E.StringInter(simple,of(atom),hashCounts,strings,es,pos);
   };}
-  private fearlessFullGrammar.E extractAtom(fearlessFullGrammar.E par){ return switch(par){
+  private fearlessFullGrammar.E extractAtom(fearlessFullGrammar.E par){ return switch (par){
     case fearlessFullGrammar.E.X e -> e;
     case fearlessFullGrammar.E.Round e -> e;
     case fearlessFullGrammar.E.Literal e -> e;
