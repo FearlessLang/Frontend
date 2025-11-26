@@ -744,7 +744,7 @@ p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
 ~-----------
 ~imm p.A:{'this .m[X:imm](_:p.Foo[X]):X}
 ~imm p.B1[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.get[imm]}
-~imm p.B2[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.beer[imm,base.InferErr]}
+~imm p.B2[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.beer[imm,X]}
 ~imm p.Foo[K:imm]:{'this .get:K; .beer[G:imm]:G}
 """,List.of("""
 Foo[K]:{.get:K; .beer[G]:G;}
@@ -758,4 +758,37 @@ B2[X]:A{.m(z)->z.beer[X]}
 
 //TODO: if some error about rc disagreement cannot be triggered any more, they should become asserts
 //search for 'Reference capability disagreement'
+
+
+//Ok with inferErr here
+@Test void recoverUserTypes1(){okI("""
+[###]~-----------
+~imm p.A:p.I{'this }
+~imm p.B:p.I{'this }
+~imm p.Foo:{'this .get[T:imm](a:T, b:T):T->a}
+~imm p.I:{'this }
+~imm p.User:{'this .m:p.I->p.Foo.get[imm,base.InferErr](p.A, p.B)}
+""",List.of("""
+I:{}
+A:I{}
+B:I{}
+Foo:{.get[T](a:T,b:T):T->a;}
+User:{.m:I->Foo.get(A,B)}
+"""));}
+//But here we should keep the user specified type 
+@Test void recoverUserTypes2(){okI("""
+[###]~-----------
+~imm p.A:p.I{'this }
+~imm p.B:p.I{'this }
+~imm p.Foo:{'this .get[T:imm](a:T, b:T):T->a}
+~imm p.I:{'this }
+~imm p.User:{'this .m:p.I->p.Foo.get[imm,p.I](p.A, p.B)}
+""",List.of("""
+I:{}
+A:I{}
+B:I{}
+Foo:{.get[T](a:T,b:T):T->a;}
+User:{.m:I->Foo.get[I](A,B)}
+"""));}
+
 }

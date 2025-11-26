@@ -45,7 +45,7 @@ public record InjectionSteps(Methods meths){
     inference.E ei= meet(e,TypeRename.tToIT(mCore.sig().ret()));
     Gamma g= Gamma.of(xs,TypeRename.tToIT(mCore.sig().ts()),di.thisName(),thisType);
     ei= s.nextStar(g, ei);
-    return new core.M(mCore.sig(),xs,Optional.of(new ToCore().of(ei)));
+    return new core.M(mCore.sig(),xs,Optional.of(new ToCore().of(ei,m.impl().get().e())));
   }
   static E meet(E e, IT t){ return e.withT(meet(e.t(),t)); }
   static IT meet(IT t1, IT t2){ 
