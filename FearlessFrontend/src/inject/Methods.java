@@ -40,6 +40,9 @@ public record Methods(
     }
     layer.add(d);
   }
+  public static Methods create(Package p, OtherPackages other) {
+    return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
+  }
   List<List<E.Literal>> layer(List<E.Literal> decs){
     Map<TName, E.Literal> rem = new HashMap<>();
     for (E.Literal d : decs){ rem.put(d.name(), d); }
@@ -53,7 +56,7 @@ public record Methods(
     }
     return out;
   }
-  public List<inference.E.Literal> of(List<E.Literal> iDecs){
+  public List<inference.E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     //iDecs = iDecs.stream().filter(l->l.thisName().equals("this")).toList(); 
     var acc= new ArrayList<E.Literal>();
     var layers= layer(iDecs);
@@ -166,7 +169,6 @@ public record Methods(
     s= new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.pos());
     return new inference.M(s,m.impl());
   }
-  //--
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, TName origin){
     assert ss.stream().allMatch(M.Sig::isFull);
     List<M> res= new ArrayList<>(ms.size());

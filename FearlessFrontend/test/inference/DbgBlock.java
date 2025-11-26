@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import fearlessFullGrammar.TName;
 import message.SourceOracle;
 import pkgmerge.OtherPackages;
-import pkgmerge.ParsePackage;
+import pkgmerge.FrontendLogicMain;
 import utils.Bug;
 
 class DbgBlock{
@@ -278,7 +278,7 @@ _DecidedBlock:{
       .put("base.fear",baseHead)
       .put("baseBody.fear","package base;\n"+baseBody)
       .build();
-    return new ParsePackage()
+    return new FrontendLogicMain()
       .of(List.of(),o.allFiles(),o,err());
   }
 }

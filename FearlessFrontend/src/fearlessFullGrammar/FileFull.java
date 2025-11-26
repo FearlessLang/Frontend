@@ -41,4 +41,5 @@ public record FileFull(
   @Override public String toString(){
     return "map " + in + " as " + out + " in " + target;
   }}
+  public boolean noDirectives(){ return maps.isEmpty() && uses.isEmpty() && role.isEmpty(); }
 }

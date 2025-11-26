@@ -2,6 +2,7 @@ package inference;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -10,10 +11,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import fearlessFullGrammar.FileFull;
+import inject.InjectionSteps;
 import inject.Methods;
 import message.FearlessException;
 import message.SourceOracle;
-import pkgmerge.ParsePackage;
+import pkgmerge.FrontendLogicMain;
+import pkgmerge.OtherPackages;
+import pkgmerge.Package;
+import toInfer.ToInference;
 import utils.Err;
 
 public class TestInference {
@@ -36,7 +42,21 @@ public class TestInference {
     catch(FearlessException fe){ System.out.println(fe.render(o)); throw fe; }
   }
   static Methods parsePackage(SourceOracle o,boolean infer){
-    return new ParsePackage()
+    class InferenceMain extends FrontendLogicMain{
+      public Methods ofMethods(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
+        Map<URI, FileFull> rawAST= parseFiles(files, o);
+        Package pkg= mergeToPackage(rawAST, override, other);
+        Methods ctx= Methods.create(pkg, other);
+        List<E.Literal> iDecs= new ToInference().of(ctx.p(),ctx,other,ctx.fresh());
+        iDecs= ctx.registerTypeHeadersAndReturnRoots(iDecs);
+        if (!infer){ return ctx; }
+        var res= InjectionSteps.steps(ctx,iDecs);
+        ctx.p().log().logs().add("~-----------");
+        for (var r:res){ ctx.p().log().logs().add("~"+r.toString()); }
+        return ctx;
+      }
+    }
+    return new InferenceMain()
       .ofMethods(List.of(),o.allFiles(),o,DbgBlock.dbg(),infer);
   }
   static void ok(String expected, String head, List<String> input, boolean infer){

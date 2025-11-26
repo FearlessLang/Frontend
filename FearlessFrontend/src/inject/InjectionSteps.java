@@ -247,8 +247,6 @@ public record InjectionSteps(Methods meths){
     var xs= l.bs().stream().<IT>map(b->new IT.X(b.x())).toList();
     return Optional.of(new IT.RCC(l.rc().get(),new IT.C(l.name(),xs)));
   }
-  //------
-  
   private E nextL(Gamma g, E.Literal l){
     if (!l.infA() && !l.cs().isEmpty()){ l = meths.expandDeclaration(l); }
     var selfPrecise= preciseSelf(l);
