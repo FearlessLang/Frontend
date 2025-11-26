@@ -6,11 +6,13 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import fearlessFullGrammar.M;
 import fearlessFullGrammar.Sig;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.ToString;
+import fearlessFullGrammar.XPat;
 import fearlessParser.Parser;
 import fearlessParser.RC;
 import fearlessParser.Token;
@@ -171,13 +173,36 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     if(m.sig().isPresent() && m.sig().get().m().isPresent()){ return -1; }
     return m.sig().map(s->s.parameters().size()).orElse(0) + (m.hasImplicit()?1:0);    
   }
+  public FearlessException missingDotBeforeMethodName(Span at, String name){
+    return Code.WellFormedness.of(
+      "Method declaration missing \".\" before the name.\n"
+    + "To declare a method named "+Message.displayString(name)+", write \"."+name+"\" (dot "+name+").\n"
+    ).addSpan(at);
+  }
+  private Stream<String> potentialMethodNames(M m){
+    return m.sig().stream()
+      .flatMap(s -> s.parameters().stream().limit(1))
+      .flatMap(p -> p.xp().stream())
+      .flatMap(xp -> xp instanceof XPat.Name n ? Stream.of(n.x().name()) : Stream.empty());
+  }
   public FearlessException methNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
     var count= redeclaredElement(noNames);
-    Span s= redeclaredMethSpan(ms,count,at);
-    return Code.WellFormedness.of(
-      "Method with inferred name and "+count+" parameter redeclared.\n"
-    + "A method with the inferred name and the same parameter count is already present above.\n")
-      .addSpan(s).addSpan(at);
+    Span s= redeclaredMethSpan(ms,count,at);    
+    List<String> hints= ms.stream()
+      .filter(m->parCount(m)==count)
+      .flatMap(this::potentialMethodNames)
+      .distinct().toList();
+    String base= "Method with inferred name and "+count+" parameter redeclared.\n"
+    + "A method with the inferred name and the same parameter count is already present above.\n";
+    assert !hints.isEmpty();
+    var ex= hints.getFirst();
+      return Code.WellFormedness.of(
+       base
+     + "Likely cause: method declaration missing \".\" before the name.\n"
+     + "Found unnamed methods with parameters: "+hints.stream().map(Message::displayString).collect(Collectors.joining(", "))+".\n"
+     + "To declare a method named "+Message.displayString(ex)+", write \"."+ex+"\" (dot "+ex+").\n"
+     + "Without the dot, "+Message.displayString(ex)+" is interpreted as a parameter name for an anonymous method.\n"
+     ).addSpan(s).addSpan(at);
   }
   public FearlessException typeNameConflictsGeneric(Token name, Span at){
     return Code.UnexpectedToken.of("Name "+Message.displayString(name.content())+" is used as a type name, but "+Message.displayString(name.content())+" is already a generic type parameter in scope.").addSpan(at);

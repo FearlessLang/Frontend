@@ -3450,6 +3450,10 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
+Likely cause: method declaration missing "." before the name.
+Found unnamed methods with parameters: "a", "b".
+To declare a method named "a", write ".a" (dot a).
+Without the dot, "a" is interpreted as a parameter name for an anonymous method.
 Error 9 WellFormedness
 ""","""
 A:{
@@ -3476,6 +3480,10 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
+Likely cause: method declaration missing "." before the name.
+Found unnamed methods with parameters: "a", "b".
+To declare a method named "a", write ".a" (dot a).
+Without the dot, "a" is interpreted as a parameter name for an anonymous method.
 Error 9 WellFormedness
 ""","""
 A:{
@@ -3502,6 +3510,10 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
+Likely cause: method declaration missing "." before the name.
+Found unnamed methods with parameters: "b", "a".
+To declare a method named "b", write ".b" (dot b).
+Without the dot, "b" is interpreted as a parameter name for an anonymous method.
 Error 9 WellFormedness
 ""","""
 A:{
@@ -3823,7 +3835,7 @@ User:{
 """);}
 
 
-@Test void usesLocalTypeForInference(){fail("""
+@Test void forgotDot1(){fail("""
 In file: [###]/in_memory0.fear
 
 001| Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
@@ -3834,10 +3846,32 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
+Likely cause: method declaration missing "." before the name.
+Found unnamed methods with parameters: "x", "y".
+To declare a method named "x", write ".x" (dot x).
+Without the dot, "x" is interpreted as a parameter name for an anonymous method.
 Error 9 WellFormedness
-Need decent error, here I'm using x and y instead of .x and .y
 ""","""
 Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
+Absorb:{ #[T]:base.Void->base.Void; }
+User1:{.bla(p:Point):base.Void->Absorb#p;}
+User2:{.bla(p:Point):base.Void->Absorb#p.x;}
+""");}
+
+@Test void forgotDot2(){fail("""
+In file: [###]/in_memory0.fear
+
+001| Foo:{ .m : Point -> Point:{ x():base.Nat->0; y:base.Nat->0;} }
+   | --------------------------~~^^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~--
+   | ... 2 lines ...
+004| User2:{.bla(p:Point):base.Void->Absorb#p.x;}
+
+While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Method declaration missing "." before the name.
+To declare a method named "x", write ".x" (dot x).
+Error 9 WellFormedness
+""","""
+Foo:{ .m : Point -> Point:{ x():base.Nat->0; y:base.Nat->0;} }
 Absorb:{ #[T]:base.Void->base.Void; }
 User1:{.bla(p:Point):base.Void->Absorb#p;}
 User2:{.bla(p:Point):base.Void->Absorb#p.x;}

@@ -290,6 +290,12 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var rc= parseOptRC();
     var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH || _rc==RC.iso).orElse(false);
     if(invalid){ throw errFactory().disallowedReadHMutH(rcSpan.get(), rc.get()); }
+    var noDot= peek(LowercaseId) && peek(1).map(t->t.is(_RoundGroup,_SquareGroup)).orElse(false);
+    if (noDot){
+      Token tok= peek().get();
+      Span at= span(tok, peek(1).get()).orElse(span());
+      throw errFactory().missingDotBeforeMethodName(at, tok.content());
+    }
     var m= parseIf(peek(DotName,Op),this::parseMName);
     var bs= parseIf(peek(_SquareGroup),()->parseBs(true));
     var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
