@@ -8,6 +8,7 @@ import java.util.*;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.TName;
+import fearlessFullGrammar.FileFull.Role;
 import fearlessParser.Parse;
 import inject.InjectionSteps;
 import inject.Methods;
@@ -16,7 +17,6 @@ import message.WellFormednessErrors;
 import toInfer.ToInference;
 
 public class FrontendLogicMain {
-
   public List<core.E.Literal> of(
       List<FileFull.Map> override, 
       List<URI> files, 
@@ -59,7 +59,10 @@ public class FrontendLogicMain {
     accUses(pkgName, map, head.uses(), other);
     List<Declaration> ds= raw.values().stream().flatMap(f -> f.decs().stream()).toList();
     var names= DeclaredNames.of(pkgName, ds, Collections.unmodifiableMap(map));    
-    return new Package(pkgName, head.role().get(), map, ds, names, Package.logger());
+    return makePackage(pkgName, head.role().get(), map, ds, names);
+  }
+  protected Package makePackage(String name, Role role, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
+    return new Package(name,role,map,decs,names,Package.offLogger());
   }
   private void accMaps(String n, HashMap<String, String> map, List<FileFull.Map> maps) {
     for (var m : maps){ if (n.equals(m.target())) { map.put(m.out(), m.in()); } }

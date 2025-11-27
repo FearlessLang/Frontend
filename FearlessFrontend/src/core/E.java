@@ -1,12 +1,12 @@
 package core;
 
 import files.Pos;
+import message.Join;
 
 import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
@@ -29,10 +29,9 @@ public sealed interface E {
     }
     public Literal withMs(List<M> ms){ return new Literal(rc,name,bs,cs,thisName,ms,pos); }
     public String toString(){
-      String _bs= "";
-      if (!bs.isEmpty()){ _bs = "["+bs.stream().map(Object::toString).collect(Collectors.joining(","))+"]"; }
-      String _cs= cs.stream().map(Object::toString).collect(Collectors.joining(", "));
-      String _ms= ms.stream().map(Object::toString).collect(Collectors.joining("; "));
+      String _bs= Join.of(bs,"[",",","]","");
+      String _cs= Join.of(cs,"",", ","","");
+      String _ms= Join.of(ms,"","; ","","");
       return rc+" "+name.s()+_bs+":"+_cs+"{'"+thisName+" "+_ms+"}";
     }
   }
@@ -43,10 +42,8 @@ public sealed interface E {
       assert unmodifiable(targs, "E.Call.targs");
     }
     public String toString(){
-      String _targs= "["+rc;
-      if (!targs.isEmpty()){ _targs += ","+targs.stream().map(Object::toString).collect(Collectors.joining(",")); }
-      String _es= "";
-      if (!es.isEmpty()){ _es = "("+es.stream().map(Object::toString).collect(Collectors.joining(", "))+")"; }
+      String _targs= Join.of(targs,"["+rc+",",",","","["+rc);
+      String _es= Join.of(es,"(",", ",")","");
       return ""+e+name+_targs+"]"+_es;
     }
   }

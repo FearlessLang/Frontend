@@ -6,10 +6,10 @@ import static offensiveUtils.Require.nonNull;
 import static offensiveUtils.Require.unmodifiable;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
+import message.Join;
 
 public sealed interface T {
   record X(String name) implements T{
@@ -31,7 +31,7 @@ public sealed interface T {
     }
     public String toString(){
       if (ts.isEmpty()){ return name.s(); }
-      return name.s()+"["+ts.stream().map(Object::toString).collect(Collectors.joining(","))+"]";
+      return name.s()+Join.of(ts,"[",",","]","");
     }
   }
   record RCC(RC rc, C c) implements T{

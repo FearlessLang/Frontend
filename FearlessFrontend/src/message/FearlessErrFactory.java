@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import fearlessFullGrammar.M;
@@ -199,7 +198,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       return Code.WellFormedness.of(
        base
      + "Likely cause: method declaration missing \".\" before the name.\n"
-     + "Found unnamed methods with parameters: "+hints.stream().map(Message::displayString).collect(Collectors.joining(", "))+".\n"
+     + Join.of(hints.stream().map(Message::displayString),
+       "Found unnamed methods with parameters: ",", ",".\n")
      + "To declare a method named "+Message.displayString(ex)+", write \"."+ex+"\" (dot "+ex+").\n"
      + "Without the dot, "+Message.displayString(ex)+" is interpreted as a parameter name for an anonymous method.\n"
      ).addSpan(s).addSpan(at);
@@ -261,9 +261,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   private static String expected(Collection<TokenKind> items){ return expected("","Expected: ","Expected one of: ",items,tk->tk.human); }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
     if (items.isEmpty()){ return pre0.isEmpty()? "" : pre0+".\n"; }
-    String res= items.stream()
-        .map(e->Message.displayString(f.apply(e)))
-        .collect(Collectors.joining(", "));
+    String res= Join.of(
+      items.stream().map(e->Message.displayString(f.apply(e))),"",", ","","");
     if (items.size() == 1){ return pre1 + res + ".\n"; }
     return preMany + res + ".\n";
   }

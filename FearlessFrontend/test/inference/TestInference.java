@@ -4,18 +4,21 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
+import fearlessFullGrammar.FileFull.Role;
 import inject.InjectionSteps;
 import inject.Methods;
 import message.FearlessException;
+import message.Join;
 import message.SourceOracle;
+import pkgmerge.DeclaredNames;
 import pkgmerge.FrontendLogicMain;
 import pkgmerge.OtherPackages;
 import pkgmerge.Package;
@@ -43,6 +46,9 @@ public class TestInference {
   }
   static Methods parsePackage(SourceOracle o,boolean infer){
     class InferenceMain extends FrontendLogicMain{
+      protected Package makePackage(String name, Role role, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
+        return new Package(name,role,map,decs,names,Package.onLogger());
+      }
       public Methods ofMethods(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
         Map<URI, FileFull> rawAST= parseFiles(files, o);
         Package pkg= mergeToPackage(rawAST, override, other);
@@ -62,7 +68,9 @@ public class TestInference {
   static void ok(String expected, String head, List<String> input, boolean infer){
     var o= oracle("p",head,input);
     var res= printError(()->parsePackage(o,infer),o);
-    var got= res.p().log().logs().stream().sorted().collect(Collectors.joining("\n"));
+    var got= Join.of(
+      res.p().log().logs().stream().sorted(),
+      "","\n","","");
     Err.strCmp(expected,got);
   }
   static void ok(String expected, String head, List<String> input){ ok(expected,head,input,false); }

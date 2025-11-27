@@ -1,13 +1,13 @@
 package inference;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import core.B;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import files.Pos;
+import message.Join;
 
 import static offensiveUtils.Require.*;
 
@@ -16,8 +16,7 @@ public record M(Sig sig, Optional<Impl> impl){
   public String toString(){
     if (impl.isEmpty()){ return sig.toString();}
     var xs=impl.get().xs;
-    var args= "";
-    if (!xs.isEmpty()){ args= "("+xs.stream().collect(Collectors.joining(", "))+")"; }
+    var args= Join.of(xs,"(",", ",")","");
     return sig + args+ "->"+impl.get().e()+";"; 
      
     
@@ -28,9 +27,9 @@ public record M(Sig sig, Optional<Impl> impl){
       this(Optional.of(rc),Optional.of(m),Optional.of(bs),ts,Optional.of(ret),Optional.of(origin),abs,pos);
     }
     public String toString(){
-      var bsS= bs.isEmpty() ? "[?]" : bs.get().isEmpty()?"":"["+bs.get().stream().map(Object::toString).collect(Collectors.joining(","))+"]";
-      var tsS= ts.isEmpty() ? "" : "("+ts.stream().map(this::t).collect(Collectors.joining(","))+")";
-      var rcS= rc.isEmpty()?" ?":rc.get()==RC.imm?"":" "+rc.get().toString();
+      var bsS= bs.isEmpty() ? "[?]" : Join.of(bs.get(),"[",",","]","");
+      var tsS= Join.of(ts.stream().map(this::t),"(",",",")","");
+      var rcS= rc.isEmpty()?" ?":rc.get()==RC.imm?"":" "+rc.get();
       var ori= origin.map(o->"@"+o.s()).orElse("@!");
       var mS= m.isPresent()?m.get().toString():"";
       return ""+rcS+" "+mS+bsS+tsS+":"+t(ret)+ori+";";
@@ -48,8 +47,8 @@ public record M(Sig sig, Optional<Impl> impl){
   }
   public record Impl(Optional<MName> m, List<String> xs, E e){
     public String toString(){
-      var xsC= xs.stream().collect(Collectors.joining(", "));
-      return " "+m.map(n->n.s()).orElse("")+"("+xsC+")->"+e+";";
+      var xsC= Join.of(xs,"(",", ",")->","()->");
+      return " "+m.map(n->n.s()).orElse("")+xsC+e+";";
     }
     public Impl withE(E e){
       if (e == this.e){ return this; }

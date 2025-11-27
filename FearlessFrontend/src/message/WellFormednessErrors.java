@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import core.B;
@@ -147,9 +146,9 @@ public final class WellFormednessErrors {
             .append("Did you mean ")
             .append(Message.displayString(b))
             .append(" ?\n"));
-          msg.append("Visible packages: ")
-            .append(cs.stream().map(Message::displayString).collect(Collectors.joining(", ")))
-            .append(".\n");
+          msg.append(Join.of(
+            cs.stream().map(Message::displayString),
+            "Visible packages: ",", ",".\n"));
           return null;
           });
       return Optional.of(make(msg));
@@ -173,10 +172,7 @@ public final class WellFormednessErrors {
         .append(Message.displayString(typedSimple))
         .append(" is only declared with ");
       if (arities.size() == 1){ msg.append(arities.getFirst()).append(" generic parameter(s)"); }
-      else{msg
-        .append("the following numbers of generic parameters: ")
-        .append(arities.stream().map(Object::toString).collect(Collectors.joining(", ")));
-      }
+      else{ msg.append(Join.of(arities,"the following numbers of generic parameters: ",", ","")); }
       msg.append(".\nDid you accidentally add or omit a generic type parameter?\n");
       return Optional.of(make(msg));
     }
@@ -221,10 +217,9 @@ public final class WellFormednessErrors {
     }
     void addOptionsList(List<String> ss, StringBuilder msg){
       if (ss.isEmpty()){ return; }
-      msg.append("Did you mean ")
-        .append(ss.stream().map(Message::displayString).collect(Collectors.joining(" or ")))
-        .append(" ?\n")
-        .append(addUse);
+      msg.append(Join.of(
+        ss.stream().map(Message::displayString),
+        "Did you mean "," or "," ?\n"+addUse));
     }    
     private static String addUse="Add a \"use\" or write the fully qualified name.\n";
     private FearlessException make(StringBuilder msg){
@@ -320,22 +315,26 @@ public final class WellFormednessErrors {
   }
   public static FearlessException agreement(Agreement at, FreshPrefix fresh, List<?> res, String msg){
     return agreement(at,fresh,Code.WellFormedness.of(
-      msg+ " for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
-    + "Different options are present in the implemented types: "+res.stream()
-      .map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
-    + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly choosing the desired option.\n"
-      ));
+      msg+ " for method "
+    + Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
+    + Join.of(
+        res.stream().map(o->Message.displayString(o.toString())),
+        "Different options are present in the implemented types: ",", ",".\nType ")
+    + Message.displayString(at.cName().s())+" must declare a method "
+    + Message.displayString(at.mName().s())+" explicitly choosing the desired option.\n"
+    ));
   }
   public static FearlessException agreementSize(Agreement at, FreshPrefix fresh, List<List<B>> res) {
     return agreement(at,fresh,Code.WellFormedness.of(
     "The number of generic type parameters disagrees for method "
     + Message.displayString(at.mName().s())
     + " with " + at.mName().arity() + " parameters.\n"
-    + "Different options are present in the implemented types: "
-    + res.stream().map(o->Message.displayString(o.toString())).collect(Collectors.joining(", "))+".\n"
-    + "Type "+Message.displayString(at.cName().s())
+    + Join.of(
+        res.stream().map(o->Message.displayString(o.toString())),
+        "Different options are present in the implemented types: ",", ",".\nType ")
+    + Message.displayString(at.cName().s())
     + " cannot implement all of those types.\n"
-      ));
+    ));
    }
    public static FearlessException methodGenericArityDisagreesWithSupers(Agreement at, FreshPrefix fresh, int userArity, int superArity, List<B> userBs, List<B> superBs){
     return agreement(at,fresh,Code.WellFormedness.of(
@@ -353,18 +352,18 @@ public final class WellFormednessErrors {
     return agreement(origin,fresh,m.sig().pos(),Code.WellFormedness.of(
       "Cannot infer the name for method with "+m.sig().ts().size()+" parameters.\n"
     + "Many"+(abs?" abstract":"")+" methods with "+m.sig().ts().size()+" parameters could be selected:\n"
-    + "Candidates: "+options.stream()
-        .map(mi->Message.displayString(mi.rc().get()+" "+mi.m().get().s()))
-        .collect(Collectors.joining(", "))+".\n"
-      ));
+    + Join.of(
+        options.stream().map(mi->Message.displayString(mi.rc().get()+" "+mi.m().get().s())),
+        "Candidates: ",", ",".\n")
+    ));
   }
   public static FearlessException ambiguousImplementationFor(List<M.Sig> ss, List<TName> options, Agreement at, FreshPrefix fresh){
     return agreement(at,fresh,Code.WellFormedness.of(    
       "Ambiguous implementation for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types:\n"
-    + "Candidates: "+options.stream()
-        .map(mi->Message.displayString(mi.s()))
-        .collect(Collectors.joining(", "))+".\n"
+    + Join.of(
+        options.stream().map(mi->Message.displayString(mi.s())),
+        "Candidates: ",", ",".\n")
     + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly implementing the desired behaviour.\n"
       ));
   }
@@ -381,10 +380,9 @@ public final class WellFormednessErrors {
       .append(" implements base.WidenTo more than once.\n")
       .append("At most one base.WidenTo[T] supertype is allowed, ")
       .append("because it defines the preferred widened type.\n")
-      .append("Found the following base.WidenTo supertypes:\n")
-      .append(widen.stream()
-        .map(c -> "  - " + Message.displayString(c.toString()))
-        .collect(Collectors.joining("\n")));
+      .append(Join.of(
+        widen.stream().map(c -> "  - " + Message.displayString(c.toString())),
+        "Found the following base.WidenTo supertypes:\n","\n",""));
     return Code.WellFormedness.of(msg.toString())
       .addSpan(Parser.span(owner.pos(), owner.simpleName().length()));
   }

@@ -1,11 +1,10 @@
 package fearlessFullGrammar;
 
-import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.Test;
 
 import fearlessParser.Parse;
 import message.FearlessException;
+import message.Join;
 import message.SourceOracle;
 import utils.Err;
 
@@ -19,9 +18,9 @@ public class ToStringTest {
       System.out.println(fe.render(o));
       throw fe;
     }
-    var got= res.decs().stream()
-      .map(ToString::declaration)
-      .collect(Collectors.joining("\n"))+"\n";
+    var got= Join.of(
+      res.decs().stream().map(ToString::declaration),
+      "","\n","\n","");
     Err.strCmp(expected,got);
   }
   @Test void decl_empty(){ ok("A: {}\n","A:{}"); }

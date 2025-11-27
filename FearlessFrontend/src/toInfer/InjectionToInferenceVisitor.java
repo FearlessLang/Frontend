@@ -106,17 +106,13 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     return of(new M.Impl(name,ps,e));
   }
   private fearlessFullGrammar.E makeXPatsBody(fearlessFullGrammar.E body, List<XE> xes){
-    var p= body.pos();
-    //Block#.let x1={e1}.. .let xn={en}.return{body}
-    fearlessFullGrammar.E blockE=typedLiteral("base.Block",p); 
-    blockE = new fearlessFullGrammar.E.Call(blockE, new MName("#",0),empty(),false,empty(),List.of(),p);
-    for (var xe:xes){
-      var xp= new fearlessFullGrammar.XPat.Name(new fearlessFullGrammar.E.X(xe.x,p));
-      var e= new fearlessFullGrammar.E.Literal(empty(),List.of(new fearlessFullGrammar.M(empty(),of(xe.e), false,p) ),p);
-      blockE = new fearlessFullGrammar.E.Call(blockE, new MName(".let",2),empty(),false,of(xp),List.of(e),p); 
+    var p= body.pos(); //Block#.let x1={e1}.. .let xn={en}.return{body}
+    var block= call(typedLiteral("base.Block", p), "#",List.of(), p);
+    for (var xe : xes){
+      var pat= new XPat.Name(new fearlessFullGrammar.E.X(xe.x, p));
+      block= callPat(block, ".let", pat, lambda(xe.e, p), p);
     }
-    var b= new fearlessFullGrammar.E.Literal(empty(),List.of(new fearlessFullGrammar.M(empty(),of(body), false,p) ),p);
-    return new fearlessFullGrammar.E.Call(blockE, new MName(".return",1),empty(),false,empty(),List.of(b),p);
+    return call(block, ".return", List.of(lambda(body, p)), p);
   }
   record XE(String x, fearlessFullGrammar.E e){}
   boolean isXPat(fearlessFullGrammar.Parameter p){
@@ -137,8 +133,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   }
   XE xpat(List<MName> pat, String x, String fresh, Pos pos){
     fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, pos);
-    for (MName m:pat){ res= new fearlessFullGrammar.E.Call(res,m,empty(),false,empty(),List.of(), pos); }
-    return new XE(x,res);
+    for (MName m : pat) { res= call(res, m.s(),List.of(), pos); }
+    return new XE(x, res);
   }
   private fearlessFullGrammar.E stripRound(fearlessFullGrammar.E e){
     while (e instanceof fearlessFullGrammar.E.Round r){ e = r.e(); }
@@ -261,18 +257,24 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     var c= new fearlessFullGrammar.T.C(tn,of(List.of()));
     return new fearlessFullGrammar.E.TypedLiteral(new fearlessFullGrammar.T.RCC(empty(),c), empty(), p);    
   }
+  private fearlessFullGrammar.E lambda(fearlessFullGrammar.E body, Pos p){
+    return new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(empty(), of(body), false, p)), p);
+  }
+  private fearlessFullGrammar.E call(fearlessFullGrammar.E e, String m, List<fearlessFullGrammar.E> args, Pos p){
+    return new fearlessFullGrammar.E.Call(e, new MName(m, args.size()), empty(), true, empty(), args, p);
+  }
+  private fearlessFullGrammar.E callPat(fearlessFullGrammar.E e, String m, XPat pat, fearlessFullGrammar.E a, Pos p){
+    return new fearlessFullGrammar.E.Call(e, new MName(m, 2), empty(), true, of(pat), List.of(a), p);
+  }
   @Override public E visitStringInter(fearlessFullGrammar.E.StringInter i){
-    String name= i.simple()?"base.SStr":"base.UStr";
-    String term= i.simple()?"`":"\"";
-    var add= new fearlessFullGrammar.MName(".add",2);
-    var build= new fearlessFullGrammar.MName(".build",1);
-    var topE= i.e().orElseGet(()->typedLiteral(name+"Procs",i.pos()));
-    for (int j= 0; j < i.es().size(); j++){
-      var stri= typedLiteral("base."+term+i.strings().get(j)+term,i.pos());
-      topE = new fearlessFullGrammar.E.Call(topE,add,empty(),true,empty(),List.of(stri,i.es().get(j)),i.pos());
+    String name= i.simple() ? "base.SStr" : "base.UStr";
+    String q= i.simple() ? "`" : "\"";
+    var top= i.e().orElseGet(() -> typedLiteral(name + "Procs", i.pos()));
+    for (int j= 0; j < i.es().size(); j++) {
+      var s= typedLiteral("base." + q + i.strings().get(j) + q, i.pos());
+      top= call(top, ".add", List.of(s,i.es().get(j)), i.pos());
     }
-    var strLast= typedLiteral("base."+term+i.strings().getLast()+term,i.pos());
-    var desugared= new fearlessFullGrammar.E.Call(topE,build,empty(),true,empty(),List.of(strLast),i.pos());
-    return desugared.accept(this); 
+    var end= typedLiteral("base." + q + i.strings().getLast() + q, i.pos());
+    return call(top, ".build", List.of(end), i.pos()).accept(this);
   }
 }

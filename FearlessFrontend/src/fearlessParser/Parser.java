@@ -511,7 +511,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (fwdIf(peek(Colon))){ while (fwdIf(peek(Comma,UppercaseId,_SquareGroup))){} }
     fwdIf(peek(_CurlyGroup));
   }
-  private void eatPost(){
+  private void eatPost(){//Guaranteed to advance or error (fwdIf true implies we advanced)
     if (fwdIf(hasPost())){ fwdIf(peek(_SquareGroup)); return; }
     var signed= peek(SignedInt,SignedFloat,SignedRational);
     if (signed){ throw this.errFactory().signedLiteral(spanAround(index(),index()),expectAny("")); }

@@ -5,13 +5,13 @@ import static offensiveUtils.Require.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import core.B;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import files.Pos;
+import message.Join;
 
 public sealed interface E {
   Pos pos();
@@ -59,12 +59,13 @@ public sealed interface E {
       String res= "";
       if (rc.isPresent() && rc.get() != RC.imm){ res= rc.get()+" "; }
       res += name.s();
-      if (!bs.isEmpty()){ res += "["+bs.stream().map(Object::toString).collect(Collectors.joining(","))+"]"; }
-      if (rc.isEmpty()){ res += ":$?"; }
-      else { res += ":" +cs.stream().map(Object::toString).collect(Collectors.joining(", ")); }
+      res += Join.of(bs,"[",",","]","");
+      res += rc.isEmpty()
+        ?":$?"
+        :Join.of(cs,":",", ","",":");
       if (ms.isEmpty()){ return res+":"+t; }
       res += "{'"+thisName;
-      res += ms.stream().map(Object::toString).collect(Collectors.joining(""));
+      res += Join.of(ms,"","","","");
       res +="}:"+t;
       return res;
     }
@@ -106,10 +107,10 @@ public sealed interface E {
       return new Call(e,name,rc,targs,es,t,pos,g.clear());
     }
     public String toString(){ 
-      var open= rc.isEmpty()? "[" : targs.isEmpty() ? "["+rc.get() : "["+rc.get()+",";
+      var open= rc.isEmpty()? "[" : "["+rc.get();
       return ""+e+name+open
-      +targs.stream().map(Object::toString).collect(Collectors.joining(","))+"]("
-      +es.stream().map(Object::toString).collect(Collectors.joining(","))+"):"+t;
+        +Join.of(targs,rc.isEmpty()?"":",",",","](","](")
+        +Join.of(es,"",",","):","):")+t;
     }
   }
   record ICall(E e, MName name, List<E> es, IT t, Pos pos, Gamma.GammaSignature g) implements E{
@@ -118,9 +119,7 @@ public sealed interface E {
       if (t.equals(this.t)){ return this; }
       return new ICall(e,name,es,t,pos,g.clear()); 
     }
-    public String toString(){ return ""+e+name+"("
-        +es.stream().map(Object::toString).collect(Collectors.joining(","))+"):"+t;
-      }
+    public String toString(){ return ""+e+name+Join.of(es,"(",",","):","():")+t; }
     public E withEEs(E e, List<E> es) {
       if (e == this.e && es == this.es){ return this; } 
       return new ICall(e,name,es,t,pos,g.clear());
