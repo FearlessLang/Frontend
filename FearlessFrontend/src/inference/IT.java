@@ -8,6 +8,7 @@ import java.util.List;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import message.Join;
+import utils.Bug;
 
 public sealed interface IT {
   default boolean isTV(){ return true; }
@@ -39,7 +40,7 @@ public sealed interface IT {
     public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
     public RCC withTs(List<IT> ts){
       if (ts == c.ts()){ return this; }
-      return new IT.RCC(rc,new IT.C(c.name(),ts));
+      return new RCC(rc,new C(c.name(),ts));
     }
   }
   enum U implements IT{ Instance; 
@@ -50,5 +51,20 @@ public sealed interface IT {
     public String toString(){ return "Err";}
     //public boolean isTV(){ return true; }//the default: We do accept Err as a real type
   }
-
+  default IT withRC(RC rc){ return switch (this){ // T[RC]
+    case RCC(var _, var c) -> new RCC(rc, c);
+    case RCX(var _, var x) -> new RCX(rc, x);
+    case X x -> new RCX(rc, x);
+    case ReadImmX(var x) -> new RCX(rc, x);
+    case IT.U _   -> throw Bug.unreachable();
+    case IT.Err _ -> throw Bug.unreachable();
+  };}
+  default IT readImm(){ return switch (this){ // T[read/imm]
+    case X x -> new ReadImmX(x);
+    case ReadImmX _ -> this;
+    case RCC(var rc, var c) -> new RCC(rc.readImm(), c);
+    case RCX(var rc, var x) -> new RCX(rc.readImm(), x);
+    case U _   -> this;
+    case Err _ -> this;
+  };}
 }

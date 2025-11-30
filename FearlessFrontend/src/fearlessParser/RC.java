@@ -12,4 +12,6 @@ public enum RC {
       case readH, read, mutH -> false;
     };
   }
+  public RC isoToMut(){ return this == iso? mut : this; }
+  public RC readImm(){ return (this == iso || this == imm ) ? imm : read; } 
 }

@@ -18,6 +18,7 @@ public enum Code{
   InterpolationNoClose,
   InterpolationNoOpen,
   WellFormedness,
+  TypeError,
   ;  
   public FearlessException of(BiFunction<SourceOracle,List<Frame>,String> f){ return new FearlessException(this, f); }
   public FearlessException of(String msg){ return this.of((o,fs)->Message.of(o::loadString,fs,msg)); }

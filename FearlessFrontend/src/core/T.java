@@ -40,5 +40,22 @@ public sealed interface T {
       if (rc == RC.imm){ return c.toString(); }
       return rc.name()+" "+c;
     }
+    public RCC withTs(List<T> ts){
+      if (ts == c.ts()){ return this; }
+      return new RCC(rc,new C(c.name(),ts));
+    }
+
   }
+  default T withRC(RC rc){ return switch (this){ // T[RC]
+    case RCC(var _, var c) -> new RCC(rc, c);
+    case RCX(var _, var x) -> new RCX(rc, x);
+    case X x -> new RCX(rc, x);
+    case ReadImmX(var x) -> new RCX(rc, x);
+  };}
+  default T readImm(){ return switch (this){ // T[read/imm]
+    case X x -> new ReadImmX(x);
+    case ReadImmX _ -> this;
+    case RCC(var rc, var c) -> new RCC(rc.readImm(), c);
+    case RCX(var rc, var x) -> new RCX(rc.readImm(), x);
+  };}
 }

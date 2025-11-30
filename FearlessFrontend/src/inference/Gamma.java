@@ -4,14 +4,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public final class Gamma {
- ///As for `Pos`, intentionally equals/hashCode are classifying all GammaSignature as equals.
- ///This is so that it is logically ignored by equals/hashCode of records containing them. 
- public final static class GammaSignature {
+public final class Gamma{
+ /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
+ @offensiveUtils.NeverAsKey
+ public final static class GammaSignature{
     long hash;
     //public GammaSignature clear(){ hash = 0; return this;}//more performance
     public GammaSignature clear(){ return new GammaSignature(); }//more safe
-    @Override public boolean equals(Object o){ return true; }
+    @Override public boolean equals(Object o){ return o instanceof GammaSignature; }
     @Override public int hashCode(){ return 0; }
   }
   private static final int maxBindings= 4096;

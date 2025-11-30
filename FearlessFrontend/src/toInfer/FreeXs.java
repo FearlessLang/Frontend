@@ -31,7 +31,7 @@ public class FreeXs {
   Stream<String> ftvS(M.Sig m){ return Stream.concat(ftvOTs(m.ts()),ftvT(m.ret())); }
   Stream<String> ftvI(M.Impl m){ return ftvE(m.e()); }
   Stream<String> ftvT(Optional<IT> o){ return o.map(t->ftvT(t)).orElse(Stream.of()); }
-  Stream<String> ftvT(IT t){ return switch (t){
+  public Stream<String> ftvT(IT t){ return switch (t){
     case IT.X x -> Stream.of(x.name());
     case IT.RCX(_, var x) -> Stream.of(x.name());
     case IT.ReadImmX(var x) -> Stream.of(x.name());
