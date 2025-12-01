@@ -12,7 +12,7 @@ import fearlessParser.RC;
 import inject.TypeRename;
 
 class Sources {
-//Similar code must exists inside inference. We may or may not be able to deduplicate it (works on different types).
+//TODO: Similar code must exists inside inference. We may or may not be able to deduplicate it (works on different types).
 //But at least we can check if the two implementations are consistent and pull them to the same file so that they stay closed together.
   static List<Sig> collect(TypeSystem ts, Literal l){//Note: this uses l instead of D[Ts] since more direct/efficient
     List<Sig> sources= new ArrayList<>();

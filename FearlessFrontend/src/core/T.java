@@ -19,6 +19,10 @@ public sealed interface T {
   record RCX(RC rc, X x) implements T{
     public RCX{assert nonNull(rc,x);}
     public String toString(){ return rc.name()+" "+x.name; }
+    public RCX withRC(RC rc){
+      if (rc == this.rc){ return this; }
+      return new RCX(rc,x);
+    }
   }
   record ReadImmX(X x) implements T{
     public ReadImmX{assert nonNull(x);}
@@ -44,7 +48,10 @@ public sealed interface T {
       if (ts == c.ts()){ return this; }
       return new RCC(rc,new C(c.name(),ts));
     }
-
+    public RCC withRC(RC rc){
+      if (rc == this.rc){ return this; }
+      return new RCC(rc,c);
+    }
   }
   default T withRC(RC rc){ return switch (this){ // T[RC]
     case RCC(var _, var c) -> new RCC(rc, c);
