@@ -3,7 +3,6 @@ import static fearlessParser.RC.*;
 import static offensiveUtils.Require.*;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 import core.B;
@@ -15,8 +14,9 @@ import message.TypeSystemErrors;
 import utils.Bug;
 
 public record Kinding(Function<TName,Literal> decs){
-  public void of(List<B> bs, T t){
-    if (of(bs, t, EnumSet.allOf(RC.class))){ return; }
+  public void check(List<B> bs, T t){ check(bs,t,EnumSet.allOf(RC.class)); }
+  public void check(List<B> bs, T t,EnumSet<RC> allowed){
+    if (of(bs, t, allowed)){ return; }
     throw TypeSystemErrors.notKinded(t);
   }
   public boolean of(List<B> bs, T t, EnumSet<RC> allowed){ return switch(t){

@@ -4,7 +4,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import core.B;
-import core.E.Literal;
 import core.T;
 import fearlessParser.RC;
 

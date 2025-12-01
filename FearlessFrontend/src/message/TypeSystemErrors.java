@@ -4,13 +4,18 @@ import fearlessParser.Parser;
 import fearlessParser.RC;
 import files.Pos;
 import metaParser.Message;
+import typeSystem.ArgMatrix;
+import typeSystem.TypeSystem.*;
+import typeSystem.ArgMatrix.*;
 import utils.Bug;
 import core.T;
 import fearlessFullGrammar.TName;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import core.E;
+import core.E.Call;
 import core.M;
 import core.Sig;
 
@@ -52,8 +57,19 @@ public final class TypeSystemErrors {
     }
     return ex;
   }
-  public static FearlessException unresolvedConflict(TName origin, Sig s1, Sig s2){ throw Bug.todo(); }
-  public static FearlessException typeError(Pos at, T got, T expected){ throw Bug.todo(); }
+  public static String makeErrResult(ArgMatrix mat, List<Integer> okProm, TRequirement req){
+    return "Return requirement not met. Needed: " + req.t()+".\n Promotions: "+promos(mat,okProm);
+  }
+  private static String promos(ArgMatrix mat, List<Integer> idxs){
+    return idxs.stream().map(i->mat.candidate(i).promotion()).sorted().collect(Collectors.joining(", "));
+  }
+  public static FearlessException typeError(Pos at, List<TResult> got, List<TRequirement> req){ throw Bug.todo(); }
   public static FearlessException uncallableMethodDeadCode(Pos at, M got, RC receiver){ throw Bug.todo(); }
   public static FearlessException callableMethodAbstract(Pos at, M got, RC receiver){ throw Bug.todo(); }
+  public static FearlessException methodNotDeclared(Call c, TName onType){ throw Bug.todo(); }
+  public static FearlessException methodTArgsArityError(Call c){ throw Bug.todo(); }
+  public static FearlessException methodReceiverRcBlocksCall(Call c, RC recvRc, List<MType> promos){ throw Bug.todo(); }
+  public static FearlessException methodArgsDisagree(Call c, ArgMatrix mat){ throw Bug.todo(); }
+  public static FearlessException methodHopelessArg(Call c, int argi, List<TRequirement> reqs, List<TResult> res){ throw Bug.todo(); }
+  public static FearlessException methodReceiverNotRcc(Call c, T recvType){ throw Bug.todo(); }
 }
