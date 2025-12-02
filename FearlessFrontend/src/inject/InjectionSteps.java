@@ -7,12 +7,14 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import core.B;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import inference.E;
 import inference.Gamma;
 import inference.IT;
+import toInfer.FreeXs;
 import utils.Bug;
 import utils.OneOr;
 import utils.Push;
@@ -43,7 +45,7 @@ public record InjectionSteps(Methods meths){
     var thisType= new IT.RCC(mCore.sig().rc(),new IT.C(di.name(),thisTypeTs));
     inference.E ei= meet(e,TypeRename.tToIT(mCore.sig().ret()));
     Gamma g= Gamma.of(xs,TypeRename.tToIT(mCore.sig().ts()),di.thisName(),thisType);
-    ei= s.nextStar(g, ei);
+    ei= s.nextStar(Push.of(di.bs(),m.sig().bs().get()),g, ei);
     return new core.M(mCore.sig(),xs,Optional.of(new ToCore().of(ei,m.impl().get().e())));
   }
   static E meet(E e, IT t){ return e.withT(meet(e.t(),t)); }
@@ -82,11 +84,11 @@ public record InjectionSteps(Methods meths){
     }
     return Collections.unmodifiableList(res);
   }
-  E nextStar(Gamma g, E e){
+  E nextStar(List<B> bs, Gamma g, E e){
     if (e.done(g)){ return e; }
     while (true){
       var s= g.snapshot();
-      var oe= next(g,e);
+      var oe= next(bs,g,e);
       //assert oe == e || g.changed(s) || !oe.equals(e) : "Allocated equal E: "+e.getClass()+"\n"+e;
       if (oe == e && !g.changed(s)){ e.sign(g); return e; }
       //if (oe.equals(e) && !g.changed(s)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
@@ -104,24 +106,24 @@ public record InjectionSteps(Methods meths){
     if (same){ return es; }
     return Collections.unmodifiableList(res);
   }
-  private List<E> nextStar(Gamma g, List<E> es){
+  private List<E> nextStar(List<B> bs, Gamma g, List<E> es){
     var s= g.snapshot();
     boolean same= true;
     var res= new ArrayList<E>(es.size());
     for (E ei:es){
-      E next= nextStar(g,ei);
+      E next= nextStar(bs,g,ei);
       same &= next == ei;
       res.add(next);
     }
     if (same && !g.changed(s)){ return es; }
     return Collections.unmodifiableList(res);
   }
-  E next(Gamma g, E e){ return switch (e){
-    case E.X x -> nextX(g,x);
-    case E.Literal l -> nextL(g,l);
-    case E.Call c -> nextC(g,c);
-    case E.ICall c -> nextIC(g,c);
-    case E.Type c -> nextT(g,c);
+  E next(List<B> bs, Gamma g, E e){ return switch (e){
+    case E.X x -> nextX(bs,g,x);
+    case E.Literal l -> nextL(bs,g,l);
+    case E.Call c -> nextC(bs,g,c);
+    case E.ICall c -> nextIC(bs,g,c);
+    case E.Type c -> nextT(bs,g,c);
   };}
 
   core.E.Literal getDec(TName name){ return meths.from(name); }
@@ -188,7 +190,7 @@ public record InjectionSteps(Methods meths){
   private List<IT> qMarks(int n){ return n < 100 ? smallQMarks.get(n): _qMarks(n); }
   private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i->i==n?t:IT.U.Instance).toList(); }
   
-  private E nextX(Gamma g, E.X x){ 
+  private E nextX(List<B> bs, Gamma g, E.X x){ 
     var t1= g.get(x.name());//TODO: this may repeat if entered back in the same scope? no if meth header properly updated?
     var t2= x.t();
     if (t1.equals(t2)) { return x; }
@@ -196,16 +198,16 @@ public record InjectionSteps(Methods meths){
     g.update(x.name(),t3);
     return x.withT(t3);
   }
-  private E nextT(Gamma g, E.Type t){
+  private E nextT(List<B> bs, Gamma g, E.Type t){
     var t1= preferred(t.type());
     var t2= t.t();
     if (t1.equals(t2)) { return t; }
     var t3= meet(t1,t2);
     return t.withT(t3);
   }
-  private E nextIC(Gamma g, E.ICall c){
-    var e= nextStar(g,c.e());
-    var es= nextStar(g,c.es());
+  private E nextIC(List<B> bs, Gamma g, E.ICall c){
+    var e= nextStar(bs,g,c.e());
+    var es= nextStar(bs,g,c.es());
     if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e,es); }
     Optional<MSig> om= methodHeader(rcc,c.name(),Optional.empty());
     if (om.isEmpty()){ return c.withEEs(e,es); }
@@ -218,9 +220,9 @@ public record InjectionSteps(Methods meths){
     var call= new E.Call(e,c.name(),Optional.of(m.rc()),ts,es1,c.pos());
     return call.withT(t);
   }
-  private E nextC(Gamma g, E.Call c){
-    var e= nextStar(g,c.e());
-    var es= nextStar(g, c.es());
+  private E nextC(List<B> bs, Gamma g, E.Call c){
+    var e= nextStar(bs,g,c.e());
+    var es= nextStar(bs,g, c.es());
     if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e,es); }
     Optional<MSig> om= methodHeader(rcc,c.name(),c.rc());
     if (om.isEmpty()){ return c.withEEs(e,es); }
@@ -246,7 +248,9 @@ public record InjectionSteps(Methods meths){
     var xs= l.bs().stream().<IT>map(b->new IT.X(b.x())).toList();
     return Optional.of(new IT.RCC(l.rc().get(),new IT.C(l.name(),xs)));
   }
-  private E nextL(Gamma g, E.Literal l){
+  private E nextL(List<B> bs, Gamma g, E.Literal l){
+    var infA=l.infA();
+    //TODO: is there some case where infA != l.rc().isPresent()? assert it?
     if (!l.infA() && !l.cs().isEmpty()){ l = meths.expandDeclaration(l); }
     var selfPrecise= preciseSelf(l);
     if (l.rc().isPresent() && l.t() instanceof IT.U){ l = l.withT(preferred(selfPrecise.get())); }
@@ -255,26 +259,31 @@ public record InjectionSteps(Methods meths){
     boolean changed= false;
     var res= new ArrayList<inference.M>(l.ms().size());
     List<IT> ts= rcc.c().ts();
+    var selfT= selfPrecise.filter(_->infA);//TODO: is this already implicitly the case? Check! 
     for (var mi: l.ms()){
       if (mi.impl().isEmpty()){ res.add(mi); continue; }//we are also keeping methods from supertypes, and not all will be in need of implementation
-      TSM next= nextMStar(g,l.thisName(),meths.cache().containsKey(l.name()),selfPrecise,rcc,ts,mi);
+      TSM next= nextMStar(bs,g,l.thisName(),meths.cache().containsKey(l.name()),selfT,rcc,ts,mi);
       changed |= next.m != mi || !next.ts.equals(ts);
       res.add(next.m);
       ts = next.ts;
     }
-    if (!changed){ return commitToTable(l,rcc); }
+    if (!changed){ return commitToTable(bs,l,rcc); }
     var ms= Collections.unmodifiableList(res);
     IT t= rcc.withTs(ts);
-    return commitToTable(l.withMsT(ms,t),t);
+    return commitToTable(bs,l.withMsT(ms,t),t);
   }
-  private E commitToTable(E.Literal l, IT t){
+  private E commitToTable(List<B> bs, E.Literal l, IT t){
     if (l.rc().isPresent() || !t.isTV() || !(t instanceof IT.RCC rcc) || hasU(l.ms())){ return l; }
-    assert l.cs().isEmpty();
+    assert l.cs().isEmpty(); assert l.bs().isEmpty() : "bs must stay empty pre-commit";
     var noMeth= l.ms().stream().allMatch(m->m.impl().isEmpty());
     if (noMeth){ return new E.Type(rcc,rcc,l.pos(), l.g()); }//TODO: what if it was not a fresh name but a user defined name?
     List<IT.C> cs= Push.of(rcc.c(),meths.fetchCs(rcc.c()));
     meths.checkMagicSupertypes(l.name(),cs);
-    l = new E.Literal(Optional.of(rcc.rc()),l.name(),l.bs(),cs,l.thisName(),l.ms(), t, l.pos(), true, l.g());
+    var freeNames= Stream.concat(
+      new FreeXs().ftvMs(l.ms()),
+      new FreeXs().ftvCs(l.cs()));
+    List<B> localBs= freeNames.distinct().map(x->RC.get(bs, x)).toList();
+    l = new E.Literal(Optional.of(rcc.rc()),l.name().withArity(localBs.size()),localBs,cs,l.thisName(),l.ms(), t, l.pos(), true, l.g());
     var resD= meths.injectDeclaration(l);
     meths.cache().put(resD.name(),resD);//can we simply remove dsMap and use meth cache all the time?
     return l;
@@ -302,7 +311,7 @@ public record InjectionSteps(Methods meths){
     return changed ? Collections.unmodifiableList(out) : old;
   }
   record TSM(List<IT> ts, inference.M m){}
-  private TSM nextMStar(Gamma g, String thisN, boolean committed, Optional<IT.RCC> selfPrecise, IT.RCC rcc, List<IT> ts, inference.M m){
+  private TSM nextMStar(List<B> bs, Gamma g, String thisN, boolean committed, Optional<IT.RCC> selfPrecise, IT.RCC rcc, List<IT> ts, inference.M m){
     assert selfPrecise.isEmpty() || rcc.isTV();
     assert m.impl().isPresent();
     var sig0= m.sig();
@@ -316,7 +325,8 @@ public record InjectionSteps(Methods meths){
     g.newScope();
     g.declare(thisN, selfT);
     for (int i= 0; i < size; i += 1){ g.declare(xs.get(i), args.get(i).get()); }
-    E e= nextStar(g,impl0.e());
+    var bsBodyEnv= Push.of(bs,sig0.bs().get());
+    E e= nextStar(bsBodyEnv,g,impl0.e());
     args= updateArgs(xs,args, g);
     g.popScope();
     if (committed){

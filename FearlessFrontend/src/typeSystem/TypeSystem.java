@@ -35,7 +35,9 @@ public record TypeSystem(ViewPointAdaptation v){
 
   public static void allOk(List<Literal> tops, OtherPackages other){
     var map= AllLs.of(tops);
-    Function<TName,Literal> decs= n->map.getOrDefault(n,other.of(n)); //TODO: not very efficient
+    Function<TName,Literal> decs= n->{
+      var res= map.get(n);
+      return res != null ? res : other.of(n); };
     var ts= new TypeSystem(new ViewPointAdaptation(new Kinding(decs)));
     tops.forEach(l->ts.litOk(Gamma.empty(),l));
   }
@@ -86,6 +88,7 @@ public record TypeSystem(ViewPointAdaptation v){
     return new CallTyping(this,bs,g,c,rs).run();
   }
   private void checkImplemented(RC litRC, M m){
+    if (!m.sig().abs()){ return; }
     if (!callable(litRC,m.sig().rc())){ return; }
     throw TypeSystemErrors.callableMethodAbstract(m.sig().pos(), m, litRC);
   }
@@ -170,9 +173,6 @@ public record TypeSystem(ViewPointAdaptation v){
     if (EnumSet.of(iso, imm).containsAll(rcs)){ return EnumSet.of(imm); }
     if (EnumSet.of(mut, mutH, read, readH).containsAll(rcs)){ return EnumSet.of(read); }
     return EnumSet.of(read, imm);
-  }
-  private B get(List<B> bs, String name){
-    return OneOr.of("Type variable not found",bs.stream().filter(b->b.x().equals(name)));
   }
   private static Sig findCanonical(Literal l, MName name, RC rc){
     return OneOr.of("Missing or Duplicate meth",l.ms().stream().map(M::sig).filter(s->s.m().equals(name) && s.rc() == rc));

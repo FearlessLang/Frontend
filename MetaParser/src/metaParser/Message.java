@@ -21,7 +21,10 @@ public record Message(String msg, int priority){
   }
   public static String of(Function<URI,String> loader, List<Frame> frames, String msg){
     try{ return _of(loader,frames,msg); }
-    catch(Throwable e){ throw new Error("Exception while formatting the following error:\n"+msg,e); }
+    catch(Throwable e){ 
+      String locs = frames.stream().map(f -> f.s().toString()).collect(Collectors.joining("\n"));
+      throw new Error("Exception while formatting the following error:\n" + locs + "\n" + msg, e); 
+    }
   }
   private static String _of(Function<URI,String> loader, List<Frame> frames, String msg){
     if (frames == null || frames.isEmpty()) return msg;

@@ -145,6 +145,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     if (e instanceof fearlessFullGrammar.E.Literal l){ return Optional.of(l); }
     return Optional.empty();
   }
+  //TODO: check if now the stream is always empty
   private E.Literal liftLiteral(Optional<RC> rc,Stream<String> bs,List<IT.C> impl,Optional<String> thisName, List<M> ms, Pos pos){
     var _bs= bs.distinct().map(this::xB).toList();
     var name= freshF.freshTopType(currentTop,_bs.size());
@@ -155,14 +156,15 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     if (ol.isEmpty()){ return e.accept(this); }
     var ms= mapM(ol.get().methods());
     var name= ol.get().thisName().map(n->n.name());
-    var l= liftLiteral(Optional.of(RC.imm),new FreeXs().ftvMs(ms),List.of(),name,ms,ol.get().pos());
+    //Here new FreeXs().ftvMs(ms) is all since by construction no Cs and no inferred type;
+    var l= liftLiteral(Optional.of(RC.imm),Stream.of(),List.of(),name,ms,ol.get().pos());
     decs.add(l);
     return l;
   }
   @Override public E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){ 
     var ms= mapM(l.methods());
     var name= l.thisName().map(n->n.name());
-    return liftLiteral(Optional.empty(),new FreeXs().ftvMs(ms),List.of(),name,ms,l.pos());
+    return liftLiteral(Optional.empty(),Stream.of(),List.of(),name,ms,l.pos());
   }
   @Override public E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(),x.pos()); }
   @Override public E visitRound(fearlessFullGrammar.E.Round r){ return r.e().accept(this); }
@@ -173,9 +175,9 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     List<fearlessFullGrammar.M> ms0= t.l().map(l->l.methods()).orElse(List.of());
     Optional<String> thisName= t.l().flatMap(l->l.thisName().map(n->n.name()));
     var ms= mapM(ms0);
-    Stream<String> bs= Stream.concat(
-      new FreeXs().ftvMs(ms),new FreeXs().ftvT(visitRCC(t.t())));
-    E.Literal l= liftLiteral(Optional.of(t.t().rc().orElse(RC.imm)),bs,impl,thisName, ms,t.pos());
+    //Stream<String> bs= Stream.concat(
+    //  new FreeXs().ftvMs(ms),new FreeXs().ftvT(visitRCC(t.t())));
+    E.Literal l= liftLiteral(Optional.of(t.t().rc().orElse(RC.imm)),Stream.of(),impl,thisName, ms,t.pos());
     decs.add(l);
     return l;
   }

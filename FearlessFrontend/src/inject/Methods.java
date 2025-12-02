@@ -161,7 +161,7 @@ public record Methods(
     List<T.C> cs= TypeRename.itcToTC(d.cs());
     p().log().logInferenceDeclaration(d, cs);
     List<core.M> ms= new ToCore().msSyntetic(d.ms());
-    return new core.E.Literal(d.rc().orElse(RC.imm),d.name(),d.bs(),cs,d.thisName(),ms,d.pos());
+    return new core.E.Literal(d.rc().get(),d.name(),d.bs(),cs,d.thisName(),ms,d.pos());
   }
   inference.M withName(MName name,inference.M m){
     assert m.impl().isPresent() && m.sig().m().isEmpty();

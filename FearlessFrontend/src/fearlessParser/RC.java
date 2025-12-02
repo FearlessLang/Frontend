@@ -1,5 +1,10 @@
 package fearlessParser;
 
+import java.util.List;
+
+import core.B;
+import utils.OneOr;
+
 public enum RC {
   imm, mut, read, iso, mutH, readH;
   public boolean isSubType(RC other){ //this <= other
@@ -13,5 +18,9 @@ public enum RC {
     };
   }
   public RC isoToMut(){ return this == iso? mut : this; }
-  public RC readImm(){ return (this == iso || this == imm ) ? imm : read; } 
+  public RC readImm(){ return (this == iso || this == imm ) ? imm : read; }
+  public static B get(List<B> bs, String name){
+    return OneOr.of("Type variable not found",bs.stream().filter(b->b.x().equals(name)));
+  }
+ 
 }

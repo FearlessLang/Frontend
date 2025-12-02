@@ -11,7 +11,6 @@ import core.T;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import message.TypeSystemErrors;
-import utils.Bug;
 
 public record Kinding(Function<TName,Literal> decs){
   public void check(List<B> bs, T t){ check(bs,t,EnumSet.allOf(RC.class)); }
@@ -47,9 +46,5 @@ public record Kinding(Function<TName,Literal> decs){
     if (EnumSet.of(iso, imm).containsAll(rcs)){ return allowed.contains(imm); }
     if (EnumSet.of(mut, mutH, read, readH).containsAll(rcs)){ return allowed.contains(read); }
     return allowed.contains(imm) && allowed.contains(read);
-  }
-  private B get(List<B> bs, String name){
-    for (var b : bs){ if (b.x().equals(name)){ return b; } }
-    throw Bug.unreachable();
   }
 }

@@ -39,8 +39,9 @@ public class FreeXs {
     case IT.U.Instance -> Stream.of();
     case IT.Err.Instance -> Stream.of();
   };}
-  Stream<String> ftvEs(List<E> es){ return es.stream().flatMap(this::ftvE); }
-  Stream<String> ftvMs(List<M> ms){ return ms.stream().flatMap(this::ftvM); }
-  Stream<String> ftvOTs(List<Optional<IT>> ts){ return ts.stream().flatMap(this::ftvT); }
-  Stream<String> ftvTs(List<IT> ts){ return ts.stream().flatMap(this::ftvT); }
+  public Stream<String> ftvCs(List<IT.C> cs){ return cs.stream().flatMap(c -> ftvTs(c.ts())); }
+  public Stream<String> ftvEs(List<E> es){ return es.stream().flatMap(this::ftvE); }
+  public Stream<String> ftvMs(List<M> ms){ return ms.stream().flatMap(this::ftvM); }
+  public Stream<String> ftvOTs(List<Optional<IT>> ts){ return ts.stream().flatMap(this::ftvT); }
+  public Stream<String> ftvTs(List<IT> ts){ return ts.stream().flatMap(this::ftvT); }
 }

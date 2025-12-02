@@ -67,7 +67,7 @@ public class ToInference{
       TName name= f.apply(di.name());
       //TODO: Is there any ArrayList that can be removed from InjectionToInferenceVisitor? 
       var v= new InjectionToInferenceVisitor(meths,name,new ArrayList<>(),f,decs,p,new ArrayList<>(),other,fresh);
-      v.addDeclaration(name,RC.imm,di,true);
+      v.addDeclaration(name,RC.mut,di,true);
     });
     return List.copyOf(decs);
   }

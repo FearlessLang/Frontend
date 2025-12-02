@@ -74,7 +74,7 @@ public class ToCore{
   }
   private static inference.E.Literal litLike(inference.E o,inference.E.Literal e){
     var ol=(inference.E.Literal)o;
-    assert ol.name().equals(e.name());
+    assert ol.name().s().equals(e.name().s()): ol.name() + " " + e.name();
     return ol;
   }
   private static record CallLike(inference.E e,List<inference.E> es,Optional<RC> rc,List<IT> targs){}

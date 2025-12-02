@@ -63,12 +63,33 @@ public final class TypeSystemErrors {
   private static String promos(ArgMatrix mat, List<Integer> idxs){
     return idxs.stream().map(i->mat.candidate(i).promotion()).sorted().collect(Collectors.joining(", "));
   }
+  public static FearlessException methodReceiverRcBlocksCall(Call c, RC recvRc, List<MType> promos){
+    var needRcs= Join.of(promos.stream().map(MType::rc).distinct()
+      .sorted((a,b)->Integer.compare(a.ordinal(),b.ordinal())),"",", ","");
+    var promoLines= promos.stream()
+      .map(m->"  - "+m.promotion()+": needs receiver "+m.rc())
+      .collect(Collectors.joining("\n"));
+    var msg=
+      "Receiver capability mismatch for call "+c.name().s()+".\n"
+    + "Receiver capability: "+recvRc+".\n"
+    + "No promotion is callable from "+recvRc+".\n"
+    + "Promotions require receiver in: "+needRcs+".\n"
+    + "Promotions checked:\n"+promoLines+"\n";
+    return Code.TypeError.of(msg).addSpan(Parser.span(c.pos(), 100));
+  }
+  public static FearlessException callableMethodAbstract(Pos at, M got, RC receiver){
+    var s= got.sig();
+    var msg=
+      "Abstract method is being called.\n"
+      + "Receiver capability at call site: "+receiver+".\n"
+      + "Method: "+s.m().s()+".\n"
+      + "Declared abstract in: "+s.origin().s()+".\n";
+    return Code.TypeError.of(msg).addSpan(Parser.span(at, 100));
+  }
   public static FearlessException typeError(Pos at, List<TResult> got, List<TRequirement> req){ throw Bug.todo(); }
   public static FearlessException uncallableMethodDeadCode(Pos at, M got, RC receiver){ throw Bug.todo(); }
-  public static FearlessException callableMethodAbstract(Pos at, M got, RC receiver){ throw Bug.todo(); }
   public static FearlessException methodNotDeclared(Call c, TName onType){ throw Bug.todo(); }
   public static FearlessException methodTArgsArityError(Call c){ throw Bug.todo(); }
-  public static FearlessException methodReceiverRcBlocksCall(Call c, RC recvRc, List<MType> promos){ throw Bug.todo(); }
   public static FearlessException methodArgsDisagree(Call c, ArgMatrix mat){ throw Bug.todo(); }
   public static FearlessException methodHopelessArg(Call c, int argi, List<TRequirement> reqs, List<TResult> res){ throw Bug.todo(); }
   public static FearlessException methodReceiverNotRcc(Call c, T recvType){ throw Bug.todo(); }
