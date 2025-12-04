@@ -26,7 +26,7 @@ import toInfer.ToInference;
 import utils.Err;
 
 public class TestInference {
-  static SourceOracle oracle(String pkgName, String head, List<String> input){
+  public static SourceOracle oracle(String pkgName, String head, List<String> input){
     var o= SourceOracle.debugBuilder();
     o.put(pkgName+".fear", "package "+pkgName+";\n"+head);
     for (int i= 0; i < input.size(); i+=1){ o = o.put(i,"package "+pkgName+";\n"+input.get(i));}      
@@ -40,7 +40,7 @@ public class TestInference {
   static List<URI> filesUri(int size){
     return IntStream.range(0, size).mapToObj(SourceOracle::defaultDbgUri).toList();
   }
-  static <R> R printError(Supplier<R> r, SourceOracle o){
+  public static <R> R printError(Supplier<R> r, SourceOracle o){
     try{ return r.get(); }
     catch(FearlessException fe){ System.out.println(fe.render(o)); throw fe; }
   }

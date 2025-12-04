@@ -10,14 +10,14 @@ import pkgmerge.OtherPackages;
 import pkgmerge.FrontendLogicMain;
 import utils.Bug;
 
-class DbgBlock{
+public class DbgBlock{
   static OtherPackages err(){
     return new OtherPackages(){
       public core.E.Literal of(TName name){ throw Bug.of(""+name); }
       public Collection<TName> dom(){ throw Bug.of(); }
     };
   }
-  static OtherPackages dbg(){
+  public static OtherPackages dbg(){
     var ds= all().stream().collect(Collectors.toMap(d->d.name(),d->d));
     return new OtherPackages(){
       public core.E.Literal of(TName name){ return ds.get(name); }

@@ -53,7 +53,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var ts0= Push.of(c0.ts(),c.targs());
     var ps= TypeRename.ofT(sig.ts(),xs,ts0);
     T ret= TypeRename.of(sig.ret(),xs,ts0);
-    return new MType("base",sig.rc(),ps,ret);
+    return new MType("Base",sig.rc(),ps,ret);
   }
   private void checkTargsKinding(T.C c0, Literal d, Sig sig){
     assert c0.ts().size() == d.bs().size();
