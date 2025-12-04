@@ -30,7 +30,7 @@ public class FrontendLogicMain {
     List<inference.E.Literal> inferrableAST= new ToInference().of(pkg, ctx, other, ctx.fresh()); // Phase 4: Desugar
     inferrableAST = ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
     List<core.E.Literal> coreAST = InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
-    //TypeSystem.allOk(coreAST, other); //Phase 7: type checking
+    TypeSystem.allOk(coreAST, other); //Phase 7: type checking
     return coreAST;
   }
   protected Map<URI, FileFull> parseFiles(List<URI> files, SourceOracle o){

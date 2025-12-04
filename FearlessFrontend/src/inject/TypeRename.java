@@ -59,8 +59,8 @@ public class TypeRename{
   public static List<IT.C> tcToITC(List<T.C> cs){ return cs.stream().map(TypeRename::tcToITC).toList(); }
   public static List<IT> tToIT(List<T> cs){ return cs.stream().map(TypeRename::tToIT).toList(); }
   public static List<T> itToT(List<IT> cs){ return cs.stream().map(TypeRename::itToT).toList(); }
-  public static List<T> itOptToT(List<Optional<IT>> ts){ return ts.stream().map(ti->itToT(ti.get())).toList(); }
-  
+  public static List<T> itOptToT(List<Optional<IT>> ts){ return ts.stream().map(ti->itToT(ti)).toList(); }
+  public static T itToT(Optional<IT> t){ return t.map(ti->itToT(ti)).orElse(inferUnknown); }
   public static T.C itcToTC(IT.C c){ return new T.C(c.name(),c.ts().stream().map(ti->itToT(ti)).toList()); }
   public static List<T.C> itcToTC(List<IT.C> cs){
     return cs.stream().map(TypeRename::itcToTC).toList();  
@@ -79,18 +79,11 @@ public class TypeRename{
     case IT.ReadImmX(var x) -> new T.ReadImmX(new T.X(x.name()));
     case IT.RCX(var rc,var x) -> new T.RCX(rc,new T.X(x.name()));
     case IT.RCC(var rc, var c) -> new T.RCC(rc,itcToTC(c));
-    case IT.U _ -> throw Bug.of();// bug is good for testing, it will be replaced with this later: new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.UNKNOWN), List.of()));
-    case IT.Err _ ->new T.RCC(RC.imm,new T.C(new TName("base.InferErr", 0, Pos.UNKNOWN), List.of()));
+    case IT.U _ -> throw Bug.of();// bug is good for testing, it will be replaced with this later: inferUnknown;
+    case IT.Err _ ->
+    //throw Bug.of();//
+    inferErr;
   };}
-  public static MSig normalizeHeaderBs(MSig header, inference.M.Sig sig){
-    if (sig.bs().isEmpty()){ assert header.bs().isEmpty() : "header has generics but implementation has none: " + header + " / " + sig; return header; }
-    var targetBs= sig.bs().get().stream().map(b -> b.x()).toList();
-    if (header.bs().equals(targetBs)){ return header; }
-    assert header.bs().size() == targetBs.size() : "generic arity mismatch header=" + header.bs() + " impl=" + targetBs;
-    var fromXs= header.bs();
-    var toITs= targetBs.stream().<IT>map(IT.X::new).toList();
-    var renamedTs= ofIT(header.ts(), fromXs, toITs);
-    var renamedRet= of(header.ret(), fromXs, toITs);
-    return new MSig(header.rc(), targetBs, renamedTs, renamedRet);
-  }
+  public static final T.RCC inferErr= new T.RCC(RC.imm,new T.C(new TName("base.InferErr", 0, Pos.UNKNOWN), List.of()));
+  public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.UNKNOWN), List.of()));
 }

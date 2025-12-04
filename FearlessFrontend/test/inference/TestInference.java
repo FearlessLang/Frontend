@@ -71,6 +71,7 @@ public class TestInference {
     var got= Join.of(
       res.p().log().logs().stream().sorted(),
       "","\n","","");
+    //assert !got.contains("base.InferErr");
     Err.strCmp(expected,got);
   }
   static void ok(String expected, String head, List<String> input){ ok(expected,head,input,false); }

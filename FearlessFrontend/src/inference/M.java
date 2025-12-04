@@ -17,10 +17,9 @@ public record M(Sig sig, Optional<Impl> impl){
     if (impl.isEmpty()){ return sig.toString();}
     var xs=impl.get().xs;
     var args= Join.of(xs,"(",", ",")","");
-    return sig + args+ "->"+impl.get().e()+";"; 
-     
-    
+    return sig + args+ "->"+impl.get().e()+";";
     }
+  public M withSig(Sig sig){ return new M(sig,impl); }
   public record Sig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<Optional<IT>> ts, Optional<IT> ret, Optional<TName> origin, boolean abs, Pos pos){
     public Sig{ assert nonNull(rc,m,bs,ts,ret,origin); assert validOpt(bs,_bs->unmodifiableDistinct(_bs,"bounds")); }
     public Sig(RC rc, MName m, List<B> bs, List<Optional<IT>> ts, IT ret, TName origin, boolean abs, Pos pos){
@@ -42,6 +41,9 @@ public record M(Sig sig, Optional<Impl> impl){
     public Sig withBsTsT(List<B> bs, List<Optional<IT>> ts, IT ret){
       if (this.bs.isPresent() && bs.equals(this.bs.get()) && ts.equals(this.ts) && this.ret.isPresent() && this.ret.get().equals(ret)){ return this; } 
       return new Sig(rc,m,Optional.of(bs),ts,Optional.of(ret),origin,abs,pos); 
+    }
+    public Sig withOrigin(TName origin){
+      return new Sig(rc,m,bs,ts,ret,Optional.of(origin),abs,pos);
     }
     public boolean isFull(){ return rc.isPresent() && m.isPresent() && bs.isPresent() && ts.stream().allMatch(Optional::isPresent) && ret.isPresent(); }
   }

@@ -153,7 +153,7 @@ BoolMatch[R:**]:{
   mut .true: R;
   mut .false: R;
   }
-Bool: Sealed{
+Bool: Sealed,WidenTo[Bool]{
   .and(b: Bool): Bool;
   &&(b: mut MF[Bool]): Bool;
   &(b: Bool): Bool -> this.and(b);
@@ -213,11 +213,11 @@ Block: Sealed{
   #[X1:**, X2:**, X3:**, R:**](_: X1, _: X2, _: X3, res: R): R -> res;
   #[X1:**, X2:**, X3:**, X4:**, R:**](_: X1, _: X2, _: X3, _: X4, res: R): R -> res;
   }
-Block[R:*]: Sealed{
+Block[R:*]: Sealed,WidenTo[Block[R]]{
   mut .done: Void -> {};
   mut .return(a: mut ReturnStmt[R]): R -> a#;
   mut .do(r: mut ReturnStmt[Void]): mut Block[R] -> this._do(r#);
-    mut ._do(v: Void): mut Block[R] -> this;
+  mut ._do(v: Void): mut Block[R] -> this;
   mut .let[X:*](
     x: mut ReturnStmt[X],
     cont: mut Continuation[X, mut Block[R], R]

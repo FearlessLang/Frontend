@@ -86,11 +86,22 @@ public final class TypeSystemErrors {
       + "Declared abstract in: "+s.origin().s()+".\n";
     return Code.TypeError.of(msg).addSpan(Parser.span(at, 100));
   }
+  public static FearlessException methodHopelessArg(Call c, int argi, List<TRequirement> reqs, List<TResult> res){
+    var msg=//TODO: even, consider difference for base (no promotion) or alternatives
+      "Call of method "+Message.displayString(c.name().s())+" can not be satisfied.\n"
+    + "Argument "+argi+" has incompatible type: MISSING INFO"+".\n"
+    + "Argument type was required to be one of .... in order to call promotion...\n";
+    return Code.TypeError.of(msg).addSpan(Parser.span(c.pos(), 100));
+  }
+  public static FearlessException methodNotDeclared(Call c, TName onType){
+    var msg= "Call of method "+Message.displayString(c.name().s())
+    + " but method not declared on type "
+    + Message.displayString(onType.s()) + ".\n";
+    return Code.TypeError.of(msg).addSpan(Parser.span(c.pos(), 100));
+  }
   public static FearlessException typeError(Pos at, List<TResult> got, List<TRequirement> req){ throw Bug.todo(); }
-  public static FearlessException uncallableMethodDeadCode(Pos at, M got, RC receiver){ throw Bug.todo(); }
-  public static FearlessException methodNotDeclared(Call c, TName onType){ throw Bug.todo(); }
+  public static FearlessException uncallableMethodDeadCode(Pos at, M got, RC receiver){ throw Bug.todo(); }  
   public static FearlessException methodTArgsArityError(Call c){ throw Bug.todo(); }
   public static FearlessException methodArgsDisagree(Call c, ArgMatrix mat){ throw Bug.todo(); }
-  public static FearlessException methodHopelessArg(Call c, int argi, List<TRequirement> reqs, List<TResult> res){ throw Bug.todo(); }
   public static FearlessException methodReceiverNotRcc(Call c, T recvType){ throw Bug.todo(); }
 }

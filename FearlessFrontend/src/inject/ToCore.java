@@ -26,13 +26,12 @@ public class ToCore{
     return new core.E.Type(t,pos);
   }
   core.E.Literal literal(inference.E.Literal e, inference.E.Literal o){
-    var rc= o.rc().orElse(e.rc().orElseThrow());//TODO: can it happen that the inference overrides the RC?
+    var rc= o.rc().orElse(e.rc().orElse(RC.imm));
     var ms= mapMs(e.ms(),o.ms());
     return new core.E.Literal(rc,e.name(),e.bs(),TypeRename.itcToTC(e.cs()),e.thisName(),ms,e.pos());
   }
   core.E.Call call(inference.E.Call e, CallLike o){
-    // annotation sites: rc, targs (use programmer-written ones if present in orig)
-    var rc= o.rc.orElse(e.rc().orElseThrow());
+    var rc= o.rc.orElse(e.rc().orElse(RC.imm));
     var targs= !o.targs.isEmpty() ? o.targs : e.targs();
     assert e.es().size() == o.es.size();
     var recv= of(e.e(),o.e);
@@ -43,6 +42,9 @@ public class ToCore{
     assert o.rc.isEmpty();
     assert o.targs.isEmpty();
     assert e.es().size() == o.es.size();
+    if (e.name().s().contains("._do")){
+      System.out.println(e);
+    }
     var recv= of(e.e(),o.e);
     var args= IntStream.range(0,e.es().size()).mapToObj(i->of(e.es().get(i),o.es.get(i))).toList();
     return new core.E.Call(recv,e.name(),RC.imm,List.of(),args,e.pos());
@@ -69,8 +71,12 @@ public class ToCore{
   }
   core.Sig sig(inference.M.Sig s){
     var ts= TypeRename.itOptToT(s.ts());
-    var ret= TypeRename.itToT(s.ret().get());
-    return new core.Sig(s.rc().get(),s.m().get(),s.bs().get(),ts,ret,s.origin().get(),s.abs(),s.pos());
+    var ret= TypeRename.itToT(s.ret());
+    var rc= s.rc().orElse(RC.imm);
+    var m= s.m().orElse(new MName(".inferenceFailed", ts.size()));
+    var bs= s.bs().orElse(List.of());
+    var origin= s.origin().orElse(TypeRename.inferUnknown.c().name());
+    return new core.Sig(rc,m,bs,ts,ret,origin,s.abs(),s.pos());
   }
   private static inference.E.Literal litLike(inference.E o,inference.E.Literal e){
     var ol=(inference.E.Literal)o;

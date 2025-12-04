@@ -2,6 +2,7 @@ package typeSystem;
 
 import static offensiveUtils.Require.*;
 import java.util.*;
+import java.util.stream.Stream;
 
 import core.B;
 import core.E.Literal;
@@ -10,6 +11,7 @@ import core.Sig;
 import core.T;
 import fearlessParser.RC;
 import inject.TypeRename;
+import utils.OneOr;
 
 class Sources {
 //TODO: Similar code must exists inside inference. We may or may not be able to deduplicate it (works on different types).
@@ -20,21 +22,31 @@ class Sources {
       Literal parentDef= ts.decs().apply(parent.name());
       List<Sig> parentSigs= collect(ts, parentDef);      
       List<String> parentXs= parentDef.bs().stream().map(B::x).toList();
-      List<T> parentTs= parent.ts();
       for(Sig s : parentSigs){
         Sig canonical= findCanonical(l, s.m().s(), s.rc());
-        sources.add(instantiate(s, parentXs, parentTs, canonical.bs()));
+        sources.add(instantiate(s, parentXs, parent.ts(), canonical.bs()));
       }
     }
-    for(M m : l.ms()){ if(m.sig().origin().equals(l.name())){ sources.add(m.sig()); } }
+    for (M m : l.ms()){ if (m.sig().origin().equals(l.name())){ sources.add(m.sig()); } }
+    assert unionCount(ts,l) == sources.size();
+    assert sources.stream().allMatch(s->l.ms().stream().anyMatch(m->m.sig().m().equals(s.m()) && m.sig().rc() == s.rc()));
+    assert l.ms().stream().map(M::sig).allMatch(s->sources.contains(s)):
+      l.ms().stream().map(M::sig).toList()+" @@ "+sources;//This fails
     return sources;
   }
+  private static long unionCount(TypeSystem ts, Literal l){
+    return supers(ts,l).flatMap(li->
+      li.ms().stream().map(M::sig).filter(s->s.origin().equals(li.name()))
+    ).count();
+  }
+  private static Stream<Literal> supers(TypeSystem ts, Literal l){
+    return Stream.concat(Stream.of(l),
+      l.cs().stream().map(T.C::name).map(ts.decs()::apply)
+        .flatMap(p->supers(ts,p)));
+  }
   private static Sig findCanonical(Literal l, String name, RC rc){
-    for(M m : l.ms()){
-      var found= m.sig().m().s().equals(name) && m.sig().rc() == rc;
-      if(found){ return m.sig(); }
-    }
-    throw new AssertionError("Method " + rc + " " + name + " not found in " + l.name().s());
+    return OneOr.of("Methods with duplicates",l.ms().stream().map(M::sig).filter(s->
+      s.m().s().equals(name) && s.rc() == rc));
   }
   private static Sig instantiate(Sig s, List<String> xs, List<T> ts, List<B> canonical){
     assert eq(s.bs().size(), canonical.size(), "Generic arity mismatch in instantiate");

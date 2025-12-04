@@ -99,15 +99,17 @@ public record TypeSystem(ViewPointAdaptation v){
   private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC !=RC.read); }
 
   private record Key(MName m, RC rc){}
-  Map<Key,List<Sig>> sources(Literal l){ 
-    return Sources.collect(this, l).stream()
-      .collect(Collectors.groupingBy(s -> new Key(s.m(), s.rc())));
+  //Sources is needed, not assert only: the user can simply try to override with a non subtype signature.
+  //l.ms is the resolved set, either inferred or resolved by hand in a wrong way.
+  Map<Key,List<Sig>> sources(Literal l){
+  return Sources.collect(this, l).stream()
+    .collect(Collectors.groupingBy(s -> new Key(s.m(), s.rc())));
   }
   private void litOk(Gamma g, Literal l){
     var delta= l.bs();
     var selfT= new T.C(l.name(),dom(delta));
-    var sources= sources(l);
-    assert l.ms().stream().map(M::sig).allMatch(s->sources.containsKey(new Key(s.m(),s.rc())));
+    Map<Key,List<Sig>> sources= sources(l);
+    //assert l.ms().stream().map(M::sig).allMatch(s->sources.containsKey(new Key(s.m(),s.rc())));
     //overrideOk(l,sources);  implementOk(l,sources);
     sources.forEach((k,group)->methodTableOk(l,k,group));
     l.cs().stream().map(c->new T.RCC(RC.mut,c)).forEach(c->k().check(delta,c));
@@ -179,7 +181,7 @@ public record TypeSystem(ViewPointAdaptation v){
   }
   private void methodTableOk(Literal l,Key k,List<Sig> group){
     Sig chosen= findCanonical(l,k.m(),k.rc());
-    assert group.contains(chosen);
+    assert group.contains(chosen): ""+group+" @@ "+chosen;
     assert mostSpecificByOrigin(group,chosen);
     assert absPreserved(chosen);//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s->s.origin().equals(chosen.origin())).allMatch(s->chosen.abs() == s.abs());

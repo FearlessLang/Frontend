@@ -9,6 +9,7 @@ import core.*;
 import core.E.*;
 import inject.TypeRename;
 import message.TypeSystemErrors;
+import utils.OneOr;
 import utils.Push;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix.*;
@@ -82,23 +83,19 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   private static List<Integer> okSet(List<TResult> res){
     return IntStream.range(0,res.size()).filter(i->res.get(i).success()).boxed().toList();
   }
-  private TResult bestNoReq(ArgMatrix mat, List<Integer> possible){ return new TResult("",bestUnique(mat,possible).t(),""); }
+  private TResult bestNoReq(ArgMatrix mat, List<Integer> possible){ return new TResult("",bestUnique(mat,possible),""); }
   private TResult resForReq(ArgMatrix mat, List<Integer> possible, TRequirement req){
     var okRet= possible.stream()
       .filter(i->ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
-    if (!okRet.isEmpty()){ return new TResult(req.reqName(), bestUnique(mat,okRet).t(),""); }
-    return new TResult(req.reqName(),bestUnique(mat,possible).t(),
+    if (!okRet.isEmpty()){ return new TResult(req.reqName(), bestUnique(mat,okRet),""); }
+    return new TResult(req.reqName(),bestUnique(mat,possible),
       TypeSystemErrors.makeErrResult(mat, possible, req));    
   } 
-  private MType bestUnique(ArgMatrix mat, List<Integer> idxs){
-    var mins= idxs.stream()
-      .filter(i->idxs.stream().noneMatch(j->j != i && strictSub(mat,j,i))).toList();
-  assert mins.size() == 1;
-  return mat.candidate(mins.getFirst());
+  private T bestUnique(ArgMatrix mat, List<Integer> idxs){
+    List<T> all= idxs.stream().map(i->mat.candidate(i).t()).toList();
+    return OneOr.of("noUniqueBest", all.stream()
+      .filter(ti->all.stream().noneMatch(tj->
+        !tj.equals(ti) && ts.isSub(bs,tj,ti)))
+      .distinct());
   }
-  private boolean strictSub(ArgMatrix mat, int i, int j){
-    T ti= mat.candidate(i).t();
-    T tj= mat.candidate(j).t();
-    return ts.isSub(bs,ti,tj) && !ts.isSub(bs,tj,ti);
-  }  
 }

@@ -42,6 +42,10 @@ public sealed interface IT {
       if (ts == c.ts()){ return this; }
       return new RCC(rc,new C(c.name(),ts));
     }
+    public RCC withRCTs(RC rc,List<IT> ts){
+      if (rc == this.rc && ts == c.ts()){ return this; }
+      return new RCC(rc,new C(c.name(),ts));
+    }
   }
   enum U implements IT{ Instance; 
     public String toString(){ return "?";}

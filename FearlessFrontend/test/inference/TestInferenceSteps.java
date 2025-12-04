@@ -403,13 +403,13 @@ p.Baba[C:imm, D:imm]:p.GG[p.Any,p.Any]{'this .apply[_AC:imm,_AD:imm](p.Any,p.Any
 p.GG[A:imm, B:imm]:{'this .apply[C:imm,D:imm](A,B,C):D@p.GG;}
 p.KK:{'_ .k[K:imm]:K@p.KK;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}
 p.User:{'this .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User; .foo1[C:imm,D:imm]:p.User@p.User;->this:?.withGG[C,D](p._AUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?; .foo2[C:imm,D:imm]:p.User@p.User;->p.KK:{'_ ? .k[K:imm]:K@!;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}:?.k[p.User]():?;}
-p._AUser:p.GG[C,D]{'_ .apply[_AC:imm,_AD:imm](_AC,_AD,_AC):_AD@p._AUser;(a, b, c)->p.Any:p.Any![imm,?]():_AD;}
-p._BUser:p.GG[C,D]{'_ .apply[_BC:imm,_BD:imm](_BC,_BD,_BC):_BD@p._BUser;(a, b, c)->p.Any:p.Any![imm,?]():_BD;}
+p._AUser[C:imm, D:imm]:p.GG[C,D]{'_ .apply[_AC:imm,_AD:imm](C,D,_AC):_AD@p._AUser;(a, b, c)->p.Any:p.Any![imm,?]():_AD;}
+p._BUser[C:imm, D:imm]:p.GG[C,D]{'_ .apply[_BC:imm,_BD:imm](C,D,_BC):_BD@p._BUser;(a, b, c)->p.Any:p.Any![imm,?]():_BD;}
 ~-----------
 ~mut p.Any:{'this ![T:imm]:T->p.Any![imm,T]}
 ~mut p.Baba[C:imm,D:imm]:p.GG[p.Any,p.Any]{'this .apply[_AC:imm,_AD:imm](_:p.Any, _:p.Any, _:_AC):_AD}
 ~mut p.GG[A:imm,B:imm]:{'this .apply[C:imm,D:imm](_:A, _:B, _:C):D}
-~mut p.User:{'this .withGG[A1:imm,B1:imm](_:p.GG[A1,B1]):p.User; .foo1[C:imm,D:imm]:p.User->this.withGG[imm,C,D](imm p._AUser:p.GG[C,D]{'_ .apply[_AC:imm,_AD:imm](a:_AC, b:_AD, c:_AC):_AD->p.Any![imm,_AD]}); .foo2[C:imm,D:imm]:p.User->imm p.KK:{'_ .k[K:imm]:K->this.withGG[imm,C,D](imm p._BUser:p.GG[C,D]{'_ .apply[_BC:imm,_BD:imm](a:_BC, b:_BD, c:_BC):_BD->p.Any![imm,_BD]})}.k[imm,p.User]}
+~mut p.User:{'this .withGG[A1:imm,B1:imm](_:p.GG[A1,B1]):p.User; .foo1[C:imm,D:imm]:p.User->this.withGG[imm,C,D](imm p._AUser[C:imm,D:imm]:p.GG[C,D]{'_ .apply[_AC:imm,_AD:imm](a:C, b:D, c:_AC):_AD->p.Any![imm,_AD]}); .foo2[C:imm,D:imm]:p.User->imm p.KK:{'_ .k[K:imm]:K->this.withGG[imm,C,D](imm p._BUser[C:imm,D:imm]:p.GG[C,D]{'_ .apply[_BC:imm,_BD:imm](a:C, b:D, c:_BC):_BD->p.Any![imm,_BD]})}.k[imm,p.User]}
 """, List.of("""
 GG[A,B]:{ .apply[C,D](A,B,C):D }
 Baba[C,D]:GG[Any,Any]{}
@@ -611,7 +611,7 @@ C:B{}
 p.Box[T:imm,mut,read]:{'this mut .expose:T@p.Box; read .get:read/imm T@p.Box;}
 p.MakeBox:{'this #[T:imm,mut,read](T):mut p.Box[T]@p.MakeBox;(t)->p._AMake:$?{'_ ? .expose[?]:?@!;->t:?; ? .get[?]:?@!;->t:?;}:?;}
 p.MyB:p.Box[p.MakeBox]{'this .foo:p.MyB@p.MyB;->p._AMyB:$?:?; mut .expose:p.MakeBox@p.Box; read .get:p.MakeBox@p.Box;}
-p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:read/imm T@p._AMake;->t:Err;}
+p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:read/imm T@p._AMake;->t:T;}
 ~-----------
 ~mut p.Box[T:imm,mut,read]:{'this mut .expose:T; read .get:read/imm T}
 ~mut p.MakeBox:{'this #[T:imm,mut,read](t:T):mut p.Box[T]->mut p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T->t; read .get:read/imm T->t}}
@@ -633,7 +633,7 @@ p.A3[X:mut]:p.Box[X]{'this mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
 p.A4[X:read]:p.Box[X]{'this mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
 p.Box[###]
 p.MakeBox:[###]
-p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:read/imm T@p._AMake;->t:Err;}
+p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:read/imm T@p._AMake;->t:T;}
 ~-----------
 ~mut p.A1:p.Box[p.MakeBox]{'this mut .expose:p.MakeBox; read .get:p.MakeBox}
 ~mut p.A2[X:imm]:p.Box[X]{'this mut .expose:X; read .get:read/imm X}
@@ -791,4 +791,226 @@ Foo:{.get[T](a:T,b:T):T->a;}
 User:{.m:I->Foo.get[I](A,B)}
 """));}
 
+
+@Test void regressionOnMethGen0(){okI("""
+[###]~-----------
+~mut p.Any:{'this #[T:imm]:T->p.Any#[imm,T]}
+~mut p.BlockQ[R5:imm,mut,read]:{'this mut .loop(body:mut p.ControlFlowQ[R5]):mut p.BlockQ[R5]->body.match[mut,mut p.BlockQ[R5]](mut p._ABloc[R5:imm,mut,read]:p.ControlFlowMatchQ[R5,mut p.BlockQ[R5]]{'_ mut .return(rv:R5):mut p.BlockQ[R5]->p.Any#[imm,mut p.BlockQ[R5]]})}
+~mut p.ControlFlowMatchQ[T:imm,mut,read,R4:imm,mut,read]:{'this mut .return(_:T):R4}
+~mut p.ControlFlowQ:{'this .return[T:imm,mut,read](returnValue:T):mut p.ControlFlowQ[T]->this.return[imm,T](returnValue)}
+~mut p.ControlFlowQ[T:imm,mut,read]:{'this mut .match[R3:imm,mut,read](m:mut p.ControlFlowMatchQ[T,R3]):R3->m.return[mut](p.Any#[imm,T])}
+~mut p.LoopBodyQ[R2:imm,mut,read]:p.ReturnStmtQ[mut p.ControlFlowQ[R2]]{'this mut #:mut p.ControlFlowQ[R2]}
+~mut p.ReturnStmtQ[R1:imm,mut,read,iso]:{'this mut #:R1}
+""",List.of("""
+Any:{#[T]:T->Any#[imm,T]}
+ReturnStmtQ[R1:iso,imm,mut,read]: {mut #: R1}
+LoopBodyQ[R2:*]: ReturnStmtQ[mut ControlFlowQ[R2]]{}
+ControlFlowQ: {
+  .return[T:*](returnValue: T): mut ControlFlowQ[T] -> this.return(returnValue);
+  }
+ControlFlowQ[T:*]: {
+  mut .match[R3:*](m: mut ControlFlowMatchQ[T,R3]): R3 -> m.return(Any#);
+  }
+ControlFlowMatchQ[T:*,R4:*]: {
+  mut .return(returnValue: T): R4;
+  }
+BlockQ[R5:*]: {
+  mut .loop(body: mut ControlFlowQ[R5]): mut BlockQ[R5] -> body.match{
+    .return(rv) -> Any#;
+    };
+  }
+"""));}
+
+@Test void regressionOnMethGen1(){okI("""
+[###]~-----------
+~mut p.Any:{'this #[T:imm]:T->p.Any#[imm,T]}
+~mut p.BlockQ[R5:imm,mut,read]:{'this mut .loop(body:mut p.LoopBodyQ[R5]):mut p.BlockQ[R5]->body#[mut].match[mut,mut p.BlockQ[R5]](mut p._ABloc[R5:imm,mut,read]:p.ControlFlowMatchQ[R5,mut p.BlockQ[R5]]{'_ mut .return(rv:R5):mut p.BlockQ[R5]->p.Any#[imm,mut p.BlockQ[R5]]})}
+~mut p.ControlFlowMatchQ[T:imm,mut,read,R4:imm,mut,read]:{'this mut .return(_:T):R4}
+~mut p.ControlFlowQ:{'this .return[T:imm,mut,read](returnValue:T):mut p.ControlFlowQ[T]->this.return[imm,T](returnValue)}
+~mut p.ControlFlowQ[T:imm,mut,read]:{'this mut .match[R3:imm,mut,read](m:mut p.ControlFlowMatchQ[T,R3]):R3->m.return[mut](p.Any#[imm,T])}
+~mut p.LoopBodyQ[R2:imm,mut,read]:p.ReturnStmtQ[mut p.ControlFlowQ[R2]]{'this mut #:mut p.ControlFlowQ[R2]}
+~mut p.ReturnStmtQ[R1:imm,mut,read,iso]:{'this mut #:R1}
+""",List.of("""
+Any:{#[T]:T->Any#[imm,T]}
+ReturnStmtQ[R1:iso,imm,mut,read]: {mut #: R1}
+LoopBodyQ[R2:*]: ReturnStmtQ[mut ControlFlowQ[R2]]{}
+ControlFlowQ: {
+  .return[T:*](returnValue: T): mut ControlFlowQ[T] -> this.return(returnValue);
+  }
+ControlFlowQ[T:*]: {
+  mut .match[R3:*](m: mut ControlFlowMatchQ[T,R3]): R3 -> m.return(Any#);
+  }
+ControlFlowMatchQ[T:*,R4:*]: {
+  mut .return(returnValue: T): R4;
+  }
+BlockQ[R5:*]: {
+  mut .loop(body: mut LoopBodyQ[R5]): mut BlockQ[R5] -> body#.match{
+    .return(rv) -> Any#;
+    };
+  }
+"""));}
+
+@Test void regressionOnMethGen2(){okI("""
+[###]~-----------
+~mut p.Any:{'this #[T:imm]:T->p.Any#[imm,T]}
+~mut p.Block:{'this #[R3:imm,mut,read]:mut p.Block[R3]->mut p.Block[R3]; #[X:imm,mut,read,iso,mutH,readH](x:X):base.Void->base.Void; #[X:imm,mut,read,iso,mutH,readH,R3:imm,mut,read,iso,mutH,readH](_:X, res:R3):R3->res; #[X1:imm,mut,read,iso,mutH,readH,X2:imm,mut,read,iso,mutH,readH,R3:imm,mut,read,iso,mutH,readH](_:X1, _:X2, res:R3):R3->res; #[X1:imm,mut,read,iso,mutH,readH,X2:imm,mut,read,iso,mutH,readH,X3:imm,mut,read,iso,mutH,readH,R3:imm,mut,read,iso,mutH,readH](_:X1, _:X2, _:X3, res:R3):R3->res; #[X1:imm,mut,read,iso,mutH,readH,X2:imm,mut,read,iso,mutH,readH,X3:imm,mut,read,iso,mutH,readH,X4:imm,mut,read,iso,mutH,readH,R3:imm,mut,read,iso,mutH,readH](_:X1, _:X2, _:X3, _:X4, res:R3):R3->res}
+~mut p.BlockIf[R2:imm,mut,read]:{'this mut .return(_:mut p.ReturnStmt[R2]):mut p.Block[R2]; mut .do(_:mut p.ReturnStmt[base.Void]):mut p.Block[R2]}
+~mut p.Block[R:imm,mut,read]:{'this mut .done:base.Void->base.Void; mut .return(a:mut p.ReturnStmt[R]):R->a#[mut]; mut .do(r:mut p.ReturnStmt[base.Void]):mut p.Block[R]->this._do[mut](r#[mut]); mut ._do(v:base.Void):mut p.Block[R]->this; mut .let[X:imm,mut,read](x:mut p.ReturnStmt[X], cont:mut p.Continuation[X,mut p.Block[R],R]):R->cont#[mut](x#[mut], this); mut .openIso[X:imm,mut,read,iso](x:iso X, cont:mut p.Continuation[mut X,mut p.Block[R],R]):R->cont#[mut](x, this); mut .if(p:mut p.Condition):mut p.BlockIf[R]->p#[mut]?[imm,mut p.BlockIf[R]](mut p._FBloc[R:imm,mut,read]:base.ThenElse[mut p.BlockIf[R]]{'cond mut .then:mut p.BlockIf[R]->mut p._DBloc[R:imm,mut,read]:p.BlockIf[R]{'t mut .return(a:mut p.ReturnStmt[R]):mut p.Block[R]->p._DecidedBlock#[imm,R](a#[mut]); mut .do(r:mut p.ReturnStmt[base.Void]):mut p.Block[R]->t._do[mut](r#[mut]); mut ._do(v:base.Void):mut p.Block[R]->this}; mut .else:mut p.BlockIf[R]->mut p._EBloc[R:imm,mut,read]:p.BlockIf[R]{'f mut .return(_:mut p.ReturnStmt[R]):mut p.Block[R]->this; mut .do(_:mut p.ReturnStmt[base.Void]):mut p.Block[R]->this}}); mut .loop(body:mut p.LoopBody[R]):mut p.Block[R]->body#[mut].match[mut,mut p.Block[R]](mut p._GBloc[R:imm,mut,read]:p.ControlFlowMatch[R,mut p.Block[R]]{'_ mut .continue:mut p.Block[R]->this.loop[mut](body); mut .break:mut p.Block[R]->this; mut .return(rv:R):mut p.Block[R]->p._DecidedBlock#[imm,R](rv)})}
+~mut p.Condition:p.ReturnStmt[base.Bool]{'this mut #:base.Bool}
+~mut p.Continuation[T:imm,mut,read,C:imm,mut,read,R:imm,mut,read]:{'this mut #(_:T, _:C):R}
+~mut p.ControlFlow:{'this .continue:mut p.ControlFlow[base.Void]->mut p.ControlFlowContinue:p.ControlFlow[base.Void]{'_ mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[base.Void,R]):R->m.continue[mut]}; .break:mut p.ControlFlow[base.Void]->mut p.ControlFlowBreak:p.ControlFlow[base.Void]{'_ mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[base.Void,R]):R->m.break[mut]}; .continueWith[T:imm,mut,read]:mut p.ControlFlow[T]->mut p.ControlFlowContinue[T:imm,mut,read]:p.ControlFlow[T]{'_ mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[T,R]):R->m.continue[mut]}; .breakWith[T:imm,mut,read]:mut p.ControlFlow[T]->mut p.ControlFlowBreak[T:imm,mut,read]:p.ControlFlow[T]{'_ mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[T,R]):R->m.break[mut]}; .return[T:imm,mut,read](returnValue:T):mut p.ControlFlow[T]->mut p.ControlFlowReturn[T:imm,mut,read]:p.ControlFlow[T]{'_ mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[T,R]):R->m.return[mut](returnValue); mut .value:T->returnValue}}
+~mut p.ControlFlowMatch[T:imm,mut,read,R4:imm,mut,read]:{'this mut .continue:R4; mut .break:R4; mut .return(_:T):R4}
+~mut p.ControlFlow[T:imm,mut,read]:{'this mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[T,R]):R->m.continue[mut]}
+~mut p.LoopBody[R:imm,mut,read]:p.ReturnStmt[mut p.ControlFlow[R]]{'this mut #:mut p.ControlFlow[R]}
+~mut p.ReturnStmt[R:imm,mut,read,iso]:{'this mut #:R}
+~mut p._DecidedBlock:{'this #[R1:imm,mut,read](res:R1):mut p.Block[R1]->mut p._BDeci[R1:imm,mut,read]:p.Block[R1]{'self mut .return(_:mut p.ReturnStmt[R1]):R1->res; mut .do(_:mut p.ReturnStmt[base.Void]):mut p.Block[R1]->self; mut .let[X:imm,mut,read](_:mut p.ReturnStmt[X], _:mut p.Continuation[X,mut p.Block[R1],R1]):R1->res; mut .openIso[X:imm,mut,read,iso](_:iso X, _:mut p.Continuation[mut X,mut p.Block[R1],R1]):R1->res; mut .if(_:mut p.Condition):mut p.BlockIf[R1]->mut p._ADeci[R1:imm,mut,read]:p.BlockIf[R1]{'_ mut .return(_:mut p.ReturnStmt[R1]):mut p.Block[R1]->self; mut .do(_:mut p.ReturnStmt[base.Void]):mut p.Block[R1]->self}; mut .loop(_:mut p.LoopBody[R1]):mut p.Block[R1]->self; mut .done:base.Void; mut ._do(_:base.Void):mut p.Block[R1]}}
+""","role app000; use base.Void as Void; use base.Bool as Bool;",List.of("""
+Any:{#[T]:T->Any#[imm,T]}
+ReturnStmt[R:iso,imm,mut,read]: {mut #: R}
+Condition: ReturnStmt[Bool]{}
+LoopBody[R:*]: ReturnStmt[mut ControlFlow[R]]{}
+Continuation[T:*,C:*,R:*]: {mut #(x: T, self: C): R}
+ControlFlow: {
+  .continue: mut ControlFlow[Void] -> mut ControlFlowContinue: ControlFlow[Void]{.match(m) -> m.continue};
+  .break: mut ControlFlow[Void] -> mut ControlFlowBreak: ControlFlow[Void]{.match(m) -> m.break};
+  .continueWith[T:*]: mut ControlFlow[T] ->  mut ControlFlowContinue[T:*]: ControlFlow[T]{.match(m) -> m.continue};
+  .breakWith[T:*]: mut ControlFlow[T] -> mut ControlFlowBreak[T:*]: ControlFlow[T]{.match(m) -> m.break};
+  .return[T:*](returnValue: T): mut ControlFlow[T] -> mut ControlFlowReturn[T:*]: ControlFlow[T]{
+    .match(m) -> m.return(returnValue);
+    mut .value: T -> returnValue;
+    };
+  }
+ControlFlow[T:*]: {//This caused a comparision between R and mut Block[R]
+  mut .match[R:*](m: mut ControlFlowMatch[T,R]): R -> m.continue;
+  }
+/*ControlFlow[T:*]: {//This does not
+  mut .match[R5:*](m: mut ControlFlowMatch[T,R5]): R5 -> m.continue;
+  }*/
+ControlFlowMatch[T:*,R4:*]: {
+  mut .continue: R4;
+  mut .break: R4;
+  mut .return(returnValue: T): R4;
+  }
+Block:{
+  #[R3:*]: mut Block[R3] -> {};
+  #[X:**](x: X): Void -> {};
+  #[X:**, R3:**](_: X, res: R3): R3 -> res;
+  #[X1:**, X2:**, R3:**](_: X1, _: X2, res: R3): R3 -> res;
+  #[X1:**, X2:**, X3:**, R3:**](_: X1, _: X2, _: X3, res: R3): R3 -> res;
+  #[X1:**, X2:**, X3:**, X4:**, R3:**](_: X1, _: X2, _: X3, _: X4, res: R3): R3 -> res;
+  }
+Block[R:*]: {
+  mut .done: Void -> {};
+  mut .return(a: mut ReturnStmt[R]): R -> a#;
+  mut .do(r: mut ReturnStmt[Void]): mut Block[R] -> this._do(r#);
+    mut ._do(v: Void): mut Block[R] -> this;
+  mut .let[X:*](
+    x: mut ReturnStmt[X],
+    cont: mut Continuation[X, mut Block[R], R]
+    ): R ->
+      cont#(x#, this);
+  mut .openIso[X:iso,imm,mut,read](
+    x: iso X,
+    cont: mut Continuation[mut X, mut Block[R], R]
+    ): R ->
+      cont#(x, this);
+  mut .if(p: mut Condition): mut BlockIf[R] -> p# ? { 'cond
+    .then -> { 't
+      .return(a) -> _DecidedBlock#(a#);
+      .do(r) -> t._do[](r#);
+        mut ._do(v: Void): mut Block[R] -> this;
+      };
+    .else -> { 'f
+      .return(_) -> this;
+      .do(_) -> this;
+      };
+    };
+  mut .loop(body: mut LoopBody[R]): mut Block[R] -> body#.match{
+    .continue -> this.loop(body);
+    .break -> this;
+    .return(rv) -> _DecidedBlock#rv;
+    };
+  }
+BlockIf[R2:*]:{
+  mut .return(a: mut ReturnStmt[R2]): mut Block[R2];
+  mut .do(r: mut ReturnStmt[Void]): mut Block[R2];
+  }
+_DecidedBlock:{
+  #[R1:*](res: R1): mut Block[R1] -> { 'self
+    .return(_) -> res;
+    .do(_) -> self;
+    .let(_, _) -> res;
+    .openIso(_, _) -> res;
+    .if(_) -> {
+      .return(_) -> self;
+      .do(_) -> self;
+      };
+  .loop(_) -> self;
+  }
+}
+"""));}
+
+@Test void boundHiding1(){okI("""
+p.Box[X:imm,mut,read]:{'this mut .f[R:imm,mut,read](X):R@p.Box;}
+p.Dool:{'this}
+p.User:{'this mut .go[R:imm,mut,read](mut p.Box[R],R):p.Dool@p.User;(b, x)->b:?.f(x:?):?;}
+~-----------
+~mut p.Box[X:imm,mut,read]:{'this mut .f[R:imm,mut,read](_:X):R}
+~mut p.Dool:{'this }
+~mut p.User:{'this mut .go[R:imm,mut,read](b:mut p.Box[R], x:R):p.Dool->b.f[mut,p.Dool](x)}
+""",List.of("""
+Dool:{}
+Box[X:*]:{ mut .f[R:*](x: X): R }
+User:{
+  mut .go[R:*](b: mut Box[R], x: R): Dool -> b.f(x);
+}
+"""));}
+
+@Test void boundHiding2(){okI("""
+p.Any:{'this #[T:imm]:T@p.Any;}
+p.Box[X:imm,mut,read]:{'this .f[R:imm,mut,read](p.F[X,X,R]):R@p.Box;}
+p.Dool:{'this}
+p.F[A:imm, B:imm, C:imm]:{'this #(A,B):C@p.F;}
+p.User:{'this mut .go1[R:imm,mut,read](p.Box[R]):p.Dool@p.User;(b)->b:?.f(p._AUser:$?{'_ ? [?](?,?):?@!;(aa, bb)->p.Any:?#():?;}:?):?; mut .go2(p.Box[p.User]):p.Dool@p.User;(b)->b:?.f(p._BUser:$?{'_ ? [?](?,?):?@!;(aa, bb)->p.Any:?#():?;}:?):?;}
+p._AUser[R:imm,mut,read]:p.F[R,R,p.Dool]{'_ #(R,R):p.Dool@p._AUser;(aa, bb)->p.Any:p.Any#[imm,?]():p.Dool;}
+p._BUser:p.F[p.User,p.User,p.Dool]{'_ #(p.User,p.User):p.Dool@p._BUser;(aa, bb)->p.Any:p.Any#[imm,?]():p.Dool;}
+~-----------
+~mut p.Any:{'this #[T:imm]:T}
+~mut p.Box[X:imm,mut,read]:{'this .f[R:imm,mut,read](_:p.F[X,X,R]):R}
+~mut p.Dool:{'this }
+~mut p.F[A:imm,B:imm,C:imm]:{'this #(_:A, _:B):C}
+~mut p.User:{'this mut .go1[R:imm,mut,read](b:p.Box[R]):p.Dool->b.f[imm,p.Dool](imm p._AUser[R:imm,mut,read]:p.F[R,R,p.Dool]{'_ #(aa:R, bb:R):p.Dool->p.Any#[imm,p.Dool]}); mut .go2(b:p.Box[p.User]):p.Dool->b.f[imm,p.Dool](imm p._BUser:p.F[p.User,p.User,p.Dool]{'_ #(aa:p.User, bb:p.User):p.Dool->p.Any#[imm,p.Dool]})}
+""",List.of("""
+Any:{#[T]:T}
+Dool:{}
+F[A,B,C]:{ #(A,B):C }
+Box[X:*]:{ .f[R:*](x: F[X,X,R]): R }
+User:{
+  mut .go1[R:*](b: Box[R]): Dool -> b.f({aa,bb->Any#});
+  mut .go2(b: Box[User]): Dool -> b.f({aa,bb->Any#});
+}
+"""));}//Then try again with b: mut Box[User]: the idea is that the inference should be tolerant of RCs when there is no other option 
+
+@Test void boundHidingSimplified(){okI("""
+p.Any:{'this #[T:imm]:T@p.Any;}
+p.Box:{'this .f[R:imm,mut,read](p.F[p.User,R]):R@p.Box;}
+p.Dool:{'this}
+p.F[A:imm, C:imm]:{'this #(A):C@p.F;}
+p.User:{'this mut .go(p.Box):p.Dool@p.User;(b)->b:?.f(p._AUser:$?{'_ ? [?](?):?@!;(aa)->p.Any:?#():?;}:?):?;}
+p._AUser:p.F[p.User,p.Dool]{'_ #(p.User):p.Dool@p._AUser;(aa)->p.Any:p.Any#[imm,?]():p.Dool;}
+~-----------
+~mut p.Any:{'this #[T:imm]:T}
+~mut p.Box:{'this .f[R:imm,mut,read](_:p.F[p.User,R]):R}
+~mut p.Dool:{'this }
+~mut p.F[A:imm,C:imm]:{'this #(_:A):C}
+~mut p.User:{'this mut .go(b:p.Box):p.Dool->b.f[imm,p.Dool](imm p._AUser:p.F[p.User,p.Dool]{'_ #(aa:p.User):p.Dool->p.Any#[imm,p.Dool]})}
+""",List.of("""
+Any:{#[T]:T}
+Dool:{}
+F[A,C]:{ #(A):C }
+Box:{ .f[R:*](x: F[User,R]): R }
+User:{
+  mut .go(b: Box): Dool -> b.f({aa->Any#});
+}
+"""));}
 }
