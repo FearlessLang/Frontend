@@ -164,11 +164,14 @@ public record InjectionSteps(Methods meths){
     return Optional.empty();
   }
   private Optional<core.M> oneFromGuessRC(List<core.M> ms, RC rc){
+    if (ms.size() == 1){ return Optional.of(ms.getFirst()); }
     Optional<core.M> readOne= OneOr.opt("not well formed ms", ms.stream().filter(m -> m.sig().rc() == RC.read));
-    if (rc == RC.read){ return readOne; }
-    if (rc == RC.mut){ return OneOr.opt("not well formed ms", ms.stream().filter(m -> m.sig().rc() == RC.mut)); }
+    Optional<core.M> mutOne= OneOr.opt("not well formed ms", ms.stream().filter(m -> m.sig().rc() == RC.mut));
+    Optional<core.M> immOne= OneOr.opt("not well formed ms", ms.stream().filter(m -> m.sig().rc() == RC.imm));
+    if (rc == RC.read){ return readOne.or(() -> immOne).or(() -> mutOne); }
+    if (rc == RC.mut){ return mutOne.or(() -> readOne).or(()->immOne); }
     assert rc == RC.imm;
-    return OneOr.opt("not well formed ms", ms.stream().filter(m -> m.sig().rc() == RC.imm)).or(() -> readOne);
+    return immOne.or(() -> readOne).or(()->mutOne);
   }
   public interface InstanceData<R> { R apply(IT.RCC rcc, core.E.Literal d, core.M m); }
   private <R> Optional<R> methodHeaderAnd(IT.RCC rcc, MName name, Optional<RC> favorite, InstanceData<R> f){
@@ -177,9 +180,7 @@ public record InjectionSteps(Methods meths){
     Optional<core.M> om= favorite.isPresent()
         ? oneFromExplicitRC(ms.filter(mi -> mi.sig().rc().equals(favorite.get())).toList())
         : oneFromGuessRC(ms.toList(), overloadNorm(rcc.rc()));
-    if (om.isEmpty()){ return Optional.empty(); }
-    return Optional.of(f.apply(rcc, d, om.get()));
-    // return om.map(mm->f.apply(rcc, d, mm)); //TODO: can this be just replaced
+    return om.map(mm->f.apply(rcc, d, mm));
   }
   private MSigL methodHeaderInstance(IT.RCC rcc, core.E.Literal d, core.M m){
     List<String> clsXs= d.bs().stream().map(b->b.x()).toList();
@@ -204,7 +205,7 @@ public record InjectionSteps(Methods meths){
   private List<IT> qMarks(int n){ return n < 100 ? smallQMarks.get(n) : _qMarks(n); }
   private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i -> i == n ? t : IT.U.Instance).toList(); }
   private E nextX(List<B> bs, Gamma g, E.X x){
-    var t1= g.get(x.name());// TODO: this may repeat if entered back in the same scope? no if meth header properly updated?
+    var t1= g.get(x.name());//TODO: this may repeat if entered back in the same scope? no if meth header properly updated?
     var t2= x.t();
     if (t1.equals(t2)){ return x; }
     var t3= meet(t1, t2);
@@ -231,7 +232,7 @@ public record InjectionSteps(Methods meths){
       .mapToObj(i->meet(es.get(i), m.p(i,ts)))
       .toList();
     var t= meet(c.t(), m.ret(ts));
-    var call= new E.Call(e, c.name(), Optional.of(m.rc()), ts, es1, c.pos());
+    var call= new E.Call(e, c.name(), Optional.of(m.rc()), ts, es1, c.src());
     return call.withT(t);
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
@@ -249,14 +250,6 @@ public record InjectionSteps(Methods meths){
     if (e == c.e() && es == c.es() && targs.equals(c.targs()) && it.equals(c.t())){ return c; }
     return c.withMore(e, rc, targs, es1, it);
   }
-  /*private List<IT> newTargs(E.Call c, List<E> es, MSig m){//Old implementation with MSig
-    if (m.bs().isEmpty()){ return List.of(); }
-    assert c.targs().isEmpty() || c.targs().size() == m.bs().size();
-    var a= IntStream.range(0, c.es().size())
-      .mapToObj(i -> refine(m.bs(), m.ts().get(i), es.get(i).t()));//Actual change of behaviour here.
-    var r= Stream.of(refine(m.bs(), m.ret(), c.t()), c.targs());
-    return meet(Stream.concat(a, r).toList());
-  }*/
   private List<IT> newTargs(E.Call c, List<E> es, MSigL m){
     int n= m.bsArity();
     if (n == 0){ return List.of(); }
@@ -309,7 +302,7 @@ public record InjectionSteps(Methods meths){
     assert l.cs().isEmpty();
     assert l.bs().isEmpty() : "bs must stay empty pre-commit";
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
-    if (noMeth){ return new E.Type(rcc, rcc, l.pos(), l.g()); } // TODO: what if it was not a fresh name but a user defined name?
+    if (noMeth){ return new E.Type(rcc, rcc, l.src(), l.g()); } // TODO: what if it was not a fresh name but a user defined name?
     List<IT.C> cs= Push.of(rcc.c(), meths.fetchCs(rcc.c()));
     meths.checkMagicSupertypes(l.name(), cs);
     var freeNames= Stream.concat(new FreeXs().ftvMs(l.ms()), new FreeXs().ftvCs(l.cs()));
@@ -317,7 +310,7 @@ public record InjectionSteps(Methods meths){
     TName name= l.name();
     TName newName= name.withArity(localBs.size());
     List<M> ms= l.ms().stream().map(m -> fixArity(m, name, newName)).toList();
-    l = new E.Literal(Optional.of(rcc.rc()), newName, localBs, cs, l.thisName(), ms, t, l.pos(), true, l.g());
+    l = new E.Literal(Optional.of(rcc.rc()), newName, localBs, cs, l.thisName(), ms, t, l.src(), true, l.g());
     var resD= meths.injectDeclaration(l);
     meths.cache().put(resD.name(), resD);// can we simply remove dsMap and use meth cache all the time?
     return l;

@@ -301,7 +301,7 @@ public final class WellFormednessErrors {
     return Code.WellFormedness.of(//Note: an 'origin' is likely to be a fresh name anyway
       "Cannot infer signature of method "+formatSig(m.sig())+".\n"
     + "No supertype has a method with "+m.sig().ts().size()+" parameters.\n"
-      ).addSpan(Parser.span(m.sig().pos(),100));
+      ).addSpan(m.sig().span().inner);
   }
   private static String formatSig(M.Sig s){
     String res= s.toString()
@@ -349,7 +349,7 @@ public final class WellFormednessErrors {
   }
 
   public static FearlessException ambiguousImpl(TName origin, FreshPrefix fresh, boolean abs, M m, List<inference.M.Sig> options){
-    return agreement(origin,fresh,m.sig().pos(),Code.WellFormedness.of(
+    return agreement(origin,fresh,m.sig().span().inner,Code.WellFormedness.of(
       "Cannot infer the name for method with "+m.sig().ts().size()+" parameters.\n"
     + "Many"+(abs?" abstract":"")+" methods with "+m.sig().ts().size()+" parameters could be selected:\n"
     + Join.of(
@@ -368,7 +368,7 @@ public final class WellFormednessErrors {
       ));
   }
   public static FearlessException noRetNoInference(TName origin, M m, FreshPrefix fresh){
-    return agreement(origin,fresh,m.sig().pos(),Code.WellFormedness.of(
+    return agreement(origin,fresh,m.sig().span().inner,Code.WellFormedness.of(
       "Cannot infer return type of method "+formatSig(m.sig())+".\n"
     + "No supertype has a method named "+Message.displayString(m.sig().m().get().s())+" with "+m.sig().ts().size()+" parameters.\n"
       ));
@@ -407,9 +407,9 @@ public final class WellFormednessErrors {
     return Code.WellFormedness.of(msg.toString())
       .addFrame(typeContextLabel(owner, fresh),Parser.span(owner.pos(), owner.simpleName().length()));
   }
-  private static FearlessException agreement(Agreement at, FreshPrefix fresh, FearlessException err){ return agreement(at.cName(), fresh, at.pos(), err); }
-  private static FearlessException agreement(TName origin, FreshPrefix fresh, Pos pos, FearlessException err){
-    return err.addFrame(typeContextLabel(origin, fresh), Parser.span(pos,100));
+  private static FearlessException agreement(Agreement at, FreshPrefix fresh, FearlessException err){ return agreement(at.cName(), fresh, at.span(), err); }
+  private static FearlessException agreement(TName origin, FreshPrefix fresh, Span at, FearlessException err){
+    return err.addFrame(typeContextLabel(origin, fresh), at);
   }
   private static String typeContextLabel(String onT, String onLit,TName origin, FreshPrefix fresh){
     var base= fresh.anonSuperT(origin);

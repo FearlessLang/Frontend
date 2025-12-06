@@ -16,4 +16,5 @@ public record Declaration(TName name, Optional<List<B>> bs, List<T.C> cs, E.Lite
     assert unmodifiable(cs,"Declaration.cs");    
   }
   public Pos pos(){ return l.pos(); }
+  public TSpan span(){ return l.span(); }
 }

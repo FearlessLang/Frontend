@@ -485,7 +485,7 @@ User:{ .m:A->{ .m:A->A;}; }
 In file: [###]/in_memory0.fear
 
 003| User:{ .m:A->{ .m->A;}; }
-   |                ^^^^^^^^^^
+   |                ^^^^^
 
 While inspecting literal implementing type "p.A"
 Cannot infer return type of method ".m:?".
@@ -1013,4 +1013,34 @@ User:{
   mut .go(b: Box): Dool -> b.f({aa->Any#});
 }
 """));}
+
+@Test void inferCallRC1(){okI("""
+[###]
+~-----------
+~mut p.A:{'this\
+ mut .foo123:p.A->this.foo123[mut];\
+ read .foo123:p.A->this.foo123[read];\
+ .bar:p.A->this.foo123[read]}
+""",List.of("""
+A:{mut .foo123:A->this.foo123; read .foo123:A->this.foo123; imm .bar:A->this.foo123;}
+"""));}
+
+@Test void inferCallRC2(){okI("""
+[###]
+~-----------
+~mut p.A:{'this\
+ mut .foo123:p.A->this.foo123[mut];\
+ .bar:p.A->this.foo123[mut]}
+""",List.of("""
+A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
+"""));}
+
+@Test void inferCallRC3(){okI("""
+[###]
+~-----------
+~mut p.A:{'this .foo123:p.A->this.foo123[imm]; read .foo123:p.A->this.foo123[read]; mut .bar:p.A->this.foo123[read]}
+""",List.of("""
+A:{imm .foo123:A->this.foo123; read .foo123:A->this.foo123; mut .bar:A->this.foo123;}
+"""));}
+
 }

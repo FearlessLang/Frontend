@@ -39,139 +39,200 @@ A:{.foo123:A->this.foo123}
 """));}
 @Test void tsMiniFail(){fail("""
 002| A:{.foo123:A->this.ba}
-   |                ^^^^
+   |    ---------------^^^
 
-While inspecting the file
-Call of method ".ba" but method not declared on type "p.A".
+While inspecting the body of method ".foo123"
+Call of method ".ba".
+Such method is not declared on type "p.A".
+Available methods:
+  imm .foo123:p.A;
 """,List.of("""
 A:{.foo123:A->this.ba}
-"""));}//No, it should also list the methods of A
+"""));}
 
 @Test void tsOkIndirect(){ok(List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo123;}
 """));}
 
 @Test void tsOkIndirectFail1(){fail("""
-002| A:{.foo123:A->this.foo123; .bar:A->this.foO123;}
-   |                                        ^^^^^^^^^
+002| A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
+   |                            ------------^^^^^^^
 
-While inspecting the file
-Call of method ".foO123" but method not declared on type "p.A".
+While inspecting the body of method ".bar"
+Call of method ".foO123".
+Such method is not declared on type "p.A".
+Did you mean ".foo123" ?
+Available methods:
+  imm .bar:p.A;
+  mut .bob(p.A):p.A;
+  imm .foo123:p.A;
 """,List.of("""
-A:{.foo123:A->this.foo123; .bar:A->this.foO123;}
-"""));}//No, should say that did you mean foo123 or similar.  
-//Should also list the methods of A
+A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
+"""));}
 
 @Test void tsOkIndirectFail2(){fail("""
 002| A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
-   |                                        ^^^^^^^^
+   |                            ------------^^^^^^
 
-While inspecting the file
-Call of method ".foo23" but method not declared on type "p.A".
+While inspecting the body of method ".bar"
+Call of method ".foo23".
+Such method is not declared on type "p.A".
+Did you mean ".foo123" ?
+Available methods:
+  imm .bar:p.A;
+  imm .foo123:p.A;
 """,List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
-"""));}//No, should say that did you mean... Should also list the methods of A
+"""));}
 
 @Test void tsOkIndirectFail3(){fail("""
 002| A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
-   |                                        ^^^^^^^^^^
+   |                            ------------^^^^^^^^
 
-While inspecting the file
-Call of method ".foo1123" but method not declared on type "p.A".
+While inspecting the body of method ".bar"
+Call of method ".foo1123".
+Such method is not declared on type "p.A".
+Did you mean ".foo123" ?
+Available methods:
+  imm .bar:p.A;
+  imm .foo123:p.A;
 """,List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
 """));}//No, should say that did you mean... Should also list the methods of A
 
 @Test void tsOkIndirectFail4(){fail("""
-002| A:{.foo123:A->this.foo123; .bar:A->this.foo123(this);}
-   |                                               ^^^^^^^^
+004|   .bar:A->this.foo123(this);
+   |   ------------^^^^^^^^-----
 
-While inspecting the file
-Call of method ".foo123" but method not declared on type "p.A".
+While inspecting the body of method ".bar"
+Method ".foo123" declared on type "p.A" but with different parameter count.
+Call supplies 1 arguments, but available overloads take 0 or 3.
 """,List.of("""
-A:{.foo123:A->this.foo123; .bar:A->this.foo123(this);}
-"""));}//Here should notice same name different parameters and discuss about it. Should also list the methods of A
+A:{
+  .foo123:A->this.foo123; 
+  .bar:A->this.foo123(this);
+  .foo123(A,A,A):A->this.foo123;
+  }
+"""));}
+
+@Test void tsOkIndirectFail4spaces(){fail("""
+004|   .bar:A->this.foo123(this      );
+   |   ------------^^^^^^^^-----------
+
+While inspecting the body of method ".bar"
+Method ".foo123" declared on type "p.A" but with different parameter count.
+Call supplies 1 arguments, but available overloads take 0 or 3.
+""",List.of("""
+A:{
+  .foo123:A->this.foo123; 
+  .bar:A->this.foo123(this      );
+  .foo123(A,A,A):A->this.foo123;
+  }
+"""));}
 @Test void tsOkIndirectFail5(){fail("""
 002| A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
-   |                                            ^^^^^^^^^
+   |                            ----------------^^^^^^^
 
-While inspecting the file//by adding a frame instead of a span we can get a better name here. Same comment applies everywhere.
-Receiver capability mismatch for call .foo123.
-Receiver capability: mut.//unclear if we talk about 'received the argument' or 'receiver the parameter value'.
-//Anyway the error should mention both, and try to keep friendly accessible tone.
-No promotion is callable from mut.//Unsure about always discussing promotions when no hope.
-//On one side can be overwelming, on the other side keeps consistency (if we discuss for other cases)
-//and keeps the concept of promotions in the mind of the programmers
-Promotions require receiver in: imm.
-//Is 'Base' the right name? overall all the promotion names can be discussed to make the more friendly/clear.
-Promotions checked:
-  - Base, Strong, Flexy, UseReadH, UseMutH+Rec: needs receiver imm
+While inspecting the body of method ".bar"
+Receiver capability mismatch for call ".foo123".
+The receiver (the object on which the method is called) has capability: mut.
+The generated promotions for this call require the receiver to be imm.
+Available method promotions:
+  - `As declared`, `Strengthen result`, `Strengthen result (allows readH/mutH)`, `Allow readH`, `Allow mutH`: needs receiver imm
 """,List.of("""
 A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
-"""));}//Here should notice same name+parameters and wrong RC. Should also list the methods of A
+"""));}
 @Test void tsOkIndirectFail6a(){fail("""
 002| A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
-   |                                             ^^^^^^^^^
+   |                            -----------------^^^^^^^
 
-While inspecting the file
-Receiver capability mismatch for call .foo123.
-Receiver capability: read.
-No promotion is callable from read.
-Promotions require receiver in: imm.
-Promotions checked:
-  - Base, Strong, Flexy, UseReadH, UseMutH+Rec: needs receiver imm
+While inspecting the body of method ".bar"
+Receiver capability mismatch for call ".foo123".
+The receiver (the object on which the method is called) has capability: read.
+The generated promotions for this call require the receiver to be imm.
+Available method promotions:
+  - `As declared`, `Strengthen result`, `Strengthen result (allows readH/mutH)`, `Allow readH`, `Allow mutH`: needs receiver imm
 """,List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
 """));}//With inference we infer [imm] (next case)
 @Test void tsOkIndirectFail6b(){fail("""
 002| A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
-   |                                                    ^^^^^^^
+   |                            -----------------^^^^^^^^----
 
-While inspecting the file
-Receiver capability mismatch for call .foo123.
-Receiver capability: read.
-No promotion is callable from read.
-Promotions require receiver in: imm.
-Promotions checked:
-  - Base, Strong, Flexy, UseReadH, UseMutH+Rec: needs receiver imm
+While inspecting the body of method ".bar"
+Receiver capability mismatch for call ".foo123".
+The receiver (the object on which the method is called) has capability: read.
+The generated promotions for this call require the receiver to be imm.
+Available method promotions:
+  - `As declared`, `Strengthen result`, `Strengthen result (allows readH/mutH)`, `Allow readH`, `Allow mutH`: needs receiver imm
 """,List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 """));}
 @Test void tsOkIndirectFail6c(){fail("""
 002| A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
-   |                                                    ^^^^^^^^
+   |                            -----------------^^^^^^^^-----
 
-While inspecting the file
-Call of method ".foo123" but method not declared on type "p.A".
+While inspecting the body of method ".bar"
+Method ".foo123" declared on type "p.A" exists, but not with the requested capability.
+Call requires the existence of a "read" method.
+Available capabilities for this method: imm.
 """,List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
-"""));}//but if we explicitly use [read] (or if inference were to infer [read] since is the only 'callable')
-//we would get this different error that does not mention promotions
-//technically correct, since .foo123[read] is a different method in overloading with .foo123[imm].
-//But this may be very confusing for the programmer. Not sure what a good cohesive error strategy looks like here. 
+"""));} 
 
 @Test void tsOkIndirectFail7(){fail("""
 002| A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
-   |                                                ^^^^^^^^^
+   |                                ----------------^^^^^^^
 
-While inspecting the file
-Call of method ".foo123" but method not declared on type "p.A".
+While inspecting the body of method ".bar"
+Receiver capability mismatch for call ".foo123".
+The receiver (the object on which the method is called) has capability: imm.
+The generated promotions for this call require the receiver to be mut or iso or mutH.
+Available method promotions:
+  - `As declared`: needs receiver mut
+  - `Strengthen result`, `Strengthen result (allows readH/mutH)`, `Allow readH`: needs receiver iso
+  - `Allow mutH`: needs receiver mutH
 """,List.of("""
 A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
-"""));}//Here unclear what inference inferred (not mut otherwise would talk promotions?)
-//but the error message must show the inferred signature or something.
+"""));}
 @Test void tsOkIndirectFail8(){fail("""
-002| A:{mut .foo123:A->this.foo123; read .bar:A->this.foo123;}
-   |                                                 ^^^^^^^^^
+002| A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
+   |                                                            -----------------^^^^^^^^----
 
-While inspecting the file
-Call of method ".foo123" but method not declared on type "p.A".
+While inspecting the body of method ".bar"
+Receiver capability mismatch for call ".foo123".
+The receiver (the object on which the method is called) has capability: read.
+The generated promotions for this call require the receiver to be imm.
+Available method promotions:
+  - `As declared`, `Strengthen result`, `Strengthen result (allows readH/mutH)`, `Allow readH`, `Allow mutH`: needs receiver imm
 """,List.of("""
-A:{mut .foo123:A->this.foo123; read .bar:A->this.foo123;}
-"""));}//similar case to before
+A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
+"""));}
 
+@Test void tsOkIndirectInferredAsRead(){ok(List.of("""
+A:{mut .foo123:A->this.foo123; read .foo123:A->this.foo123; imm .bar:A->this.foo123;}
+"""));}
+@Test void tsOkIndirectFail10(){fail("""
+007|   read .bar:A->
+008|     this.foo123[mut];
+   |         ^^^^^^^^
 
-
-
-
+While inspecting the body of method ".bar"
+Receiver capability mismatch for call ".foo123".
+The receiver (the object on which the method is called) has capability: read.
+The generated promotions for this call require the receiver to be mut or iso or mutH.
+Available method promotions:
+  - `As declared`: needs receiver mut
+  - `Strengthen result`, `Strengthen result (allows readH/mutH)`, `Allow readH`: needs receiver iso
+  - `Allow mutH`: needs receiver mutH
+""",List.of("""
+A:{
+  mut .foo123:A->
+    this.foo123;
+  imm .foo123:A->
+    this.foo123;
+  read .bar:A->
+    this.foo123[mut];
+  }
+"""));}
 }

@@ -67,6 +67,6 @@ class Sources {
     }
     var newTs= TypeRename.ofT(s.ts(), mapXs, mapTs);
     var newRet= TypeRename.of(s.ret(), mapXs, mapTs);
-    return new Sig(s.rc(), s.m(), canonical, newTs, newRet, s.origin(), s.abs(), s.pos());
+    return new Sig(s.rc(), s.m(), canonical, newTs, newRet, s.origin(), s.abs(), s.span());
   }
 }

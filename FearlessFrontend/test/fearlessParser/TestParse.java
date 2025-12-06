@@ -3365,7 +3365,7 @@ In file: [###]/in_memory0.fear
 001| A:{
    | ... 3 lines ...
 005|  mut .foo:Beer;
-   |  ^^^^^^^^^^^^^^
+   |  ^^^^^^^^^^^^^
    | ... 3 lines ...
 009|  }
 
@@ -3388,12 +3388,9 @@ A:{
 @Test void redeclaredMeth2(){ fail("""
 In file: [###]/in_memory0.fear
 
-001| A:{
-   | ... 4 lines ...
 006|  mut .ban(y):Bar->Block#
-   |  ^^^^^^^^^^^^^^^^^^^^^^^
-   | ... 2 lines ...
-009|  }
+007|    .let x={2}
+008|    .return{x};
 
 While inspecting type declaration body > type declaration > full file
 Method ".ban" redeclared.
@@ -3417,7 +3414,7 @@ In file: [###]/in_memory0.fear
 001| A:{
    | ... 3 lines ...
 005|  mut .foo:Beer;
-   |  ^^^^^^^^^^^^^^
+   |  ^^^^^^^^^^^^^
    | ... 3 lines ...
 009|  }
 
@@ -3443,7 +3440,7 @@ In file: [###]/in_memory0.fear
 001| A:{
    | ... 3 lines ...
 005|  b->b;
-   |  ^^^^^
+   |  ^^^^
    | ... 3 lines ...
 009|  }
 
@@ -3473,7 +3470,7 @@ In file: [###]/in_memory0.fear
 001| A:{
    | ... 3 lines ...
 005|  b->:: .foo;
-   |  ^^^^^^^^^^^
+   |  ^^^^^^^^^^
    | ... 3 lines ...
 009|  }
 
@@ -3503,7 +3500,7 @@ In file: [###]/in_memory0.fear
 001| A:{
    | ... 3 lines ...
 005|  (a,b)->a;
-   |  ^^^^^^^^^
+   |  ^^^^^^^^
    | ... 3 lines ...
 009|  }
 
@@ -3839,7 +3836,7 @@ User:{
 In file: [###]/in_memory0.fear
 
 001| Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
-   | --------------------~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^--
+   | --------------------~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^~~--
    | ... 2 lines ...
 004| User2:{.bla(p:Point):base.Void->Absorb#p.x;}
 

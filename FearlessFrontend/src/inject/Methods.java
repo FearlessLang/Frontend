@@ -16,14 +16,15 @@ import core.B;
 import core.T;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
+import fearlessFullGrammar.TSpan;
 import fearlessParser.Parser;
 import fearlessParser.RC;
-import files.Pos;
 import inference.E;
 import inference.IT;
 import inference.M;
 import inference.M.Sig;
 import message.WellFormednessErrors;
+import metaParser.Span;
 import naming.FreshPrefix;
 import optimizedTypes.LiteralDeclarations;
 import pkgmerge.OtherPackages;
@@ -103,7 +104,7 @@ public record Methods(
     }
     List<Optional<IT>> newTs= TypeRename.ofITOpt(TypeRename.tToIT(s.ts()),fullXs,fullTs);
     IT newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
-    return new inference.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),s.pos());
+    return new inference.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),s.span());
   }
   public core.E.Literal from(TName name){
     var res= _from(name);
@@ -161,12 +162,12 @@ public record Methods(
     List<T.C> cs= TypeRename.itcToTC(d.cs());
     p().log().logInferenceDeclaration(d, cs);
     List<core.M> ms= new ToCore().msSyntetic(d.ms());
-    return new core.E.Literal(d.rc().get(),d.name(),d.bs(),cs,d.thisName(),ms,d.pos());
+    return new core.E.Literal(d.rc().get(),d.name(),d.bs(),cs,d.thisName(),ms,d.src());
   }
   inference.M withName(MName name,inference.M m){
     assert m.impl().isPresent() && m.sig().m().isEmpty();
     M.Sig s= m.sig();
-    s= new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.pos());
+    s= new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span());
     return new inference.M(s,m.impl());
   }
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, TName origin){
@@ -240,7 +241,7 @@ public record Methods(
   M pairWithSig(List<M.Sig> ss, inference.M m, TName origin){
     if (ss.isEmpty()){ return toCompleteM(m,origin); }
     var s= m.sig();    
-    var at= new Agreement(origin, ss.getFirst().m().get(), m.sig().pos());
+    var at= new Agreement(origin, ss.getFirst().m().get(), m.sig().span().inner);
     List<B> bs= agreementWithSize(ss, s, at);
     var ssAligned= alignMethodSigsTo(ss, bs);
     MName name= ssAligned.getFirst().m().get();
@@ -248,7 +249,7 @@ public record Methods(
     IT res= s.ret().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.ret().get()),"Return type disagreement"));
     boolean abs= m.impl().isEmpty();
     RC rc= s.rc().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.rc().get()),"Reference capability disagreement"));
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.pos());
+    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.span());
     return new M(sig,m.impl());
   }
   private List<B> agreementWithSize(List<M.Sig> ss, Sig s, Agreement at){
@@ -269,7 +270,7 @@ public record Methods(
   M pairWithSig(List<M.Sig> ss, TName origin){
     assert !ss.isEmpty();
     if (ss.size() == 1){ return toCompleteM(ss.getFirst()); }
-    var at= new Agreement(origin,ss.getFirst().m().get(),origin.pos());
+    var at= new Agreement(origin,ss.getFirst().m().get(),TSpan.fromPos(origin.pos(),origin.s().length()).inner);
     List<B> bs= agreementBs(at,ss.stream().map(e->e.bs().get()));
     var ssAligned = alignMethodSigsTo(ss, bs);
     MName name= ssAligned.getFirst().m().get();
@@ -281,7 +282,7 @@ public record Methods(
     if (impl.size() > 1){ throw WellFormednessErrors.ambiguousImplementationFor(ssAligned,impl,at,fresh); }
     if (impl.size() == 1){ origin = impl.getFirst(); }
     RC rc= agreement(at,ssAligned.stream().map(e->e.rc().get()),"Reference capability disagreement");
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,impl.isEmpty(),ssAligned.getFirst().pos());
+    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,impl.isEmpty(),ssAligned.getFirst().span());
     return new M(sig,Optional.empty());
   }
   
@@ -294,7 +295,7 @@ public record Methods(
     List<Optional<IT>> ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(Bug::todo))).toList();
     IT res= s.ret().orElseThrow(()->WellFormednessErrors.noRetNoInference(origin,m,fresh));
     boolean abs= m.impl().isEmpty();
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.pos());
+    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.span());
     return new M(sig,m.impl());
   }
   <RR> RR agreement(Agreement at,Stream<RR> es, String msg){
@@ -303,7 +304,7 @@ public record Methods(
     assert !msg.equals("Reference capability disagreement"): "Triggered example where RC diagreement still happens";
     throw WellFormednessErrors.agreement(at,fresh,res,msg);
   }
-  public record Agreement(TName cName, MName mName, Pos pos){}
+  public record Agreement(TName cName, MName mName, Span span){}
   
   List<B> agreementBs(Agreement at,Stream<List<B>> es){
     var res= es.distinct().toList();
@@ -324,6 +325,6 @@ public record Methods(
     var renamedTs  = TypeRename.ofOptITOpt(superSig.ts(), fromXs, toITs);
     var renamedRet = superSig.ret().map(it -> TypeRename.of(it, fromXs, toITs));
     return new M.Sig(superSig.rc(), superSig.m(), Optional.of(targetBs),
-      renamedTs, renamedRet, superSig.origin(), superSig.abs(), superSig.pos());
+      renamedTs, renamedRet, superSig.origin(), superSig.abs(), superSig.span());
   }
 }

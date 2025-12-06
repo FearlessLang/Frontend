@@ -148,7 +148,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   private Span redeclaredMethSpan(List<M> ms,Predicate<M> p, Span at){
     M m= ms.reversed().stream().filter(p).findFirst().get();
-    return new Span(at.fileName(),m.pos().line(),m.pos().column(),m.pos().line(),m.pos().column() + 100);  
+    return m.span().inner;  
   }
   private Span redeclaredMethSpan(List<M> ms,Parser.RCMName n, Span at){
     Predicate<M> p= mi->mi.sig()

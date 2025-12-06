@@ -13,6 +13,7 @@ import core.Sig;
 import core.T;
 import fearlessParser.RC;
 import inject.TypeRename;
+import message.FearlessException;
 import message.TypeSystemErrors;
 import pkgmerge.OtherPackages;
 import typeSystem.ArgMatrix.*;
@@ -90,11 +91,11 @@ public record TypeSystem(ViewPointAdaptation v){
   private void checkImplemented(RC litRC, M m){
     if (!m.sig().abs()){ return; }
     if (!callable(litRC,m.sig().rc())){ return; }
-    throw TypeSystemErrors.callableMethodAbstract(m.sig().pos(), m, litRC);
+    throw TypeSystemErrors.callableMethodAbstract(m.sig().span(), m, litRC);
   }
   private void checkCallable(RC litRC, M m){
     if (callable(litRC,m.sig().rc())){ return; }
-    throw TypeSystemErrors.uncallableMethodDeadCode(m.sig().pos(), m, litRC);
+    throw TypeSystemErrors.uncallableMethodDeadCode(m.sig().span(), m, litRC);
   }
   private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC !=RC.read); }
 
@@ -123,7 +124,9 @@ public record TypeSystem(ViewPointAdaptation v){
     var allBs= Push.of(delta,m.sig().bs());
     m.sig().ts().forEach(t->k().check(allBs,t));
     k().check(allBs,m.sig().ret());
-    if(!m.e().isEmpty()){ bodyOk(allBs,g,m); }
+    if(m.e().isEmpty()){ return; }
+    try{ bodyOk(allBs,g,m); }
+    catch(FearlessException fe){ throw TypeSystemErrors.mCallFrame(m, fe); }
   }
   private void bodyOk(List<B> delta, Gamma g, M m){
     var ts= m.sig().ts();

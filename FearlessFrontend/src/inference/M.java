@@ -5,6 +5,7 @@ import java.util.Optional;
 import core.B;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
+import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
 import files.Pos;
 import message.Join;
@@ -20,10 +21,10 @@ public record M(Sig sig, Optional<Impl> impl){
     return sig + args+ "->"+impl.get().e()+";";
     }
   public M withSig(Sig sig){ return new M(sig,impl); }
-  public record Sig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<Optional<IT>> ts, Optional<IT> ret, Optional<TName> origin, boolean abs, Pos pos){
+  public record Sig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<Optional<IT>> ts, Optional<IT> ret, Optional<TName> origin, boolean abs, TSpan span){
     public Sig{ assert nonNull(rc,m,bs,ts,ret,origin); assert validOpt(bs,_bs->unmodifiableDistinct(_bs,"bounds")); }
-    public Sig(RC rc, MName m, List<B> bs, List<Optional<IT>> ts, IT ret, TName origin, boolean abs, Pos pos){
-      this(Optional.of(rc),Optional.of(m),Optional.of(bs),ts,Optional.of(ret),Optional.of(origin),abs,pos);
+    public Sig(RC rc, MName m, List<B> bs, List<Optional<IT>> ts, IT ret, TName origin, boolean abs, TSpan span){
+      this(Optional.of(rc),Optional.of(m),Optional.of(bs),ts,Optional.of(ret),Optional.of(origin),abs,span);
     }
     public String toString(){
       var bsS= bs.isEmpty() ? "[?]" : Join.of(bs.get(),"[",",","]","");
@@ -36,14 +37,14 @@ public record M(Sig sig, Optional<Impl> impl){
     private String t(Optional<IT> ot){ return ot.map(Object::toString).orElse("?"); }
     public Sig withTsT(List<Optional<IT>> ts, IT ret){
       if (ts.equals(this.ts) && this.ret.isPresent() && this.ret.get().equals(ret)){ return this; }
-      return new Sig(rc,m,bs,ts,Optional.of(ret),origin,abs,pos);
+      return new Sig(rc,m,bs,ts,Optional.of(ret),origin,abs,span);
     }
     public Sig withBsTsT(List<B> bs, List<Optional<IT>> ts, IT ret){
       if (this.bs.isPresent() && bs.equals(this.bs.get()) && ts.equals(this.ts) && this.ret.isPresent() && this.ret.get().equals(ret)){ return this; } 
-      return new Sig(rc,m,Optional.of(bs),ts,Optional.of(ret),origin,abs,pos); 
+      return new Sig(rc,m,Optional.of(bs),ts,Optional.of(ret),origin,abs,span); 
     }
     public Sig withOrigin(TName origin){
-      return new Sig(rc,m,bs,ts,ret,Optional.of(origin),abs,pos);
+      return new Sig(rc,m,bs,ts,ret,Optional.of(origin),abs,span);
     }
     public boolean isFull(){ return rc.isPresent() && m.isPresent() && bs.isPresent() && ts.stream().allMatch(Optional::isPresent) && ret.isPresent(); }
   }

@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 import core.E;
+import core.Src;
 import core.T;
 import fearlessFullGrammar.MName;
 import fearlessParser.RC;
@@ -14,21 +15,21 @@ import utils.OneOr;
 
 public class ToCore{
   core.E of(inference.E exp, inference.E orig){ return switch (exp){
-    case inference.E.X(var name, _, Pos pos, _) -> x(name,pos);
-    case inference.E.Type(var type, _, Pos pos, _) -> type(type,pos);
+    case inference.E.X(var name, _, Src src, _) -> x(name,src);
+    case inference.E.Type(var type, _, Src src, _) -> type(type,src);
     case inference.E.Literal le -> literal(le,litLike(orig,le));
     case inference.E.Call ce -> call(ce,callLike(orig,ce.name()));
     case inference.E.ICall ic -> callFromICall(ic,callLike(orig,ic.name()));
   };}
-  core.E.X x(String name, Pos pos){ return new core.E.X(name,pos); }
-  core.E.Type type(IT.RCC type, Pos pos){
+  core.E.X x(String name, Src src){ return new core.E.X(name,src); }
+  core.E.Type type(IT.RCC type, Src src){
     var t= new T.RCC(type.rc(),TypeRename.itcToTC(type.c()));
-    return new core.E.Type(t,pos);
+    return new core.E.Type(t,src);
   }
   core.E.Literal literal(inference.E.Literal e, inference.E.Literal o){
     var rc= o.rc().orElse(e.rc().orElse(RC.imm));
     var ms= mapMs(e.ms(),o.ms());
-    return new core.E.Literal(rc,e.name(),e.bs(),TypeRename.itcToTC(e.cs()),e.thisName(),ms,e.pos());
+    return new core.E.Literal(rc,e.name(),e.bs(),TypeRename.itcToTC(e.cs()),e.thisName(),ms,e.src());
   }
   core.E.Call call(inference.E.Call e, CallLike o){
     var rc= o.rc.orElse(e.rc().orElse(RC.imm));
@@ -36,7 +37,7 @@ public class ToCore{
     assert e.es().size() == o.es.size();
     var recv= of(e.e(),o.e);
     var args= IntStream.range(0,e.es().size()).mapToObj(i->of(e.es().get(i),o.es.get(i))).toList();
-    return new core.E.Call(recv,e.name(),rc,TypeRename.itToT(targs),args,e.pos());
+    return new core.E.Call(recv,e.name(),rc,TypeRename.itToT(targs),args,e.src());
   }
   core.E.Call callFromICall(inference.E.ICall e, CallLike o){
     assert o.rc.isEmpty();
@@ -47,7 +48,7 @@ public class ToCore{
     }
     var recv= of(e.e(),o.e);
     var args= IntStream.range(0,e.es().size()).mapToObj(i->of(e.es().get(i),o.es.get(i))).toList();
-    return new core.E.Call(recv,e.name(),RC.imm,List.of(),args,e.pos());
+    return new core.E.Call(recv,e.name(),RC.imm,List.of(),args,e.src());
   }
   private List<core.M> mapMs(List<inference.M> es, List<inference.M> os){
     return es.stream()
@@ -55,8 +56,8 @@ public class ToCore{
       .toList();
   }
   private static inference.M matchM(List<inference.M> os, inference.M e){
-    var p= e.sig().pos();
-    return OneOr.of("failing to connect methods @"+p, os.stream().filter(o->o.sig().pos()==p));
+    var s= e.sig().span();
+    return OneOr.of("failing to connect methods @"+s, os.stream().filter(o->o.sig().span()==s));
   }
   private core.M m(inference.M e, inference.M o){
     var s= sig(e.sig());
@@ -76,7 +77,7 @@ public class ToCore{
     var m= s.m().orElse(new MName(".inferenceFailed", ts.size()));
     var bs= s.bs().orElse(List.of());
     var origin= s.origin().orElse(TypeRename.inferUnknown.c().name());
-    return new core.Sig(rc,m,bs,ts,ret,origin,s.abs(),s.pos());
+    return new core.Sig(rc,m,bs,ts,ret,origin,s.abs(),s.span());
   }
   private static inference.E.Literal litLike(inference.E o,inference.E.Literal e){
     var ol=(inference.E.Literal)o;
@@ -101,7 +102,7 @@ public class ToCore{
   static List<List<String>> smallUnder= IntStream.range(0,100).mapToObj(ToCore::_under).toList();
   private List<String> nUnderscores(int n){ return n < 100 ? smallUnder.get(n) : _under(n); }
   
-  private static final Optional<E> synteticBody= Optional.of(new E.X("this",Pos.UNKNOWN));
+  private static final Optional<E> synteticBody= Optional.of(new E.X("this",Src.syntetic));
   core.M mSyntetic(inference.M m){
     var s= sig(m.sig());
     if (m.impl().isEmpty()){ return new core.M(s,nUnderscores(s.ts().size()),Optional.empty()); }

@@ -10,24 +10,27 @@ import java.util.*;
 
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
+import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
 
 public sealed interface E {
-  Pos pos();
-  record X(String name, Pos pos) implements E{
+  default Pos pos(){ return src().inner.pos(); }
+  default TSpan span(){ return src().inner.span(); }
+  Src src();
+  record X(String name, Src src) implements E{
     public X{ assert validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name;}}
-  record Type(T.RCC type, Pos pos) implements E{
-    public Type{ assert nonNull(type,pos); }
+  record Type(T.RCC type, Src src) implements E{
+    public Type{ assert nonNull(type,src); }
     public String toString(){ return type.toString();}}
-  record Literal(RC rc, TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Pos pos) implements E{
+  record Literal(RC rc, TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Src src) implements E{
     public Literal{
       assert unmodifiableDistinct(bs,"L.bs");
       assert unmodifiableDistinct(cs,"L.cs");
       assert unmodifiableDistinct(ms, "L.ms");
-      assert nonNull(rc,name,thisName,pos);
+      assert nonNull(rc,name,thisName,src);
     }
-    public Literal withMs(List<M> ms){ return new Literal(rc,name,bs,cs,thisName,ms,pos); }
+    public Literal withMs(List<M> ms){ return new Literal(rc,name,bs,cs,thisName,ms,src); }
     public String toString(){
       String _bs= Join.of(bs,"[",",","]","");
       String _cs= Join.of(cs,"",", ","","");
@@ -35,9 +38,9 @@ public sealed interface E {
       return rc+" "+name.s()+_bs+":"+_cs+"{'"+thisName+" "+_ms+"}";
     }
   }
-  record Call(E e, MName name, RC rc, List<T> targs, List<E> es, Pos pos) implements E{
+  record Call(E e, MName name, RC rc, List<T> targs, List<E> es, Src src) implements E{
     public Call{
-      assert nonNull(e,name,rc,targs,pos);
+      assert nonNull(e,name,rc,targs,src);
       assert unmodifiable(es, "E.Call.es");
       assert unmodifiable(targs, "E.Call.targs");
     }

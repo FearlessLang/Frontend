@@ -9,6 +9,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
+import core.Src;
 import utils.Bug;
 import utils.Push;
 import fearlessFullGrammar.E.Call;
@@ -26,6 +27,8 @@ import naming.FreshPrefix;
 import pkgmerge.OtherPackages;
 import pkgmerge.Package;
 import fearlessFullGrammar.TName;
+import fearlessFullGrammar.TSpan;
+
 import static java.util.Optional.*;
 
 import java.util.ArrayList;
@@ -33,7 +36,7 @@ import java.util.ArrayList;
 public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs, Package pkg, List<List<B>> bsInScope, OtherPackages other, FreshPrefix freshF)
     implements fearlessFullGrammar.EVisitor<inference.E>,fearlessFullGrammar.TVisitor<IT>{
   static final inference.IT u= IT.U.Instance;
-  static fearlessFullGrammar.E.Literal emptyL(Pos pos){ return new fearlessFullGrammar.E.Literal(empty(),List.of(),pos); }
+  static fearlessFullGrammar.E.Literal emptyL(Pos pos){ return new fearlessFullGrammar.E.Literal(empty(),List.of(),TSpan.fromPos(pos)); }
   @Override public IT.X visitTX(fearlessFullGrammar.T.X x){ return new IT.X(x.name()); }
   @Override public IT visitReadImmX(fearlessFullGrammar.T.ReadImmX x){ return new IT.ReadImmX(visitTX(x.x())); }
   @Override public IT visitRCX(fearlessFullGrammar.T.RCX x){ return new IT.RCX(x.rc(), visitTX(x.x())); }
@@ -65,14 +68,14 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   M.Sig visitMSig(fearlessFullGrammar.M mm){
     if (mm.sig().isEmpty()){
       List<Optional<IT>> ts= !mm.hasImplicit()?List.of():List.of(empty());
-      return new M.Sig(empty(),empty(),empty(),ts,empty(),empty(),false,mm.pos()); 
+      return new M.Sig(empty(),empty(),empty(),ts,empty(),empty(),false,mm.span()); 
     }
     fearlessFullGrammar.Sig s= mm.sig().get();
     Optional<List<B>> bs= s.bs().map(this::mapB);
     List<Optional<IT>> ts= mapPT(s.parameters());
     if (mm.hasImplicit()){ ts= Push.of(ts,empty()); }
     Optional<IT> res= s.t().map(ti->ti.accept(this));
-    return new M.Sig(s.rc(),s.m(),bs,ts,res,empty(),mm.body().isEmpty(),mm.pos());
+    return new M.Sig(s.rc(),s.m(),bs,ts,res,empty(),mm.body().isEmpty(),mm.span());
   }
   public B visitB(fearlessFullGrammar.B b){
     return new B(b.x().name(),switch (b.bt()){
@@ -96,7 +99,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     var body= m.body().get();
     var original= m.sig().map(s->s.parameters()).orElse(List.of());
     List<String> ps= mapPX(original);
-    List<XE> xpats= xpats(ps,original,m.pos());
+    List<XE> xpats= xpats(ps,original,m.span());
     if (!xpats.isEmpty()){ body = makeXPatsBody(body,xpats); }
     if (m.hasImplicit()){ var p= freshF.freshVar(currentTop, "impl"); ps = Push.of(ps,p); implicits.add(p); }
     E e= body.accept(this);
@@ -110,30 +113,30 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     var block= call(typedLiteral("base.Block", p), "#",List.of(), p);
     for (var xe : xes){
       var pat= new XPat.Name(new fearlessFullGrammar.E.X(xe.x, p));
-      block= callPat(block, ".let", pat, lambda(xe.e, p), p);
+      block= callPat(block, ".let", pat, lambda(xe.e, TSpan.fromPos(p)), p);
     }
-    return call(block, ".return", List.of(lambda(body, p)), p);
+    return call(block, ".return", List.of(lambda(body,TSpan.fromPos(p))), p);
   }
   record XE(String x, fearlessFullGrammar.E e){}
   boolean isXPat(fearlessFullGrammar.Parameter p){
     return p.xp().isPresent() && p.xp().get() instanceof XPat.Destruct; 
   }
-  List<XE> xpats(List<String> lowered, List<fearlessFullGrammar.Parameter> original, Pos pos){
+  List<XE> xpats(List<String> lowered, List<fearlessFullGrammar.Parameter> original, TSpan span){
     assert lowered.size() == original.size();
     return IntStream.range(0,lowered.size()).boxed()
       .filter(i->isXPat(original.get(i)))
-      .flatMap(i->xpat((XPat.Destruct)original.get(i).xp().get(),lowered.get(i),pos))
+      .flatMap(i->xpat((XPat.Destruct)original.get(i).xp().get(),lowered.get(i),span))
       .toList();
   }
-  Stream<XE> xpat(XPat.Destruct pat, String fresh, Pos pos){
+  Stream<XE> xpat(XPat.Destruct pat, String fresh, TSpan span){
     List<String> patterns = pat.parameterNames().toList();
     assert pat.extract().size() == patterns.size();
     return IntStream.range(0,patterns.size())
-      .mapToObj(i->xpat(pat.extract().get(i),patterns.get(i),fresh,pos));
+      .mapToObj(i->xpat(pat.extract().get(i),patterns.get(i),fresh,span));
   }
-  XE xpat(List<MName> pat, String x, String fresh, Pos pos){
-    fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, pos);
-    for (MName m : pat) { res= call(res, m.s(),List.of(), pos); }
+  XE xpat(List<MName> pat, String x, String fresh, TSpan span){
+    fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, span.pos());
+    for (MName m : pat) { res= call(res, m.s(),List.of(), span.pos()); }
     return new XE(x, res);
   }
   private fearlessFullGrammar.E stripRound(fearlessFullGrammar.E e){
@@ -146,10 +149,10 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     return Optional.empty();
   }
   //TODO: check if now the stream is always empty
-  private E.Literal liftLiteral(Optional<RC> rc,Stream<String> bs,List<IT.C> impl,Optional<String> thisName, List<M> ms, Pos pos){
+  private E.Literal liftLiteral(Optional<RC> rc,Stream<String> bs,List<IT.C> impl,Optional<String> thisName, List<M> ms, Src src){
     var _bs= bs.distinct().map(this::xB).toList();
     var name= freshF.freshTopType(currentTop,_bs.size());
-    return new E.Literal(rc,name,_bs,impl,thisName.orElse("_"), ms,pos);
+    return new E.Literal(rc,name,_bs,impl,thisName.orElse("_"), ms,src);
   }
   private E visitReceiver(fearlessFullGrammar.E e){
     var ol= asLambdaReceiver(e);
@@ -157,27 +160,27 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     var ms= mapM(ol.get().methods());
     var name= ol.get().thisName().map(n->n.name());
     //Here new FreeXs().ftvMs(ms) is all since by construction no Cs and no inferred type;
-    var l= liftLiteral(Optional.of(RC.imm),Stream.of(),List.of(),name,ms,ol.get().pos());
+    var l= liftLiteral(Optional.of(RC.imm),Stream.of(),List.of(),name,ms,new Src(ol.get()));
     decs.add(l);
     return l;
   }
   @Override public E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){ 
     var ms= mapM(l.methods());
     var name= l.thisName().map(n->n.name());
-    return liftLiteral(Optional.empty(),Stream.of(),List.of(),name,ms,l.pos());
+    return liftLiteral(Optional.empty(),Stream.of(),List.of(),name,ms,new Src(l));
   }
-  @Override public E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(),x.pos()); }
+  @Override public E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(),new Src(x)); }
   @Override public E visitRound(fearlessFullGrammar.E.Round r){ return r.e().accept(this); }
-  @Override public E visitImplicit(fearlessFullGrammar.E.Implicit n){  return new E.X(implicits.getLast(),n.pos());  }
+  @Override public E visitImplicit(fearlessFullGrammar.E.Implicit n){ return new E.X(implicits.getLast(),new Src(n)); }
   @Override public E visitTypedLiteral(fearlessFullGrammar.E.TypedLiteral t){
-    if (t.l().isEmpty()){ return new E.Type(visitRCC(t.t()),t.pos()); }
+    if (t.l().isEmpty()){ return new E.Type(visitRCC(t.t()),new Src(t)); }
     List<IT.C> impl= List.of(visitC(t.t().c()));
     List<fearlessFullGrammar.M> ms0= t.l().map(l->l.methods()).orElse(List.of());
     Optional<String> thisName= t.l().flatMap(l->l.thisName().map(n->n.name()));
     var ms= mapM(ms0);
     //Stream<String> bs= Stream.concat(
     //  new FreeXs().ftvMs(ms),new FreeXs().ftvT(visitRCC(t.t())));
-    E.Literal l= liftLiteral(Optional.of(t.t().rc().orElse(RC.imm)),Stream.of(),impl,thisName, ms,t.pos());
+    E.Literal l= liftLiteral(Optional.of(t.t().rc().orElse(RC.imm)),Stream.of(),impl,thisName, ms,new Src(t));
     decs.add(l);
     return l;
   }
@@ -197,7 +200,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     bsInScope.add(bs);
     List<IT.C> cs= mapC(d.cs());    
     List<M> ms= mapM(d.l().methods());
-    E.Literal l= new E.Literal(Optional.of(rc),name,bs,cs,thisName, ms, d.l().pos());      
+    E.Literal l= new E.Literal(Optional.of(rc),name,bs,cs,thisName, ms, new Src(d.l()));
     decs.add(l);
     bsInScope.removeLast();
     return l;
@@ -209,7 +212,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     var targs= c.targs().get();
     List<E> es= mapE(c.es());
     List<IT> ts= mapT(targs.ts());
-    return new E.Call(e, c.name(), targs.rc(), ts, es, c.pos());
+    return new E.Call(e, c.name(), targs.rc(), ts, es, new Src(c));
   }
   private Call desugarCPat(Call c){
     var pat= c.pat().get();
@@ -221,8 +224,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     var param1= new Parameter(of(pat),empty());
     var param2= new Parameter(of(new XPat.Name(fresh)),empty());
     var sig= new fearlessFullGrammar.Sig(empty(),empty(),empty(),false,List.of(param1,param2),empty());
-    var m= new fearlessFullGrammar.M(of(sig),of(res),false,c.pos());
-    var par2= new fearlessFullGrammar.E.Literal(empty(),List.of(m),c.pos());
+    var m= new fearlessFullGrammar.M(of(sig),of(res),false,c.span());
+    var par2= new fearlessFullGrammar.E.Literal(empty(),List.of(m),c.span());
     return new fearlessFullGrammar.E.Call(
       c.e(),c.name(),c.targs(),true,empty(),List.of(par1,par2), c.pos());
   }
@@ -252,15 +255,15 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   public E visitICall(fearlessFullGrammar.E.Call c){
     E e= visitReceiver(c.e());
     List<E> es= mapE(c.es());
-    return new E.ICall(e, c.name(), es, c.pos());
+    return new E.ICall(e, c.name(), es, new Src(c));
   }
   private fearlessFullGrammar.E.TypedLiteral typedLiteral(String str,Pos p){
     var tn= new TName(str, 0,p);
     var c= new fearlessFullGrammar.T.C(tn,of(List.of()));
     return new fearlessFullGrammar.E.TypedLiteral(new fearlessFullGrammar.T.RCC(empty(),c), empty(), p);    
   }
-  private fearlessFullGrammar.E lambda(fearlessFullGrammar.E body, Pos p){
-    return new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(empty(), of(body), false, p)), p);
+  private fearlessFullGrammar.E lambda(fearlessFullGrammar.E body, TSpan span){
+    return new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(empty(), of(body), false, span)), span);
   }
   private fearlessFullGrammar.E call(fearlessFullGrammar.E e, String m, List<fearlessFullGrammar.E> args, Pos p){
     return new fearlessFullGrammar.E.Call(e, new MName(m, args.size()), empty(), true, empty(), args, p);

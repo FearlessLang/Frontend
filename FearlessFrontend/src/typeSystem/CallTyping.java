@@ -41,7 +41,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   private Sig sigOf(Literal d){
     var ms= d.ms().stream().map(M::sig)
       .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()).toList();
-    if (ms.isEmpty()){ throw TypeSystemErrors.methodNotDeclared(c,d.name()); }//TODO: this will internally have to distinguish if there is a method with that name and different RC or just no method with that name at all.
+    if (ms.isEmpty()){ throw TypeSystemErrors.methodNotDeclared(c,d); }
     assert ms.size() == 1 : "Duplicate cached sig for "+c.name()+" rc="+c.rc()+" in "+d.name();
     Sig sig= ms.getFirst();
     assert sig.ts().size() == c.es().size();//ensured by well formedness
@@ -53,7 +53,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var ts0= Push.of(c0.ts(),c.targs());
     var ps= TypeRename.ofT(sig.ts(),xs,ts0);
     T ret= TypeRename.of(sig.ret(),xs,ts0);
-    return new MType("Base",sig.rc(),ps,ret);
+    return new MType("`As declared`",sig.rc(),ps,ret);
   }
   private void checkTargsKinding(T.C c0, Literal d, Sig sig){
     assert c0.ts().size() == d.bs().size();

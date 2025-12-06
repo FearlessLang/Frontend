@@ -103,9 +103,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   E parsePost(E receiver){
     if (fwdIf(peekOrder(t->t.is(Colon),t->t.is(UStrInterHash,UStrLine)))){ return parseStrInter(false,of(receiver)); }
     if (fwdIf(peekOrder(t->t.is(Colon),t->t.is(SStrInterHash,SStrLine)))){ return parseStrInter(true, of(receiver)); }
-    MName m= parseMName();
-    Optional<E.CallSquare> sq= parseIf(peek(_SquareGroup),()->parseGroup("method call generic parameters",Parser::parseCallSquare));
     Pos pos= pos();
+    MName m= parseMName();
+    Optional<E.CallSquare> sq= parseIf(peek(_SquareGroup),()->parseGroup("method call generic parameters",Parser::parseCallSquare));    
     if (peek(_RoundGroup)){
       List<E> es = parseGroupSep("","arguments list",Parser::parseE,ORound,CRound,commaExp);
       return new E.Call(receiver, m.withArity(es.size()), sq, true, empty(), es, pos);
@@ -154,7 +154,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   Predicate<Token> moreStrInter(boolean isSimple){ return isSimple ? t->t.is(SStrInterHash,SStrLine) : t->t.is(UStrInterHash,UStrLine); }
   E.StringInter parseStrInter(boolean isSimple, Optional<E> receiver){
-    Pos pos= pos();
+    int startPos= index();
     List<StringInfo> contents= new ArrayList<>();
     while (peekIf(moreStrInter(isSimple))){ contents.add(new StringInfo(expectAny(""),this::interOnNoClose,this::interOnNoOpen,this::interOnMoreOpen)); }
     if (peekIf(moreStrInter(!isSimple))){ throw errFactory().inconsistentStrInter(span(expectAny("")).get(),isSimple); }
@@ -164,7 +164,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       .flatMap(i->IntStream.range(0,i.inter.size()).mapToObj(
         j->Parse.from(span().fileName(),names,i.inter.get(j),i.line,i.col+i.starts.get(j))))
       .toList();
-    return new E.StringInter(isSimple,receiver,hashes,parts, es, pos);
+    int endPos= index();
+    var span= new TSpan(spanAround(startPos,endPos));
+    if (receiver.isPresent()){ span= TSpan.merge(receiver.get().span(),span); }
+    return new E.StringInter(isSimple,receiver,hashes,parts, es, span);
   }
   Span lastT(int i,int j){
     setIndex(index()-1);
@@ -193,7 +196,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new E.X(x.content(),pos(x));
   }
   E.Literal parseLiteral(boolean top, boolean typed){
-    Pos pos= pos();
     Token start= expect("object literal",OCurly);
     Token end= expectLast("object literal",CCurly);
     Optional<E.X> thisName= empty();
@@ -208,8 +210,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       }
     if (top && thisName.isEmpty()){ updateNames(names.add(List.of("this"),List.of())); }
     List<M> ms= splitBy("method declaration",semiSkip,p->p.parseMethod(top,typed));
-    checkRedeclaration(start, end, ms, pos);
-    return new E.Literal(thisName,ms,pos);
+    checkRedeclaration(start, end, ms);
+    return new E.Literal(thisName,ms,tspan());
     }
   public record RCMName(Optional<RC> rc,MName name){}
   private Stream<RCMName> declaredName(M m){
@@ -217,7 +219,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       .flatMap(s->s.m().map(n->new RCMName(s.rc(),n)))
       .stream();
   }
-  private void checkRedeclaration(Token start, Token end, List<M> ms, Pos pos){
+  private void checkRedeclaration(Token start, Token end, List<M> ms){
     List<RCMName> names= ms.stream().flatMap(this::declaredName).toList();
     long count1= names.stream().distinct().count();
     if (names.size() > count1){ throw errFactory().methNameRedeclared(ms,names,span(start,end).get()); }
@@ -259,26 +261,25 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     expectEnd("semicolon or closed curly", SemiColon,CCurly);
     return res;
   }
-  M parseMethodWithSig(Sig sig, Pos pos, boolean typed){
+  M parseMethodWithSig(Sig sig, boolean typed){
     var xs= sig.parameters().stream().flatMap(p->xsOf(p.xp())).toList();
     var Xs= sig.bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
     updateNames(names.add(xs,Xs));
-    var res= new M(of(sig),of(parseMethodBody()),pos);
+    var res= new M(of(sig),of(parseMethodBody()),tspan());
     if (!typed){ checkTyped(sig, res.hasImplicit()); }
     return res;
   }
   M parseMethodAux(boolean top, boolean typed){//assumes to be called on only the tokens of this specific method
-    Pos pos= pos();    
     Optional<M> m= parseFront("method signature",false,arrowSkip,Parser::parseSig)
-      .map(s->parseMethodWithSig(s,pos,typed));
+      .map(s->parseMethodWithSig(s,typed));
     if (m.isPresent()){ return m.get(); }
     boolean hasSig= peek(DotName,Op,RCap)
       || peekOrder(t->t.is(RCap), t->t.is(DotName,Op));
-    if (!hasSig){ return new M(empty(),of(parseMethodBody()),pos); }
+    if (!hasSig){ return new M(empty(),of(parseMethodBody()),tspan()); }
     Sig sig= parseSig();
-    var res= new M(of(sig),empty(),pos);
+    var res= new M(of(sig),empty(),tspan());
     if (!typed){ checkTyped(sig,false); }
-    if (!top){ throw errFactory().noAbstractMethod(res.sig().get(),span(pos, 100)); }
+    if (!top){ throw errFactory().noAbstractMethod(res.sig().get(),span()); }
     return res;
   }
   E parseMethodBody(){
@@ -495,6 +496,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     eatAtom();    
     while (!end()){ eatPost(); eatAtom(); }
   }
+  TSpan tspan(){ return new TSpan(span()); }
   private void absurd(){
     var absurd= peek(Colon,Arrow,SQuote,Eq,Comma,SemiColon);//will add more when we find other absurd cases
     if (absurd){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
