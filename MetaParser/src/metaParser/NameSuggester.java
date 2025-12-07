@@ -70,7 +70,7 @@ public final class NameSuggester {
   */
   public static <R> R suggest(String name, List<String> candidates, Renderer<R> renderer){
     assert ! (name == null || name.isEmpty() || candidates == null || candidates.isEmpty());
-    assert candidates.equals(candidates.stream().distinct().sorted().toList());
+    assert candidates.equals(candidates.stream().distinct().sorted().toList()): candidates;
     assert candidates.stream().allMatch(s->!s.isEmpty());
     assert !candidates.contains(name);
     var best= pickBest(name, candidates);

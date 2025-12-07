@@ -147,10 +147,11 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     expect("method call generic type argument",OSquareArg);
     expectLast("method call generic type argument",CSquare);
     var rc= parseOptRC();
-    if (end()){ return new E.CallSquare(rc, List.of()); }
+    if (end()){ return new E.CallSquare(rc, List.of(),pos()); }
     if (rc.isPresent()){ expect("method call generic type argument",Comma); }
     List<T> ts= splitBy("genericTypes",commaSkip,Parser::parseT);
-    return new E.CallSquare(rc, ts);
+    assert end();
+    return new E.CallSquare(rc, ts,pos());
   }
   Predicate<Token> moreStrInter(boolean isSimple){ return isSimple ? t->t.is(SStrInterHash,SStrLine) : t->t.is(UStrInterHash,UStrLine); }
   E.StringInter parseStrInter(boolean isSimple, Optional<E> receiver){

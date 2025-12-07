@@ -4,6 +4,7 @@ import java.util.*;
 
 import fearlessParser.RC;
 import files.Pos;
+import utils.Bug;
 
 import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
@@ -48,8 +49,9 @@ public sealed interface E {
     public String toString(){ return "DeclarationLiteral"+rc.map(Object::toString).orElse("")+dec; }
   }
   //if pat is present, this is an x=e posts, if absent this is a normal meth call.
-  record CallSquare(Optional<RC> rc, List<T> ts){
+  record CallSquare(Optional<RC> rc, List<T> ts, Pos endPos){
     public CallSquare{ assert nonNull(rc) && unmodifiable(ts, "E.Call.targs"); }
+    public String toString(){ return "CallSquare[rc="+rc+",ts="+ts+"]"; }
   }
   record Call(E e, MName name, Optional<CallSquare> targs, boolean pars, Optional<XPat> pat, List<E> es, Pos pos) implements E{
     public Call{
@@ -65,8 +67,9 @@ public sealed interface E {
       +targs.map(Object::toString).orElse("")
       +pars+pat.map(Object::toString).orElse("")+es; }
     public TSpan span(){
-      if (es.isEmpty()){ return TSpan.merge(e.span(),TSpan.fromPos(pos)); }
-      return TSpan.merge(e.span(),es.getLast().span());
+      if (!es.isEmpty()){ return TSpan.merge(e.span(),es.getLast().span()); }
+      if (targs.isEmpty()){ return TSpan.merge(e.span(),TSpan.fromPos(pos,name.s().length())); } 
+      return TSpan.merge(e.span(),TSpan.fromPos(targs.get().endPos()));      
     }
   }
   record StringInter(boolean simple, Optional<E> e, List<Integer> hashCounts, List<String> strings, List<E> es, TSpan span) implements E{

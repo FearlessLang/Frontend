@@ -17,6 +17,7 @@ import message.FearlessException;
 import message.TypeSystemErrors;
 import pkgmerge.OtherPackages;
 import typeSystem.ArgMatrix.*;
+import typeSystem.Gamma.Binding;
 
 import static fearlessParser.RC.*;
 import utils.OneOr;
@@ -53,7 +54,7 @@ public record TypeSystem(ViewPointAdaptation v){
     var out= typeOf(bs,g,e,rs);
     assert out.size() == 1;
     if (out.getFirst().success()){ return; }
-    throw TypeSystemErrors.typeError(e.pos(),out,rs);
+    throw TypeSystemErrors.typeError(e,out,rs);
   }
   List<TResult> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch(e){
     case X x -> checkX(bs,g,x,rs);
@@ -62,10 +63,23 @@ public record TypeSystem(ViewPointAdaptation v){
     case Call c -> checkCall(bs,g,c,rs);
   };}
   private List<TResult> checkX(List<B> bs, Gamma g, X x, List<TRequirement> rs){
-    return reqs(bs,g.get(x.name()),rs);
+    var b= g.bind(x.name());
+    T declared= b.declared();
+    var cur= b.current();
+    var v= cur.view();
+    if (v.isEmpty()){ throw TypeSystemErrors.nameNotAvailable(x, declared, cur.why(), bs); }
+    T got= v.get();
+    if (rs.isEmpty()){ return List.of(new TResult("",got,"")); }
+    return rs.stream().map(r->{
+      T expected= r.t();
+      if (isSub(bs,got,expected)){ return new TResult(r.reqName(),got,""); }
+      boolean declaredOk= isSub(bs,declared,expected);
+      return new TResult(r.reqName(),got,
+        TypeSystemErrors.xMismatch(x.name(), expected, got, declared, cur.why(), declaredOk, bs));
+    }).toList();
   }
   private List<TResult> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
-    return reqs(bs,t.type(),rs);
+    return reqs(bs,t.type(),rs);//can we now inline reqs?
   }
   private List<TResult> checkLiteral(List<B> bs1, Gamma g, Literal l, List<TRequirement> rs){
     var ts= l.bs().stream().<T>map(b->new T.X(b.x())).toList();
@@ -82,7 +96,7 @@ public record TypeSystem(ViewPointAdaptation v){
     if (rs.isEmpty()){ return List.of(new TResult("",got,"")); }
     return rs.stream().map(r->{
       if (isSub(bs,got,r.t())){ return new TResult(r.reqName(),got,""); }
-      return new TResult(r.reqName(),got,"got "+got+" not subtype of "+r.t());
+      return new TResult(r.reqName(),got,TypeSystemErrors.gotMsg(got, r.t()));
     }).toList();//TODO: ideally, can we get a readable representation of the e? the name for x, the meth name for call, the type for Type and the Type (or implemented single interface if type is anon) for lambda
   }
   private List<TResult> checkCall(List<B> bs,Gamma g,Call c, List<TRequirement> rs){

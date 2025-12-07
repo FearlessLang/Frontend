@@ -130,7 +130,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of(() -> {
       var scope= inScope.isEmpty()
         ? "No names are in scope here.\n"
-        : NameSuggester.suggest(name.content(), inScope);
+        : NameSuggester.suggest(name.content(), inScope.stream().sorted().toList());
       return "Name "+Message.displayString(name.content())+" is not in scope\n" + scope;
     }).addSpan(at);
   }
