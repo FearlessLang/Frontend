@@ -7,7 +7,6 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
-import files.Pos;
 import message.Join;
 
 import static offensiveUtils.Require.*;

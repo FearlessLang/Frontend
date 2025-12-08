@@ -17,7 +17,6 @@ import message.FearlessException;
 import message.TypeSystemErrors;
 import pkgmerge.OtherPackages;
 import typeSystem.ArgMatrix.*;
-import typeSystem.Gamma.Binding;
 
 import static fearlessParser.RC.*;
 import utils.OneOr;
@@ -79,8 +78,15 @@ public record TypeSystem(ViewPointAdaptation v){
     }).toList();
   }
   private List<TResult> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
-    return reqs(bs,t.type(),rs);//can we now inline reqs?
+    return reqs(bs,t.type(),rs);//reqs correctly used for two similar things
   }
+  private List<TResult> reqs(List<B> bs, T got, List<TRequirement> rs){
+    if (rs.isEmpty()){ return List.of(new TResult("",got,"")); }
+    return rs.stream().map(r->isSub(bs,got,r.t())
+      ? new TResult(r.reqName(),got,"")
+      : new TResult(r.reqName(),got,TypeSystemErrors.gotMsg(got, r.t()))).toList();
+  }//TODO: ideally, can we get a readable representation of the e? the name for x, the meth name for call, the type for Type and the Type (or implemented single interface if type is anon) for lambda
+  
   private List<TResult> checkLiteral(List<B> bs1, Gamma g, Literal l, List<TRequirement> rs){
     var ts= l.bs().stream().<T>map(b->new T.X(b.x())).toList();
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
@@ -89,15 +95,8 @@ public record TypeSystem(ViewPointAdaptation v){
     T thisType= new T.RCC(l.rc(),new T.C(l.name(),ts));
     assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x())));
     k().check(bs1,thisType);
-    litOk(g.filterFTV(l.bs()),l);
+    litOk(g.filterFTV(l),l);
     return reqs(bs1,thisType,rs);
-  }
-  private List<TResult> reqs(List<B> bs, T got, List<TRequirement> rs){
-    if (rs.isEmpty()){ return List.of(new TResult("",got,"")); }
-    return rs.stream().map(r->{
-      if (isSub(bs,got,r.t())){ return new TResult(r.reqName(),got,""); }
-      return new TResult(r.reqName(),got,TypeSystemErrors.gotMsg(got, r.t()));
-    }).toList();//TODO: ideally, can we get a readable representation of the e? the name for x, the meth name for call, the type for Type and the Type (or implemented single interface if type is anon) for lambda
   }
   private List<TResult> checkCall(List<B> bs,Gamma g,Call c, List<TRequirement> rs){
     return new CallTyping(this,bs,g,c,rs).run();
@@ -130,7 +129,7 @@ public record TypeSystem(ViewPointAdaptation v){
     l.cs().stream().map(c->new T.RCC(RC.mut,c)).forEach(c->k().check(delta,c));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT));
     l.ms().forEach(m->{
-      Gamma g2= v().of(g1,delta,l.rc(),m.sig().rc());
+      Gamma g2= v().of(g1,delta,l,m);//passing l and m instead of their RC for better errors
       methOk(delta,g2,m);
     });
   }

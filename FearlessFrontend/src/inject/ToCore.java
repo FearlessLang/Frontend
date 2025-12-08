@@ -8,7 +8,6 @@ import core.Src;
 import core.T;
 import fearlessFullGrammar.MName;
 import fearlessParser.RC;
-import files.Pos;
 import inference.IT;
 import utils.Bug;
 import utils.OneOr;

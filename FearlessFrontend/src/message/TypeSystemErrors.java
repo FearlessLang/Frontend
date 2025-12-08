@@ -1,341 +1,276 @@
 package message;
 
-import fearlessParser.Parser;
-import fearlessParser.RC;
-import files.Pos;
-import metaParser.Message;
-import metaParser.NameSuggester;
-import typeSystem.ArgMatrix;
-import typeSystem.TypeSystem.*;
-import typeSystem.ViewPointAdaptation.*;
-import typeSystem.ArgMatrix.*;
-import utils.Bug;
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import fearlessParser.Parser;
+import fearlessParser.RC;
+import files.Pos;
+import metaParser.NameSuggester;
+import typeSystem.TypeSystem.*;
+import typeSystem.ArgMatrix;
+import typeSystem.ArgMatrix.*;
+import typeSystem.Change;
+import typeSystem.Change.*;
+import typeSystem.Gamma.Binding;
+import utils.Bug;
+import fearlessFullGrammar.TName;
+import fearlessFullGrammar.TSpan;
 import core.*;
 import core.E.*;
+import static message.Err.disp;
+import static message.Err.methodSig;
 
-public final class TypeSystemErrors {
-  private TypeSystemErrors(){}
- 
-  public static FearlessException overrideMismatch(Sig sub, Sig sup, String reason){
-    return Code.TypeError.of( 
-      "Invalid override for method " + sub.m().s() + ".\n"
-      + "Method in " + sub.origin().s() + " conflicts with method in " + sup.origin().s() + ".\n"
-      + "Reason: " + reason
-    ).addSpan(sub.span().inner);
+public final class TypeSystemErrors { private TypeSystemErrors(){}
+  private static FearlessException withCallSpans(FearlessException ex, Call c){
+    return ex.addSpan(Parser.span(c.pos(), c.name().s().length())).addSpan(c.span().inner);
   }
-  public static FearlessException unresolvedConflict(TName type, M m1, M m2){
-    return Code.TypeError.of(
-      "Unresolved multiple inheritance conflict in type " + type.s() + ".\n"
-      + "Method " + m1.sig().m().s() + " is inherited from both " 
-      + m1.sig().origin().s() + " and " + m2.sig().origin().s() + ".\n"
-      + "You must override this method explicitly to resolve the ambiguity."
-    ).addSpan(Parser.span(type.pos(), type.s().length()));
+  public static FearlessException overrideMismatch(Sig sub, Sig sup, String reason){ return Err.of()
+    .pMethodContext("Invalid override", sub, sub.origin().s())
+    .conflictsWithMethodIn(sup)
+    .line("Reason: "+reason)
+    .ex().addSpan(sub.span().inner);
   }
-  public static FearlessException notKinded(T t){
-    Pos p= getPos(t);//TODO: still a bad error, we will need to somehow pass more parameters in
-    return Code.TypeError.of("Type "+t+" is not well-kinded.\nIt violates reference capability constraints.")
-      .addSpan(Parser.span(p,1));
-  }  
-  private static Pos getPos(T t){
+  public static FearlessException unresolvedConflict(TName type, M m1, M m2){ return Err.of()
+    .line("Unresolved multiple inheritance conflict in type "+disp(type.s())+".")
+    .line("Method "+disp(m1.sig().m().s())+" is inherited from both "+disp(m1.sig().origin().s())+" and "+disp(m2.sig().origin().s())+".")
+    .line("You must override this method explicitly to resolve the ambiguity.")
+    .ex().addSpan(Parser.span(type.pos(), type.s().length()));
+  }
+  public static FearlessException notKinded(T t){ return Err.of()
+    .line("Type "+disp(t)+" is not well-kinded.")
+    .line("It violates reference capability constraints.")
+    .ex().addSpan(Parser.span(getPos(t),1));//TODO: we need to add a Span method for the types somehow, but this will require look at the parser
+  }
+  private static Pos getPos(T t){//When that is done, we will not have this method any more.
     if (t instanceof T.RCC rcc){ return rcc.c().name().pos(); }
-    return Pos.UNKNOWN;//TODO: do we need to track pos around for the others too?
+    return Pos.UNKNOWN;
   }
-  public static FearlessException notAffine(String name, List<E.X> usages){
-    var msg= "Usage violation for parameter "+Message.displayString(name)+".\n"
-      + "An iso parameter must be either:\n"
-      + "- Captured in object literals.\n"
-      + "- Directly used at most once.\n";
-    var ex= Code.TypeError.of(msg);
-    for (var x : usages){//Note: this does work via internal span expansion.
-      ex.addSpan(Parser.span(x.pos(), x.name().length()));
-    }
+  public static FearlessException notAffine(String name, List<E.X> usages){ 
+    var ex= Err.of()
+      .line("Usage violation for parameter "+disp(name)+".")
+      .line("An iso parameter must be either:")
+      .line("- Captured in object literals.")
+      .line("- Directly used at most once.")
+      .ex();
+    for (var x:usages){ ex.addSpan(Parser.span(x.pos(), x.name().length())); }
     return ex;
   }
   public static String makeErrResult(ArgMatrix mat, List<Integer> okProm, TRequirement req){
-    return "Return requirement not met. Needed: " + req.t()+".\n Promotions: "+promos(mat,okProm);
-  }
-  private static String promos(ArgMatrix mat, List<Integer> idxs){
-    return idxs.stream().map(i->mat.candidate(i).promotion()).sorted().collect(Collectors.joining(", "));
+    String promos= okProm.stream().map(i->mat.candidate(i).promotion()).sorted().collect(Collectors.joining(", "));//TODO: use Join here
+    return "Return requirement not met.\nExpected: "+disp(req.t())+".\nPromotions: "+promos+".";
   }
   public static FearlessException methodReceiverRcBlocksCall(Call c, RC recvRc, List<MType> promos){
-    var needed= promos.stream().map(MType::rc).distinct().sorted().toList();
-    var promoLines= promos.stream()
-      .map(m->"  - "+m.promotion()+":\n      needs receiver "+m.rc())
-      .collect(Collectors.joining("\n"));    
-    String msg=
-      "Receiver capability mismatch for call " + Message.displayString(c.name().s()) + ".\n"
-    + "The receiver (the object on which the method is called) has capability: " + recvRc + ".\n"
-    + Join.of(needed,"The generated promotions for this call require the receiver to be ", " or ", ".\n")
-    + "Available method promotions:\n" + promoLines + "\n";
-    return Code.TypeError.of(msg)
-      .addSpan(Parser.span(c.pos(), c.name().s().length()))
-      .addSpan(c.span().inner);//The two spans are the full range of the method call expression and the method name itself
+    List<String> needed= promos.stream().map(MType::rc).distinct().sorted().map(Err::disp).toList();
+    var e= Err.of()
+      .pCallCantBeSatisfied(c)      
+      .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
+      .line(Join.of(needed,"This call requires a receiver with capability "," or ","."))
+      .pReceiverPromotionFailures(promos);
+    return withCallSpans(e.ex(), c);
   }
   public static FearlessException callableMethodAbstract(TSpan at, M got, RC receiver){
     var s= got.sig();
-    var msg=
-      "Abstract method is being called.\n"
-      + "Receiver capability at call site: "+receiver+".\n"
-      + "Method: "+s.m().s()+".\n"
-      + "Declared abstract in: "+s.origin().s()+".\n";
-    return Code.TypeError.of(msg).addSpan(at.inner);
+    var e= Err.of()
+      .line("Abstract method is being called.")
+      .line("Method: "+methodSig(s.m())+".")
+      .line("Declared abstract in: "+disp(s.origin().s())+".")
+      .line("Receiver capability at call site: "+receiver+".");
+    return e.ex().addSpan(at.inner);
   }
-  public static FearlessException methodHopelessArg(Call c, int argi, List<TRequirement> reqs, List<TResult> res){
+  public static FearlessException methodHopelessArg(Call c, int argi, List<TRequirement> reqs, List<TResult> res, Optional<ArgDiag> diag){
     assert reqs.size() == res.size();
-    String m= Message.displayString(c.name().s());
-    var gotTs= res.stream().map(TResult::best).distinct().toList();
-    String gotS= gotTs.size() == 1
-      ? Message.displayString(gotTs.getFirst().toString())
-      : Join.of(gotTs.stream().map(t->Message.displayString(t.toString())).distinct().sorted(),"", " or ", "");
-    int i0= IntStream.range(0, reqs.size())
-      .filter(i->"`As declared`".equals(reqs.get(i).reqName()))
-      .findFirst().orElse(0);
-    String diag= res.get(i0).reason();
-    if (diag.isEmpty()){ diag= res.stream().map(TResult::reason).filter(s->!s.isEmpty()).findFirst().orElse(""); }
-    var sb= new StringBuilder()
-      .append("Call of method ").append(m).append(" can not be satisfied.\n")
-      .append("Argument ").append(argi).append(" is incompatible with all available promotions.\n")
-      .append("Argument ").append(argi).append(" has type ").append(gotS).append(".\n");
-    if (!diag.isEmpty()){ sb.append(diag).append("\n"); }
-    sb.append("\nPromotion failures:\n");
-    IntStream.range(0, reqs.size()).forEach(i->sb
-      .append("  - fails at argument ").append(argi).append(": ").append(reqs.get(i).reqName()).append("\n")
-      .append("    Expected: ").append(Message.displayString(reqs.get(i).t().toString())).append(".\n"));
-    return Code.TypeError.of(sb.toString())
-      .addSpan(Parser.span(c.pos(), c.name().s().length()))
-      .addSpan(c.es().get(argi).span().inner);
+    return withCallSpans(Err.of().pHopelessArg(c,argi,reqs,res,diag).ex(), c);
   }
-  public static FearlessException methodNotDeclared(Call c, Literal d){
+  public static FearlessException methodNotDeclared(Call c, core.E.Literal d){
     String name= c.name().s();
     var candidates= d.ms().stream().map(M::sig).toList();
-    var sameName= candidates.stream().filter(s->s.m().s().equals(name)).toList();    
+    var sameName= candidates.stream().filter(s->s.m().s().equals(name)).toList();
     if (sameName.isEmpty()){
       var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
-      return Code.TypeError.of(
-         NameSuggester.suggest(name, names, (_, cs, best) -> {
-           StringBuilder sb= new StringBuilder()
-             .append("Call of method ").append(Message.displayString(name))
-             .append(".\nSuch method is not declared on type ")
-             .append(Message.displayString(d.name().s())).append(".\n");
-           best.ifPresent(b->sb.append("Did you mean ").append(Message.displayString(b)).append(" ?\n"));
-           if (cs.isEmpty()){ sb.append("The type ").append(Message.displayString(d.name().s())).append(" does not have any methods.\n"); }
-           else {
-             sb.append("Available methods:\n");
-             for (String n : cs){ candidates.stream()
-               .filter(s -> s.m().s().equals(n))
-               .forEach(s -> sb.append("  ").append(sigToStr(s)).append("\n"));
-             }
-           }
-           return sb.toString();
-         })
-      ).addSpan(Parser.span(c.pos(), name.length()));
+      var msg= NameSuggester.suggest(name, names, (_, cs, best) -> {//TODO: all the name suggester stuff clearly need to go in Err.
+        var e= Err.of()//Also, a lambda this long MUST be in its own method.
+          .pCallCantBeSatisfied(c)
+          .line("Such method is not declared on type "+disp(d.name().s())+".");
+        best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
+        if (cs.isEmpty()){ return e.line("The type "+disp(d.name().s())+" does not have any methods.").text(); }
+        e.blank().line("Available methods:");
+        for (String n:cs){
+          candidates.stream().filter(s->s.m().s().equals(n)).forEach(s->e.line("  - "+sigToStr(s)));
+        }
+        return e.text();
+      });
+      return withCallSpans(Code.TypeError.of(msg), c);
     }
     var sameArity= sameName.stream().filter(s->s.m().arity() == c.es().size()).toList();
     if (sameArity.isEmpty()){
-       String avail= Join.of(sameName.stream().map(s->Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
-       String msg= "Method " + Message.displayString(name) + " declared on type " + Message.displayString(d.name().s())
-       + " but with different parameter count.\n"
-       + "Call supplies " + c.es().size() 
-       + " arguments, but available overloads take " + avail + ".\n";
-       return Code.TypeError.of(msg).addSpan(Parser.span(c.pos(), name.length()));
-    }    
+      String avail= Join.of(sameName.stream().map(s->Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
+      var e= Err.of()
+        .pCallCantBeSatisfied(c) 
+        .line("There is a method "+disp(c.name().s())+" on type "+disp(d.name().s())+", but with different number of arguments.")
+        .line("This call supplies "+c.es().size()+", but available methods take "+avail+".");
+      return withCallSpans(e.ex(), c);
+    }
     String availRc= Join.of(sameArity.stream().map(s->s.rc().toString()).distinct().sorted(), "", " and ", "");
-    String msg= "Method " + Message.displayString(name) + " declared on type " + Message.displayString(d.name().s())
-    + " exists, but not with the requested capability.\n"
-    + "Call requires the existence of a "+ Message.displayString(c.rc().toString()) + " method.\n"
-    + "Available capabilities for this method: " + availRc + ".\n";
-    return Code.TypeError.of(msg).addSpan(Parser.span(c.pos(), name.length()));
+    var e= Err.of()
+      .pCallCantBeSatisfied(c)
+      .line(methodSig(c.name())+" exists on type "+disp(d.name().s())+", but not with the requested capability.")
+      .line("This call requires the existence of a "+disp(c.rc().toString())+" method.")
+      .line("Available capabilities for this method: "+disp(availRc)+".");
+    return withCallSpans(e.ex(), c);
   }
   public static FearlessException methodArgsDisagree(Call c, ArgMatrix mat){
-    String m= Message.displayString(c.name().s());
     int ac= mat.aCount();
     int cc= mat.cCount();
-    var sb= new StringBuilder()
-      .append("Call of method ").append(m).append(" can not be satisfied.\n")
-      .append("Each argument is compatible with some promotions, but no single promotion works for all arguments.\n")
-      .append("Compatible promotions by argument:\n");
-    IntStream.range(0,ac).forEach(argi->sb
-      .append("  - argument ").append(argi)
-      .append(" has type ").append(mat.res(argi,0).best()).append(": ")
-      .append(Join.of(mat.okForArg(argi).stream()
-        .map(ci->mat.candidate(ci).promotion())
-        .distinct().sorted(),"",", ","\n")));
-    sb.append("Promotion failures:\n");
+    var e= Err.of()
+      .pCallCantBeSatisfied(c)
+      .pArgsDisagreeIntro();
+    for(int argi= 0; argi < ac; argi++){
+      List<String> ok= mat.okForArg(argi).stream().map(ci->mat.candidate(ci).promotion()).distinct().sorted().toList();
+      e.pAcceptedByPromos(argi, ok);
+    }
+    e.pPromotionFailuresHdr();
     IntStream.range(0,cc).forEach(ci->{
       int argi= IntStream.range(0,ac).filter(a->!mat.res(a,ci).success()).findFirst().getAsInt();
-      String reason= mat.res(argi,ci).reason();
-      sb.append("  - fails at argument ").append(argi).append(": ")
-        .append(mat.candidate(ci).promotion()).append("\n");
-      if (!reason.isEmpty()){ sb.append(indent(reason,"    ")).append("\n"); }
+      e.pPromoFail(argi, mat.candidate(ci).promotion()).pFailCause(mat.res(argi,ci).reason());
     });
-    return Code.TypeError.of(sb.toString())
-      .addSpan(Parser.span(c.pos(), c.name().s().length()))
-      .addSpan(c.span().inner);
-  }
-  private static String indent(String s, String pre){
-    return pre+s.replace("\n","\n"+pre);
-  }
-  public static FearlessException method_ArgsDisagree(Call c, ArgMatrix mat){
-    String m= Message.displayString(c.name().s());
-    int ac= mat.aCount();
-    int cc= mat.cCount();
-    var sb= new StringBuilder()
-      .append("Call of method ").append(m).append(" can not be satisfied.\n")
-      .append("Each argument is compatible with some promotions, but no single promotion works for all arguments.\n")
-      .append("Compatible promotions by argument:\n");
-    IntStream.range(0,ac).forEach(argi->sb
-      .append("  - argument ").append(argi)
-      .append(" has type ").append(mat.res(argi,0).best()).append(": ")
-      .append(Join.of(mat.okForArg(argi).stream()
-        .map(ci->mat.candidate(ci).promotion())
-        .distinct().sorted(),"",", ","\n")));
-    sb.append("Promotion failures:\n");
-    IntStream.range(0,cc)
-      .forEach(ci->sb
-        .append("  - ")
-        .append(mat.candidate(ci).promotion())
-        .append(IntStream.range(0, ac)
-          .filter(argi->!mat.res(argi,ci).success())
-          .mapToObj(argi->":\n      fails at argument "+argi+" ("+mat.res(argi,ci).reason()+")\n")
-          .findFirst().get()));
-    return Code.TypeError.of(sb.toString())
-      .addSpan(Parser.span(c.pos(), c.name().s().length()))
-      .addSpan(c.span().inner);
+    return withCallSpans(e.ex(), c);
   }
   public static FearlessException typeError(E at, List<TResult> got, List<TRequirement> req){
     assert got.size() == req.size();
-    var sb= new StringBuilder().append("Type mismatch.\n");
+    var e= Err.of();
     for(int i= 0; i < got.size(); i++){
       var gi= got.get(i);
       if (gi.success()){ continue; }
       var ri= req.get(i);
-      if (!ri.reqName().isEmpty()){
-        sb.append("Requirement ").append(Message.displayString(ri.reqName())).append(".\n");
-      }
+      if (!ri.reqName().isEmpty()){ e.line("Requirement "+disp(ri.reqName())+"."); }
       String reason= gi.reason();
-      if (reason.startsWith("The parameter ")){ sb.append(reason).append("\n"); continue; }
-      sb.append("Expected: ").append(ri.t()).append(".\n")
-        .append("Got: ").append(gi.best()).append(".\n");
-      if (!reason.isEmpty()){ sb.append("Reason: ").append(reason).append("\n"); }
+      if (reason.isEmpty()){ reason= gotMsg(gi.best(), ri.t()); }
+      e.line(reason).blank();
     }
-    return Code.TypeError.of(sb.toString()).addSpan(at.span().inner);
+    return e.ex().addSpan(at.span().inner);
   }
-  public static FearlessException uncallableMethodDeadCode(TSpan at, M got, RC receiver){ throw Bug.todo(); }  
+  public static FearlessException uncallableMethodDeadCode(TSpan at, M got, RC receiver){ throw Bug.todo(); }
   public static FearlessException methodTArgsArityError(Call c){ throw Bug.todo(); }
   public static FearlessException methodReceiverNotRcc(Call c, T recvType){ throw Bug.todo(); }
-  
-  public static String sigToStr(Sig s){
+  private static String sigToStr(Sig s){
     var bsS= Join.of(s.bs(),"[",",","]","");
     var tsS= Join.of(s.ts(),"(",",",")","");
-    var rcS= s.rc().toString()+" ";      
-    var mS= s.m().toString();
-    return rcS+mS+bsS+tsS+":"+s.ret()+";";
+    return s.rc()+" "+s.m()+bsS+tsS+":"+s.ret()+";";
   }
-  public static FearlessException mCallFrame(M m, FearlessException fe) {
-    return fe.addFrame("the body of method "+Message.displayString(m.sig().m().s()), m.sig().span().inner);
+  public static FearlessException mCallFrame(M m, FearlessException fe){
+    return fe.addFrame("the body of method "+methodSig(m.sig().m()), m.sig().span().inner);
   }
-  public static FearlessException nameNotAvailable(E.X x, T declared, typeSystem.ViewPointAdaptation.Why why, List<B> bs){
-    String xn= Message.displayString(x.name());
-    var sb= new StringBuilder()
-      .append("The parameter ").append(xn).append(" is not available in this scope.\n")
-      .append("Declared type: ").append(declared).append(".\n");
-    String w= why.render(x.name(),declared,Optional.empty(),declared,bs);
-    if (!w.isEmpty()){ sb.append(w).append("\n"); }
-    return Code.TypeError.of(sb.toString()).addSpan(x.span().inner);
+  public record ArgDiag(String x, T declared, Optional<T> got, Optional<T> expected, Why why, Note note, List<B> bs, List<String> fitsPromos){}
+  public enum Note{
+    NONE,
+    DECLARED_OK_SOME_CALL_EXPECTED,
+    DECLARED_OK_THIS_EXPECTED,
+    DECLARED_NOT_OK_THIS_EXPECTED,
   }
-  public static String xHidden(String x, T expected, T declared, typeSystem.ViewPointAdaptation.Why why, boolean declaredOk, List<B> bs){
-    String xn= Message.displayString(x);
-    var sb= new StringBuilder()
-      .append("The parameter ").append(xn).append(" is currently hidden.\n")
-      .append("Expected type: ").append(expected).append(".\n")
-      .append("Declared type: ").append(declared).append(".\n")
-      .append(declaredOk
-        ? "Note: the declared type would satisfy the expected type.\n"
-        : "Note: the declared type would not satisfy the expected type.\n");
-    String w= why.render(x,expected,Optional.empty(),declared,bs);
-    if (!w.isEmpty()){ sb.append(w).append("\n"); }
-    return sb.toString();
+  public interface IsSub{ boolean isSub(List<B> bs, T a, T b); }
+
+  public static Optional<ArgDiag> argDiagForCallArg(E e, List<TRequirement> reqs, Function<String,Binding> bind, IsSub isSub, List<B> bs){
+    if (!(e instanceof E.X x)){ return Optional.empty(); }//TODO: eventually this will not be optional but there will be support for all kinds of expressions
+    var b= bind.apply(x.name());
+    T declared= b.declared();
+    Change cur= b.current();
+    Optional<T> got= cur.view(); // empty if Drop
+    var fits= reqs.stream()
+      .filter(r->isSub.isSub(bs, declared, r.t()))
+      .map(TRequirement::reqName).filter(s->!s.isEmpty())
+      .distinct().sorted().toList();
+    Note note= fits.isEmpty() ? Note.NONE : Note.DECLARED_OK_SOME_CALL_EXPECTED;
+    return Optional.of(new ArgDiag(x.name(), declared, got, Optional.empty(), cur.why(), note, bs, fits)); 
   }
-  public static String gotMsg(T got, T expected){
-    String g= Message.displayString(got.toString());
-    String e= Message.displayString(expected.toString());
-    return g+" is not a subtype of "+e+".";
+  public static ArgDiag argDiagMismatch(String x, T declared, T got, T expected, Why why, boolean declaredOkExpected, List<B> bs){
+  Note note= declared.equals(got) 
+    ? Note.NONE
+    : declaredOkExpected 
+    ? Note.DECLARED_OK_THIS_EXPECTED 
+    : Note.DECLARED_NOT_OK_THIS_EXPECTED;
+  return new ArgDiag(x, declared, Optional.of(got), Optional.of(expected), why, note, bs, List.of());
+  }
+  public static ArgDiag argDiagHidden(String x, T declared, T expected, Why why, boolean declaredOkExpected, List<B> bs){
+    Note note= declaredOkExpected ? Note.DECLARED_OK_THIS_EXPECTED : Note.DECLARED_NOT_OK_THIS_EXPECTED;
+    return new ArgDiag(x, declared, Optional.empty(), Optional.of(expected), why, note, bs, List.of());
+  }
+
+  public static ArgDiag argDiagNotAvailable(String x, T declared, Why why, List<B> bs){
+    return new ArgDiag(x, declared, Optional.empty(), Optional.empty(), why, Note.NONE, bs,List.of());
+  }
+  public static FearlessException nameNotAvailable(E.X x, T declared, Why why, List<B> bs){
+    var d= new ArgDiag(x.name(), declared, Optional.empty(), Optional.empty(), why, Note.NONE, bs, List.of());
+    var e= Err.of()
+      .line("The parameter "+disp(x.name())+" is not available here.")
+      .pArgDiag(d);
+    return e.ex().addSpan(x.span().inner);
   }
   public static String xMismatch(String x, T expected, T got, T declared, Why why, boolean declaredOk, List<B> bs){
-    String xn= Message.displayString(x);
-    String g= Message.displayString(got.toString());
-    String e= Message.displayString(expected.toString());
-    String w= why.render(x, expected, Optional.of(got), declared, bs);
-    if (got.equals(declared) && w.isEmpty()){
-      return "The parameter "+xn+" has type "+g+".\n"+g+" is not a subtype of "+e+".";
-    }
-    String d= Message.displayString(declared.toString());
-    var sb= new StringBuilder().append("The parameter ").append(xn);
-    if (!declared.equals(got)){ sb.append(" (declared as type ").append(d).append(") here has type ").append(g).append(".\n"); }
-    else{ sb.append(" has type ").append(g).append(".\n"); }
-    sb.append(g).append(" is not a subtype of ").append(e).append(".\n");
-    if (declaredOk && !declared.equals(got) && !declared.equals(expected)){
-      sb.append("Note: the declared type ").append(d).append(" is a subtype of ").append(e).append(".\n");
-    }
-    if (!w.isEmpty()){ sb.append(w).append("\n"); }
-    return sb.toString();
+    var d= argDiagMismatch(x, declared, got, expected, why, declaredOk, bs);
+    return Err.of().pArgDiag(d).text();
   }
-  public static Why discardWhy(T in, List<core.B> delta, RC rc0, boolean kindIsoImm){
-    return (x,_,_,declared,_)->{
-      String xn= Message.displayString(x);
-      String td= Message.displayString(declared.toString());
-      var base= "The parameter " + xn + " (declared as " + td + ")";
-      var badScope= rc0 == RC.iso || rc0 == RC.imm;
-      if (badScope){ return base+" is hidden because\nit is not visible from an " + rc0 + " scope."; }
-      return base+" is hidden by viewpoint adaptation:\n (not well-kinded here).";//TODO: to improve when we understand better
-    };
-  }
+  public static String gotMsg(T got, T expected){
+    return Err.of().lineGotMsg(got, expected).text();
+  }  
   public static Why strengthenToImm(T in){
-    return (x,expected,got,declared,bs)->"Viewpoint adaptation strengthened " + Message.displayString(x) + " to imm.";
+    return (x, _, _, _, _)->"Viewpoint adaptation strengthened "+disp(x)+" to imm.";
   }
-  public static Why setToRead(T in){ return (x,_,got,declared,_)->{//TODO: if it keeps not using in, it can become a method reference
-    if (got.isEmpty()){ return ""; }
-    String xn= Message.displayString(x);
-    String g= Message.displayString(got.get().toString());
-    String d= Message.displayString(declared.toString());
-    return "Viewpoint adaptation set "+xn+" to "+g+" from "+d+" (the declared type).";
-    };}
+  public static Why setToRead(T in){
+    return (x, _, got, declared, _)->got
+      .<String>map(g->"Viewpoint adaptation set "+disp(x)+" to "+disp(g)+" from "+disp(declared)+" (the declared type).")
+      .orElse("");
+  }
   public static Why useReadImm(T in){
-    return (x,expected,got,declared,bs)->"Viewpoint adaptation replaced " + Message.displayString(x) + " with readImm(x).";
+    return (x, _, _, _, _)->"Viewpoint adaptation replaced "+disp(x)+" with readImm(x).";
   }
   public static Why weakenedToRead(T in){
-    return (x,expected,got,declared,bs)->"Viewpoint adaptation weakened " + Message.displayString(x) + " to read.";
+    return (x, _, _, _, _)->"Viewpoint adaptation weakened "+disp(x)+" to read.";
   }
-  public static Why filterFTVWhy(T in, List<B> bs0){
-    var scope= bs0.stream().map(B::x).distinct().sorted().toList();
+  // in TypeSystemErrors (same "shown/instance" problem; also avoid precomputing outside the lambda)
+  public static Why filterFTVWhy(Literal l, T atDrop){ return (x, _, _, _, _)->{
+    boolean instance= isAnon(l);
+    String lit= instance ? disp(l.name().s()) : disp(l.cs().getFirst().name().s());
+    var scope= l.bs().stream().map(B::x).distinct().sorted().toList();
     var scopeSet= new HashSet<>(scope);
     var ftv= new HashSet<String>();
-    addFtv(in, ftv);
-    String missing= Join.of(ftv.stream().filter(x->!scopeSet.contains(x)).sorted(),"",", ","");
-    String scopeS= Join.of(scope,"",", ","");
-    return (x,expected,got,declared,bs)->{
-      String xn= Message.displayString(x);
-      String td= Message.displayString(declared.toString());
-      return "The parameter " + xn + " (declared as " + td + ") is hidden because its type mentions type variable(s) ["
-        + missing + "] which are not in scope here.\n"
-        + "Type variables in scope: [" + scopeS + "].";
-      };
+    addFtv(atDrop, ftv);
+    var missing= ftv.stream().filter(v->!scopeSet.contains(v)).sorted().map(Err::disp).toList();
+    assert !missing.isEmpty();
+    int line= l.pos().line();
+    String where= (instance ? "inside instance of"+lit : "inside "+lit) + "(line "+line+").\n";
+    return disp(x)+" cannot be captured "+where
+      + "Here "+disp(x)+" has type "+disp(atDrop)+Join.of(missing,", which mentions type variable(s) "," and ",".\n")
+      + "Add those type variables to the object literal header.";
+  };} 
+  private static void addFtv(T t, HashSet<String> out){ switch(t){
+    case T.X x -> out.add(x.name());
+    case T.RCX(_, var x) -> out.add(x.name());
+    case T.ReadImmX(var x) -> out.add(x.name());
+    case T.RCC(_, var c) -> c.ts().forEach(ti->addFtv(ti,out));
+  }}
+  public static Why discardWhy(Literal l, M m, T atDrop){ return (x, _, _, _, _)->{
+    boolean bad= l.rc() == RC.iso || l.rc() == RC.imm;
+    boolean instance= isAnon(l);
+    int line= m.sig().span().inner.startLine();
+    String ms= methodSig(m.sig().rc()+" ", m.sig().m());
+    String lit= instance 
+      ? disp(l.cs().getFirst().name().s())
+      : disp(l.name().s());
+    String where= instance ? "inside instance of "+lit : "inside "+lit;
+    String base= disp(x)+" cannot be captured in the method body of "+ms+" (line "+line+" "+where+").\n";
+    if (bad){
+      return base
+        + "The "+lit+" literal is "+disp(l.rc())+", thus "+disp(atDrop)+" cannot be captured inside of it.\n"
+        + "Hint: capture an immutable copy instead, or move this use outside the object literal.\n";
     }
-  private static void addFtv(T t, HashSet<String> out){
-    switch(t){
-      case T.X x -> out.add(x.name());
-      case T.RCX(_, var x) -> out.add(x.name());
-      case T.ReadImmX(var x) -> out.add(x.name());
-      case T.RCC(_, var c) -> c.ts().forEach(ti->addFtv(ti,out));
-    }
-  }
+    return base+disp(atDrop)
+      + " violates reference capability constraints here, so the parameter is not available.";
+  };}
+  //Sadly no other way to guess if it was anonymous (maybe using Source oracle and the position to peek if the name is there, but brittle, comments and strings could be false positives.
+  private static boolean isAnon(Literal l){ return l.name().simpleName().startsWith("_"); } 
 }

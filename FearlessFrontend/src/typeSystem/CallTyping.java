@@ -73,7 +73,10 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var res= ts.typeOf(bs,g,es.get(argi),reqs);
     assert res.size() == app.size();
     var ok= okSet(res);
-    if (ok.isEmpty()){ throw TypeSystemErrors.methodHopelessArg(c,argi,reqs,res); }
+    if (ok.isEmpty()){
+      var diag= TypeSystemErrors.argDiagForCallArg(es.get(argi), reqs, g::bind, ts::isSub,bs);
+      throw TypeSystemErrors.methodHopelessArg(c,argi,reqs,res,diag);
+    }
     acc.okByArg().add(ok);
     acc.resByArg().add(res);
   }

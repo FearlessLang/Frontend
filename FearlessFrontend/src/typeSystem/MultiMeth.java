@@ -59,7 +59,7 @@ class MultiMeth{
     var tsi= IntStream.range(0, m.ts().size())
       .mapToObj(j->modeF(d,m.ts().get(j), j == i ? Mode.hyg : Mode.flexy, F.glb)).toList();
     var t= modeF(d,m.t(), Mode.hyg, F.lub);
-    add(out,new MType("Allow mutH (arg"+i+")", Mode.flexy.of(m.rc()), tsi, t));
+    add(out,new MType("`Allow mutH (arg"+i+")`", Mode.flexy.of(m.rc()), tsi, t));
   }
   private static MType apply(String promotion, List<B> d, MType m, Mode modeP, F fP, Mode modeR, F fR){
     List<T> ts= m.ts().stream().map(ti->modeF(d,ti,modeP,fP)).toList();

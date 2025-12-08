@@ -947,7 +947,7 @@ In file: [###]/in_memory0.fear
 001| package p;
    | ... 2 lines ...
 004| B[X]:A{.id[X](b:Box[X])->b.get} // class X vs method X
-   | -------~~~~^~~~~~~~~~~~--------
+   |        ~~~~^~~~~~~~~~~~-------
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > type declaration > full file
 Name "X" already in scope.

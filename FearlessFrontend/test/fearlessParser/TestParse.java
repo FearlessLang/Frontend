@@ -93,7 +93,7 @@ Pair[X,X]:{ .x:X; .y:X;}
 In file: [###]/in_memory0.fear
 
 001| Pairs:{.of[X,X]():A->A;}
-   | ------~^^^^^^^^^^^^~~~~~
+   |       -^^^^^^^^^^^^~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple generic type parameters with the same name
@@ -106,7 +106,7 @@ Pairs:{.of[X,X]():A->A;}
 In file: [###]/in_memory0.fear
 
 001| Pairs:{#[X,X]():A->A;}
-   | ------~^^^^^^^^^^~~~~~
+   |       -^^^^^^^^^^~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple generic type parameters with the same name
@@ -119,7 +119,7 @@ Pairs:{#[X,X]():A->A;}
 In file: [###]/in_memory0.fear
 
 001| Pair[X,Y]:{ .x:X; .y:Y; .foo[X](x:X):X; }
-   | ------------------------~~~~~^~~~~~~~~---
+   |           --------------~~~~~^~~~~~~~~---
 
 While inspecting generic bounds declaration > method declaration > type declaration body > type declaration > full file
 Name "X" already in scope.
@@ -132,7 +132,7 @@ Pair[X,Y]:{ .x:X; .y:Y; .foo[X](x:X):X; }
 In file: [###]/in_memory0.fear
 
 001| A:{.foo[X]:A->B:{.bar[X]:B->B}; }
-   | --------------~~~~~~~~^~~~~~~~---
+   |                  ~~~~~^~~~---
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Name "X" already in scope.
@@ -149,7 +149,7 @@ A[X]:{.foo:AA->B[X]:{.bar:BB->BB}; }
 In file: [###]/in_memory0.fear
 
 001| A[X]:{.foo:AA->B[C]:{.bar:BB->BB}; }
-   | ---------------~~^~~~~~~~~~~~~~~~---
+   |       ---------~~^~~~~~~~~~~~~~~~
 
 While inspecting generic bounds declaration > method body > method declaration > type declaration body > type declaration > full file
 Generic type "C" is not in scope.
@@ -184,7 +184,7 @@ A:{ `x .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
 In file: [###]/in_memory0.fear
 
 001| A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be this or nothing
-   | ~~~~~^^^~~~~~~~~~~~~~~~~~--------------------------------------------------------
+   | --~~~^^^~~~~~~~~~~~~~~~~~
 
 While inspecting type declaration body > type declaration > full file
 Self name "abc" is invalid in a top level type.
@@ -451,7 +451,7 @@ A:{ .m -> (Block#.let x={5}.bar) .use(5) }
 In file: [###]/in_memory0.fear
 
 001| A:{ .m(): -> (Block#.let x={5}) .use(x) }
-   | ----~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~--
+   |     ~~~~^------------------------------
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
@@ -464,7 +464,7 @@ A:{ .m(): -> (Block#.let x={5}) .use(x) }
 In file: [###]/in_memory0.fear
 
 001| A:{ .m -> (Block#.let x={5}) .use(x) }
-   | ----------~~~~~~~~~~~~~~^^^~----------
+   |           ~~~~~~~~~~~~~~^^^~--------
 
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Missing method name.
@@ -478,7 +478,7 @@ A:{ .m -> (Block#.let x={5}) .use(x) }
 In file: [###]/in_memory0.fear
 
 001| A:{ .m -> (Block#.let x={5}.bar) .use(x) }
-   | ----------~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~--
+   |     ------~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Name "x" is not in scope
@@ -545,7 +545,7 @@ A:{ .m ->
 In file: [###]/in_memory0.fear
 
 001| A:{ .m(a,,b):C }
-   | ----~~~~^~~~~~--
+   |   --~~~~^~~~~~--
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
 Missing type name.
@@ -559,7 +559,7 @@ A:{ .m(a,,b):C }
 In file: [###]/in_memory0.fear
 
 001| A:{ .m(x:C):C->x.foo(,) }
-   | ---------------~~~~~~^~--
+   |     -----------~~~~~~^~
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
@@ -789,7 +789,7 @@ A: a b c } f e
 In file: [###]in_memory0.fear
 
 001| A:{ .m -> :+45 }
-   | ----~~~~~~^~~~--
+   |   --~~~~~~^~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Missing expression.
@@ -832,7 +832,7 @@ A:{ .m -> +|`a'
 In file: [###]in_memory0.fear
 
 001| A:{ .m -> readH +5{} }
-   | ----~~~~~~^^^^^~~~~~--
+   |     ------^^^^^~~~~~
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Capability readH used.
@@ -846,7 +846,7 @@ A:{ .m -> readH +5{} }
 In file: [###]in_memory0.fear
 
 001| A:{ .m -> mutH -5{} }
-   | ----~~~~~~^^^^~~~~~--
+   |     ------^^^^~~~~~
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Capability mutH used.
@@ -860,7 +860,7 @@ A:{ .m -> mutH -5{} }
 In file: [###]in_memory0.fear
 
 001| A:{ .m -> Block#.let x= .use(x) }
-   | ----------~~~~~~~~~~~~~~^^^^^^^--
+   |     ------~~~~~~~~~~~~~~^^^^^^^
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
@@ -874,7 +874,7 @@ A:{ .m -> Block#.let x= .use(x) }
 In file: [###]in_memory0.fear
 
 001| A:{ .m(x,x) -> x }
-   | ----^^^^^^^~~~~~--
+   |   --^^^^^^^~~~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple parameters with the same name
@@ -922,7 +922,7 @@ A[X:***]:{}
 In file: [###]/in_memory0.fear
 
 001| A:{ .m(x,x) -> x }
-   | ----^^^^^^^~~~~~--
+   |   --^^^^^^^~~~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple parameters with the same name
@@ -937,7 +937,7 @@ A:{ .m(x,x) -> x }
 In file: [###]/in_memory0.fear
 
 001| A:{ .m({.a} Bob:X):X }
-   | -------~~~~~^^^~~-----
+   |     ---~~~~~^^^~~---
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
 Found spacing between closed curly and destruct id "Bob".
@@ -1090,7 +1090,7 @@ In file: [###]/in_memory0.fear
 
 002| .m:Str ->
 003| #|`Head {     ( /*a*/ (Block#.let x= .use(x)) /*bb*/ ) } Tail
-   | --------------~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^~~~~~~~~~~-------
+   |               --------~~~~~~~~~~~~~~~^^^^^^^~---------
 
 While inspecting expression in round parenthesis > expression in round parenthesis > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
@@ -1890,7 +1890,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 001| A:{ .m -> 1+2 }
-   | ----~~~~~~~^^--
+   |   --~~~~~~~^^--
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Here "+2" is seen as a single signed literal, not as a +/- operator followed by a literal.
@@ -2851,7 +2851,7 @@ A:{}
 In file: [###]/in_memory0.fear
 
 001| package foo_bar beer baz;
-   | ----------------^^^^~~~~-
+   | ----------------^^^^~~~~
 002| A:{}
 
 While inspecting header element > file header > full file
@@ -2941,7 +2941,7 @@ A: base.Main{ }
 In file: [###]/in_memory0.fear
 
 001| A: base.Main{ .foo->A .beer->B}
-   | --------------~~~~~~~~~~~~~^^~-
+   |             --~~~~~~~~~~~~~^^~-
 
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
@@ -3254,7 +3254,7 @@ A:{ .m:Str -> "bad: {}" } // just curly
 In file: [###]/in_memory0.fear
 
 001| A:{ .m:foo._Bar }
-   | ----~~~^^^^^^^^--
+   |   --~~~^^^^^^^^--
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Code is attempting to use private name "_Bar" from package "foo".
@@ -3320,7 +3320,7 @@ A:{ mut .foo:Bar }
 In file: [###]/in_memory0.fear
 
 001| A:{ iso .foo:Bar }
-   | ----^^^~~~~~~~~~--
+   |   --^^^~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Capability iso used.
@@ -3334,7 +3334,7 @@ A:{ iso .foo:Bar }
 In file: [###]/in_memory0.fear
 
 001| A:{ readH .foo:Bar }
-   | ----^^^^^~~~~~~~~~--
+   |   --^^^^^~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Capability readH used.
@@ -3349,7 +3349,7 @@ A:{ readH .foo:Bar }
 In file: [###]/in_memory0.fear
 
 001| A:{ mutH .foo:Bar }
-   | ----^^^^~~~~~~~~~--
+   |   --^^^^~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Capability mutH used.
@@ -3583,7 +3583,7 @@ A:B{'this .foo->this }
 In file: [###]/in_memory0.fear
 
 001| A:{ { .foo x:Bar->B; } }
-   | ----~~^^^^^^^^^^^^^~~~--
+   |   --~~^^^^^^^^^^^^^~~~--
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
@@ -3597,7 +3597,7 @@ A:{ { .foo x:Bar->B; } }
 In file: [###]/in_memory0.fear
 
 001| A:{ { mut .foo->B; } }
-   | ----~~^^^^^^^^^^^~~~--
+   |   --~~^^^^^^^^^^^~~~--
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
@@ -3610,7 +3610,7 @@ A:{ { mut .foo->B; } }
 In file: [###]/in_memory0.fear
 
 001| A:{ { .foo[X]->B; } }
-   | ----~~^^^^^^^^^^~~~--
+   |   --~~^^^^^^^^^^~~~--
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
@@ -3623,7 +3623,7 @@ A:{ { .foo[X]->B; } }
 In file: [###]/in_memory0.fear
 
 001| A:{ { mut .foo(x:Bar)->B; } }
-   | ----~~^^^^^^^^^^^^^^^^^^~~~--
+   |   --~~^^^^^^^^^^^^^^^^^^~~~--
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
@@ -3651,7 +3651,7 @@ A:{ .t[X](x:mut X, y:read/imm X):X -> x }
 In file: [###]/in_memory0.fear
 
 001| A:{ .t[Y](x:mut X, y:read/imm X):X -> x }
-   | -------------------~~~~~~~~~~~^----------
+   |     ---------------~~~~~~~~~~~^---
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Generic type "X" is not in scope.
@@ -3685,7 +3685,7 @@ A:{
 In file: [###]/in_memory0.fear
 
 001| A:{ { .foo:Bar -> :: .a } }
-   | ----~~^^^^^^^^^^^^^^^^^~~--
+   |   --~~^^^^^^^^^^^^^^^^^~~--
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
@@ -3698,7 +3698,7 @@ A:{ { .foo:Bar -> :: .a } }
 In file: [###]/in_memory0.fear
 
 001| A:{ { mut .foo -> :: .a } }
-   | ----~~^^^^^^^^^^^^^^^^^~~--
+   |   --~~^^^^^^^^^^^^^^^^^~~--
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 A literal signature can only be either fully typed or fully untyped.
@@ -3836,7 +3836,7 @@ User:{
 In file: [###]/in_memory0.fear
 
 001| Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
-   | --------------------~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^~~--
+   |                     ------~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^~~
    | ... 2 lines ...
 004| User2:{.bla(p:Point):base.Void->Absorb#p.x;}
 
@@ -3859,7 +3859,7 @@ User2:{.bla(p:Point):base.Void->Absorb#p.x;}
 In file: [###]/in_memory0.fear
 
 001| Foo:{ .m : Point -> Point:{ x():base.Nat->0; y:base.Nat->0;} }
-   | --------------------------~~^^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~--
+   |                             ^^^~~~~~~~~~---
    | ... 2 lines ...
 004| User2:{.bla(p:Point):base.Void->Absorb#p.x;}
 

@@ -144,18 +144,10 @@ public record Message(String msg, int priority){
 
     return new Grouping(file, chosenSingles, firstMulti, caretLine);
   }
-
   private static List<Span> pickUpToThree(List<Span> singles){
-    if (singles.size() <= 3) return List.copyOf(singles.reversed());
-    Span first = singles.getFirst(), last = singles.getLast();
-    double avg = (lenInclusive(first) + lenInclusive(last)) / 2.0;
-    Span mid = singles.subList(1, singles.size()-1).stream()
-      .min(Comparator.comparingDouble(s -> Math.abs(lenInclusive(s) - avg)))
-      .orElse(singles.get(1));
-    return List.of(last,mid,first);
+    var distinct = singles.stream().distinct().limit(3).toList();
+    return List.copyOf(distinct.reversed());
   }
-  private static int lenInclusive(Span s){ return Math.max(1, s.endCol() - s.startCol() + 1); }
-
   // ===== Phase 4: caret line construction =======================================
   
   // ===== Phase 5: final rendering ===============================================
