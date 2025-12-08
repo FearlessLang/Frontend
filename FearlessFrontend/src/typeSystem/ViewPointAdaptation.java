@@ -2,18 +2,11 @@ package typeSystem;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-
-import core.B;
-import core.M;
-import core.T;
-import core.E.Literal;
+import core.*;
+import core.E.*;
 import fearlessParser.RC;
 import message.TypeSystemErrors;
 import typeSystem.Change.*;
-import static offensiveUtils.Require.*;
-
 import static fearlessParser.RC.*;
 
 public record ViewPointAdaptation(Kinding k){

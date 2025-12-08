@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import inference.DbgBlock;
@@ -273,15 +272,27 @@ B:{ }
 B:{ mut .bar:B }
 A:{ mut .baz(b: B):B->{}; }
 """));}
-@Disabled @Test void uncallableMethodFail(){fail("""
+@Test void uncallableMethodFail(){fail("""
+003| A:{ mut .baz(b: B):B->{ .bar->b}; }
+   |     --------------------^^^^^^^-
 
+While inspecting the body of method ".baz(_)"
+Method "mut .bar" can never be called (dead code).
+The object literal instance of "p.B" at line 3 is "imm".
+Method "mut .bar" requires a "mut" receiver, which cannot be obtained from a "imm" object.
+Hint: remove the implementation of method "mut .bar".
 """,List.of("""
 B:{ mut .bar:B }
 A:{ mut .baz(b: B):B->{ .bar->b}; }
 """));}
+@Test void methodReceiverNotRcc(){fail("""
+004|   .bar[X:imm,mut,read](x:X):A->x.foo123;
+   |   -----------------------------~^^^^^^^
 
-@Disabled @Test void methodReceiverNotRcc(){fail("""
-
+While inspecting the body of method ".bar(_)"
+This call to method ".foo123" does not type-check.
+The receiver is the type parameter "X".
+Type parameters cannot be receivers of method calls.
 """,List.of("""
 A:{
   .foo123:A->this.foo123;
@@ -289,8 +300,14 @@ A:{
 }
 """));}
 
-@Disabled @Test void methodTArgsArityError(){fail("""
+@Test void methodTArgsArityError(){fail("""
+004|   .bar:A->this.id[A,A](this);
+   |   --------~~~~^^^^~~~~~~~~~~
 
+While inspecting the body of method ".bar"
+This call to method ".id(_)" does not type-check.
+Wrong number of type arguments for ".id(_)".
+This method expects 1 type argument, but this call provides 2 type arguments.
 """,List.of("""
 A:{
   .id[X:imm,mut,read](x:X):X->x;
@@ -339,7 +356,7 @@ The parameter "aaaa" is not available here.
 
 The parameter "aaaa" has declared type "mut p.A".
 "aaaa" cannot be captured in the method body of "imm .foo" (line 5 inside "p.BB").
-The "p.BB" literal is "imm", thus "mut p.A" cannot be captured inside of it.
+The literal "p.BB" is "imm", thus "mut p.A" cannot be captured inside of it.
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 """,List.of("""
 Skip:{#[X:**](X):B->B}
@@ -358,7 +375,7 @@ The parameter "aaaa" is not available here.
 
 The parameter "aaaa" has declared type "mut p.A".
 "aaaa" cannot be captured in the method body of "imm .foo" (line 5 inside instance of "p.B").
-The "p.B" literal is "imm", thus "mut p.A" cannot be captured inside of it.
+The literal instance of "p.B" is "imm", thus "mut p.A" cannot be captured inside of it.
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 """,List.of("""
 Skip:{#[X:**](X):B->B}

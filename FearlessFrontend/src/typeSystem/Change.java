@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import core.*;
-import core.E.*;
 
 public sealed interface Change{
   Optional<T> view();

@@ -90,7 +90,7 @@ public record TypeSystem(ViewPointAdaptation v){
   private List<TResult> checkLiteral(List<B> bs1, Gamma g, Literal l, List<TRequirement> rs){
     var ts= l.bs().stream().<T>map(b->new T.X(b.x())).toList();
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
-    ms.forEach(m->checkCallable(l.rc(),m));
+    ms.forEach(m->checkCallable(l,m));
     l.ms().forEach(m->checkImplemented(l.rc(),m));
     T thisType= new T.RCC(l.rc(),new T.C(l.name(),ts));
     assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x())));
@@ -106,9 +106,10 @@ public record TypeSystem(ViewPointAdaptation v){
     if (!callable(litRC,m.sig().rc())){ return; }
     throw TypeSystemErrors.callableMethodAbstract(m.sig().span(), m, litRC);
   }
-  private void checkCallable(RC litRC, M m){
+  private void checkCallable(Literal l, M m){
+    RC litRC= l.rc();
     if (callable(litRC,m.sig().rc())){ return; }
-    throw TypeSystemErrors.uncallableMethodDeadCode(m.sig().span(), m, litRC);
+    throw TypeSystemErrors.uncallableMethodDeadCode(m.sig().span(), m, l);
   }
   private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC !=RC.read); }
 

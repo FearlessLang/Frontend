@@ -253,6 +253,7 @@ public record InjectionSteps(Methods meths){
   private List<IT> newTargs(E.Call c, List<E> es, MSigL m){
     int n= m.bsArity();
     if (n == 0){ return List.of(); }
+    if (c.targs().size()!= n){ return c.targs(); } //Note: this will eventually become an error at type system time.
     assert c.targs().isEmpty() || c.targs().size() == n;
     List<String> methXs= m.methXs();
     var a= IntStream.range(0, c.es().size())
@@ -441,7 +442,7 @@ record MSigL(RC rc, List<String> xs, List<IT> clsArgs, List<IT> ps0, IT ret0){
   IT p(int i, List<IT> targs){ return inst(ps0.get(i), targs); }
   IT ret(List<IT> targs){ return inst(ret0, targs); }
   private IT inst(IT t, List<IT> targs){
-    assert targs.size() == bsArity();
+    if (targs.size() != bsArity()){ return t; }//Note: this will eventually become an error at type system time.
     var ts= Push.of(clsArgs,targs);
     return TypeRename.of(t, xs, ts);
   }

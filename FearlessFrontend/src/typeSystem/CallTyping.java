@@ -46,7 +46,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     Sig sig= ms.getFirst();
     assert sig.ts().size() == c.es().size();//ensured by well formedness
     if (sig.bs().size() == c.targs().size()){ return sig; }
-    throw TypeSystemErrors.methodTArgsArityError(c);
+    throw TypeSystemErrors.methodTArgsArityError(c,sig.bs().size());
   } 
   private MType baseMType(T.C c0, Literal d, Sig sig){
     var xs= Stream.concat(d.bs().stream(),sig.bs().stream()).map(B::x).toList();
