@@ -37,6 +37,5 @@ public class LiteralDeclarations {
     if (TokenKind.isKind(s,TokenKind.SignedFloat)){ return of(name,baseFloat); }
     if (TokenKind.isKind(s,TokenKind.SignedRational)){ return of(name,baseNum); }    
     throw Bug.unreachable();
-
   }
 }

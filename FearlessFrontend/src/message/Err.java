@@ -2,6 +2,8 @@ package message;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import core.*;
@@ -16,10 +18,19 @@ final class Err{
   static Err of(){ return new Err(); }
   static String disp(Object o){ return Message.displayString(o.toString()); }
   String text(){ return sb.toString().stripTrailing(); }
-  FearlessException ex(){ return Code.TypeError.of(text()); }
+  FearlessException ex(pkgmerge.Package pkg, E e){
+    Map<String,String> map= pkg.map().entrySet().stream()
+      .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+    var ee= new CompactPrinter(pkg.name(),map).limit(e,120);
+    line("\nRelevant code with inferred types:");
+    line(ee);
+    return Code.TypeError.of(text());
+  }
   Err line(String s){
+    assert !s.isEmpty();
+    assert sb.lastIndexOf("\n") == sb.length()-1;
     s= s.stripTrailing();
-    sb.append(s).append(s.isEmpty() ? "" : "\n");
+    sb.append(s).append("\n");
     return this;
   }
   Err blank(){
@@ -28,12 +39,6 @@ final class Err{
     if (n >= 2 && sb.charAt(n-1) == '\n' && sb.charAt(n-2) == '\n'){ return this; }
     if (sb.charAt(n-1) != '\n'){ sb.append('\n'); }
     sb.append('\n');
-    return this;
-  }
-  Err lineIf(String s){ return s.isEmpty() ? this: line(s); }
-  Err blockIf(String s){
-    s= s.stripTrailing();
-    sb.append(s);
     return this;
   }
   Err pArgsDisagreeIntro(){ return line("Each argument is compatible with at least one promotion, but no single promotion works for all arguments."); }
@@ -58,7 +63,7 @@ final class Err{
   }
   Err pMethodContext(String kind, Sig s, String where){
     line(kind+" for method "+methodSig(s.m())+".");
-    return lineIf(where.isEmpty() ? "" : "In "+disp(where)+".");
+    return where.isEmpty() ? this : line("In "+disp(where)+".");
   }
   Err pArgIncompatibleAllPromos(int argi){
     return line(argLabel(argi)+" is incompatible with all available promotions.");
@@ -111,12 +116,12 @@ final class Err{
       case DECLARED_OK_THIS_EXPECTED -> "Note: the declared type "+dd+" is a subtype of "+ee+".";
       case DECLARED_NOT_OK_THIS_EXPECTED -> "Note: the declared type "+dd+" is also not a subtype of "+ee+".";
     };
-    return lineIf(note);
+    return note.isEmpty() ? this: line(note);
   }
   private Err pArgDiagWhy(TypeSystemErrors.ArgDiag d){
     T expected= d.expected().orElse(d.declared());
     String w= d.why().render(d.x(), expected, d.got(), d.declared(), d.bs());
-    return blockIf(w);
+    return w.isEmpty() ? this : line(w);
   }
   Err lineGotMsg(T got, T expected){ return line(gotMsg(got, expected)); }
   static String methodSig(MName m){ return methodSig("",m); }

@@ -24,9 +24,11 @@ import utils.Push;
 import core.E.*;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
+import pkgmerge.Package;
 
 public record TypeSystem(ViewPointAdaptation v){
   Kinding k(){ return v.k(); }
+  TypeSystemErrors err(){ return v.k().err(); }
   Function<TName,Literal> decs(){ return v.k().decs(); }
   public record TRequirement(String reqName,T t){}
   public record MType(String promotion,RC rc,List<T> ts,T t){
@@ -34,12 +36,12 @@ public record TypeSystem(ViewPointAdaptation v){
   }
   List<MType> multiMeth(List<B> bs1, MType mType){ return MultiMeth.of(bs1,mType); }
 
-  public static void allOk(List<Literal> tops, OtherPackages other){
+  public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
     var map= AllLs.of(tops);
     Function<TName,Literal> decs= n->{
       var res= map.get(n);
       return res != null ? res : other.of(n); };
-    var ts= new TypeSystem(new ViewPointAdaptation(new Kinding(decs)));
+    var ts= new TypeSystem(new ViewPointAdaptation(new Kinding(decs,new TypeSystemErrors(pkg))));
     tops.forEach(l->ts.litOk(Gamma.empty(),l));
   }
   public boolean isSub(List<B> bs, T t1, T t2){
@@ -53,7 +55,7 @@ public record TypeSystem(ViewPointAdaptation v){
     var out= typeOf(bs,g,e,rs);
     assert out.size() == 1;
     if (out.getFirst().success()){ return; }
-    throw TypeSystemErrors.typeError(e,out,rs);
+    throw err().typeError(e,out,rs);
   }
   List<TResult> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch(e){
     case X x -> checkX(bs,g,x,rs);
@@ -66,7 +68,7 @@ public record TypeSystem(ViewPointAdaptation v){
     T declared= b.declared();
     var cur= b.current();
     var v= cur.view();
-    if (v.isEmpty()){ throw TypeSystemErrors.nameNotAvailable(x, declared, cur.why(), bs); }
+    if (v.isEmpty()){ throw err().nameNotAvailable(x, declared, cur.why(), bs); }
     T got= v.get();
     if (rs.isEmpty()){ return List.of(new TResult("",got,"")); }
     return rs.stream().map(r->{
@@ -74,7 +76,7 @@ public record TypeSystem(ViewPointAdaptation v){
       if (isSub(bs,got,expected)){ return new TResult(r.reqName(),got,""); }
       boolean declaredOk= isSub(bs,declared,expected);
       return new TResult(r.reqName(),got,
-        TypeSystemErrors.xMismatch(x.name(), expected, got, declared, cur.why(), declaredOk, bs));
+        err().xMismatch(x.name(), expected, got, declared, cur.why(), declaredOk, bs));
     }).toList();
   }
   private List<TResult> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
@@ -84,32 +86,32 @@ public record TypeSystem(ViewPointAdaptation v){
     if (rs.isEmpty()){ return List.of(new TResult("",got,"")); }
     return rs.stream().map(r->isSub(bs,got,r.t())
       ? new TResult(r.reqName(),got,"")
-      : new TResult(r.reqName(),got,TypeSystemErrors.gotMsg(got, r.t()))).toList();
+      : new TResult(r.reqName(),got,err().gotMsg(got, r.t()))).toList();
   }//TODO: ideally, can we get a readable representation of the e? the name for x, the meth name for call, the type for Type and the Type (or implemented single interface if type is anon) for lambda
   
   private List<TResult> checkLiteral(List<B> bs1, Gamma g, Literal l, List<TRequirement> rs){
     var ts= l.bs().stream().<T>map(b->new T.X(b.x())).toList();
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     ms.forEach(m->checkCallable(l,m));
-    l.ms().forEach(m->checkImplemented(l.rc(),m));
+    l.ms().forEach(m->checkImplemented(l,m));
     T thisType= new T.RCC(l.rc(),new T.C(l.name(),ts));
     assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x())));
-    k().check(bs1,thisType);
+    k().check(l,bs1,thisType);
     litOk(g.filterFTV(l),l);
     return reqs(bs1,thisType,rs);
   }
   private List<TResult> checkCall(List<B> bs,Gamma g,Call c, List<TRequirement> rs){
     return new CallTyping(this,bs,g,c,rs).run();
   }
-  private void checkImplemented(RC litRC, M m){
+  private void checkImplemented(Literal l, M m){
     if (!m.sig().abs()){ return; }
-    if (!callable(litRC,m.sig().rc())){ return; }
-    throw TypeSystemErrors.callableMethodAbstract(m.sig().span(), m, litRC);
+    if (!callable(l.rc(),m.sig().rc())){ return; }
+    throw err().callableMethodAbstract(m.sig().span(), m, l);
   }
   private void checkCallable(Literal l, M m){
     RC litRC= l.rc();
     if (callable(litRC,m.sig().rc())){ return; }
-    throw TypeSystemErrors.uncallableMethodDeadCode(m.sig().span(), m, l);
+    throw err().uncallableMethodDeadCode(m.sig().span(), m, l);
   }
   private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC !=RC.read); }
 
@@ -127,20 +129,20 @@ public record TypeSystem(ViewPointAdaptation v){
     //assert l.ms().stream().map(M::sig).allMatch(s->sources.containsKey(new Key(s.m(),s.rc())));
     //overrideOk(l,sources);  implementOk(l,sources);
     sources.forEach((k,group)->methodTableOk(l,k,group));
-    l.cs().stream().map(c->new T.RCC(RC.mut,c)).forEach(c->k().check(delta,c));
+    l.cs().stream().map(c->new T.RCC(RC.mut,c)).forEach(c->k().check(l,delta,c));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT));
     l.ms().forEach(m->{
       Gamma g2= v().of(g1,delta,l,m);//passing l and m instead of their RC for better errors
-      methOk(delta,g2,m);
+      methOk(l,delta,g2,m);
     });
   }
-  private void methOk(List<B> delta, Gamma g, M m){
+  private void methOk(Literal forErr,List<B> delta, Gamma g, M m){
     var allBs= Push.of(delta,m.sig().bs());
-    m.sig().ts().forEach(t->k().check(allBs,t));
-    k().check(allBs,m.sig().ret());
+    m.sig().ts().forEach(t->k().check(forErr,allBs,t));
+    k().check(forErr,allBs,m.sig().ret());
     if(m.e().isEmpty()){ return; }
     try{ bodyOk(allBs,g,m); }
-    catch(FearlessException fe){ throw TypeSystemErrors.mCallFrame(m, fe); }
+    catch(FearlessException fe){ throw err().mCallFrame(m, fe); }
   }
   private void bodyOk(List<B> delta, Gamma g, M m){
     var ts= m.sig().ts();
@@ -149,7 +151,7 @@ public record TypeSystem(ViewPointAdaptation v){
     check(delta,g,m.e().get(),m.sig().ret());
     for(int i= 0; i < xs.size(); i++){
       var isAffine= !k().of(delta,ts.get(i),EnumSet.of(mut,read,mutH,readH,imm));
-      if (isAffine){ Affine.usedOnce(xs.get(i),m.e().get()); }
+      if (isAffine){ Affine.usedOnce(err(),m,xs.get(i),m.e().get()); }
     }
   }  
   private List<T> dom(List<B> bs){ return bs.stream().<T>map(b->new T.X(b.x())).toList(); }
@@ -202,7 +204,7 @@ public record TypeSystem(ViewPointAdaptation v){
     assert mostSpecificByOrigin(group,chosen);
     assert absPreserved(chosen);//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s->s.origin().equals(chosen.origin())).allMatch(s->chosen.abs() == s.abs());
-    for(var s:group){ sigSub(l.bs(),chosen,s); }
+    for(var s:group){ sigSub(l,chosen,s); }
     assert concreteConflictsSolved(group,chosen);
   }
   private boolean concreteConflictsSolved(List<Sig> group,Sig chosen){
@@ -236,23 +238,23 @@ public record TypeSystem(ViewPointAdaptation v){
     return false;
   }
 
-  private void sigSub(List<B> ctx, Sig sub, Sig sup){
+  private void sigSub(Literal l, Sig sub, Sig sup){
     var bsSub= sub.bs();
     var bsSup= sup.bs();
     assert bsSub.size() == bsSup.size();//TODO: if we can trigger this, then we have problems in Sources.canonical
     for (int i= 0; i < bsSub.size(); i++){
       var badBounds= !bsSub.get(i).rcs().equals(bsSup.get(i).rcs());
-      if (badBounds){ throw TypeSystemErrors.overrideMismatch(sub, sup, "Generic bounds mismatch for " + bsSub.get(i).x()); }
+      if (badBounds){ throw err().overrideMismatch(l,sub, sup, "Generic bounds mismatch for " + bsSub.get(i).x()); }
     }
     assert bsSub.equals(bsSup);
-    ctx= Push.of(ctx,bsSub);
+    List<B> ctx= Push.of(l.bs(),bsSub);
     var badArity= sup.ts().size() != sub.ts().size();
-    if (badArity){ throw TypeSystemErrors.overrideMismatch(sub,sup, "Arity mismatch"); }
+    if (badArity){ throw err().overrideMismatch(l,sub,sup, "Arity mismatch"); }
     for (int i= 0; i < sub.ts().size(); i++){
       var badArg= !isSub(ctx, sup.ts().get(i), sub.ts().get(i));
-      if (badArg){ throw TypeSystemErrors.overrideMismatch(sub,sup, "Argument " + i + " type mismatch (contravariance violation)"); }
+      if (badArg){ throw err().overrideMismatch(l,sub,sup, "Argument " + i + " type mismatch (contravariance violation)"); }
     }
     var badRet= !isSub(ctx, sub.ret(), sup.ret());
-    if (badRet){ throw TypeSystemErrors.overrideMismatch(sub, sup, "Return type mismatch (covariance violation)"); }
+    if (badRet){ throw err().overrideMismatch(l,sub, sup, "Return type mismatch (covariance violation)"); }
   }
 }

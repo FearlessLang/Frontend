@@ -5,18 +5,17 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
 
-import core.B;
-import core.E.Literal;
-import core.T;
+import core.*;
+import core.E.*;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import message.TypeSystemErrors;
 
-public record Kinding(Function<TName,Literal> decs){
-  public void check(List<B> bs, T t){ check(bs,t,EnumSet.allOf(RC.class)); }
-  public void check(List<B> bs, T t,EnumSet<RC> allowed){
+public record Kinding(Function<TName,Literal> decs, TypeSystemErrors err){
+  public void check(E toErr,List<B> bs, T t){ check(toErr,bs,t,EnumSet.allOf(RC.class)); }
+  public void check(E toErr, List<B> bs, T t, EnumSet<RC> allowed){
     if (of(bs, t, allowed)){ return; }
-    throw TypeSystemErrors.notKinded(t);
+    throw err.notKinded(toErr,t);
   }
   public boolean of(List<B> bs, T t, EnumSet<RC> allowed){ return switch(t){
     case T.RCC rcc -> ofRCC(bs, rcc, allowed);

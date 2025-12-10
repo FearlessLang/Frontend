@@ -3873,6 +3873,16 @@ Absorb:{ #[T]:base.Void->base.Void; }
 User1:{.bla(p:Point):base.Void->Absorb#p;}
 User2:{.bla(p:Point):base.Void->Absorb#p.x;}
 """);}
-
+@Test void partialGenInstantiation(){ok("""
+[###]name=A/0[###]#CallSquare[rc=Optional.empty,ts=[RCC[rc=Optional[read],c=C[name=A/0,ts=Optional.empty]]]][###]
+""","""
+Skip:{#[X:**](X):B->B}
+Id:{#[X:**](x:X):X->x}
+B:{}
+A:{
+  .f(aaaa:mut A):read B->read BB:B{
+    read .foo:B->Skip#[read A](Id#[read A](aaaa));
+  }}
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

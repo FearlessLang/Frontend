@@ -23,10 +23,10 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var base= baseMType(rcc0.c(),d,sig);
     var promos= ts.multiMeth(bs,base);
     var app= promos.stream().filter(m->rcc0.rc().isSubType(m.rc())).toList();
-    if (app.isEmpty()){ throw TypeSystemErrors.methodReceiverRcBlocksCall(c,rcc0.rc(),promos); }
+    if (app.isEmpty()){ throw ts.err().methodReceiverRcBlocksCall(c,rcc0.rc(),promos); }
     var mat= typeArgsOnce(app);
     var possible= mat.candidatesOkForAllArgs();//This is indexes of MTypes allowed by the arguments
-    if (possible.isEmpty()){ throw TypeSystemErrors.methodArgsDisagree(c,mat); }
+    if (possible.isEmpty()){ throw ts.err().methodArgsDisagree(c,mat); }
     if (rs.isEmpty()){ return List.of(bestNoReq(mat,possible)); }
     return rs.stream().map(req->resForReq(mat,possible,req)).toList();
   }
@@ -36,17 +36,17 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     assert r.getFirst().success();//else would have thrown
     T t= r.getFirst().best();
     if (t instanceof T.RCC x){ return x; }
-    throw TypeSystemErrors.methodReceiverNotRcc(c,t);
+    throw ts.err().methodReceiverNotRcc(c,t);
   }
   private Sig sigOf(Literal d){
     var ms= d.ms().stream().map(M::sig)
       .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()).toList();
-    if (ms.isEmpty()){ throw TypeSystemErrors.methodNotDeclared(c,d); }
+    if (ms.isEmpty()){ throw ts.err().methodNotDeclared(c,d); }
     assert ms.size() == 1 : "Duplicate cached sig for "+c.name()+" rc="+c.rc()+" in "+d.name();
     Sig sig= ms.getFirst();
     assert sig.ts().size() == c.es().size();//ensured by well formedness
     if (sig.bs().size() == c.targs().size()){ return sig; }
-    throw TypeSystemErrors.methodTArgsArityError(c,sig.bs().size());
+    throw ts.err().methodTArgsArityError(c,sig.bs().size());
   } 
   private MType baseMType(T.C c0, Literal d, Sig sig){
     var xs= Stream.concat(d.bs().stream(),sig.bs().stream()).map(B::x).toList();
@@ -59,7 +59,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     assert c0.ts().size() == d.bs().size();
     var targs= c.targs();
     for(int i= 0; i < targs.size(); i++){
-      ts.k().check(bs,targs.get(i),EnumSet.copyOf(sig.bs().get(i).rcs()));
+      ts.k().check(d,bs,targs.get(i),EnumSet.copyOf(sig.bs().get(i).rcs()));
     }
   }
   private ArgMatrix typeArgsOnce(List<MType> app){
@@ -74,8 +74,8 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     assert res.size() == app.size();
     var ok= okSet(res);
     if (ok.isEmpty()){
-      var diag= TypeSystemErrors.argDiagForCallArg(es.get(argi), reqs, g::bind, ts::isSub,bs);
-      throw TypeSystemErrors.methodHopelessArg(c,argi,reqs,res,diag);
+      var diag= ts.err().argDiagForCallArg(es.get(argi), reqs, g::bind, ts::isSub,bs);
+      throw ts.err().methodHopelessArg(c,argi,reqs,res,diag);
     }
     acc.okByArg().add(ok);
     acc.resByArg().add(res);
@@ -92,7 +92,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
       .filter(i->ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
     if (!okRet.isEmpty()){ return new TResult(req.reqName(), bestUnique(mat,okRet),""); }
     return new TResult(req.reqName(),bestUnique(mat,possible),
-      TypeSystemErrors.makeErrResult(mat, possible, req));    
+      ts.err().makeErrResult(mat, possible, req));    
   } 
   private T bestUnique(ArgMatrix mat, List<Integer> idxs){
     List<T> all= idxs.stream().map(i->mat.candidate(i).t()).toList();

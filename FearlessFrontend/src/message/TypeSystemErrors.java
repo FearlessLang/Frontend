@@ -25,68 +25,73 @@ import core.E.*;
 import static message.Err.disp;
 import static message.Err.methodSig;
 
-public final class TypeSystemErrors { private TypeSystemErrors(){}
-  private static FearlessException withCallSpans(FearlessException ex, Call c){
+public record TypeSystemErrors(pkgmerge.Package pkg){
+  private FearlessException withCallSpans(FearlessException ex, Call c){
     return ex.addSpan(Parser.span(c.pos(), c.name().s().length())).addSpan(c.span().inner);
   }
-  public static FearlessException overrideMismatch(Sig sub, Sig sup, String reason){ return Err.of()
+  public FearlessException overrideMismatch(Literal l,Sig sub, Sig sup, String reason){ return Err.of()
     .pMethodContext("Invalid override", sub, sub.origin().s())
     .conflictsWithMethodIn(sup)
     .line("Reason: "+reason)
-    .ex().addSpan(sub.span().inner);
+    .ex(pkg, l).addSpan(sub.span().inner);
   }
-  public static FearlessException unresolvedConflict(TName type, M m1, M m2){ return Err.of()
+  public FearlessException unresolvedConflict(Literal l, TName type, M m1, M m2){ return Err.of()
     .line("Unresolved multiple inheritance conflict in type "+disp(type.s())+".")
     .line("Method "+disp(m1.sig().m().s())+" is inherited from both "+disp(m1.sig().origin().s())+" and "+disp(m2.sig().origin().s())+".")
     .line("You must override this method explicitly to resolve the ambiguity.")
-    .ex().addSpan(Parser.span(type.pos(), type.s().length()));
+    .ex(pkg,l).addSpan(Parser.span(type.pos(), type.s().length()));
   }
-  public static FearlessException notKinded(T t){ return Err.of()
+  public FearlessException notKinded(E toErr, T t){ return Err.of()
     .line("Type "+disp(t)+" is not well-kinded.")
     .line("It violates reference capability constraints.")
-    .ex().addSpan(Parser.span(getPos(t),1));//TODO: we need to add a Span method for the types somehow, but this will require look at the parser
+    .ex(pkg,toErr)
+    .addSpan(Parser.span(getPos(t),1))
+    .addSpan(toErr.span().inner);
   }
-  private static Pos getPos(T t){//When that is done, we will not have this method any more.
+  private Pos getPos(T t){//When that is done, we will not have this method any more.
     if (t instanceof T.RCC rcc){ return rcc.c().name().pos(); }
     return Pos.UNKNOWN;
   }
-  public static FearlessException notAffine(String name, List<E.X> usages){ 
+  public FearlessException notAffine(M m, String name, List<E.X> usages){ 
     var ex= Err.of()
       .line("Usage violation for parameter "+disp(name)+".")
       .line("An iso parameter must be either:")
       .line("- Captured in object literals.")
       .line("- Directly used at most once.")
-      .ex();
+      .ex(pkg, m.e().get());
     for (var x:usages){ ex.addSpan(Parser.span(x.pos(), x.name().length())); }
     return ex;
   }
-  public static String makeErrResult(ArgMatrix mat, List<Integer> okProm, TRequirement req){
+  public String makeErrResult(ArgMatrix mat, List<Integer> okProm, TRequirement req){
     String promos= okProm.stream().map(i->mat.candidate(i).promotion()).sorted().collect(Collectors.joining(", "));//TODO: use Join here
     return "Return requirement not met.\nExpected: "+disp(req.t())+".\nPromotions: "+promos+".";
   }
-  public static FearlessException methodReceiverRcBlocksCall(Call c, RC recvRc, List<MType> promos){
+  
+  public FearlessException methodReceiverRcBlocksCall(Call c, RC recvRc, List<MType> promos){
     List<String> needed= promos.stream().map(MType::rc).distinct().sorted().map(Err::disp).toList();
-    var e= Err.of()
+    return withCallSpans(Err.of()
       .pCallCantBeSatisfied(c)      
       .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
       .line(Join.of(needed,"This call requires a receiver with capability "," or ","."))
-      .pReceiverPromotionFailures(promos);
-    return withCallSpans(e.ex(), c);
+      .pReceiverPromotionFailures(promos)
+      .ex(pkg,c), c);
   }
-  public static FearlessException callableMethodAbstract(TSpan at, M got, RC receiver){
+  public FearlessException callableMethodAbstract(TSpan at, M got, Literal l){
     var s= got.sig();
-    var e= Err.of()
-      .line("Abstract method is being called.")
+    return Err.of()
+      .line("Abstract method is being called.")//TODO: NO, this does not make any sense
       .line("Method: "+methodSig(s.m())+".")
       .line("Declared abstract in: "+disp(s.origin().s())+".")
-      .line("Receiver capability at call site: "+receiver+".");
-    return e.ex().addSpan(at.inner);
+      .line("Literal capability: "+l.rc()+".")
+      .ex(pkg,l).addSpan(at.inner);
   }
-  public static FearlessException methodHopelessArg(Call c, int argi, List<TRequirement> reqs, List<TResult> res, Optional<ArgDiag> diag){
+  public FearlessException methodHopelessArg(Call c, int argi, List<TRequirement> reqs, List<TResult> res, Optional<ArgDiag> diag){
     assert reqs.size() == res.size();
-    return withCallSpans(Err.of().pHopelessArg(c,argi,reqs,res,diag).ex(), c);
+    return withCallSpans(Err.of()
+      .pHopelessArg(c,argi,reqs,res,diag)
+      .ex(pkg,c), c);
   }
-  public static FearlessException methodNotDeclared(Call c, core.E.Literal d){
+  public FearlessException methodNotDeclared(Call c, core.E.Literal d){
     String name= c.name().s();
     var candidates= d.ms().stream().map(M::sig).toList();
     var sameName= candidates.stream().filter(s->s.m().s().equals(name)).toList();
@@ -109,21 +114,21 @@ public final class TypeSystemErrors { private TypeSystemErrors(){}
     var sameArity= sameName.stream().filter(s->s.m().arity() == c.es().size()).toList();
     if (sameArity.isEmpty()){
       String avail= Join.of(sameName.stream().map(s->Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
-      var e= Err.of()
+      return withCallSpans(Err.of()
         .pCallCantBeSatisfied(c) 
         .line("There is a method "+disp(c.name().s())+" on type "+disp(d.name().s())+", but with different number of arguments.")
-        .line("This call supplies "+c.es().size()+", but available methods take "+avail+".");
-      return withCallSpans(e.ex(), c);
+        .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
+        .ex(pkg,c), c);
     }
     String availRc= Join.of(sameArity.stream().map(s->s.rc().toString()).distinct().sorted(), "", " and ", "");
-    var e= Err.of()
+    return withCallSpans(Err.of()
       .pCallCantBeSatisfied(c)
       .line(methodSig(c.name())+" exists on type "+disp(d.name().s())+", but not with the requested capability.")
       .line("This call requires the existence of a "+disp(c.rc().toString())+" method.")
-      .line("Available capabilities for this method: "+disp(availRc)+".");
-    return withCallSpans(e.ex(), c);
+      .line("Available capabilities for this method: "+disp(availRc)+".")
+      .ex(pkg,c), c);
   }
-  public static FearlessException methodArgsDisagree(Call c, ArgMatrix mat){
+  public FearlessException methodArgsDisagree(Call c, ArgMatrix mat){
     int ac= mat.aCount();
     int cc= mat.cCount();
     var e= Err.of()
@@ -138,23 +143,23 @@ public final class TypeSystemErrors { private TypeSystemErrors(){}
       int argi= IntStream.range(0,ac).filter(a->!mat.res(a,ci).success()).findFirst().getAsInt();
       e.pPromoFail(argi, mat.candidate(ci).promotion()).pFailCause(mat.res(argi,ci).reason());
     });
-    return withCallSpans(e.ex(), c);
+    return withCallSpans(e.ex(pkg,c), c);
   }
-  public static FearlessException typeError(E at, List<TResult> got, List<TRequirement> req){
+  public FearlessException typeError(E at, List<TResult> got, List<TRequirement> req){
     assert got.size() == req.size();
     var e= Err.of();
     for(int i= 0; i < got.size(); i++){
       var gi= got.get(i);
       if (gi.success()){ continue; }
-      var ri= req.get(i);
-      if (!ri.reqName().isEmpty()){ e.line("Requirement "+disp(ri.reqName())+"."); }
+      var ri= req.get(i);//TODO: this requirment never prints
+      if (!ri.reqName().isEmpty()){ e.line("@@Requirement "+disp(ri.reqName())+"."); }
       String reason= gi.reason();
       if (reason.isEmpty()){ reason= gotMsg(gi.best(), ri.t()); }
-      e.line(reason).blank();
+      e.line(reason);
     }
-    return e.ex().addSpan(at.span().inner);
+    return e.ex(pkg,at).addSpan(at.span().inner);
   }
-  public static FearlessException uncallableMethodDeadCode(TSpan at, M got, Literal l){
+  public FearlessException uncallableMethodDeadCode(TSpan at, M got, Literal l){
     assert l.rc() == RC.imm || l.rc() == RC.read;
     var s= got.sig();
     assert s.rc() == RC.mut;
@@ -166,9 +171,9 @@ public final class TypeSystemErrors { private TypeSystemErrors(){}
       .line("The object literal "+lit+" at line "+line+" is "+disp(l.rc())+".")
       .line("Method "+m+" requires a "+disp(RC.mut)+" receiver, which cannot be obtained from a "+disp(l.rc())+" object.")
       .line("Hint: remove the implementation of method "+m+".")
-    .ex().addSpan(at.inner);
+      .ex(pkg,l).addSpan(at.inner);
   }
-  public static FearlessException methodTArgsArityError(Call c, int expected){
+  public FearlessException methodTArgsArityError(Call c, int expected){
     int got= c.targs().size(); assert got != expected;
     String expS= expected == 0 
       ? "no type arguments" 
@@ -180,9 +185,9 @@ public final class TypeSystemErrors { private TypeSystemErrors(){}
       .pCallCantBeSatisfied(c)
       .line("Wrong number of type arguments for "+methodSig(c.name())+".")
       .line("This method expects "+expS+", but this call provides "+gotS+".")
-      .ex(), c);
+      .ex(pkg,c), c);
   }  
-  public static FearlessException methodReceiverNotRcc(Call c, T recvType){
+  public FearlessException methodReceiverNotRcc(Call c, T recvType){
     String name= switch(recvType){
       case T.X x -> disp(x.name());
       case T.RCX(var _, var x) -> disp(x.name());
@@ -193,15 +198,15 @@ public final class TypeSystemErrors { private TypeSystemErrors(){}
     .pCallCantBeSatisfied(c)
     .line("The receiver is the type parameter "+name+".")
     .line("Type parameters cannot be receivers of method calls.")
-    .ex(), c);
-}
-  private static String sigToStr(Sig s){
+    .ex(pkg,c), c);
+  }
+  private String sigToStr(Sig s){
     var bsS= Join.of(s.bs(),"[",",","]","");
     var tsS= Join.of(s.ts(),"(",",",")","");
     return s.rc()+" "+s.m()+bsS+tsS+":"+s.ret()+";";
   }
-  public static FearlessException mCallFrame(M m, FearlessException fe){
-    return fe.addFrame("the body of method "+methodSig(m.sig().m()), m.sig().span().inner);
+  public FearlessException mCallFrame(M m, FearlessException fe){
+    return fe.addFrame(methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
   }
   public record ArgDiag(String x, T declared, Optional<T> got, Optional<T> expected, Why why, Note note, List<B> bs, List<String> fitsPromos){}
   public enum Note{
@@ -211,8 +216,8 @@ public final class TypeSystemErrors { private TypeSystemErrors(){}
     DECLARED_NOT_OK_THIS_EXPECTED,
   }
   public interface IsSub{ boolean isSub(List<B> bs, T a, T b); }
-
-  public static Optional<ArgDiag> argDiagForCallArg(E e, List<TRequirement> reqs, Function<String,Binding> bind, IsSub isSub, List<B> bs){
+  
+  public Optional<ArgDiag> argDiagForCallArg(E e, List<TRequirement> reqs, Function<String,Binding> bind, IsSub isSub, List<B> bs){
     if (!(e instanceof E.X x)){ return Optional.empty(); }//TODO: eventually this will not be optional but there will be support for all kinds of expressions
     var b= bind.apply(x.name());
     T declared= b.declared();
@@ -225,7 +230,7 @@ public final class TypeSystemErrors { private TypeSystemErrors(){}
     Note note= fits.isEmpty() ? Note.NONE : Note.DECLARED_OK_SOME_CALL_EXPECTED;
     return Optional.of(new ArgDiag(x.name(), declared, got, Optional.empty(), cur.why(), note, bs, fits)); 
   }
-  public static ArgDiag argDiagMismatch(String x, T declared, T got, T expected, Why why, boolean declaredOkExpected, List<B> bs){
+  public ArgDiag argDiagMismatch(String x, T declared, T got, T expected, Why why, boolean declaredOkExpected, List<B> bs){
   Note note= declared.equals(got) 
     ? Note.NONE
     : declaredOkExpected 
@@ -233,40 +238,41 @@ public final class TypeSystemErrors { private TypeSystemErrors(){}
     : Note.DECLARED_NOT_OK_THIS_EXPECTED;
   return new ArgDiag(x, declared, Optional.of(got), Optional.of(expected), why, note, bs, List.of());
   }
-  public static ArgDiag argDiagHidden(String x, T declared, T expected, Why why, boolean declaredOkExpected, List<B> bs){
+  public ArgDiag argDiagHidden(String x, T declared, T expected, Why why, boolean declaredOkExpected, List<B> bs){
     Note note= declaredOkExpected ? Note.DECLARED_OK_THIS_EXPECTED : Note.DECLARED_NOT_OK_THIS_EXPECTED;
     return new ArgDiag(x, declared, Optional.empty(), Optional.of(expected), why, note, bs, List.of());
   }
 
-  public static ArgDiag argDiagNotAvailable(String x, T declared, Why why, List<B> bs){
+  public ArgDiag argDiagNotAvailable(String x, T declared, Why why, List<B> bs){
     return new ArgDiag(x, declared, Optional.empty(), Optional.empty(), why, Note.NONE, bs,List.of());
   }
-  public static FearlessException nameNotAvailable(E.X x, T declared, Why why, List<B> bs){
+  public FearlessException nameNotAvailable(E.X x, T declared, Why why, List<B> bs){
     var d= new ArgDiag(x.name(), declared, Optional.empty(), Optional.empty(), why, Note.NONE, bs, List.of());
-    var e= Err.of()
+    return Err.of()
       .line("The parameter "+disp(x.name())+" is not available here.")
-      .pArgDiag(d);
-    return e.ex().addSpan(x.span().inner);
+      .pArgDiag(d)
+      .ex(pkg,x)
+      .addSpan(x.span().inner);
   }
-  public static String xMismatch(String x, T expected, T got, T declared, Why why, boolean declaredOk, List<B> bs){
+  public String xMismatch(String x, T expected, T got, T declared, Why why, boolean declaredOk, List<B> bs){
     var d= argDiagMismatch(x, declared, got, expected, why, declaredOk, bs);
     return Err.of().pArgDiag(d).text();
   }
-  public static String gotMsg(T got, T expected){
+  public String gotMsg(T got, T expected){
     return Err.of().lineGotMsg(got, expected).text();
   }  
-  public static Why strengthenToImm(T in){
+  public Why strengthenToImm(T in){
     return (x, _, _, _, _)->"Viewpoint adaptation strengthened "+disp(x)+" to imm.";
   }
-  public static Why setToRead(T in){
+  public Why setToRead(T in){
     return (x, _, got, declared, _)->got
       .<String>map(g->"Viewpoint adaptation set "+disp(x)+" to "+disp(g)+" from "+disp(declared)+" (the declared type).")
       .orElse("");
   }
-  public static Why useReadImm(T in){
+  public Why useReadImm(T in){
     return (x, _, _, _, _)->"Viewpoint adaptation replaced "+disp(x)+" with readImm(x).";
   }
-  public static Why weakenedToRead(T in){
+  public Why weakenedToRead(T in){
     return (x, _, _, _, _)->"Viewpoint adaptation weakened "+disp(x)+" to read.";
   }
   // in TypeSystemErrors (same "shown/instance" problem; also avoid precomputing outside the lambda)
@@ -290,7 +296,7 @@ public final class TypeSystemErrors { private TypeSystemErrors(){}
     case T.ReadImmX(var x) -> out.add(x.name());
     case T.RCC(_, var c) -> c.ts().forEach(ti->addFtv(ti,out));
   }}
-  public static Why discardWhy(Literal l, M m, T atDrop){ return (x, _, _, _, _)->{
+  public Why discardWhy(Literal l, M m, T atDrop){ return (x, _, _, _, _)->{
     boolean bad= l.rc() == RC.iso || l.rc() == RC.imm;
     int line= m.sig().span().inner.startLine();
     String ms= methodSig(m.sig().rc()+" ", m.sig().m());
