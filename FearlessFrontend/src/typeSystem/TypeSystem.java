@@ -129,7 +129,7 @@ public record TypeSystem(ViewPointAdaptation v){
     //assert l.ms().stream().map(M::sig).allMatch(s->sources.containsKey(new Key(s.m(),s.rc())));
     //overrideOk(l,sources);  implementOk(l,sources);
     sources.forEach((k,group)->methodTableOk(l,k,group));
-    l.cs().stream().map(c->new T.RCC(RC.mut,c,span)).forEach(c->k().check(l,delta,c));
+    l.cs().forEach(c->k().checkC(l,delta,c));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
     l.ms().forEach(m->{
       Gamma g2= v().of(g1,l,m);//passing l and m instead of their RC for better errors

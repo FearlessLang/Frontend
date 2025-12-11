@@ -372,6 +372,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new Span(pos.fileName(), pos.line(), pos.column(),pos.line(),pos.column()+size); 
   }
   Declaration parseDeclaration(boolean top){
+    var startPos= index();
     var c= parseTName();
     var _= expectValidate(back("simple type name"), UppercaseId,_XId); //to get error if of form foo.Bar
     Optional<List<B>> bs= parseIf(peek(_SquareGroup),()->this.parseBs(top));
@@ -386,7 +387,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     List<T.C> cs= this.parseImpl();
     assert peek(_CurlyGroup);
     E.Literal l= parseGroup("type declaration body",p->p.parseLiteral(top,true));
-    return new Declaration(c,bs,cs,l);
+    var span= new TSpan(spanAround(startPos,index()));
+    return new Declaration(c,bs,cs,l.withSpan(span));
   }
   FileFull parseFileFull(){
     expect("",_SOF);

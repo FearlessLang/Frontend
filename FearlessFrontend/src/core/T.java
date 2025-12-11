@@ -11,6 +11,7 @@ import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
 import message.Join;
+import metaParser.Span;
 
 public sealed interface T {
   TSpan span();
@@ -32,7 +33,7 @@ public sealed interface T {
     public String toString(){ return "read/imm "+x.name; }
     public TSpan span(){ return x.span();}
   }
-  record C(TName name, List<T> ts){
+  record C(TName name, List<T> ts) implements KindingTarget{
     public C{
       assert unmodifiable(ts,"T.C.args");
       assert eq(ts.size(), name.arity(),"Type arity");
@@ -40,6 +41,17 @@ public sealed interface T {
     public String toString(){
       if (ts.isEmpty()){ return name.s(); }
       return name.s()+Join.of(ts,"[",",","]","");
+    }
+    public TSpan span(){    
+      var start= name.pos();
+      if (ts.isEmpty()){ return TSpan.fromPos(start,name.s().length()); }
+      var end= ts.getLast().span().inner;
+      int len= end.endCol() - start.column();
+      var bad= len <= 0 || end.endLine() < start.line();
+      if (bad){ return TSpan.fromPos(start,name.s().length()); }
+      return new TSpan(new Span(start.fileName(),
+        start.line(),start.column(),
+        end.endLine(),end.endCol()+1));//the closing "]"
     }
   }
   record RCC(RC rc, C c, TSpan span) implements T, KindingTarget{

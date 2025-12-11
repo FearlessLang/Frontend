@@ -200,7 +200,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     bsInScope.add(bs);
     List<IT.C> cs= mapC(d.cs());    
     List<M> ms= mapM(d.l().methods());
-    E.Literal l= new E.Literal(Optional.of(rc),name,bs,cs,thisName, ms, new Src(d.l()));
+    E.Literal l= new E.Literal(Optional.of(rc),name,bs,cs,thisName, ms, new Src(d));
     decs.add(l);
     bsInScope.removeLast();
     return l;

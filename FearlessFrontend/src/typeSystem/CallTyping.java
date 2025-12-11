@@ -59,7 +59,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var targs= c.targs();
     var kt= new KindingTarget.CallKinding(c0,c);
     for(int i= 0; i < targs.size(); i++){
-      ts.k().check(d,kt,i,bs,targs.get(i),EnumSet.copyOf(sig.bs().get(i).rcs()));
+      ts.k().check(c,kt,i,bs,targs.get(i),EnumSet.copyOf(sig.bs().get(i).rcs()));
     }
   }
   private ArgMatrix typeArgsOnce(List<MType> app){

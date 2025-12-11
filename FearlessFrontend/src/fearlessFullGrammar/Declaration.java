@@ -4,8 +4,7 @@ import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
 import files.Pos;
-
-public record Declaration(TName name, Optional<List<B>> bs, List<T.C> cs, E.Literal l){
+public record Declaration(TName name, Optional<List<B>> bs, List<T.C> cs, E.Literal l) implements core.Src.SrcObj{
   public Declaration{
     assert nonNull(name,l);
     assert bs.isPresent() || name.arity() == 0:" name arity should be zero";

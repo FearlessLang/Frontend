@@ -8,7 +8,7 @@ import files.Pos;
 import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
 
-public sealed interface E {
+public sealed interface E extends core.Src.SrcObj{
   Pos pos();
   TSpan span();
   <R> R accept(EVisitor<R> v);
@@ -33,6 +33,7 @@ public sealed interface E {
     public Pos pos(){ return span.pos(); }
     public <R> R accept(EVisitor<R> v){ return v.visitLiteral(this); }
     public String toString(){ return "Literal"+thisName.map(Object::toString).orElse("")+methods; }
+    public Literal withSpan(TSpan span){ return new Literal(thisName,methods,span); }
   }
   record TypedLiteral(T.RCC t, Optional<Literal> l,Pos pos) implements E{
     public TypedLiteral{ assert nonNull(t,l,pos); }

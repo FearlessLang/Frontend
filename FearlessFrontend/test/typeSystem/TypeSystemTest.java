@@ -56,7 +56,7 @@ A:{.foo123:A->this.ba}
 //--------------
 @Test void typeNotWellKinded_genericInstantiationViolatesBounds(){fail("""
 004| User:{ imm .m(a:imm A[mut B]):base.Void; }
-   |      -----------^^^^^^^^^^^^--------------
+   | --------------------^^^^^^^^--------------
 
 While inspecting Object literal "p.User"
 The type "p.A[mut p.B]" is invalid.
@@ -73,7 +73,7 @@ User:{ imm .m(a:imm A[mut B]):base.Void; }
 
 @Test void typeNotWellKinded_secondTypeArgViolatesBoundsInParamType(){fail("""
 005| User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
-   |      -----------^^^^^^^^^^^^^^^^^^--------------
+   | --------------------^^^^^^^^^^^^^^--------------
 
 While inspecting Object literal "p.User"
 The type "p.A[p.B,mut p.C]" is invalid.
@@ -90,8 +90,8 @@ User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
 """));}
 
 @Test void typeNotWellKinded_nestedInnerGenericViolatesBounds(){fail("""
-005|   .m(a:imm A[B[mut C]]):base.Void;
-   |               ---^^^^^^-----------
+005| User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
+   | ----------------------^^^^^^^^---------------
 
 While inspecting Object literal "p.User"
 The type "p.B[mut p.C]" is invalid.
@@ -108,25 +108,25 @@ User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
 """));}
 
 @Test void typeNotWellKinded_literalSupertypeViolatesBounds(){fail("""
-004| User:A[mut B]{}
-   |      -^^^^^^---
+004| User:A[mut B]{ .foo(b:B):B->b;}
+   | -----^^^^^^^^------------------
 
 While inspecting Object literal "p.User"
 The type "p.A[mut p.B]" is invalid.
 Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A".
-Here "X" can only use capabilities "imm".
+Here "X" can only use capabilities "imm" or "mutH" or "readH".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User:A[mut B]{}
+mut User:A[mut B]{.foo(b:B):B->b}
 """, List.of("""
 A[X:imm,readH,mutH]:{}
 B:{}
-User:A[mut B]{}
+User:A[mut B]{ .foo(b:B):B->b;}
 """));}
 
 @Test void typeNotWellKinded_methodReturnTypeViolatesBounds(){fail("""
-004|   .m(a:imm B):imm A[mut B]->"";
-   |                 ---^^^^^^-----
+004| User:{ imm .m(a:imm B):imm A[mut B]; }
+   | ---------------------------^^^^^^^^---
 
 While inspecting Object literal "p.User"
 The type "p.A[mut p.B]" is invalid.
@@ -134,7 +134,7 @@ Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" i
 Here "X" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User:{.m(B):A[mut B]->-}
+mut User:{.m(B):A[mut B]}
 """, List.of("""
 A[X:imm]:{}
 B:{}
@@ -145,13 +145,13 @@ User:{ imm .m(a:imm B):imm A[mut B]; }
 004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
    |        -----------------------------------^^^^^^^^^^^^^^
 
-While inspecting Object literal "p.A" > ".m(_,_)" line 4 //No, User not pA also wrong order?
+While inspecting Method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
 Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
 Here "X" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut A:{.id[X:imm](x:X):X->x} //and the source is aso A instead of User
+a.id[imm,mut B](b)
 """, List.of("""
 A:{ imm .id[X:imm](x:X):X->x }
 B:{}
@@ -159,16 +159,16 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 """));}
 
 @Test void typeNotWellKinded_methodTypeArgSecondParamViolatesBounds(){fail("""
-005|     a.pair[imm B,mut C](b,c);
-   |            ---------^^^^----
+005| User:{ imm .m(a:imm A,b:imm B,c:imm C):base.Void->a.pair[imm B,mut C](b,c); }
+   |        -------------------------------------------^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting Method call ".pair"
-The call to ".pair" is invalid.
-Type argument 2 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.A.pair".
+While inspecting Method call ".pair(_,_)" > ".m(_,_,_)" line 5
+The call to ".pair(_,_)" is invalid.
+Type argument 2 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.A.pair(_,_)".
 Here "Y" can only use capabilities "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User:{.m(A,B,C):-Void->{a.pair[imm B,mut C](b,c)}}
+a.pair[imm,B,mut C](b,c)
 """, List.of("""
 A:{ imm .pair[X:imm,Y:read](x:X,y:Y):base.Void->{} }
 B:{}
@@ -177,29 +177,29 @@ User:{ imm .m(a:imm A,b:imm B,c:imm C):base.Void->a.pair[imm B,mut C](b,c); }
 """));}
 
 @Test void typeNotWellKinded_methodTypeArgNestedViolatesBounds(){fail("""
-006|     a.use[B[mut C]](b);
-   |           -^^^^^^^----
+005| User:{ imm .m(a:imm A,b:imm B[C],c:imm C):base.Void->a.use[B[mut C]](b); }
+   |        ----------------------------------------------~~~~~~^^^^^^^^~~~~
 
-While inspecting Method call ".use"
-The call to ".use" is invalid.
-Type argument 1 ("p.B[mut p.C]") does not satisfy the bounds for type parameter "X" in "p.A.use".
-Here "X" can only use capabilities "imm".
+While inspecting Method call ".use(_)" > ".m(_,_,_)" line 5
+The type "p.B[mut p.C]" is invalid.
+Type argument 1 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.B".
+Here "Y" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User:{.m(A,B,C):-Void->{a.use[B[mut C]](b)}}
+a.use[imm,B[mut C]](b)
 """, List.of("""
 A:{ imm .use[X:imm](x:X):base.Void->{} }
 B[Y:imm]:{}
 C:{}
-User:{ imm .m(a:imm A,b:imm B[mut C],c:imm C):base.Void->a.use[B[mut C]](b); }
+User:{ imm .m(a:imm A,b:imm B[C],c:imm C):base.Void->a.use[B[mut C]](b); }
 """));}
 
 @Test void typeNotWellKinded_literalHeaderUsesTypeParamViolatingBounds(){fail("""
 003| User[Y:read]:A[Y]{}
-   |     ^            --//What is this? How can it even generate?
+   | -------------^^^^--
 
 While inspecting Object literal "p.User"
-The type "mut p.A[Y]" is invalid.
+The type "p.A[Y]" is invalid.
 Type argument 1 ("Y") does not satisfy the bounds for type parameter "X" in "p.A".
 Here "X" can only use capabilities "imm".
 
@@ -212,7 +212,7 @@ User[Y:read]:A[Y]{}
 
 @Test void typeNotWellKinded_nestedTwiceInnerMostViolatesBounds(){fail("""
 005| User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
-   |      -----------------^^^^^^^^---------------
+   | ----------------------^^^^^^^^---------------
 
 While inspecting Object literal "p.User"
 The type "p.B[mut p.C]" is invalid.
@@ -232,13 +232,13 @@ User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
 004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
    |        -----------------------------------^^^^^^^^^^^^^^
 
-While inspecting Object literal "p.A" > ".m(_,_)" line 4
+While inspecting Method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
 Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
 Here "X" can only use capabilities "imm" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut A:{.id[X:imm,read](x:X):X->x}
+a.id[imm,mut B](b)
 """, List.of("""
 A:{ imm .id[X:imm,read](x:X):X->x }
 B:{}
@@ -250,17 +250,48 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
    |        -----------------------------------^^^^^^^
 
-While inspecting Object literal "p.A" > ".m(_,_)" line 4
+While inspecting Method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
-Type argument 1 ("base.InferErr??") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
+Type argument 1 ("base.InferErr") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User:{.m(A,B):-Void->{a.id[mut B](b)}} ?? why mut here? Why meth sig printed as .m(A,B) with no par names
+a.id[imm,-.InferErr](b)
 """, List.of("""
 A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
 User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
+"""));}
+//TODO: this used to print, hinting at some other issue in the compact printer 
+//mut User:{.m(A,B):-Void->{a.id[mut B](b)}} ?? why mut here? Why meth sig printed as .m(A,B) with no par names
+//but it prints correctly in typeNotWellKinded_literalSupertypeViolatesBounds,.. why??
+
+@Test void typeNotWellKinded_methodTypeArgOnTypeInfer2(){fail("""
+004| User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
+   |        --------------------------------^^^^^^^
+
+While inspecting Method call ".id(_)" > ".m(_,_)" line 4
+The call to ".id(_)" is invalid.
+Type argument 1 ("read p.B") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
+Here "X" can only use capabilities "iso" or "mut".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+a.id[imm,read B](b)
+""", List.of("""
+A:{ imm .id[X:mut,iso](x:X):X->x }
+B:{}
+User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
+"""));}
+
+@Test void typeNotWellKinded_methodTypeArgOnTypeInferFromRetType(){ok(List.of("""
+A:{ imm .id[X:mut,read](x:X):X->x }
+B:{}
+User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
+"""));}
+@Test void typeNotWellKinded_twistToPassInfer(){ok(List.of("""
+A:{ imm .id[X:mut,read](x:X):X->x }
+B:{}
+User:{ imm .m(a:imm A,b:mut B):read B->a.id(b); }
 """));}
 
 //--------------

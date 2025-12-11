@@ -40,20 +40,21 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     assert index >= 0;
     String allowedStr= Join.of(bounds.stream().map(Err::disp).sorted(), "", " or ", "");
     Err err=switch(target){
-      case T.RCC rcc -> typeNotWellKindedRcc(rcc, index, allowedStr);
+      case T.RCC rcc -> typeNotWellKinded("type "+disp(rcc),rcc.c(), index, allowedStr);
+      case T.C c -> typeNotWellKinded("type "+disp(c),c, index, allowedStr);
       case KindingTarget.CallKinding(var t,var c)   -> typeNotWellKindedSig(t,c, index, allowedStr);
     };
     return addExpFrame(toErr,err.ex(pkg, toErr).addSpan(target.span().inner));
   }
-  private Err typeNotWellKindedRcc(T.RCC rcc, int index, String allowedStr){
-    var args= rcc.c().ts();
+  private Err typeNotWellKinded(String name,T.C c, int index, String allowedStr){
+    var args= c.ts();
     assert index >= 0 && index < args.size();
     T bad= args.get(index);
-    var bs= decs.apply(rcc.c().name()).bs();
+    var bs= decs.apply(c.name()).bs();
     assert index < bs.size();
-    String typeName = disp(rcc.c().name().s());
+    String typeName = disp(c.name().s());
     String paramName= disp(bs.get(index).x());
-    return Err.of().pTypeArgBounds("type "+disp(rcc), typeName, paramName, index, disp(bad), allowedStr);
+    return Err.of().pTypeArgBounds(name, typeName, paramName, index, disp(bad), allowedStr);
   }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr){
     var ms= decs.apply(t.name()).ms();
