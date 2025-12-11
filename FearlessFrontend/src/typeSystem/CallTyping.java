@@ -8,14 +8,13 @@ import java.util.EnumSet;
 import core.*;
 import core.E.*;
 import inject.TypeRename;
-import message.TypeSystemErrors;
+import message.Reason;
 import utils.OneOr;
 import utils.Push;
 import typeSystem.TypeSystem.*;
-import typeSystem.ArgMatrix.*;
 
 record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement> rs){
-  List<TResult> run(){
+  List<Reason> run(){
     var rcc0= recvRcc();
     var d= ts.decs().apply(rcc0.c().name());
     var sig= sigOf(d);
@@ -27,14 +26,14 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var mat= typeArgsOnce(app);
     var possible= mat.candidatesOkForAllArgs();//This is indexes of MTypes allowed by the arguments
     if (possible.isEmpty()){ throw ts.err().methodArgsDisagree(c,mat); }
-    if (rs.isEmpty()){ return List.of(bestNoReq(mat,possible)); }
+    if (rs.isEmpty()){ return List.of(Reason.pass(bestUnique(mat,possible))); }
     return rs.stream().map(req->resForReq(mat,possible,req)).toList();
   }
   private T.RCC recvRcc(){
     var r= ts.typeOf(bs,g,c.e(),List.of());
     assert r.size() == 1;
-    assert r.getFirst().success();//else would have thrown
-    T t= r.getFirst().best();
+    assert r.getFirst().isEmpty();//else would have thrown
+    T t= r.getFirst().best;
     if (t instanceof T.RCC x){ return x; }
     throw ts.err().methodReceiverNotRcc(c,t);
   }
@@ -53,7 +52,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var ts0= Push.of(c0.ts(),c.targs());
     var ps= TypeRename.ofT(sig.ts(),xs,ts0);
     T ret= TypeRename.of(sig.ret(),xs,ts0);
-    return new MType("`As declared`",sig.rc(),ps,ret);
+    return new MType("As declared",sig.rc(),ps,ret);
   }
   private void checkTargsKinding(T.C c0, Literal d, Sig sig){
     assert c0.ts().size() == d.bs().size();
@@ -74,8 +73,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     assert res.size() == app.size();
     var ok= okSet(res);
     if (ok.isEmpty()){
-      var diag= ts.err().argDiagForCallArg(es.get(argi), reqs, g::bind, ts::isSub,bs);
-      throw ts.err().methodHopelessArg(c,argi,reqs,res,diag);
+      throw ts.err().methodHopelessArg(c,argi,reqs,res);
     }
     acc.okByArg().add(ok);
     acc.resByArg().add(res);
@@ -83,16 +81,14 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   private List<TRequirement> argRequirements(List<MType> app, int argi){
     return app.stream().map(m->new TRequirement(m.promotion(),m.ts().get(argi))).toList();
   }
-  private static List<Integer> okSet(List<TResult> res){
-    return IntStream.range(0,res.size()).filter(i->res.get(i).success()).boxed().toList();
+  private static List<Integer> okSet(List<Reason> res){
+    return IntStream.range(0,res.size()).filter(i->res.get(i).isEmpty()).boxed().toList();
   }
-  private TResult bestNoReq(ArgMatrix mat, List<Integer> possible){ return new TResult("",bestUnique(mat,possible),""); }
-  private TResult resForReq(ArgMatrix mat, List<Integer> possible, TRequirement req){
-    var okRet= possible.stream()
+  private Reason resForReq(ArgMatrix mat, List<Integer> possible, TRequirement req){
+    List<Integer> okRet= possible.stream()
       .filter(i->ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
-    if (!okRet.isEmpty()){ return new TResult(req.reqName(), bestUnique(mat,okRet),""); }
-    return new TResult(req.reqName(),bestUnique(mat,possible),
-      ts.err().makeErrResult(mat, possible, req));    
+    if (!okRet.isEmpty()){ return Reason.pass(req.reqName(), bestUnique(mat,okRet)); }
+    return Reason.callResultCannotHaveRequiredType(c, bs, mat, possible, req,bestUnique(mat,possible));
   } 
   private T bestUnique(ArgMatrix mat, List<Integer> idxs){
     List<T> all= idxs.stream().map(i->mat.candidate(i).t()).toList();

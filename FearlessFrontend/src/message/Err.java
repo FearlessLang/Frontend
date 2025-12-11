@@ -1,7 +1,6 @@
 package message;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -10,22 +9,25 @@ import core.*;
 import core.E.*;
 import fearlessFullGrammar.MName;
 import metaParser.Message;
-import typeSystem.ArgMatrix.*;
 import typeSystem.TypeSystem.*;
+import utils.Bug;
 
 final class Err{
   final StringBuilder sb= new StringBuilder();
   static Err of(){ return new Err(); }
   static String disp(Object o){ return Message.displayString(o.toString()); }
   String text(){ return sb.toString().stripTrailing(); }
+
   FearlessException ex(pkgmerge.Package pkg, E e){
+    assert sb.length() != 0;
+    blank().line("Relevant code with inferred types:");
     Map<String,String> map= pkg.map().entrySet().stream()
       .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     var ee= new CompactPrinter(pkg.name(),map).limit(e,120);
-    line("\nRelevant code with inferred types:");
     line(ee);
     return Code.TypeError.of(text());
   }
+
   Err line(String s){
     assert !s.isEmpty();
     assert sb.lastIndexOf("\n") == sb.length()-1;
@@ -35,29 +37,29 @@ final class Err{
   }
   Err blank(){
     int n= sb.length();
-    if (n == 0){ return this; }
-    if (n >= 2 && sb.charAt(n-1) == '\n' && sb.charAt(n-2) == '\n'){ return this; }
-    if (sb.charAt(n-1) != '\n'){ sb.append('\n'); }
+    assert n != 0;
+    assert sb.charAt(n-1) == '\n';
+    if (n >= 2 && sb.charAt(n-2) == '\n'){ return this; }
     sb.append('\n');
     return this;
   }
-  Err pArgsDisagreeIntro(){ return line("Each argument is compatible with at least one promotion, but no single promotion works for all arguments."); }
-  Err pAcceptedByPromos(int argi, List<String> promos){ return line("  - argument "+(argi+1)+Join.of(promos," is compatible with promotions: ",", ",".")); }
-  Err pReceiverPromotionFailures(List<MType> promos){
-    pPromotionFailuresHdr();
-    for (var m:promos){
-      line("  - receiver fails for promotion "+m.promotion()+":");
-      pFailCause("Needs receiver "+disp(m.rc())+".");
-    }
-    return this;
-  }
-  Err pFailCause(String s){
+  Err bullet(String s){ return line(item("- ","  ", s)); }
+  Err indented(String s){ return line(item("  ","  ", s)); }
+
+  private String item(String first, String rest, String s){
     s= s.stripTrailing();
-    if (s.isEmpty()){ return this; }
-    sb.append(indent(s,"    ")).append('\n');
-    return this;
+    assert !s.isEmpty();
+    return first+s.replace("\n","\n"+rest);
   }
-  Err conflictsWithMethodIn(Sig sup){ return line("Conflicts with method in "+disp(sup.origin().s())+"."); }
+
+  Err pArgsDisagreeIntro(){
+    return line("Each argument is compatible with at least one promotion, but no single promotion works for all arguments.");
+  }
+  Err pAcceptedByPromos(int argi, List<String> promos){
+    assert !promos.isEmpty();
+    return bullet(argLabel(argi)+" is compatible with promotions: "+Join.of(promos,"",", ","."));
+  }
+
   Err pCallCantBeSatisfied(Call c){
     return line("This call to method "+methodSig(c.name())+" does not type-check.");
   }
@@ -65,33 +67,90 @@ final class Err{
     line(kind+" for method "+methodSig(s.m())+".");
     return where.isEmpty() ? this : line("In "+disp(where)+".");
   }
-  Err pArgIncompatibleAllPromos(int argi){
-    return line(argLabel(argi)+" is incompatible with all available promotions.");
+  Err conflictsWithMethodIn(Sig sup){ return line("Conflicts with method in "+disp(sup.origin().s())+"."); }
+
+  Err pPromotionFailuresHdr(){ return blank().line("Promotion failures:"); }
+  Err pPromoFailure(String reason, String promo){
+    reason= reason.stripTrailing();
+    assert !reason.isEmpty();
+    assert !promo.isEmpty();
+    return bullet(reason+" ("+promoName(promo)+")");
   }
-  Err pArgHasType(int argi, List<T> gotTs){
+
+  Err pReceiverRequiredByPromotion(List<MType> promos){
+    throw Bug.todo();/*var byRc= new LinkedHashMap<RC, List<String>>();
+    for (var m:promos){
+      var ps= byRc.computeIfAbsent(m.rc(), _->new ArrayList<>());
+      String p= promoName(m.promotion());
+      if (!ps.contains(p)){ ps.add(p); }
+    }
+    blank().line("Receiver required by each promotion:");
+    byRc.keySet().stream()
+      .sorted((a,b)->Integer.compare(a.ordinal(), b.ordinal()))
+      .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc),""," / ","")+")"));
+    return this;*/
+  }
+
+  Err pHopelessArg(Call c, int argi, List<TRequirement> reqs, List<Reason> res){
+    throw Bug.todo();/*pCallCantBeSatisfied(c);
+    if (diag.isPresent()){ return blank().pArgDiag(diag.get()).pTypesRequiredByPromo(reqs); }
+    var gotTs= res.stream().map(TResult::best).distinct().toList();
+    pArgHasType(argi, gotTs);
+    var byT= typesByPromo(reqs);
+    var need= byT.keySet().stream()
+      .sorted((a,b)->{
+        int ra= rcRank(a), rb= rcRank(b);
+        if (ra != rb){ return Integer.compare(ra, rb); }
+        return disp(a).compareTo(disp(b));
+      })
+      .toList();
+    var needS= need.stream().map(Err::disp).toList();
+    String targets= needS.size() == 1 ? needS.getFirst() : "any of "+Join.of(needS,""," or ","");
+    line("That is not a subtype of "+targets+".");
+    return pTypesRequiredByPromo(byT, need);*/
+  }
+
+  /*private Err pArgHasType(int argi, List<T> gotTs){
     return line(argLabel(argi)+" has type "+dispTypes(gotTs)+".");
   }
-  Err pPromotionFailuresHdr(){ return blank().line("Promotion failures:"); }
-  Err pPromoFail(int argi, String promo){ return line("  - argument "+(argi+1)+" fails for promotion "+promo+":"); }
-  Err pExpected(T expected){ return line("    Expected: "+disp(expected)+"."); }
-  Err pArgDiag(TypeSystemErrors.ArgDiag d){ return
-     blank()
-    .pArgDiagHeader(d)
-    .pArgDiagNote(d)
-    .pArgDiagWhy(d);
+
+  private Err pTypesRequiredByPromo(List<TRequirement> reqs){
+    var byT= typesByPromo(reqs);
+    var need= byT.keySet().stream()
+      .sorted((a,b)->{
+        int ra= rcRank(a), rb= rcRank(b);
+        if (ra != rb){ return Integer.compare(ra, rb); }
+        return disp(a).compareTo(disp(b));
+      })
+      .toList();
+    return pTypesRequiredByPromo(byT, need);
   }
-  Err pHopelessArg(Call c, int argi, List<TRequirement> reqs, List<TResult> res, Optional<TypeSystemErrors.ArgDiag> diag){
-    pCallCantBeSatisfied(c).pArgIncompatibleAllPromos(argi);
-    diag.ifPresentOrElse(this::pArgDiag, ()->pArgHasType(argi, res.stream().map(TResult::best).distinct().toList()));
-    pPromotionFailuresHdr();
-    IntStream.range(0,reqs.size()).forEach(i->pHopelessArgFail(argi, reqs.get(i), res.get(i), diag));
+  private Err pTypesRequiredByPromo(Map<T, List<String>> byT, List<T> orderedTs){
+    blank().line("Type required by each promotion:");
+    for (var t:orderedTs){
+      var ps= byT.get(t);
+      assert ps != null && !ps.isEmpty();
+      bullet(disp(t)+" ("+Join.of(ps,""," / ","")+")");
+    }
     return this;
   }
-  private Err pHopelessArgFail(int argi, TRequirement req, TResult tr, Optional<TypeSystemErrors.ArgDiag> diag){
-    pPromoFail(argi, req.reqName());
-    if (diag.isEmpty()){ return pExpected(req.t()).pFailCause(tr.reason()); }
-    var got= diag.get().got().get();//Offensive
-    return pFailCause(disp(got)+" is not a subtype of "+disp(req.t())+".");
+  private Map<T, List<String>> typesByPromo(List<TRequirement> reqs){
+    var m= new LinkedHashMap<T, List<String>>();
+    for (var r:reqs){
+      String p= promoName(r.reqName());
+      assert !p.isEmpty();
+      var ps= m.computeIfAbsent(r.t(), _->new ArrayList<>());
+      if (!ps.contains(p)){ ps.add(p); }
+    }
+    return m;
+  }*/
+  private String promoName(String s){
+    assert !s.isEmpty();
+    if (s.startsWith("Strengthen result")){ return "Strengthen result"; }
+    return s;
+  }
+  /*Err pArgDiag(TypeSystemErrors.ArgDiag d){
+    return pArgDiagHeader(d).pArgDiagNote(d).pArgDiagWhy(d);
   }
   private Err pArgDiagHeader(TypeSystemErrors.ArgDiag d){
     String par= "The parameter "+disp(d.x());
@@ -106,8 +165,8 @@ final class Err{
     String end= ", that is not a subtype of "+disp(d.expected().get())+".";
     if (d.declared().equals(d.got().get())){ return line(par+hasType+end); }
     return line(par+declPart+hasType+end);
-  }
-  private Err pArgDiagNote(TypeSystemErrors.ArgDiag d){
+  }*/
+  /*private Err pArgDiagNote(TypeSystemErrors.ArgDiag d){
     String dd= disp(d.declared());
     String ee= d.expected().map(Err::disp).orElse("the expected type");
     String note= switch(d.note()){
@@ -116,14 +175,16 @@ final class Err{
       case DECLARED_OK_THIS_EXPECTED -> "Note: the declared type "+dd+" is a subtype of "+ee+".";
       case DECLARED_NOT_OK_THIS_EXPECTED -> "Note: the declared type "+dd+" is also not a subtype of "+ee+".";
     };
-    return note.isEmpty() ? this: line(note);
-  }
-  private Err pArgDiagWhy(TypeSystemErrors.ArgDiag d){
+    return note.isEmpty() ? this : line(note);
+  }*/
+  /*private Err pArgDiagWhy(TypeSystemErrors.ArgDiag d){
     T expected= d.expected().orElse(d.declared());
     String w= d.why().render(d.x(), expected, d.got(), d.declared(), d.bs());
     return w.isEmpty() ? this : line(w);
-  }
+  }*/
+
   Err lineGotMsg(T got, T expected){ return line(gotMsg(got, expected)); }
+
   static String methodSig(MName m){ return methodSig("",m); }
   static String methodSig(String pre, MName m){
     return disp(Join.of(
@@ -132,14 +193,13 @@ final class Err{
       pre+m.s()
     ));
   }
+
   private String argLabel(int argi){ return "Argument "+(argi+1); }
-  private String indent(String s, String pre){ return pre+s.replace("\n","\n"+pre); }
-  private String gotMsg(T got, T expected){
-    return disp(got)+" is not a subtype of "+disp(expected)+".";
-  }
-  private String dispTypes(List<T> ts){
+  private String gotMsg(T got, T expected){ return disp(got)+" is not a subtype of "+disp(expected)+"."; }
+
+  /*private String dispTypes(List<T> ts){
     var ss= ts.stream().map(Err::disp).distinct().sorted().toList();
     if (ss.size() == 1){ return ss.getFirst(); }
     return Join.of(ss,""," or ","");
-  }
+  }*/
 }

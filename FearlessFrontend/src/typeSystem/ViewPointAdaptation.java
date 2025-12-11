@@ -2,6 +2,8 @@ package typeSystem;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
+
 import core.*;
 import core.E.*;
 import fearlessParser.RC;
@@ -11,28 +13,34 @@ import static fearlessParser.RC.*;
 
 public record ViewPointAdaptation(Kinding k){
   TypeSystemErrors err(){ return k.err(); }
-  public Gamma of(Gamma g, List<B> delta, Literal l, M m){ return g.mapFilter(t -> of(t,delta,l,m)); }
-  private Change of(T t, List<B> delta, Literal l, M m){    //Literal l, M m, T atDrop
+  public Gamma of(Gamma g,Literal l, M m){ return g.map(curr -> of(curr,l,m)); }
+  private Change of(Change current, Literal l, M m){    //Literal l, M m, T atDrop
+    if(!( current instanceof Change.WithT w)){ return current; }
+    T t= w.currentT();
     RC rc0= l.rc();
     RC rc=  m.sig().rc();
-    if (discard(t, delta, rc0)){ return Change.drop(err().discardWhy(l,m,t)); }//TODO: it was , delta, rc0,kindIsoImm(t, delta) and we may need it again for good errors
-    var withImm= kindIsoImm(t, delta)
-      || (rc == imm && (rc0 == mut || rc0 == read) && kindIsoImmMutRead(t, delta));
-    if (withImm){ return Change.keep(t, t.withRC(imm), err().strengthenToImm(t)); }
-    return adapt(t, delta, rc);
+    Optional<Change>oc= discard(t, l);
+    if(oc.isPresent()){ return oc.get(); }
+    boolean withImm= kindIsoImm(t, l.bs())
+      || (rc == imm && (rc0 == mut || rc0 == read) && kindIsoImmMutRead(t, l.bs()));
+    if (withImm){ return Change.keepStrengthenToImm(l,m,w); }
+    return adapt(w, l, m);
   }
-  private Change adapt(T t, List<B> delta, RC rc){ // T[delta, RC]
+  private Change adapt(WithT w, Literal l, M m){ // T[delta, RC]
+    RC rc= m.sig().rc();
+    T t=w.currentT();
     if (rc == read){
-      if (isMutReadForm(t)){ return Change.keep(t, t.withRC(read), err().setToRead(t)); }
-      if (isXReadImmXForm(t)){ return Change.keep(t, t.readImm(), err().useReadImm(t)); }
+      if (isMutReadForm(t)){ return Change.keepSetToRead(l,m,w); }
+      if (isXReadImmXForm(t)){ return Change.keepSetToReadImm(l,m,w); }
     }
     assert rc == mut;//meth RC can only be imm, mut, read and imm is filtered before
-    if (kindImmMutRead(t, delta)){ return new Same(t); }
-    return Change.keep(t, t.withRC(read), err().weakenedToRead(t));
+    if (kindImmMutRead(t, l.bs())){ return w; }
+    return Change.keepSetToRead(l,m,w);
   }
-  private boolean discard(T t, List<B> delta, RC rc0){
-    if ((rc0 == iso || rc0 == imm) && !kindIsoImm(t, delta)){ return true; }
-    return !kindIsoImmMutRead(t, delta);
+  private Optional<Change> discard(T t, Literal l){
+    if ((l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs())){ return Optional.of(Change.dropMutInImm(l,t)); }
+    if (kindIsoImmMutRead(t, l.bs())){ return Optional.empty(); };
+    return Optional.of(Change.dropReadHMutH(l,t));
   } 
   private boolean kindIsoImm(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm)); }
   private boolean kindIsoImmMutRead(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm, mut, read)); }

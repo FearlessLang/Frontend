@@ -14,10 +14,9 @@ import core.T;
 import fearlessParser.RC;
 import inject.TypeRename;
 import message.FearlessException;
+import message.Reason;
 import message.TypeSystemErrors;
 import pkgmerge.OtherPackages;
-import typeSystem.ArgMatrix.*;
-
 import static fearlessParser.RC.*;
 import utils.OneOr;
 import utils.Push;
@@ -54,42 +53,40 @@ public record TypeSystem(ViewPointAdaptation v){
     var rs= List.of(new TRequirement("", expected));
     var out= typeOf(bs,g,e,rs);
     assert out.size() == 1;
-    if (out.getFirst().success()){ return; }
+    if (out.getFirst().isEmpty()){ return; }
     throw err().typeError(e,out,rs);
   }
-  List<TResult> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch(e){
+  List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch(e){
     case X x -> checkX(bs,g,x,rs);
-    case Type t -> checkType(bs,g,t,rs);
+    case Type t -> checkType(e,bs,g,t,rs);
     case Literal l -> checkLiteral(bs,g,l,rs);
     case Call c -> checkCall(bs,g,c,rs);
   };}
-  private List<TResult> checkX(List<B> bs, Gamma g, X x, List<TRequirement> rs){
+  private List<Reason> checkX(List<B> bs, Gamma g, X x, List<TRequirement> rs){
     var b= g.bind(x.name());
     T declared= b.declared();
     var cur= b.current();
-    var v= cur.view();
-    if (v.isEmpty()){ throw err().nameNotAvailable(x, declared, cur.why(), bs); }
-    T got= v.get();
-    if (rs.isEmpty()){ return List.of(new TResult("",got,"")); }
-    return rs.stream().map(r->{
+    if (!(cur instanceof Change.WithT w)){ throw err().nameNotAvailable(x, declared, cur, bs); }
+    T got= w.currentT();
+    if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
+    return rs.stream().<Reason>map(r->{
       T expected= r.t();
-      if (isSub(bs,got,expected)){ return new TResult(r.reqName(),got,""); }
+      if (isSub(bs,got,expected)){ return Reason.pass(r.reqName(),got); }
       boolean declaredOk= isSub(bs,declared,expected);
-      return new TResult(r.reqName(),got,
-        err().xMismatch(x.name(), expected, got, declared, cur.why(), declaredOk, bs));
+      return Reason.parameterDoesNotHaveRequiredTypeHere(x, bs, r.reqName(), expected, declared, w, declaredOk);
     }).toList();
   }
-  private List<TResult> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
-    return reqs(bs,t.type(),rs);//reqs correctly used for two similar things
+  private List<Reason> checkType(E blame,List<B> bs, Gamma g, Type t, List<TRequirement> rs){
+    return reqs(blame,bs,t.type(),rs);//reqs correctly used for two similar things
   }
-  private List<TResult> reqs(List<B> bs, T got, List<TRequirement> rs){
-    if (rs.isEmpty()){ return List.of(new TResult("",got,"")); }
+  private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
+    if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().map(r->isSub(bs,got,r.t())
-      ? new TResult(r.reqName(),got,"")
-      : new TResult(r.reqName(),got,err().gotMsg(got, r.t()))).toList();
+      ? Reason.pass(r.reqName(),got)
+      : Reason.expressionDoesNotHaveRequiredType(blame,bs,r.reqName(),got,r.t())
+      ).toList();    
   }//TODO: ideally, can we get a readable representation of the e? the name for x, the meth name for call, the type for Type and the Type (or implemented single interface if type is anon) for lambda
-  
-  private List<TResult> checkLiteral(List<B> bs1, Gamma g, Literal l, List<TRequirement> rs){
+  private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal l, List<TRequirement> rs){
     var ts= l.bs().stream().<T>map(b->new T.X(b.x())).toList();
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     ms.forEach(m->checkCallable(l,m));
@@ -98,9 +95,9 @@ public record TypeSystem(ViewPointAdaptation v){
     assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x())));
     k().check(l,bs1,thisType);
     litOk(g.filterFTV(l),l);
-    return reqs(bs1,thisType,rs);
+    return reqs(l,bs1,thisType,rs);
   }
-  private List<TResult> checkCall(List<B> bs,Gamma g,Call c, List<TRequirement> rs){
+  private List<Reason> checkCall(List<B> bs,Gamma g,Call c, List<TRequirement> rs){
     return new CallTyping(this,bs,g,c,rs).run();
   }
   private void checkImplemented(Literal l, M m){
@@ -132,7 +129,7 @@ public record TypeSystem(ViewPointAdaptation v){
     l.cs().stream().map(c->new T.RCC(RC.mut,c)).forEach(c->k().check(l,delta,c));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT));
     l.ms().forEach(m->{
-      Gamma g2= v().of(g1,delta,l,m);//passing l and m instead of their RC for better errors
+      Gamma g2= v().of(g1,l,m);//passing l and m instead of their RC for better errors
       methOk(l,delta,g2,m);
     });
   }

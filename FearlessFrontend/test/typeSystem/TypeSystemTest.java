@@ -382,6 +382,35 @@ A:{
   .caller(x:readH A, y:mutH A):A->this.f(x,y);
 }
 """));}
+
+@Test void methodArgsDisagree2(){fail("""
+005|   .caller(x:readH A, y:mutH A):A->this.f(x,ID#[mutH A]y);
+   |   --------------------------------~~~~^^^~~~~~~~~~~~~~~~
+
+While inspecting ".caller(_,_)" line 5
+This call to method ".f(_,_)" does not type-check.
+Each argument is compatible with at least one promotion, but no single promotion works for all arguments.
+- Argument 1 is compatible with promotions: Allow readH, Allow mutH (arg0).
+- Argument 2 is compatible with promotions: Allow mutH (arg1).
+
+Promotion failures:
+- The parameter "x" here has type "readH p.A", that is not a subtype of "read p.A". (As declared)
+- The parameter "x" here has type "readH p.A", that is not a subtype of "p.A". (Strengthen result)
+- Return requirement not met.
+  Expected: "iso p.A".
+  Promotions: As declared, Strengthen result (allows readH/mutH), Allow readH, Allow mutH, Allow mutH (arg0). (Allow readH, Allow mutH (arg0))
+- The parameter "x" here has type "readH p.A", that is not a subtype of "p.A". (Allow mutH (arg1))
+
+Relevant code with inferred types:
+this.f(x,ID#[imm,mutH A](y))
+""",List.of("""
+ID:{#[T:**](x:T):T->x}
+A:{
+  .f(a:read A, b:mut A):A->this;
+  .caller(x:readH A, y:mutH A):A->this.f(x,ID#[mutH A]y);
+}
+"""));}
+
 @Test void noVar1Ok(){ok(List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
@@ -510,25 +539,13 @@ A:{
 
 While inspecting ".foo" line 6 > ".f(_)" line 6
 This call to method "#(_)" does not type-check.
-Argument 1 is incompatible with all available promotions.
 Argument 1 has type "read p.A".
+That is not a subtype of any of "mut p.A" or "mutH p.A" or "iso p.A".
 
-Promotion failures:
-  - argument 1 fails for promotion `As declared`:
-    Expected: "mut p.A".
-    Return requirement not met.
-    Expected: "mut p.A".
-    Promotions: `Allow readH`, `Allow mutH (arg0)`, `As declared`.
-  - argument 1 fails for promotion `Strengthen result`, `Strengthen result (allows readH/mutH)`, `Allow readH`, `Allow mutH`:
-    Expected: "iso p.A".
-    Return requirement not met.
-    Expected: "iso p.A".
-    Promotions: `Allow readH`, `Allow mutH (arg0)`, `As declared`.
-  - argument 1 fails for promotion `Allow mutH (arg0)`:
-    Expected: "mutH p.A".
-    Return requirement not met.
-    Expected: "mutH p.A".
-    Promotions: `Allow readH`, `Allow mutH (arg0)`, `As declared`.
+Type required by each promotion:
+- "mut p.A" (As declared)
+- "mutH p.A" (Allow mutH (arg0))
+- "iso p.A" (Strengthen result)
 
 Relevant code with inferred types:
 Need#(AsRead#(aaaa))

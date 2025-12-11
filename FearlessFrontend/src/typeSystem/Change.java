@@ -1,49 +1,43 @@
 package typeSystem;
 
-import static offensiveUtils.Require.nonNull;
+import static fearlessParser.RC.imm;
+import static fearlessParser.RC.read;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
 import core.*;
-
+import core.E.*;
+//intentionally merging "set to read" vs "weakened to read"
 public sealed interface Change{
-  Optional<T> view();
-  Why why();
-  Change map(Function<T,Change> f);
-  static Change drop(Why why){ return new Drop(why); }
-  static Change keep(T in, T out, Why why){ return out.equals(in) ? new Same(out) : new Keep(out, why); }
-  public record Same(T t) implements Change{
-    public Same{ assert nonNull(t); }
-    public Optional<T> view(){ return Optional.of(t); }
-    public Why why(){ return (_,_,_,_,_)->""; }
-    public Change map(Function<T,Change> f){ return f.apply(t); }
+  sealed interface WithT extends Change{ T currentT(); }
+  static Change keepStrengthenToImm(Literal l, M m, WithT tail){
+    var newT= tail.currentT().withRC(imm);
+    if (newT.equals(tail.currentT())){ return tail; }
+    return new KeepStrengthenToImm(l,m,newT,tail);
   }
-  public record Keep(T t, Why why) implements Change{
-    public Keep{ assert nonNull(t,why); }
-    public Optional<T> view(){ return Optional.of(t); }
-    public Change map(Function<T,Change> f){ return merge(f.apply(t)); }
-    private Change merge(Change next){ return switch(next){
-      case Same _->this;
-      case Keep k -> new Keep(k.t(), why.then(next.why()));
-      case Drop _->next;
-    };}
+  static Change keepSetToRead(Literal l, M m, WithT tail){
+    var newT= tail.currentT().withRC(read);
+    if (newT.equals(tail.currentT())){ return tail; }
+    return new KeepSetToRead(l,m,newT,tail);
   }
-  public interface Why{
-    String render(String x, T expected, Optional<T> got, T declared, List<B> bs);
-    default Why then(Why next){
-      return (x, expected, got, declared, bs)->{
-        String a= render(x, expected, got, declared, bs);
-        String b= next.render(x, expected, got, declared, bs);
-        if (a.isEmpty()){ return b; }
-        if (b.isEmpty()){ return a; }
-        return a+"\n"+b;//TODO: later this may change in some other kind of formatting
-      };
-    }
+  static Change keepSetToReadImm(Literal l, M m, WithT tail){
+    var newT= tail.currentT().readImm();
+    if (newT.equals(tail.currentT())){ return tail; }
+    return new KeepSetToReadImm(l,m,newT,tail);
   }
-  public record Drop(Why why) implements Change{
-    public Drop{ assert nonNull(why); }
-    public Optional<T> view(){ return Optional.empty(); }
-    public Change map(Function<T,Change> f){ return this; }
+  static Change dropMutInImm(Literal l,T atDrop){
+    return new DropMutInImm(l,atDrop);
   }
+  static Change dropReadHMutH(Literal l, T atDrop){
+    return new DropReadHMutH(l,atDrop);
+  }
+  static Change dropFTV(Literal l, T atDrop){
+    return new DropFTV(l,atDrop);
+  }      
+  record Same(T currentT) implements WithT{}
+  record KeepStrengthenToImm(Literal l, M m, T currentT, WithT tail) implements WithT{}
+  record KeepSetToRead(Literal l, M m, T currentT, WithT tail) implements WithT{}
+  record KeepSetToReadImm(Literal l, M m, T currentT, WithT tail) implements WithT{}
+  sealed interface NoT extends Change{}
+  record DropMutInImm(Literal l, T atDrop)implements NoT{}
+  record DropReadHMutH(Literal l, T atDrop)implements NoT{}
+  record DropFTV(Literal l, T atDrop)implements NoT{}
 }
