@@ -13,7 +13,6 @@ import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
 import utils.Bug;
-import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import core.*;
 import core.E.*;
@@ -21,22 +20,123 @@ import static message.Err.disp;
 import static message.Err.methodSig;
 
 public record TypeSystemErrors(pkgmerge.Package pkg){
+  ///Type t is not well-kinded with respect to its declared generic bounds (RC / X constraints).
+  ///Used when checking Id[Ts] instantiations in Sigs, literal supertypes Cs, or m[RC,Ts] calls.*/
+  public FearlessException typeNotWellKinded(E toErr, T t){
+    throw Bug.todo();
+  }
+  ///Overriding method in literal l is not a valid subtype of inherited method.
+  ///Raised when checking object literals
+  public FearlessException methodOverrideSignatureMismatchGenericBounds(Literal l, Sig sub, Sig sup, int index){
+    throw Bug.todo();//"Generic bounds mismatch for " + bsSub.get(index).x())
+  }
+  ///Overriding method in literal l is not a valid subtype of inherited method.
+  ///Raised when checking object literals
+  public FearlessException methodOverrideSignatureMismatchGenericBoundsArity(Literal l, Sig sub, Sig sup){
+    throw Bug.todo();
+  }
+  ///Overriding method in literal l is not a valid subtype of inherited method.
+  ///Raised when checking object literals
+  public FearlessException methodOverrideSignatureMismatchContravariance(Literal l, Sig sub, Sig sup, int index){
+    throw Bug.todo();//"Argument " + i + " type mismatch (contravariance violation)"
+  }
+  ///Overriding method in literal l is not a valid subtype of inherited method.
+  ///Raised when checking object literals
+  public FearlessException methodOverrideSignatureMismatchCovariance(Literal l, Sig sub, Sig sup){
+    throw Bug.todo();//"Return type mismatch (covariance violation)"
+  }
+  ///A required method was left abstract instead of being implemented.
+  ///Raised when checking object literals
+  public FearlessException callableMethodStillAbstract(TSpan at, M got, Literal l){
+    throw Bug.todo();
+  }
+  ///Implemented method can never be called for any receiver obtained from the literal.
+  ///Its body is statically dead code (typically a mut method on an imm/read literal).
+  ///Raised when checking object literals   
+  public FearlessException methodImplementationDeadCode(TSpan at, M got, Literal l){
+    throw Bug.todo();
+  }
+  ///Iso parameter is used in a way that violates affine discipline.
+  ///Allowed uses: capture into object literals as imm, or use directly at most once.
+  ///if !earlyErrOnMoreThenOnceDirectly then used exactly once directly but ALSO used in literals
+  ///Raised when checking object literals
+  public FearlessException notAffineIso(M m, String name, boolean earlyErrOnMoreThenOnceDirectly, List<E.X> usages){
+    throw Bug.todo();
+  }
+
+  ///Expression at method body has a type that does not meet its result requirement(s).
+  ///"body has wrong type" error; cab only trigger if all sub-expressions at are well typed.
+  ///Raised when checking object literals
+  public FearlessException methBodyWrongType(E at, List<Reason> got, List<TRequirement> req){
+    throw Bug.todo();
+  }
+  ///Parameter x is syntactically in scope but its value was dropped by viewpoint adaptation.
+  ///Raised when a use of x occurs after capturing have made it unavailable.
+  ///Raised when checking parameters.
+  public FearlessException parameterNotAvailableHere(E.X x, T declared, Change why, List<B> bs){
+    throw Bug.todo();
+  }
+  ///Receiver expression of call c is typed into a type parameter (X / RC X / read/imm X), not a concrete RC C.
+  ///Methods cannot be called on type parameters, so this call can never resolve.
+  ///Raised when checking method calls.
+  public FearlessException methodReceiverIsTypeParameter(Call c, T recvType){
+    throw Bug.todo();
+  }
+  ///No method matches call c.
+  ///Sub-errors for more clarity
+  /// - no such name at all; searching for similar names with "Did you mean..."
+  /// - method name exist but with different arity; error will list those other method signatures
+  /// - method exists with right arity, but different receiver RCs; list those other method signatures
+  ///Raised when checking method calls.
+  public FearlessException methodNotDeclared(Call c, core.E.Literal d){
+    throw Bug.todo();
+  }
+  ///A method matching c by name / arity / RC exists, but c supplies the wrong number of type arguments.
+  ///Triggered only for explicitly written [Ts]; inference never reaches this error.
+  ///Raised when checking method calls.
+  public FearlessException methodTArgsArityError(Call c, int expected){
+    throw Bug.todo();
+  }
+  ///Methods exist for call c, but the receiver capability is too weak for all the available promotions.
+  ///No promotion accepts this receiver, so the call cannot succeed regardless of argument types.
+  ///Raised when checking method calls.
+  public FearlessException receiverRCBlocksCall(Call c, RC recvRc, List<MType> promos){
+    throw Bug.todo();
+  }
+  ///For argument index argi in call c, the argument's type does not satisfy any promotion's requirement.
+  ///Receiver and arguments are well typed, but this argument does not match any promotion.
+  ///Sub-errors for more clarity
+  /// - The argument type has the wrong nominal type, Person vs Car. In this case, promotions are not mentioned, just the general type mismatch.
+  ///   This should also suppress detail from parameter Reason object
+  /// - The argument best type met the intended nominal type, but the RC is off.
+  ///   Here the Reason object should help to provide clarifications
+  /// - Arguments return type is likely impacted by inference: argument is a generic method call or object literal
+  ///   Do the Reason help here? if not, can we expand it or provide a parallel support?
+  ///Raised when checking method calls.
+  public FearlessException methodArgumentCannotMeetAnyPromotion(Call c, int argi, List<TRequirement> reqs, List<Reason> res){
+    throw Bug.todo();
+  }
+  ///Each argument of call c is compatible with at least one promotion, but no promotion fits all arguments.
+  ///The per-argument sets of acceptable promotions have empty intersection.
+  ///Raised when checking method calls.
+  ///Error details
+  ///  - What arguments satisfy what promotion and why (best type <: required type1, required type 2 etc)  
+  public FearlessException methodPromotionsDisagreeOnArguments(Call c, ArgMatrix mat){
+    throw Bug.todo();
+  }
+
+//---------------Utils
+
   private FearlessException withCallSpans(FearlessException ex, Call c){
     return ex.addSpan(Parser.span(c.pos(), c.name().s().length())).addSpan(c.span().inner);
   }
-  public FearlessException overrideMismatch(Literal l,Sig sub, Sig sup, String reason){ return Err.of()
+  public FearlessException override_Mismatch(Literal l,Sig sub, Sig sup, String reason){ return Err.of()
     .pMethodContext("Invalid override", sub, sub.origin().s())
     .conflictsWithMethodIn(sup)
     .line("Reason: "+reason)
     .ex(pkg, l).addSpan(sub.span().inner);
   }
-  public FearlessException unresolvedConflict(Literal l, TName type, M m1, M m2){ return Err.of()
-    .line("Unresolved multiple inheritance conflict in type "+disp(type.s())+".")
-    .line("Method "+disp(m1.sig().m().s())+" is inherited from both "+disp(m1.sig().origin().s())+" and "+disp(m2.sig().origin().s())+".")
-    .line("You must override this method explicitly to resolve the ambiguity.")
-    .ex(pkg,l).addSpan(Parser.span(type.pos(), type.s().length()));
-  }
-  public FearlessException notKinded(E toErr, T t){ return Err.of()
+  public FearlessException not_Kinded(E toErr, T t){ return Err.of()
     .line("Type "+disp(t)+" is not well-kinded.")
     .line("It violates reference capability constraints.")
     .ex(pkg,toErr)
@@ -47,7 +147,7 @@ public record TypeSystemErrors(pkgmerge.Package pkg){
     if (t instanceof T.RCC rcc){ return rcc.c().name().pos(); }
     return Pos.UNKNOWN;
   }
-  public FearlessException notAffine(M m, String name, List<E.X> usages){ 
+  public FearlessException not_Affine(M m, String name, List<E.X> usages){ 
     var ex= Err.of()
       .line("Usage violation for parameter "+disp(name)+".")
       .line("An iso parameter must be either:")
@@ -62,7 +162,7 @@ public record TypeSystemErrors(pkgmerge.Package pkg){
     return "Return requirement not met.\nExpected: "+disp(req.t())+".\nPromotions: "+promos+".";
   }
   
-  public FearlessException methodReceiverRcBlocksCall(Call c, RC recvRc, List<MType> promos){
+  public FearlessException methodReceiver_RcBlocksCall(Call c, RC recvRc, List<MType> promos){
     List<String> needed= promos.stream().map(MType::rc).distinct().sorted().map(Err::disp).toList();
     return withCallSpans(Err.of()
       .pCallCantBeSatisfied(c)      
@@ -71,23 +171,17 @@ public record TypeSystemErrors(pkgmerge.Package pkg){
       .pReceiverRequiredByPromotion(promos)
       .ex(pkg,c), c);
   }
-  public FearlessException callableMethodAbstract(TSpan at, M got, Literal l){
-    var s= got.sig();
-    return Err.of()
-      .line("Abstract method is being called.")//TODO: NO, this does not make any sense
-      .line("Method: "+methodSig(s.m())+".")
-      .line("Declared abstract in: "+disp(s.origin().s())+".")
-      .line("Literal capability: "+l.rc()+".")
-      .ex(pkg,l).addSpan(at.inner);
+  public FearlessException callableMethod_Abstract(TSpan at, M got, Literal l){
+    throw Bug.todo();
   }
-  public FearlessException methodHopelessArg(Call c, int argi, List<TRequirement> reqs, List<Reason> res){
+  public FearlessException methodHopeless_Arg(Call c, int argi, List<TRequirement> reqs, List<Reason> res){
     throw Bug.todo();/*assert reqs.size() == res.size();
     return withCallSpans(Err.of()
       .pHopelessArg(c,argi,reqs,res,diag)
       .ex(pkg,c), c);
       */
   }
-  public FearlessException methodNotDeclared(Call c, core.E.Literal d){
+  public FearlessException meth_odNotDeclared(Call c, core.E.Literal d){
     String name= c.name().s();
     var candidates= d.ms().stream().map(M::sig).toList();
     var sameName= candidates.stream().filter(s->s.m().s().equals(name)).toList();
@@ -124,7 +218,7 @@ public record TypeSystemErrors(pkgmerge.Package pkg){
       .line("Available capabilities for this method: "+disp(availRc)+".")
       .ex(pkg,c), c);
   }
-  public FearlessException methodArgsDisagree(Call c, ArgMatrix mat){
+  public FearlessException methodArgs_Disagree(Call c, ArgMatrix mat){
     int ac= mat.aCount();
     int cc= mat.cCount();
     var e= Err.of()
@@ -141,7 +235,7 @@ public record TypeSystemErrors(pkgmerge.Package pkg){
     });
     return withCallSpans(e.ex(pkg,c), c);
   }
-  public FearlessException typeError(E at, List<Reason> got, List<TRequirement> req){
+  public FearlessException type_Error(E at, List<Reason> got, List<TRequirement> req){
     assert got.size() == req.size();
     var e= Err.of();
     for(int i= 0; i < got.size(); i++){
@@ -160,7 +254,7 @@ public record TypeSystemErrors(pkgmerge.Package pkg){
     String e= Message.displayString(expected.toString());
     return g+" is not a subtype of "+e+".";
   }
-  public FearlessException uncallableMethodDeadCode(TSpan at, M got, Literal l){
+  public FearlessException uncallableMethod_DeadCode(TSpan at, M got, Literal l){
     assert l.rc() == RC.imm || l.rc() == RC.read;
     var s= got.sig();
     assert s.rc() == RC.mut;
@@ -174,7 +268,7 @@ public record TypeSystemErrors(pkgmerge.Package pkg){
       .line("Hint: remove the implementation of method "+m+".")
       .ex(pkg,l).addSpan(at.inner);
   }
-  public FearlessException methodTArgsArityError(Call c, int expected){
+  public FearlessException methodTAr_gsArityError(Call c, int expected){
     int got= c.targs().size(); assert got != expected;
     String expS= expected == 0 
       ? "no type arguments" 
@@ -188,7 +282,7 @@ public record TypeSystemErrors(pkgmerge.Package pkg){
       .line("This method expects "+expS+", but this call provides "+gotS+".")
       .ex(pkg,c), c);
   }  
-  public FearlessException methodReceiverNotRcc(Call c, T recvType){
+  public FearlessException methodReceiverNot_Rcc(Call c, T recvType){
     String name= switch(recvType){
       case T.X x -> disp(x.name());
       case T.RCX(var _, var x) -> disp(x.name());
@@ -212,7 +306,7 @@ public record TypeSystemErrors(pkgmerge.Package pkg){
   public interface IsSub{ boolean isSub(List<B> bs, T a, T b); }
   
   
-  public FearlessException nameNotAvailable(E.X x, T declared, Change why, List<B> bs){
+  public FearlessException nameNot_Available(E.X x, T declared, Change why, List<B> bs){
     throw Bug.of();/*var d= new ArgDiag(x.name(), declared, Optional.empty(), Optional.empty(), why, Note.NONE, bs, List.of());
     return Err.of()
       .line("The parameter "+disp(x.name())+" is not available here.")

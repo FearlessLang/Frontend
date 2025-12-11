@@ -15,7 +15,7 @@ public record Kinding(Function<TName,Literal> decs, TypeSystemErrors err){
   public void check(E toErr,List<B> bs, T t){ check(toErr,bs,t,EnumSet.allOf(RC.class)); }
   public void check(E toErr, List<B> bs, T t, EnumSet<RC> allowed){
     if (of(bs, t, allowed)){ return; }
-    throw err.notKinded(toErr,t);
+    throw err.typeNotWellKinded(toErr,t);
   }
   public boolean of(List<B> bs, T t, EnumSet<RC> allowed){ return switch(t){
     case T.RCC rcc -> ofRCC(bs, rcc, allowed);

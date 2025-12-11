@@ -13,10 +13,10 @@ class Affine{
     List<X> active= new ArrayList<>();
     collect(x, e, true, active);
     if (active.isEmpty()){ return; }
-    if (active.size() > 1){ throw err.notAffine(m, x, active); }
+    if (active.size() > 1){ throw err.notAffineIso(m, x,true, active); }
     List<X> total= new ArrayList<>();
     collect(x, e, false, total);
-    if (total.size() > 1){ throw err.notAffine(m, x, total); }
+    if (total.size() > 1){ throw err.notAffineIso(m, x,false, total); }
   }
   private static void collect(String x, E e, boolean activeOnly, List<X> acc){
     switch (e){

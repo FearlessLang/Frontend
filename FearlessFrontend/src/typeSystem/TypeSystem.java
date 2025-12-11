@@ -54,7 +54,7 @@ public record TypeSystem(ViewPointAdaptation v){
     var out= typeOf(bs,g,e,rs);
     assert out.size() == 1;
     if (out.getFirst().isEmpty()){ return; }
-    throw err().typeError(e,out,rs);
+    throw err().methBodyWrongType(e,out,rs);
   }
   List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch(e){
     case X x -> checkX(bs,g,x,rs);
@@ -66,7 +66,7 @@ public record TypeSystem(ViewPointAdaptation v){
     var b= g.bind(x.name());
     T declared= b.declared();
     var cur= b.current();
-    if (!(cur instanceof Change.WithT w)){ throw err().nameNotAvailable(x, declared, cur, bs); }
+    if (!(cur instanceof Change.WithT w)){ throw err().parameterNotAvailableHere(x, declared, cur, bs); }
     T got= w.currentT();
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().<Reason>map(r->{
@@ -103,12 +103,12 @@ public record TypeSystem(ViewPointAdaptation v){
   private void checkImplemented(Literal l, M m){
     if (!m.sig().abs()){ return; }
     if (!callable(l.rc(),m.sig().rc())){ return; }
-    throw err().callableMethodAbstract(m.sig().span(), m, l);
+    throw err().callableMethodStillAbstract(m.sig().span(), m, l);
   }
   private void checkCallable(Literal l, M m){
     RC litRC= l.rc();
     if (callable(litRC,m.sig().rc())){ return; }
-    throw err().uncallableMethodDeadCode(m.sig().span(), m, l);
+    throw err().methodImplementationDeadCode(m.sig().span(), m, l);
   }
   private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC !=RC.read); }
 
@@ -241,17 +241,17 @@ public record TypeSystem(ViewPointAdaptation v){
     assert bsSub.size() == bsSup.size();//TODO: if we can trigger this, then we have problems in Sources.canonical
     for (int i= 0; i < bsSub.size(); i++){
       var badBounds= !bsSub.get(i).rcs().equals(bsSup.get(i).rcs());
-      if (badBounds){ throw err().overrideMismatch(l,sub, sup, "Generic bounds mismatch for " + bsSub.get(i).x()); }
+      if (badBounds){ throw err().methodOverrideSignatureMismatchGenericBounds(l,sub, sup,i); }
     }
     assert bsSub.equals(bsSup);
     List<B> ctx= Push.of(l.bs(),bsSub);
     var badArity= sup.ts().size() != sub.ts().size();
-    if (badArity){ throw err().overrideMismatch(l,sub,sup, "Arity mismatch"); }
+    if (badArity){ throw err().methodOverrideSignatureMismatchGenericBoundsArity(l,sub,sup); }
     for (int i= 0; i < sub.ts().size(); i++){
       var badArg= !isSub(ctx, sup.ts().get(i), sub.ts().get(i));
-      if (badArg){ throw err().overrideMismatch(l,sub,sup, "Argument " + i + " type mismatch (contravariance violation)"); }
+      if (badArg){ throw err().methodOverrideSignatureMismatchContravariance(l,sub,sup, i); }
     }
     var badRet= !isSub(ctx, sub.ret(), sup.ret());
-    if (badRet){ throw err().overrideMismatch(l,sub, sup, "Return type mismatch (covariance violation)"); }
+    if (badRet){ throw err().methodOverrideSignatureMismatchCovariance(l,sub, sup); }
   }
 }

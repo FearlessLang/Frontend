@@ -22,10 +22,10 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var base= baseMType(rcc0.c(),d,sig);
     var promos= ts.multiMeth(bs,base);
     var app= promos.stream().filter(m->rcc0.rc().isSubType(m.rc())).toList();
-    if (app.isEmpty()){ throw ts.err().methodReceiverRcBlocksCall(c,rcc0.rc(),promos); }
+    if (app.isEmpty()){ throw ts.err().receiverRCBlocksCall(c,rcc0.rc(),promos); }
     var mat= typeArgsOnce(app);
     var possible= mat.candidatesOkForAllArgs();//This is indexes of MTypes allowed by the arguments
-    if (possible.isEmpty()){ throw ts.err().methodArgsDisagree(c,mat); }
+    if (possible.isEmpty()){ throw ts.err().methodPromotionsDisagreeOnArguments(c,mat); }
     if (rs.isEmpty()){ return List.of(Reason.pass(bestUnique(mat,possible))); }
     return rs.stream().map(req->resForReq(mat,possible,req)).toList();
   }
@@ -35,7 +35,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     assert r.getFirst().isEmpty();//else would have thrown
     T t= r.getFirst().best;
     if (t instanceof T.RCC x){ return x; }
-    throw ts.err().methodReceiverNotRcc(c,t);
+    throw ts.err().methodReceiverIsTypeParameter(c,t);
   }
   private Sig sigOf(Literal d){
     var ms= d.ms().stream().map(M::sig)
@@ -73,7 +73,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     assert res.size() == app.size();
     var ok= okSet(res);
     if (ok.isEmpty()){
-      throw ts.err().methodHopelessArg(c,argi,reqs,res);
+      throw ts.err().methodArgumentCannotMeetAnyPromotion(c,argi,reqs,res);
     }
     acc.okByArg().add(ok);
     acc.resByArg().add(res);
