@@ -4,7 +4,7 @@ import static offensiveUtils.Require.*;
 import java.util.List;
 import fearlessParser.RC;
 
-public record B(T.X x, BT bt){
+public record B(T.X x, BT bt){//Span of T.X x needed in crucial error
   public B{ assert nonNull(x,bt);}
   public sealed interface BT{}
   public record Star() implements BT{}

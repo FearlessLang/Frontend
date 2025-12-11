@@ -43,7 +43,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     case T.X x -> bs.stream().anyMatch(b->b.x().equals(x.name()));
     case T.RCX(_, var x) -> bs.stream().anyMatch(b->b.x().equals(x.name()));
     case T.ReadImmX(var x) -> bs.stream().anyMatch(b->b.x().equals(x.name()));
-    case T.RCC(_, var c) -> c.ts().stream().allMatch(ti->hasOnlyFTV(ti,bs));
+    case T.RCC(_, var c,_) -> c.ts().stream().allMatch(ti->hasOnlyFTV(ti,bs));
   };}
 }
 //TODO: bad toy impl!

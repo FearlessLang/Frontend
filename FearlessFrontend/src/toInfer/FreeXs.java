@@ -35,7 +35,7 @@ public class FreeXs {
     case IT.X x -> Stream.of(x.name());
     case IT.RCX(_, var x) -> Stream.of(x.name());
     case IT.ReadImmX(var x) -> Stream.of(x.name());
-    case IT.RCC(_, var c) -> ftvTs(c.ts());
+    case IT.RCC(_, var c,_) -> ftvTs(c.ts());
     case IT.U.Instance -> Stream.of();
     case IT.Err.Instance -> Stream.of();
   };}

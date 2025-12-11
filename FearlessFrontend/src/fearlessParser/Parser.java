@@ -51,6 +51,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (peek(SStrInterHash,SStrLine)){ return parseStrInter(true,empty()); }
     if (peek(_CurlyGroup)){ return parseGroup("object literal", p->p.parseLiteral(false,false)); }
     var rcSpan= peek().map(t->span(t).orElse(span()));
+    int startPos= index();
     Optional<RC> rc= parseOptRC();
     var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH).orElse(false);
     if (invalid){ throw errFactory().disallowedReadHMutH(rcSpan.get(), rc.get()); }
@@ -58,16 +59,21 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (!peek(Token.typeName)){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
     //the expect above is guaranteed to go in error, the list of tokens is cherry picked to produce
     //and intuitive error message
-    return parseTypedLiteral(rc);
+    return parseTypedLiteral(startPos,rc);
   }
   RC parseRC(){ return RC.valueOf(expect("reference capability",RCap).content()); }
   Optional<RC> parseOptRC(){ return peek(RCap)? of(parseRC()) : empty(); }
-  E.TypedLiteral parseTypedLiteral(Optional<RC> rc){
-    Pos pos= pos();
-    var c= new T.RCC(rc, parseC());
+  E.TypedLiteral parseTypedLiteral(int startPos, Optional<RC> rc){
+    Pos pos= pos();    
+    var c= parseRCC(startPos,rc);
     var isCurly= peek(_CurlyGroup);
     if (!isCurly){ return new E.TypedLiteral(c,empty(),pos); }
     return new E.TypedLiteral(c,of(parseGroup("typed literal",p->p.parseLiteral(false,true))),pos);
+  }
+  T.RCC parseRCC(int startPos, Optional<RC> rc){
+    var c= parseC();
+    int endPos= index();
+    return new T.RCC(rc,c,new TSpan(spanAround(startPos,endPos)));  
   }
   T.C parseC(){
     var c= parseTName();
@@ -83,22 +89,26 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return TName.of(s,0,pos(c));
   }
   T parseT(){ //T    ::= C | RC C | X | RC X | read/imm X
-    if (fwdIf(peek(ReadImm))){ return new T.ReadImmX(parseTX()); }
+    int startPos= index();
+    if (fwdIf(peek(ReadImm))){ return new T.ReadImmX(parseTX(startPos)); }
     Optional<RC> rc= parseOptRC();
-    if (peekIf(this::isTName)){ return new T.RCC(rc,parseC()); }
-    T.X res= parseTX();
+    if (peekIf(this::isTName)){ return parseRCC(startPos,rc); }
+    T.X res= parseTX(startPos);
     return rc.map(r->(T)new T.RCX(r, res)).orElse(res);
   }
   T.X parseDecTX(boolean mustNew){
+    int startPos= index();
     var c= expect("Generic type name declaration", UppercaseId);
+    int endPos= index();
     if (mustNew && names.XIn(c.content())){ throw errFactory().nameRedeclared(c,span(c).get()); }
     if (!mustNew && !names.XIn(c.content())){ throw errFactory().genericNotInScope(c, span(c).get(), names.Xs()); }
-    return new T.X(c.content(),pos(c));
+    return new T.X(c.content(),new TSpan(spanAround(startPos,endPos)));
   }
-  T.X parseTX(){
+  T.X parseTX(int startPos){
     var c= expectValidate("type name", UppercaseId,_XId);
+    int endPos= index();
     if (!names.XIn(c.content())){ throw errFactory().genericNotInScope(c, span(c).get(), names.Xs()); }
-    return new T.X(c.content(),pos(c));
+    return new T.X(c.content(),new TSpan(spanAround(startPos,endPos)));
   }
   E parsePost(E receiver){
     if (fwdIf(peekOrder(t->t.is(Colon),t->t.is(UStrInterHash,UStrLine)))){ return parseStrInter(false,of(receiver)); }
@@ -343,7 +353,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return switch (opT.content()) {
       case "**" -> new B(x, new B.StarStar());
       case "*" -> new B(x, new B.Star());
-      default -> throw errFactory().badBound(x.name(),span(opT).get());
+      default -> throw errFactory().badBound(x,span(opT).get());
     };
   }
   List<RC> parseRCs(){ return splitBy("generic bounds declaration",commaSkip,Parser::parseRC); }

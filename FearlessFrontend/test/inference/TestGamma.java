@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 public class TestGamma {
 
-  private static IT X(String name) { return new IT.X(name); }
+  private static IT X(String name) { return new IT.X(name,null); }
 
   // 1) Root: declare, get, update change the signature appropriately
   @Test public void root_declare_get_update_and_signature() {

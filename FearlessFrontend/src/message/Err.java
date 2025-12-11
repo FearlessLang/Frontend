@@ -16,18 +16,25 @@ final class Err{
   final StringBuilder sb= new StringBuilder();
   static Err of(){ return new Err(); }
   static String disp(Object o){ return Message.displayString(o.toString()); }
+  static String bestName(Literal l){
+    if (!l.name().simpleName().startsWith("_")){ return disp(l.name().s()); }
+    return "instanceOf "+disp(l.cs().getFirst().name().s())+"";
+  }
   String text(){ return sb.toString().stripTrailing(); }
-
+  public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, String badStr, String allowedStr){
+  return line("The "+what+" is invalid.")
+    .line("Type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds for type parameter "+paramName+" in "+kindingTarget+".")
+    .line("Here "+paramName+" can only use capabilities "+allowedStr+".");
+  }
   FearlessException ex(pkgmerge.Package pkg, E e){
     assert sb.length() != 0;
-    blank().line("Relevant code with inferred types:");
+    blank().line("Compressed relevant code with inferred types: (compression indicated by `-`)");
     Map<String,String> map= pkg.map().entrySet().stream()
       .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     var ee= new CompactPrinter(pkg.name(),map).limit(e,120);
     line(ee);
     return Code.TypeError.of(text());
   }
-
   Err line(String s){
     assert !s.isEmpty();
     assert sb.lastIndexOf("\n") == sb.length()-1;

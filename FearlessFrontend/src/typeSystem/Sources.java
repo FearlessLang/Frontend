@@ -58,7 +58,7 @@ class Sources {
       String targetVar= canonical.get(i).x();
       methodVars.add(sourceVar);
       mapXs.add(sourceVar);
-      mapTs.add(new T.X(targetVar));
+      mapTs.add(new T.X(targetVar,s.span()));
     }
     for(int i= 0; i < xs.size(); i++){
       String var = xs.get(i);

@@ -23,12 +23,13 @@ import utils.Push;
 import core.E.*;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
+import fearlessFullGrammar.TSpan;
 import pkgmerge.Package;
 
 public record TypeSystem(ViewPointAdaptation v){
   Kinding k(){ return v.k(); }
   TypeSystemErrors err(){ return v.k().err(); }
-  Function<TName,Literal> decs(){ return v.k().decs(); }
+  Function<TName,Literal> decs(){ return v.k().err().decs(); }
   public record TRequirement(String reqName,T t){}
   public record MType(String promotion,RC rc,List<T> ts,T t){
     MType withPromotion(String promotion){ return new MType(promotion,rc,ts,t); }
@@ -40,7 +41,7 @@ public record TypeSystem(ViewPointAdaptation v){
     Function<TName,Literal> decs= n->{
       var res= map.get(n);
       return res != null ? res : other.of(n); };
-    var ts= new TypeSystem(new ViewPointAdaptation(new Kinding(decs,new TypeSystemErrors(pkg))));
+    var ts= new TypeSystem(new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg))));
     tops.forEach(l->ts.litOk(Gamma.empty(),l));
   }
   public boolean isSub(List<B> bs, T t1, T t2){
@@ -85,13 +86,14 @@ public record TypeSystem(ViewPointAdaptation v){
       ? Reason.pass(r.reqName(),got)
       : Reason.expressionDoesNotHaveRequiredType(blame,bs,r.reqName(),got,r.t())
       ).toList();    
-  }//TODO: ideally, can we get a readable representation of the e? the name for x, the meth name for call, the type for Type and the Type (or implemented single interface if type is anon) for lambda
+  }
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal l, List<TRequirement> rs){
-    var ts= l.bs().stream().<T>map(b->new T.X(b.x())).toList();
+    var span= l.name().approxSpan();
+    var ts= l.bs().stream().<T>map(b->new T.X(b.x(),span)).toList();
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     ms.forEach(m->checkCallable(l,m));
     l.ms().forEach(m->checkImplemented(l,m));
-    T thisType= new T.RCC(l.rc(),new T.C(l.name(),ts));
+    var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
     assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x())));
     k().check(l,bs1,thisType);
     litOk(g.filterFTV(l),l);
@@ -121,13 +123,14 @@ public record TypeSystem(ViewPointAdaptation v){
   }
   private void litOk(Gamma g, Literal l){
     var delta= l.bs();
-    var selfT= new T.C(l.name(),dom(delta));
+    var span= l.name().approxSpan();
+    var selfT= new T.C(l.name(),dom(delta,span));
     Map<Key,List<Sig>> sources= sources(l);
     //assert l.ms().stream().map(M::sig).allMatch(s->sources.containsKey(new Key(s.m(),s.rc())));
     //overrideOk(l,sources);  implementOk(l,sources);
     sources.forEach((k,group)->methodTableOk(l,k,group));
-    l.cs().stream().map(c->new T.RCC(RC.mut,c)).forEach(c->k().check(l,delta,c));
-    var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT));
+    l.cs().stream().map(c->new T.RCC(RC.mut,c,span)).forEach(c->k().check(l,delta,c));
+    var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
     l.ms().forEach(m->{
       Gamma g2= v().of(g1,l,m);//passing l and m instead of their RC for better errors
       methOk(l,delta,g2,m);
@@ -151,14 +154,14 @@ public record TypeSystem(ViewPointAdaptation v){
       if (isAffine){ Affine.usedOnce(err(),m,xs.get(i),m.e().get()); }
     }
   }  
-  private List<T> dom(List<B> bs){ return bs.stream().<T>map(b->new T.X(b.x())).toList(); }
+  private List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }
   
   private boolean isImplSubtype(List<B> bs, T t1, T t2){
     if (!(t1 instanceof T.RCC rcc1)){ return false; }
     Literal d= decs().apply(rcc1.c().name());
     List<String> xs= d.bs().stream().map(B::x).toList();
     for (T.C ci : d.cs()){
-      T sup= TypeRename.of(new T.RCC(rcc1.rc(), ci), xs, rcc1.c().ts());
+      T sup= TypeRename.of(new T.RCC(rcc1.rc(), ci,rcc1.span()), xs, rcc1.c().ts());
       if (isSub(bs, sup, t2)){ return true; }
     }
     return false;
@@ -181,9 +184,9 @@ public record TypeSystem(ViewPointAdaptation v){
     return true;
   }
   EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch(t){
-    case T.RCC(var rc, _) -> EnumSet.of(rc);
+    case T.RCC(var rc, _,_) -> EnumSet.of(rc);
     case T.RCX(var rc, _) -> EnumSet.of(rc);
-    case T.X(var x) -> EnumSet.copyOf(get(bs, x).rcs());
+    case T.X(var x,_) -> EnumSet.copyOf(get(bs, x).rcs());
     case T.ReadImmX x -> intrinsicRCs(bs,x);
   };}
   private EnumSet<RC> intrinsicRCs(List<B> bs, T.ReadImmX x){

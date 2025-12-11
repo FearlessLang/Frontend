@@ -98,7 +98,7 @@ public record Methods(
       if (fresh.isFreshGeneric(outName,x)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
-      var newX= new IT.X(fresh.freshGeneric(outName,x));
+      var newX= new IT.X(fresh.freshGeneric(outName,x),outName.approxSpan());
       fullTs.add(newX);
       newBs.add(new B(newX.name(),b.rcs()));
     }
@@ -320,7 +320,7 @@ public record Methods(
     assert superSig.isFull();
     if (superSig.bs().get().isEmpty()){ return superSig; }
     var fromXs = superSig.bs().get().stream().map(B::x).toList();
-    var toITs  = targetBs.stream().<IT>map(b -> new IT.X(b.x())).toList();
+    var toITs  = targetBs.stream().<IT>map(b -> new IT.X(b.x(),superSig.span())).toList();
     assert fromXs.size() == toITs.size() : "mismatched method generic arity";
     var renamedTs  = TypeRename.ofOptITOpt(superSig.ts(), fromXs, toITs);
     var renamedRet = superSig.ret().map(it -> TypeRename.of(it, fromXs, toITs));

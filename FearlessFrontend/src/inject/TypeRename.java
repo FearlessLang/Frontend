@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import core.T;
 import fearlessFullGrammar.TName;
+import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
 import files.Pos;
 import inference.IT;
@@ -69,21 +70,21 @@ public class TypeRename{
     return new IT.C(c.name(),c.ts().stream().map(ti->tToIT(ti)).toList());
   }
   public static IT tToIT(T t){return switch (t){
-    case T.X(var name) -> new IT.X(name);
-    case T.ReadImmX(var x) -> new IT.ReadImmX(new IT.X(x.name()));
-    case T.RCX(var rc,var x) -> new IT.RCX(rc,new IT.X(x.name()));
-    case T.RCC(var rc, var c) -> new IT.RCC(rc,tcToITC(c));
+    case T.X(var name,var span) -> new IT.X(name,span);
+    case T.ReadImmX(var x) -> new IT.ReadImmX(new IT.X(x.name(),x.span()));
+    case T.RCX(var rc,var x) -> new IT.RCX(rc,new IT.X(x.name(),x.span()));
+    case T.RCC(var rc, var c,var span) -> new IT.RCC(rc,tcToITC(c),span);
   };}
   public static T itToT(IT t){return switch (t){
-    case IT.X(var name) -> new T.X(name);
-    case IT.ReadImmX(var x) -> new T.ReadImmX(new T.X(x.name()));
-    case IT.RCX(var rc,var x) -> new T.RCX(rc,new T.X(x.name()));
-    case IT.RCC(var rc, var c) -> new T.RCC(rc,itcToTC(c));
+    case IT.X(var name, var span) -> new T.X(name,span);
+    case IT.ReadImmX(var x) -> new T.ReadImmX(new T.X(x.name(),x.span()));
+    case IT.RCX(var rc,var x) -> new T.RCX(rc,new T.X(x.name(),x.span()));
+    case IT.RCC(var rc, var c, var span) -> new T.RCC(rc,itcToTC(c),span);
     case IT.U _ -> throw Bug.of();// bug is good for testing, it will be replaced with this later: inferUnknown;
     case IT.Err _ ->
     //throw Bug.of();//
     inferErr;
   };}
-  public static final T.RCC inferErr= new T.RCC(RC.imm,new T.C(new TName("base.InferErr", 0, Pos.UNKNOWN), List.of()));
-  public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.UNKNOWN), List.of()));
+  public static final T.RCC inferErr= new T.RCC(RC.imm,new T.C(new TName("base.InferErr", 0, Pos.UNKNOWN), List.of()),TSpan.fromPos(Pos.UNKNOWN,1));
+  public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.UNKNOWN), List.of()),TSpan.fromPos(Pos.UNKNOWN,1));
 }

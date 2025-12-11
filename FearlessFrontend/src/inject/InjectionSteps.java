@@ -11,6 +11,7 @@ import core.B;
 import core.Sig;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
+import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
 import inference.E;
 import inference.Gamma;
@@ -42,9 +43,10 @@ public record InjectionSteps(Methods meths){
     core.M mCore= utils.OneOr.of("Method mismatch", di.ms().stream().filter(mi -> sameM(mi.sig(), m.sig())));
     if (m.impl().isEmpty()){ return mCore; }//assert same type as m lifted to core
     inference.E e= m.impl().get().e();
-    List<IT> thisTypeTs= di.bs().stream().<IT>map(b -> new IT.X(b.x())).toList();
+    TSpan span= di.name().approxSpan();
+    List<IT> thisTypeTs= di.bs().stream().<IT>map(b -> new IT.X(b.x(),span)).toList();
     List<String> xs= m.impl().get().xs();
-    var thisType= new IT.RCC(mCore.sig().rc(), new IT.C(di.name(), thisTypeTs));//no preferred on self names
+    var thisType= new IT.RCC(mCore.sig().rc(), new IT.C(di.name(), thisTypeTs),span);//no preferred on self names
     inference.E ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     Gamma g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
     ei = nextStar(Push.of(di.bs(), m.sig().bs().get()), g, ei);
@@ -148,7 +150,7 @@ public record InjectionSteps(Methods meths){
     var dom= d.bs().stream().map(b -> b.x()).toList();
     IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom, type.c().ts());
     var w=(IT.RCC)wid;//TODO: this must be made to fail in a test, then we need to improve the well formedness error of WidenTo
-    return new IT.RCC(type.rc(), w.c());
+    return new IT.RCC(type.rc(), w.c(),type.span());
   }
   private RC overloadNorm(RC rc){ return switch (rc){
     case imm -> RC.imm;
@@ -265,13 +267,13 @@ public record InjectionSteps(Methods meths){
   }  
   private Optional<IT.RCC> preciseSelf(E.Literal l){
     if (l.rc().isEmpty()){ return Optional.empty(); }
-    var xs= l.bs().stream().<IT>map(b -> new IT.X(b.x())).toList();
-    return Optional.of(new IT.RCC(l.rc().get(), new IT.C(l.name(), xs)));
+    var xs= l.bs().stream().<IT>map(b -> new IT.X(b.x(),l.name().approxSpan())).toList();
+    return Optional.of(new IT.RCC(l.rc().get(), new IT.C(l.name(), xs),l.name().approxSpan()));
   }
   private Optional<IT.RCC> superSelf(E.Literal l){
     if (l.cs().size() != 1){ return preciseSelf(l); }
     if (l.rc().isEmpty()){ return Optional.empty(); }
-    return Optional.of(new IT.RCC(l.rc().get(), l.cs().getFirst()));
+    return Optional.of(new IT.RCC(l.rc().get(), l.cs().getFirst(),l.name().approxSpan()));
   }
 
   private E nextL(List<B> bs, Gamma g, E.Literal l){
@@ -393,8 +395,8 @@ public record InjectionSteps(Methods meths){
     MSigL h= methodHeader(rcc, mName, improvedSig.rc()).get();
     assert h.bsArity() == targetBs.size();
     M.Sig sigRes= improvedSig.withTsT(
-      h.psStr(targetBs),
-      h.retStr(targetBs));
+      h.psStr(improvedSig.span(),targetBs),
+      h.retStr(improvedSig.span(),targetBs));
     //TODO: this comment comes from an older version. Is still relevant?"""Overall we should apply normalizeHeaderBs only if selfPrecise is absent;
     //otherwise assert that the Xs are the righ ones"""
     e = meet(e, sigRes.ret().get());
@@ -413,7 +415,7 @@ public record InjectionSteps(Methods meths){
       case IT.X x -> refineXs(xs, x, t1);
       case IT.RCX(RC _, IT.X x) -> refineXs(xs, x, t1);
       case IT.ReadImmX(IT.X x) -> refineXs(xs, x, t1);
-      case IT.RCC(RC _, IT.C c) -> propagateXs(xs, c, t1);
+      case IT.RCC(RC _, IT.C c,_) -> propagateXs(xs, c, t1);
       case IT.U _ -> qMarks(xs.size());
       case IT.Err _ -> qMarks(xs.size());
     };
@@ -446,15 +448,15 @@ record MSigL(RC rc, List<String> xs, List<IT> clsArgs, List<IT> ps0, IT ret0){
     var ts= Push.of(clsArgs,targs);
     return TypeRename.of(t, xs, ts);
   }
-  IT pStr(int i, List<String> targetBs){ return inst(ps0.get(i), toXs(targetBs)); }
-  List<Optional<IT>> psStr(List<String> targetBs){
+  IT pStr(TSpan span, int i, List<String> targetBs){ return inst(ps0.get(i), toXs(span,targetBs)); }
+  List<Optional<IT>> psStr(TSpan span,List<String> targetBs){
     assert targetBs.size() == bsArity();
-    var ts= toXs(targetBs);
+    var ts= toXs(span, targetBs);
     return ps0.stream().map(p->Optional.of(inst(p, ts))).toList();
   }
-  IT retStr(List<String> targetBs){
+  IT retStr(TSpan span,List<String> targetBs){
     assert targetBs.size() == bsArity();
-    return inst(ret0, toXs(targetBs));    
+    return inst(ret0, toXs(span,targetBs));    
   }
-  private List<IT> toXs(List<String> targetBs){ return targetBs.stream().<IT>map(IT.X::new).toList(); }
+  private List<IT> toXs(TSpan span,List<String> targetBs){ return targetBs.stream().<IT>map(n->new IT.X(n,span)).toList(); }
 }

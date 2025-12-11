@@ -8,6 +8,7 @@ public record TName(String s, int arity,Pos pos){
     assert arity >= 0 : "arity < 0: "+arity;
     assert s.indexOf(".") != -1 || validate(s,"TName", UppercaseId,UnsignedInt, SignedInt, SignedRational, SignedFloat, UStr, SStr);
   }
+  public TSpan approxSpan(){ return TSpan.fromPos(pos,simpleName().length()); }
   public TName withPkgName(String pkg){
     assert pkgName().isEmpty();
     return new TName(pkg+"."+s,arity,pos);

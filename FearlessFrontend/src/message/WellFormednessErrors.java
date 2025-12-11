@@ -253,17 +253,17 @@ public final class WellFormednessErrors {
      +" is declared in package \"" + pkgName + "\".\n"
      + "Name "+Message.displayString(n.name())+" is also used "
      + (use?"in a \"use\" directive.\n":"as a type name.\n")
-     ).addFrame("a type name",Parser.span(n.pos(),n.name().length()));
+     ).addFrame("a type name",n.span().inner);
   }
 
  public static FearlessException duplicatedBound(List<RC> es, T.X n){
-   var dup= es.stream()
-     .filter(e->es.stream().filter(ei->ei.equals(e)).count()>1)
+   RC dup= es.stream()
+     .filter(e->es.stream().filter(ei->ei.equals(e)).count() > 1)
      .findFirst().get();
    return Code.WellFormedness.of(
        "Duplicate reference capability in the generic type parameter "+Message.displayString(n.name())+".\n"
        + "Reference capability "+Message.displayString(dup.name())+" is repeated.\n"
-       ).addSpan(Parser.span(n.pos(),n.name().length()));
+       ).addSpan(n.span().inner);
     }
   public static FearlessException duplicatedName(TName name) {
     return Code.WellFormedness.of(

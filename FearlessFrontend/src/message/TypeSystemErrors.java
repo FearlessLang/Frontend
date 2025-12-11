@@ -1,6 +1,8 @@
 package message;
 
+import java.util.EnumSet;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -13,18 +15,56 @@ import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
 import utils.Bug;
+import utils.OneOr;
+import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import core.*;
 import core.E.*;
-import static message.Err.disp;
-import static message.Err.methodSig;
 
-public record TypeSystemErrors(pkgmerge.Package pkg){
-  ///Type t is not well-kinded with respect to its declared generic bounds (RC / X constraints).
-  ///Used when checking Id[Ts] instantiations in Sigs, literal supertypes Cs, or m[RC,Ts] calls.*/
-  public FearlessException typeNotWellKinded(E toErr, T t){
-    throw Bug.todo();
+import static message.Err.*;
+
+public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg){
+  String expRepr(E toErr){return switch(toErr){
+    case Call c->"Method call "+Err.methodSig(c.name());
+    case X x->"Parameter " +Err.disp(x.name());
+    case Literal l->"Object literal " +bestName(l);
+    case Type t-> "Object literal " + t;
+    };}
+  FearlessException addExpFrame(E toErr,FearlessException err){ return err.addFrame(expRepr(toErr),toErr.span().inner); }
+
+  ///Fired when a generic instantiation Id[Ts] does not respect the RC bounds
+  ///declared in Id[Bs]. This is a "type arguments vs generic header" error,
+  ///not a method-resolution or expression-typing error.
+  ///Raised when checking types anywhere they appear.
+  public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds){
+    assert index >= 0;
+    String allowedStr= Join.of(bounds.stream().map(Err::disp).sorted(), "", " or ", "");
+    Err err=switch(target){
+      case T.RCC rcc -> typeNotWellKindedRcc(rcc, index, allowedStr);
+      case KindingTarget.CallKinding(var t,var c)   -> typeNotWellKindedSig(t,c, index, allowedStr);
+    };
+    return addExpFrame(toErr,err.ex(pkg, toErr).addSpan(target.span().inner));
   }
+  private Err typeNotWellKindedRcc(T.RCC rcc, int index, String allowedStr){
+    var args= rcc.c().ts();
+    assert index >= 0 && index < args.size();
+    T bad= args.get(index);
+    var bs= decs.apply(rcc.c().name()).bs();
+    assert index < bs.size();
+    String typeName = disp(rcc.c().name().s());
+    String paramName= disp(bs.get(index).x());
+    return Err.of().pTypeArgBounds("type "+disp(rcc), typeName, paramName, index, disp(bad), allowedStr);
+  }
+  private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr){
+    var ms= decs.apply(t.name()).ms();
+    var m= OneOr.of("Malformed methods",ms.stream().filter(mi->mi.sig().m().equals(c.name()) && mi.sig().rc() == c.rc()));
+    var bs= m.sig().bs();
+    assert index >= 0 && index < bs.size();
+    var param= bs.get(index);
+    String decName   = methodSig(t.name().s(), c.name()); // p.A.m(...)
+    T bad            = c.targs().get(index);
+    return Err.of().pTypeArgBounds("call to "+methodSig(c.name()), decName, disp(param.x()), index, disp(bad), allowedStr);
+  }  
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchGenericBounds(Literal l, Sig sub, Sig sup, int index){
@@ -145,7 +185,7 @@ public record TypeSystemErrors(pkgmerge.Package pkg){
   }
   private Pos getPos(T t){//When that is done, we will not have this method any more.
     if (t instanceof T.RCC rcc){ return rcc.c().name().pos(); }
-    return Pos.UNKNOWN;
+    throw Bug.of();
   }
   public FearlessException not_Affine(M m, String name, List<E.X> usages){ 
     var ex= Err.of()
@@ -260,7 +300,7 @@ public record TypeSystemErrors(pkgmerge.Package pkg){
     assert s.rc() == RC.mut;
     int line= l.pos().line();
     String m= Err.methodSig(s.rc()+" ", s.m());
-    String lit= Reason.bestName(l);
+    String lit= bestName(l);
     return Err.of()
       .line("Method "+m+" can never be called (dead code).")
       .line("The object literal "+lit+" at line "+line+" is "+disp(l.rc())+".")

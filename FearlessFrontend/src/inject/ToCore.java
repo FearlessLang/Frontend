@@ -22,7 +22,7 @@ public class ToCore{
   };}
   core.E.X x(String name, Src src){ return new core.E.X(name,src); }
   core.E.Type type(IT.RCC type, Src src){
-    var t= new T.RCC(type.rc(),TypeRename.itcToTC(type.c()));
+    var t= new T.RCC(type.rc(),TypeRename.itcToTC(type.c()),type.span());
     return new core.E.Type(t,src);
   }
   core.E.Literal literal(inference.E.Literal e, inference.E.Literal o){

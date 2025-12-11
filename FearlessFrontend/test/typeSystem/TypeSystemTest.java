@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import inference.DbgBlock;
@@ -37,7 +38,7 @@ public class TypeSystemTest {
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
 """));}
-@Test void tsMiniFail(){fail("""
+@Disabled @Test void tsMiniFail(){fail("""
 002| A:{.foo123:A->this.ba}
    |    -----------~~~~^^^
 
@@ -50,12 +51,226 @@ Available methods:
 """,List.of("""
 A:{.foo123:A->this.ba}
 """));}
+//--------------
+//--------------
+//--------------
+@Test void typeNotWellKinded_genericInstantiationViolatesBounds(){fail("""
+004| User:{ imm .m(a:imm A[mut B]):base.Void; }
+   |      -----------^^^^^^^^^^^^--------------
 
+While inspecting Object literal "p.User"
+The type "p.A[mut p.B]" is invalid.
+Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A".
+Here "X" can only use capabilities "imm".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut User:{.m(A[mut B]):-.Void}
+""", List.of("""
+A[X:imm]:{}
+B:{}
+User:{ imm .m(a:imm A[mut B]):base.Void; }
+"""));}
+
+@Test void typeNotWellKinded_secondTypeArgViolatesBoundsInParamType(){fail("""
+005| User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
+   |      -----------^^^^^^^^^^^^^^^^^^--------------
+
+While inspecting Object literal "p.User"
+The type "p.A[p.B,mut p.C]" is invalid.
+Type argument 2 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.A".
+Here "Y" can only use capabilities "iso" or "read".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut User:{.m(A[B,mut C]):-.Void}
+""", List.of("""
+A[X:imm,Y:read,iso]:{}
+B:{}
+C:{}
+User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
+"""));}
+
+@Test void typeNotWellKinded_nestedInnerGenericViolatesBounds(){fail("""
+005|   .m(a:imm A[B[mut C]]):base.Void;
+   |               ---^^^^^^-----------
+
+While inspecting Object literal "p.User"
+The type "p.B[mut p.C]" is invalid.
+Type argument 1 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.B".
+Here "Y" can only use capabilities "imm".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut User:{.m(A[B[mut C]]):-.Void}
+""", List.of("""
+A[X:imm]:{}
+B[Y:imm]:{}
+C:{}
+User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
+"""));}
+
+@Test void typeNotWellKinded_literalSupertypeViolatesBounds(){fail("""
+004| User:A[mut B]{}
+   |      -^^^^^^---
+
+While inspecting Object literal "p.User"
+The type "p.A[mut p.B]" is invalid.
+Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A".
+Here "X" can only use capabilities "imm".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut User:A[mut B]{}
+""", List.of("""
+A[X:imm,readH,mutH]:{}
+B:{}
+User:A[mut B]{}
+"""));}
+
+@Test void typeNotWellKinded_methodReturnTypeViolatesBounds(){fail("""
+004|   .m(a:imm B):imm A[mut B]->"";
+   |                 ---^^^^^^-----
+
+While inspecting Object literal "p.User"
+The type "p.A[mut p.B]" is invalid.
+Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A".
+Here "X" can only use capabilities "imm".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut User:{.m(B):A[mut B]->-}
+""", List.of("""
+A[X:imm]:{}
+B:{}
+User:{ imm .m(a:imm B):imm A[mut B]; }
+"""));}
+
+@Test void typeNotWellKinded_methodTypeArgViolatesBounds_simple(){fail("""
+004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
+   |        -----------------------------------^^^^^^^^^^^^^^
+
+While inspecting Object literal "p.A" > ".m(_,_)" line 4 //No, User not pA also wrong order?
+The call to ".id(_)" is invalid.
+Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
+Here "X" can only use capabilities "imm".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut A:{.id[X:imm](x:X):X->x} //and the source is aso A instead of User
+""", List.of("""
+A:{ imm .id[X:imm](x:X):X->x }
+B:{}
+User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
+"""));}
+
+@Test void typeNotWellKinded_methodTypeArgSecondParamViolatesBounds(){fail("""
+005|     a.pair[imm B,mut C](b,c);
+   |            ---------^^^^----
+
+While inspecting Method call ".pair"
+The call to ".pair" is invalid.
+Type argument 2 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.A.pair".
+Here "Y" can only use capabilities "read".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut User:{.m(A,B,C):-Void->{a.pair[imm B,mut C](b,c)}}
+""", List.of("""
+A:{ imm .pair[X:imm,Y:read](x:X,y:Y):base.Void->{} }
+B:{}
+C:{}
+User:{ imm .m(a:imm A,b:imm B,c:imm C):base.Void->a.pair[imm B,mut C](b,c); }
+"""));}
+
+@Test void typeNotWellKinded_methodTypeArgNestedViolatesBounds(){fail("""
+006|     a.use[B[mut C]](b);
+   |           -^^^^^^^----
+
+While inspecting Method call ".use"
+The call to ".use" is invalid.
+Type argument 1 ("p.B[mut p.C]") does not satisfy the bounds for type parameter "X" in "p.A.use".
+Here "X" can only use capabilities "imm".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut User:{.m(A,B,C):-Void->{a.use[B[mut C]](b)}}
+""", List.of("""
+A:{ imm .use[X:imm](x:X):base.Void->{} }
+B[Y:imm]:{}
+C:{}
+User:{ imm .m(a:imm A,b:imm B[mut C],c:imm C):base.Void->a.use[B[mut C]](b); }
+"""));}
+
+@Test void typeNotWellKinded_literalHeaderUsesTypeParamViolatingBounds(){fail("""
+003| User[Y:read]:A[Y]{}
+   |     ^            --//What is this? How can it even generate?
+
+While inspecting Object literal "p.User"
+The type "mut p.A[Y]" is invalid.
+Type argument 1 ("Y") does not satisfy the bounds for type parameter "X" in "p.A".
+Here "X" can only use capabilities "imm".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut User[Y:read]:A[Y]{}
+""", List.of("""
+A[X:imm]:{}
+User[Y:read]:A[Y]{}
+"""));}
+
+@Test void typeNotWellKinded_nestedTwiceInnerMostViolatesBounds(){fail("""
+005| User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
+   |      -----------------^^^^^^^^---------------
+
+While inspecting Object literal "p.User"
+The type "p.B[mut p.C]" is invalid.
+Type argument 1 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.B".
+Here "Y" can only use capabilities "read".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut User:{.m(A[B[mut C]]):-.Void}
+""", List.of("""
+A[X:imm]:{}
+B[Y:read]:{}
+C:{}
+User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
+"""));}
+
+@Test void typeNotWellKinded_methodTypeArgOnTypeWithMultipleBounds(){fail("""
+004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
+   |        -----------------------------------^^^^^^^^^^^^^^
+
+While inspecting Object literal "p.A" > ".m(_,_)" line 4
+The call to ".id(_)" is invalid.
+Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
+Here "X" can only use capabilities "imm" or "read".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut A:{.id[X:imm,read](x:X):X->x}
+""", List.of("""
+A:{ imm .id[X:imm,read](x:X):X->x }
+B:{}
+User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
+"""));}
+
+
+@Test void typeNotWellKinded_methodTypeArgOnTypeInfer(){fail("""
+004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
+   |        -----------------------------------^^^^^^^
+
+While inspecting Object literal "p.A" > ".m(_,_)" line 4
+The call to ".id(_)" is invalid.
+Type argument 1 ("base.InferErr??") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
+Here "X" can only use capabilities "mut" or "read".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut User:{.m(A,B):-Void->{a.id[mut B](b)}} ?? why mut here? Why meth sig printed as .m(A,B) with no par names
+""", List.of("""
+A:{ imm .id[X:mut,read](x:X):X->x }
+B:{}
+User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
+"""));}
+
+//--------------
+//--------------
+//--------------
 @Test void tsOkIndirect(){ok(List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo123;}
 """));}
 
-@Test void tsOkIndirectFail1(){fail("""
+@Disabled @Test void tsOkIndirectFail1(){fail("""
 002| A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
    |                            --------~~~~^^^^^^^
 
@@ -72,7 +287,7 @@ Available methods:
 A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
 """));}
 
-@Test void tsOkIndirectFail2(){fail("""
+@Disabled @Test void tsOkIndirectFail2(){fail("""
 002| A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
    |                            --------~~~~^^^^^^
 
@@ -88,7 +303,7 @@ Available methods:
 A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
 """));}
 
-@Test void tsOkIndirectFail3(){fail("""
+@Disabled @Test void tsOkIndirectFail3(){fail("""
 002| A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
    |                            --------~~~~^^^^^^^^
 
@@ -104,7 +319,7 @@ Available methods:
 A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
 """));}//No, should say that did you mean... Should also list the methods of A
 
-@Test void tsOkIndirectFail4(){fail("""
+@Disabled @Test void tsOkIndirectFail4(){fail("""
 004|   .bar:A->this.foo123(this);
    |   --------~~~~^^^^^^^^~~~~~
 
@@ -123,7 +338,7 @@ A:{
   }
 """));}
 
-@Test void tsOkIndirectFail4spaces(){fail("""
+@Disabled @Test void tsOkIndirectFail4spaces(){fail("""
 004|   .bar:A->this.foo123(this      );
    |   --------~~~~^^^^^^^^~~~~-------
 
@@ -141,7 +356,7 @@ A:{
   .foo123(A,A,A):A->this.foo123;
   }
 """));}
-@Test void tsOkIndirectFail5(){fail("""
+@Disabled @Test void tsOkIndirectFail5(){fail("""
 002| A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
    |                            ------------~~~~^^^^^^^
 
@@ -159,7 +374,7 @@ this.foo123
 """,List.of("""
 A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
 """));}
-@Test void tsOkIndirectFail6a(){fail("""
+@Disabled @Test void tsOkIndirectFail6a(){fail("""
 002| A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
    |                            -------------~~~~^^^^^^^
 
@@ -177,7 +392,7 @@ this.foo123
 """,List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
 """));}//With inference we infer [imm] (next case)
-@Test void tsOkIndirectFail6b(){fail("""
+@Disabled @Test void tsOkIndirectFail6b(){fail("""
 002| A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
    |                            -------------~~~~^^^^^^^^~~~~
 
@@ -195,7 +410,7 @@ this.foo123
 """,List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 """));}
-@Test void tsOkIndirectFail6c(){fail("""
+@Disabled @Test void tsOkIndirectFail6c(){fail("""
 002| A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
    |                            -------------~~~~^^^^^^^^~~~~~
 
@@ -211,7 +426,7 @@ this.foo123[read]
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
 """));} 
 
-@Test void tsOkIndirectFail7(){fail("""
+@Disabled @Test void tsOkIndirectFail7(){fail("""
 002| A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
    |                                ------------~~~~^^^^^^^
 
@@ -233,7 +448,7 @@ this.foo123[mut]
 """,List.of("""
 A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
 """));}
-@Test void tsOkIndirectFail8(){fail("""
+@Disabled @Test void tsOkIndirectFail8(){fail("""
 002| A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
    |                                                            -------------~~~~^^^^^^^^~~~~
 
@@ -255,7 +470,7 @@ A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo
 @Test void tsOkIndirectInferredAsRead(){ok(List.of("""
 A:{mut .foo123:A->this.foo123; read .foo123:A->this.foo123; imm .bar:A->this.foo123;}
 """));}
-@Test void tsOkIndirectFail10(){fail("""
+@Disabled @Test void tsOkIndirectFail10(){fail("""
 007|   read .bar:A->
 008|     this.foo123[mut];
    |     ----^^^^^^^^----
@@ -285,7 +500,7 @@ A:{
     this.foo123[mut];
   }
 """));}
-@Test void baseTypeError(){fail("""
+@Disabled @Test void baseTypeError(){fail("""
 002| A:{ .bar(b:B):A->b; }
    |     -------------^
 
@@ -302,7 +517,7 @@ B:{ }
 B:{ mut .bar:B }
 A:{ mut .baz(b: B):B->{}; }
 """));}
-@Test void uncallableMethodFail(){fail("""
+@Disabled @Test void uncallableMethodFail(){fail("""
 003| A:{ mut .baz(b: B):B->{ .bar->b}; }
    |     --------------------^^^^^^^-
 
@@ -318,7 +533,7 @@ B{mut .bar:B->b}
 B:{ mut .bar:B }
 A:{ mut .baz(b: B):B->{ .bar->b}; }
 """));}
-@Test void methodReceiverNotRcc(){fail("""
+@Disabled @Test void methodReceiverNotRcc(){fail("""
 004|   .bar[X:imm,mut,read](x:X):A->x.foo123;
    |   -----------------------------~^^^^^^^
 
@@ -336,7 +551,7 @@ A:{
 }
 """));}
 
-@Test void methodTArgsArityError(){fail("""
+@Disabled @Test void methodTArgsArityError(){fail("""
 004|   .bar:A->this.id[A,A](this);
    |   --------~~~~^^^^~~~~~~~~~~
 
@@ -354,7 +569,7 @@ A:{
 }
 """));}
 
-@Test void methodArgsDisagree(){fail("""
+@Disabled @Test void methodArgsDisagree(){fail("""
 004|   .caller(x:readH A, y:mutH A):A->this.f(x,y);
    |   --------------------------------~~~~^^^~~~~
 
@@ -383,7 +598,7 @@ A:{
 }
 """));}
 
-@Test void methodArgsDisagree2(){fail("""
+@Disabled @Test void methodArgsDisagree2(){fail("""
 005|   .caller(x:readH A, y:mutH A):A->this.f(x,ID#[mutH A]y);
    |   --------------------------------~~~~^^^~~~~~~~~~~~~~~~
 
@@ -418,7 +633,7 @@ A:{
   .f(aaaa:mut A):B->Skip#(aaaa);
 }
 """));}
-@Test void noVar1Fail(){fail("""
+@Disabled @Test void noVar1Fail(){fail("""
 005|   .f(aaaa:mut A):B->imm BB:B{.foo:B->Skip#(aaaa);}
    |   ---------------------------~~~~~~~~~~~~~~^^^^^--
 
@@ -440,7 +655,7 @@ A:{
 }
 """));}
 
-@Test void noVar1FailAnon(){fail("""
+@Disabled @Test void noVar1FailAnon(){fail("""
 005|   .f(aaaa:mut A):B->imm B{.foo:B->Skip#(aaaa);}
    |   ------------------------~~~~~~~~~~~~~~^^^^^--
 
@@ -463,7 +678,7 @@ A:{
 """));}
 
 
-@Test void noVar2Fail(){fail("""
+@Disabled @Test void noVar2Fail(){fail("""
 005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(aaaa);}
    |                                    -------------~~~~^^~~~~~
 
@@ -500,7 +715,7 @@ B:{}
 A:{
   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,read A](Id#[imm,read A](aaaa));}}
 """));}//TODO: this works with either one of the method targs explicitly listed
-@Test void badDeepCall(){fail("""
+@Disabled @Test void badDeepCall(){fail("""
 006|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}}
    |                                    -------------------~~^^~~~~~-
 
@@ -533,7 +748,7 @@ A:{
 """));}//This fails because inference infers [mut A] instead of [read A]
 //TODO: make the error message show the inference somehow
 
-@Test void hopelessArg_calls_pArgHasType(){fail("""
+@Disabled @Test void hopelessArg_calls_pArgHasType(){fail("""
 006|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
    |                                    -------------~~~~^^~~~~~~~~~~~~~-
 

@@ -23,7 +23,7 @@ public class LiteralDeclarations {
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
   static private core.E.Literal of(TName name,TName lit){
     var c= new T.C(lit,List.of());
-    var self= new T.RCC(RC.imm,c);
+    var self= new T.RCC(RC.imm,c,name.approxSpan());
     var w= new T.C(widen,List.of(self));
     return new core.E.Literal(RC.imm,name,List.of(),List.of(c,w),"this",List.of(),Src.syntetic);
   }

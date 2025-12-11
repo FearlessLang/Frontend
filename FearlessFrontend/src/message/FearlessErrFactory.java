@@ -231,8 +231,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +"\nThere must be no space between the closed curly and the destruct id.")
       .addSpan(at);
   }
-  public FearlessException badBound(String name, Span at){  
-    return Code.UnexpectedToken.of("Invalid bound for generic "+Message.displayString(name)+"""
+  public FearlessException badBound(T.X name, Span at){  
+    return Code.UnexpectedToken.of("Invalid bound for generic "+Message.displayString(name.name())+"""
       
       Only '*' or '**' are allowed here
       Write: X:*   meaning mut,read,imm

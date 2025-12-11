@@ -4,10 +4,10 @@ import java.util.List;
 
 import core.*;
 import core.E.*;
-import metaParser.Message;
 import typeSystem.ArgMatrix;
 import typeSystem.Change.*;
 import typeSystem.TypeSystem.TRequirement;
+import static message.Err.*;
 
 public final class Reason{
   final String promNames;
@@ -80,9 +80,4 @@ public final class Reason{
     // Refine later (maybe show only lit name, or only method, etc.).
     return bestName(l)+"."+Err.methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine();
   }
-  public static String bestName(Literal l){
-    if (!l.name().simpleName().startsWith("_")){ return disp(l.name().s()); }
-    return "instanceOf("+disp(l.cs().getFirst().name().s())+")";
-  }
-  private static String disp(Object o){ return Message.displayString(o.toString()); }
 }
