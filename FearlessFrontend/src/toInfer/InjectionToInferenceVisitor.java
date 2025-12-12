@@ -1,6 +1,6 @@
 package toInfer;
 
-import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -79,18 +79,14 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   }
   public B visitB(fearlessFullGrammar.B b){
     return new B(b.x().name(),switch (b.bt()){
-    case fearlessFullGrammar.B.Star()->List.of(RC.imm,RC.mut,RC.read);
-    case fearlessFullGrammar.B.StarStar()->List.of(RC.imm, RC.mut, RC.read, RC.iso, RC.mutH, RC.readH);
-    case fearlessFullGrammar.B.RCS(List<RC> rcs)-> rcs.isEmpty()
-      ?List.of(RC.imm)
-      :inDeclarationOrder(rcs,b.x());
+    case fearlessFullGrammar.B.Star()->EnumSet.of(RC.imm,RC.mut,RC.read);
+    case fearlessFullGrammar.B.StarStar()->EnumSet.of(RC.imm, RC.mut, RC.read, RC.iso, RC.mutH, RC.readH);
+    case fearlessFullGrammar.B.RCS(List<RC> rcs)-> rcs.isEmpty() ?EnumSet.of(RC.imm) :inOrder(rcs,b.x());
     });
   }
-  private static List<RC> inDeclarationOrder(List<RC> es, fearlessFullGrammar.T.X x){
-    if (es.size() != new HashSet<>(es).size()){
-      throw WellFormednessErrors.duplicatedBound(es,x);
-    }
-    return es.stream().sorted(Comparator.comparingInt(Enum::ordinal)).toList();
+  private static EnumSet<RC> inOrder(List<RC> es, fearlessFullGrammar.T.X x){
+    if (es.size() != new HashSet<>(es).size()){ throw WellFormednessErrors.duplicatedBound(es,x); }
+    return EnumSet.copyOf(es);
   }
 
   Optional<M.Impl> visitMImpl(fearlessFullGrammar.M m){

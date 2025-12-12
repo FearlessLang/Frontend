@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import java.util.EnumSet;
 import core.*;
 import core.E.*;
 import inject.TypeRename;
@@ -59,7 +58,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var targs= c.targs();
     var kt= new KindingTarget.CallKinding(c0,c);
     for(int i= 0; i < targs.size(); i++){
-      ts.k().check(c,kt,i,bs,targs.get(i),EnumSet.copyOf(sig.bs().get(i).rcs()));
+      ts.k().check(c,kt,i,bs,targs.get(i),sig.bs().get(i).rcs());
     }
   }
   private ArgMatrix typeArgsOnce(List<MType> app){

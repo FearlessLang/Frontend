@@ -1,12 +1,10 @@
 package typeSystem;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import fearlessParser.RC;
 import static fearlessParser.RC.*;
@@ -14,13 +12,12 @@ import static fearlessParser.RC.*;
 import static java.util.EnumSet.of;
 
 public class RCLubGlb{
-  private static final EnumSet<RC> allRC= EnumSet.copyOf(
-    EnumSet.allOf(RC.class).stream().collect(Collectors.toSet()));
+  private static final EnumSet<RC> allRC= EnumSet.allOf(RC.class);
   private static final Map<Set<RC>, RC> lubMap= new HashMap<>();
   private static final Map<Set<RC>, RC> glbMap= new HashMap<>();
   public static final Set<Set<RC>> domain(){ return Collections.unmodifiableSet(lubMap.keySet()); }
-  public static RC lub(Collection<RC> options){ return lubMap.get(EnumSet.copyOf(options)); }//TODO: why we need the EnumSet.copyOf?
-  public static RC glb(Collection<RC> options){ return glbMap.get(EnumSet.copyOf(options)); }
+  public static RC lub(EnumSet<RC> options){ return lubMap.get(options); }
+  public static RC glb(EnumSet<RC> options){ return glbMap.get(options); }
   static boolean isUb(EnumSet<RC> options, RC ub){ return options.stream().allMatch(x -> ub.isSubType(x)); }
   static boolean isLb(EnumSet<RC> options,RC lb){ return options.stream().allMatch(x -> x.isSubType(lb)); }
   static boolean isLub(EnumSet<RC> options,RC lub){

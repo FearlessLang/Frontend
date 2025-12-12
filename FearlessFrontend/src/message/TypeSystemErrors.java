@@ -10,7 +10,6 @@ import fearlessParser.Parser;
 import fearlessParser.RC;
 import files.Pos;
 import metaParser.Message;
-import metaParser.NameSuggester;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
@@ -25,13 +24,22 @@ import static message.Err.*;
 
 public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg){
   String expRepr(E toErr){return switch(toErr){
-    case Call c->"Method call "+Err.methodSig(c.name());
-    case X x->"Parameter " +Err.disp(x.name());
-    case Literal l->"Object literal " +bestName(l);
-    case Type t-> "Object literal " + t;
+    case Call c->"method call "+Err.methodSig(c.name());
+    case X x->"parameter " +Err.disp(x.name());
+    case Literal l->l.thisName().equals("this")
+      ? "type declaration " +typeDecName(l.name())
+      : "object literal " +bestName(l);
+    case Type t-> "object literal " + t;
     };}
-  FearlessException addExpFrame(E toErr,FearlessException err){ return err.addFrame(expRepr(toErr),toErr.span().inner); }
-
+  private FearlessException addExpFrame(E toErr,FearlessException err){
+    return err.addFrame(expRepr(toErr),toErr.span().inner);
+    }
+  private FearlessException overrideErr(Literal l, Sig sub, Err e){
+    return addExpFrame(l, e.ex(pkg, l).addSpan(sub.span().inner));
+  }
+  private String capStr(EnumSet<RC> rcs){
+    return rcs.stream().map(Err::disp).collect(Collectors.joining(" or "));
+  }
   ///Fired when a generic instantiation Id[Ts] does not respect the RC bounds
   ///declared in Id[Bs]. This is a "type arguments vs generic header" error,
   ///not a method-resolution or expression-typing error.
@@ -62,30 +70,40 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     var bs= m.sig().bs();
     assert index >= 0 && index < bs.size();
     var param= bs.get(index);
-    String decName   = methodSig(t.name().s(), c.name()); // p.A.m(...)
+    String decName   = methodSig(t.name(), c.name()); // p.A.m(...)
     T bad            = c.targs().get(index);
     return Err.of().pTypeArgBounds("call to "+methodSig(c.name()), decName, disp(param.x()), index, disp(bad), allowedStr);
-  }  
+  } 
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
-  public FearlessException methodOverrideSignatureMismatchGenericBounds(Literal l, Sig sub, Sig sup, int index){
-    throw Bug.todo();//"Generic bounds mismatch for " + bsSub.get(index).x())
+  public FearlessException methodOverrideSignatureMismatchContravariance(Literal l, Sig current, Sig parent, int index){
+    var mName= current.m();
+    assert mName.equals(parent.m());  
+    assert index >= 0 && index < current.ts().size() && index < parent.ts().size();
+    T parentArg= parent.ts().get(index);
+    T currentArg= current.ts().get(index);
+    return overrideErr(l, current, Err.of()
+      .invalidMethImpl(l,mName)
+      .line("The method "+methodSig(mName)+" accepts argument "+(index+1)+" of type "+disp(currentArg)+".")
+      .line("But "+methodSig(parent.origin(),mName)+" requires "+Err.disp(parentArg)+", which is not a subtype of "+disp(currentArg)+".")
+    );
   }
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
-  public FearlessException methodOverrideSignatureMismatchGenericBoundsArity(Literal l, Sig sub, Sig sup){
-    throw Bug.todo();
+  public FearlessException methodOverrideSignatureMismatchCovariance(Literal l, Sig current, Sig parent){
+    var mName=current.m();
+    assert mName.equals(parent.m());
+    T parentRet= parent.ret();
+    T currentRet= current.ret();
+    return overrideErr(l, current, Err.of()
+      .invalidMethImpl(l,mName)
+      .line("The method "+methodSig(mName)+" returns type "+disp(currentRet)+".")
+      .line("But "+methodSig(parent.origin(),mName)+" returns type "+disp(parentRet)+", which is not a supertype of "+disp(currentRet)+".")
+    );
   }
-  ///Overriding method in literal l is not a valid subtype of inherited method.
-  ///Raised when checking object literals
-  public FearlessException methodOverrideSignatureMismatchContravariance(Literal l, Sig sub, Sig sup, int index){
-    throw Bug.todo();//"Argument " + i + " type mismatch (contravariance violation)"
-  }
-  ///Overriding method in literal l is not a valid subtype of inherited method.
-  ///Raised when checking object literals
-  public FearlessException methodOverrideSignatureMismatchCovariance(Literal l, Sig sub, Sig sup){
-    throw Bug.todo();//"Return type mismatch (covariance violation)"
-  }
+
+  //---------------------
+  
   ///A required method was left abstract instead of being implemented.
   ///Raised when checking object literals
   public FearlessException callableMethodStillAbstract(TSpan at, M got, Literal l){
@@ -106,7 +124,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
   }
 
   ///Expression at method body has a type that does not meet its result requirement(s).
-  ///"body has wrong type" error; cab only trigger if all sub-expressions at are well typed.
+  ///"body has wrong type" error; cab only trigger if all current-expressions at are well typed.
   ///Raised when checking object literals
   public FearlessException methBodyWrongType(E at, List<Reason> got, List<TRequirement> req){
     throw Bug.todo();
@@ -171,9 +189,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
   private FearlessException withCallSpans(FearlessException ex, Call c){
     return ex.addSpan(Parser.span(c.pos(), c.name().s().length())).addSpan(c.span().inner);
   }
-  public FearlessException override_Mismatch(Literal l,Sig sub, Sig sup, String reason){ return Err.of()
+  public FearlessException override_Mismatch(Literal l,Sig sub, Sig parent, String reason){ return Err.of()
     .pMethodContext("Invalid override", sub, sub.origin().s())
-    .conflictsWithMethodIn(sup)
+    .conflictsWithMethodIn(parent)
     .line("Reason: "+reason)
     .ex(pkg, l).addSpan(sub.span().inner);
   }
@@ -223,6 +241,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       */
   }
   public FearlessException meth_odNotDeclared(Call c, core.E.Literal d){
+    throw Bug.todo();/*
     String name= c.name().s();
     var candidates= d.ms().stream().map(M::sig).toList();
     var sameName= candidates.stream().filter(s->s.m().s().equals(name)).toList();
@@ -257,7 +276,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       .line(methodSig(c.name())+" exists on type "+disp(d.name().s())+", but not with the requested capability.")
       .line("This call requires the existence of a "+disp(c.rc().toString())+" method.")
       .line("Available capabilities for this method: "+disp(availRc)+".")
-      .ex(pkg,c), c);
+      .ex(pkg,c), c);*/
   }
   public FearlessException methodArgs_Disagree(Call c, ArgMatrix mat){
     int ac= mat.aCount();
@@ -336,11 +355,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     .line("Type parameters cannot be receivers of method calls.")
     .ex(pkg,c), c);
   }
-  private String sigToStr(Sig s){
+  /*private String sig_ToStr(Sig s){
     var bsS= Join.of(s.bs(),"[",",","]","");
     var tsS= Join.of(s.ts(),"(",",",")","");
     return s.rc()+" "+s.m()+bsS+tsS+":"+s.ret()+";";
-  }
+  }*/
   public FearlessException mCallFrame(M m, FearlessException fe){
     return fe.addFrame(methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
   }

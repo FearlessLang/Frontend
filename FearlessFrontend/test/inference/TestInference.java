@@ -406,7 +406,7 @@ In file: [###]/in_memory0.fear
    |   ^^^
 
 While inspecting type declarations
-Circular implementation relation found involving "p.A".
+Circular implementation relation found involving "A".
 Error 9 WellFormedness
 ""","role app000;\n",List.of("""
 A:B{}
@@ -419,7 +419,7 @@ In file: [###]/in_memory1.fear
    |   ^^^
 
 While inspecting type declarations
-Circular implementation relation found involving "p.A".
+Circular implementation relation found involving "A".
 Error 9 WellFormedness
 ""","role app000;\n",List.of("""
 A:B{}
@@ -665,7 +665,7 @@ In file: [###]/in_memory0.fear
    | ^^^^
 
 While inspecting type declaration "B"
-The number of generic type parameters disagrees for method ".foo" with 0 parameters.
+The number of type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type "p.B" cannot implement all of those types.
 Error 9 WellFormedness
@@ -681,7 +681,7 @@ In file: [###]/in_memory0.fear
    |          ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-The number of generic type parameters disagrees for method ".foo" with 0 parameters.
+The number of type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type "p.B" cannot implement all of those types.
 Error 9 WellFormedness
@@ -894,9 +894,9 @@ In file: [###]/in_memory0.fear
    |                 ^^
 
 While inspecting a type name
-Name "F" is not declared with 2 generic parameter(s) in package "p".
-Name "F" is only declared with 0 generic parameter(s).
-Did you accidentally add or omit a generic type parameter?
+Name "F" is not declared with 2 type parameter(s) in package "p".
+Name "F" is only declared with 0 type parameter(s).
+Did you accidentally add or omit a type parameter?
 Error 9 WellFormedness
 """,List.of("""
 F:{#[A,B](A):B}
@@ -905,7 +905,6 @@ User:{
   .bar->this.foo(User,{::})
   }
 """));}
-
 @Test void inferAlph_AMultiSuper_DifferentBounds_ShouldDisagree(){ fail("""
 In file: [###]/in_memory0.fear
 
@@ -913,9 +912,12 @@ In file: [###]/in_memory0.fear
    | ^^^^
 
 While inspecting type declaration "D"
-Generic bounds disagreement for method ".id" with 1 parameters.
-Different options are present in the implemented types: "[X:imm]", "[Y:read]".
-Type "p.D" must declare a method ".id" explicitly choosing the desired option.
+Invalid method implementation for "p.D.id(_)".
+Supertypes disagree on the capability bounds for type parameter 1 of ".id(_)".
+Type parameter names may differ across supertypes; only the position matters.
+Different supertypes declare: "X:imm" and "Y:read"
+Type "p.D" cannot implement all of those supertypes.
+Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.
 Error 9 WellFormedness
 """, List.of("""
 Box[K]:{.get:K;}
@@ -931,10 +933,11 @@ In file: [###]/in_memory0.fear
    |     ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "E"
-Method ".m" declares 1 generic parameter(s), but supertypes declare 2.
+Invalid method implementation for "p.E.m(_,_)".
+The method ".m(_,_)" declares 1 type parameter(s), but supertypes declare 2.
 Local declaration: "[U:imm]".
-From supertypes: "[X:imm, Y:imm]".
-Change the local number of generic parameters to 2, or adjust the supertypes.
+From supertypes: "[-:imm, -:imm]".
+Change the local number of type parameters to 2, or adjust the supertypes.
 Error 9 WellFormedness
 """, List.of("""
 A:{.m[X,Y](x:X,y:Y):X}
@@ -1222,9 +1225,9 @@ In file: [###]/in_memory0.fear
    |               ^^^^^^^^^^^
 
 While inspecting a type name
-Name "Block" is not declared with 2 generic parameter(s) in package "base".
-Name "Block" is only declared with the following numbers of generic parameters: 0, 1.
-Did you accidentally add or omit a generic type parameter?
+Name "Block" is not declared with 2 type parameter(s) in package "base".
+Name "Block" is only declared with the following numbers of type parameters: 0, 1.
+Did you accidentally add or omit a type parameter?
 Error 9 WellFormedness
 ""","""
 role app000;
@@ -1242,9 +1245,9 @@ In file: [###]/in_memory0.fear
    |               ^^^^^^
 
 While inspecting a type name
-Name "Block" is not declared with 2 generic parameter(s) in package "base".
-Name "Block" is only declared with the following numbers of generic parameters: 0, 1.
-Did you accidentally add or omit a generic type parameter?
+Name "Block" is not declared with 2 type parameter(s) in package "base".
+Name "Block" is only declared with the following numbers of type parameters: 0, 1.
+Did you accidentally add or omit a type parameter?
 Error 9 WellFormedness
 ""","""
 role app000;
@@ -1294,7 +1297,7 @@ In file: [###]/in_memory1.fear
    |   ^^
 
 While inspecting a type name
-Generic type parameter "X" is declared in package "p".
+Type parameter "X" is declared in package "p".
 Name "X" is also used as a type name.
 Error 9 WellFormedness
 """,
@@ -1329,7 +1332,7 @@ In file: [###]/in_memory0.fear
    |   ^^
 
 While inspecting the file
-Duplicate reference capability in the generic type parameter "A".
+Duplicate reference capability in the type parameter "A".
 Reference capability "imm" is repeated.
 Error 9 WellFormedness
 """,
@@ -1343,7 +1346,7 @@ In file: [###]/in_memory0.fear
    |         ^^
 
 While inspecting the file
-Duplicate reference capability in the generic type parameter "A".
+Duplicate reference capability in the type parameter "A".
 Reference capability "imm" is repeated.
 Error 9 WellFormedness
 """,

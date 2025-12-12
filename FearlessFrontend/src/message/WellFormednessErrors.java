@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
@@ -164,15 +165,15 @@ public final class WellFormednessErrors {
       StringBuilder msg= new StringBuilder()
         .append("Name ").append(Message.displayString(typedSimple))
         .append(" is not declared with ").append(tn.arity())
-        .append(" generic parameter(s) in package ")
+        .append(" type parameter(s) in package ")
         .append(Message.displayString(targetPkg))
         .append(".\n")
         .append("Name ")
         .append(Message.displayString(typedSimple))
         .append(" is only declared with ");
-      if (arities.size() == 1){ msg.append(arities.getFirst()).append(" generic parameter(s)"); }
-      else{ msg.append(Join.of(arities,"the following numbers of generic parameters: ",", ","")); }
-      msg.append(".\nDid you accidentally add or omit a generic type parameter?\n");
+      if (arities.size() == 1){ msg.append(arities.getFirst()).append(" type parameter(s)"); }
+      else{ msg.append(Join.of(arities,"the following numbers of type parameters: ",", ","")); }
+      msg.append(".\nDid you accidentally add or omit a type parameter?\n");
       return Optional.of(make(msg));
     }
     private FearlessException undeclaredInPkg(){
@@ -249,7 +250,7 @@ public final class WellFormednessErrors {
  }
  private static FearlessException shadowMsg(String pkgName, T.X n, boolean use){
    return Code.WellFormedness.of(
-     "Generic type parameter " + Message.displayString(n.name())
+     "Type parameter " + Message.displayString(n.name())
      +" is declared in package \"" + pkgName + "\".\n"
      + "Name "+Message.displayString(n.name())+" is also used "
      + (use?"in a \"use\" directive.\n":"as a type name.\n")
@@ -261,19 +262,19 @@ public final class WellFormednessErrors {
      .filter(e->es.stream().filter(ei->ei.equals(e)).count() > 1)
      .findFirst().get();
    return Code.WellFormedness.of(
-       "Duplicate reference capability in the generic type parameter "+Message.displayString(n.name())+".\n"
+       "Duplicate reference capability in the type parameter "+Message.displayString(n.name())+".\n"
        + "Reference capability "+Message.displayString(dup.name())+" is repeated.\n"
        ).addSpan(n.span().inner);
     }
   public static FearlessException duplicatedName(TName name) {
     return Code.WellFormedness.of(
-      "Duplicate type declaration for "+Message.displayString(name.s())+".\n"
+      "Duplicate type declaration for "+Err.typeDecName(name)+".\n"
       ).addFrame("a type name",Parser.span(name.pos(),name.s().length()));
   }
   public static FearlessException circularImplements(Map<TName,E.Literal> rem){
     TName name = findCycleNode(rem);
     return Code.WellFormedness.of(
-      "Circular implementation relation found involving "+Message.displayString(name.s())+".\n"
+      "Circular implementation relation found involving "+Err.typeDecName(name)+".\n"
       ).addFrame("type declarations",Parser.span(name.pos(),name.s().length()));
   }
   private static TName findCycleNode(Map<TName,E.Literal> rem){
@@ -312,7 +313,10 @@ public final class WellFormednessErrors {
     if (res.endsWith(";")){ res= res.substring(0,res.length()-1); }
     return Message.displayString(res);
   }
-  public static FearlessException agreement(Agreement at, FreshPrefix fresh, List<?> res, String msg){
+  public static String refCapDisagreement(){ return "Reference capability disagreement"; }
+  public static String retTypeDisagreement(){ return "Return type disagreement"; }
+  public static String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
+  public static FearlessException noAgreement(Agreement at, FreshPrefix fresh, List<?> res, String msg){
     return agreement(at,fresh,Code.WellFormedness.of(
       msg+ " for method "
     + Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
@@ -323,9 +327,9 @@ public final class WellFormednessErrors {
     + Message.displayString(at.mName().s())+" explicitly choosing the desired option.\n"
     ));
   }
-  public static FearlessException agreementSize(Agreement at, FreshPrefix fresh, List<List<B>> res) {
+  public static FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, FreshPrefix fresh, List<List<B>> res){
     return agreement(at,fresh,Code.WellFormedness.of(
-    "The number of generic type parameters disagrees for method "
+    "The number of type parameters disagrees for method "
     + Message.displayString(at.mName().s())
     + " with " + at.mName().arity() + " parameters.\n"
     + Join.of(
@@ -334,19 +338,65 @@ public final class WellFormednessErrors {
     + Message.displayString(at.cName().s())
     + " cannot implement all of those types.\n"
     ));
-   }
-   public static FearlessException methodGenericArityDisagreesWithSupers(Agreement at, FreshPrefix fresh, int userArity, int superArity, List<B> userBs, List<B> superBs){
+  }
+  public static FearlessException methodGenericArityDisagreesWithSupers(Agreement at, FreshPrefix fresh, int userArity, int superArity, List<B> userBs, List<B> superBs){
+    String sB= Err.disp(superBs.stream().map(b->new B("-",b.rcs())).toList());
+    //TODO: this is inconsistent with this other line String sB= Err.disp(new B("-",s.rcs()));
+    //Report on all of them or only the conflicting one??
     return agreement(at,fresh,Code.WellFormedness.of(
-      "Method " + Message.displayString(at.mName().s())
-    + " declares " + userArity + " generic parameter(s), "
+      "Invalid method implementation for "+Err.methodSig(at.cName(),at.mName())+".\n"
+    + "The method " + Err.methodSig(at.mName())
+    + " declares " + userArity + " type parameter(s), "
     + "but supertypes declare " + superArity + ".\n"
-    + "Local declaration: " + Message.displayString(userBs.toString()) + ".\n"
-    + "From supertypes: " + Message.displayString(superBs.toString()) + ".\n"
-    + "Change the local number of generic parameters to "
+    + "Local declaration: " + Err.disp(userBs) + ".\n"
+    + "From supertypes: " + sB + ".\n"
+    + "Change the local number of type parameters to "
     + superArity + ", or adjust the supertypes.\n" 
     ));
   }
-
+  public static FearlessException methodBsDisagreementBetweenSupers(Agreement at, FreshPrefix fresh, List<List<B>> res){
+    assert res.size() >= 2;
+    int n= res.getFirst().size();
+    assert res.stream().allMatch(bs->bs.size() == n);
+    int i= firstRcsDisagreementIndex(res);
+    String opts= Join.of(
+      res.stream().map(bs->Err.disp(bs.get(i))).distinct().sorted(),
+      "", " and ", "\n");
+    String m= Err.methodSig(at.mName());
+    return agreement(at, fresh, Code.WellFormedness.of(
+      "Invalid method implementation for "+Err.methodSig(at.cName(), at.mName())+".\n"
+    + "Supertypes disagree on the capability bounds for type parameter "+(i+1)+" of "+m+".\n"
+    + "Type parameter names may differ across supertypes; only the position matters.\n"
+    + "Different supertypes declare: " + opts
+    + "Type "+Err.disp(Err.tNameDirect(at.cName()))+" cannot implement all of those supertypes.\n"
+    + "Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.\n"
+    ));
+  }
+  public static FearlessException methodBsDisagreesWithSupers(Agreement at, FreshPrefix fresh, List<B> userBs, List<B> superBs){
+    assert userBs.size() == superBs.size();
+    int i= firstRcsDisagreementIndex(List.of(userBs, superBs));
+    var u= userBs.get(i);
+    var s= superBs.get(i);
+    String m= Err.methodSig(at.mName());
+    String uB= Err.disp(u);
+    String sB= Err.disp(new B("-",s.rcs()));
+    return agreement(at, fresh, Code.WellFormedness.of(
+      "Invalid method implementation for "+Err.methodSig(at.cName(), at.mName())+".\n"
+    + "The local declaration uses different capability bounds than the supertypes for type parameter "+(i+1)+" of "+m+".\n"
+    + "Local: "+uB+".\n"
+    + "From supertypes: "+sB+".\n"
+    + "The parameter name may differ; only the position matters.\n"
+    + "Change the local bounds to match the supertypes, or adjust the supertypes.\n"
+    ));
+  }
+  private static int firstRcsDisagreementIndex(List<List<B>> res){
+    return IntStream.range(0, res.getFirst().size())
+      .filter(i->{
+        var r0= res.getFirst().get(i).rcs();
+        return !res.stream().allMatch(bs->bs.get(i).rcs().equals(r0));
+      })
+      .findFirst().getAsInt();
+  }
   public static FearlessException ambiguousImpl(TName origin, FreshPrefix fresh, boolean abs, M m, List<inference.M.Sig> options){
     return agreement(origin,fresh,m.sig().span().inner,Code.WellFormedness.of(
       "Cannot infer the name for method with "+m.sig().ts().size()+" parameters.\n"

@@ -1,6 +1,5 @@
 package core;
 
-import fearlessFullGrammar.E;
 import fearlessFullGrammar.TSpan;
 import files.Pos;
 import offensiveUtils.EqTransparent;

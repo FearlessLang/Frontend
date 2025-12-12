@@ -17,7 +17,7 @@ public record Kinding(TypeSystemErrors err){
     var params = d.bs();
     var args= c.ts();
     assert eq(params.size(), args.size(), "Arity mismatch for " + c.name());
-    for (int i= 0; i < params.size(); i++){ check(toErr, c, i, bs, args.get(i), EnumSet.copyOf(params.get(i).rcs())); }
+    for (int i= 0; i < params.size(); i++){ check(toErr, c, i, bs, args.get(i), params.get(i).rcs()); }
   }
   public void check(E toErr, List<B> bs, T t){ 
     if (t instanceof T.RCC rcc){ check(toErr,rcc,-1,bs,rcc,EnumSet.allOf(RC.class)); }
@@ -55,7 +55,7 @@ public record Kinding(TypeSystemErrors err){
     var args= rcc.c().ts();
     assert eq(params.size(), args.size(), "Arity mismatch for " + rcc.c().name());
     for (int i= 0; i < params.size(); i++){
-      if (!of(bs, args.get(i), EnumSet.copyOf(params.get(i).rcs()))){ return false; }
+      if (!of(bs, args.get(i), params.get(i).rcs())){ return false; }
     }
     return true;
   }

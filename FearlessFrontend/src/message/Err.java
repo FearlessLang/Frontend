@@ -8,6 +8,7 @@ import java.util.stream.IntStream;
 import core.*;
 import core.E.*;
 import fearlessFullGrammar.MName;
+import fearlessFullGrammar.TName;
 import metaParser.Message;
 import typeSystem.TypeSystem.*;
 import utils.Bug;
@@ -16,16 +17,25 @@ final class Err{
   final StringBuilder sb= new StringBuilder();
   static Err of(){ return new Err(); }
   static String disp(Object o){ return Message.displayString(o.toString()); }
+  static String typeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }
+  static boolean useImplName(Literal l){ return l.name().simpleName().startsWith("_") && !l.thisName().equals("this"); }
   static String bestName(Literal l){
-    if (!l.name().simpleName().startsWith("_")){ return disp(l.name().s()); }
-    return "instanceOf "+disp(l.cs().getFirst().name().s())+"";
+    if (!useImplName(l)){ return disp(l.name().s()+genArity(l.name().arity())); }
+    return "instanceOf "+disp(l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity()));
   }
+  static String bestNameDirect(Literal l){
+    if (!useImplName(l)){ return l.name().s()+genArity(l.name().arity()); }
+    return l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity());
+  }
+  static String tNameDirect(TName n){ return n.s()+genArity(n.arity()); }
+  static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
   String text(){ return sb.toString().stripTrailing(); }
   public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, String badStr, String allowedStr){
   return line("The "+what+" is invalid.")
     .line("Type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds for type parameter "+paramName+" in "+kindingTarget+".")
     .line("Here "+paramName+" can only use capabilities "+allowedStr+".");
   }
+  public Err invalidMethImpl(Literal l, MName m){ return line("Invalid method implementation for "+methodSig(l,m)+"."); }
   FearlessException ex(pkgmerge.Package pkg, E e){
     assert sb.length() != 0;
     blank().line("Compressed relevant code with inferred types: (compression indicated by `-`)");
@@ -193,6 +203,8 @@ final class Err{
   Err lineGotMsg(T got, T expected){ return line(gotMsg(got, expected)); }
 
   static String methodSig(MName m){ return methodSig("",m); }
+  static String methodSig(TName pre, MName m){ return methodSig(tNameDirect(pre),m); }
+  static String methodSig(Literal l, MName m){ return methodSig(bestNameDirect(l),m); }
   static String methodSig(String pre, MName m){
     return disp(Join.of(
       IntStream.range(0,m.arity()).mapToObj(_->"_"),

@@ -246,42 +246,54 @@ public record Methods(
     var ssAligned= alignMethodSigsTo(ss, bs);
     MName name= ssAligned.getFirst().m().get();
     List<Optional<IT>> ts= IntStream.range(0, s.ts().size()).mapToObj(i->Optional.of(pairWithTs(at,i, s.ts().get(i),ssAligned))).toList();
-    IT res= s.ret().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.ret().get()),"Return type disagreement"));
+    IT res= s.ret().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.ret().get()),
+      WellFormednessErrors.retTypeDisagreement()));
     boolean abs= m.impl().isEmpty();
-    RC rc= s.rc().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.rc().get()),"Reference capability disagreement"));
+    RC rc= s.rc().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.rc().get()),
+      WellFormednessErrors.refCapDisagreement()));
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.span());
     return new M(sig,m.impl());
   }
   private List<B> agreementWithSize(List<M.Sig> ss, Sig s, Agreement at){
-    if (s.bs().isEmpty()){ return agreementBs(at, ss.stream().map(e->e.bs().get())); }
+    List<List<B>> allBounds= ss.stream().map(e->e.bs().get()).distinct().toList();
+    if (s.bs().isEmpty()){ return agreementBs(at,allBounds ); }
     var userBs= s.bs().get();
     int userArity= userBs.size();
     var superBsList = ss.stream().map(e->e.bs().get()).toList();
     var superArities = superBsList.stream().map(List::size).distinct().toList();
-    if (superArities.size() == 1 && superArities.getFirst() == userArity){ return userBs; }
-    if (superArities.size() != 1){ throw WellFormednessErrors.agreementSize(at,fresh, superBsList); }
-    int superArity= superArities.getFirst();
-    throw WellFormednessErrors.methodGenericArityDisagreesWithSupers(at,fresh, userArity, superArity, userBs, superBsList.getFirst());
-  }
+    if (superArities.size() != 1){ throw WellFormednessErrors.methodGenericArityDisagreementBetweenSupers(at,fresh, superBsList); }
+    var superArity= superArities.getFirst();
+    if (superArity != userArity){ throw WellFormednessErrors.methodGenericArityDisagreesWithSupers(at,fresh,
+      userArity, superArities.getFirst(), userBs, superBsList.getFirst()); }
+    var bounds= allBounds.stream().map(l->l.stream().map(e->e.rcs()).toList())
+      .distinct().count();
+    if (bounds!= 1){ throw WellFormednessErrors.methodBsDisagreementBetweenSupers(at, fresh,allBounds); }
+    var supBs= allBounds.getFirst();
+    assert supBs.size() == userBs.size();
+    var supRCs= supBs.stream().map(b->b.rcs()).toList();
+    var userRCs= userBs.stream().map(b->b.rcs()).toList();
+    if (supRCs.equals(userRCs)){ return userBs; }
+    throw WellFormednessErrors.methodBsDisagreesWithSupers(at, fresh,userBs,supBs);
+  }      
   IT pairWithTs(Agreement at, int i, Optional<IT> t,List<M.Sig> ss){
     return t.orElseGet(()->agreement(at,ss.stream().map(e->e.ts().get(i).get()),
-      "Type disagreement about argument "+i)); 
+      WellFormednessErrors.argTypeDisagreement(i))); 
   }
   M pairWithSig(List<M.Sig> ss, TName origin){
     assert !ss.isEmpty();
     if (ss.size() == 1){ return toCompleteM(ss.getFirst()); }
     var at= new Agreement(origin,ss.getFirst().m().get(),TSpan.fromPos(origin.pos(),origin.s().length()).inner);
-    List<B> bs= agreementBs(at,ss.stream().map(e->e.bs().get()));
+    List<B> bs= agreementBs(at,ss.stream().map(e->e.bs().get()).distinct().toList());
     var ssAligned = alignMethodSigsTo(ss, bs);
     MName name= ssAligned.getFirst().m().get();
     List<Optional<IT>> ts= IntStream.range(0, name.arity()).mapToObj(
       i->Optional.of(agreement(at,ssAligned.stream().map(e->e.ts().get(i).get()),
-        "Type disagreement about argument "+i))).toList();
-    IT res= agreement(at,ssAligned.stream().map(e->e.ret().get()),"Return type disagreement");
+        WellFormednessErrors.argTypeDisagreement(i)))).toList();
+    IT res= agreement(at,ssAligned.stream().map(e->e.ret().get()),WellFormednessErrors.retTypeDisagreement());
     var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
     if (impl.size() > 1){ throw WellFormednessErrors.ambiguousImplementationFor(ssAligned,impl,at,fresh); }
     if (impl.size() == 1){ origin = impl.getFirst(); }
-    RC rc= agreement(at,ssAligned.stream().map(e->e.rc().get()),"Reference capability disagreement");
+    RC rc= agreement(at,ssAligned.stream().map(e->e.rc().get()),WellFormednessErrors.refCapDisagreement());
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,impl.isEmpty(),ssAligned.getFirst().span());
     return new M(sig,Optional.empty());
   }
@@ -298,22 +310,21 @@ public record Methods(
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.span());
     return new M(sig,m.impl());
   }
-  <RR> RR agreement(Agreement at,Stream<RR> es, String msg){
+  private <RR> RR agreement(Agreement at,Stream<RR> es, String msg){
     var res= es.distinct().toList();
     if (res.size() == 1){ return res.getFirst(); }
     assert !msg.equals("Reference capability disagreement"): "Triggered example where RC diagreement still happens";
-    throw WellFormednessErrors.agreement(at,fresh,res,msg);
+    throw WellFormednessErrors.noAgreement(at,fresh,res,msg);
   }
   public record Agreement(TName cName, MName mName, Span span){}
   
-  List<B> agreementBs(Agreement at,Stream<List<B>> es){
-    var res= es.distinct().toList();
+  List<B> agreementBs(Agreement at,List<List<B>> res){
     if (res.size() == 1){ return res.getFirst(); }
     var sizes= res.stream().map(List::size).distinct().count();
-    if (sizes!= 1){ throw WellFormednessErrors.agreementSize(at,fresh,res); }
+    if (sizes != 1){ throw WellFormednessErrors.methodGenericArityDisagreementBetweenSupers(at,fresh,res); }
     var bounds= res.stream().map(l->l.stream().map(e->e.rcs()).toList()).distinct().count();
     if (bounds== 1){ return res.getFirst(); }
-    throw WellFormednessErrors.agreement(at,fresh,res,"Generic bounds disagreement");
+    throw WellFormednessErrors.methodBsDisagreementBetweenSupers(at, fresh,res);
   }
   private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){

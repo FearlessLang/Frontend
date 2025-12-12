@@ -24,8 +24,12 @@ public class TypeSystemTest {
       o);
   }
   static void fail(String expected,List<String> input){
-    fail("In file: [###]/in_memory0.fear\n\n"+expected+"Error 10 TypeError","role app000;",input);
+    failExt("In file: [###]/in_memory0.fear\n\n"+expected+"Error 10 TypeError",input);
   }
+  static void failExt(String expected,List<String> input){
+    fail(expected,"role app000;",input);
+  }
+
   static void fail(String expected,String head, List<String> input){
     var o= TestInference.oracle("p",head,input);
     OtherPackages other= DbgBlock.dbg();
@@ -58,7 +62,7 @@ A:{.foo123:A->this.ba}
 004| User:{ imm .m(a:imm A[mut B]):base.Void; }
    | --------------------^^^^^^^^--------------
 
-While inspecting Object literal "p.User"
+While inspecting type declaration "User"
 The type "p.A[mut p.B]" is invalid.
 Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A".
 Here "X" can only use capabilities "imm".
@@ -75,7 +79,7 @@ User:{ imm .m(a:imm A[mut B]):base.Void; }
 005| User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
    | --------------------^^^^^^^^^^^^^^--------------
 
-While inspecting Object literal "p.User"
+While inspecting type declaration "User"
 The type "p.A[p.B,mut p.C]" is invalid.
 Type argument 2 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.A".
 Here "Y" can only use capabilities "iso" or "read".
@@ -93,7 +97,7 @@ User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
 005| User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
    | ----------------------^^^^^^^^---------------
 
-While inspecting Object literal "p.User"
+While inspecting type declaration "User"
 The type "p.B[mut p.C]" is invalid.
 Type argument 1 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.B".
 Here "Y" can only use capabilities "imm".
@@ -111,7 +115,7 @@ User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
 004| User:A[mut B]{ .foo(b:B):B->b;}
    | -----^^^^^^^^------------------
 
-While inspecting Object literal "p.User"
+While inspecting type declaration "User"
 The type "p.A[mut p.B]" is invalid.
 Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A".
 Here "X" can only use capabilities "imm" or "mutH" or "readH".
@@ -128,7 +132,7 @@ User:A[mut B]{ .foo(b:B):B->b;}
 004| User:{ imm .m(a:imm B):imm A[mut B]; }
    | ---------------------------^^^^^^^^---
 
-While inspecting Object literal "p.User"
+While inspecting type declaration "User"
 The type "p.A[mut p.B]" is invalid.
 Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A".
 Here "X" can only use capabilities "imm".
@@ -145,7 +149,7 @@ User:{ imm .m(a:imm B):imm A[mut B]; }
 004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
    |        -----------------------------------^^^^^^^^^^^^^^
 
-While inspecting Method call ".id(_)" > ".m(_,_)" line 4
+While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
 Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
 Here "X" can only use capabilities "imm".
@@ -162,7 +166,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 005| User:{ imm .m(a:imm A,b:imm B,c:imm C):base.Void->a.pair[imm B,mut C](b,c); }
    |        -------------------------------------------^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting Method call ".pair(_,_)" > ".m(_,_,_)" line 5
+While inspecting method call ".pair(_,_)" > ".m(_,_,_)" line 5
 The call to ".pair(_,_)" is invalid.
 Type argument 2 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.A.pair(_,_)".
 Here "Y" can only use capabilities "read".
@@ -180,7 +184,7 @@ User:{ imm .m(a:imm A,b:imm B,c:imm C):base.Void->a.pair[imm B,mut C](b,c); }
 005| User:{ imm .m(a:imm A,b:imm B[C],c:imm C):base.Void->a.use[B[mut C]](b); }
    |        ----------------------------------------------~~~~~~^^^^^^^^~~~~
 
-While inspecting Method call ".use(_)" > ".m(_,_,_)" line 5
+While inspecting method call ".use(_)" > ".m(_,_,_)" line 5
 The type "p.B[mut p.C]" is invalid.
 Type argument 1 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.B".
 Here "Y" can only use capabilities "imm".
@@ -198,7 +202,7 @@ User:{ imm .m(a:imm A,b:imm B[C],c:imm C):base.Void->a.use[B[mut C]](b); }
 003| User[Y:read]:A[Y]{}
    | -------------^^^^--
 
-While inspecting Object literal "p.User"
+While inspecting type declaration "User[_]"
 The type "p.A[Y]" is invalid.
 Type argument 1 ("Y") does not satisfy the bounds for type parameter "X" in "p.A".
 Here "X" can only use capabilities "imm".
@@ -214,7 +218,7 @@ User[Y:read]:A[Y]{}
 005| User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
    | ----------------------^^^^^^^^---------------
 
-While inspecting Object literal "p.User"
+While inspecting type declaration "User"
 The type "p.B[mut p.C]" is invalid.
 Type argument 1 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.B".
 Here "Y" can only use capabilities "read".
@@ -232,7 +236,7 @@ User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
 004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
    |        -----------------------------------^^^^^^^^^^^^^^
 
-While inspecting Method call ".id(_)" > ".m(_,_)" line 4
+While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
 Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
 Here "X" can only use capabilities "imm" or "read".
@@ -250,7 +254,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
    |        -----------------------------------^^^^^^^
 
-While inspecting Method call ".id(_)" > ".m(_,_)" line 4
+While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
 Type argument 1 ("base.InferErr") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
@@ -270,7 +274,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
 004| User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
    |        --------------------------------^^^^^^^
 
-While inspecting Method call ".id(_)" > ".m(_,_)" line 4
+While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
 Type argument 1 ("read p.B") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
@@ -293,6 +297,80 @@ A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
 User:{ imm .m(a:imm A,b:mut B):read B->a.id(b); }
 """));}
+//-----------
+@Test void methodOverrideSignatureMismatchGenericBounds(){ failExt("""
+In file: [###]/in_memory0.fear
+
+004| Current:Parent2{ imm .id[X:imm,read](x:imm X):base.Void; }
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Current"
+Invalid method implementation for "p.Current.id(_)".
+The local declaration uses different capability bounds than the supertypes for type parameter 1 of ".id(_)".
+Local: "X:imm,read".
+From supertypes: "-:imm".
+The parameter name may differ; only the position matters.
+Change the local bounds to match the supertypes, or adjust the supertypes.
+Error 9 WellFormedness
+""", List.of("""
+P:{}
+Parent2:{ imm .id[X:imm](x:imm X):base.Void; }
+Current:Parent2{ imm .id[X:imm,read](x:imm X):base.Void; }
+"""));}
+
+@Test void methodOverrideSignatureMismatchGenericBoundsArity(){ failExt("""
+In file: [###]/in_memory0.fear
+
+004| Sub:Sup{ imm .f[X:imm,Y:imm](x:imm X):base.Void; }
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Sub"
+Invalid method implementation for "p.Sub.f(_)".
+The method ".f(_)" declares 2 type parameter(s), but supertypes declare 1.
+Local declaration: "[X:imm, Y:imm]".
+From supertypes: "[-:imm]".
+Change the local number of type parameters to 1, or adjust the supertypes.
+Error 9 WellFormedness
+""", List.of("""
+P:{}
+Sup:{ imm .f[X:imm](x:imm X):base.Void; }
+Sub:Sup{ imm .f[X:imm,Y:imm](x:imm X):base.Void; }
+"""));}
+
+@Test void methodOverrideSignatureMismatchContravariance(){ fail("""
+004| Current:Parent{ imm .g(x:imm P):base.Void; }
+   | ----------------^^^^^^^^^^^^^^^^^^^^^^^^^---
+
+While inspecting type declaration "Current"
+Invalid method implementation for "p.Current.g(_)".
+The method ".g(_)" accepts argument 1 of type "p.P".
+But "p.Parent.g(_)" requires "read p.P", which is not a subtype of "p.P".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut Current:Parent{.g(P):-.Void}
+""", List.of("""
+P:{}
+Parent:{ imm .g(x:read P):base.Void; }
+Current:Parent{ imm .g(x:imm P):base.Void; }
+"""));}
+
+@Test void methodOverrideSignatureMismatchCovariance(){ fail("""
+004| Sub:Sup{ imm .h():read P; }
+   | ---------^^^^^^^^^^^^^^^---
+
+While inspecting type declaration "Sub"
+Invalid method implementation for "p.Sub.h".
+The method ".h" returns type "read p.P".
+But "p.Sup.h" returns type "p.P", which is not a supertype of "read p.P".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut Sub:Sup{.h:read P}
+""", List.of("""
+P:{}
+Sup:{ imm .h():imm P; }
+Sub:Sup{ imm .h():read P; }
+""")); }
+
 
 //--------------
 //--------------

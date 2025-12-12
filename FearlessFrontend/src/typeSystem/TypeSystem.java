@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import core.B;
 import core.E;
@@ -126,8 +127,6 @@ public record TypeSystem(ViewPointAdaptation v){
     var span= l.name().approxSpan();
     var selfT= new T.C(l.name(),dom(delta,span));
     Map<Key,List<Sig>> sources= sources(l);
-    //assert l.ms().stream().map(M::sig).allMatch(s->sources.containsKey(new Key(s.m(),s.rc())));
-    //overrideOk(l,sources);  implementOk(l,sources);
     sources.forEach((k,group)->methodTableOk(l,k,group));
     l.cs().forEach(c->k().checkC(l,delta,c));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
@@ -186,7 +185,7 @@ public record TypeSystem(ViewPointAdaptation v){
   EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch(t){
     case T.RCC(var rc, _,_) -> EnumSet.of(rc);
     case T.RCX(var rc, _) -> EnumSet.of(rc);
-    case T.X(var x,_) -> EnumSet.copyOf(get(bs, x).rcs());
+    case T.X(var x,_) -> get(bs, x).rcs();
     case T.ReadImmX x -> intrinsicRCs(bs,x);
   };}
   private EnumSet<RC> intrinsicRCs(List<B> bs, T.ReadImmX x){
@@ -237,24 +236,18 @@ public record TypeSystem(ViewPointAdaptation v){
     for (var parent : d.cs()){ if (isOriginSub(parent.name(), sup)){ return true; } }
     return false;
   }
-
-  private void sigSub(Literal l, Sig sub, Sig sup){
-    var bsSub= sub.bs();
-    var bsSup= sup.bs();
-    assert bsSub.size() == bsSup.size();//TODO: if we can trigger this, then we have problems in Sources.canonical
-    for (int i= 0; i < bsSub.size(); i++){
-      var badBounds= !bsSub.get(i).rcs().equals(bsSup.get(i).rcs());
-      if (badBounds){ throw err().methodOverrideSignatureMismatchGenericBounds(l,sub, sup,i); }
+  private void sigSub(Literal l, Sig current, Sig parent){
+    assert !l.name().s().contains("Current") ||
+     l.name().s().contains("Current");
+    assert current.bs().equals(parent.bs());//TODO: if we can trigger this, then we have problems in Sources.canonical
+    List<B> ctx= Push.of(l.bs(),current.bs());
+    int tsSize= current.ts().size();
+    assert tsSize == parent.ts().size():"Arity encoded in meth name";
+    for (int i= 0; i < tsSize; i++){
+      var badArg= !isSub(ctx, parent.ts().get(i), current.ts().get(i));
+      if (badArg){ throw err().methodOverrideSignatureMismatchContravariance(l,current,parent, i); }
     }
-    assert bsSub.equals(bsSup);
-    List<B> ctx= Push.of(l.bs(),bsSub);
-    var badArity= sup.ts().size() != sub.ts().size();
-    if (badArity){ throw err().methodOverrideSignatureMismatchGenericBoundsArity(l,sub,sup); }
-    for (int i= 0; i < sub.ts().size(); i++){
-      var badArg= !isSub(ctx, sup.ts().get(i), sub.ts().get(i));
-      if (badArg){ throw err().methodOverrideSignatureMismatchContravariance(l,sub,sup, i); }
-    }
-    var badRet= !isSub(ctx, sub.ret(), sup.ret());
-    if (badRet){ throw err().methodOverrideSignatureMismatchCovariance(l,sub, sup); }
+    var badRet= !isSub(ctx, current.ret(), parent.ret());
+    if (badRet){ throw err().methodOverrideSignatureMismatchCovariance(l,current,parent); }
   }
 }
