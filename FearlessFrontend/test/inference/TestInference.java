@@ -602,7 +602,7 @@ B:A1,A2{ }
 In file: [###]/in_memory0.fear
 
 004| B:A1,A2{ }
-   | ^^^^
+   | ^^^^^^^^^^
 
 While inspecting type declaration "B"
 Return type disagreement for method ".foo" with 0 parameters.
@@ -632,12 +632,12 @@ B:A1,A2{ .foo->this.foo}
 In file: [###]/in_memory0.fear
 
 004| B:A1,A2{ }
-   | ^^^^
+   | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about argument 1 for method ".foo" with 2 parameters.
+Type disagreement about argument 1 for method ".foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
-Type "p.B" must declare a method ".foo" explicitly choosing the desired option.
+Type "p.B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
@@ -650,9 +650,9 @@ In file: [###]/in_memory0.fear
    |          ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about argument 1 for method ".foo" with 2 parameters.
+Type disagreement about argument 1 for method ".foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
-Type "p.B" must declare a method ".foo" explicitly choosing the desired option.
+Type "p.B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
@@ -662,7 +662,7 @@ B:A1,A2{ .foo(a,b)->this.foo}
 In file: [###]/in_memory0.fear
 
 004| B:A1,A2{}
-   | ^^^^
+   | ^^^^^^^^^
 
 While inspecting type declaration "B"
 The number of type parameters disagrees for method ".foo" with 0 parameters.
@@ -759,7 +759,7 @@ B:A2,A3{ }
 In file: [###]/in_memory0.fear
 
 005| B:A2,A3{ }
-   | ^^^^
+   | ^^^^^^^^^^
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".foo" with 0 parameters.
@@ -778,7 +778,7 @@ B:A2,A3{ }
 In file: [###]/in_memory0.fear
 
 005| B:A2,A3{ }
-   | ^^^^
+   | ^^^^^^^^^^
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".foo" with 0 parameters.
@@ -909,7 +909,7 @@ User:{
 In file: [###]/in_memory0.fear
 
 005| D:A,C{}
-   | ^^^^
+   | ^^^^^^^
 
 While inspecting type declaration "D"
 Invalid method implementation for "p.D.id(_)".
@@ -966,12 +966,12 @@ B[X]:A{.id[X](b:Box[X])->b.get} // class X vs method X
 In file: [###]/in_memory0.fear
 
 006| D:A,C{}
-   | ^^^^
+   | ^^^^^^^
 
 While inspecting type declaration "D"
-Type disagreement about argument 0 for method ".m" with 1 parameters.
+Type disagreement about argument 0 for method ".m(_)" with 1 parameters.
 Different options are present in the implemented types: "p.Twice[p.Pair[X,Y]]", "p.Twice[p.Pair[Y,X]]".
-Type "p.D" must declare a method ".m" explicitly choosing the desired option.
+Type "p.D" must declare a method ".m(_)" explicitly choosing the desired option.
 Error 9 WellFormedness
 """, List.of("""
 Pair[AA,BB]:{.fst:AA;.snd:BB;}

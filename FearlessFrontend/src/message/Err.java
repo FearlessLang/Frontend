@@ -18,8 +18,15 @@ final class Err{
   static Err of(){ return new Err(); }
   static String disp(Object o){ return Message.displayString(o.toString()); }
   static String typeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }
+  static String tNameDirect(TName n){ return n.s()+genArity(n.arity()); }  
+  //TODO: instead of checking for "_" start, we could use fresh.anonSuperT(origin)
   static boolean useImplName(Literal l){ return l.name().simpleName().startsWith("_") && !l.thisName().equals("this"); }
+  static boolean useImplName(inference.E.Literal l){ return l.name().simpleName().startsWith("_") && !l.thisName().equals("this"); }
   static String bestName(Literal l){
+    if (!useImplName(l)){ return disp(l.name().s()+genArity(l.name().arity())); }
+    return "instanceOf "+disp(l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity()));
+  }
+  static String bestName(inference.E.Literal l){
     if (!useImplName(l)){ return disp(l.name().s()+genArity(l.name().arity())); }
     return "instanceOf "+disp(l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity()));
   }
@@ -27,7 +34,10 @@ final class Err{
     if (!useImplName(l)){ return l.name().s()+genArity(l.name().arity()); }
     return l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity());
   }
-  static String tNameDirect(TName n){ return n.s()+genArity(n.arity()); }
+  static String bestNameDirect(inference.E.Literal l){
+    if (!useImplName(l)){ return l.name().s()+genArity(l.name().arity()); }
+    return l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity());
+  }
   static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
   String text(){ return sb.toString().stripTrailing(); }
   public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, String badStr, String allowedStr){
@@ -205,6 +215,7 @@ final class Err{
   static String methodSig(MName m){ return methodSig("",m); }
   static String methodSig(TName pre, MName m){ return methodSig(tNameDirect(pre),m); }
   static String methodSig(Literal l, MName m){ return methodSig(bestNameDirect(l),m); }
+  static String methodSig(inference.E.Literal l, MName m){ return methodSig(bestNameDirect(l),m); }
   static String methodSig(String pre, MName m){
     return disp(Join.of(
       IntStream.range(0,m.arity()).mapToObj(_->"_"),

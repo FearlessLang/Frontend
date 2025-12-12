@@ -319,23 +319,23 @@ public final class WellFormednessErrors {
   public static FearlessException noAgreement(Agreement at, FreshPrefix fresh, List<?> res, String msg){
     return agreement(at,fresh,Code.WellFormedness.of(
       msg+ " for method "
-    + Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
+    + Err.methodSig(at.mName())+" with "+at.mName().arity()+" parameters.\n"
     + Join.of(
-        res.stream().map(o->Message.displayString(o.toString())),
+        res.stream().map(o->Err.disp(o)),
         "Different options are present in the implemented types: ",", ",".\nType ")
-    + Message.displayString(at.cName().s())+" must declare a method "
-    + Message.displayString(at.mName().s())+" explicitly choosing the desired option.\n"
+    + Err.bestName(at.lit())+" must declare a method "
+    + Err.methodSig(at.mName())+" explicitly choosing the desired option.\n"
     ));
   }
   public static FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, FreshPrefix fresh, List<List<B>> res){
     return agreement(at,fresh,Code.WellFormedness.of(
     "The number of type parameters disagrees for method "
-    + Message.displayString(at.mName().s())
+    + Err.methodSig(at.mName())
     + " with " + at.mName().arity() + " parameters.\n"
     + Join.of(
-        res.stream().map(o->Message.displayString(o.toString())),
+        res.stream().map(o->Err.disp(o)),
         "Different options are present in the implemented types: ",", ",".\nType ")
-    + Message.displayString(at.cName().s())
+    + Err.bestName(at.lit())
     + " cannot implement all of those types.\n"
     ));
   }
@@ -344,7 +344,7 @@ public final class WellFormednessErrors {
     //TODO: this is inconsistent with this other line String sB= Err.disp(new B("-",s.rcs()));
     //Report on all of them or only the conflicting one??
     return agreement(at,fresh,Code.WellFormedness.of(
-      "Invalid method implementation for "+Err.methodSig(at.cName(),at.mName())+".\n"
+      "Invalid method implementation for "+Err.methodSig(at.lit(),at.mName())+".\n"
     + "The method " + Err.methodSig(at.mName())
     + " declares " + userArity + " type parameter(s), "
     + "but supertypes declare " + superArity + ".\n"
@@ -364,11 +364,11 @@ public final class WellFormednessErrors {
       "", " and ", "\n");
     String m= Err.methodSig(at.mName());
     return agreement(at, fresh, Code.WellFormedness.of(
-      "Invalid method implementation for "+Err.methodSig(at.cName(), at.mName())+".\n"
+      "Invalid method implementation for "+Err.methodSig(at.lit(), at.mName())+".\n"
     + "Supertypes disagree on the capability bounds for type parameter "+(i+1)+" of "+m+".\n"
     + "Type parameter names may differ across supertypes; only the position matters.\n"
     + "Different supertypes declare: " + opts
-    + "Type "+Err.disp(Err.tNameDirect(at.cName()))+" cannot implement all of those supertypes.\n"
+    + "Type "+Err.bestName(at.lit())+" cannot implement all of those supertypes.\n"
     + "Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.\n"
     ));
   }
@@ -381,7 +381,7 @@ public final class WellFormednessErrors {
     String uB= Err.disp(u);
     String sB= Err.disp(new B("-",s.rcs()));
     return agreement(at, fresh, Code.WellFormedness.of(
-      "Invalid method implementation for "+Err.methodSig(at.cName(), at.mName())+".\n"
+      "Invalid method implementation for "+Err.methodSig(at.lit(), at.mName())+".\n"
     + "The local declaration uses different capability bounds than the supertypes for type parameter "+(i+1)+" of "+m+".\n"
     + "Local: "+uB+".\n"
     + "From supertypes: "+sB+".\n"
@@ -411,9 +411,9 @@ public final class WellFormednessErrors {
       "Ambiguous implementation for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types:\n"
     + Join.of(
-        options.stream().map(mi->Message.displayString(mi.s())),
+        options.stream().map(mi->Err.disp(Err.tNameDirect(mi))),
         "Candidates: ",", ",".\n")
-    + "Type "+Message.displayString(at.cName().s())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly implementing the desired behaviour.\n"
+    + "Type "+Err.bestName(at.lit())+" must declare a method "+Message.displayString(at.mName().s())+" explicitly implementing the desired behaviour.\n"
       ));
   }
   public static FearlessException noRetNoInference(TName origin, M m, FreshPrefix fresh){
@@ -456,7 +456,7 @@ public final class WellFormednessErrors {
     return Code.WellFormedness.of(msg.toString())
       .addFrame(typeContextLabel(owner, fresh),Parser.span(owner.pos(), owner.simpleName().length()));
   }
-  private static FearlessException agreement(Agreement at, FreshPrefix fresh, FearlessException err){ return agreement(at.cName(), fresh, at.span(), err); }
+  private static FearlessException agreement(Agreement at, FreshPrefix fresh, FearlessException err){ return agreement(at.lit().name(), fresh, at.span(), err); }
   private static FearlessException agreement(TName origin, FreshPrefix fresh, Span at, FearlessException err){
     return err.addFrame(typeContextLabel(origin, fresh), at);
   }

@@ -37,9 +37,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
   private FearlessException overrideErr(Literal l, Sig sub, Err e){
     return addExpFrame(l, e.ex(pkg, l).addSpan(sub.span().inner));
   }
-  private String capStr(EnumSet<RC> rcs){
-    return rcs.stream().map(Err::disp).collect(Collectors.joining(" or "));
-  }
   ///Fired when a generic instantiation Id[Ts] does not respect the RC bounds
   ///declared in Id[Bs]. This is a "type arguments vs generic header" error,
   ///not a method-resolution or expression-typing error.

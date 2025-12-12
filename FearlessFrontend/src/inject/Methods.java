@@ -16,7 +16,6 @@ import core.B;
 import core.T;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
 import fearlessParser.Parser;
 import fearlessParser.RC;
 import inference.E;
@@ -126,16 +125,16 @@ public record Methods(
       ds.stream().flatMap(dsi->dsi.cs().stream()))
         .distinct().sorted(Comparator.comparing(Object::toString)).toList();
     List<M.Sig> allSig= ds.stream().flatMap(dsi->dsi.sigs().stream()).toList();
-    List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d.name());
-    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d.name());
+    List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
+    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
     checkMagicSupertypes(d.name(), allCs);
     return d.withCsMs(allCs,allMs);
   }
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
     fresh.registerAnonSuperT(d.name(),c.name());
     List<M.Sig> allSig= fetch(c,d.name()).sigs();//expandLiteral works on an incomplete literal with the cs list not there yet
-    List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d.name());
-    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d.name());
+    List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
+    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
     return d.withMs(allMs);
   }
   public void checkMagicSupertypes(TName owner, List<IT.C> allCs){
@@ -170,7 +169,7 @@ public record Methods(
     s= new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span());
     return new inference.M(s,m.impl());
   }
-  List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, TName origin){
+  List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     assert ss.stream().allMatch(M.Sig::isFull);
     List<M> res= new ArrayList<>(ms.size());
     boolean changed= false;
@@ -189,17 +188,17 @@ public record Methods(
       ss.removeIf(s->s.m().get().arity()==arity && s.abs()?match.add(s):false);
       var count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin,fresh,true,m,match); }
+      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin.name(),fresh,true,m,match); }
       assert match.isEmpty();
       ss.removeIf(s->s.m().get().arity()==arity?match.add(s):false);
       count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin,fresh,false,m,match); }
+      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin.name(),fresh,false,m,match); }
       throw WellFormednessErrors.noSourceToInferFrom(m);
     }
     return changed ? List.copyOf(res) : ms;
   }
-  List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, TName origin){
+  List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     List<M> res= new ArrayList<>();
     boolean changed= false;
     for (var m: ms){ 
@@ -238,8 +237,8 @@ public record Methods(
   }
   long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m().get()).distinct().count(); }
     
-  M pairWithSig(List<M.Sig> ss, inference.M m, TName origin){
-    if (ss.isEmpty()){ return toCompleteM(m,origin); }
+  M pairWithSig(List<M.Sig> ss, inference.M m, E.Literal origin){
+    if (ss.isEmpty()){ return toCompleteM(m,origin.name()); }
     var s= m.sig();    
     var at= new Agreement(origin, ss.getFirst().m().get(), m.sig().span().inner);
     List<B> bs= agreementWithSize(ss, s, at);
@@ -251,7 +250,7 @@ public record Methods(
     boolean abs= m.impl().isEmpty();
     RC rc= s.rc().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.rc().get()),
       WellFormednessErrors.refCapDisagreement()));
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.span());
+    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin.name(),abs,s.span());
     return new M(sig,m.impl());
   }
   private List<B> agreementWithSize(List<M.Sig> ss, Sig s, Agreement at){
@@ -279,10 +278,10 @@ public record Methods(
     return t.orElseGet(()->agreement(at,ss.stream().map(e->e.ts().get(i).get()),
       WellFormednessErrors.argTypeDisagreement(i))); 
   }
-  M pairWithSig(List<M.Sig> ss, TName origin){
+  M pairWithSig(List<M.Sig> ss, E.Literal origin){
     assert !ss.isEmpty();
     if (ss.size() == 1){ return toCompleteM(ss.getFirst()); }
-    var at= new Agreement(origin,ss.getFirst().m().get(),TSpan.fromPos(origin.pos(),origin.s().length()).inner);
+    var at= new Agreement(origin,ss.getFirst().m().get(),origin.span().inner);
     List<B> bs= agreementBs(at,ss.stream().map(e->e.bs().get()).distinct().toList());
     var ssAligned = alignMethodSigsTo(ss, bs);
     MName name= ssAligned.getFirst().m().get();
@@ -292,9 +291,9 @@ public record Methods(
     IT res= agreement(at,ssAligned.stream().map(e->e.ret().get()),WellFormednessErrors.retTypeDisagreement());
     var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
     if (impl.size() > 1){ throw WellFormednessErrors.ambiguousImplementationFor(ssAligned,impl,at,fresh); }
-    if (impl.size() == 1){ origin = impl.getFirst(); }
+    TName originName= impl.size() == 1? impl.getFirst() : origin.name();
     RC rc= agreement(at,ssAligned.stream().map(e->e.rc().get()),WellFormednessErrors.refCapDisagreement());
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,impl.isEmpty(),ssAligned.getFirst().span());
+    M.Sig sig= new M.Sig(rc,name,bs,ts,res,originName,impl.isEmpty(),ssAligned.getFirst().span());
     return new M(sig,Optional.empty());
   }
   
@@ -316,7 +315,7 @@ public record Methods(
     assert !msg.equals("Reference capability disagreement"): "Triggered example where RC diagreement still happens";
     throw WellFormednessErrors.noAgreement(at,fresh,res,msg);
   }
-  public record Agreement(TName cName, MName mName, Span span){}
+  public record Agreement(E.Literal lit, MName mName, Span span){}
   
   List<B> agreementBs(Agreement at,List<List<B>> res){
     if (res.size() == 1){ return res.getFirst(); }
