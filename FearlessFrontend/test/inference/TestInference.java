@@ -223,11 +223,11 @@ List.of("A:{ .a:A->A; .b:A->A; .c:A->A; }"));}
 In file: [###]/in_memory0.fear
 
 002| A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }
-   |                                            ^^^^^^^^^^^^^^^^^
+   | -------------------------------------------^^^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "A"
-Cannot infer return type of method ".use(p.A):?".
-No supertype has a method named ".use" with 1 parameters.
+Cannot infer signature of method ".use(_)".
+No supertype has a method named ".use(_)" with 1 parameters.
 Error 9 WellFormedness
 """,
 "role app000;\n", List.of(
@@ -607,7 +607,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Return type disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
-Type "p.B" must declare a method ".foo" explicitly choosing the desired option.
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
@@ -622,7 +622,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Return type disagreement for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
-Type "p.B" must declare a method ".foo" explicitly choosing the desired option.
+Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
@@ -637,7 +637,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Type disagreement about argument 1 for method ".foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
-Type "p.B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
+Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
@@ -652,7 +652,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Type disagreement about argument 1 for method ".foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "p.A1", "p.A2".
-Type "p.B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
+Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
@@ -667,7 +667,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 The number of type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
-Type "p.B" cannot implement all of those types.
+Type declaration "B" cannot implement all of those types.
 Error 9 WellFormedness
 """,List.of("""
 A1:{ .foo[X:imm]():A1;}
@@ -683,7 +683,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 The number of type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
-Type "p.B" cannot implement all of those types.
+Type declaration "B" cannot implement all of those types.
 Error 9 WellFormedness
 """,List.of("""
 A1:{ .foo[X:imm]():A1;}
@@ -717,7 +717,7 @@ In file: [###]/in_memory0.fear
    |          ^^^^^^^^
 
 While inspecting type declaration "B"
-Cannot infer the name for method with 0 parameters.
+Cannot infer the name for a method with 0 parameters.
 Many abstract methods with 0 parameters could be selected:
 Candidates: "imm .foo", "imm .bar".
 Error 9 WellFormedness
@@ -733,7 +733,7 @@ In file: [###]/in_memory0.fear
    |          ^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Cannot infer the name for method with 1 parameters.
+Cannot infer the name for a method with 1 parameters.
 Many methods with 1 parameters could be selected:
 Candidates: "imm .baz", "imm .beer".
 Error 9 WellFormedness
@@ -765,7 +765,7 @@ While inspecting type declaration "B"
 Ambiguous implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
 Candidates: "p.A2", "p.A1".
-Type "p.B" must declare a method ".foo" explicitly implementing the desired behaviour.
+Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
 Error 9 WellFormedness
 """,List.of("""
 A1:{ .foo():A1->this;}
@@ -784,7 +784,7 @@ While inspecting type declaration "B"
 Ambiguous implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
 Candidates: "p.A2", "p.A3".
-Type "p.B" must declare a method ".foo" explicitly implementing the desired behaviour.
+Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
 Error 9 WellFormedness
 """,List.of("""
 A1:{ .foo():A1->this;}
@@ -915,8 +915,8 @@ While inspecting type declaration "D"
 Invalid method implementation for "p.D.id(_)".
 Supertypes disagree on the capability bounds for type parameter 1 of ".id(_)".
 Type parameter names may differ across supertypes; only the position matters.
-Different supertypes declare: "X:imm" and "Y:read"
-Type "p.D" cannot implement all of those supertypes.
+Different supertypes declare: "X:imm" and "Y:read".
+Type declaration "D" cannot implement all of those supertypes.
 Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.
 Error 9 WellFormedness
 """, List.of("""
@@ -971,7 +971,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "D"
 Type disagreement about argument 0 for method ".m(_)" with 1 parameters.
 Different options are present in the implemented types: "p.Twice[p.Pair[X,Y]]", "p.Twice[p.Pair[Y,X]]".
-Type "p.D" must declare a method ".m(_)" explicitly choosing the desired option.
+Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 Error 9 WellFormedness
 """, List.of("""
 Pair[AA,BB]:{.fst:AA;.snd:BB;}
@@ -1068,11 +1068,11 @@ C:A,B{}
 In file: [###]/in_memory0.fear
 
 004| C:A,B{}
-   | ^^
+   | ^^^^^^^
 
-While inspecting the file
-Type "p.C" implements base.WidenTo more than once.
-At most one base.WidenTo[T] supertype is allowed, because it defines the preferred widened type.
+While inspecting type declaration "C"
+type declaration "C" implements "base.WidenTo[_]" more than once.
+At most one "base.WidenTo[_]" supertype is allowed, because it defines the preferred widened type.
 Found the following base.WidenTo supertypes:
   - "base.WidenTo[p.A]"
   - "base.WidenTo[p.B]"
@@ -1358,10 +1358,10 @@ X:{.bar[A:imm,mut,imm]:base.Void}
 In file: [###]/in_memory0.fear
 
 003| B:{base.Void}//forgot to implement A
-   |    ^^^^^^^^^
+   | ---^^^^^^^^^-
 
-While inspecting the file
-Cannot infer signature of method ":?".
+While inspecting type declaration "B"
+Cannot infer signature and name for a method with 0 parameters.
 No supertype has a method with 0 parameters.
 Error 9 WellFormedness
 """,
@@ -1385,6 +1385,43 @@ Error 9 WellFormedness
 List.of("""
 A:{imm .m:base.Void; imm .m:base.Void}
 """));}
+
+@Test void badImplementsVoid(){ fail("""
+In file: [###]/in_memory0.fear
+
+007|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
+   |                                            ^^^^^^^^^^
+
+While inspecting object literal instance of "base.Void"
+Object literal instance of "base.Void" implements sealed type "base.Void".
+Sealed types can only be implemented in their own package.
+Object literal instance of "base.Void" is defined in package "p".
+Type "Void" is defined in package "base".
+Error 9 WellFormedness
+""", List.of("""
+Sup:{
+  imm .h:base.Void;
+  imm .k:base.Void;
+}
+User:{
+  imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
+}
+"""));}
+@Test void goodImplementsVoid(){ ok("""
+p.Bad:p.Sup{'_ .h:base.Void@p.Bad;->p._AUser:base.Void:?; .k:base.Void@p.Sup;}
+p.Sup:{'this .h:base.Void@p.Sup; .k:base.Void@p.Sup;}
+p.User:{'this .m:p.Sup@p.User;->p.Bad:p.Sup{'_ .h[?]:base.Void@!;->p._AUser:base.Void:?;}:?;}
+p._AUser:base.Sealed, base.Void{'_}
+""", List.of("""
+Sup:{
+  imm .h:base.Void;
+  imm .k:base.Void;
+}
+User:{
+  imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{  } }
+}
+"""));}
+
 
 }
 //TODO: in the guide somewhere show #|" foo{#U+`AB02`} for arbitrary Unicode

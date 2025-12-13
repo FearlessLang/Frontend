@@ -9,6 +9,7 @@ import core.*;
 import core.E.*;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
+import inference.IT;
 import metaParser.Message;
 import typeSystem.TypeSystem.*;
 import utils.Bug;
@@ -18,17 +19,55 @@ final class Err{
   static Err of(){ return new Err(); }
   static String disp(Object o){ return Message.displayString(o.toString()); }
   static String typeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }
-  static String tNameDirect(TName n){ return n.s()+genArity(n.arity()); }  
+  static String typeDecNamePkg(TName name){ return disp(tNameDirect(name)); }
+  static String tNameDirect(TName n){ return n.s()+genArity(n.arity()); }
   //TODO: instead of checking for "_" start, we could use fresh.anonSuperT(origin)
-  static boolean useImplName(Literal l){ return l.name().simpleName().startsWith("_") && !l.thisName().equals("this"); }
-  static boolean useImplName(inference.E.Literal l){ return l.name().simpleName().startsWith("_") && !l.thisName().equals("this"); }
-  static String bestName(Literal l){
+  static boolean useImplName(Literal l){ return l.name().simpleName().startsWith("_") && !l.thisName().equals("this") && !l.cs().isEmpty(); }
+  static boolean useImplName(inference.E.Literal l){
+    return l.name().simpleName().startsWith("_") 
+      && !l.thisName().equals("this")
+      && (!l.cs().isEmpty() || l.t() instanceof IT.RCC);
+    }
+  private static TName guessImplName(inference.E.Literal l){
+    if (!l.cs().isEmpty()){ return l.cs().getFirst().name(); }
+    var rcc= (IT.RCC)l.t();
+    return rcc.c().name();
+    }
+  static String bestNamePgk(Literal l){
     if (!useImplName(l)){ return disp(l.name().s()+genArity(l.name().arity())); }
-    return "instanceOf "+disp(l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity()));
+    return "instance of "+disp(l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity()));
+  }
+  static String bestNamePgk(inference.E.Literal l){
+    if (!useImplName(l)){ return disp(l.name().s()+genArity(l.name().arity())); }
+    var n= guessImplName(l);
+    return "instance of "+disp(n.s()+genArity(n.arity()));
+  }
+  static String up(String s){return s.substring(0, 1).toUpperCase() + s.substring(1); }
+  static String expRepr(E toErr){return switch(toErr){
+    case Call c->"method call "+Err.methodSig(c.name());
+    case X x->"parameter " +Err.disp(x.name());
+    case Literal l->l.thisName().equals("this")
+      ? "type declaration " +typeDecName(l.name())
+      : "object literal " +bestNamePgk(l);
+    case Type t-> "object literal " + t;
+    };}
+  static String expRepr(inference.E toErr){return switch(toErr){
+    case inference.E.Call c->"method call "+Err.methodSig(c.name());
+    case inference.E.ICall c->"method call "+Err.methodSig(c.name());
+    case inference.E.X x->"parameter " +Err.disp(x.name());
+    case inference.E.Literal l->l.thisName().equals("this")
+      ? "type declaration " +typeDecName(l.name())
+      : "object literal " +bestNamePgk(l);
+    case inference.E.Type t-> "object literal " + t;
+    };}
+  static String bestName(Literal l){
+    if (!useImplName(l)){ return disp(l.name().simpleName()+genArity(l.name().arity())); }
+    return "instanceOf "+disp(l.cs().getFirst().name().simpleName()+genArity(l.cs().getFirst().name().arity()));
   }
   static String bestName(inference.E.Literal l){
-    if (!useImplName(l)){ return disp(l.name().s()+genArity(l.name().arity())); }
-    return "instanceOf "+disp(l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity()));
+    if (!useImplName(l)){ return disp(l.name().simpleName()+genArity(l.name().arity())); }
+    var n= guessImplName(l);
+    return "instanceOf "+disp(n.simpleName()+genArity(n.arity()));
   }
   static String bestNameDirect(Literal l){
     if (!useImplName(l)){ return l.name().s()+genArity(l.name().arity()); }

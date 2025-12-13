@@ -78,6 +78,6 @@ public final class Reason{
   private static String where(Literal l, M m){
     // Placeholder-ish but exercises extraction of l+m right now.
     // Refine later (maybe show only lit name, or only method, etc.).
-    return bestName(l)+"."+Err.methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine();
+    return Err.methodSig(bestNamePgk(l),m.sig().m())+" line "+m.sig().span().inner.startLine();
   }
 }

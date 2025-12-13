@@ -371,6 +371,49 @@ Sup:{ imm .h():imm P; }
 Sub:Sup{ imm .h():read P; }
 """)); }
 
+@Test void callableMethodStillAbstract_missingRequiredMethod_anonLiteral(){ fail("""
+007|   imm .m():Sup->Sup{ imm .h:base.Void->base.Void{} }
+   |   --------------^^^^--------------------------------
+
+While inspecting object literal instance of "p.Sup" > ".m" line 7
+This object literal is missing a required method.
+Missing: "imm .k".
+Required by: "p.Sup".
+Hint: add an implementation for ".k" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Sup{.h:-.Void->{}}
+""", List.of("""
+Sup:{
+  imm .h:base.Void;
+  imm .k:base.Void;
+}
+User:{
+  imm .m():Sup->Sup{ imm .h:base.Void->base.Void{} }
+}
+"""));}
+
+@Test void callableMethodStillAbstract_missingRequiredMethod_namedLiteral(){ fail("""
+007|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{} }
+   |   --------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal "p.Bad" > ".m" line 7
+This object literal is missing a required method.
+Missing: "imm .k".
+Required by: "p.Sup".
+Hint: add an implementation for ".k" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Bad:Sup{.h:-.Void->{}}
+""", List.of("""
+Sup:{
+  imm .h:base.Void;
+  imm .k:base.Void;
+}
+User:{
+  imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{} }
+}
+"""));}
 
 //--------------
 //--------------

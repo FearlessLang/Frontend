@@ -485,10 +485,10 @@ User:{ .m:A->{ .m:A->A;}; }
 In file: [###]/in_memory0.fear
 
 003| User:{ .m:A->{ .m->A;}; }
-   |                ^^^^^
+   |              --^^^^^--
 
-While inspecting literal implementing type "p.A"
-Cannot infer return type of method ".m:?".
+While inspecting object literal instance of "p.A"
+Cannot infer signature of method ".m".
 No supertype has a method named ".m" with 0 parameters.
 Error 9 WellFormedness
 """,List.of("""
@@ -500,12 +500,12 @@ User:{ .m:A->{ .m->A;}; }
 In file: [###]/in_memory0.fear
 
 003| User:base.Void{ .m:A->A }
-   | ^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "User"
-Type "User" implements sealed type "base.Void".
+Type declaration "User" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
-Type "User" is defined in package "p".
+Type declaration "User" is defined in package "p".
 Type "Void" is defined in package "base".
 Error 9 WellFormedness
 """,List.of("""
@@ -513,34 +513,33 @@ A:{}
 User:base.Void{ .m:A->A }
 """));}
 
-//Controversial, but I think it should fail
 @Test void badSealedOutEmpty(){failI("""
 In file: [###]/in_memory0.fear
 
-003| User:base.Void{}
-   | ^^^^^
+003| User:base.Void{ .foo:A }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "User"
-Type "User" implements sealed type "base.Void".
+Type declaration "User" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
-Type "User" is defined in package "p".
+Type declaration "User" is defined in package "p".
 Type "Void" is defined in package "base".
 Error 9 WellFormedness
 """,List.of("""
 A:{}
-User:base.Void{}
+User:base.Void{ .foo:A }
 """));}
 
 @Test void badSealedOutInferenceUsed(){failI("""
 In file: [###]/in_memory0.fear
 
 003| User:Void{ .m:A->A }
-   | ^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "User"
-Type "User" implements sealed type "base.Void".
+Type declaration "User" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
-Type "User" is defined in package "p".
+Type declaration "User" is defined in package "p".
 Type "Void" is defined in package "base".
 Error 9 WellFormedness
 """,importMini,List.of("""
@@ -552,12 +551,12 @@ User:Void{ .m:A->A }
 In file: [###]/in_memory0.fear
 
 003| User:{ .m:base.Void->{ .m:A->A;}; }
-   | ^^^^^^
+   |                      ^^^^^^^^^^^
 
-While inspecting literal implementing type "base.Void"
-Literal implementing type "base.Void" implements sealed type "base.Void".
+While inspecting object literal instance of "base.Void"
+Object literal instance of "base.Void" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
-Literal implementing type "base.Void" is defined in package "p".
+Object literal instance of "base.Void" is defined in package "p".
 Type "Void" is defined in package "base".
 Error 9 WellFormedness
 """,List.of("""

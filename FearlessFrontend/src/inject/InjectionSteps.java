@@ -307,7 +307,7 @@ public record InjectionSteps(Methods meths){
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
     if (noMeth){ return new E.Type(rcc, rcc, l.src(), l.g()); } // TODO: what if it was not a fresh name but a user defined name?
     List<IT.C> cs= Push.of(rcc.c(), meths.fetchCs(rcc.c()));
-    meths.checkMagicSupertypes(l.name(), cs);
+    meths.checkMagicSupertypes(l, cs);
     var freeNames= Stream.concat(new FreeXs().ftvMs(l.ms()), new FreeXs().ftvCs(l.cs()));
     List<B> localBs= freeNames.distinct().map(x -> RC.get(bs, x)).toList();
     TName name= l.name();

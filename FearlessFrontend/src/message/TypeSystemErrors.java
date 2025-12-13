@@ -23,14 +23,6 @@ import core.E.*;
 import static message.Err.*;
 
 public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg){
-  String expRepr(E toErr){return switch(toErr){
-    case Call c->"method call "+Err.methodSig(c.name());
-    case X x->"parameter " +Err.disp(x.name());
-    case Literal l->l.thisName().equals("this")
-      ? "type declaration " +typeDecName(l.name())
-      : "object literal " +bestName(l);
-    case Type t-> "object literal " + t;
-    };}
   private FearlessException addExpFrame(E toErr,FearlessException err){
     return err.addFrame(expRepr(toErr),toErr.span().inner);
     }
@@ -98,14 +90,18 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       .line("But "+methodSig(parent.origin(),mName)+" returns type "+disp(parentRet)+", which is not a supertype of "+disp(currentRet)+".")
     );
   }
-
-  //---------------------
-  
   ///A required method was left abstract instead of being implemented.
   ///Raised when checking object literals
   public FearlessException callableMethodStillAbstract(TSpan at, M got, Literal l){
-    throw Bug.todo();
-  }
+    var s= got.sig();
+    return addExpFrame(l, Err.of()
+      .line("This object literal is missing a required method.")
+      .line("Missing: "+methodSig(s.rc()+" ", s.m())+".")
+      .line("Required by: "+typeDecNamePkg(s.origin())+".")
+      .line("Hint: add an implementation for "+methodSig(s.m())+" inside the object literal.")
+      .ex(pkg,l).addSpan(at.inner));
+}
+
   ///Implemented method can never be called for any receiver obtained from the literal.
   ///Its body is statically dead code (typically a mut method on an imm/read literal).
   ///Raised when checking object literals   
@@ -316,11 +312,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     var s= got.sig();
     assert s.rc() == RC.mut;
     int line= l.pos().line();
-    String m= Err.methodSig(s.rc()+" ", s.m());
-    String lit= bestName(l);
+    String m= methodSig(s.rc()+" ", s.m());
+    String lit= up(expRepr(l));
     return Err.of()
       .line("Method "+m+" can never be called (dead code).")
-      .line("The object literal "+lit+" at line "+line+" is "+disp(l.rc())+".")
+      .line(lit+" at line "+line+" is "+disp(l.rc())+".")
       .line("Method "+m+" requires a "+disp(RC.mut)+" receiver, which cannot be obtained from a "+disp(l.rc())+" object.")
       .line("Hint: remove the implementation of method "+m+".")
       .ex(pkg,l).addSpan(at.inner);

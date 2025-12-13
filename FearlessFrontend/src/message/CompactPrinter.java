@@ -2,13 +2,16 @@ package message;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.Map;
 import java.util.stream.IntStream;
 
 import core.*;
 import core.E.*;
+import core.T.C;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
+import utils.Bug;
 
 class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses){ t= new TypeNamePrinter(mainPkg,uses); }
@@ -112,7 +115,7 @@ class CompactPrinter{
     public void accString(CompactPrinter sb){
       if (rc != RC.imm){ sb.append(rc).append(" "); }
       if (!k.isCompactable()){ accName(sb); sb.append("{-}"); return; }
-      accName(sb);    
+      accName(sb);   
       if (!priv){ wrap(sb,"","",cs,",",PC::accString); }  
       if (ms.isEmpty()){ sb.append("{}"); return; }
       var start= (self.equals("this") || self.equals("_")) ? "{" : "{'"+self+" ";
@@ -195,11 +198,11 @@ class CompactPrinter{
       callLen(c.name().s(), c.rc(), targs.size(), args.size()));
   }
   PE ofLit(Literal l){
-    var ms= ofMs(l.ms());
+    var ms= ofMs(l.name(),l.ms());
     boolean priv= privateLike(l.name());
     var name= priv ? ""
       : tNameToStr(l.name()) + bounds(l.bs())+":"; // name[bs]:
-    var cs= ofCs(priv && !l.cs().isEmpty() ? List.of(l.cs().getFirst()):l.cs());
+    var cs= ofCs(l.src(),priv && !l.cs().isEmpty() ? List.of(l.cs().getFirst()):l.cs());
     int s= rcPrefixLen(l.rc()) + 2 + seps(ms.size()) + name.length(); // {} and ";"
     var addSelf= !ms.isEmpty() && !l.thisName().equals("this") && !l.thisName().equals("_");
     if (addSelf){ s += 2 + l.thisName().length(); } // "'x "
@@ -216,7 +219,23 @@ class CompactPrinter{
   PC ofC(T.C c){
     return new PC(tNameToStr(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.NO : Compactable.of());
   }
-  List<PC> ofCs(List<T.C> cs){ return cs.stream().map(this::ofC).toList(); }
+  List<PC> ofCs(Src src,List<T.C> cs){
+    var oCs= switch(src.inner){
+      case fearlessFullGrammar.E.DeclarationLiteral d->d.dec().cs();
+      case fearlessFullGrammar.Declaration d->d.cs();
+      case fearlessFullGrammar.E.TypedLiteral d->List.of(d.t().c());
+      default -> throw Bug.of(src.inner.getClass().getSimpleName());
+    };
+    var original= oCs.stream().map(c->c.name()).toList();
+    return cs.stream()
+      .filter(c->extracted(c,original))
+      .map(this::ofC)
+      .toList();
+  }
+  private boolean extracted(C c, List<TName> original) {
+    return original.contains(c.name())
+      || original.contains(c.name().withoutPkgName());
+  }
   PM ofM(M m){
     var s= m.sig();
     Optional<PE> body= m.e().map(this::ofE);
@@ -231,5 +250,10 @@ class CompactPrinter{
     s += xs.isEmpty() ? 1 : 3 + seps(xs.size()) + xsWithColonsLen(xs);
     return hasBody ? s + 2 : s;
   }
-  List<PM> ofMs(List<M> ms){ return ms.stream().map(this::ofM).toList(); }
+  List<PM> ofMs(TName origin,List<M> ms){
+    return ms.stream()
+      .filter(m->m.sig().origin().equals(origin))
+      .map(this::ofM)
+      .toList();
+  }
 }

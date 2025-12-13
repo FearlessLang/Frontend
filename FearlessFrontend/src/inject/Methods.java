@@ -28,7 +28,6 @@ import naming.FreshPrefix;
 import optimizedTypes.LiteralDeclarations;
 import pkgmerge.OtherPackages;
 import pkgmerge.Package;
-import utils.Bug;
 
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
@@ -127,7 +126,7 @@ public record Methods(
     List<M.Sig> allSig= ds.stream().flatMap(dsi->dsi.sigs().stream()).toList();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
-    checkMagicSupertypes(d.name(), allCs);
+    checkMagicSupertypes(d, allCs);
     return d.withCsMs(allCs,allMs);
   }
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
@@ -137,20 +136,21 @@ public record Methods(
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
     return d.withMs(allMs);
   }
-  public void checkMagicSupertypes(TName owner, List<IT.C> allCs){
+  public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
     var widen= allCs.stream()
       .filter(c -> c.name().s().equals("base.WidenTo"))
       .toList();
-    if (widen.size() > 1){ throw WellFormednessErrors.multipleWidenTo(owner, widen); }
+    if (widen.size() > 1){ throw WellFormednessErrors.multipleWidenTo(d, widen); }
     var hasSealed= allCs.stream()
       .filter(c -> c.name().s().equals("base.Sealed"))
       .count() != 0;
     if (!hasSealed){ return; }
+    if (d.ms().isEmpty()){ return; }
     allCs.stream()
-      .filter(c->!c.name().pkgName().equals(owner.pkgName()))
-      .forEach(c->notSealed(c.name(),owner));
+      .filter(c->!c.name().pkgName().equals(d.name().pkgName()))
+      .forEach(c->notSealed(c.name(),d));
   }
-  void notSealed(TName target, TName owner){
+  void notSealed(TName target, E.Literal owner){
     boolean hasSealed= other.of(target).cs().stream()
     .filter(c -> c.name().s().equals("base.Sealed")).count() != 0;
     if (!hasSealed){ return; }
@@ -188,13 +188,13 @@ public record Methods(
       ss.removeIf(s->s.m().get().arity()==arity && s.abs()?match.add(s):false);
       var count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin.name(),fresh,true,m,match); }
+      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin,fresh,true,m,match); }
       assert match.isEmpty();
       ss.removeIf(s->s.m().get().arity()==arity?match.add(s):false);
       count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin.name(),fresh,false,m,match); }
-      throw WellFormednessErrors.noSourceToInferFrom(m);
+      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin,fresh,false,m,match); }
+      throw WellFormednessErrors.noSourceToInferFrom(origin,m);
     }
     return changed ? List.copyOf(res) : ms;
   }
@@ -238,7 +238,7 @@ public record Methods(
   long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m().get()).distinct().count(); }
     
   M pairWithSig(List<M.Sig> ss, inference.M m, E.Literal origin){
-    if (ss.isEmpty()){ return toCompleteM(m,origin.name()); }
+    if (ss.isEmpty()){ return toCompleteM(m,origin); }
     var s= m.sig();    
     var at= new Agreement(origin, ss.getFirst().m().get(), m.sig().span().inner);
     List<B> bs= agreementWithSize(ss, s, at);
@@ -298,15 +298,15 @@ public record Methods(
   }
   
   M toCompleteM(M.Sig s){ return new M(s,Optional.empty()); }
-  M toCompleteM(inference.M m,TName origin){
+  M toCompleteM(inference.M m,E.Literal origin){
     var s= m.sig();
     RC rc=s.rc().orElse(RC.imm);
     MName name= s.m().get();
     List<B> bs= s.bs().orElse(List.of());
-    List<Optional<IT>> ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(Bug::todo))).toList();
-    IT res= s.ret().orElseThrow(()->WellFormednessErrors.noRetNoInference(origin,m,fresh));
+    List<Optional<IT>> ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(()->WellFormednessErrors.noSourceToInferFrom(origin,m)))).toList();
+    IT res= s.ret().orElseThrow(()->WellFormednessErrors.noSourceToInferFrom(origin,m));
     boolean abs= m.impl().isEmpty();
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin,abs,s.span());
+    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin.name(),abs,s.span());
     return new M(sig,m.impl());
   }
   private <RR> RR agreement(Agreement at,Stream<RR> es, String msg){
