@@ -297,6 +297,50 @@ A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
 User:{ imm .m(a:imm A,b:mut B):read B->a.id(b); }
 """));}
+
+
+@Test void methodImplementationDeadCode_readLiteralHasMutMethod(){ fail("""
+004|   imm .m():read B->read BB:B{
+005|     mut .h:base.Void->base.Void{};
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+006|   }
+
+While inspecting object literal "p.BB" > ".m" line 4
+The method "p.BB.h" is dead code.
+The object literal "p.BB" is "read", so it will never be seen as "mut".
+But it implements method "mut .h", which requires a "mut" receiver.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+read BB:B{mut .h:-.Void->{}}
+""", List.of("""
+B:{ mut .h:base.Void; }
+User:{
+  imm .m():read B->read BB:B{
+    mut .h:base.Void->base.Void{};
+  }
+}
+"""));}
+@Test void methodImplementationDeadCode_immLiteralHasMutMethod(){ fail("""
+004|   imm .m():imm B->imm BB:B{
+005|     mut .h:base.Void->base.Void{};
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+006|   }
+
+While inspecting object literal "p.BB" > ".m" line 4
+The method "p.BB.h" is dead code.
+The object literal "p.BB" is "imm", so it will never be seen as "mut".
+But it implements method "mut .h", which requires a "mut" receiver.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+BB:B{mut .h:-.Void->{}}
+""", List.of("""
+B:{ mut .h:base.Void; }
+User:{
+  imm .m():imm B->imm BB:B{
+    mut .h:base.Void->base.Void{};
+  }
+}
+"""));}
 //-----------
 @Test void methodOverrideSignatureMismatchGenericBounds(){ failExt("""
 In file: [###]/in_memory0.fear
