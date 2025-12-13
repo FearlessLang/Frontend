@@ -714,7 +714,7 @@ B[X:imm]:A1,A2{ .foo()->this.foo }
 In file: [###]/in_memory0.fear
 
 004| B:A1,A2{ this.foo }
-   |          ^^^^^^^^
+   | ---------^^^^^^^^--
 
 While inspecting type declaration "B"
 Cannot infer the name for a method with 0 parameters.
@@ -730,7 +730,7 @@ B:A1,A2{ this.foo }
 In file: [###]/in_memory0.fear
 
 004| B:A1,A2{ y->this.foo }
-   |          ^^^^^^^^^^^
+   | ---------^^^^^^^^^^^--
 
 While inspecting type declaration "B"
 Cannot infer the name for a method with 1 parameters.

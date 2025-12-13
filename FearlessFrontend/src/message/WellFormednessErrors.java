@@ -300,21 +300,23 @@ public final class WellFormednessErrors {
   public static FearlessException noSourceToInferFrom(E.Literal origin, M m){
     var empty= m.sig().m().isEmpty();
     var size= m.sig().ts().size();
-    if (empty){ return agreement(origin, origin.span().inner,Code.WellFormedness.of(
+    if (empty){ return Code.WellFormedness.of(
       "Cannot infer signature and name for a method with "+size+" parameters.\n"
     + "No supertype has a method with "+size+" parameters.\n"
-      ).addSpan(m.sig().span().inner)); }
+      ).addSpan(m.sig().span().inner)
+      .addFrame(Err.expRepr(origin), origin.span().inner); }
     var name= Err.methodSig(m.sig().m().get());
-    return agreement(origin, origin.span().inner,Code.WellFormedness.of(
+    return Code.WellFormedness.of(
       "Cannot infer signature of method "+name+".\n"
     + "No supertype has a method named "+name+" with "+size+" parameters.\n"
-      ).addSpan(m.sig().span().inner));
+      ).addSpan(m.sig().span().inner)
+      .addFrame(Err.expRepr(origin), origin.span().inner);
   }
   public static String refCapDisagreement(){ return "Reference capability disagreement"; }
   public static String retTypeDisagreement(){ return "Return type disagreement"; }
   public static String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
   public static FearlessException noAgreement(Agreement at, FreshPrefix fresh, List<?> res, String msg){
-    return agreement(at,Code.WellFormedness.of(
+    return Code.WellFormedness.of(
       msg+ " for method "
     + Err.methodSig(at.mName())+" with "+at.mName().arity()+" parameters.\n"
     + Join.of(
@@ -322,10 +324,10 @@ public final class WellFormednessErrors {
         "Different options are present in the implemented types: ",", ",".\n")
     + Err.up(Err.expRepr(at.lit()))+" must declare a method "
     + Err.methodSig(at.mName())+" explicitly choosing the desired option.\n"
-    ));
+    ).addFrame(Err.expRepr(at.lit()), at.span());
   }
   public static FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, FreshPrefix fresh, List<List<B>> res){
-    return agreement(at,Code.WellFormedness.of(
+    return Code.WellFormedness.of(
     "The number of type parameters disagrees for method "
     + Err.methodSig(at.mName())
     + " with " + at.mName().arity() + " parameters.\n"
@@ -334,13 +336,13 @@ public final class WellFormednessErrors {
         "Different options are present in the implemented types: ",", ",".\n")
     + Err.up(Err.expRepr(at.lit()))
     + " cannot implement all of those types.\n"
-    ));
+    ).addFrame(Err.expRepr(at.lit()), at.span());
   }
   public static FearlessException methodGenericArityDisagreesWithSupers(Agreement at, FreshPrefix fresh, int userArity, int superArity, List<B> userBs, List<B> superBs){
     String sB= Err.disp(superBs.stream().map(b->new B("-",b.rcs())).toList());
     //TODO: this is inconsistent with this other line String sB= Err.disp(new B("-",s.rcs()));
     //Report on all of them or only the conflicting one??
-    return agreement(at,Code.WellFormedness.of(
+    return Code.WellFormedness.of(
       "Invalid method implementation for "+Err.methodSig(at.lit(),at.mName())+".\n"
     + "The method " + Err.methodSig(at.mName())
     + " declares " + userArity + " type parameter(s), "
@@ -349,7 +351,7 @@ public final class WellFormednessErrors {
     + "From supertypes: " + sB + ".\n"
     + "Change the local number of type parameters to "
     + superArity + ", or adjust the supertypes.\n" 
-    ));
+    ).addFrame(Err.expRepr(at.lit()), at.span());
   }
   public static FearlessException methodBsDisagreementBetweenSupers(Agreement at, FreshPrefix fresh, List<List<B>> res){
     assert res.size() >= 2;
@@ -360,14 +362,14 @@ public final class WellFormednessErrors {
       res.stream().map(bs->Err.disp(bs.get(i))).distinct().sorted(),
       "", " and ", ".\n");
     String m= Err.methodSig(at.mName());
-    return agreement(at, Code.WellFormedness.of(
+    return Code.WellFormedness.of(
       "Invalid method implementation for "+Err.methodSig(at.lit(), at.mName())+".\n"
     + "Supertypes disagree on the capability bounds for type parameter "+(i+1)+" of "+m+".\n"
     + "Type parameter names may differ across supertypes; only the position matters.\n"
     + "Different supertypes declare: " + opts
     + Err.up(Err.expRepr(at.lit()))+" cannot implement all of those supertypes.\n"
     + "Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.\n"
-    ));
+    ).addFrame(Err.expRepr(at.lit()), at.span());
   }
   public static FearlessException methodBsDisagreesWithSupers(Agreement at, FreshPrefix fresh, List<B> userBs, List<B> superBs){
     assert userBs.size() == superBs.size();
@@ -377,14 +379,14 @@ public final class WellFormednessErrors {
     String m= Err.methodSig(at.mName());
     String uB= Err.disp(u);
     String sB= Err.disp(new B("-",s.rcs()));
-    return agreement(at, Code.WellFormedness.of(
+    return Code.WellFormedness.of(
       "Invalid method implementation for "+Err.methodSig(at.lit(), at.mName())+".\n"
     + "The local declaration uses different capability bounds than the supertypes for type parameter "+(i+1)+" of "+m+".\n"
     + "Local: "+uB+".\n"
     + "From supertypes: "+sB+".\n"
     + "The parameter name may differ; only the position matters.\n"
     + "Change the local bounds to match the supertypes, or adjust the supertypes.\n"
-    ));
+    ).addFrame(Err.expRepr(at.lit()), at.span());
   }
   private static int firstRcsDisagreementIndex(List<List<B>> res){
     return IntStream.range(0, res.getFirst().size())
@@ -395,23 +397,23 @@ public final class WellFormednessErrors {
       .findFirst().getAsInt();
   }
   public static FearlessException ambiguousImpl(E.Literal origin, FreshPrefix fresh, boolean abs, M m, List<inference.M.Sig> options){
-    return agreement(origin,m.sig().span().inner,Code.WellFormedness.of(
+    return Code.WellFormedness.of(
       "Cannot infer the name for a method with "+m.sig().ts().size()+" parameters.\n"
     + "Many"+(abs?" abstract":"")+" methods with "+m.sig().ts().size()+" parameters could be selected:\n"
     + Join.of(
         options.stream().map(mi->Message.displayString(mi.rc().get()+" "+mi.m().get().s())),
         "Candidates: ",", ",".\n")
-    ));
+    ).addSpan(m.sig().span().inner).addFrame(Err.expRepr(origin), origin.span().inner);
   }
   public static FearlessException ambiguousImplementationFor(List<M.Sig> ss, List<TName> options, Agreement at, FreshPrefix fresh){
-    return agreement(at,Code.WellFormedness.of(    
+    return Code.WellFormedness.of(    
       "Ambiguous implementation for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types:\n"
     + Join.of(
         options.stream().map(mi->Err.disp(Err.tNameDirect(mi))),
         "Candidates: ",", ",".\n")
     + Err.up(Err.expRepr(at.lit()))+" must declare a method "+Message.displayString(at.mName().s())+" explicitly implementing the desired behaviour.\n"
-      ));
+      ).addFrame(Err.expRepr(at.lit()), at.span());
   }
   public static FearlessException multipleWidenTo(E.Literal owner, List<IT.C> widen){
     var msg= new StringBuilder()
@@ -447,17 +449,4 @@ public final class WellFormednessErrors {
     return Code.WellFormedness.of(msg.toString())
       .addFrame(Err.expRepr(owner),owner.span().inner);
   }
-  //TODO: those two method down can be refactored away too by inlining?
-  private static FearlessException agreement(Agreement at, FearlessException err){ return agreement(at.lit(), at.span(), err); }
-  private static FearlessException agreement(E.Literal origin, Span at, FearlessException err){
-    return err.addFrame(Err.expRepr(origin), at);
-  }
-  /*private static String typeContextLabel(String onT, String onLit,TName origin, FreshPrefix fresh){
-    var base= fresh.anonSuperT(origin);
-    if (base.isEmpty()){ return onT+Message.displayString(origin.simpleName()); }
-    return onLit+Message.displayString(base.get().s());
-  }
-  private static String typeContextLabel(TName origin, FreshPrefix fresh){
-    return typeContextLabel("type declaration ","literal implementing type ",origin,fresh);
-  }*/
 }
