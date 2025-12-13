@@ -341,6 +341,76 @@ User:{
   }
 }
 """));}
+
+@Test void notAffineIso_usedDirectlyTwice_sameCall(){ fail("""
+005| User:{ imm .bad(x:iso B):Unit->Use2#(x,x); }
+   |        ------------------------------^^~~
+
+While inspecting ".bad(_)" line 5
+Iso parameter "x" violates the single-use rule in method "p.User.bad(_)" (line 5).
+It is used directly 2 times.
+Iso parameters can be used directly at most once.
+Allowed: capture into object literals as "imm", or use directly once.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Use2#(x,x)
+""", List.of("""
+Unit:{}
+B:{}
+Use2:{ #(a:iso B,b:iso B):Unit->Unit{} }
+User:{ imm .bad(x:iso B):Unit->Use2#(x,x); }
+"""));}
+
+@Test void notAffineIso_usedDirectlyAndCaptured_literalArg(){ fail("""
+008|   imm .bad(xyz:iso B):Unit->Mix#(xyz, imm KK:K{ imm .k:Unit->UseImm#(xyz); });
+   |   -------------------------------^^^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~----
+
+While inspecting ".bad(_)" line 8
+Iso parameter "xyz" violates the single-use rule in method "p.User.bad(_)" (line 8).
+It is used directly and also captured into object literals.
+An iso parameter must be either captured, or used directly once (but not both).
+Allowed: capture into object literals as "imm", or use directly once.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Mix#(xyz,KK:K{.k:Unit->UseImm#(xyz)})
+""", List.of("""
+Unit:{}
+B:{}
+UseImm:{ #(b:imm B):Unit->Unit{} }
+K:{ imm .k:Unit; }
+Mix:{ #(a:iso B,k:imm K):Unit->Unit{} }
+User:{
+  imm .bad(xyz:iso B):Unit->Mix#(xyz, imm KK:K{ imm .k:Unit->UseImm#(xyz); });
+}
+"""));}
+
+@Test void notAffineIso_usedDirectlyAndCaptured_twice_twoLiterals(){ fail("""
+008|   imm .bad(x:iso B):Unit->Mix2#(x,
+   |                                 ^^
+009|     imm K1:K{ imm .k:Unit->UseImm#(x); },
+
+While inspecting ".bad(_)" line 8
+Iso parameter "x" violates the single-use rule in method "p.User.bad(_)" (line 8).
+It is used directly and also captured into object literals.
+An iso parameter must be either captured, or used directly once (but not both).
+Allowed: capture into object literals as "imm", or use directly once.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Mix2#(x,K1:K{.k:Unit->UseImm#(x)},K2:K{.k:Unit->UseImm#(x)})
+""", List.of("""
+Unit:{}
+B:{}
+UseImm:{ #(b:imm B):Unit->Unit{} }
+K:{ imm .k:Unit; }
+Mix2:{ #(a:iso B,k1:imm K,k2:imm K):Unit->Unit{} }
+User:{
+  imm .bad(x:iso B):Unit->Mix2#(x,
+    imm K1:K{ imm .k:Unit->UseImm#(x); },
+    imm K2:K{ imm .k:Unit->UseImm#(x); }
+  );
+}
+"""));}
+
 //-----------
 @Test void methodOverrideSignatureMismatchGenericBounds(){ failExt("""
 In file: [###]/in_memory0.fear

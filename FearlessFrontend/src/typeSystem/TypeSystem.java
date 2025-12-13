@@ -139,17 +139,17 @@ public record TypeSystem(ViewPointAdaptation v){
     m.sig().ts().forEach(t->k().check(forErr,allBs,t));
     k().check(forErr,allBs,m.sig().ret());
     if(m.e().isEmpty()){ return; }
-    try{ bodyOk(allBs,g,m); }
+    try{ bodyOk(forErr,allBs,g,m); }
     catch(FearlessException fe){ throw err().mCallFrame(m, fe); }
   }
-  private void bodyOk(List<B> delta, Gamma g, M m){
+  private void bodyOk(Literal forErr,List<B> delta, Gamma g, M m){
     var ts= m.sig().ts();
     var xs= m.xs();
     g= g.addAll(ts, xs);//Note: 'this' already in g1
     check(delta,g,m.e().get(),m.sig().ret());
     for(int i= 0; i < xs.size(); i++){
       var isAffine= !k().of(delta,ts.get(i),EnumSet.of(mut,read,mutH,readH,imm));
-      if (isAffine){ Affine.usedOnce(err(),m,xs.get(i),m.e().get()); }
+      if (isAffine){ Affine.usedOnce(err(),forErr,m,xs.get(i),m.e().get()); }
     }
   }  
   private List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }

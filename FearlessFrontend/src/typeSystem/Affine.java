@@ -9,14 +9,14 @@ import core.M;
 import message.TypeSystemErrors;
 
 class Affine{
-  static void usedOnce(TypeSystemErrors err, M m, String x, E e){
+  static void usedOnce(TypeSystemErrors err, Literal l,M m, String x, E e){
     List<X> active= new ArrayList<>();
     collect(x, e, true, active);
     if (active.isEmpty()){ return; }
-    if (active.size() > 1){ throw err.notAffineIso(m, x,true, active); }
+    if (active.size() > 1){ throw err.notAffineIso(l,m, x,true, active); }
     List<X> total= new ArrayList<>();
     collect(x, e, false, total);
-    if (total.size() > 1){ throw err.notAffineIso(m, x,false, total); }
+    if (total.size() > 1){ throw err.notAffineIso(l,m, x,false, total); }
   }
   private static void collect(String x, E e, boolean activeOnly, List<X> acc){
     switch (e){

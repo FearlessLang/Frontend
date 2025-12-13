@@ -54,23 +54,23 @@ public record Message(String msg, int priority){
   private static List<Frame> ensureContainment(List<Frame> fs){
     ArrayList<Frame> out = new ArrayList<>(fs);
     if (out.size() <= 1) return List.copyOf(out);
-    for (int i = out.size() - 2; i >= 0; i--){
+    for (int i = 0; i < out.size() - 1; i++){
       Span inner = out.get(i).s();
-      Span container = out.get(i+1).s();
-      out.set(i, new Frame(out.get(i).name(), clampTo(inner, container)));
+      Span outer = out.get(i+1).s();      
+      out.set(i+1, new Frame(out.get(i+1).name(), union(inner, outer)));
     }
     return List.copyOf(out);
   }
-  private static Span clampTo(Span s, Span c){
-    int sL = Math.max(s.startLine(), c.startLine());
-    int eL = Math.min(s.endLine(),   c.endLine());
-    if (sL > eL){ sL = c.startLine(); eL = c.startLine(); }
-    int sC = (sL==s.startLine()&&sL==c.startLine()) ? Math.max(s.startCol(), c.startCol())
-             : (sL==c.startLine() ? c.startCol() : s.startCol());
-    int eC = (eL==s.endLine()&&eL==c.endLine()) ? Math.min(s.endCol(), c.endCol())
-             : (eL==c.endLine() ? c.endCol() : s.endCol());
-    if (sL == eL && sC > eC) sC = eC;
-    return new Span(s.fileName(), sL, Math.max(1, sC), eL, Math.max(1, eC));
+  private static Span union(Span a, Span b){
+    int startLine = Math.min(a.startLine(), b.startLine());
+    int endLine   = Math.max(a.endLine(),   b.endLine());
+    int startCol = (a.startLine() == startLine && b.startLine() == startLine)
+        ? Math.min(a.startCol(), b.startCol())
+        : (a.startLine() == startLine ? a.startCol() : b.startCol());
+    int endCol = (a.endLine() == endLine && b.endLine() == endLine)
+        ? Math.max(a.endCol(), b.endCol())
+        : (a.endLine() == endLine ? a.endCol() : b.endCol());
+    return new Span(a.fileName(), startLine, startCol, endLine, endCol);
   }
   private static List<Frame> trimInvisible(Function<URI,String> loader, List<Frame> fs){
     ArrayList<Frame> out = new ArrayList<>(fs.size());

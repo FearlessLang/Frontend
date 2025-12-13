@@ -99,7 +99,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       .line("Missing: "+methodSig(s.rc()+" ", s.m())+".")
       .line("Required by: "+typeDecNamePkg(s.origin())+".")
       .line("Hint: add an implementation for "+methodSig(s.m())+" inside the object literal.")
-      .ex(pkg,l).addSpan(at.inner));
+      .ex(pkg,l));
   }
   ///Implemented method can never be called for any receiver obtained from the literal.
   ///Its body is statically dead code (typically a mut method on an imm/read literal).
@@ -119,10 +119,26 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
   ///Allowed uses: capture into object literals as imm, or use directly at most once.
   ///if !earlyErrOnMoreThenOnceDirectly then used exactly once directly but ALSO used in literals
   ///Raised when checking object literals
-  public FearlessException notAffineIso(M m, String name, boolean earlyErrOnMoreThenOnceDirectly, List<E.X> usages){
-    throw Bug.todo();
+  public FearlessException notAffineIso(Literal l,M m, String name, boolean earlyErrOnMoreThenOnceDirectly, List<E.X> usages){
+    assert !usages.isEmpty();
+    int line= m.sig().span().inner.startLine();
+    String ms= methodSig(l, m.sig().m());
+    String x= disp(name);
+    var e= Err.of()
+      .line("Iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+line+").");
+    if (earlyErrOnMoreThenOnceDirectly){
+      e.line("It is used directly "+usages.size()+" times.");
+      e.line("Iso parameters can be used directly at most once.");
+    } 
+    else{
+      e.line("It is used directly and also captured into object literals.");
+      e.line("An iso parameter must be either captured, or used directly once (but not both).");
+    }
+    e.line("Allowed: capture into object literals as "+disp(RC.imm)+", or use directly once.");
+    var ex= e.ex(pkg, m.e().get());
+    for (var u:usages){ ex.addSpan(u.span().inner); }
+    return ex;
   }
-
   ///Expression at method body has a type that does not meet its result requirement(s).
   ///"body has wrong type" error; cab only trigger if all current-expressions at are well typed.
   ///Raised when checking object literals
