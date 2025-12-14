@@ -68,9 +68,9 @@ public final class Reason{
   private static String traceKeep(WithT tail, String op, T from, T to, Literal l, M m){
     String prev= vpaTrace(tail);
     if (from.equals(to)){ return prev; } // avoid A->A noise
-    String step= disp(from)+" --"+op+"("+where(l,m)+")--> "+disp(to);
-    if (prev.isEmpty()){ return step; }
-    return prev+"; "+step;
+    String edge= " --"+op+"("+where(l,m)+")--> "+disp(to);
+    if (prev.isEmpty()){ return disp(from)+edge; }
+    return prev+edge;
   }
   private static String where(Literal l, M m){
     return "line "+m.sig().span().inner.startLine();

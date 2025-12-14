@@ -547,7 +547,53 @@ User:{
     read Get{ loooooong };
 }
 """));}
+@Test void methBodyWrongType_xWeakenedCapability_dueToCapture2(){fail("""
+005|   read .m(loooooong:mut A):mut A->
+006|     read Get{ loooooong };
+   |               ^^^^^^^^^
 
+While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
+The object literal instance of "p.Get" implements ".get" with an expression returning "read p.A".
+Parameter "loooooong" is used where "iso p.A" is required, but it has type "read p.A", which is not a subtype of "iso p.A".
+Note: the declared type "mut p.A" also does not satisfy the requirement.
+Capture adaptation trace:
+"mut p.A" --setToRead(line 6)--> "read p.A".
+
+See inferred typing context below for how type "iso p.A" was introduced: (compression indicated by `-`)
+mut User:{read .m(loooooong:mut A):mut A->read Get{read .get:iso A->loooooong}}
+""", List.of("""
+A:{}
+Get:{ read .get: iso A; }
+User:{
+  read .m(loooooong:mut A):mut A->
+    read Get{ loooooong };
+}
+"""));}
+
+@Test void methBodyWrongType_xWeakenedCapability_dueToCapture_chain(){fail("""
+006|   read .m(loooooong:mut A):mut A->
+007|     read Wrap{ mut Get{ loooooong } };
+   |                ---------^^^^^^^^^--
+
+While inspecting parameter "loooooong" > ".get" line 7 > ".wrap" line 7 > ".m(_)" line 6
+The object literal instance of "p.Get" implements ".get" with an expression returning "p.A".
+Parameter "loooooong" is used where "iso p.A" is required, but it has type "p.A", which is not a subtype of "iso p.A".
+Note: the declared type "mut p.A" also does not satisfy the requirement.
+Capture adaptation trace:
+"mut p.A" --setToRead(line 7)--> "read p.A" --strengthenToImm(line 7)--> "p.A".
+
+See inferred typing context below for how type "iso p.A" was introduced: (compression indicated by `-`)
+mut User:{read .m(loooooong:mut A):mut A->read Wrap{read .wrap:Get->mut Get{.get:iso A->loooooong}}}
+""", List.of("""
+A:{}
+Get:{ imm .get: iso A; }
+Wrap:{ read .wrap: imm Get; }
+User:{
+  read .m(loooooong:mut A):mut A->
+    read Wrap{ mut Get{ loooooong } };
+}
+"""));
+}
 
 //---
 @Disabled @Test void drop(){fail("""

@@ -3884,5 +3884,19 @@ A:{
     read .foo:B->Skip#[read A](Id#[read A](aaaa));
   }}
 """);}
+
+@Test void nestedLiterals(){ok("""
+[###]
+""","""
+A:{}
+Get:{ imm .get: iso A; }
+Wrap:{ read .wrap: imm Get; }
+User:{
+  read .m(loooooong:mut A):mut A->
+    read Wrap{ imm Get{ loooooong } };
+}
+""");}
+
+
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

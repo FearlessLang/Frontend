@@ -284,7 +284,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     Optional<M> m= parseFront("method signature",false,arrowSkip,Parser::parseSig)
       .map(s->parseMethodWithSig(s,typed));
     if (m.isPresent()){ return m.get(); }
-    boolean hasSig= peek(DotName,Op,RCap)
+    boolean hasSig= peek(DotName,Op)
       || peekOrder(t->t.is(RCap), t->t.is(DotName,Op));
     if (!hasSig){ return new M(empty(),of(parseMethodBody()),tspan()); }
     Sig sig= parseSig();
