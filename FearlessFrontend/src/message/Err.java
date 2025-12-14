@@ -11,6 +11,7 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import inference.IT;
 import metaParser.Message;
+import typeSystem.TypeScope;
 import typeSystem.TypeSystem.*;
 import utils.Bug;
 
@@ -22,7 +23,7 @@ final class Err{
   static String typeDecNamePkg(TName name){ return disp(tNameDirect(name)); }
   static String tNameDirect(TName n){ return n.s()+genArity(n.arity()); }
   //TODO: instead of checking for "_" start, we could use fresh.anonSuperT(origin)
-  static boolean useImplName(Literal l){ return l.name().simpleName().startsWith("_") && !l.thisName().equals("this") && !l.cs().isEmpty(); }
+  static boolean useImplName(Literal l){return l.name().simpleName().startsWith("_") && !l.thisName().equals("this") && !l.cs().isEmpty(); }
   static boolean useImplName(inference.E.Literal l){
     return l.name().simpleName().startsWith("_") 
       && !l.thisName().equals("this")
@@ -49,7 +50,7 @@ final class Err{
     case Literal l->l.thisName().equals("this")
       ? "type declaration " +typeDecName(l.name())
       : "object literal " +bestNamePgk(l);
-    case Type t-> "object literal " + t;
+    case Type t-> "object literal instance of " + t;
     };}
   static String expRepr(inference.E toErr){return switch(toErr){
     case inference.E.Call c->"method call "+Err.methodSig(c.name());
@@ -58,7 +59,7 @@ final class Err{
     case inference.E.Literal l->l.thisName().equals("this")
       ? "type declaration " +typeDecName(l.name())
       : "object literal " +bestNamePgk(l);
-    case inference.E.Type t-> "object literal " + t;
+    case inference.E.Type t-> "object literal instance of " + t;
     };}
   static String bestName(Literal l){
     if (!useImplName(l)){ return disp(l.name().simpleName()+genArity(l.name().arity())); }
@@ -86,13 +87,30 @@ final class Err{
   }
   public Err invalidMethImpl(Literal l, MName m){ return line("Invalid method implementation for "+methodSig(l,m)+"."); }
   FearlessException ex(pkgmerge.Package pkg, E e){
+    return ex(pkg,"Compressed relevant code with inferred types: (compression indicated by `-`)",e);
+  }
+  FearlessException ex(pkgmerge.Package pkg, String footerHdr, core.E footerE){
     assert sb.length() != 0;
-    blank().line("Compressed relevant code with inferred types: (compression indicated by `-`)");
+    assert footerHdr != null && footerE != null;
+    return Code.TypeError.of(blank()
+      .line(footerHdr)
+      .compactPrinterLine(pkg, footerE)
+      .text());
+  }
+  Err inferredContext(pkgmerge.Package pkg, TypeScope.Method scope,T reqT){
+    List<T> interest= TypeScope.interestFromDeclVsReq(scope.m().sig().ret(), reqT);
+    var best= TypeScope.bestInterestingScope(scope, interest);
+    if (best.isTop()){ return this; }
+    var ctx= best.contextE();
+    return 
+       line("Compressed surrounding code with inferred types: (compression indicated by `-`)")
+      .compactPrinterLine(pkg, ctx);
+  }
+  Err compactPrinterLine(pkgmerge.Package pkg, E e){
     Map<String,String> map= pkg.map().entrySet().stream()
       .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     var ee= new CompactPrinter(pkg.name(),map).limit(e,120);
-    line(ee);
-    return Code.TypeError.of(text());
+    return line(ee);
   }
   Err line(String s){
     assert !s.isEmpty();
@@ -139,10 +157,16 @@ final class Err{
   Err pPromoFailure(String reason, String promo){
     reason= reason.stripTrailing();
     assert !reason.isEmpty();
-    assert !promo.isEmpty();
-    return bullet(reason+" ("+promoName(promo)+")");
+    return bullet(reason.replaceFirst("\n", "    "+promo+"\n"));
+  }
+  public static boolean rcOnlyMismatch(T got, T req){
+    return got.equals(req) 
+        || (got instanceof T.RCC g 
+        && req instanceof T.RCC r
+        && g.c().equals(r.c()));
   }
 
+//------
   Err pReceiverRequiredByPromotion(List<MType> promos){
     throw Bug.todo();/*var byRc= new LinkedHashMap<RC, List<String>>();
     for (var m:promos){
@@ -210,46 +234,18 @@ final class Err{
     }
     return m;
   }*/
-  private String promoName(String s){
-    assert !s.isEmpty();
-    if (s.startsWith("Strengthen result")){ return "Strengthen result"; }
-    return s;
+  public Err lineGotMsg(String label, T got, T expected){ return line(up(gotMsg(label,got, expected))); }
+  private String argLabel(int argi){ return "Argument "+(argi+1); }
+  private static boolean isInferErr(T t){
+    return t instanceof T.RCC rcc && rcc.c().name().s().equals("base.InferErr");
   }
-  /*Err pArgDiag(TypeSystemErrors.ArgDiag d){
-    return pArgDiagHeader(d).pArgDiagNote(d).pArgDiagWhy(d);
+  public static String gotMsg(String label, T got, T expected){
+    String g= disp(got);
+    String e= disp(expected);
+    if (isInferErr(expected)){ return label 
+      + " cannot be checked agains an expected supertype. Type inference could not infer an expected type; computed type is "+g+"."; }
+    return label+" is used where "+e+" is required, but it has type "+g+", which is not a subtype of "+e+".";
   }
-  private Err pArgDiagHeader(TypeSystemErrors.ArgDiag d){
-    String par= "The parameter "+disp(d.x());
-    String dd= disp(d.declared());
-    if (d.got().isEmpty()){ return line(par+" has declared type "+dd+"."); }
-    String hasType= " here has type "+disp(d.got().get());
-    String declPart= " (declared as type "+dd+")";
-    if (d.expected().isEmpty()){
-      if (d.declared().equals(d.got().get())){ return line(par+hasType+"."); }
-      return line(par+declPart+hasType+".");
-    }
-    String end= ", that is not a subtype of "+disp(d.expected().get())+".";
-    if (d.declared().equals(d.got().get())){ return line(par+hasType+end); }
-    return line(par+declPart+hasType+end);
-  }*/
-  /*private Err pArgDiagNote(TypeSystemErrors.ArgDiag d){
-    String dd= disp(d.declared());
-    String ee= d.expected().map(Err::disp).orElse("the expected type");
-    String note= switch(d.note()){
-      case NONE -> "";
-      case DECLARED_OK_SOME_CALL_EXPECTED -> Join.of(d.fitsPromos(),"Note: the declared type "+dd+" would work for: ",", ",".");
-      case DECLARED_OK_THIS_EXPECTED -> "Note: the declared type "+dd+" is a subtype of "+ee+".";
-      case DECLARED_NOT_OK_THIS_EXPECTED -> "Note: the declared type "+dd+" is also not a subtype of "+ee+".";
-    };
-    return note.isEmpty() ? this : line(note);
-  }*/
-  /*private Err pArgDiagWhy(TypeSystemErrors.ArgDiag d){
-    T expected= d.expected().orElse(d.declared());
-    String w= d.why().render(d.x(), expected, d.got(), d.declared(), d.bs());
-    return w.isEmpty() ? this : line(w);
-  }*/
-
-  Err lineGotMsg(T got, T expected){ return line(gotMsg(got, expected)); }
 
   static String methodSig(MName m){ return methodSig("",m); }
   static String methodSig(TName pre, MName m){ return methodSig(tNameDirect(pre),m); }
@@ -263,12 +259,4 @@ final class Err{
     ));
   }
 
-  private String argLabel(int argi){ return "Argument "+(argi+1); }
-  private String gotMsg(T got, T expected){ return disp(got)+" is not a subtype of "+disp(expected)+"."; }
-
-  /*private String dispTypes(List<T> ts){
-    var ss= ts.stream().map(Err::disp).distinct().sorted().toList();
-    if (ss.size() == 1){ return ss.getFirst(); }
-    return Join.of(ss,""," or ","");
-  }*/
 }

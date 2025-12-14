@@ -18,7 +18,7 @@ public sealed interface E {
   default TSpan span(){ return src().inner.span(); }
   Src src();
   record X(String name, Src src) implements E{
-    public X{ assert validate(name, "parameter name",LowercaseId); }
+    public X{ assert name.equals("-") || validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name;}}
   record Type(T.RCC type, Src src) implements E{
     public Type{ assert nonNull(type,src); }

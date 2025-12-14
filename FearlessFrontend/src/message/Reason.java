@@ -18,40 +18,37 @@ public final class Reason{
   }
   public boolean isEmpty(){ return info.isEmpty(); }
   public static Reason pass(T got){ return new Reason(got,"",""); }
-  public static Reason pass(String promNames,T got){ return new Reason(got,promNames,""); }
-  public static Reason expressionDoesNotHaveRequiredType(
+  public static Reason pass(String promNames,T got){ return new Reason(got,promNames,""); }  
+  public static Reason literalDoesNotHaveRequiredType(
     E blame, List<B> bs, String promNames, T got, T expected
   ){
-    return new Reason(got,promNames,Err.of().lineGotMsg(got, expected).text());
-  }
-  public static Reason parameterDoesNotHaveRequiredTypeHere(
-    X x, List<B> bs, String promNames, T expected, T declared, WithT cur, boolean declaredOkExpected
-  ){
-    T got= cur.currentT();
-    var e= Err.of();
-    e.line("Parameter "+disp(x.name())+" does not meet the required type.");
-    e.indented("Here it has type "+disp(got)+", but it must be a subtype of "+disp(expected)+".");
-    if (!declared.equals(got)){
-      e.indented("Declared type: "+disp(declared)+".");
-      e.indented(declaredOkExpected
-        ? "Note: the declared type would satisfy the requirement; the mismatch comes from viewpoint adaptation."
-        : "Note: the declared type also does not satisfy the requirement."
-      );
-      String trace= vpaTrace(cur);
-      if (!trace.isEmpty()){ e.indented("Viewpoint adaptation trace: "+trace+"."); }
-    }
-    return new Reason(got,promNames,e.text());
+    return new Reason(got,promNames,Err.gotMsg(Err.expRepr(blame),got, expected));
   }
   public static Reason callResultCannotHaveRequiredType(
     Call call, List<B> bs, ArgMatrix mat, List<Integer> okProm, TRequirement req, T got
-  ){
+  ){    
     assert !okProm.isEmpty();
     var promos= okProm.stream().<String>map(i->mat.candidate(i).promotion()).distinct().sorted().toList();
+    return new Reason(got,
+      "Promotions that matched the arguments: "+Join.of(promos,""," / ","")+".\n"
+      +"Outer promotions: "+req.reqName()+".",
+      Err.gotMsg(Err.expRepr(call),got, req.t()));
+  }
+  public static Reason parameterDoesNotHaveRequiredTypeHere(
+    X x, List<B> bs, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
+  ){
+    T got= cur.currentT();
+    String base= Err.gotMsg(Err.expRepr(x), got, req.t());
+    if (!Err.rcOnlyMismatch(got, req.t())){ return new Reason(got, req.reqName(), base); }
     var e= Err.of();
-    e.line("Call result does not meet the required type.");
-    e.indented("It has type "+disp(got)+", but it must be a subtype of "+disp(req.t())+".");
-    e.indented("Promotions that matched the arguments: "+Join.of(promos,""," / ","")+".");
-    return new Reason(got,req.reqName(),e.text());
+    e.line(base);
+    e.line(declaredOkExpected
+      ? "Note: the declared type "+disp(declared)+" would instead be a valid subtype."
+      : "Note: the declared type "+disp(declared)+" also does not satisfy the requirement."
+    );
+    String trace= vpaTrace(cur);
+    if (!trace.isEmpty()){ e.line("Capture adaptation trace:\n"+trace+"."); }
+    return new Reason(got, req.reqName(), e.text());
   }
   private static String vpaTrace(WithT cur){ return switch(cur){
     case Same _ -> "";
@@ -71,13 +68,12 @@ public final class Reason{
   private static String traceKeep(WithT tail, String op, T from, T to, Literal l, M m){
     String prev= vpaTrace(tail);
     if (from.equals(to)){ return prev; } // avoid A->A noise
-    String step= disp(from)+" --"+op+"@"+where(l,m)+"--> "+disp(to);
+    String step= disp(from)+" --"+op+"("+where(l,m)+")--> "+disp(to);
     if (prev.isEmpty()){ return step; }
     return prev+"; "+step;
   }
   private static String where(Literal l, M m){
-    // Placeholder-ish but exercises extraction of l+m right now.
-    // Refine later (maybe show only lit name, or only method, etc.).
-    return Err.methodSig(bestNamePgk(l),m.sig().m())+" line "+m.sig().span().inner.startLine();
+    return "line "+m.sig().span().inner.startLine();
+    //return Err.methodSig(bestNamePgk(l),m.sig().m())+" line "+m.sig().span().inner.startLine();
   }
 }

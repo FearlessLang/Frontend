@@ -26,7 +26,7 @@ import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import pkgmerge.Package;
 
-public record TypeSystem(ViewPointAdaptation v){
+public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   Kinding k(){ return v.k(); }
   TypeSystemErrors err(){ return v.k().err(); }
   Function<TName,Literal> decs(){ return v.k().err().decs(); }
@@ -41,7 +41,7 @@ public record TypeSystem(ViewPointAdaptation v){
     Function<TName,Literal> decs= n->{
       var res= map.get(n);
       return res != null ? res : other.of(n); };
-    var ts= new TypeSystem(new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg))));
+    var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg))));
     tops.forEach(l->ts.litOk(Gamma.empty(),l));
   }
   public boolean isSub(List<B> bs, T t1, T t2){
@@ -55,7 +55,7 @@ public record TypeSystem(ViewPointAdaptation v){
     var out= typeOf(bs,g,e,rs);
     assert out.size() == 1;
     if (out.getFirst().isEmpty()){ return; }
-    throw err().methBodyWrongType(e,out,rs);
+    throw err().methBodyWrongType((TypeScope.Method)scope,e,out,rs);
   }
   List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch(e){
     case X x -> checkX(bs,g,x,rs);
@@ -71,10 +71,9 @@ public record TypeSystem(ViewPointAdaptation v){
     T got= w.currentT();
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().<Reason>map(r->{
-      T expected= r.t();
-      if (isSub(bs,got,expected)){ return Reason.pass(r.reqName(),got); }
-      boolean declaredOk= isSub(bs,declared,expected);
-      return Reason.parameterDoesNotHaveRequiredTypeHere(x, bs, r.reqName(), expected, declared, w, declaredOk);
+      if (isSub(bs,got,r.t())){ return Reason.pass(r.reqName(),got); }
+      boolean declaredOk= isSub(bs,declared,r.t());
+      return Reason.parameterDoesNotHaveRequiredTypeHere(x, bs, r, declared, w, declaredOk);
     }).toList();
   }
   private List<Reason> checkType(E blame,List<B> bs, Gamma g, Type t, List<TRequirement> rs){
@@ -84,7 +83,7 @@ public record TypeSystem(ViewPointAdaptation v){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().map(r->isSub(bs,got,r.t())
       ? Reason.pass(r.reqName(),got)
-      : Reason.expressionDoesNotHaveRequiredType(blame,bs,r.reqName(),got,r.t())
+      : Reason.literalDoesNotHaveRequiredType(blame,bs,r.reqName(),got,r.t())
       ).toList();    
   }
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal l, List<TRequirement> rs){
@@ -146,7 +145,8 @@ public record TypeSystem(ViewPointAdaptation v){
     var ts= m.sig().ts();
     var xs= m.xs();
     g= g.addAll(ts, xs);//Note: 'this' already in g1
-    check(delta,g,m.e().get(),m.sig().ret());
+    var t= new TypeSystem(scope.pushM(forErr, m),v);
+    t.check(delta,g,m.e().get(),m.sig().ret());
     for(int i= 0; i < xs.size(); i++){
       var isAffine= !k().of(delta,ts.get(i),EnumSet.of(mut,read,mutH,readH,imm));
       if (isAffine){ Affine.usedOnce(err(),forErr,m,xs.get(i),m.e().get()); }

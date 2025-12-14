@@ -411,6 +411,163 @@ User:{
 }
 """));}
 
+@Test void methBodyWrongType_xWrongNominal_shortNames(){ fail("""
+005|   imm .m(x:imm A):B->x;
+   |   -------------------^^
+
+While inspecting parameter "x" > ".m(_)" line 5
+The body of method ".m(_)" of type declaration "User" is an expression returning "p.A".
+Parameter "x" is used where "p.B" is required, but it has type "p.A", which is not a subtype of "p.B".
+
+See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
+mut User:{.m(x:A):B->x}
+""", List.of("""
+A:{}
+B:{}
+User:{
+  imm .m(x:imm A):B->x;
+}
+"""));}
+
+@Test void methBodyWrongType_xWrongNominal_longNames_indent(){ fail("""
+005|   imm .veryLongMethodName(veryVeryLongParamName:imm Alpha):Beta->
+006|     veryVeryLongParamName;
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting parameter "veryVeryLongParamName" > ".veryLongMethodName(_)" line 5
+The body of method ".veryLongMethodName(_)" of type declaration "User" is an expression returning "p.Alpha".
+Parameter "veryVeryLongParamName" is used where "p.Beta" is required, but it has type "p.Alpha", which is not a subtype of "p.Beta".
+
+See inferred typing context below for how type "p.Beta" was introduced: (compression indicated by `-`)
+mut User:{.veryLongMethodName(veryVeryLongParamName:Alpha):Beta->veryVeryLongParamName}
+""", List.of("""
+Alpha:{}
+Beta:{}
+User:{
+  imm .veryLongMethodName(veryVeryLongParamName:imm Alpha):Beta->
+    veryVeryLongParamName;
+}
+"""));}
+
+@Test void methBodyWrongType_callWrongType_namedCallee(){ fail("""
+006|   imm .m():B->MakeA#({  }    );
+   |   ------------^^^^^^^^^^^-----
+
+While inspecting method call "#(_)" > ".m" line 6
+The body of method ".m" of type declaration "User" is an expression returning "p.A".
+Method call "#(_)" is used where "p.B" is required, but it has type "p.A", which is not a subtype of "p.B".
+
+See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
+mut User:{.m:B->MakeA#(-.Void)}
+""", List.of("""
+A:{}
+B:{}
+MakeA:{ #(u:base.Void):A->A{} }
+User:{
+  imm .m():B->MakeA#({  }    );
+}
+"""));}
+
+@Test void methBodyWrongType_inferredContextShowsInferredGenericInstantiation(){fail("""
+008|   imm .m():Car->Apply#(Person,{_->Foo});
+   |   -----------------------------~~~^^^^-
+
+While inspecting object literal instance of p.Foo > "#(_)" line 8 > ".m" line 8
+The object literal instance of "p.F[_,_]" implements "#(_)" with an expression returning "p.Foo".
+Object literal instance of p.Foo cannot be checked agains an expected supertype. Type inference could not infer an expected type; computed type is "p.Foo".
+
+See inferred typing context below for how type "base.InferErr" was introduced: (compression indicated by `-`)
+mut User:{.m:Car->Apply#(Person,F[Person,-.InferErr]{#(Person):-.InferErr->Foo})}
+""", List.of("""
+Person:{}
+Car:{}
+Foo:{}
+F[A:imm,B:imm]:{ #(a:imm A):B; }
+Apply:{ #(p:imm Person, f:imm F[Person,Car]):Car->f#(p); }
+User:{
+  imm .m():Car->Apply#(Person,{_->Foo});
+}
+"""));} 
+@Test void methBodyWrongType_callWrongType_nestedCall(){ fail("""
+007|   imm .m():B->Wrap#(Mk#({}));
+   |   ------------^^^^^^^^^^^^--
+
+While inspecting method call "#(_)" > ".m" line 7
+The body of method ".m" of type declaration "User" is an expression returning "p.A".
+Method call "#(_)" is used where "p.B" is required, but it has type "p.A", which is not a subtype of "p.B".
+
+See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
+mut User:{.m:B->Wrap#(Mk#(-.Void))}
+""", List.of("""
+A:{}
+B:{}
+Mk:{ #(u:base.Void):A->A{} }
+Wrap:{ #(a:A):A->a }
+User:{
+  imm .m():B->Wrap#(Mk#({}));
+}
+"""));}
+
+@Test void methBodyWrongType_literalWrongType_namedLiteral(){ fail("""
+005|   imm .m():B->imm AA:A{};
+   |   ----------------^^^^^^
+
+While inspecting object literal "p.AA" > ".m" line 5
+The body of method ".m" of type declaration "User" is an expression returning "p.AA".
+Object literal "p.AA" is used where "p.B" is required, but it has type "p.AA", which is not a subtype of "p.B".
+
+See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
+mut User:{.m:B->AA:A{}}
+""", List.of("""
+A:{}
+B:{}
+User:{
+  imm .m():B->imm AA:A{};
+}
+"""));}
+@Test void methBodyWrongType_xWeakenedCapability_dueToCapture(){fail("""
+005|   read .m(loooooong:mut A):mut A->
+006|     read Get{ loooooong };
+   |               ^^^^^^^^^
+
+While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
+The object literal instance of "p.Get" implements ".get" with an expression returning "read p.A".
+Parameter "loooooong" is used where "mut p.A" is required, but it has type "read p.A", which is not a subtype of "mut p.A".
+Note: the declared type "mut p.A" would instead be a valid subtype.
+Capture adaptation trace:
+"mut p.A" --setToRead(line 6)--> "read p.A".
+
+See inferred typing context below for how type "mut p.A" was introduced: (compression indicated by `-`)
+mut User:{read .m(loooooong:mut A):mut A->read Get{read .get:mut A->loooooong}}
+""", List.of("""
+A:{}
+Get:{ read .get: mut A; }
+User:{
+  read .m(loooooong:mut A):mut A->
+    read Get{ loooooong };
+}
+"""));}
+
+
+//---
+@Disabled @Test void drop(){fail("""
+TODO methBodyWrongType_xWeakenedCapability_dueToCapture
+""", List.of("""
+A:{}
+G:{ #(): base.Void; }
+Ignore:{ #(x: read A): base.Void->{}; }
+Capture:{#(g: G): base.Void->{}; }
+Do2[X:imm,mut,read]: { #(v:base.Void, x:X):X->x; }
+User:{
+  read .m(loooooong:mut A):mut A->Do2[mut A]#(
+    Capture#({#():base.Void->Ignore#(loooooong)}),
+    loooooong
+  );
+}
+"""));}
+
+
+
 //-----------
 @Test void methodOverrideSignatureMismatchGenericBounds(){ failExt("""
 In file: [###]/in_memory0.fear

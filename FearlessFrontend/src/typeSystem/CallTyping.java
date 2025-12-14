@@ -29,7 +29,8 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return rs.stream().map(req->resForReq(mat,possible,req)).toList();
   }
   private T.RCC recvRcc(){
-    var r= ts.typeOf(bs,g,c.e(),List.of());
+    var cts= new TypeSystem(ts.scope().pushCallRec(this.c),ts.v());
+    var r= cts.typeOf(bs,g,c.e(),List.of());
     assert r.size() == 1;
     assert r.getFirst().isEmpty();//else would have thrown
     T t= r.getFirst().best;
@@ -69,7 +70,8 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   }
   private void accArgi(List<MType> app, ArgMatrix acc, List<E> es, int argi){
     var reqs= argRequirements(app,argi);
-    var res= ts.typeOf(bs,g,es.get(argi),reqs);
+    var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi),ts.v());
+    var res= cts.typeOf(bs,g,es.get(argi),reqs);
     assert res.size() == app.size();
     var ok= okSet(res);
     if (ok.isEmpty()){

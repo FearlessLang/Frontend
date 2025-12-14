@@ -219,10 +219,11 @@ class CompactPrinter{
     return new PC(tNameToStr(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.NO : Compactable.of());
   }
   List<PC> ofCs(Src src,List<T.C> cs){
-    var oCs= switch(src.inner){
+    List<fearlessFullGrammar.T.C> oCs= switch(src.inner){
       case fearlessFullGrammar.E.DeclarationLiteral d->d.dec().cs();
       case fearlessFullGrammar.Declaration d->d.cs();
       case fearlessFullGrammar.E.TypedLiteral d->List.of(d.t().c());
+      case fearlessFullGrammar.E.Literal _->List.of();
       default -> throw Bug.of(src.inner.getClass().getSimpleName());
     };
     var original= oCs.stream().map(c->c.name()).toList();
@@ -232,7 +233,8 @@ class CompactPrinter{
       .toList();
   }
   private boolean extracted(C c, List<TName> original) {
-    return original.contains(c.name())
+    return original.isEmpty()
+      || original.contains(c.name())
       || original.contains(c.name().withoutPkgName());
   }
   PM ofM(M m){

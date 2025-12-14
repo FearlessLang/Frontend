@@ -9,10 +9,10 @@ import java.util.stream.IntStream;
 import fearlessParser.Parser;
 import fearlessParser.RC;
 import files.Pos;
-import metaParser.Message;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
+import typeSystem.TypeScope;
 import utils.Bug;
 import utils.OneOr;
 import fearlessFullGrammar.TName;
@@ -140,10 +140,35 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     return ex;
   }
   ///Expression at method body has a type that does not meet its result requirement(s).
-  ///"body has wrong type" error; cab only trigger if all current-expressions at are well typed.
+  ///"body has wrong type" error; can only trigger if all current-expressions at are well typed.
   ///Raised when checking object literals
-  public FearlessException methBodyWrongType(E at, List<Reason> got, List<TRequirement> req){
-    throw Bug.todo();
+  public FearlessException methBodyWrongType(TypeScope.Method s, E at, List<Reason> got, List<TRequirement> req){
+    Literal l= s.l();
+    M m= s.m();
+    assert got.size() == req.size();
+    assert got.stream().allMatch(r->!r.isEmpty());
+    var got0= disp(got.getFirst().best);
+    var req0= disp(req.getFirst().t());
+    var e= Err.of();
+    String meth= Err.methodSig(m.sig().m());
+    var top= l.thisName().equals("this");
+    if (top){ e.line("The body of method "+meth+" of "+expRepr(l)+" is an expression returning "+got0+"."); }
+    else{ e.line("The "+Err.expRepr(l)+" implements "+meth+" with an expression returning "+got0+"."); }
+    boolean promoMode= at instanceof E.Call
+       && rcOnlyMismatch(got.getFirst().best, req.getFirst().t())
+       && got.size() > 1;
+    if (!promoMode){ e.line(up(got.getFirst().info)); }
+    //if (!promoMode){ e.lineGotMsg(Err.expRepr(at),got.getFirst().best, req.getFirst().t()); }
+    else { 
+      e.blank().pPromotionFailuresHdr();
+      got.forEach(r->e.pPromoFailure(r.info,r.promNames));
+    }
+    List<T> interest= TypeScope.interestFromDeclVsReq(s.m().sig().ret(), req.getFirst().t());
+    var best= TypeScope.bestInterestingScope(s, interest);
+    FearlessException ex= best.isTop()
+      ? e.ex(pkg, at)
+      : e.ex(pkg, "See inferred typing context below for how type "+req0+" was introduced: (compression indicated by `-`)", best.contextE());
+    return addExpFrame(at, ex.addSpan(at.span().inner));
   }
   ///Parameter x is syntactically in scope but its value was dropped by viewpoint adaptation.
   ///Raised when a use of x occurs after capturing have made it unavailable.
@@ -320,15 +345,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       var ri= req.get(i);//TODO: this requirment never prints
       if (!ri.reqName().isEmpty()){ e.line("@@Requirement "+disp(ri.reqName())+"."); }
       String reason= gi.info;
-      if (reason.isEmpty()){ reason= gotMsg(gi.best, ri.t()); }
+      if (reason.isEmpty()){ reason= Err.gotMsg(expRepr(at),gi.best, ri.t()); }
       e.line(reason);
     }
     return e.ex(pkg,at).addSpan(at.span().inner);
-  }
-  public String gotMsg(T got, T expected){
-    String g= Message.displayString(got.toString());
-    String e= Message.displayString(expected.toString());
-    return g+" is not a subtype of "+e+".";
   }
   public FearlessException uncallableMethod_DeadCode(TSpan at, M got, Literal l){
     assert l.rc() == RC.imm || l.rc() == RC.read;
