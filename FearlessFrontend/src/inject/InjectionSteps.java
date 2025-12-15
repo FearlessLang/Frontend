@@ -296,10 +296,6 @@ public record InjectionSteps(Methods meths){
     if (l.infName() && l.rc().isEmpty()){ return Optional.empty(); }
     return Optional.of(new IT.RCC(l.rc().orElse(RC.imm), l.cs().getFirst(),l.name().approxSpan()));
   }
-//      assert !l.toString().contains("pppName")
-//      || !l.toString().isEmpty();
-
-
   private E nextL(List<B> bs, Gamma g, E.Literal l){
     var infHead= l.infHead();//infHead is set in l.withCsMs and l.withMs and l.withMsT
     // to mean the HEAD is inferred as IT.RCC and has already been used to expand methods

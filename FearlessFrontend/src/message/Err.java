@@ -22,13 +22,8 @@ final class Err{
   static String typeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }
   static String typeDecNamePkg(TName name){ return disp(tNameDirect(name)); }
   static String tNameDirect(TName n){ return n.s()+genArity(n.arity()); }
-  //TODO: instead of checking for "_" start, we could use fresh.anonSuperT(origin)
-  static boolean useImplName(Literal l){return l.name().simpleName().startsWith("_") && !l.thisName().equals("this") && !l.cs().isEmpty(); }
-  static boolean useImplName(inference.E.Literal l){
-    return l.name().simpleName().startsWith("_") 
-      && !l.thisName().equals("this")
-      && (!l.cs().isEmpty() || l.t() instanceof IT.RCC);
-    }
+  static boolean useImplName(Literal l){ return l.infName(); }
+  static boolean useImplName(inference.E.Literal l){ return l.infName(); }
   private static TName guessImplName(inference.E.Literal l){
     if (!l.cs().isEmpty()){ return l.cs().getFirst().name(); }
     var rcc= (IT.RCC)l.t();
