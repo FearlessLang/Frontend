@@ -243,8 +243,9 @@ final class Err{
     String g= disp(got);
     String e= disp(expected);
     if (isInferErr(expected)){ return label 
-      + " cannot be checked agains an expected supertype. Type inference could not infer an expected type; computed type is "+g+"."; }
-    return label+" is used where "+e+" is required, but it has type "+g+", which is not a subtype of "+e+".";
+      + " cannot be checked agains an expected supertype.\n"
+      + "Type inference could not infer an expected type; computed type is "+g+"."; }
+    return label+" is used where "+e+" is required,\nbut it has type "+g+", which is not a subtype of "+e+".";
   }
 
   static String methodSig(MName m){ return methodSig("",m); }

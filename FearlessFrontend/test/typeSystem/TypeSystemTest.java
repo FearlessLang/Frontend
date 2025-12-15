@@ -417,7 +417,8 @@ User:{
 
 While inspecting parameter "x" > ".m(_)" line 5
 The body of method ".m(_)" of type declaration "User" is an expression returning "p.A".
-Parameter "x" is used where "p.B" is required, but it has type "p.A", which is not a subtype of "p.B".
+Parameter "x" is used where "p.B" is required,
+but it has type "p.A", which is not a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
 mut User:{.m(x:A):B->x}
@@ -436,7 +437,8 @@ User:{
 
 While inspecting parameter "veryVeryLongParamName" > ".veryLongMethodName(_)" line 5
 The body of method ".veryLongMethodName(_)" of type declaration "User" is an expression returning "p.Alpha".
-Parameter "veryVeryLongParamName" is used where "p.Beta" is required, but it has type "p.Alpha", which is not a subtype of "p.Beta".
+Parameter "veryVeryLongParamName" is used where "p.Beta" is required,
+but it has type "p.Alpha", which is not a subtype of "p.Beta".
 
 See inferred typing context below for how type "p.Beta" was introduced: (compression indicated by `-`)
 mut User:{.veryLongMethodName(veryVeryLongParamName:Alpha):Beta->veryVeryLongParamName}
@@ -455,7 +457,8 @@ User:{
 
 While inspecting method call "#(_)" > ".m" line 6
 The body of method ".m" of type declaration "User" is an expression returning "p.A".
-Method call "#(_)" is used where "p.B" is required, but it has type "p.A", which is not a subtype of "p.B".
+Method call "#(_)" is used where "p.B" is required,
+but it has type "p.A", which is not a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
 mut User:{.m:B->MakeA#(-.Void)}
@@ -473,8 +476,10 @@ User:{
    |   -----------------------------~~~^^^^-
 
 While inspecting object literal instance of p.Foo > "#(_)" line 8 > ".m" line 8
-The object literal instance of "p.F[_,_]" implements "#(_)" with an expression returning "p.Foo".
-Object literal instance of p.Foo cannot be checked agains an expected supertype. Type inference could not infer an expected type; computed type is "p.Foo".
+Method "#(_)" inside the object literal instance of "p.F[_,_]" (line 8)
+is implemented with an expression returning "p.Foo".
+Object literal instance of p.Foo cannot be checked agains an expected supertype.
+Type inference could not infer an expected type; computed type is "p.Foo".
 
 See inferred typing context below for how type "base.InferErr" was introduced: (compression indicated by `-`)
 mut User:{.m:Car->Apply#(Person,F[Person,-.InferErr]{#(Person):-.InferErr->Foo})}
@@ -494,7 +499,8 @@ User:{
 
 While inspecting method call "#(_)" > ".m" line 7
 The body of method ".m" of type declaration "User" is an expression returning "p.A".
-Method call "#(_)" is used where "p.B" is required, but it has type "p.A", which is not a subtype of "p.B".
+Method call "#(_)" is used where "p.B" is required,
+but it has type "p.A", which is not a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
 mut User:{.m:B->Wrap#(Mk#(-.Void))}
@@ -514,7 +520,8 @@ User:{
 
 While inspecting object literal "p.AA" > ".m" line 5
 The body of method ".m" of type declaration "User" is an expression returning "p.AA".
-Object literal "p.AA" is used where "p.B" is required, but it has type "p.AA", which is not a subtype of "p.B".
+Object literal "p.AA" is used where "p.B" is required,
+but it has type "p.AA", which is not a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
 mut User:{.m:B->AA:A{}}
@@ -531,8 +538,10 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
-The object literal instance of "p.Get" implements ".get" with an expression returning "read p.A".
-Parameter "loooooong" is used where "mut p.A" is required, but it has type "read p.A", which is not a subtype of "mut p.A".
+Method ".get" inside the object literal instance of "p.Get" (line 6)
+is implemented with an expression returning "read p.A".
+Parameter "loooooong" is used where "mut p.A" is required,
+but it has type "read p.A", which is not a subtype of "mut p.A".
 Note: the declared type "mut p.A" would instead be a valid subtype.
 Capture adaptation trace:
 "mut p.A" --setToRead(line 6)--> "read p.A".
@@ -548,13 +557,39 @@ User:{
 }
 """));}
 @Test void methBodyWrongType_xWeakenedCapability_dueToCapture2(){fail("""
+005|   read .m(loooooong:mut A):read Get->
+006|     read Get{ loooooong };
+   |               ^^^^^^^^^
+
+While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
+Method ".get" inside the object literal instance of "p.Get" (line 6)
+is implemented with an expression returning "read p.A".
+Parameter "loooooong" is used where "iso p.A" is required,
+but it has type "read p.A", which is not a subtype of "iso p.A".
+Note: the declared type "mut p.A" also does not satisfy the requirement.
+Capture adaptation trace:
+"mut p.A" --setToRead(line 6)--> "read p.A".
+
+See inferred typing context below for how type "iso p.A" was introduced: (compression indicated by `-`)
+mut User:{read .m(loooooong:mut A):read Get->read Get{read .get:iso A->loooooong}}
+""", List.of("""
+A:{}
+Get:{ read .get: iso A; }
+User:{
+  read .m(loooooong:mut A):read Get->
+    read Get{ loooooong };
+}
+"""));}
+@Test void regressionBadError(){fail("""
 005|   read .m(loooooong:mut A):mut A->
 006|     read Get{ loooooong };
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
-The object literal instance of "p.Get" implements ".get" with an expression returning "read p.A".
-Parameter "loooooong" is used where "iso p.A" is required, but it has type "read p.A", which is not a subtype of "iso p.A".
+Method ".get" inside the object literal instance of "p.Get" (line 6)
+is implemented with an expression returning "read p.A".
+Parameter "loooooong" is used where "iso p.A" is required,
+but it has type "read p.A", which is not a subtype of "iso p.A".
 Note: the declared type "mut p.A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut p.A" --setToRead(line 6)--> "read p.A".
@@ -576,8 +611,10 @@ User:{
    |                ---------^^^^^^^^^--
 
 While inspecting parameter "loooooong" > ".get" line 7 > ".wrap" line 7 > ".m(_)" line 6
-The object literal instance of "p.Get" implements ".get" with an expression returning "p.A".
-Parameter "loooooong" is used where "iso p.A" is required, but it has type "p.A", which is not a subtype of "iso p.A".
+Method ".get" inside the object literal instance of "p.Get" (line 7)
+is implemented with an expression returning "p.A".
+Parameter "loooooong" is used where "iso p.A" is required,
+but it has type "p.A", which is not a subtype of "iso p.A".
 Note: the declared type "mut p.A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut p.A" --setToRead(line 7)--> "read p.A" --strengthenToImm(line 7)--> "p.A".
@@ -595,9 +632,19 @@ User:{
 """));
 }
 
-//---
-@Disabled @Test void drop(){fail("""
-TODO methBodyWrongType_xWeakenedCapability_dueToCapture
+@Test void drop(){fail("""
+008|   read .m(loooooong:mut A):mut A->Do2[mut A]#(
+009|     Capture#({#():base.Void->Ignore#(loooooong)}),
+   |               -----------------------^^^^^^^^^^
+010|     loooooong
+011|   );
+
+While inspecting parameter "loooooong" > "#" line 9 > ".m(_)" line 8
+parameter "loooooong" has type "mut p.A".
+parameter "loooooong" has a "mut" capability; thus it can not be captured in the "imm" object literal instance of "p.G" (line 9).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+loooooong
 """, List.of("""
 A:{}
 G:{ #(): base.Void; }
@@ -612,8 +659,105 @@ User:{
 }
 """));}
 
+@Test void drop_hygienicMutH(){fail("""
+008|   read .m(loooooong:mutH A):mutH A->Do2H[mutH A]#(
+009|     Capture#({#():base.Void->Ignore#(loooooong)}),
+   |               -----------------------^^^^^^^^^^
+010|     loooooong
+011|   );
 
+While inspecting parameter "loooooong" > "#" line 9 > ".m(_)" line 8
+parameter "loooooong" has type "mutH p.A".
+The type of parameter "loooooong" is hygienic (readH or mutH)
+and thus it can not be captured in the object literal instance of "p.G" (line 9).
 
+Compressed relevant code with inferred types: (compression indicated by `-`)
+loooooong
+""", List.of("""
+A:{}
+G:{ #(): base.Void; }
+Ignore:{ #(x: mutH A): base.Void->{}; }
+Capture:{ #(g: G): base.Void->{}; }
+Do2H[X:imm,mut,read,readH,mutH]: { #(v:base.Void, x:X):X->x; }
+User:{
+  read .m(loooooong:mutH A):mutH A->Do2H[mutH A]#(
+    Capture#({#():base.Void->Ignore#(loooooong)}),
+    loooooong
+  );
+}
+""")); }
+
+@Test void drop_hygienicMutH2(){fail("""
+006|   read .m(loooooong:mutH A):imm G->
+007|     {#():base.Void->IgnoreH#(loooooong)};
+   |      ------------------------^^^^^^^^^^
+
+While inspecting parameter "loooooong" > "#" line 7 > ".m(_)" line 6
+parameter "loooooong" has type "mutH p.A".
+The type of parameter "loooooong" is hygienic (readH or mutH)
+and thus it can not be captured in the object literal instance of "p.G" (line 7).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+loooooong
+""", List.of("""
+A:{}
+G:{ #(): base.Void; }
+IgnoreH:{ #(x: mutH A): base.Void->{}; }
+User:{
+  read .m(loooooong:mutH A):imm G->
+    {#():base.Void->IgnoreH#(loooooong)};
+}
+""")); }
+@Test void shouldPassViaInference(){ok(List.of("""
+Bar:{}
+Beer[X:imm,mut,read]:{ read .bar: Bar; }
+Foo:{ read .m: Bar; }
+User:{
+  read .m[X:imm,mut,read](webeer:Beer[X]):read Foo->
+    read Foo{ webeer.bar() };
+}
+""")); }
+
+@Test void drop_ftv_notPropagatedIntoExplicitFoo(){fail("""
+005|     read .m[X:imm,mut,read](beer:Beer[X]):read Foo->
+006|       read Foo:{ read .m:Bar -> beer.bar() };
+   |                  ---------------^^^^^-----
+
+While inspecting parameter "beer" > ".m" line 6 > ".m(_)" line 5
+parameter "beer" has type "p.Beer[X]".
+parameter "beer" uses type parameters that are not propagated
+into object literal "p.Foo" (line 6) and thus it can not be captured.
+Hint: change "Foo" by adding the missing type parameters: "Foo[...,...]"
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+beer
+""", List.of("""
+  Bar:{}
+  Beer[X:imm,mut,read]:{ read .bar: Bar; }
+  User:{
+    read .m[X:imm,mut,read](beer:Beer[X]):read Foo->
+      read Foo:{ read .m:Bar -> beer.bar() };
+  }
+""")); }
+
+@Test void drop_hygienicsAllowedByTypeParam(){fail("""
+003|   read .m[X:imm,mut,read,readH,mutH](beer:X):G[X]->
+004|     G[X:imm,mut,read,readH,mutH]:{ read .get: X->beer; }
+   |                                    --------------^^^^^
+
+While inspecting parameter "beer" > ".get" line 4 > ".m(_)" line 3
+parameter "beer" has type "X".
+The type of parameter "beer" can be instantiated with hygienics (readH or mutH)
+and thus it can not be captured in the object literal "p.G[_]" (line 4).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+beer
+""", List.of("""
+User:{
+  read .m[X:imm,mut,read,readH,mutH](beer:X):G[X]->
+    G[X:imm,mut,read,readH,mutH]:{ read .get: X->beer; }
+}
+""")); }
 //-----------
 @Test void methodOverrideSignatureMismatchGenericBounds(){ failExt("""
 In file: [###]/in_memory0.fear

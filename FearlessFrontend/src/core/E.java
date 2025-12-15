@@ -23,14 +23,14 @@ public sealed interface E {
   record Type(T.RCC type, Src src) implements E{
     public Type{ assert nonNull(type,src); }
     public String toString(){ return type.toString();}}
-  record Literal(RC rc, TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Src src) implements E{
+  record Literal(RC rc, TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Src src, boolean infName) implements E{
     public Literal{
       assert unmodifiableDistinct(bs,"L.bs");
       assert unmodifiableDistinct(cs,"L.cs");
       assert unmodifiableDistinct(ms, "L.ms");
       assert nonNull(rc,name,thisName,src);
     }
-    public Literal withMs(List<M> ms){ return new Literal(rc,name,bs,cs,thisName,ms,src); }
+    public Literal withMs(List<M> ms){ return new Literal(rc,name,bs,cs,thisName,ms,src,infName); }
     public String toString(){
       String _bs= Join.of(bs,"[",",","]","");
       String _cs= Join.of(cs,"",", ","","");

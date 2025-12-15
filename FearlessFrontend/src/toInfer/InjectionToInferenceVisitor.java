@@ -148,7 +148,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   private E.Literal liftLiteral(Optional<RC> rc,Stream<String> bs,List<IT.C> impl,Optional<String> thisName, List<M> ms, Src src){
     var _bs= bs.distinct().map(this::xB).toList();
     var name= freshF.freshTopType(currentTop,_bs.size());
-    return new E.Literal(rc,name,_bs,impl,thisName.orElse("_"), ms,src);
+    return new E.Literal(rc,name,_bs,impl,thisName.orElse("_"), ms,src,true);
   }
   private E visitReceiver(fearlessFullGrammar.E e){
     var ol= asLambdaReceiver(e);
@@ -187,8 +187,9 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
       .orElseThrow(() -> Bug.of("Free type variable " + x + " not in bsInScope"));
   }  
   @Override public E visitDeclarationLiteral(fearlessFullGrammar.E.DeclarationLiteral c){
-    freshF.aliasOwner(currentTop, f.apply(c.dec().name()));
-    return addDeclaration(f.apply(c.dec().name()), c.rc().orElse(RC.imm),c.dec(),false);
+    var name= f.apply(c.dec().name());
+    freshF.aliasOwner(currentTop,name );
+    return addDeclaration(name, c.rc().orElse(RC.imm),c.dec(),false);
   }
   public E.Literal addDeclaration(TName name,RC rc,fearlessFullGrammar.Declaration d, boolean top){
     String thisName= d.l().thisName().map(n->n.name()).orElseGet(()->top?"this":"_");
@@ -196,7 +197,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     bsInScope.add(bs);
     List<IT.C> cs= mapC(d.cs());    
     List<M> ms= mapM(d.l().methods());
-    E.Literal l= new E.Literal(Optional.of(rc),name,bs,cs,thisName, ms, new Src(d));
+    E.Literal l= new E.Literal(Optional.of(rc),name,bs,cs,thisName, ms, new Src(d),false);
     decs.add(l);
     bsInScope.removeLast();
     return l;

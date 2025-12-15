@@ -9,6 +9,7 @@ import java.util.Optional;
 import core.B;
 import core.Src;
 import fearlessFullGrammar.MName;
+import fearlessFullGrammar.T;
 import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
@@ -43,9 +44,9 @@ public sealed interface E {
     public String toString(){ return ""+type+":"+t; }
   }
   // **rc is present implies no inference needed**
-  record Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, IT t, Src src, boolean infA, Gamma.GammaSignature g) implements E{
-    public Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, Src src){
-      this(rc,name,bs,cs,thisName,ms,IT.U.Instance,src,false,new Gamma.GammaSignature());
+  record Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, IT t, Src src,boolean infName, boolean infHead, Gamma.GammaSignature g) implements E{
+    public Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, Src src,boolean infName){
+      this(rc,name,bs,cs,thisName,ms,IT.U.Instance,src,infName,false,new Gamma.GammaSignature());
     }    
     public Literal{
       assert unmodifiableDistinct(bs,"L.bs");
@@ -56,7 +57,7 @@ public sealed interface E {
     }
     public E.Literal withT(IT t){
       if (t.equals(this.t)){ return this; }
-      return new Literal(rc,name,bs,cs,thisName,ms,t,src,infA,g.clear());
+      return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear());
     }
     public String toString(){
       String res= "";
@@ -73,18 +74,22 @@ public sealed interface E {
       return res;
     }
     public Literal withMs(List<M> ms){
-      if (infA && ms == this.ms){ return this; } 
-      return new Literal(rc,name,bs,cs,thisName,ms,t,src,true,g.clear());
+      assert t instanceof IT.RCC:t;
+      if (infHead && ms == this.ms){ return this; } 
+      return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
     }
     public Literal withMsT(List<M> ms, IT t){
-      if (infA && ms == this.ms && t.equals(this.t)){ return this; }
+      assert t instanceof IT.RCC:t;
+      if (infHead && ms == this.ms && t.equals(this.t)){ return this; }
       assert ms == this.ms || !ms.equals(this.ms) : "Allocated equal MS:\n"+ms;
-      return new Literal(rc,name,bs,cs,thisName,ms,t,src,true,g.clear());
+      return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
     }
-    public Literal withCsMs(List<IT.C> cs, List<M> ms){
-      if (infA && cs.equals(this.cs) && ms == this.ms){ return this; }
+    public Literal withCsMs(List<IT.C> cs, List<M> ms, boolean setInfHead){
+      assert !setInfHead || !infHead;
+      assert !setInfHead || t instanceof IT.RCC:t;
+      if (infHead && cs.equals(this.cs) && ms == this.ms){ return this; }
       assert ms == this.ms || !ms.equals(this.ms) : "Allocated equal MS:\n"+ms;
-      return new Literal(rc,name,bs,cs,thisName,ms,t,src,true,g.clear());
+      return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,setInfHead,g.clear());
     }
   }
   record Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, IT t, Src src, Gamma.GammaSignature g) implements E{

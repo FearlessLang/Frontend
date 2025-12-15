@@ -9,12 +9,13 @@ import inference.E;
 import inference.IT;
 import inference.M;
 import inference.E.*;
+import inference.Gamma;
 
 // Only for free type vars the programmer *wrote*
 // Expression ITs are inferred derived data and ignored here.
-public class FreeXs {
+public record FreeXs(){
   Stream<String> ftvE(E e){ return switch (e){
-    case X(_,_,_,_) -> Stream.of();
+    case X x ->ftvT(x.t());
     case Literal l -> l.bs().stream().map(b->b.x()); //Correct since bs will contain all the ftv found anywhere in the literal
     case Call(var ei, _,_, var targs, var es,_,_,_) -> Stream.concat(ftvE(ei),Stream.concat(ftvTs(targs),ftvEs(es)));
     case ICall(var ei,_, var es,_,_,_) -> Stream.concat(ftvE(ei),ftvEs(es));

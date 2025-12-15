@@ -1078,6 +1078,23 @@ B:{}
 A:{
   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}}
 """));}
+@Test void regressionInfUnknown(){okI("""
+[###]~-----------
+~mut p.A:{'this }
+~mut p.Get:{'this .get:iso p.A}
+~mut p.User:{'this read .m(pppName:mut p.A):mut p.A->\
+read p._BUser:p.Wrap{'_ read .wrap:p.Get->\
+mut p._AUser:p.Get{'_ .get:iso p.A->pppName}}}
+~mut p.Wrap:{'this read .wrap:p.Get}
+""",List.of("""
+A:{}
+Get:{ imm .get: iso A; }
+Wrap:{ read .wrap: imm Get; }
+User:{
+  read .m(pppName:mut A):mut A->
+    read Wrap{ mut Get{ pppName } };
+}
+"""));}
 //TODO: what to do here? Should we improve the inference or accept?
 //We could try to transform all vars in Gamma that are mut/read into:
 //-imm in imm methods

@@ -3,6 +3,7 @@ package message;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -153,12 +154,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     String meth= Err.methodSig(m.sig().m());
     var top= l.thisName().equals("this");
     if (top){ e.line("The body of method "+meth+" of "+expRepr(l)+" is an expression returning "+got0+"."); }
-    else{ e.line("The "+Err.expRepr(l)+" implements "+meth+" with an expression returning "+got0+"."); }
+    else{ e.line("Method "+meth+" inside the "+Err.expRepr(l) + " (line "+l.span().inner.startLine()+")"
+      +"\nis implemented with an expression returning "+got0+"."); }
     boolean promoMode= at instanceof E.Call
        && rcOnlyMismatch(got.getFirst().best, req.getFirst().t())
        && got.size() > 1;
     if (!promoMode){ e.line(up(got.getFirst().info)); }
-    //if (!promoMode){ e.lineGotMsg(Err.expRepr(at),got.getFirst().best, req.getFirst().t()); }
     else { 
       e.blank().pPromotionFailuresHdr();
       got.forEach(r->e.pPromoFailure(r.info,r.promNames));
@@ -173,8 +174,45 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
   ///Parameter x is syntactically in scope but its value was dropped by viewpoint adaptation.
   ///Raised when a use of x occurs after capturing have made it unavailable.
   ///Raised when checking parameters.
-  public FearlessException parameterNotAvailableHere(E.X x, T declared, Change why, List<B> bs){
-    throw Bug.todo();
+  public FearlessException parameterNotAvailableHere(E.X x, T declared, Change.NoT why, List<B> bs){
+    return addExpFrame(x,Err.of()
+      .line(whyDrop(expRepr(x),why))
+      .ex(pkg,x)
+      .addSpan(x.span().inner));
+  }
+  private static String whyDrop(String subject, Change.NoT why){
+    return why.<Supplier<String>>name(
+      ()->whyDropMutInImm(subject,why),
+      ()->whyDropReadHMutH(subject,why),
+      ()->whyDropFTV(subject,why)
+      ).get();
+  }
+  private static String whyDropMutInImm(String subject, Change.NoT why){
+    return subject+" has type "+disp(why.atDrop())+".\n"
+    + subject+" has a \"mut\" capability; thus it can not be captured in the "+disp(why.l().rc())+" "+expRepr(why.l())
+    +" (line "+why.l().span().inner.startLine()+").";
+  }
+  private static String whyDropReadHMutH(String subject, Change.NoT why){
+    String explicitH= why.atDrop().explicitH()
+      ? "The type of "+subject+" is hygienic (readH or mutH)\n"
+      : "The type of "+subject+" can be instantiated with hygienics (readH or mutH)\n";
+    return subject+" has type "+disp(why.atDrop())+".\n"
+    + explicitH+ "and thus it can not be captured in the "+expRepr(why.l())
+    +" (line "+why.l().span().inner.startLine()+").\n";
+  }
+  private static String hintAddTypeParameter(Change.NoT why){
+    var name= why.l().name().simpleName();
+    var current= disp(Join.of(why.l().bs().stream().map(B::x),name+"[",",","]",name));
+    var next= disp(Join.of(why.l().bs().stream().map(B::x),name+"[",",",",...]",name+"[...,...]"));
+    return"Hint: change "+current+" by adding the missing type parameters: "+next;
+  }
+  private static String whyDropFTV(String subject, Change.NoT why){
+    return subject+" has type "+disp(why.atDrop())+".\n"
+    + subject+" uses type parameters that are not propagated\n"
+    + "into "+expRepr(why.l())
+    +" (line "+why.l().span().inner.startLine()+")"
+    + " and thus it can not be captured.\n"
+    + hintAddTypeParameter(why);
   }
   ///Receiver expression of call c is typed into a type parameter (X / RC X / read/imm X), not a concrete RC C.
   ///Methods cannot be called on type parameters, so this call can never resolve.

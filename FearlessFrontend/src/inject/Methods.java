@@ -56,16 +56,18 @@ public record Methods(
     return out;
   }
   public List<inference.E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
-    //iDecs = iDecs.stream().filter(l->l.thisName().equals("this")).toList(); 
     var acc= new ArrayList<E.Literal>();
     var layers= layer(iDecs);
-    for (var l : layers){ for (var d : ofLayer(l,acc)){ cache.put(d.name(), d); } }
+    for (var l : layers){ 
+      for (var d : ofLayer(l,acc)){
+        if(!d.infName()){ cache.put(d.name(), d); }
+      }
+    }
     return acc;
   }
   private List<core.E.Literal> ofLayer(List<E.Literal> ds, ArrayList<E.Literal> acc){
     return ds.stream().map(d->{
-      //assert d.thisName().equals("this"):d.thisName();
-      var e= expandDeclaration(d);
+      var e= expandDeclaration(d,false);
       if (d.thisName().equals("this")){ acc.add(e); }
       return injectDeclaration(e);
     }).toList();
@@ -73,16 +75,17 @@ public record Methods(
   record CsMs(List<IT.C> cs, List<inference.M.Sig> sigs){}
   //TODO: performance: currently fetch rewrites for the class generics
   //but we are likely to also do the rewriting for the meth generics very soon later.
-  //can we merge the two steps?
-  CsMs fetch(IT.C c,TName outName){
-    core.E.Literal d= from(c.name()); 
+  //can we merge the two steps? Something similar has been done for MSigL 
+  CsMs fetch(IT.C c, TName outName){ return fetch(c,from(c.name()),outName); }
+  CsMs fetch(IT.C c,core.E.Literal d, TName outName){ //d == from(c.name()); but from can be undefined for {..}.foo
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
     List<inference.M.Sig> sigs= d.ms().stream().<inference.M.Sig>map(m->alphaSig(m,xs,c,outName)).toList();
     return new CsMs(cs1,sigs);
   }
   List<IT.C> fetchCs(IT.C c){
-    core.E.Literal d= from(c.name());
+    core.E.Literal d= _from(c.name());
+    if (d == null){ return List.of(); }//case {..}.foo
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
   }
@@ -109,7 +112,7 @@ public record Methods(
     assert res != null: "In pkgName="+p.name()+", name not found: "+name+" current domain is:\n"+cache.keySet();
     return res;
   }
-  private core.E.Literal _from(TName name){
+  core.E.Literal _from(TName name){
     if (name.pkgName().equals(p.name())){ return cache.get(name); }
     var res= other.of(name);
     if (res != null){ return res; }
@@ -117,7 +120,7 @@ public record Methods(
       "Undefined name "+name;
     return LiteralDeclarations.from(name,other);
   }
-  public E.Literal expandDeclaration(E.Literal d){
+  public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
     List<CsMs> ds= d.cs().stream().map(c->fetch(c,d.name())).toList();
     List<IT.C> allCs= Stream.concat(
       d.cs().stream(),
@@ -127,13 +130,17 @@ public record Methods(
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
     checkMagicSupertypes(d, allCs);
-    return d.withCsMs(allCs,allMs);
+    return d.withCsMs(allCs,allMs,setInfHead);
   }
+  //expandLiteral works on an incomplete literal with the cs list not there yet
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
     fresh.registerAnonSuperT(d.name(),c.name());
-    List<M.Sig> allSig= fetch(c,d.name()).sigs();//expandLiteral works on an incomplete literal with the cs list not there yet
+    var dd= _from(c.name());//null for the case {..}.foo
+    List<M.Sig> allSig= dd==null ?List.of() : fetch(c,dd,d.name()).sigs();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
+    assert !allMs.toString().contains("pppName")
+      || !allMs.toString().isEmpty();
     return d.withMs(allMs);
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
@@ -161,7 +168,7 @@ public record Methods(
     List<T.C> cs= TypeRename.itcToTC(d.cs());
     p().log().logInferenceDeclaration(d, cs);
     List<core.M> ms= new ToCore().msSyntetic(d.ms());
-    return new core.E.Literal(d.rc().get(),d.name(),d.bs(),cs,d.thisName(),ms,d.src());
+    return new core.E.Literal(d.rc().get(),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName());
   }
   inference.M withName(MName name,inference.M m){
     assert m.impl().isPresent() && m.sig().m().isEmpty();
@@ -208,12 +215,14 @@ public record Methods(
       ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))?acc(match,s):false);
       if (match.isEmpty()){
         var m2= pairWithSig(List.of(),m,origin);
+        assert (m2 == m) == m2.equals(m);
         changed |= m2 != m;
         res.add(m2);
         continue;
       }
       for (var matches: match.values()){
         var m2= pairWithSig(Collections.unmodifiableList(matches),m,origin);
+        assert (m2 == m) == m2.equals(m);
         changed |= m2 != m;
         res.add(m2);
       }
@@ -251,6 +260,7 @@ public record Methods(
     RC rc= s.rc().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.rc().get()),
       WellFormednessErrors.refCapDisagreement()));
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin.name(),abs,s.span());
+    if (sig.equals(m.sig())){ return m; }
     return new M(sig,m.impl());
   }
   private List<B> agreementWithSize(List<M.Sig> ss, Sig s, Agreement at){
@@ -307,6 +317,7 @@ public record Methods(
     IT res= s.ret().orElseThrow(()->WellFormednessErrors.noSourceToInferFrom(origin,m));
     boolean abs= m.impl().isEmpty();
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin.name(),abs,s.span());
+    if (sig.equals(m.sig())){ return m; }
     return new M(sig,m.impl());
   }
   private <RR> RR agreement(Agreement at,Stream<RR> es, String msg){

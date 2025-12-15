@@ -28,7 +28,7 @@ public class ToCore{
   core.E.Literal literal(inference.E.Literal e, inference.E.Literal o){
     var rc= o.rc().orElse(e.rc().orElse(RC.imm));
     var ms= mapMs(e.ms(),o.ms());
-    return new core.E.Literal(rc,e.name(),e.bs(),TypeRename.itcToTC(e.cs()),e.thisName(),ms,e.src());
+    return new core.E.Literal(rc,e.name(),e.bs(),TypeRename.itcToTC(e.cs()),e.thisName(),ms,e.src(),e.infName());
   }
   core.E.Call call(inference.E.Call e, CallLike o){
     var rc= o.rc.orElse(e.rc().orElse(RC.imm));

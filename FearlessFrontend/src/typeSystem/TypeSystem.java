@@ -67,7 +67,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var b= g.bind(x.name());
     T declared= b.declared();
     var cur= b.current();
-    if (!(cur instanceof Change.WithT w)){ throw err().parameterNotAvailableHere(x, declared, cur, bs); }
+    if (!(cur instanceof Change.WithT w)){ throw err().parameterNotAvailableHere(x, declared, (Change.NoT)cur, bs); }
     T got= w.currentT();
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().<Reason>map(r->{

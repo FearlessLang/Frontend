@@ -25,7 +25,7 @@ public class LiteralDeclarations {
     var c= new T.C(lit,List.of());
     var self= new T.RCC(RC.imm,c,name.approxSpan());
     var w= new T.C(widen,List.of(self));
-    return new core.E.Literal(RC.imm,name,List.of(),List.of(c,w),"this",List.of(),Src.syntetic);
+    return new core.E.Literal(RC.imm,name,List.of(),List.of(c,w),"this",List.of(),Src.syntetic,true);
   }
   public static core.E.Literal from(TName name, OtherPackages other){
     assert name.pkgName().equals("base");

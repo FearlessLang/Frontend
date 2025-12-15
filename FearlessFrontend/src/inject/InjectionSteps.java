@@ -109,15 +109,18 @@ public record InjectionSteps(Methods meths){
       e = oe;
     }
   }
-  private List<E> meet(List<E> es, MSigL m, List<IT> targs){
+  //TODO: this pattern (3 meth below) is proving resistent to lambda abstraction
+  //check for both occurences of 'same=' and 'changed='  
+  private List<M> fixArity(List<M> ms, TName name, TName newName){
+    if (name.equals(newName)){ return ms; }
     boolean same= true;
-    var res= new ArrayList<E>(es.size());
-    for (int i= 0; i < es.size(); i += 1){
-      E next= meet(es.get(i), m.p(i,targs));
-      same &= next == es.get(i);
+    var res= new ArrayList<M>(ms.size());
+    for (int i= 0; i < ms.size(); i += 1){
+      M next= fixArity(ms.get(i), name, newName);
+      same &= next == ms.get(i);
       res.add(next);
     }
-    if (same){ return es; }
+    if (same){ return ms; }
     return Collections.unmodifiableList(res);
   }
   private List<E> nextStar(List<B> bs, Gamma g, List<E> es){
@@ -132,6 +135,17 @@ public record InjectionSteps(Methods meths){
     if (same && !g.changed(s)){ return es; }
     return Collections.unmodifiableList(res);
   }
+  private List<E> meet(List<E> es, MSigL m, List<IT> targs){
+    boolean same= true;
+    var res= new ArrayList<E>(es.size());
+    for (int i= 0; i < es.size(); i += 1){
+      E next= meet(es.get(i), m.p(i,targs));
+      same &= next == es.get(i);
+      res.add(next);
+    }
+    if (same){ return es; }
+    return Collections.unmodifiableList(res);
+  }
   E next(List<B> bs, Gamma g, E e){ return switch (e){
     case E.X x -> nextX(bs, g, x);
     case E.Literal l -> nextL(bs, g, l);
@@ -141,7 +155,8 @@ public record InjectionSteps(Methods meths){
   };}
   core.E.Literal getDec(TName name){ return meths.from(name); }
   private IT preferred(IT.RCC type){
-    var d= getDec(type.c().name());
+    var d= meths._from(type.c().name());
+    if (d == null){ return type; }//This can happen for {..}.foo
     assert d != null : type;
     var cs= d.cs().stream().filter(c -> c.name().s().equals("base.WidenTo")).toList();
     if (cs.isEmpty()){ return type; }
@@ -177,7 +192,8 @@ public record InjectionSteps(Methods meths){
   }
   public interface InstanceData<R> { R apply(IT.RCC rcc, core.E.Literal d, core.M m); }
   private <R> Optional<R> methodHeaderAnd(IT.RCC rcc, MName name, Optional<RC> favorite, InstanceData<R> f){
-    var d= getDec(rcc.c().name());
+    var d= meths._from(rcc.c().name());
+    if (d == null){ return Optional.empty(); }//case {..}.foo
     Stream<core.M> ms= d.ms().stream().filter(m -> m.sig().m().equals(name));
     Optional<core.M> om= favorite.isPresent()
         ? oneFromExplicitRC(ms.filter(mi -> mi.sig().rc().equals(favorite.get())).toList())
@@ -265,29 +281,40 @@ public record InjectionSteps(Methods meths){
     List<List<IT>> tss= Stream.concat(a,r).toList();
     return meet(tss);
   }  
-  private Optional<IT.RCC> preciseSelf(E.Literal l){
-    if (l.rc().isEmpty()){ return Optional.empty(); }
+  private Optional<IT.RCC> precisePublicSelf(E.Literal l){
+    if (l.infName()){ return superSelf(l); }
     var xs= l.bs().stream().<IT>map(b -> new IT.X(b.x(),l.name().approxSpan())).toList();
-    return Optional.of(new IT.RCC(l.rc().get(), new IT.C(l.name(), xs),l.name().approxSpan()));
+    return Optional.of(new IT.RCC(l.rc().orElse(RC.imm), new IT.C(l.name(), xs),l.name().approxSpan()));
+  }
+  private Optional<IT.RCC> preciseSelf(E.Literal l){
+    if (l.infName() && l.rc().isEmpty()){ return Optional.empty(); }
+    var xs= l.bs().stream().<IT>map(b -> new IT.X(b.x(),l.name().approxSpan())).toList();
+    return Optional.of(new IT.RCC(l.rc().orElse(RC.imm), new IT.C(l.name(), xs),l.name().approxSpan()));
   }
   private Optional<IT.RCC> superSelf(E.Literal l){
     if (l.cs().size() != 1){ return preciseSelf(l); }
-    if (l.rc().isEmpty()){ return Optional.empty(); }
-    return Optional.of(new IT.RCC(l.rc().get(), l.cs().getFirst(),l.name().approxSpan()));
+    if (l.infName() && l.rc().isEmpty()){ return Optional.empty(); }
+    return Optional.of(new IT.RCC(l.rc().orElse(RC.imm), l.cs().getFirst(),l.name().approxSpan()));
   }
+//      assert !l.toString().contains("pppName")
+//      || !l.toString().isEmpty();
+
 
   private E nextL(List<B> bs, Gamma g, E.Literal l){
-    var infA= l.infA();//TODO: is there some case where infA != l.rc().isPresent()? assert it?
-    if (!l.infA() && !l.cs().isEmpty()){ l = meths.expandDeclaration(l); }
+    var infHead= l.infHead();//infHead is set in l.withCsMs and l.withMs and l.withMsT
+    // to mean the HEAD is inferred as IT.RCC and has already been used to expand methods
+    var selfPub= precisePublicSelf(l);
     var selfPrecise= preciseSelf(l);
     var selfSuper= superSelf(l);
-    if (l.rc().isPresent() && l.t() instanceof IT.U){ l = l.withT(preferred(selfSuper.get())); }
-    if (!(l.t() instanceof IT.RCC rcc)){ return l; }
-    if (!l.infA()){ assert l.cs().isEmpty(); l = meths.expandLiteral(l, rcc.c()); }
+    if (!l.infName()){ l = l.withT(preferred(selfPub.get())); }
+    else if (selfSuper.isPresent()){ l = l.withT(preferred(selfSuper.get())); }
+    if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
+    if (!infHead && !l.cs().isEmpty()){ l = meths.expandDeclaration(l,true); }
+    if (!infHead && l.cs().isEmpty()) { l = meths.expandLiteral(l, rcc.c()); }
     boolean changed= false;
     var res= new ArrayList<inference.M>(l.ms().size());
     List<IT> ts= rcc.c().ts();
-    var selfT= selfPrecise.filter(_ -> infA);// TODO: is this already implicitly the case? Check!
+    var selfT= selfPrecise;
     for (var mi : l.ms()){
       if (mi.impl().isEmpty()){ res.add(mi); continue; } // we are also keeping methods from supertypes, and not all will be in need of implementation
       TSM next= nextMStar(bs, g, l.thisName(), meths.cache().containsKey(l.name()), selfT, rcc, ts, mi);
@@ -301,21 +328,33 @@ public record InjectionSteps(Methods meths){
     return commitToTable(bs, l.withMsT(ms, t), t);
   }
   private E commitToTable(List<B> bs, E.Literal l, IT t){
-    if (l.rc().isPresent() || !t.isTV() || !(t instanceof IT.RCC rcc) || hasU(l.ms())){ return l; }
+    TName name= l.name();
+    if (!t.isTV() || !(t instanceof IT.RCC rcc) || hasU(l.ms()) || meths.cache().containsKey(name)){ return l; }
+    var freeNames= Stream.concat(new FreeXs().ftvMs(l.ms()), new FreeXs().ftvCs(l.cs()));
+    List<B> localBs= freeNames.distinct().map(x -> RC.get(bs, x)).toList();
+    TName newName= name.withArity(localBs.size());
+    List<M> ms= fixArity(l.ms(), name, newName);
+    Optional<RC> orc= l.rc().or(()->Optional.of(rcc.rc()));
+    if (!l.cs().isEmpty()){
+      l = new E.Literal(orc, newName, localBs, l.cs(), l.thisName(), ms, l.t(), l.src(),l.infName(), l.infHead(), l.g());
+      assert !meths.cache().containsKey(name);
+      var resD= meths.injectDeclaration(l);      
+      meths.cache().remove(name);
+      meths.cache().put(resD.name(), resD);
+      return l;
+    }
     assert l.cs().isEmpty();
     assert l.bs().isEmpty() : "bs must stay empty pre-commit";
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
-    if (noMeth){ return new E.Type(rcc, rcc, l.src(), l.g()); } // TODO: what if it was not a fresh name but a user defined name?
-    List<IT.C> cs= Push.of(rcc.c(), meths.fetchCs(rcc.c()));
+    if (noMeth && l.infHead()){ return new E.Type(rcc, rcc, l.src(), l.g()); }
+    var selfInferred= rcc.c().name().equals(l.name());
+    List<IT.C> cs= selfInferred? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c()));
     meths.checkMagicSupertypes(l, cs);
-    var freeNames= Stream.concat(new FreeXs().ftvMs(l.ms()), new FreeXs().ftvCs(l.cs()));
-    List<B> localBs= freeNames.distinct().map(x -> RC.get(bs, x)).toList();
-    TName name= l.name();
-    TName newName= name.withArity(localBs.size());
-    List<M> ms= l.ms().stream().map(m -> fixArity(m, name, newName)).toList();
-    l = new E.Literal(Optional.of(rcc.rc()), newName, localBs, cs, l.thisName(), ms, t, l.src(), true, l.g());
+    assert l.infHead();
+    l = new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, t, l.src(),l.infName(), l.infHead(), l.g());
     var resD= meths.injectDeclaration(l);
-    meths.cache().put(resD.name(), resD);// can we simply remove dsMap and use meth cache all the time?
+    assert !meths.cache().containsKey(name);
+    meths.cache().put(resD.name(), resD);
     return l;
   }
   private M fixArity(M m, TName name, TName newName){

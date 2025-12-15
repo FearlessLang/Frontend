@@ -2,7 +2,6 @@ package typeSystem;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Optional;
 
 import core.*;
 import core.E.*;
@@ -19,8 +18,8 @@ public record ViewPointAdaptation(Kinding k){
     T t= w.currentT();
     RC rc0= l.rc();
     RC rc=  m.sig().rc();
-    Optional<Change>oc= discard(t, l);
-    if(oc.isPresent()){ return oc.get(); }
+    Change oc= discard(w, l);
+    if(oc instanceof Change.NoT){ return oc; }
     boolean withImm= kindIsoImm(t, l.bs())
       || (rc == imm && (rc0 == mut || rc0 == read) && kindIsoImmMutRead(t, l.bs()));
     if (withImm){ return Change.keepStrengthenToImm(l,m,w); }
@@ -37,10 +36,16 @@ public record ViewPointAdaptation(Kinding k){
     if (kindImmMutRead(t, l.bs())){ return w; }
     return Change.keepSetToRead(l,m,w);
   }
-  private Optional<Change> discard(T t, Literal l){
-    if ((l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs())){ return Optional.of(Change.dropMutInImm(l,t)); }
-    if (kindIsoImmMutRead(t, l.bs())){ return Optional.empty(); };
-    return Optional.of(Change.dropReadHMutH(l,t));
+  private Change discard(Change.WithT w, Literal l){
+    var t= w.currentT();
+    if (!kindIsoImmMutRead(t, l.bs())){ return Change.dropReadHMutH(l,t); }
+    if ((l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs())){ return Change.dropMutInImm(l,t); }
+    return w;
+    
+    //Used to be as below, but the above gives better errors (prioritizes dropReadHMutH) 
+    //if ((l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs())){ return Optional.of(Change.dropMutInImm(l,t)); }
+    //if (kindIsoImmMutRead(t, l.bs())){ return Optional.empty(); };
+    //return Optional.of(Change.dropReadHMutH(l,t));
   } 
   private boolean kindIsoImm(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm)); }
   private boolean kindIsoImmMutRead(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm, mut, read)); }
