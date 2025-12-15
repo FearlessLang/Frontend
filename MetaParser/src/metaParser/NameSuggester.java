@@ -69,7 +69,8 @@ public final class NameSuggester {
   * @return the result of calling renderer.render
   */
   public static <R> R suggest(String name, List<String> candidates, Renderer<R> renderer){
-    assert ! (name == null || name.isEmpty() || candidates == null || candidates.isEmpty());
+    assert !name.isEmpty();
+    assert !candidates.isEmpty();
     assert candidates.equals(candidates.stream().distinct().sorted().toList()): candidates;
     assert candidates.stream().allMatch(s->!s.isEmpty());
     assert !candidates.contains(name);

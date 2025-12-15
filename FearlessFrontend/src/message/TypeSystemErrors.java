@@ -2,6 +2,7 @@ package message;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -10,6 +11,7 @@ import java.util.stream.IntStream;
 import fearlessParser.Parser;
 import fearlessParser.RC;
 import files.Pos;
+import metaParser.NameSuggester;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
@@ -166,9 +168,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     }
     List<T> interest= TypeScope.interestFromDeclVsReq(s.m().sig().ret(), req.getFirst().t());
     var best= TypeScope.bestInterestingScope(s, interest);
-    FearlessException ex= best.isTop()
-      ? e.ex(pkg, at)
-      : e.ex(pkg, "See inferred typing context below for how type "+req0+" was introduced: (compression indicated by `-`)", best.contextE());
+    FearlessException ex= e.ex(pkg, "See inferred typing context below for how type "+req0+" was introduced: (compression indicated by `-`)", best.contextE());
     return addExpFrame(at, ex.addSpan(at.span().inner));
   }
   ///Parameter x is syntactically in scope but its value was dropped by viewpoint adaptation.
@@ -217,8 +217,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
   ///Receiver expression of call c is typed into a type parameter (X / RC X / read/imm X), not a concrete RC C.
   ///Methods cannot be called on type parameters, so this call can never resolve.
   ///Raised when checking method calls.
-  public FearlessException methodReceiverIsTypeParameter(Call c, T recvType){
-    throw Bug.todo();
+  public FearlessException methodReceiverIsTypeParameter(TypeScope s,Call c, T recvType){
+    var best= TypeScope.bestInterestingScope(s, List.of(recvType));
+    return withCallSpans(Err.of()
+      .pCallCantBeSatisfied(c)
+      .line("The receiver is of type "+disp(recvType)+". This is a type parameter.")
+      .line("Type parameters cannot be receivers of method calls.")
+      .ex(pkg, "See inferred typing context below for how type "+disp(recvType)+" was introduced: (compression indicated by `-`)",
+        best.contextE()),c);
   }
   ///No method matches call c.
   ///Sub-errors for more clarity
@@ -226,20 +232,77 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
   /// - method name exist but with different arity; error will list those other method signatures
   /// - method exists with right arity, but different receiver RCs; list those other method signatures
   ///Raised when checking method calls.
-  public FearlessException methodNotDeclared(Call c, core.E.Literal d){
-    throw Bug.todo();
+  public FearlessException methodNotDeclared(Call c, Literal d){
+    var e= Err.of()
+      .pCallCantBeSatisfied(c)
+      .line("Method "+methodSig(c.name())+" is not declared on type "+bestNamePkg(d)+".");
+    String name= c.name().s();
+    var candidates= d.ms().stream().map(M::sig).toList();
+    List<Sig> sameName= candidates.stream()
+      .filter(s->s.m().s().equals(name)).toList();
+    if (sameName.isEmpty()){
+      if (candidates.isEmpty()){ e.line("The type "+bestNamePkg(d)+" does not have any methods."); }
+      else{
+        e.blank().line("Available methods on type "+bestNamePkg(d)+":");
+        var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
+        NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,c, d, candidates, cs, best); return null; } );
+      }
+      return withCallSpans(e.ex(pkg, c), c);
+    }
+    var sameArity= sameName.stream().filter(s->s.m().arity() == c.es().size()).toList();
+    if (sameArity.isEmpty()){
+      String avail= Join.of(sameName.stream().map(s->Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
+      return withCallSpans(Err.of()
+        .pCallCantBeSatisfied(c) 
+        .line("There is a method "+disp(c.name().s())+" on type "+bestNamePkg(d)+",\nbut with different number of arguments.")
+        .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
+        .ex(pkg,c), c);
+    }
+    String availRc= Join.of(sameArity.stream().sorted().map(s->disp(s.rc())), "", " and ", ".");
+    return withCallSpans(Err.of()
+      .pCallCantBeSatisfied(c)
+      .line(methodSig(c.name())+" exists on type "+bestNamePkg(d)+", but not with the requested capability.")
+      .line("This call requires the existence of a "+disp(c.rc())+" method.")
+      .line("Available capabilities for this method: "+availRc)
+      .ex(pkg,c), c);
+  }
+  void bestNameMsg(Err e,Call c, Literal d, List<Sig> candidates, List<String> cs, Optional<String> best){
+    best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
+    var print= Err.compactPrinter(pkg);
+    for (String n:cs){
+      candidates.stream()
+        .filter(s->s.m().s().equals(n))
+        .forEach(s->e.bullet(print.get().sig(s)));
+    }
   }
   ///A method matching c by name / arity / RC exists, but c supplies the wrong number of type arguments.
   ///Triggered only for explicitly written [Ts]; inference never reaches this error.
   ///Raised when checking method calls.
-  public FearlessException methodTArgsArityError(Call c, int expected){
-    throw Bug.todo();
+  public FearlessException methodTArgsArityError(Literal d, Call c, int expected){
+    int got= c.targs().size(); assert got != expected;
+    String expS= expected == 0 
+      ? "no type arguments" 
+      : expected+" type argument"+(expected == 1 ? "" : "s");
+    String gotS= got == 0 
+      ? "no type arguments" 
+      : got+" type argument"+(got == 1 ? "" : "s");
+    return withCallSpans(Err.of()
+      .pCallCantBeSatisfied(d,c)
+      .line("Wrong number of type arguments for "+methodSig(c.name())+".")
+      .line("This method expects "+expS+", but this call provides "+gotS+".")
+      .ex(pkg,c), c);
   }
   ///Methods exist for call c, but the receiver capability is too weak for all the available promotions.
   ///No promotion accepts this receiver, so the call cannot succeed regardless of argument types.
   ///Raised when checking method calls.
-  public FearlessException receiverRCBlocksCall(Call c, RC recvRc, List<MType> promos){
-    throw Bug.todo();
+  public FearlessException receiverRCBlocksCall(Literal d, Call c, RC recvRc, List<MType> promos){
+    List<String> needed= promos.stream().map(MType::rc).distinct().sorted().map(Err::disp).toList();
+    return withCallSpans(Err.of()
+      .pCallCantBeSatisfied(d,c)
+      .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
+      .line(Join.of(needed,"This call requires a receiver with capability "," or ","."))
+      .pReceiverRequiredByPromotion(promos)
+      .ex(pkg,c), c);
   }
   ///For argument index argi in call c, the argument's type does not satisfy any promotion's requirement.
   ///Receiver and arguments are well typed, but this argument does not match any promotion.
@@ -300,10 +363,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     return "Return requirement not met.\nExpected: "+disp(req.t())+".\nPromotions: "+promos+".";
   }
   
-  public FearlessException methodReceiver_RcBlocksCall(Call c, RC recvRc, List<MType> promos){
+  public FearlessException methodReceiver_RcBlocksCall(Literal d,Call c, RC recvRc, List<MType> promos){
     List<String> needed= promos.stream().map(MType::rc).distinct().sorted().map(Err::disp).toList();
     return withCallSpans(Err.of()
-      .pCallCantBeSatisfied(c)      
+      .pCallCantBeSatisfied(d,c)
       .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
       .line(Join.of(needed,"This call requires a receiver with capability "," or ","."))
       .pReceiverRequiredByPromotion(promos)
@@ -357,11 +420,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       .line("Available capabilities for this method: "+disp(availRc)+".")
       .ex(pkg,c), c);*/
   }
-  public FearlessException methodArgs_Disagree(Call c, ArgMatrix mat){
+  public FearlessException methodArgs_Disagree(Literal d,Call c, ArgMatrix mat){
     int ac= mat.aCount();
     int cc= mat.cCount();
     var e= Err.of()
-      .pCallCantBeSatisfied(c)
+      .pCallCantBeSatisfied(d,c)
       .pArgsDisagreeIntro();
     for(int argi= 0; argi < ac; argi++){
       List<String> ok= mat.okForArg(argi).stream().map(ci->mat.candidate(ci).promotion()).distinct().sorted().toList();
@@ -402,7 +465,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       .line("Hint: remove the implementation of method "+m+".")
       .ex(pkg,l).addSpan(at.inner);
   }
-  public FearlessException methodTAr_gsArityError(Call c, int expected){
+  public FearlessException methodTAr_gsArityError(Literal d,Call c, int expected){
     int got= c.targs().size(); assert got != expected;
     String expS= expected == 0 
       ? "no type arguments" 
@@ -411,12 +474,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       ? "no type arguments" 
       : got+" type argument"+(got == 1 ? "" : "s");
     return withCallSpans(Err.of()
-      .pCallCantBeSatisfied(c)
+      .pCallCantBeSatisfied(d,c)
       .line("Wrong number of type arguments for "+methodSig(c.name())+".")
       .line("This method expects "+expS+", but this call provides "+gotS+".")
       .ex(pkg,c), c);
   }  
-  public FearlessException methodReceiverNot_Rcc(Call c, T recvType){
+  public FearlessException methodReceiverNot_Rcc(Literal d, Call c, T recvType){
     String name= switch(recvType){
       case T.X x -> disp(x.name());
       case T.RCX(var _, var x) -> disp(x.name());
@@ -424,7 +487,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       case T.RCC _-> { throw Bug.unreachable(); }
     };
   return withCallSpans(Err.of()
-    .pCallCantBeSatisfied(c)
+    .pCallCantBeSatisfied(d,c)
     .line("The receiver is of type "+name+". This is a type parameter.")
     .line("Type parameters cannot be receivers of method calls.")
     .ex(pkg,c), c);

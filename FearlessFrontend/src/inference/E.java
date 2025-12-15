@@ -9,7 +9,6 @@ import java.util.Optional;
 import core.B;
 import core.Src;
 import fearlessFullGrammar.MName;
-import fearlessFullGrammar.T;
 import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;

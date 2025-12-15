@@ -1,7 +1,10 @@
 package message;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -9,9 +12,9 @@ import core.*;
 import core.E.*;
 import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
+import fearlessParser.RC;
 import inference.IT;
 import metaParser.Message;
-import typeSystem.TypeScope;
 import typeSystem.TypeSystem.*;
 import utils.Bug;
 
@@ -29,11 +32,11 @@ final class Err{
     var rcc= (IT.RCC)l.t();
     return rcc.c().name();
     }
-  static String bestNamePgk(Literal l){
+  static String bestNamePkg(Literal l){
     if (!useImplName(l)){ return disp(l.name().s()+genArity(l.name().arity())); }
     return "instance of "+disp(l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity()));
   }
-  static String bestNamePgk(inference.E.Literal l){
+  static String bestNamePkg(inference.E.Literal l){
     if (!useImplName(l)){ return disp(l.name().s()+genArity(l.name().arity())); }
     var n= guessImplName(l);
     return "instance of "+disp(n.s()+genArity(n.arity()));
@@ -44,7 +47,7 @@ final class Err{
     case X x->"parameter " +Err.disp(x.name());
     case Literal l->l.thisName().equals("this")
       ? "type declaration " +typeDecName(l.name())
-      : "object literal " +bestNamePgk(l);
+      : "object literal " +bestNamePkg(l);
     case Type t-> "object literal instance of " + t;
     };}
   static String expRepr(inference.E toErr){return switch(toErr){
@@ -53,7 +56,7 @@ final class Err{
     case inference.E.X x->"parameter " +Err.disp(x.name());
     case inference.E.Literal l->l.thisName().equals("this")
       ? "type declaration " +typeDecName(l.name())
-      : "object literal " +bestNamePgk(l);
+      : "object literal " +bestNamePkg(l);
     case inference.E.Type t-> "object literal instance of " + t;
     };}
   static String bestName(Literal l){
@@ -92,7 +95,7 @@ final class Err{
       .compactPrinterLine(pkg, footerE)
       .text());
   }
-  Err inferredContext(pkgmerge.Package pkg, TypeScope.Method scope,T reqT){
+  /*Err inferredContext(pkgmerge.Package pkg, TypeScope.Method scope,T reqT){
     List<T> interest= TypeScope.interestFromDeclVsReq(scope.m().sig().ret(), reqT);
     var best= TypeScope.bestInterestingScope(scope, interest);
     if (best.isTop()){ return this; }
@@ -100,13 +103,13 @@ final class Err{
     return 
        line("Compressed surrounding code with inferred types: (compression indicated by `-`)")
       .compactPrinterLine(pkg, ctx);
-  }
-  Err compactPrinterLine(pkgmerge.Package pkg, E e){
+  }*/
+  static public Supplier<CompactPrinter> compactPrinter(pkgmerge.Package pkg){
     Map<String,String> map= pkg.map().entrySet().stream()
       .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-    var ee= new CompactPrinter(pkg.name(),map).limit(e,120);
-    return line(ee);
+    return ()->new CompactPrinter(pkg.name(),map);
   }
+  Err compactPrinterLine(pkgmerge.Package pkg, E e){ return line(compactPrinter(pkg).get().limit(e,120)); }
   Err line(String s){
     assert !s.isEmpty();
     assert sb.lastIndexOf("\n") == sb.length()-1;
@@ -139,8 +142,11 @@ final class Err{
     return bullet(argLabel(argi)+" is compatible with promotions: "+Join.of(promos,"",", ","."));
   }
 
+  Err pCallCantBeSatisfied(Literal d, Call c){
+    return line("This call to method "+methodSig(d,c.name())+" can not typecheck.");
+  }
   Err pCallCantBeSatisfied(Call c){
-    return line("This call to method "+methodSig(c.name())+" does not type-check.");
+    return line("This call to method "+methodSig(c.name())+" can not typecheck.");
   }
   Err pMethodContext(String kind, Sig s, String where){
     line(kind+" for method "+methodSig(s.m())+".");
@@ -160,22 +166,20 @@ final class Err{
         && req instanceof T.RCC r
         && g.c().equals(r.c()));
   }
-
-//------
   Err pReceiverRequiredByPromotion(List<MType> promos){
-    throw Bug.todo();/*var byRc= new LinkedHashMap<RC, List<String>>();
+    var byRc= new LinkedHashMap<RC, List<String>>();
     for (var m:promos){
       var ps= byRc.computeIfAbsent(m.rc(), _->new ArrayList<>());
-      String p= promoName(m.promotion());
+      String p= m.promotion();
       if (!ps.contains(p)){ ps.add(p); }
     }
     blank().line("Receiver required by each promotion:");
     byRc.keySet().stream()
       .sorted((a,b)->Integer.compare(a.ordinal(), b.ordinal()))
       .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc),""," / ","")+")"));
-    return this;*/
+    return this;
   }
-
+//------
   Err pHopelessArg(Call c, int argi, List<TRequirement> reqs, List<Reason> res){
     throw Bug.todo();/*pCallCantBeSatisfied(c);
     if (diag.isPresent()){ return blank().pArgDiag(diag.get()).pTypesRequiredByPromo(reqs); }

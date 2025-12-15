@@ -2,7 +2,6 @@ package inference;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.IntStream;
 
 public final class Gamma{

@@ -68,7 +68,7 @@ Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" i
 Here "X" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User:{.m(A[mut B]):-.Void}
+User:{.m(A[mut B]):-.Void}
 """, List.of("""
 A[X:imm]:{}
 B:{}
@@ -85,7 +85,7 @@ Type argument 2 ("mut p.C") does not satisfy the bounds for type parameter "Y" i
 Here "Y" can only use capabilities "iso" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User:{.m(A[B,mut C]):-.Void}
+User:{.m(A[B,mut C]):-.Void}
 """, List.of("""
 A[X:imm,Y:read,iso]:{}
 B:{}
@@ -103,7 +103,7 @@ Type argument 1 ("mut p.C") does not satisfy the bounds for type parameter "Y" i
 Here "Y" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User:{.m(A[B[mut C]]):-.Void}
+User:{.m(A[B[mut C]]):-.Void}
 """, List.of("""
 A[X:imm]:{}
 B[Y:imm]:{}
@@ -121,7 +121,7 @@ Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" i
 Here "X" can only use capabilities "imm" or "mutH" or "readH".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User:A[mut B]{.foo(b:B):B->b}
+User:A[mut B]{.foo(b:B):B->b}
 """, List.of("""
 A[X:imm,readH,mutH]:{}
 B:{}
@@ -138,7 +138,7 @@ Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" i
 Here "X" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User:{.m(B):A[mut B]}
+User:{.m(B):A[mut B]}
 """, List.of("""
 A[X:imm]:{}
 B:{}
@@ -208,7 +208,7 @@ Type argument 1 ("Y") does not satisfy the bounds for type parameter "X" in "p.A
 Here "X" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User[Y:read]:A[Y]{}
+User[Y:read]:A[Y]{}
 """, List.of("""
 A[X:imm]:{}
 User[Y:read]:A[Y]{}
@@ -224,7 +224,7 @@ Type argument 1 ("mut p.C") does not satisfy the bounds for type parameter "Y" i
 Here "Y" can only use capabilities "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut User:{.m(A[B[mut C]]):-.Void}
+User:{.m(A[B[mut C]]):-.Void}
 """, List.of("""
 A[X:imm]:{}
 B[Y:read]:{}
@@ -421,7 +421,7 @@ Parameter "x" is used where "p.B" is required,
 but it has type "p.A", which is not a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
-mut User:{.m(x:A):B->x}
+User:{.m(x:A):B->x}
 """, List.of("""
 A:{}
 B:{}
@@ -441,7 +441,7 @@ Parameter "veryVeryLongParamName" is used where "p.Beta" is required,
 but it has type "p.Alpha", which is not a subtype of "p.Beta".
 
 See inferred typing context below for how type "p.Beta" was introduced: (compression indicated by `-`)
-mut User:{.veryLongMethodName(veryVeryLongParamName:Alpha):Beta->veryVeryLongParamName}
+User:{.veryLongMethodName(veryVeryLongParamName:Alpha):Beta->veryVeryLongParamName}
 """, List.of("""
 Alpha:{}
 Beta:{}
@@ -461,7 +461,7 @@ Method call "#(_)" is used where "p.B" is required,
 but it has type "p.A", which is not a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
-mut User:{.m:B->MakeA#(-.Void)}
+User:{.m:B->MakeA#(-.Void)}
 """, List.of("""
 A:{}
 B:{}
@@ -482,7 +482,7 @@ Object literal instance of p.Foo cannot be checked agains an expected supertype.
 Type inference could not infer an expected type; computed type is "p.Foo".
 
 See inferred typing context below for how type "base.InferErr" was introduced: (compression indicated by `-`)
-mut User:{.m:Car->Apply#(Person,F[Person,-.InferErr]{#(Person):-.InferErr->Foo})}
+User:{.m:Car->Apply#(Person,F[Person,-.InferErr]{#(Person):-.InferErr->Foo})}
 """, List.of("""
 Person:{}
 Car:{}
@@ -503,7 +503,7 @@ Method call "#(_)" is used where "p.B" is required,
 but it has type "p.A", which is not a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
-mut User:{.m:B->Wrap#(Mk#(-.Void))}
+User:{.m:B->Wrap#(Mk#(-.Void))}
 """, List.of("""
 A:{}
 B:{}
@@ -524,7 +524,7 @@ Object literal "p.AA" is used where "p.B" is required,
 but it has type "p.AA", which is not a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
-mut User:{.m:B->AA:A{}}
+User:{.m:B->AA:A{}}
 """, List.of("""
 A:{}
 B:{}
@@ -547,7 +547,7 @@ Capture adaptation trace:
 "mut p.A" --setToRead(line 6)--> "read p.A".
 
 See inferred typing context below for how type "mut p.A" was introduced: (compression indicated by `-`)
-mut User:{read .m(loooooong:mut A):mut A->read Get{read .get:mut A->loooooong}}
+User:{read .m(loooooong:mut A):mut A->read Get{read .get:mut A->loooooong}}
 """, List.of("""
 A:{}
 Get:{ read .get: mut A; }
@@ -571,7 +571,7 @@ Capture adaptation trace:
 "mut p.A" --setToRead(line 6)--> "read p.A".
 
 See inferred typing context below for how type "iso p.A" was introduced: (compression indicated by `-`)
-mut User:{read .m(loooooong:mut A):read Get->read Get{read .get:iso A->loooooong}}
+User:{read .m(loooooong:mut A):read Get->read Get{read .get:iso A->loooooong}}
 """, List.of("""
 A:{}
 Get:{ read .get: iso A; }
@@ -595,7 +595,7 @@ Capture adaptation trace:
 "mut p.A" --setToRead(line 6)--> "read p.A".
 
 See inferred typing context below for how type "iso p.A" was introduced: (compression indicated by `-`)
-mut User:{read .m(loooooong:mut A):mut A->read Get{read .get:iso A->loooooong}}
+User:{read .m(loooooong:mut A):mut A->read Get{read .get:iso A->loooooong}}
 """, List.of("""
 A:{}
 Get:{ read .get: iso A; }
@@ -620,7 +620,7 @@ Capture adaptation trace:
 "mut p.A" --setToRead(line 7)--> "read p.A" --strengthenToImm(line 7)--> "p.A".
 
 See inferred typing context below for how type "iso p.A" was introduced: (compression indicated by `-`)
-mut User:{read .m(loooooong:mut A):mut A->read Wrap{read .wrap:Get->mut Get{.get:iso A->loooooong}}}
+User:{read .m(loooooong:mut A):mut A->read Wrap{read .wrap:Get->mut Get{.get:iso A->loooooong}}}
 """, List.of("""
 A:{}
 Get:{ imm .get: iso A; }
@@ -758,6 +758,23 @@ User:{
     G[X:imm,mut,read,readH,mutH]:{ read .get: X->beer; }
 }
 """)); }
+
+@Test void receiverIsTypeParam(){fail("""
+003|   .m[X:**](x:X):X->x.foo;
+   |   -----------------~^^^^^
+
+While inspecting ".m(_)" line 3
+This call to method ".foo" can not typecheck.
+The receiver is of type "X". This is a type parameter.
+Type parameters cannot be receivers of method calls.
+
+See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+User:{.m[X:**](x:X):X->x.foo}
+""", List.of("""
+User:{
+  .m[X:**](x:X):X->x.foo;
+}
+""")); }
 //-----------
 @Test void methodOverrideSignatureMismatchGenericBounds(){ failExt("""
 In file: [###]/in_memory0.fear
@@ -808,7 +825,7 @@ The method ".g(_)" accepts argument 1 of type "p.P".
 But "p.Parent.g(_)" requires "read p.P", which is not a subtype of "p.P".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut Current:Parent{.g(P):-.Void}
+Current:Parent{.g(P):-.Void}
 """, List.of("""
 P:{}
 Parent:{ imm .g(x:read P):base.Void; }
@@ -825,7 +842,7 @@ The method ".h" returns type "read p.P".
 But "p.Sup.h" returns type "p.P", which is not a supertype of "read p.P".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut Sub:Sup{.h:read P}
+Sub:Sup{.h:read P}
 """, List.of("""
 P:{}
 Sup:{ imm .h():imm P; }
@@ -875,6 +892,204 @@ User:{
   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{} }
 }
 """));}
+
+
+@Test void methodNotDeclared_noSuchName_typeHasNoMethods(){fail("""
+004|   read .m(e:Empty):base.Void->
+005|     e.nope();
+   |     -^^^^^^
+
+While inspecting ".m(_)" line 4
+This call to method ".nope" can not typecheck.
+Method ".nope" is not declared on type "p.Empty".
+The type "p.Empty" does not have any methods.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+e.nope
+""", List.of("""
+Empty:{}
+User:{
+  read .m(e:Empty):base.Void->
+    e.nope();
+}
+""")); }
+
+@Test void methodNotDeclared_noSuchName_didYouMean(){fail("""
+008|   read .m(o:Ops):base.Void->
+009|     read Runner{ o.sise() };
+   |                  ~^^^^^^-
+
+While inspecting ".run" line 9 > ".m(_)" line 8
+This call to method ".sise" can not typecheck.
+Method ".sise" is not declared on type "p.Ops".
+
+Available methods on type "p.Ops":
+Did you mean ".size" ?
+- read .sign:-.Void
+- read .size:-.Void
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+o.sise
+""", List.of("""
+Ops:{
+  read .size: base.Void->{};
+  read .sign: base.Void->{};
+}
+Runner:{ read .run: base.Void; }
+User:{
+  read .m(o:Ops):base.Void->
+    read Runner{ o.sise() };
+}
+""")); }
+@Test void methodNotDeclared_noSuchName_listAvailable(){fail("""
+008|   read .m(o:Ops):base.Void->
+009|     o.xyzzy();
+   |     -^^^^^^^
+
+While inspecting ".m(_)" line 8
+This call to method ".xyzzy" can not typecheck.
+Method ".xyzzy" is not declared on type "p.Ops".
+
+Available methods on type "p.Ops":
+- read .alpha:-.Void
+- read .beta:-.Void
+- read .gamma:-.Void
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+o.xyzzy
+""", List.of("""
+Ops:{
+  read .alpha: base.Void->{};
+  read .beta: base.Void->{};
+  read .gamma: base.Void->{};
+}
+User:{
+  read .m(o:Ops):base.Void->
+    o.xyzzy();
+}
+""")); }
+
+@Test void methodNotDeclared_wrongArity_listsAvailableArities(){fail("""
+008|   read .m(m:Mixer, a:A):A->
+009|     m.mix(a, a, a);
+   |     -^^^^^--------
+
+While inspecting ".m(_,_)" line 8
+This call to method ".mix(_,_,_)" can not typecheck.
+There is a method ".mix" on type "p.Mixer",
+but with different number of arguments.
+This call supplies 3, but available methods take 1 or 2.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+m.mix(a,a,a)
+""", List.of("""
+A:{}
+Mixer:{
+  read .mix(x:A):A->x;
+  read .mix(x:A, y:A):A->x;
+}
+User:{
+  read .m(m:Mixer, a:A):A->
+    m.mix(a, a, a);
+}
+""")); }
+@Test void methodNotDeclared_wrongReceiverRc_mutNeedsMutButOnlyReadExists(){fail("""
+007|   mut .m(z:mut Z, a:A):A->
+008|     z.zap[mut](a);
+   |     -^^^^^-------
+
+While inspecting ".m(_,_)" line 7
+This call to method ".zap(_)" can not typecheck.
+".zap(_)" exists on type "p.Z", but not with the requested capability.
+This call requires the existence of a "mut" method.
+Available capabilities for this method: "read".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+z.zap[mut](a)
+""", List.of("""
+A:{}
+Z:{
+  read .zap(x:A):A->x;
+}
+User:{
+  mut .m(z:mut Z, a:A):A->
+    z.zap[mut](a);
+}
+""")); }
+@Test void methodTArgsArityError_oneLessThanNeeded(){fail("""
+008|   read .m(p:Pairer,a:mut A,b:mut B):mut A->
+009|     p.pair[mut A](a,b);
+   |     -^^^^^^-----------
+
+While inspecting ".m(_,_,_)" line 8
+This call to method "p.Pairer.pair(_,_)" can not typecheck.
+Wrong number of type arguments for ".pair(_,_)".
+This method expects 2 type arguments, but this call provides 1 type argument.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+p.pair[read,mut A](a,b)
+""", List.of("""
+A:{}
+B:{}
+Pairer:{
+  read .pair[X:imm,mut,read,Y:imm,mut,read](x:X,y:Y):X->x;
+}
+User:{
+  read .m(p:Pairer,a:mut A,b:mut B):mut A->
+    p.pair[mut A](a,b);
+}
+"""));}
+
+@Test void methodTArgsArityError_twoMoreThanNeeded(){fail("""
+009|   read .m(i:Id,a:mut A):mut A->
+010|     i.id[mut A,mut B,mut C](a);
+   |     -^^^^---------------------
+
+While inspecting ".m(_,_)" line 9
+This call to method "p.Id.id(_)" can not typecheck.
+Wrong number of type arguments for ".id(_)".
+This method expects 1 type argument, but this call provides 3 type arguments.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+i.id[read,mut A,mut B,mut C](a)
+""", List.of("""
+A:{}
+B:{}
+C:{}
+Id:{
+  read .id[X:imm,mut,read](x:X):X->x;
+}
+User:{
+  read .m(i:Id,a:mut A):mut A->
+    i.id[mut A,mut B,mut C](a);
+}
+"""));}
+
+@Test void rcvBlocksCall(){fail("""
+005|   read .m(a:A):A->
+006|     this.zap(a);
+   |     ----^^^^^--
+
+While inspecting ".m(_)" line 5
+This call to method "p.User.zap(_)" can not typecheck.
+The receiver (the expression before the method name) has capability "read".
+This call requires a receiver with capability "mut" or "iso" or "mutH".
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH (arg0))
+- "mutH" (Allow mutH)
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.zap[mut](a)
+""", List.of("""
+A:{}
+User:{
+  mut .zap(x:A):A->x;
+  read .m(a:A):A->
+    this.zap(a);
+}
+""")); }
 
 //--------------
 //--------------

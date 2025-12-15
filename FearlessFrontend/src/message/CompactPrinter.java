@@ -202,10 +202,11 @@ class CompactPrinter{
     var name= priv ? ""
       : tNameToStr(l.name()) + bounds(l.bs())+":"; // name[bs]:
     var cs= ofCs(l.src(),priv && !l.cs().isEmpty() ? List.of(l.cs().getFirst()):l.cs());
-    int s= rcPrefixLen(l.rc()) + 2 + seps(ms.size()) + name.length(); // {} and ";"
-    var addSelf= !ms.isEmpty() && !l.thisName().equals("this") && !l.thisName().equals("_");
-    if (addSelf){ s += 2 + l.thisName().length(); } // "'x "
-    return new PLit(l.rc(), priv, name, cs, l.thisName(), ms, Compactable.of(), s);
+    var top= l.thisName().equals("this");
+    int s= rcPrefixLen(top?RC.imm:l.rc()) + 2 + seps(ms.size()) + name.length(); // {} and ";"
+    var addSelf= !ms.isEmpty() && !top && !l.thisName().equals("_");
+    if (addSelf){ s += 2 + l.thisName().length(); } // "'x "    
+    return new PLit(top?RC.imm:l.rc(), priv, name, cs, l.thisName(), ms, Compactable.of(), s);
   }  
   List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
   List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
@@ -251,10 +252,23 @@ class CompactPrinter{
     s += xs.isEmpty() ? 1 : 3 + seps(xs.size()) + xsWithColonsLen(xs);
     return hasBody ? s + 2 : s;
   }
-  List<PM> ofMs(TName origin,List<M> ms){
+  List<PM> ofMs(TName origin, List<M> ms){
     return ms.stream()
       .filter(m->m.sig().origin().equals(origin))
       .map(this::ofM)
       .toList();
+  }
+  public String sig(Sig s){
+    var xs= IntStream.range(0,s.m().arity()).mapToObj(_->"_").toList();
+    var ts= ofTs(s.ts());
+    var ret= ofT(s.ret());
+    var bs= bounds(s.bs());
+    var pm= new PM(s.rc(), s.m().s(), bs, xs, ts, ret,
+      Optional.empty(), Compactable.of(),
+      mLen(s.rc(), s.m().s(), bs, xs, false));
+    assert sb.isEmpty();
+    pm.accString(this);
+    assert sb.length() == pm.size();
+    return sb.toString();
   }
 }

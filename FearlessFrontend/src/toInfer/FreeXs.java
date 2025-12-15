@@ -9,10 +9,7 @@ import inference.E;
 import inference.IT;
 import inference.M;
 import inference.E.*;
-import inference.Gamma;
 
-// Only for free type vars the programmer *wrote*
-// Expression ITs are inferred derived data and ignored here.
 public record FreeXs(){
   Stream<String> ftvE(E e){ return switch (e){
     case X x ->ftvT(x.t());
