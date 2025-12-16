@@ -42,16 +42,19 @@ public class TypeSystemTest {
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
 """));}
-@Disabled @Test void tsMiniFail(){fail("""
+@Test void tsMiniFail(){fail("""
 002| A:{.foo123:A->this.ba}
-   |    -----------~~~~^^^
+   |    -----------~~~~^^^^
 
 While inspecting ".foo123" line 2
-This call to method ".ba" does not type-check.
-Such method is not declared on type "p.A".
+This call to method ".ba" can not typecheck.
+Method ".ba" is not declared on type "p.A".
 
-Available methods:
-  - imm .foo123:p.A;
+Available methods on type "p.A":
+- .foo123:A
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.ba
 """,List.of("""
 A:{.foo123:A->this.ba}
 """));}
@@ -64,7 +67,8 @@ A:{.foo123:A->this.ba}
 
 While inspecting type declaration "User"
 The type "p.A[mut p.B]" is invalid.
-Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A".
+Type argument 1 ("mut p.B") does not satisfy the bounds
+for type parameter "X" in "p.A".
 Here "X" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -81,7 +85,8 @@ User:{ imm .m(a:imm A[mut B]):base.Void; }
 
 While inspecting type declaration "User"
 The type "p.A[p.B,mut p.C]" is invalid.
-Type argument 2 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.A".
+Type argument 2 ("mut p.C") does not satisfy the bounds
+for type parameter "Y" in "p.A".
 Here "Y" can only use capabilities "iso" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -99,7 +104,8 @@ User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
 
 While inspecting type declaration "User"
 The type "p.B[mut p.C]" is invalid.
-Type argument 1 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.B".
+Type argument 1 ("mut p.C") does not satisfy the bounds
+for type parameter "Y" in "p.B".
 Here "Y" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -117,7 +123,8 @@ User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
 
 While inspecting type declaration "User"
 The type "p.A[mut p.B]" is invalid.
-Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A".
+Type argument 1 ("mut p.B") does not satisfy the bounds
+for type parameter "X" in "p.A".
 Here "X" can only use capabilities "imm" or "mutH" or "readH".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -134,7 +141,8 @@ User:A[mut B]{ .foo(b:B):B->b;}
 
 While inspecting type declaration "User"
 The type "p.A[mut p.B]" is invalid.
-Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A".
+Type argument 1 ("mut p.B") does not satisfy the bounds
+for type parameter "X" in "p.A".
 Here "X" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -151,7 +159,8 @@ User:{ imm .m(a:imm B):imm A[mut B]; }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
-Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
+Type argument 1 ("mut p.B") does not satisfy the bounds
+for type parameter "X" in "p.A.id(_)".
 Here "X" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -168,7 +177,8 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".pair(_,_)" > ".m(_,_,_)" line 5
 The call to ".pair(_,_)" is invalid.
-Type argument 2 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.A.pair(_,_)".
+Type argument 2 ("mut p.C") does not satisfy the bounds
+for type parameter "Y" in "p.A.pair(_,_)".
 Here "Y" can only use capabilities "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -186,7 +196,8 @@ User:{ imm .m(a:imm A,b:imm B,c:imm C):base.Void->a.pair[imm B,mut C](b,c); }
 
 While inspecting method call ".use(_)" > ".m(_,_,_)" line 5
 The type "p.B[mut p.C]" is invalid.
-Type argument 1 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.B".
+Type argument 1 ("mut p.C") does not satisfy the bounds
+for type parameter "Y" in "p.B".
 Here "Y" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -204,7 +215,8 @@ User:{ imm .m(a:imm A,b:imm B[C],c:imm C):base.Void->a.use[B[mut C]](b); }
 
 While inspecting type declaration "User[_]"
 The type "p.A[Y]" is invalid.
-Type argument 1 ("Y") does not satisfy the bounds for type parameter "X" in "p.A".
+Type argument 1 ("Y") does not satisfy the bounds
+for type parameter "X" in "p.A".
 Here "X" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -220,7 +232,8 @@ User[Y:read]:A[Y]{}
 
 While inspecting type declaration "User"
 The type "p.B[mut p.C]" is invalid.
-Type argument 1 ("mut p.C") does not satisfy the bounds for type parameter "Y" in "p.B".
+Type argument 1 ("mut p.C") does not satisfy the bounds
+for type parameter "Y" in "p.B".
 Here "Y" can only use capabilities "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -238,7 +251,8 @@ User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
-Type argument 1 ("mut p.B") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
+Type argument 1 ("mut p.B") does not satisfy the bounds
+for type parameter "X" in "p.A.id(_)".
 Here "X" can only use capabilities "imm" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -256,7 +270,8 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
-Type argument 1 ("base.InferErr") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
+Type argument 1 ("base.InferErr") does not satisfy the bounds
+for type parameter "X" in "p.A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -276,7 +291,8 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
-Type argument 1 ("read p.B") does not satisfy the bounds for type parameter "X" in "p.A.id(_)".
+Type argument 1 ("read p.B") does not satisfy the bounds
+for type parameter "X" in "p.A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -417,8 +433,7 @@ User:{
 
 While inspecting parameter "x" > ".m(_)" line 5
 The body of method ".m(_)" of type declaration "User" is an expression returning "p.A".
-Parameter "x" is used where "p.B" is required,
-but it has type "p.A", which is not a subtype of "p.B".
+Parameter "x" has type "p.A" instead of a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
 User:{.m(x:A):B->x}
@@ -437,8 +452,7 @@ User:{
 
 While inspecting parameter "veryVeryLongParamName" > ".veryLongMethodName(_)" line 5
 The body of method ".veryLongMethodName(_)" of type declaration "User" is an expression returning "p.Alpha".
-Parameter "veryVeryLongParamName" is used where "p.Beta" is required,
-but it has type "p.Alpha", which is not a subtype of "p.Beta".
+Parameter "veryVeryLongParamName" has type "p.Alpha" instead of a subtype of "p.Beta".
 
 See inferred typing context below for how type "p.Beta" was introduced: (compression indicated by `-`)
 User:{.veryLongMethodName(veryVeryLongParamName:Alpha):Beta->veryVeryLongParamName}
@@ -457,8 +471,7 @@ User:{
 
 While inspecting method call "#(_)" > ".m" line 6
 The body of method ".m" of type declaration "User" is an expression returning "p.A".
-Method call "#(_)" is used where "p.B" is required,
-but it has type "p.A", which is not a subtype of "p.B".
+Method call "p.MakeA#(_)" has type "p.A" instead of a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
 User:{.m:B->MakeA#(-.Void)}
@@ -499,8 +512,7 @@ User:{
 
 While inspecting method call "#(_)" > ".m" line 7
 The body of method ".m" of type declaration "User" is an expression returning "p.A".
-Method call "#(_)" is used where "p.B" is required,
-but it has type "p.A", which is not a subtype of "p.B".
+Method call "p.Wrap#(_)" has type "p.A" instead of a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
 User:{.m:B->Wrap#(Mk#(-.Void))}
@@ -520,8 +532,7 @@ User:{
 
 While inspecting object literal "p.AA" > ".m" line 5
 The body of method ".m" of type declaration "User" is an expression returning "p.AA".
-Object literal "p.AA" is used where "p.B" is required,
-but it has type "p.AA", which is not a subtype of "p.B".
+Object literal "p.AA" has type "p.AA" instead of a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
 User:{.m:B->AA:A{}}
@@ -540,8 +551,7 @@ User:{
 While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
 Method ".get" inside the object literal instance of "p.Get" (line 6)
 is implemented with an expression returning "read p.A".
-Parameter "loooooong" is used where "mut p.A" is required,
-but it has type "read p.A", which is not a subtype of "mut p.A".
+Parameter "loooooong" has type "read p.A" instead of a subtype of "mut p.A".
 Note: the declared type "mut p.A" would instead be a valid subtype.
 Capture adaptation trace:
 "mut p.A" --setToRead(line 6)--> "read p.A".
@@ -564,8 +574,7 @@ User:{
 While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
 Method ".get" inside the object literal instance of "p.Get" (line 6)
 is implemented with an expression returning "read p.A".
-Parameter "loooooong" is used where "iso p.A" is required,
-but it has type "read p.A", which is not a subtype of "iso p.A".
+Parameter "loooooong" has type "read p.A" instead of a subtype of "iso p.A".
 Note: the declared type "mut p.A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut p.A" --setToRead(line 6)--> "read p.A".
@@ -588,8 +597,7 @@ User:{
 While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
 Method ".get" inside the object literal instance of "p.Get" (line 6)
 is implemented with an expression returning "read p.A".
-Parameter "loooooong" is used where "iso p.A" is required,
-but it has type "read p.A", which is not a subtype of "iso p.A".
+Parameter "loooooong" has type "read p.A" instead of a subtype of "iso p.A".
 Note: the declared type "mut p.A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut p.A" --setToRead(line 6)--> "read p.A".
@@ -613,8 +621,7 @@ User:{
 While inspecting parameter "loooooong" > ".get" line 7 > ".wrap" line 7 > ".m(_)" line 6
 Method ".get" inside the object literal instance of "p.Get" (line 7)
 is implemented with an expression returning "p.A".
-Parameter "loooooong" is used where "iso p.A" is required,
-but it has type "p.A", which is not a subtype of "iso p.A".
+Parameter "loooooong" has type "p.A" instead of a subtype of "iso p.A".
 Note: the declared type "mut p.A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut p.A" --setToRead(line 7)--> "read p.A" --strengthenToImm(line 7)--> "p.A".
@@ -1077,7 +1084,7 @@ This call requires a receiver with capability "mut" or "iso" or "mutH".
 
 Receiver required by each promotion:
 - "mut" (As declared)
-- "iso" (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH (arg0))
+- "iso" (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH (arg1))
 - "mutH" (Allow mutH)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1090,6 +1097,189 @@ User:{
     this.zap(a);
 }
 """)); }
+//---------
+@Test void hopelessArg_wrongNominal_suppressesPromotionsAndReason(){fail("""
+006|   .f(aaaa:mut B):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
+   |                                    -------------~~~~^^~~~~~~~~~~~~~-
+
+While inspecting ".foo" line 6 > ".f(_)" line 6
+This call to method "p.Need#(_)" can not typecheck.
+Argument 1 has type "read p.B".
+That is not a subtype of "mut p.A".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#(AsRead#(aaaa))
+""",List.of("""
+B:{}
+Need:{ #(a:mut A):B->B{} }
+AsRead:{ #(x:read B):read B->x }
+A:{
+  .f(aaaa:mut B):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
+}
+"""));}
+
+@Test void hopelessArg_calls_pArgHasType_baselineConsistent(){fail("""
+006|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
+   |                                    -------------~~~~^^~~~~~~~~~~~~~-
+
+While inspecting ".foo" line 6 > ".f(_)" line 6
+This call to method "p.Need#(_)" can not typecheck.
+Argument 1 has type "read p.A".
+That is not a subtype of any of "mut p.A" or "iso p.A" or "mutH p.A".
+Method call "p.AsRead#(_)" has type "read p.A" instead of a subtype of "mut p.A".
+
+Type required by each promotion:
+- "mut p.A"  (As declared)
+- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
+- "mutH p.A"  (Allow mutH (arg1))
+
+See inferred typing context below for how type "mut p.A" was introduced: (compression indicated by `-`)
+A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
+""",List.of("""
+B:{}
+Need:{ #(a:mut A):B->B{} }
+AsRead:{ #(x:read A):read A->x }
+A:{
+  .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
+}
+"""));}
+
+@Test void noVar2Fail_viewpointAdaptation_reasonShown(){fail("""
+005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(aaaa);}
+   |                                    -------------~~~~^^~~~~~
+
+While inspecting ".foo" line 5 > ".f(_)" line 5
+This call to method "p.Skip#(_)" can not typecheck.
+Argument 1 has type "read p.A".
+That is not a subtype of any of "mut p.A" or "iso p.A" or "mutH p.A".
+Parameter "aaaa" has type "read p.A" instead of a subtype of "mut p.A".
+Note: the declared type "mut p.A" would instead be a valid subtype.
+Capture adaptation trace:
+"mut p.A" --setToRead(line 5)--> "read p.A".
+
+Type required by each promotion:
+- "mut p.A"  (As declared)
+- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
+- "mutH p.A"  (Allow mutH (arg1))
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Skip#[imm,mut A](aaaa)
+""",List.of("""
+Skip:{#[X:**](X):B->B}
+B:{}
+A:{
+  .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(aaaa);}
+}
+"""));}
+
+@Test void badDeepCall_inferenceNestedGenericCall_explained(){fail("""
+006|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}
+   |                                    -------------------~~^^~~~~~-
+
+While inspecting ".foo" line 6 > ".f(_)" line 6
+This call to method "p.Id#(_)" can not typecheck.
+Argument 1 has type "read p.A".
+That is not a subtype of any of "mut p.A" or "iso p.A" or "mutH p.A".
+Parameter "aaaa" has type "read p.A" instead of a subtype of "mut p.A".
+Note: the declared type "mut p.A" would instead be a valid subtype.
+Capture adaptation trace:
+"mut p.A" --setToRead(line 6)--> "read p.A".
+
+Type required by each promotion:
+- "mut p.A"  (As declared)
+- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
+- "mutH p.A"  (Allow mutH (arg1))
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Id#[imm,mut A](aaaa)
+""",List.of("""
+Skip:{#[X:**](X):B->B}
+Id:{#[X:**](x:X):X->x}
+B:{}
+A:{
+  .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}
+}
+"""));}
+
+@Test void argFromGenericCall_boundForcesRead_inferenceHintBadBounds(){fail("""
+006|   .f(aaaa:mut A):B->
+007|     Need#(IdRO#(aaaa));
+   |           ^^^^^^^^^^^
+
+While inspecting method call "#(_)" > ".f(_)" line 6
+The call to "#(_)" is invalid.
+Type argument 1 ("mut p.A") does not satisfy the bounds
+for type parameter "X" in "p.IdRO#(_)".
+Here "X" can only use capabilities "imm" or "read".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+IdRO#[imm,mut A](aaaa)
+""",List.of("""
+B:{}
+Need:{ #(a:mut A):B->B{} }
+IdRO:{ #[X:imm,read](x:X):X->x }
+A:{
+  .f(aaaa:mut A):B->
+    Need#(IdRO#(aaaa));
+}
+"""));}
+
+@Test void argFromGenericCall_boundForcesRead_inferenceHint(){fail("""
+006|   .f(aaaa:mut A):B->
+007|     Need#(IdRO#[read A](aaaa));
+   |     ----^^-------------------
+
+While inspecting ".f(_)" line 6
+This call to method "p.Need#(_)" can not typecheck.
+Argument 1 has type "read p.A".
+That is not a subtype of any of "mut p.A" or "iso p.A" or "mutH p.A".
+Method call "p.IdRO#(_)" has type "read p.A" instead of a subtype of "mut p.A".
+
+Type required by each promotion:
+- "mut p.A"  (As declared)
+- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
+- "mutH p.A"  (Allow mutH (arg1))
+
+See inferred typing context below for how type "mut p.A" was introduced: (compression indicated by `-`)
+A:{.f(aaaa:mut A):B->Need#(IdRO#[imm,read A](aaaa))}
+""",List.of("""
+B:{}
+Need:{ #(a:mut A):B->B{} }
+IdRO:{ #[X:imm,read](x:X):X->x }
+A:{
+  .f(aaaa:mut A):B->
+    Need#(IdRO#[read A](aaaa));
+}
+"""));}
+
+@Test void argFromObjectLiteral_defaultImm_hintToAnnotate(){fail("""
+006|   .f:B->
+007|     Need#(A{});
+   |     ----^^--
+
+While inspecting ".f" line 6
+This call to method "p.Need#(_)" can not typecheck.
+Argument 1 has type "p._AUser".
+That is not a subtype of any of "mut p.A" or "iso p.A" or "mutH p.A".
+Object literal instance of "p.A" has type "p._AUser" instead of a subtype of "mut p.A".
+Hint: write "mut p.A{...}" if you need a "mut" object literal.
+
+Type required by each promotion:
+- "mut p.A"  (As declared)
+- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
+- "mutH p.A"  (Allow mutH (arg1))
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Need#(A{})
+""",List.of("""
+B:{}
+Need:{ #(a:mut A):B->B{} }
+A:{}
+User:{
+  .f:B->
+    Need#(A{});
+}
+"""));}
 
 //--------------
 //--------------

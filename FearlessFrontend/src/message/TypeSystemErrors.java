@@ -1,6 +1,9 @@
 package message;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -16,6 +19,7 @@ import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
 import typeSystem.TypeScope;
+import typeSystem.TypeSystem;
 import utils.Bug;
 import utils.OneOr;
 import fearlessFullGrammar.TName;
@@ -159,16 +163,18 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     else{ e.line("Method "+meth+" inside the "+Err.expRepr(l) + " (line "+l.span().inner.startLine()+")"
       +"\nis implemented with an expression returning "+got0+"."); }
     boolean promoMode= at instanceof E.Call
-       && rcOnlyMismatch(got.getFirst().best, req.getFirst().t())
-       && got.size() > 1;
+       && rcOnlyMismatch(got.getFirst().best, req.getFirst().t());
     if (!promoMode){ e.line(up(got.getFirst().info)); }
     else { 
       e.blank().pPromotionFailuresHdr();
       got.forEach(r->e.pPromoFailure(r.info,r.promNames));
     }
-    List<T> interest= TypeScope.interestFromDeclVsReq(s.m().sig().ret(), req.getFirst().t());
-    var best= TypeScope.bestInterestingScope(s, interest);
-    FearlessException ex= e.ex(pkg, "See inferred typing context below for how type "+req0+" was introduced: (compression indicated by `-`)", best.contextE());
+    var footer= got.getFirst().footerE.get();
+    E ctx= footer.orElseGet(()->{//TODO: eventually It should be guarenteed to be there in any reason; then we can just call .get(); now is only there for call
+      List<T> interest= TypeScope.interestFromDeclVsReq(s.m().sig().ret(), req.getFirst().t());
+      var best= TypeScope.bestInterestingScope(s, interest);
+      return best.contextE();});
+    FearlessException ex= e.exInferMsg(pkg,ctx,req0);
     return addExpFrame(at, ex.addSpan(at.span().inner));
   }
   ///Parameter x is syntactically in scope but its value was dropped by viewpoint adaptation.
@@ -223,8 +229,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       .pCallCantBeSatisfied(c)
       .line("The receiver is of type "+disp(recvType)+". This is a type parameter.")
       .line("Type parameters cannot be receivers of method calls.")
-      .ex(pkg, "See inferred typing context below for how type "+disp(recvType)+" was introduced: (compression indicated by `-`)",
-        best.contextE()),c);
+      .exInferMsg(pkg,best.contextE(),disp(recvType)),c);
   }
   ///No method matches call c.
   ///Sub-errors for more clarity
@@ -314,9 +319,97 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
   /// - Arguments return type is likely impacted by inference: argument is a generic method call or object literal
   ///   Do the Reason help here? if not, can we expand it or provide a parallel support?
   ///Raised when checking method calls.
-  public FearlessException methodArgumentCannotMeetAnyPromotion(Call c, int argi, List<TRequirement> reqs, List<Reason> res){
-    throw Bug.todo();
+  public FearlessException methodArgumentCannotMeetAnyPromotion(TypeSystem ts,List<B> bs, Literal d, Call c, int argi, List<TRequirement> reqs, List<Reason> res){
+    assert argi >= 0 && argi < c.es().size();
+    assert !reqs.isEmpty();
+    assert reqs.size() == res.size();
+    assert res.stream().noneMatch(r->r.isEmpty());
+    T reqCanon= reqCanon(reqs);
+    if (isWrongUnderlyingType(ts,bs,reqCanon,res)){ return wrongUnderlyingTypeErr(ts.scope(),d,c,argi,reqs,res); }
+    T gotHdr= headerBest(res);
+    var any= reqs.stream().map(TRequirement::t).map(Err::disp).distinct().toList();
+    var r= pickReason(reqs,res);
+    var e= Err.of()
+      .pCallCantBeSatisfied(d,c)
+      .line("Argument "+(argi+1)+" has type "+disp(gotHdr)+".")
+      .line(Join.of(any,"That is not a subtype of any of "," or ","."))
+      .line(up(r.info))
+      .blank()
+      .line("Type required by each promotion:");
+    var byT= new LinkedHashMap<T,List<String>>();
+    for (var ri:reqs){ byT
+      .computeIfAbsent(ri.t(),_->new ArrayList<>())
+      .add(ri.reqName());
+    }
+    for (var ent:byT.entrySet()){
+      var names= ent.getValue().stream().distinct().toList();
+      e.bullet(disp(ent.getKey())+"  ("+Join.of(names,"",", ","")+")");
+    }
+    var footer= r.footerE.get();
+    if (footer.isEmpty()){ return withCallSpans(e.ex(pkg, c), c); }
+    return withCallSpans(e.exInferMsg(pkg,footer.get(),disp(reqs.getFirst().t())),c); 
   }
+  private FearlessException wrongUnderlyingTypeErr(TypeScope s, Literal d, Call c, int argi, List<TRequirement> reqs, List<Reason> res){
+    T gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both 
+    T required= reqs.getFirst().t(); //should make an attempt to say what the generics in the result should have been instantiate to instead
+    //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
+    //TODO: line reqs.getFirst().t(); above, should we use the best return with ordering on rcs?
+    var e= Err.of()          
+      .pCallCantBeSatisfied(d,c)
+      .line("Argument "+(argi+1)+" has type "+disp(gotHdr)+".")
+      .line("That is not a subtype of "+disp(required)+".");
+    return withCallSpans(e.ex(pkg, s.pushCallArgi(c,argi).contextE()), c);
+  }
+  private static T reqCanon(List<TRequirement> reqs){
+    T c0= canon(reqs.getFirst().t());
+    assert reqs.stream().allMatch(r->canon(r.t()).equals(c0));
+    return c0;
+  }
+  private static boolean isWrongUnderlyingType(TypeSystem ts, List<B> bs, T reqCanon, List<Reason> res){
+    return res.stream().map(r->canon(r.best)).noneMatch(r->ts.isSub(bs, r, reqCanon));
+  }
+  private static T canon(T t){ return t.withRC(fearlessParser.RC.imm); }
+
+  private static T headerBest(List<Reason> res){
+    return res.stream().map(r->r.best)
+      .min(Comparator.comparingInt(TypeSystemErrors::headerKey))
+      .orElseThrow();
+  }
+  private static int headerKey(T t){ return switch(t){
+    case T.RCC r -> r.rc().ordinal();
+    case T.RCX r -> r.rc().ordinal();
+    case T.X _ -> 1000;
+    case T.ReadImmX _ -> 1001;
+  };}
+  private static Reason pickReason(List<TRequirement> reqs, List<Reason> res){
+    return res.get(IntStream.range(0, res.size())
+      .filter(i->rcOnlyMismatch(res.get(i).best, reqs.get(i).t()))
+      .findFirst().orElse(0));
+  }
+
+//---
+
+     /*assert reqs.size() == res.size();
+    var e= Err.of().pCallCantBeSatisfied(c);
+    if (true){ return e.blank().pArgDiag(diag.get()).pTypesRequiredByPromo(reqs); }
+    var gotTs= res.stream().map(r->r.best).distinct().toList();
+    pArgHasType(argi, gotTs);
+    var byT= typesByPromo(reqs);
+    var need= byT.keySet().stream()
+      .sorted((a,b)->{
+        int ra= rcRank(a), rb= rcRank(b);
+        if (ra != rb){ return Integer.compare(ra, rb); }
+        return disp(a).compareTo(disp(b));
+      })
+      .toList();
+    var needS= need.stream().map(Err::disp).toList();
+    String targets= needS.size() == 1 ? needS.getFirst() : "any of "+Join.of(needS,""," or ","");
+    line("That is not a subtype of "+targets+".");
+    pTypesRequiredByPromo(byT, need);
+    return withCallSpans(Err.of()
+      .pHopelessArg(c,argi,reqs,res,diag)
+      .ex(pkg,c), c);*/
+  
   ///Each argument of call c is compatible with at least one promotion, but no promotion fits all arguments.
   ///The per-argument sets of acceptable promotions have empty intersection.
   ///Raised when checking method calls.

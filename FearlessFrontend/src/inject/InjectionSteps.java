@@ -103,7 +103,7 @@ public record InjectionSteps(Methods meths){
     while (true){
       var s= g.snapshot();
       var oe= next(bs, g, e);
-      //assert oe == e || g.changed(s) || !oe.equals(e) : "Allocated equal E:"+e.getClass()+"\n"+e;
+      assert oe == e || g.changed(s) || !oe.equals(e) : "Allocated equal E:"+e.getClass()+"\n"+e;//TODO: very heavy assertion
       if (oe == e && !g.changed(s)){ e.sign(g); return e; }
       //if (oe.equals(e) && !g.changed(s)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
       e = oe;
@@ -129,6 +129,7 @@ public record InjectionSteps(Methods meths){
     var res= new ArrayList<E>(es.size());
     for (E ei : es){
       E next= nextStar(bs, g, ei);
+      //assert next == ei || !next.equals(ei);//TODO: very heavy assertion, also not full assertion: can fail for change in gamma
       same &= next == ei;
       res.add(next);
     }
@@ -254,6 +255,8 @@ public record InjectionSteps(Methods meths){
     return call.withT(t);
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
+    assert !c.toString().contains("Need")||
+      !c.toString().isBlank();
     var e= nextStar(bs, g, c.e());
     var es= nextStar(bs, g, c.es());
     if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, es); }
@@ -302,11 +305,14 @@ public record InjectionSteps(Methods meths){
     var selfPub= precisePublicSelf(l);
     var selfPrecise= preciseSelf(l);
     var selfSuper= superSelf(l);
-    if (!l.infName()){ l = l.withT(preferred(selfPub.get())); }
-    else if (selfSuper.isPresent()){ l = l.withT(preferred(selfSuper.get())); }
-    if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
-    if (!infHead && !l.cs().isEmpty()){ l = meths.expandDeclaration(l,true); }
-    if (!infHead && l.cs().isEmpty()) { l = meths.expandLiteral(l, rcc.c()); }
+    if (!infHead){
+      if (!l.infName()){ l = l.withT(preferred(selfPub.get())); }
+      else if (selfSuper.isPresent()){ l = l.withT(preferred(selfSuper.get())); }
+      if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
+      if (!infHead && !l.cs().isEmpty()){ l = meths.expandDeclaration(l,true); }
+      if (!infHead && l.cs().isEmpty()) { l = meths.expandLiteral(l, rcc.c()); }
+    }
+    if (!(l.t() instanceof IT.RCC rcc)){ return l; }
     boolean changed= false;
     var res= new ArrayList<inference.M>(l.ms().size());
     List<IT> ts= rcc.c().ts();

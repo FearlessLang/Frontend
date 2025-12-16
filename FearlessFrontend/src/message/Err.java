@@ -72,6 +72,9 @@ final class Err{
     if (!useImplName(l)){ return l.name().s()+genArity(l.name().arity()); }
     return l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity());
   }
+  static String bestNameDirect(E.Type l){
+    return l.type().rc().toStrSpace()+tNameDirect(l.type().c().name())+genArity(l.type().c().name().arity());
+  }
   static String bestNameDirect(inference.E.Literal l){
     if (!useImplName(l)){ return l.name().s()+genArity(l.name().arity()); }
     return l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity());
@@ -79,13 +82,17 @@ final class Err{
   static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
   String text(){ return sb.toString().stripTrailing(); }
   public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, String badStr, String allowedStr){
-  return line("The "+what+" is invalid.")
-    .line("Type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds for type parameter "+paramName+" in "+kindingTarget+".")
-    .line("Here "+paramName+" can only use capabilities "+allowedStr+".");
+    return line("The "+what+" is invalid.")
+      .line("Type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
+      .line("for type parameter "+paramName+" in "+kindingTarget+".")
+      .line("Here "+paramName+" can only use capabilities "+allowedStr+".");
   }
   public Err invalidMethImpl(Literal l, MName m){ return line("Invalid method implementation for "+methodSig(l,m)+"."); }
   FearlessException ex(pkgmerge.Package pkg, E e){
     return ex(pkg,"Compressed relevant code with inferred types: (compression indicated by `-`)",e);
+  }
+  FearlessException exInferMsg(pkgmerge.Package pkg, E e, String req){
+    return ex(pkg, "See inferred typing context below for how type "+req+" was introduced: (compression indicated by `-`)", e);
   }
   FearlessException ex(pkgmerge.Package pkg, String footerHdr, core.E footerE){
     assert sb.length() != 0;
@@ -95,15 +102,6 @@ final class Err{
       .compactPrinterLine(pkg, footerE)
       .text());
   }
-  /*Err inferredContext(pkgmerge.Package pkg, TypeScope.Method scope,T reqT){
-    List<T> interest= TypeScope.interestFromDeclVsReq(scope.m().sig().ret(), reqT);
-    var best= TypeScope.bestInterestingScope(scope, interest);
-    if (best.isTop()){ return this; }
-    var ctx= best.contextE();
-    return 
-       line("Compressed surrounding code with inferred types: (compression indicated by `-`)")
-      .compactPrinterLine(pkg, ctx);
-  }*/
   static public Supplier<CompactPrinter> compactPrinter(pkgmerge.Package pkg){
     Map<String,String> map= pkg.map().entrySet().stream()
       .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
@@ -199,10 +197,54 @@ final class Err{
     return pTypesRequiredByPromo(byT, need);*/
   }
 
-  /*private Err pArgHasType(int argi, List<T> gotTs){
+  public Err pArgHasType(int argi, List<T> gotTs){
     return line(argLabel(argi)+" has type "+dispTypes(gotTs)+".");
   }
+  private String dispTypes(List<T> ts){
+    var ss= ts.stream().map(Err::disp).distinct().sorted().toList();
+    if (ss.size() == 1){ return ss.getFirst(); }
+    return Join.of(ss,""," or ","");
+  }
+  /*
+  Err pArgDiag(TypeSystemErrors.ArgDiag d){ return
+     blank()
+    .pArgDiagHeader(d)
+    .pArgDiagNote(d)
+    .pArgDiagWhy(d);
+  }
+    private Err pArgDiagHeader(TypeSystemErrors.ArgDiag d){
+    String par= "The parameter "+disp(d.x());
+    String dd= disp(d.declared());
+    if (d.got().isEmpty()){ return line(par+" has declared type "+dd+"."); }
+    String hasType= " here has type "+disp(d.got().get());
+    String declPart= " (declared as type "+dd+")";
+    if (d.expected().isEmpty()){
+      if (d.declared().equals(d.got().get())){ return line(par+hasType+"."); }
+      return line(par+declPart+hasType+".");
+    }
+    String end= ", that is not a subtype of "+disp(d.expected().get())+".";
+    if (d.declared().equals(d.got().get())){ return line(par+hasType+end); }
+    return line(par+declPart+hasType+end);
+  }
+  private Err pArgDiagNote(TypeSystemErrors.ArgDiag d){
+    String dd= disp(d.declared());
+    String ee= d.expected().map(Err::disp).orElse("the expected type");
+    String note= switch(d.note()){
+      case NONE -> "";
+      case DECLARED_OK_SOME_CALL_EXPECTED -> Join.of(d.fitsPromos(),"Note: the declared type "+dd+" would work for: ",", ",".");
+      case DECLARED_OK_THIS_EXPECTED -> "Note: the declared type "+dd+" is a subtype of "+ee+".";
+      case DECLARED_NOT_OK_THIS_EXPECTED -> "Note: the declared type "+dd+" is also not a subtype of "+ee+".";
+    };
+    return lineIf(note);
+  }
+  private Err pArgDiagWhy(TypeSystemErrors.ArgDiag d){
+    T expected= d.expected().orElse(d.declared());
+    String w= d.why().render(d.x(), expected, d.got(), d.declared(), d.bs());
+    return blockIf(w);
+  }
+*/
 
+/*
   private Err pTypesRequiredByPromo(List<TRequirement> reqs){
     var byT= typesByPromo(reqs);
     var need= byT.keySet().stream()
@@ -244,7 +286,7 @@ final class Err{
     if (isInferErr(expected)){ return label 
       + " cannot be checked agains an expected supertype.\n"
       + "Type inference could not infer an expected type; computed type is "+g+"."; }
-    return label+" is used where "+e+" is required,\nbut it has type "+g+", which is not a subtype of "+e+".";
+    return label+" has type "+g+" instead of a subtype of "+e+".";
   }
 
   static String methodSig(MName m){ return methodSig("",m); }

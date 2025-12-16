@@ -50,11 +50,12 @@ public sealed interface TypeScope{
       case T.X _ -> out.add(req);
       case T.RCX _ -> out.add(req);
       case T.ReadImmX _ -> out.add(req);
-      case T.RCC drcc -> {
-        var rcc= (T.RCC)req;
-        assert rcc.rc() == drcc.rc();
-        assert rcc.c().name().equals(drcc.c().name());
-        assert rcc.c().ts().size() == drcc.c().ts().size();
+      case T.RCC drcc -> {//If the types do not match, just skip the rest here (user error too hard to grasp)
+        if (!(req instanceof T.RCC rcc)
+         || rcc.rc() != drcc.rc() 
+         || !rcc.c().name().equals(drcc.c().name())
+         || rcc.c().ts().size() != drcc.c().ts().size()
+         ){ return; } 
         IntStream.range(0,rcc.c().ts().size())
           .forEach(i->walk(drcc.c().ts().get(i), rcc.c().ts().get(i), out));
       }

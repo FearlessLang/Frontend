@@ -1095,6 +1095,23 @@ User:{
     read Wrap{ mut Get{ pppName } };
 }
 """));}
+
+
+@Test void regressionWasLooping(){okI("""
+[###]~-----------
+~mut p.A:{'this }
+~mut p.B:{'this }
+~mut p.Need:{'this #(a:mut p.A):p.B->imm p._ANeed:p.B{'_ }}
+~mut p.User:{'this .f:p.B->p.Need#[imm](imm p._AUser:p.A{'_ })}
+""",List.of("""
+B:{}
+Need:{ #(a:mut A):B->B{} }
+A:{}
+User:{
+  .f:B->
+    Need#(A{});
+}
+"""));}
 //TODO: what to do here? Should we improve the inference or accept?
 //We could try to transform all vars in Gamma that are mut/read into:
 //-imm in imm methods
