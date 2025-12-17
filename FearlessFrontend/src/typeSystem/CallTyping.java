@@ -107,7 +107,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){
     List<Integer> okRet= possible.stream()
       .filter(i->ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
-    if (!okRet.isEmpty()){ return Reason.pass(req.reqName(), bestUnique(mat,okRet)); }
+    if (!okRet.isEmpty()){ return Reason.pass(bestUnique(mat,okRet)); }
     return Reason.callResultCannotHaveRequiredType(d,c, bs, mat, possible, req, bestUnique(mat,possible),sig,ts.scope());
   } 
   private T bestUnique(ArgMatrix mat, List<Integer> idxs){

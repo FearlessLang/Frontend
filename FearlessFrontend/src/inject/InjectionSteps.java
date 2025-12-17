@@ -255,7 +255,7 @@ public record InjectionSteps(Methods meths){
     return call.withT(t);
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
-    assert !c.toString().contains("Need")||
+    assert !c.toString().contains("Snd")||
       !c.toString().isBlank();
     var e= nextStar(bs, g, c.e());
     var es= nextStar(bs, g, c.es());

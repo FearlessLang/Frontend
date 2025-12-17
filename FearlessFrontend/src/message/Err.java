@@ -153,10 +153,10 @@ final class Err{
   Err conflictsWithMethodIn(Sig sup){ return line("Conflicts with method in "+disp(sup.origin().s())+"."); }
 
   Err pPromotionFailuresHdr(){ return blank().line("Promotion failures:"); }
-  Err pPromoFailure(String reason, String promo){
+  Err pPromoFailure(String reason){
     reason= reason.stripTrailing();
     assert !reason.isEmpty();
-    return bullet(reason.replaceFirst("\n", "    "+promo+"\n"));
+    return bullet(reason);
   }
   public static boolean rcOnlyMismatch(T got, T req){
     return got.equals(req) 
@@ -171,10 +171,12 @@ final class Err{
       String p= m.promotion();
       if (!ps.contains(p)){ ps.add(p); }
     }
-    blank().line("Receiver required by each promotion:");
-    byRc.keySet().stream()
-      .sorted((a,b)->Integer.compare(a.ordinal(), b.ordinal()))
-      .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc),""," / ","")+")"));
+    if (byRc.size() > 1){
+      blank().line("Receiver required by each promotion:");
+      byRc.keySet().stream()
+        .sorted((a,b)->Integer.compare(a.ordinal(), b.ordinal()))
+        .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc),""," / ","")+")"));
+    }
     return this;
   }
 //------

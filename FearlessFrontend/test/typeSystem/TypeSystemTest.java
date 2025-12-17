@@ -1085,8 +1085,8 @@ This call requires a receiver with capability "mut" or "iso" or "mutH".
 
 Receiver required by each promotion:
 - "mut" (As declared)
-- "iso" (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH (arg1))
-- "mutH" (Allow mutH)
+- "iso" (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH argument 1)
+- "mutH" (Allow mutH receiver)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.zap[mut](a)
@@ -1131,8 +1131,8 @@ Method call "p.AsRead#(_)" has type "read p.A" instead of a subtype of "mut p.A"
 
 Type required by each promotion:
 - "mut p.A"  (As declared)
-- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
-- "mutH p.A"  (Allow mutH (arg1))
+- "iso p.A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
+- "mutH p.A"  (Allow mutH argument 1)
 
 See inferred typing context below for how type "mut p.A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
@@ -1160,8 +1160,8 @@ Capture adaptation trace:
 
 Type required by each promotion:
 - "mut p.A"  (As declared)
-- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
-- "mutH p.A"  (Allow mutH (arg1))
+- "iso p.A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
+- "mutH p.A"  (Allow mutH argument 1)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Skip#[imm,mut A](aaaa)
@@ -1188,8 +1188,8 @@ Capture adaptation trace:
 
 Type required by each promotion:
 - "mut p.A"  (As declared)
-- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
-- "mutH p.A"  (Allow mutH (arg1))
+- "iso p.A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
+- "mutH p.A"  (Allow mutH argument 1)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Id#[imm,mut A](aaaa)
@@ -1238,8 +1238,8 @@ Method call "p.IdRO#(_)" has type "read p.A" instead of a subtype of "mut p.A".
 
 Type required by each promotion:
 - "mut p.A"  (As declared)
-- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
-- "mutH p.A"  (Allow mutH (arg1))
+- "iso p.A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
+- "mutH p.A"  (Allow mutH argument 1)
 
 See inferred typing context below for how type "mut p.A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):B->Need#(IdRO#[imm,read A](aaaa))}
@@ -1267,8 +1267,8 @@ Hint: write "mut p.A{...}" if you need a "mut" object literal.
 
 Type required by each promotion:
 - "mut p.A"  (As declared)
-- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
-- "mutH p.A"  (Allow mutH (arg1))
+- "iso p.A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
+- "mutH p.A"  (Allow mutH argument 1)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Need#(A{})
@@ -1291,15 +1291,15 @@ This call to method ".f(_,_)" can not typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
-- Argument 1 has type "readH p.A" and is compatible with: Allow readH, Allow mutH (arg1).
-- Argument 2 has type "mutH p.A" and is compatible with: Allow mutH (arg2).
+- Argument 1 has type "readH p.A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
+- Argument 2 has type "mutH p.A" and is compatible with: Allow mutH argument 2.
 
 Promotion failures:
 - Argument 1 fails:    As declared
   Parameter "x" has type "readH p.A" instead of a subtype of "read p.A".
-- Argument 1 fails:    Strengthen result, Strengthen result (allows readH/mutH), Allow mutH, Allow mutH (arg2)
+- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
   Parameter "x" has type "readH p.A" instead of a subtype of "p.A".
-- Argument 2 fails:    Allow readH, Allow mutH (arg1)
+- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Parameter "y" has type "mutH p.A" instead of a subtype of "iso p.A".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1320,15 +1320,15 @@ This call to method ".f(_,_)" can not typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
-- Argument 1 has type "mutH p.A" and is compatible with: Allow mutH (arg1).
-- Argument 2 has type "mutH p.A" and is compatible with: Allow mutH (arg2).
+- Argument 1 has type "mutH p.A" and is compatible with: Allow mutH argument 1.
+- Argument 2 has type "mutH p.A" and is compatible with: Allow mutH argument 2.
 
 Promotion failures:
 - Argument 1 fails:    As declared
   Parameter "x" has type "mutH p.A" instead of a subtype of "mut p.A".
-- Argument 1 fails:    Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH, Allow mutH (arg2)
+- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 2
   Parameter "x" has type "mutH p.A" instead of a subtype of "iso p.A".
-- Argument 2 fails:    Allow mutH (arg1)
+- Argument 2 fails:    Allow mutH argument 1
   Parameter "y" has type "mutH p.A" instead of a subtype of "iso p.A".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1450,9 +1450,6 @@ This call to method "p.A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "mut".
 This call requires a receiver with capability "imm".
 
-Receiver required by each promotion:
-- "imm" (As declared, Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
-
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123
 """,List.of("""
@@ -1467,9 +1464,6 @@ This call to method "p.A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
 
-Receiver required by each promotion:
-- "imm" (As declared, Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
-
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123
 """,List.of("""
@@ -1483,9 +1477,6 @@ While inspecting ".bar" line 2
 This call to method "p.A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
-
-Receiver required by each promotion:
-- "imm" (As declared, Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123
@@ -1519,8 +1510,8 @@ This call requires a receiver with capability "mut" or "iso" or "mutH".
 
 Receiver required by each promotion:
 - "mut" (As declared)
-- "iso" (Strengthen result, Strengthen result (allows readH/mutH), Allow readH)
-- "mutH" (Allow mutH)
+- "iso" (Strengthen result, Strengthen hygienic result, Allow readH arguments)
+- "mutH" (Allow mutH receiver)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123[mut]
@@ -1535,9 +1526,6 @@ While inspecting ".bar" line 2
 This call to method "p.A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
-
-Receiver required by each promotion:
-- "imm" (As declared, Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123
@@ -1560,8 +1548,8 @@ This call requires a receiver with capability "mut" or "iso" or "mutH".
 
 Receiver required by each promotion:
 - "mut" (As declared)
-- "iso" (Strengthen result, Strengthen result (allows readH/mutH), Allow readH)
-- "mutH" (Allow mutH)
+- "iso" (Strengthen result, Strengthen hygienic result, Allow readH arguments)
+- "mutH" (Allow mutH receiver)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123[mut]
@@ -1653,15 +1641,15 @@ This call to method ".f(_,_)" can not typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
-- Argument 1 has type "readH p.A" and is compatible with: Allow readH, Allow mutH (arg1).
-- Argument 2 has type "mutH p.A" and is compatible with: Allow mutH (arg2).
+- Argument 1 has type "readH p.A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
+- Argument 2 has type "mutH p.A" and is compatible with: Allow mutH argument 2.
 
 Promotion failures:
 - Argument 1 fails:    As declared
   Parameter "x" has type "readH p.A" instead of a subtype of "read p.A".
-- Argument 1 fails:    Strengthen result, Strengthen result (allows readH/mutH), Allow mutH, Allow mutH (arg2)
+- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
   Parameter "x" has type "readH p.A" instead of a subtype of "p.A".
-- Argument 2 fails:    Allow readH, Allow mutH (arg1)
+- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Parameter "y" has type "mutH p.A" instead of a subtype of "iso p.A".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1682,15 +1670,15 @@ This call to method ".f(_,_)" can not typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
-- Argument 1 has type "readH p.A" and is compatible with: Allow readH, Allow mutH (arg1).
-- Argument 2 has type "mutH p.A" and is compatible with: Allow mutH (arg2).
+- Argument 1 has type "readH p.A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
+- Argument 2 has type "mutH p.A" and is compatible with: Allow mutH argument 2.
 
 Promotion failures:
 - Argument 1 fails:    As declared
   Parameter "x" has type "readH p.A" instead of a subtype of "read p.A".
-- Argument 1 fails:    Strengthen result, Strengthen result (allows readH/mutH), Allow mutH, Allow mutH (arg2)
+- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
   Parameter "x" has type "readH p.A" instead of a subtype of "p.A".
-- Argument 2 fails:    Allow readH, Allow mutH (arg1)
+- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Method call "p.ID#(_)" has type "mutH p.A" instead of a subtype of "iso p.A".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1764,8 +1752,8 @@ Capture adaptation trace:
 
 Type required by each promotion:
 - "mut p.A"  (As declared)
-- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
-- "mutH p.A"  (Allow mutH (arg1))
+- "iso p.A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
+- "mutH p.A"  (Allow mutH argument 1)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Skip#[imm,mut A](aaaa)
@@ -1799,8 +1787,8 @@ Capture adaptation trace:
 
 Type required by each promotion:
 - "mut p.A"  (As declared)
-- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
-- "mutH p.A"  (Allow mutH (arg1))
+- "iso p.A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
+- "mutH p.A"  (Allow mutH argument 1)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Id#[imm,mut A](aaaa)
@@ -1825,8 +1813,8 @@ Method call "p.AsRead#(_)" has type "read p.A" instead of a subtype of "mut p.A"
 
 Type required by each promotion:
 - "mut p.A"  (As declared)
-- "iso p.A"  (Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH)
-- "mutH p.A"  (Allow mutH (arg1))
+- "iso p.A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
+- "mutH p.A"  (Allow mutH argument 1)
 
 See inferred typing context below for how type "mut p.A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}

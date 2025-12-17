@@ -1112,6 +1112,77 @@ User:{
     Need#(A{});
 }
 """));}
+
+
+@Test void challenge1(){okI("""
+[###]
+~mut p.User:{'this\
+ .go(e:p.E1):p.E2->p.Map#[imm,p.E1,p.E2]\
+(e, imm p._AUser:p.F[p.E1,p.E2]{'_ #(_:p.E1):p.E2->p.E2})}
+""",List.of("""
+F[R]:{#:R}
+F[A,R]:{#(A):R}
+F[A,B,R]:{#(A,B):R}
+F[A,B,C,R]:{#(A,B,C):R}
+E1:{}
+E2:{}
+Map:{#[A,R](a:A,f:F[A,R]):R->f#a }
+User:{.go(e:E1):E2->Map#(e,{_->E2}) }
+"""));}
+
+@Test void challenge2(){okI("""
+[###]
+~mut p.User:{'this\
+ .go(e:p.E1):p.E2->p.Map#[imm,p.E1,p.E2]\
+(imm p._AUser:p.F[p.E1,p.E2]{'_ #(_:p.E1):p.E2->p.E2}, e)}
+""",List.of("""
+F[R]:{#:R}
+F[A,R]:{#(A):R}
+F[A,B,R]:{#(A,B):R}
+F[A,B,C,R]:{#(A,B,C):R}
+E1:{}
+E2:{}
+Map:{#[A,R](f:F[A,R],a:A):R->f#a }
+User:{.go(e:E1):E2->Map#({_->E2},e) }
+"""));}
+
+@Test void challenge3(){okI("""
+[###]
+~mut p.Snd:{'this #[A:imm](x:p.Int):p.F[A,A]->\
+imm p._ASnd[A:imm]:p.F[A,A]{'_ #(y:A):A->y}}
+~mut p.User2:{'this\
+ .go2:p.Float->p.Snd#[imm,p.Float](p.Int)#[imm](p.Float)}
+""",List.of("""
+F[A,R]:{#(A):R}
+Int:{}
+Float:{}
+Snd:{#[A](x:Int):F[A,A]->{y->y}}
+User2:{.go2:Float->(Snd#Int)#Float}
+"""));}
+
+@Test void challenge4(){okI("""
+[###]
+p.Snd#[imm,base.InferUnknown](p.One)#[imm](p.FOne)}
+~mut p.User3:{'this .go3:p.Float->\
+""",List.of("""
+F[A,R]:{#(A):R}
+Int:{}
+One:Int{}
+Float:{}
+FOne:Float{}
+Snd:{#[A](x:Int):F[A,A]->{y->y}}
+User1:{.go1[B]:F[B,B]->Snd#One}
+User2:{.go2:Float->(Snd#One)#FOne}
+Top:{.top[A](p:F[Int,F[A,A]]):F[Int,F[A,A]]->p}
+Trash:{#[T](T):Float->FOne}
+User3:{.go3:Float->Trash#(Top.top {x->{y->y}} # One) }
+As[T]:{#(t:T):T->t}
+User4:{
+  .dec[A]:F[Int,F[A,A]]->{x->{y->y}};
+  .use:Int-> this.dec # One # One
+}
+"""));}
+
 //TODO: what to do here? Should we improve the inference or accept?
 //We could try to transform all vars in Gamma that are mut/read into:
 //-imm in imm methods

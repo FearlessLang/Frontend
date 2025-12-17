@@ -71,7 +71,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     T got= w.currentT();
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().<Reason>map(r->{
-      if (isSub(bs,got,r.t())){ return Reason.pass(r.reqName(),got); }
+      if (isSub(bs,got,r.t())){ return Reason.pass(got); }
       boolean declaredOk= isSub(bs,declared,r.t());
       return Reason.parameterDoesNotHaveRequiredTypeHere(x, bs, r, declared, w, declaredOk);
     }).toList();
@@ -82,7 +82,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().map(r->isSub(bs,got,r.t())
-      ? Reason.pass(r.reqName(),got)
+      ? Reason.pass(got)
       : Reason.literalDoesNotHaveRequiredType(blame,bs,r.reqName(),got,r.t())
       ).toList();    
   }

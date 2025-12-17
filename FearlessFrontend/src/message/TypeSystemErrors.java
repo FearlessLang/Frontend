@@ -167,7 +167,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     if (!promoMode){ e.line(up(got.getFirst().info)); }
     else { 
       e.blank().pPromotionFailuresHdr();
-      got.forEach(r->e.pPromoFailure(r.info,r.promNames));
+      got.forEach(r->e.pPromoFailure(r.info));
     }
     var footer= got.getFirst().footerE.get();
     E ctx= footer.orElseGet(()->{//TODO: eventually It should be guarenteed to be there in any reason; then we can just call .get(); now is only there for call
@@ -422,8 +422,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       for (var ent: byArg.get(argi).entrySet()){
         var names= ent.getValue();
         e.pPromoFailure(
-          "Argument "+(argi+1)+" fails:\n"+ent.getKey(),
-          Join.of(names,"",", ","")
+          "Argument "+(argi+1)+Join.of(names," fails:    ",", ","\n")+ent.getKey()
         );
       }
     }
@@ -542,7 +541,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     e.pPromotionFailuresHdr();
     IntStream.range(0,cc).forEach(ci->{
       int argi= IntStream.range(0,ac).filter(a->!mat.res(a,ci).isEmpty()).findFirst().getAsInt();
-      e.pPromoFailure(mat.res(argi,ci).info, mat.candidate(ci).promotion());
+      e.pPromoFailure(mat.res(argi,ci).info);
     });
     return withCallSpans(e.ex(pkg,c), c);
   }
