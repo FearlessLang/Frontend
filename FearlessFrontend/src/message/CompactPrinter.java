@@ -267,8 +267,13 @@ class CompactPrinter{
       Optional.empty(), Compactable.of(),
       mLen(s.rc(), s.m().s(), bs, xs, false));
     assert sb.isEmpty();
+    if (s.rc() == RC.imm){ sb.append("      "); }//line up
+    else {
+      var l= s.rc().toString().length()+1;
+      assert l <= 6:s.rc();//amount of space used
+      sb.append(" ".repeat(6-l));
+    }
     pm.accString(this);
-    assert sb.length() == pm.size();
     return sb.toString();
   }
 }

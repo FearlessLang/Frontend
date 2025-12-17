@@ -51,7 +51,7 @@ This call to method ".ba" can not typecheck.
 Method ".ba" is not declared on type "p.A".
 
 Available methods on type "p.A":
-- .foo123:A
+-       .foo123:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.ba
@@ -929,11 +929,11 @@ User:{
 While inspecting ".run" line 9 > ".m(_)" line 8
 This call to method ".sise" can not typecheck.
 Method ".sise" is not declared on type "p.Ops".
+Did you mean ".size" ?
 
 Available methods on type "p.Ops":
-Did you mean ".size" ?
-- read .sign:-.Void
-- read .size:-.Void
+-  read .sign:-.Void
+-  read .size:-.Void
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 o.sise
@@ -958,9 +958,9 @@ This call to method ".xyzzy" can not typecheck.
 Method ".xyzzy" is not declared on type "p.Ops".
 
 Available methods on type "p.Ops":
-- read .alpha:-.Void
-- read .beta:-.Void
-- read .gamma:-.Void
+-  read .alpha:-.Void
+-  read .beta:-.Void
+-  read .gamma:-.Void
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 o.xyzzy
@@ -1281,26 +1281,84 @@ User:{
 }
 """));}
 
-//--------------
-//--------------
-//--------------
+@Test void promotionsDisagree_mergesIdenticalBlocks_readH_mutH(){fail("""
+004|   .caller(x:readH A, y:mutH A):A->this.f(x,y);
+   |   --------------------------------~~~~^^^~~~~
+
+While inspecting ".caller(_,_)" line 4
+This call to method ".f(_,_)" can not typecheck.
+Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
+
+Compatible promotions by argument:
+- Argument 1 has type "readH p.A" and is compatible with: Allow readH, Allow mutH (arg1).
+- Argument 2 has type "mutH p.A" and is compatible with: Allow mutH (arg2).
+
+Promotion failures:
+- Argument 1 fails:    As declared
+  Parameter "x" has type "readH p.A" instead of a subtype of "read p.A".
+- Argument 1 fails:    Strengthen result, Strengthen result (allows readH/mutH), Allow mutH, Allow mutH (arg2)
+  Parameter "x" has type "readH p.A" instead of a subtype of "p.A".
+- Argument 2 fails:    Allow readH, Allow mutH (arg1)
+  Parameter "y" has type "mutH p.A" instead of a subtype of "iso p.A".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.f(x,y)
+""",List.of("""
+A:{
+  .f(a:read A, b:mut A):A->this;
+  .caller(x:readH A, y:mutH A):A->this.f(x,y);
+}
+"""));}
+
+@Test void promotionsDisagree_dontOverMergeAcrossDifferentArgs_mutH_mutH(){fail("""
+004|   .caller(x:mutH A, y:mutH A):A->this.f(x,y);
+   |   -------------------------------~~~~^^^~~~~
+
+While inspecting ".caller(_,_)" line 4
+This call to method ".f(_,_)" can not typecheck.
+Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
+
+Compatible promotions by argument:
+- Argument 1 has type "mutH p.A" and is compatible with: Allow mutH (arg1).
+- Argument 2 has type "mutH p.A" and is compatible with: Allow mutH (arg2).
+
+Promotion failures:
+- Argument 1 fails:    As declared
+  Parameter "x" has type "mutH p.A" instead of a subtype of "mut p.A".
+- Argument 1 fails:    Strengthen result, Strengthen result (allows readH/mutH), Allow readH, Allow mutH, Allow mutH (arg2)
+  Parameter "x" has type "mutH p.A" instead of a subtype of "iso p.A".
+- Argument 2 fails:    Allow mutH (arg1)
+  Parameter "y" has type "mutH p.A" instead of a subtype of "iso p.A".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.f(x,y)
+""",List.of("""
+A:{
+  .f(a:mut A, b:mut A):A->this;
+  .caller(x:mutH A, y:mutH A):A->this.f(x,y);
+}
+"""));}
+
 @Test void tsOkIndirect(){ok(List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo123;}
 """));}
 
-@Disabled @Test void tsOkIndirectFail1(){fail("""
+@Test void tsOkIndirectFail1(){fail("""
 002| A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
-   |                            --------~~~~^^^^^^^
+   |                            --------~~~~^^^^^^^^
 
 While inspecting ".bar" line 2
-This call to method ".foO123" does not type-check.
-Such method is not declared on type "p.A".
+This call to method ".foO123" can not typecheck.
+Method ".foO123" is not declared on type "p.A".
 Did you mean ".foo123" ?
 
-Available methods:
-  - imm .bar:p.A;
-  - mut .bob(p.A):p.A;
-  - imm .foo123:p.A;
+Available methods on type "p.A":
+-       .bar:A
+-   mut .bob(A):A
+-       .foo123:A
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.foO123
 """,List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
 """));}

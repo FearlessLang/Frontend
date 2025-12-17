@@ -73,8 +73,8 @@ public final class Reason{
     T got= cur.currentT();
     String base= Err.gotMsg(Err.expRepr(x), got, req.t());
     if (!Err.rcOnlyMismatch(got, req.t())){ return new Reason(got, req.reqName(), base,Optional::empty); }
-    var e= Err.of();
-    e.line(base);
+    var e= Err.of().line(base);
+    if (declared.equals(got)){ return new Reason(got, req.reqName(), base, Optional::empty); }
     e.line(declaredOkExpected
       ? "Note: the declared type "+disp(declared)+" would instead be a valid subtype."
       : "Note: the declared type "+disp(declared)+" also does not satisfy the requirement."

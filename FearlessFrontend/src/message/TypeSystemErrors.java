@@ -248,7 +248,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     if (sameName.isEmpty()){
       if (candidates.isEmpty()){ e.line("The type "+bestNamePkg(d)+" does not have any methods."); }
       else{
-        e.blank().line("Available methods on type "+bestNamePkg(d)+":");
         var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
         NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,c, d, candidates, cs, best); return null; } );
       }
@@ -273,6 +272,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
   }
   void bestNameMsg(Err e,Call c, Literal d, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
+    e.blank().line("Available methods on type "+bestNamePkg(d)+":");
     var print= Err.compactPrinter(pkg);
     for (String n:cs){
       candidates.stream()
@@ -385,38 +385,53 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     return res.get(IntStream.range(0, res.size())
       .filter(i->rcOnlyMismatch(res.get(i).best, reqs.get(i).t()))
       .findFirst().orElse(0));
-  }
-
-//---
-
-     /*assert reqs.size() == res.size();
-    var e= Err.of().pCallCantBeSatisfied(c);
-    if (true){ return e.blank().pArgDiag(diag.get()).pTypesRequiredByPromo(reqs); }
-    var gotTs= res.stream().map(r->r.best).distinct().toList();
-    pArgHasType(argi, gotTs);
-    var byT= typesByPromo(reqs);
-    var need= byT.keySet().stream()
-      .sorted((a,b)->{
-        int ra= rcRank(a), rb= rcRank(b);
-        if (ra != rb){ return Integer.compare(ra, rb); }
-        return disp(a).compareTo(disp(b));
-      })
-      .toList();
-    var needS= need.stream().map(Err::disp).toList();
-    String targets= needS.size() == 1 ? needS.getFirst() : "any of "+Join.of(needS,""," or ","");
-    line("That is not a subtype of "+targets+".");
-    pTypesRequiredByPromo(byT, need);
-    return withCallSpans(Err.of()
-      .pHopelessArg(c,argi,reqs,res,diag)
-      .ex(pkg,c), c);*/
-  
+  }  
   ///Each argument of call c is compatible with at least one promotion, but no promotion fits all arguments.
   ///The per-argument sets of acceptable promotions have empty intersection.
   ///Raised when checking method calls.
   ///Error details
   ///  - What arguments satisfy what promotion and why (best type <: required type1, required type 2 etc)  
   public FearlessException methodPromotionsDisagreeOnArguments(Call c, ArgMatrix mat){
-    throw Bug.todo();
+    int args= mat.okByArg().size();
+    assert args > 0 && mat.resByArg().size() == args;
+    var e= Err.of()
+      .pCallCantBeSatisfied(c)
+      .line("Each argument is compatible with at least one promotion, but no single promotion fits all arguments.")
+      .blank()
+      .line("Compatible promotions by argument:");
+    for (int argi= 0; argi < args; argi++){
+      var ok= mat.okByArg().get(argi);
+      assert !ok.isEmpty();
+      var promos= ok.stream().map(i->mat.candidate(i).promotion()).distinct().sorted().toList();
+      var got= disp(headerBest(mat.resByArg().get(argi)));
+      e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos,"",", ","")+".");
+    }
+    e.blank().pPromotionFailuresHdr();
+    var byArg= IntStream.range(0,args)
+      .mapToObj(_->new LinkedHashMap<String,List<String>>()).toList();
+    int promosN= mat.resByArg().getFirst().size();
+    for (int pi= 0; pi < promosN; pi++){
+      int argi= firstFailingArg(mat, pi);
+      Reason r= mat.resByArg().get(argi).get(pi);
+      assert !r.isEmpty();
+      byArg.get(argi).computeIfAbsent(up(r.info),_->new ArrayList<>())
+        .add(mat.candidate(pi).promotion());
+    }
+    for (int argi= 0; argi < args; argi++){
+      for (var ent: byArg.get(argi).entrySet()){
+        var names= ent.getValue();
+        e.pPromoFailure(
+          "Argument "+(argi+1)+" fails:\n"+ent.getKey(),
+          Join.of(names,"",", ","")
+        );
+      }
+    }
+  return withCallSpans(e.ex(pkg,c), c);
+  }
+  private static int firstFailingArg(ArgMatrix mat, int promoIdx){
+    return IntStream.range(0, mat.okByArg().size())
+      .filter(argi->!mat.okByArg().get(argi).contains(promoIdx))
+      .findFirst().getAsInt();
   }
 
 //---------------Utils
