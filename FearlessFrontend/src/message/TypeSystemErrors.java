@@ -196,7 +196,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
   private static String whyDropMutInImm(String subject, Change.NoT why){
     return subject+" has type "+disp(why.atDrop())+".\n"
     + subject+" has a \"mut\" capability; thus it can not be captured in the "+disp(why.l().rc())+" "+expRepr(why.l())
-    +" (line "+why.l().span().inner.startLine()+").";
+    +" (line "+why.l().span().inner.startLine()+").\n"
+    +"Hint: capture an immutable copy instead, or move this use outside the object literal.";
   }
   private static String whyDropReadHMutH(String subject, Change.NoT why){
     String explicitH= why.atDrop().explicitH()
