@@ -139,8 +139,6 @@ public record Methods(
     List<M.Sig> allSig= dd==null ?List.of() : fetch(c,dd,d.name()).sigs();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
-    assert !allMs.toString().contains("pppName")
-      || !allMs.toString().isEmpty();
     return d.withMs(allMs);
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){

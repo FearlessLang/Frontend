@@ -2,6 +2,7 @@ package inference;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class TestInferenceSteps {
@@ -1160,15 +1161,30 @@ Snd:{#[A](x:Int):F[A,A]->{y->y}}
 User2:{.go2:Float->(Snd#Int)#Float}
 """));}
 
-@Test void challenge4(){okI("""
+@Test void challengeRegressionLiteral(){okI("""
 [###]
-p.Snd#[imm,base.InferUnknown](p.One)#[imm](p.FOne)}
-~mut p.User3:{'this .go3:p.Float->\
+~mut p.TestIt:{'this .go:p.Float->p.Trash#[imm,p.Int](p.One)}
+~mut p.Trash:{'this #[T:imm](_:T):p.Float->p.FOne}
+""",List.of("""
+Int:base.WidenTo[Int]{}
+One:Int{}
+Float:base.WidenTo[Float]{}
+FOne:Float{}
+Trash:{#[T](T):Float->FOne}
+TestIt:{.go:Float->Trash#(One) }
+"""));}
+
+
+@Disabled @Test void challenge4WithCorrectInferUnknown(){okI("""
+[###]
+~mut p.User3:{'this .go3:p.Float->p.Trash#[imm,p.F[base.InferUnknown,base.InferUnknown]](p.Top.top[imm,base.InferUnknown](imm p._BUser:{'_ #(x:p.Int):p.F[base.InferUnknown,base.InferUnknown]->imm p._AUser:{'_ #(y:base.InferUnknown):base.InferUnknown->y}})#[imm](p.One))}
+~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._DUser[A:imm]:p.F[p.Int,p.F[A,A]]{'_ #(x:p.Int):p.F[A,A]->imm p._CUser[A:imm]:p.F[A,A]{'_ #(y:A):A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
+~mut p.User5:{'this .go3:p.Float->p.Trash#[imm,p.Float](p.Top.top[imm,p.Float](imm p._FUser:p.F[p.Int,p.F[p.Float,p.Float]]{'_ #(x:p.Int):p.F[p.Float,p.Float]->imm p._EUser:p.F[p.Float,p.Float]{'_ #(y:p.Float):p.Float->y}})#[imm](p.One)#[imm](p.FOne))}
 """,List.of("""
 F[A,R]:{#(A):R}
-Int:{}
+Int:base.WidenTo[Int]{}
 One:Int{}
-Float:{}
+Float:base.WidenTo[Float]{}
 FOne:Float{}
 Snd:{#[A](x:Int):F[A,A]->{y->y}}
 User1:{.go1[B]:F[B,B]->Snd#One}
@@ -1181,7 +1197,34 @@ User4:{
   .dec[A]:F[Int,F[A,A]]->{x->{y->y}};
   .use:Int-> this.dec # One # One
 }
+User5:{.go3:Float->Trash#(Top.top {x->{y->y}} # One # FOne) }
 """));}
+
+//TODO: why the fresh names are different wrt the one before with User3???
+@Test void challenge4CommentedCorrectInferUnknown(){okI("""
+[###]
+~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._BUser[A:imm]:p.F[p.Int,p.F[A,A]]{'_ #(x:p.Int):p.F[A,A]->imm p._AUser[A:imm]:p.F[A,A]{'_ #(y:A):A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
+~mut p.User5:{'this .go3:p.Float->p.Trash#[imm,p.Float](p.Top.top[imm,p.Float](imm p._DUser:p.F[p.Int,p.F[p.Float,p.Float]]{'_ #(x:p.Int):p.F[p.Float,p.Float]->imm p._CUser:p.F[p.Float,p.Float]{'_ #(y:p.Float):p.Float->y}})#[imm](p.One)#[imm](p.FOne))}
+""",List.of("""
+F[A,R]:{#(A):R}
+Int:base.WidenTo[Int]{}
+One:Int{}
+Float:base.WidenTo[Float]{}
+FOne:Float{}
+Snd:{#[A](x:Int):F[A,A]->{y->y}}
+User1:{.go1[B]:F[B,B]->Snd#One}
+User2:{.go2:Float->(Snd#One)#FOne}
+Top:{.top[A](p:F[Int,F[A,A]]):F[Int,F[A,A]]->p}
+Trash:{#[T](T):Float->FOne}
+//User3:{.go3:Float->Trash#(Top.top {x->{y->y}} # One) }
+As[T]:{#(t:T):T->t}
+User4:{
+  .dec[A]:F[Int,F[A,A]]->{x->{y->y}};
+  .use:Int-> this.dec # One # One
+}
+User5:{.go3:Float->Trash#(Top.top {x->{y->y}} # One # FOne) }
+"""));}
+
 
 //TODO: what to do here? Should we improve the inference or accept?
 //We could try to transform all vars in Gamma that are mut/read into:

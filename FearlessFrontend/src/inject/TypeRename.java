@@ -81,7 +81,7 @@ public class TypeRename{
     case IT.RCX(var rc,var x) -> new T.RCX(rc,new T.X(x.name(),x.span()));
     case IT.RCC(var rc, var c, var span) -> new T.RCC(rc,itcToTC(c),span);
     case IT.U _ ->//inferUnknown;
-      throw Bug.of();// bug is good for testing, it will be replaced with this later: inferUnknown;
+     throw Bug.of();// bug is good for testing, it will be replaced with this later: inferUnknown;
     case IT.Err _ ->
     //throw Bug.of();//
     inferErr;

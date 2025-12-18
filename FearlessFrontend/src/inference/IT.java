@@ -40,7 +40,7 @@ public sealed interface IT {
   }
   record RCC(RC rc, C c, TSpan span) implements IT{
     public RCC{ nonNull(rc,c); }
-    public String toString(){ return rc==RC.imm? ""+c : rc.name()+" "+c; }
+    public String toString(){ return rc.toStrSpace()+c; }
     public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
     public RCC withTs(List<IT> ts){
       if (ts == c.ts()){ return this; }

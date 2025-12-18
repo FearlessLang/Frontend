@@ -112,7 +112,7 @@ class CompactPrinter{
       return rcPrefixLen(rc) + c0 + 3;                                     // Bar{-} or {-}
     }
     public void accString(CompactPrinter sb){
-      if (rc != RC.imm){ sb.append(rc).append(" "); }
+      sb.append(rc.toStrSpace();
       if (!k.isCompactable()){ accName(sb); sb.append("{-}"); return; }
       accName(sb);   
       if (!priv){ wrap(sb,"","",cs,",",PC::accString); }  
@@ -132,7 +132,7 @@ class CompactPrinter{
   public record PTRCC(RC rc, PC c) implements PT{
     public int size(){ return rcPrefixLen(rc) + c.size(); }
     public void accString(CompactPrinter sb){
-      if (rc != RC.imm){ sb.append(rc).append(" "); }
+      sb.append(rc.toStrSpace());
       c.accString(sb);
     }
   }
@@ -164,7 +164,7 @@ class CompactPrinter{
     }
     public void accString(CompactPrinter sb){
       if (!k.isCompactable()){ accCompactedMeth(sb); return; }
-      if (rc != RC.imm){ sb.append(rc).append(" "); }
+      sb.append(rc.toStrSpace());
       sb.append(m);
       sb.append(bs);
       wrap(sb,"(",")",IntStream.range(0,xs.size()).boxed().toList(),",",(i,b)->{

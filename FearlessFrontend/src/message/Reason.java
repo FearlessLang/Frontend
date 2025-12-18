@@ -25,7 +25,7 @@ public final class Reason{
   public boolean isEmpty(){ return info.isEmpty(); }
   public static Reason pass(T got){ return new Reason(got,"",Optional::empty); }
   public static Reason literalDoesNotHaveRequiredType(
-    E blame, List<B> bs, String promNames, T got, T expected
+    E blame, List<B> bs, T got, T expected
     ){
     String base= Err.gotMsg(Err.expRepr(blame),got, expected);
     if (!(expected instanceof T.RCC er) || er.rc() == fearlessParser.RC.imm){

@@ -69,13 +69,11 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return acc;
   }
   private List<TRequirement> argRequirements(List<MType> app, int argi){
-    //This is actually a really confusing point:
+    //TODO:This is actually a really confusing point:
     //app has MTypes pre merged if two promotions had the same MType, but their argi may 
     //still be the same, so we are doing some duplicated computation when eventually do
-    //the subtyping checks. The commented code below saves that duplicated computation but
-    //it breaks the error messages in the cause (the Reason.promNames part, that is actually
-    //an arbitrary explanation not just the promotion names)
-    //Moreover, if we deduplicate here we have to re expand directly later to be able to fit the
+    //the subtyping checks. The commented code below saves that duplicated computation
+    //But if we deduplicate here we have to re expand directly later to be able to fit the
     //ArgMatrix acc with the right number of elements.
     return app.stream().map(m->new TRequirement(m.promotion(),m.ts().get(argi))).toList();
     /*var byT= new LinkedHashMap<T,List<String>>();

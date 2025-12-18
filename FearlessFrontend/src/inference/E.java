@@ -59,8 +59,7 @@ public sealed interface E {
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear());
     }
     public String toString(){
-      String res= "";
-      if (rc.isPresent() && rc.get() != RC.imm){ res= rc.get()+" "; }
+      String res= rc.map(RC::toStrSpace).orElse("");
       res += name.s();
       res += Join.of(bs,"[",",","]","");
       res += rc.isEmpty()

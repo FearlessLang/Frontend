@@ -12,9 +12,9 @@ public record Sig(RC rc, MName m, List<B> bs, List<T> ts, T ret, TName origin, b
   public String toString(){
     var bsS= Join.of(bs,"[",",","]","");
     var tsS= Join.of(ts,"(",",",")","");
-    var rcS= rc==RC.imm?"":rc.toString()+" ";      
+     
     var ori= "@"+origin.s();      
     var mS= m.toString();
-    return " "+rcS+mS+bsS+tsS+":"+ret+ori+";";
+    return " "+rc.toStrSpace()+mS+bsS+tsS+":"+ret+ori+";";
   }
 }

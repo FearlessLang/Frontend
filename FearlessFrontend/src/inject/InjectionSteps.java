@@ -206,6 +206,7 @@ public record InjectionSteps(Methods meths){
     assert clsXs.stream().distinct().count() == clsXs.size();
     List<String> methXs= m.sig().bs().stream().map(b->b.x()).toList();
     assert methXs.stream().distinct().count() == methXs.size();
+    assert Collections.disjoint(clsXs, methXs);
     var clsArgs= rcc.c().ts();
     assert clsArgs.size() == clsXs.size();
     List<String> xs= Push.of(clsXs,methXs);//TODO: could avoid materializing the two lists
@@ -255,8 +256,6 @@ public record InjectionSteps(Methods meths){
     return call.withT(t);
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
-    assert !c.toString().contains("Snd")||
-      !c.toString().isBlank();
     var e= nextStar(bs, g, c.e());
     var es= nextStar(bs, g, c.es());
     if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, es); }
@@ -265,25 +264,27 @@ public record InjectionSteps(Methods meths){
     MSigL m= om.get();
     RC rc= c.rc().orElse(m.rc());
     assert m.arity() == es.size();
-    List<IT> targs= newTargs(c, es, m);
+    List<IT> all= newAllTs(c, es, m);    //List<IT> targs= newTargs(c, es, m);
+    List<IT> clsTs= all.subList(0, m.nCls());//
+    List<IT> targs= all.subList(m.nCls(), all.size());//    
+    e = meet(e, rcc.withTs(clsTs));
+    m= m.withClsArgs(clsTs);
     var it= meet(c.t(), m.ret(targs));
     var es1= meet(es, m, targs);
-    if (e == c.e() && es == c.es() && targs.equals(c.targs()) && it.equals(c.t())){ return c; }
+    if (e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t())){ return c; }
     return c.withMore(e, rc, targs, es1, it);
   }
-  private List<IT> newTargs(E.Call c, List<E> es, MSigL m){
-    int n= m.bsArity();
-    if (n == 0){ return List.of(); }
-    if (c.targs().size()!= n){ return c.targs(); } //Note: this will eventually become an error at type system time.
-    assert c.targs().isEmpty() || c.targs().size() == n;
-    List<String> methXs= m.methXs();
-    var a= IntStream.range(0, c.es().size())
-      //.mapToObj(i->refine(methXs, m.pStr(i,m.methXs()), es.get(i).t()));//THIS FAILS tests
-      .mapToObj(i->refine(methXs, m.ps0().get(i), es.get(i).t()));
-    var r= Stream.of(refine(methXs, m.ret0(), c.t()), c.targs());
-    List<List<IT>> tss= Stream.concat(a,r).toList();
+  private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){
+    var base= Push.of(m.clsArgs(), c.targs());
+    if (c.targs().size()!= m.bsArity()){ return base; } //Note: this will eventually become an error at type system time.
+    if (m.bsArity() + m.clsArgs().size() == 0){ return List.of(); }//this is just an optimization
+    var a= IntStream.range(0, es.size())
+    //.mapToObj(i->refine(m.xs(), m.pStr(i,m.methXs()), es.get(i).t()));//THIS FAILS tests (test again)
+      .mapToObj(i -> refine(m.xs(), m.ps0().get(i), es.get(i).t()));
+    var r= refine(m.xs(), m.ret0(), c.t());
+    List<List<IT>> tss= Stream.concat(a, Stream.of(r, base)).toList();
     return meet(tss);
-  }  
+  } 
   private Optional<IT.RCC> precisePublicSelf(E.Literal l){
     if (l.infName()){ return superSelf(l); }
     var xs= l.bs().stream().<IT>map(b -> new IT.X(b.x(),l.name().approxSpan())).toList();
@@ -484,9 +485,14 @@ record MSigL(RC rc, List<String> xs, List<IT> clsArgs, List<IT> ps0, IT ret0){
   List<String> methXs(){ return xs.subList(nCls(), xs.size()); }
   IT p(int i, List<IT> targs){ return inst(ps0.get(i), targs); }
   IT ret(List<IT> targs){ return inst(ret0, targs); }
+  MSigL withClsArgs(List<IT> clsArgs){
+    if (clsArgs.equals(this.clsArgs)){ return this; }
+    assert clsArgs.size() == this.clsArgs.size();
+    return new MSigL(rc, xs, clsArgs, ps0, ret0);
+  }
   private IT inst(IT t, List<IT> targs){
     if (targs.size() != bsArity()){ return t; }//Note: this will eventually become an error at type system time.
-    var ts= Push.of(clsArgs,targs);
+    var ts= Push.of(clsArgs,targs);//performance? we could cache this result since targs is fixed and used over and over
     return TypeRename.of(t, xs, ts);
   }
   IT pStr(TSpan span, int i, List<String> targetBs){ return inst(ps0.get(i), toXs(span,targetBs)); }

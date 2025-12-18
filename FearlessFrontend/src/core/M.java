@@ -19,7 +19,7 @@ public record M(Sig sig, List<String> xs, Optional<core.E> e){
   }
   public String toString(){
     var sb= new StringBuilder();
-    if (sig.rc()!=RC.imm){ sb.append(sig.rc()).append(' '); }
+    sb.append(sig.rc().toStrSpace());
     sb.append(sig.m());
     if (!sig.bs().isEmpty()){ sb.append(Join.of(sig.bs(),"[",",","]","")); }
     if (!xs.isEmpty()){

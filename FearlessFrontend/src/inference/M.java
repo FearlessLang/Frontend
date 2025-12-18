@@ -28,10 +28,10 @@ public record M(Sig sig, Optional<Impl> impl){
     public String toString(){
       var bsS= bs.isEmpty() ? "[?]" : Join.of(bs.get(),"[",",","]","");
       var tsS= Join.of(ts.stream().map(this::t),"(",",",")","");
-      var rcS= rc.isEmpty()?" ?":rc.get()==RC.imm?"":" "+rc.get();
+      var rcS= rc.map(RC::toStrSpace).orElse("? ");
       var ori= origin.map(o->"@"+o.s()).orElse("@!");
       var mS= m.isPresent()?m.get().toString():"";
-      return ""+rcS+" "+mS+bsS+tsS+":"+t(ret)+ori+";";
+      return " "+rcS+mS+bsS+tsS+":"+t(ret)+ori+";";
     }    
     private String t(Optional<IT> ot){ return ot.map(Object::toString).orElse("?"); }
     public Sig withTsT(List<Optional<IT>> ts, IT ret){
