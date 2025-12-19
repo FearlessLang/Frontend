@@ -3,7 +3,7 @@ package message;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import core.*;
@@ -12,18 +12,20 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import inference.IT;
+import inject.TypeRename;
 import metaParser.Message;
 import typeSystem.TypeSystem.*;
 import utils.Bug;
 
-public record Err(Supplier<CompactPrinter> _cp, StringBuilder sb){
-  CompactPrinter cp(){ return _cp.get(); }
+public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,CompactPrinter> _cp, StringBuilder sb){
+  CompactPrinter cp(){ return _cp.apply(false); }
+  CompactPrinter cp(boolean trunk){ return _cp.apply(trunk); }
   static String disp(Object o){ return Message.displayString(o.toString()); }
   static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
-  static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }
-  String typeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }
+  static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
+  String typeDecName(TName name){ return disp(cp().msgTName(name)+genArity(name.arity())); }
   String typeDecNamePkg(TName name){ return disp(tNameDirect(name)); }
-  String tNameDirect(TName n){ return n.s()+genArity(n.arity()); }
+  String tNameDirect(TName n){ return cp().msgTName(n)+genArity(n.arity()); }
   static boolean useImplName(Literal l){ return l.infName(); }
   static boolean useImplName(inference.E.Literal l){ return l.infName(); }
   private TName guessImplName(inference.E.Literal l){
@@ -32,18 +34,28 @@ public record Err(Supplier<CompactPrinter> _cp, StringBuilder sb){
     return rcc.c().name();
     }
   String bestNamePkg(Literal l){
-    if (!useImplName(l)){ return disp(l.rc().toStrSpace()+l.name().s()+genArity(l.name().arity())); }
-    return "instance of "+disp(l.rc().toStrSpace()+l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity()));
+    if (!useImplName(l)){ return disp(l.rc().toStrSpace()+cp().msgTName(l.name())+genArity(l.name().arity())); }
+    return "instance of "+disp(l.rc().toStrSpace()+cp().msgTName(l.cs().getFirst().name())+genArity(l.cs().getFirst().name().arity()));
   }
   String bestNamePkgDirect(boolean skipImm,Literal l){
-    if (!useImplName(l)){ return disp(l.rc().toStrSpace(skipImm)+l.name().s()+genArity(l.name().arity())); }
-    return disp(l.rc().toStrSpace(skipImm)+l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity()));
+    if (!useImplName(l)){ return disp(l.rc().toStrSpace(skipImm)+cp().msgTName(l.name())+genArity(l.name().arity())); }
+    return disp(l.rc().toStrSpace(skipImm)+cp().msgTName(l.cs().getFirst().name())+genArity(l.cs().getFirst().name().arity()));
   }
   String bestNamePkg(inference.E.Literal l){
-    if (!useImplName(l)){ return disp(l.rc().orElse(RC.imm).toStrSpace()+l.name().s()+genArity(l.name().arity())); }
+    if (!useImplName(l)){ return disp(l.rc().orElse(RC.imm).toStrSpace()+cp().msgTName(l.name())+genArity(l.name().arity())); }
     var n= guessImplName(l);
-    return "instance of "+disp(l.rc().orElse(RC.imm).toStrSpace()+n.s()+genArity(n.arity()));
+    return "instance of "+disp(l.rc().orElse(RC.imm).toStrSpace()+cp().msgTName(n)+genArity(n.arity()));
   }
+  T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()),t.ts()); }//Correct to not propagate here
+  T preferredForFresh(T t){ return switch(t){
+    case T.X x -> x;
+    case T.RCX x -> x;
+    case T.ReadImmX x -> x;
+    case T.RCC(RC rc, var c, var span) -> new T.RCC(rc, preferredForFresh(c),span);
+  };}
+  String typeRepr(inference.IT t){ return typeRepr(TypeRename.itToT(t)); }
+  String typeRepr(T t){ return disp(cp().msgT(preferredForFresh(t))); }
+  String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t),t.span()))); }
   static String up(String s){return s.substring(0, 1).toUpperCase() + s.substring(1); }
   String expRepr(E toErr){return switch(toErr){
     case Call c->"method call "+methodSig(c.name());
@@ -51,7 +63,7 @@ public record Err(Supplier<CompactPrinter> _cp, StringBuilder sb){
     case Literal l->l.thisName().equals("this")
       ? "type declaration " +typeDecName(l.name())
       : "object literal " +bestNamePkg(l);
-    case Type t-> "object literal instance of " + t;
+    case Type t-> "object literal instance of " + typeRepr(t.type());
     };}
   String expReprDirect(boolean skipImm, E toErr){return switch(toErr){
     case Call c->methodSig(c.name());
@@ -76,15 +88,15 @@ public record Err(Supplier<CompactPrinter> _cp, StringBuilder sb){
     case inference.E.Type t-> "object literal instance of " + t;
     };}
   String bestNameDirect(Literal l){
-    if (!useImplName(l)){ return l.name().s()+genArity(l.name().arity()); }
-    return l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity());
+    if (!useImplName(l)){ return cp().msgTName(l.name())+genArity(l.name().arity()); }
+    return cp().msgTName(l.cs().getFirst().name())+genArity(l.cs().getFirst().name().arity());
   }
   String bestNameDirect(E.Type l){
     return l.type().rc().toStrSpace()+tNameDirect(l.type().c().name())+genArity(l.type().c().name().arity());
   }
   String bestNameDirect(inference.E.Literal l){
-    if (!useImplName(l)){ return l.name().s()+genArity(l.name().arity()); }
-    return l.cs().getFirst().name().s()+genArity(l.cs().getFirst().name().arity());
+    if (!useImplName(l)){ return cp().msgTName(l.name())+genArity(l.name().arity()); }
+    return cp().msgTName(l.cs().getFirst().name())+genArity(l.cs().getFirst().name().arity());
   }
   static String methodSig(MName m){ return methodSig("",m); }
   String methodSig(TName pre, MName m){ return methodSig(tNameDirect(pre),m); }
@@ -105,10 +117,7 @@ public record Err(Supplier<CompactPrinter> _cp, StringBuilder sb){
   }  
   static boolean isInferErr(T t){
     return t instanceof T.RCC rcc && rcc.c().name().s().equals("base.InferErr");
-  }
-  
-  
-  
+  }  
   String text(){ return sb.toString().stripTrailing(); }
   public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, String badStr, String allowedStr){
     return line("The "+what+" is invalid.")
@@ -118,7 +127,7 @@ public record Err(Supplier<CompactPrinter> _cp, StringBuilder sb){
   }
   public Err invalidMethImpl(Literal l, MName m){ return line("Invalid method implementation for "+methodSig(l,m)+"."); }
 
-  Err compactPrinterLine(E e){ return line(cp().limit(e,120)); }
+  Err compactPrinterLine(E e){ return line(cp(true).limit(e,120)); }
   Err line(String s){
     assert !s.isEmpty();
     assert sb.lastIndexOf("\n") == sb.length()-1;
@@ -168,14 +177,14 @@ public record Err(Supplier<CompactPrinter> _cp, StringBuilder sb){
     }
     return this;
   }
-  public static String gotMsg(String label, T got, T expected){
-    if (!isInferErr(expected)){ return label+" has type "+disp(got)+" instead of a subtype of "+disp(expected)+"."; }
+  public String gotMsg(String label, T got, T expected){
+    if (!isInferErr(expected)){ return label+" has type "+typeRepr(got)+" instead of a subtype of "+typeRepr(expected)+"."; }
     return gotMsgInferErr(label,got); 
     }
-  public static String gotMsgInferErr(String label, T got){
+  public String gotMsgInferErr(String label, T got){
     return label 
       + " cannot be checked agains an expected supertype.\n"
-      + "Type inference could not infer an expected type; computed type is "+disp(got)+"."; 
+      + "Type inference could not infer an expected type; computed type is "+typeRepr(got)+"."; 
     }
     
   FearlessException ex(E e){

@@ -31,7 +31,7 @@ import utils.Bug;
 
 public record WellFormednessErrors(Err err) {
   public WellFormednessErrors(String pkgName){
-    this(new Err(() -> new CompactPrinter(pkgName,Map.of()), new StringBuilder()));
+    this(new Err(x->x,t -> new CompactPrinter(pkgName,Map.of(),t), new StringBuilder()));
   }
   public FearlessException notClean(URI uri, FileFull f){
     return Code.WellFormedness.of(() -> buildMessageNotClean(f))
@@ -269,13 +269,13 @@ public record WellFormednessErrors(Err err) {
     }
   public FearlessException duplicatedName(TName name) {
     return Code.WellFormedness.of(
-      "Duplicate type declaration for "+Err.staticTypeDecName(name)+".\n"
+      "Duplicate type declaration for "+err.typeDecName(name)+".\n"
       ).addFrame("a type name",Parser.span(name.pos(),name.s().length()));
   }
   public FearlessException circularImplements(Map<TName,E.Literal> rem){
     TName name = findCycleNode(rem);
     return Code.WellFormedness.of(
-      "Circular implementation relation found involving "+Err.staticTypeDecName(name)+".\n"
+      "Circular implementation relation found involving "+err.typeDecName(name)+".\n"
       ).addFrame("type declarations",Parser.span(name.pos(),name.s().length()));
   }
   private TName findCycleNode(Map<TName,E.Literal> rem){
@@ -321,7 +321,10 @@ public record WellFormednessErrors(Err err) {
       msg+ " for method "
     + Err.methodSig(at.mName())+" with "+at.mName().arity()+" parameters.\n"
     + Join.of(
-        res.stream().map(o->Err.disp(o)),
+        res.stream().map(o->{ //Can be RC or inference.IT.RCC
+        if (o instanceof inference.IT.RCC rcc){ return err().typeRepr(rcc); }
+        return Err.disp(o);
+        }),
         "Different options are present in the implemented types: ",", ",".\n")
     + Err.up(err.expRepr(at.lit()))+" must declare a method "
     + Err.methodSig(at.mName())+" explicitly choosing the desired option.\n"
@@ -411,7 +414,7 @@ public record WellFormednessErrors(Err err) {
       "Ambiguous implementation for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types:\n"
     + Join.of(
-        options.stream().map(mi->Err.disp(err.tNameDirect(mi))),
+        options.stream().map(mi->err.typeDecName(mi)),
         "Candidates: ",", ",".\n")
     + Err.up(err.expRepr(at.lit()))+" must declare a method "+Message.displayString(at.mName().s())+" explicitly implementing the desired behaviour.\n"
       ).addFrame(err.expRepr(at.lit()), at.span());

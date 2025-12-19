@@ -488,7 +488,7 @@ In file: [###]/in_memory0.fear
 003| User:{ .m:A->{ .m->A;}; }
    |              --^^^^^--
 
-While inspecting object literal instance of "p.A"
+While inspecting object literal instance of "A"
 Cannot infer signature of method ".m".
 No supertype has a method named ".m" with 0 parameters.
 Error 9 WellFormedness

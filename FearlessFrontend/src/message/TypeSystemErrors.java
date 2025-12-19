@@ -13,6 +13,7 @@ import java.util.stream.IntStream;
 
 import fearlessParser.Parser;
 import fearlessParser.RC;
+import inject.Methods;
 import metaParser.NameSuggester;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
@@ -27,8 +28,15 @@ import core.E.*;
 
 import static message.Err.*;
 
-public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg, Map<String,String> map){
-  public Err err(){ return new Err(()->new CompactPrinter(pkg.name(),map),new StringBuilder()); }
+public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pkg, Map<String,String> map){
+  public Err err(){
+   Function<TName,TName> f= n->{
+     var res= decs.apply(n);
+     if (res == null){ return n; }
+     if (!res.infName() || res.cs().isEmpty()){ return n; }
+     return res.cs().getFirst().name();
+   };
+   return new Err(f,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
   public FearlessException mCallFrame(M m, FearlessException fe){
     return fe.addFrame(err().methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
   }
@@ -49,8 +57,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     assert index >= 0;
     String allowedStr= Join.of(bounds.stream().map(Err::disp).sorted(), "", " or ", "");
     Err err=switch(target){
-      case T.RCC rcc -> typeNotWellKinded("type "+disp(rcc),rcc.c(), index, allowedStr);
-      case T.C c -> typeNotWellKinded("type "+disp(c),c, index, allowedStr);
+      case T.RCC rcc -> typeNotWellKinded("type "+err().typeRepr(rcc),rcc.c(), index, allowedStr);
+      case T.C c -> typeNotWellKinded("type "+err().typeRepr(c),c, index, allowedStr);
       case KindingTarget.CallKinding(var t,var c)   -> typeNotWellKindedSig(t,c, index, allowedStr);
     };
     return addExpFrame(toErr,err.ex(toErr).addSpan(target.span().inner));
@@ -61,9 +69,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     T bad= args.get(index);
     var bs= decs.apply(c.name()).bs();
     assert index < bs.size();
-    String typeName = disp(c.name().s());
+    String typeName = err().typeDecName(c.name());
     String paramName= disp(bs.get(index).x());
-    return err().pTypeArgBounds(name, typeName, paramName, index, disp(bad), allowedStr);
+    return err().pTypeArgBounds(name, typeName, paramName, index, err().typeRepr(bad), allowedStr);
   }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr){
     var ms= decs.apply(t.name()).ms();
@@ -73,7 +81,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     var param= bs.get(index);
     String decName   = err().methodSig(t.name(), c.name()); // p.A.m(...)
     T bad            = c.targs().get(index);
-    return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, disp(bad), allowedStr);
+    return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, err().typeRepr(bad), allowedStr);
   } 
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
@@ -85,8 +93,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     T currentArg= current.ts().get(index);
     return overrideErr(l, current, err()
       .invalidMethImpl(l,mName)
-      .line("The method "+err().methodSig(mName)+" accepts argument "+(index+1)+" of type "+disp(currentArg)+".")
-      .line("But "+err().methodSig(parent.origin(),mName)+" requires "+Err.disp(parentArg)+", which is not a subtype of "+disp(currentArg)+".")
+      .line("The method "+err().methodSig(mName)+" accepts argument "+(index+1)+" of type "+err().typeRepr(currentArg)+".")
+      .line("But "+err().methodSig(parent.origin(),mName)+" requires "+err().typeRepr(parentArg)+", which is not a subtype of "+err().typeRepr(currentArg)+".")
     );
   }
   ///Overriding method in literal l is not a valid subtype of inherited method.
@@ -98,8 +106,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     T currentRet= current.ret();
     return overrideErr(l, current, err()
       .invalidMethImpl(l,mName)
-      .line("The method "+err().methodSig(mName)+" returns type "+disp(currentRet)+".")
-      .line("But "+err().methodSig(parent.origin(),mName)+" returns type "+disp(parentRet)+", which is not a supertype of "+disp(currentRet)+".")
+      .line("The method "+Err.methodSig(mName)+" returns type "+err().typeRepr(currentRet)+".")
+      .line("But "+err().methodSig(parent.origin(),mName)+" returns type "+err().typeRepr(parentRet)+", which is not a supertype of "+err().typeRepr(currentRet)+".")
     );
   }
   ///A required method was left abstract instead of being implemented.
@@ -159,8 +167,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     M m= s.m();
     assert got.size() == req.size();
     assert got.stream().allMatch(r->!r.isEmpty());
-    var got0= disp(got.getFirst().best);
-    var req0= disp(req.getFirst().t());
+    var got0= err().typeRepr(got.getFirst().best);
+    var req0= err().typeRepr(req.getFirst().t());
     var e= err();
     String meth= err().methodSig(m.sig().m());
     var top= l.thisName().equals("this");
@@ -199,7 +207,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       ).get();
   }
   private String whyDropMutInImm(String subject, Change.NoT why){
-    return subject+" has type "+disp(why.atDrop())+".\n"
+    return subject+" has type "+err().typeRepr(why.atDrop())+".\n"
     + subject+" has a \"mut\" capability; thus it can not be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n"
     +"Hint: capture an immutable copy instead, or move this use outside the object literal.";
@@ -208,7 +216,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     String explicitH= why.atDrop().explicitH()
       ? "The type of "+subject+" is hygienic (readH or mutH)\n"
       : "The type of "+subject+" can be instantiated with hygienics (readH or mutH)\n";
-    return subject+" has type "+disp(why.atDrop())+".\n"
+    return subject+" has type "+err().typeRepr(why.atDrop())+".\n"
     + explicitH+ "and thus it can not be captured in the "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n";
   }
@@ -219,7 +227,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     return"Hint: change "+current+" by adding the missing type parameters: "+next;
   }
   private String whyDropFTV(String subject, Change.NoT why){
-    return subject+" has type "+disp(why.atDrop())+".\n"
+    return subject+" has type "+err().typeRepr(why.atDrop())+".\n"
     + subject+" uses type parameters that are not propagated\n"
     + "into "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+")"
@@ -233,9 +241,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     var best= TypeScope.bestInterestingScope(s, List.of(recvType));
     return withCallSpans(err()
       .pCallCantBeSatisfied(c)
-      .line("The receiver is of type "+disp(recvType)+". This is a type parameter.")
+      .line("The receiver is of type "+err().typeRepr(recvType)+". This is a type parameter.")
       .line("Type parameters cannot be receivers of method calls.")
-      .exInferMsg(best.contextE(),disp(recvType)),c);
+      .exInferMsg(best.contextE(),err().typeRepr(recvType)),c);
   }
   ///No method matches call c.
   ///Sub-errors for more clarity
@@ -332,11 +340,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     T reqCanon= reqCanon(reqs);
     if (isWrongUnderlyingType(ts,bs,reqCanon,res)){ return wrongUnderlyingTypeErr(ts.scope(),d,c,argi,reqs,res); }
     T gotHdr= headerBest(res);
-    var any= reqs.stream().map(TRequirement::t).map(Err::disp).distinct().toList();
+    var any= reqs.stream().map(TRequirement::t).map(t->err().typeRepr(t)).distinct().toList();
     var r= pickReason(reqs,res);
     var e= err()
       .pCallCantBeSatisfied(d,c)
-      .line("Argument "+(argi+1)+" has type "+disp(gotHdr)+".")
+      .line("Argument "+(argi+1)+" has type "+err().typeRepr(gotHdr)+".")
       .line(Join.of(any,"That is not a subtype of any of "," or ","."))
       .line(up(r.info))
       .blank()
@@ -348,11 +356,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     }
     for (var ent:byT.entrySet()){
       var names= ent.getValue().stream().distinct().toList();
-      e.bullet(disp(ent.getKey())+"  ("+Join.of(names,"",", ","")+")");
+      e.bullet(err().typeRepr(ent.getKey())+"  ("+Join.of(names,"",", ","")+")");
     }
     var footer= r.footerE.get();
     if (footer.isEmpty()){ return withCallSpans(e.ex( c), c); }
-    return withCallSpans(e.exInferMsg(footer.get(),disp(reqs.getFirst().t())),c); 
+    return withCallSpans(e.exInferMsg(footer.get(),err().typeRepr(reqs.getFirst().t())),c); 
   }
   private FearlessException wrongUnderlyingTypeErr(TypeScope s, Literal d, Call c, int argi, List<TRequirement> reqs, List<Reason> res){
     T gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both 
@@ -361,8 +369,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     //TODO: line reqs.getFirst().t(); above, should we use the best return with ordering on rcs?
     var e= err()          
       .pCallCantBeSatisfied(d,c)
-      .line("Argument "+(argi+1)+" has type "+disp(gotHdr)+".")
-      .line("That is not a subtype of "+disp(required)+".");
+      .line("Argument "+(argi+1)+" has type "+err().typeRepr(gotHdr)+".")
+      .line("That is not a subtype of "+err().typeRepr(required)+".");
     return withCallSpans(e.ex(s.pushCallArgi(c,argi).contextE()), c);
   }
   private static T reqCanon(List<TRequirement> reqs){
@@ -408,7 +416,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       var ok= mat.okByArg().get(argi);
       assert !ok.isEmpty();
       var promos= ok.stream().map(i->mat.candidate(i).promotion()).distinct().sorted().toList();
-      var got= disp(headerBest(mat.resByArg().get(argi)));
+      var got= err().typeRepr(headerBest(mat.resByArg().get(argi)));
       e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos,"",", ","")+".");
     }
     e.blank().pPromotionFailuresHdr();

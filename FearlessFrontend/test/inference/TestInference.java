@@ -606,7 +606,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting type declaration "B"
 Return type disagreement for method ".foo" with 0 parameters.
-Different options are present in the implemented types: "p.A1", "p.A2".
+Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
 A1:{ .foo:A1;}
@@ -621,7 +621,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting type declaration "B"
 Return type disagreement for method ".foo" with 0 parameters.
-Different options are present in the implemented types: "p.A1", "p.A2".
+Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
 A1:{ .foo:A1;}
@@ -636,7 +636,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting type declaration "B"
 Type disagreement about argument 1 for method ".foo(_,_)" with 2 parameters.
-Different options are present in the implemented types: "p.A1", "p.A2".
+Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
@@ -651,7 +651,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting type declaration "B"
 Type disagreement about argument 1 for method ".foo(_,_)" with 2 parameters.
-Different options are present in the implemented types: "p.A1", "p.A2".
+Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
@@ -764,7 +764,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Ambiguous implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
-Candidates: "p.A2", "p.A1".
+Candidates: "A2", "A1".
 Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
 Error 9 WellFormedness
 """,List.of("""
@@ -783,7 +783,7 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "B"
 Ambiguous implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
-Candidates: "p.A2", "p.A3".
+Candidates: "A2", "A3".
 Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
 Error 9 WellFormedness
 """,List.of("""
@@ -912,7 +912,7 @@ In file: [###]/in_memory0.fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Invalid method implementation for "p.D.id(_)".
+Invalid method implementation for "D.id(_)".
 Supertypes disagree on the capability bounds for type parameter 1 of ".id(_)".
 Type parameter names may differ across supertypes; only the position matters.
 Different supertypes declare: "X:imm" and "Y:read".
@@ -933,7 +933,7 @@ In file: [###]/in_memory0.fear
    |     ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "E"
-Invalid method implementation for "p.E.m(_,_)".
+Invalid method implementation for "E.m(_,_)".
 The method ".m(_,_)" declares 1 type parameter(s), but supertypes declare 2.
 Local declaration: "[U:imm]".
 From supertypes: "[-:imm, -:imm]".
@@ -970,7 +970,7 @@ In file: [###]/in_memory0.fear
 
 While inspecting type declaration "D"
 Type disagreement about argument 0 for method ".m(_)" with 1 parameters.
-Different options are present in the implemented types: "p.Twice[p.Pair[X,Y]]", "p.Twice[p.Pair[Y,X]]".
+Different options are present in the implemented types: "Twice[Pair[X,Y]]", "Twice[Pair[Y,X]]".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 Error 9 WellFormedness
 """, List.of("""

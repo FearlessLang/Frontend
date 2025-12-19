@@ -22,7 +22,6 @@ import inference.E;
 import inference.IT;
 import inference.M;
 import inference.M.Sig;
-import message.WellFormednessErrors;
 import metaParser.Span;
 import naming.FreshPrefix;
 import optimizedTypes.LiteralDeclarations;

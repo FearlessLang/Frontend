@@ -13,7 +13,7 @@ import fearlessParser.RC;
 import utils.Bug;
 
 class CompactPrinter{
-  public CompactPrinter(String mainPkg, Map<String,String> uses){ t= new TypeNamePrinter(mainPkg,uses); }
+  public CompactPrinter(String mainPkg, Map<String,String> uses, boolean trunk){ t= new TypeNamePrinter(trunk,mainPkg,uses); }
   public String limit(E e,int limit){
     assert limit >= 0;
     PE root= ofE(e);
@@ -30,6 +30,12 @@ class CompactPrinter{
   StringBuilder sb= new StringBuilder();
   TypeNamePrinter t;
   String tNameToStr(TName n){ return t.of(n); }
+  String msgTName(TName n){ return t.ofFull(n); }
+  String msgT(T t){     
+    var pt= ofT(t);
+    pt.accString(this);
+    return sb.toString();
+  }
   CompactPrinter append(String s){ sb.append(s); return this; }
   CompactPrinter append(RC rc){ sb.append(rc); return this; }
   String bounds(List<B> bs){ return Join.of(bs.stream().map(B::compactToString),"[",",","]",""); }
@@ -67,7 +73,8 @@ class CompactPrinter{
   static int callLen(String m, RC rc, int nt, int na){
     return m.length() + targsPunctLen(rc,nt) + argsPunctLen(na);
   }
-  static boolean privateLike(TName n){ return n.simpleName().startsWith("_"); }  static int xsWithColonsLen(List<String> xs){
+  //static boolean privateLike(TName n){ return n.simpleName().startsWith("_"); }
+  static int xsWithColonsLen(List<String> xs){
     return sum(xs, x-> x.equals("_")? 0: x.length() + 1);
   } // nothing if x is _ it will be printed as just the type, or "x:"
   static void accTargs(CompactPrinter sb, RC rc, List<PT> targs){
@@ -198,7 +205,7 @@ class CompactPrinter{
   }
   PE ofLit(Literal l){
     var ms= ofMs(l.name(),l.ms());
-    boolean priv= privateLike(l.name());
+    boolean priv= l.infName();
     var name= priv ? ""
       : tNameToStr(l.name()) + bounds(l.bs())+":"; // name[bs]:
     var cs= ofCs(l.src(),priv && !l.cs().isEmpty() ? List.of(l.cs().getFirst()):l.cs());

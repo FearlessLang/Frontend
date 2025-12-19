@@ -4,9 +4,10 @@ import java.util.Map;
 import fearlessFullGrammar.TName;
 import optimizedTypes.LiteralDeclarations;
 
-public record TypeNamePrinter(String mainPkg, Map<String,String> uses){
+public record TypeNamePrinter(boolean trunc,String mainPkg, Map<String,String> uses){
   public TypeNamePrinter{ assert !mainPkg.isEmpty(); }
-  public String of(TName n){ return trunc(pretty(n.s())); }
+  public String of(TName n){ return trunc?trunc(pretty(n.s())):pretty(n.s()); }
+  public String ofFull(TName n){ return pretty(n.s()); }
   private String pretty(String s){
     String a= uses.get(s);
     if (a != null){ return a; }
