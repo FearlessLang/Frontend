@@ -83,7 +83,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().map(r->isSub(bs,got,r.t())
       ? Reason.pass(got)
-      : Reason.literalDoesNotHaveRequiredType(blame,bs,got,r.t())
+      : Reason.literalDoesNotHaveRequiredType(this,blame,bs,got,r.t())
       ).toList();    
   }
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal l, List<TRequirement> rs){

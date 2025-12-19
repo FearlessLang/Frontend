@@ -9,9 +9,9 @@ import core.E.*;
 import fearlessParser.RC;
 import typeSystem.ArgMatrix;
 import typeSystem.TypeScope;
+import typeSystem.TypeSystem;
 import typeSystem.Change.*;
 import typeSystem.TypeSystem.TRequirement;
-import utils.Bug;
 
 import static message.Err.*;
 
@@ -25,21 +25,20 @@ public final class Reason{
   public boolean isEmpty(){ return info.isEmpty(); }
   public static Reason pass(T got){ return new Reason(got,"",Optional::empty); }
   public static Reason literalDoesNotHaveRequiredType(
-    E blame, List<B> bs, T got, T expected
-    ){
-    String base= Err.gotMsg(Err.expRepr(blame),got, expected);
+    TypeSystem ts, E blame, List<B> bs, T got, T expected
+    ){     
     if (!(expected instanceof T.RCC er) || er.rc() == fearlessParser.RC.imm){
-      return new Reason(got, base, Optional::empty);
+      return new Reason(got, base(ts,blame,bs,got,expected), Optional::empty);
     }
     String tn= bestNameHintExplicitRC(blame);
-    if (tn.isEmpty()){ return new Reason(got, base, Optional::empty); }
-    return hintExplicitRC(got, base, er,tn);
+    if (tn.isEmpty()){ return new Reason(got, base(ts,blame,bs,got,expected), Optional::empty); }
+    return hintExplicitRC(got, base(ts,blame,bs,got,expected), er,tn);
   }
-  private static String bestNameHintExplicitRC(E e){ return switch(e){
-    case Literal l-> l.rc() != RC.imm ? "" : bestNameDirect(l)+(l.infName()?"{...}":":{...}");
-    case Type t ->  t.type().rc() != RC.imm ? "" : bestNameDirect(t);
-    default ->{ throw Bug.unreachable(); }
-  };}
+  private static String base(TypeSystem ts, E blame, List<B> bs, T got, T expected){
+    if (isInferErr(expected)){ return gotMsgInferErr(expRepr(blame),got);}
+    var skipImm= !ts.isSub(bs, got, expected.withRC(RC.imm));
+    return "Object literal is of type "+expReprDirect(skipImm,blame)+" instead of a subtype of "+disp(expected)+".";
+  }
   private static Reason hintExplicitRC(T got, String base, T.RCC er, String tn){
     var e= Err.of()
       .line(base)

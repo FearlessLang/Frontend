@@ -321,7 +321,7 @@ User:{ imm .m(a:imm A,b:mut B):read B->a.id(b); }
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 006|   }
 
-While inspecting object literal "p.BB" > ".m" line 4
+While inspecting object literal "read p.BB" > ".m" line 4
 The method "p.BB.h" is dead code.
 The object literal "p.BB" is "read", so it will never be seen as "mut".
 But it implements method "mut .h", which requires a "mut" receiver.
@@ -532,7 +532,7 @@ User:{
 
 While inspecting object literal "p.AA" > ".m" line 5
 The body of method ".m" of type declaration "User" is an expression returning "p.AA".
-Object literal "p.AA" has type "p.AA" instead of a subtype of "p.B".
+Object literal is of type "p.AA" instead of a subtype of "p.B".
 
 See inferred typing context below for how type "p.B" was introduced: (compression indicated by `-`)
 User:{.m:B->AA:A{}}
@@ -549,7 +549,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
-Method ".get" inside the object literal instance of "p.Get" (line 6)
+Method ".get" inside the object literal instance of "read p.Get" (line 6)
 is implemented with an expression returning "read p.A".
 Parameter "loooooong" has type "read p.A" instead of a subtype of "mut p.A".
 Note: the declared type "mut p.A" would instead be a valid subtype.
@@ -572,7 +572,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
-Method ".get" inside the object literal instance of "p.Get" (line 6)
+Method ".get" inside the object literal instance of "read p.Get" (line 6)
 is implemented with an expression returning "read p.A".
 Parameter "loooooong" has type "read p.A" instead of a subtype of "iso p.A".
 Note: the declared type "mut p.A" also does not satisfy the requirement.
@@ -595,7 +595,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
-Method ".get" inside the object literal instance of "p.Get" (line 6)
+Method ".get" inside the object literal instance of "read p.Get" (line 6)
 is implemented with an expression returning "read p.A".
 Parameter "loooooong" has type "read p.A" instead of a subtype of "iso p.A".
 Note: the declared type "mut p.A" also does not satisfy the requirement.
@@ -619,7 +619,7 @@ User:{
    |                ---------^^^^^^^^^--
 
 While inspecting parameter "loooooong" > ".get" line 7 > ".wrap" line 7 > ".m(_)" line 6
-Method ".get" inside the object literal instance of "p.Get" (line 7)
+Method ".get" inside the object literal instance of "mut p.Get" (line 7)
 is implemented with an expression returning "p.A".
 Parameter "loooooong" has type "p.A" instead of a subtype of "iso p.A".
 Note: the declared type "mut p.A" also does not satisfy the requirement.
@@ -734,7 +734,7 @@ User:{
 While inspecting parameter "beer" > ".m" line 6 > ".m(_)" line 5
 parameter "beer" has type "p.Beer[X]".
 parameter "beer" uses type parameters that are not propagated
-into object literal "p.Foo" (line 6) and thus it can not be captured.
+into object literal "read p.Foo" (line 6) and thus it can not be captured.
 Hint: change "Foo" by adding the missing type parameters: "Foo[...,...]"
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1262,7 +1262,7 @@ While inspecting ".f" line 6
 This call to method "p.Need#(_)" can not typecheck.
 Argument 1 has type "p._AUser".
 That is not a subtype of any of "mut p.A" or "iso p.A" or "mutH p.A".
-Object literal instance of "p.A" has type "p._AUser" instead of a subtype of "mut p.A".
+Object literal is of type "imm p.A" instead of a subtype of "mut p.A".
 Hint: write "mut p.A{...}" if you need a "mut" object literal.
 
 Type required by each promotion:

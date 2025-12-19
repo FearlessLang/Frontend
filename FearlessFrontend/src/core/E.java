@@ -22,7 +22,9 @@ public sealed interface E {
     public String toString(){ return name;}}
   record Type(T.RCC type, Src src) implements E{
     public Type{ assert nonNull(type,src); }
-    public String toString(){ return type.toString();}}
+    public String toString(){ return type.toString();}
+    public String toString(boolean skipImm){ return type.toString(skipImm);}
+  }
   record Literal(RC rc, TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Src src, boolean infName) implements E{
     public Literal{
       assert unmodifiableDistinct(bs,"L.bs");
@@ -31,6 +33,7 @@ public sealed interface E {
       assert nonNull(rc,name,thisName,src);
     }
     public Literal withMs(List<M> ms){ return new Literal(rc,name,bs,cs,thisName,ms,src,infName); }
+    public Literal withRC(RC rc){ return new Literal(rc,name,bs,cs,thisName,ms,src,infName); }
     public String toString(){
       String _bs= Join.of(bs,"[",",","]","");
       String _cs= Join.of(cs,"",", ","","");

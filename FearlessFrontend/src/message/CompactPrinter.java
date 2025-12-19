@@ -112,7 +112,7 @@ class CompactPrinter{
       return rcPrefixLen(rc) + c0 + 3;                                     // Bar{-} or {-}
     }
     public void accString(CompactPrinter sb){
-      sb.append(rc.toStrSpace();
+      sb.append(rc.toStrSpace());
       if (!k.isCompactable()){ accName(sb); sb.append("{-}"); return; }
       accName(sb);   
       if (!priv){ wrap(sb,"","",cs,",",PC::accString); }  

@@ -8,19 +8,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import fearlessParser.Parser;
 import fearlessParser.RC;
-import files.Pos;
 import metaParser.NameSuggester;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
 import typeSystem.TypeScope;
 import typeSystem.TypeSystem;
-import utils.Bug;
 import utils.OneOr;
 import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
@@ -30,9 +27,15 @@ import core.E.*;
 import static message.Err.*;
 
 public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg){
+  public FearlessException mCallFrame(M m, FearlessException fe){
+    return fe.addFrame(methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
+  }
+  private FearlessException withCallSpans(FearlessException ex, Call c){
+    return ex.addSpan(Parser.span(c.pos(), c.name().s().length())).addSpan(c.span().inner);
+  }
   private FearlessException addExpFrame(E toErr,FearlessException err){
     return err.addFrame(expRepr(toErr),toErr.span().inner);
-    }
+  }
   private FearlessException overrideErr(Literal l, Sig sub, Err e){
     return addExpFrame(l, e.ex(pkg, l).addSpan(sub.span().inner));
   }
@@ -118,7 +121,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     String m= methodSig(s.rc()+" ", s.m());
     return addExpFrame(l, Err.of()
       .line("The method "+methodSig(l,s.m())+" is dead code.")
-      .line("The "+expRepr(l)+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".")
+      .line("The "+expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".")
       .line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver.")
       .ex(pkg,l).addSpan(at.inner));
   }  
@@ -241,13 +244,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
   public FearlessException methodNotDeclared(Call c, Literal d){
     var e= Err.of()
       .pCallCantBeSatisfied(c)
-      .line("Method "+methodSig(c.name())+" is not declared on type "+bestNamePkg(d)+".");
+      .line("Method "+methodSig(c.name())+" is not declared on type "+bestNamePkg(d.withRC(RC.imm))+".");
     String name= c.name().s();
     var candidates= d.ms().stream().map(M::sig).toList();
     List<Sig> sameName= candidates.stream()
       .filter(s->s.m().s().equals(name)).toList();
     if (sameName.isEmpty()){
-      if (candidates.isEmpty()){ e.line("The type "+bestNamePkg(d)+" does not have any methods."); }
+      if (candidates.isEmpty()){ e.line("The type "+bestNamePkg(d.withRC(RC.imm))+" does not have any methods."); }
       else{
         var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
         NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,c, d, candidates, cs, best); return null; } );
@@ -259,21 +262,21 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
       String avail= Join.of(sameName.stream().map(s->Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
       return withCallSpans(Err.of()
         .pCallCantBeSatisfied(c) 
-        .line("There is a method "+disp(c.name().s())+" on type "+bestNamePkg(d)+",\nbut with different number of arguments.")
+        .line("There is a method "+disp(c.name().s())+" on type "+bestNamePkg(d.withRC(RC.imm))+",\nbut with different number of arguments.")
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .ex(pkg,c), c);
     }
     String availRc= Join.of(sameArity.stream().sorted().map(s->disp(s.rc())), "", " and ", ".");
     return withCallSpans(Err.of()
       .pCallCantBeSatisfied(c)
-      .line(methodSig(c.name())+" exists on type "+bestNamePkg(d)+", but not with the requested capability.")
+      .line(methodSig(c.name())+" exists on type "+bestNamePkg(d.withRC(RC.imm))+", but not with the requested capability.")
       .line("This call requires the existence of a "+disp(c.rc())+" method.")
       .line("Available capabilities for this method: "+availRc)
       .ex(pkg,c), c);
   }
   void bestNameMsg(Err e,Call c, Literal d, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
-    e.blank().line("Available methods on type "+bestNamePkg(d)+":");
+    e.blank().line("Available methods on type "+bestNamePkg(d.withRC(RC.imm))+":");
     var print= Err.compactPrinter(pkg);
     for (String n:cs){
       candidates.stream()
@@ -432,192 +435,5 @@ public record TypeSystemErrors(Function<TName,Literal> decs,pkgmerge.Package pkg
     return IntStream.range(0, mat.okByArg().size())
       .filter(argi->!mat.okByArg().get(argi).contains(promoIdx))
       .findFirst().getAsInt();
-  }
-
-//---------------Utils
-
-  private FearlessException withCallSpans(FearlessException ex, Call c){
-    return ex.addSpan(Parser.span(c.pos(), c.name().s().length())).addSpan(c.span().inner);
-  }
-  public FearlessException override_Mismatch(Literal l,Sig sub, Sig parent, String reason){ return Err.of()
-    .pMethodContext("Invalid override", sub, sub.origin().s())
-    .conflictsWithMethodIn(parent)
-    .line("Reason: "+reason)
-    .ex(pkg, l).addSpan(sub.span().inner);
-  }
-  public FearlessException not_Kinded(E toErr, T t){ return Err.of()
-    .line("Type "+disp(t)+" is not well-kinded.")
-    .line("It violates reference capability constraints.")
-    .ex(pkg,toErr)
-    .addSpan(Parser.span(getPos(t),1))
-    .addSpan(toErr.span().inner);
-  }
-  private Pos getPos(T t){//When that is done, we will not have this method any more.
-    if (t instanceof T.RCC rcc){ return rcc.c().name().pos(); }
-    throw Bug.of();
-  }
-  public FearlessException not_Affine(M m, String name, List<E.X> usages){ 
-    var ex= Err.of()
-      .line("Usage violation for parameter "+disp(name)+".")
-      .line("An iso parameter must be either:")
-      .line("- Captured in object literals.")
-      .line("- Directly used at most once.")
-      .ex(pkg, m.e().get());
-    for (var x:usages){ ex.addSpan(Parser.span(x.pos(), x.name().length())); }
-    return ex;
-  }
-  public String makeErrResult(ArgMatrix mat, List<Integer> okProm, TRequirement req){
-    String promos= okProm.stream().map(i->mat.candidate(i).promotion()).sorted().collect(Collectors.joining(", "));//TODO: use Join here
-    return "Return requirement not met.\nExpected: "+disp(req.t())+".\nPromotions: "+promos+".";
-  }
-  
-  public FearlessException methodReceiver_RcBlocksCall(Literal d,Call c, RC recvRc, List<MType> promos){
-    List<String> needed= promos.stream().map(MType::rc).distinct().sorted().map(Err::disp).toList();
-    return withCallSpans(Err.of()
-      .pCallCantBeSatisfied(d,c)
-      .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
-      .line(Join.of(needed,"This call requires a receiver with capability "," or ","."))
-      .pReceiverRequiredByPromotion(promos)
-      .ex(pkg,c), c);
-  }
-  public FearlessException callableMethod_Abstract(TSpan at, M got, Literal l){
-    throw Bug.todo();
-  }
-  public FearlessException methodHopeless_Arg(Call c, int argi, List<TRequirement> reqs, List<Reason> res){
-    throw Bug.todo();/*assert reqs.size() == res.size();
-    return withCallSpans(Err.of()
-      .pHopelessArg(c,argi,reqs,res,diag)
-      .ex(pkg,c), c);
-      */
-  }
-  public FearlessException meth_odNotDeclared(Call c, core.E.Literal d){
-    throw Bug.todo();/*
-    String name= c.name().s();
-    var candidates= d.ms().stream().map(M::sig).toList();
-    var sameName= candidates.stream().filter(s->s.m().s().equals(name)).toList();
-    if (sameName.isEmpty()){
-      var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
-      var msg= NameSuggester.suggest(name, names, (_, cs, best) -> {//TODO: all the name suggester stuff clearly need to go in Err.
-        var e= Err.of()//Also, a lambda this long MUST be in its own method.
-          .pCallCantBeSatisfied(c)
-          .line("Such method is not declared on type "+disp(d.name().s())+".");
-        best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
-        if (cs.isEmpty()){ return e.line("The type "+disp(d.name().s())+" does not have any methods.").text(); }
-        e.blank().line("Available methods:");
-        for (String n:cs){
-          candidates.stream().filter(s->s.m().s().equals(n)).forEach(s->e.bullet(sigToStr(s)));
-        }
-        return e.text();
-      });
-      return withCallSpans(Code.TypeError.of(msg), c);
-    }
-    var sameArity= sameName.stream().filter(s->s.m().arity() == c.es().size()).toList();
-    if (sameArity.isEmpty()){
-      String avail= Join.of(sameName.stream().map(s->Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
-      return withCallSpans(Err.of()
-        .pCallCantBeSatisfied(c) 
-        .line("There is a method "+disp(c.name().s())+" on type "+disp(d.name().s())+", but with different number of arguments.")
-        .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
-        .ex(pkg,c), c);
-    }
-    String availRc= Join.of(sameArity.stream().map(s->s.rc().toString()).distinct().sorted(), "", " and ", "");
-    return withCallSpans(Err.of()
-      .pCallCantBeSatisfied(c)
-      .line(methodSig(c.name())+" exists on type "+disp(d.name().s())+", but not with the requested capability.")
-      .line("This call requires the existence of a "+disp(c.rc().toString())+" method.")
-      .line("Available capabilities for this method: "+disp(availRc)+".")
-      .ex(pkg,c), c);*/
-  }
-  public FearlessException methodArgs_Disagree(Literal d,Call c, ArgMatrix mat){
-    int ac= mat.aCount();
-    int cc= mat.cCount();
-    var e= Err.of()
-      .pCallCantBeSatisfied(d,c)
-      .pArgsDisagreeIntro();
-    for(int argi= 0; argi < ac; argi++){
-      List<String> ok= mat.okForArg(argi).stream().map(ci->mat.candidate(ci).promotion()).distinct().sorted().toList();
-      e.pAcceptedByPromos(argi, ok);
-    }
-    e.pPromotionFailuresHdr();
-    IntStream.range(0,cc).forEach(ci->{
-      int argi= IntStream.range(0,ac).filter(a->!mat.res(a,ci).isEmpty()).findFirst().getAsInt();
-      e.pPromoFailure(mat.res(argi,ci).info);
-    });
-    return withCallSpans(e.ex(pkg,c), c);
-  }
-  public FearlessException type_Error(E at, List<Reason> got, List<TRequirement> req){
-    assert got.size() == req.size();
-    var e= Err.of();
-    for(int i= 0; i < got.size(); i++){
-      var gi= got.get(i);
-      if (gi.isEmpty()){ continue; }
-      var ri= req.get(i);//TODO: this requirment never prints
-      if (!ri.reqName().isEmpty()){ e.line("@@Requirement "+disp(ri.reqName())+"."); }
-      String reason= gi.info;
-      if (reason.isEmpty()){ reason= Err.gotMsg(expRepr(at),gi.best, ri.t()); }
-      e.line(reason);
-    }
-    return e.ex(pkg,at).addSpan(at.span().inner);
-  }
-  public FearlessException uncallableMethod_DeadCode(TSpan at, M got, Literal l){
-    assert l.rc() == RC.imm || l.rc() == RC.read;
-    var s= got.sig();
-    assert s.rc() == RC.mut;
-    int line= l.pos().line();
-    String m= methodSig(s.rc()+" ", s.m());
-    String lit= up(expRepr(l));
-    return Err.of()
-      .line("Method "+m+" can never be called (dead code).")
-      .line(lit+" at line "+line+" is "+disp(l.rc())+".")
-      .line("Method "+m+" requires a "+disp(RC.mut)+" receiver, which cannot be obtained from a "+disp(l.rc())+" object.")
-      .line("Hint: remove the implementation of method "+m+".")
-      .ex(pkg,l).addSpan(at.inner);
-  }
-  public FearlessException methodTAr_gsArityError(Literal d,Call c, int expected){
-    int got= c.targs().size(); assert got != expected;
-    String expS= expected == 0 
-      ? "no type arguments" 
-      : expected+" type argument"+(expected == 1 ? "" : "s");
-    String gotS= got == 0 
-      ? "no type arguments" 
-      : got+" type argument"+(got == 1 ? "" : "s");
-    return withCallSpans(Err.of()
-      .pCallCantBeSatisfied(d,c)
-      .line("Wrong number of type arguments for "+methodSig(c.name())+".")
-      .line("This method expects "+expS+", but this call provides "+gotS+".")
-      .ex(pkg,c), c);
-  }  
-  public FearlessException methodReceiverNot_Rcc(Literal d, Call c, T recvType){
-    String name= switch(recvType){
-      case T.X x -> disp(x.name());
-      case T.RCX(var _, var x) -> disp(x.name());
-      case T.ReadImmX(var x) -> disp(x.name());
-      case T.RCC _-> { throw Bug.unreachable(); }
-    };
-  return withCallSpans(Err.of()
-    .pCallCantBeSatisfied(d,c)
-    .line("The receiver is of type "+name+". This is a type parameter.")
-    .line("Type parameters cannot be receivers of method calls.")
-    .ex(pkg,c), c);
-  }
-  /*private String sig_ToStr(Sig s){
-    var bsS= Join.of(s.bs(),"[",",","]","");
-    var tsS= Join.of(s.ts(),"(",",",")","");
-    return s.rc()+" "+s.m()+bsS+tsS+":"+s.ret()+";";
-  }*/
-  public FearlessException mCallFrame(M m, FearlessException fe){
-    return fe.addFrame(methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
-  }
-  public interface IsSub{ boolean isSub(List<B> bs, T a, T b); }
-  
-  
-  public FearlessException nameNot_Available(E.X x, T declared, Change why, List<B> bs){
-    throw Bug.of();/*var d= new ArgDiag(x.name(), declared, Optional.empty(), Optional.empty(), why, Note.NONE, bs, List.of());
-    return Err.of()
-      .line("The parameter "+disp(x.name())+" is not available here.")
-      .blank()
-      .pArgDiag(d)
-      .ex(pkg,x)
-      .addSpan(x.span().inner);*/
   }
 }
