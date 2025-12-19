@@ -22,7 +22,6 @@ import inference.E;
 import inference.IT;
 import inference.M;
 import inject.Methods;
-import message.WellFormednessErrors;
 import naming.FreshPrefix;
 import pkgmerge.OtherPackages;
 import pkgmerge.Package;
@@ -84,8 +83,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     case fearlessFullGrammar.B.RCS(List<RC> rcs)-> rcs.isEmpty() ?EnumSet.of(RC.imm) :inOrder(rcs,b.x());
     });
   }
-  private static EnumSet<RC> inOrder(List<RC> es, fearlessFullGrammar.T.X x){
-    if (es.size() != new HashSet<>(es).size()){ throw WellFormednessErrors.duplicatedBound(es,x); }
+  private EnumSet<RC> inOrder(List<RC> es, fearlessFullGrammar.T.X x){
+    if (es.size() != new HashSet<>(es).size()){ throw pkg.err().duplicatedBound(es,x); }
     return EnumSet.copyOf(es);
   }
 

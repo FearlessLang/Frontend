@@ -21,10 +21,10 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var base= baseMType(rcc0.c(),d,sig);
     var promos= ts.multiMeth(bs,base);
     var app= promos.stream().filter(m->rcc0.rc().isSubType(m.rc())).toList();
-    if (app.isEmpty()){ throw ts.err().receiverRCBlocksCall(d,c,rcc0.rc(),promos); }
+    if (app.isEmpty()){ throw ts.tsE().receiverRCBlocksCall(d,c,rcc0.rc(),promos); }
     var mat= typeArgsOnce(d,app);
     var possible= mat.candidatesOkForAllArgs();//This is indexes of MTypes allowed by the arguments
-    if (possible.isEmpty()){ throw ts.err().methodPromotionsDisagreeOnArguments(c,mat); }
+    if (possible.isEmpty()){ throw ts.tsE().methodPromotionsDisagreeOnArguments(c,mat); }
     if (rs.isEmpty()){ return List.of(Reason.pass(bestUnique(mat,possible))); }
     return rs.stream().map(req->resForReq(d,sig,mat,possible,req)).toList();
   }
@@ -35,17 +35,17 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     assert r.getFirst().isEmpty();//else would have thrown
     T t= r.getFirst().best;
     if (t instanceof T.RCC x){ return x; }
-    throw ts.err().methodReceiverIsTypeParameter(cts.scope(),c,t);
+    throw ts.tsE().methodReceiverIsTypeParameter(cts.scope(),c,t);
   }
   private Sig sigOf(Literal d){
     var ms= d.ms().stream().map(M::sig)
       .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()).toList();
-    if (ms.isEmpty()){ throw ts.err().methodNotDeclared(c,d); }
+    if (ms.isEmpty()){ throw ts.tsE().methodNotDeclared(c,d); }
     assert ms.size() == 1 : "Duplicate cached sig for "+c.name()+" rc="+c.rc()+" in "+d.name();
     Sig sig= ms.getFirst();
     assert sig.ts().size() == c.es().size();//ensured by well formedness
     if (sig.bs().size() == c.targs().size()){ return sig; }
-    throw ts.err().methodTArgsArityError(d,c,sig.bs().size());
+    throw ts.tsE().methodTArgsArityError(d,c,sig.bs().size());
   } 
   private MType baseMType(T.C c0, Literal d, Sig sig){
     var xs= Stream.concat(d.bs().stream(),sig.bs().stream()).map(B::x).toList();
@@ -94,7 +94,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     assert res.size() == app.size(): res.size()+" "+app.size();
     var ok= okSet(res);
     if (ok.isEmpty()){
-      throw cts.err().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res);
+      throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res);
     }
     acc.okByArg().add(ok);
     acc.resByArg().add(res);
@@ -106,7 +106,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     List<Integer> okRet= possible.stream()
       .filter(i->ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
     if (!okRet.isEmpty()){ return Reason.pass(bestUnique(mat,okRet)); }
-    return Reason.callResultCannotHaveRequiredType(d,c, bs, mat, possible, req, bestUnique(mat,possible),sig,ts.scope());
+    return Reason.callResultCannotHaveRequiredType(ts,d,c, bs, mat, possible, req, bestUnique(mat,possible),sig,ts.scope());
   } 
   private T bestUnique(ArgMatrix mat, List<Integer> idxs){
     List<T> all= idxs.stream().map(i->mat.candidate(i).t()).toList();

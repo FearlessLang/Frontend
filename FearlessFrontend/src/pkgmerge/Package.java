@@ -11,8 +11,10 @@ import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull.Role;
 import inference.E;
 import message.Join;
+import message.WellFormednessErrors;
 
 public record Package(String name, Role role, Map<String,String> map, List<Declaration> decs, DeclaredNames names, Logger log){
+  public WellFormednessErrors err(){ return new WellFormednessErrors(name); }
   public record Logger(boolean active, ArrayList<String> logs){
     public void logInferenceDeclaration(E.Literal d, List<T.C> cs) {
       if (!active){ return; }

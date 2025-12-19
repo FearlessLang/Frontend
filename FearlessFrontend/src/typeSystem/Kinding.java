@@ -11,7 +11,7 @@ import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import message.TypeSystemErrors;
 
-public record Kinding(TypeSystemErrors err){
+public record Kinding(TypeSystemErrors tsE){
   public void checkC(E toErr, List<B> bs, T.C c){
     var d= decs().apply(c.name());
     var params = d.bs();
@@ -22,7 +22,7 @@ public record Kinding(TypeSystemErrors err){
   public void check(E toErr, List<B> bs, T t){ 
     if (t instanceof T.RCC rcc){ check(toErr,rcc,-1,bs,rcc,EnumSet.allOf(RC.class)); }
   }
-  public Function<TName,Literal> decs(){ return err.decs(); }
+  public Function<TName,Literal> decs(){ return tsE.decs(); }
   public void check(E toErr, KindingTarget target, int index, List<B> bs, T t, EnumSet<RC> allowed){ switch(t){
     case T.RCC rcc -> checkRCC(toErr, target, index, bs, rcc, allowed);
     case T.RCX rcx -> checkRCX(toErr, target, index, rcx, allowed);
@@ -30,17 +30,17 @@ public record Kinding(TypeSystemErrors err){
     case T.ReadImmX rix -> checkReadImmX(toErr, target, index, bs, rix, allowed);
   };}
   private void checkRCC(E toErr, KindingTarget target, int index, List<B> bs, T.RCC rcc, EnumSet<RC> allowed){
-    if (!allowed.contains(rcc.rc())){ throw err.typeNotWellKinded(toErr,target,index,allowed); }
+    if (!allowed.contains(rcc.rc())){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
     checkC(toErr,bs,rcc.c());
   }
   private void checkRCX(E toErr, KindingTarget target, int index, T.RCX rcx, EnumSet<RC> allowed){
-    if (!ofRCX(rcx,allowed)){ throw err.typeNotWellKinded(toErr,target,index,allowed); }
+    if (!ofRCX(rcx,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
   }
   private void checkX(E toErr, KindingTarget target, int index, List<B> bs, T.X x, EnumSet<RC> allowed){
-    if (!ofX(bs, x,allowed)){ throw err.typeNotWellKinded(toErr,target,index,allowed); }
+    if (!ofX(bs, x,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
   }
   private void checkReadImmX(E toErr, KindingTarget target, int index, List<B> bs, T.ReadImmX rix, EnumSet<RC> allowed){
-    if (!ofReadImmX(bs,rix,allowed)){ throw err.typeNotWellKinded(toErr,target,index,allowed); }
+    if (!ofReadImmX(bs,rix,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
   }
   public boolean of(List<B> bs, T t, EnumSet<RC> allowed){ return switch(t){
     case T.RCC rcc -> ofRCC(bs, rcc, allowed);

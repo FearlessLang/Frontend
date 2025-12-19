@@ -13,11 +13,13 @@ import core.Sig;
 import core.T;
 import fearlessParser.RC;
 import inject.TypeRename;
+import message.Err;
 import message.FearlessException;
 import message.Reason;
 import message.TypeSystemErrors;
 import pkgmerge.OtherPackages;
 import static fearlessParser.RC.*;
+
 import utils.OneOr;
 import utils.Push;
 import core.E.*;
@@ -28,8 +30,9 @@ import pkgmerge.Package;
 
 public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   Kinding k(){ return v.k(); }
-  TypeSystemErrors err(){ return v.k().err(); }
-  Function<TName,Literal> decs(){ return v.k().err().decs(); }
+  public TypeSystemErrors tsE(){ return v.k().tsE(); }
+  public Err err(){ return v.k().tsE().err(); }
+  Function<TName,Literal> decs(){ return v.k().tsE().decs(); }
   public record TRequirement(String reqName,T t){}
   public record MType(String promotion,RC rc,List<T> ts,T t){
     MType withPromotion(String promotion){ return new MType(promotion,rc,ts,t); }
@@ -40,8 +43,11 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var map= AllLs.of(tops);
     Function<TName,Literal> decs= n->{
       var res= map.get(n);
-      return res != null ? res : other.of(n); };
-    var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg))));
+      return res != null ? res : other.of(n);
+    };
+    Map<String,String> invMap= pkg.map().entrySet().stream()
+      .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+    var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg,invMap))));
     tops.forEach(l->ts.litOk(Gamma.empty(),l));
   }
   public boolean isSub(List<B> bs, T t1, T t2){
@@ -55,7 +61,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var out= typeOf(bs,g,e,rs);
     assert out.size() == 1;
     if (out.getFirst().isEmpty()){ return; }
-    throw err().methBodyWrongType((TypeScope.Method)scope,e,out,rs);
+    throw tsE().methBodyWrongType((TypeScope.Method)scope,e,out,rs);
   }
   List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch(e){
     case X x -> checkX(bs,g,x,rs);
@@ -67,13 +73,13 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var b= g.bind(x.name());
     T declared= b.declared();
     var cur= b.current();
-    if (!(cur instanceof Change.WithT w)){ throw err().parameterNotAvailableHere(x, declared, (Change.NoT)cur, bs); }
+    if (!(cur instanceof Change.WithT w)){ throw tsE().parameterNotAvailableHere(x, declared, (Change.NoT)cur, bs); }
     T got= w.currentT();
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().<Reason>map(r->{
       if (isSub(bs,got,r.t())){ return Reason.pass(got); }
       boolean declaredOk= isSub(bs,declared,r.t());
-      return Reason.parameterDoesNotHaveRequiredTypeHere(x, bs, r, declared, w, declaredOk);
+      return Reason.parameterDoesNotHaveRequiredTypeHere(this,x, bs, r, declared, w, declaredOk);
     }).toList();
   }
   private List<Reason> checkType(E blame,List<B> bs, Gamma g, Type t, List<TRequirement> rs){
@@ -104,12 +110,12 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private void checkImplemented(Literal l, M m){
     if (!m.sig().abs()){ return; }
     if (!callable(l.rc(),m.sig().rc())){ return; }
-    throw err().callableMethodStillAbstract(m.sig().span(), m, l);
+    throw tsE().callableMethodStillAbstract(m.sig().span(), m, l);
   }
   private void checkCallable(Literal l, M m){
     RC litRC= l.rc();
     if (callable(litRC,m.sig().rc())){ return; }
-    throw err().methodImplementationDeadCode(m.sig().span(), m, l);
+    throw tsE().methodImplementationDeadCode(m.sig().span(), m, l);
   }
   private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC !=RC.read); }
 
@@ -139,7 +145,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     k().check(forErr,allBs,m.sig().ret());
     if(m.e().isEmpty()){ return; }
     try{ bodyOk(forErr,allBs,g,m); }
-    catch(FearlessException fe){ throw err().mCallFrame(m, fe); }
+    catch(FearlessException fe){ throw tsE().mCallFrame(m, fe); }
   }
   private void bodyOk(Literal forErr,List<B> delta, Gamma g, M m){
     var ts= m.sig().ts();
@@ -149,7 +155,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     t.check(delta,g,m.e().get(),m.sig().ret());
     for(int i= 0; i < xs.size(); i++){
       var isAffine= !k().of(delta,ts.get(i),EnumSet.of(mut,read,mutH,readH,imm));
-      if (isAffine){ Affine.usedOnce(err(),forErr,m,xs.get(i),m.e().get()); }
+      if (isAffine){ Affine.usedOnce(tsE(),forErr,m,xs.get(i),m.e().get()); }
     }
   }  
   private List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }
@@ -244,9 +250,9 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     assert tsSize == parent.ts().size():"Arity encoded in meth name";
     for (int i= 0; i < tsSize; i++){
       var badArg= !isSub(ctx, parent.ts().get(i), current.ts().get(i));
-      if (badArg){ throw err().methodOverrideSignatureMismatchContravariance(l,current,parent, i); }
+      if (badArg){ throw tsE().methodOverrideSignatureMismatchContravariance(l,current,parent, i); }
     }
     var badRet= !isSub(ctx, current.ret(), parent.ret());
-    if (badRet){ throw err().methodOverrideSignatureMismatchCovariance(l,current,parent); }
+    if (badRet){ throw tsE().methodOverrideSignatureMismatchCovariance(l,current,parent); }
   }
 }

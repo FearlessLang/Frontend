@@ -11,7 +11,6 @@ import fearlessParser.TokenKind;
 import inference.E;
 import inject.Methods;
 import message.FearlessException;
-import message.WellFormednessErrors;
 import naming.FreshPrefix;
 import optimizedTypes.LiteralDeclarations;
 import pkgmerge.OtherPackages;
@@ -37,7 +36,7 @@ public class ToInference{
       ).toList();
     var scope= Stream.concat(declared.stream(), imported.stream()).toList();
     var all= Stream.concat(declared.stream(), otherTypes.stream()).toList();
-    return WellFormednessErrors.usedUndeclaredName(tn, contextPkg, scope, all);
+    return p.err().usedUndeclaredName(tn, contextPkg, scope, all);
   }
   public List<E.Literal> of(Package p, Methods meths, OtherPackages other, FreshPrefix fresh){
     Function<TName,TName> f= tn->{

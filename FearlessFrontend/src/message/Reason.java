@@ -30,24 +30,24 @@ public final class Reason{
     if (!(expected instanceof T.RCC er) || er.rc() == fearlessParser.RC.imm){
       return new Reason(got, base(ts,blame,bs,got,expected), Optional::empty);
     }
-    String tn= bestNameHintExplicitRC(blame);
+    String tn= ts.err().bestNameHintExplicitRC(blame);
     if (tn.isEmpty()){ return new Reason(got, base(ts,blame,bs,got,expected), Optional::empty); }
-    return hintExplicitRC(got, base(ts,blame,bs,got,expected), er,tn);
+    return hintExplicitRC(ts,got, base(ts,blame,bs,got,expected), er,tn);
   }
   private static String base(TypeSystem ts, E blame, List<B> bs, T got, T expected){
-    if (isInferErr(expected)){ return gotMsgInferErr(expRepr(blame),got);}
+    if (isInferErr(expected)){ return gotMsgInferErr(ts.err().expRepr(blame),got);}
     var skipImm= !ts.isSub(bs, got, expected.withRC(RC.imm));
-    return "Object literal is of type "+expReprDirect(skipImm,blame)+" instead of a subtype of "+disp(expected)+".";
+    return "Object literal is of type "+ts.err().expReprDirect(skipImm,blame)+" instead of a subtype of "+disp(expected)+".";
   }
-  private static Reason hintExplicitRC(T got, String base, T.RCC er, String tn){
-    var e= Err.of()
+  private static Reason hintExplicitRC(TypeSystem ts,T got, String base, T.RCC er, String tn){
+    var e= ts.err()
       .line(base)
       .line("Hint: write "+disp(er.rc()+" "+tn)
       +" if you need a "+disp(er.rc())+" object literal.");
     return new Reason(got, e.text(), Optional::empty);
   }
   public static Reason callResultCannotHaveRequiredType(
-    Literal d, Call call, List<B> bs, ArgMatrix mat, List<Integer> okProm, TRequirement req, T got, Sig sig, TypeScope scope
+    TypeSystem ts, Literal d, Call call, List<B> bs, ArgMatrix mat, List<Integer> okProm, TRequirement req, T got, Sig sig, TypeScope scope
   ){    
     assert !okProm.isEmpty();
     Supplier<Optional<E>> footerE= ()->{
@@ -57,16 +57,16 @@ public final class Reason{
       var best= TypeScope.bestInterestingScope(scope, interest);
       return Optional.of(best.contextE());
     };
-    return new Reason(got,gotMsg("Method call "+methodSig(d,call.name()),got, req.t()),
+    return new Reason(got,gotMsg("Method call "+ts.err().methodSig(d,call.name()),got, req.t()),
       footerE);
   }
   public static Reason parameterDoesNotHaveRequiredTypeHere(
-    X x, List<B> bs, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
+    TypeSystem ts,X x, List<B> bs, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
   ){
     T got= cur.currentT();
-    String base= Err.gotMsg(Err.expRepr(x), got, req.t());
+    String base= Err.gotMsg(ts.err().expRepr(x), got, req.t());
     if (!Err.rcOnlyMismatch(got, req.t())){ return new Reason(got, base,Optional::empty); }
-    var e= Err.of().line(base);
+    var e= ts.err().line(base);
     if (declared.equals(got)){ return new Reason(got, base, Optional::empty); }
     e.line(declaredOkExpected
       ? "Note: the declared type "+disp(declared)+" would instead be a valid subtype."

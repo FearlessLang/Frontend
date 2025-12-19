@@ -6,12 +6,10 @@ import java.util.List;
 import core.*;
 import core.E.*;
 import fearlessParser.RC;
-import message.TypeSystemErrors;
 import typeSystem.Change.*;
 import static fearlessParser.RC.*;
 
 public record ViewPointAdaptation(Kinding k){
-  TypeSystemErrors err(){ return k.err(); }
   public Gamma of(Gamma g,Literal l, M m){ return g.map(curr -> of(curr,l,m)); }
   private Change of(Change current, Literal l, M m){    //Literal l, M m, T atDrop
     if(!( current instanceof Change.WithT w)){ return current; }

@@ -41,24 +41,25 @@ public class FrontendLogicMain {
     }
     return all;
   }  
-  private void checkOnlyHeadHasDirectives(URI headPkg, Map<URI, FileFull> raw){
+  private void checkOnlyHeadHasDirectives(WellFormednessErrors err, URI headPkg, Map<URI, FileFull> raw){
     raw.entrySet().stream()
       .filter(e -> !e.getKey().equals(headPkg))
       .filter(e -> !e.getValue().noDirectives())
-      .forEach(e -> { throw WellFormednessErrors.notClean(e.getKey(), e.getValue()); });  
+      .forEach(e -> { throw err.notClean(e.getKey(), e.getValue()); });  
   }
   protected Package mergeToPackage(Map<URI, FileFull> raw, List<FileFull.Map> override, OtherPackages other){
     assert !raw.isEmpty();
     String pkgName= raw.values().iterator().next().name();
+    var err= new WellFormednessErrors(pkgName);
     assert raw.values().stream().allMatch(f -> f.name().equals(pkgName)) : "Package name mismatch";
-    URI headPkg= findHeadUri(pkgName, raw.keySet());
-    checkOnlyHeadHasDirectives(headPkg, raw);
+    URI headPkg= findHeadUri(err,pkgName, raw.keySet());
+    checkOnlyHeadHasDirectives(err,headPkg, raw);
     var head= raw.get(headPkg);
-    if (head.role().isEmpty()){ throw WellFormednessErrors.noRole(headPkg, head); }
+    if (head.role().isEmpty()){ throw err.noRole(headPkg, head); }
     var map= new HashMap<String, String>();
     accMaps(pkgName, map, head.maps());
     accMaps(pkgName, map, override);
-    accUses(pkgName, map, head.uses(), other);
+    accUses(err,pkgName, map, head.uses(), other);
     List<Declaration> ds= raw.values().stream().flatMap(f -> f.decs().stream()).toList();
     var names= DeclaredNames.of(pkgName, ds, Collections.unmodifiableMap(map));    
     return makePackage(pkgName, head.role().get(), map, ds, names);
@@ -70,21 +71,21 @@ public class FrontendLogicMain {
     for (var m : maps){ if (n.equals(m.target())) { map.put(m.out(), m.in()); } }
     //map a as b in c //inside c, replace b with a
   }
-  private void accUses(String n, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other) {
+  private void accUses(WellFormednessErrors err, String n, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other) {
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses) {
       var p= u.in().pkgName();
       p = map.getOrDefault(p, p); //thus if p is "" we get ""
       map.put(u.out(), p + "." + u.in().simpleName());
       var ok= otherDom.stream().anyMatch(e -> e.s().equals(u.in().s()));
-      if (!ok){ throw WellFormednessErrors.unknownUseHead(u.in()); }
+      if (!ok){ throw err.unknownUseHead(u.in()); }
     }//map a as b in c + use b.F as bF will replace bF with a.F
   }
-  private URI findHeadUri(String pkgName, Set<URI> uris){
+  private URI findHeadUri(WellFormednessErrors err, String pkgName, Set<URI> uris){
     assert nonNull(uris) && validate(pkgName,"",_pkgName);
     var heads= uris.stream().filter(u->isHeadUri(u,pkgName)).toList();
     if (heads.size() == 1){ return heads.getFirst(); }
-    throw WellFormednessErrors.expectedSingleUriForPackage(heads,pkgName);
+    throw err.expectedSingleUriForPackage(heads,pkgName);
   }
   private boolean isHeadUri(URI u, String pkgName){
     String name= fileName(u);

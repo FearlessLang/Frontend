@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import fearlessFullGrammar.*;
 import fearlessFullGrammar.E.*;
@@ -11,6 +12,8 @@ import message.WellFormednessErrors;
 import java.util.Map;
 
 public class AllDeclaredNames implements EVisitor<Void>{
+  AllDeclaredNames(WellFormednessErrors err){this.err= err;}
+  WellFormednessErrors err;
   Set<TName> decNames= new LinkedHashSet<>();
   Map<TName,Set<T.X>> Xs= new LinkedHashMap<>();
   Map<TName,Set<String>> xs= new LinkedHashMap<>();
@@ -40,7 +43,7 @@ public class AllDeclaredNames implements EVisitor<Void>{
 
   private Declaration visitInnerDeclaration(Declaration d){
     //Note: there is never any kind of shadowing allowed in fearless. Also, nested names do live in the top level scope
-    if (!decNames.add(d.name())){ throw WellFormednessErrors.duplicatedName(d.name()); }
+    if (!decNames.add(d.name())){ throw err.duplicatedName(d.name()); }
     d.bs().ifPresent(bs->bs.forEach(this::visitInnerB));
     d.l().accept(this);
     return d;

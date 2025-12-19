@@ -49,7 +49,7 @@ public record Methods(
     while (!rem.isEmpty()){
       List<E.Literal> layer= new ArrayList<>();
       for (E.Literal d : rem.values()){ mayAdd(layer,d,rem); }
-      if (layer.isEmpty()){ throw WellFormednessErrors.circularImplements(rem); }
+      if (layer.isEmpty()){ throw p.err().circularImplements(rem); }
       out.add(layer);
       for (E.Literal d : layer){ rem.remove(d.name()); }
     }
@@ -145,7 +145,7 @@ public record Methods(
     var widen= allCs.stream()
       .filter(c -> c.name().s().equals("base.WidenTo"))
       .toList();
-    if (widen.size() > 1){ throw WellFormednessErrors.multipleWidenTo(d, widen); }
+    if (widen.size() > 1){ throw p.err().multipleWidenTo(d, widen); }
     var hasSealed= allCs.stream()
       .filter(c -> c.name().s().equals("base.Sealed"))
       .count() != 0;
@@ -159,7 +159,7 @@ public record Methods(
     boolean hasSealed= other.of(target).cs().stream()
     .filter(c -> c.name().s().equals("base.Sealed")).count() != 0;
     if (!hasSealed){ return; }
-    throw WellFormednessErrors.extendedSealed(owner,fresh, target);
+    throw p.err().extendedSealed(owner,fresh, target);
   }
 
   core.E.Literal injectDeclaration(E.Literal d){
@@ -193,13 +193,13 @@ public record Methods(
       ss.removeIf(s->s.m().get().arity()==arity && s.abs()?match.add(s):false);
       var count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin,fresh,true,m,match); }
+      if (count > 1){ throw p.err().ambiguousImpl(origin,fresh,true,m,match); }
       assert match.isEmpty();
       ss.removeIf(s->s.m().get().arity()==arity?match.add(s):false);
       count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw WellFormednessErrors.ambiguousImpl(origin,fresh,false,m,match); }
-      throw WellFormednessErrors.noSourceToInferFrom(origin,m);
+      if (count > 1){ throw p.err().ambiguousImpl(origin,fresh,false,m,match); }
+      throw p.err().noSourceToInferFrom(origin,m);
     }
     return changed ? List.copyOf(res) : ms;
   }
@@ -253,10 +253,10 @@ public record Methods(
     MName name= ssAligned.getFirst().m().get();
     List<Optional<IT>> ts= IntStream.range(0, s.ts().size()).mapToObj(i->Optional.of(pairWithTs(at,i, s.ts().get(i),ssAligned))).toList();
     IT res= s.ret().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.ret().get()),
-      WellFormednessErrors.retTypeDisagreement()));
+      p.err().retTypeDisagreement()));
     boolean abs= m.impl().isEmpty();
     RC rc= s.rc().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.rc().get()),
-      WellFormednessErrors.refCapDisagreement()));
+      p.err().refCapDisagreement()));
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin.name(),abs,s.span());
     if (sig.equals(m.sig())){ return m; }
     return new M(sig,m.impl());
@@ -268,23 +268,23 @@ public record Methods(
     int userArity= userBs.size();
     var superBsList = ss.stream().map(e->e.bs().get()).toList();
     var superArities = superBsList.stream().map(List::size).distinct().toList();
-    if (superArities.size() != 1){ throw WellFormednessErrors.methodGenericArityDisagreementBetweenSupers(at,fresh, superBsList); }
+    if (superArities.size() != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at,fresh, superBsList); }
     var superArity= superArities.getFirst();
-    if (superArity != userArity){ throw WellFormednessErrors.methodGenericArityDisagreesWithSupers(at,fresh,
+    if (superArity != userArity){ throw p.err().methodGenericArityDisagreesWithSupers(at,fresh,
       userArity, superArities.getFirst(), userBs, superBsList.getFirst()); }
     var bounds= allBounds.stream().map(l->l.stream().map(e->e.rcs()).toList())
       .distinct().count();
-    if (bounds!= 1){ throw WellFormednessErrors.methodBsDisagreementBetweenSupers(at, fresh,allBounds); }
+    if (bounds!= 1){ throw p.err().methodBsDisagreementBetweenSupers(at, fresh,allBounds); }
     var supBs= allBounds.getFirst();
     assert supBs.size() == userBs.size();
     var supRCs= supBs.stream().map(b->b.rcs()).toList();
     var userRCs= userBs.stream().map(b->b.rcs()).toList();
     if (supRCs.equals(userRCs)){ return userBs; }
-    throw WellFormednessErrors.methodBsDisagreesWithSupers(at, fresh,userBs,supBs);
+    throw p.err().methodBsDisagreesWithSupers(at, fresh,userBs,supBs);
   }      
   IT pairWithTs(Agreement at, int i, Optional<IT> t,List<M.Sig> ss){
     return t.orElseGet(()->agreement(at,ss.stream().map(e->e.ts().get(i).get()),
-      WellFormednessErrors.argTypeDisagreement(i))); 
+      p.err().argTypeDisagreement(i))); 
   }
   M pairWithSig(List<M.Sig> ss, E.Literal origin){
     assert !ss.isEmpty();
@@ -295,12 +295,12 @@ public record Methods(
     MName name= ssAligned.getFirst().m().get();
     List<Optional<IT>> ts= IntStream.range(0, name.arity()).mapToObj(
       i->Optional.of(agreement(at,ssAligned.stream().map(e->e.ts().get(i).get()),
-        WellFormednessErrors.argTypeDisagreement(i)))).toList();
-    IT res= agreement(at,ssAligned.stream().map(e->e.ret().get()),WellFormednessErrors.retTypeDisagreement());
+        p.err().argTypeDisagreement(i)))).toList();
+    IT res= agreement(at,ssAligned.stream().map(e->e.ret().get()),p.err().retTypeDisagreement());
     var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
-    if (impl.size() > 1){ throw WellFormednessErrors.ambiguousImplementationFor(ssAligned,impl,at,fresh); }
+    if (impl.size() > 1){ throw p.err().ambiguousImplementationFor(ssAligned,impl,at,fresh); }
     TName originName= impl.size() == 1? impl.getFirst() : origin.name();
-    RC rc= agreement(at,ssAligned.stream().map(e->e.rc().get()),WellFormednessErrors.refCapDisagreement());
+    RC rc= agreement(at,ssAligned.stream().map(e->e.rc().get()),p.err().refCapDisagreement());
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,originName,impl.isEmpty(),ssAligned.getFirst().span());
     return new M(sig,Optional.empty());
   }
@@ -311,8 +311,8 @@ public record Methods(
     RC rc=s.rc().orElse(RC.imm);
     MName name= s.m().get();
     List<B> bs= s.bs().orElse(List.of());
-    List<Optional<IT>> ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(()->WellFormednessErrors.noSourceToInferFrom(origin,m)))).toList();
-    IT res= s.ret().orElseThrow(()->WellFormednessErrors.noSourceToInferFrom(origin,m));
+    List<Optional<IT>> ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(()->p.err().noSourceToInferFrom(origin,m)))).toList();
+    IT res= s.ret().orElseThrow(()->p.err().noSourceToInferFrom(origin,m));
     boolean abs= m.impl().isEmpty();
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin.name(),abs,s.span());
     if (sig.equals(m.sig())){ return m; }
@@ -322,17 +322,17 @@ public record Methods(
     var res= es.distinct().toList();
     if (res.size() == 1){ return res.getFirst(); }
     assert !msg.equals("Reference capability disagreement"): "Triggered example where RC diagreement still happens";
-    throw WellFormednessErrors.noAgreement(at,fresh,res,msg);
+    throw p.err().noAgreement(at,fresh,res,msg);
   }
   public record Agreement(E.Literal lit, MName mName, Span span){}
   
   List<B> agreementBs(Agreement at,List<List<B>> res){
     if (res.size() == 1){ return res.getFirst(); }
     var sizes= res.stream().map(List::size).distinct().count();
-    if (sizes != 1){ throw WellFormednessErrors.methodGenericArityDisagreementBetweenSupers(at,fresh,res); }
+    if (sizes != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at,fresh,res); }
     var bounds= res.stream().map(l->l.stream().map(e->e.rcs()).toList()).distinct().count();
     if (bounds== 1){ return res.getFirst(); }
-    throw WellFormednessErrors.methodBsDisagreementBetweenSupers(at, fresh,res);
+    throw p.err().methodBsDisagreementBetweenSupers(at, fresh,res);
   }
   private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){

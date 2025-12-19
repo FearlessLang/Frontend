@@ -29,14 +29,15 @@ import metaParser.Span;
 import naming.FreshPrefix;
 import utils.Bug;
 
-public final class WellFormednessErrors {
-  private WellFormednessErrors(){}
-
-  public static FearlessException notClean(URI uri, FileFull f){
+public record WellFormednessErrors(Err err) {
+  public WellFormednessErrors(String pkgName){
+    this(new Err(() -> new CompactPrinter(pkgName,Map.of()), new StringBuilder()));
+  }
+  public FearlessException notClean(URI uri, FileFull f){
     return Code.WellFormedness.of(() -> buildMessageNotClean(f))
       .addSpan(new Span(uri,0,0,1,1));
   }
-  private static String buildMessageNotClean(FileFull f){
+  private String buildMessageNotClean(FileFull f){
     List<String> bullets= new ArrayList<>();
     if (!f.maps().isEmpty()){ bullets.add("maps: " + previewList(f.maps(), 5)); }
     if (!f.uses().isEmpty()){ bullets.add("uses: " + previewList(f.uses(), 8)); }
@@ -49,7 +50,7 @@ public final class WellFormednessErrors {
     bullets.forEach(b->sb.append("  - ").append(b).append('\n'));
     return sb.toString();
   }
-  private static String previewList(List<?> c, int limit){
+  private String previewList(List<?> c, int limit){
     StringBuilder sb = new StringBuilder();
     int i = 0;
     for (var x : c){
@@ -64,10 +65,10 @@ public final class WellFormednessErrors {
     return sb.toString();
   }
   
-  public static FearlessException expectedSingleUriForPackage(List<URI> heads, String pkgName){
+  public FearlessException expectedSingleUriForPackage(List<URI> heads, String pkgName){
     return Code.WellFormedness.of(() -> buildMessageSingleUriForPackage(heads, pkgName));
   }
-  private static String buildMessageSingleUriForPackage(List<URI> heads, String pkgName){
+  private String buildMessageSingleUriForPackage(List<URI> heads, String pkgName){
     if (heads.isEmpty()){
       return "No package head file found for package " + Message.displayString(pkgName) + ".\n"
       + "Each package must have exactly one source file whose name matches the package name.\n"
@@ -92,10 +93,10 @@ public final class WellFormednessErrors {
       .append(".fear\".");
     return sb.toString();
   }
-  public static FearlessException noRole(URI uri, FileFull f){
+  public FearlessException noRole(URI uri, FileFull f){
     return Code.WellFormedness.of(() -> buildMessageNoRole(uri, f)).addSpan(new Span(uri,0,0,1,1));
   }
-  private static String buildMessageNoRole(URI uri, FileFull f){
+  private String buildMessageNoRole(URI uri, FileFull f){
     return new StringBuilder()
       .append("Missing role declaration in package head file.\n")
       .append("Every package must declare its role: base, core, driver, worker, framework, accumulator, tool, or app.\n")
@@ -109,7 +110,7 @@ public final class WellFormednessErrors {
       .append("As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.\n")
       .toString();
   }
-  public static FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
+  public FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
     for (TName n:names){ 
       var clash= keySet.contains(n.s());
       if (!clash){ continue; }
@@ -120,7 +121,7 @@ public final class WellFormednessErrors {
     }
     throw Bug.unreachable();
   }
-  public static FearlessException usedUndeclaredName(TName tn, String contextPkg, List<TName> scope, List<TName> all){
+  public FearlessException usedUndeclaredName(TName tn, String contextPkg, List<TName> scope, List<TName> all){
     return new UndeclaredNameContext(tn, contextPkg, scope, all,
       all.stream().map(TName::pkgName).filter(p -> !p.isEmpty()).distinct().sorted().toList(),
       tn.pkgName(),tn.simpleName()
@@ -227,11 +228,11 @@ public final class WellFormednessErrors {
       return Code.WellFormedness.of(msg.toString()).addFrame("a type name", at()); }
     private Span at(){ return Parser.span(tn.pos(), tn.s().length()); }
   }
-  private static void trimTrailingNewline(StringBuilder sb){
+  static private void trimTrailingNewline(StringBuilder sb){
     int len= sb.length();
     if (len > 0 && sb.charAt(len - 1) == '\n'){ sb.setLength(len - 1); }
   }
-  public static FearlessException unknownUseHead(TName tn){
+  public FearlessException unknownUseHead(TName tn){
     var at= Parser.span(tn.pos(),tn.s().length());
     return Code.WellFormedness.of(
       "\"use\" directive refers to undeclared name: type "
@@ -239,7 +240,7 @@ public final class WellFormednessErrors {
       +" is not declared in package " + Message.displayString(tn.pkgName()) + ".\n"
     ).addFrame("package header", at);
   }
- public static FearlessException genericTypeVariableShadowTName(String pkgName, Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
+ public FearlessException genericTypeVariableShadowTName(String pkgName, Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
    var mergeAllXs= allXs.values().stream().flatMap(Set::stream).toList();
    for (var n : mergeAllXs){
      var clashDec= allNames.contains(n.name());
@@ -248,7 +249,7 @@ public final class WellFormednessErrors {
    }
    throw Bug.unreachable();
  }
- private static FearlessException shadowMsg(String pkgName, T.X n, boolean use){
+ private FearlessException shadowMsg(String pkgName, T.X n, boolean use){
    return Code.WellFormedness.of(
      "Type parameter " + Message.displayString(n.name())
      +" is declared in package \"" + pkgName + "\".\n"
@@ -257,7 +258,7 @@ public final class WellFormednessErrors {
      ).addFrame("a type name",n.span().inner);
   }
 
- public static FearlessException duplicatedBound(List<RC> es, T.X n){
+ public FearlessException duplicatedBound(List<RC> es, T.X n){
    RC dup= es.stream()
      .filter(e->es.stream().filter(ei->ei.equals(e)).count() > 1)
      .findFirst().get();
@@ -266,18 +267,18 @@ public final class WellFormednessErrors {
        + "Reference capability "+Message.displayString(dup.name())+" is repeated.\n"
        ).addSpan(n.span().inner);
     }
-  public static FearlessException duplicatedName(TName name) {
+  public FearlessException duplicatedName(TName name) {
     return Code.WellFormedness.of(
-      "Duplicate type declaration for "+Err.typeDecName(name)+".\n"
+      "Duplicate type declaration for "+Err.staticTypeDecName(name)+".\n"
       ).addFrame("a type name",Parser.span(name.pos(),name.s().length()));
   }
-  public static FearlessException circularImplements(Map<TName,E.Literal> rem){
+  public FearlessException circularImplements(Map<TName,E.Literal> rem){
     TName name = findCycleNode(rem);
     return Code.WellFormedness.of(
-      "Circular implementation relation found involving "+Err.typeDecName(name)+".\n"
+      "Circular implementation relation found involving "+Err.staticTypeDecName(name)+".\n"
       ).addFrame("type declarations",Parser.span(name.pos(),name.s().length()));
   }
-  private static TName findCycleNode(Map<TName,E.Literal> rem){
+  private TName findCycleNode(Map<TName,E.Literal> rem){
     var color= new HashMap<TName,Integer>(rem.size());
     for (var k : rem.keySet()){
       var hit= dfs(rem,k,color);
@@ -285,7 +286,7 @@ public final class WellFormednessErrors {
     }
     throw Bug.unreachable();
   }
-  private static TName dfs(Map<TName,E.Literal> rem,TName u,Map<TName,Integer> color){
+  private TName dfs(Map<TName,E.Literal> rem,TName u,Map<TName,Integer> color){
     Integer cu= color.get(u);
     if (cu != null){ return cu == 1 ? u : null; }
     color.put(u,1);
@@ -297,36 +298,36 @@ public final class WellFormednessErrors {
     color.put(u,2);
     return null;
   }
-  public static FearlessException noSourceToInferFrom(E.Literal origin, M m){
+  public FearlessException noSourceToInferFrom(E.Literal origin, M m){
     var empty= m.sig().m().isEmpty();
     var size= m.sig().ts().size();
     if (empty){ return Code.WellFormedness.of(
       "Cannot infer signature and name for a method with "+size+" parameters.\n"
     + "No supertype has a method with "+size+" parameters.\n"
       ).addSpan(m.sig().span().inner)
-      .addFrame(Err.expRepr(origin), origin.span().inner); }
+      .addFrame(err.expRepr(origin), origin.span().inner); }
     var name= Err.methodSig(m.sig().m().get());
     return Code.WellFormedness.of(
       "Cannot infer signature of method "+name+".\n"
     + "No supertype has a method named "+name+" with "+size+" parameters.\n"
       ).addSpan(m.sig().span().inner)
-      .addFrame(Err.expRepr(origin), origin.span().inner);
+      .addFrame(err.expRepr(origin), origin.span().inner);
   }
-  public static String refCapDisagreement(){ return "Reference capability disagreement"; }
-  public static String retTypeDisagreement(){ return "Return type disagreement"; }
-  public static String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
-  public static FearlessException noAgreement(Agreement at, FreshPrefix fresh, List<?> res, String msg){
+  public String refCapDisagreement(){ return "Reference capability disagreement"; }
+  public String retTypeDisagreement(){ return "Return type disagreement"; }
+  public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
+  public FearlessException noAgreement(Agreement at, FreshPrefix fresh, List<?> res, String msg){
     return Code.WellFormedness.of(
       msg+ " for method "
     + Err.methodSig(at.mName())+" with "+at.mName().arity()+" parameters.\n"
     + Join.of(
         res.stream().map(o->Err.disp(o)),
         "Different options are present in the implemented types: ",", ",".\n")
-    + Err.up(Err.expRepr(at.lit()))+" must declare a method "
+    + Err.up(err.expRepr(at.lit()))+" must declare a method "
     + Err.methodSig(at.mName())+" explicitly choosing the desired option.\n"
-    ).addFrame(Err.expRepr(at.lit()), at.span());
+    ).addFrame(err.expRepr(at.lit()), at.span());
   }
-  public static FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, FreshPrefix fresh, List<List<B>> res){
+  public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, FreshPrefix fresh, List<List<B>> res){
     return Code.WellFormedness.of(
     "The number of type parameters disagrees for method "
     + Err.methodSig(at.mName())
@@ -334,16 +335,16 @@ public final class WellFormednessErrors {
     + Join.of(
         res.stream().map(o->Err.disp(o)),
         "Different options are present in the implemented types: ",", ",".\n")
-    + Err.up(Err.expRepr(at.lit()))
+    + Err.up(err.expRepr(at.lit()))
     + " cannot implement all of those types.\n"
-    ).addFrame(Err.expRepr(at.lit()), at.span());
+    ).addFrame(err.expRepr(at.lit()), at.span());
   }
-  public static FearlessException methodGenericArityDisagreesWithSupers(Agreement at, FreshPrefix fresh, int userArity, int superArity, List<B> userBs, List<B> superBs){
+  public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, FreshPrefix fresh, int userArity, int superArity, List<B> userBs, List<B> superBs){
     String sB= Err.disp(superBs.stream().map(b->new B("-",b.rcs())).toList());
     //TODO: this is inconsistent with this other line String sB= Err.disp(new B("-",s.rcs()));
     //Report on all of them or only the conflicting one??
     return Code.WellFormedness.of(
-      "Invalid method implementation for "+Err.methodSig(at.lit(),at.mName())+".\n"
+      "Invalid method implementation for "+err.methodSig(at.lit(),at.mName())+".\n"
     + "The method " + Err.methodSig(at.mName())
     + " declares " + userArity + " type parameter(s), "
     + "but supertypes declare " + superArity + ".\n"
@@ -351,9 +352,9 @@ public final class WellFormednessErrors {
     + "From supertypes: " + sB + ".\n"
     + "Change the local number of type parameters to "
     + superArity + ", or adjust the supertypes.\n" 
-    ).addFrame(Err.expRepr(at.lit()), at.span());
+    ).addFrame(err.expRepr(at.lit()), at.span());
   }
-  public static FearlessException methodBsDisagreementBetweenSupers(Agreement at, FreshPrefix fresh, List<List<B>> res){
+  public FearlessException methodBsDisagreementBetweenSupers(Agreement at, FreshPrefix fresh, List<List<B>> res){
     assert res.size() >= 2;
     int n= res.getFirst().size();
     assert res.stream().allMatch(bs->bs.size() == n);
@@ -363,15 +364,15 @@ public final class WellFormednessErrors {
       "", " and ", ".\n");
     String m= Err.methodSig(at.mName());
     return Code.WellFormedness.of(
-      "Invalid method implementation for "+Err.methodSig(at.lit(), at.mName())+".\n"
+      "Invalid method implementation for "+err.methodSig(at.lit(), at.mName())+".\n"
     + "Supertypes disagree on the capability bounds for type parameter "+(i+1)+" of "+m+".\n"
     + "Type parameter names may differ across supertypes; only the position matters.\n"
     + "Different supertypes declare: " + opts
-    + Err.up(Err.expRepr(at.lit()))+" cannot implement all of those supertypes.\n"
+    + Err.up(err.expRepr(at.lit()))+" cannot implement all of those supertypes.\n"
     + "Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.\n"
-    ).addFrame(Err.expRepr(at.lit()), at.span());
+    ).addFrame(err.expRepr(at.lit()), at.span());
   }
-  public static FearlessException methodBsDisagreesWithSupers(Agreement at, FreshPrefix fresh, List<B> userBs, List<B> superBs){
+  public FearlessException methodBsDisagreesWithSupers(Agreement at, FreshPrefix fresh, List<B> userBs, List<B> superBs){
     assert userBs.size() == superBs.size();
     int i= firstRcsDisagreementIndex(List.of(userBs, superBs));
     var u= userBs.get(i);
@@ -380,15 +381,15 @@ public final class WellFormednessErrors {
     String uB= Err.disp(u);
     String sB= Err.disp(new B("-",s.rcs()));
     return Code.WellFormedness.of(
-      "Invalid method implementation for "+Err.methodSig(at.lit(), at.mName())+".\n"
+      "Invalid method implementation for "+err.methodSig(at.lit(), at.mName())+".\n"
     + "The local declaration uses different capability bounds than the supertypes for type parameter "+(i+1)+" of "+m+".\n"
     + "Local: "+uB+".\n"
     + "From supertypes: "+sB+".\n"
     + "The parameter name may differ; only the position matters.\n"
     + "Change the local bounds to match the supertypes, or adjust the supertypes.\n"
-    ).addFrame(Err.expRepr(at.lit()), at.span());
+    ).addFrame(err.expRepr(at.lit()), at.span());
   }
-  private static int firstRcsDisagreementIndex(List<List<B>> res){
+  private int firstRcsDisagreementIndex(List<List<B>> res){
     return IntStream.range(0, res.getFirst().size())
       .filter(i->{
         var r0= res.getFirst().get(i).rcs();
@@ -396,28 +397,28 @@ public final class WellFormednessErrors {
       })
       .findFirst().getAsInt();
   }
-  public static FearlessException ambiguousImpl(E.Literal origin, FreshPrefix fresh, boolean abs, M m, List<inference.M.Sig> options){
+  public FearlessException ambiguousImpl(E.Literal origin, FreshPrefix fresh, boolean abs, M m, List<inference.M.Sig> options){
     return Code.WellFormedness.of(
       "Cannot infer the name for a method with "+m.sig().ts().size()+" parameters.\n"
     + "Many"+(abs?" abstract":"")+" methods with "+m.sig().ts().size()+" parameters could be selected:\n"
     + Join.of(
         options.stream().map(mi->Message.displayString(mi.rc().get()+" "+mi.m().get().s())),
         "Candidates: ",", ",".\n")
-    ).addSpan(m.sig().span().inner).addFrame(Err.expRepr(origin), origin.span().inner);
+    ).addSpan(m.sig().span().inner).addFrame(err.expRepr(origin), origin.span().inner);
   }
-  public static FearlessException ambiguousImplementationFor(List<M.Sig> ss, List<TName> options, Agreement at, FreshPrefix fresh){
+  public FearlessException ambiguousImplementationFor(List<M.Sig> ss, List<TName> options, Agreement at, FreshPrefix fresh){
     return Code.WellFormedness.of(    
       "Ambiguous implementation for method "+Message.displayString(at.mName().s())+" with "+at.mName().arity()+" parameters.\n"
     + "Different options are present in the implemented types:\n"
     + Join.of(
-        options.stream().map(mi->Err.disp(Err.tNameDirect(mi))),
+        options.stream().map(mi->Err.disp(err.tNameDirect(mi))),
         "Candidates: ",", ",".\n")
-    + Err.up(Err.expRepr(at.lit()))+" must declare a method "+Message.displayString(at.mName().s())+" explicitly implementing the desired behaviour.\n"
-      ).addFrame(Err.expRepr(at.lit()), at.span());
+    + Err.up(err.expRepr(at.lit()))+" must declare a method "+Message.displayString(at.mName().s())+" explicitly implementing the desired behaviour.\n"
+      ).addFrame(err.expRepr(at.lit()), at.span());
   }
-  public static FearlessException multipleWidenTo(E.Literal owner, List<IT.C> widen){
+  public FearlessException multipleWidenTo(E.Literal owner, List<IT.C> widen){
     var msg= new StringBuilder()
-      .append(Err.expRepr(owner))
+      .append(err.expRepr(owner))
       .append(" implements \"base.WidenTo[_]\" more than once.\n")
       .append("At most one \"base.WidenTo[_]\" supertype is allowed, ")
       .append("because it defines the preferred widened type.\n")
@@ -425,18 +426,18 @@ public final class WellFormednessErrors {
         widen.stream().map(c -> "  - " + Message.displayString(c.toString())),
         "Found the following base.WidenTo supertypes:\n","\n",""));
     return Code.WellFormedness.of(msg.toString())
-      .addFrame(Err.expRepr(owner),owner.span().inner);
+      .addFrame(err.expRepr(owner),owner.span().inner);
   }
-  public static FearlessException extendedSealed(E.Literal owner,FreshPrefix fresh, TName isSealed){
+  public FearlessException extendedSealed(E.Literal owner,FreshPrefix fresh, TName isSealed){
     String ownerPkg= owner.name().pkgName();
     String sealedPkg= isSealed.pkgName();
     assert !ownerPkg.equals(sealedPkg);
     //is this failing, even if it uses Fresh and all?
-    String ctx=Err.up(Err.expRepr(owner));
+    String ctx=Err.up(err.expRepr(owner));
     var msg= new StringBuilder()
       .append(ctx)
       .append(" implements sealed type ")
-      .append(Err.typeDecNamePkg(isSealed))
+      .append(err.typeDecNamePkg(isSealed))
       .append(".\nSealed types can only be implemented in their own package.\n")
       .append(ctx)      
       .append(" is defined in package ")
@@ -447,6 +448,6 @@ public final class WellFormednessErrors {
       .append(Message.displayString(sealedPkg))
       .append(".\n");
     return Code.WellFormedness.of(msg.toString())
-      .addFrame(Err.expRepr(owner),owner.span().inner);
+      .addFrame(err.expRepr(owner),owner.span().inner);
   }
 }
