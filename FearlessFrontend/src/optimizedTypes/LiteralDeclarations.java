@@ -7,19 +7,19 @@ import core.T;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import fearlessParser.TokenKind;
-import files.Pos;
+import utils.Pos;
 import pkgmerge.OtherPackages;
 import utils.Bug;
 
 
 public class LiteralDeclarations {
-  public static TName baseSStr= new TName("base.SStr",0,Pos.UNKNOWN);
-  public static TName baseUStr= new TName("base.UStr",0,Pos.UNKNOWN);
-  public static TName baseNat= new TName("base.Nat",0,Pos.UNKNOWN);
-  public static TName baseInt= new TName("base.Int",0,Pos.UNKNOWN);
-  public static TName baseNum= new TName("base.Num",0,Pos.UNKNOWN);
-  public static TName baseFloat= new TName("base.Float",0,Pos.UNKNOWN);
-  public static TName widen= new TName("base.WidenTo",1,Pos.UNKNOWN);
+  public static TName baseSStr= new TName("base.SStr",0,Pos.unknown);
+  public static TName baseUStr= new TName("base.UStr",0,Pos.unknown);
+  public static TName baseNat= new TName("base.Nat",0,Pos.unknown);
+  public static TName baseInt= new TName("base.Int",0,Pos.unknown);
+  public static TName baseNum= new TName("base.Num",0,Pos.unknown);
+  public static TName baseFloat= new TName("base.Float",0,Pos.unknown);
+  public static TName widen= new TName("base.WidenTo",1,Pos.unknown);
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
   static private core.E.Literal of(TName name,TName lit){
     var c= new T.C(lit,List.of());

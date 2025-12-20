@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import fearlessFullGrammar.*;
-import files.Pos;
+import utils.Pos;
 import message.FearlessErrFactory;
 import message.FearlessException;
 import metaParser.MetaParser;

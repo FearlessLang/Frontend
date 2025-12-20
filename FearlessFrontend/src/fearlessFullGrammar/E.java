@@ -3,7 +3,7 @@ package fearlessFullGrammar;
 import java.util.*;
 
 import fearlessParser.RC;
-import files.Pos;
+import utils.Pos;
 
 import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;

@@ -17,7 +17,7 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.Parameter;
 import fearlessFullGrammar.XPat;
 import fearlessParser.RC;
-import files.Pos;
+import utils.Pos;
 import inference.E;
 import inference.IT;
 import inference.M;

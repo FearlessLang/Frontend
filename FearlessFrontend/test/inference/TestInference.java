@@ -1,91 +1,14 @@
 package inference;
 
-import java.net.URI;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.IntStream;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import fearlessFullGrammar.Declaration;
-import fearlessFullGrammar.FileFull;
-import fearlessFullGrammar.FileFull.Role;
-import inject.InjectionSteps;
-import inject.Methods;
-import message.FearlessException;
-import message.Join;
-import message.SourceOracle;
-import pkgmerge.DeclaredNames;
-import pkgmerge.FrontendLogicMain;
-import pkgmerge.OtherPackages;
-import pkgmerge.Package;
-import toInfer.ToInference;
-import utils.Err;
-
-public class TestInference {
-  public static SourceOracle oracle(String pkgName, String head, List<String> input){
-    var o= SourceOracle.debugBuilder();
-    o.put(pkgName+".fear", "package "+pkgName+";\n"+head);
-    for (int i= 0; i < input.size(); i+=1){ o = o.put(i,"package "+pkgName+";\n"+input.get(i));}      
-    return o.build();
-  }
-  static SourceOracle oracle(List<String> input){
-    var o= SourceOracle.debugBuilder();
-    for (int i= 0; i < input.size(); i+=1){ o = o.put(i,input.get(i));}
-    return o.build();
-  }
-  static List<URI> filesUri(int size){
-    return IntStream.range(0, size).mapToObj(SourceOracle::defaultDbgUri).toList();
-  }
-  public static <R> R printError(Supplier<R> r, SourceOracle o){
-    try{ return r.get(); }
-    catch(FearlessException fe){ System.out.println(fe.render(o)); throw fe; }
-  }
-  static Methods parsePackage(SourceOracle o,boolean infer){
-    class InferenceMain extends FrontendLogicMain{
-      protected Package makePackage(String name, Role role, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
-        return new Package(name,role,map,decs,names,Package.onLogger());
-      }
-      public Methods ofMethods(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
-        Map<URI, FileFull> rawAST= parseFiles(files, o);
-        Package pkg= mergeToPackage(rawAST, override, other);
-        Methods ctx= Methods.create(pkg, other);
-        List<E.Literal> iDecs= new ToInference().of(ctx.p(),ctx,other,ctx.fresh());
-        iDecs= ctx.registerTypeHeadersAndReturnRoots(iDecs);
-        if (!infer){ return ctx; }
-        var res= InjectionSteps.steps(ctx,iDecs);
-        ctx.p().log().logs().add("~-----------");
-        for (var r:res){ ctx.p().log().logs().add("~"+r.toString()); }
-        return ctx;
-      }
-    }
-    return new InferenceMain()
-      .ofMethods(List.of(),o.allFiles(),o,DbgBlock.dbg(),infer);
-  }
-  static void ok(String expected, String head, List<String> input, boolean infer){
-    var o= oracle("p",head,input);
-    var res= printError(()->parsePackage(o,infer),o);
-    var got= Join.of(
-      res.p().log().logs().stream().sorted(),
-      "","\n","","");
-    //assert !got.contains("base.InferErr");
-    Err.strCmp(expected,got);
-  }
-  static void ok(String expected, String head, List<String> input){ ok(expected,head,input,false); }
-  static void ok(String expected, List<String> input){ ok(expected,"role app000;",input); }
-    
-  static void fail(String expected, String head, List<String> input, boolean infer){
-    var o= oracle("p",head,input);
-    FearlessException fe= assertThrows(FearlessException.class, ()->parsePackage(o,infer));
-    var got= fe.render(o);
-    Err.strCmp(expected,got);
-  }
-    static void fail(String expected, String head, List<String> input){ fail(expected,head,input,false); }
-    static void failI(String expected, String head, List<String> input){ fail(expected,head,input,true); }
-  static void fail(String expected, List<String> input){ fail(expected,"role app000;",input); }
+public class TestInference extends testUtils.FearlessTestBase{
+  static void ok(String expected,List<String> input){ inferenceOk(expected, input); }
+  static void ok(String expected,String head,List<String> input){ inferenceOk(expected, head, input); }
+  static void fail(String expected, List<String> input){ inferenceFail(expected, input); }
+  static void fail(String expected, String head, List<String> input){ inferenceFail(expected, head, input); }
 
 @Test void base(){ok("""
 p.A:{'this}

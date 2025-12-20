@@ -3,7 +3,7 @@ package fearlessFullGrammar;
 import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
-import files.Pos;
+import utils.Pos;
 public record Declaration(TName name, Optional<List<B>> bs, List<T.C> cs, E.Literal l) implements core.Src.SrcObj{
   public Declaration{
     assert nonNull(name,l);

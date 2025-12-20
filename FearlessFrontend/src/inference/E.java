@@ -12,7 +12,7 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
-import files.Pos;
+import utils.Pos;
 import message.Join;
 
 public sealed interface E {

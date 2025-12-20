@@ -5,11 +5,12 @@ import java.util.List;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-public class TestInferenceSteps {
-  static void okI(String expected, List<String> input){ TestInference.ok(expected,"role app000;",input,true); }
-  static void okI(String expected, String head, List<String> input){ TestInference.ok(expected,head,input,true); }
-  static void failI(String expected, List<String> input){ TestInference.fail(expected,"role app000;",input,true); }
-  static void failI(String expected, String head, List<String> input){ TestInference.fail(expected,head,input,true); }  
+public class TestInferenceSteps extends testUtils.FearlessTestBase{
+  static void okI(String expected,List<String> input){ inferenceOk(expected, defaultHead, input, true); }
+  static void okI(String expected,String head,List<String> input){ inferenceOk(expected, head, input, true); }
+  static void failI(String expected, List<String> input){ inferenceFail(expected, defaultHead, input, true); }
+  static void failI(String expected, String head, List<String> input){ inferenceFail(expected, head, input, true); }
+
 @Test void inferMini(){okI("""
 p.A:{'this .foo:p.A@p.A;->this:?.foo():?;}
 ~-----------

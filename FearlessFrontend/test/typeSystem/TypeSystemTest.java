@@ -1,42 +1,14 @@
 package typeSystem;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
-import inference.DbgBlock;
-import inference.TestInference;
-import message.FearlessException;
-import pkgmerge.FrontendLogicMain;
-import pkgmerge.OtherPackages;
-import utils.Err;
-
-public class TypeSystemTest {
-  static void ok(List<String> input){ ok("role app000;",input); }
-  static void ok(String head, List<String> input){
-    var o= TestInference.oracle("p",head,input);
-    OtherPackages other= DbgBlock.dbg();
-    TestInference.printError(
-      ()->new FrontendLogicMain().of(List.of(),o.allFiles(),o,other),
-      o);
-  }
-  static void fail(String expected,List<String> input){
-    failExt("In file: [###]/in_memory0.fear\n\n"+expected+"Error 10 TypeError",input);
-  }
-  static void failExt(String expected,List<String> input){
-    fail(expected,"role app000;",input);
-  }
-
-  static void fail(String expected,String head, List<String> input){
-    var o= TestInference.oracle("p",head,input);
-    OtherPackages other= DbgBlock.dbg();
-    FearlessException fe= assertThrows(FearlessException.class,
-      ()->new FrontendLogicMain().of(List.of(),o.allFiles(),o,other));
-    var got= fe.render(o);
-    Err.strCmp(expected,got);
-  }
+public class TypeSystemTest extends testUtils.FearlessTestBase{
+  static void ok(List<String> input){ typeOk(input); }
+  static void ok(String head,List<String> input){ typeOk(head, input); }
+  static void fail(String expected, List<String> input){ typeFail(expected, input); }
+  static void fail(String expected, String head, List<String> input){ typeFail(expected, head, input); }
+  static void failExt(String expected, List<String> input){ typeFailExt(expected, input); }
    
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}

@@ -1,6 +1,6 @@
 package fearlessFullGrammar;
 
-import files.Pos;
+import utils.Pos;
 import metaParser.Span;
 import offensiveUtils.EqTransparent;
 import offensiveUtils.NeverAsKey;

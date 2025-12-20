@@ -1,29 +1,10 @@
 package fearlessParser;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.Test;
-import fearlessFullGrammar.FileFull;
-import files.Pos;
-import message.FearlessException;
-import message.SourceOracle;
-import utils.Err;
 
-class TestParse {
-  static void ok(String expected,String input){
-    expected = expected.replace("\n","").replace(" ","");
-    FileFull res= Parse.from(Pos.UNKNOWN.fileName(), input);
-    var rres= res.toString().replace("\n","").replace(" ","");
-    Err.strCmp(expected,rres);
-  }
-  static void fail(String expectedErr, String input){
-    SourceOracle o= SourceOracle.debugBuilder()
-      .put(0, input)
-      .build();
-    FearlessException err= assertThrows(FearlessException.class,()->Parse.from(SourceOracle.defaultDbgUri(0), input));
-    var rres= err.render(o);
-    Err.strCmp(expectedErr,rres);
-  }  
+public class TestParse extends testUtils.FearlessTestBase{
+  static void ok(String expected,String input){ parseOkNormalized(expected, input); }
+  static void fail(String expectedErr, String input){ parseFail(expectedErr, input); }
 @Test void mini(){ok("""
 FileFull[[###] decs=[
   Declaration[name=A/0, bs=Optional.empty, cs=[], l=Literal[]]]]

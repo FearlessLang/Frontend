@@ -2,27 +2,8 @@ package fearlessFullGrammar;
 
 import org.junit.jupiter.api.Test;
 
-import fearlessParser.Parse;
-import message.FearlessException;
-import message.Join;
-import message.SourceOracle;
-import utils.Err;
-
-public class ToStringTest {
-  static void ok(String expected,String input){
-    FileFull res;try{ res= Parse.from(SourceOracle.defaultDbgUri(0), input); }
-    catch(FearlessException fe){ 
-      SourceOracle o= SourceOracle.debugBuilder()
-        .put(0, input)
-        .build();
-      System.out.println(fe.render(o));
-      throw fe;
-    }
-    var got= Join.of(
-      res.decs().stream().map(ToString::declaration),
-      "","\n","\n","");
-    Err.strCmp(expected,got);
-  }
+public class ToStringTest extends testUtils.FearlessTestBase{
+  static void ok(String expected,String input){ toStringOk(expected, input);}
   @Test void decl_empty(){ ok("A: {}\n","A:{}"); }
 
   @Test void decl_generics_plain(){ ok(

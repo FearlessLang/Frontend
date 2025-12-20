@@ -1,5 +1,4 @@
 module FearlessFrontend {
-  requires MetaParser;
-  requires FearlessCompiler;
+  requires Commons;
   requires org.junit.jupiter.api;
 }

@@ -1,7 +1,7 @@
 package core;
 
 import fearlessFullGrammar.TSpan;
-import files.Pos;
+import utils.Pos;
 import offensiveUtils.EqTransparent;
 import offensiveUtils.NeverAsKey;
 
@@ -9,6 +9,6 @@ import offensiveUtils.NeverAsKey;
 @NeverAsKey
 public class Src extends EqTransparent<core.Src.SrcObj>{
   public interface SrcObj{ Pos pos(); TSpan span(); }
-  public static Src syntetic=new Src(new fearlessFullGrammar.E.X("this",Pos.UNKNOWN));
+  public static Src syntetic=new Src(new fearlessFullGrammar.E.X("this",Pos.unknown));
   public Src(SrcObj inner){ super(inner); }
 }

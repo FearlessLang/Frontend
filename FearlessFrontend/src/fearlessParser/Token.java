@@ -4,7 +4,7 @@ import static fearlessParser.TokenKind.*;
 
 import java.util.List;
 
-import files.Pos;
+import utils.Pos;
 import metaParser.Span;
 
 public record Token(
@@ -25,7 +25,7 @@ public record Token(
     assert tokens.isEmpty();
     assert content.length() >= length;
     Token first= tokenFirstHalf(length);
-    Span s= first.span(Pos.UNKNOWN.fileName());
+    Span s= first.span(Pos.unknown.fileName());
     return new Token(kind,content.substring(length),s.endLine(),s.endCol()+1,tokens);
   }
 }

@@ -1,6 +1,6 @@
 package core;
 
-import files.Pos;
+import utils.Pos;
 import message.Join;
 
 import static fearlessParser.TokenKind.*;

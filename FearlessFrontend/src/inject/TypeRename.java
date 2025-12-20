@@ -7,7 +7,7 @@ import core.T;
 import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
-import files.Pos;
+import utils.Pos;
 import inference.IT;
 import utils.Bug;
 
@@ -86,6 +86,6 @@ public class TypeRename{
     //throw Bug.of();//
     inferErr;
   };}
-  public static final T.RCC inferErr= new T.RCC(RC.imm,new T.C(new TName("base.InferErr", 0, Pos.UNKNOWN), List.of()),TSpan.fromPos(Pos.UNKNOWN,1));
-  public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.UNKNOWN), List.of()),TSpan.fromPos(Pos.UNKNOWN,1));
+  public static final T.RCC inferErr= new T.RCC(RC.imm,new T.C(new TName("base.InferErr", 0, Pos.unknown), List.of()),TSpan.fromPos(Pos.unknown,1));
+  public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.unknown), List.of()),TSpan.fromPos(Pos.unknown,1));
 }
