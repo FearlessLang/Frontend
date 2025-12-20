@@ -2,10 +2,16 @@ package testUtils;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Assertions;
@@ -14,6 +20,7 @@ import org.opentest4j.AssertionFailedError;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.FileFull.Role;
+import fearlessFullGrammar.TName;
 import fearlessFullGrammar.ToString;
 import fearlessParser.Parse;
 import inference.DbgBlock;
@@ -28,6 +35,7 @@ import pkgmerge.FrontendLogicMain;
 import pkgmerge.OtherPackages;
 import pkgmerge.Package;
 import toInfer.ToInference;
+import utils.Bug;
 import utils.Err;
 import utils.Pos;
 
@@ -158,5 +166,53 @@ public abstract class FearlessTestBase{
   protected static void typeFailExt(String expected, List<String> input){ typeFail(expected, defaultHead, input); }
   protected static void typeFail(String expected, List<String> input){
     typeFail("In file: [###]/in_memory0.fear\n\n"+expected+"Error 10 TypeError", defaultHead, input);
+  }
+  public static OtherPackages otherErr(){
+    return new OtherPackages(){
+      public core.E.Literal of(TName name){ throw Bug.of(""+name); }
+      public Collection<TName> dom(){ throw Bug.of(); }
+    };
+  }
+
+  public static OtherPackages otherFrom(List<core.E.Literal> ds){
+    var map= ds.stream().collect(Collectors.toMap(core.E.Literal::name, d->d));
+    return new OtherPackages(){
+      public core.E.Literal of(TName name){ return map.get(name); } // null on miss on purpose: this is to allow adding type literals on top
+      public Collection<TName> dom(){ return map.keySet(); }
+    };
+  }
+  public static List<core.E.Literal> compileAll(SourceOracle o, OtherPackages other){
+    return new FrontendLogicMain().of(List.of(), o.allFiles(), o, other);
+  }
+  protected static List<core.E.Literal> compileAllOk(SourceOracle o, pkgmerge.OtherPackages other){
+    return okOrPrint(o, ()->compileAll(o, other));
+  }
+  public static SourceOracle oracleFromDir(Path root){
+    if (!Files.isDirectory(root)){ throw Bug.of("Not a directory: "+root); }
+    var b= SourceOracle.debugBuilder();
+    try{
+      var files= Files.walk(root)
+        .filter(p->Files.isRegularFile(p) && p.toString().endsWith(".fear"))
+        .sorted(Comparator.comparing(p->root.relativize(p).toString()))
+        .toList();
+      if (files.isEmpty()){ throw Bug.of("No .fear files under: "+root); }
+      for (var p:files){
+        String src= Files.readString(p);
+        URI u= p.toAbsolutePath().normalize().toUri();
+        b = b.putURI(u, src);
+      }
+      return b.build();
+    }
+    catch(IOException e){ throw Bug.of(e.toString()); }
+  }
+  protected static <T> T okOrPrint(SourceOracle o, java.util.function.Supplier<T> run){
+    try{ return run.get(); }
+    catch(message.FearlessException fe){
+      System.out.println(fe.render(o));
+      throw fe;
+    }
+  }
+  protected static void okOrPrint(SourceOracle o, Runnable run){
+    okOrPrint(o, ()->{ run.run(); return null; });
   }
 }

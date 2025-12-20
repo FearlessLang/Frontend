@@ -1,29 +1,26 @@
 package inference;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import fearlessFullGrammar.TName;
+import core.E;
 import message.SourceOracle;
 import pkgmerge.OtherPackages;
-import pkgmerge.FrontendLogicMain;
-import utils.Bug;
+import testUtils.FearlessTestBase;
 
 public class DbgBlock{
-  static OtherPackages err(){
-    return new OtherPackages(){
-      public core.E.Literal of(TName name){ throw Bug.of(""+name); }
-      public Collection<TName> dom(){ throw Bug.of(); }
-    };
-  }
+  static OtherPackages err(){ return FearlessTestBase.otherErr(); }
+
   public static OtherPackages dbg(){
-    var ds= all().stream().collect(Collectors.toMap(d->d.name(),d->d));
-    return new OtherPackages(){
-      public core.E.Literal of(TName name){ return ds.get(name); }
-      public Collection<TName> dom(){ return ds.keySet(); }
-    }; 
+    return FearlessTestBase.otherFrom(all());
   }
+  public static List<E.Literal> all(){
+    var o= SourceOracle.debugBuilder()
+      .put("base.fear", baseHead)
+      .put("baseBody.fear", "package base;\n"+baseBody)
+      .build();
+    return FearlessTestBase.compileAll(o, err());
+  }
+
   static String baseHead="""
     package base;
     role base000;
@@ -98,7 +95,9 @@ public class DbgBlock{
 
 
 
-  static String baseBody="""
+
+
+static String baseBody="""
 Sealed:{}
 WidenTo[T]:{}
 InferUnknown:Sealed{}
@@ -262,13 +261,4 @@ _DecidedBlock:{
   .loop(_) -> self;
   }
 }
-""";
-  static List<core.E.Literal> all(){
-    var o= SourceOracle.debugBuilder()
-      .put("base.fear",baseHead)
-      .put("baseBody.fear","package base;\n"+baseBody)
-      .build();
-    return new FrontendLogicMain()
-      .of(List.of(),o.allFiles(),o,err());
-  }
-}
+""";}

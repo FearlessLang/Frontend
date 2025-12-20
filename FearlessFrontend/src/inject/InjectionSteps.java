@@ -349,7 +349,6 @@ public record InjectionSteps(Methods meths){
     assert l.cs().isEmpty();
     assert l.bs().isEmpty() : "bs must stay empty pre-commit";
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
-    //TODO: former version if (noMeth && l.infHead()){ return new E.Type(rcc, rcc, l.src(), l.g()); }
     if (noMeth && l.infHead() && meths._from(rcc.c().name()) != null){ return new E.Type(rcc, rcc, l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());
     List<IT.C> cs= selfInferred? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c()));
