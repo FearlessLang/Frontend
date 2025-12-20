@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import inference.DbgBlock;
@@ -1858,9 +1857,69 @@ A:{
   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
 }
 """));} 
-//TODO: make the test above less tabular,
-//reduce the text in While inspecting the body of method ".foo" > the body of method ".f(_)"
-//may be just While inspecting body of ".foo" > body of ".f(_)"
-//find ways so that the error reports the inferred generic instantiation.
-//maybe even print symbolically the 'code around'? 
+
+@Test void bestLitName_anonLiteralNoImpl_withMeth(){ok(List.of("""
+A:{}
+Main:{
+  .m:A -> {.foo:A->A }.foo
+}
+"""));}
+
+
+@Test void err_bestLitName_anonLiteralNoImpl_missingMethod(){fail("""
+004|   .m:A -> { .bar:A->A }.foo
+   |   --------~~~~~~~~~~~~~^^^^
+
+While inspecting ".m" line 4
+This call to method ".foo" can not typecheck.
+Method ".foo" is not declared on "{...}".
+
+Available methods on "{...}":
+-       .bar:A
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+{.bar:A->A}.foo
+""",List.of("""
+A:{}
+Main:{
+  .m:A -> { .bar:A->A }.foo
+  }
+"""));}
+
+@Test void err_bestLitName_anonLiteralNoImpl_empty(){fail("""
+004|    .m:A -> { }.foo
+   |    --------~~~^^^^
+
+While inspecting ".m" line 4
+This call to method ".foo" can not typecheck.
+Method ".foo" is not declared on "{...}".
+The object literal "{...}" does not have any methods.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+{}.foo
+""",List.of("""
+A:{}
+ Main:{
+   .m:A -> { }.foo
+  }
+"""));}
+@Test void err_bestLitName_NamedLiteralNoImpl_empty(){fail("""
+004|    .m:A -> B:{ }.foo
+   |    --------~~~~~^^^^
+
+While inspecting ".m" line 4
+This call to method ".foo" can not typecheck.
+Method ".foo" is not declared on type "B".
+The type "B" does not have any methods.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+B:{}.foo
+""",List.of("""
+A:{}
+ Main:{
+   .m:A -> B:{ }.foo
+  }
+"""));}
+
+
 }

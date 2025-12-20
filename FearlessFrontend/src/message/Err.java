@@ -23,29 +23,40 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
   static String disp(Object o){ return Message.displayString(o.toString()); }
   static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
-  String typeDecName(TName name){ return disp(cp().msgTName(name)+genArity(name.arity())); }
-  String typeDecNamePkg(TName name){ return disp(tNameDirect(name)); }
-  String tNameDirect(TName n){ return cp().msgTName(n)+genArity(n.arity()); }
-  static boolean useImplName(Literal l){ return l.infName(); }
-  static boolean useImplName(inference.E.Literal l){ return l.infName(); }
+  
+  String tNameA(TName n){ return cp().msgTName(n)+genArity(n.arity()); }     // "A[_]"
+  String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
+  private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
+  private String bestLitName(Literal l){
+    if (showInstanceOf(l)){ return tNameA(l.cs().getFirst().name()); }
+    if (l.infName() && l.cs().isEmpty()){ return anonRepr; }
+    return tNameA(l.name());
+  }
+  private String bestLitName(inference.E.Literal l){
+    return l.infName() ? tNameA(guessImplName(l)) : tNameA(l.name());
+  }
   private TName guessImplName(inference.E.Literal l){
     if (!l.cs().isEmpty()){ return l.cs().getFirst().name(); }
     var rcc= (IT.RCC)l.t();
     return rcc.c().name();
-    }
-  String bestNamePkg(Literal l){
-    if (!useImplName(l)){ return disp(l.rc().toStrSpace()+cp().msgTName(l.name())+genArity(l.name().arity())); }
-    return "instance of "+disp(l.rc().toStrSpace()+cp().msgTName(l.cs().getFirst().name())+genArity(l.cs().getFirst().name().arity()));
   }
-  String bestNamePkgDirect(boolean skipImm,Literal l){
-    if (!useImplName(l)){ return disp(l.rc().toStrSpace(skipImm)+cp().msgTName(l.name())+genArity(l.name().arity())); }
-    return disp(l.rc().toStrSpace(skipImm)+cp().msgTName(l.cs().getFirst().name())+genArity(l.cs().getFirst().name().arity()));
+  private String bestNamePkg0(String rcPrefix, boolean instanceOf, String n){
+    String body= rcPrefix + n;
+    return instanceOf ? "instance of "+disp(body) : disp(body);
   }
-  String bestNamePkg(inference.E.Literal l){
-    if (!useImplName(l)){ return disp(l.rc().orElse(RC.imm).toStrSpace()+cp().msgTName(l.name())+genArity(l.name().arity())); }
-    var n= guessImplName(l);
-    return "instance of "+disp(l.rc().orElse(RC.imm).toStrSpace()+cp().msgTName(n)+genArity(n.arity()));
+  private boolean anonLit(Literal l){ return l.infName() && l.cs().isEmpty(); }
+  private final static String anonRepr="{...}"; 
+  private String typeOrAnon(Literal l,String typePrefix,String anonPrefix){
+    if (anonLit(l)){ return anonPrefix + disp(anonRepr); }
+    return typePrefix+disp(l.rc().toStrSpace()+bestLitName(l));
   }
+  String onTypeOrAnon(Literal l){ return typeOrAnon(l,"type ",""); }
+  String theTypeOrObjectLiteral(Literal l){ return typeOrAnon(l,"The type ","The object literal "); }
+  private String litHintImm(Literal l){
+    if (anonLit(l)){ return anonRepr; }
+    return bestLitName(l) + (l.infName() ? anonRepr : ":"+anonRepr);
+  }
+  public String bestNameNoRc(Literal l){ return bestNamePkg0("", showInstanceOf(l), bestLitName(l)); }
   T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()),t.ts()); }//Correct to not propagate here
   T preferredForFresh(T t){ return switch(t){
     case T.X x -> x;
@@ -61,21 +72,22 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     case Call c->"method call "+methodSig(c.name());
     case X x->"parameter " +disp(x.name());
     case Literal l->l.thisName().equals("this")
-      ? "type declaration " +typeDecName(l.name())
-      : "object literal " +bestNamePkg(l);
+      ? "type declaration " +tNameADisp(l.name())
+      : "object literal " +bestNamePkg0(l.rc().toStrSpace(), showInstanceOf(l), bestLitName(l));
     case Type t-> "object literal instance of " + typeRepr(t.type());
     };}
+    
   String expReprDirect(boolean skipImm, E toErr){return switch(toErr){
     case Call c->methodSig(c.name());
     case X x->disp(x.name());
     case Literal l->l.thisName().equals("this")
-      ? typeDecName(l.name())
-      : bestNamePkgDirect(skipImm,l);
+      ? tNameADisp(l.name())
+      : bestNamePkg0(l.rc().toStrSpace(skipImm), false, bestLitName(l));
     case Type t-> t.toString();
     };}
   String bestNameHintExplicitRC(E e){ return switch(e){
-    case Literal l-> l.rc() != RC.imm ? "" : bestNameDirect(l)+(l.infName()?"{...}":":{...}");
-    case Type t ->  t.type().rc() != RC.imm ? "" : bestNameDirect(t);
+    case Literal l->l.rc() != RC.imm ? "" : litHintImm(l);
+    case Type(var t,_) ->  t.rc() != RC.imm ? "" : t.rc().toStrSpace()+tNameA(t.c().name());
     default ->{ throw Bug.unreachable(); }
   };}
   String expRepr(inference.E toErr){return switch(toErr){
@@ -83,26 +95,15 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     case inference.E.ICall c->"method call "+methodSig(c.name());
     case inference.E.X x->"parameter " +disp(x.name());
     case inference.E.Literal l->l.thisName().equals("this")
-      ? "type declaration " +typeDecName(l.name())
-      : "object literal " +bestNamePkg(l);
+      ? "type declaration " +tNameADisp(l.name())
+      : "object literal " +bestNamePkg0(l.rc().orElse(RC.imm).toStrSpace(), l.infName(), bestLitName(l));
     case inference.E.Type t-> "object literal instance of " + t;
     };}
-  String bestNameDirect(Literal l){
-    if (!useImplName(l)){ return cp().msgTName(l.name())+genArity(l.name().arity()); }
-    return cp().msgTName(l.cs().getFirst().name())+genArity(l.cs().getFirst().name().arity());
-  }
-  String bestNameDirect(E.Type l){
-    return l.type().rc().toStrSpace()+tNameDirect(l.type().c().name())+genArity(l.type().c().name().arity());
-  }
-  String bestNameDirect(inference.E.Literal l){
-    if (!useImplName(l)){ return cp().msgTName(l.name())+genArity(l.name().arity()); }
-    return cp().msgTName(l.cs().getFirst().name())+genArity(l.cs().getFirst().name().arity());
-  }
-  static String methodSig(MName m){ return methodSig("",m); }
-  String methodSig(TName pre, MName m){ return methodSig(tNameDirect(pre),m); }
-  String methodSig(Literal l, MName m){ return methodSig(bestNameDirect(l),m); }
-  String methodSig(inference.E.Literal l, MName m){ return methodSig(bestNameDirect(l),m); }
-  static String methodSig(String pre, MName m){
+  String methodSig(MName m){ return methodSig("",m); }
+  String methodSig(TName pre, MName m){ return methodSig(tNameA(pre),m); }
+  String methodSig(Literal l, MName m){ return methodSig(bestLitName(l),m); }
+  String methodSig(inference.E.Literal l, MName m){ return methodSig(bestLitName(l),m); }
+  String methodSig(String pre, MName m){
     return disp(Join.of(
       IntStream.range(0,m.arity()).mapToObj(_->"_"),
       pre+m.s()+"(",",",")",
@@ -200,5 +201,9 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
       .line(footerHdr)
       .compactPrinterLine(footerE)
       .text());
+  }
+  FearlessException wf(){
+    assert sb.length() != 0;
+    return Code.WellFormedness.of(text());
   }
 }

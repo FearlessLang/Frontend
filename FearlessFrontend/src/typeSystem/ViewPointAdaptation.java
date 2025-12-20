@@ -38,12 +38,7 @@ public record ViewPointAdaptation(Kinding k){
     var t= w.currentT();
     if (!kindIsoImmMutRead(t, l.bs())){ return Change.dropReadHMutH(l,t); }
     if ((l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs())){ return Change.dropMutInImm(l,t); }
-    return w;
-    
-    //Used to be as below, but the above gives better errors (prioritizes dropReadHMutH) 
-    //if ((l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs())){ return Optional.of(Change.dropMutInImm(l,t)); }
-    //if (kindIsoImmMutRead(t, l.bs())){ return Optional.empty(); };
-    //return Optional.of(Change.dropReadHMutH(l,t));
+    return w;    
   } 
   private boolean kindIsoImm(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm)); }
   private boolean kindIsoImmMutRead(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm, mut, read)); }

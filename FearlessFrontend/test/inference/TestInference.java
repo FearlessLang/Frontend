@@ -105,6 +105,7 @@ While inspecting the file
 Missing role declaration in package head file.
 Every package must declare its role: base, core, driver, worker, framework, accumulator, tool, or app.
 The package head file is the file whose name matches the package name.
+
 Add a top-level role line to that file. For example:
 package myCoolGame;
 role app999;
@@ -145,8 +146,9 @@ In file: [###]/in_memory0.fear
 While inspecting the file
 File is not the package head, but contains package head directives.
 It should not contain any directives like maps, uses or role.
+
 Found non-empty:
-  - uses: use base.Void as Void
+- uses: use base.Void as Void
 Error 9 WellFormedness
 ""","""
 role app000;
@@ -1073,9 +1075,10 @@ In file: [###]/in_memory0.fear
 While inspecting type declaration "C"
 type declaration "C" implements "base.WidenTo[_]" more than once.
 At most one "base.WidenTo[_]" supertype is allowed, because it defines the preferred widened type.
+
 Found the following base.WidenTo supertypes:
-  - "base.WidenTo[p.A]"
-  - "base.WidenTo[p.B]"
+- "base.WidenTo[p.A]"
+- "base.WidenTo[p.B]"
 Error 9 WellFormedness
 """,List.of("""
 A:base.WidenTo[A]{}

@@ -1225,6 +1225,24 @@ User4:{
 User5:{.go3:Float->Trash#(Top.top {x->{y->y}} # One # FOne) }
 """));}
 
+@Test void innerAbstract(){failI("""
+In file: [###]/in_memory0.fear
+
+003| Main:{
+004|   .m:A -> { .bar:A }.foo
+   |           ~~^^^^^^~~----
+005|   }
+
+While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+Abstract method declaration for ".bar: A".
+Only top level methods can be abstract.
+Error 9 WellFormedness
+""",List.of("""
+A:{}
+Main:{
+  .m:A -> { .bar:A }.foo
+  }
+"""));}
 
 //TODO: what to do here? Should we improve the inference or accept?
 //We could try to transform all vars in Gamma that are mut/read into:

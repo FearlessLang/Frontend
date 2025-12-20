@@ -13,7 +13,6 @@ import java.util.stream.IntStream;
 
 import fearlessParser.Parser;
 import fearlessParser.RC;
-import inject.Methods;
 import metaParser.NameSuggester;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
@@ -69,7 +68,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     T bad= args.get(index);
     var bs= decs.apply(c.name()).bs();
     assert index < bs.size();
-    String typeName = err().typeDecName(c.name());
+    String typeName = err().tNameADisp(c.name());
     String paramName= disp(bs.get(index).x());
     return err().pTypeArgBounds(name, typeName, paramName, index, err().typeRepr(bad), allowedStr);
   }
@@ -106,7 +105,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     T currentRet= current.ret();
     return overrideErr(l, current, err()
       .invalidMethImpl(l,mName)
-      .line("The method "+Err.methodSig(mName)+" returns type "+err().typeRepr(currentRet)+".")
+      .line("The method "+err().methodSig(mName)+" returns type "+err().typeRepr(currentRet)+".")
       .line("But "+err().methodSig(parent.origin(),mName)+" returns type "+err().typeRepr(parentRet)+", which is not a supertype of "+err().typeRepr(currentRet)+".")
     );
   }
@@ -117,7 +116,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return addExpFrame(l, err()
       .line("This object literal is missing a required method.")
       .line("Missing: "+err().methodSig(s.rc()+" ", s.m())+".")
-      .line("Required by: "+err().typeDecNamePkg(s.origin())+".")
+      .line("Required by: "+err().tNameADisp(s.origin())+".")
       .line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.")
       .ex(l));
   }
@@ -252,15 +251,18 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   /// - method exists with right arity, but different receiver RCs; list those other method signatures
   ///Raised when checking method calls.
   public FearlessException methodNotDeclared(Call c, Literal d){
+    Literal di= d.withRC(RC.imm);
+    String on= err().onTypeOrAnon(di);
+    String subj= err().theTypeOrObjectLiteral(di);
     Err e= err()
       .pCallCantBeSatisfied(c)
-      .line("Method "+err().methodSig(c.name())+" is not declared on type "+err().bestNamePkg(d.withRC(RC.imm))+".");
+      .line("Method "+err().methodSig(c.name())+" is not declared on "+on+".");
     String name= c.name().s();
     var candidates= d.ms().stream().map(M::sig).toList();
     List<Sig> sameName= candidates.stream()
       .filter(s->s.m().s().equals(name)).toList();
-    if (sameName.isEmpty()){
-      if (candidates.isEmpty()){ e.line("The type "+e.bestNamePkg(d.withRC(RC.imm))+" does not have any methods."); }
+    if (sameName.isEmpty()){      
+      if (candidates.isEmpty()){ e.line(subj+" does not have any methods."); }
       else{
         var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
         NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,c, d, candidates, cs, best); return null; } );
@@ -272,21 +274,21 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       String avail= Join.of(sameName.stream().map(s->Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
       return withCallSpans(err()
         .pCallCantBeSatisfied(c) 
-        .line("There is a method "+disp(c.name().s())+" on type "+err().bestNamePkg(d.withRC(RC.imm))+",\nbut with different number of arguments.")
+        .line("There is a method "+disp(c.name().s())+" on "+on+",\nbut with different number of arguments.")
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .ex(c), c);
     }
     String availRc= Join.of(sameArity.stream().sorted().map(s->disp(s.rc())), "", " and ", ".");
     return withCallSpans(err()
       .pCallCantBeSatisfied(c)
-      .line(err().methodSig(c.name())+" exists on type "+err().bestNamePkg(d.withRC(RC.imm))+", but not with the requested capability.")
+      .line(err().methodSig(c.name())+" exists on type "+err().bestNameNoRc(d)+", but not with the requested capability.")
       .line("This call requires the existence of a "+disp(c.rc())+" method.")
       .line("Available capabilities for this method: "+availRc)
       .ex(c), c);
   }
   void bestNameMsg(Err e,Call c, Literal d, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
-    e.blank().line("Available methods on type "+e.bestNamePkg(d.withRC(RC.imm))+":");
+    e.blank().line("Available methods on "+e.onTypeOrAnon(d.withRC(RC.imm))+":");
     for (String n:cs){
       candidates.stream()
         .filter(s->s.m().s().equals(n))
