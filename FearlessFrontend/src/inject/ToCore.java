@@ -4,10 +4,10 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 import core.E;
+import core.MName;
+import core.RC;
 import core.Src;
 import core.T;
-import fearlessFullGrammar.MName;
-import fearlessParser.RC;
 import inference.IT;
 import offensiveUtils.EqTransparent;
 import utils.Bug;

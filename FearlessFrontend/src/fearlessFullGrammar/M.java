@@ -4,6 +4,7 @@ import static offensiveUtils.Require.nonNull;
 
 import java.util.Optional;
 
+import core.TSpan;
 import fearlessParser.HasImplicitVisitor;
 
 public record M(Optional<Sig> sig, Optional<E> body, boolean hasImplicit, TSpan span){

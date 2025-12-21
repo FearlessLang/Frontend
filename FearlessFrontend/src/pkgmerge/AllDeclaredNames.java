@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import core.TName;
 import fearlessFullGrammar.*;
 import fearlessFullGrammar.E.*;
 import message.WellFormednessErrors;

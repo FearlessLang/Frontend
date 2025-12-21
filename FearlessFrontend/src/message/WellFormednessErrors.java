@@ -12,12 +12,12 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
+import core.RC;
+import core.TName;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.T.X;
-import fearlessFullGrammar.TName;
 import fearlessParser.Parser;
-import fearlessParser.RC;
 import inference.E;
 import inference.IT;
 import inference.M;

@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Optional;
 
 import core.B;
+import core.MName;
+import core.RC;
 import core.Src;
-import fearlessFullGrammar.MName;
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
-import fearlessParser.RC;
+import core.TName;
+import core.TSpan;
 import utils.Join;
 import utils.Pos;
 

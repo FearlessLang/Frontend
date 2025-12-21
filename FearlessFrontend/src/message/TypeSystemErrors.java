@@ -12,7 +12,6 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import fearlessParser.Parser;
-import fearlessParser.RC;
 import metaParser.NameSuggester;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
@@ -21,8 +20,6 @@ import typeSystem.TypeScope;
 import typeSystem.TypeSystem;
 import utils.Join;
 import utils.OneOr;
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
 import core.*;
 import core.E.*;
 
@@ -384,7 +381,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   private static boolean isWrongUnderlyingType(TypeSystem ts, List<B> bs, T reqCanon, List<Reason> res){
     return res.stream().map(r->canon(r.best)).noneMatch(r->ts.isSub(bs, r, reqCanon));
   }
-  private static T canon(T t){ return t.withRC(fearlessParser.RC.imm); }
+  private static T canon(T t){ return t.withRC(core.RC.imm); }
 
   private static T headerBest(List<Reason> res){
     return res.stream().map(r->r.best)

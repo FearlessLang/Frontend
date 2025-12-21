@@ -5,9 +5,9 @@ import static offensiveUtils.Require.*;
 
 import java.util.List;
 
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
-import fearlessParser.RC;
+import core.RC;
+import core.TName;
+import core.TSpan;
 import utils.Bug;
 import utils.Join;
 

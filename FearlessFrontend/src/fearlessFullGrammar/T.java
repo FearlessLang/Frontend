@@ -4,7 +4,10 @@ import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
-import fearlessParser.RC;
+
+import core.RC;
+import core.TName;
+import core.TSpan;
 import inference.IT;
 
 public sealed interface T {

@@ -1,13 +1,13 @@
 package typeSystem;
 
+import static core.RC.*;
+
 import java.util.EnumSet;
 import java.util.List;
 
 import core.*;
 import core.E.*;
-import fearlessParser.RC;
 import typeSystem.Change.*;
-import static fearlessParser.RC.*;
 
 public record ViewPointAdaptation(Kinding k){
   public Gamma of(Gamma g,Literal l, M m){ return g.map(curr -> of(curr,l,m)); }

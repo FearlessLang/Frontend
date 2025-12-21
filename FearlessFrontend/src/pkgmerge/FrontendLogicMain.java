@@ -5,14 +5,15 @@ import static fearlessParser.TokenKind.*;
 import java.net.URI;
 import java.util.*;
 
+import core.OtherPackages;
+import core.SourceOracle;
+import core.TName;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
-import fearlessFullGrammar.TName;
 import fearlessFullGrammar.FileFull.Role;
 import fearlessParser.Parse;
 import inject.InjectionSteps;
 import inject.Methods;
-import message.SourceOracle;
 import message.WellFormednessErrors;
 import toInfer.ToInference;
 import typeSystem.TypeSystem;

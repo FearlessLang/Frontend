@@ -1,16 +1,11 @@
-package optimizedTypes;
+package core;
 
 import java.util.List;
 import java.util.Map;
 
-import core.Src;
-import core.T;
 import core.E.Literal;
-import fearlessFullGrammar.TName;
-import fearlessParser.RC;
 import fearlessParser.TokenKind;
 import utils.Pos;
-import pkgmerge.OtherPackages;
 import utils.Bug;
 
 
@@ -36,15 +31,16 @@ public class LiteralDeclarations {
     if (!n.pkgName().equals("base") || !isPrimitiveLiteral(n.simpleName())){ return null; }
     return LiteralDeclarations.from(n);
   }
-  public static core.E.Literal from(TName name){
+  public static core.E.Literal from(TName name){ return of(name,superLiteral(name)); }
+  public static TName superLiteral(TName name){
     assert name.pkgName().equals("base");
     String s= name.simpleName();
-    if (s.startsWith("`")){  return of(name,baseSStr); }
-    if (s.startsWith("\"")){ return of(name,baseUStr); }
-    if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return of(name,baseNat); }
-    if (TokenKind.isKind(s,TokenKind.SignedInt)){ return of(name,baseInt); }
-    if (TokenKind.isKind(s,TokenKind.SignedFloat)){ return of(name,baseFloat); }
-    if (TokenKind.isKind(s,TokenKind.SignedRational)){ return of(name,baseNum); }    
+    if (s.startsWith("`")){  return baseSStr; }
+    if (s.startsWith("\"")){ return baseUStr; }
+    if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return baseNat; }
+    if (TokenKind.isKind(s,TokenKind.SignedInt)){ return baseInt; }
+    if (TokenKind.isKind(s,TokenKind.SignedFloat)){ return baseFloat; }
+    if (TokenKind.isKind(s,TokenKind.SignedRational)){ return baseNum; }    
     throw Bug.unreachable();
   }
 }

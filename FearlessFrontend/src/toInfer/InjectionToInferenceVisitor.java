@@ -9,24 +9,24 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
+import core.MName;
+import core.OtherPackages;
+import core.RC;
 import core.Src;
+import core.TName;
+import core.TSpan;
 import utils.Bug;
 import utils.Push;
 import fearlessFullGrammar.E.Call;
-import fearlessFullGrammar.MName;
 import fearlessFullGrammar.Parameter;
 import fearlessFullGrammar.XPat;
-import fearlessParser.RC;
 import utils.Pos;
 import inference.E;
 import inference.IT;
 import inference.M;
 import inject.Methods;
 import naming.FreshPrefix;
-import pkgmerge.OtherPackages;
 import pkgmerge.Package;
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
 
 import static java.util.Optional.*;
 

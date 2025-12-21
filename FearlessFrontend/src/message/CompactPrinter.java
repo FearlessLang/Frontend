@@ -8,12 +8,10 @@ import java.util.stream.IntStream;
 import core.*;
 import core.E.*;
 import core.T.C;
-import fearlessFullGrammar.TName;
-import fearlessParser.RC;
 import utils.Bug;
 import utils.Join;
 
-class CompactPrinter{
+public class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses, boolean trunk){ t= new TypeNamePrinter(trunk,mainPkg,uses); }
   public String limit(E e,int limit){
     assert limit >= 0;

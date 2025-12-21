@@ -6,6 +6,8 @@ import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
 
+import core.TName;
+
 public record FileFull(
   String name,
   Optional<Role> role,

@@ -1,7 +1,7 @@
 package typeSystem;
 
-import static fearlessParser.RC.imm;
-import static fearlessParser.RC.read;
+import static core.RC.imm;
+import static core.RC.read;
 
 import core.*;
 import core.E.*;

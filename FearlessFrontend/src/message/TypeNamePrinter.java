@@ -1,8 +1,9 @@
 package message;
 
 import java.util.Map;
-import fearlessFullGrammar.TName;
-import optimizedTypes.LiteralDeclarations;
+
+import core.LiteralDeclarations;
+import core.TName;
 
 public record TypeNamePrinter(boolean trunc,String mainPkg, Map<String,String> uses){
   public TypeNamePrinter{ assert !mainPkg.isEmpty(); }

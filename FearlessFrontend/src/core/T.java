@@ -7,9 +7,6 @@ import static offensiveUtils.Require.unmodifiable;
 
 import java.util.List;
 
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
-import fearlessParser.RC;
 import metaParser.Span;
 import utils.Join;
 

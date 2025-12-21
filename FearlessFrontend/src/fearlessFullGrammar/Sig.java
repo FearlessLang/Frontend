@@ -3,7 +3,9 @@ package fearlessFullGrammar;
 import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
-import fearlessParser.RC;
+
+import core.MName;
+import core.RC;
 
 public record Sig(
   Optional<RC> rc, Optional<MName> m,

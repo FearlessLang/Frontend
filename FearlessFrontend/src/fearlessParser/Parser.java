@@ -8,6 +8,10 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import core.MName;
+import core.RC;
+import core.TName;
+import core.TSpan;
 import fearlessFullGrammar.*;
 import utils.Pos;
 import message.FearlessErrFactory;

@@ -1,5 +1,5 @@
 package typeSystem;
-import static fearlessParser.RC.*;
+import static core.RC.*;
 import static offensiveUtils.Require.*;
 import java.util.EnumSet;
 import java.util.List;
@@ -7,8 +7,6 @@ import java.util.function.Function;
 
 import core.*;
 import core.E.*;
-import fearlessFullGrammar.TName;
-import fearlessParser.RC;
 import message.TypeSystemErrors;
 
 public record Kinding(TypeSystemErrors tsE){

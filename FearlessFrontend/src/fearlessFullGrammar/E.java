@@ -2,7 +2,9 @@ package fearlessFullGrammar;
 
 import java.util.*;
 
-import fearlessParser.RC;
+import core.MName;
+import core.RC;
+import core.TSpan;
 import utils.Pos;
 
 import static fearlessParser.TokenKind.*;

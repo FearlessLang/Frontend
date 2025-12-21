@@ -8,10 +8,6 @@ import static offensiveUtils.Require.*;
 
 import java.util.*;
 
-import fearlessFullGrammar.MName;
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
-import fearlessParser.RC;
 import offensiveUtils.EqTransparent;
 
 public sealed interface E {

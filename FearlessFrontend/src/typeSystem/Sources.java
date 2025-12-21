@@ -7,9 +7,9 @@ import java.util.stream.Stream;
 import core.B;
 import core.E.Literal;
 import core.M;
+import core.RC;
 import core.Sig;
 import core.T;
-import fearlessParser.RC;
 import inject.TypeRename;
 import utils.OneOr;
 

@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import fearlessParser.RC;
-import static fearlessParser.RC.*;
+import core.RC;
 
+import static core.RC.*;
 import static java.util.EnumSet.of;
 
 public class RCLubGlb{

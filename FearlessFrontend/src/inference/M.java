@@ -3,10 +3,10 @@ import java.util.List;
 import java.util.Optional;
 
 import core.B;
-import fearlessFullGrammar.MName;
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
-import fearlessParser.RC;
+import core.MName;
+import core.RC;
+import core.TName;
+import core.TSpan;
 import utils.Join;
 
 import static offensiveUtils.Require.*;

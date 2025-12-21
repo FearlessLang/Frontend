@@ -6,7 +6,7 @@ import java.util.Map;
 
 import core.E;
 import core.M;
-import fearlessFullGrammar.TName;
+import core.TName;
 import core.E.*;
 
 public record AllLs(HashMap<TName,Literal> ls) {

@@ -1,4 +1,4 @@
-package fearlessFullGrammar;
+package core;
 
 import utils.Pos;
 import metaParser.Span;

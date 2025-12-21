@@ -3,8 +3,8 @@ package testUtils;
 import java.util.List;
 
 import core.E;
-import message.SourceOracle;
-import pkgmerge.OtherPackages;
+import core.OtherPackages;
+import core.SourceOracle;
 
 public class DbgBlock{
   static OtherPackages err(){ return FearlessTestBase.otherErr(); }

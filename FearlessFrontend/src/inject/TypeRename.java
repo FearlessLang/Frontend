@@ -3,10 +3,10 @@ package inject;
 import java.util.List;
 import java.util.Optional;
 
+import core.RC;
 import core.T;
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
-import fearlessParser.RC;
+import core.TName;
+import core.TSpan;
 import utils.Pos;
 import inference.IT;
 import utils.Bug;

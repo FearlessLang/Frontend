@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import core.TName;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.T;
-import fearlessFullGrammar.TName;
 import message.WellFormednessErrors;
 
 public record DeclaredNames(Set<TName> decNames, Map<TName,Set<T.X>> allXs, Map<TName,Set<String>> allParameters){

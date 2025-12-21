@@ -17,20 +17,20 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Assertions;
 import org.opentest4j.AssertionFailedError;
 
+import core.OtherPackages;
+import core.SourceOracle;
+import core.TName;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.FileFull.Role;
-import fearlessFullGrammar.TName;
 import fearlessFullGrammar.ToString;
 import fearlessParser.Parse;
 import inference.E;
 import inject.InjectionSteps;
 import inject.Methods;
 import message.FearlessException;
-import message.SourceOracle;
 import pkgmerge.DeclaredNames;
 import pkgmerge.FrontendLogicMain;
-import pkgmerge.OtherPackages;
 import pkgmerge.Package;
 import toInfer.ToInference;
 import utils.Bug;
@@ -183,7 +183,7 @@ public abstract class FearlessTestBase{
   protected static List<core.E.Literal> compileAll(SourceOracle o, OtherPackages other){
     return new FrontendLogicMain().of(List.of(), o.allFiles(), o, other);
   }
-  protected static List<core.E.Literal> compileAllOk(SourceOracle o, pkgmerge.OtherPackages other){
+  protected static List<core.E.Literal> compileAllOk(SourceOracle o, core.OtherPackages other){
     return okOrPrint(o, ()->compileAll(o, other));
   }
   public static SourceOracle oracleFromDir(Path root){

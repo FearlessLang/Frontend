@@ -1,8 +1,6 @@
-package pkgmerge;
+package core;
 
 import java.util.Collection;
-
-import fearlessFullGrammar.TName;
 
 public interface OtherPackages{
   core.E.Literal of(TName name);

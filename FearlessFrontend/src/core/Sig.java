@@ -2,10 +2,6 @@ package core;
 
 import java.util.List;
 
-import fearlessFullGrammar.MName;
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
-import fearlessParser.RC;
 import utils.Join;
 
 public record Sig(RC rc, MName m, List<B> bs, List<T> ts, T ret, TName origin, boolean abs, TSpan span){

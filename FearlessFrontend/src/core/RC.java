@@ -1,8 +1,7 @@
-package fearlessParser;
+package core;
 
 import java.util.List;
 
-import core.B;
 import utils.OneOr;
 
 public enum RC {

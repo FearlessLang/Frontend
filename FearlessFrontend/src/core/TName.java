@@ -1,6 +1,7 @@
-package fearlessFullGrammar;
+package core;
 
 import static fearlessParser.TokenKind.*;
+
 import utils.Pos;
 
 public record TName(String s, int arity, Pos pos){

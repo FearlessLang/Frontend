@@ -1,12 +1,13 @@
 package typeSystem;
 
+import static core.RC.*;
+
 import java.util.*;
 import java.util.stream.IntStream;
 
 import core.B;
+import core.RC;
 import core.T;
-import fearlessParser.RC;
-import static fearlessParser.RC.*;
 import typeSystem.TypeSystem.MType;
 import utils.OneOr;
 

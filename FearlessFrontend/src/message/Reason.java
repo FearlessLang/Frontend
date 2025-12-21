@@ -6,7 +6,6 @@ import java.util.function.Supplier;
 
 import core.*;
 import core.E.*;
-import fearlessParser.RC;
 import typeSystem.ArgMatrix;
 import typeSystem.TypeScope;
 import typeSystem.TypeSystem;
@@ -27,7 +26,7 @@ public final class Reason{
   public static Reason literalDoesNotHaveRequiredType(
     TypeSystem ts, E blame, List<B> bs, T got, T expected
     ){     
-    if (!(expected instanceof T.RCC er) || er.rc() == fearlessParser.RC.imm){
+    if (!(expected instanceof T.RCC er) || er.rc() == core.RC.imm){
       return new Reason(got, base(ts,blame,bs,got,expected), Optional::empty);
     }
     String tn= ts.err().bestNameHintExplicitRC(blame);
@@ -51,8 +50,8 @@ public final class Reason{
   ){    
     assert !okProm.isEmpty();
     Supplier<Optional<E>> footerE= ()->{
-      T decl0= sig.ret().withRC(fearlessParser.RC.imm);
-      T req0= req.t().withRC(fearlessParser.RC.imm);
+      T decl0= sig.ret().withRC(core.RC.imm);
+      T req0= req.t().withRC(core.RC.imm);
       List<T> interest= TypeScope.interestFromDeclVsReq(decl0, req0);
       var best= TypeScope.bestInterestingScope(scope, interest);
       return Optional.of(best.contextE());

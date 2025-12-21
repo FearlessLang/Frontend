@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import core.RC;
 import fearlessFullGrammar.E.*;
 import fearlessFullGrammar.T.*;
 import fearlessFullGrammar.XPat.Destruct;
 import fearlessFullGrammar.XPat.Name;
-import fearlessParser.RC;
 
 public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>,XPatVisitor<StringBuilder>{
   public static String declaration(Declaration d){ 

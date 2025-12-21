@@ -13,19 +13,19 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
+import core.LiteralDeclarations;
+import core.MName;
+import core.OtherPackages;
+import core.RC;
 import core.T;
-import fearlessFullGrammar.MName;
-import fearlessFullGrammar.TName;
+import core.TName;
 import fearlessParser.Parser;
-import fearlessParser.RC;
 import inference.E;
 import inference.IT;
 import inference.M;
 import inference.M.Sig;
 import metaParser.Span;
 import naming.FreshPrefix;
-import optimizedTypes.LiteralDeclarations;
-import pkgmerge.OtherPackages;
 import pkgmerge.Package;
 
 public record Methods(

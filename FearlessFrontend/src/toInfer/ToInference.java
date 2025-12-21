@@ -5,15 +5,15 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import fearlessFullGrammar.TName;
-import fearlessParser.RC;
+import core.LiteralDeclarations;
+import core.OtherPackages;
+import core.RC;
+import core.TName;
 import fearlessParser.TokenKind;
 import inference.E;
 import inject.Methods;
 import message.FearlessException;
 import naming.FreshPrefix;
-import optimizedTypes.LiteralDeclarations;
-import pkgmerge.OtherPackages;
 import pkgmerge.Package;
 
 public class ToInference{

@@ -7,13 +7,13 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import core.RC;
 import fearlessFullGrammar.M;
 import fearlessFullGrammar.Sig;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.ToString;
 import fearlessFullGrammar.XPat;
 import fearlessParser.Parser;
-import fearlessParser.RC;
 import fearlessParser.Token;
 import fearlessParser.TokenKind;
 import static fearlessParser.TokenKind.*;

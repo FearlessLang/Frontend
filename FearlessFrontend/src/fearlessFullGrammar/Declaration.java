@@ -3,6 +3,9 @@ package fearlessFullGrammar;
 import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
+
+import core.TName;
+import core.TSpan;
 import utils.Pos;
 public record Declaration(TName name, Optional<List<B>> bs, List<T.C> cs, E.Literal l) implements core.Src.SrcObj{
   public Declaration{

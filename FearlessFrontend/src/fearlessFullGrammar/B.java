@@ -2,7 +2,8 @@ package fearlessFullGrammar;
 
 import static offensiveUtils.Require.*;
 import java.util.List;
-import fearlessParser.RC;
+
+import core.RC;
 
 public record B(T.X x, BT bt){//Span of T.X x needed in crucial error
   public B{ assert nonNull(x,bt);}

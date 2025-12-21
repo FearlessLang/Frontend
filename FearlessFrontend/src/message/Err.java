@@ -8,9 +8,6 @@ import java.util.stream.IntStream;
 
 import core.*;
 import core.E.*;
-import fearlessFullGrammar.MName;
-import fearlessFullGrammar.TName;
-import fearlessParser.RC;
 import inference.IT;
 import inject.TypeRename;
 import metaParser.Message;

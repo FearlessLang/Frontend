@@ -1,5 +1,7 @@
 package typeSystem;
 
+import static core.RC.*;
+
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -8,25 +10,23 @@ import java.util.stream.Collectors;
 
 import core.B;
 import core.E;
+import core.LiteralDeclarations;
 import core.M;
+import core.MName;
+import core.OtherPackages;
+import core.RC;
 import core.Sig;
 import core.T;
-import fearlessParser.RC;
+import core.TName;
+import core.TSpan;
 import inject.TypeRename;
 import message.Err;
 import message.FearlessException;
 import message.Reason;
 import message.TypeSystemErrors;
-import optimizedTypes.LiteralDeclarations;
-import pkgmerge.OtherPackages;
-import static fearlessParser.RC.*;
-
 import utils.OneOr;
 import utils.Push;
 import core.E.*;
-import fearlessFullGrammar.MName;
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
 import pkgmerge.Package;
 
 public record TypeSystem(TypeScope scope, ViewPointAdaptation v){

@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import core.MName;
+
 public sealed interface XPat {
   <R> R accept(XPatVisitor<R> v);
   Stream<String> parameterNames();

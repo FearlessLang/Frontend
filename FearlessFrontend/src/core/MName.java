@@ -1,4 +1,4 @@
-package fearlessFullGrammar;
+package core;
 
 import static fearlessParser.TokenKind.*;
 

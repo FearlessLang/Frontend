@@ -1,7 +1,7 @@
 package naming;
 import java.util.*;
 
-import fearlessFullGrammar.TName;
+import core.TName;
 import pkgmerge.Package;
 
 import static offensiveUtils.Require.*;

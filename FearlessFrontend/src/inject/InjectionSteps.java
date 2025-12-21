@@ -8,11 +8,11 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
+import core.MName;
+import core.RC;
 import core.Sig;
-import fearlessFullGrammar.MName;
-import fearlessFullGrammar.TName;
-import fearlessFullGrammar.TSpan;
-import fearlessParser.RC;
+import core.TName;
+import core.TSpan;
 import inference.E;
 import inference.Gamma;
 import inference.IT;
