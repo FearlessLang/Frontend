@@ -8,8 +8,8 @@ import java.util.List;
 import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
-import message.Join;
 import utils.Bug;
+import utils.Join;
 
 public sealed interface IT {
   default boolean isTV(){ return true; }

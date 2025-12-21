@@ -24,6 +24,7 @@ import metaParser.Message;
 import metaParser.NameSuggester;
 import metaParser.Span;
 import utils.Bug;
+import utils.Join;
 
 import static offensiveUtils.Require.*;
 

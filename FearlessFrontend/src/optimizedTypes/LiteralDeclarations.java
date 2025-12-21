@@ -1,9 +1,11 @@
 package optimizedTypes;
 
 import java.util.List;
+import java.util.Map;
 
 import core.Src;
 import core.T;
+import core.E.Literal;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import fearlessParser.TokenKind;
@@ -27,7 +29,14 @@ public class LiteralDeclarations {
     var w= new T.C(widen,List.of(self));
     return new core.E.Literal(RC.imm,name,List.of(),List.of(c,w),"this",List.of(),Src.syntetic,true);
   }
-  public static core.E.Literal from(TName name, OtherPackages other){
+  public static core.E.Literal _from(TName n, Map<TName,Literal> map, OtherPackages other){
+    var res= map.get(n);
+    if (res == null){ res = other.of(n); }
+    if (res != null){ return res; }
+    if (!n.pkgName().equals("base") || !isPrimitiveLiteral(n.simpleName())){ return null; }
+    return LiteralDeclarations.from(n);
+  }
+  public static core.E.Literal from(TName name){
     assert name.pkgName().equals("base");
     String s= name.simpleName();
     if (s.startsWith("`")){  return of(name,baseSStr); }

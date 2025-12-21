@@ -17,6 +17,7 @@ import message.Err;
 import message.FearlessException;
 import message.Reason;
 import message.TypeSystemErrors;
+import optimizedTypes.LiteralDeclarations;
 import pkgmerge.OtherPackages;
 import static fearlessParser.RC.*;
 
@@ -40,11 +41,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   List<MType> multiMeth(List<B> bs1, MType mType){ return MultiMeth.of(bs1,mType); }
 
   public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
-    var map= AllLs.of(tops);
-    Function<TName,Literal> decs= n->{
-      var res= map.get(n);
-      return res != null ? res : other.of(n);
-    };
+    Map<TName,Literal> map= AllLs.of(tops);
+    Function<TName,Literal> decs= n->LiteralDeclarations._from(n,map,other);
     Map<String,String> invMap= pkg.map().entrySet().stream()
       .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg,invMap))));

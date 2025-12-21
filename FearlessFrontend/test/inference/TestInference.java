@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import testUtils.DbgBlock;
+
 public class TestInference extends testUtils.FearlessTestBase{
   static void ok(String expected,List<String> input){ inferenceOk(expected, input); }
   static void ok(String expected,String head,List<String> input){ inferenceOk(expected, head, input); }

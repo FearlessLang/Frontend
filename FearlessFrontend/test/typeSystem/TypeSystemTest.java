@@ -1893,5 +1893,22 @@ A:{}
   }
 """));}
 
-
+@Test void passInt(){ok(List.of("""
+ Main:{ .m:base.Int -> +42 }
+"""));}
+@Test void passFloat(){ok(List.of("""
+ Main:{ .m:base.Float -> +42.0 }
+"""));}
+@Test void passNat(){ok(List.of("""
+ Main:{ .m:base.Nat -> 42 }
+"""));}
+@Test void passSStr(){ok(List.of("""
+ Main:{ .m:base.SStr -> `Hi` }
+"""));}
+@Test void passUStr(){ok(List.of("""
+ Main:{ .m:base.UStr -> "Hi" }
+"""));}
+@Test void passNum(){ok(List.of("""
+ Main:{ .m:base.Num -> +3/4 }
+"""));}
 }

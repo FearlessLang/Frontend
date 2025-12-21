@@ -23,12 +23,10 @@ import fearlessFullGrammar.FileFull.Role;
 import fearlessFullGrammar.TName;
 import fearlessFullGrammar.ToString;
 import fearlessParser.Parse;
-import inference.DbgBlock;
 import inference.E;
 import inject.InjectionSteps;
 import inject.Methods;
 import message.FearlessException;
-import message.Join;
 import message.SourceOracle;
 import pkgmerge.DeclaredNames;
 import pkgmerge.FrontendLogicMain;
@@ -37,6 +35,7 @@ import pkgmerge.Package;
 import toInfer.ToInference;
 import utils.Bug;
 import utils.Err;
+import utils.Join;
 import utils.Pos;
 
 public abstract class FearlessTestBase{
@@ -108,7 +107,7 @@ public abstract class FearlessTestBase{
     return new InferenceMain().ofMethods(List.of(), o.allFiles(), o, other, infer);
   }
   protected static Methods parsePackage(SourceOracle o, boolean infer){
-    return parsePackage(o, DbgBlock.dbg(), infer);
+    return parsePackage(o, otherFrom(DbgBlock.all()), infer);
   }
   protected static void toStringOk(String expected,String input){
     FileFull res;
@@ -151,14 +150,14 @@ public abstract class FearlessTestBase{
   }
   protected static void typeOk(String head, List<String> input){
     var o= oraclePkg(defaultPkg, head, input);
-    OtherPackages other= DbgBlock.dbg();
+    OtherPackages other=  otherFrom(DbgBlock.all());
     printError(() -> new FrontendLogicMain().of(List.of(), o.allFiles(), o, other), o);
   }
   protected static void typeOk(List<String> input){ typeOk(defaultHead, input); }
 
   protected static void typeFail(String expected, String head, List<String> input){
     var o= oraclePkg(defaultPkg, head, input);
-    OtherPackages other= DbgBlock.dbg();
+    OtherPackages other= otherFrom(DbgBlock.all());
     FearlessException fe= assertThrows(FearlessException.class,
       () -> new FrontendLogicMain().of(List.of(), o.allFiles(), o, other));
     strCmp(expected, fe.render(o));
@@ -167,21 +166,21 @@ public abstract class FearlessTestBase{
   protected static void typeFail(String expected, List<String> input){
     typeFail("In file: [###]/in_memory0.fear\n\n"+expected+"Error 10 TypeError", defaultHead, input);
   }
-  public static OtherPackages otherErr(){
+  protected static OtherPackages otherErr(){
     return new OtherPackages(){
-      public core.E.Literal of(TName name){ throw Bug.of(""+name); }
-      public Collection<TName> dom(){ throw Bug.of(); }
+      public core.E.Literal of(TName name){ return null; }
+      public Collection<TName> dom(){ return List.of(); }
     };
   }
 
-  public static OtherPackages otherFrom(List<core.E.Literal> ds){
+  protected static OtherPackages otherFrom(List<core.E.Literal> ds){
     var map= ds.stream().collect(Collectors.toMap(core.E.Literal::name, d->d));
     return new OtherPackages(){
       public core.E.Literal of(TName name){ return map.get(name); } // null on miss on purpose: this is to allow adding type literals on top
       public Collection<TName> dom(){ return map.keySet(); }
     };
   }
-  public static List<core.E.Literal> compileAll(SourceOracle o, OtherPackages other){
+  protected static List<core.E.Literal> compileAll(SourceOracle o, OtherPackages other){
     return new FrontendLogicMain().of(List.of(), o.allFiles(), o, other);
   }
   protected static List<core.E.Literal> compileAllOk(SourceOracle o, pkgmerge.OtherPackages other){

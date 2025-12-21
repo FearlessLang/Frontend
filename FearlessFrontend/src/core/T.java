@@ -10,8 +10,8 @@ import java.util.List;
 import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
-import message.Join;
 import metaParser.Span;
+import utils.Join;
 
 public sealed interface T {
   TSpan span();

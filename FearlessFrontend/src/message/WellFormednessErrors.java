@@ -27,6 +27,7 @@ import metaParser.PrettyFileName;
 import metaParser.Span;
 import naming.FreshPrefix;
 import utils.Bug;
+import utils.Join;
 
 public record WellFormednessErrors(String pkgName){
   Err err(){ return new Err(x->x, trunk->new CompactPrinter(pkgName, Map.of(), trunk), new StringBuilder()); }

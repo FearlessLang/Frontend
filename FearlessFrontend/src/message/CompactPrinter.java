@@ -11,6 +11,7 @@ import core.T.C;
 import fearlessFullGrammar.TName;
 import fearlessParser.RC;
 import utils.Bug;
+import utils.Join;
 
 class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses, boolean trunk){ t= new TypeNamePrinter(trunk,mainPkg,uses); }

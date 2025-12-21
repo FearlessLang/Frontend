@@ -9,6 +9,7 @@ import core.T;
 import fearlessFullGrammar.MName;
 import fearlessParser.RC;
 import inference.IT;
+import offensiveUtils.EqTransparent;
 import utils.Bug;
 import utils.OneOr;
 
@@ -36,7 +37,7 @@ public class ToCore{
     assert e.es().size() == o.es.size();
     var recv= of(e.e(),o.e);
     var args= IntStream.range(0,e.es().size()).mapToObj(i->of(e.es().get(i),o.es.get(i))).toList();
-    return new core.E.Call(recv,e.name(),rc,TypeRename.itToT(targs),args,e.src());
+    return new core.E.Call(recv,e.name(),rc,TypeRename.itToT(targs),args,new EqTransparent<>(TypeRename.itToT(e.t())),e.src());
   }
   core.E.Call callFromICall(inference.E.ICall e, CallLike o){
     assert o.rc.isEmpty();
@@ -47,7 +48,7 @@ public class ToCore{
     }
     var recv= of(e.e(),o.e);
     var args= IntStream.range(0,e.es().size()).mapToObj(i->of(e.es().get(i),o.es.get(i))).toList();
-    return new core.E.Call(recv,e.name(),RC.imm,List.of(),args,e.src());
+    return new core.E.Call(recv,e.name(),RC.imm,List.of(),args,new EqTransparent<>(TypeRename.itToT(e.t())),e.src());
   }
   private List<core.M> mapMs(List<inference.M> es, List<inference.M> os){
     return es.stream()

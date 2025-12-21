@@ -2185,6 +2185,17 @@ A:{
 }
 """);
 }
+@Test void good_float_requires_sign_and_digits_both_sides_of_dot(){ok("""
+[###]C[name=+1.2/0,ts=Optional.empty]]]]]]]]
+""", """
+A:{
+  .m:Str ->
+    +1.2
+}
+""");
+}
+
+
 
 @Test void bad_rational_requires_sign(){fail("""
 In file: [###]/in_memory0.fear

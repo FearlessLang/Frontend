@@ -10,8 +10,8 @@ import java.util.List;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull.Role;
 import inference.E;
-import message.Join;
 import message.WellFormednessErrors;
+import utils.Join;
 
 public record Package(String name, Role role, Map<String,String> map, List<Declaration> decs, DeclaredNames names, Logger log){
   public WellFormednessErrors err(){ return new WellFormednessErrors(name); }

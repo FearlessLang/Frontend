@@ -12,8 +12,8 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
+import utils.Join;
 import utils.Pos;
-import message.Join;
 
 public sealed interface E {
   default Pos pos(){ return src().inner.pos(); }

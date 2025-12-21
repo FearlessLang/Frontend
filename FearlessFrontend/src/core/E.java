@@ -1,7 +1,7 @@
 package core;
 
+import utils.Join;
 import utils.Pos;
-import message.Join;
 
 import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
@@ -12,6 +12,7 @@ import fearlessFullGrammar.MName;
 import fearlessFullGrammar.TName;
 import fearlessFullGrammar.TSpan;
 import fearlessParser.RC;
+import offensiveUtils.EqTransparent;
 
 public sealed interface E {
   default Pos pos(){ return src().inner.pos(); }
@@ -41,9 +42,9 @@ public sealed interface E {
       return rc+" "+name.s()+_bs+":"+_cs+"{'"+thisName+" "+_ms+"}";
     }
   }
-  record Call(E e, MName name, RC rc, List<T> targs, List<E> es, Src src) implements E{
+  record Call(E e, MName name, RC rc, List<T> targs, List<E> es, EqTransparent<T> expectedRes, Src src) implements E{
     public Call{
-      assert nonNull(e,name,rc,targs,src);
+      assert nonNull(e,name,rc,targs,expectedRes,src);
       assert unmodifiable(es, "E.Call.es");
       assert unmodifiable(targs, "E.Call.targs");
     }

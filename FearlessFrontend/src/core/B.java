@@ -5,7 +5,7 @@ import static offensiveUtils.Require.*;
 import java.util.EnumSet;
 
 import fearlessParser.RC;
-import message.Join;
+import utils.Join;
 public record B(String x, EnumSet<RC> rcs){
   public B{ assert nonNull(x) && !rcs.isEmpty(); }
   public String toString(){

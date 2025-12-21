@@ -1,18 +1,14 @@
-package inference;
+package testUtils;
 
 import java.util.List;
 
 import core.E;
 import message.SourceOracle;
 import pkgmerge.OtherPackages;
-import testUtils.FearlessTestBase;
 
 public class DbgBlock{
   static OtherPackages err(){ return FearlessTestBase.otherErr(); }
 
-  public static OtherPackages dbg(){
-    return FearlessTestBase.otherFrom(all());
-  }
   public static List<E.Literal> all(){
     var o= SourceOracle.debugBuilder()
       .put("base.fear", baseHead)
@@ -97,7 +93,7 @@ public class DbgBlock{
 
 
 
-static String baseBody="""
+public static String baseBody="""
 Sealed:{}
 WidenTo[T]:{}
 InferUnknown:Sealed{}
@@ -115,7 +111,12 @@ MF[A:**, B:**, R:**]: { mut #(a: A, b: B): R }
 MF[A:**, B:**, C:**, R:**]: { mut #(a: A, b: B, c: C): R }
 MF[A:**, B:**, C:**, D:**, R:**]: { mut #(a: A, b: B, c: C, d: D): R }
 Nope:{![T:**]:T}
+Num:Sealed,WidenTo[Num]{ +(Num):Num->Nope!; *(Num):Num->Nope! }
 Nat:Sealed,WidenTo[Nat]{ +(Nat):Nat->Nope!; *(Nat):Nat->Nope! }
+Int:Sealed,WidenTo[Int]{ +(Int):Int->Nope!; *(Int):Int->Nope! }
+SStr:Sealed,WidenTo[SStr]{}
+Float:Sealed,WidenTo[Float]{}
+UStr:Sealed,WidenTo[UStr]{}
 Zero:Nat{}
 One:Nat{}
 Two:Nat{}
@@ -130,8 +131,6 @@ Ten:Nat{}
 
 ToSStr:{ read .sStr: SStr }
 ToUStr:{ read .uStr: UStr }
-SStr:{}
-UStr:{}
 
 SStrProcs:{
   imm .add(a:SStr,b:ToSStr): mut SStrProc -> this.add(a,b);

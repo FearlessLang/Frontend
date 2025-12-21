@@ -16,6 +16,7 @@ import inject.TypeRename;
 import metaParser.Message;
 import typeSystem.TypeSystem.*;
 import utils.Bug;
+import utils.Join;
 
 public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,CompactPrinter> _cp, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }

@@ -4,7 +4,7 @@ import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
 
-import message.Join;
+import utils.Join;
 public record M(Sig sig, List<String> xs, Optional<core.E> e){
   public M{
     assert nonNull(sig,e);

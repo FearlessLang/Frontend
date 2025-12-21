@@ -111,14 +111,7 @@ public record Methods(
     assert res != null: "In pkgName="+p.name()+", name not found: "+name+" current domain is:\n"+cache.keySet();
     return res;
   }
-  core.E.Literal _from(TName name){
-    if (name.pkgName().equals(p.name())){ return cache.get(name); }
-    var res= other.of(name);
-    if (res != null){ return res; }
-    assert name.pkgName().equals("base") && LiteralDeclarations.isPrimitiveLiteral(name.simpleName()):
-      "Undefined name "+name;
-    return LiteralDeclarations.from(name,other);
-  }
+  core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache,other); }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
     List<CsMs> ds= d.cs().stream().map(c->fetch(c,d.name())).toList();
     List<IT.C> allCs= Stream.concat(
