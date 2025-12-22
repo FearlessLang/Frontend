@@ -1,4 +1,4 @@
-package toInfer;
+package inject;
 
 import java.util.List;
 import java.util.Optional;

@@ -14,8 +14,8 @@ import fearlessFullGrammar.FileFull.Role;
 import fearlessParser.Parse;
 import inject.InjectionSteps;
 import inject.Methods;
+import inject.ToInference;
 import message.WellFormednessErrors;
-import toInfer.ToInference;
 import typeSystem.TypeSystem;
 
 public class FrontendLogicMain {

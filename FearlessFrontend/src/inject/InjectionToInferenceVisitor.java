@@ -1,4 +1,4 @@
-package toInfer;
+package inject;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -24,12 +24,12 @@ import utils.Pos;
 import inference.E;
 import inference.IT;
 import inference.M;
-import inject.Methods;
 import naming.FreshPrefix;
 import pkgmerge.Package;
 
 import static java.util.Optional.*;
-
+import static core.LiteralDeclarations.*;
+import static fearlessParser.TokenKind.*;
 import java.util.ArrayList;
 
 public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs, Package pkg, List<List<B>> bsInScope, OtherPackages other, FreshPrefix freshF)
@@ -44,6 +44,14 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   }
   public IT.C visitC(fearlessFullGrammar.T.C c){
     var tName= c.name();
+    var s= tName.s();
+    var pr= isPrimitiveLiteral(s);
+    if (pr){
+      assert tName.pkgName().isEmpty();
+      if (isKind(s,UnsignedInt) && !natLiteralInRange(s)){ throw meths.p().err().natLiteralOutOfRange(tName); }
+      if (isKind(s,SignedInt) && !intLiteralInRange(s)){ throw meths.p().err().intLiteralOutOfRange(tName); }
+      if (isKind(s,SignedFloat) && !floatLiteralExactlyRepresentable(s)){ throw meths.p().err().floatLiteralNotExactlyRepresentable(tName); }
+    }
     var tNameMap= f.apply(tName);
     var ts= c.ts().orElse(List.of());
     return new IT.C(tNameMap,mapT(ts));
@@ -173,8 +181,6 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     List<fearlessFullGrammar.M> ms0= t.l().map(l->l.methods()).orElse(List.of());
     Optional<String> thisName= t.l().flatMap(l->l.thisName().map(n->n.name()));
     var ms= mapM(ms0);
-    //Stream<String> bs= Stream.concat(
-    //  new FreeXs().ftvMs(ms),new FreeXs().ftvT(visitRCC(t.t())));
     E.Literal l= liftLiteral(Optional.of(t.t().rc().orElse(RC.imm)),Stream.of(),impl,thisName, ms,new Src(t));
     decs.add(l);
     return l;

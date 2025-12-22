@@ -1,4 +1,4 @@
-package toInfer;
+package inject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,6 @@ import core.RC;
 import core.TName;
 import fearlessParser.TokenKind;
 import inference.E;
-import inject.Methods;
 import message.FearlessException;
 import naming.FreshPrefix;
 import pkgmerge.Package;

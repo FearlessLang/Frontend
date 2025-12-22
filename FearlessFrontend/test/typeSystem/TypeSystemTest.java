@@ -1911,4 +1911,110 @@ A:{}
 @Test void passNum(){ok(List.of("""
  Main:{ .m:base.Num -> +3/4 }
 """));}
+@Test void failIntTooBig(){failExt("""
+In file: [###]/in_memory0.fear
+
+002|  Main:{ .m:base.Int -> +421381834238972893748972389723 }
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Integer literal is out of range for "base.Int".
+"base.Int" must be representable as a 32-bit signed integer.
+Valid range: -2147483648 .. 2147483647.
+This literal is: "421381834238972893748972389723".
+Hint: if you need arbitrary precision numbers, use "base.Num".
+Error 9 WellFormedness
+""",List.of("""
+ Main:{ .m:base.Int -> +421381834238972893748972389723 }
+"""));}
+@Test void failNatTooBig(){failExt("""
+In file: [###]/in_memory0.fear
+
+002|  Main:{ .m:base.Nat -> 421381834238972893748972389723 }
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Natural literal is out of range for "base.Nat".
+"base.Nat" must be representable as a 32-bit unsigned integer.
+Valid range: 0 .. 4294967295.
+This literal is: "421381834238972893748972389723".
+Hint: if you need arbitrary precision numbers, use "base.Num".
+Error 9 WellFormedness
+""",List.of("""
+ Main:{ .m:base.Nat -> 421381834238972893748972389723 }
+"""));}
+
+@Test void failFloatTooBig(){failExt("""
+In file: [###]/___DBG___/in_memory0.fear
+
+002|  Main:{ .m:base.Float -> +1.0e309 }
+   |                          ^^^^^^^^
+
+While inspecting the file
+Float literal is not exactly representable as "base.Float".
+"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+This literal is: +1.0e309.
+This literal overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
+Error 9 WellFormedness
+""",List.of("""
+ Main:{ .m:base.Float -> +1.0e309 }
+"""));}
+@Test void failFloatTooSmall(){failExt("""
+In file: [###]/in_memory0.fear
+
+002|  Main:{ .m:base.Float -> +1.0e-400 }
+   |                          ^^^^^^^^^
+
+While inspecting the file
+Float literal is not exactly representable as "base.Float".
+"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+This literal is: +1.0e-400.
+If rounded, the nearest representable value is "+0.0".
+Hint: if you need arbitrary precision numbers, use "base.Num".
+Error 9 WellFormedness
+""",List.of("""
+ Main:{ .m:base.Float -> +1.0e-400 }
+"""));}
+@Test void failFloatImprecise1(){failExt("""
+In file: [###]/in_memory0.fear
+
+002|  Main:{ .m:base.Float -> +0.1 }
+   |                          ^^^^
+
+While inspecting the file
+Float literal is not exactly representable as "base.Float".
+"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+This literal is: +0.1.
+If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
+Hint: if you need arbitrary precision numbers, use "base.Num".
+Error 9 WellFormedness
+""",List.of("""
+ Main:{ .m:base.Float -> +0.1 }
+"""));}
+@Test void failFloatImprecise2(){failExt("""
+In file: [###]/in_memory0.fear
+
+002|  Main:{ .m:base.Float -> +0.2 }
+   |                          ^^^^
+
+While inspecting the file
+Float literal is not exactly representable as "base.Float".
+"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+This literal is: +0.2.
+If rounded, the nearest representable value is "+0.200000000000000011102230246251565404236316680908203125".
+Hint: if you need arbitrary precision numbers, use "base.Num".
+Error 9 WellFormedness
+""",List.of("""
+ Main:{ .m:base.Float -> +0.2 }
+"""));}
+@Test void okFloatTooBig(){ok(List.of("""
+ Main:{ .m:base.Float -> +179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0 }
+"""));}
+@Test void okFloatPrecise1(){ok(List.of("""
+ Main:{ .m:base.Float ->  +0.1000000000000000055511151231257827021181583404541015625 }
+"""));}
+@Test void okFloatPrecise2(){ok(List.of("""
+ Main:{ .m:base.Float -> +0.200000000000000011102230246251565404236316680908203125 }
+"""));}
+
 }

@@ -17,7 +17,6 @@ import inference.E;
 import inference.Gamma;
 import inference.IT;
 import inference.M;
-import toInfer.FreeXs;
 import utils.Bug;
 import utils.OneOr;
 import utils.Push;

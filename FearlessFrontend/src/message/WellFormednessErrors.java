@@ -1,5 +1,6 @@
 package message;
 
+import java.math.BigInteger;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
+import core.LiteralDeclarations;
 import core.RC;
 import core.TName;
 import fearlessFullGrammar.FileFull;
@@ -445,5 +447,41 @@ public record WellFormednessErrors(String pkgName){
       .line("Type "+Err.disp(isSealed.simpleName())+" is defined in package "+Err.disp(sealedPkg)+".")
       .wf()
       .addFrame(err().expRepr(owner), owner.span().inner);
+  }
+  public FearlessException intLiteralOutOfRange(TName lit){
+    BigInteger v= LiteralDeclarations.intLiteralBig(lit.simpleName());
+    return err()
+      .line("Integer literal is out of range for \"base.Int\".")
+      .line("\"base.Int\" must be representable as a 32-bit signed integer.")
+      .line("Valid range: -2147483648 .. 2147483647.")
+      .line("This literal is: "+Err.disp(v)+".")
+      .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
+      .wf().addSpan(lit.approxSpan().inner);
+  }
+  public FearlessException natLiteralOutOfRange(TName lit){
+    BigInteger v= LiteralDeclarations.natLiteralBig(lit.simpleName());
+    return err()
+      .line("Natural literal is out of range for \"base.Nat\".")
+      .line("\"base.Nat\" must be representable as a 32-bit unsigned integer.")
+      .line("Valid range: 0 .. 4294967295.")
+      .line("This literal is: "+Err.disp(v)+".")
+      .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
+      .wf().addSpan(lit.approxSpan().inner);
+  }
+  public FearlessException floatLiteralNotExactlyRepresentable(TName lit){
+    String raw= lit.simpleName();
+    double d= LiteralDeclarations.floatLiteralDouble(raw);
+    double nearD= Double.isFinite(d) ? d : Math.copySign(Double.MAX_VALUE,d);
+    String near= LiteralDeclarations.floatExactFearlessLit(nearD);
+    var e= err()
+      .line("Float literal is not exactly representable as \"base.Float\".")
+      .line("\"base.Float\" must be representable exactly as a 64-bit IEEE 754 double.")
+      .line("This literal is: "+raw+".");
+    if (!Double.isFinite(d)){ e.line("This literal overflows; the nearest representable value is "+Err.disp(near)+"."); }
+    else{
+      e.line("If rounded, the nearest representable value is "+Err.disp(near)+".")
+       .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".");
+    }
+    return e.wf().addSpan(lit.approxSpan().inner);
   }
 }
