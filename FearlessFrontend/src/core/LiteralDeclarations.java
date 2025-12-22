@@ -12,7 +12,7 @@ import utils.Bug;
 
 
 public class LiteralDeclarations {
-  public static TName baseSStr= new TName("base.SStr",0,Pos.unknown);
+  public static TName baseStr= new TName("base.Str",0,Pos.unknown);
   public static TName baseUStr= new TName("base.UStr",0,Pos.unknown);
   public static TName baseNat= new TName("base.Nat",0,Pos.unknown);
   public static TName baseInt= new TName("base.Int",0,Pos.unknown);
@@ -37,7 +37,7 @@ public class LiteralDeclarations {
   public static TName superLiteral(TName name){
     assert name.pkgName().equals("base");
     String s= name.simpleName();
-    if (s.startsWith("`")){  return baseSStr; }
+    if (s.startsWith("`")){  return baseStr; }
     if (s.startsWith("\"")){ return baseUStr; }
     if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return baseNat; }
     if (TokenKind.isKind(s,TokenKind.SignedInt)){ return baseInt; }

@@ -454,7 +454,7 @@ B:A{ ::.foo.let x=:: .bla :: .let y= :: .beer ::}
 
 @Test void strLit1(){ok("""
 p.A:{'this\
- .foo:p.A@p.A;->base.SStrProcs:?\
+ .foo:p.A@p.A;->base.StrProcs:?\
 .add(base.` foo `:?,p.A:?):?.build(base.` bar
  beer
 `:?):?;}

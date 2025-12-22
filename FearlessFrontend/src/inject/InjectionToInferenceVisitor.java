@@ -274,7 +274,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     return new fearlessFullGrammar.E.Call(e, new MName(m, 2), empty(), true, of(pat), List.of(a), p);
   }
   @Override public E visitStringInter(fearlessFullGrammar.E.StringInter i){
-    String name= i.simple() ? "base.SStr" : "base.UStr";
+    String name= i.simple() ? "base.Str" : "base.UStr";
     String q= i.simple() ? "`" : "\"";
     var top= i.e().orElseGet(() -> typedLiteral(name + "Procs", i.span(), i.pos()));
     for (int j= 0; j < i.es().size(); j++) {

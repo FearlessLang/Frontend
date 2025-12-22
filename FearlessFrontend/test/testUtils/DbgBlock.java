@@ -114,7 +114,7 @@ Nope:{![T:**]:T}
 Num:Sealed,WidenTo[Num]{ +(Num):Num->Nope!; *(Num):Num->Nope! }
 Nat:Sealed,WidenTo[Nat]{ +(Nat):Nat->Nope!; *(Nat):Nat->Nope! }
 Int:Sealed,WidenTo[Int]{ +(Int):Int->Nope!; *(Int):Int->Nope! }
-SStr:Sealed,WidenTo[SStr]{}
+Str:Sealed,WidenTo[Str]{}
 Float:Sealed,WidenTo[Float]{}
 UStr:Sealed,WidenTo[UStr]{}
 Zero:Nat{}
@@ -129,15 +129,15 @@ Eight:Nat{}
 Nine:Nat{}
 Ten:Nat{}
 
-ToSStr:{ read .sStr: SStr }
+ToStr:{ read .str: Str }
 ToUStr:{ read .uStr: UStr }
 
-SStrProcs:{
-  imm .add(a:SStr,b:ToSStr): mut SStrProc -> this.add(a,b);
+StrProcs:{
+  imm .add(a:Str,b:ToStr): mut StrProc -> this.add(a,b);
   }
-SStrProc:{
-  mut .add(a:SStr,b:ToSStr): mut SStrProc -> this.add(a,b);
-  mut .build(a:SStr): SStr-> a;
+StrProc:{
+  mut .add(a:Str,b:ToStr): mut StrProc -> this.add(a,b);
+  mut .build(a:Str): Str-> a;
   }
 UStrProcs:{
   imm .add(a:UStr,b:ToUStr): mut UStrProc -> this.add(a,b);

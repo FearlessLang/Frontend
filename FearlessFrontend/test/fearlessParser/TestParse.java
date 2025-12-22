@@ -2883,7 +2883,7 @@ role framework042;
 map goo as boo in baz;
 map gor as goo in beer;
 use foo.Bar as Baz;
-use base.SStr as Str;
+use base.Str as Str;
 A: base.Main{ }
 """);}
 
@@ -2904,7 +2904,7 @@ role framework042;
 map goo as boo in baz;
 map gor as goo in beer;
 use foo.Bar as Baz;
-use base.SStr as Str;
+use base.Str as Str;
 A: base.Main{ }
 """);}
 
@@ -2925,7 +2925,7 @@ role framework042
 map goo as boo in baz;
 map gor as goo in beer;
 use foo.Bar as Baz;
-use base.SStr as Str;
+use base.Str as Str;
 A: base.Main{ }
 """);}
 
@@ -2951,7 +2951,7 @@ In file: [###]/in_memory0.fear
 003| map goo as boo;
    | -----------^^^
    | ... 2 lines ...
-006| use base.SStr as Str;
+006| use base.Str as Str;
 
 While inspecting header element > file header > full file
 Missing "in" keyword.
@@ -2963,7 +2963,7 @@ role framework042;
 map goo as boo;
 map gor as goo;
 use foo.Bar as Baz;
-use base.SStr as Str;
+use base.Str as Str;
 A: base.Main{ }
 """);}
 
@@ -3705,7 +3705,7 @@ A:{ { mut .foo -> :: .a } }
 TypedLiteralRCC[rc=Optional.empty,c=C[name=`aaa\\nbbb`/0,
 ts=Optional.empty]]]]]]]]
 ""","""
-A:{ .foo:SStr -> `aaa\\nbbb` }
+A:{ .foo:Str -> `aaa\\nbbb` }
 """); }
 @Test void forgotSemiStart1(){fail("""
 In file: [###]/in_memory0.fear

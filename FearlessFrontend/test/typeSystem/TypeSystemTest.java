@@ -1903,7 +1903,7 @@ A:{}
  Main:{ .m:base.Nat -> 42 }
 """));}
 @Test void passSStr(){ok(List.of("""
- Main:{ .m:base.SStr -> `Hi` }
+ Main:{ .m:base.Str -> `Hi` }
 """));}
 @Test void passUStr(){ok(List.of("""
  Main:{ .m:base.UStr -> "Hi" }

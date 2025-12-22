@@ -52,7 +52,7 @@ public class FrontendLogicMain {
     assert !raw.isEmpty();
     String pkgName= raw.values().iterator().next().name();
     var err= new WellFormednessErrors(pkgName);
-    assert raw.values().stream().allMatch(f -> f.name().equals(pkgName)) : "Package name mismatch";
+    assert raw.values().stream().allMatch(f -> f.name().equals(pkgName)) : "Package name mismatch: "+raw.values().stream().map(v->v.name()).distinct().toList();
     URI headPkg= findHeadUri(err,pkgName, raw.keySet());
     checkOnlyHeadHasDirectives(err,headPkg, raw);
     var head= raw.get(headPkg);
