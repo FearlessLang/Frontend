@@ -619,7 +619,7 @@ User:{
 
 While inspecting parameter "loooooong" > "#" line 9 > ".m(_)" line 8
 parameter "loooooong" has type "mut A".
-parameter "loooooong" has a "mut" capability; thus it can not be captured in the "imm" object literal instance of "G" (line 9).
+parameter "loooooong" can observe mutation; thus it can not be captured in the "imm" object literal instance of "G" (line 9).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1707,7 +1707,7 @@ A:{
 
 While inspecting parameter "aaaa" > ".foo" line 5 > ".f(_)" line 5
 parameter "aaaa" has type "mut A".
-parameter "aaaa" has a "mut" capability; thus it can not be captured in the "imm" object literal "BB" (line 5).
+parameter "aaaa" can observe mutation; thus it can not be captured in the "imm" object literal "BB" (line 5).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1726,7 +1726,7 @@ A:{
 
 While inspecting parameter "aaaa" > ".foo" line 5 > ".f(_)" line 5
 parameter "aaaa" has type "mut A".
-parameter "aaaa" has a "mut" capability; thus it can not be captured in the "imm" object literal instance of "B" (line 5).
+parameter "aaaa" can observe mutation; thus it can not be captured in the "imm" object literal instance of "B" (line 5).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)

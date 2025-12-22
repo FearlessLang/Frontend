@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import core.B;
 import core.E.Literal;
 import core.M;
+import core.MName;
 import core.RC;
 import core.Sig;
 import core.T;
@@ -23,7 +24,7 @@ class Sources {
       List<Sig> parentSigs= collect(ts, parentDef);      
       List<String> parentXs= parentDef.bs().stream().map(B::x).toList();
       for(Sig s : parentSigs){
-        Sig canonical= findCanonical(l, s.m().s(), s.rc());
+        Sig canonical= findCanonical(l, s.m(), s.rc());
         sources.add(instantiate(s, parentXs, parent.ts(), canonical.bs()));
       }
     }
@@ -44,9 +45,9 @@ class Sources {
       l.cs().stream().map(T.C::name).map(ts.decs()::apply)
         .flatMap(p->supers(ts,p)));
   }
-  private static Sig findCanonical(Literal l, String name, RC rc){
+  private static Sig findCanonical(Literal l, MName name, RC rc){
     return OneOr.of("Methods with duplicates",l.ms().stream().map(M::sig).filter(s->
-      s.m().s().equals(name) && s.rc() == rc));
+      s.m().equals(name) && s.rc() == rc));
   }
   private static Sig instantiate(Sig s, List<String> xs, List<T> ts, List<B> canonical){
     assert eq(s.bs().size(), canonical.size(), "Generic arity mismatch in instantiate");
