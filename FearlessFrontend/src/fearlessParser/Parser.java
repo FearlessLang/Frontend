@@ -534,7 +534,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (fwdIf(hasPost())){ fwdIf(peek(_SquareGroup)); return; }
     var signed= peek(SignedInt,SignedFloat,SignedRational);
     if (signed){ throw this.errFactory().signedLiteral(spanAround(index(),index()),expectAny("")); }
-    throw this.errFactory().missingSemicolonOrOperator(spanAround(index(),index()));    
+    throw this.errFactory().missingSemicolonOrOperator(spanAround(index()-1,index()-1));
   }
   interface Cut extends NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{}
   Cut commaSkip=  p->p.splitOn(Skipped,Comma);

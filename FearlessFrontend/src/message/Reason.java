@@ -36,7 +36,7 @@ public final class Reason{
   private static String base(TypeSystem ts, E blame, List<B> bs, T got, T expected){
     if (isInferErr(expected)){ return ts.err().gotMsgInferErr(ts.err().expRepr(blame),got);}
     var skipImm= !ts.isSub(bs, got, expected.withRC(RC.imm));
-    return "Object literal is of type "+ts.err().expReprDirect(skipImm,blame)+" instead of a subtype of "+ts.err().typeRepr(expected)+".";
+    return "Object literal is of type "+ts.err().expReprDirect(skipImm,blame)+" instead of a subtype of "+ts.err().typeRepr(true,expected)+".";
   }
   private static Reason hintExplicitRC(TypeSystem ts,T got, String base, T.RCC er, String tn){
     var e= ts.err()
@@ -56,20 +56,21 @@ public final class Reason{
       var best= TypeScope.bestInterestingScope(scope, interest);
       return Optional.of(best.contextE());
     };
-    return new Reason(got,ts.err().gotMsg("Method call "+ts.err().methodSig(d,call.name()),got, req.t()),
+    return new Reason(got,ts.err().gotMsg(true,"Method call "+ts.err().methodSig(d,call.name()),got, req.t()),
       footerE);
   }
   public static Reason parameterDoesNotHaveRequiredTypeHere(
     TypeSystem ts,X x, List<B> bs, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
   ){
     T got= cur.currentT();
-    String base= ts.err().gotMsg(ts.err().expRepr(x), got, req.t());
-    if (!Err.rcOnlyMismatch(got, req.t())){ return new Reason(got, base,Optional::empty); }
+    var rcOnly= Err.rcOnlyMismatch(got, req.t());
+    String base= ts.err().gotMsg(!rcOnly,ts.err().expRepr(x), got, req.t());
+    if (!rcOnly){ return new Reason(got, base,Optional::empty); }
     var e= ts.err().line(base);
     if (declared.equals(got)){ return new Reason(got, base, Optional::empty); }
     e.line(declaredOkExpected
-      ? "Note: the declared type "+ts.err().typeRepr(declared)+" would instead be a valid subtype."
-      : "Note: the declared type "+ts.err().typeRepr(declared)+" also does not satisfy the requirement."
+      ? "Note: the declared type "+ts.err().typeRepr(true,declared)+" would instead be a valid subtype."
+      : "Note: the declared type "+ts.err().typeRepr(true,declared)+" also does not satisfy the requirement."
     );
     String trace= vpaTrace(ts,cur);
     if (!trace.isEmpty()){ e.line("Capture adaptation trace:\n"+trace+"."); }
@@ -93,8 +94,8 @@ public final class Reason{
   private static String traceKeep(TypeSystem ts, WithT tail, String op, T from, T to, Literal l, M m){
     String prev= vpaTrace(ts,tail);
     if (from.equals(to)){ return prev; }
-    String edge= " --"+op+"("+where(l,m)+")--> "+ts.err().typeRepr(to);
-    if (prev.isEmpty()){ return ts.err().typeRepr(from)+edge; }
+    String edge= " --"+op+"("+where(l,m)+")--> "+ts.err().typeRepr(true,to);
+    if (prev.isEmpty()){ return ts.err().typeRepr(true,from)+edge; }
     return prev+edge;
   }
   private static String where(Literal l, M m){

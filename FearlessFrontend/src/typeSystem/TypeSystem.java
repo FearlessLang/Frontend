@@ -99,7 +99,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     ms.forEach(m->checkCallable(l,m));
     l.ms().forEach(m->checkImplemented(l,m,l));
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
-    assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x())));
+    assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x()))):
+    l.bs()+" "+bs1;
     k().check(l,bs1,thisType);
     litOk(g.filterFTV(l),l);
     return reqs(l,bs1,thisType,rs);

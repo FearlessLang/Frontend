@@ -741,7 +741,7 @@ In file: [###]/in_memory0.fear
 
 002| .m -> y
 003| .n -> {}
-   |    ^^
+   | ^^
 
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
@@ -1684,9 +1684,10 @@ A:{
 In file: [###]/in_memory0.fear
 
 002| .m:Str ->
-   | ... 2 lines ...
+003| #|`one'
+004| .k(1)
+   |   ^^^
 005| x.y() |`two {B.foo(C)}'
-   | ^
 006| .z(3)
 
 While inspecting method declaration > type declaration body > type declaration > full file
@@ -2933,7 +2934,7 @@ A: base.Main{ }
 In file: [###]/in_memory0.fear
 
 001| A: base.Main{ .foo->A .beer->B}
-   |             --~~~~~~~~~~~~~^^~-
+   |             --~~~~~~~~^^^^^~~~-
 
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.

@@ -592,7 +592,7 @@ User:{
 While inspecting parameter "loooooong" > ".get" line 7 > ".wrap" line 7 > ".m(_)" line 6
 Method ".get" inside the object literal instance of "mut Get" (line 7)
 is implemented with an expression returning "A".
-Parameter "loooooong" has type "A" instead of a subtype of "iso A".
+Parameter "loooooong" has type "imm A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 7)--> "read A" --strengthenToImm(line 7)--> "A".
@@ -1263,7 +1263,7 @@ A:{
 
 While inspecting ".f" line 6
 This call to method "Need#(_)" can not typecheck.
-Argument 1 has type "A".
+Argument 1 has type "imm A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
 Object literal is of type "imm A" instead of a subtype of "mut A".
 Hint: write "mut A{...}" if you need a "mut" object literal.
@@ -1301,7 +1301,7 @@ Promotion failures:
 - Argument 1 fails:    As declared
   Parameter "x" has type "readH A" instead of a subtype of "read A".
 - Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
-  Parameter "x" has type "readH A" instead of a subtype of "A".
+  Parameter "x" has type "readH A" instead of a subtype of "imm A".
 - Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
@@ -1651,7 +1651,7 @@ Promotion failures:
 - Argument 1 fails:    As declared
   Parameter "x" has type "readH A" instead of a subtype of "read A".
 - Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
-  Parameter "x" has type "readH A" instead of a subtype of "A".
+  Parameter "x" has type "readH A" instead of a subtype of "imm A".
 - Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
@@ -1680,7 +1680,7 @@ Promotion failures:
 - Argument 1 fails:    As declared
   Parameter "x" has type "readH A" instead of a subtype of "read A".
 - Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
-  Parameter "x" has type "readH A" instead of a subtype of "A".
+  Parameter "x" has type "readH A" instead of a subtype of "imm A".
 - Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Method call "ID#(_)" has type "mutH A" instead of a subtype of "iso A".
 

@@ -62,8 +62,12 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     case T.ReadImmX x -> x;
     case T.RCC(RC rc, var c, var span) -> new T.RCC(rc, preferredForFresh(c),span);
   };}
-  String typeRepr(inference.IT t){ return typeRepr(TypeRename.itToT(t)); }
-  String typeRepr(T t){ return disp(cp().msgT(preferredForFresh(t))); }
+  String typeRepr(inference.IT t){ return typeRepr(true,TypeRename.itToT(t)); }
+  String typeRepr(boolean skipImm,T t){
+    var str= cp().msgT(preferredForFresh(t));
+    if (skipImm || !explicitImmRc(t)){ return disp(str); }
+    return disp("imm "+str);
+  }
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t),t.span()))); }
   static String up(String s){return s.substring(0, 1).toUpperCase() + s.substring(1); }
   String expRepr(E toErr){return switch(toErr){
@@ -72,7 +76,7 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     case Literal l->l.thisName().equals("this")
       ? "type declaration " +tNameADisp(l.name())
       : "object literal " +bestNamePkg0(l.rc().toStrSpace(), showInstanceOf(l), bestLitName(l));
-    case Type t-> "object literal instance of " + typeRepr(t.type());
+    case Type t-> "object literal instance of " + typeRepr(true,t.type());
     };}
     
   String expReprDirect(boolean skipImm, E toErr){return switch(toErr){
@@ -110,10 +114,15 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
   }
   public static boolean rcOnlyMismatch(T got, T req){
     return got.equals(req) 
-        || (got instanceof T.RCC g 
-        && req instanceof T.RCC r
-        && g.c().equals(r.c()));
-  }  
+      || (got instanceof T.RCC g 
+      && req instanceof T.RCC r
+      && g.c().equals(r.c()));
+  }
+  public static boolean explicitImmRc(T t){ return switch(t){
+    case T.RCX(RC rc, _) -> rc == RC.imm;
+    case T.RCC(RC rc, _, _) -> rc == RC.imm;
+    default -> false;
+  };}  
   static boolean isInferErr(T t){
     return t instanceof T.RCC rcc && rcc.c().name().s().equals("base.InferErr");
   }  
@@ -152,6 +161,10 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
   Err pCallCantBeSatisfied(Literal d, Call c){
     return line("This call to method "+methodSig(d,c.name())+" can not typecheck.");
   }
+  Err notInSubtypeList(List<String> options){
+    if (options.size() == 1){ return this; }// this would be redundant line("That is not a subtype of "+options.getFirst());
+    return line(Join.of(options,"That is not a subtype of any of "," or ","."));
+  }
   Err pCallCantBeSatisfied(Call c){
     return line("This call to method "+methodSig(c.name())+" can not typecheck.");
   }
@@ -176,14 +189,14 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     }
     return this;
   }
-  public String gotMsg(String label, T got, T expected){
-    if (!isInferErr(expected)){ return label+" has type "+typeRepr(got)+" instead of a subtype of "+typeRepr(expected)+"."; }
-    return gotMsgInferErr(label,got); 
-    }
+  public String gotMsg(boolean skipImm,String label, T got, T expected){
+    if (isInferErr(expected)){ return gotMsgInferErr(label,got); }
+    return label+" has type "+typeRepr(skipImm,got)+" instead of a subtype of "+typeRepr(skipImm,expected)+".";  
+  }
   public String gotMsgInferErr(String label, T got){
     return label 
       + " cannot be checked agains an expected supertype.\n"
-      + "Type inference could not infer an expected type; computed type is "+typeRepr(got)+"."; 
+      + "Type inference could not infer an expected type; computed type is "+typeRepr(true,got)+"."; 
     }
     
   FearlessException ex(E e){
