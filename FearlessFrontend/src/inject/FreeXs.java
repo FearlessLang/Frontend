@@ -35,7 +35,7 @@ public record FreeXs(){
     case IT.ReadImmX(var x) -> Stream.of(x.name());
     case IT.RCC(_, var c,_) -> ftvTs(c.ts());
     case IT.U.Instance -> Stream.of();
-    case IT.Err.Instance -> Stream.of();
+    case IT.Err(var ts) -> ftvTs(ts);
   };}
   public Stream<String> ftvCs(List<IT.C> cs){ return cs.stream().flatMap(c -> ftvTs(c.ts())); }
   public Stream<String> ftvEs(List<E> es){ return es.stream().flatMap(this::ftvE); }

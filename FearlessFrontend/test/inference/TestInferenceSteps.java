@@ -1245,10 +1245,29 @@ Main:{
   }
 """));}
 
-//TODO: what to do here? Should we improve the inference or accept?
-//We could try to transform all vars in Gamma that are mut/read into:
-//-imm in imm methods
-//-read in read methods
-//Is this just it?
-//overall, if type errors could print the inferred signature could help a lot
+
+@Test void captureThisX(){okI("""
+[###]
+~mut p.A[X:imm]:{'this .bar:p.Foo; .makeTrash:p.Foo->imm p._AA[X:imm]:p.Foo{'_ .capture:p.Foo->this.bar[imm]}}
+~mut p.Foo:{'this .capture:p.Foo}
+""",List.of("""
+Foo:{.capture:Foo}
+A[X]:{
+  .bar:Foo; 
+  .makeTrash:Foo->{.capture->this.bar}
+  }
+"""));}
+
+@Test void captureThisXZ(){okI("""
+[###]
+~mut p.A[X:imm]:{'this .bar[K:imm]:p.Foo[K]; .makeTrash[Z:imm]:p.Foo[Z]->\
+imm p._AA[Z:imm,X:imm]:p.Foo[Z]{'_ .capture:p.Foo[Z]->this.bar[imm,Z]}}
+~mut p.Foo[Z:imm]:{'this .capture:p.Foo[Z]}
+""",List.of("""
+Foo[Z]:{.capture:Foo[Z]}
+A[X]:{
+  .bar[K]:Foo[K]; 
+  .makeTrash[Z]:Foo[Z]->{.capture->this.bar}
+  }
+"""));}
 }

@@ -63,7 +63,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch(e){
     case X x -> checkX(bs,g,x,rs);
-    case Type t -> checkType(e,bs,g,t,rs);
+    case Type t -> checkType(bs,g,t,rs);
     case Literal l -> checkLiteral(bs,g,l,rs);
     case Call c -> checkCall(bs,g,c,rs);
   };}
@@ -80,8 +80,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       return Reason.parameterDoesNotHaveRequiredTypeHere(this,x, bs, r, declared, w, declaredOk);
     }).toList();
   }
-  private List<Reason> checkType(E blame,List<B> bs, Gamma g, Type t, List<TRequirement> rs){
-    return reqs(blame,bs,t.type(),rs);//reqs correctly used for two similar things
+  private List<Reason> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
+    var l= decs().apply(t.type().c().name()).withRC(t.type().rc());
+    l.ms().forEach(m->checkImplemented(l,m,t));
+    return reqs(t,bs,t.type(),rs);//reqs correctly used for two similar things
   }
   private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
@@ -95,7 +97,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var ts= l.bs().stream().<T>map(b->new T.X(b.x(),span)).toList();
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     ms.forEach(m->checkCallable(l,m));
-    l.ms().forEach(m->checkImplemented(l,m));
+    l.ms().forEach(m->checkImplemented(l,m,l));
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
     assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x())));
     k().check(l,bs1,thisType);
@@ -105,10 +107,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private List<Reason> checkCall(List<B> bs,Gamma g,Call c, List<TRequirement> rs){
     return new CallTyping(this,bs,g,c,rs).run();
   }
-  private void checkImplemented(Literal l, M m){
+  private void checkImplemented(Literal l, M m,E blame){
     if (!m.sig().abs()){ return; }
     if (!callable(l.rc(),m.sig().rc())){ return; }
-    throw tsE().callableMethodStillAbstract(m.sig().span(), m, l);
+    throw tsE().callableMethodStillAbstract(blame,m, l);
   }
   private void checkCallable(Literal l, M m){
     RC litRC= l.rc();

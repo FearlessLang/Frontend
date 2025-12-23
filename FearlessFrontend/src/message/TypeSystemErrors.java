@@ -109,14 +109,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   }
   ///A required method was left abstract instead of being implemented.
   ///Raised when checking object literals
-  public FearlessException callableMethodStillAbstract(TSpan at, M got, Literal l){
+  public FearlessException callableMethodStillAbstract(E at, M got, Literal l){
     var s= got.sig();
-    return addExpFrame(l, err()
+    return addExpFrame(at, err()
       .line("This object literal is missing a required method.")
       .line("Missing: "+err().methodSig(s.rc()+" ", s.m())+".")
       .line("Required by: "+err().tNameADisp(s.origin())+".")
       .line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.")
-      .ex(l));
+      .ex(at));
   }
   ///Implemented method can never be called for any receiver obtained from the literal.
   ///Its body is statically dead code (typically a mut method on an imm/read literal).

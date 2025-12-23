@@ -2017,4 +2017,56 @@ Error 9 WellFormedness
  Main:{ .m:base.Float -> +0.200000000000000011102230246251565404236316680908203125 }
 """));}
 
+@Test void byNameOk1(){ok(List.of("""
+ A:{.foo:A->A}
+ B:A{}
+ Main:{ .m:B -> B }
+"""));}
+@Test void byNameOk2(){ok(List.of("""
+ A:{.foo:A->A}
+ B:A{}
+ Main:{ .m:B -> B{.bar:A->A} }
+"""));}
+@Test void byNameFail1(){fail("""
+004|  Main:{ .m:B -> B }
+   |         --------^
+
+While inspecting object literal instance of "B" > ".m" line 4
+This object literal is missing a required method.
+Missing: "imm .foo".
+Required by: "A".
+Hint: add an implementation for ".foo" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+B
+""",List.of("""
+ A:{.foo:A}
+ B:A{}
+ Main:{ .m:B -> B }
+"""));}
+@Test void byNameFail2(){fail("""
+004|  Main:{ .m:B -> B{.bar:A->A} }
+   |         --------^^----------
+
+While inspecting object literal instance of "A" > ".m" line 4
+This object literal is missing a required method.
+Missing: "imm .foo".
+Required by: "B".
+Hint: add an implementation for ".foo" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+{.bar:A->A}
+""",List.of("""
+ A:{.foo:A->A}
+ B:A{.foo:A}
+ Main:{ .m:B -> B{.bar:A->A} }
+"""));}
+
+@Test void byNameOkMut(){ok(List.of("""
+ A:{mut .foo:A->A}
+ B:A{.foo:A}
+ Main:{ .m:B -> B{.bar:A->A} }
+"""));}
+
+
 }

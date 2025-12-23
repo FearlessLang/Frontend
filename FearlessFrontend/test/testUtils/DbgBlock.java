@@ -110,7 +110,7 @@ MF[A:**,R:**]: { mut #(a: A): R }
 MF[A:**, B:**, R:**]: { mut #(a: A, b: B): R }
 MF[A:**, B:**, C:**, R:**]: { mut #(a: A, b: B, c: C): R }
 MF[A:**, B:**, C:**, D:**, R:**]: { mut #(a: A, b: B, c: C, d: D): R }
-Nope:{![T:**]:T}
+Nope:{![T:**]:T->Nope!}
 Num:Sealed,WidenTo[Num]{ +(Num):Num->Nope!; *(Num):Num->Nope! }
 Nat:Sealed,WidenTo[Nat]{ +(Nat):Nat->Nope!; *(Nat):Nat->Nope! }
 Int:Sealed,WidenTo[Int]{ +(Int):Int->Nope!; *(Int):Int->Nope! }

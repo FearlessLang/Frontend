@@ -4,6 +4,7 @@ import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import core.RC;
 import core.TName;
@@ -56,17 +57,27 @@ public sealed interface IT {
     public boolean isTV(){ return false; }
     public TSpan span(){throw Bug.unreachable(); }
   }
-  enum Err implements IT{ Instance; 
+  record Err(List<IT> conflicts) implements IT{ 
     public String toString(){ return "Err";}
     public TSpan span(){throw Bug.unreachable(); }
+    public static Err merge(IT t1, IT t2){ return switch (t1){
+      case Err(var cs1) -> switch (t2){
+        case Err(var cs2) -> new Err(Stream.concat(cs1.stream(),cs2.stream()).distinct().toList());
+        default -> new Err(Stream.concat(cs1.stream(),Stream.of(t2)).distinct().toList());
+      };
+      default -> switch (t2){
+        case Err(var cs2) -> new Err(Stream.concat(Stream.of(t1),cs2.stream()).distinct().toList());
+        default -> new Err(List.of(t1,t2));
+      };
+    };}
   }
   default IT withRC(RC rc){ return switch (this){ // T[RC]
     case RCC(var _, var c, var span) -> new RCC(rc, c, span);
     case RCX(var _, var x) -> new RCX(rc, x);
     case X x -> new RCX(rc, x);
     case ReadImmX(var x) -> new RCX(rc, x);
-    case IT.U _   -> throw Bug.unreachable();
-    case IT.Err _ -> throw Bug.unreachable();
+    case IT.U _   -> this;
+    case IT.Err _ -> this;
   };}
   default IT readImm(){ return switch (this){ // T[read/imm]
     case X x -> new ReadImmX(x);

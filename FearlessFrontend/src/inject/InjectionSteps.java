@@ -61,18 +61,18 @@ public record InjectionSteps(Methods meths){
     if (t1 == IT.U.Instance){ return t2; }
     if (t1.equals(t2)){ return t1; }
     if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){
-      if (!x1.c().name().equals(x2.c().name())){ return IT.Err.Instance; }
+      if (!x1.c().name().equals(x2.c().name())){ return IT.Err.merge(t1,t2); }
       assert x1.c().ts().size() == x2.c().ts().size();
       RC rc= meetRcNoH(x1.rc(), x2.rc());
       var ts= meet(x1.c().ts(), x2.c().ts());
       return x1.withRCTs(rc,ts);
     }
     if (t1 instanceof IT.RCX x1 && t2 instanceof IT.RCX x2){
-      if (!x1.x().equals(x2.x())){ return IT.Err.Instance; }
+      if (!x1.x().equals(x2.x())){ return IT.Err.merge(t1,t2); }
       RC rc= meetRcNoH(x1.rc(), x2.rc());
       return x1.withRC(rc);
     }
-    return IT.Err.Instance;
+    return IT.Err.merge(t1,t2);
   }
   static RC meetRcNoH(RC a, RC b){
     if (a == b){ return a; }
