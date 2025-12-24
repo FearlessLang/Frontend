@@ -674,7 +674,7 @@ B:A1,A2{ y->this.foo }
 p.A1:{'this .foo:p.A1@p.A1;->this:?;}
 p.A2:p.A1{'this .foo:p.A1@p.A1;}
 p.A3:p.A1{'this .foo:p.A1@p.A1;}
-p.B:p.A1, p.A2, p.A3{'this .foo:p.A1@p.A1;}
+p.B:p.A2, p.A3, p.A1{'this .foo:p.A1@p.A1;}
 """,List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ }
@@ -1339,7 +1339,7 @@ User:{
 p.Bad:p.Sup{'_ .h:base.Void@p.Bad;->p._AUser:base.Void:?; .k:base.Void@p.Sup;}
 p.Sup:{'this .h:base.Void@p.Sup; .k:base.Void@p.Sup;}
 p.User:{'this .m:p.Sup@p.User;->p.Bad:p.Sup{'_ .h[?]:base.Void@!;->p._AUser:base.Void:?;}:?;}
-p._AUser:base.Sealed, base.Void{'_}
+p._AUser:base.Void, base.Sealed{'_}
 """, List.of("""
 Sup:{
   imm .h:base.Void;

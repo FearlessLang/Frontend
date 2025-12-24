@@ -97,7 +97,10 @@ public static String baseBody="""
 Sealed:{}
 WidenTo[T]:{}
 InferUnknown:Sealed{}
-InferErr:Sealed{}
+InferErr[A,B]:Sealed{}
+InferErr[A,B,C]:Sealed{}
+InferErr[A,B,C,D]:Sealed{}
+
 Void:Sealed{}
 F[R:**]: { read #: R }
 F[A:**,R:**]: { read #(a: A): R }

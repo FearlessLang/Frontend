@@ -51,10 +51,41 @@ public record InjectionSteps(Methods meths){
     ei = nextStar(Push.of(di.bs(), m.sig().bs().get()), g, ei);
     return new core.M(mCore.sig(), xs, Optional.of(new ToCore().of(ei, m.impl().get().e())));
   }
-  static E meet(E e, IT t){
+  static E meet1(E e, IT t){//The few meth below are to make this more precise
     var tt= meet(e.t(), t);
     if (tt instanceof IT.Err){ return e; }
     return e.withT(tt);
+  }
+  static E meet(E e, IT t){ return e.withT(meetKeepLeft(e.t(), t)); }
+  static IT meetKeepLeft(IT l, IT r){
+    if (r == IT.U.Instance){ return l; }
+    if (l == IT.U.Instance){ return r; }
+    if (l instanceof IT.Err){ return meet(l,r); }
+    if (r instanceof IT.Err){ return l; }
+    if (l instanceof IT.RCC a && r instanceof IT.RCC b){
+      if (!a.c().name().equals(b.c().name())){ return l; }
+      assert a.c().ts().size() == b.c().ts().size();
+      RC rc= meetRcNoH(a.rc(), b.rc());
+      var ts= meetKeepLeft(a.c().ts(), b.c().ts());
+      return a.withRCTs(rc, ts);
+    }
+    if (l instanceof IT.RCX a && r instanceof IT.RCX b){
+      if (!a.x().equals(b.x())){ return l; }
+      return a.withRC(meetRcNoH(a.rc(), b.rc()));
+    }
+    return l;
+  }
+  static List<IT> meetKeepLeft(List<IT> l, List<IT> r){
+    assert l.size() == r.size();
+    boolean same= true;
+    var out= new ArrayList<IT>(l.size());
+    for (int i= 0; i < l.size(); i++){
+      IT li= l.get(i);
+      IT ni= meetKeepLeft(li, r.get(i));
+      same &= ni == li;
+      out.add(ni);
+    }
+    return same ? l : Collections.unmodifiableList(out);
   }
   static IT meet(IT t1, IT t2){
     if (t2 == IT.U.Instance){ return t1; }
@@ -369,7 +400,7 @@ public record InjectionSteps(Methods meths){
     return !ms.stream()
       .allMatch(m -> m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t -> t.get().isTV()));
   }
-  private static List<Optional<IT>> updateArgs(List<String> xs, List<Optional<IT>> old, Gamma g) {
+  private static List<Optional<IT>> updateArgs(List<String> xs, List<Optional<IT>> old, Gamma g){
     int n= xs.size();
     assert old.size() == n;
     boolean changed= false;
@@ -379,7 +410,7 @@ public record InjectionSteps(Methods meths){
       var oi= old.get(i);
       if ("_".equals(x)){ out.add(oi); continue; }
       assert oi.isPresent();
-      var ti= g.get(x);
+      IT ti= meetKeepLeft(oi.get(), g.get(x));
       if (oi.get().equals(ti)){ out.add(oi); continue; }
       changed = true;
       out.add(Optional.of(ti));
@@ -411,7 +442,7 @@ public record InjectionSteps(Methods meths){
       if (e == impl0.e()){ return new TSM(ts, m); }
       return new TSM(ts, new inference.M(sig0, Optional.of(impl0.withE(e))));
     }
-    var improvedSig= sig0.withTsT(args, e.t());
+    var improvedSig= sig0.withTsT(args,meetKeepLeft(sig0.ret().get(), e.t()));
     var ret= improvedSig.ret().get();
     ts = rcc.c().ts();
     var sigTs= improvedSig.ts();

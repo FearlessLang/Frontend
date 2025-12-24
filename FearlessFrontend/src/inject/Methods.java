@@ -116,8 +116,9 @@ public record Methods(
     List<CsMs> ds= d.cs().stream().map(c->fetch(c,d.name())).toList();
     List<IT.C> allCs= Stream.concat(
       d.cs().stream(),
-      ds.stream().flatMap(dsi->dsi.cs().stream()))
-        .distinct().sorted(Comparator.comparing(Object::toString)).toList();
+      ds.stream().flatMap(dsi->dsi.cs().stream())
+        .distinct().sorted(Comparator.comparing(Object::toString))
+      ).toList();
     List<M.Sig> allSig= ds.stream().flatMap(dsi->dsi.sigs().stream()).toList();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);

@@ -60,7 +60,7 @@ public class ToCore{
     return OneOr.of("failing to connect methods @"+s, os.stream().filter(o->o.sig().span()==s));
   }
   private core.M m(inference.M e, inference.M o){
-    var s= sig(e.sig());
+    var s= sig(e.sig(), o.sig());
     if (e.impl().isEmpty()){
       assert o.impl().isEmpty();
       return new core.M(s,nUnderscores(s.ts().size()),Optional.empty());
@@ -70,14 +70,17 @@ public class ToCore{
     var oi= o.impl().get();
     return new core.M(s,ei.xs(),Optional.of(of(ei.e(),oi.e())));
   }
-  core.Sig sig(inference.M.Sig s){
-    var ts= TypeRename.itOptToT(s.ts());
-    var ret= TypeRename.itToT(s.ret());
-    var rc= s.rc().orElse(RC.imm);
-    var m= s.m().orElse(new MName(".inferenceFailed", ts.size()));
-    var bs= s.bs().orElse(List.of());
-    var origin= s.origin().orElse(TypeRename.inferUnknown.c().name());
-    return new core.Sig(rc,m,bs,ts,ret,origin,s.abs(),s.span());
+  core.Sig sig(inference.M.Sig inf, inference.M.Sig usr){
+    assert inf.ts().size() == usr.ts().size();
+    var ts= IntStream.range(0,inf.ts().size())
+      .mapToObj(i->usr.ts().get(i).or(()->inf.ts().get(i)))
+      .toList();
+    var ret= usr.ret().isEmpty() ? inf.ret() : usr.ret();
+    var rc= usr.rc().orElse(inf.rc().orElse(RC.imm));
+    var m= usr.m().orElse(inf.m().orElse(new MName(".inferenceFailed", ts.size())));
+    var bs= usr.bs().orElse(inf.bs().orElse(List.of()));
+    var origin= usr.origin().orElse(inf.origin().orElse(TypeRename.inferUnknown.c().name()));
+    return new core.Sig(rc,m,bs,TypeRename.itOptToT(ts),TypeRename.itToT(ret),origin,usr.abs(),usr.span());
   }
   private static inference.E.Literal litLike(inference.E o,inference.E.Literal e){
     var ol=(inference.E.Literal)o;
@@ -104,7 +107,7 @@ public class ToCore{
   
   private static final Optional<E> synteticBody= Optional.of(new E.X("this",Src.syntetic));
   core.M mSyntetic(inference.M m){
-    var s= sig(m.sig());
+    var s= sig(m.sig(),m.sig());
     if (m.impl().isEmpty()){ return new core.M(s,nUnderscores(s.ts().size()),Optional.empty()); }
     var i= m.impl().get();
     return new core.M(s,i.xs(),synteticBody);

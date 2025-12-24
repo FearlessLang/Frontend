@@ -241,12 +241,12 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
-Type argument 1 ("base.InferErr") does not satisfy the bounds
+Type argument 1 ("base.InferErr[B,base.Void]") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-a.id[imm,-.InferErr](b)
+a.id[imm,-.InferErr[B,-.Void]](b)
 """, List.of("""
 A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
@@ -298,7 +298,7 @@ The object literal "BB" is "read", so it will never be seen as "mut".
 But it implements method "mut .h", which requires a "mut" receiver.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-read BB:B{mut .h:-.Void->{}}
+read BB:B{mut .h:-.Void->-.Void{}}
 """, List.of("""
 B:{ mut .h:base.Void; }
 User:{
@@ -319,7 +319,7 @@ The object literal "BB" is "imm", so it will never be seen as "mut".
 But it implements method "mut .h", which requires a "mut" receiver.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-BB:B{mut .h:-.Void->{}}
+BB:B{mut .h:-.Void->-.Void{}}
 """, List.of("""
 B:{ mut .h:base.Void; }
 User:{
@@ -465,8 +465,8 @@ is implemented with an expression returning "Foo".
 Object literal instance of "Foo" cannot be checked agains an expected supertype.
 Type inference could not infer an expected type; computed type is "Foo".
 
-See inferred typing context below for how type "base.InferErr" was introduced: (compression indicated by `-`)
-User:{.m:Car->Apply#(Person,F[Person,-.InferErr]{#(Person):-.InferErr->Foo})}
+See inferred typing context below for how type "base.InferErr[Foo,Car]" was introduced: (compression indicated by `-`)
+User:{.m:Car->Apply#(Person,F[Person,-.InferErr[Foo,Car]]{#(Person):-.InferErr[Foo,Car]->Foo})}
 """, List.of("""
 Person:{}
 Car:{}
@@ -839,7 +839,7 @@ Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Sup{.h:-.Void->{}}
+Sup{.h:-.Void->-.Void{}}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -861,7 +861,7 @@ Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Bad:Sup{.h:-.Void->{}}
+Bad:Sup{.h:-.Void->-.Void{}}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -2048,14 +2048,14 @@ B
 004|  Main:{ .m:B -> B{.bar:A->A} }
    |         --------^^----------
 
-While inspecting object literal instance of "A" > ".m" line 4
+While inspecting object literal instance of "B" > ".m" line 4
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "B".
 Hint: add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-{.bar:A->A}
+B{.bar:A->A}
 """,List.of("""
  A:{.foo:A->A}
  B:A{.foo:A}

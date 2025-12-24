@@ -82,10 +82,12 @@ public class TypeRename{
     case IT.RCC(var rc, var c, var span) -> new T.RCC(rc,itcToTC(c),span);
     case IT.U _ ->//inferUnknown;
      throw Bug.of();// bug is good for testing, it will be replaced with this later: inferUnknown;
-    case IT.Err _ ->
+    case IT.Err(var cfs)  ->
     //throw Bug.of();//
-    inferErr;
+    inferErr(cfs.stream().map(TypeRename::itToT).limit(4).toList());
   };}
-  public static final T.RCC inferErr= new T.RCC(RC.imm,new T.C(new TName("base.InferErr", 0, Pos.unknown), List.of()),TSpan.fromPos(Pos.unknown,1));
+  public static final T.RCC inferErr(List<T> conflicts){
+    return new T.RCC(RC.imm,new T.C(new TName("base.InferErr", conflicts.size(), Pos.unknown), conflicts),TSpan.fromPos(Pos.unknown,1));
+  }
   public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.unknown), List.of()),TSpan.fromPos(Pos.unknown,1));
 }

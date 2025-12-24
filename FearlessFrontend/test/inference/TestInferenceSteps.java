@@ -595,11 +595,11 @@ User:{ .m:base.Void->base.Block; }
 @Test void expandDeclarationStages(){okI("""
 p.A:{'this .m:base.Nat@p.A;->base.1:?;}
 p.B:p.A{'this .m:base.Nat@p.B;->base.2:?;}
-p.C:p.A, p.B{'this .m:base.Nat@p.B;}
+p.C:p.B, p.A{'this .m:base.Nat@p.B;}
 ~-----------
 ~mut p.A:{'this .m:base.Nat->base.1}
 ~mut p.B:p.A{'this .m:base.Nat->base.2}
-~mut p.C:p.A, p.B{'this .m:base.Nat}
+~mut p.C:p.B, p.A{'this .m:base.Nat}
 """,List.of("""
 A: { .m():base.Nat -> 1; }
 B:A{ .m():base.Nat -> 2; }
@@ -768,7 +768,7 @@ B2[X]:A{.m(z)->z.beer[X]}
 ~mut p.B:p.I{'this }
 ~mut p.Foo:{'this .get[T:imm](a:T, b:T):T->a}
 ~mut p.I:{'this }
-~mut p.User:{'this .m:p.I->p.Foo.get[imm,base.InferErr](p.A, p.B)}
+~mut p.User:{'this .m:p.I->p.Foo.get[imm,base.InferErr[p.A,p.B,p.I]](p.A, p.B)}
 """,List.of("""
 I:{}
 A:I{}
