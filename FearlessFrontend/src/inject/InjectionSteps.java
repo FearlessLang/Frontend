@@ -324,15 +324,15 @@ public record InjectionSteps(Methods meths){
       res.add(next.m);
       ts = next.ts;
     }
-    if (!changed){ return commitToTable(bs, l, rcc); }
+    if (!changed){ return commitToTable(g,bs, l, rcc); }
     var ms= Collections.unmodifiableList(res);
     IT t= rcc.withTs(ts);
-    return commitToTable(bs, l.withMsT(ms, t), t);
+    return commitToTable(g, bs, l.withMsT(ms, t), t);
   }
-  private E commitToTable(List<B> bs, E.Literal l, IT t){
+  private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT t){
     TName name= l.name();
     if (!t.isTV() || !(t instanceof IT.RCC rcc) || hasU(l.ms()) || meths.cache().containsKey(name)){ return l; }
-    var freeNames= Stream.concat(new FreeXs().ftvMs(l.ms()), new FreeXs().ftvCs(l.cs()));
+    var freeNames= Stream.concat(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()));
     List<B> localBs= freeNames.distinct().map(x -> RC.get(bs, x)).toList();
     TName newName= name.withArity(localBs.size());
     List<M> ms= fixArity(l.ms(), name, newName);

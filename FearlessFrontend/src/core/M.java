@@ -16,6 +16,7 @@ public record M(Sig sig, List<String> xs, Optional<core.E> e){
     String _e=e.isEmpty()?"":"->"+e.get();
     return ""+sig+_xs+_e;
   }
+  public M withSig(Sig sig){ return new M(sig,xs,e); }
   public String toString(){
     var sb= new StringBuilder();
     sb.append(sig.rc().toStrSpace());

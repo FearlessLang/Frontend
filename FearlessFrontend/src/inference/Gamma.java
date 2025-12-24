@@ -2,6 +2,7 @@ package inference;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 public final class Gamma{
@@ -42,7 +43,7 @@ public final class Gamma{
     depth--;
   }
   public IT get(String x){ return ts[indexOf(x)]; } // offensive: throws on -1
-  //public Optional<IT> getOpt(String x){ int i= indexOf(x); return i==-1?Optional.empty():Optional.of(ts[i]); }
+  public Optional<IT> getOpt(String x){ int i= indexOf(x); return i==-1?Optional.empty():Optional.of(ts[i]); }
 
   public void declare(String x, IT t){
     if ("_".equals(x)){ return; }

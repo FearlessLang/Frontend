@@ -13,4 +13,5 @@ public record Sig(RC rc, MName m, List<B> bs, List<T> ts, T ret, TName origin, b
     var mS= m.toString();
     return " "+rc.toStrSpace()+mS+bsS+tsS+":"+ret+ori+";";
   }
+  public Sig implementedBy(TName name){ return new Sig(rc,m,bs,ts,ret,name,false,span); }
 }

@@ -8,6 +8,7 @@ import java.util.Map;
 import core.E.Literal;
 import fearlessParser.TokenKind;
 import utils.Pos;
+import utils.Push;
 import utils.Bug;
 
 
@@ -20,20 +21,25 @@ public class LiteralDeclarations {
   public static TName baseFloat= new TName("base.Float",0,Pos.unknown);
   public static TName widen= new TName("base.WidenTo",1,Pos.unknown);
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
-  static private core.E.Literal of(TName name,TName lit){
+  static private core.E.Literal forge(TName name,TName lit, Map<TName,Literal> map, OtherPackages other){
+    var res= map.get(lit);
+    if (res == null){ res = other.of(lit); }
+    assert res != null;
     var c= new T.C(lit,List.of());
-    var self= new T.RCC(RC.imm,c,name.approxSpan());
-    var w= new T.C(widen,List.of(self));
-    return new core.E.Literal(RC.imm,name,List.of(),List.of(c,w),"this",List.of(),Src.syntetic,true);
+    var cs= Push.of(c,res.cs());
+    var ms=res.ms().stream().map(m->setImplemented(m,name)).toList();
+    return new core.E.Literal(RC.imm,name,List.of(),cs,"this",ms,Src.syntetic,true);
+  }
+  private static M setImplemented(M m, TName name) {
+    return m.withSig(m.sig().implementedBy(name));
   }
   public static core.E.Literal _from(TName n, Map<TName,Literal> map, OtherPackages other){
     var res= map.get(n);
     if (res == null){ res = other.of(n); }
     if (res != null){ return res; }
     if (!n.pkgName().equals("base") || !isPrimitiveLiteral(n.simpleName())){ return null; }
-    return LiteralDeclarations.from(n);
+    return LiteralDeclarations.forge(n,superLiteral(n),map,other);
   }
-  public static core.E.Literal from(TName name){ return of(name,superLiteral(name)); }
   public static TName superLiteral(TName name){
     assert name.pkgName().equals("base");
     String s= name.simpleName();
@@ -110,9 +116,8 @@ public class LiteralDeclarations {
       int i= ns.indexOf('/');
       assert i != -1;
       String num= ns.substring(0,i), den= ns.substring(i+1);
-      // TODO: make a proper Rational type
-      return "new java.math.BigDecimal(\""+num+"\")"
-        + ".divide(new java.math.BigDecimal(\""+den+"\"),java.math.MathContext.DECIMAL128)";
+      return "new java.math.BigInteger(\""+num+"\")"
+          + ",new java.math.BigInteger(\""+den+"\")";
     }    
     throw Bug.unreachable();
   }

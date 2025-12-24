@@ -1270,4 +1270,25 @@ A[X]:{
   .makeTrash[Z]:Foo[Z]->{.capture->this.bar}
   }
 """));}
+
+@Test void captureNested(){okI("""
+[###]
+~mut p.OrderBy[T:imm]:p.F[T,read p.Order[T]]{'this\
+ .view[A:imm](f:p.F[A,read T]):p.OrderBy[A]->\
+imm p._BOrde[A:imm,T:imm]:p.OrderBy[A], p.F[A,read p.Order[A]]{'_\
+ #(a:A):read p.Order[A]->read p._AOrde[A:imm,T:imm]:p.Order[A]{'_\
+ <=>(b:A):p.Void->this#[imm](f#[imm](a))<=>[imm](f#[imm](b))};\
+ .view[_AA:imm](_:p.F[_AA,read A]):p.OrderBy[_AA]};\
+ #(_:T):read p.Order[T]}
+[###]
+""",List.of("""
+F[A,B]:{#(A):B}
+Void:{}
+Order[T]: { <=>(other: T): Void; }
+OrderBy[T]:F[T,read Order[T]]{
+  .view[A](f: F[A,read T]): OrderBy[A] ->
+    {a-> {b-> this#(f#a) <=> (f#b) } };
+  }
+"""));}
+
 }

@@ -9,15 +9,23 @@ import inference.E;
 import inference.IT;
 import inference.M;
 import inference.E.*;
+import inference.Gamma;
 
-public record FreeXs(){
+public record FreeXs(Gamma g){
   Stream<String> ftvE(E e){ return switch (e){
-    case X x ->ftvT(x.t());
-    case Literal l -> l.bs().stream().map(b->b.x()); //Correct since bs will contain all the ftv found anywhere in the literal
+    case X x ->Stream.concat(ftvT(x.t()),g.getOpt(x.name()).map(this::ftvT).orElse(Stream.of()));
+    case Literal l -> ftvL(l);
+    //Used to be l.bs().stream().map(b->b.x()); with comment //Correct since bs will contain all the ftv found anywhere in the literal
+    //This is not correct because of inference order: we may have not inferred the l.bs() yet!
     case Call(var ei, _,_, var targs, var es,_,_,_) -> Stream.concat(ftvE(ei),Stream.concat(ftvTs(targs),ftvEs(es)));
     case ICall(var ei,_, var es,_,_,_) -> Stream.concat(ftvE(ei),ftvEs(es));
     case Type(var t,_,_,_) -> ftvT(t);
   };}
+  private Stream<String> ftvL(Literal l){
+    return Stream.concat(
+      l.bs().stream().map(b->b.x()),
+      Stream.concat(ftvCs(l.cs()),ftvMs(l.ms())));
+  }
   private Stream<String> ftvM(M m){
     List<String> domBs= m.sig().bs().map(bs->dom(bs)).orElse(List.of());
     return Stream.concat(
