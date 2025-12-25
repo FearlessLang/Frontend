@@ -1176,7 +1176,7 @@ TestIt:{.go:Float->Trash#(One) }
 """));}
 
 
-@Disabled @Test void challenge4WithCorrectInferUnknown(){okI("""
+@Test void challenge4WithCorrectInferUnknown(){okI("""
 [###]
 ~mut p.User3:{'this .go3:p.Float->p.Trash#[imm,p.F[base.InferUnknown,base.InferUnknown]](p.Top.top[imm,base.InferUnknown](imm p._BUser:{'_ #(x:p.Int):p.F[base.InferUnknown,base.InferUnknown]->imm p._AUser:{'_ #(y:base.InferUnknown):base.InferUnknown->y}})#[imm](p.One))}
 ~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._DUser[A:imm]:p.F[p.Int,p.F[A,A]]{'_ #(x:p.Int):p.F[A,A]->imm p._CUser[A:imm]:p.F[A,A]{'_ #(y:A):A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}

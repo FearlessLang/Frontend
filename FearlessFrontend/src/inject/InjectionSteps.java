@@ -456,10 +456,11 @@ public record InjectionSteps(Methods meths){
     }
     var Xs= getDec(rcc.c().name()).bs().stream().map(b -> b.x()).toList();
     Sig imh= omh.get().sig();
-    ts = meet(Stream.concat(
+    var tsImproved = meet(Stream.concat(
       IntStream.range(0, imh.ts().size())
         .mapToObj(i -> refine(Xs, TypeRename.tToIT(imh.ts().get(i)), sigTs.get(i).get())),
-      Stream.of(refine(Xs, TypeRename.tToIT(imh.ret()), ret), ts)).toList());
+      Stream.of(refine(Xs, TypeRename.tToIT(imh.ret()), ret))).toList());
+    ts= meetKeepLeft(ts, tsImproved);
     rcc = rcc.withTs(ts);
     var targetBs= improvedSig.bs().isEmpty()
       ? List.<String>of()

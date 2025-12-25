@@ -85,11 +85,11 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     case Literal l->l.thisName().equals("this")
       ? tNameADisp(l.name())
       : bestNamePkg0(l.rc().toStrSpace(skipImm), false, bestLitName(l));
-    case Type t-> t.toString();
+    case Type(var t,_) ->  disp(t.rc().toStrSpace()+tNameA(t.c().name()));
     };}
-  String bestNameHintExplicitRC(E e){ return switch(e){
+  String bestNameHintExplicitRC(E e){ return switch(e){//TODO: this looks sus, what is this supposed to print?
     case Literal l->l.rc() != RC.imm ? "" : litHintImm(l);
-    case Type(var t,_) ->  t.rc() != RC.imm ? "" : t.rc().toStrSpace()+tNameA(t.c().name());
+    case Type(var t,_) ->  t.rc().toStrSpace()+tNameA(t.c().name());
     default ->{ throw Bug.unreachable(); }
   };}
   String expRepr(inference.E toErr){return switch(toErr){

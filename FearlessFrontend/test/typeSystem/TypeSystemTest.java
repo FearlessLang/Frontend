@@ -462,11 +462,10 @@ User:{
 While inspecting object literal instance of "Foo" > "#(_)" line 8 > ".m" line 8
 Method "#(_)" inside the object literal instance of "F[_,_]" (line 8)
 is implemented with an expression returning "Foo".
-Object literal instance of "Foo" cannot be checked agains an expected supertype.
-Type inference could not infer an expected type; computed type is "Foo".
+Object literal is of type "Foo" instead of a subtype of "Car".
 
-See inferred typing context below for how type "base.InferErr[Foo,Car]" was introduced: (compression indicated by `-`)
-User:{.m:Car->Apply#(Person,F[Person,-.InferErr[Foo,Car]]{#(Person):-.InferErr[Foo,Car]->Foo})}
+See inferred typing context below for how type "Car" was introduced: (compression indicated by `-`)
+User:{.m:Car->Apply#(Person,F[Person,Car]{#(Person):Car->Foo})}
 """, List.of("""
 Person:{}
 Car:{}
