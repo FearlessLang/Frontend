@@ -532,7 +532,7 @@ In file: [###]/in_memory0.fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method ".foo" with 0 parameters.
+Return type disagreement for method "imm .foo" with 0 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
@@ -547,7 +547,7 @@ In file: [###]/in_memory0.fear
    |          ^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method ".foo" with 0 parameters.
+Return type disagreement for method "imm .foo" with 0 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
@@ -562,7 +562,7 @@ In file: [###]/in_memory0.fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about argument 1 for method ".foo(_,_)" with 2 parameters.
+Type disagreement about argument 1 for method "imm .foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
@@ -577,7 +577,7 @@ In file: [###]/in_memory0.fear
    |          ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about argument 1 for method ".foo(_,_)" with 2 parameters.
+Type disagreement about argument 1 for method "imm .foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 9 WellFormedness""",List.of("""
@@ -896,7 +896,7 @@ In file: [###]/in_memory0.fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Type disagreement about argument 0 for method ".m(_)" with 1 parameters.
+Type disagreement about argument 0 for method "imm .m(_)" with 1 parameters.
 Different options are present in the implemented types: "Twice[Pair[X,Y]]", "Twice[Pair[Y,X]]".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 Error 9 WellFormedness

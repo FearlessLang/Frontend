@@ -320,8 +320,9 @@ public record WellFormednessErrors(String pkgName){
   public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
 
   public FearlessException noAgreement(Agreement at, FreshPrefix fresh, List<?> res, String msg){
+    var rc=at.rc().map(r->r.toStrSpace(false)).orElse("");
     var e= err()
-      .line(msg+" for method "+err().methodSig(at.mName())+" with "+at.mName().arity()+" parameters.")
+      .line(msg+" for method "+err().methodSig(rc,at.mName())+" with "+at.mName().arity()+" parameters.")
       .line(Join.of(
         res.stream().map(o->{//Can be RC or inference.IT.RCC
           if (o instanceof inference.IT.RCC rcc){ return err().typeRepr(rcc); }

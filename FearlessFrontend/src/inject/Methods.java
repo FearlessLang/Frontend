@@ -239,8 +239,8 @@ public record Methods(
     
   M pairWithSig(List<M.Sig> ss, inference.M m, E.Literal origin){
     if (ss.isEmpty()){ return toCompleteM(m,origin); }
-    var s= m.sig();    
-    var at= new Agreement(origin, ss.getFirst().m().get(), m.sig().span().inner);
+    var s= m.sig();
+    var at= new Agreement(origin, ss.getFirst().rc(), ss.getFirst().m().get(), m.sig().span().inner);
     List<B> bs= agreementWithSize(ss, s, at);
     var ssAligned= alignMethodSigsTo(ss, bs);
     MName name= ssAligned.getFirst().m().get();
@@ -282,7 +282,7 @@ public record Methods(
   M pairWithSig(List<M.Sig> ss, E.Literal origin){
     assert !ss.isEmpty();
     if (ss.size() == 1){ return toCompleteM(ss.getFirst()); }
-    var at= new Agreement(origin,ss.getFirst().m().get(),origin.span().inner);
+    var at= new Agreement(origin,ss.getFirst().rc(),ss.getFirst().m().get(),origin.span().inner);
     List<B> bs= agreementBs(at,ss.stream().map(e->e.bs().get()).distinct().toList());
     var ssAligned = alignMethodSigsTo(ss, bs);
     MName name= ssAligned.getFirst().m().get();
@@ -317,7 +317,7 @@ public record Methods(
     assert !msg.equals("Reference capability disagreement"): "Triggered example where RC diagreement still happens";
     throw p.err().noAgreement(at,fresh,res,msg);
   }
-  public record Agreement(E.Literal lit, MName mName, Span span){}
+  public record Agreement(E.Literal lit,Optional<RC> rc, MName mName, Span span){}
   
   List<B> agreementBs(Agreement at,List<List<B>> res){
     if (res.size() == 1){ return res.getFirst(); }

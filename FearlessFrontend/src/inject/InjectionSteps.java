@@ -486,7 +486,7 @@ public record InjectionSteps(Methods meths){
   }
   List<IT> propagateXs(List<String> xs, IT.C c, IT t1){
     if (t1 instanceof IT.U || t1 instanceof IT.Err){ return qMarks(xs.size()); }
-    if (!(t1 instanceof IT.RCC cc)){ throw Bug.unreachable(); }//not assert to declare cc
+    if (!(t1 instanceof IT.RCC cc)){ return qMarks(xs.size()); }
     if (!cc.c().name().equals(c.name())){ return qMarks(xs.size()); }
     assert cc.c().ts().size() == c.ts().size();
     List<List<IT>> res= IntStream.range(0, c.ts().size())

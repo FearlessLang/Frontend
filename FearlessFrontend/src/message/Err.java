@@ -133,7 +133,9 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
       .line("for type parameter "+paramName+" in "+kindingTarget+".")
       .line("Here "+paramName+" can only use capabilities "+allowedStr+".");
   }
-  public Err invalidMethImpl(Literal l, MName m){ return line("Invalid method implementation for "+methodSig(l,m)+"."); }
+  public Err invalidMethImpl(Literal l, MName m){ 
+    return line("Invalid method signature overriding for "+methodSig(l,m)+".");
+  }
 
   Err compactPrinterLine(E e){ return line(cp(true).limit(e,120)); }
   Err line(String s){

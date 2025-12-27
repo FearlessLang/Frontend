@@ -82,29 +82,39 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   } 
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
-  public FearlessException methodOverrideSignatureMismatchContravariance(Literal l, Sig current, Sig parent, int index){
+  public FearlessException methodOverrideSignatureMismatchContravariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent, int index){
     var mName= current.m();
     assert mName.equals(parent.m());  
     assert index >= 0 && index < current.ts().size() && index < parent.ts().size();
     T parentArg= parent.ts().get(index);
     T currentArg= current.ts().get(index);
+    assert !ts.isSub(ctx, parentArg, currentArg);
+    String inverse= ts.isSub(ctx, currentArg, parentArg)
+      ? "It is instead a supertype: you are strenghtening the parameter instead of weakening it."
+      : "The two types are unrelated.";
     return overrideErr(l, current, err()
       .invalidMethImpl(l,mName)//TODO: this should compute/receive skipImm
-      .line("The method "+err().methodSig(mName)+" accepts argument "+(index+1)+" of type "+err().typeRepr(true,currentArg)+".")
+      .line("The method "+err().methodSig(mName)+" accepts parameter "+(index+1)+" of type "+err().typeRepr(true,currentArg)+".")
       .line("But "+err().methodSig(parent.origin(),mName)+" requires "+err().typeRepr(true,parentArg)+", which is not a subtype of "+err().typeRepr(true,currentArg)+".")
+      .line(inverse)
     );
   }
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
-  public FearlessException methodOverrideSignatureMismatchCovariance(Literal l, Sig current, Sig parent){
+  public FearlessException methodOverrideSignatureMismatchCovariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent){
     var mName=current.m();
     assert mName.equals(parent.m());
     T parentRet= parent.ret();
     T currentRet= current.ret();
+    assert !ts.isSub(ctx, currentRet, parentRet);
+    String inverse= ts.isSub(ctx, parentRet, currentRet)
+      ? "It is instead a subtype: you are weakening the result instead of strenghtening it."
+      : "The two types are unrelated.";
     return overrideErr(l, current, err()
       .invalidMethImpl(l,mName)
       .line("The method "+err().methodSig(mName)+" returns type "+err().typeRepr(true,currentRet)+".")
       .line("But "+err().methodSig(parent.origin(),mName)+" returns type "+err().typeRepr(true,parentRet)+", which is not a supertype of "+err().typeRepr(true,currentRet)+".")
+      .line(inverse)
     );
   }
   ///A required method was left abstract instead of being implemented.

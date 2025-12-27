@@ -251,9 +251,9 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     assert tsSize == parent.ts().size():"Arity encoded in meth name";
     for (int i= 0; i < tsSize; i++){
       var badArg= !isSub(ctx, parent.ts().get(i), current.ts().get(i));
-      if (badArg){ throw tsE().methodOverrideSignatureMismatchContravariance(l,current,parent, i); }
+      if (badArg){ throw tsE().methodOverrideSignatureMismatchContravariance(this,ctx,l,current,parent, i); }
     }
     var badRet= !isSub(ctx, current.ret(), parent.ret());
-    if (badRet){ throw tsE().methodOverrideSignatureMismatchCovariance(l,current,parent); }
+    if (badRet){ throw tsE().methodOverrideSignatureMismatchCovariance(this,ctx,l,current,parent); }
   }
 }

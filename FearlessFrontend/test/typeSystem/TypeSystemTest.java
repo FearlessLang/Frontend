@@ -798,9 +798,10 @@ Sub:Sup{ imm .f[X:imm,Y:imm](x:imm X):base.Void; }
    | ----------------^^^^^^^^^^^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "Current"
-Invalid method implementation for "Current.g(_)".
-The method ".g(_)" accepts argument 1 of type "P".
+Invalid method signature overriding for "Current.g(_)".
+The method ".g(_)" accepts parameter 1 of type "P".
 But "Parent.g(_)" requires "read P", which is not a subtype of "P".
+It is instead a supertype: you are strenghtening the parameter instead of weakening it.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Current:Parent{.g(P):-.Void}
@@ -815,9 +816,10 @@ Current:Parent{ imm .g(x:imm P):base.Void; }
    | ---------^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "Sub"
-Invalid method implementation for "Sub.h".
+Invalid method signature overriding for "Sub.h".
 The method ".h" returns type "read P".
 But "Sup.h" returns type "P", which is not a supertype of "read P".
+It is instead a subtype: you are weakening the result instead of strenghtening it.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub:Sup{.h:read P}
