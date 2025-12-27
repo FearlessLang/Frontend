@@ -211,6 +211,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new E.X(x.content(),pos(x));
   }
   E.Literal parseLiteral(boolean top, boolean typed){
+    assert !top || typed;
     Token start= expect("object literal",OCurly);
     Token end= expectLast("object literal",CCurly);
     Optional<E.X> thisName= empty();
@@ -262,16 +263,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var x= repeated(Xs);
     if (!x.isEmpty()){ throw errFactory().duplicateGenericInMethodSignature(span(), x); }
   }
-  void checkTyped(Sig sig, boolean implicit){
-    boolean mustType= sig.t().isPresent()
-      || sig.bs().isPresent()
-      || sig.parameters().stream().anyMatch(p->p.t().isPresent());
-    boolean err= mustType
-      ? (!sig.fullyTyped() || implicit)
-      : sig.rc().isPresent();
-    if (err){ throw errFactory().disallowedSig(span(),sig); }
-  }
   M parseMethod(boolean top, boolean typed){
+    assert !top || typed;
     var res= parseMethodAux(top,typed);
     expectEnd("semicolon or closed curly", SemiColon,CCurly);
     return res;
@@ -281,10 +274,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var Xs= sig.bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
     updateNames(names.add(xs,Xs));
     var res= new M(of(sig),of(parseMethodBody()),tspan());
-    if (!typed){ checkTyped(sig, res.hasImplicit()); }
     return res;
   }
   M parseMethodAux(boolean top, boolean typed){//assumes to be called on only the tokens of this specific method
+    assert !top || typed;
     Optional<M> m= parseFront("method signature",false,arrowSkip,Parser::parseSig)
       .map(s->parseMethodWithSig(s,typed));
     if (m.isPresent()){ return m.get(); }
@@ -293,7 +286,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (!hasSig){ return new M(empty(),of(parseMethodBody()),tspan()); }
     Sig sig= parseSig();
     var res= new M(of(sig),empty(),tspan());
-    if (!typed){ checkTyped(sig,false); }
     if (!top){ throw errFactory().noAbstractMethod(res.sig().get(),span()); }
     return res;
   }

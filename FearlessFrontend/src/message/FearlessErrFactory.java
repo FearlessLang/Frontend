@@ -89,12 +89,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       Use one of read, mut, imm.      
       """).addSpan(at);
   }
-  public FearlessException disallowedSig(Span at, Sig sig){
-    return Code.WellFormedness.of(
-      "A literal signature can only be either fully typed or fully untyped.\n"
-    + "Signature "+Message.displayString(ToString.sig(sig))+" has some, but not all, type information.\n"
-      ).addSpan(at);
-  }
   public FearlessException disallowedPackageNotEmpty(Span at){
     return Code.UnexpectedToken.of(
       "The package declaration must be at the very beginning of the file.\n"

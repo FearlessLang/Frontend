@@ -3571,60 +3571,6 @@ A:{
 [###]""","""
 A:B{'this .foo->this }
 """); }
-
-@Test void partialSigType1(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ { .foo x:Bar->B; } }
-   |   --~~^^^^^^^^^^^^^~~~--
-
-While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-A literal signature can only be either fully typed or fully untyped.
-Signature ".foo x: Bar" has some, but not all, type information.
-Error 9 WellFormedness
-""","""
-A:{ { .foo x:Bar->B; } }
-"""); }
-
-@Test void partialSigType2(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ { mut .foo->B; } }
-   |   --~~^^^^^^^^^^^~~~--
-
-While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-A literal signature can only be either fully typed or fully untyped.
-Signature "mut .foo" has some, but not all, type information.
-Error 9 WellFormedness
-""","""
-A:{ { mut .foo->B; } }
-"""); }
-@Test void partialSigType3(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ { .foo[X]->B; } }
-   |   --~~^^^^^^^^^^~~~--
-
-While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-A literal signature can only be either fully typed or fully untyped.
-Signature ".foo[X]" has some, but not all, type information.
-Error 9 WellFormedness
-""","""
-A:{ { .foo[X]->B; } }
-"""); }
-@Test void partialSigType4(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ { mut .foo(x:Bar)->B; } }
-   |   --~~^^^^^^^^^^^^^^^^^^~~~--
-
-While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-A literal signature can only be either fully typed or fully untyped.
-Signature "mut .foo(x: Bar)" has some, but not all, type information.
-Error 9 WellFormedness
-""","""
-A:{ { mut .foo(x:Bar)->B; } }
-"""); }
 @Test void recOrderFree1(){ ok("""
 [###]RCS[rcs=[mut,imm]][###]
 ""","""
@@ -3673,32 +3619,6 @@ A:{
 #|`f
 
 }
-"""); }
-@Test void implicit1(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ { .foo:Bar -> :: .a } }
-   |   --~~^^^^^^^^^^^^^^^^^~~--
-
-While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-A literal signature can only be either fully typed or fully untyped.
-Signature ".foo: Bar" has some, but not all, type information.
-Error 9 WellFormedness
-""","""
-A:{ { .foo:Bar -> :: .a } }
-"""); }
-@Test void implicit2(){ fail("""
-In file: [###]/in_memory0.fear
-
-001| A:{ { mut .foo -> :: .a } }
-   |   --~~^^^^^^^^^^^^^^^^^~~--
-
-While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-A literal signature can only be either fully typed or fully untyped.
-Signature "mut .foo" has some, but not all, type information.
-Error 9 WellFormedness
-""","""
-A:{ { mut .foo -> :: .a } }
 """); }
 
 @Test void simpleStrLiteral(){ ok("""

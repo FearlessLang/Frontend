@@ -241,12 +241,12 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
-Type argument 1 ("base.InferErr[B,base.Void]") does not satisfy the bounds
+Type argument 1 ("B") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-a.id[imm,-.InferErr[B,-.Void]](b)
+a.id[imm,B](b)
 """, List.of("""
 A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
@@ -2066,6 +2066,5 @@ B{.bar:A->A}
  B:A{.foo:A}
  Main:{ .m:B -> B{.bar:A->A} }
 """));}
-
 
 }

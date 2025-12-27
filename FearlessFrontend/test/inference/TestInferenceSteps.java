@@ -757,18 +757,14 @@ B2[X]:A{.m(z)->z.beer[X]}
 //arguably, this could be applied when making the transition inference->core
 //TODO: when committing to class table consider replacing all the bodies with Void or Magic! to avoid worst case shenario quadratic memory consumption.
 
-//TODO: if some error about rc disagreement cannot be triggered any more, they should become asserts
-//search for 'Reference capability disagreement'
 
-
-//Ok with inferErr here
 @Test void recoverUserTypes1(){okI("""
 [###]~-----------
 ~mut p.A:p.I{'this }
 ~mut p.B:p.I{'this }
 ~mut p.Foo:{'this .get[T:imm](a:T, b:T):T->a}
 ~mut p.I:{'this }
-~mut p.User:{'this .m:p.I->p.Foo.get[imm,base.InferErr[p.A,p.B,p.I]](p.A, p.B)}
+~mut p.User:{'this .m:p.I->p.Foo.get[imm,p.A](p.A, p.B)}
 """,List.of("""
 I:{}
 A:I{}
@@ -1289,6 +1285,65 @@ OrderBy[T]:F[T,read Order[T]]{
   .view[A](f: F[A,read T]): OrderBy[A] ->
     {a-> {b-> this#(f#a) <=> (f#b) } };
   }
+"""));}
+
+@Test void partialTypeSig1(){okI("""
+[###]
+~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->\
+imm p._AMap[B:imm,R:imm,A:imm]:p.F[B,R]{'_ #(b:B):R->f.core[imm,B](a, b)}}
+[###]
+~mut p.User:{'this .done[Y:imm](t1:p.T1, t2:p.T2, y:Y):p.T3[Y]->\
+p.Map.of[imm,p.T1,Y,p.T3[Y]](t1, imm p._AUser[Y:imm]:p.GF[p.T1,p.T3[Y]]{'_\
+ .core[WW:imm](a:p.T1, b:WW):p.T3[Y]->a.and[imm,WW](b)})#[imm](y)}
+""",List.of("""
+GF[A,R]:{.core[B](A,B):R}
+F[A,R]:{#(A):R}
+T1:{.and[X](X):T3[X]}
+T2:{}
+T3[X]:{.x:X}
+Map:{.of[A,B,R](a:A,f:GF[A,R]):F[B,R]->{b->f.core(a,b)}}
+User:{.done[Y](t1:T1,t2:T2,y:Y):T3[Y]->
+  Map.of(t1,{.core[WW](a,b)-> a.and(b)})#y }
+"""));}
+
+@Test void partialTypeSig1Sub(){okI("""
+[###]
+~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->imm p._AMap[B:imm,R:imm,A:imm]:p.F[B,R]{'_\
+ #(b:B):R->f.core[imm,B](a, b)}}
+[###]
+~mut p.User:{'this .done[Y:imm](t1:p.T1, t2:p.T2, y:Y):p.AnyT3->\
+p.Map.of[imm,p.T1,Y,p.AnyT3](t1, imm p._AUser:p.GF[p.T1,p.AnyT3]{'_\
+ .core[WW:imm](a:p.T1, b:WW):p.AnyT3->a.and[imm,WW](b)})#[imm](y)}
+""",List.of("""
+GF[A,R]:{.core[B](A,B):R}
+F[A,R]:{#(A):R}
+T1:{.and[X](X):T3[X]}
+T2:{}
+T3[X]:AnyT3{.x:X}
+AnyT3:{}
+Map:{.of[A,B,R](a:A,f:GF[A,R]):F[B,R]->{b->f.core(a,b)}}
+User:{.done[Y](t1:T1,t2:T2,y:Y):AnyT3->
+  Map.of(t1,{.core[WW](a,b)-> a.and(b)})#y }
+"""));}
+
+
+@Test void partialTypeSigImplicit1(){okI("""
+[###]
+~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->\
+imm p._AMap[B:imm,R:imm,A:imm]:p.F[B,R]{'_ #(b:B):R->f.core[imm,B](a, b)}}
+[###]
+~mut p.User:{'this .done[Y:imm](t1:p.T1, t2:p.T2, y:Y):p.T3[Y]->\
+p.Map.of[imm,p.T1,Y,p.T3[Y]](t1, imm p._AUser[Y:imm]:p.GF[p.T1,p.T3[Y]]{'_\
+ .core[B:imm](a:p.T1, b:B):p.T3[Y]->a.and[imm,B](b)})#[imm](y)}
+""",List.of("""
+GF[A,R]:{.core[B](A,B):R}
+F[A,R]:{#(A):R}
+T1:{.and[X](X):T3[X]}
+T2:{}
+T3[X]:{.x:X}
+Map:{.of[A,B,R](a:A,f:GF[A,R]):F[B,R]->{b->f.core(a,b)}}
+User:{.done[Y](t1:T1,t2:T2,y:Y):T3[Y]->
+  Map.of(t1,{.core(a,b)-> a.and(b)})#y }
 """));}
 
 }

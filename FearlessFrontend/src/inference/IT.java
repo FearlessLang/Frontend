@@ -9,12 +9,15 @@ import java.util.stream.Stream;
 import core.RC;
 import core.TName;
 import core.TSpan;
+import message.WellFormednessErrors;
 import utils.Bug;
 import utils.Join;
 
 public sealed interface IT {
   default boolean isTV(){ return true; }
+  default long badness(){ return 0; }
   TSpan span();
+  default int depth(){ return 1; }
   record X(String name, TSpan span) implements IT{
     public X{ assert validate(name,"generic type name", _XId); }
     public String toString(){ return name; }
@@ -29,24 +32,31 @@ public sealed interface IT {
     public String toString(){ return "read/imm "+x.name; }
     public TSpan span(){ return x.span();}
   }
-  record C(TName name, List<IT> ts){
+  record C(TName name, List<IT> ts, int depth){
     public C{
       assert unmodifiable(ts,"T.C.args");
       assert eq(ts.size(), name.arity(),"Type arity");
     }
+    public C(TName name, List<IT> ts){ this(name,ts,1+ts.stream().mapToInt(IT::depth).max().orElse(1)); }
     public String toString(){
       if (ts.isEmpty()){ return name.s(); } 
       return name.s()+Join.of(ts,"[",",","]",""); 
     }
   }
   record RCC(RC rc, C c, TSpan span) implements IT{
-    public RCC{ nonNull(rc,c); }
+    public RCC(RC rc, C c, TSpan span){
+      nonNull(rc,c);
+      this.rc=rc; this.c=c; this.span= span;
+      if (c.depth() > 100){throw new WellFormednessErrors.ErrToFetchContext(this); }
+    }
+    public long badness(){ return c.ts.stream().mapToLong(IT::badness).sum(); }
     public String toString(){ return rc.toStrSpace()+c; }
     public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
     public RCC withTs(List<IT> ts){
       if (ts == c.ts()){ return this; }
       return new RCC(rc,new C(c.name(),ts),span);
     }
+    public int depth(){ return c.depth(); }
     public RCC withRCTs(RC rc,List<IT> ts){
       if (rc == this.rc && ts == c.ts()){ return this; }
       return new RCC(rc,new C(c.name(),ts),span);
@@ -56,17 +66,21 @@ public sealed interface IT {
     public String toString(){ return "?";}
     public boolean isTV(){ return false; }
     public TSpan span(){throw Bug.unreachable(); }
+    public long badness(){ return 1; }
   }
-  record Err(List<IT> conflicts) implements IT{ 
+  record Err(List<IT> conflicts, int depth) implements IT{
+    public Err{ assert depth < 10; }
+    public Err(List<IT> conflicts){ this(conflicts,conflicts.stream().mapToInt(IT::depth).max().getAsInt()); }
     public String toString(){ return "Err";}
     public TSpan span(){throw Bug.unreachable(); }
+    public long badness(){ return 1_000_000; }
     public static Err merge(IT t1, IT t2){ return switch (t1){
-      case Err(var cs1) -> switch (t2){
-        case Err(var cs2) -> new Err(Stream.concat(cs1.stream(),cs2.stream()).distinct().toList());
+      case Err(var cs1,_) -> switch (t2){
+        case Err(var cs2,_) -> new Err(Stream.concat(cs1.stream(),cs2.stream()).distinct().toList());
         default -> new Err(Stream.concat(cs1.stream(),Stream.of(t2)).distinct().toList());
       };
       default -> switch (t2){
-        case Err(var cs2) -> new Err(Stream.concat(Stream.of(t1),cs2.stream()).distinct().toList());
+        case Err(var cs2,_) -> new Err(Stream.concat(Stream.of(t1),cs2.stream()).distinct().toList());
         default -> new Err(List.of(t1,t2));
       };
     };}

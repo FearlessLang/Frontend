@@ -32,6 +32,10 @@ import utils.Bug;
 import utils.Join;
 
 public record WellFormednessErrors(String pkgName){
+  @SuppressWarnings("serial")
+  public static class ErrToFetchContext extends RuntimeException{
+    public ErrToFetchContext(IT.RCC c){this.c= c;} public IT.RCC c;
+    }
   Err err(){ return new Err(x->x, trunk->new CompactPrinter(pkgName, Map.of(), trunk), new StringBuilder()); }
 
   public FearlessException notClean(URI uri, FileFull f){
@@ -399,7 +403,13 @@ public record WellFormednessErrors(String pkgName){
       })
       .findFirst().getAsInt();
   }
-
+  public FearlessException itTooDeep(E at,IT.RCC blame){
+    return err()
+      .line("Type "+err().typeRepr(blame))
+      .line("grew incontrollably during inference.")
+      .wf()
+      .addFrame(err().expRepr(at), at.span().inner);
+  }
   public FearlessException ambiguousImpl(E.Literal origin, FreshPrefix fresh, boolean abs, M m, List<inference.M.Sig> options){
     return err()
       .line("Cannot infer the name for a method with "+m.sig().ts().size()+" parameters.")

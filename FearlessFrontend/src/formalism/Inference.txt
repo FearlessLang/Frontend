@@ -44,6 +44,14 @@ _______
 _______
 #Define Xs ⊢ T=T' : Ts' //sub notation used in (refine)
 
+_______
+#Define close_Xs(T) = T'    close_Xs(Ts) = Ts'
+  close_Xs(?) = ?
+  close_Xs(Err) = Err
+  close_Xs(X) = ?        if X in Xs
+  close_Xs(X) = X        otherwise
+  close_Xs(C[Ts]) = C[ close_Xs(Ts) ]
+
 //Rule (refineXs) STARTS HERE
 ---------------------------------------------------(refineXs)
   X1..Xn X X'1..X'k ⊢ X=T : ?1..?n T ?1..?k
@@ -140,7 +148,7 @@ _______
   methodHeader(C[Ts'],m) =Ts'; C[Xs']; m[Xs](_:T"1.._:T"n):T"0
   M' = m[Xs](x1:T'1⊓T"1[Xs'=Ts'] .. xn:T'n⊓T"n[Xs'=Ts']):T'0⊓T"0[Xs'=Ts'] { return e'⊓T"0[Xs'=Ts']; }
 ------------------------------------------------------------------ (meth)
-  Γ;C[Ts] ⊢ M ==>* Γ';C[Ts'] ⊢ M'
+  Γ;C[Ts] ⊢ M ==>* Γ';C[close_Xs(Ts')] ⊢ M'
 //Note: in a more complete language we should consider the case where
 //methodHeader(C[Ts],m) is undefined; for example, m is new in this anon
 
