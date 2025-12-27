@@ -1346,4 +1346,92 @@ User:{.done[Y](t1:T1,t2:T2,y:Y):T3[Y]->
   Map.of(t1,{.core(a,b)-> a.and(b)})#y }
 """));}
 
+@Test void wrongTargsTooManyDoesNotLeakClsBinder1(){okI("""
+[###]
+~mut p.User:{'this .go:p.Bool->p.Flows.flow[read].mapping[imm,p.KeyElem[p.Str,p.Info],p.Str,p.Info](imm p._AUser:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],p.Str,p.Info]{'_ .key(e:p.KeyElem[p.Str,p.Info]):p.Str->e.key[imm]; .elem(e:p.KeyElem[p.Str,p.Info]):p.Info->e.elem[imm]})}
+""",List.of("""
+Str:{} Info:{} Bool:{} True:{} False:{}
+KeyElem[K,E]:{.key:K;.elem:E;}
+KeyElemMapper[A,K,E]:{.key(A):K;.elem(A):E;}
+
+Flow[TTT]:{
+  .mapping[K,E](m:KeyElemMapper[TTT,Str,Info]):Bool;
+}
+
+Flows:{
+  read .flow:Flow[KeyElem[Str,Info]]->{
+    .mapping[K,E](m:KeyElemMapper[KeyElem[Str,Info],Str,Info]):Bool->True;
+  };
+}
+
+User:{.go:Bool->
+  // WRONG: mapping has 2 method binders [K,E], but we pass 3 targs (old bug path).
+  Flows.flow.mapping[KeyElem[Str,Info],Str,Info]({
+    .key(e)->e.key;
+    .elem(e)->e.elem;
+  });
+}
+"""));}
+
+@Test void wrongTargsTooFewPadsErr1(){okI("""
+[###]
+~mut p.User:{'this .go:p.Bool->p.Flows.flow[read].mapping[imm,p.Str](imm p._AUser:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],p.Str,p.Info]{'_ .key(e:p.KeyElem[p.Str,p.Info]):p.Str->e.key[imm]; .elem(e:p.KeyElem[p.Str,p.Info]):p.Info->e.elem[imm]})}
+""",List.of("""
+Str:{} Info:{} Bool:{} True:{} False:{}
+KeyElem[K,E]:{.key:K;.elem:E;}
+KeyElemMapper[A,K,E]:{.key(A):K;.elem(A):E;}
+
+Flow[TTT]:{
+  .mapping[K,E](m:KeyElemMapper[TTT,Str,Info]):Bool;
+}
+
+Flows:{
+  read .flow:Flow[KeyElem[Str,Info]]->{
+    .mapping[K,E](m:KeyElemMapper[KeyElem[Str,Info],Str,Info]):Bool->True;
+  };
+}
+
+User:{.go:Bool->
+  // WRONG: only 1 targ, should be 2. Missing one should be padded with IT.Err during inference.
+  Flows.flow.mapping[Str]({
+    .key(e)->e.key;
+    .elem(e)->e.elem;
+  });
+}
+"""));}
+
+@Test void wrongTargsTooManyWithUsedBinders2(){okI("""
+[###]
+~mut p.Flows:{'this read .flow:p.Flow[p.KeyElem[p.Str,p.Info]]->imm p._AFlow:p.Flow[p.KeyElem[p.Str,p.Info]]{'_ .mapping[K:imm,E:imm](m:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],K,E]):p.Bool->p.True}}
+~mut p.Info:{'this }
+~mut p.KeyElemMapper[A:imm,K:imm,E:imm]:{'this .key(_:A):K; .elem(_:A):E}
+~mut p.KeyElem[K:imm,E:imm]:{'this .key:K; .elem:E}
+~mut p.Str:{'this }
+~mut p.True:{'this }
+~mut p.User:{'this .go:p.Bool->p.Flows.flow[read].mapping[imm,p.KeyElem[p.Str,p.Info],p.Str,p.Info](imm p._AUser:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],p.KeyElem[p.Str,p.Info],p.Str]{'_ .key(e:p.KeyElem[p.Str,p.Info]):p.KeyElem[p.Str,p.Info]->e.key[imm]; .elem(e:p.KeyElem[p.Str,p.Info]):p.Str->e.elem[imm]})}
+""",List.of("""
+Str:{} Info:{} Bool:{} True:{} False:{}
+KeyElem[K,E]:{.key:K;.elem:E;}
+KeyElemMapper[A,K,E]:{.key(A):K;.elem(A):E;}
+
+Flow[TTT]:{
+  // Here K/E are USED in the parameter type, so trimming/padding really affects inference.
+  .mapping[K,E](m:KeyElemMapper[TTT,K,E]):Bool;
+}
+
+Flows:{
+  read .flow:Flow[KeyElem[Str,Info]]->{
+    .mapping[K,E](m:KeyElemMapper[KeyElem[Str,Info],K,E]):Bool->True;
+  };
+}
+
+User:{.go:Bool->
+  // WRONG: 3 targs given to a 2-binder method. Old code would keep KeyElemMapper[TTT,K,E] raw and leak TTT.
+  Flows.flow.mapping[KeyElem[Str,Info],Str,Info]({
+    .key(e)->e.key;
+    .elem(e)->e.elem;
+  });
+}
+"""));} 
+
 }
