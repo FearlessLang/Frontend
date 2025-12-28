@@ -2102,6 +2102,163 @@ Top:{
   .m17(b:mutH Box[mut A]):Str -> b.str {::};
   }
 """));}
+@Test void toStrToImm(){ok(List.of("""
+Str:{}
+ToStr:{ read .str: Str }
+ToStrBy[T]:{#(read T):read ToStr}
+ToStr[E:*]:{ read .str(ToStrBy[imm E]): Str }
+ToImm[T]:{ read .imm: T }
+ToImmBy[T]:{#(read T):read ToImm[T]}
+ToImm[T,E:*,TE]:{ read .imm(ToImmBy[imm E]): TE }
+Box[EE:*]: ToStr[EE], ToImm[Box[EE],EE,Box[imm EE]]{
+  mut  .get: EE;
+  read .get: read/imm EE;
+  imm  .get: imm EE;
+  .str by-> by#(this.get).str;
+  .imm by-> Boxs#(by#(this.get).imm);
+  }
+Boxs:{#[ET:*](e:ET):mut Box[ET]->{e}}
+A:ToStr,ToImm[A]{ .str->Str; .imm->A}
+TopToStr:{
+  .m00(b:Box[A]):Str -> b.str {::};
+  .m01(b:Box[read A]):Str -> b.str {::};
+  .m02(b:Box[mut A]):Str -> b.str {::};
+  .m03(b:read Box[A]):Str -> b.str {::};
+  .m04(b:read Box[read A]):Str -> b.str {::};
+  .m05(b:read Box[mut A]):Str -> b.str {::};
+  .m06(b:mut Box[A]):Str -> b.str {::};
+  .m07(b:mut Box[read A]):Str -> b.str {::};
+  .m08(b:mut Box[mut A]):Str -> b.str {::};
+  .m09(b:iso Box[A]):Str -> b.str {::};
+  .m10(b:iso Box[read A]):Str -> b.str {::};
+  .m11(b:iso Box[mut A]):Str -> b.str {::};
+  .m12(b:readH Box[A]):Str -> b.str {::};
+  .m13(b:readH Box[read A]):Str -> b.str {::};
+  .m14(b:readH Box[mut A]):Str -> b.str {::};
+  .m15(b:mutH Box[A]):Str -> b.str {::};
+  .m16(b:mutH Box[read A]):Str -> b.str {::};
+  .m17(b:mutH Box[mut A]):Str -> b.str {::};
+  }
+TopToImm:{
+  .m00(b:Box[A]):Box[A] -> b.imm {::};
+  .m01(b:Box[read A]):Box[A] -> b.imm {::};
+  .m02(b:Box[mut A]):Box[A] -> b.imm {::};
+  .m03(b:read Box[A]):Box[A] -> b.imm {::};
+  .m04(b:read Box[read A]):Box[A] -> b.imm {::};
+  .m05(b:read Box[mut A]):Box[A] -> b.imm {::};
+  .m06(b:mut Box[A]):Box[A] -> b.imm {::};
+  .m07(b:mut Box[read A]):Box[A] -> b.imm {::};
+  .m08(b:mut Box[mut A]):Box[A] -> b.imm {::};
+  .m09(b:iso Box[A]):Box[A] -> b.imm {::};
+  .m10(b:iso Box[read A]):Box[A] -> b.imm {::};
+  .m11(b:iso Box[mut A]):Box[A] -> b.imm {::};
+  .m12(b:readH Box[A]):Box[A] -> b.imm {::};
+  .m13(b:readH Box[read A]):Box[A] -> b.imm {::};
+  .m14(b:readH Box[mut A]):Box[A] -> b.imm {::};
+  .m15(b:mutH Box[A]):Box[A] -> b.imm {::};
+  .m16(b:mutH Box[read A]):Box[A] -> b.imm {::};
+  .m17(b:mutH Box[mut A]):Box[A] -> b.imm {::};
+  }
+"""));}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@Test void toOrder(){ok("role app000; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;",List.of("""
+Str:{}
+OrderMatch[R:**]:{ mut .lt:R; mut .eq:R; mut .gt:R; }
+Order[T]: {
+  read .close:read T;
+  read .cmp[R:**](a:read T,b:read T,m: mut OrderMatch[R]): R;
+  read ==  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->True; .gt -> False});
+  read <=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->True; .gt -> False});
+  read >=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->True; .gt -> True});
+  read <   (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->False; .gt -> False});
+  read >   (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->False; .gt -> True});
+  read !=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->False; .gt -> True});
+  }
+OrderBy[T]:{
+  #(read T):read Order[T];
+  .then(other:OrderBy[T]):OrderByCmp[T] -> {
+    .cmp(a,b,m)-> this#a
+      .cmp(a,b,{.lt ->m.lt; .eq ->other#a.cmp(a,b,m); .gt ->m.gt})
+    };
+  .view[AA](f:F[read AA,read Order[T]]):OrderByCmp[AA] -> {a,b,m-> f#a.cmp(f#a.close,f#b.close,m)};
+}
+OrderByCmp[T]:OrderBy[T]{
+  .cmp[R:**](a:read T,b:read T,m:mut OrderMatch[R]): R;
+  # a0 -> { .close -> a0; .cmp a,b,m -> this.cmp(a,b,m) };
+  }
+Order[T,E:*]:{
+  read .close:read T;
+  read .cmp[R:**](by: OrderBy[imm E], a:read T,b:read T, m: mut OrderMatch[R]): R;
+  read .order(by: OrderBy[imm E]): read Order[T] -> {
+    .close -> this.close;
+    .cmp a,b,m -> this.cmp(by,a,b,m);
+    };
+  }
+Box[EE:*]: Order[Box[EE],EE]{
+  mut  .get: EE;
+  read .get: read/imm EE;
+  imm  .get: imm EE;
+  .close->this;
+  .cmp by, a, b, m-> by#(a.get).cmp(a.get,b.get,m);
+  }
+A:Order[A]{ .close->this; .cmp a, b, m-> m.eq}
+Top:{ 
+  .m00(b:Box[A]):Bool -> b.order{::} == b;
+  .m01(b:Box[read A]):Bool -> b.order{::} == b;
+  .m02(b:Box[mut A]):Bool -> b.order{::} == b;
+  .m03(b:read Box[A]):Bool -> b.order{::} == b;
+  .m04(b:read Box[read A]):Bool -> b.order{::} == b;
+  .m05(b:read Box[mut A]):Bool -> b.order{::} == b;
+  .m06(b:mut Box[A]):Bool -> b.order{::} == b;
+  .m07(b:mut Box[read A]):Bool -> b.order{::} == b;
+  .m08(b:mut Box[mut A]):Bool -> b.order{::} == b;
+  .m09(b1:iso Box[A],b2:iso Box[A]):Bool -> b1.order{::} == b2;
+  .m10(b1:iso Box[read A],b2:iso Box[read A]):Bool -> b1.order{::} == b2;
+  .m11(b1:iso Box[mut A],b2:iso Box[mut A]):Bool -> b1.order{::} == b2;
+  .m12(b:readH Box[A]):Bool -> b.order{::} == b;
+  .m13(b:readH Box[read A]):Bool -> b.order{::} == b;
+  .m14(b:readH Box[mut A]):Bool -> b.order{::} == b;
+  .m15(b:mutH Box[A]):Bool -> b.order{::} == b;
+  .m16(b:mutH Box[read A]):Bool -> b.order{::} == b;
+  .m17(b:mutH Box[mut A]):Bool -> b.order{::} == b;
+  }
+"""));}
 
 }

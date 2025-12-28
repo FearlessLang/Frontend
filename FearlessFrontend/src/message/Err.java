@@ -164,7 +164,7 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     return line("This call to method "+methodSig(d,c.name())+" can not typecheck.");
   }
   Err notInSubtypeList(List<String> options){
-    if (options.size() == 1){ return this; }// this would be redundant line("That is not a subtype of "+options.getFirst());
+    if (options.size() == 1){ return this; };
     return line(Join.of(options,"That is not a subtype of any of "," or ","."));
   }
   Err pCallCantBeSatisfied(Call c){

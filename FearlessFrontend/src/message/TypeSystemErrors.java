@@ -381,7 +381,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var e= err()        
       .pCallCantBeSatisfied(d,c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true,gotHdr)+".")
-      .line("That is not a subtype of "+err().typeRepr(true,required)+".");
+      .line("That is not a subtype of "+err().typeRepr(true,required)+" (the type required by the method signature).");
     return withCallSpans(e.ex(s.pushCallArgi(c,argi).contextE()), c);
   }
   private static T reqCanon(List<TRequirement> reqs){

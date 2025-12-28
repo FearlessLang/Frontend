@@ -296,7 +296,10 @@ public record InjectionSteps(Methods meths){
     Stream<List<IT>> a= IntStream.range(0, es.size())
       .mapToObj(i -> refine(m.xs(), m.ps0().get(i), es.get(i).t()));
     List<IT> r= refine(m.xs(), m.ret0(), c.t());
-    List<List<IT>> tss= Stream.concat(Stream.of(base), Stream.concat(a,Stream.of(r))).toList();
+    List<List<IT>> tss= Stream.of(
+      Stream.of(base),
+      a,
+      Stream.of(r)).flatMap(s->s).toList();
     return meetKeepLeft(tss);
   }  
   private Optional<IT.RCC> precisePublicSelf(E.Literal l){
@@ -348,7 +351,11 @@ public record InjectionSteps(Methods meths){
   private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT t){
     TName name= l.name();
     if (!t.isTV() || !(t instanceof IT.RCC rcc) || hasU(l.ms()) || meths.cache().containsKey(name)){ return l; }
-    var freeNames= Stream.concat(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()));
+    var freeNames= Stream.of(
+      new FreeXs(g).ftvMs(l.ms()),
+      new FreeXs(g).ftvCs(l.cs()),
+      new FreeXs(g).ftvT(t)   
+      ).flatMap(s->s);
     List<B> localBs= freeNames.distinct().map(x -> RC.get(bs, x)).toList();
     TName newName= name.withArity(localBs.size());
     List<M> ms= fixArity(l.ms(), name, newName);
@@ -433,9 +440,11 @@ public record InjectionSteps(Methods meths){
     Sig imh= omh.get().sig();
     Stream<List<IT>> pars= IntStream.range(0, imh.ts().size()).mapToObj(i ->
       refine(Xs, TypeRename.tToIT(imh.ts().get(i)), sigTs.get(i).get()));
-    ts = meetKeepLeft(Stream.concat( Stream.of(ts),
-      Stream.concat(pars,Stream.of(refine(Xs, TypeRename.tToIT(imh.ret()), ret))))
-      .toList());
+    ts = meetKeepLeft(Stream.of(
+      Stream.of(ts),
+      pars,
+      Stream.of(refine(Xs, TypeRename.tToIT(imh.ret()), ret))
+      ).flatMap(s->s).toList());
     rcc = rcc.withTs(ts);
     var targetBs= improvedSig.bs().isEmpty()
       ? List.<String>of()
@@ -532,7 +541,10 @@ record MSigL(RC rc, List<String> xs, List<IT> clsArgs, List<IT> ps0, IT ret0){
     int k= targs.size();
     if (k == n){ return targs; }
     if (k > n){ return targs.subList(0, n); }
-    return Stream.concat(targs.stream(), IntStream.range(0, n-k).mapToObj(_->arityErr())).toList();
+    return Stream.concat(
+      targs.stream(),
+      IntStream.range(0, n-k).mapToObj(_->arityErr())
+      ).toList();
   }
   IT pStr(TSpan span, int i, List<String> targetBs){ return inst(ps0.get(i), toXs(span,targetBs)); }
   List<Optional<IT>> psStr(TSpan span,List<String> targetBs){
