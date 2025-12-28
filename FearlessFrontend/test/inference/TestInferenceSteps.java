@@ -1434,4 +1434,25 @@ User:{.go:Bool->
 }
 """));} 
 
+@Test void toStr(){okI("""
+[###]
+~mut p.Top:{'this .m(b:p.Box[p.A]):p.Str->\
+b.str[read](imm p._ATop:p.ToStrBy[p.A]{'_\
+ #(_aimpl:read p.A):read p.ToStr->_aimpl})}
+""",List.of("""
+Str:{}
+ToStr:{ read .str: Str }
+ToStrBy[T]:{#(read T):read ToStr}
+ToStr[E:*]:{ read .str(ToStrBy[imm E]): Str }
+Box[EE:*]: ToStr[EE]{
+  mut  .get: EE;
+  read .get: read/imm EE;
+  imm  .get: imm EE;
+  .str by-> by#(this.get).str
+  }
+A:ToStr{ .str->Str}
+Top:{ 
+  .m(b:Box[A]):Str -> b.str {::} 
+  }
+"""));}
 }

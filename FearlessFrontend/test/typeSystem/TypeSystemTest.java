@@ -2069,4 +2069,39 @@ B{.bar:A->A}
  Main:{ .m:B -> B{.bar:A->A} }
 """));}
 
+@Test void toStr(){ok(List.of("""
+Str:{}
+ToStr:{ read .str: Str }
+ToStrBy[T]:{#(read T):read ToStr}
+ToStr[E:*]:{ read .str(ToStrBy[imm E]): Str }
+Box[EE:*]: ToStr[EE]{
+  mut  .get: EE;
+  read .get: read/imm EE;
+  imm  .get: imm EE;
+  .str by-> by#(this.get).str
+  }
+A:ToStr{ .str->Str}
+Top:{ 
+  .m00(b:Box[A]):Str -> b.str {::};
+  .m01(b:Box[read A]):Str -> b.str {::};
+  .m02(b:Box[mut A]):Str -> b.str {::};
+  .m03(b:read Box[A]):Str -> b.str {::};
+  .m04(b:read Box[read A]):Str -> b.str {::};
+  .m05(b:read Box[mut A]):Str -> b.str {::};
+  .m06(b:mut Box[A]):Str -> b.str {::};
+  .m07(b:mut Box[read A]):Str -> b.str {::};
+  .m08(b:mut Box[mut A]):Str -> b.str {::};
+  .m09(b:iso Box[A]):Str -> b.str {::};
+  .m10(b:iso Box[read A]):Str -> b.str {::};
+  .m11(b:iso Box[mut A]):Str -> b.str {::};
+  .m12(b:readH Box[A]):Str -> b.str {::};
+  .m13(b:readH Box[read A]):Str -> b.str {::};
+  .m14(b:readH Box[mut A]):Str -> b.str {::};
+  .m15(b:mutH Box[A]):Str -> b.str {::};
+  .m16(b:mutH Box[read A]):Str -> b.str {::};
+  .m17(b:mutH Box[mut A]):Str -> b.str {::};
+  }
+"""));}
+
+
 }

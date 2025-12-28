@@ -53,12 +53,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds){
     assert index >= 0;
     String allowedStr= Join.of(bounds.stream().map(Err::disp).sorted(), "", " or ", "");
-    Err err=switch(target){
+    Err err= switch(target){
       case T.RCC rcc -> typeNotWellKinded("type "+err().typeRepr(true,rcc),rcc.c(), index, allowedStr);
       case T.C c -> typeNotWellKinded("type "+err().typeRepr(c),c, index, allowedStr);
       case KindingTarget.CallKinding(var t,var c)   -> typeNotWellKindedSig(t,c, index, allowedStr);
     };
-    return addExpFrame(toErr,err.ex(toErr).addSpan(target.span().inner));
+    var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
+    return addExpFrame(toErr,err.ex(toErr).addSpan(span));
   }
   private Err typeNotWellKinded(String name,T.C c, int index, String allowedStr){
     var args= c.ts();

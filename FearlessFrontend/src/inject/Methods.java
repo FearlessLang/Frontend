@@ -75,11 +75,11 @@ public record Methods(
   //TODO: performance: currently fetch rewrites for the class generics
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps? Something similar has been done for MSigL 
-  CsMs fetch(IT.C c, TName outName){ return fetch(c,from(c.name()),outName); }
-  CsMs fetch(IT.C c,core.E.Literal d, TName outName){ //d == from(c.name()); but from can be undefined for {..}.foo
+  CsMs fetch(E.Literal child,IT.C c){ return fetch(child,c,from(c.name())); }
+  CsMs fetch(E.Literal child,IT.C c,core.E.Literal d){ //d == from(c.name()); but from can be undefined for {..}.foo
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
-    List<inference.M.Sig> sigs= d.ms().stream().<inference.M.Sig>map(m->alphaSig(m,xs,c,outName)).toList();
+    List<inference.M.Sig> sigs= d.ms().stream().<inference.M.Sig>map(m->alphaSig(m,xs,c,child)).toList();
     return new CsMs(cs1,sigs);
   }
   List<IT.C> fetchCs(IT.C c){
@@ -88,23 +88,23 @@ public record Methods(
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
   }
-  private inference.M.Sig alphaSig(core.M m, List<String> xs, IT.C c, TName outName){
+  private inference.M.Sig alphaSig(core.M m, List<String> xs, IT.C c, E.Literal child){
     var s= m.sig();
     var fullXs= new ArrayList<>(xs);
     var fullTs= new ArrayList<>(c.ts());
     List<B> newBs= s.bs().isEmpty()?List.of():new ArrayList<B>(s.bs().size());
     for (B b: s.bs()){
       var x= b.x();
-      if (fresh.isFreshGeneric(outName,x)){ newBs.add(b); continue; }
+      if (fresh.isFreshGeneric(child.name(),x)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
-      var newX= new IT.X(fresh.freshGeneric(outName,x),outName.approxSpan());
+      var newX= new IT.X(fresh.freshGeneric(child.name(),x),child.name().approxSpan());
       fullTs.add(newX);
       newBs.add(new B(newX.name(),b.rcs()));
     }
     List<Optional<IT>> newTs= TypeRename.ofITOpt(TypeRename.tToIT(s.ts()),fullXs,fullTs);
     IT newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
-    return new inference.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),s.span());
+    return new inference.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),child.span());
   }
   public core.E.Literal from(TName name){
     var res= _from(name);
@@ -113,7 +113,7 @@ public record Methods(
   }
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache,other); }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
-    List<CsMs> ds= d.cs().stream().map(c->fetch(c,d.name())).toList();
+    List<CsMs> ds= d.cs().stream().map(c->fetch(d,c)).toList();
     List<IT.C> allCs= Stream.concat(
       d.cs().stream(),
       ds.stream().flatMap(dsi->dsi.cs().stream())
@@ -129,7 +129,7 @@ public record Methods(
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
     fresh.registerAnonSuperT(d.name(),c.name());
     var dd= _from(c.name());//null for the case {..}.foo
-    List<M.Sig> allSig= dd==null ?List.of() : fetch(c,dd,d.name()).sigs();
+    List<M.Sig> allSig= dd==null ?List.of() : fetch(d,c,dd).sigs();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
     return d.withMs(allMs);
@@ -316,6 +316,7 @@ public record Methods(
     if (res.size() == 1){ return res.getFirst(); }
     assert !msg.equals("Reference capability disagreement"): "Triggered example where RC diagreement still happens";
     throw p.err().noAgreement(at,fresh,res,msg);
+    //TODO: if we can not fail the assertion below, delete stuff mentioning "Reference capability disagreement"
   }
   public record Agreement(E.Literal lit,Optional<RC> rc, MName mName, Span span){}
   

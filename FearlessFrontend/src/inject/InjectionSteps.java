@@ -475,13 +475,19 @@ public record InjectionSteps(Methods meths){
     if (t1 instanceof IT.U){ return qMarks(xs.size()); }
     return switch (t){
       case IT.X x -> refineXs(xs, x, t1);
-      case IT.RCX(RC _, IT.X x) -> refineXs(xs, x, t1);
-      case IT.ReadImmX(IT.X x) -> refineXs(xs, x, t1);
+      case IT.RCX(RC _, IT.X x) -> refineXs(xs, x, stripOuterView(t1));
+      case IT.ReadImmX(IT.X x) -> refineXs(xs, x, stripOuterView(t1));
       case IT.RCC(RC _, IT.C c,_) -> propagateXs(xs, c, t1);
       case IT.U _ -> qMarks(xs.size());
       case IT.Err _ -> qMarks(xs.size());
     };
   }
+  static IT stripOuterView(IT t){ return switch (t){
+    case IT.RCC rcc -> rcc.withRC(RC.imm);
+    case IT.RCX(RC _, var x) -> x;
+    case IT.ReadImmX(var x) -> x;
+    default -> t;
+  };}
   List<IT> refineXs(List<String> xs, IT.X x, IT t1){
     var i= xs.indexOf(x.name());
     if (i == -1){ return qMarks(xs.size()); }
