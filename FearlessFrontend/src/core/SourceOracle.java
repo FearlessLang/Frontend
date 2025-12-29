@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-
+import static offensiveUtils.Require.*;
 import utils.Bug;
 
 /** SourceOracle
@@ -34,10 +34,21 @@ public interface SourceOracle {
     return Path.of("___DBG___/in_memory"+index+".fear").toAbsolutePath().normalize().toUri();
   }
   default String loadString(URI uri){ return load(uri).toString(); }
-
+  default SourceOracle withFallback(SourceOracle fb){
+    var p= this;
+    assert nonNull(fb);
+  return new SourceOracle(){
+    public CharSequence load(URI u){ return p.exists(u) ? p.load(u) : fb.load(u); }
+    public boolean exists(URI u){ return p.exists(u) || fb.exists(u); }
+    public List<URI> allFiles(){ return p.allFiles(); }
+    public void putOverlay(URI u, String t){ p.putOverlay(u,t); }
+    public void removeOverlay(URI u){ p.removeOverlay(u); }
+    public boolean hasOverlay(URI u){ return p.hasOverlay(u); }
+  };
+}
   /** Utility: best-effort normalization for file: URIs, pass-through otherwise. */
   static URI normalize(URI uri){
-    Objects.requireNonNull(uri);
+    assert nonNull(uri);
     try{ if (isFile(uri)){ return Path.of(uri).toAbsolutePath().normalize().toUri(); } }
     catch(Exception ignore){}
     return uri.normalize();
@@ -87,7 +98,8 @@ public interface SourceOracle {
     @Override public CharSequence load(URI uri){
       URI k= normalize(uri);
       String s= map.get(k);
-      if (s == null){ throw new IllegalArgumentException("No debug content for "+k); }
+      if (s == null){ 
+      throw new IllegalArgumentException("No debug content for "+k); }
       return s;
     }
     @Override public boolean exists(URI uri){ return map.containsKey(normalize(uri)); }

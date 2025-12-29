@@ -764,7 +764,7 @@ B2[X]:A{.m(z)->z.beer[X]}
 ~mut p.B:p.I{'this }
 ~mut p.Foo:{'this .get[T:imm](a:T, b:T):T->a}
 ~mut p.I:{'this }
-~mut p.User:{'this .m:p.I->p.Foo.get[imm,p.A](p.A, p.B)}
+~mut p.User:{'this .m:p.I->p.Foo.get[imm,p.I](p.A, p.B)}
 """,List.of("""
 I:{}
 A:I{}
@@ -1099,8 +1099,8 @@ User:{
 [###]~-----------
 ~mut p.A:{'this }
 ~mut p.B:{'this }
-~mut p.Need:{'this #(a:mut p.A):p.B->imm p._ANeed:p.B{'_ }}
-~mut p.User:{'this .f:p.B->p.Need#[imm](imm p._AUser:p.A{'_ })}
+~mut p.Need:{'this #(a:mut p.A):p.B->p.B}
+~mut p.User:{'this .f:p.B->p.Need#[imm](p.A)}
 """,List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -1174,7 +1174,7 @@ TestIt:{.go:Float->Trash#(One) }
 
 @Test void challenge4WithCorrectInferUnknown(){okI("""
 [###]
-~mut p.User3:{'this .go3:p.Float->p.Trash#[imm,p.F[base.InferUnknown,base.InferUnknown]](p.Top.top[imm,base.InferUnknown](imm p._BUser:{'_ #(x:p.Int):p.F[base.InferUnknown,base.InferUnknown]->imm p._AUser:{'_ #(y:base.InferUnknown):base.InferUnknown->y}})#[imm](p.One))}
+~mut p.User3:{'this .go3:p.Float->p.Trash#[imm,p.F[base.InferUnknown,base.InferUnknown]](p.Top.top[imm,base.InferUnknown](imm p._BUser:p.F[p.Int,p.F[base.InferUnknown,base.InferUnknown]]{'_ #(x:p.Int):p.F[base.InferUnknown,base.InferUnknown]->imm p._AUser:p.F[base.InferUnknown,base.InferUnknown]{'_ #(y:base.InferUnknown):base.InferUnknown->y}})#[imm](p.One))}
 ~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._DUser[A:imm]:p.F[p.Int,p.F[A,A]]{'_ #(x:p.Int):p.F[A,A]->imm p._CUser[A:imm]:p.F[A,A]{'_ #(y:A):A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
 ~mut p.User5:{'this .go3:p.Float->p.Trash#[imm,p.Float](p.Top.top[imm,p.Float](imm p._FUser:p.F[p.Int,p.F[p.Float,p.Float]]{'_ #(x:p.Int):p.F[p.Float,p.Float]->imm p._EUser:p.F[p.Float,p.Float]{'_ #(y:p.Float):p.Float->y}})#[imm](p.One)#[imm](p.FOne))}
 """,List.of("""
@@ -1455,4 +1455,85 @@ Top:{
   .m(b:Box[A]):Str -> b.str {::} 
   }
 """));}
+//------
+@Test void inferFromExpected_swap_ok(){ okI("""
+[###]
+~mut p.Use:{'this read .u:p.Bar[p.Nat,p.Str]->p.Mk.mk[read,p.Str,p.Nat]}
+""",List.of("""
+Nat:{} Str:{}
+Bar[X:*,Y:*]:{}
+Foo[A:*,B:*]:Bar[B,A]{}
+
+Mk:{ read .mk[A:*,B:*]: Foo[A,B] -> this.mk; }
+Use:{
+  // Must infer A=Str, B=Nat from expected Bar[Nat,Str] via Foo[A,B]:Bar[B,A]
+  read .u: Bar[Nat,Str] -> Mk.mk;
+}
+""")); }
+
+@Test void inferFromExpected_nested_ok(){ okI("""
+[###]
+~mut p.Use:{'this read .u:p.Bar[p.Nat,p.List[p.Str]]->p.Mk.mk[read,p.Str,p.Nat]}
+""",List.of("""
+Nat:{} Str:{} List[T:*]:{}
+Bar[X:*,Y:*]:{}
+Foo[A:*,B:*]:Bar[B,List[A]]{}
+
+Mk:{ read .mk[A:*,B:*]: Foo[A,B] -> this.mk; }
+
+Use:{
+  // Must infer A=Str, B=Nat from expected Bar[Nat,List[Str]]
+  read .u: Bar[Nat,List[Str]] -> Mk.mk;
+}
+""")); }
+
+@Test void inferFromExpected_recursive_ok(){ okI("""
+[###]
+~mut p.Use:{'this read .u:p.Bar3[p.Nat,p.Str,p.Foo[p.Str,p.Nat]]->p.Mk.mk[read,p.Str,p.Nat]}
+""",List.of("""
+Nat:{} Str:{}
+Bar3[X:*,Y:*,Z:*]:{}
+Foo[A:*,B:*]:Bar3[B,A,Foo[A,B]]{}
+
+Mk:{ read .mk[A:*,B:*]: Foo[A,B] -> this.mk; }
+
+Use:{
+  // Must infer A=Str, B=Nat and also match the recursive slot Foo[Str,Nat]
+  read .u: Bar3[Nat,Str,Foo[Str,Nat]] -> Mk.mk;
+}
+""")); }
+
+@Test void inferFromExpected_multiHop_ok(){ okI("""
+[###]
+~mut p.Use:{'this read .u:p.Bar[p.Nat,p.Str]->p.Mk.mk[read,p.Str,p.Nat]}
+""",List.of("""
+Nat:{} Str:{}
+Bar[X:*,Y:*]:{}
+Mid[A:*,B:*]:Bar[B,A]{}
+Foo[A:*,B:*]:Mid[A,B]{}
+
+Mk:{ read .mk[A:*,B:*]: Foo[A,B] -> this.mk; }
+
+Use:{
+  // Must still infer through Foo -> Mid -> Bar (tests transitive super walking)
+  read .u: Bar[Nat,Str] -> Mk.mk;
+}
+""")); }
+
+@Test void inferFromExpected_partial_ok(){ okI("""
+[###]
+~mut p.Use:{'this read .u:p.Bar1[p.Nat]->p.Mk.mk[read,base.InferUnknown,p.Nat]}
+""",List.of("""
+Nat:{} Str:{}
+Bar1[X:*]:{}
+Foo[A:*,B:*]:Bar1[B]{}
+
+Mk:{ read .mk[A:*,B:*]: Foo[A,B] -> this.mk; }
+
+Use:{
+  // Only constrains B=Nat; A is unconstrained. Should still compile.
+  read .u: Bar1[Nat] -> Mk.mk;
+}
+""")); }
+
 }

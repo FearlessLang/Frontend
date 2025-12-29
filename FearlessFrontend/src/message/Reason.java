@@ -36,7 +36,7 @@ public final class Reason{
   private static String base(TypeSystem ts, E blame, List<B> bs, T got, T expected){
     if (isInferErr(expected)){ return ts.err().gotMsgInferErr(ts.err().expRepr(blame),got);}
     var skipImm= !ts.isSub(bs, got, expected.withRC(RC.imm));
-    return "Object literal is of type "+ts.err().expReprDirect(skipImm,blame)+" instead of a subtype of "+ts.err().typeRepr(true,expected)+".";
+    return "Object literal is of type "+ts.err().expReprDirect(skipImm,blame)+" instead of a subtype of "+ts.err().typeRepr(skipImm,expected)+".";
   }
   private static Reason hintExplicitRC(TypeSystem ts,T got, String base, T.RCC er, String tn){
     var e= ts.err()

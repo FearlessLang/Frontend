@@ -71,7 +71,11 @@ public abstract class FearlessTestBase{
   }
   protected static <R> R printError(Supplier<R> r, SourceOracle o){
     try{ return r.get(); }
-    catch(FearlessException fe){ System.out.println(fe.render(o)); throw fe; }
+    catch(FearlessException fe){
+      o=o.withFallback(DbgBlock.dbgMiniBase()); 
+      System.out.println(fe.render(o));
+      throw fe;
+    }
   }
   protected static FileFull parseFull(String input){
     return printError(() -> Parse.from(SourceOracle.defaultDbgUri(0), input), oracleRaw(List.of(input)));
@@ -150,7 +154,7 @@ public abstract class FearlessTestBase{
   }
   protected static void typeOk(String head, List<String> input){
     var o= oraclePkg(defaultPkg, head, input);
-    OtherPackages other=  otherFrom(DbgBlock.all());
+    OtherPackages other=  printError(() -> otherFrom(DbgBlock.all()),o);
     printError(() -> new FrontendLogicMain().of(List.of(), o.allFiles(), o, other), o);
   }
   protected static void typeOk(List<String> input){ typeOk(defaultHead, input); }

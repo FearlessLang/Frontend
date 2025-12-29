@@ -349,7 +349,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     assert reqs.size() == res.size();
     assert res.stream().noneMatch(r->r.isEmpty());
     T reqCanon= reqCanon(reqs);
-    if (isWrongUnderlyingType(ts,bs,reqCanon,res)){ return wrongUnderlyingTypeErr(ts.scope(),d,c,argi,reqs,res); }
+    if (isWrongUnderlyingType(ts,bs,reqCanon,res)){ return wrongUnderlyingTypeErr(ts,d,c,argi,reqs,res); }
     T gotHdr= headerBest(res);
     var any= reqs.stream().map(TRequirement::t).map(t->err().typeRepr(false,t)).distinct().toList();
     var r= pickReason(reqs,res);
@@ -373,16 +373,16 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     if (footer.isEmpty()){ return withCallSpans(e.ex( c), c); }
     return withCallSpans(e.exInferMsg(footer.get(),err().typeRepr(false,reqs.getFirst().t())),c); 
   }
-  private FearlessException wrongUnderlyingTypeErr(TypeScope s, Literal d, Call c, int argi, List<TRequirement> reqs, List<Reason> res){
+  private FearlessException wrongUnderlyingTypeErr(TypeSystem ts, Literal d, Call c, int argi, List<TRequirement> reqs, List<Reason> res){
     T gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both 
     T required= reqs.getFirst().t(); //should make an attempt to say what the generics in the result should have been instantiate to instead
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
     //TODO: line reqs.getFirst().t(); above, should we use the best return with ordering on rcs?
     var e= err()        
       .pCallCantBeSatisfied(d,c)
-      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true,gotHdr)+".")
+      .line("Argument "+(argi+1)+" has type "+err().typeRepr(ts,true,gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true,required)+" (the type required by the method signature).");
-    return withCallSpans(e.ex(s.pushCallArgi(c,argi).contextE()), c);
+    return withCallSpans(e.ex(ts.scope().pushCallArgi(c,argi).contextE()), c);
   }
   private static T reqCanon(List<TRequirement> reqs){
     T c0= canon(reqs.getFirst().t());

@@ -33,7 +33,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   Kinding k(){ return v.k(); }
   public TypeSystemErrors tsE(){ return v.k().tsE(); }
   public Err err(){ return v.k().tsE().err(); }
-  Function<TName,Literal> decs(){ return v.k().tsE().decs(); }
+  public Function<TName,Literal> decs(){ return v.k().tsE().decs(); }
   public record TRequirement(String reqName,T t){}
   public record MType(String promotion,RC rc,List<T> ts,T t){
     MType withPromotion(String promotion){ return new MType(promotion,rc,ts,t); }
@@ -205,7 +205,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private void methodTableOk(Literal l,Key k,List<Sig> group){
     Sig chosen= findCanonical(l,k.m(),k.rc());
-    assert group.contains(chosen): ""+group+" @@ "+chosen;
+    assert group.stream().allMatch(s->s.m().equals(chosen.m()) && s.rc()== chosen.rc());
     assert mostSpecificByOrigin(group,chosen);
     assert absPreserved(chosen);//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s->s.origin().equals(chosen.origin())).allMatch(s->chosen.abs() == s.abs());
@@ -219,7 +219,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private boolean mostSpecificByOrigin(List<Sig> group, Sig chosen){
     for (var s : group){
       if (s.equals(chosen)){ continue; }
-      assert !s.origin().equals(chosen.origin()):"""
+      assert !s.origin().equals(chosen.origin()):
+        s.origin()+" "+chosen.origin()+"""        
         The assert above is actually a big deal. It can logically break in an better version of Fearless
         when inference would know about subtypes when selecting the 'chosen'.
         Same origin can appear multiple times when the same generic supertype is inherited with

@@ -11,6 +11,7 @@ import core.E.*;
 import inference.IT;
 import inject.TypeRename;
 import metaParser.Message;
+import typeSystem.TypeSystem;
 import typeSystem.TypeSystem.*;
 import utils.Bug;
 import utils.Join;
@@ -35,7 +36,7 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
   }
   private TName guessImplName(inference.E.Literal l){
     if (!l.cs().isEmpty()){ return l.cs().getFirst().name(); }
-    var rcc= (IT.RCC)l.t();
+    var rcc= (T.RCC)TypeRename.itToT(l.t());
     return rcc.c().name();
   }
   private String bestNamePkg0(String rcPrefix, boolean instanceOf, String n){
@@ -55,7 +56,7 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     return bestLitName(l) + (l.infName() ? anonRepr : ":"+anonRepr);
   }
   public String bestNameNoRc(Literal l){ return bestNamePkg0("", showInstanceOf(l), bestLitName(l)); }
-  T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()),t.ts()); }//Correct to not propagate here
+  T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()),t.ts()); }//Correct to not propagate here
   T preferredForFresh(T t){ return switch(t){
     case T.X x -> x;
     case T.RCX x -> x;
@@ -63,10 +64,31 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     case T.RCC(RC rc, var c, var span) -> new T.RCC(rc, preferredForFresh(c),span);
   };}
   String typeRepr(inference.IT t){ return typeRepr(true,TypeRename.itToT(t)); }
-  String typeRepr(boolean skipImm,T t){
+  String typeRepr(boolean skipImm,T t){//TODO: remove when the one below works
     var str= cp().msgT(preferredForFresh(t));
     if (skipImm || !explicitImmRc(t)){ return disp(str); }
     return disp("imm "+str);
+  }
+  //---------
+  String typeRepr(TypeSystem ts, boolean skipImm, T t){
+    var str= cp().msgT(showPublicHead(ts,t));
+    if (skipImm || !explicitImmRc(t)){ return disp(str); }
+    return disp("imm "+str);
+  }
+  T showPublicHead(TypeSystem ts, T t){ return switch(t){
+    case T.X x -> x;
+    case T.RCX x -> x;
+    case T.ReadImmX x -> x;
+    case T.RCC(RC rc, T.C c, var span) -> new T.RCC(rc, showPublicHead(ts,c), span);
+  };}
+  T.C showPublicHead(TypeSystem ts, T.C c){
+    var d= ts.decs().apply(c.name());
+    if (!d.infName()){ return c; }
+    var xs= d.bs().stream().map(B::x).toList();
+    return d.cs().stream()
+      .map(sc->TypeRename.of(sc, xs, c.ts()))
+      .filter(scC->!ts.decs().apply(scC.name()).infName())
+      .findFirst().orElseThrow();
   }
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t),t.span()))); }
   static String up(String s){return s.substring(0, 1).toUpperCase() + s.substring(1); }
@@ -85,7 +107,7 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     case Literal l->l.thisName().equals("this")
       ? tNameADisp(l.name())
       : bestNamePkg0(l.rc().toStrSpace(skipImm), false, bestLitName(l));
-    case Type(var t,_) ->  disp(t.rc().toStrSpace()+tNameA(t.c().name()));
+    case Type(var t,_) ->  disp(t.rc().toStrSpace(skipImm)+tNameA(t.c().name()));
     };}
   String bestNameHintExplicitRC(E e){ return switch(e){//TODO: this looks sus, what is this supposed to print?
     case Literal l->l.rc() != RC.imm ? "" : litHintImm(l);

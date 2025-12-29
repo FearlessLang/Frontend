@@ -298,7 +298,7 @@ The object literal "BB" is "read", so it will never be seen as "mut".
 But it implements method "mut .h", which requires a "mut" receiver.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-read BB:B{mut .h:-.Void->-.Void{}}
+read BB:B{mut .h:-.Void->-.Void}
 """, List.of("""
 B:{ mut .h:base.Void; }
 User:{
@@ -319,7 +319,7 @@ The object literal "BB" is "imm", so it will never be seen as "mut".
 But it implements method "mut .h", which requires a "mut" receiver.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-BB:B{mut .h:-.Void->-.Void{}}
+BB:B{mut .h:-.Void->-.Void}
 """, List.of("""
 B:{ mut .h:base.Void; }
 User:{
@@ -840,7 +840,7 @@ Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Sup{.h:-.Void->-.Void{}}
+Sup{.h:-.Void->-.Void}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -862,7 +862,7 @@ Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Bad:Sup{.h:-.Void->-.Void{}}
+Bad:Sup{.h:-.Void->-.Void}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -1110,7 +1110,7 @@ User:{
 While inspecting ".foo" line 6 > ".f(_)" line 6
 This call to method "Need#(_)" can not typecheck.
 Argument 1 has type "read B".
-That is not a subtype of "mut A".
+That is not a subtype of "mut A" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 -#(AsRead#(aaaa))
@@ -1267,7 +1267,7 @@ This call to method "Need#(_)" can not typecheck.
 Argument 1 has type "imm A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
 Object literal is of type "imm A" instead of a subtype of "mut A".
-Hint: write "mut A{...}" if you need a "mut" object literal.
+Hint: write "mut A" if you need a "mut" object literal.
 
 Type required by each promotion:
 - "mut A"  (As declared)
@@ -1275,7 +1275,7 @@ Type required by each promotion:
 - "mutH A"  (Allow mutH argument 1)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Need#(A{})
+Need#(A)
 """,List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -2162,42 +2162,6 @@ TopToImm:{
 """));}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @Test void toOrder(){ok("role app000; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;",List.of("""
 Str:{}
 OrderMatch[R:**]:{ mut .lt:R; mut .eq:R; mut .gt:R; }
@@ -2261,4 +2225,353 @@ Top:{
   }
 """));}
 
+@Test void toOrderHash(){ok("role app000;use base.Nat as Nat; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;",List.of("""
+Str:{}
+OrderMatch[R:**]:{ mut .lt:R; mut .eq:R; mut .gt:R; }
+Order[T]: {
+  read .close:read T;
+  read .cmp[R:**](a:read T,b:read T,m: mut OrderMatch[R]): R;
+  read ==  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->True; .gt -> False});
+  read <=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->True; .gt -> False});
+  read >=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->True; .gt -> True});
+  read <   (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->False; .gt -> False});
+  read >   (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->False; .gt -> True});
+  read !=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->False; .gt -> True});
+  }
+OrderBy[T]:{
+  #(read T):read Order[T];
+  .then(other:OrderBy[T]):OrderByCmp[T] -> {
+    .cmp a,b,m -> this#a
+      .cmp(a,b,{.lt ->m.lt; .eq ->other#a.cmp(a,b,m); .gt ->m.gt})
+    };
+  .thenKey[TF](k:FF[T,TF]): OrderByCmp[T] -> this.then(By2#k);
+  .view[A](f:F[read A,read T]):OrderByCmp[A] -> {a,b,m -> this#(f#a).cmp(f#a,f#b,m)};
+}
+OrderByCmp[T]:OrderBy[T]{
+  .cmp[R:**](a:read T,b:read T,m:mut OrderMatch[R]): R;
+  # a0 -> { .close -> a0; .cmp a,b,m -> this.cmp(a,b,m) };
+  }
+Order[T,E:*]:{
+  read .close:read T;
+  read .cmp[R:**](by: OrderBy[imm E], a:read T,b:read T, m: mut OrderMatch[R]): R;
+  read .order(by: OrderBy[imm E]): read Order[T] -> {
+    .close -> this.close;
+    .cmp a,b,m -> this.cmp(by,a,b,m);
+    };
+  }
+Hasher: {
+  mut #[A,B](a: read OrderHash[A], b: read OrderHash[B]): Nat -> a.hash(this) * 31 + (b.hash(this));
+  }
+OrderHash[T]:Order[T]{ read .hash(h: mut Hasher): Nat }
+OrderHash[T,E:*]:Order[T,E]{
+  read .hash(by: OrderHashBy[imm E], h: mut Hasher): Nat;
+  read .orderHash(by: OrderHashBy[imm E]): read OrderHash[T] -> {'self
+    .close -> this.close;
+    .cmp a,b,m -> this.cmp(by,a,b,m);
+    .hash h -> this.hash(by,h);
+    };
+  }
+OrderHashBy[T]:OrderBy[T]{
+  #(x:read T): read OrderHash[T];
+  .thenHash(other: OrderHashBy[T]): OrderHashByCmp[T] -> {
+    .cmp a,b,m -> this#a
+      .cmp(a,b,{.lt ->m.lt; .eq ->other#a.cmp(a,b,m); .gt ->m.gt});
+    .hash a,h -> h#(this#a, other#a);
+    };
+  .viewHash[A](f:F[read A,read T]):OrderHashByCmp[A] -> {
+    .cmp a,b,m -> this#(f#a).cmp(f#a,f#b,m);
+    .hash a,h -> this#(f#a).hash(h);
+    };
+  }
+OrderHashByCmp[T]:OrderHashBy[T]{
+  .cmp[R:**](a:read T,b:read T,m:mut OrderMatch[R]): R;
+  .hash(a: read T,h: mut Hasher):Nat;
+  # a0 -> {
+    .close -> a0;
+    .cmp a,b,m -> this.cmp(a,b,m);
+    .hash h -> this.hash(a0,h);
+    };
+  }
+Box[EE:*]: OrderHash[Box[EE],EE]{
+  mut  .get: EE;
+  read .get: read/imm EE;
+  imm  .get: imm EE;
+  .close->this;
+  .cmp by, a, b, m-> by#(a.get).cmp(a.get,b.get,m);
+  .hash by, h -> by#(this.get).hash h; 
+  }
+A1:OrderHash[A1]{
+  .close -> this;
+  .cmp a, b, m -> m.eq;
+  .hash h -> 0;
+  }
+Top:{ 
+  .m00(b:Box[A1]):Bool -> b.order{::} == b;
+  .m01(b:Box[read A1]):Bool -> b.order{::} == b;
+  .m02(b:Box[mut A1]):Bool -> b.order{::} == b;
+  .m03(b:read Box[A1]):Bool -> b.order{::} == b;
+  .m04(b:read Box[read A1]):Bool -> b.order{::} == b;
+  .m05(b:read Box[mut A1]):Bool -> b.order{::} == b;
+  .m06(b:mut Box[A1]):Bool -> b.order{::} == b;
+  .m07(b:mut Box[read A1]):Bool -> b.order{::} == b;
+  .m08(b:mut Box[mut A1]):Bool -> b.order{::} == b;
+  .m09(b1:iso Box[A1],b2:iso Box[A1]):Bool -> b1.order{::} == b2;
+  .m10(b1:iso Box[read A1],b2:iso Box[read A1]):Bool -> b1.order{::} == b2;
+  .m11(b1:iso Box[mut A1],b2:iso Box[mut A1]):Bool -> b1.order{::} == b2;
+  .m12(b:readH Box[A1]):Bool -> b.order{::} == b;
+  .m13(b:readH Box[read A1]):Bool -> b.order{::} == b;
+  .m14(b:readH Box[mut A1]):Bool -> b.order{::} == b;
+  .m15(b:mutH Box[A1]):Bool -> b.order{::} == b;
+  .m16(b:mutH Box[read A1]):Bool -> b.order{::} == b;
+  .m17(b:mutH Box[mut A1]):Bool -> b.order{::} == b;
+  }
+ThenHashBoxAll:{
+  .thA_A(o:OrderHashBy[Box[A1]],p:OrderHashBy[Box[A1]],x:read Box[A1],h:mut Hasher):Nat -> o.thenHash(p)#x.hash(h);
+  .thR_R(o:OrderHashBy[Box[read A1]],p:OrderHashBy[Box[read A1]],x:read Box[read A1],h:mut Hasher):Nat -> o.thenHash(p)#x.hash(h);
+  .thM_M(o:OrderHashBy[Box[mut A1]],p:OrderHashBy[Box[mut A1]],x:read Box[mut A1],h:mut Hasher):Nat -> o.thenHash(p)#x.hash(h);
+  }
+ThenHashLeBoxAll:{
+  .leA_A(o:OrderHashBy[Box[A1]],p:OrderHashBy[Box[A1]],x:read Box[A1],y:read Box[A1]):Bool ->
+    o.thenHash(p)#x <= y;
+  .leR_R(o:OrderHashBy[Box[read A1]],p:OrderHashBy[Box[read A1]],x:read Box[read A1],y:read Box[read A1]):Bool ->
+    o.thenHash(p)#x <= y;
+  .leM_M(o:OrderHashBy[Box[mut A1]],p:OrderHashBy[Box[mut A1]],x:read Box[mut A1],y:read Box[mut A1]):Bool ->
+    o.thenHash(p)#x <= y;
+  }
+ThenLeSelf:{
+  .leA(o:OrderHashBy[Box[A1]],p:OrderHashBy[Box[A1]],x:read Box[A1]):Bool -> o.then(p)#x <= x;
+  .leR(o:OrderHashBy[Box[read A1]],p:OrderHashBy[Box[read A1]],x:read Box[read A1]):Bool -> o.then(p)#x <= x;
+  .leM(o:OrderHashBy[Box[mut A1]],p:OrderHashBy[Box[mut A1]],x:read Box[mut A1]):Bool -> o.then(p)#x <= x;
+}
+ViewBoxAll18:{
+  .v00(by:OrderBy[A1],b:Box[A1],c:Box[A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v01(by:OrderBy[A1],b:read Box[A1],c:read Box[A1]):Bool -> by.view{x->x.get}#b <= c;
+  .v02(by:OrderBy[A1],b:mut Box[A1],c:mut Box[A1]):Bool -> by.view{::.get}#b <= c;
+  .v03(by:OrderBy[A1],b1:iso Box[A1],b2:iso Box[A1]):Bool -> by.view({x->x.get})#b1 == b2;
+  .v04(by:OrderBy[A1],b:readH Box[A1],c:readH Box[A1]):Bool -> by.view({x->x.get})#b != c;
+  .v05(by:OrderBy[A1],b:mutH Box[A1],c:mutH Box[A1]):Bool -> by.view({x->x.get})#b >= c;
+
+  .v06(by:OrderBy[A1],b:Box[read A1],c:Box[read A1]):Bool -> by.view({x->x.get})#b > c;
+  .v07(by:OrderBy[A1],b:read Box[read A1],c:read Box[read A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v08(by:OrderBy[A1],b:mut Box[read A1],c:mut Box[read A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v09(by:OrderBy[A1],b1:iso Box[read A1],b2:iso Box[read A1]):Bool -> by.view({x->x.get})#b1 <= b2;
+  .v10(by:OrderBy[A1],b:readH Box[read A1],c:readH Box[read A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v11(by:OrderBy[A1],b:mutH Box[read A1],c:mutH Box[read A1]):Bool -> by.view({x->x.get})#b <= c;
+
+  .v12(by:OrderBy[A1],b:Box[mut A1],c:Box[mut A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v13(by:OrderBy[A1],b:read Box[mut A1],c:read Box[mut A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v14(by:OrderBy[A1],b:mut Box[mut A1],c:mut Box[mut A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v15(by:OrderBy[A1],b1:iso Box[mut A1],b2:iso Box[mut A1]):Bool -> by.view({x->x.get})#b1 <= b2;
+  .v16(by:OrderBy[A1],b:readH Box[mut A1],c:readH Box[mut A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v17(by:OrderBy[A1],b:mutH Box[mut A1],c:mutH Box[mut A1]):Bool -> by.view({x->x.get})#b <= c;
+
+  .vh0(by:OrderHashBy[A1],b:readH Box[mut A1],c:readH Box[mut A1]):Bool -> by.viewHash({x->x.get})#b <= c;
+  .vh1(by:OrderHashBy[A1],b:mutH Box[mut A1],h:iso Hasher):Nat -> by.viewHash({x->x.get})#b .hash h;
+  .vh2(by:OrderHashBy[A1],b:mut Box[mut A1],h:mut Hasher):Nat -> by.viewHash({x->x.get})#b .hash h;
+}
+//--------------
+By:{ #[T](by: OrderBy[T]): OrderBy[T] -> by; }
+ByHash:{ #[T](by: OrderHashBy[T]): OrderHashBy[T] -> by; }
+
+Age:OrderHash[Age]{ read .close->this; read .cmp a,b,m->m.eq; read .hash h->0; }
+Name:OrderHash[Name]{ read .close->this; read .cmp a,b,m->m.eq; read .hash h->0; }
+Person:{ read .age: Age; read .name: Name; }
+
+AndThenTests:{
+  read .orderOk0: OrderBy[Person] ->
+    By#[Age]{::}.view[Person]{::.age};
+  read .orderOk1: OrderBy[Person] ->
+    By#[Age]{::}.view{::.age};
+  read .orderOk: OrderBy[Person] ->
+    By#[Age]{::}.view{::.age}
+    .then(By#[Name]{::}.view({p->p.name}));
+  read .hashOk: OrderHashBy[Person] ->
+    ByHash#[Age]{::}.viewHash{::.age}
+    .thenHash(ByHash#[Name]{::}.viewHash{::.name});
+}
+FF[A,T]:{#(read A): read Order[T]}
+By2:{
+  #[T,A](f:FF[A,T]): OrderByCmp[A] -> {
+    .cmp a,b,m -> (f#a).cmp((f#a).close,(f#b).close,m);
+  };
+}
+AndThenTests2:{
+  read .orderOk0: OrderBy[Person] ->
+    By2#{::.age};
+  read .orderOk: OrderBy[Person] ->
+    By2#{::.age}.thenKey{::.name};
+}
+"""));}
+
+@Test void toOrderHashDesign3(){ok("role app000;use base.Nat as Nat; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;",List.of("""
+Str:{}
+ToStr:{ read .str: Str }
+ToStrBy[T]:{#(read T):read ToStr}
+ToStr[E:*]:{ read .str(ToStrBy[imm E]): Str }
+OrderMatch[R:**]:{ mut .lt:R; mut .eq:R; mut .gt:R; }
+Order[T]: {
+  read .close:read T;
+  read .cmp[R:**](a:read T,b:read T,m: mut OrderMatch[R]): R;
+  read ==  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->True; .gt -> False});
+  read <=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->True; .gt -> False});
+  read >=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->True; .gt -> True});
+  read <   (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->False; .gt -> False});
+  read >   (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->False; .gt -> True});
+  read !=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->False; .gt -> True});
+  }
+OrderBy[T]:{
+  #(read T):read Order[T];
+  /*.then(other:OrderBy[T]):OrderByCmp[T] -> {
+    .cmp a,b,m -> this#a
+      .cmp(a,b,{.lt ->m.lt; .eq ->other#a.cmp(a,b,m); .gt ->m.gt})
+    };*/
+  .then[TK](k:FF[T,TK]): OrderByCmp[T] -> {
+    .cmp(a,b,m)-> this#a.cmp(a,b,{
+      .lt->m.lt; .gt->m.gt; .eq->k#a.cmp(k#a.close,k#b.close,m);
+      });
+    };
+  .view[A](f:F[read A,read T]):OrderByCmp[A] -> {a,b,m -> this#(f#a).cmp(f#a,f#b,m)};
+}
+OrderByCmp[T]:OrderBy[T]{
+  .cmp[R:**](a:read T,b:read T,m:mut OrderMatch[R]): R;
+  # a0 -> { .close -> a0; .cmp a,b,m -> this.cmp(a,b,m) };
+  }
+Order[T,E:*]:{
+  read .close:read T;
+  read .cmp[R:**](by: OrderBy[imm E], a:read T,b:read T, m: mut OrderMatch[R]): R;
+  read .order(by: OrderBy[imm E]): read Order[T] -> {
+    .close -> this.close;
+    .cmp a,b,m -> this.cmp(by,a,b,m);
+    };
+  }
+Hasher: {
+  mut #[A,B](a: read OrderHash[A], b: read OrderHash[B]): Nat -> a.hash(this) * 31 + (b.hash(this));
+  }
+OrderHash[T]:Order[T]{ read .hash(h: mut Hasher): Nat }
+OrderHash[T,E:*]:Order[T,E]{
+  read .hash(by: OrderHashBy[imm E], h: mut Hasher): Nat;
+  read .orderHash(by: OrderHashBy[imm E]): read OrderHash[T] -> {'self
+    .close -> this.close;
+    .cmp a,b,m -> this.cmp(by,a,b,m);
+    .hash h -> this.hash(by,h);
+    };
+  }
+OrderHashBy[T]:OrderBy[T]{
+  #(x:read T): read OrderHash[T];
+  .thenHash(other: OrderHashBy[T]): OrderHashByCmp[T] -> {
+    .cmp a,b,m -> this#a
+      .cmp(a,b,{.lt ->m.lt; .eq ->other#a.cmp(a,b,m); .gt ->m.gt});
+    .hash a,h -> h#(this#a, other#a);
+    };
+  .viewHash[A](f:F[read A,read T]):OrderHashByCmp[A] -> {
+    .cmp a,b,m -> this#(f#a).cmp(f#a,f#b,m);
+    .hash a,h -> this#(f#a).hash(h);
+    };
+  }
+OrderHashByCmp[T]:OrderHashBy[T]{
+  .cmp[R:**](a:read T,b:read T,m:mut OrderMatch[R]): R;
+  .hash(a: read T,h: mut Hasher):Nat;
+  # a0 -> {
+    .close -> a0;
+    .cmp a,b,m -> this.cmp(a,b,m);
+    .hash h -> this.hash(a0,h);
+    };
+  }
+Box[EE:*]: OrderHash[Box[EE],EE]{
+  mut  .get: EE;
+  read .get: read/imm EE;
+  imm  .get: imm EE;
+  .close->this;
+  .cmp by, a, b, m-> by#(a.get).cmp(a.get,b.get,m);
+  .hash by, h -> by#(this.get).hash h; 
+  }
+A1:OrderHash[A1]{
+  .close -> this;
+  .cmp a, b, m -> m.eq;
+  .hash h -> 0;
+  }
+Top:{ 
+  .m00(b:Box[A1]):Bool -> b.order{::} == b;
+  .m01(b:Box[read A1]):Bool -> b.order{::} == b;
+  .m02(b:Box[mut A1]):Bool -> b.order{::} == b;
+  .m03(b:read Box[A1]):Bool -> b.order{::} == b;
+  .m04(b:read Box[read A1]):Bool -> b.order{::} == b;
+  .m05(b:read Box[mut A1]):Bool -> b.order{::} == b;
+  .m06(b:mut Box[A1]):Bool -> b.order{::} == b;
+  .m07(b:mut Box[read A1]):Bool -> b.order{::} == b;
+  .m08(b:mut Box[mut A1]):Bool -> b.order{::} == b;
+  .m09(b1:iso Box[A1],b2:iso Box[A1]):Bool -> b1.order{::} == b2;
+  .m10(b1:iso Box[read A1],b2:iso Box[read A1]):Bool -> b1.order{::} == b2;
+  .m11(b1:iso Box[mut A1],b2:iso Box[mut A1]):Bool -> b1.order{::} == b2;
+  .m12(b:readH Box[A1]):Bool -> b.order{::} == b;
+  .m13(b:readH Box[read A1]):Bool -> b.order{::} == b;
+  .m14(b:readH Box[mut A1]):Bool -> b.order{::} == b;
+  .m15(b:mutH Box[A1]):Bool -> b.order{::} == b;
+  .m16(b:mutH Box[read A1]):Bool -> b.order{::} == b;
+  .m17(b:mutH Box[mut A1]):Bool -> b.order{::} == b;
+  }
+/*ThenHashBoxAll:{
+  .thA_A(o:OrderHashBy[Box[A1]],p:OrderHashBy[Box[A1]],x:read Box[A1],h:mut Hasher):Nat -> o.thenHash(p)#x.hash(h);
+  .thR_R(o:OrderHashBy[Box[read A1]],p:OrderHashBy[Box[read A1]],x:read Box[read A1],h:mut Hasher):Nat -> o.thenHash(p)#x.hash(h);
+  .thM_M(o:OrderHashBy[Box[mut A1]],p:OrderHashBy[Box[mut A1]],x:read Box[mut A1],h:mut Hasher):Nat -> o.thenHash(p)#x.hash(h);
+  }
+ThenHashLeBoxAll:{
+  .leA_A(o:OrderHashBy[Box[A1]],p:OrderHashBy[Box[A1]],x:read Box[A1],y:read Box[A1]):Bool ->
+    o.thenHash(p)#x <= y;
+  .leR_R(o:OrderHashBy[Box[read A1]],p:OrderHashBy[Box[read A1]],x:read Box[read A1],y:read Box[read A1]):Bool ->
+    o.thenHash(p)#x <= y;
+  .leM_M(o:OrderHashBy[Box[mut A1]],p:OrderHashBy[Box[mut A1]],x:read Box[mut A1],y:read Box[mut A1]):Bool ->
+    o.thenHash(p)#x <= y;
+  }
+ThenLeSelf:{
+  .leA(o:OrderHashBy[Box[A1]],p:OrderHashBy[Box[A1]],x:read Box[A1]):Bool -> o.then(p)#x <= x;
+  .leR(o:OrderHashBy[Box[read A1]],p:OrderHashBy[Box[read A1]],x:read Box[read A1]):Bool -> o.then(p)#x <= x;
+  .leM(o:OrderHashBy[Box[mut A1]],p:OrderHashBy[Box[mut A1]],x:read Box[mut A1]):Bool -> o.then(p)#x <= x;
+}
+ViewBoxAll18:{
+  .v00(by:OrderBy[A1],b:Box[A1],c:Box[A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v01(by:OrderBy[A1],b:read Box[A1],c:read Box[A1]):Bool -> by.view{x->x.get}#b <= c;
+  .v02(by:OrderBy[A1],b:mut Box[A1],c:mut Box[A1]):Bool -> by.view{::.get}#b <= c;
+  .v03(by:OrderBy[A1],b1:iso Box[A1],b2:iso Box[A1]):Bool -> by.view({x->x.get})#b1 == b2;
+  .v04(by:OrderBy[A1],b:readH Box[A1],c:readH Box[A1]):Bool -> by.view({x->x.get})#b != c;
+  .v05(by:OrderBy[A1],b:mutH Box[A1],c:mutH Box[A1]):Bool -> by.view({x->x.get})#b >= c;
+
+  .v06(by:OrderBy[A1],b:Box[read A1],c:Box[read A1]):Bool -> by.view({x->x.get})#b > c;
+  .v07(by:OrderBy[A1],b:read Box[read A1],c:read Box[read A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v08(by:OrderBy[A1],b:mut Box[read A1],c:mut Box[read A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v09(by:OrderBy[A1],b1:iso Box[read A1],b2:iso Box[read A1]):Bool -> by.view({x->x.get})#b1 <= b2;
+  .v10(by:OrderBy[A1],b:readH Box[read A1],c:readH Box[read A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v11(by:OrderBy[A1],b:mutH Box[read A1],c:mutH Box[read A1]):Bool -> by.view({x->x.get})#b <= c;
+
+  .v12(by:OrderBy[A1],b:Box[mut A1],c:Box[mut A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v13(by:OrderBy[A1],b:read Box[mut A1],c:read Box[mut A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v14(by:OrderBy[A1],b:mut Box[mut A1],c:mut Box[mut A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v15(by:OrderBy[A1],b1:iso Box[mut A1],b2:iso Box[mut A1]):Bool -> by.view({x->x.get})#b1 <= b2;
+  .v16(by:OrderBy[A1],b:readH Box[mut A1],c:readH Box[mut A1]):Bool -> by.view({x->x.get})#b <= c;
+  .v17(by:OrderBy[A1],b:mutH Box[mut A1],c:mutH Box[mut A1]):Bool -> by.view({x->x.get})#b <= c;
+
+  .vh0(by:OrderHashBy[A1],b:readH Box[mut A1],c:readH Box[mut A1]):Bool -> by.viewHash({x->x.get})#b <= c;
+  .vh1(by:OrderHashBy[A1],b:mutH Box[mut A1],h:iso Hasher):Nat -> by.viewHash({x->x.get})#b .hash h;
+  .vh2(by:OrderHashBy[A1],b:mut Box[mut A1],h:mut Hasher):Nat -> by.viewHash({x->x.get})#b .hash h;
+}*/
+Age:OrderHash[Age]{ read .close->this; read .cmp a,b,m->m.eq; read .hash h->0; }
+Name:OrderHash[Name]{ read .close->this; read .cmp a,b,m->m.eq; read .hash h->0; }
+Person:{ read .age: Age; read .name: Name; }
+
+FF[A,T]:{#(read A): read Order[T]}
+CompareBy:{
+  #[T,A](f:FF[A,T]): OrderByCmp[A] -> {
+    .cmp a,b,m -> (f#a).cmp((f#a).close,(f#b).close,m);
+  };
+}
+AndThenTests2:{
+  read .orderOk0: OrderBy[Person] ->
+    CompareBy#{::.age};
+  read .orderOk: OrderBy[Person] ->
+    CompareBy#{::.age}.then{::.name};
+}
+//Study the relation between this and
+//OrderByCmp
+//this second one is good for defining top level types, but it looks inconsistent.
+"""));}
 }

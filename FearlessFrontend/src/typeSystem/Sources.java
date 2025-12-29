@@ -31,8 +31,10 @@ class Sources {
     for (M m : l.ms()){ if (m.sig().origin().equals(l.name())){ sources.add(m.sig()); } }
     assert unionCount(ts,l) == sources.size();
     assert sources.stream().allMatch(s->l.ms().stream().anyMatch(m->m.sig().m().equals(s.m()) && m.sig().rc() == s.rc()));
-    assert l.ms().stream().map(M::sig).allMatch(s->sources.contains(s)):
-      l.ms().stream().map(M::sig).toList()+" @@ "+sources;//This fails
+    assert l.ms().stream().map(M::sig).allMatch(s->sources.stream().anyMatch(si->
+      si.m().equals(s.m()) && si.rc().equals(s.rc()) 
+      )):
+      l.ms().stream().map(M::sig).toList()+" @@ "+sources;
     return sources;
   }
   private static long unionCount(TypeSystem ts, Literal l){

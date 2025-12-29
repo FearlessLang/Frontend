@@ -37,30 +37,38 @@ public sealed interface IT {
       assert unmodifiable(ts,"T.C.args");
       assert eq(ts.size(), name.arity(),"Type arity");
     }
-    public C(TName name, List<IT> ts){ this(name,ts,1+ts.stream().mapToInt(IT::depth).max().orElse(1)); }
+    public C(TName name, List<IT> ts){ this(name,ts,RCC.depthFromTs(ts)); }
     public String toString(){
       if (ts.isEmpty()){ return name.s(); } 
       return name.s()+Join.of(ts,"[",",","]",""); 
     }
   }
   record RCC(RC rc, C c, TSpan span) implements IT{
+    static final int maxDepth=100;
     public RCC(RC rc, C c, TSpan span){
       nonNull(rc,c);
       this.rc=rc; this.c=c; this.span= span;
-      if (c.depth() > 100){throw new WellFormednessErrors.ErrToFetchContext(this); }
+      if (c.depth() > maxDepth){ throw new WellFormednessErrors.ErrToFetchContext(this); }
+    }
+    static int depthFromTs(List<IT> ts){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1); }
+    static RCC ofOr(RCC fallback, RC rc, TName name, List<IT> ts, TSpan span){
+      int depth= depthFromTs(ts);
+      if (depth > maxDepth){ return fallback; }
+      return new RCC(rc, new C(name, ts, depth), span);
+    }
+    public RCC withTs(List<IT> ts){
+      if (ts == c.ts()){ return this; }
+      return ofOr(this, rc, c.name(), ts, span);
+    }
+    public RCC withRCTs(RC rc, List<IT> ts){
+      if (rc == this.rc && ts == c.ts()){ return this; }
+      if (ts == c.ts()){ return new RCC(rc, c, span); }
+      return ofOr(this, rc, c.name(), ts, span);
     }
     public long badness(){ return c.ts.stream().mapToLong(IT::badness).sum(); }
     public String toString(){ return rc.toStrSpace()+c; }
     public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
-    public RCC withTs(List<IT> ts){
-      if (ts == c.ts()){ return this; }
-      return new RCC(rc,new C(c.name(),ts),span);
-    }
     public int depth(){ return c.depth(); }
-    public RCC withRCTs(RC rc,List<IT> ts){
-      if (rc == this.rc && ts == c.ts()){ return this; }
-      return new RCC(rc,new C(c.name(),ts),span);
-    }
   }
   enum U implements IT{ Instance; 
     public String toString(){ return "?";}

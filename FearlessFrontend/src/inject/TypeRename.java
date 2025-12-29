@@ -21,6 +21,7 @@ public class TypeRename{
       case T.ReadImmX(var x) -> of(x,xs,ts).readImm();
     };
   }
+  public static T.C of(T.C c, List<String> xs, List<T> ts){ return c.withTs(ofT(c.ts(),xs,ts)); }
   //TODO: much code could be made faster if instead of xs+ts being list, they were Function<Integer,XX>..
   //no, we need get, size and indexof. But, what about a single data structure that pairs them somehow?
   public static List<T> ofT(List<T> tsi ,List<String> xs, List<T> ts){

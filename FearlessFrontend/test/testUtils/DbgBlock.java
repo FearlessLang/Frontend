@@ -5,22 +5,27 @@ import java.util.List;
 import core.E;
 import core.OtherPackages;
 import core.SourceOracle;
+import core.SourceOracle.Debug;
 
 public class DbgBlock{
   static OtherPackages err(){ return FearlessTestBase.otherErr(); }
 
-  public static List<E.Literal> all(){
-    var o= SourceOracle.debugBuilder()
+  public static List<E.Literal> all(){ return FearlessTestBase.compileAll(dbgMiniBase(), err()); }
+
+  public static Debug dbgMiniBase() {
+    return SourceOracle.debugBuilder()
       .put("base.fear", baseHead)
       .put("baseBody.fear", "package base;\n"+baseBody)
       .build();
-    return FearlessTestBase.compileAll(o, err());
   }
 
   static String baseHead="""
     package base;
     role base000;
     """;
+
+
+
 
 
 
