@@ -52,19 +52,6 @@ public sealed interface E {
       assert unmodifiable(cs,"L.cs");
       assert unmodifiableDistinct(ms, "L.ms");
       assert nonNull(name,thisName,t);
-      //assert cs.isEmpty() || rc.isPresent();      
-      /*assert ms.stream().map(M::sig).allMatch(s->{
-        var o=s.origin();
-        if (o.isEmpty()){ return true; }
-        var on=o.get();
-        if (on.equals(name)){ return true; }
-        if (cs.stream().anyMatch(c->c.name().equals(on))){ return true; }
-        if (!(t instanceof IT.RCC r)){ return true; }
-        if (r.c().name().equals(on)){ return true;}
-        if (r.c().name().s().replace("Hash","").replace("Cmp","").equals(on.s().replace("Hash","").replace("Cmp",""))){ return true;}
-        return false;
-        }):
-        "";*/
       }
     public E.Literal withT(IT t){
       if (t.equals(this.t)){ return this; }

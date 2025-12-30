@@ -4,6 +4,7 @@ import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import core.RC;
@@ -16,6 +17,7 @@ import utils.Join;
 public sealed interface IT {
   default boolean isTV(){ return true; }
   default long badness(){ return 0; }
+  default Optional<RC> explicitRC(){ return Optional.empty(); }
   TSpan span();
   default int depth(){ return 1; }
   record X(String name, TSpan span) implements IT{
@@ -26,6 +28,7 @@ public sealed interface IT {
     public RCX{assert nonNull(rc,x);}
     public String toString(){ return rc.name()+" "+x.name; }
     public TSpan span(){ return x.span();}
+    public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   record ReadImmX(X x) implements IT{
     public ReadImmX{assert nonNull(x);}
@@ -69,6 +72,7 @@ public sealed interface IT {
     public String toString(){ return rc.toStrSpace()+c; }
     public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
     public int depth(){ return c.depth(); }
+    public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   enum U implements IT{ Instance; 
     public String toString(){ return "?";}

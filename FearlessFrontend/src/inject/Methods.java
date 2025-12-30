@@ -205,6 +205,13 @@ public record Methods(
       var rc= m.sig().rc();
       var match= new LinkedHashMap<RC,List<M.Sig>>();    
       ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))?acc(match,s):false);
+      if (m.sig().rc().isEmpty()  && match.size() > 1){
+        var litRc= origin.rc().or(origin.t()::explicitRC).orElseThrow();
+        if (litRc == RC.imm || litRc == RC.read){
+          var dead= match.remove(RC.mut);
+          if (dead != null){ ss.addAll(dead); }
+        }
+      }
       if (match.isEmpty()){
         var m2= pairWithSig(List.of(),m,origin);
         assert (m2 == m) == m2.equals(m);

@@ -2160,8 +2160,6 @@ TopToImm:{
   .m17(b:mutH Box[mut A]):Box[A] -> b.imm {::};
   }
 """));}
-
-
 @Test void toOrder(){ok("role app000; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;",List.of("""
 Str:{}
 OrderMatch[R:**]:{ mut .lt:R; mut .eq:R; mut .gt:R; }
@@ -2224,7 +2222,6 @@ Top:{
   .m17(b:mutH Box[mut A]):Bool -> b.order{::} == b;
   }
 """));}
-
 @Test void toOrderHash(){ok("role app000;use base.Nat as Nat; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;",List.of("""
 Str:{}
 OrderMatch[R:**]:{ mut .lt:R; mut .eq:R; mut .gt:R; }
@@ -2369,7 +2366,6 @@ ViewBoxAll18:{
   .vh1(by:OrderHashBy[A1],b:mutH Box[mut A1],h:iso Hasher):Nat -> by.viewHash({x->x.get})#b .hash h;
   .vh2(by:OrderHashBy[A1],b:mut Box[mut A1],h:mut Hasher):Nat -> by.viewHash({x->x.get})#b .hash h;
 }
-//--------------
 By:{ #[T](by: OrderBy[T]): OrderBy[T] -> by; }
 ByHash:{ #[T](by: OrderHashBy[T]): OrderHashBy[T] -> by; }
 
@@ -2400,9 +2396,8 @@ AndThenTests2:{
     By2#{::.age};
   read .orderOk: OrderBy[Person] ->
     By2#{::.age}.thenKey{::.name};
-}
+  }
 """));}
-
 @Test void toOrderHashDesign3(){ok("role app000;use base.Nat as Nat; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;",List.of("""
 Str:{}
 ToStr:{ read .str: Str }
@@ -2410,8 +2405,8 @@ ToStrBy[T]:{#(read T):read ToStr}
 ToStr[E:*]:{ read .str(ToStrBy[imm E]): Str }
 OrderMatch[R:**]:{ mut .lt:R; mut .eq:R; mut .gt:R; }
 Order[T]: {
-  read .close:read T;
-  read .cmp[R:**](a:read T,b:read T,m: mut OrderMatch[R]): R;
+  read .close: read T;
+  read .cmp[R:**](a: read T, b: read T, m: mut OrderMatch[R]): R;
   read ==  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->True; .gt -> False});
   read <=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->True; .gt -> False});
   read >=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->True; .gt -> True});
@@ -2421,24 +2416,16 @@ Order[T]: {
   }
 OrderBy[A,T]:{
   #(read A): read Order[T];
-  .then[T2](k:OrderBy[A,T2]): OrderByCmp[A] -> {
+  .then[T2](k: OrderBy[A,T2]): OrderBy[A] -> {
     .cmp(a,b,m)-> (this#a).cmp((this#a).close,(this#b).close,{
       .lt->m.lt; .gt->m.gt;
       .eq->(k#a).cmp((k#a).close,(k#b).close,m);
     })
   };
-  .view[B](f:F[read B,read A]):OrderByCmp[B] ->
-    {b0,b1,m-> (this#(f#b0)).cmp((this#(f#b0)).close,(this#(f#b1)).close,m)};
-  
+  .view[B](f:F[read B,read A]):OrderBy[B] ->
+    {b0,b1,m-> (this#(f#b0)).cmp((this#(f#b0)).close,(this#(f#b1)).close,m)};  
   }
 OrderBy[T]:OrderBy[T,T]{
-  .then[TK](k:OrderBy[T,TK]): OrderByCmp[T] -> {
-    .cmp(a,b,m)-> this#a.cmp(a,b,{
-      .lt->m.lt; .gt->m.gt; .eq->k#a.cmp(k#a.close,k#b.close,m);
-      });
-    };
-}
-OrderByCmp[T]:OrderBy[T]{
   .cmp[R:**](a:read T,b:read T,m:mut OrderMatch[R]): R;
   # a0 -> { .close -> a0; .cmp a,b,m -> this.cmp(a,b,m) };
   }
@@ -2447,8 +2434,8 @@ CompareBy:{
 }
 Order[T,E:*]:{
   read .close:read T;
-  read .cmp[R:**](by: OrderBy[imm E], a:read T,b:read T, m: mut OrderMatch[R]): R;
-  read .order(by: OrderBy[imm E]): read Order[T] -> {
+  read .cmp[TT,R:**](by: OrderBy[imm E,TT], a:read T,b:read T, m: mut OrderMatch[R]): R;
+  read .order[TT](by: OrderBy[imm E,TT]): read Order[T] -> {
     .close -> this.close;
     .cmp a,b,m -> this.cmp(by,a,b,m);
     };
@@ -2456,34 +2443,39 @@ Order[T,E:*]:{
 Hasher: {
   mut #[A,B](a: read OrderHash[A], b: read OrderHash[B]): Nat -> a.hash(this) * 31 + (b.hash(this));
   }
-OrderHash[T]:Order[T]{ read .hash(h: mut Hasher): Nat }
-OrderHash[T,E:*]:Order[T,E]{
-  read .hash(by: OrderHashBy[imm E], h: mut Hasher): Nat;
-  read .orderHash(by: OrderHashBy[imm E]): read OrderHash[T] -> {'self
+OrderHash[T]:Order[T],ToStr{ read .hash(h: mut Hasher): Nat }
+OrderHash[T,E:*]:Order[T,E],ToStr[E]{
+  read .hash[EE](by: OrderHashBy[imm E,EE], h: mut Hasher): Nat;
+  read .orderHash[EE](by: OrderHashBy[imm E,EE]): read OrderHash[T] -> {
     .close -> this.close;
     .cmp a,b,m -> this.cmp(by,a,b,m);
     .hash h -> this.hash(by,h);
+    .str  -> this.str by;
     };
   }
-OrderHashBy[T]:OrderBy[T]{
-  #(x:read T): read OrderHash[T];
-  .thenHash(other: OrderHashBy[T]): OrderHashByCmp[T] -> {
-    .cmp a,b,m -> this#a
-      .cmp(a,b,{.lt ->m.lt; .eq ->other#a.cmp(a,b,m); .gt ->m.gt});
+OrderHashBy[A,T]:OrderBy[A,T],ToStrBy[A]{
+  #(x:read A): read OrderHash[T];
+  .thenHash[TT](other: OrderHashBy[A,TT]): OrderHashBy[A] -> {
+    .cmp a,b,m -> this#a.cmp(
+      this#a.close,this#b.close,{
+        .lt ->m.lt;
+        .eq ->other#a.cmp(other#a.close,other#b.close,m);
+        .gt ->m.gt});
     .hash a,h -> h#(this#a, other#a);
     };
-  .viewHash[A](f:F[read A,read T]):OrderHashByCmp[A] -> {
-    .cmp a,b,m -> this#(f#a).cmp(f#a,f#b,m);
-    .hash a,h -> this#(f#a).hash(h);
+  .viewHash[B](f:F[read B,read A]):OrderHashBy[B] -> {
+    .cmp b0,b1,m -> this#(f#b0).cmp(this#(f#b0).close,this#(f#b1).close,m);
+    .hash b,h -> this#(f#b).hash(h);
     };
   }
-OrderHashByCmp[T]:OrderHashBy[T]{
+OrderHashBy[T]:OrderHashBy[T,T]{
   .cmp[R:**](a:read T,b:read T,m:mut OrderMatch[R]): R;
   .hash(a: read T,h: mut Hasher):Nat;
   # a0 -> {
     .close -> a0;
     .cmp a,b,m -> this.cmp(a,b,m);
     .hash h -> this.hash(a0,h);
+    .str -> this#a0.str;
     };
   }
 Box[EE:*]: OrderHash[Box[EE],EE]{
@@ -2491,13 +2483,17 @@ Box[EE:*]: OrderHash[Box[EE],EE]{
   read .get: read/imm EE;
   imm  .get: imm EE;
   .close->this;
-  .cmp by, a, b, m-> by#(a.get).cmp(a.get,b.get,m);
-  .hash by, h -> by#(this.get).hash h; 
+  .cmp by, a, b, m-> by#(a.get).cmp(by#(a.get).close,by#(b.get).close,m);
+  .hash by, h -> by#(this.get).hash h;
+  .str by->by#(this.get).str;
+  .proofConcrete(s:Str):Box[Str]->Box[Str]{ .get->s; };//this also tests good handling of RC overloading
   }
 A1:OrderHash[A1]{
   .close -> this;
   .cmp a, b, m -> m.eq;
   .hash h -> 0;
+  .str ->Str;
+  .proofConcrete:A1->A1;
   }
 Top:{ 
   .m00(b:Box[A1]):Bool -> b.order{::} == b;
@@ -2519,7 +2515,7 @@ Top:{
   .m16(b:mutH Box[read A1]):Bool -> b.order{::} == b;
   .m17(b:mutH Box[mut A1]):Bool -> b.order{::} == b;
   }
-/*ThenHashBoxAll:{
+ThenHashBoxAll:{
   .thA_A(o:OrderHashBy[Box[A1]],p:OrderHashBy[Box[A1]],x:read Box[A1],h:mut Hasher):Nat -> o.thenHash(p)#x.hash(h);
   .thR_R(o:OrderHashBy[Box[read A1]],p:OrderHashBy[Box[read A1]],x:read Box[read A1],h:mut Hasher):Nat -> o.thenHash(p)#x.hash(h);
   .thM_M(o:OrderHashBy[Box[mut A1]],p:OrderHashBy[Box[mut A1]],x:read Box[mut A1],h:mut Hasher):Nat -> o.thenHash(p)#x.hash(h);
@@ -2562,7 +2558,7 @@ ViewBoxAll18:{
   .vh0(by:OrderHashBy[A1],b:readH Box[mut A1],c:readH Box[mut A1]):Bool -> by.viewHash({x->x.get})#b <= c;
   .vh1(by:OrderHashBy[A1],b:mutH Box[mut A1],h:iso Hasher):Nat -> by.viewHash({x->x.get})#b .hash h;
   .vh2(by:OrderHashBy[A1],b:mut Box[mut A1],h:mut Hasher):Nat -> by.viewHash({x->x.get})#b .hash h;
-}*/
+}
 Age:OrderHash[Age]{ read .close->this; read .cmp a,b,m->m.eq; read .hash h->0; }
 Name:OrderHash[Name]{ read .close->this; read .cmp a,b,m->m.eq; read .hash h->0; }
 Person:{ read .age: Age; read .name: Name; }
@@ -2576,9 +2572,6 @@ AndThenTests2:{
   .orderOk2:Person->this.max(CompareBy#{::.age}.then{::.name});
   .orderOk3:Person->this.max({::.age}.then{::.name});
 }
-//Study the relation between this and
-//OrderByCmp
-//this second one is good for defining top level types, but it looks inconsistent.
 """));}
 
 @Test void regressionOrderBy(){ok(List.of("""

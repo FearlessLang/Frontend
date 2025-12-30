@@ -48,7 +48,7 @@ class Sources {
         .flatMap(p->supers(ts,p)));
   }
   private static Sig findCanonical(Literal l, MName name, RC rc){
-    return OneOr.of("Methods with duplicates",l.ms().stream().map(M::sig).filter(s->
+    return OneOr.of("Methods with duplicates or absent",l.ms().stream().map(M::sig).filter(s->
       s.m().equals(name) && s.rc() == rc));
   }
   private static Sig instantiate(Sig s, List<String> xs, List<T> ts, List<B> canonical){
