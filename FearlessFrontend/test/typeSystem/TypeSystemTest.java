@@ -2419,23 +2419,34 @@ Order[T]: {
   read >   (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->False; .gt -> True});
   read !=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->False; .gt -> True});
   }
-OrderBy[T]:{
-  #(read T):read Order[T];
-  /*.then(other:OrderBy[T]):OrderByCmp[T] -> {
-    .cmp a,b,m -> this#a
-      .cmp(a,b,{.lt ->m.lt; .eq ->other#a.cmp(a,b,m); .gt ->m.gt})
-    };*/
-  .then[TK](k:FF[T,TK]): OrderByCmp[T] -> {
+OrderBy[A,T]:{
+  #(read A): read Order[T];
+  .then[T2](k:OrderBy[A,T2]): OrderByCmp[A] -> {
+    .cmp(a,b,m)-> (this#a).cmp((this#a).close,(this#b).close,{
+      .lt->m.lt; .gt->m.gt;
+      .eq->(k#a).cmp((k#a).close,(k#b).close,m);
+    })
+  };
+  .view[B](f:F[read B,read A]):OrderByCmp[B] ->
+    {b0,b1,m-> (this#(f#b0)).cmp((this#(f#b0)).close,(this#(f#b1)).close,m)};
+  
+  }
+OrderBy[T]:OrderBy[T,T]{
+  .then[TK](k:OrderBy[T,TK]): OrderByCmp[T] -> {
     .cmp(a,b,m)-> this#a.cmp(a,b,{
       .lt->m.lt; .gt->m.gt; .eq->k#a.cmp(k#a.close,k#b.close,m);
       });
     };
-  .view[A](f:F[read A,read T]):OrderByCmp[A] -> {a,b,m -> this#(f#a).cmp(f#a,f#b,m)};
 }
 OrderByCmp[T]:OrderBy[T]{
   .cmp[R:**](a:read T,b:read T,m:mut OrderMatch[R]): R;
   # a0 -> { .close -> a0; .cmp a,b,m -> this.cmp(a,b,m) };
   }
+CompareBy:{
+  #[T,A](f:OrderBy[A,T]): OrderByCmp[A] -> {
+    .cmp a,b,m -> (f#a).cmp((f#a).close,(f#b).close,m);
+  };
+}
 Order[T,E:*]:{
   read .close:read T;
   read .cmp[R:**](by: OrderBy[imm E], a:read T,b:read T, m: mut OrderMatch[R]): R;
@@ -2558,15 +2569,9 @@ Age:OrderHash[Age]{ read .close->this; read .cmp a,b,m->m.eq; read .hash h->0; }
 Name:OrderHash[Name]{ read .close->this; read .cmp a,b,m->m.eq; read .hash h->0; }
 Person:{ read .age: Age; read .name: Name; }
 
-FF[A,T]:{#(read A): read Order[T]}
-CompareBy:{
-  #[T,A](f:FF[A,T]): OrderByCmp[A] -> {
-    .cmp a,b,m -> (f#a).cmp((f#a).close,(f#b).close,m);
-  };
-}
 AndThenTests2:{
-  read .orderOk0: OrderBy[Person] ->
-    CompareBy#{::.age};
+  read .orderOk0: OrderBy[Person,Age] ->
+    {::.age};
   read .orderOk: OrderBy[Person] ->
     CompareBy#{::.age}.then{::.name};
 }
@@ -2574,4 +2579,24 @@ AndThenTests2:{
 //OrderByCmp
 //this second one is good for defining top level types, but it looks inconsistent.
 """));}
+
+@Test void regressionOrderBy(){ok(List.of("""
+Str:{}
+Age:{}
+Person:{ .age: Age; }
+G2[A,T]:{
+  .g2(A): T;
+  .fooStr(s:Str):Str->s; // ok
+  .fooA(a:A):A->a; //this used to break inference
+  .fooT(t:T):T->t;   //this used to break inference
+  .foo2(t:A):A->t;   //this used to break inference
+  .fooT(t:T,tt:T):T->t;   //this used to break inference
+}
+G1[T]:G2[T,T]{ .foo2(t:T):T->t; }//this was always fine
+Make:{ .make[A,K](f:G2[A,K]): G1[A] -> Make.make f; }
+Tests:{ .ok: G1[Person] -> Make.make{
+  .g2(p:Person):Age->p.age;
+  }}
+"""));}
+
 }

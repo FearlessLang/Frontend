@@ -132,10 +132,8 @@ public record Methods(
     List<M.Sig> allSig= dd==null ?List.of() : fetch(d,c,dd).sigs();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
-    //
     List<IT.C> allCs= Stream.concat(Stream.of(c), fetchCs(c).stream()).distinct().toList();
     return d.withCsMs(allCs, allMs, true);
-    //return d.withMs(allMs);
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
     var widen= allCs.stream()
