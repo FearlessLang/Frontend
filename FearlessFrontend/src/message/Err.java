@@ -49,8 +49,8 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     if (anonLit(l)){ return anonPrefix + disp(anonRepr); }
     return typePrefix+disp(l.rc().toStrSpace()+bestLitName(l));
   }
-  String onTypeOrAnon(Literal l){ return typeOrAnon(l,"type ",""); }
-  String theTypeOrObjectLiteral(Literal l){ return typeOrAnon(l,"The type ","The object literal "); }
+  String onTypeOrAnon(Literal l){ return typeOrAnon(l,"object literal instance of ",""); }
+  String theTypeOrObjectLiteral(Literal l){ return typeOrAnon(l,"type ","object literal "); }
   private String litHintImm(Literal l){
     if (anonLit(l)){ return anonRepr; }
     return bestLitName(l) + (l.infName() ? anonRepr : ":"+anonRepr);

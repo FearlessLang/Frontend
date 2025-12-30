@@ -261,8 +261,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///Raised when checking method calls.
   public FearlessException methodNotDeclared(Call c, Literal d){
     Literal di= d.withRC(RC.imm);
-    String on= err().onTypeOrAnon(di);
+    String _on= err().onTypeOrAnon(di);
     String subj= err().theTypeOrObjectLiteral(di);
+    String on= c.e().equals(d) ? _on : subj;
     Err e= err()
       .pCallCantBeSatisfied(c)
       .line("Method "+err().methodSig(c.name())+" is not declared on "+on+".");
@@ -271,10 +272,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     List<Sig> sameName= candidates.stream()
       .filter(s->s.m().s().equals(name)).toList();
     if (sameName.isEmpty()){      
-      if (candidates.isEmpty()){ e.line(subj+" does not have any methods."); }
+      if (candidates.isEmpty()){ e.line(up(subj)+" does not have any methods."); }
       else{
         var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
-        NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,c, d, candidates, cs, best); return null; } );
+        NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,on,c, d, candidates, cs, best); return null; } );
       }
       return withCallSpans(e.ex(c), c);
     }
@@ -295,9 +296,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("Available capabilities for this method: "+availRc)
       .ex(c), c);
   }
-  void bestNameMsg(Err e,Call c, Literal d, List<Sig> candidates, List<String> cs, Optional<String> best){
+  void bestNameMsg(Err e, String onStr, Call c, Literal d, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
-    e.blank().line("Available methods on "+e.onTypeOrAnon(d.withRC(RC.imm))+":");
+    e.blank().line("Available methods on "+onStr+":");
     for (String n:cs){
       candidates.stream()
         .filter(s->s.m().s().equals(n))

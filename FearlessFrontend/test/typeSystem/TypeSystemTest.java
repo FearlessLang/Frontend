@@ -882,7 +882,7 @@ User:{
 While inspecting ".m(_)" line 4
 This call to method ".nope" can not typecheck.
 Method ".nope" is not declared on type "Empty".
-The type "Empty" does not have any methods.
+Type "Empty" does not have any methods.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 e.nope
@@ -1845,13 +1845,13 @@ Main:{
 
 While inspecting ".m" line 4
 This call to method ".foo" can not typecheck.
-Method ".foo" is not declared on type instance of "A".
+Method ".foo" is not declared on object literal instance of "A".
 
-Available methods on type instance of "A":
+Available methods on object literal instance of "A":
 -       .bar:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-{.bar:A->A}.foo
+A{.bar:A->A}.foo
 """,List.of("""
 A:{}
 Main:{
@@ -1865,11 +1865,11 @@ Main:{
 
 While inspecting ".m" line 4
 This call to method ".foo" can not typecheck.
-Method ".foo" is not declared on type instance of "A".
-The object literal type instance of "A" does not have any methods.
+Method ".foo" is not declared on type "A".
+Type "A" does not have any methods.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-{}.foo
+A.foo
 """,List.of("""
 A:{}
  Main:{
@@ -1882,8 +1882,8 @@ A:{}
 
 While inspecting ".m" line 4
 This call to method ".foo" can not typecheck.
-Method ".foo" is not declared on type "B".
-The type "B" does not have any methods.
+Method ".foo" is not declared on object literal instance of "B".
+Type "B" does not have any methods.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 B:{}.foo

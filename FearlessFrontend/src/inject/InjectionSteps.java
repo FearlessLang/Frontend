@@ -589,10 +589,13 @@ public record InjectionSteps(Methods meths){
       case E.Call c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected));
       case E.ICall c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected));
       case E.Literal l -> needsPrototypeAscription(l)
-        ? l.withT(exp)
+        ? l.withT(prototypeHead(exp,l.span()))
         : arg;
       default -> arg;
     };
+  }
+  private IT.RCC prototypeHead(IT.RCC expected, TSpan span){
+    return new IT.RCC(expected.rc(), new IT.C(expected.c().name(), qMarks(expected.c().ts().size())), span);
   }
 }
 record MSigL(RC rc, List<String> xs, List<IT> clsArgs, List<IT> ps0, IT ret0){
