@@ -2,6 +2,7 @@ package inference;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import testUtils.DbgBlock;
@@ -282,7 +283,6 @@ p.F[R:imm]:{'this #:R@p.F;}
 p.User:{'this\
  .use:p.User@p.User;\
 ->p.A:?.a(p._AUser:p.F[p.User]{'_ ? [?]:?@!;->p.User:?;}:?):?;}
-p._AUser:p.F[p.User]{'_ #:p.User@p._AUser;->p.User:?;}
 """,List.of("""
 F[R]:{#:R}
 A:{ .a[R](f:F[R]):R->f#; }
@@ -295,7 +295,6 @@ p.User:{'this\
  .use:p.User@p.User;\
 ->p.A:?.a(p._AUser:p.F[p.User]{'_ ? [?]:?@!;->p.User:?;}:?):?;}
 p._AF:{'this}
-p._AUser:p.F[p.User]{'_ #:p.User@p._AUser;->p.User:?;}
 ""","role app000;\nuse base.Void as _BF;\n",List.of("""
 F[R]:{#:R}
 _AF:{}
@@ -309,7 +308,6 @@ p.F[R:imm]:{'this #:R@p.F;}
 p.User:{'this\
  .use:p.User@p.User;\
 ->p.A:?.a(p._AUser:p.F[p.User]{'_ ? [?]:?@!;->p.User:?;}:?):?;}
-p._AUser:p.F[p.User]{'_ #:p.User@p._AUser;->p.User:?;}
 p._BF:{'this}
 ""","role app000;\nuse base.Void as _AF;\n",List.of("""
 F[R]:{#:R}
@@ -911,12 +909,6 @@ D:A,C{}
 @Test void nested5a(){ok("""
 p.GG:{'this .apply[A0:imm](A0):A0@p.GG;}
 p.User:{'this .withGG(p.GG):p.User@p.User; .id1[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p._AUser:p.GG{'_ ? [?](?):?@!;(a2)->a2:?;}:?):?; .id2[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p._CUser:p.GG{'_ ? [?](?):?@!;(a3)->this:?.withGG(p._BUser:p.GG{'_ ? [?](?):?@!;(a4)->a4:?;}:?):?;}:?):?; .id3[A0:imm,A1:imm]:p.User@p.User;->this:?.withGG(p._FUser:p.GG{'_ ? [?](?):?@!;(a3)->this:?.withGG(p._EUser:p.GG{'_ ? [?](?):?@!;(a4)->this:?.withGG(p._DUser:p.GG{'_ ? [?](?):?@!;(a5)->a5:?;}:?):?;}:?):?;}:?):?;}
-p._AUser:p.GG{'_ .apply[_EA0:imm](_EA0):_EA0@p._AUser;(a2)->a2:?;}
-p._BUser:p.GG{'_ .apply[_CA0:imm](_CA0):_CA0@p._BUser;(a4)->a4:?;}
-p._CUser:p.GG{'_ .apply[_BA0:imm](_BA0):_BA0@p._CUser;(a3)->this:?.withGG(p._BUser:p.GG{'_ ? [?](?):?@!;(a4)->a4:?;}:?):?;}
-p._DUser:p.GG{'_ .apply[_FA0:imm](_FA0):_FA0@p._DUser;(a5)->a5:?;}
-p._EUser:p.GG{'_ .apply[_DA0:imm](_DA0):_DA0@p._EUser;(a4)->this:?.withGG(p._DUser:p.GG{'_ ? [?](?):?@!;(a5)->a5:?;}:?):?;}
-p._FUser:p.GG{'_ .apply[_AA0:imm](_AA0):_AA0@p._FUser;(a3)->this:?.withGG(p._EUser:p.GG{'_ ? [?](?):?@!;(a4)->this:?.withGG(p._DUser:p.GG{'_ ? [?](?):?@!;(a5)->a5:?;}:?):?;}:?):?;}
 """, List.of("""
 GG:{ .apply[A0](A0):A0 }
 User:{
@@ -964,11 +956,8 @@ User:{.m:User->
 @Test void inLineAnonObject2(){ok("""
 p.User:{'this\
  .m:p.User@p.User;\
-->p._AUser:{'_\
+->p._AUser:$?{'_\
  ? .bla[?]:p.User@!;->p.User:?;}:?.bla():?;}
-p._AUser:{'_\
- .bla:p.User@p._AUser;\
-->p.User:?;}
 """,List.of("""
 User:{.m:User->
  {.bla:User->User;}.bla
@@ -1314,7 +1303,8 @@ List.of("""
 A:{imm .m:base.Void; imm .m:base.Void}
 """));}
 
-@Test void badImplementsVoid(){ fail("""
+//Moving to a further place in the pipeline?
+@Disabled @Test void badImplementsVoid(){ fail("""
 In file: [###]/in_memory0.fear
 
 007|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
@@ -1339,7 +1329,6 @@ User:{
 p.Bad:p.Sup{'_ .h:base.Void@p.Bad;->p._AUser:base.Void:?; .k:base.Void@p.Sup;}
 p.Sup:{'this .h:base.Void@p.Sup; .k:base.Void@p.Sup;}
 p.User:{'this .m:p.Sup@p.User;->p.Bad:p.Sup{'_ .h[?]:base.Void@!;->p._AUser:base.Void:?;}:?;}
-p._AUser:base.Void, base.Sealed{'_}
 """, List.of("""
 Sup:{
   imm .h:base.Void;

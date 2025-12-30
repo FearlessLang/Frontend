@@ -163,7 +163,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     var ms= mapM(ol.get().methods());
     var name= ol.get().thisName().map(n->n.name());
     //Here new FreeXs().ftvMs(ms) is all since by construction no Cs and no inferred type;
-    var l= liftLiteral(Optional.of(RC.imm),Stream.of(),List.of(),name,ms,new Src(ol.get()));
+    var l= liftLiteral(Optional.empty(),Stream.of(),List.of(),name,ms,new Src(ol.get()));
     decs.add(l);
     return l;
   }

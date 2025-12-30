@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 import core.B;
 import core.MName;
 import core.RC;
-import core.Sig;
 import core.TName;
 import core.TSpan;
 import inference.E;
@@ -19,7 +18,6 @@ import inference.IT;
 import inference.IT.RCC;
 import inference.M;
 import message.WellFormednessErrors;
-import utils.Bug;
 import utils.OneOr;
 import utils.Push;
 import utils.Streams;
@@ -80,7 +78,10 @@ public record InjectionSteps(Methods meths){
     ei = nextStar(Push.of(di.bs(), m.sig().bs().get()), g, ei);
     return new core.M(mCore.sig(), xs, Optional.of(new ToCore().of(ei, m.impl().get().e())));
   }
-  E meet(E e, IT t){ return e.withT(meetKeepLeft(e.t(), t)); }
+  E meet(E e, IT t){
+    e = prototypeAscribeRootReceiver(e, t);
+    return e.withT(meetKeepLeft(e.t(), t));
+  }
   IT meetKeepLeft(IT l, IT r){
     if (r == IT.U.Instance){ return l; }
     if (l == IT.U.Instance){ return r; }
@@ -346,10 +347,9 @@ public record InjectionSteps(Methods meths){
     boolean changed= false;
     var res= new ArrayList<inference.M>(l.ms().size());
     List<IT> ts= rcc.c().ts();
-    var selfT= selfPrecise;
     for (var mi : l.ms()){
       if (mi.impl().isPresent()){ assert selfPrecise.isEmpty() || rcc.isTV(); }
-      TSM next= nextMStar(bs, g, l.thisName(), meths.cache().containsKey(l.name()), selfT, rcc.withTs(ts), mi);
+      TSM next= nextMStar(bs, g, l.thisName(), meths.cache().containsKey(l.name()), selfPrecise, rcc.withTs(ts), mi);
       assert next.m == mi || !next.m.equals(mi) : "Allocated equal M:\n"+mi;
       changed |= next.m != mi || !next.ts.equals(ts);
       res.add(next.m);
@@ -578,6 +578,21 @@ public record InjectionSteps(Methods meths){
     assert candidate.size() == n;
     for (int i= 0; i < n; i++){ if (candidate.get(i) != original.get(i)){ return candidate; } }
     return original;
+  }
+  private static boolean needsPrototypeAscription(E.Literal l){
+    if (l.infHead() || !l.infName() || !l.cs().isEmpty()){ return false; }
+    return (l.t() instanceof IT.U /*&& l.ms().stream().anyMatch(m-> !m.sig().isFull())*/);
+  }
+  private E prototypeAscribeRootReceiver(E arg, IT expected){
+    if (!(expected instanceof IT.RCC exp)){ return arg; }
+    return switch (arg){
+      case E.Call c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected));
+      case E.ICall c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected));
+      case E.Literal l -> needsPrototypeAscription(l)
+        ? l.withT(exp)
+        : arg;
+      default -> arg;
+    };
   }
 }
 record MSigL(RC rc, List<String> xs, List<IT> clsArgs, List<IT> ps0, IT ret0){

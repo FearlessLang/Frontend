@@ -464,7 +464,7 @@ User:{.m:User->
 
 @Test void inLineAnonObject2(){okI("""
 [###]~-----------
-~mut p.User:{'this .m:p.User->imm p._AUser:{'_ .bla:p.User->p.User}.bla[imm]}
+~mut p.User:{'this .m:p.User->imm p._AUser:p.User{'_ .bla:p.User->p.User; .m:p.User}.bla[imm]}
 """,List.of("""
 User:{.m:User->
  {.bla:User->User;}.bla

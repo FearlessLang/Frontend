@@ -119,6 +119,10 @@ public sealed interface E {
       if (e == this.e && es == this.es){ return this; }
       return new E.Call(e, name, rc,targs,es,t,src,g.clear());
     }
+    public Call withE(E e){
+      if (e == this.e){ return this; }
+      return new E.Call(e, name, rc,targs,es,t,src,g.clear());
+    }
     public Call withT(IT t){
       if (t.equals(this.t)){ return this; }
       return new Call(e,name,rc,targs,es,t,src,g.clear());
@@ -139,6 +143,10 @@ public sealed interface E {
     public String toString(){ return ""+e+name+Join.of(es,"(",",","):","():")+t; }
     public E withEEs(E e, List<E> es) {
       if (e == this.e && es == this.es){ return this; } 
+      return new ICall(e,name,es,t,src,g.clear());
+    }
+    public E withE(E e) {
+      if (e == this.e){ return this; } 
       return new ICall(e,name,es,t,src,g.clear());
     }
   }

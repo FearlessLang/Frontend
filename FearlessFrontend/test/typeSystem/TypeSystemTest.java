@@ -1845,9 +1845,9 @@ Main:{
 
 While inspecting ".m" line 4
 This call to method ".foo" can not typecheck.
-Method ".foo" is not declared on "{...}".
+Method ".foo" is not declared on type instance of "A".
 
-Available methods on "{...}":
+Available methods on type instance of "A":
 -       .bar:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1865,8 +1865,8 @@ Main:{
 
 While inspecting ".m" line 4
 This call to method ".foo" can not typecheck.
-Method ".foo" is not declared on "{...}".
-The object literal "{...}" does not have any methods.
+Method ".foo" is not declared on type instance of "A".
+The object literal type instance of "A" does not have any methods.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 {}.foo
@@ -2443,9 +2443,7 @@ OrderByCmp[T]:OrderBy[T]{
   # a0 -> { .close -> a0; .cmp a,b,m -> this.cmp(a,b,m) };
   }
 CompareBy:{
-  #[T,A](f:OrderBy[A,T]): OrderByCmp[A] -> {
-    .cmp a,b,m -> (f#a).cmp((f#a).close,(f#b).close,m);
-  };
+  #[A,T](f:OrderBy[A,T]): OrderBy[A,T] -> f;
 }
 Order[T,E:*]:{
   read .close:read T;
@@ -2570,10 +2568,13 @@ Name:OrderHash[Name]{ read .close->this; read .cmp a,b,m->m.eq; read .hash h->0;
 Person:{ read .age: Age; read .name: Name; }
 
 AndThenTests2:{
-  read .orderOk0: OrderBy[Person,Age] ->
+  .orderOk0: OrderBy[Person,Age] ->
     {::.age};
-  read .orderOk: OrderBy[Person] ->
+  .orderOk1: OrderBy[Person] ->
     CompareBy#{::.age}.then{::.name};
+  .max[T](order:OrderBy[Person,T]):Person;
+  .orderOk2:Person->this.max(CompareBy#{::.age}.then{::.name});
+  .orderOk3:Person->this.max({::.age}.then{::.name});
 }
 //Study the relation between this and
 //OrderByCmp

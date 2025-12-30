@@ -56,7 +56,7 @@ public record Methods(
   }
   public List<inference.E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     var acc= new ArrayList<E.Literal>();
-    var layers= layer(iDecs);
+    var layers= layer(iDecs.stream().filter(d->!d.infName()).toList()); //var layers= layer(iDecs);
     for (var l : layers){ 
       for (var d : ofLayer(l,acc)){
         if(!d.infName()){ cache.put(d.name(), d); }
