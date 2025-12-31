@@ -26,6 +26,7 @@ import message.Reason;
 import message.TypeSystemErrors;
 import utils.OneOr;
 import utils.Push;
+import utils.UriSort;
 import core.E.*;
 import pkgmerge.Package;
 
@@ -41,6 +42,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   List<MType> multiMeth(List<B> bs1, MType mType){ return MultiMeth.of(bs1,mType); }
 
   public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
+    tops= UriSort.byFolderThenFile(tops, l->l.span().inner.fileName());
     Map<TName,Literal> map= AllLs.of(tops);
     Function<TName,Literal> decs= n->LiteralDeclarations._from(n,map,other);
     Map<String,String> invMap= pkg.map().entrySet().stream()

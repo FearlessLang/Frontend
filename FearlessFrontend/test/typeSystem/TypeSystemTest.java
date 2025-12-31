@@ -2403,98 +2403,100 @@ Str:{}
 ToStr:{ read .str: Str }
 ToStrBy[T]:{#(read T):read ToStr}
 ToStr[E:*]:{ read .str(ToStrBy[imm E]): Str }
+
 OrderMatch[R:**]:{ mut .lt:R; mut .eq:R; mut .gt:R; }
+
 Order[T]: {
   read .close: read T;
-  read .cmp[R:**](a: read T, b: read T, m: mut OrderMatch[R]): R;
+  read .cmp[R:**](t0: read T, t1: read T, m: mut OrderMatch[R]): R;
+
   read ==  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->True; .gt -> False});
   read <=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->True; .gt -> False});
   read >=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->True; .gt -> True});
   read <   (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->False; .gt -> False});
   read >   (other: read T): Bool -> this.cmp(this.close, other,{.lt ->False;.eq ->False; .gt -> True});
   read !=  (other: read T): Bool -> this.cmp(this.close, other,{.lt ->True;.eq ->False; .gt -> True});
-  }
-OrderBy[A,T]:{
-  #(read A): read Order[T];
-  .then[T2](k: OrderBy[A,T2]): OrderBy[A] -> {
-    .cmp(a,b,m)-> (this#a).cmp((this#a).close,(this#b).close,{
-      .lt->m.lt; .gt->m.gt;
-      .eq->(k#a).cmp((k#a).close,(k#b).close,m);
-    })
+
+  read <=>[R:**](other: read Order[T], m: mut OrderMatch[R]): R -> this.cmp(this.close, other.close, m);
+}
+OrderBy[T,K]:{
+  #(read T): read Order[K];
+  .then[K0](next: OrderBy[T,K0]): OrderBy[T] -> {
+    .cmp(t0,t1,m)-> this#t0 <=>
+      (this#t1, {.lt->m.lt; .gt->m.gt; .eq->next#t0<=>(next#t1,m);})
   };
-  .view[B](f:F[read B,read A]):OrderBy[B] ->
-    {b0,b1,m-> (this#(f#b0)).cmp((this#(f#b0)).close,(this#(f#b1)).close,m)};  
-  }
+  .view[A](f:F[read A,read T]):OrderBy[A] ->
+    {a0,a1,m-> this#(f#a0)<=>(this#(f#a1),m)};
+}
 OrderBy[T]:OrderBy[T,T]{
-  .cmp[R:**](a:read T,b:read T,m:mut OrderMatch[R]): R;
-  # a0 -> { .close -> a0; .cmp a,b,m -> this.cmp(a,b,m) };
-  }
+  .cmp[R:**](t0:read T,t1:read T,m:mut OrderMatch[R]): R;
+  # t -> { .close -> t; .cmp t0,t1,m -> this.cmp(t0,t1,m) };
+}
 CompareBy:{
-  #[A,T](f:OrderBy[A,T]): OrderBy[A,T] -> f;
+  #[T,K](by:OrderBy[T,K]): OrderBy[T,K] -> by;
 }
 Order[T,E:*]:{
   read .close:read T;
-  read .cmp[TT,R:**](by: OrderBy[imm E,TT], a:read T,b:read T, m: mut OrderMatch[R]): R;
-  read .order[TT](by: OrderBy[imm E,TT]): read Order[T] -> {
+  read .cmp[K,R:**](by: OrderBy[imm E,K], t0:read T,t1:read T, m: mut OrderMatch[R]): R;
+  read .order[K](by: OrderBy[imm E,K]): read Order[T] -> {
     .close -> this.close;
-    .cmp a,b,m -> this.cmp(by,a,b,m);
-    };
-  }
+    .cmp t0,t1,m -> this.cmp(by,t0,t1,m);
+  };
+}
 Hasher: {
   mut #[A,B](a: read OrderHash[A], b: read OrderHash[B]): Nat -> a.hash(this) * 31 + (b.hash(this));
-  }
+}
 OrderHash[T]:Order[T],ToStr{ read .hash(h: mut Hasher): Nat }
 OrderHash[T,E:*]:Order[T,E],ToStr[E]{
-  read .hash[EE](by: OrderHashBy[imm E,EE], h: mut Hasher): Nat;
-  read .orderHash[EE](by: OrderHashBy[imm E,EE]): read OrderHash[T] -> {
+  read .hash[K](by: OrderHashBy[imm E,K], h: mut Hasher): Nat;
+  read .orderHash[K](by: OrderHashBy[imm E,K]): read OrderHash[T] -> {
     .close -> this.close;
-    .cmp a,b,m -> this.cmp(by,a,b,m);
+    .cmp t0,t1,m -> this.cmp(by,t0,t1,m);
     .hash h -> this.hash(by,h);
     .str  -> this.str by;
-    };
-  }
-OrderHashBy[A,T]:OrderBy[A,T],ToStrBy[A]{
-  #(x:read A): read OrderHash[T];
-  .thenHash[TT](other: OrderHashBy[A,TT]): OrderHashBy[A] -> {
-    .cmp a,b,m -> this#a.cmp(
-      this#a.close,this#b.close,{
-        .lt ->m.lt;
-        .eq ->other#a.cmp(other#a.close,other#b.close,m);
-        .gt ->m.gt});
-    .hash a,h -> h#(this#a, other#a);
-    };
-  .viewHash[B](f:F[read B,read A]):OrderHashBy[B] -> {
-    .cmp b0,b1,m -> this#(f#b0).cmp(this#(f#b0).close,this#(f#b1).close,m);
-    .hash b,h -> this#(f#b).hash(h);
-    };
-  }
+  };
+}
+OrderHashBy[T,K]:OrderBy[T,K],ToStrBy[T]{
+  #(t:read T): read OrderHash[K];
+  .thenHash[K0](next: OrderHashBy[T,K0]): OrderHashBy[T] -> {
+    .cmp t0,t1,m -> this#t0<=>(this#t1,{
+      .lt ->m.lt;
+      .eq ->next#t0<=>(next#t1,m);
+      .gt ->m.gt});
+    .hash t,h -> h#(this#t, next#t);
+  };
+  .viewHash[A](f:F[read A,read T]):OrderHashBy[A] -> {
+    .cmp a0,a1,m -> this#(f#a0)<=>(this#(f#a1),m);
+    .hash a,h -> this#(f#a).hash(h);
+  };
+}
 OrderHashBy[T]:OrderHashBy[T,T]{
-  .cmp[R:**](a:read T,b:read T,m:mut OrderMatch[R]): R;
-  .hash(a: read T,h: mut Hasher):Nat;
-  # a0 -> {
-    .close -> a0;
-    .cmp a,b,m -> this.cmp(a,b,m);
-    .hash h -> this.hash(a0,h);
-    .str -> this#a0.str;
-    };
-  }
-Box[EE:*]: OrderHash[Box[EE],EE]{
-  mut  .get: EE;
-  read .get: read/imm EE;
-  imm  .get: imm EE;
+  .cmp[R:**](t0:read T,t1:read T,m:mut OrderMatch[R]): R;
+  .hash(t: read T,h: mut Hasher):Nat;
+  # t -> {
+    .close -> t;
+    .cmp t0,t1,m -> this.cmp(t0,t1,m);
+    .hash h -> this.hash(t,h);
+    .str -> this#t.str;
+  };
+}
+Box[E:*]: OrderHash[Box[E],E]{
+  mut  .get: E;
+  read .get: read/imm E;
+  imm  .get: imm E;
   .close->this;
-  .cmp by, a, b, m-> by#(a.get).cmp(by#(a.get).close,by#(b.get).close,m);
+  .cmp by, t0, t1, m-> by#(t0.get)<=>(by#(t1.get),m);
   .hash by, h -> by#(this.get).hash h;
   .str by->by#(this.get).str;
   .proofConcrete(s:Str):Box[Str]->Box[Str]{ .get->s; };//this also tests good handling of RC overloading
-  }
+}
 A1:OrderHash[A1]{
   .close -> this;
-  .cmp a, b, m -> m.eq;
+  .cmp t0, t1, m -> m.eq;
   .hash h -> 0;
   .str ->Str;
   .proofConcrete:A1->A1;
-  }
+}
 Top:{ 
   .m00(b:Box[A1]):Bool -> b.order{::} == b;
   .m01(b:Box[read A1]):Bool -> b.order{::} == b;
