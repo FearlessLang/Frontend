@@ -535,7 +535,7 @@ public record InjectionSteps(Methods meths){
   private List<IT.C> supersWithHead(IT.C self, TName head){
     var d= meths._from(self.name());
     if (d == null){ return List.of(); } // {..}.foo etc.
-    var hits= d.cs().stream().filter(sc -> sc.name().equals(head)).toList();
+    var hits= d.cs().stream().filter(sc -> sc.name().equals(head)).distinct().toList();
     if (hits.isEmpty()){ return List.of(); }
     List<String> xs= d.bs().stream().map(B::x).toList();
     return TypeRename.ofITC(TypeRename.tcToITC(hits), xs, self.ts());
