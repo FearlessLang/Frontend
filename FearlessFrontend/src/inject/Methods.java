@@ -219,12 +219,16 @@ public record Methods(
         res.add(m2);
         continue;
       }
+      boolean first= true;
       for (var matches: match.values()){
-        var m2= pairWithSig(Collections.unmodifiableList(matches),m,origin);
-        assert (m2 == m) == m2.equals(m);
-        changed |= m2 != m;
+        var mi= first ? m : new DupE(fresh).ofM(m,origin.name(),origin.name());
+        first= false;
+        var m2= pairWithSig(Collections.unmodifiableList(matches), mi, origin);
+        assert (m2 == mi) == m2.equals(mi);
+        changed |= m2 != mi;
         res.add(m2);
       }
+      //--------
     }
     if (!ss.isEmpty()){
       changed= true;

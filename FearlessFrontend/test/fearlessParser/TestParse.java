@@ -3930,7 +3930,27 @@ User:{
     read Wrap{ imm Get{ loooooong } };
 }
 """);}
+@Test void uglyErrorToSolve(){fail("""
+In file: [###]/in_memory0.fear
 
+001| Box[E:*]: _Box[E]{
+002|   !! -> this.match{ .some x -> x; .empty  -> Boom.msg Str; };
+003|   !!!-> this.match{ .some x -> x; .empty  -> Boom.msg Str; };
+   |   ------^^^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+004| 
+005| }
+
+While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
+Name "this" already in scope.
+Error 2 UnexpectedToken
+This error is because !!!-> is seen as a single token for method name, thus 'this' is seen as a declared method parameter?
+""","""
+Box[E:*]: _Box[E]{
+  !! -> this.match{ .some x -> x; .empty  -> Boom.msg Str; };
+  !!!-> this.match{ .some x -> x; .empty  -> Boom.msg Str; };
+
+}
+""");}
 
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

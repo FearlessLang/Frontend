@@ -105,6 +105,8 @@ InferUnknown:Sealed{}
 InferErr[A,B]:Sealed{}
 InferErr[A,B,C]:Sealed{}
 InferErr[A,B,C,D]:Sealed{}
+Todo: { ![R:**]: R -> Todo!;  }
+
 
 Void:Sealed{}
 F[R:**]: { read #: R }

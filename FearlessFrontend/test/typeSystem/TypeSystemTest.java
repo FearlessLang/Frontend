@@ -2595,4 +2595,44 @@ Tests:{ .ok: G1[Person] -> Make.make{
   }}
 """));}
 
+@Test void regressionBangMatchWorksWithDiffNames(){ok(List.of("""
+Str:{}
+Boom:{ .msg[R:**](s: Str): R -> Boom.msg(s); }
+BoxMatch[E:*,R:**]:{ mut .some(x: E): R; mut .empty: R; }
+_Box[E:*]:{
+  mut  .match[R:**](m: mut BoxMatch[E, R]): R;
+  read .match[R:* ](m: mut BoxMatch[read/imm E, R]): R;
+  imm  .match[R:* ](m: mut BoxMatch[imm E, R]): R;
+
+  mut  !: E;
+  read !!: read/imm E;
+  imm  !!!: imm E;
+}
+Box[E:*]: _Box[E]{
+  .match(m) -> this.match(m);
+  ! -> this.match{ .some x -> x; .empty  -> Boom.msg Str; };
+  !! -> this.match{ .some x -> x; .empty  -> Boom.msg Str; };
+  !!! -> this.match{ .some x -> x; .empty  -> Boom.msg Str; };
+
+}
+"""));}
+
+@Test void regressionBangMatch(){ok(List.of("""
+Str:{}
+Boom:{ .msg[R:**](s: Str): R -> Boom.msg(s); }
+BoxMatch[E:*,R:**]:{ mut .some(x: E): R; mut .empty: R; }
+_Box[E:*]:{
+  mut  .match[R:**](m: mut BoxMatch[E, R]): R;
+  read .match[R:* ](m: mut BoxMatch[read/imm E, R]): R;
+  imm  .match[R:* ](m: mut BoxMatch[imm E, R]): R;
+
+  mut  !: E;  //with only one of the 3 uncommented it works, 
+  read !: read/imm E;//with any 2 of them uncommented it fails
+  imm  !: imm E;
+}
+Box[E:*]: _Box[E]{
+  .match(m) -> this.match(m);
+  ! -> this.match{ .some x -> x; .empty  -> base.Todo!; };
+}
+"""));}
 }

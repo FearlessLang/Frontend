@@ -43,6 +43,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
 
   public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
     tops= UriSort.byFolderThenFile(tops, l->l.span().inner.fileName());
+    assert core.AssertNoRepeatedTypeNames.ok(tops);
     Map<TName,Literal> map= AllLs.of(tops);
     Function<TName,Literal> decs= n->LiteralDeclarations._from(n,map,other);
     Map<String,String> invMap= pkg.map().entrySet().stream()
