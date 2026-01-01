@@ -18,6 +18,7 @@ import inference.IT;
 import inference.IT.RCC;
 import inference.M;
 import message.WellFormednessErrors;
+import utils.Bug;
 import utils.OneOr;
 import utils.Push;
 import utils.Streams;
@@ -93,12 +94,11 @@ public record InjectionSteps(Methods meths){
         if (va.isPresent()){ return meetKeepLeft(va.get(), b); }
         return leastBad(a,b);
       }
-      RC rc= meetRcNoH(a.rc(), b.rc());
-      return a.withRCTs(rc, meetKeepLeft(a.c().ts(), b.c().ts()));
+      return a.withRCTs(a.rc(), meetKeepLeft(a.c().ts(), b.c().ts()));
     }
     if (!(l instanceof IT.RCX a && r instanceof IT.RCX b)){ return l; }
     if (!a.x().equals(b.x())){ return l; }
-    return a.withRC(meetRcNoH(a.rc(), b.rc()));
+    return a;
   }
   private static IT leastBad(RCC a, RCC b){ return a.badness() <= b.badness() ? a : b;  }
   static IT meet(IT t1, IT t2){

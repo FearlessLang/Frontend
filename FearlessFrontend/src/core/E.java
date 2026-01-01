@@ -28,6 +28,7 @@ public sealed interface E {
       assert unmodifiableDistinct(cs,"L.cs");
       assert unmodifiableDistinct(ms, "L.ms");
       assert nonNull(rc,name,thisName,src);
+      assert eq(bs.size(), name.arity(),"Type arity");
     }
     public Literal withMs(List<M> ms){ return new Literal(rc,name,bs,cs,thisName,ms,src,infName); }
     public Literal withRC(RC rc){ return new Literal(rc,name,bs,cs,thisName,ms,src,infName); }

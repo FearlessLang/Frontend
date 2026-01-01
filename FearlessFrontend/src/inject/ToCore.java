@@ -3,6 +3,7 @@ package inject;
 import java.util.*;
 import java.util.stream.IntStream;
 
+import core.B;
 import core.E;
 import core.MName;
 import core.RC;
@@ -29,8 +30,28 @@ public class ToCore{
   core.E.Literal literal(inference.E.Literal e, inference.E.Literal o){
     var rc= o.rc().orElse(e.rc().orElse(RC.imm));
     var ms= mapMs(e.ms(),o.ms());
-    return new core.E.Literal(rc,e.name(),e.bs(),TypeRename.itcToTC(e.cs()),e.thisName(),ms,e.src(),e.infName());
+    assert o.infName() == e.infName();
+    assert o.infName() || e.name().equals(o.name());
+    assert e.thisName().equals(o.thisName());
+    var oBs= originalBs(o);
+    assert oBs.isEmpty() || !o.infName():
+     o.infName()+" "+oBs;
+    var bs= oBs.orElse(e.bs());
+    var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():o.cs());
+    return new core.E.Literal(rc,e.name(),bs,cs,e.thisName(),ms,e.src(),e.infName());
   }
+  Optional<List<B>> originalBs(inference.E.Literal o){
+    boolean explicit= switch (o.src().inner){
+      case fearlessFullGrammar.E.TypedLiteral _->false; //Not tl.t().c().ts().isPresent(): this would be about the first eventual c in cs; not the anon heir
+      case fearlessFullGrammar.E.Literal _->false;
+      case fearlessFullGrammar.E.DeclarationLiteral dl->dl.dec().bs().isPresent();
+      case fearlessFullGrammar.Declaration dec->dec.bs().isPresent();
+      default -> throw Bug.of(o.src().inner.getClass().getName()); 
+      };
+    if (explicit){ return Optional.of(o.bs()); }
+    return Optional.empty();
+    }
+  
   core.E.Call call(inference.E.Call e, CallLike o){
     var rc= o.rc.orElse(e.rc().orElse(RC.imm));
     var targs= !o.targs.isEmpty() ? o.targs : e.targs();
