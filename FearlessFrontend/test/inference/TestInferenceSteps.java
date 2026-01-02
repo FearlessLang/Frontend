@@ -1045,6 +1045,7 @@ A:{imm .foo123:A->this.foo123; read .foo123:A->this.foo123; mut .bar:A->this.foo
 ~mut p.A:{'this .f(aaaa:mut p.A):read p.B->read p.BB:p.B{'_\
  read .foo:p.B->p.Skip#[imm,read p.A](p.Id#[imm,read p.A](aaaa))}}
 [###]
+//This needs to get some knowledge of capture to pass
 """,List.of("""
 Skip:{#[X:**](X):B->B}
 Id:{#[X:**](x:X):X->x}

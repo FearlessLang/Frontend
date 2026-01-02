@@ -351,9 +351,10 @@ public record InjectionSteps(Methods meths){
       if (mi.impl().isPresent()){ assert selfPrecise.isEmpty() || rcc.isTV(); }
       TSM next= nextMStar(bs, g, l.thisName(), meths.cache().containsKey(l.name()), selfPrecise, rcc.withTs(ts), mi);
       assert next.m == mi || !next.m.equals(mi) : "Allocated equal M:\n"+mi;
-      changed |= next.m != mi || !next.ts.equals(ts);
+      var ts1= meetKeepLeft(ts, next.ts);
+      changed |= next.m != mi || !ts1.equals(ts);
       res.add(next.m);
-      ts = next.ts;
+      ts = ts1;      
     }
     if (!changed){ return commitToTable(g,bs, l, rcc); }
     var ms= Collections.unmodifiableList(res);

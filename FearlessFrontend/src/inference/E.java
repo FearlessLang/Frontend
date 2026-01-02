@@ -78,7 +78,7 @@ public sealed interface E {
     public Literal withMsT(List<M> ms, IT t){
       assert t instanceof IT.RCC:t;
       if (infHead && ms == this.ms && t.equals(this.t)){ return this; }
-      assert ms == this.ms || !ms.equals(this.ms) : "Allocated equal MS:\n"+ms;
+      assert !t.equals(this.t) || ms == this.ms || !ms.equals(this.ms) : "Allocated equal MS:\n"+ms;
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
     }
     public Literal withCsMs(List<IT.C> cs, List<M> ms, boolean setInfHead){
