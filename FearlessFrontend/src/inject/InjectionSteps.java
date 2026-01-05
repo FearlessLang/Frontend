@@ -120,6 +120,8 @@ public record InjectionSteps(Methods meths){
     if (t2 == IT.U.Instance){ return t1; }
     if (t1 == IT.U.Instance){ return t2; }
     if (t1.equals(t2)){ return t1; }
+    if (t1 instanceof IT.ReadImmX r1 && t2 instanceof IT.X x2 && r1.x().equals(x2)){ return t1; }
+    if (t2 instanceof IT.ReadImmX r2 && t1 instanceof IT.X x1 && r2.x().equals(x1)){ return t2; }
     if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){
       if (!x1.c().name().equals(x2.c().name())){ return leastBad(x1,x2); }
       Optional<RC> rc= meetRcNoH(x1.rc(), x2.rc());

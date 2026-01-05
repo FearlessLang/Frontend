@@ -69,7 +69,6 @@ public record Err(Function<TName,TName> preferredForFresh, Function<Boolean,Comp
     if (skipImm || !explicitImmRc(t)){ return disp(str); }
     return disp("imm "+str);
   }
-  //---------
   String typeRepr(TypeSystem ts, boolean skipImm, T t){
     var str= cp().msgT(showPublicHead(ts,t));
     if (skipImm || !explicitImmRc(t)){ return disp(str); }

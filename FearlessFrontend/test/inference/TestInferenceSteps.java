@@ -2,7 +2,6 @@ package inference;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class TestInferenceSteps extends testUtils.FearlessTestBase{
@@ -561,7 +560,7 @@ C:B{}
 p.Box[T:imm,mut,read]:{'this mut .expose:T@p.Box; read .get:read/imm T@p.Box;}
 p.MakeBox:{'this #[T:imm,mut,read](T):mut p.Box[T]@p.MakeBox;(t)->p._AMake:$?{'_ ? .expose[?]:?@!;->t:?; ? .get[?]:?@!;->t:?;}:?;}
 p.MyB:p.Box[p.MakeBox]{'this .foo:p.MyB@p.MyB;->p._AMyB:$?:?; mut .expose:p.MakeBox@p.Box; read .get:p.MakeBox@p.Box;}
-p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:read/imm T@p._AMake;->t:T;}
+p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:read/imm T@p._AMake;->t:read/imm T;}
 ~-----------
 ~mut p.Box[T:imm,mut,read]:{'this mut .expose:T; read .get:read/imm T}
 ~mut p.MakeBox:{'this #[T:imm,mut,read](t:T):mut p.Box[T]->mut p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T->t; read .get:read/imm T->t}}
@@ -583,7 +582,7 @@ p.A3[X:mut]:p.Box[X]{'this mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
 p.A4[X:read]:p.Box[X]{'this mut .expose:X@p.Box; read .get:read/imm X@p.Box;}
 p.Box[###]
 p.MakeBox:[###]
-p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:read/imm T@p._AMake;->t:T;}
+p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:read/imm T@p._AMake;->t:read/imm T;}
 ~-----------
 ~mut p.A1:p.Box[p.MakeBox]{'this mut .expose:p.MakeBox; read .get:p.MakeBox}
 ~mut p.A2[X:imm]:p.Box[X]{'this mut .expose:X; read .get:read/imm X}
@@ -1502,8 +1501,8 @@ Boxs1:{#[ET:*](e:ET):mut Box[ET]->{ imm .get ->e } }
 p.Box[EE:imm,mut,read]:{'this mut .get:EE@p.Box; read .get:read/imm EE@p.Box; .get:imm EE@p.Box;}
 p.Boxs1:{'this #[ET:imm,mut,read](ET):mut p.Box[ET]@p.Boxs1;(e)->p._ABoxs:$?{'_ mut .get[?]:?@!;->e:?; read .get[?]:?@!;->e:?; .get[?]:?@!;->e:?;}:?;}
 p.Boxs:{'this #[ET:imm,mut,read](ET):mut p.Box[ET]@p.Boxs;(e)->p._BBoxs:$?{'_ ? [?]:?@!;->e:?;}:?;}
-p._ABoxs[ET:imm,mut,read]:p.Box[ET]{'_ mut .get:ET@p._ABoxs;->e:ET; read .get:read/imm ET@p._ABoxs;->e:ET; .get:imm ET@p._ABoxs;->e:imm ET;}
-p._BBoxs[ET:imm,mut,read]:p.Box[ET]{'_ mut .get:ET@p._BBoxs;->e:ET; read .get:read/imm ET@p._BBoxs;->e:ET; .get:imm ET@p._BBoxs;->e:imm ET;}
+p._ABoxs[ET:imm,mut,read]:p.Box[ET]{'_ mut .get:ET@p._ABoxs;->e:ET; read .get:read/imm ET@p._ABoxs;->e:read/imm ET; .get:imm ET@p._ABoxs;->e:imm ET;}
+p._BBoxs[ET:imm,mut,read]:p.Box[ET]{'_ mut .get:ET@p._BBoxs;->e:ET; read .get:read/imm ET@p._BBoxs;->e:read/imm ET; .get:imm ET@p._BBoxs;->e:imm ET;}
 ~-----------
 ~mut p.Box[EE:imm,mut,read]:{'this mut .get:EE; read .get:read/imm EE; .get:imm EE}
 ~mut p.Boxs1:{'this #[ET:imm,mut,read](e:ET):mut p.Box[ET]->mut p._ABoxs[ET:imm,mut,read]:p.Box[ET]{'_ mut .get:ET->e; read .get:read/imm ET->e; .get:imm ET->e}}
@@ -1520,5 +1519,94 @@ Boxs1:{#[ET:*](e:ET):mut Box[ET]->{
   imm .get ->e;
   }}
 Boxs:{#[ET:*](e:ET):mut Box[ET]->{e}}
+"""));}
+
+@Test void inferLitRc(){okI("""
+[###]
+~mut p.B:{'this\
+ .m1:p.A->p.A;\
+ .m2:read p.A->read p.A;\
+ .m3:mut p.A->mut p.A}
+""",List.of("""
+A:{}
+B:{
+  .m1:A->{};
+  .m2: read A->{};
+  .m3: mut A->{};
+}
+"""));}
+
+@Test void inferLitRcGen(){okI("""
+[###]
+~mut p.B:{'this .m1:p.A[p.B]->p.A[p.B];\
+ .m2:read p.A[read p.B]->read p.A[read p.B];\
+ .m3:mut p.A[mut p.B]->mut p.A[mut p.B]}
+""",List.of("""
+A[T:*]:{}
+B:{
+  .m1:A[B]->{};
+  .m2: read A[read B]->{};
+  .m3: mut A[mut B]->{};
+}
+"""));}
+@Test void inferLitRcGenX(){okI("""
+[###]
+~mut p.B[X:imm]:{'this .m1:p.A[X]->p.A[X];\
+ .m2a:read p.A[read X]->read p.A[read X];\
+ .m2b:read p.A[read/imm X]->read p.A[read/imm X];\
+ .m3:mut p.A[mut X]->mut p.A[mut X]}
+""",List.of("""
+A[T:*]:{}
+B[X]:{
+  .m1:A[X]->{};
+  .m2a: read A[read X]->{};
+  .m2b: read A[read/imm X]->{};
+  .m3: mut A[mut X]->{};
+}
+"""));}
+@Test void inferLitRcGenXInh(){okI("""
+[###]
+~mut p.C[Y:imm]:p.B[Y]{'this .m1:p.A[Y]->p.A[Y];\
+ .m2a:read p.A[read Y]->read p.A[read Y];\
+ .m2b:read p.A[read/imm Y]->read p.A[read/imm Y];\
+ .m3:mut p.A[mut Y]->mut p.A[mut Y]}
+[###]
+~mut p.KK[E:imm,mut,read]:p.I[E]{'this read\
+ .m:mut p.Opt[read/imm E]->mut p.Opt[read/imm E]}
+[###]
+""",List.of("""
+A[T:*]:{}
+B[X]:{
+  .m1:A[X];
+  .m2a: read A[read X];
+  .m2b: read A[read/imm X];
+  .m3: mut A[mut X];
+}
+C[Y]:B[Y]{
+  .m1->{};
+  .m2a->{};
+  .m2b->{};
+  .m3->{};
+}
+Opt[T:*]:{}
+I[E:*]:{ read .m: mut Opt[read/imm E]; }
+
+KK[E:*]:I[E]{
+  read .m->{};
+}
+"""));}
+//Used to discard the read/imm part in the L1 side
+@Test void inferLitRcGenXInh2(){okI("""
+[###]
+~mut p.L1[E:imm]:{'this read .opt:mut p.O1[read/imm E]->mut p.O1[read/imm E]}
+~mut p.L2[E:imm]:{'this read .opt:mut p.O2[read/imm E]->mut p.O2[read/imm E]}
+[###]
+""",List.of("""
+M1[E:*]:{}
+O1[E:*]:{  read .match[R:**](m: mut M1[read/imm E]):R->this.match m; }
+L1[E]:{ read .opt:mut O1[read/imm E]->{}; }
+M2[E:*]:{}
+O2[E:*]:{  read .match[R:**](m: mut M2[E]):R->this.match m; }
+L2[E]:{ read .opt:mut O2[read/imm E]->{}; }
 """));}
 }
