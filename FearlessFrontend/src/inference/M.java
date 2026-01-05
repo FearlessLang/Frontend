@@ -19,7 +19,10 @@ public record M(Sig sig, Optional<Impl> impl){
     var args= Join.of(xs,"(",", ",")","");
     return sig + args+ "->"+impl.get().e()+";";
     }
-  public M withSig(Sig sig){ return new M(sig,impl); }
+  public M withSig(Sig sig){
+    if (sig.equals(this.sig)){ return this; }
+    return new M(sig,impl);
+    }
   public record Sig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<Optional<IT>> ts, Optional<IT> ret, Optional<TName> origin, boolean abs, TSpan span){
     public Sig{ assert nonNull(rc,m,bs,ts,ret,origin); assert validOpt(bs,_bs->unmodifiableDistinct(_bs,"bounds")); }
     public Sig(RC rc, MName m, List<B> bs, List<Optional<IT>> ts, IT ret, TName origin, boolean abs, TSpan span){
@@ -53,6 +56,7 @@ public record M(Sig sig, Optional<Impl> impl){
       return " "+m.map(n->n.s()).orElse("")+xsC+e+";";
     }
     public Impl withE(E e){
+      assert e == this.e || !e.equals(this.e) : "Allocated equal E in M.Impl.withE";
       if (e == this.e){ return this; }
       return new Impl(m,xs,e);
     }

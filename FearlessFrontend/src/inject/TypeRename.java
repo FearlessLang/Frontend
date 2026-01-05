@@ -7,6 +7,7 @@ import core.RC;
 import core.T;
 import core.TName;
 import core.TSpan;
+import utils.Bug;
 import utils.Pos;
 import inference.IT;
 
@@ -16,9 +17,9 @@ public class TypeRename{
     if (xs.isEmpty()){ return t; }
     return switch (t){
       case T.X x -> getOrSame(x,x.name(),xs,ts);
-      case T.RCX(RC rc, var x) -> of(x,xs,ts).withRC(rc);
+      case T.RCX(RC rc, var x) -> withRC(of(x,xs,ts),rc);
       case T.RCC rcc -> rcc.withTs(ofT(rcc.c().ts(),xs,ts));
-      case T.ReadImmX(var x) -> of(x,xs,ts).readImm();
+      case T.ReadImmX(var x) -> readImm(of(x,xs,ts));
     };
   }
   public static T.C of(T.C c, List<String> xs, List<T> ts){ return c.withTs(ofT(c.ts(),xs,ts)); }
@@ -37,7 +38,6 @@ public class TypeRename{
       case IT.RCC rcc -> rcc.withTs(ofIT(rcc.c().ts(),xs,ts));
       case IT.ReadImmX(var x) -> of(x,xs,ts).readImm();
       case IT.U u -> u;
-      case IT.Err e -> e;
     };
   }
   public static List<IT> ofIT(List<IT> tsi ,List<String> xs, List<IT> ts){
@@ -73,21 +73,24 @@ public class TypeRename{
     case T.X(var name,var span) -> new IT.X(name,span);
     case T.ReadImmX(var x) -> new IT.ReadImmX(new IT.X(x.name(),x.span()));
     case T.RCX(var rc,var x) -> new IT.RCX(rc,new IT.X(x.name(),x.span()));
-    case T.RCC(var rc, var c,var span) -> new IT.RCC(rc,tcToITC(c),span);
+    case T.RCC(var rc, var c,var span) -> new IT.RCC(Optional.of(rc),tcToITC(c),span);
   };}
   public static T itToT(IT t){return switch (t){
     case IT.X(var name, var span) -> new T.X(name,span);
     case IT.ReadImmX(var x) -> new T.ReadImmX(new T.X(x.name(),x.span()));
     case IT.RCX(var rc,var x) -> new T.RCX(rc,new T.X(x.name(),x.span()));
-    case IT.RCC(var rc, var c, var span) -> new T.RCC(rc,itcToTC(c),span);
+    case IT.RCC(var rc, var c, var span) -> new T.RCC(rc.orElse(RC.imm),itcToTC(c),span);
     case IT.U _ ->inferUnknown;
      //throw Bug.of();// bug is good for testing, it will be replaced with this later: inferUnknown;
-    case IT.Err(var cfs,_)  ->
-    //throw Bug.of();//
-    inferErr(cfs.stream().map(TypeRename::itToT).limit(4).toList());
   };}
   public static final T.RCC inferErr(List<T> conflicts){
     return new T.RCC(RC.imm,new T.C(new TName("base.InferErr", conflicts.size(), Pos.unknown), conflicts),TSpan.fromPos(Pos.unknown,1));
   }
   public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.unknown), List.of()),TSpan.fromPos(Pos.unknown,1));
+
+  private static T withRC(T t, RC rc){ return isInfer(t) ? t : t.withRC(rc); }
+  private static T readImm(T t){ return isInfer(t) ? t : t.readImm(); }
+
+  private static boolean isInfer(T t){ return t instanceof T.RCC rcc && isInferName(rcc.c().name()); }
+  private static boolean isInferName(TName n){ return "base.InferUnknown".equals(n.s()) || "base.InferErr".equals(n.s()); }
 }

@@ -241,12 +241,12 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
-Type argument 1 ("B") does not satisfy the bounds
+Type argument 1 ("base.Void") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-a.id[imm,B](b)
+a.id[imm,-.Void](b)
 """, List.of("""
 A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
@@ -262,12 +262,12 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
-Type argument 1 ("B") does not satisfy the bounds
+Type argument 1 ("read B") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-a.id[imm,B](b)
+a.id[imm,read B](b)
 """, List.of("""
 A:{ imm .id[X:mut,iso](x:X):X->x }
 B:{}
@@ -2069,6 +2069,20 @@ B{.bar:A->A}
  Main:{ .m:B -> B{.bar:A->A} }
 """));}
 
+@Test void simpleBox(){ok(List.of("""
+Box[EE:*]:{
+  mut  .get: EE;
+  read .get: read/imm EE;
+  imm  .get: imm EE;
+  }
+Boxs1:{#[ET:*](e:ET):mut Box[ET]->{
+  mut .get ->e;
+  read .get ->e;
+  imm .get ->e;
+  }}
+Boxs:{#[ET:*](e:ET):mut Box[ET]->{e}}
+"""));}
+
 @Test void toStr(){ok(List.of("""
 Str:{}
 ToStr:{ read .str: Str }
@@ -2117,7 +2131,13 @@ Box[EE:*]: ToStr[EE], ToImm[Box[EE],EE,Box[imm EE]]{
   .str by-> by#(this.get).str;
   .imm by-> Boxs#(by#(this.get).imm);
   }
+Boxs1:{#[ET:*](e:ET):mut Box[ET]->{
+  mut .get ->e;
+  read .get ->e;
+  imm .get ->e;
+  }}
 Boxs:{#[ET:*](e:ET):mut Box[ET]->{e}}
+
 A:ToStr,ToImm[A]{ .str->Str; .imm->A}
 TopToStr:{
   .m00(b:Box[A]):Str -> b.str {::};
@@ -2198,7 +2218,7 @@ Box[EE:*]: Order[Box[EE],EE]{
   read .get: read/imm EE;
   imm  .get: imm EE;
   .close->this;
-  .cmp by, a, b, m-> by#(a.get).cmp(a.get,b.get,m);
+  .cmp by, a, b, m-> by#(a.get).cmp(a.get[read],b.get[read],m);
   }
 A:Order[A]{ .close->this; .cmp a, b, m-> m.eq}
 Top:{ 
@@ -2294,7 +2314,7 @@ Box[EE:*]: OrderHash[Box[EE],EE]{
   read .get: read/imm EE;
   imm  .get: imm EE;
   .close->this;
-  .cmp by, a, b, m-> by#(a.get).cmp(a.get,b.get,m);
+  .cmp by, a, b, m-> by#(a.get).cmp(a.get[read],b.get[read],m);
   .hash by, h -> by#(this.get).hash h; 
   }
 A1:OrderHash[A1]{
@@ -2432,9 +2452,6 @@ OrderBy[T]:OrderBy[T,T]{
   .cmp[R:**](t0:read T,t1:read T,m:mut OrderMatch[R]): R;
   # t -> { .close -> t; .cmp t0,t1,m -> this.cmp(t0,t1,m) };
 }
-CompareBy:{
-  #[T,K](by:OrderBy[T,K]): OrderBy[T,K] -> by;
-}
 Order[T,E:*]:{
   read .close:read T;
   read .cmp[K,R:**](by: OrderBy[imm E,K], t0:read T,t1:read T, m: mut OrderMatch[R]): R;
@@ -2565,6 +2582,15 @@ Age:OrderHash[Age]{ read .close->this; read .cmp a,b,m->m.eq; read .hash h->0; }
 Name:OrderHash[Name]{ read .close->this; read .cmp a,b,m->m.eq; read .hash h->0; }
 Person:{ read .age: Age; read .name: Name; }
 
+CompareBy:{
+  #[T,K](by:OrderBy[T,K]): OrderBy[T,K] -> by;
+}
+CompareBy2a[T]:{
+  #[K](by:OrderBy[T,K]): OrderBy[T,K] -> by;
+}
+CompareBy2b[K]:{
+  #[T](by:OrderBy[T,K]): OrderBy[T,K] -> by;
+}
 AndThenTests2:{
   .orderOk0: OrderBy[Person,Age] ->
     {::.age};
@@ -2572,7 +2598,10 @@ AndThenTests2:{
     CompareBy#{::.age}.then{::.name};
   .max[T](order:OrderBy[Person,T]):Person;
   .orderOk2:Person->this.max(CompareBy#{::.age}.then{::.name});
+  .orderOk2a:Person->this.max(CompareBy2a[Person]#{::.age}.then{::.name});
+  .orderOk2b:Person->this.max(CompareBy2b[Age]#{::.age}.then{::.name});
   .orderOk3:Person->this.max({::.age}.then{::.name});
+  .orderOk4:Person->this.max({::.age});
 }
 """));}
 

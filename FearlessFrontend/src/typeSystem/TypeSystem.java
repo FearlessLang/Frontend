@@ -181,7 +181,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       && k().of(bs, x, EnumSet.of(iso,imm,mut,read));
   }
   private boolean isSameShapeSubtype(List<B> bs, T t1, T t2){
-    if (!t1.withRC(mut).equals(t2.withRC(mut))){ return false; }
+    if(!eqModXRC(bs,t1.withRC(mut),t2.withRC(mut))){ return false; }
     var rcs1= intrinsicRCs(bs, t1);
     var rcs2= intrinsicRCs(bs, t2);
     for (var r1 : rcs1){
@@ -223,7 +223,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     for (var s : group){
       if (s.equals(chosen)){ continue; }
       assert !s.origin().equals(chosen.origin()):
-        s.origin()+" "+chosen.origin()+"""        
+        s+" "+chosen+"""        
         The assert above is actually a big deal. It can logically break in an better version of Fearless
         when inference would know about subtypes when selecting the 'chosen'.
         Same origin can appear multiple times when the same generic supertype is inherited with
@@ -258,4 +258,16 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var badRet= !isSub(ctx, current.ret(), parent.ret());
     if (badRet){ throw tsE().methodOverrideSignatureMismatchCovariance(this,ctx,l,current,parent); }
   }
+  private boolean eqModXRC(List<B> bs,T a,T b){
+    if(a.equals(b)){ return true; }
+    if(a instanceof T.X ax && b instanceof T.RCX br && br.x().name().equals(ax.name())){ return redundantOnX(bs,br.rc(),ax.name()); }
+    if(a instanceof T.RCX ar && b instanceof T.X bx && ar.x().name().equals(bx.name())){ return redundantOnX(bs,ar.rc(),bx.name()); }
+    if(!(a instanceof T.RCC aa && b instanceof T.RCC bb)){ return false; }
+    if(!aa.c().name().equals(bb.c().name())){ return false; }
+    var as= aa.c().ts(); var bs2= bb.c().ts();
+    assert as.size() == bs2.size();
+    for(int i= 0; i < as.size(); i++){ if(!eqModXRC(bs,as.get(i),bs2.get(i))){ return false; } }
+    return true;
+  }
+  private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }  
 }

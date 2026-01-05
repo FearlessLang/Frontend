@@ -12,6 +12,7 @@ import core.RC;
 import core.Src;
 import core.TName;
 import core.TSpan;
+import utils.Bug;
 import utils.Join;
 import utils.Pos;
 
@@ -84,7 +85,8 @@ public sealed interface E {
     public Literal withCsMs(List<IT.C> cs, List<M> ms, boolean setInfHead){
       assert !setInfHead || !infHead;
       assert !setInfHead || t instanceof IT.RCC:t;
-      if (infHead && cs.equals(this.cs) && ms == this.ms){ return this; }
+      var noChange= infHead == setInfHead && cs.equals(this.cs) && ms == this.ms;
+      if (noChange){ return this; }
       assert ms == this.ms || !ms.equals(this.ms) : "Allocated equal MS:\n"+ms;
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,setInfHead,g.clear());
     }
@@ -99,14 +101,28 @@ public sealed interface E {
       assert unmodifiable(targs, "E.Call.targs");
     }
     public Call withMore(E e,RC rc,List<IT> targs,List<E> es,IT t){
+      assert es == this.es || !es.equals(this.es) : dbgEqList("es", this.es, es);
+      assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
+      assert es == this.es || !es.equals(this.es) : "Allocated equal es list";
       if (e == this.e && Optional.of(rc).equals(this.rc) && targs.equals(this.targs) && es == this.es && t.equals(this.t)){ return this; } 
       return new E.Call(e, name, Optional.of(rc),targs,es,t,src,g.clear());
     }
+    static String dbgEqList(String what, List<?> oldL, List<?> newL){
+  for (int i=0;i<oldL.size();i++){
+    Object o= oldL.get(i), n= newL.get(i);
+    if (o != n && o.equals(n)) return "Allocated equal "+what+" list at i="+i+"\nold="+o+"\nnew="+n;
+  }
+  return "Allocated equal "+what+" list (list.equals but no element eq-diff?)";
+}
+    //---
     public Call withEEs(E e,List<E> es){
+      assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
+      assert es == this.es || !es.equals(this.es) : "Allocated equal es list";
       if (e == this.e && es == this.es){ return this; }
       return new E.Call(e, name, rc,targs,es,t,src,g.clear());
     }
     public Call withE(E e){
+      assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
       if (e == this.e){ return this; }
       return new E.Call(e, name, rc,targs,es,t,src,g.clear());
     }
@@ -129,10 +145,13 @@ public sealed interface E {
     }
     public String toString(){ return ""+e+name+Join.of(es,"(",",","):","():")+t; }
     public E withEEs(E e, List<E> es) {
+      assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
+      assert es == this.es || !es.equals(this.es) : "Allocated equal es list";
       if (e == this.e && es == this.es){ return this; } 
       return new ICall(e,name,es,t,src,g.clear());
     }
     public E withE(E e) {
+      assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
       if (e == this.e){ return this; } 
       return new ICall(e,name,es,t,src,g.clear());
     }

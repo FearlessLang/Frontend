@@ -45,7 +45,7 @@ public sealed interface T {
     public <R> R accept(TVisitor<R> v){ return v.visitRCC(this); }
     public IT.RCC toIT(){
       List<IT> ts= c.ts().orElse(List.of()).stream().map(t->t.toIT()).toList();
-      return new IT.RCC(rc.orElse(RC.imm),new IT.C(c.name(),ts),span); 
+      return new IT.RCC(rc,new IT.C(c.name(),ts),span); 
     }
     public String toString(){ return "RCC[rc="+rc+",c="+c+"]"; }
   }

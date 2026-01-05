@@ -40,7 +40,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   @Override public IT visitReadImmX(fearlessFullGrammar.T.ReadImmX x){ return new IT.ReadImmX(visitTX(x.x())); }
   @Override public IT visitRCX(fearlessFullGrammar.T.RCX x){ return new IT.RCX(x.rc(), visitTX(x.x())); }
   @Override public IT.RCC visitRCC(fearlessFullGrammar.T.RCC c){
-    return new IT.RCC(c.rc().orElse(RC.imm),visitC(c.c()),c.span());
+    return new IT.RCC(Optional.of(c.rc().orElse(RC.imm)),visitC(c.c()),c.span());
   }
   public IT.C visitC(fearlessFullGrammar.T.C c){
     var tName= c.name();

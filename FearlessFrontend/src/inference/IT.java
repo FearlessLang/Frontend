@@ -46,33 +46,34 @@ public sealed interface IT {
       return name.s()+Join.of(ts,"[",",","]",""); 
     }
   }
-  record RCC(RC rc, C c, TSpan span) implements IT{
+  record RCC(Optional<RC> rc, C c, TSpan span) implements IT{
     static final int maxDepth=100;
-    public RCC(RC rc, C c, TSpan span){
+    public RCC(Optional<RC> rc, C c, TSpan span){
       nonNull(rc,c);
       this.rc=rc; this.c=c; this.span= span;
       if (c.depth() > maxDepth){ throw new WellFormednessErrors.ErrToFetchContext(this); }
     }
     static int depthFromTs(List<IT> ts){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1); }
-    static RCC ofOr(RCC fallback, RC rc, TName name, List<IT> ts, TSpan span){
+    static RCC ofOr(RCC fallback, Optional<RC> rc, TName name, List<IT> ts, TSpan span){
       int depth= depthFromTs(ts);
       if (depth > maxDepth){ return fallback; }
       return new RCC(rc, new C(name, ts, depth), span);
     }
     public RCC withTs(List<IT> ts){
-      if (ts == c.ts()){ return this; }
+      if (ts.equals(c.ts())){ return this; }
       return ofOr(this, rc, c.name(), ts, span);
     }
-    public RCC withRCTs(RC rc, List<IT> ts){
-      if (rc == this.rc && ts == c.ts()){ return this; }
-      if (ts == c.ts()){ return new RCC(rc, c, span); }
+    public RCC withRCTs(Optional<RC> rc, List<IT> ts){
+      var eqTs= ts.equals(c.ts());
+      if (rc.equals(this.rc) && eqTs){ return this; }
+      if (eqTs){ return new RCC(rc, c, span); }
       return ofOr(this, rc, c.name(), ts, span);
     }
     public long badness(){ return c.ts.stream().mapToLong(IT::badness).sum(); }
-    public String toString(){ return rc.toStrSpace()+c; }
+    public String toString(){ return rc.map(RC::toStrSpace).orElse("AnyRC ")+c; }
     public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
     public int depth(){ return c.depth(); }
-    public Optional<RC> explicitRC(){ return Optional.of(rc); }
+    public Optional<RC> explicitRC(){ return rc; }
   }
   enum U implements IT{ Instance; 
     public String toString(){ return "?";}
@@ -80,37 +81,25 @@ public sealed interface IT {
     public TSpan span(){throw Bug.unreachable(); }
     public long badness(){ return 1; }
   }
-  record Err(List<IT> conflicts, int depth) implements IT{
-    public Err{ assert depth < 10; }
-    public Err(List<IT> conflicts){ this(conflicts,conflicts.stream().mapToInt(IT::depth).max().getAsInt()); }
-    public String toString(){ return "Err";}
-    public TSpan span(){throw Bug.unreachable(); }
-    public long badness(){ return 1_000_000; }
-    public static Err merge(IT t1, IT t2){ return switch (t1){
-      case Err(var cs1,_) -> switch (t2){
-        case Err(var cs2,_) -> new Err(Stream.concat(cs1.stream(),cs2.stream()).distinct().toList());
-        default -> new Err(Stream.concat(cs1.stream(),Stream.of(t2)).distinct().toList());
-      };
-      default -> switch (t2){
-        case Err(var cs2,_) -> new Err(Stream.concat(Stream.of(t1),cs2.stream()).distinct().toList());
-        default -> new Err(List.of(t1,t2));
-      };
-    };}
-  }
   default IT withRC(RC rc){ return switch (this){ // T[RC]
-    case RCC(var _, var c, var span) -> new RCC(rc, c, span);
+    case RCC(var _, var c, var span) -> new RCC(Optional.of(rc), c, span);
     case RCX(var _, var x) -> new RCX(rc, x);
     case X x -> new RCX(rc, x);
     case ReadImmX(var x) -> new RCX(rc, x);
     case IT.U _   -> this;
-    case IT.Err _ -> this;
   };}
   default IT readImm(){ return switch (this){ // T[read/imm]
     case X x -> new ReadImmX(x);
     case ReadImmX _ -> this;
-    case RCC(var rc, var c, var span) -> new RCC(rc.readImm(), c, span);
+    case RCC(var rc, var c, var span) -> new RCC(rc.map(RC::readImm), c, span);
     case RCX(var rc, var x) -> new RCX(rc.readImm(), x);
     case U _   -> this;
-    case Err _ -> this;
+  };}
+  default IT weakenRCC(){ return switch (this){
+    case X _ -> this;
+    case ReadImmX _ ->this;
+    case RCC(_, var c, var span) -> new RCC(Optional.empty(), c, span);
+    case RCX _ -> this;
+    case U _   -> this;
   };}
 }
