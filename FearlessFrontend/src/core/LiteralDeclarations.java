@@ -112,13 +112,7 @@ public class LiteralDeclarations {
       assert floatLiteralExactlyRepresentable(ns);
       return Double.toString(floatLiteralDouble(ns))+"d";
     }
-    if (TokenKind.isKind(ns,TokenKind.SignedRational)){
-      int i= ns.indexOf('/');
-      assert i != -1;
-      String num= ns.substring(0,i), den= ns.substring(i+1);
-      return "new java.math.BigInteger(\""+num+"\")"
-          + ",new java.math.BigInteger(\""+den+"\")";
-    }    
+    if (TokenKind.isKind(ns,TokenKind.SignedRational)){ return Dec.signedRationalCtorArgs(ns); }    
     throw Bug.unreachable();
   }
   static String javaStrLit(String raw){
@@ -130,5 +124,28 @@ public class LiteralDeclarations {
       sb.append(c);
     }
     return sb.append('"').toString();
+  }
+}
+record Dec(BigInteger u,int scale){
+  static Dec parse(String s){
+    s= s.replace("_","");
+    int dot= s.indexOf('.');
+    if (dot==-1){ return new Dec(new BigInteger(s),0); }
+    return new Dec(new BigInteger(s.substring(0,dot)+s.substring(dot+1)), s.length()-dot-1);
+  }
+  static String signedRationalCtorArgs(String token){
+    token= token.replace("_","");
+    boolean neg= token.charAt(0) == '-';
+    if (token.charAt(0)=='+' || neg){ token= token.substring(1); }
+    int i= token.indexOf('/');
+    assert i!=-1;
+    var a= parse(token.substring(0,i));
+    var b= parse(token.substring(i+1));
+    var ten= BigInteger.TEN;
+    var num= a.u.multiply(ten.pow(b.scale));
+    var den= b.u.multiply(ten.pow(a.scale));
+    if (neg){ num= num.negate(); }
+    return "new java.math.BigInteger(\""+num+"\")"
+        + ",new java.math.BigInteger(\""+den+"\")";
   }
 }
