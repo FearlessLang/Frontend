@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import fearlessParser.Parser;
+import inject.TypeRename;
 import metaParser.NameSuggester;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
@@ -33,7 +34,16 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
      if (!res.infName() || res.cs().isEmpty()){ return n; }
      return res.cs().getFirst().name();
    };
-   return new Err(f,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
+   Function<T.C,T.C> publicHead= c->{
+     var d= decs.apply(c.name());
+     if (!d.infName()){ return c; }
+     var xs= d.bs().stream().map(B::x).toList();
+     return d.cs().stream()
+       .<T.C>map(sc->TypeRename.of(sc, xs, c.ts()))
+       .filter(scC->!decs.apply(scC.name()).infName())
+       .findFirst().orElseThrow();
+    };
+   return new Err(publicHead,f,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
   public FearlessException mCallFrame(M m, FearlessException fe){
     return fe.addFrame(err().methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
   }
@@ -381,7 +391,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     //TODO: line reqs.getFirst().t(); above, should we use the best return with ordering on rcs?
     var e= err()        
       .pCallCantBeSatisfied(d,c)
-      .line("Argument "+(argi+1)+" has type "+err().typeRepr(ts,true,gotHdr)+".")
+      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true,gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true,required)+" (the type required by the method signature).");
     return withCallSpans(e.ex(ts.scope().pushCallArgi(c,argi).contextE()), c);
   }

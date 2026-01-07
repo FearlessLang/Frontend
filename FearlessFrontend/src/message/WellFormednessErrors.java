@@ -36,7 +36,7 @@ public record WellFormednessErrors(String pkgName){
   public static class ErrToFetchContext extends RuntimeException{
     public ErrToFetchContext(IT.RCC c){this.c= c;} public IT.RCC c;
     }
-  Err err(){ return new Err(x->x, trunk->new CompactPrinter(pkgName, Map.of(), trunk), new StringBuilder()); }
+  Err err(){ return new Err(y->y,x->x, trunk->new CompactPrinter(pkgName, Map.of(), trunk), new StringBuilder()); }
 
   public FearlessException notClean(URI uri, FileFull f){
     var e= err()

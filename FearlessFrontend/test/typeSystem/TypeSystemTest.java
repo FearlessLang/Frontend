@@ -460,7 +460,7 @@ User:{
    |   -----------------------------~~~^^^^-
 
 While inspecting object literal instance of "Foo" > "#(_)" line 8 > ".m" line 8
-Method "#(_)" inside the object literal instance of "F[_,_]" (line 8)
+Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 8)
 is implemented with an expression returning "Foo".
 Object literal is of type "Foo" instead of a subtype of "Car".
 
@@ -3003,4 +3003,40 @@ Did you mean "httpServerPort" ?
 A:{}
 User:{.f(httpServerPort:A):A->serverPort;}
 """));}
+
+//-- errors with generic heads
+@Test void genHeadReported(){fail("""
+005| User:{.f(c:C[A]):C[B]->c;}
+   |       -----------------^^
+
+While inspecting parameter "c" > ".f(_)" line 5
+The body of method ".f(_)" of type declaration "User" is an expression returning "C[A]".
+Parameter "c" has type "C[A]" instead of a subtype of "C[B]".
+
+See inferred typing context below for how type "C[B]" was introduced: (compression indicated by `-`)
+User:{.f(c:C[A]):C[B]->c}
+""",List.of("""
+A:{}
+B:{}
+C[X]:{}
+User:{.f(c:C[A]):C[B]->c;}
+"""));}
+@Test void genHeadReportedObjLit(){fail("""
+005| User:{.f(c:C[A]):C[B]->C[A]{ .foo:A->A };}
+   |       -----------------^^---------------
+
+While inspecting object literal instance of "C[A]" > ".f(_)" line 5
+The body of method ".f(_)" of type declaration "User" is an expression returning "C[A]".
+Object literal is of type "C[A]" instead of a subtype of "C[B]".
+
+See inferred typing context below for how type "C[B]" was introduced: (compression indicated by `-`)
+User:{.f(c:C[A]):C[B]->C[A]{.foo:A->A}}
+""",List.of("""
+A:{}
+B:{}
+C[X]:{}
+User:{.f(c:C[A]):C[B]->C[A]{ .foo:A->A };}
+"""));}
+
+
 }
