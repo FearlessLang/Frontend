@@ -201,7 +201,7 @@ public record InjectionSteps(Methods meths){
   E next(List<B> bs, Gamma g, E e){
     try{
       var res= _next(bs,g,e);
-      //assert meet(e.t(),res.t()).equals(res.t()): e.t()+" "+res.t(); Does not hold. How can it be?
+      //assert meet(e.t(),res.t()).equals(res.t()): e.t()+" "+res.t();// Does not hold. How can it be?
       return res; 
     }
     catch(WellFormednessErrors.ErrToFetchContext depthErr){

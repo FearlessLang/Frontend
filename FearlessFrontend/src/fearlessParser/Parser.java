@@ -304,7 +304,17 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       Span at= span(tok, peek(1).get()).orElse(span());
       throw errFactory().missingDotBeforeMethodName(at, tok.content());
     }
+    var tok= peek();
     var m= parseIf(peek(DotName,Op),this::parseMName);
+    try{ return parseSigAfterName(rc, m); }
+    catch(FearlessException exc){
+      var forgotSpace= tok.isPresent() && m.isPresent() && m.get().s().endsWith("->"); 
+      if (!forgotSpace){ throw exc; }
+      Span at= tok.get().span(span().fileName());
+      throw errFactory().forgotSpace(at,m.get().s());
+    }
+  }
+  private Sig parseSigAfterName(Optional<RC> rc, Optional<MName> m) {
     var bs= parseIf(peek(_SquareGroup),()->parseBs(true));
     var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
     checkValidNew_Xs(Xs);

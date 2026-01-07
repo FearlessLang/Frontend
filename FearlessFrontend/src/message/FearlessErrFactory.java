@@ -89,6 +89,13 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       Use one of read, mut, imm.      
       """).addSpan(at);
   }
+  public FearlessException forgotSpace(Span at,String name){
+    return Code.UnexpectedToken.of(
+      "Did you forgot a space in "+Message.displayString(name)+"?\n"
+      +"Did you mean "+Message.displayString(name.substring(0,name.length()-2)+" ->")+"?\n"
+    ).addSpan(at);
+  }
+
   public FearlessException disallowedPackageNotEmpty(Span at){
     return Code.UnexpectedToken.of(
       "The package declaration must be at the very beginning of the file.\n"
