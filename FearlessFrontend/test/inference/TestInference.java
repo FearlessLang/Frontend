@@ -2,7 +2,6 @@ package inference;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import testUtils.DbgBlock;
@@ -1303,28 +1302,6 @@ List.of("""
 A:{imm .m:base.Void; imm .m:base.Void}
 """));}
 
-//Moving to a further place in the pipeline?
-@Disabled @Test void badImplementsVoid(){ fail("""
-In file: [###]/in_memory0.fear
-
-007|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
-   |                                            ^^^^^^^^^^
-
-While inspecting object literal instance of "base.Void"
-Object literal instance of "base.Void" implements sealed type "base.Void".
-Sealed types can only be implemented in their own package.
-Object literal instance of "base.Void" is defined in package "p".
-Type "Void" is defined in package "base".
-Error 9 WellFormedness
-""", List.of("""
-Sup:{
-  imm .h:base.Void;
-  imm .k:base.Void;
-}
-User:{
-  imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
-}
-"""));}
 @Test void goodImplementsVoid(){ ok("""
 p.Bad:p.Sup{'_ .h:base.Void@p.Bad;->p._AUser:base.Void:?; .k:base.Void@p.Sup;}
 p.Sup:{'this .h:base.Void@p.Sup; .k:base.Void@p.Sup;}
@@ -1337,6 +1314,30 @@ Sup:{
 User:{
   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{  } }
 }
+"""));}
+
+@Test void namedLiteralDup(){ fail("""
+In file: [###]/in_memory0.fear
+
+007| B:A{
+008|   .h->MyAge:Age{}
+009|   }
+
+While inspecting type declaration "B"
+Type declaration "B" implements method ".h".
+The body of method "B.h" needs to be duplicated to satify multiple RC overloads from the supertypes.
+However, it contains object literal "MyAge".
+Object literals with their own unique explicit type can not be duplicated.
+Error 9 WellFormedness
+""", List.of("""
+Age:{}
+A:{
+  imm .h:Age;
+  mut .h:Age;
+}
+B:A{
+  .h->MyAge:Age{} 
+  }
 """));}
 
 

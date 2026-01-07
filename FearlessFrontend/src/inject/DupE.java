@@ -9,7 +9,7 @@ import inference.Gamma;
 import inference.M;
 import naming.FreshPrefix;
 
-public record DupE(FreshPrefix fresh){
+public record DupE(FreshPrefix fresh, E.Literal out, M m,message.WellFormednessErrors err){
   public E of(E e){ return switch (e){
     case E.X x -> new E.X(x.name(), x.t(), x.src(), new Gamma.GammaSignature());
     case E.Type t -> new E.Type(t.type(), t.t(), t.src(), new Gamma.GammaSignature());
@@ -20,7 +20,7 @@ public record DupE(FreshPrefix fresh){
   private List<E> ofEs(List<E> es){ return es.stream().map(this::of).toList(); }
 
   private E.Literal ofL(E.Literal l){
-    assert l.infName() : "TODO: to user facing error. Duplicating body contains user-named literal: "+l.name();
+    if (!l.infName()){ throw err.duplicatedNamedLiteral(out,m,l); }
     TName oldName= l.name();
     TName newName= fresh.freshTopType(oldName, oldName.arity());
     List<M> ms= l.ms().stream().map(m->ofM(m, oldName, newName)).toList();

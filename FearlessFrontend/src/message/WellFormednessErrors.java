@@ -347,7 +347,7 @@ public record WellFormednessErrors(String pkgName){
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, FreshPrefix fresh, int userArity, int superArity, List<B> userBs, List<B> superBs){
     String sB= Err.disp(superBs.stream().map(b->new B("-", b.rcs())).toList());
     return err()
-      .line("Invalid method implementation for "+err().methodSig(at.lit(), at.mName())+".")
+      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(),at.lit(), at.mName())+".")
       .line("The method "+err().methodSig(at.mName())+" declares "+userArity+" type parameter(s), but supertypes declare "+superArity+".")
       .line("Local declaration: "+Err.disp(userBs)+".")
       .line("From supertypes: "+sB+".")
@@ -366,7 +366,7 @@ public record WellFormednessErrors(String pkgName){
     String m= err().methodSig(at.mName());
 
     return err()
-      .line("Invalid method implementation for "+err().methodSig(at.lit(), at.mName())+".")
+      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(),at.lit(), at.mName())+".")
       .line("Supertypes disagree on the capability bounds for type parameter "+(i+1)+" of "+m+".")
       .line("Type parameter names may differ across supertypes; only the position matters.")
       .line("Different supertypes declare: "+opts)
@@ -386,7 +386,7 @@ public record WellFormednessErrors(String pkgName){
     String sB= Err.disp(new B("-", s.rcs()));
 
     return err()
-      .line("Invalid method implementation for "+err().methodSig(at.lit(), at.mName())+".")
+      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(),at.lit(), at.mName())+".")
       .line("The local declaration uses different capability bounds than the supertypes for type parameter "+(i+1)+" of "+m+".")
       .line("Local: "+uB+".")
       .line("From supertypes: "+sB+".")
@@ -443,6 +443,18 @@ public record WellFormednessErrors(String pkgName){
       .line("Found the following base.WidenTo supertypes:");
     widen.forEach(c->e.bullet(Err.disp(c.toString())));
     return e.wf().addFrame(err().expRepr(owner), owner.span().inner);
+  }
+  public FearlessException duplicatedNamedLiteral(E.Literal owner,M m, E.Literal in){
+    String ctx= Err.up(err().expRepr(owner));
+    return err()
+      .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
+      .line("The body of method "+err().methodSig("",owner,m.sig().m().get())+" needs to be duplicated to satify multiple RC overloads from the supertypes.")
+      .line("However, it contains "+err().expRepr(in)+".")
+      .line("Object literals with their own unique explicit type can not be duplicated.")
+      .wf()
+      .addFrame(err().expRepr(owner), owner.span().inner);
+
+        //assert l.infName() : "TODO: to user facing error. Duplicating body contains user-named literal: "+l.name();
   }
 
   public FearlessException extendedSealed(E.Literal owner, FreshPrefix fresh, TName isSealed){

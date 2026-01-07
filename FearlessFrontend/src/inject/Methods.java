@@ -221,7 +221,7 @@ public record Methods(
       }
       boolean first= true;
       for (var matches: match.values()){
-        var mi= first ? m : new DupE(fresh).ofM(m,origin.name(),origin.name());
+        var mi= first ? m : new DupE(fresh,origin,m,this.p().err()).ofM(m,origin.name(),origin.name());
         first= false;
         var m2= pairWithSig(Collections.unmodifiableList(matches), mi, origin);
         assert (m2 == mi) == m2.equals(mi);

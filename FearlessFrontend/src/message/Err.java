@@ -108,9 +108,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case inference.E.Type t-> "object literal instance of " + t;
     };}
   String methodSig(MName m){ return methodSig("",m); }
-  String methodSig(TName pre, MName m){ return methodSig(tNameA(pre),m); }
-  String methodSig(Literal l, MName m){ return methodSig(bestLitName(true,true,l),m); }
-  String methodSig(inference.E.Literal l, MName m){ return methodSig(bestLitName(l),m); }
+  String methodSig(String pre, TName t, MName m){ return methodSig(pre+tNameA(t),m); }
+  String methodSig(String pre, Literal l, MName m){ return methodSig(pre+bestLitName(true,true,l),m); }
+  String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+bestLitName(l),m); }
   String methodSig(String pre, MName m){
     return disp(Join.of(
       IntStream.range(0,m.arity()).mapToObj(_->"_"),
@@ -139,8 +139,8 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       .line("for type parameter "+paramName+" in "+kindingTarget+".")
       .line("Here "+paramName+" can only use capabilities "+allowedStr+".");
   }
-  public Err invalidMethImpl(Literal l, MName m){ 
-    return line("Invalid method signature overriding for "+methodSig(l,m)+".");
+  public Err invalidMethImpl(String pre,Literal l, MName m){ 
+    return line("Invalid method signature overriding for "+methodSig(pre,l,m)+".");
   }
 
   Err compactPrinterLine(E e){ return line(cp(true).limit(e,120)); }
@@ -167,7 +167,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return first+s.replace("\n","\n"+rest);
   }
   Err pCallCantBeSatisfied(Literal d, Call c){
-    return line("This call to method "+methodSig(d,c.name())+" can not typecheck.");
+    return line("This call to method "+methodSig(c.rc().toStrSpace(),d,c.name())+" can not typecheck.");
   }
   Err notInSubtypeList(List<String> options){
     if (options.size() == 1){ return this; };

@@ -12,7 +12,6 @@ import core.RC;
 import core.Src;
 import core.TName;
 import core.TSpan;
-import utils.Bug;
 import utils.Join;
 import utils.Pos;
 

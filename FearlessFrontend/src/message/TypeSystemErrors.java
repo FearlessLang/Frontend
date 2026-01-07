@@ -87,7 +87,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var bs= m.sig().bs();
     assert index >= 0 && index < bs.size();
     var param= bs.get(index);
-    String decName   = err().methodSig(t.name(), c.name()); // p.A.m(...)
+    String decName   = err().methodSig(c.rc().toStrSpace(),t.name(), c.name()); // p.A.m(...)
     T bad            = c.targs().get(index);
     return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, err().typeRepr(true,bad), allowedStr);
   } 
@@ -104,9 +104,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       ? "It is instead a supertype: you are strenghtening the parameter instead of weakening it."
       : "The two types are unrelated.";
     return overrideErr(l, current, err()
-      .invalidMethImpl(l,mName)//TODO: this should compute/receive skipImm
+      .invalidMethImpl(current.rc().toStrSpace(),l,mName)
       .line("The method "+err().methodSig(mName)+" accepts parameter "+(index+1)+" of type "+err().typeRepr(true,currentArg)+".")
-      .line("But "+err().methodSig(parent.origin(),mName)+" requires "+err().typeRepr(true,parentArg)+", which is not a subtype of "+err().typeRepr(true,currentArg)+".")
+      .line("But "+err().methodSig(current.rc().toStrSpace(),parent.origin(),mName)+" requires "+err().typeRepr(true,parentArg)+", which is not a subtype of "+err().typeRepr(true,currentArg)+".")
       .line(inverse)
     );
   }
@@ -122,9 +122,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       ? "It is instead a subtype: you are weakening the result instead of strenghtening it."
       : "The two types are unrelated.";
     return overrideErr(l, current, err()
-      .invalidMethImpl(l,mName)
+      .invalidMethImpl(current.rc().toStrSpace(),l,mName)
       .line("The method "+err().methodSig(mName)+" returns type "+err().typeRepr(true,currentRet)+".")
-      .line("But "+err().methodSig(parent.origin(),mName)+" returns type "+err().typeRepr(true,parentRet)+", which is not a supertype of "+err().typeRepr(true,currentRet)+".")
+      .line("But "+err().methodSig(current.rc().toStrSpace(),parent.origin(),mName)+" returns type "+err().typeRepr(true,parentRet)+", which is not a supertype of "+err().typeRepr(true,currentRet)+".")
       .line(inverse)
     );
   }
@@ -148,7 +148,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     assert l.rc() == RC.imm || l.rc() == RC.read;
     String m= err().methodSig(s.rc()+" ", s.m());
     return addExpFrame(l, err()
-      .line("The method "+err().methodSig(l,s.m())+" is dead code.")
+      .line("The method "+err().methodSig(s.rc().toStrSpace(),l,s.m())+" is dead code.")
       .line("The "+err().expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".")
       .line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver.")
       .ex(l).addSpan(at.inner));
@@ -160,7 +160,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   public FearlessException notAffineIso(Literal l,M m, String name, boolean earlyErrOnMoreThenOnceDirectly, List<E.X> usages){
     assert !usages.isEmpty();
     int line= m.sig().span().inner.startLine();
-    String ms= err().methodSig(l, m.sig().m());
+    String ms= err().methodSig(m.sig().rc().toStrSpace(),l, m.sig().m());
     String x= disp(name);
     var e= err()
       .line("Iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+line+").");

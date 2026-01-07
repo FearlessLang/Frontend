@@ -19,7 +19,6 @@ import inference.IT;
 import inference.IT.RCC;
 import inference.M;
 import message.WellFormednessErrors;
-import utils.Bug;
 import utils.OneOr;
 import utils.Push;
 import utils.Streams;

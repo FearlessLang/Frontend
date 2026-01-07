@@ -56,7 +56,7 @@ public final class Reason{
       var best= TypeScope.bestInterestingScope(scope, interest);
       return Optional.of(best.contextE());
     };
-    return new Reason(got,ts.err().gotMsg(true,"Method call "+ts.err().methodSig(d,call.name()),got, req.t()),
+    return new Reason(got,ts.err().gotMsg(true,"Method call "+ts.err().methodSig(call.rc().toStrSpace(),d,call.name()),got, req.t()),
       footerE);
   }
   public static Reason parameterDoesNotHaveRequiredTypeHere(

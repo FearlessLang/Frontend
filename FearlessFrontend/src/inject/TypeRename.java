@@ -7,7 +7,6 @@ import core.RC;
 import core.T;
 import core.TName;
 import core.TSpan;
-import utils.Bug;
 import utils.Pos;
 import inference.IT;
 

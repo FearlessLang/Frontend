@@ -1,6 +1,8 @@
 package typeSystem;
 
 import java.util.List;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class TypeSystemTest extends testUtils.FearlessTestBase{
@@ -293,7 +295,7 @@ User:{ imm .m(a:imm A,b:mut B):read B->a.id(b); }
 006|   }
 
 While inspecting object literal "read BB" > ".m" line 4
-The method "BB.h" is dead code.
+The method "mut BB.h" is dead code.
 The object literal "BB" is "read", so it will never be seen as "mut".
 But it implements method "mut .h", which requires a "mut" receiver.
 
@@ -314,7 +316,7 @@ User:{
 006|   }
 
 While inspecting object literal "BB" > ".m" line 4
-The method "BB.h" is dead code.
+The method "mut BB.h" is dead code.
 The object literal "BB" is "imm", so it will never be seen as "mut".
 But it implements method "mut .h", which requires a "mut" receiver.
 
@@ -1034,7 +1036,7 @@ User:{
    |     -^^^^^^-----------
 
 While inspecting ".m(_,_,_)" line 8
-This call to method "Pairer.pair(_,_)" can not typecheck.
+This call to method "read Pairer.pair(_,_)" can not typecheck.
 Wrong number of type arguments for ".pair(_,_)".
 This method expects 2 type arguments, but this call provides 1 type argument.
 
@@ -1058,7 +1060,7 @@ User:{
    |     -^^^^---------------------
 
 While inspecting ".m(_,_)" line 9
-This call to method "Id.id(_)" can not typecheck.
+This call to method "read Id.id(_)" can not typecheck.
 Wrong number of type arguments for ".id(_)".
 This method expects 1 type argument, but this call provides 3 type arguments.
 
@@ -1083,7 +1085,7 @@ User:{
    |     ----^^^^^--
 
 While inspecting ".m(_)" line 5
-This call to method "User.zap(_)" can not typecheck.
+This call to method "mut User.zap(_)" can not typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso" or "mutH".
 
@@ -1508,7 +1510,7 @@ A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
    |                                ------------~~~~^^^^^^^^
 
 While inspecting ".bar" line 2
-This call to method "A.foo123" can not typecheck.
+This call to method "mut A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso" or "mutH".
 
@@ -1546,7 +1548,7 @@ A:{mut .foo123:A->this.foo123; read .foo123:A->this.foo123; imm .bar:A->this.foo
    |     ----^^^^^^^^-----
 
 While inspecting ".bar" line 7
-This call to method "A.foo123" can not typecheck.
+This call to method "mut A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso" or "mutH".
 
@@ -1590,7 +1592,7 @@ A:{ mut .baz(b: B):B->{}; }
    |     ------------------~~^^^^^^^~
 
 While inspecting object literal instance of "B" > ".baz(_)" line 3
-The method "B.bar" is dead code.
+The method "mut B.bar" is dead code.
 The object literal instance of "B" is "imm", so it will never be seen as "mut".
 But it implements method "mut .bar", which requires a "mut" receiver.
 
@@ -3038,5 +3040,26 @@ C[X]:{}
 User:{.f(c:C[A]):C[B]->C[A]{ .foo:A->A };}
 """));}
 
+@Test void badImplementsVoid(){ typeFailExt("""
+In file: [###]/in_memory0.fear
+
+007|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
+   |                                            ^^^^^^^^^^
+
+While inspecting object literal instance of "base.Void"
+Object literal instance of "base.Void" implements sealed type "base.Void".
+Sealed types can only be implemented in their own package.
+Object literal instance of "base.Void" is defined in package "p".
+Type "Void" is defined in package "base".
+Error 9 WellFormedness
+""", List.of("""
+Sup:{
+  imm .h:base.Void;
+  imm .k:base.Void;
+}
+User:{
+  imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
+}
+"""));}
 
 }
