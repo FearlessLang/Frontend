@@ -2664,4 +2664,343 @@ Box[E:*]: _Box[E]{
   ! -> this.match{ .some x -> x; .empty  -> base.Todo!; };
 }
 """));}
+
+
+//----Testing name suggester
+@Test void nameSuggester_1(){typeFailExt("""
+[###]
+Did you mean "FooBar" ?
+[###]
+""",List.of("""
+FooBar:{}
+User:{.foo:Foo;}
+"""));}
+
+@Test void nameSuggester_2(){typeFailExt("""
+[###]
+Did you mean "abcDef" ?
+[###]
+""",List.of("""
+A:{}
+User:{.foo(abc:A, abcDef:A):A->abcDeee;}
+"""));}
+
+@Test void nameSuggester_3(){typeFailExt("""
+[###]
+Did you mean ".foo2" ?
+[###]
+""",List.of("""
+A:{}
+User:{
+  .foo1:A->this.foo22;
+  .foo2:A;
+  .foo3:A;
+  }
+"""));}
+
+// Missing TypeName
+
+@Test void nameSuggester_4(){typeFailExt("""
+[###]
+Did you mean "FooBar" ?
+[###]
+""",List.of("""
+FooBar:{}
+User:{.foo:FooBaar;}
+"""));}
+
+@Test void nameSuggester_5(){typeFailExt("""
+[###]
+Did you mean "NumExact" ?
+[###]
+""",List.of("""
+NumExact:{}
+User:{.foo:Num;}
+"""));}
+
+@Test void nameSuggester_6(){typeFailExt("""
+[###]
+Did you mean "ReadOnly" ?
+[###]
+""",List.of("""
+ReadOnly:{}
+User:{.foo:ReadOnyl;}
+"""));}
+
+@Test void nameSuggester_7(){typeFailExt("""
+[###]
+Did you mean "HTTPServer" ?
+[###]
+""",List.of("""
+HTTPServer:{}
+User:{.foo:HttpServer;}
+"""));}
+
+@Test void nameSuggester_8(){typeFailExt("""
+[###]
+Did you mean "JSONParser" ?
+[###]
+""",List.of("""
+JSONParser:{}
+User:{.foo:JsonParser;}
+"""));}
+
+@Test void nameSuggester_9(){typeFailExt("""
+[###]
+Did you mean "XMLHttpRequest" ?
+[###]
+""",List.of("""
+XMLHttpRequest:{}
+User:{.foo:XmlHttpRequest;}
+"""));}
+
+@Test void nameSuggester_10(){typeFailExt("""
+[###]
+Did you mean "URLDecoder" ?
+[###]
+""",List.of("""
+URLDecoder:{}
+User:{.foo:UrlDecoder;}
+"""));}
+
+@Test void nameSuggester_11(){typeFailExt("""
+[###]
+Did you mean "ASCIIParser" ?
+[###]
+""",List.of("""
+ASCIIParser:{}
+User:{.foo:AsciiParser;}
+"""));}
+
+@Test void nameSuggester_12(){typeFailExt("""
+[###]
+Did you mean "FooBar''''" ?
+[###]
+""",List.of("""
+FooBar'''':{}
+User:{.foo:FooBar'';}
+"""));}
+
+@Test void nameSuggester_13(){typeFailExt("""
+[###]
+Did you mean "FooBar" ?
+[###]
+""",List.of("""
+FooBar:{}
+User:{.foo:Bar;}
+"""));}
+
+// Missing .methName
+
+@Test void nameSuggester_14(){typeFailExt("""
+[###]
+Did you mean ".numExact" ?
+[###]
+""",List.of("""
+A:{}
+User:{
+  .numExact:A;
+  .go:A->this.num;
+  }
+"""));}
+
+@Test void nameSuggester_15(){typeFailExt("""
+[###]
+Did you mean ".toJSON" ?
+[###]
+""",List.of("""
+A:{}
+User:{
+  .toJSON:A;
+  .go:A->this.toJson;
+  }
+"""));}
+
+@Test void nameSuggester_16(){typeFailExt("""
+[###]
+Did you mean ".parseXML" ?
+[###]
+""",List.of("""
+A:{}
+User:{
+  .parseXML:A;
+  .go:A->this.parseXml;
+  }
+"""));}
+
+@Test void nameSuggester_17(){typeFailExt("""
+[###]
+Did you mean ".myHttpServer" ?
+[###]
+""",List.of("""
+A:{}
+User:{
+  .myHttpServer:A;
+  .go:A->this.myHTTPServer;
+  }
+"""));}
+
+@Test void nameSuggester_18(){typeFailExt("""
+[###]
+Did you mean ".sha256" ?
+[###]
+""",List.of("""
+A:{}
+User:{
+  .sha256:A;
+  .go:A->this.sha265;
+  }
+"""));}
+
+@Test void nameSuggester_19(){typeFailExt("""
+[###]
+Did you mean ".foo'''''" ?
+[###]
+""",List.of("""
+A:{}
+User:{
+  .foo''''':A;
+  .go:A->this.foo'';
+  }
+"""));}
+
+@Test void nameSuggester_20(){typeFailExt("""
+[###]
+Did you mean ".readOnly" ?
+[###]
+""",List.of("""
+A:{}
+User:{
+  .readOnly:A;
+  .go:A->this.read;
+  }
+"""));}
+
+@Test void nameSuggester_21(){typeFailExt("""
+[###]
+Did you mean ".makeUUID" ?
+[###]
+""",List.of("""
+A:{}
+User:{
+  .makeUUID:A;
+  .go:A->this.makeUuid;
+  }
+"""));}
+
+@Test void nameSuggester_22(){typeFailExt("""
+[###]
+Did you mean ".asUTF8" ?
+[###]
+""",List.of("""
+A:{}
+User:{
+  .asUTF8:A;
+  .go:A->this.asUtf8;
+  }
+"""));}
+
+@Test void nameSuggester_23(){typeFailExt("""
+[###]
+Did you mean ".xmlHttpRequest" ?
+[###]
+""",List.of("""
+A:{}
+User:{
+  .xmlHttpRequest:A;
+  .go:A->this.xmlHTTPRequest;
+  }
+"""));}
+
+// Missing parName
+
+@Test void nameSuggester_24(){typeFailExt("""
+[###]
+Did you mean "numExact" ?
+[###]
+""",List.of("""
+A:{}
+User:{.f(numExact:A):A->num;}
+"""));}
+
+@Test void nameSuggester_25(){typeFailExt("""
+[###]
+Did you mean "toJSON" ?
+[###]
+""",List.of("""
+A:{}
+User:{.f(toJSON:A):A->toJson;}
+"""));}
+
+@Test void nameSuggester_26(){typeFailExt("""
+[###]
+Did you mean "httpServer" ?
+[###]
+""",List.of("""
+A:{}
+User:{.f(httpServer:A):A->myHttpServer;}
+"""));}
+
+@Test void nameSuggester_27(){typeFailExt("""
+[###]
+Did you mean "x'''''" ?
+[###]
+""",List.of("""
+A:{}
+User:{.f(x''''':A):A->x'';}
+"""));}
+
+@Test void nameSuggester_28(){typeFailExt("""
+[###]
+Did you mean "byteBuffer" ?
+[###]
+""",List.of("""
+A:{}
+User:{.f(byteBuffer:A):A->buffer;}
+"""));}
+
+@Test void nameSuggester_29(){typeFailExt("""
+[###]
+Did you mean "fooBarBaz" ?
+[###]
+""",List.of("""
+A:{}
+User:{.f(fooBarBaz:A):A->fooBarBax;}
+"""));}
+
+@Test void nameSuggester_30(){typeFailExt("""
+[###]
+Did you mean "length" ?
+[###]
+""",List.of("""
+A:{}
+User:{.f(length:A):A->lenght;}
+"""));}
+
+@Test void nameSuggester_31(){typeFailExt("""
+[###]
+Did you mean "sha256" ?
+[###]
+""",List.of("""
+A:{}
+User:{.f(sha256:A):A->sha265;}
+"""));}
+
+@Test void nameSuggester_32(){typeFailExt("""
+[###]
+Did you mean "fooBar" ?
+[###]
+""",List.of("""
+A:{}
+User:{.f(fooBar:A):A->myFooBar;}
+"""));}
+
+@Test void nameSuggester_33(){typeFailExt("""
+[###]
+Did you mean "httpServerPort" ?
+[###]
+""",List.of("""
+A:{}
+User:{.f(httpServerPort:A):A->serverPort;}
+"""));}
 }
