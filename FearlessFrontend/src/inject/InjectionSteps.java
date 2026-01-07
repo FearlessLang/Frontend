@@ -95,11 +95,9 @@ public record InjectionSteps(Methods meths){
     var bSuper= isASuperB(b.c().name(), a.c().name()); // b is super of a
     var aBad= bSuper ? Math.max(badnessAs(a, b.c().name()),a.badness()) : a.badness();
     var bBad= aSuper ? Math.max(badnessAs(b, a.c().name()),b.badness()) : b.badness();
-//Cases considered: A[?] < B[?,?] vs B[X,?] = B[X,?] win;   A[?] < B vs A[T] = A[T] win
-
+    //Cases considered: A[?] < B[?,?] vs B[X,?] = B[X,?] win;   A[?] < B vs A[T] = A[T] win
     var aDep= a.depth();
     var bDep= b.depth();
-    if (aBad != bBad){ return aBad < bBad ? a : b; }
     if (aBad != bBad){ return aBad < bBad ? a : b; }
     if (aSuper){ return b; }
     if (bSuper){ return a; }
@@ -290,15 +288,31 @@ public record InjectionSteps(Methods meths){
     var t1= g.get(x.name());
     var t2= x.t();
     if (t1.equals(t2)){ return x; }
-    var t3= meet(t1, t2);
-    switch(t1){
-      case IT.X _ -> {}
-      case IT.RCX xx -> g.update(x.name(), t3.withRC(xx.rc()));
-      case IT.ReadImmX _ -> {}
-      case IT.RCC xx -> g.update(x.name(), t3.weakenRCC());
-      case IT.U _ -> g.update(x.name(), t3.weakenRCC());
+    if (t2 != IT.U.Instance){ updateG(g, x.name(), t1, t2); }
+    return x.withT(meet(t1, t2));
+  }
+  private void updateG(Gamma g, String x, IT t1, IT t2){
+    if (t1 == IT.U.Instance){ g.update(x, t2); return; }
+    if (t1 instanceof IT.RCC a && t2 instanceof IT.RCC b && a.c().name().equals(b.c().name())){
+      var t= new RCC(glbRcNoH(a.rc(), b.rc()), a.c(), a.span());
+      if (!t.equals(t1)){ g.update(x, t); }
     }
-    return x.withT(t3);
+    if (t1 instanceof IT.RCX a && t2 instanceof IT.RCX b && a.x().equals(b.x())){
+      var t= a.withRC(glbRcNoH(a.rc(), b.rc()));
+      if (!t.equals(t1)){ g.update(x, t); }
+    }
+  }
+  static Optional<RC> glbRcNoH(Optional<RC> a, Optional<RC> b){
+    if (a.isEmpty()){ return b; }
+    if (b.isEmpty()){ return a; }
+    return Optional.of(glbRcNoH(a.get(), b.get()));
+  }
+  static RC glbRcNoH(RC a, RC b){
+    a = noH(a); b = noH(b);
+    if (a == b){ return a; }
+    if (a == RC.read){ return b; }
+    if (b == RC.read){ return a; }
+    return RC.iso;
   }
   private E nextT(List<B> bs, Gamma g, E.Type t){
     var t1= preferred(t.type());

@@ -95,11 +95,4 @@ public sealed interface IT {
     case RCX(var rc, var x) -> new RCX(rc.readImm(), x);
     case U _   -> this;
   };}
-  default IT weakenRCC(){ return switch (this){
-    case X _ -> this;
-    case ReadImmX _ ->this;
-    case RCC(_, var c, var span) -> new RCC(Optional.empty(), c, span);
-    case RCX _ -> this;
-    case U _   -> this;
-  };}
 }
