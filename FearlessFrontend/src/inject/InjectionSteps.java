@@ -19,6 +19,7 @@ import inference.IT;
 import inference.IT.RCC;
 import inference.M;
 import message.WellFormednessErrors;
+import utils.Bug;
 import utils.OneOr;
 import utils.Push;
 import utils.Streams;
@@ -80,6 +81,7 @@ public record InjectionSteps(Methods meths){
     return new core.M(mCore.sig(), xs, Optional.of(new ToCore().of(ei, m.impl().get().e())));
   }
   E meet(E e, IT t){
+    if (e instanceof E.Type tt){ return nextT(tt); }
     e = prototypeAscribeRootReceiver(e, t);
     return e.withT(meet(e.t(), t));
   }
@@ -134,7 +136,7 @@ public record InjectionSteps(Methods meths){
     if (b.isEmpty()){ return a;}
     if (a.get() == RC.iso){ return b.map(InjectionSteps::noH); }
     if (b.get() == RC.iso){ return a.map(InjectionSteps::noH); }
-    return Optional.of(RC.read);// returning Optional.empty(); could make it go in loop
+    return Optional.of(RC.read);//Optional.empty();//Optional.of(RC.read);// returning Optional.empty(); could make it go in loop
   }
   static RC meetRcNoH(RC a, RC b){    
     if (a==b){ return noH(a); }
@@ -211,7 +213,7 @@ public record InjectionSteps(Methods meths){
     case E.Literal l -> nextL(bs, g, l);
     case E.Call c -> nextC(bs, g, c);
     case E.ICall c -> nextIC(bs, g, c);
-    case E.Type c -> nextT(bs, g, c);
+    case E.Type c -> nextT(c);
   };}
   core.E.Literal getDec(TName name){ return meths.from(name); }
   private IT preferred(IT.RCC type){
@@ -313,12 +315,9 @@ public record InjectionSteps(Methods meths){
     if (b == RC.read){ return a; }
     return RC.iso;
   }
-  private E nextT(List<B> bs, Gamma g, E.Type t){
-    var t1= preferred(t.type());
-    var t2= t.t();
-    if (t1.equals(t2)){ return t; }
-    var t3= meet(t1, t2);
-    return t.withT(t3);
+  private E nextT(E.Type t){
+    if (!(t.t() instanceof IT.U)){return t; }
+    return t.withT(preferred(t.type()));
   }
   private E nextIC(List<B> bs, Gamma g, E.ICall c){
     var e= nextStar(bs, g, c.e());
