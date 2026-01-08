@@ -2,7 +2,6 @@ package typeSystem;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class TypeSystemTest extends testUtils.FearlessTestBase{
@@ -264,12 +263,12 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 4
 The call to ".id(_)" is invalid.
-Type argument 1 ("read B") does not satisfy the bounds
+Type argument 1 ("B") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-a.id[imm,read B](b)
+a.id[imm,B](b)
 """, List.of("""
 A:{ imm .id[X:mut,iso](x:X):X->x }
 B:{}
@@ -284,7 +283,7 @@ User:{ imm .m(a:imm A,b:imm B):read B->a.id[read B](b); }
 @Test void typeNotWellKinded_twistToPassInfer(){ok(List.of("""
 A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
-User:{ imm .m(a:imm A,b:mut B):read B->a.id(b); }
+User:{ imm .m(a:imm A,b:mut B):read B->a.id[read B](b); }
 """));}
 
 

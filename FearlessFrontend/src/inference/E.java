@@ -29,6 +29,7 @@ public sealed interface E {
     public X{ assert nonNull(t) && validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name+":"+t; }
     public E withT(IT t){
+      assert Monotonicity.eT(g, this, this.t, t);
       if (t.equals(this.t)){ return this; }
       return new X(name,t,src,g.clear());
     }
@@ -37,6 +38,7 @@ public sealed interface E {
     public Type{ assert nonNull(type,t,src,g); }
     public Type(IT.RCC type, Src src){ this(type,IT.U.Instance,src,new Gamma.GammaSignature()); }
     public E withT(IT t){
+      assert Monotonicity.eT(g, this, this.t, t);
       if (t.equals(this.t)){ return this; }
       return new Type(type,t,src,g.clear());
     }
@@ -54,6 +56,7 @@ public sealed interface E {
       assert nonNull(name,thisName,t);
       }
     public E.Literal withT(IT t){
+      assert Monotonicity.eT(g, this, this.t, t);
       if (t.equals(this.t)){ return this; }
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear());
     }
@@ -72,11 +75,14 @@ public sealed interface E {
     }
     public Literal withMs(List<M> ms){
       assert t instanceof IT.RCC:t;
+      assert Monotonicity.onLiteralWithMs(this, ms);
       if (infHead && ms == this.ms){ return this; } 
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
     }
     public Literal withMsT(List<M> ms, IT t){
       assert t instanceof IT.RCC:t;
+      assert Monotonicity.onLiteralWithMs(this, ms);
+      assert Monotonicity.eT(g, this, this.t, t);
       if (infHead && ms == this.ms && t.equals(this.t)){ return this; }
       assert !t.equals(this.t) || ms == this.ms || !ms.equals(this.ms) : "Allocated equal MS:\n"+ms;
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
@@ -86,6 +92,7 @@ public sealed interface E {
       assert !setInfHead || t instanceof IT.RCC:t;
       var noChange= infHead == setInfHead && cs.equals(this.cs) && ms == this.ms;
       if (noChange){ return this; }
+      assert Monotonicity.onLiteralWithMs(this, ms);
       assert ms == this.ms || !ms.equals(this.ms) : "Allocated equal MS:\n"+ms;
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,setInfHead,g.clear());
     }
@@ -100,20 +107,12 @@ public sealed interface E {
       assert unmodifiable(targs, "E.Call.targs");
     }
     public Call withMore(E e,RC rc,List<IT> targs,List<E> es,IT t){
-      assert es == this.es || !es.equals(this.es) : dbgEqList("es", this.es, es);
       assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
       assert es == this.es || !es.equals(this.es) : "Allocated equal es list";
+      assert Monotonicity.onCallWithMore(this, Optional.of(rc), targs, t);
       if (e == this.e && Optional.of(rc).equals(this.rc) && targs.equals(this.targs) && es == this.es && t.equals(this.t)){ return this; } 
       return new E.Call(e, name, Optional.of(rc),targs,es,t,src,g.clear());
     }
-    static String dbgEqList(String what, List<?> oldL, List<?> newL){
-  for (int i=0;i<oldL.size();i++){
-    Object o= oldL.get(i), n= newL.get(i);
-    if (o != n && o.equals(n)) return "Allocated equal "+what+" list at i="+i+"\nold="+o+"\nnew="+n;
-  }
-  return "Allocated equal "+what+" list (list.equals but no element eq-diff?)";
-}
-    //---
     public Call withEEs(E e,List<E> es){
       assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
       assert es == this.es || !es.equals(this.es) : "Allocated equal es list";
@@ -126,6 +125,7 @@ public sealed interface E {
       return new E.Call(e, name, rc,targs,es,t,src,g.clear());
     }
     public Call withT(IT t){
+      assert Monotonicity.eT(g, this, this.t, t);
       if (t.equals(this.t)){ return this; }
       return new Call(e,name,rc,targs,es,t,src,g.clear());
     }
@@ -139,6 +139,7 @@ public sealed interface E {
   record ICall(E e, MName name, List<E> es, IT t, Src src, Gamma.GammaSignature g) implements E{
     public ICall(E e, MName name, List<E> es, Src src){ this(e,name,es,IT.U.Instance,src,new Gamma.GammaSignature());}
     public E withT(IT t){
+      assert Monotonicity.eT(g, this, this.t, t);
       if (t.equals(this.t)){ return this; }
       return new ICall(e,name,es,t,src,g.clear()); 
     }

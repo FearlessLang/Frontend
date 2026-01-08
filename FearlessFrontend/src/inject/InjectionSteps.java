@@ -19,7 +19,6 @@ import inference.IT;
 import inference.IT.RCC;
 import inference.M;
 import message.WellFormednessErrors;
-import utils.Bug;
 import utils.OneOr;
 import utils.Push;
 import utils.Streams;
@@ -82,6 +81,7 @@ public record InjectionSteps(Methods meths){
   }
   E meet(E e, IT t){
     if (e instanceof E.Type tt){ return nextT(tt); }
+    if (e instanceof E.Literal l){ if (l.t().isTV()){ return l; }/*return LitAlign.setT(this, l, t);*/ }
     e = prototypeAscribeRootReceiver(e, t);
     return e.withT(meet(e.t(), t));
   }
@@ -136,13 +136,13 @@ public record InjectionSteps(Methods meths){
     if (b.isEmpty()){ return a;}
     if (a.get() == RC.iso){ return b.map(InjectionSteps::noH); }
     if (b.get() == RC.iso){ return a.map(InjectionSteps::noH); }
-    return Optional.of(RC.read);//Optional.empty();//Optional.of(RC.read);// returning Optional.empty(); could make it go in loop
+    return Optional.of(RC.imm);// returning Optional.empty(); could make it go in loop
   }
   static RC meetRcNoH(RC a, RC b){    
     if (a==b){ return noH(a); }
     if (a == RC.iso){ return noH(b); }
     if (b == RC.iso){ return noH(a); }
-    return RC.read;
+    return RC.imm;
   }
   static RC noH(RC a){ return a == RC.readH ? RC.read : a == RC.mutH ? RC.mut : a; }
   List<IT> meet(List<IT> t1, List<IT> t2){
@@ -276,7 +276,7 @@ public record InjectionSteps(Methods meths){
     IT ret0= TypeRename.tToIT(m.sig().ret());
     return new MSigL(m.sig().rc(), xs, d.bs(), clsArgs, m.sig().bs(), ps0, ret0);
   }
-  private Optional<MSigL> methodHeader(IT.RCC rcc, MName name, Optional<RC> favorite){
+  Optional<MSigL> methodHeader(IT.RCC rcc, MName name, Optional<RC> favorite){
     return methodHeaderAnd(rcc, name, favorite, this::methodHeaderInstance);
   }
   private static List<IT> _qMarks(int n){
@@ -401,7 +401,7 @@ public record InjectionSteps(Methods meths){
       else { l = meths.expandLiteral(l, rcc.c()); }
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
-    boolean changed= false;
+    boolean changedMs= false;
     var res= new ArrayList<inference.M>(l.ms().size());
     List<IT> ts= rcc.c().ts();
     for (var mi : l.ms()){
@@ -409,14 +409,15 @@ public record InjectionSteps(Methods meths){
       TSM next= nextMStar(bs, g, l.thisName(), selfPrecise, withTsNormBs(rcc,ts), mi);
       assert next.m == mi || !next.m.equals(mi) : "Allocated equal M:\n"+mi;
       var ts1= meet(ts, next.ts);
-      changed |= next.m != mi || !ts1.equals(ts);
+      changedMs |= next.m != mi;
       res.add(next.m);
-      ts = ts1;      
+      ts = ts1;
     }
-    if (!changed){ return commitToTable(g,bs, l, rcc); }
-    var ms= Collections.unmodifiableList(res);
+    if (!changedMs && ts.equals(rcc.c().ts())){ return commitToTable(g,bs, l, rcc); }
+    var ms= changedMs?Collections.unmodifiableList(res):l.ms();
     IT t= withTsNormBs(rcc,ts);
     return commitToTable(g, bs, l.withMsT(ms, t), t);
+    //return commitToTable(g, bs, LitAlign.setMsT(this, l,ms, t), t);
   }
   private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT t){
     TName name= l.name();
