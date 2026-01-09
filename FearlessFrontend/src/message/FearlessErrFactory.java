@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import core.RC;
+import core.TName;
 import fearlessFullGrammar.M;
 import fearlessFullGrammar.Sig;
 import fearlessFullGrammar.T;
@@ -29,7 +30,8 @@ import utils.Join;
 import static offensiveUtils.Require.*;
 
 public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
-
+  Optional<TName> lastTop= Optional.empty();
+  public void noteTop(TName t){ lastTop = Optional.of(t); }
   @Override public FearlessException illegalCharAt(Span at, int cp, Tokenizer tokenizer){
     String head= "Illegal character "+Message.displayChar(cp);
     return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
@@ -40,7 +42,23 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     String msg = "Missing " + label + ".\n"+expected(expectedLabels);
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
+  public FearlessException topLevelSemicolon(Span at){
+    return Code.UnexpectedToken.of(() -> {
+      if (lastTop.isEmpty()){
+        return "Extra semicolon before the first top level type declarations.\n"
+             + "Remove this semicolon.\n";
+      }
+      var n= Err.staticTypeDecName(lastTop.get());
+      String hint=lastTop.get().s()+"[..]:..{...}";
+      if (lastTop.get().arity() == 0){ hint = lastTop.get().s()+":..{...}"; }
+      return "Top level type declarations do not end with \";\".\n"
+           + "The defintion of " + n + " ends with a semicolon. Remove it.\n"
+           + "Write: "+Message.displayString(hint)+"\n"
+           + "Not:   "+Message.displayString(hint+";")+"\n";
 
+    }).addSpan(at);
+  }
+  
   @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
     assert nonNull(from,parser,expectedTerminatorTokens);
     String msg= "Extra content in the current group.\n";

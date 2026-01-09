@@ -28,14 +28,15 @@ import static metaParser.MetaParser.SplitMode.*;
 
 public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
   Names names;
-  Parser(Span base, Names names, List<Token> ts){
-    super(base,ts); this.names= names;
+  final FearlessErrFactory err;
+  Parser(Span base, Names names, List<Token> ts, FearlessErrFactory err){
+    super(base,ts); this.names= names; this.err = err;
   }
   void updateNames(Names names){ this.names = names; }
   @Override public Parser self(){ return this; }
   @Override public boolean skip(Token t){ return t.is(_SOF,_EOF); }
   @Override public Parser make(Span s, List<Token> tokens){
-    return new Parser(s, names, tokens);
+    return new Parser(s, names, tokens,err);
   }
   E parseE(){
     E e= parseAtom();
@@ -336,9 +337,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   Optional<T> parseOptT(){ return parseIf(fwdIf(peek(Colon)),this::parseT); }
   Parameter parseParameter(){
     Optional<XPat> x= parseIf(peek(LowercaseId,Underscore,_CurlyGroup),this::parseXPat);
-    if (x.isPresent()){ return new Parameter(x, parseOptT()); }
-    T t= parseT();
-    return new Parameter(x,of(t));
+    Parameter p= new Parameter(x, x.isPresent() ? parseOptT() : of(parseT()));
+    expectEnd("comma , colon or arrow", Comma,Colon,Arrow);
+    return p;
   }
   List<B> parseBs(boolean mustNew){ 
     return parseGroup("",p->{
@@ -378,8 +379,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new Span(pos.fileName(), pos.line(), pos.column(),pos.line(),pos.column()+size); 
   }
   Declaration parseDeclaration(boolean top){
+    if (top && peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).orElse(span())); }
     var startPos= index();
     var c= parseTName();
+    if (top){ errFactory().noteTop(c); }
     var _= expectValidate(back("simple type name"), UppercaseId,_XId); //to get error if of form foo.Bar
     Optional<List<B>> bs= parseIf(peek(_SquareGroup),()->this.parseBs(top));
     if (bs.isPresent()){
@@ -535,8 +538,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   private void eatPost(){//Guaranteed to advance or error (fwdIf true implies we advanced)
     if (fwdIf(hasPost())){ fwdIf(peek(_SquareGroup)); return; }
     var signed= peek(SignedInt,SignedFloat,SignedRational);
-    if (signed){ throw this.errFactory().signedLiteral(spanAround(index(),index()),expectAny("")); }
-    throw this.errFactory().missingSemicolonOrOperator(spanAround(index()-1,index()-1));
+    if (signed){ throw errFactory().signedLiteral(spanAround(index(),index()),expectAny("")); }
+    throw errFactory().missingSemicolonOrOperator(spanAround(index()-1,index()-1));
   }
   interface Cut extends NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{}
   Cut commaSkip=  p->p.splitOn(Skipped,Comma);
@@ -548,5 +551,5 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   Cut commaB=     Parser::onCommaB;
   Cut commaExp=   Parser::onCommaExp;
   Cut anyLeft=    p->{ p.expectAny(""); return 0; };  
-  @Override public FearlessErrFactory errFactory(){ return new FearlessErrFactory(); }
+  @Override public FearlessErrFactory errFactory(){ return err; }
 }

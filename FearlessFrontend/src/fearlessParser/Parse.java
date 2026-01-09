@@ -55,7 +55,7 @@ public class Parse {
       .tokenize()
       .postTokenize(new BadTokens().badTokensMap())
       .buildTokenTree(map);
-    var p= new Parser(t.span(),new Names(List.of(),List.of(),List.of()),t.tokenTree());
+    var p= new Parser(t.span(),new Names(List.of(),List.of(),List.of()),t.tokenTree(),new FearlessErrFactory());
     return p.parseAll("full file",Parser::parseFileFull);
   }
   static E from(URI fileName, Names names,String input, int line, int col){
@@ -72,7 +72,7 @@ public class Parse {
         .tokenize()
         .postTokenize(new BadTokens().badTokensMap())
         .buildTokenTree(map));
-    var p= new Parser(t.span(),names,t.tokenTree());
+    var p= new Parser(t.span(),names,t.tokenTree(),new FearlessErrFactory());
     return p.parseAll("string interpolation expression",Parser::parseEFull);
   }
   // ASCII whitelist

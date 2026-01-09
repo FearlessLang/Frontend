@@ -3829,22 +3829,60 @@ Box[E:*]: _Box[E]{
 }
 """);}
 
-//the error should say missing comma as other say missing semicolon
-@Test void missingComma(){fail("""
+@Test void missingComma1(){fail("""
 In file: [###]/in_memory0.fear
 
 001| User:{
 002| .hash by h -> h.hash(by#(this.get))
-   | ~~~~~~~~~^-------------------------
+   | ------~~~^
 003| }
 
-While inspecting method signature > method declaration > type declaration body > type declaration > full file
-Extra content in the current group.
+While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
+Expected comma , colon or arrow.
+Expected one of: ",", ":", "->".
 Error 4 ExtraTokenInGroup
 ""","""
 User:{
 .hash by h -> h.hash(by#(this.get))
 }
+""");}
+
+@Test void missingComma2(){fail("""
+In file: [###]/in_memory0.fear
+
+001| User:{
+002|  .hash h -> h.hash(h,h h)
+   |             ---------~~^-
+003| }
+
+While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
+Missing method name.
+Found instead: "h".
+Expected one of: ".name", "binary operator (eg. +, *, -)".
+Error 2 UnexpectedToken
+""","""
+User:{
+ .hash h -> h.hash(h,h h)
+}
+""");}
+
+@Test void topSemi(){fail("""
+In file: [###]/in_memory0.fear
+
+002| B:{};
+   |     ^
+003| C:{}
+
+While inspecting type declaration > full file
+Top level type declarations do not end with ";".
+The defintion of "B" ends with a semicolon. Remove it.
+Write: "B:..{...}"
+Not:   "B:..{...};"
+Error 2 UnexpectedToken
+""","""
+A:{}
+B:{};
+C:{}
 """);}
 
 
