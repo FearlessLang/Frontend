@@ -200,11 +200,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       e.blank().pPromotionFailuresHdr();
       got.forEach(r->e.pPromoFailure(r.info));
     }
-    var footer= got.getFirst().footerE.get();
-    E ctx= footer.orElseGet(()->{//TODO: eventually It should be guarenteed to be there in any reason; then we can just call .get(); now is only there for call
-      List<T> interest= TypeScope.interestFromDeclVsReq(s.m().sig().ret(), req.getFirst().t());
-      var best= TypeScope.bestInterestingScope(s, interest);
-      return best.contextE();});
+    E ctx= got.getFirst().footerE.get();
     FearlessException ex= e.exInferMsg(ctx,req0);
     return addExpFrame(at, ex.addSpan(at.span().inner));
   }
@@ -383,8 +379,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       e.bullet(err().typeRepr(false,ent.getKey())+"  ("+Join.of(names,"",", ","")+")");
     }
     var footer= r.footerE.get();
-    if (footer.isEmpty()){ return withCallSpans(e.ex( c), c); }
-    return withCallSpans(e.exInferMsg(footer.get(),err().typeRepr(false,reqs.getFirst().t())),c); 
+    return withCallSpans(e.exInferMsg(footer,err().typeRepr(false,reqs.getFirst().t())),c); 
   }
   private FearlessException wrongUnderlyingTypeErr(TypeSystem ts, Literal d, Call c, int argi, List<TRequirement> reqs, List<Reason> res){
     T gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both 

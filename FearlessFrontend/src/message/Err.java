@@ -11,7 +11,6 @@ import core.E.*;
 import inject.TypeRename;
 import metaParser.Message;
 import typeSystem.TypeSystem.*;
-import utils.Bug;
 import utils.Join;
 
 public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<Boolean,CompactPrinter> _cp, StringBuilder sb){
@@ -49,10 +48,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   String onTypeOrAnon(Literal l){ return typeOrAnon(l,"object literal instance of ",""); }
   String theTypeOrObjectLiteral(Literal l){ return typeOrAnon(l,"type ","object literal "); }
-  private String litHintImm(Literal l){
-    if (anonLit(l)){ return anonRepr; }
-    return bestLitName(false,false,l) + (l.infName() ? anonRepr : ":"+anonRepr);
-  }
   public String bestNameNoRc(Literal l){ return bestNamePkg0(showInstanceOf(l), bestLitName(true,true,l)); }
   T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()),t.ts()); }//Correct to not propagate here
   T preferredForFresh(T t){ return switch(t){
@@ -98,11 +93,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       : bestNamePkg0(false, bestLitName(false,skipImm,l));
     case Type(var t,_) -> typeRepr(skipImm,t);  
     };}
-  String bestNameHintExplicitRC(E e){ return switch(e){//TODO: this looks sus, what is this supposed to print?
-    case Literal l->l.rc() != RC.imm ? "" : litHintImm(l);
-    case Type(var t,_) ->  t.rc().toStrSpace()+tNameA(t.c().name());
-    default ->{ throw Bug.unreachable(); }
-  };}
   String expRepr(inference.E toErr){return switch(toErr){
     case inference.E.Call c->"method call "+methodSig(c.name());
     case inference.E.ICall c->"method call "+methodSig(c.name());

@@ -58,7 +58,18 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
 
     }).addSpan(at);
   }
-  
+  public FearlessException topLevelNotATypeDeclaration(Span at, String found){
+    return Code.UnexpectedToken.of(() -> 
+      (lastTop.isEmpty() ? "This is not a top level type declaration.\n"
+        : "This should probably be inside the declaration of "
+        + Err.staticTypeDecName(lastTop.get())
+        + ".\n")
+      + "Top level code can only contain type declarations.\n"
+      + "A type declaration starts with a type name, like \"Point:{..}\".\n"
+      + "Found instead: " + Message.displayString(found) + ".\n"
+      + "Likely cause: an extra \"}\" closed a type declaration unintentionally.\n"
+      ).addSpan(at);
+  }  
   @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
     assert nonNull(from,parser,expectedTerminatorTokens);
     String msg= "Extra content in the current group.\n";

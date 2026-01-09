@@ -462,7 +462,7 @@ User:{
 
 While inspecting object literal instance of "Foo" > "#(_)" line 8 > ".m" line 8
 Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 8)
-is implemented with an expression returning "Foo".
+is implemented with an expression returning "iso Foo".
 Object literal is of type "Foo" instead of a subtype of "Car".
 
 See inferred typing context below for how type "Car" was introduced: (compression indicated by `-`)
@@ -1168,8 +1168,8 @@ Type required by each promotion:
 - "iso A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
 - "mutH A"  (Allow mutH argument 1)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
-Skip#[imm,mut A](aaaa)
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa)}}
 """,List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
@@ -1196,8 +1196,8 @@ Type required by each promotion:
 - "iso A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
 - "mutH A"  (Allow mutH argument 1)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
-Id#[imm,mut A](aaaa)
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](Id#[imm,mut A](aaaa))}}
 """,List.of("""
 Skip:{#[X:**](X):B->B}
 Id:{#[X:**](x:X):X->x}
@@ -1260,14 +1260,14 @@ A:{
 
 @Test void argFromObjectLiteral_defaultImm_hintToAnnotate(){fail("""
 006|   .f:B->
-007|     Need#(A{});
-   |     ----^^--
+007|     Need#(read A{});
+   |     ----^^-------
 
 While inspecting ".f" line 6
 This call to method "Need#(_)" can not typecheck.
-Argument 1 has type "imm A".
+Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
-Object literal is of type "imm A" instead of a subtype of "mut A".
+Object literal is of type "read A" instead of a subtype of "mut A".
 Hint: write "mut A" if you need a "mut" object literal.
 
 Type required by each promotion:
@@ -1275,15 +1275,15 @@ Type required by each promotion:
 - "iso A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
 - "mutH A"  (Allow mutH argument 1)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
-Need#(A)
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+User:{.f:B->Need#(read A)}
 """,List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
 A:{}
 User:{
   .f:B->
-    Need#(A{});
+    Need#(read A{});
 }
 """));}
 
@@ -1760,8 +1760,8 @@ Type required by each promotion:
 - "iso A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
 - "mutH A"  (Allow mutH argument 1)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
-Skip#[imm,mut A](aaaa)
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa)}}
 """,List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
@@ -1795,8 +1795,8 @@ Type required by each promotion:
 - "iso A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
 - "mutH A"  (Allow mutH argument 1)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
-Id#[imm,mut A](aaaa)
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](Id#[imm,mut A](aaaa))}}
 """,List.of("""
 Skip:{#[X:**](X):B->B}
 Id:{#[X:**](x:X):X->x}
@@ -2033,14 +2033,14 @@ Error 9 WellFormedness
 004|  Main:{ .m:B -> B }
    |         --------^
 
-While inspecting object literal instance of "B" > ".m" line 4
+While inspecting object literal instance of "iso B" > ".m" line 4
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
 Hint: add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-B
+iso B
 """,List.of("""
  A:{.foo:A}
  B:A{}

@@ -232,7 +232,7 @@ public record InjectionSteps(Methods meths){
   private RC overloadNorm(Optional<RC> rc){ return rc.map(this::_overloadNorm).orElse(RC.imm); }
   private RC _overloadNorm(RC rc){ return switch (rc){
     case imm -> RC.imm;
-    case iso -> RC.mut;
+    case iso -> RC.imm;
     case mut -> RC.mut;
     case mutH -> RC.mut;
     case read -> RC.read;

@@ -378,8 +378,26 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   public static Span span(Pos pos, int size){
     return new Span(pos.fileName(), pos.line(), pos.column(),pos.line(),pos.column()+size); 
   }
+  void checkCommonTopLevelIssues(){
+    if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).orElse(span())); }
+    if (isDec()){ return; }
+    if (peek().map(Token::isTypeName).orElse(false)){ return; }
+    var t= peek().get();
+    if (!isProbablyTopLevelNonDecl(t)){ return; }
+    throw errFactory().topLevelNotATypeDeclaration(span(t).orElse(span()), t.content());
+  }
+  private static boolean isProbablyTopLevelNonDecl(Token t){
+    return t.is(
+      RCap,DotName,Op,                 // method sig starters
+      _RoundGroup,_CurlyGroup,_SquareGroup, // inferred-name sig / patterns / grouped expr
+      LowercaseId,Underscore,          // x->e, e, patterns
+      ColonColon,                      // :: / ::.foo
+      UStrInterHash,UStrLine,SStrInterHash,SStrLine,SStr,UStr,
+      SignedInt,SignedFloat,SignedRational,UnsignedInt
+    );
+  }
   Declaration parseDeclaration(boolean top){
-    if (top && peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).orElse(span())); }
+    if (top){ checkCommonTopLevelIssues(); }
     var startPos= index();
     var c= parseTName();
     if (top){ errFactory().noteTop(c); }

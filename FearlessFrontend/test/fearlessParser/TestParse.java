@@ -3886,5 +3886,26 @@ C:{}
 """);}
 
 
+@Test void topLevelMethodDecl(){fail("""
+In file: [###]/in_memory0.fear
+
+002| .foo:Void;
+   | ^^^^
+003| B:{}
+
+While inspecting type declaration > full file
+This should probably be inside the declaration of "A".
+Top level code can only contain type declarations.
+A type declaration starts with a type name, like "Point:{..}".
+Found instead: ".foo".
+Likely cause: an extra "}" closed a type declaration unintentionally.
+Error 2 UnexpectedToken
+""","""
+A:{}
+.foo:Void;
+B:{}
+""");}
+
+
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

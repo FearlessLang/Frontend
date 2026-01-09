@@ -633,7 +633,7 @@ p.IdUser:{'this .m1(p.A):p.A@p.IdUser;(x)->x:?.a():?; .m2(read p.A):p.A@p.IdUser
  .m1(x:p.A):p.A->x.a[imm];\
  .m2(x:read p.A):p.A->x.a[read];\
  .m3(x:mut p.A):p.A->x.a[mut];\
- .m4(x:iso p.A):p.A->x.a[mut];\
+ .m4(x:iso p.A):p.A->x.a[imm];\
  .m5(x:readH p.A):p.A->x.a[read];\
  .m6(x:mutH p.A):p.A->x.a[mut]}
 """,

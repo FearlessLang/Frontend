@@ -84,9 +84,13 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     }).toList();
   }
   private List<Reason> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
-    var l= decs().apply(t.type().c().name()).withRC(t.type().rc());
-    l.ms().forEach(m->checkImplemented(l,m,t));
-    return reqs(t,bs,t.type(),rs);//reqs correctly used for two similar things
+    var ll= decs().apply(t.type().c().name());
+    var needImm= ll.ms().stream().anyMatch(m->m.sig().abs() && m.sig().rc()==RC.mut);
+    var getIso= t.type().rc() == RC.imm && !needImm;
+    var l= ll.withRC(getIso?RC.iso:t.type().rc());
+    var tt= getIso?new Type(t.type().withRC(RC.iso), t.src()):t;
+    l.ms().forEach(m->checkImplemented(l,m,tt));
+    return reqs(t,bs,tt.type(),rs);//reqs correctly used for two similar things
   }
   private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
