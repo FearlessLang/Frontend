@@ -439,6 +439,10 @@ In file: [###]/in_memory0.fear
    |              --^^^^^--
 
 While inspecting object literal instance of "A"
+Missing return type for method ".m".
+Add an explicit return type before '->'.
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
 Cannot infer signature of method ".m".
 No supertype has a method named ".m" with 0 parameters.
 Error 9 WellFormedness

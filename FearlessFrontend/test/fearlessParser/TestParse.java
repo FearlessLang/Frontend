@@ -2849,8 +2849,7 @@ In file: [###]/in_memory0.fear
 002| A:{}
 
 While inspecting header element > file header > full file
-Extra content in the current group.
-Instead, expected semicolon: ";".
+Expected semicolon: ";".
 Error 4 ExtraTokenInGroup
 ""","""
 package foo_bar beer baz;
@@ -2897,8 +2896,7 @@ In file: [###]/in_memory0.fear
    | ^^^^-------------
 
 While inspecting header element > file header > full file
-Extra content in the current group.
-Instead, expected semicolon: ";".
+Expected semicolon: ";".
 Error 4 ExtraTokenInGroup
 ""","""
 package foo_bar
@@ -2918,8 +2916,7 @@ In file: [###]/in_memory0.fear
    | ^^^------------------
 
 While inspecting header element > file header > full file
-Extra content in the current group.
-Instead, expected semicolon: ";".
+Expected semicolon: ";".
 Error 4 ExtraTokenInGroup
 ""","""
 package foo_bar;
@@ -3718,8 +3715,8 @@ In file: [###]/in_memory0.fear
 003|   .elem(top:T, tail: Stack[T]): R,
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Extra content in the current group.
-Instead, expected semicolon or closed curly one of: ";", "}".
+Expected semicolon or closed curly.
+Expected one of: ";", "}".
 Error 4 ExtraTokenInGroup
 ""","""
 StackMatch[T,R]: {
@@ -3831,6 +3828,25 @@ Box[E:*]: _Box[E]{
 
 }
 """);}
+
+//the error should say missing comma as other say missing semicolon
+@Test void missingComma(){fail("""
+In file: [###]/in_memory0.fear
+
+001| User:{
+002| .hash by h -> h.hash(by#(this.get))
+   | ~~~~~~~~~^-------------------------
+003| }
+
+While inspecting method signature > method declaration > type declaration body > type declaration > full file
+Extra content in the current group.
+Error 4 ExtraTokenInGroup
+""","""
+User:{
+.hash by h -> h.hash(by#(this.get))
+}
+""");}
+
 
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

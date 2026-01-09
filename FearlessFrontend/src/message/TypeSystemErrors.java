@@ -318,18 +318,20 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///A method matching c by name / arity / RC exists, but c supplies the wrong number of type arguments.
   ///Triggered only for explicitly written [Ts]; inference never reaches this error.
   ///Raised when checking method calls.
-  public FearlessException methodTArgsArityError(Literal d, Call c, int expected){
+  public FearlessException methodTArgsArityError(Literal d, Call c, List<B> bs){
+    int expected= bs.size();
+    String args= Join.of(bs.stream().map(b->disp(b.x())), ": ", " and ","","");
     int got= c.targs().size(); assert got != expected;
     String expS= expected == 0 
       ? "no type arguments" 
-      : expected+" type argument"+(expected == 1 ? "" : "s");
+      : expected+" type argument"+(expected == 1 ? args : "s"+args);
     String gotS= got == 0 
       ? "no type arguments" 
       : got+" type argument"+(got == 1 ? "" : "s");
     return withCallSpans(err()
       .pCallCantBeSatisfied(d,c)
       .line("Wrong number of type arguments for "+err().methodSig(c.name())+".")
-      .line("This method expects "+expS+", but this call provides "+gotS+".")
+      .line("This method expects "+expS+"; but this call provides "+gotS+".")
       .ex(c), c);
   }
   ///Methods exist for call c, but the receiver capability is too weak for all the available promotions.

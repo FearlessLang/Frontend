@@ -1037,7 +1037,7 @@ User:{
 While inspecting ".m(_,_,_)" line 8
 This call to method "read Pairer.pair(_,_)" can not typecheck.
 Wrong number of type arguments for ".pair(_,_)".
-This method expects 2 type arguments, but this call provides 1 type argument.
+This method expects 2 type arguments: "X" and "Y"; but this call provides 1 type argument.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 p.pair[read,mut A](a,b)
@@ -1061,7 +1061,7 @@ User:{
 While inspecting ".m(_,_)" line 9
 This call to method "read Id.id(_)" can not typecheck.
 Wrong number of type arguments for ".id(_)".
-This method expects 1 type argument, but this call provides 3 type arguments.
+This method expects 1 type argument: "X"; but this call provides 3 type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 i.id[read,mut A,mut B,mut C](a)
@@ -1626,7 +1626,7 @@ A:{
 While inspecting ".bar" line 4
 This call to method "A.id(_)" can not typecheck.
 Wrong number of type arguments for ".id(_)".
-This method expects 1 type argument, but this call provides 2 type arguments.
+This method expects 1 type argument: "X"; but this call provides 2 type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.id[imm,A,A](this)
@@ -3060,5 +3060,24 @@ User:{
   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
 }
 """));}
+
+@Test void badImplicit(){ typeFailExt("""
+In file: [###]/in_memory0.fear
+
+003| User:Sup{ :: }
+   |           ^^
+
+While inspecting parameter "::" > ".h(_)" line 3
+The body of method ".h(_)" of type declaration "User" is an expression returning "Sup".
+Parameter "::" has type "Sup" instead of a subtype of "base.Void".
+
+See inferred typing context below for how type "base.Void" was introduced: (compression indicated by `-`)
+User:Sup{.h(_aimpl:Sup):-.Void->::}
+Error 10 TypeError
+""", List.of("""
+Sup:{ imm .h(x:Sup):base.Void; }
+User:Sup{ :: }
+"""));}
+
 
 }

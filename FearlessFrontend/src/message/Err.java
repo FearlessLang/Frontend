@@ -78,13 +78,18 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   static String up(String s){return s.substring(0, 1).toUpperCase() + s.substring(1); }
   String expRepr(E toErr){return switch(toErr){
     case Call c->"method call "+methodSig(c.name());
-    case X x->"parameter " +disp(x.name());
+    case X x->"parameter " +displayX(x);
     case Literal l->l.thisName().equals("this")
       ? "type declaration " +tNameADisp(l.name())
       : "object literal " +bestNamePkg0(showInstanceOf(l), bestLitName(false,true,l));
     case Type t-> "object literal instance of " + typeRepr(true,t.type());
     };}
-    
+  String displayX(X x){
+    core.Src.SrcObj src= x.src().inner;
+    var impl= src instanceof fearlessFullGrammar.E.Implicit;
+    if (impl){ return disp("::"); }
+    return disp(x.name());
+    }
   String expReprDirect(boolean skipImm, E toErr){return switch(toErr){
     case Call c->methodSig(c.name());
     case X x->disp(x.name());

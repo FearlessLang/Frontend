@@ -153,6 +153,10 @@ In file: [###]/in_memory0.fear
    | -------------------------------------------^^^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "A"
+Missing return type for method ".use(_)".
+Add an explicit return type before '->'.
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
 Cannot infer signature of method ".use(_)".
 No supertype has a method named ".use(_)" with 1 parameters.
 Error 9 WellFormedness

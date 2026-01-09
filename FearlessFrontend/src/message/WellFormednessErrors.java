@@ -307,14 +307,35 @@ public record WellFormednessErrors(String pkgName){
         .addFrame(err().expRepr(origin), origin.span().inner);
     }
     var name= err().methodSig(m.sig().m().get());
-    return err()
+    var allParHasType= m.sig().ts().stream().allMatch(Optional::isPresent);
+    var argsPresentNoTypes= size > 0 && !allParHasType;
+    if (argsPresentNoTypes){
+      return err()
+        .line("Cannot infer signature of method "+name+".")
+        .line("No supertype has a method named "+name+" with "+size+" parameters.")
+        .wf()
+        .addSpan(m.sig().span().inner)
+        .addFrame(err().expRepr(origin), origin.span().inner);
+    }
+    var e= err()
+      .line("Missing return type for method "+name+".")
+      .line("Add an explicit return type before '->'.");
+    if (allParHasType){
+      e = e
+        .line("Alternatively (less common), if you intended to override and omit the signature,")
+        .line("the signature must be inherited from a supertype.");
+    } else { // size == 0
+      e = e
+        .line("If you intended to override and omit the signature,")
+        .line("the signature must be inherited from a supertype.");
+    }
+    return e
       .line("Cannot infer signature of method "+name+".")
       .line("No supertype has a method named "+name+" with "+size+" parameters.")
       .wf()
       .addSpan(m.sig().span().inner)
       .addFrame(err().expRepr(origin), origin.span().inner);
   }
-
   public String refCapDisagreement(){ return "Reference capability disagreement"; }
   public String retTypeDisagreement(){ return "Return type disagreement"; }
   public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }

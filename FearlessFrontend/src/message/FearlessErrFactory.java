@@ -45,8 +45,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     assert nonNull(from,parser,expectedTerminatorTokens);
     String msg= "Extra content in the current group.\n";
     if (!expectedTerminatorTokens.isEmpty()){
-      var instead= "Instead, expected "+what;
-      msg += expected("",instead+": ",instead+" one of: ",expectedTerminatorTokens,tk->tk.human);
+      var instead= "Expected "+what;
+      msg = expected("",instead+": ",instead+".\nExpected one of: ",expectedTerminatorTokens,tk->tk.human);
     }
     var here= parser.peek().get().span(from.fileName());
     return Code.ExtraTokenInGroup.of(msg).addSpan(here).addSpan(from);

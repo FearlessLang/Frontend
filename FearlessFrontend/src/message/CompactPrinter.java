@@ -191,7 +191,7 @@ public class CompactPrinter{
     }
   }
   public PE ofE(E e){ return switch(e){
-    case X x -> new PX(x.name());
+    case X x -> new PX(x.src().inner instanceof fearlessFullGrammar.E.Implicit?"::": x.name());
     case Type t -> new PTypeE(ofT(t.type()));
     case Call c -> ofCall(c);
     case Literal l -> ofLit(l);
