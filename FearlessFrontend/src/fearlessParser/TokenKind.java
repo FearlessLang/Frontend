@@ -75,11 +75,6 @@ public enum TokenKind implements metaParser.TokenKind {
   _XId("_*[A-Z][A-Za-z0-9_]*'*","type name"),
   _pkgName("(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*",
     "id starting with a-z followed by any amount of a-z0-9 or the _ symbol"),   
-  _package("package"),
-  _role("role"),
-  _roleName("(?:base|core|driver|worker|framework|accumulator|tool|app)[0-9][0-9][0-9]",
-    " one of: base, core, driver, worker, framework, accumulator, tool, app "
-    +"followed by rank (eg. core023, app000, framework999)"),
   _use("use"),
   _map("map"),
   _as("as"),

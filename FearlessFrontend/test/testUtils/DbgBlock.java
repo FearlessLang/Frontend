@@ -10,19 +10,16 @@ import tools.SourceOracle.Debug;
 public class DbgBlock{
   static OtherPackages err(){ return FearlessTestBase.otherErr(); }
 
-  public static List<E.Literal> all(){ return FearlessTestBase.compileAll(dbgMiniBase(), err()); }
+  public static List<E.Literal> all(){ return FearlessTestBase.compileAll("base",dbgMiniBase(), err()); }
 
   public static Debug dbgMiniBase() {
     return SourceOracle.debugBuilder()
-      .put("base.fear", baseHead)
-      .put("baseBody.fear", "package base;\n"+baseBody)
+      .put("_rank_base000.fear", baseHead)
+      .put("baseBody.fear", baseBody)
       .build();
   }
 
-  static String baseHead="""
-    package base;
-    role base000;
-    """;
+  static String baseHead="";
 
 
 

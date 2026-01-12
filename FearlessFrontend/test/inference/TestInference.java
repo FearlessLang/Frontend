@@ -7,46 +7,17 @@ import org.junit.jupiter.api.Test;
 import testUtils.DbgBlock;
 
 public class TestInference extends testUtils.FearlessTestBase{
-  static void ok(String expected,List<String> input){ inferenceOk(expected, input); }
-  static void ok(String expected,String head,List<String> input){ inferenceOk(expected, head, input); }
+  static void ok(String expected,List<String> input){ inferenceOk(expected, input,false); }
   static void fail(String expected, List<String> input){ inferenceFail(expected, input); }
-  static void fail(String expected, String head, List<String> input){ inferenceFail(expected, head, input); }
 
 @Test void base(){ok("""
 p.A:{'this}
-""","""
-role app000;
 """,List.of("""
 A:{}
 """));}
-
-@Test void baseInfer(){fail("""
-In file: [###]/p.fear
-
-001| package p;
-   | ^
-
-While inspecting the file
-Missing role declaration in package head file.
-Every package must declare its role: base, core, driver, worker, framework, accumulator, tool, or app.
-The package head file is the file whose name matches the package name.
-
-Add a top-level role line to that file. For example:
-package myCoolGame;
-role app999;
-use base.Main as Main;
-MyGame:Main{s->Debug#(`Hello world`)}
-
-As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
-Error 9 WellFormedness
-""","""
-""",List.of("""
-A:{}
-"""));}
-
 
 @Test void same(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| B:{}
    | ^^
@@ -55,30 +26,27 @@ While inspecting a type name
 Name clash: name "B" is declared in package "p".
 Name "B" is also used in a "use" directive.
 Error 9 WellFormedness
-""","""
-role app000;
-use base.Block as B;
 """,List.of("""
+use base.Block as B;
 B:{}
 """));}
 
 @Test void manyHeads(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-001| package p;
+001| use base.Void as Void;
    | ^
 
 While inspecting the file
-File is not the package head, but contains package head directives.
-It should not contain any directives like maps, uses or role.
+Package directives outside of rank file.
+Only the rank file should not contain directives like maps and uses.
 
 Found non-empty:
 - uses: use base.Void as Void
 Error 9 WellFormedness
-""","""
-role app000;
-use base.Block as B;
 """,List.of("""
+use base.Block as B;
+""","""
 use base.Void as Void;
 B:{}
 """));}
@@ -99,9 +67,9 @@ p.C:{'this}
 
 @Test void error_unknown_name_in_sig_param(){fail(
 """
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002| A:{ .f:Z->A }
+001| A:{ .f:Z->A }
    |        ^^
 
 While inspecting a type name
@@ -114,12 +82,12 @@ Error 9 WellFormedness
 @Test void use_alias_happy_path(){ok(
 """
 p.A:{'this .m:base.Void@p.A;->base.Void:?;}
-""","role app000;\nuse base.Void as D;\n",List.of(
-"A:{ .m:D->D }"));}
+""",List.of(
+"use base.Void as D;\nA:{ .m:D->D }"));}
 
 @Test void use_alias_clash_with_declared(){fail(
 """
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| D:{}
    | ^^
@@ -128,13 +96,11 @@ While inspecting a type name
 Name clash: name "D" is declared in package "p".
 Name "D" is also used in a "use" directive.
 Error 9 WellFormedness
-""",
-"role app000;\nuse base.Void as D;\n",List.of(
-"D:{}"));}
+""",List.of(
+"use base.Void as D;\nD:{}"));}
 
 @Test void round_elimination_in_simple_positions(){ok(
-"p.A:{'this .id:p.A@p.A;->p.A:?;}",
-"role app000;\n",List.of(
+"p.A:{'this .id:p.A@p.A;->p.A:?;}",List.of(
 "A:{ .id:A->((A)) }"));}
 
 @Test void extract_multiple_sigs_no_impls(){ok(
@@ -147,9 +113,9 @@ p.A:{'this\
 List.of("A:{ .a:A->A; .b:A->A; .c:A->A; }"));}
 
 @Test void visitCall_base(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002| A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }
+001| A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }
    | -------------------------------------------^^^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "A"
@@ -160,8 +126,7 @@ the signature must be inherited from a supertype.
 Cannot infer signature of method ".use(_)".
 No supertype has a method named ".use(_)" with 1 parameters.
 Error 9 WellFormedness
-""",
-"role app000;\n", List.of(
+""", List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }"));}
 
 @Test void visitCall_base_ok(){ok("""
@@ -170,12 +135,11 @@ p.A:{'this\
  .id[X:imm](p.A):p.A@p.A;(x)->x:?;\
  .use:p.A@p.A;->p.A:?;\
  .use(p.A):p.A@p.A;(x)->x:?.id():?;}
-""",
-"role app000;\n", List.of(
+""", List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A):A->x.id(); }"));}
 
 @Test void use_alias_shadows_local_used_name(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| A:{}
    | ^^
@@ -184,45 +148,45 @@ While inspecting a type name
 Name clash: name "A" is declared in package "p".
 Name "A" is also used in a "use" directive.
 Error 9 WellFormedness
-""",
-"role app000;\nuse base.Void as A;\n",List.of(
-"A:{}", 
+""",List.of(
+"use base.Void as A;\nA:{}", 
 "C:{ .f:A->A }"));} // ambiguous A: local and alias
 
 @Test void error_refers_to_alias_without_use_decl(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002| A:{ .m:D->D }
+001| A:{ .m:D->D }
    |        ^^
 
 While inspecting a type name
 Type "D" is not declared in package "p" and is not made visible via "use".
 In scope: "A".
 Error 9 WellFormedness
-""","role app000;\n",List.of(
+""",List.of(
 "A:{ .m:D->D }"));}
 
 @Test void duplicate_decl_same_name(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002| B:{} A:{}
+001| B:{} A:{}
    |      ^^
 
 While inspecting a type name
 Duplicate type declaration for "A".
 Error 9 WellFormedness
-""","role app000;\n",List.of(
+""",List.of(
 "B:{} A:{}","A:{}"));}
-@Test void duplicate_decl_same_name_nested(){fail("""
-In file: [###]/in_memory0.fear
 
-002| B:{.foo:A-> A:{} }
+@Test void duplicate_decl_same_name_nested(){fail("""
+In file: [###].fear
+
+001| B:{.foo:A-> A:{} }
    |             ^^
 
 While inspecting a type name
 Duplicate type declaration for "A".
 Error 9 WellFormedness
-""","role app000;\n",List.of(
+""",List.of(
 "B:{.foo:A-> A:{} }","A:{}"));}
 
 @Test void opt_explicit(){ok("""
@@ -298,7 +262,8 @@ p.User:{'this\
  .use:p.User@p.User;\
 ->p.A:?.a(p._AUser:p.F[p.User]{'_ ? [?]:?@!;->p.User:?;}:?):?;}
 p._AF:{'this}
-""","role app000;\nuse base.Void as _BF;\n",List.of("""
+""",List.of("""
+use base.Void as _BF;
 F[R]:{#:R}
 _AF:{}
 A:{ .a[R](f:F[R]):R->f#; }
@@ -312,7 +277,8 @@ p.User:{'this\
  .use:p.User@p.User;\
 ->p.A:?.a(p._AUser:p.F[p.User]{'_ ? [?]:?@!;->p.User:?;}:?):?;}
 p._BF:{'this}
-""","role app000;\nuse base.Void as _AF;\n",List.of("""
+""",List.of("""
+use base.Void as _AF;
 F[R]:{#:R}
 _BF:{}
 A:{ .a[R](f:F[R]):R->f#; }
@@ -322,26 +288,13 @@ User:{ .use:User->A.a F[User]{User}}
 p.A:p.B, p.C{'this}
 p.B:p.C{'this}
 p.C:{'this}
-""","role app000;\n",List.of("""
+""",List.of("""
 A:B{}
 B:C{}
 C:{}
 """));}
 @Test void circular1(){fail("""
-In file: [###]/in_memory0.fear
-
-003| B:A{}
-   |   ^^^
-
-While inspecting type declarations
-Circular implementation relation found involving "A".
-Error 9 WellFormedness
-""","role app000;\n",List.of("""
-A:B{}
-B:A{}
-"""));}
-@Test void circular2(){fail("""
-In file: [###]/in_memory1.fear
+In file: [###].fear
 
 002| B:A{}
    |   ^^^
@@ -349,7 +302,20 @@ In file: [###]/in_memory1.fear
 While inspecting type declarations
 Circular implementation relation found involving "A".
 Error 9 WellFormedness
-""","role app000;\n",List.of("""
+""",List.of("""
+A:B{}
+B:A{}
+"""));}
+@Test void circular2(){fail("""
+In file: [###]/in_memory1.fear
+
+001| B:A{}
+   |   ^^^
+
+While inspecting type declarations
+Circular implementation relation found involving "A".
+Error 9 WellFormedness
+""",List.of("""
 A:B{}
 ""","""
 B:A{}
@@ -358,7 +324,7 @@ B:A{}
 p.A:p.B, p.C{'this .foo:p.C@p.B;}
 p.B:p.C{'this .foo:p.C@p.B;->p.C:?.foo():?;}
 p.C:{'this .foo:p.C@p.C;}
-""","role app000;\n",List.of("""
+""",List.of("""
 A:B{}
 B:C{ .foo->C.foo}
 C:{.foo:C;}
@@ -399,7 +365,8 @@ p._AA:$?{'_ ? [?]:?@!;->p.A:?;}:?,\
 p._CA:$?{'_ ? [?](?,?):?@!;\
 (x, _aeqS)->_aeqS:?\
 .return(p._BA:$?{'_ ? [?]:?@!;->x:?;}:?):?;}:?):?;}
-""","role app000;use base.Block as Block;",List.of("""
+""",List.of("""
+use base.Block as Block;
 A:{ #:A->Block#.let x={A}.return {x} }
 """));}
 
@@ -527,9 +494,9 @@ B:A1,A2{ }
 """));}
 
 @Test void retDisagreement1(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004| B:A1,A2{ }
+003| B:A1,A2{ }
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
@@ -542,9 +509,9 @@ A2:{ .foo:A2;}
 B:A1,A2{ }
 """));}
 @Test void retDisagreement2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004| B:A1,A2{ .foo->this.foo}
+003| B:A1,A2{ .foo->this.foo}
    |          ^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
@@ -557,9 +524,9 @@ A2:{ .foo:A2;}
 B:A1,A2{ .foo->this.foo}
 """));}
 @Test void parTDisagreement1(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004| B:A1,A2{ }
+003| B:A1,A2{ }
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
@@ -572,9 +539,9 @@ A2:{ .foo(a:A1,b:A2):A1;}
 B:A1,A2{ }
 """));}
 @Test void parTDisagreement2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004| B:A1,A2{ .foo(a,b)->this.foo}
+003| B:A1,A2{ .foo(a,b)->this.foo}
    |          ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
@@ -587,9 +554,9 @@ A2:{ .foo(a:A1,b:A2):A1;}
 B:A1,A2{ .foo(a,b)->this.foo}
 """));}
 @Test void boundDisagreement1(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004| B:A1,A2{}
+003| B:A1,A2{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
@@ -603,9 +570,9 @@ A2:{ .foo():A1;}
 B:A1,A2{}
 """));}
 @Test void boundDisagreement2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004| B:A1,A2{ .foo()->this.foo }
+003| B:A1,A2{ .foo()->this.foo }
    |          ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
@@ -639,9 +606,9 @@ B[X:imm]:A1,A2{ .foo()->this.foo }
 """));}
 
 @Test void ambigMethName1(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004| B:A1,A2{ this.foo }
+003| B:A1,A2{ this.foo }
    | ---------^^^^^^^^--
 
 While inspecting type declaration "B"
@@ -655,9 +622,9 @@ A2:{ .bar():A1; .baz:A1->this.baz}
 B:A1,A2{ this.foo }
 """));}
 @Test void ambigMethName2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004| B:A1,A2{ y->this.foo }
+003| B:A1,A2{ y->this.foo }
    | ---------^^^^^^^^^^^--
 
 While inspecting type declaration "B"
@@ -684,9 +651,9 @@ B:A2,A3{ }
 """));}
 
 @Test void diamondBad1(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-005| B:A2,A3{ }
+004| B:A2,A3{ }
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
@@ -703,9 +670,9 @@ B:A2,A3{ }
 """));}
 
 @Test void diamondBad2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-005| B:A2,A3{ }
+004| B:A2,A3{ }
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
@@ -721,32 +688,17 @@ A3:A1{ .foo->this; }
 B:A2,A3{ }
 """));}
 
-@Test void badUppercaseRole(){fail("""
-In file: [###]/p.fear
-
-001| package p;
-002| role App000;
-   | -----^^^^^^
-
-While inspecting header element > file header > full file
-Missing "role" keyword.
-Found instead: "App000".
-Expected: " one of: base, core, driver, worker, framework, accumulator, tool, app followed by rank (eg. core023, app000, framework999)".
-Error 2 UnexpectedToken
-""","role App000;",List.of("""
-B:{ }
-"""));}
-
 @Test void undefinedUse(){fail("""
-In file: [###]/p.fear
+In file: [###].fear
 
-002| role app000; use base.AAAA as BBB;
-   |                  ^^^^^^^^^
+001| use base.AAAA as BBB;
+   |     ^^^^^^^^^
 
 While inspecting package header
 "use" directive refers to undeclared name: type "AAAA" is not declared in package "base".
 Error 9 WellFormedness
-""","role app000; use base.AAAA as BBB;",List.of("""
+""",List.of("""
+use base.AAAA as BBB;
 B:{ }
 """));}
 @Test void rcOverloadingOk1(){ok("""
@@ -816,9 +768,9 @@ A2:{ .foo:A1;}
 B:A1,A2{ }
 """));}
 @Test void inferMini3Err(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004|   .foo[X](x:X,f:F[X,X]):X->f#x;
+003|   .foo[X](x:X,f:F[X,X]):X->f#x;
    |                 ^^
 
 While inspecting a type name
@@ -834,9 +786,9 @@ User:{
   }
 """));}
 @Test void inferAlph_AMultiSuper_DifferentBounds_ShouldDisagree(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-005| D:A,C{}
+004| D:A,C{}
    | ^^^^^^^
 
 While inspecting type declaration "D"
@@ -855,9 +807,9 @@ D:A,C{}
 """));}
 
 @Test void inferAlph_AArityMismatch_BetweenSupers_OrOverride(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-003| E:A{.m[U](u:U,g:U):U} // mismatch on method generic arity and params
+002| E:A{.m[U](u:U,g:U):U} // mismatch on method generic arity and params
    |     ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "E"
@@ -873,11 +825,11 @@ E:A{.m[U](u:U,g:U):U} // mismatch on method generic arity and params
 """));}
 
 @Test void inferAlph_AClassParamNameCollides_WithMethodParamName(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-001| package p;
-   | ... 2 lines ...
-004| B[X]:A{.id[X](b:Box[X])->b.get} // class X vs method X
+001| Box[K]:{.get:K;}
+002| A:{.id[X](x:Box[X]):X}
+003| B[X]:A{.id[X](b:Box[X])->b.get} // class X vs method X
    |        ~~~~^~~~~~~~~~~~-------
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > type declaration > full file
@@ -891,9 +843,9 @@ B[X]:A{.id[X](b:Box[X])->b.get} // class X vs method X
 
 //TODO: why in the test below and others in this file, I get always 4 ^s?
 @Test void inferAlph_AMergeTwoSupers_SwappedOrder_NestedArgs(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-006| D:A,C{}
+005| D:A,C{}
    | ^^^^^^^
 
 While inspecting type declaration "D"
@@ -924,9 +876,9 @@ User:{
 """));}
 
 @Test void abcdBadK(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-008|   .foo2[C,D]:User->KK:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[K];
+007|   .foo2[C,D]:User->KK:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[K];
    |                                                                     ^^
 
 While inspecting a type name
@@ -968,9 +920,9 @@ User:{.m:User->
 """));}
 
 @Test void magicWidenErrMispelled(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002| A:base.Widen[A]{}
+001| A:base.Widen[A]{}
    |   ^^^^^^^^^^^
 
 While inspecting a type name
@@ -984,9 +936,9 @@ C:A,B{}
 """));}
 
 @Test void magicWidenErr(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004| C:A,B{}
+003| C:A,B{}
    | ^^^^^^^
 
 While inspecting type declaration "C"
@@ -1004,9 +956,9 @@ C:A,B{}
 """));}
 
 @Test void bareSimple_undefined_noSuggestions_noOtherPkg(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004|   .foo(x:Missing):Missing;
+003|   .foo(x:Missing):Missing;
    |          ^^^^^^^^
 
 While inspecting a type name
@@ -1021,9 +973,9 @@ User:{
 """));}
 
 @Test void bareSimple_suggestFromScope(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-005|   .foo(x:Fod):Fod;
+004|   .foo(x:Fod):Fod;
    |          ^^^^
 
 While inspecting a type name
@@ -1040,7 +992,7 @@ User:{
 """));}
 
 @Test void bareSimple_onlyInOtherPackage_crossPackageNote(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 004|   .foo(x:GG):G;
    |          ^^^
@@ -1049,10 +1001,8 @@ While inspecting a type name
 Type "GG" is not declared in package "p" and is not made visible via "use".
 In scope: "G", "User".
 Error 9 WellFormedness
-""","""
-role app000;
-use base.F as G;
 """,List.of("""
+use base.F as G;
 User:{
  'this
   .foo(x:GG):G;
@@ -1060,9 +1010,9 @@ User:{
 """));}
 
 @Test void bareSimple_onlyInOtherPackage_crossPackageImported(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004|   .foo(x:F):F;
+003|   .foo(x:F):F;
    |          ^^
 
 While inspecting a type name
@@ -1071,9 +1021,6 @@ In scope: "User".
 Did you mean "base.F" ?
 Add a "use" or write the fully qualified name.
 Error 9 WellFormedness
-""","""
-role app000;
-//use base.F as G;
 """,List.of("""
 User:{
  'this
@@ -1082,9 +1029,9 @@ User:{
 """));}
 
 @Test void bareSimple_suggestAndCrossPackageNote(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004|   .foo(xs:Blok):Blok;
+003|   .foo(xs:Blok):Blok;
    |           ^^^^^
 
 While inspecting a type name
@@ -1101,7 +1048,7 @@ User:{
 """));}
 
 @Test void explicitPackage_pkgDoesNotExist_withSuggestion(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|   .foo(x:basee.F):basee.F;
    |          ^^^^^^^^
@@ -1111,17 +1058,15 @@ Package "basee" does not exist.
 Did you mean "base" ?
 Visible packages: "base".
 Error 9 WellFormedness
-""","""
-role app000;
-use base.F as F;
 """,List.of("""
+use base.F as F;
 User:{
   .foo(x:basee.F):basee.F;
 }
 """));}
 
 @Test void explicitPackage_typeNotInThatPackage_noArityIssue(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|   .foo(x:base.Foo):base.Foo;
    |          ^^^^^^^^^
@@ -1129,19 +1074,17 @@ In file: [###]/in_memory0.fear
 While inspecting a type name
 Type "Foo" is not declared in package "base".
 Error 9 WellFormedness
-""","""
-role app000;
-use base.F as F;
 """,List.of("""
+use base.F as F;
 User:{
   .foo(x:base.Foo):base.Foo;
 }
 """));}
 
 @Test void explicitPackage_arityMismatch_listsAvailableArities(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-003|   .foo[X,Y](x:base.Block[X,Y]):base.Block[X,Y];
+002|   .foo[X,Y](x:base.Block[X,Y]):base.Block[X,Y];
    |               ^^^^^^^^^^^
 
 While inspecting a type name
@@ -1149,9 +1092,6 @@ Name "Block" is not declared with 2 type parameter(s) in package "base".
 Name "Block" is only declared with the following numbers of type parameters: 0, 1.
 Did you accidentally add or omit a type parameter?
 Error 9 WellFormedness
-""","""
-role app000;
-//use base.Block as Block;
 """,List.of("""
 User:{
   .foo[X,Y](x:base.Block[X,Y]):base.Block[X,Y];
@@ -1159,7 +1099,7 @@ User:{
 """));}
 
 @Test void bareSimple_arityMismatch_prefersLocalAndShowsArities(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|   .foo[X,Y](x:Block[X,Y]):Block[X,Y];
    |               ^^^^^^
@@ -1169,18 +1109,16 @@ Name "Block" is not declared with 2 type parameter(s) in package "base".
 Name "Block" is only declared with the following numbers of type parameters: 0, 1.
 Did you accidentally add or omit a type parameter?
 Error 9 WellFormedness
-""","""
-role app000;
-use base.Block as Block;
 """,List.of("""
+use base.Block as Block;
 User:{
   .foo[X,Y](x:Block[X,Y]):Block[X,Y];
 }
 """));}
 @Test void bareSimple_caseTypos_suggestsCorrectCase(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-003| User:{ .foo(x:FOo):FOo; }
+002| User:{ .foo(x:FOo):FOo; }
    |               ^^^^
 
 While inspecting a type name
@@ -1194,9 +1132,9 @@ User:{ .foo(x:FOo):FOo; }
 """));}
 
 @Test void bareSimple_inScopeListing_whenManyCandidates(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-005| User:{ .foo(x:Abc):Abc; }
+004| User:{ .foo(x:Abc):Abc; }
    |               ^^^^
 
 While inspecting a type name
@@ -1213,7 +1151,7 @@ User:{ .foo(x:Abc):Abc; }
 @Test void genericTypeVarShadowsTName(){fail("""
 In file: [###]/in_memory1.fear
 
-002| Y[X:imm]:{}
+001| Y[X:imm]:{}
    |   ^^
 
 While inspecting a type name
@@ -1229,9 +1167,9 @@ Y[X:imm]:{}
 """));}
 
 @Test void sameTypeInTwoFiles(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002| X:{.foo:base.Void}
+001| X:{.foo:base.Void}
    | ^^
 
 While inspecting a type name
@@ -1246,9 +1184,9 @@ X:{.bar:base.Void}
 """));}
 
 @Test void duplicateBoundType(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002| X[A:imm,mut,imm]:{.bar:base.Void}
+001| X[A:imm,mut,imm]:{.bar:base.Void}
    |   ^^
 
 While inspecting the file
@@ -1260,9 +1198,9 @@ Error 9 WellFormedness
 X[A:imm,mut,imm]:{.bar:base.Void}
 """));}
 @Test void duplicateBoundMeth(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002| X:{.bar[A:imm,mut,imm]:base.Void}
+001| X:{.bar[A:imm,mut,imm]:base.Void}
    |         ^^
 
 While inspecting the file
@@ -1275,9 +1213,9 @@ X:{.bar[A:imm,mut,imm]:base.Void}
 """));}
 
 @Test void noSource(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-003| B:{base.Void}//forgot to implement A
+002| B:{base.Void}//forgot to implement A
    | ---^^^^^^^^^-
 
 While inspecting type declaration "B"
@@ -1291,10 +1229,9 @@ B:{base.Void}//forgot to implement A
 """));}
 //Tested also here, but note that this is ensured by the parsing already
 @Test void overOverloading(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-001| package p;
-002| A:{imm .m:base.Void; imm .m:base.Void}
+001| A:{imm .m:base.Void; imm .m:base.Void}
    | --~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^~
 
 While inspecting type declaration body > type declaration > full file
@@ -1321,11 +1258,11 @@ User:{
 """));}
 
 @Test void namedLiteralDup(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-007| B:A{
-008|   .h->MyAge:Age{}
-009|   }
+006| B:A{
+007|   .h->MyAge:Age{}
+008|   }
 
 While inspecting type declaration "B"
 Type declaration "B" implements method ".h".

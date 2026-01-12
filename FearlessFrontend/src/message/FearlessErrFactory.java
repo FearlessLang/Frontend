@@ -123,17 +123,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +"Did you mean "+Message.displayString(name.substring(0,name.length()-2)+" ->")+"?\n"
     ).addSpan(at);
   }
-
-  public FearlessException disallowedPackageNotEmpty(Span at){
-    return Code.UnexpectedToken.of(
-      "The package declaration must be at the very beginning of the file.\n"
-    ).addSpan(at);
-  }
-  public FearlessException disallowedRoleNotEmpty(Span at){
-    return Code.UnexpectedToken.of(
-      "There can be a single role declaration in the file header.\n"
-    ).addSpan(at);
-  }
   public FearlessException duplicatedMap(Span at, String what, String in){
     return Code.UnexpectedToken.of(
       "There is already an entry in the mapping for "+Message.displayString(what)+" in "+Message.displayString(in)+".\n"

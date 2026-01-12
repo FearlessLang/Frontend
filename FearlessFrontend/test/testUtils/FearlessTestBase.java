@@ -22,7 +22,6 @@ import core.OtherPackages;
 import core.TName;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
-import fearlessFullGrammar.FileFull.Role;
 import fearlessFullGrammar.ToString;
 import fearlessParser.Parse;
 import inference.E;
@@ -40,8 +39,6 @@ import utils.Join;
 import utils.Pos;
 
 public abstract class FearlessTestBase{
-  protected static final String defaultPkg="p";
-  protected static final String defaultHead="role app000;";
 
   static{ Err.setUp(AssertionFailedError.class, Assertions::assertEquals, Assertions::assertTrue); }
 
@@ -53,19 +50,10 @@ public abstract class FearlessTestBase{
     for (int i= 0; i < files.size(); i += 1){ b= b.put(i, files.get(i)); }
     return b.build();
   }
-  protected static SourceOracle oraclePkg(String pkgName, String head, List<String> bodies){
-    var b= SourceOracle.debugBuilder();
-    b.put(pkgName+".fear", "package "+pkgName+";\n"+head);
-    for (int i= 0; i < bodies.size(); i += 1){
-      b= b.put(i, "package "+pkgName+";\n"+bodies.get(i));
-    }
-    return b.build();
-  }
-  protected static SourceOracle oraclePkg(String head, List<String> bodies){
-    return oraclePkg(defaultPkg, head, bodies);
-  }
   protected static SourceOracle oraclePkg(List<String> bodies){
-    return oraclePkg(defaultPkg, defaultHead, bodies);
+    var b= SourceOracle.debugBuilder();
+    for (int i= 0; i < bodies.size(); i += 1){ b= b.put(i, bodies.get(i)); }
+    return b.build();
   }
   protected static List<URI> filesUri(int n){
     return IntStream.range(0, n).mapToObj(SourceOracle::defaultDbgUri).toList();
@@ -91,14 +79,14 @@ public abstract class FearlessTestBase{
       () -> Parse.from(SourceOracle.defaultDbgUri(0), input));
     strCmp(expectedErr, fe.render(o));
   }
-  protected static Methods parsePackage(SourceOracle o, OtherPackages other, boolean infer){
+  protected static Methods parsePackage(String pkgName,SourceOracle o, OtherPackages other, boolean infer){
     class InferenceMain extends FrontendLogicMain{
-      @Override protected Package makePackage(String name, Role role, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
-        return new Package(name, role, map, decs, names, Package.onLogger());
+      @Override protected Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
+        return new Package(name, map, decs, names, Package.onLogger());
       }
       Methods ofMethods(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
         Map<URI, FileFull> rawAST= parseFiles(files, o);
-        Package pkg= mergeToPackage(rawAST, override, other);
+        Package pkg= mergeToPackage(pkgName,rawAST, override, other);
         Methods ctx= Methods.create(pkg, other);
         List<E.Literal> iDecs= new ToInference().of(ctx.p(), ctx, other, ctx.fresh());
         iDecs= ctx.registerTypeHeadersAndReturnRoots(iDecs);
@@ -111,8 +99,8 @@ public abstract class FearlessTestBase{
     }
     return new InferenceMain().ofMethods(List.of(), o.allFiles(), o, other, infer);
   }
-  protected static Methods parsePackage(SourceOracle o, boolean infer){
-    return parsePackage(o, otherFrom(DbgBlock.all()), infer);
+  protected static Methods parsePackage(String pkgName, SourceOracle o, boolean infer){
+    return parsePackage(pkgName,o, otherFrom(DbgBlock.all()), infer);
   }
   protected static void toStringOk(String expected,String input){
     FileFull res;
@@ -131,45 +119,34 @@ public abstract class FearlessTestBase{
     );
     Err.strCmp(expected,got);
   }
-  protected static void inferenceOk(String expected, String head, List<String> input, boolean infer){
-    var o= oraclePkg(defaultPkg, head, input);
-    Methods res= printError(() -> parsePackage(o, infer), o);
+  protected static void inferenceOk(String expected, List<String> input, boolean infer){
+    var o= oraclePkg(input);
+    Methods res= printError(() -> parsePackage("p",o, infer), o);
     String got= Join.of(res.p().log().logs().stream().sorted(), "", "\n", "", "");
     strCmp(expected, got);
   }
-  protected static void inferenceOk(String expected, String head, List<String> input){ inferenceOk(expected, head, input, false); }
-  protected static void inferenceOk(String expected, List<String> input){ inferenceOk(expected, defaultHead, input, false); }
-  protected static void inferenceFail(String expected, String head, List<String> input, boolean infer){
-    var o= oraclePkg(defaultPkg, head, input);
-    FearlessException fe= assertThrows(FearlessException.class, () -> parsePackage(o, infer));
+  protected static void inferenceFail(String expected, List<String> input, boolean infer){
+    var o= oraclePkg(input);
+    FearlessException fe= assertThrows(FearlessException.class, () -> parsePackage("p",o, infer));
     strCmp(expected, fe.render(o));
-  }
-  protected static void inferenceFail(String expected, String head, List<String> input){
-    inferenceFail(expected, head, input, false);
-  }
-  protected static void inferenceFailI(String expected, String head, List<String> input){
-    inferenceFail(expected, head, input, true);
   }
   protected static void inferenceFail(String expected, List<String> input){
-    inferenceFail(expected, defaultHead, input, false);
+    inferenceFail(expected, input, false);
   }
-  protected static void typeOk(String head, List<String> input){
-    var o= oraclePkg(defaultPkg, head, input);
+  protected static void typeOk(List<String> input){
+    var o= oraclePkg(input);
     OtherPackages other=  printError(() -> otherFrom(DbgBlock.all()),o);
-    printError(() -> new FrontendLogicMain().of(List.of(), o.allFiles(), o, other), o);
+    printError(() -> new FrontendLogicMain().of("p",List.of(), o.allFiles(), o, other), o);
   }
-  protected static void typeOk(List<String> input){ typeOk(defaultHead, input); }
-
-  protected static void typeFail(String expected, String head, List<String> input){
-    var o= oraclePkg(defaultPkg, head, input);
+  protected static void typeFailRaw(String expected, List<String> input){
+    var o= oraclePkg(input);
     OtherPackages other= otherFrom(DbgBlock.all());
     FearlessException fe= assertThrows(FearlessException.class,
-      () -> new FrontendLogicMain().of(List.of(), o.allFiles(), o, other));
+      () -> new FrontendLogicMain().of("p",List.of(), o.allFiles(), o, other));
     strCmp(expected, fe.render(o));
   }
-  protected static void typeFailExt(String expected, List<String> input){ typeFail(expected, defaultHead, input); }
   protected static void typeFail(String expected, List<String> input){
-    typeFail("In file: [###]/in_memory0.fear\n\n"+expected+"Error 10 TypeError", defaultHead, input);
+    typeFailRaw("In file: [###].fear\n\n"+expected+"Error 10 TypeError", input);
   }
   protected static OtherPackages otherErr(){ return OtherPackages.empty(); }
 
@@ -180,11 +157,11 @@ public abstract class FearlessTestBase{
       public Collection<TName> dom(){ return map.keySet(); }
     };
   }
-  protected static List<core.E.Literal> compileAll(SourceOracle o, OtherPackages other){
-    return new main.FrontendLogicMain().of(List.of(), o.allFiles(), o, other);
+  protected static List<core.E.Literal> compileAll(String pkgName, SourceOracle o, OtherPackages other){
+    return new main.FrontendLogicMain().of(pkgName,List.of(), o.allFiles(), o, other);
   }
-  protected static List<core.E.Literal> compileAllOk(SourceOracle o, core.OtherPackages other){
-    return okOrPrint(o, ()->compileAll(o, other));
+  protected static List<core.E.Literal> compileAllOk(String pkgName, SourceOracle o, core.OtherPackages other){
+    return okOrPrint(o, ()->compileAll(pkgName, o, other));
   }
   public static SourceOracle oracleFromDir(Path root){
     if (!Files.isDirectory(root)){ throw Bug.of("Not a directory: "+root); }

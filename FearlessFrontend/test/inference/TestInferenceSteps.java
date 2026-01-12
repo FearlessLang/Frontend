@@ -6,10 +6,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class TestInferenceSteps extends testUtils.FearlessTestBase{
-  static void okI(String expected,List<String> input){ inferenceOk(expected, defaultHead, input, true); }
-  static void okI(String expected,String head,List<String> input){ inferenceOk(expected, head, input, true); }
-  static void failI(String expected, List<String> input){ inferenceFail(expected, defaultHead, input, true); }
-  static void failI(String expected, String head, List<String> input){ inferenceFail(expected, head, input, true); }
+  static void okI(String expected, List<String> input){ inferenceOk(expected, input, true); }
+  static void failI(String expected, List<String> input){ inferenceFail(expected, input, true); }
 
 @Test void inferMini(){okI("""
 p.A:{'this .foo:p.A@p.A;->this:?.foo():?;}
@@ -42,11 +40,11 @@ User:{
 """));}
 
 static String importMini="""
-role app000;
 use base.Nat as Nat;
 use base.F as F;
 use base.Bool  as Bool;
 use base.Void as Void;
+
 """;
 static String stackStart="""
 StackMatch[T,R]: {
@@ -77,7 +75,7 @@ Stack[T]: {
 ->ns.fold[imm,base.Nat](base.0,\
  imm p._AZ0Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
-""",importMini,List.of(stackStart+"""
+""",List.of(importMini+stackStart+"""
 Z0ExampleSum: { #(ns: Stack[Nat]): Nat -> ns.fold(0, { n1,n2 -> n1 + n2 })  }
 """));}
 @Test void inferStackGuideExampleTimesLit(){okI("""
@@ -93,7 +91,7 @@ p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](p.StackMatch[imm T,_GR]):_GR@p
 ~mut p.Z1ExampleTimes:{'this #(ns:p.Stack[base.Nat]):base.Nat\
 ->ns.fold[imm,base.Nat](base.1, imm p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1*[imm](n2)})}
-""",importMini,List.of(stackStart+"""
+""",List.of(importMini+stackStart+"""
 Z1ExampleTimes: { #(ns: Stack[Nat]): Nat -> ns.fold(1, { n1,n2 -> n1 * n2 })  }
 """));}
 
@@ -106,7 +104,7 @@ Z1ExampleTimes: { #(ns: Stack[Nat]): Nat -> ns.fold(1, { n1,n2 -> n1 * n2 })  }
  .empty:base.Nat->base.0;\
  .elem(top:base.Nat, tail:p.Stack[base.Nat]):base.Nat\
 ->top+[imm](this.sum[imm](tail))})}
-""",importMini,List.of(stackStart+"""
+""",List.of(importMini+stackStart+"""
 Z2Example: {
   .sum(ns: Stack[Nat]): Nat -> ns.match{
     .empty -> 0;
@@ -126,7 +124,7 @@ imm p._BZ3Ex:p.StackMatch[base.Nat,p.Stack[base.Nat]]{'_\
  .empty:p.Stack[base.Nat]->p.Stack[base.Nat];\
  .elem(top:base.Nat, tail:p.Stack[base.Nat]):p.Stack[base.Nat]->\
 p.Z3ExampleAdd5.add5[imm](tail)+[imm](top+[imm](base.5))})}
-""",importTo10,List.of(stackStart+"""
+""",List.of(importTo10+stackStart+"""
 Z3ExampleAdd5:{
   .add5(ns: Stack[Nat]): Stack[Nat] -> ns.match{
     .empty -> {};
@@ -148,7 +146,7 @@ Z3ExampleAdd5:{
 .fold[imm,base.Nat](base.0,\
  imm p._CZ4Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
-""",importMini,List.of(stackStart+"""
+""",List.of(importMini+stackStart+"""
 Z4ExampleFluent: { #(ns: Stack[Nat]): Nat -> ns
   .map { n -> n + 10 }
   .map { n -> n *  3 }
@@ -157,7 +155,6 @@ Z4ExampleFluent: { #(ns: Stack[Nat]): Nat -> ns
 """));}
 //-----------Now with numbers as userDefNames
 static String importTo10="""
-role app000;
 use base.Nat as Nat;
 use base.F as F;
 use base.Bool  as Bool;
@@ -172,6 +169,7 @@ use base.Seven as Seven;
 use base.Eight as Eight;
 use base.Nine  as Nine;
 use base.Ten   as Ten;
+
 """; 
 @Test void inferStackGuideExampleBase(){okI("""
 p.StackMatch[T:imm, R:imm]:{'this .empty:R@p.StackMatch; .elem(T,p.Stack[T]):R@p.StackMatch;}
@@ -181,7 +179,7 @@ p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](p.StackMatch[imm T,_GR]):_GR@p
 ~-----------
 ~mut p.StackMatch[T:imm,R:imm]:{'this .empty:R; .elem(_:T, _:p.Stack[T]):R}
 ~mut p.Stack[T:imm]:{'this .match[R:imm](m:p.StackMatch[T,R]):R->m.empty[imm]; .fold[R:imm](start:R, f:base.F[R,T,R]):R->start; .map[R:imm](f:base.F[T,R]):p.Stack[R]->p.Stack[imm R]; .filter(f:base.F[T,base.Bool]):p.Stack[T]->p.Stack[imm T]; +(e:T):p.Stack[T]->imm p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](m:p.StackMatch[imm T,_GR]):_GR->m.elem[imm](e, this); .fold[_HR:imm](start:_HR, f:base.F[_HR,imm T,_HR]):_HR->f#[read](this.fold[imm,imm _HR](start, f), e); .map[_JR:imm](f:base.F[imm T,_JR]):p.Stack[_JR]->this.map[imm,imm _JR](f)+[imm](f#[read](e)); .filter(f:base.F[imm T,base.Bool]):p.Stack[imm T]->f#[read](e).if[imm,p.Stack[imm T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[imm T]]{'_ mut .then:p.Stack[imm T]->this.filter[imm](f)+[imm](e); mut .else:p.Stack[imm T]->this.filter[imm](f)}); +(_:imm T):p.Stack[imm T]}}
-""",importTo10,List.of(stackStart));}
+""",List.of(importTo10+stackStart));}
 
 @Test void inferStackGuideExampleSum(){okI("""
 [###]~-----------
@@ -192,7 +190,7 @@ p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](p.StackMatch[imm T,_GR]):_GR@p
 ns.fold[imm,base.Nat](base.Zero,\
  imm p._AZ0Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
-""",importTo10,List.of(stackStart+"""
+""",List.of(importTo10+stackStart+"""
 Z0ExampleSum: { #(ns: Stack[Nat]): Nat -> ns.fold(Zero, { n1,n2 -> n1 + n2 })  }
 """));}
 @Test void inferStackGuideExampleTimes(){okI("""
@@ -204,7 +202,7 @@ Z0ExampleSum: { #(ns: Stack[Nat]): Nat -> ns.fold(Zero, { n1,n2 -> n1 + n2 })  }
 ns.fold[imm,base.Nat](base.One,\
  imm p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1*[imm](n2)})}
-""",importTo10,List.of(stackStart+"""
+""",List.of(importTo10+stackStart+"""
 Z1ExampleTimes: { #(ns: Stack[Nat]): Nat -> ns.fold(One, { n1,n2 -> n1 * n2 })  }
 """));}
 
@@ -218,7 +216,7 @@ imm p._AZ2Ex:p.StackMatch[base.Nat,base.Nat]{'_\
  .empty:base.Nat->base.Zero;\
  .elem(top:base.Nat, tail:p.Stack[base.Nat]):base.Nat\
 ->top+[imm](this.sum[imm](tail))})}
-""",importTo10,List.of(stackStart+"""
+""",List.of(importTo10+stackStart+"""
 Z2Example: {
   .sum(ns: Stack[Nat]): Nat -> ns.match{
     .empty -> Zero;
@@ -237,7 +235,7 @@ imm p._BZ3Ex:p.StackMatch[base.Nat,p.Stack[base.Nat]]{'_\
  .empty:p.Stack[base.Nat]->p.Stack[base.Nat];\
  .elem(top:base.Nat, tail:p.Stack[base.Nat]):p.Stack[base.Nat]\
 ->p.Z3ExampleAdd5.add5[imm](tail)+[imm](top+[imm](base.Five))})}
-""",importTo10,List.of(stackStart+"""
+""",List.of(importTo10+stackStart+"""
 Z3ExampleAdd5:{
   .add5(ns: Stack[Nat]): Stack[Nat] -> ns.match{
     .empty -> {};
@@ -257,7 +255,7 @@ Z3ExampleAdd5:{
  read #(n:base.Nat):base.Nat->n*[imm](base.Three)})\
 .fold[imm,base.Nat](base.Zero, imm p._CZ4Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
-""",importTo10,List.of(stackStart+"""
+""",List.of(importTo10+stackStart+"""
 Z4ExampleFluent: { #(ns: Stack[Nat]): Nat -> ns
   .map { n -> n + Ten }
   .map { n -> n *  Three }
@@ -433,9 +431,9 @@ User:{ .m:A->{ .m:A->A;}; }
 """));}
 
 @Test void regressionMethodHeaderAndGet2(){failI("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-003| User:{ .m:A->{ .m->A;}; }
+002| User:{ .m:A->{ .m->A;}; }
    |              --^^^^^--
 
 While inspecting object literal instance of "A"
@@ -452,9 +450,9 @@ User:{ .m:A->{ .m->A;}; }
 """));}
 
 @Test void badSealedOutNoInference(){failI("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-003| User:base.Void{ .m:A->A }
+002| User:base.Void{ .m:A->A }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "User"
@@ -469,9 +467,9 @@ User:base.Void{ .m:A->A }
 """));}
 
 @Test void badSealedOutEmpty(){failI("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-003| User:base.Void{ .foo:A }
+002| User:base.Void{ .foo:A }
    | ^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "User"
@@ -486,9 +484,9 @@ User:base.Void{ .foo:A }
 """));}
 
 @Test void badSealedOutInferenceUsed(){failI("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-003| User:Void{ .m:A->A }
+007| User:Void{ .m:A->A }
    | ^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "User"
@@ -497,15 +495,15 @@ Sealed types can only be implemented in their own package.
 Type declaration "User" is defined in package "p".
 Type "Void" is defined in package "base".
 Error 9 WellFormedness
-""",importMini,List.of("""
+""",List.of(importMini+"""
 A:{}
 User:Void{ .m:A->A }
 """));}
 
 @Test void badSealedOutInferenceInner(){failI("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-003| User:{ .m:base.Void->{ .m:A->A;}; }
+002| User:{ .m:base.Void->{ .m:A->A;}; }
    |                      ^^^^^^^^^^^
 
 While inspecting object literal instance of "base.Void"
@@ -814,7 +812,8 @@ BlockQ[R5:*]: {
 ~mut p.LoopBody[R:imm,mut,read]:p.ReturnStmt[mut p.ControlFlow[R]]{'this mut #:mut p.ControlFlow[R]}
 ~mut p.ReturnStmt[R:imm,mut,read,iso]:{'this mut #:R}
 ~mut p._DecidedBlock:{'this #[R1:imm,mut,read](res:R1):mut p.Block[R1]->mut p._BDeci[R1:imm,mut,read]:p.Block[R1]{'self mut .return(_:mut p.ReturnStmt[R1]):R1->res; mut .do(_:mut p.ReturnStmt[base.Void]):mut p.Block[R1]->self; mut .let[X:imm,mut,read](_:mut p.ReturnStmt[X], _:mut p.Continuation[X,mut p.Block[R1],R1]):R1->res; mut .openIso[X:imm,mut,read,iso](_:iso X, _:mut p.Continuation[mut X,mut p.Block[R1],R1]):R1->res; mut .if(_:mut p.Condition):mut p.BlockIf[R1]->mut p._ADeci[R1:imm,mut,read]:p.BlockIf[R1]{'_ mut .return(_:mut p.ReturnStmt[R1]):mut p.Block[R1]->self; mut .do(_:mut p.ReturnStmt[base.Void]):mut p.Block[R1]->self}; mut .loop(_:mut p.LoopBody[R1]):mut p.Block[R1]->self; mut .done:base.Void; mut ._do(_:base.Void):mut p.Block[R1]}}
-""","role app000; use base.Void as Void; use base.Bool as Bool;",List.of("""
+""",List.of("""
+use base.Void as Void; use base.Bool as Bool;
 Any:{#[T]:T->Any#[imm,T]}
 ReturnStmt[R:iso,imm,mut,read]: {mut #: R}
 Condition: ReturnStmt[Bool]{}
@@ -1177,12 +1176,12 @@ User5:{.go3:Float->Trash#(Top.top {x->{y->y}} # One # FOne) }
 """));}
 
 @Test void innerAbstract(){failI("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-003| Main:{
-004|   .m:A -> { .bar:A }.foo
+002| Main:{
+003|   .m:A -> { .bar:A }.foo
    |           ~~^^^^^^~~----
-005|   }
+004|   }
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 Abstract method declaration for ".bar".

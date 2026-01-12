@@ -59,7 +59,7 @@ body=Optional.empty]]]]]
 Pair[X,Y]:{ .x:X; .y:Y;}
 """);}
 @Test void decl_generics_use_repeat(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| Pair[X,X]:{ .x:X; .y:X;}
    | ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -71,7 +71,7 @@ Error 2 UnexpectedToken""","""
 Pair[X,X]:{ .x:X; .y:X;}
 """);}
 @Test void meth_generics_use_repeat(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| Pairs:{.of[X,X]():A->A;}
    |       -^^^^^^^^^^^^~~~--
@@ -84,7 +84,7 @@ Pairs:{.of[X,X]():A->A;}
 """);}
 
 @Test void meth_generics_use_repeatHash(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| Pairs:{#[X,X]():A->A;}
    |       -^^^^^^^^^^~~~--
@@ -97,7 +97,7 @@ Pairs:{#[X,X]():A->A;}
 """);}//here we need to fix the tokenizer
 
 @Test void decl_generics_use_repeat_meth(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| Pair[X,Y]:{ .x:X; .y:Y; .foo[X](x:X):X; }
    |           --------------~~~~~^~~~~~~~~---
@@ -110,7 +110,7 @@ Pair[X,Y]:{ .x:X; .y:Y; .foo[X](x:X):X; }
 """);}
 
 @Test void meth_meth_repeat(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{.foo[X]:A->B:{.bar[X]:B->B}; }
    |                  ~~~~~^~~~---
@@ -127,7 +127,7 @@ A:{.foo[X]:A->B:{.bar[X]:B->B}; }
 A[X]:{.foo:AA->B[X]:{.bar:BB->BB}; }
 """);}
 @Test void type_type_noFunnel(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A[X]:{.foo:AA->B[C]:{.bar:BB->BB}; }
    |       ---------~~^~~~~~~~~~~~~~~~
@@ -147,7 +147,7 @@ body=Optional[this]]]]]]
 A:{.foo:A->this; }
 """);}
 @Test void use_selfBadBackTick(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ `x .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
    |   ^^^^^^^^^^^^^^^^^^^^^------------------------------------------
@@ -162,7 +162,7 @@ Error 0 Unclosed
 A:{ `x .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
 """);}
 @Test void use_self(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be this or nothing
    | --~~~^^^~~~~~~~~~~~~~~~~~
@@ -429,7 +429,7 @@ A:{ .m -> (Block#.let x={5}.bar) .use(5) }
 """);}
 
 @Test void missingReturnType(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m(): -> (Block#.let x={5}) .use(x) }
    |     ~~~~^------------------------------
@@ -442,7 +442,7 @@ Error 2 UnexpectedToken
 A:{ .m(): -> (Block#.let x={5}) .use(x) }
 """);}
 @Test void useOutOfScopeBad(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m -> (Block#.let x={5}) .use(x) }
    |           ~~~~~~~~~~~~~~^^^~--------
@@ -456,7 +456,7 @@ A:{ .m -> (Block#.let x={5}) .use(x) }
 """);}
 
 @Test void useOutOfScope1(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m -> (Block#.let x={5}.bar) .use(x) }
    |     ------~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
@@ -470,7 +470,7 @@ A:{ .m -> (Block#.let x={5}.bar) .use(x) }
 """);}
 
 @Test void useOutOfScope2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m ->
 002| ( (Block#.let x={5}.bar) .use(x) )
@@ -487,7 +487,7 @@ A:{ .m ->
 """);}
 
 @Test void useOutOfScope3(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m ->
 002| (   (  (Block#.let x={5}.bar) .use(x)       )      )
@@ -505,7 +505,7 @@ A:{ .m ->
 
 
 @Test void eqNoExprRounds(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m ->
 002| (   (    Block#.let x= .use(x)    )      )
@@ -523,7 +523,7 @@ A:{ .m ->
 
 
 @Test void doubleComma(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m(a,,b):C }
    |   --~~~~^~~~~~--
@@ -537,7 +537,7 @@ A:{ .m(a,,b):C }
 """);}
 
 @Test void doubleCommaArg(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m(x:C):C->x.foo(,) }
    |     -----------~~~~~~^~
@@ -551,7 +551,7 @@ A:{ .m(x:C):C->x.foo(,) }
 """);}
 
 @Test void err_illegal_tab_char(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{      .m(x:C):C->x.foo(,) }
    |     ^^^^
@@ -564,7 +564,7 @@ A:{ \t .m(x:C):C->x.foo(,) }
 """);}
 
 @Test void err_unclosed_curly_in_decl(){fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 001| A:{
    |   ^
@@ -579,7 +579,7 @@ A:{
 """);}
 
 @Test void err_unclosed_curly_long(){fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 001| A:{ fdfdds
    |   ^
@@ -601,7 +601,7 @@ fff
 """);}
 
 @Test void multi_inside_signature_doubleComma(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{
 002| \n\
@@ -638,7 +638,7 @@ Block#.let z={5}
 }
 """);}
 @Test void multi_caret_middle_nameNotInScope(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003| Block#.let x={5}
 004| .use(x)
@@ -659,7 +659,7 @@ Block#.let x={5}
 """);}
 
 @Test void multi_caret_last_nameNotInScope(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m ->
 003| .use(y)
@@ -678,7 +678,7 @@ A:{
 """);}
 
 @Test void multi_args_missing_expr_multiline(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003| x.foo(
 004|  ,)
@@ -697,7 +697,7 @@ x.foo(
 """);}
 
 @Test void multi_firstContentLine_nameNotInScope_body(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{//comment1
 002| .m -> y;//removing this semicol should give a clear missing separator error
@@ -717,7 +717,7 @@ A:{//comment1
 """);}
 
 @Test void multi_firstContentLine_nameNotInScope_body2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{
 002| .m -> y;//removing this semicol should give a clear missing separator error
@@ -737,7 +737,7 @@ A:{
 """);}
 
 @Test void multi_firstContentLine_nameNotInScope_body_NoSemi(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m -> y
 003| .n -> {}
@@ -754,7 +754,7 @@ A:{
 """);}
 
 @Test void err_unopened_curly_top(){fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 001| A: a b c } f e
    | ^^^^^^^^^^
@@ -768,7 +768,7 @@ A: a b c } f e
 """);}
 
 @Test void err_bad_expr(){fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m -> :+45 }
    |   --~~~~~~^~~~--
@@ -782,7 +782,7 @@ Error 2 UnexpectedToken
 A:{ .m -> :+45 }
 """);}
 @Test void err_bad_open_square_with_space(){fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 001| A:{ x -> x.foo [read] }
    |                ^
@@ -797,7 +797,7 @@ Error 2 UnexpectedToken
 A:{ x -> x.foo [read] }
 """);}
 @Test void err_bad_op_line_pipe_before_quote(){fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m -> +|`a'
    |           ^^
@@ -811,7 +811,7 @@ A:{ .m -> +|`a'
   }
 """);}
 @Test void err_disallowed_readH_on_closure(){fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m -> readH +5{} }
    |     ------^^^^^~~~~~
@@ -825,7 +825,7 @@ Error 2 UnexpectedToken
 A:{ .m -> readH +5{} }
 """);}
 @Test void err_disallowed_mutH_on_closure(){fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m -> mutH -5{} }
    |     ------^^^^~~~~~
@@ -839,7 +839,7 @@ Error 2 UnexpectedToken
 A:{ .m -> mutH -5{} }
 """);}
 @Test void err_missing_expr_after_eq_sugar(){fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m -> Block#.let x= .use(x) }
    |     ------~~~~~~~~~~~~~~^^^^^^^
@@ -853,7 +853,7 @@ A:{ .m -> Block#.let x= .use(x) }
 """);}
 
 @Test void err_name_redeclared_param(){fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m(x,x) -> x }
    |   --^^^^^^^~~~~~--
@@ -872,7 +872,7 @@ A:{ .m(x,x) -> x }
 //""");}//NOPE, that becomes just a type name
 
 @Test void err_type_name_conflicts_with_generic_in_impl(){fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 001| A[X]: X {}
    | ------^---
@@ -885,7 +885,7 @@ A[X]: X {}
 """);}
 
 @Test void err_bad_generic_bound_operator(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A[X:***]:{}
    | --~~^^^----
@@ -901,7 +901,7 @@ A[X:***]:{}
 """);}
 
 @Test void err_name_redeclared_param2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m(x,x) -> x }
    |   --^^^^^^^~~~~~--
@@ -916,7 +916,7 @@ A:{ .m(x,x) -> x }
 }
 
 @Test void err_space_before_destruct_id(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m({.a} Bob:X):X }
    |     ---~~~~~^^^~~---
@@ -931,7 +931,7 @@ A:{ .m({.a} Bob:X):X }
 }
 
 @Test void err_illegal_nbsp_char(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{·.m():X }
    |    ^
@@ -945,7 +945,7 @@ Error 2 UnexpectedToken
 
 //U+200D first, then NBSP, BOM, RLO
 @Test void err_illegal_zwj_char_and_more(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{\u00B7\u00B7\uFFFD\uFFFD.m():X }
    |    ^
@@ -959,7 +959,7 @@ Error 2 UnexpectedToken
 
 //U+202E first, then NBSP, ZWJ, ZWNJ
 @Test void err_illegal_rlo_char_and_more(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{\uFFFD\u00B7\u00B7\u00B7.m():X }
    |    ^
@@ -973,7 +973,7 @@ Error 2 UnexpectedToken
 
 // U+FEFF first, then ZWSP, IDEOGRAPHIC SPACE
 @Test void err_illegal_bom_char_and_more(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{\uFFFD\u00B7\u00B7.m():X }
    |    ^
@@ -986,7 +986,7 @@ Error 2 UnexpectedToken
 }
 // U+3000 first, then ZWSP, RLM, NBSP
 @Test void err_illegal_ideographic_space_and_more(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{\u00B7\u00B7\uFFFD\u00B7.m():X }
    |    ^
@@ -999,7 +999,7 @@ Error 2 UnexpectedToken
 }
 // 😀 first, then NBSP, ZWJ
 @Test void err_illegal_emoji_and_more(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{\uFFFD\u00B7\u00B7.m():X }
    |    ^
@@ -1012,7 +1012,7 @@ Error 2 UnexpectedToken
 }
 
 @Test void inter_deep_bad_equals_sugar_fail(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|`Head { Block#.let x= .use(x) } Tail
@@ -1031,7 +1031,7 @@ A:{
 
 
 @Test void inter_deep_bad_equals_sugar_fail_twice_a(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|`Head { Block#.let x= .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End
@@ -1049,7 +1049,7 @@ A:{
 """); }
 
 @Test void inter_deep_bad_equals_sugar_fail_twice_b(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m(x):Str ->
 003| #|`Head { Block#.let    .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End
@@ -1068,7 +1068,7 @@ A:{
 
 
 @Test void inter_deep_bad_equals_sugar_fail_round(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|`Head {     ( /*a*/ (Block#.let x= .use(x)) /*bb*/ ) } Tail
@@ -1086,7 +1086,7 @@ A:{
 """); }
 
 @Test void badClose_noOpen(){ fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|`Head } ss
@@ -1103,7 +1103,7 @@ A:{
 """); }
 
 @Test void inter_deep_bad_equals_sugar_ok(){ fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|`Head { Block#.let x={5} .use(x) } Tail
@@ -1135,7 +1135,7 @@ A:{
 """); }
 
 @Test void inter_hash_no_opener_early_close_fail(){ fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|" foo } bar
@@ -1152,7 +1152,7 @@ A:{
 """); }
 
 @Test void inter_hash_early_close_then_opener_fail(){ fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|` foo } bar {B.foo(C)} end
@@ -1215,7 +1215,7 @@ A:{
 """); }
 
 @Test void inter_hash_after_closer_literal_close_brace_fail(){ fail("""
-In file: [###]in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|` pre {B.foo(C)} } tail
@@ -1251,7 +1251,7 @@ A:{
 """); }
 
 @Test void inter_hash_h2_adjacent_closers_fail_require_space(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| ##|` pre {{ +5{}}} post
@@ -1318,7 +1318,7 @@ A:{
 """); }
 
 @Test void inter_hash_h3_fail(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| ###|` pre {{{ +5{} }} mid
@@ -1365,7 +1365,7 @@ A:{
 """); }
 
 @Test void doubleclose_h4(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| ####|` {{{{B.foo(C)}}}} ddd }}}} end
@@ -1382,7 +1382,7 @@ A:{
 """); }
 
 @Test void inter_hash_mixed_outer_openers_literal(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|` L {{R {{B.foo(C)}} R}} L
@@ -1420,7 +1420,7 @@ A:{
 """); }
 
 @Test void inter_hash_h2_unclosed_due_to_missing_third_brace_fail(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| ##|` start {{ foo.bar{ baz .toList }} end
@@ -1471,7 +1471,7 @@ A:{
 """); }
 
 @Test void inter_two_interps_second_bad_fail(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|`pre{B.foo(C)}mid{x.bar(1,2}post
@@ -1501,7 +1501,7 @@ x ->
 """); }
 
 @Test void inter_expr_then_chain_bad_args_fail(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003| #|`ok'
 004| #|`and then
@@ -1544,7 +1544,7 @@ x.b(1,2): |`pre{,}post
 }
 """); }
 @Test void fail_with_interpolation(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003| x.b(1,2) :#|`pre{,}post
    |                  ^-
@@ -1588,7 +1588,7 @@ A:{
 
 
 @Test void inter_op_before_line_string_unicode_fail(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|  ^-^|"a"
    |  ^^^^
@@ -1651,7 +1651,7 @@ dd ->
 """); }
 
 @Test void inter_mixBad(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003| ####|"one
 004| ###|`two
@@ -1682,7 +1682,7 @@ A:{
 """); }
 
 @Test void inter_mix_other(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|`one'
@@ -1717,7 +1717,7 @@ x ->
 """); }
 
 @Test void never_new_line_inter(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 004| } `post
    |   ^^^^^
@@ -1734,7 +1734,7 @@ x ->
 """); }
 
 @Test void inter_unclosed_block_comment_fail(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|`A { x + /* start
@@ -1764,7 +1764,7 @@ x ->
 
 //this ends up as two valid interpolations with broken code inside
 @Test void inter_block_comment_not_shield_braces1(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|`P { a /* }  {  */ + 3 } Q
@@ -1782,7 +1782,7 @@ A:{
 
 //this ends up as a double opener
 @Test void inter_block_comment_not_shield_braces2(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|`P { a /* {  }  */ + 3 } Q
@@ -1821,7 +1821,7 @@ x ->
 """); }
 
 @Test void inter_square_arg_space_inside_braces_fail(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .m:Str ->
 003| #|`S { x.foo [read] } T
@@ -1870,7 +1870,7 @@ A:{
 """); }
 
 @Test void good_error_for_plus_minus(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m -> 1+2 }
    |   --~~~~~~~^^--
@@ -1899,7 +1899,7 @@ x ->
 """); }
 
 @Test void bad_dq_str_eol_with_line_comment(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     "foo // comment
    |     ^^^^^^
@@ -1916,7 +1916,7 @@ A:{
 """);}
 
 @Test void bad_sq_str_eol_with_line_comment(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     `bar // comment
    |     ^^^^^^
@@ -1934,7 +1934,7 @@ A:{
 }
 
 @Test void bad_sq_str_eol_with_line_comment2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     `bar /* comment */
    |     ^^^^^^
@@ -1952,7 +1952,7 @@ A:{
 }
 
 @Test void bad_sq_str_eol_with_line_comment3(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     `bar /* comment
    |     ^^^^^^
@@ -1971,7 +1971,7 @@ A:{
 }
 
 @Test void bad_dq_str_eol_plain_no_comment(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     "no close here
    |     ^^^^^^^^^^^^^^
@@ -1988,7 +1988,7 @@ A:{
 }
 
 @Test void bad_sq_str_eol_plain_no_comment(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     `no close here
    |     ^^^^^^^^^^^^^^
@@ -2005,7 +2005,7 @@ A:{
 }
 
 @Test void bad_dq_str_opener_swallowed_by_block_comment_tail(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     /* something with a " on this last line */ "text that doesn't close
    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2024,7 +2024,7 @@ A:{
 }
 
 @Test void stray_block_comment_closer_with_pseudo_opener_in_string(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     "this looks like /* an opener but is inside a string"
 004|     some other text
@@ -2046,7 +2046,7 @@ A:{
 }
 
 @Test void stray_block_comment_closer_with_pseudo_opener_in_string2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     "this looks like /* an opener but is inside a string" some other text */
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2065,7 +2065,7 @@ A:{
 }
 
 @Test void stray_block_comment_closer_with_pseudo_opener_in_string3(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     "this looks like /* an opener but is inside a string"
    | ... 4 lines ...
@@ -2091,7 +2091,7 @@ A:{
 
 
 @Test void stray_block_comment_closer_with_pseudo_opener_in_line_comment(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     // not really opening: /*
 004|     */
@@ -2111,7 +2111,7 @@ A:{
 }
 
 @Test void stray_block_comment_closer_basic_no_pseudo_opener_and_prior_real_block_comment_exists(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 004|     */
    |     ^^
@@ -2130,7 +2130,7 @@ A:{
 }
 
 @Test void bad_unclosed_block_comment_runs_to_eof_with_eof_frame(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     /* never closed
    |     ^^^^^^^^^^^^^^^
@@ -2147,7 +2147,7 @@ A:{
 }
 
 @Test void bad_op_digit_minus_or_plus_before_digit_is_signed_literal(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     <--5
    |     ^^^
@@ -2169,7 +2169,7 @@ A:{
 
 
 @Test void bad_float_requires_sign_and_digits_both_sides_of_dot(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     1.2
    |     ^^^
@@ -2200,7 +2200,7 @@ A:{
 
 
 @Test void bad_rational_requires_sign(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|     1/2
    |     ^^^
@@ -2220,7 +2220,7 @@ A:{
 }
 
 @Test void eatenCloserInDblQuote_thenWrongCloserParen(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> "price is } dollars" ) }
    |   ^^^^^^^^^^^^^^^^^^^^^^^---------
@@ -2236,7 +2236,7 @@ A:{ .m:Str -> "price is } dollars" ) }
 """);}
 
 @Test void eatenCloserInSglQuote_thenWrongCloserParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> `oops } here` ) }
    |   ^^^^^^^^^^^^^^^^^^^------
@@ -2252,7 +2252,7 @@ A:{ .m:Str -> `oops } here` ) }
 """);}
 
 @Test void eatenCloserInLineStr_thenWrongCloserParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> |"hello } world" ) }
    |   ^^^^^^^^^^^^^^^^^^^^^-----------
@@ -2268,7 +2268,7 @@ A:{ .m:Str -> |"hello } world" ) }
 """);}
 
 @Test void eatenCloserInBlockComment_thenWrongCloserParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> /* } inside */ ) }
    |   ^^^^^^^^^^^^^^^^----------
@@ -2284,7 +2284,7 @@ A:{ .m:Str -> /* } inside */ ) }
 """);}
 
 @Test void eatenCloserInLineComment_thenWrongCloserParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> // } swallowed
    |   ^^^^^^^^^^^^^^^^----------
@@ -2301,7 +2301,7 @@ A:{ .m:Str -> // } swallowed
 """);}
 
 @Test void eatenRoundCloserInString_thenStopByCurly(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> ( ")]" + " has ) here ) inside" }
    |               ^^^^--
@@ -2317,7 +2317,7 @@ A:{ .m:Str -> ( ")]" + " has ) here ) inside" }
 """);}
 
 @Test void eatenSquareCloserInString_thenStopByParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> W[ "list ] marker" ) ] }
    |                ^^^^^^^^^--------
@@ -2333,7 +2333,7 @@ A:{ .m:Str -> W[ "list ] marker" ) ] }
 """);}
 
 @Test void eatenCurlyCloserInString_thenEOF(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> { "inner } hidden"
    |               ^^^^^^^^^^--------
@@ -2349,7 +2349,7 @@ A:{ .m:Str -> { "inner } hidden"
 """);}
 
 @Test void eatenCurlyCloserInBlockComment_thenEOF(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> { /* } hidden */
    |               ^^^^^^----------
@@ -2365,7 +2365,7 @@ A:{ .m:Str -> { /* } hidden */
 """);}
 
 @Test void eatenSquareCloserInBlockComment_thenWrongCloserCurly(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> Foo[ /* ] hidden */ } ]
    |                  ^^^^^^----------
@@ -2381,7 +2381,7 @@ A:{ .m:Str -> Foo[ /* ] hidden */ } ]
 """);}
 
 @Test void eatenRoundOpenerInDblQuote_thenStrayParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> "call (" ) }
    |               ------^^^^
@@ -2396,7 +2396,7 @@ A:{ .m:Str -> "call (" ) }
 """);}
 
 @Test void eatenRoundOpenerInLineComment_thenStrayParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> // ( swallowed
 002| ) }
@@ -2412,7 +2412,7 @@ A:{ .m:Str -> // ( swallowed
 """);}
 
 @Test void eatenSquareOpenerInBlockComment_thenStrayBracket(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> /* [ hidden */ ] }
    |               ---^^^^^^^^^^^^^
@@ -2427,7 +2427,7 @@ A:{ .m:Str -> /* [ hidden */ ] }
 """);}
 
 @Test void eatenCurlyOpenerInDblQuote_thenStrayCurly(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| .m:Str -> "start { here" }
    |           -------^^^^^^^^^
@@ -2442,7 +2442,7 @@ Error 1 Unopened
 """);}
 
 @Test void eatenRoundOpenerInBlockComment_thenStrayParenDeep(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
    |                     ---^^^^^^^^^^
@@ -2457,7 +2457,7 @@ A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
 """);}
 
 @Test void eatenSquareOpenerInLineStr_thenStrayBracket(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> |"vec [ x" ] }
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2473,7 +2473,7 @@ A:{ .m:Str -> |"vec [ x" ] }
 """);}
 
 @Test void runOfRoundClosersBeforeStop(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> ((1 + 2)) ) }
    |   ^^^^^^^^^^^^^^^^^^^^^^^
@@ -2489,7 +2489,7 @@ A:{ .m:Str -> ((1 + 2)) ) }
 """);}
 
 @Test void runOfSquareClosersBeforeStop(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> Foo[Bar] ] ) }
    |   ^^^^^^^^^^^^^^^^^^^^^^
@@ -2504,7 +2504,7 @@ A:{ .m:Str -> Foo[Bar] ] ) }
 """);}
 
 @Test void runOfRoundClosersThenWrongCurly(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m(a,b):Str -> (a + b)) }
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2520,7 +2520,7 @@ A:{ .m(a,b):Str -> (a + b)) }
 """);}
 
 @Test void runOfSquareClosersThenWrongParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> A[mut,imm]] ) }
    |   ^^^^^^^^^^^^^^^^^^^^^^^
@@ -2535,7 +2535,7 @@ A:{ .m:Str -> A[mut,imm]] ) }
 """);}
 
 @Test void runOfRoundClosersNearEOF(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m(foo,bar):Str -> (foo + bar))
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2551,7 +2551,7 @@ A:{ .m(foo,bar):Str -> (foo + bar))
 """);}
 
 @Test void runOfSquareClosersNearEOF(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> A[X,Y,Z]]
    |   ^^^^^^^^^^^^^^^^^^^^^
@@ -2567,7 +2567,7 @@ A:{ .m:Str -> A[X,Y,Z]]
 """);}
 
 @Test void runOfRoundOpenersBeforeStrayParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2583,7 +2583,7 @@ A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
 """);}
 
 @Test void runOfSquareOpenersBeforeStrayBracket(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
    |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2598,7 +2598,7 @@ A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
 """);}
 
 @Test void runOfRoundOpenersTightBeforeStrayParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> (((x))) ) }
    |   ^^^^^^^^^^^^^^^^^^^^^
@@ -2614,7 +2614,7 @@ A:{ .m:Str -> (((x))) ) }
 """);}
 
 @Test void runOfSquareOpenersTightBeforeStrayBracket(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> A[B[X]] ] }
    |   ^^^^^^^^^^^^^^^^^^^^^
@@ -2630,7 +2630,7 @@ A:{ .m:Str -> A[B[X]] ] }
 """);}
 
 @Test void wrongCloser_ParenClosedByBracket(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> (1 + 2 ] }
    |               ^^^^^^^^
@@ -2645,7 +2645,7 @@ A:{ .m:Str -> (1 + 2 ] }
 """);}
 
 @Test void wrongCloser_BracketClosedByParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> E[1,2) }
    |                ^^^^^
@@ -2660,7 +2660,7 @@ A:{ .m:Str -> E[1,2) }
 """);}
 
 @Test void eofInsideParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> (1 + 2
    |               ^
@@ -2675,7 +2675,7 @@ A:{ .m:Str -> (1 + 2
 """);}
 
 @Test void eofInsideBracket(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> E[1, 2, 3
    |                ^
@@ -2689,7 +2689,7 @@ Error 0 Unclosed
 A:{ .m:Str -> E[1, 2, 3
 """);}
 @Test void wrongCloser_CurlyClosedByParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> { x: 1 ) }
    |               ^^^^^^^^
@@ -2705,7 +2705,7 @@ A:{ .m:Str -> { x: 1 ) }
 """);}
 
 @Test void wrongCloser_CurlyClosedByParen2(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> { x: 1 ) }
    |               ^^^^^^^^
@@ -2722,7 +2722,7 @@ B:{} C:{}
 """);}
 
 @Test void barrierSemicolonInsideParen(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> ( 1 + 2; ) }
    |               ^^^^^^^^
@@ -2738,7 +2738,7 @@ A:{ .m:Str -> ( 1 + 2; ) }
 
 //no repair can conceptually apply
 @Test void nestedWrongCloser_Deep(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> ( Foo[ { a } ) ] }
    |                    ^^^
@@ -2752,7 +2752,7 @@ A:{ .m:Str -> ( Foo[ { a } ) ] }
 """);}
 
 @Test void curlyGroupUnclosedBeforeEOF(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> { a: 1, b: 2
    |               ^
@@ -2767,7 +2767,7 @@ A:{ .m:Str -> { a: 1, b: 2
 """);}
 
 @Test void openerInStringThenEOF_shouldPreferEatenCloser(){fail(""" 
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str -> { "json } aaa"
    |               ^^^^^^^^^-----
@@ -2783,87 +2783,17 @@ A:{ .m:Str -> { "json } aaa"
 """);}
 
 @Test void pkgName(){ok(""" 
-FileFull[name=foo_bar,[###]
+FileFull[[###]
 ""","""
-package foo_bar; 
-A:{} 
-""");}
-@Test void pkgNameUppercase(){fail(""" 
-In file: [###]/in_memory0.fear
-
-001| package fooBar;
-   | ~~~~~~~~^^^^^^-
-002| A:{}
-
-While inspecting header element > file header > full file
-Missing package name.
-Found instead: "fooBar".
-Expected: "id starting with a-z followed by any amount of a-z0-9 or the _ symbol".
-Error 2 UnexpectedToken
-""","""
-package fooBar;
-A:{} 
-""");}
-@Test void pkgNameEmpty(){ok(""" 
-FileFull[name=foo_bar42,[###]
-""","""
-package foo_bar42;
-""");}
-@Test void pkgNameSymbol(){fail(""" 
-In file: [###]/in_memory0.fear
-
-001| package foo$bar;
-   |            ^
-
-While inspecting the file
-Unrecognized text.
-Error 2 UnexpectedToken
-""","""
-package foo$bar;
-A:{} 
-""");}
-
-@Test void pkgMispelled(){fail(""" 
-In file: [###]/in_memory0.fear
-
-001| pakage foo_bar;
-   | ^^^^^^~~~~~~~~-
-002| A:{}
-
-While inspecting header element > file header > full file
-Missing "package" keyword.
-Found instead: "pakage".
-Expected: "package".
-Error 2 UnexpectedToken
-""","""
-pakage foo_bar;
-A:{} 
-""");}
-
-
-@Test void extraContentInCurrentGroupError(){fail(""" 
-In file: [###]/in_memory0.fear
-
-001| package foo_bar beer baz;
-   | ----------------^^^^~~~~
-002| A:{}
-
-While inspecting header element > file header > full file
-Expected semicolon: ";".
-Error 4 ExtraTokenInGroup
-""","""
-package foo_bar beer baz;
 A:{} 
 """);}
 
 @Test void pkgRoleMap(){ok(""" 
-FileFull[name=foo_bar,role=Optional[roleframework42],
+FileFull[
 maps=[map goo as boo in foo_bar,map gor as goo in foo],
 uses=[],
 decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[]]]]
 ""","""
-package foo_bar;
-role framework042;
 map goo as boo in foo_bar;
 map gor as goo in foo;
 A:{}
@@ -2879,8 +2809,6 @@ A:{ .m: foo.Bar }
 @Test void pkgFull(){ok("""
 [###]
 ""","""
-package foo_bar;
-role framework042;
 map goo as boo in baz;
 map gor as goo in beer;
 use foo.Bar as Baz;
@@ -2888,48 +2816,9 @@ use base.Str as Str;
 A: base.Main{ }
 """);}
 
-@Test void noSemi1(){fail("""
-In file: [###]/in_memory0.fear
-
-001| package foo_bar
-002| role framework042;
-   | ^^^^-------------
-
-While inspecting header element > file header > full file
-Expected semicolon: ";".
-Error 4 ExtraTokenInGroup
-""","""
-package foo_bar
-role framework042;
-map goo as boo in baz;
-map gor as goo in beer;
-use foo.Bar as Baz;
-use base.Str as Str;
-A: base.Main{ }
-""");}
-
-@Test void noSemi2(){fail("""
-In file: [###]/in_memory0.fear
-
-002| role framework042
-003| map goo as boo in baz;
-   | ^^^------------------
-
-While inspecting header element > file header > full file
-Expected semicolon: ";".
-Error 4 ExtraTokenInGroup
-""","""
-package foo_bar;
-role framework042
-map goo as boo in baz;
-map gor as goo in beer;
-use foo.Bar as Baz;
-use base.Str as Str;
-A: base.Main{ }
-""");}
 
 @Test void noSemi3(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A: base.Main{ .foo->A .beer->B}
    |             --~~~~~~~~^^^^^~~~-
@@ -2943,22 +2832,18 @@ A: base.Main{ .foo->A .beer->B}
 
 
 @Test void pkgFullBadMap(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-001| package foo_bar;
-002| role framework042;
-003| map goo as boo;
+001| map goo as boo;
    | -----------^^^
    | ... 2 lines ...
-006| use base.Str as Str;
+004| use base.Str as Str;
 
 While inspecting header element > file header > full file
 Missing "in" keyword.
 Expected: "in".
 Error 2 UnexpectedToken 
 ""","""
-package foo_bar;
-role framework042;
 map goo as boo;
 map gor as goo;
 use foo.Bar as Baz;
@@ -3036,61 +2921,17 @@ package nul // device name on Windows
 A:{}
 """); }
 
-@Test void pkgName_valid_con1_ok(){ ok("""
-[###]
-""","""
-package con1;
-A:{}
-"""); }
-
-@Test void pkgName_valid_con_foo_ok(){ ok("""
-[###]
-""","""
-package con_foo;
-A:{}
-"""); }
-
-@Test void pkgName_valid_lpt10_ok(){ ok("""
-[###]
-""","""
-package lpt10;
-A:{}
-"""); }
-
-@Test void pkgName_valid_com0_ok(){ ok("""
-[###]
-""","""
-package com0;
-A:{}
-"""); }
-
-@Test void pkgName_valid_manyUnderscores_ok(){ ok("""
-[###]
-""","""
-package foo_bar_baz_123;
-A:{}
-"""); }
-
-@Test void pkgName_valid_commentsAroundName_ok(){ ok("""
-[###]
-""","""
-package/*a*/foo_bar/*b*/;
-A:{}
-"""); }
-
 @Test void pkgDupMap(){ fail("""
-In file: ~/OneDrive/Desktop/Java2025_24/ws/FearlessFrontendTest/___DBG___/in_memory0.fear
+In file: [###].fear
 
-001| package foo;
-002| map a as b1 in c;
-003| map a as b2 in c;
+001| map a as b1 in c;
+002| map a as b2 in c;
    | ---------------^
 
 While inspecting header element > file header > full file
 There is already an entry in the mapping for "a" in "c".
 Error 2 UnexpectedToken
 ""","""
-package foo;
 map a as b1 in c;
 map a as b2 in c;
 """); }
@@ -3098,15 +2939,13 @@ map a as b2 in c;
 @Test void pkgDupMapOk(){ ok("""
 [###]
 ""","""
-package foo;
 map a1 as b in c;
 map a2 as b in c;
 """); }
 
 @Test void pkgDupUse1(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-001| package foo;
 002| use a1.B as B1;
 003| use a1.B as B2;
    | ------------^^
@@ -3115,32 +2954,29 @@ While inspecting header element > file header > full file
 There is already an entry in the using with source "a1.B".
 Error 2 UnexpectedToken
 ""","""
-package foo;
+
 use a1.B as B1;
 use a1.B as B2;
 """); }
 
 @Test void pkgDupUse2(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-001| package foo;
-002| use a1.F as F1;
-003| use a2.F as F1;
+001| use a1.F as F1;
+002| use a2.F as F1;
    | ------------^^
 
 While inspecting header element > file header > full file
 There is already an entry in the using with destination "F1".
 Error 2 UnexpectedToken
 ""","""
-package foo;
 use a1.F as F1;
 use a2.F as F1;
 """); }
 
 @Test void pkgDupUse3(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-001| package foo;
 002| use a1.F as beer.F1;
    | ------------^^^^^^^
 003| use a2.F as F2;
@@ -3151,16 +2987,15 @@ Found instead: "beer.F1".
 Expected: "type name".
 Error 2 UnexpectedToken
 ""","""
-package foo;
+
 use a1.F as beer.F1;
 use a2.F as F2;
 """); }
 @Test void pkgBadUse(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-001| package foo;
-002| use a1 as F1;
-   | ----^^------
+001| use a1 as F1;
+   | ~~~~^^~~~~~~-
 
 While inspecting header element > file header > full file
 Missing type name.
@@ -3168,7 +3003,6 @@ Found instead: "a1".
 Expected one of: "type name", "signed number (eg. -23.0045)", "signed number (eg. -23)", "unsigned number (eg. 23)", "signed rational number (eg. +2.2/3.4)", "`...`", "\\"...\\"".
 Error 2 UnexpectedToken
 ""","""
-package foo;
 use a1 as F1;
 """); }
 @Test void inter_unicode_no_unicode(){ ok("""
@@ -3181,7 +3015,7 @@ A:{ .m:Str ->
 }"""); }
 
 @Test void inter_unicode_failEmptyPayload(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str ->
 002| #|"bad: {}" // empty payload -> not a unicode run; interpolation should error
@@ -3197,7 +3031,7 @@ A:{ .m:Str ->
 }"""); }
 
 @Test void inter_unicode_failWrongStarter(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:Str ->
 002| #|"bad: {U\\uE9}" // payload must start with backslash-u
@@ -3242,7 +3076,7 @@ A:{ .m:Str -> "bad: {}" } // just curly
 """); }
 
 @Test void prType1(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .m:foo._Bar }
    |   --~~~^^^^^^^^--
@@ -3256,24 +3090,23 @@ A:{ .m:foo._Bar }
 """); }
 
 @Test void prType2(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-001| package bla;
-002| use foo._Beer as Beer;
-   | ----^^^^^^^^^--------
+001| use foo._Beer as Beer;
+   | ~~~~^^^^^^^^^~~~~~~~~-
+002| A:{  }
 
 While inspecting header element > file header > full file
 Code is attempting to use private name "_Beer" from package "foo".
 Type names starting with "_" can only be used in their own package, and only by their simple name.
 Error 2 UnexpectedToken
 ""","""
-package bla;
 use foo._Beer as Beer;
 A:{  }
 """); }
 
 @Test void badDec(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| foo.A:{  }
    | ^^^^^-----
@@ -3288,7 +3121,7 @@ foo.A:{  }
 """); }
 
 @Test void badTName(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .foo:aux.Bar }
    |          ^^^^^^^
@@ -3308,7 +3141,7 @@ A:{ .foo:aux.Bar }
 A:{ mut .foo:Bar }
 """); }
 @Test void isoMethBad(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ iso .foo:Bar }
    |   --^^^~~~~~~~~~--
@@ -3322,7 +3155,7 @@ Error 2 UnexpectedToken
 A:{ iso .foo:Bar }
 """); }
 @Test void readHMethBad(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ readH .foo:Bar }
    |   --^^^^^~~~~~~~~~--
@@ -3337,7 +3170,7 @@ Error 2 UnexpectedToken
 A:{ readH .foo:Bar }
 """); }
 @Test void mutHMethBad(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ mutH .foo:Bar }
    |   --^^^^~~~~~~~~~--
@@ -3351,7 +3184,7 @@ Error 2 UnexpectedToken
 A:{ mutH .foo:Bar }
 """); }
 @Test void redeclaredMeth1(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{
    | ... 3 lines ...
@@ -3377,7 +3210,7 @@ A:{
 """); }
 
 @Test void redeclaredMeth2(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 006|  mut .ban(y):Bar->Block#
 007|    .let x={2}
@@ -3400,7 +3233,7 @@ A:{
 """); }
 
 @Test void redeclaredMeth3(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{
    | ... 3 lines ...
@@ -3426,7 +3259,7 @@ A:{
 """); }
 
 @Test void redeclaredMethAnon1(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{
    | ... 3 lines ...
@@ -3456,7 +3289,7 @@ A:{
 """); }
 
 @Test void redeclaredMethAnon2(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{
    | ... 3 lines ...
@@ -3486,7 +3319,7 @@ A:{
 """); }
 
 @Test void redeclaredMethAnon3(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{
    | ... 3 lines ...
@@ -3529,7 +3362,7 @@ A:B,C,D{
  }
 """); }
 @Test void duplicatedSupertype1(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:B,C,B,D{
    |   ^^^^^^^
@@ -3548,7 +3381,7 @@ A:B,C,B,D{
 """); }
 
 @Test void absMeth(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002|  mut .ban(y):Bar->
 003|    {'self .foo:Bar;};
@@ -3585,7 +3418,7 @@ A[X:imm,mut]:{}
 A:{ .t[X](x:mut X, y:read/imm X):X -> x }
 """); }
 @Test void readImmX2(){ fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A:{ .t[Y](x:mut X, y:read/imm X):X -> x }
    |     ---------------~~~~~~~~~~~^---
@@ -3627,7 +3460,7 @@ ts=Optional.empty]]]]]]]]
 A:{ .foo:Str -> `aaa\\nbbb` }
 """); }
 @Test void forgotSemiStart1(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| A{ .foo:A->
    |  ^
@@ -3647,12 +3480,12 @@ A{ .foo:A->
  }
 """);}
 @Test void forgotSemiStart2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-003| A{ .foo:A ->
+002| A{ .foo:A ->
    |  ^
    | ... 2 lines ...
-006| }
+005| }
 
 While inspecting type declaration > full file
 Missing type declaration (:) symbol.
@@ -3660,8 +3493,7 @@ Found instead: "".
 Expected: ":".
 Error 2 UnexpectedToken
 ""","""
-package foo;
-role app000;
+
 A{ .foo:A -> 
   #|` foo {A} bar
   #|` beer
@@ -3669,7 +3501,7 @@ A{ .foo:A ->
 """);}
 
 @Test void badSQuote1(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 003|   .let foo={'bar'}
    |             ^^^^^
@@ -3687,7 +3519,7 @@ A{ .foo:A ->
 }
 """);}
 @Test void badSQuote2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 004|    |'bar
    |    ^^^^^
@@ -3708,7 +3540,7 @@ A{ .foo:A ->
 }
 """);}
 @Test void badStackGuide(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002|   .empty: R,
    |            ^
@@ -3744,7 +3576,7 @@ User:{
 
 
 @Test void forgotDot1(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
    |                     ------~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^~~
@@ -3767,7 +3599,7 @@ User2:{.bla(p:Point):base.Void->Absorb#p.x;}
 """);}
 
 @Test void forgotDot2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| Foo:{ .m : Point -> Point:{ x():base.Nat->0; y:base.Nat->0;} }
    |                             ^^^~~~~~~~~~---
@@ -3808,7 +3640,7 @@ User:{
 }
 """);}
 @Test void uglyErrorToSolve(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| Box[E:*]: _Box[E]{
 002|   !! -> this.match{ .some x -> x; .empty  -> Boom.msg Str; };
@@ -3830,7 +3662,7 @@ Box[E:*]: _Box[E]{
 """);}
 
 @Test void missingComma1(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| User:{
 002| .hash by h -> h.hash(by#(this.get))
@@ -3848,7 +3680,7 @@ User:{
 """);}
 
 @Test void missingComma2(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 001| User:{
 002|  .hash h -> h.hash(h,h h)
@@ -3867,7 +3699,7 @@ User:{
 """);}
 
 @Test void topSemi(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| B:{};
    |     ^
@@ -3887,7 +3719,7 @@ C:{}
 
 
 @Test void topLevelMethodDecl(){fail("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
 002| .foo:Void;
    | ^^^^

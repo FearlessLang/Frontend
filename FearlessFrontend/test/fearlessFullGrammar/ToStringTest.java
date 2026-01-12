@@ -102,9 +102,6 @@ public class ToStringTest extends testUtils.FearlessTestBase{
   @Test void this_name_in_literal(){ ok(
     "Selfy: {'this .me -> this;}\n",
     "Selfy:{'this .me -> this}"); }
-  @Test void package_header_is_ignored_in_print(){ ok(
-    "A: {}\nB: {}\n",
-    "package foo_bar; A:{} B:{}");}
   @Test void generics_many_bounds_mix(){ ok(
     "G[X:*,Y:**,Z:imm]: {}\n",
     "G[X:*,Y:**,Z:imm]:{}"); }

@@ -11,7 +11,6 @@ import core.OtherPackages;
 import core.TName;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
-import fearlessFullGrammar.FileFull.Role;
 import fearlessParser.Parse;
 import inject.InjectionSteps;
 import inject.Methods;
@@ -22,13 +21,14 @@ import typeSystem.TypeSystem;
 
 public class FrontendLogicMain {
   public List<core.E.Literal> of(
+      String pkgName,
       List<FileFull.Map> override, 
       List<URI> files, 
       SourceOracle o, 
       OtherPackages other
     ){
     Map<URI, FileFull> rawAST= parseFiles(files, o); // Phase 1: Parse Files
-    Package pkg= mergeToPackage(rawAST, override, other); // Phase 2: Merge & Well-formedness
+    Package pkg= mergeToPackage(pkgName,rawAST, override, other); // Phase 2: Merge & Well-formedness
     Methods ctx= Methods.create(pkg, other); // Phase 3: // Creates the scope (Methods) and FreshPrefix generators
     List<inference.E.Literal> inferrableAST= new ToInference().of(pkg, ctx, other, ctx.fresh()); // Phase 4: Desugar
     inferrableAST = ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
@@ -50,25 +50,22 @@ public class FrontendLogicMain {
       .filter(e -> !e.getValue().noDirectives())
       .forEach(e -> { throw err.notClean(e.getKey(), e.getValue()); });  
   }
-  protected Package mergeToPackage(Map<URI, FileFull> raw, List<FileFull.Map> override, OtherPackages other){
+  protected Package mergeToPackage(String pkgName,Map<URI, FileFull> raw, List<FileFull.Map> override, OtherPackages other){
     assert !raw.isEmpty();
-    String pkgName= raw.values().iterator().next().name();
     var err= new WellFormednessErrors(pkgName);
-    assert raw.values().stream().allMatch(f -> f.name().equals(pkgName)) : "Package name mismatch: "+raw.values().stream().map(v->v.name()).distinct().toList();
     URI headPkg= findHeadUri(err,pkgName, raw.keySet());
     checkOnlyHeadHasDirectives(err,headPkg, raw);
     var head= raw.get(headPkg);
-    if (head.role().isEmpty()){ throw err.noRole(headPkg, head); }
     var map= new HashMap<String, String>();
     accMaps(pkgName, map, head.maps());
     accMaps(pkgName, map, override);
     accUses(err,pkgName, map, head.uses(), other);
     List<Declaration> ds= raw.values().stream().flatMap(f -> f.decs().stream()).toList();
     var names= DeclaredNames.of(pkgName, ds, Collections.unmodifiableMap(map));    
-    return makePackage(pkgName, head.role().get(), map, ds, names);
+    return makePackage(pkgName, map, ds, names);
   }
-  protected Package makePackage(String name, Role role, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
-    return new Package(name,role,map,decs,names,Package.offLogger());
+  protected Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
+    return new Package(name,map,decs,names,Package.offLogger());
   }
   private void accMaps(String n, HashMap<String, String> map, List<FileFull.Map> maps) {
     for (var m : maps){ if (n.equals(m.target())) { map.put(m.out(), m.in()); } }
@@ -86,14 +83,14 @@ public class FrontendLogicMain {
   }
   private URI findHeadUri(WellFormednessErrors err, String pkgName, Set<URI> uris){
     assert nonNull(uris) && validate(pkgName,"",_pkgName);
-    var heads= uris.stream().filter(u->isHeadUri(u,pkgName)).toList();
+    var heads= uris.stream().filter(u->isHeadUri(u)).toList();
     if (heads.size() == 1){ return heads.getFirst(); }
     throw err.expectedSingleUriForPackage(heads,pkgName);
   }
-  private boolean isHeadUri(URI u, String pkgName){
+  private boolean isHeadUri(URI u){
     String name= fileName(u);
     int dot= name.lastIndexOf('.');
-    return dot > 0 && name.substring(0,dot).equals(pkgName);
+    return dot > 0 && name.substring(0,dot).startsWith("_rank_");
   }
   private String fileName(URI u){
     String p= u.getPath();

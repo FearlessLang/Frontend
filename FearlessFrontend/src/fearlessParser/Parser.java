@@ -422,8 +422,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     expectLast("",_EOF);
     var head=parseFrontOrAll("file header", headEnd,Parser::parseHeader);
     List<Declaration> ds= splitBy("type declaration",curlyLeft,p->p.parseDeclaration(true));
-    String pkg= head.pkg.isEmpty()?"":head.pkg.getFirst();//List.copyOf() correct here: head explicitly has updatable lists for accumulation
-    return new FileFull(pkg,head.role.stream().findFirst(),List.copyOf(head.map),List.copyOf(head.use),ds);
+    return new FileFull(List.copyOf(head.map),List.copyOf(head.use),ds);
   }
   boolean peekValidate(TokenKind kind, TokenKind validation){
     Optional<Token> res= peek();
@@ -437,19 +436,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     try{ expect(human,validation); }
     catch(FearlessException fe){ throw fe.addSpan(spanAround(index(),index()));}
     throw Bug.unreachable();
-  }
-  void parsePackage(HeadAcc acc){
-    var empty= acc.pkg.isEmpty() && acc.role.isEmpty() && acc.map.isEmpty() && acc.use.isEmpty();
-    if (!empty){ throw errFactory().disallowedPackageNotEmpty(spanLast()); }
-    var pkgName= expectValidate("package name",LowercaseId,_pkgName);
-    acc.pkg.add(pkgName.content());
-  }
-  void parseRole(HeadAcc acc){
-    if (!acc.role.isEmpty()){ throw errFactory().disallowedRoleNotEmpty(spanLast()); }
-    var roleName= expectValidate("\"role\" keyword",LowercaseId,_roleName).content();
-    int num= Integer.parseInt(roleName.substring(roleName.length()-3));
-    roleName= roleName.substring(0,roleName.length()-3);
-    acc.role.add(new FileFull.Role(FileFull.RoleName.valueOf(roleName),num));
   }
   void parseMap(HeadAcc acc){
     var in= expectValidate("package name",LowercaseId,_pkgName).content();
@@ -471,17 +457,14 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (dupD){ throw errFactory().duplicatedUseDest(spanLast(), t2); }
     acc.use.add(new FileFull.Use(t1,t2));
   }
-  record HeadAcc(ArrayList<String>pkg, ArrayList<FileFull.Role>role,ArrayList<FileFull.Map>map,ArrayList<FileFull.Use>use){
-    HeadAcc(){this(new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new ArrayList<>());}
+  record HeadAcc(ArrayList<FileFull.Map>map, ArrayList<FileFull.Use>use){
+    HeadAcc(){this(new ArrayList<>(),new ArrayList<>());}
   }
   Void endHE(){ expectEnd("semicolon", SemiColon); return null;}
   Void parseHeaderElement(HeadAcc acc){
-    if (fwdIf(peekValidate(LowercaseId,_package))){ parsePackage(acc); return endHE(); }
-    if (fwdIf(peekValidate(LowercaseId,_role))){ parseRole(acc); return endHE(); }
     if (fwdIf(peekValidate(LowercaseId,_map))){ parseMap(acc); return endHE(); }
     if (fwdIf(peekValidate(LowercaseId,_use))){ parseUse(acc); return endHE(); }
-    if (acc.pkg.isEmpty()){ expectValidate("\"package\" keyword",LowercaseId,_package); }
-    expect("header keyword \"role\", \"map\" or \"use\"",_role,_map,_use);
+    expect("header keyword \"map\" or \"use\"",_map,_use);
     throw Bug.unreachable();
   }
   HeadAcc parseHeader(){

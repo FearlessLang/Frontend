@@ -6,19 +6,17 @@ import org.junit.jupiter.api.Test;
 
 public class TypeSystemTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
-  static void ok(String head,List<String> input){ typeOk(head, input); }
   static void fail(String expected, List<String> input){ typeFail(expected, input); }
-  static void fail(String expected, String head, List<String> input){ typeFail(expected, head, input); }
-  static void failExt(String expected, List<String> input){ typeFailExt(expected, input); }
+  static void failExt(String expected, List<String> input){ typeFailRaw(expected, input); }
    
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
 """));}
 @Test void tsMiniFail(){fail("""
-002| A:{.foo123:A->this.ba}
+001| A:{.foo123:A->this.ba}
    |    -----------~~~~^^^^
 
-While inspecting ".foo123" line 2
+While inspecting ".foo123" line 1
 This call to method ".ba" can not typecheck.
 Method ".ba" is not declared on type "A".
 
@@ -30,11 +28,8 @@ this.ba
 """,List.of("""
 A:{.foo123:A->this.ba}
 """));}
-//--------------
-//--------------
-//--------------
 @Test void typeNotWellKinded_genericInstantiationViolatesBounds(){fail("""
-004| User:{ imm .m(a:imm A[mut B]):base.Void; }
+003| User:{ imm .m(a:imm A[mut B]):base.Void; }
    | --------------------^^^^^^^^--------------
 
 While inspecting type declaration "User"
@@ -52,7 +47,7 @@ User:{ imm .m(a:imm A[mut B]):base.Void; }
 """));}
 
 @Test void typeNotWellKinded_secondTypeArgViolatesBoundsInParamType(){fail("""
-005| User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
+004| User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
    | --------------------^^^^^^^^^^^^^^--------------
 
 While inspecting type declaration "User"
@@ -71,7 +66,7 @@ User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
 """));}
 
 @Test void typeNotWellKinded_nestedInnerGenericViolatesBounds(){fail("""
-005| User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
+004| User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
    | ----------------------^^^^^^^^---------------
 
 While inspecting type declaration "User"
@@ -90,7 +85,7 @@ User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
 """));}
 
 @Test void typeNotWellKinded_literalSupertypeViolatesBounds(){fail("""
-004| User:A[mut B]{ .foo(b:B):B->b;}
+003| User:A[mut B]{ .foo(b:B):B->b;}
    | -----^^^^^^^^------------------
 
 While inspecting type declaration "User"
@@ -108,7 +103,7 @@ User:A[mut B]{ .foo(b:B):B->b;}
 """));}
 
 @Test void typeNotWellKinded_methodReturnTypeViolatesBounds(){fail("""
-004| User:{ imm .m(a:imm B):imm A[mut B]; }
+003| User:{ imm .m(a:imm B):imm A[mut B]; }
    | ---------------------------^^^^^^^^---
 
 While inspecting type declaration "User"
@@ -126,10 +121,10 @@ User:{ imm .m(a:imm B):imm A[mut B]; }
 """));}
 
 @Test void typeNotWellKinded_methodTypeArgViolatesBounds_simple(){fail("""
-004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
+003| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
    |        -----------------------------------^^^^^^^^^^^^^^
 
-While inspecting method call ".id(_)" > ".m(_,_)" line 4
+While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
 Type argument 1 ("mut B") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
@@ -156,6 +151,7 @@ Here "Y" can only use capabilities "read".
 Compressed relevant code with inferred types: (compression indicated by `-`)
 a.pair[imm,B,mut C](b,c)
 """, List.of("""
+
 A:{ imm .pair[X:imm,Y:read](x:X,y:Y):base.Void->{} }
 B:{}
 C:{}
@@ -163,10 +159,10 @@ User:{ imm .m(a:imm A,b:imm B,c:imm C):base.Void->a.pair[imm B,mut C](b,c); }
 """));}
 
 @Test void typeNotWellKinded_methodTypeArgNestedViolatesBounds(){fail("""
-005| User:{ imm .m(a:imm A,b:imm B[C],c:imm C):base.Void->a.use[B[mut C]](b); }
+004| User:{ imm .m(a:imm A,b:imm B[C],c:imm C):base.Void->a.use[B[mut C]](b); }
    |        ----------------------------------------------~~~~~~^^^^^^^^~~~~
 
-While inspecting method call ".use(_)" > ".m(_,_,_)" line 5
+While inspecting method call ".use(_)" > ".m(_,_,_)" line 4
 The type "B[mut C]" is invalid.
 Type argument 1 ("mut C") does not satisfy the bounds
 for type parameter "Y" in "B[_]".
@@ -182,7 +178,7 @@ User:{ imm .m(a:imm A,b:imm B[C],c:imm C):base.Void->a.use[B[mut C]](b); }
 """));}
 
 @Test void typeNotWellKinded_literalHeaderUsesTypeParamViolatingBounds(){fail("""
-003| User[Y:read]:A[Y]{}
+002| User[Y:read]:A[Y]{}
    | -------------^^^^--
 
 While inspecting type declaration "User[_]"
@@ -199,7 +195,7 @@ User[Y:read]:A[Y]{}
 """));}
 
 @Test void typeNotWellKinded_nestedTwiceInnerMostViolatesBounds(){fail("""
-005| User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
+004| User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
    | ----------------------^^^^^^^^---------------
 
 While inspecting type declaration "User"
@@ -218,10 +214,10 @@ User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
 """));}
 
 @Test void typeNotWellKinded_methodTypeArgOnTypeWithMultipleBounds(){fail("""
-004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
+003| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
    |        -----------------------------------^^^^^^^^^^^^^^
 
-While inspecting method call ".id(_)" > ".m(_,_)" line 4
+While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
 Type argument 1 ("mut B") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
@@ -237,10 +233,10 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 
 @Test void typeNotWellKinded_methodTypeArgOnTypeInfer(){fail("""
-004| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
+003| User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
    |        -----------------------------------^^^^^^^
 
-While inspecting method call ".id(_)" > ".m(_,_)" line 4
+While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
 Type argument 1 ("base.Void") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
@@ -258,10 +254,10 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
 //but it prints correctly in typeNotWellKinded_literalSupertypeViolatesBounds,.. why??
 
 @Test void typeNotWellKinded_methodTypeArgOnTypeInfer2(){fail("""
-004| User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
+003| User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
    |        --------------------------------^^^^^^^
 
-While inspecting method call ".id(_)" > ".m(_,_)" line 4
+While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
 Type argument 1 ("B") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
@@ -301,6 +297,7 @@ But it implements method "mut .h", which requires a "mut" receiver.
 Compressed relevant code with inferred types: (compression indicated by `-`)
 read BB:B{mut .h:-.Void->-.Void}
 """, List.of("""
+
 B:{ mut .h:base.Void; }
 User:{
   imm .m():read B->read BB:B{
@@ -309,12 +306,12 @@ User:{
 }
 """));}
 @Test void methodImplementationDeadCode_immLiteralHasMutMethod(){ fail("""
-004|   imm .m():imm B->imm BB:B{
-005|     mut .h:base.Void->base.Void{};
+003|   imm .m():imm B->imm BB:B{
+004|     mut .h:base.Void->base.Void{};
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-006|   }
+005|   }
 
-While inspecting object literal "BB" > ".m" line 4
+While inspecting object literal "BB" > ".m" line 3
 The method "mut BB.h" is dead code.
 The object literal "BB" is "imm", so it will never be seen as "mut".
 But it implements method "mut .h", which requires a "mut" receiver.
@@ -331,11 +328,11 @@ User:{
 """));}
 
 @Test void notAffineIso_usedDirectlyTwice_sameCall(){ fail("""
-005| User:{ imm .bad(x:iso B):Unit->Use2#(x,x); }
+004| User:{ imm .bad(x:iso B):Unit->Use2#(x,x); }
    |        ------------------------------^^~~
 
-While inspecting ".bad(_)" line 5
-Iso parameter "x" violates the single-use rule in method "User.bad(_)" (line 5).
+While inspecting ".bad(_)" line 4
+Iso parameter "x" violates the single-use rule in method "User.bad(_)" (line 4).
 It is used directly 2 times.
 Iso parameters can be used directly at most once.
 Allowed: capture into object literals as "imm", or use directly once.
@@ -350,11 +347,11 @@ User:{ imm .bad(x:iso B):Unit->Use2#(x,x); }
 """));}
 
 @Test void notAffineIso_usedDirectlyAndCaptured_literalArg(){ fail("""
-008|   imm .bad(xyz:iso B):Unit->Mix#(xyz, imm KK:K{ imm .k:Unit->UseImm#(xyz); });
+007|   imm .bad(xyz:iso B):Unit->Mix#(xyz, imm KK:K{ imm .k:Unit->UseImm#(xyz); });
    |   -------------------------------^^^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~----
 
-While inspecting ".bad(_)" line 8
-Iso parameter "xyz" violates the single-use rule in method "User.bad(_)" (line 8).
+While inspecting ".bad(_)" line 7
+Iso parameter "xyz" violates the single-use rule in method "User.bad(_)" (line 7).
 It is used directly and also captured into object literals.
 An iso parameter must be either captured, or used directly once (but not both).
 Allowed: capture into object literals as "imm", or use directly once.
@@ -386,6 +383,7 @@ Allowed: capture into object literals as "imm", or use directly once.
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Mix2#(x,K1:K{.k:Unit->UseImm#(x)},K2:K{.k:Unit->UseImm#(x)})
 """, List.of("""
+
 Unit:{}
 B:{}
 UseImm:{ #(b:imm B):Unit->Unit{} }
@@ -400,10 +398,10 @@ User:{
 """));}
 
 @Test void methBodyWrongType_xWrongNominal_shortNames(){ fail("""
-005|   imm .m(x:imm A):B->x;
+004|   imm .m(x:imm A):B->x;
    |   -------------------^^
 
-While inspecting parameter "x" > ".m(_)" line 5
+While inspecting parameter "x" > ".m(_)" line 4
 The body of method ".m(_)" of type declaration "User" is an expression returning "A".
 Parameter "x" has type "A" instead of a subtype of "B".
 
@@ -418,11 +416,11 @@ User:{
 """));}
 
 @Test void methBodyWrongType_xWrongNominal_longNames_indent(){ fail("""
-005|   imm .veryLongMethodName(veryVeryLongParamName:imm Alpha):Beta->
-006|     veryVeryLongParamName;
+004|   imm .veryLongMethodName(veryVeryLongParamName:imm Alpha):Beta->
+005|     veryVeryLongParamName;
    |     ^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting parameter "veryVeryLongParamName" > ".veryLongMethodName(_)" line 5
+While inspecting parameter "veryVeryLongParamName" > ".veryLongMethodName(_)" line 4
 The body of method ".veryLongMethodName(_)" of type declaration "User" is an expression returning "Alpha".
 Parameter "veryVeryLongParamName" has type "Alpha" instead of a subtype of "Beta".
 
@@ -438,10 +436,10 @@ User:{
 """));}
 
 @Test void methBodyWrongType_callWrongType_namedCallee(){ fail("""
-006|   imm .m():B->MakeA#({  }    );
+005|   imm .m():B->MakeA#({  }    );
    |   ------------^^^^^^^^^^^-----
 
-While inspecting method call "#(_)" > ".m" line 6
+While inspecting method call "#(_)" > ".m" line 5
 The body of method ".m" of type declaration "User" is an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "B".
 
@@ -457,11 +455,11 @@ User:{
 """));}
 
 @Test void methBodyWrongType_inferredContextShowsInferredGenericInstantiation(){fail("""
-008|   imm .m():Car->Apply#(Person,{_->Foo});
+007|   imm .m():Car->Apply#(Person,{_->Foo});
    |   -----------------------------~~~^^^^-
 
-While inspecting object literal instance of "Foo" > "#(_)" line 8 > ".m" line 8
-Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 8)
+While inspecting object literal instance of "Foo" > "#(_)" line 7 > ".m" line 7
+Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 7)
 is implemented with an expression returning "iso Foo".
 Object literal is of type "Foo" instead of a subtype of "Car".
 
@@ -478,10 +476,10 @@ User:{
 }
 """));} 
 @Test void methBodyWrongType_callWrongType_nestedCall(){ fail("""
-007|   imm .m():B->Wrap#(Mk#({}));
+006|   imm .m():B->Wrap#(Mk#({}));
    |   ------------^^^^^^^^^^^^--
 
-While inspecting method call "#(_)" > ".m" line 7
+While inspecting method call "#(_)" > ".m" line 6
 The body of method ".m" of type declaration "User" is an expression returning "A".
 Method call "Wrap#(_)" has type "A" instead of a subtype of "B".
 
@@ -498,10 +496,10 @@ User:{
 """));}
 
 @Test void methBodyWrongType_literalWrongType_namedLiteral(){ fail("""
-005|   imm .m():B->imm AA:A{};
+004|   imm .m():B->imm AA:A{};
    |   ----------------^^^^^^
 
-While inspecting object literal "AA" > ".m" line 5
+While inspecting object literal "AA" > ".m" line 4
 The body of method ".m" of type declaration "User" is an expression returning "AA".
 Object literal is of type "AA" instead of a subtype of "B".
 
@@ -515,17 +513,17 @@ User:{
 }
 """));}
 @Test void methBodyWrongType_xWeakenedCapability_dueToCapture(){fail("""
-005|   read .m(loooooong:mut A):mut A->
-006|     read Get{ loooooong };
+004|   read .m(loooooong:mut A):mut A->
+005|     read Get{ loooooong };
    |               ^^^^^^^^^
 
-While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
-Method ".get" inside the object literal instance of "read Get" (line 6)
+While inspecting parameter "loooooong" > ".get" line 5 > ".m(_)" line 4
+Method ".get" inside the object literal instance of "read Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
-"mut A" --setToRead(line 6)--> "read A".
+"mut A" --setToRead(line 5)--> "read A".
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 User:{read .m(loooooong:mut A):mut A->read Get{read .get:mut A->loooooong}}
@@ -538,17 +536,17 @@ User:{
 }
 """));}
 @Test void methBodyWrongType_xWeakenedCapability_dueToCapture2(){fail("""
-005|   read .m(loooooong:mut A):read Get->
-006|     read Get{ loooooong };
+004|   read .m(loooooong:mut A):read Get->
+005|     read Get{ loooooong };
    |               ^^^^^^^^^
 
-While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
-Method ".get" inside the object literal instance of "read Get" (line 6)
+While inspecting parameter "loooooong" > ".get" line 5 > ".m(_)" line 4
+Method ".get" inside the object literal instance of "read Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
-"mut A" --setToRead(line 6)--> "read A".
+"mut A" --setToRead(line 5)--> "read A".
 
 See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
 User:{read .m(loooooong:mut A):read Get->read Get{read .get:iso A->loooooong}}
@@ -561,17 +559,17 @@ User:{
 }
 """));}
 @Test void regressionBadError(){fail("""
-005|   read .m(loooooong:mut A):mut A->
-006|     read Get{ loooooong };
+004|   read .m(loooooong:mut A):mut A->
+005|     read Get{ loooooong };
    |               ^^^^^^^^^
 
-While inspecting parameter "loooooong" > ".get" line 6 > ".m(_)" line 5
-Method ".get" inside the object literal instance of "read Get" (line 6)
+While inspecting parameter "loooooong" > ".get" line 5 > ".m(_)" line 4
+Method ".get" inside the object literal instance of "read Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
-"mut A" --setToRead(line 6)--> "read A".
+"mut A" --setToRead(line 5)--> "read A".
 
 See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
 User:{read .m(loooooong:mut A):mut A->read Get{read .get:iso A->loooooong}}
@@ -585,17 +583,17 @@ User:{
 """));}
 
 @Test void methBodyWrongType_xWeakenedCapability_dueToCapture_chain(){fail("""
-006|   read .m(loooooong:mut A):mut A->
-007|     read Wrap{ mut Get{ loooooong } };
+005|   read .m(loooooong:mut A):mut A->
+006|     read Wrap{ mut Get{ loooooong } };
    |                ---------^^^^^^^^^--
 
-While inspecting parameter "loooooong" > ".get" line 7 > ".wrap" line 7 > ".m(_)" line 6
-Method ".get" inside the object literal instance of "mut Get" (line 7)
+While inspecting parameter "loooooong" > ".get" line 6 > ".wrap" line 6 > ".m(_)" line 5
+Method ".get" inside the object literal instance of "mut Get" (line 6)
 is implemented with an expression returning "A".
 Parameter "loooooong" has type "imm A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
-"mut A" --setToRead(line 7)--> "read A" --strengthenToImm(line 7)--> "A".
+"mut A" --setToRead(line 6)--> "read A" --strengthenToImm(line 6)--> "A".
 
 See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
 User:{read .m(loooooong:mut A):mut A->read Wrap{read .wrap:Get->mut Get{.get:iso A->loooooong}}}
@@ -611,15 +609,15 @@ User:{
 }
 
 @Test void drop(){fail("""
-008|   read .m(loooooong:mut A):mut A->Do2[mut A]#(
-009|     Capture#({#():base.Void->Ignore#(loooooong)}),
+007|   read .m(loooooong:mut A):mut A->Do2[mut A]#(
+008|     Capture#({#():base.Void->Ignore#(loooooong)}),
    |               -----------------------^^^^^^^^^^
-010|     loooooong
-011|   );
+009|     loooooong
+010|   );
 
-While inspecting parameter "loooooong" > "#" line 9 > ".m(_)" line 8
+While inspecting parameter "loooooong" > "#" line 8 > ".m(_)" line 7
 parameter "loooooong" has type "mut A".
-parameter "loooooong" can observe mutation; thus it can not be captured in the "imm" object literal instance of "G" (line 9).
+parameter "loooooong" can observe mutation; thus it can not be captured in the "imm" object literal instance of "G" (line 8).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -639,16 +637,16 @@ User:{
 """));}
 
 @Test void drop_hygienicMutH(){fail("""
-008|   read .m(loooooong:mutH A):mutH A->Do2H[mutH A]#(
-009|     Capture#({#():base.Void->Ignore#(loooooong)}),
+007|   read .m(loooooong:mutH A):mutH A->Do2H[mutH A]#(
+008|     Capture#({#():base.Void->Ignore#(loooooong)}),
    |               -----------------------^^^^^^^^^^
-010|     loooooong
-011|   );
+009|     loooooong
+010|   );
 
-While inspecting parameter "loooooong" > "#" line 9 > ".m(_)" line 8
+While inspecting parameter "loooooong" > "#" line 8 > ".m(_)" line 7
 parameter "loooooong" has type "mutH A".
 The type of parameter "loooooong" is hygienic (readH or mutH)
-and thus it can not be captured in the object literal instance of "G" (line 9).
+and thus it can not be captured in the object literal instance of "G" (line 8).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 loooooong
@@ -667,14 +665,14 @@ User:{
 """)); }
 
 @Test void drop_hygienicMutH2(){fail("""
-006|   read .m(loooooong:mutH A):imm G->
-007|     {#():base.Void->IgnoreH#(loooooong)};
+005|   read .m(loooooong:mutH A):imm G->
+006|     {#():base.Void->IgnoreH#(loooooong)};
    |      ------------------------^^^^^^^^^^
 
-While inspecting parameter "loooooong" > "#" line 7 > ".m(_)" line 6
+While inspecting parameter "loooooong" > "#" line 6 > ".m(_)" line 5
 parameter "loooooong" has type "mutH A".
 The type of parameter "loooooong" is hygienic (readH or mutH)
-and thus it can not be captured in the object literal instance of "G" (line 7).
+and thus it can not be captured in the object literal instance of "G" (line 6).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 loooooong
@@ -698,14 +696,14 @@ User:{
 """)); }
 
 @Test void drop_ftv_notPropagatedIntoExplicitFoo(){fail("""
-005|     read .m[X:imm,mut,read](beer:Beer[X]):read Foo->
-006|       read Foo:{ read .m:Bar -> beer.bar() };
+004|     read .m[X:imm,mut,read](beer:Beer[X]):read Foo->
+005|       read Foo:{ read .m:Bar -> beer.bar() };
    |                  ---------------^^^^^-----
 
-While inspecting parameter "beer" > ".m" line 6 > ".m(_)" line 5
+While inspecting parameter "beer" > ".m" line 5 > ".m(_)" line 4
 parameter "beer" has type "Beer[X]".
 parameter "beer" uses type parameters that are not propagated
-into object literal "read Foo" (line 6) and thus it can not be captured.
+into object literal "read Foo" (line 5) and thus it can not be captured.
 Hint: change "Foo" by adding the missing type parameters: "Foo[...,...]"
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -720,14 +718,14 @@ beer
 """)); }
 
 @Test void drop_hygienicsAllowedByTypeParam(){fail("""
-003|   read .m[X:imm,mut,read,readH,mutH](beer:X):G[X]->
-004|     G[X:imm,mut,read,readH,mutH]:{ read .get: X->beer; }
+002|   read .m[X:imm,mut,read,readH,mutH](beer:X):G[X]->
+003|     G[X:imm,mut,read,readH,mutH]:{ read .get: X->beer; }
    |                                    --------------^^^^^
 
-While inspecting parameter "beer" > ".get" line 4 > ".m(_)" line 3
+While inspecting parameter "beer" > ".get" line 3 > ".m(_)" line 2
 parameter "beer" has type "X".
 The type of parameter "beer" can be instantiated with hygienics (readH or mutH)
-and thus it can not be captured in the object literal "G[_]" (line 4).
+and thus it can not be captured in the object literal "G[_]" (line 3).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 beer
@@ -739,10 +737,10 @@ User:{
 """)); }
 
 @Test void receiverIsTypeParam(){fail("""
-003|   .m[X:**](x:X):X->x.foo;
+002|   .m[X:**](x:X):X->x.foo;
    |   -----------------~^^^^^
 
-While inspecting ".m(_)" line 3
+While inspecting ".m(_)" line 2
 This call to method ".foo" can not typecheck.
 The receiver is of type "X". This is a type parameter.
 Type parameters cannot be receivers of method calls.
@@ -756,9 +754,9 @@ User:{
 """)); }
 //-----------
 @Test void methodOverrideSignatureMismatchGenericBounds(){ failExt("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004| Current:Parent2{ imm .id[X:imm,read](x:imm X):base.Void; }
+003| Current:Parent2{ imm .id[X:imm,read](x:imm X):base.Void; }
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Current"
@@ -776,9 +774,9 @@ Current:Parent2{ imm .id[X:imm,read](x:imm X):base.Void; }
 """));}
 
 @Test void methodOverrideSignatureMismatchGenericBoundsArity(){ failExt("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-004| Sub:Sup{ imm .f[X:imm,Y:imm](x:imm X):base.Void; }
+003| Sub:Sup{ imm .f[X:imm,Y:imm](x:imm X):base.Void; }
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Sub"
@@ -807,13 +805,14 @@ It is instead a supertype: you are strenghtening the parameter instead of weaken
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Current:Parent{.g(P):-.Void}
 """, List.of("""
+
 P:{}
 Parent:{ imm .g(x:read P):base.Void; }
 Current:Parent{ imm .g(x:imm P):base.Void; }
 """));}
 
 @Test void methodOverrideSignatureMismatchCovariance(){ fail("""
-004| Sub:Sup{ imm .h():read P; }
+003| Sub:Sup{ imm .h():read P; }
    | ---------^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "Sub"
@@ -831,10 +830,10 @@ Sub:Sup{ imm .h():read P; }
 """)); }
 
 @Test void callableMethodStillAbstract_missingRequiredMethod_anonLiteral(){ fail("""
-007|   imm .m():Sup->Sup{ imm .h:base.Void->base.Void{} }
+006|   imm .m():Sup->Sup{ imm .h:base.Void->base.Void{} }
    |   --------------^^^^--------------------------------
 
-While inspecting object literal instance of "Sup" > ".m" line 7
+While inspecting object literal instance of "Sup" > ".m" line 6
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
@@ -853,10 +852,10 @@ User:{
 """));}
 
 @Test void callableMethodStillAbstract_missingRequiredMethod_namedLiteral(){ fail("""
-007|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{} }
+006|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{} }
    |   --------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal "Bad" > ".m" line 7
+While inspecting object literal "Bad" > ".m" line 6
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
@@ -876,11 +875,11 @@ User:{
 
 
 @Test void methodNotDeclared_noSuchName_typeHasNoMethods(){fail("""
-004|   read .m(e:Empty):base.Void->
-005|     e.nope();
+003|   read .m(e:Empty):base.Void->
+004|     e.nope();
    |     -^^^^^^
 
-While inspecting ".m(_)" line 4
+While inspecting ".m(_)" line 3
 This call to method ".nope" can not typecheck.
 Method ".nope" is not declared on type "Empty".
 Type "Empty" does not have any methods.
@@ -896,11 +895,11 @@ User:{
 """)); }
 
 @Test void methodNotDeclared_noSuchName_didYouMean(){fail("""
-008|   read .m(o:Ops):base.Void->
-009|     read Runner{ o.sise() };
+007|   read .m(o:Ops):base.Void->
+008|     read Runner{ o.sise() };
    |                  ~^^^^^^-
 
-While inspecting ".run" line 9 > ".m(_)" line 8
+While inspecting ".run" line 8 > ".m(_)" line 7
 This call to method ".sise" can not typecheck.
 Method ".sise" is not declared on type "Ops".
 Did you mean ".size" ?
@@ -923,11 +922,11 @@ User:{
 }
 """)); }
 @Test void methodNotDeclared_noSuchName_listAvailable(){fail("""
-008|   read .m(o:Ops):base.Void->
-009|     o.xyzzy();
+007|   read .m(o:Ops):base.Void->
+008|     o.xyzzy();
    |     -^^^^^^^
 
-While inspecting ".m(_)" line 8
+While inspecting ".m(_)" line 7
 This call to method ".xyzzy" can not typecheck.
 Method ".xyzzy" is not declared on type "Ops".
 
@@ -951,8 +950,6 @@ User:{
 """)); }
 
 @Test void methodNotDeclared_noSuchName_listAvailable_useVoid(){fail("""
-In file: [###]/in_memory0.fear
-
 008|   read .m(o:Ops):base.Void->
 009|     o.xyzzy();
    |     -^^^^^^^
@@ -968,8 +965,8 @@ Available methods on type "Ops":
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 o.xyzzy
-Error 10 TypeError
-""","role app000; use base.Void as Woid;", List.of("""
+""", List.of("""
+use base.Void as Woid;
 Ops:{
   read .alpha: Woid->{};
   read .beta:  base.Void->{};
@@ -983,11 +980,11 @@ User:{
 
 
 @Test void methodNotDeclared_wrongArity_listsAvailableArities(){fail("""
-008|   read .m(m:Mixer, a:A):A->
-009|     m.mix(a, a, a);
+007|   read .m(m:Mixer, a:A):A->
+008|     m.mix(a, a, a);
    |     -^^^^^--------
 
-While inspecting ".m(_,_)" line 8
+While inspecting ".m(_,_)" line 7
 This call to method ".mix(_,_,_)" can not typecheck.
 There is a method ".mix" on type "Mixer",
 but with different number of arguments.
@@ -1007,11 +1004,11 @@ User:{
 }
 """)); }
 @Test void methodNotDeclared_wrongReceiverRc_mutNeedsMutButOnlyReadExists(){fail("""
-007|   mut .m(z:mut Z, a:A):A->
-008|     z.zap[mut](a);
+006|   mut .m(z:mut Z, a:A):A->
+007|     z.zap[mut](a);
    |     -^^^^^-------
 
-While inspecting ".m(_,_)" line 7
+While inspecting ".m(_,_)" line 6
 This call to method ".zap(_)" can not typecheck.
 ".zap(_)" exists on type "Z", but not with the requested capability.
 This call requires the existence of a "mut" method.
@@ -1030,11 +1027,11 @@ User:{
 }
 """)); }
 @Test void methodTArgsArityError_oneLessThanNeeded(){fail("""
-008|   read .m(p:Pairer,a:mut A,b:mut B):mut A->
-009|     p.pair[mut A](a,b);
+007|   read .m(p:Pairer,a:mut A,b:mut B):mut A->
+008|     p.pair[mut A](a,b);
    |     -^^^^^^-----------
 
-While inspecting ".m(_,_,_)" line 8
+While inspecting ".m(_,_,_)" line 7
 This call to method "read Pairer.pair(_,_)" can not typecheck.
 Wrong number of type arguments for ".pair(_,_)".
 This method expects 2 type arguments: "X" and "Y"; but this call provides 1 type argument.
@@ -1066,6 +1063,7 @@ This method expects 1 type argument: "X"; but this call provides 3 type argument
 Compressed relevant code with inferred types: (compression indicated by `-`)
 i.id[read,mut A,mut B,mut C](a)
 """, List.of("""
+
 A:{}
 B:{}
 C:{}
@@ -1079,11 +1077,11 @@ User:{
 """));}
 
 @Test void rcvBlocksCall(){fail("""
-005|   read .m(a:A):A->
-006|     this.zap(a);
+004|   read .m(a:A):A->
+005|     this.zap(a);
    |     ----^^^^^--
 
-While inspecting ".m(_)" line 5
+While inspecting ".m(_)" line 4
 This call to method "mut User.zap(_)" can not typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso" or "mutH".
@@ -1103,12 +1101,11 @@ User:{
     this.zap(a);
 }
 """)); }
-//---------
 @Test void hopelessArg_wrongNominal_suppressesPromotionsAndReason(){fail("""
-006|   .f(aaaa:mut B):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
+005|   .f(aaaa:mut B):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
    |                                    -------------~~~~^^~~~~~~~~~~~~~-
 
-While inspecting ".foo" line 6 > ".f(_)" line 6
+While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Need#(_)" can not typecheck.
 Argument 1 has type "read B".
 That is not a subtype of "mut A" (the type required by the method signature).
@@ -1125,10 +1122,10 @@ A:{
 """));}
 
 @Test void hopelessArg_calls_pArgHasType_baselineConsistent(){fail("""
-006|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
+005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
    |                                    -------------~~~~^^~~~~~~~~~~~~~-
 
-While inspecting ".foo" line 6 > ".f(_)" line 6
+While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Need#(_)" can not typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
@@ -1171,6 +1168,7 @@ Type required by each promotion:
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa)}}
 """,List.of("""
+
 Skip:{#[X:**](X):B->B}
 B:{}
 A:{
@@ -1179,17 +1177,17 @@ A:{
 """));}
 
 @Test void badDeepCall_inferenceNestedGenericCall_explained(){fail("""
-006|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}
+005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}
    |                                    -------------------~~^^~~~~~-
 
-While inspecting ".foo" line 6 > ".f(_)" line 6
+While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Id#(_)" can not typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
 Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
-"mut A" --setToRead(line 6)--> "read A".
+"mut A" --setToRead(line 5)--> "read A".
 
 Type required by each promotion:
 - "mut A"  (As declared)
@@ -1221,6 +1219,7 @@ Here "X" can only use capabilities "imm" or "read".
 Compressed relevant code with inferred types: (compression indicated by `-`)
 IdRO#[imm,mut A](aaaa)
 """,List.of("""
+
 B:{}
 Need:{ #(a:mut A):B->B{} }
 IdRO:{ #[X:imm,read](x:X):X->x }
@@ -1231,11 +1230,11 @@ A:{
 """));}
 
 @Test void argFromGenericCall_boundForcesRead_inferenceHint(){fail("""
-006|   .f(aaaa:mut A):B->
-007|     Need#(IdRO#[read A](aaaa));
+005|   .f(aaaa:mut A):B->
+006|     Need#(IdRO#[read A](aaaa));
    |     ----^^-------------------
 
-While inspecting ".f(_)" line 6
+While inspecting ".f(_)" line 5
 This call to method "Need#(_)" can not typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
@@ -1259,11 +1258,11 @@ A:{
 """));}
 
 @Test void argFromObjectLiteral_defaultImm_hintToAnnotate(){fail("""
-006|   .f:B->
-007|     Need#(read A{});
+005|   .f:B->
+006|     Need#(read A{});
    |     ----^^-------
 
-While inspecting ".f" line 6
+While inspecting ".f" line 5
 This call to method "Need#(_)" can not typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
@@ -1288,10 +1287,10 @@ User:{
 """));}
 
 @Test void promotionsDisagree_mergesIdenticalBlocks_readH_mutH(){fail("""
-004|   .caller(x:readH A, y:mutH A):A->this.f(x,y);
+003|   .caller(x:readH A, y:mutH A):A->this.f(x,y);
    |   --------------------------------~~~~^^^~~~~
 
-While inspecting ".caller(_,_)" line 4
+While inspecting ".caller(_,_)" line 3
 This call to method ".f(_,_)" can not typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
@@ -1317,10 +1316,10 @@ A:{
 """));}
 
 @Test void promotionsDisagree_dontOverMergeAcrossDifferentArgs_mutH_mutH(){fail("""
-004|   .caller(x:mutH A, y:mutH A):A->this.f(x,y);
+003|   .caller(x:mutH A, y:mutH A):A->this.f(x,y);
    |   -------------------------------~~~~^^^~~~~
 
-While inspecting ".caller(_,_)" line 4
+While inspecting ".caller(_,_)" line 3
 This call to method ".f(_,_)" can not typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
@@ -1350,10 +1349,10 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo123;}
 """));}
 
 @Test void tsOkIndirectFail1(){fail("""
-002| A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
+001| A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
    |                            --------~~~~^^^^^^^^
 
-While inspecting ".bar" line 2
+While inspecting ".bar" line 1
 This call to method ".foO123" can not typecheck.
 Method ".foO123" is not declared on type "A".
 Did you mean ".foo123" ?
@@ -1370,10 +1369,10 @@ A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
 """));}
 
 @Test void tsOkIndirectFail2(){fail("""
-002| A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
+001| A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
    |                            --------~~~~^^^^^^^
 
-While inspecting ".bar" line 2
+While inspecting ".bar" line 1
 This call to method ".foo23" can not typecheck.
 Method ".foo23" is not declared on type "A".
 Did you mean ".foo123" ?
@@ -1389,10 +1388,10 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
 """));}
 
 @Test void tsOkIndirectFail3(){fail("""
-002| A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
+001| A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
    |                            --------~~~~^^^^^^^^^
 
-While inspecting ".bar" line 2
+While inspecting ".bar" line 1
 This call to method ".foo1123" can not typecheck.
 Method ".foo1123" is not declared on type "A".
 Did you mean ".foo123" ?
@@ -1408,10 +1407,10 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
 """));}
 
 @Test void tsOkIndirectFail4(){fail("""
-004|   .bar:A->this.foo123(this);
+003|   .bar:A->this.foo123(this);
    |   --------~~~~^^^^^^^^~~~~~
 
-While inspecting ".bar" line 4
+While inspecting ".bar" line 3
 This call to method ".foo123(_)" can not typecheck.
 There is a method ".foo123" on type "A",
 but with different number of arguments.
@@ -1428,10 +1427,10 @@ A:{
 """));}
 
 @Test void tsOkIndirectFail4spaces(){fail("""
-004|   .bar:A->this.foo123(this      );
+003|   .bar:A->this.foo123(this      );
    |   --------~~~~^^^^^^^^~~~~-------
 
-While inspecting ".bar" line 4
+While inspecting ".bar" line 3
 This call to method ".foo123(_)" can not typecheck.
 There is a method ".foo123" on type "A",
 but with different number of arguments.
@@ -1447,10 +1446,10 @@ A:{
   }
 """));}
 @Test void tsOkIndirectFail5(){fail("""
-002| A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
+001| A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
    |                            ------------~~~~^^^^^^^^
 
-While inspecting ".bar" line 2
+While inspecting ".bar" line 1
 This call to method "A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "mut".
 This call requires a receiver with capability "imm".
@@ -1461,10 +1460,10 @@ this.foo123
 A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
 """));}
 @Test void tsOkIndirectFail6a(){fail("""
-002| A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
+001| A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
    |                            -------------~~~~^^^^^^^^
 
-While inspecting ".bar" line 2
+While inspecting ".bar" line 1
 This call to method "A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
@@ -1475,10 +1474,10 @@ this.foo123
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
 """));}//With inference we infer [imm] (next case)
 @Test void tsOkIndirectFail6b(){fail("""
-002| A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
+001| A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
    |                            -------------~~~~^^^^^^^^~~~~~
 
-While inspecting ".bar" line 2
+While inspecting ".bar" line 1
 This call to method "A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
@@ -1489,10 +1488,10 @@ this.foo123
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 """));}
 @Test void tsOkIndirectFail6c(){fail("""
-002| A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
+001| A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
    |                            -------------~~~~^^^^^^^^~~~~~~
 
-While inspecting ".bar" line 2
+While inspecting ".bar" line 1
 This call to method ".foo123" can not typecheck.
 ".foo123" exists on type "A", but not with the requested capability.
 This call requires the existence of a "read" method.
@@ -1505,10 +1504,10 @@ A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
 """));} 
 
 @Test void tsOkIndirectFail7(){fail("""
-002| A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
+001| A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
    |                                ------------~~~~^^^^^^^^
 
-While inspecting ".bar" line 2
+While inspecting ".bar" line 1
 This call to method "mut A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso" or "mutH".
@@ -1524,10 +1523,10 @@ this.foo123[mut]
 A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
 """));}
 @Test void tsOkIndirectFail8(){fail("""
-002| A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
+001| A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
    |                                                            -------------~~~~^^^^^^^^~~~~~
 
-While inspecting ".bar" line 2
+While inspecting ".bar" line 1
 This call to method "A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
@@ -1542,11 +1541,11 @@ A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo
 A:{mut .foo123:A->this.foo123; read .foo123:A->this.foo123; imm .bar:A->this.foo123;}
 """));}
 @Test void tsOkIndirectFail10(){fail("""
-007|   read .bar:A->
-008|     this.foo123[mut];
+006|   read .bar:A->
+007|     this.foo123[mut];
    |     ----^^^^^^^^-----
 
-While inspecting ".bar" line 7
+While inspecting ".bar" line 6
 This call to method "mut A.foo123" can not typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso" or "mutH".
@@ -1569,10 +1568,10 @@ A:{
   }
 """));}
 @Test void baseTypeError(){fail("""
-002| A:{ .bar(b:B):A->b; }
+001| A:{ .bar(b:B):A->b; }
    |     -------------^^
 
-While inspecting parameter "b" > ".bar(_)" line 2
+While inspecting parameter "b" > ".bar(_)" line 1
 The body of method ".bar(_)" of type declaration "A" is an expression returning "B".
 Parameter "b" has type "B" instead of a subtype of "A".
 
@@ -1587,10 +1586,10 @@ B:{ mut .bar:B }
 A:{ mut .baz(b: B):B->{}; }
 """));}
 @Test void uncallableMethodFail(){fail("""
-003| A:{ mut .baz(b: B):B->{ .bar->b}; }
+002| A:{ mut .baz(b: B):B->{ .bar->b}; }
    |     ------------------~~^^^^^^^~
 
-While inspecting object literal instance of "B" > ".baz(_)" line 3
+While inspecting object literal instance of "B" > ".baz(_)" line 2
 The method "mut B.bar" is dead code.
 The object literal instance of "B" is "imm", so it will never be seen as "mut".
 But it implements method "mut .bar", which requires a "mut" receiver.
@@ -1602,10 +1601,10 @@ B:{ mut .bar:B }
 A:{ mut .baz(b: B):B->{ .bar->b}; }
 """));}
 @Test void methodReceiverNotRcc(){fail("""
-004|   .bar[X:imm,mut,read](x:X):A->x.foo123;
+003|   .bar[X:imm,mut,read](x:X):A->x.foo123;
    |   -----------------------------~^^^^^^^^
 
-While inspecting ".bar(_)" line 4
+While inspecting ".bar(_)" line 3
 This call to method ".foo123" can not typecheck.
 The receiver is of type "X". This is a type parameter.
 Type parameters cannot be receivers of method calls.
@@ -1620,10 +1619,10 @@ A:{
 """));}
 
 @Test void methodTArgsArityError(){fail("""
-004|   .bar:A->this.id[A,A](this);
+003|   .bar:A->this.id[A,A](this);
    |   --------~~~~^^^^~~~~~~~~~~
 
-While inspecting ".bar" line 4
+While inspecting ".bar" line 3
 This call to method "A.id(_)" can not typecheck.
 Wrong number of type arguments for ".id(_)".
 This method expects 1 type argument: "X"; but this call provides 2 type arguments.
@@ -1638,10 +1637,10 @@ A:{
 """));}
 
 @Test void methodArgsDisagree(){fail("""
-004|   .caller(x:readH A, y:mutH A):A->this.f(x,y);
+003|   .caller(x:readH A, y:mutH A):A->this.f(x,y);
    |   --------------------------------~~~~^^^~~~~
 
-While inspecting ".caller(_,_)" line 4
+While inspecting ".caller(_,_)" line 3
 This call to method ".f(_,_)" can not typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
@@ -1667,10 +1666,10 @@ A:{
 """));}
 
 @Test void methodArgsDisagree2(){fail("""
-005|   .caller(x:readH A, y:mutH A):A->this.f(x,ID#[mutH A]y);
+004|   .caller(x:readH A, y:mutH A):A->this.f(x,ID#[mutH A]y);
    |   --------------------------------~~~~^^^~~~~~~~~~~~~~~~
 
-While inspecting ".caller(_,_)" line 5
+While inspecting ".caller(_,_)" line 4
 This call to method ".f(_,_)" can not typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
@@ -1704,12 +1703,12 @@ A:{
 }
 """));}
 @Test void noVar1Fail(){fail("""
-005|   .f(aaaa:mut A):B->imm BB:B{.foo:B->Skip#(aaaa);}
+004|   .f(aaaa:mut A):B->imm BB:B{.foo:B->Skip#(aaaa);}
    |   ---------------------------~~~~~~~~~~~~~~^^^^^--
 
-While inspecting parameter "aaaa" > ".foo" line 5 > ".f(_)" line 5
+While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
 parameter "aaaa" has type "mut A".
-parameter "aaaa" can observe mutation; thus it can not be captured in the "imm" object literal "BB" (line 5).
+parameter "aaaa" can observe mutation; thus it can not be captured in the "imm" object literal "BB" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1723,12 +1722,12 @@ A:{
 """));}
 
 @Test void noVar1FailAnon(){fail("""
-005|   .f(aaaa:mut A):B->imm B{.foo:B->Skip#(aaaa);}
+004|   .f(aaaa:mut A):B->imm B{.foo:B->Skip#(aaaa);}
    |   ------------------------~~~~~~~~~~~~~~^^^^^--
 
-While inspecting parameter "aaaa" > ".foo" line 5 > ".f(_)" line 5
+While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
 parameter "aaaa" has type "mut A".
-parameter "aaaa" can observe mutation; thus it can not be captured in the "imm" object literal instance of "B" (line 5).
+parameter "aaaa" can observe mutation; thus it can not be captured in the "imm" object literal instance of "B" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1743,17 +1742,17 @@ A:{
 
 
 @Test void noVar2Fail(){fail("""
-005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(aaaa);}
+004|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(aaaa);}
    |                                    -------------~~~~^^~~~~~
 
-While inspecting ".foo" line 5 > ".f(_)" line 5
+While inspecting ".foo" line 4 > ".f(_)" line 4
 This call to method "Skip#(_)" can not typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
 Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
-"mut A" --setToRead(line 5)--> "read A".
+"mut A" --setToRead(line 4)--> "read A".
 
 Type required by each promotion:
 - "mut A"  (As declared)
@@ -1778,17 +1777,17 @@ A:{
   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,read A](Id#[imm,read A](aaaa));}}
 """));}//TODO: this works with either one of the method targs explicitly listed
 @Test void badDeepCall(){fail("""
-006|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}}
+005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}}
    |                                    -------------------~~^^~~~~~-
 
-While inspecting ".foo" line 6 > ".f(_)" line 6
+While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Id#(_)" can not typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
 Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
-"mut A" --setToRead(line 6)--> "read A".
+"mut A" --setToRead(line 5)--> "read A".
 
 Type required by each promotion:
 - "mut A"  (As declared)
@@ -1824,6 +1823,7 @@ Type required by each promotion:
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
 """,List.of("""
+
 B:{}
 Need:{ #(a:mut A):B->B{} }
 AsRead:{ #(x:read A):read A->x }
@@ -1841,10 +1841,10 @@ Main:{
 
 
 @Test void err_bestLitName_anonLiteralNoImpl_missingMethod(){fail("""
-004|   .m:A -> { .bar:A->A }.foo
+003|   .m:A -> { .bar:A->A }.foo
    |   --------~~~~~~~~~~~~~^^^^
 
-While inspecting ".m" line 4
+While inspecting ".m" line 3
 This call to method ".foo" can not typecheck.
 Method ".foo" is not declared on object literal instance of "A".
 
@@ -1872,16 +1872,17 @@ Type "A" does not have any methods.
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A.foo
 """,List.of("""
+
 A:{}
  Main:{
    .m:A -> { }.foo
   }
 """));}
 @Test void err_bestLitName_NamedLiteralNoImpl_empty(){fail("""
-004|    .m:A -> B:{ }.foo
+003|    .m:A -> B:{ }.foo
    |    --------~~~~~^^^^
 
-While inspecting ".m" line 4
+While inspecting ".m" line 3
 This call to method ".foo" can not typecheck.
 Method ".foo" is not declared on object literal instance of "B".
 Type "B" does not have any methods.
@@ -1914,9 +1915,9 @@ A:{}
  Main:{ .m:base.Num -> +3/4 }
 """));}
 @Test void failIntTooBig(){failExt("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002|  Main:{ .m:base.Int -> +421381834238972893748972389723 }
+001|  Main:{ .m:base.Int -> +421381834238972893748972389723 }
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting the file
@@ -1930,9 +1931,9 @@ Error 9 WellFormedness
  Main:{ .m:base.Int -> +421381834238972893748972389723 }
 """));}
 @Test void failNatTooBig(){failExt("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002|  Main:{ .m:base.Nat -> 421381834238972893748972389723 }
+001|  Main:{ .m:base.Nat -> 421381834238972893748972389723 }
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting the file
@@ -1947,9 +1948,9 @@ Error 9 WellFormedness
 """));}
 
 @Test void failFloatTooBig(){failExt("""
-In file: [###]/___DBG___/in_memory0.fear
+In file: [###].fear
 
-002|  Main:{ .m:base.Float -> +1.0e309 }
+001|  Main:{ .m:base.Float -> +1.0e309 }
    |                          ^^^^^^^^
 
 While inspecting the file
@@ -1962,9 +1963,9 @@ Error 9 WellFormedness
  Main:{ .m:base.Float -> +1.0e309 }
 """));}
 @Test void failFloatTooSmall(){failExt("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002|  Main:{ .m:base.Float -> +1.0e-400 }
+001|  Main:{ .m:base.Float -> +1.0e-400 }
    |                          ^^^^^^^^^
 
 While inspecting the file
@@ -1978,9 +1979,9 @@ Error 9 WellFormedness
  Main:{ .m:base.Float -> +1.0e-400 }
 """));}
 @Test void failFloatImprecise1(){failExt("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002|  Main:{ .m:base.Float -> +0.1 }
+001|  Main:{ .m:base.Float -> +0.1 }
    |                          ^^^^
 
 While inspecting the file
@@ -1994,9 +1995,9 @@ Error 9 WellFormedness
  Main:{ .m:base.Float -> +0.1 }
 """));}
 @Test void failFloatImprecise2(){failExt("""
-In file: [###]/in_memory0.fear
+In file: [###].fear
 
-002|  Main:{ .m:base.Float -> +0.2 }
+001|  Main:{ .m:base.Float -> +0.2 }
    |                          ^^^^
 
 While inspecting the file
@@ -2030,10 +2031,10 @@ Error 9 WellFormedness
  Main:{ .m:B -> B{.bar:A->A} }
 """));}
 @Test void byNameFail1(){fail("""
-004|  Main:{ .m:B -> B }
+003|  Main:{ .m:B -> B }
    |         --------^
 
-While inspecting object literal instance of "iso B" > ".m" line 4
+While inspecting object literal instance of "iso B" > ".m" line 3
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
@@ -2047,10 +2048,10 @@ iso B
  Main:{ .m:B -> B }
 """));}
 @Test void byNameFail2(){fail("""
-004|  Main:{ .m:B -> B{.bar:A->A} }
+003|  Main:{ .m:B -> B{.bar:A->A} }
    |         --------^^----------
 
-While inspecting object literal instance of "B" > ".m" line 4
+While inspecting object literal instance of "B" > ".m" line 3
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "B".
@@ -2181,7 +2182,8 @@ TopToImm:{
   .m17(b:mutH Box[mut A]):Box[A] -> b.imm {::};
   }
 """));}
-@Test void toOrder(){ok("role app000; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;",List.of("""
+@Test void toOrder(){ok(List.of("""
+use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;
 Str:{}
 OrderMatch[R:**]:{ mut .lt:R; mut .eq:R; mut .gt:R; }
 Order[T]: {
@@ -2243,7 +2245,8 @@ Top:{
   .m17(b:mutH Box[mut A]):Bool -> b.order{::} == b;
   }
 """));}
-@Test void toOrderHash(){ok("role app000;use base.Nat as Nat; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;",List.of("""
+@Test void toOrderHash(){ok(List.of("""
+use base.Nat as Nat; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;
 Str:{}
 OrderMatch[R:**]:{ mut .lt:R; mut .eq:R; mut .gt:R; }
 Order[T]: {
@@ -2419,7 +2422,8 @@ AndThenTests2:{
     By2#{::.age}.thenKey{::.name};
   }
 """));}
-@Test void toOrderHashDesign3(){ok("role app000;use base.Nat as Nat; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;",List.of("""
+@Test void toOrderHashDesign3(){ok(List.of("""
+use base.Nat as Nat; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;
 Str:{}
 ToStr:{ read .str: Str }
 ToStrBy[T]:{#(read T):read ToStr}
@@ -2668,7 +2672,7 @@ Box[E:*]: _Box[E]{
 
 
 //----Testing name suggester
-@Test void nameSuggester_1(){typeFailExt("""
+@Test void nameSuggester_1(){failExt("""
 [###]
 Did you mean "FooBar" ?
 [###]
@@ -2677,7 +2681,7 @@ FooBar:{}
 User:{.foo:Foo;}
 """));}
 
-@Test void nameSuggester_2(){typeFailExt("""
+@Test void nameSuggester_2(){failExt("""
 [###]
 Did you mean "abcDef" ?
 [###]
@@ -2686,7 +2690,7 @@ A:{}
 User:{.foo(abc:A, abcDef:A):A->abcDeee;}
 """));}
 
-@Test void nameSuggester_3(){typeFailExt("""
+@Test void nameSuggester_3(){failExt("""
 [###]
 Did you mean ".foo2" ?
 [###]
@@ -2701,7 +2705,7 @@ User:{
 
 // Missing TypeName
 
-@Test void nameSuggester_4(){typeFailExt("""
+@Test void nameSuggester_4(){failExt("""
 [###]
 Did you mean "FooBar" ?
 [###]
@@ -2710,7 +2714,7 @@ FooBar:{}
 User:{.foo:FooBaar;}
 """));}
 
-@Test void nameSuggester_5(){typeFailExt("""
+@Test void nameSuggester_5(){failExt("""
 [###]
 Did you mean "NumExact" ?
 [###]
@@ -2719,7 +2723,7 @@ NumExact:{}
 User:{.foo:Num;}
 """));}
 
-@Test void nameSuggester_6(){typeFailExt("""
+@Test void nameSuggester_6(){failExt("""
 [###]
 Did you mean "ReadOnly" ?
 [###]
@@ -2728,7 +2732,7 @@ ReadOnly:{}
 User:{.foo:ReadOnyl;}
 """));}
 
-@Test void nameSuggester_7(){typeFailExt("""
+@Test void nameSuggester_7(){failExt("""
 [###]
 Did you mean "HTTPServer" ?
 [###]
@@ -2737,7 +2741,7 @@ HTTPServer:{}
 User:{.foo:HttpServer;}
 """));}
 
-@Test void nameSuggester_8(){typeFailExt("""
+@Test void nameSuggester_8(){failExt("""
 [###]
 Did you mean "JSONParser" ?
 [###]
@@ -2746,7 +2750,7 @@ JSONParser:{}
 User:{.foo:JsonParser;}
 """));}
 
-@Test void nameSuggester_9(){typeFailExt("""
+@Test void nameSuggester_9(){failExt("""
 [###]
 Did you mean "XMLHttpRequest" ?
 [###]
@@ -2755,7 +2759,7 @@ XMLHttpRequest:{}
 User:{.foo:XmlHttpRequest;}
 """));}
 
-@Test void nameSuggester_10(){typeFailExt("""
+@Test void nameSuggester_10(){failExt("""
 [###]
 Did you mean "URLDecoder" ?
 [###]
@@ -2764,7 +2768,7 @@ URLDecoder:{}
 User:{.foo:UrlDecoder;}
 """));}
 
-@Test void nameSuggester_11(){typeFailExt("""
+@Test void nameSuggester_11(){failExt("""
 [###]
 Did you mean "ASCIIParser" ?
 [###]
@@ -2773,7 +2777,7 @@ ASCIIParser:{}
 User:{.foo:AsciiParser;}
 """));}
 
-@Test void nameSuggester_12(){typeFailExt("""
+@Test void nameSuggester_12(){failExt("""
 [###]
 Did you mean "FooBar''''" ?
 [###]
@@ -2782,7 +2786,7 @@ FooBar'''':{}
 User:{.foo:FooBar'';}
 """));}
 
-@Test void nameSuggester_13(){typeFailExt("""
+@Test void nameSuggester_13(){failExt("""
 [###]
 Did you mean "FooBar" ?
 [###]
@@ -2793,7 +2797,7 @@ User:{.foo:Bar;}
 
 // Missing .methName
 
-@Test void nameSuggester_14(){typeFailExt("""
+@Test void nameSuggester_14(){failExt("""
 [###]
 Did you mean ".numExact" ?
 [###]
@@ -2805,7 +2809,7 @@ User:{
   }
 """));}
 
-@Test void nameSuggester_15(){typeFailExt("""
+@Test void nameSuggester_15(){failExt("""
 [###]
 Did you mean ".toJSON" ?
 [###]
@@ -2817,7 +2821,7 @@ User:{
   }
 """));}
 
-@Test void nameSuggester_16(){typeFailExt("""
+@Test void nameSuggester_16(){failExt("""
 [###]
 Did you mean ".parseXML" ?
 [###]
@@ -2829,7 +2833,7 @@ User:{
   }
 """));}
 
-@Test void nameSuggester_17(){typeFailExt("""
+@Test void nameSuggester_17(){failExt("""
 [###]
 Did you mean ".myHttpServer" ?
 [###]
@@ -2841,7 +2845,7 @@ User:{
   }
 """));}
 
-@Test void nameSuggester_18(){typeFailExt("""
+@Test void nameSuggester_18(){failExt("""
 [###]
 Did you mean ".sha256" ?
 [###]
@@ -2853,7 +2857,7 @@ User:{
   }
 """));}
 
-@Test void nameSuggester_19(){typeFailExt("""
+@Test void nameSuggester_19(){failExt("""
 [###]
 Did you mean ".foo'''''" ?
 [###]
@@ -2865,7 +2869,7 @@ User:{
   }
 """));}
 
-@Test void nameSuggester_20(){typeFailExt("""
+@Test void nameSuggester_20(){failExt("""
 [###]
 Did you mean ".readOnly" ?
 [###]
@@ -2877,7 +2881,7 @@ User:{
   }
 """));}
 
-@Test void nameSuggester_21(){typeFailExt("""
+@Test void nameSuggester_21(){failExt("""
 [###]
 Did you mean ".makeUUID" ?
 [###]
@@ -2889,7 +2893,7 @@ User:{
   }
 """));}
 
-@Test void nameSuggester_22(){typeFailExt("""
+@Test void nameSuggester_22(){failExt("""
 [###]
 Did you mean ".asUTF8" ?
 [###]
@@ -2901,7 +2905,7 @@ User:{
   }
 """));}
 
-@Test void nameSuggester_23(){typeFailExt("""
+@Test void nameSuggester_23(){failExt("""
 [###]
 Did you mean ".xmlHttpRequest" ?
 [###]
@@ -2915,7 +2919,7 @@ User:{
 
 // Missing parName
 
-@Test void nameSuggester_24(){typeFailExt("""
+@Test void nameSuggester_24(){failExt("""
 [###]
 Did you mean "numExact" ?
 [###]
@@ -2924,7 +2928,7 @@ A:{}
 User:{.f(numExact:A):A->num;}
 """));}
 
-@Test void nameSuggester_25(){typeFailExt("""
+@Test void nameSuggester_25(){failExt("""
 [###]
 Did you mean "toJSON" ?
 [###]
@@ -2933,7 +2937,7 @@ A:{}
 User:{.f(toJSON:A):A->toJson;}
 """));}
 
-@Test void nameSuggester_26(){typeFailExt("""
+@Test void nameSuggester_26(){failExt("""
 [###]
 Did you mean "httpServer" ?
 [###]
@@ -2942,7 +2946,7 @@ A:{}
 User:{.f(httpServer:A):A->myHttpServer;}
 """));}
 
-@Test void nameSuggester_27(){typeFailExt("""
+@Test void nameSuggester_27(){failExt("""
 [###]
 Did you mean "x'''''" ?
 [###]
@@ -2951,7 +2955,7 @@ A:{}
 User:{.f(x''''':A):A->x'';}
 """));}
 
-@Test void nameSuggester_28(){typeFailExt("""
+@Test void nameSuggester_28(){failExt("""
 [###]
 Did you mean "byteBuffer" ?
 [###]
@@ -2960,7 +2964,7 @@ A:{}
 User:{.f(byteBuffer:A):A->buffer;}
 """));}
 
-@Test void nameSuggester_29(){typeFailExt("""
+@Test void nameSuggester_29(){failExt("""
 [###]
 Did you mean "fooBarBaz" ?
 [###]
@@ -2969,7 +2973,7 @@ A:{}
 User:{.f(fooBarBaz:A):A->fooBarBax;}
 """));}
 
-@Test void nameSuggester_30(){typeFailExt("""
+@Test void nameSuggester_30(){failExt("""
 [###]
 Did you mean "length" ?
 [###]
@@ -2978,7 +2982,7 @@ A:{}
 User:{.f(length:A):A->lenght;}
 """));}
 
-@Test void nameSuggester_31(){typeFailExt("""
+@Test void nameSuggester_31(){failExt("""
 [###]
 Did you mean "sha256" ?
 [###]
@@ -2987,7 +2991,7 @@ A:{}
 User:{.f(sha256:A):A->sha265;}
 """));}
 
-@Test void nameSuggester_32(){typeFailExt("""
+@Test void nameSuggester_32(){failExt("""
 [###]
 Did you mean "fooBar" ?
 [###]
@@ -2996,7 +3000,7 @@ A:{}
 User:{.f(fooBar:A):A->myFooBar;}
 """));}
 
-@Test void nameSuggester_33(){typeFailExt("""
+@Test void nameSuggester_33(){failExt("""
 [###]
 Did you mean "httpServerPort" ?
 [###]
@@ -3004,13 +3008,11 @@ Did you mean "httpServerPort" ?
 A:{}
 User:{.f(httpServerPort:A):A->serverPort;}
 """));}
-
-//-- errors with generic heads
 @Test void genHeadReported(){fail("""
-005| User:{.f(c:C[A]):C[B]->c;}
+004| User:{.f(c:C[A]):C[B]->c;}
    |       -----------------^^
 
-While inspecting parameter "c" > ".f(_)" line 5
+While inspecting parameter "c" > ".f(_)" line 4
 The body of method ".f(_)" of type declaration "User" is an expression returning "C[A]".
 Parameter "c" has type "C[A]" instead of a subtype of "C[B]".
 
@@ -3023,10 +3025,10 @@ C[X]:{}
 User:{.f(c:C[A]):C[B]->c;}
 """));}
 @Test void genHeadReportedObjLit(){fail("""
-005| User:{.f(c:C[A]):C[B]->C[A]{ .foo:A->A };}
+004| User:{.f(c:C[A]):C[B]->C[A]{ .foo:A->A };}
    |       -----------------^^---------------
 
-While inspecting object literal instance of "C[A]" > ".f(_)" line 5
+While inspecting object literal instance of "C[A]" > ".f(_)" line 4
 The body of method ".f(_)" of type declaration "User" is an expression returning "C[A]".
 Object literal is of type "C[A]" instead of a subtype of "C[B]".
 
@@ -3039,10 +3041,10 @@ C[X]:{}
 User:{.f(c:C[A]):C[B]->C[A]{ .foo:A->A };}
 """));}
 
-@Test void badImplementsVoid(){ typeFailExt("""
-In file: [###]/in_memory0.fear
+@Test void badImplementsVoid(){ failExt("""
+In file: [###].fear
 
-007|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
+006|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
    |                                            ^^^^^^^^^^
 
 While inspecting object literal instance of "base.Void"
@@ -3061,8 +3063,8 @@ User:{
 }
 """));}
 
-@Test void badImplicit(){ typeFailExt("""
-In file: [###]/in_memory0.fear
+@Test void badImplicit(){ failExt("""
+In file: [###].fear
 
 003| User:Sup{ :: }
    |           ^^
@@ -3075,6 +3077,7 @@ See inferred typing context below for how type "base.Void" was introduced: (comp
 User:Sup{.h(_aimpl:Sup):-.Void->::}
 Error 10 TypeError
 """, List.of("""
+
 Sup:{ imm .h(x:Sup):base.Void; }
 User:Sup{ :: }
 """));}

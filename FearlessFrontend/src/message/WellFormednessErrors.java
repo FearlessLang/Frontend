@@ -40,14 +40,13 @@ public record WellFormednessErrors(String pkgName){
 
   public FearlessException notClean(URI uri, FileFull f){
     var e= err()
-      .line("File is not the package head, but contains package head directives.")
-      .line("It should not contain any directives like maps, uses or role.")
+      .line("Package directives outside of rank file.")
+      .line("Only the rank file should not contain directives like maps and uses.")
       .blank()
       .line("Found non-empty:");
     boolean any= false;
     if (!f.maps().isEmpty()){ e.bullet("maps: " + previewList(f.maps(), 5)); any= true; }
     if (!f.uses().isEmpty()){ e.bullet("uses: " + previewList(f.uses(), 8)); any= true; }
-    if (!f.role().isEmpty()){ e.bullet("role: " + f.role().get()); any= true; }
     assert any;
     return e.wf().addSpan(new Span(uri,0,0,1,1));
   }
@@ -69,37 +68,29 @@ public record WellFormednessErrors(String pkgName){
 
   public FearlessException expectedSingleUriForPackage(List<URI> heads, String pkgName){
     if (heads.isEmpty()){
-      return err()
-        .line("No package head file found for package "+Err.disp(pkgName)+".")
-        .line("Each package must have exactly one source file whose name matches the package name.")
-        .line("For example, for package "+Err.disp(pkgName)+" you would typically have a file named")
-        .line("  "+pkgName+".fear")
-        .line("in some folder inside the project folder.")
+      return badRank(err()
+        .line("No rank file found for package "+Err.disp(pkgName)+".")
+        .line("Each package must have exactly one source file whose name is their rank.")
+        .line("in some folder inside the project folder."))
         .wf();
     }
     var e= err()
-      .line("Ambiguous package head file for package "+Err.disp(pkgName)+".")
-      .line("Found "+heads.size()+" files that look like package head candidates:");
+      .line("Ambiguous rank file for package "+Err.disp(pkgName)+".")
+      .line("Found "+heads.size()+" files that look like rank head candidates:");
     heads.forEach(u->e.bullet(PrettyFileName.displayFileName(u)));
-    e.line("There must be exactly one source file whose name matches the package name.")
-     .line("Rename or remove the extra files so that only one file is named "+Err.disp(pkgName+".fear")+".");
-    return e.wf();
+    e.line("There must be exactly one source file whose name represents this package rank.")
+     .line("Rename or remove the extra files so that only one file name is of form \"_rank_*.fear\".");
+    return badRank(e).wf();
   }
-
-  public FearlessException noRole(URI uri, FileFull f){
-    var e= err()
-      .line("Missing role declaration in package head file.")
-      .line("Every package must declare its role: base, core, driver, worker, framework, accumulator, tool, or app.")
-      .line("The package head file is the file whose name matches the package name.")
+  public Err badRank(Err err){
+    return err
+      .line("Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.")
+      .line("The rank file is the file whose name matches the rank name.")
       .blank()
-      .line("Add a top-level role line to that file. For example:")
-      .line("package myCoolGame;")
-      .line("role app999;")
-      .line("use base.Main as Main;")
-      .line("MyGame:Main{s->Debug#(`Hello world`)}")
-      .blank()
+      .line("For example, for an application you would typically have a file named")
+      .line("  \"_rank_app.fear\"")
+      .line("Other examples: \"_rank_driver.fear\", \"_rank_framework.fear\" or \"_rank_app175.fear\"; with explicit rank number.")
       .line("As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.");
-    return e.wf().addSpan(new Span(uri,0,0,1,1));
   }
 
   public FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
