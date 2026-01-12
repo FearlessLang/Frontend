@@ -4,8 +4,8 @@ import java.util.List;
 
 import core.E;
 import core.OtherPackages;
-import core.SourceOracle;
-import core.SourceOracle.Debug;
+import tools.SourceOracle;
+import tools.SourceOracle.Debug;
 
 public class DbgBlock{
   static OtherPackages err(){ return FearlessTestBase.otherErr(); }

@@ -1185,7 +1185,7 @@ In file: [###]/in_memory0.fear
 005|   }
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-Abstract method declaration for ".bar: A".
+Abstract method declaration for ".bar".
 Only top level methods can be abstract.
 Error 9 WellFormedness
 """,List.of("""

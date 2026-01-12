@@ -1,3 +1,5 @@
 module FearlessFrontend {
-  requires Commons;
+  requires transitive Commons;
+  exports core;
+  exports main;
 }

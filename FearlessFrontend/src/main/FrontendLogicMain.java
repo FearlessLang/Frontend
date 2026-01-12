@@ -1,12 +1,13 @@
-package pkgmerge;
+package main;
 
 import static offensiveUtils.Require.*;
 import static fearlessParser.TokenKind.*;
 import java.net.URI;
 import java.util.*;
 
+import pkgmerge.DeclaredNames;
+import pkgmerge.Package;
 import core.OtherPackages;
-import core.SourceOracle;
 import core.TName;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
@@ -16,6 +17,7 @@ import inject.InjectionSteps;
 import inject.Methods;
 import inject.ToInference;
 import message.WellFormednessErrors;
+import tools.SourceOracle;
 import typeSystem.TypeSystem;
 
 public class FrontendLogicMain {

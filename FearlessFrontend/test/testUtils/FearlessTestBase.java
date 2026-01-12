@@ -3,6 +3,7 @@ package testUtils;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +19,6 @@ import org.junit.jupiter.api.Assertions;
 import org.opentest4j.AssertionFailedError;
 
 import core.OtherPackages;
-import core.SourceOracle;
 import core.TName;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
@@ -31,8 +31,9 @@ import inject.Methods;
 import inject.ToInference;
 import message.FearlessException;
 import pkgmerge.DeclaredNames;
-import pkgmerge.FrontendLogicMain;
+import main.FrontendLogicMain;
 import pkgmerge.Package;
+import tools.SourceOracle;
 import utils.Bug;
 import utils.Err;
 import utils.Join;
@@ -170,12 +171,7 @@ public abstract class FearlessTestBase{
   protected static void typeFail(String expected, List<String> input){
     typeFail("In file: [###]/in_memory0.fear\n\n"+expected+"Error 10 TypeError", defaultHead, input);
   }
-  protected static OtherPackages otherErr(){
-    return new OtherPackages(){
-      public core.E.Literal of(TName name){ return null; }
-      public Collection<TName> dom(){ return List.of(); }
-    };
-  }
+  protected static OtherPackages otherErr(){ return OtherPackages.empty(); }
 
   protected static OtherPackages otherFrom(List<core.E.Literal> ds){
     var map= ds.stream().collect(Collectors.toMap(core.E.Literal::name, d->d));
@@ -185,7 +181,7 @@ public abstract class FearlessTestBase{
     };
   }
   protected static List<core.E.Literal> compileAll(SourceOracle o, OtherPackages other){
-    return new FrontendLogicMain().of(List.of(), o.allFiles(), o, other);
+    return new main.FrontendLogicMain().of(List.of(), o.allFiles(), o, other);
   }
   protected static List<core.E.Literal> compileAllOk(SourceOracle o, core.OtherPackages other){
     return okOrPrint(o, ()->compileAll(o, other));
@@ -206,11 +202,11 @@ public abstract class FearlessTestBase{
       }
       return b.build();
     }
-    catch(IOException e){ throw Bug.of(e.toString()); }
+    catch(IOException e){ throw new UncheckedIOException(e); }
   }
-  protected static <T> T okOrPrint(SourceOracle o, java.util.function.Supplier<T> run){
+  protected static <T> T okOrPrint(SourceOracle o, Supplier<T> run){
     try{ return run.get(); }
-    catch(message.FearlessException fe){
+    catch(FearlessException fe){
       System.out.println(fe.render(o));
       throw fe;
     }

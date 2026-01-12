@@ -12,7 +12,6 @@ import core.TName;
 import fearlessFullGrammar.M;
 import fearlessFullGrammar.Sig;
 import fearlessFullGrammar.T;
-import fearlessFullGrammar.ToString;
 import fearlessFullGrammar.XPat;
 import fearlessParser.Parser;
 import fearlessParser.Token;
@@ -401,7 +400,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.WellFormedness.of(msg).addSpan(at);
   }
   public FearlessException noAbstractMethod(Sig sig, Span at){
-    String msg= "Abstract method declaration for "+Message.displayString(ToString.sig(sig))
+    String msg= "Abstract method declaration for "+Err.disp(sig.m().get().s())
       +".\nOnly top level methods can be abstract.\n";
     return Code.WellFormedness.of(msg).addSpan(at);
   }

@@ -3555,7 +3555,7 @@ In file: [###]/in_memory0.fear
    |    -------^^^^^^^^--
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-Abstract method declaration for ".foo: Bar".
+Abstract method declaration for ".foo".
 Only top level methods can be abstract.
 Error 9 WellFormedness
 ""","""

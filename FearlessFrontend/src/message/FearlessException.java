@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
-import core.SourceOracle;
 import metaParser.Frame;
 import metaParser.HasFrames;
+import tools.SourceOracle;
 
 public final class FearlessException extends RuntimeException implements HasFrames<FearlessException>{
   private static final long serialVersionUID = 1L;
