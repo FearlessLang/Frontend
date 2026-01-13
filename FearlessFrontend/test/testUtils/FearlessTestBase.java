@@ -28,7 +28,7 @@ import inference.E;
 import inject.InjectionSteps;
 import inject.Methods;
 import inject.ToInference;
-import message.FearlessException;
+import core.FearlessException;
 import pkgmerge.DeclaredNames;
 import main.FrontendLogicMain;
 import pkgmerge.Package;
@@ -84,9 +84,9 @@ public abstract class FearlessTestBase{
       @Override protected Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
         return new Package(name, map, decs, names, Package.onLogger());
       }
-      Methods ofMethods(List<FileFull.Map> override, List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
+      Methods ofMethods(List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
         Map<URI, FileFull> rawAST= parseFiles(files, o);
-        Package pkg= mergeToPackage(pkgName,rawAST, override, other);
+        Package pkg= mergeToPackage(pkgName,rawAST, Map.of(), other);
         Methods ctx= Methods.create(pkg, other);
         List<E.Literal> iDecs= new ToInference().of(ctx.p(), ctx, other, ctx.fresh());
         iDecs= ctx.registerTypeHeadersAndReturnRoots(iDecs);
@@ -97,7 +97,7 @@ public abstract class FearlessTestBase{
         return ctx;
       }
     }
-    return new InferenceMain().ofMethods(List.of(), o.allFiles(), o, other, infer);
+    return new InferenceMain().ofMethods(o.allFiles(), o, other, infer);
   }
   protected static Methods parsePackage(String pkgName, SourceOracle o, boolean infer){
     return parsePackage(pkgName,o, otherFrom(DbgBlock.all()), infer);
@@ -136,13 +136,13 @@ public abstract class FearlessTestBase{
   protected static void typeOk(List<String> input){
     var o= oraclePkg(input);
     OtherPackages other=  printError(() -> otherFrom(DbgBlock.all()),o);
-    printError(() -> new FrontendLogicMain().of("p",List.of(), o.allFiles(), o, other), o);
+    printError(() -> new FrontendLogicMain().of("p",Map.of(), o.allFiles(), o, other), o);
   }
   protected static void typeFailRaw(String expected, List<String> input){
     var o= oraclePkg(input);
     OtherPackages other= otherFrom(DbgBlock.all());
     FearlessException fe= assertThrows(FearlessException.class,
-      () -> new FrontendLogicMain().of("p",List.of(), o.allFiles(), o, other));
+      () -> new FrontendLogicMain().of("p",Map.of(), o.allFiles(), o, other));
     strCmp(expected, fe.render(o));
   }
   protected static void typeFail(String expected, List<String> input){
@@ -158,7 +158,7 @@ public abstract class FearlessTestBase{
     };
   }
   protected static List<core.E.Literal> compileAll(String pkgName, SourceOracle o, OtherPackages other){
-    return new main.FrontendLogicMain().of(pkgName,List.of(), o.allFiles(), o, other);
+    return new main.FrontendLogicMain().of(pkgName,Map.of(), o.allFiles(), o, other);
   }
   protected static List<core.E.Literal> compileAllOk(String pkgName, SourceOracle o, core.OtherPackages other){
     return okOrPrint(o, ()->compileAll(pkgName, o, other));

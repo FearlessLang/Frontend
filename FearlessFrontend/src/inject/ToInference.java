@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import core.FearlessException;
 import core.LiteralDeclarations;
 import core.OtherPackages;
 import core.RC;
 import core.TName;
 import fearlessParser.TokenKind;
 import inference.E;
-import message.FearlessException;
 import naming.FreshPrefix;
 import pkgmerge.Package;
 

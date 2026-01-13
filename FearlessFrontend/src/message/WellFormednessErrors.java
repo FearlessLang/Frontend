@@ -13,6 +13,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
+import core.FearlessException;
 import core.LiteralDeclarations;
 import core.RC;
 import core.TName;

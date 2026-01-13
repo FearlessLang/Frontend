@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import core.B;
 import core.E;
+import core.FearlessException;
 import core.LiteralDeclarations;
 import core.M;
 import core.MName;
@@ -21,7 +22,6 @@ import core.TName;
 import core.TSpan;
 import inject.TypeRename;
 import message.Err;
-import message.FearlessException;
 import message.Reason;
 import message.TypeSystemErrors;
 import utils.OneOr;

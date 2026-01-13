@@ -4,6 +4,7 @@ import static fearlessParser.TokenKind.*;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import core.FearlessException;
 import fearlessParser.Parser;
 import fearlessParser.Token;
 import fearlessParser.TokenKind;

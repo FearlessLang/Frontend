@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import core.FearlessException;
 import metaParser.Frame;
 import metaParser.Message;
 import tools.SourceOracle;

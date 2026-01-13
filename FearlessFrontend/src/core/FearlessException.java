@@ -1,4 +1,4 @@
-package message;
+package core;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
+import message.Code;
 import metaParser.Frame;
 import metaParser.HasFrames;
 import tools.SourceOracle;
@@ -15,12 +16,11 @@ public final class FearlessException extends RuntimeException implements HasFram
   private final Code code;
   private final ArrayList<Frame> frames= new ArrayList<>();
   private final BiFunction<SourceOracle,List<Frame>,String> msgFactory;
-  public FearlessException(Code code, BiFunction<SourceOracle,List<Frame>,String> f){
-    super(code.toString());
+  public FearlessException(@SuppressWarnings("exports") Code code, BiFunction<SourceOracle,List<Frame>,String> f){
+    super(code.toString());//Happily suppressing the warning above. It seals this constructor to only who can see 'Code'
     this.code = Objects.requireNonNull(code);
     this.msgFactory = Objects.requireNonNull(f);
   }
-  public Code code(){ return code; }
   public String render(SourceOracle env){
     var msg= msgFactory.apply(env,Collections.unmodifiableList(frames));
     if (msg.endsWith("\n")){ return msg + code; }

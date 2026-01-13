@@ -22,7 +22,7 @@ import typeSystem.TypeSystem;
 public class FrontendLogicMain {
   public List<core.E.Literal> of(
       String pkgName,
-      List<FileFull.Map> override, 
+      Map<String,String> override, 
       List<URI> files, 
       SourceOracle o, 
       OtherPackages other
@@ -50,27 +50,22 @@ public class FrontendLogicMain {
       .filter(e -> !e.getValue().noDirectives())
       .forEach(e -> { throw err.notClean(e.getKey(), e.getValue()); });  
   }
-  protected Package mergeToPackage(String pkgName,Map<URI, FileFull> raw, List<FileFull.Map> override, OtherPackages other){
+  protected Package mergeToPackage(String pkgName,Map<URI, FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
     var err= new WellFormednessErrors(pkgName);
     URI headPkg= findHeadUri(err,pkgName, raw.keySet());
     checkOnlyHeadHasDirectives(err,headPkg, raw);
     var head= raw.get(headPkg);
-    var map= new HashMap<String, String>();
-    accMaps(pkgName, map, head.maps());
-    accMaps(pkgName, map, override);
+    var map= new HashMap<String, String>(override);
     accUses(err,pkgName, map, head.uses(), other);
     List<Declaration> ds= raw.values().stream().flatMap(f -> f.decs().stream()).toList();
     var names= DeclaredNames.of(pkgName, ds, Collections.unmodifiableMap(map));    
     return makePackage(pkgName, map, ds, names);
   }
   protected Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
-    return new Package(name,map,decs,names,Package.offLogger());
+    return new Package(name,map,decs,names,Package.offLogger());//this method exists to change logger in mocking
   }
-  private void accMaps(String n, HashMap<String, String> map, List<FileFull.Map> maps) {
-    for (var m : maps){ if (n.equals(m.target())) { map.put(m.out(), m.in()); } }
-    //map a as b in c //inside c, replace b with a
-  }
+  //map a as b in c //inside c, replace b with a
   private void accUses(WellFormednessErrors err, String n, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other) {
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses) {

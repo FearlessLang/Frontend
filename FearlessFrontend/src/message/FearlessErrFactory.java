@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import core.FearlessException;
 import core.RC;
 import core.TName;
 import fearlessFullGrammar.M;

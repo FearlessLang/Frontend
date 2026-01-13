@@ -2,8 +2,8 @@ package fearlessParser;
 
 import java.util.List;
 
+import core.FearlessException;
 import message.FearlessErrFactory;
-import message.FearlessException;
 import metaParser.MetaTokenizer;
 
 public class Tokenizer extends MetaTokenizer<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
