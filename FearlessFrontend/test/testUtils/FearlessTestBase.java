@@ -7,19 +7,16 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Assertions;
 import org.opentest4j.AssertionFailedError;
 
 import core.OtherPackages;
-import core.TName;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.ToString;
@@ -150,18 +147,9 @@ public abstract class FearlessTestBase{
   }
   protected static OtherPackages otherErr(){ return OtherPackages.empty(); }
 
-  protected static OtherPackages otherFrom(List<core.E.Literal> ds){
-    var map= ds.stream().collect(Collectors.toMap(core.E.Literal::name, d->d));
-    return new OtherPackages(){
-      public core.E.Literal of(TName name){ return map.get(name); } // null on miss on purpose: this is to allow adding type literals on top
-      public Collection<TName> dom(){ return map.keySet(); }
-    };
-  }
+  protected static OtherPackages otherFrom(List<core.E.Literal> ds){ return OtherPackages.start(Map.of(), ds, -1); }
   protected static List<core.E.Literal> compileAll(String pkgName, SourceOracle o, OtherPackages other){
     return new main.FrontendLogicMain().of(pkgName,Map.of(), o.allFiles(), o, other);
-  }
-  protected static List<core.E.Literal> compileAllOk(String pkgName, SourceOracle o, core.OtherPackages other){
-    return okOrPrint(o, ()->compileAll(pkgName, o, other));
   }
   public static SourceOracle oracleFromDir(Path root){
     if (!Files.isDirectory(root)){ throw Bug.of("Not a directory: "+root); }

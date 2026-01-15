@@ -5,6 +5,7 @@ import static fearlessParser.TokenKind.*;
 import utils.Pos;
 
 public record TName(String s, int arity, Pos pos){
+  public static final String pkgNameRegex="(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*";
   public TName{
     assert arity >= 0 : "arity < 0: "+arity;
     assert hasPkgDot(s) || validate(s,"TName", UppercaseId,UnsignedInt, SignedInt, SignedRational, SignedFloat, UStr, SStr);
@@ -41,5 +42,6 @@ public record TName(String s, int arity, Pos pos){
     int i= pkgDot(s);
     return i == -1 ? s : s.substring(i + 1, s.length());
   }
+  public boolean isPublic(){ return !simpleName().startsWith("_"); }
   public static TName of(String name, int arity, Pos p){ return new TName(name, arity, p); }
 }

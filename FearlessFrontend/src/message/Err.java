@@ -16,7 +16,7 @@ import utils.Join;
 public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<Boolean,CompactPrinter> _cp, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }
   CompactPrinter cp(boolean trunk){ return _cp.apply(trunk); }
-  static String disp(Object o){ return Message.displayString(o.toString()); }
+  public static String disp(Object o){ return Message.displayString(o.toString()); }
   static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
   

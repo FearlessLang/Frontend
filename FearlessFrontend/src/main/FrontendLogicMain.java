@@ -2,8 +2,10 @@ package main;
 
 import static offensiveUtils.Require.*;
 import static fearlessParser.TokenKind.*;
+
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import pkgmerge.DeclaredNames;
 import pkgmerge.Package;
@@ -15,14 +17,16 @@ import fearlessParser.Parse;
 import inject.InjectionSteps;
 import inject.Methods;
 import inject.ToInference;
+import message.Err;
 import message.WellFormednessErrors;
+import metaParser.PrettyFileName;
 import tools.SourceOracle;
 import typeSystem.TypeSystem;
 
 public class FrontendLogicMain {
   public List<core.E.Literal> of(
       String pkgName,
-      Map<String,String> override, 
+      Map<String,String> override,
       List<URI> files, 
       SourceOracle o, 
       OtherPackages other
@@ -35,6 +39,30 @@ public class FrontendLogicMain {
     List<core.E.Literal> coreAST = InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
     TypeSystem.allOk(coreAST, pkg, other); //Phase 7: type checking
     return coreAST;
+  }
+  public Map<String,Map<String,String>> parseRankFiles(List<URI> files, SourceOracle o, Comparator<URI> c){
+    var parsed= parseFiles(files,o);
+    record Key(String target,String in){}
+    record Cand(URI uri,String target,String in,String out){
+    @Override public String toString(){
+      String f= PrettyFileName.displayFileName(uri);
+      return " - "+f+"\n"
+           + "   \"map  "+in+"  as  "+out+"  in  "+target+";\"";
+    }}
+    Map<Key,List<Cand>> byKey= parsed.entrySet().stream()
+      .flatMap(e->e.getValue().maps().stream().map(m-> new Cand(e.getKey(), m.target(), m.in(), m.out())
+      )).collect(Collectors.groupingBy(x->new Key(x.target(),x.in())));
+    Map<String,Map<String,String>> res= new HashMap<>();
+    byKey.forEach((k,cs)->{
+      var best= cs.stream().max((a,b)->c.compare(a.uri(),b.uri())).get();
+      List<Cand> bests= cs.stream().filter(x->c.compare(x.uri(), best.uri())==0).toList();
+      // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
+      List<String> outs= bests.stream().map(Cand::out).distinct().toList();
+      assert !outs.isEmpty();
+      if (outs.size() != 1){ throw MapConflict.conflict(k.target(), k.in(), bests); }
+      res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), outs.getFirst());
+    });
+    return res;
   }
   protected Map<URI, FileFull> parseFiles(List<URI> files, SourceOracle o){
     Map<URI, FileFull> all = new LinkedHashMap<>();
@@ -91,5 +119,31 @@ public class FrontendLogicMain {
     String p= u.getPath();
     int slash= p.lastIndexOf('/');//Ok, portable because u is URI
     return slash >= 0 ? p.substring(slash + 1) : p;
+  }
+}
+
+@SuppressWarnings("serial")
+final class MapConflict extends RuntimeException{
+  private MapConflict(String msg){ super(msg); }
+  public static MapConflict conflict(String target, String in, List<? extends Object> bests){
+    int limit= 12;
+    var shown= bests.stream().limit(limit).map(Object::toString).collect(Collectors.joining("\n"));
+    var more= bests.size()>limit ? "\n - ... ("+(bests.size()-limit)+" more)" : "";
+    return new MapConflict("""
+For package %s, the virtual package name %s is mapped to different real packages:
+  %s%s
+
+These mappings come from rank files with the same priority (same rank), so there is no "higher one" to override the other:
+
+How mapping works:
+- Each package rank file can have lines like: map 'virtual' as 'real' in 'target';
+- If a virtual package name is never mentioned, it implicitly maps to itself (identity).
+- Higher-rank packages override lower-rank ones.
+
+How to fix it:
+- Decide which real package should represent %s inside of %s.
+- Add one mapping line in a higher-rank package (typically your top-level application package),
+to it overrides the conflicting ones.
+""".formatted(Err.disp(target), Err.disp(in), shown, more, Err.disp(in), Err.disp(target)));
   }
 }
