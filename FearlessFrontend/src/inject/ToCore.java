@@ -64,9 +64,6 @@ public class ToCore{
     assert o.rc.isEmpty();
     assert o.targs.isEmpty();
     assert e.es().size() == o.es.size();
-    if (e.name().s().contains("._do")){
-      System.out.println(e);
-    }
     var recv= of(e.e(),o.e);
     var args= IntStream.range(0,e.es().size()).mapToObj(i->of(e.es().get(i),o.es.get(i))).toList();
     return new core.E.Call(recv,e.name(),RC.imm,List.of(),args,new EqTransparent<>(TypeRename.itToT(e.t())),e.src());
