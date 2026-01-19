@@ -175,13 +175,13 @@ While inspecting a type name
 Duplicate type declaration for "A".
 Error 9 WellFormedness
 """,List.of(
-"B:{} A:{}","A:{}"));}
+"A:{}","B:{} A:{}"));}
 
 @Test void duplicate_decl_same_name_nested(){fail("""
 In file: [###].fear
 
-001| B:{.foo:A-> A:{} }
-   |             ^^
+001| A:{}
+   | ^^
 
 While inspecting a type name
 Duplicate type declaration for "A".
@@ -1169,7 +1169,7 @@ Y[X:imm]:{}
 @Test void sameTypeInTwoFiles(){fail("""
 In file: [###].fear
 
-001| X:{.foo:base.Void}
+001| X:{.bar:base.Void}
    | ^^
 
 While inspecting a type name

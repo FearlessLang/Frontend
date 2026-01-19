@@ -5,14 +5,13 @@ import java.util.List;
 import core.E;
 import core.OtherPackages;
 import tools.SourceOracle;
-import tools.SourceOracle.Debug;
 
 public class DbgBlock{
   static OtherPackages err(){ return FearlessTestBase.otherErr(); }
 
   public static List<E.Literal> all(){ return FearlessTestBase.compileAll("base",dbgMiniBase(), err()); }
 
-  public static Debug dbgMiniBase() {
+  public static SourceOracle dbgMiniBase() {
     return SourceOracle.debugBuilder()
       .put("_rank_base000.fear", baseHead)
       .put("baseBody.fear", baseBody)

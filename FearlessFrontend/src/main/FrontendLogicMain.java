@@ -21,17 +21,18 @@ import message.Err;
 import message.WellFormednessErrors;
 import metaParser.PrettyFileName;
 import tools.SourceOracle;
+import tools.SourceOracle.Ref;
 import typeSystem.TypeSystem;
 
 public class FrontendLogicMain {
   public List<core.E.Literal> of(
       String pkgName,
       Map<String,String> override,
-      List<URI> files, 
+      List<Ref> files, 
       SourceOracle o, 
       OtherPackages other
     ){
-    Map<URI, FileFull> rawAST= parseFiles(files, o); // Phase 1: Parse Files
+    Map<Ref, FileFull> rawAST= parseFiles(files, o); // Phase 1: Parse Files
     Package pkg= mergeToPackage(pkgName,rawAST, override, other); // Phase 2: Merge & Well-formedness
     Methods ctx= Methods.create(pkg, other); // Phase 3: // Creates the scope (Methods) and FreshPrefix generators
     List<inference.E.Literal> inferrableAST= new ToInference().of(pkg, ctx, other, ctx.fresh()); // Phase 4: Desugar
@@ -40,12 +41,12 @@ public class FrontendLogicMain {
     TypeSystem.allOk(coreAST, pkg, other); //Phase 7: type checking
     return coreAST;
   }
-  public Map<String,Map<String,String>> parseRankFiles(List<URI> files, SourceOracle o, Comparator<URI> c){
+  public Map<String,Map<String,String>> parseRankFiles(List<Ref> files, SourceOracle o, Comparator<Ref> c){
     var parsed= parseFiles(files,o);
     record Key(String target,String in){}
-    record Cand(URI uri,String target,String in,String out){
+    record Cand(Ref uri,String target,String in,String out){
     @Override public String toString(){
-      String f= PrettyFileName.displayFileName(uri);
+      String f= PrettyFileName.displayFileName(uri.fearURI());
       return " - "+f+"\n"
            + "   \"map  "+in+"  as  "+out+"  in  "+target+";\"";
     }}
@@ -64,24 +65,24 @@ public class FrontendLogicMain {
     });
     return res;
   }
-  protected Map<URI, FileFull> parseFiles(List<URI> files, SourceOracle o){
-    Map<URI, FileFull> all = new LinkedHashMap<>();
+  protected Map<Ref, FileFull> parseFiles(List<Ref> files, SourceOracle o){
+    Map<Ref, FileFull> all = new LinkedHashMap<>();
     for (var u : files) {
-      var str = o.loadString(u);
-      all.put(u, Parse.from(u, str));
+      var str = u.loadString();
+      all.put(u, Parse.from(u.fearURI(), str));
     }
     return all;
   }  
-  private void checkOnlyHeadHasDirectives(WellFormednessErrors err, URI headPkg, Map<URI, FileFull> raw){
+  private void checkOnlyHeadHasDirectives(WellFormednessErrors err, Ref headPkg, Map<Ref, FileFull> raw){
     raw.entrySet().stream()
       .filter(e -> !e.getKey().equals(headPkg))
       .filter(e -> !e.getValue().noDirectives())
       .forEach(e -> { throw err.notClean(e.getKey(), e.getValue()); });  
   }
-  protected Package mergeToPackage(String pkgName,Map<URI, FileFull> raw, Map<String,String> override, OtherPackages other){
+  protected Package mergeToPackage(String pkgName,Map<Ref, FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
     var err= new WellFormednessErrors(pkgName);
-    URI headPkg= findHeadUri(err,pkgName, raw.keySet());
+    Ref headPkg= findHeadUri(err,pkgName, raw.keySet());
     checkOnlyHeadHasDirectives(err,headPkg, raw);
     var head= raw.get(headPkg);
     var map= new HashMap<String, String>(override);
@@ -104,14 +105,14 @@ public class FrontendLogicMain {
       if (!ok){ throw err.unknownUseHead(u.in()); }
     }//map a as b in c + use b.F as bF will replace bF with a.F
   }
-  private URI findHeadUri(WellFormednessErrors err, String pkgName, Set<URI> uris){
+  private Ref findHeadUri(WellFormednessErrors err, String pkgName, Set<Ref> uris){
     assert nonNull(uris) && validate(pkgName,"",_pkgName);
     var heads= uris.stream().filter(u->isHeadUri(u)).toList();
     if (heads.size() == 1){ return heads.getFirst(); }
     throw err.expectedSingleUriForPackage(heads,pkgName);
   }
-  private boolean isHeadUri(URI u){
-    String name= fileName(u);
+  private boolean isHeadUri(Ref u){
+    String name= fileName(u.fearURI());
     int dot= name.lastIndexOf('.');
     return dot > 0 && name.substring(0,dot).startsWith("_rank_");
   }

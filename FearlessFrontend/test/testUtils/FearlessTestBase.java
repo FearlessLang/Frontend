@@ -30,6 +30,7 @@ import pkgmerge.DeclaredNames;
 import main.FrontendLogicMain;
 import pkgmerge.Package;
 import tools.SourceOracle;
+import tools.SourceOracle.Ref;
 import utils.Bug;
 import utils.Err;
 import utils.Join;
@@ -53,7 +54,7 @@ public abstract class FearlessTestBase{
     return b.build();
   }
   protected static List<URI> filesUri(int n){
-    return IntStream.range(0, n).mapToObj(SourceOracle::defaultDbgUri).toList();
+    return IntStream.range(0, n).mapToObj(SourceOracle::defaultDbgFearPath).toList();
   }
   protected static <R> R printError(Supplier<R> r, SourceOracle o){
     try{ return r.get(); }
@@ -64,7 +65,7 @@ public abstract class FearlessTestBase{
     }
   }
   protected static FileFull parseFull(String input){
-    return printError(() -> Parse.from(SourceOracle.defaultDbgUri(0), input), oracleRaw(List.of(input)));
+    return printError(() -> Parse.from(SourceOracle.defaultDbgFearPath(0), input), oracleRaw(List.of(input)));
   }
   protected static void parseOkNormalized(String expectedNoWs, String input){
     FileFull res= Parse.from(Pos.unknown.fileName(), input);
@@ -73,7 +74,7 @@ public abstract class FearlessTestBase{
   protected static void parseFail(String expectedErr, String input){
     SourceOracle o= oracleRaw(List.of(input));
     FearlessException fe= assertThrows(FearlessException.class,
-      () -> Parse.from(SourceOracle.defaultDbgUri(0), input));
+      () -> Parse.from(SourceOracle.defaultDbgFearPath(0), input));
     strCmp(expectedErr, fe.render(o));
   }
   protected static Methods parsePackage(String pkgName,SourceOracle o, OtherPackages other, boolean infer){
@@ -81,8 +82,8 @@ public abstract class FearlessTestBase{
       @Override protected Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
         return new Package(name, map, decs, names, Package.onLogger());
       }
-      Methods ofMethods(List<URI> files, SourceOracle o, OtherPackages other, boolean infer){
-        Map<URI, FileFull> rawAST= parseFiles(files, o);
+      Methods ofMethods(List<Ref> files, SourceOracle o, OtherPackages other, boolean infer){
+        Map<Ref, FileFull> rawAST= parseFiles(files, o);
         Package pkg= mergeToPackage(pkgName,rawAST, Map.of(), other);
         Methods ctx= Methods.create(pkg, other);
         List<E.Literal> iDecs= new ToInference().of(ctx.p(), ctx, other, ctx.fresh());
@@ -101,7 +102,7 @@ public abstract class FearlessTestBase{
   }
   protected static void toStringOk(String expected,String input){
     FileFull res;
-    try{ res= Parse.from(SourceOracle.defaultDbgUri(0), input); }
+    try{ res= Parse.from(SourceOracle.defaultDbgFearPath(0), input); }
     catch(FearlessException fe){
       SourceOracle o= SourceOracle.debugBuilder().put(0, input).build();
       System.out.println(fe.render(o));

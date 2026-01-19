@@ -1,7 +1,6 @@
 package message;
 
 import java.math.BigInteger;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +28,7 @@ import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
 import naming.FreshPrefix;
+import tools.SourceOracle.Ref;
 import utils.Bug;
 import utils.Join;
 
@@ -39,7 +39,7 @@ public record WellFormednessErrors(String pkgName){
     }
   Err err(){ return new Err(y->y,x->x, trunk->new CompactPrinter(pkgName, Map.of(), trunk), new StringBuilder()); }
 
-  public FearlessException notClean(URI uri, FileFull f){
+  public FearlessException notClean(Ref uri, FileFull f){
     var e= err()
       .line("Package directives outside of rank file.")
       .line("Only the rank file should not contain directives like maps and uses.")
@@ -49,7 +49,7 @@ public record WellFormednessErrors(String pkgName){
     if (!f.maps().isEmpty()){ e.bullet("maps: " + previewList(f.maps(), 5)); any= true; }
     if (!f.uses().isEmpty()){ e.bullet("uses: " + previewList(f.uses(), 8)); any= true; }
     assert any;
-    return e.wf().addSpan(new Span(uri,0,0,1,1));
+    return e.wf().addSpan(new Span(uri.fearURI(),0,0,1,1));
   }
 
   private String previewList(List<?> c, int limit){
@@ -67,7 +67,7 @@ public record WellFormednessErrors(String pkgName){
     return sb.toString();
   }
 
-  public FearlessException expectedSingleUriForPackage(List<URI> heads, String pkgName){
+  public FearlessException expectedSingleUriForPackage(List<Ref> heads, String pkgName){
     if (heads.isEmpty()){
       return badRank(err()
         .line("No rank file found for package "+Err.disp(pkgName)+".")
@@ -78,7 +78,7 @@ public record WellFormednessErrors(String pkgName){
     var e= err()
       .line("Ambiguous rank file for package "+Err.disp(pkgName)+".")
       .line("Found "+heads.size()+" files that look like rank head candidates:");
-    heads.forEach(u->e.bullet(PrettyFileName.displayFileName(u)));
+    heads.forEach(u->e.bullet(PrettyFileName.displayFileName(u.fearURI())));
     e.line("There must be exactly one source file whose name represents this package rank.")
      .line("Rename or remove the extra files so that only one file name is of form \"_rank_*.fear\".");
     return badRank(e).wf();
