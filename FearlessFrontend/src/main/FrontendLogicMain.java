@@ -20,6 +20,7 @@ import inject.ToInference;
 import message.Err;
 import message.WellFormednessErrors;
 import metaParser.PrettyFileName;
+import tools.Fs;
 import tools.SourceOracle;
 import tools.SourceOracle.Ref;
 import typeSystem.TypeSystem;
@@ -112,17 +113,11 @@ public class FrontendLogicMain {
     throw err.expectedSingleUriForPackage(heads,pkgName);
   }
   private boolean isHeadUri(Ref u){
-    String name= fileName(u.fearURI());
+    String name= Fs.fileNameWithExtension(u.fearPath());
     int dot= name.lastIndexOf('.');
     return dot > 0 && name.substring(0,dot).startsWith("_rank_");
   }
-  private String fileName(URI u){
-    String p= u.getPath();
-    int slash= p.lastIndexOf('/');//Ok, portable because u is URI
-    return slash >= 0 ? p.substring(slash + 1) : p;
-  }
 }
-
 @SuppressWarnings("serial")
 final class MapConflict extends RuntimeException{
   private MapConflict(String msg){ super(msg); }
