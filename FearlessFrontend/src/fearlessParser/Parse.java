@@ -15,6 +15,7 @@ import message.FearlessErrFactory;
 import metaParser.MetaParser;
 import metaParser.Span;
 import metaParser.TokenTreeSpec;
+import tools.Fs;
 
 public class Parse {
   public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t->!t.syntetic()).toList();
@@ -51,7 +52,7 @@ public class Parse {
       .tokenKinds(kinds,_SOF,_EOF)
       .startingPosition(1,1)
       .setErrFactory(new FearlessErrFactory())
-      .whiteList(allowed)
+      .whiteList(Fs.allowed)
       .tokenize()
       .postTokenize(new BadTokens().badTokensMap())
       .buildTokenTree(map);
@@ -75,12 +76,4 @@ public class Parse {
     var p= new Parser(t.span(),names,t.tokenTree(),new FearlessErrFactory());
     return p.parseAll("string interpolation expression",Parser::parseEFull);
   }
-  // ASCII whitelist
-  private static final String allowed=
-    "0123456789" +
-    "abcdefghijklmnopqrstuvwxyz" +
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-    "+-*/=<>,.;:()[]{}" +
-    "`'\"!?@#$%^&_|~\\" +
-    " \n";
 }

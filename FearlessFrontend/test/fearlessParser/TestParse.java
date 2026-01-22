@@ -557,7 +557,7 @@ In file: [###].fear
    |     ^^^^
 
 While inspecting the file
-Illegal character [TAB 0x09]
+Illegal character [Tab 0x09]
 Error 2 UnexpectedToken
 ""","""
 A:{ \t .m(x:C):C->x.foo(,) }
@@ -937,7 +937,7 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character [NBSP 0x00A0]
+Illegal character [No-Break Space 0x00A0]
 Error 2 UnexpectedToken
 """,
 "A:{\u00A0.m():X }");
@@ -951,7 +951,7 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character [ZWJ 0x200D]
+Illegal character [Zero Width Joiner 0x200D]
 Error 2 UnexpectedToken
 """,
 "A:{\u200D\u00A0\uFEFF\u202E.m():X }");
@@ -965,7 +965,7 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character [RLO 0x202E]
+Illegal character [Right-To-Left Override 0x202E]
 Error 2 UnexpectedToken
 """,
 "A:{\u202E\u00A0\u200D\u200C.m():X }");
@@ -979,7 +979,7 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character [BOM 0xFEFF]
+Illegal character [Byte Order Mark 0xFEFF]
 Error 2 UnexpectedToken
 """,
 "A:{\uFEFF\u200B\u3000.m():X }");
@@ -992,7 +992,7 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character [IDEOGRAPHIC SPACE 0x3000]
+Illegal character [Ideographic Space 0x3000]
 Error 2 UnexpectedToken
 """,
 "A:{\u3000\u200B\u200F\u00A0.m():X }");
@@ -1723,7 +1723,7 @@ In file: [###].fear
    |   ^^^^^
 
 While inspecting a string literal
-String literal [BACKTICK (`) 0x60] reaches the end of the line.
+String literal [Backtick (`) 0x60] reaches the end of the line.
 Error 2 UnexpectedToken
 ""","""
 A:{
@@ -1905,7 +1905,7 @@ In file: [###].fear
    |     ^^^^^^
 
 While inspecting a string literal
-String literal [DQUOTE (") 0x22] reaches the end of the line.
+String literal [Double Quote (") 0x22] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
 Error 2 UnexpectedToken
 """, """
@@ -1922,7 +1922,7 @@ In file: [###].fear
    |     ^^^^^^
 
 While inspecting a string literal
-String literal [BACKTICK (`) 0x60] reaches the end of the line.
+String literal [Backtick (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
 Error 2 UnexpectedToken
 """, """
@@ -1940,7 +1940,7 @@ In file: [###].fear
    |     ^^^^^^
 
 While inspecting a string literal
-String literal [BACKTICK (`) 0x60] reaches the end of the line.
+String literal [Backtick (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
 Error 2 UnexpectedToken
 """, """
@@ -1958,7 +1958,7 @@ In file: [###].fear
    |     ^^^^^^
 
 While inspecting a string literal
-String literal [BACKTICK (`) 0x60] reaches the end of the line.
+String literal [Backtick (`) 0x60] reaches the end of the line.
 A comment opening sign is present later on this line; did you mean to close the string before it?
 Error 2 UnexpectedToken
 """, """
@@ -1977,7 +1977,7 @@ In file: [###].fear
    |     ^^^^^^^^^^^^^^
 
 While inspecting a string literal
-String literal [DQUOTE (") 0x22] reaches the end of the line.
+String literal [Double Quote (") 0x22] reaches the end of the line.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1994,7 +1994,7 @@ In file: [###].fear
    |     ^^^^^^^^^^^^^^
 
 While inspecting a string literal
-String literal [BACKTICK (`) 0x60] reaches the end of the line.
+String literal [Backtick (`) 0x60] reaches the end of the line.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -2011,7 +2011,7 @@ In file: [###].fear
    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting a string literal
-String literal [DQUOTE (") 0x22] reaches the end of the line.
+String literal [Double Quote (") 0x22] reaches the end of the line.
 A preceding block comment "/* ... */" on this line contains that quote.
 Did it swallow the intended opening quote?
 Error 2 UnexpectedToken
