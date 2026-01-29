@@ -2,6 +2,7 @@ package inject;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -51,15 +52,18 @@ Offensive style: Optional.get() is intentional where invariants guarantee presen
 absence indicates a bug and should crash.
 */
 
-
 public record InjectionSteps(Methods meths){
   public static List<core.E.Literal> steps(Methods meths, List<inference.E.Literal> tops){
     var s= new InjectionSteps(meths);
     assert tops.stream().allMatch(l->l.thisName().equals("this"));
+    //No! at this point they have been (correctly) divided in layers assert tops.stream().sorted().toList().equals(tops);    
     return tops.stream()
       .map(l->s.stepDec(meths.cache().get(l.name()), l)).toList();
   }
   private core.E.Literal stepDec(core.E.Literal di, inference.E.Literal li){
+    assert li.ms().stream()
+      .sorted(Comparator.comparing(mi-> mi.sig().span().inner))
+      .toList().equals(li.ms());
     List<core.M> ms= li.ms().stream().map(m -> stepDecM(di, m)).toList();
     return di.withMs(ms);
   }

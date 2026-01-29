@@ -286,7 +286,6 @@ public record WellFormednessErrors(String pkgName){
     color.put(u, 2);
     return null;
   }
-
   public FearlessException noSourceToInferFrom(E.Literal origin, M m){
     var empty= m.sig().m().isEmpty();
     var size= m.sig().ts().size();

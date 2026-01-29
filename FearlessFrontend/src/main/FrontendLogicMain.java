@@ -87,7 +87,9 @@ public class FrontendLogicMain {
     var head= raw.get(headPkg);
     var map= new HashMap<String, String>(override);
     accUses(err,pkgName, map, head.uses(), other);
-    List<Declaration> ds= raw.values().stream().flatMap(f -> f.decs().stream()).toList();
+    List<Declaration> ds= raw.values().stream()
+      .flatMap(f -> f.decs().stream())
+      .sorted().toList();
     var names= DeclaredNames.of(pkgName, ds, Collections.unmodifiableMap(map));    
     return makePackage(pkgName, map, ds, names);
   }

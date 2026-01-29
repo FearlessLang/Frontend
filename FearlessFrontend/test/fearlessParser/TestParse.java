@@ -818,7 +818,7 @@ In file: [###].fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Capability readH used.
-Capabilities readH and mutH are not allowed on closures
+Capabilities readH and mutH are not allowed on object literals
 Use one of read, mut, imm, iso.
 Error 2 UnexpectedToken
 ""","""
@@ -832,7 +832,7 @@ In file: [###].fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Capability mutH used.
-Capabilities readH and mutH are not allowed on closures
+Capabilities readH and mutH are not allowed on object literals
 Use one of read, mut, imm, iso.
 Error 2 UnexpectedToken
 ""","""
@@ -3148,7 +3148,7 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Capability iso used.
-Capabilities readH and mutH are not allowed on closures
+Capabilities readH and mutH are not allowed on object literals
 Use one of read, mut, imm, iso.
 Error 2 UnexpectedToken
 ""","""
@@ -3162,7 +3162,7 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Capability readH used.
-Capabilities readH and mutH are not allowed on closures
+Capabilities readH and mutH are not allowed on object literals
 Use one of read, mut, imm, iso.
 Error 2 UnexpectedToken
 
@@ -3177,7 +3177,7 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Capability mutH used.
-Capabilities readH and mutH are not allowed on closures
+Capabilities readH and mutH are not allowed on object literals
 Use one of read, mut, imm, iso.
 Error 2 UnexpectedToken
 ""","""

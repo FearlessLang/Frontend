@@ -29,6 +29,7 @@ import core.FearlessException;
 import pkgmerge.DeclaredNames;
 import main.FrontendLogicMain;
 import pkgmerge.Package;
+import tools.Fs;
 import tools.SourceOracle;
 import tools.SourceOracle.Ref;
 import utils.Bug;
@@ -162,7 +163,7 @@ public abstract class FearlessTestBase{
         .toList();
       if (files.isEmpty()){ throw Bug.of("No .fear files under: "+root); }
       for (var p:files){
-        String src= Files.readString(p);
+        String src= Fs.readUtf8(p);
         URI u= p.toAbsolutePath().normalize().toUri();
         b = b.putURI(u, src);
       }

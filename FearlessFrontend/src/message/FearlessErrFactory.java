@@ -106,7 +106,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of(
       "Capability "+rc+"""
        used.
-      Capabilities readH and mutH are not allowed on closures
+      Capabilities readH and mutH are not allowed on object literals
       Use one of read, mut, imm, iso.      
       """).addSpan(at);
   }

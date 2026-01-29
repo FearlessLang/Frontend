@@ -27,7 +27,7 @@ public sealed interface E extends core.Src.SrcObj{
     public String toString(){ return "("+e+")"; }
     public TSpan span(){ return e.span(); }
   }
-  record Literal(Optional<E.X> thisName, List<M> methods, TSpan span) implements E{
+  record Literal(Optional<E.X> thisName, List<M> methods, TSpan span) implements E, Comparable<Literal>{
     public Literal{
       assert unmodifiableDistinct(methods, "L.Full.methods");
       assert nonNull(thisName,span);
@@ -36,6 +36,7 @@ public sealed interface E extends core.Src.SrcObj{
     public <R> R accept(EVisitor<R> v){ return v.visitLiteral(this); }
     public String toString(){ return "Literal"+thisName.map(Object::toString).orElse("")+methods; }
     public Literal withSpan(TSpan span){ return new Literal(thisName,methods,span); }
+    @Override public int compareTo(Literal o){ return span().inner.compareTo(o.span().inner); }
   }
   record TypedLiteral(T.RCC t, Optional<Literal> l,Pos pos) implements E{
     public TypedLiteral{ assert nonNull(t,l,pos); }

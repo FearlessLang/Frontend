@@ -1615,4 +1615,25 @@ M2[E:*]:{}
 O2[E:*]:{  read .match[R:**](m: mut M2[E]):R->this.match m; }
 L2[E]:{ read .opt:mut O2[read/imm E]->{}; }
 """));}
+
+@Test void errOrder(){failI("""
+In file: [###]_rank_app999.fear
+
+001| North: {.turn-> East; }
+   | --------^^^^^^^^^^^^---
+
+While inspecting type declaration "North"
+Missing return type for method ".turn".
+Add an explicit return type before '->'.
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".turn".
+No supertype has a method named ".turn" with 0 parameters.
+Error 9 WellFormedness
+""",List.of("""
+North: {.turn-> East; } 
+East : {.turn-> South;}
+South: {.turn-> West; }
+West : {.turn-> North;}
+"""));}
 }

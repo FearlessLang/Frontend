@@ -42,7 +42,7 @@ public record Methods(
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
   List<List<E.Literal>> layer(List<E.Literal> decs){
-    Map<TName, E.Literal> rem = new HashMap<>();
+    Map<TName, E.Literal> rem = new LinkedHashMap<>();
     for (E.Literal d : decs){ rem.put(d.name(), d); }
     List<List<E.Literal>> out= new ArrayList<>();
     while (!rem.isEmpty()){
@@ -56,7 +56,7 @@ public record Methods(
   }
   public List<inference.E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     var acc= new ArrayList<E.Literal>();
-    var layers= layer(iDecs.stream().filter(d->!d.infName()).toList()); //var layers= layer(iDecs);
+    var layers= layer(iDecs.stream().filter(d->!d.infName()).toList());
     for (var l : layers){ 
       for (var d : ofLayer(l,acc)){
         if(!d.infName()){ cache.put(d.name(), d); }
