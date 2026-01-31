@@ -61,9 +61,6 @@ public record InjectionSteps(Methods meths){
       .map(l->s.stepDec(meths.cache().get(l.name()), l)).toList();
   }
   private core.E.Literal stepDec(core.E.Literal di, inference.E.Literal li){
-    assert li.ms().stream()
-      .sorted(Comparator.comparing(mi-> mi.sig().span().inner))
-      .toList().equals(li.ms());
     List<core.M> ms= li.ms().stream().map(m -> stepDecM(di, m)).toList();
     return di.withMs(ms);
   }
