@@ -3,7 +3,7 @@ package core;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
 
 import core.E.Literal;
 import fearlessParser.TokenKind;
@@ -21,9 +21,9 @@ public class LiteralDeclarations {
   public static TName baseFloat= new TName("base.Float",0,Pos.unknown);
   public static TName widen= new TName("base.WidenTo",1,Pos.unknown);
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
-  static private core.E.Literal forge(TName name,TName lit, Map<TName,Literal> map, OtherPackages other){
-    var res= map.get(lit);
-    if (res == null){ res = other.of(lit); }
+  static private core.E.Literal forge(TName name,TName lit, Function<TName,Literal> map, OtherPackages other){
+    var res= map.apply(lit);
+    if (res == null){ res = other.__of(lit); }
     assert res != null;
     var c= new T.C(lit,List.of());
     var cs= Push.of(c,res.cs());
@@ -33,9 +33,9 @@ public class LiteralDeclarations {
   private static M setImplemented(M m, TName name) {
     return m.withSig(m.sig().implementedBy(name));
   }
-  public static core.E.Literal _from(TName n, Map<TName,Literal> map, OtherPackages other){
-    var res= map.get(n);
-    if (res == null){ res = other.of(n); }
+  public static core.E.Literal _from(TName n, Function<TName,Literal> map, OtherPackages other){
+    var res= map.apply(n);
+    if (res == null){ res = other.__of(n); }
     if (res != null){ return res; }
     if (!n.pkgName().equals("base") || !isPrimitiveLiteral(n.simpleName())){ return null; }
     return LiteralDeclarations.forge(n,superLiteral(n),map,other);

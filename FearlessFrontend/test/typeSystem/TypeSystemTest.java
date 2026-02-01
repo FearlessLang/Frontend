@@ -3082,5 +3082,20 @@ Sup:{ imm .h(x:Sup):base.Void; }
 User:Sup{ :: }
 """));}
 
+@Test void badSealed1(){ failExt("""
+In file: [###].fear
+
+001| ExtStr:`beer`{}
+   | ^^^^^^^^^^^^^^^
+
+While inspecting type declaration "ExtStr"
+Type declaration "ExtStr" implements sealed type "`beer`".
+Sealed types can only be implemented in their own package.
+Type declaration "ExtStr" is defined in package "p".
+Type "`beer`" is defined in package "base".
+Error 9 WellFormedness
+""", List.of("""
+ExtStr:`beer`{}
+"""));}
 
 }

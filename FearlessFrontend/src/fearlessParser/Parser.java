@@ -533,7 +533,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     fwdIf(peek(RCap));
     fwdIf(peekOrder(t->t.isTypeName()));
     fwdIf(peek(_SquareGroup));
-    if (fwdIf(peek(Colon))){ while (fwdIf(peek(Comma,UppercaseId,_SquareGroup))){} }
+    if (fwdIf(peek(Colon))){ while (fwdIf(peek(UppercaseId,SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr,Comma,_SquareGroup))){} }
     fwdIf(peek(_CurlyGroup));
   }
   private void eatPost(){//Guaranteed to advance or error (fwdIf true implies we advanced)

@@ -111,7 +111,7 @@ public record Methods(
     assert res != null: "In pkgName="+p.name()+", name not found: "+name+" current domain is:\n"+cache.keySet();
     return res;
   }
-  core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache,other); }
+  core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache::get,other); }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
     List<CsMs> ds= d.cs().stream().map(c->fetch(d,c)).toList();
     List<IT.C> allCs= Stream.concat(
@@ -144,13 +144,14 @@ public record Methods(
       .filter(c -> c.name().s().equals("base.Sealed"))
       .count() != 0;
     if (!hasSealed){ return; }
-    if (d.ms().isEmpty()){ return; }
+    // if (d.ms().isEmpty()){ return; } We purposely give error if it is not of form E.Type 
     allCs.stream()
       .filter(c->!c.name().pkgName().equals(d.name().pkgName()))
       .forEach(c->notSealed(c.name(),d));
   }
   void notSealed(TName target, E.Literal owner){
-    boolean hasSealed= other.of(target).cs().stream()
+    boolean hasSealed= LiteralDeclarations._from(target, _->null, other)
+    .cs().stream()
     .filter(c -> c.name().s().equals("base.Sealed")).count() != 0;
     if (!hasSealed){ return; }
     throw p.err().extendedSealed(owner,fresh, target);

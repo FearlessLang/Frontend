@@ -45,7 +45,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     tops= UriSort.byFolderThenFile(tops, l->l.span().inner.fileName());
     assert core.AssertNoRepeatedTypeNames.ok(tops);
     Map<TName,Literal> map= AllLs.of(tops);
-    Function<TName,Literal> decs= n->LiteralDeclarations._from(n,map,other);
+    Function<TName,Literal> decs= n->LiteralDeclarations._from(n,map::get,other);
     Map<String,String> invMap= pkg.map().entrySet().stream()
       .collect(Collectors.toUnmodifiableMap (Map.Entry::getValue, Map.Entry::getKey));
     var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg,invMap))));

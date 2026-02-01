@@ -55,9 +55,9 @@ public class ToInference{
       var pkg= mPN == null ? pN : mPN;
       if (mPN != null){ tn = tn.withOverridePkgName(mPN); }
       if (pkg.equals(p.name())){ return fCurrent(p,tn.withoutPkgName(),tn,true,other); }
-      if (other.of(tn) != null){ return tn; }
-      var lit= pkg.equals("base") && LiteralDeclarations.isPrimitiveLiteral(tn.simpleName());        
+      var lit= pkg.equals("base") && LiteralDeclarations.isPrimitiveLiteral(tn.simpleName());
       if (lit){ return tn; }
+      if (other.__of(tn) != null){ return tn; }
       throw undeclaredType(tn,p.name(),p,other);
     };
     ArrayList<E.Literal> decs= new ArrayList<>();

@@ -26,11 +26,9 @@ public record TypeNamePrinter(boolean trunc,String mainPkg, Map<String,String> u
     String r= s.substring(5);
     if (r.isEmpty()){ return s; }
     if (!LiteralDeclarations.isPrimitiveLiteral(r)){ return s; }
-    if (r.length() <= 5){ return r; }
-    char ch= r.charAt(0);
-    if (ch == '"'){ return "\"-\""; }
-    if (ch == '`'){ return "`-`"; }
-    return r;
+    int d= r.length();
+    if (d <= 15){ return r; }
+    return r.substring(0,5)+"-"+r.substring(d-5,d);
   }
   private static String trunc(String s){
     int dot= s.lastIndexOf('.');

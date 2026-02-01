@@ -9,20 +9,20 @@ import java.util.stream.Stream;
 import core.E.Literal;
 
 public interface OtherPackages{
-  core.E.Literal of(TName name);
+  core.E.Literal __of(TName name);//This method should only be used inside LiteralDeclatations and ToInference Function<TName,TName> f= tn->{..}
   Collection<TName> dom();
   long stamp();
   Map<String,Map<String,String>> virtualizationMap();
   static OtherPackages empty(){ return new OtherPackages(){
     public Collection<TName> dom(){ return List.of(); }
-    public core.E.Literal of(TName name){ return null; }
+    public core.E.Literal __of(TName name){ return null; }
     public  long stamp(){ return -1; }
     public  Map<String,Map<String,String>> virtualizationMap(){ return Map.of(); }
   };}
   static OtherPackages start(Map<String,Map<String,String>> vMap, Map<TName,Literal> core, long newStamp){
     return new OtherPackages(){
       public Collection<TName> dom(){ return core.keySet(); }
-      public core.E.Literal of(TName name){ return core.get(name); }
+      public core.E.Literal __of(TName name){ return core.get(name); }
       public  long stamp(){ return newStamp; }
       public  Map<String,Map<String,String>> virtualizationMap(){ return vMap; }
     };}
@@ -32,7 +32,7 @@ public interface OtherPackages{
   }
   default OtherPackages mergeWith(Map<TName,Literal> core, long newStamp){
     var map= Stream.concat(
-      this.dom().stream().map(this::of),
+      this.dom().stream().map(this::__of),
       core.values().stream()
       ).collect(Collectors.toUnmodifiableMap(Literal::name, d->d));
     return start(this.virtualizationMap(),map,newStamp); 
