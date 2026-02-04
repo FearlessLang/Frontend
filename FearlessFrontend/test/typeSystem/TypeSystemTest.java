@@ -1148,8 +1148,8 @@ A:{
 """));}
 
 @Test void noVar2Fail_viewpointAdaptation_reasonShown(){fail("""
-005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(aaaa);}
-   |                                    -------------~~~~^^~~~~~
+005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa);}
+   |                                    -------------~~~~^^~~~~~~~~~~~~~~~~
 
 While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Skip#(_)" can not typecheck.
@@ -1172,31 +1172,11 @@ A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa)}}
 Skip:{#[X:**](X):B->B}
 B:{}
 A:{
-  .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(aaaa);}
+  .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa);}
 }
 """));}
 
-@Test void badDeepCall_inferenceNestedGenericCall_explained(){fail("""
-005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}
-   |                                    -------------------~~^^~~~~~-
-
-While inspecting ".foo" line 5 > ".f(_)" line 5
-This call to method "Id#(_)" can not typecheck.
-Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A" or "mutH A".
-Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
-Note: the declared type "mut A" would instead be a valid subtype.
-Capture adaptation trace:
-"mut A" --setToRead(line 5)--> "read A".
-
-Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
-- "mutH A"  (Allow mutH argument 1)
-
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
-A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](Id#[imm,mut A](aaaa))}}
-""",List.of("""
+@Test void deepCall_usingRCfiltering(){ok(List.of("""
 Skip:{#[X:**](X):B->B}
 Id:{#[X:**](x:X):X->x}
 B:{}
@@ -1740,28 +1720,7 @@ A:{
 }
 """));}
 
-
-@Test void noVar2Fail(){fail("""
-004|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(aaaa);}
-   |                                    -------------~~~~^^~~~~~
-
-While inspecting ".foo" line 4 > ".f(_)" line 4
-This call to method "Skip#(_)" can not typecheck.
-Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A" or "mutH A".
-Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
-Note: the declared type "mut A" would instead be a valid subtype.
-Capture adaptation trace:
-"mut A" --setToRead(line 4)--> "read A".
-
-Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
-- "mutH A"  (Allow mutH argument 1)
-
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
-A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa)}}
-""",List.of("""
+@Test void noVarPassesWithRCFilters(){ok(List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
 A:{
@@ -1769,41 +1728,20 @@ A:{
 }
 """));}
 
-@Test void correctDeepCall(){ok(List.of("""
+@Test void fullyAnnotetedDeepCall(){ok(List.of("""
 Skip:{#[X:**](X):B->B}
 Id:{#[X:**](x:X):X->x}
 B:{}
 A:{
   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,read A](Id#[imm,read A](aaaa));}}
-"""));}//TODO: this works with either one of the method targs explicitly listed
-@Test void badDeepCall(){fail("""
-005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}}
-   |                                    -------------------~~^^~~~~~-
-
-While inspecting ".foo" line 5 > ".f(_)" line 5
-This call to method "Id#(_)" can not typecheck.
-Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A" or "mutH A".
-Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
-Note: the declared type "mut A" would instead be a valid subtype.
-Capture adaptation trace:
-"mut A" --setToRead(line 5)--> "read A".
-
-Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
-- "mutH A"  (Allow mutH argument 1)
-
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
-A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](Id#[imm,mut A](aaaa))}}
-""",List.of("""
+"""));}
+@Test void deepCall(){ok(List.of("""
 Skip:{#[X:**](X):B->B}
 Id:{#[X:**](x:X):X->x}
 B:{}
 A:{
   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#(Id#(aaaa));}}
-"""));}//This fails because inference infers [mut A] instead of [read A]
-//TODO: make the error message show the inference somehow
+"""));}
 
 @Test void hopelessArg_calls_pArgHasType(){fail("""
 006|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}

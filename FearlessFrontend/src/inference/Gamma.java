@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
+import core.RC;
+
 public final class Gamma{
  /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
  @offensiveUtils.NeverAsKey
@@ -26,13 +28,15 @@ public final class Gamma{
 
   private final int[]  marks= new int[maxDepth];
   private final long[] envHash= new long[maxDepth];
+  private final RC[]  rcs= new RC[maxDepth];
   private int depth= 0;
 
   private HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
   public Gamma(){ marks[0]= 0; envHash[0]= 0L; depth= 1; }
-  public void newScope(){
+  public void newScope(RC rc){
     marks[depth]= size;
     envHash[depth]= envHash[depth - 1];
+    rcs[depth]= rc;
     depth++;
   }
   public void popScope(){
@@ -41,6 +45,26 @@ public final class Gamma{
     for (int i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i] = null; ts[i] = null; }
     size = newSize;
     depth--;
+  }
+  public IT getWithRC(String x){
+    //Can this be done? need to locate the dept of x.
+    //Then, if there is imm over (not under) x turn the IT to imm and return theIt.withRC(imm)
+    // if there is read over (not under) x and theIt.explicitRC().equals(Optional.of(RC.mut), turn the IT to read and return theIt.withRC(read)
+    int i= indexOf(x);         // offensive: -1 would crash later
+    IT t= ts[i];               // the stored (true) type
+    int d= declDepth[i];       // scope index where x was declared
+    RC cap= null;              // null means "no restriction from any enclosing scope"
+    if ( depth-1 > d && t.explicitRC().equals(Optional.of(RC.iso))){ return t.withRC(RC.imm); } 
+    for (int s= depth-1; s > d; s--){
+      RC rc= rcs[s];                // rc of the method-body scope at index s
+      if (rc == RC.imm){ cap= RC.imm; break; }
+      if (rc == RC.read && cap == null){ cap= RC.read; }
+    }
+    if (cap == null){ return t; }
+    if (cap == RC.imm){ return t.withRC(RC.imm); }
+    assert cap == RC.read;
+    if (t.explicitRC().equals(Optional.of(RC.mutH))){ return t.withRC(RC.readH); }
+    return t.explicitRC().equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
   }
   public IT get(String x){ return ts[indexOf(x)]; } // offensive: throws on -1
   public Optional<IT> getOpt(String x){ int i= indexOf(x); return i==-1?Optional.empty():Optional.of(ts[i]); }

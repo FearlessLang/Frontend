@@ -84,7 +84,7 @@ p.Stack[###]
 p.Z1ExampleTimes:{'this #(p.Stack[base.Nat]):base.Nat@p.Z1ExampleTimes;(ns)->ns:?.fold(base.1:?,p._AZ1Ex:$?{'_ ? [?](?,?):?@!;(n1, n2)->n1:?*(n2:?):?;}:?):?;}
 p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_ read #(base.Nat,base.Nat):base.Nat@p._AZ1Ex;(n1, n2)->n1:?*(n2:base.Nat):base.Nat;}
 p._CStac[T:imm]:base.ThenElse[p.Stack[imm T]]{'_ mut .then:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T]+[imm](e:imm T):p.Stack[imm T]; mut .else:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T];}
-p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](p.StackMatch[imm T,_GR]):_GR@p._DStac;(m)->m:p.StackMatch[imm T,imm _GR].elem[imm](e:imm T,this:p.Stack[imm T]):imm _GR; .fold[_HR:imm](_HR,base.F[_HR,imm T,_HR]):_HR@p._DStac;(start, f)->f:base.F[imm _HR,T,_HR]#[read](this:p.Stack[imm T].fold[imm,imm _HR](start:imm _HR,f:base.F[imm _HR,imm T,imm _HR]):imm _HR,e:T):_HR; .map[_JR:imm](base.F[imm T,_JR]):p.Stack[_JR]@p._DStac;(f)->this:p.Stack[imm T].map[imm,imm _JR](f:base.F[imm T,imm _JR]):p.Stack[imm _JR]+[imm](f:base.F[T,imm _JR]#[read](e:T):imm _JR):p.Stack[imm _JR]; .filter(base.F[imm T,base.Bool]):p.Stack[imm T]@p._DStac;(f)->f:base.F[T,base.Bool]#[read](e:T):base.Bool.if[imm,p.Stack[imm T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[imm T]]{'_ mut .then:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T]+[imm](e:imm T):p.Stack[imm T]; mut .else:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T];}:mut base.ThenElse[p.Stack[imm T]]):p.Stack[imm T]; +(imm T):p.Stack[imm T]@p.Stack;}
+p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](p.StackMatch[imm T,_GR]):_GR@p._DStac;(m)->m:p.StackMatch[imm T,imm _GR].elem[imm](e:imm T,this:p.Stack[imm T]):imm _GR; .fold[_HR:imm](_HR,base.F[_HR,imm T,_HR]):_HR@p._DStac;(start, f)->f:base.F[imm _HR,imm T,_HR]#[read](this:p.Stack[imm T].fold[imm,imm _HR](start:imm _HR,f:base.F[imm _HR,imm T,imm _HR]):imm _HR,e:imm T):_HR; .map[_JR:imm](base.F[imm T,_JR]):p.Stack[_JR]@p._DStac;(f)->this:p.Stack[imm T].map[imm,imm _JR](f:base.F[imm T,imm _JR]):p.Stack[imm _JR]+[imm](f:base.F[imm T,imm _JR]#[read](e:imm T):imm _JR):p.Stack[imm _JR]; .filter(base.F[imm T,base.Bool]):p.Stack[imm T]@p._DStac;(f)->f:base.F[imm T,base.Bool]#[read](e:imm T):base.Bool.if[imm,p.Stack[imm T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[imm T]]{'_ mut .then:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T]+[imm](e:imm T):p.Stack[imm T]; mut .else:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T];}:mut base.ThenElse[p.Stack[imm T]]):p.Stack[imm T]; +(imm T):p.Stack[imm T]@p.Stack;}
 ~-----------
 ~mut p.StackMatch[###]
 ~mut p.Stack[###]
@@ -175,7 +175,7 @@ use base.Ten   as Ten;
 p.StackMatch[T:imm, R:imm]:{'this .empty:R@p.StackMatch; .elem(T,p.Stack[T]):R@p.StackMatch;}
 p.Stack[T:imm]:{'this .match[R:imm](p.StackMatch[T,R]):R@p.Stack;(m)->m:?.empty():?; .fold[R:imm](R,base.F[R,T,R]):R@p.Stack;(start, f)->start:?; .map[R:imm](base.F[T,R]):p.Stack[R]@p.Stack;(f)->p._AStac:$?:?; .filter(base.F[T,base.Bool]):p.Stack[T]@p.Stack;(f)->p._BStac:$?:?; +(T):p.Stack[T]@p.Stack;(e)->p._DStac:$?{'_ ? .match[?](?):?@!;(m)->m:?.elem(e:?,this:?):?; ? .fold[?](?,?):?@!;(start, f)->f:?#(this:?.fold(start:?,f:?):?,e:?):?; ? .map[?](?):?@!;(f)->this:?.map(f:?):?+(f:?#(e:?):?):?; ? .filter[?](?):?@!;(f)->f:?#(e:?):?.if(p._CStac:$?{'_ ? .then[?]:?@!;->this:?.filter(f:?):?+(e:?):?; ? .else[?]:?@!;->this:?.filter(f:?):?;}:?):?;}:?;}
 p._CStac[T:imm]:base.ThenElse[p.Stack[imm T]]{'_ mut .then:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T]+[imm](e:imm T):p.Stack[imm T]; mut .else:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T];}
-p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](p.StackMatch[imm T,_GR]):_GR@p._DStac;(m)->m:p.StackMatch[imm T,imm _GR].elem[imm](e:imm T,this:p.Stack[imm T]):imm _GR; .fold[_HR:imm](_HR,base.F[_HR,imm T,_HR]):_HR@p._DStac;(start, f)->f:base.F[imm _HR,T,_HR]#[read](this:p.Stack[imm T].fold[imm,imm _HR](start:imm _HR,f:base.F[imm _HR,imm T,imm _HR]):imm _HR,e:T):_HR; .map[_JR:imm](base.F[imm T,_JR]):p.Stack[_JR]@p._DStac;(f)->this:p.Stack[imm T].map[imm,imm _JR](f:base.F[imm T,imm _JR]):p.Stack[imm _JR]+[imm](f:base.F[T,imm _JR]#[read](e:T):imm _JR):p.Stack[imm _JR]; .filter(base.F[imm T,base.Bool]):p.Stack[imm T]@p._DStac;(f)->f:base.F[T,base.Bool]#[read](e:T):base.Bool.if[imm,p.Stack[imm T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[imm T]]{'_ mut .then:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T]+[imm](e:imm T):p.Stack[imm T]; mut .else:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T];}:mut base.ThenElse[p.Stack[imm T]]):p.Stack[imm T]; +(imm T):p.Stack[imm T]@p.Stack;}
+p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](p.StackMatch[imm T,_GR]):_GR@p._DStac;(m)->m:p.StackMatch[imm T,imm _GR].elem[imm](e:imm T,this:p.Stack[imm T]):imm _GR; .fold[_HR:imm](_HR,base.F[_HR,imm T,_HR]):_HR@p._DStac;(start, f)->f:base.F[imm _HR,imm T,_HR]#[read](this:p.Stack[imm T].fold[imm,imm _HR](start:imm _HR,f:base.F[imm _HR,imm T,imm _HR]):imm _HR,e:imm T):_HR; .map[_JR:imm](base.F[imm T,_JR]):p.Stack[_JR]@p._DStac;(f)->this:p.Stack[imm T].map[imm,imm _JR](f:base.F[imm T,imm _JR]):p.Stack[imm _JR]+[imm](f:base.F[imm T,imm _JR]#[read](e:imm T):imm _JR):p.Stack[imm _JR]; .filter(base.F[imm T,base.Bool]):p.Stack[imm T]@p._DStac;(f)->f:base.F[imm T,base.Bool]#[read](e:imm T):base.Bool.if[imm,p.Stack[imm T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[imm T]]{'_ mut .then:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T]+[imm](e:imm T):p.Stack[imm T]; mut .else:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T];}:mut base.ThenElse[p.Stack[imm T]]):p.Stack[imm T]; +(imm T):p.Stack[imm T]@p.Stack;}
 ~-----------
 ~mut p.StackMatch[T:imm,R:imm]:{'this .empty:R; .elem(_:T, _:p.Stack[T]):R}
 ~mut p.Stack[T:imm]:{'this .match[R:imm](m:p.StackMatch[T,R]):R->m.empty[imm]; .fold[R:imm](start:R, f:base.F[R,T,R]):R->start; .map[R:imm](f:base.F[T,R]):p.Stack[R]->p.Stack[imm R]; .filter(f:base.F[T,base.Bool]):p.Stack[T]->p.Stack[imm T]; +(e:T):p.Stack[T]->imm p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](m:p.StackMatch[imm T,_GR]):_GR->m.elem[imm](e, this); .fold[_HR:imm](start:_HR, f:base.F[_HR,imm T,_HR]):_HR->f#[read](this.fold[imm,imm _HR](start, f), e); .map[_JR:imm](f:base.F[imm T,_JR]):p.Stack[_JR]->this.map[imm,imm _JR](f)+[imm](f#[read](e)); .filter(f:base.F[imm T,base.Bool]):p.Stack[imm T]->f#[read](e).if[imm,p.Stack[imm T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[imm T]]{'_ mut .then:p.Stack[imm T]->this.filter[imm](f)+[imm](e); mut .else:p.Stack[imm T]->this.filter[imm](f)}); +(_:imm T):p.Stack[imm T]}}
@@ -992,13 +992,12 @@ A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
 A:{imm .foo123:A->this.foo123; read .foo123:A->this.foo123; mut .bar:A->this.foo123;}
 """));}
 
-@Disabled @Test void deepMethGenInference1(){okI("""
+@Test void deepMethGenInference1(){okI("""
 [###]~-----------
 ~mut p.A:{'this .f(aaaa:mut p.A):read p.B->read p.BB:p.B{'_\
  read .foo:p.B->p.Skip#[imm,read p.A](p.Id#[imm,read p.A](aaaa))}}
 [###]
 """,
-//Now it fails because we prioritize imm; This needs to get some knowledge of capture to pass reliably
 List.of("""
 Skip:{#[X:**](X):B->B}
 Id:{#[X:**](x:X):X->x}
@@ -1006,13 +1005,12 @@ B:{}
 A:{
   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[read A](Id#(aaaa));}}
 """));}
-@Disabled @Test void deepMethGenInference2(){okI("""
+@Test void deepMethGenInference2(){okI("""
 [###]~-----------
 ~mut p.A:{'this .f(aaaa:mut p.A):read p.B->read p.BB:p.B{'_\
  read .foo:p.B->p.Skip#[imm,read p.A](p.Id#[imm,read p.A](aaaa))}}
 [###]
 """,
-//Now it fails because we prioritize imm; This needs to get some knowledge of capture to pass reliably
 List.of("""
 Skip:{#[X:**](X):B->B}
 Id:{#[X:**](x:X):X->x}
@@ -1023,7 +1021,7 @@ A:{
 @Test void deepMethGenInference3(){okI("""
 [###]~-----------
 ~mut p.A:{'this .f(aaaa:mut p.A):read p.B->read p.BB:p.B{'_\
- read .foo:p.B->p.Skip#[imm,mut p.A](p.Id#[imm,mut p.A](aaaa))}}
+ read .foo:p.B->p.Skip#[imm,read p.A](p.Id#[imm,read p.A](aaaa))}}
 [###]
 """,List.of("""
 Skip:{#[X:**](X):B->B}

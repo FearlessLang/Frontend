@@ -2,7 +2,6 @@ package inject;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -287,10 +286,11 @@ public record InjectionSteps(Methods meths){
   private List<IT> qMarks(int n){ return n < 100 ? smallQMarks.get(n) : _qMarks(n); }
   private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i -> i == n ? t : IT.U.Instance).toList(); }
   private E nextX(List<B> bs, Gamma g, E.X x){
-    var t1= g.get(x.name());
+    var t1Base= g.get(x.name());
+    var t1= g.getWithRC(x.name());
     var t2= x.t();
     if (t1.equals(t2)){ return x; }
-    if (t2 != IT.U.Instance){ updateG(g, x.name(), t1, t2); }
+    if (t2 != IT.U.Instance){ updateG(g, x.name(), t1Base, t2); }
     return x.withT(meet(t1, t2));
   }
   private void updateG(Gamma g, String x, IT t1, IT t2){
@@ -485,7 +485,7 @@ public record InjectionSteps(Methods meths){
   }
   TSM nextMStarOp(List<B> bs, Gamma g, String thisN, Optional<IT.RCC> selfPrecise, IT.RCC rcc, inference.M m){
     assert m.impl().isPresent();
-    g.newScope();
+    g.newScope(m.sig().rc().get());
     g.declare(thisN, selfPrecise.<IT>map(o->o).orElse(IT.U.Instance));
     updateGWithArgs(g, m);
     var e= nextStar(Push.of(bs, m.sig().bs().get()), g, m.impl().get().e());
