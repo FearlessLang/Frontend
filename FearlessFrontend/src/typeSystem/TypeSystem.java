@@ -103,13 +103,12 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var span= l.name().approxSpan();
     var ts= l.bs().stream().<T>map(b->new T.X(b.x(),span)).toList();
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
-    ms.forEach(m->checkCallable(l,m));
-    l.ms().forEach(m->checkImplemented(l,m,l));
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
-    assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x()))):
-    l.bs()+" "+bs1;
+    assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x()))):l.bs()+" "+bs1;
     k().check(l,bs1,thisType);
     litOk(g.filterFTV(l),l);
+    ms.forEach(m->checkCallable(l,m));
+    l.ms().forEach(m->checkImplemented(l,m,l));
     return reqs(l,bs1,thisType,rs);
   }
   private List<Reason> checkCall(List<B> bs,Gamma g,Call c, List<TRequirement> rs){
