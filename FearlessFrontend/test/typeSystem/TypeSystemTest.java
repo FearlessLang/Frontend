@@ -283,21 +283,7 @@ User:{ imm .m(a:imm A,b:mut B):read B->a.id[read B](b); }
 """));}
 
 
-@Test void methodImplementationDeadCode_readLiteralHasMutMethod(){ fail("""
-004|   imm .m():read B->read BB:B{
-005|     mut .h:base.Void->base.Void{};
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-006|   }
-
-While inspecting object literal "read BB" > ".m" line 4
-The method "mut BB.h" is dead code.
-The object literal "BB" is "read", so it will never be seen as "mut".
-But it implements method "mut .h", which requires a "mut" receiver.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-read BB:B{mut .h:-.Void->-.Void}
-""", List.of("""
-
+@Test void okViaPushToIso_methodImplementationDeadCode_readLiteralHasMutMethod(){ ok(List.of("""
 B:{ mut .h:base.Void; }
 User:{
   imm .m():read B->read BB:B{
@@ -305,20 +291,8 @@ User:{
   }
 }
 """));}
-@Test void methodImplementationDeadCode_immLiteralHasMutMethod(){ fail("""
-003|   imm .m():imm B->imm BB:B{
-004|     mut .h:base.Void->base.Void{};
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-005|   }
 
-While inspecting object literal "BB" > ".m" line 3
-The method "mut BB.h" is dead code.
-The object literal "BB" is "imm", so it will never be seen as "mut".
-But it implements method "mut .h", which requires a "mut" receiver.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-BB:B{mut .h:-.Void->-.Void}
-""", List.of("""
+@Test void okViaPushToIso_methodImplementationDeadCode_immLiteralHasMutMethod(){ ok(List.of("""
 B:{ mut .h:base.Void; }
 User:{
   imm .m():imm B->imm BB:B{
@@ -459,7 +433,7 @@ User:{
    |   -----------------------------~~~^^^^-
 
 While inspecting object literal instance of "Foo" > "#(_)" line 7 > ".m" line 7
-Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 7)
+Method "#(_)" inside the object literal instance of "iso F[Person,Car]" (line 7)
 is implemented with an expression returning "iso Foo".
 Object literal is of type "Foo" instead of a subtype of "Car".
 
@@ -500,8 +474,8 @@ User:{
    |   ----------------^^^^^^
 
 While inspecting object literal "AA" > ".m" line 4
-The body of method ".m" of type declaration "User" is an expression returning "AA".
-Object literal is of type "AA" instead of a subtype of "B".
+The body of method ".m" of type declaration "User" is an expression returning "iso AA".
+Object literal is of type "iso AA" instead of a subtype of "B".
 
 See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
 User:{.m:B->AA:A{}}
@@ -703,7 +677,7 @@ User:{
 While inspecting parameter "beer" > ".m" line 5 > ".m(_)" line 4
 parameter "beer" has type "Beer[X]".
 parameter "beer" uses type parameters that are not propagated
-into object literal "read Foo" (line 5) and thus it can not be captured.
+into object literal "iso Foo" (line 5) and thus it can not be captured.
 Hint: change "Foo" by adding the missing type parameters: "Foo[...,...]"
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -833,14 +807,14 @@ Sub:Sup{ imm .h():read P; }
 006|   imm .m():Sup->Sup{ imm .h:base.Void->base.Void{} }
    |   --------------^^^^--------------------------------
 
-While inspecting object literal instance of "Sup" > ".m" line 6
+While inspecting object literal instance of "iso Sup" > ".m" line 6
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Sup{.h:-.Void->-.Void}
+iso Sup{.h:-.Void->-.Void}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -855,14 +829,14 @@ User:{
 006|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{} }
    |   --------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal "Bad" > ".m" line 6
+While inspecting object literal "iso Bad" > ".m" line 6
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Bad:Sup{.h:-.Void->-.Void}
+iso Bad:Sup{.h:-.Void->-.Void}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -1259,7 +1233,7 @@ User:{.f:B->Need#(read A)}
 """,List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
-A:{}
+A:{ mut .foo:A}
 User:{
   .f:B->
     Need#(read A{});
@@ -1566,19 +1540,19 @@ B:{ mut .bar:B }
 A:{ mut .baz(b: B):B->{}; }
 """));}
 @Test void uncallableMethodFail(){fail("""
-002| A:{ mut .baz(b: B):B->{ .bar->b}; }
-   |     ------------------~~^^^^^^^~
+002| A:{ mut .baz(b: mut B):read B-> { .bar->b}; }
+   |     ----------------------------~~^^^^^^^~
 
-While inspecting object literal instance of "B" > ".baz(_)" line 2
+While inspecting object literal instance of "read B" > ".baz(_)" line 2
 The method "mut B.bar" is dead code.
-The object literal instance of "B" is "imm", so it will never be seen as "mut".
+The object literal instance of "B" is "read", so it will never be seen as "mut".
 But it implements method "mut .bar", which requires a "mut" receiver.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-B{mut .bar:B->b}
+read B{mut .bar:mut B->b}
 """,List.of("""
-B:{ mut .bar:B }
-A:{ mut .baz(b: B):B->{ .bar->b}; }
+B:{ mut .bar:mut B }
+A:{ mut .baz(b: mut B):read B-> { .bar->b}; }
 """));}
 @Test void methodReceiverNotRcc(){fail("""
 003|   .bar[X:imm,mut,read](x:X):A->x.foo123;
@@ -1989,14 +1963,14 @@ iso B
 003|  Main:{ .m:B -> B{.bar:A->A} }
    |         --------^^----------
 
-While inspecting object literal instance of "B" > ".m" line 3
+While inspecting object literal instance of "iso B" > ".m" line 3
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "B".
 Hint: add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-B{.bar:A->A}
+iso B{.bar:A->A}
 """,List.of("""
  A:{.foo:A->A}
  B:A{.foo:A}
@@ -2967,8 +2941,8 @@ User:{.f(c:C[A]):C[B]->c;}
    |       -----------------^^---------------
 
 While inspecting object literal instance of "C[A]" > ".f(_)" line 4
-The body of method ".f(_)" of type declaration "User" is an expression returning "C[A]".
-Object literal is of type "C[A]" instead of a subtype of "C[B]".
+The body of method ".f(_)" of type declaration "User" is an expression returning "iso C[A]".
+Object literal is of type "iso C[A]" instead of a subtype of "C[B]".
 
 See inferred typing context below for how type "C[B]" was introduced: (compression indicated by `-`)
 User:{.f(c:C[A]):C[B]->C[A]{.foo:A->A}}
@@ -3036,4 +3010,14 @@ Error 9 WellFormedness
 ExtStr:`beer`{}
 """));}
 
+@Test void tsPromotionChanin(){ok(List.of("""
+A:{ imm .a1: mut A; mut .a2: A;}
+B:{ .b(a:A):A->a.a1.a2; }
+C:{ .c(a:A):A->a.a1; }
+D:{}
+List[P:*]:{read .flow : mut Flow[P]; }
+Flow[P:*]:{mut .map(read D): mut Flow[P]; mut .list:mut List[P]}
+Names1:{ #(ps: List[A]): iso List[A] -> ps.flow.map iso D{}.list }
+Names2:{ #(ps: List[A]): iso List[A] -> ps.flow.map {}.list }
+"""));}
 }

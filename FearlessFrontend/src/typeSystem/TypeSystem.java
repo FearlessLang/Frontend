@@ -85,13 +85,15 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private List<Reason> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
     var ll= decs().apply(t.type().c().name());
-    var needImm= ll.ms().stream().anyMatch(m->m.sig().abs() && m.sig().rc()==RC.mut);
-    var getIso= t.type().rc() == RC.imm && !needImm;
-    var l= ll.withRC(getIso?RC.iso:t.type().rc());
-    var tt= getIso?new Type(t.type().withRC(RC.iso), t.src()):t;
+    var getIso= (readOrImm(t.type().rc()) && !hasAbstractMut(ll)) || mutOrMutH(t.type().rc());
+    var l= ll.withRC(getIso ? RC.iso : t.type().rc());
+    var tt= getIso ? new Type(t.type().withRC(RC.iso), t.src()) : t;
     l.ms().forEach(m->checkImplemented(l,m,tt));
     return reqs(t,bs,tt.type(),rs);//reqs correctly used for two similar things
   }
+  private static boolean readOrImm(RC rc){ return rc == RC.read || rc == RC.imm; }
+  private static boolean mutOrMutH(RC rc){ return rc == RC.mut || rc == RC.mutH; }
+  private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m->m.sig().abs() && m.sig().rc() == RC.mut); }
   private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().map(r->isSub(bs,got,r.t())
@@ -99,8 +101,12 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       : Reason.literalDoesNotHaveRequiredType(this,blame,bs,got,r.t())
       ).toList();    
   }
-  private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal l, List<TRequirement> rs){
-    var span= l.name().approxSpan();
+  private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<TRequirement> rs){
+    var span= _l.name().approxSpan();
+    var getIso= ((readOrImm(_l.rc()) && !hasAbstractMut(_l)) || mutOrMutH(_l.rc()))//TODO: check if a literal can even be declared mutH
+      && _l.thisName().equals("_")
+      && new FreeMutyParameters(bs1,g).isFree(_l);
+    var l= getIso ? _l.withRC(RC.iso) : _l;
     var ts= l.bs().stream().<T>map(b->new T.X(b.x(),span)).toList();
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);

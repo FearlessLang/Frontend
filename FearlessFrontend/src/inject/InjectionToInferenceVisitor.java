@@ -113,12 +113,16 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   }
   private fearlessFullGrammar.E makeXPatsBody(fearlessFullGrammar.E body, List<XE> xes){
     var p= body.pos(); //Block#.let x1={e1}.. .let xn={en}.return{body}
-    var block= call(typedLiteral("base.Block", body.span(),p), "#",List.of(), p);
-    for (var xe : xes){
+    var span= TSpan.fromPos(p);
+    Function<fearlessFullGrammar.E,fearlessFullGrammar.E> k=
+      recv->call(recv, ".return", List.of(lambda(body,span)), p);
+    for (var xe: xes.reversed()){
       var pat= new XPat.Name(new fearlessFullGrammar.E.X(xe.x, p));
-      block= callPat(block, ".let", pat, lambda(xe.e, TSpan.fromPos(p)), p);
+      var thunk= lambda(xe.e, span);
+      var k0= k;
+      k= recv->callPat(recv, ".let", pat, k0.apply(thunk), p);
     }
-    return call(block, ".return", List.of(lambda(body,TSpan.fromPos(p))), p);
+    return k.apply(call(typedLiteral("base.Block", body.span(),p), "#",List.of(), p));
   }
   record XE(String x, fearlessFullGrammar.E e){}
   boolean isXPat(fearlessFullGrammar.Parameter p){

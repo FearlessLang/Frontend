@@ -97,7 +97,7 @@ class MultiMeth{
   private static boolean noChangeRI(Mode mode, EnumSet<RC> rcs){
     return rcs.stream().allMatch(rc -> mode.of(rc).readImm() == rc);
   }
-  private static EnumSet<RC> get(List<B> bs, String x){
+  public static EnumSet<RC> get(List<B> bs, String x){
     B b= OneOr.of("bad delta",bs.stream().filter(bi->bi.x().equals(x)));
     assert !b.rcs().isEmpty() :"Missing/empty Delta for "+x;
     return b.rcs();

@@ -372,19 +372,7 @@ A:{ #:A->Block#.let x={A}.return {x} }
 
 @Test void xpat1(){ok("""
 p.A:{'this #(p.A):p.A@p.A;}
-p.B:p.A{'this\
- #(p.A):p.A@p.B;\
-(_adiv)->base.Block:?#():?\
-.let(p._AB:$?{'_ ? [?]:?@!;->_adiv:?\
-.a():?.b():?;}:?,\
-p._BB:$?{'_ ? [?](?,?):?@!;\
-(b3, _beqS)->_beqS:?;}:?):?\
-.let(p._CB:$?{'_ ? [?]:?@!;\
-->_adiv:?.c():?.d():?;}:?,\
-p._DB:$?{'_ ? [?](?,?):?@!;\
-(d3, _aeqS)->_aeqS:?;}:?):?\
-.return(p._EB:$?{'_ ? [?]:?@!;\
-->b3:?+(d3:?):?;}:?):?;}
+p.B:p.A{'this #(p.A):p.A@p.B;(_adiv)->base.Block:?#():?.let(p._AB:$?{'_ ? [?]:?@!;->_adiv:?.a():?.b():?;}:?,p._EB:$?{'_ ? [?](?,?):?@!;(b3, _aeqS)->_aeqS:?.let(p._BB:$?{'_ ? [?]:?@!;->_adiv:?.c():?.d():?;}:?,p._DB:$?{'_ ? [?](?,?):?@!;(d3, _beqS)->_beqS:?.return(p._CB:$?{'_ ? [?]:?@!;->b3:?+(d3:?):?;}:?):?;}:?):?;}:?):?;}
 """,List.of("""
 A:{ #(A):A }
 B:A{ #{.a.b,.c.d}3->b3+d3 }
@@ -1281,6 +1269,25 @@ B:A{
   }
 """));}
 
+
+@Test void paramMatch0(){ ok("""
+p.A:{'this .foo:p.A@p.A;}
+p.B:{'this .of(p.A):p.A@p.B;(pp)->base.Block:?#():?.let(p._AB:$?{'_ ? [?]:?@!;->pp:?.foo():?;}:?,p._CB:$?{'_ ? [?](?,?):?@!;(foo, _aeqS)->_aeqS:?.return(p._BB:$?{'_ ? [?]:?@!;->foo:?;}:?):?;}:?):?;}
+""", List.of("""
+A:{.foo:A}
+B:{.of(pp:A):A->base.Block#.let foo={pp.foo}.return {foo}}
+"""));}
+@Test void paramMatch1(){ ok("""
+p.A:{'this .foo:p.A@p.A;}
+p.B:{'this .of(p.A):p.A@p.B;\
+(_adiv)->base.Block:?#():?\
+.let(p._AB:$?{'_ ? [?]:?@!;->_adiv:?.foo():?;}:?,\
+p._CB:$?{'_ ? [?](?,?):?@!;(foo, _aeqS)->_aeqS:?\
+.return(p._BB:$?{'_ ? [?]:?@!;->foo:?;}:?):?;}:?):?;}
+""", List.of("""
+A:{.foo:A}
+B:{.of({.foo}:A):A->foo}
+"""));}
 
 //TODO: in the guide somewhere show #|" foo{#U+`AB02`} for arbitrary Unicode
 //TODO: well formedness for Sealed still missing

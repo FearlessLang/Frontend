@@ -66,7 +66,12 @@ public final class Gamma{
     if (t.explicitRC().equals(Optional.of(RC.mutH))){ return t.withRC(RC.readH); }
     return t.explicitRC().equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
   }
-  public IT get(String x){ return ts[indexOf(x)]; } // offensive: throws on -1
+  public IT get(String x){
+    int i= indexOf(x);
+    assert i !=-1: 
+    "Name "+x+" was undefined";
+    return ts[i];
+  }
   public Optional<IT> getOpt(String x){ int i= indexOf(x); return i==-1?Optional.empty():Optional.of(ts[i]); }
 
   public void declare(String x, IT t){

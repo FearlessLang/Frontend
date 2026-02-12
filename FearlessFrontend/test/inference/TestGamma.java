@@ -101,7 +101,7 @@ public class TestGamma {
   // 5) get on unknown throws by design
   @Test public void get_unknown_throws_by_design() {
     Gamma g= new Gamma();
-    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("nope"));
+    assertThrows(AssertionError.class, () -> g.get("nope"));
   }
 
   // 6) update on unknown throws by design
@@ -157,7 +157,7 @@ public class TestGamma {
     for (int i= 0; i < 10; i++){ g.declare("w" + i, X("W" + i)); }
     g.popScope();
 
-    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("w0"));
+    assertThrows(AssertionError.class, () -> g.get("w0"));
     assertSame(t, g.get("v31"));
 
     // Inner-only declares should not disturb parent after pop
@@ -173,7 +173,7 @@ public class TestGamma {
     g.declare("w0", X("W0"));
     g.popScope(); // w0 out of scope
     g.declare("a0", X("A0")); // reuse slot
-    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("w0"));
+    assertThrows(AssertionError.class, () -> g.get("w0"));
   }
 
   // 11) Popped name update after slot reuse throws
@@ -207,7 +207,7 @@ public class TestGamma {
     g.sign(before);
     g.declare("_", X("IGNORED"));
     assertTrue(g.represents(before), "declaring '_' must not change signature");
-    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("_"));
+    assertThrows(AssertionError.class, () -> g.get("_"));
   }
 
   // 14) Commutativity of declares: same bindings, different order => same signature

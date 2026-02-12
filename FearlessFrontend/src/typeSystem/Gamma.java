@@ -30,6 +30,11 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     if (name.equals(x)){ return new Binding(t, current); }
     return tail.bind(x);
   }
+  public Binding _bindOrNull(String x){//mah... reuse with the code above? overall improve this implementation
+    if (this == _empty){ return null; }
+    if (name.equals(x)){ return new Binding(t, current); }
+    return tail._bindOrNull(x);
+  }
   public Gamma filterFTV(Literal l){//we only care about dom(bs)
     //Γ|Xs= {x : T | x : T ∈ Γ ∧ FTV(T) ⊆ Xs}
     if (this == _empty){ return this; }
