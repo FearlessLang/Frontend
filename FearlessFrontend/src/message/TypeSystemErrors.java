@@ -364,7 +364,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var r= pickReason(reqs,res);
     var e= err()
       .pCallCantBeSatisfied(d,c)
-      .line("Argument "+(argi+1)+" has type "+err().typeRepr(false,gotHdr)+".")
+      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true,gotHdr)+".")
       .notInSubtypeList(any)
       .line(up(r.info))
       .blank()
