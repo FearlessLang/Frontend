@@ -122,7 +122,7 @@ Nat:Sealed,WidenTo[Nat]{ +(Nat):Nat->Nope!; *(Nat):Nat->Nope! }
 Int:Sealed,WidenTo[Int]{ +(Int):Int->Nope!; *(Int):Int->Nope! }
 Str:Sealed,WidenTo[Str]{}
 Float:Sealed,WidenTo[Float]{}
-UStr:Sealed,WidenTo[UStr]{}
+
 Zero:Nat{}
 One:Nat{}
 Two:Nat{}
@@ -145,6 +145,7 @@ StrProc:{
   mut .add(a:Str,b:ToStr): mut StrProc -> this.add(a,b);
   mut .build(a:Str): Str-> a;
   }
+UStr:Sealed,WidenTo[UStr]{}
 UStrProcs:{
   imm .add(a:UStr,b:ToUStr): mut UStrProc -> this.add(a,b);
   }
