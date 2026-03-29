@@ -51,10 +51,10 @@ public class LiteralDeclarations {
     if (TokenKind.isKind(s,TokenKind.SignedRational)){ return baseNum; }    
     throw Bug.unreachable();
   }
-  static final BigInteger intMin= BigInteger.valueOf(Integer.MIN_VALUE);
-  static final BigInteger intMax= BigInteger.valueOf(Integer.MAX_VALUE);
-  static final BigInteger natMin= BigInteger.ZERO;
-  static final BigInteger natMax= new BigInteger("4294967295"); // 2^32-1
+  public static final BigInteger intMin= BigInteger.valueOf(Long.MIN_VALUE);
+  public static final BigInteger intMax= BigInteger.valueOf(Long.MAX_VALUE);
+  public static final BigInteger natMin= BigInteger.ZERO;
+  public static final BigInteger natMax= new BigInteger("18446744073709551615"); // 2^64-1
   static String stripUnderscores(String s){ return s.replace("_",""); }
   static BigInteger big(String raw){ return new BigInteger(stripUnderscores(raw)); }
   static boolean inRange(BigInteger v, BigInteger min, BigInteger max){ return v.compareTo(min) >= 0 && v.compareTo(max) <= 0; }
@@ -62,15 +62,16 @@ public class LiteralDeclarations {
   static public boolean intLiteralInRange(String raw){ return inRange(intLiteralBig(raw),intMin,intMax); }
   static public BigInteger natLiteralBig(String raw){ return big(raw); }
   static public boolean natLiteralInRange(String raw){ return inRange(natLiteralBig(raw),natMin,natMax); }
-  static int intLiteral32(String raw){
+  static long intLiteral64(String raw){
     BigInteger v= intLiteralBig(raw);
     assert inRange(v,intMin,intMax);
-    return v.intValueExact();
+    return v.longValueExact();
   }
-  static int natLiteralBits32(String raw){
+  static long natLiteralBits64(String raw){
     BigInteger v= natLiteralBig(raw);
     assert inRange(v,natMin,natMax);
-    return v.intValue(); // wraps to low 32 bits (exactly what we want given the range)
+    // This may seem like a negative value, but Nat uses "unsigned" long.
+    return v.longValue(); // wraps to low 64 bits (exactly what we want given the range)
   }
   static public BigDecimal floatLiteralBig(String raw){ return new BigDecimal(stripUnderscores(raw)); }
   static public boolean floatLiteralExactlyRepresentable(String raw){
@@ -103,11 +104,11 @@ public class LiteralDeclarations {
     if (s.startsWith("\"") || s.startsWith("`")){ return javaStrLit(s.substring(1,s.length()-1)); }
       String ns= stripUnderscores(s);
       if (TokenKind.isKind(ns,TokenKind.UnsignedInt)){
-      // base.Nat: produce the signed int whose 32-bit pattern equals the unsigned value.
+      // base.Nat: produce the signed int whose 64-bit pattern equals the unsigned value.
       // Later ops use: Integer.toUnsignedLong(x), compareUnsigned, divideUnsigned, etc.
-      return Integer.toString(natLiteralBits32(ns));
+      return Long.toString(natLiteralBits64(ns))+"L";
       }
-    if (TokenKind.isKind(ns,TokenKind.SignedInt)){ return Integer.toString(intLiteral32(ns)); }
+    if (TokenKind.isKind(ns,TokenKind.SignedInt)){ return Long.toString(intLiteral64(ns))+"L"; }
     if (TokenKind.isKind(ns,TokenKind.SignedFloat)){
       assert floatLiteralExactlyRepresentable(ns);
       return Double.toString(floatLiteralDouble(ns))+"d";
