@@ -487,8 +487,8 @@ public record WellFormednessErrors(String pkgName){
     BigInteger v= LiteralDeclarations.intLiteralBig(lit.simpleName());
     return err()
       .line("Integer literal is out of range for \"base.Int\".")
-      .line("\"base.Int\" must be representable as a 32-bit signed integer.")
-      .line("Valid range: -2147483648 .. 2147483647.")
+      .line("\"base.Int\" must be representable as a 64-bit signed integer.")
+      .line("Valid range: "+LiteralDeclarations.intMin+" .."+LiteralDeclarations.intMax+".")
       .line("This literal is: "+Err.disp(v)+".")
       .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
       .wf().addSpan(lit.approxSpan().inner);
@@ -497,8 +497,8 @@ public record WellFormednessErrors(String pkgName){
     BigInteger v= LiteralDeclarations.natLiteralBig(lit.simpleName());
     return err()
       .line("Natural literal is out of range for \"base.Nat\".")
-      .line("\"base.Nat\" must be representable as a 32-bit unsigned integer.")
-      .line("Valid range: 0 .. 4294967295.")
+      .line("\"base.Nat\" must be representable as a 64-bit unsigned integer.")
+      .line("Valid range: "+LiteralDeclarations.natMin+" .."+LiteralDeclarations.natMax+".")
       .line("This literal is: "+Err.disp(v)+".")
       .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
       .wf().addSpan(lit.approxSpan().inner);
