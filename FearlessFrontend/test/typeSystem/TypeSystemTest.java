@@ -1823,9 +1823,6 @@ A:{}
 @Test void passUStr(){ok(List.of("""
  Main:{ .m:base.UStr -> "Hi" }
 """));}
-@Test void passNum(){ok(List.of("""
- Main:{ .m:base.Num -> +3/4 }
-"""));}
 @Test void failIntTooBig(){failExt("""
 In file: [###].fear
 

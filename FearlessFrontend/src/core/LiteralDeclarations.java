@@ -17,7 +17,6 @@ public class LiteralDeclarations {
   public static TName baseUStr= new TName("base.UStr",0,Pos.unknown);
   public static TName baseNat= new TName("base.Nat",0,Pos.unknown);
   public static TName baseInt= new TName("base.Int",0,Pos.unknown);
-  public static TName baseNum= new TName("base.Num",0,Pos.unknown);
   public static TName baseFloat= new TName("base.Float",0,Pos.unknown);
   public static TName widen= new TName("base.WidenTo",1,Pos.unknown);
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
@@ -48,7 +47,6 @@ public class LiteralDeclarations {
     if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return baseNat; }
     if (TokenKind.isKind(s,TokenKind.SignedInt)){ return baseInt; }
     if (TokenKind.isKind(s,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){ return baseFloat; }
-    if (TokenKind.isKind(s,TokenKind.SignedRational)){ return baseNum; }    
     throw Bug.unreachable();
   }
   public static final BigInteger intMin= BigInteger.valueOf(Long.MIN_VALUE);
@@ -113,7 +111,6 @@ public class LiteralDeclarations {
       assert floatLiteralExactlyRepresentable(ns);
       return floatLiteralDouble(ns) +"d";
     }
-    if (TokenKind.isKind(ns,TokenKind.SignedRational)){ return Dec.signedRationalCtorArgs(ns); }    
     throw Bug.unreachable();
   }
   static String javaStrLit(String raw){
@@ -125,28 +122,5 @@ public class LiteralDeclarations {
       sb.append(c);
     }
     return sb.append('"').toString();
-  }
-}
-record Dec(BigInteger u,int scale){
-  static Dec parse(String s){
-    s= s.replace("_","");
-    int dot= s.indexOf('.');
-    if (dot==-1){ return new Dec(new BigInteger(s),0); }
-    return new Dec(new BigInteger(s.substring(0,dot)+s.substring(dot+1)), s.length()-dot-1);
-  }
-  static String signedRationalCtorArgs(String token){
-    token= token.replace("_","");
-    boolean neg= token.charAt(0) == '-';
-    if (token.charAt(0)=='+' || neg){ token= token.substring(1); }
-    int i= token.indexOf('/');
-    assert i!=-1;
-    var a= parse(token.substring(0,i));
-    var b= parse(token.substring(i+1));
-    var ten= BigInteger.TEN;
-    var num= a.u.multiply(ten.pow(b.scale));
-    var den= b.u.multiply(ten.pow(a.scale));
-    if (neg){ num= num.negate(); }
-    return "new java.math.BigInteger(\""+num+"\")"
-        + ",new java.math.BigInteger(\""+den+"\")";
   }
 }

@@ -35,11 +35,6 @@ public enum TokenKind implements metaParser.TokenKind {
   SQuote("'"), 
   ReadImm("read/imm"),//note: must be before read
   RCap("readH|mutH|imm|iso|read|mut","reference capability"),
-  BadRational(
-    "(?:[0-9](?:[0-9_]*[0-9])?(?:\\x2E[0-9](?:[0-9_]*[0-9])?)?)/(?:[0-9](?:[0-9_]*[0-9])?(?:\\x2E[0-9](?:[0-9_]*[0-9])?)?)"),
-  SignedRational(
-    "[+-](?:[0-9](?:[0-9_]*[0-9])?(?:\\x2E[0-9](?:[0-9_]*[0-9])?)?)/(?:[0-9](?:[0-9_]*[0-9])?(?:\\x2E[0-9](?:[0-9_]*[0-9])?)?)",
-    "signed rational number (eg. +2.2/3.4)"),
 
   // Signed float: +12.34, -1.0e-3 ; requires at least one digit on each side of '.'
   SignedFloat(

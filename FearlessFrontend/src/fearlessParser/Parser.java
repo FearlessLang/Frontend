@@ -406,7 +406,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       LowercaseId,Underscore,          // x->e, e, patterns
       ColonColon,                      // :: / ::.foo
       UStrInterHash,UStrLine,SStrInterHash,SStrLine,SStr,UStr,
-      SignedInt,SignedFloat,UnSignedFloat,SignedRational,UnsignedInt
+      SignedInt,SignedFloat,UnSignedFloat,UnsignedInt
     );
   }
   Declaration parseDeclaration(boolean top){
@@ -493,7 +493,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     guard(Parser::checkAbruptExprEnd);
     return parseE(); 
   }
-  boolean isTName(Token t){ return t.is(UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr) && !names.XIn(t.content()); }
+  boolean isTName(Token t){ return t.is(UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SStr,UStr) && !names.XIn(t.content()); }
   Pos pos(){
     Span s= spanAround(index(),index());
     return new Pos(s.fileName(),s.startLine(),s.startCol()); 
@@ -554,7 +554,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     fwdIf(peek(RCap));
     fwdIf(peekOrder(t->t.isTypeName()));
     fwdIf(peek(_SquareGroup));
-    if (fwdIf(peek(Colon))){ while (fwdIf(peek(UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr,Comma,_SquareGroup))){} }
+    if (fwdIf(peek(Colon))){ while (fwdIf(peek(UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SStr,UStr,Comma,_SquareGroup))){} }
     fwdIf(peek(_CurlyGroup));
   }
   interface Cut extends NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{}

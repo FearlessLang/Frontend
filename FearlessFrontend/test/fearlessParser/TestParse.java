@@ -2147,28 +2147,6 @@ A:{
 """);
 }
 
-
-
-@Test void bad_rational_requires_sign(){fail("""
-In file: [###].fear
-
-003|     1/2
-   |     ^^^
-
-While inspecting numbers
-Unrecognized text "1/2".
-Rational literals must have a sign.
-Examples: "+1/2", "-3/4".
-Fearless does not allow rational literals of form "1/2".
-Error 2 UnexpectedToken
-""", """
-A:{
-  .m:Str ->
-    1/2
-}
-""");
-}
-
 @Test void eatenCloserInDblQuote_thenWrongCloserParen(){fail("""
 In file: [###].fear
 
@@ -2950,7 +2928,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing type name.
 Found instead: "a1".
-Expected one of: "type name", "signed number (eg. -23.0045)", "signed number (eg. -23)", "unsigned number (eg. 23)", "signed rational number (eg. +2.2/3.4)", "`...`", "\\"...\\"".
+Expected one of: "type name", "signed number (eg. -23.0045)", "signed number (eg. -23)", "unsigned number (eg. 23)", "`...`", "\\"...\\"".
 Error 2 UnexpectedToken
 ""","""
 use a1 as F1;

@@ -35,11 +35,6 @@ Here we expect "[" as a generic/RC argument opener and must follow the name with
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 ""","common ambiguities")
-      .putStr(BadRational,Code.UnexpectedToken::of,"""
-Rational literals must have a sign.
-Examples: "+1/2", "-3/4".
-Fearless does not allow rational literals of form "1/2".
-""","numbers")
       .putStr(BadUppercaseId,Code.UnexpectedToken::of,"""
 Package names are restricted to be valid filenames on all operating systems.
 Names like aux, nul, lpt2 are invalid on Windows.
