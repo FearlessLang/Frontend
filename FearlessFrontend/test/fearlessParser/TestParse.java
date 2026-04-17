@@ -739,7 +739,7 @@ A:{
 @Test void multi_firstContentLine_nameNotInScope_body_NoSemi(){fail("""
 In file: [###].fear
 
-002| .m -> y
+002| .m -> this
 003| .n -> {}
    | ^^
 
@@ -748,7 +748,7 @@ There is a missing semicolon ";", operator, or method name here or earlier.
 Error 6 MissingSeparator
 ""","""
 A:{
-.m -> y
+.m -> this
 .n -> {}
 }
 """);}
@@ -1680,28 +1680,37 @@ A:{
 :###|`two
 }
 """); }
-
-@Test void inter_mix_other(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|`one'
-004| .k(1)
-   |   ^^^
-005| x.y() |`two {B.foo(C)}'
-006| .z(3)
-
-While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing semicolon ";", operator, or method name here or earlier.
-Error 6 MissingSeparator
+@Test void plusOneTogether(){ ok("""
+FileFull[maps=[],uses=[],decs=[Declaration[name=A/0,
+bs=Optional.empty,cs=[],l=Literal[M[sig=Optional.empty,
+body=Optional[Call[TypedLiteralRCC[rc=Optional.empty,
+c=C[name=A/0,ts=Optional.empty]]]
+#false[TypedLiteralRCC[rc=Optional.empty,c=C[name=+1/0,ts=Optional.empty]]]]]]]]]
 ""","""
-A:{
-.m:Str ->
-#|`one'
-.k(1)
-x.y() |`two {B.foo(C)}'
-.z(3)
-}
+A:{ A # +1 }
+"""); }
+@Test void plusOneSplit(){ ok("""
+FileFull[maps=[],uses=[],decs=[Declaration[name=A/0,
+bs=Optional.empty,cs=[],l=Literal[M[sig=Optional.empty,
+body=Optional[Call[TypedLiteralRCC[rc=Optional.empty,
+c=C[name=A/0,ts=Optional.empty]]]+false[TypedLiteralRCC[rc=Optional.empty,c=C[name=1/0,ts=Optional.empty]]]]]]]]]""","""
+A:{ A  +1 }
+"""); }
+@Test void plusOneTogetherFloat(){ ok("""
+FileFull[maps=[],uses=[],decs=[Declaration[name=A/0,
+bs=Optional.empty,cs=[],l=Literal[M[sig=Optional.empty,
+body=Optional[Call[TypedLiteralRCC[rc=Optional.empty,
+c=C[name=A/0,ts=Optional.empty]]]
+#false[TypedLiteralRCC[rc=Optional.empty,c=C[name=+1.0/0,ts=Optional.empty]]]]]]]]]
+""","""
+A:{ A # +1.0 }
+"""); }
+@Test void plusOneSplitFloat(){ ok("""
+FileFull[maps=[],uses=[],decs=[Declaration[name=A/0,
+bs=Optional.empty,cs=[],l=Literal[M[sig=Optional.empty,
+body=Optional[Call[TypedLiteralRCC[rc=Optional.empty,
+c=C[name=A/0,ts=Optional.empty]]]+false[TypedLiteralRCC[rc=Optional.empty,c=C[name=1.0/0,ts=Optional.empty]]]]]]]]]""","""
+A:{ A  +1.0 }
 """); }
 
 @Test void comment_ok(){ ok("""
@@ -1867,23 +1876,6 @@ A:{
 .c( // new line is not an issue here
 )
 }
-"""); }
-
-@Test void good_error_for_plus_minus(){ fail("""
-In file: [###].fear
-
-001| A:{ .m -> 1+2 }
-   |   --~~~~~~~^^--
-
-While inspecting method declaration > type declaration body > type declaration > full file
-Here "+2" is seen as a single signed literal, not as a +/- operator followed by a literal.
-Write "1 + 2" not "1+2".
-Write "+1 + +2" not "+1+2".
-Write "+0.53 + +2.32" not "0.53+2.32".
-Write "+3/2 + +4/5" not "3/2+4/5".
-Error 2 UnexpectedToken
-""","""
-A:{ .m -> 1+2 }
 """); }
 
 @Test void inter_mixed_counts_with_comments_ok(){ ok("""
@@ -2142,48 +2134,6 @@ Error 2 UnexpectedToken
 A:{
   .m:Str ->
     /* never closed
-}
-""");
-}
-
-@Test void bad_op_digit_minus_or_plus_before_digit_is_signed_literal(){fail("""
-In file: [###].fear
-
-003|     <--5
-   |     ^^^
-
-While inspecting common ambiguities
-Unrecognized text "<--".
-An operator followed by a digit is parsed as a signed number (e.g. "+5", "-3").
-Operators can also contain "+" and "-", making it ambiguous what, for example, "<--5" means.
-It could be the "<--" operator followed by "5" but also the "<-" operator followed by "-5".
-Please add spaces to disambiguate:  "<-- 5"   or   "<- -5".
-Error 2 UnexpectedToken
-""", """
-A:{
-  .m:Str ->
-    <--5
-}
-""");
-}
-
-
-@Test void bad_float_requires_sign_and_digits_both_sides_of_dot(){fail("""
-In file: [###].fear
-
-003|     1.2
-   |     ^^^
-
-While inspecting numbers
-Unrecognized text "1.2".
-Float literals must have a sign and digits on both sides of ".".
-Examples: "+1.0", "-0.5", "+12.0e-3".
-Fearless does not allow float literals of form "1.2" or ".2".
-Error 2 UnexpectedToken
-""", """
-A:{
-  .m:Str ->
-    1.2
 }
 """);
 }

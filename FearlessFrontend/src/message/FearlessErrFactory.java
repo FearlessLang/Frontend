@@ -297,16 +297,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "There is a missing semicolon \";\", operator, or method name here or earlier.\n"
       ).addSpan(at);
   }
-  public FearlessException signedLiteral(Span at,Token t){
-    return Code.UnexpectedToken.of(
-      "Here "+Message.displayString(t.content())
-      +" is seen as a single signed literal, not as a +/- operator followed by a literal.\n"
-      +"Write \"1 + 2\" not \"1+2\".\n"
-      +"Write \"+1 + +2\" not \"+1+2\".\n"
-      +"Write \"+0.53 + +2.32\" not \"0.53+2.32\".\n"
-      +"Write \"+3/2 + +4/5\" not \"3/2+4/5\"."
-      ).addSpan(at);
-  }
   @Override public FearlessException groupHalt(
       Token open, Token stop, Collection<TokenKind> expectedClosers, LikelyCause likely,
       Tokenizer tokenizer){

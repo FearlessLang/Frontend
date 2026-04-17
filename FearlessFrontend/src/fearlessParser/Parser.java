@@ -115,10 +115,23 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (!names.XIn(c.content())){ throw errFactory().genericNotInScope(c, span(c).get(), names.Xs()); }
     return new T.X(c.content(),new TSpan(spanAround(startPos,endPos)));
   }
+  private E atomFromSignedNumeric(Token x){
+    String s = x.content().substring(1);
+    Pos p = new Pos(span().fileName(), x.line(), x.column() + 1);
+    TName n = TName.of(s, 0, p);
+    T.C c = new T.C(n, Optional.empty());
+    T.RCC rcc = new T.RCC(Optional.empty(), c, new TSpan(span(p, s.length())));
+    return new E.TypedLiteral(rcc, Optional.empty(), p);
+  }
   E parsePost(E receiver){
     if (fwdIf(peekOrder(t->t.is(Colon),t->t.is(UStrInterHash,UStrLine)))){ return parseStrInter(false,of(receiver)); }
     if (fwdIf(peekOrder(t->t.is(Colon),t->t.is(SStrInterHash,SStrLine)))){ return parseStrInter(true, of(receiver)); }
     Pos pos= pos();
+    if (peek(SignedFloat,SignedInt)){
+      var num= expectAny("Unreachable");
+      MName mm= new MName(num.content().substring(0,1),1);
+      return new E.Call(receiver, mm, Optional.empty(), false,Optional.empty(),List.of(atomFromSignedNumeric(num)),pos);
+    }
     MName m= parseMName();
     Optional<E.CallSquare> sq= parseIf(peek(_SquareGroup),()->parseGroup("method call generic parameters",Parser::parseCallSquare));    
     if (peek(_RoundGroup)){
@@ -393,7 +406,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       LowercaseId,Underscore,          // x->e, e, patterns
       ColonColon,                      // :: / ::.foo
       UStrInterHash,UStrLine,SStrInterHash,SStrLine,SStr,UStr,
-      SignedInt,SignedFloat,SignedRational,UnsignedInt
+      SignedInt,SignedFloat,UnSignedFloat,SignedRational,UnsignedInt
     );
   }
   Declaration parseDeclaration(boolean top){
@@ -480,7 +493,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     guard(Parser::checkAbruptExprEnd);
     return parseE(); 
   }
-  boolean isTName(Token t){ return t.is(UppercaseId,SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr) && !names.XIn(t.content()); }
+  boolean isTName(Token t){ return t.is(UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr) && !names.XIn(t.content()); }
   Pos pos(){
     Span s= spanAround(index(),index());
     return new Pos(s.fileName(),s.startLine(),s.startCol()); 
@@ -517,8 +530,16 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   public void checkAbruptExprEnd(){
     absurd();
     eatAtom();    
-    while (!end()){ eatPost(); eatAtom(); }
+    while (!end()){
+     if (peek(SignedInt, SignedFloat)){expectAny(""); continue; }
+     eatPost(); eatAtom();
+     }
   }
+  private void eatPost(){//Guaranteed to advance or error (fwdIf true implies we advanced)
+    if (fwdIf(hasPost())){ fwdIf(peek(_SquareGroup)); return; }
+    throw errFactory().missingSemicolonOrOperator(spanAround(index()-1,index()-1));
+  }
+
   TSpan tspan(){ return new TSpan(span()); }
   private void absurd(){
     var absurd= peek(Colon,Arrow,SQuote,Eq,Comma,SemiColon);//will add more when we find other absurd cases
@@ -533,14 +554,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     fwdIf(peek(RCap));
     fwdIf(peekOrder(t->t.isTypeName()));
     fwdIf(peek(_SquareGroup));
-    if (fwdIf(peek(Colon))){ while (fwdIf(peek(UppercaseId,SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr,Comma,_SquareGroup))){} }
+    if (fwdIf(peek(Colon))){ while (fwdIf(peek(UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr,Comma,_SquareGroup))){} }
     fwdIf(peek(_CurlyGroup));
-  }
-  private void eatPost(){//Guaranteed to advance or error (fwdIf true implies we advanced)
-    if (fwdIf(hasPost())){ fwdIf(peek(_SquareGroup)); return; }
-    var signed= peek(SignedInt,SignedFloat,SignedRational);
-    if (signed){ throw errFactory().signedLiteral(spanAround(index(),index()),expectAny("")); }
-    throw errFactory().missingSemicolonOrOperator(spanAround(index()-1,index()-1));
   }
   interface Cut extends NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{}
   Cut commaSkip=  p->p.splitOn(Skipped,Comma);

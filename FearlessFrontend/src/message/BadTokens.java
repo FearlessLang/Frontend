@@ -30,22 +30,11 @@ Operators can also contain "|", making it ambiguous what, for example, <--|`foo`
 It could be the "<--" operator followed by |`foo` but also the "<--|" operator followed by `foo`. 
 Please add spaces to disambiguate:  <--| `foo`   or   <-- |`foo`.
 ""","common ambiguities")    
-      .putStr(BadOpDigit,Code.UnexpectedToken::of,"""
-An operator followed by a digit is parsed as a signed number (e.g. "+5", "-3").
-Operators can also contain "+" and "-", making it ambiguous what, for example, "<--5" means.
-It could be the "<--" operator followed by "5" but also the "<-" operator followed by "-5".
-Please add spaces to disambiguate:  "<-- 5"   or   "<- -5".
-""","common ambiguities")
       .putStr(BadOSquare,Code.UnexpectedToken::of,"""
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 ""","common ambiguities")
-      .putStr(BadFloat,Code.UnexpectedToken::of,"""
-Float literals must have a sign and digits on both sides of ".".
-Examples: "+1.0", "-0.5", "+12.0e-3".
-Fearless does not allow float literals of form "1.2" or ".2".
-""","numbers")
       .putStr(BadRational,Code.UnexpectedToken::of,"""
 Rational literals must have a sign.
 Examples: "+1/2", "-3/4".

@@ -1834,8 +1834,8 @@ In file: [###].fear
 
 While inspecting the file
 Integer literal is out of range for "base.Int".
-"base.Int" must be representable as a 32-bit signed integer.
-Valid range: -2147483648 .. 2147483647.
+"base.Int" must be representable as a 64-bit signed integer.
+Valid range: -9223372036854775808 ..9223372036854775807.
 This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 9 WellFormedness
@@ -1850,8 +1850,8 @@ In file: [###].fear
 
 While inspecting the file
 Natural literal is out of range for "base.Nat".
-"base.Nat" must be representable as a 32-bit unsigned integer.
-Valid range: 0 .. 4294967295.
+"base.Nat" must be representable as a 64-bit unsigned integer.
+Valid range: 0 ..18446744073709551615.
 This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 9 WellFormedness

@@ -47,7 +47,7 @@ public class LiteralDeclarations {
     if (s.startsWith("\"")){ return baseUStr; }
     if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return baseNat; }
     if (TokenKind.isKind(s,TokenKind.SignedInt)){ return baseInt; }
-    if (TokenKind.isKind(s,TokenKind.SignedFloat)){ return baseFloat; }
+    if (TokenKind.isKind(s,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){ return baseFloat; }
     if (TokenKind.isKind(s,TokenKind.SignedRational)){ return baseNum; }    
     throw Bug.unreachable();
   }
