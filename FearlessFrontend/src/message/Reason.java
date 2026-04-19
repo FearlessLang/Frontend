@@ -14,6 +14,7 @@ import utils.Bug;
 
 import static message.Err.*;
 
+@SuppressWarnings("exports")
 public final class Reason{
   final Supplier<E> footerE;
   final String info;//package-private: only message.* should read it

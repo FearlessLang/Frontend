@@ -13,7 +13,8 @@ import metaParser.Message;
 import metaParser.Span;
 import metaParser.TokenProcessor;
 import utils.Bug;
-
+  
+@SuppressWarnings("exports")
 public class BadTokens {
   public TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory> badTokensMap(){
     return new TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory>()

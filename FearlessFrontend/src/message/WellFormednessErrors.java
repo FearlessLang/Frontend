@@ -32,6 +32,7 @@ import tools.SourceOracle.Ref;
 import utils.Bug;
 import utils.Join;
 
+@SuppressWarnings("exports")
 public record WellFormednessErrors(String pkgName){
   @SuppressWarnings("serial")
   public static class ErrToFetchContext extends RuntimeException{

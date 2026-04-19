@@ -26,6 +26,7 @@ import core.E.*;
 
 import static message.Err.*;
 
+@SuppressWarnings("exports")
 public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pkg, Map<String,String> map){
   public Err err(){
    Function<TName,TName> f= n->{

@@ -18,7 +18,6 @@ import core.TSpan;
 import utils.Bug;
 import utils.Push;
 import fearlessFullGrammar.E.Call;
-import fearlessParser.TokenKind;
 import fearlessFullGrammar.Parameter;
 import fearlessFullGrammar.XPat;
 import utils.Pos;

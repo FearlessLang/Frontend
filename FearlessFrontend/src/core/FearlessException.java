@@ -16,8 +16,8 @@ public final class FearlessException extends RuntimeException implements HasFram
   private final Code code;
   private final ArrayList<Frame> frames= new ArrayList<>();
   private final BiFunction<SourceOracle,List<Frame>,String> msgFactory;
-  public FearlessException(@SuppressWarnings("exports") Code code, BiFunction<SourceOracle,List<Frame>,String> f){
-    super(code.toString());//Happily suppressing the warning above. It seals this constructor to only who can see 'Code'
+  public FearlessException(Code code, BiFunction<SourceOracle,List<Frame>,String> f){
+    super(code.toString());
     this.code = Objects.requireNonNull(code);
     this.msgFactory = Objects.requireNonNull(f);
   }
