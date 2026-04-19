@@ -1,10 +1,7 @@
 package fearlessFullGrammar;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
-
 import core.RC;
 import fearlessFullGrammar.E.*;
 import fearlessFullGrammar.T.*;
@@ -99,23 +96,6 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     append(c.pars()?")":"");
     return res;
   }
-  @Override public StringBuilder visitStringInter(StringInter i){
-    assert i.hashCounts().size() >= 1;
-    assert i.strings().size() == i.es().size() + 1;
-    i.e().ifPresent(e->e.accept(this).append(" "));
-    String nl= i.simple()?"|`":"|\"";
-    append("\n");
-    var it= i.hashCounts().listIterator();
-    append("#".repeat(it.next())+nl);
-    for (int j= 0; j < i.es().size(); j++){
-      appendMultiline(i.strings().get(j),it,h->"\n" + ("#".repeat(h)) + nl);
-      int c= i.hashCounts().get(it.previousIndex());
-      append("{".repeat(c));
-      i.es().get(j).accept(this).append("}".repeat(c));
-    }
-    appendMultiline(i.strings().getLast(),it,h->"\n" + ("#".repeat(h)) + nl);
-    return res;
-  }
   private Declaration visitInnerDeclaration(Declaration d){
     append(d.name().s());
     d.bs().ifPresent(bs->append("[",bs,this::visitInnerB,",","]"));
@@ -166,16 +146,5 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     if (p.xp().isPresent() && p.t().isPresent()){ append(": "); }
     p.t().ifPresent(t->t.accept(this));
     return p;
-  }
-  private <EE> void appendMultiline(String s, Iterator<EE> it, Function<EE,String> f){
-    int from= 0;
-    int i;
-    while ((i = s.indexOf('\n', from)) != -1){
-      res.append(s, from, i);
-      from = i + 1;
-      if (it.hasNext()){ res.append(f.apply(it.next())); }
-      else{ res.append('\n'); }
-    }
-    res.append(s, from, s.length());
   }
 }

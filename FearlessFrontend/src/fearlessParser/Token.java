@@ -12,7 +12,7 @@ public record Token(
   ) implements metaParser.Token<Token,TokenKind>{
   public String toString(){return kind.name()+"|"+content;}
   boolean isTypeName(){ return is(typeName); }
-  public static final TokenKind[] typeName= new TokenKind[]{UppercaseId,SignedFloat,SignedInt,UnsignedInt,SStr,UStr};
+  public static final TokenKind[] typeName= new TokenKind[]{UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SStr,UStr};
   public Token tokenFirstHalf(int length){
     assert length >= 0;
     assert tokens.isEmpty();

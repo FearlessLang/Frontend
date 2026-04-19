@@ -17,8 +17,6 @@ public enum Code{
   ExtraTokenInGroup,
   ProbeError,
   MissingSeparator,
-  InterpolationNoClose,
-  InterpolationNoOpen,
   WellFormedness,
   TypeError,
   ;  

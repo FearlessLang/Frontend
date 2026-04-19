@@ -25,7 +25,7 @@ In file: [###].fear
 While inspecting a type name
 Name clash: name "B" is declared in package "p".
 Name "B" is also used in a "use" directive.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 use base.Block as B;
 B:{}
@@ -43,7 +43,7 @@ Only the rank file should not contain directives like maps and uses.
 
 Found non-empty:
 - uses: use base.Void as Void
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 use base.Block as B;
 ""","""
@@ -75,7 +75,7 @@ In file: [###].fear
 While inspecting a type name
 Type "Z" is not declared in package "p" and is not made visible via "use".
 In scope: "A".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of(
 "A:{ .f:Z->A }"));}
 
@@ -95,7 +95,7 @@ In file: [###].fear
 While inspecting a type name
 Name clash: name "D" is declared in package "p".
 Name "D" is also used in a "use" directive.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of(
 "use base.Void as D;\nD:{}"));}
 
@@ -125,7 +125,7 @@ Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".use(_)".
 No supertype has a method named ".use(_)" with 1 parameters.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """, List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }"));}
 
@@ -147,7 +147,7 @@ In file: [###].fear
 While inspecting a type name
 Name clash: name "A" is declared in package "p".
 Name "A" is also used in a "use" directive.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of(
 "use base.Void as A;\nA:{}", 
 "C:{ .f:A->A }"));} // ambiguous A: local and alias
@@ -161,7 +161,7 @@ In file: [###].fear
 While inspecting a type name
 Type "D" is not declared in package "p" and is not made visible via "use".
 In scope: "A".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of(
 "A:{ .m:D->D }"));}
 
@@ -173,7 +173,7 @@ In file: [###].fear
 
 While inspecting a type name
 Duplicate type declaration for "A".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of(
 "A:{}","B:{} A:{}"));}
 
@@ -185,7 +185,7 @@ In file: [###].fear
 
 While inspecting a type name
 Duplicate type declaration for "A".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of(
 "B:{.foo:A-> A:{} }","A:{}"));}
 
@@ -301,7 +301,7 @@ In file: [###].fear
 
 While inspecting type declarations
 Circular implementation relation found involving "A".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A:B{}
 B:A{}
@@ -314,7 +314,7 @@ In file: [###]/in_memory1.fear
 
 While inspecting type declarations
 Circular implementation relation found involving "A".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A:B{}
 ""","""
@@ -408,59 +408,6 @@ A:{ .bar(A):A}
 B:A{ ::.foo.let x=:: .bla :: .let y= :: .beer ::}
 """));}
 
-@Test void strLit1(){ok("""
-p.A:{'this\
- .foo:p.A@p.A;->base.StrProcs:?\
-.add(base.` foo `:?,p.A:?):?.build(base.` bar
- beer
-`:?):?;}
-""",List.of("""
-A:{ .foo:A -> 
-  #|` foo {A} bar
-  #|` beer
-}
-"""));}
-@Test void strLit2(){ok("""
-p.A:{'this\
- .foo:p.A@p.A;->base.UStrProcs:?\
-.add(base." foo ":?,p.A:?):?\
-.build(base." bar
- beer
-":?):?;}
-""",List.of("""
-A:{ .foo:A -> 
-  #|" foo {A} bar
-  #|" beer
-}
-"""));}
-@Test void strLit3(){ok("""
-p.A:{'this\
- .foo:p.A@p.A;->p.A:?\
-.foo(base.UStrProcs:?\
-.add(base." foo ":?,p.A:?):?\
-.build(base." bar
- beer
-":?):?):?;}
-""",List.of("""
-A:{ .foo:A -> A.foo(
-  #|" foo {A} bar
-  #|" beer
-)}
-"""));}
-@Test void strLit4(){ok("""
-p.A:{'this\
- .foo:p.A@p.A;->p.A:?\
-.foo(base.UStrProcs:?\
-.add(base." foo ":?,p.A:?):?\
-.build(base." bar
- beer
-":?):?):?;}
-""",List.of("""
-A:{ .foo:A -> A.foo
-  #|" foo {A} bar
-  #|" beer
-}
-"""));}
 @Test void rcAgreement1(){ok("""
 p.A1:{'this .foo:p.A1@p.A1;}
 p.A2:{'this .foo:p.A1@p.A2;}
@@ -491,7 +438,7 @@ While inspecting type declaration "B"
 Return type disagreement for method "imm .foo" with 0 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
-Error 9 WellFormedness""",List.of("""
+Error 7 WellFormedness""",List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
 B:A1,A2{ }
@@ -506,7 +453,7 @@ While inspecting type declaration "B"
 Return type disagreement for method "imm .foo" with 0 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
-Error 9 WellFormedness""",List.of("""
+Error 7 WellFormedness""",List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
 B:A1,A2{ .foo->this.foo}
@@ -521,7 +468,7 @@ While inspecting type declaration "B"
 Type disagreement about argument 1 for method "imm .foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
-Error 9 WellFormedness""",List.of("""
+Error 7 WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
 B:A1,A2{ }
@@ -536,7 +483,7 @@ While inspecting type declaration "B"
 Type disagreement about argument 1 for method "imm .foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
-Error 9 WellFormedness""",List.of("""
+Error 7 WellFormedness""",List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
 B:A1,A2{ .foo(a,b)->this.foo}
@@ -551,7 +498,7 @@ While inspecting type declaration "B"
 The number of type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A1:{ .foo[X:imm]():A1;}
 A2:{ .foo():A1;}
@@ -567,7 +514,7 @@ While inspecting type declaration "B"
 The number of type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A1:{ .foo[X:imm]():A1;}
 A2:{ .foo():A1;}
@@ -603,7 +550,7 @@ While inspecting type declaration "B"
 Cannot infer the name for a method with 0 parameters.
 Many abstract methods with 0 parameters could be selected:
 Candidates: "imm .foo", "imm .bar".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
 A2:{ .bar():A1; .baz:A1->this.baz}
@@ -619,7 +566,7 @@ While inspecting type declaration "B"
 Cannot infer the name for a method with 1 parameters.
 Many methods with 1 parameters could be selected:
 Candidates: "imm .baz", "imm .beer".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
 A2:{ .bar():A1; .baz:A1->this.baz}
@@ -649,7 +596,7 @@ Ambiguous implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
 Candidates: "A2", "A1".
 Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ .foo->this; }
@@ -668,7 +615,7 @@ Ambiguous implementation for method ".foo" with 0 parameters.
 Different options are present in the implemented types: 
 Candidates: "A2", "A3".
 Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ .foo->this; }
@@ -684,7 +631,7 @@ In file: [###].fear
 
 While inspecting package header
 "use" directive refers to undeclared name: type "AAAA" is not declared in package "base".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 use base.AAAA as BBB;
 B:{ }
@@ -765,7 +712,7 @@ While inspecting a type name
 Name "F" is not declared with 2 type parameter(s) in package "p".
 Name "F" is only declared with 0 type parameter(s).
 Did you accidentally add or omit a type parameter?
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 F:{#[A,B](A):B}
 User:{
@@ -786,7 +733,7 @@ Type parameter names may differ across supertypes; only the position matters.
 Different supertypes declare: "X:imm" and "Y:read".
 Type declaration "D" cannot implement all of those supertypes.
 Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """, List.of("""
 Box[K]:{.get:K;}
 A:{.id[X:imm](x:Box[X]):X}
@@ -806,7 +753,7 @@ The method ".m(_,_)" declares 1 type parameter(s), but supertypes declare 2.
 Local declaration: "[U:imm]".
 From supertypes: "[-:imm, -:imm]".
 Change the local number of type parameters to 2, or adjust the supertypes.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """, List.of("""
 A:{.m[X,Y](x:X,y:Y):X}
 E:A{.m[U](u:U,g:U):U} // mismatch on method generic arity and params
@@ -840,7 +787,7 @@ While inspecting type declaration "D"
 Type disagreement about argument 0 for method "imm .m(_)" with 1 parameters.
 Different options are present in the implemented types: "Twice[Pair[X,Y]]", "Twice[Pair[Y,X]]".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """, List.of("""
 Pair[AA,BB]:{.fst:AA;.snd:BB;}
 Twice[T]:{.get:Pair[T,T];}
@@ -872,7 +819,7 @@ In file: [###].fear
 While inspecting a type name
 Type "K" is not declared in package "p" and is not made visible via "use".
 In scope: "Any", "Baba", "GG", "KK", "User".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """, List.of("""
 GG[A,B]:{ .apply[C,D](A,B,C):D }
 Baba[C,D]:GG[Any,Any]{}
@@ -916,7 +863,7 @@ In file: [###].fear
 While inspecting a type name
 Type "Widen" is not declared in package "base".
 Did you mean "WidenTo" ?
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A:base.Widen[A]{}
 B:base.Widen[B]{}
@@ -936,7 +883,7 @@ At most one "base.WidenTo[_]" supertype is allowed, because it defines the prefe
 Found the following base.WidenTo supertypes:
 - "base.WidenTo[p.A]"
 - "base.WidenTo[p.B]"
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A:base.WidenTo[A]{}
 B:base.WidenTo[B]{}
@@ -952,7 +899,7 @@ In file: [###].fear
 While inspecting a type name
 Type "Missing" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 User:{
  'this
@@ -970,7 +917,7 @@ While inspecting a type name
 Type "Fod" is not declared in package "p" and is not made visible via "use".
 Did you mean "Food" ?
 In scope: "Food", "User".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 Food:{}
 User:{
@@ -988,7 +935,7 @@ In file: [###].fear
 While inspecting a type name
 Type "GG" is not declared in package "p" and is not made visible via "use".
 In scope: "G", "User".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 use base.F as G;
 User:{
@@ -1008,7 +955,7 @@ Type "F" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
 Did you mean "base.F" ?
 Add a "use" or write the fully qualified name.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 User:{
  'this
@@ -1027,7 +974,7 @@ Type "Blok" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
 Did you mean "base.Block" ?
 Add a "use" or write the fully qualified name.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 User:{
  'this
@@ -1045,7 +992,7 @@ While inspecting a type name
 Package "basee" does not exist.
 Did you mean "base" ?
 Visible packages: "base".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 use base.F as F;
 User:{
@@ -1061,7 +1008,7 @@ In file: [###].fear
 
 While inspecting a type name
 Type "Foo" is not declared in package "base".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 use base.F as F;
 User:{
@@ -1079,7 +1026,7 @@ While inspecting a type name
 Name "Block" is not declared with 2 type parameter(s) in package "base".
 Name "Block" is only declared with the following numbers of type parameters: 0, 1.
 Did you accidentally add or omit a type parameter?
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 User:{
   .foo[X,Y](x:base.Block[X,Y]):base.Block[X,Y];
@@ -1096,7 +1043,7 @@ While inspecting a type name
 Name "Block" is not declared with 2 type parameter(s) in package "base".
 Name "Block" is only declared with the following numbers of type parameters: 0, 1.
 Did you accidentally add or omit a type parameter?
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 use base.Block as Block;
 User:{
@@ -1113,7 +1060,7 @@ While inspecting a type name
 Type "FOo" is not declared in package "p" and is not made visible via "use".
 Did you mean "Foo" ?
 In scope: "Foo", "User".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 Foo:{}
 User:{ .foo(x:FOo):FOo; }
@@ -1128,7 +1075,7 @@ In file: [###].fear
 While inspecting a type name
 Type "Abc" is not declared in package "p" and is not made visible via "use".
 In scope: "Aaa", "Abb", "Acc", "User".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 Aaa:{}
 Abb:{}
@@ -1145,7 +1092,7 @@ In file: [###]/in_memory1.fear
 While inspecting a type name
 Type parameter "X" is declared in package "p".
 Name "X" is also used as a type name.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,
   List.of("""
 X:{}
@@ -1162,7 +1109,7 @@ In file: [###].fear
 
 While inspecting a type name
 Duplicate type declaration for "X".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,
   List.of("""
 X:{.foo:base.Void}
@@ -1180,7 +1127,7 @@ In file: [###].fear
 While inspecting the file
 Duplicate reference capability in the type parameter "A".
 Reference capability "imm" is repeated.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,
   List.of("""
 X[A:imm,mut,imm]:{.bar:base.Void}
@@ -1194,7 +1141,7 @@ In file: [###].fear
 While inspecting the file
 Duplicate reference capability in the type parameter "A".
 Reference capability "imm" is repeated.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,
   List.of("""
 X:{.bar[A:imm,mut,imm]:base.Void}
@@ -1209,7 +1156,7 @@ In file: [###].fear
 While inspecting type declaration "B"
 Cannot infer signature and name for a method with 0 parameters.
 No supertype has a method with 0 parameters.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,
   List.of("""
 A:{.m:base.Void}
@@ -1225,7 +1172,7 @@ In file: [###].fear
 While inspecting type declaration body > type declaration > full file
 Method ".m" redeclared.
 A method with the same name, arity and reference capability is already present.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,
 List.of("""
 A:{imm .m:base.Void; imm .m:base.Void}
@@ -1257,7 +1204,7 @@ Type declaration "B" implements method ".h".
 The body of method "B.h" needs to be duplicated to satify multiple RC overloads from the supertypes.
 However, it contains object literal "MyAge".
 Object literals with their own unique explicit type can not be duplicated.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """, List.of("""
 Age:{}
 A:{
@@ -1288,7 +1235,4 @@ p._CB:$?{'_ ? [?](?,?):?@!;(foo, _aeqS)->_aeqS:?\
 A:{.foo:A}
 B:{.of({.foo}:A):A->foo}
 """));}
-
-//TODO: in the guide somewhere show #|" foo{#U+`AB02`} for arbitrary Unicode
-//TODO: well formedness for Sealed still missing
 }

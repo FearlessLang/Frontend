@@ -441,7 +441,7 @@ Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".m".
 No supertype has a method named ".m" with 0 parameters.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A:{}
 User:{ .m:A->{ .m->A;}; }
@@ -458,7 +458,7 @@ Type declaration "User" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
 Type declaration "User" is defined in package "p".
 Type "Void" is defined in package "base".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A:{}
 User:base.Void{ .m:A->A }
@@ -475,7 +475,7 @@ Type declaration "User" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
 Type declaration "User" is defined in package "p".
 Type "Void" is defined in package "base".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A:{}
 User:base.Void{ .foo:A }
@@ -492,7 +492,7 @@ Type declaration "User" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
 Type declaration "User" is defined in package "p".
 Type "Void" is defined in package "base".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of(importMini+"""
 A:{}
 User:Void{ .m:A->A }
@@ -509,7 +509,7 @@ Object literal instance of "base.Void" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
 Object literal instance of "base.Void" is defined in package "p".
 Type "Void" is defined in package "base".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A:{}
 User:{ .m:base.Void->{ .m:A->A;}; }
@@ -1182,7 +1182,7 @@ In file: [###].fear
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 Abstract method declaration for ".bar".
 Only top level methods can be abstract.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 A:{}
 Main:{
@@ -1625,7 +1625,7 @@ Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".turn".
 No supertype has a method named ".turn" with 0 parameters.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
 North: {.turn-> East; } 
 East : {.turn-> South;}

@@ -8,5 +8,4 @@ public interface EVisitor<R>{
   R visitDeclarationLiteral(E.DeclarationLiteral c);
   R visitLiteral(E.Literal c);
   R visitCall(E.Call c);
-  R visitStringInter(E.StringInter i);
 }

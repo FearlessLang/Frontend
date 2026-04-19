@@ -3,9 +3,7 @@ package fearlessParser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.FearlessException;
@@ -52,8 +50,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (peek(LowercaseId)){ return parseX(); }
     if (peek(_RoundGroup)){ return parseGroup("expression in round parenthesis",Parser::parseRound); }
     if (peek(ColonColon)){ return parseImplicit(); }
-    if (peek(UStrInterHash,UStrLine)){ return parseStrInter(false,empty()); }
-    if (peek(SStrInterHash,SStrLine)){ return parseStrInter(true,empty()); }
     if (peek(_CurlyGroup)){ return parseGroup("object literal", p->p.parseLiteral(false,false)); }
     var rcSpan= peek().map(t->span(t).orElse(span()));
     int startPos= index();
@@ -124,8 +120,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new E.TypedLiteral(rcc, Optional.empty(), p);
   }
   E parsePost(E receiver){
-    if (fwdIf(peekOrder(t->t.is(Colon),t->t.is(UStrInterHash,UStrLine)))){ return parseStrInter(false,of(receiver)); }
-    if (fwdIf(peekOrder(t->t.is(Colon),t->t.is(SStrInterHash,SStrLine)))){ return parseStrInter(true, of(receiver)); }
     Pos pos= pos();
     if (peek(SignedFloat,SignedInt)){
       var num= expectAny("Unreachable");
@@ -181,23 +175,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new E.CallSquare(rc, parseCallTargs(),pos());
   }
   private List<T> parseCallTargs(){ return end()?List.of():splitBy("genericTypes",commaSkip,Parser::parseT); }
-  Predicate<Token> moreStrInter(boolean isSimple){ return isSimple ? t->t.is(SStrInterHash,SStrLine) : t->t.is(UStrInterHash,UStrLine); }
-  E.StringInter parseStrInter(boolean isSimple, Optional<E> receiver){
-    int startPos= index();
-    List<StringInfo> contents= new ArrayList<>();
-    while (peekIf(moreStrInter(isSimple))){ contents.add(new StringInfo(expectAny(""),this::interOnNoClose,this::interOnNoOpen,this::interOnMoreOpen)); }
-    if (peekIf(moreStrInter(!isSimple))){ throw errFactory().inconsistentStrInter(span(expectAny("")).get(),isSimple); }
-    List<Integer> hashes= contents.stream().map(i->i.hashCount).toList();
-    List<String> parts= StringInfo.mergeParts(contents);
-    List<E> es= contents.stream()
-      .flatMap(i->IntStream.range(0,i.inter.size()).mapToObj(
-        j->Parse.from(span().fileName(),names,i.inter.get(j),i.line,i.col+i.starts.get(j))))
-      .toList();
-    int endPos= index();
-    var span= new TSpan(spanAround(startPos,endPos));
-    if (receiver.isPresent()){ span= TSpan.merge(receiver.get().span(),span); }
-    return new E.StringInter(isSimple,receiver,hashes,parts, es, span);
-  }
   Span lastT(int i,int j){
     setIndex(index()-1);
     var t= expectAny("");
@@ -205,9 +182,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     assert j>i;
     return new Span(fn,t.line(), t.column()+i, t.line(), t.column() + j);
   }
-  void interOnNoClose(int i,int j){ throw errFactory().noClose(lastT(i,j)); }
-  void interOnNoOpen(int i,int j){ throw errFactory().noOpen(lastT(i,j)); }
-  void interOnMoreOpen(int i,int j){ throw errFactory().moreOpen(lastT(i,j)); }
   E.Implicit parseImplicit(){ return new E.Implicit(pos(expect("",ColonColon))); }
   E.Round parseRound(){
     expect("expression in round parenthesis",ORound);
@@ -405,7 +379,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       _RoundGroup,_CurlyGroup,_SquareGroup, // inferred-name sig / patterns / grouped expr
       LowercaseId,Underscore,          // x->e, e, patterns
       ColonColon,                      // :: / ::.foo
-      UStrInterHash,UStrLine,SStrInterHash,SStrLine,SStr,UStr,
+      SStr,UStr,
       SignedInt,SignedFloat,UnSignedFloat,UnsignedInt
     );
   }
@@ -549,8 +523,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq))){ expectAny("");expectAny(""); }
     var simple= peek(LowercaseId,_RoundGroup,ColonColon,_CurlyGroup);
     if (fwdIf(simple)){ return; }
-    var interp= peek(UStrInterHash,UStrLine,SStrInterHash,SStrLine);
-    if (interp){ while(fwdIf(peek(UStrInterHash,UStrLine,SStrInterHash,SStrLine))){} return; }
     fwdIf(peek(RCap));
     fwdIf(peekOrder(t->t.isTypeName()));
     fwdIf(peek(_SquareGroup));

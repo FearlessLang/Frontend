@@ -8,12 +8,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import fearlessFullGrammar.E;
 import fearlessFullGrammar.FileFull;
 import message.BadTokens;
 import message.FearlessErrFactory;
-import metaParser.MetaParser;
-import metaParser.Span;
 import metaParser.TokenTreeSpec;
 import tools.Fs;
 
@@ -39,7 +36,7 @@ public class Parse {
     .addOpenerEater(OCurly,t->splitOn(t,"{",false))
     ;
   private static Optional<Token> splitOn(Token t, String s,boolean first){
-    var free= t.is(BlockComment, LineComment, UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash);
+    var free= t.is(BlockComment, LineComment, UStr, SStr);
     if (!free){ return Optional.empty(); }
     int index= t.content().indexOf(s);
     if (index == -1){ return Optional.empty(); }
@@ -58,22 +55,5 @@ public class Parse {
       .buildTokenTree(map);
     var p= new Parser(t.span(),new Names(List.of(),List.of(),List.of()),t.tokenTree(),new FearlessErrFactory());
     return p.parseAll("full file",Parser::parseFileFull);
-  }
-  static E from(URI fileName, Names names,String input, int line, int col){
-    Span s=new Token(SStrInterHash,input,line,col,List.of()).span(fileName);
-    Tokenizer t= MetaParser.computeInFrame("string interpolation expression", s, ()->
-      new Tokenizer()
-        .input(fileName,input)
-        .tokenKinds(kinds,_SOF,_EOF)
-        .startingPosition(line,col)
-        .setErrFactory(new FearlessErrFactory(){
-          @Override public String context(){ return "Interpolation expression ended while parsing a "; }
-          })
-        //not needed .whiteList(allowed)
-        .tokenize()
-        .postTokenize(new BadTokens().badTokensMap())
-        .buildTokenTree(map));
-    var p= new Parser(t.span(),names,t.tokenTree(),new FearlessErrFactory());
-    return p.parseAll("string interpolation expression",Parser::parseEFull);
   }
 }

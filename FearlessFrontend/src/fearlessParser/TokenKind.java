@@ -12,11 +12,6 @@ public enum TokenKind implements metaParser.TokenKind {
   BadUnclosedBlockComment("(?s)/\\*(?!.*?\\*/).*"),
   BadUnopenedBlockCommentClose("\\*/"),
   
-  UStrInterHash("#{1,}\\|\"[^\\n]*","#|\"..."),
-  SStrInterHash("#{1,}\\|`[^\\n]*","#|`..."),
-  UStrLine("\\|\"[^\\n]*","|\"..."),
-  SStrLine("\\|`[^\\n]*","|`..."),
-  BadSStrLineQuote("\\|'[^\\n]*"),    
   Arrow("->"),
   ORound("\\(","("),
   CRound("\\)",")"),
@@ -42,7 +37,7 @@ public enum TokenKind implements metaParser.TokenKind {
     + "(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?","signed number (eg. -23.0045)"),
   UnSignedFloat(
     "[0-9](?:[0-9_]*[0-9])?\\x2E(?:[0-9](?:[0-9_]*[0-9])?)"
-    +"(?:[eE][\\x2B\\x2D]?[0-9](?:[0-9_]*[0-9])?)?"),
+    +"(?:[eE][\\x2B\\x2D]?[0-9](?:[0-9_]*[0-9])?)?","unsigned number (eg. 23.0045)"),
   // Signed int: +45, -10, +1_000
   SignedInt("[+-][0-9](?:[0-9_]*[0-9])?","signed number (eg. -23)"),
   // Unsigned int: 0, 42, 1_000_000
@@ -62,7 +57,6 @@ public enum TokenKind implements metaParser.TokenKind {
   //[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F:\\x7C#]
   //forbid:  /*   */   //
   //(?!/\\x2A|\\x2A/|//)
-  BadOpLine ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])*\\x7C(?=[\\x22`])" ),
   Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+","binary operator (eg. +, *, -)"),
   //IMPORTANT: BadOp* must precede Op so bad forms win ties of equal length.
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases  

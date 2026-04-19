@@ -74,9 +74,4 @@ public class AllDeclaredNames implements EVisitor<Void>{
     c.es().forEach(ei->ei.accept(this));
     return null;
   }
-  @Override public Void visitStringInter(StringInter i){
-    i.e().ifPresent(e->e.accept(this));
-    i.es().forEach(e->e.accept(this));
-    return null;
-  }
 }

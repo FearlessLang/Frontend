@@ -170,7 +170,7 @@ In file: [###].fear
 While inspecting type declaration body > type declaration > full file
 Self name "abc" is invalid in a top level type.
 Top level types self names can only be "this".
-Error 9 WellFormedness
+Error 7 WellFormedness
 ""","""
 A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be this or nothing
 """);}
@@ -267,30 +267,6 @@ body=Optional[self]
 [###]
 ""","""
 B:{Selfy:{'self .me:Selfy -> self}}
-""");}
-@Test void stringInterpol_s(){ok("""
-FileFull[[###]decs=[
-Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.a],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],
-body=Optional[Inter[true][0,0][abc\\ndef\\n][]]]]]]]
-""","""
-A:{.a:Str -> 
-  |`abc
-  |`def
-}
-""");}
-@Test void stringInterpol_s_e(){ok("""
-FileFull[[###]decs=[
-Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.a],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],
-body=Optional[Inter[true][1,0][ab,c\\ndef\\n]
-[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=B/0,ts=Optional.empty]]]
-.footrue[TypedLiteralRCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]]]]]]]
-""","""
-A:{.a:Str ->
-  #|`ab{B.foo(C)}c
-  |`def
-}
 """);}
 @Test void calls_1(){ok("""
 FileFull[[###]decs=[
@@ -796,20 +772,6 @@ Error 2 UnexpectedToken
 ""","""
 A:{ x -> x.foo [read] }
 """);}
-@Test void err_bad_op_line_pipe_before_quote(){fail("""
-In file: [###].fear
-
-001| A:{ .m -> +|`a'
-   |           ^^
-
-While inspecting common ambiguities
-Unrecognized text "+|".
-A "|" immediately before a quote starts [###].
-Error 2 UnexpectedToken
-""","""
-A:{ .m -> +|`a'
-  }
-""");}
 @Test void err_disallowed_readH_on_closure(){fail("""
 In file: [###].fear
 
@@ -1005,681 +967,13 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character "\\uD83D\\uDE00"
+Illegal character [U+01F600]
 Error 2 UnexpectedToken
 """,
 "A:{\uD83D\uDE00\u00A0\u200D.m():X }");
 }
 
-@Test void inter_deep_bad_equals_sugar_fail(){ fail("""
-In file: [###].fear
 
-002| .m:Str ->
-003| #|`Head { Block#.let x= .use(x) } Tail
-   | ----------~~~~~~~~~~~~~~^^^^^^^~~-----
-
-While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Missing expression after "=" in the equals sugar.
-Use: ".m x = expression" or ".m {a,b} = expression".
-Error 2 UnexpectedToken
-""","""
-A:{
-.m:Str ->
-#|`Head { Block#.let x= .use(x) } Tail
-}
-"""); }
-
-
-@Test void inter_deep_bad_equals_sugar_fail_twice_a(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|`Head { Block#.let x= .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End
-   | ----------~~~~~~~~~~~~~~^^^^^^^~~-----------------------------------------------
-
-While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Missing expression after "=" in the equals sugar.
-Use: ".m x = expression" or ".m {a,b} = expression".
-Error 2 UnexpectedToken
-""","""
-A:{
-.m:Str ->
-#|`Head { Block#.let x= .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End 
-}
-"""); }
-
-@Test void inter_deep_bad_equals_sugar_fail_twice_b(){ fail("""
-In file: [###].fear
-
-002| .m(x):Str ->
-003| #|`Head { Block#.let    .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End
-   | ------------------------------------------~~~~~~~~~~~~~~~^^^^^^^^^^^~~----------
-
-While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Missing expression after "=" in the equals sugar.
-Use: ".m x = expression" or ".m {a,b} = expression".
-Error 2 UnexpectedToken
-""","""
-A:{
-.m(x):Str ->
-#|`Head { Block#.let    .use(x) } Tail1 { Block#.let xy= .golden(xy) } Tail2 End 
-}
-"""); }
-
-
-@Test void inter_deep_bad_equals_sugar_fail_round(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|`Head {     ( /*a*/ (Block#.let x= .use(x)) /*bb*/ ) } Tail
-   |               --------~~~~~~~~~~~~~~~^^^^^^^~---------
-
-While inspecting expression in round parenthesis > expression in round parenthesis > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Missing expression after "=" in the equals sugar.
-Use: ".m x = expression" or ".m {a,b} = expression".
-Error 2 UnexpectedToken
-""","""
-A:{
-.m:Str ->
-#|`Head {     ( /*a*/ (Block#.let x= .use(x)) /*bb*/ ) } Tail
-}
-"""); }
-
-@Test void badClose_noOpen(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|`Head } ss
-   | --^^^^^^^---
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-Unopened string interpolation placeholder
-Error 8 InterpolationNoOpen
-""","""
-A:{
-.m:Str ->
-#|`Head } ss
-}
-"""); }
-
-@Test void inter_deep_bad_equals_sugar_ok(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|`Head { Block#.let x={5} .use(x) } Tail
-   | --------^^^^^^^^^^^^^^^^-----------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-String interpolation placeholder opened inside interpolation expression.
-Note: "{" cannot be used in single "#" interpolation expressions. Use at least "##".
-Error 7 InterpolationNoClose
-""","""
-A:{
-.m:Str ->
-#|`Head { Block#.let x={5} .use(x) } Tail
-}
-"""); }
-
-@Test void inter_deep_ok(){ ok("""
-[###]
-body=Optional[Inter[true][2]
-[Head,Tail\\n]
-[Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]
-#false[]].letfalseName[x=x][Call[Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]
-.usetrue[x]]]]]]]]]
-""","""
-A:{
-.m:Str ->
-##|`Head {{ Block#.let x={5} .use(x) }} Tail
-}
-"""); }
-
-@Test void inter_hash_no_opener_early_close_fail(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|" foo } bar
-   | --^^^^^^^----
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-Unopened string interpolation placeholder
-Error 8 InterpolationNoOpen
-""","""
-A:{
-.m:Str ->
-#|" foo } bar
-}
-"""); }
-
-@Test void inter_hash_early_close_then_opener_fail(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|` foo } bar {B.foo(C)} end
-   | --^^^^^^^-------------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-Unopened string interpolation placeholder
-Error 8 InterpolationNoOpen
-""","""
-A:{
-.m:Str ->
-#|` foo } bar {B.foo(C)} end
-}
-"""); }
-
-@Test void inter_hash_h1_ok_simple_expr1(){ ok("""
-[###]
-body=Optional[Inter[true][1][pre,post\\n]
-[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=B/0,
-[###]
-""","""
-A:{
-.m:Str ->
-#|` pre {B.foo(C)} post
-}
-"""); }
-
-@Test void inter_hash_h1_ok_simple_expr2(){ ok("""
-[###]
-body=Optional[Inter[true][1][$pre$,$post$,$dada$\\n]
-[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=B/0,
-[###]
-""","""
-A:{
-.m:Str ->
-#|`$pre${B.foo(C)}$post${B}$dada$
-}
-"""); }
-
-@Test void inter_hash_h1_ok_round_parens_only(){ ok("""
-[###]
-""","""
-A:{
-.m(x:X,y:X):Str ->
-#|` pre { x.plus(y) } post
-}
-"""); }
-
-@Test void inter_hash_outer_curly_leftovers_literal_ok(){ ok("""
-[###]
-body=Optional[Inter[true][1][a{{,}}b\\n][
-Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=B/0,
-ts=Optional.empty]]]
-.footrue[TypedLiteralRCC[rc=Optional.empty,c=C[name=C/0,ts=Optional.empty]]]]]]]]]]
-""","""
-A:{
-.m:Str ->
-#|` a {{{B.foo(C)}}} b
-}
-"""); }
-
-@Test void inter_hash_after_closer_literal_close_brace_fail(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|` pre {B.foo(C)} } tail
-   | -----------------^^^-----
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-Unopened string interpolation placeholder
-Error 8 InterpolationNoOpen
-""","""
-A:{
-.m:Str ->
-#|` pre {B.foo(C)} } tail
-}
-"""); }
-
-@Test void inter_hash_multi_interpolations_h1_ok_5x(){ ok("""
-[###]body=Optional[Inter[true][1]
-[aa,b,ccc{,}d{,}ee,z\\n][x1,x2,x3,x4,x5]]]]]]]
-""","""
-A:{
-.m(x1,x2,x3,x4,x5):Str ->
-#|` aa{x1} b {x2}ccc{{x3}} d {{x4}} ee{x5} z
-}
-"""); }
-
-@Test void inter_hash_h2_ok_curly_in_body(){ ok("""
-[###]
-""","""
-A:{
-.m:Str ->
-##|` Head {{ Block#.let x={5} .use(x) }} Tail
-}
-"""); }
-
-@Test void inter_hash_h2_adjacent_closers_fail_require_space(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| ##|` pre {{ +5{}}} post
-   | ------------~~^--------
-
-While inspecting groups of parenthesis > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Interpolation expression ended while parsing a "{" group.
-This "{" may be unintended.
-Otherwise expected one of: "}id", "}".
-Error 0 Unclosed
-""","""
-A:{
-.m:Str ->
-##|` pre {{ +5{}}} post
-}
-"""); }
-
-//ok because spaces
-@Test void inter_hash_h2_adjacent_closers_ok_with_space(){ ok("""
-[###]
-""","""
-A:{
-.m:Str ->
-##|` pre {{ +5{} }} post
-}
-"""); }
-
-@Test void inter_hash_h2_two_interpolations_back_to_back_ok(){ ok("""
-[###]body=Optional[Inter[true][2]
-[a,,z\\n]
-[Call[###]
-""","""
-A:{
-.m:Str ->
-##|` a {{B.foo(C)}}{{B.foo(C)}} z
-}
-"""); }
-
-@Test void inter_hash_h2_early_shortclose_before_opener(){ ok("""
-[###]
-""","""
-A:{
-.m:Str ->
-##|` foo } bar {{B.foo(C)}} end
-}
-"""); }
-
-@Test void inter_hash_h2_after_closer_literal_close_brace(){ ok("""
-[###]
-""","""
-A:{
-.m:Str ->
-##|` pre {{B.foo(C)}} } tail
-}
-"""); }
-
-@Test void inter_hash_multi_interpolations_h2_ok_5x(){ ok("""
-[###]
-""","""
-A:{
-.m:Str ->
-##|` a {{B.foo(C)}} b {{B.foo(C)}} c {{B.foo(C)}} d {{B.foo(C)}} e {{B.foo(C)}} z
-}
-"""); }
-
-@Test void inter_hash_h3_fail(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| ###|` pre {{{ +5{} }} mid
-   | ----^^^^^^^^^------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-Unclosed string interpolation placeholder
-Error 7 InterpolationNoClose
-""","""
-A:{
-.m:Str ->
-###|` pre {{{ +5{} }} mid
-}
-"""); }
-@Test void inter_hash_h3_pass(){ ok("""
-[###]
-""","""
-A:{
-.m:Str ->
-###|` pre {{{ +5{} }}} mid
-}
-"""); }
-
-@Test void inter_hash_h3_outer_leftovers_literal_ok(){ ok("""
-[###]
-[aa {,} bb\\n]
-[###]
-""","""
-A:{
-.m:Str ->
-###|` aa {{{{B.foo(C)}}}} bb
-}
-"""); }
-
-@Test void inter_hash_h4_simple_ok(){ ok("""
-[###]
-[head,tail\\n]
-[###]
-""","""
-A:{
-.m:Str ->
-####|` head {{{{B.foo(C)}}}} tail
-}
-"""); }
-
-@Test void doubleclose_h4(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| ####|` {{{{B.foo(C)}}}} ddd }}}} end
-   | ----------------------^^^^^^^^^^----
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-Unopened string interpolation placeholder
-Error 8 InterpolationNoOpen
-""","""
-A:{
-.m:Str ->
-####|` {{{{B.foo(C)}}}} ddd }}}} end
-}
-"""); }
-
-@Test void inter_hash_mixed_outer_openers_literal(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|` L {{R {{B.foo(C)}} R}} L
-   | ------^^^^^-----------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-String interpolation placeholder opened inside interpolation expression.
-Note: "{" cannot be used in single "#" interpolation expressions. Use at least "##".
-Error 7 InterpolationNoClose
-""","""
-A:{
-.m:Str ->
-#|` L {{R {{B.foo(C)}} R}} L
-}
-"""); }
-
-@Test void inter_hash_line_with_no_hash_ok_literal_brace(){ ok("""
-[###]
-""","""
-A:{
-.m:Str ->
-|` this is always fine: } and { both literal
-}
-"""); }
-
-@Test void inter_hash_h1_many_interps_and_text_ok(){ ok("""
-[###]
-[a,bc,de,fg,hi,j\\n]
-[###]
-""","""
-A:{
-.m:Str ->
-#|` a {B.foo(C)} b c {B.foo(C)} d e {B.foo(C)} f g {B.foo(C)} h i {B.foo(C)} j
-}
-"""); }
-
-@Test void inter_hash_h2_unclosed_due_to_missing_third_brace_fail(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| ##|` start {{ foo.bar{ baz .toList }} end
-   | --------------~~~~~~~^~~~~~~~~~~~~-------
-
-While inspecting groups of parenthesis > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Interpolation expression ended while parsing a "{" group.
-This "{" may be unintended.
-Otherwise expected one of: "}id", "}".
-Error 0 Unclosed
-""","""
-A:{
-.m:Str ->
-##|` start {{ foo.bar{ baz .toList }} end
-}
-"""); }
-
-@Test void inter_hash_h2_fix_unclosed_with_space_and_extra_closer_ok(){ ok("""
-[###]
-""","""
-A:{
-.m:Str ->
-##|` start {{ Foo.bar{ Baz .toList } }} end
-}
-"""); }
-
-
-@Test void inter_hash_brace_mismatch_first_fail(){ ok("""
-[###]
-[a{,}b\\n]
-[###]
-""","""
-A:{
-.m:Str ->
-#|`a{{B.foo(C)}}b
-}
-"""); }
-
-@Test void inter_hash_brace_mismatch_first_ok(){ ok("""
-[###]
-[a,b\\n]
-[###]
-""","""
-A:{
-.m:Str ->
-##|`a{{B.foo(C)}}b
-}
-"""); }
-
-@Test void inter_two_interps_second_bad_fail(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|`pre{B.foo(C)}mid{x.bar(1,2}post
-   | --------------------~~~~~^~~~-----
-
-While inspecting groups of parenthesis > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Interpolation expression ended while parsing a "(" group.
-This "(" may be unintended.
-Otherwise expected: ")".
-Error 0 Unclosed
-""","""
-A:{
-.m:Str ->
-#|`pre{B.foo(C)}mid{x.bar(1,2}post
-}
-"""); }
-
-@Test void inter_two_interps_second_bad_ok(){ ok("""
-[###]
-[pre,mid,post\\n]
-[###]
-""","""
-A:{
-x ->
-#|`pre{B.foo(C)}mid{x.bar(1,2)}post
-}
-"""); }
-
-@Test void inter_expr_then_chain_bad_args_fail(){ fail("""
-In file: [###].fear
-
-003| #|`ok'
-004| #|`and then
-005| .c(,)
-   |    ^
-
-While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
-Missing expression.
-Expected one of: "name", "type name", "(", "{".
-Error 2 UnexpectedToken
-""","""
-A:{
-.m:Str ->
-#|`ok'
-#|`and then
-.c(,)
-}
-"""); }
-
-@Test void inter_expr_then_chain_bad_args_ok(){ ok("""
-[###]
-[ok'\\nand then\\n]
-[###]
-""","""
-A:{
-.m{.x}A ->
-#|`ok'
-|`and then
-.c(xA)
-}
-"""); }
-
-@Test void ok_no_interpolation(){ ok("""
-[###]
-""","""
-A:{
-.m(x:X):Str ->
-x.b(1,2): |`pre{,}post
-.d(3)
-}
-"""); }
-@Test void fail_with_interpolation(){ fail("""
-In file: [###].fear
-
-003| x.b(1,2) :#|`pre{,}post
-   |                  ^-
-004| .d(3)
-
-While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Missing expression.
-Found instead: ",".
-Expected one of: "name", "type name", "(", "{".
-Error 2 UnexpectedToken
-""","""
-A:{
-.m(x:X):Str ->
-x.b(1,2) :#|`pre{,}post
-.d(3)
-}
-"""); }
-
-@Test void inter_ascii_illegal_char_is_not_unicode(){ ok("""
-[###]
-[cafe\\u00E9, // unicode inside simple string is just \\ u X X X X\\n]
-[###]
-""","""
-A:{
-.m:Str ->
-#|`cafe\\u00E9{B.foo(C)} // unicode inside simple string is just \\ u X X X X
-}
-"""); }
-
-//NOTE: This is still not unicode
-@Test void inter_unicode_ok(){ ok("""
-[###]
-[cafe\\u00E9, // same text but unicode line string\\n]
-[###]
-""","""
-A:{
-.m:Str ->
-#|"cafe\\u00E9{B.foo(C)} // same text but unicode line string
-}
-"""); }
-
-
-@Test void inter_op_before_line_string_unicode_fail(){ fail("""
-In file: [###].fear
-
-003|  ^-^|"a"
-   |  ^^^^
-
-While inspecting common ambiguities
-Unrecognized text "^-^|".
-A "|" immediately before a quote starts a [###].
-Error 2 UnexpectedToken
-""","""
-A:{ .m -> 
- |"b
- ^-^|"a"
-}
-"""); }
-
-@Test void inter_op_before_line_string_unicode_ok(){ ok("""
-[###]
-""","""
-A:{ .m ->
- |"b
- ^-^
- |"a"
-}
-"""); }
-
-@Test void different_hashes1(){ ok("""
-[###]
-[L1,\\nL2 {{x.bar(1)}}\\n]
-[###]
-""","""
-A:{
-.m:Str ->
-#|`L1 {B.foo(C)}
-|`L2 {{x.bar(1)}}
-}
-"""); }
-
-@Test void different_hashes2(){ ok("""
-[###]
-[L1,\\nL2 {x.bar(1)}\\n]
-[###]
-
-""","""
-A:{
-.m:Str ->
-#|`L1 {B.foo(C)}
-|`L2 {x.bar(1)}
-}
-"""); }
-
-@Test void inter_two_and_three(){ ok("""
-[###]
-[head,mid{,}tail\\n]
-[###]
-""","""
-A:{
-dd ->
-##|`head {{B.foo(C)}} mid {{{dd}}} tail
-}
-"""); }
-
-@Test void inter_mixBad(){ fail("""
-In file: [###].fear
-
-003| ####|"one
-004| ###|`two
-   | ^^^^^^^^
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-String interpolation changes midway from Unicode to Simple.
-Error 2 UnexpectedToken
-""","""
-A:{
-.m:Str ->
-####|"one
-###|`two
-}
-"""); }
-
-@Test void inter_mixOk(){ ok("""
-[###]body=Optional[
-Inter[false][4][one\\n][]
-Inter[true][3][two\\n][]
-]]]]]]
-""","""
-A:{
-.m:Str ->
-####|"one
-:###|`two
-}
-"""); }
 @Test void plusOneTogether(){ ok("""
 FileFull[maps=[],uses=[],decs=[Declaration[name=A/0,
 bs=Optional.empty,cs=[],l=Literal[M[sig=Optional.empty,
@@ -1711,183 +1005,6 @@ bs=Optional.empty,cs=[],l=Literal[M[sig=Optional.empty,
 body=Optional[Call[TypedLiteralRCC[rc=Optional.empty,
 c=C[name=A/0,ts=Optional.empty]]]+false[TypedLiteralRCC[rc=Optional.empty,c=C[name=1.0/0,ts=Optional.empty]]]]]]]]]""","""
 A:{ A  +1.0 }
-"""); }
-
-@Test void comment_ok(){ ok("""
-[###]
-[pre,is cut out\\npost\\n]
-[###]
-""","""
-A:{
-x ->
-#|`pre { x + 1 // comment seen as part of string, thus } is cut out
-|`post
-}
-"""); }
-
-@Test void never_new_line_inter(){ fail("""
-In file: [###].fear
-
-004| } `post
-   |   ^^^^^
-
-While inspecting a string literal
-String literal [Backtick (`) 0x60] reaches the end of the line.
-Error 2 UnexpectedToken
-""","""
-A:{
-x ->
-#|`pre { x + 1 // not even comment allows new lines in interpolation
-} `post
-}
-"""); }
-
-@Test void inter_unclosed_block_comment_fail(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|`A { x + /* start
-   | --^^^^-------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-Unclosed string interpolation placeholder
-Error 7 InterpolationNoClose
-""","""
-A:{
-.m:Str ->
-#|`A { x + /* start
-}
-"""); }
-
-@Test void inter_unclosed_block_comment_ok(){ ok("""
-[###]
-[A,\\nB\\n]
-[###]
-""","""
-A:{
-x ->
-#|`A { x + /* start */ 2 }
-|`B
-}
-"""); }
-
-//this ends up as two valid interpolations with broken code inside
-@Test void inter_block_comment_not_shield_braces1(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|`P { a /* }  {  */ + 3 } Q
-   | -------~~^^-----------------
-
-While inspecting a block comment > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Unterminated block comment. Add "*/" to close it.
-Error 2 UnexpectedToken
-""","""
-A:{
-.m:Str ->
-#|`P { a /* }  {  */ + 3 } Q
-}
-"""); }
-
-//this ends up as a double opener
-@Test void inter_block_comment_not_shield_braces2(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|`P { a /* {  }  */ + 3 } Q
-   | -----^^^^^^^^---------------
-
-While inspecting method body > method declaration > type declaration body > type declaration > full file
-String interpolation placeholder opened inside interpolation expression.
-Note: "{" cannot be used in single "#" interpolation expressions. Use at least "##".
-Error 7 InterpolationNoClose
-""","""
-A:{
-.m:Str ->
-#|`P { a /* {  }  */ + 3 } Q
-}
-"""); }
-
-@Test void inter_double_hash_late_single_closer_ok(){ ok("""
-[###]
-[H1,\\nH2\\n]
-[###]
-""","""
-A:{
-x ->
-##|`H1 {{ x +++++ +1 }}
-|`H2
-}
-"""); }
-
-@Test void inter_trailing_comma_inside_braces_ok(){ ok("""
-[###]
-""","""
-A:{
-x ->
-#|`x { x.bar(1,) } y
-}
-"""); }
-
-@Test void inter_square_arg_space_inside_braces_fail(){ fail("""
-In file: [###].fear
-
-002| .m:Str ->
-003| #|`S { x.foo [read] } T
-   | -------~~~~~~^~~~~~----
-
-While inspecting common ambiguities > string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
-Write "Foo[Bar]" not "Foo [Bar]".
-Write "x.foo[read]" not "x.foo [read]".
-Error 2 UnexpectedToken
-""","""
-A:{
-.m:Str ->
-#|`S { x.foo [read] } T
-}
-"""); }
-
-@Test void inter_square_arg_space_inside_braces_ok(){ ok("""
-[###]
-""","""
-A:{ x -> #|`S { x.foo[read] } T
-}
-"""); }
-
-@Test void inter_receiver_line_comment_eats_closer(){ ok("""
-[###]
-[pre,post\\n]
-[###]
-""","""
-A:{
-.m(x:X):Str ->
-x.b(1,2) : #|`pre { x + 1 } post
-}
-"""); }
-
-@Test void inter_expr_then_chain(){ ok("""
-[###]
-""","""
-A:{
-.m:Str ->
-#|`ok {1 + 2}
-.c( // new line is not an issue here
-)
-}
-"""); }
-
-@Test void inter_mixed_counts_with_comments_ok(){ ok("""
-[###]
-[head {literal} and,\\ntail\\n]
-[###]
-""","""
-A:{
-x ->
-##|`head {literal} and {{ x /* c */ + 1 }}
-|`tail
-}
 """); }
 
 @Test void bad_dq_str_eol_with_line_comment(){fail("""
@@ -2179,21 +1296,6 @@ Error 0 Unclosed
 A:{ .m:Str -> `oops } here` ) }
 """);}
 
-@Test void eatenCloserInLineStr_thenWrongCloserParen(){fail(""" 
-In file: [###].fear
-
-001| A:{ .m:Str -> |"hello } world" ) }
-   |   ^^^^^^^^^^^^^^^^^^^^^-----------
-
-While inspecting groups of parenthesis
-Unclosed "{" group.
-Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
-Otherwise expected one of: "}id", "}".
-Error 0 Unclosed
-""",""" 
-A:{ .m:Str -> |"hello } world" ) }
-""");}
 
 @Test void eatenCloserInBlockComment_thenWrongCloserParen(){fail(""" 
 In file: [###].fear
@@ -2384,21 +1486,6 @@ Error 1 Unopened
 A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
 """);}
 
-@Test void eatenSquareOpenerInLineStr_thenStrayBracket(){fail("""
-In file: [###].fear
-
-001| A:{ .m:Str -> |"vec [ x" ] }
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting groups of parenthesis
-Unclosed "{" group.
-Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
-Otherwise expected one of: "}id", "}".
-Error 0 Unclosed
-""","""
-A:{ .m:Str -> |"vec [ x" ] }
-""");}
 
 @Test void runOfRoundClosersBeforeStop(){fail(""" 
 In file: [###].fear
@@ -2928,50 +2015,11 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing type name.
 Found instead: "a1".
-Expected one of: "type name", "signed number (eg. -23.0045)", "signed number (eg. -23)", "unsigned number (eg. 23)", "`...`", "\\"...\\"".
+Expected one of: "type name", "signed number (eg. -23.0045)", "unsigned number (eg. 23.0045)", "signed number (eg. -23)", "unsigned number (eg. 23)", "`...`", `"..."`.
 Error 2 UnexpectedToken
 ""","""
 use a1 as F1;
 """); }
-@Test void inter_unicode_no_unicode(){ ok("""
-[###]
-Inter[false][1][e:\\uE9"\\n][]
-[###]
-""","""
-A:{ .m:Str ->
-#|"e:\\uE9"
-}"""); }
-
-@Test void inter_unicode_failEmptyPayload(){ fail("""
-In file: [###].fear
-
-001| A:{ .m:Str ->
-002| #|"bad: {}" // empty payload -> not a unicode run; interpolation should error
-   | ---------^-------------------------------------------------------------------
-
-While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Missing expression.
-Expected one of: "name", "type name", "(", "{".
-Error 2 UnexpectedToken
-""","""
-A:{ .m:Str ->
-#|"bad: {}" // empty payload -> not a unicode run; interpolation should error
-}"""); }
-
-@Test void inter_unicode_failWrongStarter(){ fail("""
-In file: [###].fear
-
-001| A:{ .m:Str ->
-002| #|"bad: {U\\uE9}" // payload must start with backslash-u
-   | ---------~~^^^~----------------------------------------
-
-While inspecting string interpolation expression > method body > method declaration > type declaration body > type declaration > full file
-Name "uE9" is not in scope
-In scope: "this".
-Error 2 UnexpectedToken""","""
-A:{ .m:Str ->
-#|"bad: {U\\uE9}" // payload must start with backslash-u
-}"""); }
 
 @Test void uStrBase1(){ ok("""
 [###]
@@ -3124,7 +2172,7 @@ In file: [###].fear
 While inspecting type declaration body > type declaration > full file
 Method ".foo" redeclared.
 A method with the same name, arity and reference capability is already present.
-Error 9 WellFormedness
+Error 7 WellFormedness
 ""","""
 A:{
  mut .baz:Bar;
@@ -3147,7 +2195,7 @@ In file: [###].fear
 While inspecting type declaration body > type declaration > full file
 Method ".ban" redeclared.
 A method with the same name, arity and reference capability is already present.
-Error 9 WellFormedness
+Error 7 WellFormedness
 ""","""
 A:{
  mut .ban(x):Bar;
@@ -3173,7 +2221,7 @@ In file: [###].fear
 While inspecting type declaration body > type declaration > full file
 Method ".foo" redeclared.
 A method with the same name, arity and reference capability is already present.
-Error 9 WellFormedness
+Error 7 WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3203,7 +2251,7 @@ Likely cause: method declaration missing "." before the name.
 Found unnamed methods with parameters: "a", "b".
 To declare a method named "a", write ".a" (dot a).
 Without the dot, "a" is interpreted as a parameter name for an anonymous method.
-Error 9 WellFormedness
+Error 7 WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3233,7 +2281,7 @@ Likely cause: method declaration missing "." before the name.
 Found unnamed methods with parameters: "a", "b".
 To declare a method named "a", write ".a" (dot a).
 Without the dot, "a" is interpreted as a parameter name for an anonymous method.
-Error 9 WellFormedness
+Error 7 WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3263,7 +2311,7 @@ Likely cause: method declaration missing "." before the name.
 Found unnamed methods with parameters: "b", "a".
 To declare a method named "b", write ".b" (dot b).
 Without the dot, "b" is interpreted as a parameter name for an anonymous method.
-Error 9 WellFormedness
+Error 7 WellFormedness
 ""","""
 A:{
  mut .ban(x,y):Bar;
@@ -3299,7 +2347,7 @@ In file: [###].fear
 
 While inspecting type declaration > full file
 Duplicated supertype in type declaration: "B".
-Error 9 WellFormedness
+Error 7 WellFormedness
 ""","""
 A:B,C,B,D{
  mut .ban(y):Bar->Block#
@@ -3318,7 +2366,7 @@ In file: [###].fear
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 Abstract method declaration for ".foo".
 Only top level methods can be abstract.
-Error 9 WellFormedness
+Error 7 WellFormedness
 ""","""
 A:{
  mut .ban(y):Bar->
@@ -3358,27 +2406,6 @@ Error 2 UnexpectedToken
 ""","""
 A:{ .t[Y](x:mut X, y:read/imm X):X -> x }
 """); }
-@Test void multiLine(){ ok("""
-[###]
-Inter[true][0,1,2,3,0,1][
-a\\n
-b\\n
-c\\n
-d\\n
-e\\n
-f\\n
-][]]]]]]]
-""","""
-A:{ 
-|`a
-#|`b
-##|`c
-###|`d
-|`e
-#|`f
-
-}
-"""); }
 
 @Test void simpleStrLiteral(){ ok("""
 [###].foo[###]
@@ -3407,26 +2434,6 @@ A{ .foo:A->
  .foo
  }
 """);}
-@Test void forgotSemiStart2(){fail("""
-In file: [###].fear
-
-002| A{ .foo:A ->
-   |  ^
-   | ... 2 lines ...
-005| }
-
-While inspecting type declaration > full file
-Missing type declaration (:) symbol.
-Found instead: "".
-Expected: ":".
-Error 2 UnexpectedToken
-""","""
-
-A{ .foo:A -> 
-  #|` foo {A} bar
-  #|` beer
-}
-""");}
 
 @Test void badSQuote1(){fail("""
 In file: [###].fear
@@ -3443,27 +2450,6 @@ Error 2 UnexpectedToken
 A{ .foo:A -> 
   Block#
   .let foo={'bar'}
-  .return {Void}
-}
-""");}
-@Test void badSQuote2(){fail("""
-In file: [###].fear
-
-004|    |'bar
-   |    ^^^^^
-
-While inspecting common ambiguities
-Unrecognized text "|'bar".
-Simple string lines start with " |` " or " #|` ", not " |' " or " #|' ";
-that is: use back tick (`) instead of single quote (').
-Error 2 UnexpectedToken
-""","""
-A{ .foo:A -> 
-  Block#
-  .let foo={
-   |'bar
-   |'beer
-  }
   .return {Void}
 }
 """);}
@@ -3518,7 +2504,7 @@ Likely cause: method declaration missing "." before the name.
 Found unnamed methods with parameters: "x", "y".
 To declare a method named "x", write ".x" (dot x).
 Without the dot, "x" is interpreted as a parameter name for an anonymous method.
-Error 9 WellFormedness
+Error 7 WellFormedness
 ""","""
 Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
 Absorb:{ #[T]:base.Void->base.Void; }
@@ -3537,7 +2523,7 @@ In file: [###].fear
 While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Method declaration missing "." before the name.
 To declare a method named "x", write ".x" (dot x).
-Error 9 WellFormedness
+Error 7 WellFormedness
 ""","""
 Foo:{ .m : Point -> Point:{ x():base.Nat->0; y:base.Nat->0;} }
 Absorb:{ #[T]:base.Void->base.Void; }

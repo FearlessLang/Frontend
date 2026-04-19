@@ -205,17 +205,6 @@ public class ToStringTest extends testUtils.FearlessTestBase{
   @Test void implicit_receiver_token(){ ok(
     "A: { x, y -> :: .foo y;}\n",
     "A:{ x, y -> :: .foo y }");}
-  @Test void string_inter_simple_s_quote_line(){ ok(
-    "A: { .a: Str -> \n|`abc\n;}\n",
-    "A:{.a:Str -> \n  |`abc\n}");}
-  @Test void string_inter_hash_expr_oneMismatch(){ ok(
-    "A: { .a: Str -> \n####|`pre {B.foo(C)} post\n;}\n",
-    "A:{.a:Str ->\n####|`pre {B.foo(C)} post\n}");
-  }
-  @Test void string_inter_hash_expr_one(){ ok(
-      "A: { .a: Str -> \n#|`pre {B .foo(C)} post\n;}\n",
-      "A:{.a:Str ->\n#|`pre {B.foo(C)} post\n}");
-    }
   @Test void multiple_decls_joined(){ ok(
     "A: { .id(x: X): X -> x;}\nB: {}\n",
     "A:{ .id(x:X):X -> x } B:{}");}

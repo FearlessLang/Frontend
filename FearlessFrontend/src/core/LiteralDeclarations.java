@@ -14,7 +14,6 @@ import utils.Bug;
 
 public class LiteralDeclarations {
   public static TName baseStr= new TName("base.Str",0,Pos.unknown);
-  public static TName baseUStr= new TName("base.UStr",0,Pos.unknown);
   public static TName baseNat= new TName("base.Nat",0,Pos.unknown);
   public static TName baseInt= new TName("base.Int",0,Pos.unknown);
   public static TName baseFloat= new TName("base.Float",0,Pos.unknown);
@@ -43,7 +42,7 @@ public class LiteralDeclarations {
     assert name.pkgName().equals("base");
     String s= name.simpleName();
     if (s.startsWith("`")){  return baseStr; }
-    if (s.startsWith("\"")){ return baseUStr; }
+    if (s.startsWith("\"")){ return baseStr; }
     if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return baseNat; }
     if (TokenKind.isKind(s,TokenKind.SignedInt)){ return baseInt; }
     if (TokenKind.isKind(s,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){ return baseFloat; }
@@ -107,7 +106,7 @@ public class LiteralDeclarations {
       return natLiteralBits64(ns) +"L";
       }
     if (TokenKind.isKind(ns,TokenKind.SignedInt)){ return intLiteral64(ns) +"L"; }
-    if (TokenKind.isKind(ns,TokenKind.SignedFloat)){
+    if (TokenKind.isKind(ns,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){
       assert floatLiteralExactlyRepresentable(ns);
       return floatLiteralDouble(ns) +"d";
     }

@@ -5,7 +5,6 @@ import fearlessFullGrammar.E.DeclarationLiteral;
 import fearlessFullGrammar.E.Implicit;
 import fearlessFullGrammar.E.Literal;
 import fearlessFullGrammar.E.Round;
-import fearlessFullGrammar.E.StringInter;
 import fearlessFullGrammar.E.TypedLiteral;
 import fearlessFullGrammar.E.X;
 import fearlessFullGrammar.EVisitor;
@@ -22,9 +21,5 @@ public class HasImplicitVisitor implements EVisitor<Boolean>{
   @Override public Boolean visitCall(Call c){
     return c.e().accept(this)
       || c.es().stream().anyMatch(e->e.accept(this));
-  }
-  @Override public Boolean visitStringInter(StringInter i){
-    return i.e().map(e0->e0.accept(this)).orElse(false)
-      || i.es().stream().anyMatch(e->e.accept(this));
   }
 }

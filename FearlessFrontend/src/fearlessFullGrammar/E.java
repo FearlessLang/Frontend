@@ -75,22 +75,6 @@ public sealed interface E extends core.Src.SrcObj{
       return TSpan.merge(e.span(),TSpan.fromPos(targs.get().endPos()));      
     }
   }
-  record StringInter(boolean simple, Optional<E> e, List<Integer> hashCounts, List<String> strings, List<E> es, TSpan span) implements E{
-    public StringInter{
-      assert nonNull(e,span);
-      assert unmodifiable(hashCounts,"string # counts");
-      assert unmodifiable(strings,"string parts");
-      assert unmodifiable(es,"string es");
-      assert eq(strings.size(),es.size()+1,"string interpolation");
-    }
-    public <R> R accept(EVisitor<R> v){ return v.visitStringInter(this); }
-    public String toString(){ return
-      e.map(Object::toString).orElse("")
-      +"Inter["+simple+"]"
-      +hashCounts+strings.stream().map(s->s.replace("\n","\\n")).toList()+es;
-    }
-    public Pos pos(){ return span.pos(); }
-  }
   record Implicit(Pos pos) implements E{ 
     public <R> R accept(EVisitor<R> v){ return v.visitImplicit(this); }
     public String toString(){ return "::"; }

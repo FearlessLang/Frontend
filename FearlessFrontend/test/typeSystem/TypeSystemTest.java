@@ -740,7 +740,7 @@ Local: "X:imm,read".
 From supertypes: "-:imm".
 The parameter name may differ; only the position matters.
 Change the local bounds to match the supertypes, or adjust the supertypes.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """, List.of("""
 P:{}
 Parent2:{ imm .id[X:imm](x:imm X):base.Void; }
@@ -759,7 +759,7 @@ The method ".f(_)" declares 2 type parameter(s), but supertypes declare 1.
 Local declaration: "[X:imm, Y:imm]".
 From supertypes: "[-:imm]".
 Change the local number of type parameters to 1, or adjust the supertypes.
-Error 9 WellFormedness
+Error 7 WellFormedness
 """, List.of("""
 P:{}
 Sup:{ imm .f[X:imm](x:imm X):base.Void; }
@@ -1820,8 +1820,8 @@ A:{}
 @Test void passSStr(){ok(List.of("""
  Main:{ .m:base.Str -> `Hi` }
 """));}
-@Test void passUStr(){ok(List.of("""
- Main:{ .m:base.UStr -> "Hi" }
+@Test void passDStr(){ok(List.of("""
+ Main:{ .m:base.Str -> "Hi" }
 """));}
 @Test void failIntTooBig(){failExt("""
 In file: [###].fear
@@ -1835,7 +1835,7 @@ Integer literal is out of range for "base.Int".
 Valid range: -9223372036854775808 ..9223372036854775807.
 This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "base.Num".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
  Main:{ .m:base.Int -> +421381834238972893748972389723 }
 """));}
@@ -1851,7 +1851,7 @@ Natural literal is out of range for "base.Nat".
 Valid range: 0 ..18446744073709551615.
 This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "base.Num".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
  Main:{ .m:base.Nat -> 421381834238972893748972389723 }
 """));}
@@ -1867,7 +1867,7 @@ Float literal is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
 This literal is: +1.0e309.
 This literal overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
  Main:{ .m:base.Float -> +1.0e309 }
 """));}
@@ -1883,7 +1883,7 @@ Float literal is not exactly representable as "base.Float".
 This literal is: +1.0e-400.
 If rounded, the nearest representable value is "+0.0".
 Hint: if you need arbitrary precision numbers, use "base.Num".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
  Main:{ .m:base.Float -> +1.0e-400 }
 """));}
@@ -1899,7 +1899,7 @@ Float literal is not exactly representable as "base.Float".
 This literal is: +0.1.
 If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
 Hint: if you need arbitrary precision numbers, use "base.Num".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
  Main:{ .m:base.Float -> +0.1 }
 """));}
@@ -1915,7 +1915,7 @@ Float literal is not exactly representable as "base.Float".
 This literal is: +0.2.
 If rounded, the nearest representable value is "+0.200000000000000011102230246251565404236316680908203125".
 Hint: if you need arbitrary precision numbers, use "base.Num".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """,List.of("""
  Main:{ .m:base.Float -> +0.2 }
 """));}
@@ -2961,7 +2961,7 @@ Object literal instance of "base.Void" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
 Object literal instance of "base.Void" is defined in package "p".
 Type "Void" is defined in package "base".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -2984,7 +2984,7 @@ Parameter "::" has type "Sup" instead of a subtype of "base.Void".
 
 See inferred typing context below for how type "base.Void" was introduced: (compression indicated by `-`)
 User:Sup{.h(_aimpl:Sup):-.Void->::}
-Error 10 TypeError
+Error 8 TypeError
 """, List.of("""
 
 Sup:{ imm .h(x:Sup):base.Void; }
@@ -3002,7 +3002,7 @@ Type declaration "ExtStr" implements sealed type "`beer`".
 Sealed types can only be implemented in their own package.
 Type declaration "ExtStr" is defined in package "p".
 Type "`beer`" is defined in package "base".
-Error 9 WellFormedness
+Error 7 WellFormedness
 """, List.of("""
 ExtStr:`beer`{}
 """));}

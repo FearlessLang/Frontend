@@ -24,12 +24,6 @@ public class BadTokens {
       .put(BadSStrUnclosed, (idx, t, tz) ->frontOrBack(idx,t,tz,'`'))
       .put(BadUnclosedBlockComment, (_, t, tz) -> badBlockComment(tz,t))
       .put(BadUnopenedBlockCommentClose, this::strayBlockCommentCloser)
-      .putStr(BadOpLine,Code.UnexpectedToken::of,"""
-A "|" immediately before a quote starts a line string (e.g. |"abc or |`abc).
-Operators can also contain "|", making it ambiguous what, for example, <--|`foo` means.
-It could be the "<--" operator followed by |`foo` but also the "<--|" operator followed by `foo`. 
-Please add spaces to disambiguate:  <--| `foo`   or   <-- |`foo`.
-""","common ambiguities")    
       .putStr(BadOSquare,Code.UnexpectedToken::of,"""
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
@@ -39,10 +33,6 @@ Write "x.foo[read]" not "x.foo [read]".
 Package names are restricted to be valid filenames on all operating systems.
 Names like aux, nul, lpt2 are invalid on Windows.
 ""","package names")
-      .putStr(BadSStrLineQuote,Code.UnexpectedToken::of,"""
-Simple string lines start with " |` " or " #|` ", not " |' " or " #|' ";
-that is: use back tick (`) instead of single quote (').
-""","common ambiguities")
       .putStr(BadSStrQuote,Code.UnexpectedToken::of,"""
 Simple string literals are of form " `...` ", not " '...' ";
 that is: use back ticks (`) instead of single quotes (').
@@ -74,7 +64,7 @@ that is: use back ticks (`) instead of single quotes (').
     return switch (t.kind()){
       case LineComment -> " line comment \"//\"";
       case BlockComment -> " block comment \"/* ... */\"";
-      case UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash -> " string literal";
+      case UStr, SStr   -> " string literal";
     default -> throw new Error(t.toString());
     };
   }
@@ -84,7 +74,7 @@ that is: use back ticks (`) instead of single quotes (').
     for (int j= idx - 1; j >= 0; j--){
       var p = all.get(j);
       if (p.is(BlockComment,_SOF)){ return Optional.empty(); }
-      if (p.is(LineComment, UStr, SStr, UStrLine, SStrLine, UStrInterHash, SStrInterHash)){
+      if (p.is(LineComment, UStr, SStr)){
         if (p.content().contains("/*")){ return Optional.of(p); }
       }
     }

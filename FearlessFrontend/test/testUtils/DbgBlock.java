@@ -138,21 +138,7 @@ Ten:Nat{}
 ToStr:{ read .str: Str }
 ToUStr:{ read .uStr: UStr }
 
-StrProcs:{
-  imm .add(a:Str,b:ToStr): mut StrProc -> this.add(a,b);
-  }
-StrProc:{
-  mut .add(a:Str,b:ToStr): mut StrProc -> this.add(a,b);
-  mut .build(a:Str): Str-> a;
-  }
 UStr:Sealed,WidenTo[UStr]{}
-UStrProcs:{
-  imm .add(a:UStr,b:ToUStr): mut UStrProc -> this.add(a,b);
-  }
-UStrProc:{
-  mut .add(a:UStr,b:ToUStr): mut UStrProc -> this.add(a,b);
-  mut .build(a:UStr): UStr-> a;
-  }
 
 BoolMatch[R:**]:{
   mut .true: R;

@@ -145,7 +145,7 @@ public abstract class FearlessTestBase{
     strCmp(expected, fe.render(o));
   }
   protected static void typeFail(String expected, List<String> input){
-    typeFailRaw("In file: [###].fear\n\n"+expected+"Error 10 TypeError", input);
+    typeFailRaw("In file: [###].fear\n\n"+expected+"Error 8 TypeError", input);
   }
   protected static OtherPackages otherErr(){ return OtherPackages.empty(); }
 

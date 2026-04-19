@@ -18,6 +18,7 @@ import core.TSpan;
 import utils.Bug;
 import utils.Push;
 import fearlessFullGrammar.E.Call;
+import fearlessParser.TokenKind;
 import fearlessFullGrammar.Parameter;
 import fearlessFullGrammar.XPat;
 import utils.Pos;
@@ -50,7 +51,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
       assert tName.pkgName().isEmpty();
       if (isKind(s,UnsignedInt) && !natLiteralInRange(s)){ throw meths.p().err().natLiteralOutOfRange(tName); }
       if (isKind(s,SignedInt) && !intLiteralInRange(s)){ throw meths.p().err().intLiteralOutOfRange(tName); }
-      if (isKind(s,SignedFloat) && !floatLiteralExactlyRepresentable(s)){ throw meths.p().err().floatLiteralNotExactlyRepresentable(tName); }
+      if (isKind(s,SignedFloat,UnSignedFloat) && !floatLiteralExactlyRepresentable(s)){ throw meths.p().err().floatLiteralNotExactlyRepresentable(tName); }
     }
     var tNameMap= f.apply(tName);
     var ts= c.ts().orElse(List.of());
@@ -244,9 +245,6 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     case fearlessFullGrammar.E.Implicit _ -> atom;
     case fearlessFullGrammar.E.Call(var e, var name, var targs, var pars, var pat, var es, var pos) -> 
       new fearlessFullGrammar.E.Call(replaceAtom(e, atom),name,targs,pars, pat, es,pos);
-    case fearlessFullGrammar.E.StringInter(var simple, var e, var hashCounts, var strings, var es, var pos) ->
-      e.isEmpty()?atom
-      :new fearlessFullGrammar.E.StringInter(simple,of(atom),hashCounts,strings,es,pos);
   };}
   private fearlessFullGrammar.E extractAtom(fearlessFullGrammar.E par){ return switch (par){
     case fearlessFullGrammar.E.X e -> e;
@@ -256,7 +254,6 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     case fearlessFullGrammar.E.DeclarationLiteral e -> e;
     case fearlessFullGrammar.E.Implicit e -> e;
     case fearlessFullGrammar.E.Call e -> extractAtom(e.e());
-    case fearlessFullGrammar.E.StringInter e -> e.e().isEmpty()?e: extractAtom(e.e().get());
   };}
   public E visitICall(fearlessFullGrammar.E.Call c){
     E e= visitReceiver(c.e());
@@ -276,16 +273,5 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   }
   private fearlessFullGrammar.E callPat(fearlessFullGrammar.E e, String m, XPat pat, fearlessFullGrammar.E a, Pos p){
     return new fearlessFullGrammar.E.Call(e, new MName(m, 2), empty(), true, of(pat), List.of(a), p);
-  }
-  @Override public E visitStringInter(fearlessFullGrammar.E.StringInter i){
-    String name= i.simple() ? "base.Str" : "base.UStr";
-    String q= i.simple() ? "`" : "\"";
-    var top= i.e().orElseGet(() -> typedLiteral(name + "Procs", i.span(), i.pos()));
-    for (int j= 0; j < i.es().size(); j++) {
-      var s= typedLiteral("base." + q + i.strings().get(j) + q, i.span(), i.pos());
-      top= call(top, ".add", List.of(s,i.es().get(j)), i.pos());
-    }
-    var end= typedLiteral("base." + q + i.strings().getLast() + q, i.span(), i.pos());
-    return call(top, ".build", List.of(end), i.pos()).accept(this);
   }
 }

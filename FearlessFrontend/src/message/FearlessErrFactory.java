@@ -89,19 +89,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       + " in " + groupLabel + " at [" + startIdx + ".." + endIdx + "]";
     return Code.ProbeError.of(msg).addSpan(at);
   }
-  public FearlessException noClose(Span at){
-    return Code.InterpolationNoClose.of(
-      "Unclosed string interpolation placeholder").addSpan(at);
-  }
-  public FearlessException noOpen(Span at){
-    return Code.InterpolationNoOpen.of(
-      "Unopened string interpolation placeholder").addSpan(at);
-  }
-  public FearlessException moreOpen(Span at){
-    return Code.InterpolationNoClose.of(
-      "String interpolation placeholder opened inside interpolation expression.\n"
-      +"Note: \"{\" cannot be used in single \"#\" interpolation expressions. Use at least \"##\".").addSpan(at);
-  }
   public FearlessException disallowedReadHMutH(Span at, RC rc){
     return Code.UnexpectedToken.of(
       "Capability "+rc+"""
@@ -383,11 +370,5 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     String msg= "Abstract method declaration for "+Err.disp(sig.m().get().s())
       +".\nOnly top level methods can be abstract.\n";
     return Code.WellFormedness.of(msg).addSpan(at);
-  }
-  public FearlessException inconsistentStrInter(Span at,boolean simpleToU){
-    String base= simpleToU ? "Simple" : "Unicode";
-    String alt= simpleToU ? "Unicode" : "Simple";
-    String msg= "String interpolation changes midway from "+base+" to "+alt+".\n";
-    return Code.UnexpectedToken.of(msg).addSpan(at);
   }
 }
