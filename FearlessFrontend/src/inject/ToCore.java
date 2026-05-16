@@ -2,6 +2,7 @@ package inject;
 
 import java.util.*;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import core.B;
 import core.E;
@@ -37,8 +38,11 @@ public class ToCore{
     assert oBs.isEmpty() || !o.infName():
      o.infName()+" "+oBs;
     var bs= oBs.orElse(e.bs());
-    var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():o.cs());
+    var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():csUnion(o.cs(),e.cs()));
     return new core.E.Literal(rc,e.name(),bs,cs,e.thisName(),ms,e.src(),e.infName());
+  }
+  List<IT.C> csUnion(List<IT.C> a, List<IT.C> b){
+    return Stream.concat(a.stream(),b.stream()).distinct().toList();
   }
   Optional<List<B>> originalBs(inference.E.Literal o){
     boolean explicit= switch (o.src().inner){

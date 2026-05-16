@@ -1235,4 +1235,19 @@ p._CB:$?{'_ ? [?](?,?):?@!;(foo, _aeqS)->_aeqS:?\
 A:{.foo:A}
 B:{.of({.foo}:A):A->foo}
 """));}
+
+
+@Test void deepImpl(){ok("""
+p.A:{'this}
+p.B:p.A{'this}
+p.C:p.B, p.A{'this}
+p.D:{'this .m:p.A@p.D;->p.K:p.C{'_ ? .foo[?]:p.A@!;->p.A:?;}:?;}
+p.K:p.C, p.A, p.B{'_ .foo:p.A@p.K;->p.A:?;}
+""",List.of("""
+A:{ }
+B:A{}
+C:B{}
+D:{.m:A->K:C{.foo:A->A}}
+"""));}
+
 }
