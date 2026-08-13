@@ -16,7 +16,6 @@ import fearlessParser.Parse;
 import inject.InjectionSteps;
 import inject.Methods;
 import inject.ToInference;
-import message.Err;
 import message.WellFormednessErrors;
 import metaParser.PrettyFileName;
 import tools.Fs;
@@ -60,7 +59,8 @@ public class FrontendLogicMain {
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
       List<String> outs= bests.stream().map(Cand::out).distinct().toList();
       assert !outs.isEmpty();
-      if (outs.size() != 1){ throw MapConflict.conflict(k.target(), k.in(), bests); }
+      if (outs.size() != 1){ throw new WellFormednessErrors(k.target())
+        .mapConflict(k.target(), k.in(), bests.stream().map(Object::toString).toList()); }
       res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), outs.getFirst());
     });
     return res;
@@ -117,30 +117,5 @@ public class FrontendLogicMain {
     String name= Fs.fileNameWithExtension(u.fearPath());
     int dot= name.lastIndexOf('.');
     return dot > 0 && name.substring(0,dot).startsWith("_rank_");
-  }
-}
-@SuppressWarnings("serial")
-final class MapConflict extends RuntimeException{
-  private MapConflict(String msg){ super(msg); }
-  public static MapConflict conflict(String target, String in, List<? extends Object> bests){
-    int limit= 12;
-    var shown= bests.stream().limit(limit).map(Object::toString).collect(Collectors.joining("\n"));
-    var more= bests.size()>limit ? "\n - ... ("+(bests.size()-limit)+" more)" : "";
-    return new MapConflict("""
-For package %s, the virtual package name %s is mapped to different real packages:
-  %s%s
-
-These mappings come from rank files with the same priority (same rank), so there is no "higher one" to override the other:
-
-How mapping works:
-- Each package rank file can have lines like: map 'virtual' as 'real' in 'target';
-- If a virtual package name is never mentioned, it implicitly maps to itself (identity).
-- Higher-rank packages override lower-rank ones.
-
-How to fix it:
-- Decide which real package should represent %s inside of %s.
-- Add one mapping line in a higher-rank package (typically your top-level application package),
-to it overrides the conflicting ones.
-""".formatted(Err.disp(target), Err.disp(in), shown, more, Err.disp(in), Err.disp(target)));
   }
 }
