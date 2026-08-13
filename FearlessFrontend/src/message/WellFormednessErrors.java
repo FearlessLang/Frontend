@@ -83,6 +83,28 @@ public record WellFormednessErrors(String pkgName){
      .line("Rename or remove the extra files so that only one file name is of form \"_rank_*.fear\".");
     return badRank(e).wf();
   }
+  public FearlessException mapConflict(String target, String in, List<String> bests){
+    int limit= 12;
+    var e= err()
+      .line("For package "+Err.disp(target)+", the virtual package name "+Err.disp(in)
+           +" is mapped to different real packages:");
+    bests.stream().limit(limit).forEach(e::line);
+    if (bests.size() > limit){ e.line(" - ... ("+(bests.size()-limit)+" more)"); }
+    e.blank()
+     .line("These mappings come from rank files with the same priority (same rank),")
+     .line("so there is no higher one to override the other.")
+     .blank()
+     .line("How mapping works:")
+     .bullet("Each package rank file can have lines like: map 'virtual' as 'real' in 'target';")
+     .bullet("If a virtual package name is never mentioned, it implicitly maps to itself (identity).")
+     .bullet("Higher-rank packages override lower-rank ones.")
+     .blank()
+     .line("How to fix it:")
+     .bullet("Decide which real package should represent "+Err.disp(in)+" inside of "+Err.disp(target)+".")
+     .bullet("Add one mapping line in a higher-rank package (typically your top-level application"
+            +" package), so that it overrides the conflicting ones.");
+    return e.wf();
+  }
   public Err badRank(Err err){
     return err
       .line("Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.")
