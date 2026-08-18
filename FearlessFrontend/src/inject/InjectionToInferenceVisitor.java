@@ -29,8 +29,9 @@ import pkgmerge.Package;
 import static java.util.Optional.*;
 import static core.LiteralDeclarations.*;
 import static fearlessParser.TokenKind.*;
+import java.util.ArrayList;
 
-public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, List<E.Literal> decs, Package pkg, List<List<B>> bsInScope, OtherPackages other, FreshPrefix freshF)
+public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs, Package pkg, OtherPackages other, FreshPrefix freshF)
     implements fearlessFullGrammar.EVisitor<inference.E>,fearlessFullGrammar.TVisitor<IT>{
   static final inference.IT u= IT.U.Instance;
   static fearlessFullGrammar.E.Literal emptyL(Pos pos){ return new fearlessFullGrammar.E.Literal(empty(),List.of(),TSpan.fromPos(pos)); }
@@ -96,7 +97,6 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
 
   Optional<M.Impl> visitMImpl(fearlessFullGrammar.M m){
     if (m.body().isEmpty()){ return empty(); }
-    m.sig().ifPresent(s->bsInScope.add(s.bs().map(this::mapB).orElse(List.of())));
     var body= m.body().get();
     var original= m.sig().map(s->s.parameters()).orElse(List.of());
     List<String> ps= mapPX(original);
@@ -104,7 +104,6 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     if (!xpats.isEmpty()){ body = makeXPatsBody(body,xpats); }
     if (m.hasImplicit()){ var p= freshF.freshVar(currentTop, "impl"); ps = Push.of(ps,p); implicits.add(p); }
     E e= body.accept(this);
-    m.sig().ifPresent(_->bsInScope.removeLast());
     if (m.hasImplicit()){ implicits.removeLast(); }
     Optional<MName> name= m.sig().flatMap(s->s.m());
     return of(new M.Impl(name,ps,e));
@@ -193,12 +192,10 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   public E.Literal addDeclaration(TName name,RC rc,fearlessFullGrammar.Declaration d, boolean top){
     String thisName= d.l().thisName().map(n->n.name()).orElseGet(()->top?"this":"_");
     List<B> bs= d.bs().map(this::mapB).orElse(List.of());
-    bsInScope.add(bs);
-    List<IT.C> cs= mapC(d.cs());    
+    List<IT.C> cs= mapC(d.cs());
     List<M> ms= mapM(d.l().methods());
     E.Literal l= new E.Literal(Optional.of(rc),name,bs,cs,thisName, ms, new Src(d),false);
     decs.add(l);
-    bsInScope.removeLast();
     return l;
   }
   @Override public E visitCall(fearlessFullGrammar.E.Call c){
