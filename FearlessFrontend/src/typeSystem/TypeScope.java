@@ -67,13 +67,10 @@ public sealed interface TypeScope{
     return bestInterestingScope(start, interest);
   }
   static TypeScope bestInterestingScope(TypeScope start, List<T> interest){
-    int gapLimit= 10;
     int min= 4;
     TypeScope best= start;
-    int gaps= gapLimit;
     for(TypeScope it= start; !it.isTop(); it = it.outer()){
-      if (min --> 0 || mentionsAny(it, interest)){ best= it; gaps= gapLimit; continue; }
-      if (gaps --> gapLimit){ return best; }
+      if (min --> 0 || mentionsAny(it, interest)){ best= it; }
     }
     return best;
   }
