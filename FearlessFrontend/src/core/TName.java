@@ -6,6 +6,7 @@ import utils.Pos;
 
 public record TName(String s, int arity, Pos pos){
   public static final String pkgNameRegex="(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*";
+  public static final String typeNameRegex="_*[A-Z][A-Za-z0-9_]*'*";
   public TName{
     assert arity >= 0 : "arity < 0: "+arity;
     assert hasPkgDot(s) || validate(s,"TName", UppercaseId,UnsignedInt, SignedInt, SignedFloat, UnSignedFloat, UStr, SStr);

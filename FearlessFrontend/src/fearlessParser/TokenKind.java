@@ -48,9 +48,9 @@ public enum TokenKind implements metaParser.TokenKind {
   SStr("`[^`\\x0A]*`","`...`"),
   DotName("\\._*[a-z][A-Za-z0-9_]*'*",".name"),
   UppercaseId(
-    "(?:(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*",
+    "(?:"+core.TName.pkgNameRegex+"\\x2E)?"+core.TName.typeNameRegex,
     "type name"),//correctly allows only one '.' since packages are not nested inside each others  
-  BadUppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*"),
+  BadUppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?"+core.TName.typeNameRegex),
   LowercaseId("_*[a-z][A-Za-z0-9_]*'*","name"),
   BadSStrQuote("'[^'\\x0A]*'"),
    //\  /  #  *   -   +   %  <  >  =  !  &   ^   ~   ?     |
@@ -60,7 +60,7 @@ public enum TokenKind implements metaParser.TokenKind {
   Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+","binary operator (eg. +, *, -)"),
   //IMPORTANT: BadOp* must precede Op so bad forms win ties of equal length.
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases  
-  _XId("_*[A-Z][A-Za-z0-9_]*'*","type name"),
+  _XId(core.TName.typeNameRegex,"type name"),
   _pkgName(core.TName.pkgNameRegex,//"(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*"
     "id starting with a-z followed by any amount of a-z0-9 or the _ symbol"),   
   _use("use"),
