@@ -216,7 +216,7 @@ public record InjectionSteps(Methods meths){
     case E.Type c -> nextT(c);
   };}
   core.E.Literal getDec(TName name){ return meths.from(name); }
-  private IT preferred(IT.RCC type){
+  private IT preferred(E ctx, IT.RCC type){
     var d= meths._from(type.c().name());//d.cs() does contain all the transitive supertypes already.
     if (d == null){ return type; }//This can happen for {..}.foo
     assert d != null : type;
@@ -226,7 +226,7 @@ public record InjectionSteps(Methods meths){
     assert cs.getFirst().ts().size() == 1;
     var dom= d.bs().stream().map(b -> b.x()).toList();
     IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom, type.c().ts());
-    var w=(IT.RCC)wid;//TODO: this must be made to fail in a test, then we need to improve the well formedness error of WidenTo
+    if (!(wid instanceof IT.RCC w)){ throw meths.p().err().widenToNotConcrete(ctx, type, wid); }
     return new IT.RCC(type.rc(), w.c(),type.span());
   }
   private RC overloadNorm(Optional<RC> rc){ return rc.map(this::_overloadNorm).orElse(RC.imm); }
@@ -318,7 +318,7 @@ public record InjectionSteps(Methods meths){
   }
   private E nextT(E.Type t){
     if (!(t.t() instanceof IT.U)){return t; }
-    return t.withT(preferred(t.type()));
+    return t.withT(preferred(t, t.type()));
   }
   private E nextIC(List<B> bs, Gamma g, E.ICall c){
     var e= nextStar(bs, g, c.e());
@@ -395,8 +395,8 @@ public record InjectionSteps(Methods meths){
     var selfPrecise= preciseSelf(l);
     var selfSuper= superSelf(l);
     if (!infHead){
-      if (!l.infName()){ l = l.withT(preferred(selfPub.get())); }
-      else if (selfSuper.isPresent()){ l = l.withT(preferred(selfSuper.get())); }
+      if (!l.infName()){ l = l.withT(preferred(l, selfPub.get())); }
+      else if (selfSuper.isPresent()){ l = l.withT(preferred(l, selfSuper.get())); }
       if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
       if (!l.infName()){ l = meths.expandDeclaration(l,true); }
       else { l = meths.expandLiteral(l, rcc.c()); }

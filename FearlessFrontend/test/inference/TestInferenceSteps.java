@@ -1647,4 +1647,20 @@ A:{.foo:A}
 B:{.of({.foo}:A):A->foo}
 """));}
 
+@Test void magicWidenTargetNotConcrete(){failI("""
+In file: [###].fear
+
+002| B[Y]:{.m(A[Y]):A[Y]->A[Y]}
+   |                      ^^
+
+While inspecting object literal instance of p.A[Y]:?
+object literal instance of p.A[Y]:? has type "A[Y]".
+Its "base.WidenTo[_]" supertype names "Y" as the preferred widened type,
+but that is not a concrete class type.
+Error 7 WellFormedness
+""",List.of("""
+A[X]:base.WidenTo[X]{}
+B[Y]:{.m(A[Y]):A[Y]->A[Y]}
+"""));}
+
 }
