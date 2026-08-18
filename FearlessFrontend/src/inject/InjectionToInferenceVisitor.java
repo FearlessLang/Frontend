@@ -29,9 +29,8 @@ import pkgmerge.Package;
 import static java.util.Optional.*;
 import static core.LiteralDeclarations.*;
 import static fearlessParser.TokenKind.*;
-import java.util.ArrayList;
 
-public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs, Package pkg, List<List<B>> bsInScope, OtherPackages other, FreshPrefix freshF)
+public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, List<E.Literal> decs, Package pkg, List<List<B>> bsInScope, OtherPackages other, FreshPrefix freshF)
     implements fearlessFullGrammar.EVisitor<inference.E>,fearlessFullGrammar.TVisitor<IT>{
   static final inference.IT u= IT.U.Instance;
   static fearlessFullGrammar.E.Literal emptyL(Pos pos){ return new fearlessFullGrammar.E.Literal(empty(),List.of(),TSpan.fromPos(pos)); }

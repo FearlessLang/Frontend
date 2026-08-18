@@ -60,10 +60,9 @@ public class ToInference{
       if (other.__of(tn) != null){ return tn; }
       throw undeclaredType(tn,p.name(),p,other);
     };
-    ArrayList<E.Literal> decs= new ArrayList<>();
+    List<E.Literal> decs= new ArrayList<>();
     p.decs().forEach(di->{
       TName name= f.apply(di.name());
-      //TODO: Is there any ArrayList that can be removed from InjectionToInferenceVisitor? 
       var v= new InjectionToInferenceVisitor(meths,name,new ArrayList<>(),f,decs,p,new ArrayList<>(),other,fresh);
       v.addDeclaration(name,RC.mut,di,true);
     });
