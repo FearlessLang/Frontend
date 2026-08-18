@@ -26,11 +26,11 @@ public record Gamma(Gamma tail, String name, T t, Change current){
   }
   public record Binding(T declared, Change current){}
   public Binding bind(String x){
-    if (this == _empty){ throw Bug.of(); }
-    if (name.equals(x)){ return new Binding(t, current); }
-    return tail.bind(x);
+    var b= _bindOrNull(x);
+    if (b == null){ throw Bug.of(); }
+    return b;
   }
-  public Binding _bindOrNull(String x){//mah... reuse with the code above? overall improve this implementation
+  public Binding _bindOrNull(String x){
     if (this == _empty){ return null; }
     if (name.equals(x)){ return new Binding(t, current); }
     return tail._bindOrNull(x);
