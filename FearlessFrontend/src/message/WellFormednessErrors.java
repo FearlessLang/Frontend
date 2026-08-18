@@ -486,8 +486,6 @@ public record WellFormednessErrors(String pkgName){
       .line("Object literals with their own unique explicit type can not be duplicated.")
       .wf()
       .addFrame(err().expRepr(owner), owner.span().inner);
-
-        //assert l.infName() : "TODO: to user facing error. Duplicating body contains user-named literal: "+l.name();
   }
 
   public FearlessException extendedSealed(E.Literal owner, FreshPrefix fresh, TName isSealed){
