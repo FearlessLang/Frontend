@@ -15,7 +15,6 @@ import core.RC;
 import core.Src;
 import core.TName;
 import core.TSpan;
-import utils.Bug;
 import utils.Push;
 import fearlessFullGrammar.E.Call;
 import fearlessFullGrammar.Parameter;
@@ -155,11 +154,9 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     if (e instanceof fearlessFullGrammar.E.Literal l){ return Optional.of(l); }
     return Optional.empty();
   }
-  //TODO: check if now the stream is always empty
-  private E.Literal liftLiteral(Optional<RC> rc,Stream<String> bs,List<IT.C> impl,Optional<String> thisName, List<M> ms, Src src){
-    var _bs= bs.distinct().map(this::xB).toList();
-    var name= freshF.freshTopType(currentTop,_bs.size());
-    return new E.Literal(rc,name,_bs,impl,thisName.orElse("_"), ms,src,true);
+  private E.Literal liftLiteral(Optional<RC> rc,List<IT.C> impl,Optional<String> thisName, List<M> ms, Src src){
+    var name= freshF.freshTopType(currentTop,0);
+    return new E.Literal(rc,name,List.of(),impl,thisName.orElse("_"), ms,src,true);
   }
   private E visitReceiver(fearlessFullGrammar.E e){
     var ol= asLambdaReceiver(e);
@@ -167,14 +164,14 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     var ms= mapM(ol.get().methods());
     var name= ol.get().thisName().map(n->n.name());
     //Here new FreeXs().ftvMs(ms) is all since by construction no Cs and no inferred type;
-    var l= liftLiteral(Optional.empty(),Stream.of(),List.of(),name,ms,new Src(ol.get()));
+    var l= liftLiteral(Optional.empty(),List.of(),name,ms,new Src(ol.get()));
     decs.add(l);
     return l;
   }
-  @Override public E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){ 
+  @Override public E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){
     var ms= mapM(l.methods());
     var name= l.thisName().map(n->n.name());
-    return liftLiteral(Optional.empty(),Stream.of(),List.of(),name,ms,new Src(l));
+    return liftLiteral(Optional.empty(),List.of(),name,ms,new Src(l));
   }
   @Override public E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(),new Src(x)); }
   @Override public E visitRound(fearlessFullGrammar.E.Round r){ return r.e().accept(this); }
@@ -185,16 +182,10 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     List<fearlessFullGrammar.M> ms0= t.l().map(l->l.methods()).orElse(List.of());
     Optional<String> thisName= t.l().flatMap(l->l.thisName().map(n->n.name()));
     var ms= mapM(ms0);
-    E.Literal l= liftLiteral(Optional.of(t.t().rc().orElse(RC.imm)),Stream.of(),impl,thisName, ms,new Src(t));
+    E.Literal l= liftLiteral(Optional.of(t.t().rc().orElse(RC.imm)),impl,thisName, ms,new Src(t));
     decs.add(l);
     return l;
   }
-  B xB(String x){
-    return bsInScope.stream()
-      .flatMap(List::stream)
-      .filter(b->b.x().equals(x)).findFirst()
-      .orElseThrow(() -> Bug.of("Free type variable " + x + " not in bsInScope"));
-  }  
   @Override public E visitDeclarationLiteral(fearlessFullGrammar.E.DeclarationLiteral c){
     var name= f.apply(c.dec().name());
     freshF.aliasOwner(currentTop,name );
