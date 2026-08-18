@@ -349,7 +349,6 @@ public record WellFormednessErrors(String pkgName){
       .addSpan(m.sig().span().inner)
       .addFrame(err().expRepr(origin), origin.span().inner);
   }
-  public String refCapDisagreement(){ return "Reference capability disagreement"; }
   public String retTypeDisagreement(){ return "Return type disagreement"; }
   public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
 

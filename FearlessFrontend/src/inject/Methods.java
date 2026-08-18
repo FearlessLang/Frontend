@@ -260,8 +260,7 @@ public record Methods(
     IT res= s.ret().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.ret().get()),
       p.err().retTypeDisagreement()));
     boolean abs= m.impl().isEmpty();
-    RC rc= s.rc().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.rc().get()),
-      p.err().refCapDisagreement()));
+    RC rc= s.rc().orElseGet(()->rcAgreement(ssAligned));
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin.name(),abs,s.span());
     if (sig.equals(m.sig())){ return m; }
     return new M(sig,m.impl());
@@ -305,7 +304,7 @@ public record Methods(
     var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
     if (impl.size() > 1){ throw p.err().ambiguousImplementationFor(ssAligned,impl,at,fresh); }
     TName originName= impl.size() == 1? impl.getFirst() : origin.name();
-    RC rc= agreement(at,ssAligned.stream().map(e->e.rc().get()),p.err().refCapDisagreement());
+    RC rc= rcAgreement(ssAligned);
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,originName,impl.isEmpty(),ssAligned.getFirst().span());
     return new M(sig,Optional.empty());
   }
@@ -326,9 +325,13 @@ public record Methods(
   private <RR> RR agreement(Agreement at,Stream<RR> es, String msg){
     var res= es.distinct().toList();
     if (res.size() == 1){ return res.getFirst(); }
-    assert !msg.equals("Reference capability disagreement"): "Triggered example where RC diagreement still happens";
     throw p.err().noAgreement(at,fresh,res,msg);
-    //TODO: if we can not fail the assertion below, delete stuff mentioning "Reference capability disagreement"
+  }
+  //ssAligned is always grouped/bucketed by rc upstream (see pairWithSig callers), so rc is always uniform here.
+  private RC rcAgreement(List<M.Sig> ssAligned){
+    var rc= ssAligned.getFirst().rc().get();
+    assert ssAligned.stream().allMatch(e->e.rc().get() == rc);
+    return rc;
   }
   public record Agreement(E.Literal lit,Optional<RC> rc, MName mName, Span span){}
   
