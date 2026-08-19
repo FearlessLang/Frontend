@@ -3144,11 +3144,9 @@ User:{ .m: base.BaseId[Person,Customer] -> {::} }
    |                                          ^^^^^^
 
 While inspecting the file
-Type declaration "MyId" implements "base.BaseId".
+Type declaration "MyId" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
-Only those two shapes are guaranteed to be the identity function,
-and ".as" is compiled away as the identity.
-Use ".flow.map{...}" for a conversion that really has to build a new value.
+Only those two shapes are the identity function.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Person
@@ -3162,11 +3160,9 @@ MyId:base.BaseId[Customer,Person]{ #(x)->Person }
    |                                                                  ^^^^^^^^^^^^^^^
 
 While inspecting the file
-Type declaration "MyId" implements "base.BaseId".
+Type declaration "MyId" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
-Only those two shapes are guaranteed to be the identity function,
-and ".as" is compiled away as the identity.
-Use ".flow.map{...}" for a conversion that really has to build a new value.
+Only those two shapes are the identity function.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Other.cs.as[imm,Person](-.BaseId[Customer,Person]{#(_aimpl:Customer):Person->::})
@@ -3176,17 +3172,22 @@ Customer:Person{}
 Other:{ .cs: base.MList[Customer] -> base.Nope! }
 MyId:base.BaseId[base.MList[Customer],base.MList[Person]]{ #(x)->Other.cs.as{::} }
 """));}
-@Test void baseIdExtraMethod(){fail("""
+@Test void baseIdAbstractAlias(){ok(List.of("""
+Person:{}
+Customer:Person{}
+MyId:base.BaseId[Customer,Person]{}
+User:{ .m: MyId -> MyId{::} }
+"""));}
+@Test void baseIdExtraMethod(){failExt("""
+In file: [###].fear
+
 003| MyId:base.BaseId[Customer,Person]{ #(x)->x; .extra: Person -> Person }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting the file
-Type declaration "MyId" implements "base.BaseId".
-It must declare only the method "#(_)".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-MyId:-.BaseId[Customer,Person]{#(x:Customer):Person->x;.extra:Person->Person}
-""",List.of("""
+While inspecting type declaration "MyId"
+Type declaration "MyId" implements "base.BaseId[_,_]".
+Only the method "#(_)" can be declared here.
+Error 7 WellFormedness""",List.of("""
 Person:{}
 Customer:Person{}
 MyId:base.BaseId[Customer,Person]{ #(x)->x; .extra: Person -> Person }

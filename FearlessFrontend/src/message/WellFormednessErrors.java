@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import core.B;
 import core.FearlessException;
 import core.LiteralDeclarations;
+import core.MName;
 import core.RC;
 import core.TName;
 import fearlessFullGrammar.FileFull;
@@ -488,6 +489,14 @@ public record WellFormednessErrors(String pkgName){
       .addFrame(err().expRepr(owner), owner.span().inner);
   }
 
+  public FearlessException baseIdNotOnlyHash(E.Literal owner){
+    String ctx= Err.up(err().expRepr(owner));
+    return err()
+      .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
+      .line("Only the method "+err().methodSig(new MName("#",1))+" can be declared here.")
+      .wf()
+      .addFrame(err().expRepr(owner), owner.span().inner);
+  }
   public FearlessException extendedSealed(E.Literal owner, FreshPrefix fresh, TName isSealed){
     String ownerPkg= owner.name().pkgName();
     String sealedPkg= isSealed.pkgName();

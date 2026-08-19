@@ -9,6 +9,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
+import core.LiteralDeclarations;
 import core.MName;
 import core.RC;
 import core.TName;
@@ -219,7 +220,7 @@ public record InjectionSteps(Methods meths){
   private IT preferred(IT.RCC type){
     var d= meths._from(type.c().name());//d.cs() does contain all the transitive supertypes already.
     if (d == null){ return type; }//This can happen for {..}.foo
-    var cs= d.cs().stream().filter(c -> c.name().s().equals("base.WidenTo")).toList();
+    var cs= d.cs().stream().filter(c -> c.name().s().equals(LiteralDeclarations.widen.s())).toList();
     if (cs.isEmpty()){ return type; }
     assert cs.size() == 1;
     assert cs.getFirst().ts().size() == 1;

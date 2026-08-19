@@ -44,20 +44,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
        .findFirst().orElseThrow();
     };
    return new Err(publicHead,f,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
-  public FearlessException baseIdNotOnlyHash(Literal l){
-    return err()
-      .line(up(err().expRepr(l))+" implements "+disp("base.BaseId")+".")
-      .line("It must declare only the method "+err().methodSig(new MName("#",1))+".")
-      .ex(l).addSpan(l.span().inner);
-  }
   public FearlessException baseIdBadBody(Literal l, M m){
     String x= m.xs().getFirst();
     return err()
-      .line(up(err().expRepr(l))+" implements "+disp("base.BaseId")+".")
+      .line(up(err().expRepr(l))+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
       .line("The body of "+err().methodSig(m.sig().m())+" must be "+disp(x)+" or "+disp(x+".as{...}")+".")
-      .line("Only those two shapes are guaranteed to be the identity function,")
-      .line("and "+disp(".as")+" is compiled away as the identity.")
-      .line("Use "+disp(".flow.map{...}")+" for a conversion that really has to build a new value.")
+      .line("Only those two shapes are the identity function.")
       .ex(m.e().get()).addSpan(m.e().get().span().inner);
   }
   public FearlessException mCallFrame(M m, FearlessException fe){
