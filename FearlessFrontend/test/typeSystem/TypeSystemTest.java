@@ -3094,4 +3094,102 @@ Flow[P:*]:{mut .map(read D): mut Flow[P]; mut .list:mut List[P]}
 Names1:{ #(ps: List[A]): iso List[A] -> ps.flow.map iso D{}.list }
 Names2:{ #(ps: List[A]): iso List[A] -> ps.flow.map {}.list }
 """));}
+
+@Test void baseIdIdentity(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .m: base.BaseId[Customer,Person] -> {::} }
+"""));}
+@Test void baseIdIdentityNamed(){ok(List.of("""
+Person:{}
+Customer:Person{}
+MyId:base.BaseId[Customer,Person]{ #(x)->x }
+"""));}
+@Test void baseIdAsCall(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(cs: base.MList[Customer]): base.MList[Person] -> cs.as{::} }
+"""));}
+@Test void baseIdAsCallExplicitTarg(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(cs: base.MList[Customer]): base.MList[Person] -> cs.as[Person]{::} }
+"""));}
+@Test void baseIdNested(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{
+  .m: base.BaseId[base.MList[Customer],base.MList[Person]] -> {::.as{::}};
+  .n(css: base.MList[base.MList[Customer]]): base.MList[base.MList[Person]] -> css.as{::.as{::}};
+  }
+"""));}
+@Test void baseIdNotSubtype(){fail("""
+003| User:{ .m: base.BaseId[Person,Customer] -> {::} }
+   |        -------------------------------------^^^
+
+While inspecting parameter "::" > "#(_)" line 3 > ".m" line 3
+Method "#(_)" inside the object literal instance of "iso base.BaseId[Person,Customer]" (line 3)
+is implemented with an expression returning "Person".
+Parameter "::" has type "Person" instead of a subtype of "Customer".
+
+See inferred typing context below for how type "Customer" was introduced: (compression indicated by `-`)
+User:{.m:-.BaseId[Person,Customer]->-.BaseId[Person,Customer]{#(_aimpl:Person):Customer->::}}
+""",List.of("""
+Person:{}
+Customer:Person{}
+User:{ .m: base.BaseId[Person,Customer] -> {::} }
+"""));}
+@Test void baseIdNotIdentity(){fail("""
+003| MyId:base.BaseId[Customer,Person]{ #(x)->Person }
+   |                                          ^^^^^^
+
+While inspecting the file
+Type declaration "MyId" implements "base.BaseId".
+The body of "#(_)" must be "x" or "x.as{...}".
+Only those two shapes are guaranteed to be the identity function,
+and ".as" is compiled away as the identity.
+Use ".flow.map{...}" for a conversion that really has to build a new value.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Person
+""",List.of("""
+Person:{}
+Customer:Person{}
+MyId:base.BaseId[Customer,Person]{ #(x)->Person }
+"""));}
+@Test void baseIdWrongReceiver(){fail("""
+004| MyId:base.BaseId[base.MList[Customer],base.MList[Person]]{ #(x)->Other.cs.as{::} }
+   |                                                                  ^^^^^^^^^^^^^^^
+
+While inspecting the file
+Type declaration "MyId" implements "base.BaseId".
+The body of "#(_)" must be "x" or "x.as{...}".
+Only those two shapes are guaranteed to be the identity function,
+and ".as" is compiled away as the identity.
+Use ".flow.map{...}" for a conversion that really has to build a new value.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Other.cs.as[imm,Person](-.BaseId[Customer,Person]{#(_aimpl:Customer):Person->::})
+""",List.of("""
+Person:{}
+Customer:Person{}
+Other:{ .cs: base.MList[Customer] -> base.Nope! }
+MyId:base.BaseId[base.MList[Customer],base.MList[Person]]{ #(x)->Other.cs.as{::} }
+"""));}
+@Test void baseIdExtraMethod(){fail("""
+003| MyId:base.BaseId[Customer,Person]{ #(x)->x; .extra: Person -> Person }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Type declaration "MyId" implements "base.BaseId".
+It must declare only the method "#(_)".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+MyId:-.BaseId[Customer,Person]{#(x:Customer):Person->x;.extra:Person->Person}
+""",List.of("""
+Person:{}
+Customer:Person{}
+MyId:base.BaseId[Customer,Person]{ #(x)->x; .extra: Person -> Person }
+"""));}
+
 }

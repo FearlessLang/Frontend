@@ -486,8 +486,14 @@ public record InjectionSteps(Methods meths){
     g.popScope();
     return nextMStarOpRun(rcc, m, e, args);
   }
+  private boolean isBaseId(IT.RCC rcc){
+    if (rcc.c().name().s().equals("base.BaseId")){ return true; }
+    var d= meths._from(rcc.c().name());
+    return d != null && d.cs().stream().anyMatch(c->c.name().s().equals("base.BaseId"));
+  }
   TSM nextMStarOpRun(IT.RCC rcc, inference.M m, E e, List<Optional<IT>> args){
-    M.Sig improvedSig= m.sig().withTsT(args, meet(m.sig().ret().get(), e.t()));
+    IT ret= isBaseId(rcc) ? m.sig().ret().get() : meet(m.sig().ret().get(), e.t());
+    M.Sig improvedSig= m.sig().withTsT(args, ret);
     var omh= methodHeaderAnd(rcc, improvedSig.m().get(), improvedSig.rc(),(_,_,mi)->mi);
     assert omh.isEmpty() || assertNoBinderClash(rcc, omh.get());
     return omh

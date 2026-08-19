@@ -140,7 +140,30 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   return Sources.collect(this, l).stream()
     .collect(Collectors.groupingBy(s -> new Key(s.m(), s.rc())));
   }
+  private static final MName hashName= new MName("#",1);
+  private static final MName asName= new MName(".as",1);
+  private void baseIdOk(Literal l){
+    if (l.cs().stream().noneMatch(c->c.name().s().equals("base.BaseId"))){ return; }
+    var ms= l.ms();
+    if (ms.size() != 1 || !ms.getFirst().sig().m().equals(hashName)){ throw tsE().baseIdNotOnlyHash(l); }
+    var m= ms.getFirst();
+    if (m.e().isPresent() && !isId(m)){ throw tsE().baseIdBadBody(l,m); }
+  }
+  private boolean isId(M m){
+    var x= m.xs().getFirst();
+    return switch(m.e().get()){
+      case X e -> e.name().equals(x);
+      case Call c -> c.e() instanceof X e && e.name().equals(x) && c.name().equals(asName)
+        && c.rc() == RC.imm && isBaseContainer(m.sig().ts().getFirst());
+      default -> false;
+    };
+  }
+  private boolean isBaseContainer(T t){
+    return t instanceof T.RCC rcc
+      && decs().apply(rcc.c().name()).cs().stream().anyMatch(c->c.name().s().equals("base.BaseContainer"));
+  }
   private void litOk(Gamma g, Literal l){
+    baseIdOk(l);
     var delta= l.bs();
     var span= l.name().approxSpan();
     var selfT= new T.C(l.name(),dom(delta,span));
