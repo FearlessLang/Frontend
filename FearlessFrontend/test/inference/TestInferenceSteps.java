@@ -1663,4 +1663,116 @@ A[X]:base.WidenTo[X]{}
 B[Y]:{.m(A[Y]):A[Y]->A[Y]}
 """));}
 
+//---- what head does base.WidenTo give to an object literal? ----------------
+//The four tests below pin CURRENT behaviour: for an anonymous typed literal
+//`C{..}`, InjectionSteps.nextL replaces the literal HEAD with the base.WidenTo
+//target of C (nextL: withT(preferred(..)) then expandLiteral(l,rcc.c())), so the
+//literal is expanded/committed as an instance of the widened type, not of C.
+//Nested NAMED literals do not re-head: expandDeclaration uses l.cs() instead.
+
+//The anon literal `Sup{}` has no methods, so commitToTable collapses it to a type
+//expression; being re-headed, the emitted expression is "p.Target", not "p.Sup".
+@Test void magicWidenAnonLiteralHeadNoMethods(){okI("""
+p.B:{'this .m:p.Target@p.B;->p._AB:p.Sup:?;}
+p.Sup:base.WidenTo[p.Target]{'this}
+p.Target:p.Sup, base.WidenTo[p.Target]{'this}
+~-----------
+~mut p.B:{'this .m:p.Target->p.Target}
+~mut p.Sup:base.WidenTo[p.Target]{'this }
+~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this }
+""",List.of("""
+Sup:base.WidenTo[Target]{}
+Target:Sup{}
+B:{.m:Target->Sup{}}
+"""));}
+
+//The anon literal is written at "Sup" but is committed as "p.Target, p.Sup, ..":
+//it acquires a supertype (p.Target) that the source never names.
+@Test void magicWidenAnonLiteralHead(){okI("""
+p.B:{'this .m:p.Target@p.B;->p._AB:p.Sup{'_ ? .foo[?]:?@!;->base.Str:?;}:?;}
+p.Sup:base.WidenTo[p.Target]{'this .foo:base.Str@p.Sup;}
+p.Target:p.Sup, base.WidenTo[p.Target]{'this .foo:base.Str@p.Sup;}
+p._AB:p.Target, p.Sup, base.WidenTo[p.Target]{'_ .foo:base.Str@p._AB;->base.Str:base.Str;}
+~-----------
+~mut p.B:{'this .m:p.Target->imm p._AB:p.Sup, p.Target, base.WidenTo[p.Target]{'_ .foo:base.Str->base.Str}}
+~mut p.Sup:base.WidenTo[p.Target]{'this .foo:base.Str}
+~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this .foo:base.Str}
+""",List.of("""
+Sup:base.WidenTo[Target]{ .foo:base.Str }
+Target:Sup{}
+B:{.m:Target->Sup{.foo->base.Str}}
+"""));}
+
+//Same program with a NAMED literal: the head stays "p.Sup", only the inferred
+//type of the expression is widened. This is the behaviour re-heading should match.
+@Test void magicWidenNamedLiteralHead(){okI("""
+p.B:{'this .m:p.Target@p.B;->p.N:p.Sup:?;}
+p.N:p.Sup, base.WidenTo[p.Target]{'_}
+p.Sup:base.WidenTo[p.Target]{'this}
+p.Target:p.Sup, base.WidenTo[p.Target]{'this}
+~-----------
+~mut p.B:{'this .m:p.Target->imm p.N:p.Sup, base.WidenTo[p.Target]{'_ }}
+~mut p.Sup:base.WidenTo[p.Target]{'this }
+~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this }
+""",List.of("""
+Sup:base.WidenTo[Target]{}
+Target:Sup{}
+B:{.m:Target-> N:Sup{} }
+"""));}
+
+//Re-heading upwards produces an INCONSISTENT literal: the class table entry
+//"p._AB" is committed as "p.Sup,.." (so p.Sub, and hence p.Sub's own concrete
+//".bar", are dropped) while ToCore.csUnion puts "p.Sub" back into the tree copy.
+//The two copies of p._AB below disagree. Running the type system on this input
+//dies inside typeSystem.Sources.findCanonical (OneOr "Methods with duplicates or
+//absent") rather than reporting a Fearless error.
+@Test void magicWidenAnonLiteralHeadOfSubtype(){okI("""
+p.B:{'this .m:p.Sub@p.B;->p._AB:p.Sub{'_ ? .foo[?]:?@!;->base.Str:?;}:?;}
+p.Sub:p.Sup, base.WidenTo[p.Sup]{'this .bar:base.Str@p.Sub;->base.Str:?; .foo:base.Str@p.Sup;}
+p.Sup:base.WidenTo[p.Sup]{'this .foo:base.Str@p.Sup;}
+p._AB:p.Sup, base.WidenTo[p.Sup]{'_ .foo:base.Str@p._AB;->base.Str:base.Str;}
+~-----------
+~mut p.B:{'this .m:p.Sub->imm p._AB:p.Sub, p.Sup, base.WidenTo[p.Sup]{'_ .foo:base.Str->base.Str}}
+~mut p.Sub:p.Sup, base.WidenTo[p.Sup]{'this .bar:base.Str->base.Str; .foo:base.Str}
+~mut p.Sup:base.WidenTo[p.Sup]{'this .foo:base.Str}
+""",List.of("""
+Sup:base.WidenTo[Sup]{ .foo:base.Str }
+Sub:Sup{ .bar:base.Str->base.Str }
+B:{.m:Sub->Sub{.foo->base.Str}}
+"""));}
+
+//Re-heading DOWNWARDS, the "fixpoint" shape used by base _Opt[E]:DataType[Opt[E],..]
+//and DataType[T,T0]:WidenTo[T]: the literal written at "p.D[p.MyT,base.Str]" is
+//committed as a "p.MyT", a type the source never names.
+@Test void magicWidenAnonLiteralHeadFixpoint(){okI("""
+p.B:{'this .m:p.D[p.MyT,base.Str]@p.B;->p._AB:p.D[p.MyT,base.Str]{'_ ? .close[?](?):?@!;(t)->t:?;}:?;}
+p.D[T:imm, T0:imm]:base.WidenTo[T]{'this .close(T):p.D[T,T0]@p.D;}
+p.MyT:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'this .close(p.MyT):p.D[p.MyT,base.Str]@p.MyT;(t)->t:?;}
+p._AB:p.MyT, p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'_ .close(p.MyT):p.D[p.MyT,base.Str]@p._AB;(t)->t:p.MyT;}
+~-----------
+~mut p.B:{'this .m:p.D[p.MyT,base.Str]->imm p._AB:p.D[p.MyT,base.Str], p.MyT, base.WidenTo[p.MyT]{'_ .close(t:p.MyT):p.D[p.MyT,base.Str]->t}}
+~mut p.D[T:imm,T0:imm]:base.WidenTo[T]{'this .close(_:T):p.D[T,T0]}
+~mut p.MyT:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'this .close(t:p.MyT):p.D[p.MyT,base.Str]->t}
+""",List.of("""
+D[T,T0]:base.WidenTo[T]{ .close(t:T):D[T,T0] }
+MyT:D[MyT,base.Str]{ .close(t)->t }
+B:{.m:D[MyT,base.Str]->D[MyT,base.Str]{.close(t)->t}}
+"""));}
+
+//An explicit reference capability on the literal does not stop the re-heading.
+@Test void magicWidenAnonLiteralHeadWithRC(){okI("""
+p.B:{'this .m:mut p.Target@p.B;->mut p._AB:p.Sup{'_ ? .foo[?]:?@!;->base.Str:?;}:?;}
+p.Sup:base.WidenTo[p.Target]{'this mut .foo:base.Str@p.Sup;}
+p.Target:p.Sup, base.WidenTo[p.Target]{'this mut .foo:base.Str@p.Sup;}
+p._AB:p.Target, p.Sup, base.WidenTo[p.Target]{'_ mut .foo:base.Str@p._AB;->base.Str:base.Str;}
+~-----------
+~mut p.B:{'this .m:mut p.Target->mut p._AB:p.Sup, p.Target, base.WidenTo[p.Target]{'_ mut .foo:base.Str->base.Str}}
+~mut p.Sup:base.WidenTo[p.Target]{'this mut .foo:base.Str}
+~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this mut .foo:base.Str}
+""",List.of("""
+Sup:base.WidenTo[Target]{ mut .foo:base.Str }
+Target:Sup{}
+B:{.m:mut Target->mut Sup{.foo->base.Str}}
+"""));}
+
 }

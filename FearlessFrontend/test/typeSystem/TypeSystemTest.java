@@ -3024,6 +3024,54 @@ Error 7 WellFormedness
 ExtStr:`beer`{}
 """));}
 
+//---- base.WidenTo and the head of an anonymous literal, seen end to end -----
+//`Sup{}` is written at Sup, which is NOT a subtype of Target. Without base.WidenTo
+//this is a type error (see tsWidenAnonLiteralHeadControlNoWiden below); with WidenTo[Target] on Sup
+//the anonymous literal is re-headed to Target by inference and the program is
+//accepted. See inference.TestInferenceSteps.magicWidenReHeadsToTypeExpression.
+@Test void tsWidenAnonLiteralHeadVsRequiredType(){ok(List.of("""
+Sup:base.WidenTo[Target]{}
+Target:Sup{}
+B:{.m:Target->Sup{}}
+"""));}
+
+//CONTROL: identical shape, no base.WidenTo. Correctly rejected.
+@Test void tsWidenAnonLiteralHeadControlNoWiden(){fail("""
+003| B:{.m:Target->Sup{}}
+   |    -----------^^^^-
+
+While inspecting object literal instance of "Sup" > ".m" line 3
+The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
+Object literal is of type "Sup" instead of a subtype of "Target".
+
+See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
+B:{.m:Target->Sup}
+""",List.of("""
+Sup:{}
+Target:Sup{}
+B:{.m:Target->Sup{}}
+"""));}
+
+//The re-heading is observable: the literal is written at "Sup", yet it is asked to
+//implement ".extra", a method that only "Target" declares.
+@Test void tsWidenAnonLiteralHeadMissingMethod(){fail("""
+003| B:{.m:Target->Sup{.foo->base.Str}}
+   |    -----------^^^^---------------
+
+While inspecting object literal instance of "iso Sup" > ".m" line 3
+This object literal is missing a required method.
+Missing: "imm .extra".
+Required by: "Target".
+Hint: add an implementation for ".extra" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso Sup{.foo:-.Str->-.Str}
+""",List.of("""
+Sup:base.WidenTo[Target]{ .foo:base.Str }
+Target:Sup{ .extra:base.Str }
+B:{.m:Target->Sup{.foo->base.Str}}
+"""));}
+
 @Test void tsPromotionChanin(){ok(List.of("""
 A:{ imm .a1: mut A; mut .a2: A;}
 B:{ .b(a:A):A->a.a1.a2; }
