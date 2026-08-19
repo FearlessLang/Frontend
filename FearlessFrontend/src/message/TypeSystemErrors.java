@@ -44,6 +44,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
        .findFirst().orElseThrow();
     };
    return new Err(publicHead,f,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
+  public FearlessException baseIdBadBody(Literal l, M m){
+    String x= m.xs().getFirst();
+    return err()
+      .line(up(err().expRepr(l))+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
+      .line("The body of "+err().methodSig(m.sig().m())+" must be "+disp(x)+" or "+disp(x+".as{...}")+".")
+      .line("Only those two shapes are the identity function.")
+      .ex(m.e().get()).addSpan(m.e().get().span().inner);
+  }
   public FearlessException mCallFrame(M m, FearlessException fe){
     return fe.addFrame(err().methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
   }

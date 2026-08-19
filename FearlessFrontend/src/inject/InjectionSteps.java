@@ -9,6 +9,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
+import core.LiteralDeclarations;
 import core.MName;
 import core.RC;
 import core.TName;
@@ -219,7 +220,7 @@ public record InjectionSteps(Methods meths){
   private IT preferred(IT.RCC type){
     var d= meths._from(type.c().name());//d.cs() does contain all the transitive supertypes already.
     if (d == null){ return type; }//This can happen for {..}.foo
-    var cs= d.cs().stream().filter(c -> c.name().s().equals("base.WidenTo")).toList();
+    var cs= d.cs().stream().filter(c -> c.name().equals(LiteralDeclarations.widen)).toList();
     if (cs.isEmpty()){ return type; }
     assert cs.size() == 1;
     assert cs.getFirst().ts().size() == 1;
@@ -486,8 +487,55 @@ public record InjectionSteps(Methods meths){
     g.popScope();
     return nextMStarOpRun(rcc, m, e, args);
   }
+  private boolean isBaseId(IT.RCC rcc){
+    if (rcc.c().name().equals(LiteralDeclarations.baseId)){ return true; }
+    var d= meths._from(rcc.c().name());
+    return d != null && LiteralDeclarations.has(d.cs(),LiteralDeclarations.baseId);
+  }
+  /*TODO: generalize this away from base.BaseId.
+  The line below is the only place where the BaseId rule leaks into inference, and it should not
+  have to name a type. Inference computes a meet, so a literal's method return type is narrowed to
+  the type of its body. For an invariant generic whose parameter appears only in a covariant
+  position the body's type is a lower bound and not an equality, so narrowing to it throws away
+  what the use site said. That is why "cs.as{::}" cannot widen: "{::}" checked against
+  BaseId[Customer,?] infers BaseId[Customer,Customer]. The same happens with a plain MF based
+  ".as" that the compiler knows nothing about, see oldStyleAsCannotWiden in TypeSystemTest, so the
+  narrowing is not something the BaseId rule introduced; it is why the widening use of ".as" was
+  unreachable in the first place.
+
+  Attempt made, on branch experiment/general-inference-widening, draft FearlessLang/Frontend#15:
+  split the fixpoint over a method body into two passes over the same Gamma. Pass one takes
+  nothing from bodies, so use site constraints settle first; pass two fills what is still "?" from
+  the bodies, and only fills, never replacing what pass one decided. Gamma.newGeneration
+  invalidates the done/sign memo so the second pass is not skipped. That deletes this special case
+  and widening then works for any type. Frontend went to 669 passing with 9 TestInferenceSteps
+  golden logs moving, base needed two rewrites, integration went to 154 of 155.
+
+  Two things blocked it.
+  1. List.info and ESet.take relied on a mut result reaching an imm position through an inferred
+  lambda return type. Pinning that type kills the promotion the type system would have applied
+  later. Writing the same type by hand kills it on the current code too, so this is not specific
+  to the prototype: the "mut in, iso out" chain has to stay open until CallTyping runs.
+  2. helloWorld's Hello5, "L#(1,2,3,4).flow.map{:: + 10}.list.str{::}", inferred R as "iso ToStr".
+  Half of that was nextX writing the type imposed on a variable occurrence back into Gamma, which
+  is a requirement and not knowledge about the variable; suppressing that write in pass one
+  restores R=Nat. What remains is the "{::}" passed to ".str": ToStrBy[T] mentions T only in the
+  parameter, so T can only come from the argument, and the body node still carries the declared
+  return "read ToStr" that pass one pushed onto it. Removing that push down instead breaks nearly
+  every test, since it is how an expected type reaches a nested literal at all. hello5Shape on
+  that branch is the minimized case.
+
+  So the engine cannot currently tell "type imposed as a requirement" from "type learned as a
+  fact" on an E node, and a general rule needs that distinction.
+
+  Cheaper heuristic to try first: force the required type over the more precise one obtained from
+  the body only for identity lambdas, that is when the method body is exactly the method's own
+  parameter, independently of any ".as" call. That covers "{::}" and "{x->x}" without naming
+  BaseId, and leaves every other lambda on today's meet.
+  */
   TSM nextMStarOpRun(IT.RCC rcc, inference.M m, E e, List<Optional<IT>> args){
-    M.Sig improvedSig= m.sig().withTsT(args, meet(m.sig().ret().get(), e.t()));
+    IT ret= isBaseId(rcc) ? m.sig().ret().get() : meet(m.sig().ret().get(), e.t());
+    M.Sig improvedSig= m.sig().withTsT(args, ret);
     var omh= methodHeaderAnd(rcc, improvedSig.m().get(), improvedSig.rc(),(_,_,mi)->mi);
     assert omh.isEmpty() || assertNoBinderClash(rcc, omh.get());
     return omh

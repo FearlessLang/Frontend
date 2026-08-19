@@ -3094,4 +3094,149 @@ Flow[P:*]:{mut .map(read D): mut Flow[P]; mut .list:mut List[P]}
 Names1:{ #(ps: List[A]): iso List[A] -> ps.flow.map iso D{}.list }
 Names2:{ #(ps: List[A]): iso List[A] -> ps.flow.map {}.list }
 """));}
+
+@Test void baseIdIdentity(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .m: base.BaseId[Customer,Person] -> {::} }
+"""));}
+@Test void baseIdIdentityNamed(){ok(List.of("""
+Person:{}
+Customer:Person{}
+MyId:base.BaseId[Customer,Person]{ #(x)->x }
+"""));}
+@Test void baseIdAsCall(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(cs: base.MList[Customer]): base.MList[Person] -> cs.as{::} }
+"""));}
+@Test void baseIdAsCallExplicitTarg(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(cs: base.MList[Customer]): base.MList[Person] -> cs.as[Person]{::} }
+"""));}
+@Test void baseIdNested(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{
+  .m: base.BaseId[base.MList[Customer],base.MList[Person]] -> {::.as{::}};
+  .n(css: base.MList[base.MList[Customer]]): base.MList[base.MList[Person]] -> css.as{::.as{::}};
+  }
+"""));}
+@Test void baseIdNotSubtype(){fail("""
+003| User:{ .m: base.BaseId[Person,Customer] -> {::} }
+   |        -------------------------------------^^^
+
+While inspecting parameter "::" > "#(_)" line 3 > ".m" line 3
+Method "#(_)" inside the object literal instance of "iso base.BaseId[Person,Customer]" (line 3)
+is implemented with an expression returning "Person".
+Parameter "::" has type "Person" instead of a subtype of "Customer".
+
+See inferred typing context below for how type "Customer" was introduced: (compression indicated by `-`)
+User:{.m:-.BaseId[Person,Customer]->-.BaseId[Person,Customer]{#(_aimpl:Person):Customer->::}}
+""",List.of("""
+Person:{}
+Customer:Person{}
+User:{ .m: base.BaseId[Person,Customer] -> {::} }
+"""));}
+@Test void baseIdNotIdentity(){fail("""
+003| MyId:base.BaseId[Customer,Person]{ #(x)->Person }
+   |                                          ^^^^^^
+
+While inspecting the file
+Type declaration "MyId" implements "base.BaseId[_,_]".
+The body of "#(_)" must be "x" or "x.as{...}".
+Only those two shapes are the identity function.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Person
+""",List.of("""
+Person:{}
+Customer:Person{}
+MyId:base.BaseId[Customer,Person]{ #(x)->Person }
+"""));}
+@Test void baseIdWrongReceiver(){fail("""
+004| MyId:base.BaseId[base.MList[Customer],base.MList[Person]]{ #(x)->Other.cs.as{::} }
+   |                                                                  ^^^^^^^^^^^^^^^
+
+While inspecting the file
+Type declaration "MyId" implements "base.BaseId[_,_]".
+The body of "#(_)" must be "x" or "x.as{...}".
+Only those two shapes are the identity function.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Other.cs.as[imm,Person](-.BaseId[Customer,Person]{#(_aimpl:Customer):Person->::})
+""",List.of("""
+Person:{}
+Customer:Person{}
+Other:{ .cs: base.MList[Customer] -> base.Nope! }
+MyId:base.BaseId[base.MList[Customer],base.MList[Person]]{ #(x)->Other.cs.as{::} }
+"""));}
+@Test void baseIdAbstractAlias(){ok(List.of("""
+Person:{}
+Customer:Person{}
+MyId:base.BaseId[Customer,Person]{}
+User:{ .m: MyId -> MyId{::} }
+"""));}
+@Test void baseIdExtraMethod(){failExt("""
+In file: [###].fear
+
+003| MyId:base.BaseId[Customer,Person]{ #(x)->x; .extra: Person -> Person }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "MyId"
+Type declaration "MyId" implements "base.BaseId[_,_]".
+Only the method "#(_)" can be declared here.
+Error 7 WellFormedness""",List.of("""
+Person:{}
+Customer:Person{}
+MyId:base.BaseId[Customer,Person]{ #(x)->x; .extra: Person -> Person }
+"""));}
+
+
+@Test void oldStyleAsMapsFine(){ok(List.of("""
+Person:{ .name: base.Str }
+MFList[E:*]: { imm .as[R](f: base.MF[imm E,R]): MFList[R] -> base.Nope! }
+User:{ .n(ps: MFList[Person]): MFList[base.Str] -> ps.as{::.name} }
+"""));}
+@Test void oldStyleAsIdentityFine(){ok(List.of("""
+Person:{}
+Customer:Person{}
+MFList[E:*]: { imm .as[R](f: base.MF[imm E,R]): MFList[R] -> base.Nope! }
+User:{ .n(cs: MFList[Customer]): MFList[Customer] -> cs.as{::} }
+"""));}
+@Test void oldStyleAsCannotWiden(){fail("""
+004| User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as{::} }
+   |        --------------------------------------------^^^^^^^^^
+
+While inspecting method call ".as(_)" > ".n(_)" line 4
+The body of method ".n(_)" of type declaration "User" is an expression returning "MFList[Customer]".
+Method call "MFList[_].as(_)" has type "MFList[Customer]" instead of a subtype of "MFList[Person]".
+
+See inferred typing context below for how type "MFList[Person]" was introduced: (compression indicated by `-`)
+User:{.n(cs:MFList[Customer]):MFList[Person]->cs.as[imm,Customer](-.MF[Customer,Customer]{(-)->::})}
+""",List.of("""
+Person:{}
+Customer:Person{}
+MFList[E:*]: { imm .as[R](f: base.MF[imm E,R]): MFList[R] -> base.Nope! }
+User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as{::} }
+"""));}
+@Test void oldStyleAsCannotWidenEvenWithExplicitTarg(){fail("""
+004| User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as[Person]{::} }
+   |        --------------------------------------------~~^^^^~~~~~~~~~~~
+
+While inspecting ".n(_)" line 4
+This call to method "MFList[_].as(_)" can not typecheck.
+Argument 1 has type "iso base.MF[Customer,Customer]".
+That is not a subtype of "base.MF[Customer,Person]" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.as[imm,Person](-.MF[Customer,Customer]{mut #(_aimpl:Customer):Customer->::})
+""",List.of("""
+Person:{}
+Customer:Person{}
+MFList[E:*]: { imm .as[R](f: base.MF[imm E,R]): MFList[R] -> base.Nope! }
+User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as[Person]{::} }
+"""));}
+
 }

@@ -140,7 +140,28 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   return Sources.collect(this, l).stream()
     .collect(Collectors.groupingBy(s -> new Key(s.m(), s.rc())));
   }
+  private static final MName asOne= new MName(".as",1);
+  private void baseIdOk(Literal l){
+    if (!LiteralDeclarations.has(l.cs(),LiteralDeclarations.baseId)){ return; }
+    var m= OneOr.of("BaseId literals declare only #",l.ms().stream());
+    if (m.e().isPresent() && !isId(m)){ throw tsE().baseIdBadBody(l,m); }
+  }
+  private boolean isId(M m){
+    assert m.xs().size() == 1;
+    var x= m.xs().getFirst();
+    return switch(m.e().get()){
+      case X e -> e.name().equals(x);
+      case Call c -> c.e() instanceof X e && e.name().equals(x) && c.name().equals(asOne)
+        && c.rc() == RC.imm && isBaseContainer(m.sig().ts().getFirst());
+      default -> false;
+    };
+  }
+  private boolean isBaseContainer(T t){
+    return t instanceof T.RCC rcc
+      && LiteralDeclarations.has(decs().apply(rcc.c().name()).cs(),LiteralDeclarations.baseContainer);
+  }
   private void litOk(Gamma g, Literal l){
+    baseIdOk(l);
     var delta= l.bs();
     var span= l.name().approxSpan();
     var selfT= new T.C(l.name(),dom(delta,span));

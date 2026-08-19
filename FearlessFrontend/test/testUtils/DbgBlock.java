@@ -98,6 +98,12 @@ public static String baseBody="""
 Sealed:{}
 CaptureFree: {}
 WidenTo[T]:{}
+BaseId[T1:*,T2]: CaptureFree{ #(x: T1): T2 }
+BaseContainer[T1:*]: Sealed{ imm .as[T2](f: BaseId[T1,T2]): BaseContainer[T2] -> Nope! }
+MList[E:*]: BaseContainer[imm E]{
+  imm .as[T2](f: BaseId[imm E,T2]): MList[T2] -> Nope!;
+  .get: imm E -> Nope!;
+  }
 InferUnknown:Sealed{}
 InferErr[A,B]:Sealed{}
 InferErr[A,B,C]:Sealed{}

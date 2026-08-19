@@ -36,7 +36,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     return tail._bindOrNull(x);
   }
   public Gamma filterFTV(Literal l){
-    var captureFree= l.cs().stream().anyMatch(c->c.name().s().equals("base.CaptureFree"));
+    var captureFree= LiteralDeclarations.has(l.cs(),LiteralDeclarations.captureFree);
     return filterFTV(l,captureFree);
   }
   private Gamma filterFTV(Literal l,boolean captureFree){//we only care about dom(bs)

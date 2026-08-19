@@ -137,22 +137,24 @@ public record Methods(
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
     var widen= allCs.stream()
-      .filter(c -> c.name().s().equals("base.WidenTo"))
+      .filter(c -> c.name().equals(LiteralDeclarations.widen))
       .toList();
     if (widen.size() > 1){ throw p.err().multipleWidenTo(d, widen); }
-    var hasSealed= allCs.stream()
-      .filter(c -> c.name().s().equals("base.Sealed"))
-      .count() != 0;
-    if (!hasSealed){ return; }
+    if (allCs.stream().anyMatch(c->c.name().equals(LiteralDeclarations.baseId))){ checkBaseId(d); }
+    if (allCs.stream().noneMatch(c->c.name().equals(LiteralDeclarations.sealed))){ return; }
     allCs.stream()
       .filter(c->!c.name().pkgName().equals(d.name().pkgName()))
       .forEach(c->notSealed(c.name(),d));
   }
+  private void checkBaseId(E.Literal d){
+    var ms= d.ms();
+    var bad= ms.size() > 1 || ms.stream().anyMatch(m->!m.sig().m().map(hashOne::equals).orElse(true));
+    if (bad){ throw p.err().baseIdNotOnlyHash(d); }
+  }
+  private static final MName hashOne= new MName("#",1);
   void notSealed(TName target, E.Literal owner){
-    boolean hasSealed= LiteralDeclarations._from(target, _->null, other)
-    .cs().stream()
-    .filter(c -> c.name().s().equals("base.Sealed")).count() != 0;
-    if (!hasSealed){ return; }
+    var d= LiteralDeclarations._from(target, _->null, other);
+    if (!LiteralDeclarations.has(d.cs(),LiteralDeclarations.sealed)){ return; }
     throw p.err().extendedSealed(owner,fresh, target);
   }
 

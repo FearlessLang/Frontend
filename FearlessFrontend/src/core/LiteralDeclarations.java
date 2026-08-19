@@ -18,6 +18,11 @@ public class LiteralDeclarations {
   public static TName baseInt= new TName("base.Int",0,Pos.unknown);
   public static TName baseFloat= new TName("base.Float",0,Pos.unknown);
   public static TName widen= new TName("base.WidenTo",1,Pos.unknown);
+  public static TName sealed= new TName("base.Sealed",0,Pos.unknown);
+  public static TName captureFree= new TName("base.CaptureFree",0,Pos.unknown);
+  public static TName baseId= new TName("base.BaseId",2,Pos.unknown);
+  public static TName baseContainer= new TName("base.BaseContainer",1,Pos.unknown);
+  public static boolean has(List<T.C> cs, TName magic){ return cs.stream().anyMatch(c->c.name().equals(magic)); }
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
   static private core.E.Literal forge(TName name,TName lit, Function<TName,Literal> map, OtherPackages other){
     var res= map.apply(lit);
