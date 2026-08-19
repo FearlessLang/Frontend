@@ -135,14 +135,13 @@ public record Methods(
     List<IT.C> allCs= Stream.concat(Stream.of(c), fetchCs(c).stream()).distinct().toList();
     return d.withCsMs(allCs, allMs, true);
   }
-  private static boolean has(List<IT.C> cs, TName magic){ return cs.stream().anyMatch(c->c.name().s().equals(magic.s())); }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
     var widen= allCs.stream()
-      .filter(c -> c.name().s().equals(LiteralDeclarations.widen.s()))
+      .filter(c -> c.name().equals(LiteralDeclarations.widen))
       .toList();
     if (widen.size() > 1){ throw p.err().multipleWidenTo(d, widen); }
-    if (has(allCs,LiteralDeclarations.baseId)){ checkBaseId(d); }
-    if (!has(allCs,LiteralDeclarations.sealed)){ return; }
+    if (allCs.stream().anyMatch(c->c.name().equals(LiteralDeclarations.baseId))){ checkBaseId(d); }
+    if (allCs.stream().noneMatch(c->c.name().equals(LiteralDeclarations.sealed))){ return; }
     allCs.stream()
       .filter(c->!c.name().pkgName().equals(d.name().pkgName()))
       .forEach(c->notSealed(c.name(),d));
