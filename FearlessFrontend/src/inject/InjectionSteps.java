@@ -51,7 +51,8 @@ Offensive style: Optional.get() is intentional where invariants guarantee presen
 absence indicates a bug and should crash.
 */
 
-public record InjectionSteps(Methods meths){
+public record InjectionSteps(Methods meths, boolean bodyFill){
+  public InjectionSteps(Methods meths){ this(meths,false); }
   public static List<core.E.Literal> steps(Methods meths, List<inference.E.Literal> tops){
     var s= new InjectionSteps(meths);
     assert tops.stream().allMatch(l->l.thisName().equals("this"));
@@ -76,7 +77,10 @@ public record InjectionSteps(Methods meths){
     var thisType= new IT.RCC(Optional.of(mCore.sig().rc()), new IT.C(di.name(), thisTypeTs),span);//no preferred on self names
     inference.E ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     Gamma g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
-    ei = nextStar(Push.of(di.bs(), m.sig().bs().get()), g, ei);
+    var allBs= Push.of(di.bs(), m.sig().bs().get());
+    ei = nextStar(allBs, g, ei);
+    g.newGeneration();
+    ei = new InjectionSteps(meths,true).nextStar(allBs, g, ei);
     return new core.M(mCore.sig(), xs, Optional.of(new ToCore().of(ei, m.impl().get().e())));
   }
   E meet(E e, IT t){
@@ -486,13 +490,19 @@ public record InjectionSteps(Methods meths){
     g.popScope();
     return nextMStarOpRun(rcc, m, e, args);
   }
-  private boolean isBaseId(IT.RCC rcc){
-    if (rcc.c().name().s().equals("base.BaseId")){ return true; }
-    var d= meths._from(rcc.c().name());
-    return d != null && d.cs().stream().anyMatch(c->c.name().s().equals("base.BaseId"));
+  IT fill(IT known, IT from){
+    if (known == IT.U.Instance){ return from; }
+    if (known.isTV() || from == IT.U.Instance){ return known; }
+    if (!(known instanceof IT.RCC a && from instanceof IT.RCC b)){ return meet(known, from); }
+    if (!a.c().name().equals(b.c().name())){ return meet(known, from); }
+    return a.withRCTs(meetRcNoH(a.rc(), b.rc()), fill(a.c().ts(), b.c().ts()));
+  }
+  List<IT> fill(List<IT> known, List<IT> from){
+    assert known.size() == from.size();
+    return IntStream.range(0, known.size()).mapToObj(i -> fill(known.get(i), from.get(i))).toList();
   }
   TSM nextMStarOpRun(IT.RCC rcc, inference.M m, E e, List<Optional<IT>> args){
-    IT ret= isBaseId(rcc) ? m.sig().ret().get() : meet(m.sig().ret().get(), e.t());
+    IT ret= bodyFill ? fill(m.sig().ret().get(), e.t()) : m.sig().ret().get();
     M.Sig improvedSig= m.sig().withTsT(args, ret);
     var omh= methodHeaderAnd(rcc, improvedSig.m().get(), improvedSig.rc(),(_,_,mi)->mi);
     assert omh.isEmpty() || assertNoBinderClash(rcc, omh.get());
