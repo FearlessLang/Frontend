@@ -3081,30 +3081,17 @@ B:{.m:Target->Sup{.foo->base.Str}}
 
 //---- base.WidenTo and the METHOD BODIES of a named literal, seen end to end -
 //"N:Sup{.foo(x)->x}" is a correct program: p.N is a p.Sup and p.Sup says ".foo"
-//takes a base.Str (tsWidenNamedLiteralBodyControlNoWiden below compiles it).
-//Adding base.WidenTo[Target] to the literal makes inference read ".foo" out of
-//Target instead, so "x" comes back as a Target and the type system rejects the
-//program for an override clash against a class the literal never mentions.
-//See inference.TestInferenceSteps.magicWidenNamedLiteralMethodBody.
-@Test void tsWidenNamedLiteralBody(){fail("""
-003| B:{ .m:Sup-> N:Sup,base.WidenTo[Target]{ .foo(x)->x } }
-   |     ---------~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^~~
-
-While inspecting object literal "iso N" > ".m" line 3
-Invalid method signature overriding for "N.foo(_)".
-The method ".foo(_)" accepts parameter 1 of type "Target".
-But "Sup.foo(_)" requires "base.Str", which is not a subtype of "Target".
-The two types are unrelated.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso N:Sup,-.WidenTo[Target]{.foo(x:Target):Target->x}
-""",List.of("""
+//takes a base.Str. base.WidenTo[Target] on the literal does not change that: the
+//bodies used to be inferred against Target instead, so "x" came back as a Target
+//and the program was rejected for an override clash against a class the literal
+//never mentions. See inference.TestInferenceSteps.magicWidenNamedLiteralMethodBody.
+@Test void tsWidenNamedLiteralBody(){ok(List.of("""
 Target:{ .foo(x:Target):Target }
 Sup:{ .foo(x:base.Str):base.Str }
 B:{ .m:Sup-> N:Sup,base.WidenTo[Target]{ .foo(x)->x } }
 """));}
 
-//CONTROL: identical, minus base.WidenTo[Target] on the literal. Accepted.
+//CONTROL: identical, minus base.WidenTo[Target] on the literal. Accepted alike.
 @Test void tsWidenNamedLiteralBodyControlNoWiden(){ok(List.of("""
 Target:{ .foo(x:Target):Target }
 Sup:{ .foo(x:base.Str):base.Str }

@@ -223,7 +223,9 @@ public record InjectionSteps(Methods meths){
   subtype of a type parameter and there is nothing to widen to when the
   substituted target is not headed. The reference capability always comes from
   `type`, never from the one written inside base.WidenTo[..].
-  Never used to pick the HEAD of an object literal: see nextL.
+  Only used where the result is a type and not a head: nextT and the `C{}`
+  collapse in commitToTable. The head of a literal is the type the literal is
+  written at, never this: see nextL.
   */
   private IT preferred(IT.RCC type){
     var d= meths._from(type.c().name());//d.cs() does contain all the transitive supertypes already.
@@ -376,11 +378,6 @@ public record InjectionSteps(Methods meths){
       Stream.of(r)).flatMap(s->s).toList();
     return meet(tss);
   }
-  private Optional<IT.RCC> precisePublicSelf(E.Literal l){
-    if (l.infName()){ return superSelf(l); }
-    var xs= l.bs().stream().<IT>map(b -> new IT.X(b.x(),l.name().approxSpan())).toList();
-    return Optional.of(new IT.RCC(l.rc(), new IT.C(l.name(), xs),l.name().approxSpan()));
-  }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
     if (l.infName() && l.rc().isEmpty()){ return Optional.empty(); }
     var xs= l.bs().stream().<IT>map(b -> new IT.X(b.x(),l.name().approxSpan())).toList();
@@ -399,16 +396,15 @@ public record InjectionSteps(Methods meths){
   private E nextL(List<B> bs, Gamma g, E.Literal l){
     var infHead= l.infHead();//infHead is set in l.withCsMs and l.withMs and l.withMsT
     // to mean the HEAD is inferred as IT.RCC and has already been used to expand methods
-    var selfPub= precisePublicSelf(l);
     var selfPrecise= preciseSelf(l);
     var selfSuper= superSelf(l);
     if (!infHead){
-      //A named literal keeps its own name as head; expandDeclaration below reads
-      //l.cs(), so preferred only decides the type the expression is seen at.
-      if (!l.infName()){ l = l.withT(preferred(selfPub.get())); }
-      //An anonymous typed literal `C{..}` is an instance of the written C: its head
-      //is NOT widened, or expandLiteral/commitToTable below would inherit methods
-      //from, and commit the literal as, some other type than the one written.
+      //A named literal is an instance of its own name and an anonymous typed
+      //literal `C{..}` is an instance of the written C. Neither head is widened:
+      //l.t() IS the head of a literal (that is what infHead means), so it is also
+      //the rcc the loop below hands to nextMStar, and normalizeSigAgainstHeader
+      //would then read every method of the literal out of the base.WidenTo target.
+      if (!l.infName()){ l = l.withT(selfPrecise.get()); }
       else if (selfSuper.isPresent()){ l = l.withT(selfSuper.get()); }
       if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
       if (!l.infName()){ l = meths.expandDeclaration(l,true); }
