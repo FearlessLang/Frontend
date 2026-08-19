@@ -3217,4 +3217,21 @@ MFList[E:*]: { imm .as[R](f: base.MF[imm E,R]): MFList[R] -> base.Nope! }
 User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as[Person]{::} }
 """));}
 
+
+@Test void immInMutOutPromotesAtCallSite(){ok(List.of("""
+Elem:{}
+MyList[E:*]:{}
+Src[E:*]:{ mut .map[R:*](f: read base.F[E,R]): mut Src[R] -> base.Nope!; mut .list: mut MyList[E] -> base.Nope! }
+Holder[E:*]:{ imm .src: mut Src[imm E] -> base.Nope! }
+Mk:{ #[E:*](h: Holder[E], by: base.F[imm E,Elem]): mut MyList[Elem] -> h.src.map{e->by#e}.list }
+User:{ .m[E:*](h: Holder[E], by: base.F[imm E,Elem]): MyList[Elem] -> Mk#(h,by) }
+"""));}
+@Test void immReceiverChainPromotesDirectly(){ok(List.of("""
+Elem:{}
+MyList[E:*]:{}
+Src[E:*]:{ mut .map[R:*](f: read base.F[E,R]): mut Src[R] -> base.Nope!; mut .list: mut MyList[E] -> base.Nope! }
+Holder[E:*]:{ imm .src: mut Src[imm E] -> base.Nope! }
+User:{ .m[E:*](h: Holder[E], by: base.F[imm E,Elem]): MyList[Elem] -> h.src.map{e->by#e}.list }
+"""));}
+
 }
