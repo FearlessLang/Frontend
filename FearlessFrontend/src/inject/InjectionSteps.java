@@ -293,7 +293,7 @@ public record InjectionSteps(Methods meths, boolean bodyFill){
     var t1= g.getWithRC(x.name());
     var t2= x.t();
     if (t1.equals(t2)){ return x; }
-    if (t2 != IT.U.Instance){ updateG(g, x.name(), t1Base, t2); }
+    if (bodyFill && t2 != IT.U.Instance){ updateG(g, x.name(), t1Base, t2); }
     return x.withT(meet(t1, t2));
   }
   private void updateG(Gamma g, String x, IT t1, IT t2){

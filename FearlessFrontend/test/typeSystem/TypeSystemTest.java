@@ -3234,4 +3234,16 @@ Holder[E:*]:{ imm .src: mut Src[imm E] -> base.Nope! }
 User:{ .m[E:*](h: Holder[E], by: base.F[imm E,Elem]): MyList[Elem] -> h.src.map{e->by#e}.list }
 """));}
 
+
+@Test void hello5Shape(){ok(List.of("""
+MyToStrBy[T]:{ #(read T): read base.ToStr }
+MyList[E:*]:{ read .str(by: MyToStrBy[imm E]): base.Str -> base.Nope! }
+MyFlow[E:*]:{ mut .map[R:*](f: read base.F[E,R]): mut MyFlow[R] -> base.Nope!; mut .list: mut MyList[E] -> base.Nope! }
+Src:{ imm .flow: mut MyFlow[base.Nat] -> base.Nope! }
+User:{ .m: base.Str -> Src.flow.map{:: + base.Ten}.list.str{::} }
+"""));}
+
+
+
+
 }
