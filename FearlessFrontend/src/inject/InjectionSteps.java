@@ -216,17 +216,6 @@ public record InjectionSteps(Methods meths){
     case E.Type c -> nextT(c);
   };}
   core.E.Literal getDec(TName name){ return meths.from(name); }
-  /**
-  The type an expression creating an instance of `type` is inferred at.
-  Total: any instantiation of base.WidenTo is accepted. Only a class type can be
-  a preferred type; Fearless has no bounded generics, so a class is never a
-  subtype of a type parameter and there is nothing to widen to when the
-  substituted target is not headed. The reference capability always comes from
-  `type`, never from the one written inside base.WidenTo[..].
-  Only used where the result is a type and not a head: nextT and the `C{}`
-  collapse in commitToTable. The head of a literal is the type the literal is
-  written at, never this: see nextL.
-  */
   private IT preferred(IT.RCC type){
     var d= meths._from(type.c().name());//d.cs() does contain all the transitive supertypes already.
     if (d == null){ return type; }//This can happen for {..}.foo
@@ -399,11 +388,6 @@ public record InjectionSteps(Methods meths){
     var selfPrecise= preciseSelf(l);
     var selfSuper= superSelf(l);
     if (!infHead){
-      //A named literal is an instance of its own name and an anonymous typed
-      //literal `C{..}` is an instance of the written C. Neither head is widened:
-      //l.t() IS the head of a literal (that is what infHead means), so it is also
-      //the rcc the loop below hands to nextMStar, and normalizeSigAgainstHeader
-      //would then read every method of the literal out of the base.WidenTo target.
       if (!l.infName()){ l = l.withT(selfPrecise.get()); }
       else if (selfSuper.isPresent()){ l = l.withT(selfSuper.get()); }
       if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
@@ -451,8 +435,6 @@ public record InjectionSteps(Methods meths){
     }
     assert l.bs().isEmpty() : "bs must stay empty pre-commit";
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
-    //`C{}` with no methods is the type expression `C`, so it is inferred at the same
-    //type nextT would give it; rcc, the written head, stays the emitted type.
     if (noMeth && l.infHead() && meths._from(rcc.c().name()) != null){ return new E.Type(rcc, preferred(rcc), l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());
     List<IT.C> cs= selfInferred? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c()));

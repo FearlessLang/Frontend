@@ -3024,10 +3024,6 @@ Error 7 WellFormedness
 ExtStr:`beer`{}
 """));}
 
-//---- base.WidenTo and the head of an anonymous literal, seen end to end -----
-//`Sup{}` is an instance of Sup, which is NOT a subtype of Target, so it is
-//rejected whether or not Sup carries base.WidenTo[Target]: base.WidenTo does not
-//re-head the literal. See inference.TestInferenceSteps.magicWidenAnonLiteralHead*.
 @Test void tsWidenAnonLiteralHeadVsRequiredType(){fail("""
 003| B:{.m:Target->Sup{}}
    |    -----------^^^^-
@@ -3044,7 +3040,6 @@ Target:Sup{}
 B:{.m:Target->Sup{}}
 """));}
 
-//CONTROL: identical shape, no base.WidenTo. Same diagnostic as above.
 @Test void tsWidenAnonLiteralHeadControlNoWiden(){fail("""
 003| B:{.m:Target->Sup{}}
    |    -----------^^^^-
@@ -3061,8 +3056,6 @@ Target:Sup{}
 B:{.m:Target->Sup{}}
 """));}
 
-//The literal is never asked to implement ".extra", a method only "Target" declares:
-//it is reported for what it is, a Sup that is not a Target.
 @Test void tsWidenAnonLiteralHeadMissingMethod(){fail("""
 003| B:{.m:Target->Sup{.foo->base.Str}}
    |    -----------^^^^---------------
@@ -3079,19 +3072,12 @@ Target:Sup{ .extra:base.Str }
 B:{.m:Target->Sup{.foo->base.Str}}
 """));}
 
-//---- base.WidenTo and the METHOD BODIES of a named literal, seen end to end -
-//"N:Sup{.foo(x)->x}" is a correct program: p.N is a p.Sup and p.Sup says ".foo"
-//takes a base.Str. base.WidenTo[Target] on the literal does not change that: the
-//bodies used to be inferred against Target instead, so "x" came back as a Target
-//and the program was rejected for an override clash against a class the literal
-//never mentions. See inference.TestInferenceSteps.magicWidenNamedLiteralMethodBody.
 @Test void tsWidenNamedLiteralBody(){ok(List.of("""
 Target:{ .foo(x:Target):Target }
 Sup:{ .foo(x:base.Str):base.Str }
 B:{ .m:Sup-> N:Sup,base.WidenTo[Target]{ .foo(x)->x } }
 """));}
 
-//CONTROL: identical, minus base.WidenTo[Target] on the literal. Accepted alike.
 @Test void tsWidenNamedLiteralBodyControlNoWiden(){ok(List.of("""
 Target:{ .foo(x:Target):Target }
 Sup:{ .foo(x:base.Str):base.Str }

@@ -1658,12 +1658,6 @@ A[X]:base.WidenTo[X]{}
 B[Y]:{.m(A[Y]):A[Y]->A[Y]}
 """));}
 
-//---- what head does base.WidenTo give to an object literal? ----------------
-//An object literal is always an instance of the type written on it: base.WidenTo
-//only decides the type an expression creating it is seen at, never its head.
-
-//`Sup{}` has no methods, so commitToTable collapses it to a type expression; the
-//emitted type is the written "p.Sup".
 @Test void magicWidenAnonLiteralHeadNoMethods(){okI("""
 p.B:{'this .m:p.Target@p.B;->p._AB:p.Sup:?;}
 p.Sup:base.WidenTo[p.Target]{'this}
@@ -1678,8 +1672,6 @@ Target:Sup{}
 B:{.m:Target->Sup{}}
 """));}
 
-//The literal is committed as a "p.Sup"; "p.Target" appears only as the base.WidenTo
-//argument, never as a supertype the source did not name.
 @Test void magicWidenAnonLiteralHead(){okI("""
 p.B:{'this .m:p.Target@p.B;->p._AB:p.Sup{'_ ? .foo[?]:?@!;->base.Str:?;}:?;}
 p.Sup:base.WidenTo[p.Target]{'this .foo:base.Str@p.Sup;}
@@ -1695,8 +1687,6 @@ Target:Sup{}
 B:{.m:Target->Sup{.foo->base.Str}}
 """));}
 
-//A named literal keeps its own name as head and is widened only in the type of
-//the expression: this is what the anonymous cases above now match.
 @Test void magicWidenNamedLiteralHead(){okI("""
 p.B:{'this .m:p.Target@p.B;->p.N:p.Sup:?;}
 p.N:p.Sup, base.WidenTo[p.Target]{'_}
@@ -1712,9 +1702,6 @@ Target:Sup{}
 B:{.m:Target-> N:Sup{} }
 """));}
 
-//The written head is a subtype of the base.WidenTo target: the literal keeps
-//"p.Sub", so it still inherits p.Sub's own concrete ".bar", and the class table
-//entry for p._AB agrees with the copy in the tree.
 @Test void magicWidenAnonLiteralHeadOfSubtype(){okI("""
 p.B:{'this .m:p.Sub@p.B;->p._AB:p.Sub{'_ ? .foo[?]:?@!;->base.Str:?;}:?;}
 p.Sub:p.Sup, base.WidenTo[p.Sup]{'this .bar:base.Str@p.Sub;->base.Str:?; .foo:base.Str@p.Sup;}
@@ -1730,9 +1717,6 @@ Sub:Sup{ .bar:base.Str->base.Str }
 B:{.m:Sub->Sub{.foo->base.Str}}
 """));}
 
-//The "fixpoint" shape used by base _Opt[E]:DataType[Opt[E],..] and
-//DataType[T,T0]:WidenTo[T], where the base.WidenTo target is a SUBtype of the
-//written head: the literal stays a "p.D[p.MyT,base.Str]", it does not become a p.MyT.
 @Test void magicWidenAnonLiteralHeadFixpoint(){okI("""
 p.B:{'this .m:p.D[p.MyT,base.Str]@p.B;->p._AB:p.D[p.MyT,base.Str]{'_ ? .close[?](?):?@!;(t)->t:?;}:?;}
 p.D[T:imm, T0:imm]:base.WidenTo[T]{'this .close(T):p.D[T,T0]@p.D;}
@@ -1748,7 +1732,6 @@ MyT:D[MyT,base.Str]{ .close(t)->t }
 B:{.m:D[MyT,base.Str]->D[MyT,base.Str]{.close(t)->t}}
 """));}
 
-//An explicit reference capability on the literal does not change the head either.
 @Test void magicWidenAnonLiteralHeadWithRC(){okI("""
 p.B:{'this .m:mut p.Target@p.B;->mut p._AB:p.Sup{'_ ? .foo[?]:?@!;->base.Str:?;}:?;}
 p.Sup:base.WidenTo[p.Target]{'this mut .foo:base.Str@p.Sup;}
@@ -1764,19 +1747,6 @@ Target:Sup{}
 B:{.m:mut Target->mut Sup{.foo->base.Str}}
 """));}
 
-
-//---- base.WidenTo does not reach the METHOD BODIES of the literal -----------
-//l.t() IS the head of a literal, so it is also the rcc nextL hands to nextMStar,
-//and normalizeSigAgainstHeader overwrites every parameter and return type of the
-//literal with the ones read out of that rcc. A named literal carrying
-//base.WidenTo[Target] therefore used to take ".foo" from Target instead of from
-//its own supertype p.Sup. base.WidenTo only decides the type an expression is
-//seen at, never a head, so it must not be visible here at all.
-
-//"p.N" is a "p.Sup", so ".foo" takes a base.Str, in the class table entry for p.N
-//and in the copy of the same literal in the tree alike; "x" is a base.Str too.
-//p.Target, which p.N does not implement and the literal never names, is not
-//consulted. Same output as magicWidenNamedLiteralMethodBodyControl below.
 @Test void magicWidenNamedLiteralMethodBody(){okI("""
 p.B:{'this .m:p.Sup@p.B;->p.N:p.Sup, base.WidenTo[p.Target]{'_ ? .foo[?](?):?@!;(x)->x:?;}:?;}
 p.N:p.Sup, base.WidenTo[p.Target]{'_ .foo(base.Str):base.Str@p.N;(x)->x:?;}
@@ -1792,9 +1762,6 @@ Sup:{ .foo(x:base.Str):base.Str }
 B:{ .m:Sup-> N:Sup,base.WidenTo[Target]{ .foo(x)->x } }
 """));}
 
-//CONTROL: the same program with base.WidenTo[Target] dropped from p.N. Adding or
-//removing base.WidenTo on the literal changes nothing below the "~" line except
-//the supertype list itself.
 @Test void magicWidenNamedLiteralMethodBodyControl(){okI("""
 p.B:{'this .m:p.Sup@p.B;->p.N:p.Sup{'_ ? .foo[?](?):?@!;(x)->x:?;}:?;}
 p.N:p.Sup{'_ .foo(base.Str):base.Str@p.N;(x)->x:?;}
