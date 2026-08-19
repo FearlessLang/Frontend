@@ -216,17 +216,25 @@ public record InjectionSteps(Methods meths){
     case E.Type c -> nextT(c);
   };}
   core.E.Literal getDec(TName name){ return meths.from(name); }
-  private IT preferred(E ctx, IT.RCC type){
+  /**
+  The type an expression creating an instance of `type` is inferred at.
+  Total: any instantiation of base.WidenTo is accepted. Only a class type can be
+  a preferred type; Fearless has no bounded generics, so a class is never a
+  subtype of a type parameter and there is nothing to widen to when the
+  substituted target is not headed. The reference capability always comes from
+  `type`, never from the one written inside base.WidenTo[..].
+  Never used to pick the HEAD of an object literal: see nextL.
+  */
+  private IT preferred(IT.RCC type){
     var d= meths._from(type.c().name());//d.cs() does contain all the transitive supertypes already.
     if (d == null){ return type; }//This can happen for {..}.foo
-    assert d != null : type;
     var cs= d.cs().stream().filter(c -> c.name().s().equals("base.WidenTo")).toList();
     if (cs.isEmpty()){ return type; }
     assert cs.size() == 1;
     assert cs.getFirst().ts().size() == 1;
     var dom= d.bs().stream().map(b -> b.x()).toList();
     IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom, type.c().ts());
-    if (!(wid instanceof IT.RCC w)){ throw meths.p().err().widenToNotConcrete(ctx, type, wid); }
+    if (!(wid instanceof IT.RCC w)){ return type; }
     return new IT.RCC(type.rc(), w.c(),type.span());
   }
   private RC overloadNorm(Optional<RC> rc){ return rc.map(this::_overloadNorm).orElse(RC.imm); }
@@ -318,7 +326,7 @@ public record InjectionSteps(Methods meths){
   }
   private E nextT(E.Type t){
     if (!(t.t() instanceof IT.U)){return t; }
-    return t.withT(preferred(t, t.type()));
+    return t.withT(preferred(t.type()));
   }
   private E nextIC(List<B> bs, Gamma g, E.ICall c){
     var e= nextStar(bs, g, c.e());
@@ -395,8 +403,13 @@ public record InjectionSteps(Methods meths){
     var selfPrecise= preciseSelf(l);
     var selfSuper= superSelf(l);
     if (!infHead){
-      if (!l.infName()){ l = l.withT(preferred(l, selfPub.get())); }
-      else if (selfSuper.isPresent()){ l = l.withT(preferred(l, selfSuper.get())); }
+      //A named literal keeps its own name as head; expandDeclaration below reads
+      //l.cs(), so preferred only decides the type the expression is seen at.
+      if (!l.infName()){ l = l.withT(preferred(selfPub.get())); }
+      //An anonymous typed literal `C{..}` is an instance of the written C: its head
+      //is NOT widened, or expandLiteral/commitToTable below would inherit methods
+      //from, and commit the literal as, some other type than the one written.
+      else if (selfSuper.isPresent()){ l = l.withT(selfSuper.get()); }
       if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
       if (!l.infName()){ l = meths.expandDeclaration(l,true); }
       else { l = meths.expandLiteral(l, rcc.c()); }
@@ -442,7 +455,9 @@ public record InjectionSteps(Methods meths){
     }
     assert l.bs().isEmpty() : "bs must stay empty pre-commit";
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
-    if (noMeth && l.infHead() && meths._from(rcc.c().name()) != null){ return new E.Type(rcc, rcc, l.src(), l.g()); }
+    //`C{}` with no methods is the type expression `C`, so it is inferred at the same
+    //type nextT would give it; rcc, the written head, stays the emitted type.
+    if (noMeth && l.infHead() && meths._from(rcc.c().name()) != null){ return new E.Type(rcc, preferred(rcc), l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());
     List<IT.C> cs= selfInferred? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c()));
     meths.checkMagicSupertypes(l, cs);

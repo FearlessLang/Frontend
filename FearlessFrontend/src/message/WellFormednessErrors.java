@@ -477,14 +477,6 @@ public record WellFormednessErrors(String pkgName){
     widen.forEach(c->e.bullet(Err.disp(c.toString())));
     return e.wf().addFrame(err().expRepr(owner), owner.span().inner);
   }
-  public FearlessException widenToNotConcrete(E at, IT.RCC type, IT badTarget){
-    return err()
-      .line(err().expRepr(at)+" has type "+err().typeRepr(type)+".")
-      .line("Its \"base.WidenTo[_]\" supertype names "+err().typeRepr(badTarget)+" as the preferred widened type,")
-      .line("but that is not a concrete class type.")
-      .wf()
-      .addFrame(err().expRepr(at), at.span().inner);
-  }
   public FearlessException duplicatedNamedLiteral(E.Literal owner,M m, E.Literal in){
     String ctx= Err.up(err().expRepr(owner));
     return err()
