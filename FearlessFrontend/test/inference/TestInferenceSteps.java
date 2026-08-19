@@ -1764,4 +1764,50 @@ Target:Sup{}
 B:{.m:mut Target->mut Sup{.foo->base.Str}}
 """));}
 
+
+//---- base.WidenTo must not reach the METHOD BODIES of the literal -----------
+//nextL passes the type it just computed with preferred(..) on as the `rcc` that
+//nextMStar uses to look method headers up, so for a NAMED literal carrying
+//base.WidenTo[Target] every one of its own methods is normalised against the
+//header Target declares (normalizeSigAgainstHeader overwrites parameter and
+//return types with the ones read out of rcc). base.WidenTo should only decide
+//the type the expression is seen at from the OUTSIDE.
+
+//"p.N" is a "p.Sup", so ".foo" takes a base.Str: that is what the class table
+//entry for p.N below says. The copy of the same literal in the tree instead has
+//".foo(x:p.Target):p.Target", read out of p.Target, which p.N does not implement
+//and the source never names inside the literal; "x" is inferred at p.Target too.
+@Test void magicWidenNamedLiteralMethodBody(){okI("""
+p.B:{'this .m:p.Sup@p.B;->p.N:p.Sup, base.WidenTo[p.Target]{'_ ? .foo[?](?):?@!;(x)->x:?;}:?;}
+p.N:p.Sup, base.WidenTo[p.Target]{'_ .foo(base.Str):base.Str@p.N;(x)->x:?;}
+p.Sup:{'this .foo(base.Str):base.Str@p.Sup;}
+p.Target:{'this .foo(p.Target):p.Target@p.Target;}
+~-----------
+~mut p.B:{'this .m:p.Sup->imm p.N:p.Sup, base.WidenTo[p.Target]{'_ .foo(x:p.Target):p.Target->x}}
+~mut p.Sup:{'this .foo(_:base.Str):base.Str}
+~mut p.Target:{'this .foo(_:p.Target):p.Target}
+""",List.of("""
+Target:{ .foo(x:Target):Target }
+Sup:{ .foo(x:base.Str):base.Str }
+B:{ .m:Sup-> N:Sup,base.WidenTo[Target]{ .foo(x)->x } }
+"""));}
+
+//CONTROL: the same program with base.WidenTo[Target] dropped from p.N. The two
+//copies of p.N agree and ".foo" is the base.Str one p.Sup declares. This is the
+//body the test above should also get: nothing else in the program changed.
+@Test void magicWidenNamedLiteralMethodBodyControl(){okI("""
+p.B:{'this .m:p.Sup@p.B;->p.N:p.Sup{'_ ? .foo[?](?):?@!;(x)->x:?;}:?;}
+p.N:p.Sup{'_ .foo(base.Str):base.Str@p.N;(x)->x:?;}
+p.Sup:{'this .foo(base.Str):base.Str@p.Sup;}
+p.Target:{'this .foo(p.Target):p.Target@p.Target;}
+~-----------
+~mut p.B:{'this .m:p.Sup->imm p.N:p.Sup{'_ .foo(x:base.Str):base.Str->x}}
+~mut p.Sup:{'this .foo(_:base.Str):base.Str}
+~mut p.Target:{'this .foo(_:p.Target):p.Target}
+""",List.of("""
+Target:{ .foo(x:Target):Target }
+Sup:{ .foo(x:base.Str):base.Str }
+B:{ .m:Sup-> N:Sup{ .foo(x)->x } }
+"""));}
+
 }
