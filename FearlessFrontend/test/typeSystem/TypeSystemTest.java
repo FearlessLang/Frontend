@@ -3024,6 +3024,66 @@ Error 7 WellFormedness
 ExtStr:`beer`{}
 """));}
 
+@Test void tsWidenAnonLiteralHeadVsRequiredType(){fail("""
+003| B:{.m:Target->Sup{}}
+   |    -----------^^^^-
+
+While inspecting object literal instance of "Sup" > ".m" line 3
+The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
+Object literal is of type "Sup" instead of a subtype of "Target".
+
+See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
+B:{.m:Target->Sup}
+""",List.of("""
+Sup:base.WidenTo[Target]{}
+Target:Sup{}
+B:{.m:Target->Sup{}}
+"""));}
+
+@Test void tsWidenAnonLiteralHeadControlNoWiden(){fail("""
+003| B:{.m:Target->Sup{}}
+   |    -----------^^^^-
+
+While inspecting object literal instance of "Sup" > ".m" line 3
+The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
+Object literal is of type "Sup" instead of a subtype of "Target".
+
+See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
+B:{.m:Target->Sup}
+""",List.of("""
+Sup:{}
+Target:Sup{}
+B:{.m:Target->Sup{}}
+"""));}
+
+@Test void tsWidenAnonLiteralHeadMissingMethod(){fail("""
+003| B:{.m:Target->Sup{.foo->base.Str}}
+   |    -----------^^^^---------------
+
+While inspecting object literal instance of "Sup" > ".m" line 3
+The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
+Object literal is of type "iso Sup" instead of a subtype of "Target".
+
+See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
+B:{.m:Target->Sup{.foo:-.Str->-.Str}}
+""",List.of("""
+Sup:base.WidenTo[Target]{ .foo:base.Str }
+Target:Sup{ .extra:base.Str }
+B:{.m:Target->Sup{.foo->base.Str}}
+"""));}
+
+@Test void tsWidenNamedLiteralBody(){ok(List.of("""
+Target:{ .foo(x:Target):Target }
+Sup:{ .foo(x:base.Str):base.Str }
+B:{ .m:Sup-> N:Sup,base.WidenTo[Target]{ .foo(x)->x } }
+"""));}
+
+@Test void tsWidenNamedLiteralBodyControlNoWiden(){ok(List.of("""
+Target:{ .foo(x:Target):Target }
+Sup:{ .foo(x:base.Str):base.Str }
+B:{ .m:Sup-> N:Sup{ .foo(x)->x } }
+"""));}
+
 @Test void tsPromotionChanin(){ok(List.of("""
 A:{ imm .a1: mut A; mut .a2: A;}
 B:{ .b(a:A):A->a.a1.a2; }

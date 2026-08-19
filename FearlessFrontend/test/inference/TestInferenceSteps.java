@@ -1647,4 +1647,134 @@ A:{.foo:A}
 B:{.of({.foo}:A):A->foo}
 """));}
 
+@Test void magicWidenTargetIsTypeParameter(){okI("""
+p.A[X:imm]:base.WidenTo[X]{'this}
+p.B[Y:imm]:{'this .m(p.A[Y]):p.A[Y]@p.B;(_)->p.A[Y]:?;}
+~-----------
+~mut p.A[X:imm]:base.WidenTo[X]{'this }
+~mut p.B[Y:imm]:{'this .m(_:p.A[Y]):p.A[Y]->p.A[Y]}
+""",List.of("""
+A[X]:base.WidenTo[X]{}
+B[Y]:{.m(A[Y]):A[Y]->A[Y]}
+"""));}
+
+@Test void magicWidenAnonLiteralHeadNoMethods(){okI("""
+p.B:{'this .m:p.Target@p.B;->p._AB:p.Sup:?;}
+p.Sup:base.WidenTo[p.Target]{'this}
+p.Target:p.Sup, base.WidenTo[p.Target]{'this}
+~-----------
+~mut p.B:{'this .m:p.Target->p.Sup}
+~mut p.Sup:base.WidenTo[p.Target]{'this }
+~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this }
+""",List.of("""
+Sup:base.WidenTo[Target]{}
+Target:Sup{}
+B:{.m:Target->Sup{}}
+"""));}
+
+@Test void magicWidenAnonLiteralHead(){okI("""
+p.B:{'this .m:p.Target@p.B;->p._AB:p.Sup{'_ ? .foo[?]:?@!;->base.Str:?;}:?;}
+p.Sup:base.WidenTo[p.Target]{'this .foo:base.Str@p.Sup;}
+p.Target:p.Sup, base.WidenTo[p.Target]{'this .foo:base.Str@p.Sup;}
+p._AB:p.Sup, base.WidenTo[p.Target]{'_ .foo:base.Str@p._AB;->base.Str:base.Str;}
+~-----------
+~mut p.B:{'this .m:p.Target->imm p._AB:p.Sup, base.WidenTo[p.Target]{'_ .foo:base.Str->base.Str}}
+~mut p.Sup:base.WidenTo[p.Target]{'this .foo:base.Str}
+~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this .foo:base.Str}
+""",List.of("""
+Sup:base.WidenTo[Target]{ .foo:base.Str }
+Target:Sup{}
+B:{.m:Target->Sup{.foo->base.Str}}
+"""));}
+
+@Test void magicWidenNamedLiteralHead(){okI("""
+p.B:{'this .m:p.Target@p.B;->p.N:p.Sup:?;}
+p.N:p.Sup, base.WidenTo[p.Target]{'_}
+p.Sup:base.WidenTo[p.Target]{'this}
+p.Target:p.Sup, base.WidenTo[p.Target]{'this}
+~-----------
+~mut p.B:{'this .m:p.Target->imm p.N:p.Sup, base.WidenTo[p.Target]{'_ }}
+~mut p.Sup:base.WidenTo[p.Target]{'this }
+~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this }
+""",List.of("""
+Sup:base.WidenTo[Target]{}
+Target:Sup{}
+B:{.m:Target-> N:Sup{} }
+"""));}
+
+@Test void magicWidenAnonLiteralHeadOfSubtype(){okI("""
+p.B:{'this .m:p.Sub@p.B;->p._AB:p.Sub{'_ ? .foo[?]:?@!;->base.Str:?;}:?;}
+p.Sub:p.Sup, base.WidenTo[p.Sup]{'this .bar:base.Str@p.Sub;->base.Str:?; .foo:base.Str@p.Sup;}
+p.Sup:base.WidenTo[p.Sup]{'this .foo:base.Str@p.Sup;}
+p._AB:p.Sub, p.Sup, base.WidenTo[p.Sup]{'_ .foo:base.Str@p._AB;->base.Str:base.Str; .bar:base.Str@p.Sub;}
+~-----------
+~mut p.B:{'this .m:p.Sub->imm p._AB:p.Sub, p.Sup, base.WidenTo[p.Sup]{'_ .foo:base.Str->base.Str; .bar:base.Str}}
+~mut p.Sub:p.Sup, base.WidenTo[p.Sup]{'this .bar:base.Str->base.Str; .foo:base.Str}
+~mut p.Sup:base.WidenTo[p.Sup]{'this .foo:base.Str}
+""",List.of("""
+Sup:base.WidenTo[Sup]{ .foo:base.Str }
+Sub:Sup{ .bar:base.Str->base.Str }
+B:{.m:Sub->Sub{.foo->base.Str}}
+"""));}
+
+@Test void magicWidenAnonLiteralHeadFixpoint(){okI("""
+p.B:{'this .m:p.D[p.MyT,base.Str]@p.B;->p._AB:p.D[p.MyT,base.Str]{'_ ? .close[?](?):?@!;(t)->t:?;}:?;}
+p.D[T:imm, T0:imm]:base.WidenTo[T]{'this .close(T):p.D[T,T0]@p.D;}
+p.MyT:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'this .close(p.MyT):p.D[p.MyT,base.Str]@p.MyT;(t)->t:?;}
+p._AB:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'_ .close(p.MyT):p.D[p.MyT,base.Str]@p._AB;(t)->t:p.MyT;}
+~-----------
+~mut p.B:{'this .m:p.D[p.MyT,base.Str]->imm p._AB:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'_ .close(t:p.MyT):p.D[p.MyT,base.Str]->t}}
+~mut p.D[T:imm,T0:imm]:base.WidenTo[T]{'this .close(_:T):p.D[T,T0]}
+~mut p.MyT:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'this .close(t:p.MyT):p.D[p.MyT,base.Str]->t}
+""",List.of("""
+D[T,T0]:base.WidenTo[T]{ .close(t:T):D[T,T0] }
+MyT:D[MyT,base.Str]{ .close(t)->t }
+B:{.m:D[MyT,base.Str]->D[MyT,base.Str]{.close(t)->t}}
+"""));}
+
+@Test void magicWidenAnonLiteralHeadWithRC(){okI("""
+p.B:{'this .m:mut p.Target@p.B;->mut p._AB:p.Sup{'_ ? .foo[?]:?@!;->base.Str:?;}:?;}
+p.Sup:base.WidenTo[p.Target]{'this mut .foo:base.Str@p.Sup;}
+p.Target:p.Sup, base.WidenTo[p.Target]{'this mut .foo:base.Str@p.Sup;}
+p._AB:p.Sup, base.WidenTo[p.Target]{'_ mut .foo:base.Str@p._AB;->base.Str:base.Str;}
+~-----------
+~mut p.B:{'this .m:mut p.Target->mut p._AB:p.Sup, base.WidenTo[p.Target]{'_ mut .foo:base.Str->base.Str}}
+~mut p.Sup:base.WidenTo[p.Target]{'this mut .foo:base.Str}
+~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this mut .foo:base.Str}
+""",List.of("""
+Sup:base.WidenTo[Target]{ mut .foo:base.Str }
+Target:Sup{}
+B:{.m:mut Target->mut Sup{.foo->base.Str}}
+"""));}
+
+@Test void magicWidenNamedLiteralMethodBody(){okI("""
+p.B:{'this .m:p.Sup@p.B;->p.N:p.Sup, base.WidenTo[p.Target]{'_ ? .foo[?](?):?@!;(x)->x:?;}:?;}
+p.N:p.Sup, base.WidenTo[p.Target]{'_ .foo(base.Str):base.Str@p.N;(x)->x:?;}
+p.Sup:{'this .foo(base.Str):base.Str@p.Sup;}
+p.Target:{'this .foo(p.Target):p.Target@p.Target;}
+~-----------
+~mut p.B:{'this .m:p.Sup->imm p.N:p.Sup, base.WidenTo[p.Target]{'_ .foo(x:base.Str):base.Str->x}}
+~mut p.Sup:{'this .foo(_:base.Str):base.Str}
+~mut p.Target:{'this .foo(_:p.Target):p.Target}
+""",List.of("""
+Target:{ .foo(x:Target):Target }
+Sup:{ .foo(x:base.Str):base.Str }
+B:{ .m:Sup-> N:Sup,base.WidenTo[Target]{ .foo(x)->x } }
+"""));}
+
+@Test void magicWidenNamedLiteralMethodBodyControl(){okI("""
+p.B:{'this .m:p.Sup@p.B;->p.N:p.Sup{'_ ? .foo[?](?):?@!;(x)->x:?;}:?;}
+p.N:p.Sup{'_ .foo(base.Str):base.Str@p.N;(x)->x:?;}
+p.Sup:{'this .foo(base.Str):base.Str@p.Sup;}
+p.Target:{'this .foo(p.Target):p.Target@p.Target;}
+~-----------
+~mut p.B:{'this .m:p.Sup->imm p.N:p.Sup{'_ .foo(x:base.Str):base.Str->x}}
+~mut p.Sup:{'this .foo(_:base.Str):base.Str}
+~mut p.Target:{'this .foo(_:p.Target):p.Target}
+""",List.of("""
+Target:{ .foo(x:Target):Target }
+Sup:{ .foo(x:base.Str):base.Str }
+B:{ .m:Sup-> N:Sup{ .foo(x)->x } }
+"""));}
+
 }

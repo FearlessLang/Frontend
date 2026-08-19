@@ -219,14 +219,13 @@ public record InjectionSteps(Methods meths){
   private IT preferred(IT.RCC type){
     var d= meths._from(type.c().name());//d.cs() does contain all the transitive supertypes already.
     if (d == null){ return type; }//This can happen for {..}.foo
-    assert d != null : type;
     var cs= d.cs().stream().filter(c -> c.name().s().equals("base.WidenTo")).toList();
     if (cs.isEmpty()){ return type; }
     assert cs.size() == 1;
     assert cs.getFirst().ts().size() == 1;
     var dom= d.bs().stream().map(b -> b.x()).toList();
     IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom, type.c().ts());
-    var w=(IT.RCC)wid;//TODO: this must be made to fail in a test, then we need to improve the well formedness error of WidenTo
+    if (!(wid instanceof IT.RCC w)){ return type; }
     return new IT.RCC(type.rc(), w.c(),type.span());
   }
   private RC overloadNorm(Optional<RC> rc){ return rc.map(this::_overloadNorm).orElse(RC.imm); }
@@ -368,11 +367,6 @@ public record InjectionSteps(Methods meths){
       Stream.of(r)).flatMap(s->s).toList();
     return meet(tss);
   }
-  private Optional<IT.RCC> precisePublicSelf(E.Literal l){
-    if (l.infName()){ return superSelf(l); }
-    var xs= l.bs().stream().<IT>map(b -> new IT.X(b.x(),l.name().approxSpan())).toList();
-    return Optional.of(new IT.RCC(l.rc(), new IT.C(l.name(), xs),l.name().approxSpan()));
-  }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
     if (l.infName() && l.rc().isEmpty()){ return Optional.empty(); }
     var xs= l.bs().stream().<IT>map(b -> new IT.X(b.x(),l.name().approxSpan())).toList();
@@ -391,12 +385,11 @@ public record InjectionSteps(Methods meths){
   private E nextL(List<B> bs, Gamma g, E.Literal l){
     var infHead= l.infHead();//infHead is set in l.withCsMs and l.withMs and l.withMsT
     // to mean the HEAD is inferred as IT.RCC and has already been used to expand methods
-    var selfPub= precisePublicSelf(l);
     var selfPrecise= preciseSelf(l);
     var selfSuper= superSelf(l);
     if (!infHead){
-      if (!l.infName()){ l = l.withT(preferred(selfPub.get())); }
-      else if (selfSuper.isPresent()){ l = l.withT(preferred(selfSuper.get())); }
+      if (!l.infName()){ l = l.withT(selfPrecise.get()); }
+      else if (selfSuper.isPresent()){ l = l.withT(selfSuper.get()); }
       if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
       if (!l.infName()){ l = meths.expandDeclaration(l,true); }
       else { l = meths.expandLiteral(l, rcc.c()); }
@@ -442,7 +435,7 @@ public record InjectionSteps(Methods meths){
     }
     assert l.bs().isEmpty() : "bs must stay empty pre-commit";
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
-    if (noMeth && l.infHead() && meths._from(rcc.c().name()) != null){ return new E.Type(rcc, rcc, l.src(), l.g()); }
+    if (noMeth && l.infHead() && meths._from(rcc.c().name()) != null){ return new E.Type(rcc, preferred(rcc), l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());
     List<IT.C> cs= selfInferred? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c()));
     meths.checkMagicSupertypes(l, cs);
