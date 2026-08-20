@@ -281,7 +281,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return false;
   }
   private void sigSub(Literal l, Sig current, Sig parent){
-    assert current.bs().equals(parent.bs());//TODO: if we can trigger this, then we have problems in Sources.canonical
+    assert current.bs().equals(parent.bs());
     List<B> ctx= Push.of(l.bs(),current.bs());
     int tsSize= current.ts().size();
     assert tsSize == parent.ts().size():"Arity encoded in meth name";
