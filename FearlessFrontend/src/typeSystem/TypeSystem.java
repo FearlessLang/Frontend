@@ -106,13 +106,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<TRequirement> rs){
     var span= _l.name().approxSpan();
-    //_l.rc() is never mutH/readH: Parser.parseAtom() rejects those RCs on an
-    //object-literal declaration at parse time via disallowedReadHMutH, and every
-    //downstream construction of a core.E.Literal either forwards an already
-    //-validated rc or defaults to RC.imm. So mutOrMutH(_l.rc()) here is
-    //equivalent to _l.rc()==mut, kept as mutOrMutH for symmetry with checkType.
-    assert _l.rc() != mutH && _l.rc() != readH;
-    var getIso= ((readOrImm(_l.rc()) && !hasAbstractMut(_l)) || mutOrMutH(_l.rc()))
+    var getIso= ((readOrImm(_l.rc()) && !hasAbstractMut(_l)) || _l.rc() == mut)
       && _l.thisName().equals("_")
       && new FreeMutyParameters(bs1,g).isFree(_l);
     var l= getIso ? _l.withRC(RC.iso) : _l;
