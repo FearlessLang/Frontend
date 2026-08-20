@@ -3347,4 +3347,29 @@ blockLetInfersItsTypeFromTheLambdaBody: the literal generated for "{other.distin
 head "iso MF[InferUnknown]", which mentions no type parameter, so the fresh declaration is created
 without binders and capturing "other" is then reported as a capture error.*/
 
+
+@Test void overridingErrorsAreReportedInDeclarationOrder(){fail("""
+004| B: A { .m1: P -> P; .m2: P -> P }
+   | -------^^^^^^^^^^^---------------
+
+While inspecting type declaration "B"
+Invalid method signature overriding for "B.m1".
+The method ".m1" returns type "P".
+But "A.m1" returns type "Q", which is not a supertype of "P".
+It is instead a subtype: you are weakening the result instead of strenghtening it.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+B:A{.m1:P->P;.m2:P->P}
+""",List.of("""
+P:{}
+Q:P{}
+A: { .m1: Q; .m2: Q }
+B: A { .m1: P -> P; .m2: P -> P }
+"""));}
+/*Both ".m1" and ".m2" are bad overrides, and litOk reports whichever method key it visits first.
+That used to be the iteration order of the HashMap of TypeSystem.sources, which is keyed on a
+record holding an RC, and enum hashCodes are identity hashCodes: the order depends on the JVM's
+allocation sequence, so an unrelated change elsewhere in the run silently changes which of the two
+errors the user is shown. This test pinned ".m2" before sources became ordered.*/
+
 }
