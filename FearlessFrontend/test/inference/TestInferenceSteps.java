@@ -80,7 +80,7 @@ Z0ExampleSum: { #(ns: Stack[Nat]): Nat -> ns.fold(0, { n1,n2 -> n1 + n2 })  }
 p.StackMatch[###]
 p.Stack[###]
 p.Z1ExampleTimes:{'this #(p.Stack[base.Nat]):base.Nat@p.Z1ExampleTimes;(ns)->ns:?.fold(base.1:?,p._AZ1Ex:$?{'_ ? [?](?,?):?@!;(n1, n2)->n1:?*(n2:?):?;}:?):?;}
-p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_ read #(base.Nat,base.Nat):base.Nat@p._AZ1Ex;(n1, n2)->n1:?*(n2:base.Nat):base.Nat;}
+p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_ read #(base.Nat,base.Nat):base.Nat@p._AZ1Ex;(n1, n2)->n1:base.Nat*[imm](n2:base.Nat):base.Nat;}
 p._CStac[T:imm]:base.ThenElse[p.Stack[imm T]]{'_ mut .then:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T]+[imm](e:imm T):p.Stack[imm T]; mut .else:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T];}
 p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](p.StackMatch[imm T,_GR]):_GR@p._DStac;(m)->m:p.StackMatch[imm T,imm _GR].elem[imm](e:imm T,this:p.Stack[imm T]):imm _GR; .fold[_HR:imm](_HR,base.F[_HR,imm T,_HR]):_HR@p._DStac;(start, f)->f:base.F[imm _HR,imm T,_HR]#[read](this:p.Stack[imm T].fold[imm,imm _HR](start:imm _HR,f:base.F[imm _HR,imm T,imm _HR]):imm _HR,e:imm T):_HR; .map[_JR:imm](base.F[imm T,_JR]):p.Stack[_JR]@p._DStac;(f)->this:p.Stack[imm T].map[imm,imm _JR](f:base.F[imm T,imm _JR]):p.Stack[imm _JR]+[imm](f:base.F[imm T,imm _JR]#[read](e:imm T):imm _JR):p.Stack[imm _JR]; .filter(base.F[imm T,base.Bool]):p.Stack[imm T]@p._DStac;(f)->f:base.F[imm T,base.Bool]#[read](e:imm T):base.Bool.if[imm,p.Stack[imm T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[imm T]]{'_ mut .then:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T]+[imm](e:imm T):p.Stack[imm T]; mut .else:p.Stack[imm T]@p._CStac;->this:p.Stack[imm T].filter[imm](f:base.F[imm T,base.Bool]):p.Stack[imm T];}:mut base.ThenElse[p.Stack[imm T]]):p.Stack[imm T]; +(imm T):p.Stack[imm T]@p.Stack;}
 ~-----------
@@ -350,8 +350,8 @@ p.Baba[C:imm, D:imm]:p.GG[p.Any,p.Any]{'this .apply[_AC:imm,_AD:imm](p.Any,p.Any
 p.GG[A:imm, B:imm]:{'this .apply[C:imm,D:imm](A,B,C):D@p.GG;}
 p.KK:{'_ .k[K:imm]:K@p.KK;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}
 p.User:{'this .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User; .foo1[C:imm,D:imm]:p.User@p.User;->this:?.withGG[C,D](p._AUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?; .foo2[C:imm,D:imm]:p.User@p.User;->p.KK:{'_ ? .k[K:imm]:K@!;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}:?.k[p.User]():?;}
-p._AUser[C:imm, D:imm]:p.GG[imm C,imm D]{'_ .apply[_AC:imm,_AD:imm](imm C,imm D,_AC):_AD@p._AUser;(a, b, c)->p.Any:p.Any![imm,?]():_AD;}
-p._BUser[C:imm, D:imm]:p.GG[imm C,imm D]{'_ .apply[_BC:imm,_BD:imm](imm C,imm D,_BC):_BD@p._BUser;(a, b, c)->p.Any:p.Any![imm,?]():_BD;}
+p._AUser[C:imm, D:imm]:p.GG[imm C,imm D]{'_ .apply[_AC:imm,_AD:imm](imm C,imm D,_AC):_AD@p._AUser;(a, b, c)->p.Any:p.Any![imm,imm _AD]():imm _AD;}
+p._BUser[C:imm, D:imm]:p.GG[imm C,imm D]{'_ .apply[_BC:imm,_BD:imm](imm C,imm D,_BC):_BD@p._BUser;(a, b, c)->p.Any:p.Any![imm,imm _BD]():imm _BD;}
 ~-----------
 ~mut p.Any:{'this ![T:imm]:T->p.Any![imm,T]}
 ~mut p.Baba[C:imm,D:imm]:p.GG[p.Any,p.Any]{'this .apply[_AC:imm,_AD:imm](_:p.Any, _:p.Any, _:_AC):_AD}
@@ -919,8 +919,8 @@ p.Box[X:imm,mut,read]:{'this .f[R:imm,mut,read](p.F[X,X,R]):R@p.Box;}
 p.Dool:{'this}
 p.F[A:imm, B:imm, C:imm]:{'this #(A,B):C@p.F;}
 p.User:{'this mut .go1[R:imm,mut,read](p.Box[R]):p.Dool@p.User;(b)->b:?.f(p._AUser:$?{'_ ? [?](?,?):?@!;(aa, bb)->p.Any:?#():?;}:?):?; mut .go2(p.Box[p.User]):p.Dool@p.User;(b)->b:?.f(p._BUser:$?{'_ ? [?](?,?):?@!;(aa, bb)->p.Any:?#():?;}:?):?;}
-p._AUser[R:imm,mut,read]:p.F[imm R,imm R,p.Dool]{'_ #(imm R,imm R):p.Dool@p._AUser;(aa, bb)->p.Any:p.Any#[imm,?]():p.Dool;}
-p._BUser:p.F[p.User,p.User,p.Dool]{'_ #(p.User,p.User):p.Dool@p._BUser;(aa, bb)->p.Any:p.Any#[imm,?]():p.Dool;}
+p._AUser[R:imm,mut,read]:p.F[imm R,imm R,p.Dool]{'_ #(imm R,imm R):p.Dool@p._AUser;(aa, bb)->p.Any:p.Any#[imm,p.Dool]():p.Dool;}
+p._BUser:p.F[p.User,p.User,p.Dool]{'_ #(p.User,p.User):p.Dool@p._BUser;(aa, bb)->p.Any:p.Any#[imm,p.Dool]():p.Dool;}
 ~-----------
 ~mut p.Any:{'this #[T:imm]:T}
 ~mut p.Box[X:imm,mut,read]:{'this .f[R:imm,mut,read](_:p.F[X,X,R]):R}
@@ -944,7 +944,7 @@ p.Box:{'this .f[R:imm,mut,read](p.F[p.User,R]):R@p.Box;}
 p.Dool:{'this}
 p.F[A:imm, C:imm]:{'this #(A):C@p.F;}
 p.User:{'this mut .go(p.Box):p.Dool@p.User;(b)->b:?.f(p._AUser:$?{'_ ? [?](?):?@!;(aa)->p.Any:?#():?;}:?):?;}
-p._AUser:p.F[p.User,p.Dool]{'_ #(p.User):p.Dool@p._AUser;(aa)->p.Any:p.Any#[imm,?]():p.Dool;}
+p._AUser:p.F[p.User,p.Dool]{'_ #(p.User):p.Dool@p._AUser;(aa)->p.Any:p.Any#[imm,p.Dool]():p.Dool;}
 ~-----------
 ~mut p.Any:{'this #[T:imm]:T}
 ~mut p.Box:{'this .f[R:imm,mut,read](_:p.F[p.User,R]):R}
@@ -1125,7 +1125,7 @@ TestIt:{.go:Float->Trash#(One) }
 @Test void challenge4WithCorrectInferUnknown(){okI("""
 [###]
 ~mut p.User3:{'this .go3:p.Float->p.Trash#[imm,p.F[base.InferUnknown,base.InferUnknown]](p.Top.top[imm,base.InferUnknown](imm p._BUser:p.F[p.Int,p.F[base.InferUnknown,base.InferUnknown]]{'_ #(x:p.Int):p.F[base.InferUnknown,base.InferUnknown]->imm p._AUser:p.F[base.InferUnknown,base.InferUnknown]{'_ #(y:base.InferUnknown):base.InferUnknown->y}})#[imm](p.One))}
-~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._DUser[A:imm]:p.F[p.Int,p.F[A,A]]{'_ #(x:p.Int):p.F[imm A,imm A]->imm p._CUser[A:imm]:p.F[imm A,imm A]{'_ #(y:imm A):imm A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
+~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._DUser[A:imm]:p.F[p.Int,p.F[imm A,imm A]]{'_ #(x:p.Int):p.F[imm A,imm A]->imm p._CUser[A:imm]:p.F[imm A,imm A]{'_ #(y:imm A):imm A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
 ~mut p.User5:{'this .go3:p.Float->p.Trash#[imm,p.Float](p.Top.top[imm,p.Float](imm p._FUser:p.F[p.Int,p.F[p.Float,p.Float]]{'_ #(x:p.Int):p.F[p.Float,p.Float]->imm p._EUser:p.F[p.Float,p.Float]{'_ #(y:p.Float):p.Float->y}})#[imm](p.One)#[imm](p.FOne))}
 """,List.of("""
 F[A,R]:{#(A):R}
@@ -1150,8 +1150,9 @@ User5:{.go3:Float->Trash#(Top.top {x->{y->y}} # One # FOne) }
 //TODO: why the fresh names are different wrt the one before with User3???
 @Test void challenge4CommentedCorrectInferUnknown(){okI("""
 [###]
-~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._BUser[A:imm]:p.F[p.Int,p.F[A,A]]{'_ #(x:p.Int):p.F[imm A,imm A]->imm p._AUser[A:imm]:p.F[imm A,imm A]{'_ #(y:imm A):imm A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
-~mut p.User5:{'this .go3:p.Float->p.Trash#[imm,p.Float](p.Top.top[imm,p.Float](imm p._DUser:p.F[p.Int,p.F[p.Float,p.Float]]{'_ #(x:p.Int):p.F[p.Float,p.Float]->imm p._CUser:p.F[p.Float,p.Float]{'_ #(y:p.Float):p.Float->y}})#[imm](p.One)#[imm](p.FOne))}""",List.of("""
+~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._BUser[A:imm]:p.F[p.Int,p.F[imm A,imm A]]{'_ #(x:p.Int):p.F[imm A,imm A]->imm p._AUser[A:imm]:p.F[imm A,imm A]{'_ #(y:imm A):imm A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
+~mut p.User5:{'this .go3:p.Float->p.Trash#[imm,p.Float](p.Top.top[imm,p.Float](imm p._DUser:p.F[p.Int,p.F[p.Float,p.Float]]{'_ #(x:p.Int):p.F[p.Float,p.Float]->imm p._CUser:p.F[p.Float,p.Float]{'_ #(y:p.Float):p.Float->y}})#[imm](p.One)#[imm](p.FOne))}
+""",List.of("""
 F[A,R]:{#(A):R}
 Int:base.WidenTo[Int]{}
 One:Int{}
@@ -1249,7 +1250,7 @@ User:{.done[Y](t1:T1,t2:T2,y:Y):T3[Y]->
 [###]
 ~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->imm p._AMap[B:imm,R:imm,A:imm]:p.F[imm B,imm R]{'_ #(b:imm B):imm R->f.core[imm,imm B](a, b)}}
 [###]
-~mut p.User:{'this .done[Y:imm](t1:p.T1, t2:p.T2, y:Y):p.AnyT3->p.Map.of[imm,p.T1,imm Y,p.AnyT3](t1, imm p._AUser:p.GF[p.T1,p.AnyT3]{'_ .core[WW:imm](a:p.T1, b:WW):p.T3[imm WW]->a.and[imm,imm WW](b)})#[imm](y)}
+~mut p.User:{'this .done[Y:imm](t1:p.T1, t2:p.T2, y:Y):p.AnyT3->p.Map.of[imm,p.T1,imm Y,p.AnyT3](t1, imm p._AUser:p.GF[p.T1,p.AnyT3]{'_ .core[WW:imm](a:p.T1, b:WW):p.AnyT3->a.and[imm,imm WW](b)})#[imm](y)}
 """,List.of("""
 GF[A,R]:{.core[B](A,B):R}
 F[A,R]:{#(A):R}
@@ -1341,7 +1342,7 @@ User:{.go:Bool->
 ~mut p.KeyElem[K:imm,E:imm]:{'this .key:K; .elem:E}
 ~mut p.Str:{'this }
 ~mut p.True:{'this }
-~mut p.User:{'this .go:p.Bool->p.Flows.flow[read].mapping[imm,p.KeyElem[p.Str,p.Info],p.Str,p.Info](imm p._AUser:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],p.Str,p.Info]{'_ .key(e:p.KeyElem[p.Str,p.Info]):p.Str->e.key[imm]; .elem(e:p.KeyElem[p.Str,p.Info]):p.Info->e.elem[imm]})}
+~mut p.User:{'this .go:p.Bool->p.Flows.flow[read].mapping[imm,p.KeyElem[p.Str,p.Info],p.Str,p.Info](imm p._AUser:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],p.KeyElem[p.Str,p.Info],p.Str]{'_ .key(e:p.KeyElem[p.Str,p.Info]):p.KeyElem[p.Str,p.Info]->e.key[imm]; .elem(e:p.KeyElem[p.Str,p.Info]):p.Str->e.elem[imm]})}
 """,List.of("""
 Str:{} Info:{} Bool:{} True:{} False:{}
 KeyElem[K,E]:{.key:K;.elem:E;}
@@ -1638,7 +1639,7 @@ p.A:{'this .foo:p.A@p.A;}
 p.B:{'this .of(p.A):p.A@p.B;(_adiv)->base.Block:?#():?.let(p._AB:$?{'_ ? [?]:?@!;->_adiv:?.foo():?;}:?,p._CB:$?{'_ ? [?](?,?):?@!;(foo, _aeqS)->_aeqS:?.return(p._BB:$?{'_ ? [?]:?@!;->foo:?;}:?):?;}:?):?;}
 p._AB:base.ReturnStmt[p.A]{'_ mut #:p.A@p._AB;->_adiv:p.A.foo[imm]():p.A;}
 p._BB:base.ReturnStmt[p.A]{'_ mut #:p.A@p._BB;->foo:p.A;}
-p._CB:base.Continuation[p.A,mut base.Block[p.A],p.A]{'_ mut #(p.A,mut base.Block[p.A]):p.A@p._CB;(foo, _aeqS)->_aeqS:mut base.Block[?].return[mut](p._BB:$?{'_ mut #:?@p._BB;->foo:?;}:mut base.ReturnStmt[?]):p.A;}
+p._CB:base.Continuation[p.A,mut base.Block[p.A],p.A]{'_ mut #(p.A,mut base.Block[p.A]):p.A@p._CB;(foo, _aeqS)->_aeqS:mut base.Block[p.A].return[mut](mut p._BB:base.ReturnStmt[p.A]{'_ mut #:p.A@p._BB;->foo:p.A;}:mut base.ReturnStmt[p.A]):p.A;}
 ~-----------
 ~mut p.A:{'this .foo:p.A}
 ~mut p.B:{'this .of(_adiv:p.A):p.A->base.Block#[imm,p.A].let[mut,p.A](mut p._AB:base.ReturnStmt[p.A]{'_ mut #:p.A->_adiv.foo[imm]}, mut p._CB:base.Continuation[p.A,mut base.Block[p.A],p.A]{'_ mut #(foo:p.A, _aeqS:mut base.Block[p.A]):p.A->_aeqS.return[mut](mut p._BB:base.ReturnStmt[p.A]{'_ mut #:p.A->foo})})}

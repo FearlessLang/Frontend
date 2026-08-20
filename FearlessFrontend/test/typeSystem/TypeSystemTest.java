@@ -3205,40 +3205,18 @@ Customer:Person{}
 MFList[E:*]: { imm .as[R](f: base.MF[imm E,R]): MFList[R] -> base.Nope! }
 User:{ .n(cs: MFList[Customer]): MFList[Customer] -> cs.as{::} }
 """));}
-@Test void oldStyleAsCannotWiden(){fail("""
-004| User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as{::} }
-   |        --------------------------------------------^^^^^^^^^
-
-While inspecting method call ".as(_)" > ".n(_)" line 4
-The body of method ".n(_)" of type declaration "User" is an expression returning "MFList[Customer]".
-Method call "MFList[_].as(_)" has type "MFList[Customer]" instead of a subtype of "MFList[Person]".
-
-See inferred typing context below for how type "MFList[Person]" was introduced: (compression indicated by `-`)
-User:{.n(cs:MFList[Customer]):MFList[Person]->cs.as[imm,Customer](-.MF[Customer,Customer]{(-)->::})}
-""",List.of("""
+@Test void oldStyleAsWidens(){ok(List.of("""
 Person:{}
 Customer:Person{}
 MFList[E:*]: { imm .as[R](f: base.MF[imm E,R]): MFList[R] -> base.Nope! }
 User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as{::} }
 """));}
-@Test void oldStyleAsCannotWidenEvenWithExplicitTarg(){fail("""
-004| User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as[Person]{::} }
-   |        --------------------------------------------~~^^^^~~~~~~~~~~~
-
-While inspecting ".n(_)" line 4
-This call to method "MFList[_].as(_)" can not typecheck.
-Argument 1 has type "iso base.MF[Customer,Customer]".
-That is not a subtype of "base.MF[Customer,Person]" (the type required by the method signature).
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.as[imm,Person](-.MF[Customer,Customer]{mut #(_aimpl:Customer):Customer->::})
-""",List.of("""
+@Test void oldStyleAsWidensWithExplicitTarg(){ok(List.of("""
 Person:{}
 Customer:Person{}
 MFList[E:*]: { imm .as[R](f: base.MF[imm E,R]): MFList[R] -> base.Nope! }
 User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as[Person]{::} }
 """));}
-
 
 /*The five tests below are the minimized shapes of every place base stops compiling if
 InjectionSteps.nextMStarOpRun stops meeting a method's declared return type with the type of its
@@ -3246,9 +3224,9 @@ body, that is if
   IT ret= isBaseId(rcc) ? m.sig().ret().get() : meet(m.sig().ret().get(), e.t());
 becomes
   IT ret= m.sig().ret().get();
-See the TODO on nextMStarOpRun for why we want to get rid of that meet. Before these tests, all
-five reasons were invisible to the Frontend suite: the change kept every typeSystem test green
-except toOrderHash and toOrderHashDesign3, and base was the only thing that noticed.*/
+Before these tests, all five reasons were invisible to the Frontend suite: the change kept every
+typeSystem test green except toOrderHash and toOrderHashDesign3, and base was the only thing that
+noticed.*/
 
 @Test void blockLetInfersItsTypeFromTheLambdaBody(){ok(List.of("""
 use base.MF as MF; use base.Bool as Bool; use base.True as True;
