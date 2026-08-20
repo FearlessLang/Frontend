@@ -28,7 +28,12 @@ public class ToInference{
     var otherTypes= other.dom();
     var declared= p.names().decNames();
     var imported= p.map().entrySet().stream()
-      .filter(e->TokenKind.isKind(e.getKey(), TokenKind.UppercaseId))//TODO: check how the map is created. Is it really just Uppercase + lowercase as two disjoint options?
+      //p.map() keys are exactly the union of two disjoint kinds: Uppercase type
+      //aliases added by accUses() from `use` directives (FileFull.Use.out is
+      //validated as _XId), and lowercase package names coming from `map`
+      //directives / rank-file overrides (FileFull.Map.in is validated as
+      //_pkgName). So this filter selects exactly the type aliases.
+      .filter(e->TokenKind.isKind(e.getKey(), TokenKind.UppercaseId))
       .flatMap(e->otherTypes.stream()
         .filter(t->t.s().equals(e.getValue()))
         .map(t->new TName(p.name()+"."+e.getKey(), t.arity(),t.pos()))
