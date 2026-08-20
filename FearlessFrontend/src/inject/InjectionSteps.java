@@ -337,12 +337,12 @@ public record InjectionSteps(Methods meths){
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
     var e= nextStar(bs, g, c.e());
-    var es= nextStar(bs, g, c.es());
-    assert es == c.es() || !es.equals(c.es());
-    if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, es); }
+    if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     Optional<MSigL> om= methodHeader(rcc, c.name(), c.rc());
-    if (om.isEmpty()){ return c.withEEs(e, es); }
+    if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     MSigL m= om.get();
+    var es= nextStar(bs, g, requiredOnArgs(c, m));
+    assert es == c.es() || !es.equals(c.es());
     RC rc= c.rc().orElse(m.rc());
     assert m.arity() == es.size();
     List<IT> all= newAllTs(c, es, m);
@@ -355,6 +355,11 @@ public record InjectionSteps(Methods meths){
     var es1= meetWithTargs(c.es(),es, m, targs);
     if (e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t())){ return c; }
     return c.withMore(e, rc, targs, es1, it);
+  }
+  private List<E> requiredOnArgs(E.Call c, MSigL m){
+    List<IT> all= meet(List.of(Push.of(m.clsArgs(), MSigL.fixTargs(c.targs(), m.bsArity())), refine(m.xs(), m.ret0(), c.t())));
+    var m0= m.withClsArgs(normToBounds(m.clsBs(), all.subList(0, m.nCls())));
+    return meetWithTargs(c.es(), c.es(), m0, normToBounds(m.methBs(), all.subList(m.nCls(), all.size())));
   }
   private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){
     List<IT> base= Push.of(m.clsArgs(), MSigL.fixTargs(c.targs(), m.bsArity()));
@@ -482,68 +487,19 @@ public record InjectionSteps(Methods meths){
     g.newScope(m.sig().rc().get());
     g.declare(thisN, selfPrecise.<IT>map(o->o).orElse(IT.U.Instance));
     updateGWithArgs(g, m);
-    var e= nextStar(Push.of(bs, m.sig().bs().get()), g, m.impl().get().e());
+    var e= nextStar(Push.of(bs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
     var args= updateArgs(m.impl().get().xs(), m.sig().ts(), g);
     g.popScope();
     return nextMStarOpRun(rcc, m, e, args);
   }
-  private boolean isBaseId(IT.RCC rcc){
-    if (rcc.c().name().equals(LiteralDeclarations.baseId)){ return true; }
-    var d= meths._from(rcc.c().name());
-    return d != null && LiteralDeclarations.has(d.cs(),LiteralDeclarations.baseId);
-  }
-  /*TODO: generalize this away from base.BaseId.
-  The line below is the only place where the BaseId rule leaks into inference, and it should not
-  have to name a type. Inference computes a meet, so a literal's method return type is narrowed to
-  the type of its body. For an invariant generic whose parameter appears only in a covariant
-  position the body's type is a lower bound and not an equality, so narrowing to it throws away
-  what the use site said. That is why "cs.as{::}" cannot widen: "{::}" checked against
-  BaseId[Customer,?] infers BaseId[Customer,Customer]. The same happens with a plain MF based
-  ".as" that the compiler knows nothing about, see oldStyleAsCannotWiden in TypeSystemTest, so the
-  narrowing is not something the BaseId rule introduced; it is why the widening use of ".as" was
-  unreachable in the first place.
-
-  Attempt made, on branch experiment/general-inference-widening, draft FearlessLang/Frontend#15:
-  split the fixpoint over a method body into two passes over the same Gamma. Pass one takes
-  nothing from bodies, so use site constraints settle first; pass two fills what is still "?" from
-  the bodies, and only fills, never replacing what pass one decided. Gamma.newGeneration
-  invalidates the done/sign memo so the second pass is not skipped. That deletes this special case
-  and widening then works for any type. Frontend went to 669 passing with 9 TestInferenceSteps
-  golden logs moving, base needed two rewrites, integration went to 154 of 155.
-
-  Two things blocked it.
-  1. List.info and ESet.take relied on a mut result reaching an imm position through an inferred
-  lambda return type. Pinning that type kills the promotion the type system would have applied
-  later. Writing the same type by hand kills it on the current code too, so this is not specific
-  to the prototype: the "mut in, iso out" chain has to stay open until CallTyping runs.
-  2. helloWorld's Hello5, "L#(1,2,3,4).flow.map{:: + 10}.list.str{::}", inferred R as "iso ToStr".
-  Half of that was nextX writing the type imposed on a variable occurrence back into Gamma, which
-  is a requirement and not knowledge about the variable; suppressing that write in pass one
-  restores R=Nat. What remains is the "{::}" passed to ".str": ToStrBy[T] mentions T only in the
-  parameter, so T can only come from the argument, and the body node still carries the declared
-  return "read ToStr" that pass one pushed onto it. Removing that push down instead breaks nearly
-  every test, since it is how an expected type reaches a nested literal at all. hello5Shape on
-  that branch is the minimized case.
-
-  So the engine cannot currently tell "type imposed as a requirement" from "type learned as a
-  fact" on an E node, and a general rule needs that distinction.
-
-  Cheaper heuristic to try first: force the required type over the more precise one obtained from
-  the body only for identity lambdas, that is when the method body is exactly the method's own
-  parameter, independently of any ".as" call. That covers "{::}" and "{x->x}" without naming
-  BaseId, and leaves every other lambda on today's meet.
-
-  Every place base stops compiling if the meet on the line below is simply dropped is now a
-  minimized test in TypeSystemTest, so the next attempt can be judged from the Frontend suite
-  alone instead of from a base build:
-  - blockLetInfersItsTypeFromTheLambdaBody              base.Math.euclideanMod
-  - thenElseInfersItsTypeFromTheBranchBodies            base._IdOrErr
-  - identityLambdaInfersItsKeyTypeFromItsOwnParameter   base.Infos.map, asserts inside TypeSystem
-  - blockLetKeepsTheMutTypeSoTheReturnCanPromote        base.ESet.take, base.List.info, point 1
-  - blockLetTypeCarriesTheClassTypeParameterIntoTheLambda   base.Set.difference
-  */
+  /*The meet below narrows a method's return type to the type of its body, so a literal only ever
+  gets more precise than what the use site asked for. What keeps that from destroying an invariant
+  instantiation is that a decided type argument is never re-decided: requiredOnArgs and the meet in
+  nextMStarOp push what is already known down before a body is inferred, and keepDecided then only
+  fills the type arguments still unknown. See the five tests named in TypeSystemTest, next to
+  blockLetInfersItsTypeFromTheLambdaBody, for what base needs the meet itself for.*/
   TSM nextMStarOpRun(IT.RCC rcc, inference.M m, E e, List<Optional<IT>> args){
-    IT ret= isBaseId(rcc) ? m.sig().ret().get() : meet(m.sig().ret().get(), e.t());
+    IT ret= meet(m.sig().ret().get(), e.t());
     M.Sig improvedSig= m.sig().withTsT(args, ret);
     var omh= methodHeaderAnd(rcc, improvedSig.m().get(), improvedSig.rc(),(_,_,mi)->mi);
     assert omh.isEmpty() || assertNoBinderClash(rcc, omh.get());
@@ -568,11 +524,16 @@ public record InjectionSteps(Methods meths){
   }
   private List<IT> refineClsTsFromHeader(List<IT> ts, IT.RCC rcc, M.Sig improvedSig, core.Sig imh){
     var Xs= getDec(rcc.c().name()).bs().stream().map(b -> b.x()).toList();
-    return meet(Stream.of(
-      Stream.of(ts),
+    var fromBody= meet(Stream.of(
       IntStream.range(0, imh.ts().size()).mapToObj(i -> refine(Xs,imh.ts().get(i), improvedSig.ts().get(i))),
       Stream.of(refine(Xs,imh.ret(), improvedSig.ret()))
     ).flatMap(z->z).toList());
+    return Streams.zip(ts,fromBody).map(this::keepDecided).toList();
+  }
+  private IT keepDecided(IT decided, IT fromBody){
+    if (!(decided instanceof IT.RCC a && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
+    if (!a.c().name().equals(b.c().name())){ return decided; }
+    return b.withTs(Streams.zip(a.c().ts(),b.c().ts()).map(this::keepDecided).toList());
   }
   private List<IT> refine(List<String> Xs, core.T t,Optional<IT> it){return refine(Xs,TypeRename.tToIT(t), it.get()); }
   private M.Sig normalizeSigAgainstHeader(IT.RCC rcc, M.Sig improvedSig){
