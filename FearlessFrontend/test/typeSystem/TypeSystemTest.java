@@ -3239,4 +3239,112 @@ MFList[E:*]: { imm .as[R](f: base.MF[imm E,R]): MFList[R] -> base.Nope! }
 User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as[Person]{::} }
 """));}
 
+
+/*The five tests below are the minimized shapes of every place base stops compiling if
+InjectionSteps.nextMStarOpRun stops meeting a method's declared return type with the type of its
+body, that is if
+  IT ret= isBaseId(rcc) ? m.sig().ret().get() : meet(m.sig().ret().get(), e.t());
+becomes
+  IT ret= m.sig().ret().get();
+See the TODO on nextMStarOpRun for why we want to get rid of that meet. Before these tests, all
+five reasons were invisible to the Frontend suite: the change kept every typeSystem test green
+except toOrderHash and toOrderHashDesign3, and base was the only thing that noticed.*/
+
+@Test void blockLetInfersItsTypeFromTheLambdaBody(){ok(List.of("""
+use base.MF as MF; use base.Bool as Bool; use base.True as True;
+Blocks: { #[R:*]: mut Block[R] -> {} }
+Block[R:*]: {
+  mut .return(a: mut MF[R]): R -> a#;
+  mut .let[X:*](x: mut MF[X], cont: mut Continuation[X,R]): R -> cont#(x#, this);
+  }
+Continuation[T:*,R:*]: { mut #(x: T, self: mut Block[R]): R }
+Amount: { +(o: Amount): Amount -> this; .lt(o: Amount): Bool -> True }
+User: {
+  .m(a: Amount, b: Amount): Amount -> Blocks#
+    .let sum = {a + b}
+    .return { sum.lt(b).if {
+        .then -> sum + b;
+        .else -> sum
+      }};
+  }
+"""));}
+/*Minimizes base.Math.euclideanMod in math.fear. "X" of ".let" appears only inside the "mut MF[X]"
+parameter, so nothing at the use site can decide it and the lambda body is the only source. The
+".if" in the continuation matters: with a plain ".return {sum}" the requirement on the block's own
+result reaches "sum" and X is decided anyway; once "sum" is only ever a receiver inside the
+continuation, dropping the meet leaves "iso MF[InferUnknown]".*/
+
+@Test void thenElseInfersItsTypeFromTheBranchBodies(){ok(List.of("""
+use base.Bool as Bool; use base.Void as Void; use base.Nope as Nope;
+Seq: { #[A:**,R:**](a: A, res: R): R -> res }
+User: {
+  .m[R:iso,imm,mut,read](r: R, b: Bool): R -> Seq#(b?{.then->Void; .else->Nope!}, r);
+  }
+"""));}
+/*Minimizes base._IdOrErr in var.fear. Same reason as the test above but through "?" instead of
+".let": "R" of "base.ThenElse[R]" is only the return type of the branches, and "Seq" discards its
+first argument, so the branch bodies are the only source of R.*/
+
+@Test void identityLambdaInfersItsKeyTypeFromItsOwnParameter(){ok(List.of("""
+use base.Nope as Nope;
+Ord[K]: {}
+By[T,K]: {
+  #(x: read T): read Ord[K];
+  .hide: By[T,K] -> this;
+  }
+Key: Ord[Key] {}
+Box[T]: {}
+Mk: { #[T,K](by: By[T,K], t: T): Box[T] -> Nope! }
+Caller: { .go(x: Key): Box[Key] -> Mk#({::}, x) }
+"""));}
+/*Minimizes the "Maps#({::},k1,e1.info)" calls of base.Infos in datatypes/info.fear. "T" of "By"
+comes from the use site, "K" does not: it can only come from the body of "{::}", which is the
+parameter of the very method whose return type we are deciding. Dropping the meet leaves the head
+of "{::}" at "By[InferUnknown,InferUnknown]" while its method table is refined with "Key", and the
+literal is then internally inconsistent: this one fails the "mostSpecificByOrigin" assert inside
+TypeSystem.methodTableOk rather than reporting a user error.*/
+
+@Test void blockLetKeepsTheMutTypeSoTheReturnCanPromote(){ok(List.of("""
+use base.MF as MF;
+Blocks: { #[R:*]: mut Block[R] -> {} }
+Block[R:*]: {
+  mut .return(a: mut MF[R]): R -> a#;
+  mut .let[X:*](x: mut MF[X], cont: mut Continuation[X,R]): R -> cont#(x#, this);
+  }
+Continuation[T:*,R:*]: { mut #(x: T, self: mut Block[R]): R }
+Opt[E:imm]: {}
+Set[E:imm]: { mut .opt(e: E): mut Opt[E] -> {} }
+User[E:imm]: {
+  mut .take(s: mut Set[E], e: E): Opt[E] -> Blocks#
+    .let o = {s.opt(e)}
+    .return {o};
+  }
+"""));}
+/*Minimizes base.ESet.take in datatypes/collections/sets/eset.fear, and base.List.info in
+datatypes/collections/lists/list.fear is the same shape. Here the use site does decide X, as
+"Opt[E]", but the body of the lambda is "mut Opt[E]". The meet keeps the mut type in the inferred
+signature and the mut to imm promotion is applied later, by CallTyping. Taking the required type
+instead pins X to "Opt[E]" and the promotion has nowhere left to happen.*/
+
+@Test void blockLetTypeCarriesTheClassTypeParameterIntoTheLambda(){ok(List.of("""
+use base.MF as MF; use base.Nat as Nat; use base.Ten as Ten;
+Blocks: { #[R:*]: mut Block[R] -> {} }
+Block[R:*]: {
+  mut .return(a: mut MF[R]): R -> a#;
+  mut .let[X:*](x: mut MF[X], cont: mut Continuation[X,R]): R -> cont#(x#, this);
+  }
+Continuation[T:*,R:*]: { mut #(x: T, self: mut Block[R]): R }
+Set[E:imm]: { .distinct: Set[E] -> this }
+User[E:imm]: {
+  .m(other: Set[E]): Nat -> Blocks#
+    .let other2 = {other.distinct}
+    .return {Ten};
+  }
+"""));}
+/*Minimizes base.Set.difference in datatypes/collections/sets/set.fear. X is again only decided by
+the lambda body, but the body's type mentions "E", so the failure is not the one of
+blockLetInfersItsTypeFromTheLambdaBody: the literal generated for "{other.distinct}" is given the
+head "iso MF[InferUnknown]", which mentions no type parameter, so the fresh declaration is created
+without binders and capturing "other" is then reported as a capture error.*/
+
 }
