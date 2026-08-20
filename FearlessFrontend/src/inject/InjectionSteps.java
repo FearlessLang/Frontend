@@ -532,6 +532,15 @@ public record InjectionSteps(Methods meths){
   the body only for identity lambdas, that is when the method body is exactly the method's own
   parameter, independently of any ".as" call. That covers "{::}" and "{x->x}" without naming
   BaseId, and leaves every other lambda on today's meet.
+
+  Every place base stops compiling if the meet on the line below is simply dropped is now a
+  minimized test in TypeSystemTest, so the next attempt can be judged from the Frontend suite
+  alone instead of from a base build:
+  - blockLetInfersItsTypeFromTheLambdaBody              base.Math.euclideanMod
+  - thenElseInfersItsTypeFromTheBranchBodies            base._IdOrErr
+  - identityLambdaInfersItsKeyTypeFromItsOwnParameter   base.Infos.map, asserts inside TypeSystem
+  - blockLetKeepsTheMutTypeSoTheReturnCanPromote        base.ESet.take, base.List.info, point 1
+  - blockLetTypeCarriesTheClassTypeParameterIntoTheLambda   base.Set.difference
   */
   TSM nextMStarOpRun(IT.RCC rcc, inference.M m, E e, List<Optional<IT>> args){
     IT ret= isBaseId(rcc) ? m.sig().ret().get() : meet(m.sig().ret().get(), e.t());

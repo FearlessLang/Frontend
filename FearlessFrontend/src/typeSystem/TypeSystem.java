@@ -3,8 +3,10 @@ package typeSystem;
 import static core.RC.*;
 
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SequencedMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -136,9 +138,9 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private record Key(MName m, RC rc){}
   //Sources is needed, not assert only: the user can simply try to override with a non subtype signature.
   //l.ms is the resolved set, either inferred or resolved by hand in a wrong way.
-  Map<Key,List<Sig>> sources(Literal l){
+  SequencedMap<Key,List<Sig>> sources(Literal l){
   return Sources.collect(this, l).stream()
-    .collect(Collectors.groupingBy(s -> new Key(s.m(), s.rc())));
+    .collect(Collectors.groupingBy(s -> new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()));
   }
   private static final MName asOne= new MName(".as",1);
   private void baseIdOk(Literal l){
@@ -165,7 +167,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var delta= l.bs();
     var span= l.name().approxSpan();
     var selfT= new T.C(l.name(),dom(delta,span));
-    Map<Key,List<Sig>> sources= sources(l);
+    SequencedMap<Key,List<Sig>> sources= sources(l);
     sources.forEach((k,group)->methodTableOk(l,k,group));
     l.cs().forEach(c->k().checkC(l,delta,c));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
