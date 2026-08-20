@@ -106,7 +106,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<TRequirement> rs){
     var span= _l.name().approxSpan();
-    var getIso= ((readOrImm(_l.rc()) && !hasAbstractMut(_l)) || mutOrMutH(_l.rc()))//TODO: check if a literal can even be declared mutH
+    var getIso= ((readOrImm(_l.rc()) && !hasAbstractMut(_l)) || _l.rc() == mut)
       && _l.thisName().equals("_")
       && new FreeMutyParameters(bs1,g).isFree(_l);
     var l= getIso ? _l.withRC(RC.iso) : _l;
