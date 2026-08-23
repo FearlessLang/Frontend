@@ -227,12 +227,18 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     List<RCMName> names= ms.stream().flatMap(this::declaredName).toList();
     long count1= names.stream().distinct().count();
     if (names.size() > count1){ throw errFactory().methNameRedeclared(ms,names,span(start,end).get()); }
-    //TODO:may want to add that if any name in names have RC for a MName,
-    //then all need explicit RC
+    checkMixedExplicitRC(ms,names,span(start,end).get());
     List<Integer> noNames= ms.stream()
       .map(errFactory()::parCount).filter(i->i != -1).toList();
     long count2= noNames.stream().distinct().count();
     if (noNames.size() > count2){ throw errFactory().methNoNameRedeclared(ms,noNames,span(start,end).get()); }
+  }
+  private void checkMixedExplicitRC(List<M> ms, List<RCMName> names, Span at){
+    for (var n : names){
+      if (n.rc().isPresent()){ continue; }
+      var mixed= names.stream().anyMatch(o->o.name().equals(n.name()) && o.rc().isPresent());
+      if (mixed){ throw errFactory().methMixedExplicitRC(ms,n.name(),at); }
+    }
   }
   Stream<String> xsOf(Optional<XPat> xp){
     if (xp.isEmpty()){ return Stream.of(); }

@@ -2664,5 +2664,19 @@ A:{this.choose( SomeLeftRight[]:LeftRight[Str]{
 })}
 """);}
 
+@Test void meth_rc_mixed_explicit_and_inferred(){fail("""
+In file: [###].fear
+
+001| A:{ .foo:A->this; mut .foo:A->this; }
+   | --~~^^^^^^^^^^^^~~~~~~~~~~~~~~~~~~~~~
+
+While inspecting type declaration body > type declaration > full file
+Method ".foo" mixes an explicit and an inferred reference capability.
+Once one overload of ".foo" declares a reference capability, every overload of that method must.
+Error 7 WellFormedness
+""","""
+A:{ .foo:A->this; mut .foo:A->this; }
+""");}
+
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?
