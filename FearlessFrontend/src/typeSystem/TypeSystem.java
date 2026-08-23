@@ -64,8 +64,9 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var rs= List.of(new TRequirement("", expected));
     var out= typeOf(bs,g,e,rs);
     assert out.size() == 1;
-    if (out.getFirst().isEmpty()){ return; }
-    throw tsE().methBodyWrongType((TypeScope.Method)scope,e,out,rs);
+    var got= out.getFirst();
+    if (got.isEmpty()){ return; }
+    throw tsE().methBodyWrongType((TypeScope.Method)scope,e,got,expected);
   }
   List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch(e){
     case X x -> checkX(bs,g,x,rs);

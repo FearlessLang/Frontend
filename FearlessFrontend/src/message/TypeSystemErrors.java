@@ -188,27 +188,20 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///Expression at method body has a type that does not meet its result requirement(s).
   ///"body has wrong type" error; can only trigger if all current-expressions at are well typed.
   ///Raised when checking object literals
-  public FearlessException methBodyWrongType(TypeScope.Method s, E at, List<Reason> got, List<TRequirement> req){
+  public FearlessException methBodyWrongType(TypeScope.Method s, E at, Reason got, T req){
     Literal l= s.l();
     M m= s.m();
-    assert got.size() == req.size();
-    assert got.stream().allMatch(r->!r.isEmpty());//TODO: also here use isWrongUnderlyingType or rcOnlyMismatch
-    var got0= err().typeRepr(true,got.getFirst().best);
-    var req0= err().typeRepr(true,req.getFirst().t());
+    assert !got.isEmpty();
+    var got0= err().typeRepr(true,got.best);
+    var req0= err().typeRepr(true,req);
     var e= err();
     String meth= err().methodSig(m.sig().m());
     var top= l.thisName().equals("this");
     if (top){ e.line("The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."); }
     else{ e.line("Method "+meth+" inside the "+err().expRepr(l) + " (line "+l.span().inner.startLine()+")"
       +"\nis implemented with an expression returning "+got0+"."); }
-    boolean promoMode= at instanceof E.Call
-       && rcOnlyMismatch(got.getFirst().best, req.getFirst().t());
-    if (!promoMode){ e.line(up(got.getFirst().info)); }
-    else { 
-      e.blank().pPromotionFailuresHdr();
-      got.forEach(r->e.pPromoFailure(r.info));
-    }
-    E ctx= got.getFirst().footerE.get();
+    e.line(up(got.info));
+    E ctx= got.footerE.get();
     FearlessException ex= e.exInferMsg(ctx,req0);
     return addExpFrame(at, ex.addSpan(at.span().inner));
   }

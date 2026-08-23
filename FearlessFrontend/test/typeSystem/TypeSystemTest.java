@@ -428,6 +428,48 @@ User:{
 }
 """));}
 
+@Test void methBodyWrongType_callWrongType_rcOnly(){ fail("""
+004|   imm .m():mut A->MakeA#({  }    );
+   |   ----------------^^^^^^^^^^^-----
+
+While inspecting method call "#(_)" > ".m" line 4
+The body of method ".m" of type declaration "User" is an expression returning "A".
+Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
+
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+User:{.m:mut A->MakeA#(-.Void)}
+""", List.of("""
+A:{}
+MakeA:{ #(u:base.Void):A->A{} }
+User:{
+  imm .m():mut A->MakeA#({  }    );
+}
+"""));}
+
+@Test void methBodyWrongType_callWrongType_rcOnly_nested(){ fail("""
+005|   imm .m():Get->mut Get{
+006|     mut .get:mut A->MakeA#({});
+   |     ----------------^^^^^^^^^-
+007|   };
+
+While inspecting method call "#(_)" > ".get" line 6 > ".m" line 5
+Method ".get" inside the object literal instance of "iso Get" (line 5)
+is implemented with an expression returning "A".
+Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
+
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+User:{.m:Get->mut Get{mut .get:mut A->MakeA#(-.Void)}}
+""", List.of("""
+A:{}
+MakeA:{ #(u:base.Void):A->A{} }
+Get:{ mut .get:mut A; }
+User:{
+  imm .m():Get->mut Get{
+    mut .get:mut A->MakeA#({});
+  };
+}
+"""));}
+
 @Test void methBodyWrongType_inferredContextShowsInferredGenericInstantiation(){fail("""
 007|   imm .m():Car->Apply#(Person,{_->Foo});
    |   -----------------------------~~~^^^^-

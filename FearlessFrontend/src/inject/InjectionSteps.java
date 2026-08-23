@@ -166,7 +166,8 @@ public record InjectionSteps(Methods meths){
     while (true){
       var s= g.snapshot();
       var oe= next(bs, g, e);
-      assert oe == e || !oe.equals(e) : "Allocated equal E:"+e.getClass()+"\n"+e;//TODO: very heavy assertion
+      //NOTE: very heavy assertion (recursive equals() on every fixpoint step); kept commented out as documentation of the identity-preservation invariant this loop relies on.
+      //assert oe == e || !oe.equals(e) : "Allocated equal E:"+e.getClass()+"\n"+e;
       if (oe == e && !g.changed(s)){
         e.sign(g);
         assert e == start || !e.equals(start) : "Roundtrip equal E at fixpoint\nstart=" + start + "\nend=" + e;
