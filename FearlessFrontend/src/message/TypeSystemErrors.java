@@ -109,7 +109,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     T currentArg= current.ts().get(index);
     assert !ts.isSub(ctx, parentArg, currentArg);
     String inverse= ts.isSub(ctx, currentArg, parentArg)
-      ? "It is instead a supertype: you are strenghtening the parameter instead of weakening it."
+      ? "It is instead a supertype: you are strengthening the parameter instead of weakening it."
       : "The two types are unrelated.";
     return overrideErr(l, current, err()
       .invalidMethImpl(current.rc().toStrSpace(),l,mName)
@@ -127,7 +127,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     T currentRet= current.ret();
     assert !ts.isSub(ctx, currentRet, parentRet);
     String inverse= ts.isSub(ctx, parentRet, currentRet)
-      ? "It is instead a subtype: you are weakening the result instead of strenghtening it."
+      ? "It is instead a subtype: you are weakening the result instead of strengthening it."
       : "The two types are unrelated.";
     return overrideErr(l, current, err()
       .invalidMethImpl(current.rc().toStrSpace(),l,mName)
