@@ -8,5 +8,6 @@ public record MName(String s, int arity){
     assert validate(s,"MName", DotName, Op);
   }
   public MName withArity(int arity){ return new MName(s,arity); }
+  public static boolean isMethodName(String s){ return isKind(s,DotName,Op); }
   public String toString(){ return s; }
 }
