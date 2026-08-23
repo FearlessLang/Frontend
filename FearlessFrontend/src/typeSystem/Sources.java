@@ -15,24 +15,26 @@ import inject.TypeRename;
 import utils.OneOr;
 
 class Sources {
-//TODO: Similar code must exists inside inference. We may or may not be able to deduplicate it (works on different types).
-//But at least we can check if the two implementations are consistent and pull them to the same file so that they stay closed together.
+//l.cs() is already the fully flattened, fully substituted transitive ancestor set (Methods.expandDeclaration
+//builds it that way before type checking runs), so every ancestor's own-declared signatures are reachable
+//in one hop from l; recursing into each ancestor's own (already flattened) cs() would just revisit the same
+//ancestors again once per path to them.
   static List<Sig> collect(TypeSystem ts, Literal l){//Note: this uses l instead of D[Ts] since more direct/efficient
     List<Sig> sources= new ArrayList<>();
     for(T.C parent : l.cs()){
       Literal parentDef= ts.decs().apply(parent.name());
-      List<Sig> parentSigs= collect(ts, parentDef);      
       List<String> parentXs= parentDef.bs().stream().map(B::x).toList();
-      for(Sig s : parentSigs){
-        Sig canonical= findCanonical(l, s.m(), s.rc());
-        sources.add(instantiate(s, parentXs, parent.ts(), canonical.bs()));
+      for (M m : parentDef.ms()){
+        if (!m.sig().origin().equals(parentDef.name())){ continue; }
+        Sig canonical= findCanonical(l, m.sig().m(), m.sig().rc());
+        sources.add(instantiate(m.sig(), parentXs, parent.ts(), canonical.bs()));
       }
     }
     for (M m : l.ms()){ if (m.sig().origin().equals(l.name())){ sources.add(m.sig()); } }
     assert unionCount(ts,l) == sources.size();
     assert sources.stream().allMatch(s->l.ms().stream().anyMatch(m->m.sig().m().equals(s.m()) && m.sig().rc() == s.rc()));
     assert l.ms().stream().map(M::sig).allMatch(s->sources.stream().anyMatch(si->
-      si.m().equals(s.m()) && si.rc().equals(s.rc()) 
+      si.m().equals(s.m()) && si.rc().equals(s.rc())
       )):
       l.ms().stream().map(M::sig).toList()+" @@ "+sources;
     return sources;
@@ -43,9 +45,7 @@ class Sources {
     ).count();
   }
   private static Stream<Literal> supers(TypeSystem ts, Literal l){
-    return Stream.concat(Stream.of(l),
-      l.cs().stream().map(T.C::name).map(ts.decs()::apply)
-        .flatMap(p->supers(ts,p)));
+    return Stream.concat(Stream.of(l), l.cs().stream().map(T.C::name).map(ts.decs()::apply));
   }
   private static Sig findCanonical(Literal l, MName name, RC rc){
     return OneOr.of("Methods with duplicates or absent",l.ms().stream().map(M::sig).filter(s->
