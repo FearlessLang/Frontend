@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import core.FearlessException;
+import core.MName;
 import core.RC;
 import core.TName;
 import fearlessFullGrammar.M;
@@ -174,6 +175,14 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "Method "+Message.displayString(name.name().s())+" redeclared.\n"
     + "A method with the same name, arity and reference capability is already present.\n")
       .addSpan(s).addSpan(at);
+  }
+  public FearlessException methMixedExplicitRC(List<M> ms, MName name, Span at){
+    Predicate<M> p= mi->mi.sig().map(s->s.m().equals(Optional.of(name)) && s.rc().isEmpty()).orElse(false);
+    Span s= redeclaredMethSpan(ms,p,at);
+    return Code.WellFormedness.of(
+      "Method "+Message.displayString(name.s())+" mixes an explicit and an inferred reference capability.\n"
+    + "Once one overload of "+Message.displayString(name.s())+" declares a reference capability, every overload of that method must.\n"
+    ).addSpan(s).addSpan(at);
   }
   public int parCount(M m){//-1 == explicitly named method
     if (m.sig().isPresent() && m.sig().get().m().isPresent()){ return -1; }
