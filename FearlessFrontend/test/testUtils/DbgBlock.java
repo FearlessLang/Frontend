@@ -260,4 +260,19 @@ _DecidedBlock:{
   .loop(_) -> self;
   }
 }
+Opt[E:*]: _Opt[E] {
+  .match m    -> m.empty;
+  }
+_Opt[E:*]: {
+  mut  .match[R:**](mut OptMatch[E, R]): R;
+  read .match[R:**](mut OptMatch[read/imm E, R]): R;
+  imm  .match[R:**](mut OptMatch[imm E, R]): R;
+  }
+Opts: {
+  #[E:*](x: E): mut Opt[E] -> { .match m -> m.some(x) };
+  }
+OptMatch[E:*,R:**]: {
+  mut .some(E): R;
+  mut .empty: R;
+  }
 """;}
