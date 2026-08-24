@@ -192,9 +192,10 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     }
     return this;
   }
-  public String gotMsg(boolean skipImm,String label, T got, T expected){
-    if (isInferErr(expected)){ return gotMsgInferErr(label,got); }
-    return label+" has type "+ typeRepr(skipImm,got)+" instead of a subtype of "+typeRepr(skipImm,expected)+".";  
+  public String gotMsg(boolean skipImm,String label, List<T> got, T expected){
+    if (isInferErr(expected)){ return gotMsgInferErr(label,got.getFirst()); }
+    return label+" has type "+Join.of(got.stream().map(t->typeRepr(skipImm,t)),""," or ","")
+      +" instead of a subtype of "+typeRepr(skipImm,expected)+".";  
   }
   public String gotMsgInferErr(String label, T got){
     return label 

@@ -8,7 +8,6 @@ import core.*;
 import core.E.*;
 import inject.TypeRename;
 import message.Reason;
-import utils.OneOr;
 import utils.Push;
 import typeSystem.TypeSystem.*;
 
@@ -108,13 +107,16 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     List<Integer> okRet= possible.stream()
       .filter(i->ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
     if (!okRet.isEmpty()){ return Reason.pass(bestUnique(mat,okRet)); }
-    return Reason.callResultCannotHaveRequiredType(ts,d,c, bs, mat, possible, req, bestUnique(mat,possible),sig,ts.scope());
+    return Reason.callResultCannotHaveRequiredType(ts,d,c, bs, mat, possible, req, bests(mat,possible),sig,ts.scope());
   } 
-  private T bestUnique(ArgMatrix mat, List<Integer> idxs){
+  //Unique unless the minimal types are a bare 'X' and some 'rc X'. A bare X stands for its whole
+  //bound, so those two are incomparable, but both are sound and the "As declared" one comes first.
+  private T bestUnique(ArgMatrix mat, List<Integer> idxs){ return bests(mat,idxs).getFirst(); }
+  private List<T> bests(ArgMatrix mat, List<Integer> idxs){
     List<T> all= idxs.stream().map(i->mat.candidate(i).t()).toList();
-    return OneOr.of("noUniqueBest", all.stream()
+    return all.stream()
       .filter(ti->all.stream().noneMatch(tj->
         !tj.equals(ti) && ts.isSub(bs,tj,ti)))
-      .distinct());
+      .distinct().toList();
   }
 }
