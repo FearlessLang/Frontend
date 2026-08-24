@@ -60,7 +60,7 @@ public final class Reason{
     return best.contextE();
   }
   public static Reason callResultCannotHaveRequiredType(
-    TypeSystem ts, Literal d, Call call, List<B> bs, ArgMatrix mat, List<Integer> okProm, TRequirement req, T got, Sig sig, TypeScope scope
+    TypeSystem ts, Literal d, Call call, List<B> bs, ArgMatrix mat, List<Integer> okProm, TRequirement req, List<T> got, Sig sig, TypeScope scope
   ){    
     assert !okProm.isEmpty();
     Supplier<E> footerE= ()->{
@@ -70,7 +70,7 @@ public final class Reason{
       var best= TypeScope.bestInterestingScope(scope, interest);
       return best.contextE();
     };
-    return new Reason(got,ts.err().gotMsg(true,"Method call "+ts.err().methodSig(call.rc().toStrSpace(),d,call.name()),got, req.t()),
+    return new Reason(got.getFirst(),ts.err().gotMsg(true,"Method call "+ts.err().methodSig(call.rc().toStrSpace(),d,call.name()),got, req.t()),
       footerE);
   }
   public static Reason parameterDoesNotHaveRequiredTypeHere(
@@ -78,7 +78,7 @@ public final class Reason{
   ){
     T got= cur.currentT();
     var rcOnly= Err.rcOnlyMismatch(got, req.t());
-    String base= ts.err().gotMsg(!rcOnly,ts.err().expRepr(x), got, req.t());
+    String base= ts.err().gotMsg(!rcOnly,ts.err().expRepr(x), List.of(got), req.t());
     if (!rcOnly){ return new Reason(got, base,()->baseFooterE(ts.scope(),got,req.t())); }
     var e= ts.err().line(base);
     if (declared.equals(got)){ return new Reason(got, base, ()->baseFooterE(ts.scope(),got,req.t())); }
