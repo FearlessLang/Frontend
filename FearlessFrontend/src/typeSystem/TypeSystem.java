@@ -89,11 +89,15 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private List<Reason> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
     var ll= decs().apply(t.type().c().name());
+    if (!hasInstance(ll)){ throw tsE().typeDeclaredInMethod(t, ll); }
     var getIso= (readOrImm(t.type().rc()) && !hasAbstractMut(ll)) || mutOrMutH(t.type().rc());
     var l= ll.withRC(getIso ? RC.iso : t.type().rc());
     var tt= getIso ? new Type(t.type().withRC(RC.iso), t.src()) : t;
     l.ms().forEach(m->checkImplemented(l,m,tt));
     return reqs(t,bs,tt.type(),rs);//reqs correctly used for two similar things
+  }
+  private static boolean hasInstance(Literal l){
+    return l.thisName().equals("this") || LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
   }
   private static boolean readOrImm(RC rc){ return rc == RC.read || rc == RC.imm; }
   private static boolean mutOrMutH(RC rc){ return rc == RC.mut || rc == RC.mutH; }
@@ -170,12 +174,17 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var selfT= new T.C(l.name(),dom(delta,span));
     SequencedMap<Key,List<Sig>> sources= sources(l);
     sources.forEach((k,group)->methodTableOk(l,k,group));
-    l.cs().forEach(c->k().checkC(l,delta,c));
+    l.cs().forEach(c->csOk(l,delta,c));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
     l.ms().forEach(m->{
       Gamma g2= v().of(g1,l,m);//passing l and m instead of their RC for better errors
       methOk(l,delta,g2,m);
     });
+  }
+  private void csOk(Literal l, List<B> delta, T.C c){
+    k().checkC(l,delta,c);
+    var d= decs().apply(c.name());
+    if (!hasInstance(d)){ throw tsE().typeDeclaredInMethod(l, d); }
   }
   private void methOk(Literal forErr,List<B> delta, Gamma g, M m){
     var allBs= Push.of(delta,m.sig().bs());

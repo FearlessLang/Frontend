@@ -147,6 +147,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.")
       .ex(at));
   }
+  public FearlessException typeDeclaredInMethod(E at, Literal l){
+    return addExpFrame(at, err()
+      .line("The type "+err().tNameADisp(l.name())+" is declared inside a method body.")
+      .line("A type declared inside a method can capture any parameter name in scope,")
+      .line("so it can not be extended or instantiated.")
+      .line("Hint: if it captures nothing, declare it implementing \"base.CaptureFree\".")
+      .ex(at));
+  }
   ///Implemented method can never be called for any receiver obtained from the literal.
   ///Its body is statically dead code (typically a mut method on an imm/read literal).
   ///Raised when checking object literals   
