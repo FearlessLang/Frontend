@@ -58,7 +58,9 @@ public class LiteralDeclarations {
   public static final BigInteger natMin= BigInteger.ZERO;
   public static final BigInteger natMax= new BigInteger(Long.toUnsignedString(-1L)); // 2^64-1
   
+  public static final String softSuffix= "soft";
   static String stripUnderscores(String s){ return s.replace("_",""); }
+  static String floatPayload(String raw){ return stripUnderscores(raw.endsWith(softSuffix) ? raw.substring(0,raw.length()-softSuffix.length()) : raw); }
   static BigInteger big(String raw){ return new BigInteger(stripUnderscores(raw)); }
   static boolean inRange(BigInteger v, BigInteger min, BigInteger max){ return v.compareTo(min) >= 0 && v.compareTo(max) <= 0; }
   static public BigInteger intLiteralBig(String raw){ return big(raw); }
@@ -75,15 +77,16 @@ public class LiteralDeclarations {
     assert inRange(v,natMin,natMax);
     return v.longValue(); // wraps to low 64 bits (exactly what we want given the range)
   }
-  static public BigDecimal floatLiteralBig(String raw){ return new BigDecimal(stripUnderscores(raw)); }
+  static public BigDecimal floatLiteralBig(String raw){ return new BigDecimal(floatPayload(raw)); }
   static public boolean floatLiteralExactlyRepresentable(String raw){
-    String ns= stripUnderscores(raw);
+    String ns= floatPayload(raw);
     if (ns.startsWith("+")){ ns = ns.substring(1); }
     BigDecimal dec= new BigDecimal(ns);     // exact decimal literal value
     double d= dec.doubleValue();            // rounded-to-double
     if (!Double.isFinite(d)){ return false; } // overflow -> Infinity
     return dec.compareTo(new BigDecimal(d)) == 0; // exact double value as decimal
   }
+  static public boolean floatLiteralOk(String raw){ return raw.endsWith(softSuffix) ? Double.isFinite(floatLiteralDouble(raw)) : floatLiteralExactlyRepresentable(raw); }
   public static String floatExactFearlessLit(double d){
     assert Double.isFinite(d);
     boolean neg= (Double.doubleToRawLongBits(d) & (1L<<63)) != 0;
@@ -99,7 +102,7 @@ public class LiteralDeclarations {
     return (neg ? "-" : "+") + mag;
   }
   static public double floatLiteralDouble(String raw){
-    try { return Double.parseDouble(stripUnderscores(raw)); }
+    try { return Double.parseDouble(floatPayload(raw)); }
     catch(NumberFormatException ex){ return raw.startsWith("-") ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY; }
   }
   public static String toJavaLiteral(String s){
@@ -112,7 +115,7 @@ public class LiteralDeclarations {
       }
     if (TokenKind.isKind(ns,TokenKind.SignedInt)){ return intLiteral64(ns) +"L"; }
     if (TokenKind.isKind(ns,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){
-      assert floatLiteralExactlyRepresentable(ns);
+      assert floatLiteralOk(ns);
       return floatLiteralDouble(ns) +"d";
     }
     throw Bug.unreachable();

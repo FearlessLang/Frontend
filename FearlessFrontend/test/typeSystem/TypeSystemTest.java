@@ -1941,6 +1941,7 @@ Float literal is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
 This literal is: +1.0e-400.
 If rounded, the nearest representable value is "+0.0".
+Write "+1.0e-400soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """,List.of("""
@@ -1957,6 +1958,7 @@ Float literal is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
 This literal is: +0.1.
 If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
+Write "+0.1soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """,List.of("""
@@ -1973,6 +1975,7 @@ Float literal is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
 This literal is: +0.2.
 If rounded, the nearest representable value is "+0.200000000000000011102230246251565404236316680908203125".
+Write "+0.2soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """,List.of("""
@@ -1986,6 +1989,33 @@ Error 7 WellFormedness
 """));}
 @Test void okFloatPrecise2(){ok(List.of("""
  Main:{ .m:base.Float -> +0.200000000000000011102230246251565404236316680908203125 }
+"""));}
+@Test void okFloatSoft(){ok(List.of("""
+ Main:{ .m:base.Float -> +0.1soft }
+"""));}
+@Test void okFloatSoftUnsigned(){ok(List.of("""
+ Main:{ .m:base.Float -> 0.4soft }
+"""));}
+@Test void okFloatSoftAlreadyExact(){ok(List.of("""
+ Main:{ .m:base.Float -> +0.5soft }
+"""));}
+@Test void okFloatSoftUnderscores(){ok(List.of("""
+ Main:{ .m:base.Float -> +1_0.4soft }
+"""));}
+@Test void failFloatSoftTooBig(){failExt("""
+In file: [###].fear
+
+001|  Main:{ .m:base.Float -> +1.0e309soft }
+   |                          ^^^^^^^^^^^^
+
+While inspecting the file
+Float literal is not exactly representable as "base.Float".
+"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+This literal is: +1.0e309soft.
+This literal overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
+Error 7 WellFormedness
+""",List.of("""
+ Main:{ .m:base.Float -> +1.0e309soft }
 """));}
 
 @Test void byNameOk1(){ok(List.of("""

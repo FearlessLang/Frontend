@@ -543,6 +543,7 @@ public record WellFormednessErrors(String pkgName){
     if (!Double.isFinite(d)){ e.line("This literal overflows; the nearest representable value is "+Err.disp(near)+"."); }
     else{
       e.line("If rounded, the nearest representable value is "+Err.disp(near)+".")
+       .line("Write "+Err.disp(raw+LiteralDeclarations.softSuffix)+" to accept that rounding.")
        .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".");
     }
     return e.wf().addSpan(lit.approxSpan().inner);
