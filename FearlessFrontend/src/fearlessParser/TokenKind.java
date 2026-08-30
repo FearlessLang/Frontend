@@ -34,10 +34,10 @@ public enum TokenKind implements metaParser.TokenKind {
   // Signed float: +12.34, -1.0e-3 ; requires at least one digit on each side of '.'
   SignedFloat(
     "[+-](?:[0-9](?:[0-9_]*[0-9])?)\\.(?:[0-9](?:[0-9_]*[0-9])?)"
-    + "(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?","signed number (eg. -23.0045)"),
+    + "(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?(?:soft)?","signed number (eg. -23.0045)"),
   UnSignedFloat(
     "[0-9](?:[0-9_]*[0-9])?\\x2E(?:[0-9](?:[0-9_]*[0-9])?)"
-    +"(?:[eE][\\x2B\\x2D]?[0-9](?:[0-9_]*[0-9])?)?","unsigned number (eg. 23.0045)"),
+    +"(?:[eE][\\x2B\\x2D]?[0-9](?:[0-9_]*[0-9])?)?(?:soft)?","unsigned number (eg. 23.0045)"),
   // Signed int: +45, -10, +1_000
   SignedInt("[+-][0-9](?:[0-9_]*[0-9])?","signed number (eg. -23)"),
   // Unsigned int: 0, 42, 1_000_000

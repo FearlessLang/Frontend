@@ -49,7 +49,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
       assert tName.pkgName().isEmpty();
       if (isKind(s,UnsignedInt) && !natLiteralInRange(s)){ throw meths.p().err().natLiteralOutOfRange(tName); }
       if (isKind(s,SignedInt) && !intLiteralInRange(s)){ throw meths.p().err().intLiteralOutOfRange(tName); }
-      if (isKind(s,SignedFloat,UnSignedFloat) && !floatLiteralExactlyRepresentable(s)){ throw meths.p().err().floatLiteralNotExactlyRepresentable(tName); }
+      if (isKind(s,SignedFloat,UnSignedFloat) && !floatLiteralOk(s)){ throw meths.p().err().floatLiteralNotExactlyRepresentable(tName); }
     }
     var tNameMap= f.apply(tName);
     var ts= c.ts().orElse(List.of());
