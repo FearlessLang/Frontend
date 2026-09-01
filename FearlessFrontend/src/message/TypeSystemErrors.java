@@ -411,12 +411,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     addNoPrecedenceHintIfOperator(e,c);
     return withCallSpans(e.ex(ts.scope().pushCallArgi(c,argi).contextE()), c);
   }
-  ///Fearless has no operator precedence: a whole expression is one flat left-to-right chain of
-  ///method calls, and a symbolic operator (`+`, `<`, `=~~=`, ...) is parsed the same as a `.name`
-  ///call. So `a.get + b.get` parses as `(a.get + b).get`, not `a.get + (b.get)` - a frequent source
-  ///of confusing argument-type errors on the operator call itself when the true argument still
-  ///needed a method applied to it. Excludes `#`: a constructor call always writes its own
-  ///parentheses (`Name#(args)`), so it is never subject to this confusion.
   private void addNoPrecedenceHintIfOperator(Err e, Call c){
     String s= c.name().s();
     if (s.startsWith(".") || s.equals("#")){ return; }
