@@ -1134,6 +1134,26 @@ User:{
     this.zap(a);
 }
 """)); }
+@Test void operatorArgMismatch_getsNoPrecedenceHint(){fail("""
+005|   .go:Plus->this + this.other;
+   |   ----------~~~~~^~~~~~~-----
+
+While inspecting ".go" line 5
+This call to method "Plus+(_)" can not typecheck.
+Argument 1 has type "Plus".
+That is not a subtype of "A" (the type required by the method signature).
+Hint: Fearless has no operator precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-+(this)
+""",List.of("""
+A:{}
+Plus:{
+  +(x:A):Plus->this;
+  .other:A->A{};
+  .go:Plus->this + this.other;
+}
+"""));}
 @Test void hopelessArg_wrongNominal_suppressesPromotionsAndReason(){fail("""
 005|   .f(aaaa:mut B):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
    |                                    -------------~~~~^^~~~~~~~~~~~~~-
