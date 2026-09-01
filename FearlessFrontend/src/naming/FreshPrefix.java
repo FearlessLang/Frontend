@@ -37,18 +37,10 @@ public record FreshPrefix(
     }
   }
   public TName freshTopType(TName hint,int arity){
-    String base= sanitizeBase(hint.simpleName(), true);
-    int n= topSeq.getOrDefault(base, 1);
-    while (true){
-      String cand= "_"+encodeBijective(n, up) + base;//all fresh names should start with _ to be pkg private
-      var commit= !usedTopTypes.contains(cand) && !allGenericNames.contains(cand);
-      if (!commit){ n++; continue; }
-      usedTopTypes.add(cand);
-      topSeq.put(base, n + 1);
-      var res= new TName(pkgName+"."+cand,arity,hint.pos());
-      aliasOwner(hint,res);
-      return res;
-    }
+    String cand= freshCandidate(hint.simpleName(), true, up, topSeq, usedTopTypes, List.of(allGenericNames));
+    var res= new TName(pkgName+"."+cand,arity,hint.pos());//all fresh names should start with _ to be pkg private
+    aliasOwner(hint,res);
+    return res;
   }
   public void registerAnonSuperT(TName fresh,TName base){ anonSuperT.put(fresh, base); }
   public Optional<TName> anonSuperT(TName t){ return Optional.ofNullable(anonSuperT.get(t)); }
@@ -61,34 +53,31 @@ public record FreshPrefix(
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
     assert st != null : owner;
-    String base= sanitizeBase(hint, true);
-    Map<String,Integer> seq= st.genSeq();
-    int n= seq.getOrDefault(base, 1);
-    Set<String> scope= st.gen();
-    while (true){
-      String cand= "_" + encodeBijective(n, up) + base;
-      var commit= !scope.contains(cand) && !usedTopTypes.contains(cand);
-      if (!commit){ n++; continue; }
-      scope.add(cand);
-      allGenericNames.add(cand);
-      seq.put(base, n + 1);
-      return cand;
-    }
+    String cand= freshCandidate(hint, true, up, st.genSeq(), st.gen(), List.of(usedTopTypes));
+    allGenericNames.add(cand);
+    return cand;
   }
   public String freshVar(TName owner,String hint){
     assert nonNull(owner,hint);
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
     assert st != null : owner;
-    String base= sanitizeBase(hint, false);
-    Map<String,Integer> seq= st.varSeq();
+    return freshCandidate(hint, false, low, st.varSeq(), st.vars(), List.of());
+  }
+  // commitScope is checked and updated with the winning candidate; extraChecks are read-only.
+  private static String freshCandidate(String hint, boolean type, char[] alphabet,
+      Map<String,Integer> seq, Set<String> commitScope, List<Set<String>> extraChecks){
+    String base= sanitizeBase(hint, type);
     int n= seq.getOrDefault(base, 1);
-    Set<String> scope= st.vars();
+    outer:
     while (true){
-      String cand= "_" + encodeBijective(n, low) + base;
-      if (scope.contains(cand)){ n++; continue; }
-      scope.add(cand);
-      seq.put(base, n + 1);
+      String cand= "_"+encodeBijective(n, alphabet)+base;
+      if (commitScope.contains(cand)){ n++; continue; }
+      for (Set<String> extra : extraChecks){
+        if (extra.contains(cand)){ n++; continue outer; }
+      }
+      commitScope.add(cand);
+      seq.put(base, n+1);
       return cand;
     }
   }
