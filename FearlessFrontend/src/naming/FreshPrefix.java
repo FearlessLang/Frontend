@@ -64,15 +64,7 @@ public record FreshPrefix(
     assert st != null : owner;
     return freshCandidate(hint, false, low, st.varSeq(), st.vars(), List.of());
   }
-  // Shared core for freshTopType/freshGeneric/freshVar: bijective-base-encode a
-  // counter, prepend it to a sanitized base name, retry on collision against
-  // commitScope (which the winning candidate is added to) plus any read-only
-  // extraChecks, bump seq, return. The three callers differ only in alphabet,
-  // which sequence map and commit scope to use, and which extra sets to also
-  // avoid colliding with -- verified against the original three separate loop
-  // bodies with an exhaustive randomized equivalence check (~300k calls across
-  // 40 independent trials, including full end-state comparison) before this
-  // was extracted; see the code-size review's finding #10 for that history.
+  // commitScope is checked and updated with the winning candidate; extraChecks are read-only.
   private static String freshCandidate(String hint, boolean type, char[] alphabet,
       Map<String,Integer> seq, Set<String> commitScope, List<Set<String>> extraChecks){
     String base= sanitizeBase(hint, type);
