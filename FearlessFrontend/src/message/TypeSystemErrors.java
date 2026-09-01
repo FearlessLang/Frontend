@@ -282,7 +282,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   /// - method name exist but with different arity; error will list those other method signatures
   /// - method exists with right arity, but different receiver RCs; list those other method signatures
   ///Raised when checking method calls.
-  public FearlessException methodNotDeclared(Call c, Literal d){
+  public FearlessException methodNotDeclared(TypeScope scope, Call c, Literal d){
     Literal di= d.withRC(RC.imm);
     String _on= err().onTypeOrAnon(di);
     String subj= err().theTypeOrObjectLiteral(di);
@@ -294,7 +294,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var candidates= d.ms().stream().map(M::sig).toList();
     List<Sig> sameName= candidates.stream()
       .filter(s->s.m().s().equals(name)).toList();
-    if (sameName.isEmpty()){      
+    if (sameName.isEmpty()){
+      addEnclosingLiteralHintIfReceiverIsThis(e,scope,c,name);
       if (candidates.isEmpty()){ e.line(up(subj)+" does not have any methods."); }
       else{
         var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
@@ -318,6 +319,20 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("This call requires the existence of a "+disp(c.rc())+" method.")
       .line("Available capabilities for this method: "+availRc)
       .ex(c), c);
+  }
+  private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name){
+    if (!(c.e() instanceof X x && x.name().equals("this"))){ return; }
+    for (var s= scope; !s.isTop(); s= s.outer()){
+      if (!(s instanceof TypeScope.Method meth)){ continue; }
+      boolean has= meth.l().ms().stream().anyMatch(m->m.sig().m().s().equals(name));
+      if (!has){ continue; }
+      e.line("Hint: an enclosing object literal declares "+err().methodSig(c.name())+", but \"this\" here "
+           + "does not refer to it. A value-position object literal (one written inline, not as a "
+           + "top-level type declaration) only binds \"this\" to itself if it is given a self-name, e.g. "
+           + "\"{'self ...}\" - otherwise \"this\" refers to the enclosing scope. Name the literal and use "
+           + "that name instead of \"this\" to call its own methods.");
+      return;
+    }
   }
   void bestNameMsg(Err e, String onStr, Call c, Literal d, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
