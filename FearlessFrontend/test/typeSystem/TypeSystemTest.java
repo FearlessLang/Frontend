@@ -12,7 +12,7 @@ public class TypeSystemTest extends testUtils.FearlessTestBase{
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
 """));}
-@Test void unnamedNestedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
+@Test void unSelfNamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |                               -------------------~~~~^^^^^
 
