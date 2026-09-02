@@ -12,6 +12,53 @@ public class TypeSystemTest extends testUtils.FearlessTestBase{
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
 """));}
+@Test void unnamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
+001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
+   |                               -------------------~~~~^^^^^
+
+While inspecting ".foo" line 1 > "#" line 1
+This call to method ".bar" can not typecheck.
+Method ".bar" is not declared on type "Outer".
+Hint:
+The method parameter "this" here has type "Outer".
+
+The method ".bar" is defined in the object literal of type "Inner".
+No parameter refers to instances of this literal.
+To declare one, use the single quote as in the example below:
+  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect
+    .area: Nat -> width * height;
+    .str: Str -> "area: "+(rect.area.str);
+    .withWidth(width': Nat): Rectangle -> this#(width', height);
+  }}
+
+Available methods on type "Outer":
+-       #:Inner
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.bar
+""",List.of("""
+Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
+"""));}
+@Test void namedEnclosingLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
+001| Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
+   |                                                                   -----------------~~~~^^^^^
+
+While inspecting ".a" line 1 > ".foo" line 1 > "#" line 1
+This call to method ".bar" can not typecheck.
+Method ".bar" is not declared on type "Outer".
+Hint:
+The method parameter "this" here has type "Outer".
+
+The method ".bar" is defined in the object literal of type "Inner"; the parameter referring to its instances is named "self".
+
+Available methods on type "Outer":
+-       #:Inner
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.bar
+""",List.of("""
+Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
+"""));}
 @Test void tsMiniFail(){fail("""
 001| A:{.foo123:A->this.ba}
    |    -----------~~~~^^^^

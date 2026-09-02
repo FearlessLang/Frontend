@@ -41,7 +41,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   private Sig sigOf(Literal d){
     var ms= d.ms().stream().map(M::sig)
       .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()).toList();
-    if (ms.isEmpty()){ throw ts.tsE().methodNotDeclared(c,d); }
+    if (ms.isEmpty()){ throw ts.tsE().methodNotDeclared(ts.scope(),c,d); }
     assert ms.size() == 1 : "Duplicate cached sig for "+c.name()+" rc="+c.rc()+" in "+d.name();
     Sig sig= ms.getFirst();
     assert sig.ts().size() == c.es().size();//ensured by well formedness

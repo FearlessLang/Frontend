@@ -282,7 +282,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   /// - method name exist but with different arity; error will list those other method signatures
   /// - method exists with right arity, but different receiver RCs; list those other method signatures
   ///Raised when checking method calls.
-  public FearlessException methodNotDeclared(Call c, Literal d){
+  public FearlessException methodNotDeclared(TypeScope scope, Call c, Literal d){
     Literal di= d.withRC(RC.imm);
     String _on= err().onTypeOrAnon(di);
     String subj= err().theTypeOrObjectLiteral(di);
@@ -294,7 +294,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var candidates= d.ms().stream().map(M::sig).toList();
     List<Sig> sameName= candidates.stream()
       .filter(s->s.m().s().equals(name)).toList();
-    if (sameName.isEmpty()){      
+    if (sameName.isEmpty()){
+      addEnclosingLiteralHintIfReceiverIsThis(e,scope,c,name,subj);
       if (candidates.isEmpty()){ e.line(up(subj)+" does not have any methods."); }
       else{
         var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
@@ -318,6 +319,35 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("This call requires the existence of a "+disp(c.rc())+" method.")
       .line("Available capabilities for this method: "+availRc)
       .ex(c), c);
+  }
+  private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
+    if (!(c.e() instanceof X x && x.name().equals("this"))){ return; }
+    for (var s= scope; !s.isTop(); s= s.outer()){
+      if (!(s instanceof TypeScope.Method meth)){ continue; }
+      Literal l= meth.l();
+      boolean has= l.ms().stream().anyMatch(m->m.sig().m().s().equals(name));
+      if (!has){ continue; }
+      String sig= err().methodSig(c.name());
+      String type= err().tNameADisp(l.name());
+      String selfName= l.thisName();
+      e.line("Hint:")
+       .line("The method parameter \"this\" here has "+on+".")
+       .blank();
+      if (selfName.equals("_")){
+        e.line("The method "+sig+" is defined in the object literal of type "+type+".")
+         .line("No parameter refers to instances of this literal.")
+         .line("To declare one, use the single quote as in the example below:")
+         .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
+         .line("    .area: Nat -> width * height;")
+         .line("    .str: Str -> \"area: \"+(rect.area.str);")
+         .line("    .withWidth(width': Nat): Rectangle -> this#(width', height);")
+         .line("  }}");
+      }else{
+        e.line("The method "+sig+" is defined in the object literal of type "+type+"; the parameter "
+             + "referring to its instances is named "+disp(selfName)+".");
+      }
+      return;
+    }
   }
   void bestNameMsg(Err e, String onStr, Call c, Literal d, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
