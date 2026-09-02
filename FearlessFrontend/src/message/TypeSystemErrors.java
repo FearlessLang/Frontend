@@ -324,13 +324,25 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     if (!(c.e() instanceof X x && x.name().equals("this"))){ return; }
     for (var s= scope; !s.isTop(); s= s.outer()){
       if (!(s instanceof TypeScope.Method meth)){ continue; }
-      boolean has= meth.l().ms().stream().anyMatch(m->m.sig().m().s().equals(name));
+      Literal l= meth.l();
+      boolean has= l.ms().stream().anyMatch(m->m.sig().m().s().equals(name));
       if (!has){ continue; }
-      e.line("Hint: an enclosing object literal declares "+err().methodSig(c.name())+", but \"this\" here "
-           + "does not refer to it. A value-position object literal (one written inline, not as a "
-           + "top-level type declaration) only binds \"this\" to itself if it is given a self-name, e.g. "
-           + "\"{'self ...}\" - otherwise \"this\" refers to the enclosing scope. Name the literal and use "
-           + "that name instead of \"this\" to call its own methods.");
+      String sig= err().methodSig(c.name());
+      String lit= err().expRepr(l);
+      String selfName= l.thisName();
+      if (selfName.equals("_")){
+        e.line("Hint: "+sig+" is declared on the enclosing "+lit+".")
+         .line("The parameter \"this\" here does not refer to that "+lit+", since no name is given to it - "
+             + "only a top-level type declaration binds \"this\" to itself.")
+         .line("Name the object literal by writing 'name right after its opening \"{\", as in:")
+         .line("  Points:{ #(x: Int, y: Int): Point -> Point:{'self")
+         .line("    .move(d: Direction): Point -> self + (d.point);")
+         .line("  }}")
+         .line("Then call self"+name+" instead of this"+name+".");
+      }else{
+        e.line("Hint: "+sig+" is declared on the enclosing "+lit+", named '"+selfName+"'.")
+         .line("The parameter \"this\" here does not refer to it - call "+selfName+name+" instead of this"+name+".");
+      }
       return;
     }
   }

@@ -12,14 +12,20 @@ public class TypeSystemTest extends testUtils.FearlessTestBase{
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
 """));}
-@Test void unSelfNamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
+@Test void unnamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |                               -------------------~~~~^^^^^
 
 While inspecting ".foo" line 1 > "#" line 1
 This call to method ".bar" can not typecheck.
 Method ".bar" is not declared on type "Outer".
-Hint: an enclosing object literal declares ".bar", but "this" here does not refer to it. A value-position object literal (one written inline, not as a top-level type declaration) only binds "this" to itself if it is given a self-name, e.g. "{'self ...}" - otherwise "this" refers to the enclosing scope. Name the literal and use that name instead of "this" to call its own methods.
+Hint: ".bar" is declared on the enclosing object literal "iso Inner".
+The parameter "this" here does not refer to that object literal "iso Inner", since no name is given to it - only a top-level type declaration binds "this" to itself.
+Name the object literal by writing 'name right after its opening "{", as in:
+  Points:{ #(x: Int, y: Int): Point -> Point:{'self
+    .move(d: Direction): Point -> self + (d.point);
+  }}
+Then call self.bar instead of this.bar.
 
 Available methods on type "Outer":
 -       #:Inner
@@ -28,6 +34,24 @@ Compressed relevant code with inferred types: (compression indicated by `-`)
 this.bar
 """,List.of("""
 Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
+"""));}
+@Test void namedEnclosingLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
+001| Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
+   |                                                                   -----------------~~~~^^^^^
+
+While inspecting ".a" line 1 > ".foo" line 1 > "#" line 1
+This call to method ".bar" can not typecheck.
+Method ".bar" is not declared on type "Outer".
+Hint: ".bar" is declared on the enclosing object literal "Inner", named 'self'.
+The parameter "this" here does not refer to it - call self.bar instead of this.bar.
+
+Available methods on type "Outer":
+-       #:Inner
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.bar
+""",List.of("""
+Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
 """));}
 @Test void tsMiniFail(){fail("""
 001| A:{.foo123:A->this.ba}
