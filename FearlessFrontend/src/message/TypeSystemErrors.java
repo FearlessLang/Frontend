@@ -295,7 +295,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     List<Sig> sameName= candidates.stream()
       .filter(s->s.m().s().equals(name)).toList();
     if (sameName.isEmpty()){
-      addEnclosingLiteralHintIfReceiverIsThis(e,scope,c,name);
+      addEnclosingLiteralHintIfReceiverIsThis(e,scope,c,name,subj);
       if (candidates.isEmpty()){ e.line(up(subj)+" does not have any methods."); }
       else{
         var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
@@ -320,7 +320,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("Available capabilities for this method: "+availRc)
       .ex(c), c);
   }
-  private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name){
+  private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
     if (!(c.e() instanceof X x && x.name().equals("this"))){ return; }
     for (var s= scope; !s.isTop(); s= s.outer()){
       if (!(s instanceof TypeScope.Method meth)){ continue; }
@@ -330,23 +330,21 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       String sig= err().methodSig(c.name());
       String type= err().tNameADisp(l.name());
       String selfName= l.thisName();
-      e.line("Hint: "+sig+" is declared on the enclosing object literal of type "+type+".")
-       .line("The parameter \"this\" here still refers to the type declaration, not to this object literal: "
-           + "only a type declaration binds \"this\" to itself, and a nested object literal can never rebind "
-           + "\"this\" to itself, not even by writing \"{'this ...}\". Naming an object literal only ever "
-           + "gives it a second, independent name - it does not change what \"this\" means inside it.");
+      e.line("Hint:")
+       .line("The method parameter \"this\" here has "+on+".")
+       .blank();
       if (selfName.equals("_")){
-        e.line("This object literal has no name of its own. Give it one by writing 'name right after its "
-             + "opening \"{\", as in:")
-         .line("  Persons: { #(name: Str, age: Nat): Person -> Person:{'person")
-         .line("    .withName(newName: Str): Person -> this#(newName, age);")
-         .line("  }}")
-         .line("Here \"this\" still correctly refers to Persons (used to rebuild the Person through its own "
-             + "\"#\"), while 'person is the Person's own, separate name. Once named, call "+sig+" on that "
-             + "name instead of on \"this\".");
+        e.line("The method "+sig+" is defined in the object literal of type "+type+".")
+         .line("No parameter refers to instances of this literal.")
+         .line("To declare one, use the single quote as in the example below:")
+         .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
+         .line("    .area: Nat -> width * height;")
+         .line("    .str: Str -> \"area: \"+(rect.area.str);")
+         .line("    .withWidth(width': Nat): Rectangle -> this#(width', height);")
+         .line("  }}");
       }else{
-        e.line("This object literal is already named '"+selfName+"' - call "+selfName+name+" instead of "
-             + "this"+name+".");
+        e.line("The method "+sig+" is defined in the object literal of type "+type+"; the parameter "
+             + "referring to its instances is named "+disp(selfName)+".");
       }
       return;
     }
