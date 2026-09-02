@@ -19,13 +19,13 @@ A:{.foo123:A->this.foo123}
 While inspecting ".foo" line 1 > "#" line 1
 This call to method ".bar" can not typecheck.
 Method ".bar" is not declared on type "Outer".
-Hint: ".bar" is declared on the enclosing object literal "iso Inner".
-The parameter "this" here does not refer to that object literal "iso Inner", since no name is given to it - only a top-level type declaration binds "this" to itself.
-Name the object literal by writing 'name right after its opening "{", as in:
-  Points:{ #(x: Int, y: Int): Point -> Point:{'self
-    .move(d: Direction): Point -> self + (d.point);
+Hint: ".bar" is declared on the enclosing object literal of type "Inner".
+The parameter "this" here still refers to the type declaration, not to this object literal: only a type declaration binds "this" to itself, and a nested object literal can never rebind "this" to itself, not even by writing "{'this ...}". Naming an object literal only ever gives it a second, independent name - it does not change what "this" means inside it.
+This object literal has no name of its own. Give it one by writing 'name right after its opening "{", as in:
+  Persons: { #(name: Str, age: Nat): Person -> Person:{'person
+    .withName(newName: Str): Person -> this#(newName, age);
   }}
-Then call self.bar instead of this.bar.
+Here "this" still correctly refers to Persons (used to rebuild the Person through its own "#"), while 'person is the Person's own, separate name. Once named, call ".bar" on that name instead of on "this".
 
 Available methods on type "Outer":
 -       #:Inner
@@ -42,8 +42,9 @@ Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> ba
 While inspecting ".a" line 1 > ".foo" line 1 > "#" line 1
 This call to method ".bar" can not typecheck.
 Method ".bar" is not declared on type "Outer".
-Hint: ".bar" is declared on the enclosing object literal "Inner", named 'self'.
-The parameter "this" here does not refer to it - call self.bar instead of this.bar.
+Hint: ".bar" is declared on the enclosing object literal of type "Inner".
+The parameter "this" here still refers to the type declaration, not to this object literal: only a type declaration binds "this" to itself, and a nested object literal can never rebind "this" to itself, not even by writing "{'this ...}". Naming an object literal only ever gives it a second, independent name - it does not change what "this" means inside it.
+This object literal is already named 'self' - call self.bar instead of this.bar.
 
 Available methods on type "Outer":
 -       #:Inner

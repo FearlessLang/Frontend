@@ -328,20 +328,25 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       boolean has= l.ms().stream().anyMatch(m->m.sig().m().s().equals(name));
       if (!has){ continue; }
       String sig= err().methodSig(c.name());
-      String lit= err().expRepr(l);
+      String type= err().tNameADisp(l.name());
       String selfName= l.thisName();
+      e.line("Hint: "+sig+" is declared on the enclosing object literal of type "+type+".")
+       .line("The parameter \"this\" here still refers to the type declaration, not to this object literal: "
+           + "only a type declaration binds \"this\" to itself, and a nested object literal can never rebind "
+           + "\"this\" to itself, not even by writing \"{'this ...}\". Naming an object literal only ever "
+           + "gives it a second, independent name - it does not change what \"this\" means inside it.");
       if (selfName.equals("_")){
-        e.line("Hint: "+sig+" is declared on the enclosing "+lit+".")
-         .line("The parameter \"this\" here does not refer to that "+lit+", since no name is given to it - "
-             + "only a top-level type declaration binds \"this\" to itself.")
-         .line("Name the object literal by writing 'name right after its opening \"{\", as in:")
-         .line("  Points:{ #(x: Int, y: Int): Point -> Point:{'self")
-         .line("    .move(d: Direction): Point -> self + (d.point);")
+        e.line("This object literal has no name of its own. Give it one by writing 'name right after its "
+             + "opening \"{\", as in:")
+         .line("  Persons: { #(name: Str, age: Nat): Person -> Person:{'person")
+         .line("    .withName(newName: Str): Person -> this#(newName, age);")
          .line("  }}")
-         .line("Then call self"+name+" instead of this"+name+".");
+         .line("Here \"this\" still correctly refers to Persons (used to rebuild the Person through its own "
+             + "\"#\"), while 'person is the Person's own, separate name. Once named, call "+sig+" on that "
+             + "name instead of on \"this\".");
       }else{
-        e.line("Hint: "+sig+" is declared on the enclosing "+lit+", named '"+selfName+"'.")
-         .line("The parameter \"this\" here does not refer to it - call "+selfName+name+" instead of this"+name+".");
+        e.line("This object literal is already named '"+selfName+"' - call "+selfName+name+" instead of "
+             + "this"+name+".");
       }
       return;
     }
