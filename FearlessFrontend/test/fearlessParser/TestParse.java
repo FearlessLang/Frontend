@@ -2651,6 +2651,22 @@ A:{}
 .foo:Void;
 B:{}
 """);}
+@Test void topLevelStrayFirst(){fail("""
+In file: [###].fear
+
+001| ()
+   | ^^
+
+While inspecting type declaration > full file
+This is not a top level type declaration.
+Top level code can only contain type declarations.
+A type declaration starts with a type name, like "Point:{..}".
+Found instead: "".
+Likely cause: an extra "}" closed a type declaration unintentionally.
+Error 2 UnexpectedToken
+""","""
+()
+""");}
 @Test void okFork(){ok("""
 [###]
 Call[this].choosetrue[DeclarationLiteralDeclaration[
