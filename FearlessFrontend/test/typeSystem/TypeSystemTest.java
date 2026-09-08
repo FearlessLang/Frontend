@@ -318,6 +318,28 @@ B:{}
 User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
 """));}
 
+@Test void typeNotWellKinded_typeExpressionViolatesBounds(){fail("""
+004|   .break(cell:imm Cell):base.Void ->
+005|     Thaw[mut Cell].apply(cell).set(1);
+   |     ^^^^^
+
+While inspecting object literal instance of "Thaw[mut Cell]" > ".break(_)" line 4
+The type "Thaw[mut Cell]" is invalid.
+Type argument 1 ("mut Cell") does not satisfy the bounds
+for type parameter "X" in "Thaw[_]".
+Here "X" can only use capabilities "imm".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Thaw[mut Cell]
+""", List.of("""
+Cell:{ read .get:base.Nat; mut .set(value:base.Nat):base.Void; }
+Thaw[X:imm]:{ .apply(x:imm X):X -> x; }
+User:{
+  .break(cell:imm Cell):base.Void ->
+    Thaw[mut Cell].apply(cell).set(1);
+}
+"""));}
+
 @Test void typeNotWellKinded_methodTypeArgOnTypeInferFromRetType(){ok(List.of("""
 A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
