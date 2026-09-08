@@ -895,7 +895,7 @@ A:{ .m({.a} Bob:X):X }
 @Test void err_illegal_nbsp_char(){fail("""
 In file: [###].fear
 
-001| A:{\u00B7.m():X }
+001| A:{_.m():X }
    |    ^
 
 While inspecting the file
@@ -909,7 +909,7 @@ Error 2 UnexpectedToken
 @Test void err_illegal_zwj_char_and_more(){fail("""
 In file: [###].fear
 
-001| A:{\u00B7\u00B7\uFFFD\uFFFD.m():X }
+001| A:{__??.m():X }
    |    ^
 
 While inspecting the file
@@ -923,7 +923,7 @@ Error 2 UnexpectedToken
 @Test void err_illegal_rlo_char_and_more(){fail("""
 In file: [###].fear
 
-001| A:{\uFFFD\u00B7\u00B7\u00B7.m():X }
+001| A:{?___.m():X }
    |    ^
 
 While inspecting the file
@@ -937,7 +937,7 @@ Error 2 UnexpectedToken
 @Test void err_illegal_bom_char_and_more(){fail("""
 In file: [###].fear
 
-001| A:{\uFFFD\u00B7\u00B7.m():X }
+001| A:{?__.m():X }
    |    ^
 
 While inspecting the file
@@ -950,7 +950,7 @@ Error 2 UnexpectedToken
 @Test void err_illegal_ideographic_space_and_more(){fail("""
 In file: [###].fear
 
-001| A:{\u00B7\u00B7\uFFFD\u00B7.m():X }
+001| A:{__?_.m():X }
    |    ^
 
 While inspecting the file
@@ -963,7 +963,7 @@ Error 2 UnexpectedToken
 @Test void err_illegal_emoji_and_more(){fail("""
 In file: [###].fear
 
-001| A:{\uFFFD\u00B7\u00B7.m():X }
+001| A:{?__.m():X }
    |    ^
 
 While inspecting the file
