@@ -291,7 +291,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var rcSpan= peek().map(t->span(t).orElse(span()));
     var rc= parseOptRC();
     var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH || _rc==RC.iso).orElse(false);
-    if (invalid){ throw errFactory().disallowedReadHMutH(rcSpan.get(), rc.get()); }
+    if (invalid){ throw errFactory().disallowedSigRC(rcSpan.get(), rc.get()); }
     var noDot= peek(LowercaseId) && peek(1).map(t->t.is(_RoundGroup,_SquareGroup)).orElse(false);
     if (noDot){
       Token tok= peek().get();

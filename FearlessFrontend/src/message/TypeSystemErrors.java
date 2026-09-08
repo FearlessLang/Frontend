@@ -151,7 +151,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return addExpFrame(at, err()
       .line("The type "+err().tNameADisp(l.name())+" is declared inside a method body.")
       .line("A type declared inside a method can capture any parameter name in scope,")
-      .line("so it can not be extended or instantiated.")
+      .line("so it cannot be extended or instantiated.")
       .line("Hint: if it captures nothing, declare it implementing \"base.CaptureFree\".")
       .ex(at));
   }
@@ -232,7 +232,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   }
   private String whyDropMutInImm(String subject, Change.NoT why){
     return subject+" has type "+err().typeRepr(true,why.atDrop())+".\n"
-    + subject+" can observe mutation; thus it can not be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
+    + subject+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n"
     +"Hint: capture an immutable copy instead, or move this use outside the object literal.";
   }
@@ -241,7 +241,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       ? "The type of "+subject+" is hygienic (readH or mutH)\n"
       : "The type of "+subject+" can be instantiated with hygienics (readH or mutH)\n";
     return subject+" has type "+err().typeRepr(true,why.atDrop())+".\n"
-    + explicitH+ "and thus it can not be captured in the "+err().expRepr(why.l())
+    + explicitH+ "and thus it cannot be captured in the "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n";
   }
   private static String hintAddTypeParameter(Change.NoT why){
@@ -255,7 +255,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     + subject+" uses type parameters that are not propagated\n"
     + "into "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+")"
-    + " and thus it can not be captured.\n"
+    + " and thus it cannot be captured.\n"
     + hintAddTypeParameter(why);
   }
   private String whyDropCapFree(String subject, Change.NoT why){
@@ -263,7 +263,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     err().expRepr(why.l())+" implements \"base.CaptureFree\".\n"
     + "Thus "+subject
     +" (line "+why.l().span().inner.startLine()+")"
-    + " can not be captured in this scope.\n";
+    + " cannot be captured in this scope.\n";
   }  
   ///Receiver expression of call c is typed into a type parameter (X / RC X / read/imm X), not a concrete RC C.
   ///Methods cannot be called on type parameters, so this call can never resolve.

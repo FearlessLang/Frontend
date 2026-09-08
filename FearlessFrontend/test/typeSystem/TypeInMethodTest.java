@@ -39,7 +39,7 @@ public class TypeInMethodTest extends testUtils.FearlessTestBase{
 While inspecting object literal instance of "A" > ".m" line 2
 The type "A" is declared inside a method body.
 A type declared inside a method can capture any parameter name in scope,
-so it can not be extended or instantiated.
+so it cannot be extended or instantiated.
 Hint: if it captures nothing, declare it implementing "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -52,7 +52,7 @@ A
 While inspecting object literal instance of "a.A" > ".m" line 1
 The type "a.A" is declared inside a method body.
 A type declared inside a method can capture any parameter name in scope,
-so it can not be extended or instantiated.
+so it cannot be extended or instantiated.
 Hint: if it captures nothing, declare it implementing "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -95,7 +95,7 @@ B:{.m:A->A}
 While inspecting type declaration "B"
 The type "A" is declared inside a method body.
 A type declared inside a method can capture any parameter name in scope,
-so it can not be extended or instantiated.
+so it cannot be extended or instantiated.
 Hint: if it captures nothing, declare it implementing "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -141,7 +141,7 @@ B:{.m:a.A->a.A}
 While inspecting type declaration "B"
 The type "a.A" is declared inside a method body.
 A type declared inside a method can capture any parameter name in scope,
-so it can not be extended or instantiated.
+so it cannot be extended or instantiated.
 Hint: if it captures nothing, declare it implementing "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)

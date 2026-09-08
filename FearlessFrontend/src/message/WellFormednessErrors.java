@@ -482,9 +482,9 @@ public record WellFormednessErrors(String pkgName){
     String ctx= Err.up(err().expRepr(owner));
     return err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
-      .line("The body of method "+err().methodSig("",owner,m.sig().m().get())+" needs to be duplicated to satify multiple RC overloads from the supertypes.")
+      .line("The body of method "+err().methodSig("",owner,m.sig().m().get())+" needs to be duplicated to satisfy multiple RC overloads from the supertypes.")
       .line("However, it contains "+err().expRepr(in)+".")
-      .line("Object literals with their own unique explicit type can not be duplicated.")
+      .line("Object literals with their own unique explicit type cannot be duplicated.")
       .wf()
       .addFrame(err().expRepr(owner), owner.span().inner);
   }
