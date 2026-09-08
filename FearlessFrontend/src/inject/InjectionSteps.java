@@ -82,7 +82,7 @@ public record InjectionSteps(Methods meths){
   }
   E meet(E e, IT t){
     if (e instanceof E.Type tt){ return nextT(tt); }
-    if (e instanceof E.Literal l){ if (l.t().isTV()){ return l; }/*return LitAlign.setT(this, l, t);*/ }
+    if (e instanceof E.Literal l){ if (l.t().isTV()){ return l; } }
     e = prototypeAscribeRootReceiver(e, t);
     return e.withT(meet(e.t(), t));
   }
@@ -418,7 +418,6 @@ public record InjectionSteps(Methods meths){
     var ms= changedMs?Collections.unmodifiableList(res):l.ms();
     IT t= withTsNormBs(rcc,ts);
     return commitToTable(g, bs, l.withMsT(ms, t), t);
-    //return commitToTable(g, bs, LitAlign.setMsT(this, l,ms, t), t);
   }
   private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT t){
     TName name= l.name();

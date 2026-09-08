@@ -72,7 +72,6 @@ public class CompactPrinter{
   static int callLen(String m, RC rc, int nt, int na){
     return m.length() + targsPunctLen(rc,nt) + argsPunctLen(na);
   }
-  //static boolean privateLike(TName n){ return n.simpleName().startsWith("_"); }
   static int xsWithColonsLen(List<String> xs){
     return sum(xs, x-> x.equals("_")? 0: x.length() + 1);
   } // nothing if x is _ it will be printed as just the type, or "x:"

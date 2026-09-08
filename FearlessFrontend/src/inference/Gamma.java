@@ -95,7 +95,6 @@ public final class Gamma{
     ts[i] = t;
   }
   public boolean represents(GammaSignature sig){
-    //return false;
     return sig.hash == envHash[depth - 1];
   }
   public void sign(GammaSignature sig){ sig.hash = envHash[depth - 1]; }
