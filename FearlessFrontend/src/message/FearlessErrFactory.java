@@ -94,7 +94,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of(
       "Capability "+rc+"""
        used.
-      Capabilities readH and mutH are not allowed on object literals
+      Capabilities readH and mutH are not allowed on object literals.
       Use one of read, mut, imm, iso.
       """).addSpan(at);
   }
@@ -108,7 +108,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException forgotSpace(Span at,String name){
     return Code.UnexpectedToken.of(
-      "Did you forgot a space in "+Message.displayString(name)+"?\n"
+      "Did you forget a space in "+Message.displayString(name)+"?\n"
       +"Did you mean "+Message.displayString(name.substring(0,name.length()-2)+" ->")+"?\n"
     ).addSpan(at);
   }
@@ -139,7 +139,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       var scope= inScope.isEmpty()
         ? "No names are in scope here.\n"
         : NameSuggester.suggest(name.content(), inScope.stream().sorted().toList());
-      return "Name "+Message.displayString(name.content())+" is not in scope\n" + scope;
+      return "Name "+Message.displayString(name.content())+" is not in scope.\n" + scope;
     }).addSpan(at);
   }
   public FearlessException nameRedeclared(Token c, Span at){
@@ -239,7 +239,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       """).addSpan(at);
   }
   public FearlessException parameterNameExpected(Span at){
-    return Code.UnexpectedToken.of("Parameter name expected").addSpan(at);
+    return Code.UnexpectedToken.of("Parameter name expected.").addSpan(at);
   }
   public FearlessException spaceBeforeId(Span at, String id){
     return Code.UnexpectedToken.of(
@@ -250,7 +250,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   public FearlessException badBound(T.X name, Span at){
     return Code.UnexpectedToken.of("Invalid bound for generic "+Message.displayString(name.name())+"""
 
-      Only '*' or '**' are allowed here
+      Only "*" or "**" are allowed here
       Write: X:*   meaning mut,read,imm
          or: X:**  meaning everything.
       """).addSpan(at);

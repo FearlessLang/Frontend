@@ -17,7 +17,7 @@ A:{.foo123:A->this.foo123}
    |                               -------------------~~~~^^^^^
 
 While inspecting ".foo" line 1 > "#" line 1
-This call to method ".bar" can not typecheck.
+This call to method ".bar" cannot typecheck.
 Method ".bar" is not declared on type "Outer".
 Hint:
 The method parameter "this" here has type "Outer".
@@ -44,7 +44,7 @@ Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> ba
    |                                                                   -----------------~~~~^^^^^
 
 While inspecting ".a" line 1 > ".foo" line 1 > "#" line 1
-This call to method ".bar" can not typecheck.
+This call to method ".bar" cannot typecheck.
 Method ".bar" is not declared on type "Outer".
 Hint:
 The method parameter "this" here has type "Outer".
@@ -64,7 +64,7 @@ Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void 
    |    -----------~~~~^^^^
 
 While inspecting ".foo123" line 1
-This call to method ".ba" can not typecheck.
+This call to method ".ba" cannot typecheck.
 Method ".ba" is not declared on type "A".
 
 Available methods on type "A":
@@ -677,7 +677,7 @@ User:{
 
 While inspecting parameter "a" > "#" line 3 > "#(_)" line 3
 object literal instance of "iso G" implements "base.CaptureFree".
-Thus parameter "a" (line 3) can not be captured in this scope.
+Thus parameter "a" (line 3) cannot be captured in this scope.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 a
@@ -697,7 +697,7 @@ Foo:{#(a:A):G->{a}}
 
 While inspecting parameter "loooooong" > "#" line 8 > ".m(_)" line 7
 parameter "loooooong" has type "mut A".
-parameter "loooooong" can observe mutation; thus it can not be captured in the "imm" object literal instance of "G" (line 8).
+parameter "loooooong" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "G" (line 8).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -726,7 +726,7 @@ User:{
 While inspecting parameter "loooooong" > "#" line 8 > ".m(_)" line 7
 parameter "loooooong" has type "mutH A".
 The type of parameter "loooooong" is hygienic (readH or mutH)
-and thus it can not be captured in the object literal instance of "G" (line 8).
+and thus it cannot be captured in the object literal instance of "G" (line 8).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 loooooong
@@ -752,7 +752,7 @@ User:{
 While inspecting parameter "loooooong" > "#" line 6 > ".m(_)" line 5
 parameter "loooooong" has type "mutH A".
 The type of parameter "loooooong" is hygienic (readH or mutH)
-and thus it can not be captured in the object literal instance of "G" (line 6).
+and thus it cannot be captured in the object literal instance of "G" (line 6).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 loooooong
@@ -783,7 +783,7 @@ User:{
 While inspecting parameter "beer" > ".m" line 5 > ".m(_)" line 4
 parameter "beer" has type "Beer[X]".
 parameter "beer" uses type parameters that are not propagated
-into object literal "iso Foo" (line 5) and thus it can not be captured.
+into object literal "iso Foo" (line 5) and thus it cannot be captured.
 Hint: change "Foo" by adding the missing type parameters: "Foo[...,...]"
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -805,7 +805,7 @@ beer
 While inspecting parameter "beer" > ".get" line 3 > ".m(_)" line 2
 parameter "beer" has type "X".
 The type of parameter "beer" can be instantiated with hygienics (readH or mutH)
-and thus it can not be captured in the object literal "G[_]" (line 3).
+and thus it cannot be captured in the object literal "G[_]" (line 3).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 beer
@@ -821,7 +821,7 @@ User:{
    |   -----------------~^^^^^
 
 While inspecting ".m(_)" line 2
-This call to method ".foo" can not typecheck.
+This call to method ".foo" cannot typecheck.
 The receiver is of type "X". This is a type parameter.
 Type parameters cannot be receivers of method calls.
 
@@ -960,7 +960,7 @@ User:{
    |     -^^^^^^
 
 While inspecting ".m(_)" line 3
-This call to method ".nope" can not typecheck.
+This call to method ".nope" cannot typecheck.
 Method ".nope" is not declared on type "Empty".
 Type "Empty" does not have any methods.
 
@@ -980,7 +980,7 @@ User:{
    |                  ~^^^^^^-
 
 While inspecting ".run" line 8 > ".m(_)" line 7
-This call to method ".sise" can not typecheck.
+This call to method ".sise" cannot typecheck.
 Method ".sise" is not declared on type "Ops".
 Did you mean ".size" ?
 
@@ -1007,7 +1007,7 @@ User:{
    |     -^^^^^^^
 
 While inspecting ".m(_)" line 7
-This call to method ".xyzzy" can not typecheck.
+This call to method ".xyzzy" cannot typecheck.
 Method ".xyzzy" is not declared on type "Ops".
 
 Available methods on type "Ops":
@@ -1035,7 +1035,7 @@ User:{
    |     -^^^^^^^
 
 While inspecting ".m(_)" line 8
-This call to method ".xyzzy" can not typecheck.
+This call to method ".xyzzy" cannot typecheck.
 Method ".xyzzy" is not declared on type "Ops".
 
 Available methods on type "Ops":
@@ -1065,7 +1065,7 @@ User:{
    |     -^^^^^--------
 
 While inspecting ".m(_,_)" line 7
-This call to method ".mix(_,_,_)" can not typecheck.
+This call to method ".mix(_,_,_)" cannot typecheck.
 There is a method ".mix" on type "Mixer",
 but with different number of arguments.
 This call supplies 3, but available methods take 1 or 2.
@@ -1089,7 +1089,7 @@ User:{
    |     -^^^^^-------
 
 While inspecting ".m(_,_)" line 6
-This call to method ".zap(_)" can not typecheck.
+This call to method ".zap(_)" cannot typecheck.
 ".zap(_)" exists on type "Z", but not with the requested capability.
 This call requires the existence of a "mut" method.
 Available capabilities for this method: "read".
@@ -1112,7 +1112,7 @@ User:{
    |     -^^^^^^-----------
 
 While inspecting ".m(_,_,_)" line 7
-This call to method "read Pairer.pair(_,_)" can not typecheck.
+This call to method "read Pairer.pair(_,_)" cannot typecheck.
 Wrong number of type arguments for ".pair(_,_)".
 This method expects 2 type arguments: "X" and "Y"; but this call provides 1 type argument.
 
@@ -1136,7 +1136,7 @@ User:{
    |     -^^^^---------------------
 
 While inspecting ".m(_,_)" line 9
-This call to method "read Id.id(_)" can not typecheck.
+This call to method "read Id.id(_)" cannot typecheck.
 Wrong number of type arguments for ".id(_)".
 This method expects 1 type argument: "X"; but this call provides 3 type arguments.
 
@@ -1162,7 +1162,7 @@ User:{
    |     ----^^^^^--
 
 While inspecting ".m(_)" line 4
-This call to method "mut User.zap(_)" can not typecheck.
+This call to method "mut User.zap(_)" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso" or "mutH".
 
@@ -1186,7 +1186,7 @@ User:{
    |   ----------~~~~~^~~~~~~-----
 
 While inspecting ".go" line 5
-This call to method "Plus+(_)" can not typecheck.
+This call to method "Plus+(_)" cannot typecheck.
 Argument 1 has type "Plus".
 That is not a subtype of "A" (the type required by the method signature).
 Hint: Fearless has no operator precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
@@ -1206,7 +1206,7 @@ Plus:{
    |                                    -------------~~~~^^~~~~~~~~~~~~~-
 
 While inspecting ".foo" line 5 > ".f(_)" line 5
-This call to method "Need#(_)" can not typecheck.
+This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read B".
 That is not a subtype of "mut A" (the type required by the method signature).
 
@@ -1226,7 +1226,7 @@ A:{
    |                                    -------------~~~~^^~~~~~~~~~~~~~-
 
 While inspecting ".foo" line 5 > ".f(_)" line 5
-This call to method "Need#(_)" can not typecheck.
+This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
 Method call "AsRead#(_)" has type "read A" instead of a subtype of "mut A".
@@ -1252,7 +1252,7 @@ A:{
    |                                    -------------~~~~^^~~~~~~~~~~~~~~~~
 
 While inspecting ".foo" line 5 > ".f(_)" line 5
-This call to method "Skip#(_)" can not typecheck.
+This call to method "Skip#(_)" cannot typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
 Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
@@ -1315,7 +1315,7 @@ A:{
    |     ----^^-------------------
 
 While inspecting ".f(_)" line 5
-This call to method "Need#(_)" can not typecheck.
+This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
 Method call "IdRO#(_)" has type "read A" instead of a subtype of "mut A".
@@ -1343,7 +1343,7 @@ A:{
    |     ----^^-------
 
 While inspecting ".f" line 5
-This call to method "Need#(_)" can not typecheck.
+This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
 Object literal is of type "read A" instead of a subtype of "mut A".
@@ -1371,7 +1371,7 @@ User:{
    |   --------------------------------~~~~^^^~~~~
 
 While inspecting ".caller(_,_)" line 3
-This call to method ".f(_,_)" can not typecheck.
+This call to method ".f(_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
@@ -1400,7 +1400,7 @@ A:{
    |   -------------------------------~~~~^^^~~~~
 
 While inspecting ".caller(_,_)" line 3
-This call to method ".f(_,_)" can not typecheck.
+This call to method ".f(_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
@@ -1433,7 +1433,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo123;}
    |                            --------~~~~^^^^^^^^
 
 While inspecting ".bar" line 1
-This call to method ".foO123" can not typecheck.
+This call to method ".foO123" cannot typecheck.
 Method ".foO123" is not declared on type "A".
 Did you mean ".foo123" ?
 
@@ -1453,7 +1453,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
    |                            --------~~~~^^^^^^^
 
 While inspecting ".bar" line 1
-This call to method ".foo23" can not typecheck.
+This call to method ".foo23" cannot typecheck.
 Method ".foo23" is not declared on type "A".
 Did you mean ".foo123" ?
 
@@ -1472,7 +1472,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
    |                            --------~~~~^^^^^^^^^
 
 While inspecting ".bar" line 1
-This call to method ".foo1123" can not typecheck.
+This call to method ".foo1123" cannot typecheck.
 Method ".foo1123" is not declared on type "A".
 Did you mean ".foo123" ?
 
@@ -1491,7 +1491,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
    |   --------~~~~^^^^^^^^~~~~~
 
 While inspecting ".bar" line 3
-This call to method ".foo123(_)" can not typecheck.
+This call to method ".foo123(_)" cannot typecheck.
 There is a method ".foo123" on type "A",
 but with different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
@@ -1511,7 +1511,7 @@ A:{
    |   --------~~~~^^^^^^^^~~~~-------
 
 While inspecting ".bar" line 3
-This call to method ".foo123(_)" can not typecheck.
+This call to method ".foo123(_)" cannot typecheck.
 There is a method ".foo123" on type "A",
 but with different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
@@ -1530,7 +1530,7 @@ A:{
    |                            ------------~~~~^^^^^^^^
 
 While inspecting ".bar" line 1
-This call to method "A.foo123" can not typecheck.
+This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "mut".
 This call requires a receiver with capability "imm".
 
@@ -1544,7 +1544,7 @@ A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
    |                            -------------~~~~^^^^^^^^
 
 While inspecting ".bar" line 1
-This call to method "A.foo123" can not typecheck.
+This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
 
@@ -1558,7 +1558,7 @@ A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
    |                            -------------~~~~^^^^^^^^~~~~~
 
 While inspecting ".bar" line 1
-This call to method "A.foo123" can not typecheck.
+This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
 
@@ -1572,7 +1572,7 @@ A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
    |                            -------------~~~~^^^^^^^^~~~~~~
 
 While inspecting ".bar" line 1
-This call to method ".foo123" can not typecheck.
+This call to method ".foo123" cannot typecheck.
 ".foo123" exists on type "A", but not with the requested capability.
 This call requires the existence of a "read" method.
 Available capabilities for this method: "imm".
@@ -1588,7 +1588,7 @@ A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
    |                                ------------~~~~^^^^^^^^
 
 While inspecting ".bar" line 1
-This call to method "mut A.foo123" can not typecheck.
+This call to method "mut A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso" or "mutH".
 
@@ -1607,7 +1607,7 @@ A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
    |                                                            -------------~~~~^^^^^^^^~~~~~
 
 While inspecting ".bar" line 1
-This call to method "A.foo123" can not typecheck.
+This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
 
@@ -1626,7 +1626,7 @@ A:{mut .foo123:A->this.foo123; read .foo123:A->this.foo123; imm .bar:A->this.foo
    |     ----^^^^^^^^-----
 
 While inspecting ".bar" line 6
-This call to method "mut A.foo123" can not typecheck.
+This call to method "mut A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso" or "mutH".
 
@@ -1685,7 +1685,7 @@ A:{ mut .baz(b: mut B):read B-> { .bar->b}; }
    |   -----------------------------~^^^^^^^^
 
 While inspecting ".bar(_)" line 3
-This call to method ".foo123" can not typecheck.
+This call to method ".foo123" cannot typecheck.
 The receiver is of type "X". This is a type parameter.
 Type parameters cannot be receivers of method calls.
 
@@ -1703,7 +1703,7 @@ A:{
    |   --------~~~~^^^^~~~~~~~~~~
 
 While inspecting ".bar" line 3
-This call to method "A.id(_)" can not typecheck.
+This call to method "A.id(_)" cannot typecheck.
 Wrong number of type arguments for ".id(_)".
 This method expects 1 type argument: "X"; but this call provides 2 type arguments.
 
@@ -1721,7 +1721,7 @@ A:{
    |   --------------------------------~~~~^^^~~~~
 
 While inspecting ".caller(_,_)" line 3
-This call to method ".f(_,_)" can not typecheck.
+This call to method ".f(_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
@@ -1750,7 +1750,7 @@ A:{
    |   --------------------------------~~~~^^^~~~~~~~~~~~~~~~
 
 While inspecting ".caller(_,_)" line 4
-This call to method ".f(_,_)" can not typecheck.
+This call to method ".f(_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
@@ -1788,7 +1788,7 @@ A:{
 
 While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
 parameter "aaaa" has type "mut A".
-parameter "aaaa" can observe mutation; thus it can not be captured in the "imm" object literal "BB" (line 4).
+parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal "BB" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1807,7 +1807,7 @@ A:{
 
 While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
 parameter "aaaa" has type "mut A".
-parameter "aaaa" can observe mutation; thus it can not be captured in the "imm" object literal instance of "B" (line 4).
+parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "B" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1848,7 +1848,7 @@ A:{
    |                                    -------------~~~~^^~~~~~~~~~~~~~-
 
 While inspecting ".foo" line 6 > ".f(_)" line 6
-This call to method "Need#(_)" can not typecheck.
+This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A" or "mutH A".
 Method call "AsRead#(_)" has type "read A" instead of a subtype of "mut A".
@@ -1883,7 +1883,7 @@ Main:{
    |   --------~~~~~~~~~~~~~^^^^
 
 While inspecting ".m" line 3
-This call to method ".foo" can not typecheck.
+This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on object literal instance of "A".
 
 Available methods on object literal instance of "A":
@@ -1903,7 +1903,7 @@ Main:{
    |    --------~~~^^^^
 
 While inspecting ".m" line 4
-This call to method ".foo" can not typecheck.
+This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on type "A".
 Type "A" does not have any methods.
 
@@ -1921,7 +1921,7 @@ A:{}
    |    --------~~~~~^^^^
 
 While inspecting ".m" line 3
-This call to method ".foo" can not typecheck.
+This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on object literal instance of "B".
 Type "B" does not have any methods.
 
@@ -2316,7 +2316,7 @@ Top:{
    |     ------------^^^^^^---------------
 
 While inspecting ".orderOk0" line 153
-This call to method "OrderBy[_].view(_)" can not typecheck.
+This call to method "OrderBy[_].view(_)" cannot typecheck.
 Argument 1 has type "iso F[read Person,Age]".
 That is not a subtype of "F[read Person,read Age]" (the type required by the method signature).
 
@@ -3440,7 +3440,7 @@ TypeSystem.methodTableOk rather than reporting a user error.*/
 013|     .return {o};
 
 While inspecting ".take(_,_)" line 11
-This call to method "mut Block[_].let(_,_)" can not typecheck.
+This call to method "mut Block[_].let(_,_)" cannot typecheck.
 Argument 1 has type "mut MF[mut Opt[imm E]]".
 That is not a subtype of "mut MF[Opt[imm E]]" (the type required by the method signature).
 

@@ -438,7 +438,7 @@ In file: [###].fear
    |     ------~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
-Name "x" is not in scope
+Name "x" is not in scope.
 In scope: "this".
 Error 2 UnexpectedToken
 ""","""
@@ -453,7 +453,7 @@ In file: [###].fear
    | ------------------------------^---
 
 While inspecting arguments list > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
-Name "x" is not in scope
+Name "x" is not in scope.
 In scope: "this".
 Error 2 UnexpectedToken
 ""","""
@@ -470,7 +470,7 @@ In file: [###].fear
    | ----~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~-------
 
 While inspecting arguments list > expression in round parenthesis > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
-Name "x" is not in scope
+Name "x" is not in scope.
 In scope: "this".
 Error 2 UnexpectedToken
 ""","""
@@ -622,7 +622,7 @@ In file: [###].fear
    |      ^
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
-Name "y" is not in scope
+Name "y" is not in scope.
 In scope: "this", "x".
 Error 2 UnexpectedToken
 ""","""
@@ -682,7 +682,7 @@ In file: [###].fear
 004| /*comment2*/}//comment3
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-Name "y" is not in scope
+Name "y" is not in scope.
 In scope: "this".
 Error 2 UnexpectedToken
 ""","""
@@ -702,7 +702,7 @@ In file: [###].fear
 004| }
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-Name "y" is not in scope
+Name "y" is not in scope.
 In scope: "this".
 Error 2 UnexpectedToken
 ""","""
@@ -780,7 +780,7 @@ In file: [###].fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Capability readH used.
-Capabilities readH and mutH are not allowed on object literals
+Capabilities readH and mutH are not allowed on object literals.
 Use one of read, mut, imm, iso.
 Error 2 UnexpectedToken
 ""","""
@@ -794,7 +794,7 @@ In file: [###].fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Capability mutH used.
-Capabilities readH and mutH are not allowed on object literals
+Capabilities readH and mutH are not allowed on object literals.
 Use one of read, mut, imm, iso.
 Error 2 UnexpectedToken
 ""","""
@@ -854,7 +854,7 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Invalid bound for generic "X"
-Only '*' or '**' are allowed here
+Only "*" or "**" are allowed here
 Write: X:*   meaning mut,read,imm
    or: X:**  meaning everything.
 Error 2 UnexpectedToken
@@ -2124,8 +2124,8 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Capability iso used.
-Capabilities readH and mutH are not allowed on object literals
-Use one of read, mut, imm, iso.
+Capabilities iso, readH and mutH are not allowed on method declarations.
+Use one of read, mut, imm.
 Error 2 UnexpectedToken
 ""","""
 A:{ iso .foo:Bar }
@@ -2138,8 +2138,8 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Capability readH used.
-Capabilities readH and mutH are not allowed on object literals
-Use one of read, mut, imm, iso.
+Capabilities iso, readH and mutH are not allowed on method declarations.
+Use one of read, mut, imm.
 Error 2 UnexpectedToken
 
 ""","""
@@ -2153,8 +2153,8 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Capability mutH used.
-Capabilities readH and mutH are not allowed on object literals
-Use one of read, mut, imm, iso.
+Capabilities iso, readH and mutH are not allowed on method declarations.
+Use one of read, mut, imm.
 Error 2 UnexpectedToken
 ""","""
 A:{ mutH .foo:Bar }
@@ -2564,7 +2564,7 @@ In file: [###].fear
 005| }
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Did you forgot a space in "!!!->"?
+Did you forget a space in "!!!->"?
 Did you mean "!!! ->"?
 Error 2 UnexpectedToken
 ""","""
@@ -2650,6 +2650,22 @@ Error 2 UnexpectedToken
 A:{}
 .foo:Void;
 B:{}
+""");}
+@Test void topLevelStrayFirst(){fail("""
+In file: [###].fear
+
+001| ()
+   | ^^
+
+While inspecting type declaration > full file
+This is not a top level type declaration.
+Top level code can only contain type declarations.
+A type declaration starts with a type name, like "Point:{..}".
+Found instead: "".
+Likely cause: an extra "}" closed a type declaration unintentionally.
+Error 2 UnexpectedToken
+""","""
+()
 """);}
 @Test void okFork(){ok("""
 [###]

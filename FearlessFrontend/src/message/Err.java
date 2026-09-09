@@ -162,14 +162,14 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return first+s.replace("\n","\n"+rest);
   }
   Err pCallCantBeSatisfied(Literal d, Call c){
-    return line("This call to method "+methodSig(c.rc().toStrSpace(),d,c.name())+" can not typecheck.");
+    return line("This call to method "+methodSig(c.rc().toStrSpace(),d,c.name())+" cannot typecheck.");
   }
   Err notInSubtypeList(List<String> options){
     if (options.size() == 1){ return this; };
     return line(Join.of(options,"That is not a subtype of any of "," or ","."));
   }
   Err pCallCantBeSatisfied(Call c){
-    return line("This call to method "+methodSig(c.name())+" can not typecheck.");
+    return line("This call to method "+methodSig(c.name())+" cannot typecheck.");
   }
   Err pPromotionFailuresHdr(){ return blank().line("Promotion failures:"); }
   Err pPromoFailure(String reason){
@@ -199,7 +199,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   public String gotMsgInferErr(String label, T got){
     return label 
-      + " cannot be checked agains an expected supertype.\n"
+      + " cannot be checked against an expected supertype.\n"
       + "Type inference could not infer an expected type; computed type is "+typeRepr(true,got)+"."; 
     }
     

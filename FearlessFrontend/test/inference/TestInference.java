@@ -1,10 +1,14 @@
 package inference;
 
+import java.net.URI;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import core.FearlessException;
 import testUtils.DbgBlock;
+import tools.SourceOracle;
 
 public class TestInference extends testUtils.FearlessTestBase{
   static void ok(String expected,List<String> input){ inferenceOk(expected, input,false); }
@@ -51,6 +55,47 @@ use base.Void as Void;
 B:{}
 """));}
 
+@Test void noRankFile(){
+  var o= SourceOracle.debugBuilder().putURI(URI.create("fear:/p/notRank.fear"), "A:{}").build();
+  FearlessException fe= assertThrows(FearlessException.class, () -> parsePackage("p", o, false));
+  strCmp("""
+No rank file found for package "p".
+Each package must have exactly one source file whose name is their rank.
+in some folder inside the project folder.
+Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
+The rank file is the file whose name matches the rank name.
+
+For example, for an application you would typically have a file named
+  "_rank_app.fear"
+Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
+As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
+Error 7 WellFormedness
+""", fe.render(o));
+}
+
+@Test void ambiguousRankFile(){
+  var o= SourceOracle.debugBuilder()
+    .putURI(URI.create("fear:/p/_rank_app.fear"), "A:{}")
+    .putURI(URI.create("fear:/p/_rank_app2.fear"), "B:{}")
+    .build();
+  FearlessException fe= assertThrows(FearlessException.class, () -> parsePackage("p", o, false));
+  strCmp("""
+Ambiguous rank file for package "p".
+Found 2 files that look like rank head candidates:
+- fear:/p/_rank_app.fear
+- fear:/p/_rank_app2.fear
+There must be exactly one source file whose name represents this package rank.
+Rename or remove the extra files so that only one file name is of form "_rank_*.fear".
+Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
+The rank file is the file whose name matches the rank name.
+
+For example, for an application you would typically have a file named
+  "_rank_app.fear"
+Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
+As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
+Error 7 WellFormedness
+""", fe.render(o));
+}
 
 @Test void meth(){ok("""
 p.A:{'this .foo:p.A@p.A;->p.A:?;}
@@ -1201,9 +1246,9 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Type declaration "B" implements method ".h".
-The body of method "B.h" needs to be duplicated to satify multiple RC overloads from the supertypes.
+The body of method "B.h" needs to be duplicated to satisfy multiple RC overloads from the supertypes.
 However, it contains object literal "MyAge".
-Object literals with their own unique explicit type can not be duplicated.
+Object literals with their own unique explicit type cannot be duplicated.
 Error 7 WellFormedness
 """, List.of("""
 Age:{}
