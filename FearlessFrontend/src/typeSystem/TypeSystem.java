@@ -88,6 +88,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     }).toList();
   }
   private List<Reason> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
+    k().check(t,bs,t.type());
     var ll= decs().apply(t.type().c().name());
     if (!hasInstance(ll)){ throw tsE().typeDeclaredInMethod(t, ll); }
     var getIso= (readOrImm(t.type().rc()) && !hasAbstractMut(ll)) || mutOrMutH(t.type().rc());

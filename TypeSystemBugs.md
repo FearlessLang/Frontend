@@ -58,3 +58,28 @@ Side condition dropped with it: a `BaseId` body must be `x` or `x.as{..}`, and t
 additionally demanded that the `.as` call resolve at an `imm` receiver. `BaseContainer` is
 sealed and declares one `.as`, so the capability it resolves at says nothing about whether
 the body is the identity.
+
+## 3. A type used directly as an expression skipped its own bound check
+
+Frontend#40, 2026-09-09. Unsound. `TypeSystemTest.typeNotWellKinded_typeExpressionViolatesBounds`.
+
+Every fresh generic instantiation must satisfy the bound its parameters declare:
+
+    kindOk(D, rc C[T1..Tn]) =
+      let D_C = the bound C declares for each of its own parameters X1..Xn
+      forall i. rcs(D,Ti) subsetOf D_C(Xi)  and  kindOk(D,Ti)
+
+This is required at every site that instantiates a generic type: a supertype list, a
+method signature, an explicit call type argument, a literal's own self type. A type used
+directly as an expression - surface syntax like `C[T1..Tn].m(..)`, naming the type rather
+than an instance of it - is a fifth such site and was the only one never checked.
+
+    was:  checkType(D, rc C[T1..Tn]) = ok, no kindOk on C[T1..Tn] at all
+    now:  checkType(D, rc C[T1..Tn]) = require kindOk(D, rc C[T1..Tn]), then as before
+
+Witness. `Thaw[X:imm]:{ .apply(x:imm X):X -> x; }` bounds `X` to `{imm}`. `Thaw[mut
+Cell].apply(cell)` instantiated `X` with `mut Cell`, outside that bound, unchecked.
+`.apply`'s parameter type is `imm X`, viewpoint-adapted, so it accepted the argument
+`cell:imm Cell` regardless of what `X` was; its return type is bare `X`, so the call's
+result type became `mut Cell`. A `.set(..)` requiring a `mut` receiver then typechecked
+against a reference declared, and never known to be more than, `imm`.
