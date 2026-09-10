@@ -65,7 +65,7 @@ public class FrontendLogicMain {
     });
     return res;
   }
-  protected Map<Ref, FileFull> parseFiles(List<Ref> files, SourceOracle o){
+  Map<Ref, FileFull> parseFiles(List<Ref> files, SourceOracle o){
     Map<Ref, FileFull> all = new LinkedHashMap<>();
     for (var u : files) {
       var str = u.loadString();
@@ -79,7 +79,7 @@ public class FrontendLogicMain {
       .filter(e -> !e.getValue().noDirectives())
       .forEach(e -> { throw err.notClean(e.getKey(), e.getValue()); });  
   }
-  protected Package mergeToPackage(String pkgName,Map<Ref, FileFull> raw, Map<String,String> override, OtherPackages other){
+  Package mergeToPackage(String pkgName,Map<Ref, FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
     var err= new WellFormednessErrors(pkgName);
     Ref headPkg= findHeadUri(err,pkgName, raw.keySet());
@@ -93,7 +93,7 @@ public class FrontendLogicMain {
     var names= DeclaredNames.of(pkgName, ds, Collections.unmodifiableMap(map));    
     return makePackage(pkgName, map, ds, names);
   }
-  protected Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
+  Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
     return new Package(name,map,decs,names,Package.offLogger());//this method exists to change logger in mocking
   }
   //map a as b in c //inside c, replace b with a

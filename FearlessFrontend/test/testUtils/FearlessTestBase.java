@@ -17,21 +17,15 @@ import org.junit.jupiter.api.Assertions;
 import org.opentest4j.AssertionFailedError;
 
 import core.OtherPackages;
-import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.ToString;
 import fearlessParser.Parse;
-import inference.E;
-import inject.InjectionSteps;
 import inject.Methods;
-import inject.ToInference;
 import core.FearlessException;
-import pkgmerge.DeclaredNames;
 import main.FrontendLogicMain;
-import pkgmerge.Package;
+import main.InferenceMain;
 import tools.Fs;
 import tools.SourceOracle;
-import tools.SourceOracle.Ref;
 import utils.Bug;
 import utils.Err;
 import utils.Join;
@@ -79,24 +73,7 @@ public abstract class FearlessTestBase{
     strCmp(expectedErr, fe.render(o));
   }
   protected static Methods parsePackage(String pkgName,SourceOracle o, OtherPackages other, boolean infer){
-    class InferenceMain extends FrontendLogicMain{
-      @Override protected Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
-        return new Package(name, map, decs, names, Package.onLogger());
-      }
-      Methods ofMethods(List<Ref> files, SourceOracle o, OtherPackages other, boolean infer){
-        Map<Ref, FileFull> rawAST= parseFiles(files, o);
-        Package pkg= mergeToPackage(pkgName,rawAST, Map.of(), other);
-        Methods ctx= Methods.create(pkg, other);
-        List<E.Literal> iDecs= new ToInference().of(ctx.p(), ctx, other, ctx.fresh());
-        iDecs= ctx.registerTypeHeadersAndReturnRoots(iDecs);
-        if (!infer){ return ctx; }
-        var res= InjectionSteps.steps(ctx, iDecs);
-        ctx.p().log().logs().add("~-----------");
-        for (var r: res){ ctx.p().log().logs().add("~"+r); }
-        return ctx;
-      }
-    }
-    return new InferenceMain().ofMethods(o.allFiles(), o, other, infer);
+    return new InferenceMain().ofMethods(pkgName, o.allFiles(), o, other, infer);
   }
   protected static Methods parsePackage(String pkgName, SourceOracle o, boolean infer){
     return parsePackage(pkgName,o, otherFrom(DbgBlock.all()), infer);
