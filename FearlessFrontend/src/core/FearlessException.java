@@ -11,8 +11,8 @@ import metaParser.Frame;
 import metaParser.HasFrames;
 import tools.SourceOracle;
 
+@SuppressWarnings("serial")
 public final class FearlessException extends RuntimeException implements HasFrames<FearlessException>{
-  private static final long serialVersionUID = 1L;
   private final Code code;
   private final ArrayList<Frame> frames= new ArrayList<>();
   private final BiFunction<SourceOracle,List<Frame>,String> msgFactory;
