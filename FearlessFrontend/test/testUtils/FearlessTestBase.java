@@ -65,7 +65,6 @@ public abstract class FearlessTestBase{
       throw fe;
     }
   }
-  @SuppressWarnings("exports")
   protected static FileFull parseFull(String input){
     return printError(() -> Parse.from(SourceOracle.defaultDbgFearPath(0), input), oracleRaw(List.of(input)));
   }
@@ -79,7 +78,6 @@ public abstract class FearlessTestBase{
       () -> Parse.from(SourceOracle.defaultDbgFearPath(0), input));
     strCmp(expectedErr, fe.render(o));
   }
-  @SuppressWarnings("exports")
   protected static Methods parsePackage(String pkgName,SourceOracle o, OtherPackages other, boolean infer){
     class InferenceMain extends FrontendLogicMain{
       @Override protected Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
@@ -100,7 +98,6 @@ public abstract class FearlessTestBase{
     }
     return new InferenceMain().ofMethods(o.allFiles(), o, other, infer);
   }
-  @SuppressWarnings("exports")
   protected static Methods parsePackage(String pkgName, SourceOracle o, boolean infer){
     return parsePackage(pkgName,o, otherFrom(DbgBlock.all()), infer);
   }

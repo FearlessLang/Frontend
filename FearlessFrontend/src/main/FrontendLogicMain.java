@@ -65,7 +65,6 @@ public class FrontendLogicMain {
     });
     return res;
   }
-  @SuppressWarnings("exports")
   protected Map<Ref, FileFull> parseFiles(List<Ref> files, SourceOracle o){
     Map<Ref, FileFull> all = new LinkedHashMap<>();
     for (var u : files) {
@@ -80,7 +79,6 @@ public class FrontendLogicMain {
       .filter(e -> !e.getValue().noDirectives())
       .forEach(e -> { throw err.notClean(e.getKey(), e.getValue()); });  
   }
-  @SuppressWarnings("exports")
   protected Package mergeToPackage(String pkgName,Map<Ref, FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
     var err= new WellFormednessErrors(pkgName);
@@ -95,7 +93,6 @@ public class FrontendLogicMain {
     var names= DeclaredNames.of(pkgName, ds, Collections.unmodifiableMap(map));    
     return makePackage(pkgName, map, ds, names);
   }
-  @SuppressWarnings("exports")
   protected Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
     return new Package(name,map,decs,names,Package.offLogger());//this method exists to change logger in mocking
   }
