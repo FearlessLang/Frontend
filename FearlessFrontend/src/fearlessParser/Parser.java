@@ -87,7 +87,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var s= c.content();
     if (names.XIn(s)){ throw errFactory().typeNameConflictsGeneric(c,span(c).get()); }
     if (s.contains("._")){ throw errFactory().privateTypeName(c,span(c).get()); }
-    return TName.of(s,0,pos(c));
+    return new TName(s,0,pos(c));
   }
   T parseT(){ //T    ::= C | RC C | X | RC X | read/imm X
     int startPos= index();
@@ -114,7 +114,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   private E atomFromSignedNumeric(Token x){
     String s = x.content().substring(1);
     Pos p = new Pos(span().fileName(), x.line(), x.column() + 1);
-    TName n = TName.of(s, 0, p);
+    TName n = new TName(s, 0, p);
     T.C c = new T.C(n, Optional.empty());
     T.RCC rcc = new T.RCC(Optional.empty(), c, new TSpan(span(p, s.length())));
     return new E.TypedLiteral(rcc, Optional.empty(), p);

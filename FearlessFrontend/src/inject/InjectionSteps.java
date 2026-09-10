@@ -682,7 +682,6 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
   int arity(){ return ps0.size(); }
   int nCls(){ return clsArgs.size(); }
   int bsArity(){ return methBs.size(); }
-  List<String> methXs(){ return xs.subList(nCls(), xs.size()); }
 
   IT p(int i, List<IT> targs){ return inst(ps0.get(i), targs); }
   IT ret(List<IT> targs){ return inst(ret0, targs); }
@@ -708,7 +707,6 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
       IntStream.range(0, n-k).mapToObj(_->arityErr())
       ).toList();
   }
-  IT pStr(TSpan span, int i, List<String> targetBs){ return inst(ps0.get(i), toXs(span,targetBs)); }
   List<Optional<IT>> psStr(TSpan span,List<String> targetBs){
     assert targetBs.size() == bsArity();
     var ts= toXs(span, targetBs);
