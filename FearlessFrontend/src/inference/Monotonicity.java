@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import core.RC;
 import inference.Gamma.GammaSignature;
+import utils.Range;
 
 public final class Monotonicity{
   private static final IdentityHashMap<GammaSignature,State> states= new IdentityHashMap<>();
@@ -112,13 +113,13 @@ public final class Monotonicity{
         throw new AssertionError("Call.targs arity changed after tracking started old="+oldN+" new="+newN
           +"\ncall="+c);
       }
-      for (int i= 0; i < newN; i++){
+      for (int i : Range.of(nextTargs)){
         var ti= nextTargs.get(i);
         step(c.g(), slot(K.CALL_TARG,i,0), ti, ti, "Call.targs["+i+"] init");
       }
       return true;
     }
-    for (int i= 0; i < newN; i++){
+    for (int i : Range.of(nextTargs)){
       step(c.g(), slot(K.CALL_TARG,i,0), c.targs().get(i), nextTargs.get(i), "Call.targs["+i+"]");
     }
     return true;
@@ -147,10 +148,10 @@ public final class Monotonicity{
 
     // First stable snapshot: start tracking from nextMs (not from l.ms()).
     if (!hasLitHistory(l.g())){
-      for (int mi= 0; mi < nextMs.size(); mi++){
+      for (int mi : Range.of(nextMs)){
         var nm= nextMs.get(mi);
         var nps= sigPs(nm);
-        for (int pi= 0; pi < nps.size(); pi++){
+        for (int pi : Range.of(nps)){
           step(l.g(), slot(K.LIT_MARG,mi,pi), nps.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] init");
         }
         var r= sigRet(nm);
@@ -167,7 +168,7 @@ public final class Monotonicity{
     }
 
     // Same size, stable names: normal monotonic tracking by index.
-    for (int mi= 0; mi < newN; mi++){
+    for (int mi : Range.of(nextMs)){
       var om= l.ms().get(mi);
       var nm= nextMs.get(mi);
       var ops= sigPs(om);
@@ -181,7 +182,7 @@ public final class Monotonicity{
           +"\noldMs="+msBrief(l.ms())+"\nnewMs="+msBrief(nextMs)
           +"\nlit="+l);
       }
-      for (int pi= 0; pi < ops.size(); pi++){
+      for (int pi : Range.of(ops)){
         step(l.g(), slot(K.LIT_MARG,mi,pi), ops.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] "+l);
       }
       step(l.g(), slot(K.LIT_MRET,mi,0), sigRet(om), sigRet(nm), "Lit.ms["+mi+"].ret "+l);

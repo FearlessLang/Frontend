@@ -13,6 +13,7 @@ import core.Sig;
 import core.T;
 import inject.TypeRename;
 import utils.OneOr;
+import utils.Range;
 
 class Sources {
 //l.cs() is already the fully flattened, fully substituted transitive ancestor set (Methods.expandDeclaration
@@ -56,14 +57,14 @@ class Sources {
     List<String> mapXs= new ArrayList<>();
     List<T> mapTs= new ArrayList<>();
     List<String> methodVars= new ArrayList<>();
-    for(int i= 0; i < s.bs().size(); i++){
+    for(int i : Range.of(s.bs())){
       String sourceVar= s.bs().get(i).x();
       String targetVar= canonical.get(i).x();
       methodVars.add(sourceVar);
       mapXs.add(sourceVar);
       mapTs.add(new T.X(targetVar,s.span()));
     }
-    for(int i= 0; i < xs.size(); i++){
+    for(int i : Range.of(xs)){
       String var = xs.get(i);
       mapXs.add(var);
       mapTs.add(ts.get(i));

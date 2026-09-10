@@ -9,6 +9,7 @@ import core.E.*;
 import inject.TypeRename;
 import message.Reason;
 import utils.Push;
+import utils.Range;
 import typeSystem.TypeSystem.*;
 
 record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement> rs){
@@ -59,14 +60,14 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     assert c0.ts().size() == d.bs().size();
     var targs= c.targs();
     var kt= new KindingTarget.CallKinding(c0,c);
-    for(int i= 0; i < targs.size(); i++){
+    for(int i : Range.of(targs)){
       ts.k().check(c,kt,i,bs,targs.get(i),sig.bs().get(i).rcs());
     }
   }
   private ArgMatrix typeArgsOnce(Literal d,List<MType> app){
     var size= c.es().size();
     var acc= new ArgMatrix(app,new ArrayList<>(size),new ArrayList<>(size));
-    for (int argi= 0; argi < size; argi++){ accArgi(d,app,acc,c.es(), argi); }
+    for (int argi : Range.of(0,size)){ accArgi(d,app,acc,c.es(), argi); }
     return acc;
   }
   private List<TRequirement> argRequirements(List<MType> app, int argi){

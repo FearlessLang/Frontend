@@ -10,6 +10,7 @@ import fearlessParser.TokenKind;
 import utils.Pos;
 import utils.Push;
 import utils.Bug;
+import utils.Range;
 
 
 public class LiteralDeclarations {
@@ -123,7 +124,7 @@ public class LiteralDeclarations {
   static String javaStrLit(String raw){
     assert raw.indexOf('\n') == -1;
     var sb= new StringBuilder(raw.length()+2).append('"');
-    for (int i= 0; i < raw.length(); i++){
+    for (int i : Range.of(0,raw.length())){
       char c= raw.charAt(i);
       if (c == '\\' || c == '"'){ sb.append('\\'); }
       sb.append(c);

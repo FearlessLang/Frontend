@@ -8,6 +8,7 @@ import java.util.function.Function;
 import core.*;
 import core.E.*;
 import message.TypeSystemErrors;
+import utils.Range;
 
 public record Kinding(TypeSystemErrors tsE){
   public void checkC(E toErr, List<B> bs, T.C c){
@@ -15,7 +16,7 @@ public record Kinding(TypeSystemErrors tsE){
     var params = d.bs();
     var args= c.ts();
     assert eq(params.size(), args.size(), "Arity mismatch for " + c.name());
-    for (int i= 0; i < params.size(); i++){ check(toErr, c, i, bs, args.get(i), params.get(i).rcs()); }
+    for (int i : Range.of(params)){ check(toErr, c, i, bs, args.get(i), params.get(i).rcs()); }
   }
   public void check(E toErr, List<B> bs, T t){ 
     if (t instanceof T.RCC rcc){ check(toErr,rcc,-1,bs,rcc,EnumSet.allOf(RC.class)); }
@@ -52,7 +53,7 @@ public record Kinding(TypeSystemErrors tsE){
     var params = d.bs();
     var args= rcc.c().ts();
     assert eq(params.size(), args.size(), "Arity mismatch for " + rcc.c().name());
-    for (int i= 0; i < params.size(); i++){
+    for (int i : Range.of(params)){
       if (!of(bs, args.get(i), params.get(i).rcs())){ return false; }
     }
     return true;
