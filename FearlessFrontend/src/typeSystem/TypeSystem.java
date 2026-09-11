@@ -177,7 +177,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     SequencedMap<Key,List<Sig>> sources= sources(l);
     sources.forEach((k,group)->methodTableOk(l,k,group));
     l.cs().forEach(c->csOk(l,delta,c));
-    var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
+    var g1= v().discard(g,l).add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
     l.ms().forEach(m->{
       Gamma g2= v().of(g1,l,m);//passing l and m instead of their RC for better errors
       methOk(l,delta,g2,m);

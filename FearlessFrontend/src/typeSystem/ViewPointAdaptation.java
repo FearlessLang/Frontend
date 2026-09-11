@@ -10,14 +10,13 @@ import core.E.*;
 import typeSystem.Change.*;
 
 public record ViewPointAdaptation(Kinding k){
+  public Gamma discard(Gamma g,Literal l){ return g.map(curr -> discard(curr,l)); }
   public Gamma of(Gamma g,Literal l, M m){ return g.map(curr -> of(curr,l,m)); }
   private Change of(Change current, Literal l, M m){    //Literal l, M m, T atDrop
     if(!( current instanceof Change.WithT w)){ return current; }
     T t= w.currentT();
-    RC rc0= l.rc();
+    RC rc0= l.rc().isoToMut();
     RC rc=  m.sig().rc();
-    Change oc= discard(w, l);
-    if(oc instanceof Change.NoT){ return oc; }
     boolean withImm= kindIsoImm(t, l.bs())
       || (rc == imm && (rc0 == mut || rc0 == read) && kindIsoImmMutRead(t, l.bs()));
     if (withImm){ return Change.keepStrengthenToImm(l,m,w); }
@@ -34,7 +33,8 @@ public record ViewPointAdaptation(Kinding k){
     if (kindImmMutRead(t, l.bs())){ return w; }
     return Change.keepSetToRead(l,m,w);
   }
-  private Change discard(Change.WithT w, Literal l){
+  private Change discard(Change current, Literal l){
+    if(!( current instanceof Change.WithT w)){ return current; }
     var t= w.currentT();
     if (!kindIsoImmMutRead(t, l.bs())){ return Change.dropReadHMutH(l,t); }
     if ((l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs())){ return Change.dropMutInImm(l,t); }
