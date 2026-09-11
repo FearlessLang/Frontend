@@ -10,6 +10,7 @@ import core.RC;
 import core.T;
 import typeSystem.TypeSystem.MType;
 import utils.OneOr;
+import utils.Range;
 
 class MultiMeth{
   private enum F{
@@ -54,7 +55,7 @@ class MultiMeth{
       .mapToObj(j->modeF(d,m.ts().get(j), Mode.flexy, F.glb)).toList();
     var t= modeF(d,m.t(), Mode.hyg, F.lub);
     add(out,new MType("Allow mutH receiver", Mode.hyg.of(m.rc()), tsi, t));
-    for(int i= 0; i < m.ts().size(); i++){ iMutHToMut(out,d,m,i); } 
+    for(int i : Range.of(m.ts())){ iMutHToMut(out,d,m,i); }
   }
   private static void iMutHToMut(LinkedHashMap<Key,MType> out, List<B> d, MType m, int i){
     var tsi= IntStream.range(0, m.ts().size())

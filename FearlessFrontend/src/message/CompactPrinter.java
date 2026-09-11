@@ -10,6 +10,7 @@ import core.E.*;
 import core.T.C;
 import utils.Bug;
 import utils.Join;
+import utils.Range;
 
 public class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses, boolean trunk){ t= new TypeNamePrinter(trunk,mainPkg,uses); }
@@ -55,7 +56,7 @@ public class CompactPrinter{
   static <XX> void wrap(CompactPrinter sb, String open, String close, List<XX> xs, String sep, Acc<XX> a){
     if (xs.isEmpty()){ return; }
     sb.append(open);
-    for (int i= 0; i < xs.size(); i++){
+    for (int i : Range.of(xs)){
       if (i > 0){ sb.append(sep); }
       a.acc(xs.get(i),sb);
     }

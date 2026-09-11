@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import utils.Join;
+import utils.Range;
 public record M(Sig sig, List<String> xs, Optional<core.E> e){
   public M{
     assert nonNull(sig,e);
@@ -19,7 +20,7 @@ public record M(Sig sig, List<String> xs, Optional<core.E> e){
     if (!sig.bs().isEmpty()){ sb.append(Join.of(sig.bs(),"[",",","]","")); }
     if (!xs.isEmpty()){
       sb.append('(');
-      for (int i= 0; i < xs.size(); i += 1){
+      for (int i : Range.of(xs)){
         if (i>0){ sb.append(", "); }
         sb.append(xs.get(i)).append(':').append(sig.ts().get(i));
       }

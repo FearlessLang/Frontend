@@ -29,6 +29,7 @@ import message.Reason;
 import message.TypeSystemErrors;
 import utils.OneOr;
 import utils.Push;
+import utils.Range;
 import utils.UriSort;
 import core.E.*;
 import pkgmerge.Package;
@@ -201,7 +202,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     g= g.addAll(ts, xs);//Note: 'this' already in g1
     var t= new TypeSystem(scope.pushM(forErr, m),v);
     t.check(delta,g,m.e().get(),m.sig().ret());
-    for(int i= 0; i < xs.size(); i++){
+    for(int i : Range.of(xs)){
       var isAffine= !k().of(delta,ts.get(i),EnumSet.of(mut,read,mutH,readH,imm));
       if (isAffine){ Affine.usedOnce(tsE(),forErr,m,xs.get(i),m.e().get()); }
     }
@@ -296,7 +297,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     List<B> ctx= Push.of(l.bs(),current.bs());
     int tsSize= current.ts().size();
     assert tsSize == parent.ts().size():"Arity encoded in meth name";
-    for (int i= 0; i < tsSize; i++){
+    for (int i : Range.of(0,tsSize)){
       var badArg= !isSub(ctx, parent.ts().get(i), current.ts().get(i));
       if (badArg){ throw tsE().methodOverrideSignatureMismatchContravariance(this,ctx,l,current,parent, i); }
     }
@@ -311,7 +312,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if(aa.rc() != bb.rc() || !aa.c().name().equals(bb.c().name())){ return false; }
     var as= aa.c().ts(); var bs2= bb.c().ts();
     assert as.size() == bs2.size();
-    for(int i= 0; i < as.size(); i++){ if(!eqModXRC(bs,as.get(i),bs2.get(i))){ return false; } }
+    for(int i : Range.of(as)){ if(!eqModXRC(bs,as.get(i),bs2.get(i))){ return false; } }
     return true;
   }
   private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }  

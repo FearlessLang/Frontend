@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 import core.RC;
+import utils.Range;
 
 public final class Gamma{
  /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
@@ -91,7 +92,7 @@ public final class Gamma{
     long cold= contrib(xs[i], ts[i]);
     long cnew= contrib(xs[i], t);
     int d= declDepth[i];
-    for (int s= d; s < depth; s++){ envHash[s] ^= cold ^ cnew; }
+    for (int s : Range.of(d,depth)){ envHash[s] ^= cold ^ cnew; }
     ts[i] = t;
   }
   public boolean represents(GammaSignature sig){
@@ -126,11 +127,11 @@ public final class Gamma{
 
   @Override public String toString(){
     StringBuilder sb = new StringBuilder();
-    for (int s = 0; s < depth; s++){
+    for (int s : Range.of(0,depth)){
       int start = marks[s];
       int end   = (s + 1 < depth) ? marks[s + 1] : size;
       sb.append('[');
-      for (int i = start; i < end; i++){
+      for (int i : Range.of(start,end)){
         if (i > start) sb.append(',');
         sb.append(xs[i]).append("->").append(ts[i]);
       }

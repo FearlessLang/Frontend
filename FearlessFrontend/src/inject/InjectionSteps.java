@@ -22,6 +22,7 @@ import inference.M;
 import message.WellFormednessErrors;
 import utils.OneOr;
 import utils.Push;
+import utils.Range;
 import utils.Streams;
 /**
 Inference fix-point core loop relies on identity for E.
@@ -512,7 +513,7 @@ public record InjectionSteps(Methods meths){
     var args0= m.sig().ts();
     assert xs.size() == args0.size();
     assert m.sig().m().get().arity() == xs.size();
-    for (int i= 0; i < xs.size(); i += 1){ g.declare(xs.get(i), args0.get(i).get()); }
+    for (int i : Range.of(xs)){ g.declare(xs.get(i), args0.get(i).get()); }
   }
   TSM headerResult(IT.RCC rcc, inference.M m, E e, core.Sig sig, M.Sig improvedSig){
     var rcc0= withTsNormBs(rcc,refineClsTsFromHeader(rcc.c().ts(), rcc, improvedSig,sig));
@@ -636,7 +637,7 @@ public record InjectionSteps(Methods meths){
     if (candidate == original){ return original; }
     int n= original.size();
     assert candidate.size() == n;
-    for (int i= 0; i < n; i++){
+    for (int i : Range.of(original)){
       if (candidate.get(i) != original.get(i)){
         assert assertEqEM(candidate.get(i), original.get(i));
         return candidate; 

@@ -21,6 +21,7 @@ import typeSystem.TypeScope;
 import typeSystem.TypeSystem;
 import utils.Join;
 import utils.OneOr;
+import utils.Range;
 import core.*;
 import core.E.*;
 
@@ -487,7 +488,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("Each argument is compatible with at least one promotion, but no single promotion fits all arguments.")
       .blank()
       .line("Compatible promotions by argument:");
-    for (int argi= 0; argi < args; argi++){
+    for (int argi : Range.of(0,args)){
       var ok= mat.okByArg().get(argi);
       assert !ok.isEmpty();
       var promos= ok.stream().map(i->mat.candidate(i).promotion()).distinct().sorted().toList();
@@ -498,14 +499,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var byArg= IntStream.range(0,args)
       .mapToObj(_->new LinkedHashMap<String,List<String>>()).toList();
     int promosN= mat.resByArg().getFirst().size();
-    for (int pi= 0; pi < promosN; pi++){
+    for (int pi : Range.of(0,promosN)){
       int argi= firstFailingArg(mat, pi);
       Reason r= mat.resByArg().get(argi).get(pi);
       assert !r.isEmpty();
       byArg.get(argi).computeIfAbsent(up(r.info),_->new ArrayList<>())
         .add(mat.candidate(pi).promotion());
     }
-    for (int argi= 0; argi < args; argi++){
+    for (int argi : Range.of(0,args)){
       for (var ent: byArg.get(argi).entrySet()){
         var names= ent.getValue();
         e.pPromoFailure(
