@@ -11,11 +11,6 @@ public record M(Sig sig, List<String> xs, Optional<core.E> e){
     assert unmodifiable(xs,"M.xs");
     assert xs.size() == sig.ts().size();
   }
-  public String _toString(){
-    String _xs=Join.of(xs, "(",",",")","");
-    String _e=e.isEmpty()?"":"->"+e.get();
-    return ""+sig+_xs+_e;
-  }
   public M withSig(Sig sig){ return new M(sig,xs,e); }
   public String toString(){
     var sb= new StringBuilder();

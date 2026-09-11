@@ -53,7 +53,7 @@ public class Parse {
       .tokenize()
       .postTokenize(new BadTokens().badTokensMap())
       .buildTokenTree(map);
-    var p= new Parser(t.span(),new Names(List.of(),List.of(),List.of()),t.tokenTree(),new FearlessErrFactory());
+    var p= new Parser(t.span(),new Names(List.of(),List.of()),t.tokenTree(),new FearlessErrFactory());
     return p.parseAll("full file",Parser::parseFileFull);
   }
 }

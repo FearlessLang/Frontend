@@ -14,8 +14,6 @@ public sealed interface TypeScope{
   default boolean isTop(){ return this instanceof Top; }
   E contextE();
   List<T> mentionedTs();
-  default TypeScope pushMethod(Literal l, M m){ return new Method(l,m,this); }
-  default TypeScope pushCall(Call c){ return new CallSite(c,this); }
   enum Top implements TypeScope{
     Instance;
     public List<T> mentionedTs(){ return List.of(); }
