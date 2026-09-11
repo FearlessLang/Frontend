@@ -78,7 +78,6 @@ public class LiteralDeclarations {
     assert inRange(v,natMin,natMax);
     return v.longValue(); // wraps to low 64 bits (exactly what we want given the range)
   }
-  static public BigDecimal floatLiteralBig(String raw){ return new BigDecimal(floatPayload(raw)); }
   static public boolean floatLiteralExactlyRepresentable(String raw){
     String ns= floatPayload(raw);
     if (ns.startsWith("+")){ ns = ns.substring(1); }

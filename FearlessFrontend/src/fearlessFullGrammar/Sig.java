@@ -21,7 +21,4 @@ public record Sig(
     if (m.isEmpty()){ return this; }
     return new Sig(rc,m.map(mi->mi.withArity(parameters.size()+1)),bs,hasParenthesis,parameters, t);
   }
-  public boolean fullyTyped(){
-    return !(m.isEmpty() || t.isEmpty() || parameters.stream().anyMatch(p->p.t().isEmpty()));
-  }
 }
