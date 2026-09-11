@@ -41,10 +41,6 @@ public record M(Sig sig, Optional<Impl> impl){
       if (ts.equals(this.ts) && this.ret.isPresent() && this.ret.get().equals(ret)){ return this; }
       return new Sig(rc,m,bs,ts,Optional.of(ret),origin,abs,span);
     }
-    public Sig withBsTsT(List<B> bs, List<Optional<IT>> ts, IT ret){
-      if (this.bs.isPresent() && bs.equals(this.bs.get()) && ts.equals(this.ts) && this.ret.isPresent() && this.ret.get().equals(ret)){ return this; } 
-      return new Sig(rc,m,Optional.of(bs),ts,Optional.of(ret),origin,abs,span); 
-    }
     public Sig withOrigin(TName origin){
       return new Sig(rc,m,bs,ts,ret,Optional.of(origin),abs,span);
     }

@@ -34,7 +34,6 @@ import java.util.ArrayList;
 public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs, Package pkg, OtherPackages other, FreshPrefix freshF)
     implements fearlessFullGrammar.EVisitor<inference.E>,fearlessFullGrammar.TVisitor<IT>{
   static final inference.IT u= IT.U.Instance;
-  static fearlessFullGrammar.E.Literal emptyL(Pos pos){ return new fearlessFullGrammar.E.Literal(empty(),List.of(),TSpan.fromPos(pos)); }
   @Override public IT.X visitTX(fearlessFullGrammar.T.X x){ return new IT.X(x.name(),x.span()); }
   @Override public IT visitReadImmX(fearlessFullGrammar.T.ReadImmX x){ return new IT.ReadImmX(visitTX(x.x())); }
   @Override public IT visitRCX(fearlessFullGrammar.T.RCX x){ return new IT.RCX(x.rc(), visitTX(x.x())); }

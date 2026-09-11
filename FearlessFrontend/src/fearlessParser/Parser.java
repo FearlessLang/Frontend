@@ -175,13 +175,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new E.CallSquare(rc, parseCallTargs(),pos());
   }
   private List<T> parseCallTargs(){ return end()?List.of():splitBy("genericTypes",commaSkip,Parser::parseT); }
-  Span lastT(int i,int j){
-    setIndex(index()-1);
-    var t= expectAny("");
-    var fn= span().fileName();
-    assert j>i;
-    return new Span(fn,t.line(), t.column()+i, t.line(), t.column() + j);
-  }
   E.Implicit parseImplicit(){ return new E.Implicit(pos(expect("",ColonColon))); }
   E.Round parseRound(){
     expect("expression in round parenthesis",ORound);
@@ -466,12 +459,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     expectLast("semicolon", SemiColon);
     splitBy("header element", semiSkip,p->p.parseHeaderElement(acc));
     return acc;
-  }
-  E parseEFull(){
-    expect("",_SOF);
-    expectLast("",_EOF);
-    guard(Parser::checkAbruptExprEnd);
-    return parseE(); 
   }
   boolean isTName(Token t){ return t.is(UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SStr,UStr) && !names.XIn(t.content()); }
   Pos pos(){

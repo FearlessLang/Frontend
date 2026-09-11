@@ -70,18 +70,6 @@ public final class Monotonicity{
   public static boolean eT(GammaSignature g, Object e, Object from, Object to){
     return step(g, slot(K.E_T,0,0), from, to, "E.t "+e.getClass().getSimpleName());
   }
-  public static boolean callRc(GammaSignature g, Object call, Optional<RC> from, Optional<RC> to){
-    return step(g, slot(K.CALL_RC,0,0), from, to, "Call.rc "+call);
-  }
-  public static boolean callTarg(GammaSignature g, Object call, int i, Object from, Object to){
-    return step(g, slot(K.CALL_TARG,i,0), from, to, "Call.targs["+i+"] "+call);
-  }
-  public static boolean litMethArg(GammaSignature g, Object lit, int mi, int pi, Object from, Object to){
-    return step(g, slot(K.LIT_MARG,mi,pi), from, to, "Literal.ms["+mi+"].arg["+pi+"] "+lit);
-  }
-  public static boolean litMethRet(GammaSignature g, Object lit, int mi, Object from, Object to){
-    return step(g, slot(K.LIT_MRET,mi,0), from, to, "Literal.ms["+mi+"].ret "+lit);
-  }
 
   private static boolean hasLitHistory(GammaSignature g){
     var st= states.get(g);
