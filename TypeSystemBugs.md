@@ -27,6 +27,24 @@ Not fixed; recorded so the next attempt starts from the mechanism.
   only; the argument list drives the argument matrix, and a hygienic argument against a
   non-hygienic signature is legitimate (`Allow mutH argument i`), so it can only be
   trimmed at display time, once the argument types are known.
+- A named declaration written inside a method body keeps only the type parameters listed
+  in its own brackets, but the enclosing ones stay in the parser's scope, so a free one
+  survives into the declaration: `BreakOuter[Z:*]:{ #: BreakInner -> BreakInner: A[Z]{} }`.
+  Nothing rejects it, and `Kinding.ofX` reaches `RC.get(bs,"Z")` with `Z` absent from the
+  declaration's own `bs`; that lookup is offensive, so the compiler exits with
+  `OneOr.OneOrException` instead of a message. The check that catches the same mistake for
+  a *captured parameter* (`parameterNotAvailableHere`, "uses type parameters that are not
+  propagated") is about `Gamma`, so it never sees a free variable that arrives through the
+  declaration's supertype list or through one of its own signatures.
+  `DeclarationWellFormednessTest.inlineDeclarationImplementingAnEnclosingGenericWithoutFunnelling`
+  and `.inlineDeclarationUsingAnEnclosingGenericWithoutFunnelling` pin both shapes.
+- An object literal whose expected type is a type variable, `A[X:*]:{ #: X -> {} }`, is
+  refused by the type system and then crashes the message. `TypeSystemErrors.err` builds
+  `publicHead`, which maps an inferred-name declaration to the first of its supertypes
+  that has a written name; the literal's only expected type is `X`, which is not a `T.C`,
+  so its `cs()` is empty and the `orElseThrow` fires with `NoSuchElementException`.
+  `publicHead` needs a fallback for a literal with no nominal supertype.
+  `GenericBoundsTest.literalCannotImplementATypeVariable` pins it.
 
 ## 1. The minimal type of a call is not unique
 
