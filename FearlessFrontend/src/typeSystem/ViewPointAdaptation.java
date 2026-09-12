@@ -14,11 +14,7 @@ public record ViewPointAdaptation(Kinding k){
   public Gamma of(Gamma g,Literal l, M m){ return g.map(curr -> of(curr,l,m)); }
   private Change of(Change current, Literal l, M m){    //Literal l, M m, T atDrop
     if(!( current instanceof Change.WithT w)){ return current; }
-    T t= w.currentT();
-    RC rc0= l.rc().isoToMut();
-    RC rc=  m.sig().rc();
-    boolean withImm= kindIsoImm(t, l.bs())
-      || (rc == imm && (rc0 == mut || rc0 == read) && kindIsoImmMutRead(t, l.bs()));
+    boolean withImm= m.sig().rc() == imm || kindIsoImm(w.currentT(), l.bs());
     if (withImm){ return Change.keepStrengthenToImm(l,m,w); }
     return adapt(w, l, m);
   }

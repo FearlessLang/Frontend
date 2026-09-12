@@ -98,15 +98,22 @@ under construction.
                          or (rc0 in {iso,imm} and rcs(D,T) not subsetOf {iso,imm})
     keep(D, rc0, G) = { x:T in G | not discard(D, rc0, T) }
 
+    adapt(D, rc, T) = T[imm]       if rc = imm or rcs(D,T) subsetOf {iso,imm}
+                      T[read]      if rc = read and T is mut _ or read _
+                      readImm X    if rc = read and T is X or readImm X
+                      T            if rc = mut and rcs(D,T) subsetOf {imm,mut,read}
+                      T[read]      if rc = mut otherwise
+
     was:  G' = G, self : isoToMut(rc0) C[..]
-          forall m. check m under adapt(D, rc0, rcOf(m), keep(D, rc0, G'))
+          forall m. check m under adapt(D, rcOf(m), keep(D, rc0, G'))
+          -- and the imm case of adapt additionally required rc0 in {mut,read}
     now:  G' = keep(D, rc0, G), self : isoToMut(rc0) C[..]
-          forall m. check m under adapt(D, isoToMut(rc0), rcOf(m), G')
+          forall m. check m under adapt(D, rcOf(m), G')
 
 Witness. `iso Counter{'self mut .inc: mut Counter -> self }`: `self : mut Counter` is not
 `iso`/`imm`, so `discard` dropped it for the `iso` literal and every use of `self` was
 rejected as an illegal capture. Only `iso` shows it: for a `mut`/`read`/`imm` literal
-`self` never meets the drop condition. Adapting `self` needs the literal seen as `mut`
-too: `adapt` strengthens to `imm` in an `imm` method only for `mut`/`read` literals, and
-for the captured bindings `isoToMut` changes nothing since after `keep` an `iso` literal
-holds only `iso`/`imm` bindings, which are strengthened to `imm` regardless.
+`self` never meets the drop condition. The literal's capability now only decides what is
+kept; the method's capability alone decides how it is seen. The dropped `rc0` guard on the
+`imm` case was redundant: after `keep` everything an `iso`/`imm` literal holds is
+`iso`/`imm` and is strengthened to `imm` by the first case anyway.
