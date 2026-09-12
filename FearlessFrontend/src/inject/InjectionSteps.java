@@ -698,14 +698,13 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
     var ts= Push.of(clsArgs,targs);//performance? we could cache this result since targs is fixed and used over and over
     return TypeRename.of(t, xs, ts);
   }
-  static IT arityErr(){ return IT.U.Instance; }
   static List<IT> fixTargs(List<IT> targs, int n){
     int k= targs.size();
     if (k == n){ return targs; }
     if (k > n){ return targs.subList(0, n); }
     return Stream.concat(
       targs.stream(),
-      IntStream.range(0, n-k).mapToObj(_->arityErr())
+      IntStream.range(0, n-k).<IT>mapToObj(_->IT.U.Instance)
       ).toList();
   }
   List<Optional<IT>> psStr(TSpan span,List<String> targetBs){
