@@ -3549,4 +3549,48 @@ TestClass[T]: {
     };
   }
 """));}
+
+@Test void isoLiteralCanUseItsSelfName(){ok(List.of("""
+Counter:{ mut .inc: mut Counter; read .get: base.Nat; mut .inc2: mut Counter }
+Make:{ #: iso Counter -> iso Counter{'self
+  mut .inc: mut Counter -> self;
+  read .get: base.Nat -> 0;
+  mut .inc2: mut Counter -> self.inc[mut].inc[mut];
+  } }
+"""));}
+@Test void isoLiteralStillDropsCapturedIso(){ok(List.of("""
+A:{}
+Box:{ read .get: A; }
+Make:{ #(a:iso A): iso Box -> iso Box{ read .get: A -> a } }
+"""));}
+@Test void isoLiteralSelfIsReadInReadMethod(){fail("""
+002| Make:{ #: iso Counter -> iso Counter{'self
+003|   mut .inc: mut Counter -> self;
+004|   read .get: read Counter -> self.inc[mut];
+   |   ---------------------------~~~~^^^^^~~~~~
+005|   } }
+
+While inspecting ".get" line 4 > "#" line 2
+This call to method "mut Counter.inc" cannot typecheck.
+The receiver (the expression before the method name) has capability "read".
+This call requires a receiver with capability "mut" or "iso" or "mutH".
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result, Strengthen hygienic result / Allow readH arguments)
+- "mutH" (Allow mutH receiver)
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+self.inc[mut]
+""",List.of("""
+Counter:{ mut .inc: mut Counter; read .get: read Counter }
+Make:{ #: iso Counter -> iso Counter{'self
+  mut .inc: mut Counter -> self;
+  read .get: read Counter -> self.inc[mut];
+  } }
+"""));}
+@Test void isoLiteralStillPromotesUnnamedMutLiteral(){ok(List.of("""
+Counter:{ read .get: base.Nat }
+Make:{ #: iso Counter -> mut Counter{ read .get: base.Nat -> 0 } }
+"""));}
 }
