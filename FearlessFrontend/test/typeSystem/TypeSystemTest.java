@@ -1186,12 +1186,11 @@ User:{
 While inspecting ".m(_)" line 4
 This call to method "mut User.zap(_)" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
-This call requires a receiver with capability "mut" or "iso" or "mutH".
+This call requires a receiver with capability "mut" or "iso".
 
 Receiver required by each promotion:
 - "mut" (As declared)
-- "iso" (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH argument 1)
-- "mutH" (Allow mutH receiver)
+- "iso" (Strengthen result)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.zap[mut](a)
@@ -1604,6 +1603,29 @@ this.foo123[read]
 """,List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
 """));}
+@Test void implicitRcNotInferredInNestedLiteral(){fail("""
+002| Make:{ #: mut Counter -> mut Counter{'self
+003|   mut .inc: mut Counter -> self;
+004|   mut .inc2: mut Counter -> self.inc.inc;
+   |   --------------------------~~~~^^^^^---
+005|   } }
+
+While inspecting ".inc2" line 4 > "#" line 2
+This call to method ".inc" cannot typecheck.
+".inc" exists on type instance of "Counter", but not with the requested capability.
+This call does not state a capability and none could be inferred, so "imm" is assumed.
+Available capabilities for this method: "mut".
+Hint: state the capability after the method name, as in ".inc[mut]".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+self.inc
+""",List.of("""
+Counter:{ mut .inc: mut Counter; mut .inc2: mut Counter }
+Make:{ #: mut Counter -> mut Counter{'self
+  mut .inc: mut Counter -> self;
+  mut .inc2: mut Counter -> self.inc.inc;
+  } }
+"""));}
 
 @Test void tsOkIndirectFail7(){fail("""
 001| A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
@@ -1612,12 +1634,11 @@ A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
 While inspecting ".bar" line 1
 This call to method "mut A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
-This call requires a receiver with capability "mut" or "iso" or "mutH".
+This call requires a receiver with capability "mut" or "iso".
 
 Receiver required by each promotion:
 - "mut" (As declared)
-- "iso" (Strengthen result, Strengthen hygienic result, Allow readH arguments)
-- "mutH" (Allow mutH receiver)
+- "iso" (Strengthen result)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123[mut]
@@ -1650,12 +1671,11 @@ A:{mut .foo123:A->this.foo123; read .foo123:A->this.foo123; imm .bar:A->this.foo
 While inspecting ".bar" line 6
 This call to method "mut A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
-This call requires a receiver with capability "mut" or "iso" or "mutH".
+This call requires a receiver with capability "mut" or "iso".
 
 Receiver required by each promotion:
 - "mut" (As declared)
-- "iso" (Strengthen result, Strengthen hygienic result, Allow readH arguments)
-- "mutH" (Allow mutH receiver)
+- "iso" (Strengthen result)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123[mut]

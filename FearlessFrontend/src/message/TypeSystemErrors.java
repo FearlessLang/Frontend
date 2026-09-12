@@ -313,13 +313,22 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .ex(c), c);
     }
-    String availRc= Join.of(sameArity.stream().sorted().map(s->disp(s.rc())), "", " and ", ".");
-    return withCallSpans(err()
+    var rcs= sameArity.stream().sorted().map(Sig::rc).toList();
+    String availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
+    boolean explicit= explicitRc(c);
+    Err e2= err()
       .pCallCantBeSatisfied(c)
       .line(err().methodSig(c.name())+" exists on type "+err().bestNameNoRc(d)+", but not with the requested capability.")
-      .line("This call requires the existence of a "+disp(c.rc())+" method.")
-      .line("Available capabilities for this method: "+availRc)
-      .ex(c), c);
+      .line(explicit
+        ? "This call requires the existence of a "+disp(c.rc())+" method."
+        : "This call does not state a capability and none could be inferred, so "+disp(c.rc())+" is assumed.")
+      .line("Available capabilities for this method: "+availRc);
+    if (!explicit){ e2.line("Hint: state the capability after the method name, as in "+disp(c.name().s()+"["+rcs.getFirst()+"]")+"."); }
+    return withCallSpans(e2.ex(c), c);
+  }
+  private static boolean explicitRc(Call c){
+    if (!(c.src().inner instanceof fearlessFullGrammar.E.Call fc)){ return true; }
+    return fc.targs().flatMap(fearlessFullGrammar.E.CallSquare::rc).isPresent();
   }
   private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
     if (!(c.e() instanceof X x && x.name().equals("this"))){ return; }

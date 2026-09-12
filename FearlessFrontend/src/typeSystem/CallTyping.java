@@ -21,15 +21,23 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     checkTargsKinding(rcc0.c(),d,sig);
     var base= baseMType(rcc0.c(),d,sig);
     c.expectedRes().inner = base.t();
-    var promos= ts.multiMeth(bs,base);
+    var promos= ts.multiMeth(bs,base,true);
     var app= promos.stream().filter(m->rcc0.rc().isSubType(m.rc())).toList();
-    if (app.isEmpty()){ throw ts.tsE().receiverRCBlocksCall(d,c,rcc0.rc(),promos); }
+    if (app.isEmpty()){ throw ts.tsE().receiverRCBlocksCall(d,c,rcc0.rc(),ts.multiMeth(bs,base,mayBeH(rcc0.rc(),base))); }
     var mat= typeArgsOnce(d,app);
     var possible= mat.candidatesOkForAllArgs();//This is indexes of MTypes allowed by the arguments
     if (possible.isEmpty()){ throw ts.tsE().methodPromotionsDisagreeOnArguments(c,mat); }
     if (rs.isEmpty()){ return List.of(Reason.pass(bestUnique(mat,possible))); }
     return rs.stream().map(req->resForReq(d,sig,mat,possible,req)).toList();
   }
+  private boolean mayBeH(RC recv, MType base){
+    return isH(recv) || Stream.concat(base.ts().stream(),Stream.of(base.t())).anyMatch(this::mayBeH);
+  }
+  private boolean mayBeH(T t){
+    if (t instanceof T.X x){ return MultiMeth.get(bs,x.name()).stream().anyMatch(CallTyping::isH); }
+    return t.explicitH();
+  }
+  private static boolean isH(RC rc){ return rc == RC.mutH || rc == RC.readH; }
   private T.RCC recvRcc(){
     var cts= new TypeSystem(ts.scope().pushCallRec(this.c),ts.v());
     var r= cts.typeOf(bs,g,c.e(),List.of());

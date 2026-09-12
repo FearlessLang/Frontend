@@ -41,10 +41,11 @@ class MultiMeth{
     };}};
     abstract RC of(RC rc);
   }
-  public static List<MType> of(List<B> d, MType mType){
+  public static List<MType> of(List<B> d, MType mType, boolean hyg){
     var out= new LinkedHashMap<Key,MType>();
     add(out,mType);
     add(out,apply("Strengthen result",d,mType,Mode.flexy,F.glb,Mode.flexy,F.lub));
+    if (!hyg){ return out.values().stream().toList(); }
     add(out,apply("Strengthen hygienic result",d,mType,Mode.strong,F.glb,Mode.strong,F.lub));
     add(out,apply("Allow readH arguments",d,mType,Mode.useRead,F.glb,Mode.hyg,F.lub));
     oneMutHToMut(out,d,mType);

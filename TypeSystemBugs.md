@@ -8,6 +8,26 @@ Notation. `D` maps a type variable to its capability bound. `rcs(D,T)` is the se
 capabilities `T` can have: `{rc}` for `rc C[..]` and for `rc X`, all of `D(X)` for a bare
 `X`. `T[rc]` replaces the outermost capability of `T`.
 
+## Open
+
+Not fixed; recorded so the next attempt starts from the mechanism.
+
+- A call on the self name of a nested literal with no `[rc]` reaches the type system as
+  `imm`, whatever the receiver. `InjectionSteps.nextMStarOp` declares `self : rc Fresh`
+  with the literal's own not-yet-committed name; `methodHeaderAnd` finds no declaration for
+  `Fresh`, so the `ICall` keeps an unknown type; the literal cannot commit while a body
+  has unknowns (`commitToTable`, `hasU`), so no later pass resolves it either;
+  `ToCore.callFromICall` finally stamps `imm`. Top-level declarations do not suffer:
+  `stepDecM` types `this` against the declared name, in the table from the start.
+  Explicit `[rc]` sidesteps it. `TypeSystemTest.implicitRcNotInferredInNestedLiteral`
+  pins the current message, which names the assumption.
+- Argument errors ("Type required by each promotion" in
+  `methodArgumentCannotMeetAnyPromotion`) list the hygienic promotions also when nothing
+  in the program is hygienic. The receiver error trims them because its list is display
+  only; the argument list drives the argument matrix, and a hygienic argument against a
+  non-hygienic signature is legitimate (`Allow mutH argument i`), so it can only be
+  trimmed at display time, once the argument types are known.
+
 ## 1. The minimal type of a call is not unique
 
 Frontend#27, 2026-08-24. Crash, not unsoundness. `PromotionMatrixTest`.

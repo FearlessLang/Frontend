@@ -43,7 +43,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   public record MType(String promotion,RC rc,List<T> ts,T t){
     MType withPromotion(String promotion){ return new MType(promotion,rc,ts,t); }
   }
-  List<MType> multiMeth(List<B> bs1, MType mType){ return MultiMeth.of(bs1,mType); }
+  List<MType> multiMeth(List<B> bs1, MType mType, boolean hyg){ return MultiMeth.of(bs1,mType,hyg); }
 
   public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
     tops= UriSort.byFolderThenFile(tops, l->l.span().inner.fileName());
