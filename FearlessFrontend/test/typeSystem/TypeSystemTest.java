@@ -3593,12 +3593,11 @@ Make:{ #(a:iso A): iso Box -> iso Box{ read .get: A -> a } }
 While inspecting ".get" line 4 > "#" line 2
 This call to method "mut Counter.inc" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
-This call requires a receiver with capability "mut" or "iso" or "mutH".
+This call requires a receiver with capability "mut" or "iso".
 
 Receiver required by each promotion:
 - "mut" (As declared)
-- "iso" (Strengthen result, Strengthen hygienic result / Allow readH arguments)
-- "mutH" (Allow mutH receiver)
+- "iso" (Strengthen result)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 self.inc[mut]
