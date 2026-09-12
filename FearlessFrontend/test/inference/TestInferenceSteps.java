@@ -348,15 +348,15 @@ D:A,C{} // merge supertypes; impl origin is in C after alignment
 p.Any:{'this ![T:imm]:T@p.Any;->p.Any:?![T]():?;}
 p.Baba[C:imm, D:imm]:p.GG[p.Any,p.Any]{'this .apply[_AC:imm,_AD:imm](p.Any,p.Any,_AC):_AD@p.GG;}
 p.GG[A:imm, B:imm]:{'this .apply[C:imm,D:imm](A,B,C):D@p.GG;}
-p.KK:{'_ .k[K:imm]:K@p.KK;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}
-p.User:{'this .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User; .foo1[C:imm,D:imm]:p.User@p.User;->this:?.withGG[C,D](p._AUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?; .foo2[C:imm,D:imm]:p.User@p.User;->p.KK:{'_ ? .k[K:imm]:K@!;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}:?.k[p.User]():?;}
+p.KK[C:imm, D:imm]:{'_ .k[K:imm]:K@p.KK;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}
+p.User:{'this .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User; .foo1[C:imm,D:imm]:p.User@p.User;->this:?.withGG[C,D](p._AUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?; .foo2[C:imm,D:imm]:p.User@p.User;->p.KK[C:imm,D:imm]:{'_ ? .k[K:imm]:K@!;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}:?.k[p.User]():?;}
 p._AUser[C:imm, D:imm]:p.GG[imm C,imm D]{'_ .apply[_AC:imm,_AD:imm](imm C,imm D,_AC):_AD@p._AUser;(a, b, c)->p.Any:p.Any![imm,imm _AD]():imm _AD;}
 p._BUser[C:imm, D:imm]:p.GG[imm C,imm D]{'_ .apply[_BC:imm,_BD:imm](imm C,imm D,_BC):_BD@p._BUser;(a, b, c)->p.Any:p.Any![imm,imm _BD]():imm _BD;}
 ~-----------
 ~mut p.Any:{'this ![T:imm]:T->p.Any![imm,T]}
 ~mut p.Baba[C:imm,D:imm]:p.GG[p.Any,p.Any]{'this .apply[_AC:imm,_AD:imm](_:p.Any, _:p.Any, _:_AC):_AD}
 ~mut p.GG[A:imm,B:imm]:{'this .apply[C:imm,D:imm](_:A, _:B, _:C):D}
-~mut p.User:{'this .withGG[A1:imm,B1:imm](_:p.GG[A1,B1]):p.User; .foo1[C:imm,D:imm]:p.User->this.withGG[imm,C,D](imm p._AUser[C:imm,D:imm]:p.GG[imm C,imm D]{'_ .apply[_AC:imm,_AD:imm](a:imm C, b:imm D, c:_AC):_AD->p.Any![imm,imm _AD]}); .foo2[C:imm,D:imm]:p.User->imm p.KK:{'_ .k[K:imm]:K->this.withGG[imm,C,D](imm p._BUser[C:imm,D:imm]:p.GG[imm C,imm D]{'_ .apply[_BC:imm,_BD:imm](a:imm C, b:imm D, c:_BC):_BD->p.Any![imm,imm _BD]})}.k[imm,p.User]}
+~mut p.User:{'this .withGG[A1:imm,B1:imm](_:p.GG[A1,B1]):p.User; .foo1[C:imm,D:imm]:p.User->this.withGG[imm,C,D](imm p._AUser[C:imm,D:imm]:p.GG[imm C,imm D]{'_ .apply[_AC:imm,_AD:imm](a:imm C, b:imm D, c:_AC):_AD->p.Any![imm,imm _AD]}); .foo2[C:imm,D:imm]:p.User->imm p.KK[C:imm,D:imm]:{'_ .k[K:imm]:K->this.withGG[imm,C,D](imm p._BUser[C:imm,D:imm]:p.GG[imm C,imm D]{'_ .apply[_BC:imm,_BD:imm](a:imm C, b:imm D, c:_BC):_BD->p.Any![imm,imm _BD]})}.k[imm,p.User]}
 """, List.of("""
 GG[A,B]:{ .apply[C,D](A,B,C):D }
 Baba[C,D]:GG[Any,Any]{}
@@ -364,7 +364,7 @@ Any:{![T]:T->Any![T]}
 User:{
   .withGG[A1,B1](GG[A1,B1]):User;
   .foo1[C,D]:User->this.withGG[C,D]({a,b,c->Any!});
-  .foo2[C,D]:User->KK:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[User];
+  .foo2[C,D]:User->KK[C,D]:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[User];
 }
 """));}
 @Test void inferAlpha_GenericMethod_LambdaImplements_Generic_OverrideDifferentNames(){okI("""

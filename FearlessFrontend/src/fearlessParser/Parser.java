@@ -86,6 +86,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var c= expect("type name", Token.typeName);
     var s= c.content();
     if (names.XIn(s)){ throw errFactory().typeNameConflictsGeneric(c,span(c).get()); }
+    if (names.XHidden(s)){ throw errFactory().genericNotFunnelled(c,span(c).get(),names.funnelOwner(),names.Xs()); }
     if (s.contains("._")){ throw errFactory().privateTypeName(c,span(c).get()); }
     return new TName(s,0,pos(c));
   }
@@ -101,15 +102,21 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     int startPos= index();
     var c= expect("Generic type name declaration", UppercaseId);
     int endPos= index();
-    if (mustNew && names.XIn(c.content())){ throw errFactory().nameRedeclared(c,span(c).get()); }
-    if (!mustNew && !names.XIn(c.content())){ throw errFactory().genericNotInScope(c, span(c).get(), names.Xs()); }
+    var declared= names.XIn(c.content()) || names.XHidden(c.content());
+    if (mustNew && declared){ throw errFactory().nameRedeclared(c,span(c).get()); }
+    if (!mustNew){ checkXInScope(c); }
     return new T.X(c.content(),new TSpan(spanAround(startPos,endPos)));
   }
   T.X parseTX(int startPos){
     var c= expectValidate("type name", UppercaseId,_XId);
     int endPos= index();
-    if (!names.XIn(c.content())){ throw errFactory().genericNotInScope(c, span(c).get(), names.Xs()); }
+    checkXInScope(c);
     return new T.X(c.content(),new TSpan(spanAround(startPos,endPos)));
+  }
+  private void checkXInScope(Token c){
+    if (names.XIn(c.content())){ return; }
+    if (names.XHidden(c.content())){ throw errFactory().genericNotFunnelled(c,span(c).get(),names.funnelOwner(),names.Xs()); }
+    throw errFactory().genericNotInScope(c, span(c).get(), names.Xs());
   }
   private E atomFromSignedNumeric(Token x){
     String s = x.content().substring(1);
@@ -389,17 +396,16 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (top){ errFactory().noteTop(c); }
     var _= expectValidate(back("simple type name"), UppercaseId,_XId); //to get error if of form foo.Bar
     Optional<List<B>> bs= parseIf(peek(_SquareGroup),()->this.parseBs(top));
-    if (bs.isPresent()){
-      var Xs= bs.get().stream().map(b->b.x().name()).toList();
-      if (top){ updateNames(names.addXs(Xs)); }
-      else    { updateNames(names.setFunnelledXs(Xs)); }
-      c = c.withArity(bs.get().size());
-    }
+    var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
+    var outer= names;
+    updateNames(top ? names.addXs(Xs) : names.setFunnelledXs(c.s(),Xs));
+    if (bs.isPresent()){ c = c.withArity(bs.get().size()); }
     expect("type declaration (:) symbol",Colon);
     
     List<T.C> cs= this.parseImpl();
     assert peek(_CurlyGroup);
     E.Literal l= parseGroup("type declaration body",p->p.parseLiteral(top,true));
+    updateNames(outer);
     var span= new TSpan(spanAround(startPos,index()));
     return new Declaration(c,bs,cs,l.withSpan(span));
   }

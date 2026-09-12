@@ -225,8 +225,31 @@ A[X:*,Y:*]:{}
 B[X:*]:A[X,Default]{}
 Break:{ #(b: B[Foo]): A[Foo,Default] -> b }
 """));}
-@Test void literalCannotImplementATypeVariable(){failsWithACompileError(List.of("""
+@Test void literalCannotImplementATypeVariable(){fail("""
+001| A[X:*]:{ #: X -> {} }
+   |          --------^^
+
+While inspecting object literal "{...}" > "#" line 1
+Object literal "{...}" cannot implement "X".
+"X" is a type parameter; object literals can only implement nominal types.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso {}
+""",List.of("""
 A[X:*]:{ #: X -> {} }
+"""));}
+@Test void literalCannotBePassedAsATypeVariable(){fail("""
+001| A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
+   |                            ----------------^^-
+
+While inspecting object literal "{...}" > ".k" line 1
+Object literal "{...}" cannot implement "X".
+"X" is a type parameter; object literals can only implement nominal types.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso {}
+""",List.of("""
+A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
 """));}
 @Test void typeVariableCannotBeUsedAsALiteralName(){failParse("""
 001| A[X:*]:{ #: X -> X }

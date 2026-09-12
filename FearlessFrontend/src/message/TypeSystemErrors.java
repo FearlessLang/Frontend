@@ -42,7 +42,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
      return d.cs().stream()
        .<T.C>map(sc->TypeRename.of(sc, xs, c.ts()))
        .filter(scC->!decs.apply(scC.name()).infName())
-       .findFirst().orElseThrow();
+       .findFirst().orElse(c);
     };
    return new Err(publicHead,f,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
   public FearlessException baseIdBadBody(Literal l, M m){
@@ -146,6 +146,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("Missing: "+err().methodSig(s.rc()+" ", s.m())+".")
       .line("Required by: "+err().tNameADisp(s.origin())+".")
       .line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.")
+      .ex(at));
+  }
+  public FearlessException literalImplementsTypeParameter(E at, T req){
+    String x= err().typeRepr(true,req);
+    return addExpFrame(at, err()
+      .line(up(err().expRepr(at))+" cannot implement "+x+".")
+      .line(x+" is a type parameter; object literals can only implement nominal types.")
       .ex(at));
   }
   public FearlessException typeDeclaredInMethod(E at, Literal l){

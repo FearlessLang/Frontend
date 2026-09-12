@@ -27,6 +27,7 @@ import metaParser.NameSuggester;
 import metaParser.Span;
 import utils.Bug;
 import utils.Join;
+import utils.Push;
 
 import static offensiveUtils.Require.*;
 
@@ -262,6 +263,16 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
         "No generic parameters are declared here",
         "Declared generics: ","Declared generics: ",
         Xs,s->s)).addSpan(at);
+  }
+  public FearlessException genericNotFunnelled(Token X, Span at, String owner, List<String> Xs){
+    String x= Message.displayString(X.content());
+    String dec= Message.displayString(owner);
+    String funnelled= Message.displayString(Join.of(Push.of(Xs,X.content()).stream().map(s->s+":.."),owner+"[",",","]",""));
+    return Code.UnexpectedToken.of(
+      "Generic type "+x+" is not in scope inside the type declaration "+dec+".\n"
+      +"A type declaration only sees the generic types it declares itself; "
+      +expected("here "+dec+" declares none","here "+dec+" declares ","here "+dec+" declares ",Xs,s->s)
+      +"Hint: funnel "+x+" into "+dec+" by writing "+funnelled+", restating the bounds of "+x+".").addSpan(at);
   }
   public FearlessException duplicateParamInMethodSignature(Span at, String name){
     return Code.UnexpectedToken.of(

@@ -12,7 +12,7 @@ import metaParser.Span;
 
 public class MiscTests {
   @Test void XIn_checks_Xs_not_xs(){
-    var n = new Names(List.of("a"), List.of("X","Y"));
+    var n = new Names(List.of("a"), List.of("X","Y"), List.of(), "");
     assertTrue(n.XIn("X"));
     assertFalse(n.XIn("a"));
   }
@@ -26,7 +26,7 @@ public class MiscTests {
     var d= new Token(TokenKind.LowercaseId,"d",1,4,List.of());
     var e= new Token(TokenKind.LowercaseId,"e",1,5,List.of());
     var f= new Token(TokenKind.LowercaseId,"f",1,6,List.of());
-    var p= new Parser(span,new Names(List.of(),List.of()),List.of(a,b,c,d,e,f),new FearlessErrFactory());
+    var p= new Parser(span,new Names(List.of(),List.of(),List.of(),""),List.of(a,b,c,d,e,f),new FearlessErrFactory());
     p.expectAny("");
     p.expectAny("");//front already consumed a,b: active window is now c,d,e,f
     var res= p.parseBack("back",false,

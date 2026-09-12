@@ -27,24 +27,6 @@ Not fixed; recorded so the next attempt starts from the mechanism.
   only; the argument list drives the argument matrix, and a hygienic argument against a
   non-hygienic signature is legitimate (`Allow mutH argument i`), so it can only be
   trimmed at display time, once the argument types are known.
-- A named declaration written inside a method body keeps only the type parameters listed
-  in its own brackets, but the enclosing ones stay in the parser's scope, so a free one
-  survives into the declaration: `BreakOuter[Z:*]:{ #: BreakInner -> BreakInner: A[Z]{} }`.
-  Nothing rejects it, and `Kinding.ofX` reaches `RC.get(bs,"Z")` with `Z` absent from the
-  declaration's own `bs`; that lookup is offensive, so the compiler exits with
-  `OneOr.OneOrException` instead of a message. The check that catches the same mistake for
-  a *captured parameter* (`parameterNotAvailableHere`, "uses type parameters that are not
-  propagated") is about `Gamma`, so it never sees a free variable that arrives through the
-  declaration's supertype list or through one of its own signatures.
-  `DeclarationWellFormednessTest.inlineDeclarationImplementingAnEnclosingGenericWithoutFunnelling`
-  and `.inlineDeclarationUsingAnEnclosingGenericWithoutFunnelling` pin both shapes.
-- An object literal whose expected type is a type variable, `A[X:*]:{ #: X -> {} }`, is
-  refused by the type system and then crashes the message. `TypeSystemErrors.err` builds
-  `publicHead`, which maps an inferred-name declaration to the first of its supertypes
-  that has a written name; the literal's only expected type is `X`, which is not a `T.C`,
-  so its `cs()` is empty and the `orElseThrow` fires with `NoSuchElementException`.
-  `publicHead` needs a fallback for a literal with no nominal supertype.
-  `GenericBoundsTest.literalCannotImplementATypeVariable` pins it.
 
 ## 1. The minimal type of a call is not unique
 
@@ -155,3 +137,31 @@ rejected as an illegal capture. Only `iso` shows it: for a `mut`/`read`/`imm` li
 kept; the method's capability alone decides how it is seen. The dropped `rc0` guard on the
 `imm` case was redundant: after `keep` everything an `iso`/`imm` literal holds is
 `iso`/`imm` and is strengthened to `imm` by the first case anyway.
+
+## 5. A named declaration inside a method body could use the enclosing type parameters
+
+Frontend#54, 2026-09-13. Crash, not unsoundness.
+`DeclarationWellFormednessTest.inlineDeclarationImplementingAnEnclosingGenericWithoutFunnelling`.
+
+A declaration is closed: every type variable it mentions is one of its own parameters.
+The parameters of a declaration written inside a method body must themselves be in scope
+there (funnelling), and the same name cannot be declared twice along the nesting.
+
+    freeX(D[Xs]: Ts { Ms }) = (freeX(Ts) freeX(Ms)) \ Xs        -- must be empty
+    inScope(D[Xs]: _ { _ } inside a scope Xs') = Xs subsetOf Xs'
+
+    was:  parsing D[Xs]: _ { _ } inside a scope Xs' checks Xs subsetOf Xs'
+          and then parses the body under Xs' itself, so any X in Xs' \ Xs
+          survives as a free variable of D
+    now:  the body is parsed under Xs alone; the names in Xs' \ Xs stay
+          declared (so they cannot be redeclared) but a use of one is an error
+
+Witness. `BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[Z]{} }`: `Z` reached the
+type system in the supertype of `BreakInner`, whose own `bs` is empty, and `Kinding.ofX`
+looked it up with `RC.get(bs,"Z")`, which is offensive: `OneOr.OneOrException` instead of
+a message. The same happened with `Z` in one of the declaration's own signatures, and `mut
+Z` passed kinding altogether because `checkRCX` never consults `bs`. The formalism has the
+rule (B2 in the appendix, `X in dom(XBs)` for every type in `Lit-ok`), the implementation
+only had the captured-parameter half of it (`Gamma.filterFTV`, "uses type parameters that
+are not propagated"), which sees a parameter whose type mentions the free variable but
+never a mention written inside the declaration itself.
