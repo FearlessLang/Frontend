@@ -280,21 +280,17 @@ FPerson:{ #(name: Str, age: Nat): Person -> Person:{
   }}
 Bad:Person{}
 """));}
-@Test void noFreeGensInInlineDeclaration(){fail("""
+@Test void noFreeGensInInlineDeclaration(){failParse("""
 002| FPerson:{ #[N:*](name: Str, age: N): Person -> Person:{
 003|   .name: Str -> name;
 004|   .age: N -> age;
-   |   -----------^^^^
+   |   ~~~~~~^-------
 005|   }}
 
-While inspecting parameter "age" > ".age" line 4 > "#(_,_)" line 2
-parameter "age" has type "N".
-parameter "age" uses type parameters that are not propagated
-into object literal "Person" (line 2) and thus it cannot be captured.
-Hint: change "Person" by adding the missing type parameters: "Person[...,...]"
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-age
+While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Generic type "N" is not in scope inside the type declaration "Person".
+A type declaration only sees the generic types it declares itself; here "Person" declares none.
+Hint: funnel "N" into "Person" by writing "Person[N:..]", restating the bounds of "N".
 """,List.of("""
 Str:{}
 FPerson:{ #[N:*](name: Str, age: N): Person -> Person:{
@@ -334,13 +330,102 @@ In scope: "A", "BreakInner", "BreakOuter".
 A[X:mut]:{}
 BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
 """));}
-@Test void inlineDeclarationImplementingAnEnclosingGenericWithoutFunnelling(){failsWithACompileError(List.of("""
+@Test void inlineDeclarationImplementingAnEnclosingGenericWithoutFunnelling(){failParse("""
+001| A[X:mut]:{}
+002| BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[Z]{} }
+   |                                      ------------~~^~--
+
+While inspecting generic types > super types declaration > method body > method declaration > type declaration body > type declaration > full file
+Generic type "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
+Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+""",List.of("""
 A[X:mut]:{}
 BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[Z]{} }
 """));}
-@Test void inlineDeclarationUsingAnEnclosingGenericWithoutFunnelling(){failsWithACompileError(List.of("""
+@Test void inlineDeclarationImplementingAnEnclosingGenericWithFunnelling(){ok(List.of("""
+A[X:mut]:{}
+BreakOuter[Z:mut]:{ #: BreakInner[Z] -> BreakInner[Z:mut]: A[Z]{} }
+"""));}
+@Test void inlineDeclarationUsingAnEnclosingGenericWithoutFunnelling(){failParse("""
+001| A[X:*]:{}
+002| BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A[Z] -> A[Z] } }
+   |                                                 ~~~~~~^~--------
+
+While inspecting generic types > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Generic type "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
+Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+""",List.of("""
 A[X:*]:{}
 BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A[Z] -> A[Z] } }
+"""));}
+@Test void inlineDeclarationUsingAnEnclosingGenericWithFunnelling(){ok(List.of("""
+A[X:*]:{}
+BreakOuter[Z:*]:{ #: BreakInner[Z] -> BreakInner[Z:*]:{ .z: A[Z] -> A[Z] } }
+"""));}
+@Test void inlineDeclarationUsingAnEnclosingGenericWithCapabilityWithoutFunnelling(){failParse("""
+001| A[X:mut]:{}
+002| BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[mut Z]{} }
+   |                                                  --~~~~^-
+
+While inspecting generic types > super types declaration > method body > method declaration > type declaration body > type declaration > full file
+Generic type "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
+Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+""",List.of("""
+A[X:mut]:{}
+BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[mut Z]{} }
+"""));}
+@Test void inlineDeclarationPartiallyFunnelled(){failParse("""
+001| A[X:*]:{}
+002| BreakOuter[Y:*,Z:*]:{ #: BreakInner[Y] -> BreakInner[Y:*]:{ .z: A[Z] -> A[Z] } }
+   |                                                             ~~~~~~^~--------
+
+While inspecting generic types > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Generic type "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic types it declares itself; here "BreakInner" declares "Y".
+Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Y:..,Z:..]", restating the bounds of "Z".
+""",List.of("""
+A[X:*]:{}
+BreakOuter[Y:*,Z:*]:{ #: BreakInner[Y] -> BreakInner[Y:*]:{ .z: A[Z] -> A[Z] } }
+"""));}
+@Test void inlineDeclarationCannotRedeclareAHiddenGeneric(){failParse("""
+001| A[X:*]:{}
+002| BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z[Z:*](z: Z): Z -> z } }
+   |                                                 ---^~~----------
+
+While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Name "Z" already in scope.
+""",List.of("""
+A[X:*]:{}
+BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z[Z:*](z: Z): Z -> z } }
+"""));}
+@Test void inlineDeclarationInsideInlineDeclarationCannotFunnelAHiddenGeneric(){failParse("""
+001| A:{}
+002| BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A -> Inner2[Z:*]: A{} } }
+   |                                                          -------^~~------
+
+While inspecting generic bounds declaration > method body > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Generic type "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
+Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+""",List.of("""
+A:{}
+BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A -> Inner2[Z:*]: A{} } }
+"""));}
+@Test void inlineDeclarationUsingAnEnclosingGenericAsReadImmWithoutFunnelling(){failParse("""
+001| A:{}
+002| BreakOuter[Z:*]:{ #(z: Z): BreakInner -> BreakInner:{ .z: read/imm Z -> z } }
+   |                                                       ~~~~~~~~~~~~~^-----
+
+While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Generic type "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
+Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+""",List.of("""
+A:{}
+BreakOuter[Z:*]:{ #(z: Z): BreakInner -> BreakInner:{ .z: read/imm Z -> z } }
 """));}
 @Test void mustImplementMethodsInInlineDecOk(){ok(List.of("""
 A:{ .foo: A }

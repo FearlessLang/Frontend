@@ -225,7 +225,17 @@ A[X:*,Y:*]:{}
 B[X:*]:A[X,Default]{}
 Break:{ #(b: B[Foo]): A[Foo,Default] -> b }
 """));}
-@Test void literalCannotImplementATypeVariable(){failsWithACompileError(List.of("""
+@Test void literalCannotImplementATypeVariable(){fail("""
+001| A[X:*]:{ #: X -> {} }
+   |          --------^^
+
+While inspecting object literal "{...}" > "#" line 1
+The body of method "#" of type declaration "A[_]" is an expression returning "iso _AA".
+Object literal is of type "{...}" instead of a subtype of "X".
+
+See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+A[X:*]:{#:X->{}}
+""",List.of("""
 A[X:*]:{ #: X -> {} }
 """));}
 @Test void typeVariableCannotBeUsedAsALiteralName(){failParse("""

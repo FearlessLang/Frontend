@@ -858,8 +858,8 @@ User:{
 @Test void abcdBadK(){fail("""
 In file: [###].fear
 
-007|   .foo2[C,D]:User->KK:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[K];
-   |                                                                     ^^
+007|   .foo2[C,D]:User->KK[C,D]:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[K];
+   |                                                                          ^^
 
 While inspecting a type name
 Type "K" is not declared in package "p" and is not made visible via "use".
@@ -872,7 +872,7 @@ Any:{![T]:T->Any![T]}
 User:{
   .withGG[A1,B1](GG[A1,B1]):User;
   .foo1[C,D]:User->this.withGG[C,D]({a,b,c->Any!});
-  .foo2[C,D]:User->KK:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[K];
+  .foo2[C,D]:User->KK[C,D]:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[K];
 }
 """));}
 

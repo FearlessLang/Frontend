@@ -42,7 +42,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
      return d.cs().stream()
        .<T.C>map(sc->TypeRename.of(sc, xs, c.ts()))
        .filter(scC->!decs.apply(scC.name()).infName())
-       .findFirst().orElseThrow();
+       .findFirst().orElse(c);
     };
    return new Err(publicHead,f,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
   public FearlessException baseIdBadBody(Literal l, M m){
