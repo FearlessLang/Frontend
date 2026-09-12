@@ -83,3 +83,30 @@ Cell].apply(cell)` instantiated `X` with `mut Cell`, outside that bound, uncheck
 `cell:imm Cell` regardless of what `X` was; its return type is bare `X`, so the call's
 result type became `mut Cell`. A `.set(..)` requiring a `mut` receiver then typechecked
 against a reference declared, and never known to be more than, `imm`.
+
+## 4. The self binding of an iso literal is discarded as a capture
+
+Frontend#48, 2026-09-12. Rejects valid programs, not unsoundness.
+`TypeSystemTest.isoLiteralCanUseItsSelfName`.
+
+A literal's methods see the enclosing bindings through two steps: what the literal can
+capture, decided by the literal's capability, and how a method sees what it captured,
+decided by the method's capability. The self binding is not a capture: it is the object
+under construction.
+
+    discard(D, rc0, T) = rcs(D,T) not subsetOf {iso,imm,mut,read}
+                         or (rc0 in {iso,imm} and rcs(D,T) not subsetOf {iso,imm})
+    keep(D, rc0, G) = { x:T in G | not discard(D, rc0, T) }
+
+    was:  G' = G, self : isoToMut(rc0) C[..]
+          forall m. check m under adapt(D, rc0, rcOf(m), keep(D, rc0, G'))
+    now:  G' = keep(D, rc0, G), self : isoToMut(rc0) C[..]
+          forall m. check m under adapt(D, isoToMut(rc0), rcOf(m), G')
+
+Witness. `iso Counter{'self mut .inc: mut Counter -> self }`: `self : mut Counter` is not
+`iso`/`imm`, so `discard` dropped it for the `iso` literal and every use of `self` was
+rejected as an illegal capture. Only `iso` shows it: for a `mut`/`read`/`imm` literal
+`self` never meets the drop condition. Adapting `self` needs the literal seen as `mut`
+too: `adapt` strengthens to `imm` in an `imm` method only for `mut`/`read` literals, and
+for the captured bindings `isoToMut` changes nothing since after `keep` an `iso` literal
+holds only `iso`/`imm` bindings, which are strengthened to `imm` regardless.
