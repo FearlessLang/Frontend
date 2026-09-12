@@ -334,15 +334,8 @@ public record WellFormednessErrors(String pkgName){
     var e= err()
       .line("Missing return type for method "+name+".")
       .line("Add an explicit return type before '->'.");
-    if (allParHasType){
-      e = e
-        .line("Alternatively (less common), if you intended to override and omit the signature,")
-        .line("the signature must be inherited from a supertype.");
-    } else { // size == 0
-      e = e
-        .line("If you intended to override and omit the signature,")
-        .line("the signature must be inherited from a supertype.");
-    }
+    e = e.line((allParHasType ? "Alternatively (less common), if you" : "If you")+" intended to override and omit the signature,")
+      .line("the signature must be inherited from a supertype.");
     return e
       .line("Cannot infer signature of method "+name+".")
       .line("No supertype has a method named "+name+" with "+size+" parameters.")
