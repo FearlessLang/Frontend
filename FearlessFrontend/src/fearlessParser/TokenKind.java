@@ -1,7 +1,5 @@
 package fearlessParser;
 
-import java.util.Objects;
-
 import metaParser.TokenMatch;
 
 
@@ -100,8 +98,8 @@ public enum TokenKind implements metaParser.TokenKind {
     throw new IllegalArgumentException("["+input+"] is not a valid "+what);
   }
   public static boolean isKind(String input, TokenKind... kinds){
-    Objects.requireNonNull(input);
-    Objects.requireNonNull(kinds);
+    assert input != null;
+    assert kinds != null;
     for (TokenKind k: kinds){
       var m= k.matcher().apply(input, 0);
       var all= m.isPresent() && m.get().length() == input.length();

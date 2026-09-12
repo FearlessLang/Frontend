@@ -3,7 +3,6 @@ package core;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.BiFunction;
 
 import message.Code;
@@ -18,8 +17,10 @@ public final class FearlessException extends RuntimeException implements HasFram
   private final BiFunction<SourceOracle,List<Frame>,String> msgFactory;
   public FearlessException(@SuppressWarnings("exports") Code code, BiFunction<SourceOracle,List<Frame>,String> f){
     super(code.toString());
-    this.code = Objects.requireNonNull(code);
-    this.msgFactory = Objects.requireNonNull(f);
+    assert code != null;
+    assert f != null;
+    this.code = code;
+    this.msgFactory = f;
   }
   public String render(SourceOracle env){
     var msg= msgFactory.apply(env,Collections.unmodifiableList(frames));
