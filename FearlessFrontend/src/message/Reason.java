@@ -26,9 +26,10 @@ public final class Reason{
   public static Reason literalDoesNotHaveRequiredType(
     TypeSystem ts, E blame, List<B> bs, T got, T expected
     ){     
-    if (!(expected instanceof T.RCC er) || er.rc() == core.RC.imm){
+    var er= (T.RCC)expected;
+    if (er.rc() == core.RC.imm){
       return new Reason(got, base(ts,blame,bs,got,expected), ()->baseFooterE(ts.scope(),got,expected));
-    }    
+    }
     boolean explRC= switch(blame){
       case Literal l->l.rc() != RC.imm;
       case Type(var t,_) ->  t.rc() != RC.imm;

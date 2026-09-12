@@ -230,13 +230,26 @@ Break:{ #(b: B[Foo]): A[Foo,Default] -> b }
    |          --------^^
 
 While inspecting object literal "{...}" > "#" line 1
-The body of method "#" of type declaration "A[_]" is an expression returning "iso _AA".
-Object literal is of type "{...}" instead of a subtype of "X".
+Object literal "{...}" cannot implement "X".
+"X" is a type parameter; object literals can only implement nominal types.
 
-See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
-A[X:*]:{#:X->{}}
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso {}
 """,List.of("""
 A[X:*]:{ #: X -> {} }
+"""));}
+@Test void literalCannotBePassedAsATypeVariable(){fail("""
+001| A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
+   |                            ----------------^^-
+
+While inspecting object literal "{...}" > ".k" line 1
+Object literal "{...}" cannot implement "X".
+"X" is a type parameter; object literals can only implement nominal types.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso {}
+""",List.of("""
+A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
 """));}
 @Test void typeVariableCannotBeUsedAsALiteralName(){failParse("""
 001| A[X:*]:{ #: X -> X }

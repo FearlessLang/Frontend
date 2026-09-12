@@ -148,6 +148,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.")
       .ex(at));
   }
+  public FearlessException literalImplementsTypeParameter(E at, T req){
+    String x= err().typeRepr(true,req);
+    return addExpFrame(at, err()
+      .line(up(err().expRepr(at))+" cannot implement "+x+".")
+      .line(x+" is a type parameter; object literals can only implement nominal types.")
+      .ex(at));
+  }
   public FearlessException typeDeclaredInMethod(E at, Literal l){
     return addExpFrame(at, err()
       .line("The type "+err().tNameADisp(l.name())+" is declared inside a method body.")
