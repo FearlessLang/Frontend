@@ -250,11 +250,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (EnumSet.of(mut, mutH, read, readH).containsAll(rcs)){ return EnumSet.of(read); }
     return EnumSet.of(read, imm);
   }
-  private static Sig findCanonical(Literal l, MName name, RC rc){
-    return OneOr.of("Missing or Duplicate meth",l.ms().stream().map(M::sig).filter(s->s.m().equals(name) && s.rc() == rc));
-  }
   private void methodTableOk(Literal l,Key k,List<Sig> group){
-    Sig chosen= findCanonical(l,k.m(),k.rc());
+    Sig chosen= Sources.findCanonical(l,k.m(),k.rc());
     assert group.stream().allMatch(s->s.m().equals(chosen.m()) && s.rc()== chosen.rc());
     assert mostSpecificByOrigin(group,chosen);
     assert absPreserved(chosen);//This assert and the one below do the same thing in working programs but may differ in buggy ones
@@ -283,7 +280,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private boolean absPreserved(Sig chosen){
     Literal o= decs().apply(chosen.origin());
-    Sig src= findCanonical(o,chosen.m(),chosen.rc());
+    Sig src= Sources.findCanonical(o,chosen.m(),chosen.rc());
     assert !src.abs() || chosen.abs():"Abstractness mismatch";
     return true;
   }  

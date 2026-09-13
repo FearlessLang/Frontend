@@ -310,9 +310,8 @@ public record WellFormednessErrors(String pkgName){
     return null;
   }
   public FearlessException noSourceToInferFrom(E.Literal origin, M m){
-    var empty= m.sig().m().isEmpty();
     var size= m.sig().ts().size();
-    if (empty){
+    if (m.sig().m().isEmpty()){
       return err()
         .line("Cannot infer signature and name for a method with "+size+" parameters.")
         .line("No supertype has a method with "+size+" parameters.")
@@ -322,20 +321,13 @@ public record WellFormednessErrors(String pkgName){
     }
     var name= err().methodSig(m.sig().m().get());
     var allParHasType= m.sig().ts().stream().allMatch(Optional::isPresent);
-    var argsPresentNoTypes= size > 0 && !allParHasType;
-    if (argsPresentNoTypes){
-      return err()
-        .line("Cannot infer signature of method "+name+".")
-        .line("No supertype has a method named "+name+" with "+size+" parameters.")
-        .wf()
-        .addSpan(m.sig().span().inner)
-        .addFrame(err().expRepr(origin), origin.span().inner);
-    }
-    var e= err()
-      .line("Missing return type for method "+name+".")
-      .line("Add an explicit return type before '->'.");
-    e = e.line((allParHasType ? "Alternatively (less common), if you" : "If you")+" intended to override and omit the signature,")
-      .line("the signature must be inherited from a supertype.");
+    var e= size > 0 && !allParHasType
+      ? err()
+      : err()
+        .line("Missing return type for method "+name+".")
+        .line("Add an explicit return type before '->'.")
+        .line((allParHasType ? "Alternatively (less common), if you" : "If you")+" intended to override and omit the signature,")
+        .line("the signature must be inherited from a supertype.");
     return e
       .line("Cannot infer signature of method "+name+".")
       .line("No supertype has a method named "+name+" with "+size+" parameters.")

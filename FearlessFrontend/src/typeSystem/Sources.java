@@ -48,7 +48,7 @@ class Sources {
   private static Stream<Literal> supers(TypeSystem ts, Literal l){
     return Stream.concat(Stream.of(l), l.cs().stream().map(T.C::name).map(ts.decs()::apply));
   }
-  private static Sig findCanonical(Literal l, MName name, RC rc){
+  static Sig findCanonical(Literal l, MName name, RC rc){
     return OneOr.of("Methods with duplicates or absent",l.ms().stream().map(M::sig).filter(s->
       s.m().equals(name) && s.rc() == rc));
   }
