@@ -7,7 +7,6 @@ import java.util.function.Function;
 
 import core.*;
 import core.E.*;
-import utils.Bug;
 import utils.Range;
 import typeSystem.Change.*;
 
@@ -28,7 +27,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
   public record Binding(T declared, Change current){}
   public Binding bind(String x){
     var b= _bindOrNull(x);
-    if (b == null){ throw Bug.of(); }
+    assert b != null;
     return b;
   }
   public Binding _bindOrNull(String x){
