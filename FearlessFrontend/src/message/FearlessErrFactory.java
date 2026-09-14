@@ -156,10 +156,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     throw Bug.unreachable();
   }
   private Span redeclaredMethSpan(List<M> ms,Predicate<M> p, Span at){
-    for (var m:ms.reversed()){
-      if (p.test(m)){ return m.span().inner; }
-    }
-    throw Bug.unreachable();
+    M m= ms.reversed().stream().filter(p).findFirst().get();
+    return m.span().inner;
   }
   private Span redeclaredMethSpan(List<M> ms,Parser.RCMName n, Span at){
     Predicate<M> p= mi->mi.sig()
