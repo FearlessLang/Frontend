@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
@@ -263,14 +262,15 @@ public record WellFormednessErrors(String pkgName){
   }
 
   public FearlessException duplicatedBound(List<RC> es, T.X n){
-    RC dup= es.stream()
-      .filter(e->es.stream().filter(ei->ei.equals(e)).count() > 1)
-      .findFirst().get();
-    return err()
-      .line("Duplicate reference capability in the type parameter "+Err.disp(n.name())+".")
-      .line("Reference capability "+Err.disp(dup.name())+" is repeated.")
-      .wf()
-      .addSpan(n.span().inner);
+    for (RC e:es){
+      if (es.stream().filter(ei->ei.equals(e)).count() <= 1){ continue; }
+      return err()
+        .line("Duplicate reference capability in the type parameter "+Err.disp(n.name())+".")
+        .line("Reference capability "+Err.disp(e.name())+" is repeated.")
+        .wf()
+        .addSpan(n.span().inner);
+    }
+    throw Bug.unreachable();
   }
 
   public FearlessException duplicatedName(TName name){
@@ -416,12 +416,13 @@ public record WellFormednessErrors(String pkgName){
   }
 
   private int firstRcsDisagreementIndex(List<List<B>> res){
-    return IntStream.range(0, res.getFirst().size())
-      .filter(i->{
-        var r0= res.getFirst().get(i).rcs();
-        return !res.stream().allMatch(bs->bs.get(i).rcs().equals(r0));
-      })
-      .findFirst().getAsInt();
+    var head= res.getFirst();
+    for (int i= 0; i < head.size(); i++){
+      int idx= i;
+      var r0= head.get(i).rcs();
+      if (!res.stream().allMatch(bs->bs.get(idx).rcs().equals(r0))){ return i; }
+    }
+    throw Bug.unreachable();
   }
   public FearlessException itTooDeep(E at,IT.RCC blame){
     return err()
