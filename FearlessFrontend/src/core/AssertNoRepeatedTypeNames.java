@@ -12,30 +12,26 @@ public final class AssertNoRepeatedTypeNames{
 
   public static boolean ok(List<E.Literal> tops){
     var firstLit=new LinkedHashMap<TName,E.Literal>();
-    var firstSpan=new LinkedHashMap<TName,TSpan>();
     var visited= Collections.newSetFromMap(new IdentityHashMap<E,Boolean>());
-    tops.forEach(t->walk(t, firstLit, firstSpan, visited));
+    tops.forEach(t->walk(t, firstLit, visited));
     return true;
   }
-  private static void walk(E e, Map<TName,E.Literal> firstLit, Map<TName,TSpan> firstSpan, Set<E> visited){
+  private static void walk(E e, Map<TName,E.Literal> firstLit, Set<E> visited){
     if (!visited.add(e)) return;
     switch(e){
       case E.X _ -> {}
       case E.Type _ -> {}
-      case E.Call c -> { walk(c.e(), firstLit, firstSpan, visited); c.es().forEach(a->walk(a, firstLit, firstSpan, visited)); }
+      case E.Call c -> { walk(c.e(), firstLit, visited); c.es().forEach(a->walk(a, firstLit, visited)); }
       case E.Literal l -> {
         var prev= firstLit.putIfAbsent(l.name(), l);
         if (prev != null && prev != l){
-          var a= firstSpan.get(l.name());
-          var b= l.span();
           throw new AssertionError(
             "Duplicate type name after inference: "+l.name().s()+" @"+l.name().arity()
-            +"\n  first: "+a
-            +"\n  again: "+b
+            +"\n  first: "+prev.span()
+            +"\n  again: "+l.span()
             +"\n  first infName="+prev.infName()+" again infName="+l.infName());
         }
-        firstSpan.putIfAbsent(l.name(), l.span());
-        l.ms().forEach(m->m.e().ifPresent(body->walk(body, firstLit, firstSpan, visited)));
+        l.ms().forEach(m->m.e().ifPresent(body->walk(body, firstLit, visited)));
       }
     }
   }
