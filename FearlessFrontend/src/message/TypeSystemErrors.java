@@ -19,6 +19,7 @@ import typeSystem.ArgMatrix;
 import typeSystem.Change;
 import typeSystem.TypeScope;
 import typeSystem.TypeSystem;
+import utils.Bug;
 import utils.Join;
 import utils.OneOr;
 import utils.Range;
@@ -533,8 +534,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   return withCallSpans(e.ex(c), c);
   }
   private static int firstFailingArg(ArgMatrix mat, int promoIdx){
-    return IntStream.range(0, mat.okByArg().size())
-      .filter(argi->!mat.okByArg().get(argi).contains(promoIdx))
-      .findFirst().getAsInt();
+    for (int argi : Range.of(0, mat.okByArg().size())){
+      if (!mat.okByArg().get(argi).contains(promoIdx)){ return argi; }
+    }
+    throw Bug.unreachable();
   }
 }
