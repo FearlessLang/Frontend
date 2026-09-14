@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -30,7 +31,6 @@ import metaParser.PrettyFileName;
 import metaParser.Span;
 import naming.FreshPrefix;
 import tools.SourceOracle.Ref;
-import utils.Bug;
 import utils.Join;
 
 public record WellFormednessErrors(String pkgName){
@@ -118,15 +118,12 @@ public record WellFormednessErrors(String pkgName){
   }
 
   public FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
-    for (TName n:names){
-      if (!keySet.contains(n.s())){ continue; }
-      return err()
-        .line("Name clash: name "+Err.disp(n.s())+" is declared in package "+Err.disp(pkgName)+".")
-        .line("Name "+Err.disp(n.s())+" is also used in a \"use\" directive.")
-        .wf()
-        .addFrame("a type name", Parser.span(n.pos(), n.s().length()));
-    }
-    throw Bug.unreachable();
+    TName n= names.stream().filter(x->keySet.contains(x.s())).findFirst().get();
+    return err()
+      .line("Name clash: name "+Err.disp(n.s())+" is declared in package "+Err.disp(pkgName)+".")
+      .line("Name "+Err.disp(n.s())+" is also used in a \"use\" directive.")
+      .wf()
+      .addFrame("a type name", Parser.span(n.pos(), n.s().length()));
   }
 
   public FearlessException usedUndeclaredName(TName tn, String contextPkg, List<TName> scope, List<TName> all){
@@ -245,13 +242,10 @@ public record WellFormednessErrors(String pkgName){
   }
 
   public FearlessException genericTypeVariableShadowTName(String pkgName, Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
-    var mergeAllXs= allXs.values().stream().flatMap(Set::stream).toList();
-    for (var n:mergeAllXs){
-      var clashDec= allNames.contains(n.name());
-      var clashUse= use.contains(n.name());
-      if (clashDec || clashUse){ return shadowMsg(pkgName, n, clashUse); }
-    }
-    throw Bug.unreachable();
+    var n= allXs.values().stream().flatMap(Set::stream)
+      .filter(x->allNames.contains(x.name()) || use.contains(x.name()))
+      .findFirst().get();
+    return shadowMsg(pkgName, n, use.contains(n.name()));
   }
 
   private FearlessException shadowMsg(String pkgName, T.X n, boolean use){
@@ -290,11 +284,10 @@ public record WellFormednessErrors(String pkgName){
 
   private TName findCycleNode(Map<TName,E.Literal> rem){
     var color= new HashMap<TName,Integer>(rem.size());
-    for (var k:rem.keySet()){
-      var hit= dfs(rem, k, color);
-      if (hit != null){ return hit; }
-    }
-    throw Bug.unreachable();
+    return rem.keySet().stream()
+      .map(k->dfs(rem, k, color))
+      .filter(Objects::nonNull)
+      .findFirst().get();
   }
 
   private TName dfs(Map<TName,E.Literal> rem, TName u, Map<TName,Integer> color){

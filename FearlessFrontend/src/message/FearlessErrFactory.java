@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.FearlessException;
@@ -25,7 +26,6 @@ import metaParser.Frame;
 import metaParser.Message;
 import metaParser.NameSuggester;
 import metaParser.Span;
-import utils.Bug;
 import utils.Join;
 import utils.Push;
 
@@ -147,13 +147,10 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of("Name "+Message.displayString(c.content())+" already in scope.").addSpan(at);
   }
   private <X> X redeclaredElement(List<X> es){
-    int i= 0;
-    for (var e:es){
-      int first= i++;
-      int last=  es.lastIndexOf(e);
-      if (first != last){ return e; }
-    }
-    throw Bug.unreachable();
+    return IntStream.range(0, es.size())
+      .filter(i->i != es.lastIndexOf(es.get(i)))
+      .mapToObj(es::get)
+      .findFirst().get();
   }
   private Span redeclaredMethSpan(List<M> ms,Predicate<M> p, Span at){
     M m= ms.reversed().stream().filter(p).findFirst().get();
