@@ -62,7 +62,7 @@ public record Methods(
         if(!d.infName()){ cache.put(d.name(), d); }
       }
     }
-    return acc;
+    return List.copyOf(acc);
   }
   private List<core.E.Literal> ofLayer(List<E.Literal> ds, ArrayList<E.Literal> acc){
     return ds.stream().map(d->{

@@ -63,7 +63,8 @@ public class FrontendLogicMain {
         .mapConflict(k.target(), k.in(), bests.stream().map(Object::toString).toList()); }
       res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), outs.getFirst());
     });
-    return res;
+    res.replaceAll((_,v)->Map.copyOf(v));
+    return Map.copyOf(res);
   }
   Map<Ref, FileFull> parseFiles(List<Ref> files, SourceOracle o){
     Map<Ref, FileFull> all = new LinkedHashMap<>();
@@ -71,8 +72,8 @@ public class FrontendLogicMain {
       var str = u.loadString();
       all.put(u, Parse.from(u.fearURI(), str));
     }
-    return all;
-  }  
+    return Collections.unmodifiableMap(all);
+  }
   private void checkOnlyHeadHasDirectives(WellFormednessErrors err, Ref headPkg, Map<Ref, FileFull> raw){
     raw.entrySet().stream()
       .filter(e -> !e.getKey().equals(headPkg))
@@ -90,8 +91,9 @@ public class FrontendLogicMain {
     List<Declaration> ds= raw.values().stream()
       .flatMap(f -> f.decs().stream())
       .sorted().toList();
-    var names= DeclaredNames.of(pkgName, ds, Collections.unmodifiableMap(map));    
-    return makePackage(pkgName, map, ds, names);
+    Map<String,String> readOnlyMap= Collections.unmodifiableMap(map);
+    var names= DeclaredNames.of(pkgName, ds, readOnlyMap);
+    return makePackage(pkgName, readOnlyMap, ds, names);
   }
   Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
     return new Package(name,map,decs,names,Package.offLogger());//this method exists to change logger in mocking
