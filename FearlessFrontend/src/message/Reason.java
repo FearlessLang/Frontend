@@ -93,19 +93,10 @@ public final class Reason{
   }
   private static String vpaTrace(TypeSystem ts, WithT cur){ return switch(cur){
     case Same _ -> "";
-    case KeepStrengthenToImm k -> traceStrengthenToImm(ts,k);
-    case KeepSetToRead k -> traceSetToRead(ts,k);
-    case KeepSetToReadImm k -> traceSetToReadImm(ts,k);
+    case KeepStrengthenToImm k -> traceKeep(ts, k.tail(), "strengthenToImm", k.tail().currentT(), k.currentT(), k.l(), k.m());
+    case KeepSetToRead k -> traceKeep(ts, k.tail(), "setToRead", k.tail().currentT(), k.currentT(), k.l(), k.m());
+    case KeepSetToReadImm k -> traceKeep(ts, k.tail(), "setToReadImm", k.tail().currentT(), k.currentT(), k.l(), k.m());
   };}
-  private static String traceStrengthenToImm(TypeSystem ts, KeepStrengthenToImm k){
-    return traceKeep(ts, k.tail(), "strengthenToImm", k.tail().currentT(), k.currentT(), k.l(), k.m());
-  }
-  private static String traceSetToRead(TypeSystem ts, KeepSetToRead k){
-    return traceKeep(ts, k.tail(), "setToRead", k.tail().currentT(), k.currentT(), k.l(), k.m());
-  }
-  private static String traceSetToReadImm(TypeSystem ts, KeepSetToReadImm k){
-    return traceKeep(ts, k.tail(), "setToReadImm", k.tail().currentT(), k.currentT(), k.l(), k.m());
-  }
   private static String traceKeep(TypeSystem ts, WithT tail, String op, T from, T to, Literal l, M m){
     String prev= vpaTrace(ts,tail);
     if (from.equals(to)){ return prev; }

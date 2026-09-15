@@ -17,7 +17,6 @@ public record TypeNamePrinter(boolean trunc,String mainPkg, Map<String,String> u
     return s;
   }
   private String dropMainPkg(String s){
-    if (mainPkg.isEmpty()){ return s; }
     String pre= mainPkg + '.';
     return s.startsWith(pre) ? s.substring(pre.length()) : s;
   }

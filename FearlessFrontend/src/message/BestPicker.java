@@ -45,15 +45,8 @@ final class BestPicker{
     if (!n.k().isCompactable()){ return; }
     if (score > best.score){ best= new Score(score,n.k()); }
   }
-    record Score(int score, Compactable k){
+  record Score(int score, Compactable k){
     static final Score NONE= new Score(-1, Compactable.NO);
-    Score best(Score o){ return o.score > score ? o : this; } // stable on ties
   }
-  static int bonus(PN n){
-    if (n instanceof PM){ return 10; }
-    if (n instanceof PCall){ return 1; }
-    if (n instanceof PC){ return 1; }
-    if (n instanceof PLit){ return 1; }
-    return 1;
-  }
+  static int bonus(PN n){ return n instanceof PM ? 10 : 1; }
 }

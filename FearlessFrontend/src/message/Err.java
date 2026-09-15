@@ -50,12 +50,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String theTypeOrObjectLiteral(Literal l){ return typeOrAnon(l,"type ","object literal "); }
   public String bestNameNoRc(Literal l){ return bestNamePkg0(showInstanceOf(l), bestLitName(true,true,l)); }
   T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()),t.ts()); }//Correct to not propagate here
-  T preferredForFresh(T t){ return switch(t){
-    case T.X x -> x;
-    case T.RCX x -> x;
-    case T.ReadImmX x -> x;
-    case T.RCC(RC rc, var c, var span) -> new T.RCC(rc, preferredForFresh(c),span);
-  };}
+  T preferredForFresh(T t){ return mapHead(t, this::preferredForFresh); }
   String typeRepr(inference.IT t){ return typeRepr(true,TypeRename.itToT(t)); }
   String typeRepr(boolean skipImm, T t){ return disp(typeReprRaw(skipImm,t)); }
   private String typeReprRaw(boolean skipImm, T t){
@@ -63,11 +58,12 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     if (skipImm || !explicitImmRc(t)){ return str; }
     return "imm "+str;
   }
-  T showPublicHead(T t){ return switch(t){
+  T showPublicHead(T t){ return mapHead(t, publicHead); }
+  private T mapHead(T t, Function<T.C,T.C> f){ return switch(t){
     case T.X x -> x;
     case T.RCX x -> x;
     case T.ReadImmX x -> x;
-    case T.RCC(RC rc, T.C c, var span) -> new T.RCC(rc, publicHead.apply(c), span);
+    case T.RCC(RC rc, T.C c, var span) -> new T.RCC(rc, f.apply(c), span);
   };}
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t),t.span()))); }
   static String up(String s){return s.substring(0, 1).toUpperCase() + s.substring(1); }

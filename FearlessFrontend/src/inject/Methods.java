@@ -127,7 +127,6 @@ public record Methods(
   }
   //expandLiteral works on an incomplete literal with the cs list not there yet
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
-    fresh.registerAnonSuperT(d.name(),c.name());
     var dd= _from(c.name());//null for the case {..}.foo
     List<M.Sig> allSig= dd==null ?List.of() : fetch(d,c,dd).sigs();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
@@ -177,8 +176,7 @@ public record Methods(
     for (var m: ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
       var name= m.sig().m().get();
-      var match= new ArrayList<M.Sig>();
-      ss.removeIf(s->s.m().get().equals(name)?match.add(s):false);
+      ss.removeIf(s->s.m().get().equals(name));
       res.add(m);
     }
     for (var m: ms){//for methods WITHOUT name

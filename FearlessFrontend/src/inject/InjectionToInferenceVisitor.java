@@ -158,13 +158,11 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   private E visitReceiver(fearlessFullGrammar.E e){
     var ol= asLambdaReceiver(e);
     if (ol.isEmpty()){ return e.accept(this); }
-    var ms= mapM(ol.get().methods());
-    var name= ol.get().thisName().map(n->n.name());
-    //Here new FreeXs().ftvMs(ms) is all since by construction no Cs and no inferred type;
-    var l= liftLiteral(Optional.empty(),List.of(),name,ms,new Src(ol.get()));
+    var l= visitLiteral(ol.get());
     decs.add(l);
     return l;
   }
+  //Here new FreeXs().ftvMs(ms) is all since by construction no Cs and no inferred type;
   @Override public E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){
     var ms= mapM(l.methods());
     var name= l.thisName().map(n->n.name());
