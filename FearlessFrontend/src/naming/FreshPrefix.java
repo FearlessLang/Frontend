@@ -12,8 +12,7 @@ public record FreshPrefix(
     Map<String,Integer> topSeq,
     Set<String> allGenericNames,
     Map<TName,OwnerState> owners,
-    String pkgName,
-    Map<TName,TName> anonSuperT){
+    String pkgName){
   private static final char[] up= "ABCDEFGHJKMNPQRSTUVWXYZ".toCharArray();
   private static final char[] low= "abcdefghjkmnpqrstuvwxyz".toCharArray();
   private static record OwnerState(
@@ -22,7 +21,7 @@ public record FreshPrefix(
       Set<String> vars,
       Map<String,Integer> varSeq){}
   public FreshPrefix(Package p){
-    this(new HashSet<>(),new HashMap<>(),new HashSet<>(),new HashMap<>(),p.name(),new HashMap<>());
+    this(new HashSet<>(),new HashMap<>(),new HashSet<>(),new HashMap<>(),p.name());
     for (TName tn : p.names().decNames()){ usedTopTypes().add(tn.simpleName()); }
     for (String s : p.map().keySet()){ usedTopTypes().add(s); }
     var xs= p.names().allXs();
@@ -42,8 +41,6 @@ public record FreshPrefix(
     aliasOwner(hint,res);
     return res;
   }
-  public void registerAnonSuperT(TName fresh,TName base){ anonSuperT.put(fresh, base); }
-  public Optional<TName> anonSuperT(TName t){ return Optional.ofNullable(anonSuperT.get(t)); }
   public boolean isFreshGeneric(TName owner,String x){
     var st= owners.get(owner);
     assert st != null : owner;

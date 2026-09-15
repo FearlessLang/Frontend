@@ -6,9 +6,9 @@ import metaParser.TokenMatch;
 
 
 public enum TokenKind implements metaParser.TokenKind {
-  Ws("\\s+", true," white space or new line"),
-  LineComment("//[^\\n]*", true, "//.."),
-  BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", true,"/*..*/"),
+  Ws("\\s+"," white space or new line"),
+  LineComment("//[^\\n]*", "//.."),
+  BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", "/*..*/"),
   BadUnclosedBlockComment("(?s)/\\*(?!.*?\\*/).*"),
   BadUnopenedBlockCommentClose("\\*/"),
   
@@ -76,20 +76,15 @@ public enum TokenKind implements metaParser.TokenKind {
 
   private final String displayName;
   private final TokenMatch match;
-  private final boolean hidden;
   public final String human;
 
-  TokenKind(String regex){ this(regex,false,regex); }
-  TokenKind(String regex, String human){ this(regex,false,human); }
-
-  TokenKind(String regex, boolean hidden, String human){
+  TokenKind(String regex){ this(regex,regex); }
+  TokenKind(String regex, String human){
     this.displayName = name();
     this.match = TokenMatch.fromRegex(regex);
-    this.hidden = hidden;
     this.human = human;
   }
   @Override public TokenMatch matcher(){ return match; }
-  public boolean hidden(){ return hidden; }
   public boolean syntetic(){ return this.name().startsWith("_"); }
   public boolean bad(){ return this.name().startsWith("Bad"); }
   @Override public String toString(){ return displayName; }

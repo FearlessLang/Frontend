@@ -127,7 +127,6 @@ public record Methods(
   }
   //expandLiteral works on an incomplete literal with the cs list not there yet
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
-    fresh.registerAnonSuperT(d.name(),c.name());
     var dd= _from(c.name());//null for the case {..}.foo
     List<M.Sig> allSig= dd==null ?List.of() : fetch(d,c,dd).sigs();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
