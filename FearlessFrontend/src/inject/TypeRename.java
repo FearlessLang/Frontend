@@ -10,7 +10,8 @@ import core.TSpan;
 import utils.Pos;
 import inference.IT;
 
-public class TypeRename{
+public final class TypeRename{
+  private TypeRename(){}
   public static T of(T t, List<String> xs, List<T> ts){
     assert xs.size() == ts.size();
     if (xs.isEmpty()){ return t; }
