@@ -366,8 +366,7 @@ public record InjectionSteps(Methods meths){
   private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){
     List<IT> base= Push.of(m.clsArgs(), MSigL.fixTargs(c.targs(), m.bsArity()));
     if (m.bsArity() + m.clsArgs().size() == 0){ return List.of(); }//this is just an optimization
-    Stream<List<IT>> a= IntStream.range(0, es.size())
-      .mapToObj(i -> refine(m.xs(), m.ps0().get(i), es.get(i).t()));
+    Stream<List<IT>> a= Streams.zip(m.ps0(), es).map((p,e2) -> refine(m.xs(), p, e2.t()));
     List<IT> r= refine(m.xs(), m.ret0(), c.t());
     List<List<IT>> tss= Stream.of(
       Stream.of(base),

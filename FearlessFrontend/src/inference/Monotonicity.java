@@ -72,14 +72,7 @@ public final class Monotonicity{
   }
 
   private static boolean hasLitHistory(GammaSignature g){
-    var st= states.get(g);
-    if (st == null){ return false; }
-    int marg= K.LIT_MARG.ordinal(), mret= K.LIT_MRET.ordinal();
-    for (long key: st.hist.keySet()){
-      int kind= (int)(key >>> 48);
-      if (kind == marg || kind == mret){ return true; }
-    }
-    return false;
+    return hasAnyKind(g,K.LIT_MARG) || hasAnyKind(g,K.LIT_MRET);
   }
   private static boolean hasAnyKind(GammaSignature g, K k){
     var st= states.get(g);

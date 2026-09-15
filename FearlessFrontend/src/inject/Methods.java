@@ -177,8 +177,7 @@ public record Methods(
     for (var m: ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
       var name= m.sig().m().get();
-      var match= new ArrayList<M.Sig>();
-      ss.removeIf(s->s.m().get().equals(name)?match.add(s):false);
+      ss.removeIf(s->s.m().get().equals(name));
       res.add(m);
     }
     for (var m: ms){//for methods WITHOUT name
