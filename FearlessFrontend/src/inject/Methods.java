@@ -30,7 +30,7 @@ import pkgmerge.Package;
 
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
-    Map<TName, core.E.Literal> cache){
+    LinkedHashMap<TName, core.E.Literal> cache){
   void mayAdd(List<E.Literal> layer, E.Literal d, Map<TName,E.Literal> rem){
     for (IT.C c : d.cs()){
       var nope= p.name().equals(c.name().pkgName()) && rem.containsKey(c.name());
@@ -62,7 +62,7 @@ public record Methods(
         if(!d.infName()){ cache.put(d.name(), d); }
       }
     }
-    return acc;
+    return List.copyOf(acc);
   }
   private List<core.E.Literal> ofLayer(List<E.Literal> ds, ArrayList<E.Literal> acc){
     return ds.stream().map(d->{

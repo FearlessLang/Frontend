@@ -12,7 +12,8 @@ import typeSystem.TypeSystem.MType;
 import utils.OneOr;
 import utils.Range;
 
-class MultiMeth{
+final class MultiMeth{
+  private MultiMeth(){}
   private enum F{
     lub{ @Override RC of(EnumSet<RC> rcs){ return RCLubGlb.lub(rcs); } },
     glb{ @Override RC of(EnumSet<RC> rcs){ return RCLubGlb.glb(rcs); } };

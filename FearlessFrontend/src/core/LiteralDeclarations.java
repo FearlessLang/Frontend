@@ -13,7 +13,8 @@ import utils.Bug;
 import utils.Range;
 
 
-public class LiteralDeclarations {
+public final class LiteralDeclarations {
+  private LiteralDeclarations(){}
   public static TName baseStr= new TName("base.Str",0,Pos.unknown);
   public static TName baseNat= new TName("base.Nat",0,Pos.unknown);
   public static TName baseInt= new TName("base.Int",0,Pos.unknown);

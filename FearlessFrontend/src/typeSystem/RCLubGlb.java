@@ -11,7 +11,8 @@ import core.RC;
 import static core.RC.*;
 import static java.util.EnumSet.of;
 
-public class RCLubGlb{
+public final class RCLubGlb{
+  private RCLubGlb(){}
   private static final EnumSet<RC> allRC= EnumSet.allOf(RC.class);
   private static final Map<Set<RC>, RC> lubMap= new HashMap<>();
   private static final Map<Set<RC>, RC> glbMap= new HashMap<>();

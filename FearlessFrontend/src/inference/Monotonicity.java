@@ -11,6 +11,7 @@ import inference.Gamma.GammaSignature;
 import utils.Range;
 
 public final class Monotonicity{
+  private Monotonicity(){}
   private static final IdentityHashMap<GammaSignature,State> states= new IdentityHashMap<>();
   private static final class State{ final HashMap<Long,ArrayList<Object>> hist= new HashMap<>(); }
   private enum K{E_T,CALL_RC,CALL_TARG,LIT_MARG,LIT_MRET}
