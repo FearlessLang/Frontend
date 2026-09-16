@@ -399,7 +399,7 @@ public record InjectionSteps(Methods meths){
       else if (selfSuper.isPresent()){ l = l.withT(selfSuper.get()); }
       if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
       if (!l.infName()){ l = meths.expandDeclaration(l,true); }
-      else { l = meths.expandLiteral(l, rcc.c()); }
+      else{ l = meths.expandLiteral(l, rcc.c()); }
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
     boolean changedMs= false;
@@ -507,7 +507,7 @@ public record InjectionSteps(Methods meths){
       .map(mh->headerResult(rcc,m,e,mh.sig(),improvedSig))
       .orElseGet(()->noHeaderResult(rcc,m,e,improvedSig));
   }
-  private void updateGWithArgs(Gamma g, inference.M m) {
+  private void updateGWithArgs(Gamma g, inference.M m){
     var xs= m.impl().get().xs();
     var args0= m.sig().ts();
     assert xs.size() == args0.size();

@@ -11,7 +11,7 @@ public class DbgBlock{
 
   public static List<E.Literal> all(){ return FearlessTestBase.compileAll("base",dbgMiniBase(), err()); }
 
-  public static SourceOracle dbgMiniBase() {
+  public static SourceOracle dbgMiniBase(){
     return SourceOracle.debugBuilder()
       .put("_rank_base000.fear", baseHead)
       .put("baseBody.fear", baseBody)

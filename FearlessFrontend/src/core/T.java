@@ -8,7 +8,7 @@ import java.util.List;
 import metaParser.Span;
 import utils.Join;
 
-public sealed interface T {
+public sealed interface T{
   TSpan span();
   record X(String name, TSpan span) implements T{
     public X{ assert validate(name,"generic type name", _XId); }

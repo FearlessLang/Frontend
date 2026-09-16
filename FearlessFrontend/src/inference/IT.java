@@ -13,7 +13,7 @@ import message.WellFormednessErrors;
 import utils.Bug;
 import utils.Join;
 
-public sealed interface IT {
+public sealed interface IT{
   default boolean isTV(){ return true; }
   default long badness(){ return 0; }
   default Optional<RC> explicitRC(){ return Optional.empty(); }

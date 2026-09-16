@@ -10,7 +10,7 @@ import java.util.*;
 
 import offensiveUtils.EqTransparent;
 
-public sealed interface E {
+public sealed interface E{
   default Pos pos(){ return src().inner.pos(); }
   default TSpan span(){ return src().inner.span(); }
   Src src();

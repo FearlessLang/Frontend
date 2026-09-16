@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import message.FearlessErrFactory;
 import metaParser.Span;
 
-public class MiscTests {
+public class MiscTests{
   @Test void XIn_checks_Xs_not_xs(){
     var n = new Names(List.of("a"), List.of("X","Y"), List.of(), "");
     assertTrue(n.XIn("X"));

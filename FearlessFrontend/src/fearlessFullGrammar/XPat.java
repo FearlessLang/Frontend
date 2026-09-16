@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 import core.MName;
 
-public sealed interface XPat {
+public sealed interface XPat{
   <R> R accept(XPatVisitor<R> v);
   Stream<String> parameterNames();
   record Name(E.X x) implements XPat{

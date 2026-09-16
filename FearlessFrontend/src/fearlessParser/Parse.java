@@ -14,7 +14,7 @@ import message.FearlessErrFactory;
 import metaParser.TokenTreeSpec;
 import tools.Fs;
 
-public class Parse {
+public class Parse{
   public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t->!t.syntetic()).toList();
   private static final TokenTreeSpec<Token,TokenKind> map= new TokenTreeSpec<Token,TokenKind>()
     .addOpenClose(_SOF,_EOF,_All)

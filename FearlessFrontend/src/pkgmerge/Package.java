@@ -15,7 +15,7 @@ import utils.Join;
 public record Package(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names, Logger log){
   public WellFormednessErrors err(){ return new WellFormednessErrors(name); }
   public record Logger(boolean active, ArrayList<String> logs){
-    public void logInferenceDeclaration(E.Literal d, List<T.C> cs) {
+    public void logInferenceDeclaration(E.Literal d, List<T.C> cs){
       if (!active){ return; }
       var bsS= Join.of(d.bs(),"[",", ","]","");
       var csS= Join.of(cs,"",", ","","");
