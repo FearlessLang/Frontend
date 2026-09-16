@@ -118,14 +118,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "There is already an entry in the mapping for "+Message.displayString(what)+" in "+Message.displayString(in)+".\n"
     ).addSpan(at);
   }
-  public FearlessException duplicatedUseSource(Span at, String what){
+  public FearlessException duplicatedUseSource(Span at, String what){ return duplicatedUse(at,what,"source"); }
+  public FearlessException duplicatedUseDest(Span at, String what){ return duplicatedUse(at,what,"destination"); }
+  private FearlessException duplicatedUse(Span at, String what, String kind){
     return Code.UnexpectedToken.of(
-        "There is already an entry in the using with source "+Message.displayString(what)+".\n"
-    ).addSpan(at);
-  }
-  public FearlessException duplicatedUseDest(Span at, String what){
-    return Code.UnexpectedToken.of(
-        "There is already an entry in the using with destination "+Message.displayString(what)+".\n"
+        "There is already an entry in the using with "+kind+" "+Message.displayString(what)+".\n"
     ).addSpan(at);
   }
   public FearlessException duplicatedImpl(List<T.C> cs, Span at){

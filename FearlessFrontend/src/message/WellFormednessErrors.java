@@ -490,21 +490,18 @@ public record WellFormednessErrors(String pkgName){
       .addFrame(err().expRepr(owner), owner.span().inner);
   }
   public FearlessException intLiteralOutOfRange(TName lit){
-    BigInteger v= LiteralDeclarations.intLiteralBig(lit.simpleName());
-    return err()
-      .line("Integer literal is out of range for \"base.Int\".")
-      .line("\"base.Int\" must be representable as a 64-bit signed integer.")
-      .line("Valid range: "+LiteralDeclarations.intMin+" .."+LiteralDeclarations.intMax+".")
-      .line("This literal is: "+Err.disp(v)+".")
-      .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
-      .wf().addSpan(lit.approxSpan().inner);
+    return intOrNatLiteralOutOfRange(lit,"Int","Integer","signed",
+      LiteralDeclarations.intMin,LiteralDeclarations.intMax,LiteralDeclarations.intLiteralBig(lit.simpleName()));
   }
   public FearlessException natLiteralOutOfRange(TName lit){
-    BigInteger v= LiteralDeclarations.natLiteralBig(lit.simpleName());
+    return intOrNatLiteralOutOfRange(lit,"Nat","Natural","unsigned",
+      LiteralDeclarations.natMin,LiteralDeclarations.natMax,LiteralDeclarations.natLiteralBig(lit.simpleName()));
+  }
+  private FearlessException intOrNatLiteralOutOfRange(TName lit,String type,String kind,String signed,BigInteger min,BigInteger max,BigInteger v){
     return err()
-      .line("Natural literal is out of range for \"base.Nat\".")
-      .line("\"base.Nat\" must be representable as a 64-bit unsigned integer.")
-      .line("Valid range: "+LiteralDeclarations.natMin+" .."+LiteralDeclarations.natMax+".")
+      .line(kind+" literal is out of range for \"base."+type+"\".")
+      .line("\"base."+type+"\" must be representable as a 64-bit "+signed+" integer.")
+      .line("Valid range: "+min+" .."+max+".")
       .line("This literal is: "+Err.disp(v)+".")
       .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
       .wf().addSpan(lit.approxSpan().inner);
