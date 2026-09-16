@@ -1,6 +1,6 @@
 package typeSystem;
 
-import static offensiveUtils.Require.eq;
+import static offensiveUtils.Require.*;
 
 import java.util.List;
 import java.util.function.Function;

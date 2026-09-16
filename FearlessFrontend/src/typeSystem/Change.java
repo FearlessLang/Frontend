@@ -1,7 +1,6 @@
 package typeSystem;
 
-import static core.RC.imm;
-import static core.RC.read;
+import static core.RC.*;
 
 import core.*;
 import core.E.*;

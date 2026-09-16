@@ -19,8 +19,7 @@ import metaParser.Span;
 import utils.Bug;
 
 import static fearlessParser.TokenKind.*;
-import static java.util.Optional.of;
-import static java.util.Optional.empty;
+import static java.util.Optional.*;
 import static metaParser.MetaParser.SplitMode.*;
 
 

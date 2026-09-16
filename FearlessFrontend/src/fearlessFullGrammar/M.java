@@ -1,6 +1,6 @@
 package fearlessFullGrammar;
 
-import static offensiveUtils.Require.nonNull;
+import static offensiveUtils.Require.*;
 
 import java.util.Optional;
 

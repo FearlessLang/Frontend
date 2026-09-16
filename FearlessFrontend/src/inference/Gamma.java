@@ -132,7 +132,7 @@ public final class Gamma{
       int end   = (s + 1 < depth) ? marks[s + 1] : size;
       sb.append('[');
       for (int i : Range.of(start,end)){
-        if (i > start) sb.append(',');
+        if (i > start){ sb.append(','); }
         sb.append(xs[i]).append("->").append(ts[i]);
       }
       sb.append(']');
