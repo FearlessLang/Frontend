@@ -704,7 +704,7 @@ B2[X]:A{.m(z)->z.beer[X]}
 """));}
 //The above could be solved by comparing the input and the result on the top level inference steps.
 //arguably, this could be applied when making the transition inference->core
-//TODO: when committing to class table consider replacing all the bodies with Void or Magic! to avoid worst case shenario quadratic memory consumption.
+//TODO: when committing to class table consider replacing all the bodies with Void or _Magic! to avoid worst case shenario quadratic memory consumption.
 
 
 @Test void recoverUserTypes1(){okI("""
