@@ -193,7 +193,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var allBs= Push.of(delta,m.sig().bs());
     m.sig().ts().forEach(t->k().check(forErr,allBs,t));
     k().check(forErr,allBs,m.sig().ret());
-    if(m.e().isEmpty()){ return; }
+    if (m.e().isEmpty()){ return; }
     try{ bodyOk(forErr,allBs,g,m); }
     catch(FearlessException fe){ throw tsE().mCallFrame(m, fe); }
   }
@@ -203,7 +203,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     g= g.addAll(ts, xs);//Note: 'this' already in g1
     var t= new TypeSystem(scope.pushM(forErr, m),v);
     t.check(delta,g,m.e().get(),m.sig().ret());
-    for(int i : Range.of(xs)){
+    for (int i : Range.of(xs)){
       var isAffine= !k().of(delta,ts.get(i),EnumSet.of(mut,read,mutH,readH,imm));
       if (isAffine){ Affine.usedOnce(tsE(),forErr,m,xs.get(i),m.e().get()); }
     }
@@ -228,7 +228,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       && k().of(bs, x, EnumSet.of(iso,imm,mut,read));
   }
   private boolean isSameShapeSubtype(List<B> bs, T t1, T t2){
-    if(!eqModXRC(bs,t1.withRC(mut),t2.withRC(mut))){ return false; }
+    if (!eqModXRC(bs,t1.withRC(mut),t2.withRC(mut))){ return false; }
     var rcs1= intrinsicRCs(bs, t1);
     var rcs2= intrinsicRCs(bs, t2);
     for (var r1 : rcs1){
@@ -256,7 +256,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     assert mostSpecificByOrigin(group,chosen);
     assert absPreserved(chosen);//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s->s.origin().equals(chosen.origin())).allMatch(s->chosen.abs() == s.abs());
-    for(var s:group){ sigSub(l,chosen,s); }
+    for (var s:group){ sigSub(l,chosen,s); }
     assert concreteConflictsSolved(group,chosen);
   }
   private boolean concreteConflictsSolved(List<Sig> group,Sig chosen){
@@ -303,14 +303,14 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (badRet){ throw tsE().methodOverrideSignatureMismatchCovariance(this,ctx,l,current,parent); }
   }
   private boolean eqModXRC(List<B> bs,T a,T b){
-    if(a.equals(b)){ return true; }
-    if(a instanceof T.X ax && b instanceof T.RCX br && br.x().name().equals(ax.name())){ return redundantOnX(bs,br.rc(),ax.name()); }
-    if(a instanceof T.RCX ar && b instanceof T.X bx && ar.x().name().equals(bx.name())){ return redundantOnX(bs,ar.rc(),bx.name()); }
-    if(!(a instanceof T.RCC aa && b instanceof T.RCC bb)){ return false; }
-    if(aa.rc() != bb.rc() || !aa.c().name().equals(bb.c().name())){ return false; }
+    if (a.equals(b)){ return true; }
+    if (a instanceof T.X ax && b instanceof T.RCX br && br.x().name().equals(ax.name())){ return redundantOnX(bs,br.rc(),ax.name()); }
+    if (a instanceof T.RCX ar && b instanceof T.X bx && ar.x().name().equals(bx.name())){ return redundantOnX(bs,ar.rc(),bx.name()); }
+    if (!(a instanceof T.RCC aa && b instanceof T.RCC bb)){ return false; }
+    if (aa.rc() != bb.rc() || !aa.c().name().equals(bb.c().name())){ return false; }
     var as= aa.c().ts(); var bs2= bb.c().ts();
     assert as.size() == bs2.size();
-    for(int i : Range.of(as)){ if(!eqModXRC(bs,as.get(i),bs2.get(i))){ return false; } }
+    for (int i : Range.of(as)){ if (!eqModXRC(bs,as.get(i),bs2.get(i))){ return false; } }
     return true;
   }
   private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }  

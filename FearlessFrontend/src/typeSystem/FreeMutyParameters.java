@@ -24,7 +24,7 @@ public record FreeMutyParameters(List<B> bs,Gamma g){
     return m.e().map(this::isFree).orElse(true);
   }
   private boolean isFree(E.Call c){
-    if(!isFree(c.e())){ return false; }
+    if (!isFree(c.e())){ return false; }
     return c.es().stream().allMatch(this::isFree);
   }
   private boolean isFree(T t){
@@ -39,7 +39,7 @@ public record FreeMutyParameters(List<B> bs,Gamma g){
   boolean isFree(E.X x){
     var cur= g._bindOrNull(x.name());
     if (cur == null){ return true; }
-    if(!(cur.current() instanceof Change.WithT w)){ return true; }
+    if (!(cur.current() instanceof Change.WithT w)){ return true; }
     return isFree(w.currentT());
   }
 }

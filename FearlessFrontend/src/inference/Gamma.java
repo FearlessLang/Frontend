@@ -11,7 +11,7 @@ import utils.Range;
 public final class Gamma{
  /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
  @offensiveUtils.NeverAsKey
- public final static class GammaSignature{
+ public static final class GammaSignature{
     long hash;
     //public GammaSignature clear(){ hash = 0; return this;}//more performance
     public GammaSignature clear(){ return new GammaSignature(); }//more safe

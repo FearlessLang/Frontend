@@ -629,7 +629,7 @@ public record InjectionSteps(Methods meths){
     return res.isEmpty() ? qMarks(xs.size()) : meet(res);
   }
   static boolean assertEqEM(Object o1, Object o2){
-     if(!( o1 instanceof E || o1 instanceof M)){ return true; }
+     if (!( o1 instanceof E || o1 instanceof M)){ return true; }
      return o1==o2 || !o1.equals(o2);
     }
   static <TT> List<TT> norm(List<TT> original, List<TT> candidate){
