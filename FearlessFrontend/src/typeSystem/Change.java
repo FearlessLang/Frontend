@@ -22,19 +22,6 @@ public sealed interface Change{
     if (newT.equals(tail.currentT())){ return tail; }
     return new KeepSetToReadImm(l,m,newT,tail);
   }
-  static Change dropMutInImm(Literal l,T atDrop){
-    return new DropMutInImm(l,atDrop);
-  }
-  static Change dropReadHMutH(Literal l, T atDrop){
-    return new DropReadHMutH(l,atDrop);
-  }
-  static Change dropFTV(Literal l, T atDrop){
-    return new DropFTV(l,atDrop);
-  }
-  static Change capFree(Literal l, T atDrop){
-    return new CapFree(l,atDrop);
-  }      
-
   record Same(T currentT) implements WithT{}
   record KeepStrengthenToImm(Literal l, M m, T currentT, WithT tail) implements WithT{}
   record KeepSetToRead(Literal l, M m, T currentT, WithT tail) implements WithT{}
