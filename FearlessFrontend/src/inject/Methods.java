@@ -34,11 +34,11 @@ public record Methods(
   void mayAdd(List<E.Literal> layer, E.Literal d, Map<TName,E.Literal> rem){
     for (IT.C c : d.cs()){
       var nope= p.name().equals(c.name().pkgName()) && rem.containsKey(c.name());
-      if (nope) { return; }
+      if (nope){ return; }
     }
     layer.add(d);
   }
-  public static Methods create(Package p, OtherPackages other) {
+  public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
   List<List<E.Literal>> layer(List<E.Literal> decs){

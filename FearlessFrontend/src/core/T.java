@@ -1,16 +1,14 @@
 package core;
 
 import static fearlessParser.TokenKind.*;
-import static offensiveUtils.Require.eq;
-import static offensiveUtils.Require.nonNull;
-import static offensiveUtils.Require.unmodifiable;
+import static offensiveUtils.Require.*;
 
 import java.util.List;
 
 import metaParser.Span;
 import utils.Join;
 
-public sealed interface T {
+public sealed interface T{
   TSpan span();
   record X(String name, TSpan span) implements T{
     public X{ assert validate(name,"generic type name", _XId); }

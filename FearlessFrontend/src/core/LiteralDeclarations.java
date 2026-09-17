@@ -13,7 +13,7 @@ import utils.Bug;
 import utils.Range;
 
 
-public final class LiteralDeclarations {
+public final class LiteralDeclarations{
   private LiteralDeclarations(){}
   public static TName baseStr= new TName("base.Str",0,Pos.unknown);
   public static TName baseNat= new TName("base.Nat",0,Pos.unknown);
@@ -35,7 +35,7 @@ public final class LiteralDeclarations {
     var ms=res.ms().stream().map(m->setImplemented(m,name)).toList();
     return new core.E.Literal(RC.imm,name,List.of(),cs,"this",ms,Src.syntetic,true);
   }
-  private static M setImplemented(M m, TName name) {
+  private static M setImplemented(M m, TName name){
     return m.withSig(m.sig().implementedBy(name));
   }
   public static core.E.Literal _from(TName n, Function<TName,Literal> map, OtherPackages other){
@@ -103,7 +103,7 @@ public final class LiteralDeclarations {
     return (neg ? "-" : "+") + mag;
   }
   static public double floatLiteralDouble(String raw){
-    try { return Double.parseDouble(floatPayload(raw)); }
+    try{ return Double.parseDouble(floatPayload(raw)); }
     catch(NumberFormatException ex){ return raw.startsWith("-") ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY; }
   }
   public static String toJavaLiteral(String s){

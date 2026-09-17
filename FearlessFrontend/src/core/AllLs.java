@@ -6,7 +6,7 @@ import java.util.Map;
 
 import core.E.*;
 
-public record AllLs(HashMap<TName,Literal> ls) {
+public record AllLs(HashMap<TName,Literal> ls){
   static public Map<TName,Literal> of(List<Literal> tops){
     var all= new AllLs(new HashMap<>());
     tops.forEach(all::allLs);

@@ -9,7 +9,7 @@ import core.RC;
 import core.TName;
 import core.TSpan;
 
-public sealed interface T {
+public sealed interface T{
   <R> R accept(TVisitor<R> v);
   TSpan span();
   record X(String name, TSpan span) implements T{

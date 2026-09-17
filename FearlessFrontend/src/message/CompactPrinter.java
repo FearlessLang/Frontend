@@ -104,7 +104,7 @@ public class CompactPrinter{
     }
     public void accString(CompactPrinter sb){
       if (k.isCompactable()){ recv.accString(sb); }
-      else { sb.append("-"); }
+      else{ sb.append("-"); }
       sb.append(m);
       accTargs(sb,rc,targs);
       wrap(sb,"(",")",args,",",k.isCompactable()?PN::accString:(_,b)->b.append("-"));
@@ -182,7 +182,7 @@ public class CompactPrinter{
       ret.accString(sb);
       body.ifPresent(e->{ sb.append("->"); e.accString(sb); });
     }
-    private void accCompactedMeth(CompactPrinter sb) {
+    private void accCompactedMeth(CompactPrinter sb){
       if (body.isEmpty()){ sb.append(m); wrap(sb,"(",")",xs,",",(_,b)->b.append("-")); return; }
       if (xs.isEmpty()){ body.get().accString(sb); return; }
       wrap(sb,"(",")",xs,",",(_,b)->b.append("-"));
@@ -239,7 +239,7 @@ public class CompactPrinter{
       .map(this::ofC)
       .toList();
   }
-  private boolean extracted(C c, List<TName> original) {
+  private boolean extracted(C c, List<TName> original){
     return original.isEmpty()
       || original.contains(c.name())
       || original.contains(c.name().withoutPkgName());
@@ -274,7 +274,7 @@ public class CompactPrinter{
       mLen(s.rc(), s.m().s(), bs, xs, false));
     assert sb.isEmpty();
     if (s.rc() == RC.imm){ sb.append("      "); }//line up
-    else {
+    else{
       var l= s.rc().toString().length()+1;
       assert l <= 6:s.rc();//amount of space used
       sb.append(" ".repeat(6-l));

@@ -5,7 +5,7 @@ import java.util.Objects;
 import metaParser.TokenMatch;
 
 
-public enum TokenKind implements metaParser.TokenKind {
+public enum TokenKind implements metaParser.TokenKind{
   Ws("\\s+"," white space or new line"),
   LineComment("//[^\\n]*", "//.."),
   BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", "/*..*/"),

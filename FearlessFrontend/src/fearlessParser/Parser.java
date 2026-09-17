@@ -19,8 +19,7 @@ import metaParser.Span;
 import utils.Bug;
 
 import static fearlessParser.TokenKind.*;
-import static java.util.Optional.of;
-import static java.util.Optional.empty;
+import static java.util.Optional.*;
 import static metaParser.MetaParser.SplitMode.*;
 
 
@@ -308,7 +307,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       throw errFactory().forgotSpace(at,m.get().s());
     }
   }
-  private Sig parseSigAfterName(Optional<RC> rc, Optional<MName> m) {
+  private Sig parseSigAfterName(Optional<RC> rc, Optional<MName> m){
     var bs= parseIf(peek(_SquareGroup),()->parseBs(true));
     var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
     checkValidNew_Xs(Xs);
@@ -350,7 +349,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     expect("generic bounds",Colon);
     if (!peek(Op)){ return new B(x,new B.RCS(parseRCs())); }
     var opT= expect("** or *",Op);
-    return switch (opT.content()) {
+    return switch (opT.content()){
       case "**" -> new B(x, new B.StarStar());
       case "*" -> new B(x, new B.Star());
       default -> throw errFactory().badBound(x,span(opT).get());
@@ -461,7 +460,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   HeadAcc parseHeader(){
     HeadAcc acc= new HeadAcc();
-    if (!peek(LowercaseId)) { return acc; }
+    if (!peek(LowercaseId)){ return acc; }
     expectLast("semicolon", SemiColon);
     splitBy("header element", semiSkip,p->p.parseHeaderElement(acc));
     return acc;

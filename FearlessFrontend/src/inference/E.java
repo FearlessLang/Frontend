@@ -15,7 +15,7 @@ import core.TSpan;
 import utils.Join;
 import utils.Pos;
 
-public sealed interface E {
+public sealed interface E{
   default Pos pos(){ return src().inner.pos(); }
   default TSpan span(){ return src().inner.span(); }
   Src src();
@@ -145,13 +145,13 @@ public sealed interface E {
       return new ICall(e,name,es,t,src,g.clear()); 
     }
     public String toString(){ return ""+e+name+Join.of(es,"(",",","):","():")+t; }
-    public E withEEs(E e, List<E> es) {
+    public E withEEs(E e, List<E> es){
       assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
       assert es == this.es || !es.equals(this.es) : "Allocated equal es list";
       if (e == this.e && es == this.es){ return this; } 
       return new ICall(e,name,es,t,src,g.clear());
     }
-    public E withE(E e) {
+    public E withE(E e){
       assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
       if (e == this.e){ return this; } 
       return new ICall(e,name,es,t,src,g.clear());

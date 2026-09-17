@@ -3556,7 +3556,7 @@ record holding an RC, and enum hashCodes are identity hashCodes: the order depen
 allocation sequence, so an unrelated change elsewhere in the run silently changes which of the two
 errors the user is shown. This test pinned ".m2" before sources became ordered.*/
 
-@Test void miniClassDoesntCauseCompilationProblem() {ok(List.of("""
+@Test void miniClassDoesntCauseCompilationProblem(){ok(List.of("""
 use base.Opt as Opt;
 use base.Opts as Opts;
 use base.F as F;

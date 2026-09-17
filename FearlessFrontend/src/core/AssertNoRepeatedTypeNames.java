@@ -17,7 +17,7 @@ public final class AssertNoRepeatedTypeNames{
     return true;
   }
   private static void walk(E e, Map<TName,E.Literal> firstLit, Set<E> visited){
-    if (!visited.add(e)) return;
+    if (!visited.add(e)){ return; }
     switch(e){
       case E.X _ -> {}
       case E.Type _ -> {}

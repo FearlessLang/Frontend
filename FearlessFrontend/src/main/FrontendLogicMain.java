@@ -23,7 +23,7 @@ import tools.SourceOracle;
 import tools.SourceOracle.Ref;
 import typeSystem.TypeSystem;
 
-public class FrontendLogicMain {
+public class FrontendLogicMain{
   public List<core.E.Literal> of(
       String pkgName,
       Map<String,String> override,
@@ -68,7 +68,7 @@ public class FrontendLogicMain {
   }
   Map<Ref, FileFull> parseFiles(List<Ref> files, SourceOracle o){
     Map<Ref, FileFull> all = new LinkedHashMap<>();
-    for (var u : files) {
+    for (var u : files){
       var str = u.loadString();
       all.put(u, Parse.from(u.fearURI(), str));
     }
@@ -99,9 +99,9 @@ public class FrontendLogicMain {
     return new Package(name,map,decs,names,Package.offLogger());//this method exists to change logger in mocking
   }
   //map a as b in c //inside c, replace b with a
-  private void accUses(WellFormednessErrors err, String n, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other) {
+  private void accUses(WellFormednessErrors err, String n, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other){
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
-    for (var u : uses) {
+    for (var u : uses){
       var p= u.in().pkgName();
       p = map.getOrDefault(p, p); //thus if p is "" we get ""
       map.put(u.out(), p + "." + u.in().simpleName());
