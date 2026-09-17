@@ -22,24 +22,13 @@ public record Kinding(TypeSystemErrors tsE){
     if (t instanceof T.RCC rcc){ check(toErr,rcc,-1,bs,rcc,EnumSet.allOf(RC.class)); }
   }
   public Function<TName,Literal> decs(){ return tsE.decs(); }
-  public void check(E toErr, KindingTarget target, int index, List<B> bs, T t, EnumSet<RC> allowed){ switch(t){
-    case T.RCC rcc -> checkRCC(toErr, target, index, bs, rcc, allowed);
-    case T.RCX rcx -> checkRCX(toErr, target, index, rcx, allowed);
-    case T.X x -> checkX(toErr, target, index, bs, x, allowed);
-    case T.ReadImmX rix -> checkReadImmX(toErr, target, index, bs, rix, allowed);
-  };}
-  private void checkRCC(E toErr, KindingTarget target, int index, List<B> bs, T.RCC rcc, EnumSet<RC> allowed){
-    if (!allowed.contains(rcc.rc())){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
-    checkC(toErr,bs,rcc.c());
-  }
-  private void checkRCX(E toErr, KindingTarget target, int index, T.RCX rcx, EnumSet<RC> allowed){
-    if (!ofRCX(rcx,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
-  }
-  private void checkX(E toErr, KindingTarget target, int index, List<B> bs, T.X x, EnumSet<RC> allowed){
-    if (!ofX(bs, x,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
-  }
-  private void checkReadImmX(E toErr, KindingTarget target, int index, List<B> bs, T.ReadImmX rix, EnumSet<RC> allowed){
-    if (!ofReadImmX(bs,rix,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
+  public void check(E toErr, KindingTarget target, int index, List<B> bs, T t, EnumSet<RC> allowed){
+    if (t instanceof T.RCC rcc){
+      if (!allowed.contains(rcc.rc())){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
+      checkC(toErr,bs,rcc.c());
+      return;
+    }
+    if (!of(bs,t,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
   }
   public boolean of(List<B> bs, T t, EnumSet<RC> allowed){ return switch(t){
     case T.RCC rcc -> ofRCC(bs, rcc, allowed);

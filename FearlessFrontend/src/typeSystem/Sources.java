@@ -23,7 +23,7 @@ final class Sources{
 //ancestors again once per path to them.
   static List<Sig> collect(TypeSystem ts, Literal l){//Note: this uses l instead of D[Ts] since more direct/efficient
     List<Sig> sources= new ArrayList<>();
-    for(T.C parent : l.cs()){
+    for (T.C parent : l.cs()){
       Literal parentDef= ts.decs().apply(parent.name());
       List<String> parentXs= parentDef.bs().stream().map(B::x).toList();
       for (M m : parentDef.ms()){
@@ -58,14 +58,14 @@ final class Sources{
     List<String> mapXs= new ArrayList<>();
     List<T> mapTs= new ArrayList<>();
     List<String> methodVars= new ArrayList<>();
-    for(int i : Range.of(s.bs())){
+    for (int i : Range.of(s.bs())){
       String sourceVar= s.bs().get(i).x();
       String targetVar= canonical.get(i).x();
       methodVars.add(sourceVar);
       mapXs.add(sourceVar);
       mapTs.add(new T.X(targetVar,s.span()));
     }
-    for(int i : Range.of(xs)){
+    for (int i : Range.of(xs)){
       String var = xs.get(i);
       mapXs.add(var);
       mapTs.add(ts.get(i));

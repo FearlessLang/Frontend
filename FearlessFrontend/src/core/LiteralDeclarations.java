@@ -26,7 +26,7 @@ public final class LiteralDeclarations{
   public static TName baseContainer= new TName("base.BaseContainer",1,Pos.unknown);
   public static boolean has(List<T.C> cs, TName magic){ return cs.stream().anyMatch(c->c.name().equals(magic)); }
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
-  static private core.E.Literal forge(TName name,TName lit, Function<TName,Literal> map, OtherPackages other){
+  private static core.E.Literal forge(TName name,TName lit, Function<TName,Literal> map, OtherPackages other){
     var res= map.apply(lit);
     if (res == null){ res = other.__of(lit); }
     assert res != null;
@@ -65,10 +65,10 @@ public final class LiteralDeclarations{
   static String floatPayload(String raw){ return stripUnderscores(raw.endsWith(softSuffix) ? raw.substring(0,raw.length()-softSuffix.length()) : raw); }
   static BigInteger big(String raw){ return new BigInteger(stripUnderscores(raw)); }
   static boolean inRange(BigInteger v, BigInteger min, BigInteger max){ return v.compareTo(min) >= 0 && v.compareTo(max) <= 0; }
-  static public BigInteger intLiteralBig(String raw){ return big(raw); }
-  static public boolean intLiteralInRange(String raw){ return inRange(intLiteralBig(raw),intMin,intMax); }
-  static public BigInteger natLiteralBig(String raw){ return big(raw); }
-  static public boolean natLiteralInRange(String raw){ return inRange(natLiteralBig(raw),natMin,natMax); }
+  public static BigInteger intLiteralBig(String raw){ return big(raw); }
+  public static boolean intLiteralInRange(String raw){ return inRange(intLiteralBig(raw),intMin,intMax); }
+  public static BigInteger natLiteralBig(String raw){ return big(raw); }
+  public static boolean natLiteralInRange(String raw){ return inRange(natLiteralBig(raw),natMin,natMax); }
   static long intLiteral64(String raw){
     BigInteger v= intLiteralBig(raw);
     assert inRange(v,intMin,intMax);
@@ -79,7 +79,7 @@ public final class LiteralDeclarations{
     assert inRange(v,natMin,natMax);
     return v.longValue(); // wraps to low 64 bits (exactly what we want given the range)
   }
-  static public boolean floatLiteralExactlyRepresentable(String raw){
+  public static boolean floatLiteralExactlyRepresentable(String raw){
     String ns= floatPayload(raw);
     if (ns.startsWith("+")){ ns = ns.substring(1); }
     BigDecimal dec= new BigDecimal(ns);     // exact decimal literal value
@@ -87,7 +87,7 @@ public final class LiteralDeclarations{
     if (!Double.isFinite(d)){ return false; } // overflow -> Infinity
     return dec.compareTo(new BigDecimal(d)) == 0; // exact double value as decimal
   }
-  static public boolean floatLiteralOk(String raw){ return raw.endsWith(softSuffix) ? Double.isFinite(floatLiteralDouble(raw)) : floatLiteralExactlyRepresentable(raw); }
+  public static boolean floatLiteralOk(String raw){ return raw.endsWith(softSuffix) ? Double.isFinite(floatLiteralDouble(raw)) : floatLiteralExactlyRepresentable(raw); }
   public static String floatExactFearlessLit(double d){
     assert Double.isFinite(d);
     boolean neg= (Double.doubleToRawLongBits(d) & (1L<<63)) != 0;
@@ -102,7 +102,7 @@ public final class LiteralDeclarations{
     else if (mag.indexOf('.') == -1){ mag = mag + ".0"; }
     return (neg ? "-" : "+") + mag;
   }
-  static public double floatLiteralDouble(String raw){
+  public static double floatLiteralDouble(String raw){
     try{ return Double.parseDouble(floatPayload(raw)); }
     catch(NumberFormatException ex){ return raw.startsWith("-") ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY; }
   }

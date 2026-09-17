@@ -68,7 +68,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     assert c0.ts().size() == d.bs().size();
     var targs= c.targs();
     var kt= new KindingTarget.CallKinding(c0,c);
-    for(int i : Range.of(targs)){
+    for (int i : Range.of(targs)){
       ts.k().check(c,kt,i,bs,targs.get(i),sig.bs().get(i).rcs());
     }
   }

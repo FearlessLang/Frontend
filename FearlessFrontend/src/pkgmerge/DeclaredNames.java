@@ -12,7 +12,7 @@ import fearlessFullGrammar.T;
 import message.WellFormednessErrors;
 
 public record DeclaredNames(Set<TName> decNames, Map<TName,Set<T.X>> allXs, Map<TName,Set<String>> allParameters){
-  static public DeclaredNames of(String pkgName, List<Declaration> ds, Map<String,String> map){
+  public static DeclaredNames of(String pkgName, List<Declaration> ds, Map<String,String> map){
     var err= new WellFormednessErrors(pkgName);
     var v= new AllDeclaredNames(err);
     ds.forEach(d->v.visitTopDeclaration(d,pkgName));

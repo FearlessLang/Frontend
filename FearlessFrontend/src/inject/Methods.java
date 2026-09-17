@@ -59,7 +59,7 @@ public record Methods(
     var layers= layer(iDecs.stream().filter(d->!d.infName()).toList());
     for (var l : layers){ 
       for (var d : ofLayer(l,acc)){
-        if(!d.infName()){ cache.put(d.name(), d); }
+        if (!d.infName()){ cache.put(d.name(), d); }
       }
     }
     return List.copyOf(acc);

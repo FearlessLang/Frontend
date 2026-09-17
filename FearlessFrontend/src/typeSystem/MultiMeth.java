@@ -57,7 +57,7 @@ final class MultiMeth{
       .mapToObj(j->modeF(d,m.ts().get(j), Mode.flexy, F.glb)).toList();
     var t= modeF(d,m.t(), Mode.hyg, F.lub);
     add(out,new MType("Allow mutH receiver", Mode.hyg.of(m.rc()), tsi, t));
-    for(int i : Range.of(m.ts())){ iMutHToMut(out,d,m,i); }
+    for (int i : Range.of(m.ts())){ iMutHToMut(out,d,m,i); }
   }
   private static void iMutHToMut(LinkedHashMap<Key,MType> out, List<B> d, MType m, int i){
     var tsi= IntStream.range(0, m.ts().size())
