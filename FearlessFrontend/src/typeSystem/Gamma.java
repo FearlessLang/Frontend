@@ -43,9 +43,9 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     //\u0393|Xs= {x : T | x : T \u2208 \u0393 \u2227 FTV(T) \u2286 Xs}
     if (this == _empty){ return this; }
     var rest= tail.filterFTV(l,captureFree);
-    if (captureFree){ return new Gamma(rest, name, t, Change.capFree(l,t)); }
+    if (captureFree){ return new Gamma(rest, name, t, new Change.CapFree(l,t)); }
     if (!(current instanceof Change.WithT w)){ return new Gamma(rest, name, t, current); }//core.E.Literal l, core.M m, T atDrop
-    if (!hasOnlyFTV(w.currentT(),l.bs())){ return new Gamma(rest, name, t, Change.dropFTV(l, w.currentT())); }
+    if (!hasOnlyFTV(w.currentT(),l.bs())){ return new Gamma(rest, name, t, new Change.DropFTV(l, w.currentT())); }
     return new Gamma(rest, name, t, current);
   }
   //Above can not reuse FreeXs since FreeXs works on IT

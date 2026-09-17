@@ -32,8 +32,8 @@ public record ViewPointAdaptation(Kinding k){
   private Change discard(Change current, Literal l){
     if(!( current instanceof Change.WithT w)){ return current; }
     var t= w.currentT();
-    if (!kindIsoImmMutRead(t, l.bs())){ return Change.dropReadHMutH(l,t); }
-    if ((l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs())){ return Change.dropMutInImm(l,t); }
+    if (!kindIsoImmMutRead(t, l.bs())){ return new Change.DropReadHMutH(l,t); }
+    if ((l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs())){ return new Change.DropMutInImm(l,t); }
     return w;    
   } 
   private boolean kindIsoImm(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm)); }
