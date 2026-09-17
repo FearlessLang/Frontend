@@ -92,20 +92,16 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.ProbeError.of(msg).addSpan(at);
   }
   public FearlessException disallowedReadHMutH(Span at, RC rc){
-    return Code.UnexpectedToken.of(
-      "Capability "+rc+"""
-       used.
-      Capabilities readH and mutH are not allowed on object literals.
-      Use one of read, mut, imm, iso.
-      """).addSpan(at);
+    return disallowedRc(at,rc,"readH and mutH","object literals","read, mut, imm, iso");
   }
   public FearlessException disallowedSigRC(Span at, RC rc){
+    return disallowedRc(at,rc,"iso, readH and mutH","method declarations","read, mut, imm");
+  }
+  private FearlessException disallowedRc(Span at, RC rc, String disallowed, String where, String allowed){
     return Code.UnexpectedToken.of(
-      "Capability "+rc+"""
-       used.
-      Capabilities iso, readH and mutH are not allowed on method declarations.
-      Use one of read, mut, imm.
-      """).addSpan(at);
+      "Capability "+rc+" used.\n"
+    + "Capabilities "+disallowed+" are not allowed on "+where+".\n"
+    + "Use one of "+allowed+".\n").addSpan(at);
   }
   public FearlessException forgotSpace(Span at,String name){
     return Code.UnexpectedToken.of(
@@ -118,14 +114,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "There is already an entry in the mapping for "+Message.displayString(what)+" in "+Message.displayString(in)+".\n"
     ).addSpan(at);
   }
-  public FearlessException duplicatedUseSource(Span at, String what){
+  public FearlessException duplicatedUseSource(Span at, String what){ return duplicatedUse(at,what,"source"); }
+  public FearlessException duplicatedUseDest(Span at, String what){ return duplicatedUse(at,what,"destination"); }
+  private FearlessException duplicatedUse(Span at, String what, String kind){
     return Code.UnexpectedToken.of(
-        "There is already an entry in the using with source "+Message.displayString(what)+".\n"
-    ).addSpan(at);
-  }
-  public FearlessException duplicatedUseDest(Span at, String what){
-    return Code.UnexpectedToken.of(
-        "There is already an entry in the using with destination "+Message.displayString(what)+".\n"
+        "There is already an entry in the using with "+kind+" "+Message.displayString(what)+".\n"
     ).addSpan(at);
   }
   public FearlessException duplicatedImpl(List<T.C> cs, Span at){
