@@ -168,6 +168,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var last= expectLast("nominal pattern",CCurly,CCurlyId).content();
     Optional<String> id= parseIf(last.length()>1,()->last.substring(1));//"}" or "}id"
     List<List<MName>> chains= splitBy("nominal pattern",commaSkip,Parser::parseChain);
+    if (chains.isEmpty()){ throw errFactory().emptyDestructPattern(span()); }
+    if (chains.stream().anyMatch(List::isEmpty)){ throw errFactory().emptyDestructChain(span()); }
     return new XPat.Destruct(chains, id);
   }
   List<MName> parseChain(){ return splitBy("",anyLeft,Parser::parseDotName); }

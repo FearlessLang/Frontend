@@ -22,9 +22,11 @@ public sealed interface XPat{
   //represents {foo.bar.baz,x.y}1 
   record Destruct(List<List<MName>> extract, Optional<String> id) implements XPat{
     public Destruct{
+      assert !extract.isEmpty();
       assert unmodifiable(extract, "ParamPat.Destruct.extract",
-        sm->unmodifiable(sm,"ParamPat.Destruct.extract element",
-          m->{assert m.s().startsWith(".");}));
+        sm->{ assert !sm.isEmpty();
+          unmodifiable(sm,"ParamPat.Destruct.extract element",
+            m->{assert m.s().startsWith(".");});});
       assert validOpt(id,n -> validate("}"+n, "pattern id",CCurlyId));
     }
     public <R> R accept(XPatVisitor<R> v){ return v.visitXPatDestruct(this);}

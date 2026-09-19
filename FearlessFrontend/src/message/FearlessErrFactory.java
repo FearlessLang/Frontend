@@ -238,6 +238,18 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +"\nThere must be no space between the closed curly and the destruct id.")
       .addSpan(at);
   }
+  public FearlessException emptyDestructPattern(Span at){
+    return Code.UnexpectedToken.of(
+      "This destructuring pattern extracts nothing.\n"
+      +"Write at least one chain, for example {.a}, instead of an empty {}.")
+      .addSpan(at);
+  }
+  public FearlessException emptyDestructChain(Span at){
+    return Code.UnexpectedToken.of(
+      "This destructuring pattern has an empty chain between commas.\n"
+      +"Each comma must separate two non-empty chains; remove the stray comma, for example write {.a,.b} instead of {.a,,.b} or {,.a}.")
+      .addSpan(at);
+  }
   public FearlessException badBound(T.X name, Span at){
     return Code.UnexpectedToken.of("Invalid bound for generic "+Message.displayString(name.name())+"""
 
