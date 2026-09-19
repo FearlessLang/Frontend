@@ -73,7 +73,7 @@ public sealed interface TypeScope{
     );
   }
   static boolean eqForHeuristic(T a, T b){
-    return switch(a){
+    return switch (a){
       case T.X _ -> a.equals(b);
       case T.ReadImmX ax -> (b instanceof T.ReadImmX bx) && ax.x().equals(bx.x());
       case T.RCX ar -> (b instanceof T.RCX br) && ar.x().equals(br.x());
