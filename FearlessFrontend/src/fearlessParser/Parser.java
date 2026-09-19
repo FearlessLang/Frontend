@@ -3,6 +3,7 @@ package fearlessParser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -248,13 +249,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     for (var s : ss){ if (!seen.add(s)){ return s; } }
     return "";
   }
-  void checkValidNew_xs(List<String> xs){
+  void checkValidNew(List<String> xs, BiFunction<Span,String,FearlessException> err){
     var x= repeated(xs);
-    if (!x.isEmpty()){ throw errFactory().duplicateParamInMethodSignature(span(), x); }
-  }
-  void checkValidNew_Xs(List<String> Xs){
-    var x= repeated(Xs);
-    if (!x.isEmpty()){ throw errFactory().duplicateGenericInMethodSignature(span(), x); }
+    if (!x.isEmpty()){ throw err.apply(span(), x); }
   }
   M parseMethod(boolean top, boolean typed){
     assert !top || typed;
@@ -310,7 +307,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   private Sig parseSigAfterName(Optional<RC> rc, Optional<MName> m){
     var bs= parseIf(peek(_SquareGroup),()->parseBs(true));
     var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
-    checkValidNew_Xs(Xs);
+    checkValidNew(Xs, errFactory()::duplicateGenericInMethodSignature);
     updateNames(names.addXs(Xs));//added both inside and outside since different parsers
     boolean hasPar=peek(_RoundGroup);
     List<Parameter> ps= hasPar
@@ -318,8 +315,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       :parseNakedParameters();
     Optional<T> t= parseOptT();
     m = m.map(_m->_m.withArity(ps.size()));
-    var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();    
-    checkValidNew_xs(xs);
+    var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();
+    checkValidNew(xs, errFactory()::duplicateParamInMethodSignature);
     return new Sig(rc,m,bs,hasPar,ps,t);
   }
   List<Parameter> parseNakedParameters(){
@@ -339,7 +336,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       p.expectLast("generic bounds declaration",CSquare);
       var res= p.splitBy("generic bounds declaration",commaB,pi->pi.parseB(mustNew));
       var Xs= res.stream().map(b->b.x().name()).toList();
-      checkValidNew_Xs(Xs);
+      checkValidNew(Xs, errFactory()::duplicateGenericInMethodSignature);
       return res;
     });
   }
