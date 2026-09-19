@@ -892,6 +892,36 @@ A:{ .m({.a} Bob:X):X }
 """);
 }
 
+@Test void err_empty_destruct_pattern(){fail("""
+In file: [###].fear
+
+001| A:{ .m({}):X }
+   |   --~~~^^~~~--
+
+While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
+This destructuring pattern extracts nothing.
+Write at least one chain, for example {.a}, instead of an empty {}.
+Error 2 UnexpectedToken
+""","""
+A:{ .m({}):X }
+""");
+}
+
+@Test void err_empty_destruct_chain(){fail("""
+In file: [###].fear
+
+001| A:{ .m({,}Bob:X):X }
+   |     ---^^^^^^~~---
+
+While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
+This destructuring pattern has an empty chain between commas.
+Each comma must separate two non-empty chains; remove the stray comma, for example write {.a,.b} instead of {.a,,.b} or {,.a}.
+Error 2 UnexpectedToken
+""","""
+A:{ .m({,}Bob:X):X }
+""");
+}
+
 @Test void err_illegal_nbsp_char(){fail("""
 In file: [###].fear
 

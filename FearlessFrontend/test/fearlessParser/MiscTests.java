@@ -7,16 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-import core.FearlessException;
 import message.FearlessErrFactory;
 import metaParser.Span;
-import tools.SourceOracle;
 
 public class MiscTests{
-  @Test void destructPattern_emptyChainFromStrayComma_shouldFailCleanly(){
-    assertThrows(FearlessException.class,
-      ()->Parse.from(SourceOracle.defaultDbgFearPath(0), "A:{ .m({,}Bob:X):X }"));
-  }
   @Test void XIn_checks_Xs_not_xs(){
     var n = new Names(List.of("a"), List.of("X","Y"), List.of(), "");
     assertTrue(n.XIn("X"));
