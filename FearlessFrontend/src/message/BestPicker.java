@@ -7,7 +7,7 @@ final class BestPicker{
   Compactable pick(PE root){ visit(root,0); return best.k(); }
   void visit(PN n,int depth){
     consider(n,depth+bonus(n));
-    switch(n){
+    switch (n){
       case PX _ -> {}
       case PTX _ -> {}
       case PTypeE x -> visit(x.t(), depth + 1);

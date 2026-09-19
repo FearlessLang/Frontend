@@ -20,22 +20,22 @@ final class MultiMeth{
     abstract RC of(EnumSet<RC> rcs);
   }
   private enum Mode{
-    useRead{ @Override RC of(RC rc){ return switch(rc){
+    useRead{ @Override RC of(RC rc){ return switch (rc){
       case mut -> iso;
       case read -> readH;
       default -> rc;
     };}},
-    flexy{ @Override RC of(RC rc){ return switch(rc){
+    flexy{ @Override RC of(RC rc){ return switch (rc){
       case mut -> iso;
       case read -> imm;
       default -> rc;
     };}},
-    hyg{ @Override RC of(RC rc){ return switch(rc){
+    hyg{ @Override RC of(RC rc){ return switch (rc){
       case mut -> mutH;
       case read -> readH;
       default -> rc;
     };}},
-    strong{ @Override RC of(RC rc){ return switch(rc){
+    strong{ @Override RC of(RC rc){ return switch (rc){
       case mut, mutH -> iso;
       case read, readH -> imm;
       default -> rc;
@@ -71,7 +71,7 @@ final class MultiMeth{
     return new MType(promotion, modeP.of(m.rc()), ts, t);
   }
   private static T modeF(List<B> d, T t, Mode mode, F f){
-    return switch(t){
+    return switch (t){
       case T.RCC rcc -> rcc.withRC(mode.of(rcc.rc()));
       case T.RCX rcx -> rcx.withRC(mode.of(rcx.rc()));
       case T.X x -> modeVar(d,x,mode,f,t);

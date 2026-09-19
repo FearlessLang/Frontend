@@ -59,7 +59,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return "imm "+str;
   }
   T showPublicHead(T t){ return mapHead(t, publicHead); }
-  private T mapHead(T t, Function<T.C,T.C> f){ return switch(t){
+  private T mapHead(T t, Function<T.C,T.C> f){ return switch (t){
     case T.X x -> x;
     case T.RCX x -> x;
     case T.ReadImmX x -> x;
@@ -67,7 +67,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   };}
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t),t.span()))); }
   static String up(String s){return s.substring(0, 1).toUpperCase() + s.substring(1); }
-  String expRepr(E toErr){return switch(toErr){
+  String expRepr(E toErr){return switch (toErr){
     case Call c->"method call "+methodSig(c.name());
     case X x->"parameter " +displayX(x);
     case Literal l->l.thisName().equals("this")
@@ -81,7 +81,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     if (impl){ return disp("::"); }
     return disp(x.name());
     }
-  String expReprDirect(boolean skipImm, E toErr){return switch(toErr){
+  String expReprDirect(boolean skipImm, E toErr){return switch (toErr){
     case Call c->methodSig(c.name());
     case X x->disp(x.name());
     case Literal l->l.thisName().equals("this")
@@ -89,7 +89,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       : bestNamePkg0(false, bestLitName(false,skipImm,l));
     case Type(var t,_) -> typeRepr(skipImm,t);  
     };}
-  String expRepr(inference.E toErr){return switch(toErr){
+  String expRepr(inference.E toErr){return switch (toErr){
     case inference.E.Call c->"method call "+methodSig(c.name());
     case inference.E.ICall c->"method call "+methodSig(c.name());
     case inference.E.X x->"parameter " +disp(x.name());
@@ -115,7 +115,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       && req instanceof T.RCC r
       && g.c().equals(r.c()));
   }
-  public static boolean explicitImmRc(T t){ return switch(t){
+  public static boolean explicitImmRc(T t){ return switch (t){
     case T.RCX(RC rc, _) -> rc == RC.imm;
     case T.RCC(RC rc, _, _) -> rc == RC.imm;
     default -> false;

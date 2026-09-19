@@ -72,7 +72,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds){
     assert index >= 0;
     String allowedStr= Join.of(bounds.stream().map(Err::disp).sorted(), "", " or ", "");
-    Err err= switch(target){
+    Err err= switch (target){
       case T.RCC rcc -> typeNotWellKinded("type "+err().typeRepr(true,rcc),rcc.c(), index, allowedStr);
       case T.C c -> typeNotWellKinded("type "+err().typeRepr(c),c, index, allowedStr);
       case KindingTarget.CallKinding(var t,var c)   -> typeNotWellKindedSig(t,c, index, allowedStr);
@@ -480,7 +480,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .min(Comparator.comparingInt(TypeSystemErrors::headerKey))
       .orElseThrow();
   }
-  private static int headerKey(T t){ return switch(t){
+  private static int headerKey(T t){ return switch (t){
     case T.RCC r -> r.rc().ordinal();
     case T.RCX r -> r.rc().ordinal();
     case T.X _ -> 1000;

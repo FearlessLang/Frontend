@@ -8,7 +8,7 @@ import core.RC;
 import core.T;
 public record FreeMutyParameters(List<B> bs,Gamma g){
   boolean isFree(E e){
-    return switch(e){
+    return switch (e){
       case E.Literal l -> isFree(l);
       case E.Call c -> isFree(c);
       case E.Type _ -> true;
@@ -28,7 +28,7 @@ public record FreeMutyParameters(List<B> bs,Gamma g){
     return c.es().stream().allMatch(this::isFree);
   }
   private boolean isFree(T t){
-    return switch(t){
+    return switch (t){
       case T.X(String name, _) -> MultiMeth.get(bs, name).stream().allMatch(this::isFree);
       case T.RCX(RC rc, _) -> isFree(rc);
       case T.ReadImmX(T.X x) -> MultiMeth.get(bs, x.name()).stream().allMatch(this::isFree);
