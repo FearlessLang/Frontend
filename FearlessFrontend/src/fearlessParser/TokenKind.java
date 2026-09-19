@@ -74,20 +74,17 @@ public enum TokenKind implements metaParser.TokenKind{
   _SquareGroup("","group in [..]"),
   _RoundGroup("","group in (..)"); 
 
-  private final String displayName;
   private final TokenMatch match;
   public final String human;
 
   TokenKind(String regex){ this(regex,regex); }
   TokenKind(String regex, String human){
-    this.displayName = name();
     this.match = TokenMatch.fromRegex(regex);
     this.human = human;
   }
   @Override public TokenMatch matcher(){ return match; }
   public boolean syntetic(){ return this.name().startsWith("_"); }
   public boolean bad(){ return this.name().startsWith("Bad"); }
-  @Override public String toString(){ return displayName; }
   @Override public int priority(){ return this.ordinal(); }
   
   public static boolean validate(String input, String what, TokenKind... kinds){
