@@ -440,6 +440,34 @@ User:{
 }
 """));}
 
+@Test void notAffineIso_capturedTwice_noDirectUse_currentlyUndetected(){ fail("""
+008|   imm .bad(x:iso B):Unit->Mix2#(
+   |                                ^^
+009|     imm K1:K{ imm .k:Unit->UseImm#(x); },
+
+While inspecting ".bad(_)" line 8
+Iso parameter "x" violates the single-use rule in method "User.bad(_)" (line 8).
+It is captured into more than one object literal.
+An iso parameter can be captured into at most one object literal.
+Allowed: capture into object literals as "imm", or use directly once.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Mix2#(K1:K{.k:Unit->UseImm#(x)},K2:K{.k:Unit->UseImm#(x)})
+""", List.of("""
+
+Unit:{}
+B:{}
+UseImm:{ #(b:imm B):Unit->Unit{} }
+K:{ imm .k:Unit; }
+Mix2:{ #(k1:imm K,k2:imm K):Unit->Unit{} }
+User:{
+  imm .bad(x:iso B):Unit->Mix2#(
+    imm K1:K{ imm .k:Unit->UseImm#(x); },
+    imm K2:K{ imm .k:Unit->UseImm#(x); }
+  );
+}
+"""));}
+
 @Test void methBodyWrongType_xWrongNominal_shortNames(){ fail("""
 004|   imm .m(x:imm A):B->x;
    |   -------------------^^
