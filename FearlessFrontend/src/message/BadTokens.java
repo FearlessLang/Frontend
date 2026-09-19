@@ -65,7 +65,7 @@ that is: use back ticks (`) instead of single quotes (').
       case LineComment -> " line comment \"//\"";
       case BlockComment -> " block comment \"/* ... */\"";
       case UStr, SStr   -> " string literal";
-    default -> throw new Error(t.toString());
+    default -> throw Bug.of(t.toString());
     };
   }
   
