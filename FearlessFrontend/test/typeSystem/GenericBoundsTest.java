@@ -251,6 +251,19 @@ iso {}
 """,List.of("""
 A[X:*]:{ #: X -> {this} }
 """));}
+@Test void literalMethodNotInferredAsReceiver(){fail("""
+001| A[X:*]:{ #: X -> {this}* }
+   |          --------^^^^^^-
+
+While inspecting object literal "{...}" > "#" line 1
+Cannot infer signature and name for a method with 0 parameters.
+No supertype of object literal "{...}" has a method with 0 parameters.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso {}
+""",List.of("""
+A[X:*]:{ #: X -> {this}* }
+"""));}
 @Test void literalCannotBePassedAsATypeVariable(){fail("""
 001| A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
    |                            ----------------^^-

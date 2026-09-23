@@ -120,6 +120,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       && new FreeMutyParameters(bs1,g).isFree(_l);
     var l= getIso ? _l.withRC(RC.iso) : _l;
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(l,r.t()); } }
+    for (var m : l.ms()){ if (m.sig().origin().equals(TypeRename.inferUnknown.c().name())){ throw tsE().methodNotInferred(l,m); } }
     var ts= l.bs().stream().<T>map(b->new T.X(b.x(),span)).toList();
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);

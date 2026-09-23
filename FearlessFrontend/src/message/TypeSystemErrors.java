@@ -154,6 +154,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line(x+" is a type parameter; object literals can only implement nominal types.")
       .ex(at));
   }
+  public FearlessException methodNotInferred(Literal at, M m){
+    int n= m.sig().ts().size();
+    return addExpFrame(at, err()
+      .line("Cannot infer signature and name for a method with "+n+" parameters.")
+      .line("No supertype of "+err().expRepr(at)+" has a method with "+n+" parameters.")
+      .ex(at));
+  }
   public FearlessException typeDeclaredInMethod(E at, Literal l){
     return addExpFrame(at, err()
       .line("The type "+err().tNameADisp(l.name())+" is declared inside a method body.")
