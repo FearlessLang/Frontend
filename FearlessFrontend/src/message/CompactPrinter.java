@@ -40,7 +40,7 @@ public class CompactPrinter{
   CompactPrinter append(RC rc){ sb.append(rc); return this; }
   String bounds(List<B> bs){ return Join.of(bs.stream().map(B::compactToString),"[",",","]",""); }
   public static final class Compactable{
-    public static final Compactable NO= new Compactable(false);
+    public static final Compactable no= new Compactable(false);
     boolean compacted; private Compactable(boolean can){ compacted = !can; }
     public static Compactable of(){ return new Compactable(true); }
     public boolean isCompactable(){ return !compacted; }
@@ -82,7 +82,7 @@ public class CompactPrinter{
     wrap(sb,"["+rc+",","]",targs,",",PN::accString);
   }
   public sealed interface PN{
-    default Compactable k(){ return Compactable.NO; }
+    default Compactable k(){ return Compactable.no; }
     void accString(CompactPrinter sb);
   }
   public sealed interface PE extends PN{ int size(); }
@@ -223,7 +223,7 @@ public class CompactPrinter{
     case T.RCC r -> new PTRCC(r.rc(), ofC(r.c()));
   };}
   PC ofC(T.C c){
-    return new PC(tNameToStr(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.NO : Compactable.of());
+    return new PC(tNameToStr(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.no : Compactable.of());
   }
   List<PC> ofCs(Src src,List<T.C> cs){
     List<fearlessFullGrammar.T.C> oCs= switch (src.inner){

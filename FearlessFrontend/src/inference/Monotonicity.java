@@ -14,7 +14,7 @@ public final class Monotonicity{
   private Monotonicity(){}
   private static final IdentityHashMap<GammaSignature,State> states= new IdentityHashMap<>();
   private static final class State{ final HashMap<Long,ArrayList<Object>> hist= new HashMap<>(); }
-  private enum K{E_T,CALL_RC,CALL_TARG,LIT_MARG,LIT_MRET}
+  private enum K{eT,callRc,callTarg,litMArg,litMRet}
 
   // Packs (kind, a, b) into one 64-bit key.
   //
@@ -24,12 +24,12 @@ public final class Monotonicity{
   //   [15..00] 16 bits: b (unsigned, truncated to 16 bits)
   //
   // Intended usage:
-  // - E.t:                 kind=E_T      a=0                 b=0
-  // - Call.rc:             kind=CALL_RC  a=0                 b=0
-  // - Call.targs[i]:       kind=CALL_TARG a=i                b=0
-  // - Literal.ms[mi].ret:  kind=LIT_MRET a=mi                b=0
+  // - E.t:                 kind=eT      a=0                 b=0
+  // - Call.rc:             kind=callRc  a=0                 b=0
+  // - Call.targs[i]:       kind=callTarg a=i                b=0
+  // - Literal.ms[mi].ret:  kind=litMRet a=mi                b=0
   // - Literal.ms[mi].arg[pi]:
-  //                         kind=LIT_MARG a=mi               b=pi
+  //                         kind=litMArg a=mi               b=pi
   //
   // Limits implied by packing:
   // - kind: up to 2^16-1 distinct K values (65535) (far more than needed)
@@ -69,11 +69,11 @@ public final class Monotonicity{
   }
 
   public static boolean eT(GammaSignature g, Object e, Object from, Object to){
-    return step(g, slot(K.E_T,0,0), from, to, "E.t "+e.getClass().getSimpleName());
+    return step(g, slot(K.eT,0,0), from, to, "E.t "+e.getClass().getSimpleName());
   }
 
   private static boolean hasLitHistory(GammaSignature g){
-    return hasAnyKind(g,K.LIT_MARG) || hasAnyKind(g,K.LIT_MRET);
+    return hasAnyKind(g,K.litMArg) || hasAnyKind(g,K.litMRet);
   }
   private static boolean hasAnyKind(GammaSignature g, K k){
     var st= states.get(g);
@@ -86,23 +86,23 @@ public final class Monotonicity{
   }
 
   public static boolean onCallWithMore(E.Call c, Optional<RC> nextRc, List<IT> nextTargs, IT nextT){
-    step(c.g(), slot(K.E_T,0,0), c.t(), nextT, "Call.t");
-    step(c.g(), slot(K.CALL_RC,0,0), c.rc(), nextRc, "Call.rc");
+    step(c.g(), slot(K.eT,0,0), c.t(), nextT, "Call.t");
+    step(c.g(), slot(K.callRc,0,0), c.rc(), nextRc, "Call.rc");
     int oldN= c.targs().size(), newN= nextTargs.size();
     if (oldN != newN){
       // Arity repair is allowed, but only before we started tracking per-index targs.
-      if (hasAnyKind(c.g(), K.CALL_TARG)){
+      if (hasAnyKind(c.g(), K.callTarg)){
         throw new AssertionError("Call.targs arity changed after tracking started old="+oldN+" new="+newN
           +"\ncall="+c);
       }
       for (int i : Range.of(nextTargs)){
         var ti= nextTargs.get(i);
-        step(c.g(), slot(K.CALL_TARG,i,0), ti, ti, "Call.targs["+i+"] init");
+        step(c.g(), slot(K.callTarg,i,0), ti, ti, "Call.targs["+i+"] init");
       }
       return true;
     }
     for (int i : Range.of(nextTargs)){
-      step(c.g(), slot(K.CALL_TARG,i,0), c.targs().get(i), nextTargs.get(i), "Call.targs["+i+"]");
+      step(c.g(), slot(K.callTarg,i,0), c.targs().get(i), nextTargs.get(i), "Call.targs["+i+"]");
     }
     return true;
   }
@@ -113,7 +113,7 @@ public final class Monotonicity{
   private static void clearLitHistory(GammaSignature g){
     var st= states.get(g);
     if (st == null){ return; }
-    int marg= K.LIT_MARG.ordinal(), mret= K.LIT_MRET.ordinal();
+    int marg= K.litMArg.ordinal(), mret= K.litMRet.ordinal();
     st.hist.keySet().removeIf(k->{
       int kind= (int)(k.longValue() >>> 48);
       return kind == marg || kind == mret;
@@ -134,10 +134,10 @@ public final class Monotonicity{
         var nm= nextMs.get(mi);
         var nps= sigPs(nm);
         for (int pi : Range.of(nps)){
-          step(l.g(), slot(K.LIT_MARG,mi,pi), nps.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] init");
+          step(l.g(), slot(K.litMArg,mi,pi), nps.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] init");
         }
         var r= sigRet(nm);
-        step(l.g(), slot(K.LIT_MRET,mi,0), r, r, "Lit.ms["+mi+"].ret init");
+        step(l.g(), slot(K.litMRet,mi,0), r, r, "Lit.ms["+mi+"].ret init");
       }
       return true;
     }
@@ -165,9 +165,9 @@ public final class Monotonicity{
           +"\nlit="+l);
       }
       for (int pi : Range.of(ops)){
-        step(l.g(), slot(K.LIT_MARG,mi,pi), ops.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] "+l);
+        step(l.g(), slot(K.litMArg,mi,pi), ops.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] "+l);
       }
-      step(l.g(), slot(K.LIT_MRET,mi,0), sigRet(om), sigRet(nm), "Lit.ms["+mi+"].ret "+l);
+      step(l.g(), slot(K.litMRet,mi,0), sigRet(om), sigRet(nm), "Lit.ms["+mi+"].ret "+l);
     }
     return true;
   }

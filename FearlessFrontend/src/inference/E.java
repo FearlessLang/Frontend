@@ -139,6 +139,10 @@ public sealed interface E{
   }
   record ICall(E e, MName name, List<E> es, IT t, Src src, Gamma.GammaSignature g) implements E{
     public ICall(E e, MName name, List<E> es, Src src){ this(e,name,es,IT.U.Instance,src,new Gamma.GammaSignature());}
+    public ICall{
+      assert nonNull(e,name,t);
+      assert unmodifiable(es, "E.ICall.es");
+    }
     public E withT(IT t){
       assert Monotonicity.eT(g, this, this.t, t);
       if (t.equals(this.t)){ return this; }

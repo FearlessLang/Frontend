@@ -24,7 +24,7 @@ public record M(Sig sig, Optional<Impl> impl){
     return new M(sig,impl);
     }
   public record Sig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<Optional<IT>> ts, Optional<IT> ret, Optional<TName> origin, boolean abs, TSpan span){
-    public Sig{ assert nonNull(rc,m,bs,ts,ret,origin); assert validOpt(bs,_bs->unmodifiableDistinct(_bs,"bounds")); }
+    public Sig{ assert nonNull(rc,m,bs,ts,ret,origin); assert validOpt(bs,_bs->unmodifiableDistinct(_bs,"bounds")); assert unmodifiable(ts,"Sig.ts"); }
     public Sig(RC rc, MName m, List<B> bs, List<Optional<IT>> ts, IT ret, TName origin, boolean abs, TSpan span){
       this(Optional.of(rc),Optional.of(m),Optional.of(bs),ts,Optional.of(ret),Optional.of(origin),abs,span);
     }
@@ -47,6 +47,7 @@ public record M(Sig sig, Optional<Impl> impl){
     public boolean isFull(){ return rc.isPresent() && m.isPresent() && bs.isPresent() && ts.stream().allMatch(Optional::isPresent) && ret.isPresent(); }
   }
   public record Impl(Optional<MName> m, List<String> xs, E e){
+    public Impl{ assert nonNull(m,e); assert unmodifiable(xs,"Impl.xs"); }
     public String toString(){
       var xsC= Join.of(xs,"(",", ",")->","()->");
       return " "+m.map(n->n.s()).orElse("")+xsC+e+";";
