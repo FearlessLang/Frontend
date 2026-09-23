@@ -69,7 +69,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (got.isEmpty()){ return; }
     throw tsE().methBodyWrongType((TypeScope.Method)scope,e,got,expected);
   }
-  List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch(e){
+  List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch (e){
     case X x -> checkX(bs,g,x,rs);
     case Type t -> checkType(bs,g,t,rs);
     case Literal l -> checkLiteral(bs,g,l,rs);
@@ -159,7 +159,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private boolean isId(M m){
     assert m.xs().size() == 1;
     var x= m.xs().getFirst();
-    return switch(m.e().get()){
+    return switch (m.e().get()){
       case X e -> e.name().equals(x);
       case Call c -> c.e() instanceof X e && e.name().equals(x) && c.name().equals(asOne)
         && isBaseContainer(m.sig().ts().getFirst());
@@ -238,7 +238,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     }
     return true;
   }
-  EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch(t){
+  EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch (t){
     case T.RCC(var rc, _,_) -> EnumSet.of(rc);
     case T.RCX(var rc, _) -> EnumSet.of(rc);
     case T.X(var x,_) -> get(bs, x).rcs();

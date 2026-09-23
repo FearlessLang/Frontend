@@ -24,7 +24,7 @@ public record ExportedToStr(String pkgName, Map<String,String> uses){
     if (c.ts().isEmpty()){ return typeNameWithArity(c.name()); }
     return typeName(c.name())+"["+c.ts().stream().map(this::type).collect(Collectors.joining(","))+"]";
   }
-  public String type(T t){ return switch(t){
+  public String type(T t){ return switch (t){
     case T.X x -> x.name();
     case T.RCX x -> x.rc()+" "+x.x().name();
     case T.ReadImmX x -> "read/imm "+x.x().name();

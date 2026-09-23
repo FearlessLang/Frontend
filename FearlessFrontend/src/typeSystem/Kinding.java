@@ -30,7 +30,7 @@ public record Kinding(TypeSystemErrors tsE){
     }
     if (!of(bs,t,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
   }
-  public boolean of(List<B> bs, T t, EnumSet<RC> allowed){ return switch(t){
+  public boolean of(List<B> bs, T t, EnumSet<RC> allowed){ return switch (t){
     case T.RCC rcc -> ofRCC(bs, rcc, allowed);
     case T.RCX rcx -> ofRCX(rcx, allowed);
     case T.X x -> ofX(bs, x, allowed);

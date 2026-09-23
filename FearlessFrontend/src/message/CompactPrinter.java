@@ -190,7 +190,7 @@ public class CompactPrinter{
       body.get().accString(sb);
     }
   }
-  public PE ofE(E e){ return switch(e){
+  public PE ofE(E e){ return switch (e){
     case X x -> new PX(x.src().inner instanceof fearlessFullGrammar.E.Implicit?"::": x.name());
     case Type t -> new PTypeE(ofT(t.type()));
     case Call c -> ofCall(c);
@@ -216,7 +216,7 @@ public class CompactPrinter{
   }  
   List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
   List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
-  PT ofT(T t){ return switch(t){
+  PT ofT(T t){ return switch (t){
     case T.X x -> new PTX(x.name());
     case T.RCX x -> new PTX(x.rc()+" "+x.x().name());
     case T.ReadImmX x -> new PTX("read/imm "+x.x().name());
@@ -226,7 +226,7 @@ public class CompactPrinter{
     return new PC(tNameToStr(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.NO : Compactable.of());
   }
   List<PC> ofCs(Src src,List<T.C> cs){
-    List<fearlessFullGrammar.T.C> oCs= switch(src.inner){
+    List<fearlessFullGrammar.T.C> oCs= switch (src.inner){
       case fearlessFullGrammar.E.DeclarationLiteral d->d.dec().cs();
       case fearlessFullGrammar.Declaration d->d.cs();
       case fearlessFullGrammar.E.TypedLiteral d->List.of(d.t().c());

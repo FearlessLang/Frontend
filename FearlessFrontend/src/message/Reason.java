@@ -30,7 +30,7 @@ public final class Reason{
     if (er.rc() == core.RC.imm){
       return new Reason(got, base(ts,blame,bs,got,expected), ()->baseFooterE(ts.scope(),got,expected));
     }
-    boolean explRC= switch(blame){
+    boolean explRC= switch (blame){
       case Literal l->l.rc() != RC.imm;
       case Type(var t,_) ->  t.rc() != RC.imm;
       default ->{ throw Bug.unreachable(); }
@@ -44,7 +44,7 @@ public final class Reason{
     return "Object literal is of type "+ts.err().expReprDirect(skipImm,blame)+" instead of a subtype of "+ts.err().typeRepr(skipImm,expected)+".";
   }
   private static Reason hintExplicitRC(TypeSystem ts,T got, String base, T.RCC expected, E blame){
-    E blameOk=switch(blame){
+    E blameOk=switch (blame){
       case Literal l->l.withRC(expected.rc());
       case Type(var t,var src) ->  new Type(t.withRC(expected.rc()),src);
       default ->{ throw Bug.unreachable(); }
@@ -91,7 +91,7 @@ public final class Reason{
     if (!trace.isEmpty()){ e.line("Capture adaptation trace:\n"+trace+"."); }
     return new Reason(got, e.text(),()->baseFooterE(ts.scope(),got,req.t()));
   }
-  private static String vpaTrace(TypeSystem ts, WithT cur){ return switch(cur){
+  private static String vpaTrace(TypeSystem ts, WithT cur){ return switch (cur){
     case Same _ -> "";
     case KeepStrengthenToImm k -> traceKeep(ts, k.tail(), "strengthenToImm", k.tail().currentT(), k.currentT(), k.l(), k.m());
     case KeepSetToRead k -> traceKeep(ts, k.tail(), "setToRead", k.tail().currentT(), k.currentT(), k.l(), k.m());
