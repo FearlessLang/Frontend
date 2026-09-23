@@ -458,18 +458,19 @@ B:A[base.Int]{}
 C:A[base.Float]{}
 D:B,C{}
 """));}
-@Test void reAbstractedMethodListingBothSupers(){failWf("""
-003| C:A,B{}
-   | ^^^^^^^
-
-While inspecting type declaration "C"
-Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types:
-Candidates: "A", "B".
-Type declaration "C" must declare a method ".m" explicitly implementing the desired behaviour.
-""",List.of("""
+@Test void reAbstractedMethodListingBothSupers(){ok(List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
+C:A,B{}
+"""));}
+@Test void reAbstractedMethodListingBothSupersSubFirst(){ok(List.of("""
+A:{ .m:A->this }
+B:A{ .m:A }
+C:B,A{}
+"""));}
+@Test void overriddenMethodListingBothSupers(){ok(List.of("""
+A:{ .m:A->this }
+B:A{ .m:A->A }
 C:A,B{}
 """));}
 @Test void reAbstractedMethodAndInheritedImplementation(){failWf("""
@@ -487,19 +488,44 @@ B:A{ .m:A }
 D:A{}
 C:B,D{}
 """));}
-@Test void reAbstractedMethodInNestedDeclaration(){failWf("""
+@Test void reAbstractedMethodInNestedDeclaration(){fail("""
 003| User:{ #:C->C:A,B{} }
-   |             ^^^^^^^
+   |        -----^^^^^^^
 
-While inspecting object literal "C"
-Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types:
-Candidates: "A", "B".
-Object literal "C" must declare a method ".m" explicitly implementing the desired behaviour.
+While inspecting object literal "iso C" > "#" line 3
+This object literal is missing a required method.
+Missing: "imm .m".
+Required by: "B".
+Hint: add an implementation for ".m" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso C:A,B{}
 """,List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
 User:{ #:C->C:A,B{} }
+"""));}
+@Test void reAbstractedMethodInNestedDeclarationOnlySubSuper(){fail("""
+003| User:{ #:C->C:B{} }
+   |        -----^^^^^
+
+While inspecting object literal "iso C" > "#" line 3
+This object literal is missing a required method.
+Missing: "imm .m".
+Required by: "B".
+Hint: add an implementation for ".m" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso C:B{}
+""",List.of("""
+A:{ .m:A->this }
+B:A{ .m:A }
+User:{ #:C->C:B{} }
+"""));}
+@Test void reAbstractedMethodImplementedInNestedDeclaration(){ok(List.of("""
+A:{ .m:A->this }
+B:A{ .m:A }
+User:{ #:C->C:A,B{ .m->A } }
 """));}
 @Test void reAbstractedMethodListingOnlySubSuper(){ok(List.of("""
 A:{ .m:A->this }

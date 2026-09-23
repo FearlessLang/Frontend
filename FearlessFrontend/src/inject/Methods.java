@@ -118,7 +118,9 @@ public record Methods(
       ds.stream().flatMap(dsi->dsi.cs().stream())
         .distinct().sorted(Comparator.comparing(Object::toString))
       ).toList();
-    List<M.Sig> allSig= ds.stream().flatMap(dsi->dsi.sigs().stream()).toList();
+    var implied= ds.stream().flatMap(dsi->dsi.cs().stream()).toList();
+    List<M.Sig> allSig= IntStream.range(0,ds.size()).filter(i->!implied.contains(d.cs().get(i)))
+      .boxed().flatMap(i->ds.get(i).sigs().stream()).toList();
     List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
     List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
     checkMagicSupertypes(d, allCs);
