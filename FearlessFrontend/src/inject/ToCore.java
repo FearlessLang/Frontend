@@ -9,13 +9,15 @@ import core.MName;
 import core.RC;
 import core.Src;
 import core.T;
+import core.TName;
+import inference.Gamma;
 import inference.IT;
 import offensiveUtils.EqTransparent;
 import utils.Bug;
 import utils.OneOr;
 import utils.Streams;
 
-public class ToCore{
+public record ToCore(List<B> ctx){
   core.E of(inference.E exp, inference.E orig){ return switch (exp){
     case inference.E.X(var name, _, Src src, _) -> new core.E.X(name,src);
     case inference.E.Type(var type, _, Src src, _) -> type(type,src);
@@ -26,7 +28,6 @@ public class ToCore{
   core.E.Type type(IT.RCC type, Src src){ return new core.E.Type(new T.RCC(type.rc().orElse(RC.imm),TypeRename.itcToTC(type.c()),type.span()),src); }
   core.E.Literal literal(inference.E.Literal e, inference.E.Literal o){
     var rc= o.rc().orElse(e.rc().orElse(RC.imm));
-    var ms= mapMs(e.ms(),o.ms());
     assert o.infName() == e.infName();
     assert o.infName() || e.name().equals(o.name());
     assert e.thisName().equals(o.thisName());
@@ -34,8 +35,21 @@ public class ToCore{
     assert oBs.isEmpty() || !o.infName():
      o.infName()+" "+oBs;
     var bs= oBs.orElse(e.bs());
+    if (e.infName() && bs.isEmpty()){ bs= uncommittedBs(e); }
+    var name= e.name().withArity(bs.size());
+    var inner= new ToCore(Stream.concat(ctx.stream(),bs.stream()).distinct().toList());
+    var ms= inner.mapMs(e.ms(),o.ms()).stream().map(m->withOrigin(m,e.name(),name)).toList();
     var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():Stream.concat(o.cs().stream(),e.cs().stream()).distinct().toList());
-    return new core.E.Literal(rc,e.name(),bs,cs,e.thisName(),ms,e.src(),e.infName());
+    return new core.E.Literal(rc,name,bs,cs,e.thisName(),ms,e.src(),e.infName());
+  }
+  private List<B> uncommittedBs(inference.E.Literal e){
+    var free= new FreeXs(new Gamma());
+    return Stream.concat(free.ftvCs(e.cs()),free.ftvMs(e.ms())).distinct().map(x->RC.get(ctx,x)).toList();
+  }
+  private static core.M withOrigin(core.M m, TName from, TName to){
+    var s= m.sig();
+    if (!s.origin().equals(from)){ return m; }
+    return new core.M(new core.Sig(s.rc(),s.m(),s.bs(),s.ts(),s.ret(),to,s.abs(),s.span()),m.xs(),m.e());
   }
   Optional<List<B>> originalBs(inference.E.Literal o){
     boolean explicit= switch (o.src().inner){
@@ -81,7 +95,8 @@ public class ToCore{
     assert o.impl().isPresent();
     var ei= e.impl().get();
     var oi= o.impl().get();
-    return new core.M(s,ei.xs(),Optional.of(of(ei.e(),oi.e())));
+    var inner= new ToCore(Stream.concat(ctx.stream(),s.bs().stream()).distinct().toList());
+    return new core.M(s,ei.xs(),Optional.of(inner.of(ei.e(),oi.e())));
   }
   core.Sig sig(inference.M.Sig inf, inference.M.Sig usr){
     var ts= Streams.zip(usr.ts(),inf.ts()).map((u,i)->u.or(()->i)).toList();
