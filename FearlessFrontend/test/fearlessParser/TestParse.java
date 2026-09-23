@@ -2473,8 +2473,8 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "'bar'".
-Simple string literals are of form " `...` ", not " '...' ";
-that is: use back ticks (`) instead of single quotes (').
+Simple string literals are of form `"..."`, not "'...'";
+that is: use double quotes (`"`) instead of single quotes ("'").
 Error 2 UnexpectedToken
 ""","""
 A{ .foo:A ->

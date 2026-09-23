@@ -34,8 +34,8 @@ Package names are restricted to be valid filenames on all operating systems.
 Names like aux, nul, lpt2 are invalid on Windows.
 ""","package names")
       .putStr(BadSStrQuote,Code.UnexpectedToken::of,"""
-Simple string literals are of form " `...` ", not " '...' ";
-that is: use back ticks (`) instead of single quotes (').
+Simple string literals are of form `"..."`, not "'...'";
+that is: use double quotes (`"`) instead of single quotes ("'").
 ""","common ambiguities")
 ;}
   private Stream<Token> strayBlockCommentCloser(int idx, Token t, Tokenizer tokenizer){

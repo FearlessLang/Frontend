@@ -3204,17 +3204,17 @@ User:Sup{ :: }
 @Test void badSealed1(){ failExt("""
 In file: [###].fear
 
-001| ExtStr:`beer`{}
+001| ExtStr:"beer"{}
    | ^^^^^^^^^^^^^^^
 
 While inspecting type declaration "ExtStr"
-Type declaration "ExtStr" implements sealed type "`beer`".
+Type declaration "ExtStr" implements sealed type `"beer"`.
 Sealed types can only be implemented in their own package.
 Type declaration "ExtStr" is defined in package "p".
-Type "`beer`" is defined in package "base".
+Type `"beer"` is defined in package "base".
 Error 7 WellFormedness
 """, List.of("""
-ExtStr:`beer`{}
+ExtStr:"beer"{}
 """));}
 
 @Test void tsWidenAnonLiteralHeadVsRequiredType(){fail("""
