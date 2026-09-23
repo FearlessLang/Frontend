@@ -13,6 +13,7 @@ final class Affine{
   static void usedOnce(TypeSystemErrors err, Literal l,M m, String x, E e){
     List<X> active= new ArrayList<>();
     collect(x, e, true, active);
+    //Intentionally allowing multiple captures as imm: equivalent to cast to imm and then capture multiple times
     if (active.isEmpty()){ return; }
     if (active.size() > 1){ throw err.notAffineIso(l,m, x,true, active); }
     List<X> total= new ArrayList<>();
