@@ -187,7 +187,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       .distinct().toList();
     String base= "Method with inferred name and "+count+" parameter redeclared.\n"
     + "A method with the inferred name and the same parameter count is already present above.\n";
-    assert !hints.isEmpty();
+    if (hints.isEmpty()){ return Code.WellFormedness.of(base).addSpan(s).addSpan(at); }
     var ex= hints.getFirst();
       return Code.WellFormedness.of(
        base
@@ -262,6 +262,10 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +"A type declaration only sees the generic types it declares itself; "
       +expected("here "+dec+" declares none","here "+dec+" declares ","here "+dec+" declares ",Xs,s->s)
       +"Hint: funnel "+x+" into "+dec+" by writing "+funnelled+", restating the bounds of "+x+".").addSpan(at);
+  }
+  public FearlessException patternNameRedeclared(Span at, String name){
+    return Code.UnexpectedToken.of("Name "+Message.displayString(name)+" already in scope.\n"
+      +"It is declared by a nominal pattern: a pattern like \"{.a.b, .c}id\" declares the names \"bid\" and \"cid\".\n").addSpan(at);
   }
   public FearlessException duplicateParamInMethodSignature(Span at, String name){
     return Code.UnexpectedToken.of(

@@ -317,7 +317,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .ex(c), c);
     }
-    var rcs= sameArity.stream().sorted().map(Sig::rc).toList();
+    var rcs= sameArity.stream().map(Sig::rc).sorted().toList();
     String availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
     boolean explicit= explicitRc(c);
     Err e2= err()

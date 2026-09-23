@@ -290,13 +290,17 @@ public record Methods(
     List<Optional<IT>> ts= IntStream.range(0, name.arity()).mapToObj(i->Optional.of(pairWithTs(at,i,Optional.empty(),ssAligned))).toList();
     IT res= agreement(at,ssAligned.stream().map(e->e.ret().get()),p.err().retTypeDisagreement());
     var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
-    if (impl.size() > 1){ throw p.err().ambiguousImplementationFor(impl,at); }
+    var conflicts= ssAligned.stream().filter(e->!e.abs() || overridesAny(e,impl)).map(e->e.origin().get()).distinct().toList();
+    if (conflicts.size() > 1){ throw p.err().ambiguousImplementationFor(conflicts,at); }
     TName originName= impl.size() == 1? impl.getFirst() : origin.name();
     RC rc= rcAgreement(ssAligned);
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,originName,impl.isEmpty(),ssAligned.getFirst().span());
     return new M(sig,Optional.empty());
   }
   
+  private boolean overridesAny(M.Sig s, List<TName> origins){
+    return from(s.origin().get()).cs().stream().anyMatch(c->origins.contains(c.name()));
+  }
   M toCompleteM(inference.M m,E.Literal origin){
     var s= m.sig();
     RC rc=s.rc().orElse(RC.imm);

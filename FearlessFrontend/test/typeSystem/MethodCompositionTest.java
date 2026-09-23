@@ -458,10 +458,48 @@ B:A[base.Int]{}
 C:A[base.Float]{}
 D:B,C{}
 """));}
-@Test void reAbstractedMethodListingBothSupers(){ok(List.of("""
+@Test void reAbstractedMethodListingBothSupers(){failWf("""
+003| C:A,B{}
+   | ^^^^^^^
+
+While inspecting type declaration "C"
+Ambiguous implementation for method ".m" with 0 parameters.
+Different options are present in the implemented types:
+Candidates: "A", "B".
+Type declaration "C" must declare a method ".m" explicitly implementing the desired behaviour.
+""",List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
 C:A,B{}
+"""));}
+@Test void reAbstractedMethodAndInheritedImplementation(){failWf("""
+004| C:B,D{}
+   | ^^^^^^^
+
+While inspecting type declaration "C"
+Ambiguous implementation for method ".m" with 0 parameters.
+Different options are present in the implemented types:
+Candidates: "B", "A".
+Type declaration "C" must declare a method ".m" explicitly implementing the desired behaviour.
+""",List.of("""
+A:{ .m:A->this }
+B:A{ .m:A }
+D:A{}
+C:B,D{}
+"""));}
+@Test void reAbstractedMethodInNestedDeclaration(){failWf("""
+003| User:{ #:C->C:A,B{} }
+   |             ^^^^^^^
+
+While inspecting object literal "C"
+Ambiguous implementation for method ".m" with 0 parameters.
+Different options are present in the implemented types:
+Candidates: "A", "B".
+Object literal "C" must declare a method ".m" explicitly implementing the desired behaviour.
+""",List.of("""
+A:{ .m:A->this }
+B:A{ .m:A }
+User:{ #:C->C:A,B{} }
 """));}
 @Test void reAbstractedMethodListingOnlySubSuper(){ok(List.of("""
 A:{ .m:A->this }
