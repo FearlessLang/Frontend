@@ -458,4 +458,14 @@ B:A[base.Int]{}
 C:A[base.Float]{}
 D:B,C{}
 """));}
+@Test void reAbstractedMethodListingBothSupers(){ok(List.of("""
+A:{ .m:A->this }
+B:A{ .m:A }
+C:A,B{}
+"""));}
+@Test void reAbstractedMethodListingOnlySubSuper(){ok(List.of("""
+A:{ .m:A->this }
+B:A{ .m:A }
+C:B{}
+"""));}
 }
