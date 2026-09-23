@@ -1128,6 +1128,22 @@ User:{
     z.zap[mut](a);
 }
 """)); }
+@Test void methodNotDeclared_wrongReceiverRc_twoOtherCapabilitiesExist(){fail("""
+002| User:{ #(a:read A):A->a.m[read] }
+   |        ---------------~^^^~~~~~
+
+While inspecting "#(_)" line 2
+This call to method ".m" cannot typecheck.
+".m" exists on type "A", but not with the requested capability.
+This call requires the existence of a "read" method.
+Available capabilities for this method: "imm" and "mut".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+a.m[read]
+""", List.of("""
+A:{ mut .m:A; imm .m:A; }
+User:{ #(a:read A):A->a.m[read] }
+""")); }
 @Test void methodTArgsArityError_oneLessThanNeeded(){fail("""
 007|   read .m(p:Pairer,a:mut A,b:mut B):mut A->
 008|     p.pair[mut A](a,b);
@@ -2038,6 +2054,67 @@ This literal overflows; the nearest representable value is "+1797693134862315708
 Error 7 WellFormedness
 """,List.of("""
  Main:{ .m:base.Float -> +1.0e309 }
+"""));}
+@Test void failFloatExponentBeyondIntRange(){failExt("""
+In file: [###].fear
+
+001|  Main:{ .m:base.Float -> +1.0e99999999999 }
+   |                          ^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Float literal is not exactly representable as "base.Float".
+"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+This literal is: +1.0e99999999999.
+This literal overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
+Error 7 WellFormedness
+""",List.of("""
+ Main:{ .m:base.Float -> +1.0e99999999999 }
+"""));}
+@Test void failFloatNegativeExponentBeyondIntRange(){failExt("""
+In file: [###].fear
+
+001|  Main:{ .m:base.Float -> +1.0e-99999999999 }
+   |                          ^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Float literal is not exactly representable as "base.Float".
+"base.Float" must be representable exactly as a 64-bit IEEE 754 double.
+This literal is: +1.0e-99999999999.
+If rounded, the nearest representable value is "+0.0".
+Write "+1.0e-99999999999soft" to accept that rounding.
+Hint: if you need arbitrary precision numbers, use "base.Num".
+Error 7 WellFormedness
+""",List.of("""
+ Main:{ .m:base.Float -> +1.0e-99999999999 }
+"""));}
+@Test void okFloatZeroExponentBeyondIntRange(){ok(List.of("""
+ Main:{ .m:base.Float -> +0.0e-99999999999 }
+"""));}
+@Test void failNumberLiteralWithTypeParameters(){failExt("""
+In file: [###].fear
+
+001| A:{ .m: A -> 1[A] }
+   |              ^^
+
+While inspecting the file
+Name "1" is not declared with 1 type parameter(s).
+Number and string literal types are only declared with 0 type parameter(s).
+Error 7 WellFormedness
+""",List.of("""
+A:{ .m: A -> 1[A] }
+"""));}
+@Test void failStrLiteralWithTypeParameters(){failExt("""
+In file: [###].fear
+
+001| A:{ .m: `a`[A] }
+   |         ^^^^
+
+While inspecting the file
+Name "`a`" is not declared with 1 type parameter(s).
+Number and string literal types are only declared with 0 type parameter(s).
+Error 7 WellFormedness
+""",List.of("""
+A:{ .m: `a`[A] }
 """));}
 @Test void failFloatTooSmall(){failExt("""
 In file: [###].fear

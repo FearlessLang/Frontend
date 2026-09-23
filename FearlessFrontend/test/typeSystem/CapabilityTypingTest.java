@@ -57,6 +57,33 @@ B:{}
 A:{ .b(a: mut A): mutH B -> {}; .doThing: mut B -> this.b({}) }
 B:{}
 """));}
+@Test void mutHResultIsLiteralWithMethods(){ok(List.of("""
+A:{ .b(a: mut A): mutH B -> { .get -> a } }
+B:{ mut .get: mut A }
+"""));}
+@Test void readHResultIsLiteralWithMethods(){ok(List.of("""
+A:{ .b(a: read A): readH B -> { .get -> a } }
+B:{ read .get: read A }
+"""));}
+@Test void mutHResultLiteralReadMethodCannotReturnMutCapture(){fail("""
+002| ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }
+   |              ---------------------------------~~~~~~~^^-----------
+
+While inspecting parameter "a" > ".a1" line 2 > "#(_)" line 2
+Method ".a1" inside the object literal instance of "mut Container" (line 2)
+is implemented with an expression returning "read A".
+Parameter "a" has type "read A" instead of a subtype of "mut A".
+Note: the declared type "mut A" would instead be a valid subtype.
+Capture adaptation trace:
+"mut A" --setToRead(line 2)--> "read A".
+
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+Con-erF:{#(a:mut A):mutH Container->mut Container{read .a1:mut A->a;mut .a2:mut A->a}}
+""",List.of("""
+A:{}
+ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }
+Container:{ read .a1: mut A; mut .a2: mut A }
+"""));}
 @Test void noCallMutFromImm(){fail("""
 002| A:{ .b: imm B -> {}; .doThing: Void -> this.b.foo.ret }
    |                      ------------------~~~~~~^^^^^---

@@ -18,6 +18,7 @@ import message.FearlessErrFactory;
 import metaParser.MetaParser;
 import metaParser.Span;
 import utils.Bug;
+import utils.Range;
 
 import static fearlessParser.TokenKind.*;
 import static java.util.Optional.*;
@@ -98,7 +99,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   T.X parseDecTX(boolean mustNew){
     int startPos= index();
-    var c= expect("Generic type name declaration", UppercaseId);
+    var c= expectValidate("Generic type name declaration", UppercaseId,_XId);
     int endPos= index();
     var declared= names.XIn(c.content()) || names.XHidden(c.content());
     if (mustNew && declared){ throw errFactory().nameRedeclared(c,span(c).get()); }
@@ -140,7 +141,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       return new E.Call(receiver, m, sq, false,empty(),List.of(), pos);
     }
     E atom= parseAtom();//we need to avoid parsing the posts if e0 + e1 + e2
-    updateNames(names.add(xsOf(xpat).toList(), List.of()));//zero if xpat is empty
+    var xs= xsOf(xpat).toList();
+    checkNewXs(xs);
+    updateNames(names.add(xs, List.of()));//zero if xpat is empty
     if (xpat.isPresent()){ atom = parsePost(atom); while (!end()){ atom = parsePost(atom); } }
     return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar 
   }
@@ -236,6 +239,12 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     for (var s : ss){ if (!seen.add(s)){ return s; } }
     return "";
   }
+  void checkNewXs(List<String> xs){
+    for (int i : Range.of(xs)){
+      var x= xs.get(i);
+      if (names.xIn(x) || xs.subList(0,i).contains(x)){ throw errFactory().patternNameRedeclared(span(),x); }
+    }
+  }
   void checkValidNew(List<String> xs, BiFunction<Span,String,FearlessException> err){
     var x= repeated(xs);
     if (!x.isEmpty()){ throw err.apply(span(), x); }
@@ -248,6 +257,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   M parseMethodWithSig(Sig sig){
     var xs= sig.parameters().stream().flatMap(p->xsOf(p.xp())).toList();
     var Xs= sig.bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
+    checkNewXs(xs);
     updateNames(names.add(xs,Xs));
     return new M(of(sig),of(parseMethodBody()),tspan());
   }
@@ -343,7 +353,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var res= parseFront("",true,
       curlyRight,
       p->p.splitBy("super types declaration",commaSkip,Parser::parseC)
-    ).get();
+    ).orElseThrow(()->errFactory().missing(remainingSpan(),"type declaration body",List.of(OCurly),this));
     if (res.stream().distinct().count() < res.size()){ throw errFactory().duplicatedImpl(res, spanAround(back(start), index())); }
     return res;
   }
@@ -489,7 +499,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
 
   TSpan tspan(){ return new TSpan(span()); }
   private void absurd(){
-    var absurd= peek(Colon,Arrow,SQuote,Eq,Comma,SemiColon);//will add more when we find other absurd cases
+    var absurd= peek(Colon,Arrow,SQuote,Eq,Comma,SemiColon,Underscore,ReadImm);//will add more when we find other absurd cases
     if (absurd){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
   }
   private void eatAtom(){

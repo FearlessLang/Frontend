@@ -2724,5 +2724,140 @@ Error 7 WellFormedness
 A:{ .foo:A->this; mut .foo:A->this; }
 """);}
 
+@Test void declarationMissingBody(){fail("""
+In file: [###].fear
+
+001| A:
+   | -^
+
+While inspecting type declaration > full file
+Missing type declaration body.
+Expected: "{".
+Error 2 UnexpectedToken
+""","""
+A:
+""");}
+@Test void declarationWithSupertypesMissingBody(){fail("""
+In file: [###].fear
+
+001| A:B,C
+   | --^^^
+
+While inspecting type declaration > full file
+Missing type declaration body.
+Expected: "{".
+Error 2 UnexpectedToken
+""","""
+A:B,C
+""");}
+@Test void underscoreAsMethodBody(){fail("""
+In file: [###].fear
+
+001| A:{ .m:A->_ }
+   |   --~~~~~~^--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Missing expression.
+Found instead: "_".
+Expected one of: "name", "type name", "(", "{".
+Error 2 UnexpectedToken
+""","""
+A:{ .m:A->_ }
+""");}
+@Test void underscoreBeforeExpressionInMethodBody(){fail("""
+In file: [###].fear
+
+001| A:{_ A +1.0 }
+   |   -^~~~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Missing expression.
+Found instead: "_".
+Expected one of: "name", "type name", "(", "{".
+Error 2 UnexpectedToken
+""","""
+A:{_ A +1.0 }
+""");}
+@Test void qualifiedGenericDeclaration(){fail("""
+In file: [###].fear
+
+001| A[base.Nat]:{}
+   | --^^^^^^^^----
+
+While inspecting generic bounds declaration > type declaration > full file
+Missing Generic type name declaration.
+Found instead: "base.Nat".
+Expected: "type name".
+Error 2 UnexpectedToken
+""","""
+A[base.Nat]:{}
+""");}
+@Test void implicitMethodsRedeclared(){fail("""
+In file: [###].fear
+
+001| A:{ #(x:A):A; #(x:A,y:A):A }
+002| C:A{::; ::}
+   | ---~~~~~^^~
+
+While inspecting type declaration body > type declaration > full file
+Method with inferred name and 1 parameter redeclared.
+A method with the inferred name and the same parameter count is already present above.
+Error 7 WellFormedness
+""","""
+A:{ #(x:A):A; #(x:A,y:A):A }
+C:A{::; ::}
+""");}
+@Test void noParMethodsRedeclared(){fail("""
+In file: [###].fear
+
+001| A:{ this; this }
+   | --~~~~~~~~^^^^~~
+
+While inspecting type declaration body > type declaration > full file
+Method with inferred name and 0 parameter redeclared.
+A method with the inferred name and the same parameter count is already present above.
+Error 7 WellFormedness
+""","""
+A:{ this; this }
+""");}
+@Test void patternNameInScope(){fail("""
+In file: [###].fear
+
+001| A:{.m(a:A):A->B:{.k({.a}:A):A->a}}
+   |               --~^^^^^^^^^^^^^^^~
+
+While inspecting method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Name "a" already in scope.
+It is declared by a nominal pattern: a pattern like "{.a.b, .c}id" declares the names "bid" and "cid".
+Error 2 UnexpectedToken
+""","""
+A:{.m(a:A):A->B:{.k({.a}:A):A->a}}
+""");}
+@Test void eqPatternNameInScope(){fail("""
+In file: [###].fear
+
+001| A:{.m(a:A):A->a.m {.a} = a; a}
+   |   -~~~~~~~~~~~^^^^^^^^^^^^----
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Name "a" already in scope.
+It is declared by a nominal pattern: a pattern like "{.a.b, .c}id" declares the names "bid" and "cid".
+Error 2 UnexpectedToken
+""","""
+A:{.m(a:A):A->a.m {.a} = a; a}
+""");}
+@Test void eqPatternNameRepeated(){fail("""
+In file: [###].fear
+
+001| A:{.m(a:A):A->a.m {.b, .b}x = a; a}
+   |   -~~~~~~~~~~~^^^^^^^^^^^^^^^^^----
+
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+Name "bx" already in scope.
+It is declared by a nominal pattern: a pattern like "{.a.b, .c}id" declares the names "bid" and "cid".
+Error 2 UnexpectedToken
+""","""
+A:{.m(a:A):A->a.m {.b, .b}x = a; a}
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

@@ -377,6 +377,7 @@ public record InjectionSteps(Methods meths){
     IT t= withTsNormBs(rcc,ts);
     return commitToTable(g, bs, l.withMsT(ms, t), t);
   }
+  private static RC literalRc(RC rc){ return switch (rc){ case mutH -> RC.mut; case readH -> RC.read; default -> rc; }; }
   private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT t){
     TName name= l.name();
     if (!t.isTV() || !(t instanceof IT.RCC rcc) || hasU(l.ms()) || meths.cache().containsKey(name)){ return l; }
@@ -384,7 +385,7 @@ public record InjectionSteps(Methods meths){
     List<B> localBs= freeNames.distinct().map(x -> RC.get(bs, x)).toList();
     TName newName= name.withArity(localBs.size());
     List<M> ms= fixArity(l.ms(), name, newName);
-    Optional<RC> orc= l.rc().or(rcc::rc);
+    Optional<RC> orc= l.rc().or(rcc::rc).map(InjectionSteps::literalRc);
     if (!l.infName()){
       l = new E.Literal(orc, newName, localBs, l.cs(), l.thisName(), ms, l.t(), l.src(),l.infName(), l.infHead(), l.g());
       assert !meths.cache().containsKey(name);

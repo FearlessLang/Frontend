@@ -154,6 +154,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line(x+" is a type parameter; object literals can only implement nominal types.")
       .ex(at));
   }
+  public FearlessException methodNotInferred(Literal at, M m){
+    int n= m.sig().ts().size();
+    return addExpFrame(at, err()
+      .line("Cannot infer signature and name for a method with "+n+" parameters.")
+      .line("No supertype of "+err().expRepr(at)+" has a method with "+n+" parameters.")
+      .ex(at));
+  }
   public FearlessException typeDeclaredInMethod(E at, Literal l){
     return addExpFrame(at, err()
       .line("The type "+err().tNameADisp(l.name())+" is declared inside a method body.")
@@ -317,7 +324,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .ex(c), c);
     }
-    var rcs= sameArity.stream().sorted().map(Sig::rc).toList();
+    var rcs= sameArity.stream().map(Sig::rc).sorted().toList();
     String availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
     boolean explicit= explicitRc(c);
     Err e2= err()
