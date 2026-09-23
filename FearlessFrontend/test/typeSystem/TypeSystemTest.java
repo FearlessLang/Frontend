@@ -1128,6 +1128,22 @@ User:{
     z.zap[mut](a);
 }
 """)); }
+@Test void methodNotDeclared_wrongReceiverRc_twoOtherCapabilitiesExist(){fail("""
+002| User:{ #(a:read A):A->a.m[read] }
+   |        ---------------~^^^~~~~~
+
+While inspecting "#(_)" line 2
+This call to method ".m" cannot typecheck.
+".m" exists on type "A", but not with the requested capability.
+This call requires the existence of a "read" method.
+Available capabilities for this method: "imm" and "mut".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+a.m[read]
+""", List.of("""
+A:{ mut .m:A; imm .m:A; }
+User:{ #(a:read A):A->a.m[read] }
+""")); }
 @Test void methodTArgsArityError_oneLessThanNeeded(){fail("""
 007|   read .m(p:Pairer,a:mut A,b:mut B):mut A->
 008|     p.pair[mut A](a,b);
