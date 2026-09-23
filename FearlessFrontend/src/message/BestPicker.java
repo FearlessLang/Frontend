@@ -3,7 +3,7 @@ package message;
 import message.CompactPrinter.*;
 
 final class BestPicker{
-  Score best= Score.NONE;
+  Score best= Score.none;
   Compactable pick(PE root){ visit(root,0); return best.k(); }
   void visit(PN n,int depth){
     consider(n,depth+bonus(n));
@@ -45,7 +45,7 @@ final class BestPicker{
     if (score > best.score){ best= new Score(score,n.k()); }
   }
   record Score(int score, Compactable k){
-    static final Score NONE= new Score(-1, Compactable.NO);
+    static final Score none= new Score(-1, Compactable.no);
   }
   static int bonus(PN n){ return n instanceof PM ? 10 : 1; }
 }
