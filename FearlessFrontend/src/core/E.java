@@ -33,10 +33,7 @@ public sealed interface E{
     public Literal withMs(List<M> ms){ return new Literal(rc,name,bs,cs,thisName,ms,src,infName); }
     public Literal withRC(RC rc){ return new Literal(rc,name,bs,cs,thisName,ms,src,infName); }
     public String toString(){
-      String _bs= Join.of(bs,"[",",","]","");
-      String _cs= Join.of(cs,"",", ","","");
-      String _ms= Join.of(ms,"","; ","","");
-      return rc+" "+name.s()+_bs+":"+_cs+"{'"+thisName+" "+_ms+"}";
+      return rc+" "+name.s()+Join.of(bs,"[",",","]","")+":"+Join.of(cs,"",", ","","")+"{'"+thisName+" "+Join.of(ms,"","; ","","")+"}";
     }
   }
   record Call(E e, MName name, RC rc, List<T> targs, List<E> es, EqTransparent<T> expectedRes, Src src) implements E{

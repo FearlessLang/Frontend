@@ -246,11 +246,8 @@ public class CompactPrinter{
   PM ofM(M m){
     var s= m.sig();
     Optional<PE> body= m.e().map(this::ofE);
-    var ts= ofTs(s.ts());
-    var ret= ofT(s.ret());
     var bs= bounds(s.bs());
-    var len= mLen(s.rc(), s.m().s(), bs, m.xs(), body.isPresent());
-    return new PM(s.rc(), s.m().s(), bs, m.xs(), ts, ret, body, Compactable.of(), len);
+    return new PM(s.rc(), s.m().s(), bs, m.xs(), ofTs(s.ts()), ofT(s.ret()), body, Compactable.of(), mLen(s.rc(), s.m().s(), bs, m.xs(), body.isPresent()));
   }
   int mLen(RC rc, String m, String bs, List<String> xs, boolean hasBody){
     int s= rcPrefixLen(rc) + m.length() + bs.length();
@@ -265,12 +262,8 @@ public class CompactPrinter{
   }
   public String sig(Sig s){
     var xs= IntStream.range(0,s.m().arity()).mapToObj(_->"_").toList();
-    var ts= ofTs(s.ts());
-    var ret= ofT(s.ret());
     var bs= bounds(s.bs());
-    var pm= new PM(s.rc(), s.m().s(), bs, xs, ts, ret,
-      Optional.empty(), Compactable.of(),
-      mLen(s.rc(), s.m().s(), bs, xs, false));
+    var pm= new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), Optional.empty(), Compactable.of(), mLen(s.rc(), s.m().s(), bs, xs, false));
     assert sb.isEmpty();
     sb.append(" ".repeat(6-rcPrefixLen(s.rc())));//line up
     pm.accString(this);

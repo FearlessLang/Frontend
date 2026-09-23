@@ -41,9 +41,8 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     if (this == _empty){ return this; }
     var rest= tail.filterFTV(l,captureFree);
     if (captureFree){ return new Gamma(rest, name, t, new Change.CapFree(l,t)); }
-    if (!(current instanceof Change.WithT w)){ return new Gamma(rest, name, t, current); }//core.E.Literal l, core.M m, T atDrop
-    if (!hasOnlyFTV(w.currentT(),l.bs())){ return new Gamma(rest, name, t, new Change.DropFTV(l, w.currentT())); }
-    return new Gamma(rest, name, t, current);
+    if (current instanceof Change.WithT w && !hasOnlyFTV(w.currentT(),l.bs())){ return new Gamma(rest, name, t, new Change.DropFTV(l, w.currentT())); }
+    return new Gamma(rest, name, t, current);//core.E.Literal l, core.M m, T atDrop
   }
   //Above can not reuse FreeXs since FreeXs works on IT
   boolean hasOnlyFTV(T t, List<B> bs){ return switch (t){

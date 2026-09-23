@@ -87,9 +87,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     T bad= args.get(index);
     var bs= decs.apply(c.name()).bs();
     assert index < bs.size();
-    String typeName = err().tNameADisp(c.name());
-    String paramName= disp(bs.get(index).x());
-    return err().pTypeArgBounds(name, typeName, paramName, index, err().typeRepr(true,bad), allowedStr);
+    return err().pTypeArgBounds(name, err().tNameADisp(c.name()), disp(bs.get(index).x()), index, err().typeRepr(true,bad), allowedStr);
   }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr){
     var ms= decs.apply(t.name()).ms();

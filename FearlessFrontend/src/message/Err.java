@@ -1,9 +1,9 @@
 package message;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import core.*;
@@ -152,17 +152,12 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   Err pPromotionFailuresHdr(){ return blank().line("Promotion failures:"); }
   Err pReceiverRequiredByPromotion(List<MType> promos){
-    var byRc= new LinkedHashMap<RC, List<String>>();
-    for (var m:promos){
-      var ps= byRc.computeIfAbsent(m.rc(), _->new ArrayList<>());
-      String p= m.promotion();
-      if (!ps.contains(p)){ ps.add(p); }
-    }
+    var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc,LinkedHashMap::new,Collectors.mapping(MType::promotion,Collectors.toList())));
     if (byRc.size() > 1){
       blank().line("Receiver required by each promotion:");
       byRc.keySet().stream()
         .sorted()
-        .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc),""," / ","")+")"));
+        .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(),""," / ","")+")"));
     }
     return this;
   }

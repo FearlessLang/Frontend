@@ -118,9 +118,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   private E atomFromSignedNumeric(Token x){
     String s = x.content().substring(1);
     Pos p = new Pos(span().fileName(), x.line(), x.column() + 1);
-    TName n = new TName(s, 0, p);
-    T.C c = new T.C(n, Optional.empty());
-    T.RCC rcc = new T.RCC(Optional.empty(), c, new TSpan(span(p, s.length())));
+    T.RCC rcc = new T.RCC(Optional.empty(), new T.C(new TName(s, 0, p), Optional.empty()), new TSpan(span(p, s.length())));
     return new E.TypedLiteral(rcc, Optional.empty(), p);
   }
   E parsePost(E receiver){
@@ -200,11 +198,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (fwdIf(peek(SQuote))){
       var n= parseDecX();
       thisName = of(n);
-      if (top && !n.name().equals("this")){
-        var s= span(n.pos(),n.name().length());
-        throw errFactory().badTopSelfName(s, n.name());
-      }
-      updateNames(names.add(List.of(thisName.get().name()),List.of()));
+      if (top && !n.name().equals("this")){ throw errFactory().badTopSelfName(span(n.pos(),n.name().length()), n.name()); }
+      updateNames(names.add(List.of(n.name()),List.of()));
       }
     if (top && thisName.isEmpty()){ updateNames(names.add(List.of("this"),List.of())); }
     List<M> ms= splitBy("method declaration",semiSkip,p->p.parseMethod(top));
