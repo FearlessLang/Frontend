@@ -161,7 +161,7 @@ public record Methods(
   core.E.Literal injectDeclaration(E.Literal d){
     List<T.C> cs= TypeRename.itcToTC(d.cs());
     p().log().logInferenceDeclaration(d, cs);
-    List<core.M> ms= new ToCore().msSyntetic(d.ms());
+    List<core.M> ms= new ToCore(List.of()).msSyntetic(d.ms());
     return new core.E.Literal(d.rc().get(),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName());
   }
   inference.M withName(MName name,inference.M m){

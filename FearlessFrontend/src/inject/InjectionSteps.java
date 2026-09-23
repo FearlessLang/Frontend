@@ -76,7 +76,7 @@ public record InjectionSteps(Methods meths){
     inference.E ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     Gamma g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
     ei = nextStar(Push.of(di.bs(), m.sig().bs().get()), g, ei);
-    return new core.M(mCore.sig(), xs, Optional.of(new ToCore().of(ei, m.impl().get().e())));
+    return new core.M(mCore.sig(), xs, Optional.of(new ToCore(Push.of(di.bs(), m.sig().bs().get())).of(ei, m.impl().get().e())));
   }
   E meet(E e, IT t){
     if (e instanceof E.Type tt){ return nextT(tt); }

@@ -264,6 +264,23 @@ iso {}
 """,List.of("""
 A[X:*]:{ #: X -> {this}* }
 """));}
+@Test void uninferredLiteralInGenericDeclaration(){fail("""
+004| B[R5:*]: { mut .loop(f: mut Flow[R5]): mut B[R5] -> f.match{ .return(rv) -> Any#; }**; }
+   |            -----------------------------------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+
+While inspecting ".loop(_)" line 4
+This call to method "**" cannot typecheck.
+Method "**" is not declared on type "base.InferUnknown".
+Type "base.InferUnknown" does not have any methods.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+f.match[mut,-.Inf-own](Match[R5,-.Inf-own]{mut .return(rv:R5):-.Inf-own->Any#[imm,-.Inf-own]})**
+""",List.of("""
+Any:{#[T:*]:T->Any#}
+Flow[T:*]: { mut .match[R:*](m: mut Match[T,R]): R }
+Match[T:*,R:*]: { mut .return(t: T): R; }
+B[R5:*]: { mut .loop(f: mut Flow[R5]): mut B[R5] -> f.match{ .return(rv) -> Any#; }**; }
+"""));}
 @Test void literalCannotBePassedAsATypeVariable(){fail("""
 001| A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
    |                            ----------------^^-
