@@ -61,17 +61,9 @@ public sealed interface E{
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear());
     }
     public String toString(){
-      String res= rc.map(RC::toStrSpace).orElse("");
-      res += name.s();
-      res += Join.of(bs,"[",",","]","");
-      res += rc.isEmpty()
-        ?":$?"
-        :Join.of(cs,":",", ","",":");
+      String res= rc.map(RC::toStrSpace).orElse("")+name.s()+Join.of(bs,"[",",","]","")+(rc.isEmpty() ? ":$?" : Join.of(cs,":",", ","",":"));
       if (ms.isEmpty()){ return res+":"+t; }
-      res += "{'"+thisName;
-      res += Join.of(ms,"","","","");
-      res +="}:"+t;
-      return res;
+      return res+"{'"+thisName+Join.of(ms,"","","","")+"}:"+t;
     }
     public Literal withMs(List<M> ms){
       assert t instanceof IT.RCC:t;

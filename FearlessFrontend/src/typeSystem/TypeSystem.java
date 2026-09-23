@@ -30,6 +30,7 @@ import message.TypeSystemErrors;
 import utils.OneOr;
 import utils.Push;
 import utils.Range;
+import utils.Streams;
 import utils.UriSort;
 import core.E.*;
 import pkgmerge.Package;
@@ -79,13 +80,13 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var b= g.bind(x.name());
     T declared= b.declared();
     var cur= b.current();
-    if (!(cur instanceof Change.WithT w)){ throw tsE().parameterNotAvailableHere(x, declared, (Change.NoT)cur, bs); }
+    if (!(cur instanceof Change.WithT w)){ throw tsE().parameterNotAvailableHere(x, (Change.NoT)cur); }
     T got= w.currentT();
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().<Reason>map(r->{
       if (isSub(bs,got,r.t())){ return Reason.pass(got); }
       boolean declaredOk= isSub(bs,declared,r.t());
-      return Reason.parameterDoesNotHaveRequiredTypeHere(this,x, bs, r, declared, w, declaredOk);
+      return Reason.parameterDoesNotHaveRequiredTypeHere(this,x, r, declared, w, declaredOk);
     }).toList();
   }
   private List<Reason> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
@@ -134,11 +135,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private void checkImplemented(Literal l, M m,E blame){
     if (!m.sig().abs()){ return; }
     if (!callable(l.rc(),m.sig().rc())){ return; }
-    throw tsE().callableMethodStillAbstract(blame,m, l);
+    throw tsE().callableMethodStillAbstract(blame,m);
   }
   private void checkCallable(Literal l, M m){
-    RC litRC= l.rc();
-    if (callable(litRC,m.sig().rc())){ return; }
+    if (callable(l.rc(),m.sig().rc())){ return; }
     throw tsE().methodImplementationDeadCode(m.sig().span(), m, l);
   }
   private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC !=RC.read); }
@@ -175,14 +175,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var delta= l.bs();
     var span= l.name().approxSpan();
     var selfT= new T.C(l.name(),dom(delta,span));
-    SequencedMap<Key,List<Sig>> sources= sources(l);
-    sources.forEach((k,group)->methodTableOk(l,k,group));
+    sources(l).forEach((k,group)->methodTableOk(l,k,group));
     l.cs().forEach(c->csOk(l,delta,c));
     var g1= v().discard(g,l).add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
-    l.ms().forEach(m->{
-      Gamma g2= v().of(g1,l,m);//passing l and m instead of their RC for better errors
-      methOk(l,delta,g2,m);
-    });
+    l.ms().forEach(m->methOk(l,delta,v().of(g1,l,m),m));//passing l and m instead of their RC for better errors
   }
   private void csOk(Literal l, List<B> delta, T.C c){
     k().checkC(l,delta,c);
@@ -215,11 +211,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     Literal d= decs().apply(rcc1.c().name());
     assert d!=null: rcc1;
     List<String> xs= d.bs().stream().map(B::x).toList();
-    for (T.C ci : d.cs()){
-      T sup= TypeRename.of(new T.RCC(rcc1.rc(), ci,rcc1.span()), xs, rcc1.c().ts());
-      if (isSub(bs, sup, t2)){ return true; }
-    }
-    return false;
+    return d.cs().stream().anyMatch(ci->isSub(bs, TypeRename.of(new T.RCC(rcc1.rc(), ci,rcc1.span()), xs, rcc1.c().ts()), t2));
   }
   private boolean isXReadImmXSubtype(List<B> bs, T t1, T t2){
     return t2 instanceof T.ReadImmX rix
@@ -229,26 +221,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private boolean isSameShapeSubtype(List<B> bs, T t1, T t2){
     if (!eqModXRC(bs,t1.withRC(mut),t2.withRC(mut))){ return false; }
-    var rcs1= intrinsicRCs(bs, t1);
-    var rcs2= intrinsicRCs(bs, t2);
-    for (var r1 : rcs1){
-      for (var r2 : rcs2){
-        if (!r1.isSubType(r2)){ return false; }
-      }
-    }
-    return true;
-  }
-  EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch (t){
-    case T.RCC(var rc, _,_) -> EnumSet.of(rc);
-    case T.RCX(var rc, _) -> EnumSet.of(rc);
-    case T.X(var x,_) -> get(bs, x).rcs();
-    case T.ReadImmX x -> intrinsicRCs(bs,x);
-  };}
-  private EnumSet<RC> intrinsicRCs(List<B> bs, T.ReadImmX x){
-    var rcs= get(bs, x.x().name()).rcs();
-    if (EnumSet.of(iso, imm).containsAll(rcs)){ return EnumSet.of(imm); }
-    if (EnumSet.of(mut, mutH, read, readH).containsAll(rcs)){ return EnumSet.of(read); }
-    return EnumSet.of(read, imm);
+    var rcs2= Kinding.intrinsicRCs(bs, t2);
+    return Kinding.intrinsicRCs(bs, t1).stream().allMatch(r1->rcs2.stream().allMatch(r1::isSubType));
   }
   private void methodTableOk(Literal l,Key k,List<Sig> group){
     Sig chosen= Sources.findCanonical(l,k.m(),k.rc());
@@ -285,10 +259,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return true;
   }  
   private boolean isOriginSub(TName sub, TName sup){
-    if (sub.equals(sup)){ return true; }
-    Literal d= decs().apply(sub);
-    for (var parent : d.cs()){ if (isOriginSub(parent.name(), sup)){ return true; } }
-    return false;
+    return sub.equals(sup) || decs().apply(sub).cs().stream().anyMatch(parent->isOriginSub(parent.name(), sup));
   }
   private void sigSub(Literal l, Sig current, Sig parent){
     assert current.bs().equals(parent.bs());
@@ -308,10 +279,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (a instanceof T.RCX ar && b instanceof T.X bx && ar.x().name().equals(bx.name())){ return redundantOnX(bs,ar.rc(),bx.name()); }
     if (!(a instanceof T.RCC aa && b instanceof T.RCC bb)){ return false; }
     if (aa.rc() != bb.rc() || !aa.c().name().equals(bb.c().name())){ return false; }
-    var as= aa.c().ts(); var bs2= bb.c().ts();
-    assert as.size() == bs2.size();
-    for (int i : Range.of(as)){ if (!eqModXRC(bs,as.get(i),bs2.get(i))){ return false; } }
-    return true;
+    return Streams.zip(aa.c().ts(), bb.c().ts()).allMatch((x,y)->eqModXRC(bs,x,y));
   }
   private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }  
 }

@@ -3,6 +3,7 @@ package typeSystem;
 import static core.RC.*;
 
 import java.util.*;
+import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
 import core.B;
@@ -53,10 +54,8 @@ final class MultiMeth{
     return out.values().stream().toList();
   }
   private static void oneMutHToMut(LinkedHashMap<Key,MType> out, List<B> d, MType m){
-    var tsi= IntStream.range(0, m.ts().size())
-      .mapToObj(j->modeF(d,m.ts().get(j), Mode.flexy, F.glb)).toList();
-    var t= modeF(d,m.t(), Mode.hyg, F.lub);
-    add(out,new MType("Allow mutH receiver", Mode.hyg.of(m.rc()), tsi, t));
+    var tsi= m.ts().stream().map(ti->modeF(d,ti, Mode.flexy, F.glb)).toList();
+    add(out,new MType("Allow mutH receiver", Mode.hyg.of(m.rc()), tsi, modeF(d,m.t(), Mode.hyg, F.lub)));
     for (int i : Range.of(m.ts())){ iMutHToMut(out,d,m,i); }
   }
   private static void iMutHToMut(LinkedHashMap<Key,MType> out, List<B> d, MType m, int i){
@@ -74,31 +73,17 @@ final class MultiMeth{
     return switch (t){
       case T.RCC rcc -> rcc.withRC(mode.of(rcc.rc()));
       case T.RCX rcx -> rcx.withRC(mode.of(rcx.rc()));
-      case T.X x -> modeVar(d,x,mode,f,t);
-      case T.ReadImmX(var x) -> modeReadImmVar(d,x,mode,f,(T.ReadImmX)t);
+      case T.X x -> modeVar(d,x,mode::of,f,t);
+      case T.ReadImmX(var x) -> modeVar(d,x,rc->mode.of(rc).readImm(),f,t);
       //Note: T.C is not a type (only a part of a type); formalism correctly does not recurse into c.ts()
     };
   }
-  private static T modeVar(List<B> d, T.X x, Mode mode, F f, T original){
+  private static T modeVar(List<B> d, T.X x, UnaryOperator<RC> m, F f, T original){
     var rcs= get(d,x.name());
-    if (noChange(mode,rcs)){ return original; }
+    if (rcs.stream().allMatch(rc -> m.apply(rc) == rc)){ return original; }
     var mapped= EnumSet.noneOf(RC.class);
-    rcs.forEach(rc -> mapped.add(mode.of(rc)));
+    rcs.forEach(rc -> mapped.add(m.apply(rc)));
     return new T.RCX(f.of(mapped),x);
-  }
-  private static T modeReadImmVar(List<B> d, T.X x, Mode mode, F f, T.ReadImmX original){
-    var rcs= get(d,x.name());
-    if (noChangeRI(mode,rcs)){ return original; }
-    var mapped= EnumSet.noneOf(RC.class);
-    rcs.forEach(rc -> mapped.add(mode.of(rc).readImm()));
-    return new T.RCX(f.of(mapped),x);
-  }
-
-  private static boolean noChange(Mode mode, EnumSet<RC> rcs){
-    return rcs.stream().allMatch(rc -> mode.of(rc) == rc);
-  }
-  private static boolean noChangeRI(Mode mode, EnumSet<RC> rcs){
-    return rcs.stream().allMatch(rc -> mode.of(rc).readImm() == rc);
   }
   public static EnumSet<RC> get(List<B> bs, String x){
     B b= OneOr.of("bad delta",bs.stream().filter(bi->bi.x().equals(x)));

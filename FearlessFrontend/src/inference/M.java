@@ -15,9 +15,7 @@ public record M(Sig sig, Optional<Impl> impl){
   public M{ assert nonNull(sig,impl); }
   public String toString(){
     if (impl.isEmpty()){ return sig.toString();}
-    var xs=impl.get().xs;
-    var args= Join.of(xs,"(",", ",")","");
-    return sig + args+ "->"+impl.get().e()+";";
+    return sig + Join.of(impl.get().xs,"(",", ",")","")+ "->"+impl.get().e()+";";
     }
   public M withSig(Sig sig){
     if (sig.equals(this.sig)){ return this; }
@@ -30,11 +28,8 @@ public record M(Sig sig, Optional<Impl> impl){
     }
     public String toString(){
       var bsS= bs.isEmpty() ? "[?]" : Join.of(bs.get(),"[",",","]","");
-      var tsS= Join.of(ts.stream().map(this::t),"(",",",")","");
-      var rcS= rc.map(RC::toStrSpace).orElse("? ");
-      var ori= origin.map(o->"@"+o.s()).orElse("@!");
-      var mS= m.isPresent()?m.get().toString():"";
-      return " "+rcS+mS+bsS+tsS+":"+t(ret)+ori+";";
+      return " "+rc.map(RC::toStrSpace).orElse("? ")+m.map(MName::toString).orElse("")+bsS
+        +Join.of(ts.stream().map(this::t),"(",",",")","")+":"+t(ret)+origin.map(o->"@"+o.s()).orElse("@!")+";";
     }    
     private String t(Optional<IT> ot){ return ot.map(Object::toString).orElse("?"); }
     public Sig withTsT(List<Optional<IT>> ts, IT ret){

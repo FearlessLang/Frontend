@@ -1,9 +1,9 @@
 package message;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import core.*;
@@ -34,8 +34,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   private TName guessImplName(inference.E.Literal l){
     if (!l.cs().isEmpty()){ return l.cs().getFirst().name(); }
-    var rcc= (T.RCC)TypeRename.itToT(l.t());
-    return rcc.c().name();
+    return ((T.RCC)TypeRename.itToT(l.t())).c().name();
   }
   private String bestNamePkg0(boolean instanceOf, String n){
     return instanceOf ? "instance of "+disp(n) : disp(n);
@@ -59,12 +58,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return "imm "+str;
   }
   T showPublicHead(T t){ return mapHead(t, publicHead); }
-  private T mapHead(T t, Function<T.C,T.C> f){ return switch (t){
-    case T.X x -> x;
-    case T.RCX x -> x;
-    case T.ReadImmX x -> x;
-    case T.RCC(RC rc, T.C c, var span) -> new T.RCC(rc, f.apply(c), span);
-  };}
+  private T mapHead(T t, Function<T.C,T.C> f){ return t instanceof T.RCC(RC rc, T.C c, var span) ? new T.RCC(rc, f.apply(c), span) : t; }
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t),t.span()))); }
   static String up(String s){return s.substring(0, 1).toUpperCase() + s.substring(1); }
   String expRepr(E toErr){return switch (toErr){
@@ -75,12 +69,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       : "object literal " +bestNamePkg0(showInstanceOf(l), bestLitName(false,true,l));
     case Type t-> "object literal instance of " + typeRepr(true,t.type());
     };}
-  String displayX(X x){
-    core.Src.SrcObj src= x.src().inner;
-    var impl= src instanceof fearlessFullGrammar.E.Implicit;
-    if (impl){ return disp("::"); }
-    return disp(x.name());
-    }
+  String displayX(X x){ return disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name()); }
   String expReprDirect(boolean skipImm, E toErr){return switch (toErr){
     case Call c->methodSig(c.name());
     case X x->disp(x.name());
@@ -102,13 +91,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String methodSig(String pre, TName t, MName m){ return methodSig(pre+tNameA(t),m); }
   String methodSig(String pre, Literal l, MName m){ return methodSig(pre+bestLitName(true,true,l),m); }
   String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+bestLitName(l),m); }
-  String methodSig(String pre, MName m){
-    return disp(Join.of(
-      IntStream.range(0,m.arity()).mapToObj(_->"_"),
-      pre+m.s()+"(",",",")",
-      pre+m.s()
-    ));
-  }
+  String methodSig(String pre, MName m){ return disp(Join.of(IntStream.range(0,m.arity()).mapToObj(_->"_"),pre+m.s()+"(",",",")",pre+m.s())); }
   public static boolean rcOnlyMismatch(T got, T req){
     return got.equals(req) 
       || (got instanceof T.RCC g 
@@ -168,23 +151,13 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return line("This call to method "+methodSig(c.name())+" cannot typecheck.");
   }
   Err pPromotionFailuresHdr(){ return blank().line("Promotion failures:"); }
-  Err pPromoFailure(String reason){
-    reason= reason.stripTrailing();
-    assert !reason.isEmpty();
-    return bullet(reason);
-  }
   Err pReceiverRequiredByPromotion(List<MType> promos){
-    var byRc= new LinkedHashMap<RC, List<String>>();
-    for (var m:promos){
-      var ps= byRc.computeIfAbsent(m.rc(), _->new ArrayList<>());
-      String p= m.promotion();
-      if (!ps.contains(p)){ ps.add(p); }
-    }
+    var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc,LinkedHashMap::new,Collectors.mapping(MType::promotion,Collectors.toList())));
     if (byRc.size() > 1){
       blank().line("Receiver required by each promotion:");
       byRc.keySet().stream()
-        .sorted((a,b)->Integer.compare(a.ordinal(), b.ordinal()))
-        .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc),""," / ","")+")"));
+        .sorted()
+        .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(),""," / ","")+")"));
     }
     return this;
   }

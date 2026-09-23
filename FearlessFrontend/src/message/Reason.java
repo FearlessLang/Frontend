@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 
 import core.*;
 import core.E.*;
-import typeSystem.ArgMatrix;
 import typeSystem.TypeScope;
 import typeSystem.TypeSystem;
 import typeSystem.Change.*;
@@ -27,10 +26,7 @@ public final class Reason{
     TypeSystem ts, E blame, List<B> bs, T got, T expected
     ){     
     var er= (T.RCC)expected;
-    if (er.rc() == core.RC.imm){
-      return new Reason(got, base(ts,blame,bs,got,expected), ()->baseFooterE(ts.scope(),got,expected));
-    }
-    boolean explRC= switch (blame){
+    boolean explRC= er.rc() != RC.imm && switch (blame){
       case Literal l->l.rc() != RC.imm;
       case Type(var t,_) ->  t.rc() != RC.imm;
       default ->{ throw Bug.unreachable(); }
@@ -55,27 +51,13 @@ public final class Reason{
       +" if you need a "+disp(expected.rc())+" object literal.");
     return new Reason(got, e.text(), ()->baseFooterE(ts.scope(),got,expected));
   }
-  private static E baseFooterE(TypeScope s,T actual, T req){
-    List<T> interest= TypeScope.interestFromDeclVsReq(actual, req);
-    var best= TypeScope.bestInterestingScope(s, interest);
-    return best.contextE();
-  }
-  public static Reason callResultCannotHaveRequiredType(
-    TypeSystem ts, Literal d, Call call, List<B> bs, ArgMatrix mat, List<Integer> okProm, TRequirement req, List<T> got, Sig sig, TypeScope scope
-  ){    
-    assert !okProm.isEmpty();
-    Supplier<E> footerE= ()->{
-      T decl0= sig.ret().withRC(core.RC.imm);
-      T req0= req.t().withRC(core.RC.imm);
-      List<T> interest= TypeScope.interestFromDeclVsReq(decl0, req0);
-      var best= TypeScope.bestInterestingScope(scope, interest);
-      return best.contextE();
-    };
+  private static E baseFooterE(TypeScope s,T actual, T req){ return TypeScope.bestInterestingScope(s, TypeScope.interestFromDeclVsReq(actual, req)).contextE(); }
+  public static Reason callResultCannotHaveRequiredType(TypeSystem ts, Literal d, Call call, TRequirement req, List<T> got, Sig sig){
     return new Reason(got.getFirst(),ts.err().gotMsg(true,"Method call "+ts.err().methodSig(call.rc().toStrSpace(),d,call.name()),got, req.t()),
-      footerE);
+      ()->baseFooterE(ts.scope(),sig.ret().withRC(RC.imm),req.t().withRC(RC.imm)));
   }
   public static Reason parameterDoesNotHaveRequiredTypeHere(
-    TypeSystem ts,X x, List<B> bs, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
+    TypeSystem ts,X x, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
   ){
     T got= cur.currentT();
     var rcOnly= Err.rcOnlyMismatch(got, req.t());

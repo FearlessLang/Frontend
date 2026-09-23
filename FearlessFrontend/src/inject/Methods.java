@@ -75,7 +75,6 @@ public record Methods(
   //TODO: performance: currently fetch rewrites for the class generics
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps? Something similar has been done for MSigL 
-  CsMs fetch(E.Literal child,IT.C c){ return fetch(child,c,from(c.name())); }
   CsMs fetch(E.Literal child,IT.C c,core.E.Literal d){ //d == from(c.name()); but from can be undefined for {..}.foo
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
     var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
@@ -113,7 +112,7 @@ public record Methods(
   }
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache::get,other); }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
-    List<CsMs> ds= d.cs().stream().map(c->fetch(d,c)).toList();
+    List<CsMs> ds= d.cs().stream().map(c->fetch(d,c,from(c.name()))).toList();
     List<IT.C> allCs= Stream.concat(
       d.cs().stream(),
       ds.stream().flatMap(dsi->dsi.cs().stream())
@@ -154,7 +153,7 @@ public record Methods(
   void notSealed(TName target, E.Literal owner){
     var d= LiteralDeclarations._from(target, _->null, other);
     if (!LiteralDeclarations.has(d.cs(),LiteralDeclarations.sealed)){ return; }
-    throw p.err().extendedSealed(owner,fresh, target);
+    throw p.err().extendedSealed(owner, target);
   }
 
   core.E.Literal injectDeclaration(E.Literal d){
@@ -187,12 +186,12 @@ public record Methods(
       ss.removeIf(s->s.m().get().arity()==arity && s.abs()?match.add(s):false);
       var count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw p.err().ambiguousImpl(origin,fresh,true,m,match); }
+      if (count > 1){ throw p.err().ambiguousImpl(origin,true,m,match); }
       assert match.isEmpty();
       ss.removeIf(s->s.m().get().arity()==arity?match.add(s):false);
       count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw p.err().ambiguousImpl(origin,fresh,false,m,match); }
+      if (count > 1){ throw p.err().ambiguousImpl(origin,false,m,match); }
       throw p.err().noSourceToInferFrom(origin,m);
     }
     return changed ? List.copyOf(res) : ms;
@@ -212,15 +211,9 @@ public record Methods(
           if (dead != null){ ss.addAll(dead); }
         }
       }
-      if (match.isEmpty()){
-        var m2= pairWithSig(List.of(),m,origin);
-        assert (m2 == m) == m2.equals(m);
-        changed |= m2 != m;
-        res.add(m2);
-        continue;
-      }
+      var groups= match.isEmpty() ? List.of(List.<M.Sig>of()) : List.copyOf(match.values());
       boolean first= true;
-      for (var matches: match.values()){
+      for (var matches: groups){
         var mi= first ? m : new DupE(fresh,origin,m,this.p().err()).ofM(m,origin.name(),origin.name());
         first= false;
         var m2= pairWithSig(Collections.unmodifiableList(matches), mi, origin);
@@ -269,22 +262,19 @@ public record Methods(
     List<List<B>> allBounds= ss.stream().map(e->e.bs().get()).distinct().toList();
     if (s.bs().isEmpty()){ return agreementBs(at,allBounds ); }
     var userBs= s.bs().get();
-    int userArity= userBs.size();
     var superBsList = ss.stream().map(e->e.bs().get()).toList();
     var superArities = superBsList.stream().map(List::size).distinct().toList();
-    if (superArities.size() != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at,fresh, superBsList); }
-    var superArity= superArities.getFirst();
-    if (superArity != userArity){ throw p.err().methodGenericArityDisagreesWithSupers(at,fresh,
-      userArity, superArities.getFirst(), userBs, superBsList.getFirst()); }
+    if (superArities.size() != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at, superBsList); }
+    if (superArities.getFirst() != userBs.size()){ throw p.err().methodGenericArityDisagreesWithSupers(at, userBs, superBsList.getFirst()); }
     var bounds= allBounds.stream().map(l->l.stream().map(e->e.rcs()).toList())
       .distinct().count();
-    if (bounds!= 1){ throw p.err().methodBsDisagreementBetweenSupers(at, fresh,allBounds); }
+    if (bounds!= 1){ throw p.err().methodBsDisagreementBetweenSupers(at, allBounds); }
     var supBs= allBounds.getFirst();
     assert supBs.size() == userBs.size();
     var supRCs= supBs.stream().map(b->b.rcs()).toList();
     var userRCs= userBs.stream().map(b->b.rcs()).toList();
     if (supRCs.equals(userRCs)){ return userBs; }
-    throw p.err().methodBsDisagreesWithSupers(at, fresh,userBs,supBs);
+    throw p.err().methodBsDisagreesWithSupers(at, userBs,supBs);
   }      
   IT pairWithTs(Agreement at, int i, Optional<IT> t,List<M.Sig> ss){
     return t.orElseGet(()->agreement(at,ss.stream().map(e->e.ts().get(i).get()),
@@ -292,24 +282,21 @@ public record Methods(
   }
   M pairWithSig(List<M.Sig> ss, E.Literal origin){
     assert !ss.isEmpty();
-    if (ss.size() == 1){ return toCompleteM(ss.getFirst()); }
+    if (ss.size() == 1){ return new M(ss.getFirst(),Optional.empty()); }
     var at= new Agreement(origin,ss.getFirst().rc(),ss.getFirst().m().get(),origin.span().inner);
     List<B> bs= agreementBs(at,ss.stream().map(e->e.bs().get()).distinct().toList());
     var ssAligned = alignMethodSigsTo(ss, bs);
     MName name= ssAligned.getFirst().m().get();
-    List<Optional<IT>> ts= IntStream.range(0, name.arity()).mapToObj(
-      i->Optional.of(agreement(at,ssAligned.stream().map(e->e.ts().get(i).get()),
-        p.err().argTypeDisagreement(i)))).toList();
+    List<Optional<IT>> ts= IntStream.range(0, name.arity()).mapToObj(i->Optional.of(pairWithTs(at,i,Optional.empty(),ssAligned))).toList();
     IT res= agreement(at,ssAligned.stream().map(e->e.ret().get()),p.err().retTypeDisagreement());
     var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
-    if (impl.size() > 1){ throw p.err().ambiguousImplementationFor(ssAligned,impl,at,fresh); }
+    if (impl.size() > 1){ throw p.err().ambiguousImplementationFor(impl,at); }
     TName originName= impl.size() == 1? impl.getFirst() : origin.name();
     RC rc= rcAgreement(ssAligned);
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,originName,impl.isEmpty(),ssAligned.getFirst().span());
     return new M(sig,Optional.empty());
   }
   
-  M toCompleteM(M.Sig s){ return new M(s,Optional.empty()); }
   M toCompleteM(inference.M m,E.Literal origin){
     var s= m.sig();
     RC rc=s.rc().orElse(RC.imm);
@@ -325,7 +312,7 @@ public record Methods(
   private <RR> RR agreement(Agreement at,Stream<RR> es, String msg){
     var res= es.distinct().toList();
     if (res.size() == 1){ return res.getFirst(); }
-    throw p.err().noAgreement(at,fresh,res,msg);
+    throw p.err().noAgreement(at,res,msg);
   }
   //ssAligned is always grouped/bucketed by rc upstream (see pairWithSig callers), so rc is always uniform here.
   private RC rcAgreement(List<M.Sig> ssAligned){
@@ -338,10 +325,10 @@ public record Methods(
   List<B> agreementBs(Agreement at,List<List<B>> res){
     if (res.size() == 1){ return res.getFirst(); }
     var sizes= res.stream().map(List::size).distinct().count();
-    if (sizes != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at,fresh,res); }
+    if (sizes != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at,res); }
     var bounds= res.stream().map(l->l.stream().map(e->e.rcs()).toList()).distinct().count();
     if (bounds== 1){ return res.getFirst(); }
-    throw p.err().methodBsDisagreementBetweenSupers(at, fresh,res);
+    throw p.err().methodBsDisagreementBetweenSupers(at, res);
   }
   private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){

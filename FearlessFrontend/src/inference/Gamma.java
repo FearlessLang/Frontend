@@ -3,10 +3,10 @@ package inference;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 import core.RC;
 import utils.Range;
+import utils.Streams;
 
 public final class Gamma{
  /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
@@ -142,11 +142,8 @@ public final class Gamma{
 
   public static Gamma of(List<String> xs2, List<IT> ts2, String self, IT t){
     Gamma res= new Gamma();
-    assert xs2.size() == ts2.size();
-    IntStream.range(0, xs2.size())
-      .filter(i -> !xs2.get(i).equals("_"))
-      .forEach(i -> res.declare(xs2.get(i), ts2.get(i)));
-    if (!self.equals("_")){ res.declare(self, t); }
+    Streams.zip(xs2, ts2).forEach(res::declare);
+    res.declare(self, t);
     return res;
   }
 }

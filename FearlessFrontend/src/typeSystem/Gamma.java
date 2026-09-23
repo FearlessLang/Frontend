@@ -3,6 +3,7 @@ package typeSystem;
 import static offensiveUtils.Require.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import core.*;
@@ -25,11 +26,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     return res;
   }
   public record Binding(T declared, Change current){}
-  public Binding bind(String x){
-    var b= _bindOrNull(x);
-    assert b != null;
-    return b;
-  }
+  public Binding bind(String x){ return Objects.requireNonNull(_bindOrNull(x)); }
   public Binding _bindOrNull(String x){
     if (this == _empty){ return null; }
     if (name.equals(x)){ return new Binding(t, current); }
@@ -44,9 +41,8 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     if (this == _empty){ return this; }
     var rest= tail.filterFTV(l,captureFree);
     if (captureFree){ return new Gamma(rest, name, t, new Change.CapFree(l,t)); }
-    if (!(current instanceof Change.WithT w)){ return new Gamma(rest, name, t, current); }//core.E.Literal l, core.M m, T atDrop
-    if (!hasOnlyFTV(w.currentT(),l.bs())){ return new Gamma(rest, name, t, new Change.DropFTV(l, w.currentT())); }
-    return new Gamma(rest, name, t, current);
+    if (current instanceof Change.WithT w && !hasOnlyFTV(w.currentT(),l.bs())){ return new Gamma(rest, name, t, new Change.DropFTV(l, w.currentT())); }
+    return new Gamma(rest, name, t, current);//core.E.Literal l, core.M m, T atDrop
   }
   //Above can not reuse FreeXs since FreeXs works on IT
   boolean hasOnlyFTV(T t, List<B> bs){ return switch (t){

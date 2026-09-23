@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import fearlessParser.Parser;
@@ -86,9 +87,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     T bad= args.get(index);
     var bs= decs.apply(c.name()).bs();
     assert index < bs.size();
-    String typeName = err().tNameADisp(c.name());
-    String paramName= disp(bs.get(index).x());
-    return err().pTypeArgBounds(name, typeName, paramName, index, err().typeRepr(true,bad), allowedStr);
+    return err().pTypeArgBounds(name, err().tNameADisp(c.name()), disp(bs.get(index).x()), index, err().typeRepr(true,bad), allowedStr);
   }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr){
     var ms= decs.apply(t.name()).ms();
@@ -139,7 +138,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   }
   ///A required method was left abstract instead of being implemented.
   ///Raised when checking object literals
-  public FearlessException callableMethodStillAbstract(E at, M got, Literal l){
+  public FearlessException callableMethodStillAbstract(E at, M got){
     var s= got.sig();
     return addExpFrame(at, err()
       .line("This object literal is missing a required method.")
@@ -217,14 +216,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     else{ e.line("Method "+meth+" inside the "+err().expRepr(l) + " (line "+l.span().inner.startLine()+")"
       +"\nis implemented with an expression returning "+got0+"."); }
     e.line(up(got.info));
-    E ctx= got.footerE.get();
-    FearlessException ex= e.exInferMsg(ctx,req0);
-    return addExpFrame(at, ex.addSpan(at.span().inner));
+    return addExpFrame(at, e.exInferMsg(got.footerE.get(),req0).addSpan(at.span().inner));
   }
   ///Parameter x is syntactically in scope but its value was dropped by viewpoint adaptation.
   ///Raised when a use of x occurs after capturing have made it unavailable.
   ///Raised when checking parameters.
-  public FearlessException parameterNotAvailableHere(E.X x, T declared, Change.NoT why, List<B> bs){
+  public FearlessException parameterNotAvailableHere(E.X x, Change.NoT why){
     return addExpFrame(x,err()
       .line(whyDrop(err().expRepr(x),why))
       .ex(x)
@@ -433,15 +430,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line(up(r.info))
       .blank()
       .line("Type required by each promotion:");
-    var byT= new LinkedHashMap<T,List<String>>();
-    for (var ri:reqs){ byT
-      .computeIfAbsent(ri.t(),_->new ArrayList<>())
-      .add(ri.reqName());
-    }
-    for (var ent:byT.entrySet()){
-      var names= ent.getValue().stream().distinct().toList();
-      e.bullet(err().typeRepr(false,ent.getKey())+"  ("+Join.of(names,"",", ","")+")");
-    }
+    reqs.stream()
+      .collect(Collectors.groupingBy(TRequirement::t,LinkedHashMap::new,Collectors.mapping(TRequirement::reqName,Collectors.toList())))
+      .forEach((t,names)->e.bullet(err().typeRepr(false,t)+"  ("+Join.of(names.stream().distinct(),"",", ","")+")"));
     addNoPrecedenceHintIfOperator(e,c);
     var footer= r.footerE.get();
     return withCallSpans(e.exInferMsg(footer,err().typeRepr(false,reqs.getFirst().t())),c);
@@ -523,12 +514,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
         .add(mat.candidate(pi).promotion());
     }
     for (int argi : Range.of(0,args)){
-      for (var ent: byArg.get(argi).entrySet()){
-        var names= ent.getValue();
-        e.pPromoFailure(
-          "Argument "+(argi+1)+Join.of(names," fails:    ",", ","\n")+ent.getKey()
-        );
-      }
+      byArg.get(argi).forEach((info,names)->e.bullet("Argument "+(argi+1)+Join.of(names," fails:    ",", ","\n")+info));
     }
   return withCallSpans(e.ex(c), c);
   }

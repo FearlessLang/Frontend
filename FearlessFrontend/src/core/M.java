@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import utils.Join;
-import utils.Range;
+import utils.Streams;
 public record M(Sig sig, List<String> xs, Optional<core.E> e){
   public M{
     assert nonNull(sig,e);
@@ -18,14 +18,7 @@ public record M(Sig sig, List<String> xs, Optional<core.E> e){
     sb.append(sig.rc().toStrSpace());
     sb.append(sig.m());
     if (!sig.bs().isEmpty()){ sb.append(Join.of(sig.bs(),"[",",","]","")); }
-    if (!xs.isEmpty()){
-      sb.append('(');
-      for (int i : Range.of(xs)){
-        if (i>0){ sb.append(", "); }
-        sb.append(xs.get(i)).append(':').append(sig.ts().get(i));
-      }
-      sb.append(')');
-    }
+    sb.append(Join.of(Streams.zip(xs,sig.ts()).map((x,t)->x+":"+t),"(",", ",")",""));
     sb.append(':').append(sig.ret());
     e.ifPresent(body->sb.append("->").append(body));
     return sb.toString();

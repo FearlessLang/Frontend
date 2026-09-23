@@ -8,7 +8,7 @@ import fearlessFullGrammar.T.*;
 import fearlessFullGrammar.XPat.Destruct;
 import fearlessFullGrammar.XPat.Name;
 
-public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>,XPatVisitor<StringBuilder>{
+public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>{
   public static String declaration(Declaration d){ 
     var v= new ToString();
     v.visitInnerDeclaration(d);
@@ -44,8 +44,9 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     }
     return append(end);
   }    
-  @Override public StringBuilder visitXPatName(Name n){ return n.x().accept(this);  }
-  @Override public StringBuilder visitXPatDestruct(Destruct d){ return append("{",
+  StringBuilder visitXPat(XPat p){ return switch (p){ case Name n -> visitXPatName(n); case Destruct d -> visitXPatDestruct(d); }; }
+  StringBuilder visitXPatName(Name n){ return n.x().accept(this);  }
+  StringBuilder visitXPatDestruct(Destruct d){ return append("{",
     d.extract(),
     ns->ns.forEach(n->append(n.s())),
     ",",
@@ -91,7 +92,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
       append("", cs.ts(), t -> t.accept(this), ",", "]");
       });
     append(c.pars()?"(":(c.es().isEmpty()?"":" "));
-    c.pat().ifPresent(pat->pat.accept(this).append("= "));
+    c.pat().ifPresent(pat->visitXPat(pat).append("= "));
     append("",c.es(),e->e.accept(this),", ","");
     append(c.pars()?")":"");
     return res;
@@ -142,7 +143,7 @@ public class ToString implements EVisitor<StringBuilder>,TVisitor<StringBuilder>
     return b; 
     }
   private Parameter visitInnerParameter(Parameter p){
-    p.xp().ifPresent(xp->xp.accept(this));
+    p.xp().ifPresent(this::visitXPat);
     if (p.xp().isPresent() && p.t().isPresent()){ append(": "); }
     p.t().ifPresent(t->t.accept(this));
     return p;

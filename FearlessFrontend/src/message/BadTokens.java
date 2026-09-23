@@ -74,9 +74,7 @@ that is: use back ticks (`) instead of single quotes (').
     for (int j= idx - 1; j >= 0; j--){
       var p = all.get(j);
       if (p.is(BlockComment,_SOF)){ return Optional.empty(); }
-      if (p.is(LineComment, UStr, SStr)){
-        if (p.content().contains("/*")){ return Optional.of(p); }
-      }
+      if (p.is(LineComment, UStr, SStr) && p.content().contains("/*")){ return Optional.of(p); }
     }
     throw Bug.unreachable();
   }

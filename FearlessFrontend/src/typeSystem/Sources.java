@@ -13,7 +13,7 @@ import core.Sig;
 import core.T;
 import inject.TypeRename;
 import utils.OneOr;
-import utils.Range;
+import utils.Push;
 
 final class Sources{
   private Sources(){}
@@ -55,21 +55,8 @@ final class Sources{
   }
   private static Sig instantiate(Sig s, List<String> xs, List<T> ts, List<B> canonical){
     assert eq(s.bs().size(), canonical.size(), "Generic arity mismatch in instantiate");
-    List<String> mapXs= new ArrayList<>();
-    List<T> mapTs= new ArrayList<>();
-    List<String> methodVars= new ArrayList<>();
-    for (int i : Range.of(s.bs())){
-      String sourceVar= s.bs().get(i).x();
-      String targetVar= canonical.get(i).x();
-      methodVars.add(sourceVar);
-      mapXs.add(sourceVar);
-      mapTs.add(new T.X(targetVar,s.span()));
-    }
-    for (int i : Range.of(xs)){
-      String var = xs.get(i);
-      mapXs.add(var);
-      mapTs.add(ts.get(i));
-    }
+    var mapXs= Push.of(s.bs().stream().map(B::x).toList(), xs);
+    var mapTs= Push.of(canonical.stream().<T>map(b->new T.X(b.x(),s.span())).toList(), ts);
     var newTs= TypeRename.ofT(s.ts(), mapXs, mapTs);
     var newRet= TypeRename.of(s.ret(), mapXs, mapTs);
     return new Sig(s.rc(), s.m(), canonical, newTs, newRet, s.origin(), s.abs(), s.span());

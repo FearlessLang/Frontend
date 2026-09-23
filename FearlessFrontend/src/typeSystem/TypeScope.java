@@ -7,6 +7,7 @@ import java.util.stream.IntStream;
 import core.*;
 import core.E.*;
 import utils.Bug;
+import utils.Streams;
 
 public sealed interface TypeScope{
   static TypeScope top(){ return Top.Instance; }
@@ -51,8 +52,7 @@ public sealed interface TypeScope{
      || !rcc.c().name().equals(drcc.c().name())
      || rcc.c().ts().size() != drcc.c().ts().size()
      ){ return; }
-    IntStream.range(0,rcc.c().ts().size())
-      .forEach(i->walk(drcc.c().ts().get(i), rcc.c().ts().get(i), out));
+    Streams.zip(drcc.c().ts(), rcc.c().ts()).forEach((d,r)->walk(d, r, out));
   }
   static TypeScope bestInterestingScope(TypeScope start, T declRet, T reqRet){
     var interest= interestFromDeclVsReq(declRet, reqRet);
