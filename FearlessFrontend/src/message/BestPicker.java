@@ -8,8 +8,7 @@ final class BestPicker{
   void visit(PN n,int depth){
     consider(n,depth+bonus(n));
     switch (n){
-      case PX _ -> {}
-      case PTX _ -> {}
+      case PX _, PTX _ -> {}
       case PTypeE x -> visit(x.t(), depth + 1);
       case PTRCC x -> visit(x.c(), depth + 1);
       case PC x -> visitPC(x, depth + 1);

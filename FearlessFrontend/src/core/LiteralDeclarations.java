@@ -10,7 +10,6 @@ import fearlessParser.TokenKind;
 import utils.Pos;
 import utils.Push;
 import utils.Bug;
-import utils.Range;
 
 
 public final class LiteralDeclarations{
@@ -27,16 +26,10 @@ public final class LiteralDeclarations{
   public static boolean has(List<T.C> cs, TName magic){ return cs.stream().anyMatch(c->c.name().equals(magic)); }
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
   private static core.E.Literal forge(TName name,TName lit, Function<TName,Literal> map, OtherPackages other){
-    var res= map.apply(lit);
-    if (res == null){ res = other.__of(lit); }
+    var res= _from(lit,map,other);
     assert res != null;
-    var c= new T.C(lit,List.of());
-    var cs= Push.of(c,res.cs());
-    var ms=res.ms().stream().map(m->setImplemented(m,name)).toList();
-    return new core.E.Literal(RC.imm,name,List.of(),cs,"this",ms,Src.syntetic,true);
-  }
-  private static M setImplemented(M m, TName name){
-    return m.withSig(m.sig().implementedBy(name));
+    var ms=res.ms().stream().map(m->m.withSig(m.sig().implementedBy(name))).toList();
+    return new core.E.Literal(RC.imm,name,List.of(),Push.of(new T.C(lit,List.of()),res.cs()),"this",ms,Src.syntetic,true);
   }
   public static core.E.Literal _from(TName n, Function<TName,Literal> map, OtherPackages other){
     var res= map.apply(n);
@@ -48,8 +41,7 @@ public final class LiteralDeclarations{
   public static TName superLiteral(TName name){
     assert name.pkgName().equals("base");
     String s= name.simpleName();
-    if (s.startsWith("`")){  return baseStr; }
-    if (s.startsWith("\"")){ return baseStr; }
+    if (s.startsWith("`") || s.startsWith("\"")){ return baseStr; }
     if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return baseNat; }
     if (TokenKind.isKind(s,TokenKind.SignedInt)){ return baseInt; }
     if (TokenKind.isKind(s,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){ return baseFloat; }
@@ -63,19 +55,17 @@ public final class LiteralDeclarations{
   public static final String softSuffix= "soft";
   static String stripUnderscores(String s){ return s.replace("_",""); }
   static String floatPayload(String raw){ return stripUnderscores(raw.endsWith(softSuffix) ? raw.substring(0,raw.length()-softSuffix.length()) : raw); }
-  static BigInteger big(String raw){ return new BigInteger(stripUnderscores(raw)); }
+  public static BigInteger big(String raw){ return new BigInteger(stripUnderscores(raw)); }
   static boolean inRange(BigInteger v, BigInteger min, BigInteger max){ return v.compareTo(min) >= 0 && v.compareTo(max) <= 0; }
-  public static BigInteger intLiteralBig(String raw){ return big(raw); }
-  public static boolean intLiteralInRange(String raw){ return inRange(intLiteralBig(raw),intMin,intMax); }
-  public static BigInteger natLiteralBig(String raw){ return big(raw); }
-  public static boolean natLiteralInRange(String raw){ return inRange(natLiteralBig(raw),natMin,natMax); }
+  public static boolean intLiteralInRange(String raw){ return inRange(big(raw),intMin,intMax); }
+  public static boolean natLiteralInRange(String raw){ return inRange(big(raw),natMin,natMax); }
   static long intLiteral64(String raw){
-    BigInteger v= intLiteralBig(raw);
+    BigInteger v= big(raw);
     assert inRange(v,intMin,intMax);
     return v.longValueExact();
   }
   static long natLiteralBits64(String raw){
-    BigInteger v= natLiteralBig(raw);
+    BigInteger v= big(raw);
     assert inRange(v,natMin,natMax);
     return v.longValue(); // wraps to low 64 bits (exactly what we want given the range)
   }
@@ -123,12 +113,6 @@ public final class LiteralDeclarations{
   }
   static String javaStrLit(String raw){
     assert raw.indexOf('\n') == -1;
-    var sb= new StringBuilder(raw.length()+2).append('"');
-    for (int i : Range.of(0,raw.length())){
-      char c= raw.charAt(i);
-      if (c == '\\' || c == '"'){ sb.append('\\'); }
-      sb.append(c);
-    }
-    return sb.append('"').toString();
+    return "\""+raw.replace("\\","\\\\").replace("\"","\\\"")+"\"";
   }
 }

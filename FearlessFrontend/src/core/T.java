@@ -75,8 +75,7 @@ public sealed interface T{
     case RCX(var rc, var x) -> new RCX(rc.readImm(), x);
   };}
   default boolean explicitH(){ return switch (this){
-    case X _ -> false;
-    case ReadImmX _ -> false;
+    case X _, ReadImmX _ -> false;
     case RCC(var rc, _, _) -> rc == RC.readH || rc == RC.mutH;
     case RCX(var rc, _) -> rc == RC.readH || rc == RC.mutH;
   };}

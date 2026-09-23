@@ -19,8 +19,7 @@ public final class AssertNoRepeatedTypeNames{
   private static void walk(E e, Map<TName,E.Literal> firstLit, Set<E> visited){
     if (!visited.add(e)){ return; }
     switch (e){
-      case E.X _ -> {}
-      case E.Type _ -> {}
+      case E.X _, E.Type _ -> {}
       case E.Call c -> { walk(c.e(), firstLit, visited); c.es().forEach(a->walk(a, firstLit, visited)); }
       case E.Literal l -> {
         var prev= firstLit.putIfAbsent(l.name(), l);

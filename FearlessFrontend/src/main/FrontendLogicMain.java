@@ -68,10 +68,7 @@ public class FrontendLogicMain{
   }
   Map<Ref, FileFull> parseFiles(List<Ref> files, SourceOracle o){
     Map<Ref, FileFull> all = new LinkedHashMap<>();
-    for (var u : files){
-      var str = u.loadString();
-      all.put(u, Parse.from(u.fearURI(), str));
-    }
+    for (var u : files){ all.put(u, Parse.from(u.fearURI(), u.loadString())); }
     return Collections.unmodifiableMap(all);
   }
   private void checkOnlyHeadHasDirectives(WellFormednessErrors err, Ref headPkg, Map<Ref, FileFull> raw){

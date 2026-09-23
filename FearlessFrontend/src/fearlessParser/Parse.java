@@ -36,12 +36,10 @@ public class Parse{
     .addOpenerEater(OCurly,t->splitOn(t,"{",false))
     ;
   private static Optional<Token> splitOn(Token t, String s,boolean first){
-    var free= t.is(BlockComment, LineComment, UStr, SStr);
-    if (!free){ return Optional.empty(); }
+    if (!t.is(BlockComment, LineComment, UStr, SStr)){ return Optional.empty(); }
     int index= t.content().indexOf(s);
     if (index == -1){ return Optional.empty(); }
-    if (first){ return Optional.of(t.tokenFirstHalf(index+1)); }
-    return Optional.of(t.tokenSecondHalf(index));
+    return Optional.of(first ? t.tokenFirstHalf(index+1) : t.tokenSecondHalf(index));
   }
   public static FileFull from(URI fileName,String input){
     Tokenizer t= new Tokenizer()

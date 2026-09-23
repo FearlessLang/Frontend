@@ -15,9 +15,7 @@ public record M(Sig sig, Optional<Impl> impl){
   public M{ assert nonNull(sig,impl); }
   public String toString(){
     if (impl.isEmpty()){ return sig.toString();}
-    var xs=impl.get().xs;
-    var args= Join.of(xs,"(",", ",")","");
-    return sig + args+ "->"+impl.get().e()+";";
+    return sig + Join.of(impl.get().xs,"(",", ",")","")+ "->"+impl.get().e()+";";
     }
   public M withSig(Sig sig){
     if (sig.equals(this.sig)){ return this; }

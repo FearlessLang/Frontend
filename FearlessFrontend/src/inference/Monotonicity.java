@@ -127,7 +127,6 @@ public final class Monotonicity{
       clearLitHistory(l.g());
       return true;
     }
-
     // First stable snapshot: start tracking from nextMs (not from l.ms()).
     if (!hasLitHistory(l.g())){
       for (int mi : Range.of(nextMs)){
@@ -141,14 +140,12 @@ public final class Monotonicity{
       }
       return true;
     }
-
     int oldN= l.ms().size(), newN= nextMs.size();
     if (oldN != newN){
       throw new AssertionError("Literal.ms size changed after tracking started old="+oldN+" new="+newN
         +"\noldMs="+msBrief(l.ms())+"\nnewMs="+msBrief(nextMs)
         +"\nlit="+l);
     }
-
     // Same size, stable names: normal monotonic tracking by index.
     for (int mi : Range.of(nextMs)){
       var om= l.ms().get(mi);

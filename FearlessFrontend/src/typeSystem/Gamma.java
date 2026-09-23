@@ -3,6 +3,7 @@ package typeSystem;
 import static offensiveUtils.Require.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import core.*;
@@ -25,11 +26,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     return res;
   }
   public record Binding(T declared, Change current){}
-  public Binding bind(String x){
-    var b= _bindOrNull(x);
-    assert b != null;
-    return b;
-  }
+  public Binding bind(String x){ return Objects.requireNonNull(_bindOrNull(x)); }
   public Binding _bindOrNull(String x){
     if (this == _empty){ return null; }
     if (name.equals(x)){ return new Binding(t, current); }

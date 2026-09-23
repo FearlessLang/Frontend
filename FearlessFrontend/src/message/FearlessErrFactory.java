@@ -57,7 +57,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
            + "The defintion of " + n + " ends with a semicolon. Remove it.\n"
            + "Write: "+Message.displayString(hint)+"\n"
            + "Not:   "+Message.displayString(hint+";")+"\n";
-
     }).addSpan(at);
   }
   public FearlessException topLevelNotATypeDeclaration(Span at, String found){
@@ -145,23 +144,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       .mapToObj(es::get)
       .findFirst().get();
   }
-  private Span redeclaredMethSpan(List<M> ms,Predicate<M> p, Span at){
-    M m= ms.reversed().stream().filter(p).findFirst().get();
-    return m.span().inner;
-  }
-  private Span redeclaredMethSpan(List<M> ms,Parser.RCMName n, Span at){
-    Predicate<M> p= mi->mi.sig()
-      .map(s->s.m().equals(Optional.of(n.name())) && s.rc().equals(n.rc()))
-      .orElse(false);
-    return redeclaredMethSpan(ms,p,at);
-  }
-  private Span redeclaredMethSpan(List<M> ms, int count, Span at){
-    Predicate<M> p= mi->parCount(mi) == count;
-    return redeclaredMethSpan(ms,p,at);
-  }
+  private Span redeclaredMethSpan(List<M> ms,Predicate<M> p){ return ms.reversed().stream().filter(p).findFirst().get().span().inner; }
   public FearlessException methNameRedeclared(List<M> ms,List<Parser.RCMName> names, Span at){
     var name= redeclaredElement(names);
-    Span s= redeclaredMethSpan(ms,name,at);
+    Predicate<M> p= mi->mi.sig().map(sig->sig.m().equals(Optional.of(name.name())) && sig.rc().equals(name.rc())).orElse(false);
+    Span s= redeclaredMethSpan(ms,p);
     return Code.WellFormedness.of(
       "Method "+Message.displayString(name.name().s())+" redeclared.\n"
     + "A method with the same name, arity and reference capability is already present.\n")
@@ -169,7 +156,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException methMixedExplicitRC(List<M> ms, MName name, Span at){
     Predicate<M> p= mi->mi.sig().map(s->s.m().equals(Optional.of(name)) && s.rc().isEmpty()).orElse(false);
-    Span s= redeclaredMethSpan(ms,p,at);
+    Span s= redeclaredMethSpan(ms,p);
     return Code.WellFormedness.of(
       "Method "+Message.displayString(name.s())+" mixes an explicit and an inferred reference capability.\n"
     + "Once one overload of "+Message.displayString(name.s())+" declares a reference capability, every overload of that method must.\n"
@@ -193,7 +180,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException methNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
     var count= redeclaredElement(noNames);
-    Span s= redeclaredMethSpan(ms,count,at);
+    Span s= redeclaredMethSpan(ms,mi->parCount(mi) == count);
     List<String> hints= ms.stream()
       .filter(m->parCount(m)==count)
       .flatMap(this::potentialMethodNames)
@@ -310,13 +297,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       Token open, Token stop, Collection<TokenKind> expectedClosers, LikelyCause likely,
       Tokenizer tokenizer){
     assert nonNull(open, stop, expectedClosers, tokenizer, likely);
-
     var file= tokenizer.fileName();
     boolean sof= open.is(_SOF);
     boolean eof= stop.is(_EOF);
     boolean isCloser= stop.is(CRound, CSquare, CCurly, CCurlyId);
     boolean isBarrier= !eof && !isCloser;
-
     String openLabel= Message.displayString(open.kind().human);
     String stopLabel= eof ? "end of group" : Message.displayString(stop.kind().human);
     String base=
@@ -344,7 +329,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       Token open, Token stop, Collection<TokenKind> expectedClosers,
       Token hiddenFragment, Token hiddenContainer, Tokenizer tokenizer){
     assert nonNull(open, stop, expectedClosers, hiddenFragment, hiddenContainer, tokenizer);
-
     var file= tokenizer.fileName();
     String where= BadTokens.describeFree(hiddenContainer);
     var other= "Otherwise expected";
@@ -353,7 +337,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     + "Found a matching closer inside a" + where + " between here and the stopping point.\n"
     + "Did you mean to place the closer outside the" + where + "?\n"
     + expected("",other+": ", other+" one of: ",expectedClosers,tk->tk.human);
-
     var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
     var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
     return Code.Unclosed.of(msg).addFrame("groups of parenthesis",primary).addSpan(secondary);
@@ -362,7 +345,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       Token open, Token stop, Collection<TokenKind> expectedClosers,
       Token hiddenFragment, Token hiddenContainer, Tokenizer tokenizer){
     assert nonNull(open, stop, expectedClosers, hiddenFragment, hiddenContainer, tokenizer);
-
     var file= tokenizer.fileName();
     String where= BadTokens.describeFree(hiddenContainer);
     String msg=

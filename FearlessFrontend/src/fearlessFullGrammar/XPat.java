@@ -10,11 +10,9 @@ import java.util.stream.Stream;
 import core.MName;
 
 public sealed interface XPat{
-  <R> R accept(XPatVisitor<R> v);
   Stream<String> parameterNames();
   record Name(E.X x) implements XPat{
     public Name{ assert nonNull(x); }
-    public <R> R accept(XPatVisitor<R> v){ return v.visitXPatName(this);}
     public Stream<String> parameterNames(){ return Stream.of(x.name()); }    
   }
   //xE ::= x m* is represented as an element of extract, for example 
@@ -29,7 +27,6 @@ public sealed interface XPat{
             m->{assert m.s().startsWith(".");});});
       assert validOpt(id,n -> validate("}"+n, "pattern id",CCurlyId));
     }
-    public <R> R accept(XPatVisitor<R> v){ return v.visitXPatDestruct(this);}
     public Stream<String> parameterNames(){ return extract.stream().map(e->e.getLast().s().substring(1) + id.orElse("")); }
   }
 }

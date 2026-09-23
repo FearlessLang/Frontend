@@ -24,8 +24,7 @@ public record FreeMutyParameters(List<B> bs,Gamma g){
     return m.e().map(this::isFree).orElse(true);
   }
   private boolean isFree(E.Call c){
-    if (!isFree(c.e())){ return false; }
-    return c.es().stream().allMatch(this::isFree);
+    return isFree(c.e()) && c.es().stream().allMatch(this::isFree);
   }
   private boolean isFree(T t){
     return switch (t){

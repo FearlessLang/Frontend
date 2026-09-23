@@ -12,9 +12,7 @@ public record TypeNamePrinter(boolean trunc,String mainPkg, Map<String,String> u
   private String pretty(String s){
     String a= uses.get(s);
     if (a != null){ return a; }
-    s = dropBaseForLit(s);
-    s = dropMainPkg(s);
-    return s;
+    return dropMainPkg(dropBaseForLit(s));
   }
   private String dropMainPkg(String s){
     String pre= mainPkg + '.';

@@ -32,31 +32,26 @@ public class AllDeclaredNames implements EVisitor<Void>{
     xs.put(n, Collections.unmodifiableSet(lastTopNames));
     Xs.put(n, Collections.unmodifiableSet(lastTopXs));    
   }
-  private B visitInnerB(B b){ lastTopXs.add(b.x()); return b; }
-  private Parameter visitInnerParameter(Parameter p){ p.xp().ifPresent(this::visitInnerXPat); return p; }
-  private XPat visitInnerXPat(XPat x){ x.parameterNames().forEach(lastTopNames::add); return x; }
-  private Sig visitInnerSig(Sig s){
+  private void visitInnerB(B b){ lastTopXs.add(b.x()); }
+  private void visitInnerParameter(Parameter p){ p.xp().ifPresent(x->x.parameterNames().forEach(lastTopNames::add)); }
+  private void visitInnerSig(Sig s){
     s.bs().ifPresent(bs->bs.forEach(this::visitInnerB));
     s.parameters().forEach(this::visitInnerParameter);
-    return s;
   }
-
-  private Declaration visitInnerDeclaration(Declaration d){
+  private void visitInnerDeclaration(Declaration d){
     //Note: there is never any kind of shadowing allowed in fearless. Also, nested names do live in the top level scope
     if (!decNames.add(d.name())){ throw err.duplicatedName(d.name()); }
     d.bs().ifPresent(bs->bs.forEach(this::visitInnerB));
     d.l().accept(this);
-    return d;
   }
   @Override public Void visitLiteral(Literal c){
     c.thisName().ifPresent(n->lastTopNames.add(n.name()));
     c.methods().forEach(this::visitInnerM);
     return null;
   }
-  private M visitInnerM(M m){
+  private void visitInnerM(M m){
     m.sig().ifPresent(this::visitInnerSig);
     m.body().ifPresent(e->e.accept(this));
-    return m;
   }
   @Override public Void visitX(X n){ return null; }
   @Override public Void visitRound(Round r){ return r.e().accept(this); }

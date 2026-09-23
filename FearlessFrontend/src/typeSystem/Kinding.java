@@ -9,6 +9,7 @@ import core.*;
 import core.E.*;
 import message.TypeSystemErrors;
 import utils.Range;
+import utils.Streams;
 
 public record Kinding(TypeSystemErrors tsE){
   public void checkC(E toErr, List<B> bs, T.C c){
@@ -30,33 +31,21 @@ public record Kinding(TypeSystemErrors tsE){
     }
     if (!of(bs,t,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
   }
-  public boolean of(List<B> bs, T t, EnumSet<RC> allowed){ return switch (t){
-    case T.RCC rcc -> ofRCC(bs, rcc, allowed);
-    case T.RCX rcx -> ofRCX(rcx, allowed);
-    case T.X x -> ofX(bs, x, allowed);
-    case T.ReadImmX rix -> ofReadImmX(bs, rix, allowed);
+  public boolean of(List<B> bs, T t, EnumSet<RC> allowed){
+    if (!allowed.containsAll(intrinsicRCs(bs, t))){ return false; }
+    if (!(t instanceof T.RCC rcc)){ return true; }
+    var params= decs().apply(rcc.c().name()).bs();
+    return Streams.zip(rcc.c().ts(), params).allMatch((ti,p)->of(bs, ti, p.rcs()));
+  }
+  static EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch (t){
+    case T.RCC(var rc, _,_) -> EnumSet.of(rc);
+    case T.RCX(var rc, _) -> EnumSet.of(rc);
+    case T.X(var x,_) -> get(bs, x).rcs();
+    case T.ReadImmX(var x) -> readImmRCs(get(bs, x.name()).rcs());
   };}
-  private boolean ofRCC(List<B> bs, T.RCC rcc, EnumSet<RC> allowed){
-    if (!allowed.contains(rcc.rc())){ return false; }
-    var d= decs().apply(rcc.c().name());
-    var params = d.bs();
-    var args= rcc.c().ts();
-    assert eq(params.size(), args.size(), "Arity mismatch for " + rcc.c().name());
-    for (int i : Range.of(params)){
-      if (!of(bs, args.get(i), params.get(i).rcs())){ return false; }
-    }
-    return true;
-  }
-  private boolean ofRCX(T.RCX rcx, EnumSet<RC> allowed){
-    return allowed.contains(rcx.rc());
-  }
-  private boolean ofX(List<B> bs, T.X x, EnumSet<RC> allowed){
-    return allowed.containsAll(get(bs, x.name()).rcs());
-  }
-  private boolean ofReadImmX(List<B> bs, T.ReadImmX rix, EnumSet<RC> allowed){
-    var rcs= get(bs, rix.x().name()).rcs();
-    if (EnumSet.of(iso, imm).containsAll(rcs)){ return allowed.contains(imm); }
-    if (EnumSet.of(mut, mutH, read, readH).containsAll(rcs)){ return allowed.contains(read); }
-    return allowed.contains(imm) && allowed.contains(read);
+  private static EnumSet<RC> readImmRCs(EnumSet<RC> rcs){
+    if (EnumSet.of(iso, imm).containsAll(rcs)){ return EnumSet.of(imm); }
+    if (EnumSet.of(mut, mutH, read, readH).containsAll(rcs)){ return EnumSet.of(read); }
+    return EnumSet.of(read, imm);
   }
 }

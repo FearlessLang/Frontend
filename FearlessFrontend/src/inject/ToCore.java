@@ -1,7 +1,6 @@
 package inject;
 
 import java.util.*;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
@@ -14,20 +13,17 @@ import inference.IT;
 import offensiveUtils.EqTransparent;
 import utils.Bug;
 import utils.OneOr;
+import utils.Streams;
 
 public class ToCore{
   core.E of(inference.E exp, inference.E orig){ return switch (exp){
-    case inference.E.X(var name, _, Src src, _) -> x(name,src);
+    case inference.E.X(var name, _, Src src, _) -> new core.E.X(name,src);
     case inference.E.Type(var type, _, Src src, _) -> type(type,src);
     case inference.E.Literal le -> literal(le,litLike(orig,le));
     case inference.E.Call ce -> call(ce,callLike(orig,ce.name()));
     case inference.E.ICall ic -> callFromICall(ic,callLike(orig,ic.name()));
   };}
-  core.E.X x(String name, Src src){ return new core.E.X(name,src); }
-  core.E.Type type(IT.RCC type, Src src){
-    var t= new T.RCC(type.rc().orElse(RC.imm),TypeRename.itcToTC(type.c()),type.span());
-    return new core.E.Type(t,src);
-  }
+  core.E.Type type(IT.RCC type, Src src){ return new core.E.Type(new T.RCC(type.rc().orElse(RC.imm),TypeRename.itcToTC(type.c()),type.span()),src); }
   core.E.Literal literal(inference.E.Literal e, inference.E.Literal o){
     var rc= o.rc().orElse(e.rc().orElse(RC.imm));
     var ms= mapMs(e.ms(),o.ms());
@@ -38,11 +34,8 @@ public class ToCore{
     assert oBs.isEmpty() || !o.infName():
      o.infName()+" "+oBs;
     var bs= oBs.orElse(e.bs());
-    var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():csUnion(o.cs(),e.cs()));
+    var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():Stream.concat(o.cs().stream(),e.cs().stream()).distinct().toList());
     return new core.E.Literal(rc,e.name(),bs,cs,e.thisName(),ms,e.src(),e.infName());
-  }
-  List<IT.C> csUnion(List<IT.C> a, List<IT.C> b){
-    return Stream.concat(a.stream(),b.stream()).distinct().toList();
   }
   Optional<List<B>> originalBs(inference.E.Literal o){
     boolean explicit= switch (o.src().inner){
@@ -52,11 +45,10 @@ public class ToCore{
       case fearlessFullGrammar.Declaration dec->dec.bs().isPresent();
       default -> throw Bug.of(o.src().inner.getClass().getName()); 
       };
-    if (explicit){ return Optional.of(o.bs()); }
-    return Optional.empty();
+    return explicit ? Optional.of(o.bs()) : Optional.empty();
     }
   
-  private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){ assert es.size()==oEs.size(); return IntStream.range(0,es.size()).mapToObj(i->of(es.get(i),oEs.get(i))).toList(); }
+  private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){ return Streams.zip(es,oEs).map(this::of).toList(); }
   core.E.Call call(inference.E.Call e, CallLike o){
     var rc= o.rc.orElse(e.rc().orElse(RC.imm));
     var targs= !o.targs.isEmpty() ? o.targs : e.targs();
@@ -92,10 +84,7 @@ public class ToCore{
     return new core.M(s,ei.xs(),Optional.of(of(ei.e(),oi.e())));
   }
   core.Sig sig(inference.M.Sig inf, inference.M.Sig usr){
-    assert inf.ts().size() == usr.ts().size();
-    var ts= IntStream.range(0,inf.ts().size())
-      .mapToObj(i->usr.ts().get(i).or(()->inf.ts().get(i)))
-      .toList();
+    var ts= Streams.zip(usr.ts(),inf.ts()).map((u,i)->u.or(()->i)).toList();
     var ret= usr.ret().isEmpty() ? inf.ret() : usr.ret();
     var rc= usr.rc().orElse(inf.rc().orElse(RC.imm));
     var m= usr.m().orElse(inf.m().orElse(new MName(".inferenceFailed", ts.size())));
@@ -111,20 +100,12 @@ public class ToCore{
   private static record CallLike(inference.E e,List<inference.E> es,Optional<RC> rc,List<IT> targs){}
   private static CallLike callLike(inference.E o,MName name){
     return switch (o){
-      case inference.E.Call(var e, var n, var rc, var targs, var es, _, _, _) -> {
-        assert n.equals(name);
-        yield new CallLike(e,es,rc,targs);
-      }
-      case inference.E.ICall(var e, var n, var es, _, _, _) -> {
-        assert n.equals(name);
-        yield new CallLike(e,es,Optional.empty(),List.of());
-      }
+      case inference.E.Call(var e, var n, var rc, var targs, var es, _, _, _) when n.equals(name) -> new CallLike(e,es,rc,targs);
+      case inference.E.ICall(var e, var n, var es, _, _, _) when n.equals(name) -> new CallLike(e,es,Optional.empty(),List.of());
       default -> throw Bug.unreachable();
     };
   }
-  private static List<String> _under(int n){ return IntStream.range(0,n).mapToObj(_->"_").toList(); }
-  static List<List<String>> smallUnder= IntStream.range(0,100).mapToObj(ToCore::_under).toList();
-  private List<String> nUnderscores(int n){ return n < 100 ? smallUnder.get(n) : _under(n); }
+  private List<String> nUnderscores(int n){ return Stream.generate(()->"_").limit(n).toList(); }
   
   private static final Optional<E> synteticBody= Optional.of(new E.X("this",Src.syntetic));
   core.M mSyntetic(inference.M m){

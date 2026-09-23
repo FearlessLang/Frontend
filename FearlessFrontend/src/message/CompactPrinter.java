@@ -32,8 +32,7 @@ public class CompactPrinter{
   String tNameToStr(TName n){ return t.of(n); }
   String msgTName(TName n){ return t.ofFull(n); }
   String msgT(T t){     
-    var pt= ofT(t);
-    pt.accString(this);
+    ofT(t).accString(this);
     return sb.toString();
   }
   CompactPrinter append(String s){ sb.append(s); return this; }
@@ -273,12 +272,7 @@ public class CompactPrinter{
       Optional.empty(), Compactable.of(),
       mLen(s.rc(), s.m().s(), bs, xs, false));
     assert sb.isEmpty();
-    if (s.rc() == RC.imm){ sb.append("      "); }//line up
-    else{
-      var l= s.rc().toString().length()+1;
-      assert l <= 6:s.rc();//amount of space used
-      sb.append(" ".repeat(6-l));
-    }
+    sb.append(" ".repeat(6-rcPrefixLen(s.rc())));//line up
     pm.accString(this);
     return sb.toString();
   }

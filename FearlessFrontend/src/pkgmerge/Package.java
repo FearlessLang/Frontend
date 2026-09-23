@@ -17,11 +17,7 @@ public record Package(String name, Map<String,String> map, List<Declaration> dec
   public record Logger(boolean active, ArrayList<String> logs){
     public void logInferenceDeclaration(E.Literal d, List<T.C> cs){
       if (!active){ return; }
-      var bsS= Join.of(d.bs(),"[",", ","]","");
-      var csS= Join.of(cs,"",", ","","");
-      var msS= Join.of(d.ms(),"","","","");
-      var decTest= d.name().s()+bsS+":"+csS+"{'"+d.thisName()+msS+"}";
-      logs.add(decTest);
+      logs.add(d.name().s()+Join.of(d.bs(),"[",", ","]","")+":"+Join.of(cs,"",", ","","")+"{'"+d.thisName()+Join.of(d.ms(),"","","","")+"}");
     } 
   }
   public static Logger onLogger(){ return new Logger(true,new ArrayList<>()); }
