@@ -72,10 +72,10 @@ public final class LiteralDeclarations{
   public static boolean floatLiteralExactlyRepresentable(String raw){
     String ns= floatPayload(raw);
     if (ns.startsWith("+")){ ns = ns.substring(1); }
-    BigDecimal dec= new BigDecimal(ns);     // exact decimal literal value
-    double d= dec.doubleValue();            // rounded-to-double
+    double d= Double.parseDouble(ns);
     if (!Double.isFinite(d)){ return false; } // overflow -> Infinity
-    return dec.compareTo(new BigDecimal(d)) == 0; // exact double value as decimal
+    if (d == 0){ return new BigDecimal(ns.replaceAll("[eE].*","")).signum() == 0; }
+    return new BigDecimal(ns).compareTo(new BigDecimal(d)) == 0; // exact double value as decimal
   }
   public static boolean floatLiteralOk(String raw){ return raw.endsWith(softSuffix) ? Double.isFinite(floatLiteralDouble(raw)) : floatLiteralExactlyRepresentable(raw); }
   public static String floatExactFearlessLit(double d){

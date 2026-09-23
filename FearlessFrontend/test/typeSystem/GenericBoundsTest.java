@@ -238,6 +238,19 @@ iso {}
 """,List.of("""
 A[X:*]:{ #: X -> {} }
 """));}
+@Test void literalWithMethodCannotImplementATypeVariable(){fail("""
+001| A[X:*]:{ #: X -> {this} }
+   |          --------^^^^^^
+
+While inspecting object literal "{...}" > "#" line 1
+Object literal "{...}" cannot implement "X".
+"X" is a type parameter; object literals can only implement nominal types.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso {}
+""",List.of("""
+A[X:*]:{ #: X -> {this} }
+"""));}
 @Test void literalCannotBePassedAsATypeVariable(){fail("""
 001| A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
    |                            ----------------^^-

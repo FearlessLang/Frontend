@@ -433,6 +433,12 @@ public record WellFormednessErrors(String pkgName){
     return intOrNatLiteralOutOfRange(lit,"Int","Integer","signed",
       LiteralDeclarations.intMin,LiteralDeclarations.intMax,LiteralDeclarations.big(lit.simpleName()));
   }
+  public FearlessException literalWithTypeParameters(TName lit){
+    return err()
+      .line("Name "+Err.disp(lit.simpleName())+" is not declared with "+lit.arity()+" type parameter(s).")
+      .line("Number and string literal types are only declared with 0 type parameter(s).")
+      .wf().addSpan(lit.approxSpan().inner);
+  }
   public FearlessException natLiteralOutOfRange(TName lit){
     return intOrNatLiteralOutOfRange(lit,"Nat","Natural","unsigned",
       LiteralDeclarations.natMin,LiteralDeclarations.natMax,LiteralDeclarations.big(lit.simpleName()));

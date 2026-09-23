@@ -46,6 +46,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     var pr= isPrimitiveLiteral(s);
     if (pr){
       assert tName.pkgName().isEmpty();
+      if (tName.arity() != 0){ throw meths.p().err().literalWithTypeParameters(tName); }
       if (isKind(s,UnsignedInt) && !natLiteralInRange(s)){ throw meths.p().err().natLiteralOutOfRange(tName); }
       if (isKind(s,SignedInt) && !intLiteralInRange(s)){ throw meths.p().err().intLiteralOutOfRange(tName); }
       if (isKind(s,SignedFloat,UnSignedFloat) && !floatLiteralOk(s)){ throw meths.p().err().floatLiteralNotExactlyRepresentable(tName); }
