@@ -20,7 +20,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
   
-  String tNameA(TName n){ return cp().msgTName(n)+genArity(n.arity()); }     // "A[_]"
+  String tNameA(TName n){ return cp().t.ofFull(n)+genArity(n.arity()); }     // "A[_]"
   String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
   private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
   private String bestLitName(boolean skipRc,boolean skipImm,Literal l){
@@ -132,12 +132,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     if (n < 2 || sb.charAt(n-2) != '\n'){ sb.append('\n'); }
     return this;
   }
-  Err bullet(String s){ return line(item("- ","  ", s)); }
-
-  private String item(String first, String rest, String s){
-    s= s.stripTrailing();
-    assert !s.isEmpty();
-    return first+s.replace("\n","\n"+rest);
+  Err bullet(String s){
+    assert !s.isBlank();
+    return line("- "+s.stripTrailing().replace("\n","\n  "));
   }
   Err pCallCantBeSatisfied(Literal d, Call c){
     return line("This call to method "+methodSig(c.rc().toStrSpace(),d,c.name())+" cannot typecheck.");

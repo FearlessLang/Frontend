@@ -29,8 +29,6 @@ public class CompactPrinter{
   }
   StringBuilder sb= new StringBuilder();
   TypeNamePrinter t;
-  String tNameToStr(TName n){ return t.of(n); }
-  String msgTName(TName n){ return t.ofFull(n); }
   String msgT(T t){     
     ofT(t).accString(this);
     return sb.toString();
@@ -205,7 +203,7 @@ public class CompactPrinter{
     var ms= ofMs(l.name(),l.ms());
     boolean priv= l.infName();
     var name= priv ? ""
-      : tNameToStr(l.name()) + bounds(l.bs())+":"; // name[bs]:
+      : t.of(l.name()) + bounds(l.bs())+":"; // name[bs]:
     var cs= ofCs(l.src(),priv && !l.cs().isEmpty() ? List.of(l.cs().getFirst()):l.cs());
     var top= l.thisName().equals("this");
     int s= rcPrefixLen(top?RC.imm:l.rc()) + 2 + seps(ms.size()) + name.length(); // {} and ";"
@@ -222,7 +220,7 @@ public class CompactPrinter{
     case T.RCC r -> new PTRCC(r.rc(), ofC(r.c()));
   };}
   PC ofC(T.C c){
-    return new PC(tNameToStr(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.no : Compactable.of());
+    return new PC(t.of(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.no : Compactable.of());
   }
   List<PC> ofCs(Src src,List<T.C> cs){
     List<fearlessFullGrammar.T.C> oCs= switch (src.inner){
@@ -243,27 +241,19 @@ public class CompactPrinter{
       || original.contains(c.name())
       || original.contains(c.name().withoutPkgName());
   }
-  PM ofM(M m){
-    var s= m.sig();
-    Optional<PE> body= m.e().map(this::ofE);
+  PM ofM(Sig s, List<String> xs, Optional<PE> body){
     var bs= bounds(s.bs());
-    return new PM(s.rc(), s.m().s(), bs, m.xs(), ofTs(s.ts()), ofT(s.ret()), body, Compactable.of(), mLen(s.rc(), s.m().s(), bs, m.xs(), body.isPresent()));
-  }
-  int mLen(RC rc, String m, String bs, List<String> xs, boolean hasBody){
-    int s= rcPrefixLen(rc) + m.length() + bs.length();
-    s += xs.isEmpty() ? 1 : 3 + seps(xs.size()) + xsWithColonsLen(xs);
-    return hasBody ? s + 2 : s;
+    int len= rcPrefixLen(s.rc()) + s.m().s().length() + bs.length() + (xs.isEmpty() ? 1 : 3 + seps(xs.size()) + xsWithColonsLen(xs)) + (body.isPresent() ? 2 : 0);
+    return new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), body, Compactable.of(), len);
   }
   List<PM> ofMs(TName origin, List<M> ms){
     return ms.stream()
       .filter(m->m.sig().origin().equals(origin))
-      .map(this::ofM)
+      .map(m->ofM(m.sig(), m.xs(), m.e().map(this::ofE)))
       .toList();
   }
   public String sig(Sig s){
-    var xs= IntStream.range(0,s.m().arity()).mapToObj(_->"_").toList();
-    var bs= bounds(s.bs());
-    var pm= new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), Optional.empty(), Compactable.of(), mLen(s.rc(), s.m().s(), bs, xs, false));
+    var pm= ofM(s, IntStream.range(0,s.m().arity()).mapToObj(_->"_").toList(), Optional.empty());
     assert sb.isEmpty();
     sb.append(" ".repeat(6-rcPrefixLen(s.rc())));//line up
     pm.accString(this);

@@ -20,7 +20,7 @@ public class InferenceMain extends FrontendLogicMain{
     return new Package(name, map, decs, names, Package.onLogger());
   }
   public Methods ofMethods(String pkgName, List<Ref> files, SourceOracle o, OtherPackages other, boolean infer){
-    Map<Ref, FileFull> rawAST= parseFiles(files, o);
+    Map<Ref, FileFull> rawAST= parseFiles(files);
     Package pkg= mergeToPackage(pkgName,rawAST, Map.of(), other);
     Methods ctx= Methods.create(pkg, other);
     List<E.Literal> iDecs= new ToInference().of(ctx.p(), ctx, other, ctx.fresh());

@@ -35,8 +35,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   Optional<TName> lastTop= Optional.empty();
   public void noteTop(TName t){ lastTop = Optional.of(t); }
   @Override public FearlessException illegalCharAt(Span at, int cp, Tokenizer tokenizer){
-    String head= "Illegal character "+Message.displayChar(cp);
-    return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
+    return Code.UnexpectedToken.of("Illegal character "+Message.displayChar(cp)).addFrame(new Frame("", at));
   }
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels, Parser parser){
     assert nonNull(at,what,expectedLabels);
@@ -81,8 +80,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.ExtraTokenInGroup.of(msg).addSpan(here).addSpan(from);
   }
   @Override public FearlessException probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx, Parser parser){
-    String head= "Probe stalled while scanning " + groupLabel;
-    return Code.ProbeError.of(head).addSpan(at);
+    return Code.ProbeError.of("Probe stalled while scanning " + groupLabel).addSpan(at);
   }
   @Override public FearlessException badProbeDropIn(String groupLabel, Span at, int startIdx, int endIdx, int drop, Parser parser){
     String msg= "Probe returned invalid drop=" + drop
@@ -331,12 +329,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     assert nonNull(open, stop, expectedClosers, hiddenFragment, hiddenContainer, tokenizer);
     var file= tokenizer.fileName();
     String where= BadTokens.describeFree(hiddenContainer);
-    var other= "Otherwise expected";
     String msg=
       "Unclosed " + Message.displayString(open.kind().human) + " group.\n"
     + "Found a matching closer inside a" + where + " between here and the stopping point.\n"
     + "Did you mean to place the closer outside the" + where + "?\n"
-    + expected("",other+": ", other+" one of: ",expectedClosers,tk->tk.human);
+    + expected("","Otherwise expected: ","Otherwise expected one of: ",expectedClosers,tk->tk.human);
     var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
     var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
     return Code.Unclosed.of(msg).addFrame("groups of parenthesis",primary).addSpan(secondary);

@@ -26,19 +26,17 @@ public record ViewPointAdaptation(Kinding k){
       if (isXReadImmXForm(t)){ return Change.keepSetToReadImm(l,m,w); }
     }
     assert rc == mut;//meth RC can only be imm, mut, read and imm is filtered before
-    if (kindImmMutRead(t, l.bs())){ return w; }
+    if (k.of(l.bs(),t,EnumSet.of(imm, mut, read))){ return w; }
     return Change.keepSetToRead(l,m,w);
   }
   private Change discard(Change current, Literal l){
     if (!( current instanceof Change.WithT w)){ return current; }
     var t= w.currentT();
-    if (!kindIsoImmMutRead(t, l.bs())){ return new Change.DropReadHMutH(l,t); }
+    if (!k.of(l.bs(),t,EnumSet.of(iso, imm, mut, read))){ return new Change.DropReadHMutH(l,t); }
     if ((l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs())){ return new Change.DropMutInImm(l,t); }
     return w;    
   } 
   private boolean kindIsoImm(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm)); }
-  private boolean kindIsoImmMutRead(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm, mut, read)); }
-  private boolean kindImmMutRead(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(imm, mut, read)); }
 
   private boolean isMutReadForm(T t){
     if (t instanceof T.RCC rcc){ return rcc.rc() == mut || rcc.rc() == read; }

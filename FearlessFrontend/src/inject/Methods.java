@@ -31,10 +31,7 @@ import pkgmerge.Package;
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
     LinkedHashMap<TName, core.E.Literal> cache){
-  void mayAdd(List<E.Literal> layer, E.Literal d, Map<TName,E.Literal> rem){
-    var blocked= d.cs().stream().anyMatch(c->p.name().equals(c.name().pkgName()) && rem.containsKey(c.name()));
-    if (!blocked){ layer.add(d); }
-  }
+  boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c->p.name().equals(c.name().pkgName()) && rem.containsKey(c.name())); }
   public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
@@ -43,8 +40,7 @@ public record Methods(
     for (E.Literal d : decs){ rem.put(d.name(), d); }
     List<List<E.Literal>> out= new ArrayList<>();
     while (!rem.isEmpty()){
-      List<E.Literal> layer= new ArrayList<>();
-      for (E.Literal d : rem.values()){ mayAdd(layer,d,rem); }
+      List<E.Literal> layer= rem.values().stream().filter(d->free(d,rem)).toList();
       if (layer.isEmpty()){ throw p.err().circularImplements(rem); }
       out.add(layer);
       for (E.Literal d : layer){ rem.remove(d.name()); }
@@ -53,20 +49,14 @@ public record Methods(
   }
   public List<inference.E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     var acc= new ArrayList<E.Literal>();
-    var layers= layer(iDecs.stream().filter(d->!d.infName()).toList());
-    for (var l : layers){ 
-      for (var d : ofLayer(l,acc)){
-        if (!d.infName()){ cache.put(d.name(), d); }
+    for (var l : layer(iDecs.stream().filter(d->!d.infName()).toList())){
+      for (var d : l){
+        var e= expandDeclaration(d,false);
+        if (d.thisName().equals("this")){ acc.add(e); }
+        cache.put(d.name(), injectDeclaration(e));
       }
     }
     return List.copyOf(acc);
-  }
-  private List<core.E.Literal> ofLayer(List<E.Literal> ds, ArrayList<E.Literal> acc){
-    return ds.stream().map(d->{
-      var e= expandDeclaration(d,false);
-      if (d.thisName().equals("this")){ acc.add(e); }
-      return injectDeclaration(e);
-    }).toList();
   }
   record CsMs(List<IT.C> cs, List<inference.M.Sig> sigs){}
   //TODO: performance: currently fetch rewrites for the class generics
@@ -116,8 +106,7 @@ public record Methods(
     var implied= ds.stream().flatMap(dsi->dsi.cs().stream()).toList();
     List<M.Sig> allSig= IntStream.range(0,ds.size()).filter(i->!implied.contains(d.cs().get(i)))
       .boxed().flatMap(i->ds.get(i).sigs().stream()).toList();
-    List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
-    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
+    List<M> allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
     checkMagicSupertypes(d, allCs);
     return d.withCsMs(allCs,allMs,setInfHead);
   }
@@ -125,8 +114,7 @@ public record Methods(
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
     var dd= _from(c.name());//null for the case {..}.foo
     List<M.Sig> allSig= dd==null ?List.of() : fetch(d,c,dd).sigs();
-    List<M> named= inferMNames(d.ms(),new ArrayList<>(allSig),d);
-    List<M> allMs= pairWithSig(named,new ArrayList<>(allSig),d);
+    List<M> allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
     List<IT.C> allCs= Stream.concat(Stream.of(c), fetchCs(c).stream()).distinct().toList();
     return d.withCsMs(allCs, allMs, true);
   }
@@ -162,8 +150,7 @@ public record Methods(
   inference.M withName(MName name,inference.M m){
     assert m.impl().isPresent() && m.sig().m().isEmpty();
     M.Sig s= m.sig();
-    s= new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span());
-    return new inference.M(s,m.impl());
+    return new inference.M(new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span()),m.impl());
   }
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     assert ss.stream().allMatch(M.Sig::isFull);
@@ -249,11 +236,8 @@ public record Methods(
     List<Optional<IT>> ts= IntStream.range(0, s.ts().size()).mapToObj(i->Optional.of(pairWithTs(at,i, s.ts().get(i),ssAligned))).toList();
     IT res= s.ret().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.ret().get()),
       p.err().retTypeDisagreement()));
-    boolean abs= m.impl().isEmpty();
     RC rc= s.rc().orElseGet(()->rcAgreement(ssAligned));
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin.name(),abs,s.span());
-    if (sig.equals(m.sig())){ return m; }
-    return new M(sig,m.impl());
+    return m.withSig(new M.Sig(rc,name,bs,ts,res,origin.name(),m.impl().isEmpty(),s.span()));
   }
   private List<B> agreementWithSize(List<M.Sig> ss, Sig s, Agreement at){
     List<List<B>> allBounds= ss.stream().map(e->e.bs().get()).distinct().toList();
@@ -300,15 +284,9 @@ public record Methods(
   }
   M toCompleteM(inference.M m,E.Literal origin){
     var s= m.sig();
-    RC rc=s.rc().orElse(RC.imm);
-    MName name= s.m().get();
-    List<B> bs= s.bs().orElse(List.of());
     List<Optional<IT>> ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(()->p.err().noSourceToInferFrom(origin,m)))).toList();
     IT res= s.ret().orElseThrow(()->p.err().noSourceToInferFrom(origin,m));
-    boolean abs= m.impl().isEmpty();
-    M.Sig sig= new M.Sig(rc,name,bs,ts,res,origin.name(),abs,s.span());
-    if (sig.equals(m.sig())){ return m; }
-    return new M(sig,m.impl());
+    return m.withSig(new M.Sig(s.rc().orElse(RC.imm),s.m().get(),s.bs().orElse(List.of()),ts,res,origin.name(),m.impl().isEmpty(),s.span()));
   }
   private <RR> RR agreement(Agreement at,Stream<RR> es, String msg){
     var res= es.distinct().toList();

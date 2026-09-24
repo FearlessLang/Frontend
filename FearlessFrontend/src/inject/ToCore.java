@@ -66,16 +66,12 @@ public record ToCore(List<B> ctx){
   core.E.Call call(inference.E.Call e, CallLike o){
     var rc= o.rc.orElse(e.rc().orElse(RC.imm));
     var targs= !o.targs.isEmpty() ? o.targs : e.targs();
-    var recv= of(e.e(),o.e);
-    var args= mapArgs(e.es(),o.es);
-    return new core.E.Call(recv,e.name(),rc,TypeRename.itToT(targs),args,new EqTransparent<>(TypeRename.itToT(e.t())),e.src());
+    return new core.E.Call(of(e.e(),o.e),e.name(),rc,TypeRename.itToT(targs),mapArgs(e.es(),o.es),new EqTransparent<>(TypeRename.itToT(e.t())),e.src());
   }
   core.E.Call callFromICall(inference.E.ICall e, CallLike o){
     assert o.rc.isEmpty();
     assert o.targs.isEmpty();
-    var recv= of(e.e(),o.e);
-    var args= mapArgs(e.es(),o.es);
-    return new core.E.Call(recv,e.name(),RC.imm,List.of(),args,new EqTransparent<>(TypeRename.itToT(e.t())),e.src());
+    return new core.E.Call(of(e.e(),o.e),e.name(),RC.imm,List.of(),mapArgs(e.es(),o.es),new EqTransparent<>(TypeRename.itToT(e.t())),e.src());
   }
   private List<core.M> mapMs(List<inference.M> es, List<inference.M> os){
     return es.stream()

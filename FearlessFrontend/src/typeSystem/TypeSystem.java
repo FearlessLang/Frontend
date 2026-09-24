@@ -62,10 +62,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       || isImplSubtype(bs,t1,t2);
   }
   public void check(List<B> bs, Gamma g, E e, T expected){
-    var rs= List.of(new TRequirement("", expected));
-    var out= typeOf(bs,g,e,rs);
-    assert out.size() == 1;
-    var got= out.getFirst();
+    var got= OneOr.of("", typeOf(bs,g,e,List.of(new TRequirement("", expected))).stream());
     if (got.isEmpty()){ return; }
     throw tsE().methBodyWrongType((TypeScope.Method)scope,e,got,expected);
   }

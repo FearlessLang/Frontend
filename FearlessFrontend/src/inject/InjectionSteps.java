@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -227,15 +228,14 @@ public record InjectionSteps(Methods meths){
     assert rc == RC.imm;
     return immOne.or(() -> readOne).or(()->mutOne);
   }
-  public interface InstanceData<R> { R apply(IT.RCC rcc, core.E.Literal d, core.M m); }
-  private <R> Optional<R> methodHeaderAnd(IT.RCC rcc, MName name, Optional<RC> favorite, InstanceData<R> f){
+  private <R> Optional<R> methodHeaderAnd(IT.RCC rcc, MName name, Optional<RC> favorite, BiFunction<core.E.Literal,core.M,R> f){
     var d= meths._from(rcc.c().name());
     if (d == null){ return Optional.empty(); }//case {..}.foo
     Stream<core.M> ms= d.ms().stream().filter(m -> m.sig().m().equals(name));
     Optional<core.M> om= favorite.isPresent()
         ? OneOr.opt("Ambiguous method header for explicit RC", ms.filter(mi -> mi.sig().rc().equals(favorite.get())))
         : oneFromGuessRC(ms.toList(), overloadNorm(rcc.rc()));
-    return om.map(mm->f.apply(rcc, d, mm));
+    return om.map(mm->f.apply(d, mm));
   }
   private MSigL methodHeaderInstance(IT.RCC rcc, core.E.Literal d, core.M m){
     List<String> clsXs= d.bs().stream().map(b->b.x()).toList();
@@ -251,7 +251,7 @@ public record InjectionSteps(Methods meths){
     return new MSigL(m.sig().rc(), xs, d.bs(), clsArgs, m.sig().bs(), ps0, ret0);
   }
   Optional<MSigL> methodHeader(IT.RCC rcc, MName name, Optional<RC> favorite){
-    return methodHeaderAnd(rcc, name, favorite, this::methodHeaderInstance);
+    return methodHeaderAnd(rcc, name, favorite, (d,m)->methodHeaderInstance(rcc, d, m));
   }
   static List<IT> qMarks(int n){ return Stream.<IT>generate(()->IT.U.Instance).limit(n).toList(); }
   private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i -> i == n ? t : IT.U.Instance).toList(); }
@@ -265,14 +265,8 @@ public record InjectionSteps(Methods meths){
   }
   private void updateG(Gamma g, String x, IT t1, IT t2){
     if (t1 == IT.U.Instance){ g.update(x, t2); return; }
-    if (t1 instanceof IT.RCC a && t2 instanceof IT.RCC b && a.c().name().equals(b.c().name())){
-      var t= new RCC(glbRcNoH(a.rc(), b.rc()), a.c(), a.span());
-      if (!t.equals(t1)){ g.update(x, t); }
-    }
-    if (t1 instanceof IT.RCX a && t2 instanceof IT.RCX b && a.x().equals(b.x())){
-      var t= a.withRC(glbRcNoH(a.rc(), b.rc()));
-      if (!t.equals(t1)){ g.update(x, t); }
-    }
+    if (t1 instanceof IT.RCC a && t2 instanceof IT.RCC b && a.c().name().equals(b.c().name())){ g.update(x, new RCC(glbRcNoH(a.rc(), b.rc()), a.c(), a.span())); }
+    if (t1 instanceof IT.RCX a && t2 instanceof IT.RCX b && a.x().equals(b.x())){ g.update(x, a.withRC(glbRcNoH(a.rc(), b.rc()))); }
   }
   static Optional<RC> glbRcNoH(Optional<RC> a, Optional<RC> b){
     if (a.isEmpty()){ return b; }
@@ -422,15 +416,11 @@ public record InjectionSteps(Methods meths){
   record TSM(List<IT> ts, inference.M m){}
   TSM nextMStarAbs(IT.RCC rcc, inference.M m){
     assert m.impl().isEmpty();
-    var improvedSig= m.sig();
-    var omh= methodHeaderAnd(rcc, improvedSig.m().get(), improvedSig.rc(),(_,_,mi)->mi);
+    var omh= methodHeaderAnd(rcc, m.sig().m().get(), m.sig().rc(),(_,mi)->mi);
     assert omh.isEmpty() || assertNoBinderClash(rcc, omh.get());
     if (omh.isEmpty()){ return new TSM(rcc.c().ts(), m); }
-    var rcc0= withTsNormBs(rcc,refineClsTsFromHeader(rcc, improvedSig, omh.get().sig()));
-    var sigRes= normalizeSigAgainstHeader(rcc0, improvedSig);
-    var newTs= dropMethBsFromClsTs(rcc0, improvedSig);
-    if (sigRes.equals(improvedSig)){ return new TSM(newTs, m); }
-    return new TSM(newTs, new inference.M(sigRes, Optional.empty()));
+    var rcc0= withTsNormBs(rcc,refineClsTsFromHeader(rcc, m.sig(), omh.get().sig()));
+    return new TSM(dropMethBsFromClsTs(rcc0, m.sig()), m.withSig(normalizeSigAgainstHeader(rcc0, m.sig())));
   }
   TSM nextMStarOp(List<B> bs, Gamma g, String thisN, Optional<IT.RCC> selfPrecise, IT.RCC rcc, inference.M m){
     assert m.impl().isPresent();
@@ -451,11 +441,11 @@ public record InjectionSteps(Methods meths){
   TSM nextMStarOpRun(IT.RCC rcc, inference.M m, E e, List<Optional<IT>> args){
     IT ret= meet(m.sig().ret().get(), e.t());
     M.Sig improvedSig= m.sig().withTsT(args, ret);
-    var omh= methodHeaderAnd(rcc, improvedSig.m().get(), improvedSig.rc(),(_,_,mi)->mi);
+    var omh= methodHeaderAnd(rcc, improvedSig.m().get(), improvedSig.rc(),(_,mi)->mi);
     assert omh.isEmpty() || assertNoBinderClash(rcc, omh.get());
     return omh
       .map(mh->headerResult(rcc,m,e,mh.sig(),improvedSig))
-      .orElseGet(()->noHeaderResult(rcc,m,e,improvedSig));
+      .orElseGet(()->withImpl(rcc.c().ts(),m,improvedSig,e));
   }
   private void updateGWithArgs(Gamma g, inference.M m){
     var xs= m.impl().get().xs();
@@ -466,11 +456,12 @@ public record InjectionSteps(Methods meths){
   }
   TSM headerResult(IT.RCC rcc, inference.M m, E e, core.Sig sig, M.Sig improvedSig){
     var rcc0= withTsNormBs(rcc,refineClsTsFromHeader(rcc, improvedSig,sig));
-    var sigRes= normalizeSigAgainstHeader(rcc0, improvedSig);
-    var impl1= m.impl().get().withE(meet(e, sigRes.ret().get()));
-    var newTs= dropMethBsFromClsTs(rcc0, improvedSig);
-    if (sigRes.equals(m.sig()) && impl1 == m.impl().get()){ return new TSM(newTs, m); }
-    return new TSM(newTs, new inference.M(sigRes, Optional.of(impl1)));
+    return withImpl(dropMethBsFromClsTs(rcc0, improvedSig), m, normalizeSigAgainstHeader(rcc0, improvedSig), e);
+  }
+  private TSM withImpl(List<IT> ts, inference.M m, M.Sig sig, E e){
+    var impl1= m.impl().get().withE(meet(e, sig.ret().get()));
+    if (sig.equals(m.sig()) && impl1 == m.impl().get()){ return new TSM(ts, m); }
+    return new TSM(ts, new inference.M(sig, Optional.of(impl1)));
   }
   private List<IT> refineClsTsFromHeader(IT.RCC rcc, M.Sig improvedSig, core.Sig imh){
     var Xs= meths.from(rcc.c().name()).bs().stream().map(b -> b.x()).toList();
@@ -498,11 +489,6 @@ public record InjectionSteps(Methods meths){
   private List<IT> dropMethBsFromClsTs(IT.RCC rcc, M.Sig improvedSig){
     var methBs= improvedSig.bs().get().stream().map(b->b.x()).toList();
     return dropMethBs(rcc.c().ts(), methBs);
-  }
-  private TSM noHeaderResult(IT.RCC rcc, inference.M m, E e, M.Sig improvedSig){
-    var impl1= m.impl().get().withE(meet(e, improvedSig.ret().get()));
-    if (improvedSig.equals(m.sig()) && impl1 == m.impl().get()){ return new TSM(rcc.c().ts(), m); }
-    return new TSM(rcc.c().ts(), new inference.M(improvedSig, Optional.of(impl1)));
   }
   List<IT> dropMethBs(List<IT> ts, List<String> methBs){
     if (methBs.isEmpty()){ return ts; }
@@ -570,16 +556,12 @@ public record InjectionSteps(Methods meths){
     List<List<IT>> res= Streams.zip(c.ts(), cc.c().ts()).map((t,ti) -> refine(xs, t, ti)).toList();
     return res.isEmpty() ? qMarks(xs.size()) : meet(res);
   }
-  static boolean assertEqEM(Object o1, Object o2){
-     if (!( o1 instanceof E || o1 instanceof M)){ return true; }
-     return o1==o2 || !o1.equals(o2);
-    }
   static <TT> List<TT> norm(List<TT> original, List<TT> candidate){
     if (candidate == original){ return original; }
     assert candidate.size() == original.size();
     for (int i : Range.of(original)){
       if (candidate.get(i) != original.get(i)){
-        assert assertEqEM(candidate.get(i), original.get(i));
+        assert !(candidate.get(i) instanceof E || candidate.get(i) instanceof M) || !candidate.get(i).equals(original.get(i));
         return candidate; 
       }
     }

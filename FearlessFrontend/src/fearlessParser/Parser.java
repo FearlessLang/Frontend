@@ -68,8 +68,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   E.TypedLiteral parseTypedLiteral(int startPos, Optional<RC> rc){
     Pos pos= pos();    
     var c= parseRCC(startPos,rc);
-    if (!peek(_CurlyGroup)){ return new E.TypedLiteral(c,empty(),pos); }
-    return new E.TypedLiteral(c,of(parseGroup("typed literal",p->p.parseLiteral(false))),pos);
+    return new E.TypedLiteral(c,parseIf(peek(_CurlyGroup),()->parseGroup("typed literal",p->p.parseLiteral(false))),pos);
   }
   T.RCC parseRCC(int startPos, Optional<RC> rc){
     var c= parseC();
@@ -100,11 +99,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   T.X parseDecTX(boolean mustNew){
     int startPos= index();
     var c= expectValidate("Generic type name declaration", UppercaseId,_XId);
-    int endPos= index();
     var declared= names.XIn(c.content()) || names.XHidden(c.content());
     if (mustNew && declared){ throw errFactory().nameRedeclared(c,span(c).get()); }
     if (!mustNew){ checkXInScope(c); }
-    return new T.X(c.content(),new TSpan(spanAround(startPos,endPos)));
+    return new T.X(c.content(),new TSpan(spanAround(startPos,index())));
   }
   T.X parseTX(int startPos){
     var c= expectValidate("type name", UppercaseId,_XId);
@@ -172,9 +170,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     expect("method call generic type argument",OSquareArg);
     var hasRC=peekOrder(t->t.is(RCap),t->t.is(Comma,CSquare));
     expectLast("method call generic type argument",CSquare);
-    if (!hasRC){ return new E.CallSquare(Optional.empty(),parseCallTargs(),pos()); }
-    var rc= Optional.of(parseRC());
-    if (!end()){ expect("method call generic type argument",Comma); }
+    var rc= parseIf(hasRC,this::parseRC);
+    if (hasRC && !end()){ expect("method call generic type argument",Comma); }
     return new E.CallSquare(rc, parseCallTargs(),pos());
   }
   private List<T> parseCallTargs(){ return end()?List.of():splitBy("genericTypes",commaSkip,Parser::parseT); }
@@ -197,14 +194,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   E.Literal parseLiteral(boolean top){
     Token start= expect("object literal",OCurly);
     Token end= expectLast("object literal",CCurly);
-    Optional<E.X> thisName= empty();
-    if (fwdIf(peek(SQuote))){
-      var n= parseDecX();
-      thisName = of(n);
-      if (top && !n.name().equals("this")){ throw errFactory().badTopSelfName(span(n.pos(),n.name().length()), n.name()); }
-      updateNames(names.add(List.of(n.name()),List.of()));
-      }
-    if (top && thisName.isEmpty()){ updateNames(names.add(List.of("this"),List.of())); }
+    Optional<E.X> thisName= parseIf(fwdIf(peek(SQuote)),this::parseDecX);
+    var n= thisName.map(E.X::name).orElse("this");
+    if (top && !n.equals("this")){ throw errFactory().badTopSelfName(span(thisName.get().pos(),n.length()), n); }
+    if (top || thisName.isPresent()){ updateNames(names.add(List.of(n),List.of())); }
     List<M> ms= splitBy("method declaration",semiSkip,p->p.parseMethod(top));
     checkRedeclaration(start, end, ms);
     return new E.Literal(thisName,ms,tspan());
@@ -230,10 +223,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       if (mixed){ throw errFactory().methMixedExplicitRC(ms,n.name(),at); }
     }
   }
-  Stream<String> xsOf(Optional<XPat> xp){
-    if (xp.isEmpty()){ return Stream.of(); }
-    return xp.get().parameterNames().filter(x->!x.equals("_"));
-  }
+  Stream<String> xsOf(Optional<XPat> xp){ return xp.stream().flatMap(XPat::parameterNames).filter(x->!x.equals("_")); }
   void checkNewXs(List<String> xs){
     for (int i : Range.of(xs)){
       var x= xs.get(i);
@@ -264,9 +254,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       || peekOrder(t->t.is(RCap), t->t.is(DotName,Op));
     if (!hasSig){ return new M(empty(),of(parseMethodBody()),tspan()); }
     Sig sig= parseSig();
-    var res= new M(of(sig),empty(),tspan());
-    if (!top){ throw errFactory().noAbstractMethod(res.sig().get(),span()); }
-    return res;
+    if (!top){ throw errFactory().noAbstractMethod(sig,span()); }
+    return new M(of(sig),empty(),tspan());
   }
   E parseMethodBody(){
     guard(Parser::checkAbruptExprEnd);
@@ -287,10 +276,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var m= parseIf(peek(DotName,Op),this::parseMName);
     try{ return parseSigAfterName(rc, m); }
     catch(FearlessException exc){
-      var forgotSpace= tok.isPresent() && m.isPresent() && m.get().s().endsWith("->"); 
+      var forgotSpace= m.isPresent() && m.get().s().endsWith("->"); 
       if (!forgotSpace){ throw exc; }
-      Span at= tok.get().span(span().fileName());
-      throw errFactory().forgotSpace(at,m.get().s());
+      throw errFactory().forgotSpace(tok.get().span(span().fileName()),m.get().s());
     }
   }
   private Sig parseSigAfterName(Optional<RC> rc, Optional<MName> m){

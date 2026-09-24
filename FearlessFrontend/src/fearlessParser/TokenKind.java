@@ -84,7 +84,6 @@ public enum TokenKind implements metaParser.TokenKind{
   }
   @Override public TokenMatch matcher(){ return match; }
   public boolean syntetic(){ return this.name().startsWith("_"); }
-  public boolean bad(){ return this.name().startsWith("Bad"); }
   @Override public int priority(){ return this.ordinal(); }
   
   public static boolean validate(String input, String what, TokenKind... kinds){

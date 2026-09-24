@@ -31,7 +31,7 @@ public class FrontendLogicMain{
       SourceOracle o, 
       OtherPackages other
     ){
-    Map<Ref, FileFull> rawAST= parseFiles(files, o); // Phase 1: Parse Files
+    Map<Ref, FileFull> rawAST= parseFiles(files); // Phase 1: Parse Files
     Package pkg= mergeToPackage(pkgName,rawAST, override, other); // Phase 2: Merge & Well-formedness
     Methods ctx= Methods.create(pkg, other); // Phase 3: // Creates the scope (Methods) and FreshPrefix generators
     List<inference.E.Literal> inferrableAST= new ToInference().of(pkg, ctx, other, ctx.fresh()); // Phase 4: Desugar
@@ -41,7 +41,7 @@ public class FrontendLogicMain{
     return coreAST;
   }
   public Map<String,Map<String,String>> parseRankFiles(List<Ref> files, SourceOracle o, Comparator<Ref> c){
-    var parsed= parseFiles(files,o);
+    var parsed= parseFiles(files);
     record Key(String target,String in){}
     record Cand(Ref uri,String target,String in,String out){
     @Override public String toString(){
@@ -66,7 +66,7 @@ public class FrontendLogicMain{
     res.replaceAll((_,v)->Map.copyOf(v));
     return Map.copyOf(res);
   }
-  Map<Ref, FileFull> parseFiles(List<Ref> files, SourceOracle o){
+  Map<Ref, FileFull> parseFiles(List<Ref> files){
     Map<Ref, FileFull> all = new LinkedHashMap<>();
     for (var u : files){ all.put(u, Parse.from(u.fearURI(), u.loadString())); }
     return Collections.unmodifiableMap(all);
