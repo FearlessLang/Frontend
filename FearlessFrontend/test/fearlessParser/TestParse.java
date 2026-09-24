@@ -2702,11 +2702,11 @@ Error 2 UnexpectedToken
 Call[this].choosetrue[DeclarationLiteralDeclaration[
   name=SomeLeftRight/0,bs=Optional[[]],
   cs=[C[name=LeftRight/1,ts=Optional[[RCC[rc=Optional.empty,
-  c=C[name=Str/0,ts=Optional.empty]]]]]],l=Literal[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.left],bs=Optional[[]],hasParenthesis=true,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],body=Optional[DeclarationLiteralDeclaration[name=Str1/0,bs=Optional[[]],cs=[C[name=`Hello`/0,ts=Optional[[]]]],l=Literal[]]]],M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.right],bs=Optional[[]],hasParenthesis=true,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],body=Optional[DeclarationLiteralDeclaration[name=Str2/0,bs=Optional[[]],cs=[C[name=`Hi`/0,ts=Optional[[]]]],l=Literal[]]]]]]]]]]]]]
+  c=C[name=Str/0,ts=Optional.empty]]]]]],l=Literal[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.left],bs=Optional[[]],hasParenthesis=true,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],body=Optional[DeclarationLiteralDeclaration[name=Str1/0,bs=Optional[[]],cs=[C[name="Hello"/0,ts=Optional.empty]],l=Literal[]]]],M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.right],bs=Optional[[]],hasParenthesis=true,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],body=Optional[DeclarationLiteralDeclaration[name=Str2/0,bs=Optional[[]],cs=[C[name="Hi"/0,ts=Optional.empty]],l=Literal[]]]]]]]]]]]]]
 ""","""
 A:{this.choose( SomeLeftRight[]:LeftRight[Str]{
-  .left[](): Str -> Str1[]:`Hello`[]{};
-  .right[](): Str-> Str2[]:`Hi`[]{};
+  .left[](): Str -> Str1[]:"Hello"{};
+  .right[](): Str-> Str2[]:"Hi"{};
 })}
 """);}
 

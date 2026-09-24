@@ -2096,12 +2096,27 @@ In file: [###].fear
 001| A:{ .m: A -> 1[A] }
    |              ^^
 
-While inspecting the file
-Name "1" is not declared with 1 type parameter(s).
-Number and string literal types are only declared with 0 type parameter(s).
-Error 7 WellFormedness
+While inspecting a literal
+Literal "1" is directly followed by "[".
+Number and string literals take no generic arguments.
+Remove the "[...]" after "1".
+Error 2 UnexpectedToken
 """,List.of("""
 A:{ .m: A -> 1[A] }
+"""));}
+@Test void failNumberLiteralWithEmptyTypeParameters(){failExt("""
+In file: [###].fear
+
+001| A:{ .m: A -> 1[] }
+   |              ^^
+
+While inspecting a literal
+Literal "1" is directly followed by "[".
+Number and string literals take no generic arguments.
+Remove the "[...]" after "1".
+Error 2 UnexpectedToken
+""",List.of("""
+A:{ .m: A -> 1[] }
 """));}
 @Test void failStrLiteralWithTypeParameters(){failExt("""
 In file: [###].fear
@@ -2109,12 +2124,41 @@ In file: [###].fear
 001| A:{ .m: `a`[A] }
    |         ^^^^
 
-While inspecting the file
-Name "`a`" is not declared with 1 type parameter(s).
-Number and string literal types are only declared with 0 type parameter(s).
-Error 7 WellFormedness
+While inspecting a literal
+Literal "`a`" is directly followed by "[".
+Number and string literals take no generic arguments.
+Remove the "[...]" after "`a`".
+Error 2 UnexpectedToken
 """,List.of("""
 A:{ .m: `a`[A] }
+"""));}
+@Test void failUStrLiteralWithTypeParameters(){failExt("""
+In file: [###].fear
+
+001| A:{ .m: "a"[A] }
+   |         ^^^^
+
+While inspecting a literal
+Literal `"a"` is directly followed by "[".
+Number and string literals take no generic arguments.
+Remove the "[...]" after `"a"`.
+Error 2 UnexpectedToken
+""",List.of("""
+A:{ .m: "a"[A] }
+"""));}
+@Test void failFloatLiteralWithTypeParameters(){failExt("""
+In file: [###].fear
+
+001| A:{ .m: A -> -1.5[] }
+   |              ^^^^^
+
+While inspecting a literal
+Literal "-1.5" is directly followed by "[".
+Number and string literals take no generic arguments.
+Remove the "[...]" after "-1.5".
+Error 2 UnexpectedToken
+""",List.of("""
+A:{ .m: A -> -1.5[] }
 """));}
 @Test void failFloatTooSmall(){failExt("""
 In file: [###].fear
