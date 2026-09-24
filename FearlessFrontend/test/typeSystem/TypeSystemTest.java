@@ -3500,23 +3500,103 @@ In file: [###].fear
 
 While inspecting type declaration "MyId"
 Type declaration "MyId" implements "base.BaseId[_,_]".
-Only the method "#(_)" can be declared here.
+Only the method "#(_)" can be declared or inherited here.
 Error 7 WellFormedness""",List.of("""
 Person:{}
 Customer:Person{}
 MyId:base.BaseId[Customer,Person]{ #(x)->x; .extra: Person -> Person }
 """));}
-@Test void baseIdInheritedNonIdentityBody(){fail("""
-[###]Type declaration "MyId" implements "base.BaseId[_,_]".
-[###]""",List.of("""
+@Test void baseIdInheritedNonIdentityBody(){failExt("""
+In file: [###].fear
+
+004| MyId:base.BaseId[Customer,Person], Forge{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "MyId"
+Type declaration "MyId" implements "base.BaseId[_,_]".
+It inherits the implementation of "#(_)" from "Forge", that does not implement "base.BaseId[_,_]".
+Method "#(_)" must be implemented here, or inherited from a type implementing "base.BaseId[_,_]".
+Error 7 WellFormedness""",List.of("""
 Person:{}
 Customer:{}
 Forge:{ #(x: Customer): Person -> Person }
 MyId:base.BaseId[Customer,Person], Forge{}
 User:{ .n(cs: base.MList[Customer]): base.MList[Person] -> cs.as(MyId) }
 """));}
+@Test void baseIdInheritedNonIdentityBodyViaAlias(){failExt("""
+In file: [###].fear
+
+005| Sub:MyId, Forge{}
+   | ^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Sub"
+Type declaration "Sub" implements "base.BaseId[_,_]".
+It inherits the implementation of "#(_)" from "Forge", that does not implement "base.BaseId[_,_]".
+Method "#(_)" must be implemented here, or inherited from a type implementing "base.BaseId[_,_]".
+Error 7 WellFormedness""",List.of("""
+Person:{}
+Customer:{}
+Forge:{ #(x: Customer): Person -> Person }
+MyId:base.BaseId[Customer,Person]{}
+Sub:MyId, Forge{}
+"""));}
+@Test void baseIdInheritedExtraMethod(){failExt("""
+In file: [###].fear
+
+004| MyId:base.BaseId[Customer,Person], Extra{ #(x)->x }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "MyId"
+Type declaration "MyId" implements "base.BaseId[_,_]".
+Only the method "#(_)" can be declared or inherited here.
+Error 7 WellFormedness""",List.of("""
+Person:{}
+Customer:Person{}
+Extra:{ .extra: Person }
+MyId:base.BaseId[Customer,Person], Extra{ #(x)->x }
+"""));}
+@Test void baseIdLambdaExtraMethod(){failExt("""
+In file: [###].fear
+
+003| User:{ .m: base.BaseId[Customer,Person] -> {#(x)->x; .extra: Person -> Person} }
+   |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.BaseId[_,_]"
+Object literal instance of "base.BaseId[_,_]" implements "base.BaseId[_,_]".
+Only the method "#(_)" can be declared or inherited here.
+Error 7 WellFormedness""",List.of("""
+Person:{}
+Customer:Person{}
+User:{ .m: base.BaseId[Customer,Person] -> {#(x)->x; .extra: Person -> Person} }
+"""));}
+@Test void baseIdInheritedFromBaseId(){ok(List.of("""
+Person:{}
+Customer:Person{}
+MyId:base.BaseId[Customer,Person]{ #(x)->x }
+Sub:MyId{}
+User:{ .n(cs: base.MList[Customer]): base.MList[Person] -> cs.as(Sub) }
+"""));}
 @Test void eqSugarNameSameAsFreshName(){ok(List.of("""
 User:{ .u(n: base.Nat): base.Nat -> base.Block#.let _aeqS = {n}.return{_aeqS} }
+"""));}
+@Test void eqSugarNameSameAsFreshDestructName(){ok(List.of("""
+Pt:{ .x: base.Nat -> 1; .y: base.Nat -> 2 }
+User:{ .u({.x,.y}1: Pt): base.Nat -> base.Block#.let _adiv = {x1}.return{_adiv + y1} }
+"""));}
+@Test void eqSugarNameSameAsFreshImplicitName(){ok(List.of("""
+User:{ .u(n: base.Nat): base.F[base.Nat,base.Nat] -> base.Block#.let _aimpl = {n}.return{ {:: + _aimpl} } }
+"""));}
+@Test void eqSugarDestructNamesSameAsFreshName(){ok(List.of("""
+Pt:{ ._aeqS: base.Nat -> 1; .y: base.Nat -> 2 }
+User:{ .u(p: Pt): base.Nat -> base.Block#.let {._aeqS,.y} = {p}.return{_aeqS + y} }
+"""));}
+@Test void eqSugarDestructNamesSameAsFreshDestructName(){ok(List.of("""
+Pt:{ ._adiv: base.Nat -> 1; .y: base.Nat -> 2 }
+User:{ .u(p: Pt): base.Nat -> base.Block#.let {._adiv,.y}1 = {p}.let {._adiv} = {p}.return{_adiv1 + y1 + _adiv} }
+"""));}
+@Test void destructParameterNamesSameAsFreshName(){ok(List.of("""
+Pt:{ ._aeqS: base.Nat -> 1; .y: base.Nat -> 2 }
+User:{ .u({._aeqS,.y}: Pt): base.Nat -> base.Block#.let z = {y}.return{_aeqS + z} }
 """));}
 
 

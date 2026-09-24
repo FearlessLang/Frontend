@@ -33,7 +33,8 @@ public class AllDeclaredNames implements EVisitor<Void>{
     Xs.put(n, Collections.unmodifiableSet(lastTopXs));    
   }
   private void visitInnerB(B b){ lastTopXs.add(b.x()); }
-  private void visitInnerParameter(Parameter p){ p.xp().ifPresent(x->x.parameterNames().forEach(lastTopNames::add)); }
+  private void visitInnerParameter(Parameter p){ p.xp().ifPresent(this::visitInnerXPat); }
+  private void visitInnerXPat(XPat x){ x.parameterNames().forEach(lastTopNames::add); }
   private void visitInnerSig(Sig s){
     s.bs().ifPresent(bs->bs.forEach(this::visitInnerB));
     s.parameters().forEach(this::visitInnerParameter);
@@ -66,6 +67,7 @@ public class AllDeclaredNames implements EVisitor<Void>{
   }
   @Override public Void visitCall(Call c){
     c.e().accept(this);
+    c.pat().ifPresent(this::visitInnerXPat);
     c.es().forEach(ei->ei.accept(this));
     return null;
   }
