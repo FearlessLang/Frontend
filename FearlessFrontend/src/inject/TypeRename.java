@@ -84,6 +84,5 @@ public final class TypeRename{
   private static T withRC(T t, RC rc){ return isInfer(t) ? t : t.withRC(rc); }
   private static T readImm(T t){ return isInfer(t) ? t : t.readImm(); }
 
-  private static boolean isInfer(T t){ return t instanceof T.RCC rcc && isInferName(rcc.c().name()); }
-  private static boolean isInferName(TName n){ return "base.InferUnknown".equals(n.s()) || "base.InferErr".equals(n.s()); }
+  private static boolean isInfer(T t){ return t instanceof T.RCC rcc && List.of("base.InferUnknown","base.InferErr").contains(rcc.c().name().s()); }
 }

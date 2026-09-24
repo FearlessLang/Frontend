@@ -119,13 +119,10 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     return k.apply(call(typedLiteral("base.Block", body.span(),p), "#",List.of(), p));
   }
   record XE(String x, fearlessFullGrammar.E e){}
-  boolean isXPat(fearlessFullGrammar.Parameter p){
-    return p.xp().isPresent() && p.xp().get() instanceof XPat.Destruct; 
-  }
   List<XE> xpats(List<String> lowered, List<fearlessFullGrammar.Parameter> original, TSpan span){
     assert lowered.size() == original.size();
     return IntStream.range(0,lowered.size()).boxed()
-      .filter(i->isXPat(original.get(i)))
+      .filter(i->original.get(i).xp().orElse(null) instanceof XPat.Destruct)
       .flatMap(i->xpat((XPat.Destruct)original.get(i).xp().get(),lowered.get(i),span))
       .toList();
   }

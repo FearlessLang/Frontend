@@ -33,8 +33,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     return tail._bindOrNull(x);
   }
   public Gamma filterFTV(Literal l){
-    var captureFree= LiteralDeclarations.has(l.cs(),LiteralDeclarations.captureFree);
-    return filterFTV(l,captureFree);
+    return filterFTV(l,LiteralDeclarations.has(l.cs(),LiteralDeclarations.captureFree));
   }
   private Gamma filterFTV(Literal l,boolean captureFree){//we only care about dom(bs)
     //\u0393|Xs= {x : T | x : T \u2208 \u0393 \u2227 FTV(T) \u2286 Xs}

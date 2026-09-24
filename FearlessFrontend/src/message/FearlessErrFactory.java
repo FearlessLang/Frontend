@@ -35,8 +35,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   Optional<TName> lastTop= Optional.empty();
   public void noteTop(TName t){ lastTop = Optional.of(t); }
   @Override public FearlessException illegalCharAt(Span at, int cp, Tokenizer tokenizer){
-    String head= "Illegal character "+Message.displayChar(cp);
-    return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
+    return Code.UnexpectedToken.of("Illegal character "+Message.displayChar(cp)).addFrame(new Frame("", at));
   }
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels, Parser parser){
     assert nonNull(at,what,expectedLabels);
@@ -51,8 +50,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
              + "Remove this semicolon.\n";
       }
       var n= Err.staticTypeDecName(lastTop.get());
-      String hint=lastTop.get().s()+"[..]:..{...}";
-      if (lastTop.get().arity() == 0){ hint = lastTop.get().s()+":..{...}"; }
+      String hint= lastTop.get().s()+(lastTop.get().arity() == 0 ? ":..{...}" : "[..]:..{...}");
       return "Top level type declarations do not end with \";\".\n"
            + "The defintion of " + n + " ends with a semicolon. Remove it.\n"
            + "Write: "+Message.displayString(hint)+"\n"
@@ -82,8 +80,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.ExtraTokenInGroup.of(msg).addSpan(here).addSpan(from);
   }
   @Override public FearlessException probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx, Parser parser){
-    String head= "Probe stalled while scanning " + groupLabel;
-    return Code.ProbeError.of(head).addSpan(at);
+    return Code.ProbeError.of("Probe stalled while scanning " + groupLabel).addSpan(at);
   }
   @Override public FearlessException badProbeDropIn(String groupLabel, Span at, int startIdx, int endIdx, int drop, Parser parser){
     String msg= "Probe returned invalid drop=" + drop
@@ -113,9 +110,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "There is already an entry in the mapping for "+Message.displayString(what)+" in "+Message.displayString(in)+".\n"
     ).addSpan(at);
   }
-  public FearlessException duplicatedUseSource(Span at, String what){ return duplicatedUse(at,what,"source"); }
-  public FearlessException duplicatedUseDest(Span at, String what){ return duplicatedUse(at,what,"destination"); }
-  private FearlessException duplicatedUse(Span at, String what, String kind){
+  public FearlessException duplicatedUse(Span at, String what, String kind){
     return Code.UnexpectedToken.of(
         "There is already an entry in the using with "+kind+" "+Message.displayString(what)+".\n"
     ).addSpan(at);
@@ -277,7 +272,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "A method signature cannot declare multiple generic type parameters with the same name\n"
       +"Generic type parameter "+Message.displayString(name)+" is repeated").addSpan(at);
   }
-  public String context(){return "File ended while parsing a "; }
   private static String expected(Collection<TokenKind> items){ return expected("","Expected: ","Expected one of: ",items,tk->tk.human); }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
     if (items.isEmpty()){ return pre0.isEmpty()? "" : pre0+".\n"; }
@@ -312,7 +306,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       sof
         ?"Unopened " + stopLabel + ".\n"
       :eof
-        ? context() + openLabel + " group.\n"
+        ? "File ended while parsing a " + openLabel + " group.\n"
       : isBarrier
         ? "Unclosed " + openLabel + " group before " + stopLabel + ".\n"
         : ("Wrong closer for " + openLabel + " group.\nFound instead: " + stopLabel + ".\n");
@@ -335,12 +329,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     assert nonNull(open, stop, expectedClosers, hiddenFragment, hiddenContainer, tokenizer);
     var file= tokenizer.fileName();
     String where= BadTokens.describeFree(hiddenContainer);
-    var other= "Otherwise expected";
     String msg=
       "Unclosed " + Message.displayString(open.kind().human) + " group.\n"
     + "Found a matching closer inside a" + where + " between here and the stopping point.\n"
     + "Did you mean to place the closer outside the" + where + "?\n"
-    + expected("",other+": ", other+" one of: ",expectedClosers,tk->tk.human);
+    + expected("","Otherwise expected: ","Otherwise expected one of: ",expectedClosers,tk->tk.human);
     var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
     var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
     return Code.Unclosed.of(msg).addFrame("groups of parenthesis",primary).addSpan(secondary);

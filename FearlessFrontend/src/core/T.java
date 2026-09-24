@@ -17,10 +17,6 @@ public sealed interface T{
   record RCX(RC rc, X x) implements T{
     public RCX{assert nonNull(rc,x);}
     public String toString(){ return rc.name()+" "+x.name; }
-    public RCX withRC(RC rc){
-      if (rc == this.rc){ return this; }
-      return new RCX(rc,x);
-    }
     public TSpan span(){ return x.span();}
   }
   record ReadImmX(X x) implements T{

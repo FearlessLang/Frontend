@@ -44,7 +44,6 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   public record MType(String promotion,RC rc,List<T> ts,T t){
     MType withPromotion(String promotion){ return new MType(promotion,rc,ts,t); }
   }
-  List<MType> multiMeth(List<B> bs1, MType mType, boolean hyg){ return MultiMeth.of(bs1,mType,hyg); }
 
   public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
     tops= UriSort.byFolderThenFile(tops, l->l.span().inner.fileName());
@@ -63,10 +62,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       || isImplSubtype(bs,t1,t2);
   }
   public void check(List<B> bs, Gamma g, E e, T expected){
-    var rs= List.of(new TRequirement("", expected));
-    var out= typeOf(bs,g,e,rs);
-    assert out.size() == 1;
-    var got= out.getFirst();
+    var got= OneOr.of("", typeOf(bs,g,e,List.of(new TRequirement("", expected))).stream());
     if (got.isEmpty()){ return; }
     throw tsE().methBodyWrongType((TypeScope.Method)scope,e,got,expected);
   }
@@ -74,7 +70,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     case X x -> checkX(bs,g,x,rs);
     case Type t -> checkType(bs,g,t,rs);
     case Literal l -> checkLiteral(bs,g,l,rs);
-    case Call c -> checkCall(bs,g,c,rs);
+    case Call c -> new CallTyping(this,bs,g,c,rs).run();
   };}
   private List<Reason> checkX(List<B> bs, Gamma g, X x, List<TRequirement> rs){
     var b= g.bind(x.name());
@@ -121,7 +117,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var l= getIso ? _l.withRC(RC.iso) : _l;
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(l,r.t()); } }
     for (var m : l.ms()){ if (m.sig().origin().equals(TypeRename.inferUnknown.c().name())){ throw tsE().methodNotInferred(l,m); } }
-    var ts= l.bs().stream().<T>map(b->new T.X(b.x(),span)).toList();
+    var ts= dom(l.bs(),span);
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
     assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x()))):l.bs()+" "+bs1;
@@ -130,9 +126,6 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     ms.forEach(m->checkCallable(l,m));
     l.ms().forEach(m->checkImplemented(l,m,l));
     return reqs(l,bs1,thisType,rs);
-  }
-  private List<Reason> checkCall(List<B> bs,Gamma g,Call c, List<TRequirement> rs){
-    return new CallTyping(this,bs,g,c,rs).run();
   }
   private void checkImplemented(Literal l, M m,E blame){
     if (!m.sig().abs()){ return; }

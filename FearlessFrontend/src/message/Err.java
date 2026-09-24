@@ -20,13 +20,13 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
   
-  String tNameA(TName n){ return cp().msgTName(n)+genArity(n.arity()); }     // "A[_]"
+  String tNameA(TName n){ return cp().t.ofFull(n)+genArity(n.arity()); }     // "A[_]"
   String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
   private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
   private String bestLitName(boolean skipRc,boolean skipImm,Literal l){
     RC rc= skipRc?RC.imm:l.rc();
     if (showInstanceOf(l)){ return typeReprRaw(skipImm||skipRc,new T.RCC(rc,l.cs().getFirst(),l.span())); }
-    if (l.infName() && l.cs().isEmpty()){ return anonRepr; }
+    if (anonLit(l)){ return anonRepr; }
     return rc.toStrSpace(skipImm)+tNameA(l.name());
   }
   private String bestLitName(inference.E.Literal l){
@@ -129,16 +129,12 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     int n= sb.length();
     assert n != 0;
     assert sb.charAt(n-1) == '\n';
-    if (n >= 2 && sb.charAt(n-2) == '\n'){ return this; }
-    sb.append('\n');
+    if (n < 2 || sb.charAt(n-2) != '\n'){ sb.append('\n'); }
     return this;
   }
-  Err bullet(String s){ return line(item("- ","  ", s)); }
-
-  private String item(String first, String rest, String s){
-    s= s.stripTrailing();
-    assert !s.isEmpty();
-    return first+s.replace("\n","\n"+rest);
+  Err bullet(String s){
+    assert !s.isBlank();
+    return line("- "+s.stripTrailing().replace("\n","\n  "));
   }
   Err pCallCantBeSatisfied(Literal d, Call c){
     return line("This call to method "+methodSig(c.rc().toStrSpace(),d,c.name())+" cannot typecheck.");

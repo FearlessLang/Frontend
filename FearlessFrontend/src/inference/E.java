@@ -112,11 +112,7 @@ public sealed interface E{
       if (e == this.e && es == this.es){ return this; }
       return new E.Call(e, name, rc,targs,es,t,src,g.clear());
     }
-    public Call withE(E e){
-      assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
-      if (e == this.e){ return this; }
-      return new E.Call(e, name, rc,targs,es,t,src,g.clear());
-    }
+    public Call withE(E e){ return withEEs(e,es); }
     public Call withT(IT t){
       assert Monotonicity.eT(g, this, this.t, t);
       if (t.equals(this.t)){ return this; }
@@ -147,10 +143,6 @@ public sealed interface E{
       if (e == this.e && es == this.es){ return this; } 
       return new ICall(e,name,es,t,src,g.clear());
     }
-    public E withE(E e){
-      assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
-      if (e == this.e){ return this; } 
-      return new ICall(e,name,es,t,src,g.clear());
-    }
+    public E withE(E e){ return withEEs(e,es); }
   }
 }

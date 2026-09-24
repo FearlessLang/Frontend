@@ -89,20 +89,14 @@ public final class Monotonicity{
     step(c.g(), slot(K.eT,0,0), c.t(), nextT, "Call.t");
     step(c.g(), slot(K.callRc,0,0), c.rc(), nextRc, "Call.rc");
     int oldN= c.targs().size(), newN= nextTargs.size();
-    if (oldN != newN){
-      // Arity repair is allowed, but only before we started tracking per-index targs.
-      if (hasAnyKind(c.g(), K.callTarg)){
-        throw new AssertionError("Call.targs arity changed after tracking started old="+oldN+" new="+newN
-          +"\ncall="+c);
-      }
-      for (int i : Range.of(nextTargs)){
-        var ti= nextTargs.get(i);
-        step(c.g(), slot(K.callTarg,i,0), ti, ti, "Call.targs["+i+"] init");
-      }
-      return true;
+    // Arity repair is allowed, but only before we started tracking per-index targs.
+    if (oldN != newN && hasAnyKind(c.g(), K.callTarg)){
+      throw new AssertionError("Call.targs arity changed after tracking started old="+oldN+" new="+newN
+        +"\ncall="+c);
     }
+    var from= oldN == newN ? c.targs() : nextTargs;
     for (int i : Range.of(nextTargs)){
-      step(c.g(), slot(K.callTarg,i,0), c.targs().get(i), nextTargs.get(i), "Call.targs["+i+"]");
+      step(c.g(), slot(K.callTarg,i,0), from.get(i), nextTargs.get(i), "Call.targs["+i+"]");
     }
     return true;
   }
@@ -128,19 +122,8 @@ public final class Monotonicity{
       return true;
     }
     // First stable snapshot: start tracking from nextMs (not from l.ms()).
-    if (!hasLitHistory(l.g())){
-      for (int mi : Range.of(nextMs)){
-        var nm= nextMs.get(mi);
-        var nps= sigPs(nm);
-        for (int pi : Range.of(nps)){
-          step(l.g(), slot(K.litMArg,mi,pi), nps.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] init");
-        }
-        var r= sigRet(nm);
-        step(l.g(), slot(K.litMRet,mi,0), r, r, "Lit.ms["+mi+"].ret init");
-      }
-      return true;
-    }
-    int oldN= l.ms().size(), newN= nextMs.size();
+    var oldMs= hasLitHistory(l.g()) ? l.ms() : nextMs;
+    int oldN= oldMs.size(), newN= nextMs.size();
     if (oldN != newN){
       throw new AssertionError("Literal.ms size changed after tracking started old="+oldN+" new="+newN
         +"\noldMs="+msBrief(l.ms())+"\nnewMs="+msBrief(nextMs)
@@ -148,7 +131,7 @@ public final class Monotonicity{
     }
     // Same size, stable names: normal monotonic tracking by index.
     for (int mi : Range.of(nextMs)){
-      var om= l.ms().get(mi);
+      var om= oldMs.get(mi);
       var nm= nextMs.get(mi);
       var ops= sigPs(om);
       var nps= sigPs(nm);

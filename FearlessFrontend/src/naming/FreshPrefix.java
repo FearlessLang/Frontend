@@ -41,15 +41,10 @@ public record FreshPrefix(
     aliasOwner(hint,res);
     return res;
   }
-  public boolean isFreshGeneric(TName owner,String x){
-    var st= owners.get(owner);
-    assert st != null : owner;
-    return !st.gen().contains(x);
-  }
+  public boolean isFreshGeneric(TName owner,String x){ return !owners.get(owner).gen().contains(x); }
   public String freshGeneric(TName owner,String hint){
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
-    assert st != null : owner;
     String cand= freshCandidate(hint, true, up, st.genSeq(), st.gen(), List.of(usedTopTypes));
     allGenericNames.add(cand);
     return cand;
@@ -58,21 +53,15 @@ public record FreshPrefix(
     assert nonNull(owner,hint);
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
-    assert st != null : owner;
     return freshCandidate(hint, false, low, st.varSeq(), st.vars(), List.of());
   }
   // commitScope is checked and updated with the winning candidate; extraChecks are read-only.
   private static String freshCandidate(String hint, boolean type, char[] alphabet,
       Map<String,Integer> seq, Set<String> commitScope, List<Set<String>> extraChecks){
     String base= sanitizeBase(hint, type);
-    int n= seq.getOrDefault(base, 1);
-    outer:
-    while (true){
+    for (int n= seq.getOrDefault(base, 1);; n++){
       String cand= "_"+encodeBijective(n, alphabet)+base;
-      if (commitScope.contains(cand)){ n++; continue; }
-      for (Set<String> extra : extraChecks){
-        if (extra.contains(cand)){ n++; continue outer; }
-      }
+      if (commitScope.contains(cand) || extraChecks.stream().anyMatch(e->e.contains(cand))){ continue; }
       commitScope.add(cand);
       seq.put(base, n+1);
       return cand;
@@ -81,10 +70,8 @@ public record FreshPrefix(
   public void aliasOwner(TName original,TName alias){// aliasing is deliberate: owner and alias share the same OwnerState
     assert pkgName.equals(original.pkgName()): pkgName+" -- "+original;
     assert pkgName.equals(alias.pkgName()): pkgName+" -- "+alias;
-    var st= owners.get(original);
-    assert st != null : original;
     assert !owners.containsKey(alias);
-    owners.put(alias, st);
+    owners.put(alias, Objects.requireNonNull(owners.get(original)));
   }
   private static String sanitizeBase(String raw,boolean type){
     String s= raw.replaceAll("[^A-Za-z0-9]", "");
@@ -95,11 +82,10 @@ public record FreshPrefix(
   private static String encodeBijective(int n,char[] alphabet){
     int base= alphabet.length;
     StringBuilder sb= new StringBuilder(4);
-    int x= n;
-    while (x > 0){
-      x--;
-      sb.append(alphabet[x % base]);
-      x/= base;
+    while (n > 0){
+      n--;
+      sb.append(alphabet[n % base]);
+      n/= base;
     }
     return sb.reverse().toString();
   }
