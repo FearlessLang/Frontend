@@ -107,8 +107,9 @@ public record Methods(
     List<M.Sig> allSig= IntStream.range(0,ds.size()).filter(i->!implied.contains(d.cs().get(i)))
       .boxed().flatMap(i->ds.get(i).sigs().stream()).toList();
     List<M> allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
-    checkMagicSupertypes(d, allCs);
-    return d.withCsMs(allCs,allMs,setInfHead);
+    var res= d.withCsMs(allCs,allMs,setInfHead);
+    checkMagicSupertypes(res, allCs);
+    return res;
   }
   //expandLiteral works on an incomplete literal with the cs list not there yet
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
@@ -131,8 +132,11 @@ public record Methods(
   }
   private void checkBaseId(E.Literal d){
     var ms= d.ms();
-    var bad= ms.size() > 1 || ms.stream().anyMatch(m->!m.sig().m().map(hashOne::equals).orElse(true));
-    if (bad){ throw p.err().baseIdNotOnlyHash(d); }
+    if (ms.size() != 1 || !ms.getFirst().sig().m().get().equals(hashOne)){ throw p.err().baseIdNotOnlyHash(d); }
+    var s= ms.getFirst().sig();
+    var origin= s.origin().get();
+    if (ms.getFirst().impl().isPresent() || s.abs() || LiteralDeclarations.has(from(origin).cs(),LiteralDeclarations.baseId)){ return; }
+    throw p.err().baseIdInheritedHash(d, origin);
   }
   private static final MName hashOne= new MName("#",1);
   void notSealed(TName target, E.Literal owner){

@@ -392,7 +392,14 @@ public record WellFormednessErrors(String pkgName){
     String ctx= Err.up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
-      .line("Only the method "+err().methodSig(new MName("#",1))+" can be declared here."), owner, owner.span().inner);
+      .line("Only the method "+err().methodSig(new MName("#",1))+" can be declared or inherited here."), owner, owner.span().inner);
+  }
+  public FearlessException baseIdInheritedHash(E.Literal owner, TName origin){
+    String ctx= Err.up(err().expRepr(owner));
+    return wf(err()
+      .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
+      .line("It inherits the implementation of "+err().methodSig(new MName("#",1))+" from "+err().tNameADisp(origin)+", that does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
+      .line("Method "+err().methodSig(new MName("#",1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner, owner.span().inner);
   }
   public FearlessException extendedSealed(E.Literal owner, TName isSealed){
     String ownerPkg= owner.name().pkgName();
