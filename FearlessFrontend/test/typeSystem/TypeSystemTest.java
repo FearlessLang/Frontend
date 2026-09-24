@@ -3515,6 +3515,9 @@ Forge:{ #(x: Customer): Person -> Person }
 MyId:base.BaseId[Customer,Person], Forge{}
 User:{ .n(cs: base.MList[Customer]): base.MList[Person] -> cs.as(MyId) }
 """));}
+@Test void eqSugarNameSameAsFreshName(){ok(List.of("""
+User:{ .u(n: base.Nat): base.Nat -> base.Block#.let _aeqS = {n}.return{_aeqS} }
+"""));}
 
 
 @Test void oldStyleAsMapsFine(){ok(List.of("""
