@@ -33,7 +33,7 @@ public final class LiteralDeclarations{
   }
   public static core.E.Literal _from(TName n, Function<TName,Literal> map, OtherPackages other){
     var res= map.apply(n);
-    if (res == null){ res = other.__of(n); }
+    if (res == null){ res= other.__of(n); }
     if (res != null){ return res; }
     if (!n.pkgName().equals("base") || !isPrimitiveLiteral(n.simpleName())){ return null; }
     return LiteralDeclarations.forge(n,superLiteral(n),map,other);
@@ -71,7 +71,7 @@ public final class LiteralDeclarations{
   }
   public static boolean floatLiteralExactlyRepresentable(String raw){
     String ns= floatPayload(raw);
-    if (ns.startsWith("+")){ ns = ns.substring(1); }
+    if (ns.startsWith("+")){ ns= ns.substring(1); }
     double d= Double.parseDouble(ns);
     if (!Double.isFinite(d)){ return false; } // overflow -> Infinity
     if (d == 0){ return new BigDecimal(ns.replaceAll("[eE].*","")).signum() == 0; }
@@ -86,10 +86,10 @@ public final class LiteralDeclarations{
     if (e != -1){
       String base= mag.substring(0,e);
       String exp= mag.substring(e+1);
-      if (base.indexOf('.') == -1){ base = base+".0"; }
-      mag = base+"e"+exp;
+      if (base.indexOf('.') == -1){ base= base+".0"; }
+      mag= base+"e"+exp;
     }
-    else if (mag.indexOf('.') == -1){ mag = mag + ".0"; }
+    else if (mag.indexOf('.') == -1){ mag= mag + ".0"; }
     return (neg ? "-" : "+") + mag;
   }
   public static double floatLiteralDouble(String raw){

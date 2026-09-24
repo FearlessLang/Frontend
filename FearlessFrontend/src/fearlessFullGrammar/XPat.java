@@ -25,7 +25,7 @@ public sealed interface XPat{
         sm->{ assert !sm.isEmpty();
           unmodifiable(sm,"ParamPat.Destruct.extract element",
             m->{assert m.s().startsWith(".");});});
-      assert validOpt(id,n -> validate("}"+n, "pattern id",CCurlyId));
+      assert validOpt(id,n->validate("}"+n, "pattern id",CCurlyId));
     }
     public Stream<String> parameterNames(){ return extract.stream().map(e->e.getLast().s().substring(1) + id.orElse("")); }
   }

@@ -35,8 +35,8 @@ public class FrontendLogicMain{
     Package pkg= mergeToPackage(pkgName,rawAST, override, other); // Phase 2: Merge & Well-formedness
     Methods ctx= Methods.create(pkg, other); // Phase 3: // Creates the scope (Methods) and FreshPrefix generators
     List<inference.E.Literal> inferrableAST= new ToInference().of(pkg, ctx, other, ctx.fresh()); // Phase 4: Desugar
-    inferrableAST = ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
-    List<core.E.Literal> coreAST = InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
+    inferrableAST= ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
+    List<core.E.Literal> coreAST= InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
     TypeSystem.allOk(coreAST, pkg, other); //Phase 7: type checking
     return coreAST;
   }
@@ -50,7 +50,7 @@ public class FrontendLogicMain{
            + "   \"map  "+in+"  as  "+out+"  in  "+target+";\"";
     }}
     Map<Key,List<Cand>> byKey= parsed.entrySet().stream()
-      .flatMap(e->e.getValue().maps().stream().map(m-> new Cand(e.getKey(), m.target(), m.in(), m.out())
+      .flatMap(e->e.getValue().maps().stream().map(m->new Cand(e.getKey(), m.target(), m.in(), m.out())
       )).collect(Collectors.groupingBy(x->new Key(x.target(),x.in())));
     Map<String,Map<String,String>> res= new HashMap<>();
     byKey.forEach((k,cs)->{
@@ -67,15 +67,15 @@ public class FrontendLogicMain{
     return Map.copyOf(res);
   }
   Map<Ref, FileFull> parseFiles(List<Ref> files){
-    Map<Ref, FileFull> all = new LinkedHashMap<>();
+    Map<Ref, FileFull> all= new LinkedHashMap<>();
     for (var u : files){ all.put(u, Parse.from(u.fearURI(), u.loadString())); }
     return Collections.unmodifiableMap(all);
   }
   private void checkOnlyHeadHasDirectives(WellFormednessErrors err, Ref headPkg, Map<Ref, FileFull> raw){
     raw.entrySet().stream()
-      .filter(e -> !e.getKey().equals(headPkg))
-      .filter(e -> !e.getValue().noDirectives())
-      .forEach(e -> { throw err.notClean(e.getKey(), e.getValue()); });  
+      .filter(e->!e.getKey().equals(headPkg))
+      .filter(e->!e.getValue().noDirectives())
+      .forEach(e->{ throw err.notClean(e.getKey(), e.getValue()); });  
   }
   Package mergeToPackage(String pkgName,Map<Ref, FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
@@ -86,7 +86,7 @@ public class FrontendLogicMain{
     var map= new HashMap<String, String>(override);
     accUses(err,pkgName, map, head.uses(), other);
     List<Declaration> ds= raw.values().stream()
-      .flatMap(f -> f.decs().stream())
+      .flatMap(f->f.decs().stream())
       .sorted().toList();
     Map<String,String> readOnlyMap= Collections.unmodifiableMap(map);
     var names= DeclaredNames.of(pkgName, ds, readOnlyMap);
@@ -100,9 +100,9 @@ public class FrontendLogicMain{
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
       var p= u.in().pkgName();
-      p = map.getOrDefault(p, p); //thus if p is "" we get ""
+      p= map.getOrDefault(p, p); //thus if p is "" we get ""
       map.put(u.out(), p + "." + u.in().simpleName());
-      var ok= otherDom.stream().anyMatch(e -> e.s().equals(u.in().s()));
+      var ok= otherDom.stream().anyMatch(e->e.s().equals(u.in().s()));
       if (!ok){ throw err.unknownUseHead(u.in()); }
     }//map a as b in c + use b.F as bF will replace bF with a.F
   }

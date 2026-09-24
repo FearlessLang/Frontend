@@ -66,26 +66,26 @@ public sealed interface E{
       return res+"{'"+thisName+Join.of(ms,"","","","")+"}:"+t;
     }
     public Literal withMs(List<M> ms){
-      assert t instanceof IT.RCC:t;
+      assert t instanceof IT.RCC;
       assert Monotonicity.onLiteralWithMs(this, ms);
       if (infHead && ms == this.ms){ return this; } 
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
     }
     public Literal withMsT(List<M> ms, IT t){
-      assert t instanceof IT.RCC:t;
+      assert t instanceof IT.RCC;
       assert Monotonicity.onLiteralWithMs(this, ms);
       assert Monotonicity.eT(g, this, this.t, t);
       if (infHead && ms == this.ms && t.equals(this.t)){ return this; }
-      assert !t.equals(this.t) || ms == this.ms || !ms.equals(this.ms) : "Allocated equal MS:\n"+ms;
+      assert !t.equals(this.t) || ms == this.ms || !ms.equals(this.ms);
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
     }
     public Literal withCsMs(List<IT.C> cs, List<M> ms, boolean setInfHead){
       assert !setInfHead || !infHead;
-      assert !setInfHead || t instanceof IT.RCC:t;
+      assert !setInfHead || t instanceof IT.RCC;
       var noChange= infHead == setInfHead && cs.equals(this.cs) && ms == this.ms;
       if (noChange){ return this; }
       assert Monotonicity.onLiteralWithMs(this, ms);
-      assert ms == this.ms || !ms.equals(this.ms) : "Allocated equal MS:\n"+ms;
+      assert ms == this.ms || !ms.equals(this.ms);
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,setInfHead,g.clear());
     }
     @Override public int compareTo(Literal o){ return span().inner.compareTo(o.span().inner); }
@@ -100,15 +100,15 @@ public sealed interface E{
       assert unmodifiable(targs, "E.Call.targs");
     }
     public Call withMore(E e,RC rc,List<IT> targs,List<E> es,IT t){
-      assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
-      assert es == this.es || !es.equals(this.es) : "Allocated equal es list";
+      assert e == this.e || !e.equals(this.e);
+      assert es == this.es || !es.equals(this.es);
       assert Monotonicity.onCallWithMore(this, Optional.of(rc), targs, t);
       if (e == this.e && Optional.of(rc).equals(this.rc) && targs.equals(this.targs) && es == this.es && t.equals(this.t)){ return this; } 
       return new E.Call(e, name, Optional.of(rc),targs,es,t,src,g.clear());
     }
     public Call withEEs(E e,List<E> es){
-      assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
-      assert es == this.es || !es.equals(this.es) : "Allocated equal es list";
+      assert e == this.e || !e.equals(this.e);
+      assert es == this.es || !es.equals(this.es);
       if (e == this.e && es == this.es){ return this; }
       return new E.Call(e, name, rc,targs,es,t,src,g.clear());
     }
@@ -138,8 +138,8 @@ public sealed interface E{
     }
     public String toString(){ return ""+e+name+Join.of(es,"(",",","):","():")+t; }
     public E withEEs(E e, List<E> es){
-      assert e == this.e || !e.equals(this.e) : "Allocated equal receiver E";
-      assert es == this.es || !es.equals(this.es) : "Allocated equal es list";
+      assert e == this.e || !e.equals(this.e);
+      assert es == this.es || !es.equals(this.es);
       if (e == this.e && es == this.es){ return this; } 
       return new ICall(e,name,es,t,src,g.clear());
     }

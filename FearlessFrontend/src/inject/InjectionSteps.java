@@ -62,27 +62,27 @@ public record InjectionSteps(Methods meths){
     return tops.stream()
       .map(l->s.stepDec(meths.cache().get(l.name()), l)).toList();
   }
-  private core.E.Literal stepDec(core.E.Literal di, inference.E.Literal li){ return di.withMs(li.ms().stream().map(m -> stepDecM(di, m)).toList()); }
+  private core.E.Literal stepDec(core.E.Literal di, inference.E.Literal li){ return di.withMs(li.ms().stream().map(m->stepDecM(di, m)).toList()); }
   private boolean sameM(core.Sig s1, inference.M.Sig s2){
     return s1.m().equals(s2.m().get()) && s1.rc().equals(s2.rc().orElse(RC.imm));
   }
   private core.M stepDecM(core.E.Literal di, inference.M m){
-    core.M mCore= utils.OneOr.of("Method mismatch", di.ms().stream().filter(mi -> sameM(mi.sig(), m.sig())));
+    core.M mCore= utils.OneOr.of("Method mismatch", di.ms().stream().filter(mi->sameM(mi.sig(), m.sig())));
     if (m.impl().isEmpty()){ return mCore; }//assert same type as m lifted to core
     inference.E e= m.impl().get().e();
     TSpan span= di.name().approxSpan();
-    List<IT> thisTypeTs= di.bs().stream().<IT>map(b -> new IT.X(b.x(),span)).toList();
+    List<IT> thisTypeTs= di.bs().stream().<IT>map(b->new IT.X(b.x(),span)).toList();
     List<String> xs= m.impl().get().xs();
     var thisType= new IT.RCC(Optional.of(mCore.sig().rc()), new IT.C(di.name(), thisTypeTs),span);//no preferred on self names
     inference.E ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     Gamma g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
-    ei = nextStar(Push.of(di.bs(), m.sig().bs().get()), g, ei);
+    ei= nextStar(Push.of(di.bs(), m.sig().bs().get()), g, ei);
     return new core.M(mCore.sig(), xs, Optional.of(new ToCore(Push.of(di.bs(), m.sig().bs().get())).of(ei, m.impl().get().e())));
   }
   E meet(E e, IT t){
     if (e instanceof E.Type tt){ return nextT(tt); }
     if (e instanceof E.Literal l && l.t().isTV()){ return l; }
-    e = prototypeAscribeRootReceiver(e, t);
+    e= prototypeAscribeRootReceiver(e, t);
     return e.withT(meet(e.t(), t));
   }
   private long badnessAs(RCC src, TName targetHead){
@@ -140,16 +140,16 @@ public record InjectionSteps(Methods meths){
   List<IT> meet(List<IT> t1, List<IT> t2){ return Streams.zip(t1, t2).map(this::meet).toList(); }
   List<IT> meet(List<List<IT>> tss){
     int size= tss.getFirst().size();
-    assert tss.stream().allMatch(ts -> ts.size() == size);
+    assert tss.stream().allMatch(ts->ts.size() == size);
     return IntStream.range(0,size)
-    .mapToObj(i-> tss.stream()
+    .mapToObj(i->tss.stream()
       .map(ts->ts.get(i))
       .reduce((a,b)->meet(a,b))
       .orElseThrow())
     .toList();
   }
   E nextStar(List<B> bs, Gamma g, E e){
-    E start = e;
+    E start= e;
     if (e.done(g)){ return e; }
     while (true){
       var s= g.snapshot();
@@ -158,11 +158,11 @@ public record InjectionSteps(Methods meths){
       //assert oe == e || !oe.equals(e) : "Allocated equal E:"+e.getClass()+"\n"+e;
       if (oe == e && !g.changed(s)){
         e.sign(g);
-        assert e == start || !e.equals(start) : "Roundtrip equal E at fixpoint\nstart=" + start + "\nend=" + e;
+        assert e == start || !e.equals(start);
         return e;
       }
       //if (oe.equals(e) && !g.changed(s)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
-      e = oe;
+      e= oe;
     }
   }
   private List<M> fixArity(List<M> ms, TName name, TName newName){
@@ -181,12 +181,7 @@ public record InjectionSteps(Methods meths){
   private boolean threeWayAssert(List<E> originEs, List<E> es, List<E> res){
     //complex but invaluable: if it fails it means we are going 'back and forth'
     //and this could cause loops.
-    IntStream.range(0,es.size()).forEach(i->{
-      var e1= res.get(i);
-      var e2= originEs.get(i);
-      var e3= es.get(i);
-      assert e1==e2 || !e1.equals(e2):" "+e1+"\n\n"+e3;
-      });
+    for (int i : Range.of(es)){ assert res.get(i) == originEs.get(i) || !res.get(i).equals(originEs.get(i)); }
     return true;
   }
   E next(List<B> bs, Gamma g, E e){
@@ -208,11 +203,11 @@ public record InjectionSteps(Methods meths){
   private IT preferred(IT.RCC type){
     var d= meths._from(type.c().name());//d.cs() does contain all the transitive supertypes already.
     if (d == null){ return type; }//This can happen for {..}.foo
-    var cs= d.cs().stream().filter(c -> c.name().equals(LiteralDeclarations.widen)).toList();
+    var cs= d.cs().stream().filter(c->c.name().equals(LiteralDeclarations.widen)).toList();
     if (cs.isEmpty()){ return type; }
     assert cs.size() == 1;
     assert cs.getFirst().ts().size() == 1;
-    var dom= d.bs().stream().map(b -> b.x()).toList();
+    var dom= d.bs().stream().map(b->b.x()).toList();
     IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom, type.c().ts());
     if (!(wid instanceof IT.RCC w)){ return type; }
     return new IT.RCC(type.rc(), w.c(),type.span());
@@ -220,20 +215,20 @@ public record InjectionSteps(Methods meths){
   private RC overloadNorm(Optional<RC> rc){ return rc.map(r->r == RC.iso ? RC.imm : noH(r)).orElse(RC.imm); }
   private Optional<core.M> oneFromGuessRC(List<core.M> ms, RC rc){
     if (ms.size() == 1){ return Optional.of(ms.getFirst()); }
-    Optional<core.M> readOne= OneOr.opt("not well formed ms", ms.stream().filter(m -> m.sig().rc() == RC.read));
-    Optional<core.M> mutOne= OneOr.opt("not well formed ms", ms.stream().filter(m -> m.sig().rc() == RC.mut));
-    Optional<core.M> immOne= OneOr.opt("not well formed ms", ms.stream().filter(m -> m.sig().rc() == RC.imm));
-    if (rc == RC.read){ return readOne.or(() -> immOne).or(() -> mutOne); }
-    if (rc == RC.mut){ return mutOne.or(() -> readOne).or(()->immOne); }
+    Optional<core.M> readOne= OneOr.opt("not well formed ms", ms.stream().filter(m->m.sig().rc() == RC.read));
+    Optional<core.M> mutOne= OneOr.opt("not well formed ms", ms.stream().filter(m->m.sig().rc() == RC.mut));
+    Optional<core.M> immOne= OneOr.opt("not well formed ms", ms.stream().filter(m->m.sig().rc() == RC.imm));
+    if (rc == RC.read){ return readOne.or(()->immOne).or(()->mutOne); }
+    if (rc == RC.mut){ return mutOne.or(()->readOne).or(()->immOne); }
     assert rc == RC.imm;
-    return immOne.or(() -> readOne).or(()->mutOne);
+    return immOne.or(()->readOne).or(()->mutOne);
   }
   private <R> Optional<R> methodHeaderAnd(IT.RCC rcc, MName name, Optional<RC> favorite, BiFunction<core.E.Literal,core.M,R> f){
     var d= meths._from(rcc.c().name());
     if (d == null){ return Optional.empty(); }//case {..}.foo
-    Stream<core.M> ms= d.ms().stream().filter(m -> m.sig().m().equals(name));
+    Stream<core.M> ms= d.ms().stream().filter(m->m.sig().m().equals(name));
     Optional<core.M> om= favorite.isPresent()
-        ? OneOr.opt("Ambiguous method header for explicit RC", ms.filter(mi -> mi.sig().rc().equals(favorite.get())))
+        ? OneOr.opt("Ambiguous method header for explicit RC", ms.filter(mi->mi.sig().rc().equals(favorite.get())))
         : oneFromGuessRC(ms.toList(), overloadNorm(rcc.rc()));
     return om.map(mm->f.apply(d, mm));
   }
@@ -254,7 +249,7 @@ public record InjectionSteps(Methods meths){
     return methodHeaderAnd(rcc, name, favorite, (d,m)->methodHeaderInstance(rcc, d, m));
   }
   static List<IT> qMarks(int n){ return Stream.<IT>generate(()->IT.U.Instance).limit(n).toList(); }
-  private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i -> i == n ? t : IT.U.Instance).toList(); }
+  private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i->i == n ? t : IT.U.Instance).toList(); }
   private E nextX(List<B> bs, Gamma g, E.X x){
     var t1Base= g.get(x.name());
     var t1= g.getWithRC(x.name());
@@ -274,7 +269,7 @@ public record InjectionSteps(Methods meths){
     return Optional.of(glbRcNoH(a.get(), b.get()));
   }
   static RC glbRcNoH(RC a, RC b){
-    a = noH(a); b = noH(b);
+    a= noH(a); b= noH(b);
     if (a == b){ return a; }
     if (a == RC.read){ return b; }
     if (b == RC.read){ return a; }
@@ -313,7 +308,7 @@ public record InjectionSteps(Methods meths){
     assert all.size() == m.nCls()+m.bsArity();
     List<IT> clsTs= normToBounds(m.clsBs(),all.subList(0, m.nCls()));
     List<IT> targs= normToBounds(m.methBs(),all.subList(m.nCls(), all.size()));
-    e = meet(e, rcc.withTs(clsTs));
+    e= meet(e, rcc.withTs(clsTs));
     m= m.withClsArgs(clsTs);
     var it= meet(c.t(), m.ret(targs));
     var es1= meetWithTargs(c.es(),es, m, targs);
@@ -328,12 +323,12 @@ public record InjectionSteps(Methods meths){
   private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){
     List<IT> base= Push.of(m.clsArgs(), MSigL.fixTargs(c.targs(), m.bsArity()));
     if (m.bsArity() + m.clsArgs().size() == 0){ return List.of(); }//this is just an optimization
-    Stream<List<IT>> a= Streams.zip(m.ps0(), es).map((p,e2) -> refine(m.xs(), p, e2.t()));
+    Stream<List<IT>> a= Streams.zip(m.ps0(), es).map((p,e2)->refine(m.xs(), p, e2.t()));
     return meet(Streams.of(Stream.of(base), a, Stream.of(refine(m.xs(), m.ret0(), c.t()))).toList());
   }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
     if (l.infName() && l.rc().isEmpty()){ return Optional.empty(); }
-    var xs= l.bs().stream().<IT>map(b -> new IT.X(b.x(),l.name().approxSpan())).toList();
+    var xs= l.bs().stream().<IT>map(b->new IT.X(b.x(),l.name().approxSpan())).toList();
     return Optional.of(new IT.RCC(l.rc(), new IT.C(l.name(), xs),l.name().approxSpan()));
   }
   private Optional<IT.RCC> superSelf(E.Literal l){
@@ -347,11 +342,11 @@ public record InjectionSteps(Methods meths){
     var selfPrecise= preciseSelf(l);
     var selfSuper= superSelf(l);
     if (!infHead){
-      if (!l.infName()){ l = l.withT(selfPrecise.get()); }
-      else if (selfSuper.isPresent()){ l = l.withT(selfSuper.get()); }
+      if (!l.infName()){ l= l.withT(selfPrecise.get()); }
+      else if (selfSuper.isPresent()){ l= l.withT(selfSuper.get()); }
       if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
-      if (!l.infName()){ l = meths.expandDeclaration(l,true); }
-      else{ l = meths.expandLiteral(l, rcc.c()); }
+      if (!l.infName()){ l= meths.expandDeclaration(l,true); }
+      else{ l= meths.expandLiteral(l, rcc.c()); }
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
     boolean changedMs= false;
@@ -361,8 +356,8 @@ public record InjectionSteps(Methods meths){
       assert mi.impl().isEmpty() || selfPrecise.isEmpty() || rcc.isTV();
       var rcci= withTsNormBs(rcc,ts);
       TSM next= mi.impl().isEmpty() ? nextMStarAbs(rcci, mi) : nextMStarOp(bs, g, l.thisName(), selfPrecise, rcci, mi);
-      assert next.m == mi || !next.m.equals(mi) : "Allocated equal M:\n"+mi;
-      ts = meet(ts, next.ts);
+      assert next.m == mi || !next.m.equals(mi);
+      ts= meet(ts, next.ts);
       changedMs |= next.m != mi;
       res.add(next.m);
     }
@@ -375,26 +370,26 @@ public record InjectionSteps(Methods meths){
     TName name= l.name();
     if (!t.isTV() || !(t instanceof IT.RCC rcc) || hasU(l.ms()) || meths.cache().containsKey(name)){ return l; }
     var freeNames= Streams.of(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()), new FreeXs(g).ftvT(t));
-    List<B> localBs= freeNames.distinct().map(x -> RC.get(bs, x)).toList();
+    List<B> localBs= freeNames.distinct().map(x->RC.get(bs, x)).toList();
     TName newName= name.withArity(localBs.size());
     List<M> ms= fixArity(l.ms(), name, newName);
     Optional<RC> orc= l.rc().or(rcc::rc).map(InjectionSteps::noH);
     if (!l.infName()){
-      l = new E.Literal(orc, newName, localBs, l.cs(), l.thisName(), ms, l.t(), l.src(),l.infName(), l.infHead(), l.g());
+      l= new E.Literal(orc, newName, localBs, l.cs(), l.thisName(), ms, l.t(), l.src(),l.infName(), l.infHead(), l.g());
       assert !meths.cache().containsKey(name);
       var resD= meths.injectDeclaration(l);
       meths.cache().remove(name);
       meths.cache().put(resD.name(), resD);
       return l;
     }
-    assert l.bs().isEmpty() : "bs must stay empty pre-commit";
-    var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
+    assert l.bs().isEmpty();
+    var noMeth= l.ms().stream().allMatch(m->m.impl().isEmpty());
     if (noMeth && l.infHead() && meths._from(rcc.c().name()) != null){ return new E.Type(rcc, preferred(rcc), l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());
     List<IT.C> cs= selfInferred? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c()));
     meths.checkMagicSupertypes(l, cs);
     assert l.infHead();
-    l = new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, t, l.src(),l.infName(), l.infHead(), l.g());
+    l= new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, t, l.src(),l.infName(), l.infHead(), l.g());
     core.E.Literal resD= meths.injectDeclaration(l);
     assert !meths.cache().containsKey(name);
     meths.cache().put(resD.name(), resD);
@@ -408,7 +403,7 @@ public record InjectionSteps(Methods meths){
   }
   private static boolean hasU(List<inference.M> ms){
     return !ms.stream()
-      .allMatch(m -> m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t -> t.get().isTV()));
+      .allMatch(m->m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t->t.get().isTV()));
   }
   private List<Optional<IT>> updateArgs(List<String> xs, List<Optional<IT>> old, Gamma g){
     return Streams.zip(xs, old).map((x,oi)->"_".equals(x) ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
@@ -464,9 +459,9 @@ public record InjectionSteps(Methods meths){
     return new TSM(ts, new inference.M(sig, Optional.of(impl1)));
   }
   private List<IT> refineClsTsFromHeader(IT.RCC rcc, M.Sig improvedSig, core.Sig imh){
-    var Xs= meths.from(rcc.c().name()).bs().stream().map(b -> b.x()).toList();
+    var Xs= meths.from(rcc.c().name()).bs().stream().map(b->b.x()).toList();
     var fromBody= meet(Streams.of(
-      Streams.zip(imh.ts(), improvedSig.ts()).map((t,it) -> refine(Xs,t,it)),
+      Streams.zip(imh.ts(), improvedSig.ts()).map((t,it)->refine(Xs,t,it)),
       Stream.of(refine(Xs,imh.ret(), improvedSig.ret()))).toList());
     return Streams.zip(rcc.c().ts(),fromBody).map(this::keepDecided).toList();
   }
@@ -538,7 +533,7 @@ public record InjectionSteps(Methods meths){
     if (d == null){ return List.of(); } // {..}.foo etc.
     List<String> xs= d.bs().stream().map(B::x).toList();
     return d.cs().stream()
-      .filter(sc -> sc.name().equals(target))
+      .filter(sc->sc.name().equals(target))
       .distinct()
       .map(ci->new IT.RCC(rc, TypeRename.tcToITC(ci),span))
       .map(rcc->(IT.RCC)TypeRename.of(rcc, xs, ts))
@@ -553,7 +548,7 @@ public record InjectionSteps(Methods meths){
       if (!subOk.isEmpty()){ return propagateXs(xs,subOk.getFirst().c(),t1); }
       return qMarks(xs.size());
     }
-    List<List<IT>> res= Streams.zip(c.ts(), cc.c().ts()).map((t,ti) -> refine(xs, t, ti)).toList();
+    List<List<IT>> res= Streams.zip(c.ts(), cc.c().ts()).map((t,ti)->refine(xs, t, ti)).toList();
     return res.isEmpty() ? qMarks(xs.size()) : meet(res);
   }
   static <TT> List<TT> norm(List<TT> original, List<TT> candidate){
@@ -613,7 +608,7 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
   }
 
   private IT inst(IT t, List<IT> targs){//Note: this will eventually become an error at type system time.
-    targs = fixTargs(targs, bsArity());
+    targs= fixTargs(targs, bsArity());
     var ts= Push.of(clsArgs,targs);//performance? we could cache this result since targs is fixed and used over and over
     return TypeRename.of(t, xs, ts);
   }

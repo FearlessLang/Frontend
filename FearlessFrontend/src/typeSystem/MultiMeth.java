@@ -59,14 +59,14 @@ final class MultiMeth{
   }
   private static T modeVar(List<B> d, T.X x, UnaryOperator<RC> m, Function<EnumSet<RC>,RC> f, T original){
     var rcs= get(d,x.name());
-    if (rcs.stream().allMatch(rc -> m.apply(rc) == rc)){ return original; }
+    if (rcs.stream().allMatch(rc->m.apply(rc) == rc)){ return original; }
     var mapped= EnumSet.noneOf(RC.class);
-    rcs.forEach(rc -> mapped.add(m.apply(rc)));
+    rcs.forEach(rc->mapped.add(m.apply(rc)));
     return new T.RCX(f.apply(mapped),x);
   }
   public static EnumSet<RC> get(List<B> bs, String x){
     B b= OneOr.of("bad delta",bs.stream().filter(bi->bi.x().equals(x)));
-    assert !b.rcs().isEmpty() :"Missing/empty Delta for "+x;
+    assert !b.rcs().isEmpty();
     return b.rcs();
   }
   private record Key(RC rc, List<T> ts, T t){}

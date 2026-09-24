@@ -32,8 +32,7 @@ public record ToCore(List<B> ctx){
     assert o.infName() || e.name().equals(o.name());
     assert e.thisName().equals(o.thisName());
     var oBs= originalBs(o);
-    assert oBs.isEmpty() || !o.infName():
-     o.infName()+" "+oBs;
+    assert oBs.isEmpty() || !o.infName();
     var bs= oBs.orElse(e.bs());
     if (e.infName() && bs.isEmpty()){ bs= uncommittedBs(e); }
     var name= e.name().withArity(bs.size());
@@ -105,7 +104,7 @@ public record ToCore(List<B> ctx){
   }
   private static inference.E.Literal litLike(inference.E o,inference.E.Literal e){
     var ol=(inference.E.Literal)o;
-    assert ol.name().s().equals(e.name().s()): ol.name() + " " + e.name();
+    assert ol.name().s().equals(e.name().s());
     return ol;
   }
   private static record CallLike(inference.E e,List<inference.E> es,Optional<RC> rc,List<IT> targs){}

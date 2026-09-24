@@ -79,8 +79,8 @@ public enum TokenKind implements metaParser.TokenKind{
 
   TokenKind(String regex){ this(regex,regex); }
   TokenKind(String regex, String human){
-    this.match = TokenMatch.fromRegex(regex);
-    this.human = human;
+    this.match= TokenMatch.fromRegex(regex);
+    this.human= human;
   }
   @Override public TokenMatch matcher(){ return match; }
   public boolean syntetic(){ return this.name().startsWith("_"); }

@@ -19,32 +19,32 @@ public final class RCLubGlb{
   public static final Set<Set<RC>> domain(){ return Collections.unmodifiableSet(lubMap.keySet()); }
   public static RC lub(EnumSet<RC> options){ return lubMap.get(options); }
   public static RC glb(EnumSet<RC> options){ return glbMap.get(options); }
-  static boolean isUb(EnumSet<RC> options, RC ub){ return options.stream().allMatch(x -> x.isSubType(ub)); }
-  static boolean isLb(EnumSet<RC> options,RC lb){ return options.stream().allMatch(x -> lb.isSubType(x)); }
+  static boolean isUb(EnumSet<RC> options, RC ub){ return options.stream().allMatch(x->x.isSubType(ub)); }
+  static boolean isLb(EnumSet<RC> options,RC lb){ return options.stream().allMatch(x->lb.isSubType(x)); }
   static boolean isLub(EnumSet<RC> options,RC lub){
     var isUb= isUb(options,lub);
     var isLowest= allRC.stream()
-      .filter(RC -> isUb(options,RC))
-      .allMatch(ub -> lub.isSubType(ub));
+      .filter(RC->isUb(options,RC))
+      .allMatch(ub->lub.isSubType(ub));
     return isUb && isLowest;
   }
   static boolean isGlb(EnumSet<RC> options,RC glb){
     var isLb= isLb(options,glb);
     var isGreatest= allRC.stream()
-      .filter(RC -> isLb(options,RC))
-      .allMatch(lb -> lb.isSubType(glb));    
+      .filter(RC->isLb(options,RC))
+      .allMatch(lb->lb.isSubType(glb));    
     return isLb && isGreatest;
   }
   static void init(EnumSet<RC> options,RC glb,RC lub){
     var novel1= lubMap.put(options,lub);
     var novel2= glbMap.put(options, glb);
     assert novel1 == null && novel2 == null;
-    assert isLub(options,lub) :"not lub: "+lub+" "+options;
-    assert isGlb(options,glb) :"not glb: "+glb+" "+options;
+    assert isLub(options,lub);
+    assert isGlb(options,glb);
     var otherLub= allRC.stream().filter(RC->RC!=lub).filter(RC->isLub(options,RC)).toList();
-    assert otherLub.isEmpty() :"not unique Lub: "+otherLub;
+    assert otherLub.isEmpty();
     var otherGlb= allRC.stream().filter(RC->RC!=glb).filter(RC->isGlb(options,RC)).toList();
-    assert otherGlb.isEmpty() :"not unique glb: "+otherGlb;
+    assert otherGlb.isEmpty();
   }
   static {// RCs                  | GLB     | LUB
     init(of(iso),                   iso,     iso);
