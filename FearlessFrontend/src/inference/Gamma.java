@@ -69,8 +69,7 @@ public final class Gamma{
   }
   public IT get(String x){
     int i= indexOf(x);
-    assert i !=-1: 
-    "Name "+x+" was undefined";
+    assert i !=-1: "Name "+x+" was undefined";
     return ts[i];
   }
   public Optional<IT> getOpt(String x){ int i= indexOf(x); return i==-1?Optional.empty():Optional.of(ts[i]); }

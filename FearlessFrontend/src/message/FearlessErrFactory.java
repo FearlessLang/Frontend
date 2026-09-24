@@ -51,8 +51,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
              + "Remove this semicolon.\n";
       }
       var n= Err.staticTypeDecName(lastTop.get());
-      String hint=lastTop.get().s()+"[..]:..{...}";
-      if (lastTop.get().arity() == 0){ hint = lastTop.get().s()+":..{...}"; }
+      String hint= lastTop.get().s()+(lastTop.get().arity() == 0 ? ":..{...}" : "[..]:..{...}");
       return "Top level type declarations do not end with \";\".\n"
            + "The defintion of " + n + " ends with a semicolon. Remove it.\n"
            + "Write: "+Message.displayString(hint)+"\n"
@@ -113,9 +112,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "There is already an entry in the mapping for "+Message.displayString(what)+" in "+Message.displayString(in)+".\n"
     ).addSpan(at);
   }
-  public FearlessException duplicatedUseSource(Span at, String what){ return duplicatedUse(at,what,"source"); }
-  public FearlessException duplicatedUseDest(Span at, String what){ return duplicatedUse(at,what,"destination"); }
-  private FearlessException duplicatedUse(Span at, String what, String kind){
+  public FearlessException duplicatedUse(Span at, String what, String kind){
     return Code.UnexpectedToken.of(
         "There is already an entry in the using with "+kind+" "+Message.displayString(what)+".\n"
     ).addSpan(at);
@@ -277,7 +274,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "A method signature cannot declare multiple generic type parameters with the same name\n"
       +"Generic type parameter "+Message.displayString(name)+" is repeated").addSpan(at);
   }
-  public String context(){return "File ended while parsing a "; }
   private static String expected(Collection<TokenKind> items){ return expected("","Expected: ","Expected one of: ",items,tk->tk.human); }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
     if (items.isEmpty()){ return pre0.isEmpty()? "" : pre0+".\n"; }
@@ -312,7 +308,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       sof
         ?"Unopened " + stopLabel + ".\n"
       :eof
-        ? context() + openLabel + " group.\n"
+        ? "File ended while parsing a " + openLabel + " group.\n"
       : isBarrier
         ? "Unclosed " + openLabel + " group before " + stopLabel + ".\n"
         : ("Wrong closer for " + openLabel + " group.\nFound instead: " + stopLabel + ".\n");

@@ -54,11 +54,6 @@ public sealed interface TypeScope{
      ){ return; }
     Streams.zip(drcc.c().ts(), rcc.c().ts()).forEach((d,r)->walk(d, r, out));
   }
-  static TypeScope bestInterestingScope(TypeScope start, T declRet, T reqRet){
-    var interest= interestFromDeclVsReq(declRet, reqRet);
-    if (interest.isEmpty()){ return start; }
-    return bestInterestingScope(start, interest);
-  }
   static TypeScope bestInterestingScope(TypeScope start, List<T> interest){
     int min= 4;
     TypeScope best= start;

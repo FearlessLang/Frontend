@@ -44,10 +44,9 @@ public record WellFormednessErrors(String pkgName){
       .line("Only the rank file should not contain directives like maps and uses.")
       .blank()
       .line("Found non-empty:");
-    boolean any= false;
-    if (!f.maps().isEmpty()){ e.bullet("maps: " + previewList(f.maps(), 5)); any= true; }
-    if (!f.uses().isEmpty()){ e.bullet("uses: " + previewList(f.uses(), 8)); any= true; }
-    assert any;
+    assert !f.noDirectives();
+    if (!f.maps().isEmpty()){ e.bullet("maps: " + previewList(f.maps(), 5)); }
+    if (!f.uses().isEmpty()){ e.bullet("uses: " + previewList(f.uses(), 8)); }
     return e.wf().addSpan(new Span(uri.fearURI(),0,0,1,1));
   }
   private String previewList(List<?> c, int limit){
@@ -430,19 +429,17 @@ public record WellFormednessErrors(String pkgName){
       .addFrame(err().expRepr(owner), owner.span().inner);
   }
   public FearlessException intLiteralOutOfRange(TName lit){
-    return intOrNatLiteralOutOfRange(lit,"Int","Integer","signed",
-      LiteralDeclarations.intMin,LiteralDeclarations.intMax,LiteralDeclarations.big(lit.simpleName()));
+    return intOrNatLiteralOutOfRange(lit,"Int","Integer","signed",LiteralDeclarations.intMin,LiteralDeclarations.intMax);
   }
   public FearlessException natLiteralOutOfRange(TName lit){
-    return intOrNatLiteralOutOfRange(lit,"Nat","Natural","unsigned",
-      LiteralDeclarations.natMin,LiteralDeclarations.natMax,LiteralDeclarations.big(lit.simpleName()));
+    return intOrNatLiteralOutOfRange(lit,"Nat","Natural","unsigned",LiteralDeclarations.natMin,LiteralDeclarations.natMax);
   }
-  private FearlessException intOrNatLiteralOutOfRange(TName lit,String type,String kind,String signed,BigInteger min,BigInteger max,BigInteger v){
+  private FearlessException intOrNatLiteralOutOfRange(TName lit,String type,String kind,String signed,BigInteger min,BigInteger max){
     return err()
       .line(kind+" literal is out of range for \"base."+type+"\".")
       .line("\"base."+type+"\" must be representable as a 64-bit "+signed+" integer.")
       .line("Valid range: "+min+" .."+max+".")
-      .line("This literal is: "+Err.disp(v)+".")
+      .line("This literal is: "+Err.disp(LiteralDeclarations.big(lit.simpleName()))+".")
       .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
       .wf().addSpan(lit.approxSpan().inner);
   }

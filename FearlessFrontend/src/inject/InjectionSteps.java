@@ -377,7 +377,6 @@ public record InjectionSteps(Methods meths){
     IT t= withTsNormBs(rcc,ts);
     return commitToTable(g, bs, l.withMsT(ms, t), t);
   }
-  private static RC literalRc(RC rc){ return switch (rc){ case mutH -> RC.mut; case readH -> RC.read; default -> rc; }; }
   private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT t){
     TName name= l.name();
     if (!t.isTV() || !(t instanceof IT.RCC rcc) || hasU(l.ms()) || meths.cache().containsKey(name)){ return l; }
@@ -385,7 +384,7 @@ public record InjectionSteps(Methods meths){
     List<B> localBs= freeNames.distinct().map(x -> RC.get(bs, x)).toList();
     TName newName= name.withArity(localBs.size());
     List<M> ms= fixArity(l.ms(), name, newName);
-    Optional<RC> orc= l.rc().or(rcc::rc).map(InjectionSteps::literalRc);
+    Optional<RC> orc= l.rc().or(rcc::rc).map(InjectionSteps::noH);
     if (!l.infName()){
       l = new E.Literal(orc, newName, localBs, l.cs(), l.thisName(), ms, l.t(), l.src(),l.infName(), l.infHead(), l.g());
       assert !meths.cache().containsKey(name);
@@ -418,11 +417,7 @@ public record InjectionSteps(Methods meths){
       .allMatch(m -> m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t -> t.get().isTV()));
   }
   private List<Optional<IT>> updateArgs(List<String> xs, List<Optional<IT>> old, Gamma g){
-    return norm(old,Streams.zip(xs, old).map((x,oi)->{
-      if ("_".equals(x)){ return oi; }
-      var ti= Optional.of(meet(oi.get(), g.get(x)));
-      return oi.equals(ti)? oi:ti;
-    }).toList());
+    return Streams.zip(xs, old).map((x,oi)->"_".equals(x) ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
   }
   record TSM(List<IT> ts, inference.M m){}
   TSM nextMStarAbs(IT.RCC rcc, inference.M m){
@@ -546,11 +541,7 @@ public record InjectionSteps(Methods meths){
     case IT.RCC rcc -> rcc.withRC(RC.iso);//This iso is because on conflict iso is the first to disappear? 
     case IT.U _ -> IT.U.Instance;
   };}
-  List<IT> refineXs(List<String> xs, IT.X x, IT t1){
-    var i= xs.indexOf(x.name());
-    if (i == -1 ){ return qMarks(xs.size()); }
-    return qMarks(i, t1, xs.size());
-  }
+  List<IT> refineXs(List<String> xs, IT.X x, IT t1){ return qMarks(xs.indexOf(x.name()), t1, xs.size()); }
   private boolean isASuperB(TName a, TName b){
     var d= meths._from(b);
     if (d == null){ return false; } // {..}.foo etc.
@@ -585,8 +576,7 @@ public record InjectionSteps(Methods meths){
     }
   static <TT> List<TT> norm(List<TT> original, List<TT> candidate){
     if (candidate == original){ return original; }
-    int n= original.size();
-    assert candidate.size() == n;
+    assert candidate.size() == original.size();
     for (int i : Range.of(original)){
       if (candidate.get(i) != original.get(i)){
         assert assertEqEM(candidate.get(i), original.get(i));
@@ -614,10 +604,7 @@ public record InjectionSteps(Methods meths){
     return new IT.RCC(expected.rc(), new IT.C(expected.c().name(), qMarks(expected.c().ts().size())), span);
   }
    
-  private static IT normToBound(IT t, EnumSet<RC> allowed){
-    if (allowed.size() == 1){ return t.withRC(allowed.iterator().next()); }
-    return t;
-  }
+  private static IT normToBound(IT t, EnumSet<RC> allowed){ return allowed.size() == 1 ? t.withRC(allowed.iterator().next()) : t; }
   static List<IT> normToBounds(List<B> bs, List<IT> ts){
     if (bs.size() != ts.size()){ return ts; }
     return Streams.zip(ts,bs).map((ti,bi)->normToBound(ti,bi.rcs())).toList();

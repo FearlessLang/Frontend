@@ -32,11 +32,8 @@ public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
     LinkedHashMap<TName, core.E.Literal> cache){
   void mayAdd(List<E.Literal> layer, E.Literal d, Map<TName,E.Literal> rem){
-    for (IT.C c : d.cs()){
-      var nope= p.name().equals(c.name().pkgName()) && rem.containsKey(c.name());
-      if (nope){ return; }
-    }
-    layer.add(d);
+    var blocked= d.cs().stream().anyMatch(c->p.name().equals(c.name().pkgName()) && rem.containsKey(c.name()));
+    if (!blocked){ layer.add(d); }
   }
   public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
@@ -77,9 +74,7 @@ public record Methods(
   //can we merge the two steps? Something similar has been done for MSigL 
   CsMs fetch(E.Literal child,IT.C c,core.E.Literal d){ //d == from(c.name()); but from can be undefined for {..}.foo
     List<String> xs= d.bs().stream().map(b->b.x()).toList();
-    var cs1= TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
-    List<inference.M.Sig> sigs= d.ms().stream().<inference.M.Sig>map(m->alphaSig(m,xs,c,child)).toList();
-    return new CsMs(cs1,sigs);
+    return new CsMs(fetchCs(c),d.ms().stream().map(m->alphaSig(m,xs,c,child)).toList());
   }
   List<IT.C> fetchCs(IT.C c){
     core.E.Literal d= _from(c.name());

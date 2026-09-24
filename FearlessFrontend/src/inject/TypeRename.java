@@ -47,10 +47,7 @@ public final class TypeRename{
     if (xs.isEmpty()){ return csi; }
     return csi.stream().map(c->of(c,xs,ts)).toList();
   }
-  public static IT.C of(IT.C c, List<String> xs, List<IT> ts){
-    if (xs.isEmpty()){ return c; }
-    return new IT.C(c.name(), ofIT(c.ts(),xs,ts));
-  }
+  public static IT.C of(IT.C c, List<String> xs, List<IT> ts){ return new IT.C(c.name(), ofIT(c.ts(),xs,ts)); }
   public static List<Optional<IT>> ofITOpt(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti,xs,ts))).toList(); }
   public static List<Optional<IT>> ofOptITOpt(List<Optional<IT>> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti.get(),xs,ts))).toList(); }
   public static <A> A getOrSame(A x, String name, List<String> xs, List<A> ts){

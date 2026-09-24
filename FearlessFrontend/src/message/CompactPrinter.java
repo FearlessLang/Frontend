@@ -118,8 +118,8 @@ public class CompactPrinter{
     }
     public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace());
-      if (!k.isCompactable()){ accName(sb); sb.append("{-}"); return; }
-      accName(sb);   
+      accName(sb);
+      if (!k.isCompactable()){ sb.append("{-}"); return; }
       if (!priv){ wrap(sb,"","",cs,",",PC::accString); }  
       if (ms.isEmpty()){ sb.append("{}"); return; }
       var start= (self.equals("this") || self.equals("_")) ? "{" : "{'"+self+" ";

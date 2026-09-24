@@ -234,11 +234,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (xp.isEmpty()){ return Stream.of(); }
     return xp.get().parameterNames().filter(x->!x.equals("_"));
   }
-  String repeated(List<String> ss){
-    var seen= new java.util.HashSet<String>();
-    for (var s : ss){ if (!seen.add(s)){ return s; } }
-    return "";
-  }
   void checkNewXs(List<String> xs){
     for (int i : Range.of(xs)){
       var x= xs.get(i);
@@ -246,8 +241,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     }
   }
   void checkValidNew(List<String> xs, BiFunction<Span,String,FearlessException> err){
-    var x= repeated(xs);
-    if (!x.isEmpty()){ throw err.apply(span(), x); }
+    var seen= new java.util.HashSet<String>();
+    for (var x : xs){ if (!seen.add(x)){ throw err.apply(span(), x); } }
   }
   M parseMethod(boolean top){
     var res= parseMethodAux(top);
@@ -432,8 +427,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var t2= expectValidate("simple type name", UppercaseId,_XId).content();
     var dupS= acc.use.stream().anyMatch(u->u.in().equals(t1));
     var dupD= acc.use.stream().anyMatch(u->u.out().equals(t2));
-    if (dupS){ throw errFactory().duplicatedUseSource(spanLast(), t1.s()); }
-    if (dupD){ throw errFactory().duplicatedUseDest(spanLast(), t2); }
+    if (dupS){ throw errFactory().duplicatedUse(spanLast(), t1.s(), "source"); }
+    if (dupD){ throw errFactory().duplicatedUse(spanLast(), t2, "destination"); }
     acc.use.add(new FileFull.Use(t1,t2));
   }
   record HeadAcc(ArrayList<FileFull.Map>map, ArrayList<FileFull.Use>use){
