@@ -3506,6 +3506,15 @@ Person:{}
 Customer:Person{}
 MyId:base.BaseId[Customer,Person]{ #(x)->x; .extra: Person -> Person }
 """));}
+@Test void baseIdInheritedNonIdentityBody(){fail("""
+[###]Type declaration "MyId" implements "base.BaseId[_,_]".
+[###]""",List.of("""
+Person:{}
+Customer:{}
+Forge:{ #(x: Customer): Person -> Person }
+MyId:base.BaseId[Customer,Person], Forge{}
+User:{ .n(cs: base.MList[Customer]): base.MList[Person] -> cs.as(MyId) }
+"""));}
 
 
 @Test void oldStyleAsMapsFine(){ok(List.of("""
