@@ -17,7 +17,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   CompactPrinter cp(){ return _cp.apply(false); }
   CompactPrinter cp(boolean trunk){ return _cp.apply(trunk); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
-  static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
+  public static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
   
   String tNameA(TName n){ return cp().t.ofFull(n)+genArity(n.arity()); }     // "A[_]"

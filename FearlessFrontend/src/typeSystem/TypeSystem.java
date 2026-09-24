@@ -120,7 +120,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var ts= dom(l.bs(),span);
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
-    assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x()))):l.bs()+" "+bs1;
+    assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x())));
     k().check(l,bs1,thisType);
     litOk(g.filterFTV(l),l);
     ms.forEach(m->checkCallable(l,m));
@@ -204,7 +204,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private boolean isImplSubtype(List<B> bs, T t1, T t2){
     if (!(t1 instanceof T.RCC rcc1)){ return false; }
     Literal d= decs().apply(rcc1.c().name());
-    assert d!=null: rcc1;
+    assert d!=null;
     List<String> xs= d.bs().stream().map(B::x).toList();
     return d.cs().stream().anyMatch(ci->isSub(bs, TypeRename.of(new T.RCC(rcc1.rc(), ci,rcc1.span()), xs, rcc1.c().ts()), t2));
   }
@@ -243,14 +243,14 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
         different instantiation arguments (Fearless allows this; Java forbids it).
         Currently, Fearless requires the programmer to select a winning signature by overriding it.
         """;
-      assert !isOriginSub(s.origin(),chosen.origin()) : "Resolver not most specific: chosen "+chosen.origin().s()+" but "+s.origin().s()+" exists";
+      assert !isOriginSub(s.origin(),chosen.origin());
     }
     return true;
   }
   private boolean absPreserved(Sig chosen){
     Literal o= decs().apply(chosen.origin());
     Sig src= Sources.findCanonical(o,chosen.m(),chosen.rc());
-    assert !src.abs() || chosen.abs():"Abstractness mismatch";
+    assert !src.abs() || chosen.abs();
     return true;
   }  
   private boolean isOriginSub(TName sub, TName sup){
@@ -260,7 +260,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     assert current.bs().equals(parent.bs());
     List<B> ctx= Push.of(l.bs(),current.bs());
     int tsSize= current.ts().size();
-    assert tsSize == parent.ts().size():"Arity encoded in meth name";
+    assert tsSize == parent.ts().size();
     for (int i : Range.of(0,tsSize)){
       var badArg= !isSub(ctx, parent.ts().get(i), current.ts().get(i));
       if (badArg){ throw tsE().methodOverrideSignatureMismatchContravariance(this,ctx,l,current,parent, i); }

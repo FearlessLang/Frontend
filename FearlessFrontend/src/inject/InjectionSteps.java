@@ -158,7 +158,7 @@ public record InjectionSteps(Methods meths){
       //assert oe == e || !oe.equals(e) : "Allocated equal E:"+e.getClass()+"\n"+e;
       if (oe == e && !g.changed(s)){
         e.sign(g);
-        assert e == start || !e.equals(start) : "Roundtrip equal E at fixpoint\nstart=" + start + "\nend=" + e;
+        assert e == start || !e.equals(start);
         return e;
       }
       //if (oe.equals(e) && !g.changed(s)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
@@ -181,12 +181,7 @@ public record InjectionSteps(Methods meths){
   private boolean threeWayAssert(List<E> originEs, List<E> es, List<E> res){
     //complex but invaluable: if it fails it means we are going 'back and forth'
     //and this could cause loops.
-    IntStream.range(0,es.size()).forEach(i->{
-      var e1= res.get(i);
-      var e2= originEs.get(i);
-      var e3= es.get(i);
-      assert e1==e2 || !e1.equals(e2):" "+e1+"\n\n"+e3;
-      });
+    for (int i : Range.of(es)){ assert res.get(i) == originEs.get(i) || !res.get(i).equals(originEs.get(i)); }
     return true;
   }
   E next(List<B> bs, Gamma g, E e){
@@ -361,7 +356,7 @@ public record InjectionSteps(Methods meths){
       assert mi.impl().isEmpty() || selfPrecise.isEmpty() || rcc.isTV();
       var rcci= withTsNormBs(rcc,ts);
       TSM next= mi.impl().isEmpty() ? nextMStarAbs(rcci, mi) : nextMStarOp(bs, g, l.thisName(), selfPrecise, rcci, mi);
-      assert next.m == mi || !next.m.equals(mi) : "Allocated equal M:\n"+mi;
+      assert next.m == mi || !next.m.equals(mi);
       ts= meet(ts, next.ts);
       changedMs |= next.m != mi;
       res.add(next.m);
@@ -387,7 +382,7 @@ public record InjectionSteps(Methods meths){
       meths.cache().put(resD.name(), resD);
       return l;
     }
-    assert l.bs().isEmpty() : "bs must stay empty pre-commit";
+    assert l.bs().isEmpty();
     var noMeth= l.ms().stream().allMatch(m->m.impl().isEmpty());
     if (noMeth && l.infHead() && meths._from(rcc.c().name()) != null){ return new E.Type(rcc, preferred(rcc), l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());

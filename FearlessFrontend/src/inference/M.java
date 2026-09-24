@@ -48,7 +48,7 @@ public record M(Sig sig, Optional<Impl> impl){
       return " "+m.map(n->n.s()).orElse("")+xsC+e+";";
     }
     public Impl withE(E e){
-      assert e == this.e || !e.equals(this.e) : "Allocated equal E in M.Impl.withE";
+      assert e == this.e || !e.equals(this.e);
       if (e == this.e){ return this; }
       return new Impl(m,xs,e);
     }

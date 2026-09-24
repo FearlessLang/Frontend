@@ -92,7 +92,7 @@ public record Methods(
   }
   public core.E.Literal from(TName name){
     var res= _from(name);
-    assert res != null: "In pkgName="+p.name()+", name not found: "+name+" current domain is:\n"+cache.keySet();
+    assert res != null;
     return res;
   }
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache::get,other); }
@@ -221,7 +221,7 @@ public record Methods(
         .values()
         .forEach(v->res.add(pairWithSig(v, origin)));
     }
-    assert !changed == res.equals(ms): changed;
+    assert !changed == res.equals(ms);
     return changed ? List.copyOf(res) : ms;
   } 
   private boolean acc(HashMap<RC, List<Sig>> match, Sig s){
@@ -319,7 +319,7 @@ public record Methods(
     if (superSig.bs().get().isEmpty()){ return superSig; }
     var fromXs= superSig.bs().get().stream().map(B::x).toList();
     var toITs= targetBs.stream().<IT>map(b->new IT.X(b.x(),superSig.span())).toList();
-    assert fromXs.size() == toITs.size() : "mismatched method generic arity";
+    assert fromXs.size() == toITs.size();
     var renamedTs= TypeRename.ofOptITOpt(superSig.ts(), fromXs, toITs);
     var renamedRet= superSig.ret().map(it->TypeRename.of(it, fromXs, toITs));
     return new M.Sig(superSig.rc(), superSig.m(), Optional.of(targetBs),

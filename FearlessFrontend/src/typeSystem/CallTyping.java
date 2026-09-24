@@ -16,7 +16,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   List<Reason> run(){
     var rcc0= recvRcc();
     var d= ts.decs().apply(rcc0.c().name());
-    assert d != null: rcc0.c().name();
+    assert d != null;
     var sig= sigOf(d);
     checkTargsKinding(rcc0.c(),d,sig);
     var base= baseMType(rcc0.c(),d,sig);
@@ -51,7 +51,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var ms= d.ms().stream().map(M::sig)
       .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()).toList();
     if (ms.isEmpty()){ throw ts.tsE().methodNotDeclared(ts.scope(),c,d); }
-    assert ms.size() == 1 : "Duplicate cached sig for "+c.name()+" rc="+c.rc()+" in "+d.name();
+    assert ms.size() == 1;
     Sig sig= ms.getFirst();
     assert sig.ts().size() == c.es().size();//ensured by well formedness
     if (sig.bs().size() == c.targs().size()){ return sig; }
@@ -101,7 +101,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var reqs= argRequirements(app,argi);
     var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi),ts.v());
     var res= cts.typeOf(bs,g,es.get(argi),reqs);
-    assert res.size() == app.size(): res.size()+" "+app.size();
+    assert res.size() == app.size();
     var ok= okSet(res);
     if (ok.isEmpty()){
       throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res);

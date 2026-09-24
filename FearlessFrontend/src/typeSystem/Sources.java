@@ -37,8 +37,7 @@ final class Sources{
     assert sources.stream().allMatch(s->l.ms().stream().anyMatch(m->m.sig().m().equals(s.m()) && m.sig().rc() == s.rc()));
     assert l.ms().stream().map(M::sig).allMatch(s->sources.stream().anyMatch(si->
       si.m().equals(s.m()) && si.rc().equals(s.rc())
-      )):
-      l.ms().stream().map(M::sig).toList()+" @@ "+sources;
+      ));
     return sources;
   }
   private static long unionCount(TypeSystem ts, Literal l){

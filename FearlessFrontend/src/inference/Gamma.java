@@ -41,7 +41,7 @@ public final class Gamma{
     depth++;
   }
   public void popScope(){
-    assert depth > 1 : "cannot pop root";
+    assert depth > 1;
     int newSize= marks[depth - 1];
     for (int i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i]= null; ts[i]= null; }
     size= newSize;
@@ -69,14 +69,14 @@ public final class Gamma{
   }
   public IT get(String x){
     int i= indexOf(x);
-    assert i !=-1: "Name "+x+" was undefined";
+    assert i !=-1;
     return ts[i];
   }
   public Optional<IT> getOpt(String x){ int i= indexOf(x); return i==-1?Optional.empty():Optional.of(ts[i]); }
 
   public void declare(String x, IT t){
     if ("_".equals(x)){ return; }
-    assert indexOf(x) < 0 : "duplicate: " + x;
+    assert indexOf(x) < 0;
     assert size < maxBindings;
     xs[size]= x;
     ts[size]= t;

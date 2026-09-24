@@ -390,8 +390,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   boolean peekValidate(TokenKind validation){
     Optional<Token> res= peek();
     if (res.isEmpty()){ return false; }
-    try{ TokenKind.validate(res.get().content(),"",validation); return true; }
-    catch(IllegalArgumentException iae){ return false; } 
+    return TokenKind.isKind(res.get().content(),validation);
   }
   Token expectValidate(String human, TokenKind kind, TokenKind validation){
     if (peekValidate(validation)){ return expect(human,kind); }

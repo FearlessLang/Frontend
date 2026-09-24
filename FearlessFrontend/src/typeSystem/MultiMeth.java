@@ -66,7 +66,7 @@ final class MultiMeth{
   }
   public static EnumSet<RC> get(List<B> bs, String x){
     B b= OneOr.of("bad delta",bs.stream().filter(bi->bi.x().equals(x)));
-    assert !b.rcs().isEmpty() :"Missing/empty Delta for "+x;
+    assert !b.rcs().isEmpty();
     return b.rcs();
   }
   private record Key(RC rc, List<T> ts, T t){}

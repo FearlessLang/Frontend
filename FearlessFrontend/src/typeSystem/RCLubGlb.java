@@ -39,12 +39,12 @@ public final class RCLubGlb{
     var novel1= lubMap.put(options,lub);
     var novel2= glbMap.put(options, glb);
     assert novel1 == null && novel2 == null;
-    assert isLub(options,lub) :"not lub: "+lub+" "+options;
-    assert isGlb(options,glb) :"not glb: "+glb+" "+options;
+    assert isLub(options,lub);
+    assert isGlb(options,glb);
     var otherLub= allRC.stream().filter(RC->RC!=lub).filter(RC->isLub(options,RC)).toList();
-    assert otherLub.isEmpty() :"not unique Lub: "+otherLub;
+    assert otherLub.isEmpty();
     var otherGlb= allRC.stream().filter(RC->RC!=glb).filter(RC->isGlb(options,RC)).toList();
-    assert otherGlb.isEmpty() :"not unique glb: "+otherGlb;
+    assert otherGlb.isEmpty();
   }
   static {// RCs                  | GLB     | LUB
     init(of(iso),                   iso,     iso);

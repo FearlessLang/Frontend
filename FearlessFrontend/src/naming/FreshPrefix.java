@@ -68,8 +68,8 @@ public record FreshPrefix(
     }
   }
   public void aliasOwner(TName original,TName alias){// aliasing is deliberate: owner and alias share the same OwnerState
-    assert pkgName.equals(original.pkgName()): pkgName+" -- "+original;
-    assert pkgName.equals(alias.pkgName()): pkgName+" -- "+alias;
+    assert pkgName.equals(original.pkgName());
+    assert pkgName.equals(alias.pkgName());
     assert !owners.containsKey(alias);
     owners.put(alias, Objects.requireNonNull(owners.get(original)));
   }
