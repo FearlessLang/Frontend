@@ -33,7 +33,7 @@ import static offensiveUtils.Require.*;
 
 public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
   Optional<TName> lastTop= Optional.empty();
-  public void noteTop(TName t){ lastTop = Optional.of(t); }
+  public void noteTop(TName t){ lastTop= Optional.of(t); }
   @Override public FearlessException illegalCharAt(Span at, int cp, Tokenizer tokenizer){
     return Code.UnexpectedToken.of("Illegal character "+Message.displayChar(cp)).addFrame(new Frame("", at));
   }
@@ -44,7 +44,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   public FearlessException topLevelSemicolon(Span at){
-    return Code.UnexpectedToken.of(() -> {
+    return Code.UnexpectedToken.of(()->{
       if (lastTop.isEmpty()){
         return "Extra semicolon before the first top level type declarations.\n"
              + "Remove this semicolon.\n";
@@ -58,7 +58,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     }).addSpan(at);
   }
   public FearlessException topLevelNotATypeDeclaration(Span at, String found){
-    return Code.UnexpectedToken.of(() ->
+    return Code.UnexpectedToken.of(()->
       (lastTop.isEmpty() ? "This is not a top level type declaration.\n"
         : "This should probably be inside the declaration of "
         + Err.staticTypeDecName(lastTop.get())
@@ -74,7 +74,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     String msg= "Extra content in the current group.\n";
     if (!expectedTerminatorTokens.isEmpty()){
       var instead= "Expected "+what;
-      msg = expected("",instead+": ",instead+".\nExpected one of: ",expectedTerminatorTokens,tk->tk.human);
+      msg= expected("",instead+": ",instead+".\nExpected one of: ",expectedTerminatorTokens,tk->tk.human);
     }
     var here= parser.peek().get().span(from.fileName());
     return Code.ExtraTokenInGroup.of(msg).addSpan(here).addSpan(from);
@@ -123,7 +123,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
 
   public FearlessException nameNotInScope(Token name, Span at, List<String> inScope){
-    return Code.UnexpectedToken.of(() -> {
+    return Code.UnexpectedToken.of(()->{
       var scope= inScope.isEmpty()
         ? "No names are in scope here.\n"
         : NameSuggester.suggest(name.content(), inScope.stream().sorted().toList());
@@ -169,9 +169,9 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   private Stream<String> potentialMethodNames(M m){
     return m.sig().stream()
-      .flatMap(s -> s.parameters().stream().limit(1))
-      .flatMap(p -> p.xp().stream())
-      .flatMap(xp -> xp instanceof XPat.Name n ? Stream.of(n.x().name()) : Stream.empty());
+      .flatMap(s->s.parameters().stream().limit(1))
+      .flatMap(p->p.xp().stream())
+      .flatMap(xp->xp instanceof XPat.Name n ? Stream.of(n.x().name()) : Stream.empty());
   }
   public FearlessException methNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
     var count= redeclaredElement(noNames);
@@ -241,7 +241,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       """).addSpan(at);
   }
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
-    return Code.UnexpectedToken.of(() ->
+    return Code.UnexpectedToken.of(()->
       "Generic type "+Message.displayString(X.content())+" is not in scope.\n" +
       expected(
         "No generic parameters are declared here",
@@ -319,7 +319,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     };
     var other= hint.isEmpty()?"Expected":"Otherwise expected";
     var expected= sof?"":expected("",other+": ", other+" one of: ",expectedClosers,tk->tk.human);
-    var span = eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
+    var span= eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
     var code= sof ? Code.Unopened : (eof || isBarrier) ? Code.Unclosed : Code.UnexpectedToken;
     return code.of(base + hint+ expected).addFrame("groups of parenthesis",span);
   }

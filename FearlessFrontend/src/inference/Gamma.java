@@ -43,8 +43,8 @@ public final class Gamma{
   public void popScope(){
     assert depth > 1 : "cannot pop root";
     int newSize= marks[depth - 1];
-    for (int i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i] = null; ts[i] = null; }
-    size = newSize;
+    for (int i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i]= null; ts[i]= null; }
+    size= newSize;
     depth--;
   }
   public IT getWithRC(String x){
@@ -78,9 +78,9 @@ public final class Gamma{
     if ("_".equals(x)){ return; }
     assert indexOf(x) < 0 : "duplicate: " + x;
     assert size < maxBindings;
-    xs[size] = x;
-    ts[size] = t;
-    declDepth[size] = depth - 1;
+    xs[size]= x;
+    ts[size]= t;
+    declDepth[size]= depth - 1;
     idx.put(x, size);
     envHash[depth - 1] ^= contrib(x, t);
     size++;
@@ -92,12 +92,12 @@ public final class Gamma{
     long cnew= contrib(xs[i], t);
     int d= declDepth[i];
     for (int s : Range.of(d,depth)){ envHash[s] ^= cold ^ cnew; }
-    ts[i] = t;
+    ts[i]= t;
   }
   public boolean represents(GammaSignature sig){
     return sig.hash == envHash[depth - 1];
   }
-  public void sign(GammaSignature sig){ sig.hash = envHash[depth - 1]; }
+  public void sign(GammaSignature sig){ sig.hash= envHash[depth - 1]; }
   public long snapshot(){ return envHash[depth - 1]; }
   public boolean changed(long shot){ return shot != envHash[depth - 1]; }
   private int indexOf(String x){
@@ -112,7 +112,7 @@ public final class Gamma{
   private static long contrib(String x, IT t){
     int hx= x.hashCode();
     int ht= t.hashCode();
-    long packed = ((hx & 0xffffffffL) << 32) | (ht & 0xffffffffL);
+    long packed= ((hx & 0xffffffffL) << 32) | (ht & 0xffffffffL);
     return fmix64(packed ^ 0x9e3779b97f4a7c15L);
   }
   private static long fmix64(long x){
@@ -125,10 +125,10 @@ public final class Gamma{
   }
 
   @Override public String toString(){
-    StringBuilder sb = new StringBuilder();
+    StringBuilder sb= new StringBuilder();
     for (int s : Range.of(0,depth)){
-      int start = marks[s];
-      int end   = (s + 1 < depth) ? marks[s + 1] : size;
+      int start= marks[s];
+      int end= (s + 1 < depth) ? marks[s + 1] : size;
       sb.append('[');
       for (int i : Range.of(start,end)){
         if (i > start){ sb.append(','); }

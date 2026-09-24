@@ -17,12 +17,12 @@ import utils.Bug;
 public class BadTokens{
   public TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory> badTokensMap(){
     return new TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory>()
-      .put(Ws,           (_,_,_) -> Stream.empty())
-      .put(LineComment,  (_,_,_) -> Stream.empty())
-      .put(BlockComment, (_,_,_) -> Stream.empty())
-      .put(BadUStrUnclosed, (idx, t, tz) ->frontOrBack(idx,t,tz,'\"'))
-      .put(BadSStrUnclosed, (idx, t, tz) ->frontOrBack(idx,t,tz,'`'))
-      .put(BadUnclosedBlockComment, (_, t, tz) -> badBlockComment(tz,t))
+      .put(Ws,           (_,_,_)->Stream.empty())
+      .put(LineComment,  (_,_,_)->Stream.empty())
+      .put(BlockComment, (_,_,_)->Stream.empty())
+      .put(BadUStrUnclosed, (idx, t, tz)->frontOrBack(idx,t,tz,'\"'))
+      .put(BadSStrUnclosed, (idx, t, tz)->frontOrBack(idx,t,tz,'`'))
+      .put(BadUnclosedBlockComment, (_, t, tz)->badBlockComment(tz,t))
       .put(BadUnopenedBlockCommentClose, this::strayBlockCommentCloser)
       .put(OSquareArg, this::squareAfterLiteral)
       .putStr(BadOSquare,Code.UnexpectedToken::of,"""
@@ -85,7 +85,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
   private Optional<Token> findPseudoOpenerBefore(int idx, Tokenizer tz){
     var all= tz.allTokens();
     for (int j= idx - 1; j >= 0; j--){
-      var p = all.get(j);
+      var p= all.get(j);
       if (p.is(BlockComment,_SOF)){ return Optional.empty(); }
       if (p.is(LineComment, UStr, SStr) && p.content().contains("/*")){ return Optional.of(p); }
     }
@@ -108,10 +108,10 @@ that is: use double quotes (`"`) instead of single quotes ("'").
       ).addFrame("a string literal",at); 
     }
   private Stream<Token> badBlockComment(Tokenizer tz, Token t){
-    var file = tz.fileName();
+    var file= tz.fileName();
     Span s= t.span(file);
     int lineEnd= t.content().indexOf('\n');
-    if (lineEnd != -1){ s = new Span(file,s.startLine(),s.startCol(),s.startLine(),s.startCol()+lineEnd); }
+    if (lineEnd != -1){ s= new Span(file,s.startLine(),s.startCol(),s.startLine(),s.startCol()+lineEnd); }
     throw Code.UnexpectedToken
       .of("Unterminated block comment. Add \"*/\" to close it.")
       .addFrame("a block comment", s);
@@ -122,8 +122,8 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     Span b= t.span(file);
     assert b.isSingleLine();
     //If '//' or '/*' is inside the bad string, trim span to stop before it.
-    int openSL = text.indexOf("//");
-    int openML = text.indexOf("/*");
+    int openSL= text.indexOf("//");
+    int openML= text.indexOf("/*");
     int idxComment= openSL==-1?openML:openML==-1?openSL:Math.min(openSL, openML);
     if (idxComment >= 0){      
       Span after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
@@ -138,7 +138,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     if (s.endLine() != t.line()){ throw errNoInfo(b, quoteChar); }
     int quote= prev.content().lastIndexOf(quoteChar);
     int nl= prev.content().lastIndexOf("\n");
-    boolean swallowedByComment = quote > 0 && quote > nl;
+    boolean swallowedByComment= quote > 0 && quote > nl;
     if (!swallowedByComment){ throw errNoInfo(b, quoteChar); }
     var line= b.endLine();
     var endCol= b.startCol()+1;//invert the caret

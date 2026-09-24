@@ -41,7 +41,7 @@ public record FreeXs(Gamma g){
     case IT.RCC(_, var c,_) -> ftvTs(c.ts());
     case IT.U.Instance -> Stream.of();
   };}
-  public Stream<String> ftvCs(List<IT.C> cs){ return cs.stream().flatMap(c -> ftvTs(c.ts())); }
+  public Stream<String> ftvCs(List<IT.C> cs){ return cs.stream().flatMap(c->ftvTs(c.ts())); }
   public Stream<String> ftvEs(List<E> es){ return es.stream().flatMap(this::ftvE); }
   public Stream<String> ftvMs(List<M> ms){ return ms.stream().flatMap(this::ftvM); }
   public Stream<String> ftvOTs(List<Optional<IT>> ts){ return ts.stream().flatMap(this::ftvT); }

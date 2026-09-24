@@ -38,7 +38,7 @@ public class CompactPrinter{
   String bounds(List<B> bs){ return Join.of(bs.stream().map(B::compactToString),"[",",","]",""); }
   public static final class Compactable{
     public static final Compactable no= new Compactable(false);
-    boolean compacted; private Compactable(boolean can){ compacted = !can; }
+    boolean compacted; private Compactable(boolean can){ compacted= !can; }
     public static Compactable of(){ return new Compactable(true); }
     public boolean isCompactable(){ return !compacted; }
     public void compact(){ assert !compacted; compacted= true; }
@@ -71,7 +71,7 @@ public class CompactPrinter{
     return m.length() + targsPunctLen(rc,nt) + argsPunctLen(na);
   }
   static int xsWithColonsLen(List<String> xs){
-    return sum(xs, x-> x.equals("_")? 0: x.length() + 1);
+    return sum(xs, x->x.equals("_")? 0: x.length() + 1);
   } // nothing if x is _ it will be printed as just the type, or "x:"
   static void accTargs(CompactPrinter sb, RC rc, List<PT> targs){
     if (!showTargs(rc,targs.size())){ return; }

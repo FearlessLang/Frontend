@@ -34,6 +34,6 @@ final class Affine{
   }
   private static void collectLiteral(String x, Literal l, boolean activeOnly, List<X> acc){
     if (activeOnly){ return; }
-    for (M m : l.ms()){ m.e().ifPresent(e -> collect(x, e, false, acc)); }
+    for (M m : l.ms()){ m.e().ifPresent(e->collect(x, e, false, acc)); }
   }
 }

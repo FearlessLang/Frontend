@@ -36,7 +36,7 @@ public record Methods(
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
   List<List<E.Literal>> layer(List<E.Literal> decs){
-    Map<TName, E.Literal> rem = new LinkedHashMap<>();
+    Map<TName, E.Literal> rem= new LinkedHashMap<>();
     for (E.Literal d : decs){ rem.put(d.name(), d); }
     List<List<E.Literal>> out= new ArrayList<>();
     while (!rem.isEmpty()){
@@ -121,7 +121,7 @@ public record Methods(
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
     var widen= allCs.stream()
-      .filter(c -> c.name().equals(LiteralDeclarations.widen))
+      .filter(c->c.name().equals(LiteralDeclarations.widen))
       .toList();
     if (widen.size() > 1){ throw p.err().multipleWidenTo(d, widen); }
     if (allCs.stream().anyMatch(c->c.name().equals(LiteralDeclarations.baseId))){ checkBaseId(d); }
@@ -168,7 +168,7 @@ public record Methods(
     }
     for (var m: ms){//for methods WITHOUT name
       if (m.sig().m().isPresent()){ continue; }
-      changed = true;
+      changed= true;
       var arity= m.sig().ts().size();
       var match= new ArrayList<M.Sig>();
       ss.removeIf(s->s.m().get().arity()==arity && s.abs()?match.add(s):false);
@@ -215,11 +215,11 @@ public record Methods(
       changed= true;
       ss.stream()
         .collect(Collectors.groupingBy(
-          s -> new Parser.RCMName(s.rc(), s.m().get()),
+          s->new Parser.RCMName(s.rc(), s.m().get()),
           LinkedHashMap::new,
           Collectors.toList()))
         .values()
-        .forEach(v -> res.add(pairWithSig(v, origin)));
+        .forEach(v->res.add(pairWithSig(v, origin)));
     }
     assert !changed == res.equals(ms): changed;
     return changed ? List.copyOf(res) : ms;
@@ -247,8 +247,8 @@ public record Methods(
     List<List<B>> allBounds= ss.stream().map(e->e.bs().get()).distinct().toList();
     if (s.bs().isEmpty()){ return agreementBs(at,allBounds ); }
     var userBs= s.bs().get();
-    var superBsList = ss.stream().map(e->e.bs().get()).toList();
-    var superArities = superBsList.stream().map(List::size).distinct().toList();
+    var superBsList= ss.stream().map(e->e.bs().get()).toList();
+    var superArities= superBsList.stream().map(List::size).distinct().toList();
     if (superArities.size() != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at, superBsList); }
     if (superArities.getFirst() != userBs.size()){ throw p.err().methodGenericArityDisagreesWithSupers(at, userBs, superBsList.getFirst()); }
     var bounds= allBounds.stream().map(l->l.stream().map(e->e.rcs()).toList())
@@ -270,7 +270,7 @@ public record Methods(
     if (ss.size() == 1){ return new M(ss.getFirst(),Optional.empty()); }
     var at= new Agreement(origin,ss.getFirst().rc(),ss.getFirst().m().get(),origin.span().inner);
     List<B> bs= agreementBs(at,ss.stream().map(e->e.bs().get()).distinct().toList());
-    var ssAligned = alignMethodSigsTo(ss, bs);
+    var ssAligned= alignMethodSigsTo(ss, bs);
     MName name= ssAligned.getFirst().m().get();
     List<Optional<IT>> ts= IntStream.range(0, name.arity()).mapToObj(i->Optional.of(pairWithTs(at,i,Optional.empty(),ssAligned))).toList();
     IT res= agreement(at,ssAligned.stream().map(e->e.ret().get()),p.err().retTypeDisagreement());
@@ -317,11 +317,11 @@ public record Methods(
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){
     assert superSig.isFull();
     if (superSig.bs().get().isEmpty()){ return superSig; }
-    var fromXs = superSig.bs().get().stream().map(B::x).toList();
-    var toITs  = targetBs.stream().<IT>map(b -> new IT.X(b.x(),superSig.span())).toList();
+    var fromXs= superSig.bs().get().stream().map(B::x).toList();
+    var toITs= targetBs.stream().<IT>map(b->new IT.X(b.x(),superSig.span())).toList();
     assert fromXs.size() == toITs.size() : "mismatched method generic arity";
-    var renamedTs  = TypeRename.ofOptITOpt(superSig.ts(), fromXs, toITs);
-    var renamedRet = superSig.ret().map(it -> TypeRename.of(it, fromXs, toITs));
+    var renamedTs= TypeRename.ofOptITOpt(superSig.ts(), fromXs, toITs);
+    var renamedRet= superSig.ret().map(it->TypeRename.of(it, fromXs, toITs));
     return new M.Sig(superSig.rc(), superSig.m(), Optional.of(targetBs),
       renamedTs, renamedRet, superSig.origin(), superSig.abs(), superSig.span());
   }

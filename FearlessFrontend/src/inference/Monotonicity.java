@@ -41,8 +41,8 @@ public final class Monotonicity{
     assert (k.ordinal() & ~0xFFFF) == 0;
     assert (b & ~0xFFFF) == 0;
     long kind= ((long)k.ordinal() & 0xFFFFL) << 48;  // 16-bit kind
-    long aa  = ((long)a & 0xFFFF_FFFFL) << 16;      // 32-bit a
-    long bb  = ((long)b & 0xFFFFL);                 // 16-bit b
+    long aa= ((long)a & 0xFFFF_FFFFL) << 16;      // 32-bit a
+    long bb= ((long)b & 0xFFFFL);                 // 16-bit b
     return kind | aa | bb;
   }
 

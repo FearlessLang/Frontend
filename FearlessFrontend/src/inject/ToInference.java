@@ -18,7 +18,7 @@ import pkgmerge.Package;
 public class ToInference{
   private TName fCurrent(Package p, TName simple, TName full, boolean withPkg, OtherPackages other){
     assert simple.pkgName().isEmpty();
-    assert p.names().decNames().stream().allMatch(n -> n.pkgName().isEmpty());
+    assert p.names().decNames().stream().allMatch(n->n.pkgName().isEmpty());
     var defined= p.names().decNames().stream()
       .anyMatch(tni->tni.equals(simple)); //this also checks arity
     if (defined){ return full; } //here, we know it is not defined (either at all or with the right arity)
@@ -53,7 +53,7 @@ public class ToInference{
       }
       var mPN= p.map().get(pN);
       var pkg= mPN == null ? pN : mPN;
-      if (mPN != null){ tn = tn.withOverridePkgName(mPN); }
+      if (mPN != null){ tn= tn.withOverridePkgName(mPN); }
       if (pkg.equals(p.name())){ return fCurrent(p,tn.withoutPkgName(),tn,true,other); }
       var lit= pkg.equals("base") && LiteralDeclarations.isPrimitiveLiteral(tn.simpleName());
       if (lit){ return tn; }

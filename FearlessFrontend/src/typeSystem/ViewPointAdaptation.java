@@ -10,8 +10,8 @@ import core.E.*;
 import typeSystem.Change.*;
 
 public record ViewPointAdaptation(Kinding k){
-  public Gamma discard(Gamma g,Literal l){ return g.map(curr -> discard(curr,l)); }
-  public Gamma of(Gamma g,Literal l, M m){ return g.map(curr -> of(curr,l,m)); }
+  public Gamma discard(Gamma g,Literal l){ return g.map(curr->discard(curr,l)); }
+  public Gamma of(Gamma g,Literal l, M m){ return g.map(curr->of(curr,l,m)); }
   private Change of(Change current, Literal l, M m){    //Literal l, M m, T atDrop
     if (!( current instanceof Change.WithT w)){ return current; }
     boolean withImm= m.sig().rc() == imm || kindIsoImm(w.currentT(), l.bs());

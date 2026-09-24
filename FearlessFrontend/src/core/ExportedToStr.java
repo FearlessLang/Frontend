@@ -18,7 +18,7 @@ public record ExportedToStr(String pkgName, Map<String,String> uses){
   public String typeNameWithArity(TName n){
     var base= typeName(n);
     if (n.arity() == 0){ return base; }
-    return base+"["+IntStream.range(0,n.arity()).mapToObj(_ -> "_").collect(Collectors.joining(","))+"]";
+    return base+"["+IntStream.range(0,n.arity()).mapToObj(_->"_").collect(Collectors.joining(","))+"]";
   }  
   public String typeName(T.C c){
     if (c.ts().isEmpty()){ return typeNameWithArity(c.name()); }

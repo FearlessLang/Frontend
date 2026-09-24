@@ -143,7 +143,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   //l.ms is the resolved set, either inferred or resolved by hand in a wrong way.
   SequencedMap<Key,List<Sig>> sources(Literal l){
   return Sources.collect(this, l).stream()
-    .collect(Collectors.groupingBy(s -> new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()));
+    .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()));
   }
   private static final MName asOne= new MName(".as",1);
   private void baseIdOk(Literal l){

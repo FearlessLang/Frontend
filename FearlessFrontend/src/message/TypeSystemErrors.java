@@ -95,8 +95,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var bs= m.sig().bs();
     assert index >= 0 && index < bs.size();
     var param= bs.get(index);
-    String decName   = err().methodSig(c.rc().toStrSpace(),t.name(), c.name()); // p.A.m(...)
-    T bad            = c.targs().get(index);
+    String decName= err().methodSig(c.rc().toStrSpace(),t.name(), c.name()); // p.A.m(...)
+    T bad= c.targs().get(index);
     return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, err().typeRepr(true,bad), allowedStr);
   } 
   ///Overriding method in literal l is not a valid subtype of inherited method.

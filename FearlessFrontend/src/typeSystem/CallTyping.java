@@ -20,7 +20,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var sig= sigOf(d);
     checkTargsKinding(rcc0.c(),d,sig);
     var base= baseMType(rcc0.c(),d,sig);
-    c.expectedRes().inner = base.t();
+    c.expectedRes().inner= base.t();
     var promos= MultiMeth.of(bs,base,true);
     var app= promos.stream().filter(m->rcc0.rc().isSubType(m.rc())).toList();
     if (app.isEmpty()){ throw ts.tsE().receiverRCBlocksCall(d,c,rcc0.rc(),MultiMeth.of(bs,base,mayBeH(rcc0.rc(),base))); }

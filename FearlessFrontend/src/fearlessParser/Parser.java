@@ -29,9 +29,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   Names names;
   final FearlessErrFactory err;
   Parser(Span base, Names names, List<Token> ts, FearlessErrFactory err){
-    super(base,ts); this.names= names; this.err = err;
+    super(base,ts); this.names= names; this.err= err;
   }
-  void updateNames(Names names){ this.names = names; }
+  void updateNames(Names names){ this.names= names; }
   @Override public Parser self(){ return this; }
   @Override public boolean skip(Token t){ return t.is(_SOF,_EOF); }
   @Override public Parser make(Span s, List<Token> tokens){
@@ -39,7 +39,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   E parseE(){
     E e= parseAtom();
-    while (!end()){ e = parsePost(e); }
+    while (!end()){ e= parsePost(e); }
     return e;
   }
   boolean hasPost(){ return peek(DotName,Op,Colon); }
@@ -115,9 +115,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     throw errFactory().genericNotInScope(c, span(c).get(), names.Xs());
   }
   private E atomFromSignedNumeric(Token x){
-    String s = x.content().substring(1);
-    Pos p = new Pos(span().fileName(), x.line(), x.column() + 1);
-    T.RCC rcc = new T.RCC(Optional.empty(), new T.C(new TName(s, 0, p), Optional.empty()), new TSpan(span(p, s.length())));
+    String s= x.content().substring(1);
+    Pos p= new Pos(span().fileName(), x.line(), x.column() + 1);
+    T.RCC rcc= new T.RCC(Optional.empty(), new T.C(new TName(s, 0, p), Optional.empty()), new TSpan(span(p, s.length())));
     return new E.TypedLiteral(rcc, Optional.empty(), p);
   }
   E parsePost(E receiver){
@@ -130,7 +130,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     MName m= parseMName();
     Optional<E.CallSquare> sq= parseIf(peek(_SquareGroup),()->parseGroup("method call generic parameters",Parser::parseCallSquare));    
     if (peek(_RoundGroup)){
-      List<E> es = parseGroupSep("","arguments list",Parser::parseE,ORound,CRound,commaExp);
+      List<E> es= parseGroupSep("","arguments list",Parser::parseE,ORound,CRound,commaExp);
       return new E.Call(receiver, m.withArity(es.size()), sq, true, empty(), es, pos);
     }
     Optional<XPat> xpat= parseIf(eqSugar(),()->fwd(parseXPat()));    
@@ -142,7 +142,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var xs= xsOf(xpat).toList();
     checkNewXs(xs);
     updateNames(names.add(xs, List.of()));//zero if xpat is empty
-    if (xpat.isPresent()){ atom = parsePost(atom); while (!end()){ atom = parsePost(atom); } }
+    if (xpat.isPresent()){ atom= parsePost(atom); while (!end()){ atom= parsePost(atom); } }
     return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar 
   }
   boolean eqSugar(){ return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq)); }
@@ -291,7 +291,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       ?parseGroupSep("","method parameters declaration",Parser::parseParameter,ORound,CRound,commaSkip)
       :parseNakedParameters();
     Optional<T> t= parseOptT();
-    m = m.map(_m->_m.withArity(ps.size()));
+    m= m.map(_m->_m.withArity(ps.size()));
     var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();
     checkValidNew(xs, errFactory()::duplicateParamInMethodSignature);
     return new Sig(rc,m,bs,hasPar,ps,t);
@@ -371,7 +371,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
     var outer= names;
     updateNames(top ? names.addXs(Xs) : names.setFunnelledXs(c.s(),Xs));
-    if (bs.isPresent()){ c = c.withArity(bs.get().size()); }
+    if (bs.isPresent()){ c= c.withArity(bs.get().size()); }
     expect("type declaration (:) symbol",Colon);
     List<T.C> cs= this.parseImpl();
     assert peek(_CurlyGroup);
@@ -448,8 +448,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     while (!end()){
       var t= expectAny("");
       if (t.is(Comma) && !inColon){ return 1; }
-      if (!t.is(_SquareGroup,Comma,UppercaseId)){ inColon = false; } //purposely not allowing SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr even if valid TNames
-      if (t.is(Colon)){ inColon = true;}
+      if (!t.is(_SquareGroup,Comma,UppercaseId)){ inColon= false; } //purposely not allowing SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr even if valid TNames
+      if (t.is(Colon)){ inColon= true;}
     }
     return 0;
   }
