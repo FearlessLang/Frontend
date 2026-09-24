@@ -24,6 +24,7 @@ public class BadTokens{
       .put(BadSStrUnclosed, (idx, t, tz) ->frontOrBack(idx,t,tz,'`'))
       .put(BadUnclosedBlockComment, (_, t, tz) -> badBlockComment(tz,t))
       .put(BadUnopenedBlockCommentClose, this::strayBlockCommentCloser)
+      .put(OSquareArg, this::squareAfterLiteral)
       .putStr(BadOSquare,Code.UnexpectedToken::of,"""
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
@@ -59,6 +60,18 @@ that is: use double quotes (`"`) instead of single quotes ("'").
    + "Found a \"/*\" " + where + " before this point.\n"
    + "Did you mean to place the opener outside the string/comment?")
      .addFrame("comments",primary);
+  }
+  private Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
+    var lit= tz.allTokens().get(idx - 1);
+    if (!lit.is(SStr,UStr,SignedInt,UnsignedInt,SignedFloat,UnSignedFloat)){ return Stream.of(t); }
+    var file= tz.fileName();
+    var s= lit.span(file);
+    var name= Message.displayString(lit.content());
+    throw Code.UnexpectedToken.of(
+      "Literal "+name+" is directly followed by \"[\".\n"
+    + "Number and string literals take no generic arguments.\n"
+    + "Remove the \"[...]\" after "+name+".")
+      .addFrame("a literal",new Span(file,s.startLine(),s.startCol(),t.line(),t.span(file).endCol()));
   }
   public static String describeFree(Token t){
     return switch (t.kind()){
