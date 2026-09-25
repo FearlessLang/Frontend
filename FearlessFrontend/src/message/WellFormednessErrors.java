@@ -199,11 +199,11 @@ public record WellFormednessErrors(String pkgName){
     }
     private Span at(){ return Parser.span(tn.pos(), tn.s().length()); }
   }
-  public FearlessException unknownUseHead(TName tn){
+  public FearlessException unknownUseHead(TName tn, String pkg){
     var at= Parser.span(tn.pos(), tn.s().length());
     return err()
       .line("\"use\" directive refers to undeclared name: type "+Err.disp(tn.simpleName())
-        +" is not declared in package "+Err.disp(tn.pkgName())+".")
+        +" is not declared in package "+Err.disp(pkg)+".")
       .wf()
       .addFrame("package header", at);
   }

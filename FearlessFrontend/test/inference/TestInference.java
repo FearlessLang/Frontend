@@ -1036,7 +1036,7 @@ In file: [###].fear
 While inspecting a type name
 Package "basee" does not exist.
 Did you mean "base" ?
-Visible packages: "base".
+Visible packages: "base", "p".
 Error 7 WellFormedness
 """,List.of("""
 use base.F as F;

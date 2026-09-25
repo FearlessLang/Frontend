@@ -34,7 +34,7 @@ public class ToInference{
         .map(t->new TName(p.name()+"."+e.getKey(), t.arity(),t.pos()))
       ).toList();
     var scope= Stream.concat(declared.stream(), imported.stream()).toList();
-    var all= Stream.concat(declared.stream(), otherTypes.stream()).toList();
+    var all= Stream.concat(declared.stream().map(t->t.withPkgName(p.name())), otherTypes.stream()).toList();
     return p.err().usedUndeclaredName(tn, contextPkg, scope, all);
   }
   public List<E.Literal> of(Package p, Methods meths, OtherPackages other, FreshPrefix fresh){
