@@ -108,10 +108,38 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-[###]
+Type "Z" is not declared in package "b".
+In scope: "B".
 Error 7 WellFormedness
 """, Map.of(), Map.of("a","b"), """
 B:{.m(x:a.Z):B->this}
+"""); }
+  @Test void currentPackageQualifiedUndeclared(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:b.Z):B->this}
+   |         ^^^^
+
+While inspecting a type name
+Type "Z" is not declared in package "b".
+In scope: "B".
+Error 7 WellFormedness
+""", Map.of(), Map.of(), """
+B:{.m(x:b.Z):B->this}
+"""); }
+  @Test void currentPackageQualifiedOtherArity(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:b.B[B]):B->this}
+   |         ^^^^
+
+While inspecting a type name
+Name "B" is not declared with 1 type parameter(s) in package "b".
+Name "B" is only declared with 0 type parameter(s).
+Did you accidentally add or omit a type parameter?
+Error 7 WellFormedness
+""", Map.of(), Map.of(), """
+B:{.m(x:b.B[B]):B->this}
 """); }
   @Test void mapToMissingType(){ fail("""
 In file: [###].fear
