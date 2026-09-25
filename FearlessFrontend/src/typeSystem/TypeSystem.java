@@ -114,6 +114,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var getIso= ((readOrImm(_l.rc()) && !hasAbstractMut(_l)) || _l.rc() == mut)
       && _l.thisName().equals("_")
       && new FreeMutyParameters(bs1,g).isFree(_l);
+    _l.onlyImmCapture().inner= new ImmCaptures(bs1,g).isFree(_l);
     var l= getIso ? _l.withRC(RC.iso) : _l;
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(l,r.t()); } }
     for (var m : l.ms()){ if (m.sig().origin().equals(TypeRename.inferUnknown.c().name())){ throw tsE().methodNotInferred(l,m); } }

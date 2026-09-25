@@ -3840,4 +3840,9 @@ Make:{ #: iso Counter -> iso Counter{'self
 Counter:{ read .get: base.Nat }
 Make:{ #: iso Counter -> mut Counter{ read .get: base.Nat -> 0 } }
 """));}
+@Test void mutLiteralCapturingIsoIsPromotedToIso(){ok(List.of("""
+A:{}
+Box:{ read .get: A; }
+Make:{ #(a:iso A): iso Box -> mut Box{ read .get: A -> a } }
+"""));}
 }
