@@ -95,16 +95,17 @@ public class FrontendLogicMain{
   Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
     return new Package(name,map,decs,names,Package.offLogger());//this method exists to change logger in mocking
   }
-  //map a as b in c //inside c, replace b with a
+  //map a as b in c //inside c, a written a stands for b
   private void accUses(WellFormednessErrors err, String n, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other){
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
       var p= u.in().pkgName();
       p= map.getOrDefault(p, p); //thus if p is "" we get ""
-      map.put(u.out(), p + "." + u.in().simpleName());
-      var ok= otherDom.stream().anyMatch(e->e.s().equals(u.in().s()));
-      if (!ok){ throw err.unknownUseHead(u.in()); }
-    }//map a as b in c + use b.F as bF will replace bF with a.F
+      var in= p + "." + u.in().simpleName();
+      map.put(u.out(), in);
+      var ok= otherDom.stream().anyMatch(e->e.s().equals(in));
+      if (!ok){ throw err.unknownUseHead(u.in(), p); }
+    }//map a as b in c + use a.F as aF will replace aF with b.F
   }
   private Ref findHeadUri(WellFormednessErrors err, String pkgName, Set<Ref> uris){
     assert nonNull(uris) && validate(pkgName,"",_pkgName);
