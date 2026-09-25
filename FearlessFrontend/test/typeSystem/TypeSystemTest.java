@@ -2473,19 +2473,34 @@ Top:{
   .m17(b:mutH Box[mut A]):Bool -> b.order{::} == b;
   }
 """));}
-@Test void toOrderHash(){fail("""
-153|   read .orderOk0: OrderBy[Person] ->
-154|     By#[Age]{::}.view[Person]{::.age};
-   |     ------------^^^^^^---------------
-
-While inspecting ".orderOk0" line 153
-This call to method "OrderBy[_].view(_)" cannot typecheck.
-Argument 1 has type "iso F[read Person,Age]".
-That is not a subtype of "F[read Person,read Age]" (the type required by the method signature).
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.view[imm,Person](F[read Person,Age]{read #(_bimpl:read Person):Age->::.age[read]})
-""",List.of("""
+static String flatMapDecs="""
+use base.F as F;
+List[E:*]:{}
+Cat:{}
+Person:{ .cats: List[Cat]; .mcats: mut List[Cat]; }
+Flow[E:*]:{ mut .flatMap[R:*](f: read F[E, read List[R]]): mut Flow[read/imm R] }
+""";
+@Test void lambdaKeepsTheReadTypeArgumentOfItsParameter(){ok(List.of(flatMapDecs+"""
+User:{ .m(ps: mut Flow[Person]): mut Flow[Cat] -> ps.flatMap{::.cats} }
+"""));}
+@Test void lambdaKeepsTheReadTypeArgumentOfItsParameterWithTargs(){ok(List.of(flatMapDecs+"""
+User:{ .m(ps: mut Flow[Person]): mut Flow[Cat] -> ps.flatMap[Cat]{::.cats} }
+"""));}
+@Test void lambdaKeepsTheReadTypeArgumentOfItsParameterMutBody(){ok(List.of(flatMapDecs+"""
+User:{ .m(ps: mut Flow[Person]): mut Flow[Cat] -> ps.flatMap{::.mcats} }
+"""));}
+@Test void lambdaKeepsTheReadTypeArgumentOfItsParameterExplicitHead(){ok(List.of(flatMapDecs+"""
+User:{ .m(ps: mut Flow[Person]): mut Flow[Cat] -> ps.flatMap(read F[Person, read List[Cat]]{::.mcats}) }
+"""));}
+@Test void lambdaKeepsTheReadTypeVariableArgumentOfItsParameter(){ok(List.of(flatMapDecs+"""
+Viewer[T]:{ .view[A](f: F[read A, read T]): Viewer[A] }
+User:{ .m[T](v: Viewer[T], x: imm T): Viewer[Cat] -> v.view{c -> x} }
+"""));}
+@Test void lambdaKeepsTheReadTypeVariableArgumentOfItsParameterMutBody(){ok(List.of(flatMapDecs+"""
+Viewer[T:*]:{ .view[A](f: F[read A, read T]): Viewer[A] }
+User:{ .m[T:*](v: Viewer[T], x: F[mut T]): Viewer[Cat] -> v.view{c -> x#} }
+"""));}
+@Test void toOrderHash(){ok(List.of("""
 use base.Nat as Nat; use base.Bool as Bool; use base.True as True; use base.False as False; use base.Block as Block; use base.F as F;
 Str:{}
 OrderMatch[R:**]:{ mut .lt:R; mut .eq:R; mut .gt:R; }

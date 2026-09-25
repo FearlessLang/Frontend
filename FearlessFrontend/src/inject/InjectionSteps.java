@@ -466,9 +466,11 @@ public record InjectionSteps(Methods meths){
     return Streams.zip(rcc.c().ts(),fromBody).map(this::keepDecided).toList();
   }
   private IT keepDecided(IT decided, IT fromBody){
+    if (decided instanceof IT.RCX a && fromBody instanceof IT.RCX b && a.x().equals(b.x()) && a.rc() != RC.iso){ return decided; }
     if (!(decided instanceof IT.RCC a && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
     if (!a.c().name().equals(b.c().name())){ return decided; }
-    return b.withTs(Streams.zip(a.c().ts(),b.c().ts()).map(this::keepDecided).toList());
+    var rc= a.rc().filter(r->r != RC.iso).or(b::rc);
+    return b.withRCTs(rc, Streams.zip(a.c().ts(),b.c().ts()).map(this::keepDecided).toList());
   }
   private List<IT> refine(List<String> Xs, core.T t,Optional<IT> it){return refine(Xs,TypeRename.tToIT(t), it.get()); }
   private M.Sig normalizeSigAgainstHeader(IT.RCC rcc, M.Sig improvedSig){
