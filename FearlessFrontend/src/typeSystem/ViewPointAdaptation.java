@@ -19,8 +19,8 @@ public record ViewPointAdaptation(Kinding k){
     return adapt(w, l, m);
   }
   private Change adapt(WithT w, Literal l, M m){ // T[delta, RC]
-    RC rc= m.sig().rc();
-    T t= w.currentT();
+    var rc= m.sig().rc();
+    var t= w.currentT();
     if (rc == read){
       if (isMutReadForm(t)){ return Change.keepSetToRead(l,m,w); }
       if (isXReadImmXForm(t)){ return Change.keepSetToReadImm(l,m,w); }

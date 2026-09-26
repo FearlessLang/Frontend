@@ -24,10 +24,10 @@ final class Sources{
   static List<Sig> collect(TypeSystem ts, Literal l){//Note: this uses l instead of D[Ts] since more direct/efficient
     var sources= new ArrayList<Sig>();
     for (T.C parent : l.cs()){
-      Literal parentDef= ts.decs().apply(parent.name());
+      var parentDef= ts.decs().apply(parent.name());
       for (M m : parentDef.ms()){
         if (!m.sig().origin().equals(parentDef.name())){ continue; }
-        Sig canonical= findCanonical(l, m.sig().m(), m.sig().rc());
+        var canonical= findCanonical(l, m.sig().m(), m.sig().rc());
         sources.add(instantiate(m.sig(), parentDef.bs(), parent.ts(), canonical.bs()));
       }
     }

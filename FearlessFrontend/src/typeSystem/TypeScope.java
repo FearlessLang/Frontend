@@ -55,9 +55,9 @@ public sealed interface TypeScope{
     Streams.zip(declC.ts(), reqC.ts()).forEach((d,r)->walk(d, r, out));
   }
   static TypeScope bestInterestingScope(TypeScope start, List<T> interest){
-    int min= 4;
-    TypeScope best= start;
-    for (TypeScope it= start; !it.isTop(); it= it.outer()){
+    var min= 4;
+    var best= start;
+    for (var it= start; !it.isTop(); it= it.outer()){
       var interesting= min-- > 0 || mentionsAny(it, interest);
       if (interesting){ best= it; }
     }

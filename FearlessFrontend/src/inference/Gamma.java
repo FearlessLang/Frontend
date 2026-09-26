@@ -42,8 +42,8 @@ public final class Gamma{
   }
   public void popScope(){
     assert depth > 1;
-    int newSize= marks[depth - 1];
-    for (int i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i]= null; ts[i]= null; }
+    var newSize= marks[depth - 1];
+    for (var i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i]= null; ts[i]= null; }
     size= newSize;
     depth--;
   }
@@ -51,14 +51,14 @@ public final class Gamma{
     //Can this be done? need to locate the dept of x.
     //Then, if there is imm over (not under) x turn the IT to imm and return theIt.withRC(imm)
     // if there is read over (not under) x and theIt.explicitRC().equals(Optional.of(RC.mut), turn the IT to read and return theIt.withRC(read)
-    int i= indexOf(x);         // offensive: -1 would crash later
-    IT t= ts[i];               // the stored (true) type
-    int d= declDepth[i];       // scope index where x was declared
+    var i= indexOf(x);         // offensive: -1 would crash later
+    var t= ts[i];              // the stored (true) type
+    var d= declDepth[i];       // scope index where x was declared
     RC cap= null;              // null means "no restriction from any enclosing scope"
     var isoCaptured= depth-1 > d && t.explicitRC().equals(Optional.of(RC.iso));
     if (isoCaptured){ return t.withRC(RC.imm); }
-    for (int s= depth-1; s > d; s--){
-      RC rc= rcs[s];                // rc of the method-body scope at index s
+    for (var s= depth-1; s > d; s--){
+      var rc= rcs[s];               // rc of the method-body scope at index s
       if (rc == RC.imm){ cap= RC.imm; break; }
       var firstRead= rc == RC.read && cap == null;
       if (firstRead){ cap= RC.read; }
@@ -70,7 +70,7 @@ public final class Gamma{
     return t.explicitRC().equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
   }
   public IT get(String x){ return ts[indexOf(x)]; }
-  public Optional<IT> getOpt(String x){ int i= indexOf(x); return i == -1 ? Optional.empty() : Optional.of(ts[i]); }
+  public Optional<IT> getOpt(String x){ var i= indexOf(x); return i == -1 ? Optional.empty() : Optional.of(ts[i]); }
 
   public void declare(String x, IT t){
     if (x.equals("_")){ return; }
@@ -83,11 +83,11 @@ public final class Gamma{
     size++;
   }
   public void update(String x, IT t){
-    int i= indexOf(x);
+    var i= indexOf(x);
     if (ts[i].equals(t)){ return; }
-    long cold= contrib(xs[i], ts[i]);
-    long cnew= contrib(xs[i], t);
-    int d= declDepth[i];
+    var cold= contrib(xs[i], ts[i]);
+    var cnew= contrib(xs[i], t);
+    var d= declDepth[i];
     for (int s : Range.of(d,depth)){ envHash[s] ^= cold ^ cnew; }
     ts[i]= t;
   }
@@ -100,13 +100,13 @@ public final class Gamma{
   private int indexOf(String x){
     assert x != null;
     if (size > indexThreshold){ return idx.getOrDefault(x,-1); }
-    for (int i= size - 1; i >= 0; i--){ if (xs[i].equals(x)){ return i; } }
+    for (var i= size - 1; i >= 0; i--){ if (xs[i].equals(x)){ return i; } }
     return -1;
   }
   private static long contrib(String x, IT t){
-    int hx= x.hashCode();
-    int ht= t.hashCode();
-    long packed= ((hx & 0xffffffffL) << 32) | (ht & 0xffffffffL);
+    var hx= x.hashCode();
+    var ht= t.hashCode();
+    var packed= ((hx & 0xffffffffL) << 32) | (ht & 0xffffffffL);
     return fmix64(packed ^ 0x9e3779b97f4a7c15L);
   }
   private static long fmix64(long x){
@@ -119,10 +119,10 @@ public final class Gamma{
   }
 
   @Override public String toString(){
-    StringBuilder sb= new StringBuilder();
+    var sb= new StringBuilder();
     for (int s : Range.of(0,depth)){
-      int start= marks[s];
-      int end= (s + 1 < depth) ? marks[s + 1] : size;
+      var start= marks[s];
+      var end= (s + 1 < depth) ? marks[s + 1] : size;
       sb.append('[');
       for (int i : Range.of(start,end)){
         if (i > start){ sb.append(','); }
@@ -134,7 +134,7 @@ public final class Gamma{
   }
 
   public static Gamma of(List<String> xs2, List<IT> ts2, String self, IT t){
-    Gamma res= new Gamma();
+    var res= new Gamma();
     Streams.zip(xs2, ts2).forEach(res::declare);
     res.declare(self, t);
     return res;

@@ -41,9 +41,9 @@ public final class Monotonicity{
   private static long slot(K k, int a, int b){
     assert (k.ordinal() & ~0xFFFF) == 0;
     assert (b & ~0xFFFF) == 0;
-    long kind= ((long)k.ordinal() & 0xFFFFL) << 48;  // 16-bit kind
-    long aa= ((long)a & 0xFFFF_FFFFL) << 16;      // 32-bit a
-    long bb= ((long)b & 0xFFFFL);                 // 16-bit b
+    var kind= ((long)k.ordinal() & 0xFFFFL) << 48;  // 16-bit kind
+    var aa= ((long)a & 0xFFFF_FFFFL) << 16;      // 32-bit a
+    var bb= ((long)b & 0xFFFFL);                 // 16-bit b
     return kind | aa | bb;
   }
 
@@ -78,7 +78,7 @@ public final class Monotonicity{
   private static boolean hasAnyKind(GammaSignature g, K k){
     var st= states.get(g);
     if (st == null){ return false; }
-    int kind= k.ordinal();
+    var kind= k.ordinal();
     for (long key: st.hist.keySet()){
       if (kindOf(key) == kind){ return true; }
     }
@@ -89,7 +89,8 @@ public final class Monotonicity{
   public static boolean onCallWithMore(E.Call c, Optional<RC> nextRc, List<IT> nextTargs, IT nextT){
     step(c.g(), slot(K.eT,0,0), c.t(), nextT, "Call.t");
     step(c.g(), slot(K.callRc,0,0), c.rc(), nextRc, "Call.rc");
-    int oldN= c.targs().size(), newN= nextTargs.size();
+    var oldN= c.targs().size();
+    var newN= nextTargs.size();
     // Arity repair is allowed, but only before we started tracking per-index targs.
     var arityChangedWhileTracked= oldN != newN && hasAnyKind(c.g(), K.callTarg);
     if (arityChangedWhileTracked){
@@ -109,7 +110,8 @@ public final class Monotonicity{
   private static void clearLitHistory(GammaSignature g){
     var st= states.get(g);
     if (st == null){ return; }
-    int marg= K.litMArg.ordinal(), mret= K.litMRet.ordinal();
+    var marg= K.litMArg.ordinal();
+    var mret= K.litMRet.ordinal();
     st.hist.keySet().removeIf(k->kindOf(k) == marg || kindOf(k) == mret);
   }
 
@@ -123,7 +125,8 @@ public final class Monotonicity{
     }
     // First stable snapshot: start tracking from nextMs (not from l.ms()).
     var oldMs= hasLitHistory(l.g()) ? l.ms() : nextMs;
-    int oldN= oldMs.size(), newN= nextMs.size();
+    var oldN= oldMs.size();
+    var newN= nextMs.size();
     if (oldN != newN){
       throw new AssertionError("Literal.ms size changed after tracking started old="+oldN+" new="+newN
         +"\noldMs="+msBrief(l.ms())+"\nnewMs="+msBrief(nextMs)

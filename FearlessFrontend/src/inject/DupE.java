@@ -22,15 +22,15 @@ public record DupE(FreshPrefix fresh, E.Literal out, M m, WellFormednessErrors e
 
   private E.Literal ofL(E.Literal l){
     if (!l.infName()){ throw err.duplicatedNamedLiteral(out,m,l); }
-    TName oldName= l.name();
-    TName newName= fresh.freshTopType(oldName, oldName.arity());
-    List<M> ms= l.ms().stream().map(m->ofM(m, oldName, newName)).toList();
+    var oldName= l.name();
+    var newName= fresh.freshTopType(oldName, oldName.arity());
+    var ms= l.ms().stream().map(m->ofM(m, oldName, newName)).toList();
     return new E.Literal(l.rc(), newName, l.bs(), l.cs(), l.thisName(), ms, l.t(), l.src(), true, l.infHead(), new Gamma.GammaSignature());
   }
   public M ofM(M m, TName oldName, TName newName){
     var sig= m.sig();
     if (sig.origin().equals(Optional.of(oldName))){ sig= sig.withOrigin(newName); }
-    Optional<M.Impl> impl= m.impl().map(i->new M.Impl(i.m(), i.xs(), of(i.e())));
+    var impl= m.impl().map(i->new M.Impl(i.m(), i.xs(), of(i.e())));
     return new M(sig, impl);
   }
 }

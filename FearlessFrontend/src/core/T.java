@@ -39,7 +39,7 @@ public sealed interface T{
       var start= name.pos();
       if (ts.isEmpty()){ return TSpan.fromPos(start,name.s().length()); }
       var end= ts.getLast().span().inner;
-      int len= end.endCol() - start.column();
+      var len= end.endCol() - start.column();
       var bad= len <= 0 || end.endLine() < start.line();
       if (bad){ return TSpan.fromPos(start,name.s().length()); }
       return new TSpan(new Span(start.fileName(),

@@ -48,9 +48,9 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
     tops= UriSort.byFolderThenFile(tops, l->l.span().inner.fileName());
     assert core.AssertNoRepeatedTypeNames.ok(tops);
-    Map<TName,Literal> map= AllLs.of(tops);
+    var map= AllLs.of(tops);
     Function<TName,Literal> decs= n->LiteralDeclarations.from(n,map::get,other);
-    Map<String,String> invMap= pkg.map().entrySet().stream()
+    var invMap= pkg.map().entrySet().stream()
       .collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
     var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg,invMap))));
     tops.forEach(l->ts.litOk(Gamma.empty(),l));
@@ -74,15 +74,15 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   };}
   private List<Reason> checkX(List<B> bs, Gamma g, X x, List<TRequirement> rs){
     var b= g.bind(x.name());
-    T declared= b.declared();
+    var declared= b.declared();
     var cur= b.current();
     if (!(cur instanceof Change.WithT w)){ throw tsE().parameterNotAvailableHere(x, (Change.NoT)cur); }
-    T got= w.currentT();
+    var got= w.currentT();
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     return rs.stream().map(r->xReason(bs,x,declared,w,r)).toList();
   }
   private Reason xReason(List<B> bs, X x, T declared, Change.WithT w, TRequirement r){
-    T got= w.currentT();
+    var got= w.currentT();
     if (isSub(bs,got,r.t())){ return Reason.pass(got); }
     var declaredOk= isSub(bs,declared,r.t());
     return Reason.parameterDoesNotHaveRequiredTypeHere(this,x, r, declared, w, declaredOk);
@@ -208,7 +208,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
 
   private boolean isImplSubtype(List<B> bs, T t1, T t2){
     if (!(t1 instanceof T.RCC(var rc1, var c1, var span1))){ return false; }
-    Literal d= decs().apply(c1.name());
+    var d= decs().apply(c1.name());
     return d.cs().stream().anyMatch(ci->isSub(bs, TypeRename.of(new T.RCC(rc1, ci,span1), B.xs(d.bs()), c1.ts()), t2));
   }
   private boolean isXReadImmXSubtype(List<B> bs, T t1, T t2){
@@ -223,7 +223,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return Kinding.intrinsicRCs(bs, t1).stream().allMatch(r1->rcs2.stream().allMatch(r1::isSubType));
   }
   private void methodTableOk(Literal l,Key k,List<Sig> group){
-    Sig chosen= Sources.findCanonical(l,k.m(),k.rc());
+    var chosen= Sources.findCanonical(l,k.m(),k.rc());
     assert group.stream().allMatch(s->s.m().equals(chosen.m()) && s.rc() == chosen.rc());
     assert mostSpecificByOrigin(group,chosen);
     assert absPreserved(chosen);//This assert and the one below do the same thing in working programs but may differ in buggy ones
@@ -251,8 +251,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return true;
   }
   private boolean absPreserved(Sig chosen){
-    Literal o= decs().apply(chosen.origin());
-    Sig src= Sources.findCanonical(o,chosen.m(),chosen.rc());
+    var o= decs().apply(chosen.origin());
+    var src= Sources.findCanonical(o,chosen.m(),chosen.rc());
     assert !src.abs() || chosen.abs();
     return true;
   }
@@ -261,7 +261,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private void sigSub(Literal l, Sig current, Sig parent){
     assert current.bs().equals(parent.bs());
-    List<B> ctx= Push.of(l.bs(),current.bs());
+    var ctx= Push.of(l.bs(),current.bs());
     assert current.ts().size() == parent.ts().size();
     for (int i : Range.of(current.ts())){
       var badArg= !isSub(ctx, parent.ts().get(i), current.ts().get(i));

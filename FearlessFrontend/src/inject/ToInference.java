@@ -62,7 +62,7 @@ public final class ToInference{
     Function<TName,TName> f= tn->resolve(meths,tn);
     var decs= new ArrayList<E.Literal>();
     for (var di : meths.p().decs()){
-      TName name= f.apply(di.name());
+      var name= f.apply(di.name());
       new InjectionToInferenceVisitor(meths,name,new ArrayList<>(),f,decs).addDeclaration(name,RC.mut,di,true);
     }
     return List.copyOf(decs);

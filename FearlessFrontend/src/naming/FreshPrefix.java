@@ -34,7 +34,7 @@ public record FreshPrefix(
     }
   }
   public TName freshTopType(TName hint,int arity){
-    String cand= freshCandidate(hint.simpleName(), true, up, topSeq, usedTopTypes, List.of(allGenericNames));
+    var cand= freshCandidate(hint.simpleName(), true, up, topSeq, usedTopTypes, List.of(allGenericNames));
     var res= new TName(pkgName+"."+cand,arity,hint.pos());//all fresh names should start with _ to be pkg private
     aliasOwner(hint,res);
     return res;
@@ -43,7 +43,7 @@ public record FreshPrefix(
   public String freshGeneric(TName owner,String hint){
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
-    String cand= freshCandidate(hint, true, up, st.genSeq(), st.gen(), List.of(usedTopTypes));
+    var cand= freshCandidate(hint, true, up, st.genSeq(), st.gen(), List.of(usedTopTypes));
     allGenericNames.add(cand);
     return cand;
   }
@@ -55,9 +55,9 @@ public record FreshPrefix(
   // commitScope is checked and updated with the winning candidate; extraChecks are read-only.
   private static String freshCandidate(String hint, boolean type, char[] alphabet,
       HashMap<String,Integer> seq, HashSet<String> commitScope, List<Set<String>> extraChecks){
-    String base= sanitizeBase(hint, type);
+    var base= sanitizeBase(hint, type);
     for (int n= seq.getOrDefault(base, 1);; n++){
-      String cand= "_"+encodeBijective(n, alphabet)+base;
+      var cand= "_"+encodeBijective(n, alphabet)+base;
       var taken= commitScope.contains(cand) || extraChecks.stream().anyMatch(e->e.contains(cand));
       if (taken){ continue; }
       commitScope.add(cand);
@@ -72,14 +72,14 @@ public record FreshPrefix(
     owners.put(alias, Objects.requireNonNull(owners.get(original)));
   }
   private static String sanitizeBase(String raw,boolean type){
-    String s= raw.replaceAll("[^A-Za-z0-9]", "");
+    var s= raw.replaceAll("[^A-Za-z0-9]", "");
     if (s.isEmpty()){ s= type ? "T" : "v"; }
     if (!Character.isLetter(s.charAt(0))){ s= (type ? "T" : "v") + s; }
     return (s.length() <= 4) ? s : s.substring(0, 4);
   }
   private static String encodeBijective(int n,char[] alphabet){
-    int base= alphabet.length;
-    StringBuilder sb= new StringBuilder(4);
+    var base= alphabet.length;
+    var sb= new StringBuilder(4);
     while (n > 0){
       n--;
       sb.append(alphabet[n % base]);

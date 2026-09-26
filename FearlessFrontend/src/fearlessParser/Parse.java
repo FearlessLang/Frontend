@@ -38,12 +38,12 @@ public final class Parse{
     ;
   private static Optional<Token> splitOn(Token t, String s,boolean first){
     if (!t.is(BlockComment, LineComment, UStr, SStr)){ return Optional.empty(); }
-    int index= t.content().indexOf(s);
+    var index= t.content().indexOf(s);
     if (index == -1){ return Optional.empty(); }
     return Optional.of(first ? t.tokenFirstHalf(index+1) : t.tokenSecondHalf(index));
   }
   public static FileFull from(URI fileName,String input){
-    Tokenizer t= new Tokenizer()
+    var t= new Tokenizer()
       .input(fileName,input)
       .tokenKinds(kinds,_SOF,_EOF)
       .startingPosition(1,1)

@@ -29,12 +29,12 @@ public class FrontendLogicMain{
       List<Ref> files,
       OtherPackages other
     ){
-    Map<Ref, FileFull> rawAST= parseFiles(files); // Phase 1: Parse Files
-    Package pkg= mergeToPackage(pkgName,rawAST, override, other); // Phase 2: Merge & Well-formedness
-    Methods ctx= Methods.create(pkg, other); // Phase 3: // Creates the scope (Methods) and FreshPrefix generators
-    List<inference.E.Literal> inferrableAST= ToInference.of(ctx); // Phase 4: Desugar
+    var rawAST= parseFiles(files); // Phase 1: Parse Files
+    var pkg= mergeToPackage(pkgName,rawAST, override, other); // Phase 2: Merge & Well-formedness
+    var ctx= Methods.create(pkg, other); // Phase 3: // Creates the scope (Methods) and FreshPrefix generators
+    var inferrableAST= ToInference.of(ctx); // Phase 4: Desugar
     inferrableAST= ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
-    List<core.E.Literal> coreAST= InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
+    var coreAST= InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
     TypeSystem.allOk(coreAST, pkg, other); //Phase 7: type checking
     return coreAST;
   }
@@ -43,11 +43,11 @@ public class FrontendLogicMain{
     record Key(String target,String in){}
     record Cand(Ref uri,String target,String in,String out){
     @Override public String toString(){
-      String f= PrettyFileName.displayFileName(uri.fearURI());
+      var f= PrettyFileName.displayFileName(uri.fearURI());
       return " - "+f+"\n"
            + "   \"map  "+in+"  as  "+out+"  in  "+target+";\"";
     }}
-    Map<Key,List<Cand>> byKey= parsed.entrySet().stream()
+    var byKey= parsed.entrySet().stream()
       .flatMap(e->e.getValue().maps().stream().map(m->new Cand(e.getKey(), m.target(), m.in(), m.out())
       )).collect(Collectors.groupingBy(x->new Key(x.target(),x.in())));
     var res= new HashMap<String,HashMap<String,String>>();
@@ -55,7 +55,7 @@ public class FrontendLogicMain{
       var k= e.getKey();
       var cs= e.getValue();
       var best= cs.stream().max(Comparator.comparing(Cand::uri,c)).get();
-      List<Cand> bests= cs.stream().filter(x->c.compare(x.uri(), best.uri()) == 0).toList();
+      var bests= cs.stream().filter(x->c.compare(x.uri(), best.uri()) == 0).toList();
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
       var conflicting= bests.stream().map(Cand::out).distinct().count() != 1;
       if (conflicting){ throw new WellFormednessErrors(k.target()).mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
@@ -77,15 +77,15 @@ public class FrontendLogicMain{
   Package mergeToPackage(String pkgName,Map<Ref, FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
     var err= new WellFormednessErrors(pkgName);
-    Ref headPkg= findHeadUri(err, raw.keySet());
+    var headPkg= findHeadUri(err, raw.keySet());
     checkOnlyHeadHasDirectives(err,headPkg, raw);
     var head= raw.get(headPkg);
     var map= new HashMap<String, String>(override);
     accUses(err, map, head.uses(), other);
-    List<Declaration> ds= raw.values().stream()
+    var ds= raw.values().stream()
       .flatMap(f->f.decs().stream())
       .sorted().toList();
-    Map<String,String> readOnlyMap= Collections.unmodifiableMap(map);
+    var readOnlyMap= Collections.unmodifiableMap(map);
     var names= DeclaredNames.of(pkgName, ds, readOnlyMap);
     return makePackage(pkgName, readOnlyMap, ds, names);
   }
@@ -112,8 +112,8 @@ public class FrontendLogicMain{
     throw err.expectedSingleUriForPackage(heads);
   }
   private boolean isHeadUri(Ref u){
-    String name= Fs.fileNameWithExtension(u.fearPath());
-    int dot= name.lastIndexOf('.');
+    var name= Fs.fileNameWithExtension(u.fearPath());
+    var dot= name.lastIndexOf('.');
     return dot > 0 && name.substring(0,dot).startsWith("_rank_");
   }
 }

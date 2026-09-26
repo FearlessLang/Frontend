@@ -19,8 +19,8 @@ public record Token(
   }
   public Token tokenSecondHalf(int length){
     if (length == 0){ return this; }
-    Token first= tokenFirstHalf(length);
-    Span s= first.span(Pos.unknown.fileName());
+    var first= tokenFirstHalf(length);
+    var s= first.span(Pos.unknown.fileName());
     return new Token(kind,content.substring(length),s.endLine(),s.endCol()+1,tokens);
   }
 }

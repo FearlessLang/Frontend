@@ -45,7 +45,7 @@ public final class LiteralDeclarations{
   }
   public static TName superLiteral(TName name){
     assert name.pkgName().equals("base");
-    String s= name.simpleName();
+    var s= name.simpleName();
     var strLit= s.startsWith("`") || s.startsWith("\"");
     if (strLit){ return baseStr; }
     if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return baseNat; }
@@ -66,19 +66,19 @@ public final class LiteralDeclarations{
   public static boolean intLiteralInRange(String raw){ return inRange(big(raw),intMin,intMax); }
   public static boolean natLiteralInRange(String raw){ return inRange(big(raw),natMin,natMax); }
   static long intLiteral64(String raw){
-    BigInteger v= big(raw);
+    var v= big(raw);
     assert inRange(v,intMin,intMax);
     return v.longValueExact();
   }
   static long natLiteralBits64(String raw){
-    BigInteger v= big(raw);
+    var v= big(raw);
     assert inRange(v,natMin,natMax);
     return v.longValue(); // wraps to low 64 bits (exactly what we want given the range)
   }
   public static boolean floatLiteralExactlyRepresentable(String raw){
-    String ns= floatPayload(raw);
+    var ns= floatPayload(raw);
     if (ns.startsWith("+")){ ns= ns.substring(1); }
-    double d= Double.parseDouble(ns);
+    var d= Double.parseDouble(ns);
     if (!Double.isFinite(d)){ return false; } // overflow -> Infinity
     if (d == 0){ return new BigDecimal(ns.replaceAll("[eE].*","")).signum() == 0; }
     return new BigDecimal(ns).compareTo(new BigDecimal(d)) == 0; // exact double value as decimal
@@ -87,9 +87,9 @@ public final class LiteralDeclarations{
   public static String floatExactFearlessLit(double d){
     assert Double.isFinite(d);
     var neg= (Double.doubleToRawLongBits(d) & (1L<<63)) != 0;
-    String mag= new BigDecimal(d).abs().toString(); // exact decimal for this double, may use E
-    String sign= neg ? "-" : "+";
-    int e= mag.indexOf('E');
+    var mag= new BigDecimal(d).abs().toString(); // exact decimal for this double, may use E
+    var sign= neg ? "-" : "+";
+    var e= mag.indexOf('E');
     if (e != -1){ return sign+mag.substring(0,e)+"e"+mag.substring(e+1); }
     if (!mag.contains(".")){ mag= mag + ".0"; }
     return sign+mag;
@@ -101,7 +101,7 @@ public final class LiteralDeclarations{
   public static String toJavaLiteral(String s){
     var strLit= s.startsWith("`") || s.startsWith("\"");
     if (strLit){ return javaStrLit(s.substring(1,s.length()-1)); }
-    String ns= stripUnderscores(s);
+    var ns= stripUnderscores(s);
     if (TokenKind.isKind(ns,TokenKind.UnsignedInt)){
       // base.Nat: produce the signed int whose 64-bit pattern equals the unsigned value.
       // Later ops use: Integer.toUnsignedLong(x), compareUnsigned, divideUnsigned, etc.

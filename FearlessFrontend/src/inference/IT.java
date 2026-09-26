@@ -54,7 +54,7 @@ public sealed interface IT{
     static int depthFromTs(List<IT> ts){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1); }
     public RCC withTs(List<IT> ts){ return withRCTs(rc, ts); }
     public RCC withRCTs(Optional<RC> rc, List<IT> ts){
-      int depth= depthFromTs(ts);
+      var depth= depthFromTs(ts);
       if (depth > maxDepth){ return this; }
       return new RCC(rc, new C(c.name(), ts, depth), span);
     }

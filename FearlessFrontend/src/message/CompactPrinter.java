@@ -18,7 +18,7 @@ public class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses, boolean trunk){ t= new TypeNamePrinter(trunk,mainPkg,uses); }
   public String limit(E e,int limit){
     assert limit >= 0;
-    PE root= ofE(e);
+    var root= ofE(e);
     while (root.size() > limit){
       var k= new BestPicker().pick(root);
       if (!k.isCompactable()){ break; }
@@ -98,7 +98,7 @@ public class CompactPrinter{
   }
   public record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k, int length) implements PE{
     public int size(){
-      int s= length + sum(targs, PT::size);
+      var s= length + sum(targs, PT::size);
       if (k.isCompactable()){ return s + recv.size() + sum(args, PE::size); }
       return s + 1 + args.size(); // "-" receiver + one "-" per hidden arg
     }
@@ -114,7 +114,7 @@ public class CompactPrinter{
     public int size(){
       if (k.isCompactable()){ return length + wrapLen(cs,0,PC::size) + sum(ms, PM::size); }
       if (!priv){ return rcPrefixLen(rc) + name.length() + 3; }            // name already has ":"; then "{-}"
-      int c0= cs.isEmpty() ? 0 : cs.getFirst().size();
+      var c0= cs.isEmpty() ? 0 : cs.getFirst().size();
       return rcPrefixLen(rc) + c0 + 3;                                     // Bar{-} or {-}
     }
     public void accString(CompactPrinter sb){
@@ -156,7 +156,7 @@ public class CompactPrinter{
   public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k, int length) implements PN{
     public int size(){
       if (k.isCompactable()){
-        int s= length + sum(ts, PT::size) + ret.size();
+        var s= length + sum(ts, PT::size) + ret.size();
         return body.map(b->s+b.size()).orElse(s);
       }
       if (body.isPresent()){ return wrapLen(xs,4,_->1) + body.get().size(); } // (-s)->e
@@ -203,7 +203,7 @@ public class CompactPrinter{
     var cs= ofCs(l.src(),onlyFirstC ? List.of(l.cs().getFirst()) : l.cs());
     var top= l.thisName().equals("this");
     var rc= top ? RC.imm : l.rc();
-    int s= rcPrefixLen(rc) + 2 + seps(ms.size()) + name.length(); // {} and ";"
+    var s= rcPrefixLen(rc) + 2 + seps(ms.size()) + name.length(); // {} and ";"
     var addSelf= !ms.isEmpty() && !top && !l.thisName().equals("_");
     if (addSelf){ s += 2 + l.thisName().length(); } // "'x "
     return new PLit(rc, priv, name, cs, l.thisName(), ms, Compactable.of(), s);
@@ -240,7 +240,7 @@ public class CompactPrinter{
   }
   PM ofM(Sig s, List<String> xs, Optional<PE> body){
     var bs= bounds(s.bs());
-    int len= rcPrefixLen(s.rc()) + s.m().s().length() + bs.length() + (xs.isEmpty() ? 1 : 3 + seps(xs.size()) + xsWithColonsLen(xs)) + (body.isPresent() ? 2 : 0);
+    var len= rcPrefixLen(s.rc()) + s.m().s().length() + bs.length() + (xs.isEmpty() ? 1 : 3 + seps(xs.size()) + xsWithColonsLen(xs)) + (body.isPresent() ? 2 : 0);
     return new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), body, Compactable.of(), len);
   }
   List<PM> ofMs(Literal l){

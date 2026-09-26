@@ -52,12 +52,12 @@ that is: use double quotes (`"`) instead of single quotes ("'").
         .addFrame("comments",base);
     }
     var h= hit.get();
-    Span s= h.span(file);
+    var s= h.span(file);
     assert s.isSingleLine();
-    int line= s.startLine();
-    int index= h.content().indexOf("/*");
-    Span primary= new Span(file,line, s.startCol()+index, base.endLine(), base.endCol());
-    String where= "inside a"+describeFree(h);
+    var line= s.startLine();
+    var index= h.content().indexOf("/*");
+    var primary= new Span(file,line, s.startCol()+index, base.endLine(), base.endCol());
+    var where= "inside a"+describeFree(h);
     throw Code.UnexpectedToken.of(
       "Unopened block comment close \"*/\".\n"
     + "Found a \"/*\" " + where + " before this point.\n"
@@ -88,7 +88,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
 
   private static Optional<Token> findPseudoOpenerBefore(int idx, Tokenizer tz){
     var all= tz.allTokens();
-    for (int j= idx - 1; j >= 0; j--){
+    for (var j= idx - 1; j >= 0; j--){
       var p= all.get(j);
       if (p.is(BlockComment,_SOF)){ return Optional.empty(); }
       var hidesOpener= p.is(LineComment, UStr, SStr) && p.content().contains("/*");
@@ -114,8 +114,8 @@ that is: use double quotes (`"`) instead of single quotes ("'").
   }
   private static Stream<Token> badBlockComment(Tokenizer tz, Token t){
     var file= tz.fileName();
-    Span s= t.span(file);
-    int lineEnd= t.content().indexOf('\n');
+    var s= t.span(file);
+    var lineEnd= t.content().indexOf('\n');
     if (lineEnd != -1){ s= new Span(file,s.startLine(),s.startCol(),s.startLine(),s.startCol()+lineEnd); }
     throw Code.UnexpectedToken
       .of("Unterminated block comment. Add \"*/\" to close it.")
@@ -124,31 +124,31 @@ that is: use double quotes (`"`) instead of single quotes ("'").
   private static Stream<Token> frontOrBack(int idx, Token t, Tokenizer tz, int quoteChar){
     var file= tz.fileName();
     var text= t.content();
-    Span b= t.span(file);
+    var b= t.span(file);
     assert b.isSingleLine();
     //If '//' or '/*' is inside the bad string, trim span to stop before it.
-    int openSL= text.indexOf("//");
-    int openML= text.indexOf("/*");
-    int idxComment= openSL == -1 ? openML : openML == -1 ? openSL : Math.min(openSL, openML);
+    var openSL= text.indexOf("//");
+    var openML= text.indexOf("/*");
+    var idxComment= openSL == -1 ? openML : openML == -1 ? openSL : Math.min(openSL, openML);
     if (idxComment != -1){
-      Span after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
+      var after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
       throw errEatAfter(after, quoteChar);
     }
     var all= tz.allTokens();
-    int j= idx - 1;
+    var j= idx - 1;
     while (j > 0 && !all.get(j).is(BlockComment)){ j -= 1; }
-    Token prev= all.get(j);
+    var prev= all.get(j);
     if (!prev.is(BlockComment)){ throw errNoInfo(b, quoteChar); }
-    Span s= prev.span(file);
+    var s= prev.span(file);
     if (s.endLine() != t.line()){ throw errNoInfo(b, quoteChar); }
-    int quote= prev.content().lastIndexOf(quoteChar);
-    int nl= prev.content().lastIndexOf('\n');
+    var quote= prev.content().lastIndexOf(quoteChar);
+    var nl= prev.content().lastIndexOf('\n');
     var swallowedByComment= quote != -1 && quote > nl;
     if (!swallowedByComment){ throw errNoInfo(b, quoteChar); }
     var line= b.endLine();
     var endCol= b.startCol()+1;//invert the caret
     var startCol= s.endCol()-(prev.content().length()-quote);
-    Span before= new Span(file,line,startCol,line,endCol);
+    var before= new Span(file,line,startCol,line,endCol);
     throw errEatBefore(before, quoteChar);
   }
 }

@@ -40,12 +40,12 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var cts= new TypeSystem(ts.scope().pushCallRec(this.c),ts.v());
     var r= OneOr.of("One reason without requirements",cts.typeOf(bs,g,c.e(),List.of()).stream());
     assert r.isEmpty();//else would have thrown
-    T t= r.best;
+    var t= r.best;
     if (t instanceof T.RCC x){ return x; }
     throw ts.tsE().methodReceiverIsTypeParameter(cts.scope(),c,t);
   }
   private Sig sigOf(Literal d){
-    Sig sig= OneOr.opt("Methods with duplicates",d.ms().stream().map(M::sig)
+    var sig= OneOr.opt("Methods with duplicates",d.ms().stream().map(M::sig)
       .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()))
       .orElseThrow(()->ts.tsE().methodNotDeclared(ts.scope(),c,d));
     assert sig.ts().size() == c.es().size();//ensured by well formedness
@@ -56,7 +56,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var xs= B.xs(Push.of(d.bs(),sig.bs()));
     var ts0= Push.of(c0.ts(),c.targs());
     var ps= TypeRename.ofT(sig.ts(),xs,ts0);
-    T ret= TypeRename.of(sig.ret(),xs,ts0);
+    var ret= TypeRename.of(sig.ret(),xs,ts0);
     return new MType("As declared",sig.rc(),ps,ret);
   }
   private void checkTargsKinding(T.C c0, Literal d, Sig sig){
@@ -106,7 +106,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return IntStream.range(0,res.size()).filter(i->res.get(i).isEmpty()).boxed().toList();
   }
   private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){
-    List<Integer> okRet= possible.stream()
+    var okRet= possible.stream()
       .filter(i->ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
     if (!okRet.isEmpty()){ return Reason.pass(bestUnique(mat,okRet)); }
     return Reason.callResultCannotHaveRequiredType(ts,d,c, req, bests(mat,possible),sig);
@@ -115,7 +115,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   //bound, so those two are incomparable, but both are sound and the "As declared" one comes first.
   private T bestUnique(ArgMatrix mat, List<Integer> idxs){ return bests(mat,idxs).getFirst(); }
   private List<T> bests(ArgMatrix mat, List<Integer> idxs){
-    List<T> all= idxs.stream().map(i->mat.candidate(i).t()).toList();
+    var all= idxs.stream().map(i->mat.candidate(i).t()).toList();
     return all.stream()
       .filter(ti->all.stream().noneMatch(tj->
         !tj.equals(ti) && ts.isSub(bs,tj,ti)))

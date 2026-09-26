@@ -12,7 +12,7 @@ public record TName(String s, int arity, Pos pos){
   }
   static boolean hasPkgDot(String s){
     if (!s.contains(".")){ return false; }
-    char c0= s.charAt(0);
+    var c0= s.charAt(0);
     return c0 >= 'a' && c0 <= 'z';
   }
   static int pkgDot(String s){ return hasPkgDot(s) ? s.indexOf('.') : -1; }
@@ -36,11 +36,11 @@ public record TName(String s, int arity, Pos pos){
   public String toString(){ return s+"/"+arity; }
 
   public String pkgName(){
-    int i= pkgDot(s);
+    var i= pkgDot(s);
     return i == -1 ? "" : s.substring(0, i);
   }
   public String simpleName(){
-    int i= pkgDot(s);
+    var i= pkgDot(s);
     return i == -1 ? s : s.substring(i + 1);
   }
   public boolean isPublic(){ return !simpleName().startsWith("_"); }

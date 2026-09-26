@@ -45,8 +45,8 @@ public sealed interface E{
       assert unmodifiable(targs, "E.Call.targs");
     }
     public String toString(){
-      String _targs= Join.of(targs,"["+rc+",",",","","["+rc);
-      String _es= Join.of(es,"(",", ",")","");
+      var _targs= Join.of(targs,"["+rc+",",",","","["+rc);
+      var _es= Join.of(es,"(",", ",")","");
       return ""+e+name+_targs+"]"+_es;
     }
   }
