@@ -53,7 +53,7 @@ public final class LiteralDeclarations{
   public static final BigInteger intMax= BigInteger.valueOf(Long.MAX_VALUE);
   public static final BigInteger natMin= BigInteger.ZERO;
   public static final BigInteger natMax= new BigInteger(Long.toUnsignedString(-1L)); // 2^64-1
-  
+
   public static final String softSuffix= "soft";
   static String stripUnderscores(String s){ return s.replace("_",""); }
   static String floatPayload(String raw){ return stripUnderscores(raw.endsWith(softSuffix) ? raw.substring(0,raw.length()-softSuffix.length()) : raw); }

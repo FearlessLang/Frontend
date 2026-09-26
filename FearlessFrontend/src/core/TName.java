@@ -41,7 +41,7 @@ public record TName(String s, int arity, Pos pos){
   }
   public String simpleName(){
     int i= pkgDot(s);
-    return i == -1 ? s : s.substring(i + 1, s.length());
+    return i == -1 ? s : s.substring(i + 1);
   }
   public boolean isPublic(){ return !simpleName().startsWith("_"); }
   public static boolean isTypeName(String s){ return isKind(s,_XId); }

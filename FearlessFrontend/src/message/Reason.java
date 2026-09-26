@@ -24,7 +24,7 @@ public final class Reason{
   public static Reason pass(T got){ return new Reason(got,"",()->{throw Bug.unreachable();}); }
   public static Reason literalDoesNotHaveRequiredType(
     TypeSystem ts, E blame, List<B> bs, T got, T expected
-    ){     
+    ){
     var er= (T.RCC)expected;
     var explRC= er.rc() != RC.imm && switch (blame){
       case Literal l->l.rc() != RC.imm;
@@ -44,7 +44,7 @@ public final class Reason{
       case Literal l->l.withRC(expected.rc());
       case Type(var t,var src) ->  new Type(t.withRC(expected.rc()),src);
       default ->{ throw Bug.unreachable(); }
-    };  
+    };
     var e= ts.err()
       .line(base)
       .line("Hint: write "+ts.err().expReprDirect(false,blameOk)

@@ -13,11 +13,11 @@ public sealed interface XPat{
   Stream<String> parameterNames();
   record Name(E.X x) implements XPat{
     public Name{ assert nonNull(x); }
-    public Stream<String> parameterNames(){ return Stream.of(x.name()); }    
+    public Stream<String> parameterNames(){ return Stream.of(x.name()); }
   }
-  //xE ::= x m* is represented as an element of extract, for example 
+  //xE ::= x m* is represented as an element of extract, for example
   //new Destruct(List.of(List.of(.foo,.bar,.baz),List.of(.x.y)),Optional.of("1"))
-  //represents {foo.bar.baz,x.y}1 
+  //represents {foo.bar.baz,x.y}1
   record Destruct(List<List<MName>> extract, Optional<String> id) implements XPat{
     public Destruct{
       assert !extract.isEmpty();

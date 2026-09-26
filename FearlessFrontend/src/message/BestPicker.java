@@ -35,7 +35,7 @@ final class BestPicker{
     for (var m: x.ms()){ visit(m,depth); }
   }
   void visitPM(PM x,int depth){
-    if (x.k().isCompactable()){ 
+    if (x.k().isCompactable()){
       for (var t: x.ts()){ visit(t,depth); }
       visit(x.ret(),depth);
     }

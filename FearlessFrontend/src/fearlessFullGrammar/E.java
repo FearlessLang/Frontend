@@ -67,7 +67,7 @@ public sealed interface E extends core.Src.SrcObj{
       return TSpan.merge(e.span(),targs.map(t->TSpan.fromPos(t.endPos())).orElseGet(()->TSpan.fromPos(pos,name.s().length())));
     }
   }
-  record Implicit(Pos pos) implements E{ 
+  record Implicit(Pos pos) implements E{
     public String toString(){ return "::"; }
     public TSpan span(){ return TSpan.fromPos(pos,2); }
   }

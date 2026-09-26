@@ -64,7 +64,7 @@ public sealed interface IT{
     public int depth(){ return c.depth(); }
     public Optional<RC> explicitRC(){ return rc; }
   }
-  enum U implements IT{ Instance; 
+  enum U implements IT{ Instance;
     public String toString(){ return "?";}
     public boolean isTV(){ return false; }
     public TSpan span(){ throw Bug.unreachable(); }

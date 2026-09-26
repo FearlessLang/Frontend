@@ -109,7 +109,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return rs.stream().map(r->isSub(bs,got,r.t())
       ? Reason.pass(got)
       : Reason.literalDoesNotHaveRequiredType(this,blame,bs,got,r.t())
-      ).toList();    
+      ).toList();
   }
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<TRequirement> rs){
     var span= _l.name().approxSpan();
@@ -205,7 +205,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       .forEach((x,_)->Affine.usedOnce(tsE(),forErr,m,x));
   }
   static List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }
-  
+
   private boolean isImplSubtype(List<B> bs, T t1, T t2){
     if (!(t1 instanceof T.RCC rcc1)){ return false; }
     Literal d= decs().apply(rcc1.c().name());
@@ -239,7 +239,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     for (var s : group){
       if (s.equals(chosen)){ continue; }
       assert !s.origin().equals(chosen.origin()):
-        s+" "+chosen+"""        
+        s+" "+chosen+"""
         The assert above is actually a big deal. It can logically break in an better version of Fearless
         when inference would know about subtypes when selecting the 'chosen'.
         Same origin can appear multiple times when the same generic supertype is inherited with
@@ -255,7 +255,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     Sig src= Sources.findCanonical(o,chosen.m(),chosen.rc());
     assert !src.abs() || chosen.abs();
     return true;
-  }  
+  }
   private boolean isOriginSub(TName sub, TName sup){
     return sub.equals(sup) || decs().apply(sub).cs().stream().anyMatch(parent->isOriginSub(parent.name(), sup));
   }
@@ -272,12 +272,14 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private boolean eqModXRC(List<B> bs,T a,T b){
     if (a.equals(b)){ return true; }
-    if (a instanceof T.X ax && b instanceof T.RCX br && br.x().name().equals(ax.name())){ return redundantOnX(bs,br.rc(),ax.name()); }
-    if (a instanceof T.RCX ar && b instanceof T.X bx && ar.x().name().equals(bx.name())){ return redundantOnX(bs,ar.rc(),bx.name()); }
+    var redundantRcOnB= a instanceof T.X ax && b instanceof T.RCX br && br.x().name().equals(ax.name()) && redundantOnX(bs,br.rc(),ax.name());
+    if (redundantRcOnB){ return true; }
+    var redundantRcOnA= a instanceof T.RCX ar && b instanceof T.X bx && ar.x().name().equals(bx.name()) && redundantOnX(bs,ar.rc(),bx.name());
+    if (redundantRcOnA){ return true; }
     if (!(a instanceof T.RCC aa && b instanceof T.RCC bb)){ return false; }
     var sameHead= aa.rc() == bb.rc() && aa.c().name().equals(bb.c().name());
     if (!sameHead){ return false; }
     return Streams.zip(aa.c().ts(), bb.c().ts()).allMatch((x,y)->eqModXRC(bs,x,y));
   }
-  private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }  
+  private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }
 }

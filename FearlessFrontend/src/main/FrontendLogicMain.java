@@ -27,8 +27,8 @@ public class FrontendLogicMain{
   public List<core.E.Literal> of(
       String pkgName,
       Map<String,String> override,
-      List<Ref> files, 
-      SourceOracle o, 
+      List<Ref> files,
+      SourceOracle o,
       OtherPackages other
     ){
     Map<Ref, FileFull> rawAST= parseFiles(files); // Phase 1: Parse Files
@@ -75,7 +75,7 @@ public class FrontendLogicMain{
     raw.entrySet().stream()
       .filter(e->!e.getKey().equals(headPkg))
       .filter(e->!e.getValue().noDirectives())
-      .forEach(e->{ throw err.notClean(e.getKey(), e.getValue()); });  
+      .forEach(e->{ throw err.notClean(e.getKey(), e.getValue()); });
   }
   Package mergeToPackage(String pkgName,Map<Ref, FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();

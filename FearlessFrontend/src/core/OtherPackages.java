@@ -35,6 +35,6 @@ public interface OtherPackages{
       this.dom().stream().map(this::__of),
       core.values().stream()
       ).collect(Collectors.toUnmodifiableMap(Literal::name, d->d));
-    return start(this.virtualizationMap(),map,newStamp); 
+    return start(this.virtualizationMap(),map,newStamp);
   }
 }

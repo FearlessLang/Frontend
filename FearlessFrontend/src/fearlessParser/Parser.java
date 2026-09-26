@@ -67,7 +67,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   RC parseRC(){ return RC.valueOf(expect("reference capability",RCap).content()); }
   Optional<RC> parseOptRC(){ return parseIf(peek(RCap),this::parseRC); }
   E.TypedLiteral parseTypedLiteral(int startPos, Optional<RC> rc){
-    Pos pos= pos();    
+    Pos pos= pos();
     var c= parseRCC(startPos,rc);
     return new E.TypedLiteral(c,parseIf(peek(_CurlyGroup),()->parseGroup("typed literal",p->p.parseLiteral(false))),pos);
   }
@@ -79,7 +79,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var c= parseTName();
     if (!peek(_SquareGroup)){ return new T.C(c, empty()); }
     List<T> ts= parseGroupSep("","generic types",Parser::parseT,OSquareArg,CSquare,commaSkip);
-    return new T.C(c.withArity(ts.size()), of(ts));    
+    return new T.C(c.withArity(ts.size()), of(ts));
   }
   TName parseTName(){
     var c= expect("type name", Token.typeName);
@@ -130,12 +130,12 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       return new E.Call(receiver, mm, Optional.empty(), false,Optional.empty(),List.of(atomFromSignedNumeric(num)),pos);
     }
     MName m= parseMName();
-    Optional<E.CallSquare> sq= parseIf(peek(_SquareGroup),()->parseGroup("method call generic parameters",Parser::parseCallSquare));    
+    Optional<E.CallSquare> sq= parseIf(peek(_SquareGroup),()->parseGroup("method call generic parameters",Parser::parseCallSquare));
     if (peek(_RoundGroup)){
       List<E> es= parseGroupSep("","arguments list",Parser::parseE,ORound,CRound,commaExp);
       return new E.Call(receiver, m.withArity(es.size()), sq, true, empty(), es, pos);
     }
-    Optional<XPat> xpat= parseIf(eqSugar(),()->fwd(parseXPat()));    
+    Optional<XPat> xpat= parseIf(eqSugar(),()->fwd(parseXPat()));
     var noArgument= end() || hasPost();
     if (noArgument){
       if (xpat.isPresent()){ throw errFactory().missingExprAfterEq(remainingSpan()); }
@@ -146,7 +146,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     checkNewXs(xs);
     updateNames(names.add(xs, List.of()));//zero if xpat is empty
     if (xpat.isPresent()){ atom= parsePost(atom); while (!end()){ atom= parsePost(atom); } }
-    return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar 
+    return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar
   }
   boolean eqSugar(){ return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq)); }
   MName parseMName(){ return new MName(expect("method name", DotName,Op).content(),0); }
@@ -168,7 +168,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new XPat.Destruct(chains, id);
   }
   List<MName> parseChain(){ return splitBy("",anyLeft,Parser::parseDotName); }
-  
+
   E.CallSquare parseCallSquare(){
     expect("method call generic type argument",OSquareArg);
     var hasRC= peekOrder(t->t.is(RCap),t->t.is(Comma,CSquare));
@@ -187,7 +187,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   E.X parseX(){
     var x= expect("parameter name",LowercaseId);
-    if (!names.xIn(x.content())){ throw errFactory().nameNotInScope(x, span(x).get(), names.xs()); } 
+    if (!names.xIn(x.content())){ throw errFactory().nameNotInScope(x, span(x).get(), names.xs()); }
     return new E.X(x.content(),pos(x));
   }
   E.X parseDecX(){
@@ -317,7 +317,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     expectEnd("comma , colon or arrow", Comma,Colon,Arrow);
     return p;
   }
-  List<B> parseBs(boolean mustNew){ 
+  List<B> parseBs(boolean mustNew){
     return parseGroup("",p->{
       p.expect("generic bounds declaration",OSquareArg);
       p.expectLast("generic bounds declaration",CSquare);
@@ -339,7 +339,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     };
   }
   List<RC> parseRCs(){ return splitBy("generic bounds declaration",commaSkip,Parser::parseRC); }
-  
+
   List<T.C> parseImpl(){
     int start= index();
     var res= parseFront("",true,
@@ -443,7 +443,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   boolean isTName(Token t){ return t.isTypeName() && !names.XIn(t.content()); }
   Pos pos(){
     Span s= spanAround(index(),index());
-    return new Pos(s.fileName(),s.startLine(),s.startCol()); 
+    return new Pos(s.fileName(),s.startLine(),s.startCol());
   }
   Pos pos(Token t){ return new Pos(span().fileName(),t.line(),t.column()); }
   <R> Optional<R> parseIf(boolean cond, Supplier<R> s){ return cond ? of(s.get()) : empty(); }
@@ -475,7 +475,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   int headEnd(){ while (!guessHeadEnd()){ expectAny(""); } return 0; }
   public void checkAbruptExprEnd(){
     absurd();
-    eatAtom();    
+    eatAtom();
     while (!end()){
       if (peek(SignedInt, SignedFloat)){ expectAny(""); continue; }
       eatPost(); eatAtom();
@@ -510,6 +510,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   Cut headEnd=    Parser::headEnd;
   Cut commaB=     Parser::onCommaB;
   Cut commaExp=   Parser::onCommaExp;
-  Cut anyLeft=    p->{ p.expectAny(""); return 0; };  
+  Cut anyLeft=    p->{ p.expectAny(""); return 0; };
   @Override public FearlessErrFactory errFactory(){ return err; }
 }

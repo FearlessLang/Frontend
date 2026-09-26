@@ -91,7 +91,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     String decName= err().methodSig(c.rc().toStrSpace(),t.name(), c.name()); // p.A.m(...)
     T bad= c.targs().get(index);
     return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, err().typeRepr(true,bad), allowedStr);
-  } 
+  }
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchContravariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent, int index){
@@ -163,7 +163,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   }
   ///Implemented method can never be called for any receiver obtained from the literal.
   ///Its body is statically dead code (typically a mut method on an imm/read literal).
-  ///Raised when checking object literals   
+  ///Raised when checking object literals
   public FearlessException methodImplementationDeadCode(M got, Literal l){
     var s= got.sig();
     assert s.rc() == RC.mut;
@@ -174,7 +174,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("The "+err().expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".")
       .line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver.")
       .ex(l).addSpan(s.span().inner));
-  }  
+  }
   ///Iso parameter is used in a way that violates affine discipline.
   ///Allowed uses: capture into object literals as imm, or use directly at most once.
   ///if !earlyErrOnMoreThenOnceDirectly then used exactly once directly but ALSO used in literals
@@ -189,7 +189,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     if (earlyErrOnMoreThenOnceDirectly){
       e.line("It is used directly "+usages.size()+" times.");
       e.line("Iso parameters can be used directly at most once.");
-    } 
+    }
     else{
       e.line("It is used directly and also captured into object literals.");
       e.line("An iso parameter must be either captured, or used directly once (but not both).");
@@ -264,12 +264,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     + hintAddTypeParameter(why);
   }
   private String whyDropCapFree(String subject, Change.NoT why){
-    return 
+    return
     err().expRepr(why.l())+" implements \"base.CaptureFree\".\n"
     + "Thus "+subject
     +" (line "+why.l().span().inner.startLine()+")"
     + " cannot be captured in this scope.\n";
-  }  
+  }
   ///Receiver expression of call c is typed into a type parameter (X / RC X / read/imm X), not a concrete RC C.
   ///Methods cannot be called on type parameters, so this call can never resolve.
   ///Raised when checking method calls.
@@ -312,7 +312,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     if (sameArity.isEmpty()){
       String avail= Join.of(sameName.stream().map(s->Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
       return withCallSpans(err()
-        .pCallCantBeSatisfied(c) 
+        .pCallCantBeSatisfied(c)
         .line("There is a method "+disp(c.name().s())+" on "+on+",\nbut with different number of arguments.")
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .ex(c), c);
@@ -380,11 +380,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     int expected= bs.size();
     String args= Join.of(bs.stream().map(b->disp(b.x())), ": ", " and ","","");
     int got= c.targs().size(); assert got != expected;
-    String expS= expected == 0 
-      ? "no type arguments" 
+    String expS= expected == 0
+      ? "no type arguments"
       : expected+" type argument"+(expected == 1 ? args : "s"+args);
-    String gotS= got == 0 
-      ? "no type arguments" 
+    String gotS= got == 0
+      ? "no type arguments"
       : got+" type argument"+(got == 1 ? "" : "s");
     return withCallSpans(err()
       .pCallCantBeSatisfied(d,c)
@@ -472,7 +472,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   private static T headerBest(List<Reason> res){
     return res.stream().map(r->r.best)
       .min(Comparator.comparingInt(TypeSystemErrors::headerKey))
-      .orElseThrow();
+      .get();
   }
   private static int headerKey(T t){ return switch (t){
     case T.RCC r -> r.rc().ordinal();
@@ -485,12 +485,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .filter((r,q)->rcOnlyMismatch(r.best, q.t()))
       .map((r,_)->r)
       .findFirst().orElse(res.getFirst());
-  }  
+  }
   ///Each argument of call c is compatible with at least one promotion, but no promotion fits all arguments.
   ///The per-argument sets of acceptable promotions have empty intersection.
   ///Raised when checking method calls.
   ///Error details
-  ///  - What arguments satisfy what promotion and why (best type <: required type1, required type 2 etc)  
+  ///  - What arguments satisfy what promotion and why (best type <: required type1, required type 2 etc)
   public FearlessException methodPromotionsDisagreeOnArguments(Call c, ArgMatrix mat){
     int args= mat.okByArg().size();
     assert args > 0;

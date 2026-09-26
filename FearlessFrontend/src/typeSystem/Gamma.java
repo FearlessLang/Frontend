@@ -33,7 +33,9 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     if (this == _empty){ return this; }
     var rest= tail.filterFTV(l,captureFree);
     if (captureFree){ return new Gamma(rest, name, t, new Change.CapFree(l,t)); }
-    if (current instanceof Change.WithT w && !hasOnlyFTV(w.currentT(),l.bs())){ return new Gamma(rest, name, t, new Change.DropFTV(l, w.currentT())); }
+    if (!(current instanceof Change.WithT w)){ return new Gamma(rest, name, t, current); }
+    var ftvEscapes= !hasOnlyFTV(w.currentT(),l.bs());
+    if (ftvEscapes){ return new Gamma(rest, name, t, new Change.DropFTV(l, w.currentT())); }
     return new Gamma(rest, name, t, current);//core.E.Literal l, core.M m, T atDrop
   }
   //Above can not reuse FreeXs since FreeXs works on IT

@@ -29,7 +29,7 @@ public record M(Sig sig, Optional<Impl> impl){
       var bsS= bs.map(b->Join.of(b,"[",",","]","")).orElse("[?]");
       return " "+rc.map(RC::toStrSpace).orElse("? ")+m.map(MName::toString).orElse("")+bsS
         +Join.of(ts.stream().map(this::t),"(",",",")","")+":"+t(ret)+origin.map(o->"@"+o.s()).orElse("@!")+";";
-    }    
+    }
     private String t(Optional<IT> ot){ return ot.map(Object::toString).orElse("?"); }
     public Sig withTsT(List<Optional<IT>> ts, IT ret){ return new Sig(rc,m,bs,ts,Optional.of(ret),origin,abs,span); }
     public Sig withOrigin(TName origin){

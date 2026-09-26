@@ -32,7 +32,7 @@ public final class RCLubGlb{
     var isLb= isLb(options,glb);
     var isGreatest= allRC.stream()
       .filter(rc->isLb(options,rc))
-      .allMatch(lb->lb.isSubType(glb));    
+      .allMatch(lb->lb.isSubType(glb));
     return isLb && isGreatest;
   }
   static void init(EnumSet<RC> options,RC glb,RC lub){
@@ -113,5 +113,5 @@ public final class RCLubGlb{
     init(of(iso, mut, mutH, read, readH),     iso, readH);
     init(of(imm, mut, mutH, read, readH),     iso, readH);
 
-    init(of(iso, imm, mut, mutH, read, readH), iso, readH);    
+    init(of(iso, imm, mut, mutH, read, readH), iso, readH);
   }}

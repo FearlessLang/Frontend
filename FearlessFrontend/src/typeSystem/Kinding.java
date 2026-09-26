@@ -19,7 +19,7 @@ public record Kinding(TypeSystemErrors tsE){
     assert eq(params.size(), args.size(), "Arity mismatch for " + c.name());
     for (int i : Range.of(params)){ check(toErr, c, i, bs, args.get(i), params.get(i).rcs()); }
   }
-  public void check(E toErr, List<B> bs, T t){ 
+  public void check(E toErr, List<B> bs, T t){
     if (t instanceof T.RCC rcc){ check(toErr,rcc,-1,bs,rcc,EnumSet.allOf(RC.class)); }
   }
   public Function<TName,Literal> decs(){ return tsE.decs(); }

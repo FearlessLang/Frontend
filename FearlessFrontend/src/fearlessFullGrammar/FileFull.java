@@ -14,7 +14,7 @@ public record FileFull(
   public FileFull{
     assert unmodifiableDistinct(uses, "FileFull.uses");
     assert unmodifiableDistinct(maps, "FileFull.maps");
-    assert unmodifiableDistinct(decs, "FileFull.decs"); 
+    assert unmodifiableDistinct(decs, "FileFull.decs");
   }
   public record Use(TName in,String out){
     public Use{ assert nonNull(in,out); assert validate(out,"Use.out",_XId); }

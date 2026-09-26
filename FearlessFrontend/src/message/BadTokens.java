@@ -15,7 +15,7 @@ import metaParser.TokenProcessor;
 import utils.Bug;
 
 import static message.Err.*;
-  
+
 public class BadTokens{
   public TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory> badTokensMap(){
     return new TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory>()
@@ -83,7 +83,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     default -> throw Bug.of(t.toString());
     };
   }
-  
+
   private Optional<Token> findPseudoOpenerBefore(int idx, Tokenizer tz){
     var all= tz.allTokens();
     for (int j= idx - 1; j >= 0; j--){

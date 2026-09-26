@@ -50,7 +50,7 @@ public sealed interface E{
   record Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, IT t, Src src,boolean infName, boolean infHead, Gamma.GammaSignature g) implements E, Comparable<Literal>{
     public Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, Src src,boolean infName){
       this(rc,name,bs,cs,thisName,ms,IT.U.Instance,src,infName,false,new Gamma.GammaSignature());
-    }    
+    }
     public Literal{
       assert unmodifiableDistinct(bs,"L.bs");
       assert unmodifiable(cs,"L.cs");
@@ -109,7 +109,7 @@ public sealed interface E{
     public Call withEEs(E e,List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, ()->new E.Call(e, name, rc,targs,es,t,src,g.clear())); }
     public Call withE(E e){ return withEEs(e,es); }
     public Call withT(IT t){ return sameTOr(this, t, ()->new Call(e,name,rc,targs,es,t,src,g.clear())); }
-    public String toString(){ 
+    public String toString(){
       var open= rc.map(r->"["+r).orElse("[");
       return ""+e+name+open
         +Join.of(targs,rc.isEmpty()?"":",",",","](","](")

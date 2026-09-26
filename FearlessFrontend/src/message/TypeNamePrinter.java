@@ -21,7 +21,7 @@ public record TypeNamePrinter(boolean trunc,String mainPkg, Map<String,String> u
     if (!LiteralDeclarations.isPrimitiveLiteral(r)){ return s; }
     int d= r.length();
     if (d <= 15){ return r; }
-    return r.substring(0,5)+"-"+r.substring(d-5,d);
+    return r.substring(0,5)+"-"+r.substring(d-5);
   }
   private static String trunc(String s){
     int dot= s.lastIndexOf('.');
@@ -31,6 +31,6 @@ public record TypeNamePrinter(boolean trunc,String mainPkg, Map<String,String> u
   private static String truncSimple(String s){
     int l= s.length();
     if (l <= 9){ return s; }
-    return s.substring(0, 3)+'-'+s.substring(l - 3, l);
+    return s.substring(0, 3)+'-'+s.substring(l - 3);
   }
 }

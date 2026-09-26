@@ -31,7 +31,7 @@ public class CompactPrinter{
   }
   StringBuilder sb= new StringBuilder();
   TypeNamePrinter t;
-  String msgT(T t){     
+  String msgT(T t){
     ofT(t).accString(this);
     return sb.toString();
   }
@@ -121,7 +121,7 @@ public class CompactPrinter{
       sb.append(rc.toStrSpace());
       accName(sb);
       if (!k.isCompactable()){ sb.append("{-}"); return; }
-      if (!priv){ wrap(sb,"","",cs,",",PC::accString); }  
+      if (!priv){ wrap(sb,"","",cs,",",PC::accString); }
       if (ms.isEmpty()){ sb.append("{}"); return; }
       var start= (self.equals("this") || self.equals("_")) ? "{" : "{'"+self+" ";
       wrap(sb,start,"}",ms,";",PN::accString);
@@ -202,9 +202,9 @@ public class CompactPrinter{
     var top= l.thisName().equals("this");
     int s= rcPrefixLen(top?RC.imm:l.rc()) + 2 + seps(ms.size()) + name.length(); // {} and ";"
     var addSelf= !ms.isEmpty() && !top && !l.thisName().equals("_");
-    if (addSelf){ s += 2 + l.thisName().length(); } // "'x "    
+    if (addSelf){ s += 2 + l.thisName().length(); } // "'x "
     return new PLit(top?RC.imm:l.rc(), priv, name, cs, l.thisName(), ms, Compactable.of(), s);
-  }  
+  }
   List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
   List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
   PT ofT(T t){ return switch (t){

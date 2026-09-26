@@ -22,8 +22,8 @@ interface CaptureWalk{
   private boolean isFree(M m){
     //NOTE: we could be more permissive skipping m.sig().rc() == RC.imm
     //but is not that obvious. iso {imm .foo->captMut} fails but
-    //mut {imm .foo->captMut} may pass. The same reason we can skip imm methods is reason to 
-    //not promote mut->iso? 
+    //mut {imm .foo->captMut} may pass. The same reason we can skip imm methods is reason to
+    //not promote mut->iso?
     return m.e().stream().allMatch(this::isFree);
   }
   private boolean isFree(E.Call c){

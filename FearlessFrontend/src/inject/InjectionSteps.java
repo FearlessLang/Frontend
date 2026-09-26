@@ -58,7 +58,7 @@ public record InjectionSteps(Methods meths){
   public static List<core.E.Literal> steps(Methods meths, List<inference.E.Literal> tops){
     var s= new InjectionSteps(meths);
     assert tops.stream().allMatch(l->l.thisName().equals("this"));
-    //No! at this point they have been (correctly) divided in layers assert tops.stream().sorted().toList().equals(tops);    
+    //No! at this point they have been (correctly) divided in layers assert tops.stream().sorted().toList().equals(tops);
     return tops.stream()
       .map(l->s.stepDec(meths.cache().get(l.name()), l)).toList();
   }
@@ -131,7 +131,7 @@ public record InjectionSteps(Methods meths){
     if (!x1.x().equals(x2.x())){ return leastBad(t1, t2); }
     return x1.withRC(meetRcNoH(Optional.of(x1.rc()), Optional.of(x2.rc())).get());
   }
-  static Optional<RC> meetRcNoH(Optional<RC> a, Optional<RC> b){    
+  static Optional<RC> meetRcNoH(Optional<RC> a, Optional<RC> b){
     if (a.equals(b)){ return a.map(InjectionSteps::noH); }
     if (a.isEmpty()){ return b; }
     if (b.isEmpty()){ return a; }
@@ -148,7 +148,7 @@ public record InjectionSteps(Methods meths){
     .mapToObj(i->tss.stream()
       .map(ts->ts.get(i))
       .reduce(this::meet)
-      .orElseThrow())
+      .get())
     .toList();
   }
   E nextStar(List<B> bs, Gamma g, E e){
@@ -190,7 +190,7 @@ public record InjectionSteps(Methods meths){
     try{
       var res= _next(bs,g,e);
       //assert meet(e.t(),res.t()).equals(res.t()): e.t()+" "+res.t();// Does not hold. How can it be?
-      return res; 
+      return res;
     }
     catch(WellFormednessErrors.ErrToFetchContext depthErr){
       throw meths.p().err().itTooDeep(e,depthErr.c);
@@ -259,8 +259,12 @@ public record InjectionSteps(Methods meths){
   }
   private void updateG(Gamma g, String x, IT t1, IT t2){
     if (t1 == IT.U.Instance){ g.update(x, t2); return; }
-    if (t1 instanceof IT.RCC a && t2 instanceof IT.RCC b && a.c().name().equals(b.c().name())){ g.update(x, new RCC(glbRcNoH(a.rc(), b.rc()), a.c(), a.span())); }
-    if (t1 instanceof IT.RCX a && t2 instanceof IT.RCX b && a.x().equals(b.x())){ g.update(x, a.withRC(glbRcNoH(a.rc(), b.rc()))); }
+    if (t1 instanceof IT.RCC a && t2 instanceof IT.RCC b){
+      if (a.c().name().equals(b.c().name())){ g.update(x, new RCC(glbRcNoH(a.rc(), b.rc()), a.c(), a.span())); }
+      return;
+    }
+    if (!(t1 instanceof IT.RCX a && t2 instanceof IT.RCX b)){ return; }
+    if (a.x().equals(b.x())){ g.update(x, a.withRC(glbRcNoH(a.rc(), b.rc()))); }
   }
   static Optional<RC> glbRcNoH(Optional<RC> a, Optional<RC> b){
     if (a.isEmpty()){ return b; }
@@ -516,7 +520,7 @@ public record InjectionSteps(Methods meths){
     case IT.X x -> x;//IT.U.Instance;
     case IT.RCX(_, var x) -> x;
     case IT.ReadImmX(var x) -> x;
-    case IT.RCC rcc -> rcc.withRC(RC.iso);//This iso is because on conflict iso is the first to disappear? 
+    case IT.RCC rcc -> rcc.withRC(RC.iso);//This iso is because on conflict iso is the first to disappear?
     case IT.U _ -> IT.U.Instance;
   };}
   List<IT> refineXs(List<String> xs, IT.X x, IT t1){ return qMarks(xs.indexOf(x.name()), t1, xs.size()); }
@@ -535,7 +539,7 @@ public record InjectionSteps(Methods meths){
       .map(ci->new IT.RCC(src.rc(), TypeRename.tcToITC(ci),src.span()))
       .map(rcc->(IT.RCC)TypeRename.of(rcc, xs, src.c().ts()))
       .toList();
-  }  
+  }
   List<IT> propagateXs(List<String> xs, IT.RCC r, IT t1){
     if (!(t1 instanceof IT.RCC cc)){ return qMarks(xs.size()); }
     var c= r.c();
@@ -555,7 +559,7 @@ public record InjectionSteps(Methods meths){
     for (int i : Range.of(original)){
       if (candidate.get(i) != original.get(i)){
         assert !(candidate.get(i) instanceof E || candidate.get(i) instanceof M) || !candidate.get(i).equals(original.get(i));
-        return candidate; 
+        return candidate;
       }
     }
     return original;
@@ -579,7 +583,7 @@ public record InjectionSteps(Methods meths){
   private IT.RCC prototypeHead(IT.RCC expected, TSpan span){
     return new IT.RCC(expected.rc(), new IT.C(expected.c().name(), qMarks(expected.c().ts().size())), span);
   }
-   
+
   private static IT normToBound(IT t, EnumSet<RC> allowed){ return allowed.size() == 1 ? t.withRC(allowed.iterator().next()) : t; }
   static List<IT> normToBounds(List<B> bs, List<IT> ts){
     if (bs.size() != ts.size()){ return ts; }

@@ -20,7 +20,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   public static String disp(Object o){ return Message.displayString(o.toString()); }
   public static String genArity(int n){ return Join.of(Collections.nCopies(n,"_"),"[",",", "]","");}
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
-  
+
   String tNameA(TName n){ return cp().t.ofFull(n)+genArity(n.arity()); }     // "A[_]"
   String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
   private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
@@ -78,7 +78,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case Literal l->l.thisName().equals("this")
       ? tNameADisp(l.name())
       : bestNamePkg0(false, bestLitName(false,skipImm,l));
-    case Type(var t,_) -> typeRepr(skipImm,t);  
+    case Type(var t,_) -> typeRepr(skipImm,t);
     };}
   String expRepr(inference.E toErr){return switch (toErr){
     case inference.E.Call c->"method call "+methodSig(c.name());
@@ -95,14 +95,14 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+bestLitName(l),m); }
   String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(),"_"),pre+m.s()+"(",",",")",pre+m.s())); }
   public static boolean rcOnlyMismatch(T got, T req){
-    return got.equals(req) 
-      || (got instanceof T.RCC g 
+    return got.equals(req)
+      || (got instanceof T.RCC g
       && req instanceof T.RCC r
       && g.c().equals(r.c()));
   }
   static boolean isInferErr(T t){
     return t instanceof T.RCC rcc && rcc.c().name().s().equals("base.InferErr");
-  }  
+  }
   String text(){ return sb.toString().stripTrailing(); }
   public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, String badStr, String allowedStr){
     return line("The "+what+" is invalid.")
@@ -110,7 +110,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       .line("for type parameter "+paramName+" in "+kindingTarget+".")
       .line("Here "+paramName+" can only use capabilities "+allowedStr+".");
   }
-  public Err invalidMethImpl(String pre,Literal l, MName m){ 
+  public Err invalidMethImpl(String pre,Literal l, MName m){
     return line("Invalid method signature overriding for "+methodSig(pre,l,m)+".");
   }
 
@@ -157,14 +157,14 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   public String gotMsg(boolean skipImm,String label, List<T> got, T expected){
     if (isInferErr(expected)){ return gotMsgInferErr(label,got.getFirst()); }
     return label+" has type "+Join.of(got.stream().map(t->typeRepr(skipImm,t)),""," or ","")
-      +" instead of a subtype of "+typeRepr(skipImm,expected)+".";  
+      +" instead of a subtype of "+typeRepr(skipImm,expected)+".";
   }
   public String gotMsgInferErr(String label, T got){
-    return label 
+    return label
       + " cannot be checked against an expected supertype.\n"
       + "Type inference could not infer an expected type; computed type is "+typeRepr(true,got)+".";
   }
-    
+
   FearlessException ex(E e){
     return ex("Compressed relevant code with inferred types: (compression indicated by `-`)",e);
   }

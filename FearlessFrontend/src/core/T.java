@@ -35,7 +35,7 @@ public sealed interface T{
       return name.s()+Join.of(ts,"[",",","]","");
     }
     public C withTs(List<T> ts){ return new C(name,ts); }
-    public TSpan span(){    
+    public TSpan span(){
       var start= name.pos();
       if (ts.isEmpty()){ return TSpan.fromPos(start,name.s().length()); }
       var end= ts.getLast().span().inner;

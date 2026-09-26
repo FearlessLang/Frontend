@@ -62,7 +62,7 @@ public record ToCore(List<B> ctx){
     };
     return explicit ? Optional.of(o.bs()) : Optional.empty();
   }
-  
+
   private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){ return Streams.zip(es,oEs).map(this::of).toList(); }
   core.E.Call call(inference.E.Call e, CallLike o){
     var rc= o.rc.or(e::rc).orElse(RC.imm);
@@ -117,7 +117,7 @@ public record ToCore(List<B> ctx){
     };
   }
   private List<String> nUnderscores(int n){ return Stream.generate(()->"_").limit(n).toList(); }
-  
+
   private static final Optional<E> synteticBody= Optional.of(new E.X("this",Src.syntetic));
   core.M mSyntetic(inference.M m){
     var s= sig(m.sig(),m.sig());

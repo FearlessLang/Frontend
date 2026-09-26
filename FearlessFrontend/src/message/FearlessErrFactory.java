@@ -41,7 +41,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels, Parser parser){
     assert nonNull(at,what,expectedLabels);
     String label= what.isBlank() ? "element" : what;
-    String msg = "Missing " + label + ".\n"+expected(expectedLabels);
+    String msg= "Missing " + label + ".\n"+expected(expectedLabels);
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   public FearlessException topLevelSemicolon(Span at){ return Code.UnexpectedToken.of(this::topLevelSemicolonMsg).addSpan(at); }

@@ -21,6 +21,6 @@ public enum RC{
   public static B get(List<B> bs, String name){
     return OneOr.of("Type variable not found",bs.stream().filter(b->b.x().equals(name)));
   }
-  public String toStrSpace(){ return toStrSpace(true); } 
+  public String toStrSpace(){ return toStrSpace(true); }
   public String toStrSpace(boolean skipImm){ return this == RC.imm && skipImm?"":this+" "; }
 }

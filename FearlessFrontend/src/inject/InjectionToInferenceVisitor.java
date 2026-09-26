@@ -84,13 +84,13 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     case XPat.Name(var x) -> x.name();
     case XPat.Destruct(var _, var _) -> meths.fresh().freshVar(currentTop, "div");
     };
-  } 
-  List<M> mapM(List<fearlessFullGrammar.M> ms){ return ms.stream().map(this::visitM).toList(); } 
+  }
+  List<M> mapM(List<fearlessFullGrammar.M> ms){ return ms.stream().map(this::visitM).toList(); }
   M visitM(fearlessFullGrammar.M m){ return new M(visitMSig(m),visitMImpl(m)); }
   M.Sig visitMSig(fearlessFullGrammar.M mm){
     if (mm.sig().isEmpty()){
       List<Optional<IT>> ts= mm.hasImplicit() ? List.of(empty()) : List.of();
-      return new M.Sig(empty(),empty(),empty(),ts,empty(),empty(),false,mm.span()); 
+      return new M.Sig(empty(),empty(),empty(),ts,empty(),empty(),false,mm.span());
     }
     fearlessFullGrammar.Sig s= mm.sig().get();
     Optional<List<B>> bs= s.bs().map(this::mapB);
@@ -207,7 +207,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   private Call desugarCPat(Call c){
     var pat= c.pat().get();
     fearlessFullGrammar.E par1= OneOr.of("Equals sugar has one argument",c.es().stream());
-    var fresh= new fearlessFullGrammar.E.X(meths.fresh().freshVar(currentTop, "eqS"),c.pos());    
+    var fresh= new fearlessFullGrammar.E.X(meths.fresh().freshVar(currentTop, "eqS"),c.pos());
     fearlessFullGrammar.E res= replaceAtom(par1,fresh);
     par1= extractAtom(par1);
     var param1= new Parameter(of(pat),empty());
@@ -230,7 +230,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   private fearlessFullGrammar.E.TypedLiteral typedLiteral(String str,TSpan s,Pos p){
     var tn= new TName(str, 0,p);
     var c= new fearlessFullGrammar.T.C(tn,of(List.of()));
-    return new fearlessFullGrammar.E.TypedLiteral(new fearlessFullGrammar.T.RCC(empty(),c,s), empty(), p);    
+    return new fearlessFullGrammar.E.TypedLiteral(new fearlessFullGrammar.T.RCC(empty(),c,s), empty(), p);
   }
   private fearlessFullGrammar.E lambda(fearlessFullGrammar.E body, TSpan span){
     return new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(empty(), of(body), false, span)), span);

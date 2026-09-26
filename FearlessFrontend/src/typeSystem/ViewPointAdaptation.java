@@ -36,8 +36,8 @@ public record ViewPointAdaptation(Kinding k){
     if (mayBeHygienic){ return new Change.DropReadHMutH(l,t); }
     var mutInImm= (l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs());
     if (mutInImm){ return new Change.DropMutInImm(l,t); }
-    return w;    
-  } 
+    return w;
+  }
   private boolean kindIsoImm(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm)); }
 
   private boolean isMutReadForm(T t){ return t.explicitRC().stream().anyMatch(rc->rc == mut || rc == read); }
