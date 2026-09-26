@@ -55,7 +55,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var rcSpan= peek().map(t->span(t).orElse(span()));
     int startPos= index();
     Optional<RC> rc= parseOptRC();
-    var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH).orElse(false);
+    var invalid= rc.stream().anyMatch(_rc->_rc==RC.mutH || _rc==RC.readH);
     if (invalid){ throw errFactory().disallowedReadHMutH(rcSpan.get(), rc.get()); }
     if (isDec()){ return new E.DeclarationLiteral(rc,parseDeclaration(false)); }
     if (!peek(Token.typeName)){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
@@ -264,9 +264,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   Sig parseSig(){
     var rcSpan= peek().map(t->span(t).orElse(span()));
     var rc= parseOptRC();
-    var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH || _rc==RC.iso).orElse(false);
+    var invalid= rc.stream().anyMatch(_rc->_rc==RC.mutH || _rc==RC.readH || _rc==RC.iso);
     if (invalid){ throw errFactory().disallowedSigRC(rcSpan.get(), rc.get()); }
-    var noDot= peek(LowercaseId) && peek(1).map(t->t.is(_RoundGroup,_SquareGroup)).orElse(false);
+    var noDot= peek(LowercaseId) && peek(1).stream().anyMatch(t->t.is(_RoundGroup,_SquareGroup));
     if (noDot){
       Token tok= peek().get();
       Span at= span(tok, peek(1).get()).orElse(span());
@@ -276,7 +276,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var m= parseIf(peek(DotName,Op),this::parseMName);
     try{ return parseSigAfterName(rc, m); }
     catch(FearlessException exc){
-      var forgotSpace= m.filter(mi->mi.s().endsWith("->")).isPresent();
+      var forgotSpace= m.stream().anyMatch(mi->mi.s().endsWith("->"));
       if (!forgotSpace){ throw exc; }
       throw errFactory().forgotSpace(tok.get().span(span().fileName()),m.get().s());
     }
@@ -346,7 +346,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   void checkCommonTopLevelIssues(){
     if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).orElse(span())); }
     if (isDec()){ return; }
-    if (peek().map(Token::isTypeName).orElse(false)){ return; }
+    if (peek().stream().anyMatch(Token::isTypeName)){ return; }
     var t= peek().get();
     if (!isProbablyTopLevelNonDecl(t)){ return; }
     throw errFactory().topLevelNotATypeDeclaration(span(t).orElse(span()), t.content());
@@ -388,7 +388,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new FileFull(List.copyOf(head.map),List.copyOf(head.use),ds);
   }
   boolean peekValidate(TokenKind validation){
-    return peek().map(t->TokenKind.isKind(t.content(),validation)).orElse(false);
+    return peek().stream().anyMatch(t->TokenKind.isKind(t.content(),validation));
   }
   Token expectValidate(String human, TokenKind kind, TokenKind validation){
     if (peekValidate(validation)){ return expect(human,kind); }

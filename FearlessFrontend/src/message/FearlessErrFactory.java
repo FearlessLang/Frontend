@@ -140,7 +140,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   private Span redeclaredMethSpan(List<M> ms,Predicate<M> p){ return ms.reversed().stream().filter(p).findFirst().get().span().inner; }
   public FearlessException methNameRedeclared(List<M> ms,List<Parser.RCMName> names, Span at){
     var name= redeclaredElement(names);
-    Predicate<M> p= mi->mi.sig().map(sig->sig.m().equals(Optional.of(name.name())) && sig.rc().equals(name.rc())).orElse(false);
+    Predicate<M> p= mi->mi.sig().stream().anyMatch(sig->sig.m().equals(Optional.of(name.name())) && sig.rc().equals(name.rc()));
     Span s= redeclaredMethSpan(ms,p);
     return Code.WellFormedness.of(
       "Method "+Message.displayString(name.name().s())+" redeclared.\n"
@@ -148,7 +148,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       .addSpan(s).addSpan(at);
   }
   public FearlessException methMixedExplicitRC(List<M> ms, MName name, Span at){
-    Predicate<M> p= mi->mi.sig().map(s->s.m().equals(Optional.of(name)) && s.rc().isEmpty()).orElse(false);
+    Predicate<M> p= mi->mi.sig().stream().anyMatch(s->s.m().equals(Optional.of(name)) && s.rc().isEmpty());
     Span s= redeclaredMethSpan(ms,p);
     return Code.WellFormedness.of(
       "Method "+Message.displayString(name.s())+" mixes an explicit and an inferred reference capability.\n"

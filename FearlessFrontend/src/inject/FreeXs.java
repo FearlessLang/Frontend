@@ -13,7 +13,7 @@ import inference.Gamma;
 
 public record FreeXs(Gamma g){
   Stream<String> ftvE(E e){ return switch (e){
-    case X x ->Stream.concat(ftvT(x.t()),g.getOpt(x.name()).map(this::ftvT).orElse(Stream.of()));
+    case X x ->Stream.concat(ftvT(x.t()),g.getOpt(x.name()).stream().flatMap(this::ftvT));
     case Literal l -> ftvL(l);
     //Used to be l.bs().stream().map(b->b.x()); with comment //Correct since bs will contain all the ftv found anywhere in the literal
     //This is not correct because of inference order: we may have not inferred the l.bs() yet!
@@ -27,14 +27,14 @@ public record FreeXs(Gamma g){
       Stream.concat(ftvCs(l.cs()),ftvMs(l.ms())));
   }
   private Stream<String> ftvM(M m){
-    List<String> domBs= m.sig().bs().map(bs->bs.stream().map(B::x).toList()).orElse(List.of());
+    List<String> domBs= m.sig().bs().stream().flatMap(List::stream).map(B::x).toList();
     return Stream.concat(
       ftvS(m.sig()),
       m.impl().stream().flatMap(i->ftvE(i.e()))
     ).filter(x->!domBs.contains(x));
   }
   Stream<String> ftvS(M.Sig m){ return Stream.concat(ftvOTs(m.ts()),ftvT(m.ret())); }
-  Stream<String> ftvT(Optional<IT> o){ return o.map(this::ftvT).orElse(Stream.of()); }
+  Stream<String> ftvT(Optional<IT> o){ return o.stream().flatMap(this::ftvT); }
   public Stream<String> ftvT(IT t){ return switch (t){
     case IT.X x -> Stream.of(x.name());
     case IT.RCX(_, var x) -> Stream.of(x.name());

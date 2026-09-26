@@ -27,7 +27,7 @@ public record ToCore(List<B> ctx){
   };}
   core.E.Type type(IT.RCC type, Src src){ return new core.E.Type(new T.RCC(type.rc().orElse(RC.imm),TypeRename.itcToTC(type.c()),type.span()),src); }
   core.E.Literal literal(inference.E.Literal e, inference.E.Literal o){
-    var rc= o.rc().orElse(e.rc().orElse(RC.imm));
+    var rc= o.rc().or(e::rc).orElse(RC.imm);
     assert o.infName() == e.infName();
     assert o.infName() || e.name().equals(o.name());
     assert e.thisName().equals(o.thisName());
@@ -63,7 +63,7 @@ public record ToCore(List<B> ctx){
   
   private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){ return Streams.zip(es,oEs).map(this::of).toList(); }
   core.E.Call call(inference.E.Call e, CallLike o){
-    var rc= o.rc.orElse(e.rc().orElse(RC.imm));
+    var rc= o.rc.or(e::rc).orElse(RC.imm);
     var targs= !o.targs.isEmpty() ? o.targs : e.targs();
     return new core.E.Call(of(e.e(),o.e),e.name(),rc,TypeRename.itToT(targs),mapArgs(e.es(),o.es),new EqTransparent<>(TypeRename.itToT(e.t())),e.src());
   }
@@ -95,10 +95,10 @@ public record ToCore(List<B> ctx){
   core.Sig sig(inference.M.Sig inf, inference.M.Sig usr){
     var ts= Streams.zip(usr.ts(),inf.ts()).map((u,i)->u.or(()->i)).toList();
     var ret= usr.ret().or(inf::ret);
-    var rc= usr.rc().orElse(inf.rc().orElse(RC.imm));
-    var m= usr.m().orElse(inf.m().orElse(new MName(".inferenceFailed", ts.size())));
-    var bs= usr.bs().orElse(inf.bs().orElse(List.of()));
-    var origin= usr.origin().orElse(inf.origin().orElse(TypeRename.inferUnknown.c().name()));
+    var rc= usr.rc().or(inf::rc).orElse(RC.imm);
+    var m= usr.m().or(inf::m).orElse(new MName(".inferenceFailed", ts.size()));
+    var bs= usr.bs().or(inf::bs).orElse(List.of());
+    var origin= usr.origin().or(inf::origin).orElse(TypeRename.inferUnknown.c().name());
     return new core.Sig(rc,m,bs,TypeRename.itOptToT(ts),TypeRename.itToT(ret),origin,usr.abs(),usr.span());
   }
   private static inference.E.Literal litLike(inference.E o,inference.E.Literal e){

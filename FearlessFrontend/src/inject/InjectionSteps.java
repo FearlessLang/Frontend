@@ -409,7 +409,7 @@ public record InjectionSteps(Methods meths){
   TSM nextMStarAbs(IT.RCC rcc, inference.M m){
     assert m.impl().isEmpty();
     var omh= methodHeaderAnd(rcc, m.sig().m().get(), m.sig().rc(),(_,mi)->mi);
-    assert omh.map(mh->assertNoBinderClash(rcc, mh)).orElse(true);
+    assert omh.stream().allMatch(mh->assertNoBinderClash(rcc, mh));
     if (omh.isEmpty()){ return new TSM(rcc.c().ts(), m); }
     var rcc0= withTsNormBs(rcc,refineClsTsFromHeader(rcc, m.sig(), omh.get().sig()));
     return new TSM(dropMethBsFromClsTs(rcc0, m.sig()), m.withSig(normalizeSigAgainstHeader(rcc0, m.sig())));
@@ -434,7 +434,7 @@ public record InjectionSteps(Methods meths){
     IT ret= meet(m.sig().ret().get(), e.t());
     M.Sig improvedSig= m.sig().withTsT(args, ret);
     var omh= methodHeaderAnd(rcc, improvedSig.m().get(), improvedSig.rc(),(_,mi)->mi);
-    assert omh.map(mh->assertNoBinderClash(rcc, mh)).orElse(true);
+    assert omh.stream().allMatch(mh->assertNoBinderClash(rcc, mh));
     return omh
       .map(mh->headerResult(rcc,m,e,mh.sig(),improvedSig))
       .orElseGet(()->withImpl(rcc.c().ts(),m,improvedSig,e));
@@ -469,7 +469,7 @@ public record InjectionSteps(Methods meths){
   }
   private List<IT> refine(List<String> Xs, core.T t,Optional<IT> it){return refine(Xs,TypeRename.tToIT(t), it.get()); }
   private M.Sig normalizeSigAgainstHeader(IT.RCC rcc, M.Sig improvedSig){
-    var targetBs= improvedSig.bs().map(bs->bs.stream().map(B::x).toList()).orElse(List.of());
+    var targetBs= improvedSig.bs().stream().flatMap(List::stream).map(B::x).toList();
     MSigL h= methodHeader(rcc, improvedSig.m().get(), improvedSig.rc()).get();
     assert h.bsArity() == targetBs.size();
     return improvedSig.withTsT(

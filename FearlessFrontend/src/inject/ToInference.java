@@ -19,8 +19,7 @@ public class ToInference{
   private TName fCurrent(Package p, TName simple, TName full, boolean withPkg, OtherPackages other){
     assert simple.pkgName().isEmpty();
     assert p.names().decNames().stream().allMatch(n->n.pkgName().isEmpty());
-    var defined= p.names().decNames().stream()
-      .anyMatch(tni->tni.equals(simple)); //this also checks arity
+    var defined= p.names().decNames().contains(simple); //this also checks arity
     if (defined){ return full; } //here, we know it is not defined (either at all or with the right arity)
     throw undeclaredType(withPkg?full:simple,p.name(),p,other);
     }
@@ -45,7 +44,7 @@ public class ToInference{
         var mapped= p.map().get(tn.s());
         if (mapped != null){
           var res= new TName(mapped,tn.arity(),tn.pos());
-          var ok= other.dom().stream().anyMatch(t->t.equals(res));
+          var ok= other.dom().contains(res);
           if (!ok){ throw undeclaredType(tn,res.pkgName(),p,other); }
           return res;
         }

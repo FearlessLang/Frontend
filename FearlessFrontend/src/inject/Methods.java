@@ -169,12 +169,12 @@ public record Methods(
       changed= true;
       var arity= m.sig().ts().size();
       var match= new ArrayList<M.Sig>();
-      ss.removeIf(s->s.m().get().arity()==arity && s.abs()?match.add(s):false);
+      ss.removeIf(s->s.m().get().arity()==arity && s.abs() && match.add(s));
       var count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
       if (count > 1){ throw p.err().ambiguousImpl(origin,true,m,match); }
       assert match.isEmpty();
-      ss.removeIf(s->s.m().get().arity()==arity?match.add(s):false);
+      ss.removeIf(s->s.m().get().arity()==arity && match.add(s));
       count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
       if (count > 1){ throw p.err().ambiguousImpl(origin,false,m,match); }
@@ -189,8 +189,8 @@ public record Methods(
       var name= m.sig().m().get();
       var rc= m.sig().rc();
       var match= new LinkedHashMap<RC,List<M.Sig>>();    
-      ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))?acc(match,s):false);
-      if (m.sig().rc().isEmpty()  && match.size() > 1){
+      ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && acc(match,s));
+      if (rc.isEmpty() && match.size() > 1){
         var litRc= origin.rc().or(origin.t()::explicitRC).orElseThrow();
         if (litRc == RC.imm || litRc == RC.read){
           var dead= match.remove(RC.mut);

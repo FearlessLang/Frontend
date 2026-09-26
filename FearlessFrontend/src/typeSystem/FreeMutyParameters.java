@@ -24,7 +24,7 @@ interface CaptureWalk{
     //but is not that obvious. iso {imm .foo->captMut} fails but
     //mut {imm .foo->captMut} may pass. The same reason we can skip imm methods is reason to 
     //not promote mut->iso? 
-    return m.e().map(this::isFree).orElse(true);
+    return m.e().stream().allMatch(this::isFree);
   }
   private boolean isFree(E.Call c){
     return isFree(c.e()) && c.es().stream().allMatch(this::isFree);
