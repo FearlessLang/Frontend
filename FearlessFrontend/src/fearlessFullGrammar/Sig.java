@@ -17,8 +17,5 @@ public record Sig(
     assert unmodifiableDistinct(parameters,"Sig.parameters");
     //NO: can be +1 with implicit assert validOpt(m,_m->eq(_m.arity(),parameters.size(),"Method name arity"));
   }
-  public Sig withImplicit(){
-    if (m.isEmpty()){ return this; }
-    return new Sig(rc,m.map(mi->mi.withArity(parameters.size()+1)),bs,hasParenthesis,parameters, t);
-  }
+  public Sig withImplicit(){ return new Sig(rc,m.map(mi->mi.withArity(parameters.size()+1)),bs,hasParenthesis,parameters, t); }
 }

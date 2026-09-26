@@ -49,7 +49,7 @@ public record ToCore(List<B> ctx){
   private static core.M withOrigin(core.M m, TName from, TName to){
     var s= m.sig();
     if (!s.origin().equals(from)){ return m; }
-    return new core.M(new core.Sig(s.rc(),s.m(),s.bs(),s.ts(),s.ret(),to,s.abs(),s.span()),m.xs(),m.e());
+    return m.withSig(new core.Sig(s.rc(),s.m(),s.bs(),s.ts(),s.ret(),to,s.abs(),s.span()));
   }
   Optional<List<B>> originalBs(inference.E.Literal o){
     boolean explicit= switch (o.src().inner){

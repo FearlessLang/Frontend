@@ -50,14 +50,8 @@ public sealed interface T{
   record RCC(RC rc, C c, TSpan span) implements T, KindingTarget{
     public RCC{ assert nonNull(rc,c); }
     public String toString(){ return rc.toStrSpace() + c; }
-    public RCC withTs(List<T> ts){
-      if (ts == c.ts()){ return this; }
-      return new RCC(rc,new C(c.name(),ts),span);
-    }
-    public RCC withRC(RC rc){
-      if (rc == this.rc){ return this; }
-      return new RCC(rc,c,span);
-    }
+    public RCC withTs(List<T> ts){ return new RCC(rc,c.withTs(ts),span); }
+    public RCC withRC(RC rc){ return new RCC(rc,c,span); }
     public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   default T withRC(RC rc){ return switch (this){ // T[RC]
