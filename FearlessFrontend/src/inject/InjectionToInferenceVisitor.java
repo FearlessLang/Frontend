@@ -14,6 +14,7 @@ import core.RC;
 import core.Src;
 import core.TName;
 import core.TSpan;
+import utils.OneOr;
 import utils.Push;
 import utils.Streams;
 import fearlessFullGrammar.E.Call;
@@ -187,8 +188,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   }
   private Call desugarCPat(Call c){
     var pat= c.pat().get();
-    assert c.es().size() == 1;
-    fearlessFullGrammar.E par1= c.es().getFirst();
+    fearlessFullGrammar.E par1= OneOr.of("Equals sugar has one argument",c.es().stream());
     var fresh= new fearlessFullGrammar.E.X(freshF.freshVar(currentTop, "eqS"),c.pos());    
     fearlessFullGrammar.E res= replaceAtom(par1,fresh);
     par1= extractAtom(par1);

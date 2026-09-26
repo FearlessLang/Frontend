@@ -8,6 +8,7 @@ import core.*;
 import core.E.*;
 import inject.TypeRename;
 import message.Reason;
+import utils.OneOr;
 import utils.Push;
 import utils.Range;
 import typeSystem.TypeSystem.*;
@@ -39,19 +40,16 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   private static boolean isH(RC rc){ return rc == RC.mutH || rc == RC.readH; }
   private T.RCC recvRcc(){
     var cts= new TypeSystem(ts.scope().pushCallRec(this.c),ts.v());
-    var r= cts.typeOf(bs,g,c.e(),List.of());
-    assert r.size() == 1;
-    assert r.getFirst().isEmpty();//else would have thrown
-    T t= r.getFirst().best;
+    var r= OneOr.of("One reason without requirements",cts.typeOf(bs,g,c.e(),List.of()).stream());
+    assert r.isEmpty();//else would have thrown
+    T t= r.best;
     if (t instanceof T.RCC x){ return x; }
     throw ts.tsE().methodReceiverIsTypeParameter(cts.scope(),c,t);
   }
   private Sig sigOf(Literal d){
-    var ms= d.ms().stream().map(M::sig)
-      .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()).toList();
-    if (ms.isEmpty()){ throw ts.tsE().methodNotDeclared(ts.scope(),c,d); }
-    assert ms.size() == 1;
-    Sig sig= ms.getFirst();
+    Sig sig= OneOr.opt("Methods with duplicates",d.ms().stream().map(M::sig)
+      .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()))
+      .orElseThrow(()->ts.tsE().methodNotDeclared(ts.scope(),c,d));
     assert sig.ts().size() == c.es().size();//ensured by well formedness
     if (sig.bs().size() == c.targs().size()){ return sig; }
     throw ts.tsE().methodTArgsArityError(d,c,sig.bs());

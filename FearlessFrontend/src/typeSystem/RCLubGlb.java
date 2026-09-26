@@ -24,14 +24,14 @@ public final class RCLubGlb{
   static boolean isLub(EnumSet<RC> options,RC lub){
     var isUb= isUb(options,lub);
     var isLowest= allRC.stream()
-      .filter(RC->isUb(options,RC))
+      .filter(rc->isUb(options,rc))
       .allMatch(lub::isSubType);
     return isUb && isLowest;
   }
   static boolean isGlb(EnumSet<RC> options,RC glb){
     var isLb= isLb(options,glb);
     var isGreatest= allRC.stream()
-      .filter(RC->isLb(options,RC))
+      .filter(rc->isLb(options,rc))
       .allMatch(lb->lb.isSubType(glb));    
     return isLb && isGreatest;
   }
@@ -41,10 +41,8 @@ public final class RCLubGlb{
     assert novel1 == null && novel2 == null;
     assert isLub(options,lub);
     assert isGlb(options,glb);
-    var otherLub= allRC.stream().filter(RC->RC!=lub).filter(RC->isLub(options,RC)).toList();
-    assert otherLub.isEmpty();
-    var otherGlb= allRC.stream().filter(RC->RC!=glb).filter(RC->isGlb(options,RC)).toList();
-    assert otherGlb.isEmpty();
+    assert allRC.stream().noneMatch(rc->rc != lub && isLub(options,rc));
+    assert allRC.stream().noneMatch(rc->rc != glb && isGlb(options,rc));
   }
   static {// RCs                  | GLB     | LUB
     init(of(iso),                   iso,     iso);

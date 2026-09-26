@@ -62,7 +62,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       || isImplSubtype(bs,t1,t2);
   }
   public void check(List<B> bs, Gamma g, E e, T expected){
-    var got= OneOr.of("", typeOf(bs,g,e,List.of(new TRequirement("", expected))).stream());
+    var got= OneOr.of("One reason per requirement", typeOf(bs,g,e,List.of(new TRequirement("", expected))).stream());
     if (got.isEmpty()){ return; }
     throw tsE().methBodyWrongType((TypeScope.Method)scope,e,got,expected);
   }
@@ -153,8 +153,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (m.e().isPresent() && !isId(m)){ throw tsE().baseIdBadBody(l,m); }
   }
   private boolean isId(M m){
-    assert m.xs().size() == 1;
-    var x= m.xs().getFirst();
+    var x= OneOr.of("BaseId # has one parameter",m.xs().stream());
     return switch (m.e().get()){
       case X e -> e.name().equals(x);
       case Call c -> c.e() instanceof X e && e.name().equals(x) && c.name().equals(asOne)

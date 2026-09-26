@@ -25,11 +25,11 @@ final class MultiMeth{
     var out= new LinkedHashMap<Key,MType>();
     add(out,mType);
     add(out,apply("Strengthen result",d,mType,Mode.flexy,Mode.flexy));
-    if (!hyg){ return out.values().stream().toList(); }
+    if (!hyg){ return List.copyOf(out.values()); }
     add(out,apply("Strengthen hygienic result",d,mType,Mode.strong,Mode.strong));
     add(out,apply("Allow readH arguments",d,mType,Mode.useRead,Mode.hyg));
     oneMutHToMut(out,d,mType);
-    return out.values().stream().toList();
+    return List.copyOf(out.values());
   }
   private static void oneMutHToMut(LinkedHashMap<Key,MType> out, List<B> d, MType m){
     var tsi= m.ts().stream().map(ti->modeF(d,ti, Mode.flexy, RCLubGlb::glb)).toList();

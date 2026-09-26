@@ -87,9 +87,7 @@ public record InjectionSteps(Methods meths){
   }
   private long badnessAs(RCC src, TName targetHead){
     assert !src.c().name().equals(targetHead);
-    var sup= adaptedSuperTs(src.rc(), src.span(), src.c().name(), src.c().ts(), targetHead);
-    assert !sup.isEmpty();
-    return sup.getFirst().badness();
+    return adaptedSuperTs(src.rc(), src.span(), src.c().name(), src.c().ts(), targetHead).getFirst().badness();
   }
   private IT leastBad(RCC a, RCC b){
     var aSuper= isASuperB(a.c().name(), b.c().name()); // a is super of b
@@ -202,11 +200,9 @@ public record InjectionSteps(Methods meths){
   private IT preferred(IT.RCC type){
     var d= meths._from(type.c().name());//d.cs() does contain all the transitive supertypes already.
     if (d == null){ return type; }//This can happen for {..}.foo
-    var cs= d.cs().stream().filter(c->c.name().equals(LiteralDeclarations.widen)).toList();
-    if (cs.isEmpty()){ return type; }
-    assert cs.size() == 1;
-    assert cs.getFirst().ts().size() == 1;
-    IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), B.xs(d.bs()), type.c().ts());
+    var c= OneOr.opt("Repeated WidenTo supertype", d.cs().stream().filter(ci->ci.name().equals(LiteralDeclarations.widen)));
+    if (c.isEmpty()){ return type; }
+    IT wid= TypeRename.of(TypeRename.tToIT(OneOr.of("WidenTo has one type argument", c.get().ts().stream())), B.xs(d.bs()), type.c().ts());
     if (!(wid instanceof IT.RCC w)){ return type; }
     return new IT.RCC(type.rc(), w.c(),type.span());
   }

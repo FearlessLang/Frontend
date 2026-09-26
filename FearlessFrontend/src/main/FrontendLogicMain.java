@@ -57,11 +57,9 @@ public class FrontendLogicMain{
       var best= cs.stream().max(Comparator.comparing(Cand::uri,c)).get();
       List<Cand> bests= cs.stream().filter(x->c.compare(x.uri(), best.uri())==0).toList();
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
-      List<String> outs= bests.stream().map(Cand::out).distinct().toList();
-      assert !outs.isEmpty();
-      if (outs.size() != 1){ throw new WellFormednessErrors(k.target())
+      if (bests.stream().map(Cand::out).distinct().count() != 1){ throw new WellFormednessErrors(k.target())
         .mapConflict(k.target(), k.in(), bests.stream().map(Object::toString).toList()); }
-      res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), outs.getFirst());
+      res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), best.out());
     });
     res.replaceAll((_,v)->Map.copyOf(v));
     return Map.copyOf(res);
