@@ -3,9 +3,9 @@ package inject;
 import java.util.List;
 import java.util.Optional;
 
+import core.LiteralDeclarations;
 import core.RC;
 import core.T;
-import core.TName;
 import core.TSpan;
 import utils.Pos;
 import inference.IT;
@@ -66,10 +66,14 @@ public final class TypeRename{
     case IT.U _ ->inferUnknown;
      //throw Bug.of();// bug is good for testing, it will be replaced with this later: inferUnknown;
   };}
-  public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.unknown), List.of()),TSpan.fromPos(Pos.unknown));
+  public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(LiteralDeclarations.inferUnknown, List.of()),TSpan.fromPos(Pos.unknown));
 
   private static T withRC(T t, RC rc){ return isInfer(t) ? t : t.withRC(rc); }
   private static T readImm(T t){ return isInfer(t) ? t : t.readImm(); }
 
-  private static boolean isInfer(T t){ return t instanceof T.RCC rcc && List.of("base.InferUnknown","base.InferErr").contains(rcc.c().name().s()); }
+  private static boolean isInfer(T t){
+    if (!(t instanceof T.RCC rcc)){ return false; }
+    var n= rcc.c().name();
+    return n.equals(LiteralDeclarations.inferUnknown) || LiteralDeclarations.inferErrs.contains(n);
+  }
 }

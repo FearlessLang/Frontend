@@ -107,7 +107,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       && g.c().equals(r.c()));
   }
   static boolean isInferErr(T t){
-    return t instanceof T.RCC rcc && rcc.c().name().s().equals("base.InferErr");
+    return t instanceof T.RCC rcc && LiteralDeclarations.inferErrs.contains(rcc.c().name());
   }
   String text(){ return sb.toString().stripTrailing(); }
   public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, String badStr, String allowedStr){

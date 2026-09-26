@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 
 import core.B;
 import core.E;
+import core.LiteralDeclarations;
 import core.MName;
 import core.RC;
 import core.Src;
@@ -100,7 +101,7 @@ public record ToCore(List<B> ctx){
     var rc= usr.rc().or(inf::rc).orElse(RC.imm);
     var m= usr.m().or(inf::m).orElse(new MName(".inferenceFailed", ts.size()));
     var bs= usr.bs().or(inf::bs).orElse(List.of());
-    var origin= usr.origin().or(inf::origin).orElse(TypeRename.inferUnknown.c().name());
+    var origin= usr.origin().or(inf::origin).orElse(LiteralDeclarations.inferUnknown);
     return new core.Sig(rc,m,bs,TypeRename.itOptToT(ts),TypeRename.itToT(ret),origin,usr.abs(),usr.span());
   }
   private static inference.E.Literal litLike(inference.E o,inference.E.Literal e){

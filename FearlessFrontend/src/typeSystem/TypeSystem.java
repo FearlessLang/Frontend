@@ -119,7 +119,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var l= getIso ? _l.withRC(iso) : _l;
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(l,r.t()); } }
     for (var m : l.ms()){
-      var notInferred= m.sig().origin().equals(TypeRename.inferUnknown.c().name());
+      var notInferred= m.sig().origin().equals(LiteralDeclarations.inferUnknown);
       if (notInferred){ throw tsE().methodNotInferred(l,m); }
     }
     var ts= dom(l.bs(),span);

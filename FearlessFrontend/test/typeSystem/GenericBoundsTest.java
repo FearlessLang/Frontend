@@ -281,6 +281,21 @@ Flow[T:*]: { mut .match[R:*](m: mut Match[T,R]): R }
 Match[T:*,R:*]: { mut .return(t: T): R; }
 B[R5:*]: { mut .loop(f: mut Flow[R5]): mut B[R5] -> f.match{ .return(rv) -> Any#; }**; }
 """));}
+@Test void explicitInferErrReturnType(){fail("""
+002| C:{ .m: base.InferErr[A,B,A] -> B }
+   |     ----------------------------^
+
+While inspecting object literal instance of "B" > ".m" line 2
+The body of method ".m" of type declaration "C" is an expression returning "iso B".
+Object literal instance of "B" cannot be checked against an expected supertype.
+Type inference could not infer an expected type; computed type is "iso B".
+
+See inferred typing context below for how type "base.InferErr[A,B,A]" was introduced: (compression indicated by `-`)
+C:{.m:-.InferErr[A,B,A]->B}
+""",List.of("""
+A:{} B:{}
+C:{ .m: base.InferErr[A,B,A] -> B }
+"""));}
 @Test void literalCannotBePassedAsATypeVariable(){fail("""
 001| A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
    |                            ----------------^^-
