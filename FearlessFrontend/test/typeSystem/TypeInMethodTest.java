@@ -88,6 +88,24 @@ A0:{.m:A->A:{}}
 B:{.m:A->A}
 """)); }
 
+  @Test void typeInMethodCapturingNothingByNameUseAlias(){ fail("""
+003| B:{.m:A->A}
+   |    ------^^
+
+While inspecting object literal instance of "A" > ".m" line 3
+The type "A" is declared inside a method body.
+A type declared inside a method can capture any parameter name in scope,
+so it cannot be extended or instantiated.
+Hint: if it captures nothing, declare it implementing "CF".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+A
+""",List.of("""
+use base.CaptureFree as CF;
+A0:{.m:A->A:{}}
+B:{.m:A->A}
+""")); }
+
   @Test void typeInMethodExtended(){ fail("""
 002| B:A{}
    | ^^^^^

@@ -7,9 +7,10 @@ import core.TName;
 import inference.E;
 import inference.Gamma;
 import inference.M;
+import message.WellFormednessErrors;
 import naming.FreshPrefix;
 
-public record DupE(FreshPrefix fresh, E.Literal out, M m,message.WellFormednessErrors err){
+public record DupE(FreshPrefix fresh, E.Literal out, M m, WellFormednessErrors err){
   public E of(E e){ return switch (e){
     case E.X x -> new E.X(x.name(), x.t(), x.src(), new Gamma.GammaSignature());
     case E.Type t -> new E.Type(t.type(), t.t(), t.src(), new Gamma.GammaSignature());

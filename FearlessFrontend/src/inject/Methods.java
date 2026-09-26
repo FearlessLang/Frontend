@@ -202,7 +202,7 @@ public record Methods(
       List<List<M.Sig>> groups= match.isEmpty() ? List.of(List.of()) : List.copyOf(match.values());
       var first= true;
       for (var matches: groups){
-        var mi= first ? m : new DupE(fresh,origin,m,this.p().err()).ofM(m,origin.name(),origin.name());
+        var mi= first ? m : new DupE(fresh,origin,m,p.err()).ofM(m,origin.name(),origin.name());
         first= false;
         var m2= pairWithSig(Collections.unmodifiableList(matches), mi, origin);
         assert (m2 == mi) == m2.equals(mi);

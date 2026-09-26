@@ -157,7 +157,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("The type "+err().tNameADisp(l.name())+" is declared inside a method body.")
       .line("A type declared inside a method can capture any parameter name in scope,")
       .line("so it cannot be extended or instantiated.")
-      .line("Hint: if it captures nothing, declare it implementing \"base.CaptureFree\".")
+      .line("Hint: if it captures nothing, declare it implementing "+err().tNameADisp(LiteralDeclarations.captureFree)+".")
       .ex(at));
   }
   ///Implemented method can never be called for any receiver obtained from the literal.
@@ -262,7 +262,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   }
   private String whyDropCapFree(String subject, Change.NoT why){
     return
-    err().expRepr(why.l())+" implements \"base.CaptureFree\".\n"
+    err().expRepr(why.l())+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".\n"
     + "Thus "+subject
     +" (line "+why.l().span().inner.startLine()+")"
     + " cannot be captured in this scope.\n";

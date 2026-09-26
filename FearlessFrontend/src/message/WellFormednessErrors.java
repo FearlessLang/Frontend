@@ -374,11 +374,12 @@ public record WellFormednessErrors(String pkgName){
         +" explicitly implementing the desired behaviour."), at);
   }
   public FearlessException multipleWidenTo(E.Literal owner, List<IT.C> widen){
+    String w= err().tNameADisp(LiteralDeclarations.widen);
     var e= err()
-      .line(err().expRepr(owner)+" implements \"base.WidenTo[_]\" more than once.")
-      .line("At most one \"base.WidenTo[_]\" supertype is allowed, because it defines the preferred widened type.")
+      .line(up(err().expRepr(owner))+" implements "+w+" more than once.")
+      .line("At most one "+w+" supertype is allowed, because it defines the preferred widened type.")
       .blank()
-      .line("Found the following base.WidenTo supertypes:");
+      .line("Found the following "+w+" supertypes:");
     widen.forEach(c->e.bullet(disp(c)));
     return wf(e, owner);
   }
@@ -415,15 +416,16 @@ public record WellFormednessErrors(String pkgName){
       .line("Type "+disp(isSealed.simpleName())+" is defined in package "+disp(sealedPkg)+"."), owner);
   }
   public FearlessException intLiteralOutOfRange(TName lit){
-    return intOrNatLiteralOutOfRange(lit,"Int","Integer","signed",LiteralDeclarations.intMin,LiteralDeclarations.intMax);
+    return intOrNatLiteralOutOfRange(lit,LiteralDeclarations.baseInt,"Integer","signed",LiteralDeclarations.intMin,LiteralDeclarations.intMax);
   }
   public FearlessException natLiteralOutOfRange(TName lit){
-    return intOrNatLiteralOutOfRange(lit,"Nat","Natural","unsigned",LiteralDeclarations.natMin,LiteralDeclarations.natMax);
+    return intOrNatLiteralOutOfRange(lit,LiteralDeclarations.baseNat,"Natural","unsigned",LiteralDeclarations.natMin,LiteralDeclarations.natMax);
   }
-  private FearlessException intOrNatLiteralOutOfRange(TName lit,String type,String kind,String signed,BigInteger min,BigInteger max){
+  private FearlessException intOrNatLiteralOutOfRange(TName lit,TName type,String kind,String signed,BigInteger min,BigInteger max){
+    String t= err().tNameADisp(type);
     return err()
-      .line(kind+" literal is out of range for \"base."+type+"\".")
-      .line("\"base."+type+"\" must be representable as a 64-bit "+signed+" integer.")
+      .line(kind+" literal is out of range for "+t+".")
+      .line(t+" must be representable as a 64-bit "+signed+" integer.")
       .line("Valid range: "+min+" .."+max+".")
       .line("This literal is: "+disp(LiteralDeclarations.big(lit.simpleName()))+".")
       .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
@@ -434,10 +436,11 @@ public record WellFormednessErrors(String pkgName){
     double d= LiteralDeclarations.floatLiteralDouble(raw);
     double nearD= Double.isFinite(d) ? d : Math.copySign(Double.MAX_VALUE,d);
     String near= LiteralDeclarations.floatExactFearlessLit(nearD);
+    String t= err().tNameADisp(LiteralDeclarations.baseFloat);
     var e= err()
-      .line("Float literal is not exactly representable as \"base.Float\".")
-      .line("\"base.Float\" must be representable exactly as a 64-bit IEEE 754 double.")
-      .line("This literal is: "+raw+".");
+      .line("Float literal is not exactly representable as "+t+".")
+      .line(t+" must be representable exactly as a 64-bit IEEE 754 double.")
+      .line("This literal is: "+disp(raw)+".");
     var at= lit.approxSpan().inner;
     if (!Double.isFinite(d)){ return e.line("This literal overflows; the nearest representable value is "+disp(near)+".").wf().addSpan(at); }
     return e.line("If rounded, the nearest representable value is "+disp(near)+".")
