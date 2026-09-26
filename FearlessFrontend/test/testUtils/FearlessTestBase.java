@@ -112,13 +112,13 @@ public abstract class FearlessTestBase{
   protected static void typeOk(List<String> input){
     var o= oraclePkg(input);
     OtherPackages other=  printError(() -> otherFrom(DbgBlock.all()),o);
-    printError(() -> new FrontendLogicMain().of("p",Map.of(), o.allFiles(), o, other), o);
+    printError(() -> new FrontendLogicMain().of("p",Map.of(), o.allFiles(), other), o);
   }
   protected static void typeFailRaw(String expected, List<String> input){
     var o= oraclePkg(input);
     OtherPackages other= otherFrom(DbgBlock.all());
     FearlessException fe= assertThrows(FearlessException.class,
-      () -> new FrontendLogicMain().of("p",Map.of(), o.allFiles(), o, other));
+      () -> new FrontendLogicMain().of("p",Map.of(), o.allFiles(), other));
     strCmp(expected, fe.render(o));
   }
   protected static void typeFail(String expected, List<String> input){
@@ -128,7 +128,7 @@ public abstract class FearlessTestBase{
 
   protected static OtherPackages otherFrom(List<core.E.Literal> ds){ return OtherPackages.start(Map.of(), ds, -1); }
   protected static List<core.E.Literal> compileAll(String pkgName, SourceOracle o, OtherPackages other){
-    return new main.FrontendLogicMain().of(pkgName,Map.of(), o.allFiles(), o, other);
+    return new main.FrontendLogicMain().of(pkgName,Map.of(), o.allFiles(), other);
   }
   public static SourceOracle oracleFromDir(Path root){
     if (!Files.isDirectory(root)){ throw Bug.of("Not a directory: "+root); }

@@ -19,7 +19,6 @@ import inject.ToInference;
 import message.WellFormednessErrors;
 import metaParser.PrettyFileName;
 import tools.Fs;
-import tools.SourceOracle;
 import tools.SourceOracle.Ref;
 import typeSystem.TypeSystem;
 
@@ -28,7 +27,6 @@ public class FrontendLogicMain{
       String pkgName,
       Map<String,String> override,
       List<Ref> files,
-      SourceOracle o,
       OtherPackages other
     ){
     Map<Ref, FileFull> rawAST= parseFiles(files); // Phase 1: Parse Files
@@ -40,7 +38,7 @@ public class FrontendLogicMain{
     TypeSystem.allOk(coreAST, pkg, other); //Phase 7: type checking
     return coreAST;
   }
-  public Map<String,Map<String,String>> parseRankFiles(List<Ref> files, SourceOracle o, Comparator<Ref> c){
+  public Map<String,Map<String,String>> parseRankFiles(List<Ref> files, Comparator<Ref> c){
     var parsed= parseFiles(files);
     record Key(String target,String in){}
     record Cand(Ref uri,String target,String in,String out){

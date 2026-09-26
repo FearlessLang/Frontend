@@ -30,7 +30,7 @@ public class TypeInMethodTest extends testUtils.FearlessTestBase{
     var oA= oraclePkg(List.of(aSrc));
     var aLits= okOrPrint(oA, ()->compileAll("a", oA, base));
     var other= base.mergeWith(AllLs.of(aLits), -1);
-    return new FrontendLogicMain().of("b", Map.of(), oB.allFiles(), oB, other);
+    return new FrontendLogicMain().of("b", Map.of(), oB.allFiles(), other);
   }
   private static final String byName= """
 002| B:{.m:A->A}

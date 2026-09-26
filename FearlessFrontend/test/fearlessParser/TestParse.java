@@ -2576,6 +2576,19 @@ Absorb:{ #[T]:base.Void->base.Void; }
 User1:{.bla(p:Point):base.Void->Absorb#p;}
 User2:{.bla(p:Point):base.Void->Absorb#p.x;}
 """);}
+@Test void forgotDotGenerics(){fail("""
+In file: [###].fear
+
+001| A:{ x[X](a:X):X->a; }
+   |     ^^^^~~~~~~~---
+
+While inspecting method signature > method declaration > type declaration body > type declaration > full file
+Method declaration missing "." before the name.
+To declare a method named "x", write ".x" (dot x).
+Error 7 WellFormedness
+""","""
+A:{ x[X](a:X):X->a; }
+""");}
 @Test void partialGenInstantiation(){ok("""
 [###]name=A/0[###]#CallSquare[rc=Optional.empty,ts=[RCC[rc=Optional[read],c=C[name=A/0,ts=Optional.empty]]]][###]
 ""","""
