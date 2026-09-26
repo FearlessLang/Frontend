@@ -139,7 +139,7 @@ A:{ .m1(a: A): A -> {.m1(a) -> a} }
 """));}
 @Test void lambdaImplementingItself(){failWf("""
 001| A:A{}
-   |   ^^^
+   |   ^^
 
 While inspecting type declarations
 Circular implementation relation found involving "A".

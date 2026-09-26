@@ -36,7 +36,7 @@ public sealed interface E{
   }
   record X(String name, IT t, Src src, Gamma.GammaSignature g) implements E{
     public X(String name, Src src){ this(name,IT.U.Instance,src,new Gamma.GammaSignature()); }
-    public X{ assert nonNull(t) && validate(name, "parameter name",LowercaseId); }
+    public X{ assert nonNull(t); assert validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name+":"+t; }
     public E withT(IT t){ return sameTOr(this, t, ()->new X(name,t,src,g.clear())); }
   }
@@ -50,13 +50,13 @@ public sealed interface E{
   record Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, IT t, Src src,boolean infName, boolean infHead, Gamma.GammaSignature g) implements E, Comparable<Literal>{
     public Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, Src src,boolean infName){
       this(rc,name,bs,cs,thisName,ms,IT.U.Instance,src,infName,false,new Gamma.GammaSignature());
-    }    
+    }
     public Literal{
       assert unmodifiableDistinct(bs,"L.bs");
       assert unmodifiable(cs,"L.cs");
       assert unmodifiableDistinct(ms, "L.ms");
       assert nonNull(name,thisName,t);
-      }
+    }
     public E.Literal withT(IT t){ return sameTOr(this, t, ()->new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear())); }
     public String toString(){
       String res= rc.map(RC::toStrSpace).orElse("")+name.s()+Join.of(bs,"[",",","]","")+(rc.isEmpty() ? ":$?" : Join.of(cs,":",", ","",":"));
@@ -65,14 +65,16 @@ public sealed interface E{
     public Literal withMs(List<M> ms){
       assert t instanceof IT.RCC;
       assert Monotonicity.onLiteralWithMs(this, ms);
-      if (infHead && ms == this.ms){ return this; } 
+      var noChange= infHead && ms == this.ms;
+      if (noChange){ return this; }
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
     }
     public Literal withMsT(List<M> ms, IT t){
       assert t instanceof IT.RCC;
       assert Monotonicity.onLiteralWithMs(this, ms);
       assert Monotonicity.eT(this, t);
-      if (infHead && ms == this.ms && t.equals(this.t)){ return this; }
+      var noChange= infHead && ms == this.ms && t.equals(this.t);
+      if (noChange){ return this; }
       assert !t.equals(this.t) || ms == this.ms || !ms.equals(this.ms);
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
     }
@@ -100,13 +102,14 @@ public sealed interface E{
       assert e == this.e || !e.equals(this.e);
       assert es == this.es || !es.equals(this.es);
       assert Monotonicity.onCallWithMore(this, Optional.of(rc), targs, t);
-      if (e == this.e && Optional.of(rc).equals(this.rc) && targs.equals(this.targs) && es == this.es && t.equals(this.t)){ return this; } 
+      var noChange= e == this.e && this.rc.equals(Optional.of(rc)) && targs.equals(this.targs) && es == this.es && t.equals(this.t);
+      if (noChange){ return this; }
       return new E.Call(e, name, Optional.of(rc),targs,es,t,src,g.clear());
     }
     public Call withEEs(E e,List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, ()->new E.Call(e, name, rc,targs,es,t,src,g.clear())); }
     public Call withE(E e){ return withEEs(e,es); }
     public Call withT(IT t){ return sameTOr(this, t, ()->new Call(e,name,rc,targs,es,t,src,g.clear())); }
-    public String toString(){ 
+    public String toString(){
       var open= rc.map(r->"["+r).orElse("[");
       return ""+e+name+open
         +Join.of(targs,rc.isEmpty()?"":",",",","](","](")

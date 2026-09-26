@@ -865,15 +865,15 @@ A[X:***]:{}
 @Test void err_name_redeclared_param2(){fail("""
 In file: [###].fear
 
-001| A:{ .m(x,x) -> x }
-   |   --^^^^^^^~~~~~--
+001| A:{ .m(a,b,b,a) -> a }
+   |   --^^^^^^^^^^^~~~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple parameters with the same name
-Parameter "x" is repeated
+Parameter "a" is repeated
 Error 2 UnexpectedToken
 ""","""
-A:{ .m(x,x) -> x }
+A:{ .m(a,b,b,a) -> a }
 """);
 }
 
@@ -1158,6 +1158,22 @@ Error 2 UnexpectedToken
 A:{
   .m:Str ->
     /* something with a " on this last line */ "text that doesn't close
+}
+""");
+}
+@Test void bad_dq_str_eol_after_block_comment_without_quote(){fail("""
+In file: [###].fear
+
+003|     /* no quote here */ "text that doesn't close
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting a string literal
+String literal [Double Quote (") 0x22] reaches the end of the line.
+Error 2 UnexpectedToken
+""", """
+A:{
+  .m:Str ->
+    /* no quote here */ "text that doesn't close
 }
 """);
 }

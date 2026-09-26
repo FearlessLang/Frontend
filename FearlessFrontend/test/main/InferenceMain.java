@@ -23,7 +23,7 @@ public class InferenceMain extends FrontendLogicMain{
     Map<Ref, FileFull> rawAST= parseFiles(files);
     Package pkg= mergeToPackage(pkgName,rawAST, Map.of(), other);
     Methods ctx= Methods.create(pkg, other);
-    List<E.Literal> iDecs= new ToInference().of(ctx);
+    List<E.Literal> iDecs= ToInference.of(ctx);
     iDecs= ctx.registerTypeHeadersAndReturnRoots(iDecs);
     if (!infer){ return ctx; }
     var res= InjectionSteps.steps(ctx, iDecs);

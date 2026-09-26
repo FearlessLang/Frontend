@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import core.*;
 import core.E.*;
@@ -20,13 +21,19 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   public static String disp(Object o){ return Message.displayString(o.toString()); }
   public static String genArity(int n){ return Join.of(Collections.nCopies(n,"_"),"[",",", "]","");}
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
-  
+  static <A> A redeclaredElement(List<A> es){
+    return IntStream.range(0, es.size())
+      .filter(i->i != es.lastIndexOf(es.get(i)))
+      .mapToObj(es::get)
+      .findFirst().get();
+  }
+
   String tNameA(TName n){ return cp().t.ofFull(n)+genArity(n.arity()); }     // "A[_]"
   String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
   private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
   private String bestLitName(boolean skipRc,boolean skipImm,Literal l){
     RC rc= skipRc?RC.imm:l.rc();
-    if (showInstanceOf(l)){ return typeReprRaw(skipImm||skipRc,new T.RCC(rc,l.cs().getFirst(),l.span())); }
+    if (showInstanceOf(l)){ return typeReprRaw(skipImm || skipRc,new T.RCC(rc,l.cs().getFirst(),l.span())); }
     if (anonLit(l)){ return anonRepr; }
     return rc.toStrSpace(skipImm)+tNameA(l.name());
   }
@@ -50,18 +57,18 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String theTypeOrObjectLiteral(Literal l){ return typeOrAnon(l,"type ","object literal "); }
   public String bestNameNoRc(Literal l){ return bestNamePkg0(showInstanceOf(l), bestLitName(true,true,l)); }
   T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()),t.ts()); }//Correct to not propagate here
-  T preferredForFresh(T t){ return mapHead(t, this::preferredForFresh); }
   String typeRepr(inference.IT t){ return typeRepr(true,TypeRename.itToT(t)); }
   String typeRepr(boolean skipImm, T t){ return disp(typeReprRaw(skipImm,t)); }
   private String typeReprRaw(boolean skipImm, T t){
     var str= cp().msgT(showPublicHead(t));
-    if (skipImm || !t.explicitRC().equals(Optional.of(RC.imm))){ return str; }
+    var noImmPrefix= skipImm || !t.explicitRC().equals(Optional.of(RC.imm));
+    if (noImmPrefix){ return str; }
     return "imm "+str;
   }
   T showPublicHead(T t){ return mapHead(t, publicHead); }
-  private T mapHead(T t, Function<T.C,T.C> f){ return t instanceof T.RCC(RC rc, T.C c, var span) ? new T.RCC(rc, f.apply(c), span) : t; }
+  private T mapHead(T t, Function<T.C,T.C> f){ return t instanceof T.RCC(var rc, var c, var span) ? new T.RCC(rc, f.apply(c), span) : t; }
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t),t.span()))); }
-  static String up(String s){return s.substring(0, 1).toUpperCase() + s.substring(1); }
+  static String up(String s){ return s.substring(0, 1).toUpperCase() + s.substring(1); }
   String expRepr(E toErr){return switch (toErr){
     case Call c->"method call "+methodSig(c.name());
     case X x->"parameter " +displayX(x);
@@ -77,7 +84,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case Literal l->l.thisName().equals("this")
       ? tNameADisp(l.name())
       : bestNamePkg0(false, bestLitName(false,skipImm,l));
-    case Type(var t,_) -> typeRepr(skipImm,t);  
+    case Type(var t, _) -> typeRepr(skipImm,t);
     };}
   String expRepr(inference.E toErr){return switch (toErr){
     case inference.E.Call c->"method call "+methodSig(c.name());
@@ -94,14 +101,14 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+bestLitName(l),m); }
   String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(),"_"),pre+m.s()+"(",",",")",pre+m.s())); }
   public static boolean rcOnlyMismatch(T got, T req){
-    return got.equals(req) 
-      || (got instanceof T.RCC g 
+    return got.equals(req)
+      || (got instanceof T.RCC g
       && req instanceof T.RCC r
       && g.c().equals(r.c()));
   }
   static boolean isInferErr(T t){
     return t instanceof T.RCC rcc && rcc.c().name().s().equals("base.InferErr");
-  }  
+  }
   String text(){ return sb.toString().stripTrailing(); }
   public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, String badStr, String allowedStr){
     return line("The "+what+" is invalid.")
@@ -109,7 +116,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       .line("for type parameter "+paramName+" in "+kindingTarget+".")
       .line("Here "+paramName+" can only use capabilities "+allowedStr+".");
   }
-  public Err invalidMethImpl(String pre,Literal l, MName m){ 
+  public Err invalidMethImpl(String pre,Literal l, MName m){
     return line("Invalid method signature overriding for "+methodSig(pre,l,m)+".");
   }
 
@@ -124,7 +131,8 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err blank(){
     int n= sb.length();
     assert sb.charAt(n-1) == '\n';
-    if (n < 2 || sb.charAt(n-2) != '\n'){ sb.append('\n'); }
+    var noBlankYet= n < 2 || sb.charAt(n-2) != '\n';
+    if (noBlankYet){ sb.append('\n'); }
     return this;
   }
   Err bullet(String s){
@@ -144,25 +152,24 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err pPromotionFailuresHdr(){ return blank().line("Promotion failures:"); }
   Err pReceiverRequiredByPromotion(List<MType> promos){
     var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc,LinkedHashMap::new,Collectors.mapping(MType::promotion,Collectors.toList())));
-    if (byRc.size() > 1){
-      blank().line("Receiver required by each promotion:");
-      byRc.keySet().stream()
-        .sorted()
-        .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(),""," / ","")+")"));
-    }
+    if (byRc.size() <= 1){ return this; }
+    blank().line("Receiver required by each promotion:");
+    byRc.keySet().stream()
+      .sorted()
+      .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(),""," / ","")+")"));
     return this;
   }
   public String gotMsg(boolean skipImm,String label, List<T> got, T expected){
     if (isInferErr(expected)){ return gotMsgInferErr(label,got.getFirst()); }
     return label+" has type "+Join.of(got.stream().map(t->typeRepr(skipImm,t)),""," or ","")
-      +" instead of a subtype of "+typeRepr(skipImm,expected)+".";  
+      +" instead of a subtype of "+typeRepr(skipImm,expected)+".";
   }
   public String gotMsgInferErr(String label, T got){
-    return label 
+    return label
       + " cannot be checked against an expected supertype.\n"
-      + "Type inference could not infer an expected type; computed type is "+typeRepr(true,got)+"."; 
-    }
-    
+      + "Type inference could not infer an expected type; computed type is "+typeRepr(true,got)+".";
+  }
+
   FearlessException ex(E e){
     return ex("Compressed relevant code with inferred types: (compression indicated by `-`)",e);
   }

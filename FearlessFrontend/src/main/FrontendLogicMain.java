@@ -27,14 +27,14 @@ public class FrontendLogicMain{
   public List<core.E.Literal> of(
       String pkgName,
       Map<String,String> override,
-      List<Ref> files, 
-      SourceOracle o, 
+      List<Ref> files,
+      SourceOracle o,
       OtherPackages other
     ){
     Map<Ref, FileFull> rawAST= parseFiles(files); // Phase 1: Parse Files
     Package pkg= mergeToPackage(pkgName,rawAST, override, other); // Phase 2: Merge & Well-formedness
     Methods ctx= Methods.create(pkg, other); // Phase 3: // Creates the scope (Methods) and FreshPrefix generators
-    List<inference.E.Literal> inferrableAST= new ToInference().of(ctx); // Phase 4: Desugar
+    List<inference.E.Literal> inferrableAST= ToInference.of(ctx); // Phase 4: Desugar
     inferrableAST= ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
     List<core.E.Literal> coreAST= InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
     TypeSystem.allOk(coreAST, pkg, other); //Phase 7: type checking
@@ -52,21 +52,21 @@ public class FrontendLogicMain{
     Map<Key,List<Cand>> byKey= parsed.entrySet().stream()
       .flatMap(e->e.getValue().maps().stream().map(m->new Cand(e.getKey(), m.target(), m.in(), m.out())
       )).collect(Collectors.groupingBy(x->new Key(x.target(),x.in())));
-    Map<String,Map<String,String>> res= new HashMap<>();
-    byKey.forEach((k,cs)->{
+    var res= new HashMap<String,HashMap<String,String>>();
+    for (var e : byKey.entrySet()){
+      var k= e.getKey();
+      var cs= e.getValue();
       var best= cs.stream().max(Comparator.comparing(Cand::uri,c)).get();
-      List<Cand> bests= cs.stream().filter(x->c.compare(x.uri(), best.uri())==0).toList();
+      List<Cand> bests= cs.stream().filter(x->c.compare(x.uri(), best.uri()) == 0).toList();
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
       var conflicting= bests.stream().map(Cand::out).distinct().count() != 1;
-      if (conflicting){ throw new WellFormednessErrors(k.target())
-        .mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
+      if (conflicting){ throw new WellFormednessErrors(k.target()).mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
       res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), best.out());
-    });
-    res.replaceAll((_,v)->Map.copyOf(v));
-    return Map.copyOf(res);
+    }
+    return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e->Map.copyOf(e.getValue())));
   }
   Map<Ref, FileFull> parseFiles(List<Ref> files){
-    Map<Ref, FileFull> all= new LinkedHashMap<>();
+    var all= new LinkedHashMap<Ref,FileFull>();
     for (var u : files){ all.put(u, Parse.from(u.fearURI(), u.loadString())); }
     return Collections.unmodifiableMap(all);
   }
@@ -74,7 +74,7 @@ public class FrontendLogicMain{
     raw.entrySet().stream()
       .filter(e->!e.getKey().equals(headPkg))
       .filter(e->!e.getValue().noDirectives())
-      .forEach(e->{ throw err.notClean(e.getKey(), e.getValue()); });  
+      .forEach(e->{ throw err.notClean(e.getKey(), e.getValue()); });
   }
   Package mergeToPackage(String pkgName,Map<Ref, FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
@@ -107,7 +107,8 @@ public class FrontendLogicMain{
     }//map a as b in c + use a.F as aF will replace aF with b.F
   }
   private Ref findHeadUri(WellFormednessErrors err, Set<Ref> uris){
-    assert nonNull(uris) && validate(err.pkgName(),"",_pkgName);
+    assert nonNull(uris);
+    assert validate(err.pkgName(),"",_pkgName);
     var heads= uris.stream().filter(this::isHeadUri).toList();
     if (heads.size() == 1){ return heads.getFirst(); }
     throw err.expectedSingleUriForPackage(heads);

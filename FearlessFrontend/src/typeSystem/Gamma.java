@@ -19,11 +19,11 @@ public record Gamma(Gamma tail, String name, T t, Change current){
   }
   public Gamma addAll(List<T> ts, List<String> xs){ return Streams.zip(xs, ts).fold(Gamma::add, this); }
   public record Binding(T declared, Change current){}
-  public Binding bind(String x){ return Objects.requireNonNull(_bindOrNull(x)); }
-  public Binding _bindOrNull(String x){
+  public Binding bind(String x){ return Objects.requireNonNull(_bind(x)); }
+  public Binding _bind(String x){
     if (this == _empty){ return null; }
     if (name.equals(x)){ return new Binding(t, current); }
-    return tail._bindOrNull(x);
+    return tail._bind(x);
   }
   public Gamma filterFTV(Literal l){
     return filterFTV(l,LiteralDeclarations.has(l.cs(),LiteralDeclarations.captureFree));
@@ -33,7 +33,9 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     if (this == _empty){ return this; }
     var rest= tail.filterFTV(l,captureFree);
     if (captureFree){ return new Gamma(rest, name, t, new Change.CapFree(l,t)); }
-    if (current instanceof Change.WithT w && !hasOnlyFTV(w.currentT(),l.bs())){ return new Gamma(rest, name, t, new Change.DropFTV(l, w.currentT())); }
+    if (!(current instanceof Change.WithT w)){ return new Gamma(rest, name, t, current); }
+    var ftvEscapes= !hasOnlyFTV(w.currentT(),l.bs());
+    if (ftvEscapes){ return new Gamma(rest, name, t, new Change.DropFTV(l, w.currentT())); }
     return new Gamma(rest, name, t, current);//core.E.Literal l, core.M m, T atDrop
   }
   //Above can not reuse FreeXs since FreeXs works on IT
@@ -41,7 +43,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     case T.X x -> B.xs(bs).contains(x.name());
     case T.RCX(_, var x) -> hasOnlyFTV(x,bs);
     case T.ReadImmX(var x) -> hasOnlyFTV(x,bs);
-    case T.RCC(_, var c,_) -> c.ts().stream().allMatch(ti->hasOnlyFTV(ti,bs));
+    case T.RCC(_, var c, _) -> c.ts().stream().allMatch(ti->hasOnlyFTV(ti,bs));
   };}
 }
 //Deliberately simple: \u0393 never gets deeper than 18 (2.33 on average), and all of its

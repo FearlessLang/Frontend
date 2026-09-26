@@ -26,8 +26,8 @@ record Names(List<String> xs, List<String> Xs, List<String> hiddenXs, String fun
     return new Names(xs,FXs,Push.of(hiddenXs,Xs),owner);
   }
   boolean compatible(List<String> xs, List<String> Xs){
-    return xs.stream().distinct().count() == (long)xs.size()
-      &&   Xs.stream().distinct().count() == (long)Xs.size()
+    return xs.stream().distinct().count() == xs.size()
+      &&   Xs.stream().distinct().count() == Xs.size()
       &&   Collections.disjoint(xs, this.xs())
       &&   Collections.disjoint(Xs, this.Xs())
       &&   Collections.disjoint(Xs, this.hiddenXs());

@@ -34,14 +34,14 @@ import utils.Streams;
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
     LinkedHashMap<TName, core.E.Literal> cache){
-  boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c->p.name().equals(c.name().pkgName()) && rem.containsKey(c.name())); }
+  boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c->c.name().pkgName().equals(p.name()) &&rem.containsKey(c.name())); }
   public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
   List<List<E.Literal>> layer(List<E.Literal> decs){
-    Map<TName, E.Literal> rem= new LinkedHashMap<>();
+    var rem= new LinkedHashMap<TName,E.Literal>();
     for (E.Literal d : decs){ rem.put(d.name(), d); }
-    List<List<E.Literal>> out= new ArrayList<>();
+    var out= new ArrayList<List<E.Literal>>();
     while (!rem.isEmpty()){
       List<E.Literal> layer= rem.values().stream().filter(d->free(d,rem)).toList();
       if (layer.isEmpty()){ throw p.err().circularImplements(rem); }
@@ -64,7 +64,7 @@ public record Methods(
   record CsMs(List<IT.C> cs, List<inference.M.Sig> sigs){}
   //TODO: performance: currently fetch rewrites for the class generics
   //but we are likely to also do the rewriting for the meth generics very soon later.
-  //can we merge the two steps? Something similar has been done for MSigL 
+  //can we merge the two steps? Something similar has been done for MSigL
   CsMs fetch(E.Literal child,IT.C c,core.E.Literal d){ //d == from(c.name()); but from can be undefined for {..}.foo
     return new CsMs(fetchCs(c),d.ms().stream().map(m->alphaSig(m,d,c,child)).toList());
   }
@@ -107,7 +107,7 @@ public record Methods(
   //expandLiteral works on an incomplete literal with the cs list not there yet
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
     var dd= _from(c.name());//null for the case {..}.foo
-    List<M.Sig> allSig= dd==null ?List.of() : fetch(d,c,dd).sigs();
+    List<M.Sig> allSig= dd == null ? List.of() : fetch(d,c,dd).sigs();
     List<M> allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
     List<IT.C> allCs= Push.of(c,fetchCs(c)).stream().distinct().toList();
     return d.withCsMs(allCs, allMs, true);
@@ -117,24 +117,28 @@ public record Methods(
       .filter(c->c.name().equals(LiteralDeclarations.widen))
       .toList();
     if (widen.size() > 1){ throw p.err().multipleWidenTo(d, widen); }
-    if (allCs.stream().anyMatch(c->c.name().equals(LiteralDeclarations.baseId))){ checkBaseId(d); }
-    if (allCs.stream().noneMatch(c->c.name().equals(LiteralDeclarations.sealed))){ return; }
+    var isBaseId= allCs.stream().anyMatch(c->c.name().equals(LiteralDeclarations.baseId));
+    if (isBaseId){ checkBaseId(d); }
+    var unsealed= allCs.stream().noneMatch(c->c.name().equals(LiteralDeclarations.sealed));
+    if (unsealed){ return; }
     allCs.stream()
       .filter(c->!c.name().pkgName().equals(d.name().pkgName()))
       .forEach(c->notSealed(c.name(),d));
   }
   private void checkBaseId(E.Literal d){
     var ms= d.ms();
-    if (ms.size() != 1 || !ms.getFirst().sig().m().get().equals(hashOne)){ throw p.err().baseIdNotOnlyHash(d); }
+    var onlyHash= ms.size() == 1 && ms.getFirst().sig().m().get().equals(hashOne);
+    if (!onlyHash){ throw p.err().baseIdNotOnlyHash(d); }
     var s= ms.getFirst().sig();
     var origin= s.origin().get();
-    if (ms.getFirst().impl().isPresent() || s.abs() || LiteralDeclarations.has(from(origin).cs(),LiteralDeclarations.baseId)){ return; }
+    var validHash= ms.getFirst().impl().isPresent() || s.abs() || LiteralDeclarations.has(from(origin).cs(),LiteralDeclarations.baseId);
+    if (validHash){ return; }
     throw p.err().baseIdInheritedHash(d, origin);
   }
   private static final MName hashOne= new MName("#",1);
   void notSealed(TName target, E.Literal owner){
-    var d= LiteralDeclarations._from(target, _->null, other);
-    if (!LiteralDeclarations.has(d.cs(),LiteralDeclarations.sealed)){ return; }
+    var targetSealed= LiteralDeclarations.has(from(target).cs(),LiteralDeclarations.sealed);
+    if (!targetSealed){ return; }
     throw p.err().extendedSealed(owner, target);
   }
 
@@ -145,14 +149,15 @@ public record Methods(
     return new core.E.Literal(d.rc().get(),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName());
   }
   inference.M withName(MName name,inference.M m){
-    assert m.impl().isPresent() && m.sig().m().isEmpty();
+    assert m.impl().isPresent();
+    assert m.sig().m().isEmpty();
     M.Sig s= m.sig();
     return new inference.M(new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span()),m.impl());
   }
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     assert ss.stream().allMatch(M.Sig::isFull);
-    List<M> res= new ArrayList<>(ms.size());
-    boolean changed= false;
+    var res= new ArrayList<M>(ms.size());
+    var changed= false;
     for (var m: ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
       var name= m.sig().m().get();
@@ -164,12 +169,12 @@ public record Methods(
       changed= true;
       var arity= m.sig().ts().size();
       var match= new ArrayList<M.Sig>();
-      ss.removeIf(s->s.m().get().arity()==arity && s.abs() && match.add(s));
+      ss.removeIf(s->s.m().get().arity() == arity && s.abs() && match.add(s));
       var count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
       if (count > 1){ throw p.err().ambiguousImpl(origin,true,m,match); }
       assert match.isEmpty();
-      ss.removeIf(s->s.m().get().arity()==arity && match.add(s));
+      ss.removeIf(s->s.m().get().arity() == arity && match.add(s));
       count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
       if (count > 1){ throw p.err().ambiguousImpl(origin,false,m,match); }
@@ -178,22 +183,24 @@ public record Methods(
     return changed ? List.copyOf(res) : ms;
   }
   List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
-    List<M> res= new ArrayList<>();
-    boolean changed= false;
-    for (var m: ms){ 
+    var res= new ArrayList<M>();
+    var changed= false;
+    for (var m: ms){
       var name= m.sig().m().get();
       var rc= m.sig().rc();
-      var match= new LinkedHashMap<RC,List<M.Sig>>();    
+      var match= new LinkedHashMap<RC,ArrayList<M.Sig>>();
       ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && acc(match,s));
-      if (rc.isEmpty() && match.size() > 1){
-        var litRc= origin.rc().or(origin.t()::explicitRC).orElseThrow();
-        if (litRc == RC.imm || litRc == RC.read){
+      var inferredRcOverloads= rc.isEmpty() && match.size() > 1;
+      if (inferredRcOverloads){
+        var litRc= origin.rc().or(origin.t()::explicitRC).get();
+        var neverMut= litRc.isReadOrImm();
+        if (neverMut){
           var dead= match.remove(RC.mut);
           if (dead != null){ ss.addAll(dead); }
         }
       }
-      var groups= match.isEmpty() ? List.of(List.<M.Sig>of()) : List.copyOf(match.values());
-      boolean first= true;
+      List<List<M.Sig>> groups= match.isEmpty() ? List.of(List.of()) : List.copyOf(match.values());
+      var first= true;
       for (var matches: groups){
         var mi= first ? m : new DupE(fresh,origin,m,this.p().err()).ofM(m,origin.name(),origin.name());
         first= false;
@@ -216,13 +223,13 @@ public record Methods(
     }
     assert !changed == res.equals(ms);
     return changed ? List.copyOf(res) : ms;
-  } 
-  private boolean acc(HashMap<RC, List<Sig>> match, Sig s){
+  }
+  private boolean acc(HashMap<RC,ArrayList<Sig>> match, Sig s){
     match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s);
     return true;
   }
   long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m().get()).distinct().count(); }
-    
+
   M pairWithSig(List<M.Sig> ss, inference.M m, E.Literal origin){
     if (ss.isEmpty()){ return toCompleteM(m,origin); }
     var s= m.sig();
@@ -238,25 +245,22 @@ public record Methods(
   }
   private List<B> agreementWithSize(List<M.Sig> ss, Sig s, Agreement at){
     List<List<B>> allBounds= ss.stream().map(e->e.bs().get()).distinct().toList();
-    if (s.bs().isEmpty()){ return agreementBs(at,allBounds ); }
+    if (s.bs().isEmpty()){ return agreementBs(at,allBounds); }
     var userBs= s.bs().get();
     var superBsList= ss.stream().map(e->e.bs().get()).toList();
     var superArities= superBsList.stream().map(List::size).distinct().toList();
     if (superArities.size() != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at, superBsList); }
     if (superArities.getFirst() != userBs.size()){ throw p.err().methodGenericArityDisagreesWithSupers(at, userBs, superBsList.getFirst()); }
-    var bounds= allBounds.stream().map(l->l.stream().map(B::rcs).toList())
-      .distinct().count();
-    if (bounds!= 1){ throw p.err().methodBsDisagreementBetweenSupers(at, allBounds); }
-    var supBs= allBounds.getFirst();
+    var supBs= agreementBs(at,allBounds);
     assert supBs.size() == userBs.size();
     var supRCs= supBs.stream().map(B::rcs).toList();
     var userRCs= userBs.stream().map(B::rcs).toList();
     if (supRCs.equals(userRCs)){ return userBs; }
     throw p.err().methodBsDisagreesWithSupers(at, userBs,supBs);
-  }      
+  }
   IT pairWithTs(Agreement at, int i, Optional<IT> t,List<M.Sig> ss){
     return t.orElseGet(()->agreement(at,ss.stream().map(e->e.ts().get(i).get()),
-      p.err().argTypeDisagreement(i))); 
+      p.err().argTypeDisagreement(i)));
   }
   M pairWithSig(List<M.Sig> ss, E.Literal origin){
     assert !ss.isEmpty();
@@ -275,7 +279,7 @@ public record Methods(
     M.Sig sig= new M.Sig(rc,name,bs,ts,res,originName,impl.isEmpty(),ssAligned.getFirst().span());
     return new M(sig,Optional.empty());
   }
-  
+
   private boolean overridesAny(M.Sig s, List<TName> origins){
     return from(s.origin().get()).cs().stream().anyMatch(c->origins.contains(c.name()));
   }
@@ -297,12 +301,12 @@ public record Methods(
     return rc;
   }
   public record Agreement(E.Literal lit,Optional<RC> rc, MName mName, Span span){}
-  
+
   List<B> agreementBs(Agreement at,List<List<B>> res){
     var sizes= res.stream().map(List::size).distinct().count();
     if (sizes != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at,res); }
     var bounds= res.stream().map(l->l.stream().map(B::rcs).toList()).distinct().count();
-    if (bounds== 1){ return res.getFirst(); }
+    if (bounds == 1){ return res.getFirst(); }
     throw p.err().methodBsDisagreementBetweenSupers(at, res);
   }
   private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }

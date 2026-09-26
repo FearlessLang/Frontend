@@ -3,6 +3,7 @@ package core;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import core.E.Literal;
@@ -27,21 +28,24 @@ public final class LiteralDeclarations{
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
   private static core.E.Literal forge(TName name, Function<TName,Literal> map, OtherPackages other){
     var lit= superLiteral(name);
-    var res= _from(lit,map,other);
-    var ms=res.ms().stream().map(m->m.withSig(m.sig().implementedBy(name))).toList();
+    var res= from(lit,map,other);
+    var ms= res.ms().stream().map(m->m.withSig(m.sig().implementedBy(name))).toList();
     return new core.E.Literal(RC.imm,name,List.of(),Push.of(new T.C(lit,List.of()),res.cs()),"this",ms,Src.syntetic,true);
   }
+  public static core.E.Literal from(TName n, Function<TName,Literal> map, OtherPackages other){ return Objects.requireNonNull(_from(n,map,other)); }
   public static core.E.Literal _from(TName n, Function<TName,Literal> map, OtherPackages other){
     var res= map.apply(n);
     if (res == null){ res= other.__of(n); }
     if (res != null){ return res; }
-    if (!n.pkgName().equals("base") || !isPrimitiveLiteral(n.simpleName())){ return null; }
+    var lit= n.pkgName().equals("base") && isPrimitiveLiteral(n.simpleName());
+    if (!lit){ return null; }
     return forge(n,map,other);
   }
   public static TName superLiteral(TName name){
     assert name.pkgName().equals("base");
     String s= name.simpleName();
-    if (s.startsWith("`") || s.startsWith("\"")){ return baseStr; }
+    var strLit= s.startsWith("`") || s.startsWith("\"");
+    if (strLit){ return baseStr; }
     if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return baseNat; }
     if (TokenKind.isKind(s,TokenKind.SignedInt)){ return baseInt; }
     if (TokenKind.isKind(s,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){ return baseFloat; }
@@ -51,7 +55,7 @@ public final class LiteralDeclarations{
   public static final BigInteger intMax= BigInteger.valueOf(Long.MAX_VALUE);
   public static final BigInteger natMin= BigInteger.ZERO;
   public static final BigInteger natMax= new BigInteger(Long.toUnsignedString(-1L)); // 2^64-1
-  
+
   public static final String softSuffix= "soft";
   static String stripUnderscores(String s){ return s.replace("_",""); }
   static String floatPayload(String raw){ return stripUnderscores(raw.endsWith(softSuffix) ? raw.substring(0,raw.length()-softSuffix.length()) : raw); }
@@ -80,30 +84,27 @@ public final class LiteralDeclarations{
   public static boolean floatLiteralOk(String raw){ return raw.endsWith(softSuffix) ? Double.isFinite(floatLiteralDouble(raw)) : floatLiteralExactlyRepresentable(raw); }
   public static String floatExactFearlessLit(double d){
     assert Double.isFinite(d);
-    boolean neg= (Double.doubleToRawLongBits(d) & (1L<<63)) != 0;
+    var neg= (Double.doubleToRawLongBits(d) & (1L<<63)) != 0;
     String mag= new BigDecimal(d).abs().toString(); // exact decimal for this double, may use E
+    String sign= neg ? "-" : "+";
     int e= mag.indexOf('E');
-    if (e != -1){
-      String base= mag.substring(0,e);
-      String exp= mag.substring(e+1);
-      if (base.indexOf('.') == -1){ base= base+".0"; }
-      mag= base+"e"+exp;
-    }
-    else if (mag.indexOf('.') == -1){ mag= mag + ".0"; }
-    return (neg ? "-" : "+") + mag;
+    if (e != -1){ return sign+mag.substring(0,e)+"e"+mag.substring(e+1); }
+    if (!mag.contains(".")){ mag= mag + ".0"; }
+    return sign+mag;
   }
   public static double floatLiteralDouble(String raw){
     try{ return Double.parseDouble(floatPayload(raw)); }
     catch(NumberFormatException ex){ return raw.startsWith("-") ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY; }
   }
   public static String toJavaLiteral(String s){
-    if (s.startsWith("\"") || s.startsWith("`")){ return javaStrLit(s.substring(1,s.length()-1)); }
-      String ns= stripUnderscores(s);
-      if (TokenKind.isKind(ns,TokenKind.UnsignedInt)){
+    var strLit= s.startsWith("`") || s.startsWith("\"");
+    if (strLit){ return javaStrLit(s.substring(1,s.length()-1)); }
+    String ns= stripUnderscores(s);
+    if (TokenKind.isKind(ns,TokenKind.UnsignedInt)){
       // base.Nat: produce the signed int whose 64-bit pattern equals the unsigned value.
       // Later ops use: Integer.toUnsignedLong(x), compareUnsigned, divideUnsigned, etc.
       return natLiteralBits64(ns) +"L";
-      }
+    }
     if (TokenKind.isKind(ns,TokenKind.SignedInt)){ return intLiteral64(ns) +"L"; }
     if (TokenKind.isKind(ns,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){
       assert floatLiteralOk(ns);
@@ -112,7 +113,7 @@ public final class LiteralDeclarations{
     throw Bug.unreachable();
   }
   static String javaStrLit(String raw){
-    assert raw.indexOf('\n') == -1;
+    assert !raw.contains("\n");
     return "\""+raw.replace("\\","\\\\").replace("\"","\\\"")+"\"";
   }
 }

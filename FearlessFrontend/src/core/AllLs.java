@@ -14,8 +14,8 @@ public record AllLs(HashMap<TName,Literal> ls){
   }
   void allLs(E e){ switch (e){
     case E.X _, E.Type _ -> {}
-    case E.Literal l ->{ ls.put(l.name(),l); l.ms().forEach(this::allLs); }
-    case E.Call(var r, _, _, _, var es, _,_) ->{allLs(r); es.forEach(this::allLs); } 
+    case E.Literal l -> { ls.put(l.name(),l); l.ms().forEach(this::allLs); }
+    case E.Call(var r, _, _, _, var es, _, _) -> { allLs(r); es.forEach(this::allLs); }
   }}
   void allLs(M m){ m.e().ifPresent(this::allLs); }
 }

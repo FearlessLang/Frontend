@@ -24,13 +24,13 @@ public sealed interface IT{
     public String toString(){ return name; }
   }
   record RCX(RC rc, X x) implements IT{
-    public RCX{assert nonNull(rc,x);}
+    public RCX{ assert nonNull(rc,x); }
     public String toString(){ return rc.name()+" "+x.name; }
     public TSpan span(){ return x.span();}
     public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   record ReadImmX(X x) implements IT{
-    public ReadImmX{assert nonNull(x);}
+    public ReadImmX{ assert nonNull(x); }
     public String toString(){ return "read/imm "+x.name; }
     public TSpan span(){ return x.span();}
   }
@@ -47,7 +47,7 @@ public sealed interface IT{
   record RCC(Optional<RC> rc, C c, TSpan span) implements IT{
     static final int maxDepth=100;
     public RCC(Optional<RC> rc, C c, TSpan span){
-      nonNull(rc,c);
+      assert nonNull(rc,c);
       this.rc=rc; this.c=c; this.span= span;
       if (c.depth() > maxDepth){ throw new WellFormednessErrors.ErrToFetchContext(this); }
     }
@@ -64,15 +64,15 @@ public sealed interface IT{
     public int depth(){ return c.depth(); }
     public Optional<RC> explicitRC(){ return rc; }
   }
-  enum U implements IT{ Instance; 
+  enum U implements IT{ Instance;
     public String toString(){ return "?";}
     public boolean isTV(){ return false; }
-    public TSpan span(){throw Bug.unreachable(); }
+    public TSpan span(){ throw Bug.unreachable(); }
     public long badness(){ return 1; }
   }
   default IT withRC(RC rc){ return switch (this){ // T[RC]
-    case RCC(var _, var c, var span) -> new RCC(Optional.of(rc), c, span);
-    case RCX(var _, var x) -> new RCX(rc, x);
+    case RCC(_, var c, var span) -> new RCC(Optional.of(rc), c, span);
+    case RCX(_, var x) -> new RCX(rc, x);
     case X x -> new RCX(rc, x);
     case ReadImmX(var x) -> new RCX(rc, x);
     case IT.U _   -> this;

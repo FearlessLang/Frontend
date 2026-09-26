@@ -294,4 +294,22 @@ Sub:{.m[X:*](x:X):read Foo->x}
 Foo:{}
 Sub:{ .m[X:*](x: X): read Foo -> x }
 """));}
+@Test void typeArgumentXEqualsCapabilityXWhenBoundHasOnlyThatCapability(){ok(List.of("""
+Box[T:*]:{}
+Sub:{ .m[X:mut](x: Box[X]): Box[mut X] -> x; .n[X:mut](x: Box[mut X]): Box[X] -> x }
+"""));}
+@Test void typeArgumentXDiffersFromCapabilityXWhenBoundHasMoreCapabilities(){fail("""
+002| Sub:{ .m[X:mut,read](x: Box[X]): Box[mut X] -> x }
+   |       -----------------------------------------^
+
+While inspecting parameter "x" > ".m(_)" line 2
+The body of method ".m(_)" of type declaration "Sub" is an expression returning "Box[X]".
+Parameter "x" has type "Box[X]" instead of a subtype of "Box[mut X]".
+
+See inferred typing context below for how type "Box[mut X]" was introduced: (compression indicated by `-`)
+Sub:{.m[X:mut,read](x:Box[X]):Box[mut X]->x}
+""",List.of("""
+Box[T:*]:{}
+Sub:{ .m[X:mut,read](x: Box[X]): Box[mut X] -> x }
+"""));}
 }

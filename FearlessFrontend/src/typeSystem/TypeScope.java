@@ -32,7 +32,7 @@ public sealed interface TypeScope{
   }
   default E omit(E e){ return new X("-",e.src()); }
   default TypeScope pushCallArgi(Call c, int i){
-    var es= IntStream.range(0, c.es().size()).mapToObj(j->j==i?c.es().get(j):omit(c.es().get(j))).toList();
+    var es= IntStream.range(0, c.es().size()).mapToObj(j->j == i ? c.es().get(j) : omit(c.es().get(j))).toList();
     return new CallSite(new Call(omit(c.e()),c.name(),c.rc(),c.targs(),es,c.expectedRes(),c.src()),this);
   }
   record CallSite(Call c, TypeScope outer) implements TypeScope{
@@ -44,21 +44,22 @@ public sealed interface TypeScope{
     walk(declRet, reqRet, out);
     return out.stream().distinct().toList();
   }
-  static void walk(T decl, T req, List<T> out){
+  static void walk(T decl, T req, ArrayList<T> out){
     if (!(decl instanceof T.RCC drcc)){ out.add(req); return; }
     //If the types do not match, just skip the rest here (user error too hard to grasp)
-    if (!(req instanceof T.RCC rcc)
-     || rcc.rc() != drcc.rc()
-     || !rcc.c().name().equals(drcc.c().name())
-     || rcc.c().ts().size() != drcc.c().ts().size()
-     ){ return; }
+    if (!(req instanceof T.RCC rcc)){ return; }
+    var sameShape= rcc.rc() == drcc.rc()
+      && rcc.c().name().equals(drcc.c().name())
+      && rcc.c().ts().size() == drcc.c().ts().size();
+    if (!sameShape){ return; }
     Streams.zip(drcc.c().ts(), rcc.c().ts()).forEach((d,r)->walk(d, r, out));
   }
   static TypeScope bestInterestingScope(TypeScope start, List<T> interest){
     int min= 4;
     TypeScope best= start;
     for (TypeScope it= start; !it.isTop(); it= it.outer()){
-      if (min --> 0 || mentionsAny(it, interest)){ best= it; }
+      var interesting= min-- > 0 || mentionsAny(it, interest);
+      if (interesting){ best= it; }
     }
     return best;
   }

@@ -32,7 +32,7 @@ public final class Gamma{
   private final RC[]  rcs= new RC[maxDepth];
   private int depth= 0;
 
-  private HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
+  private final HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
   public Gamma(){ marks[0]= 0; envHash[0]= 0L; depth= 1; }
   public void newScope(RC rc){
     marks[depth]= size;
@@ -55,11 +55,13 @@ public final class Gamma{
     IT t= ts[i];               // the stored (true) type
     int d= declDepth[i];       // scope index where x was declared
     RC cap= null;              // null means "no restriction from any enclosing scope"
-    if ( depth-1 > d && t.explicitRC().equals(Optional.of(RC.iso))){ return t.withRC(RC.imm); } 
+    var isoCaptured= depth-1 > d && t.explicitRC().equals(Optional.of(RC.iso));
+    if (isoCaptured){ return t.withRC(RC.imm); }
     for (int s= depth-1; s > d; s--){
       RC rc= rcs[s];                // rc of the method-body scope at index s
       if (rc == RC.imm){ cap= RC.imm; break; }
-      if (rc == RC.read && cap == null){ cap= RC.read; }
+      var firstRead= rc == RC.read && cap == null;
+      if (firstRead){ cap= RC.read; }
     }
     if (cap == null){ return t; }
     if (cap == RC.imm){ return t.withRC(RC.imm); }
@@ -68,11 +70,11 @@ public final class Gamma{
     return t.explicitRC().equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
   }
   public IT get(String x){ return ts[indexOf(x)]; }
-  public Optional<IT> getOpt(String x){ int i= indexOf(x); return i==-1?Optional.empty():Optional.of(ts[i]); }
+  public Optional<IT> getOpt(String x){ int i= indexOf(x); return i == -1 ? Optional.empty() : Optional.of(ts[i]); }
 
   public void declare(String x, IT t){
-    if ("_".equals(x)){ return; }
-    assert indexOf(x) < 0;
+    if (x.equals("_")){ return; }
+    assert indexOf(x) == -1;
     xs[size]= x;
     ts[size]= t;
     declDepth[size]= depth - 1;

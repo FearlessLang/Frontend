@@ -14,13 +14,13 @@ import utils.Streams;
 
 public record FreeXs(Gamma g){
   Stream<String> ftvE(E e){ return switch (e){
-    case X x ->Stream.concat(ftvT(x.t()),g.getOpt(x.name()).stream().flatMap(this::ftvT));
+    case X x -> Stream.concat(ftvT(x.t()),g.getOpt(x.name()).stream().flatMap(this::ftvT));
     case Literal l -> Streams.of(l.bs().stream().map(B::x),ftvCs(l.cs()),ftvMs(l.ms()));
     //Used to be l.bs().stream().map(b->b.x()); with comment //Correct since bs will contain all the ftv found anywhere in the literal
     //This is not correct because of inference order: we may have not inferred the l.bs() yet!
-    case Call(var ei, _,_, var targs, var es,_,_,_) -> Streams.of(ftvE(ei),ftvTs(targs),ftvEs(es));
-    case ICall(var ei,_, var es,_,_,_) -> Stream.concat(ftvE(ei),ftvEs(es));
-    case Type(var t,_,_,_) -> ftvT(t);
+    case Call(var ei, _, _, var targs, var es, _, _, _) -> Streams.of(ftvE(ei),ftvTs(targs),ftvEs(es));
+    case ICall(var ei, _, var es, _, _, _) -> Stream.concat(ftvE(ei),ftvEs(es));
+    case Type(var t, _, _, _) -> ftvT(t);
   };}
   private Stream<String> ftvM(M m){
     List<String> domBs= B.xs(m.sig().bs().orElse(List.of()));
@@ -35,7 +35,7 @@ public record FreeXs(Gamma g){
     case IT.X x -> Stream.of(x.name());
     case IT.RCX(_, var x) -> ftvT(x);
     case IT.ReadImmX(var x) -> ftvT(x);
-    case IT.RCC(_, var c,_) -> ftvTs(c.ts());
+    case IT.RCC(_, var c, _) -> ftvTs(c.ts());
     case IT.U.Instance -> Stream.of();
   };}
   public Stream<String> ftvCs(List<IT.C> cs){ return cs.stream().flatMap(c->ftvTs(c.ts())); }

@@ -18,9 +18,8 @@ public sealed interface Change{
   record KeepSetToRead(Literal l, M m, T currentT, WithT tail) implements WithT{}
   record KeepSetToReadImm(Literal l, M m, T currentT, WithT tail) implements WithT{}
   sealed interface NoT extends Change{ Literal l(); T atDrop(); }
-  record DropMutInImm(Literal l, T atDrop)implements NoT{}
-  record DropReadHMutH(Literal l, T atDrop)implements NoT{}
-  record DropFTV(Literal l, T atDrop)implements NoT{}
-  record CapFree(Literal l, T atDrop)implements NoT{}
-
+  record DropMutInImm(Literal l, T atDrop) implements NoT{}
+  record DropReadHMutH(Literal l, T atDrop) implements NoT{}
+  record DropFTV(Literal l, T atDrop) implements NoT{}
+  record CapFree(Literal l, T atDrop) implements NoT{}
 }

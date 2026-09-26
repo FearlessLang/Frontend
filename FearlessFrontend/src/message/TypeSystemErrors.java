@@ -11,7 +11,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import fearlessParser.Parser;
 import inject.TypeRename;
 import metaParser.NameSuggester;
 import typeSystem.TypeSystem.*;
@@ -29,22 +28,21 @@ import core.E.*;
 import static message.Err.*;
 
 public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pkg, Map<String,String> map){
-  public Err err(){
-   Function<TName,TName> f= n->{
-     var res= decs.apply(n);
-     if (res == null){ return n; }
-     if (!res.infName() || res.cs().isEmpty()){ return n; }
-     return res.cs().getFirst().name();
-   };
-   Function<T.C,T.C> publicHead= c->{
-     var d= decs.apply(c.name());
-     if (!d.infName()){ return c; }
-     return d.cs().stream()
-       .<T.C>map(sc->TypeRename.of(sc, B.xs(d.bs()), c.ts()))
-       .filter(scC->!decs.apply(scC.name()).infName())
-       .findFirst().orElse(c);
-    };
-   return new Err(publicHead,f,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
+  public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
+  private TName preferredForFresh(TName n){
+    var res= decs.apply(n);
+    var showSuper= res.infName() && !res.cs().isEmpty();
+    if (!showSuper){ return n; }
+    return res.cs().getFirst().name();
+  }
+  private T.C publicHead(T.C c){
+    var d= decs.apply(c.name());
+    if (!d.infName()){ return c; }
+    return d.cs().stream()
+      .<T.C>map(sc->TypeRename.of(sc, B.xs(d.bs()), c.ts()))
+      .filter(scC->!decs.apply(scC.name()).infName())
+      .findFirst().orElse(c);
+  }
   public FearlessException baseIdBadBody(Literal l, M m){
     String x= m.xs().getFirst();
     return err()
@@ -57,7 +55,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return fe.addFrame(err().methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
   }
   private FearlessException withCallSpans(FearlessException ex, Call c){
-    return ex.addSpan(Parser.span(c.pos(), c.name().s().length())).addSpan(c.span().inner);
+    return ex.addSpan(TSpan.fromPos(c.pos(), c.name().s().length()).inner).addSpan(c.span().inner);
   }
   private FearlessException addExpFrame(E toErr,FearlessException err){
     return err.addFrame(err().expRepr(toErr),toErr.span().inner);
@@ -75,7 +73,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     Err err= switch (target){
       case T.RCC rcc -> typeNotWellKinded("type "+err().typeRepr(true,rcc),rcc.c(), index, allowedStr);
       case T.C c -> typeNotWellKinded("type "+err().typeRepr(c),c, index, allowedStr);
-      case KindingTarget.CallKinding(var t,var c)   -> typeNotWellKindedSig(t,c, index, allowedStr);
+      case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t,c, index, allowedStr);
     };
     var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
     return addExpFrame(toErr,err.ex(toErr).addSpan(span));
@@ -92,7 +90,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     String decName= err().methodSig(c.rc().toStrSpace(),t.name(), c.name()); // p.A.m(...)
     T bad= c.targs().get(index);
     return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, err().typeRepr(true,bad), allowedStr);
-  } 
+  }
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchContravariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent, int index){
@@ -114,7 +112,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchCovariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent){
-    var mName=current.m();
+    var mName= current.m();
     assert mName.equals(parent.m());
     T parentRet= parent.ret();
     T currentRet= current.ret();
@@ -164,18 +162,18 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   }
   ///Implemented method can never be called for any receiver obtained from the literal.
   ///Its body is statically dead code (typically a mut method on an imm/read literal).
-  ///Raised when checking object literals   
+  ///Raised when checking object literals
   public FearlessException methodImplementationDeadCode(M got, Literal l){
     var s= got.sig();
     assert s.rc() == RC.mut;
-    assert l.rc() == RC.imm || l.rc() == RC.read;
+    assert l.rc().isReadOrImm();
     String m= err().methodSig(s.rc()+" ", s.m());
     return addExpFrame(l, err()
       .line("The method "+err().methodSig(s.rc().toStrSpace(),l,s.m())+" is dead code.")
       .line("The "+err().expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".")
       .line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver.")
       .ex(l).addSpan(s.span().inner));
-  }  
+  }
   ///Iso parameter is used in a way that violates affine discipline.
   ///Allowed uses: capture into object literals as imm, or use directly at most once.
   ///if !earlyErrOnMoreThenOnceDirectly then used exactly once directly but ALSO used in literals
@@ -185,20 +183,18 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     int line= m.sig().span().inner.startLine();
     String ms= err().methodSig(m.sig().rc().toStrSpace(),l, m.sig().m());
     String x= disp(name);
-    var e= err()
-      .line("Iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+line+").");
-    if (earlyErrOnMoreThenOnceDirectly){
-      e.line("It is used directly "+usages.size()+" times.");
-      e.line("Iso parameters can be used directly at most once.");
-    } 
-    else{
-      e.line("It is used directly and also captured into object literals.");
-      e.line("An iso parameter must be either captured, or used directly once (but not both).");
-    }
-    e.line("Allowed: capture into object literals as "+disp(RC.imm)+", or use directly once.");
-    var ex= e.ex(m.e().get());
+    var e= err().line("Iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+line+").");
+    var ex= isoMisuse(e,earlyErrOnMoreThenOnceDirectly,usages.size())
+      .line("Allowed: capture into object literals as "+disp(RC.imm)+", or use directly once.")
+      .ex(m.e().get());
     for (var u:usages){ ex.addSpan(u.span().inner); }
     return ex;
+  }
+  private static Err isoMisuse(Err e, boolean moreThanOnceDirectly, int usages){
+    if (moreThanOnceDirectly){ return e.line("It is used directly "+usages+" times.").line("Iso parameters can be used directly at most once."); }
+    return e
+      .line("It is used directly and also captured into object literals.")
+      .line("An iso parameter must be either captured, or used directly once (but not both).");
   }
   ///Expression at method body has a type that does not meet its result requirement(s).
   ///"body has wrong type" error; can only trigger if all current-expressions at are well typed.
@@ -254,7 +250,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var name= why.l().name().simpleName();
     var current= disp(Join.of(B.xs(why.l().bs()),name+"[",",","]",name));
     var next= disp(Join.of(B.xs(why.l().bs()),name+"[",",",",...]",name+"[...,...]"));
-    return"Hint: change "+current+" by adding the missing type parameters: "+next;
+    return "Hint: change "+current+" by adding the missing type parameters: "+next;
   }
   private String whyDropFTV(String subject, Change.NoT why){
     return subject+" has type "+err().typeRepr(true,why.atDrop())+".\n"
@@ -265,12 +261,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     + hintAddTypeParameter(why);
   }
   private String whyDropCapFree(String subject, Change.NoT why){
-    return 
+    return
     err().expRepr(why.l())+" implements \"base.CaptureFree\".\n"
     + "Thus "+subject
     +" (line "+why.l().span().inner.startLine()+")"
     + " cannot be captured in this scope.\n";
-  }  
+  }
   ///Receiver expression of call c is typed into a type parameter (X / RC X / read/imm X), not a concrete RC C.
   ///Methods cannot be called on type parameters, so this call can never resolve.
   ///Raised when checking method calls.
@@ -302,25 +298,23 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .filter(s->s.m().s().equals(name)).toList();
     if (sameName.isEmpty()){
       addEnclosingLiteralHintIfReceiverIsThis(e,scope,c,name,subj);
-      if (candidates.isEmpty()){ e.line(up(subj)+" does not have any methods."); }
-      else{
-        var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
-        NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,on,c, d, candidates, cs, best); return null; } );
-      }
+      if (candidates.isEmpty()){ return withCallSpans(e.line(up(subj)+" does not have any methods.").ex(c), c); }
+      var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
+      NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,on,candidates,cs,best); return null; } );
       return withCallSpans(e.ex(c), c);
     }
     var sameArity= sameName.stream().filter(s->s.m().arity() == c.es().size()).toList();
     if (sameArity.isEmpty()){
       String avail= Join.of(sameName.stream().map(s->Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
       return withCallSpans(err()
-        .pCallCantBeSatisfied(c) 
+        .pCallCantBeSatisfied(c)
         .line("There is a method "+disp(c.name().s())+" on "+on+",\nbut with different number of arguments.")
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .ex(c), c);
     }
     var rcs= sameArity.stream().map(Sig::rc).sorted().toList();
     String availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
-    boolean explicit= explicitRc(c);
+    var explicit= explicitRc(c);
     Err e2= err()
       .pCallCantBeSatisfied(c)
       .line(err().methodSig(c.name())+" exists on type "+err().bestNameNoRc(d)+", but not with the requested capability.")
@@ -336,11 +330,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return fc.targs().flatMap(fearlessFullGrammar.E.CallSquare::rc).isPresent();
   }
   private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
-    if (!(c.e() instanceof X x && x.name().equals("this"))){ return; }
+    var receiverIsThis= c.e() instanceof X x && x.name().equals("this");
+    if (!receiverIsThis){ return; }
     for (var s= scope; !s.isTop(); s= s.outer()){
       if (!(s instanceof TypeScope.Method meth)){ continue; }
       Literal l= meth.l();
-      boolean has= l.ms().stream().anyMatch(m->m.sig().m().s().equals(name));
+      var has= l.ms().stream().anyMatch(m->m.sig().m().s().equals(name));
       if (!has){ continue; }
       String sig= err().methodSig(c.name());
       String type= err().tNameADisp(l.name());
@@ -348,23 +343,23 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       e.line("Hint:")
        .line("The method parameter \"this\" here has "+on+".")
        .blank();
-      if (selfName.equals("_")){
-        e.line("The method "+sig+" is defined in the object literal of type "+type+".")
-         .line("No parameter refers to instances of this literal.")
-         .line("To declare one, use the single quote as in the example below:")
-         .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
-         .line("    .area: Nat -> width * height;")
-         .line("    .str: Str -> \"area: \"+(rect.area.str);")
-         .line("    .withWidth(width': Nat): Rectangle -> this#(width', height);")
-         .line("  }}");
-      }else{
+      if (!selfName.equals("_")){
         e.line("The method "+sig+" is defined in the object literal of type "+type+"; the parameter "
              + "referring to its instances is named "+disp(selfName)+".");
+        return;
       }
+      e.line("The method "+sig+" is defined in the object literal of type "+type+".")
+       .line("No parameter refers to instances of this literal.")
+       .line("To declare one, use the single quote as in the example below:")
+       .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
+       .line("    .area: Nat -> width * height;")
+       .line("    .str: Str -> \"area: \"+(rect.area.str);")
+       .line("    .withWidth(width': Nat): Rectangle -> this#(width', height);")
+       .line("  }}");
       return;
     }
   }
-  void bestNameMsg(Err e, String onStr, Call c, Literal d, List<Sig> candidates, List<String> cs, Optional<String> best){
+  void bestNameMsg(Err e, String onStr, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
     e.blank().line("Available methods on "+onStr+":");
     for (String n:cs){
@@ -380,11 +375,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     int expected= bs.size();
     String args= Join.of(bs.stream().map(b->disp(b.x())), ": ", " and ","","");
     int got= c.targs().size(); assert got != expected;
-    String expS= expected == 0 
-      ? "no type arguments" 
+    String expS= expected == 0
+      ? "no type arguments"
       : expected+" type argument"+(expected == 1 ? args : "s"+args);
-    String gotS= got == 0 
-      ? "no type arguments" 
+    String gotS= got == 0
+      ? "no type arguments"
       : got+" type argument"+(got == 1 ? "" : "s");
     return withCallSpans(err()
       .pCallCantBeSatisfied(d,c)
@@ -415,7 +410,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///   Do the Reason help here? if not, can we expand it or provide a parallel support?
   ///Raised when checking method calls.
   public FearlessException methodArgumentCannotMeetAnyPromotion(TypeSystem ts,List<B> bs, Literal d, Call c, int argi, List<TRequirement> reqs, List<Reason> res){
-    assert argi >= 0 && argi < c.es().size();
+    assert argi >= 0;
+    assert argi < c.es().size();
     assert !reqs.isEmpty();
     assert reqs.size() == res.size();
     assert res.stream().noneMatch(Reason::isEmpty);
@@ -452,7 +448,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   }
   private void addNoPrecedenceHintIfOperator(Err e, Call c){
     String s= c.name().s();
-    if (s.startsWith(".") || s.equals("#")){ return; }
+    var notOperator= s.startsWith(".") || s.equals("#");
+    if (notOperator){ return; }
     e.line("Hint: Fearless has no operator precedence, so an expression like \"a.get + b.get\" "
          + "parses as \"(a.get + b).get\", not \"a.get + (b.get)\". "
          + "If this argument needed a method applied to it first, wrap it in parentheses.");
@@ -470,7 +467,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   private static T headerBest(List<Reason> res){
     return res.stream().map(r->r.best)
       .min(Comparator.comparingInt(TypeSystemErrors::headerKey))
-      .orElseThrow();
+      .get();
   }
   private static int headerKey(T t){ return switch (t){
     case T.RCC r -> r.rc().ordinal();
@@ -483,15 +480,16 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .filter((r,q)->rcOnlyMismatch(r.best, q.t()))
       .map((r,_)->r)
       .findFirst().orElse(res.getFirst());
-  }  
+  }
   ///Each argument of call c is compatible with at least one promotion, but no promotion fits all arguments.
   ///The per-argument sets of acceptable promotions have empty intersection.
   ///Raised when checking method calls.
   ///Error details
-  ///  - What arguments satisfy what promotion and why (best type <: required type1, required type 2 etc)  
+  ///  - What arguments satisfy what promotion and why (best type <: required type1, required type 2 etc)
   public FearlessException methodPromotionsDisagreeOnArguments(Call c, ArgMatrix mat){
     int args= mat.okByArg().size();
-    assert args > 0 && mat.resByArg().size() == args;
+    assert args > 0;
+    assert mat.resByArg().size() == args;
     var e= err()
       .pCallCantBeSatisfied(c)
       .line("Each argument is compatible with at least one promotion, but no single promotion fits all arguments.")
@@ -506,7 +504,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     }
     e.blank().pPromotionFailuresHdr();
     var byArg= IntStream.range(0,args)
-      .mapToObj(_->new LinkedHashMap<String,List<String>>()).toList();
+      .mapToObj(_->new LinkedHashMap<String,ArrayList<String>>()).toList();
     int promosN= mat.resByArg().getFirst().size();
     for (int pi : Range.of(0,promosN)){
       int argi= firstFailingArg(mat, pi);
@@ -518,7 +516,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     for (int argi : Range.of(0,args)){
       byArg.get(argi).forEach((info,names)->e.bullet("Argument "+(argi+1)+Join.of(names," fails:    ",", ","\n")+info));
     }
-  return withCallSpans(e.ex(c), c);
+    return withCallSpans(e.ex(c), c);
   }
   private static int firstFailingArg(ArgMatrix mat, int promoIdx){
     return IntStream.range(0, mat.okByArg().size())

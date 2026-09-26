@@ -16,13 +16,13 @@ public sealed interface T{
     public String toString(){ return name; }
   }
   record RCX(RC rc, X x) implements T{
-    public RCX{assert nonNull(rc,x);}
+    public RCX{ assert nonNull(rc,x); }
     public String toString(){ return rc.name()+" "+x.name; }
     public TSpan span(){ return x.span();}
     public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   record ReadImmX(X x) implements T{
-    public ReadImmX{assert nonNull(x);}
+    public ReadImmX{ assert nonNull(x); }
     public String toString(){ return "read/imm "+x.name; }
     public TSpan span(){ return x.span();}
   }
@@ -35,7 +35,7 @@ public sealed interface T{
       return name.s()+Join.of(ts,"[",",","]","");
     }
     public C withTs(List<T> ts){ return new C(name,ts); }
-    public TSpan span(){    
+    public TSpan span(){
       var start= name.pos();
       if (ts.isEmpty()){ return TSpan.fromPos(start,name.s().length()); }
       var end= ts.getLast().span().inner;
@@ -55,8 +55,8 @@ public sealed interface T{
     public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   default T withRC(RC rc){ return switch (this){ // T[RC]
-    case RCC(var _, var c,var span) -> new RCC(rc, c, span);
-    case RCX(var _, var x) -> new RCX(rc, x);
+    case RCC(_, var c, var span) -> new RCC(rc, c, span);
+    case RCX(_, var x) -> new RCX(rc, x);
     case X x -> new RCX(rc, x);
     case ReadImmX(var x) -> new RCX(rc, x);
   };}
@@ -67,5 +67,5 @@ public sealed interface T{
     case RCX(var rc, var x) -> new RCX(rc.readImm(), x);
   };}
   default Optional<RC> explicitRC(){ return Optional.empty(); }
-  default boolean explicitH(){ return explicitRC().stream().anyMatch(rc->rc == RC.readH || rc == RC.mutH); }
+  default boolean explicitH(){ return explicitRC().stream().anyMatch(RC::isH); }
 }

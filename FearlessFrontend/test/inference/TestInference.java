@@ -174,6 +174,19 @@ Error 7 WellFormedness
 """, List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }"));}
 
+@Test void visitCall_untypedParameter(){fail("""
+In file: [###].fear
+
+001| A:{ .use:A->A; .use(x)->x; }
+   | ---------------^^^^^^^^^^---
+
+While inspecting type declaration "A"
+Cannot infer signature of method ".use(_)".
+No supertype has a method named ".use(_)" with 1 parameters.
+Error 7 WellFormedness
+""", List.of(
+"A:{ .use:A->A; .use(x)->x; }"));}
+
 @Test void visitCall_base_ok(){ok("""
 p.A:{'this\
  .id:p.A@p.A;->p.A:?;\
@@ -342,7 +355,7 @@ C:{}
 In file: [###].fear
 
 002| B:A{}
-   |   ^^^
+   |   ^^
 
 While inspecting type declarations
 Circular implementation relation found involving "A".
@@ -355,7 +368,7 @@ B:A{}
 In file: [###]/in_memory1.fear
 
 001| B:A{}
-   |   ^^^
+   |   ^^
 
 While inspecting type declarations
 Circular implementation relation found involving "A".
@@ -784,6 +797,26 @@ Box[K]:{.get:K;}
 A:{.id[X:imm](x:Box[X]):X}
 C:{.id[Y:read](y:Box[Y]):Y}
 D:A,C{}
+"""));}
+@Test void inferAlph_AMultiSuper_DifferentBounds_WithLocalBs_ShouldDisagree(){ fail("""
+In file: [###].fear
+
+004| D:A,C{.id[Z](z)->z.get}
+   |       ^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "D"
+Invalid method implementation for "D.id(_)".
+Supertypes disagree on the capability bounds for type parameter 1 of ".id(_)".
+Type parameter names may differ across supertypes; only the position matters.
+Different supertypes declare: "X:imm" and "Y:read".
+Type declaration "D" cannot implement all of those supertypes.
+Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.
+Error 7 WellFormedness
+""", List.of("""
+Box[K]:{.get:K;}
+A:{.id[X:imm](x:Box[X]):X}
+C:{.id[Y:read](y:Box[Y]):Y}
+D:A,C{.id[Z](z)->z.get}
 """));}
 
 @Test void inferAlph_AArityMismatch_BetweenSupers_OrOverride(){ fail("""

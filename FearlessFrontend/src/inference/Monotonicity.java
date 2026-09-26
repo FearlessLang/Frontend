@@ -51,12 +51,11 @@ public final class Monotonicity{
     var st= states.computeIfAbsent(g, _->new State());
     var l= st.hist.computeIfAbsent(slot, _->new ArrayList<>(4));
     if (l.isEmpty()){ l.add(from); }
-    else{
-      var last= l.getLast();
-      if (!(from instanceof IT.U) && !last.equals(from)){
-        throw new AssertionError("Monotonicity tracker out of sync for "+what
-          +"\nLast="+last+"\nFrom="+from+"\nHist="+l);
-      }
+    var last= l.getLast();
+    var outOfSync= !(from instanceof IT.U) && !last.equals(from);
+    if (outOfSync){
+      throw new AssertionError("Monotonicity tracker out of sync for "+what
+        +"\nLast="+last+"\nFrom="+from+"\nHist="+l);
     }
     if (from.equals(to)){ return true; } // after sync/init
     for (var old: l){
@@ -81,17 +80,19 @@ public final class Monotonicity{
     if (st == null){ return false; }
     int kind= k.ordinal();
     for (long key: st.hist.keySet()){
-      if ((int)(key >>> 48) == kind){ return true; }
+      if (kindOf(key) == kind){ return true; }
     }
     return false;
   }
+  private static int kindOf(long key){ return (int)(key >>> 48); }
 
   public static boolean onCallWithMore(E.Call c, Optional<RC> nextRc, List<IT> nextTargs, IT nextT){
     step(c.g(), slot(K.eT,0,0), c.t(), nextT, "Call.t");
     step(c.g(), slot(K.callRc,0,0), c.rc(), nextRc, "Call.rc");
     int oldN= c.targs().size(), newN= nextTargs.size();
     // Arity repair is allowed, but only before we started tracking per-index targs.
-    if (oldN != newN && hasAnyKind(c.g(), K.callTarg)){
+    var arityChangedWhileTracked= oldN != newN && hasAnyKind(c.g(), K.callTarg);
+    if (arityChangedWhileTracked){
       throw new AssertionError("Call.targs arity changed after tracking started old="+oldN+" new="+newN
         +"\ncall="+c);
     }
@@ -109,16 +110,14 @@ public final class Monotonicity{
     var st= states.get(g);
     if (st == null){ return; }
     int marg= K.litMArg.ordinal(), mret= K.litMRet.ordinal();
-    st.hist.keySet().removeIf(k->{
-      int kind= (int)(k.longValue() >>> 48);
-      return kind == marg || kind == mret;
-    });
+    st.hist.keySet().removeIf(k->kindOf(k) == marg || kindOf(k) == mret);
   }
 
   public static boolean onLiteralWithMs(E.Literal l, List<M> nextMs){
     // Methods may be inserted/reordered while any method has no name.
     // In that phase, we DO NOT track literal method slots at all.
-    if (!litStable(l.ms()) || !litStable(nextMs)){
+    var unstable= !litStable(l.ms()) || !litStable(nextMs);
+    if (unstable){
       clearLitHistory(l.g());
       return true;
     }

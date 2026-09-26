@@ -12,16 +12,17 @@ import core.TName;
 import fearlessParser.TokenKind;
 import inference.E;
 
-public class ToInference{
-  private TName fCurrent(Methods meths, TName full, boolean withPkg){
+public final class ToInference{
+  private ToInference(){}
+  private static TName fCurrent(Methods meths, TName full, boolean withPkg){
     var p= meths.p();
     var simple= full.withoutPkgName();
     assert p.names().decNames().stream().allMatch(n->n.pkgName().isEmpty());
     var defined= p.names().decNames().contains(simple); //this also checks arity
     if (defined){ return full; } //here, we know it is not defined (either at all or with the right arity)
     throw undeclaredType(withPkg?full:simple,p.name(),meths);
-    }
-  private FearlessException undeclaredType(TName tn, String contextPkg, Methods meths){
+  }
+  private static FearlessException undeclaredType(TName tn, String contextPkg, Methods meths){
     var p= meths.p();
     var otherTypes= meths.other().dom();
     var declared= p.names().decNames();
@@ -35,35 +36,35 @@ public class ToInference{
     var all= Stream.concat(declared.stream().map(t->t.withPkgName(p.name())), otherTypes.stream()).toList();
     return p.err().usedUndeclaredName(tn, contextPkg, scope, all);
   }
-  public List<E.Literal> of(Methods meths){
+  private static TName resolve(Methods meths, TName tn){
     var p= meths.p();
-    Function<TName,TName> f= tn->{
-      var pN= tn.pkgName();
-      if (pN.isEmpty()){
-        if (LiteralDeclarations.isPrimitiveLiteral(tn.s())){ return tn.withPkgName("base"); }
-        var mapped= p.map().get(tn.s());
-        if (mapped != null){
-          var res= new TName(mapped,tn.arity(),tn.pos());
-          var ok= meths.other().dom().contains(res);
-          if (!ok){ throw undeclaredType(tn,res.pkgName(),meths); }
-          return res;
-        }
-        return fCurrent(meths,tn.withPkgName(p.name()),false);
-      }
-      var pkg= p.map().getOrDefault(pN,pN);
-      tn= tn.withOverridePkgName(pkg);
-      if (pkg.equals(p.name())){ return fCurrent(meths,tn,true); }
-      var lit= pkg.equals("base") && LiteralDeclarations.isPrimitiveLiteral(tn.simpleName());
-      if (lit){ return tn; }
-      if (meths.other().__of(tn) != null){ return tn; }
-      throw undeclaredType(tn,p.name(),meths);
-    };
-    ArrayList<E.Literal> decs= new ArrayList<>();
-    p.decs().forEach(di->{
+    var pN= tn.pkgName();
+    if (pN.isEmpty()){ return resolveSimple(meths,tn); }
+    var pkg= p.map().getOrDefault(pN,pN);
+    tn= tn.withOverridePkgName(pkg);
+    if (pkg.equals(p.name())){ return fCurrent(meths,tn,true); }
+    var lit= pkg.equals("base") && LiteralDeclarations.isPrimitiveLiteral(tn.simpleName());
+    if (lit){ return tn; }
+    if (meths.other().__of(tn) != null){ return tn; }
+    throw undeclaredType(tn,p.name(),meths);
+  }
+  private static TName resolveSimple(Methods meths, TName tn){
+    var p= meths.p();
+    if (LiteralDeclarations.isPrimitiveLiteral(tn.s())){ return tn.withPkgName("base"); }
+    var mapped= p.map().get(tn.s());
+    if (mapped == null){ return fCurrent(meths,tn.withPkgName(p.name()),false); }
+    var res= new TName(mapped,tn.arity(),tn.pos());
+    var ok= meths.other().dom().contains(res);
+    if (!ok){ throw undeclaredType(tn,res.pkgName(),meths); }
+    return res;
+  }
+  public static List<E.Literal> of(Methods meths){
+    Function<TName,TName> f= tn->resolve(meths,tn);
+    var decs= new ArrayList<E.Literal>();
+    for (var di : meths.p().decs()){
       TName name= f.apply(di.name());
-      var v= new InjectionToInferenceVisitor(meths,name,new ArrayList<>(),f,decs);
-      v.addDeclaration(name,RC.mut,di,true);
-    });
+      new InjectionToInferenceVisitor(meths,name,new ArrayList<>(),f,decs).addDeclaration(name,RC.mut,di,true);
+    }
     return List.copyOf(decs);
   }
 }

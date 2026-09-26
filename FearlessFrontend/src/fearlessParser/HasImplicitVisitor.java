@@ -2,7 +2,8 @@ package fearlessParser;
 
 import fearlessFullGrammar.E;
 
-public class HasImplicitVisitor{
+public final class HasImplicitVisitor{
+  private HasImplicitVisitor(){}
   public static boolean of(E e){
     return switch (e){
       case E.X _ -> false;

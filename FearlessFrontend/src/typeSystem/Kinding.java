@@ -19,7 +19,7 @@ public record Kinding(TypeSystemErrors tsE){
     assert eq(params.size(), args.size(), "Arity mismatch for " + c.name());
     for (int i : Range.of(params)){ check(toErr, c, i, bs, args.get(i), params.get(i).rcs()); }
   }
-  public void check(E toErr, List<B> bs, T t){ 
+  public void check(E toErr, List<B> bs, T t){
     if (t instanceof T.RCC rcc){ check(toErr,rcc,-1,bs,rcc,EnumSet.allOf(RC.class)); }
   }
   public Function<TName,Literal> decs(){ return tsE.decs(); }
@@ -38,14 +38,16 @@ public record Kinding(TypeSystemErrors tsE){
     return Streams.zip(rcc.c().ts(), params).allMatch((ti,p)->of(bs, ti, p.rcs()));
   }
   static EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch (t){
-    case T.RCC(var rc, _,_) -> EnumSet.of(rc);
+    case T.RCC(var rc, _, _) -> EnumSet.of(rc);
     case T.RCX(var rc, _) -> EnumSet.of(rc);
-    case T.X(var x,_) -> get(bs, x).rcs();
+    case T.X(var x, _) -> get(bs, x).rcs();
     case T.ReadImmX(var x) -> readImmRCs(intrinsicRCs(bs, x));
   };}
   private static EnumSet<RC> readImmRCs(EnumSet<RC> rcs){
-    if (EnumSet.of(iso, imm).containsAll(rcs)){ return EnumSet.of(imm); }
-    if (EnumSet.of(mut, mutH, read, readH).containsAll(rcs)){ return EnumSet.of(read); }
+    var onlyIsoImm= EnumSet.of(iso, imm).containsAll(rcs);
+    if (onlyIsoImm){ return EnumSet.of(imm); }
+    var noIsoNoImm= EnumSet.of(mut, mutH, read, readH).containsAll(rcs);
+    if (noIsoNoImm){ return EnumSet.of(read); }
     return EnumSet.of(read, imm);
   }
 }

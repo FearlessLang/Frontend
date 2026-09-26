@@ -20,8 +20,8 @@ import utils.Streams;
 
 public record ToCore(List<B> ctx){
   core.E of(inference.E exp, inference.E orig){ return switch (exp){
-    case inference.E.X(var name, _, Src src, _) -> new core.E.X(name,src);
-    case inference.E.Type(var type, _, Src src, _) -> type(type,src);
+    case inference.E.X(var name, _, var src, _) -> new core.E.X(name,src);
+    case inference.E.Type(var type, _, var src, _) -> type(type,src);
     case inference.E.Literal le -> literal(le,litLike(orig,le));
     case inference.E.Call ce -> call(ce,callLike(orig,ce.name()));
     case inference.E.ICall ic -> callFromICall(ic,callLike(orig,ic.name()));
@@ -35,11 +35,12 @@ public record ToCore(List<B> ctx){
     var oBs= originalBs(o);
     assert oBs.isEmpty() || !o.infName();
     var bs= oBs.orElse(e.bs());
-    if (e.infName() && bs.isEmpty()){ bs= uncommittedBs(e); }
+    var uncommitted= e.infName() && bs.isEmpty();
+    if (uncommitted){ bs= uncommittedBs(e); }
     var name= e.name().withArity(bs.size());
     var inner= new ToCore(Push.of(ctx,bs).stream().distinct().toList());
     var ms= inner.mapMs(e.ms(),o.ms()).stream().map(m->withOrigin(m,e.name(),name)).toList();
-    var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():Push.of(o.cs(),e.cs()).stream().distinct().toList());
+    var cs= TypeRename.itcToTC(o.cs().isEmpty() ? e.cs() : Push.of(o.cs(),e.cs()).stream().distinct().toList());
     return new core.E.Literal(rc,name,bs,cs,e.thisName(),ms,e.src(),e.infName());
   }
   private List<B> uncommittedBs(inference.E.Literal e){
@@ -52,16 +53,16 @@ public record ToCore(List<B> ctx){
     return m.withSig(new core.Sig(s.rc(),s.m(),s.bs(),s.ts(),s.ret(),to,s.abs(),s.span()));
   }
   Optional<List<B>> originalBs(inference.E.Literal o){
-    boolean explicit= switch (o.src().inner){
+    var explicit= switch (o.src().inner){
       case fearlessFullGrammar.E.TypedLiteral _->false; //Not tl.t().c().ts().isPresent(): this would be about the first eventual c in cs; not the anon heir
       case fearlessFullGrammar.E.Literal _->false;
       case fearlessFullGrammar.E.DeclarationLiteral dl->dl.dec().bs().isPresent();
       case fearlessFullGrammar.Declaration dec->dec.bs().isPresent();
-      default -> throw Bug.of(o.src().inner.getClass().getName()); 
-      };
+      default -> throw Bug.of(o.src().inner.getClass().getName());
+    };
     return explicit ? Optional.of(o.bs()) : Optional.empty();
-    }
-  
+  }
+
   private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){ return Streams.zip(es,oEs).map(this::of).toList(); }
   core.E.Call call(inference.E.Call e, CallLike o){
     var rc= o.rc.or(e::rc).orElse(RC.imm);
@@ -80,7 +81,7 @@ public record ToCore(List<B> ctx){
   }
   private static inference.M matchM(List<inference.M> os, inference.M e){
     var s= e.sig().span();
-    return OneOr.of("failing to connect methods @"+s, os.stream().filter(o->o.sig().span()==s));
+    return OneOr.of("failing to connect methods @"+s, os.stream().filter(o->o.sig().span() == s));
   }
   private core.M m(inference.M e, inference.M o){
     var s= sig(e.sig(), o.sig());
@@ -103,11 +104,11 @@ public record ToCore(List<B> ctx){
     return new core.Sig(rc,m,bs,TypeRename.itOptToT(ts),TypeRename.itToT(ret),origin,usr.abs(),usr.span());
   }
   private static inference.E.Literal litLike(inference.E o,inference.E.Literal e){
-    var ol=(inference.E.Literal)o;
+    var ol= (inference.E.Literal)o;
     assert ol.name().s().equals(e.name().s());
     return ol;
   }
-  private static record CallLike(inference.E e,List<inference.E> es,Optional<RC> rc,List<IT> targs){}
+  private record CallLike(inference.E e,List<inference.E> es,Optional<RC> rc,List<IT> targs){}
   private static CallLike callLike(inference.E o,MName name){
     return switch (o){
       case inference.E.Call(var e, var n, var rc, var targs, var es, _, _, _) when n.equals(name) -> new CallLike(e,es,rc,targs);
@@ -116,7 +117,7 @@ public record ToCore(List<B> ctx){
     };
   }
   private List<String> nUnderscores(int n){ return Stream.generate(()->"_").limit(n).toList(); }
-  
+
   private static final Optional<E> synteticBody= Optional.of(new E.X("this",Src.syntetic));
   core.M mSyntetic(inference.M m){
     var s= sig(m.sig(),m.sig());

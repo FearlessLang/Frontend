@@ -16,7 +16,8 @@ public sealed interface E{
   Src src();
   record X(String name, Src src) implements E{
     public X{ assert name.equals("-") || validate(name, "parameter name",LowercaseId); }
-    public String toString(){ return name;}}
+    public String toString(){ return name; }
+  }
   record Type(T.RCC type, Src src) implements E{
     public Type{ assert nonNull(type,src); }
     public String toString(){ return type.toString();}

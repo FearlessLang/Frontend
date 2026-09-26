@@ -18,10 +18,10 @@ import core.LiteralDeclarations;
 import core.MName;
 import core.RC;
 import core.TName;
+import core.TSpan;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.T.X;
-import fearlessParser.Parser;
 import inference.E;
 import inference.IT;
 import inference.M;
@@ -37,8 +37,9 @@ import static message.Err.*;
 public record WellFormednessErrors(String pkgName){
   @SuppressWarnings("serial")
   public static class ErrToFetchContext extends RuntimeException{
-    public ErrToFetchContext(IT.RCC c){this.c= c;} public IT.RCC c;
-    }
+    public final IT.RCC c;
+    public ErrToFetchContext(IT.RCC c){ this.c= c; }
+  }
   Err err(){ return new Err(y->y,x->x, trunk->new CompactPrinter(pkgName, Map.of(), trunk), new StringBuilder()); }
   private FearlessException wf(Err e, E at){ return e.wf().addFrame(err().expRepr(at), at.span().inner); }
   private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }
@@ -112,7 +113,7 @@ public record WellFormednessErrors(String pkgName){
       .line("Name clash: name "+disp(n.s())+" is declared in package "+disp(pkgName)+".")
       .line("Name "+disp(n.s())+" is also used in a \"use\" directive.")
       .wf()
-      .addFrame("a type name", Parser.span(n.pos(), n.s().length()));
+      .addFrame("a type name", n.approxSpan().inner);
   }
   public FearlessException usedUndeclaredName(TName tn, String contextPkg, List<TName> scope, List<TName> all){
     return new UndeclaredNameContext(
@@ -200,10 +201,10 @@ public record WellFormednessErrors(String pkgName){
     private FearlessException make(Err e){
       return e.wf().addFrame("a type name", at());
     }
-    private Span at(){ return Parser.span(tn.pos(), tn.s().length()); }
+    private Span at(){ return TSpan.fromPos(tn.pos(), tn.s().length()).inner; }
   }
   public FearlessException unknownUseHead(TName tn, String pkg){
-    var at= Parser.span(tn.pos(), tn.s().length());
+    var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;
     return err()
       .line("\"use\" directive refers to undeclared name: type "+disp(tn.simpleName())
         +" is not declared in package "+disp(pkg)+".")
@@ -224,9 +225,7 @@ public record WellFormednessErrors(String pkgName){
       .addFrame("a type name", n.span().inner);
   }
   public FearlessException duplicatedBound(List<RC> es, T.X n){
-    RC dup= es.stream()
-      .filter(e->es.stream().filter(ei->ei.equals(e)).count() > 1)
-      .findFirst().get();
+    RC dup= redeclaredElement(es);
     return err()
       .line("Duplicate reference capability in the type parameter "+disp(n.name())+".")
       .line("Reference capability "+disp(dup.name())+" is repeated.")
@@ -237,29 +236,29 @@ public record WellFormednessErrors(String pkgName){
     return err()
       .line("Duplicate type declaration for "+err().tNameADisp(name)+".")
       .wf()
-      .addFrame("a type name", Parser.span(name.pos(), name.s().length()));
+      .addFrame("a type name", name.approxSpan().inner);
   }
   public FearlessException circularImplements(Map<TName,E.Literal> rem){
     TName name= findCycleNode(rem);
     return err()
       .line("Circular implementation relation found involving "+err().tNameADisp(name)+".")
       .wf()
-      .addFrame("type declarations", Parser.span(name.pos(), name.s().length()));
+      .addFrame("type declarations", name.approxSpan().inner);
   }
   private TName findCycleNode(Map<TName,E.Literal> rem){
     var color= new HashMap<TName,Integer>(rem.size());
     return rem.keySet().stream()
-      .map(k->dfs(rem, k, color))
+      .map(k->_dfs(rem, k, color))
       .filter(Objects::nonNull)
       .findFirst().get();
   }
-  private TName dfs(Map<TName,E.Literal> rem, TName u, Map<TName,Integer> color){
+  private TName _dfs(Map<TName,E.Literal> rem, TName u, HashMap<TName,Integer> color){
     Integer cu= color.get(u);
     if (cu != null){ return cu == 1 ? u : null; }
     color.put(u, 1);
     for (var c:rem.get(u).cs()){
       if (!rem.containsKey(c.name())){ continue; }
-      var hit= dfs(rem, c.name(), color);
+      var hit= _dfs(rem, c.name(), color);
       if (hit != null){ return hit; }
     }
     color.put(u, 2);
@@ -274,13 +273,13 @@ public record WellFormednessErrors(String pkgName){
     }
     var name= err().methodSig(m.sig().m().get());
     var allParHasType= m.sig().ts().stream().allMatch(Optional::isPresent);
-    var e= size > 0 && !allParHasType
-      ? err()
-      : err()
-        .line("Missing return type for method "+name+".")
-        .line("Add an explicit return type before '->'.")
-        .line((allParHasType ? "Alternatively (less common), if you" : "If you")+" intended to override and omit the signature,")
-        .line("the signature must be inherited from a supertype.");
+    var e= err();
+    if (allParHasType){
+      e.line("Missing return type for method "+name+".")
+       .line("Add an explicit return type before '->'.")
+       .line("Alternatively (less common), if you intended to override and omit the signature,")
+       .line("the signature must be inherited from a supertype.");
+    }
     return wf(e
       .line("Cannot infer signature of method "+name+".")
       .line("No supertype has a method named "+name+" with "+size+" parameters."), m, origin);
@@ -288,7 +287,7 @@ public record WellFormednessErrors(String pkgName){
   public String retTypeDisagreement(){ return "Return type disagreement"; }
   public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
   public FearlessException noAgreement(Agreement at, List<?> res, String msg){
-    var rc=at.rc().map(r->r.toStrSpace(false)).orElse("");
+    var rc= at.rc().map(r->r.toStrSpace(false)).orElse("");
     var e= err()
       .line(msg+" for method "+err().methodSig(rc,at.mName())+" with "+at.mName().arity()+" parameters.")
       .line(Join.of(
@@ -439,12 +438,11 @@ public record WellFormednessErrors(String pkgName){
       .line("Float literal is not exactly representable as \"base.Float\".")
       .line("\"base.Float\" must be representable exactly as a 64-bit IEEE 754 double.")
       .line("This literal is: "+raw+".");
-    if (!Double.isFinite(d)){ e.line("This literal overflows; the nearest representable value is "+disp(near)+"."); }
-    else{
-      e.line("If rounded, the nearest representable value is "+disp(near)+".")
-       .line("Write "+disp(raw+LiteralDeclarations.softSuffix)+" to accept that rounding.")
-       .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".");
-    }
-    return e.wf().addSpan(lit.approxSpan().inner);
+    var at= lit.approxSpan().inner;
+    if (!Double.isFinite(d)){ return e.line("This literal overflows; the nearest representable value is "+disp(near)+".").wf().addSpan(at); }
+    return e.line("If rounded, the nearest representable value is "+disp(near)+".")
+      .line("Write "+disp(raw+LiteralDeclarations.softSuffix)+" to accept that rounding.")
+      .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
+      .wf().addSpan(at);
   }
 }
