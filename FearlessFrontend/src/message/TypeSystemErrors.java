@@ -330,11 +330,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return fc.targs().flatMap(fearlessFullGrammar.E.CallSquare::rc).isPresent();
   }
   private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
-    var receiverIsThis= c.e() instanceof X x && x.name().equals("this");
+    var receiverIsThis= c.e() instanceof X(var xName, _) && xName.equals("this");
     if (!receiverIsThis){ return; }
     for (var s= scope; !s.isTop(); s= s.outer()){
-      if (!(s instanceof TypeScope.Method meth)){ continue; }
-      Literal l= meth.l();
+      if (!(s instanceof TypeScope.Method(var l, _, _))){ continue; }
       var has= l.ms().stream().anyMatch(m->m.sig().m().s().equals(name));
       if (!has){ continue; }
       String sig= err().methodSig(c.name());
@@ -470,8 +469,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .get();
   }
   private static int headerKey(T t){ return switch (t){
-    case T.RCC r -> r.rc().ordinal();
-    case T.RCX r -> r.rc().ordinal();
+    case T.RCC(var rc, _, _) -> rc.ordinal();
+    case T.RCX(var rc, _) -> rc.ordinal();
     case T.X _ -> 1000;
     case T.ReadImmX _ -> 1001;
   };}

@@ -45,14 +45,14 @@ public sealed interface TypeScope{
     return out.stream().distinct().toList();
   }
   static void walk(T decl, T req, ArrayList<T> out){
-    if (!(decl instanceof T.RCC drcc)){ out.add(req); return; }
+    if (!(decl instanceof T.RCC(var declRc, var declC, _))){ out.add(req); return; }
     //If the types do not match, just skip the rest here (user error too hard to grasp)
-    if (!(req instanceof T.RCC rcc)){ return; }
-    var sameShape= rcc.rc() == drcc.rc()
-      && rcc.c().name().equals(drcc.c().name())
-      && rcc.c().ts().size() == drcc.c().ts().size();
+    if (!(req instanceof T.RCC(var reqRc, var reqC, _))){ return; }
+    var sameShape= reqRc == declRc
+      && reqC.name().equals(declC.name())
+      && reqC.ts().size() == declC.ts().size();
     if (!sameShape){ return; }
-    Streams.zip(drcc.c().ts(), rcc.c().ts()).forEach((d,r)->walk(d, r, out));
+    Streams.zip(declC.ts(), reqC.ts()).forEach((d,r)->walk(d, r, out));
   }
   static TypeScope bestInterestingScope(TypeScope start, List<T> interest){
     int min= 4;
@@ -71,9 +71,9 @@ public sealed interface TypeScope{
   static boolean eqForHeuristic(T a, T b){
     return switch (a){
       case T.X _ -> a.equals(b);
-      case T.ReadImmX ax -> (b instanceof T.ReadImmX bx) && ax.x().equals(bx.x());
-      case T.RCX ar -> (b instanceof T.RCX br) && ar.x().equals(br.x());
-      case T.RCC ar -> (b instanceof T.RCC br) && ar.c().equals(br.c());
+      case T.ReadImmX(var ax) -> b instanceof T.ReadImmX(var bx) && ax.equals(bx);
+      case T.RCX(_, var ax) -> b instanceof T.RCX(_, var bx) && ax.equals(bx);
+      case T.RCC(_, var ac, _) -> b instanceof T.RCC(_, var bc, _) && ac.equals(bc);
     };
   }
 }

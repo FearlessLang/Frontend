@@ -33,15 +33,15 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   IT visitT(fearlessFullGrammar.T t){
     return switch (t){
       case fearlessFullGrammar.T.X x -> visitTX(x);
-      case fearlessFullGrammar.T.RCX x -> visitRCX(x);
-      case fearlessFullGrammar.T.ReadImmX x -> visitReadImmX(x);
+      case fearlessFullGrammar.T.RCX(var rc, var x) -> new IT.RCX(rc, visitTX(x));
+      case fearlessFullGrammar.T.ReadImmX(var x) -> new IT.ReadImmX(visitTX(x));
       case fearlessFullGrammar.T.RCC c -> visitRCC(c);
     };
   }
   E visitE(fearlessFullGrammar.E e){
     return switch (e){
       case fearlessFullGrammar.E.X x -> visitX(x);
-      case fearlessFullGrammar.E.Round r -> visitE(r.e());
+      case fearlessFullGrammar.E.Round(var inner) -> visitE(inner);
       case fearlessFullGrammar.E.Implicit n -> visitImplicit(n);
       case fearlessFullGrammar.E.TypedLiteral t -> visitTypedLiteral(t);
       case fearlessFullGrammar.E.DeclarationLiteral c -> visitDeclarationLiteral(c);
@@ -50,8 +50,6 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     };
   }
   IT.X visitTX(fearlessFullGrammar.T.X x){ return new IT.X(x.name(),x.span()); }
-  IT visitReadImmX(fearlessFullGrammar.T.ReadImmX x){ return new IT.ReadImmX(visitTX(x.x())); }
-  IT visitRCX(fearlessFullGrammar.T.RCX x){ return new IT.RCX(x.rc(), visitTX(x.x())); }
   IT.RCC visitRCC(fearlessFullGrammar.T.RCC c){
     return new IT.RCC(of(c.rc().orElse(RC.imm)),visitC(c.c()),c.span());
   }
@@ -152,7 +150,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return new XE(x, res);
   }
   private fearlessFullGrammar.E stripRound(fearlessFullGrammar.E e){
-    while (e instanceof fearlessFullGrammar.E.Round r){ e= r.e(); }
+    while (e instanceof fearlessFullGrammar.E.Round(var inner)){ e= inner; }
     return e;
   }
   private E.Literal liftLiteral(Optional<RC> rc,List<IT.C> impl,Optional<String> thisName, List<M> ms, Src src){

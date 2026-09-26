@@ -12,8 +12,8 @@ import naming.FreshPrefix;
 
 public record DupE(FreshPrefix fresh, E.Literal out, M m, WellFormednessErrors err){
   public E of(E e){ return switch (e){
-    case E.X x -> new E.X(x.name(), x.t(), x.src(), new Gamma.GammaSignature());
-    case E.Type t -> new E.Type(t.type(), t.t(), t.src(), new Gamma.GammaSignature());
+    case E.X(var name, var t, var src, _) -> new E.X(name, t, src, new Gamma.GammaSignature());
+    case E.Type(var type, var t, var src, _) -> new E.Type(type, t, src, new Gamma.GammaSignature());
     case E.ICall c -> new E.ICall(of(c.e()), c.name(), ofEs(c.es()), c.t(), c.src(), new Gamma.GammaSignature());
     case E.Call c -> new E.Call(of(c.e()), c.name(), c.rc(), c.targs(), ofEs(c.es()), c.t(), c.src(), new Gamma.GammaSignature());
     case E.Literal l -> ofL(l);

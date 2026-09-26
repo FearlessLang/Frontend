@@ -55,9 +55,9 @@ public class AllDeclaredNames{
   private void visitE(E e){
     switch (e){
       case X _, Implicit _ -> {}
-      case Round r -> visitE(r.e());
-      case TypedLiteral t -> t.l().ifPresent(this::visitLiteral);
-      case DeclarationLiteral c -> visitInnerDeclaration(c.dec());
+      case Round(var inner) -> visitE(inner);
+      case TypedLiteral(_, var l, _) -> l.ifPresent(this::visitLiteral);
+      case DeclarationLiteral(_, var dec) -> visitInnerDeclaration(dec);
       case Literal c -> visitLiteral(c);
       case Call c -> visitCall(c);
     }

@@ -9,8 +9,8 @@ final class BestPicker{
     consider(n,depth+bonus(n));
     switch (n){
       case PX _, PTX _ -> {}
-      case PTypeE x -> visit(x.t(), depth + 1);
-      case PTRCC x -> visit(x.c(), depth + 1);
+      case PTypeE(var t) -> visit(t, depth + 1);
+      case PTRCC(_, var c) -> visit(c, depth + 1);
       case PC x -> visitPC(x, depth + 1);
       case PCall x -> visitPCall(x, depth + 1);
       case PLit x -> visitPLit(x, depth + 1);

@@ -33,7 +33,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return recv.isH() || Push.of(base.ts(),base.t()).stream().anyMatch(this::mayBeH);
   }
   private boolean mayBeH(T t){
-    if (t instanceof T.X x){ return RC.get(bs,x.name()).rcs().stream().anyMatch(RC::isH); }
+    if (t instanceof T.X(var name, _)){ return RC.get(bs,name).rcs().stream().anyMatch(RC::isH); }
     return t.explicitH();
   }
   private T.RCC recvRcc(){

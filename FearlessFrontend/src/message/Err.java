@@ -75,12 +75,12 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case Literal l->l.thisName().equals("this")
       ? "type declaration " +tNameADisp(l.name())
       : "object literal " +bestNamePkg0(showInstanceOf(l), bestLitName(false,true,l));
-    case Type t-> "object literal instance of " + typeRepr(true,t.type());
+    case Type(var t, _)-> "object literal instance of " + typeRepr(true,t);
     };}
   String displayX(X x){ return disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name()); }
   String expReprDirect(boolean skipImm, E toErr){return switch (toErr){
     case Call c->methodSig(c.name());
-    case X x->disp(x.name());
+    case X(var name, _)->disp(name);
     case Literal l->l.thisName().equals("this")
       ? tNameADisp(l.name())
       : bestNamePkg0(false, bestLitName(false,skipImm,l));
@@ -89,7 +89,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String expRepr(inference.E toErr){return switch (toErr){
     case inference.E.Call c->"method call "+methodSig(c.name());
     case inference.E.ICall c->"method call "+methodSig(c.name());
-    case inference.E.X x->"parameter " +disp(x.name());
+    case inference.E.X(var name, _, _, _)->"parameter " +disp(name);
     case inference.E.Literal l->l.thisName().equals("this")
       ? "type declaration " +tNameADisp(l.name())
       : "object literal " +bestNamePkg0(l.infName(), bestLitName(l));
@@ -102,12 +102,12 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(),"_"),pre+m.s()+"(",",",")",pre+m.s())); }
   public static boolean rcOnlyMismatch(T got, T req){
     return got.equals(req)
-      || (got instanceof T.RCC g
-      && req instanceof T.RCC r
-      && g.c().equals(r.c()));
+      || (got instanceof T.RCC(_, var gotC, _)
+      && req instanceof T.RCC(_, var reqC, _)
+      && gotC.equals(reqC));
   }
   static boolean isInferErr(T t){
-    return t instanceof T.RCC rcc && LiteralDeclarations.inferErrs.contains(rcc.c().name());
+    return t instanceof T.RCC(_, var c, _) && LiteralDeclarations.inferErrs.contains(c.name());
   }
   String text(){ return sb.toString().stripTrailing(); }
   public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, String badStr, String allowedStr){

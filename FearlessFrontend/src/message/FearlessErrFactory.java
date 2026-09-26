@@ -160,7 +160,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return m.sig().stream()
       .flatMap(s->s.parameters().stream().limit(1))
       .flatMap(p->p.xp().stream())
-      .flatMap(xp->xp instanceof XPat.Name n ? Stream.of(n.x().name()) : Stream.empty());
+      .flatMap(xp->xp instanceof XPat.Name(var x) ? Stream.of(x.name()) : Stream.empty());
   }
   public FearlessException methNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
     var count= redeclaredElement(noNames);

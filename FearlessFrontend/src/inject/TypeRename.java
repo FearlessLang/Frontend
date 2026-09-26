@@ -72,8 +72,8 @@ public final class TypeRename{
   private static T readImm(T t){ return isInfer(t) ? t : t.readImm(); }
 
   private static boolean isInfer(T t){
-    if (!(t instanceof T.RCC rcc)){ return false; }
-    var n= rcc.c().name();
+    if (!(t instanceof T.RCC(_, var c, _))){ return false; }
+    var n= c.name();
     return n.equals(LiteralDeclarations.inferUnknown) || LiteralDeclarations.inferErrs.contains(n);
   }
 }

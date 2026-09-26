@@ -118,18 +118,18 @@ public record InjectionSteps(Methods meths){
     if (t2 instanceof IT.U){ return t1; }
     if (t1 instanceof IT.U){ return t2; }
     if (t1.equals(t2)){ return t1; }
-    var t1ReadImmOfT2= t1 instanceof IT.ReadImmX r1 && t2 instanceof IT.X x2 && r1.x().equals(x2);
+    var t1ReadImmOfT2= t1 instanceof IT.ReadImmX(var x1) && x1.equals(t2);
     if (t1ReadImmOfT2){ return t1; }
-    var t2ReadImmOfT1= t2 instanceof IT.ReadImmX r2 && t1 instanceof IT.X x1 && r2.x().equals(x1);
+    var t2ReadImmOfT1= t2 instanceof IT.ReadImmX(var x2) && x2.equals(t1);
     if (t2ReadImmOfT1){ return t2; }
     if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){
       if (!x1.c().name().equals(x2.c().name())){ return leastBad(x1,x2); }
       Optional<RC> rc= meetRcNoH(x1.rc(), x2.rc());
       return x1.withRCTs(rc,meet(x1.c().ts(), x2.c().ts()));
     }
-    if (!(t1 instanceof IT.RCX x1 && t2 instanceof IT.RCX x2)){ return leastBad(t1, t2); }
-    if (!x1.x().equals(x2.x())){ return leastBad(t1, t2); }
-    return x1.withRC(meetRcNoH(Optional.of(x1.rc()), Optional.of(x2.rc())).get());
+    if (!(t1 instanceof IT.RCX x1 && t2 instanceof IT.RCX(var rc2, var x2))){ return leastBad(t1, t2); }
+    if (!x1.x().equals(x2)){ return leastBad(t1, t2); }
+    return x1.withRC(meetRcNoH(Optional.of(x1.rc()), Optional.of(rc2)).get());
   }
   static Optional<RC> meetRcNoH(Optional<RC> a, Optional<RC> b){
     if (a.equals(b)){ return a.map(InjectionSteps::noH); }
@@ -208,8 +208,8 @@ public record InjectionSteps(Methods meths){
     var c= OneOr.opt("Repeated WidenTo supertype", d.cs().stream().filter(ci->ci.name().equals(LiteralDeclarations.widen)));
     if (c.isEmpty()){ return type; }
     IT wid= TypeRename.of(TypeRename.tToIT(OneOr.of("WidenTo has one type argument", c.get().ts().stream())), B.xs(d.bs()), type.c().ts());
-    if (!(wid instanceof IT.RCC w)){ return type; }
-    return new IT.RCC(type.rc(), w.c(),type.span());
+    if (!(wid instanceof IT.RCC(_, var widC, _))){ return type; }
+    return new IT.RCC(type.rc(), widC,type.span());
   }
   private RC overloadNorm(Optional<RC> rc){ return rc.map(r->r == RC.iso ? RC.imm : noH(r)).orElse(RC.imm); }
   private Optional<core.M> oneFromGuessRC(List<core.M> ms, RC rc){
@@ -259,12 +259,12 @@ public record InjectionSteps(Methods meths){
   }
   private void updateG(Gamma g, String x, IT t1, IT t2){
     if (t1 instanceof IT.U){ g.update(x, t2); return; }
-    if (t1 instanceof IT.RCC a && t2 instanceof IT.RCC b){
-      if (a.c().name().equals(b.c().name())){ g.update(x, new RCC(glbRcNoH(a.rc(), b.rc()), a.c(), a.span())); }
+    if (t1 instanceof IT.RCC(var aRc, var aC, var aSpan) && t2 instanceof IT.RCC(var bRc, var bC, _)){
+      if (aC.name().equals(bC.name())){ g.update(x, new RCC(glbRcNoH(aRc, bRc), aC, aSpan)); }
       return;
     }
-    if (!(t1 instanceof IT.RCX a && t2 instanceof IT.RCX b)){ return; }
-    if (a.x().equals(b.x())){ g.update(x, a.withRC(glbRcNoH(a.rc(), b.rc()))); }
+    if (!(t1 instanceof IT.RCX a && t2 instanceof IT.RCX(var bRc, var bX))){ return; }
+    if (a.x().equals(bX)){ g.update(x, a.withRC(glbRcNoH(a.rc(), bRc))); }
   }
   static Optional<RC> glbRcNoH(Optional<RC> a, Optional<RC> b){
     if (a.isEmpty()){ return b; }
@@ -348,8 +348,8 @@ public record InjectionSteps(Methods meths){
     var selfSuper= superSelf(l);
     if (!infHead){
       l= l.infName() ? selfSuper.map(l::withT).orElse(l) : l.withT(selfPrecise.get());
-      if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
-      l= l.infName() ? meths.expandLiteral(l, rcc.c()) : meths.expandDeclaration(l,true);
+      if (!(l.t() instanceof IT.RCC(_, var c, _))){ return l; }//!infHead after passing this test means right now we can expand methods
+      l= l.infName() ? meths.expandLiteral(l, c) : meths.expandDeclaration(l,true);
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
     var changedMs= false;
@@ -470,12 +470,12 @@ public record InjectionSteps(Methods meths){
     return Streams.zip(rcc.c().ts(),fromBody).map(this::keepDecided).toList();
   }
   private IT keepDecided(IT decided, IT fromBody){
-    var decidedSameX= decided instanceof IT.RCX a && fromBody instanceof IT.RCX b && a.x().equals(b.x()) && a.rc() != RC.iso;
+    var decidedSameX= decided instanceof IT.RCX(var aRc, var aX) && fromBody instanceof IT.RCX(_, var bX) && aX.equals(bX) && aRc != RC.iso;
     if (decidedSameX){ return decided; }
-    if (!(decided instanceof IT.RCC a && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
-    if (!a.c().name().equals(b.c().name())){ return decided; }
-    var rc= a.rc().filter(r->r != RC.iso).or(b::rc);
-    return b.withRCTs(rc, Streams.zip(a.c().ts(),b.c().ts()).map(this::keepDecided).toList());
+    if (!(decided instanceof IT.RCC(var aRc, var aC, _) && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
+    if (!aC.name().equals(b.c().name())){ return decided; }
+    var rc= aRc.filter(r->r != RC.iso).or(b::rc);
+    return b.withRCTs(rc, Streams.zip(aC.ts(),b.c().ts()).map(this::keepDecided).toList());
   }
   private List<IT> refine(List<String> Xs, core.T t,Optional<IT> it){return refine(Xs,TypeRename.tToIT(t), it.get()); }
   private M.Sig normalizeSigAgainstHeader(IT.RCC rcc, M.Sig improvedSig){
@@ -492,7 +492,7 @@ public record InjectionSteps(Methods meths){
     return ts.stream().map(t->dropMethBs(t, methBs)).toList();
   }
   IT dropMethBs(IT t, List<String> methBs){ return switch (t){
-    case IT.X x -> methBs.contains(x.name()) ? IT.U.Instance : t;
+    case IT.X(var name, _) -> methBs.contains(name) ? IT.U.Instance : t;
     case IT.RCX(_, var x) -> methBs.contains(x.name()) ? IT.U.Instance : t;
     case IT.ReadImmX(var x) -> methBs.contains(x.name()) ? IT.U.Instance : t;
     case IT.RCC rcc -> withTsNormBs(rcc,dropMethBs(rcc.c().ts(), methBs));

@@ -161,15 +161,15 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private boolean isId(M m){
     var x= OneOr.of("BaseId # has one parameter",m.xs().stream());
     return switch (m.e().get()){
-      case X e -> e.name().equals(x);
-      case Call c -> c.e() instanceof X e && e.name().equals(x) && c.name().equals(asOne)
+      case X(var name, _) -> name.equals(x);
+      case Call c -> c.e() instanceof X(var recv, _) && recv.equals(x) && c.name().equals(asOne)
         && isBaseContainer(m.sig().ts().getFirst());
       default -> false;
     };
   }
   private boolean isBaseContainer(T t){
-    return t instanceof T.RCC rcc
-      && LiteralDeclarations.has(decs().apply(rcc.c().name()).cs(),LiteralDeclarations.baseContainer);
+    return t instanceof T.RCC(_, var c, _)
+      && LiteralDeclarations.has(decs().apply(c.name()).cs(),LiteralDeclarations.baseContainer);
   }
   private void litOk(Gamma g, Literal l){
     baseIdOk(l);
@@ -207,14 +207,14 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   static List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }
 
   private boolean isImplSubtype(List<B> bs, T t1, T t2){
-    if (!(t1 instanceof T.RCC rcc1)){ return false; }
-    Literal d= decs().apply(rcc1.c().name());
-    return d.cs().stream().anyMatch(ci->isSub(bs, TypeRename.of(new T.RCC(rcc1.rc(), ci,rcc1.span()), B.xs(d.bs()), rcc1.c().ts()), t2));
+    if (!(t1 instanceof T.RCC(var rc1, var c1, var span1))){ return false; }
+    Literal d= decs().apply(c1.name());
+    return d.cs().stream().anyMatch(ci->isSub(bs, TypeRename.of(new T.RCC(rc1, ci,span1), B.xs(d.bs()), c1.ts()), t2));
   }
   private boolean isXReadImmXSubtype(List<B> bs, T t1, T t2){
-    return t2 instanceof T.ReadImmX rix
+    return t2 instanceof T.ReadImmX(var x2)
       && t1 instanceof T.X x
-      && rix.x().name().equals(x.name())
+      && x2.name().equals(x.name())
       && k().of(bs, x, EnumSet.of(iso,imm,mut,read));
   }
   private boolean isSameShapeSubtype(List<B> bs, T t1, T t2){
@@ -272,14 +272,14 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private boolean eqModXRC(List<B> bs,T a,T b){
     if (a.equals(b)){ return true; }
-    var redundantRcOnB= a instanceof T.X ax && b instanceof T.RCX br && br.x().name().equals(ax.name()) && redundantOnX(bs,br.rc(),ax.name());
+    var redundantRcOnB= a instanceof T.X(var aName, _) && b instanceof T.RCX(var bRc, var bX) && bX.name().equals(aName) && redundantOnX(bs,bRc,aName);
     if (redundantRcOnB){ return true; }
-    var redundantRcOnA= a instanceof T.RCX ar && b instanceof T.X bx && ar.x().name().equals(bx.name()) && redundantOnX(bs,ar.rc(),bx.name());
+    var redundantRcOnA= a instanceof T.RCX(var aRc, var aX) && b instanceof T.X(var bName, _) && aX.name().equals(bName) && redundantOnX(bs,aRc,bName);
     if (redundantRcOnA){ return true; }
-    if (!(a instanceof T.RCC aa && b instanceof T.RCC bb)){ return false; }
-    var sameHead= aa.rc() == bb.rc() && aa.c().name().equals(bb.c().name());
+    if (!(a instanceof T.RCC(var aRc, var aC, _) && b instanceof T.RCC(var bRc, var bC, _))){ return false; }
+    var sameHead= aRc == bRc && aC.name().equals(bC.name());
     if (!sameHead){ return false; }
-    return Streams.zip(aa.c().ts(), bb.c().ts()).allMatch((x,y)->eqModXRC(bs,x,y));
+    return Streams.zip(aC.ts(), bC.ts()).allMatch((x,y)->eqModXRC(bs,x,y));
   }
   private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }
 }
