@@ -83,19 +83,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return addExpFrame(toErr,err.ex(toErr).addSpan(span));
   }
   private Err typeNotWellKinded(String name,T.C c, int index, String allowedStr){
-    var args= c.ts();
-    assert index >= 0 && index < args.size();
-    T bad= args.get(index);
+    T bad= c.ts().get(index);
     var bs= decs.apply(c.name()).bs();
-    assert index < bs.size();
     return err().pTypeArgBounds(name, err().tNameADisp(c.name()), disp(bs.get(index).x()), index, err().typeRepr(true,bad), allowedStr);
   }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr){
     var ms= decs.apply(t.name()).ms();
     var m= OneOr.of("Malformed methods",ms.stream().filter(mi->mi.sig().m().equals(c.name()) && mi.sig().rc() == c.rc()));
-    var bs= m.sig().bs();
-    assert index >= 0 && index < bs.size();
-    var param= bs.get(index);
+    var param= m.sig().bs().get(index);
     String decName= err().methodSig(c.rc().toStrSpace(),t.name(), c.name()); // p.A.m(...)
     T bad= c.targs().get(index);
     return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, err().typeRepr(true,bad), allowedStr);
@@ -104,8 +99,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchContravariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent, int index){
     var mName= current.m();
-    assert mName.equals(parent.m());  
-    assert index >= 0 && index < current.ts().size() && index < parent.ts().size();
+    assert mName.equals(parent.m());
     T parentArg= parent.ts().get(index);
     T currentArg= current.ts().get(index);
     assert !ts.isSub(ctx, parentArg, currentArg);

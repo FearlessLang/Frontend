@@ -3,8 +3,6 @@ import java.util.*;
 
 import core.TName;
 import pkgmerge.Package;
-
-import static offensiveUtils.Require.*;
 import fearlessFullGrammar.T;
 
 public record FreshPrefix(
@@ -50,7 +48,6 @@ public record FreshPrefix(
     return cand;
   }
   public String freshVar(TName owner,String hint){
-    assert nonNull(owner,hint);
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
     return freshCandidate(hint, false, low, st.varSeq(), st.vars(), List.of());

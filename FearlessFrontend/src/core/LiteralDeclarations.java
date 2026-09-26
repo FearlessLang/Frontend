@@ -27,7 +27,6 @@ public final class LiteralDeclarations{
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
   private static core.E.Literal forge(TName name,TName lit, Function<TName,Literal> map, OtherPackages other){
     var res= _from(lit,map,other);
-    assert res != null;
     var ms=res.ms().stream().map(m->m.withSig(m.sig().implementedBy(name))).toList();
     return new core.E.Literal(RC.imm,name,List.of(),Push.of(new T.C(lit,List.of()),res.cs()),"this",ms,Src.syntetic,true);
   }

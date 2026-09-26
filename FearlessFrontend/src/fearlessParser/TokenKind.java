@@ -94,7 +94,6 @@ public enum TokenKind implements metaParser.TokenKind{
   }
   public static boolean isKind(String input, TokenKind... kinds){
     Objects.requireNonNull(input);
-    Objects.requireNonNull(kinds);
     return Stream.of(kinds).anyMatch(k->k.matcher().apply(input, 0).equals(Optional.of(input)));
   }
 }

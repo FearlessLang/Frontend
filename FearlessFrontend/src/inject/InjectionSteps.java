@@ -395,7 +395,6 @@ public record InjectionSteps(Methods meths){
   }
   private M fixArity(M m, TName name, TName newName){
     var s= m.sig();
-    assert s.origin().isPresent();
     if (!s.origin().get().equals(name)){ return m; }
     return m.withSig(s.withOrigin(newName));
   }

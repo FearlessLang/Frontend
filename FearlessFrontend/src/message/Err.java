@@ -127,7 +127,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   Err blank(){
     int n= sb.length();
-    assert n != 0;
     assert sb.charAt(n-1) == '\n';
     if (n < 2 || sb.charAt(n-2) != '\n'){ sb.append('\n'); }
     return this;
@@ -175,8 +174,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return ex("See inferred typing context below for how type "+req+" was introduced: (compression indicated by `-`)", e);
   }
   FearlessException ex(String footerHdr, core.E footerE){
-    assert sb.length() != 0;
-    assert footerHdr != null && footerE != null;
     return Code.TypeError.of(blank()
       .line(footerHdr)
       .compactPrinterLine(footerE)

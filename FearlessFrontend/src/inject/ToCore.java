@@ -87,7 +87,6 @@ public record ToCore(List<B> ctx){
       assert o.impl().isEmpty();
       return new core.M(s,nUnderscores(s.ts().size()),Optional.empty());
     }
-    assert o.impl().isPresent();
     var ei= e.impl().get();
     var oi= o.impl().get();
     var inner= new ToCore(Stream.concat(ctx.stream(),s.bs().stream()).distinct().toList());

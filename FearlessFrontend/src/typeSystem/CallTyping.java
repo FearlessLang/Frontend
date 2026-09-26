@@ -16,7 +16,6 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   List<Reason> run(){
     var rcc0= recvRcc();
     var d= ts.decs().apply(rcc0.c().name());
-    assert d != null;
     var sig= sigOf(d);
     checkTargsKinding(rcc0.c(),d,sig);
     var base= baseMType(rcc0.c(),d,sig);

@@ -67,17 +67,12 @@ public final class Gamma{
     if (t.explicitRC().equals(Optional.of(RC.mutH))){ return t.withRC(RC.readH); }
     return t.explicitRC().equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
   }
-  public IT get(String x){
-    int i= indexOf(x);
-    assert i !=-1;
-    return ts[i];
-  }
+  public IT get(String x){ return ts[indexOf(x)]; }
   public Optional<IT> getOpt(String x){ int i= indexOf(x); return i==-1?Optional.empty():Optional.of(ts[i]); }
 
   public void declare(String x, IT t){
     if ("_".equals(x)){ return; }
     assert indexOf(x) < 0;
-    assert size < maxBindings;
     xs[size]= x;
     ts[size]= t;
     declDepth[size]= depth - 1;

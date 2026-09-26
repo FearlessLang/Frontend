@@ -204,7 +204,6 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private boolean isImplSubtype(List<B> bs, T t1, T t2){
     if (!(t1 instanceof T.RCC rcc1)){ return false; }
     Literal d= decs().apply(rcc1.c().name());
-    assert d!=null;
     List<String> xs= d.bs().stream().map(B::x).toList();
     return d.cs().stream().anyMatch(ci->isSub(bs, TypeRename.of(new T.RCC(rcc1.rc(), ci,rcc1.span()), xs, rcc1.c().ts()), t2));
   }
