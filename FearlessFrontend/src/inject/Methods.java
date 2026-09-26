@@ -34,7 +34,7 @@ import utils.Streams;
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
     LinkedHashMap<TName, core.E.Literal> cache){
-  boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c->p.name().equals(c.name().pkgName()) && rem.containsKey(c.name())); }
+  boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c->c.name().pkgName().equals(p.name()) &&rem.containsKey(c.name())); }
   public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }

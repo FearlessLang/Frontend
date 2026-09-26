@@ -102,7 +102,7 @@ public sealed interface E{
       assert e == this.e || !e.equals(this.e);
       assert es == this.es || !es.equals(this.es);
       assert Monotonicity.onCallWithMore(this, Optional.of(rc), targs, t);
-      var noChange= e == this.e && Optional.of(rc).equals(this.rc) && targs.equals(this.targs) && es == this.es && t.equals(this.t);
+      var noChange= e == this.e && this.rc.equals(Optional.of(rc)) && targs.equals(this.targs) && es == this.es && t.equals(this.t);
       if (noChange){ return this; }
       return new E.Call(e, name, Optional.of(rc),targs,es,t,src,g.clear());
     }

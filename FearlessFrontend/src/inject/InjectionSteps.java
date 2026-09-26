@@ -412,7 +412,7 @@ public record InjectionSteps(Methods meths){
       .allMatch(m->m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t->t.get().isTV()));
   }
   private List<Optional<IT>> updateArgs(inference.M m, Gamma g){
-    return Streams.zip(m.impl().get().xs(), m.sig().ts()).map((x,oi)->"_".equals(x) ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
+    return Streams.zip(m.impl().get().xs(), m.sig().ts()).map((x,oi)->x.equals("_") ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
   }
   record TSM(List<IT> ts, inference.M m){}
   TSM nextMStarAbs(IT.RCC rcc, inference.M m){

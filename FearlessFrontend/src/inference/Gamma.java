@@ -73,7 +73,7 @@ public final class Gamma{
   public Optional<IT> getOpt(String x){ int i= indexOf(x); return i == -1 ? Optional.empty() : Optional.of(ts[i]); }
 
   public void declare(String x, IT t){
-    if ("_".equals(x)){ return; }
+    if (x.equals("_")){ return; }
     assert indexOf(x) == -1;
     xs[size]= x;
     ts[size]= t;
