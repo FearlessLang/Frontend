@@ -865,15 +865,15 @@ A[X:***]:{}
 @Test void err_name_redeclared_param2(){fail("""
 In file: [###].fear
 
-001| A:{ .m(x,x) -> x }
-   |   --^^^^^^^~~~~~--
+001| A:{ .m(a,b,b,a) -> a }
+   |   --^^^^^^^^^^^~~~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple parameters with the same name
-Parameter "x" is repeated
+Parameter "a" is repeated
 Error 2 UnexpectedToken
 ""","""
-A:{ .m(x,x) -> x }
+A:{ .m(a,b,b,a) -> a }
 """);
 }
 

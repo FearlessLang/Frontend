@@ -1,10 +1,8 @@
 package fearlessParser;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -240,10 +238,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       if (redeclared){ throw errFactory().patternNameRedeclared(span(),x); }
     }
   }
-  void checkValidNew(List<String> xs, BiFunction<Span,String,FearlessException> err){
-    var seen= new HashSet<String>();
-    for (var x : xs){ if (!seen.add(x)){ throw err.apply(span(), x); } }
-  }
   M parseMethod(boolean top){
     var res= parseMethodAux(top);
     expectEnd("semicolon or closed curly", SemiColon,CCurly);
@@ -294,7 +288,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   private Sig parseSigAfterName(Optional<RC> rc, Optional<MName> m){
     var bs= parseIf(peek(_SquareGroup),()->parseBs(true));
     var Xs= bsXs(bs);
-    checkValidNew(Xs, errFactory()::duplicateGenericInMethodSignature);
     updateNames(names.addXs(Xs));//added both inside and outside since different parsers
     var hasPar= peek(_RoundGroup);
     List<Parameter> ps= hasPar
@@ -303,7 +296,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     Optional<T> t= parseOptT();
     m= m.map(_m->_m.withArity(ps.size()));
     var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();
-    checkValidNew(xs, errFactory()::duplicateParamInMethodSignature);
+    var duplicated= xs.stream().distinct().count() < xs.size();
+    if (duplicated){ throw errFactory().duplicateParamInMethodSignature(xs,span()); }
     return new Sig(rc,m,bs,hasPar,ps,t);
   }
   List<Parameter> parseNakedParameters(){
@@ -322,7 +316,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       p.expect("generic bounds declaration",OSquareArg);
       p.expectLast("generic bounds declaration",CSquare);
       var res= p.splitBy("generic bounds declaration",commaB,pi->pi.parseB(mustNew));
-      checkValidNew(bsXs(Optional.of(res)), errFactory()::duplicateGenericInMethodSignature);
+      var Xs= bsXs(Optional.of(res));
+      var duplicated= Xs.stream().distinct().count() < Xs.size();
+      if (duplicated){ throw errFactory().duplicateGenericInMethodSignature(Xs,span()); }
       return res;
     });
   }

@@ -98,9 +98,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var res= cts.typeOf(bs,g,c.es().get(argi),reqs);
     assert res.size() == acc.cs().size();
     var ok= okSet(res);
-    if (ok.isEmpty()){
-      throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res);
-    }
+    if (ok.isEmpty()){ throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res); }
     acc.okByArg().add(ok);
     acc.resByArg().add(res);
   }

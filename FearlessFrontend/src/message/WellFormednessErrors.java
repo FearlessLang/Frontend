@@ -224,9 +224,7 @@ public record WellFormednessErrors(String pkgName){
       .addFrame("a type name", n.span().inner);
   }
   public FearlessException duplicatedBound(List<RC> es, T.X n){
-    RC dup= es.stream()
-      .filter(e->es.stream().filter(ei->ei.equals(e)).count() > 1)
-      .findFirst().get();
+    RC dup= redeclaredElement(es);
     return err()
       .line("Duplicate reference capability in the type parameter "+disp(n.name())+".")
       .line("Reference capability "+disp(dup.name())+" is repeated.")

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import core.*;
 import core.E.*;
@@ -20,13 +21,19 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   public static String disp(Object o){ return Message.displayString(o.toString()); }
   public static String genArity(int n){ return Join.of(Collections.nCopies(n,"_"),"[",",", "]","");}
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
+  static <A> A redeclaredElement(List<A> es){
+    return IntStream.range(0, es.size())
+      .filter(i->i != es.lastIndexOf(es.get(i)))
+      .mapToObj(es::get)
+      .findFirst().get();
+  }
 
   String tNameA(TName n){ return cp().t.ofFull(n)+genArity(n.arity()); }     // "A[_]"
   String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
   private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
   private String bestLitName(boolean skipRc,boolean skipImm,Literal l){
     RC rc= skipRc?RC.imm:l.rc();
-    if (showInstanceOf(l)){ return typeReprRaw(skipImm||skipRc,new T.RCC(rc,l.cs().getFirst(),l.span())); }
+    if (showInstanceOf(l)){ return typeReprRaw(skipImm || skipRc,new T.RCC(rc,l.cs().getFirst(),l.span())); }
     if (anonLit(l)){ return anonRepr; }
     return rc.toStrSpace(skipImm)+tNameA(l.name());
   }

@@ -785,6 +785,26 @@ A:{.id[X:imm](x:Box[X]):X}
 C:{.id[Y:read](y:Box[Y]):Y}
 D:A,C{}
 """));}
+@Test void inferAlph_AMultiSuper_DifferentBounds_WithLocalBs_ShouldDisagree(){ fail("""
+In file: [###].fear
+
+004| D:A,C{.id[Z](z)->z.get}
+   |       ^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "D"
+Invalid method implementation for "D.id(_)".
+Supertypes disagree on the capability bounds for type parameter 1 of ".id(_)".
+Type parameter names may differ across supertypes; only the position matters.
+Different supertypes declare: "X:imm" and "Y:read".
+Type declaration "D" cannot implement all of those supertypes.
+Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.
+Error 7 WellFormedness
+""", List.of("""
+Box[K]:{.get:K;}
+A:{.id[X:imm](x:Box[X]):X}
+C:{.id[Y:read](y:Box[Y]):Y}
+D:A,C{.id[Z](z)->z.get}
+"""));}
 
 @Test void inferAlph_AArityMismatch_BetweenSupers_OrOverride(){ fail("""
 In file: [###].fear

@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.FearlessException;
@@ -128,12 +127,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException nameRedeclared(Token c, Span at){
     return Code.UnexpectedToken.of("Name "+disp(c.content())+" already in scope.").addSpan(at);
-  }
-  private <X> X redeclaredElement(List<X> es){
-    return IntStream.range(0, es.size())
-      .filter(i->i != es.lastIndexOf(es.get(i)))
-      .mapToObj(es::get)
-      .findFirst().get();
   }
   private Span redeclaredMethSpan(List<M> ms,Predicate<M> p){ return ms.reversed().stream().filter(p).findFirst().get().span().inner; }
   public FearlessException methNameRedeclared(List<M> ms,List<Parser.RCMName> names, Span at){
@@ -258,15 +251,15 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of("Name "+disp(name)+" already in scope.\n"
       +"It is declared by a nominal pattern: a pattern like \"{.a.b, .c}id\" declares the names \"bid\" and \"cid\".\n").addSpan(at);
   }
-  public FearlessException duplicateParamInMethodSignature(Span at, String name){
+  public FearlessException duplicateParamInMethodSignature(List<String> xs, Span at){
     return Code.UnexpectedToken.of(
       "A method signature cannot declare multiple parameters with the same name\n"
-      +"Parameter "+disp(name)+" is repeated").addSpan(at);
+      +"Parameter "+disp(redeclaredElement(xs))+" is repeated").addSpan(at);
   }
-  public FearlessException duplicateGenericInMethodSignature(Span at, String name){
+  public FearlessException duplicateGenericInMethodSignature(List<String> Xs, Span at){
     return Code.UnexpectedToken.of(
       "A method signature cannot declare multiple generic type parameters with the same name\n"
-      +"Generic type parameter "+disp(name)+" is repeated").addSpan(at);
+      +"Generic type parameter "+disp(redeclaredElement(Xs))+" is repeated").addSpan(at);
   }
   private static String expected(Collection<TokenKind> items){ return expected("","Expected: ","Expected one of: ",items,tk->tk.human); }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){

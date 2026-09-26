@@ -251,10 +251,7 @@ public record Methods(
     var superArities= superBsList.stream().map(List::size).distinct().toList();
     if (superArities.size() != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at, superBsList); }
     if (superArities.getFirst() != userBs.size()){ throw p.err().methodGenericArityDisagreesWithSupers(at, userBs, superBsList.getFirst()); }
-    var bounds= allBounds.stream().map(l->l.stream().map(B::rcs).toList())
-      .distinct().count();
-    if (bounds != 1){ throw p.err().methodBsDisagreementBetweenSupers(at, allBounds); }
-    var supBs= allBounds.getFirst();
+    var supBs= agreementBs(at,allBounds);
     assert supBs.size() == userBs.size();
     var supRCs= supBs.stream().map(B::rcs).toList();
     var userRCs= userBs.stream().map(B::rcs).toList();
