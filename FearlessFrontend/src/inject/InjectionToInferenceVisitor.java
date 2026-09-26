@@ -28,7 +28,7 @@ import static java.util.Optional.*;
 import static core.LiteralDeclarations.*;
 import static fearlessParser.TokenKind.*;
 
-public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs)
+public record InjectionToInferenceVisitor(Methods meths, TName currentTop, ArrayList<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs)
 {
   IT visitT(fearlessFullGrammar.T t){
     return switch (t){

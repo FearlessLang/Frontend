@@ -52,7 +52,7 @@ public class FrontendLogicMain{
     Map<Key,List<Cand>> byKey= parsed.entrySet().stream()
       .flatMap(e->e.getValue().maps().stream().map(m->new Cand(e.getKey(), m.target(), m.in(), m.out())
       )).collect(Collectors.groupingBy(x->new Key(x.target(),x.in())));
-    Map<String,Map<String,String>> res= new HashMap<>();
+    var res= new HashMap<String,HashMap<String,String>>();
     for (var e : byKey.entrySet()){
       var k= e.getKey();
       var cs= e.getValue();
@@ -63,11 +63,10 @@ public class FrontendLogicMain{
       if (conflicting){ throw new WellFormednessErrors(k.target()).mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
       res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), best.out());
     }
-    res.replaceAll((_,v)->Map.copyOf(v));
-    return Map.copyOf(res);
+    return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e->Map.copyOf(e.getValue())));
   }
   Map<Ref, FileFull> parseFiles(List<Ref> files){
-    Map<Ref, FileFull> all= new LinkedHashMap<>();
+    var all= new LinkedHashMap<Ref,FileFull>();
     for (var u : files){ all.put(u, Parse.from(u.fearURI(), u.loadString())); }
     return Collections.unmodifiableMap(all);
   }

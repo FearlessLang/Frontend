@@ -39,9 +39,9 @@ public record Methods(
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
   List<List<E.Literal>> layer(List<E.Literal> decs){
-    Map<TName, E.Literal> rem= new LinkedHashMap<>();
+    var rem= new LinkedHashMap<TName,E.Literal>();
     for (E.Literal d : decs){ rem.put(d.name(), d); }
-    List<List<E.Literal>> out= new ArrayList<>();
+    var out= new ArrayList<List<E.Literal>>();
     while (!rem.isEmpty()){
       List<E.Literal> layer= rem.values().stream().filter(d->free(d,rem)).toList();
       if (layer.isEmpty()){ throw p.err().circularImplements(rem); }
@@ -156,7 +156,7 @@ public record Methods(
   }
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     assert ss.stream().allMatch(M.Sig::isFull);
-    List<M> res= new ArrayList<>(ms.size());
+    var res= new ArrayList<M>(ms.size());
     var changed= false;
     for (var m: ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
@@ -183,12 +183,12 @@ public record Methods(
     return changed ? List.copyOf(res) : ms;
   }
   List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
-    List<M> res= new ArrayList<>();
+    var res= new ArrayList<M>();
     var changed= false;
     for (var m: ms){
       var name= m.sig().m().get();
       var rc= m.sig().rc();
-      var match= new LinkedHashMap<RC,List<M.Sig>>();
+      var match= new LinkedHashMap<RC,ArrayList<M.Sig>>();
       ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && acc(match,s));
       var inferredRcOverloads= rc.isEmpty() && match.size() > 1;
       if (inferredRcOverloads){
@@ -199,7 +199,7 @@ public record Methods(
           if (dead != null){ ss.addAll(dead); }
         }
       }
-      var groups= match.isEmpty() ? List.of(List.<M.Sig>of()) : List.copyOf(match.values());
+      List<List<M.Sig>> groups= match.isEmpty() ? List.of(List.of()) : List.copyOf(match.values());
       var first= true;
       for (var matches: groups){
         var mi= first ? m : new DupE(fresh,origin,m,this.p().err()).ofM(m,origin.name(),origin.name());
@@ -224,7 +224,7 @@ public record Methods(
     assert !changed == res.equals(ms);
     return changed ? List.copyOf(res) : ms;
   }
-  private boolean acc(HashMap<RC, List<Sig>> match, Sig s){
+  private boolean acc(HashMap<RC,ArrayList<Sig>> match, Sig s){
     match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s);
     return true;
   }

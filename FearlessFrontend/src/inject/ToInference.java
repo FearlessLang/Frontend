@@ -60,7 +60,7 @@ public final class ToInference{
   }
   public static List<E.Literal> of(Methods meths){
     Function<TName,TName> f= tn->resolve(meths,tn);
-    ArrayList<E.Literal> decs= new ArrayList<>();
+    var decs= new ArrayList<E.Literal>();
     for (var di : meths.p().decs()){
       TName name= f.apply(di.name());
       new InjectionToInferenceVisitor(meths,name,new ArrayList<>(),f,decs).addDeclaration(name,RC.mut,di,true);

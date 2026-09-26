@@ -252,7 +252,7 @@ public record WellFormednessErrors(String pkgName){
       .filter(Objects::nonNull)
       .findFirst().get();
   }
-  private TName _dfs(Map<TName,E.Literal> rem, TName u, Map<TName,Integer> color){
+  private TName _dfs(Map<TName,E.Literal> rem, TName u, HashMap<TName,Integer> color){
     Integer cu= color.get(u);
     if (cu != null){ return cu == 1 ? u : null; }
     color.put(u, 1);

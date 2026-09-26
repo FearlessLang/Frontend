@@ -384,7 +384,6 @@ public record InjectionSteps(Methods meths){
       l= new E.Literal(orc, newName, localBs, l.cs(), l.thisName(), ms, l.t(), l.src(),l.infName(), l.infHead(), l.g());
       assert !meths.cache().containsKey(name);
       var resD= meths.injectDeclaration(l);
-      meths.cache().remove(name);
       meths.cache().put(resD.name(), resD);
       return l;
     }

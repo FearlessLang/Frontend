@@ -3,7 +3,6 @@ package typeSystem;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -15,9 +14,9 @@ import static java.util.EnumSet.of;
 public final class RCLubGlb{
   private RCLubGlb(){}
   private static final EnumSet<RC> allRC= EnumSet.allOf(RC.class);
-  private static final Map<Set<RC>, RC> lubMap= new HashMap<>();
-  private static final Map<Set<RC>, RC> glbMap= new HashMap<>();
-  public static final Set<Set<RC>> domain(){ return Collections.unmodifiableSet(lubMap.keySet()); }
+  private static final HashMap<Set<RC>,RC> lubMap= new HashMap<>();
+  private static final HashMap<Set<RC>,RC> glbMap= new HashMap<>();
+  public static Set<Set<RC>> domain(){ return Collections.unmodifiableSet(lubMap.keySet()); }
   public static RC lub(EnumSet<RC> options){ return Objects.requireNonNull(lubMap.get(options)); }
   public static RC glb(EnumSet<RC> options){ return Objects.requireNonNull(glbMap.get(options)); }
   static boolean isUb(EnumSet<RC> options, RC ub){ return options.stream().allMatch(x->x.isSubType(ub)); }

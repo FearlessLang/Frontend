@@ -6,18 +6,18 @@ import pkgmerge.Package;
 import fearlessFullGrammar.T;
 
 public record FreshPrefix(
-    Set<String> usedTopTypes,
-    Map<String,Integer> topSeq,
-    Set<String> allGenericNames,
-    Map<TName,OwnerState> owners,
+    HashSet<String> usedTopTypes,
+    HashMap<String,Integer> topSeq,
+    HashSet<String> allGenericNames,
+    HashMap<TName,OwnerState> owners,
     String pkgName){
   private static final char[] up= "ABCDEFGHJKMNPQRSTUVWXYZ".toCharArray();
   private static final char[] low= "abcdefghjkmnpqrstuvwxyz".toCharArray();
   private record OwnerState(
-      Set<String> gen,
-      Map<String,Integer> genSeq,
-      Set<String> vars,
-      Map<String,Integer> varSeq){}
+      HashSet<String> gen,
+      HashMap<String,Integer> genSeq,
+      HashSet<String> vars,
+      HashMap<String,Integer> varSeq){}
   public FreshPrefix(Package p){
     this(new HashSet<>(),new HashMap<>(),new HashSet<>(),new HashMap<>(),p.name());
     for (TName tn : p.names().decNames()){ usedTopTypes().add(tn.simpleName()); }
@@ -54,7 +54,7 @@ public record FreshPrefix(
   }
   // commitScope is checked and updated with the winning candidate; extraChecks are read-only.
   private static String freshCandidate(String hint, boolean type, char[] alphabet,
-      Map<String,Integer> seq, Set<String> commitScope, List<Set<String>> extraChecks){
+      HashMap<String,Integer> seq, HashSet<String> commitScope, List<Set<String>> extraChecks){
     String base= sanitizeBase(hint, type);
     for (int n= seq.getOrDefault(base, 1);; n++){
       String cand= "_"+encodeBijective(n, alphabet)+base;

@@ -22,7 +22,7 @@ final class Sources{
 //in one hop from l; recursing into each ancestor's own (already flattened) cs() would just revisit the same
 //ancestors again once per path to them.
   static List<Sig> collect(TypeSystem ts, Literal l){//Note: this uses l instead of D[Ts] since more direct/efficient
-    List<Sig> sources= new ArrayList<>();
+    var sources= new ArrayList<Sig>();
     for (T.C parent : l.cs()){
       Literal parentDef= ts.decs().apply(parent.name());
       for (M m : parentDef.ms()){

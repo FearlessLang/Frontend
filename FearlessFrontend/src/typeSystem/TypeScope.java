@@ -44,7 +44,7 @@ public sealed interface TypeScope{
     walk(declRet, reqRet, out);
     return out.stream().distinct().toList();
   }
-  static void walk(T decl, T req, List<T> out){
+  static void walk(T decl, T req, ArrayList<T> out){
     if (!(decl instanceof T.RCC drcc)){ out.add(req); return; }
     //If the types do not match, just skip the rest here (user error too hard to grasp)
     if (!(req instanceof T.RCC rcc)){ return; }

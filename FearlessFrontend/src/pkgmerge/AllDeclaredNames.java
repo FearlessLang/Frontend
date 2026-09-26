@@ -3,7 +3,6 @@ package pkgmerge;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 import core.TName;
@@ -14,9 +13,9 @@ import message.WellFormednessErrors;
 public class AllDeclaredNames{
   AllDeclaredNames(WellFormednessErrors err){ this.err= err; }
   WellFormednessErrors err;
-  Set<TName> decNames= new LinkedHashSet<>();
-  Map<TName,Set<T.X>> Xs= new LinkedHashMap<>();
-  Map<TName,Set<String>> xs= new LinkedHashMap<>();
+  LinkedHashSet<TName> decNames= new LinkedHashSet<>();
+  LinkedHashMap<TName,Set<T.X>> Xs= new LinkedHashMap<>();
+  LinkedHashMap<TName,Set<String>> xs= new LinkedHashMap<>();
   // lastTopNames: all parameter names and this-names appearing anywhere
   // in the current top Declaration (including nested DeclarationLiteral)
   LinkedHashSet<String> lastTopNames;

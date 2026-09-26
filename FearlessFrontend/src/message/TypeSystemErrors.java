@@ -504,7 +504,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     }
     e.blank().pPromotionFailuresHdr();
     var byArg= IntStream.range(0,args)
-      .mapToObj(_->new LinkedHashMap<String,List<String>>()).toList();
+      .mapToObj(_->new LinkedHashMap<String,ArrayList<String>>()).toList();
     int promosN= mat.resByArg().getFirst().size();
     for (int pi : Range.of(0,promosN)){
       int argi= firstFailingArg(mat, pi);

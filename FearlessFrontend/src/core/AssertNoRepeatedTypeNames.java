@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public final class AssertNoRepeatedTypeNames{
@@ -16,7 +15,7 @@ public final class AssertNoRepeatedTypeNames{
     tops.forEach(t->walk(t, firstLit, visited));
     return true;
   }
-  private static void walk(E e, Map<TName,E.Literal> firstLit, Set<E> visited){
+  private static void walk(E e, LinkedHashMap<TName,E.Literal> firstLit, Set<E> visited){
     if (!visited.add(e)){ return; }
     switch (e){
       case E.X _, E.Type _ -> {}

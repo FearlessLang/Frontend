@@ -32,7 +32,7 @@ public final class Gamma{
   private final RC[]  rcs= new RC[maxDepth];
   private int depth= 0;
 
-  private HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
+  private final HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
   public Gamma(){ marks[0]= 0; envHash[0]= 0L; depth= 1; }
   public void newScope(RC rc){
     marks[depth]= size;
