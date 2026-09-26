@@ -173,10 +173,10 @@ public record InjectionSteps(Methods meths){
   private List<E> meetWithTargs(List<E> originEs,List<E> es, MSigL m, List<IT> targs){
     var res= norm(es,IntStream.range(0, es.size())
       .mapToObj(i->meet(es.get(i), m.p(i,targs))).toList());
-    assert threeWayAssert(originEs, res);
+    assert notBackToOrigin(originEs, res);
     return res;
   }
-  private boolean threeWayAssert(List<E> originEs, List<E> res){
+  private boolean notBackToOrigin(List<E> originEs, List<E> res){
     //complex but invaluable: if it fails it means we are going 'back and forth'
     //and this could cause loops.
     return Streams.zip(res, originEs).allMatch((r,o)->r == o || !r.equals(o));
