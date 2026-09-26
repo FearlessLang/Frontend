@@ -44,8 +44,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   boolean hasPost(){ return peek(DotName,Op,Colon); }
   boolean isDec(){//Dec starts with D[Bs]: or D:
-    return peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup), t->t.is(Colon))
-        || peekOrder(t->t.isTypeName(), t->t.is(Colon));
+    return peekOrder(Token::isTypeName, t->t.is(_SquareGroup), t->t.is(Colon))
+        || peekOrder(Token::isTypeName, t->t.is(Colon));
   }
   E parseAtom(){
     if (peek(LowercaseId)){ return parseX(); }
@@ -55,7 +55,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var rcSpan= peek().map(t->span(t).orElse(span()));
     int startPos= index();
     Optional<RC> rc= parseOptRC();
-    var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH).orElse(false);
+    var invalid= rc.stream().anyMatch(_rc->_rc==RC.mutH || _rc==RC.readH);
     if (invalid){ throw errFactory().disallowedReadHMutH(rcSpan.get(), rc.get()); }
     if (isDec()){ return new E.DeclarationLiteral(rc,parseDeclaration(false)); }
     if (!peek(Token.typeName)){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
@@ -64,7 +64,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return parseTypedLiteral(startPos,rc);
   }
   RC parseRC(){ return RC.valueOf(expect("reference capability",RCap).content()); }
-  Optional<RC> parseOptRC(){ return peek(RCap)? of(parseRC()) : empty(); }
+  Optional<RC> parseOptRC(){ return parseIf(peek(RCap),this::parseRC); }
   E.TypedLiteral parseTypedLiteral(int startPos, Optional<RC> rc){
     Pos pos= pos();    
     var c= parseRCC(startPos,rc);
@@ -241,11 +241,11 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   M parseMethodWithSig(Sig sig){
     var xs= sig.parameters().stream().flatMap(p->xsOf(p.xp())).toList();
-    var Xs= sig.bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
     checkNewXs(xs);
-    updateNames(names.add(xs,Xs));
+    updateNames(names.add(xs,bsXs(sig.bs())));
     return new M(of(sig),of(parseMethodBody()),tspan());
   }
+  private static List<String> bsXs(Optional<List<B>> bs){ return bs.orElse(List.of()).stream().map(b->b.x().name()).toList(); }
   M parseMethodAux(boolean top){//assumes to be called on only the tokens of this specific method
     Optional<M> m= parseFront("method signature",false,arrowSkip,Parser::parseSig)
       .map(this::parseMethodWithSig);
@@ -264,9 +264,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   Sig parseSig(){
     var rcSpan= peek().map(t->span(t).orElse(span()));
     var rc= parseOptRC();
-    var invalid= rc.map(_rc->_rc==RC.mutH || _rc==RC.readH || _rc==RC.iso).orElse(false);
+    var invalid= rc.stream().anyMatch(_rc->_rc==RC.mutH || _rc==RC.readH || _rc==RC.iso);
     if (invalid){ throw errFactory().disallowedSigRC(rcSpan.get(), rc.get()); }
-    var noDot= peek(LowercaseId) && peek(1).map(t->t.is(_RoundGroup,_SquareGroup)).orElse(false);
+    var noDot= peek(LowercaseId) && peek(1).stream().anyMatch(t->t.is(_RoundGroup,_SquareGroup));
     if (noDot){
       Token tok= peek().get();
       Span at= span(tok, peek(1).get()).orElse(span());
@@ -276,14 +276,14 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var m= parseIf(peek(DotName,Op),this::parseMName);
     try{ return parseSigAfterName(rc, m); }
     catch(FearlessException exc){
-      var forgotSpace= m.isPresent() && m.get().s().endsWith("->"); 
+      var forgotSpace= m.stream().anyMatch(mi->mi.s().endsWith("->"));
       if (!forgotSpace){ throw exc; }
       throw errFactory().forgotSpace(tok.get().span(span().fileName()),m.get().s());
     }
   }
   private Sig parseSigAfterName(Optional<RC> rc, Optional<MName> m){
     var bs= parseIf(peek(_SquareGroup),()->parseBs(true));
-    var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
+    var Xs= bsXs(bs);
     checkValidNew(Xs, errFactory()::duplicateGenericInMethodSignature);
     updateNames(names.addXs(Xs));//added both inside and outside since different parsers
     boolean hasPar=peek(_RoundGroup);
@@ -312,8 +312,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       p.expect("generic bounds declaration",OSquareArg);
       p.expectLast("generic bounds declaration",CSquare);
       var res= p.splitBy("generic bounds declaration",commaB,pi->pi.parseB(mustNew));
-      var Xs= res.stream().map(b->b.x().name()).toList();
-      checkValidNew(Xs, errFactory()::duplicateGenericInMethodSignature);
+      checkValidNew(bsXs(Optional.of(res)), errFactory()::duplicateGenericInMethodSignature);
       return res;
     });
   }
@@ -346,7 +345,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   void checkCommonTopLevelIssues(){
     if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).orElse(span())); }
     if (isDec()){ return; }
-    if (peek().map(Token::isTypeName).orElse(false)){ return; }
+    if (peek().stream().anyMatch(Token::isTypeName)){ return; }
     var t= peek().get();
     if (!isProbablyTopLevelNonDecl(t)){ return; }
     throw errFactory().topLevelNotATypeDeclaration(span(t).orElse(span()), t.content());
@@ -368,10 +367,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (top){ errFactory().noteTop(c); }
     var _= expectValidate(back("simple type name"), UppercaseId,_XId); //to get error if of form foo.Bar
     Optional<List<B>> bs= parseIf(peek(_SquareGroup),()->this.parseBs(top));
-    var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
+    var Xs= bsXs(bs);
     var outer= names;
     updateNames(top ? names.addXs(Xs) : names.setFunnelledXs(c.s(),Xs));
-    if (bs.isPresent()){ c= c.withArity(bs.get().size()); }
+    c= c.withArity(Xs.size());
     expect("type declaration (:) symbol",Colon);
     List<T.C> cs= this.parseImpl();
     assert peek(_CurlyGroup);
@@ -388,9 +387,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new FileFull(List.copyOf(head.map),List.copyOf(head.use),ds);
   }
   boolean peekValidate(TokenKind validation){
-    Optional<Token> res= peek();
-    if (res.isEmpty()){ return false; }
-    return TokenKind.isKind(res.get().content(),validation);
+    return peek().stream().anyMatch(t->TokenKind.isKind(t.content(),validation));
   }
   Token expectValidate(String human, TokenKind kind, TokenKind validation){
     if (peekValidate(validation)){ return expect(human,kind); }
@@ -463,7 +460,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return end()
       || isDec()
       || peek(_CurlyGroup,_RoundGroup,_SquareGroup)
-      || peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup,_CurlyGroup,_RoundGroup))
+      || peekOrder(Token::isTypeName, t->t.is(_SquareGroup,_CurlyGroup,_RoundGroup))
   ;}
   int headEnd(){ while (!guessHeadEnd()){ expectAny(""); } return 0; }
   public void checkAbruptExprEnd(){
@@ -489,7 +486,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var simple= peek(LowercaseId,_RoundGroup,ColonColon,_CurlyGroup);
     if (fwdIf(simple)){ return; }
     fwdIf(peek(RCap));
-    fwdIf(peekOrder(t->t.isTypeName()));
+    fwdIf(peekOrder(Token::isTypeName));
     fwdIf(peek(_SquareGroup));
     if (fwdIf(peek(Colon))){ while (fwdIf(peek(UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SStr,UStr,Comma,_SquareGroup))){} }
     fwdIf(peek(_CurlyGroup));

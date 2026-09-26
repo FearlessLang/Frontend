@@ -62,7 +62,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       || isImplSubtype(bs,t1,t2);
   }
   public void check(List<B> bs, Gamma g, E e, T expected){
-    var got= OneOr.of("", typeOf(bs,g,e,List.of(new TRequirement("", expected))).stream());
+    var got= OneOr.of("One reason per requirement", typeOf(bs,g,e,List.of(new TRequirement("", expected))).stream());
     if (got.isEmpty()){ return; }
     throw tsE().methBodyWrongType((TypeScope.Method)scope,e,got,expected);
   }
@@ -121,7 +121,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var ts= dom(l.bs(),span);
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
-    assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x())));
+    assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l,bs1,thisType);
     litOk(g.filterFTV(l),l);
     ms.forEach(m->checkCallable(l,m));
@@ -135,7 +135,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private void checkCallable(Literal l, M m){
     if (callable(l.rc(),m.sig().rc())){ return; }
-    throw tsE().methodImplementationDeadCode(m.sig().span(), m, l);
+    throw tsE().methodImplementationDeadCode(m, l);
   }
   private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC !=RC.read); }
 
@@ -153,8 +153,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (m.e().isPresent() && !isId(m)){ throw tsE().baseIdBadBody(l,m); }
   }
   private boolean isId(M m){
-    assert m.xs().size() == 1;
-    var x= m.xs().getFirst();
+    var x= OneOr.of("BaseId # has one parameter",m.xs().stream());
     return switch (m.e().get()){
       case X e -> e.name().equals(x);
       case Call c -> c.e() instanceof X e && e.name().equals(x) && c.name().equals(asOne)
@@ -195,19 +194,16 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     g= g.addAll(ts, xs);//Note: 'this' already in g1
     var t= new TypeSystem(scope.pushM(forErr, m),v);
     t.check(delta,g,m.e().get(),m.sig().ret());
-    for (int i : Range.of(xs)){
-      var isAffine= !k().of(delta,ts.get(i),EnumSet.of(mut,read,mutH,readH,imm));
-      if (isAffine){ Affine.usedOnce(tsE(),forErr,m,xs.get(i),m.e().get()); }
-    }
-  }  
-  private List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }
+    Streams.zip(xs, ts)
+      .filter((_,ti)->!k().of(delta,ti,EnumSet.of(mut,read,mutH,readH,imm)))
+      .forEach((x,_)->Affine.usedOnce(tsE(),forErr,m,x));
+  }
+  static List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }
   
   private boolean isImplSubtype(List<B> bs, T t1, T t2){
     if (!(t1 instanceof T.RCC rcc1)){ return false; }
     Literal d= decs().apply(rcc1.c().name());
-    assert d!=null;
-    List<String> xs= d.bs().stream().map(B::x).toList();
-    return d.cs().stream().anyMatch(ci->isSub(bs, TypeRename.of(new T.RCC(rcc1.rc(), ci,rcc1.span()), xs, rcc1.c().ts()), t2));
+    return d.cs().stream().anyMatch(ci->isSub(bs, TypeRename.of(new T.RCC(rcc1.rc(), ci,rcc1.span()), B.xs(d.bs()), rcc1.c().ts()), t2));
   }
   private boolean isXReadImmXSubtype(List<B> bs, T t1, T t2){
     return t2 instanceof T.ReadImmX rix
@@ -260,9 +256,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private void sigSub(Literal l, Sig current, Sig parent){
     assert current.bs().equals(parent.bs());
     List<B> ctx= Push.of(l.bs(),current.bs());
-    int tsSize= current.ts().size();
-    assert tsSize == parent.ts().size();
-    for (int i : Range.of(0,tsSize)){
+    assert current.ts().size() == parent.ts().size();
+    for (int i : Range.of(current.ts())){
       var badArg= !isSub(ctx, parent.ts().get(i), current.ts().get(i));
       if (badArg){ throw tsE().methodOverrideSignatureMismatchContravariance(this,ctx,l,current,parent, i); }
     }

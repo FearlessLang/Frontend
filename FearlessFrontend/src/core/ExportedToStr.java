@@ -17,8 +17,7 @@ public record ExportedToStr(String pkgName, Map<String,String> uses){
   public String typeName(TName n){ return names().ofFull(n); }
   public String typeNameWithArity(TName n){ return typeName(n)+Err.genArity(n.arity()); }
   public String typeName(T.C c){
-    if (c.ts().isEmpty()){ return typeNameWithArity(c.name()); }
-    return typeName(c.name())+Join.of(c.ts().stream().map(this::type),"[",",","]");
+    return typeName(c.name())+Join.of(c.ts().stream().map(this::type),"[",",","]","");
   }
   public String type(T t){ return switch (t){
     case T.X x -> x.name();

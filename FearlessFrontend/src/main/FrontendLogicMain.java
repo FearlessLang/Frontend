@@ -34,7 +34,7 @@ public class FrontendLogicMain{
     Map<Ref, FileFull> rawAST= parseFiles(files); // Phase 1: Parse Files
     Package pkg= mergeToPackage(pkgName,rawAST, override, other); // Phase 2: Merge & Well-formedness
     Methods ctx= Methods.create(pkg, other); // Phase 3: // Creates the scope (Methods) and FreshPrefix generators
-    List<inference.E.Literal> inferrableAST= new ToInference().of(pkg, ctx, other, ctx.fresh()); // Phase 4: Desugar
+    List<inference.E.Literal> inferrableAST= new ToInference().of(ctx); // Phase 4: Desugar
     inferrableAST= ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
     List<core.E.Literal> coreAST= InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
     TypeSystem.allOk(coreAST, pkg, other); //Phase 7: type checking
@@ -54,14 +54,13 @@ public class FrontendLogicMain{
       )).collect(Collectors.groupingBy(x->new Key(x.target(),x.in())));
     Map<String,Map<String,String>> res= new HashMap<>();
     byKey.forEach((k,cs)->{
-      var best= cs.stream().max((a,b)->c.compare(a.uri(),b.uri())).get();
+      var best= cs.stream().max(Comparator.comparing(Cand::uri,c)).get();
       List<Cand> bests= cs.stream().filter(x->c.compare(x.uri(), best.uri())==0).toList();
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
-      List<String> outs= bests.stream().map(Cand::out).distinct().toList();
-      assert !outs.isEmpty();
-      if (outs.size() != 1){ throw new WellFormednessErrors(k.target())
-        .mapConflict(k.target(), k.in(), bests.stream().map(Object::toString).toList()); }
-      res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), outs.getFirst());
+      var conflicting= bests.stream().map(Cand::out).distinct().count() != 1;
+      if (conflicting){ throw new WellFormednessErrors(k.target())
+        .mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
+      res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), best.out());
     });
     res.replaceAll((_,v)->Map.copyOf(v));
     return Map.copyOf(res);
@@ -80,11 +79,11 @@ public class FrontendLogicMain{
   Package mergeToPackage(String pkgName,Map<Ref, FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
     var err= new WellFormednessErrors(pkgName);
-    Ref headPkg= findHeadUri(err,pkgName, raw.keySet());
+    Ref headPkg= findHeadUri(err, raw.keySet());
     checkOnlyHeadHasDirectives(err,headPkg, raw);
     var head= raw.get(headPkg);
     var map= new HashMap<String, String>(override);
-    accUses(err,pkgName, map, head.uses(), other);
+    accUses(err, map, head.uses(), other);
     List<Declaration> ds= raw.values().stream()
       .flatMap(f->f.decs().stream())
       .sorted().toList();
@@ -96,7 +95,7 @@ public class FrontendLogicMain{
     return new Package(name,map,decs,names,Package.offLogger());//this method exists to change logger in mocking
   }
   //map a as b in c //inside c, a written a stands for b
-  private void accUses(WellFormednessErrors err, String n, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other){
+  private void accUses(WellFormednessErrors err, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other){
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
       var p= u.in().pkgName();
@@ -107,11 +106,11 @@ public class FrontendLogicMain{
       if (!ok){ throw err.unknownUseHead(u.in(), p); }
     }//map a as b in c + use a.F as aF will replace aF with b.F
   }
-  private Ref findHeadUri(WellFormednessErrors err, String pkgName, Set<Ref> uris){
-    assert nonNull(uris) && validate(pkgName,"",_pkgName);
-    var heads= uris.stream().filter(u->isHeadUri(u)).toList();
+  private Ref findHeadUri(WellFormednessErrors err, Set<Ref> uris){
+    assert nonNull(uris) && validate(err.pkgName(),"",_pkgName);
+    var heads= uris.stream().filter(this::isHeadUri).toList();
     if (heads.size() == 1){ return heads.getFirst(); }
-    throw err.expectedSingleUriForPackage(heads,pkgName);
+    throw err.expectedSingleUriForPackage(heads);
   }
   private boolean isHeadUri(Ref u){
     String name= Fs.fileNameWithExtension(u.fearPath());

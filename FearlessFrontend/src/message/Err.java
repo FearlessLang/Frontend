@@ -1,10 +1,11 @@
 package message;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import core.*;
 import core.E.*;
@@ -17,7 +18,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   CompactPrinter cp(){ return _cp.apply(false); }
   CompactPrinter cp(boolean trunk){ return _cp.apply(trunk); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
-  public static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
+  public static String genArity(int n){ return Join.of(Collections.nCopies(n,"_"),"[",",", "]","");}
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
   
   String tNameA(TName n){ return cp().t.ofFull(n)+genArity(n.arity()); }     // "A[_]"
@@ -30,14 +31,14 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return rc.toStrSpace(skipImm)+tNameA(l.name());
   }
   private String bestLitName(inference.E.Literal l){
-    return l.infName() ? tNameA(guessImplName(l)) : tNameA(l.name());
+    return tNameA(l.infName() ? guessImplName(l) : l.name());
   }
   private TName guessImplName(inference.E.Literal l){
     if (!l.cs().isEmpty()){ return l.cs().getFirst().name(); }
     return ((T.RCC)TypeRename.itToT(l.t())).c().name();
   }
   private String bestNamePkg0(boolean instanceOf, String n){
-    return instanceOf ? "instance of "+disp(n) : disp(n);
+    return (instanceOf ? "instance of " : "")+disp(n);
   }
   private boolean anonLit(Literal l){ return l.infName() && l.cs().isEmpty(); }
   private static final String anonRepr="{...}";
@@ -54,7 +55,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(boolean skipImm, T t){ return disp(typeReprRaw(skipImm,t)); }
   private String typeReprRaw(boolean skipImm, T t){
     var str= cp().msgT(showPublicHead(t));
-    if (skipImm || !explicitImmRc(t)){ return str; }
+    if (skipImm || !t.explicitRC().equals(Optional.of(RC.imm))){ return str; }
     return "imm "+str;
   }
   T showPublicHead(T t){ return mapHead(t, publicHead); }
@@ -91,18 +92,13 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String methodSig(String pre, TName t, MName m){ return methodSig(pre+tNameA(t),m); }
   String methodSig(String pre, Literal l, MName m){ return methodSig(pre+bestLitName(true,true,l),m); }
   String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+bestLitName(l),m); }
-  String methodSig(String pre, MName m){ return disp(Join.of(IntStream.range(0,m.arity()).mapToObj(_->"_"),pre+m.s()+"(",",",")",pre+m.s())); }
+  String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(),"_"),pre+m.s()+"(",",",")",pre+m.s())); }
   public static boolean rcOnlyMismatch(T got, T req){
     return got.equals(req) 
       || (got instanceof T.RCC g 
       && req instanceof T.RCC r
       && g.c().equals(r.c()));
   }
-  public static boolean explicitImmRc(T t){ return switch (t){
-    case T.RCX(RC rc, _) -> rc == RC.imm;
-    case T.RCC(RC rc, _, _) -> rc == RC.imm;
-    default -> false;
-  };}  
   static boolean isInferErr(T t){
     return t instanceof T.RCC rcc && rcc.c().name().s().equals("base.InferErr");
   }  
@@ -127,7 +123,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   Err blank(){
     int n= sb.length();
-    assert n != 0;
     assert sb.charAt(n-1) == '\n';
     if (n < 2 || sb.charAt(n-2) != '\n'){ sb.append('\n'); }
     return this;
@@ -140,7 +135,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return line("This call to method "+methodSig(c.rc().toStrSpace(),d,c.name())+" cannot typecheck.");
   }
   Err notInSubtypeList(List<String> options){
-    if (options.size() == 1){ return this; };
+    if (options.size() == 1){ return this; }
     return line(Join.of(options,"That is not a subtype of any of "," or ","."));
   }
   Err pCallCantBeSatisfied(Call c){
@@ -175,8 +170,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return ex("See inferred typing context below for how type "+req+" was introduced: (compression indicated by `-`)", e);
   }
   FearlessException ex(String footerHdr, core.E footerE){
-    assert sb.length() != 0;
-    assert footerHdr != null && footerE != null;
     return Code.TypeError.of(blank()
       .line(footerHdr)
       .compactPrinterLine(footerE)

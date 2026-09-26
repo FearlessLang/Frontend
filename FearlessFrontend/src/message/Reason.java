@@ -60,7 +60,7 @@ public final class Reason{
     TypeSystem ts,X x, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
   ){
     T got= cur.currentT();
-    var rcOnly= Err.rcOnlyMismatch(got, req.t());
+    var rcOnly= rcOnlyMismatch(got, req.t());
     String base= ts.err().gotMsg(!rcOnly,ts.err().expRepr(x), List.of(got), req.t());
     if (!rcOnly || declared.equals(got)){ return new Reason(got, base,()->baseFooterE(ts.scope(),got,req.t())); }
     var e= ts.err().line(base);
@@ -74,15 +74,15 @@ public final class Reason{
   }
   private static String vpaTrace(TypeSystem ts, WithT cur){ return switch (cur){
     case Same _ -> "";
-    case KeepStrengthenToImm k -> traceKeep(ts, k.tail(), "strengthenToImm", k.tail().currentT(), k.currentT(), k.m());
-    case KeepSetToRead k -> traceKeep(ts, k.tail(), "setToRead", k.tail().currentT(), k.currentT(), k.m());
-    case KeepSetToReadImm k -> traceKeep(ts, k.tail(), "setToReadImm", k.tail().currentT(), k.currentT(), k.m());
+    case KeepStrengthenToImm k -> traceKeep(ts, k.tail(), "strengthenToImm", k.currentT(), k.m());
+    case KeepSetToRead k -> traceKeep(ts, k.tail(), "setToRead", k.currentT(), k.m());
+    case KeepSetToReadImm k -> traceKeep(ts, k.tail(), "setToReadImm", k.currentT(), k.m());
   };}
-  private static String traceKeep(TypeSystem ts, WithT tail, String op, T from, T to, M m){
+  private static String traceKeep(TypeSystem ts, WithT tail, String op, T to, M m){
     String prev= vpaTrace(ts,tail);
-    if (from.equals(to)){ return prev; }
+    if (tail.currentT().equals(to)){ return prev; }
     String edge= " --"+op+"(line "+m.sig().span().inner.startLine()+")--> "+ts.err().typeRepr(true,to);
-    if (prev.isEmpty()){ return ts.err().typeRepr(true,from)+edge; }
+    if (prev.isEmpty()){ return ts.err().typeRepr(true,tail.currentT())+edge; }
     return prev+edge;
   }
 }

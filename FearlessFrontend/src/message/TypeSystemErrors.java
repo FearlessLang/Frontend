@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -23,6 +22,7 @@ import typeSystem.TypeSystem;
 import utils.Join;
 import utils.OneOr;
 import utils.Range;
+import utils.Streams;
 import core.*;
 import core.E.*;
 
@@ -39,9 +39,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
    Function<T.C,T.C> publicHead= c->{
      var d= decs.apply(c.name());
      if (!d.infName()){ return c; }
-     var xs= d.bs().stream().map(B::x).toList();
      return d.cs().stream()
-       .<T.C>map(sc->TypeRename.of(sc, xs, c.ts()))
+       .<T.C>map(sc->TypeRename.of(sc, B.xs(d.bs()), c.ts()))
        .filter(scC->!decs.apply(scC.name()).infName())
        .findFirst().orElse(c);
     };
@@ -82,19 +81,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return addExpFrame(toErr,err.ex(toErr).addSpan(span));
   }
   private Err typeNotWellKinded(String name,T.C c, int index, String allowedStr){
-    var args= c.ts();
-    assert index >= 0 && index < args.size();
-    T bad= args.get(index);
+    T bad= c.ts().get(index);
     var bs= decs.apply(c.name()).bs();
-    assert index < bs.size();
     return err().pTypeArgBounds(name, err().tNameADisp(c.name()), disp(bs.get(index).x()), index, err().typeRepr(true,bad), allowedStr);
   }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr){
     var ms= decs.apply(t.name()).ms();
     var m= OneOr.of("Malformed methods",ms.stream().filter(mi->mi.sig().m().equals(c.name()) && mi.sig().rc() == c.rc()));
-    var bs= m.sig().bs();
-    assert index >= 0 && index < bs.size();
-    var param= bs.get(index);
+    var param= m.sig().bs().get(index);
     String decName= err().methodSig(c.rc().toStrSpace(),t.name(), c.name()); // p.A.m(...)
     T bad= c.targs().get(index);
     return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, err().typeRepr(true,bad), allowedStr);
@@ -103,8 +97,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchContravariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent, int index){
     var mName= current.m();
-    assert mName.equals(parent.m());  
-    assert index >= 0 && index < current.ts().size() && index < parent.ts().size();
+    assert mName.equals(parent.m());
     T parentArg= parent.ts().get(index);
     T currentArg= current.ts().get(index);
     assert !ts.isSub(ctx, parentArg, currentArg);
@@ -172,7 +165,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///Implemented method can never be called for any receiver obtained from the literal.
   ///Its body is statically dead code (typically a mut method on an imm/read literal).
   ///Raised when checking object literals   
-  public FearlessException methodImplementationDeadCode(TSpan at, M got, Literal l){
+  public FearlessException methodImplementationDeadCode(M got, Literal l){
     var s= got.sig();
     assert s.rc() == RC.mut;
     assert l.rc() == RC.imm || l.rc() == RC.read;
@@ -181,7 +174,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("The method "+err().methodSig(s.rc().toStrSpace(),l,s.m())+" is dead code.")
       .line("The "+err().expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".")
       .line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver.")
-      .ex(l).addSpan(at.inner));
+      .ex(l).addSpan(s.span().inner));
   }  
   ///Iso parameter is used in a way that violates affine discipline.
   ///Allowed uses: capture into object literals as imm, or use directly at most once.
@@ -219,9 +212,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var e= err();
     String meth= err().methodSig(m.sig().m());
     var top= l.thisName().equals("this");
-    if (top){ e.line("The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."); }
-    else{ e.line("Method "+meth+" inside the "+err().expRepr(l) + " (line "+l.span().inner.startLine()+")"
-      +"\nis implemented with an expression returning "+got0+"."); }
+    e.line(top
+      ? "The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."
+      : "Method "+meth+" inside the "+err().expRepr(l) + " (line "+l.span().inner.startLine()+")"
+        +"\nis implemented with an expression returning "+got0+".");
     e.line(up(got.info));
     return addExpFrame(at, e.exInferMsg(got.footerE.get(),req0).addSpan(at.span().inner));
   }
@@ -235,12 +229,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .addSpan(x.span().inner));
   }
   private String whyDrop(String subject, Change.NoT why){
-    return why.<Supplier<String>>name(
-      ()->whyDropMutInImm(subject,why),
-      ()->whyDropReadHMutH(subject,why),
-      ()->whyDropFTV(subject,why),
-      ()->whyDropCapFree(subject,why)
-      ).get();
+    return switch (why){
+      case Change.DropMutInImm _ -> whyDropMutInImm(subject,why);
+      case Change.DropReadHMutH _ -> whyDropReadHMutH(subject,why);
+      case Change.DropFTV _ -> whyDropFTV(subject,why);
+      case Change.CapFree _ -> whyDropCapFree(subject,why);
+    };
   }
   private String whyDropMutInImm(String subject, Change.NoT why){
     return subject+" has type "+err().typeRepr(true,why.atDrop())+".\n"
@@ -258,8 +252,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   }
   private static String hintAddTypeParameter(Change.NoT why){
     var name= why.l().name().simpleName();
-    var current= disp(Join.of(why.l().bs().stream().map(B::x),name+"[",",","]",name));
-    var next= disp(Join.of(why.l().bs().stream().map(B::x),name+"[",",",",...]",name+"[...,...]"));
+    var current= disp(Join.of(B.xs(why.l().bs()),name+"[",",","]",name));
+    var next= disp(Join.of(B.xs(why.l().bs()),name+"[",",",",...]",name+"[...,...]"));
     return"Hint: change "+current+" by adding the missing type parameters: "+next;
   }
   private String whyDropFTV(String subject, Change.NoT why){
@@ -424,7 +418,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     assert argi >= 0 && argi < c.es().size();
     assert !reqs.isEmpty();
     assert reqs.size() == res.size();
-    assert res.stream().noneMatch(r->r.isEmpty());
+    assert res.stream().noneMatch(Reason::isEmpty);
     T reqCanon= reqCanon(reqs);
     if (isWrongUnderlyingType(ts,bs,reqCanon,res)){ return wrongUnderlyingTypeErr(ts,d,c,argi,reqs,res); }
     T gotHdr= headerBest(res);
@@ -485,9 +479,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     case T.ReadImmX _ -> 1001;
   };}
   private static Reason pickReason(List<TRequirement> reqs, List<Reason> res){
-    return res.get(IntStream.range(0, res.size())
-      .filter(i->rcOnlyMismatch(res.get(i).best, reqs.get(i).t()))
-      .findFirst().orElse(0));
+    return Streams.zip(res, reqs)
+      .filter((r,q)->rcOnlyMismatch(r.best, q.t()))
+      .map((r,_)->r)
+      .findFirst().orElse(res.getFirst());
   }  
   ///Each argument of call c is compatible with at least one promotion, but no promotion fits all arguments.
   ///The per-argument sets of acceptable promotions have empty intersection.

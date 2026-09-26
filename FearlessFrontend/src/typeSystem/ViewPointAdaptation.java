@@ -38,10 +38,6 @@ public record ViewPointAdaptation(Kinding k){
   } 
   private boolean kindIsoImm(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm)); }
 
-  private boolean isMutReadForm(T t){
-    if (t instanceof T.RCC rcc){ return rcc.rc() == mut || rcc.rc() == read; }
-    if (t instanceof T.RCX rcx){ return rcx.rc() == mut || rcx.rc() == read; }
-    return false;
-  }
+  private boolean isMutReadForm(T t){ return t.explicitRC().stream().anyMatch(rc->rc == mut || rc == read); }
   private boolean isXReadImmXForm(T t){ return t instanceof T.X || t instanceof T.ReadImmX; }
 }

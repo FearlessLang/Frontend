@@ -3,11 +3,11 @@ package typeSystem;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import core.*;
 import core.E.*;
 import inject.TypeRename;
 import message.Reason;
+import utils.OneOr;
 import utils.Push;
 import utils.Range;
 import typeSystem.TypeSystem.*;
@@ -16,7 +16,6 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   List<Reason> run(){
     var rcc0= recvRcc();
     var d= ts.decs().apply(rcc0.c().name());
-    assert d != null;
     var sig= sigOf(d);
     checkTargsKinding(rcc0.c(),d,sig);
     var base= baseMType(rcc0.c(),d,sig);
@@ -31,34 +30,31 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return rs.stream().map(req->resForReq(d,sig,mat,possible,req)).toList();
   }
   private boolean mayBeH(RC recv, MType base){
-    return isH(recv) || Stream.concat(base.ts().stream(),Stream.of(base.t())).anyMatch(this::mayBeH);
+    return isH(recv) || Push.of(base.ts(),base.t()).stream().anyMatch(this::mayBeH);
   }
   private boolean mayBeH(T t){
-    if (t instanceof T.X x){ return MultiMeth.get(bs,x.name()).stream().anyMatch(CallTyping::isH); }
+    if (t instanceof T.X x){ return RC.get(bs,x.name()).rcs().stream().anyMatch(CallTyping::isH); }
     return t.explicitH();
   }
   private static boolean isH(RC rc){ return rc == RC.mutH || rc == RC.readH; }
   private T.RCC recvRcc(){
     var cts= new TypeSystem(ts.scope().pushCallRec(this.c),ts.v());
-    var r= cts.typeOf(bs,g,c.e(),List.of());
-    assert r.size() == 1;
-    assert r.getFirst().isEmpty();//else would have thrown
-    T t= r.getFirst().best;
+    var r= OneOr.of("One reason without requirements",cts.typeOf(bs,g,c.e(),List.of()).stream());
+    assert r.isEmpty();//else would have thrown
+    T t= r.best;
     if (t instanceof T.RCC x){ return x; }
     throw ts.tsE().methodReceiverIsTypeParameter(cts.scope(),c,t);
   }
   private Sig sigOf(Literal d){
-    var ms= d.ms().stream().map(M::sig)
-      .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()).toList();
-    if (ms.isEmpty()){ throw ts.tsE().methodNotDeclared(ts.scope(),c,d); }
-    assert ms.size() == 1;
-    Sig sig= ms.getFirst();
+    Sig sig= OneOr.opt("Methods with duplicates",d.ms().stream().map(M::sig)
+      .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()))
+      .orElseThrow(()->ts.tsE().methodNotDeclared(ts.scope(),c,d));
     assert sig.ts().size() == c.es().size();//ensured by well formedness
     if (sig.bs().size() == c.targs().size()){ return sig; }
     throw ts.tsE().methodTArgsArityError(d,c,sig.bs());
   } 
   private MType baseMType(T.C c0, Literal d, Sig sig){
-    var xs= Stream.concat(d.bs().stream(),sig.bs().stream()).map(B::x).toList();
+    var xs= B.xs(Push.of(d.bs(),sig.bs()));
     var ts0= Push.of(c0.ts(),c.targs());
     var ps= TypeRename.ofT(sig.ts(),xs,ts0);
     T ret= TypeRename.of(sig.ret(),xs,ts0);
@@ -75,7 +71,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   private ArgMatrix typeArgsOnce(Literal d,List<MType> app){
     var size= c.es().size();
     var acc= new ArgMatrix(app,new ArrayList<>(size),new ArrayList<>(size));
-    for (int argi : Range.of(0,size)){ accArgi(d,app,acc,c.es(), argi); }
+    for (int argi : Range.of(0,size)){ accArgi(d,acc,argi); }
     return acc;
   }
   private List<TRequirement> argRequirements(List<MType> app, int argi){
@@ -97,11 +93,11 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
         e.getKey()))
       .toList();*/
   }
-  private void accArgi(Literal d, List<MType> app, ArgMatrix acc, List<E> es, int argi){
-    var reqs= argRequirements(app,argi);
+  private void accArgi(Literal d, ArgMatrix acc, int argi){
+    var reqs= argRequirements(acc.cs(),argi);
     var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi),ts.v());
-    var res= cts.typeOf(bs,g,es.get(argi),reqs);
-    assert res.size() == app.size();
+    var res= cts.typeOf(bs,g,c.es().get(argi),reqs);
+    assert res.size() == acc.cs().size();
     var ok= okSet(res);
     if (ok.isEmpty()){
       throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res);

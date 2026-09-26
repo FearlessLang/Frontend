@@ -14,16 +14,11 @@ public record Token(
   boolean isTypeName(){ return is(typeName); }
   public static final TokenKind[] typeName= new TokenKind[]{UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SStr,UStr};
   public Token tokenFirstHalf(int length){
-    assert length >= 0;
     assert tokens.isEmpty();
-    assert content.length() >= length;
     return new Token(kind,content.substring(0, length),line,column,tokens);
   }
   public Token tokenSecondHalf(int length){
-    assert length >= 0;
     if (length == 0){ return this; }
-    assert tokens.isEmpty();
-    assert content.length() >= length;
     Token first= tokenFirstHalf(length);
     Span s= first.span(Pos.unknown.fileName());
     return new Token(kind,content.substring(length),s.endLine(),s.endCol()+1,tokens);

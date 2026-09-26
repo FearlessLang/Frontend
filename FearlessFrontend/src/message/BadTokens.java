@@ -13,6 +13,8 @@ import metaParser.Message;
 import metaParser.Span;
 import metaParser.TokenProcessor;
 import utils.Bug;
+
+import static message.Err.*;
   
 public class BadTokens{
   public TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory> badTokensMap(){
@@ -66,7 +68,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     if (!lit.is(SStr,UStr,SignedInt,UnsignedInt,SignedFloat,UnSignedFloat)){ return Stream.of(t); }
     var file= tz.fileName();
     var s= lit.span(file);
-    var name= Message.displayString(lit.content());
+    var name= disp(lit.content());
     throw Code.UnexpectedToken.of(
       "Literal "+name+" is directly followed by \"[\".\n"
     + "Number and string literals take no generic arguments.\n"

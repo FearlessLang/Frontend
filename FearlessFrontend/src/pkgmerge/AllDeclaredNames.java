@@ -11,7 +11,7 @@ import fearlessFullGrammar.E.*;
 import message.WellFormednessErrors;
 import java.util.Map;
 
-public class AllDeclaredNames implements EVisitor<Void>{
+public class AllDeclaredNames{
   AllDeclaredNames(WellFormednessErrors err){this.err= err;}
   WellFormednessErrors err;
   Set<TName> decNames= new LinkedHashSet<>();
@@ -22,15 +22,15 @@ public class AllDeclaredNames implements EVisitor<Void>{
   LinkedHashSet<String> lastTopNames;
   // lastTopXs: all generic Bs appearing anywhere in the the current top Declaration
   LinkedHashSet<T.X> lastTopXs;
-  public void visitTopDeclaration(Declaration d,String pkgName){
+  public void visitTopDeclaration(Declaration d){
     lastTopNames= new LinkedHashSet<>();
     lastTopXs= new LinkedHashSet<>();
     visitInnerDeclaration(d);
-    var n= d.name().withPkgName(pkgName);
+    var n= d.name().withPkgName(err.pkgName());
     assert !xs.containsKey(n);
     assert !Xs.containsKey(n);
     xs.put(n, Collections.unmodifiableSet(lastTopNames));
-    Xs.put(n, Collections.unmodifiableSet(lastTopXs));    
+    Xs.put(n, Collections.unmodifiableSet(lastTopXs));
   }
   private void visitInnerB(B b){ lastTopXs.add(b.x()); }
   private void visitInnerParameter(Parameter p){ p.xp().ifPresent(this::visitInnerXPat); }
@@ -43,32 +43,29 @@ public class AllDeclaredNames implements EVisitor<Void>{
     //Note: there is never any kind of shadowing allowed in fearless. Also, nested names do live in the top level scope
     if (!decNames.add(d.name())){ throw err.duplicatedName(d.name()); }
     d.bs().ifPresent(bs->bs.forEach(this::visitInnerB));
-    d.l().accept(this);
+    visitLiteral(d.l());
   }
-  @Override public Void visitLiteral(Literal c){
+  private void visitLiteral(Literal c){
     c.thisName().ifPresent(n->lastTopNames.add(n.name()));
     c.methods().forEach(this::visitInnerM);
-    return null;
   }
   private void visitInnerM(M m){
     m.sig().ifPresent(this::visitInnerSig);
-    m.body().ifPresent(e->e.accept(this));
+    m.body().ifPresent(this::visitE);
   }
-  @Override public Void visitX(X n){ return null; }
-  @Override public Void visitRound(Round r){ return r.e().accept(this); }
-  @Override public Void visitImplicit(Implicit n){ return null; }
-  @Override public Void visitTypedLiteral(TypedLiteral t){
-    t.l().ifPresent(this::visitLiteral);
-    return null;
+  private void visitE(E e){
+    switch (e){
+      case X _, Implicit _ -> {}
+      case Round r -> visitE(r.e());
+      case TypedLiteral t -> t.l().ifPresent(this::visitLiteral);
+      case DeclarationLiteral c -> visitInnerDeclaration(c.dec());
+      case Literal c -> visitLiteral(c);
+      case Call c -> visitCall(c);
+    }
   }
-  @Override public Void visitDeclarationLiteral(DeclarationLiteral c){
-    this.visitInnerDeclaration(c.dec());    
-    return null;
-  }
-  @Override public Void visitCall(Call c){
-    c.e().accept(this);
+  private void visitCall(Call c){
+    visitE(c.e());
     c.pat().ifPresent(this::visitInnerXPat);
-    c.es().forEach(ei->ei.accept(this));
-    return null;
+    c.es().forEach(this::visitE);
   }
 }

@@ -1,9 +1,10 @@
 package message;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
-import java.util.stream.IntStream;
+import java.util.function.Consumer;
 
 import core.*;
 import core.E.*;
@@ -11,6 +12,7 @@ import core.T.C;
 import utils.Bug;
 import utils.Join;
 import utils.Range;
+import utils.Streams;
 
 public class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses, boolean trunk){ t= new TypeNamePrinter(trunk,mainPkg,uses); }
@@ -75,8 +77,9 @@ public class CompactPrinter{
   } // nothing if x is _ it will be printed as just the type, or "x:"
   static void accTargs(CompactPrinter sb, RC rc, List<PT> targs){
     if (!showTargs(rc,targs.size())){ return; }
-    if (targs.isEmpty()){sb.append("[").append(rc).append("]"); return; }
-    wrap(sb,"["+rc+",","]",targs,",",PN::accString);
+    sb.append("[").append(rc);
+    wrap(sb,",","",targs,",",PN::accString);
+    sb.append("]");
   }
   public sealed interface PN{
     default Compactable k(){ return Compactable.no; }
@@ -141,11 +144,8 @@ public class CompactPrinter{
   }
   public record PC(String name, List<PT> ts, Compactable k) implements PN{
     public int size(){
-      int s= name.length();
-      if (ts.isEmpty()){ return s; }
-      s += 2 + seps(ts.size()); // [ , ]
-      if (k.isCompactable()){ return s + sum(ts, PT::size); }
-      return s + ts.size(); // one "-" per hidden arg
+      if (k.isCompactable()){ return name.length() + wrapLen(ts,2,PT::size); } // [ , ]
+      return name.length() + wrapLen(ts,2,_->1); // one "-" per hidden arg
     }
     public void accString(CompactPrinter sb){
       sb.append(name);
@@ -156,34 +156,28 @@ public class CompactPrinter{
     public int size(){
       if (k.isCompactable()){
         int s= length + sum(ts, PT::size) + ret.size();
-        return body.isEmpty() ? s : s + body.get().size();
+        return body.map(b->s+b.size()).orElse(s);
       }
-      if (body.isPresent()){
-        if (xs.isEmpty()){ return body.get().size(); }
-        return 4 + seps(xs.size()) + xs.size() + body.get().size(); // (-s)->e
-      }
-      if (xs.isEmpty()){ return m.length(); }
-      return m.length() + 2 + seps(xs.size()) + xs.size(); // m(-s)
+      if (body.isPresent()){ return wrapLen(xs,4,_->1) + body.get().size(); } // (-s)->e
+      return m.length() + wrapLen(xs,2,_->1); // m(-s)
     }
     public void accString(CompactPrinter sb){
       if (!k.isCompactable()){ accCompactedMeth(sb); return; }
       sb.append(rc.toStrSpace());
       sb.append(m);
       sb.append(bs);
-      wrap(sb,"(",")",IntStream.range(0,xs.size()).boxed().toList(),",",(i,b)->{
-        String x= xs.get(i);
-        if (!x.equals("_")){ b.append(x).append(":"); }
-        ts.get(i).accString(b);
-        });
+      wrap(sb,"(",")",Streams.zip(xs,ts).<Consumer<CompactPrinter>>map((x,t)->b->param(b,x,t)).toList(),",",Consumer::accept);
       sb.append(":");
       ret.accString(sb);
       body.ifPresent(e->{ sb.append("->"); e.accString(sb); });
     }
+    private static void param(CompactPrinter b, String x, PT t){
+      if (!x.equals("_")){ b.append(x).append(":"); }
+      t.accString(b);
+    }
     private void accCompactedMeth(CompactPrinter sb){
       if (body.isEmpty()){ sb.append(m); wrap(sb,"(",")",xs,",",(_,b)->b.append("-")); return; }
-      if (xs.isEmpty()){ body.get().accString(sb); return; }
-      wrap(sb,"(",")",xs,",",(_,b)->b.append("-"));
-      sb.append("->");
+      wrap(sb,"(",")->",xs,",",(_,b)->b.append("-"));
       body.get().accString(sb);
     }
   }
@@ -200,7 +194,7 @@ public class CompactPrinter{
       callLen(c.name().s(), c.rc(), targs.size(), args.size()));
   }
   PE ofLit(Literal l){
-    var ms= ofMs(l.name(),l.ms());
+    var ms= ofMs(l);
     boolean priv= l.infName();
     var name= priv ? ""
       : t.of(l.name()) + bounds(l.bs())+":"; // name[bs]:
@@ -246,14 +240,14 @@ public class CompactPrinter{
     int len= rcPrefixLen(s.rc()) + s.m().s().length() + bs.length() + (xs.isEmpty() ? 1 : 3 + seps(xs.size()) + xsWithColonsLen(xs)) + (body.isPresent() ? 2 : 0);
     return new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), body, Compactable.of(), len);
   }
-  List<PM> ofMs(TName origin, List<M> ms){
-    return ms.stream()
-      .filter(m->m.sig().origin().equals(origin))
+  List<PM> ofMs(Literal l){
+    return l.ms().stream()
+      .filter(m->m.sig().origin().equals(l.name()))
       .map(m->ofM(m.sig(), m.xs(), m.e().map(this::ofE)))
       .toList();
   }
   public String sig(Sig s){
-    var pm= ofM(s, IntStream.range(0,s.m().arity()).mapToObj(_->"_").toList(), Optional.empty());
+    var pm= ofM(s, Collections.nCopies(s.m().arity(),"_"),Optional.empty());
     assert sb.isEmpty();
     sb.append(" ".repeat(6-rcPrefixLen(s.rc())));//line up
     pm.accString(this);

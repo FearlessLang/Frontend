@@ -7,25 +7,23 @@ import java.util.stream.Stream;
 
 import core.FearlessException;
 import core.LiteralDeclarations;
-import core.OtherPackages;
 import core.RC;
 import core.TName;
 import fearlessParser.TokenKind;
 import inference.E;
-import naming.FreshPrefix;
-import pkgmerge.Package;
 
 public class ToInference{
-  private TName fCurrent(Package p, TName simple, TName full, boolean withPkg, OtherPackages other){
-    assert simple.pkgName().isEmpty();
+  private TName fCurrent(Methods meths, TName full, boolean withPkg){
+    var p= meths.p();
+    var simple= full.withoutPkgName();
     assert p.names().decNames().stream().allMatch(n->n.pkgName().isEmpty());
-    var defined= p.names().decNames().stream()
-      .anyMatch(tni->tni.equals(simple)); //this also checks arity
+    var defined= p.names().decNames().contains(simple); //this also checks arity
     if (defined){ return full; } //here, we know it is not defined (either at all or with the right arity)
-    throw undeclaredType(withPkg?full:simple,p.name(),p,other);
+    throw undeclaredType(withPkg?full:simple,p.name(),meths);
     }
-  private FearlessException undeclaredType(TName tn, String contextPkg, Package p, OtherPackages other){
-    var otherTypes= other.dom();
+  private FearlessException undeclaredType(TName tn, String contextPkg, Methods meths){
+    var p= meths.p();
+    var otherTypes= meths.other().dom();
     var declared= p.names().decNames();
     var imported= p.map().entrySet().stream()
       .filter(e->TokenKind.isKind(e.getKey(), TokenKind.UppercaseId))
@@ -37,7 +35,8 @@ public class ToInference{
     var all= Stream.concat(declared.stream().map(t->t.withPkgName(p.name())), otherTypes.stream()).toList();
     return p.err().usedUndeclaredName(tn, contextPkg, scope, all);
   }
-  public List<E.Literal> of(Package p, Methods meths, OtherPackages other, FreshPrefix fresh){
+  public List<E.Literal> of(Methods meths){
+    var p= meths.p();
     Function<TName,TName> f= tn->{
       var pN= tn.pkgName();
       if (pN.isEmpty()){
@@ -45,25 +44,24 @@ public class ToInference{
         var mapped= p.map().get(tn.s());
         if (mapped != null){
           var res= new TName(mapped,tn.arity(),tn.pos());
-          var ok= other.dom().stream().anyMatch(t->t.equals(res));
-          if (!ok){ throw undeclaredType(tn,res.pkgName(),p,other); }
+          var ok= meths.other().dom().contains(res);
+          if (!ok){ throw undeclaredType(tn,res.pkgName(),meths); }
           return res;
         }
-        return fCurrent(p,tn,tn.withPkgName(p.name()),false,other);
+        return fCurrent(meths,tn.withPkgName(p.name()),false);
       }
-      var mPN= p.map().get(pN);
-      var pkg= mPN == null ? pN : mPN;
-      if (mPN != null){ tn= tn.withOverridePkgName(mPN); }
-      if (pkg.equals(p.name())){ return fCurrent(p,tn.withoutPkgName(),tn,true,other); }
+      var pkg= p.map().getOrDefault(pN,pN);
+      tn= tn.withOverridePkgName(pkg);
+      if (pkg.equals(p.name())){ return fCurrent(meths,tn,true); }
       var lit= pkg.equals("base") && LiteralDeclarations.isPrimitiveLiteral(tn.simpleName());
       if (lit){ return tn; }
-      if (other.__of(tn) != null){ return tn; }
-      throw undeclaredType(tn,p.name(),p,other);
+      if (meths.other().__of(tn) != null){ return tn; }
+      throw undeclaredType(tn,p.name(),meths);
     };
     ArrayList<E.Literal> decs= new ArrayList<>();
     p.decs().forEach(di->{
       TName name= f.apply(di.name());
-      var v= new InjectionToInferenceVisitor(meths,name,new ArrayList<>(),f,decs,p,other,fresh);
+      var v= new InjectionToInferenceVisitor(meths,name,new ArrayList<>(),f,decs);
       v.addDeclaration(name,RC.mut,di,true);
     });
     return List.copyOf(decs);

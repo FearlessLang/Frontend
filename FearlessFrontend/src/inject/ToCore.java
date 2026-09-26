@@ -15,6 +15,7 @@ import inference.IT;
 import offensiveUtils.EqTransparent;
 import utils.Bug;
 import utils.OneOr;
+import utils.Push;
 import utils.Streams;
 
 public record ToCore(List<B> ctx){
@@ -27,7 +28,7 @@ public record ToCore(List<B> ctx){
   };}
   core.E.Type type(IT.RCC type, Src src){ return new core.E.Type(new T.RCC(type.rc().orElse(RC.imm),TypeRename.itcToTC(type.c()),type.span()),src); }
   core.E.Literal literal(inference.E.Literal e, inference.E.Literal o){
-    var rc= o.rc().orElse(e.rc().orElse(RC.imm));
+    var rc= o.rc().or(e::rc).orElse(RC.imm);
     assert o.infName() == e.infName();
     assert o.infName() || e.name().equals(o.name());
     assert e.thisName().equals(o.thisName());
@@ -36,9 +37,9 @@ public record ToCore(List<B> ctx){
     var bs= oBs.orElse(e.bs());
     if (e.infName() && bs.isEmpty()){ bs= uncommittedBs(e); }
     var name= e.name().withArity(bs.size());
-    var inner= new ToCore(Stream.concat(ctx.stream(),bs.stream()).distinct().toList());
+    var inner= new ToCore(Push.of(ctx,bs).stream().distinct().toList());
     var ms= inner.mapMs(e.ms(),o.ms()).stream().map(m->withOrigin(m,e.name(),name)).toList();
-    var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():Stream.concat(o.cs().stream(),e.cs().stream()).distinct().toList());
+    var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():Push.of(o.cs(),e.cs()).stream().distinct().toList());
     return new core.E.Literal(rc,name,bs,cs,e.thisName(),ms,e.src(),e.infName());
   }
   private List<B> uncommittedBs(inference.E.Literal e){
@@ -48,7 +49,7 @@ public record ToCore(List<B> ctx){
   private static core.M withOrigin(core.M m, TName from, TName to){
     var s= m.sig();
     if (!s.origin().equals(from)){ return m; }
-    return new core.M(new core.Sig(s.rc(),s.m(),s.bs(),s.ts(),s.ret(),to,s.abs(),s.span()),m.xs(),m.e());
+    return m.withSig(new core.Sig(s.rc(),s.m(),s.bs(),s.ts(),s.ret(),to,s.abs(),s.span()));
   }
   Optional<List<B>> originalBs(inference.E.Literal o){
     boolean explicit= switch (o.src().inner){
@@ -63,8 +64,8 @@ public record ToCore(List<B> ctx){
   
   private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){ return Streams.zip(es,oEs).map(this::of).toList(); }
   core.E.Call call(inference.E.Call e, CallLike o){
-    var rc= o.rc.orElse(e.rc().orElse(RC.imm));
-    var targs= !o.targs.isEmpty() ? o.targs : e.targs();
+    var rc= o.rc.or(e::rc).orElse(RC.imm);
+    var targs= o.targs.isEmpty() ? e.targs() : o.targs;
     return new core.E.Call(of(e.e(),o.e),e.name(),rc,TypeRename.itToT(targs),mapArgs(e.es(),o.es),new EqTransparent<>(TypeRename.itToT(e.t())),e.src());
   }
   core.E.Call callFromICall(inference.E.ICall e, CallLike o){
@@ -74,7 +75,7 @@ public record ToCore(List<B> ctx){
   }
   private List<core.M> mapMs(List<inference.M> es, List<inference.M> os){
     return es.stream()
-      .map(me->me.impl().isEmpty()? m(me,me) : m(me,matchM(os,me)))
+      .map(me->m(me,me.impl().isEmpty() ? me : matchM(os,me)))
       .toList();
   }
   private static inference.M matchM(List<inference.M> os, inference.M e){
@@ -87,19 +88,18 @@ public record ToCore(List<B> ctx){
       assert o.impl().isEmpty();
       return new core.M(s,nUnderscores(s.ts().size()),Optional.empty());
     }
-    assert o.impl().isPresent();
     var ei= e.impl().get();
     var oi= o.impl().get();
-    var inner= new ToCore(Stream.concat(ctx.stream(),s.bs().stream()).distinct().toList());
+    var inner= new ToCore(Push.of(ctx,s.bs()).stream().distinct().toList());
     return new core.M(s,ei.xs(),Optional.of(inner.of(ei.e(),oi.e())));
   }
   core.Sig sig(inference.M.Sig inf, inference.M.Sig usr){
     var ts= Streams.zip(usr.ts(),inf.ts()).map((u,i)->u.or(()->i)).toList();
-    var ret= usr.ret().isEmpty() ? inf.ret() : usr.ret();
-    var rc= usr.rc().orElse(inf.rc().orElse(RC.imm));
-    var m= usr.m().orElse(inf.m().orElse(new MName(".inferenceFailed", ts.size())));
-    var bs= usr.bs().orElse(inf.bs().orElse(List.of()));
-    var origin= usr.origin().orElse(inf.origin().orElse(TypeRename.inferUnknown.c().name()));
+    var ret= usr.ret().or(inf::ret);
+    var rc= usr.rc().or(inf::rc).orElse(RC.imm);
+    var m= usr.m().or(inf::m).orElse(new MName(".inferenceFailed", ts.size()));
+    var bs= usr.bs().or(inf::bs).orElse(List.of());
+    var origin= usr.origin().or(inf::origin).orElse(TypeRename.inferUnknown.c().name());
     return new core.Sig(rc,m,bs,TypeRename.itOptToT(ts),TypeRename.itToT(ret),origin,usr.abs(),usr.span());
   }
   private static inference.E.Literal litLike(inference.E o,inference.E.Literal e){

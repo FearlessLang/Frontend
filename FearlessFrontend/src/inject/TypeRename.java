@@ -14,7 +14,6 @@ public final class TypeRename{
   private TypeRename(){}
   public static T of(T t, List<String> xs, List<T> ts){
     assert xs.size() == ts.size();
-    if (xs.isEmpty()){ return t; }
     return switch (t){
       case T.X x -> getOrSame(x,x.name(),xs,ts);
       case T.RCX(RC rc, var x) -> withRC(of(x,xs,ts),rc);
@@ -25,13 +24,9 @@ public final class TypeRename{
   public static T.C of(T.C c, List<String> xs, List<T> ts){ return c.withTs(ofT(c.ts(),xs,ts)); }
   //TODO: much code could be made faster if instead of xs+ts being list, they were Function<Integer,XX>..
   //no, we need get, size and indexof. But, what about a single data structure that pairs them somehow?
-  public static List<T> ofT(List<T> tsi ,List<String> xs, List<T> ts){
-    if (xs.isEmpty()){ return tsi; }
-    return tsi.stream().map(ti->of(ti,xs,ts)).toList();
-  }
+  public static List<T> ofT(List<T> tsi ,List<String> xs, List<T> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
   public static IT of(IT t, List<String> xs, List<IT> ts){
     assert xs.size() == ts.size();
-    if (xs.isEmpty()){ return t; }
     return switch (t){
       case IT.X x -> getOrSame(x,x.name(),xs,ts);
       case IT.RCX(RC rc, var x) -> of(x,xs,ts).withRC(rc);
@@ -40,17 +35,9 @@ public final class TypeRename{
       case IT.U u -> u;
     };
   }
-  public static List<IT> ofIT(List<IT> tsi ,List<String> xs, List<IT> ts){
-    if (xs.isEmpty()){ return tsi; }
-    return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
-  public static List<IT.C> ofITC(List<IT.C> csi, List<String> xs, List<IT> ts){
-    if (xs.isEmpty()){ return csi; }
-    return csi.stream().map(c->of(c,xs,ts)).toList();
-  }
-  public static IT.C of(IT.C c, List<String> xs, List<IT> ts){
-    if (xs.isEmpty()){ return c; }
-    return new IT.C(c.name(), ofIT(c.ts(),xs,ts));
-  }
+  public static List<IT> ofIT(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
+  public static List<IT.C> ofITC(List<IT.C> csi, List<String> xs, List<IT> ts){ return csi.stream().map(c->of(c,xs,ts)).toList(); }
+  public static IT.C of(IT.C c, List<String> xs, List<IT> ts){ return new IT.C(c.name(), ofIT(c.ts(),xs,ts)); }
   public static List<Optional<IT>> ofITOpt(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti,xs,ts))).toList(); }
   public static List<Optional<IT>> ofOptITOpt(List<Optional<IT>> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti.get(),xs,ts))).toList(); }
   public static <A> A getOrSame(A x, String name, List<String> xs, List<A> ts){
@@ -60,8 +47,8 @@ public final class TypeRename{
   public static List<IT.C> tcToITC(List<T.C> cs){ return cs.stream().map(TypeRename::tcToITC).toList(); }
   public static List<IT> tToIT(List<T> cs){ return cs.stream().map(TypeRename::tToIT).toList(); }
   public static List<T> itToT(List<IT> cs){ return cs.stream().map(TypeRename::itToT).toList(); }
-  public static List<T> itOptToT(List<Optional<IT>> ts){ return ts.stream().map(ti->itToT(ti)).toList(); }
-  public static T itToT(Optional<IT> t){ return t.map(ti->itToT(ti)).orElse(inferUnknown); }
+  public static List<T> itOptToT(List<Optional<IT>> ts){ return ts.stream().map(TypeRename::itToT).toList(); }
+  public static T itToT(Optional<IT> t){ return t.map(TypeRename::itToT).orElse(inferUnknown); }
   public static T.C itcToTC(IT.C c){ return new T.C(c.name(),itToT(c.ts())); }
   public static List<T.C> itcToTC(List<IT.C> cs){ return cs.stream().map(TypeRename::itcToTC).toList(); }
   public static IT.C tcToITC(T.C c){ return new IT.C(c.name(),tToIT(c.ts())); }

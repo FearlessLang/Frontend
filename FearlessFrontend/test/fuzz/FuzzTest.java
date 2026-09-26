@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import core.FearlessException;
 import core.OtherPackages;
+import fearlessParser.Parse;
 import testUtils.DbgBlock;
 import tools.SourceOracle;
 import utils.Join;
@@ -30,6 +31,14 @@ public class FuzzTest extends testUtils.FearlessTestBase{
     "::","A","B","X","_","*","**","base.Void","#"," +");
   static final List<String> Rcs= List.of("mut","read","imm","iso","readH","mutH");
   static final Pattern Rc= Pattern.compile("\\b(mut|read|imm|iso|readH|mutH)\\b");
+  static final String Type= "(?:(?:mut|read|imm|iso|readH|mutH) )?[A-Z][\\w.]*(?:\\[[^\\[\\]]*\\])?";
+  static final List<Pattern> Annotations= Stream.of(
+    "\\.[a-z_]\\w*(\\[[^\\[\\]]*\\])",
+    "(?<![:\\w.'])("+Type+")\\{",
+    "[a-z_]\\w*(:"+Type+")(?=[,)])",
+    "[)\\w](:"+Type+")\\s*->",
+    "\\b((?:mut|read|imm|iso|readH|mutH) )"
+  ).map(Pattern::compile).toList();
 
 @Test void mutatedTestProgramsNeverCrash(){
   var seeds= seeds();
@@ -38,6 +47,14 @@ public class FuzzTest extends testUtils.FearlessTestBase{
   var crashes= new TreeMap<String,String>();
   for (var s : seeds){ run(s,other,crashes); }
   for (int i= 0; i < Cases; i++){ run(mutate(seeds.get(rnd.nextInt(seeds.size())),rnd,seeds),other,crashes); }
+  strCmp("", Join.of(crashes.entrySet().stream().map(e->e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
+}
+@Test void underAnnotatedTestProgramsNeverCrash(){
+  var seeds= seeds().stream().filter(FuzzTest::annotated).filter(FuzzTest::parses).toList();
+  var other= otherFrom(DbgBlock.all());
+  var rnd= new Random(0);
+  var crashes= new TreeMap<String,String>();
+  for (int i= 0; i < Cases; i++){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())),rnd),other,crashes); }
   strCmp("", Join.of(crashes.entrySet().stream().map(e->e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
 }
   static void run(String src, OtherPackages other, TreeMap<String,String> crashes){
@@ -87,6 +104,23 @@ public class FuzzTest extends testUtils.FearlessTestBase{
       case 3 -> insert(s,p,slice(seeds.get(r.nextInt(seeds.size())),r,20));
       default -> swapRc(s,r);
     };
+  }
+  static String underAnnotate(String s, Random r){
+    int k= 1 + r.nextInt(4);
+    for (int i= 0; i < k; i++){ s= dropAnnotation(s,r); }
+    return s;
+  }
+  static String dropAnnotation(String s, Random r){
+    var byPattern= Annotations.stream().map(p->p.matcher(s).results().toList()).filter(ms->!ms.isEmpty()).toList();
+    if (byPattern.isEmpty()){ return s; }
+    var ms= byPattern.get(r.nextInt(byPattern.size()));
+    var m= ms.get(r.nextInt(ms.size()));
+    return s.substring(0,m.start(1)) + s.substring(m.end(1));
+  }
+  static boolean annotated(String s){ return Annotations.stream().anyMatch(p->p.matcher(s).find()); }
+  static boolean parses(String s){
+    try{ Parse.from(SourceOracle.defaultDbgFearPath(0), s); return true; }
+    catch(FearlessException _){ return false; }
   }
   static String insert(String s, int at, String t){ return s.substring(0,at) + t + s.substring(at); }
   static String slice(String s, int from, int maxLen){ return s.substring(from,Math.min(s.length(),from+maxLen)); }

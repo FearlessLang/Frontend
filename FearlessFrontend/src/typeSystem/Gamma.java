@@ -1,14 +1,12 @@
 package typeSystem;
 
-import static offensiveUtils.Require.*;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
 import core.*;
 import core.E.*;
-import utils.Range;
+import utils.Streams;
 import typeSystem.Change.*;
 
 public record Gamma(Gamma tail, String name, T t, Change current){
@@ -19,12 +17,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     if (this == _empty){ return this; }
     return new Gamma(tail.map(f), name, t, f.apply(current));
   }
-  public Gamma addAll(List<T> ts, List<String> xs){
-    var res= this;
-    assert eq(xs.size(),ts.size(),"Arity mismatch in bodyOk");
-    for (int i : Range.of(xs)){ res= res.add(xs.get(i),ts.get(i)); }
-    return res;
-  }
+  public Gamma addAll(List<T> ts, List<String> xs){ return Streams.zip(xs, ts).fold(Gamma::add, this); }
   public record Binding(T declared, Change current){}
   public Binding bind(String x){ return Objects.requireNonNull(_bindOrNull(x)); }
   public Binding _bindOrNull(String x){
@@ -45,9 +38,9 @@ public record Gamma(Gamma tail, String name, T t, Change current){
   }
   //Above can not reuse FreeXs since FreeXs works on IT
   boolean hasOnlyFTV(T t, List<B> bs){ return switch (t){
-    case T.X x -> bs.stream().anyMatch(b->b.x().equals(x.name()));
-    case T.RCX(_, var x) -> bs.stream().anyMatch(b->b.x().equals(x.name()));
-    case T.ReadImmX(var x) -> bs.stream().anyMatch(b->b.x().equals(x.name()));
+    case T.X x -> B.xs(bs).contains(x.name());
+    case T.RCX(_, var x) -> hasOnlyFTV(x,bs);
+    case T.ReadImmX(var x) -> hasOnlyFTV(x,bs);
     case T.RCC(_, var c,_) -> c.ts().stream().allMatch(ti->hasOnlyFTV(ti,bs));
   };}
 }

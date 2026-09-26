@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -27,6 +28,8 @@ import inference.M.Sig;
 import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
+import utils.Push;
+import utils.Streams;
 
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
@@ -63,20 +66,18 @@ public record Methods(
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps? Something similar has been done for MSigL 
   CsMs fetch(E.Literal child,IT.C c,core.E.Literal d){ //d == from(c.name()); but from can be undefined for {..}.foo
-    List<String> xs= d.bs().stream().map(b->b.x()).toList();
-    return new CsMs(fetchCs(c),d.ms().stream().map(m->alphaSig(m,xs,c,child)).toList());
+    return new CsMs(fetchCs(c),d.ms().stream().map(m->alphaSig(m,d,c,child)).toList());
   }
   List<IT.C> fetchCs(IT.C c){
     core.E.Literal d= _from(c.name());
     if (d == null){ return List.of(); }//case {..}.foo
-    List<String> xs= d.bs().stream().map(b->b.x()).toList();
-    return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
+    return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),B.xs(d.bs()),c.ts());
   }
-  private inference.M.Sig alphaSig(core.M m, List<String> xs, IT.C c, E.Literal child){
+  private inference.M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child){
     var s= m.sig();
-    var fullXs= new ArrayList<>(xs);
+    var fullXs= new ArrayList<>(B.xs(d.bs()));
     var fullTs= new ArrayList<>(c.ts());
-    List<B> newBs= s.bs().isEmpty()?List.of():new ArrayList<B>(s.bs().size());
+    var newBs= new ArrayList<B>(s.bs().size());
     for (B b: s.bs()){
       var x= b.x();
       if (fresh.isFreshGeneric(child.name(),x)){ newBs.add(b); continue; }
@@ -90,22 +91,14 @@ public record Methods(
     IT newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
     return new inference.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),child.span());
   }
-  public core.E.Literal from(TName name){
-    var res= _from(name);
-    assert res != null;
-    return res;
-  }
+  public core.E.Literal from(TName name){ return Objects.requireNonNull(_from(name)); }
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache::get,other); }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
     List<CsMs> ds= d.cs().stream().map(c->fetch(d,c,from(c.name()))).toList();
-    List<IT.C> allCs= Stream.concat(
-      d.cs().stream(),
-      ds.stream().flatMap(dsi->dsi.cs().stream())
-        .distinct().sorted(Comparator.comparing(Object::toString))
-      ).toList();
     var implied= ds.stream().flatMap(dsi->dsi.cs().stream()).toList();
-    List<M.Sig> allSig= IntStream.range(0,ds.size()).filter(i->!implied.contains(d.cs().get(i)))
-      .boxed().flatMap(i->ds.get(i).sigs().stream()).toList();
+    List<IT.C> allCs= Push.of(d.cs(),implied.stream().distinct().sorted(Comparator.comparing(Object::toString)).toList());
+    List<M.Sig> allSig= Streams.zip(d.cs(),ds).filter((c,_)->!implied.contains(c))
+      .flatMap((_,dsi)->dsi.sigs().stream()).toList();
     List<M> allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
     var res= d.withCsMs(allCs,allMs,setInfHead);
     checkMagicSupertypes(res, allCs);
@@ -116,7 +109,7 @@ public record Methods(
     var dd= _from(c.name());//null for the case {..}.foo
     List<M.Sig> allSig= dd==null ?List.of() : fetch(d,c,dd).sigs();
     List<M> allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
-    List<IT.C> allCs= Stream.concat(Stream.of(c), fetchCs(c).stream()).distinct().toList();
+    List<IT.C> allCs= Push.of(c,fetchCs(c)).stream().distinct().toList();
     return d.withCsMs(allCs, allMs, true);
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
@@ -171,12 +164,12 @@ public record Methods(
       changed= true;
       var arity= m.sig().ts().size();
       var match= new ArrayList<M.Sig>();
-      ss.removeIf(s->s.m().get().arity()==arity && s.abs()?match.add(s):false);
+      ss.removeIf(s->s.m().get().arity()==arity && s.abs() && match.add(s));
       var count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
       if (count > 1){ throw p.err().ambiguousImpl(origin,true,m,match); }
       assert match.isEmpty();
-      ss.removeIf(s->s.m().get().arity()==arity?match.add(s):false);
+      ss.removeIf(s->s.m().get().arity()==arity && match.add(s));
       count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
       if (count > 1){ throw p.err().ambiguousImpl(origin,false,m,match); }
@@ -191,8 +184,8 @@ public record Methods(
       var name= m.sig().m().get();
       var rc= m.sig().rc();
       var match= new LinkedHashMap<RC,List<M.Sig>>();    
-      ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))?acc(match,s):false);
-      if (m.sig().rc().isEmpty()  && match.size() > 1){
+      ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && acc(match,s));
+      if (rc.isEmpty() && match.size() > 1){
         var litRc= origin.rc().or(origin.t()::explicitRC).orElseThrow();
         if (litRc == RC.imm || litRc == RC.read){
           var dead= match.remove(RC.mut);
@@ -251,13 +244,13 @@ public record Methods(
     var superArities= superBsList.stream().map(List::size).distinct().toList();
     if (superArities.size() != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at, superBsList); }
     if (superArities.getFirst() != userBs.size()){ throw p.err().methodGenericArityDisagreesWithSupers(at, userBs, superBsList.getFirst()); }
-    var bounds= allBounds.stream().map(l->l.stream().map(e->e.rcs()).toList())
+    var bounds= allBounds.stream().map(l->l.stream().map(B::rcs).toList())
       .distinct().count();
     if (bounds!= 1){ throw p.err().methodBsDisagreementBetweenSupers(at, allBounds); }
     var supBs= allBounds.getFirst();
     assert supBs.size() == userBs.size();
-    var supRCs= supBs.stream().map(b->b.rcs()).toList();
-    var userRCs= userBs.stream().map(b->b.rcs()).toList();
+    var supRCs= supBs.stream().map(B::rcs).toList();
+    var userRCs= userBs.stream().map(B::rcs).toList();
     if (supRCs.equals(userRCs)){ return userBs; }
     throw p.err().methodBsDisagreesWithSupers(at, userBs,supBs);
   }      
@@ -306,19 +299,17 @@ public record Methods(
   public record Agreement(E.Literal lit,Optional<RC> rc, MName mName, Span span){}
   
   List<B> agreementBs(Agreement at,List<List<B>> res){
-    if (res.size() == 1){ return res.getFirst(); }
     var sizes= res.stream().map(List::size).distinct().count();
     if (sizes != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at,res); }
-    var bounds= res.stream().map(l->l.stream().map(e->e.rcs()).toList()).distinct().count();
+    var bounds= res.stream().map(l->l.stream().map(B::rcs).toList()).distinct().count();
     if (bounds== 1){ return res.getFirst(); }
     throw p.err().methodBsDisagreementBetweenSupers(at, res);
   }
   private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){
     assert superSig.isFull();
-    if (superSig.bs().get().isEmpty()){ return superSig; }
-    var fromXs= superSig.bs().get().stream().map(B::x).toList();
-    var toITs= targetBs.stream().<IT>map(b->new IT.X(b.x(),superSig.span())).toList();
+    var fromXs= B.xs(superSig.bs().get());
+    var toITs= MSigL.toXs(superSig.span(),B.xs(targetBs));
     assert fromXs.size() == toITs.size();
     var renamedTs= TypeRename.ofOptITOpt(superSig.ts(), fromXs, toITs);
     var renamedRet= superSig.ret().map(it->TypeRename.of(it, fromXs, toITs));
