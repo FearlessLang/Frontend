@@ -13,7 +13,7 @@ public record FreshPrefix(
     String pkgName){
   private static final char[] up= "ABCDEFGHJKMNPQRSTUVWXYZ".toCharArray();
   private static final char[] low= "abcdefghjkmnpqrstuvwxyz".toCharArray();
-  private static record OwnerState(
+  private record OwnerState(
       Set<String> gen,
       Map<String,Integer> genSeq,
       Set<String> vars,

@@ -73,7 +73,7 @@ public class CompactPrinter{
     return m.length() + targsPunctLen(rc,nt) + argsPunctLen(na);
   }
   static int xsWithColonsLen(List<String> xs){
-    return sum(xs, x->x.equals("_")? 0: x.length() + 1);
+    return sum(xs, x->x.equals("_") ? 0 : x.length() + 1);
   } // nothing if x is _ it will be printed as just the type, or "x:"
   static void accTargs(CompactPrinter sb, RC rc, List<PT> targs){
     if (!showTargs(rc,targs.size())){ return; }
@@ -114,7 +114,7 @@ public class CompactPrinter{
     public int size(){
       if (k.isCompactable()){ return length + wrapLen(cs,0,PC::size) + sum(ms, PM::size); }
       if (!priv){ return rcPrefixLen(rc) + name.length() + 3; }            // name already has ":"; then "{-}"
-      int c0= cs.isEmpty()? 0 : cs.getFirst().size();
+      int c0= cs.isEmpty() ? 0 : cs.getFirst().size();
       return rcPrefixLen(rc) + c0 + 3;                                     // Bar{-} or {-}
     }
     public void accString(CompactPrinter sb){

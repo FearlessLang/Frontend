@@ -107,7 +107,7 @@ public record Methods(
   //expandLiteral works on an incomplete literal with the cs list not there yet
   public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
     var dd= _from(c.name());//null for the case {..}.foo
-    List<M.Sig> allSig= dd==null ?List.of() : fetch(d,c,dd).sigs();
+    List<M.Sig> allSig= dd == null ? List.of() : fetch(d,c,dd).sigs();
     List<M> allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
     List<IT.C> allCs= Push.of(c,fetchCs(c)).stream().distinct().toList();
     return d.withCsMs(allCs, allMs, true);
@@ -138,7 +138,8 @@ public record Methods(
   private static final MName hashOne= new MName("#",1);
   void notSealed(TName target, E.Literal owner){
     var d= LiteralDeclarations._from(target, _->null, other);
-    if (!LiteralDeclarations.has(d.cs(),LiteralDeclarations.sealed)){ return; }
+    var targetSealed= LiteralDeclarations.has(d.cs(),LiteralDeclarations.sealed);
+    if (!targetSealed){ return; }
     throw p.err().extendedSealed(owner, target);
   }
 
@@ -169,12 +170,12 @@ public record Methods(
       changed= true;
       var arity= m.sig().ts().size();
       var match= new ArrayList<M.Sig>();
-      ss.removeIf(s->s.m().get().arity()==arity && s.abs() && match.add(s));
+      ss.removeIf(s->s.m().get().arity() == arity && s.abs() && match.add(s));
       var count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
       if (count > 1){ throw p.err().ambiguousImpl(origin,true,m,match); }
       assert match.isEmpty();
-      ss.removeIf(s->s.m().get().arity()==arity && match.add(s));
+      ss.removeIf(s->s.m().get().arity() == arity && match.add(s));
       count= namesCount(match);
       if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
       if (count > 1){ throw p.err().ambiguousImpl(origin,false,m,match); }

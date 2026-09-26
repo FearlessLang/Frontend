@@ -54,7 +54,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   IT visitReadImmX(fearlessFullGrammar.T.ReadImmX x){ return new IT.ReadImmX(visitTX(x.x())); }
   IT visitRCX(fearlessFullGrammar.T.RCX x){ return new IT.RCX(x.rc(), visitTX(x.x())); }
   IT.RCC visitRCC(fearlessFullGrammar.T.RCC c){
-    return new IT.RCC(Optional.of(c.rc().orElse(RC.imm)),visitC(c.c()),c.span());
+    return new IT.RCC(of(c.rc().orElse(RC.imm)),visitC(c.c()),c.span());
   }
   public IT.C visitC(fearlessFullGrammar.T.C c){
     var tName= c.name();
@@ -170,7 +170,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){
     var ms= mapM(l.methods());
     var name= l.thisName().map(n->n.name());
-    return liftLiteral(Optional.empty(),List.of(),name,ms,new Src(l));
+    return liftLiteral(empty(),List.of(),name,ms,new Src(l));
   }
   E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(),new Src(x)); }
   E visitImplicit(fearlessFullGrammar.E.Implicit n){ return new E.X(implicits.getLast(),new Src(n)); }
@@ -178,7 +178,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     if (t.l().isEmpty()){ return new E.Type(visitRCC(t.t()),new Src(t)); }
     List<IT.C> impl= List.of(visitC(t.t().c()));
     var ms= mapM(t.l().get().methods());
-    E.Literal l= liftLiteral(Optional.of(t.t().rc().orElse(RC.imm)),impl,t.l().get().thisName().map(n->n.name()), ms,new Src(t));
+    E.Literal l= liftLiteral(of(t.t().rc().orElse(RC.imm)),impl,t.l().get().thisName().map(n->n.name()), ms,new Src(t));
     decs.add(l);
     return l;
   }
@@ -192,7 +192,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     List<B> bs= d.bs().map(this::mapB).orElse(List.of());
     List<IT.C> cs= mapC(d.cs());
     List<M> ms= mapM(d.l().methods());
-    E.Literal l= new E.Literal(Optional.of(rc),name,bs,cs,thisName, ms, new Src(d),false);
+    E.Literal l= new E.Literal(of(rc),name,bs,cs,thisName, ms, new Src(d),false);
     decs.add(l);
     return l;
   }

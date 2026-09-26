@@ -152,7 +152,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private static final MName asOne= new MName(".as",1);
   private void baseIdOk(Literal l){
-    if (!LiteralDeclarations.has(l.cs(),LiteralDeclarations.baseId)){ return; }
+    var isBaseId= LiteralDeclarations.has(l.cs(),LiteralDeclarations.baseId);
+    if (!isBaseId){ return; }
     var m= OneOr.of("BaseId literals declare only #",l.ms().stream());
     var badBody= m.e().isPresent() && !isId(m);
     if (badBody){ throw tsE().baseIdBadBody(l,m); }

@@ -40,7 +40,7 @@ public record ToCore(List<B> ctx){
     var name= e.name().withArity(bs.size());
     var inner= new ToCore(Push.of(ctx,bs).stream().distinct().toList());
     var ms= inner.mapMs(e.ms(),o.ms()).stream().map(m->withOrigin(m,e.name(),name)).toList();
-    var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():Push.of(o.cs(),e.cs()).stream().distinct().toList());
+    var cs= TypeRename.itcToTC(o.cs().isEmpty() ? e.cs() : Push.of(o.cs(),e.cs()).stream().distinct().toList());
     return new core.E.Literal(rc,name,bs,cs,e.thisName(),ms,e.src(),e.infName());
   }
   private List<B> uncommittedBs(inference.E.Literal e){
@@ -81,7 +81,7 @@ public record ToCore(List<B> ctx){
   }
   private static inference.M matchM(List<inference.M> os, inference.M e){
     var s= e.sig().span();
-    return OneOr.of("failing to connect methods @"+s, os.stream().filter(o->o.sig().span()==s));
+    return OneOr.of("failing to connect methods @"+s, os.stream().filter(o->o.sig().span() == s));
   }
   private core.M m(inference.M e, inference.M o){
     var s= sig(e.sig(), o.sig());
@@ -108,7 +108,7 @@ public record ToCore(List<B> ctx){
     assert ol.name().s().equals(e.name().s());
     return ol;
   }
-  private static record CallLike(inference.E e,List<inference.E> es,Optional<RC> rc,List<IT> targs){}
+  private record CallLike(inference.E e,List<inference.E> es,Optional<RC> rc,List<IT> targs){}
   private static CallLike callLike(inference.E o,MName name){
     return switch (o){
       case inference.E.Call(var e, var n, var rc, var targs, var es, _, _, _) when n.equals(name) -> new CallLike(e,es,rc,targs);

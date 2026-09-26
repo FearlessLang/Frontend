@@ -18,7 +18,7 @@ public final class Reason{
   final String info;//package-private: only message.* should read it
   public final T best;//exposed, seen by the type system
   private Reason(T best,String info, Supplier<E> footerE){
-    this.best=best; this.info= info; this.footerE= footerE;
+    this.best= best; this.info= info; this.footerE= footerE;
   }
   public boolean isEmpty(){ return info.isEmpty(); }
   public static Reason pass(T got){ return new Reason(got,"",()->{throw Bug.unreachable();}); }

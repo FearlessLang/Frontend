@@ -117,15 +117,15 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   private E atomFromSignedNumeric(Token x){
     String s= x.content().substring(1);
     Pos p= new Pos(span().fileName(), x.line(), x.column() + 1);
-    T.RCC rcc= new T.RCC(Optional.empty(), new T.C(new TName(s, 0, p), Optional.empty()), TSpan.fromPos(p, s.length()));
-    return new E.TypedLiteral(rcc, Optional.empty(), p);
+    T.RCC rcc= new T.RCC(empty(), new T.C(new TName(s, 0, p), empty()), TSpan.fromPos(p, s.length()));
+    return new E.TypedLiteral(rcc, empty(), p);
   }
   E parsePost(E receiver){
     Pos pos= pos();
     if (peek(SignedFloat,SignedInt)){
       var num= expectAny("Unreachable");
       MName mm= new MName(num.content().substring(0,1),1);
-      return new E.Call(receiver, mm, Optional.empty(), false,Optional.empty(),List.of(atomFromSignedNumeric(num)),pos);
+      return new E.Call(receiver, mm, empty(), false,empty(),List.of(atomFromSignedNumeric(num)),pos);
     }
     MName m= parseMName();
     Optional<E.CallSquare> sq= parseIf(peek(_SquareGroup),()->parseGroup("method call generic parameters",Parser::parseCallSquare));
@@ -316,7 +316,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       p.expect("generic bounds declaration",OSquareArg);
       p.expectLast("generic bounds declaration",CSquare);
       var res= p.splitBy("generic bounds declaration",commaB,pi->pi.parseB(mustNew));
-      var Xs= bsXs(Optional.of(res));
+      var Xs= bsXs(of(res));
       var duplicated= Xs.stream().distinct().count() < Xs.size();
       if (duplicated){ throw errFactory().duplicateGenericInMethodSignature(Xs,span()); }
       return res;

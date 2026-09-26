@@ -65,7 +65,8 @@ that is: use double quotes (`"`) instead of single quotes ("'").
   }
   private Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
     var lit= tz.allTokens().get(idx - 1);
-    if (!lit.is(SStr,UStr,SignedInt,UnsignedInt,SignedFloat,UnSignedFloat)){ return Stream.of(t); }
+    var afterLiteral= lit.is(SStr,UStr,SignedInt,UnsignedInt,SignedFloat,UnSignedFloat);
+    if (!afterLiteral){ return Stream.of(t); }
     var file= tz.fileName();
     var s= lit.span(file);
     var name= disp(lit.content());
@@ -127,7 +128,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     //If '//' or '/*' is inside the bad string, trim span to stop before it.
     int openSL= text.indexOf("//");
     int openML= text.indexOf("/*");
-    int idxComment= openSL==-1?openML:openML==-1?openSL:Math.min(openSL, openML);
+    int idxComment= openSL == -1 ? openML : openML == -1 ? openSL : Math.min(openSL, openML);
     if (idxComment != -1){
       Span after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
       throw errEatAfter(after, quoteChar);
