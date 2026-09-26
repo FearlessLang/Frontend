@@ -12,8 +12,9 @@ import core.TName;
 import fearlessParser.TokenKind;
 import inference.E;
 
-public class ToInference{
-  private TName fCurrent(Methods meths, TName full, boolean withPkg){
+public final class ToInference{
+  private ToInference(){}
+  private static TName fCurrent(Methods meths, TName full, boolean withPkg){
     var p= meths.p();
     var simple= full.withoutPkgName();
     assert p.names().decNames().stream().allMatch(n->n.pkgName().isEmpty());
@@ -21,7 +22,7 @@ public class ToInference{
     if (defined){ return full; } //here, we know it is not defined (either at all or with the right arity)
     throw undeclaredType(withPkg?full:simple,p.name(),meths);
   }
-  private FearlessException undeclaredType(TName tn, String contextPkg, Methods meths){
+  private static FearlessException undeclaredType(TName tn, String contextPkg, Methods meths){
     var p= meths.p();
     var otherTypes= meths.other().dom();
     var declared= p.names().decNames();
@@ -35,7 +36,7 @@ public class ToInference{
     var all= Stream.concat(declared.stream().map(t->t.withPkgName(p.name())), otherTypes.stream()).toList();
     return p.err().usedUndeclaredName(tn, contextPkg, scope, all);
   }
-  private TName resolve(Methods meths, TName tn){
+  private static TName resolve(Methods meths, TName tn){
     var p= meths.p();
     var pN= tn.pkgName();
     if (pN.isEmpty()){ return resolveSimple(meths,tn); }
@@ -47,7 +48,7 @@ public class ToInference{
     if (meths.other().__of(tn) != null){ return tn; }
     throw undeclaredType(tn,p.name(),meths);
   }
-  private TName resolveSimple(Methods meths, TName tn){
+  private static TName resolveSimple(Methods meths, TName tn){
     var p= meths.p();
     if (LiteralDeclarations.isPrimitiveLiteral(tn.s())){ return tn.withPkgName("base"); }
     var mapped= p.map().get(tn.s());
@@ -57,7 +58,7 @@ public class ToInference{
     if (!ok){ throw undeclaredType(tn,res.pkgName(),meths); }
     return res;
   }
-  public List<E.Literal> of(Methods meths){
+  public static List<E.Literal> of(Methods meths){
     Function<TName,TName> f= tn->resolve(meths,tn);
     ArrayList<E.Literal> decs= new ArrayList<>();
     for (var di : meths.p().decs()){

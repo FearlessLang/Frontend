@@ -16,8 +16,9 @@ import utils.Bug;
 
 import static message.Err.*;
 
-public class BadTokens{
-  public TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory> badTokensMap(){
+public final class BadTokens{
+  private BadTokens(){}
+  public static TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory> badTokensMap(){
     return new TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory>()
       .put(Ws,           (_,_,_)->Stream.empty())
       .put(LineComment,  (_,_,_)->Stream.empty())
@@ -25,8 +26,8 @@ public class BadTokens{
       .put(BadUStrUnclosed, (idx, t, tz)->frontOrBack(idx,t,tz,'\"'))
       .put(BadSStrUnclosed, (idx, t, tz)->frontOrBack(idx,t,tz,'`'))
       .put(BadUnclosedBlockComment, (_, t, tz)->badBlockComment(tz,t))
-      .put(BadUnopenedBlockCommentClose, this::strayBlockCommentCloser)
-      .put(OSquareArg, this::squareAfterLiteral)
+      .put(BadUnopenedBlockCommentClose, BadTokens::strayBlockCommentCloser)
+      .put(OSquareArg, BadTokens::squareAfterLiteral)
       .putStr(BadOSquare,Code.UnexpectedToken::of,"""
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
@@ -41,7 +42,7 @@ Simple string literals are of form `"..."`, not "'...'";
 that is: use double quotes (`"`) instead of single quotes ("'").
 ""","common ambiguities")
 ;}
-  private Stream<Token> strayBlockCommentCloser(int idx, Token t, Tokenizer tokenizer){
+  private static Stream<Token> strayBlockCommentCloser(int idx, Token t, Tokenizer tokenizer){
     var file= tokenizer.fileName();
     var hit= findPseudoOpenerBefore(idx, tokenizer);
     var base= t.span(file);
@@ -63,7 +64,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     + "Did you mean to place the opener outside the string/comment?")
       .addFrame("comments",primary);
   }
-  private Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
+  private static Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
     var lit= tz.allTokens().get(idx - 1);
     var afterLiteral= lit.is(SStr,UStr,SignedInt,UnsignedInt,SignedFloat,UnSignedFloat);
     if (!afterLiteral){ return Stream.of(t); }
@@ -81,11 +82,11 @@ that is: use double quotes (`"`) instead of single quotes ("'").
       case LineComment -> " line comment \"//\"";
       case BlockComment -> " block comment \"/* ... */\"";
       case UStr, SStr   -> " string literal";
-    default -> throw Bug.of(t.toString());
+      default -> throw Bug.of(t.toString());
     };
   }
 
-  private Optional<Token> findPseudoOpenerBefore(int idx, Tokenizer tz){
+  private static Optional<Token> findPseudoOpenerBefore(int idx, Tokenizer tz){
     var all= tz.allTokens();
     for (int j= idx - 1; j >= 0; j--){
       var p= all.get(j);
@@ -95,23 +96,23 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     }
     throw Bug.unreachable();
   }
-  private String errStart(int quoteChar){
+  private static String errStart(int quoteChar){
     return "String literal " + Message.displayChar(quoteChar)
     + " reaches the end of the line.\n";
   }
-  private FearlessException errNoInfo(Span at, int quoteChar){ return Code.UnexpectedToken.of(errStart(quoteChar)).addFrame("a string literal",at); }
-  private FearlessException errEatAfter(Span at, int quoteChar){
+  private static FearlessException errNoInfo(Span at, int quoteChar){ return Code.UnexpectedToken.of(errStart(quoteChar)).addFrame("a string literal",at); }
+  private static FearlessException errEatAfter(Span at, int quoteChar){
     return Code.UnexpectedToken.of(errStart(quoteChar)
     + "A comment opening sign is present later on this line; did you mean to close the string before it?"
       ).addFrame("a string literal", at);
   }
-  private FearlessException errEatBefore(Span at, int quoteChar){
+  private static FearlessException errEatBefore(Span at, int quoteChar){
     return Code.UnexpectedToken.of(errStart(quoteChar)
     + "A preceding block comment \"/* ... */\" on this line contains that quote.\n"
     + "Did it swallow the intended opening quote?"
       ).addFrame("a string literal",at);
   }
-  private Stream<Token> badBlockComment(Tokenizer tz, Token t){
+  private static Stream<Token> badBlockComment(Tokenizer tz, Token t){
     var file= tz.fileName();
     Span s= t.span(file);
     int lineEnd= t.content().indexOf('\n');
@@ -120,7 +121,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
       .of("Unterminated block comment. Add \"*/\" to close it.")
       .addFrame("a block comment", s);
   }
-  private Stream<Token> frontOrBack(int idx, Token t, Tokenizer tz, int quoteChar){
+  private static Stream<Token> frontOrBack(int idx, Token t, Tokenizer tz, int quoteChar){
     var file= tz.fileName();
     var text= t.content();
     Span b= t.span(file);

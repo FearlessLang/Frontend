@@ -34,7 +34,7 @@ public class FrontendLogicMain{
     Map<Ref, FileFull> rawAST= parseFiles(files); // Phase 1: Parse Files
     Package pkg= mergeToPackage(pkgName,rawAST, override, other); // Phase 2: Merge & Well-formedness
     Methods ctx= Methods.create(pkg, other); // Phase 3: // Creates the scope (Methods) and FreshPrefix generators
-    List<inference.E.Literal> inferrableAST= new ToInference().of(ctx); // Phase 4: Desugar
+    List<inference.E.Literal> inferrableAST= ToInference.of(ctx); // Phase 4: Desugar
     inferrableAST= ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
     List<core.E.Literal> coreAST= InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
     TypeSystem.allOk(coreAST, pkg, other); //Phase 7: type checking

@@ -14,7 +14,8 @@ import message.FearlessErrFactory;
 import metaParser.TokenTreeSpec;
 import tools.Fs;
 
-public class Parse{
+public final class Parse{
+  private Parse(){}
   public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t->!t.syntetic()).toList();
   private static final TokenTreeSpec<Token,TokenKind> map= new TokenTreeSpec<Token,TokenKind>()
     .addOpenClose(_SOF,_EOF,_All)
@@ -49,7 +50,7 @@ public class Parse{
       .setErrFactory(new FearlessErrFactory())
       .whiteList(Fs.allowed)
       .tokenize()
-      .postTokenize(new BadTokens().badTokensMap())
+      .postTokenize(BadTokens.badTokensMap())
       .buildTokenTree(map);
     var p= new Parser(t.span(),new Names(List.of(),List.of(),List.of(),""),t.tokenTree(),new FearlessErrFactory());
     return p.parseAll("full file",Parser::parseFileFull);
