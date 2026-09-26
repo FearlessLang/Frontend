@@ -95,7 +95,7 @@ public record ToCore(List<B> ctx){
   }
   core.Sig sig(inference.M.Sig inf, inference.M.Sig usr){
     var ts= Streams.zip(usr.ts(),inf.ts()).map((u,i)->u.or(()->i)).toList();
-    var ret= usr.ret().isEmpty() ? inf.ret() : usr.ret();
+    var ret= usr.ret().or(inf::ret);
     var rc= usr.rc().orElse(inf.rc().orElse(RC.imm));
     var m= usr.m().orElse(inf.m().orElse(new MName(".inferenceFailed", ts.size())));
     var bs= usr.bs().orElse(inf.bs().orElse(List.of()));

@@ -14,8 +14,7 @@ import static offensiveUtils.Require.*;
 public record M(Sig sig, Optional<Impl> impl){
   public M{ assert nonNull(sig,impl); }
   public String toString(){
-    if (impl.isEmpty()){ return sig.toString();}
-    return sig + Join.of(impl.get().xs,"(",", ",")","")+ "->"+impl.get().e()+";";
+    return impl.map(i->sig+Join.of(i.xs,"(",", ",")","")+"->"+i.e()+";").orElseGet(sig::toString);
     }
   public M withSig(Sig sig){
     if (sig.equals(this.sig)){ return this; }
@@ -27,13 +26,13 @@ public record M(Sig sig, Optional<Impl> impl){
       this(Optional.of(rc),Optional.of(m),Optional.of(bs),ts,Optional.of(ret),Optional.of(origin),abs,span);
     }
     public String toString(){
-      var bsS= bs.isEmpty() ? "[?]" : Join.of(bs.get(),"[",",","]","");
+      var bsS= bs.map(b->Join.of(b,"[",",","]","")).orElse("[?]");
       return " "+rc.map(RC::toStrSpace).orElse("? ")+m.map(MName::toString).orElse("")+bsS
         +Join.of(ts.stream().map(this::t),"(",",",")","")+":"+t(ret)+origin.map(o->"@"+o.s()).orElse("@!")+";";
     }    
     private String t(Optional<IT> ot){ return ot.map(Object::toString).orElse("?"); }
     public Sig withTsT(List<Optional<IT>> ts, IT ret){
-      if (ts.equals(this.ts) && this.ret.isPresent() && this.ret.get().equals(ret)){ return this; }
+      if (ts.equals(this.ts) && this.ret.equals(Optional.of(ret))){ return this; }
       return new Sig(rc,m,bs,ts,Optional.of(ret),origin,abs,span);
     }
     public Sig withOrigin(TName origin){

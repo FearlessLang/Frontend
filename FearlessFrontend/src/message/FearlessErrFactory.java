@@ -59,10 +59,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException topLevelNotATypeDeclaration(Span at, String found){
     return Code.UnexpectedToken.of(()->
-      (lastTop.isEmpty() ? "This is not a top level type declaration.\n"
-        : "This should probably be inside the declaration of "
-        + Err.staticTypeDecName(lastTop.get())
-        + ".\n")
+      lastTop.map(t->"This should probably be inside the declaration of "+Err.staticTypeDecName(t)+".\n")
+        .orElse("This is not a top level type declaration.\n")
       + "Top level code can only contain type declarations.\n"
       + "A type declaration starts with a type name, like \"Point:{..}\".\n"
       + "Found instead: " + Message.displayString(found) + ".\n"
@@ -158,7 +156,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     ).addSpan(s).addSpan(at);
   }
   public int parCount(M m){//-1 == explicitly named method
-    if (m.sig().isPresent() && m.sig().get().m().isPresent()){ return -1; }
+    if (m.sig().flatMap(Sig::m).isPresent()){ return -1; }
     return m.sig().map(s->s.parameters().size()).orElse(0) + (m.hasImplicit()?1:0);
   }
   public FearlessException missingDotBeforeMethodName(Span at, String name){

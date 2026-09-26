@@ -122,8 +122,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   List<XE> xpats(List<String> lowered, List<fearlessFullGrammar.Parameter> original, TSpan span){
     assert lowered.size() == original.size();
     return IntStream.range(0,lowered.size()).boxed()
-      .filter(i->original.get(i).xp().orElse(null) instanceof XPat.Destruct)
-      .flatMap(i->xpat((XPat.Destruct)original.get(i).xp().get(),lowered.get(i),span))
+      .flatMap(i->original.get(i).xp().stream().flatMap(xp->xp instanceof XPat.Destruct d ? xpat(d,lowered.get(i),span) : Stream.empty()))
       .toList();
   }
   Stream<XE> xpat(XPat.Destruct pat, String fresh, TSpan span){

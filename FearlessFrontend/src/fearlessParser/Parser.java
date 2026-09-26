@@ -64,7 +64,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return parseTypedLiteral(startPos,rc);
   }
   RC parseRC(){ return RC.valueOf(expect("reference capability",RCap).content()); }
-  Optional<RC> parseOptRC(){ return peek(RCap)? of(parseRC()) : empty(); }
+  Optional<RC> parseOptRC(){ return parseIf(peek(RCap),this::parseRC); }
   E.TypedLiteral parseTypedLiteral(int startPos, Optional<RC> rc){
     Pos pos= pos();    
     var c= parseRCC(startPos,rc);
@@ -276,7 +276,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var m= parseIf(peek(DotName,Op),this::parseMName);
     try{ return parseSigAfterName(rc, m); }
     catch(FearlessException exc){
-      var forgotSpace= m.isPresent() && m.get().s().endsWith("->"); 
+      var forgotSpace= m.filter(mi->mi.s().endsWith("->")).isPresent();
       if (!forgotSpace){ throw exc; }
       throw errFactory().forgotSpace(tok.get().span(span().fileName()),m.get().s());
     }
@@ -371,7 +371,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
     var outer= names;
     updateNames(top ? names.addXs(Xs) : names.setFunnelledXs(c.s(),Xs));
-    if (bs.isPresent()){ c= c.withArity(bs.get().size()); }
+    c= c.withArity(Xs.size());
     expect("type declaration (:) symbol",Colon);
     List<T.C> cs= this.parseImpl();
     assert peek(_CurlyGroup);
@@ -388,9 +388,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new FileFull(List.copyOf(head.map),List.copyOf(head.use),ds);
   }
   boolean peekValidate(TokenKind validation){
-    Optional<Token> res= peek();
-    if (res.isEmpty()){ return false; }
-    return TokenKind.isKind(res.get().content(),validation);
+    return peek().map(t->TokenKind.isKind(t.content(),validation)).orElse(false);
   }
   Token expectValidate(String human, TokenKind kind, TokenKind validation){
     if (peekValidate(validation)){ return expect(human,kind); }

@@ -156,7 +156,7 @@ public class CompactPrinter{
     public int size(){
       if (k.isCompactable()){
         int s= length + sum(ts, PT::size) + ret.size();
-        return body.isEmpty() ? s : s + body.get().size();
+        return body.map(b->s+b.size()).orElse(s);
       }
       if (body.isPresent()){
         if (xs.isEmpty()){ return body.get().size(); }

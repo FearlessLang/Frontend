@@ -1,6 +1,8 @@
 package fearlessParser;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import metaParser.TokenMatch;
 
@@ -93,11 +95,6 @@ public enum TokenKind implements metaParser.TokenKind{
   public static boolean isKind(String input, TokenKind... kinds){
     Objects.requireNonNull(input);
     Objects.requireNonNull(kinds);
-    for (TokenKind k: kinds){
-      var m= k.matcher().apply(input, 0);
-      var all= m.isPresent() && m.get().length() == input.length();
-      if (all){ return true; }
-    }
-    return false;
+    return Stream.of(kinds).anyMatch(k->k.matcher().apply(input, 0).equals(Optional.of(input)));
   }
 }

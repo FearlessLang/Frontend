@@ -28,7 +28,7 @@ public record DupE(FreshPrefix fresh, E.Literal out, M m,message.WellFormednessE
   }
   public M ofM(M m, TName oldName, TName newName){
     var sig= m.sig();
-    if (sig.origin().isPresent() && sig.origin().get().equals(oldName)){ sig= sig.withOrigin(newName); }
+    if (sig.origin().equals(Optional.of(oldName))){ sig= sig.withOrigin(newName); }
     Optional<M.Impl> impl= m.impl().map(i->new M.Impl(i.m(), i.xs(), of(i.e())));
     return new M(sig, impl);
   }

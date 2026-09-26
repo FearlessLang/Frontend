@@ -119,7 +119,7 @@ public sealed interface E{
       return new Call(e,name,rc,targs,es,t,src,g.clear());
     }
     public String toString(){ 
-      var open= rc.isEmpty()? "[" : "["+rc.get();
+      var open= rc.map(r->"["+r).orElse("[");
       return ""+e+name+open
         +Join.of(targs,rc.isEmpty()?"":",",",","](","](")
         +Join.of(es,"",",","):","):")+t;

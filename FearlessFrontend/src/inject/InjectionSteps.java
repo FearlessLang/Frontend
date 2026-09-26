@@ -227,9 +227,9 @@ public record InjectionSteps(Methods meths){
     var d= meths._from(rcc.c().name());
     if (d == null){ return Optional.empty(); }//case {..}.foo
     Stream<core.M> ms= d.ms().stream().filter(m->m.sig().m().equals(name));
-    Optional<core.M> om= favorite.isPresent()
-        ? OneOr.opt("Ambiguous method header for explicit RC", ms.filter(mi->mi.sig().rc().equals(favorite.get())))
-        : oneFromGuessRC(ms.toList(), overloadNorm(rcc.rc()));
+    Optional<core.M> om= favorite
+      .map(rc->OneOr.opt("Ambiguous method header for explicit RC", ms.filter(mi->mi.sig().rc().equals(rc))))
+      .orElseGet(()->oneFromGuessRC(ms.toList(), overloadNorm(rcc.rc())));
     return om.map(mm->f.apply(d, mm));
   }
   private MSigL methodHeaderInstance(IT.RCC rcc, core.E.Literal d, core.M m){
@@ -343,7 +343,7 @@ public record InjectionSteps(Methods meths){
     var selfSuper= superSelf(l);
     if (!infHead){
       if (!l.infName()){ l= l.withT(selfPrecise.get()); }
-      else if (selfSuper.isPresent()){ l= l.withT(selfSuper.get()); }
+      else{ l= selfSuper.map(l::withT).orElse(l); }
       if (!(l.t() instanceof IT.RCC rcc)){ return l; }//!infHead after passing this test means right now we can expand methods
       if (!l.infName()){ l= meths.expandDeclaration(l,true); }
       else{ l= meths.expandLiteral(l, rcc.c()); }
@@ -412,7 +412,7 @@ public record InjectionSteps(Methods meths){
   TSM nextMStarAbs(IT.RCC rcc, inference.M m){
     assert m.impl().isEmpty();
     var omh= methodHeaderAnd(rcc, m.sig().m().get(), m.sig().rc(),(_,mi)->mi);
-    assert omh.isEmpty() || assertNoBinderClash(rcc, omh.get());
+    assert omh.map(mh->assertNoBinderClash(rcc, mh)).orElse(true);
     if (omh.isEmpty()){ return new TSM(rcc.c().ts(), m); }
     var rcc0= withTsNormBs(rcc,refineClsTsFromHeader(rcc, m.sig(), omh.get().sig()));
     return new TSM(dropMethBsFromClsTs(rcc0, m.sig()), m.withSig(normalizeSigAgainstHeader(rcc0, m.sig())));
@@ -437,7 +437,7 @@ public record InjectionSteps(Methods meths){
     IT ret= meet(m.sig().ret().get(), e.t());
     M.Sig improvedSig= m.sig().withTsT(args, ret);
     var omh= methodHeaderAnd(rcc, improvedSig.m().get(), improvedSig.rc(),(_,mi)->mi);
-    assert omh.isEmpty() || assertNoBinderClash(rcc, omh.get());
+    assert omh.map(mh->assertNoBinderClash(rcc, mh)).orElse(true);
     return omh
       .map(mh->headerResult(rcc,m,e,mh.sig(),improvedSig))
       .orElseGet(()->withImpl(rcc.c().ts(),m,improvedSig,e));
@@ -474,9 +474,7 @@ public record InjectionSteps(Methods meths){
   }
   private List<IT> refine(List<String> Xs, core.T t,Optional<IT> it){return refine(Xs,TypeRename.tToIT(t), it.get()); }
   private M.Sig normalizeSigAgainstHeader(IT.RCC rcc, M.Sig improvedSig){
-    var targetBs= improvedSig.bs().isEmpty()
-      ? List.<String>of()
-      : improvedSig.bs().get().stream().map(B::x).toList();
+    var targetBs= improvedSig.bs().map(bs->bs.stream().map(B::x).toList()).orElse(List.of());
     MSigL h= methodHeader(rcc, improvedSig.m().get(), improvedSig.rc()).get();
     assert h.bsArity() == targetBs.size();
     return improvedSig.withTsT(

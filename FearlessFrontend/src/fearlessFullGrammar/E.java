@@ -71,8 +71,7 @@ public sealed interface E extends core.Src.SrcObj{
       +pars+pat.map(Object::toString).orElse("")+es; }
     public TSpan span(){
       if (!es.isEmpty()){ return TSpan.merge(e.span(),es.getLast().span()); }
-      if (targs.isEmpty()){ return TSpan.merge(e.span(),TSpan.fromPos(pos,name.s().length())); } 
-      return TSpan.merge(e.span(),TSpan.fromPos(targs.get().endPos()));      
+      return TSpan.merge(e.span(),targs.map(t->TSpan.fromPos(t.endPos())).orElseGet(()->TSpan.fromPos(pos,name.s().length())));
     }
   }
   record Implicit(Pos pos) implements E{ 
