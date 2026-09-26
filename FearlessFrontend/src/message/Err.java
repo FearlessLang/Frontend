@@ -3,6 +3,7 @@ package message;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -54,7 +55,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(boolean skipImm, T t){ return disp(typeReprRaw(skipImm,t)); }
   private String typeReprRaw(boolean skipImm, T t){
     var str= cp().msgT(showPublicHead(t));
-    if (skipImm || !explicitImmRc(t)){ return str; }
+    if (skipImm || !t.explicitRC().equals(Optional.of(RC.imm))){ return str; }
     return "imm "+str;
   }
   T showPublicHead(T t){ return mapHead(t, publicHead); }
@@ -98,11 +99,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       && req instanceof T.RCC r
       && g.c().equals(r.c()));
   }
-  public static boolean explicitImmRc(T t){ return switch (t){
-    case T.RCX(RC rc, _) -> rc == RC.imm;
-    case T.RCC(RC rc, _, _) -> rc == RC.imm;
-    default -> false;
-  };}  
   static boolean isInferErr(T t){
     return t instanceof T.RCC rcc && rcc.c().name().s().equals("base.InferErr");
   }  

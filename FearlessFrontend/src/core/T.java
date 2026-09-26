@@ -4,6 +4,7 @@ import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import metaParser.Span;
 import utils.Join;
@@ -18,6 +19,7 @@ public sealed interface T{
     public RCX{assert nonNull(rc,x);}
     public String toString(){ return rc.name()+" "+x.name; }
     public TSpan span(){ return x.span();}
+    public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   record ReadImmX(X x) implements T{
     public ReadImmX{assert nonNull(x);}
@@ -56,6 +58,7 @@ public sealed interface T{
       if (rc == this.rc){ return this; }
       return new RCC(rc,c,span);
     }
+    public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   default T withRC(RC rc){ return switch (this){ // T[RC]
     case RCC(var _, var c,var span) -> new RCC(rc, c, span);
@@ -69,9 +72,6 @@ public sealed interface T{
     case RCC(var rc, var c, var span) -> new RCC(rc.readImm(), c, span);
     case RCX(var rc, var x) -> new RCX(rc.readImm(), x);
   };}
-  default boolean explicitH(){ return switch (this){
-    case X _, ReadImmX _ -> false;
-    case RCC(var rc, _, _) -> rc == RC.readH || rc == RC.mutH;
-    case RCX(var rc, _) -> rc == RC.readH || rc == RC.mutH;
-  };}
+  default Optional<RC> explicitRC(){ return Optional.empty(); }
+  default boolean explicitH(){ return explicitRC().stream().anyMatch(rc->rc == RC.readH || rc == RC.mutH); }
 }
