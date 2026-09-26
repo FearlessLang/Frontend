@@ -15,6 +15,7 @@ import inference.IT;
 import offensiveUtils.EqTransparent;
 import utils.Bug;
 import utils.OneOr;
+import utils.Push;
 import utils.Streams;
 
 public record ToCore(List<B> ctx){
@@ -36,9 +37,9 @@ public record ToCore(List<B> ctx){
     var bs= oBs.orElse(e.bs());
     if (e.infName() && bs.isEmpty()){ bs= uncommittedBs(e); }
     var name= e.name().withArity(bs.size());
-    var inner= new ToCore(Stream.concat(ctx.stream(),bs.stream()).distinct().toList());
+    var inner= new ToCore(Push.of(ctx,bs).stream().distinct().toList());
     var ms= inner.mapMs(e.ms(),o.ms()).stream().map(m->withOrigin(m,e.name(),name)).toList();
-    var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():Stream.concat(o.cs().stream(),e.cs().stream()).distinct().toList());
+    var cs= TypeRename.itcToTC(o.cs().isEmpty()?e.cs():Push.of(o.cs(),e.cs()).stream().distinct().toList());
     return new core.E.Literal(rc,name,bs,cs,e.thisName(),ms,e.src(),e.infName());
   }
   private List<B> uncommittedBs(inference.E.Literal e){
@@ -89,7 +90,7 @@ public record ToCore(List<B> ctx){
     }
     var ei= e.impl().get();
     var oi= o.impl().get();
-    var inner= new ToCore(Stream.concat(ctx.stream(),s.bs().stream()).distinct().toList());
+    var inner= new ToCore(Push.of(ctx,s.bs()).stream().distinct().toList());
     return new core.M(s,ei.xs(),Optional.of(inner.of(ei.e(),oi.e())));
   }
   core.Sig sig(inference.M.Sig inf, inference.M.Sig usr){

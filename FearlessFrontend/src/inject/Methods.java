@@ -28,6 +28,7 @@ import inference.M.Sig;
 import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
+import utils.Push;
 import utils.Streams;
 
 public record Methods(
@@ -94,12 +95,8 @@ public record Methods(
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache::get,other); }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
     List<CsMs> ds= d.cs().stream().map(c->fetch(d,c,from(c.name()))).toList();
-    List<IT.C> allCs= Stream.concat(
-      d.cs().stream(),
-      ds.stream().flatMap(dsi->dsi.cs().stream())
-        .distinct().sorted(Comparator.comparing(Object::toString))
-      ).toList();
     var implied= ds.stream().flatMap(dsi->dsi.cs().stream()).toList();
+    List<IT.C> allCs= Push.of(d.cs(),implied.stream().distinct().sorted(Comparator.comparing(Object::toString)).toList());
     List<M.Sig> allSig= Streams.zip(d.cs(),ds).filter((c,_)->!implied.contains(c))
       .flatMap((_,dsi)->dsi.sigs().stream()).toList();
     List<M> allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
@@ -112,7 +109,7 @@ public record Methods(
     var dd= _from(c.name());//null for the case {..}.foo
     List<M.Sig> allSig= dd==null ?List.of() : fetch(d,c,dd).sigs();
     List<M> allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
-    List<IT.C> allCs= Stream.concat(Stream.of(c), fetchCs(c).stream()).distinct().toList();
+    List<IT.C> allCs= Push.of(c,fetchCs(c)).stream().distinct().toList();
     return d.withCsMs(allCs, allMs, true);
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){

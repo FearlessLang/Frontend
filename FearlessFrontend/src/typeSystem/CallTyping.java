@@ -3,7 +3,6 @@ package typeSystem;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import core.*;
 import core.E.*;
 import inject.TypeRename;
@@ -31,7 +30,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return rs.stream().map(req->resForReq(d,sig,mat,possible,req)).toList();
   }
   private boolean mayBeH(RC recv, MType base){
-    return isH(recv) || Stream.concat(base.ts().stream(),Stream.of(base.t())).anyMatch(this::mayBeH);
+    return isH(recv) || Push.of(base.ts(),base.t()).stream().anyMatch(this::mayBeH);
   }
   private boolean mayBeH(T t){
     if (t instanceof T.X x){ return RC.get(bs,x.name()).rcs().stream().anyMatch(CallTyping::isH); }
@@ -55,7 +54,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     throw ts.tsE().methodTArgsArityError(d,c,sig.bs());
   } 
   private MType baseMType(T.C c0, Literal d, Sig sig){
-    var xs= Stream.concat(d.bs().stream(),sig.bs().stream()).map(B::x).toList();
+    var xs= B.xs(Push.of(d.bs(),sig.bs()));
     var ts0= Push.of(c0.ts(),c.targs());
     var ps= TypeRename.ofT(sig.ts(),xs,ts0);
     T ret= TypeRename.of(sig.ret(),xs,ts0);
