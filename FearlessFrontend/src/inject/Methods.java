@@ -63,13 +63,13 @@ public record Methods(
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps? Something similar has been done for MSigL 
   CsMs fetch(E.Literal child,IT.C c,core.E.Literal d){ //d == from(c.name()); but from can be undefined for {..}.foo
-    List<String> xs= d.bs().stream().map(b->b.x()).toList();
+    List<String> xs= d.bs().stream().map(B::x).toList();
     return new CsMs(fetchCs(c),d.ms().stream().map(m->alphaSig(m,xs,c,child)).toList());
   }
   List<IT.C> fetchCs(IT.C c){
     core.E.Literal d= _from(c.name());
     if (d == null){ return List.of(); }//case {..}.foo
-    List<String> xs= d.bs().stream().map(b->b.x()).toList();
+    List<String> xs= d.bs().stream().map(B::x).toList();
     return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
   }
   private inference.M.Sig alphaSig(core.M m, List<String> xs, IT.C c, E.Literal child){
@@ -251,13 +251,13 @@ public record Methods(
     var superArities= superBsList.stream().map(List::size).distinct().toList();
     if (superArities.size() != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at, superBsList); }
     if (superArities.getFirst() != userBs.size()){ throw p.err().methodGenericArityDisagreesWithSupers(at, userBs, superBsList.getFirst()); }
-    var bounds= allBounds.stream().map(l->l.stream().map(e->e.rcs()).toList())
+    var bounds= allBounds.stream().map(l->l.stream().map(B::rcs).toList())
       .distinct().count();
     if (bounds!= 1){ throw p.err().methodBsDisagreementBetweenSupers(at, allBounds); }
     var supBs= allBounds.getFirst();
     assert supBs.size() == userBs.size();
-    var supRCs= supBs.stream().map(b->b.rcs()).toList();
-    var userRCs= userBs.stream().map(b->b.rcs()).toList();
+    var supRCs= supBs.stream().map(B::rcs).toList();
+    var userRCs= userBs.stream().map(B::rcs).toList();
     if (supRCs.equals(userRCs)){ return userBs; }
     throw p.err().methodBsDisagreesWithSupers(at, userBs,supBs);
   }      
@@ -309,7 +309,7 @@ public record Methods(
     if (res.size() == 1){ return res.getFirst(); }
     var sizes= res.stream().map(List::size).distinct().count();
     if (sizes != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at,res); }
-    var bounds= res.stream().map(l->l.stream().map(e->e.rcs()).toList()).distinct().count();
+    var bounds= res.stream().map(l->l.stream().map(B::rcs).toList()).distinct().count();
     if (bounds== 1){ return res.getFirst(); }
     throw p.err().methodBsDisagreementBetweenSupers(at, res);
   }

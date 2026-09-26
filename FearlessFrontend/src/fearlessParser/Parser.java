@@ -44,8 +44,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   boolean hasPost(){ return peek(DotName,Op,Colon); }
   boolean isDec(){//Dec starts with D[Bs]: or D:
-    return peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup), t->t.is(Colon))
-        || peekOrder(t->t.isTypeName(), t->t.is(Colon));
+    return peekOrder(Token::isTypeName, t->t.is(_SquareGroup), t->t.is(Colon))
+        || peekOrder(Token::isTypeName, t->t.is(Colon));
   }
   E parseAtom(){
     if (peek(LowercaseId)){ return parseX(); }
@@ -463,7 +463,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return end()
       || isDec()
       || peek(_CurlyGroup,_RoundGroup,_SquareGroup)
-      || peekOrder(t->t.isTypeName(), t->t.is(_SquareGroup,_CurlyGroup,_RoundGroup))
+      || peekOrder(Token::isTypeName, t->t.is(_SquareGroup,_CurlyGroup,_RoundGroup))
   ;}
   int headEnd(){ while (!guessHeadEnd()){ expectAny(""); } return 0; }
   public void checkAbruptExprEnd(){
@@ -489,7 +489,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var simple= peek(LowercaseId,_RoundGroup,ColonColon,_CurlyGroup);
     if (fwdIf(simple)){ return; }
     fwdIf(peek(RCap));
-    fwdIf(peekOrder(t->t.isTypeName()));
+    fwdIf(peekOrder(Token::isTypeName));
     fwdIf(peek(_SquareGroup));
     if (fwdIf(peek(Colon))){ while (fwdIf(peek(UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SStr,UStr,Comma,_SquareGroup))){} }
     fwdIf(peek(_CurlyGroup));

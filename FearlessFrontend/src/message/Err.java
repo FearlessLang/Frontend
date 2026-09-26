@@ -140,7 +140,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return line("This call to method "+methodSig(c.rc().toStrSpace(),d,c.name())+" cannot typecheck.");
   }
   Err notInSubtypeList(List<String> options){
-    if (options.size() == 1){ return this; };
+    if (options.size() == 1){ return this; }
     return line(Join.of(options,"That is not a subtype of any of "," or ","."));
   }
   Err pCallCantBeSatisfied(Call c){

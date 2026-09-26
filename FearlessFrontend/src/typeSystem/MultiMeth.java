@@ -11,7 +11,6 @@ import core.B;
 import core.RC;
 import core.T;
 import typeSystem.TypeSystem.MType;
-import utils.OneOr;
 import utils.Range;
 
 final class MultiMeth{
@@ -58,16 +57,11 @@ final class MultiMeth{
     };
   }
   private static T modeVar(List<B> d, T.X x, UnaryOperator<RC> m, Function<EnumSet<RC>,RC> f, T original){
-    var rcs= get(d,x.name());
+    var rcs= RC.get(d,x.name()).rcs();
     if (rcs.stream().allMatch(rc->m.apply(rc) == rc)){ return original; }
     var mapped= EnumSet.noneOf(RC.class);
     rcs.forEach(rc->mapped.add(m.apply(rc)));
     return new T.RCX(f.apply(mapped),x);
-  }
-  public static EnumSet<RC> get(List<B> bs, String x){
-    B b= OneOr.of("bad delta",bs.stream().filter(bi->bi.x().equals(x)));
-    assert !b.rcs().isEmpty();
-    return b.rcs();
   }
   private record Key(RC rc, List<T> ts, T t){}
   private static void add(LinkedHashMap<Key,MType> out, MType m){

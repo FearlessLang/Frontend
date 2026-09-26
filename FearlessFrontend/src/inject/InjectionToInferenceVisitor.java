@@ -55,8 +55,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   }
   List<E> mapE(List<fearlessFullGrammar.E> es){ return es.stream().map(e->e.accept(this)).toList(); }
   List<IT> mapT(List<fearlessFullGrammar.T> ts){ return ts.stream().map(t->t.accept(this)).toList(); }
-  List<IT.C> mapC(List<fearlessFullGrammar.T.C> cs){ return cs.stream().map(t->visitC(t)).toList(); }
-  List<B> mapB(List<fearlessFullGrammar.B> bs){ return bs.stream().map(b->visitB(b)).toList(); }
+  List<IT.C> mapC(List<fearlessFullGrammar.T.C> cs){ return cs.stream().map(this::visitC).toList(); }
+  List<B> mapB(List<fearlessFullGrammar.B> bs){ return bs.stream().map(this::visitB).toList(); }
   List<Optional<IT>> mapPT(List<fearlessFullGrammar.Parameter> ps){ return ps.stream().map(p->p.t().map(ti->ti.accept(this))).toList(); }
   List<String> mapPX(List<fearlessFullGrammar.Parameter> ps){ return ps.stream().map(this::parameterToName).toList(); }
   String parameterToName(fearlessFullGrammar.Parameter p){

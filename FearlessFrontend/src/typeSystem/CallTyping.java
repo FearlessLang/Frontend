@@ -34,7 +34,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return isH(recv) || Stream.concat(base.ts().stream(),Stream.of(base.t())).anyMatch(this::mayBeH);
   }
   private boolean mayBeH(T t){
-    if (t instanceof T.X x){ return MultiMeth.get(bs,x.name()).stream().anyMatch(CallTyping::isH); }
+    if (t instanceof T.X x){ return RC.get(bs,x.name()).rcs().stream().anyMatch(CallTyping::isH); }
     return t.explicitH();
   }
   private static boolean isH(RC rc){ return rc == RC.mutH || rc == RC.readH; }

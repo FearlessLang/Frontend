@@ -6,6 +6,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
 
+import core.MName;
 import core.RC;
 import inference.Gamma.GammaSignature;
 import utils.Range;
@@ -51,7 +52,7 @@ public final class Monotonicity{
     var l= st.hist.computeIfAbsent(slot, _->new ArrayList<>(4));
     if (l.isEmpty()){ l.add(from); }
     else{
-      var last= l.get(l.size()-1);
+      var last= l.getLast();
       if (!(from instanceof IT.U) && !last.equals(from)){
         throw new AssertionError("Monotonicity tracker out of sync for "+what
           +"\nLast="+last+"\nFrom="+from+"\nHist="+l);
@@ -159,7 +160,7 @@ public final class Monotonicity{
     return m.sig().ret().orElse(IT.U.Instance);
   }
   private static String mName(M m){
-    return m.sig().m().map(n->n.s()).orElse("<nameToInfer>");
+    return m.sig().m().map(MName::s).orElse("<nameToInfer>");
   }
   private static List<String> msBrief(List<M> ms){
     return ms.stream().map(m->mName(m)+"/"+sigPs(m).size()).toList();

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import core.B;
 import inference.E;
 import inference.IT;
 import inference.M;
@@ -22,18 +23,18 @@ public record FreeXs(Gamma g){
   };}
   private Stream<String> ftvL(Literal l){
     return Stream.concat(
-      l.bs().stream().map(b->b.x()),
+      l.bs().stream().map(B::x),
       Stream.concat(ftvCs(l.cs()),ftvMs(l.ms())));
   }
   private Stream<String> ftvM(M m){
-    List<String> domBs= m.sig().bs().map(bs->bs.stream().map(b->b.x()).toList()).orElse(List.of());
+    List<String> domBs= m.sig().bs().map(bs->bs.stream().map(B::x).toList()).orElse(List.of());
     return Stream.concat(
       ftvS(m.sig()),
       m.impl().stream().flatMap(i->ftvE(i.e()))
     ).filter(x->!domBs.contains(x));
   }
   Stream<String> ftvS(M.Sig m){ return Stream.concat(ftvOTs(m.ts()),ftvT(m.ret())); }
-  Stream<String> ftvT(Optional<IT> o){ return o.map(t->ftvT(t)).orElse(Stream.of()); }
+  Stream<String> ftvT(Optional<IT> o){ return o.map(this::ftvT).orElse(Stream.of()); }
   public Stream<String> ftvT(IT t){ return switch (t){
     case IT.X x -> Stream.of(x.name());
     case IT.RCX(_, var x) -> Stream.of(x.name());

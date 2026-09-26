@@ -424,7 +424,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     assert argi >= 0 && argi < c.es().size();
     assert !reqs.isEmpty();
     assert reqs.size() == res.size();
-    assert res.stream().noneMatch(r->r.isEmpty());
+    assert res.stream().noneMatch(Reason::isEmpty);
     T reqCanon= reqCanon(reqs);
     if (isWrongUnderlyingType(ts,bs,reqCanon,res)){ return wrongUnderlyingTypeErr(ts,d,c,argi,reqs,res); }
     T gotHdr= headerBest(res);

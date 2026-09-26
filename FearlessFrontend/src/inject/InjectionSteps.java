@@ -67,7 +67,7 @@ public record InjectionSteps(Methods meths){
     return s1.m().equals(s2.m().get()) && s1.rc().equals(s2.rc().orElse(RC.imm));
   }
   private core.M stepDecM(core.E.Literal di, inference.M m){
-    core.M mCore= utils.OneOr.of("Method mismatch", di.ms().stream().filter(mi->sameM(mi.sig(), m.sig())));
+    core.M mCore= OneOr.of("Method mismatch", di.ms().stream().filter(mi->sameM(mi.sig(), m.sig())));
     if (m.impl().isEmpty()){ return mCore; }//assert same type as m lifted to core
     inference.E e= m.impl().get().e();
     TSpan span= di.name().approxSpan();
@@ -144,7 +144,7 @@ public record InjectionSteps(Methods meths){
     return IntStream.range(0,size)
     .mapToObj(i->tss.stream()
       .map(ts->ts.get(i))
-      .reduce((a,b)->meet(a,b))
+      .reduce(this::meet)
       .orElseThrow())
     .toList();
   }
@@ -207,7 +207,7 @@ public record InjectionSteps(Methods meths){
     if (cs.isEmpty()){ return type; }
     assert cs.size() == 1;
     assert cs.getFirst().ts().size() == 1;
-    var dom= d.bs().stream().map(b->b.x()).toList();
+    var dom= d.bs().stream().map(B::x).toList();
     IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom, type.c().ts());
     if (!(wid instanceof IT.RCC w)){ return type; }
     return new IT.RCC(type.rc(), w.c(),type.span());
@@ -233,9 +233,9 @@ public record InjectionSteps(Methods meths){
     return om.map(mm->f.apply(d, mm));
   }
   private MSigL methodHeaderInstance(IT.RCC rcc, core.E.Literal d, core.M m){
-    List<String> clsXs= d.bs().stream().map(b->b.x()).toList();
+    List<String> clsXs= d.bs().stream().map(B::x).toList();
     assert clsXs.stream().distinct().count() == clsXs.size();
-    List<String> methXs= m.sig().bs().stream().map(b->b.x()).toList();
+    List<String> methXs= m.sig().bs().stream().map(B::x).toList();
     assert methXs.stream().distinct().count() == methXs.size();
     assert Collections.disjoint(clsXs, methXs);
     var clsArgs= rcc.c().ts();
@@ -459,7 +459,7 @@ public record InjectionSteps(Methods meths){
     return new TSM(ts, new inference.M(sig, Optional.of(impl1)));
   }
   private List<IT> refineClsTsFromHeader(IT.RCC rcc, M.Sig improvedSig, core.Sig imh){
-    var Xs= meths.from(rcc.c().name()).bs().stream().map(b->b.x()).toList();
+    var Xs= meths.from(rcc.c().name()).bs().stream().map(B::x).toList();
     var fromBody= meet(Streams.of(
       Streams.zip(imh.ts(), improvedSig.ts()).map((t,it)->refine(Xs,t,it)),
       Stream.of(refine(Xs,imh.ret(), improvedSig.ret()))).toList());
@@ -484,7 +484,7 @@ public record InjectionSteps(Methods meths){
       h.retStr(improvedSig.span(), targetBs));
   }
   private List<IT> dropMethBsFromClsTs(IT.RCC rcc, M.Sig improvedSig){
-    var methBs= improvedSig.bs().get().stream().map(b->b.x()).toList();
+    var methBs= improvedSig.bs().get().stream().map(B::x).toList();
     return dropMethBs(rcc.c().ts(), methBs);
   }
   List<IT> dropMethBs(List<IT> ts, List<String> methBs){

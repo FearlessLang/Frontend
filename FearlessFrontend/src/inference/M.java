@@ -45,7 +45,7 @@ public record M(Sig sig, Optional<Impl> impl){
     public Impl{ assert nonNull(m,e); assert unmodifiable(xs,"Impl.xs"); }
     public String toString(){
       var xsC= Join.of(xs,"(",", ",")->","()->");
-      return " "+m.map(n->n.s()).orElse("")+xsC+e+";";
+      return " "+m.map(MName::s).orElse("")+xsC+e+";";
     }
     public Impl withE(E e){
       assert e == this.e || !e.equals(this.e);

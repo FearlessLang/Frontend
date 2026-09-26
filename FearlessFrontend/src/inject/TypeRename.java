@@ -60,8 +60,8 @@ public final class TypeRename{
   public static List<IT.C> tcToITC(List<T.C> cs){ return cs.stream().map(TypeRename::tcToITC).toList(); }
   public static List<IT> tToIT(List<T> cs){ return cs.stream().map(TypeRename::tToIT).toList(); }
   public static List<T> itToT(List<IT> cs){ return cs.stream().map(TypeRename::itToT).toList(); }
-  public static List<T> itOptToT(List<Optional<IT>> ts){ return ts.stream().map(ti->itToT(ti)).toList(); }
-  public static T itToT(Optional<IT> t){ return t.map(ti->itToT(ti)).orElse(inferUnknown); }
+  public static List<T> itOptToT(List<Optional<IT>> ts){ return ts.stream().map(TypeRename::itToT).toList(); }
+  public static T itToT(Optional<IT> t){ return t.map(TypeRename::itToT).orElse(inferUnknown); }
   public static T.C itcToTC(IT.C c){ return new T.C(c.name(),itToT(c.ts())); }
   public static List<T.C> itcToTC(List<IT.C> cs){ return cs.stream().map(TypeRename::itcToTC).toList(); }
   public static IT.C tcToITC(T.C c){ return new IT.C(c.name(),tToIT(c.ts())); }

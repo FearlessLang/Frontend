@@ -54,7 +54,7 @@ public class FrontendLogicMain{
       )).collect(Collectors.groupingBy(x->new Key(x.target(),x.in())));
     Map<String,Map<String,String>> res= new HashMap<>();
     byKey.forEach((k,cs)->{
-      var best= cs.stream().max((a,b)->c.compare(a.uri(),b.uri())).get();
+      var best= cs.stream().max(Comparator.comparing(Cand::uri,c)).get();
       List<Cand> bests= cs.stream().filter(x->c.compare(x.uri(), best.uri())==0).toList();
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
       List<String> outs= bests.stream().map(Cand::out).distinct().toList();
@@ -109,7 +109,7 @@ public class FrontendLogicMain{
   }
   private Ref findHeadUri(WellFormednessErrors err, String pkgName, Set<Ref> uris){
     assert nonNull(uris) && validate(pkgName,"",_pkgName);
-    var heads= uris.stream().filter(u->isHeadUri(u)).toList();
+    var heads= uris.stream().filter(this::isHeadUri).toList();
     if (heads.size() == 1){ return heads.getFirst(); }
     throw err.expectedSingleUriForPackage(heads,pkgName);
   }
