@@ -24,13 +24,13 @@ public sealed interface IT{
     public String toString(){ return name; }
   }
   record RCX(RC rc, X x) implements IT{
-    public RCX{assert nonNull(rc,x);}
+    public RCX{ assert nonNull(rc,x); }
     public String toString(){ return rc.name()+" "+x.name; }
     public TSpan span(){ return x.span();}
     public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   record ReadImmX(X x) implements IT{
-    public ReadImmX{assert nonNull(x);}
+    public ReadImmX{ assert nonNull(x); }
     public String toString(){ return "read/imm "+x.name; }
     public TSpan span(){ return x.span();}
   }
@@ -67,7 +67,7 @@ public sealed interface IT{
   enum U implements IT{ Instance; 
     public String toString(){ return "?";}
     public boolean isTV(){ return false; }
-    public TSpan span(){throw Bug.unreachable(); }
+    public TSpan span(){ throw Bug.unreachable(); }
     public long badness(){ return 1; }
   }
   default IT withRC(RC rc){ return switch (this){ // T[RC]

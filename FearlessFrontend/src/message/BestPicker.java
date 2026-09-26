@@ -22,7 +22,8 @@ final class BestPicker{
     for (var t: x.ts()){ visit(t,depth); }
   }
   void visitPCall(PCall x,int depth){
-    if (CompactPrinter.showTargs(x.rc(),x.targs().size())){ for (var t: x.targs()){ visit(t,depth); } }
+    boolean targsVisible= CompactPrinter.showTargs(x.rc(),x.targs().size());
+    if (targsVisible){ for (var t: x.targs()){ visit(t,depth); } }
     if (!x.k().isCompactable()){ return; }
     visit(x.recv(),depth);
     for (var a: x.args()){ visit(a,depth); }

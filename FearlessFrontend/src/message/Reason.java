@@ -35,7 +35,7 @@ public final class Reason{
     return hintExplicitRC(ts,got, base(ts,blame,bs,got,expected), er,blame);
   }
   private static String base(TypeSystem ts, E blame, List<B> bs, T got, T expected){
-    if (isInferErr(expected)){ return ts.err().gotMsgInferErr(ts.err().expRepr(blame),got);}
+    if (isInferErr(expected)){ return ts.err().gotMsgInferErr(ts.err().expRepr(blame),got); }
     var skipImm= !ts.isSub(bs, got, expected.withRC(RC.imm));
     return "Object literal is of type "+ts.err().expReprDirect(skipImm,blame)+" instead of a subtype of "+ts.err().typeRepr(skipImm,expected)+".";
   }
@@ -62,7 +62,8 @@ public final class Reason{
     T got= cur.currentT();
     var rcOnly= rcOnlyMismatch(got, req.t());
     String base= ts.err().gotMsg(!rcOnly,ts.err().expRepr(x), List.of(got), req.t());
-    if (!rcOnly || declared.equals(got)){ return new Reason(got, base,()->baseFooterE(ts.scope(),got,req.t())); }
+    var noDeclaredNote= !rcOnly || declared.equals(got);
+    if (noDeclaredNote){ return new Reason(got, base,()->baseFooterE(ts.scope(),got,req.t())); }
     var e= ts.err().line(base);
     e.line(declaredOkExpected
       ? "Note: the declared type "+ts.err().typeRepr(true,declared)+" would instead be a valid subtype."

@@ -49,7 +49,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
       throw Code.UnexpectedToken
         .of("Unopened block comment close \"*/\".\nRemove it, or add a matching \"/*\" earlier on.")
         .addFrame("comments",base);
-      }
+    }
     var h= hit.get();
     Span s= h.span(file);
     assert s.isSingleLine();
@@ -57,11 +57,11 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     int index= h.content().indexOf("/*");
     Span primary= new Span(file,line, s.startCol()+index, base.endLine(), base.endCol());
     String where= "inside a"+describeFree(h);
-   throw Code.UnexpectedToken.of(
-     "Unopened block comment close \"*/\".\n"
-   + "Found a \"/*\" " + where + " before this point.\n"
-   + "Did you mean to place the opener outside the string/comment?")
-     .addFrame("comments",primary);
+    throw Code.UnexpectedToken.of(
+      "Unopened block comment close \"*/\".\n"
+    + "Found a \"/*\" " + where + " before this point.\n"
+    + "Did you mean to place the opener outside the string/comment?")
+      .addFrame("comments",primary);
   }
   private Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
     var lit= tz.allTokens().get(idx - 1);
@@ -89,7 +89,8 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     for (int j= idx - 1; j >= 0; j--){
       var p= all.get(j);
       if (p.is(BlockComment,_SOF)){ return Optional.empty(); }
-      if (p.is(LineComment, UStr, SStr) && p.content().contains("/*")){ return Optional.of(p); }
+      var hidesOpener= p.is(LineComment, UStr, SStr) && p.content().contains("/*");
+      if (hidesOpener){ return Optional.of(p); }
     }
     throw Bug.unreachable();
   }
@@ -102,13 +103,13 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     return Code.UnexpectedToken.of(errStart(quoteChar)
     + "A comment opening sign is present later on this line; did you mean to close the string before it?"
       ).addFrame("a string literal", at);
-    }
+  }
   private FearlessException errEatBefore(Span at, int quoteChar){
     return Code.UnexpectedToken.of(errStart(quoteChar)
     + "A preceding block comment \"/* ... */\" on this line contains that quote.\n"
     + "Did it swallow the intended opening quote?"
-      ).addFrame("a string literal",at); 
-    }
+      ).addFrame("a string literal",at);
+  }
   private Stream<Token> badBlockComment(Tokenizer tz, Token t){
     var file= tz.fileName();
     Span s= t.span(file);
@@ -117,7 +118,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     throw Code.UnexpectedToken
       .of("Unterminated block comment. Add \"*/\" to close it.")
       .addFrame("a block comment", s);
-    }
+  }
   private Stream<Token> frontOrBack(int idx, Token t, Tokenizer tz, int quoteChar){
     var file= tz.fileName();
     var text= t.content();

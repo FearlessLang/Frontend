@@ -81,7 +81,8 @@ public record InjectionSteps(Methods meths){
   }
   E meet(E e, IT t){
     if (e instanceof E.Type tt){ return nextT(tt); }
-    if (e instanceof E.Literal l && l.t().isTV()){ return l; }
+    var typedLit= e instanceof E.Literal l && l.t().isTV();
+    if (typedLit){ return e; }
     e= prototypeAscribeRootReceiver(e, t);
     return e.withT(meet(e.t(), t));
   }
@@ -107,16 +108,20 @@ public record InjectionSteps(Methods meths){
     if (a instanceof RCC aa && b instanceof RCC bb){ return leastBad(aa, bb); }
     if (a instanceof RCC){ return a; }
     if (b instanceof RCC){ return b; }
-    if (a instanceof IT.RCX && (b instanceof IT.X | b instanceof IT.ReadImmX)){ return a; }
-    if (b instanceof IT.RCX && (a instanceof IT.X | a instanceof IT.ReadImmX)){ return b; }
+    var aRcOverBareB= a instanceof IT.RCX && (b instanceof IT.X || b instanceof IT.ReadImmX);
+    if (aRcOverBareB){ return a; }
+    var bRcOverBareA= b instanceof IT.RCX && (a instanceof IT.X || a instanceof IT.ReadImmX);
+    if (bRcOverBareA){ return b; }
     return a.toString().compareTo(b.toString()) < 0 ? a: b;
   }
   IT meet(IT t1, IT t2){
     if (t2 == IT.U.Instance){ return t1; }
     if (t1 == IT.U.Instance){ return t2; }
     if (t1.equals(t2)){ return t1; }
-    if (t1 instanceof IT.ReadImmX r1 && t2 instanceof IT.X x2 && r1.x().equals(x2)){ return t1; }
-    if (t2 instanceof IT.ReadImmX r2 && t1 instanceof IT.X x1 && r2.x().equals(x1)){ return t2; }
+    var t1ReadImmOfT2= t1 instanceof IT.ReadImmX r1 && t2 instanceof IT.X x2 && r1.x().equals(x2);
+    if (t1ReadImmOfT2){ return t1; }
+    var t2ReadImmOfT1= t2 instanceof IT.ReadImmX r2 && t1 instanceof IT.X x1 && r2.x().equals(x1);
+    if (t2ReadImmOfT1){ return t2; }
     if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){
       if (!x1.c().name().equals(x2.c().name())){ return leastBad(x1,x2); }
       Optional<RC> rc= meetRcNoH(x1.rc(), x2.rc());
@@ -128,8 +133,8 @@ public record InjectionSteps(Methods meths){
   }
   static Optional<RC> meetRcNoH(Optional<RC> a, Optional<RC> b){    
     if (a.equals(b)){ return a.map(InjectionSteps::noH); }
-    if (a.isEmpty()){ return b;}
-    if (b.isEmpty()){ return a;}
+    if (a.isEmpty()){ return b; }
+    if (b.isEmpty()){ return a; }
     if (a.get() == RC.iso){ return b.map(InjectionSteps::noH); }
     if (b.get() == RC.iso){ return a.map(InjectionSteps::noH); }
     return Optional.of(RC.imm);// returning Optional.empty(); could make it go in loop
@@ -153,7 +158,8 @@ public record InjectionSteps(Methods meths){
       var s= g.snapshot();
       var oe= next(bs, g, e);
       assert oe == e || !oe.equals(e) : "Allocated equal E:"+e.getClass()+"\n"+e;
-      if (oe == e && !g.changed(s)){
+      var stable= oe == e && !g.changed(s);
+      if (stable){
         e.sign(g);
         assert e == start || !e.equals(start);
         return e;
@@ -269,7 +275,7 @@ public record InjectionSteps(Methods meths){
     return RC.iso;
   }
   private E nextT(E.Type t){
-    if (!(t.t() instanceof IT.U)){return t; }
+    if (!(t.t() instanceof IT.U)){ return t; }
     return t.withT(preferred(t.type()));
   }
   private E nextIC(List<B> bs, Gamma g, E.ICall c){
@@ -305,7 +311,8 @@ public record InjectionSteps(Methods meths){
     m= m.withClsArgs(clsTs);
     var it= meet(c.t(), m.ret(targs));
     var es1= meetWithTargs(c.es(),es, m, targs);
-    if (e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t())){ return c; }
+    var noChange= e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
+    if (noChange){ return c; }
     return c.withMore(e, rc, targs, es1, it);
   }
   private List<E> requiredOnArgs(E.Call c, MSigL m){
@@ -319,13 +326,15 @@ public record InjectionSteps(Methods meths){
     return meet(Streams.of(Stream.of(base), a, Stream.of(refine(m.xs(), m.ret0(), c.t()))).toList());
   }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
-    if (l.infName() && l.rc().isEmpty()){ return Optional.empty(); }
+    var selfUnknown= l.infName() && l.rc().isEmpty();
+    if (selfUnknown){ return Optional.empty(); }
     var span= l.name().approxSpan();
     return Optional.of(new IT.RCC(l.rc(), new IT.C(l.name(), MSigL.toXs(span,B.xs(l.bs()))),span));
   }
   private Optional<IT.RCC> superSelf(E.Literal l){
     if (l.cs().size() != 1){ return preciseSelf(l); }
-    if (l.infName() && l.rc().isEmpty()){ return Optional.empty(); }
+    var selfUnknown= l.infName() && l.rc().isEmpty();
+    if (selfUnknown){ return Optional.empty(); }
     return Optional.of(new IT.RCC(l.rc(), l.cs().getFirst(),l.name().approxSpan()));
   }
   private E nextL(List<B> bs, Gamma g, E.Literal l){
@@ -351,14 +360,17 @@ public record InjectionSteps(Methods meths){
       changedMs |= next.m != mi;
       res.add(next.m);
     }
-    if (!changedMs && ts.equals(rcc.c().ts())){ return commitToTable(g,bs, l, rcc); }
+    var noChange= !changedMs && ts.equals(rcc.c().ts());
+    if (noChange){ return commitToTable(g,bs, l, rcc); }
     var ms= changedMs?Collections.unmodifiableList(res):l.ms();
     IT t= withTsNormBs(rcc,ts);
     return commitToTable(g, bs, l.withMsT(ms, t), t);
   }
   private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT t){
     TName name= l.name();
-    if (!t.isTV() || !(t instanceof IT.RCC rcc) || hasU(l.ms()) || meths.cache().containsKey(name)){ return l; }
+    if (!(t instanceof IT.RCC rcc)){ return l; }
+    var notReady= !t.isTV() || hasU(l.ms()) || meths.cache().containsKey(name);
+    if (notReady){ return l; }
     var freeNames= Streams.of(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()), new FreeXs(g).ftvT(t));
     List<B> localBs= freeNames.distinct().map(x->RC.get(bs, x)).toList();
     TName newName= name.withArity(localBs.size());
@@ -374,7 +386,8 @@ public record InjectionSteps(Methods meths){
     }
     assert l.bs().isEmpty();
     var noMeth= l.ms().stream().allMatch(m->m.impl().isEmpty());
-    if (noMeth && l.infHead() && meths._from(rcc.c().name()) != null){ return new E.Type(rcc, preferred(rcc), l.src(), l.g()); }
+    var justAType= noMeth && l.infHead() && meths._from(rcc.c().name()) != null;
+    if (justAType){ return new E.Type(rcc, preferred(rcc), l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());
     List<IT.C> cs= selfInferred? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c()));
     meths.checkMagicSupertypes(l, cs);
@@ -442,7 +455,8 @@ public record InjectionSteps(Methods meths){
   }
   private TSM withImpl(List<IT> ts, inference.M m, M.Sig sig, E e){
     var impl1= m.impl().get().withE(meet(e, sig.ret().get()));
-    if (sig.equals(m.sig()) && impl1 == m.impl().get()){ return new TSM(ts, m); }
+    var noChange= sig.equals(m.sig()) && impl1 == m.impl().get();
+    if (noChange){ return new TSM(ts, m); }
     return new TSM(ts, new inference.M(sig, Optional.of(impl1)));
   }
   private List<IT> refineClsTsFromHeader(IT.RCC rcc, M.Sig improvedSig, core.Sig imh){
@@ -453,7 +467,8 @@ public record InjectionSteps(Methods meths){
     return Streams.zip(rcc.c().ts(),fromBody).map(this::keepDecided).toList();
   }
   private IT keepDecided(IT decided, IT fromBody){
-    if (decided instanceof IT.RCX a && fromBody instanceof IT.RCX b && a.x().equals(b.x()) && a.rc() != RC.iso){ return decided; }
+    var decidedSameX= decided instanceof IT.RCX a && fromBody instanceof IT.RCX b && a.x().equals(b.x()) && a.rc() != RC.iso;
+    if (decidedSameX){ return decided; }
     if (!(decided instanceof IT.RCC a && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
     if (!a.c().name().equals(b.c().name())){ return decided; }
     var rc= a.rc().filter(r->r != RC.iso).or(b::rc);
@@ -546,7 +561,8 @@ public record InjectionSteps(Methods meths){
     return original;
   }
   private static boolean needsPrototypeAscription(E.Literal l){
-    if (l.infHead() || !l.infName() || !l.cs().isEmpty()){ return false; }
+    var headKnown= l.infHead() || !l.infName() || !l.cs().isEmpty();
+    if (headKnown){ return false; }
     return (l.t() instanceof IT.U /*&& l.ms().stream().anyMatch(m-> !m.sig().isFull())*/);
   }
   private E prototypeAscribeRootReceiver(E arg, IT expected){

@@ -35,7 +35,8 @@ public record ToCore(List<B> ctx){
     var oBs= originalBs(o);
     assert oBs.isEmpty() || !o.infName();
     var bs= oBs.orElse(e.bs());
-    if (e.infName() && bs.isEmpty()){ bs= uncommittedBs(e); }
+    var uncommitted= e.infName() && bs.isEmpty();
+    if (uncommitted){ bs= uncommittedBs(e); }
     var name= e.name().withArity(bs.size());
     var inner= new ToCore(Push.of(ctx,bs).stream().distinct().toList());
     var ms= inner.mapMs(e.ms(),o.ms()).stream().map(m->withOrigin(m,e.name(),name)).toList();
@@ -57,10 +58,10 @@ public record ToCore(List<B> ctx){
       case fearlessFullGrammar.E.Literal _->false;
       case fearlessFullGrammar.E.DeclarationLiteral dl->dl.dec().bs().isPresent();
       case fearlessFullGrammar.Declaration dec->dec.bs().isPresent();
-      default -> throw Bug.of(o.src().inner.getClass().getName()); 
-      };
+      default -> throw Bug.of(o.src().inner.getClass().getName());
+    };
     return explicit ? Optional.of(o.bs()) : Optional.empty();
-    }
+  }
   
   private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){ return Streams.zip(es,oEs).map(this::of).toList(); }
   core.E.Call call(inference.E.Call e, CallLike o){

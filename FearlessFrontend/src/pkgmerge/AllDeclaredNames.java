@@ -12,7 +12,7 @@ import message.WellFormednessErrors;
 import java.util.Map;
 
 public class AllDeclaredNames{
-  AllDeclaredNames(WellFormednessErrors err){this.err= err;}
+  AllDeclaredNames(WellFormednessErrors err){ this.err= err; }
   WellFormednessErrors err;
   Set<TName> decNames= new LinkedHashSet<>();
   Map<TName,Set<T.X>> Xs= new LinkedHashMap<>();

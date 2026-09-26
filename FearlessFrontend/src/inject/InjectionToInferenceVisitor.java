@@ -64,9 +64,12 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     if (pr){
       assert tName.pkgName().isEmpty();
       assert tName.arity() == 0;
-      if (isKind(s,UnsignedInt) && !natLiteralInRange(s)){ throw meths.p().err().natLiteralOutOfRange(tName); }
-      if (isKind(s,SignedInt) && !intLiteralInRange(s)){ throw meths.p().err().intLiteralOutOfRange(tName); }
-      if (isKind(s,SignedFloat,UnSignedFloat) && !floatLiteralOk(s)){ throw meths.p().err().floatLiteralNotExactlyRepresentable(tName); }
+      var natOutOfRange= isKind(s,UnsignedInt) && !natLiteralInRange(s);
+      if (natOutOfRange){ throw meths.p().err().natLiteralOutOfRange(tName); }
+      var intOutOfRange= isKind(s,SignedInt) && !intLiteralInRange(s);
+      if (intOutOfRange){ throw meths.p().err().intLiteralOutOfRange(tName); }
+      var floatNotExact= isKind(s,SignedFloat,UnSignedFloat) && !floatLiteralOk(s);
+      if (floatNotExact){ throw meths.p().err().floatLiteralNotExactlyRepresentable(tName); }
     }
     return new IT.C(f.apply(tName),mapT(c.ts().orElse(List.of())));
   }
@@ -77,7 +80,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   List<Optional<IT>> mapPT(List<fearlessFullGrammar.Parameter> ps){ return ps.stream().map(p->p.t().map(this::visitT)).toList(); }
   List<String> mapPX(List<fearlessFullGrammar.Parameter> ps){ return ps.stream().map(this::parameterToName).toList(); }
   String parameterToName(fearlessFullGrammar.Parameter p){
-    if ( p.xp().isEmpty()){ return "_"; }
+    if (p.xp().isEmpty()){ return "_"; }
     return switch (p.xp().get()){
     case XPat.Name(var x) -> x.name();
     case XPat.Destruct(var _, var _) -> meths.fresh().freshVar(currentTop, "div");
@@ -105,7 +108,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     });
   }
   private EnumSet<RC> inOrder(List<RC> es, fearlessFullGrammar.T.X x){
-    if (es.size() != new HashSet<>(es).size()){ throw meths.p().err().duplicatedBound(es,x); }
+    var duplicated= es.size() != new HashSet<>(es).size();
+    if (duplicated){ throw meths.p().err().duplicatedBound(es,x); }
     return EnumSet.copyOf(es);
   }
 
@@ -181,7 +185,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   }
   E visitDeclarationLiteral(fearlessFullGrammar.E.DeclarationLiteral c){
     var name= f.apply(c.dec().name());
-    meths.fresh().aliasOwner(currentTop,name );
+    meths.fresh().aliasOwner(currentTop,name);
     return addDeclaration(name, c.rc().orElse(RC.imm),c.dec(),false);
   }
   public E.Literal addDeclaration(TName name,RC rc,fearlessFullGrammar.Declaration d, boolean top){

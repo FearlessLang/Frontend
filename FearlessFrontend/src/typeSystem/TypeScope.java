@@ -47,18 +47,19 @@ public sealed interface TypeScope{
   static void walk(T decl, T req, List<T> out){
     if (!(decl instanceof T.RCC drcc)){ out.add(req); return; }
     //If the types do not match, just skip the rest here (user error too hard to grasp)
-    if (!(req instanceof T.RCC rcc)
-     || rcc.rc() != drcc.rc()
-     || !rcc.c().name().equals(drcc.c().name())
-     || rcc.c().ts().size() != drcc.c().ts().size()
-     ){ return; }
+    if (!(req instanceof T.RCC rcc)){ return; }
+    var sameShape= rcc.rc() == drcc.rc()
+      && rcc.c().name().equals(drcc.c().name())
+      && rcc.c().ts().size() == drcc.c().ts().size();
+    if (!sameShape){ return; }
     Streams.zip(drcc.c().ts(), rcc.c().ts()).forEach((d,r)->walk(d, r, out));
   }
   static TypeScope bestInterestingScope(TypeScope start, List<T> interest){
     int min= 4;
     TypeScope best= start;
     for (TypeScope it= start; !it.isTop(); it= it.outer()){
-      if (min --> 0 || mentionsAny(it, interest)){ best= it; }
+      var interesting= min --> 0 || mentionsAny(it, interest);
+      if (interesting){ best= it; }
     }
     return best;
   }

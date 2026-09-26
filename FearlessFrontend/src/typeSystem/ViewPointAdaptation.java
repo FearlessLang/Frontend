@@ -13,14 +13,14 @@ public record ViewPointAdaptation(Kinding k){
   public Gamma discard(Gamma g,Literal l){ return g.map(curr->discard(curr,l)); }
   public Gamma of(Gamma g,Literal l, M m){ return g.map(curr->of(curr,l,m)); }
   private Change of(Change current, Literal l, M m){    //Literal l, M m, T atDrop
-    if (!( current instanceof Change.WithT w)){ return current; }
+    if (!(current instanceof Change.WithT w)){ return current; }
     boolean withImm= m.sig().rc() == imm || kindIsoImm(w.currentT(), l.bs());
     if (withImm){ return Change.keepStrengthenToImm(l,m,w); }
     return adapt(w, l, m);
   }
   private Change adapt(WithT w, Literal l, M m){ // T[delta, RC]
     RC rc= m.sig().rc();
-    T t=w.currentT();
+    T t= w.currentT();
     if (rc == read){
       if (isMutReadForm(t)){ return Change.keepSetToRead(l,m,w); }
       if (isXReadImmXForm(t)){ return Change.keepSetToReadImm(l,m,w); }
@@ -30,10 +30,12 @@ public record ViewPointAdaptation(Kinding k){
     return Change.keepSetToRead(l,m,w);
   }
   private Change discard(Change current, Literal l){
-    if (!( current instanceof Change.WithT w)){ return current; }
+    if (!(current instanceof Change.WithT w)){ return current; }
     var t= w.currentT();
-    if (!k.of(l.bs(),t,EnumSet.of(iso, imm, mut, read))){ return new Change.DropReadHMutH(l,t); }
-    if ((l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs())){ return new Change.DropMutInImm(l,t); }
+    var mayBeHygienic= !k.of(l.bs(),t,EnumSet.of(iso, imm, mut, read));
+    if (mayBeHygienic){ return new Change.DropReadHMutH(l,t); }
+    var mutInImm= (l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs());
+    if (mutInImm){ return new Change.DropMutInImm(l,t); }
     return w;    
   } 
   private boolean kindIsoImm(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm)); }

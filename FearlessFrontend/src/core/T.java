@@ -16,13 +16,13 @@ public sealed interface T{
     public String toString(){ return name; }
   }
   record RCX(RC rc, X x) implements T{
-    public RCX{assert nonNull(rc,x);}
+    public RCX{ assert nonNull(rc,x); }
     public String toString(){ return rc.name()+" "+x.name; }
     public TSpan span(){ return x.span();}
     public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   record ReadImmX(X x) implements T{
-    public ReadImmX{assert nonNull(x);}
+    public ReadImmX{ assert nonNull(x); }
     public String toString(){ return "read/imm "+x.name; }
     public TSpan span(){ return x.span();}
   }

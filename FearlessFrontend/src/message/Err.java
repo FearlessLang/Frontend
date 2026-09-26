@@ -55,13 +55,14 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(boolean skipImm, T t){ return disp(typeReprRaw(skipImm,t)); }
   private String typeReprRaw(boolean skipImm, T t){
     var str= cp().msgT(showPublicHead(t));
-    if (skipImm || !t.explicitRC().equals(Optional.of(RC.imm))){ return str; }
+    var noImmPrefix= skipImm || !t.explicitRC().equals(Optional.of(RC.imm));
+    if (noImmPrefix){ return str; }
     return "imm "+str;
   }
   T showPublicHead(T t){ return mapHead(t, publicHead); }
   private T mapHead(T t, Function<T.C,T.C> f){ return t instanceof T.RCC(RC rc, T.C c, var span) ? new T.RCC(rc, f.apply(c), span) : t; }
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t),t.span()))); }
-  static String up(String s){return s.substring(0, 1).toUpperCase() + s.substring(1); }
+  static String up(String s){ return s.substring(0, 1).toUpperCase() + s.substring(1); }
   String expRepr(E toErr){return switch (toErr){
     case Call c->"method call "+methodSig(c.name());
     case X x->"parameter " +displayX(x);
@@ -124,7 +125,8 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err blank(){
     int n= sb.length();
     assert sb.charAt(n-1) == '\n';
-    if (n < 2 || sb.charAt(n-2) != '\n'){ sb.append('\n'); }
+    var noBlankYet= n < 2 || sb.charAt(n-2) != '\n';
+    if (noBlankYet){ sb.append('\n'); }
     return this;
   }
   Err bullet(String s){
@@ -160,8 +162,8 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   public String gotMsgInferErr(String label, T got){
     return label 
       + " cannot be checked against an expected supertype.\n"
-      + "Type inference could not infer an expected type; computed type is "+typeRepr(true,got)+"."; 
-    }
+      + "Type inference could not infer an expected type; computed type is "+typeRepr(true,got)+".";
+  }
     
   FearlessException ex(E e){
     return ex("Compressed relevant code with inferred types: (compression indicated by `-`)",e);

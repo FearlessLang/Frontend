@@ -55,11 +55,13 @@ public final class Gamma{
     IT t= ts[i];               // the stored (true) type
     int d= declDepth[i];       // scope index where x was declared
     RC cap= null;              // null means "no restriction from any enclosing scope"
-    if ( depth-1 > d && t.explicitRC().equals(Optional.of(RC.iso))){ return t.withRC(RC.imm); } 
+    var isoCaptured= depth-1 > d && t.explicitRC().equals(Optional.of(RC.iso));
+    if (isoCaptured){ return t.withRC(RC.imm); }
     for (int s= depth-1; s > d; s--){
       RC rc= rcs[s];                // rc of the method-body scope at index s
       if (rc == RC.imm){ cap= RC.imm; break; }
-      if (rc == RC.read && cap == null){ cap= RC.read; }
+      var firstRead= rc == RC.read && cap == null;
+      if (firstRead){ cap= RC.read; }
     }
     if (cap == null){ return t; }
     if (cap == RC.imm){ return t.withRC(RC.imm); }

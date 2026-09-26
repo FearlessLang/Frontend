@@ -15,11 +15,11 @@ public record M(Sig sig, Optional<Impl> impl){
   public M{ assert nonNull(sig,impl); }
   public String toString(){
     return impl.map(i->sig+Join.of(i.xs,"(",", ",")","")+"->"+i.e()+";").orElseGet(sig::toString);
-    }
+  }
   public M withSig(Sig sig){
     if (sig.equals(this.sig)){ return this; }
     return new M(sig,impl);
-    }
+  }
   public record Sig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<Optional<IT>> ts, Optional<IT> ret, Optional<TName> origin, boolean abs, TSpan span){
     public Sig{ assert nonNull(rc,m,bs,ts,ret,origin); assert validOpt(bs,_bs->unmodifiableDistinct(_bs,"bounds")); assert unmodifiable(ts,"Sig.ts"); }
     public Sig(RC rc, MName m, List<B> bs, List<Optional<IT>> ts, IT ret, TName origin, boolean abs, TSpan span){

@@ -126,7 +126,7 @@ public class CompactPrinter{
       var start= (self.equals("this") || self.equals("_")) ? "{" : "{'"+self+" ";
       wrap(sb,start,"}",ms,";",PN::accString);
     }
-  private void accName(CompactPrinter sb){
+    private void accName(CompactPrinter sb){
       if (!priv){ sb.append(name); return; }
       if (!cs.isEmpty()){ cs.getFirst().accString(sb); }
     }

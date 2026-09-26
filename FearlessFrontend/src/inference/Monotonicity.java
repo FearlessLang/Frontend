@@ -53,7 +53,8 @@ public final class Monotonicity{
     if (l.isEmpty()){ l.add(from); }
     else{
       var last= l.getLast();
-      if (!(from instanceof IT.U) && !last.equals(from)){
+      var outOfSync= !(from instanceof IT.U) && !last.equals(from);
+      if (outOfSync){
         throw new AssertionError("Monotonicity tracker out of sync for "+what
           +"\nLast="+last+"\nFrom="+from+"\nHist="+l);
       }
@@ -91,7 +92,8 @@ public final class Monotonicity{
     step(c.g(), slot(K.callRc,0,0), c.rc(), nextRc, "Call.rc");
     int oldN= c.targs().size(), newN= nextTargs.size();
     // Arity repair is allowed, but only before we started tracking per-index targs.
-    if (oldN != newN && hasAnyKind(c.g(), K.callTarg)){
+    var arityChangedWhileTracked= oldN != newN && hasAnyKind(c.g(), K.callTarg);
+    if (arityChangedWhileTracked){
       throw new AssertionError("Call.targs arity changed after tracking started old="+oldN+" new="+newN
         +"\ncall="+c);
     }
@@ -118,7 +120,8 @@ public final class Monotonicity{
   public static boolean onLiteralWithMs(E.Literal l, List<M> nextMs){
     // Methods may be inserted/reordered while any method has no name.
     // In that phase, we DO NOT track literal method slots at all.
-    if (!litStable(l.ms()) || !litStable(nextMs)){
+    var unstable= !litStable(l.ms()) || !litStable(nextMs);
+    if (unstable){
       clearLitHistory(l.g());
       return true;
     }

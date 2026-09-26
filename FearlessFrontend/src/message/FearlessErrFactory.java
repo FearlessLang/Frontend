@@ -180,14 +180,14 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     + "A method with the inferred name and the same parameter count is already present above.\n";
     if (hints.isEmpty()){ return Code.WellFormedness.of(base).addSpan(s).addSpan(at); }
     var ex= hints.getFirst();
-      return Code.WellFormedness.of(
-       base
-     + "Likely cause: method declaration missing \".\" before the name.\n"
-     + Join.of(hints.stream().map(Err::disp),
-       "Found unnamed methods with parameters: ",", ",".\n")
-     + "To declare a method named "+disp(ex)+", write \"."+ex+"\" (dot "+ex+").\n"
-     + "Without the dot, "+disp(ex)+" is interpreted as a parameter name for an anonymous method.\n"
-     ).addSpan(s).addSpan(at);
+    return Code.WellFormedness.of(
+      base
+    + "Likely cause: method declaration missing \".\" before the name.\n"
+    + Join.of(hints.stream().map(Err::disp),
+      "Found unnamed methods with parameters: ",", ",".\n")
+    + "To declare a method named "+disp(ex)+", write \"."+ex+"\" (dot "+ex+").\n"
+    + "Without the dot, "+disp(ex)+" is interpreted as a parameter name for an anonymous method.\n"
+    ).addSpan(s).addSpan(at);
   }
   public FearlessException typeNameConflictsGeneric(Token name, Span at){
     return Code.UnexpectedToken.of("Name "+disp(name.content())+" is used as a type name, but "+disp(name.content())+" is already a generic type parameter in scope.").addSpan(at);

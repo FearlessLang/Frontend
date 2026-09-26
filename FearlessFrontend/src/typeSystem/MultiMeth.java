@@ -58,7 +58,8 @@ final class MultiMeth{
   }
   private static T modeVar(List<B> d, T.X x, UnaryOperator<RC> m, Function<EnumSet<RC>,RC> f, T original){
     var rcs= RC.get(d,x.name()).rcs();
-    if (rcs.stream().allMatch(rc->m.apply(rc) == rc)){ return original; }
+    var unchanged= rcs.stream().allMatch(rc->m.apply(rc) == rc);
+    if (unchanged){ return original; }
     var mapped= EnumSet.noneOf(RC.class);
     rcs.forEach(rc->mapped.add(m.apply(rc)));
     return new T.RCX(f.apply(mapped),x);

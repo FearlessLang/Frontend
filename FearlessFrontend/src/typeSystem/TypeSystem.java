@@ -117,7 +117,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     _l.onlyImmCapture().inner= new ImmCaptures(bs1,g).isFree(_l);
     var l= getIso ? _l.withRC(RC.iso) : _l;
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(l,r.t()); } }
-    for (var m : l.ms()){ if (m.sig().origin().equals(TypeRename.inferUnknown.c().name())){ throw tsE().methodNotInferred(l,m); } }
+    for (var m : l.ms()){
+      var notInferred= m.sig().origin().equals(TypeRename.inferUnknown.c().name());
+      if (notInferred){ throw tsE().methodNotInferred(l,m); }
+    }
     var ts= dom(l.bs(),span);
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
@@ -137,20 +140,21 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (callable(l.rc(),m.sig().rc())){ return; }
     throw tsE().methodImplementationDeadCode(m, l);
   }
-  private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC !=RC.read); }
+  private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC != RC.read); }
 
   private record Key(MName m, RC rc){}
   //Sources is needed, not assert only: the user can simply try to override with a non subtype signature.
   //l.ms is the resolved set, either inferred or resolved by hand in a wrong way.
   SequencedMap<Key,List<Sig>> sources(Literal l){
-  return Sources.collect(this, l).stream()
-    .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()));
+    return Sources.collect(this, l).stream()
+      .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()));
   }
   private static final MName asOne= new MName(".as",1);
   private void baseIdOk(Literal l){
     if (!LiteralDeclarations.has(l.cs(),LiteralDeclarations.baseId)){ return; }
     var m= OneOr.of("BaseId literals declare only #",l.ms().stream());
-    if (m.e().isPresent() && !isId(m)){ throw tsE().baseIdBadBody(l,m); }
+    var badBody= m.e().isPresent() && !isId(m);
+    if (badBody){ throw tsE().baseIdBadBody(l,m); }
   }
   private boolean isId(M m){
     var x= OneOr.of("BaseId # has one parameter",m.xs().stream());
@@ -218,7 +222,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private void methodTableOk(Literal l,Key k,List<Sig> group){
     Sig chosen= Sources.findCanonical(l,k.m(),k.rc());
-    assert group.stream().allMatch(s->s.m().equals(chosen.m()) && s.rc()== chosen.rc());
+    assert group.stream().allMatch(s->s.m().equals(chosen.m()) && s.rc() == chosen.rc());
     assert mostSpecificByOrigin(group,chosen);
     assert absPreserved(chosen);//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s->s.origin().equals(chosen.origin())).allMatch(s->chosen.abs() == s.abs());
@@ -269,7 +273,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (a instanceof T.X ax && b instanceof T.RCX br && br.x().name().equals(ax.name())){ return redundantOnX(bs,br.rc(),ax.name()); }
     if (a instanceof T.RCX ar && b instanceof T.X bx && ar.x().name().equals(bx.name())){ return redundantOnX(bs,ar.rc(),bx.name()); }
     if (!(a instanceof T.RCC aa && b instanceof T.RCC bb)){ return false; }
-    if (aa.rc() != bb.rc() || !aa.c().name().equals(bb.c().name())){ return false; }
+    var sameHead= aa.rc() == bb.rc() && aa.c().name().equals(bb.c().name());
+    if (!sameHead){ return false; }
     return Streams.zip(aa.c().ts(), bb.c().ts()).allMatch((x,y)->eqModXRC(bs,x,y));
   }
   private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }  

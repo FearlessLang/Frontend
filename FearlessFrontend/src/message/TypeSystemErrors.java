@@ -33,7 +33,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
    Function<TName,TName> f= n->{
      var res= decs.apply(n);
      if (res == null){ return n; }
-     if (!res.infName() || res.cs().isEmpty()){ return n; }
+     var showSuper= res.infName() && !res.cs().isEmpty();
+     if (!showSuper){ return n; }
      return res.cs().getFirst().name();
    };
    Function<T.C,T.C> publicHead= c->{
@@ -336,7 +337,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return fc.targs().flatMap(fearlessFullGrammar.E.CallSquare::rc).isPresent();
   }
   private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
-    if (!(c.e() instanceof X x && x.name().equals("this"))){ return; }
+    var receiverIsThis= c.e() instanceof X x && x.name().equals("this");
+    if (!receiverIsThis){ return; }
     for (var s= scope; !s.isTop(); s= s.outer()){
       if (!(s instanceof TypeScope.Method meth)){ continue; }
       Literal l= meth.l();
@@ -452,7 +454,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   }
   private void addNoPrecedenceHintIfOperator(Err e, Call c){
     String s= c.name().s();
-    if (s.startsWith(".") || s.equals("#")){ return; }
+    var notOperator= s.startsWith(".") || s.equals("#");
+    if (notOperator){ return; }
     e.line("Hint: Fearless has no operator precedence, so an expression like \"a.get + b.get\" "
          + "parses as \"(a.get + b).get\", not \"a.get + (b.get)\". "
          + "If this argument needed a method applied to it first, wrap it in parentheses.");
@@ -518,7 +521,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     for (int argi : Range.of(0,args)){
       byArg.get(argi).forEach((info,names)->e.bullet("Argument "+(argi+1)+Join.of(names," fails:    ",", ","\n")+info));
     }
-  return withCallSpans(e.ex(c), c);
+    return withCallSpans(e.ex(c), c);
   }
   private static int firstFailingArg(ArgMatrix mat, int promoIdx){
     return IntStream.range(0, mat.okByArg().size())

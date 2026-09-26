@@ -35,13 +35,15 @@ public final class LiteralDeclarations{
     var res= map.apply(n);
     if (res == null){ res= other.__of(n); }
     if (res != null){ return res; }
-    if (!n.pkgName().equals("base") || !isPrimitiveLiteral(n.simpleName())){ return null; }
+    var lit= n.pkgName().equals("base") && isPrimitiveLiteral(n.simpleName());
+    if (!lit){ return null; }
     return forge(n,map,other);
   }
   public static TName superLiteral(TName name){
     assert name.pkgName().equals("base");
     String s= name.simpleName();
-    if (s.startsWith("`") || s.startsWith("\"")){ return baseStr; }
+    var strLit= s.startsWith("`") || s.startsWith("\"");
+    if (strLit){ return baseStr; }
     if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return baseNat; }
     if (TokenKind.isKind(s,TokenKind.SignedInt)){ return baseInt; }
     if (TokenKind.isKind(s,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){ return baseFloat; }
@@ -97,13 +99,14 @@ public final class LiteralDeclarations{
     catch(NumberFormatException ex){ return raw.startsWith("-") ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY; }
   }
   public static String toJavaLiteral(String s){
-    if (s.startsWith("\"") || s.startsWith("`")){ return javaStrLit(s.substring(1,s.length()-1)); }
-      String ns= stripUnderscores(s);
-      if (TokenKind.isKind(ns,TokenKind.UnsignedInt)){
+    var strLit= s.startsWith("`") || s.startsWith("\"");
+    if (strLit){ return javaStrLit(s.substring(1,s.length()-1)); }
+    String ns= stripUnderscores(s);
+    if (TokenKind.isKind(ns,TokenKind.UnsignedInt)){
       // base.Nat: produce the signed int whose 64-bit pattern equals the unsigned value.
       // Later ops use: Integer.toUnsignedLong(x), compareUnsigned, divideUnsigned, etc.
       return natLiteralBits64(ns) +"L";
-      }
+    }
     if (TokenKind.isKind(ns,TokenKind.SignedInt)){ return intLiteral64(ns) +"L"; }
     if (TokenKind.isKind(ns,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){
       assert floatLiteralOk(ns);

@@ -117,18 +117,22 @@ public record Methods(
       .filter(c->c.name().equals(LiteralDeclarations.widen))
       .toList();
     if (widen.size() > 1){ throw p.err().multipleWidenTo(d, widen); }
-    if (allCs.stream().anyMatch(c->c.name().equals(LiteralDeclarations.baseId))){ checkBaseId(d); }
-    if (allCs.stream().noneMatch(c->c.name().equals(LiteralDeclarations.sealed))){ return; }
+    var isBaseId= allCs.stream().anyMatch(c->c.name().equals(LiteralDeclarations.baseId));
+    if (isBaseId){ checkBaseId(d); }
+    var unsealed= allCs.stream().noneMatch(c->c.name().equals(LiteralDeclarations.sealed));
+    if (unsealed){ return; }
     allCs.stream()
       .filter(c->!c.name().pkgName().equals(d.name().pkgName()))
       .forEach(c->notSealed(c.name(),d));
   }
   private void checkBaseId(E.Literal d){
     var ms= d.ms();
-    if (ms.size() != 1 || !ms.getFirst().sig().m().get().equals(hashOne)){ throw p.err().baseIdNotOnlyHash(d); }
+    var onlyHash= ms.size() == 1 && ms.getFirst().sig().m().get().equals(hashOne);
+    if (!onlyHash){ throw p.err().baseIdNotOnlyHash(d); }
     var s= ms.getFirst().sig();
     var origin= s.origin().get();
-    if (ms.getFirst().impl().isPresent() || s.abs() || LiteralDeclarations.has(from(origin).cs(),LiteralDeclarations.baseId)){ return; }
+    var validHash= ms.getFirst().impl().isPresent() || s.abs() || LiteralDeclarations.has(from(origin).cs(),LiteralDeclarations.baseId);
+    if (validHash){ return; }
     throw p.err().baseIdInheritedHash(d, origin);
   }
   private static final MName hashOne= new MName("#",1);
@@ -185,9 +189,11 @@ public record Methods(
       var rc= m.sig().rc();
       var match= new LinkedHashMap<RC,List<M.Sig>>();    
       ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && acc(match,s));
-      if (rc.isEmpty() && match.size() > 1){
+      var inferredRcOverloads= rc.isEmpty() && match.size() > 1;
+      if (inferredRcOverloads){
         var litRc= origin.rc().or(origin.t()::explicitRC).orElseThrow();
-        if (litRc == RC.imm || litRc == RC.read){
+        var neverMut= litRc == RC.imm || litRc == RC.read;
+        if (neverMut){
           var dead= match.remove(RC.mut);
           if (dead != null){ ss.addAll(dead); }
         }
@@ -238,7 +244,7 @@ public record Methods(
   }
   private List<B> agreementWithSize(List<M.Sig> ss, Sig s, Agreement at){
     List<List<B>> allBounds= ss.stream().map(e->e.bs().get()).distinct().toList();
-    if (s.bs().isEmpty()){ return agreementBs(at,allBounds ); }
+    if (s.bs().isEmpty()){ return agreementBs(at,allBounds); }
     var userBs= s.bs().get();
     var superBsList= ss.stream().map(e->e.bs().get()).toList();
     var superArities= superBsList.stream().map(List::size).distinct().toList();
@@ -246,7 +252,7 @@ public record Methods(
     if (superArities.getFirst() != userBs.size()){ throw p.err().methodGenericArityDisagreesWithSupers(at, userBs, superBsList.getFirst()); }
     var bounds= allBounds.stream().map(l->l.stream().map(B::rcs).toList())
       .distinct().count();
-    if (bounds!= 1){ throw p.err().methodBsDisagreementBetweenSupers(at, allBounds); }
+    if (bounds != 1){ throw p.err().methodBsDisagreementBetweenSupers(at, allBounds); }
     var supBs= allBounds.getFirst();
     assert supBs.size() == userBs.size();
     var supRCs= supBs.stream().map(B::rcs).toList();
@@ -302,7 +308,7 @@ public record Methods(
     var sizes= res.stream().map(List::size).distinct().count();
     if (sizes != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at,res); }
     var bounds= res.stream().map(l->l.stream().map(B::rcs).toList()).distinct().count();
-    if (bounds== 1){ return res.getFirst(); }
+    if (bounds == 1){ return res.getFirst(); }
     throw p.err().methodBsDisagreementBetweenSupers(at, res);
   }
   private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }
