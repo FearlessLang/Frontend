@@ -184,20 +184,18 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     int line= m.sig().span().inner.startLine();
     String ms= err().methodSig(m.sig().rc().toStrSpace(),l, m.sig().m());
     String x= disp(name);
-    var e= err()
-      .line("Iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+line+").");
-    if (earlyErrOnMoreThenOnceDirectly){
-      e.line("It is used directly "+usages.size()+" times.");
-      e.line("Iso parameters can be used directly at most once.");
-    }
-    else{
-      e.line("It is used directly and also captured into object literals.");
-      e.line("An iso parameter must be either captured, or used directly once (but not both).");
-    }
-    e.line("Allowed: capture into object literals as "+disp(RC.imm)+", or use directly once.");
-    var ex= e.ex(m.e().get());
+    var e= err().line("Iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+line+").");
+    var ex= isoMisuse(e,earlyErrOnMoreThenOnceDirectly,usages.size())
+      .line("Allowed: capture into object literals as "+disp(RC.imm)+", or use directly once.")
+      .ex(m.e().get());
     for (var u:usages){ ex.addSpan(u.span().inner); }
     return ex;
+  }
+  private static Err isoMisuse(Err e, boolean moreThanOnceDirectly, int usages){
+    if (moreThanOnceDirectly){ return e.line("It is used directly "+usages+" times.").line("Iso parameters can be used directly at most once."); }
+    return e
+      .line("It is used directly and also captured into object literals.")
+      .line("An iso parameter must be either captured, or used directly once (but not both).");
   }
   ///Expression at method body has a type that does not meet its result requirement(s).
   ///"body has wrong type" error; can only trigger if all current-expressions at are well typed.
@@ -301,11 +299,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .filter(s->s.m().s().equals(name)).toList();
     if (sameName.isEmpty()){
       addEnclosingLiteralHintIfReceiverIsThis(e,scope,c,name,subj);
-      if (candidates.isEmpty()){ e.line(up(subj)+" does not have any methods."); }
-      else{
-        var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
-        NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,on,c, d, candidates, cs, best); return null; } );
-      }
+      if (candidates.isEmpty()){ return withCallSpans(e.line(up(subj)+" does not have any methods.").ex(c), c); }
+      var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
+      NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,on,c, d, candidates, cs, best); return null; } );
       return withCallSpans(e.ex(c), c);
     }
     var sameArity= sameName.stream().filter(s->s.m().arity() == c.es().size()).toList();

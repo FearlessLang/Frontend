@@ -153,12 +153,11 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err pPromotionFailuresHdr(){ return blank().line("Promotion failures:"); }
   Err pReceiverRequiredByPromotion(List<MType> promos){
     var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc,LinkedHashMap::new,Collectors.mapping(MType::promotion,Collectors.toList())));
-    if (byRc.size() > 1){
-      blank().line("Receiver required by each promotion:");
-      byRc.keySet().stream()
-        .sorted()
-        .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(),""," / ","")+")"));
-    }
+    if (byRc.size() <= 1){ return this; }
+    blank().line("Receiver required by each promotion:");
+    byRc.keySet().stream()
+      .sorted()
+      .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(),""," / ","")+")"));
     return this;
   }
   public String gotMsg(boolean skipImm,String label, List<T> got, T expected){

@@ -174,6 +174,19 @@ Error 7 WellFormedness
 """, List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }"));}
 
+@Test void visitCall_untypedParameter(){fail("""
+In file: [###].fear
+
+001| A:{ .use:A->A; .use(x)->x; }
+   | ---------------^^^^^^^^^^---
+
+While inspecting type declaration "A"
+Cannot infer signature of method ".use(_)".
+No supertype has a method named ".use(_)" with 1 parameters.
+Error 7 WellFormedness
+""", List.of(
+"A:{ .use:A->A; .use(x)->x; }"));}
+
 @Test void visitCall_base_ok(){ok("""
 p.A:{'this\
  .id:p.A@p.A;->p.A:?;\

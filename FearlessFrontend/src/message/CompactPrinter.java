@@ -103,11 +103,11 @@ public class CompactPrinter{
       return s + 1 + args.size(); // "-" receiver + one "-" per hidden arg
     }
     public void accString(CompactPrinter sb){
-      if (k.isCompactable()){ recv.accString(sb); }
-      else{ sb.append("-"); }
+      Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b)->b.append("-");
+      acc.acc(recv,sb);
       sb.append(m);
       accTargs(sb,rc,targs);
-      wrap(sb,"(",")",args,",",k.isCompactable()?PN::accString:(_,b)->b.append("-"));
+      wrap(sb,"(",")",args,",",acc);
     }
   }
   public record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k, int length) implements PE{
@@ -123,7 +123,8 @@ public class CompactPrinter{
       if (!k.isCompactable()){ sb.append("{-}"); return; }
       if (!priv){ wrap(sb,"","",cs,",",PC::accString); }
       if (ms.isEmpty()){ sb.append("{}"); return; }
-      var start= (self.equals("this") || self.equals("_")) ? "{" : "{'"+self+" ";
+      var selfHidden= self.equals("this") || self.equals("_");
+      var start= selfHidden ? "{" : "{'"+self+" ";
       wrap(sb,start,"}",ms,";",PN::accString);
     }
     private void accName(CompactPrinter sb){
@@ -198,12 +199,14 @@ public class CompactPrinter{
     var priv= l.infName();
     var name= priv ? ""
       : t.of(l.name()) + bounds(l.bs())+":"; // name[bs]:
-    var cs= ofCs(l.src(),priv && !l.cs().isEmpty() ? List.of(l.cs().getFirst()):l.cs());
+    var onlyFirstC= priv && !l.cs().isEmpty();
+    var cs= ofCs(l.src(),onlyFirstC ? List.of(l.cs().getFirst()) : l.cs());
     var top= l.thisName().equals("this");
-    int s= rcPrefixLen(top?RC.imm:l.rc()) + 2 + seps(ms.size()) + name.length(); // {} and ";"
+    var rc= top ? RC.imm : l.rc();
+    int s= rcPrefixLen(rc) + 2 + seps(ms.size()) + name.length(); // {} and ";"
     var addSelf= !ms.isEmpty() && !top && !l.thisName().equals("_");
     if (addSelf){ s += 2 + l.thisName().length(); } // "'x "
-    return new PLit(top?RC.imm:l.rc(), priv, name, cs, l.thisName(), ms, Compactable.of(), s);
+    return new PLit(rc, priv, name, cs, l.thisName(), ms, Compactable.of(), s);
   }
   List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
   List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }

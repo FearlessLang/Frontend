@@ -273,13 +273,13 @@ public record WellFormednessErrors(String pkgName){
     }
     var name= err().methodSig(m.sig().m().get());
     var allParHasType= m.sig().ts().stream().allMatch(Optional::isPresent);
-    var e= size > 0 && !allParHasType
-      ? err()
-      : err()
-        .line("Missing return type for method "+name+".")
-        .line("Add an explicit return type before '->'.")
-        .line((allParHasType ? "Alternatively (less common), if you" : "If you")+" intended to override and omit the signature,")
-        .line("the signature must be inherited from a supertype.");
+    var e= err();
+    if (allParHasType){
+      e.line("Missing return type for method "+name+".")
+       .line("Add an explicit return type before '->'.")
+       .line("Alternatively (less common), if you intended to override and omit the signature,")
+       .line("the signature must be inherited from a supertype.");
+    }
     return wf(e
       .line("Cannot infer signature of method "+name+".")
       .line("No supertype has a method named "+name+" with "+size+" parameters."), m, origin);
