@@ -1161,6 +1161,22 @@ A:{
 }
 """);
 }
+@Test void bad_dq_str_eol_after_block_comment_without_quote(){fail("""
+In file: [###].fear
+
+003|     /* no quote here */ "text that doesn't close
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting a string literal
+String literal [Double Quote (") 0x22] reaches the end of the line.
+Error 2 UnexpectedToken
+""", """
+A:{
+  .m:Str ->
+    /* no quote here */ "text that doesn't close
+}
+""");
+}
 
 @Test void stray_block_comment_closer_with_pseudo_opener_in_string(){fail("""
 In file: [###].fear

@@ -173,7 +173,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     var count= redeclaredElement(noNames);
     Span s= redeclaredMethSpan(ms,mi->parCount(mi) == count);
     List<String> hints= ms.stream()
-      .filter(m->parCount(m)==count)
+      .filter(m->parCount(m) == count)
       .flatMap(this::potentialMethodNames)
       .distinct().toList();
     String base= "Method with inferred name and "+count+" parameter redeclared.\n"

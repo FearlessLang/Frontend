@@ -11,8 +11,7 @@ public record TName(String s, int arity, Pos pos){
     assert hasPkgDot(s) || validate(s,"TName", UppercaseId,UnsignedInt, SignedInt, SignedFloat, UnSignedFloat, UStr, SStr);
   }
   static boolean hasPkgDot(String s){
-    int i= s.indexOf('.');
-    if (i == -1){ return false; }
+    if (!s.contains(".")){ return false; }
     char c0= s.charAt(0);
     return c0 >= 'a' && c0 <= 'z';
   }

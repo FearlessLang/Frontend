@@ -41,7 +41,7 @@ public final class TypeRename{
   public static List<Optional<IT>> ofITOpt(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti,xs,ts))).toList(); }
   public static List<Optional<IT>> ofOptITOpt(List<Optional<IT>> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti.get(),xs,ts))).toList(); }
   public static <A> A getOrSame(A x, String name, List<String> xs, List<A> ts){
-    var i= xs.indexOf(name); 
+    var i= xs.indexOf(name);
     return i == -1 ? x : ts.get(i);
   }
   public static List<IT.C> tcToITC(List<T.C> cs){ return cs.stream().map(TypeRename::tcToITC).toList(); }

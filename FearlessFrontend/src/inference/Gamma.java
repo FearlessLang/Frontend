@@ -70,11 +70,11 @@ public final class Gamma{
     return t.explicitRC().equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
   }
   public IT get(String x){ return ts[indexOf(x)]; }
-  public Optional<IT> getOpt(String x){ int i= indexOf(x); return i==-1?Optional.empty():Optional.of(ts[i]); }
+  public Optional<IT> getOpt(String x){ int i= indexOf(x); return i == -1 ? Optional.empty() : Optional.of(ts[i]); }
 
   public void declare(String x, IT t){
     if ("_".equals(x)){ return; }
-    assert indexOf(x) < 0;
+    assert indexOf(x) == -1;
     xs[size]= x;
     ts[size]= t;
     declDepth[size]= depth - 1;

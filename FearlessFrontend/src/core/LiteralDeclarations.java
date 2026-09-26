@@ -87,7 +87,7 @@ public final class LiteralDeclarations{
     String sign= neg ? "-" : "+";
     int e= mag.indexOf('E');
     if (e != -1){ return sign+mag.substring(0,e)+"e"+mag.substring(e+1); }
-    if (mag.indexOf('.') == -1){ mag= mag + ".0"; }
+    if (!mag.contains(".")){ mag= mag + ".0"; }
     return sign+mag;
   }
   public static double floatLiteralDouble(String raw){
@@ -111,7 +111,7 @@ public final class LiteralDeclarations{
     throw Bug.unreachable();
   }
   static String javaStrLit(String raw){
-    assert raw.indexOf('\n') == -1;
+    assert !raw.contains("\n");
     return "\""+raw.replace("\\","\\\\").replace("\"","\\\"")+"\"";
   }
 }

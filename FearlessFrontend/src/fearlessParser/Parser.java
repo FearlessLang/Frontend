@@ -440,7 +440,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     splitBy("header element", semiSkip,p->p.parseHeaderElement(acc));
     return acc;
   }
-  boolean isTName(Token t){ return t.is(UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SStr,UStr) && !names.XIn(t.content()); }
+  boolean isTName(Token t){ return t.isTypeName() && !names.XIn(t.content()); }
   Pos pos(){
     Span s= spanAround(index(),index());
     return new Pos(s.fileName(),s.startLine(),s.startCol()); 

@@ -25,7 +25,7 @@ public record TypeNamePrinter(boolean trunc,String mainPkg, Map<String,String> u
   }
   private static String trunc(String s){
     int dot= s.lastIndexOf('.');
-    if (dot < 0){ return truncSimple(s); }
+    if (dot == -1){ return truncSimple(s); }
     return "-."+truncSimple(s.substring(dot+1));
   }
   private static String truncSimple(String s){

@@ -128,20 +128,20 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     int openSL= text.indexOf("//");
     int openML= text.indexOf("/*");
     int idxComment= openSL==-1?openML:openML==-1?openSL:Math.min(openSL, openML);
-    if (idxComment >= 0){      
+    if (idxComment != -1){
       Span after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
-      throw errEatAfter(after, quoteChar);      
+      throw errEatAfter(after, quoteChar);
     }
     var all= tz.allTokens();
     int j= idx - 1;
     while (j > 0 && !all.get(j).is(BlockComment)){ j -= 1; }
-    Token prev= all.get(j);     
+    Token prev= all.get(j);
     if (!prev.is(BlockComment)){ throw errNoInfo(b, quoteChar); }
     Span s= prev.span(file);
     if (s.endLine() != t.line()){ throw errNoInfo(b, quoteChar); }
     int quote= prev.content().lastIndexOf(quoteChar);
-    int nl= prev.content().lastIndexOf("\n");
-    var swallowedByComment= quote > 0 && quote > nl;
+    int nl= prev.content().lastIndexOf('\n');
+    var swallowedByComment= quote != -1 && quote > nl;
     if (!swallowedByComment){ throw errNoInfo(b, quoteChar); }
     var line= b.endLine();
     var endCol= b.startCol()+1;//invert the caret
