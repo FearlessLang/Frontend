@@ -1,10 +1,10 @@
 package message;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import core.*;
 import core.E.*;
@@ -17,7 +17,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   CompactPrinter cp(){ return _cp.apply(false); }
   CompactPrinter cp(boolean trunk){ return _cp.apply(trunk); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
-  public static String genArity(int n){ return Join.of(IntStream.range(0, n).mapToObj(_->"_"),"[",",", "]","");}
+  public static String genArity(int n){ return Join.of(Collections.nCopies(n,"_"),"[",",", "]","");}
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
   
   String tNameA(TName n){ return cp().t.ofFull(n)+genArity(n.arity()); }     // "A[_]"
@@ -91,7 +91,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String methodSig(String pre, TName t, MName m){ return methodSig(pre+tNameA(t),m); }
   String methodSig(String pre, Literal l, MName m){ return methodSig(pre+bestLitName(true,true,l),m); }
   String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+bestLitName(l),m); }
-  String methodSig(String pre, MName m){ return disp(Join.of(IntStream.range(0,m.arity()).mapToObj(_->"_"),pre+m.s()+"(",",",")",pre+m.s())); }
+  String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(),"_"),pre+m.s()+"(",",",")",pre+m.s())); }
   public static boolean rcOnlyMismatch(T got, T req){
     return got.equals(req) 
       || (got instanceof T.RCC g 

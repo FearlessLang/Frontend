@@ -1,10 +1,10 @@
 package message;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.IntStream;
 
 import core.*;
 import core.E.*;
@@ -255,7 +255,7 @@ public class CompactPrinter{
       .toList();
   }
   public String sig(Sig s){
-    var pm= ofM(s, IntStream.range(0,s.m().arity()).mapToObj(_->"_").toList(), Optional.empty());
+    var pm= ofM(s, Collections.nCopies(s.m().arity(),"_"),Optional.empty());
     assert sb.isEmpty();
     sb.append(" ".repeat(6-rcPrefixLen(s.rc())));//line up
     pm.accString(this);
