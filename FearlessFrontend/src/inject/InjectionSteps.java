@@ -115,8 +115,8 @@ public record InjectionSteps(Methods meths){
     return a.toString().compareTo(b.toString()) < 0 ? a: b;
   }
   IT meet(IT t1, IT t2){
-    if (t2 == IT.U.Instance){ return t1; }
-    if (t1 == IT.U.Instance){ return t2; }
+    if (t2 instanceof IT.U){ return t1; }
+    if (t1 instanceof IT.U){ return t2; }
     if (t1.equals(t2)){ return t1; }
     var t1ReadImmOfT2= t1 instanceof IT.ReadImmX r1 && t2 instanceof IT.X x2 && r1.x().equals(x2);
     if (t1ReadImmOfT2){ return t1; }
@@ -254,11 +254,11 @@ public record InjectionSteps(Methods meths){
     var t1= g.getWithRC(x.name());
     var t2= x.t();
     if (t1.equals(t2)){ return x; }
-    if (t2 != IT.U.Instance){ updateG(g, x.name(), t1Base, t2); }
+    if (!(t2 instanceof IT.U)){ updateG(g, x.name(), t1Base, t2); }
     return x.withT(meet(t1, t2));
   }
   private void updateG(Gamma g, String x, IT t1, IT t2){
-    if (t1 == IT.U.Instance){ g.update(x, t2); return; }
+    if (t1 instanceof IT.U){ g.update(x, t2); return; }
     if (t1 instanceof IT.RCC a && t2 instanceof IT.RCC b){
       if (a.c().name().equals(b.c().name())){ g.update(x, new RCC(glbRcNoH(a.rc(), b.rc()), a.c(), a.span())); }
       return;
@@ -520,7 +520,7 @@ public record InjectionSteps(Methods meths){
     case IT.RCX(_, var x) -> x;
     case IT.ReadImmX(var x) -> x;
     case IT.RCC rcc -> rcc.withRC(RC.iso);//This iso is because on conflict iso is the first to disappear?
-    case IT.U _ -> IT.U.Instance;
+    case IT.U _ -> t;
   };}
   List<IT> refineXs(List<String> xs, IT.X x, IT t1){ return qMarks(xs.indexOf(x.name()), t1, xs.size()); }
   private boolean isASuperB(TName a, TName b){

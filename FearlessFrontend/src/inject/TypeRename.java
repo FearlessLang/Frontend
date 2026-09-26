@@ -32,7 +32,7 @@ public final class TypeRename{
       case IT.RCX(var rc, var x) -> of(x,xs,ts).withRC(rc);
       case IT.RCC rcc -> rcc.withTs(ofIT(rcc.c().ts(),xs,ts));
       case IT.ReadImmX(var x) -> of(x,xs,ts).readImm();
-      case IT.U u -> u;
+      case IT.U _ -> t;
     };
   }
   public static List<IT> ofIT(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }

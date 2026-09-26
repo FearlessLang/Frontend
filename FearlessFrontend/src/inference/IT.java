@@ -75,7 +75,7 @@ public sealed interface IT{
     case RCX(_, var x) -> new RCX(rc, x);
     case X x -> new RCX(rc, x);
     case ReadImmX(var x) -> new RCX(rc, x);
-    case IT.U _   -> this;
+    case U _   -> this;
   };}
   default IT readImm(){ return switch (this){ // T[read/imm]
     case X x -> new ReadImmX(x);
