@@ -7,7 +7,7 @@ import java.util.List;
 
 import utils.Join;
 public record B(String x, EnumSet<RC> rcs){
-  public B{ assert nonNull(x) && !rcs.isEmpty(); }
+  public B{ assert nonNull(x); assert !rcs.isEmpty(); }
   public static List<String> xs(List<B> bs){ return bs.stream().map(B::x).toList(); }
   public String toString(){
     return x+":"+Join.of(rcs.stream().map(RC::name),"",",","","");

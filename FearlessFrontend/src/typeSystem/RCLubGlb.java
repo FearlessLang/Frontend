@@ -38,7 +38,8 @@ public final class RCLubGlb{
   static void init(EnumSet<RC> options,RC glb,RC lub){
     var novel1= lubMap.put(options,lub);
     var novel2= glbMap.put(options, glb);
-    assert novel1 == null && novel2 == null;
+    assert novel1 == null;
+    assert novel2 == null;
     assert isLub(options,lub);
     assert isGlb(options,glb);
     assert allRC.stream().noneMatch(rc->rc != lub && isLub(options,rc));

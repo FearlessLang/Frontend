@@ -66,7 +66,7 @@ public final class TypeRename{
     case IT.U _ ->inferUnknown;
      //throw Bug.of();// bug is good for testing, it will be replaced with this later: inferUnknown;
   };}
-  public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.unknown), List.of()),TSpan.fromPos(Pos.unknown,1));
+  public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(new TName("base.InferUnknown", 0, Pos.unknown), List.of()),TSpan.fromPos(Pos.unknown));
 
   private static T withRC(T t, RC rc){ return isInfer(t) ? t : t.withRC(rc); }
   private static T readImm(T t){ return isInfer(t) ? t : t.readImm(); }

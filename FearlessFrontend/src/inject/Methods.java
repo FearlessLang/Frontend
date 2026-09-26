@@ -149,7 +149,8 @@ public record Methods(
     return new core.E.Literal(d.rc().get(),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName());
   }
   inference.M withName(MName name,inference.M m){
-    assert m.impl().isPresent() && m.sig().m().isEmpty();
+    assert m.impl().isPresent();
+    assert m.sig().m().isEmpty();
     M.Sig s= m.sig();
     return new inference.M(new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span()),m.impl());
   }

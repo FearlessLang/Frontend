@@ -216,13 +216,14 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   private void checkRedeclaration(Token start, Token end, List<M> ms){
     List<RCMName> names= ms.stream().flatMap(this::declaredName).toList();
+    var at= span(start,end).get();
     var redeclared= names.stream().distinct().count() < names.size();
-    if (redeclared){ throw errFactory().methNameRedeclared(ms,names,span(start,end).get()); }
-    checkMixedExplicitRC(ms,names,span(start,end).get());
+    if (redeclared){ throw errFactory().methNameRedeclared(ms,names,at); }
+    checkMixedExplicitRC(ms,names,at);
     List<Integer> noNames= ms.stream()
       .map(errFactory()::parCount).filter(i->i != -1).toList();
     var noNameRedeclared= noNames.stream().distinct().count() < noNames.size();
-    if (noNameRedeclared){ throw errFactory().methNoNameRedeclared(ms,noNames,span(start,end).get()); }
+    if (noNameRedeclared){ throw errFactory().methNoNameRedeclared(ms,noNames,at); }
   }
   private void checkMixedExplicitRC(List<M> ms, List<RCMName> names, Span at){
     for (var n : names){

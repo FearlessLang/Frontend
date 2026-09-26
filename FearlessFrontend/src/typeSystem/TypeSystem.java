@@ -142,7 +142,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (callable(l.rc(),m.sig().rc())){ return; }
     throw tsE().methodImplementationDeadCode(m, l);
   }
-  private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC != RC.read); }
+  private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || !readOrImm(litRC); }
 
   private record Key(MName m, RC rc){}
   //Sources is needed, not assert only: the user can simply try to override with a non subtype signature.

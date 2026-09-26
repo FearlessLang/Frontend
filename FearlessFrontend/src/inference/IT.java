@@ -47,7 +47,7 @@ public sealed interface IT{
   record RCC(Optional<RC> rc, C c, TSpan span) implements IT{
     static final int maxDepth=100;
     public RCC(Optional<RC> rc, C c, TSpan span){
-      nonNull(rc,c);
+      assert nonNull(rc,c);
       this.rc=rc; this.c=c; this.span= span;
       if (c.depth() > maxDepth){ throw new WellFormednessErrors.ErrToFetchContext(this); }
     }

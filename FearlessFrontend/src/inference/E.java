@@ -36,7 +36,7 @@ public sealed interface E{
   }
   record X(String name, IT t, Src src, Gamma.GammaSignature g) implements E{
     public X(String name, Src src){ this(name,IT.U.Instance,src,new Gamma.GammaSignature()); }
-    public X{ assert nonNull(t) && validate(name, "parameter name",LowercaseId); }
+    public X{ assert nonNull(t); assert validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name+":"+t; }
     public E withT(IT t){ return sameTOr(this, t, ()->new X(name,t,src,g.clear())); }
   }

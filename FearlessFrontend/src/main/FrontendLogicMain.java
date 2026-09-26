@@ -108,7 +108,8 @@ public class FrontendLogicMain{
     }//map a as b in c + use a.F as aF will replace aF with b.F
   }
   private Ref findHeadUri(WellFormednessErrors err, Set<Ref> uris){
-    assert nonNull(uris) && validate(err.pkgName(),"",_pkgName);
+    assert nonNull(uris);
+    assert validate(err.pkgName(),"",_pkgName);
     var heads= uris.stream().filter(this::isHeadUri).toList();
     if (heads.size() == 1){ return heads.getFirst(); }
     throw err.expectedSingleUriForPackage(heads);

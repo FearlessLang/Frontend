@@ -415,7 +415,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///   Do the Reason help here? if not, can we expand it or provide a parallel support?
   ///Raised when checking method calls.
   public FearlessException methodArgumentCannotMeetAnyPromotion(TypeSystem ts,List<B> bs, Literal d, Call c, int argi, List<TRequirement> reqs, List<Reason> res){
-    assert argi >= 0 && argi < c.es().size();
+    assert argi >= 0;
+    assert argi < c.es().size();
     assert !reqs.isEmpty();
     assert reqs.size() == res.size();
     assert res.stream().noneMatch(Reason::isEmpty);
@@ -492,7 +493,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///  - What arguments satisfy what promotion and why (best type <: required type1, required type 2 etc)  
   public FearlessException methodPromotionsDisagreeOnArguments(Call c, ArgMatrix mat){
     int args= mat.okByArg().size();
-    assert args > 0 && mat.resByArg().size() == args;
+    assert args > 0;
+    assert mat.resByArg().size() == args;
     var e= err()
       .pCallCantBeSatisfied(c)
       .line("Each argument is compatible with at least one promotion, but no single promotion fits all arguments.")
