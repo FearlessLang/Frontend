@@ -60,7 +60,7 @@ public final class Reason{
     TypeSystem ts,X x, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
   ){
     T got= cur.currentT();
-    var rcOnly= Err.rcOnlyMismatch(got, req.t());
+    var rcOnly= rcOnlyMismatch(got, req.t());
     String base= ts.err().gotMsg(!rcOnly,ts.err().expRepr(x), List.of(got), req.t());
     if (!rcOnly || declared.equals(got)){ return new Reason(got, base,()->baseFooterE(ts.scope(),got,req.t())); }
     var e= ts.err().line(base);
