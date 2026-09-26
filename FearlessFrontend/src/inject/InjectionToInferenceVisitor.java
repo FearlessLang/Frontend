@@ -102,7 +102,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   public B visitB(fearlessFullGrammar.B b){
     return new B(b.x().name(),switch (b.bt()){
     case fearlessFullGrammar.B.Star()->EnumSet.of(RC.imm,RC.mut,RC.read);
-    case fearlessFullGrammar.B.StarStar()->EnumSet.of(RC.imm, RC.mut, RC.read, RC.iso, RC.mutH, RC.readH);
+    case fearlessFullGrammar.B.StarStar()->EnumSet.allOf(RC.class);
     case fearlessFullGrammar.B.RCS(List<RC> rcs)-> rcs.isEmpty() ?EnumSet.of(RC.imm) :inOrder(rcs,b.x());
     });
   }
