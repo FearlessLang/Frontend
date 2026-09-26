@@ -289,10 +289,10 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       Tokenizer tokenizer){
     assert nonNull(open, stop, expectedClosers, tokenizer, likely);
     var file= tokenizer.fileName();
-    boolean sof= open.is(_SOF);
-    boolean eof= stop.is(_EOF);
-    boolean isCloser= stop.is(CRound, CSquare, CCurly, CCurlyId);
-    boolean isBarrier= !eof && !isCloser;
+    var sof= open.is(_SOF);
+    var eof= stop.is(_EOF);
+    var isCloser= stop.is(CRound, CSquare, CCurly, CCurlyId);
+    var isBarrier= !eof && !isCloser;
     String openLabel= disp(open.kind().human);
     String stopLabel= eof ? "end of group" : disp(stop.kind().human);
     String base=

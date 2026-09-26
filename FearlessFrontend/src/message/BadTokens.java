@@ -141,7 +141,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     if (s.endLine() != t.line()){ throw errNoInfo(b, quoteChar); }
     int quote= prev.content().lastIndexOf(quoteChar);
     int nl= prev.content().lastIndexOf("\n");
-    boolean swallowedByComment= quote > 0 && quote > nl;
+    var swallowedByComment= quote > 0 && quote > nl;
     if (!swallowedByComment){ throw errNoInfo(b, quoteChar); }
     var line= b.endLine();
     var endCol= b.startCol()+1;//invert the caret

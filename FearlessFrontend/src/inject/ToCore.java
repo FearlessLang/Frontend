@@ -53,7 +53,7 @@ public record ToCore(List<B> ctx){
     return m.withSig(new core.Sig(s.rc(),s.m(),s.bs(),s.ts(),s.ret(),to,s.abs(),s.span()));
   }
   Optional<List<B>> originalBs(inference.E.Literal o){
-    boolean explicit= switch (o.src().inner){
+    var explicit= switch (o.src().inner){
       case fearlessFullGrammar.E.TypedLiteral _->false; //Not tl.t().c().ts().isPresent(): this would be about the first eventual c in cs; not the anon heir
       case fearlessFullGrammar.E.Literal _->false;
       case fearlessFullGrammar.E.DeclarationLiteral dl->dl.dec().bs().isPresent();
@@ -104,7 +104,7 @@ public record ToCore(List<B> ctx){
     return new core.Sig(rc,m,bs,TypeRename.itOptToT(ts),TypeRename.itToT(ret),origin,usr.abs(),usr.span());
   }
   private static inference.E.Literal litLike(inference.E o,inference.E.Literal e){
-    var ol=(inference.E.Literal)o;
+    var ol= (inference.E.Literal)o;
     assert ol.name().s().equals(e.name().s());
     return ol;
   }

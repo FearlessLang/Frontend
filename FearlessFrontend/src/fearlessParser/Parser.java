@@ -171,7 +171,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   
   E.CallSquare parseCallSquare(){
     expect("method call generic type argument",OSquareArg);
-    var hasRC=peekOrder(t->t.is(RCap),t->t.is(Comma,CSquare));
+    var hasRC= peekOrder(t->t.is(RCap),t->t.is(Comma,CSquare));
     expectLast("method call generic type argument",CSquare);
     var rc= parseIf(hasRC,this::parseRC);
     var moreTargs= hasRC && !end();
@@ -260,7 +260,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     Optional<M> m= parseFront("method signature",false,arrowSkip,Parser::parseSig)
       .map(this::parseMethodWithSig);
     if (m.isPresent()){ return m.get(); }
-    boolean hasSig= peek(DotName,Op)
+    var hasSig= peek(DotName,Op)
       || peekOrder(t->t.is(RCap), t->t.is(DotName,Op));
     if (!hasSig){ return new M(empty(),of(parseMethodBody()),tspan()); }
     Sig sig= parseSig();
@@ -296,7 +296,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var Xs= bsXs(bs);
     checkValidNew(Xs, errFactory()::duplicateGenericInMethodSignature);
     updateNames(names.addXs(Xs));//added both inside and outside since different parsers
-    boolean hasPar=peek(_RoundGroup);
+    var hasPar= peek(_RoundGroup);
     List<Parameter> ps= hasPar
       ?parseGroupSep("","method parameters declaration",Parser::parseParameter,ORound,CRound,commaSkip)
       :parseNakedParameters();
@@ -390,7 +390,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   FileFull parseFileFull(){
     expect("",_SOF);
     expectLast("",_EOF);
-    var head=parseFrontOrAll("file header", headEnd,Parser::parseHeader);
+    var head= parseFrontOrAll("file header", headEnd,Parser::parseHeader);
     List<Declaration> ds= splitBy("type declaration",curlyLeft,p->p.parseDeclaration(true));
     return new FileFull(List.copyOf(head.map),List.copyOf(head.use),ds);
   }
@@ -448,7 +448,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   Pos pos(Token t){ return new Pos(span().fileName(),t.line(),t.column()); }
   <R> Optional<R> parseIf(boolean cond, Supplier<R> s){ return cond ? of(s.get()) : empty(); }
   int onCommaExp(){
-    boolean inColon= false;
+    var inColon= false;
     while (!end()){
       var t= expectAny("");
       var separator= t.is(Comma) && !inColon;

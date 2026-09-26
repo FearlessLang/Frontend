@@ -22,14 +22,14 @@ final class BestPicker{
     for (var t: x.ts()){ visit(t,depth); }
   }
   void visitPCall(PCall x,int depth){
-    boolean targsVisible= CompactPrinter.showTargs(x.rc(),x.targs().size());
+    var targsVisible= CompactPrinter.showTargs(x.rc(),x.targs().size());
     if (targsVisible){ for (var t: x.targs()){ visit(t,depth); } }
     if (!x.k().isCompactable()){ return; }
     visit(x.recv(),depth);
     for (var a: x.args()){ visit(a,depth); }
   }
   void visitPLit(PLit x,int depth){
-    boolean cVisible= x.k().isCompactable() || x.priv();
+    var cVisible= x.k().isCompactable() || x.priv();
     if (cVisible){ for (var a: x.cs()){ visit(a,depth); } }
     if (!x.k().isCompactable()){ return; }
     for (var m: x.ms()){ visit(m,depth); }

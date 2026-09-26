@@ -28,7 +28,7 @@ public final class LiteralDeclarations{
   private static core.E.Literal forge(TName name, Function<TName,Literal> map, OtherPackages other){
     var lit= superLiteral(name);
     var res= _from(lit,map,other);
-    var ms=res.ms().stream().map(m->m.withSig(m.sig().implementedBy(name))).toList();
+    var ms= res.ms().stream().map(m->m.withSig(m.sig().implementedBy(name))).toList();
     return new core.E.Literal(RC.imm,name,List.of(),Push.of(new T.C(lit,List.of()),res.cs()),"this",ms,Src.syntetic,true);
   }
   public static core.E.Literal _from(TName n, Function<TName,Literal> map, OtherPackages other){
@@ -82,7 +82,7 @@ public final class LiteralDeclarations{
   public static boolean floatLiteralOk(String raw){ return raw.endsWith(softSuffix) ? Double.isFinite(floatLiteralDouble(raw)) : floatLiteralExactlyRepresentable(raw); }
   public static String floatExactFearlessLit(double d){
     assert Double.isFinite(d);
-    boolean neg= (Double.doubleToRawLongBits(d) & (1L<<63)) != 0;
+    var neg= (Double.doubleToRawLongBits(d) & (1L<<63)) != 0;
     String mag= new BigDecimal(d).abs().toString(); // exact decimal for this double, may use E
     String sign= neg ? "-" : "+";
     int e= mag.indexOf('E');

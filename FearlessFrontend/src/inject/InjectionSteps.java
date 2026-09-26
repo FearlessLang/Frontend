@@ -348,7 +348,7 @@ public record InjectionSteps(Methods meths){
       l= l.infName() ? meths.expandLiteral(l, rcc.c()) : meths.expandDeclaration(l,true);
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
-    boolean changedMs= false;
+    var changedMs= false;
     var res= new ArrayList<inference.M>(l.ms().size());
     List<IT> ts= rcc.c().ts();
     for (var mi : l.ms()){

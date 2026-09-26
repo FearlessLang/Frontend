@@ -195,7 +195,7 @@ public class CompactPrinter{
   }
   PE ofLit(Literal l){
     var ms= ofMs(l);
-    boolean priv= l.infName();
+    var priv= l.infName();
     var name= priv ? ""
       : t.of(l.name()) + bounds(l.bs())+":"; // name[bs]:
     var cs= ofCs(l.src(),priv && !l.cs().isEmpty() ? List.of(l.cs().getFirst()):l.cs());

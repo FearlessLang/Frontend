@@ -288,7 +288,7 @@ public record WellFormednessErrors(String pkgName){
   public String retTypeDisagreement(){ return "Return type disagreement"; }
   public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
   public FearlessException noAgreement(Agreement at, List<?> res, String msg){
-    var rc=at.rc().map(r->r.toStrSpace(false)).orElse("");
+    var rc= at.rc().map(r->r.toStrSpace(false)).orElse("");
     var e= err()
       .line(msg+" for method "+err().methodSig(rc,at.mName())+" with "+at.mName().arity()+" parameters.")
       .line(Join.of(

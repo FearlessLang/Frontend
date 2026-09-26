@@ -157,7 +157,7 @@ public record Methods(
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     assert ss.stream().allMatch(M.Sig::isFull);
     List<M> res= new ArrayList<>(ms.size());
-    boolean changed= false;
+    var changed= false;
     for (var m: ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
       var name= m.sig().m().get();
@@ -184,7 +184,7 @@ public record Methods(
   }
   List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     List<M> res= new ArrayList<>();
-    boolean changed= false;
+    var changed= false;
     for (var m: ms){ 
       var name= m.sig().m().get();
       var rc= m.sig().rc();
@@ -200,7 +200,7 @@ public record Methods(
         }
       }
       var groups= match.isEmpty() ? List.of(List.<M.Sig>of()) : List.copyOf(match.values());
-      boolean first= true;
+      var first= true;
       for (var matches: groups){
         var mi= first ? m : new DupE(fresh,origin,m,this.p().err()).ofM(m,origin.name(),origin.name());
         first= false;

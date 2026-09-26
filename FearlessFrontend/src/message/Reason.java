@@ -26,7 +26,7 @@ public final class Reason{
     TypeSystem ts, E blame, List<B> bs, T got, T expected
     ){     
     var er= (T.RCC)expected;
-    boolean explRC= er.rc() != RC.imm && switch (blame){
+    var explRC= er.rc() != RC.imm && switch (blame){
       case Literal l->l.rc() != RC.imm;
       case Type(var t,_) ->  t.rc() != RC.imm;
       default ->{ throw Bug.unreachable(); }

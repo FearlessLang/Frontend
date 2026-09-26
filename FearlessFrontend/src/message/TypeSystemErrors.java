@@ -113,7 +113,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchCovariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent){
-    var mName=current.m();
+    var mName= current.m();
     assert mName.equals(parent.m());
     T parentRet= parent.ret();
     T currentRet= current.ret();
@@ -319,7 +319,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     }
     var rcs= sameArity.stream().map(Sig::rc).sorted().toList();
     String availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
-    boolean explicit= explicitRc(c);
+    var explicit= explicitRc(c);
     Err e2= err()
       .pCallCantBeSatisfied(c)
       .line(err().methodSig(c.name())+" exists on type "+err().bestNameNoRc(d)+", but not with the requested capability.")
@@ -340,7 +340,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     for (var s= scope; !s.isTop(); s= s.outer()){
       if (!(s instanceof TypeScope.Method meth)){ continue; }
       Literal l= meth.l();
-      boolean has= l.ms().stream().anyMatch(m->m.sig().m().s().equals(name));
+      var has= l.ms().stream().anyMatch(m->m.sig().m().s().equals(name));
       if (!has){ continue; }
       String sig= err().methodSig(c.name());
       String type= err().tNameADisp(l.name());
