@@ -37,8 +37,8 @@ public record FreeXs(Gamma g){
   Stream<String> ftvT(Optional<IT> o){ return o.stream().flatMap(this::ftvT); }
   public Stream<String> ftvT(IT t){ return switch (t){
     case IT.X x -> Stream.of(x.name());
-    case IT.RCX(_, var x) -> Stream.of(x.name());
-    case IT.ReadImmX(var x) -> Stream.of(x.name());
+    case IT.RCX(_, var x) -> ftvT(x);
+    case IT.ReadImmX(var x) -> ftvT(x);
     case IT.RCC(_, var c,_) -> ftvTs(c.ts());
     case IT.U.Instance -> Stream.of();
   };}

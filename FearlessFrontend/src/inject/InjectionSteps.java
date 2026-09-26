@@ -494,8 +494,8 @@ public record InjectionSteps(Methods meths){
     if (t1 instanceof IT.U){ return qMarks(xs.size()); }
     return switch (t){
       case IT.X x -> refineXs(xs, x, t1);
-      case IT.RCX(RC _, IT.X x) -> refineXs(xs, x, stripRCAlsoThisSide(t1));
-      case IT.ReadImmX(IT.X x) -> refineXs(xs, x, stripRCAlsoThisSide(t1));
+      case IT.RCX(RC _, IT.X x) -> refine(xs, x, stripRCAlsoThisSide(t1));
+      case IT.ReadImmX(IT.X x) -> refine(xs, x, stripRCAlsoThisSide(t1));
       case IT.RCC(_, IT.C c,_) -> propagateXs(xs, c, t1);
       case IT.U _ -> qMarks(xs.size()); //stripRCAlsoThisSide is needed to distinguish
     };//xs=[EE], t= imm EE, t1=imm ET -> [ET] | xs=[EE], t= EE, t1=imm ET ->[imm ET]

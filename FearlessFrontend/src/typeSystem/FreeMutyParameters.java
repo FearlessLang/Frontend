@@ -33,7 +33,7 @@ interface CaptureWalk{
     return switch (t){
       case T.X(String name, _) -> RC.get(bs(), name).rcs().stream().allMatch(this::isFree);
       case T.RCX(RC rc, _) -> isFree(rc);
-      case T.ReadImmX(T.X x) -> RC.get(bs(), x.name()).rcs().stream().allMatch(this::isFree);
+      case T.ReadImmX(T.X x) -> isFree(x);
       case T.RCC(RC rc,_,_) -> isFree(rc);
     };
   }

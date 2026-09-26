@@ -41,7 +41,7 @@ public record Kinding(TypeSystemErrors tsE){
     case T.RCC(var rc, _,_) -> EnumSet.of(rc);
     case T.RCX(var rc, _) -> EnumSet.of(rc);
     case T.X(var x,_) -> get(bs, x).rcs();
-    case T.ReadImmX(var x) -> readImmRCs(get(bs, x.name()).rcs());
+    case T.ReadImmX(var x) -> readImmRCs(intrinsicRCs(bs, x));
   };}
   private static EnumSet<RC> readImmRCs(EnumSet<RC> rcs){
     if (EnumSet.of(iso, imm).containsAll(rcs)){ return EnumSet.of(imm); }
