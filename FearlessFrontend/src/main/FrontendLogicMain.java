@@ -53,14 +53,16 @@ public class FrontendLogicMain{
       .flatMap(e->e.getValue().maps().stream().map(m->new Cand(e.getKey(), m.target(), m.in(), m.out())
       )).collect(Collectors.groupingBy(x->new Key(x.target(),x.in())));
     Map<String,Map<String,String>> res= new HashMap<>();
-    byKey.forEach((k,cs)->{
+    for (var e : byKey.entrySet()){
+      var k= e.getKey();
+      var cs= e.getValue();
       var best= cs.stream().max(Comparator.comparing(Cand::uri,c)).get();
       List<Cand> bests= cs.stream().filter(x->c.compare(x.uri(), best.uri())==0).toList();
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
       var conflicting= bests.stream().map(Cand::out).distinct().count() != 1;
       if (conflicting){ throw new WellFormednessErrors(k.target()).mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
       res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), best.out());
-    });
+    }
     res.replaceAll((_,v)->Map.copyOf(v));
     return Map.copyOf(res);
   }

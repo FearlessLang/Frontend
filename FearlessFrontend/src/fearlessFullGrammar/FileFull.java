@@ -17,17 +17,16 @@ public record FileFull(
     assert unmodifiableDistinct(decs, "FileFull.decs"); 
   }
   public record Use(TName in,String out){
-    public Use{assert nonNull(in,out); assert validate(out,"Use.out",_XId);}
-     @Override public String toString(){
-       return "use " + in.s() + " as " + out;
-  }}
-  public record Map(String in,String out, String target){ public Map{
-    assert validate(in,"map.in", _pkgName);
-    assert validate(out,"map.out", _pkgName);
-    assert validate(target,"map.target", _pkgName);
+    public Use{ assert nonNull(in,out); assert validate(out,"Use.out",_XId); }
+    @Override public String toString(){ return "use " + in.s() + " as " + out; }
   }
-  @Override public String toString(){
-    return "map " + in + " as " + out + " in " + target;
-  }}
+  public record Map(String in,String out, String target){
+    public Map{
+      assert validate(in,"map.in", _pkgName);
+      assert validate(out,"map.out", _pkgName);
+      assert validate(target,"map.target", _pkgName);
+    }
+    @Override public String toString(){ return "map " + in + " as " + out + " in " + target; }
+  }
   public boolean noDirectives(){ return maps.isEmpty() && uses.isEmpty(); }
 }

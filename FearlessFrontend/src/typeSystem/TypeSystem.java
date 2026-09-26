@@ -79,11 +79,13 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (!(cur instanceof Change.WithT w)){ throw tsE().parameterNotAvailableHere(x, (Change.NoT)cur); }
     T got= w.currentT();
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
-    return rs.stream().<Reason>map(r->{
-      if (isSub(bs,got,r.t())){ return Reason.pass(got); }
-      boolean declaredOk= isSub(bs,declared,r.t());
-      return Reason.parameterDoesNotHaveRequiredTypeHere(this,x, r, declared, w, declaredOk);
-    }).toList();
+    return rs.stream().map(r->xReason(bs,x,declared,w,r)).toList();
+  }
+  private Reason xReason(List<B> bs, X x, T declared, Change.WithT w, TRequirement r){
+    T got= w.currentT();
+    if (isSub(bs,got,r.t())){ return Reason.pass(got); }
+    boolean declaredOk= isSub(bs,declared,r.t());
+    return Reason.parameterDoesNotHaveRequiredTypeHere(this,x, r, declared, w, declaredOk);
   }
   private List<Reason> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
     k().check(t,bs,t.type());

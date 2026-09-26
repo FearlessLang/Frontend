@@ -1,7 +1,7 @@
 package inject;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -27,7 +27,6 @@ import inference.M;
 import static java.util.Optional.*;
 import static core.LiteralDeclarations.*;
 import static fearlessParser.TokenKind.*;
-import java.util.ArrayList;
 
 public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs)
 {
@@ -108,7 +107,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     });
   }
   private EnumSet<RC> inOrder(List<RC> es, fearlessFullGrammar.T.X x){
-    var duplicated= es.size() != new HashSet<>(es).size();
+    var duplicated= es.stream().distinct().count() < es.size();
     if (duplicated){ throw meths.p().err().duplicatedBound(es,x); }
     return EnumSet.copyOf(es);
   }

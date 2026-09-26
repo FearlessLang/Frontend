@@ -84,15 +84,11 @@ public final class LiteralDeclarations{
     assert Double.isFinite(d);
     boolean neg= (Double.doubleToRawLongBits(d) & (1L<<63)) != 0;
     String mag= new BigDecimal(d).abs().toString(); // exact decimal for this double, may use E
+    String sign= neg ? "-" : "+";
     int e= mag.indexOf('E');
-    if (e != -1){
-      String base= mag.substring(0,e);
-      String exp= mag.substring(e+1);
-      if (base.indexOf('.') == -1){ base= base+".0"; }
-      mag= base+"e"+exp;
-    }
-    else if (mag.indexOf('.') == -1){ mag= mag + ".0"; }
-    return (neg ? "-" : "+") + mag;
+    if (e != -1){ return sign+mag.substring(0,e)+"e"+mag.substring(e+1); }
+    if (mag.indexOf('.') == -1){ mag= mag + ".0"; }
+    return sign+mag;
   }
   public static double floatLiteralDouble(String raw){
     try{ return Double.parseDouble(floatPayload(raw)); }

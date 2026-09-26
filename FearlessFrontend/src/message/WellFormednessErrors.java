@@ -439,12 +439,11 @@ public record WellFormednessErrors(String pkgName){
       .line("Float literal is not exactly representable as \"base.Float\".")
       .line("\"base.Float\" must be representable exactly as a 64-bit IEEE 754 double.")
       .line("This literal is: "+raw+".");
-    if (!Double.isFinite(d)){ e.line("This literal overflows; the nearest representable value is "+disp(near)+"."); }
-    else{
-      e.line("If rounded, the nearest representable value is "+disp(near)+".")
-       .line("Write "+disp(raw+LiteralDeclarations.softSuffix)+" to accept that rounding.")
-       .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".");
-    }
-    return e.wf().addSpan(lit.approxSpan().inner);
+    var at= lit.approxSpan().inner;
+    if (!Double.isFinite(d)){ return e.line("This literal overflows; the nearest representable value is "+disp(near)+".").wf().addSpan(at); }
+    return e.line("If rounded, the nearest representable value is "+disp(near)+".")
+      .line("Write "+disp(raw+LiteralDeclarations.softSuffix)+" to accept that rounding.")
+      .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
+      .wf().addSpan(at);
   }
 }

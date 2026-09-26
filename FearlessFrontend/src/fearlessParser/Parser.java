@@ -1,6 +1,7 @@
 package fearlessParser;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -215,12 +216,12 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   private void checkRedeclaration(Token start, Token end, List<M> ms){
     List<RCMName> names= ms.stream().flatMap(this::declaredName).toList();
-    var redeclared= names.size() > names.stream().distinct().count();
+    var redeclared= names.stream().distinct().count() < names.size();
     if (redeclared){ throw errFactory().methNameRedeclared(ms,names,span(start,end).get()); }
     checkMixedExplicitRC(ms,names,span(start,end).get());
     List<Integer> noNames= ms.stream()
       .map(errFactory()::parCount).filter(i->i != -1).toList();
-    var noNameRedeclared= noNames.size() > noNames.stream().distinct().count();
+    var noNameRedeclared= noNames.stream().distinct().count() < noNames.size();
     if (noNameRedeclared){ throw errFactory().methNoNameRedeclared(ms,noNames,span(start,end).get()); }
   }
   private void checkMixedExplicitRC(List<M> ms, List<RCMName> names, Span at){
@@ -239,7 +240,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     }
   }
   void checkValidNew(List<String> xs, BiFunction<Span,String,FearlessException> err){
-    var seen= new java.util.HashSet<String>();
+    var seen= new HashSet<String>();
     for (var x : xs){ if (!seen.add(x)){ throw err.apply(span(), x); } }
   }
   M parseMethod(boolean top){

@@ -29,23 +29,22 @@ import core.E.*;
 import static message.Err.*;
 
 public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pkg, Map<String,String> map){
-  public Err err(){
-   Function<TName,TName> f= n->{
-     var res= decs.apply(n);
-     if (res == null){ return n; }
-     var showSuper= res.infName() && !res.cs().isEmpty();
-     if (!showSuper){ return n; }
-     return res.cs().getFirst().name();
-   };
-   Function<T.C,T.C> publicHead= c->{
-     var d= decs.apply(c.name());
-     if (!d.infName()){ return c; }
-     return d.cs().stream()
-       .<T.C>map(sc->TypeRename.of(sc, B.xs(d.bs()), c.ts()))
-       .filter(scC->!decs.apply(scC.name()).infName())
-       .findFirst().orElse(c);
-    };
-   return new Err(publicHead,f,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
+  public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
+  private TName preferredForFresh(TName n){
+    var res= decs.apply(n);
+    if (res == null){ return n; }
+    var showSuper= res.infName() && !res.cs().isEmpty();
+    if (!showSuper){ return n; }
+    return res.cs().getFirst().name();
+  }
+  private T.C publicHead(T.C c){
+    var d= decs.apply(c.name());
+    if (!d.infName()){ return c; }
+    return d.cs().stream()
+      .<T.C>map(sc->TypeRename.of(sc, B.xs(d.bs()), c.ts()))
+      .filter(scC->!decs.apply(scC.name()).infName())
+      .findFirst().orElse(c);
+  }
   public FearlessException baseIdBadBody(Literal l, M m){
     String x= m.xs().getFirst();
     return err()
@@ -350,19 +349,19 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       e.line("Hint:")
        .line("The method parameter \"this\" here has "+on+".")
        .blank();
-      if (selfName.equals("_")){
-        e.line("The method "+sig+" is defined in the object literal of type "+type+".")
-         .line("No parameter refers to instances of this literal.")
-         .line("To declare one, use the single quote as in the example below:")
-         .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
-         .line("    .area: Nat -> width * height;")
-         .line("    .str: Str -> \"area: \"+(rect.area.str);")
-         .line("    .withWidth(width': Nat): Rectangle -> this#(width', height);")
-         .line("  }}");
-      }else{
+      if (!selfName.equals("_")){
         e.line("The method "+sig+" is defined in the object literal of type "+type+"; the parameter "
              + "referring to its instances is named "+disp(selfName)+".");
+        return;
       }
+      e.line("The method "+sig+" is defined in the object literal of type "+type+".")
+       .line("No parameter refers to instances of this literal.")
+       .line("To declare one, use the single quote as in the example below:")
+       .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
+       .line("    .area: Nat -> width * height;")
+       .line("    .str: Str -> \"area: \"+(rect.area.str);")
+       .line("    .withWidth(width': Nat): Rectangle -> this#(width', height);")
+       .line("  }}");
       return;
     }
   }

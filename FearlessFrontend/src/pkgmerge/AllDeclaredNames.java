@@ -3,13 +3,13 @@ package pkgmerge;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import core.TName;
 import fearlessFullGrammar.*;
 import fearlessFullGrammar.E.*;
 import message.WellFormednessErrors;
-import java.util.Map;
 
 public class AllDeclaredNames{
   AllDeclaredNames(WellFormednessErrors err){ this.err= err; }

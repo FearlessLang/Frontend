@@ -1,12 +1,10 @@
 package pkgmerge;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import core.T;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import fearlessFullGrammar.Declaration;
 import inference.E;
 import message.WellFormednessErrors;

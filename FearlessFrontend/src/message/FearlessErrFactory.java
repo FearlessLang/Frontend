@@ -44,19 +44,18 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     String msg = "Missing " + label + ".\n"+expected(expectedLabels);
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
-  public FearlessException topLevelSemicolon(Span at){
-    return Code.UnexpectedToken.of(()->{
-      if (lastTop.isEmpty()){
-        return "Extra semicolon before the first top level type declarations.\n"
-             + "Remove this semicolon.\n";
-      }
-      var n= staticTypeDecName(lastTop.get());
-      String hint= lastTop.get().s()+(lastTop.get().arity() == 0 ? ":..{...}" : "[..]:..{...}");
-      return "Top level type declarations do not end with \";\".\n"
-           + "The defintion of " + n + " ends with a semicolon. Remove it.\n"
-           + "Write: "+disp(hint)+"\n"
-           + "Not:   "+disp(hint+";")+"\n";
-    }).addSpan(at);
+  public FearlessException topLevelSemicolon(Span at){ return Code.UnexpectedToken.of(this::topLevelSemicolonMsg).addSpan(at); }
+  private String topLevelSemicolonMsg(){
+    if (lastTop.isEmpty()){
+      return "Extra semicolon before the first top level type declarations.\n"
+           + "Remove this semicolon.\n";
+    }
+    var n= staticTypeDecName(lastTop.get());
+    String hint= lastTop.get().s()+(lastTop.get().arity() == 0 ? ":..{...}" : "[..]:..{...}");
+    return "Top level type declarations do not end with \";\".\n"
+         + "The defintion of " + n + " ends with a semicolon. Remove it.\n"
+         + "Write: "+disp(hint)+"\n"
+         + "Not:   "+disp(hint+";")+"\n";
   }
   public FearlessException topLevelNotATypeDeclaration(Span at, String found){
     return Code.UnexpectedToken.of(()->
@@ -119,12 +118,13 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
 
   public FearlessException nameNotInScope(Token name, Span at, List<String> inScope){
-    return Code.UnexpectedToken.of(()->{
-      var scope= inScope.isEmpty()
-        ? "No names are in scope here.\n"
-        : NameSuggester.suggest(name.content(), inScope.stream().sorted().toList());
-      return "Name "+disp(name.content())+" is not in scope.\n" + scope;
-    }).addSpan(at);
+    return Code.UnexpectedToken.of(()->nameNotInScopeMsg(name,inScope)).addSpan(at);
+  }
+  private static String nameNotInScopeMsg(Token name, List<String> inScope){
+    var scope= inScope.isEmpty()
+      ? "No names are in scope here.\n"
+      : NameSuggester.suggest(name.content(), inScope.stream().sorted().toList());
+    return "Name "+disp(name.content())+" is not in scope.\n" + scope;
   }
   public FearlessException nameRedeclared(Token c, Span at){
     return Code.UnexpectedToken.of("Name "+disp(c.content())+" already in scope.").addSpan(at);
