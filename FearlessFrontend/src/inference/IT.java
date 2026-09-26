@@ -41,8 +41,7 @@ public sealed interface IT{
     }
     public C(TName name, List<IT> ts){ this(name,ts,RCC.depthFromTs(ts)); }
     public String toString(){
-      if (ts.isEmpty()){ return name.s(); } 
-      return name.s()+Join.of(ts,"[",",","]",""); 
+      return name.s()+Join.of(ts,"[",",","]","");
     }
   }
   record RCC(Optional<RC> rc, C c, TSpan span) implements IT{

@@ -69,11 +69,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
     assert nonNull(from,parser,expectedTerminatorTokens);
-    String msg= "Extra content in the current group.\n";
-    if (!expectedTerminatorTokens.isEmpty()){
-      var instead= "Expected "+what;
-      msg= expected("",instead+": ",instead+".\nExpected one of: ",expectedTerminatorTokens,tk->tk.human);
-    }
+    var instead= "Expected "+what;
+    String msg= expected("Extra content in the current group",instead+": ",instead+".\nExpected one of: ",expectedTerminatorTokens,tk->tk.human);
     var here= parser.peek().get().span(from.fileName());
     return Code.ExtraTokenInGroup.of(msg).addSpan(here).addSpan(from);
   }
@@ -272,11 +269,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   private static String expected(Collection<TokenKind> items){ return expected("","Expected: ","Expected one of: ",items,tk->tk.human); }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
-    if (items.isEmpty()){ return pre0.isEmpty()? "" : pre0+".\n"; }
-    String res= Join.of(
-      items.stream().map(e->Message.displayString(f.apply(e))),"",", ","","");
-    if (items.size() == 1){ return pre1 + res + ".\n"; }
-    return preMany + res + ".\n";
+    return Join.of(items.stream().map(e->Message.displayString(f.apply(e))),
+      items.size() == 1 ? pre1 : preMany,", ",".\n",pre0.isEmpty()? "" : pre0+".\n");
   }
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     String head= what.isBlank()

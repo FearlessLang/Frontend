@@ -77,8 +77,9 @@ public class CompactPrinter{
   } // nothing if x is _ it will be printed as just the type, or "x:"
   static void accTargs(CompactPrinter sb, RC rc, List<PT> targs){
     if (!showTargs(rc,targs.size())){ return; }
-    if (targs.isEmpty()){sb.append("[").append(rc).append("]"); return; }
-    wrap(sb,"["+rc+",","]",targs,",",PN::accString);
+    sb.append("[").append(rc);
+    wrap(sb,",","",targs,",",PN::accString);
+    sb.append("]");
   }
   public sealed interface PN{
     default Compactable k(){ return Compactable.no; }
@@ -143,11 +144,8 @@ public class CompactPrinter{
   }
   public record PC(String name, List<PT> ts, Compactable k) implements PN{
     public int size(){
-      int s= name.length();
-      if (ts.isEmpty()){ return s; }
-      s += 2 + seps(ts.size()); // [ , ]
-      if (k.isCompactable()){ return s + sum(ts, PT::size); }
-      return s + ts.size(); // one "-" per hidden arg
+      if (k.isCompactable()){ return name.length() + wrapLen(ts,2,PT::size); } // [ , ]
+      return name.length() + wrapLen(ts,2,_->1); // one "-" per hidden arg
     }
     public void accString(CompactPrinter sb){
       sb.append(name);
@@ -160,12 +158,8 @@ public class CompactPrinter{
         int s= length + sum(ts, PT::size) + ret.size();
         return body.map(b->s+b.size()).orElse(s);
       }
-      if (body.isPresent()){
-        if (xs.isEmpty()){ return body.get().size(); }
-        return 4 + seps(xs.size()) + xs.size() + body.get().size(); // (-s)->e
-      }
-      if (xs.isEmpty()){ return m.length(); }
-      return m.length() + 2 + seps(xs.size()) + xs.size(); // m(-s)
+      if (body.isPresent()){ return wrapLen(xs,4,_->1) + body.get().size(); } // (-s)->e
+      return m.length() + wrapLen(xs,2,_->1); // m(-s)
     }
     public void accString(CompactPrinter sb){
       if (!k.isCompactable()){ accCompactedMeth(sb); return; }
@@ -183,9 +177,7 @@ public class CompactPrinter{
     }
     private void accCompactedMeth(CompactPrinter sb){
       if (body.isEmpty()){ sb.append(m); wrap(sb,"(",")",xs,",",(_,b)->b.append("-")); return; }
-      if (xs.isEmpty()){ body.get().accString(sb); return; }
-      wrap(sb,"(",")",xs,",",(_,b)->b.append("-"));
-      sb.append("->");
+      wrap(sb,"(",")->",xs,",",(_,b)->b.append("-"));
       body.get().accString(sb);
     }
   }

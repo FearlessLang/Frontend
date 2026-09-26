@@ -30,7 +30,6 @@ public sealed interface T{
       assert eq(ts.size(), name.arity(),"Type arity");
     }
     public String toString(){
-      if (ts.isEmpty()){ return name.s(); }
       return name.s()+Join.of(ts,"[",",","]","");
     }
     public C withTs(List<T> ts){ return new C(name,ts); }

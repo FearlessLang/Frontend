@@ -62,8 +62,7 @@ public sealed interface E{
     }
     public String toString(){
       String res= rc.map(RC::toStrSpace).orElse("")+name.s()+Join.of(bs,"[",",","]","")+(rc.isEmpty() ? ":$?" : Join.of(cs,":",", ","",":"));
-      if (ms.isEmpty()){ return res+":"+t; }
-      return res+"{'"+thisName+Join.of(ms,"","","","")+"}:"+t;
+      return res+Join.of(ms,"{'"+thisName,"","}","")+":"+t;
     }
     public Literal withMs(List<M> ms){
       assert t instanceof IT.RCC;
