@@ -213,9 +213,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var e= err();
     String meth= err().methodSig(m.sig().m());
     var top= l.thisName().equals("this");
-    if (top){ e.line("The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."); }
-    else{ e.line("Method "+meth+" inside the "+err().expRepr(l) + " (line "+l.span().inner.startLine()+")"
-      +"\nis implemented with an expression returning "+got0+"."); }
+    e.line(top
+      ? "The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."
+      : "Method "+meth+" inside the "+err().expRepr(l) + " (line "+l.span().inner.startLine()+")"
+        +"\nis implemented with an expression returning "+got0+".");
     e.line(up(got.info));
     return addExpFrame(at, e.exInferMsg(got.footerE.get(),req0).addSpan(at.span().inner));
   }

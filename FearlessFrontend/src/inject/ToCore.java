@@ -65,7 +65,7 @@ public record ToCore(List<B> ctx){
   private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){ return Streams.zip(es,oEs).map(this::of).toList(); }
   core.E.Call call(inference.E.Call e, CallLike o){
     var rc= o.rc.or(e::rc).orElse(RC.imm);
-    var targs= !o.targs.isEmpty() ? o.targs : e.targs();
+    var targs= o.targs.isEmpty() ? e.targs() : o.targs;
     return new core.E.Call(of(e.e(),o.e),e.name(),rc,TypeRename.itToT(targs),mapArgs(e.es(),o.es),new EqTransparent<>(TypeRename.itToT(e.t())),e.src());
   }
   core.E.Call callFromICall(inference.E.ICall e, CallLike o){
@@ -75,7 +75,7 @@ public record ToCore(List<B> ctx){
   }
   private List<core.M> mapMs(List<inference.M> es, List<inference.M> os){
     return es.stream()
-      .map(me->me.impl().isEmpty()? m(me,me) : m(me,matchM(os,me)))
+      .map(me->m(me,me.impl().isEmpty() ? me : matchM(os,me)))
       .toList();
   }
   private static inference.M matchM(List<inference.M> os, inference.M e){

@@ -30,14 +30,14 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return rc.toStrSpace(skipImm)+tNameA(l.name());
   }
   private String bestLitName(inference.E.Literal l){
-    return l.infName() ? tNameA(guessImplName(l)) : tNameA(l.name());
+    return tNameA(l.infName() ? guessImplName(l) : l.name());
   }
   private TName guessImplName(inference.E.Literal l){
     if (!l.cs().isEmpty()){ return l.cs().getFirst().name(); }
     return ((T.RCC)TypeRename.itToT(l.t())).c().name();
   }
   private String bestNamePkg0(boolean instanceOf, String n){
-    return instanceOf ? "instance of "+disp(n) : disp(n);
+    return (instanceOf ? "instance of " : "")+disp(n);
   }
   private boolean anonLit(Literal l){ return l.infName() && l.cs().isEmpty(); }
   private static final String anonRepr="{...}";

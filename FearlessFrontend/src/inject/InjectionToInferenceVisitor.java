@@ -71,7 +71,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   M visitM(fearlessFullGrammar.M m){ return new M(visitMSig(m),visitMImpl(m)); }
   M.Sig visitMSig(fearlessFullGrammar.M mm){
     if (mm.sig().isEmpty()){
-      List<Optional<IT>> ts= !mm.hasImplicit()?List.of():List.of(empty());
+      List<Optional<IT>> ts= mm.hasImplicit() ? List.of(empty()) : List.of();
       return new M.Sig(empty(),empty(),empty(),ts,empty(),empty(),false,mm.span()); 
     }
     fearlessFullGrammar.Sig s= mm.sig().get();
