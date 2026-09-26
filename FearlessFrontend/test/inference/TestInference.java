@@ -342,7 +342,7 @@ C:{}
 In file: [###].fear
 
 002| B:A{}
-   |   ^^^
+   |   ^^
 
 While inspecting type declarations
 Circular implementation relation found involving "A".
@@ -355,7 +355,7 @@ B:A{}
 In file: [###]/in_memory1.fear
 
 001| B:A{}
-   |   ^^^
+   |   ^^
 
 While inspecting type declarations
 Circular implementation relation found involving "A".

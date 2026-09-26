@@ -119,7 +119,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   private E atomFromSignedNumeric(Token x){
     String s= x.content().substring(1);
     Pos p= new Pos(span().fileName(), x.line(), x.column() + 1);
-    T.RCC rcc= new T.RCC(Optional.empty(), new T.C(new TName(s, 0, p), Optional.empty()), new TSpan(span(p, s.length())));
+    T.RCC rcc= new T.RCC(Optional.empty(), new T.C(new TName(s, 0, p), Optional.empty()), TSpan.fromPos(p, s.length()));
     return new E.TypedLiteral(rcc, Optional.empty(), p);
   }
   E parsePost(E receiver){
@@ -201,7 +201,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     Optional<E.X> thisName= parseIf(fwdIf(peek(SQuote)),this::parseDecX);
     var n= thisName.map(E.X::name).orElse("this");
     var badTopSelfName= top && !n.equals("this");
-    if (badTopSelfName){ throw errFactory().badTopSelfName(span(thisName.get().pos(),n.length()), n); }
+    if (badTopSelfName){ throw errFactory().badTopSelfName(thisName.get().span().inner, n); }
     var selfNamed= top || thisName.isPresent();
     if (selfNamed){ updateNames(names.add(List.of(n),List.of())); }
     List<M> ms= splitBy("method declaration",semiSkip,p->p.parseMethod(top));
@@ -348,9 +348,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var duplicated= res.stream().distinct().count() < res.size();
     if (duplicated){ throw errFactory().duplicatedImpl(res, spanAround(back(start), index())); }
     return res;
-  }
-  public static Span span(Pos pos, int size){
-    return new Span(pos.fileName(), pos.line(), pos.column(),pos.line(),pos.column()+size); 
   }
   void checkCommonTopLevelIssues(){
     if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).orElse(span())); }

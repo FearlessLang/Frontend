@@ -18,10 +18,10 @@ import core.LiteralDeclarations;
 import core.MName;
 import core.RC;
 import core.TName;
+import core.TSpan;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.T.X;
-import fearlessParser.Parser;
 import inference.E;
 import inference.IT;
 import inference.M;
@@ -112,7 +112,7 @@ public record WellFormednessErrors(String pkgName){
       .line("Name clash: name "+disp(n.s())+" is declared in package "+disp(pkgName)+".")
       .line("Name "+disp(n.s())+" is also used in a \"use\" directive.")
       .wf()
-      .addFrame("a type name", Parser.span(n.pos(), n.s().length()));
+      .addFrame("a type name", n.approxSpan().inner);
   }
   public FearlessException usedUndeclaredName(TName tn, String contextPkg, List<TName> scope, List<TName> all){
     return new UndeclaredNameContext(
@@ -200,10 +200,10 @@ public record WellFormednessErrors(String pkgName){
     private FearlessException make(Err e){
       return e.wf().addFrame("a type name", at());
     }
-    private Span at(){ return Parser.span(tn.pos(), tn.s().length()); }
+    private Span at(){ return TSpan.fromPos(tn.pos(), tn.s().length()).inner; }
   }
   public FearlessException unknownUseHead(TName tn, String pkg){
-    var at= Parser.span(tn.pos(), tn.s().length());
+    var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;
     return err()
       .line("\"use\" directive refers to undeclared name: type "+disp(tn.simpleName())
         +" is not declared in package "+disp(pkg)+".")
@@ -237,14 +237,14 @@ public record WellFormednessErrors(String pkgName){
     return err()
       .line("Duplicate type declaration for "+err().tNameADisp(name)+".")
       .wf()
-      .addFrame("a type name", Parser.span(name.pos(), name.s().length()));
+      .addFrame("a type name", name.approxSpan().inner);
   }
   public FearlessException circularImplements(Map<TName,E.Literal> rem){
     TName name= findCycleNode(rem);
     return err()
       .line("Circular implementation relation found involving "+err().tNameADisp(name)+".")
       .wf()
-      .addFrame("type declarations", Parser.span(name.pos(), name.s().length()));
+      .addFrame("type declarations", name.approxSpan().inner);
   }
   private TName findCycleNode(Map<TName,E.Literal> rem){
     var color= new HashMap<TName,Integer>(rem.size());

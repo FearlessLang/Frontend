@@ -11,7 +11,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import fearlessParser.Parser;
 import inject.TypeRename;
 import metaParser.NameSuggester;
 import typeSystem.TypeSystem.*;
@@ -57,7 +56,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return fe.addFrame(err().methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
   }
   private FearlessException withCallSpans(FearlessException ex, Call c){
-    return ex.addSpan(Parser.span(c.pos(), c.name().s().length())).addSpan(c.span().inner);
+    return ex.addSpan(TSpan.fromPos(c.pos(), c.name().s().length()).inner).addSpan(c.span().inner);
   }
   private FearlessException addExpFrame(E toErr,FearlessException err){
     return err.addFrame(err().expRepr(toErr),toErr.span().inner);
