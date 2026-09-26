@@ -53,20 +53,11 @@ public sealed interface IT{
       if (c.depth() > maxDepth){ throw new WellFormednessErrors.ErrToFetchContext(this); }
     }
     static int depthFromTs(List<IT> ts){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1); }
-    static RCC ofOr(RCC fallback, Optional<RC> rc, TName name, List<IT> ts, TSpan span){
-      int depth= depthFromTs(ts);
-      if (depth > maxDepth){ return fallback; }
-      return new RCC(rc, new C(name, ts, depth), span);
-    }
-    public RCC withTs(List<IT> ts){
-      if (ts.equals(c.ts())){ return this; }
-      return ofOr(this, rc, c.name(), ts, span);
-    }
+    public RCC withTs(List<IT> ts){ return withRCTs(rc, ts); }
     public RCC withRCTs(Optional<RC> rc, List<IT> ts){
-      var eqTs= ts.equals(c.ts());
-      if (rc.equals(this.rc) && eqTs){ return this; }
-      if (eqTs){ return new RCC(rc, c, span); }
-      return ofOr(this, rc, c.name(), ts, span);
+      int depth= depthFromTs(ts);
+      if (depth > maxDepth){ return this; }
+      return new RCC(rc, new C(c.name(), ts, depth), span);
     }
     public long badness(){ return c.ts.stream().mapToLong(IT::badness).sum(); }
     public String toString(){ return rc.map(RC::toStrSpace).orElse("AnyRC ")+c; }

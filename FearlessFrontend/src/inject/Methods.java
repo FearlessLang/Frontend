@@ -76,7 +76,7 @@ public record Methods(
     var s= m.sig();
     var fullXs= new ArrayList<>(xs);
     var fullTs= new ArrayList<>(c.ts());
-    List<B> newBs= s.bs().isEmpty()?List.of():new ArrayList<B>(s.bs().size());
+    var newBs= new ArrayList<B>(s.bs().size());
     for (B b: s.bs()){
       var x= b.x();
       if (fresh.isFreshGeneric(child.name(),x)){ newBs.add(b); continue; }
@@ -306,7 +306,6 @@ public record Methods(
   public record Agreement(E.Literal lit,Optional<RC> rc, MName mName, Span span){}
   
   List<B> agreementBs(Agreement at,List<List<B>> res){
-    if (res.size() == 1){ return res.getFirst(); }
     var sizes= res.stream().map(List::size).distinct().count();
     if (sizes != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at,res); }
     var bounds= res.stream().map(l->l.stream().map(B::rcs).toList()).distinct().count();
@@ -316,7 +315,6 @@ public record Methods(
   private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){
     assert superSig.isFull();
-    if (superSig.bs().get().isEmpty()){ return superSig; }
     var fromXs= superSig.bs().get().stream().map(B::x).toList();
     var toITs= targetBs.stream().<IT>map(b->new IT.X(b.x(),superSig.span())).toList();
     assert fromXs.size() == toITs.size();

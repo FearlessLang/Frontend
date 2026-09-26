@@ -322,7 +322,6 @@ public record InjectionSteps(Methods meths){
   }
   private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){
     List<IT> base= Push.of(m.clsArgs(), MSigL.fixTargs(c.targs(), m.bsArity()));
-    if (m.bsArity() + m.clsArgs().size() == 0){ return List.of(); }//this is just an optimization
     Stream<List<IT>> a= Streams.zip(m.ps0(), es).map((p,e2)->refine(m.xs(), p, e2.t()));
     return meet(Streams.of(Stream.of(base), a, Stream.of(refine(m.xs(), m.ret0(), c.t()))).toList());
   }
@@ -487,7 +486,7 @@ public record InjectionSteps(Methods meths){
   }
   List<IT> dropMethBs(List<IT> ts, List<String> methBs){
     if (methBs.isEmpty()){ return ts; }
-    return norm(ts,ts.stream().map(t->dropMethBs(t, methBs)).toList());
+    return ts.stream().map(t->dropMethBs(t, methBs)).toList();
   }
   IT dropMethBs(IT t, List<String> methBs){ return switch (t){
     case IT.X x -> methBs.contains(x.name()) ? IT.U.Instance : t;
@@ -602,7 +601,6 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
   IT ret(List<IT> targs){ return inst(ret0, targs); }
 
   MSigL withClsArgs(List<IT> clsArgs){
-    if (clsArgs.equals(this.clsArgs)){ return this; }
     assert clsArgs.size() == this.clsArgs.size();
     return new MSigL(rc, xs, clsBs, clsArgs, methBs, ps0, ret0);
   }
@@ -614,7 +612,6 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
   }
   static List<IT> fixTargs(List<IT> targs, int n){
     int k= targs.size();
-    if (k == n){ return targs; }
     if (k > n){ return targs.subList(0, n); }
     return Push.of(targs, InjectionSteps.qMarks(n-k));
   }
