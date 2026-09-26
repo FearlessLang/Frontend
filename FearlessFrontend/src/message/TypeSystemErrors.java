@@ -167,7 +167,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   public FearlessException methodImplementationDeadCode(M got, Literal l){
     var s= got.sig();
     assert s.rc() == RC.mut;
-    assert l.rc() == RC.imm || l.rc() == RC.read;
+    assert l.rc().isReadOrImm();
     String m= err().methodSig(s.rc()+" ", s.m());
     return addExpFrame(l, err()
       .line("The method "+err().methodSig(s.rc().toStrSpace(),l,s.m())+" is dead code.")

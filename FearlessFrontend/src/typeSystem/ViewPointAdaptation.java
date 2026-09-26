@@ -34,7 +34,7 @@ public record ViewPointAdaptation(Kinding k){
     var t= w.currentT();
     var mayBeHygienic= !k.of(l.bs(),t,EnumSet.of(iso, imm, mut, read));
     if (mayBeHygienic){ return new Change.DropReadHMutH(l,t); }
-    var mutInImm= (l.rc() == iso || l.rc() == imm) && !kindIsoImm(t, l.bs());
+    var mutInImm= l.rc().isIsoOrImm() &&!kindIsoImm(t, l.bs());
     if (mutInImm){ return new Change.DropMutInImm(l,t); }
     return w;
   }

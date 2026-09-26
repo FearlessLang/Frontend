@@ -30,13 +30,12 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return rs.stream().map(req->resForReq(d,sig,mat,possible,req)).toList();
   }
   private boolean mayBeH(RC recv, MType base){
-    return isH(recv) || Push.of(base.ts(),base.t()).stream().anyMatch(this::mayBeH);
+    return recv.isH() ||Push.of(base.ts(),base.t()).stream().anyMatch(this::mayBeH);
   }
   private boolean mayBeH(T t){
-    if (t instanceof T.X x){ return RC.get(bs,x.name()).rcs().stream().anyMatch(CallTyping::isH); }
+    if (t instanceof T.X x){ return RC.get(bs,x.name()).rcs().stream().anyMatch(RC::isH); }
     return t.explicitH();
   }
-  private static boolean isH(RC rc){ return rc == RC.mutH || rc == RC.readH; }
   private T.RCC recvRcc(){
     var cts= new TypeSystem(ts.scope().pushCallRec(this.c),ts.v());
     var r= OneOr.of("One reason without requirements",cts.typeOf(bs,g,c.e(),List.of()).stream());

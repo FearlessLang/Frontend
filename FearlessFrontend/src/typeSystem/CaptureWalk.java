@@ -1,16 +1,15 @@
 package typeSystem;
 
 import java.util.List;
+import java.util.function.Predicate;
+
 import core.B;
 import core.E;
 import core.M;
 import core.RC;
 import core.T;
-interface CaptureWalk{
-  List<B> bs();
-  Gamma g();
-  boolean isFree(RC rc);
-  default boolean isFree(E e){
+record CaptureWalk(List<B> bs, Gamma g, Predicate<RC> freeRC){
+  boolean isFree(E e){
     return switch (e){
       case E.Literal l -> isFree(l);
       case E.Call c -> isFree(c);
@@ -18,7 +17,7 @@ interface CaptureWalk{
       case E.X x -> isFree(x);
     };
   }
-  default boolean isFree(E.Literal l){ return l.ms().stream().allMatch(this::isFree); }
+  boolean isFree(E.Literal l){ return l.ms().stream().allMatch(this::isFree); }
   private boolean isFree(M m){
     //NOTE: we could be more permissive skipping m.sig().rc() == RC.imm
     //but is not that obvious. iso {imm .foo->captMut} fails but
@@ -31,22 +30,16 @@ interface CaptureWalk{
   }
   private boolean isFree(T t){
     return switch (t){
-      case T.X(String name, _) -> RC.get(bs(), name).rcs().stream().allMatch(this::isFree);
-      case T.RCX(RC rc, _) -> isFree(rc);
+      case T.X(String name, _) -> RC.get(bs, name).rcs().stream().allMatch(freeRC);
+      case T.RCX(RC rc, _) -> freeRC.test(rc);
       case T.ReadImmX(T.X x) -> isFree(x);
-      case T.RCC(RC rc,_,_) -> isFree(rc);
+      case T.RCC(RC rc,_,_) -> freeRC.test(rc);
     };
   }
-  default boolean isFree(E.X x){
-    var cur= g()._bindOrNull(x.name());
+  private boolean isFree(E.X x){
+    var cur= g._bindOrNull(x.name());
     if (cur == null){ return true; }
     if (!(cur.current() instanceof Change.WithT w)){ return true; }
     return isFree(w.currentT());
   }
-}
-public record FreeMutyParameters(List<B> bs,Gamma g) implements CaptureWalk{
-  public boolean isFree(RC rc){ return rc == RC.iso || rc == RC.imm; }
-}
-record ImmCaptures(List<B> bs,Gamma g) implements CaptureWalk{
-  public boolean isFree(RC rc){ return rc == RC.imm; }
 }

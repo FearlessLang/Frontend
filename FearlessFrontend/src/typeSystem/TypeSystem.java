@@ -91,18 +91,17 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     k().check(t,bs,t.type());
     var ll= decs().apply(t.type().c().name());
     if (!hasInstance(ll)){ throw tsE().typeDeclaredInMethod(t, ll); }
-    var getIso= (readOrImm(t.type().rc()) && !hasAbstractMut(ll)) || mutOrMutH(t.type().rc());
-    var l= ll.withRC(getIso ? RC.iso : t.type().rc());
-    var tt= getIso ? new Type(t.type().withRC(RC.iso), t.src()) : t;
+    var rc= t.type().rc();
+    var getIso= (rc.isReadOrImm() && !hasAbstractMut(ll)) || rc == mut || rc == mutH;
+    var l= ll.withRC(getIso ? iso : rc);
+    var tt= getIso ? new Type(t.type().withRC(iso), t.src()) : t;
     l.ms().forEach(m->checkImplemented(l,m,tt));
     return reqs(t,bs,tt.type(),rs);//reqs correctly used for two similar things
   }
   private static boolean hasInstance(Literal l){
     return l.thisName().equals("this") || LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
   }
-  private static boolean readOrImm(RC rc){ return rc == RC.read || rc == RC.imm; }
-  private static boolean mutOrMutH(RC rc){ return rc == RC.mut || rc == RC.mutH; }
-  private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m->m.sig().abs() && m.sig().rc() == RC.mut); }
+  private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m->m.sig().abs() && m.sig().rc() == mut); }
   private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(blame,r.t()); } }
@@ -113,11 +112,11 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<TRequirement> rs){
     var span= _l.name().approxSpan();
-    var getIso= ((readOrImm(_l.rc()) && !hasAbstractMut(_l)) || _l.rc() == mut)
+    var getIso= ((_l.rc().isReadOrImm() && !hasAbstractMut(_l)) || _l.rc() == mut)
       && _l.thisName().equals("_")
-      && new FreeMutyParameters(bs1,g).isFree(_l);
-    _l.onlyImmCapture().inner= new ImmCaptures(bs1,g).isFree(_l);
-    var l= getIso ? _l.withRC(RC.iso) : _l;
+      && new CaptureWalk(bs1,g,RC::isIsoOrImm).isFree(_l);
+    _l.onlyImmCapture().inner= new CaptureWalk(bs1,g,rc->rc == imm).isFree(_l);
+    var l= getIso ? _l.withRC(iso) : _l;
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(l,r.t()); } }
     for (var m : l.ms()){
       var notInferred= m.sig().origin().equals(TypeRename.inferUnknown.c().name());
@@ -142,7 +141,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (callable(l.rc(),m.sig().rc())){ return; }
     throw tsE().methodImplementationDeadCode(m, l);
   }
-  private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || !readOrImm(litRC); }
+  private boolean callable(RC litRC, RC recRc){ return recRc != mut || !litRC.isReadOrImm(); }
 
   private record Key(MName m, RC rc){}
   //Sources is needed, not assert only: the user can simply try to override with a non subtype signature.

@@ -35,7 +35,7 @@ final class Sources{
     assert unionCount(ts,l) == sources.size();
     assert sources.stream().allMatch(s->l.ms().stream().anyMatch(m->m.sig().m().equals(s.m()) && m.sig().rc() == s.rc()));
     assert l.ms().stream().map(M::sig).allMatch(s->sources.stream().anyMatch(si->
-      si.m().equals(s.m()) && si.rc().equals(s.rc())
+      si.m().equals(s.m()) && si.rc() == s.rc()
       ));
     return sources;
   }

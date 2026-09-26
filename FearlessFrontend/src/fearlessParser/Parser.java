@@ -56,7 +56,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var rcSpan= peek().map(t->span(t).orElse(span()));
     int startPos= index();
     Optional<RC> rc= parseOptRC();
-    var invalid= rc.stream().anyMatch(_rc->_rc==RC.mutH || _rc==RC.readH);
+    var invalid= rc.stream().anyMatch(RC::isH);
     if (invalid){ throw errFactory().disallowedReadHMutH(rcSpan.get(), rc.get()); }
     if (isDec()){ return new E.DeclarationLiteral(rc,parseDeclaration(false)); }
     if (!peek(Token.typeName)){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
@@ -274,7 +274,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   Sig parseSig(){
     var rcSpan= peek().map(t->span(t).orElse(span()));
     var rc= parseOptRC();
-    var invalid= rc.stream().anyMatch(_rc->_rc==RC.mutH || _rc==RC.readH || _rc==RC.iso);
+    var invalid= rc.stream().anyMatch(_rc->_rc.isH() || _rc == RC.iso);
     if (invalid){ throw errFactory().disallowedSigRC(rcSpan.get(), rc.get()); }
     var noDot= peek(LowercaseId) && peek(1).stream().anyMatch(t->t.is(_RoundGroup,_SquareGroup));
     if (noDot){

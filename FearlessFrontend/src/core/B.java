@@ -13,7 +13,7 @@ public record B(String x, EnumSet<RC> rcs){
     return x+":"+Join.of(rcs.stream().map(RC::name),"",",","","");
   }
   public String compactToString(){
-    var star= rcs.size() == 3 && rcs.contains(RC.imm) && rcs.contains(RC.mut) && rcs.contains(RC.read);
+    var star= rcs.equals(EnumSet.of(RC.imm,RC.mut,RC.read));
     var bs= rcs.size() == 6?"**":star?"*":Join.of(rcs.stream().map(RC::name),"",",","","");
     return x+":"+bs;
   }
