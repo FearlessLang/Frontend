@@ -5,6 +5,7 @@ import static offensiveUtils.Require.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import core.B;
 import core.MName;
@@ -24,24 +25,25 @@ public sealed interface E{
   default void sign(Gamma gamma){ gamma.sign(g()); }
   default boolean done(Gamma gamma){ return gamma.represents(g()); }
   Gamma.GammaSignature g();
+  private static <R extends E> R sameTOr(R self, IT t, Supplier<R> make){
+    assert Monotonicity.eT(self, t);
+    return t.equals(self.t()) ? self : make.get();
+  }
+  private static <R extends E> R sameEEsOr(R self, E oldE, List<E> oldEs, E e, List<E> es, Supplier<R> make){
+    assert e == oldE || !e.equals(oldE);
+    assert es == oldEs || !es.equals(oldEs);
+    return e == oldE && es == oldEs ? self : make.get();
+  }
   record X(String name, IT t, Src src, Gamma.GammaSignature g) implements E{
     public X(String name, Src src){ this(name,IT.U.Instance,src,new Gamma.GammaSignature()); }
     public X{ assert nonNull(t) && validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name+":"+t; }
-    public E withT(IT t){
-      assert Monotonicity.eT(this, t);
-      if (t.equals(this.t)){ return this; }
-      return new X(name,t,src,g.clear());
-    }
+    public E withT(IT t){ return sameTOr(this, t, ()->new X(name,t,src,g.clear())); }
   }
   record Type(IT.RCC type, IT t, Src src, Gamma.GammaSignature g) implements E{
     public Type{ assert nonNull(type,t,src,g); }
     public Type(IT.RCC type, Src src){ this(type,IT.U.Instance,src,new Gamma.GammaSignature()); }
-    public E withT(IT t){
-      assert Monotonicity.eT(this, t);
-      if (t.equals(this.t)){ return this; }
-      return new Type(type,t,src,g.clear());
-    }
+    public E withT(IT t){ return sameTOr(this, t, ()->new Type(type,t,src,g.clear())); }
     public String toString(){ return ""+type+":"+t; }
   }
   // **rc is present implies no inference needed**
@@ -55,11 +57,7 @@ public sealed interface E{
       assert unmodifiableDistinct(ms, "L.ms");
       assert nonNull(name,thisName,t);
       }
-    public E.Literal withT(IT t){
-      assert Monotonicity.eT(this, t);
-      if (t.equals(this.t)){ return this; }
-      return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear());
-    }
+    public E.Literal withT(IT t){ return sameTOr(this, t, ()->new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear())); }
     public String toString(){
       String res= rc.map(RC::toStrSpace).orElse("")+name.s()+Join.of(bs,"[",",","]","")+(rc.isEmpty() ? ":$?" : Join.of(cs,":",", ","",":"));
       return res+Join.of(ms,"{'"+thisName,"","}","")+":"+t;
@@ -105,18 +103,9 @@ public sealed interface E{
       if (e == this.e && Optional.of(rc).equals(this.rc) && targs.equals(this.targs) && es == this.es && t.equals(this.t)){ return this; } 
       return new E.Call(e, name, Optional.of(rc),targs,es,t,src,g.clear());
     }
-    public Call withEEs(E e,List<E> es){
-      assert e == this.e || !e.equals(this.e);
-      assert es == this.es || !es.equals(this.es);
-      if (e == this.e && es == this.es){ return this; }
-      return new E.Call(e, name, rc,targs,es,t,src,g.clear());
-    }
+    public Call withEEs(E e,List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, ()->new E.Call(e, name, rc,targs,es,t,src,g.clear())); }
     public Call withE(E e){ return withEEs(e,es); }
-    public Call withT(IT t){
-      assert Monotonicity.eT(this, t);
-      if (t.equals(this.t)){ return this; }
-      return new Call(e,name,rc,targs,es,t,src,g.clear());
-    }
+    public Call withT(IT t){ return sameTOr(this, t, ()->new Call(e,name,rc,targs,es,t,src,g.clear())); }
     public String toString(){ 
       var open= rc.map(r->"["+r).orElse("[");
       return ""+e+name+open
@@ -130,18 +119,9 @@ public sealed interface E{
       assert nonNull(e,name,t);
       assert unmodifiable(es, "E.ICall.es");
     }
-    public E withT(IT t){
-      assert Monotonicity.eT(this, t);
-      if (t.equals(this.t)){ return this; }
-      return new ICall(e,name,es,t,src,g.clear()); 
-    }
+    public E withT(IT t){ return sameTOr(this, t, ()->new ICall(e,name,es,t,src,g.clear())); }
     public String toString(){ return ""+e+name+Join.of(es,"(",",","):","():")+t; }
-    public E withEEs(E e, List<E> es){
-      assert e == this.e || !e.equals(this.e);
-      assert es == this.es || !es.equals(this.es);
-      if (e == this.e && es == this.es){ return this; } 
-      return new ICall(e,name,es,t,src,g.clear());
-    }
+    public E withEEs(E e, List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, ()->new ICall(e,name,es,t,src,g.clear())); }
     public E withE(E e){ return withEEs(e,es); }
   }
 }
