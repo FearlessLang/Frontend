@@ -31,7 +31,6 @@ public final class TypeRename{
   }
   public static IT of(IT t, List<String> xs, List<IT> ts){
     assert xs.size() == ts.size();
-    if (xs.isEmpty()){ return t; }
     return switch (t){
       case IT.X x -> getOrSame(x,x.name(),xs,ts);
       case IT.RCX(RC rc, var x) -> of(x,xs,ts).withRC(rc);
@@ -40,17 +39,9 @@ public final class TypeRename{
       case IT.U u -> u;
     };
   }
-  public static List<IT> ofIT(List<IT> tsi ,List<String> xs, List<IT> ts){
-    if (xs.isEmpty()){ return tsi; }
-    return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
-  public static List<IT.C> ofITC(List<IT.C> csi, List<String> xs, List<IT> ts){
-    if (xs.isEmpty()){ return csi; }
-    return csi.stream().map(c->of(c,xs,ts)).toList();
-  }
-  public static IT.C of(IT.C c, List<String> xs, List<IT> ts){
-    if (xs.isEmpty()){ return c; }
-    return new IT.C(c.name(), ofIT(c.ts(),xs,ts));
-  }
+  public static List<IT> ofIT(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
+  public static List<IT.C> ofITC(List<IT.C> csi, List<String> xs, List<IT> ts){ return csi.stream().map(c->of(c,xs,ts)).toList(); }
+  public static IT.C of(IT.C c, List<String> xs, List<IT> ts){ return new IT.C(c.name(), ofIT(c.ts(),xs,ts)); }
   public static List<Optional<IT>> ofITOpt(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti,xs,ts))).toList(); }
   public static List<Optional<IT>> ofOptITOpt(List<Optional<IT>> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->Optional.of(of(ti.get(),xs,ts))).toList(); }
   public static <A> A getOrSame(A x, String name, List<String> xs, List<A> ts){
