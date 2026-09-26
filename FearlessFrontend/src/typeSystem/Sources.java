@@ -54,7 +54,7 @@ final class Sources{
   private static Sig instantiate(Sig s, List<B> bs, List<T> ts, List<B> canonical){
     assert eq(s.bs().size(), canonical.size(), "Generic arity mismatch in instantiate");
     var mapXs= B.xs(Push.of(s.bs(), bs));
-    var mapTs= Push.of(canonical.stream().<T>map(b->new T.X(b.x(),s.span())).toList(), ts);
+    var mapTs= Push.of(TypeSystem.dom(canonical,s.span()), ts);
     var newTs= TypeRename.ofT(s.ts(), mapXs, mapTs);
     var newRet= TypeRename.of(s.ret(), mapXs, mapTs);
     return new Sig(s.rc(), s.m(), canonical, newTs, newRet, s.origin(), s.abs(), s.span());

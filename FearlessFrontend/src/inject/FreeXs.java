@@ -23,7 +23,7 @@ public record FreeXs(Gamma g){
     case Type(var t,_,_,_) -> ftvT(t);
   };}
   private Stream<String> ftvM(M m){
-    List<String> domBs= m.sig().bs().stream().flatMap(List::stream).map(B::x).toList();
+    List<String> domBs= B.xs(m.sig().bs().orElse(List.of()));
     return Stream.concat(
       ftvS(m.sig()),
       m.impl().stream().flatMap(i->ftvE(i.e()))

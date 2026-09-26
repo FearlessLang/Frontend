@@ -71,9 +71,8 @@ public record InjectionSteps(Methods meths){
     if (m.impl().isEmpty()){ return mCore; }//assert same type as m lifted to core
     inference.E e= m.impl().get().e();
     TSpan span= di.name().approxSpan();
-    List<IT> thisTypeTs= di.bs().stream().<IT>map(b->new IT.X(b.x(),span)).toList();
     List<String> xs= m.impl().get().xs();
-    var thisType= new IT.RCC(Optional.of(mCore.sig().rc()), new IT.C(di.name(), thisTypeTs),span);//no preferred on self names
+    var thisType= new IT.RCC(Optional.of(mCore.sig().rc()), new IT.C(di.name(), MSigL.toXs(span,B.xs(di.bs()))),span);//no preferred on self names
     inference.E ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     Gamma g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
     var bs= Push.of(di.bs(), m.sig().bs().get());
@@ -322,8 +321,8 @@ public record InjectionSteps(Methods meths){
   }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
     if (l.infName() && l.rc().isEmpty()){ return Optional.empty(); }
-    var xs= l.bs().stream().<IT>map(b->new IT.X(b.x(),l.name().approxSpan())).toList();
-    return Optional.of(new IT.RCC(l.rc(), new IT.C(l.name(), xs),l.name().approxSpan()));
+    var span= l.name().approxSpan();
+    return Optional.of(new IT.RCC(l.rc(), new IT.C(l.name(), MSigL.toXs(span,B.xs(l.bs()))),span));
   }
   private Optional<IT.RCC> superSelf(E.Literal l){
     if (l.cs().size() != 1){ return preciseSelf(l); }
@@ -463,7 +462,7 @@ public record InjectionSteps(Methods meths){
   }
   private List<IT> refine(List<String> Xs, core.T t,Optional<IT> it){return refine(Xs,TypeRename.tToIT(t), it.get()); }
   private M.Sig normalizeSigAgainstHeader(IT.RCC rcc, M.Sig improvedSig){
-    var targetBs= improvedSig.bs().stream().flatMap(List::stream).map(B::x).toList();
+    var targetBs= B.xs(improvedSig.bs().get());
     MSigL h= methodHeader(rcc, improvedSig.m().get(), improvedSig.rc()).get();
     assert h.bsArity() == targetBs.size();
     return improvedSig.withTsT(
@@ -610,5 +609,5 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
     assert targetBs.size() == bsArity();
     return inst(ret0, toXs(span,targetBs));
   }
-  private List<IT> toXs(TSpan span,List<String> targetBs){ return targetBs.stream().<IT>map(n->new IT.X(n,span)).toList(); }
+  static List<IT> toXs(TSpan span,List<String> targetBs){ return targetBs.stream().<IT>map(n->new IT.X(n,span)).toList(); }
 }

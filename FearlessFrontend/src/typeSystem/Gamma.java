@@ -38,7 +38,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
   }
   //Above can not reuse FreeXs since FreeXs works on IT
   boolean hasOnlyFTV(T t, List<B> bs){ return switch (t){
-    case T.X x -> bs.stream().anyMatch(b->b.x().equals(x.name()));
+    case T.X x -> B.xs(bs).contains(x.name());
     case T.RCX(_, var x) -> hasOnlyFTV(x,bs);
     case T.ReadImmX(var x) -> hasOnlyFTV(x,bs);
     case T.RCC(_, var c,_) -> c.ts().stream().allMatch(ti->hasOnlyFTV(ti,bs));

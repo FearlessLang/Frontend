@@ -121,7 +121,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var ts= dom(l.bs(),span);
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
-    assert l.bs().stream().allMatch(b->bs1.stream().anyMatch(b1->b.x().equals(b1.x())));
+    assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l,bs1,thisType);
     litOk(g.filterFTV(l),l);
     ms.forEach(m->checkCallable(l,m));
@@ -198,7 +198,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       .filter((_,ti)->!k().of(delta,ti,EnumSet.of(mut,read,mutH,readH,imm)))
       .forEach((x,_)->Affine.usedOnce(tsE(),forErr,m,x));
   }
-  private List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }
+  static List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }
   
   private boolean isImplSubtype(List<B> bs, T t1, T t2){
     if (!(t1 instanceof T.RCC rcc1)){ return false; }

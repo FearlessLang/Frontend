@@ -309,7 +309,7 @@ public record Methods(
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){
     assert superSig.isFull();
     var fromXs= B.xs(superSig.bs().get());
-    var toITs= targetBs.stream().<IT>map(b->new IT.X(b.x(),superSig.span())).toList();
+    var toITs= MSigL.toXs(superSig.span(),B.xs(targetBs));
     assert fromXs.size() == toITs.size();
     var renamedTs= TypeRename.ofOptITOpt(superSig.ts(), fromXs, toITs);
     var renamedRet= superSig.ret().map(it->TypeRename.of(it, fromXs, toITs));
