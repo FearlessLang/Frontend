@@ -13,17 +13,14 @@ import static offensiveUtils.Require.*;
 public sealed interface E extends core.Src.SrcObj{
   Pos pos();
   TSpan span();
-  <R> R accept(EVisitor<R> v);
   record X(String name, Pos pos) implements E{
     public X{ assert validate(name, "parameter name",LowercaseId,Underscore); }
-    public <R> R accept(EVisitor<R> v){ return v.visitX(this); }
     public String toString(){ return name; }
     public TSpan span(){ return TSpan.fromPos(pos,name.length()); }
   }
   record Round(E e) implements E{
     public Round{ assert nonNull(e); }
     public Pos pos(){ return e.pos(); }
-    public <R> R accept(EVisitor<R> v){ return v.visitRound(this); }
     public String toString(){ return "("+e+")"; }
     public TSpan span(){ return e.span(); }
   }
@@ -33,20 +30,17 @@ public sealed interface E extends core.Src.SrcObj{
       assert nonNull(thisName,span);
     }
     public Pos pos(){ return span.pos(); }
-    public <R> R accept(EVisitor<R> v){ return v.visitLiteral(this); }
     public String toString(){ return "Literal"+thisName.map(Object::toString).orElse("")+methods; }
     public Literal withSpan(TSpan span){ return new Literal(thisName,methods,span); }
     @Override public int compareTo(Literal o){ return span().inner.compareTo(o.span().inner); }
   }
   record TypedLiteral(T.RCC t, Optional<Literal> l,Pos pos) implements E{
     public TypedLiteral{ assert nonNull(t,l,pos); }
-    public <R> R accept(EVisitor<R> v){ return v.visitTypedLiteral(this); }
     public String toString(){ return "TypedLiteral"+t+l.map(Object::toString).orElse(""); }
     public TSpan span(){ return TSpan.fromPos(pos,t.c().name().s().length()); }
   }
   record DeclarationLiteral(Optional<RC> rc, Declaration dec) implements E{
     public DeclarationLiteral{ assert nonNull(rc,dec); }
-    public <R> R accept(EVisitor<R> v){ return v.visitDeclarationLiteral(this); }
     public Pos pos(){ return dec.pos(); }
     public TSpan span(){ return dec.span(); }
     public String toString(){ return "DeclarationLiteral"+rc.map(Object::toString).orElse("")+dec; }
@@ -65,7 +59,6 @@ public sealed interface E extends core.Src.SrcObj{
       assert validOpt(pat,_->eq(es.size(),1,"invalid equal sugar"));
       assert validOpt(pat,_->eq(name.arity(),2,"invalid equal sugar"));
     }
-    public <R> R accept(EVisitor<R> v){ return v.visitCall(this); }
     public String toString(){ return "Call["+e+"]"+name
       +targs.map(Object::toString).orElse("")
       +pars+pat.map(Object::toString).orElse("")+es; }
@@ -75,7 +68,6 @@ public sealed interface E extends core.Src.SrcObj{
     }
   }
   record Implicit(Pos pos) implements E{ 
-    public <R> R accept(EVisitor<R> v){ return v.visitImplicit(this); }
     public String toString(){ return "::"; }
     public TSpan span(){ return TSpan.fromPos(pos,2); }
   }

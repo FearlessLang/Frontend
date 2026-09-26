@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -230,12 +229,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .addSpan(x.span().inner));
   }
   private String whyDrop(String subject, Change.NoT why){
-    return why.<Supplier<String>>name(
-      ()->whyDropMutInImm(subject,why),
-      ()->whyDropReadHMutH(subject,why),
-      ()->whyDropFTV(subject,why),
-      ()->whyDropCapFree(subject,why)
-      ).get();
+    return switch (why){
+      case Change.DropMutInImm _ -> whyDropMutInImm(subject,why);
+      case Change.DropReadHMutH _ -> whyDropReadHMutH(subject,why);
+      case Change.DropFTV _ -> whyDropFTV(subject,why);
+      case Change.CapFree _ -> whyDropCapFree(subject,why);
+    };
   }
   private String whyDropMutInImm(String subject, Change.NoT why){
     return subject+" has type "+err().typeRepr(true,why.atDrop())+".\n"
