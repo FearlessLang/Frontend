@@ -57,7 +57,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String theTypeOrObjectLiteral(Literal l){ return typeOrAnon(l,"type ","object literal "); }
   public String bestNameNoRc(Literal l){ return bestNamePkg0(showInstanceOf(l), bestLitName(true,true,l)); }
   T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()),t.ts()); }//Correct to not propagate here
-  T preferredForFresh(T t){ return mapHead(t, this::preferredForFresh); }
   String typeRepr(inference.IT t){ return typeRepr(true,TypeRename.itToT(t)); }
   String typeRepr(boolean skipImm, T t){ return disp(typeReprRaw(skipImm,t)); }
   private String typeReprRaw(boolean skipImm, T t){

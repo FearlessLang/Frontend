@@ -137,8 +137,7 @@ public record Methods(
   }
   private static final MName hashOne= new MName("#",1);
   void notSealed(TName target, E.Literal owner){
-    var d= LiteralDeclarations._from(target, _->null, other);
-    var targetSealed= LiteralDeclarations.has(d.cs(),LiteralDeclarations.sealed);
+    var targetSealed= LiteralDeclarations.has(from(target).cs(),LiteralDeclarations.sealed);
     if (!targetSealed){ return; }
     throw p.err().extendedSealed(owner, target);
   }

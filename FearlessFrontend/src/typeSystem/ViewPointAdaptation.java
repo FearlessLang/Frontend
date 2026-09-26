@@ -26,7 +26,8 @@ public record ViewPointAdaptation(Kinding k){
       if (isXReadImmXForm(t)){ return Change.keepSetToReadImm(l,m,w); }
     }
     assert rc == mut;//meth RC can only be imm, mut, read and imm is filtered before
-    if (k.of(l.bs(),t,EnumSet.of(imm, mut, read))){ return w; }
+    var noIsoNoHygienic= k.of(l.bs(),t,EnumSet.of(imm, mut, read));
+    if (noIsoNoHygienic){ return w; }
     return Change.keepSetToRead(l,m,w);
   }
   private Change discard(Change current, Literal l){

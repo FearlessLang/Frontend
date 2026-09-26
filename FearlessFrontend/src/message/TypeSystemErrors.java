@@ -31,7 +31,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
   private TName preferredForFresh(TName n){
     var res= decs.apply(n);
-    if (res == null){ return n; }
     var showSuper= res.infName() && !res.cs().isEmpty();
     if (!showSuper){ return n; }
     return res.cs().getFirst().name();
@@ -301,7 +300,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       addEnclosingLiteralHintIfReceiverIsThis(e,scope,c,name,subj);
       if (candidates.isEmpty()){ return withCallSpans(e.line(up(subj)+" does not have any methods.").ex(c), c); }
       var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
-      NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,on,c, d, candidates, cs, best); return null; } );
+      NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,on,candidates,cs,best); return null; } );
       return withCallSpans(e.ex(c), c);
     }
     var sameArity= sameName.stream().filter(s->s.m().arity() == c.es().size()).toList();
@@ -360,7 +359,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       return;
     }
   }
-  void bestNameMsg(Err e, String onStr, Call c, Literal d, List<Sig> candidates, List<String> cs, Optional<String> best){
+  void bestNameMsg(Err e, String onStr, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
     e.blank().line("Available methods on "+onStr+":");
     for (String n:cs){

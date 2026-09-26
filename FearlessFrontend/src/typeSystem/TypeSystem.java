@@ -38,8 +38,8 @@ import pkgmerge.Package;
 public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   Kinding k(){ return v.k(); }
   public TypeSystemErrors tsE(){ return v.k().tsE(); }
-  public Err err(){ return v.k().tsE().err(); }
-  public Function<TName,Literal> decs(){ return v.k().tsE().decs(); }
+  public Err err(){ return tsE().err(); }
+  public Function<TName,Literal> decs(){ return tsE().decs(); }
   public record TRequirement(String reqName,T t){}
   public record MType(String promotion,RC rc,List<T> ts,T t){
     MType withPromotion(String promotion){ return new MType(promotion,rc,ts,t); }
@@ -49,7 +49,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     tops= UriSort.byFolderThenFile(tops, l->l.span().inner.fileName());
     assert core.AssertNoRepeatedTypeNames.ok(tops);
     Map<TName,Literal> map= AllLs.of(tops);
-    Function<TName,Literal> decs= n->LiteralDeclarations._from(n,map::get,other);
+    Function<TName,Literal> decs= n->LiteralDeclarations.from(n,map::get,other);
     Map<String,String> invMap= pkg.map().entrySet().stream()
       .collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
     var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg,invMap))));

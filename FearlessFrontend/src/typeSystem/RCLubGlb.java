@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import core.RC;
@@ -17,8 +18,8 @@ public final class RCLubGlb{
   private static final Map<Set<RC>, RC> lubMap= new HashMap<>();
   private static final Map<Set<RC>, RC> glbMap= new HashMap<>();
   public static final Set<Set<RC>> domain(){ return Collections.unmodifiableSet(lubMap.keySet()); }
-  public static RC lub(EnumSet<RC> options){ return lubMap.get(options); }
-  public static RC glb(EnumSet<RC> options){ return glbMap.get(options); }
+  public static RC lub(EnumSet<RC> options){ return Objects.requireNonNull(lubMap.get(options)); }
+  public static RC glb(EnumSet<RC> options){ return Objects.requireNonNull(glbMap.get(options)); }
   static boolean isUb(EnumSet<RC> options, RC ub){ return options.stream().allMatch(x->x.isSubType(ub)); }
   static boolean isLb(EnumSet<RC> options,RC lb){ return options.stream().allMatch(lb::isSubType); }
   static boolean isLub(EnumSet<RC> options,RC lub){

@@ -44,8 +44,10 @@ public record Kinding(TypeSystemErrors tsE){
     case T.ReadImmX(var x) -> readImmRCs(intrinsicRCs(bs, x));
   };}
   private static EnumSet<RC> readImmRCs(EnumSet<RC> rcs){
-    if (EnumSet.of(iso, imm).containsAll(rcs)){ return EnumSet.of(imm); }
-    if (EnumSet.of(mut, mutH, read, readH).containsAll(rcs)){ return EnumSet.of(read); }
+    var onlyIsoImm= EnumSet.of(iso, imm).containsAll(rcs);
+    if (onlyIsoImm){ return EnumSet.of(imm); }
+    var noIsoNoImm= EnumSet.of(mut, mutH, read, readH).containsAll(rcs);
+    if (noIsoNoImm){ return EnumSet.of(read); }
     return EnumSet.of(read, imm);
   }
 }

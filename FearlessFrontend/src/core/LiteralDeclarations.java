@@ -3,6 +3,7 @@ package core;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import core.E.Literal;
@@ -27,10 +28,11 @@ public final class LiteralDeclarations{
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
   private static core.E.Literal forge(TName name, Function<TName,Literal> map, OtherPackages other){
     var lit= superLiteral(name);
-    var res= _from(lit,map,other);
+    var res= from(lit,map,other);
     var ms= res.ms().stream().map(m->m.withSig(m.sig().implementedBy(name))).toList();
     return new core.E.Literal(RC.imm,name,List.of(),Push.of(new T.C(lit,List.of()),res.cs()),"this",ms,Src.syntetic,true);
   }
+  public static core.E.Literal from(TName n, Function<TName,Literal> map, OtherPackages other){ return Objects.requireNonNull(_from(n,map,other)); }
   public static core.E.Literal _from(TName n, Function<TName,Literal> map, OtherPackages other){
     var res= map.apply(n);
     if (res == null){ res= other.__of(n); }

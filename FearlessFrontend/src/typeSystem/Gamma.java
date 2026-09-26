@@ -19,11 +19,11 @@ public record Gamma(Gamma tail, String name, T t, Change current){
   }
   public Gamma addAll(List<T> ts, List<String> xs){ return Streams.zip(xs, ts).fold(Gamma::add, this); }
   public record Binding(T declared, Change current){}
-  public Binding bind(String x){ return Objects.requireNonNull(_bindOrNull(x)); }
-  public Binding _bindOrNull(String x){
+  public Binding bind(String x){ return Objects.requireNonNull(_bind(x)); }
+  public Binding _bind(String x){
     if (this == _empty){ return null; }
     if (name.equals(x)){ return new Binding(t, current); }
-    return tail._bindOrNull(x);
+    return tail._bind(x);
   }
   public Gamma filterFTV(Literal l){
     return filterFTV(l,LiteralDeclarations.has(l.cs(),LiteralDeclarations.captureFree));

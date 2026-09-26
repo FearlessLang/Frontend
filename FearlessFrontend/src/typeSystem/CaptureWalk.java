@@ -37,7 +37,7 @@ record CaptureWalk(List<B> bs, Gamma g, Predicate<RC> freeRC){
     };
   }
   private boolean isFree(E.X x){
-    var cur= g._bindOrNull(x.name());
+    var cur= g._bind(x.name());
     if (cur == null){ return true; }
     if (!(cur.current() instanceof Change.WithT w)){ return true; }
     return isFree(w.currentT());
