@@ -206,8 +206,7 @@ public record InjectionSteps(Methods meths){
     if (cs.isEmpty()){ return type; }
     assert cs.size() == 1;
     assert cs.getFirst().ts().size() == 1;
-    var dom= d.bs().stream().map(B::x).toList();
-    IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), dom, type.c().ts());
+    IT wid= TypeRename.of(TypeRename.tToIT(cs.getFirst().ts().getFirst()), B.xs(d.bs()), type.c().ts());
     if (!(wid instanceof IT.RCC w)){ return type; }
     return new IT.RCC(type.rc(), w.c(),type.span());
   }
@@ -232,9 +231,9 @@ public record InjectionSteps(Methods meths){
     return om.map(mm->f.apply(d, mm));
   }
   private MSigL methodHeaderInstance(IT.RCC rcc, core.E.Literal d, core.M m){
-    List<String> clsXs= d.bs().stream().map(B::x).toList();
+    List<String> clsXs= B.xs(d.bs());
     assert clsXs.stream().distinct().count() == clsXs.size();
-    List<String> methXs= m.sig().bs().stream().map(B::x).toList();
+    List<String> methXs= B.xs(m.sig().bs());
     assert methXs.stream().distinct().count() == methXs.size();
     assert Collections.disjoint(clsXs, methXs);
     var clsArgs= rcc.c().ts();
@@ -454,7 +453,7 @@ public record InjectionSteps(Methods meths){
     return new TSM(ts, new inference.M(sig, Optional.of(impl1)));
   }
   private List<IT> refineClsTsFromHeader(IT.RCC rcc, M.Sig improvedSig, core.Sig imh){
-    var Xs= meths.from(rcc.c().name()).bs().stream().map(B::x).toList();
+    var Xs= B.xs(meths.from(rcc.c().name()).bs());
     var fromBody= meet(Streams.of(
       Streams.zip(imh.ts(), improvedSig.ts()).map((t,it)->refine(Xs,t,it)),
       Stream.of(refine(Xs,imh.ret(), improvedSig.ret()))).toList());
@@ -476,10 +475,7 @@ public record InjectionSteps(Methods meths){
       h.psStr(improvedSig.span(), targetBs),
       h.retStr(improvedSig.span(), targetBs));
   }
-  private List<IT> dropMethBsFromClsTs(IT.RCC rcc, M.Sig improvedSig){
-    var methBs= improvedSig.bs().get().stream().map(B::x).toList();
-    return dropMethBs(rcc.c().ts(), methBs);
-  }
+  private List<IT> dropMethBsFromClsTs(IT.RCC rcc, M.Sig improvedSig){ return dropMethBs(rcc.c().ts(), B.xs(improvedSig.bs().get())); }
   List<IT> dropMethBs(List<IT> ts, List<String> methBs){
     if (methBs.isEmpty()){ return ts; }
     return ts.stream().map(t->dropMethBs(t, methBs)).toList();
@@ -492,9 +488,7 @@ public record InjectionSteps(Methods meths){
     case IT.U _ -> t;
   };}
   private boolean assertNoBinderClash(IT.RCC rcc, core.M m){
-    var cls= meths.from(rcc.c().name()).bs().stream().map(B::x).toList();
-    var meth= m.sig().bs().stream().map(B::x).toList();
-    return Collections.disjoint(cls, meth);
+    return Collections.disjoint(B.xs(meths.from(rcc.c().name()).bs()), B.xs(m.sig().bs()));
   }
   List<IT> refine(List<String> xs, IT t, IT t1){
     if (t1 instanceof IT.U){ return qMarks(xs.size()); }
@@ -526,7 +520,7 @@ public record InjectionSteps(Methods meths){
   private List<IT.RCC> adaptedSuperTs(Optional<RC> rc,TSpan span, TName source,List<IT> ts, TName target){
     var d= meths._from(source);
     if (d == null){ return List.of(); } // {..}.foo etc.
-    List<String> xs= d.bs().stream().map(B::x).toList();
+    List<String> xs= B.xs(d.bs());
     return d.cs().stream()
       .filter(sc->sc.name().equals(target))
       .distinct()

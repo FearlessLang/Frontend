@@ -25,11 +25,10 @@ final class Sources{
     List<Sig> sources= new ArrayList<>();
     for (T.C parent : l.cs()){
       Literal parentDef= ts.decs().apply(parent.name());
-      List<String> parentXs= parentDef.bs().stream().map(B::x).toList();
       for (M m : parentDef.ms()){
         if (!m.sig().origin().equals(parentDef.name())){ continue; }
         Sig canonical= findCanonical(l, m.sig().m(), m.sig().rc());
-        sources.add(instantiate(m.sig(), parentXs, parent.ts(), canonical.bs()));
+        sources.add(instantiate(m.sig(), parentDef.bs(), parent.ts(), canonical.bs()));
       }
     }
     for (M m : l.ms()){ if (m.sig().origin().equals(l.name())){ sources.add(m.sig()); } }
@@ -52,9 +51,9 @@ final class Sources{
     return OneOr.of("Methods with duplicates or absent",l.ms().stream().map(M::sig).filter(s->
       s.m().equals(name) && s.rc() == rc));
   }
-  private static Sig instantiate(Sig s, List<String> xs, List<T> ts, List<B> canonical){
+  private static Sig instantiate(Sig s, List<B> bs, List<T> ts, List<B> canonical){
     assert eq(s.bs().size(), canonical.size(), "Generic arity mismatch in instantiate");
-    var mapXs= Push.of(s.bs().stream().map(B::x).toList(), xs);
+    var mapXs= B.xs(Push.of(s.bs(), bs));
     var mapTs= Push.of(canonical.stream().<T>map(b->new T.X(b.x(),s.span())).toList(), ts);
     var newTs= TypeRename.ofT(s.ts(), mapXs, mapTs);
     var newRet= TypeRename.of(s.ret(), mapXs, mapTs);

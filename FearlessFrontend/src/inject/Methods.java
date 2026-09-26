@@ -65,18 +65,16 @@ public record Methods(
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps? Something similar has been done for MSigL 
   CsMs fetch(E.Literal child,IT.C c,core.E.Literal d){ //d == from(c.name()); but from can be undefined for {..}.foo
-    List<String> xs= d.bs().stream().map(B::x).toList();
-    return new CsMs(fetchCs(c),d.ms().stream().map(m->alphaSig(m,xs,c,child)).toList());
+    return new CsMs(fetchCs(c),d.ms().stream().map(m->alphaSig(m,d,c,child)).toList());
   }
   List<IT.C> fetchCs(IT.C c){
     core.E.Literal d= _from(c.name());
     if (d == null){ return List.of(); }//case {..}.foo
-    List<String> xs= d.bs().stream().map(B::x).toList();
-    return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),xs,c.ts());
+    return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),B.xs(d.bs()),c.ts());
   }
-  private inference.M.Sig alphaSig(core.M m, List<String> xs, IT.C c, E.Literal child){
+  private inference.M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child){
     var s= m.sig();
-    var fullXs= new ArrayList<>(xs);
+    var fullXs= new ArrayList<>(B.xs(d.bs()));
     var fullTs= new ArrayList<>(c.ts());
     var newBs= new ArrayList<B>(s.bs().size());
     for (B b: s.bs()){
@@ -313,7 +311,7 @@ public record Methods(
   private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){
     assert superSig.isFull();
-    var fromXs= superSig.bs().get().stream().map(B::x).toList();
+    var fromXs= B.xs(superSig.bs().get());
     var toITs= targetBs.stream().<IT>map(b->new IT.X(b.x(),superSig.span())).toList();
     assert fromXs.size() == toITs.size();
     var renamedTs= TypeRename.ofOptITOpt(superSig.ts(), fromXs, toITs);

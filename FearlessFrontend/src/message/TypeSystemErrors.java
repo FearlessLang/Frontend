@@ -40,9 +40,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
    Function<T.C,T.C> publicHead= c->{
      var d= decs.apply(c.name());
      if (!d.infName()){ return c; }
-     var xs= d.bs().stream().map(B::x).toList();
      return d.cs().stream()
-       .<T.C>map(sc->TypeRename.of(sc, xs, c.ts()))
+       .<T.C>map(sc->TypeRename.of(sc, B.xs(d.bs()), c.ts()))
        .filter(scC->!decs.apply(scC.name()).infName())
        .findFirst().orElse(c);
     };
@@ -253,8 +252,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   }
   private static String hintAddTypeParameter(Change.NoT why){
     var name= why.l().name().simpleName();
-    var current= disp(Join.of(why.l().bs().stream().map(B::x),name+"[",",","]",name));
-    var next= disp(Join.of(why.l().bs().stream().map(B::x),name+"[",",",",...]",name+"[...,...]"));
+    var current= disp(Join.of(B.xs(why.l().bs()),name+"[",",","]",name));
+    var next= disp(Join.of(B.xs(why.l().bs()),name+"[",",",",...]",name+"[...,...]"));
     return"Hint: change "+current+" by adding the missing type parameters: "+next;
   }
   private String whyDropFTV(String subject, Change.NoT why){

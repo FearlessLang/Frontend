@@ -241,11 +241,11 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   M parseMethodWithSig(Sig sig){
     var xs= sig.parameters().stream().flatMap(p->xsOf(p.xp())).toList();
-    var Xs= sig.bs().orElse(List.of()).stream().map(b->b.x().name()).toList();
     checkNewXs(xs);
-    updateNames(names.add(xs,Xs));
+    updateNames(names.add(xs,bsXs(sig.bs())));
     return new M(of(sig),of(parseMethodBody()),tspan());
   }
+  private static List<String> bsXs(Optional<List<B>> bs){ return bs.orElse(List.of()).stream().map(b->b.x().name()).toList(); }
   M parseMethodAux(boolean top){//assumes to be called on only the tokens of this specific method
     Optional<M> m= parseFront("method signature",false,arrowSkip,Parser::parseSig)
       .map(this::parseMethodWithSig);
@@ -283,7 +283,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
   private Sig parseSigAfterName(Optional<RC> rc, Optional<MName> m){
     var bs= parseIf(peek(_SquareGroup),()->parseBs(true));
-    var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
+    var Xs= bsXs(bs);
     checkValidNew(Xs, errFactory()::duplicateGenericInMethodSignature);
     updateNames(names.addXs(Xs));//added both inside and outside since different parsers
     boolean hasPar=peek(_RoundGroup);
@@ -312,8 +312,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       p.expect("generic bounds declaration",OSquareArg);
       p.expectLast("generic bounds declaration",CSquare);
       var res= p.splitBy("generic bounds declaration",commaB,pi->pi.parseB(mustNew));
-      var Xs= res.stream().map(b->b.x().name()).toList();
-      checkValidNew(Xs, errFactory()::duplicateGenericInMethodSignature);
+      checkValidNew(bsXs(Optional.of(res)), errFactory()::duplicateGenericInMethodSignature);
       return res;
     });
   }
@@ -368,7 +367,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (top){ errFactory().noteTop(c); }
     var _= expectValidate(back("simple type name"), UppercaseId,_XId); //to get error if of form foo.Bar
     Optional<List<B>> bs= parseIf(peek(_SquareGroup),()->this.parseBs(top));
-    var Xs= bs.orElse(List.of()).stream().map(b->b.x().name()).toList();
+    var Xs= bsXs(bs);
     var outer= names;
     updateNames(top ? names.addXs(Xs) : names.setFunnelledXs(c.s(),Xs));
     c= c.withArity(Xs.size());
