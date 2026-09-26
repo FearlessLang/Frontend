@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
@@ -16,6 +15,7 @@ import core.Src;
 import core.TName;
 import core.TSpan;
 import utils.Push;
+import utils.Streams;
 import fearlessFullGrammar.E.Call;
 import fearlessFullGrammar.Parameter;
 import fearlessFullGrammar.XPat;
@@ -120,16 +120,12 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   }
   record XE(String x, fearlessFullGrammar.E e){}
   List<XE> xpats(List<String> lowered, List<fearlessFullGrammar.Parameter> original, TSpan span){
-    assert lowered.size() == original.size();
-    return IntStream.range(0,lowered.size()).boxed()
-      .flatMap(i->original.get(i).xp().stream().flatMap(xp->xp instanceof XPat.Destruct d ? xpat(d,lowered.get(i),span) : Stream.empty()))
+    return Streams.zip(lowered, original)
+      .flatMap((x,p)->p.xp().stream().flatMap(xp->xp instanceof XPat.Destruct d ? xpat(d,x,span) : Stream.empty()))
       .toList();
   }
   Stream<XE> xpat(XPat.Destruct pat, String fresh, TSpan span){
-    List<String> patterns= pat.parameterNames().toList();
-    assert pat.extract().size() == patterns.size();
-    return IntStream.range(0,patterns.size())
-      .mapToObj(i->xpat(pat.extract().get(i),patterns.get(i),fresh,span));
+    return Streams.zip(pat.extract(), pat.parameterNames().toList()).map((e,x)->xpat(e,x,fresh,span));
   }
   XE xpat(List<MName> pat, String x, String fresh, TSpan span){
     fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, span.pos());

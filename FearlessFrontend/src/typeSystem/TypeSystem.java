@@ -195,11 +195,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     g= g.addAll(ts, xs);//Note: 'this' already in g1
     var t= new TypeSystem(scope.pushM(forErr, m),v);
     t.check(delta,g,m.e().get(),m.sig().ret());
-    for (int i : Range.of(xs)){
-      var isAffine= !k().of(delta,ts.get(i),EnumSet.of(mut,read,mutH,readH,imm));
-      if (isAffine){ Affine.usedOnce(tsE(),forErr,m,xs.get(i),m.e().get()); }
-    }
-  }  
+    Streams.zip(xs, ts)
+      .filter((_,ti)->!k().of(delta,ti,EnumSet.of(mut,read,mutH,readH,imm)))
+      .forEach((x,_)->Affine.usedOnce(tsE(),forErr,m,x,m.e().get()));
+  }
   private List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }
   
   private boolean isImplSubtype(List<B> bs, T t1, T t2){
@@ -260,9 +259,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private void sigSub(Literal l, Sig current, Sig parent){
     assert current.bs().equals(parent.bs());
     List<B> ctx= Push.of(l.bs(),current.bs());
-    int tsSize= current.ts().size();
-    assert tsSize == parent.ts().size();
-    for (int i : Range.of(0,tsSize)){
+    assert current.ts().size() == parent.ts().size();
+    for (int i : Range.of(current.ts())){
       var badArg= !isSub(ctx, parent.ts().get(i), current.ts().get(i));
       if (badArg){ throw tsE().methodOverrideSignatureMismatchContravariance(this,ctx,l,current,parent, i); }
     }

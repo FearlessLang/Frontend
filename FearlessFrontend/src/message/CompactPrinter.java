@@ -3,6 +3,7 @@ package message;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import core.*;
@@ -11,6 +12,7 @@ import core.T.C;
 import utils.Bug;
 import utils.Join;
 import utils.Range;
+import utils.Streams;
 
 public class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses, boolean trunk){ t= new TypeNamePrinter(trunk,mainPkg,uses); }
@@ -170,14 +172,14 @@ public class CompactPrinter{
       sb.append(rc.toStrSpace());
       sb.append(m);
       sb.append(bs);
-      wrap(sb,"(",")",IntStream.range(0,xs.size()).boxed().toList(),",",(i,b)->{
-        String x= xs.get(i);
-        if (!x.equals("_")){ b.append(x).append(":"); }
-        ts.get(i).accString(b);
-        });
+      wrap(sb,"(",")",Streams.zip(xs,ts).<Consumer<CompactPrinter>>map((x,t)->b->param(b,x,t)).toList(),",",Consumer::accept);
       sb.append(":");
       ret.accString(sb);
       body.ifPresent(e->{ sb.append("->"); e.accString(sb); });
+    }
+    private static void param(CompactPrinter b, String x, PT t){
+      if (!x.equals("_")){ b.append(x).append(":"); }
+      t.accString(b);
     }
     private void accCompactedMeth(CompactPrinter sb){
       if (body.isEmpty()){ sb.append(m); wrap(sb,"(",")",xs,",",(_,b)->b.append("-")); return; }

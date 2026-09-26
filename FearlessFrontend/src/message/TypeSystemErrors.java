@@ -23,6 +23,7 @@ import typeSystem.TypeSystem;
 import utils.Join;
 import utils.OneOr;
 import utils.Range;
+import utils.Streams;
 import core.*;
 import core.E.*;
 
@@ -485,9 +486,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     case T.ReadImmX _ -> 1001;
   };}
   private static Reason pickReason(List<TRequirement> reqs, List<Reason> res){
-    return res.get(IntStream.range(0, res.size())
-      .filter(i->rcOnlyMismatch(res.get(i).best, reqs.get(i).t()))
-      .findFirst().orElse(0));
+    return Streams.zip(res, reqs)
+      .filter((r,q)->rcOnlyMismatch(r.best, q.t()))
+      .map((r,_)->r)
+      .findFirst().orElse(res.getFirst());
   }  
   ///Each argument of call c is compatible with at least one promotion, but no promotion fits all arguments.
   ///The per-argument sets of acceptable promotions have empty intersection.

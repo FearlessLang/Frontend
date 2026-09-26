@@ -27,6 +27,7 @@ import inference.M.Sig;
 import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
+import utils.Streams;
 
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
@@ -104,8 +105,8 @@ public record Methods(
         .distinct().sorted(Comparator.comparing(Object::toString))
       ).toList();
     var implied= ds.stream().flatMap(dsi->dsi.cs().stream()).toList();
-    List<M.Sig> allSig= IntStream.range(0,ds.size()).filter(i->!implied.contains(d.cs().get(i)))
-      .boxed().flatMap(i->ds.get(i).sigs().stream()).toList();
+    List<M.Sig> allSig= Streams.zip(d.cs(),ds).filter((c,_)->!implied.contains(c))
+      .flatMap((_,dsi)->dsi.sigs().stream()).toList();
     List<M> allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
     var res= d.withCsMs(allCs,allMs,setInfHead);
     checkMagicSupertypes(res, allCs);

@@ -1,14 +1,12 @@
 package typeSystem;
 
-import static offensiveUtils.Require.*;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
 import core.*;
 import core.E.*;
-import utils.Range;
+import utils.Streams;
 import typeSystem.Change.*;
 
 public record Gamma(Gamma tail, String name, T t, Change current){
@@ -19,12 +17,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     if (this == _empty){ return this; }
     return new Gamma(tail.map(f), name, t, f.apply(current));
   }
-  public Gamma addAll(List<T> ts, List<String> xs){
-    var res= this;
-    assert eq(xs.size(),ts.size(),"Arity mismatch in bodyOk");
-    for (int i : Range.of(xs)){ res= res.add(xs.get(i),ts.get(i)); }
-    return res;
-  }
+  public Gamma addAll(List<T> ts, List<String> xs){ return Streams.zip(xs, ts).fold(Gamma::add, this); }
   public record Binding(T declared, Change current){}
   public Binding bind(String x){ return Objects.requireNonNull(_bindOrNull(x)); }
   public Binding _bindOrNull(String x){

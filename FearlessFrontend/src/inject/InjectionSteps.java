@@ -175,14 +175,13 @@ public record InjectionSteps(Methods meths){
   private List<E> meetWithTargs(List<E> originEs,List<E> es, MSigL m, List<IT> targs){
     var res= norm(es,IntStream.range(0, es.size())
       .mapToObj(i->meet(es.get(i), m.p(i,targs))).toList());
-    assert threeWayAssert(originEs, es, res); 
+    assert threeWayAssert(originEs, res);
     return res;
   }
-  private boolean threeWayAssert(List<E> originEs, List<E> es, List<E> res){
+  private boolean threeWayAssert(List<E> originEs, List<E> res){
     //complex but invaluable: if it fails it means we are going 'back and forth'
     //and this could cause loops.
-    for (int i : Range.of(es)){ assert res.get(i) == originEs.get(i) || !res.get(i).equals(originEs.get(i)); }
-    return true;
+    return Streams.zip(res, originEs).allMatch((r,o)->r == o || !r.equals(o));
   }
   E next(List<B> bs, Gamma g, E e){
     try{
@@ -443,10 +442,8 @@ public record InjectionSteps(Methods meths){
   }
   private void updateGWithArgs(Gamma g, inference.M m){
     var xs= m.impl().get().xs();
-    var args0= m.sig().ts();
-    assert xs.size() == args0.size();
     assert m.sig().m().get().arity() == xs.size();
-    for (int i : Range.of(xs)){ g.declare(xs.get(i), args0.get(i).get()); }
+    Streams.zip(xs, m.sig().ts()).forEach((x,t)->g.declare(x, t.get()));
   }
   TSM headerResult(IT.RCC rcc, inference.M m, E e, core.Sig sig, M.Sig improvedSig){
     var rcc0= withTsNormBs(rcc,refineClsTsFromHeader(rcc, improvedSig,sig));
