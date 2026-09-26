@@ -71,7 +71,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   private ArgMatrix typeArgsOnce(Literal d,List<MType> app){
     var size= c.es().size();
     var acc= new ArgMatrix(app,new ArrayList<>(size),new ArrayList<>(size));
-    for (int argi : Range.of(0,size)){ accArgi(d,app,acc,c.es(), argi); }
+    for (int argi : Range.of(0,size)){ accArgi(d,acc,argi); }
     return acc;
   }
   private List<TRequirement> argRequirements(List<MType> app, int argi){
@@ -93,11 +93,11 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
         e.getKey()))
       .toList();*/
   }
-  private void accArgi(Literal d, List<MType> app, ArgMatrix acc, List<E> es, int argi){
-    var reqs= argRequirements(app,argi);
+  private void accArgi(Literal d, ArgMatrix acc, int argi){
+    var reqs= argRequirements(acc.cs(),argi);
     var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi),ts.v());
-    var res= cts.typeOf(bs,g,es.get(argi),reqs);
-    assert res.size() == app.size();
+    var res= cts.typeOf(bs,g,c.es().get(argi),reqs);
+    assert res.size() == acc.cs().size();
     var ok= okSet(res);
     if (ok.isEmpty()){
       throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res);

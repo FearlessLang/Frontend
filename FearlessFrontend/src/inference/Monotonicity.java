@@ -69,8 +69,8 @@ public final class Monotonicity{
     return true;
   }
 
-  public static boolean eT(GammaSignature g, Object e, Object from, Object to){
-    return step(g, slot(K.eT,0,0), from, to, "E.t "+e.getClass().getSimpleName());
+  public static boolean eT(E e, IT to){
+    return step(e.g(), slot(K.eT,0,0), e.t(), to, "E.t "+e.getClass().getSimpleName());
   }
 
   private static boolean hasLitHistory(GammaSignature g){

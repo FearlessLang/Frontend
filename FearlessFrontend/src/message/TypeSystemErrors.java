@@ -166,7 +166,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///Implemented method can never be called for any receiver obtained from the literal.
   ///Its body is statically dead code (typically a mut method on an imm/read literal).
   ///Raised when checking object literals   
-  public FearlessException methodImplementationDeadCode(TSpan at, M got, Literal l){
+  public FearlessException methodImplementationDeadCode(M got, Literal l){
     var s= got.sig();
     assert s.rc() == RC.mut;
     assert l.rc() == RC.imm || l.rc() == RC.read;
@@ -175,7 +175,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("The method "+err().methodSig(s.rc().toStrSpace(),l,s.m())+" is dead code.")
       .line("The "+err().expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".")
       .line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver.")
-      .ex(l).addSpan(at.inner));
+      .ex(l).addSpan(s.span().inner));
   }  
   ///Iso parameter is used in a way that violates affine discipline.
   ///Allowed uses: capture into object literals as imm, or use directly at most once.

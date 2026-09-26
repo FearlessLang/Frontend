@@ -194,7 +194,7 @@ public class CompactPrinter{
       callLen(c.name().s(), c.rc(), targs.size(), args.size()));
   }
   PE ofLit(Literal l){
-    var ms= ofMs(l.name(),l.ms());
+    var ms= ofMs(l);
     boolean priv= l.infName();
     var name= priv ? ""
       : t.of(l.name()) + bounds(l.bs())+":"; // name[bs]:
@@ -240,9 +240,9 @@ public class CompactPrinter{
     int len= rcPrefixLen(s.rc()) + s.m().s().length() + bs.length() + (xs.isEmpty() ? 1 : 3 + seps(xs.size()) + xsWithColonsLen(xs)) + (body.isPresent() ? 2 : 0);
     return new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), body, Compactable.of(), len);
   }
-  List<PM> ofMs(TName origin, List<M> ms){
-    return ms.stream()
-      .filter(m->m.sig().origin().equals(origin))
+  List<PM> ofMs(Literal l){
+    return l.ms().stream()
+      .filter(m->m.sig().origin().equals(l.name()))
       .map(m->ofM(m.sig(), m.xs(), m.e().map(this::ofE)))
       .toList();
   }

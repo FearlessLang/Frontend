@@ -29,7 +29,7 @@ public sealed interface E{
     public X{ assert nonNull(t) && validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name+":"+t; }
     public E withT(IT t){
-      assert Monotonicity.eT(g, this, this.t, t);
+      assert Monotonicity.eT(this, t);
       if (t.equals(this.t)){ return this; }
       return new X(name,t,src,g.clear());
     }
@@ -38,7 +38,7 @@ public sealed interface E{
     public Type{ assert nonNull(type,t,src,g); }
     public Type(IT.RCC type, Src src){ this(type,IT.U.Instance,src,new Gamma.GammaSignature()); }
     public E withT(IT t){
-      assert Monotonicity.eT(g, this, this.t, t);
+      assert Monotonicity.eT(this, t);
       if (t.equals(this.t)){ return this; }
       return new Type(type,t,src,g.clear());
     }
@@ -56,7 +56,7 @@ public sealed interface E{
       assert nonNull(name,thisName,t);
       }
     public E.Literal withT(IT t){
-      assert Monotonicity.eT(g, this, this.t, t);
+      assert Monotonicity.eT(this, t);
       if (t.equals(this.t)){ return this; }
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear());
     }
@@ -73,7 +73,7 @@ public sealed interface E{
     public Literal withMsT(List<M> ms, IT t){
       assert t instanceof IT.RCC;
       assert Monotonicity.onLiteralWithMs(this, ms);
-      assert Monotonicity.eT(g, this, this.t, t);
+      assert Monotonicity.eT(this, t);
       if (infHead && ms == this.ms && t.equals(this.t)){ return this; }
       assert !t.equals(this.t) || ms == this.ms || !ms.equals(this.ms);
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
@@ -113,7 +113,7 @@ public sealed interface E{
     }
     public Call withE(E e){ return withEEs(e,es); }
     public Call withT(IT t){
-      assert Monotonicity.eT(g, this, this.t, t);
+      assert Monotonicity.eT(this, t);
       if (t.equals(this.t)){ return this; }
       return new Call(e,name,rc,targs,es,t,src,g.clear());
     }
@@ -131,7 +131,7 @@ public sealed interface E{
       assert unmodifiable(es, "E.ICall.es");
     }
     public E withT(IT t){
-      assert Monotonicity.eT(g, this, this.t, t);
+      assert Monotonicity.eT(this, t);
       if (t.equals(this.t)){ return this; }
       return new ICall(e,name,es,t,src,g.clear()); 
     }

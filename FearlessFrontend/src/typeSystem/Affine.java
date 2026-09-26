@@ -10,14 +10,14 @@ import message.TypeSystemErrors;
 
 final class Affine{
   private Affine(){}
-  static void usedOnce(TypeSystemErrors err, Literal l,M m, String x, E e){
+  static void usedOnce(TypeSystemErrors err, Literal l,M m, String x){
     List<X> active= new ArrayList<>();
-    collect(x, e, true, active);
+    collect(x, m.e().get(), true, active);
     //Intentionally allowing multiple captures as imm: equivalent to cast to imm and then capture multiple times
     if (active.isEmpty()){ return; }
     if (active.size() > 1){ throw err.notAffineIso(l,m, x,true, active); }
     List<X> total= new ArrayList<>();
-    collect(x, e, false, total);
+    collect(x, m.e().get(), false, total);
     if (total.size() > 1){ throw err.notAffineIso(l,m, x,false, total); }
   }
   private static void collect(String x, E e, boolean activeOnly, List<X> acc){

@@ -25,7 +25,8 @@ public final class LiteralDeclarations{
   public static final TName baseContainer= new TName("base.BaseContainer",1,Pos.unknown);
   public static boolean has(List<T.C> cs, TName magic){ return cs.stream().anyMatch(c->c.name().equals(magic)); }
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
-  private static core.E.Literal forge(TName name,TName lit, Function<TName,Literal> map, OtherPackages other){
+  private static core.E.Literal forge(TName name, Function<TName,Literal> map, OtherPackages other){
+    var lit= superLiteral(name);
     var res= _from(lit,map,other);
     var ms=res.ms().stream().map(m->m.withSig(m.sig().implementedBy(name))).toList();
     return new core.E.Literal(RC.imm,name,List.of(),Push.of(new T.C(lit,List.of()),res.cs()),"this",ms,Src.syntetic,true);
@@ -35,7 +36,7 @@ public final class LiteralDeclarations{
     if (res == null){ res= other.__of(n); }
     if (res != null){ return res; }
     if (!n.pkgName().equals("base") || !isPrimitiveLiteral(n.simpleName())){ return null; }
-    return LiteralDeclarations.forge(n,superLiteral(n),map,other);
+    return forge(n,map,other);
   }
   public static TName superLiteral(TName name){
     assert name.pkgName().equals("base");

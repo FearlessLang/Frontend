@@ -135,7 +135,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private void checkCallable(Literal l, M m){
     if (callable(l.rc(),m.sig().rc())){ return; }
-    throw tsE().methodImplementationDeadCode(m.sig().span(), m, l);
+    throw tsE().methodImplementationDeadCode(m, l);
   }
   private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC !=RC.read); }
 
@@ -196,7 +196,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     t.check(delta,g,m.e().get(),m.sig().ret());
     Streams.zip(xs, ts)
       .filter((_,ti)->!k().of(delta,ti,EnumSet.of(mut,read,mutH,readH,imm)))
-      .forEach((x,_)->Affine.usedOnce(tsE(),forErr,m,x,m.e().get()));
+      .forEach((x,_)->Affine.usedOnce(tsE(),forErr,m,x));
   }
   private List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }
   

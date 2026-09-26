@@ -38,7 +38,8 @@ public record WellFormednessErrors(String pkgName){
     public ErrToFetchContext(IT.RCC c){this.c= c;} public IT.RCC c;
     }
   Err err(){ return new Err(y->y,x->x, trunk->new CompactPrinter(pkgName, Map.of(), trunk), new StringBuilder()); }
-  private FearlessException wf(Err e, E at, Span frame){ return e.wf().addFrame(err().expRepr(at), frame); }
+  private FearlessException wf(Err e, E at){ return e.wf().addFrame(err().expRepr(at), at.span().inner); }
+  private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }
   private FearlessException wf(Err e, M m, E.Literal origin){ return e.wf().addSpan(m.sig().span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
   public FearlessException notClean(Ref uri, FileFull f){
     var e= err()
@@ -55,7 +56,7 @@ public record WellFormednessErrors(String pkgName){
     var shown= Join.of(c.stream().limit(limit),"",", ","","");
     return c.size() <= limit ? shown : shown+", ... (size="+c.size()+")";
   }
-  public FearlessException expectedSingleUriForPackage(List<Ref> heads, String pkgName){
+  public FearlessException expectedSingleUriForPackage(List<Ref> heads){
     if (heads.isEmpty()){
       return badRank(err()
         .line("No rank file found for package "+Err.disp(pkgName)+".")
@@ -71,10 +72,10 @@ public record WellFormednessErrors(String pkgName){
      .line("Rename or remove the extra files so that only one file name is of form \"_rank_*.fear\".");
     return badRank(e).wf();
   }
-  public FearlessException mapConflict(String target, String in, List<String> bests){
+  public FearlessException mapConflict(String in, List<String> bests){
     int limit= 12;
     var e= err()
-      .line("For package "+Err.disp(target)+", the virtual package name "+Err.disp(in)
+      .line("For package "+Err.disp(pkgName)+", the virtual package name "+Err.disp(in)
            +" is mapped to different real packages:");
     bests.stream().limit(limit).forEach(e::line);
     if (bests.size() > limit){ e.line(" - ... ("+(bests.size()-limit)+" more)"); }
@@ -88,7 +89,7 @@ public record WellFormednessErrors(String pkgName){
      .bullet("Higher-rank packages override lower-rank ones.")
      .blank()
      .line("How to fix it:")
-     .bullet("Decide which real package should represent "+Err.disp(in)+" inside of "+Err.disp(target)+".")
+     .bullet("Decide which real package should represent "+Err.disp(in)+" inside of "+Err.disp(pkgName)+".")
      .bullet("Add one mapping line in a higher-rank package (typically your top-level application"
             +" package), so that it overrides the conflicting ones.");
     return e.wf();
@@ -103,7 +104,7 @@ public record WellFormednessErrors(String pkgName){
       .line("Other examples: \"_rank_driver.fear\", \"_rank_framework.fear\" or \"_rank_app175.fear\"; with explicit rank number.")
       .line("As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.");
   }
-  public FearlessException usedDeclaredNameClash(String pkgName, Set<TName> names, Set<String> keySet){
+  public FearlessException usedDeclaredNameClash(Set<TName> names, Set<String> keySet){
     TName n= names.stream().filter(x->keySet.contains(x.s())).findFirst().get();
     return err()
       .line("Name clash: name "+Err.disp(n.s())+" is declared in package "+Err.disp(pkgName)+".")
@@ -207,13 +208,13 @@ public record WellFormednessErrors(String pkgName){
       .wf()
       .addFrame("package header", at);
   }
-  public FearlessException genericTypeVariableShadowTName(String pkgName, Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
+  public FearlessException genericTypeVariableShadowTName(Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
     var n= allXs.values().stream().flatMap(Set::stream)
       .filter(x->allNames.contains(x.name()) || use.contains(x.name()))
       .findFirst().get();
-    return shadowMsg(pkgName, n, use.contains(n.name()));
+    return shadowMsg(n, use.contains(n.name()));
   }
-  private FearlessException shadowMsg(String pkgName, T.X n, boolean use){
+  private FearlessException shadowMsg(T.X n, boolean use){
     return err()
       .line("Type parameter "+Err.disp(n.name())+" is declared in package "+Err.disp(pkgName)+".")
       .line("Name "+Err.disp(n.name())+" is also used "+(use ? "in a \"use\" directive." : "as a type name."))
@@ -294,7 +295,7 @@ public record WellFormednessErrors(String pkgName){
       ))
       .line(Err.up(err().expRepr(at.lit()))+" must declare a method "
         +err().methodSig(at.mName())+" explicitly choosing the desired option.");
-    return wf(e, at.lit(), at.span());
+    return wf(e, at);
   }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
@@ -302,7 +303,7 @@ public record WellFormednessErrors(String pkgName){
         +" with "+at.mName().arity()+" parameters.")
       .line(Join.of(res.stream().map(Err::disp), "Different options are present in the implemented types: ", ", ", "."))
       .line(Err.up(err().expRepr(at.lit()))+" cannot implement all of those types.");
-    return wf(e, at.lit(), at.span());
+    return wf(e, at);
   }
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
     String sB= Err.disp(superBs.stream().map(b->new B("-", b.rcs())).toList());
@@ -311,7 +312,7 @@ public record WellFormednessErrors(String pkgName){
       .line("The method "+err().methodSig(at.mName())+" declares "+userBs.size()+" type parameter(s), but supertypes declare "+superBs.size()+".")
       .line("Local declaration: "+Err.disp(userBs)+".")
       .line("From supertypes: "+sB+".")
-      .line("Change the local number of type parameters to "+superBs.size()+", or adjust the supertypes."), at.lit(), at.span());
+      .line("Change the local number of type parameters to "+superBs.size()+", or adjust the supertypes."), at);
   }
   public FearlessException methodBsDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     assert res.size() >= 2;
@@ -326,7 +327,7 @@ public record WellFormednessErrors(String pkgName){
       .line("Type parameter names may differ across supertypes; only the position matters.")
       .line("Different supertypes declare: "+opts)
       .line(Err.up(err().expRepr(at.lit()))+" cannot implement all of those supertypes.")
-      .line("Make the supertypes agree on these bounds, or remove one of the conflicting supertypes."), at.lit(), at.span());
+      .line("Make the supertypes agree on these bounds, or remove one of the conflicting supertypes."), at);
   }
   public FearlessException methodBsDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
     assert userBs.size() == superBs.size();
@@ -342,7 +343,7 @@ public record WellFormednessErrors(String pkgName){
       .line("Local: "+uB+".")
       .line("From supertypes: "+sB+".")
       .line("The parameter name may differ; only the position matters.")
-      .line("Change the local bounds to match the supertypes, or adjust the supertypes."), at.lit(), at.span());
+      .line("Change the local bounds to match the supertypes, or adjust the supertypes."), at);
   }
   private int firstRcsDisagreementIndex(List<List<B>> res){
     return IntStream.range(0, res.getFirst().size())
@@ -352,7 +353,7 @@ public record WellFormednessErrors(String pkgName){
   public FearlessException itTooDeep(E at,IT.RCC blame){
     return wf(err()
       .line("Type "+err().typeRepr(blame))
-      .line("grew incontrollably during inference."), at, at.span().inner);
+      .line("grew incontrollably during inference."), at);
   }
   public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<inference.M.Sig> options){
     return wf(err()
@@ -369,7 +370,7 @@ public record WellFormednessErrors(String pkgName){
       .line("Different options are present in the implemented types:")
       .line(Join.of(options.stream().map(err()::tNameADisp), "Candidates: ", ", ", "."))
       .line(Err.up(err().expRepr(at.lit()))+" must declare a method "+Err.disp(at.mName().s())
-        +" explicitly implementing the desired behaviour."), at.lit(), at.span());
+        +" explicitly implementing the desired behaviour."), at);
   }
   public FearlessException multipleWidenTo(E.Literal owner, List<IT.C> widen){
     var e= err()
@@ -378,7 +379,7 @@ public record WellFormednessErrors(String pkgName){
       .blank()
       .line("Found the following base.WidenTo supertypes:");
     widen.forEach(c->e.bullet(Err.disp(c.toString())));
-    return wf(e, owner, owner.span().inner);
+    return wf(e, owner);
   }
   public FearlessException duplicatedNamedLiteral(E.Literal owner,M m, E.Literal in){
     String ctx= Err.up(err().expRepr(owner));
@@ -386,20 +387,20 @@ public record WellFormednessErrors(String pkgName){
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
       .line("The body of method "+err().methodSig("",owner,m.sig().m().get())+" needs to be duplicated to satisfy multiple RC overloads from the supertypes.")
       .line("However, it contains "+err().expRepr(in)+".")
-      .line("Object literals with their own unique explicit type cannot be duplicated."), owner, owner.span().inner);
+      .line("Object literals with their own unique explicit type cannot be duplicated."), owner);
   }
   public FearlessException baseIdNotOnlyHash(E.Literal owner){
     String ctx= Err.up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
-      .line("Only the method "+err().methodSig(new MName("#",1))+" can be declared or inherited here."), owner, owner.span().inner);
+      .line("Only the method "+err().methodSig(new MName("#",1))+" can be declared or inherited here."), owner);
   }
   public FearlessException baseIdInheritedHash(E.Literal owner, TName origin){
     String ctx= Err.up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
       .line("It inherits the implementation of "+err().methodSig(new MName("#",1))+" from "+err().tNameADisp(origin)+", that does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
-      .line("Method "+err().methodSig(new MName("#",1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner, owner.span().inner);
+      .line("Method "+err().methodSig(new MName("#",1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner);
   }
   public FearlessException extendedSealed(E.Literal owner, TName isSealed){
     String ownerPkg= owner.name().pkgName();
@@ -410,7 +411,7 @@ public record WellFormednessErrors(String pkgName){
       .line(ctx+" implements sealed type "+err().tNameADisp(isSealed)+".")
       .line("Sealed types can only be implemented in their own package.")
       .line(ctx+" is defined in package "+Err.disp(ownerPkg)+".")
-      .line("Type "+Err.disp(isSealed.simpleName())+" is defined in package "+Err.disp(sealedPkg)+"."), owner, owner.span().inner);
+      .line("Type "+Err.disp(isSealed.simpleName())+" is defined in package "+Err.disp(sealedPkg)+"."), owner);
   }
   public FearlessException intLiteralOutOfRange(TName lit){
     return intOrNatLiteralOutOfRange(lit,"Int","Integer","signed",LiteralDeclarations.intMin,LiteralDeclarations.intMax);

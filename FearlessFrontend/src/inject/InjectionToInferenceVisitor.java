@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 
 import core.B;
 import core.MName;
-import core.OtherPackages;
 import core.RC;
 import core.Src;
 import core.TName;
@@ -24,15 +23,13 @@ import utils.Pos;
 import inference.E;
 import inference.IT;
 import inference.M;
-import naming.FreshPrefix;
-import pkgmerge.Package;
 
 import static java.util.Optional.*;
 import static core.LiteralDeclarations.*;
 import static fearlessParser.TokenKind.*;
 import java.util.ArrayList;
 
-public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs, Package pkg, OtherPackages other, FreshPrefix freshF)
+public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs)
     implements fearlessFullGrammar.EVisitor<inference.E>,fearlessFullGrammar.TVisitor<IT>{
   static final inference.IT u= IT.U.Instance;
   @Override public IT.X visitTX(fearlessFullGrammar.T.X x){ return new IT.X(x.name(),x.span()); }
@@ -64,7 +61,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     if ( p.xp().isEmpty()){ return "_"; }
     return switch (p.xp().get()){
     case XPat.Name(var x) -> x.name();
-    case XPat.Destruct(var _, var _) -> freshF.freshVar(currentTop, "div");
+    case XPat.Destruct(var _, var _) -> meths.fresh().freshVar(currentTop, "div");
     };
   } 
   List<M> mapM(List<fearlessFullGrammar.M> ms){ return ms.stream().map(this::visitM).toList(); } 
@@ -89,7 +86,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     });
   }
   private EnumSet<RC> inOrder(List<RC> es, fearlessFullGrammar.T.X x){
-    if (es.size() != new HashSet<>(es).size()){ throw pkg.err().duplicatedBound(es,x); }
+    if (es.size() != new HashSet<>(es).size()){ throw meths.p().err().duplicatedBound(es,x); }
     return EnumSet.copyOf(es);
   }
 
@@ -100,7 +97,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     List<String> ps= mapPX(original);
     List<XE> xpats= xpats(ps,original,m.span());
     if (!xpats.isEmpty()){ body= makeXPatsBody(body,xpats); }
-    if (m.hasImplicit()){ var p= freshF.freshVar(currentTop, "impl"); ps= Push.of(ps,p); implicits.add(p); }
+    if (m.hasImplicit()){ var p= meths.fresh().freshVar(currentTop, "impl"); ps= Push.of(ps,p); implicits.add(p); }
     E e= body.accept(this);
     if (m.hasImplicit()){ implicits.removeLast(); }
     Optional<MName> name= m.sig().flatMap(s->s.m());
@@ -138,7 +135,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     return e;
   }
   private E.Literal liftLiteral(Optional<RC> rc,List<IT.C> impl,Optional<String> thisName, List<M> ms, Src src){
-    var name= freshF.freshTopType(currentTop,0);
+    var name= meths.fresh().freshTopType(currentTop,0);
     return new E.Literal(rc,name,List.of(),impl,thisName.orElse("_"), ms,src,true);
   }
   private E visitReceiver(fearlessFullGrammar.E e){
@@ -166,7 +163,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   }
   @Override public E visitDeclarationLiteral(fearlessFullGrammar.E.DeclarationLiteral c){
     var name= f.apply(c.dec().name());
-    freshF.aliasOwner(currentTop,name );
+    meths.fresh().aliasOwner(currentTop,name );
     return addDeclaration(name, c.rc().orElse(RC.imm),c.dec(),false);
   }
   public E.Literal addDeclaration(TName name,RC rc,fearlessFullGrammar.Declaration d, boolean top){
@@ -189,7 +186,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   private Call desugarCPat(Call c){
     var pat= c.pat().get();
     fearlessFullGrammar.E par1= OneOr.of("Equals sugar has one argument",c.es().stream());
-    var fresh= new fearlessFullGrammar.E.X(freshF.freshVar(currentTop, "eqS"),c.pos());    
+    var fresh= new fearlessFullGrammar.E.X(meths.fresh().freshVar(currentTop, "eqS"),c.pos());    
     fearlessFullGrammar.E res= replaceAtom(par1,fresh);
     par1= extractAtom(par1);
     var param1= new Parameter(of(pat),empty());

@@ -22,11 +22,11 @@ public class AllDeclaredNames implements EVisitor<Void>{
   LinkedHashSet<String> lastTopNames;
   // lastTopXs: all generic Bs appearing anywhere in the the current top Declaration
   LinkedHashSet<T.X> lastTopXs;
-  public void visitTopDeclaration(Declaration d,String pkgName){
+  public void visitTopDeclaration(Declaration d){
     lastTopNames= new LinkedHashSet<>();
     lastTopXs= new LinkedHashSet<>();
     visitInnerDeclaration(d);
-    var n= d.name().withPkgName(pkgName);
+    var n= d.name().withPkgName(err.pkgName());
     assert !xs.containsKey(n);
     assert !Xs.containsKey(n);
     xs.put(n, Collections.unmodifiableSet(lastTopNames));

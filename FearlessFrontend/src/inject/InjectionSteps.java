@@ -88,7 +88,7 @@ public record InjectionSteps(Methods meths){
   }
   private long badnessAs(RCC src, TName targetHead){
     assert !src.c().name().equals(targetHead);
-    return adaptedSuperTs(src.rc(), src.span(), src.c().name(), src.c().ts(), targetHead).getFirst().badness();
+    return adaptedSuperTs(src, targetHead).getFirst().badness();
   }
   private IT leastBad(RCC a, RCC b){
     var aSuper= isASuperB(a.c().name(), b.c().name()); // a is super of b
@@ -396,8 +396,8 @@ public record InjectionSteps(Methods meths){
     return !ms.stream()
       .allMatch(m->m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t->t.get().isTV()));
   }
-  private List<Optional<IT>> updateArgs(List<String> xs, List<Optional<IT>> old, Gamma g){
-    return Streams.zip(xs, old).map((x,oi)->"_".equals(x) ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
+  private List<Optional<IT>> updateArgs(inference.M m, Gamma g){
+    return Streams.zip(m.impl().get().xs(), m.sig().ts()).map((x,oi)->"_".equals(x) ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
   }
   record TSM(List<IT> ts, inference.M m){}
   TSM nextMStarAbs(IT.RCC rcc, inference.M m){
@@ -414,7 +414,7 @@ public record InjectionSteps(Methods meths){
     g.declare(thisN, selfPrecise.<IT>map(o->o).orElse(IT.U.Instance));
     updateGWithArgs(g, m);
     var e= nextStar(Push.of(bs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
-    var args= updateArgs(m.impl().get().xs(), m.sig().ts(), g);
+    var args= updateArgs(m, g);
     g.popScope();
     return nextMStarOpRun(rcc, m, e, args);
   }
@@ -491,7 +491,7 @@ public record InjectionSteps(Methods meths){
       case IT.X x -> refineXs(xs, x, t1);
       case IT.RCX(RC _, IT.X x) -> refine(xs, x, stripRCAlsoThisSide(t1));
       case IT.ReadImmX(IT.X x) -> refine(xs, x, stripRCAlsoThisSide(t1));
-      case IT.RCC(_, IT.C c,_) -> propagateXs(xs, c, t1);
+      case IT.RCC rcc -> propagateXs(xs, rcc, t1);
       case IT.U _ -> qMarks(xs.size()); //stripRCAlsoThisSide is needed to distinguish
     };//xs=[EE], t= imm EE, t1=imm ET -> [ET] | xs=[EE], t= EE, t1=imm ET ->[imm ET]
   }
@@ -512,24 +512,25 @@ public record InjectionSteps(Methods meths){
     if (d == null){ return false; } // {..}.foo etc.
     return d.cs().stream().anyMatch(c->c.name().equals(a));
   }
-  private List<IT.RCC> adaptedSuperTs(Optional<RC> rc,TSpan span, TName source,List<IT> ts, TName target){
-    var d= meths._from(source);
+  private List<IT.RCC> adaptedSuperTs(IT.RCC src, TName target){
+    var d= meths._from(src.c().name());
     if (d == null){ return List.of(); } // {..}.foo etc.
     List<String> xs= B.xs(d.bs());
     return d.cs().stream()
       .filter(sc->sc.name().equals(target))
       .distinct()
-      .map(ci->new IT.RCC(rc, TypeRename.tcToITC(ci),span))
-      .map(rcc->(IT.RCC)TypeRename.of(rcc, xs, ts))
+      .map(ci->new IT.RCC(src.rc(), TypeRename.tcToITC(ci),src.span()))
+      .map(rcc->(IT.RCC)TypeRename.of(rcc, xs, src.c().ts()))
       .toList();
   }  
-  List<IT> propagateXs(List<String> xs, IT.C c, IT t1){
+  List<IT> propagateXs(List<String> xs, IT.RCC r, IT t1){
     if (!(t1 instanceof IT.RCC cc)){ return qMarks(xs.size()); }
+    var c= r.c();
     if (!cc.c().name().equals(c.name())){
-      var supOk= adaptedSuperTs(cc.rc(),cc.span(),cc.c().name(),cc.c().ts(),c.name());
-      if (!supOk.isEmpty()){ return propagateXs(xs,c,supOk.getFirst()); }
-      var subOk= adaptedSuperTs(cc.rc(),cc.span(),c.name(),c.ts(),cc.c().name());
-      if (!subOk.isEmpty()){ return propagateXs(xs,subOk.getFirst().c(),t1); }
+      var supOk= adaptedSuperTs(cc,c.name());
+      if (!supOk.isEmpty()){ return propagateXs(xs,r,supOk.getFirst()); }
+      var subOk= adaptedSuperTs(r,cc.c().name());
+      if (!subOk.isEmpty()){ return propagateXs(xs,subOk.getFirst(),t1); }
       return qMarks(xs.size());
     }
     List<List<IT>> res= Streams.zip(c.ts(), cc.c().ts()).map((t,ti)->refine(xs, t, ti)).toList();
