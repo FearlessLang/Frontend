@@ -67,7 +67,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return "imm "+str;
   }
   T showPublicHead(T t){ return mapHead(t, publicHead); }
-  private T mapHead(T t, Function<T.C,T.C> f){ return t instanceof T.RCC(RC rc, T.C c, var span) ? new T.RCC(rc, f.apply(c), span) : t; }
+  private T mapHead(T t, Function<T.C,T.C> f){ return t instanceof T.RCC(var rc, var c, var span) ? new T.RCC(rc, f.apply(c), span) : t; }
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t),t.span()))); }
   static String up(String s){ return s.substring(0, 1).toUpperCase() + s.substring(1); }
   String expRepr(E toErr){return switch (toErr){
@@ -85,7 +85,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case Literal l->l.thisName().equals("this")
       ? tNameADisp(l.name())
       : bestNamePkg0(false, bestLitName(false,skipImm,l));
-    case Type(var t,_) -> typeRepr(skipImm,t);
+    case Type(var t, _) -> typeRepr(skipImm,t);
     };}
   String expRepr(inference.E toErr){return switch (toErr){
     case inference.E.Call c->"method call "+methodSig(c.name());

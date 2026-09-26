@@ -43,7 +43,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     case T.X x -> B.xs(bs).contains(x.name());
     case T.RCX(_, var x) -> hasOnlyFTV(x,bs);
     case T.ReadImmX(var x) -> hasOnlyFTV(x,bs);
-    case T.RCC(_, var c,_) -> c.ts().stream().allMatch(ti->hasOnlyFTV(ti,bs));
+    case T.RCC(_, var c, _) -> c.ts().stream().allMatch(ti->hasOnlyFTV(ti,bs));
   };}
 }
 //Deliberately simple: \u0393 never gets deeper than 18 (2.33 on average), and all of its

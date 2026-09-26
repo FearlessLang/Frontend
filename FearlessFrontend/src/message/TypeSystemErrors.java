@@ -74,7 +74,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     Err err= switch (target){
       case T.RCC rcc -> typeNotWellKinded("type "+err().typeRepr(true,rcc),rcc.c(), index, allowedStr);
       case T.C c -> typeNotWellKinded("type "+err().typeRepr(c),c, index, allowedStr);
-      case KindingTarget.CallKinding(var t,var c)   -> typeNotWellKindedSig(t,c, index, allowedStr);
+      case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t,c, index, allowedStr);
     };
     var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
     return addExpFrame(toErr,err.ex(toErr).addSpan(span));
@@ -253,7 +253,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var name= why.l().name().simpleName();
     var current= disp(Join.of(B.xs(why.l().bs()),name+"[",",","]",name));
     var next= disp(Join.of(B.xs(why.l().bs()),name+"[",",",",...]",name+"[...,...]"));
-    return"Hint: change "+current+" by adding the missing type parameters: "+next;
+    return "Hint: change "+current+" by adding the missing type parameters: "+next;
   }
   private String whyDropFTV(String subject, Change.NoT why){
     return subject+" has type "+err().typeRepr(true,why.atDrop())+".\n"

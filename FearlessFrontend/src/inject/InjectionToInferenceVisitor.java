@@ -30,7 +30,6 @@ import static fearlessParser.TokenKind.*;
 
 public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs)
 {
-  static final inference.IT u= IT.U.Instance;
   IT visitT(fearlessFullGrammar.T t){
     return switch (t){
       case fearlessFullGrammar.T.X x -> visitTX(x);
@@ -82,7 +81,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
     if (p.xp().isEmpty()){ return "_"; }
     return switch (p.xp().get()){
     case XPat.Name(var x) -> x.name();
-    case XPat.Destruct(var _, var _) -> meths.fresh().freshVar(currentTop, "div");
+    case XPat.Destruct(_, _) -> meths.fresh().freshVar(currentTop, "div");
     };
   }
   List<M> mapM(List<fearlessFullGrammar.M> ms){ return ms.stream().map(this::visitM).toList(); }
@@ -101,9 +100,9 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, List<
   }
   public B visitB(fearlessFullGrammar.B b){
     return new B(b.x().name(),switch (b.bt()){
-    case fearlessFullGrammar.B.Star()->EnumSet.of(RC.imm,RC.mut,RC.read);
-    case fearlessFullGrammar.B.StarStar()->EnumSet.allOf(RC.class);
-    case fearlessFullGrammar.B.RCS(List<RC> rcs)-> rcs.isEmpty() ?EnumSet.of(RC.imm) :inOrder(rcs,b.x());
+    case fearlessFullGrammar.B.Star() -> EnumSet.of(RC.imm,RC.mut,RC.read);
+    case fearlessFullGrammar.B.StarStar() -> EnumSet.allOf(RC.class);
+    case fearlessFullGrammar.B.RCS(var rcs) -> rcs.isEmpty() ? EnumSet.of(RC.imm) : inOrder(rcs,b.x());
     });
   }
   private EnumSet<RC> inOrder(List<RC> es, fearlessFullGrammar.T.X x){

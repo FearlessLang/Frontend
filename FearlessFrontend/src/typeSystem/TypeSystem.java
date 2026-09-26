@@ -51,7 +51,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     Map<TName,Literal> map= AllLs.of(tops);
     Function<TName,Literal> decs= n->LiteralDeclarations._from(n,map::get,other);
     Map<String,String> invMap= pkg.map().entrySet().stream()
-      .collect(Collectors.toUnmodifiableMap (Map.Entry::getValue, Map.Entry::getKey));
+      .collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
     var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg,invMap))));
     tops.forEach(l->ts.litOk(Gamma.empty(),l));
   }

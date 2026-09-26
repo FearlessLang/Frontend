@@ -494,7 +494,7 @@ public record InjectionSteps(Methods meths){
   }
   IT dropMethBs(IT t, List<String> methBs){ return switch (t){
     case IT.X x -> methBs.contains(x.name()) ? IT.U.Instance : t;
-    case IT.RCX(_,var x) -> methBs.contains(x.name()) ? IT.U.Instance : t;
+    case IT.RCX(_, var x) -> methBs.contains(x.name()) ? IT.U.Instance : t;
     case IT.ReadImmX(var x) -> methBs.contains(x.name()) ? IT.U.Instance : t;
     case IT.RCC rcc -> withTsNormBs(rcc,dropMethBs(rcc.c().ts(), methBs));
     case IT.U _ -> t;
@@ -506,8 +506,8 @@ public record InjectionSteps(Methods meths){
     if (t1 instanceof IT.U){ return qMarks(xs.size()); }
     return switch (t){
       case IT.X x -> refineXs(xs, x, t1);
-      case IT.RCX(RC _, IT.X x) -> refine(xs, x, stripRCAlsoThisSide(t1));
-      case IT.ReadImmX(IT.X x) -> refine(xs, x, stripRCAlsoThisSide(t1));
+      case IT.RCX(_, var x) -> refine(xs, x, stripRCAlsoThisSide(t1));
+      case IT.ReadImmX(var x) -> refine(xs, x, stripRCAlsoThisSide(t1));
       case IT.RCC rcc -> propagateXs(xs, rcc, t1);
       case IT.U _ -> qMarks(xs.size()); //stripRCAlsoThisSide is needed to distinguish
     };//xs=[EE], t= imm EE, t1=imm ET -> [ET] | xs=[EE], t= EE, t1=imm ET ->[imm ET]

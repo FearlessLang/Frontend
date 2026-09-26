@@ -37,8 +37,9 @@ import static message.Err.*;
 public record WellFormednessErrors(String pkgName){
   @SuppressWarnings("serial")
   public static class ErrToFetchContext extends RuntimeException{
-    public ErrToFetchContext(IT.RCC c){this.c= c;} public IT.RCC c;
-    }
+    public final IT.RCC c;
+    public ErrToFetchContext(IT.RCC c){ this.c= c; }
+  }
   Err err(){ return new Err(y->y,x->x, trunk->new CompactPrinter(pkgName, Map.of(), trunk), new StringBuilder()); }
   private FearlessException wf(Err e, E at){ return e.wf().addFrame(err().expRepr(at), at.span().inner); }
   private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }

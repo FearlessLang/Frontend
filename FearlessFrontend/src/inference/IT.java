@@ -71,8 +71,8 @@ public sealed interface IT{
     public long badness(){ return 1; }
   }
   default IT withRC(RC rc){ return switch (this){ // T[RC]
-    case RCC(var _, var c, var span) -> new RCC(Optional.of(rc), c, span);
-    case RCX(var _, var x) -> new RCX(rc, x);
+    case RCC(_, var c, var span) -> new RCC(Optional.of(rc), c, span);
+    case RCX(_, var x) -> new RCX(rc, x);
     case X x -> new RCX(rc, x);
     case ReadImmX(var x) -> new RCX(rc, x);
     case IT.U _   -> this;

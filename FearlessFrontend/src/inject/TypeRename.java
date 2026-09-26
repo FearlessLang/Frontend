@@ -16,7 +16,7 @@ public final class TypeRename{
     assert xs.size() == ts.size();
     return switch (t){
       case T.X x -> getOrSame(x,x.name(),xs,ts);
-      case T.RCX(RC rc, var x) -> withRC(of(x,xs,ts),rc);
+      case T.RCX(var rc, var x) -> withRC(of(x,xs,ts),rc);
       case T.RCC rcc -> rcc.withTs(ofT(rcc.c().ts(),xs,ts));
       case T.ReadImmX(var x) -> readImm(of(x,xs,ts));
     };
@@ -29,7 +29,7 @@ public final class TypeRename{
     assert xs.size() == ts.size();
     return switch (t){
       case IT.X x -> getOrSame(x,x.name(),xs,ts);
-      case IT.RCX(RC rc, var x) -> of(x,xs,ts).withRC(rc);
+      case IT.RCX(var rc, var x) -> of(x,xs,ts).withRC(rc);
       case IT.RCC rcc -> rcc.withTs(ofIT(rcc.c().ts(),xs,ts));
       case IT.ReadImmX(var x) -> of(x,xs,ts).readImm();
       case IT.U u -> u;
@@ -53,15 +53,15 @@ public final class TypeRename{
   public static List<T.C> itcToTC(List<IT.C> cs){ return cs.stream().map(TypeRename::itcToTC).toList(); }
   public static IT.C tcToITC(T.C c){ return new IT.C(c.name(),tToIT(c.ts())); }
   public static IT tToIT(T t){return switch (t){
-    case T.X(var name,var span) -> new IT.X(name,span);
+    case T.X(var name, var span) -> new IT.X(name,span);
     case T.ReadImmX(var x) -> new IT.ReadImmX(new IT.X(x.name(),x.span()));
-    case T.RCX(var rc,var x) -> new IT.RCX(rc,new IT.X(x.name(),x.span()));
-    case T.RCC(var rc, var c,var span) -> new IT.RCC(Optional.of(rc),tcToITC(c),span);
+    case T.RCX(var rc, var x) -> new IT.RCX(rc,new IT.X(x.name(),x.span()));
+    case T.RCC(var rc, var c, var span) -> new IT.RCC(Optional.of(rc),tcToITC(c),span);
   };}
   public static T itToT(IT t){return switch (t){
     case IT.X(var name, var span) -> new T.X(name,span);
     case IT.ReadImmX(var x) -> new T.ReadImmX(new T.X(x.name(),x.span()));
-    case IT.RCX(var rc,var x) -> new T.RCX(rc,new T.X(x.name(),x.span()));
+    case IT.RCX(var rc, var x) -> new T.RCX(rc,new T.X(x.name(),x.span()));
     case IT.RCC(var rc, var c, var span) -> new T.RCC(rc.orElse(RC.imm),itcToTC(c),span);
     case IT.U _ ->inferUnknown;
      //throw Bug.of();// bug is good for testing, it will be replaced with this later: inferUnknown;

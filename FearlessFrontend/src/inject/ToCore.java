@@ -20,8 +20,8 @@ import utils.Streams;
 
 public record ToCore(List<B> ctx){
   core.E of(inference.E exp, inference.E orig){ return switch (exp){
-    case inference.E.X(var name, _, Src src, _) -> new core.E.X(name,src);
-    case inference.E.Type(var type, _, Src src, _) -> type(type,src);
+    case inference.E.X(var name, _, var src, _) -> new core.E.X(name,src);
+    case inference.E.Type(var type, _, var src, _) -> type(type,src);
     case inference.E.Literal le -> literal(le,litLike(orig,le));
     case inference.E.Call ce -> call(ce,callLike(orig,ce.name()));
     case inference.E.ICall ic -> callFromICall(ic,callLike(orig,ic.name()));

@@ -38,9 +38,9 @@ public record Kinding(TypeSystemErrors tsE){
     return Streams.zip(rcc.c().ts(), params).allMatch((ti,p)->of(bs, ti, p.rcs()));
   }
   static EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch (t){
-    case T.RCC(var rc, _,_) -> EnumSet.of(rc);
+    case T.RCC(var rc, _, _) -> EnumSet.of(rc);
     case T.RCX(var rc, _) -> EnumSet.of(rc);
-    case T.X(var x,_) -> get(bs, x).rcs();
+    case T.X(var x, _) -> get(bs, x).rcs();
     case T.ReadImmX(var x) -> readImmRCs(intrinsicRCs(bs, x));
   };}
   private static EnumSet<RC> readImmRCs(EnumSet<RC> rcs){

@@ -27,9 +27,9 @@ public final class Reason{
     ){
     var er= (T.RCC)expected;
     var explRC= er.rc() != RC.imm && switch (blame){
-      case Literal l->l.rc() != RC.imm;
-      case Type(var t,_) ->  t.rc() != RC.imm;
-      default ->{ throw Bug.unreachable(); }
+      case Literal l -> l.rc() != RC.imm;
+      case Type(var t, _) -> t.rc() != RC.imm;
+      default -> throw Bug.unreachable();
     };
     if (!explRC){ return new Reason(got, base(ts,blame,bs,got,expected), ()->baseFooterE(ts.scope(),got,expected)); }
     return hintExplicitRC(ts,got, base(ts,blame,bs,got,expected), er,blame);
@@ -40,10 +40,10 @@ public final class Reason{
     return "Object literal is of type "+ts.err().expReprDirect(skipImm,blame)+" instead of a subtype of "+ts.err().typeRepr(skipImm,expected)+".";
   }
   private static Reason hintExplicitRC(TypeSystem ts,T got, String base, T.RCC expected, E blame){
-    E blameOk=switch (blame){
-      case Literal l->l.withRC(expected.rc());
-      case Type(var t,var src) ->  new Type(t.withRC(expected.rc()),src);
-      default ->{ throw Bug.unreachable(); }
+    E blameOk= switch (blame){
+      case Literal l -> l.withRC(expected.rc());
+      case Type(var t, var src) -> new Type(t.withRC(expected.rc()),src);
+      default -> throw Bug.unreachable();
     };
     var e= ts.err()
       .line(base)

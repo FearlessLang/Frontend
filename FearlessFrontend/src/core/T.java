@@ -55,8 +55,8 @@ public sealed interface T{
     public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   default T withRC(RC rc){ return switch (this){ // T[RC]
-    case RCC(var _, var c,var span) -> new RCC(rc, c, span);
-    case RCX(var _, var x) -> new RCX(rc, x);
+    case RCC(_, var c, var span) -> new RCC(rc, c, span);
+    case RCX(_, var x) -> new RCX(rc, x);
     case X x -> new RCX(rc, x);
     case ReadImmX(var x) -> new RCX(rc, x);
   };}

@@ -30,10 +30,10 @@ record CaptureWalk(List<B> bs, Gamma g, Predicate<RC> freeRC){
   }
   private boolean isFree(T t){
     return switch (t){
-      case T.X(String name, _) -> RC.get(bs, name).rcs().stream().allMatch(freeRC);
-      case T.RCX(RC rc, _) -> freeRC.test(rc);
-      case T.ReadImmX(T.X x) -> isFree(x);
-      case T.RCC(RC rc,_,_) -> freeRC.test(rc);
+      case T.X(var name, _) -> RC.get(bs, name).rcs().stream().allMatch(freeRC);
+      case T.RCX(var rc, _) -> freeRC.test(rc);
+      case T.ReadImmX(var x) -> isFree(x);
+      case T.RCC(var rc, _, _) -> freeRC.test(rc);
     };
   }
   private boolean isFree(E.X x){
