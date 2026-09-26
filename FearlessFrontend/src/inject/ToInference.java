@@ -50,9 +50,8 @@ public class ToInference{
         }
         return fCurrent(meths,tn.withPkgName(p.name()),false);
       }
-      var mPN= p.map().get(pN);
-      var pkg= mPN == null ? pN : mPN;
-      if (mPN != null){ tn= tn.withOverridePkgName(mPN); }
+      var pkg= p.map().getOrDefault(pN,pN);
+      tn= tn.withOverridePkgName(pkg);
       if (pkg.equals(p.name())){ return fCurrent(meths,tn,true); }
       var lit= pkg.equals("base") && LiteralDeclarations.isPrimitiveLiteral(tn.simpleName());
       if (lit){ return tn; }

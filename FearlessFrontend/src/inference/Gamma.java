@@ -97,10 +97,7 @@ public final class Gamma{
   public boolean changed(long shot){ return shot != envHash[depth - 1]; }
   private int indexOf(String x){
     assert x != null;
-    if (size > indexThreshold){
-      Integer i= idx.get(x);
-      return i != null ? i : -1;
-    }
+    if (size > indexThreshold){ return idx.getOrDefault(x,-1); }
     for (int i= size - 1; i >= 0; i--){ if (xs[i].equals(x)){ return i; } }
     return -1;
   }

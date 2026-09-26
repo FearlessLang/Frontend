@@ -9,11 +9,7 @@ public record TypeNamePrinter(boolean trunc,String mainPkg, Map<String,String> u
   public TypeNamePrinter{ assert !mainPkg.isEmpty(); }
   public String of(TName n){ return trunc?trunc(pretty(n.s())):pretty(n.s()); }
   public String ofFull(TName n){ return pretty(n.s()); }
-  private String pretty(String s){
-    String a= uses.get(s);
-    if (a != null){ return a; }
-    return dropMainPkg(dropBaseForLit(s));
-  }
+  private String pretty(String s){ return uses.getOrDefault(s,dropMainPkg(dropBaseForLit(s))); }
   private String dropMainPkg(String s){
     String pre= mainPkg + '.';
     return s.startsWith(pre) ? s.substring(pre.length()) : s;
