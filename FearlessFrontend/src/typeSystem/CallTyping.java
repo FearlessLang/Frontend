@@ -30,34 +30,33 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return rs.stream().map(req->resForReq(d,sig,mat,possible,req)).toList();
   }
   private boolean mayBeH(RC recv, MType base){
-    return isH(recv) || Push.of(base.ts(),base.t()).stream().anyMatch(this::mayBeH);
+    return recv.isH() || Push.of(base.ts(),base.t()).stream().anyMatch(this::mayBeH);
   }
   private boolean mayBeH(T t){
-    if (t instanceof T.X x){ return RC.get(bs,x.name()).rcs().stream().anyMatch(CallTyping::isH); }
+    if (t instanceof T.X(var name, _)){ return RC.get(bs,name).rcs().stream().anyMatch(RC::isH); }
     return t.explicitH();
   }
-  private static boolean isH(RC rc){ return rc == RC.mutH || rc == RC.readH; }
   private T.RCC recvRcc(){
     var cts= new TypeSystem(ts.scope().pushCallRec(this.c),ts.v());
     var r= OneOr.of("One reason without requirements",cts.typeOf(bs,g,c.e(),List.of()).stream());
     assert r.isEmpty();//else would have thrown
-    T t= r.best;
+    var t= r.best;
     if (t instanceof T.RCC x){ return x; }
     throw ts.tsE().methodReceiverIsTypeParameter(cts.scope(),c,t);
   }
   private Sig sigOf(Literal d){
-    Sig sig= OneOr.opt("Methods with duplicates",d.ms().stream().map(M::sig)
+    var sig= OneOr.opt("Methods with duplicates",d.ms().stream().map(M::sig)
       .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()))
       .orElseThrow(()->ts.tsE().methodNotDeclared(ts.scope(),c,d));
     assert sig.ts().size() == c.es().size();//ensured by well formedness
     if (sig.bs().size() == c.targs().size()){ return sig; }
     throw ts.tsE().methodTArgsArityError(d,c,sig.bs());
-  } 
+  }
   private MType baseMType(T.C c0, Literal d, Sig sig){
     var xs= B.xs(Push.of(d.bs(),sig.bs()));
     var ts0= Push.of(c0.ts(),c.targs());
     var ps= TypeRename.ofT(sig.ts(),xs,ts0);
-    T ret= TypeRename.of(sig.ret(),xs,ts0);
+    var ret= TypeRename.of(sig.ret(),xs,ts0);
     return new MType("As declared",sig.rc(),ps,ret);
   }
   private void checkTargsKinding(T.C c0, Literal d, Sig sig){
@@ -76,7 +75,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   }
   private List<TRequirement> argRequirements(List<MType> app, int argi){
     //TODO:This is actually a really confusing point:
-    //app has MTypes pre merged if two promotions had the same MType, but their argi may 
+    //app has MTypes pre merged if two promotions had the same MType, but their argi may
     //still be the same, so we are doing some duplicated computation when eventually do
     //the subtyping checks. The commented code below saves that duplicated computation
     //But if we deduplicate here we have to re expand directly later to be able to fit the
@@ -99,9 +98,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var res= cts.typeOf(bs,g,c.es().get(argi),reqs);
     assert res.size() == acc.cs().size();
     var ok= okSet(res);
-    if (ok.isEmpty()){
-      throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res);
-    }
+    if (ok.isEmpty()){ throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res); }
     acc.okByArg().add(ok);
     acc.resByArg().add(res);
   }
@@ -109,16 +106,16 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return IntStream.range(0,res.size()).filter(i->res.get(i).isEmpty()).boxed().toList();
   }
   private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){
-    List<Integer> okRet= possible.stream()
+    var okRet= possible.stream()
       .filter(i->ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
     if (!okRet.isEmpty()){ return Reason.pass(bestUnique(mat,okRet)); }
     return Reason.callResultCannotHaveRequiredType(ts,d,c, req, bests(mat,possible),sig);
-  } 
+  }
   //Unique unless the minimal types are a bare 'X' and some 'rc X'. A bare X stands for its whole
   //bound, so those two are incomparable, but both are sound and the "As declared" one comes first.
   private T bestUnique(ArgMatrix mat, List<Integer> idxs){ return bests(mat,idxs).getFirst(); }
   private List<T> bests(ArgMatrix mat, List<Integer> idxs){
-    List<T> all= idxs.stream().map(i->mat.candidate(i).t()).toList();
+    var all= idxs.stream().map(i->mat.candidate(i).t()).toList();
     return all.stream()
       .filter(ti->all.stream().noneMatch(tj->
         !tj.equals(ti) && ts.isSub(bs,tj,ti)))

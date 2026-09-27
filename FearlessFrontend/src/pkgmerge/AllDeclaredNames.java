@@ -9,14 +9,13 @@ import core.TName;
 import fearlessFullGrammar.*;
 import fearlessFullGrammar.E.*;
 import message.WellFormednessErrors;
-import java.util.Map;
 
 public class AllDeclaredNames{
-  AllDeclaredNames(WellFormednessErrors err){this.err= err;}
+  AllDeclaredNames(WellFormednessErrors err){ this.err= err; }
   WellFormednessErrors err;
-  Set<TName> decNames= new LinkedHashSet<>();
-  Map<TName,Set<T.X>> Xs= new LinkedHashMap<>();
-  Map<TName,Set<String>> xs= new LinkedHashMap<>();
+  LinkedHashSet<TName> decNames= new LinkedHashSet<>();
+  LinkedHashMap<TName,Set<T.X>> Xs= new LinkedHashMap<>();
+  LinkedHashMap<TName,Set<String>> xs= new LinkedHashMap<>();
   // lastTopNames: all parameter names and this-names appearing anywhere
   // in the current top Declaration (including nested DeclarationLiteral)
   LinkedHashSet<String> lastTopNames;
@@ -56,9 +55,9 @@ public class AllDeclaredNames{
   private void visitE(E e){
     switch (e){
       case X _, Implicit _ -> {}
-      case Round r -> visitE(r.e());
-      case TypedLiteral t -> t.l().ifPresent(this::visitLiteral);
-      case DeclarationLiteral c -> visitInnerDeclaration(c.dec());
+      case Round(var inner) -> visitE(inner);
+      case TypedLiteral(_, var l, _) -> l.ifPresent(this::visitLiteral);
+      case DeclarationLiteral(_, var dec) -> visitInnerDeclaration(dec);
       case Literal c -> visitLiteral(c);
       case Call c -> visitCall(c);
     }

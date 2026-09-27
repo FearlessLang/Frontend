@@ -30,7 +30,7 @@ public class TypeInMethodTest extends testUtils.FearlessTestBase{
     var oA= oraclePkg(List.of(aSrc));
     var aLits= okOrPrint(oA, ()->compileAll("a", oA, base));
     var other= base.mergeWith(AllLs.of(aLits), -1);
-    return new FrontendLogicMain().of("b", Map.of(), oB.allFiles(), oB, other);
+    return new FrontendLogicMain().of("b", Map.of(), oB.allFiles(), other);
   }
   private static final String byName= """
 002| B:{.m:A->A}
@@ -84,6 +84,24 @@ B:{.m:A->A}
 """)); }
 
   @Test void typeInMethodCapturingNothingByName(){ fail(byName,List.of("""
+A0:{.m:A->A:{}}
+B:{.m:A->A}
+""")); }
+
+  @Test void typeInMethodCapturingNothingByNameUseAlias(){ fail("""
+003| B:{.m:A->A}
+   |    ------^^
+
+While inspecting object literal instance of "A" > ".m" line 3
+The type "A" is declared inside a method body.
+A type declared inside a method can capture any parameter name in scope,
+so it cannot be extended or instantiated.
+Hint: if it captures nothing, declare it implementing "CF".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+A
+""",List.of("""
+use base.CaptureFree as CF;
 A0:{.m:A->A:{}}
 B:{.m:A->A}
 """)); }

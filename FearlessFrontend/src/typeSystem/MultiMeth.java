@@ -43,7 +43,7 @@ final class MultiMeth{
     add(out,new MType("Allow mutH argument "+(i+1), Mode.flexy.of(m.rc()), tsi, t));
   }
   private static MType apply(String promotion, List<B> d, MType m, Mode modeP, Mode modeR){
-    List<T> ts= m.ts().stream().map(ti->modeF(d,ti,modeP,RCLubGlb::glb)).toList();
+    var ts= m.ts().stream().map(ti->modeF(d,ti,modeP,RCLubGlb::glb)).toList();
     var t= modeF(d,m.t(),modeR,RCLubGlb::lub);
     return new MType(promotion, modeP.of(m.rc()), ts, t);
   }
@@ -58,7 +58,8 @@ final class MultiMeth{
   }
   private static T modeVar(List<B> d, T.X x, UnaryOperator<RC> m, Function<EnumSet<RC>,RC> f, T original){
     var rcs= RC.get(d,x.name()).rcs();
-    if (rcs.stream().allMatch(rc->m.apply(rc) == rc)){ return original; }
+    var unchanged= rcs.stream().allMatch(rc->m.apply(rc) == rc);
+    if (unchanged){ return original; }
     var mapped= EnumSet.noneOf(RC.class);
     rcs.forEach(rc->mapped.add(m.apply(rc)));
     return new T.RCX(f.apply(mapped),x);

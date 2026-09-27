@@ -38,8 +38,8 @@ import pkgmerge.Package;
 public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   Kinding k(){ return v.k(); }
   public TypeSystemErrors tsE(){ return v.k().tsE(); }
-  public Err err(){ return v.k().tsE().err(); }
-  public Function<TName,Literal> decs(){ return v.k().tsE().decs(); }
+  public Err err(){ return tsE().err(); }
+  public Function<TName,Literal> decs(){ return tsE().decs(); }
   public record TRequirement(String reqName,T t){}
   public record MType(String promotion,RC rc,List<T> ts,T t){
     MType withPromotion(String promotion){ return new MType(promotion,rc,ts,t); }
@@ -48,10 +48,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
     tops= UriSort.byFolderThenFile(tops, l->l.span().inner.fileName());
     assert core.AssertNoRepeatedTypeNames.ok(tops);
-    Map<TName,Literal> map= AllLs.of(tops);
-    Function<TName,Literal> decs= n->LiteralDeclarations._from(n,map::get,other);
-    Map<String,String> invMap= pkg.map().entrySet().stream()
-      .collect(Collectors.toUnmodifiableMap (Map.Entry::getValue, Map.Entry::getKey));
+    var map= AllLs.of(tops);
+    Function<TName,Literal> decs= n->LiteralDeclarations.from(n,map::get,other);
+    var invMap= pkg.map().entrySet().stream()
+      .collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
     var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg,invMap))));
     tops.forEach(l->ts.litOk(Gamma.empty(),l));
   }
@@ -74,50 +74,54 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   };}
   private List<Reason> checkX(List<B> bs, Gamma g, X x, List<TRequirement> rs){
     var b= g.bind(x.name());
-    T declared= b.declared();
+    var declared= b.declared();
     var cur= b.current();
     if (!(cur instanceof Change.WithT w)){ throw tsE().parameterNotAvailableHere(x, (Change.NoT)cur); }
-    T got= w.currentT();
+    var got= w.currentT();
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
-    return rs.stream().<Reason>map(r->{
-      if (isSub(bs,got,r.t())){ return Reason.pass(got); }
-      boolean declaredOk= isSub(bs,declared,r.t());
-      return Reason.parameterDoesNotHaveRequiredTypeHere(this,x, r, declared, w, declaredOk);
-    }).toList();
+    return rs.stream().map(r->xReason(bs,x,declared,w,r)).toList();
+  }
+  private Reason xReason(List<B> bs, X x, T declared, Change.WithT w, TRequirement r){
+    var got= w.currentT();
+    if (isSub(bs,got,r.t())){ return Reason.pass(got); }
+    var declaredOk= isSub(bs,declared,r.t());
+    return Reason.parameterDoesNotHaveRequiredTypeHere(this,x, r, declared, w, declaredOk);
   }
   private List<Reason> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
     k().check(t,bs,t.type());
     var ll= decs().apply(t.type().c().name());
     if (!hasInstance(ll)){ throw tsE().typeDeclaredInMethod(t, ll); }
-    var getIso= (readOrImm(t.type().rc()) && !hasAbstractMut(ll)) || mutOrMutH(t.type().rc());
-    var l= ll.withRC(getIso ? RC.iso : t.type().rc());
-    var tt= getIso ? new Type(t.type().withRC(RC.iso), t.src()) : t;
+    var rc= t.type().rc();
+    var getIso= (rc.isReadOrImm() && !hasAbstractMut(ll)) || rc == mut || rc == mutH;
+    var l= ll.withRC(getIso ? iso : rc);
+    var tt= getIso ? new Type(t.type().withRC(iso), t.src()) : t;
     l.ms().forEach(m->checkImplemented(l,m,tt));
     return reqs(t,bs,tt.type(),rs);//reqs correctly used for two similar things
   }
   private static boolean hasInstance(Literal l){
     return l.thisName().equals("this") || LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
   }
-  private static boolean readOrImm(RC rc){ return rc == RC.read || rc == RC.imm; }
-  private static boolean mutOrMutH(RC rc){ return rc == RC.mut || rc == RC.mutH; }
-  private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m->m.sig().abs() && m.sig().rc() == RC.mut); }
+  private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m->m.sig().abs() && m.sig().rc() == mut); }
   private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(blame,r.t()); } }
     return rs.stream().map(r->isSub(bs,got,r.t())
       ? Reason.pass(got)
       : Reason.literalDoesNotHaveRequiredType(this,blame,bs,got,r.t())
-      ).toList();    
+      ).toList();
   }
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<TRequirement> rs){
     var span= _l.name().approxSpan();
-    var getIso= ((readOrImm(_l.rc()) && !hasAbstractMut(_l)) || _l.rc() == mut)
+    var getIso= ((_l.rc().isReadOrImm() && !hasAbstractMut(_l)) || _l.rc() == mut)
       && _l.thisName().equals("_")
-      && new FreeMutyParameters(bs1,g).isFree(_l);
-    _l.onlyImmCapture().inner= new ImmCaptures(bs1,g).isFree(_l);
-    var l= getIso ? _l.withRC(RC.iso) : _l;
+      && new CaptureWalk(bs1,g,RC::isIsoOrImm).isFree(_l);
+    _l.onlyImmCapture().inner= new CaptureWalk(bs1,g,rc->rc == imm).isFree(_l);
+    var l= getIso ? _l.withRC(iso) : _l;
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(l,r.t()); } }
-    for (var m : l.ms()){ if (m.sig().origin().equals(TypeRename.inferUnknown.c().name())){ throw tsE().methodNotInferred(l,m); } }
+    for (var m : l.ms()){
+      var notInferred= m.sig().origin().equals(LiteralDeclarations.inferUnknown);
+      if (notInferred){ throw tsE().methodNotInferred(l,m); }
+    }
     var ts= dom(l.bs(),span);
     var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
@@ -137,33 +141,35 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (callable(l.rc(),m.sig().rc())){ return; }
     throw tsE().methodImplementationDeadCode(m, l);
   }
-  private boolean callable(RC litRC, RC recRc){ return recRc != RC.mut || (litRC != RC.imm && litRC !=RC.read); }
+  private boolean callable(RC litRC, RC recRc){ return recRc != mut || !litRC.isReadOrImm(); }
 
   private record Key(MName m, RC rc){}
   //Sources is needed, not assert only: the user can simply try to override with a non subtype signature.
   //l.ms is the resolved set, either inferred or resolved by hand in a wrong way.
   SequencedMap<Key,List<Sig>> sources(Literal l){
-  return Sources.collect(this, l).stream()
-    .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()));
+    return Sources.collect(this, l).stream()
+      .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()));
   }
   private static final MName asOne= new MName(".as",1);
   private void baseIdOk(Literal l){
-    if (!LiteralDeclarations.has(l.cs(),LiteralDeclarations.baseId)){ return; }
+    var isBaseId= LiteralDeclarations.has(l.cs(),LiteralDeclarations.baseId);
+    if (!isBaseId){ return; }
     var m= OneOr.of("BaseId literals declare only #",l.ms().stream());
-    if (m.e().isPresent() && !isId(m)){ throw tsE().baseIdBadBody(l,m); }
+    var badBody= m.e().isPresent() && !isId(m);
+    if (badBody){ throw tsE().baseIdBadBody(l,m); }
   }
   private boolean isId(M m){
     var x= OneOr.of("BaseId # has one parameter",m.xs().stream());
     return switch (m.e().get()){
-      case X e -> e.name().equals(x);
-      case Call c -> c.e() instanceof X e && e.name().equals(x) && c.name().equals(asOne)
+      case X(var name, _) -> name.equals(x);
+      case Call c -> c.e() instanceof X(var recv, _) && recv.equals(x) && c.name().equals(asOne)
         && isBaseContainer(m.sig().ts().getFirst());
       default -> false;
     };
   }
   private boolean isBaseContainer(T t){
-    return t instanceof T.RCC rcc
-      && LiteralDeclarations.has(decs().apply(rcc.c().name()).cs(),LiteralDeclarations.baseContainer);
+    return t instanceof T.RCC(_, var c, _)
+      && LiteralDeclarations.has(decs().apply(c.name()).cs(),LiteralDeclarations.baseContainer);
   }
   private void litOk(Gamma g, Literal l){
     baseIdOk(l);
@@ -199,16 +205,16 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       .forEach((x,_)->Affine.usedOnce(tsE(),forErr,m,x));
   }
   static List<T> dom(List<B> bs,TSpan span){ return bs.stream().<T>map(b->new T.X(b.x(),span)).toList(); }
-  
+
   private boolean isImplSubtype(List<B> bs, T t1, T t2){
-    if (!(t1 instanceof T.RCC rcc1)){ return false; }
-    Literal d= decs().apply(rcc1.c().name());
-    return d.cs().stream().anyMatch(ci->isSub(bs, TypeRename.of(new T.RCC(rcc1.rc(), ci,rcc1.span()), B.xs(d.bs()), rcc1.c().ts()), t2));
+    if (!(t1 instanceof T.RCC(var rc1, var c1, var span1))){ return false; }
+    var d= decs().apply(c1.name());
+    return d.cs().stream().anyMatch(ci->isSub(bs, TypeRename.of(new T.RCC(rc1, ci,span1), B.xs(d.bs()), c1.ts()), t2));
   }
   private boolean isXReadImmXSubtype(List<B> bs, T t1, T t2){
-    return t2 instanceof T.ReadImmX rix
+    return t2 instanceof T.ReadImmX(var x2)
       && t1 instanceof T.X x
-      && rix.x().name().equals(x.name())
+      && x2.name().equals(x.name())
       && k().of(bs, x, EnumSet.of(iso,imm,mut,read));
   }
   private boolean isSameShapeSubtype(List<B> bs, T t1, T t2){
@@ -217,8 +223,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return Kinding.intrinsicRCs(bs, t1).stream().allMatch(r1->rcs2.stream().allMatch(r1::isSubType));
   }
   private void methodTableOk(Literal l,Key k,List<Sig> group){
-    Sig chosen= Sources.findCanonical(l,k.m(),k.rc());
-    assert group.stream().allMatch(s->s.m().equals(chosen.m()) && s.rc()== chosen.rc());
+    var chosen= Sources.findCanonical(l,k.m(),k.rc());
+    assert group.stream().allMatch(s->s.m().equals(chosen.m()) && s.rc() == chosen.rc());
     assert mostSpecificByOrigin(group,chosen);
     assert absPreserved(chosen);//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s->s.origin().equals(chosen.origin())).allMatch(s->chosen.abs() == s.abs());
@@ -233,7 +239,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     for (var s : group){
       if (s.equals(chosen)){ continue; }
       assert !s.origin().equals(chosen.origin()):
-        s+" "+chosen+"""        
+        s+" "+chosen+"""
         The assert above is actually a big deal. It can logically break in an better version of Fearless
         when inference would know about subtypes when selecting the 'chosen'.
         Same origin can appear multiple times when the same generic supertype is inherited with
@@ -245,17 +251,17 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return true;
   }
   private boolean absPreserved(Sig chosen){
-    Literal o= decs().apply(chosen.origin());
-    Sig src= Sources.findCanonical(o,chosen.m(),chosen.rc());
+    var o= decs().apply(chosen.origin());
+    var src= Sources.findCanonical(o,chosen.m(),chosen.rc());
     assert !src.abs() || chosen.abs();
     return true;
-  }  
+  }
   private boolean isOriginSub(TName sub, TName sup){
     return sub.equals(sup) || decs().apply(sub).cs().stream().anyMatch(parent->isOriginSub(parent.name(), sup));
   }
   private void sigSub(Literal l, Sig current, Sig parent){
     assert current.bs().equals(parent.bs());
-    List<B> ctx= Push.of(l.bs(),current.bs());
+    var ctx= Push.of(l.bs(),current.bs());
     assert current.ts().size() == parent.ts().size();
     for (int i : Range.of(current.ts())){
       var badArg= !isSub(ctx, parent.ts().get(i), current.ts().get(i));
@@ -266,11 +272,14 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private boolean eqModXRC(List<B> bs,T a,T b){
     if (a.equals(b)){ return true; }
-    if (a instanceof T.X ax && b instanceof T.RCX br && br.x().name().equals(ax.name())){ return redundantOnX(bs,br.rc(),ax.name()); }
-    if (a instanceof T.RCX ar && b instanceof T.X bx && ar.x().name().equals(bx.name())){ return redundantOnX(bs,ar.rc(),bx.name()); }
-    if (!(a instanceof T.RCC aa && b instanceof T.RCC bb)){ return false; }
-    if (aa.rc() != bb.rc() || !aa.c().name().equals(bb.c().name())){ return false; }
-    return Streams.zip(aa.c().ts(), bb.c().ts()).allMatch((x,y)->eqModXRC(bs,x,y));
+    var redundantRcOnB= a instanceof T.X(var aName, _) && b instanceof T.RCX(var bRc, var bX) && bX.name().equals(aName) && redundantOnX(bs,bRc,aName);
+    if (redundantRcOnB){ return true; }
+    var redundantRcOnA= a instanceof T.RCX(var aRc, var aX) && b instanceof T.X(var bName, _) && aX.name().equals(bName) && redundantOnX(bs,aRc,bName);
+    if (redundantRcOnA){ return true; }
+    if (!(a instanceof T.RCC(var aRc, var aC, _) && b instanceof T.RCC(var bRc, var bC, _))){ return false; }
+    var sameHead= aRc == bRc && aC.name().equals(bC.name());
+    if (!sameHead){ return false; }
+    return Streams.zip(aC.ts(), bC.ts()).allMatch((x,y)->eqModXRC(bs,x,y));
   }
-  private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }  
+  private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }
 }

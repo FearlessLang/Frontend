@@ -6,18 +6,18 @@ import pkgmerge.Package;
 import fearlessFullGrammar.T;
 
 public record FreshPrefix(
-    Set<String> usedTopTypes,
-    Map<String,Integer> topSeq,
-    Set<String> allGenericNames,
-    Map<TName,OwnerState> owners,
+    HashSet<String> usedTopTypes,
+    HashMap<String,Integer> topSeq,
+    HashSet<String> allGenericNames,
+    HashMap<TName,OwnerState> owners,
     String pkgName){
   private static final char[] up= "ABCDEFGHJKMNPQRSTUVWXYZ".toCharArray();
   private static final char[] low= "abcdefghjkmnpqrstuvwxyz".toCharArray();
-  private static record OwnerState(
-      Set<String> gen,
-      Map<String,Integer> genSeq,
-      Set<String> vars,
-      Map<String,Integer> varSeq){}
+  private record OwnerState(
+      HashSet<String> gen,
+      HashMap<String,Integer> genSeq,
+      HashSet<String> vars,
+      HashMap<String,Integer> varSeq){}
   public FreshPrefix(Package p){
     this(new HashSet<>(),new HashMap<>(),new HashSet<>(),new HashMap<>(),p.name());
     for (TName tn : p.names().decNames()){ usedTopTypes().add(tn.simpleName()); }
@@ -34,7 +34,7 @@ public record FreshPrefix(
     }
   }
   public TName freshTopType(TName hint,int arity){
-    String cand= freshCandidate(hint.simpleName(), true, up, topSeq, usedTopTypes, List.of(allGenericNames));
+    var cand= freshCandidate(hint.simpleName(), true, up, topSeq, usedTopTypes, List.of(allGenericNames));
     var res= new TName(pkgName+"."+cand,arity,hint.pos());//all fresh names should start with _ to be pkg private
     aliasOwner(hint,res);
     return res;
@@ -43,7 +43,7 @@ public record FreshPrefix(
   public String freshGeneric(TName owner,String hint){
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
-    String cand= freshCandidate(hint, true, up, st.genSeq(), st.gen(), List.of(usedTopTypes));
+    var cand= freshCandidate(hint, true, up, st.genSeq(), st.gen(), List.of(usedTopTypes));
     allGenericNames.add(cand);
     return cand;
   }
@@ -54,11 +54,12 @@ public record FreshPrefix(
   }
   // commitScope is checked and updated with the winning candidate; extraChecks are read-only.
   private static String freshCandidate(String hint, boolean type, char[] alphabet,
-      Map<String,Integer> seq, Set<String> commitScope, List<Set<String>> extraChecks){
-    String base= sanitizeBase(hint, type);
+      HashMap<String,Integer> seq, HashSet<String> commitScope, List<Set<String>> extraChecks){
+    var base= sanitizeBase(hint, type);
     for (int n= seq.getOrDefault(base, 1);; n++){
-      String cand= "_"+encodeBijective(n, alphabet)+base;
-      if (commitScope.contains(cand) || extraChecks.stream().anyMatch(e->e.contains(cand))){ continue; }
+      var cand= "_"+encodeBijective(n, alphabet)+base;
+      var taken= commitScope.contains(cand) || extraChecks.stream().anyMatch(e->e.contains(cand));
+      if (taken){ continue; }
       commitScope.add(cand);
       seq.put(base, n+1);
       return cand;
@@ -71,14 +72,14 @@ public record FreshPrefix(
     owners.put(alias, Objects.requireNonNull(owners.get(original)));
   }
   private static String sanitizeBase(String raw,boolean type){
-    String s= raw.replaceAll("[^A-Za-z0-9]", "");
+    var s= raw.replaceAll("[^A-Za-z0-9]", "");
     if (s.isEmpty()){ s= type ? "T" : "v"; }
     if (!Character.isLetter(s.charAt(0))){ s= (type ? "T" : "v") + s; }
     return (s.length() <= 4) ? s : s.substring(0, 4);
   }
   private static String encodeBijective(int n,char[] alphabet){
-    int base= alphabet.length;
-    StringBuilder sb= new StringBuilder(4);
+    var base= alphabet.length;
+    var sb= new StringBuilder(4);
     while (n > 0){
       n--;
       sb.append(alphabet[n % base]);

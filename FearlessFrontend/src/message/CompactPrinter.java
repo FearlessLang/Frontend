@@ -18,7 +18,7 @@ public class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses, boolean trunk){ t= new TypeNamePrinter(trunk,mainPkg,uses); }
   public String limit(E e,int limit){
     assert limit >= 0;
-    PE root= ofE(e);
+    var root= ofE(e);
     while (root.size() > limit){
       var k= new BestPicker().pick(root);
       if (!k.isCompactable()){ break; }
@@ -31,7 +31,7 @@ public class CompactPrinter{
   }
   StringBuilder sb= new StringBuilder();
   TypeNamePrinter t;
-  String msgT(T t){     
+  String msgT(T t){
     ofT(t).accString(this);
     return sb.toString();
   }
@@ -73,7 +73,7 @@ public class CompactPrinter{
     return m.length() + targsPunctLen(rc,nt) + argsPunctLen(na);
   }
   static int xsWithColonsLen(List<String> xs){
-    return sum(xs, x->x.equals("_")? 0: x.length() + 1);
+    return sum(xs, x->x.equals("_") ? 0 : x.length() + 1);
   } // nothing if x is _ it will be printed as just the type, or "x:"
   static void accTargs(CompactPrinter sb, RC rc, List<PT> targs){
     if (!showTargs(rc,targs.size())){ return; }
@@ -98,35 +98,36 @@ public class CompactPrinter{
   }
   public record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k, int length) implements PE{
     public int size(){
-      int s= length + sum(targs, PT::size);
+      var s= length + sum(targs, PT::size);
       if (k.isCompactable()){ return s + recv.size() + sum(args, PE::size); }
       return s + 1 + args.size(); // "-" receiver + one "-" per hidden arg
     }
     public void accString(CompactPrinter sb){
-      if (k.isCompactable()){ recv.accString(sb); }
-      else{ sb.append("-"); }
+      Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b)->b.append("-");
+      acc.acc(recv,sb);
       sb.append(m);
       accTargs(sb,rc,targs);
-      wrap(sb,"(",")",args,",",k.isCompactable()?PN::accString:(_,b)->b.append("-"));
+      wrap(sb,"(",")",args,",",acc);
     }
   }
   public record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k, int length) implements PE{
     public int size(){
       if (k.isCompactable()){ return length + wrapLen(cs,0,PC::size) + sum(ms, PM::size); }
       if (!priv){ return rcPrefixLen(rc) + name.length() + 3; }            // name already has ":"; then "{-}"
-      int c0= cs.isEmpty()? 0 : cs.getFirst().size();
+      var c0= cs.isEmpty() ? 0 : cs.getFirst().size();
       return rcPrefixLen(rc) + c0 + 3;                                     // Bar{-} or {-}
     }
     public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace());
       accName(sb);
       if (!k.isCompactable()){ sb.append("{-}"); return; }
-      if (!priv){ wrap(sb,"","",cs,",",PC::accString); }  
+      if (!priv){ wrap(sb,"","",cs,",",PC::accString); }
       if (ms.isEmpty()){ sb.append("{}"); return; }
-      var start= (self.equals("this") || self.equals("_")) ? "{" : "{'"+self+" ";
+      var selfHidden= self.equals("this") || self.equals("_");
+      var start= selfHidden ? "{" : "{'"+self+" ";
       wrap(sb,start,"}",ms,";",PN::accString);
     }
-  private void accName(CompactPrinter sb){
+    private void accName(CompactPrinter sb){
       if (!priv){ sb.append(name); return; }
       if (!cs.isEmpty()){ cs.getFirst().accString(sb); }
     }
@@ -155,7 +156,7 @@ public class CompactPrinter{
   public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k, int length) implements PN{
     public int size(){
       if (k.isCompactable()){
-        int s= length + sum(ts, PT::size) + ret.size();
+        var s= length + sum(ts, PT::size) + ret.size();
         return body.map(b->s+b.size()).orElse(s);
       }
       if (body.isPresent()){ return wrapLen(xs,4,_->1) + body.get().size(); } // (-s)->e
@@ -182,8 +183,8 @@ public class CompactPrinter{
     }
   }
   public PE ofE(E e){ return switch (e){
-    case X x -> new PX(x.src().inner instanceof fearlessFullGrammar.E.Implicit?"::": x.name());
-    case Type t -> new PTypeE(ofT(t.type()));
+    case X(var name, var src) -> new PX(src.inner instanceof fearlessFullGrammar.E.Implicit?"::": name);
+    case Type(var type, _) -> new PTypeE(ofT(type));
     case Call c -> ofCall(c);
     case Literal l -> ofLit(l);
   };}
@@ -195,32 +196,34 @@ public class CompactPrinter{
   }
   PE ofLit(Literal l){
     var ms= ofMs(l);
-    boolean priv= l.infName();
+    var priv= l.infName();
     var name= priv ? ""
       : t.of(l.name()) + bounds(l.bs())+":"; // name[bs]:
-    var cs= ofCs(l.src(),priv && !l.cs().isEmpty() ? List.of(l.cs().getFirst()):l.cs());
+    var onlyFirstC= priv && !l.cs().isEmpty();
+    var cs= ofCs(l.src(),onlyFirstC ? List.of(l.cs().getFirst()) : l.cs());
     var top= l.thisName().equals("this");
-    int s= rcPrefixLen(top?RC.imm:l.rc()) + 2 + seps(ms.size()) + name.length(); // {} and ";"
+    var rc= top ? RC.imm : l.rc();
+    var s= rcPrefixLen(rc) + 2 + seps(ms.size()) + name.length(); // {} and ";"
     var addSelf= !ms.isEmpty() && !top && !l.thisName().equals("_");
-    if (addSelf){ s += 2 + l.thisName().length(); } // "'x "    
-    return new PLit(top?RC.imm:l.rc(), priv, name, cs, l.thisName(), ms, Compactable.of(), s);
-  }  
+    if (addSelf){ s += 2 + l.thisName().length(); } // "'x "
+    return new PLit(rc, priv, name, cs, l.thisName(), ms, Compactable.of(), s);
+  }
   List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
   List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
   PT ofT(T t){ return switch (t){
-    case T.X x -> new PTX(x.name());
-    case T.RCX x -> new PTX(x.rc()+" "+x.x().name());
-    case T.ReadImmX x -> new PTX("read/imm "+x.x().name());
-    case T.RCC r -> new PTRCC(r.rc(), ofC(r.c()));
+    case T.X(var name, _) -> new PTX(name);
+    case T.RCX(var rc, var x) -> new PTX(rc+" "+x.name());
+    case T.ReadImmX(var x) -> new PTX("read/imm "+x.name());
+    case T.RCC(var rc, var c, _) -> new PTRCC(rc, ofC(c));
   };}
   PC ofC(T.C c){
     return new PC(t.of(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.no : Compactable.of());
   }
   List<PC> ofCs(Src src,List<T.C> cs){
     List<fearlessFullGrammar.T.C> oCs= switch (src.inner){
-      case fearlessFullGrammar.E.DeclarationLiteral d->d.dec().cs();
-      case fearlessFullGrammar.Declaration d->d.cs();
-      case fearlessFullGrammar.E.TypedLiteral d->List.of(d.t().c());
+      case fearlessFullGrammar.E.DeclarationLiteral(_, var dec)->dec.cs();
+      case fearlessFullGrammar.Declaration(_, _, var decCs, _)->decCs;
+      case fearlessFullGrammar.E.TypedLiteral(var rcc, _, _)->List.of(rcc.c());
       case fearlessFullGrammar.E.Literal _->List.of();
       default -> throw Bug.of(src.inner.getClass().getSimpleName());
     };
@@ -237,7 +240,7 @@ public class CompactPrinter{
   }
   PM ofM(Sig s, List<String> xs, Optional<PE> body){
     var bs= bounds(s.bs());
-    int len= rcPrefixLen(s.rc()) + s.m().s().length() + bs.length() + (xs.isEmpty() ? 1 : 3 + seps(xs.size()) + xsWithColonsLen(xs)) + (body.isPresent() ? 2 : 0);
+    var len= rcPrefixLen(s.rc()) + s.m().s().length() + bs.length() + (xs.isEmpty() ? 1 : 3 + seps(xs.size()) + xsWithColonsLen(xs)) + (body.isPresent() ? 2 : 0);
     return new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), body, Compactable.of(), len);
   }
   List<PM> ofMs(Literal l){

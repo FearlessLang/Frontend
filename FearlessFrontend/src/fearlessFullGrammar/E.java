@@ -47,7 +47,7 @@ public sealed interface E extends core.Src.SrcObj{
   }
   //if pat is present, this is an x=e posts, if absent this is a normal meth call.
   record CallSquare(Optional<RC> rc, List<T> ts, Pos endPos){
-    public CallSquare{ assert nonNull(rc) && unmodifiable(ts, "E.Call.targs"); }
+    public CallSquare{ assert nonNull(rc); assert unmodifiable(ts, "E.Call.targs"); }
     public String toString(){ return "CallSquare[rc="+rc+",ts="+ts+"]"; }
   }
   record Call(E e, MName name, Optional<CallSquare> targs, boolean pars, Optional<XPat> pat, List<E> es, Pos pos) implements E{
@@ -67,7 +67,7 @@ public sealed interface E extends core.Src.SrcObj{
       return TSpan.merge(e.span(),targs.map(t->TSpan.fromPos(t.endPos())).orElseGet(()->TSpan.fromPos(pos,name.s().length())));
     }
   }
-  record Implicit(Pos pos) implements E{ 
+  record Implicit(Pos pos) implements E{
     public String toString(){ return "::"; }
     public TSpan span(){ return TSpan.fromPos(pos,2); }
   }

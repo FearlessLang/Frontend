@@ -18,33 +18,33 @@ public final class Reason{
   final String info;//package-private: only message.* should read it
   public final T best;//exposed, seen by the type system
   private Reason(T best,String info, Supplier<E> footerE){
-    this.best=best; this.info= info; this.footerE= footerE;
+    this.best= best; this.info= info; this.footerE= footerE;
   }
   public boolean isEmpty(){ return info.isEmpty(); }
   public static Reason pass(T got){ return new Reason(got,"",()->{throw Bug.unreachable();}); }
   public static Reason literalDoesNotHaveRequiredType(
     TypeSystem ts, E blame, List<B> bs, T got, T expected
-    ){     
+    ){
     var er= (T.RCC)expected;
-    boolean explRC= er.rc() != RC.imm && switch (blame){
-      case Literal l->l.rc() != RC.imm;
-      case Type(var t,_) ->  t.rc() != RC.imm;
-      default ->{ throw Bug.unreachable(); }
+    var explRC= er.rc() != RC.imm && switch (blame){
+      case Literal l -> l.rc() != RC.imm;
+      case Type(var t, _) -> t.rc() != RC.imm;
+      default -> throw Bug.unreachable();
     };
     if (!explRC){ return new Reason(got, base(ts,blame,bs,got,expected), ()->baseFooterE(ts.scope(),got,expected)); }
     return hintExplicitRC(ts,got, base(ts,blame,bs,got,expected), er,blame);
   }
   private static String base(TypeSystem ts, E blame, List<B> bs, T got, T expected){
-    if (isInferErr(expected)){ return ts.err().gotMsgInferErr(ts.err().expRepr(blame),got);}
+    if (isInferErr(expected)){ return ts.err().gotMsgInferErr(ts.err().expRepr(blame),got); }
     var skipImm= !ts.isSub(bs, got, expected.withRC(RC.imm));
     return "Object literal is of type "+ts.err().expReprDirect(skipImm,blame)+" instead of a subtype of "+ts.err().typeRepr(skipImm,expected)+".";
   }
   private static Reason hintExplicitRC(TypeSystem ts,T got, String base, T.RCC expected, E blame){
-    E blameOk=switch (blame){
-      case Literal l->l.withRC(expected.rc());
-      case Type(var t,var src) ->  new Type(t.withRC(expected.rc()),src);
-      default ->{ throw Bug.unreachable(); }
-    };  
+    E blameOk= switch (blame){
+      case Literal l -> l.withRC(expected.rc());
+      case Type(var t, var src) -> new Type(t.withRC(expected.rc()),src);
+      default -> throw Bug.unreachable();
+    };
     var e= ts.err()
       .line(base)
       .line("Hint: write "+ts.err().expReprDirect(false,blameOk)
@@ -59,29 +59,30 @@ public final class Reason{
   public static Reason parameterDoesNotHaveRequiredTypeHere(
     TypeSystem ts,X x, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
   ){
-    T got= cur.currentT();
+    var got= cur.currentT();
     var rcOnly= rcOnlyMismatch(got, req.t());
-    String base= ts.err().gotMsg(!rcOnly,ts.err().expRepr(x), List.of(got), req.t());
-    if (!rcOnly || declared.equals(got)){ return new Reason(got, base,()->baseFooterE(ts.scope(),got,req.t())); }
+    var base= ts.err().gotMsg(!rcOnly,ts.err().expRepr(x), List.of(got), req.t());
+    var noDeclaredNote= !rcOnly || declared.equals(got);
+    if (noDeclaredNote){ return new Reason(got, base,()->baseFooterE(ts.scope(),got,req.t())); }
     var e= ts.err().line(base);
     e.line(declaredOkExpected
       ? "Note: the declared type "+ts.err().typeRepr(true,declared)+" would instead be a valid subtype."
       : "Note: the declared type "+ts.err().typeRepr(true,declared)+" also does not satisfy the requirement."
     );
-    String trace= vpaTrace(ts,cur);
+    var trace= vpaTrace(ts,cur);
     if (!trace.isEmpty()){ e.line("Capture adaptation trace:\n"+trace+"."); }
     return new Reason(got, e.text(),()->baseFooterE(ts.scope(),got,req.t()));
   }
   private static String vpaTrace(TypeSystem ts, WithT cur){ return switch (cur){
     case Same _ -> "";
-    case KeepStrengthenToImm k -> traceKeep(ts, k.tail(), "strengthenToImm", k.currentT(), k.m());
-    case KeepSetToRead k -> traceKeep(ts, k.tail(), "setToRead", k.currentT(), k.m());
-    case KeepSetToReadImm k -> traceKeep(ts, k.tail(), "setToReadImm", k.currentT(), k.m());
+    case KeepStrengthenToImm(_, var m, var to, var tail) -> traceKeep(ts, tail, "strengthenToImm", to, m);
+    case KeepSetToRead(_, var m, var to, var tail) -> traceKeep(ts, tail, "setToRead", to, m);
+    case KeepSetToReadImm(_, var m, var to, var tail) -> traceKeep(ts, tail, "setToReadImm", to, m);
   };}
   private static String traceKeep(TypeSystem ts, WithT tail, String op, T to, M m){
-    String prev= vpaTrace(ts,tail);
+    var prev= vpaTrace(ts,tail);
     if (tail.currentT().equals(to)){ return prev; }
-    String edge= " --"+op+"(line "+m.sig().span().inner.startLine()+")--> "+ts.err().typeRepr(true,to);
+    var edge= " --"+op+"(line "+m.sig().span().inner.startLine()+")--> "+ts.err().typeRepr(true,to);
     if (prev.isEmpty()){ return ts.err().typeRepr(true,tail.currentT())+edge; }
     return prev+edge;
   }

@@ -13,7 +13,7 @@ public enum TokenKind implements metaParser.TokenKind{
   BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", "/*..*/"),
   BadUnclosedBlockComment("(?s)/\\*(?!.*?\\*/).*"),
   BadUnopenedBlockCommentClose("\\*/"),
-  
+
   Arrow("->"),
   ORound("\\(","("),
   CRound("\\)",")"),
@@ -29,7 +29,7 @@ public enum TokenKind implements metaParser.TokenKind{
   ColonColon("::"),
   Colon(":"),
   Eq("="),
-  SQuote("'"), 
+  SQuote("'"),
   ReadImm("read/imm"),//note: must be before read
   RCap("readH|mutH|imm|iso|read|mut","reference capability"),
 
@@ -51,7 +51,7 @@ public enum TokenKind implements metaParser.TokenKind{
   DotName("\\._*[a-z][A-Za-z0-9_]*'*",".name"),
   UppercaseId(
     "(?:(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*",
-    "type name"),//correctly allows only one '.' since packages are not nested inside each others  
+    "type name"),//correctly allows only one '.' since packages are not nested inside each others
   BadUppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*"),
   LowercaseId("_*[a-z][A-Za-z0-9_]*'*","name"),
   BadSStrQuote("'[^'\\x0A]*'"),
@@ -61,10 +61,10 @@ public enum TokenKind implements metaParser.TokenKind{
   //(?!/\\x2A|\\x2A/|//)
   Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+","binary operator (eg. +, *, -)"),
   //IMPORTANT: BadOp* must precede Op so bad forms win ties of equal length.
-  // tokens that are never considered for matching, but useful for asserts and for labelling special cases  
+  // tokens that are never considered for matching, but useful for asserts and for labelling special cases
   _XId("_*[A-Z][A-Za-z0-9_]*'*","type name"),
   _pkgName(core.TName.pkgNameRegex,//"(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*"
-    "id starting with a-z followed by any amount of a-z0-9 or the _ symbol"),   
+    "id starting with a-z followed by any amount of a-z0-9 or the _ symbol"),
   _use("use"),
   _map("map"),
   _as("as"),
@@ -74,7 +74,7 @@ public enum TokenKind implements metaParser.TokenKind{
   _All("","full file"),
   _CurlyGroup("","group in {..}"),
   _SquareGroup("","group in [..]"),
-  _RoundGroup("","group in (..)"); 
+  _RoundGroup("","group in (..)");
 
   private final TokenMatch match;
   public final String human;
@@ -87,7 +87,7 @@ public enum TokenKind implements metaParser.TokenKind{
   @Override public TokenMatch matcher(){ return match; }
   public boolean syntetic(){ return this.name().startsWith("_"); }
   @Override public int priority(){ return this.ordinal(); }
-  
+
   public static boolean validate(String input, String what, TokenKind... kinds){
     if (isKind(input,kinds)){ return true; }
     throw new IllegalArgumentException("["+input+"] is not a valid "+what);

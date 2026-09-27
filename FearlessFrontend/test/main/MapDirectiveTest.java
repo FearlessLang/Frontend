@@ -28,12 +28,12 @@ public class MapDirectiveTest extends testUtils.FearlessTestBase{
   static void ok(Map<String,String> pkgs, Map<String,String> map, String bSrc){
     var o= oraclePkg(List.of(bSrc));
     var other= others(pkgs);
-    okOrPrint(o, ()->new FrontendLogicMain().of("b", map, o.allFiles(), o, other));
+    okOrPrint(o, ()->new FrontendLogicMain().of("b", map, o.allFiles(), other));
   }
   static void fail(String expected, Map<String,String> pkgs, Map<String,String> map, String bSrc){
     var o= oraclePkg(List.of(bSrc));
     var other= others(pkgs);
-    var fe= assertThrows(FearlessException.class, ()->new FrontendLogicMain().of("b", map, o.allFiles(), o, other));
+    var fe= assertThrows(FearlessException.class, ()->new FrontendLogicMain().of("b", map, o.allFiles(), other));
     strCmp(expected, fe.render(o));
   }
   @Test void noMapQualifiedNameIsLiteral(){ ok(Map.of("a",aA,"c",cA), Map.of(), """

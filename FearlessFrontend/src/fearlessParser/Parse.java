@@ -14,7 +14,8 @@ import message.FearlessErrFactory;
 import metaParser.TokenTreeSpec;
 import tools.Fs;
 
-public class Parse{
+public final class Parse{
+  private Parse(){}
   public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t->!t.syntetic()).toList();
   private static final TokenTreeSpec<Token,TokenKind> map= new TokenTreeSpec<Token,TokenKind>()
     .addOpenClose(_SOF,_EOF,_All)
@@ -22,34 +23,34 @@ public class Parse{
     .addOpenClose(OSquareArg,CSquare,_SquareGroup)
     .addOpenClose(OCurly,CCurly,_CurlyGroup)
     .addOpenClose(OCurly,CCurlyId,_CurlyGroup)
-    
+
     .addBarriers(ORound,Set.of(SemiColon,Arrow,SQuote))
     .addBarriers(OSquareArg,Set.of(SemiColon,Arrow,SQuote,LowercaseId,ORound,OCurly,DotName))
-    
+
     .addCloserEater(CRound,t->splitOn(t,")",true))
     .addCloserEater(CSquare,t->splitOn(t,"]",true))
     .addCloserEater(CCurly,t->splitOn(t,"}",true))
     .addCloserEater(CCurlyId,t->splitOn(t,"}",true))
-    
+
     .addOpenerEater(ORound,t->splitOn(t,"(",false))
     .addOpenerEater(OSquareArg,t->splitOn(t,"[",false))
     .addOpenerEater(OCurly,t->splitOn(t,"{",false))
     ;
   private static Optional<Token> splitOn(Token t, String s,boolean first){
     if (!t.is(BlockComment, LineComment, UStr, SStr)){ return Optional.empty(); }
-    int index= t.content().indexOf(s);
+    var index= t.content().indexOf(s);
     if (index == -1){ return Optional.empty(); }
     return Optional.of(first ? t.tokenFirstHalf(index+1) : t.tokenSecondHalf(index));
   }
   public static FileFull from(URI fileName,String input){
-    Tokenizer t= new Tokenizer()
+    var t= new Tokenizer()
       .input(fileName,input)
       .tokenKinds(kinds,_SOF,_EOF)
       .startingPosition(1,1)
       .setErrFactory(new FearlessErrFactory())
       .whiteList(Fs.allowed)
       .tokenize()
-      .postTokenize(new BadTokens().badTokensMap())
+      .postTokenize(BadTokens.badTokensMap())
       .buildTokenTree(map);
     var p= new Parser(t.span(),new Names(List.of(),List.of(),List.of(),""),t.tokenTree(),new FearlessErrFactory());
     return p.parseAll("full file",Parser::parseFileFull);

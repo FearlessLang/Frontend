@@ -3,7 +3,7 @@ package typeSystem;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import core.RC;
@@ -14,11 +14,11 @@ import static java.util.EnumSet.of;
 public final class RCLubGlb{
   private RCLubGlb(){}
   private static final EnumSet<RC> allRC= EnumSet.allOf(RC.class);
-  private static final Map<Set<RC>, RC> lubMap= new HashMap<>();
-  private static final Map<Set<RC>, RC> glbMap= new HashMap<>();
-  public static final Set<Set<RC>> domain(){ return Collections.unmodifiableSet(lubMap.keySet()); }
-  public static RC lub(EnumSet<RC> options){ return lubMap.get(options); }
-  public static RC glb(EnumSet<RC> options){ return glbMap.get(options); }
+  private static final HashMap<Set<RC>,RC> lubMap= new HashMap<>();
+  private static final HashMap<Set<RC>,RC> glbMap= new HashMap<>();
+  public static Set<Set<RC>> domain(){ return Collections.unmodifiableSet(lubMap.keySet()); }
+  public static RC lub(EnumSet<RC> options){ return Objects.requireNonNull(lubMap.get(options)); }
+  public static RC glb(EnumSet<RC> options){ return Objects.requireNonNull(glbMap.get(options)); }
   static boolean isUb(EnumSet<RC> options, RC ub){ return options.stream().allMatch(x->x.isSubType(ub)); }
   static boolean isLb(EnumSet<RC> options,RC lb){ return options.stream().allMatch(lb::isSubType); }
   static boolean isLub(EnumSet<RC> options,RC lub){
@@ -32,13 +32,14 @@ public final class RCLubGlb{
     var isLb= isLb(options,glb);
     var isGreatest= allRC.stream()
       .filter(rc->isLb(options,rc))
-      .allMatch(lb->lb.isSubType(glb));    
+      .allMatch(lb->lb.isSubType(glb));
     return isLb && isGreatest;
   }
   static void init(EnumSet<RC> options,RC glb,RC lub){
     var novel1= lubMap.put(options,lub);
     var novel2= glbMap.put(options, glb);
-    assert novel1 == null && novel2 == null;
+    assert novel1 == null;
+    assert novel2 == null;
     assert isLub(options,lub);
     assert isGlb(options,glb);
     assert allRC.stream().noneMatch(rc->rc != lub && isLub(options,rc));
@@ -112,5 +113,5 @@ public final class RCLubGlb{
     init(of(iso, mut, mutH, read, readH),     iso, readH);
     init(of(imm, mut, mutH, read, readH),     iso, readH);
 
-    init(of(iso, imm, mut, mutH, read, readH), iso, readH);    
+    init(of(iso, imm, mut, mutH, read, readH), iso, readH);
   }}

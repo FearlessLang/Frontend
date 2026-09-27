@@ -12,15 +12,15 @@ import core.TSpan;
 public sealed interface T{
   TSpan span();
   record X(String name, TSpan span) implements T{
-    public X{assert validate(name,"generic type name", _XId);}
+    public X{ assert validate(name,"generic type name", _XId); }
     public String toString(){ return "X[name="+name+"]";}
   }
   record RCX(RC rc, X x) implements T{
-    public RCX{assert nonNull(rc,x);}
+    public RCX{ assert nonNull(rc,x); }
     public TSpan span(){ return x.span(); }
   }
   record ReadImmX(X x) implements T{
-    public ReadImmX{assert nonNull(x);}
+    public ReadImmX{ assert nonNull(x); }
     public TSpan span(){ return x.span(); }
   }
   record C(TName name, Optional<List<T>> ts){

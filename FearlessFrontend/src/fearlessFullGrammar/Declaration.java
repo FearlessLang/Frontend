@@ -15,7 +15,7 @@ public record Declaration(TName name, Optional<List<B>> bs, List<T.C> cs, E.Lite
       unmodifiableDistinct(b, "E.TypeDeclarationLiteral.bs");
       eq(name.arity(),b.size(),"E.TypeDeclarationLiteral.bs");
     });
-    assert unmodifiable(cs,"Declaration.cs");    
+    assert unmodifiable(cs,"Declaration.cs");
   }
   public Pos pos(){ return l.pos(); }
   public TSpan span(){ return l.span(); }

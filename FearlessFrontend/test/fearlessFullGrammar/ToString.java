@@ -134,7 +134,7 @@ public class ToString{
   private Sig visitInnerSig(Sig s){
     var p= s.hasParenthesis();
     s.rc().ifPresent(rc->append(rc.name()).append(" "));
-    s.m().ifPresent(m->append(m.s()).append(p||s.parameters().isEmpty()?"":" "));
+    s.m().ifPresent(m->append(m.s()).append(p || s.parameters().isEmpty()?"":" "));
     s.bs().ifPresent(bs->append("[",bs,this::visitInnerB,",","]"));
     if (p){ append("("); }
     append("",s.parameters(),this::visitInnerParameter,", ","");
