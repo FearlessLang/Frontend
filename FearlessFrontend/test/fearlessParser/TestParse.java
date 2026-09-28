@@ -1753,7 +1753,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 File ended while parsing a "(" group.
-Expected: ")".
+This "(" may be unintended.
+Otherwise expected: ")".
 Error 0 Unclosed
 ""","""
 A:{ .m:Str -> (1 + 2
@@ -1767,7 +1768,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 File ended while parsing a "[" group.
-Expected: "]".
+This "[" may be unintended.
+Otherwise expected: "]".
 Error 0 Unclosed
 ""","""
 A:{ .m:Str -> E[1, 2, 3
@@ -1843,7 +1845,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 File ended while parsing a "{" group.
-Expected one of: "}id", "}".
+This "{" may be unintended.
+Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
 ""","""
 A:{ .m:Str -> { a: 1, b: 2
