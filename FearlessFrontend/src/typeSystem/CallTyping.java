@@ -115,10 +115,11 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   //bound, so those two are incomparable, but both are sound and the "As declared" one comes first.
   private T bestUnique(ArgMatrix mat, List<Integer> idxs){ return bests(mat,idxs).getFirst(); }
   private List<T> bests(ArgMatrix mat, List<Integer> idxs){
-    var all= idxs.stream().map(i->mat.candidate(i).t()).toList();
-    return all.stream()
-      .filter(ti->all.stream().noneMatch(tj->
-        !tj.equals(ti) && ts.isSub(bs,tj,ti)))
-      .distinct().toList();
+    var all= idxs.stream().map(i->mat.candidate(i).t()).distinct().toList();
+    return IntStream.range(0,all.size()).filter(i->isBest(all,i)).mapToObj(all::get).toList();
+  }
+  private boolean isBest(List<T> all, int i){
+    var ti= all.get(i);
+    return IntStream.range(0,all.size()).noneMatch(j->j != i && ts.isSub(bs,all.get(j),ti) && (j < i || !ts.isSub(bs,ti,all.get(j))));
   }
 }

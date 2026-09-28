@@ -229,3 +229,26 @@ receiver of `.g` `mut Fl[mut L[E]]`, the lambda `Fn[mut L[E], read TF[E]]`, reje
 and so did the lambda passed directly to a call with explicit type arguments, since only the
 result was re-decided. Receivers of a known type now keep their declared spelling in the
 inferred output (`F[_HR,T,_HR]` rather than `F[imm _HR,imm T,_HR]` under `imm` bounds).
+
+## 8. The minimal type of a call assumes `<:` is antisymmetric
+
+Frontend#92, 2026-09-28. Crash, not unsoundness.
+`CapabilityTypingTest.readImmResultOfIsoImmBoundRequiredAsImm`,
+`readImmResultOfIsoImmBoundRequiredAsReadImm`, `readImmResultOfIsoImmBoundRequiredAsIso`,
+`readImmResultOfIsoImmBoundAsReceiver`.
+
+`<:` is a preorder: two different spellings are subtypes of each other whenever they have
+the same shape and the same single capability, as `read/imm X` and `imm X` when
+`D(X)` is within `{iso,imm}`, or `X` and `rc X` when `D(X) = {rc}`. `minimal` (entry 1)
+read `T' != T` as strictly smaller, so two equivalent candidates removed each other.
+
+    was:  minimal(D, Ts) = { T in Ts | no T' in Ts with T' != T and T' <: T }
+    now:  minimal(D, Ts) = { T in Ts | no T' in Ts with T' <: T and not T <: T',
+                                       and no T' before T in Ts with T' <: T }
+          -- one element per equivalence class, the first in promotion order
+
+Witness. `Box[X:iso,imm]:{ .get: read/imm X }` and `b.get` with `b: Box[Y]`, `Y:iso,imm`.
+"As declared" gives `read/imm Y`, "strengthen result" maps `iso` to `iso.readImm() = imm`
+and gives `imm Y`; both have `rcs = {imm}`. `minimal` was empty: `best` crashed with a
+requirement `imm Y` or `read/imm Y` and with no requirement (a receiver), and the error
+for an unmet requirement (`iso Y`) crashed listing the minimal types.

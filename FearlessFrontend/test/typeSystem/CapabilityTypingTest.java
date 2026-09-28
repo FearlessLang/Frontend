@@ -682,4 +682,33 @@ User:{ .use[Y:iso,imm](b: Box[Y]): imm Y -> b.get }
 Box[X:iso,imm]:{ .get: read/imm X }
 User:{ .use[Y:iso,imm](b: Box[Y]): read/imm Y -> b.get }
 """));}
+@Test void readImmResultOfIsoImmBoundRequiredAsIso(){fail("""
+002| User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
+   |        -------------------------------------^^^^^
+
+While inspecting method call ".get" > ".use(_)" line 2
+The body of method ".use(_)" of type declaration "User" is an expression returning "read/imm Y".
+Method call "Box[_].get" has type "read/imm Y" instead of a subtype of "iso Y".
+
+See inferred typing context below for how type "iso Y" was introduced: (compression indicated by `-`)
+User:{.use[Y:imm,iso](b:Box[Y]):iso Y->b.get}
+""",List.of("""
+Box[X:iso,imm]:{ .get: read/imm X }
+User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
+"""));}
+@Test void readImmResultOfIsoImmBoundAsReceiver(){fail("""
+002| User:{ .use[Y:iso,imm](b: Box[Y]): Box[Y] -> b.get.foo }
+   |        --------------------------------------~~~~~^^^^
+
+While inspecting ".use(_)" line 2
+This call to method ".foo" cannot typecheck.
+The receiver is of type "read/imm Y". This is a type parameter.
+Type parameters cannot be receivers of method calls.
+
+See inferred typing context below for how type "read/imm Y" was introduced: (compression indicated by `-`)
+User:{.use[Y:imm,iso](b:Box[Y]):Box[Y]->b.get.foo}
+""",List.of("""
+Box[X:iso,imm]:{ .get: read/imm X }
+User:{ .use[Y:iso,imm](b: Box[Y]): Box[Y] -> b.get.foo }
+"""));}
 }
