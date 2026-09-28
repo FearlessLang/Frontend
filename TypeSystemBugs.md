@@ -230,29 +230,6 @@ and so did the lambda passed directly to a call with explicit type arguments, si
 result was re-decided. Receivers of a known type now keep their declared spelling in the
 inferred output (`F[_HR,T,_HR]` rather than `F[imm _HR,imm T,_HR]` under `imm` bounds).
 
-## 8. The minimal type of a call assumes `<:` is antisymmetric
-
-Frontend#92, 2026-09-28. Crash, not unsoundness.
-`CapabilityTypingTest.readImmResultOfIsoImmBoundRequiredAsImm`,
-`readImmResultOfIsoImmBoundRequiredAsReadImm`, `readImmResultOfIsoImmBoundRequiredAsIso`,
-`readImmResultOfIsoImmBoundAsReceiver`.
-
-`<:` is a preorder: two different spellings are subtypes of each other whenever they have
-the same shape and the same single capability, as `read/imm X` and `imm X` when
-`D(X)` is within `{iso,imm}`, or `X` and `rc X` when `D(X) = {rc}`. `minimal` (entry 1)
-read `T' != T` as strictly smaller, so two equivalent candidates removed each other.
-
-    was:  minimal(D, Ts) = { T in Ts | no T' in Ts with T' != T and T' <: T }
-    now:  minimal(D, Ts) = { T in Ts | no T' in Ts with T' <: T and not T <: T',
-                                       and no T' before T in Ts with T' <: T }
-          -- one element per equivalence class, the first in promotion order
-
-Witness. `Box[X:iso,imm]:{ .get: read/imm X }` and `b.get` with `b: Box[Y]`, `Y:iso,imm`.
-"As declared" gives `read/imm Y`, "strengthen result" maps `iso` to `iso.readImm() = imm`
-and gives `imm Y`; both have `rcs = {imm}`. `minimal` was empty: `best` crashed with a
-requirement `imm Y` or `read/imm Y` and with no requirement (a receiver), and the error
-for an unmet requirement (`iso Y`) crashed listing the minimal types.
-
 ## 12. A promotion of a `read/imm X` resolves `read/imm` before the promotion
 
 Frontend#98, 2026-09-29. Unsound. `CapabilityTypingTest.genericReadHBoxReadImmGetIsNotRead`,
@@ -279,3 +256,13 @@ the test must compare against `readImm(rc)`, not `rc`. On parameters the same or
 `useRead` require `imm Y` for `read/imm Y` with `D(Y) = {mut}` where the concrete call
 requires `readH`, rejecting valid calls. The formalism has the same definition
 (`\prom^\f(\XBs,\readImm\,\X)` and `\noChangeRI`).
+
+The old order also gave one call two candidates with equivalent but different results. With
+`D(X) = {iso,imm}`, `readImm(iso) = imm` failed the unchanged test, so every promotion of
+`read/imm X` gave `imm X` next to the `read/imm X` "as declared": both denote only `imm`.
+`minimal` (entry 1) drops `T` when some `T' != T` has `T' <: T`, so it assumes `<:` is
+antisymmetric on the candidate results; the two removed each other and `best` crashed,
+also with no requirement and in the error for an unmet one (Frontend#92,
+`CapabilityTypingTest.readImmResultOfIsoImmBound*`). With the unchanged test on
+`readImm(rc)`, a mode either keeps a variable type as written or gives an `RCX` not
+equivalent to it, so candidate results are never equivalent; `CallTyping.bests` asserts it.
