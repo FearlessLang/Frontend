@@ -712,4 +712,8 @@ iso Foo[X:mut]:{}
 """,List.of("""
 A:{ .m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]:{} }
 """));}
+@Test void narrowOuterBoundMutLiteralOk(){ok(List.of("""
+Box[X:imm,mut,read]:{ mut .get: X }
+A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
+"""));}
 }
