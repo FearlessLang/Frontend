@@ -674,4 +674,20 @@ B[X:*]:{
   .m2[Y:*](a: read/imm Y): read/imm Y -> a;
   }
 """));}
+@Test void mutMethodOfAnonymousReadLiteralIsDeadCode(){fail("""
+[###]is dead code.
+[###]
+""",List.of("""
+B:{}
+A:{ mut .m: B; read .r: B }
+User:{ .foo: B -> read A{ .m -> B; .r -> B}.m }
+"""));}
+@Test void mutMethodOfAnonymousImmLiteralIsDeadCode(){fail("""
+[###]is dead code.
+[###]
+""",List.of("""
+B:{}
+A:{ mut .m: B; read .r: B }
+User:{ .foo: imm A -> imm A{ .m -> B; .r -> B} }
+"""));}
 }
