@@ -51,17 +51,18 @@ final class MultiMeth{
     return switch (t){
       case T.RCC rcc -> rcc.withRC(mode.of(rcc.rc()));
       case T.RCX rcx -> rcx.withRC(mode.of(rcx.rc()));
-      case T.X x -> modeVar(d,x,mode::of,f,t);
-      case T.ReadImmX(var x) -> modeVar(d,x,rc->mode.of(rc).readImm(),f,t);
+      case T.X x -> modeVar(d,x,rc->rc,mode,f,t);
+      case T.ReadImmX(var x) -> modeVar(d,x,RC::readImm,mode,f,t);
       //Note: T.C is not a type (only a part of a type); formalism correctly does not recurse into c.ts()
     };
   }
-  private static T modeVar(List<B> d, T.X x, UnaryOperator<RC> m, Function<EnumSet<RC>,RC> f, T original){
-    var rcs= RC.get(d,x.name()).rcs();
-    var unchanged= rcs.stream().allMatch(rc->m.apply(rc) == rc);
+  private static T modeVar(List<B> d, T.X x, UnaryOperator<RC> inst, Mode mode, Function<EnumSet<RC>,RC> f, T original){
+    var rcs= EnumSet.noneOf(RC.class);
+    RC.get(d,x.name()).rcs().forEach(rc->rcs.add(inst.apply(rc)));
+    var unchanged= rcs.stream().allMatch(rc->mode.of(rc) == rc);
     if (unchanged){ return original; }
     var mapped= EnumSet.noneOf(RC.class);
-    rcs.forEach(rc->mapped.add(m.apply(rc)));
+    rcs.forEach(rc->mapped.add(mode.of(rc)));
     return new T.RCX(f.apply(mapped),x);
   }
   private record Key(RC rc, List<T> ts, T t){}
