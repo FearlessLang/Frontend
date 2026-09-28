@@ -674,4 +674,11 @@ B[X:*]:{
   .m2[Y:*](a: read/imm Y): read/imm Y -> a;
   }
 """));}
+@Test void genericReadHBoxReadImmGetIsNotRead(){fail("""
+[###]Method call "read Box[_].get" has type "readH Y" instead of a subtype of "read Y".
+[###]
+""",List.of("""
+Box[X:*]:{ mut .get: X; read .get: read/imm X }
+Test:{ #[Y:mut](r: readH Box[Y]): read Y -> r.get }
+"""));}
 }
