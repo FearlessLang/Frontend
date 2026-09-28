@@ -27,6 +27,34 @@ Not fixed; recorded so the next attempt starts from the mechanism.
   only; the argument list drives the argument matrix, and a hygienic argument against a
   non-hygienic signature is legitimate (`Allow mutH argument i`), so it can only be
   trimmed at display time, once the argument types are known.
+- A literal nested in a literal of a generic method gets its generic supertype twice, once
+  with `K` and once with `imm K`, when `K` has the default bound; the two are the same type,
+  and `TypeSystem.mostSpecificByOrigin` asserts on two signatures with the same origin:
+
+      M[R:**]:{ mut .a: R; mut .b: R -> this.a; }
+      TM[K]:{ read #(x: K): mut M[K] }
+      MM:{ #[K]: TM[K] -> {x -> { .a -> x }} }
+
+  crashes on `.b`, `mut .b:K@p.M` against `mut .b:imm K@p.M`. It needs a concrete method
+  mentioning `R`, the outer literal (the same inner literal directly in the body of `#`
+  compiles) and the default bound (`K:*` compiles); writing `mut M[K]{..}` or `TM[K]{..}`
+  does not help. `TypeSystemTest.sameGenericSupertypeTwiceModuloImmOfTypeVariable` pins the
+  crash; its program is joined at run time, so that `FuzzTest` does not take it as a seed.
+- A lambda passed to a call whose receiver is a call with explicit type arguments takes its
+  parameter type from the argument of the receiver call, not from the result type of that call:
+
+      Fn[A:*,R:*]:{ read #(a: A): R }
+      TF[E:*]:{ }
+      L[E:*]:TF[E]{ }
+      Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
+      Fls:{ #[R:*](r: R): mut Fl[R]; }
+      Use:{ #[E:*](fls: Fls, xs: mut L[E]): mut Fl[E] -> fls#[read TF[E]](xs).g[E]{c -> c} }
+
+  The receiver of `.g` is `mut Fl[read TF[E]]`, so `c` is `read TF[E]`, but inference types
+  it `mut L[E]`, the type of `xs`, and the call fails. The same `.g[E]{c -> c}` on a
+  parameter of type `mut Fl[read TF[E]]` compiles.
+  `TypeSystemTest.lambdaParameterTypedFromArgumentOfReceiverCall` pins the current message,
+  `lambdaParameterTypedFromReceiverTypeWhenReceiverIsParameter` the variant that compiles.
 
 ## 1. The minimal type of a call is not unique
 

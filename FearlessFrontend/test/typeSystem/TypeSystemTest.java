@@ -1,6 +1,7 @@
 package typeSystem;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
@@ -3852,5 +3853,39 @@ Make:{ #: iso Counter -> mut Counter{ read .get: base.Nat -> 0 } }
 A:{}
 Box:{ read .get: A; }
 Make:{ #(a:iso A): iso Box -> mut Box{ read .get: A -> a } }
+"""));}
+@Test void sameGenericSupertypeTwiceModuloImmOfTypeVariable(){
+  var src= String.join("\n",
+    "M[R:**]:{ mut .a: R; mut .b: R -> this.a; }",
+    "TM[K]:{ read #(x: K): mut M[K] }",
+    "MM:{ #[K]: TM[K] -> {x -> { .a -> x }} }");
+  var e= assertThrows(AssertionError.class, () -> ok(List.of(src)));
+  strCmp("[###]mut .b:K@p.M;  mut .b:imm K@p.M;The assert above is actually a big deal.[###]", e.getMessage());
+}
+@Test void lambdaParameterTypedFromArgumentOfReceiverCall(){fail("""
+006| Use:{ #[E:*](fls: Fls, xs: mut L[E]): mut Fl[E] -> fls#[read TF[E]](xs).g[E]{c -> c} }
+   |       ---------------------------------------------~~~~~~~~~~~~~~~~~~~~^^^~~~~~~~~~~
+
+While inspecting "#(_,_)" line 6
+This call to method "mut Fl[_].g(_)" cannot typecheck.
+Argument 1 has type "iso Fn[mut L[E],read TF[E]]".
+That is not a subtype of "read Fn[read TF[E],read TF[E]]" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.g[mut,E](read Fn[mut L[E],read TF[E]]{read #(c:mut L[E]):read TF[E]->c})
+""",List.of("""
+Fn[A:*,R:*]:{ read #(a: A): R }
+TF[E:*]:{ }
+L[E:*]:TF[E]{ }
+Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
+Fls:{ #[R:*](r: R): mut Fl[R]; }
+Use:{ #[E:*](fls: Fls, xs: mut L[E]): mut Fl[E] -> fls#[read TF[E]](xs).g[E]{c -> c} }
+"""));}
+@Test void lambdaParameterTypedFromReceiverTypeWhenReceiverIsParameter(){ok(List.of("""
+Fn[A:*,R:*]:{ read #(a: A): R }
+TF[E:*]:{ }
+L[E:*]:TF[E]{ }
+Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
+Use:{ #[E:*](fl: mut Fl[read TF[E]]): mut Fl[E] -> fl.g[E]{c -> c} }
 """));}
 }
