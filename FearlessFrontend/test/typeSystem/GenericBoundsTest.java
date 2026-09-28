@@ -601,6 +601,7 @@ Ex:{
 """,people));}
 @Test void boundsForwardingImplicitBreak(){fail("""
 002| FPerson:{ #[N:*](name: Str, age: imm N): Person[N] -> {
+   |                                          ^^^^^^^^^
    | ... 2 lines ...
 005|   }}
 
