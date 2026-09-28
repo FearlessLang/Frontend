@@ -674,4 +674,12 @@ B[X:*]:{
   .m2[Y:*](a: read/imm Y): read/imm Y -> a;
   }
 """));}
+@Test void readImmResultOfIsoImmBoundRequiredAsImm(){ok(List.of("""
+Box[X:iso,imm]:{ .get: read/imm X }
+User:{ .use[Y:iso,imm](b: Box[Y]): imm Y -> b.get }
+"""));}
+@Test void readImmResultOfIsoImmBoundRequiredAsReadImm(){ok(List.of("""
+Box[X:iso,imm]:{ .get: read/imm X }
+User:{ .use[Y:iso,imm](b: Box[Y]): read/imm Y -> b.get }
+"""));}
 }
