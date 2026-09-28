@@ -3885,4 +3885,8 @@ L[E:*]:TF[E]{ }
 Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
 Use:{ #[E:*](fl: mut Fl[read TF[E]]): mut Fl[E] -> fl.g[E]{c -> c} }
 """));}
+@Test void nestedSelfDispatchUsesMethodCapability(){ok(List.of("""
+A:{ imm .m1: A; mut .m1: mut A; .m2: A }
+User:{ #: mut A -> mut B:A{'self .m1 -> self; .m2 -> self.m1 } }
+"""));}
 }
