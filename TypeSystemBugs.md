@@ -27,34 +27,6 @@ Not fixed; recorded so the next attempt starts from the mechanism.
   only; the argument list drives the argument matrix, and a hygienic argument against a
   non-hygienic signature is legitimate (`Allow mutH argument i`), so it can only be
   trimmed at display time, once the argument types are known.
-- A literal nested in a literal of a generic method gets its generic supertype twice, once
-  with `K` and once with `imm K`, when `K` has the default bound; the two are the same type,
-  and `TypeSystem.mostSpecificByOrigin` asserts on two signatures with the same origin:
-
-      M[R:**]:{ mut .a: R; mut .b: R -> this.a; }
-      TM[K]:{ read #(x: K): mut M[K] }
-      MM:{ #[K]: TM[K] -> {x -> { .a -> x }} }
-
-  crashes on `.b`, `mut .b:K@p.M` against `mut .b:imm K@p.M`. It needs a concrete method
-  mentioning `R`, the outer literal (the same inner literal directly in the body of `#`
-  compiles) and the default bound (`K:*` compiles); writing `mut M[K]{..}` or `TM[K]{..}`
-  does not help. `TypeSystemTest.sameGenericSupertypeTwiceModuloImmOfTypeVariable` pins the
-  crash; its program is joined at run time, so that `FuzzTest` does not take it as a seed.
-- A lambda passed to a call whose receiver is a call with explicit type arguments takes its
-  parameter type from the argument of the receiver call, not from the result type of that call:
-
-      Fn[A:*,R:*]:{ read #(a: A): R }
-      TF[E:*]:{ }
-      L[E:*]:TF[E]{ }
-      Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
-      Fls:{ #[R:*](r: R): mut Fl[R]; }
-      Use:{ #[E:*](fls: Fls, xs: mut L[E]): mut Fl[E] -> fls#[read TF[E]](xs).g[E]{c -> c} }
-
-  The receiver of `.g` is `mut Fl[read TF[E]]`, so `c` is `read TF[E]`, but inference types
-  it `mut L[E]`, the type of `xs`, and the call fails. The same `.g[E]{c -> c}` on a
-  parameter of type `mut Fl[read TF[E]]` compiles.
-  `TypeSystemTest.lambdaParameterTypedFromArgumentOfReceiverCall` pins the current message,
-  `lambdaParameterTypedFromReceiverTypeWhenReceiverIsParameter` the variant that compiles.
 
 ## 1. The minimal type of a call is not unique
 
@@ -193,3 +165,67 @@ rule (B2 in the appendix, `X in dom(XBs)` for every type in `Lit-ok`), the imple
 only had the captured-parameter half of it (`Gamma.filterFTV`, "uses type parameters that
 are not propagated"), which sees a parameter whose type mentions the free variable but
 never a mention written inside the declaration itself.
+
+## 6. Two spellings of one signature in a method table
+
+Frontend#89, 2026-09-28. Crash, not unsoundness.
+`TypeSystemTest.inheritedMethodSpelledWithAndWithoutRedundantRcOnTypeVariable`.
+
+Under `D(X) = {rc}` the types `X` and `rc X` are the same type, and the type system compares
+types with `eqModVar` (bug 2) for that reason. A type variable with no bound is `X:imm`.
+Inference spells a variable `rc X` at every position whose declared bound is `{rc}`
+(`InjectionSteps.normToBounds`), so a literal's supertype list, fixed when the literal is
+first expanded from the head as then guessed, and its inherited methods, re-instantiated
+from the head after normalization, can spell the same signature in the two ways.
+
+    sameSig(D, s1, s2) = same name, capability, bounds, origin, abstractness
+                         and forall i. eqModVar(D, s1.ts[i], s2.ts[i])
+                         and eqModVar(D, s1.ret, s2.ret)
+
+    mostSpecificByOrigin(D, sources, chosen) =
+      forall s in sources with not sameSig(D, s, chosen). origin(s) != origin(chosen)
+      was: with s != chosen (structural equality)
+
+Witness. `M[R:**]:{ mut .a: R; mut .b: R -> this.a; }`, `TM[K]:{ read #(x: K): mut M[K] }`,
+`MM:{ #[K]: TM[K] -> {x -> { .a -> x }} }`. The inner literal reaches the type system as
+`iso _AMM[K:imm]: M[K]{ mut .a: imm K -> x; mut .b: imm K }`: the supertype comes from
+`TM[K]`, still spelled as written, the methods from `TM[imm K]`, the normalized head of the
+outer literal. `M[K]` yields `mut .b: K@M` and the table holds `mut .b: imm K@M`; the two
+are not structurally equal and share an origin, which the assert takes for the same generic
+supertype inherited twice with different instantiations. Any single-capability bound shows
+it (`K:mut` gives `K` against `mut K`), `K:*` does not, and writing `imm K` in either `TM`
+or `MM` makes the two spellings agree.
+
+## 7. A decided type argument of a call is re-inferred from the arguments
+
+Frontend#89, 2026-09-28. Rejects valid programs, not unsoundness.
+`TypeSystemTest.lambdaParameterTypedFromExplicitTypeArgumentOfReceiverCall`,
+`explicitTypeArgumentKeepsItsRcAgainstTheArgument`.
+
+The type arguments of a call are the receiver's own type arguments followed by the method's:
+those written explicitly are decided, the others are inferred from the arguments and from
+the expected result. A decided type argument is never re-decided; `nextMStarOp` already
+follows this for literals (`keepDecided`), the call rule did not.
+
+    decided(T) = T has no unknown and, if T = rc C[..], rc is known
+    base = receiver type arguments ++ explicit type arguments (unknown where not written)
+    targs[i] = base[i]                                     if decided(base[i])
+               meet(base[i], fromArgs[i].., fromResult[i]) otherwise
+    was: targs[i] = meet(base[i], fromArgs[i].., fromResult[i]) always
+
+`meet` on two heads prefers the subtype (`leastBad`) and on one head with two capabilities
+answers `imm` (`meetRcNoH`), so an argument more specific than the explicit type argument
+replaced it. The arguments were already protected: `requiredOnArgs` pushes `base` down
+before an argument body is inferred. The result type of the call was not, and the type
+system re-derives every call, so the wrong result surfaced only through a literal typed from
+it, whose head is stamped by inference.
+
+Witness. `Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }`,
+`Fls:{ #[R:*](r: R): mut Fl[R]; }`, `L[E:*]:TF[E]{ }`, and
+`fls#[read TF[E]](xs).g[E]{c -> c}` with `xs: mut L[E]`. `R` of `#` became `mut L[E]`, the
+receiver of `.g` `mut Fl[mut L[E]]`, the lambda `Fn[mut L[E], read TF[E]]`, rejected against
+`Fn[read TF[E], read TF[E]]`; with `xs: mut TF[E]` the head stayed and `R` became
+`imm TF[E]`. The same `.g[E]{c -> c}` on a parameter of type `mut Fl[read TF[E]]` compiled,
+and so did the lambda passed directly to a call with explicit type arguments, since only the
+result was re-decided. Receivers of a known type now keep their declared spelling in the
+inferred output (`F[_HR,T,_HR]` rather than `F[imm _HR,imm T,_HR]` under `imm` bounds).
