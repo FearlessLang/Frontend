@@ -681,4 +681,16 @@ B[X:*]:{
 Box[X:*]:{ mut .get: X; read .get: read/imm X }
 Test:{ #[Y:mut](r: readH Box[Y]): read Y -> r.get }
 """));}
+@Test void genericReadHBoxReadImmGetOfReadHIsNotRead(){fail("""
+[###]Method call "read Box[_].get" has type "readH Y" instead of a subtype of "read Y".
+[###]
+""",List.of("""
+Box[X:**]:{ mut .get: X; read .get: read/imm X }
+Test:{ #[Y:readH](r: readH Box[Y]): read Y -> r.get }
+"""));}
+@Test void genericReadHSinkAcceptsReadHReadImmArgument(){ok(List.of("""
+Void:{}
+Sink[X:*]:{ read .put(x: read/imm X): Void }
+Test:{ #[Y:mut](s: readH Sink[Y], y: readH Y): Void -> s.put(y) }
+"""));}
 }
