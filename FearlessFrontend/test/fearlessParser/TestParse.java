@@ -922,6 +922,31 @@ A:{ .m({,}Bob:X):X }
 """);
 }
 
+@Test void err_leading_bom_keeps_columns(){fail("""
+In file: [###].fear
+
+001| A:{ .m(x:C):C->x.foo(,) }
+   |     -----------~~~~~~^~
+
+While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
+Missing expression.
+Expected one of: "name", "type name", "(", "{".
+Error 2 UnexpectedToken
+""","""
+\uFEFFA:{ .m(x:C):C->x.foo(,) }
+""");}
+@Test void err_illegal_form_feed_char(){fail("""
+In file: [###].fear
+
+001| A:{ .m():X?}
+   |           ^
+
+While inspecting the file
+Illegal character [Form Feed 0x0C]
+Error 2 UnexpectedToken
+""",
+"A:{ .m():X\f}");
+}
 @Test void err_illegal_nbsp_char(){fail("""
 In file: [###].fear
 
