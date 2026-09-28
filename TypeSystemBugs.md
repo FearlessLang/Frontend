@@ -252,3 +252,30 @@ Witness. `Box[X:iso,imm]:{ .get: read/imm X }` and `b.get` with `b: Box[Y]`, `Y:
 and gives `imm Y`; both have `rcs = {imm}`. `minimal` was empty: `best` crashed with a
 requirement `imm Y` or `read/imm Y` and with no requirement (a receiver), and the error
 for an unmet requirement (`iso Y`) crashed listing the minimal types.
+
+## 12. A promotion of a `read/imm X` resolves `read/imm` before the promotion
+
+Frontend#98, 2026-09-29. Unsound. `CapabilityTypingTest.genericReadHBoxReadImmGetIsNotRead`,
+`genericReadHBoxReadImmGetOfReadHIsNotRead`, `genericReadHSinkAcceptsReadHReadImmArgument`.
+
+A promotion maps each capability of a method type through a mode `prom` (`strong`, `flexy`,
+`hyg`, `useRead`). A type variable takes the mode through its bound; `read/imm X` stands for
+`readImm(rc) C` at the instantiation `X = rc C`, so the mode applies to `readImm(rc)`.
+`readImm` sends every capability outside `{iso,imm}` to `read`, hygienic ones included.
+
+    prom^f(D, readImm X) = readImm X      if forall r in R. prom(r) = r
+                           f(prom(R)) X   otherwise
+      now:  R = { readImm(rc) | rc in D(X) }
+      was:  prom(R) above was { readImm(prom(rc)) | rc in D(X) }
+            and the unchanged test was forall rc in D(X). readImm(prom(rc)) = rc
+
+Witness. `Box[X:*]:{ mut .get: X; read .get: read/imm X }` and
+`#[Y:mut](r: readH Box[Y]): read Y -> r.get`, through "Allow readH arguments": `hyg(mut) =
+mutH`, `readImm(mutH) = read`, so the call had type `read Y`, capturable by an object
+literal, where the concrete `readH Box[mut Foo]` gives `hyg(readImm(mut)) = readH Foo`.
+Under `D(Y) = {readH}` it gave `read Y` too; swapping the order without changing the
+unchanged test would give `read/imm Y`, still `read`, since `hyg(readImm(readH)) = readH`:
+the test must compare against `readImm(rc)`, not `rc`. On parameters the same order made
+`useRead` require `imm Y` for `read/imm Y` with `D(Y) = {mut}` where the concrete call
+requires `readH`, rejecting valid calls. The formalism has the same definition
+(`\prom^\f(\XBs,\readImm\,\X)` and `\noChangeRI`).
