@@ -229,3 +229,32 @@ receiver of `.g` `mut Fl[mut L[E]]`, the lambda `Fn[mut L[E], read TF[E]]`, reje
 and so did the lambda passed directly to a call with explicit type arguments, since only the
 result was re-decided. Receivers of a known type now keep their declared spelling in the
 inferred output (`F[_HR,T,_HR]` rather than `F[imm _HR,imm T,_HR]` under `imm` bounds).
+
+## 10. Iso promotion of a literal reads its captures under the enclosing bounds
+
+Frontend#95, 2026-09-29. Rejects valid programs, not unsoundness.
+`GenericBoundsTest.narrowOuterBoundMutLiteralOk`, `narrowOuterBoundReadLiteralOk`,
+`narrowOuterBoundDoesNotPromoteToIso`.
+
+A `mut`, `read` or `imm` literal whose captures are all `iso`/`imm` is typed as an `iso`
+literal. The formalism has no separate promotion rule: the promotion is sound because
+`Lit-t` with `iso` itself applies, and `Lit-t` checks the literal under its own bounds
+`D_L` (funnelling redeclares the enclosing type variables, and kinding the literal's self
+type only requires `D(X) subsetOf D_L(X)`), keeping the captures by `keep(D_L, iso, G)`
+(bug 4).
+
+    free(D, G, L) = forall x used in the bodies of L with x:T in G. rcs(D,T) subsetOf {iso,imm}
+    was:  promote(D, G, L) = rcOf(L) in {mut,read,imm} and free(D, G, L)
+          -- the enclosing bounds and bindings
+    now:  promote(D, G, L) = rcOf(L) in {mut,read,imm} and free(D_L, G|dom(D_L), L)
+          -- the bounds and bindings Lit-ok sees
+
+Since `D(X) subsetOf D_L(X)`, the enclosing bounds can only make a capture look freer than
+`keep` then finds it, so the promoted literal lost a capture its body uses.
+
+Witness. `Box[X:imm,mut,read]:{ mut .get: X }` and `A:{ .m[X:imm](x: X): mut Box[X] -> mut
+Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }`. Under `D(X) = {imm}` the capture `x : X`
+looks `imm`, so the literal became `iso`; under `D_L(X) = {imm,mut,read}` it is not
+`iso`/`imm`, so `keep` dropped `x` and `.get` was rejected with "parameter not available
+here". The same program with the outer bound `X:imm,mut,read` compiled. A `read` literal
+fails the same way; when the result must be `iso`, the error is now the literal's type.
