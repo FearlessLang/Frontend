@@ -52,4 +52,12 @@ public class EdgeSkipSpanTest{
     var p= new P(new Span(f,1,1,1,4), List.of(leaf(K.Ws," ",1), leaf(K.X,"abc",2)));
     assertEquals(new Span(f,1,2,1,4), p.spanAround(0,1));
   }
+  @Test void spanAroundEndingWithWhiteSpace(){
+    var p= new P(new Span(f,1,1,1,4), List.of(leaf(K.X,"abc",1), leaf(K.Ws," ",4)));
+    assertEquals(new Span(f,1,1,1,3), p.spanAround(0,1));
+  }
+  @Test void spanLastEndingWithWhiteSpace(){
+    var p= new P(new Span(f,1,1,1,2), List.of(leaf(K.X,"x",1), leaf(K.Ws," ",2)));
+    assertEquals(new Span(f,1,1,1,1), p.spanLast());
+  }
 }
