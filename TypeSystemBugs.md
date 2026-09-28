@@ -229,3 +229,26 @@ receiver of `.g` `mut Fl[mut L[E]]`, the lambda `Fn[mut L[E], read TF[E]]`, reje
 and so did the lambda passed directly to a call with explicit type arguments, since only the
 result was re-decided. Receivers of a known type now keep their declared spelling in the
 inferred output (`F[_HR,T,_HR]` rather than `F[imm _HR,imm T,_HR]` under `imm` bounds).
+
+## 9. A fresh object in a readH position must implement its mut methods
+
+Frontend#94, 2026-09-29. Rejects valid programs, not unsoundness.
+`CapabilityTypingTest.readHEmptyLiteralLeavesMutAbstract`,
+`readHEmptyLiteralArgumentLeavesMutAbstract`.
+
+A literal must implement every method callable on it, and only those; a `mut` method is
+not callable on an object that can never be `mut`.
+
+    callable(rc0, rc) = rc != mut  or  rc0 in {iso,mut,mutH}
+    was:  callable(rc0, rc) = rc != mut  or  rc0 not in {imm,read}
+
+The formalism never meets `readH` or `mutH` here: the capability of a literal is neither
+(A7), and the parser enforces it. Inference does meet them: a fresh object with no method
+bodies takes its capability from the expected type and becomes a type expression
+(`InjectionSteps.commitToTable`, `justAType`), keeping a hygienic capability, while a
+literal with bodies drops it (`noH`). `checkType` already covered `mutH` by strengthening
+it to `iso`; `readH` reached `callable` as is, and `readH` is not `read`.
+
+Witness. `B:{ mut .m: B }`, `A:{ .b: readH B -> {} }` was rejected for the abstract
+`mut .m`, while `read B -> {}` and `readH B -> { .k -> .. }` were accepted. Any position
+whose expected type is `readH` shows it, an argument as well as a result.
