@@ -1852,6 +1852,37 @@ Error 0 Unclosed
 A:{ .m:Str -> { a: 1, b: 2
 """);}
 
+@Test void strayOpenerBeforeLastCloser(){fail("""
+In file: [###].fear
+
+001| A:{ .m:A -> this.foo( }
+   |                     ^^^
+
+While inspecting groups of parenthesis
+Wrong closer for "(" group.
+Found instead: "}".
+This "(" may be unintended.
+Otherwise expected: ")".
+Error 2 UnexpectedToken
+""","""
+A:{ .m:A -> this.foo( }
+""");}
+@Test void strayOpenerBeforeBarrierFarAhead(){fail("""
+In file: [###].fear
+
+001| A:{ .m:A -> this.foo( } B:{} C:{};
+   |                     ^^^
+
+While inspecting groups of parenthesis
+Wrong closer for "(" group.
+Found instead: "}".
+This "(" may be unintended.
+Otherwise expected: ")".
+Error 2 UnexpectedToken
+""","""
+A:{ .m:A -> this.foo( } B:{} C:{};
+""");}
+
 @Test void openerInStringThenEOF_shouldPreferEatenCloser(){fail("""
 In file: [###].fear
 
