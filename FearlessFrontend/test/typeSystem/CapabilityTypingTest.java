@@ -674,4 +674,8 @@ B[X:*]:{
   .m2[Y:*](a: read/imm Y): read/imm Y -> a;
   }
 """));}
+@Test void readHEmptyLiteralLeavesMutAbstract(){ok(List.of("""
+B:{ mut .m: B }
+A:{ .b: readH B -> {} }
+"""));}
 }
