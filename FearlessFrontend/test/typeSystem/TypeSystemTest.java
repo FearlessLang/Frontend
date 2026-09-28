@@ -3889,4 +3889,18 @@ Use:{ #[E:*](fl: mut Fl[read TF[E]]): mut Fl[E] -> fl.g[E]{c -> c} }
 A:{ imm .m1: A; mut .m1: mut A; .m2: A }
 User:{ #: mut A -> mut B:A{'self .m1 -> self; .m2 -> self.m1 } }
 """));}
+@Test void nestedSelfDispatchUsesReadMethodCapability(){ok(List.of("""
+A:{ read .m1: read A; mut .m1: mut A; read .m2: read A }
+User:{ #: mut A -> mut B:A{'self .m1 -> self; .m2 -> self.m1 } }
+"""));}
+@Test void nestedSelfCapturedDeeperUsesMethodCapability(){ok(List.of("""
+A:{ imm .m1: A; mut .m1: mut A; .m2: mut G }
+G:{ mut .get: A }
+User:{ #: mut A -> mut B:A{'self .m1 -> self; .m2 -> mut G{ .get -> self.m1 } } }
+"""));}
+@Test void isoNestedSelfCapturedDeeperIsMut(){ok(List.of("""
+A:{ imm .m1: A; mut .m1: mut A; mut .m2: mut G }
+G:{ mut .get: mut A }
+User:{ #: iso A -> iso B:A{'self .m1 -> self; .m2 -> mut G{ .get -> self.m1 } } }
+"""));}
 }

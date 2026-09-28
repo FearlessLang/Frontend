@@ -14,7 +14,7 @@ Not fixed; recorded so the next attempt starts from the mechanism.
 
 - A call on the self name of a nested literal with no `[rc]` reaches the type system as
   `imm`, whatever the receiver. `InjectionSteps.nextMStarOp` declares `self : rc Fresh`
-  with the literal's own not-yet-committed name; `methodHeaderAnd` finds no declaration for
+  (`rc` as seen from the method, bug 11) with the literal's own not-yet-committed name; `methodHeaderAnd` finds no declaration for
   `Fresh`, so the `ICall` keeps an unknown type; the literal cannot commit while a body
   has unknowns (`commitToTable`, `hasU`), so no later pass resolves it either;
   `ToCore.callFromICall` finally stamps `imm`. Top-level declarations do not suffer:
@@ -229,3 +229,38 @@ receiver of `.g` `mut Fl[mut L[E]]`, the lambda `Fn[mut L[E], read TF[E]]`, reje
 and so did the lambda passed directly to a call with explicit type arguments, since only the
 result was re-decided. Receivers of a known type now keep their declared spelling in the
 inferred output (`F[_HR,T,_HR]` rather than `F[imm _HR,imm T,_HR]` under `imm` bounds).
+
+## 11. Inference sees the self name of a nested literal with the literal's capability
+
+Frontend#96, 2026-09-29. Rejects valid programs, not unsoundness.
+`TypeSystemTest.nestedSelfDispatchUsesMethodCapability`,
+`nestedSelfDispatchUsesReadMethodCapability`, `nestedSelfCapturedDeeperUsesMethodCapability`,
+`isoNestedSelfCapturedDeeperIsMut`.
+
+The type system gives the self name `isoToMut(rc0) C[..]` and adapts it by the method's
+capability like every other binding the method sees (`adapt` of bug 4). Inference chooses
+the overload of a call without `[rc]` from the capability of its receiver, so it must see
+the self name the same way.
+
+    self seen by m, in the type system = adapt(D, rcOf(m), isoToMut(rc0) C[..])
+                                       = imm C[..]           if rcOf(m) = imm or rc0 = imm
+                                         read C[..]          if rcOf(m) = read
+                                         isoToMut(rc0) C[..] if rcOf(m) = mut
+    was:  inference declares self : rc0 C[..] inside the scope of m, and Gamma.getWithRC
+          adapts a binding only by the scopes strictly inside its declaration
+    now:  inference declares self : (self seen by m) inside the scope of m
+
+Top-level declarations did not suffer: `stepDecM` types `this` with `rcOf(m)` directly,
+which is the adapted type: a top-level declaration has `rc0 = mut`.
+Four observable shapes, one per test: `self.m1` in an `imm` method of a `mut` literal
+dispatched to `mut .m1`; the same in a `read` method; `self` captured by a literal nested
+inside an `imm` method stayed `mut` there, since the deeper scope is `mut` and the `imm`
+scope of the method is the declaration scope itself; and for an `iso` literal, `self`
+captured by a nested literal became `imm` (`getWithRC` treats a captured `iso` binding as
+`imm`) where the type system has `mut`. In each case the type system rejected the call
+inference had annotated (`receiverRCBlocksCall`).
+
+Witness. `A:{ imm .m1: A; mut .m1: mut A; .m2: A }`,
+`User:{ #: mut A -> mut B:A{'self .m1 -> self; .m2 -> self.m1 } }`: inference produced
+`self.m1[mut]` in the `imm` method `.m2`; the top-level `B:A{ .m1 -> this; .m2 -> this.m1 }`
+was accepted.

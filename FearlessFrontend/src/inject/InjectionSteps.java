@@ -429,12 +429,17 @@ public record InjectionSteps(Methods meths){
   TSM nextMStarOp(List<B> bs, Gamma g, String thisN, Optional<IT.RCC> selfPrecise, IT.RCC rcc, inference.M m){
     assert m.impl().isPresent();
     g.newScope(m.sig().rc().get());
-    g.declare(thisN, selfPrecise.<IT>map(o->o).orElse(IT.U.Instance));
+    var mRc= m.sig().rc().get();
+    g.declare(thisN, selfPrecise.<IT>map(s->selfSeenBy(s, mRc)).orElse(IT.U.Instance));
     updateGWithArgs(g, m);
     var e= nextStar(Push.of(bs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
     var args= updateArgs(m, g);
     g.popScope();
     return nextMStarOpRun(rcc, m, e, args);
+  }
+  private static IT.RCC selfSeenBy(IT.RCC self, RC mRc){
+    var rc= mRc == RC.imm ? Optional.of(RC.imm) : self.rc().map(RC::isoToMut).map(r->r == RC.imm || mRc == RC.mut ? r : RC.read);
+    return new IT.RCC(rc, self.c(), self.span());
   }
   /*The meet below narrows a method's return type to the type of its body, so a literal only ever
   gets more precise than what the use site asked for. What keeps that from destroying an invariant
