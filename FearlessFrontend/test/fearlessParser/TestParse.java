@@ -1753,8 +1753,7 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 File ended while parsing a "(" group.
-This "(" may be unintended.
-Otherwise expected: ")".
+Expected: ")".
 Error 0 Unclosed
 ""","""
 A:{ .m:Str -> (1 + 2
@@ -1768,8 +1767,7 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 File ended while parsing a "[" group.
-This "[" may be unintended.
-Otherwise expected: "]".
+Expected: "]".
 Error 0 Unclosed
 ""","""
 A:{ .m:Str -> E[1, 2, 3
@@ -1845,11 +1843,41 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 File ended while parsing a "{" group.
-This "{" may be unintended.
-Otherwise expected one of: "}id", "}".
+Expected one of: "}id", "}".
 Error 0 Unclosed
 ""","""
 A:{ .m:Str -> { a: 1, b: 2
+""");}
+
+@Test void strayOpenerBeforeLastCloser(){fail("""
+In file: [###].fear
+
+001| A:{ .m:A -> this.foo( }
+   |                     ^^^
+
+While inspecting groups of parenthesis
+Wrong closer for "(" group.
+Found instead: "}".
+This "(" may be unintended.
+Otherwise expected: ")".
+Error 2 UnexpectedToken
+""","""
+A:{ .m:A -> this.foo( }
+""");}
+@Test void strayOpenerBeforeBarrierFarAhead(){fail("""
+In file: [###].fear
+
+001| A:{ .m:A -> this.foo( } B:{} C:{};
+   |                     ^^^
+
+While inspecting groups of parenthesis
+Wrong closer for "(" group.
+Found instead: "}".
+This "(" may be unintended.
+Otherwise expected: ")".
+Error 2 UnexpectedToken
+""","""
+A:{ .m:A -> this.foo( } B:{} C:{};
 """);}
 
 @Test void openerInStringThenEOF_shouldPreferEatenCloser(){fail("""
