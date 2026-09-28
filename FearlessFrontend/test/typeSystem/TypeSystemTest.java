@@ -3907,4 +3907,23 @@ User:{
     Need#(read A{});
 }
 """));}
+@Test void bodyFromObjectLiteral_wrongNominal_noHintToChangeRC(){fail("""
+004|   .f:mut A->
+005|     read C{};
+   |          ^^
+
+While inspecting object literal instance of "read C" > ".f" line 4
+The body of method ".f" of type declaration "User" is an expression returning "read C".
+Object literal is of type "read C" instead of a subtype of "mut A".
+
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+User:{.f:mut A->read C}
+""",List.of("""
+A:{ mut .foo:A}
+C:{ mut .bar:C}
+User:{
+  .f:mut A->
+    read C{};
+}
+"""));}
 }
