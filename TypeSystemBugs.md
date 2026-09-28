@@ -256,3 +256,13 @@ the test must compare against `readImm(rc)`, not `rc`. On parameters the same or
 `useRead` require `imm Y` for `read/imm Y` with `D(Y) = {mut}` where the concrete call
 requires `readH`, rejecting valid calls. The formalism has the same definition
 (`\prom^\f(\XBs,\readImm\,\X)` and `\noChangeRI`).
+
+The old order also gave one call two candidates with equivalent but different results. With
+`D(X) = {iso,imm}`, `readImm(iso) = imm` failed the unchanged test, so every promotion of
+`read/imm X` gave `imm X` next to the `read/imm X` "as declared": both denote only `imm`.
+`minimal` (entry 1) drops `T` when some `T' != T` has `T' <: T`, so it assumes `<:` is
+antisymmetric on the candidate results; the two removed each other and `best` crashed,
+also with no requirement and in the error for an unmet one (Frontend#92,
+`CapabilityTypingTest.readImmResultOfIsoImmBound*`). With the unchanged test on
+`readImm(rc)`, a mode either keeps a variable type as written or gives an `RCX` not
+equivalent to it, so candidate results are never equivalent; `CallTyping.bests` asserts it.
