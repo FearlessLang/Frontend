@@ -3853,4 +3853,36 @@ A:{}
 Box:{ read .get: A; }
 Make:{ #(a:iso A): iso Box -> mut Box{ read .get: A -> a } }
 """));}
+@Test void inheritedMethodSpelledWithAndWithoutRedundantRcOnTypeVariable(){ok(List.of("""
+M[R:**]:{ mut .a: R; mut .b: R -> this.a; }
+TM[K]:{ read #(x: K): mut M[K] }
+MM:{ #[K]: TM[K] -> {x -> { .a -> x }} }
+"""));}
+@Test void inheritedMethodSpelledWithAndWithoutRedundantMutOnTypeVariable(){ok(List.of("""
+M[R:**]:{ mut .a: R; mut .b: R -> this.a; }
+TM[K:mut]:{ read #(x: K): mut M[K] }
+MM:{ #[K:mut]: TM[K] -> {x -> { .a -> x }} }
+"""));}
+@Test void lambdaParameterTypedFromExplicitTypeArgumentOfReceiverCall(){ok(List.of("""
+Fn[A:*,R:*]:{ read #(a: A): R }
+TF[E:*]:{ }
+L[E:*]:TF[E]{ }
+Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
+Fls:{ #[R:*](r: R): mut Fl[R]; }
+Use:{ #[E:*](fls: Fls, xs: mut L[E]): mut Fl[E] -> fls#[read TF[E]](xs).g[E]{c -> c} }
+"""));}
+@Test void explicitTypeArgumentKeepsItsRcAgainstTheArgument(){ok(List.of("""
+Fn[A:*,R:*]:{ read #(a: A): R }
+TF[E:*]:{ }
+Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
+Fls:{ #[R:*](r: R): mut Fl[R]; }
+Use:{ #[E:*](fls: Fls, xs: mut TF[E]): mut Fl[E] -> fls#[read TF[E]](xs).g[E]{c -> c} }
+"""));}
+@Test void lambdaParameterTypedFromReceiverTypeWhenReceiverIsParameter(){ok(List.of("""
+Fn[A:*,R:*]:{ read #(a: A): R }
+TF[E:*]:{ }
+L[E:*]:TF[E]{ }
+Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
+Use:{ #[E:*](fl: mut Fl[read TF[E]]): mut Fl[E] -> fl.g[E]{c -> c} }
+"""));}
 }

@@ -225,7 +225,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private void methodTableOk(Literal l,Key k,List<Sig> group){
     var chosen= Sources.findCanonical(l,k.m(),k.rc());
     assert group.stream().allMatch(s->s.m().equals(chosen.m()) && s.rc() == chosen.rc());
-    assert mostSpecificByOrigin(group,chosen);
+    assert mostSpecificByOrigin(l,group,chosen);
     assert absPreserved(chosen);//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s->s.origin().equals(chosen.origin())).allMatch(s->chosen.abs() == s.abs());
     for (var s:group){ sigSub(l,chosen,s); }
@@ -235,9 +235,9 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return group.stream().filter(s->!s.abs())
       .allMatch(s->isOriginSub(chosen.origin(),s.origin()));
   }
-  private boolean mostSpecificByOrigin(List<Sig> group, Sig chosen){
+  private boolean mostSpecificByOrigin(Literal l, List<Sig> group, Sig chosen){
     for (var s : group){
-      if (s.equals(chosen)){ continue; }
+      if (sameSig(l.bs(),s,chosen)){ continue; }
       assert !s.origin().equals(chosen.origin()):
         s+" "+chosen+"""
         The assert above is actually a big deal. It can logically break in an better version of Fearless
@@ -249,6 +249,11 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       assert !isOriginSub(s.origin(),chosen.origin());
     }
     return true;
+  }
+  private boolean sameSig(List<B> bs, Sig a, Sig b){
+    var ctx= Push.of(bs,a.bs());
+    return a.origin().equals(b.origin()) && a.bs().equals(b.bs()) && a.abs() == b.abs()
+      && eqModXRC(ctx,a.ret(),b.ret()) && Streams.zip(a.ts(),b.ts()).allMatch((x,y)->eqModXRC(ctx,x,y));
   }
   private boolean absPreserved(Sig chosen){
     var o= decs().apply(chosen.origin());

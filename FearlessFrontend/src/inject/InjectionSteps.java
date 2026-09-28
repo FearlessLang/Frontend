@@ -319,15 +319,20 @@ public record InjectionSteps(Methods meths){
     return c.withMore(e, rc, targs, es1, it);
   }
   private List<E> requiredOnArgs(E.Call c, MSigL m){
-    var all= meet(List.of(Push.of(m.clsArgs(), MSigL.fixTargs(c.targs(), m.bsArity())), refine(m.xs(), m.ret0(), c.t())));
+    var all= decidedThen(c, m, Stream.of(refine(m.xs(), m.ret0(), c.t())));
     var m0= m.withClsArgs(normToBounds(m.clsBs(), all.subList(0, m.nCls())));
     return meetWithTargs(c.es(), c.es(), m0, normToBounds(m.methBs(), all.subList(m.nCls(), all.size())));
   }
   private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){
-    var base= Push.of(m.clsArgs(), MSigL.fixTargs(c.targs(), m.bsArity()));
     var a= Streams.zip(m.ps0(), es).map((p,e2)->refine(m.xs(), p, e2.t()));
-    return meet(Streams.of(Stream.of(base), a, Stream.of(refine(m.xs(), m.ret0(), c.t()))).toList());
+    return decidedThen(c, m, Streams.of(a, Stream.of(refine(m.xs(), m.ret0(), c.t()))));
   }
+  private List<IT> decidedThen(E.Call c, MSigL m, Stream<List<IT>> refinements){
+    var base= Push.of(m.clsArgs(), MSigL.fixTargs(c.targs(), m.bsArity()));
+    var all= meet(Streams.of(Stream.of(base), refinements).toList());
+    return Streams.zip(base, all).map((b,r)->decided(b) ? b : r).toList();
+  }
+  private static boolean decided(IT t){ return t.isTV() && !(t instanceof IT.RCC(var rc, _, _) && rc.isEmpty()); }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
     var selfUnknown= l.infName() && l.rc().isEmpty();
     if (selfUnknown){ return Optional.empty(); }
