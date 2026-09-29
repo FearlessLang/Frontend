@@ -386,3 +386,32 @@ Witness. `Box[X:imm]:{ .get: X }`, `Get[X:imm,mut,read]:{ read .get: read/imm X 
 nor `read _` nor a type variable, and `adapt` reached `assert rc == mut`. Seen from a `mut`
 method a captured `mut Box[X]` became `read Box[X]`, rejecting a call of `mut .get`; from a
 literal nested inside `Fresh`, `b` was discarded as possibly hygienic.
+
+## 19. Inference re-decides a decided bare `X` type argument as `rc X`
+
+Frontend#113, 2026-09-30. Rejects valid programs, not unsoundness.
+`DecidedBareXTypeArgumentTest.funnellingLiteralKeepsBareXReturn`,
+`funnellingLiteralKeepsNestedBareXReturn`.
+
+After inferring a method body of a literal `rc0 C[T1..Tn]`, inference refines the type
+arguments from the body type (`refineClsTsFromHeader`), and a decided argument is never
+re-decided: only the unknown ones are filled. A call typed under a bound `X:imm` gives
+`imm X` for an `X` passed to it; the meet of the header return with the body type prefers
+`imm X` over `X`, so the refinement proposes `Ti = imm X` where `Ti = X` is decided.
+
+    keepDecided(decided, fromBody)
+      was:  rc X,  rc' X  ->  rc X           if rc != iso
+            X,     rc' X  ->  meet(X, rc' X) = rc' X
+      now:  rc X,  rc' X  ->  rc X           if rc != iso
+            X,     rc' X  ->  X
+
+Under the enclosing `X:imm` the two spellings denote the same type; under the wider bounds
+`D_L(X)` of a funnelling literal (entry 10) `imm X` is not `X`, and the signature written
+from the header, `.get: imm X`, does not override `.get: X`. Where `D_L(X) = {imm}` the
+change only affects the spelling of the inferred types: `F[imm A,imm A]` is now `F[A,A]`.
+
+Witness. `Box[X:imm]:{ .get: X }`, `Get[X:imm,mut,read]:{ mut .get: X }` and
+`A:{ .m[X:imm](b: Box[X]): mut Get[X] -> mut Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }`:
+inference wrote `mut .get: imm X`, rejected as an invalid override, while `{ mut .get: X ->
+b.get }` was accepted. The same for a nested argument: `Box[X:imm]:{ .get: Opt[X] }` with
+`Fresh[X:imm,mut,read]:Get[Opt[X]]{ .get -> b.get }` gave `.get: Opt[imm X]`.

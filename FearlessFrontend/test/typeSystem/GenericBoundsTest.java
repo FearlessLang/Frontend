@@ -638,19 +638,18 @@ Ex:{
 """,people));}
 @Test void boundsForwardingExplicitBreak(){fail("""
 002| FPerson:{ #[N:*](name: Str, age: imm N): Person[imm N] -> Fresh[N:*]:Person[N]{
-003|   .name -> name;
-004|   .age -> age;
-   |   ^^^^^^^^^^^
+   |                                                                      ^^^^^^^^^
+   | ... 2 lines ...
 005|   }}
 
 While inspecting object literal "iso Fresh[_]" > "#(_,_)" line 2
-Invalid method signature overriding for "Fresh[_].age".
-The method ".age" returns type "imm N".
-But "Person[_].age" returns type "N", which is not a supertype of "imm N".
-The two types are unrelated.
+The type "Person[N]" is invalid.
+Type argument 1 ("N") does not satisfy the bounds
+for type parameter "N" in "Person[_]".
+Here "N" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Fresh[N:*]:Person[N]{.name:Str->name;.age:imm N->age}
+iso Fresh[N:*]:Person[N]{.name:Str->name;.age:N->age}
 """,List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[imm N] -> Fresh[N:*]:Person[N]{
