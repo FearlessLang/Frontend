@@ -9,7 +9,6 @@ import core.*;
 import core.E.*;
 import message.TypeSystemErrors;
 import utils.Range;
-import utils.Streams;
 
 public record Kinding(TypeSystemErrors tsE){
   public void checkC(E toErr, List<B> bs, T.C c){
@@ -31,12 +30,7 @@ public record Kinding(TypeSystemErrors tsE){
     }
     if (!of(bs,t,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
   }
-  public boolean of(List<B> bs, T t, EnumSet<RC> allowed){
-    if (!allowed.containsAll(intrinsicRCs(bs, t))){ return false; }
-    if (!(t instanceof T.RCC(_, var c, _))){ return true; }
-    var params= decs().apply(c.name()).bs();
-    return Streams.zip(c.ts(), params).allMatch((ti,p)->of(bs, ti, p.rcs()));
-  }
+  public boolean of(List<B> bs, T t, EnumSet<RC> allowed){ return allowed.containsAll(intrinsicRCs(bs, t)); }
   static EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch (t){
     case T.RCC(var rc, _, _) -> EnumSet.of(rc);
     case T.RCX(var rc, _) -> EnumSet.of(rc);

@@ -356,3 +356,33 @@ also with no requirement and in the error for an unmet one (Frontend#92,
 `CapabilityTypingTest.readImmResultOfIsoImmBound*`). With the unchanged test on
 `readImm(rc)`, a mode either keeps a variable type as written or gives an `RCX` not
 equivalent to it, so candidate results are never equivalent; `CallTyping.bests` asserts it.
+
+## 18. Classifying a captured type re-checked its type arguments under the literal's bounds
+
+Frontend#112, 2026-09-30. Crash and rejects valid programs, not unsoundness.
+`CapturedGenericInstanceTest.immCaptureOfGenericInstanceInReadMethodOfWiderBoundLiteral`,
+`mutCaptureOfGenericInstanceInMutMethodOfWiderBoundLiteral`,
+`immCaptureOfGenericInstanceInLiteralNestedInWiderBoundLiteral`.
+
+Two questions are asked of a type: is it well kinded (`kindOk` of entry 3, asked where the
+type is written), and which capabilities can it have (asked by `discard`, `adapt` and the
+affine filter of a method body, entry 4). A captured type is well kinded under the enclosing
+bounds `D` (entry 10), but `adapt` looks at it under the literal's bounds `D_L`, possibly
+wider, under which its type arguments may break the bounds of their declaration.
+
+    was:  D |- T : RCs  =  rcs(D,T) subsetOf RCs
+                           and (T = rc C[T1..Tn] implies forall i. D |- Ti : D_C(Xi))
+    now:  D |- T : RCs  =  rcs(D,T) subsetOf RCs
+
+`rcs(D, rc C[..])` is `{rc}` whatever the arguments, so for a well kinded type the two
+coincide; `kindOk` still checks the arguments wherever a type is written. The formalism has
+the same conjunction inside `Inst-Bs`: after entry 10, `T[D_L,read]` has no case for `imm
+C[..]` with an argument outside `D_L`, and `T[D_L,mut]` sets it to `read`.
+
+Witness. `Box[X:imm]:{ .get: X }`, `Get[X:imm,mut,read]:{ read .get: read/imm X }` and
+`A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }`.
+`b : imm Box[X]` is kept (`D(X) = {imm}`), then seen from the `read` method under `D_L(X) =
+{imm,mut,read}`: `Box[X]` breaks `Box[X:imm]`, so `b` was not `iso`/`imm`, was neither `mut _`
+nor `read _` nor a type variable, and `adapt` reached `assert rc == mut`. Seen from a `mut`
+method a captured `mut Box[X]` became `read Box[X]`, rejecting a call of `mut .get`; from a
+literal nested inside `Fresh`, `b` was discarded as possibly hygienic.
