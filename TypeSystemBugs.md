@@ -258,3 +258,40 @@ looks `imm`, so the literal became `iso`; under `D_L(X) = {imm,mut,read}` it is 
 `iso`/`imm`, so `keep` dropped `x` and `.get` was rejected with "parameter not available
 here". The same program with the outer bound `X:imm,mut,read` compiled. A `read` literal
 fails the same way; when the result must be `iso`, the error is now the literal's type.
+
+## 12. A promotion of a `read/imm X` resolves `read/imm` before the promotion
+
+Frontend#98, 2026-09-29. Unsound. `CapabilityTypingTest.genericReadHBoxReadImmGetIsNotRead`,
+`genericReadHBoxReadImmGetOfReadHIsNotRead`, `genericReadHSinkAcceptsReadHReadImmArgument`.
+
+A promotion maps each capability of a method type through a mode `prom` (`strong`, `flexy`,
+`hyg`, `useRead`). A type variable takes the mode through its bound; `read/imm X` stands for
+`readImm(rc) C` at the instantiation `X = rc C`, so the mode applies to `readImm(rc)`.
+`readImm` sends every capability outside `{iso,imm}` to `read`, hygienic ones included.
+
+    prom^f(D, readImm X) = readImm X      if forall r in R. prom(r) = r
+                           f(prom(R)) X   otherwise
+      now:  R = { readImm(rc) | rc in D(X) }
+      was:  prom(R) above was { readImm(prom(rc)) | rc in D(X) }
+            and the unchanged test was forall rc in D(X). readImm(prom(rc)) = rc
+
+Witness. `Box[X:*]:{ mut .get: X; read .get: read/imm X }` and
+`#[Y:mut](r: readH Box[Y]): read Y -> r.get`, through "Allow readH arguments": `hyg(mut) =
+mutH`, `readImm(mutH) = read`, so the call had type `read Y`, capturable by an object
+literal, where the concrete `readH Box[mut Foo]` gives `hyg(readImm(mut)) = readH Foo`.
+Under `D(Y) = {readH}` it gave `read Y` too; swapping the order without changing the
+unchanged test would give `read/imm Y`, still `read`, since `hyg(readImm(readH)) = readH`:
+the test must compare against `readImm(rc)`, not `rc`. On parameters the same order made
+`useRead` require `imm Y` for `read/imm Y` with `D(Y) = {mut}` where the concrete call
+requires `readH`, rejecting valid calls. The formalism has the same definition
+(`\prom^\f(\XBs,\readImm\,\X)` and `\noChangeRI`).
+
+The old order also gave one call two candidates with equivalent but different results. With
+`D(X) = {iso,imm}`, `readImm(iso) = imm` failed the unchanged test, so every promotion of
+`read/imm X` gave `imm X` next to the `read/imm X` "as declared": both denote only `imm`.
+`minimal` (entry 1) drops `T` when some `T' != T` has `T' <: T`, so it assumes `<:` is
+antisymmetric on the candidate results; the two removed each other and `best` crashed,
+also with no requirement and in the error for an unmet one (Frontend#92,
+`CapabilityTypingTest.readImmResultOfIsoImmBound*`). With the unchanged test on
+`readImm(rc)`, a mode either keeps a variable type as written or gives an `RCX` not
+equivalent to it, so candidate results are never equivalent; `CallTyping.bests` asserts it.

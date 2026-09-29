@@ -154,7 +154,7 @@ But "B.m" returns type "B", which is not a supertype of "D".
 It is instead a subtype: you are weakening the result instead of strengthening it.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-A:B,C,D,D{.m:D}
+A:B,C,D{.m:D}
 """,List.of("""
 A:B,C,D{ .m: D }
 B:D{ .m: B }

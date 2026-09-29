@@ -674,4 +674,60 @@ B[X:*]:{
   .m2[Y:*](a: read/imm Y): read/imm Y -> a;
   }
 """));}
+@Test void genericReadHBoxReadImmGetIsNotRead(){fail("""
+[###]Method call "read Box[_].get" has type "readH Y" instead of a subtype of "read Y".
+[###]
+""",List.of("""
+Box[X:*]:{ mut .get: X; read .get: read/imm X }
+Test:{ #[Y:mut](r: readH Box[Y]): read Y -> r.get }
+"""));}
+@Test void genericReadHBoxReadImmGetOfReadHIsNotRead(){fail("""
+[###]Method call "read Box[_].get" has type "readH Y" instead of a subtype of "read Y".
+[###]
+""",List.of("""
+Box[X:**]:{ mut .get: X; read .get: read/imm X }
+Test:{ #[Y:readH](r: readH Box[Y]): read Y -> r.get }
+"""));}
+@Test void genericReadHSinkAcceptsReadHReadImmArgument(){ok(List.of("""
+Void:{}
+Sink[X:*]:{ read .put(x: read/imm X): Void }
+Test:{ #[Y:mut](s: readH Sink[Y], y: readH Y): Void -> s.put(y) }
+"""));}
+@Test void readImmResultOfIsoImmBoundRequiredAsImm(){ok(List.of("""
+Box[X:iso,imm]:{ .get: read/imm X }
+User:{ .use[Y:iso,imm](b: Box[Y]): imm Y -> b.get }
+"""));}
+@Test void readImmResultOfIsoImmBoundRequiredAsReadImm(){ok(List.of("""
+Box[X:iso,imm]:{ .get: read/imm X }
+User:{ .use[Y:iso,imm](b: Box[Y]): read/imm Y -> b.get }
+"""));}
+@Test void readImmResultOfIsoImmBoundRequiredAsIso(){fail("""
+002| User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
+   |        -------------------------------------^^^^^
+
+While inspecting method call ".get" > ".use(_)" line 2
+The body of method ".use(_)" of type declaration "User" is an expression returning "read/imm Y".
+Method call "Box[_].get" has type "read/imm Y" instead of a subtype of "iso Y".
+
+See inferred typing context below for how type "iso Y" was introduced: (compression indicated by `-`)
+User:{.use[Y:imm,iso](b:Box[Y]):iso Y->b.get}
+""",List.of("""
+Box[X:iso,imm]:{ .get: read/imm X }
+User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
+"""));}
+@Test void readImmResultOfIsoImmBoundAsReceiver(){fail("""
+002| User:{ .use[Y:iso,imm](b: Box[Y]): Box[Y] -> b.get.foo }
+   |        --------------------------------------~~~~~^^^^
+
+While inspecting ".use(_)" line 2
+This call to method ".foo" cannot typecheck.
+The receiver is of type "read/imm Y". This is a type parameter.
+Type parameters cannot be receivers of method calls.
+
+See inferred typing context below for how type "read/imm Y" was introduced: (compression indicated by `-`)
+User:{.use[Y:imm,iso](b:Box[Y]):Box[Y]->b.get.foo}
+""",List.of("""
+Box[X:iso,imm]:{ .get: read/imm X }
+User:{ .use[Y:iso,imm](b: Box[Y]): Box[Y] -> b.get.foo }
+"""));}
 }
