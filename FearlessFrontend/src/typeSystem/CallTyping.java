@@ -116,6 +116,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   private T bestUnique(ArgMatrix mat, List<Integer> idxs){ return bests(mat,idxs).getFirst(); }
   private List<T> bests(ArgMatrix mat, List<Integer> idxs){
     var all= idxs.stream().map(i->mat.candidate(i).t()).toList();
+    assert all.stream().allMatch(ti->all.stream().allMatch(tj->tj.equals(ti) || !ts.isSub(bs,tj,ti) || !ts.isSub(bs,ti,tj)));
     return all.stream()
       .filter(ti->all.stream().noneMatch(tj->
         !tj.equals(ti) && ts.isSub(bs,tj,ti)))

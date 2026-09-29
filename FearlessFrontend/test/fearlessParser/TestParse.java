@@ -922,6 +922,31 @@ A:{ .m({,}Bob:X):X }
 """);
 }
 
+@Test void err_leading_bom_keeps_columns(){fail("""
+In file: [###].fear
+
+001| A:{ .m(x:C):C->x.foo(,) }
+   |     -----------~~~~~~^~
+
+While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
+Missing expression.
+Expected one of: "name", "type name", "(", "{".
+Error 2 UnexpectedToken
+""","""
+\uFEFFA:{ .m(x:C):C->x.foo(,) }
+""");}
+@Test void err_illegal_form_feed_char(){fail("""
+In file: [###].fear
+
+001| A:{ .m():X?}
+   |           ^
+
+While inspecting the file
+Illegal character [Form Feed 0x0C]
+Error 2 UnexpectedToken
+""",
+"A:{ .m():X\f}");
+}
 @Test void err_illegal_nbsp_char(){fail("""
 In file: [###].fear
 
@@ -1825,6 +1850,37 @@ Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
 ""","""
 A:{ .m:Str -> { a: 1, b: 2
+""");}
+
+@Test void strayOpenerBeforeLastCloser(){fail("""
+In file: [###].fear
+
+001| A:{ .m:A -> this.foo( }
+   |                     ^^^
+
+While inspecting groups of parenthesis
+Wrong closer for "(" group.
+Found instead: "}".
+This "(" may be unintended.
+Otherwise expected: ")".
+Error 2 UnexpectedToken
+""","""
+A:{ .m:A -> this.foo( }
+""");}
+@Test void strayOpenerBeforeBarrierFarAhead(){fail("""
+In file: [###].fear
+
+001| A:{ .m:A -> this.foo( } B:{} C:{};
+   |                     ^^^
+
+While inspecting groups of parenthesis
+Wrong closer for "(" group.
+Found instead: "}".
+This "(" may be unintended.
+Otherwise expected: ")".
+Error 2 UnexpectedToken
+""","""
+A:{ .m:A -> this.foo( } B:{} C:{};
 """);}
 
 @Test void openerInStringThenEOF_shouldPreferEatenCloser(){fail("""

@@ -230,6 +230,36 @@ and so did the lambda passed directly to a call with explicit type arguments, si
 result was re-decided. Receivers of a known type now keep their declared spelling in the
 inferred output (`F[_HR,T,_HR]` rather than `F[imm _HR,imm T,_HR]` under `imm` bounds).
 
+## 10. A funnelling literal captures under its own bounds, not the enclosing ones
+
+Frontend#95, 2026-09-29. Rejects valid programs, not unsoundness. Also a formalism change.
+`GenericBoundsTest.narrowOuterBoundMutLiteralOk`, `narrowOuterBoundReadLiteralOk`,
+`narrowOuterBoundPromotesToIso`, `narrowOuterBoundIsoLiteralCaptures`,
+`mutableOuterBoundIsoLiteralDoesNotCapture`.
+
+A named literal redeclares the enclosing type variables it uses, possibly with wider bounds
+`D_L`; kinding its self type only requires `D(X) subsetOf D_L(X)`. It is instantiated only
+at its own position, with exactly the funnelled variables or, after reduction, with closed
+types, so the enclosing bounds `D` hold for every value it can capture.
+
+    was:  Lit-ok:  G' = G|_{D_L,rc}, self              -- captures under the literal's bounds
+          Lit-t:   G|_{FTV(Ts)} |- rc L : OK
+    now:  Lit-ok:  G' = G, self
+          Lit-t:   (G|_{FTV(Ts)})|_{D,rc} |- rc L : OK -- captures under the enclosing bounds
+          -- the view of a capture inside each method, G'[D_L, rcOf(M)], keeps D_L
+
+For closed `Ts` the two coincide: closed types kind the same under any bounds, so run time
+typing is unchanged. The iso promotion of a literal (`mut`, `read` or `imm` typed as `iso`
+when its captures are all `iso`/`imm`) is decided under the same `D` and `G|_{FTV(Ts)}`.
+
+Witness. `Box[X:imm,mut,read]:{ mut .get: X }` and `A:{ .m[X:imm](x: X): mut Box[X] -> mut
+Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }`. The promotion looked at `D(X) = {imm}` and made
+the literal `iso`; the capture filter looked at `D_L(X) = {imm,mut,read}` and dropped `x`, so
+`.get` was rejected with "parameter not available here", while the outer bound
+`X:imm,mut,read` compiled. Writing `iso Fresh[X:imm,mut,read]` was rejected as well, although
+`x` is known to be `imm`. With a mutable enclosing bound, `.m[X:imm,mut]`, `x` is still not
+captured by an `iso` literal.
+
 ## 11. Inference sees the self name of a nested literal with the literal's capability
 
 Frontend#96, 2026-09-29. Rejects valid programs, not unsoundness.
@@ -264,3 +294,40 @@ Witness. `A:{ imm .m1: A; mut .m1: mut A; .m2: A }`,
 `User:{ #: mut A -> mut B:A{'self .m1 -> self; .m2 -> self.m1 } }`: inference produced
 `self.m1[mut]` in the `imm` method `.m2`; the top-level `B:A{ .m1 -> this; .m2 -> this.m1 }`
 was accepted.
+
+## 12. A promotion of a `read/imm X` resolves `read/imm` before the promotion
+
+Frontend#98, 2026-09-29. Unsound. `CapabilityTypingTest.genericReadHBoxReadImmGetIsNotRead`,
+`genericReadHBoxReadImmGetOfReadHIsNotRead`, `genericReadHSinkAcceptsReadHReadImmArgument`.
+
+A promotion maps each capability of a method type through a mode `prom` (`strong`, `flexy`,
+`hyg`, `useRead`). A type variable takes the mode through its bound; `read/imm X` stands for
+`readImm(rc) C` at the instantiation `X = rc C`, so the mode applies to `readImm(rc)`.
+`readImm` sends every capability outside `{iso,imm}` to `read`, hygienic ones included.
+
+    prom^f(D, readImm X) = readImm X      if forall r in R. prom(r) = r
+                           f(prom(R)) X   otherwise
+      now:  R = { readImm(rc) | rc in D(X) }
+      was:  prom(R) above was { readImm(prom(rc)) | rc in D(X) }
+            and the unchanged test was forall rc in D(X). readImm(prom(rc)) = rc
+
+Witness. `Box[X:*]:{ mut .get: X; read .get: read/imm X }` and
+`#[Y:mut](r: readH Box[Y]): read Y -> r.get`, through "Allow readH arguments": `hyg(mut) =
+mutH`, `readImm(mutH) = read`, so the call had type `read Y`, capturable by an object
+literal, where the concrete `readH Box[mut Foo]` gives `hyg(readImm(mut)) = readH Foo`.
+Under `D(Y) = {readH}` it gave `read Y` too; swapping the order without changing the
+unchanged test would give `read/imm Y`, still `read`, since `hyg(readImm(readH)) = readH`:
+the test must compare against `readImm(rc)`, not `rc`. On parameters the same order made
+`useRead` require `imm Y` for `read/imm Y` with `D(Y) = {mut}` where the concrete call
+requires `readH`, rejecting valid calls. The formalism has the same definition
+(`\prom^\f(\XBs,\readImm\,\X)` and `\noChangeRI`).
+
+The old order also gave one call two candidates with equivalent but different results. With
+`D(X) = {iso,imm}`, `readImm(iso) = imm` failed the unchanged test, so every promotion of
+`read/imm X` gave `imm X` next to the `read/imm X` "as declared": both denote only `imm`.
+`minimal` (entry 1) drops `T` when some `T' != T` has `T' <: T`, so it assumes `<:` is
+antisymmetric on the candidate results; the two removed each other and `best` crashed,
+also with no requirement and in the error for an unmet one (Frontend#92,
+`CapabilityTypingTest.readImmResultOfIsoImmBound*`). With the unchanged test on
+`readImm(rc)`, a mode either keeps a variable type as written or gives an `RCX` not
+equivalent to it, so candidate results are never equivalent; `CallTyping.bests` asserts it.
