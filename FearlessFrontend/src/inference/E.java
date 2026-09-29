@@ -53,7 +53,7 @@ public sealed interface E{
     }
     public Literal{
       assert unmodifiableDistinct(bs,"L.bs");
-      assert unmodifiable(cs,"L.cs");
+      assert unmodifiable(cs,"L.cs") && cs.stream().distinct().count() == cs.size();
       assert unmodifiableDistinct(ms, "L.ms");
       assert nonNull(name,thisName,t);
     }

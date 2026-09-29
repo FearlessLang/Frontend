@@ -3927,4 +3927,19 @@ User:{
     read C{};
 }
 """));}
+@Test void tsWidenRedundantlyListed(){ok(List.of("""
+Sup:base.WidenTo[Target]{}
+Target:Sup, base.WidenTo[Target]{}
+"""));}
+@Test void tsWidenRedundantlyListedNested(){ok(List.of("""
+Sup:base.WidenTo[Target]{}
+Target:Sup{}
+User:{ #:Sup->N:base.WidenTo[Target], Sup{} }
+"""));}
+@Test void tsSupertypesCollapsingUnderInstantiation(){ok(List.of("""
+Foo[X:imm]:{}
+S:{}
+A[X:imm]:Foo[X],Foo[S]{ .m:S; }
+User:{ #:A[S]->{ .m->S{} } }
+"""));}
 }
