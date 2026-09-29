@@ -3885,4 +3885,46 @@ L[E:*]:TF[E]{ }
 Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
 Use:{ #[E:*](fl: mut Fl[read TF[E]]): mut Fl[E] -> fl.g[E]{c -> c} }
 """));}
+@Test void argFromObjectLiteral_mutHParam_hintToWriteMutLiteral(){fail("""
+005|   .f:B->
+006|     Need#(read A{});
+   |     ----^^-------
+
+While inspecting ".f" line 5
+This call to method "Need#(_)" cannot typecheck.
+Argument 1 has type "read A".
+That is not a subtype of any of "mutH A" or "iso A".
+Object literal is of type "read A" instead of a subtype of "mutH A".
+Hint: write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
+
+Type required by each promotion:
+[###]
+""",List.of("""
+B:{}
+Need:{ #(a:mutH A):B->B{} }
+A:{ mut .foo:A}
+User:{
+  .f:B->
+    Need#(read A{});
+}
+"""));}
+@Test void bodyFromObjectLiteral_wrongNominal_noHintToChangeRC(){fail("""
+004|   .f:mut A->
+005|     read C{};
+   |          ^^
+
+While inspecting object literal instance of "read C" > ".f" line 4
+The body of method ".f" of type declaration "User" is an expression returning "read C".
+Object literal is of type "read C" instead of a subtype of "mut A".
+
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+User:{.f:mut A->read C}
+""",List.of("""
+A:{ mut .foo:A}
+C:{ mut .bar:C}
+User:{
+  .f:mut A->
+    read C{};
+}
+"""));}
 }
