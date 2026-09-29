@@ -601,6 +601,7 @@ Ex:{
 """,people));}
 @Test void boundsForwardingImplicitBreak(){fail("""
 002| FPerson:{ #[N:*](name: Str, age: imm N): Person[N] -> {
+   |                                          ^^^^^^^^^
    | ... 2 lines ...
 005|   }}
 
@@ -711,5 +712,28 @@ Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Foo[X:mut]:{}
 """,List.of("""
 A:{ .m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]:{} }
+"""));}
+@Test void narrowOuterBoundMutLiteralOk(){ok(List.of("""
+Box[X:imm,mut,read]:{ mut .get: X }
+A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
+"""));}
+@Test void narrowOuterBoundReadLiteralOk(){ok(List.of("""
+Box[X:imm,mut,read]:{ read .get: read/imm X }
+A:{ .m[X:imm](x: X): read Box[X] -> read Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
+"""));}
+@Test void narrowOuterBoundPromotesToIso(){ok(List.of("""
+Box[X:imm,mut,read]:{ mut .get: X }
+A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
+"""));}
+@Test void narrowOuterBoundIsoLiteralCaptures(){ok(List.of("""
+Box[X:imm,mut,read]:{ mut .get: X }
+A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
+"""));}
+@Test void mutableOuterBoundIsoLiteralDoesNotCapture(){fail("""
+[###]parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "iso Fresh[_]" (line 2).
+[###]
+""",List.of("""
+Box[X:imm,mut,read]:{ mut .get: X }
+A:{ .m[X:imm,mut](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
 """));}
 }

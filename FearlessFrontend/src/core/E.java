@@ -27,7 +27,7 @@ public sealed interface E{
     public Literal(RC rc, TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Src src, boolean infName){ this(rc,name,bs,cs,thisName,ms,src,infName,new EqTransparent<>(false)); }
     public Literal{
       assert unmodifiableDistinct(bs,"L.bs");
-      assert unmodifiableDistinct(cs,"L.cs");
+      assert unmodifiable(cs,"L.cs") && cs.stream().distinct().count() == cs.size();
       assert unmodifiableDistinct(ms, "L.ms");
       assert nonNull(rc,name,thisName,src,onlyImmCapture);
       assert eq(bs.size(), name.arity(),"Type arity");

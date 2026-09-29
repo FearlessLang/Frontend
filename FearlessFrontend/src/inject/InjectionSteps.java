@@ -428,11 +428,13 @@ public record InjectionSteps(Methods meths){
   }
   TSM nextMStarOp(List<B> bs, Gamma g, String thisN, Optional<IT.RCC> selfPrecise, IT.RCC rcc, inference.M m){
     assert m.impl().isPresent();
+    g.newScope(RC.mut);
+    g.declare(thisN, selfPrecise.<IT>map(s->new IT.RCC(s.rc().map(RC::isoToMut), s.c(), s.span())).orElse(IT.U.Instance));
     g.newScope(m.sig().rc().get());
-    g.declare(thisN, selfPrecise.<IT>map(o->o).orElse(IT.U.Instance));
     updateGWithArgs(g, m);
     var e= nextStar(Push.of(bs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
     var args= updateArgs(m, g);
+    g.popScope();
     g.popScope();
     return nextMStarOpRun(rcc, m, e, args);
   }

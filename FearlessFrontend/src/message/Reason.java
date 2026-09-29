@@ -26,29 +26,31 @@ public final class Reason{
     TypeSystem ts, E blame, List<B> bs, T got, T expected
     ){
     var er= (T.RCC)expected;
-    var explRC= er.rc() != RC.imm && switch (blame){
+    var rc= er.rc() == RC.mutH ? RC.mut : er.rc();
+    var explRC= rc != RC.imm && ts.isSub(bs,got.withRC(rc),er) && switch (blame){
       case Literal l -> l.rc() != RC.imm;
       case Type(var t, _) -> t.rc() != RC.imm;
       default -> throw Bug.unreachable();
     };
     if (!explRC){ return new Reason(got, base(ts,blame,bs,got,expected), ()->baseFooterE(ts.scope(),got,expected)); }
-    return hintExplicitRC(ts,got, base(ts,blame,bs,got,expected), er,blame);
+    return hintExplicitRC(ts,got, base(ts,blame,bs,got,expected), er,rc,blame);
   }
   private static String base(TypeSystem ts, E blame, List<B> bs, T got, T expected){
     if (isInferErr(expected)){ return ts.err().gotMsgInferErr(ts.err().expRepr(blame),got); }
     var skipImm= !ts.isSub(bs, got, expected.withRC(RC.imm));
     return "Object literal is of type "+ts.err().expReprDirect(skipImm,blame)+" instead of a subtype of "+ts.err().typeRepr(skipImm,expected)+".";
   }
-  private static Reason hintExplicitRC(TypeSystem ts,T got, String base, T.RCC expected, E blame){
+  private static Reason hintExplicitRC(TypeSystem ts,T got, String base, T.RCC expected, RC rc, E blame){
     E blameOk= switch (blame){
-      case Literal l -> l.withRC(expected.rc());
-      case Type(var t, var src) -> new Type(t.withRC(expected.rc()),src);
+      case Literal l -> l.withRC(rc);
+      case Type(var t, var src) -> new Type(t.withRC(rc),src);
       default -> throw Bug.unreachable();
     };
+    var why= rc == expected.rc() ? "." : " (needed to satisfy the "+disp(expected.rc())+" requirement).";
     var e= ts.err()
       .line(base)
       .line("Hint: write "+ts.err().expReprDirect(false,blameOk)
-      +" if you need a "+disp(expected.rc())+" object literal.");
+      +" if you need a "+disp(rc)+" object literal"+why);
     return new Reason(got, e.text(), ()->baseFooterE(ts.scope(),got,expected));
   }
   private static E baseFooterE(TypeScope s,T actual, T req){ return TypeScope.bestInterestingScope(s, TypeScope.interestFromDeclVsReq(actual, req)).contextE(); }

@@ -3885,4 +3885,79 @@ L[E:*]:TF[E]{ }
 Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
 Use:{ #[E:*](fl: mut Fl[read TF[E]]): mut Fl[E] -> fl.g[E]{c -> c} }
 """));}
+@Test void argFromObjectLiteral_mutHParam_hintToWriteMutLiteral(){fail("""
+005|   .f:B->
+006|     Need#(read A{});
+   |     ----^^-------
+
+While inspecting ".f" line 5
+This call to method "Need#(_)" cannot typecheck.
+Argument 1 has type "read A".
+That is not a subtype of any of "mutH A" or "iso A".
+Object literal is of type "read A" instead of a subtype of "mutH A".
+Hint: write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
+
+Type required by each promotion:
+[###]
+""",List.of("""
+B:{}
+Need:{ #(a:mutH A):B->B{} }
+A:{ mut .foo:A}
+User:{
+  .f:B->
+    Need#(read A{});
+}
+"""));}
+@Test void bodyFromObjectLiteral_wrongNominal_noHintToChangeRC(){fail("""
+004|   .f:mut A->
+005|     read C{};
+   |          ^^
+
+While inspecting object literal instance of "read C" > ".f" line 4
+The body of method ".f" of type declaration "User" is an expression returning "read C".
+Object literal is of type "read C" instead of a subtype of "mut A".
+
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+User:{.f:mut A->read C}
+""",List.of("""
+A:{ mut .foo:A}
+C:{ mut .bar:C}
+User:{
+  .f:mut A->
+    read C{};
+}
+"""));}
+@Test void tsWidenRedundantlyListed(){ok(List.of("""
+Sup:base.WidenTo[Target]{}
+Target:Sup, base.WidenTo[Target]{}
+"""));}
+@Test void tsWidenRedundantlyListedNested(){ok(List.of("""
+Sup:base.WidenTo[Target]{}
+Target:Sup{}
+User:{ #:Sup->N:base.WidenTo[Target], Sup{} }
+"""));}
+@Test void tsSupertypesCollapsingUnderInstantiation(){ok(List.of("""
+Foo[X:imm]:{}
+S:{}
+A[X:imm]:Foo[X],Foo[S]{ .m:S; }
+User:{ #:A[S]->{ .m->S{} } }
+"""));}
+@Test void nestedSelfDispatchUsesMethodCapability(){ok(List.of("""
+A:{ imm .m1: A; mut .m1: mut A; .m2: A }
+User:{ #: mut A -> mut B:A{'self .m1 -> self; .m2 -> self.m1 } }
+"""));}
+@Test void nestedSelfDispatchUsesReadMethodCapability(){ok(List.of("""
+A:{ read .m1: read A; mut .m1: mut A; read .m2: read A }
+User:{ #: mut A -> mut B:A{'self .m1 -> self; .m2 -> self.m1 } }
+"""));}
+@Test void nestedSelfCapturedDeeperUsesMethodCapability(){ok(List.of("""
+A:{ imm .m1: A; mut .m1: mut A; .m2: mut G }
+G:{ mut .get: A }
+User:{ #: mut A -> mut B:A{'self .m1 -> self; .m2 -> mut G{ .get -> self.m1 } } }
+"""));}
+@Test void isoNestedSelfCapturedDeeperIsMut(){ok(List.of("""
+A:{ imm .m1: A; mut .m1: mut A; mut .m2: mut G }
+G:{ mut .get: mut A }
+User:{ #: iso A -> iso B:A{'self .m1 -> self; .m2 -> mut G{ .get -> self.m1 } } }
+"""));}
 }
