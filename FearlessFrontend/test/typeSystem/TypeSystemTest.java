@@ -1742,6 +1742,28 @@ read B{mut .bar:mut B->b}
 B:{ mut .bar:mut B }
 A:{ mut .baz(b: mut B):read B-> { .bar->b}; }
 """));}
+@Test void immLiteralTwoSupersLeaveSameMutAbstract(){ok(List.of("""
+A:{ mut .m: A }
+B:{ mut .m: A }
+User:{ #: A -> C:A,B{} }
+"""));}
+@Test void readLiteralTwoSupersLeaveSameMutAbstract(){ok(List.of("""
+A:{ mut .m: A }
+B:{ mut .m: A }
+User:{ #: read A -> read C:A,B{} }
+"""));}
+@Test void readLiteralDiamondLeavesSameMutAbstract(){ok(List.of("""
+A:{ mut .m: A }
+B:A{}
+D:A{}
+User:{ #: read A -> read C:B,D{} }
+"""));}
+@Test void readLiteralImplementsReadOverloadOfMergedMutAbstract(){ok(List.of("""
+Z:{}
+A:{ mut .m: Z; read .m: Z }
+B:{ mut .m: Z; read .m: Z }
+User:{ #: read A -> read C:A,B{ .m -> Z } }
+"""));}
 @Test void methodReceiverNotRcc(){fail("""
 003|   .bar[X:imm,mut,read](x:X):A->x.foo123;
    |   -----------------------------~^^^^^^^^

@@ -356,39 +356,3 @@ also with no requirement and in the error for an unmet one (Frontend#92,
 `CapabilityTypingTest.readImmResultOfIsoImmBound*`). With the unchanged test on
 `readImm(rc)`, a mode either keeps a variable type as written or gives an `RCX` not
 equivalent to it, so candidate results are never equivalent; `CallTyping.bests` asserts it.
-
-## 20. A merged abstract method is checked as dead code
-
-Frontend#114, 2026-09-30. Rejects valid programs, not unsoundness.
-`MergedAbstractDeadCodeTest.immLiteralTwoSupersLeaveSameMutAbstract`,
-`readLiteralTwoSupersLeaveSameMutAbstract`, `readLiteralDiamondLeavesSameMutAbstract`,
-`readLiteralImplementsReadOverloadOfMergedMutAbstract`.
-
-Lit-T requires every method a literal implements to be callable on the literal's capability,
-and every callable method of its type to be implemented:
-
-    callable(rc0, rc) = rc0 in {imm,read} implies rc != mut
-    forall M in Ms. callable(rc0, rcOf(M))                             (dead code)
-    forall m in meths(C). callable(rc0, rcOf(m)) implies not abs(m)    (still abstract)
-
-The method table of a literal also holds the methods it inherits. The merge of a method
-inherited through several supertypes gives it the origin of the single implementing
-supertype, or the literal itself when there is none or more than one; with a single source
-the method keeps the origin of that source. So an abstract method reaching the literal
-through two supertypes has the literal as origin, like a method the literal implements.
-
-    was:  forall m in ms(C) with origin(m) = C. callable(rc0, rcOf(m))
-    now:  forall m in ms(C) with a body.       callable(rc0, rcOf(m))
-
-The origin stays the literal: `Sources` collects the merged signature as a source of the
-method table, and printing and renaming the literal follow it. The body is what Lit-T
-calls dead code, and the error names the method as implemented. The still abstract check
-already skips an abstract method that is not callable.
-An abstract method written in the literal without a body is accepted too, where Lit-T
-rejects it as a member of Ms: it has no code to be dead.
-The same merge happens for two supertypes declaring the method, for a diamond where both
-paths carry the same origin, and for the `mut` overload that inference drops when the
-literal implements the `read` one of the same name.
-
-Witness. `A:{ mut .m: A }`, `B:{ mut .m: A }`, `User:{ #: read A -> read C:A,B{} }` was
-rejected with "The method "mut C.m" is dead code"; with `read C:A{}` it was accepted.
