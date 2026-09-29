@@ -71,7 +71,7 @@ public record Methods(
   List<IT.C> fetchCs(IT.C c){
     var d= _from(c.name());
     if (d == null){ return List.of(); }//case {..}.foo
-    return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),B.xs(d.bs()),c.ts());
+    return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),B.xs(d.bs()),c.ts()).stream().distinct().toList();
   }
   private inference.M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child){
     var s= m.sig();
@@ -96,7 +96,7 @@ public record Methods(
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
     var ds= d.cs().stream().map(c->fetch(d,c,from(c.name()))).toList();
     var implied= ds.stream().flatMap(dsi->dsi.cs().stream()).toList();
-    var allCs= Push.of(d.cs(),implied.stream().distinct().sorted(Comparator.comparing(Object::toString)).toList());
+    var allCs= Push.of(d.cs(),implied.stream().filter(c->!d.cs().contains(c)).distinct().sorted(Comparator.comparing(Object::toString)).toList());
     var allSig= Streams.zip(d.cs(),ds).filter((c,_)->!implied.contains(c))
       .flatMap((_,dsi)->dsi.sigs().stream()).toList();
     var allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
@@ -109,8 +109,7 @@ public record Methods(
     var dd= _from(c.name());//null for the case {..}.foo
     List<M.Sig> allSig= dd == null ? List.of() : fetch(d,c,dd).sigs();
     var allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
-    var allCs= Push.of(c,fetchCs(c)).stream().distinct().toList();
-    return d.withCsMs(allCs, allMs, true);
+    return d.withCsMs(Push.of(c,fetchCs(c)), allMs, true);
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
     var widen= allCs.stream()
