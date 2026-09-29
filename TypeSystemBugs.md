@@ -356,3 +356,35 @@ also with no requirement and in the error for an unmet one (Frontend#92,
 `CapabilityTypingTest.readImmResultOfIsoImmBound*`). With the unchanged test on
 `readImm(rc)`, a mode either keeps a variable type as written or gives an `RCX` not
 equivalent to it, so candidate results are never equivalent; `CallTyping.bests` asserts it.
+
+## 14. Type arguments compare variable forms by spelling, not by what they denote
+
+Frontend#108, 2026-09-29. Wrong error, not unsoundness. `ReadImmTypeArgumentTest`.
+
+Type arguments are invariant: `eqModVar` (entry 2) decides when two of them are the same
+type. A variable form `X`, `rc X` or `read/imm X` denotes, at the instantiation
+`X = r C`, the capability `inst(F, r)` on `C`:
+
+    inst(X, r) = r      inst(rc X, r) = rc      inst(read/imm X, r) = readImm(r)
+
+    eqModVar(D, A, B) = match (A, B) with
+      ...
+      was:  (X, rc X) or (rc X, X)          -> D(X) = {rc}
+            any other pair of forms of X    -> false
+      now:  (F1, F2) forms of the same X    -> forall r in D(X). inst(F1, r) = inst(F2, r)
+
+The old case is the instance `F1 = X`, `F2 = rc X` of the new one. The pairs involving
+`read/imm X` were missing:
+
+    X        = read/imm X   iff  D(X) subset of {read, imm}
+    imm X    = read/imm X   iff  D(X) subset of {iso, imm}
+    read X   = read/imm X   iff  D(X) subset of {mut, mutH, read, readH}
+
+Witness. `Box[T:*]:{}` and `Sub:{ .m[X:mut](x: Box[read X]): Box[read/imm X] -> x }` was
+rejected (parameter `x` has type `Box[read X]`, not a subtype of `Box[read/imm X]`),
+while its only instantiation `X = mut Foo` gives `Box[read Foo]` on both sides. Same for
+`X:read,imm` with `Box[X]` and `X:iso,imm` with `Box[imm X]` against `Box[read/imm X]`.
+`X:iso,imm` with `Box[X]` against `Box[read/imm X]` stays rejected: `X = iso Foo` gives
+`Box[iso Foo]` and `Box[imm Foo]`. The formalism has the same incompleteness, and more of
+it: its rule RC-sub requires `T[mut] = T'[mut]` syntactically, so it also rejects `Box[X]`
+against `Box[mut X]` under `X:mut`.

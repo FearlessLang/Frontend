@@ -27,6 +27,7 @@ import inject.TypeRename;
 import message.Err;
 import message.Reason;
 import message.TypeSystemErrors;
+import utils.Bug;
 import utils.OneOr;
 import utils.Push;
 import utils.Range;
@@ -277,14 +278,18 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private boolean eqModXRC(List<B> bs,T a,T b){
     if (a.equals(b)){ return true; }
-    var redundantRcOnB= a instanceof T.X(var aName, _) && b instanceof T.RCX(var bRc, var bX) && bX.name().equals(aName) && redundantOnX(bs,bRc,aName);
-    if (redundantRcOnB){ return true; }
-    var redundantRcOnA= a instanceof T.RCX(var aRc, var aX) && b instanceof T.X(var bName, _) && aX.name().equals(bName) && redundantOnX(bs,aRc,bName);
-    if (redundantRcOnA){ return true; }
+    if (a.withRC(mut) instanceof T.RCX ax){
+      return ax.equals(b.withRC(mut)) && get(bs,ax.x().name()).rcs().stream().allMatch(r->instRC(a,r) == instRC(b,r));
+    }
     if (!(a instanceof T.RCC(var aRc, var aC, _) && b instanceof T.RCC(var bRc, var bC, _))){ return false; }
     var sameHead= aRc == bRc && aC.name().equals(bC.name());
     if (!sameHead){ return false; }
     return Streams.zip(aC.ts(), bC.ts()).allMatch((x,y)->eqModXRC(bs,x,y));
   }
-  private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }
+  private static RC instRC(T t,RC r){ return switch (t){
+    case T.X _ -> r;
+    case T.RCX(var rc, _) -> rc;
+    case T.ReadImmX _ -> r.readImm();
+    case T.RCC _ -> throw Bug.unreachable();
+  };}
 }
