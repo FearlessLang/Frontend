@@ -3885,7 +3885,7 @@ L[E:*]:TF[E]{ }
 Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
 Use:{ #[E:*](fl: mut Fl[read TF[E]]): mut Fl[E] -> fl.g[E]{c -> c} }
 """));}
-@Test void argFromObjectLiteral_mutHParam_noHintToWriteMutHLiteral(){fail("""
+@Test void argFromObjectLiteral_mutHParam_hintToWriteMutLiteral(){fail("""
 005|   .f:B->
 006|     Need#(read A{});
    |     ----^^-------
@@ -3895,6 +3895,7 @@ This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mutH A" or "iso A".
 Object literal is of type "read A" instead of a subtype of "mutH A".
+Hint: write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
 
 Type required by each promotion:
 [###]
