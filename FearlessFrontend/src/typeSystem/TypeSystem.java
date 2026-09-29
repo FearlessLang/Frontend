@@ -6,6 +6,7 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SequencedMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import inject.TypeRename;
 import message.Err;
 import message.Reason;
 import message.TypeSystemErrors;
+import utils.Bug;
 import utils.OneOr;
 import utils.Push;
 import utils.Range;
@@ -57,7 +59,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   public boolean isSub(List<B> bs, T t1, T t2){
     return t1.equals(t2)
-      || isXReadImmXSubtype(bs,t1,t2)
+      || isSameXSubtype(bs,t1,t2)
       || isSameShapeSubtype(bs,t1,t2)
       || isImplSubtype(bs,t1,t2);
   }
@@ -211,12 +213,23 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var d= decs().apply(c1.name());
     return d.cs().stream().anyMatch(ci->isSub(bs, TypeRename.of(new T.RCC(rc1, ci,span1), B.xs(d.bs()), c1.ts()), t2));
   }
-  private boolean isXReadImmXSubtype(List<B> bs, T t1, T t2){
-    return t2 instanceof T.ReadImmX(var x2)
-      && t1 instanceof T.X x
-      && x2.name().equals(x.name())
-      && k().of(bs, x, EnumSet.of(iso,imm,mut,read));
+  private boolean isSameXSubtype(List<B> bs, T t1, T t2){
+    var x= xName(t1);
+    if (x.isEmpty() || !x.equals(xName(t2))){ return false; }
+    return get(bs,x.get()).rcs().stream().allMatch(rc->at(t1,rc).isSubType(at(t2,rc)));
   }
+  static Optional<String> xName(T t){ return switch (t){
+    case T.X(var n, _) -> Optional.of(n);
+    case T.RCX(_, var x) -> Optional.of(x.name());
+    case T.ReadImmX(var x) -> Optional.of(x.name());
+    case T.RCC _ -> Optional.empty();
+  };}
+  private static RC at(T t, RC rc){ return switch (t){
+    case T.X _ -> rc;
+    case T.RCX(var r, _) -> r;
+    case T.ReadImmX _ -> rc.readImm();
+    case T.RCC _ -> throw Bug.unreachable();
+  };}
   private boolean isSameShapeSubtype(List<B> bs, T t1, T t2){
     if (!eqModXRC(bs,t1.withRC(mut),t2.withRC(mut))){ return false; }
     var rcs2= Kinding.intrinsicRCs(bs, t2);

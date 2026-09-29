@@ -759,4 +759,25 @@ iso B
 B:{ mut .m: B }
 A:{ .b: mutH B -> {} }
 """));}
+@Test void sameXSubtypeComparesEachInstantiation(){ok(List.of("""
+A:{ .m[Z:imm,readH](a: read/imm Z): Z -> a }
+"""));}
+@Test void splitBoundPicksASignaturePerInstantiation(){ok(List.of("""
+K[Y:iso,mut]:{ imm .m(a: Y): mut Y }
+C:{ .c[Z:iso,mut](k: imm K[Z], a: Z): Z -> k.m(a) }
+"""));}
+@Test void splitBoundNeedsEveryInstantiation(){fail("""
+002| C:{ .c[Z:iso,mut](k: imm K[Z], a: Z): iso Z -> k.m(a) }
+   |     -------------------------------------------^^^^^^
+
+While inspecting method call ".m(_)" > ".c(_,_)" line 2
+The body of method ".c(_,_)" of type declaration "C" is an expression returning "mut Z".
+Method call "K[_].m(_)" has type "mut Z" instead of a subtype of "iso Z".
+
+See inferred typing context below for how type "iso Z" was introduced: (compression indicated by `-`)
+C:{.c[Z:mut,iso](k:K[Z],a:Z):iso Z->k.m(a)}
+""",List.of("""
+K[Y:iso,mut]:{ imm .m(a: Y): mut Y }
+C:{ .c[Z:iso,mut](k: imm K[Z], a: Z): iso Z -> k.m(a) }
+"""));}
 }

@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.UnaryOperator;
@@ -27,14 +26,13 @@ public class InstantiationSweepTest extends testUtils.FearlessTestBase{
   static final String allRcs= String.join(",",rcs);
   static final List<core.E.Literal> base= DbgBlock.all();
   static final Map<String,Boolean> concrete= new ConcurrentHashMap<>();
-  static final Map<String,Integer> split= new ConcurrentHashMap<>();
   record Found(String title, AtomicLong n, List<String> sample){
     Found(String title){ this(title,new AtomicLong(),Collections.synchronizedList(new ArrayList<>())); }
     void add(String s){ n.incrementAndGet(); if (sample.size() < 20){ sample.add(s); } }
     public String toString(){ return title+": "+n+"\n"+Join.of(sample.stream().sorted(),"","\n","\n",""); }
   }
   static final Found unsound= new Found("Generic accepted, some instantiation rejected");
-  static final Found unexplained= new Found("Generic rejected, every instantiation accepted, some singleton bound rejected");
+  static final Found incomplete= new Found("Generic rejected, every instantiation accepted");
   static final Found crashes= new Found("Crashes");
   static final AtomicLong done= new AtomicLong();
 
@@ -78,21 +76,16 @@ public class InstantiationSweepTest extends testUtils.FearlessTestBase{
   }
   static void check(Case c){
     var n= done.incrementAndGet();
-    if (n % 500_000 == 0){ System.out.println("checked "+n+" unsound "+unsound.n()+" unexplained "+unexplained.n()+" crashes "+crashes.n()); }
+    if (n % 500_000 == 0){ System.out.println("checked "+n+" unsound "+unsound.n()+" incomplete "+incomplete.n()+" crashes "+crashes.n()); }
     var g= ok(c.generic(c.bound()));
     var insts= c.bound().stream().allMatch(rc->concrete.computeIfAbsent(c.instance(rc),InstantiationSweepTest::ok));
     if (g && !insts){ unsound.add(c.generic(c.bound())); return; }
-    if (g || !insts){ return; }
-    var bySingleton= c.bound().stream().allMatch(rc->ok(c.generic(List.of(rc))));
-    if (!bySingleton){ unexplained.add(c.generic(c.bound())); return; }
-    split.merge(String.join(",",c.bound()),1,Integer::sum);
+    if (!g && insts){ incomplete.add(c.generic(c.bound())); }
   }
   @Test void genericTypingMatchesAllInstantiations(){
     var total= 63L*2*3*6*9*8*8*8;
     IntStream.range(0,(int)total).parallel().mapToObj(InstantiationSweepTest::decode).flatMap(Optional::stream).forEach(InstantiationSweepTest::check);
-    System.out.println("Generic rejected, every instantiation and every singleton bound accepted, by bound:");
-    new TreeMap<>(split).forEach((b,n)->System.out.println("  Z:"+b+" "+n));
-    if (unsound.n().get() + unexplained.n().get() + crashes.n().get() == 0){ return; }
-    fail(""+unsound+unexplained+crashes);
+    if (unsound.n().get() + incomplete.n().get() + crashes.n().get() == 0){ return; }
+    fail(""+unsound+incomplete+crashes);
   }
 }

@@ -2,6 +2,7 @@ package typeSystem;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.stream.IntStream;
 import core.*;
 import core.E.*;
@@ -25,10 +26,38 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     if (app.isEmpty()){ throw ts.tsE().receiverRCBlocksCall(d,c,rcc0.rc(),MultiMeth.of(bs,base,mayBeH(rcc0.rc(),base))); }
     var mat= typeArgsOnce(d,app);
     var possible= mat.candidatesOkForAllArgs();//This is indexes of MTypes allowed by the arguments
-    if (possible.isEmpty()){ throw ts.tsE().methodPromotionsDisagreeOnArguments(c,mat); }
+    if (rs.isEmpty() && possible.isEmpty()){ throw noCandidate(d,mat); }
     if (rs.isEmpty()){ return List.of(Reason.pass(bestUnique(mat,possible))); }
-    return rs.stream().map(req->resForReq(d,sig,mat,possible,req)).toList();
+    return rs.stream().map(req->resForReq(d,sig,base,rcc0.rc(),mat,possible,req)).toList();
   }
+  private FearlessException noCandidate(Literal d, ArgMatrix mat){
+    var argi= IntStream.range(0,mat.okByArg().size()).filter(i->mat.okByArg().get(i).isEmpty()).findFirst();
+    if (argi.isEmpty()){ return ts.tsE().methodPromotionsDisagreeOnArguments(c,mat); }
+    var i= argi.getAsInt();
+    var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, i),ts.v());
+    return cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,i,argRequirements(mat.cs(),i),mat.resByArg().get(i));
+  }
+  private boolean splitOk(List<B> bs0, MType base, RC recv, ArgMatrix mat, T req){
+    var ts0= Push.of(Push.of(base.ts(),base.t()),req);
+    var x= bs0.stream().filter(b->b.rcs().size() > 1 && ts0.stream().anyMatch(t->mentions(t,b.x()))).findFirst();
+    return x.isPresent() && x.get().rcs().stream().allMatch(rc->fits(narrow(bs0,x.get(),rc),base,recv,mat,req));
+  }
+  private boolean fits(List<B> bs0, MType base, RC recv, ArgMatrix mat, T req){
+    var fit= MultiMeth.of(bs0,base,true).stream()
+      .anyMatch(m->recv.isSubType(m.rc()) && argsFit(bs0,mat,m) && ts.isSub(bs0,m.t(),req));
+    return fit || splitOk(bs0,base,recv,mat,req);
+  }
+  private boolean argsFit(List<B> bs0, ArgMatrix mat, MType m){
+    return IntStream.range(0,m.ts().size())
+      .allMatch(i->mat.resByArg().get(i).stream().anyMatch(r->ts.isSub(bs0,r.best,m.ts().get(i))));
+  }
+  private static List<B> narrow(List<B> bs0, B x, RC rc){
+    return bs0.stream().map(b->b == x ? new B(b.x(),EnumSet.of(rc)) : b).toList();
+  }
+  private static boolean mentions(T t, String x){ return switch (t){
+    case T.RCC(_, var c0, _) -> c0.ts().stream().anyMatch(ti->mentions(ti,x));
+    case T.X _, T.RCX _, T.ReadImmX _ -> TypeSystem.xName(t).orElseThrow().equals(x);
+  };}
   private boolean mayBeH(RC recv, MType base){
     return recv.isH() || Push.of(base.ts(),base.t()).stream().anyMatch(this::mayBeH);
   }
@@ -70,7 +99,13 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   private ArgMatrix typeArgsOnce(Literal d,List<MType> app){
     var size= c.es().size();
     var acc= new ArgMatrix(app,new ArrayList<>(size),new ArrayList<>(size));
-    for (int argi : Range.of(0,size)){ accArgi(d,acc,argi); }
+    for (int argi : Range.of(0,size)){
+      try{ accArgi(acc,argi); }
+      catch(FearlessException fe){
+        if (acc.okByArg().stream().noneMatch(List::isEmpty)){ throw fe; }
+        throw noCandidate(d,acc);
+      }
+    }
     return acc;
   }
   private List<TRequirement> argRequirements(List<MType> app, int argi){
@@ -92,23 +127,23 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
         e.getKey()))
       .toList();*/
   }
-  private void accArgi(Literal d, ArgMatrix acc, int argi){
+  private void accArgi(ArgMatrix acc, int argi){
     var reqs= argRequirements(acc.cs(),argi);
     var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi),ts.v());
     var res= cts.typeOf(bs,g,c.es().get(argi),reqs);
     assert res.size() == acc.cs().size();
-    var ok= okSet(res);
-    if (ok.isEmpty()){ throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res); }
-    acc.okByArg().add(ok);
+    acc.okByArg().add(okSet(res));
     acc.resByArg().add(res);
   }
   private static List<Integer> okSet(List<Reason> res){
     return IntStream.range(0,res.size()).filter(i->res.get(i).isEmpty()).boxed().toList();
   }
-  private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){
+  private Reason resForReq(Literal d, Sig sig, MType base, RC recv, ArgMatrix mat, List<Integer> possible, TRequirement req){
     var okRet= possible.stream()
       .filter(i->ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
     if (!okRet.isEmpty()){ return Reason.pass(bestUnique(mat,okRet)); }
+    if (splitOk(bs,base,recv,mat,req.t())){ return Reason.pass(req.t()); }
+    if (possible.isEmpty()){ throw noCandidate(d,mat); }
     return Reason.callResultCannotHaveRequiredType(ts,d,c, req, bests(mat,possible),sig);
   }
   //Unique unless the minimal types are a bare 'X' and some 'rc X'. A bare X stands for its whole
