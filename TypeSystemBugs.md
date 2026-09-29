@@ -278,7 +278,8 @@ the self name the same way.
                                          isoToMut(rc0) C[..] if rcOf(m) = mut
     was:  inference declares self : rc0 C[..] inside the scope of m, and Gamma.getWithRC
           adapts a binding only by the scopes strictly inside its declaration
-    now:  inference declares self : (self seen by m) inside the scope of m
+    now:  inference declares self : isoToMut(rc0) C[..] in a scope of its own around the scope
+          of m, so Gamma.getWithRC adapts it by m and every deeper scope, like a capture
 
 Top-level declarations did not suffer: `stepDecM` types `this` with `rcOf(m)` directly,
 which is the adapted type: a top-level declaration has `rc0 = mut`.
