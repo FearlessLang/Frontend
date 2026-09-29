@@ -168,8 +168,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     };
   }
   private boolean isBaseContainer(T t){
-    return t instanceof T.RCC(_, var c, _)
-      && LiteralDeclarations.has(decs().apply(c.name()).cs(),LiteralDeclarations.baseContainer);
+    return t instanceof T.RCC(_, var c, _) && isOriginSub(c.name(),LiteralDeclarations.baseContainer);
   }
   private void litOk(Gamma g, Literal l){
     baseIdOk(l);

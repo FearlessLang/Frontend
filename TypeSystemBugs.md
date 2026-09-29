@@ -356,3 +356,24 @@ also with no requirement and in the error for an unmet one (Frontend#92,
 `CapabilityTypingTest.readImmResultOfIsoImmBound*`). With the unchanged test on
 `readImm(rc)`, a mode either keeps a variable type as written or gives an `RCX` not
 equivalent to it, so candidate results are never equivalent; `CallTyping.bests` asserts it.
+
+## 13. A `BaseId` body `x.as{..}` rejected `x : BaseContainer[..]` itself
+
+Frontend#107, 2026-09-29. Rejects valid programs, not unsoundness.
+`BaseIdOnBaseContainerTest`.
+
+A `BaseId` body is the identity when it is `x`, or `x.as{..}` with `x` typed by a
+`BaseContainer`: `BaseContainer` is sealed, so its `.as` and the ones overriding it are the
+trusted ones of `base`.
+
+    idBody(#(x: rc C[..]) -> x.as{..}) = C <= BaseContainer
+      was:  BaseContainer in cs(C)   -- the flattened supertypes of C, never C itself
+      now:  C = BaseContainer or BaseContainer in cs(C)
+
+Isolated. The other membership tests on a flattened `cs` ask about the literal being
+checked (`BaseId`, `CaptureFree`) or are meant to be strict (`Sealed`: implementing
+`Sealed` itself is how a type becomes sealed, extending a sealed type is the error).
+
+Witness. `MyId:base.BaseId[base.BaseContainer[Customer],base.BaseContainer[Person]]{
+#(x)->x.as{::} }` was rejected with `baseIdBadBody`, while the same body over
+`base.MList[..]` was accepted. A user type declaring its own `.as` is still rejected.
