@@ -16,4 +16,16 @@ A:{ mut .m: A }
 B:{ mut .m: A }
 User:{ #: read A -> read C:A,B{} }
 """));}
+@Test void readLiteralDiamondLeavesSameMutAbstract(){ok(List.of("""
+A:{ mut .m: A }
+B:A{}
+D:A{}
+User:{ #: read A -> read C:B,D{} }
+"""));}
+@Test void readLiteralImplementsReadOverloadOfMergedMutAbstract(){ok(List.of("""
+Z:{}
+A:{ mut .m: Z; read .m: Z }
+B:{ mut .m: Z; read .m: Z }
+User:{ #: read A -> read C:A,B{ .m -> Z } }
+"""));}
 }

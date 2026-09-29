@@ -123,7 +123,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       if (notInferred){ throw tsE().methodNotInferred(l,m); }
     }
     var ts= dom(l.bs(),span);
-    var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).toList();
+    var ms= l.ms().stream().filter(m->m.e().isPresent()).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l,bs1,thisType);
