@@ -743,6 +743,32 @@ C:{}
 B:{ mut .m: B; .k: C }
 A:{ .b: readH B -> { .k -> {} } }
 """));}
+@Test void readHLambdaArgumentLeavesMutOverloadAbstract(){ok(List.of("""
+A:{}
+Box:{ mut .get: A; read .get: A; }
+Need:{ #(b: readH Box): A -> A }
+User:{
+  read .a: A -> A;
+  read .f: A -> Need#{ .get -> this.a };
+}
+"""));}
+@Test void readHLambdaResultLeavesMutOverloadAbstract(){ok(List.of("""
+A:{}
+Box:{ mut .get: A; read .get: A; }
+User:{
+  read .a: A -> A;
+  read .f: readH Box -> { .get -> this.a };
+}
+"""));}
+@Test void mutHLambdaArgumentImplementsBothOverloads(){ok(List.of("""
+A:{}
+Box:{ mut .get: A; read .get: A; }
+Need:{ #(b: mutH Box): A -> A }
+User:{
+  read .a: A -> A;
+  read .f: A -> Need#{ .get -> this.a };
+}
+"""));}
 @Test void mutHEmptyLiteralMustImplementMut(){fail("""
 002| A:{ .b: mutH B -> {} }
    |     --------------^^
