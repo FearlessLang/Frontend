@@ -230,34 +230,35 @@ and so did the lambda passed directly to a call with explicit type arguments, si
 result was re-decided. Receivers of a known type now keep their declared spelling in the
 inferred output (`F[_HR,T,_HR]` rather than `F[imm _HR,imm T,_HR]` under `imm` bounds).
 
-## 10. Iso promotion of a literal reads its captures under the enclosing bounds
+## 10. A funnelling literal captures under its own bounds, not the enclosing ones
 
-Frontend#95, 2026-09-29. Rejects valid programs, not unsoundness.
+Frontend#95, 2026-09-29. Rejects valid programs, not unsoundness. Also a formalism change.
 `GenericBoundsTest.narrowOuterBoundMutLiteralOk`, `narrowOuterBoundReadLiteralOk`,
-`narrowOuterBoundDoesNotPromoteToIso`.
+`narrowOuterBoundPromotesToIso`, `narrowOuterBoundIsoLiteralCaptures`,
+`mutableOuterBoundIsoLiteralDoesNotCapture`.
 
-A `mut`, `read` or `imm` literal whose captures are all `iso`/`imm` is typed as an `iso`
-literal. The formalism has no separate promotion rule: the promotion is sound because
-`Lit-t` with `iso` itself applies, and `Lit-t` checks the literal under its own bounds
-`D_L` (funnelling redeclares the enclosing type variables, and kinding the literal's self
-type only requires `D(X) subsetOf D_L(X)`), keeping the captures by `keep(D_L, iso, G)`
-(bug 4).
+A named literal redeclares the enclosing type variables it uses, possibly with wider bounds
+`D_L`; kinding its self type only requires `D(X) subsetOf D_L(X)`. It is instantiated only
+at its own position, with exactly the funnelled variables or, after reduction, with closed
+types, so the enclosing bounds `D` hold for every value it can capture.
 
-    free(D, G, L) = forall x used in the bodies of L with x:T in G. rcs(D,T) subsetOf {iso,imm}
-    was:  promote(D, G, L) = rcOf(L) in {mut,read,imm} and free(D, G, L)
-          -- the enclosing bounds and bindings
-    now:  promote(D, G, L) = rcOf(L) in {mut,read,imm} and free(D_L, G|dom(D_L), L)
-          -- the bounds and bindings Lit-ok sees
+    was:  Lit-ok:  G' = G|_{D_L,rc}, self              -- captures under the literal's bounds
+          Lit-t:   G|_{FTV(Ts)} |- rc L : OK
+    now:  Lit-ok:  G' = G, self
+          Lit-t:   (G|_{FTV(Ts)})|_{D,rc} |- rc L : OK -- captures under the enclosing bounds
+          -- the view of a capture inside each method, G'[D_L, rcOf(M)], keeps D_L
 
-Since `D(X) subsetOf D_L(X)`, the enclosing bounds can only make a capture look freer than
-`keep` then finds it, so the promoted literal lost a capture its body uses.
+For closed `Ts` the two coincide: closed types kind the same under any bounds, so run time
+typing is unchanged. The iso promotion of a literal (`mut`, `read` or `imm` typed as `iso`
+when its captures are all `iso`/`imm`) is decided under the same `D` and `G|_{FTV(Ts)}`.
 
 Witness. `Box[X:imm,mut,read]:{ mut .get: X }` and `A:{ .m[X:imm](x: X): mut Box[X] -> mut
-Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }`. Under `D(X) = {imm}` the capture `x : X`
-looks `imm`, so the literal became `iso`; under `D_L(X) = {imm,mut,read}` it is not
-`iso`/`imm`, so `keep` dropped `x` and `.get` was rejected with "parameter not available
-here". The same program with the outer bound `X:imm,mut,read` compiled. A `read` literal
-fails the same way; when the result must be `iso`, the error is now the literal's type.
+Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }`. The promotion looked at `D(X) = {imm}` and made
+the literal `iso`; the capture filter looked at `D_L(X) = {imm,mut,read}` and dropped `x`, so
+`.get` was rejected with "parameter not available here", while the outer bound
+`X:imm,mut,read` compiled. Writing `iso Fresh[X:imm,mut,read]` was rejected as well, although
+`x` is known to be `imm`. With a mutable enclosing bound, `.m[X:imm,mut]`, `x` is still not
+captured by an `iso` literal.
 
 ## 12. A promotion of a `read/imm X` resolves `read/imm` before the promotion
 

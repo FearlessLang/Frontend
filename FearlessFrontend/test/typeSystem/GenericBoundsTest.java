@@ -721,19 +721,19 @@ A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 Box[X:imm,mut,read]:{ read .get: read/imm X }
 A:{ .m[X:imm](x: X): read Box[X] -> read Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
 """));}
-@Test void narrowOuterBoundDoesNotPromoteToIso(){fail("""
-002| A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
-   |     -----------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting object literal "mut Fresh[_]" > ".m(_)" line 2
-The body of method ".m(_)" of type declaration "A" is an expression returning "mut Fresh[X]".
-Object literal is of type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
-Hint: write "iso Fresh[_]" if you need a "iso" object literal.
-
-See inferred typing context below for how type "iso Box[X]" was introduced: (compression indicated by `-`)
-A:{.m[X:imm](x:X):iso Box[X]->mut Fresh[X:*]:Box[X]{mut .get:X->x}}
-""",List.of("""
+@Test void narrowOuterBoundPromotesToIso(){ok(List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
+"""));}
+@Test void narrowOuterBoundIsoLiteralCaptures(){ok(List.of("""
+Box[X:imm,mut,read]:{ mut .get: X }
+A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
+"""));}
+@Test void mutableOuterBoundIsoLiteralDoesNotCapture(){fail("""
+[###]parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "iso Fresh[_]" (line 2).
+[###]
+""",List.of("""
+Box[X:imm,mut,read]:{ mut .get: X }
+A:{ .m[X:imm,mut](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
 """));}
 }
