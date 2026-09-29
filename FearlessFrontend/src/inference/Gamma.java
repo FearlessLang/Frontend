@@ -1,5 +1,6 @@
 package inference;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,7 @@ public final class Gamma{
  @offensiveUtils.NeverAsKey
  public static final class GammaSignature{
     long hash;
+    final HashMap<Long,ArrayList<Object>> monotonicity= new HashMap<>();
     //public GammaSignature clear(){ hash = 0; return this;}//more performance
     public GammaSignature clear(){ return new GammaSignature(); }//more safe
     @Override public boolean equals(Object o){ return o instanceof GammaSignature; }

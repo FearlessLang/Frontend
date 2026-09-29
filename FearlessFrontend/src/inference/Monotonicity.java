@@ -1,8 +1,6 @@
 package inference;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,8 +11,6 @@ import utils.Range;
 
 public final class Monotonicity{
   private Monotonicity(){}
-  private static final IdentityHashMap<GammaSignature,State> states= new IdentityHashMap<>();
-  private static final class State{ final HashMap<Long,ArrayList<Object>> hist= new HashMap<>(); }
   private enum K{eT,callRc,callTarg,litMArg,litMRet}
 
   // Packs (kind, a, b) into one 64-bit key.
@@ -48,8 +44,7 @@ public final class Monotonicity{
   }
 
   private static boolean step(GammaSignature g, long slot, Object from, Object to, String what){
-    var st= states.computeIfAbsent(g, _->new State());
-    var l= st.hist.computeIfAbsent(slot, _->new ArrayList<>(4));
+    var l= g.monotonicity.computeIfAbsent(slot, _->new ArrayList<>(4));
     if (l.isEmpty()){ l.add(from); }
     var last= l.getLast();
     var outOfSync= !(from instanceof IT.U) && !last.equals(from);
@@ -76,10 +71,8 @@ public final class Monotonicity{
     return hasAnyKind(g,K.litMArg) || hasAnyKind(g,K.litMRet);
   }
   private static boolean hasAnyKind(GammaSignature g, K k){
-    var st= states.get(g);
-    if (st == null){ return false; }
     var kind= k.ordinal();
-    for (long key: st.hist.keySet()){
+    for (long key: g.monotonicity.keySet()){
       if (kindOf(key) == kind){ return true; }
     }
     return false;
@@ -108,11 +101,9 @@ public final class Monotonicity{
     return ms.stream().allMatch(m->m.sig().m().isPresent());
   }
   private static void clearLitHistory(GammaSignature g){
-    var st= states.get(g);
-    if (st == null){ return; }
     var marg= K.litMArg.ordinal();
     var mret= K.litMRet.ordinal();
-    st.hist.keySet().removeIf(k->kindOf(k) == marg || kindOf(k) == mret);
+    g.monotonicity.keySet().removeIf(k->kindOf(k) == marg || kindOf(k) == mret);
   }
 
   public static boolean onLiteralWithMs(E.Literal l, List<M> nextMs){
