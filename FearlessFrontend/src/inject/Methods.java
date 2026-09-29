@@ -192,7 +192,7 @@ public record Methods(
       var inferredRcOverloads= rc.isEmpty() && match.size() > 1;
       if (inferredRcOverloads){
         var litRc= origin.rc().or(origin.t()::explicitRC).get();
-        var neverMut= litRc.isReadOrImm();
+        var neverMut= InjectionSteps.noH(litRc).isReadOrImm();
         if (neverMut){
           var dead= match.remove(RC.mut);
           if (dead != null){ ss.addAll(dead); }

@@ -356,3 +356,31 @@ also with no requirement and in the error for an unmet one (Frontend#92,
 `CapabilityTypingTest.readImmResultOfIsoImmBound*`). With the unchanged test on
 `readImm(rc)`, a mode either keeps a variable type as written or gives an `RCX` not
 equivalent to it, so candidate results are never equivalent; `CallTyping.bests` asserts it.
+
+## 16. A literal for a readH expected type implements the dead mut overload
+
+Frontend#110, 2026-09-30. Rejects valid programs, not unsoundness.
+`ReadHLambdaOverloadTest.lambdaForReadHParamDoesNotImplementDeadMutOverload`,
+`lambdaForReadHReturnDoesNotImplementDeadMutOverload`, `lambdaForMutHParamImplementsBothOverloads`.
+
+A method written without a capability that matches overloads of different capabilities is
+copied into each of them (`Methods.pairWithSig`); the `mut` copy is dropped when the literal
+can never be `mut`. The literal takes the capability `rc` of its expected type, and
+`InjectionSteps.commitToTable` commits it as `noH(rc)` (entry 9), so the choice must be made
+on `noH(rc)` too.
+
+    drop the mut overload iff isReadOrImm(noH(rc))
+      was:  iff isReadOrImm(rc)
+            noH(readH) = read, noH(mutH) = mut
+
+It is the same category as entry 9: inference decided on the hygienic capability of an
+expected type where the literal it builds has the non hygienic one. With `rc = readH` the
+`mut` copy was kept and the committed `read` literal implemented a `mut` method, rejected as
+dead code (`methodImplementationDeadCode`). `mutH` keeps both copies before and after, as
+the committed `mut` literal needs both.
+
+Witness. `Box:{ mut .get: A; read .get: A; }`, `Need:{ #(b: readH Box): A -> A }`,
+`User:{ read .a: A -> A; read .f: A -> Need#{ .get -> this.a }; }`: inference produced
+`read Box{mut .get:A->this.a[read];read .get:A->this.a[read]}`; with `read Box` in `Need`
+the program was accepted. A `readH Box` return type, `read .f: readH Box -> { .get -> this.a }`,
+failed the same way.

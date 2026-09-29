@@ -16,4 +16,21 @@ User:{
   read .f: A -> Need#{ .get -> this.a };
 }
 """));}
+@Test void lambdaForReadHReturnDoesNotImplementDeadMutOverload(){ok(List.of("""
+A:{}
+Box:{ mut .get: A; read .get: A; }
+User:{
+  read .a: A -> A;
+  read .f: readH Box -> { .get -> this.a };
+}
+"""));}
+@Test void lambdaForMutHParamImplementsBothOverloads(){ok(List.of("""
+A:{}
+Box:{ mut .get: A; read .get: A; }
+Need:{ #(b: mutH Box): A -> A }
+User:{
+  read .a: A -> A;
+  read .f: A -> Need#{ .get -> this.a };
+}
+"""));}
 }
