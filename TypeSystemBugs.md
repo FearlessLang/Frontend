@@ -230,20 +230,28 @@ and so did the lambda passed directly to a call with explicit type arguments, si
 result was re-decided. Receivers of a known type now keep their declared spelling in the
 inferred output (`F[_HR,T,_HR]` rather than `F[imm _HR,imm T,_HR]` under `imm` bounds).
 
-## 9. Inference gave a type expression a hygienic capability
+## 9. Inference decided on the hygienic capability of an expected type
 
-Frontend#94, 2026-09-29. Rejects valid programs, not unsoundness.
+Frontend#94, 2026-09-29; Frontend#110, 2026-09-30. Rejects valid programs, not unsoundness.
 `CapabilityTypingTest.readHEmptyLiteralLeavesMutAbstract`,
 `readHEmptyLiteralArgumentLeavesMutAbstract`, `readHLiteralWithBodyLeavesMutAbstract`,
+`readHLambdaArgumentLeavesMutOverloadAbstract`, `readHLambdaResultLeavesMutOverloadAbstract`,
+`mutHLambdaArgumentImplementsBothOverloads`,
 `mutHEmptyLiteralMustImplementMut`, `mutHResultDoesNotFlowToMutFromReadReceiver`.
 
 Inference only produces what would be accepted if written by hand. The capability of a
 literal or a type expression is never `readH` or `mutH` (A7), and the parser enforces it.
-A fresh object `{}` with no method bodies takes its capability from the expected type and
-becomes a type expression (`InjectionSteps.commitToTable`, `justAType`).
+A literal takes its capability `rc` from the expected type and is committed with `noH(rc)`
+(`InjectionSteps.commitToTable`); every choice inference makes on that capability must be
+made on `noH(rc)` too. Two places used `rc`:
+- a fresh object `{}` with no method bodies becomes a type expression (`justAType`);
+- a method written without a capability is copied into the overloads it matches, and the
+  `mut` copy is dropped when the literal can never be `mut` (`Methods.pairWithSig`).
 
     was:  justAType: E.Type(rc C[..])       with rc the capability of the expected type
     now:  justAType: E.Type(noH(rc) C[..])  as for a literal with bodies
+    was:  drop the mut overload iff isReadOrImm(rc)
+    now:  drop the mut overload iff isReadOrImm(noH(rc))
           noH(readH) = read, noH(mutH) = mut
 
 `core.E.Type`, `core.E.Literal` and `core.Sig` assert the capabilities the parser allows,
@@ -253,6 +261,10 @@ Witness. `B:{ mut .m: B }`, `A:{ .b: readH B -> {} }` became the type expression
 `callable(readH, mut)` holds, so the abstract `mut .m` was required, while `read B -> {}`
 was accepted. A `mutH` expected type gave `mutH B`, printed in inferred contexts as
 `.b:mutH B->mutH B`, a body that does not parse.
+`Box:{ mut .get: A; read .get: A; }`, `Need:{ #(b: readH Box): A -> A }`,
+`User:{ read .a: A -> A; read .f: A -> Need#{ .get -> this.a }; }` kept the `mut` copy of
+`.get`, and the committed `read` literal was rejected as dead code; with `read Box` in
+`Need` it was accepted.
 
 ## 10. A funnelling literal captures under its own bounds, not the enclosing ones
 
