@@ -44,7 +44,7 @@ The body of method ".doThing" of type declaration "A" is an expression returning
 Method call "read A.b" has type "mutH B" instead of a subtype of "mut B".
 
 See inferred typing context below for how type "mut B" was introduced: (compression indicated by `-`)
-A:{read .b:mutH B->mutH B;read .doThing:mut B->this.b[read]}
+A:{read .b:mutH B->mut B;read .doThing:mut B->this.b[read]}
 """,List.of("""
 A:{ read .b: mutH B -> {}; read .doThing: mut B -> this.b }
 B:{}
@@ -729,5 +729,34 @@ User:{.use[Y:imm,iso](b:Box[Y]):Box[Y]->b.get.foo}
 """,List.of("""
 Box[X:iso,imm]:{ .get: read/imm X }
 User:{ .use[Y:iso,imm](b: Box[Y]): Box[Y] -> b.get.foo }
+"""));}
+@Test void readHEmptyLiteralLeavesMutAbstract(){ok(List.of("""
+B:{ mut .m: B }
+A:{ .b: readH B -> {} }
+"""));}
+@Test void readHEmptyLiteralArgumentLeavesMutAbstract(){ok(List.of("""
+B:{ mut .m: B }
+A:{ .f(b: readH B): A -> this; .g: A -> this.f({}) }
+"""));}
+@Test void readHLiteralWithBodyLeavesMutAbstract(){ok(List.of("""
+C:{}
+B:{ mut .m: B; .k: C }
+A:{ .b: readH B -> { .k -> {} } }
+"""));}
+@Test void mutHEmptyLiteralMustImplementMut(){fail("""
+002| A:{ .b: mutH B -> {} }
+   |     --------------^^
+
+While inspecting object literal instance of "iso B" > ".b" line 2
+This object literal is missing a required method.
+Missing: "mut .m".
+Required by: "B".
+Hint: add an implementation for ".m" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso B
+""",List.of("""
+B:{ mut .m: B }
+A:{ .b: mutH B -> {} }
 """));}
 }

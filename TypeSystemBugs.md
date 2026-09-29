@@ -230,6 +230,30 @@ and so did the lambda passed directly to a call with explicit type arguments, si
 result was re-decided. Receivers of a known type now keep their declared spelling in the
 inferred output (`F[_HR,T,_HR]` rather than `F[imm _HR,imm T,_HR]` under `imm` bounds).
 
+## 9. Inference gave a type expression a hygienic capability
+
+Frontend#94, 2026-09-29. Rejects valid programs, not unsoundness.
+`CapabilityTypingTest.readHEmptyLiteralLeavesMutAbstract`,
+`readHEmptyLiteralArgumentLeavesMutAbstract`, `readHLiteralWithBodyLeavesMutAbstract`,
+`mutHEmptyLiteralMustImplementMut`, `mutHResultDoesNotFlowToMutFromReadReceiver`.
+
+Inference only produces what would be accepted if written by hand. The capability of a
+literal or a type expression is never `readH` or `mutH` (A7), and the parser enforces it.
+A fresh object `{}` with no method bodies takes its capability from the expected type and
+becomes a type expression (`InjectionSteps.commitToTable`, `justAType`).
+
+    was:  justAType: E.Type(rc C[..])       with rc the capability of the expected type
+    now:  justAType: E.Type(noH(rc) C[..])  as for a literal with bodies
+          noH(readH) = read, noH(mutH) = mut
+
+`core.E.Type`, `core.E.Literal` and `core.Sig` assert the capabilities the parser allows,
+so an inferred form that could not be written fails at construction.
+
+Witness. `B:{ mut .m: B }`, `A:{ .b: readH B -> {} }` became the type expression `readH B`;
+`callable(readH, mut)` holds, so the abstract `mut .m` was required, while `read B -> {}`
+was accepted. A `mutH` expected type gave `mutH B`, printed in inferred contexts as
+`.b:mutH B->mutH B`, a body that does not parse.
+
 ## 10. A funnelling literal captures under its own bounds, not the enclosing ones
 
 Frontend#95, 2026-09-29. Rejects valid programs, not unsoundness. Also a formalism change.
