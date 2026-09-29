@@ -44,7 +44,7 @@ The body of method ".doThing" of type declaration "A" is an expression returning
 Method call "read A.b" has type "mutH B" instead of a subtype of "mut B".
 
 See inferred typing context below for how type "mut B" was introduced: (compression indicated by `-`)
-A:{read .b:mutH B->mutH B;read .doThing:mut B->this.b[read]}
+A:{read .b:mutH B->mut B;read .doThing:mut B->this.b[read]}
 """,List.of("""
 A:{ read .b: mutH B -> {}; read .doThing: mut B -> this.b }
 B:{}
