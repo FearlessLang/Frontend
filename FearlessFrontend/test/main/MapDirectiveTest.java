@@ -180,4 +180,33 @@ use a.A as CA;
 use c.A as AA;
 B:{.m1(x:CA):a.A->x.fromC; .m2(y:AA):c.A->y.fromA}
 """); }
+  @Test void twoVirtualPackagesMappedToTheSameRealPackage(){ ok(Map.of("c",cA), Map.of("a","c","d","c"), """
+B:{.m(x:a.A):d.A->x.fromC}
+"""); }
+  @Test void twoUsesReachingTheSameTypeThroughMap(){ ok(Map.of("c",cA), Map.of("a","c"), """
+use a.A as X;
+use c.A as Y;
+B:{.m(x:X):Y->x.fromC}
+"""); }
+  @Test void twoUsesReachingTheSameTypeThroughMapFail(){ fail("""
+In file: [###].fear
+
+003| B:{.m(x:Y):X->x.fromA}
+   |    -----------~^^^^^^^
+
+While inspecting ".m(_)" line 3
+This call to method ".fromA" cannot typecheck.
+Method ".fromA" is not declared on type "X".
+
+Available methods on type "X":
+-       .fromC:X
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x.fromA
+Error 8 TypeError
+""",Map.of("c",cA), Map.of("a","c"), """
+use a.A as Y;
+use c.A as X;
+B:{.m(x:Y):X->x.fromA}
+"""); }
 }
