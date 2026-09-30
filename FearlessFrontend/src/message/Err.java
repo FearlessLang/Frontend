@@ -3,7 +3,6 @@ package message;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -61,7 +60,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(boolean skipImm, T t){ return disp(typeReprRaw(skipImm,t)); }
   private String typeReprRaw(boolean skipImm, T t){
     var str= cp().msgT(showPublicHead(t));
-    var noImmPrefix= skipImm || !t.explicitRC().equals(Optional.of(RC.imm));
+    var noImmPrefix= skipImm || !(t instanceof T.RCC rcc && rcc.rc() == RC.imm);
     if (noImmPrefix){ return str; }
     return "imm "+str;
   }
