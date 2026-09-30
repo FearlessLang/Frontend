@@ -308,16 +308,28 @@ public record WellFormednessErrors(String pkgName){
   public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
   public FearlessException noAgreement(Agreement at, List<?> res, String msg){
     var rc= at.rc().map(r->r.toStrSpace(false)).orElse("");
+    var rcDiffers= outerRCs(res) > 1;
     var e= err()
       .line(msg+" for method "+err().methodSig(rc,at.mName())+" with "+at.mName().arity()+" parameters.")
       .line(Join.of(
-        res.stream().map(o->o instanceof inference.IT.RCC rcc ? err().typeRepr(rcc) : disp(o)),//Can be RC or inference.IT.RCC
+        res.stream().map(o->option(rcDiffers,o)),//Can be RC or inference.IT.RCC
         "Different options are present in the implemented types: ", ", ", "."
       ))
-      .line(up(err().expRepr(at.lit()))+" must declare a method "
-        +err().methodSig(at.mName())+" explicitly choosing the desired option.");
+      .line(rcDiffers
+        ? "They differ in reference capability, and an overriding method must keep it, so no method "+err().methodSig(at.mName())+" can implement all of them."
+        : up(err().expRepr(at.lit()))+" must declare a method "+err().methodSig(at.mName())+" explicitly choosing the desired option.");
     return wf(e, at);
   }
+  private String option(boolean showImm, Object o){
+    if (!(o instanceof inference.IT.RCC rcc)){ return disp(o); }
+    return showImm ? err().typeRepr(false,inject.TypeRename.itToT(rcc)) : err().typeRepr(rcc);
+  }
+  private static long outerRCs(List<?> res){ return res.stream().map(o->switch (o){
+    case inference.IT.RCC rcc -> rcc.rc().map(RC::name).orElse("imm");
+    case inference.IT.RCX rcx -> rcx.rc().name();
+    case inference.IT.ReadImmX _ -> "read/imm";
+    default -> "";
+  }).distinct().count(); }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
       .line("The number of type parameters disagrees for method "+err().methodSig(at.mName())

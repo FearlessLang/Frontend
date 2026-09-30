@@ -670,8 +670,8 @@ A:Foo[imm Bar],Foo[mut Beer]{ .get: Both -> Both }
 
 While inspecting type declaration "A"
 Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types: "Bar", "mut Beer".
-Type declaration "A" must declare a method ".get" explicitly choosing the desired option.
+Different options are present in the implemented types: "imm Bar", "mut Beer".
+They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """,List.of("""
 Bar:{}
 Beer:{}
