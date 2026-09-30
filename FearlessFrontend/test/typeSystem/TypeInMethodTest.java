@@ -169,4 +169,17 @@ A0:{.m(x:A0):A->A:{.foo:A0->x}}
 ""","""
 B:a.A{}
 """); }
+
+  @Test void captureFreeTypeInMethodSelfIsNotImmInReadMethod(){ fail("""
+[###]""",List.of("""
+A0:{.m:A->A:base.CaptureFree{'self read .get:imm A->self}}
+B:{.m:mut A->mut A; .alias(a:mut A):imm A->a.get}
+""")); }
+
+  @Test void topLevelTypeSelfIsNotImmInReadMethod(){ fail("""
+[###]Parameter "this" has type "read A" instead of a subtype of "imm A".
+[###]""",List.of("""
+A:{read .get:imm A->this}
+B:{.m:mut A->mut A; .alias(a:mut A):imm A->a.get}
+""")); }
 }
