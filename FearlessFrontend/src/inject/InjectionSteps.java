@@ -335,10 +335,9 @@ public record InjectionSteps(Methods meths){
     var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
     var fromLiterals= Streams.zip(m.ps0(), es).filter((_,e2)->e2 instanceof E.Literal).map((p,e2)->refine(m.xs(), p, e2.t()));
     var hard= meet(Streams.of(Stream.of(qMarks(written.size())), fromLiterals).toList());
-    var fixed= Streams.zip(written, hard).map((w,h)->decided(w) || isoPlaceholder(h) ? w : h).toList();
+    var fixed= Streams.zip(written, hard).map((w,h)->decided(w) ? w : h).toList();
     return Streams.zip(fixed, all).map((b,r)->decided(b) ? b : r).toList();
   }
-  private static boolean isoPlaceholder(IT t){ return t instanceof IT.RCC(var rc, _, _) && rc.equals(Optional.of(RC.iso)); }
   private static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
   private static boolean decided(IT t){ return t.isTV() && !(t instanceof IT.RCC(var rc, _, _) && rc.isEmpty()); }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
@@ -494,8 +493,7 @@ public record InjectionSteps(Methods meths){
       var asDecided= adaptedSuperTs(b, aC.name());
       return asDecided.isEmpty() ? decided : keepDecided(decided, asDecided.getFirst());
     }
-    var rc= aRc.filter(r->r != RC.iso).or(b::rc);
-    return b.withRCTs(rc, Streams.zip(aC.ts(),b.c().ts()).map(this::keepDecided).toList());
+    return b.withRCTs(aRc.or(b::rc), Streams.zip(aC.ts(),b.c().ts()).map(this::keepDecided).toList());
   }
   private List<IT> refine(List<String> Xs, core.T t,Optional<IT> it){return refine(Xs,TypeRename.tToIT(t), it.get()); }
   private M.Sig normalizeSigAgainstHeader(IT.RCC rcc, M.Sig improvedSig){
@@ -539,7 +537,7 @@ public record InjectionSteps(Methods meths){
     case IT.X x -> x;//IT.U.Instance;
     case IT.RCX(_, var x) -> x;
     case IT.ReadImmX(var x) -> x;
-    case IT.RCC rcc -> rcc.withRC(RC.iso);//This iso is because on conflict iso is the first to disappear?
+    case IT.RCC(_, var c, var span) -> new IT.RCC(Optional.empty(), c, span);
     case IT.U _ -> t;
   };}
   List<IT> refineXs(List<String> xs, IT.X x, IT t1){ return qMarks(xs.indexOf(x.name()), t1, xs.size()); }
@@ -614,7 +612,11 @@ public record InjectionSteps(Methods meths){
   }
   private static IT normToBound(List<B> scope, IT t, EnumSet<RC> allowed){
     var sameType= xName(t).map(x->RC.get(scope,x).rcs().equals(allowed)).orElse(true);
-    return sameType ? normToBound(t,allowed) : t;
+    var res= sameType ? normToBound(t,allowed) : t;
+    if (!(res instanceof IT.RCC(var rc, var c, var span))){ return res; }
+    var open= rc.isEmpty() || rc.get() == RC.iso && !allowed.contains(RC.iso);
+    if (!open){ return res; }
+    return new IT.RCC(allowed.contains(RC.imm) ? Optional.empty() : Optional.of(RC.read), c, span);
   }
   private static Optional<String> xName(IT t){ return switch (t){
     case IT.X x -> Optional.of(x.name());
