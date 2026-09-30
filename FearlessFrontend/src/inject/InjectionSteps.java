@@ -330,10 +330,12 @@ public record InjectionSteps(Methods meths){
     return decidedThen(c, m, Streams.of(a, Stream.of(refine(m.xs(), m.ret0(), c.t()))));
   }
   private List<IT> decidedThen(E.Call c, MSigL m, Stream<List<IT>> refinements){
-    var base= Push.of(m.clsArgs(), MSigL.fixTargs(c.targs(), m.bsArity()));
-    var all= meet(Streams.of(Stream.of(base), refinements).toList());
-    return Streams.zip(base, all).map((b,r)->decided(b) ? b : r).toList();
+    var targs= MSigL.fixTargs(c.targs(), m.bsArity());
+    var all= meet(Streams.of(Stream.of(Push.of(m.clsArgs(), targs)), refinements).toList());
+    var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
+    return Streams.zip(written, all).map((b,r)->decided(b) ? b : r).toList();
   }
+  private static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
   private static boolean decided(IT t){ return t.isTV() && !(t instanceof IT.RCC(var rc, _, _) && rc.isEmpty()); }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
     var selfUnknown= l.infName() && l.rc().isEmpty();
