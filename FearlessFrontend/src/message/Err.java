@@ -100,10 +100,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+bestLitName(l),m); }
   String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(),"_"),pre+m.s()+"(",",",")",pre+m.s())); }
   public static boolean rcOnlyMismatch(T got, T req){
-    return got.equals(req)
-      || (got instanceof T.RCC(_, var gotC, _)
-      && req instanceof T.RCC(_, var reqC, _)
-      && gotC.equals(reqC));
+    return got.withRC(RC.imm).equals(req.withRC(RC.imm));
   }
   static boolean isInferErr(T t){
     return t instanceof T.RCC(_, var c, _) && LiteralDeclarations.inferErrs.contains(c.name());

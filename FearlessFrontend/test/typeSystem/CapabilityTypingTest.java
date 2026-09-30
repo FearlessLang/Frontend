@@ -84,6 +84,24 @@ A:{}
 ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }
 Container:{ read .a1: mut A; mut .a2: mut A }
 """));}
+@Test void mutTypeVariableCaptureInReadMethodShowsDeclaredNote(){fail("""
+002| A:{ .m[X:*](x: mut X): mut Get[mut X] -> mut Get[mut X]{ read .get: mut X -> x } }
+   |     -----------------------------------------------------~~~~~~~~~~~~~~~~~~~~^--
+
+While inspecting parameter "x" > ".get" line 2 > ".m(_)" line 2
+Method ".get" inside the object literal instance of "mut Get[mut X]" (line 2)
+is implemented with an expression returning "read X".
+Parameter "x" has type "read X" instead of a subtype of "mut X".
+Note: the declared type "mut X" would instead be a valid subtype.
+Capture adaptation trace:
+"mut X" --setToRead(line 2)--> "read X".
+
+See inferred typing context below for how type "mut X" was introduced: (compression indicated by `-`)
+A:{.m[X:*](x:mut X):mut Get[mut X]->mut Get[mut X]{read .get:mut X->x}}
+""",List.of("""
+Get[Y:*]:{ read .get: Y }
+A:{ .m[X:*](x: mut X): mut Get[mut X] -> mut Get[mut X]{ read .get: mut X -> x } }
+"""));}
 @Test void noCallMutFromImm(){fail("""
 002| A:{ .b: imm B -> {}; .doThing: Void -> this.b.foo.ret }
    |                      ------------------~~~~~~^^^^^---
