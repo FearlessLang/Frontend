@@ -834,4 +834,36 @@ A:{ .g(x: mut Foo): read Foo -> Util.m(x) }
 Util:{ .m[Y:*](y: Y): Y -> y }
 A:{ .f[X:*](x: mut X): read X -> Util.m(x) }
 """));}
+@Test void readImmResultInfersCapabilityWhenLambdaReturnsSubtype(){ok(List.of("""
+Cat:{}
+ToFl[E:*]:{ read .seq: mut Fl[read/imm E]; mut .seq: mut Fl[E]; }
+Li[E:*]:ToFl[E]{}
+Fl[E:*]:{
+  mut .viaToFl[R:*](f: read base.F[E, read ToFl[R]]): mut Fl[read/imm R];
+  mut .li: mut Li[E];
+  }
+Person:{ read .cats: Li[Cat] }
+User:{ #(f: mut Fl[Person]): mut Li[Cat] -> f.viaToFl{::.cats}.li }
+"""));}
+@Test void readImmResultInfersCapabilityWhenLambdaReturnsExactType(){ok(List.of("""
+Cat:{}
+ToFl[E:*]:{ read .seq: mut Fl[read/imm E]; mut .seq: mut Fl[E]; }
+Li[E:*]:ToFl[E]{}
+Fl[E:*]:{
+  mut .viaLi[R:*](f: read base.F[E, read Li[R]]): mut Fl[read/imm R];
+  mut .li: mut Li[E];
+  }
+Person:{ read .cats: Li[Cat] }
+User:{ #(f: mut Fl[Person]): mut Li[Cat] -> f.viaLi{::.cats}.li }
+"""));}
+@Test void mutArgumentToReadImmParameterInfersMut(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:*](y: read/imm Y): Foo -> Foo }
+A:{ .f(x: mut Foo): Foo -> Util.m(x) }
+"""));}
+@Test void mutTypeVariableArgumentToReadImmParameterInfersMut(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:*](y: read/imm Y): Foo -> Foo }
+A:{ .f[X:*](x: mut X): Foo -> Util.m(x) }
+"""));}
 }
