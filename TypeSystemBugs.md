@@ -387,24 +387,22 @@ same for `imm Y` with an `imm Foo` argument, for an expected `read Foo` against 
 ## 14. Inference types a capture the type system drops for its type parameters
 
 Frontend#129, 2026-10-01. Crash, not unsoundness.
-`TypeSystemTest.drop_ftv_typeVariableNotPropagatedIntoExplicitFoo`,
+`TypeSystemTest.drop_ftv_notPropagatedIntoExplicitFoo`,
+`drop_ftv_typeVariableNotPropagatedIntoExplicitFoo`,
 `drop_ftv_notPropagatedTypeReachesInferredTypeArgument`,
-`drop_ftv_notPropagatedTypeReachesNestedLiteral`.
+`drop_ftv_notPropagatedTypeReachesNestedLiteral`, `drop_ftv_notPropagatedIntoFooDeclaringOther`.
 
 A literal written by name, `D[Xs]`, keeps only the bindings whose type mentions no type
-variable outside `Xs` (`Gamma.filterFTV`, bug 5); using any other is the error "uses type
-parameters that are not propagated". Inference must not give such a binding a type either:
-any type inferred from it mentions a type variable that is not in scope inside `D`.
+variable outside `Xs` (`Gamma.filterFTV`, bug 5). Inference must not give such a binding a
+type inside `D`: any type inferred from it mentions a type variable that is not in scope
+there, which no one could write (the parser rejects it, `genericNotFunnelled`).
 
     keep(Xs, G) = { x:T in G | FTV(T) subsetOf Xs }     -- type system, per named literal
 
-    seen(x) = adapt over every literal scope strictly inside the declaration of x
-              -- Gamma.getWithRC; Xs of an inferred-name literal is the whole enclosing scope
-    was:  adapt(Xs, rc, T) = as in bug 4, with the bound of a bare or read/imm X read from Xs
-    now:  adapt(Xs, rc, T) = unknown   if FTV(T) not subsetOf Xs
-                             as before otherwise
-    was:  the free type variables of a literal committed by inference use the declared type of x
-    now:  they use seen(x)
+    x used inside the scopes s1..sn strictly inside the declaration of x
+      -- Xs of an inferred-name literal is the whole enclosing scope
+    was:  seen(x) = adapt over s1..sn, with the bound of a bare or read/imm X read from Xs(si)
+    now:  error at the use if FTV(T) not subsetOf Xs(si) for some si, else as before
 
 Witness. `User:{ read .m[X:*](x:X):read Foo -> read Foo:{ read .m:Bar -> x } }`: `adapt`
 looked `X` up in the bounds of `Foo`, which are empty, and `RC.get` crashed. A type other than
@@ -412,9 +410,8 @@ a bare `X` was adapted by its capability alone, so with `beer:Beer[X]` inference
 carried `X` further: `Id#beer` became `Id#[Beer[X]]`, and the type system, which checks the
 type arguments of a call before its arguments, crashed in `Kinding` looking `X` up in the
 bounds of `Foo`; `Do#{ beer.bar }` committed the nested literal with parameters `[X]` and
-`checkLiteral` failed its assert that they are in scope. Both outputs cannot be written by
-hand: the parser rejects `X` inside `Foo` (`genericNotFunnelled`, bug 5), and the type system
-relies on it. Now inference leaves `x` and `beer` unknown inside `Foo` and the type system
-reports them where they are used; `ToCore` asserts that every inferred type argument, type
+`checkLiteral` failed its assert that they are in scope. Now inference rejects the use, in the
+words of `genericNotFunnelled`, so the type system never sees a dropped binding used: its own
+error for that case is unreachable. `ToCore` asserts that every inferred type argument, type
 expression and literal type parameter is in scope, where the scope of a named literal is its
 own type parameters only.

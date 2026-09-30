@@ -252,6 +252,8 @@ public record InjectionSteps(Methods meths){
   private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i->i == n ? t : IT.U.Instance).toList(); }
   private E nextX(List<B> bs, Gamma g, E.X x){
     var t1Base= g.get(x.name());
+    var notIn= g.notFunnelledInto(x.name());
+    if (notIn.isPresent()){ throw meths.p().err().captureNotFunnelled(x, t1Base, notIn.get()); }
     var t1= g.getWithRC(x.name());
     var t2= x.t();
     if (t1.equals(t2)){ return x; }
@@ -386,7 +388,7 @@ public record InjectionSteps(Methods meths){
     if (!(t instanceof IT.RCC rcc)){ return l; }
     var notReady= !t.isTV() || hasU(l.ms()) || meths.cache().containsKey(name);
     if (notReady){ return l; }
-    var freeNames= Streams.of(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()), new FreeXs(g).ftvT(t));
+    var freeNames= Streams.of(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()), t.ftv());
     var localBs= freeNames.distinct().map(x->RC.get(bs, x)).toList();
     var newName= name.withArity(localBs.size());
     var ms= fixArity(l.ms(), name, newName);
@@ -437,9 +439,9 @@ public record InjectionSteps(Methods meths){
   TSM nextMStarOp(List<B> bs, Gamma g, E.Literal l, Optional<IT.RCC> selfPrecise, IT.RCC rcc, inference.M m){
     assert m.impl().isPresent();
     var litBs= l.infName() ? bs : l.bs();
-    g.newScope(m.sig().rc().get(), litBs);
+    g.newScope(m.sig().rc().get(), litBs, l);
     g.declare(l.thisName(), selfPrecise.<IT>map(s->new IT.RCC(s.rc().map(RC::isoToMut), s.c(), s.span())).orElse(IT.U.Instance));
-    g.newScope(m.sig().rc().get(), litBs);
+    g.newScope(m.sig().rc().get(), litBs, l);
     updateGWithArgs(g, m);
     var e= nextStar(Push.of(bs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
     var args= updateArgs(m, g);

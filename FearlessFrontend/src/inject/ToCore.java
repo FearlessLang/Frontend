@@ -27,7 +27,7 @@ public record ToCore(List<B> ctx){
     case inference.E.Call ce -> call(ce,callLike(orig,ce.name()));
     case inference.E.ICall ic -> callFromICall(ic,callLike(orig,ic.name()));
   };}
-  private boolean inScope(List<IT> ts){ return new FreeXs(new Gamma()).ftvTs(ts).allMatch(B.xs(ctx)::contains); }
+  private boolean inScope(List<IT> ts){ return ts.stream().flatMap(IT::ftv).allMatch(B.xs(ctx)::contains); }
   core.E.Type type(IT.RCC type, Src src){
     assert inScope(List.of(type));
     return new core.E.Type(new T.RCC(type.rc().orElse(RC.imm),TypeRename.itcToTC(type.c()),type.span()),src);
