@@ -937,4 +937,35 @@ Foo:{}
 Util:{ .m[Y:*](y: read/imm Y): Foo -> Foo }
 A:{ .f[X:*](x: mut X): Foo -> Util.m(x) }
 """));}
+@Test void readMethodCaptureOfTypeParamInfersReadImmTypeArg(){ok(List.of("""
+Nothing:{}
+Ignore:{ #[T:*](t: T): Nothing -> Nothing }
+Holder:{ read .n: Nothing }
+User:{ .m[X:*](x: X): mut Holder -> mut Holder{ .n -> Ignore#x } }
+"""));}
+@Test void readMethodCaptureOfTypeParamExplicitTypeArgOk(){ok(List.of("""
+Nothing:{}
+Ignore:{ #[T:*](t: T): Nothing -> Nothing }
+Holder:{ read .n: Nothing }
+User:{ .m[X:*](x: X): mut Holder -> mut Holder{ .n -> Ignore#[read/imm X](x) } }
+"""));}
+@Test void mutMethodCaptureOfIsoImmTypeParamInfersImmTypeArg(){ok(List.of("""
+Nothing:{}
+Ignore:{ #[T:*](t: T): Nothing -> Nothing }
+Holder:{ mut .n: Nothing }
+User:{ .m[X:iso,imm](x: X): mut Holder -> mut Holder{ .n -> Ignore#x } }
+"""));}
+@Test void mutMethodCaptureOfIsoMutTypeParamInfersReadTypeArg(){ok(List.of("""
+Nothing:{}
+Ignore:{ #[T:*](t: T): Nothing -> Nothing }
+Holder:{ mut .n: Nothing }
+User:{ .m[X:iso,mut](x: X): mut Holder -> mut Holder{ .n -> Ignore#x } }
+"""));}
+@Test void readMethodCaptureOfIsoMutTypeParamInfersReadImmTypeArg(){ok(List.of("""
+Nothing:{}
+Id:{ #[T:*](t: T): T -> t }
+Need[X:iso,mut]:{ #(y: read/imm X): Nothing -> Nothing }
+Holder:{ read .n: Nothing }
+User:{ .m[X:iso,mut](x: X): mut Holder -> mut Holder{ .n -> Need[X]#(Id#x) } }
+"""));}
 }

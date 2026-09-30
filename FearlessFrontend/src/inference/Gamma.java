@@ -1,10 +1,12 @@
 package inference;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import core.B;
 import core.RC;
 import utils.Range;
 import utils.Streams;
@@ -32,14 +34,17 @@ public final class Gamma{
   private final int[]  marks= new int[maxDepth];
   private final long[] envHash= new long[maxDepth];
   private final RC[]  rcs= new RC[maxDepth];
+  @SuppressWarnings("unchecked")
+  private final List<B>[] bss= (List<B>[])new List<?>[maxDepth];
   private int depth= 0;
 
   private final HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
   public Gamma(){ marks[0]= 0; envHash[0]= 0L; depth= 1; }
-  public void newScope(RC rc){
+  public void newScope(RC rc, List<B> bs){
     marks[depth]= size;
     envHash[depth]= envHash[depth - 1];
     rcs[depth]= rc;
+    bss[depth]= bs;
     depth++;
   }
   public void popScope(){
@@ -55,21 +60,26 @@ public final class Gamma{
     // if there is read over (not under) x and theIt.explicitRC().equals(Optional.of(RC.mut), turn the IT to read and return theIt.withRC(read)
     var i= indexOf(x);         // offensive: -1 would crash later
     var t= ts[i];              // the stored (true) type
-    var d= declDepth[i];       // scope index where x was declared
-    RC cap= null;              // null means "no restriction from any enclosing scope"
-    var isoCaptured= depth-1 > d && t.explicitRC().equals(Optional.of(RC.iso));
-    if (isoCaptured){ return t.withRC(RC.imm); }
-    for (var s= depth-1; s > d; s--){
-      var rc= rcs[s];               // rc of the method-body scope at index s
-      if (rc == RC.imm){ cap= RC.imm; break; }
-      var firstRead= rc == RC.read && cap == null;
-      if (firstRead){ cap= RC.read; }
-    }
-    if (cap == null){ return t; }
-    if (cap == RC.imm){ return t.withRC(RC.imm); }
-    assert cap == RC.read;
-    if (t.explicitRC().equals(Optional.of(RC.mutH))){ return t.withRC(RC.readH); }
-    return t.explicitRC().equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
+    for (var s= declDepth[i] + 1; s < depth; s++){ t= adapt(t, rcs[s], bss[s]); }
+    return t;
+  }
+  private static IT adapt(IT t, RC rc, List<B> bs){ return switch (t){
+    case IT.X(var x, _) -> adaptX(t, RC.get(bs, x).rcs(), rc);
+    case IT.ReadImmX(IT.X(var x, _)) -> adaptX(t, RC.get(bs, x).rcs(), rc);
+    default -> adaptRC(t, rc);
+  };}
+  private static IT adaptX(IT t, EnumSet<RC> xRcs, RC rc){
+    if (rc == RC.imm || EnumSet.of(RC.iso, RC.imm).containsAll(xRcs)){ return t.withRC(RC.imm); }
+    if (xRcs.stream().anyMatch(RC::isH)){ return t; }
+    if (rc == RC.read){ return t.readImm(); }
+    return t instanceof IT.ReadImmX || !xRcs.contains(RC.iso) ? t : t.withRC(RC.read);
+  }
+  private static IT adaptRC(IT t, RC rc){
+    var trc= t.explicitRC();
+    if (rc == RC.imm || trc.equals(Optional.of(RC.iso))){ return t.withRC(RC.imm); }
+    if (rc == RC.mut){ return t; }
+    if (trc.equals(Optional.of(RC.mutH))){ return t.withRC(RC.readH); }
+    return trc.equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
   }
   public IT get(String x){ return ts[indexOf(x)]; }
   public Optional<IT> getOpt(String x){ var i= indexOf(x); return i == -1 ? Optional.empty() : Optional.of(ts[i]); }
