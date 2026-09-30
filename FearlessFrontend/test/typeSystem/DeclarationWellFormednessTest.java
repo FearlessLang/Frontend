@@ -534,4 +534,50 @@ A[X:*]:{ .no: mut A[X] }
 @Test void readTypeNestedInReadType(){ok(List.of("""
 A[X:*]:{ .no: read A[read A[X]] }
 """));}
+@Test void supertypeWithAndWithoutDefaultImm(){failWf("""
+003| B:A[Foo],A[imm Foo]{}
+   | ^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Duplicated supertype in type declaration: "A[Foo]" and "A[imm Foo]" denote the same type.
+Remove one of them.
+""",List.of("""
+Foo:{}
+A[X:*]:{}
+B:A[Foo],A[imm Foo]{}
+"""));}
+@Test void supertypeSimpleAndQualified(){failWf("""
+002| B:A,p.A{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "B"
+Duplicated supertype in type declaration: "A" and "p.A" denote the same type.
+Remove one of them.
+""",List.of("""
+A:{}
+B:A,p.A{}
+"""));}
+@Test void supertypeUseAliasAndQualified(){failWf("""
+002| B:CF,base.CaptureFree{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Duplicated supertype in type declaration: "CF" and "base.CaptureFree" denote the same type.
+Remove one of them.
+""",List.of("""
+use base.CaptureFree as CF;
+B:CF,base.CaptureFree{}
+"""));}
+@Test void supertypeDifferentSpellingOfTypeArgument(){failWf("""
+003| B:A[Foo],A[p.Foo]{}
+   | ^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Duplicated supertype in type declaration: "A[Foo]" and "A[p.Foo]" denote the same type.
+Remove one of them.
+""",List.of("""
+Foo:{}
+A[X:*]:{}
+B:A[Foo],A[p.Foo]{}
+"""));}
 }

@@ -19,6 +19,7 @@ import core.MName;
 import core.RC;
 import core.TName;
 import core.TSpan;
+import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.T;
 import fearlessFullGrammar.T.X;
@@ -231,6 +232,25 @@ public record WellFormednessErrors(String pkgName){
       .line("Reference capability "+disp(dup.name())+" is repeated.")
       .wf()
       .addSpan(n.span().inner);
+  }
+  public FearlessException duplicatedSupertype(Declaration d, List<IT.C> cs){
+    var dup= redeclaredElement(cs);
+    var first= spelling(d.cs().get(cs.indexOf(dup)));
+    var second= spelling(d.cs().get(cs.lastIndexOf(dup)));
+    return err()
+      .line("Duplicated supertype in type declaration: "+disp(first)+" and "+disp(second)+" denote the same type.")
+      .line("Remove one of them.")
+      .wf()
+      .addFrame("type declaration "+staticTypeDecName(d.name()), d.span().inner);
+  }
+  private static String spelling(T t){ return switch (t){
+    case T.X x -> x.name();
+    case T.RCX(var rc, var x) -> rc+" "+x.name();
+    case T.ReadImmX(var x) -> "read/imm "+x.name();
+    case T.RCC(var rc, var c, _) -> rc.map(r->r+" ").orElse("")+spelling(c);
+  };}
+  private static String spelling(T.C c){
+    return c.name().s()+Join.of(c.ts().orElse(List.of()).stream().map(WellFormednessErrors::spelling),"[",",","]","");
   }
   public FearlessException duplicatedName(TName name){
     return err()
