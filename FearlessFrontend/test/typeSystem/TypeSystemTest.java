@@ -16,6 +16,19 @@ public class TypeSystemTest extends testUtils.FearlessTestBase{
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
 """));}
+@Test void compressedFooterKeepsFloatLiteralName(){fail("""
+001| A:{ .bar(b:B):A->b; .f:base.Float-> +1.5; }
+[###]
+While inspecting parameter "b" > ".bar(_)" line 1
+The body of method ".bar(_)" of type declaration "A" is an expression returning "B".
+Parameter "b" has type "B" instead of a subtype of "A".
+
+See inferred typing context below for how type "A" was introduced: (compression indicated by `-`)
+A:{.bar(b:B):A->b;.f:-.Float->+1.5}
+""",List.of("""
+A:{ .bar(b:B):A->b; .f:base.Float-> +1.5; }
+B:{ }
+"""));}
 @Test void unnamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |                               -------------------~~~~^^^^^
