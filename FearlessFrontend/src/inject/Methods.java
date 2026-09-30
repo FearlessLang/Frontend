@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import core.B;
 import core.LiteralDeclarations;
@@ -237,7 +237,7 @@ public record Methods(
     var ssAligned= alignMethodSigsTo(ss, bs);
     var name= ssAligned.getFirst().m().get();
     var ts= IntStream.range(0, s.ts().size()).mapToObj(i->Optional.of(pairWithTs(at,i, s.ts().get(i),ssAligned))).toList();
-    var res= s.ret().orElseGet(()->agreement(at,ssAligned.stream().map(e->e.ret().get()),
+    var res= s.ret().orElseGet(()->agreement(at,ssAligned,e->e.ret().get(),
       p.err().retTypeDisagreement()));
     var rc= s.rc().orElseGet(()->rcAgreement(ssAligned));
     return m.withSig(new M.Sig(rc,name,bs,ts,res,origin.name(),m.impl().isEmpty(),s.span()));
@@ -258,7 +258,7 @@ public record Methods(
     throw p.err().methodBsDisagreesWithSupers(at, userBs,supBs);
   }
   IT pairWithTs(Agreement at, int i, Optional<IT> t,List<M.Sig> ss){
-    return t.orElseGet(()->agreement(at,ss.stream().map(e->e.ts().get(i).get()),
+    return t.orElseGet(()->agreement(at,ss,e->e.ts().get(i).get(),
       p.err().argTypeDisagreement(i)));
   }
   M pairWithSig(List<M.Sig> ss, E.Literal origin){
@@ -269,7 +269,7 @@ public record Methods(
     var ssAligned= alignMethodSigsTo(ss, bs);
     var name= ssAligned.getFirst().m().get();
     var ts= IntStream.range(0, name.arity()).mapToObj(i->Optional.of(pairWithTs(at,i,Optional.empty(),ssAligned))).toList();
-    var res= agreement(at,ssAligned.stream().map(e->e.ret().get()),p.err().retTypeDisagreement());
+    var res= agreement(at,ssAligned,e->e.ret().get(),p.err().retTypeDisagreement());
     var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
     var conflicts= ssAligned.stream().filter(e->!e.abs() || overridesAny(e,impl)).map(e->e.origin().get()).distinct().toList();
     if (conflicts.size() > 1){ throw p.err().ambiguousImplementationFor(conflicts,at); }
@@ -288,10 +288,22 @@ public record Methods(
     var res= s.ret().orElseThrow(()->p.err().noSourceToInferFrom(origin,m));
     return m.withSig(new M.Sig(s.rc().orElse(RC.imm),s.m().get(),s.bs().orElse(List.of()),ts,res,origin.name(),m.impl().isEmpty(),s.span()));
   }
-  private <RR> RR agreement(Agreement at,Stream<RR> es, String msg){
-    var res= es.distinct().toList();
+  private IT agreement(Agreement at,List<M.Sig> ss,Function<M.Sig,IT> f, String msg){
+    var res= ss.stream().map(f).distinct().toList();
     if (res.size() == 1){ return res.getFirst(); }
+    var bs= Push.of(at.lit().bs(),ss.getFirst().bs().get());
+    var norm= res.stream().map(t->normX(bs,t)).distinct().toList();
+    if (norm.size() == 1){ return norm.getFirst(); }
     throw p.err().noAgreement(at,res,msg);
+  }
+  private static IT normX(List<B> bs, IT t){ return switch (t){
+    case IT.X x -> normX(bs,x);
+    case IT.RCC rcc -> rcc.withTs(rcc.c().ts().stream().map(ti->normX(bs,ti)).toList());
+    default -> t;
+  };}
+  private static IT normX(List<B> bs, IT.X x){
+    var rcs= RC.get(bs,x.name()).rcs();
+    return rcs.size() == 1 ? new IT.RCX(rcs.iterator().next(),x) : x;
   }
   //ssAligned is always grouped/bucketed by rc upstream (see pairWithSig callers), so rc is always uniform here.
   private RC rcAgreement(List<M.Sig> ssAligned){

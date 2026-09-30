@@ -233,10 +233,9 @@ public record WellFormednessErrors(String pkgName){
       .wf()
       .addSpan(n.span().inner);
   }
-  public FearlessException duplicatedSupertype(Declaration d, List<IT.C> cs){
-    var dup= redeclaredElement(cs);
-    var first= spelling(d.cs().get(cs.indexOf(dup)));
-    var second= spelling(d.cs().get(cs.lastIndexOf(dup)));
+  public FearlessException duplicatedSupertype(Declaration d, int i, int j){
+    var first= spelling(d.cs().get(i));
+    var second= spelling(d.cs().get(j));
     return err()
       .line("Duplicated supertype in type declaration: "+disp(first)+" and "+disp(second)+" denote the same type.")
       .line("Remove one of them.")

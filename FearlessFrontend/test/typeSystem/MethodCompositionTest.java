@@ -694,4 +694,40 @@ Sub[X:*]:Sup[X]{.h(X):X}
 Sup[X:*]:{ .h(x: X): imm X }
 Sub[X:*]:Sup[X]{ .h(x: X): X }
 """));}
+@Test void genericTwiceDifferingInCapabilityViaInexactBound(){failWf("""
+002| A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types: "Y", "imm Y".
+They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+""",List.of("""
+Foo[T:*]:{ .get: T }
+A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
+"""));}
+@Test void methodGenericSameCapabilityViaExactBoundInherited(){ok(List.of("""
+Baz:{}
+Foo:{ .get[T:mut]: T }
+Bar:{ .get[T:mut]: mut T }
+A:Foo,Bar{}
+User:{ #(a: A): mut Baz -> a.get[mut Baz] }
+"""));}
+@Test void methodGenericSameCapabilityViaExactBoundOverridden(){ok(List.of("""
+Foo:{ .get[T:mut]: T }
+Bar:{ .get[T:mut]: mut T }
+A:Foo,Bar{ .get[T:mut]: T }
+"""));}
+@Test void methodGenericSameCapabilityViaExactBoundArgument(){ok(List.of("""
+Baz:{}
+Foo:{ .set[T:read](t: T): Baz }
+Bar:{ .set[T:read](t: read T): Baz }
+A:Foo,Bar{}
+"""));}
+@Test void methodGenericSameCapabilityViaExactBoundNested(){ok(List.of("""
+Box[T:*]:{}
+Foo:{ .get[T:mut]: Box[T] }
+Bar:{ .get[T:mut]: Box[mut T] }
+A:Foo,Bar{}
+"""));}
 }
