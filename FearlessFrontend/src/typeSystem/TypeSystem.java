@@ -2,11 +2,13 @@ package typeSystem;
 
 import static core.RC.*;
 
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SequencedMap;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -51,7 +53,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var map= AllLs.of(tops);
     Function<TName,Literal> decs= n->LiteralDeclarations.from(n,map::get,other);
     var invMap= pkg.map().entrySet().stream()
-      .collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
+      .collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey, BinaryOperator.<String>minBy(Comparator.naturalOrder())));
     var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg,invMap))));
     tops.forEach(l->ts.litOk(Gamma.empty(),l));
   }
