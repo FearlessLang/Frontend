@@ -266,36 +266,6 @@ was accepted. A `mutH` expected type gave `mutH B`, printed in inferred contexts
 `.get`, and the committed `read` literal was rejected as dead code; with `read Box` in
 `Need` it was accepted.
 
-## 10. A funnelling literal captures under its own bounds, not the enclosing ones
-
-Frontend#95, 2026-09-29. Rejects valid programs, not unsoundness. Also a formalism change.
-`GenericBoundsTest.narrowOuterBoundMutLiteralOk`, `narrowOuterBoundReadLiteralOk`,
-`narrowOuterBoundPromotesToIso`, `narrowOuterBoundIsoLiteralCaptures`,
-`mutableOuterBoundIsoLiteralDoesNotCapture`.
-
-A named literal redeclares the enclosing type variables it uses, possibly with wider bounds
-`D_L`; kinding its self type only requires `D(X) subsetOf D_L(X)`. It is instantiated only
-at its own position, with exactly the funnelled variables or, after reduction, with closed
-types, so the enclosing bounds `D` hold for every value it can capture.
-
-    was:  Lit-ok:  G' = G|_{D_L,rc}, self              -- captures under the literal's bounds
-          Lit-t:   G|_{FTV(Ts)} |- rc L : OK
-    now:  Lit-ok:  G' = G, self
-          Lit-t:   (G|_{FTV(Ts)})|_{D,rc} |- rc L : OK -- captures under the enclosing bounds
-          -- the view of a capture inside each method, G'[D_L, rcOf(M)], keeps D_L
-
-For closed `Ts` the two coincide: closed types kind the same under any bounds, so run time
-typing is unchanged. The iso promotion of a literal (`mut`, `read` or `imm` typed as `iso`
-when its captures are all `iso`/`imm`) is decided under the same `D` and `G|_{FTV(Ts)}`.
-
-Witness. `Box[X:imm,mut,read]:{ mut .get: X }` and `A:{ .m[X:imm](x: X): mut Box[X] -> mut
-Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }`. The promotion looked at `D(X) = {imm}` and made
-the literal `iso`; the capture filter looked at `D_L(X) = {imm,mut,read}` and dropped `x`, so
-`.get` was rejected with "parameter not available here", while the outer bound
-`X:imm,mut,read` compiled. Writing `iso Fresh[X:imm,mut,read]` was rejected as well, although
-`x` is known to be `imm`. With a mutable enclosing bound, `.m[X:imm,mut]`, `x` is still not
-captured by an `iso` literal.
-
 ## 11. Inference sees the self name of a nested literal with the literal's capability
 
 Frontend#96, 2026-09-29. Rejects valid programs, not unsoundness.

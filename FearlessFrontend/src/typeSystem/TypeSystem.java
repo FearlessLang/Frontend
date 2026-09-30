@@ -114,7 +114,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var span= _l.name().approxSpan();
     var getIso= ((_l.rc().isReadOrImm() && !hasAbstractMut(_l)) || _l.rc() == mut)
       && _l.thisName().equals("_")
-      && new CaptureWalk(bs1,g.filterFTV(_l),RC::isIsoOrImm).isFree(_l);
+      && new CaptureWalk(_l.bs(),g.filterFTV(_l),RC::isIsoOrImm).isFree(_l);
     _l.onlyImmCapture().inner= new CaptureWalk(bs1,g,rc->rc == imm).isFree(_l);
     var l= getIso ? _l.withRC(iso) : _l;
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(l,r.t()); } }
@@ -127,7 +127,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l,bs1,thisType);
-    litOk(v().discard(g.filterFTV(l),bs1,l),l);
+    litOk(v().discard(g.filterFTV(l),l),l);
     ms.forEach(m->checkCallable(l,m));
     l.ms().forEach(m->checkImplemented(l,m,l));
     return reqs(l,bs1,thisType,rs);

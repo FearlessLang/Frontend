@@ -638,19 +638,18 @@ Ex:{
 """,people));}
 @Test void boundsForwardingExplicitBreak(){fail("""
 002| FPerson:{ #[N:*](name: Str, age: imm N): Person[imm N] -> Fresh[N:*]:Person[N]{
-003|   .name -> name;
-004|   .age -> age;
-   |   ^^^^^^^^^^^
+   |                                                                      ^^^^^^^^^
+   | ... 2 lines ...
 005|   }}
 
 While inspecting object literal "iso Fresh[_]" > "#(_,_)" line 2
-Invalid method signature overriding for "Fresh[_].age".
-The method ".age" returns type "imm N".
-But "Person[_].age" returns type "N".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+The type "Person[N]" is invalid.
+Type argument 1 ("N") does not satisfy the bounds
+for type parameter "N" in "Person[_]".
+Here "N" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Fresh[N:*]:Person[N]{.name:Str->name;.age:imm N->age}
+iso Fresh[N:*]:Person[N]{.name:Str->name;.age:N->age}
 """,List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[imm N] -> Fresh[N:*]:Person[N]{
@@ -721,15 +720,75 @@ A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 Box[X:imm,mut,read]:{ read .get: read/imm X }
 A:{ .m[X:imm](x: X): read Box[X] -> read Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
 """));}
-@Test void narrowOuterBoundPromotesToIso(){ok(List.of("""
+@Test void wideLiteralBoundIsNotPromotedToIso(){fail("""
+002| A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
+   |     -----------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal "mut Fresh[_]" > ".m(_)" line 2
+The body of method ".m(_)" of type declaration "A" is an expression returning "mut Fresh[X]".
+Object literal is of type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
+Hint: write "iso Fresh[_]" if you need a "iso" object literal.
+
+See inferred typing context below for how type "iso Box[X]" was introduced: (compression indicated by `-`)
+A:{.m[X:imm](x:X):iso Box[X]->mut Fresh[X:*]:Box[X]{mut .get:X->x}}
+""",List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
 """));}
-@Test void narrowOuterBoundIsoLiteralCaptures(){ok(List.of("""
+@Test void wideLiteralBoundIsoLiteralDoesNotCapture(){fail("""
+002| A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
+   |     -----------------------------------------------------------------~~~~~~~~^--
+
+While inspecting parameter "x" > ".get" line 2 > ".m(_)" line 2
+parameter "x" has type "X".
+parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "iso Fresh[_]" (line 2).
+Hint: capture an immutable copy instead, or move this use outside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x
+""",List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
 """));}
-@Test void mutableOuterBoundIsoLiteralDoesNotCapture(){fail("""
+@Test void wideLiteralBoundDropsCaptureNotKindedUnderIt(){fail("""
+003| A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }
+   |     ------------------------------------------------------------------------~~~~~~~~^^~~~--
+
+While inspecting parameter "b" > ".get" line 3 > ".m(_)" line 3
+parameter "b" has type "Box[X]".
+That type is not well kinded under the type parameters of object literal "iso Fresh[_]" (line 3): "X:imm,mut,read".
+The bounds declared by the object literal are all it knows about its type parameters,
+and thus parameter "b" cannot be captured.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+b
+""",List.of("""
+Box[X:imm]:{ .get: X }
+Get[X:imm,mut,read]:{ read .get: read/imm X }
+A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }
+"""));}
+@Test void wideLiteralBoundDropsCaptureNotKindedUnderItMut(){fail("""
+003| A:{ .m[X:imm](b: Box[X]): mut Get[X] -> mut Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }
+   |     ----------------------------------------------------------------------~~~~~~~~^^~~~--
+
+While inspecting parameter "b" > ".get" line 3 > ".m(_)" line 3
+parameter "b" has type "Box[X]".
+That type is not well kinded under the type parameters of object literal "iso Fresh[_]" (line 3): "X:imm,mut,read".
+The bounds declared by the object literal are all it knows about its type parameters,
+and thus parameter "b" cannot be captured.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+b
+""",List.of("""
+Box[X:imm]:{ .get: X }
+Get[X:imm,mut,read]:{ mut .get: X }
+A:{ .m[X:imm](b: Box[X]): mut Get[X] -> mut Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }
+"""));}
+@Test void sameLiteralBoundKeepsCapture(){ok(List.of("""
+Box[X:imm]:{ .get: X }
+Get[X:imm,mut,read]:{ mut .get: X }
+A:{ .m[X:imm](b: Box[X]): mut Get[X] -> mut Fresh[X:imm]:Get[X]{ .get -> b.get } }
+"""));}@Test void mutableOuterBoundIsoLiteralDoesNotCapture(){fail("""
 [###]parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "iso Fresh[_]" (line 2).
 [###]
 """,List.of("""
