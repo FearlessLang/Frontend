@@ -694,4 +694,20 @@ Sub[X:*]:Sup[X]{.h(X):X}
 Sup[X:*]:{ .h(x: X): imm X }
 Sub[X:*]:Sup[X]{ .h(x: X): X }
 """));}
+@Test void genericTwiceSameCapabilityViaExactBoundInherited(){failWf("""
+002| A[Y:imm]:Foo[Y],Foo[imm Y]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types: "Y", "imm Y".
+Type declaration "A[_]" must declare a method ".get" explicitly choosing the desired option.
+""",List.of("""
+Foo[T:*]:{ .get: T }
+A[Y:imm]:Foo[Y],Foo[imm Y]{}
+"""));}
+@Test void genericTwiceSameCapabilityViaExactBoundOverridden(){ok(List.of("""
+Foo[T:*]:{ .get: T }
+A[Y:imm]:Foo[Y],Foo[imm Y]{ .get: Y }
+"""));}
 }
