@@ -217,7 +217,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       && x2.name().equals(x.name())
       && k().of(bs, x, EnumSet.of(iso,imm,mut,read));
   }
-  private boolean isSameShapeSubtype(List<B> bs, T t1, T t2){
+  public static boolean isSameShapeSubtype(List<B> bs, T t1, T t2){
     if (!eqModXRC(bs,t1.withRC(mut),t2.withRC(mut))){ return false; }
     var rcs2= Kinding.intrinsicRCs(bs, t2);
     return Kinding.intrinsicRCs(bs, t1).stream().allMatch(r1->rcs2.stream().allMatch(r1::isSubType));
@@ -290,10 +290,9 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var redundantRcOnA= a instanceof T.RCX(var aRc, var aX) && b instanceof T.X(var bName, _) && aX.name().equals(bName) && redundantOnX(bs,aRc,bName);
     if (redundantRcOnA){ return true; }
     if (!(a instanceof T.RCC(var aRc, var aC, _) && b instanceof T.RCC(var bRc, var bC, _))){ return false; }
-    return aRc == bRc && eqModXRC(bs,aC,bC);
-  }
-  public static boolean eqModXRC(List<B> bs,T.C a,T.C b){
-    return a.name().equals(b.name()) && Streams.zip(a.ts(), b.ts()).allMatch((x,y)->eqModXRC(bs,x,y));
+    var sameHead= aRc == bRc && aC.name().equals(bC.name());
+    if (!sameHead){ return false; }
+    return Streams.zip(aC.ts(), bC.ts()).allMatch((x,y)->eqModXRC(bs,x,y));
   }
   private static boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }
 }
