@@ -109,6 +109,25 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line(inverse)
     );
   }
+  public FearlessException methodOverrideArgCapabilityChanged(Literal l, Sig current, Sig parent, int index){
+    var mName= current.m();
+    return overrideErr(l, current, err()
+      .invalidMethImpl(current.rc().toStrSpace(),l,mName)
+      .line("The method "+err().methodSig(mName)+" accepts parameter "+(index+1)+" of type "+err().typeRepr(false,current.ts().get(index))+".")
+      .line("But "+err().methodSig(current.rc().toStrSpace(),parent.origin(),mName)+" requires "+err().typeRepr(false,parent.ts().get(index))+".")
+      .line(capabilityLocked)
+    );
+  }
+  public FearlessException methodOverrideRetCapabilityChanged(Literal l, Sig current, Sig parent){
+    var mName= current.m();
+    return overrideErr(l, current, err()
+      .invalidMethImpl(current.rc().toStrSpace(),l,mName)
+      .line("The method "+err().methodSig(mName)+" returns type "+err().typeRepr(false,current.ret())+".")
+      .line("But "+err().methodSig(current.rc().toStrSpace(),parent.origin(),mName)+" returns type "+err().typeRepr(false,parent.ret())+".")
+      .line(capabilityLocked)
+    );
+  }
+  private static final String capabilityLocked= "An overriding method can refine the types of its parameters and result, but not their reference capabilities.";
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchCovariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent){

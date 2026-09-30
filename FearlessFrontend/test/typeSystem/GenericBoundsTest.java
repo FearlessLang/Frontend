@@ -646,8 +646,8 @@ Ex:{
 While inspecting object literal "iso Fresh[_]" > "#(_,_)" line 2
 Invalid method signature overriding for "Fresh[_].age".
 The method ".age" returns type "imm N".
-But "Person[_].age" returns type "N", which is not a supertype of "imm N".
-The two types are unrelated.
+But "Person[_].age" returns type "N".
+An overriding method can refine the types of its parameters and result, but not their reference capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Fresh[N:*]:Person[N]{.name:Str->name;.age:imm N->age}

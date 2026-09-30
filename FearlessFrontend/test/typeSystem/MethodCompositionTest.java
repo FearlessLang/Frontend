@@ -532,4 +532,166 @@ A:{ .m:A->this }
 B:A{ .m:A }
 C:B{}
 """));}
+@Test void overrideRefinesMutResultKeepingCapability(){ok(List.of("""
+P:{}
+Q:P{}
+Sup:{ mut .h: mut P }
+Sub:Sup{ mut .h: mut Q }
+"""));}
+@Test void overrideWeakensParamKeepingCapability(){ok(List.of("""
+P:{}
+Q:P{}
+Sup:{ .g(x: mut Q): P }
+Sub:Sup{ .g(x: mut P): P }
+"""));}
+@Test void overrideSpellsRedundantCapabilityOnTypeVariable(){ok(List.of("""
+Sup[X:mut]:{ .h(x: X): X }
+Sub[X:mut]:Sup[X]{ .h(x: mut X): mut X }
+"""));}
+@Test void overrideStrengthensResultCapability(){fail("""
+003| Sub:Sup{ mut .h: iso P }
+   | ---------^^^^^^^^^^^^^--
+
+While inspecting type declaration "Sub"
+Invalid method signature overriding for "mut Sub.h".
+The method ".h" returns type "iso P".
+But "mut Sup.h" returns type "mut P".
+An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Sub:Sup{mut .h:iso P}
+""",List.of("""
+P:{}
+Sup:{ mut .h: mut P }
+Sub:Sup{ mut .h: iso P }
+"""));}
+@Test void overrideWeakensParamCapability(){fail("""
+003| Sub:Sup{ .g(x: read P): P }
+   | ---------^^^^^^^^^^^^^^^^--
+
+While inspecting type declaration "Sub"
+Invalid method signature overriding for "Sub.g(_)".
+The method ".g(_)" accepts parameter 1 of type "read P".
+But "Sup.g(_)" requires "mut P".
+An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Sub:Sup{.g(read P):P}
+""",List.of("""
+P:{}
+Sup:{ .g(x: mut P): P }
+Sub:Sup{ .g(x: read P): P }
+"""));}
+@Test void overrideChangesHygienicParamCapability(){fail("""
+003| Sub:Sup{ .g(x: readH P): P }
+   | ---------^^^^^^^^^^^^^^^^^--
+
+While inspecting type declaration "Sub"
+Invalid method signature overriding for "Sub.g(_)".
+The method ".g(_)" accepts parameter 1 of type "readH P".
+But "Sup.g(_)" requires "mutH P".
+An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Sub:Sup{.g(readH P):P}
+""",List.of("""
+P:{}
+Sup:{ .g(x: mutH P): P }
+Sub:Sup{ .g(x: readH P): P }
+"""));}
+@Test void overrideDropsReadImmOnTypeVariable(){fail("""
+002| Sub[X:*]:Sup[X]{ .h(x: X): X }
+   | -----------------^^^^^^^^^^^--
+
+While inspecting type declaration "Sub[_]"
+Invalid method signature overriding for "Sub[_].h(_)".
+The method ".h(_)" returns type "X".
+But "Sup[_].h(_)" returns type "read/imm X".
+An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Sub[X:*]:Sup[X]{.h(X):X}
+""",List.of("""
+Sup[X:*]:{ .h(x: X): read/imm X }
+Sub[X:*]:Sup[X]{ .h(x: X): X }
+"""));}
+@Test void overrideInLiteralStrengthensResultCapability(){fail("""
+003| User:{ #: mut Sup -> mut Sup{ mut .h: iso P -> P } }
+   |        ------------------~~~~~^^^^^^^^^^^^^^^^^^--
+
+While inspecting object literal instance of "iso Sup" > "#" line 3
+Invalid method signature overriding for "mut Sup.h".
+The method ".h" returns type "iso P".
+But "mut Sup.h" returns type "mut P".
+An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso Sup{mut .h:iso P->P}
+""",List.of("""
+P:{}
+Sup:{ mut .h: mut P }
+User:{ #: mut Sup -> mut Sup{ mut .h: iso P -> P } }
+"""));}
+@Test void genericTwiceDifferingInCapabilityUnused(){ok(List.of("""
+Bar:{}
+Beer:{}
+Foo[T:*]:{}
+A:Foo[imm Bar],Foo[mut Beer]{}
+"""));}
+@Test void genericTwiceDifferingInNominalTypeRefinedToCommonSubtype(){ok(List.of("""
+Bar:{}
+Beer:{}
+Both:Bar,Beer{}
+Foo[T:*]:{ .get: T }
+A:Foo[Bar],Foo[Beer]{ .get: Both -> Both }
+"""));}
+@Test void genericTwiceDifferingInCapabilityCanNotBeOverridden(){fail("""
+005| A:Foo[imm Bar],Foo[mut Beer]{ .get: Both -> Both }
+   | ------------------------------^^^^^^^^^^^^^^^^^^--
+
+While inspecting type declaration "A"
+Invalid method signature overriding for "A.get".
+The method ".get" returns type "imm Both".
+But "Foo[_].get" returns type "mut Beer".
+An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+A:Foo[Bar],Foo[mut Beer]{.get:Both->Both}
+""",List.of("""
+Bar:{}
+Beer:{}
+Both:Bar,Beer{}
+Foo[T:*]:{ .get: T }
+A:Foo[imm Bar],Foo[mut Beer]{ .get: Both -> Both }
+"""));}
+@Test void genericTwiceDifferingInCapabilityInherited(){failWf("""
+004| A:Foo[imm Bar],Foo[mut Beer]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types: "Bar", "mut Beer".
+Type declaration "A" must declare a method ".get" explicitly choosing the desired option.
+""",List.of("""
+Bar:{}
+Beer:{}
+Foo[T:*]:{ .get: T }
+A:Foo[imm Bar],Foo[mut Beer]{}
+"""));}
+@Test void overrideDropsImmOnTypeVariable(){fail("""
+002| Sub[X:*]:Sup[X]{ .h(x: X): X }
+   | -----------------^^^^^^^^^^^--
+
+While inspecting type declaration "Sub[_]"
+Invalid method signature overriding for "Sub[_].h(_)".
+The method ".h(_)" returns type "X".
+But "Sup[_].h(_)" returns type "imm X".
+An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Sub[X:*]:Sup[X]{.h(X):X}
+""",List.of("""
+Sup[X:*]:{ .h(x: X): imm X }
+Sub[X:*]:Sup[X]{ .h(x: X): X }
+"""));}
 }

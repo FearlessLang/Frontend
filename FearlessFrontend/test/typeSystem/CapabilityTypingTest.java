@@ -642,12 +642,12 @@ C:{ .m[Y:*](y: read Y): read Y -> A.m[Y](y) }
 While inspecting ".m(_)" line 3
 This call to method "A.m(_)" cannot typecheck.
 Argument 1 has type "read Y".
-That is not a subtype of any of "read/imm Y" or "imm imm Y".
+That is not a subtype of any of "read/imm Y" or "imm Y".
 Parameter "y" has type "read Y" instead of a subtype of "read/imm Y".
 
 Type required by each promotion:
 - "read/imm Y"  (As declared)
-- "imm imm Y"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1)
+- "imm Y"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1)
 
 See inferred typing context below for how type "read/imm Y" was introduced: (compression indicated by `-`)
 C:{.m[Y:*](y:read Y):read/imm Y->A.m[imm,Y](y)}

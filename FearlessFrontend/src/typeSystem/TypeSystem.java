@@ -269,12 +269,23 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var ctx= Push.of(l.bs(),current.bs());
     assert current.ts().size() == parent.ts().size();
     for (int i : Range.of(current.ts())){
+      var argRcChanged= !sameOuterRC(ctx,current.ts().get(i),parent.ts().get(i));
+      if (argRcChanged){ throw tsE().methodOverrideArgCapabilityChanged(l,current,parent,i); }
       var badArg= !isSub(ctx, parent.ts().get(i), current.ts().get(i));
       if (badArg){ throw tsE().methodOverrideSignatureMismatchContravariance(this,ctx,l,current,parent, i); }
     }
+    var retRcChanged= !sameOuterRC(ctx,current.ret(),parent.ret());
+    if (retRcChanged){ throw tsE().methodOverrideRetCapabilityChanged(l,current,parent); }
     var badRet= !isSub(ctx, current.ret(), parent.ret());
     if (badRet){ throw tsE().methodOverrideSignatureMismatchCovariance(this,ctx,l,current,parent); }
   }
+  private boolean sameOuterRC(List<B> bs, T a, T b){ return outerRC(a).equals(outerRC(b)) || eqModXRC(bs,a,b); }
+  private static String outerRC(T t){ return switch (t){
+    case T.X _ -> "";
+    case T.RCX(var rc, _) -> rc.name();
+    case T.ReadImmX _ -> "read/imm";
+    case T.RCC(var rc, _, _) -> rc.name();
+  };}
   private boolean eqModXRC(List<B> bs,T a,T b){
     if (a.equals(b)){ return true; }
     var redundantRcOnB= a instanceof T.X(var aName, _) && b instanceof T.RCX(var bRc, var bX) && bX.name().equals(aName) && redundantOnX(bs,bRc,aName);
