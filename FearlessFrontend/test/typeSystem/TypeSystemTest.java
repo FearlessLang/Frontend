@@ -16,6 +16,16 @@ public class TypeSystemTest extends testUtils.FearlessTestBase{
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
 """));}
+@Test void freshMethodGenericMustNotCaptureInheritedSiblingGeneric(){ok(List.of("""
+A:{ .foo[_AX,X](a:_AX,b:X):A; }
+B[X]:A{ .foo(a,b)->this }
+User:{ .m(b:B[User]):A -> b.foo[User,A](this,b) }
+"""));}
+@Test void freshMethodGenericMustKeepInheritedGenericsDistinct(){fail("""
+[###]""",List.of("""
+A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
+B[X]:A{ .foo(a,b)->b }
+"""));}
 @Test void unnamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |                               -------------------~~~~^^^^^
