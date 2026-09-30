@@ -188,6 +188,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var thisName= d.l().thisName().map(n->n.name()).orElseGet(()->top?"this":"_");
     var bs= d.bs().map(this::mapB).orElse(List.of());
     var cs= mapC(d.cs());
+    var duplicated= cs.stream().distinct().count() < cs.size();
+    if (duplicated){ throw meths.p().err().duplicatedSupertype(d,cs); }
     var ms= mapM(d.l().methods());
     var l= new E.Literal(of(rc),name,bs,cs,thisName, ms, new Src(d),false);
     decs.add(l);
