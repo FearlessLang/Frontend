@@ -2130,6 +2130,20 @@ c=C[name="aaa"/0
 ""","""
 A:{ .m:Str -> "aaa"}
 """); }
+@Test void uStrWithDotUnderscore(){ ok("""
+[###]
+c=C[name="file._tmp"/0
+[###]
+""","""
+A:{ .m:Str -> "file._tmp"}
+"""); }
+@Test void sStrWithDotUnderscore(){ ok("""
+[###]
+c=C[name=`file._tmp`/0
+[###]
+""","""
+A:{ .m:Str -> `file._tmp`}
+"""); }
 
 @Test void uStrBase2(){ ok("""
 [###]
