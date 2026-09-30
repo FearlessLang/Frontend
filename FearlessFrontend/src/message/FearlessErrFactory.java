@@ -251,6 +251,17 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of("Name "+disp(name)+" already in scope.\n"
       +"It is declared by a nominal pattern: a pattern like \"{.a.b, .c}id\" declares the names \"bid\" and \"cid\".\n").addSpan(at);
   }
+  public FearlessException patternNameInvalid(Span at, XPat.Destruct p, String x){
+    var noId= Join.of(p.extract().stream().map(c->Join.of(c.stream().map(MName::s),"","","")),"{",", ","}");
+    var pat= noId+p.id().orElse("");
+    var head= "Nominal pattern "+disp(pat)+" declares the name "+disp(x)+", which is not a valid parameter name.\n";
+    var body= isKind(x,RCap)
+      ? "Reference capabilities, like "+disp(x)+", can not be parameter names.\n"
+        +"An id changes the declared names: for example "+disp(pat+"1")+" is accepted.\n"
+      : "A name can only have \"'\" at its end: with an id, a nominal pattern only accepts method names not ending with \"'\".\n"
+        +"Without the id, "+disp(noId)+" is accepted.\n";
+    return Code.UnexpectedToken.of(head+body).addSpan(at);
+  }
   public FearlessException duplicateParamInMethodSignature(List<String> xs, Span at){
     return Code.UnexpectedToken.of(
       "A method signature cannot declare multiple parameters with the same name\n"
