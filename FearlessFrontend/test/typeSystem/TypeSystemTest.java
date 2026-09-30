@@ -841,6 +841,18 @@ beer
       read Foo:{ read .m:Bar -> beer.bar() };
   }
 """)); }
+@Test void drop_ftv_typeVariableNotPropagatedIntoExplicitFoo(){fail("""
+[###]parameter "x" has type "X".
+parameter "x" uses type parameters that are not propagated
+into object literal "iso Foo" (line 4) and thus it cannot be captured.
+[###]
+""", List.of("""
+  Bar:{}
+  User:{
+    read .m[X:imm,mut,read](x:X):read Foo->
+      read Foo:{ read .m:Bar -> x };
+  }
+"""));}
 
 @Test void drop_hygienicsAllowedByTypeParam(){fail("""
 002|   read .m[X:imm,mut,read,readH,mutH](beer:X):G[X]->
