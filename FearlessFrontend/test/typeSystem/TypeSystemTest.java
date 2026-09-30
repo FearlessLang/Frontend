@@ -3906,6 +3906,11 @@ TF[E:*]:{ }
 L[E:*]:TF[E]{ }
 Fl[E:*]:{ mut .g[R:*](f: read Fn[E, read TF[R]]): mut Fl[R]; }
 Use:{ #[E:*](fl: mut Fl[read TF[E]]): mut Fl[E] -> fl.g[E]{c -> c} }
+"""));}@Test void inferredTypeArgumentOfNestedCallFollowsExpectedType(){ok(List.of("""
+C:{}
+L[E:*]:{}
+Ls:{ #[E:*](e: E): mut L[E] -> {} }
+User:{ .nested(css: L[L[C]]): C -> C; .t: C -> this.nested(Ls#(Ls#(C))) }
 """));}
 @Test void argFromObjectLiteral_mutHParam_hintToWriteMutLiteral(){fail("""
 005|   .f:B->
