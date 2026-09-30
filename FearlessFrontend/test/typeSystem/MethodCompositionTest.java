@@ -694,35 +694,6 @@ Sub[X:*]:Sup[X]{.h(X):X}
 Sup[X:*]:{ .h(x: X): imm X }
 Sub[X:*]:Sup[X]{ .h(x: X): X }
 """));}
-@Test void genericTwiceSameCapabilityViaExactBoundInherited(){failWf("""
-002| A[Y:imm]:Foo[Y],Foo[imm Y]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types: "Y", "imm Y".
-Type declaration "A[_]" must declare a method ".get" explicitly choosing the desired option.
-""",List.of("""
-Foo[T:*]:{ .get: T }
-A[Y:imm]:Foo[Y],Foo[imm Y]{}
-"""));}
-@Test void genericTwiceSameCapabilityViaExactBoundOverridden(){ok(List.of("""
-Foo[T:*]:{ .get: T }
-A[Y:imm]:Foo[Y],Foo[imm Y]{ .get: Y }
-"""));}
-@Test void genericTwiceSameCapabilityViaExactBoundArgument(){failWf("""
-003| A[Y:read]:Foo[Y],Foo[read Y]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A[_]"
-Type disagreement about argument 0 for method "imm .set(_)" with 1 parameters.
-Different options are present in the implemented types: "Y", "read Y".
-Type declaration "A[_]" must declare a method ".set(_)" explicitly choosing the desired option.
-""",List.of("""
-Bar:{}
-Foo[T:*]:{ .set(t: T): Bar }
-A[Y:read]:Foo[Y],Foo[read Y]{}
-"""));}
 @Test void genericTwiceDifferingInCapabilityViaInexactBound(){failWf("""
 002| A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -752,5 +723,16 @@ A:Foo,Bar{}
 Foo:{ .get[T:mut]: T }
 Bar:{ .get[T:mut]: mut T }
 A:Foo,Bar{ .get[T:mut]: T }
+"""));}
+@Test void methodGenericSameCapabilityViaExactBoundArgument(){failWf("""
+[###]
+Type disagreement about argument 0 for method "imm .set(_)" with 1 parameters.
+Different options are present in the implemented types: "T", "read T".
+Type declaration "A" must declare a method ".set(_)" explicitly choosing the desired option.
+""",List.of("""
+Baz:{}
+Foo:{ .set[T:read](t: T): Baz }
+Bar:{ .set[T:read](t: read T): Baz }
+A:Foo,Bar{}
 """));}
 }

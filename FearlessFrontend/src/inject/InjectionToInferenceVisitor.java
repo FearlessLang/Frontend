@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.B;
@@ -23,6 +24,7 @@ import utils.Pos;
 import inference.E;
 import inference.IT;
 import inference.M;
+import typeSystem.TypeSystem;
 
 import static java.util.Optional.*;
 import static core.LiteralDeclarations.*;
@@ -188,12 +190,17 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var thisName= d.l().thisName().map(n->n.name()).orElseGet(()->top?"this":"_");
     var bs= d.bs().map(this::mapB).orElse(List.of());
     var cs= mapC(d.cs());
-    var duplicated= cs.stream().distinct().count() < cs.size();
-    if (duplicated){ throw meths.p().err().duplicatedSupertype(d,cs); }
+    var dup= duplicatedSupertypes(bs,TypeRename.itcToTC(cs));
+    if (dup.isPresent()){ throw meths.p().err().duplicatedSupertype(d,dup.get().getFirst(),dup.get().getLast()); }
     var ms= mapM(d.l().methods());
     var l= new E.Literal(of(rc),name,bs,cs,thisName, ms, new Src(d),false);
     decs.add(l);
     return l;
+  }
+  private static Optional<List<Integer>> duplicatedSupertypes(List<B> bs, List<core.T.C> cs){
+    return IntStream.range(0,cs.size()).boxed()
+      .flatMap(j->IntStream.range(0,j).filter(i->TypeSystem.eqModXRC(bs,cs.get(i),cs.get(j))).mapToObj(i->List.of(i,j)))
+      .findFirst();
   }
   E visitCall(fearlessFullGrammar.E.Call c){
     if (c.pat().isPresent()){ c= desugarCPat(c); }

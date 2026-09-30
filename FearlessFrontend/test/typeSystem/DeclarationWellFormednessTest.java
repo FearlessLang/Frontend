@@ -546,6 +546,30 @@ Foo:{}
 A[X:*]:{}
 B:A[Foo],A[imm Foo]{}
 """));}
+@Test void supertypeTypeVariableWithAndWithoutRedundantRc(){failWf("""
+002| A[Y:imm]:Foo[Y],Foo[imm Y]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Duplicated supertype in type declaration: "Foo[Y]" and "Foo[imm Y]" denote the same type.
+Remove one of them.
+""",List.of("""
+Foo[T:*]:{ .get: T }
+A[Y:imm]:Foo[Y],Foo[imm Y]{}
+"""));}
+@Test void supertypeNestedTypeVariableWithAndWithoutRedundantRc(){failWf("""
+[###]
+Duplicated supertype in type declaration: "Foo[Box[read Y]]" and "Foo[Box[Y]]" denote the same type.
+Remove one of them.
+""",List.of("""
+Box[T:*]:{}
+Foo[T:*]:{}
+A[Y:read]:Foo[Box[read Y]],Foo[Box[Y]]{}
+"""));}
+@Test void supertypeTypeVariableWithNonRedundantRcOk(){ok(List.of("""
+Foo[T:*]:{}
+A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
+"""));}
 @Test void supertypeSimpleAndQualified(){failWf("""
 002| B:A,p.A{}
    | ^^^^^^^^^

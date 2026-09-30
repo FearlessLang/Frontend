@@ -290,9 +290,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var redundantRcOnA= a instanceof T.RCX(var aRc, var aX) && b instanceof T.X(var bName, _) && aX.name().equals(bName) && redundantOnX(bs,aRc,bName);
     if (redundantRcOnA){ return true; }
     if (!(a instanceof T.RCC(var aRc, var aC, _) && b instanceof T.RCC(var bRc, var bC, _))){ return false; }
-    var sameHead= aRc == bRc && aC.name().equals(bC.name());
-    if (!sameHead){ return false; }
-    return Streams.zip(aC.ts(), bC.ts()).allMatch((x,y)->eqModXRC(bs,x,y));
+    return aRc == bRc && eqModXRC(bs,aC,bC);
+  }
+  public static boolean eqModXRC(List<B> bs,T.C a,T.C b){
+    return a.name().equals(b.name()) && Streams.zip(a.ts(), b.ts()).allMatch((x,y)->eqModXRC(bs,x,y));
   }
   private static boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }
 }
