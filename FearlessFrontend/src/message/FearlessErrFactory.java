@@ -251,6 +251,26 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of("Name "+disp(name)+" already in scope.\n"
       +"It is declared by a nominal pattern: a pattern like \"{.a.b, .c}id\" declares the names \"bid\" and \"cid\".\n").addSpan(at);
   }
+  public FearlessException patternNameInvalid(Span at, XPat.Destruct p){
+    var bad= p.invalidNames().toList();
+    var rcs= bad.stream().filter(x->isKind(x,RCap)).toList();
+    var one= bad.size() == 1;
+    var fix= Stream.of(Optional.<String>empty(),Optional.of("1"))
+      .filter(id->!id.equals(p.id()))
+      .map(id->new XPat.Destruct(p.extract(),id))
+      .filter(d->d.invalidNames().findAny().isEmpty())
+      .findFirst();
+    return Code.UnexpectedToken.of("Nominal pattern "+disp(patternRepr(p))+" declares "
+      +(one ? "the name " : "the names ")+Join.of(bad.stream().map(Err::disp),"",", ","")
+      +(one ? ", which is not a valid parameter name.\n" : ", which are not valid parameter names.\n")
+      +(rcs.size() == bad.size() ? "" : "A name can only have \"'\" at its end, but here the id follows a method name ending with \"'\".\n")
+      +(rcs.isEmpty() ? "" : "Reference capabilities, like "+disp(rcs.getFirst())+", can not be parameter names.\n")
+      +fix.map(d->"For example "+disp(patternRepr(d))+" is accepted.\n").orElse("No choice of id makes all the names of this pattern valid.\n")
+      ).addSpan(at);
+  }
+  private static String patternRepr(XPat.Destruct p){
+    return Join.of(p.extract().stream().map(c->Join.of(c.stream().map(MName::s),"","","")),"{",", ","}")+p.id().orElse("");
+  }
   public FearlessException duplicateParamInMethodSignature(List<String> xs, Span at){
     return Code.UnexpectedToken.of(
       "A method signature cannot declare multiple parameters with the same name\n"

@@ -162,7 +162,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var chains= splitBy("nominal pattern",commaSkip,Parser::parseChain);
     if (chains.isEmpty()){ throw errFactory().emptyDestructPattern(span()); }
     if (chains.stream().anyMatch(List::isEmpty)){ throw errFactory().emptyDestructChain(span()); }
-    return new XPat.Destruct(chains, id);
+    var res= new XPat.Destruct(chains, id);
+    if (res.invalidNames().findAny().isPresent()){ throw errFactory().patternNameInvalid(span(),res); }
+    return res;
   }
   List<MName> parseChain(){ return splitBy("",anyLeft,Parser::parseDotName); }
 
