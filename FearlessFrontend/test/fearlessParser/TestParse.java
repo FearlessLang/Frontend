@@ -2944,5 +2944,19 @@ Error 2 UnexpectedToken
 ""","""
 A:{.m(a:A):A->a.m {.b, .b}x = a; a}
 """);}
+@Test void patternPrimedNameWithIdParameter(){fail("""
+In file: [###].fear
+[###]
+Error [###]
+""","""
+A:{.m({.a'}1:A):A->A}
+""");}
+@Test void patternPrimedNameWithIdEqSugar(){fail("""
+In file: [###].fear
+[###]
+Error [###]
+""","""
+A:{.m(a:A):A->a.m {.b'}x = a; a}
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?
