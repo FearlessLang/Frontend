@@ -132,11 +132,13 @@ public record InjectionSteps(Methods meths){
     return x1.withRC(meetRcNoH(Optional.of(x1.rc()), Optional.of(rc2)).get());
   }
   static Optional<RC> meetRcNoH(Optional<RC> a, Optional<RC> b){
-    if (a.equals(b)){ return a.map(InjectionSteps::noH); }
     if (a.isEmpty()){ return b; }
     if (b.isEmpty()){ return a; }
-    if (a.get() == RC.iso){ return b.map(InjectionSteps::noH); }
-    if (b.get() == RC.iso){ return a.map(InjectionSteps::noH); }
+    var x= noH(a.get());
+    var y= noH(b.get());
+    var keepX= x == y || y == RC.iso || y == RC.read && x != RC.iso;
+    if (keepX){ return Optional.of(x); }
+    if (x == RC.iso || x == RC.read){ return Optional.of(y); }
     return Optional.of(RC.imm);// returning Optional.empty(); could make it go in loop
   }
   static RC noH(RC a){ return a == RC.readH ? RC.read : a == RC.mutH ? RC.mut : a; }

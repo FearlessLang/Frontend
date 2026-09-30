@@ -785,4 +785,53 @@ iso B
 B:{ mut .m: B }
 A:{ .b: mutH B -> {} }
 """));}
+@Test void mutArgumentPassedAsReadKeepsMutOverload(){ok(List.of("""
+A:{ imm .a:A->A; read .a:A->A; mut .a:A->A; }
+Use:{ #(a: read A): A -> A; }
+Two:{ #(a1: A, a2: A): A -> a1; }
+User:{ .m(x: mut A): A -> Two#(Use#(x), x.a); }
+"""));}
+@Test void mutArgumentPassedAsReadThenMutCall(){ok(List.of("""
+B:{}
+A:{ read .a:B->B; mut .a:mut B->mut B{}; }
+Use:{ #(a: read A): B -> B; }
+Two:{ #(a1: B, a2: mut B): B -> a1; }
+User:{ .m(x: mut A): B -> Two#(Use#(x), x.a); }
+"""));}
+@Test void readArgumentPassedAsReadHKeepsReadOverload(){ok(List.of("""
+A:{ imm .a:A->A; read .a:A->A; mut .a:A->A; }
+Use:{ #(a: readH A): A -> A; }
+Two:{ #(a1: A, a2: A): A -> a1; }
+User:{ .m(x: read A): A -> Two#(Use#(x), x.a); }
+"""));}
+@Test void mutArgumentPassedAsMutHKeepsMutOverload(){ok(List.of("""
+A:{ imm .a:A->A; read .a:A->A; mut .a:A->A; }
+Use:{ #(a: mutH A): A -> A; }
+Two:{ #(a1: A, a2: A): A -> a1; }
+User:{ .m(x: mut A): A -> Two#(Use#(x), x.a); }
+"""));}
+@Test void mutCaptureReturnedAsReadKeepsMutOverload(){ok(List.of("""
+A:{ imm .a:A->A; read .a:A->A; mut .a:A->A; }
+F:{ mut #: read A; }
+Two:{ #(f: mut F, a2: A): A -> a2; }
+User:{ .m(x: mut A): A -> Two#(mut F{ # -> x }, x.a); }
+"""));}
+@Test void mutGenericArgumentPassedAsReadKeepsMutTypeArgument(){ok(List.of("""
+B:{}
+Id:{ #[Y:imm,mut,read](y: Y): Y -> y; }
+User[X:mut]:{
+  .use(a: read X): B -> B;
+  .two(b: B, y: mut X): mut X -> y;
+  .m(x: mut X): mut X -> this.two(this.use(x), Id#(x));
+}
+"""));}
+@Test void mutArgumentToGenericWithReadResultInfersMut(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:*](y: Y): Y -> y }
+A:{ .g(x: mut Foo): read Foo -> Util.m(x) }
+"""));}
+@Test void mutTypeVariableArgumentToGenericWithReadResultInfersMut(){ok(List.of("""
+Util:{ .m[Y:*](y: Y): Y -> y }
+A:{ .f[X:*](x: mut X): read X -> Util.m(x) }
+"""));}
 }
