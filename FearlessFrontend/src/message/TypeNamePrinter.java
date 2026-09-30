@@ -24,7 +24,7 @@ public record TypeNamePrinter(boolean trunc,String mainPkg, Map<String,String> u
     return r.substring(0,5)+"-"+r.substring(d-5);
   }
   private static String trunc(String s){
-    var dot= s.lastIndexOf('.');
+    var dot= TName.pkgDot(s);
     if (dot == -1){ return truncSimple(s); }
     return "-."+truncSimple(s.substring(dot+1));
   }

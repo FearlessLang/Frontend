@@ -2033,6 +2033,19 @@ A:{}
 @Test void passDStr(){ok(List.of("""
  Main:{ .m:base.Str -> "Hi" }
 """));}
+@Test void failFloatForInt_compressedKeepsFloat(){fail("""
+001|  Main:{ .m:base.Int -> +1.5 }
+   |         ---------------^^^^
+
+While inspecting object literal instance of "base.Float" > ".m" line 1
+The body of method ".m" of type declaration "Main" is an expression returning "iso base.Float".
+Object literal is of type "base.Float" instead of a subtype of "base.Int".
+
+See inferred typing context below for how type "base.Int" was introduced: (compression indicated by `-`)
+Main:{.m:-.Int->+1.5}
+""",List.of("""
+ Main:{ .m:base.Int -> +1.5 }
+"""));}
 @Test void failIntTooBig(){failExt("""
 In file: [###].fear
 
