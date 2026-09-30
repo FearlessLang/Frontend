@@ -710,4 +710,47 @@ A[Y:imm]:Foo[Y],Foo[imm Y]{}
 Foo[T:*]:{ .get: T }
 A[Y:imm]:Foo[Y],Foo[imm Y]{ .get: Y }
 """));}
+@Test void genericTwiceSameCapabilityViaExactBoundArgument(){failWf("""
+003| A[Y:read]:Foo[Y],Foo[read Y]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Type disagreement about argument 0 for method "imm .set(_)" with 1 parameters.
+Different options are present in the implemented types: "Y", "read Y".
+Type declaration "A[_]" must declare a method ".set(_)" explicitly choosing the desired option.
+""",List.of("""
+Bar:{}
+Foo[T:*]:{ .set(t: T): Bar }
+A[Y:read]:Foo[Y],Foo[read Y]{}
+"""));}
+@Test void genericTwiceDifferingInCapabilityViaInexactBound(){failWf("""
+002| A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types: "Y", "imm Y".
+They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+""",List.of("""
+Foo[T:*]:{ .get: T }
+A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
+"""));}
+@Test void methodGenericSameCapabilityViaExactBoundInherited(){failWf("""
+003| A:Foo,Bar{}
+   | ^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types: "T", "mut T".
+Type declaration "A" must declare a method ".get" explicitly choosing the desired option.
+""",List.of("""
+Foo:{ .get[T:mut]: T }
+Bar:{ .get[T:mut]: mut T }
+A:Foo,Bar{}
+"""));}
+@Test void methodGenericSameCapabilityViaExactBoundOverridden(){ok(List.of("""
+Foo:{ .get[T:mut]: T }
+Bar:{ .get[T:mut]: mut T }
+A:Foo,Bar{ .get[T:mut]: T }
+"""));}
 }

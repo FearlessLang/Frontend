@@ -279,11 +279,11 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var badRet= !isSub(ctx, current.ret(), parent.ret());
     if (badRet){ throw tsE().methodOverrideSignatureMismatchCovariance(this,ctx,l,current,parent); }
   }
-  private boolean sameOuterRC(List<B> bs, T a, T b){
+  public static boolean sameOuterRC(List<B> bs, T a, T b){
     var sameForm= (a instanceof T.ReadImmX) == (b instanceof T.ReadImmX) && a.explicitRC().equals(b.explicitRC());
     return sameForm || eqModXRC(bs,a,b);
   }
-  private boolean eqModXRC(List<B> bs,T a,T b){
+  private static boolean eqModXRC(List<B> bs,T a,T b){
     if (a.equals(b)){ return true; }
     var redundantRcOnB= a instanceof T.X(var aName, _) && b instanceof T.RCX(var bRc, var bX) && bX.name().equals(aName) && redundantOnX(bs,bRc,aName);
     if (redundantRcOnB){ return true; }
@@ -294,5 +294,5 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (!sameHead){ return false; }
     return Streams.zip(aC.ts(), bC.ts()).allMatch((x,y)->eqModXRC(bs,x,y));
   }
-  private boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }
+  private static boolean redundantOnX(List<B> bs,RC rc,String x){ return get(bs,x).rcs().equals(EnumSet.of(rc)); }
 }

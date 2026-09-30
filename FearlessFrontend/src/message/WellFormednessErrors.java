@@ -306,9 +306,10 @@ public record WellFormednessErrors(String pkgName){
   }
   public String retTypeDisagreement(){ return "Return type disagreement"; }
   public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
-  public FearlessException noAgreement(Agreement at, List<?> res, String msg){
+  public FearlessException noAgreement(Agreement at, List<B> bs, List<IT> res, String msg){
     var rc= at.rc().map(r->r.toStrSpace(false)).orElse("");
-    var rcDiffers= outerRCs(res) > 1;
+    var ts= inject.TypeRename.itToT(res);
+    var rcDiffers= ts.stream().noneMatch(a->ts.stream().allMatch(b->typeSystem.TypeSystem.sameOuterRC(bs,a,b)));
     var e= err()
       .line(msg+" for method "+err().methodSig(rc,at.mName())+" with "+at.mName().arity()+" parameters.")
       .line(Join.of(
@@ -324,12 +325,6 @@ public record WellFormednessErrors(String pkgName){
     if (!(o instanceof inference.IT.RCC rcc)){ return disp(o); }
     return showImm ? err().typeRepr(false,inject.TypeRename.itToT(rcc)) : err().typeRepr(rcc);
   }
-  private static long outerRCs(List<?> res){ return res.stream().map(o->switch (o){
-    case inference.IT.RCC rcc -> rcc.rc().map(RC::name).orElse("imm");
-    case inference.IT.RCX rcx -> rcx.rc().name();
-    case inference.IT.ReadImmX _ -> "read/imm";
-    default -> "";
-  }).distinct().count(); }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
       .line("The number of type parameters disagrees for method "+err().methodSig(at.mName())
