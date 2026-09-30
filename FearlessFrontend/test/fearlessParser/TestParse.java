@@ -2952,8 +2952,8 @@ In file: [###].fear
 
 While inspecting nominal pattern > method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Nominal pattern "{.a'}1" declares the name "a'1", which is not a valid parameter name.
-A name can only have "'" at its end: with an id, a nominal pattern only accepts method names not ending with "'".
-Without the id, "{.a'}" is accepted.
+A name can only have "'" at its end, but here the id follows a method name ending with "'".
+For example "{.a'}" is accepted.
 Error 2 UnexpectedToken
 ""","""
 A:{.m({.a'}1:A):A->A}
@@ -2966,8 +2966,8 @@ In file: [###].fear
 
 While inspecting nominal pattern > method body > method declaration > type declaration body > type declaration > full file
 Nominal pattern "{.b'}x" declares the name "b'x", which is not a valid parameter name.
-A name can only have "'" at its end: with an id, a nominal pattern only accepts method names not ending with "'".
-Without the id, "{.b'}" is accepted.
+A name can only have "'" at its end, but here the id follows a method name ending with "'".
+For example "{.b'}" is accepted.
 Error 2 UnexpectedToken
 ""","""
 A:{.m(a:A):A->a.m {.b'}x = a; a}
@@ -2981,10 +2981,31 @@ In file: [###].fear
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
 Nominal pattern "{.b, .read}" declares the name "read", which is not a valid parameter name.
 Reference capabilities, like "read", can not be parameter names.
-An id changes the declared names: for example "{.b, .read}1" is accepted.
+For example "{.b, .read}1" is accepted.
 Error 2 UnexpectedToken
 ""","""
 A:{.m({.b, .read}:A):A}
+""");}
+@Test void patternPrimedAndRCapNames(){fail("""
+In file: [###].fear
+[###]
+Nominal pattern "{.a', .i}mm" declares the names "a'mm", "imm", which are not valid parameter names.
+A name can only have "'" at its end, but here the id follows a method name ending with "'".
+Reference capabilities, like "imm", can not be parameter names.
+For example "{.a', .i}" is accepted.
+Error 2 UnexpectedToken
+""","""
+A:{.m({.a', .i}mm:A):A}
+""");}
+@Test void patternNoIdFixesAllNames(){fail("""
+In file: [###].fear
+[###]
+Nominal pattern "{.a', .read, .mut}" declares the names "read", "mut", which are not valid parameter names.
+Reference capabilities, like "read", can not be parameter names.
+No choice of id makes all the names of this pattern valid.
+Error 2 UnexpectedToken
+""","""
+A:{.m({.a', .read, .mut}:A):A}
 """);}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

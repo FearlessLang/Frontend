@@ -163,8 +163,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (chains.isEmpty()){ throw errFactory().emptyDestructPattern(span()); }
     if (chains.stream().anyMatch(List::isEmpty)){ throw errFactory().emptyDestructChain(span()); }
     var res= new XPat.Destruct(chains, id);
-    var bad= res.parameterNames().filter(x->!isKind(x,LowercaseId) || isKind(x,RCap)).findFirst();
-    if (bad.isPresent()){ throw errFactory().patternNameInvalid(span(),res,bad.get()); }
+    if (res.invalidNames().findAny().isPresent()){ throw errFactory().patternNameInvalid(span(),res); }
     return res;
   }
   List<MName> parseChain(){ return splitBy("",anyLeft,Parser::parseDotName); }
