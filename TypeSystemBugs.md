@@ -383,3 +383,34 @@ same for `imm Y` with an `imm Foo` argument, for an expected `read Foo` against 
 (`Cons[iso Foo]`), and for an argument `x: iso Foo` to a parameter `y: Y` under `Y:*`. Under
 `Y:**` the `iso` was well kinded and became the result of `Y`; the unknown capability now gives
 `imm` there too, while an `iso` argument under `Y:**` keeps `iso`.
+
+## 14. Inference types a capture the type system drops for its type parameters
+
+Frontend#129, 2026-10-01. Crash, not unsoundness.
+`TypeSystemTest.drop_ftv_typeVariableNotPropagatedIntoExplicitFoo`,
+`drop_ftv_notPropagatedTypeReachesInferredTypeArgument`,
+`drop_ftv_notPropagatedTypeReachesNestedLiteral`.
+
+A literal written by name, `D[Xs]`, keeps only the bindings whose type mentions no type
+variable outside `Xs` (`Gamma.filterFTV`, bug 5); using any other is the error "uses type
+parameters that are not propagated". Inference must not give such a binding a type either:
+any type inferred from it mentions a type variable that is not in scope inside `D`.
+
+    keep(Xs, G) = { x:T in G | FTV(T) subsetOf Xs }     -- type system, per named literal
+
+    seen(x) = adapt over every literal scope strictly inside the declaration of x
+              -- Gamma.getWithRC; Xs of an inferred-name literal is the whole enclosing scope
+    was:  adapt(Xs, rc, T) = as in bug 4, with the bound of a bare or read/imm X read from Xs
+    now:  adapt(Xs, rc, T) = unknown   if FTV(T) not subsetOf Xs
+                             as before otherwise
+    was:  the free type variables of a literal committed by inference use the declared type of x
+    now:  they use seen(x)
+
+Witness. `User:{ read .m[X:*](x:X):read Foo -> read Foo:{ read .m:Bar -> x } }`: `adapt`
+looked `X` up in the bounds of `Foo`, which are empty, and `RC.get` crashed. A type other than
+a bare `X` was adapted by its capability alone, so with `beer:Beer[X]` inference typed it and
+carried `X` further: `Id#beer` became `Id#[Beer[X]]`, and the type system, which checks the
+type arguments of a call before its arguments, crashed in `Kinding` looking `X` up in the
+bounds of `Foo`; `Do#{ beer.bar }` committed the nested literal with parameters `[X]` and
+`checkLiteral` failed its assert that they are in scope. Now inference leaves `x` and `beer`
+unknown inside `Foo` and the type system reports them where they are used.

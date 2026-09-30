@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import core.B;
 import core.RC;
+import inject.FreeXs;
 import utils.Range;
 import utils.Streams;
 
@@ -63,11 +64,15 @@ public final class Gamma{
     for (var s= declDepth[i] + 1; s < depth; s++){ t= adapt(t, rcs[s], bss[s]); }
     return t;
   }
-  private static IT adapt(IT t, RC rc, List<B> bs){ return switch (t){
-    case IT.X(var x, _) -> adaptX(t, RC.get(bs, x).rcs(), rc);
-    case IT.ReadImmX(IT.X(var x, _)) -> adaptX(t, RC.get(bs, x).rcs(), rc);
-    default -> adaptRC(t, rc);
-  };}
+  private IT adapt(IT t, RC rc, List<B> bs){
+    var ftvEscapes= !new FreeXs(this).ftvT(t).allMatch(B.xs(bs)::contains);
+    if (ftvEscapes){ return IT.U.Instance; }
+    return switch (t){
+      case IT.X(var x, _) -> adaptX(t, RC.get(bs, x).rcs(), rc);
+      case IT.ReadImmX(IT.X(var x, _)) -> adaptX(t, RC.get(bs, x).rcs(), rc);
+      default -> adaptRC(t, rc);
+    };
+  }
   private static IT adaptX(IT t, EnumSet<RC> xRcs, RC rc){
     if (rc == RC.imm || EnumSet.of(RC.iso, RC.imm).containsAll(xRcs)){ return t.withRC(RC.imm); }
     if (xRcs.stream().anyMatch(RC::isH)){ return t; }
@@ -82,7 +87,7 @@ public final class Gamma{
     return trc.equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
   }
   public IT get(String x){ return ts[indexOf(x)]; }
-  public Optional<IT> getOpt(String x){ var i= indexOf(x); return i == -1 ? Optional.empty() : Optional.of(ts[i]); }
+  public Optional<IT> getWithRCOpt(String x){ return indexOf(x) == -1 ? Optional.empty() : Optional.of(getWithRC(x)); }
 
   public void declare(String x, IT t){
     if (x.equals("_")){ return; }

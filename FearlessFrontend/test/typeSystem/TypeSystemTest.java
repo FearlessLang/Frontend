@@ -842,15 +842,68 @@ beer
   }
 """)); }
 @Test void drop_ftv_typeVariableNotPropagatedIntoExplicitFoo(){fail("""
-[###]parameter "x" has type "X".
+003|     read .m[X:imm,mut,read](x:X):read Foo->
+004|       read Foo:{ read .m:Bar -> x };
+   |                  ---------------^
+
+While inspecting parameter "x" > ".m" line 4 > ".m(_)" line 3
+parameter "x" has type "X".
 parameter "x" uses type parameters that are not propagated
 into object literal "iso Foo" (line 4) and thus it cannot be captured.
-[###]
+Hint: change "Foo" by adding the missing type parameters: "Foo[...,...]"
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x
 """, List.of("""
   Bar:{}
   User:{
     read .m[X:imm,mut,read](x:X):read Foo->
       read Foo:{ read .m:Bar -> x };
+  }
+"""));}
+@Test void drop_ftv_notPropagatedTypeReachesInferredTypeArgument(){fail("""
+005|     read .m[X:imm,mut,read](beer:Beer[X]):read Foo->
+006|       read Foo:{ read .m:Bar -> Id#beer };
+   |                  ------------------^^^^
+
+While inspecting parameter "beer" > ".m" line 6 > ".m(_)" line 5
+parameter "beer" has type "Beer[X]".
+parameter "beer" uses type parameters that are not propagated
+into object literal "iso Foo" (line 6) and thus it cannot be captured.
+Hint: change "Foo" by adding the missing type parameters: "Foo[...,...]"
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+beer
+""", List.of("""
+  Bar:{}
+  Beer[X:imm,mut,read]:{ read .bar: Bar; }
+  Id:{ #[Y:imm,mut,read](y:Y):Bar -> Bar }
+  User:{
+    read .m[X:imm,mut,read](beer:Beer[X]):read Foo->
+      read Foo:{ read .m:Bar -> Id#beer };
+  }
+"""));}
+@Test void drop_ftv_notPropagatedTypeReachesNestedLiteral(){fail("""
+006|     read .m[X:imm,mut,read](beer:Beer[X]):read Foo->
+007|       read Foo:{ read .m:Bar -> Do#{ beer.bar } };
+   |                  --------------------^^^^^~~~--
+
+While inspecting parameter "beer" > "#" line 7 > ".m" line 7 > ".m(_)" line 6
+parameter "beer" has type "Beer[X]".
+parameter "beer" uses type parameters that are not propagated
+into object literal "iso Foo" (line 7) and thus it cannot be captured.
+Hint: change "Foo" by adding the missing type parameters: "Foo[...,...]"
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+beer
+""", List.of("""
+  Bar:{}
+  Beer[X:imm,mut,read]:{ read .bar: Bar; }
+  Run:{ read #: Bar }
+  Do:{ #(r: read Run): Bar -> Bar }
+  User:{
+    read .m[X:imm,mut,read](beer:Beer[X]):read Foo->
+      read Foo:{ read .m:Bar -> Do#{ beer.bar } };
   }
 """));}
 
