@@ -29,6 +29,19 @@ A:{.bar(b:B):A->b;.f:-.Float->+1.5}
 A:{ .bar(b:B):A->b; .f:base.Float-> +1.5; }
 B:{ }
 """));}
+@Test void compressedFooterKeepsStrLiteralName(){fail("""
+001| A:{ .bar(b:B):A->b; .s:base.Str-> "a.b"; }
+[###]
+While inspecting parameter "b" > ".bar(_)" line 1
+The body of method ".bar(_)" of type declaration "A" is an expression returning "B".
+Parameter "b" has type "B" instead of a subtype of "A".
+
+See inferred typing context below for how type "A" was introduced: (compression indicated by `-`)
+A:{.bar(b:B):A->b;.s:-.Str->"a.b"}
+""",List.of("""
+A:{ .bar(b:B):A->b; .s:base.Str-> "a.b"; }
+B:{ }
+"""));}
 @Test void unnamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |                               -------------------~~~~^^^^^
