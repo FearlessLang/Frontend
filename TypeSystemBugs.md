@@ -347,7 +347,8 @@ Frontend#128, 2026-10-01. Rejects valid programs, not unsoundness.
 `readResultOfReadTypeVariableInfersItsTypeArgument`,
 `lambdaWithReadParameterInfersItsSupertypeTypeArgument`,
 `isoArgumentToTypeVariableWithoutIsoBoundInfersItsTypeArgument`,
-`readArgumentToReadTypeVariableWithoutImmBoundInfersItsTypeArgument`.
+`readArgumentToReadTypeVariableWithoutImmBoundInfersItsTypeArgument`,
+`lambdaWithReadParameterWithoutImmBoundInfersItsSupertypeTypeArgument`.
 
 Inference only produces what would be accepted if written by hand (bug 9). A type argument
 for `X` takes its capability from the types matched against the occurrences of `X`. Two
@@ -362,8 +363,10 @@ and an inferred type still carrying it is emitted as `imm`.
     close(D(X), ? C[..])    = ? C[..]      if imm in D(X)
                               read C[..]   otherwise
     close(D(X), iso C[..])  = close(D(X), ? C[..])   if iso not in D(X)
-      was: no close on call type arguments; iso C[..] reached the output
+      was: no close on call type arguments nor on literal supertype arguments;
+           iso C[..] reached the output
 
+`read` is the lowest capability that can still be captured.
 `close` runs at every step of the fixpoint, so it may only commit to what `meet` still drops:
 `read` is dropped against any capability but `iso`, and `read` accepts an `iso` argument
 anyway; `imm` is not dropped (`meet(imm, mut) = imm`), so `?` stays open until the output.
