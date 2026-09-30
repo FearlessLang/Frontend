@@ -383,3 +383,28 @@ same for `imm Y` with an `imm Foo` argument, for an expected `read Foo` against 
 (`Cons[iso Foo]`), and for an argument `x: iso Foo` to a parameter `y: Y` under `Y:*`. Under
 `Y:**` the `iso` was well kinded and became the result of `Y`; the unknown capability now gives
 `imm` there too, while an `iso` argument under `Y:**` keeps `iso`.
+
+## 14. An inherited method type parameter is renamed onto one of its siblings
+
+Frontend#131, 2026-10-01. Crash, not unsoundness.
+`TypeSystemTest.freshMethodGenericMustNotCaptureInheritedSiblingGeneric`,
+`freshMethodGenericMustKeepInheritedGenericsDistinct`.
+
+A literal `C` implementing `D[Ts]`, for a declared `D[Xs]`, sees each method of `D`
+instantiated by `Ts`, with the method type parameters `Ys` alpha-renamed away from the type
+parameters in scope in `C`, `scope(C)`. Renaming is capture avoiding only if the new name is
+also distinct from the other type parameters of the same method, which keep their names.
+
+    inherited(C, D[Ts], m[Ys](Ts0):T0) = m[Ys'](Ts0[Xs,Ys := Ts,Ys']):T0[Xs,Ys := Ts,Ys']
+      Ys'[i] = Ys[i]  if Ys[i] not in scope(C)
+               Y'     otherwise, fresh:
+      now:  Y' not in scope(C) and Y' not in Ys
+      was:  Y' not in scope(C)
+
+Witness. `A:{ .foo[_AX,X](a:_AX,b:X):A; }` and `B[X]:A{ .foo(a,b)->this }`: `X` clashes
+with `B[X]`, and the fresh name drawn for it was `_AX`, the kept first parameter, so `B` saw
+`.foo[_AX,_AX](a:_AX,b:_AX):A`. A call `b.foo[User,A](this,b)` on a `B[User]` crashed in
+inference (`methodHeaderInstance` asserts distinct method type parameters), and returning
+`b` where `A` declares `_AX` crashed with `Type variable not found` instead of being
+rejected. The formalism has it right: `inheritedSources` alpha-renames "to avoid clashing
+with (each other and) the generic type parameters of D".
