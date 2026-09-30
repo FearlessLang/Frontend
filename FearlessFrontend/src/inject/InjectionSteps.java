@@ -515,7 +515,7 @@ public record InjectionSteps(Methods meths){
     return switch (t){
       case IT.X x -> refineXs(xs, x, t1);
       case IT.RCX(_, var x) -> refine(xs, x, stripRCAlsoThisSide(t1));
-      case IT.ReadImmX(var x) -> refine(xs, x, stripRCAlsoThisSide(t1));
+      case IT.ReadImmX(var x) -> refine(xs, x, t1 instanceof IT.ReadImmX(var x1) ? x1 : t1);
       case IT.RCC rcc -> propagateXs(xs, rcc, t1);
       case IT.U _ -> qMarks(xs.size()); //stripRCAlsoThisSide is needed to distinguish
     };//xs=[EE], t= imm EE, t1=imm ET -> [ET] | xs=[EE], t= EE, t1=imm ET ->[imm ET]
