@@ -845,6 +845,26 @@ Fl[E:*]:{
 Person:{ read .cats: Li[Cat] }
 User:{ #(f: mut Fl[Person]): mut Li[Cat] -> f.viaToFl{::.cats}.li }
 """));}
+@Test void readImmResultThenFoldInfersTheExactTypeArgument(){ok(List.of("""
+Item:{}
+ToFl[E:*]:{ read .seq: mut Fl[read/imm E]; mut .seq: mut Fl[E]; }
+Li[E:*]:ToFl[E]{ mut +>(e: E): mut Li[E]; read +>(e: read E): read Li[E]; }
+Fl[E:*]:{
+  mut .viaToFl[R:*](f: read base.F[E, read ToFl[R]]): mut Fl[read/imm R];
+  mut .fold[R:*](acc: iso base.MF[R], f: read base.F[R,E,R]): R;
+  }
+User:{ #(f: mut Fl[mut Li[Item]]): Li[Item] -> f.viaToFl{c -> c}.fold({base.Nope!}, {acc, i -> acc +> i}) }
+"""));}
+@Test void lambdaReturningSubtypeDeterminesTypeArgument(){ok(List.of("""
+Item:{}
+ToFl[E:*]:{ read .seq: mut Fl[read/imm E]; mut .seq: mut Fl[E]; }
+Li[E:*]:ToFl[E]{}
+Fl[E:*]:{ mut .viaToFl[R:*](f: read base.F[E, read ToFl[R]]): mut Fl[R]; }
+User:{
+  .any[X:**](x: X): Item -> Item;
+  #(f: mut Fl[mut Li[Item]]): Item -> this.any(f.viaToFl{c -> c});
+  }
+"""));}
 @Test void readImmResultInfersCapabilityWhenLambdaReturnsExactType(){ok(List.of("""
 Cat:{}
 ToFl[E:*]:{ read .seq: mut Fl[read/imm E]; mut .seq: mut Fl[E]; }

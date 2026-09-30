@@ -484,7 +484,10 @@ public record InjectionSteps(Methods meths){
     var decidedSameX= decided instanceof IT.RCX(var aRc, var aX) && fromBody instanceof IT.RCX(_, var bX) && aX.equals(bX) && aRc != RC.iso;
     if (decidedSameX){ return decided; }
     if (!(decided instanceof IT.RCC(var aRc, var aC, _) && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
-    if (!aC.name().equals(b.c().name())){ return decided; }
+    if (!aC.name().equals(b.c().name())){
+      var asDecided= adaptedSuperTs(b, aC.name());
+      return asDecided.isEmpty() ? decided : keepDecided(decided, asDecided.getFirst());
+    }
     var rc= aRc.filter(r->r != RC.iso).or(b::rc);
     return b.withRCTs(rc, Streams.zip(aC.ts(),b.c().ts()).map(this::keepDecided).toList());
   }
