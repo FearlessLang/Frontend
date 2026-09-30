@@ -1012,4 +1012,10 @@ Foo:{}
 Util:{ .m[Y:mut,read](y: read Y): Foo -> Foo }
 A:{ .f(x: read Foo): Foo -> Util.m(x) }
 """));}
+@Test void lambdaWithReadParameterWithoutImmBoundInfersItsSupertypeTypeArgument(){ok(List.of("""
+Foo:{}
+Cons[Y:mut,read]:{ #(y: read Y): Foo }
+Need:{ #[Y:mut,read](c: Cons[Y]): Foo -> Foo }
+A:{ .f: Foo -> Need#{ #(y: read Foo): Foo -> Foo } }
+"""));}
 }

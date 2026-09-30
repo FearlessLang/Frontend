@@ -601,7 +601,13 @@ public record InjectionSteps(Methods meths){
     return new IT.RCC(expected.rc(), new IT.C(expected.c().name(), qMarks(expected.c().ts().size())), span);
   }
 
-  private static IT normToBound(IT t, EnumSet<RC> allowed){ return allowed.size() == 1 ? t.withRC(allowed.iterator().next()) : t; }
+  private static IT normToBound(IT t, EnumSet<RC> allowed){
+    if (allowed.size() == 1){ return t.withRC(allowed.iterator().next()); }
+    if (!(t instanceof IT.RCC(var rc, var c, var span))){ return t; }
+    var open= rc.isEmpty() || rc.get() == RC.iso && !allowed.contains(RC.iso);
+    if (!open){ return t; }
+    return new IT.RCC(allowed.contains(RC.imm) ? Optional.empty() : Optional.of(RC.read), c, span);
+  }
   static List<IT> normToBounds(List<B> bs, List<IT> ts){
     if (bs.size() != ts.size()){ return ts; }
     return Streams.zip(ts,bs).map((ti,bi)->normToBound(ti,bi.rcs())).toList();
@@ -612,11 +618,7 @@ public record InjectionSteps(Methods meths){
   }
   private static IT normToBound(List<B> scope, IT t, EnumSet<RC> allowed){
     var sameType= xName(t).map(x->RC.get(scope,x).rcs().equals(allowed)).orElse(true);
-    var res= sameType ? normToBound(t,allowed) : t;
-    if (!(res instanceof IT.RCC(var rc, var c, var span))){ return res; }
-    var open= rc.isEmpty() || rc.get() == RC.iso && !allowed.contains(RC.iso);
-    if (!open){ return res; }
-    return new IT.RCC(allowed.contains(RC.imm) ? Optional.empty() : Optional.of(RC.read), c, span);
+    return sameType ? normToBound(t,allowed) : t;
   }
   private static Optional<String> xName(IT t){ return switch (t){
     case IT.X x -> Optional.of(x.name());
