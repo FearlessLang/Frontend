@@ -976,4 +976,46 @@ A:{ .m[X:imm,read](y: imm X): mut Get[read/imm X] -> { .get -> y } }
 Get[Y:*]:{ read .get: Y }
 A:{ .n[X:imm,read](y: imm X): mut Get[read/imm X] -> mut Get[read/imm X]{ read .get: read/imm X -> y } }
 """));}
+@Test void readArgumentToReadTypeVariableParameterExplicitTypeArgumentOk(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:*](y: read Y): Foo -> Foo }
+A:{ .f(x: read Foo): Foo -> Util.m[Foo](x) }
+"""));}
+@Test void readArgumentToReadTypeVariableParameterInfersItsTypeArgument(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:*](y: read Y): Foo -> Foo }
+A:{ .f(x: read Foo): Foo -> Util.m(x) }
+"""));}
+@Test void immArgumentToImmTypeVariableParameterInfersItsTypeArgument(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:*](y: imm Y): Foo -> Foo }
+A:{ .f(x: Foo): Foo -> Util.m(x) }
+"""));}
+@Test void readResultOfReadTypeVariableInfersItsTypeArgument(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:*]: read Y -> this.m[Y] }
+A:{ .f: read Foo -> Util.m }
+"""));}
+@Test void lambdaWithReadParameterInfersItsSupertypeTypeArgument(){ok(List.of("""
+Foo:{}
+Cons[Y:*]:{ #(y: read Y): Foo }
+Need:{ #[Y:*](c: Cons[Y]): Foo -> Foo }
+A:{ .f: Foo -> Need#{ #(y: read Foo): Foo -> Foo } }
+"""));}
+@Test void isoArgumentToTypeVariableWithoutIsoBoundInfersItsTypeArgument(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:*](y: Y): Foo -> Foo }
+A:{ .f(x: iso Foo): Foo -> Util.m(x) }
+"""));}
+@Test void readArgumentToReadTypeVariableWithoutImmBoundInfersItsTypeArgument(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:mut,read](y: read Y): Foo -> Foo }
+A:{ .f(x: read Foo): Foo -> Util.m(x) }
+"""));}
+@Test void lambdaWithReadParameterWithoutImmBoundInfersItsSupertypeTypeArgument(){ok(List.of("""
+Foo:{}
+Cons[Y:mut,read]:{ #(y: read Y): Foo }
+Need:{ #[Y:mut,read](c: Cons[Y]): Foo -> Foo }
+A:{ .f: Foo -> Need#{ #(y: read Foo): Foo -> Foo } }
+"""));}
 }

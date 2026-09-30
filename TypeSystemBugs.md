@@ -338,3 +338,48 @@ also with no requirement and in the error for an unmet one (Frontend#92,
 `CapabilityTypingTest.readImmResultOfIsoImmBound*`). With the unchanged test on
 `readImm(rc)`, a mode either keeps a variable type as written or gives an `RCX` not
 equivalent to it, so candidate results are never equivalent; `CallTyping.bests` asserts it.
+
+## 13. Inference leaves open the capability of a type argument
+
+Frontend#128, 2026-10-01. Rejects valid programs, not unsoundness.
+`CapabilityTypingTest.readArgumentToReadTypeVariableParameterInfersItsTypeArgument`,
+`immArgumentToImmTypeVariableParameterInfersItsTypeArgument`,
+`readResultOfReadTypeVariableInfersItsTypeArgument`,
+`lambdaWithReadParameterInfersItsSupertypeTypeArgument`,
+`isoArgumentToTypeVariableWithoutIsoBoundInfersItsTypeArgument`,
+`readArgumentToReadTypeVariableWithoutImmBoundInfersItsTypeArgument`,
+`lambdaWithReadParameterWithoutImmBoundInfersItsSupertypeTypeArgument`.
+
+Inference only produces what would be accepted if written by hand (bug 9). A type argument
+for `X` takes its capability from the types matched against the occurrences of `X`. Two
+matches say nothing about that capability: `rc X` against `rc' C[..]`, since `rc` replaces
+whatever `X` carries, and a bare `X` against `iso C[..]`, since `iso` is a subtype of every
+capability. When every match on `X` is of these two kinds the capability is open, and it must
+be closed inside `D(X)`. `?` is the unknown capability: `meet` drops it against any other,
+and an inferred type still carrying it is emitted as `imm`.
+
+    refine(rc X, rc' C[..]) = X := ? C[..]
+      was:                    X := iso C[..]  -- iso standing for ?, since meet drops it too
+    close(D(X), ? C[..])    = ? C[..]      if imm in D(X)
+                              read C[..]   otherwise
+    close(D(X), iso C[..])  = close(D(X), ? C[..])   if iso not in D(X)
+      was: no close on call type arguments nor on literal supertype arguments;
+           iso C[..] reached the output
+
+`read` is the lowest capability that can still be captured.
+`close` runs at every step of the fixpoint, so it may only commit to what `meet` still drops:
+`read` is dropped against any capability but `iso`, and `read` accepts an `iso` argument
+anyway; `imm` is not dropped (`meet(imm, mut) = imm`), so `?` stays open until the output.
+Written type arguments are not affected: the output keeps them as written. With `?` no longer
+spelled `iso`, the two special cases that recognised the placeholder by its `iso` go: in
+`decidedThen` a literal argument giving `iso C[..]` for `X` is a constraint like any other
+(one giving `? C[..]` is not decided, as for any unknown capability), and `keepDecided` keeps
+a decided `iso C[..]` instead of replacing it with the capability found in the body.
+
+Witness. `Util:{ .m[Y:*](y: read Y): Foo -> Foo }`, `A:{ .f(x: read Foo): Foo -> Util.m(x) }`
+became `Util.m[imm,iso Foo](x)`, not well kinded, while `Util.m[Foo](x)` was accepted. The
+same for `imm Y` with an `imm Foo` argument, for an expected `read Foo` against a result
+`read Y`, for a lambda `{ #(y: read Foo): Foo -> Foo }` against `Cons[Y:*]:{ #(y: read Y): Foo }`
+(`Cons[iso Foo]`), and for an argument `x: iso Foo` to a parameter `y: Y` under `Y:*`. Under
+`Y:**` the `iso` was well kinded and became the result of `Y`; the unknown capability now gives
+`imm` there too, while an `iso` argument under `Y:**` keeps `iso`.
