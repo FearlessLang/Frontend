@@ -279,13 +279,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var badRet= !isSub(ctx, current.ret(), parent.ret());
     if (badRet){ throw tsE().methodOverrideSignatureMismatchCovariance(this,ctx,l,current,parent); }
   }
-  private boolean sameOuterRC(List<B> bs, T a, T b){ return outerRC(a).equals(outerRC(b)) || eqModXRC(bs,a,b); }
-  private static String outerRC(T t){ return switch (t){
-    case T.X _ -> "";
-    case T.RCX(var rc, _) -> rc.name();
-    case T.ReadImmX _ -> "read/imm";
-    case T.RCC(var rc, _, _) -> rc.name();
-  };}
+  private boolean sameOuterRC(List<B> bs, T a, T b){
+    var sameForm= (a instanceof T.ReadImmX) == (b instanceof T.ReadImmX) && a.explicitRC().equals(b.explicitRC());
+    return sameForm || eqModXRC(bs,a,b);
+  }
   private boolean eqModXRC(List<B> bs,T a,T b){
     if (a.equals(b)){ return true; }
     var redundantRcOnB= a instanceof T.X(var aName, _) && b instanceof T.RCX(var bRc, var bX) && bX.name().equals(aName) && redundantOnX(bs,bRc,aName);
