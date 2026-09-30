@@ -370,7 +370,7 @@ public record InjectionSteps(Methods meths){
     for (var mi : l.ms()){
       assert mi.impl().isEmpty() || selfPrecise.isEmpty() || rcc.isTV();
       var rcci= withTsNormBs(rcc,ts);
-      var next= mi.impl().isEmpty() ? nextMStarAbs(rcci, mi) : nextMStarOp(bs, g, l.thisName(), selfPrecise, rcci, mi);
+      var next= mi.impl().isEmpty() ? nextMStarAbs(rcci, mi) : nextMStarOp(bs, g, l, selfPrecise, rcci, mi);
       assert next.m == mi || !next.m.equals(mi);
       ts= meet(ts, next.ts);
       changedMs |= next.m != mi;
@@ -435,11 +435,12 @@ public record InjectionSteps(Methods meths){
     var rcc0= withTsNormBs(rcc,refineClsTsFromHeader(rcc, m.sig(), omh.get().sig()));
     return new TSM(dropMethBsFromClsTs(rcc0, m.sig()), m.withSig(normalizeSigAgainstHeader(rcc0, m.sig())));
   }
-  TSM nextMStarOp(List<B> bs, Gamma g, String thisN, Optional<IT.RCC> selfPrecise, IT.RCC rcc, inference.M m){
+  TSM nextMStarOp(List<B> bs, Gamma g, E.Literal l, Optional<IT.RCC> selfPrecise, IT.RCC rcc, inference.M m){
     assert m.impl().isPresent();
-    g.newScope(RC.mut);
-    g.declare(thisN, selfPrecise.<IT>map(s->new IT.RCC(s.rc().map(RC::isoToMut), s.c(), s.span())).orElse(IT.U.Instance));
-    g.newScope(m.sig().rc().get());
+    var litBs= l.infName() ? bs : l.bs();
+    g.newScope(m.sig().rc().get(), litBs);
+    g.declare(l.thisName(), selfPrecise.<IT>map(s->new IT.RCC(s.rc().map(RC::isoToMut), s.c(), s.span())).orElse(IT.U.Instance));
+    g.newScope(m.sig().rc().get(), litBs);
     updateGWithArgs(g, m);
     var e= nextStar(Push.of(bs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
     var args= updateArgs(m, g);

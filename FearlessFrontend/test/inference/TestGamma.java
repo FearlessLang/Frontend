@@ -3,6 +3,8 @@ package inference;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import core.RC;
 
 public class TestGamma{
@@ -36,7 +38,7 @@ public class TestGamma{
     Gamma.GammaSignature parentBefore = new Gamma.GammaSignature();
     g.sign(parentBefore);
 
-    g.newScope(RC.mut);
+    g.newScope(RC.mut, List.of());
     Gamma.GammaSignature childStart = new Gamma.GammaSignature();
     g.sign(childStart);
     assertTrue(g.represents(parentBefore), "child inherits parent signature at scope push");
@@ -56,7 +58,7 @@ public class TestGamma{
     Gamma.GammaSignature parentBefore = new Gamma.GammaSignature();
     g.sign(parentBefore);
 
-    g.newScope(RC.mut);
+    g.newScope(RC.mut, List.of());
     Gamma.GammaSignature childBefore = new Gamma.GammaSignature();
     g.sign(childBefore);
 
@@ -77,13 +79,13 @@ public class TestGamma{
     Gamma.GammaSignature sigRootAfterX = new Gamma.GammaSignature();
     g.sign(sigRootAfterX);
 
-    g.newScope(RC.mut); // depth 2
+    g.newScope(RC.mut, List.of()); // depth 2
     g.declare("y", X("Y0"));
     g.declare("z", X("Z0")); // declare z at middle depth
     Gamma.GammaSignature sigMidAfterYZ = new Gamma.GammaSignature();
     g.sign(sigMidAfterYZ);
 
-    g.newScope(RC.mut); // depth 3
+    g.newScope(RC.mut, List.of()); // depth 3
     Gamma.GammaSignature sigInnerBefore = new Gamma.GammaSignature();
     g.sign(sigInnerBefore);
 
@@ -136,7 +138,7 @@ public class TestGamma{
     assertSame(g.get("v31"), g.get("v31"));
     assertSame(g.get("v63"), g.get("v63"));
 
-    g.newScope(RC.mut);
+    g.newScope(RC.mut, List.of());
     Gamma.GammaSignature sigChildStart= new Gamma.GammaSignature();
     g.sign(sigChildStart);
     assertTrue(g.represents(sigParent)); // child inherits parent
@@ -153,7 +155,7 @@ public class TestGamma{
     assertTrue(g.represents(sigChildAfter), "update to parent-declared var must remain after pop");
     assertSame(t, g.get("v31"));
 
-    g.newScope(RC.mut);
+    g.newScope(RC.mut, List.of());
     for (int i= 0; i < 10; i++){ g.declare("w" + i, X("W" + i)); }
     g.popScope();
 
@@ -169,7 +171,7 @@ public class TestGamma{
     Gamma g= new Gamma();
     int base= 13;
     for (int i= 0; i < base; i++){ g.declare("v" + i, X("V" + i)); }
-    g.newScope(RC.mut);
+    g.newScope(RC.mut, List.of());
     g.declare("w0", X("W0"));
     g.popScope(); // w0 out of scope
     g.declare("a0", X("A0")); // reuse slot
@@ -181,7 +183,7 @@ public class TestGamma{
     Gamma g= new Gamma();
     int base= 13;
     for (int i= 0; i < base; i++){ g.declare("v" + i, X("V" + i)); }
-    g.newScope(RC.mut);
+    g.newScope(RC.mut, List.of());
     g.declare("w0", X("W0"));
     g.popScope(); // w0 out of scope
     IT a0= X("A0");
