@@ -486,10 +486,9 @@ public record InjectionSteps(Methods meths){
     return Streams.zip(rcc.c().ts(),fromBody).map(this::keepDecided).toList();
   }
   private IT keepDecided(IT decided, IT fromBody){
-    var decidedSameX= decided instanceof IT.RCX(var aRc, var aX) && fromBody instanceof IT.RCX(_, var bX) && aX.equals(bX) && aRc != RC.iso;
+    var decidedIso= decided instanceof IT.RCX(var aRc, _) && aRc == RC.iso;
+    var decidedSameX= xName(decided).isPresent() && xName(decided).equals(xName(fromBody)) && !decidedIso;
     if (decidedSameX){ return decided; }
-    var decidedBareX= decided instanceof IT.X aX && fromBody instanceof IT.RCX(_, var bX) && aX.equals(bX);
-    if (decidedBareX){ return decided; }
     if (!(decided instanceof IT.RCC(var aRc, var aC, _) && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
     if (!aC.name().equals(b.c().name())){
       var asDecided= adaptedSuperTs(b, aC.name());

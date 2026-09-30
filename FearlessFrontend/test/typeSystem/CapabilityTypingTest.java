@@ -968,4 +968,12 @@ Need[X:iso,mut]:{ #(y: read/imm X): Nothing -> Nothing }
 Holder:{ read .n: Nothing }
 User:{ .m[X:iso,mut](x: X): mut Holder -> mut Holder{ .n -> Need[X]#(Id#x) } }
 """));}
+@Test void literalKeepsDecidedReadImmXAgainstImmXBody(){ok(List.of("""
+Get[Y:*]:{ read .get: Y }
+A:{ .m[X:imm,read](y: imm X): mut Get[read/imm X] -> { .get -> y } }
+"""));}
+@Test void writtenLiteralKeepsItsReadImmXTypeArgument(){ok(List.of("""
+Get[Y:*]:{ read .get: Y }
+A:{ .n[X:imm,read](y: imm X): mut Get[read/imm X] -> mut Get[read/imm X]{ read .get: read/imm X -> y } }
+"""));}
 }
