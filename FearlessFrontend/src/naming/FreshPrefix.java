@@ -40,10 +40,10 @@ public record FreshPrefix(
     return res;
   }
   public boolean isFreshGeneric(TName owner,String x){ return !owners.get(owner).gen().contains(x); }
-  public String freshGeneric(TName owner,String hint){
+  public String freshGeneric(TName owner,String hint,List<String> siblings){
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
-    var cand= freshCandidate(hint, true, up, st.genSeq(), st.gen(), List.of(usedTopTypes));
+    var cand= freshCandidate(hint, true, up, st.genSeq(), st.gen(), List.of(usedTopTypes,siblings));
     allGenericNames.add(cand);
     return cand;
   }
@@ -54,7 +54,7 @@ public record FreshPrefix(
   }
   // commitScope is checked and updated with the winning candidate; extraChecks are read-only.
   private static String freshCandidate(String hint, boolean type, char[] alphabet,
-      HashMap<String,Integer> seq, HashSet<String> commitScope, List<Set<String>> extraChecks){
+      HashMap<String,Integer> seq, HashSet<String> commitScope, List<Collection<String>> extraChecks){
     var base= sanitizeBase(hint, type);
     for (int n= seq.getOrDefault(base, 1);; n++){
       var cand= "_"+encodeBijective(n, alphabet)+base;

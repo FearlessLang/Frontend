@@ -83,7 +83,7 @@ public record Methods(
       if (fresh.isFreshGeneric(child.name(),x)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
-      var newX= new IT.X(fresh.freshGeneric(child.name(),x),child.name().approxSpan());
+      var newX= new IT.X(fresh.freshGeneric(child.name(),x,B.xs(s.bs())),child.name().approxSpan());
       fullTs.add(newX);
       newBs.add(new B(newX.name(),b.rcs()));
     }

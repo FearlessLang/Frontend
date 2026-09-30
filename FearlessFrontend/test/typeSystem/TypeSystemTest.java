@@ -16,6 +16,25 @@ public class TypeSystemTest extends testUtils.FearlessTestBase{
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
 """));}
+@Test void freshMethodGenericMustNotCaptureInheritedSiblingGeneric(){ok(List.of("""
+A:{ .foo[_AX,X](a:_AX,b:X):A; }
+B[X]:A{ .foo(a,b)->this }
+User:{ .m(b:B[User]):A -> b.foo[User,A](this,b) }
+"""));}
+@Test void freshMethodGenericMustKeepInheritedGenericsDistinct(){fail("""
+002| B[X]:A{ .foo(a,b)->b }
+   |         -----------^
+
+While inspecting parameter "b" > ".foo(_,_)" line 2
+The body of method ".foo(_,_)" of type declaration "B[_]" is an expression returning "_BX".
+Parameter "b" has type "_BX" instead of a subtype of "_AX".
+
+See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
+B[X:imm]:A{.foo[_AX:imm,_BX:imm](a:_AX,b:_BX):_AX->b}
+""",List.of("""
+A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
+B[X]:A{ .foo(a,b)->b }
+"""));}
 @Test void unnamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |                               -------------------~~~~^^^^^
