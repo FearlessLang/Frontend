@@ -291,7 +291,19 @@ public record Methods(
   private IT agreement(Agreement at,List<M.Sig> ss,Function<M.Sig,IT> f, String msg){
     var res= ss.stream().map(f).distinct().toList();
     if (res.size() == 1){ return res.getFirst(); }
-    throw p.err().noAgreement(at,Push.of(at.lit().bs(),ss.getFirst().bs().get()),res,msg);
+    var bs= Push.of(at.lit().bs(),ss.getFirst().bs().get());
+    var norm= res.stream().map(t->normX(bs,t)).distinct().toList();
+    if (norm.size() == 1){ return norm.getFirst(); }
+    throw p.err().noAgreement(at,res,msg);
+  }
+  private static IT normX(List<B> bs, IT t){ return switch (t){
+    case IT.X x -> normX(bs,x);
+    case IT.RCC rcc -> rcc.withTs(rcc.c().ts().stream().map(ti->normX(bs,ti)).toList());
+    default -> t;
+  };}
+  private static IT normX(List<B> bs, IT.X x){
+    var rcs= RC.get(bs,x.name()).rcs();
+    return rcs.size() == 1 ? new IT.RCX(rcs.iterator().next(),x) : x;
   }
   //ssAligned is always grouped/bucketed by rc upstream (see pairWithSig callers), so rc is always uniform here.
   private RC rcAgreement(List<M.Sig> ssAligned){

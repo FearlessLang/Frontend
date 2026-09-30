@@ -706,33 +706,28 @@ They differ in reference capability, and an overriding method must keep it, so n
 Foo[T:*]:{ .get: T }
 A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
 """));}
-@Test void methodGenericSameCapabilityViaExactBoundInherited(){failWf("""
-003| A:Foo,Bar{}
-   | ^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types: "T", "mut T".
-Type declaration "A" must declare a method ".get" explicitly choosing the desired option.
-""",List.of("""
+@Test void methodGenericSameCapabilityViaExactBoundInherited(){ok(List.of("""
+Baz:{}
 Foo:{ .get[T:mut]: T }
 Bar:{ .get[T:mut]: mut T }
 A:Foo,Bar{}
+User:{ #(a: A): mut Baz -> a.get[mut Baz] }
 """));}
 @Test void methodGenericSameCapabilityViaExactBoundOverridden(){ok(List.of("""
 Foo:{ .get[T:mut]: T }
 Bar:{ .get[T:mut]: mut T }
 A:Foo,Bar{ .get[T:mut]: T }
 """));}
-@Test void methodGenericSameCapabilityViaExactBoundArgument(){failWf("""
-[###]
-Type disagreement about argument 0 for method "imm .set(_)" with 1 parameters.
-Different options are present in the implemented types: "T", "read T".
-Type declaration "A" must declare a method ".set(_)" explicitly choosing the desired option.
-""",List.of("""
+@Test void methodGenericSameCapabilityViaExactBoundArgument(){ok(List.of("""
 Baz:{}
 Foo:{ .set[T:read](t: T): Baz }
 Bar:{ .set[T:read](t: read T): Baz }
+A:Foo,Bar{}
+"""));}
+@Test void methodGenericSameCapabilityViaExactBoundNested(){ok(List.of("""
+Box[T:*]:{}
+Foo:{ .get[T:mut]: Box[T] }
+Bar:{ .get[T:mut]: Box[mut T] }
 A:Foo,Bar{}
 """));}
 }

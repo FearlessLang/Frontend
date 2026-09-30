@@ -279,7 +279,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var badRet= !isSub(ctx, current.ret(), parent.ret());
     if (badRet){ throw tsE().methodOverrideSignatureMismatchCovariance(this,ctx,l,current,parent); }
   }
-  public static boolean sameOuterRC(List<B> bs, T a, T b){
+  private boolean sameOuterRC(List<B> bs, T a, T b){
     var sameForm= (a instanceof T.ReadImmX) == (b instanceof T.ReadImmX) && a.explicitRC().equals(b.explicitRC());
     return sameForm || eqModXRC(bs,a,b);
   }
