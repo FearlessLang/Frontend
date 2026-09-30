@@ -321,20 +321,24 @@ public record InjectionSteps(Methods meths){
     return c.withMore(e, rc, targs, es1, it);
   }
   private List<E> requiredOnArgs(E.Call c, MSigL m){
-    var all= decidedThen(c, m, Stream.of(refine(m.xs(), m.ret0(), c.t())));
+    var all= decidedThen(c, m, c.es(), Stream.of(refine(m.xs(), m.ret0(), c.t())));
     var m0= m.withClsArgs(normToBounds(m.clsBs(), all.subList(0, m.nCls())));
     return meetWithTargs(c.es(), c.es(), m0, normToBounds(m.methBs(), all.subList(m.nCls(), all.size())));
   }
   private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){
     var a= Streams.zip(m.ps0(), es).map((p,e2)->refine(m.xs(), p, e2.t()));
-    return decidedThen(c, m, Streams.of(a, Stream.of(refine(m.xs(), m.ret0(), c.t()))));
+    return decidedThen(c, m, es, Streams.of(a, Stream.of(refine(m.xs(), m.ret0(), c.t()))));
   }
-  private List<IT> decidedThen(E.Call c, MSigL m, Stream<List<IT>> refinements){
+  private List<IT> decidedThen(E.Call c, MSigL m, List<E> es, Stream<List<IT>> refinements){
     var targs= MSigL.fixTargs(c.targs(), m.bsArity());
     var all= meet(Streams.of(Stream.of(Push.of(m.clsArgs(), targs)), refinements).toList());
     var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
-    return Streams.zip(written, all).map((b,r)->decided(b) ? b : r).toList();
+    var fromLiterals= Streams.zip(m.ps0(), es).filter((_,e2)->e2 instanceof E.Literal).map((p,e2)->refine(m.xs(), p, e2.t()));
+    var hard= meet(Streams.of(Stream.of(qMarks(written.size())), fromLiterals).toList());
+    var fixed= Streams.zip(written, hard).map((w,h)->decided(w) || isoPlaceholder(h) ? w : h).toList();
+    return Streams.zip(fixed, all).map((b,r)->decided(b) ? b : r).toList();
   }
+  private static boolean isoPlaceholder(IT t){ return t instanceof IT.RCC(var rc, _, _) && rc.equals(Optional.of(RC.iso)); }
   private static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
   private static boolean decided(IT t){ return t.isTV() && !(t instanceof IT.RCC(var rc, _, _) && rc.isEmpty()); }
   private Optional<IT.RCC> preciseSelf(E.Literal l){

@@ -883,6 +883,39 @@ User:{
   #(f: mut Fl[mut Li[Item]]): Item -> this.any(f.viaToFl{c -> c});
   }
 """));}
+@Test void lambdaBodyReturningMutDoesNotRefineAnImmTypeArgument(){ok(List.of("""
+Cat:{}
+Li[E:*]:{}
+Lis:{ #[E:*](e: E): mut Li[E] -> base.Nope! }
+OM[E:*,R:**]:{ mut .empty: R; mut .some(x: E): R; }
+Op[E:*]:{ imm .match[R:**](m: mut OM[imm E, R]): R; }
+Take:{ #[R:*](xs: Li[R]): Li[R] -> xs }
+User:{ #(o: Op[Cat]): Li[Cat] -> Take#(o.match{.empty -> {}; .some x -> Lis#x}) }
+"""));}
+@Test void lambdaBodyReturningMutWithExpectedTypeKnown(){ok(List.of("""
+Cat:{}
+Li[E:*]:{}
+Lis:{ #[E:*](e: E): mut Li[E] -> base.Nope! }
+OM[E:*,R:**]:{ mut .empty: R; mut .some(x: E): R; }
+Op[E:*]:{ imm .match[R:**](m: mut OM[imm E, R]): R; }
+Take:{ #[R:*](xs: Li[R]): Li[R] -> xs }
+User:{ #(o: Op[Cat]): Li[Cat] -> o.match{.empty -> {}; .some x -> Lis#x} }
+"""));}
+@Test void lambdaBodyReturningMutWithWrittenOuterTypeArgument(){ok(List.of("""
+Cat:{}
+Li[E:*]:{}
+Lis:{ #[E:*](e: E): mut Li[E] -> base.Nope! }
+OM[E:*,R:**]:{ mut .empty: R; mut .some(x: E): R; }
+Op[E:*]:{ imm .match[R:**](m: mut OM[imm E, R]): R; }
+Take:{ #[R:*](xs: Li[R]): Li[R] -> xs }
+User:{ #(o: Op[Cat]): Li[Cat] -> Take#[Cat](o.match{.empty -> {}; .some x -> Lis#x}) }
+"""));}
+@Test void lambdaArgumentThroughCapabilityOnTypeVariableLeavesItOpen(){ok(List.of("""
+N:{}
+By[T:*,K:*]:{ read #(t: read T): K }
+M:{ .max[T:*,K:*](by: By[imm T,K], t0: T, t1: T): T -> t0 }
+User:{ #(a: N, b: N): N -> M.max({t -> t}, a, b) }
+"""));}
 @Test void readImmResultInfersCapabilityWhenLambdaReturnsExactType(){ok(List.of("""
 Cat:{}
 ToFl[E:*]:{ read .seq: mut Fl[read/imm E]; mut .seq: mut Fl[E]; }
