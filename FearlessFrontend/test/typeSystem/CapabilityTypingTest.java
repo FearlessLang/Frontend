@@ -976,4 +976,19 @@ A:{ .m[X:imm,read](y: imm X): mut Get[read/imm X] -> { .get -> y } }
 Get[Y:*]:{ read .get: Y }
 A:{ .n[X:imm,read](y: imm X): mut Get[read/imm X] -> mut Get[read/imm X]{ read .get: read/imm X -> y } }
 """));}
+@Test void readArgumentToReadTypeVariableParameterExplicitTypeArgumentOk(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:*](y: read Y): Foo -> Foo }
+A:{ .f(x: read Foo): Foo -> Util.m[Foo](x) }
+"""));}
+@Test void readArgumentToReadTypeVariableParameterInfersItsTypeArgument(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:*](y: read Y): Foo -> Foo }
+A:{ .f(x: read Foo): Foo -> Util.m(x) }
+"""));}
+@Test void immArgumentToImmTypeVariableParameterInfersItsTypeArgument(){ok(List.of("""
+Foo:{}
+Util:{ .m[Y:*](y: imm Y): Foo -> Foo }
+A:{ .f(x: Foo): Foo -> Util.m(x) }
+"""));}
 }
