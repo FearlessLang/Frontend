@@ -412,5 +412,9 @@ a bare `X` was adapted by its capability alone, so with `beer:Beer[X]` inference
 carried `X` further: `Id#beer` became `Id#[Beer[X]]`, and the type system, which checks the
 type arguments of a call before its arguments, crashed in `Kinding` looking `X` up in the
 bounds of `Foo`; `Do#{ beer.bar }` committed the nested literal with parameters `[X]` and
-`checkLiteral` failed its assert that they are in scope. Now inference leaves `x` and `beer`
-unknown inside `Foo` and the type system reports them where they are used.
+`checkLiteral` failed its assert that they are in scope. Both outputs cannot be written by
+hand: the parser rejects `X` inside `Foo` (`genericNotFunnelled`, bug 5), and the type system
+relies on it. Now inference leaves `x` and `beer` unknown inside `Foo` and the type system
+reports them where they are used; `ToCore` asserts that every inferred type argument, type
+expression and literal type parameter is in scope, where the scope of a named literal is its
+own type parameters only.
