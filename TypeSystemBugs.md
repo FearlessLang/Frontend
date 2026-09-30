@@ -338,3 +338,37 @@ also with no requirement and in the error for an unmet one (Frontend#92,
 `CapabilityTypingTest.readImmResultOfIsoImmBound*`). With the unchanged test on
 `readImm(rc)`, a mode either keeps a variable type as written or gives an `RCX` not
 equivalent to it, so candidate results are never equivalent; `CallTyping.bests` asserts it.
+
+## 13. A declaration inside a method implementing `CaptureFree` sees its self name with its own capability
+
+Frontend#126, 2026-09-30. Unsound. `TypeInMethodTest.captureFreeTypeInMethodSelfIsNotImmInReadMethod`,
+`captureFreeTypeInMethodSelfCallInReadMethodUsesReadOverload`.
+
+A literal created only where it is written has the one capability `rc0` written there, and
+its methods see the self name as `isoToMut(rc0) C[..]`, adapted by the method (bug 4). A
+declaration that can be instantiated by name or implemented (`hasInstance`: top level, or
+implementing `base.CaptureFree`) has instances of every capability, so its methods must see
+the self name as the most permissive of them does, `mut`: what `all-ok` gives a top-level
+declaration.
+
+    hasInstance(L) = L is top level  or  base.CaptureFree in cs(L)
+    self : rcSelf C[..], then adapt(D, rcOf(m), _) for each m
+      was:  rcSelf = isoToMut(rc0)
+      now:  rcSelf = mut             if hasInstance(L)
+                     isoToMut(rc0)   otherwise
+
+Inference declares the self name with the same `rcSelf` (bug 11): otherwise it picks the
+overload of a call on the self name without `[rc]` from `imm` where the type system sees
+`read`, and rejects the call it annotated.
+
+The formalism does not have the problem: it has no `CaptureFree`, a literal declared inside a
+method cannot be implemented (B1), and no expression names a type, so such a literal is only
+ever created with its own `rc0` and `isoToMut(rc0)` is sound there. The implementation lifts
+B1 and allows creation by name for `CaptureFree` declarations; the self type did not follow.
+
+Witness. `A0:{ .m: A -> A: base.CaptureFree{'self read .get: imm A -> self} }` is `imm` by
+default, so `.get` saw `self : imm A`; `B:{ .m: mut A -> mut A; .alias(a: mut A): imm A ->
+a.get }` creates `A` as `mut` by name and gets an `imm` alias of that `mut` object. A
+top-level `C:A{}` or a literal `mut A{}` inherits the same `.get` body unchecked. Only an
+`imm` site shows it: at `read` the self name is at most `read`, and a `mut` method of an
+`imm` or `read` declaration is rejected as dead code.

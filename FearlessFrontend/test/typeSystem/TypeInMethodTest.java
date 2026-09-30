@@ -171,9 +171,26 @@ B:a.A{}
 """); }
 
   @Test void captureFreeTypeInMethodSelfIsNotImmInReadMethod(){ fail("""
-[###]""",List.of("""
+001| A0:{.m:A->A:base.CaptureFree{'self read .get:imm A->self}}
+   |     -------------------------------~~~~~~~~~~~~~~~~~^^^^^
+
+While inspecting parameter "self" > ".get" line 1 > ".m" line 1
+Method ".get" inside the object literal "A" (line 1)
+is implemented with an expression returning "read A".
+Parameter "self" has type "read A" instead of a subtype of "imm A".
+Note: the declared type "mut A" also does not satisfy the requirement.
+Capture adaptation trace:
+"mut A" --setToRead(line 1)--> "read A".
+
+See inferred typing context below for how type "A" was introduced: (compression indicated by `-`)
+A0:{.m:A->A:-.Cap-ree{'self read .get:A->self}}
+""",List.of("""
 A0:{.m:A->A:base.CaptureFree{'self read .get:imm A->self}}
 B:{.m:mut A->mut A; .alias(a:mut A):imm A->a.get}
+""")); }
+
+  @Test void captureFreeTypeInMethodSelfCallInReadMethodUsesReadOverload(){ ok(List.of("""
+A0:{.m:A->A:base.CaptureFree{'self imm .k:imm A->self; read .k:read A->self; read .get:read A->self.k}}
 """)); }
 
   @Test void topLevelTypeSelfIsNotImmInReadMethod(){ fail("""

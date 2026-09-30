@@ -439,7 +439,8 @@ public record InjectionSteps(Methods meths){
     assert m.impl().isPresent();
     var litBs= l.infName() ? bs : l.bs();
     g.newScope(m.sig().rc().get(), litBs);
-    g.declare(l.thisName(), selfPrecise.<IT>map(s->new IT.RCC(s.rc().map(RC::isoToMut), s.c(), s.span())).orElse(IT.U.Instance));
+    var byName= l.cs().stream().anyMatch(c->c.name().equals(LiteralDeclarations.captureFree));
+    g.declare(l.thisName(), selfPrecise.<IT>map(s->new IT.RCC(s.rc().map(rc->byName ? RC.mut : rc.isoToMut()), s.c(), s.span())).orElse(IT.U.Instance));
     g.newScope(m.sig().rc().get(), litBs);
     updateGWithArgs(g, m);
     var e= nextStar(Push.of(bs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
