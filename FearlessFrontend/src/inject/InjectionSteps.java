@@ -304,14 +304,14 @@ public record InjectionSteps(Methods meths){
     var om= methodHeader(rcc, c.name(), c.rc());
     if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var m= om.get();
-    var es= nextStar(bs, g, requiredOnArgs(c, m));
+    var es= nextStar(bs, g, requiredOnArgs(bs, c, m));
     assert es == c.es() || !es.equals(c.es());
     var rc= c.rc().orElse(m.rc());
     assert m.arity() == es.size();
     var all= newAllTs(c, es, m);
     assert all.size() == m.nCls()+m.bsArity();
-    var clsTs= normToBounds(m.clsBs(),all.subList(0, m.nCls()));
-    var targs= normToBounds(m.methBs(),all.subList(m.nCls(), all.size()));
+    var clsTs= normToBounds(bs,m.clsBs(),all.subList(0, m.nCls()));
+    var targs= normToBounds(bs,m.methBs(),all.subList(m.nCls(), all.size()));
     e= meet(e, rcc.withTs(clsTs));
     m= m.withClsArgs(clsTs);
     var it= meet(c.t(), m.ret(targs));
@@ -320,10 +320,10 @@ public record InjectionSteps(Methods meths){
     if (noChange){ return c; }
     return c.withMore(e, rc, targs, es1, it);
   }
-  private List<E> requiredOnArgs(E.Call c, MSigL m){
+  private List<E> requiredOnArgs(List<B> bs, E.Call c, MSigL m){
     var all= decidedThen(c, m, c.es(), Stream.of(refine(m.xs(), m.ret0(), c.t())));
-    var m0= m.withClsArgs(normToBounds(m.clsBs(), all.subList(0, m.nCls())));
-    return meetWithTargs(c.es(), c.es(), m0, normToBounds(m.methBs(), all.subList(m.nCls(), all.size())));
+    var m0= m.withClsArgs(normToBounds(bs, m.clsBs(), all.subList(0, m.nCls())));
+    return meetWithTargs(c.es(), c.es(), m0, normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size())));
   }
   private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){
     var a= Streams.zip(m.ps0(), es).map((p,e2)->refine(m.xs(), p, e2.t()));
@@ -609,6 +609,20 @@ public record InjectionSteps(Methods meths){
     if (bs.size() != ts.size()){ return ts; }
     return Streams.zip(ts,bs).map((ti,bi)->normToBound(ti,bi.rcs())).toList();
   }
+  private static List<IT> normToBounds(List<B> scope, List<B> bs, List<IT> ts){
+    if (bs.size() != ts.size()){ return ts; }
+    return Streams.zip(ts,bs).map((ti,bi)->normToBound(scope,ti,bi.rcs())).toList();
+  }
+  private static IT normToBound(List<B> scope, IT t, EnumSet<RC> allowed){
+    var sameType= xName(t).map(x->RC.get(scope,x).rcs().equals(allowed)).orElse(true);
+    return sameType ? normToBound(t,allowed) : t;
+  }
+  private static Optional<String> xName(IT t){ return switch (t){
+    case IT.X x -> Optional.of(x.name());
+    case IT.RCX(_, var x) -> Optional.of(x.name());
+    case IT.ReadImmX(var x) -> Optional.of(x.name());
+    default -> Optional.empty();
+  };}
   private IT.RCC withTsNormBs(IT.RCC rcc, List<IT> ts){
     var d= meths._from(rcc.c().name());
     if (d == null){ return rcc.withTs(ts); }   // {..}.foo etc.
