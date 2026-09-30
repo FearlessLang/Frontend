@@ -83,8 +83,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var s= c.content();
     if (names.XIn(s)){ throw errFactory().typeNameConflictsGeneric(c,span(c).get()); }
     if (names.XHidden(s)){ throw errFactory().genericNotFunnelled(c,span(c).get(),names.funnelOwner(),names.Xs()); }
-    if (s.contains("._")){ throw errFactory().privateTypeName(c,span(c).get()); }
-    return new TName(s,0,pos(c));
+    var res= new TName(s,0,pos(c));
+    var foreignPrivate= !res.pkgName().isEmpty() && !res.isPublic();
+    if (foreignPrivate){ throw errFactory().privateTypeName(res,span(c).get()); }
+    return res;
   }
   T parseT(){ //T    ::= C | RC C | X | RC X | read/imm X
     var startPos= index();

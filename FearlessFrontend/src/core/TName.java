@@ -15,7 +15,7 @@ public record TName(String s, int arity, Pos pos){
     var c0= s.charAt(0);
     return c0 >= 'a' && c0 <= 'z';
   }
-  static int pkgDot(String s){ return hasPkgDot(s) ? s.indexOf('.') : -1; }
+  public static int pkgDot(String s){ return hasPkgDot(s) ? s.indexOf('.') : -1; }
 
   //Only for names written unqualified in the source (declarations, literals): pos is where
   //the simple name is written, and withPkgName keeps it, so simpleName().length() is right.

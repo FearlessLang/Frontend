@@ -185,13 +185,10 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   public FearlessException typeNameConflictsGeneric(Token name, Span at){
     return Code.UnexpectedToken.of("Name "+disp(name.content())+" is used as a type name, but "+disp(name.content())+" is already a generic type parameter in scope.").addSpan(at);
   }
-  public FearlessException privateTypeName(Token name, Span at){
-    var sep= name.content().indexOf("._");
-    var sName= name.content().substring(sep+1);
-    var pName= name.content().substring(0,sep);
+  public FearlessException privateTypeName(TName name, Span at){
     return Code.UnexpectedToken.of(
-      "Code is attempting to use private name "+disp(sName)
-      +" from package "+disp(pName)
+      "Code is attempting to use private name "+disp(name.simpleName())
+      +" from package "+disp(name.pkgName())
       +".\nType names starting with \"_\" can only be used in their own package, and only by their simple name.\n").addSpan(at);
   }
   public FearlessException missingExprAfterEq(Span at){
