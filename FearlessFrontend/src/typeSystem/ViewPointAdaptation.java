@@ -10,7 +10,7 @@ import core.E.*;
 import typeSystem.Change.*;
 
 public record ViewPointAdaptation(Kinding k){
-  public Gamma discard(Gamma g,List<B> bs,Literal l){ return g.map(curr->discard(curr,bs,l)); }
+  public Gamma discard(Gamma g,Literal l){ return g.map(curr->discard(curr,l)); }
   public Gamma of(Gamma g,Literal l, M m){ return g.map(curr->of(curr,l,m)); }
   private Change of(Change current, Literal l, M m){    //Literal l, M m, T atDrop
     if (!(current instanceof Change.WithT w)){ return current; }
@@ -30,12 +30,14 @@ public record ViewPointAdaptation(Kinding k){
     if (noIsoNoHygienic){ return w; }
     return Change.keepSetToRead(l,m,w);
   }
-  private Change discard(Change current, List<B> bs, Literal l){
+  private Change discard(Change current, Literal l){
     if (!(current instanceof Change.WithT w)){ return current; }
     var t= w.currentT();
-    var mayBeHygienic= !k.of(bs,t,EnumSet.of(iso, imm, mut, read));
+    var notKinded= !k.of(l.bs(),t,EnumSet.allOf(RC.class));
+    if (notKinded){ return new Change.DropNotKinded(l,t); }
+    var mayBeHygienic= !k.of(l.bs(),t,EnumSet.of(iso, imm, mut, read));
     if (mayBeHygienic){ return new Change.DropReadHMutH(l,t); }
-    var mutInImm= l.rc().isIsoOrImm() && !kindIsoImm(t, bs);
+    var mutInImm= l.rc().isIsoOrImm() && !kindIsoImm(t, l.bs());
     if (mutInImm){ return new Change.DropMutInImm(l,t); }
     return w;
   }

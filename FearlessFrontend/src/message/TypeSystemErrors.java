@@ -247,6 +247,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return switch (why){
       case Change.DropMutInImm _ -> whyDropMutInImm(subject,why);
       case Change.DropReadHMutH _ -> whyDropReadHMutH(subject,why);
+      case Change.DropNotKinded _ -> whyDropNotKinded(subject,why);
       case Change.DropFTV _ -> whyDropFTV(subject,why);
       case Change.CapFree _ -> whyDropCapFree(subject,why);
     };
@@ -256,6 +257,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     + subject+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n"
     +"Hint: capture an immutable copy instead, or move this use outside the object literal.";
+  }
+  private String whyDropNotKinded(String subject, Change.NoT why){
+    var bounds= disp(Join.of(why.l().bs(),"",", ","",""));
+    return subject+" has type "+err().typeRepr(true,why.atDrop())+".\n"
+    + "That type is not well kinded under the type parameters of "+err().expRepr(why.l())
+    +" (line "+why.l().span().inner.startLine()+"): "+bounds+".\n"
+    + "The bounds declared by the object literal are all it knows about its type parameters,\n"
+    + "and thus "+subject+" cannot be captured.\n";
   }
   private String whyDropReadHMutH(String subject, Change.NoT why){
     var explicitH= why.atDrop().explicitH()
