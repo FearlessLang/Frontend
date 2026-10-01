@@ -548,6 +548,10 @@ Sub:Sup{ .g(x: mut P): P }
 Sup[X:mut]:{ .h(x: X): X }
 Sub[X:mut]:Sup[X]{ .h(x: mut X): mut X }
 """));}
+@Test void overrideSpellsRedundantReadImmOnTypeVariable(){ok(List.of("""
+Sup[X:imm]:{ .h(x: X): X }
+Sub[X:imm]:Sup[X]{ .h(x: read/imm X): read/imm X }
+"""));}
 @Test void overrideStrengthensResultCapability(){fail("""
 003| Sub:Sup{ mut .h: iso P }
    | ---------^^^^^^^^^^^^^--
