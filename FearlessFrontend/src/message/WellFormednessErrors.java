@@ -32,6 +32,7 @@ import metaParser.PrettyFileName;
 import metaParser.Span;
 import tools.SourceOracle.Ref;
 import utils.Join;
+import utils.Push;
 
 import static message.Err.*;
 
@@ -381,6 +382,20 @@ public record WellFormednessErrors(String pkgName){
     return IntStream.range(0, res.getFirst().size())
       .filter(i->!res.stream().allMatch(bs->bs.get(i).rcs().equals(res.getFirst().get(i).rcs())))
       .findFirst().getAsInt();
+  }
+  public FearlessException captureNotFunnelled(E.X x, IT t, E.Literal owner){
+    var xs= B.xs(owner.bs());
+    var missing= t.ftv().filter(X->!xs.contains(X)).findFirst().get();
+    var name= owner.name().simpleName();
+    var dec= disp(name);
+    var funnelled= disp(Join.of(Push.of(xs,missing).stream().map(s->s+":.."),name+"[",",","]",""));
+    var declares= xs.isEmpty() ? " declares none" : " declares "+Join.of(xs.stream().map(Err::disp),"",", ","","");
+    var uses= t instanceof IT.RCC ? ", using the generic type "+disp(missing)+"." : ".";
+    return wf(err()
+      .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(true,inject.TypeRename.itToT(t))+uses)
+      .line("Generic type "+disp(missing)+" is not in scope inside the type declaration "+dec+".")
+      .line("A type declaration only sees the generic types it declares itself; here "+dec+declares+".")
+      .line("Hint: funnel "+disp(missing)+" into "+dec+" by writing "+funnelled+", restating the bounds of "+disp(missing)+"."), x);
   }
   public FearlessException itTooDeep(E at,IT.RCC blame){
     return wf(err()

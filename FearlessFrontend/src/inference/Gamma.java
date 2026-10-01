@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import core.B;
 import core.RC;
@@ -36,15 +37,17 @@ public final class Gamma{
   private final RC[]  rcs= new RC[maxDepth];
   @SuppressWarnings("unchecked")
   private final List<B>[] bss= (List<B>[])new List<?>[maxDepth];
+  private final E.Literal[] owners= new E.Literal[maxDepth];
   private int depth= 0;
 
   private final HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
   public Gamma(){ marks[0]= 0; envHash[0]= 0L; depth= 1; }
-  public void newScope(RC rc, List<B> bs){
+  public void newScope(RC rc, List<B> bs, E.Literal owner){
     marks[depth]= size;
     envHash[depth]= envHash[depth - 1];
     rcs[depth]= rc;
     bss[depth]= bs;
+    owners[depth]= owner;
     depth++;
   }
   public void popScope(){
@@ -62,6 +65,11 @@ public final class Gamma{
     var t= ts[i];              // the stored (true) type
     for (var s= declDepth[i] + 1; s < depth; s++){ t= adapt(t, rcs[s], bss[s]); }
     return t;
+  }
+  public Optional<E.Literal> notFunnelledInto(String x){
+    var i= indexOf(x);
+    var xs= ts[i].ftv().toList();
+    return IntStream.range(declDepth[i] + 1, depth).filter(s->!B.xs(bss[s]).containsAll(xs)).mapToObj(s->owners[s]).findFirst();
   }
   private static IT adapt(IT t, RC rc, List<B> bs){ return switch (t){
     case IT.X(var x, _) -> adaptX(t, RC.get(bs, x).rcs(), rc);

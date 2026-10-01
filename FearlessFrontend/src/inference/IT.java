@@ -5,6 +5,7 @@ import static offensiveUtils.Require.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import core.RC;
 import core.TName;
@@ -76,6 +77,13 @@ public sealed interface IT{
     case X x -> new RCX(rc, x);
     case ReadImmX(var x) -> new RCX(rc, x);
     case U _   -> this;
+  };}
+  default Stream<String> ftv(){ return switch (this){
+    case X(var name, _) -> Stream.of(name);
+    case RCX(_, var x) -> x.ftv();
+    case ReadImmX(var x) -> x.ftv();
+    case RCC(_, var c, _) -> c.ts().stream().flatMap(IT::ftv);
+    case U _ -> Stream.of();
   };}
   default IT readImm(){ return switch (this){ // T[read/imm]
     case X x -> new ReadImmX(x);

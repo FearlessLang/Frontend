@@ -12,6 +12,7 @@ public class TypeSystemTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
   static void fail(String expected, List<String> input){ typeFail(expected, input); }
   static void failExt(String expected, List<String> input){ typeFailRaw(expected, input); }
+  static void failWf(String expected, List<String> input){ typeFailRaw("In file: [###].fear\n\n"+expected+"Error 7 WellFormedness", input); }
 
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
@@ -820,19 +821,15 @@ User:{
 }
 """)); }
 
-@Test void drop_ftv_notPropagatedIntoExplicitFoo(){fail("""
-004|     read .m[X:imm,mut,read](beer:Beer[X]):read Foo->
+@Test void drop_ftv_notPropagatedIntoExplicitFoo(){failWf("""
 005|       read Foo:{ read .m:Bar -> beer.bar() };
-   |                  ---------------^^^^^-----
+   |                                 ^^^^^
 
-While inspecting parameter "beer" > ".m" line 5 > ".m(_)" line 4
-parameter "beer" has type "Beer[X]".
-parameter "beer" uses type parameters that are not propagated
-into object literal "iso Foo" (line 5) and thus it cannot be captured.
-Hint: change "Foo" by adding the missing type parameters: "Foo[...,...]"
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-beer
+While inspecting parameter "beer"
+Parameter "beer" has type "Beer[X]", using the generic type "X".
+Generic type "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic types it declares itself; here "Foo" declares none.
+Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
   Beer[X:imm,mut,read]:{ read .bar: Bar; }
@@ -841,6 +838,73 @@ beer
       read Foo:{ read .m:Bar -> beer.bar() };
   }
 """)); }
+@Test void drop_ftv_typeVariableNotPropagatedIntoExplicitFoo(){failWf("""
+004|       read Foo:{ read .m:Bar -> x };
+   |                                 ^
+
+While inspecting parameter "x"
+Parameter "x" has type "X".
+Generic type "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic types it declares itself; here "Foo" declares none.
+Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+""", List.of("""
+  Bar:{}
+  User:{
+    read .m[X:imm,mut,read](x:X):read Foo->
+      read Foo:{ read .m:Bar -> x };
+  }
+"""));}
+@Test void drop_ftv_notPropagatedTypeReachesInferredTypeArgument(){failWf("""
+006|       read Foo:{ read .m:Bar -> Id#beer };
+   |                                    ^^^^
+
+While inspecting parameter "beer"
+Parameter "beer" has type "Beer[X]", using the generic type "X".
+Generic type "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic types it declares itself; here "Foo" declares none.
+Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+""", List.of("""
+  Bar:{}
+  Beer[X:imm,mut,read]:{ read .bar: Bar; }
+  Id:{ #[Y:imm,mut,read](y:Y):Bar -> Bar }
+  User:{
+    read .m[X:imm,mut,read](beer:Beer[X]):read Foo->
+      read Foo:{ read .m:Bar -> Id#beer };
+  }
+"""));}
+@Test void drop_ftv_notPropagatedTypeReachesNestedLiteral(){failWf("""
+007|       read Foo:{ read .m:Bar -> Do#{ beer.bar } };
+   |                                      ^^^^^
+
+While inspecting parameter "beer"
+Parameter "beer" has type "Beer[X]", using the generic type "X".
+Generic type "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic types it declares itself; here "Foo" declares none.
+Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+""", List.of("""
+  Bar:{}
+  Beer[X:imm,mut,read]:{ read .bar: Bar; }
+  Run:{ read #: Bar }
+  Do:{ #(r: read Run): Bar -> Bar }
+  User:{
+    read .m[X:imm,mut,read](beer:Beer[X]):read Foo->
+      read Foo:{ read .m:Bar -> Do#{ beer.bar } };
+  }
+"""));}
+@Test void drop_ftv_notPropagatedIntoFooDeclaringOther(){failWf("""
+[###]
+Parameter "beer" has type "Beer[X]", using the generic type "X".
+Generic type "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic types it declares itself; here "Foo" declares "Z".
+Hint: funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of "X".
+""", List.of("""
+  Bar:{}
+  Beer[X:imm,mut,read]:{ read .bar: Bar; }
+  User:{
+    read .m[X:imm,mut,read,Z](beer:Beer[X]):read Foo[Z]->
+      read Foo[Z]:{ read .m:Bar -> beer.bar() };
+  }
+"""));}
 
 @Test void drop_hygienicsAllowedByTypeParam(){fail("""
 002|   read .m[X:imm,mut,read,readH,mutH](beer:X):G[X]->

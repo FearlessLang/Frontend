@@ -18,6 +18,7 @@ import typeSystem.ArgMatrix;
 import typeSystem.Change;
 import typeSystem.TypeScope;
 import typeSystem.TypeSystem;
+import utils.Bug;
 import utils.Join;
 import utils.OneOr;
 import utils.Range;
@@ -248,7 +249,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       case Change.DropMutInImm _ -> whyDropMutInImm(subject,why);
       case Change.DropReadHMutH _ -> whyDropReadHMutH(subject,why);
       case Change.DropNotKinded _ -> whyDropNotKinded(subject,why);
-      case Change.DropFTV _ -> whyDropFTV(subject,why);
+      case Change.DropFTV _ -> throw Bug.unreachable();
       case Change.CapFree _ -> whyDropCapFree(subject,why);
     };
   }
@@ -273,20 +274,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return subject+" has type "+err().typeRepr(true,why.atDrop())+".\n"
     + explicitH+ "and thus it cannot be captured in the "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n";
-  }
-  private static String hintAddTypeParameter(Change.NoT why){
-    var name= why.l().name().simpleName();
-    var current= disp(Join.of(B.xs(why.l().bs()),name+"[",",","]",name));
-    var next= disp(Join.of(B.xs(why.l().bs()),name+"[",",",",...]",name+"[...,...]"));
-    return "Hint: change "+current+" by adding the missing type parameters: "+next;
-  }
-  private String whyDropFTV(String subject, Change.NoT why){
-    return subject+" has type "+err().typeRepr(true,why.atDrop())+".\n"
-    + subject+" uses type parameters that are not propagated\n"
-    + "into "+err().expRepr(why.l())
-    +" (line "+why.l().span().inner.startLine()+")"
-    + " and thus it cannot be captured.\n"
-    + hintAddTypeParameter(why);
   }
   private String whyDropCapFree(String subject, Change.NoT why){
     return

@@ -27,7 +27,11 @@ public record ToCore(List<B> ctx){
     case inference.E.Call ce -> call(ce,callLike(orig,ce.name()));
     case inference.E.ICall ic -> callFromICall(ic,callLike(orig,ic.name()));
   };}
-  core.E.Type type(IT.RCC type, Src src){ return new core.E.Type(new T.RCC(type.rc().orElse(RC.imm),TypeRename.itcToTC(type.c()),type.span()),src); }
+  private boolean inScope(List<IT> ts){ return ts.stream().flatMap(IT::ftv).allMatch(B.xs(ctx)::contains); }
+  core.E.Type type(IT.RCC type, Src src){
+    assert inScope(List.of(type));
+    return new core.E.Type(new T.RCC(type.rc().orElse(RC.imm),TypeRename.itcToTC(type.c()),type.span()),src);
+  }
   core.E.Literal literal(inference.E.Literal e, inference.E.Literal o){
     var rc= o.rc().or(e::rc).orElse(RC.imm);
     assert o.infName() == e.infName();
@@ -38,8 +42,9 @@ public record ToCore(List<B> ctx){
     var bs= oBs.orElse(e.bs());
     var uncommitted= e.infName() && bs.isEmpty();
     if (uncommitted){ bs= uncommittedBs(e); }
+    assert !e.infName() || B.xs(ctx).containsAll(B.xs(bs));
     var name= e.name().withArity(bs.size());
-    var inner= new ToCore(Push.of(ctx,bs).stream().distinct().toList());
+    var inner= new ToCore(e.infName() ? Push.of(ctx,bs).stream().distinct().toList() : bs);
     var ms= inner.mapMs(e.ms(),o.ms()).stream().map(m->withOrigin(m,e.name(),name)).toList();
     var cs= TypeRename.itcToTC(o.cs().isEmpty() ? e.cs() : Push.of(o.cs(),e.cs()).stream().distinct().toList());
     return new core.E.Literal(rc,name,bs,cs,e.thisName(),ms,e.src(),e.infName());
@@ -68,6 +73,7 @@ public record ToCore(List<B> ctx){
   core.E.Call call(inference.E.Call e, CallLike o){
     var rc= o.rc.or(e::rc).orElse(RC.imm);
     var targs= o.targs.isEmpty() ? e.targs() : o.targs;
+    assert inScope(targs);
     return new core.E.Call(of(e.e(),o.e),e.name(),rc,TypeRename.itToT(targs),mapArgs(e.es(),o.es),new EqTransparent<>(TypeRename.itToT(e.t())),e.src());
   }
   core.E.Call callFromICall(inference.E.ICall e, CallLike o){
