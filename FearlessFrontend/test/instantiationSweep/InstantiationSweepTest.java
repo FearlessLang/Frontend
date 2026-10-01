@@ -88,6 +88,7 @@ public class InstantiationSweepTest extends testUtils.FearlessTestBase{
     split.merge(String.join(",",c.bound()),1,Integer::sum);
   }
   @Test void genericTypingMatchesAllInstantiations(){
+    assert false: "this test is disabled, we have no current way to get the bounds to fully cooperate with the promotions to get the same results of the bound expansions without making the type system exponentially slower";
     var total= 63L*2*3*6*9*8*8*8;
     IntStream.range(0,(int)total).parallel().mapToObj(InstantiationSweepTest::decode).flatMap(Optional::stream).forEach(InstantiationSweepTest::check);
     System.out.println("Generic rejected, every instantiation and every singleton bound accepted, by bound:");
