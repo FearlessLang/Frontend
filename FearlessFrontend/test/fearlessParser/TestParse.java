@@ -863,22 +863,32 @@ A[X:***]:{}
 """);}
 @Test void err_generic_bound_colon_without_bound(){fail("""
 In file: [###].fear
-[###]
+
 001| A[X:]:{}
-[###]
+   | --~^----
+
 While inspecting generic bounds declaration > type declaration > full file
-[###]
+Missing bound for generic "X" after ":".
+Write: X:imm,read  any list of reference capabilities
+   or: X:*         meaning mut,read,imm
+   or: X:**        meaning everything
+   or: X           meaning imm.
 Error 2 UnexpectedToken
 ""","""
 A[X:]:{}
 """);}
 @Test void err_generic_bound_colon_without_bound_before_comma(){fail("""
 In file: [###].fear
-[###]
+
 001| A[X:,Y]:{}
-[###]
+   | --~^------
+
 While inspecting generic bounds declaration > type declaration > full file
-[###]
+Missing bound for generic "X" after ":".
+Write: X:imm,read  any list of reference capabilities
+   or: X:*         meaning mut,read,imm
+   or: X:**        meaning everything
+   or: X           meaning imm.
 Error 2 UnexpectedToken
 ""","""
 A[X:,Y]:{}

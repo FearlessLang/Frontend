@@ -226,6 +226,14 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
          or: X:**  meaning everything.
       """).addSpan(at);
   }
+  public FearlessException missingBound(T.X name, Span at){
+    var x= name.name();
+    return Code.UnexpectedToken.of("Missing bound for generic "+disp(x)+" after \":\".\n"
+      +"Write: "+x+":imm,read  any list of reference capabilities\n"
+      +"   or: "+x+":*         meaning mut,read,imm\n"
+      +"   or: "+x+":**        meaning everything\n"
+      +"   or: "+x+"           meaning imm.\n").addSpan(at);
+  }
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
     return Code.UnexpectedToken.of(()->
       "Generic type "+disp(X.content())+" is not in scope.\n" +
