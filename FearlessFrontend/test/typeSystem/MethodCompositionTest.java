@@ -717,6 +717,18 @@ Bar:{ .get[T:mut]: mut T }
 A:Foo,Bar{}
 User:{ #(a: A): mut Baz -> a.get[mut Baz] }
 """));}
+@Test void methodGenericSameReadImmViaExactBoundInherited(){ok(List.of("""
+Baz:{}
+Foo:{ .get[T:imm]: T }
+Bar:{ .get[T:imm]: read/imm T }
+A:Foo,Bar{}
+User:{ #(a: A): Baz -> a.get[Baz] }
+"""));}
+@Test void classGenericSameReadImmViaExactBoundInherited(){ok(List.of("""
+Foo[X:imm]:{ .get: X }
+Bar[X:imm]:{ .get: read/imm X }
+A[Y:imm]:Foo[Y],Bar[Y]{}
+"""));}
 @Test void methodGenericSameCapabilityViaExactBoundOverridden(){ok(List.of("""
 Foo:{ .get[T:mut]: T }
 Bar:{ .get[T:mut]: mut T }
