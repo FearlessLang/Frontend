@@ -361,6 +361,19 @@ Error 2 UnexpectedToken
 ""","""
 A:{Block#.let[base.Nat] _ = {5} .return {2} }
 """);}
+@Test void eq_underscoreIsNotASugarAfterTypeArgumentsInParenthesis(){fail("""
+In file: [###].fear
+
+001| A:{(Block#.let[base.Nat] _ = {5} .return {2}) }
+   |   -~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~--
+
+While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
+The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+Use: ".let x = expression" or ".let {a,b} = expression".
+Error 2 UnexpectedToken
+""","""
+A:{(Block#.let[base.Nat] _ = {5} .return {2}) }
+""");}
 @Test void eq_underscoreIsNotASugarInParenthesis(){fail("""
 In file: [###].fear
 
