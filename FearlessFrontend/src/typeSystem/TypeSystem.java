@@ -285,7 +285,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var sameForm= (a instanceof T.ReadImmX) == (b instanceof T.ReadImmX) && a.explicitRC().equals(b.explicitRC());
     return sameForm || eqModXRC(bs,a,b);
   }
-  private static boolean eqModXRC(List<B> bs,T a,T b){
+  public static boolean eqModXRC(List<B> bs,T a,T b){
     if (a.equals(b)){ return true; }
     if (!(a instanceof T.RCC(var aRc, var aC, _) && b instanceof T.RCC(var bRc, var bC, _))){ return redundantOnX(bs,a,b); }
     var sameHead= aRc == bRc && aC.name().equals(bC.name());

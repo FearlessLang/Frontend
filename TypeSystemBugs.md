@@ -415,3 +415,37 @@ words of `genericNotFunnelled`, so the type system never sees a dropped binding 
 error for that case is unreachable. `ToCore` asserts that every inferred type argument, type
 expression and literal type parameter is in scope, where the scope of a named literal is its
 own type parameters only.
+
+## 15. Inherited signatures agree up to a fixed set of spellings, not up to type equality
+
+Frontend#146, 2026-10-04. Rejects valid programs, not unsoundness.
+`MethodCompositionTest.methodGenericSameReadImmViaExactBoundInherited`,
+`classGenericSameReadImmViaExactBoundInherited`, `methodGenericSameReadViaExactBoundInherited`,
+`methodGenericDifferingReadImmViaExactBoundInherited`.
+
+A method inherited from several supertypes with no signature written takes, at each
+parameter and at the result, the one type all the inherited signatures agree on
+(`Methods.agreement`). They agree when they are the same type, and the type system decides
+that with `eqModVar`, whose variable case covers every spelling of `X`:
+
+    eqModVar(D, A, B) = ...
+      (A, B) spellings of one X       -> |D(X)| = 1 and rcs(D,A) = rcs(D,B)
+                                         -- spellings: X, rc X, readImm X
+                                         -- rcs(D, readImm X) = { readImm(rc) | rc in D(X) }
+
+    agree(D, T1..Tn) =
+      was:  the one element of { norm(D,Ti) }, error if more than one
+            norm(D, X) = rc X if D(X) = {rc};  norm(D, rc C[..]) maps norm on the arguments
+            norm(D, T) = T otherwise                     -- readImm X never rewritten
+      now:  T1 if forall i. eqModVar(D, T1, Ti), error otherwise
+
+`norm` rewrote only a bare `X`, so `readImm X` stayed apart from both `X` and `rc X`: under
+`D(T) = {imm}` the options `T` and `read/imm T` (both `imm`), and under `D(T) = {mut}` the
+options `read T` and `read/imm T` (both `read`), were reported as differing in capability.
+Under `D(T) = {mut}`, `T` and `read/imm T` still disagree: `mut` against `read`.
+
+Witness. `Foo:{ .get[T:imm]: T }`, `Bar:{ .get[T:imm]: read/imm T }`, `A:Foo,Bar{}` was
+rejected with "Different options are present in the implemented types: "T", "read/imm T".
+They differ in reference capability", while `A:Foo,Bar{ .get[T:imm]: T }`, the same choice
+written by hand, was accepted. The same with class type parameters,
+`Foo[X:imm]:{ .get: X }`, `Bar[X:imm]:{ .get: read/imm X }`, `A[Y:imm]:Foo[Y],Bar[Y]{}`.

@@ -729,6 +729,25 @@ Foo[X:imm]:{ .get: X }
 Bar[X:imm]:{ .get: read/imm X }
 A[Y:imm]:Foo[Y],Bar[Y]{}
 """));}
+@Test void methodGenericSameReadViaExactBoundInherited(){ok(List.of("""
+Baz:{}
+Foo:{ .get[T:mut](t: read T): Baz }
+Bar:{ .get[T:mut](t: read/imm T): Baz }
+A:Foo,Bar{}
+"""));}
+@Test void methodGenericDifferingReadImmViaExactBoundInherited(){failWf("""
+003| A:Foo,Bar{}
+   | ^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types: "T", "read/imm T".
+They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+""",List.of("""
+Foo:{ .get[T:mut]: T }
+Bar:{ .get[T:mut]: read/imm T }
+A:Foo,Bar{}
+"""));}
 @Test void methodGenericSameCapabilityViaExactBoundOverridden(){ok(List.of("""
 Foo:{ .get[T:mut]: T }
 Bar:{ .get[T:mut]: mut T }
