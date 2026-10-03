@@ -415,35 +415,3 @@ words of `genericNotFunnelled`, so the type system never sees a dropped binding 
 error for that case is unreachable. `ToCore` asserts that every inferred type argument, type
 expression and literal type parameter is in scope, where the scope of a named literal is its
 own type parameters only.
-
-## 15. Inference types the body of a named literal under the enclosing bounds
-
-Frontend#143, 2026-10-04. Rejects valid programs, not unsoundness.
-`GenericBoundsTest.narrowOuterBoundLambdaInsideWiderLiteralOk`,
-`narrowOuterBoundCapturingLambdaInsideWiderLiteralOk`.
-
-A literal written by name, `D[Xs]`, may restate a funnelled type variable with a wider bound
-than the enclosing one (`D[X:imm,mut,read]` inside `.m[X:imm]`); a narrower one is rejected,
-since the type `D[X]` must be well kinded where the literal is. The type system checks the
-methods of `D` under `Xs` alone (`litOk`), and so do `stepDecM` for a top-level declaration
-and `ToCore`. Every step of inference inside a method body reads the bounds it is given: the
-type parameters of a committed inferred-name literal (`commitToTable`), the bounds of the
-Gamma scope of a nested literal (`adapt`), the normalisation of call type arguments
-(`normToBounds`).
-
-    body of m in a literal l, inferred inside the enclosing bounds bs
-    Gamma scopes of m use   bs(l) = l.infName() ? bs : Xs
-    was:  the body of m is inferred under bs    ++ bs(m)
-    now:  the body of m is inferred under bs(l) ++ bs(m)
-
-For an inferred-name literal `bs(l) = bs`, so only named literals with a widened bound
-changed. Two observable shapes, one per test: a lambda whose type mentions `X` was committed
-with the enclosing bound, `Lambda[X:imm]`, and was not well kinded in `D` where `X` is
-`imm,mut,read`; a lambda whose type does not mention `X` but captures a binding of type `X`
-was committed the same way, and inside it the capture was adapted under the enclosing bound
-to `imm X`, giving `Sink.take[imm,imm X](x)`.
-
-Witness. `Get[R:imm,mut,read]:{ mut #: R }`, `Box[X:imm,mut,read]:{ mut .get: mut Get[X] }`,
-`A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> { x } } }`
-was rejected (`typeNotWellKinded` on `Get[X]`), while the same literal with
-`mut .get: X` and `.get -> x` was accepted.
