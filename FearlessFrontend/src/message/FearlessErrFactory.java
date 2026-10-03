@@ -191,17 +191,16 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +" from package "+disp(name.pkgName())
       +".\nType names starting with \"_\" can only be used in their own package, and only by their simple name.\n").addSpan(at);
   }
-  public FearlessException underscoreInEqSugar(Span at){
-    return Code.UnexpectedToken.of("""
-      The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
-      Use: ".m x = expression" or ".m {a,b} = expression".
-      """).addSpan(at);
+  public FearlessException underscoreInEqSugar(MName m, Span at){
+    return Code.UnexpectedToken.of("The equals sugar cannot bind \"_\": it needs a name or a destructuring pattern.\n"
+      +eqSugarUse(m)).addSpan(at);
   }
-  public FearlessException missingExprAfterEq(Span at){
-    return Code.UnexpectedToken.of("""
-      Missing expression after "=" in the equals sugar.
-      Use: ".m x = expression" or ".m {a,b} = expression".
-      """).addSpan(at);
+  public FearlessException missingExprAfterEq(MName m, Span at){
+    return Code.UnexpectedToken.of("Missing expression after \"=\" in the equals sugar.\n"
+      +eqSugarUse(m)).addSpan(at);
+  }
+  private static String eqSugarUse(MName m){
+    return "Use: \""+m.s()+" x = expression\" or \""+m.s()+" {a,b} = expression\".\n";
   }
   public FearlessException parameterNameExpected(Span at){
     return Code.UnexpectedToken.of("Parameter name expected.").addSpan(at);

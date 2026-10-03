@@ -134,10 +134,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       var es= parseGroupSep("","arguments list",Parser::parseE,ORound,CRound,commaExp);
       return new E.Call(receiver, m.withArity(es.size()), sq, true, empty(), es, pos);
     }
-    var xpat= parseIf(eqSugar(),()->fwd(parseXPat()));
+    var xpat= parseIf(eqSugar(()->m),()->fwd(parseXPat()));
     var noArgument= end() || hasPost();
     if (noArgument){
-      if (xpat.isPresent()){ throw errFactory().missingExprAfterEq(remainingSpan()); }
+      if (xpat.isPresent()){ throw errFactory().missingExprAfterEq(m,remainingSpan()); }
       return new E.Call(receiver, m, sq, false,empty(),List.of(), pos);
     }
     var atom= parseAtom();//we need to avoid parsing the posts if e0 + e1 + e2
@@ -147,8 +147,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (xpat.isPresent()){ atom= parsePost(atom); while (!end()){ atom= parsePost(atom); } }
     return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar
   }
-  boolean eqSugar(){
-    if (peekOrder(t->t.is(Underscore),t->t.is(Eq))){ throw errFactory().underscoreInEqSugar(span(peek().get()).get()); }
+  boolean eqSugar(Supplier<MName> m){
+    if (peekOrder(t->t.is(Underscore),t->t.is(Eq))){ throw errFactory().underscoreInEqSugar(m.get(),span(peek().get()).get()); }
     return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq));
   }
   MName parseMName(){ return new MName(expect("method name", DotName,Op).content(),0); }
@@ -490,8 +490,13 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var absurd= peek(Colon,Arrow,SQuote,Eq,Comma,SemiColon,Underscore,ReadImm);//will add more when we find other absurd cases
     if (absurd){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
   }
+  private MName lastMName(){
+    var t= peek(-1).get();
+    if (t.is(_SquareGroup)){ t= peek(-2).get(); }
+    return new MName(t.content(),0);
+  }
   private void eatAtom(){
-    if (eqSugar()){ expectAny(""); expectAny(""); }
+    if (eqSugar(this::lastMName)){ expectAny(""); expectAny(""); }
     var simple= peek(LowercaseId,_RoundGroup,ColonColon,_CurlyGroup);
     if (fwdIf(simple)){ return; }
     fwdIf(peek(RCap));
