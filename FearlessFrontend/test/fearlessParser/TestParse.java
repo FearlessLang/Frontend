@@ -335,7 +335,72 @@ c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]]
 ""","""
 A:{Block#.let x= {5} .return {x*2} }
 """);}
+@Test void eq_underscoreIsNotASugar(){fail("""
+In file: [###].fear
 
+001| A:{Block#.let _ = {5} .return {2} }
+   |   -~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+Use: ".let x = expression" or ".let {a,b} = expression".
+Error 2 UnexpectedToken
+""","""
+A:{Block#.let _ = {5} .return {2} }
+""");}
+@Test void eq_underscoreIsNotASugarAfterTypeArguments(){fail("""
+In file: [###].fear
+
+001| A:{Block#.let[base.Nat] _ = {5} .return {2} }
+   |   -~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+Use: ".let x = expression" or ".let {a,b} = expression".
+Error 2 UnexpectedToken
+""","""
+A:{Block#.let[base.Nat] _ = {5} .return {2} }
+""");}
+@Test void eq_underscoreIsNotASugarAfterTypeArgumentsInParenthesis(){fail("""
+In file: [###].fear
+
+001| A:{(Block#.let[base.Nat] _ = {5} .return {2}) }
+   |   -~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~--
+
+While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
+The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+Use: ".let x = expression" or ".let {a,b} = expression".
+Error 2 UnexpectedToken
+""","""
+A:{(Block#.let[base.Nat] _ = {5} .return {2}) }
+""");}
+@Test void eq_underscoreIsNotASugarInParenthesis(){fail("""
+In file: [###].fear
+
+001| A:{(Block#.let _ = {5} .return {2}) }
+   |   -~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~--
+
+While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
+The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+Use: ".let x = expression" or ".let {a,b} = expression".
+Error 2 UnexpectedToken
+""","""
+A:{(Block#.let _ = {5} .return {2}) }
+""");}
+@Test void self_underscore(){ok("""
+FileFull[[###]l=Literal[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.m],bs=Optional.empty,hasParenthesis=false,parameters=[],
+t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
+body=Optional[Literal_[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.k],bs=Optional.empty,hasParenthesis=false,parameters=[],
+t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
+body=Optional[Literal_[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.j],bs=Optional.empty,hasParenthesis=true,
+parameters=[Parameter[xp=Optional[Name[x=_]],t=Optional.empty]],
+t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
+body=Optional[this]]]]]]]]]]]]
+""","""
+A:{ .m:A -> {'_
+  .k:A -> {'_
+    .j(_):A -> this } } }
+""");}
 @Test void calls_square_rc_only(){ok("""
 FileFull[[###]decs=[
 Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
@@ -489,7 +554,7 @@ In file: [###].fear
 
 While inspecting expression in round parenthesis > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
-Use: ".m x = expression" or ".m {a,b} = expression".
+Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 ""","""
 A:{ .m ->
@@ -808,7 +873,7 @@ In file: [###].fear
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing expression after "=" in the equals sugar.
-Use: ".m x = expression" or ".m {a,b} = expression".
+Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 ""","""
 A:{ .m -> Block#.let x= .use(x) }

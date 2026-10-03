@@ -137,7 +137,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var xpat= parseIf(eqSugar(),()->fwd(parseXPat()));
     var noArgument= end() || hasPost();
     if (noArgument){
-      if (xpat.isPresent()){ throw errFactory().missingExprAfterEq(remainingSpan()); }
+      if (xpat.isPresent()){ throw errFactory().missingExprAfterEq(m,remainingSpan()); }
       return new E.Call(receiver, m, sq, false,empty(),List.of(), pos);
     }
     var atom= parseAtom();//we need to avoid parsing the posts if e0 + e1 + e2
@@ -147,7 +147,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (xpat.isPresent()){ atom= parsePost(atom); while (!end()){ atom= parsePost(atom); } }
     return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar
   }
-  boolean eqSugar(){ return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq)); }
+  boolean eqSugar(){
+    if (peekOrder(t->t.is(Underscore),t->t.is(Eq))){ throw errFactory().underscoreInEqSugar(lastMName(),span(peek().get()).get()); }
+    return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq));
+  }
   MName parseMName(){ return new MName(expect("method name", DotName,Op).content(),0); }
   MName parseDotName(){ return new MName(expect("method name",DotName).content(),0); }
   XPat parseXPat(){
@@ -200,11 +203,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var start= expect("object literal",OCurly);
     var end= expectLast("object literal",CCurly);
     var thisName= parseIf(fwdIf(peek(SQuote)),this::parseDecX);
-    var n= thisName.map(E.X::name).orElse("this");
+    var n= thisName.map(E.X::name).orElse(top?"this":"_");
     var badTopSelfName= top && !n.equals("this");
     if (badTopSelfName){ throw errFactory().badTopSelfName(thisName.get().span().inner, n); }
-    var selfNamed= top || thisName.isPresent();
-    if (selfNamed){ updateNames(names.add(List.of(n),List.of())); }
+    if (!n.equals("_")){ updateNames(names.add(List.of(n),List.of())); }
     var ms= splitBy("method declaration",semiSkip,p->p.parseMethod(top));
     checkRedeclaration(start, end, ms);
     return new E.Literal(thisName,ms,tspan());
@@ -488,6 +490,11 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   private void absurd(){
     var absurd= peek(Colon,Arrow,SQuote,Eq,Comma,SemiColon,Underscore,ReadImm);//will add more when we find other absurd cases
     if (absurd){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
+  }
+  private MName lastMName(){
+    var t= peek(-1).get();
+    if (t.is(_SquareGroup)){ t= peek(-2).get(); }
+    return new MName(t.content(),0);
   }
   private void eatAtom(){
     if (eqSugar()){ expectAny(""); expectAny(""); }
