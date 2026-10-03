@@ -339,13 +339,27 @@ A:{Block#.let x= {5} .return {x*2} }
 In file: [###].fear
 
 001| A:{Block#.let _ = {5} .return {2} }
-   |   -~~~~~~^^^^~~~~~~~~~~~~~~~~~~~~--
+   |   -~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing semicolon ";", operator, or method name here or earlier.
-Error 6 MissingSeparator
+The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+Use: ".m x = expression" or ".m {a,b} = expression".
+Error 2 UnexpectedToken
 ""","""
 A:{Block#.let _ = {5} .return {2} }
+""");}
+@Test void eq_underscoreIsNotASugarInParenthesis(){fail("""
+In file: [###].fear
+
+001| A:{(Block#.let _ = {5} .return {2}) }
+   |   -~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~--
+
+While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
+The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+Use: ".m x = expression" or ".m {a,b} = expression".
+Error 2 UnexpectedToken
+""","""
+A:{(Block#.let _ = {5} .return {2}) }
 """);}
 @Test void self_underscore(){ok("""
 FileFull[[###]l=Literal[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.m],bs=Optional.empty,hasParenthesis=false,parameters=[],

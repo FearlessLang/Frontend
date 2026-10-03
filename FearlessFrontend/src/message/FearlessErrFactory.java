@@ -191,6 +191,12 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +" from package "+disp(name.pkgName())
       +".\nType names starting with \"_\" can only be used in their own package, and only by their simple name.\n").addSpan(at);
   }
+  public FearlessException underscoreInEqSugar(Span at){
+    return Code.UnexpectedToken.of("""
+      The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+      Use: ".m x = expression" or ".m {a,b} = expression".
+      """).addSpan(at);
+  }
   public FearlessException missingExprAfterEq(Span at){
     return Code.UnexpectedToken.of("""
       Missing expression after "=" in the equals sugar.
