@@ -219,12 +219,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       .addSpan(at);
   }
   public FearlessException badBound(T.X name, Span at){
-    return Code.UnexpectedToken.of("Invalid bound for generic "+disp(name.name())+"""
-
-      Only "*" or "**" are allowed here
-      Write: X:*   meaning mut,read,imm
-         or: X:**  meaning everything.
-      """).addSpan(at);
+    var x= name.name();
+    return Code.UnexpectedToken.of("Invalid bound for generic "+disp(x)+"\n"
+      +"Only \"*\" or \"**\" are allowed here\n"
+      +"Write: ["+x+": *]   meaning mut,read,imm\n"
+      +"   or: ["+x+": **]  meaning everything.\n").addSpan(at);
   }
   public FearlessException missingBound(T.X name, Span at){
     var x= name.name();

@@ -855,8 +855,8 @@ In file: [###].fear
 While inspecting generic bounds declaration > type declaration > full file
 Invalid bound for generic "X"
 Only "*" or "**" are allowed here
-Write: X:*   meaning mut,read,imm
-   or: X:**  meaning everything.
+Write: [X: *]   meaning mut,read,imm
+   or: [X: **]  meaning everything.
 Error 2 UnexpectedToken
 ""","""
 A[X:***]:{}
