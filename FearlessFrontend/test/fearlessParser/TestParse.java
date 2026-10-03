@@ -335,6 +335,16 @@ c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]]
 ""","""
 A:{Block#.let x= {5} .return {x*2} }
 """);}
+@Test void eq_underscore(){ok("""
+[###]
+.letfalseName[x=_]
+[Call[Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]
+.returnfalse[Literal[M[sig=Optional.empty,body=
+Optional[TypedLiteralRCC[rc=Optional.empty,
+c=C[name=2/0,ts=Optional.empty]][###]
+""","""
+A:{Block#.let _ = {5} .return {2} }
+""");}
 
 @Test void calls_square_rc_only(){ok("""
 FileFull[[###]decs=[
