@@ -3934,6 +3934,42 @@ Sup:{ .g: Foo }
 Ids:{ #[T:*](t: T): read T -> t }
 User:{ .f: read Sup -> Ids#({ .g -> Foo }) }
 """));}
+@Test void anonLiteralCapturingMutAgainstTypeArgumentWithoutRc(){ok(List.of("""
+Foo:{}
+Sup:{ mut .run: mut Foo }
+Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
+User:{ .f(s: mut Sup, c: mut Foo): Foo -> Two#(s, { .run -> c }) }
+"""));}
+@Test void mutLiteralCapturingMutAgainstWrittenTypeArgument(){ok(List.of("""
+Foo:{}
+Sup:{ mut .run: mut Foo }
+Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
+User:{ .f(s: mut Sup, c: mut Foo): Foo -> Two#[mut Sup](s, mut Sup{ .run -> c }) }
+"""));}
+@Test void anonLiteralWithRcOverloadsCapturingMutAgainstTypeArgumentWithoutRc(){ok(List.of("""
+Foo:{}
+Box:{ mut .get: mut Foo; read .get: read Foo }
+Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
+User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#(s, { .get -> c }) }
+"""));}
+@Test void mutLiteralWithRcOverloadsCapturingMutAgainstWrittenTypeArgument(){ok(List.of("""
+Foo:{}
+Box:{ mut .get: mut Foo; read .get: read Foo }
+Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
+User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#[mut Box](s, mut Box{ .get -> c }) }
+"""));}
+@Test void anonLiteralCapturingMutAgainstTypeArgumentFromIsoArgument(){ok(List.of("""
+Foo:{}
+Sup:{ mut .run: mut Foo }
+Two:{ #[T:*](a: T, b: T): Foo -> Foo }
+User:{ .f(s: iso Sup, c: mut Foo): Foo -> Two#(s, { .run -> c }) }
+"""));}
+@Test void mutLiteralCapturingMutAgainstWrittenTypeArgumentWithIsoArgument(){ok(List.of("""
+Foo:{}
+Sup:{ mut .run: mut Foo }
+Two:{ #[T:*](a: T, b: T): Foo -> Foo }
+User:{ .f(s: iso Sup, c: mut Foo): Foo -> Two#[mut Sup](s, mut Sup{ .run -> c }) }
+"""));}
 
 @Test void isoLiteralCanUseItsSelfName(){ok(List.of("""
 Counter:{ mut .inc: mut Counter; read .get: base.Nat; mut .inc2: mut Counter }
