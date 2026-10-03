@@ -103,6 +103,12 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private static boolean hasInstance(Literal l){
     return l.thisName().equals("this") || LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
   }
+  private static boolean uses(E e, String x){ return switch (e){
+    case E.X(var n, _) -> n.equals(x);
+    case E.Type _ -> false;
+    case E.Literal l -> l.ms().stream().flatMap(m->m.e().stream()).anyMatch(ei->uses(ei,x));
+    case E.Call c -> uses(c.e(),x) || c.es().stream().anyMatch(ei->uses(ei,x));
+  };}
   private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m->m.sig().abs() && m.sig().rc() == mut); }
   private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
@@ -114,8 +120,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<TRequirement> rs){
     var span= _l.name().approxSpan();
-    var getIso= ((_l.rc().isReadOrImm() && !hasAbstractMut(_l)) || _l.rc() == mut)
-      && _l.thisName().equals("_")
+    var selfNamed= !_l.thisName().equals("_");
+    var getIso= ((_l.rc().isReadOrImm() && !hasAbstractMut(_l) && !selfNamed) || _l.rc() == mut)
       && new CaptureWalk(_l.bs(),g.filterFTV(_l),RC::isIsoOrImm).isFree(_l);
     _l.onlyImmCapture().inner= new CaptureWalk(bs1,g,rc->rc == imm).isFree(_l);
     var l= getIso ? _l.withRC(iso) : _l;
@@ -130,6 +136,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l,bs1,thisType);
     litOk(v().discard(g.filterFTV(l),l),l);
+    if (selfNamed && !uses(_l,_l.thisName())){ throw tsE().selfNameDeadCode(_l); }
     ms.forEach(m->checkCallable(l,m));
     l.ms().forEach(m->checkImplemented(l,m,l));
     return reqs(l,bs1,thisType,rs);
@@ -140,7 +147,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     throw tsE().callableMethodStillAbstract(blame,m);
   }
   private void checkCallable(Literal l, M m){
-    if (callable(l.rc(),m.sig().rc())){ return; }
+    if (hasInstance(l) || callable(l.rc(),m.sig().rc())){ return; }
     throw tsE().methodImplementationDeadCode(m, l);
   }
   private boolean callable(RC litRC, RC recRc){ return recRc != mut || !litRC.isReadOrImm(); }
