@@ -869,10 +869,10 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Missing bound for generic "X" after ":".
-Write: X:imm,read  any list of reference capabilities
-   or: X:*         meaning mut,read,imm
-   or: X:**        meaning everything
-   or: X           meaning imm.
+Write: [X] alone (note, no colon) as a shortcut for [X: imm]
+   or: [X: *]   meaning mut,read,imm
+   or: [X: **]  meaning everything
+   or something like: [X: imm, read]  meaning the least of imm and read.
 Error 2 UnexpectedToken
 ""","""
 A[X:]:{}
@@ -885,10 +885,10 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Missing bound for generic "X" after ":".
-Write: X:imm,read  any list of reference capabilities
-   or: X:*         meaning mut,read,imm
-   or: X:**        meaning everything
-   or: X           meaning imm.
+Write: [X] alone (note, no colon) as a shortcut for [X: imm]
+   or: [X: *]   meaning mut,read,imm
+   or: [X: **]  meaning everything
+   or something like: [X: imm, read]  meaning the least of imm and read.
 Error 2 UnexpectedToken
 ""","""
 A[X:,Y]:{}
