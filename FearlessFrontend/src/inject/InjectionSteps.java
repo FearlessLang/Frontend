@@ -362,7 +362,7 @@ public record InjectionSteps(Methods meths){
     if (!infHead){
       l= l.infName() ? selfSuper.map(l::withT).orElse(l) : l.withT(selfPrecise.get());
       if (!(l.t() instanceof IT.RCC(_, var c, _))){ return l; }//!infHead after passing this test means right now we can expand methods
-      l= l.infName() ? meths.expandLiteral(l, c) : meths.expandDeclaration(l,true);
+      l= l.infName() ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l,true);
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
     var changedMs= false;

@@ -46,6 +46,27 @@ F[T]:{ .k[X](y:X):T; }
 Sup:{ .m[X](x:X):F[X]; }
 B:Sup{ .m[X](x:X):F[X]->{ .k(y)->x } }
 """));}
+@Test void keptInheritedMethodGenericMustNotBeShadowedByNestedLiteral(){fail("""
+003| B:Sup{ .m(x)->{ .k(y)->x } }
+   |        ---------~~~~~~~^--
+
+While inspecting parameter "x" > ".k(_)" line 3 > ".m(_)" line 3
+Method ".k(_)" inside the object literal instance of "iso G" (line 3)
+is implemented with an expression returning "imm X".
+Parameter "x" has type "imm X" instead of a subtype of "_AX".
+
+See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
+B:Sup{.m[X:imm](x:X):G->G{.k[_AX:imm](y:_AX):_AX->x}}
+""",List.of("""
+G:{ .k[X](y:X):X; }
+Sup:{ .m[X](x:X):G; }
+B:Sup{ .m(x)->{ .k(y)->x } }
+"""));}
+@Test void freshMethodGenericMustNotCaptureKeptEnclosingGeneric(){ok(List.of("""
+F[T]:{ .k[X](y:X):T; }
+Sup:{ .m[_AX](x:_AX):F[_AX]; }
+B:Sup{ .m(x)->{ .k(y)->x }; .q[X]:Sup->this }
+"""));}
 @Test void unnamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |                               -------------------~~~~^^^^^

@@ -65,25 +65,26 @@ public record Methods(
   //TODO: performance: currently fetch rewrites for the class generics
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps? Something similar has been done for MSigL
-  CsMs fetch(E.Literal child,IT.C c,core.E.Literal d){ //d == from(c.name()); but from can be undefined for {..}.foo
-    return new CsMs(fetchCs(c),d.ms().stream().map(m->alphaSig(m,d,c,child)).toList());
+  CsMs fetch(E.Literal child,IT.C c,core.E.Literal d,List<String> scope){ //d == from(c.name()); but from can be undefined for {..}.foo
+    return new CsMs(fetchCs(c),d.ms().stream().map(m->alphaSig(m,d,c,child,scope)).toList());
   }
   List<IT.C> fetchCs(IT.C c){
     var d= _from(c.name());
     if (d == null){ return List.of(); }//case {..}.foo
     return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),B.xs(d.bs()),c.ts()).stream().distinct().toList();
   }
-  private inference.M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child){
+  private inference.M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child, List<String> scope){
     var s= m.sig();
     var fullXs= new ArrayList<>(B.xs(d.bs()));
     var fullTs= new ArrayList<>(c.ts());
     var newBs= new ArrayList<B>(s.bs().size());
     for (B b: s.bs()){
       var x= b.x();
-      if (fresh.isFreshGeneric(child.name(),x)){ newBs.add(b); continue; }
+      var keep= fresh.isFreshGeneric(child.name(),x) && !scope.contains(x);
+      if (keep){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
-      var newX= new IT.X(fresh.freshGeneric(child.name(),x,B.xs(s.bs())),child.name().approxSpan());
+      var newX= new IT.X(fresh.freshGeneric(child.name(),x,Push.of(B.xs(s.bs()),scope)),child.name().approxSpan());
       fullTs.add(newX);
       newBs.add(new B(newX.name(),b.rcs()));
     }
@@ -94,7 +95,7 @@ public record Methods(
   public core.E.Literal from(TName name){ return Objects.requireNonNull(_from(name)); }
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache::get,other); }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
-    var ds= d.cs().stream().map(c->fetch(d,c,from(c.name()))).toList();
+    var ds= d.cs().stream().map(c->fetch(d,c,from(c.name()),List.of())).toList();
     var implied= ds.stream().flatMap(dsi->dsi.cs().stream()).toList();
     var allCs= Push.of(d.cs(),implied.stream().filter(c->!d.cs().contains(c)).distinct().sorted(Comparator.comparing(Object::toString)).toList());
     var allSig= Streams.zip(d.cs(),ds).filter((c,_)->!implied.contains(c))
@@ -105,9 +106,9 @@ public record Methods(
     return res;
   }
   //expandLiteral works on an incomplete literal with the cs list not there yet
-  public E.Literal expandLiteral(E.Literal d, IT.C c){//Correct to have both expandLiteral and expandDeclaration
+  public E.Literal expandLiteral(E.Literal d, IT.C c, List<B> scope){//Correct to have both expandLiteral and expandDeclaration
     var dd= _from(c.name());//null for the case {..}.foo
-    List<M.Sig> allSig= dd == null ? List.of() : fetch(d,c,dd).sigs();
+    List<M.Sig> allSig= dd == null ? List.of() : fetch(d,c,dd,B.xs(scope)).sigs();
     var allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
     return d.withCsMs(Push.of(c,fetchCs(c)), allMs, true);
   }

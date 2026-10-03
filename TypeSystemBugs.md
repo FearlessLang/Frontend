@@ -415,3 +415,34 @@ words of `genericNotFunnelled`, so the type system never sees a dropped binding 
 error for that case is unreachable. `ToCore` asserts that every inferred type argument, type
 expression and literal type parameter is in scope, where the scope of a named literal is its
 own type parameters only.
+
+## 15. An inherited method type parameter keeps a name already in scope
+
+Frontend#142, 2026-10-04. Crash, not unsoundness.
+`TypeSystemTest.keptInheritedMethodGenericMustNotBeCapturedByNestedLiteral`,
+`keptInheritedMethodGenericMustNotBeShadowedByNestedLiteral`,
+`freshMethodGenericMustNotCaptureKeptEnclosingGeneric`.
+
+A literal inheriting `.m[X](..)` gets the signature with the supertype parameters
+substituted, and `X` either keeps its name or is renamed to a fresh one. Substitution must
+avoid capture: the name chosen for `X` cannot be one already in scope at the literal.
+`gen` is the set of type parameters written anywhere in the top declaration, plus the fresh
+ones; `S` is the set of type parameters in scope at the literal: its own for a declaration,
+the enclosing class and methods ones for an inferred-name literal. A kept name is never in
+`gen`, so a kept enclosing method type parameter is in `S` but not in `gen`.
+
+    rename(X, siblings, S) =
+      was:  X                                  if X not in gen
+            fresh(X) not in gen + siblings     otherwise
+      now:  X                                  if X not in gen + S
+            fresh(X) not in gen + siblings + S otherwise
+
+Witness. `F[T]:{ .k[X](y:X):T; }`, `Sup:{ .m[X](x:X):F[X]; }`, `B:Sup{ .m(x)->{ .k(y)->x } }`:
+`.m` keeps `X`, then the nested literal implementing `F[X]` keeps the `X` of `.k`, and
+`T := X` makes `.k[X](y:X):X`, whose result names its own parameter. The type system saw
+`[X:imm, X:imm]` in scope and `RC.get` crashed. With `G:{ .k[X](y:X):X; }` and
+`Sup:{ .m[X](x:X):G; }` the inner `X` shadowed the outer one: the literal did not capture
+the outer `X`, the type system dropped the binding of `x`, and the error printer crashed in
+`whyDrop`; now it is the type error "Parameter "x" has type "imm X" instead of a subtype of
+"_AX"". With `Sup:{ .m[_AX](x:_AX):F[_AX]; }` and an `X` written elsewhere in `B`, the
+inner `X` was renamed to `_AX`, the kept outer name.
