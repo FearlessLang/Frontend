@@ -855,11 +855,43 @@ In file: [###].fear
 While inspecting generic bounds declaration > type declaration > full file
 Invalid bound for generic "X"
 Only "*" or "**" are allowed here
-Write: X:*   meaning mut,read,imm
-   or: X:**  meaning everything.
+Write: [X: *]   meaning mut,read,imm
+   or: [X: **]  meaning everything.
 Error 2 UnexpectedToken
 ""","""
 A[X:***]:{}
+""");}
+@Test void err_generic_bound_colon_without_bound(){fail("""
+In file: [###].fear
+
+001| A[X:]:{}
+   | --~^----
+
+While inspecting generic bounds declaration > type declaration > full file
+Missing bound for generic "X" after ":".
+Write: [X] alone (note, no colon) as a shortcut for [X: imm]
+   or: [X: *]   meaning mut,read,imm
+   or: [X: **]  meaning everything
+   or something like: [X: imm, read]  meaning imm or read.
+Error 2 UnexpectedToken
+""","""
+A[X:]:{}
+""");}
+@Test void err_generic_bound_colon_without_bound_before_comma(){fail("""
+In file: [###].fear
+
+001| A[X:,Y]:{}
+   | --~^------
+
+While inspecting generic bounds declaration > type declaration > full file
+Missing bound for generic "X" after ":".
+Write: [X] alone (note, no colon) as a shortcut for [X: imm]
+   or: [X: *]   meaning mut,read,imm
+   or: [X: **]  meaning everything
+   or something like: [X: imm, read]  meaning imm or read.
+Error 2 UnexpectedToken
+""","""
+A[X:,Y]:{}
 """);}
 
 @Test void err_name_redeclared_param2(){fail("""

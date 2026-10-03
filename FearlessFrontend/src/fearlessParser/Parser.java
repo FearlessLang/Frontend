@@ -326,7 +326,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   B parseB(boolean mustNew){
     var x= parseDecTX(mustNew);
     if (end()){ return new B(x,new B.RCS(List.of())); }
-    expect("generic bounds",Colon);
+    var colon= expect("generic bounds",Colon);
+    if (end()){ throw errFactory().missingBound(x,span(colon).get()); }
     if (!peek(Op)){ return new B(x,new B.RCS(parseRCs())); }
     var opT= expect("** or *",Op);
     return switch (opT.content()){
