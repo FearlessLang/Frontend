@@ -43,8 +43,7 @@ public final class ToInference{
     var pkg= p.map().getOrDefault(pN,pN);
     tn= tn.withOverridePkgName(pkg);
     if (pkg.equals(p.name())){ return fCurrent(meths,tn,true); }
-    var lit= pkg.equals("base") && LiteralDeclarations.isPrimitiveLiteral(tn.simpleName());
-    if (lit){ return tn; }
+    if (LiteralDeclarations.isPrimitiveLiteral(tn)){ return tn; }
     if (meths.other().__of(tn) != null){ return tn; }
     throw undeclaredType(tn,p.name(),meths);
   }

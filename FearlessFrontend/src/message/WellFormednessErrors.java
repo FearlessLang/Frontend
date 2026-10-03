@@ -27,9 +27,11 @@ import inference.E;
 import inference.IT;
 import inference.M;
 import inject.Methods.Agreement;
+import inject.TypeRename;
 import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
+import tools.Fs;
 import tools.SourceOracle.Ref;
 import utils.Join;
 import utils.Push;
@@ -449,6 +451,41 @@ public record WellFormednessErrors(String pkgName){
       .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
       .line("It inherits the implementation of "+err().methodSig(new MName("#",1))+" from "+err().tNameADisp(origin)+", that does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
       .line("Method "+err().methodSig(new MName("#",1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner);
+  }
+  public FearlessException claimNotMain(E.Literal owner, TName claim){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+err().tNameADisp(claim)+".")
+      .line("Only a main can open files: "+err().expRepr(owner)+" must also implement "+err().tNameADisp(LiteralDeclarations.main)+", directly or through one of its supertypes."), owner);
+  }
+  public FearlessException claimIconNotConcrete(E.Literal owner, IT.C claim, IT icon){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+err().typeRepr(TypeRename.itcToTC(claim))+".")
+      .line("The icon "+err().typeRepr(icon)+" is not a concrete type name.")
+      .line("An icon is a type name with no type variables and no generic arguments, like "+disp("IconsFoo")+"."), owner);
+  }
+  public FearlessException claimExtNotStr(E.Literal owner, IT.C claim, IT ext){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+err().typeRepr(TypeRename.itcToTC(claim))+".")
+      .line("The extension "+err().typeRepr(ext)+" is not a string literal type.")
+      .line("An extension is written as a string literal type, like "+disp("\"foo\"")+" or "+disp("`foo`")+"."), owner);
+  }
+  public FearlessException claimExtInvalid(E.Literal owner, IT.C claim, String ext){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+err().typeRepr(TypeRename.itcToTC(claim))+".")
+      .line(disp(ext)+" is not a valid extension.")
+      .line("An extension is 1 to "+Fs.maxExtSeg+" characters, each a lowercase letter \"a\"-\"z\" or a digit \"0\"-\"9\", with no dot; \"fearless\" is reserved."), owner);
+  }
+  public FearlessException claimExtTwice(E.Literal owner, IT.C first, IT.C second, String ext){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" claims the extension "+disp(ext)+" more than once:")
+      .line("both "+err().typeRepr(TypeRename.itcToTC(first))+" and "+err().typeRepr(TypeRename.itcToTC(second))+" claim it.")
+      .line("A main can claim each extension at most once, across all its "+err().tNameADisp(LiteralDeclarations.claims.get(1))+" and "+err().tNameADisp(LiteralDeclarations.claims.get(3))+", since one extension has one icon."), owner);
+  }
+  public FearlessException claimIconNotImage(E.Literal owner, IT.C claim){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+err().typeRepr(TypeRename.itcToTC(claim))+".")
+      .line("The icon "+err().typeRepr(claim.ts().getFirst())+" is not an image file.")
+      .line("An icon is the type generated for an image file, like "+disp("IconsFoo")+" for "+disp("_pkg/icons/foo.png")+", or "+disp("base.IconsConflict")+"."), owner);
   }
   public FearlessException extendedSealed(E.Literal owner, TName isSealed){
     var ownerPkg= owner.name().pkgName();
