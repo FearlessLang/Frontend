@@ -31,6 +31,7 @@ public final class LiteralDeclarations{
   public static final List<TName> claims= List.of(new TName("base.OpenWith",1,Pos.unknown),new TName("base.OpenWith",2,Pos.unknown),new TName("base.Shortcut",1,Pos.unknown),new TName("base.Shortcut",2,Pos.unknown));
   public static boolean has(List<T.C> cs, TName magic){ return cs.stream().anyMatch(c->c.name().equals(magic)); }
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
+  public static boolean isPrimitiveLiteral(TName n){ return n.pkgName().equals("base") && isPrimitiveLiteral(n.simpleName()); }
   public static boolean isStrLiteral(String name){ return name.startsWith("`") || name.startsWith("\""); }
   private static core.E.Literal forge(TName name, Function<TName,Literal> map, OtherPackages other){
     var lit= superLiteral(name);
@@ -43,8 +44,7 @@ public final class LiteralDeclarations{
     var res= map.apply(n);
     if (res == null){ res= other.__of(n); }
     if (res != null){ return res; }
-    var lit= n.pkgName().equals("base") && isPrimitiveLiteral(n.simpleName());
-    if (!lit){ return null; }
+    if (!isPrimitiveLiteral(n)){ return null; }
     return forge(n,map,other);
   }
   public static TName superLiteral(TName name){
