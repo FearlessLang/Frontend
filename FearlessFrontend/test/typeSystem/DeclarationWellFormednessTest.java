@@ -605,48 +605,48 @@ A[X:*]:{}
 B:A[Foo],A[p.Foo]{}
 """));}
 @Test void claimOpenWithExt(){ok(List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,"foo"]{}
 """));}
 @Test void claimOpenWith(){ok(List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon]{}
 """));}
 @Test void claimShortcutExt(){ok(List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.Shortcut[Icon,"foo"]{}
 """));}
 @Test void claimShortcut(){ok(List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.Shortcut[Icon]{}
 """));}
 @Test void claimAllFour(){ok(List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,"a"],base.OpenWith[Icon],base.Shortcut[Icon,"b"],base.Shortcut[Icon]{}
 """));}
 @Test void claimTwoExtensions(){ok(List.of("""
-Icon:{}
-Icon2:{}
+Icon:base.ImageFile{}
+Icon2:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,"a"],base.OpenWith[Icon2,"b"]{}
 """));}
 @Test void claimInheritedAlongTwoPaths(){ok(List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 B:base.Main,base.OpenWith[Icon,"a"],base.Shortcut[Icon]{}
 C:base.Main,base.OpenWith[Icon,"a"],base.Shortcut[Icon]{}
 D:B,C{}
 """));}
 @Test void claimRepeatedAndInherited(){ok(List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 B:base.Main,base.OpenWith[Icon,"a"]{}
 C:B,base.OpenWith[Icon,"a"]{}
 """));}
 @Test void claimMainInherited(){ok(List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 M:base.Main{}
 A:M,base.Shortcut[Icon,"a"]{}
 """));}
 @Test void claimFearFappFfile(){ok(List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,"fear"],base.Shortcut[Icon,"fapp123"],base.OpenWith[Icon,`ffile123`],base.Shortcut[Icon,"abcdefghij012345"]{}
 """));}
 @Test void claimNotMain(){failWf("""
@@ -657,7 +657,7 @@ While inspecting type declaration "A"
 Type declaration "A" implements "base.OpenWith[_,_]".
 Only a main can open files: type declaration "A" must also implement "base.Main", directly or through one of its supertypes.
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.OpenWith[Icon,"a"]{}
 """));}
 @Test void claimNotMainInline(){failWf("""
@@ -668,7 +668,7 @@ While inspecting object literal "C"
 Object literal "C" implements "base.Shortcut[_]".
 Only a main can open files: object literal "C" must also implement "base.Main", directly or through one of its supertypes.
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 Test:{ #: C -> C: base.Shortcut[Icon]{} }
 """));}
 @Test void claimNotMainAnonymous(){failWf("""
@@ -679,7 +679,7 @@ While inspecting object literal instance of "base.Shortcut[_]"
 Object literal instance of "base.Shortcut[_]" implements "base.Shortcut[_]".
 Only a main can open files: object literal instance of "base.Shortcut[_]" must also implement "base.Main", directly or through one of its supertypes.
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 Test:{ #: base.Shortcut[Icon] -> { .foo: base.Void -> base.Void } }
 """));}
 @Test void claimNotMainIntermediate(){failWf("""
@@ -690,7 +690,7 @@ While inspecting type declaration "A"
 Type declaration "A" implements "base.OpenWith[_,_]".
 Only a main can open files: type declaration "A" must also implement "base.Main", directly or through one of its supertypes.
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.OpenWith[Icon,"a"]{}
 M:base.Main,A{}
 """));}
@@ -714,7 +714,7 @@ Type declaration "A" implements "base.Shortcut[Box[Icon]]".
 The icon "Box[Icon]" is not a concrete type name.
 An icon is a type name with no type variables and no generic arguments, like "IconsFoo".
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 Box[X:imm]:{}
 A:base.Main,base.Shortcut[Box[Icon]]{}
 """));}
@@ -727,7 +727,7 @@ Type declaration "A[_]" implements "base.OpenWith[Icon,X]".
 The extension "X" is not a string literal type.
 An extension is written as a string literal type, like `"foo"` or "`foo`".
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A[X:imm]:base.Main,base.OpenWith[Icon,X]{}
 """));}
 @Test void claimExtNotStr(){failWf("""
@@ -739,7 +739,7 @@ Type declaration "A" implements "base.OpenWith[Icon,Icon]".
 The extension "Icon" is not a string literal type.
 An extension is written as a string literal type, like `"foo"` or "`foo`".
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,Icon]{}
 """));}
 @Test void claimExtNat(){failWf("""
@@ -751,7 +751,7 @@ Type declaration "A" implements "base.Shortcut[Icon,42]".
 The extension "42" is not a string literal type.
 An extension is written as a string literal type, like `"foo"` or "`foo`".
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.Shortcut[Icon,42]{}
 """));}
 @Test void claimExtUpper(){failWf("""
@@ -763,7 +763,7 @@ Type declaration "A" implements `base.OpenWith[Icon,"Txt"]`.
 "Txt" is not a valid extension.
 An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,"Txt"]{}
 """));}
 @Test void claimExtDot(){failWf("""
@@ -775,7 +775,7 @@ Type declaration "A" implements `base.OpenWith[Icon,"tar.gz"]`.
 "tar.gz" is not a valid extension.
 An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,"tar.gz"]{}
 """));}
 @Test void claimExtLeadingDot(){failWf("""
@@ -787,7 +787,7 @@ Type declaration "A" implements `base.OpenWith[Icon,".txt"]`.
 ".txt" is not a valid extension.
 An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,".txt"]{}
 """));}
 @Test void claimExtEmpty(){failWf("""
@@ -799,7 +799,7 @@ Type declaration "A" implements `base.OpenWith[Icon,""]`.
 "" is not a valid extension.
 An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,""]{}
 """));}
 @Test void claimExtTooLong(){failWf("""
@@ -811,7 +811,7 @@ Type declaration "A" implements `base.OpenWith[Icon,"abcd-3456"]`.
 "abcdefghij0123456" is not a valid extension.
 An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,"abcdefghij0123456"]{}
 """));}
 @Test void claimExtFearless(){failWf("""
@@ -823,7 +823,7 @@ Type declaration "A" implements "base.OpenWith[Icon,`fearless`]".
 "fearless" is not a valid extension.
 An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,`fearless`]{}
 """));}
 @Test void claimExtTwice(){failWf("""
@@ -835,8 +835,8 @@ Type declaration "A" claims the extension "a" more than once:
 both `base.OpenWith[Icon,"a"]` and `base.Shortcut[Icon2,"a"]` claim it.
 A main can claim each extension at most once, across all its "base.OpenWith[_,_]" and "base.Shortcut[_,_]", since one extension has one icon.
 """,List.of("""
-Icon:{}
-Icon2:{}
+Icon:base.ImageFile{}
+Icon2:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,"a"],base.Shortcut[Icon2,"a"]{}
 """));}
 @Test void claimExtTwiceDelimiters(){failWf("""
@@ -848,7 +848,83 @@ Type declaration "A" claims the extension "txt" more than once:
 both `base.OpenWith[Icon,"txt"]` and "base.OpenWith[Icon,`txt`]" claim it.
 A main can claim each extension at most once, across all its "base.OpenWith[_,_]" and "base.Shortcut[_,_]", since one extension has one icon.
 """,List.of("""
-Icon:{}
+Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,"txt"],base.OpenWith[Icon,`txt`]{}
+"""));}
+@Test void iconDeclaredInLaterLayer(){ok(List.of("""
+A:base.Main,base.OpenWith[Icon,"a"]{}
+Icon:Img{}
+Img:base.ImageFile{}
+"""));}
+@Test void iconFromBase(){ok(List.of("""
+A:base.Main,base.Shortcut[base.IconsConflict],base.OpenWith[base.IconsConflict,"a"]{}
+"""));}
+@Test void iconInlineMain(){ok(List.of("""
+Icon:base.ImageFile{}
+Test:{ #: C -> C: base.Main,base.Shortcut[Icon]{'c .main -> c.main } }
+"""));}
+@Test void iconInlineDeclared(){ok(List.of("""
+A:base.Main,base.OpenWith[C,"a"]{}
+Test:{ #: C -> C: base.ImageFile{} }
+"""));}
+@Test void iconStr(){failWf("""
+001| A:base.Main,base.OpenWith[base.Str,"a"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.OpenWith[base.Str,"a"]`.
+The icon "base.Str" is not an image file: it does not implement "base.ImageFile".
+An icon is the type generated for an image file, like "IconsFoo" for "_pkg/icons/foo.png", or "base.IconsConflict".
+""",List.of("""
+A:base.Main,base.OpenWith[base.Str,"a"]{}
+"""));}
+@Test void iconImageFileItself(){failWf("""
+001| A:base.Main,base.Shortcut[base.ImageFile]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.Shortcut[base.ImageFile]".
+The icon "base.ImageFile" is not an image file: it does not implement "base.ImageFile".
+An icon is the type generated for an image file, like "IconsFoo" for "_pkg/icons/foo.png", or "base.IconsConflict".
+""",List.of("""
+A:base.Main,base.Shortcut[base.ImageFile]{}
+"""));}
+@Test void iconPlainDeclaration(){failWf("""
+003| A:base.Main,base.Shortcut[Data]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.Shortcut[Data]".
+The icon "Data" is not an image file: it does not implement "base.ImageFile".
+An icon is the type generated for an image file, like "IconsFoo" for "_pkg/icons/foo.png", or "base.IconsConflict".
+""",List.of("""
+Data:Mid{}
+Mid:{}
+A:base.Main,base.Shortcut[Data]{}
+"""));}
+@Test void iconInheritedClaim(){failWf("""
+003| A:base.Main,base.Shortcut[Data]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.Shortcut[Data]".
+The icon "Data" is not an image file: it does not implement "base.ImageFile".
+An icon is the type generated for an image file, like "IconsFoo" for "_pkg/icons/foo.png", or "base.IconsConflict".
+""",List.of("""
+Data:{}
+B:A{}
+A:base.Main,base.Shortcut[Data]{}
+"""));}
+@Test void iconNotImageInlineMain(){failWf("""
+002| Test:{ #: C -> C: base.Main,base.OpenWith[Data,"a"]{} }
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal "C"
+Object literal "C" implements `base.OpenWith[Data,"a"]`.
+The icon "Data" is not an image file: it does not implement "base.ImageFile".
+An icon is the type generated for an image file, like "IconsFoo" for "_pkg/icons/foo.png", or "base.IconsConflict".
+""",List.of("""
+Data:{}
+Test:{ #: C -> C: base.Main,base.OpenWith[Data,"a"]{} }
 """));}
 }

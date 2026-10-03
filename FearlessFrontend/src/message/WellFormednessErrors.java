@@ -481,6 +481,12 @@ public record WellFormednessErrors(String pkgName){
       .line("both "+err().typeRepr(TypeRename.itcToTC(first))+" and "+err().typeRepr(TypeRename.itcToTC(second))+" claim it.")
       .line("A main can claim each extension at most once, across all its "+err().tNameADisp(LiteralDeclarations.claims.get(1))+" and "+err().tNameADisp(LiteralDeclarations.claims.get(3))+", since one extension has one icon."), owner);
   }
+  public FearlessException iconNotImage(E.Literal owner, IT.C claim){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+err().typeRepr(TypeRename.itcToTC(claim))+".")
+      .line("The icon "+err().typeRepr(claim.ts().getFirst())+" is not an image file: it does not implement "+err().tNameADisp(LiteralDeclarations.imageFile)+".")
+      .line("An icon is the type generated for an image file, like "+disp("IconsFoo")+" for "+disp("_pkg/icons/foo.png")+", or "+disp("base.IconsConflict")+"."), owner);
+  }
   public FearlessException extendedSealed(E.Literal owner, TName isSealed){
     var ownerPkg= owner.name().pkgName();
     var sealedPkg= isSealed.pkgName();

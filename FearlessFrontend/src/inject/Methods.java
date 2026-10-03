@@ -53,13 +53,16 @@ public record Methods(
   }
   public List<inference.E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     var acc= new ArrayList<E.Literal>();
+    var all= new ArrayList<E.Literal>();
     for (var l : layer(iDecs.stream().filter(d->!d.infName()).toList())){
       for (var d : l){
         var e= expandDeclaration(d,false);
         if (d.thisName().equals("this")){ acc.add(e); }
+        all.add(e);
         cache.put(d.name(), injectDeclaration(e));
       }
     }
+    all.forEach(this::checkIcons);
     return List.copyOf(acc);
   }
   record CsMs(List<IT.C> cs, List<inference.M.Sig> sigs){}
@@ -146,6 +149,13 @@ public record Methods(
       var prev= exts.putIfAbsent(ext, c);
       if (prev != null){ throw p.err().claimExtTwice(d, prev, c, ext); }
     }
+  }
+  private void checkIcons(E.Literal d){
+    d.cs().stream().filter(c->LiteralDeclarations.claims.contains(c.name())).forEach(c->checkIcon(d,c));
+  }
+  private void checkIcon(E.Literal d, IT.C claim){
+    var icon= from(((IT.RCC)claim.ts().getFirst()).c().name());
+    if (!LiteralDeclarations.has(icon.cs(), LiteralDeclarations.imageFile)){ throw p.err().iconNotImage(d, claim); }
   }
   private void checkBaseId(E.Literal d){
     var ms= d.ms();

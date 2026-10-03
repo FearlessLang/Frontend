@@ -27,6 +27,7 @@ public final class LiteralDeclarations{
   public static final TName inferUnknown= new TName("base.InferUnknown",0,Pos.unknown);
   public static final List<TName> inferErrs= List.of(new TName("base.InferErr",2,Pos.unknown),new TName("base.InferErr",3,Pos.unknown),new TName("base.InferErr",4,Pos.unknown));
   public static final TName main= new TName("base.Main",0,Pos.unknown);
+  public static final TName imageFile= new TName("base.ImageFile",0,Pos.unknown);
   public static final List<TName> claims= List.of(new TName("base.OpenWith",1,Pos.unknown),new TName("base.OpenWith",2,Pos.unknown),new TName("base.Shortcut",1,Pos.unknown),new TName("base.Shortcut",2,Pos.unknown));
   public static boolean has(List<T.C> cs, TName magic){ return cs.stream().anyMatch(c->c.name().equals(magic)); }
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }

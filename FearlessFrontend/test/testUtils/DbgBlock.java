@@ -117,6 +117,8 @@ OpenWith[I,E]:{}
 OpenWith[I]:{}
 Shortcut[I,E]:{}
 Shortcut[I]:{}
+ImageFile:{}
+IconsConflict:ImageFile{}
 F[R:**]: { read #: R }
 F[A:**,R:**]: { read #(a: A): R }
 F[A:**, B:**, R:**]: { read #(a: A, b: B): R }
