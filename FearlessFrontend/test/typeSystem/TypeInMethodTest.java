@@ -130,7 +130,7 @@ B:A{}
 
   @Test void captureFreeTypeInMethodWithSelfNameMutMethodCalledByName(){ ok(List.of("""
 Foo:{}
-A0:{.m:A->A:base.CaptureFree{'self mut .x:Foo->Foo}}
+A0:{.m:A->A:base.CaptureFree{'self mut .x:Foo->Foo; read .me:imm A->self}}
 B:{.m:mut A->mut A; .u:Foo->this.m.x[mut]}
 """)); }
 

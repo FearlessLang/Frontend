@@ -194,6 +194,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver.")
       .ex(l).addSpan(s.span().inner));
   }
+  public FearlessException selfNameDeadCode(Literal l){
+    return addExpFrame(l, err()
+      .line("The self name "+disp(l.thisName())+" is dead code.")
+      .line("No method of the "+err().expRepr(l)+" uses it.")
+      .line("Remove "+disp("'"+l.thisName())+" from the object literal.")
+      .ex(l));
+  }
   ///Iso parameter is used in a way that violates affine discipline.
   ///Allowed uses: capture into object literals as imm, or use directly at most once.
   ///if !earlyErrOnMoreThenOnceDirectly then used exactly once directly but ALSO used in literals

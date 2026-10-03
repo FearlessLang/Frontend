@@ -226,13 +226,13 @@ Block[R:*]: Sealed,WidenTo[Block[R]]{
     cont: mut Continuation[mut X, mut Block[R], R]
     ): R ->
       cont#(x, this);
-  mut .if(p: mut Condition): mut BlockIf[R] -> p# ? { 'cond
+  mut .if(p: mut Condition): mut BlockIf[R] -> p# ? {
     .then -> { 't
       .return(a) -> _DecidedBlock#(a#);
       .do(r) -> t._do[](r#);
         mut ._do(v: Void): mut Block[R] -> this;
       };
-    .else -> { 'f
+    .else -> {
       .return(_) -> this;
       .do(_) -> this;
       };

@@ -2667,7 +2667,7 @@ Hasher: {
 OrderHash[T]:Order[T]{ read .hash(h: mut Hasher): Nat }
 OrderHash[T,E:*]:Order[T,E]{
   read .hash(by: OrderHashBy[imm E], h: mut Hasher): Nat;
-  read .orderHash(by: OrderHashBy[imm E]): read OrderHash[T] -> {'self
+  read .orderHash(by: OrderHashBy[imm E]): read OrderHash[T] -> {
     .close -> this.close;
     .cmp a,b,m -> this.cmp(by,a,b,m);
     .hash h -> this.hash(by,h);
@@ -3965,6 +3965,46 @@ Make:{ #: iso Counter -> iso Counter{'self
 @Test void isoLiteralStillPromotesUnnamedMutLiteral(){ok(List.of("""
 Counter:{ read .get: base.Nat }
 Make:{ #: iso Counter -> mut Counter{ read .get: base.Nat -> 0 } }
+"""));}
+@Test void isoLiteralPromotesSelfNamedMutLiteral(){ok(List.of("""
+Counter:{ mut .inc: mut Counter; read .get: base.Nat }
+Make:{ #: iso Counter -> mut Counter{'self
+  mut .inc: mut Counter -> self;
+  read .get: base.Nat -> 0;
+  } }
+"""));}
+@Test void isoLiteralDoesNotPromoteSelfNamedImmLiteral(){fail("""
+002| Make:{ #: iso A -> imm A{'self read .me: imm A -> self } }
+   |        ----------------^^-------------------------------
+
+While inspecting object literal instance of "A" > "#" line 2
+The body of method "#" of type declaration "Make" is an expression returning "A".
+Object literal is of type "imm A" instead of a subtype of "iso A".
+
+See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
+Make:{#:iso A->A{'self read .me:A->self}}
+""",List.of("""
+A:{ read .me: imm A }
+Make:{ #: iso A -> imm A{'self read .me: imm A -> self } }
+"""));}
+@Test void selfNameDeadCode(){fail("""
+002| Make:{ #: A -> A{'self read .get: base.Nat -> 0 } }
+   |        --------^^--------------------------------
+
+While inspecting object literal instance of "A" > "#" line 2
+The self name "self" is dead code.
+No method of the object literal instance of "A" uses it.
+Remove "'self" from the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+A{'self read .get:-.Nat->0}
+""",List.of("""
+A:{ read .get: base.Nat }
+Make:{ #: A -> A{'self read .get: base.Nat -> 0 } }
+"""));}
+@Test void selfNameUsedOnlyInNestedLiteral(){ok(List.of("""
+A:{ read .get: A }
+Make:{ #: A -> A{'self read .get: A -> A{ read .get: A -> self } } }
 """));}
 @Test void mutLiteralCapturingIsoIsPromotedToIso(){ok(List.of("""
 A:{}
