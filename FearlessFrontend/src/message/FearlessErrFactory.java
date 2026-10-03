@@ -231,7 +231,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       +"Write: ["+x+"] alone (note, no colon) as a shortcut for ["+x+": imm]\n"
       +"   or: ["+x+": *]   meaning mut,read,imm\n"
       +"   or: ["+x+": **]  meaning everything\n"
-      +"   or something like: ["+x+": imm, read]  meaning the least of imm and read.\n").addSpan(at);
+      +"   or something like: ["+x+": imm, read]  meaning imm or read.\n").addSpan(at);
   }
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
     return Code.UnexpectedToken.of(()->

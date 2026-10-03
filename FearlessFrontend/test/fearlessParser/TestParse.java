@@ -872,7 +872,7 @@ Missing bound for generic "X" after ":".
 Write: [X] alone (note, no colon) as a shortcut for [X: imm]
    or: [X: *]   meaning mut,read,imm
    or: [X: **]  meaning everything
-   or something like: [X: imm, read]  meaning the least of imm and read.
+   or something like: [X: imm, read]  meaning imm or read.
 Error 2 UnexpectedToken
 ""","""
 A[X:]:{}
@@ -888,7 +888,7 @@ Missing bound for generic "X" after ":".
 Write: [X] alone (note, no colon) as a shortcut for [X: imm]
    or: [X: *]   meaning mut,read,imm
    or: [X: **]  meaning everything
-   or something like: [X: imm, read]  meaning the least of imm and read.
+   or something like: [X: imm, read]  meaning imm or read.
 Error 2 UnexpectedToken
 ""","""
 A[X:,Y]:{}
