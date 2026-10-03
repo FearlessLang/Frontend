@@ -36,6 +36,52 @@ B[X:imm]:A{.foo[_AX:imm,_BX:imm](a:_AX,b:_BX):_AX->b}
 A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
 B[X]:A{ .foo(a,b)->b }
 """));}
+@Test void keptInheritedMethodGenericMustNotBeCapturedByNestedLiteral(){ok(List.of("""
+F[T]:{ .k[X](y:X):T; }
+Sup:{ .m[X](x:X):F[X]; }
+B:Sup{ .m(x)->{ .k(y)->x } }
+"""));}
+@Test void keptInheritedMethodGenericMustNotBeCapturedByNestedLiteralWrittenGeneric(){ok(List.of("""
+F[T]:{ .k[X](y:X):T; }
+Sup:{ .m[X](x:X):F[X]; }
+B:Sup{ .m[X](x:X):F[X]->{ .k(y)->x } }
+"""));}
+@Test void keptInheritedMethodGenericMustNotBeShadowedByNestedLiteral(){fail("""
+003| B:Sup{ .m(x)->{ .k(y)->x } }
+   |        ---------~~~~~~~^--
+
+While inspecting parameter "x" > ".k(_)" line 3 > ".m(_)" line 3
+Method ".k(_)" inside the object literal instance of "iso G" (line 3)
+is implemented with an expression returning "imm X".
+Parameter "x" has type "imm X" instead of a subtype of "_AX".
+
+See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
+B:Sup{.m[X:imm](x:X):G->G{.k[_AX:imm](y:_AX):_AX->x}}
+""",List.of("""
+G:{ .k[X](y:X):X; }
+Sup:{ .m[X](x:X):G; }
+B:Sup{ .m(x)->{ .k(y)->x } }
+"""));}
+@Test void freshMethodGenericMustNotCaptureKeptEnclosingGeneric(){ok(List.of("""
+F[T]:{ .k[X](y:X):T; }
+Sup:{ .m[_AX](x:_AX):F[_AX]; }
+B:Sup{ .m(x)->{ .k(y)->x }; .q[X]:Sup->this }
+"""));}
+@Test void keptInheritedMethodGenericMustNotBeTypeNameInLiteral(){fail("""
+002| A:{ .foo:base.Todo->{ ! -> this } }
+   |     ------------------~~~~~^^^^--
+
+While inspecting parameter "this" > "!" line 2 > ".foo" line 2
+Method "!" inside the object literal instance of "iso base.Todo" (line 2)
+is implemented with an expression returning "A".
+Parameter "this" has type "A" instead of a subtype of "_AR".
+
+See inferred typing context below for how type "_AR" was introduced: (compression indicated by `-`)
+A:{.foo:-.Todo->-.Todo{![_AR:**]:_AR->this}}
+""",List.of("""
+R:{}
+A:{ .foo:base.Todo->{ ! -> this } }
+"""));}
 @Test void unnamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |                               -------------------~~~~^^^^^

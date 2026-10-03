@@ -597,6 +597,19 @@ A1:{ .foo[X:imm]():A1;}
 A2:{ .foo[X:imm]():A1;}
 B[X:imm]:A1,A2{ .foo()->this.foo }
 """));}
+@Test void boundAlphaAvoidsDeclaredTypeName(){ok("""
+p.A:base.Todo{'this ![_AR:imm,mut,read,iso,mutH,readH]:_AR@base.Todo;}
+p.R:{'this}
+""",List.of("""
+R:{}
+A:base.Todo{}
+"""));}
+@Test void boundAlphaAvoidsUseName(){ok("""
+p.A:base.Todo{'this ![_AR:imm,mut,read,iso,mutH,readH]:_AR@base.Todo;}
+""",List.of("""
+use base.Void as R;
+A:base.Todo{}
+"""));}
 
 @Test void ambigMethName1(){fail("""
 In file: [###].fear
