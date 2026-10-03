@@ -415,3 +415,37 @@ words of `genericNotFunnelled`, so the type system never sees a dropped binding 
 error for that case is unreachable. `ToCore` asserts that every inferred type argument, type
 expression and literal type parameter is in scope, where the scope of a named literal is its
 own type parameters only.
+
+## 15. A `base.CaptureFree` declaration inside a method has its mut methods rejected as dead code
+
+Frontend#140, 2026-10-04. Rejects valid programs, not unsoundness.
+`TypeInMethodTest.captureFreeTypeInMethodWithSelfNameMutMethodCalledByName`,
+`captureFreeTypeInMethodWithoutSelfNameMutMethodCalledByName`,
+`captureFreeTypeInMethodWithAbstractMutMethodMutMethodCalledOnSubtype`.
+
+A literal written inside a method is promoted to `iso` when nothing it is or captures can
+observe it; otherwise it keeps its capability, and a `mut` method of a literal that stays
+`imm` or `read` is dead code. That holds only if the literal is the sole way to create the
+declaration: a `base.CaptureFree` declaration can also be created by name, and extended,
+as `mut` or `iso`.
+
+    promote(L) = iso    if self(L) = _ and captures(L) subsetOf {iso,imm}
+                        and (rc(L) = mut or (rc(L) in {imm,read} and no abstract mut method in L))
+                 rc(L)  otherwise
+    hasInstance(D) = D is top level or base.CaptureFree in supertypes(D)
+
+    was:  forall m in L with a body. error if rcOf(m) = mut and promote(L) in {imm,read}
+    now:  forall m in L with a body. error if rcOf(m) = mut and promote(L) in {imm,read}
+                                     and not hasInstance(L)
+
+Witness. `A0:{.m:A->A:base.CaptureFree{'self mut .x:Foo->Foo}}` with
+`B:{.m:mut A->mut A; .u:Foo->this.m.x[mut]}`: the self name keeps `A` at `imm`, so `mut .x`
+was rejected as dead code although `B.u` calls it on a `mut A` created by name; without
+`'self` the literal became `iso` and the program was accepted. An abstract `mut` method
+inherited by the literal blocks the promotion the same way:
+`A0:{.m:A->A:base.CaptureFree,Y{mut .x:Foo->Foo}}` with `Y:{mut .y:Foo}` was rejected, while
+`B:A{mut .y:Foo->Foo}` creates `mut B` instances that reach the body of `.x`. A by-name
+instance is checked at its own site (`checkType`): `mut A` or `iso A` requires every `mut`
+method implemented. The body of a `mut` method is type checked as for any literal: a
+`base.CaptureFree` literal captures nothing, and its self name keeps the literal's
+capability (ruled out as intended), so accepting the body is sound.

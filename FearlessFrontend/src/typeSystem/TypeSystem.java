@@ -140,7 +140,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     throw tsE().callableMethodStillAbstract(blame,m);
   }
   private void checkCallable(Literal l, M m){
-    if (callable(l.rc(),m.sig().rc())){ return; }
+    if (hasInstance(l) || callable(l.rc(),m.sig().rc())){ return; }
     throw tsE().methodImplementationDeadCode(m, l);
   }
   private boolean callable(RC litRC, RC recRc){ return recRc != mut || !litRC.isReadOrImm(); }
