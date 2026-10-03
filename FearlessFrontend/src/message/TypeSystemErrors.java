@@ -85,10 +85,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     return err().pTypeArgBounds(name, err().tNameADisp(c.name()), disp(bs.get(index).x()), index, err().typeRepr(true,bad), allowedStr);
   }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr){
-    var ms= decs.apply(t.name()).ms();
-    var m= OneOr.of("Malformed methods",ms.stream().filter(mi->mi.sig().m().equals(c.name()) && mi.sig().rc() == c.rc()));
+    var d= decs.apply(t.name());
+    var m= OneOr.of("Malformed methods",d.ms().stream().filter(mi->mi.sig().m().equals(c.name()) && mi.sig().rc() == c.rc()));
     var param= m.sig().bs().get(index);
-    var decName= err().methodSig(c.rc().toStrSpace(),t.name(), c.name()); // p.A.m(...)
+    var decName= err().methodSig(c.rc().toStrSpace(),d, c.name()); // p.A.m(...)
     var bad= c.targs().get(index);
     return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, err().typeRepr(true,bad), allowedStr);
   }
@@ -359,17 +359,17 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       var has= l.ms().stream().anyMatch(m->m.sig().m().s().equals(name));
       if (!has){ continue; }
       var sig= err().methodSig(c.name());
-      var type= err().tNameADisp(l.name());
+      var lit= l.infName() ? err().bestNameNoRc(l) : "of type "+err().tNameADisp(l.name());
       var selfName= l.thisName();
       e.line("Hint:")
        .line("The method parameter \"this\" here has "+on+".")
        .blank();
       if (!selfName.equals("_")){
-        e.line("The method "+sig+" is defined in the object literal of type "+type+"; the parameter "
+        e.line("The method "+sig+" is defined in the object literal "+lit+"; the parameter "
              + "referring to its instances is named "+disp(selfName)+".");
         return;
       }
-      e.line("The method "+sig+" is defined in the object literal of type "+type+".")
+      e.line("The method "+sig+" is defined in the object literal "+lit+".")
        .line("No parameter refers to instances of this literal.")
        .line("To declare one, use the single quote as in the example below:")
        .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
