@@ -729,6 +729,34 @@ Foo[X:imm]:{ .get: X }
 Bar[X:imm]:{ .get: read/imm X }
 A[Y:imm]:Foo[Y],Bar[Y]{}
 """));}
+@Test void classGenericNarrowerBoundSameReadImmInherited(){ok(List.of("""
+Baz:{}
+Foo[X:imm,mut]:{ .get: X }
+Bar[X:imm,mut]:{ .get: read/imm X }
+A[Y:imm]:Foo[Y],Bar[Y]{}
+Make:{ #[Y:imm](y: Y): A[Y] -> { .get -> y } }
+User:{
+  .viaA[Z:imm](a: A[Z]): Z -> a.get;
+  .asFoo[Z:imm](a: A[Z]): Foo[Z] -> a;
+  .asBar[Z:imm](a: A[Z]): Bar[Z] -> a;
+  .viaFoo(a: A[Baz]): Baz -> this.asFoo(a).get;
+  .viaBar(a: A[Baz]): Baz -> this.asBar(a).get;
+  .use: Baz -> this.viaBar(Make#Baz);
+}
+"""));}
+@Test void classGenericSameBoundDifferingReadImmInherited(){failWf("""
+003| A[Y:imm,mut]:Foo[Y],Bar[Y]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types: "Y", "read/imm Y".
+They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+""",List.of("""
+Foo[X:imm,mut]:{ .get: X }
+Bar[X:imm,mut]:{ .get: read/imm X }
+A[Y:imm,mut]:Foo[Y],Bar[Y]{}
+"""));}
 @Test void methodGenericSameReadViaExactBoundInherited(){ok(List.of("""
 Baz:{}
 Foo:{ .get[T:mut](t: read T): Baz }
