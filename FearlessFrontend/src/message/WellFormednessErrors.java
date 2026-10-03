@@ -475,6 +475,12 @@ public record WellFormednessErrors(String pkgName){
       .line(disp(ext)+" is not a valid extension.")
       .line("An extension is 1 to "+Fs.maxExtSeg+" characters, each a lowercase letter \"a\"-\"z\" or a digit \"0\"-\"9\", with no dot; \"fearless\" is reserved."), owner);
   }
+  public FearlessException claimExtWellKnown(E.Literal owner, IT.C claim, String ext){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+err().typeRepr(TypeRename.itcToTC(claim))+".")
+      .line(disp(ext)+" is a well known extension: the shortcut file would look like a file of another program, to the user and to every other program.")
+      .line("Choose an extension of its own for this shortcut, or implement "+err().tNameADisp(LiteralDeclarations.claims.get(2))+" to let the Fearless manager choose one."), owner);
+  }
   public FearlessException claimExtTwice(E.Literal owner, IT.C first, IT.C second, String ext){
     return wf(err()
       .line(up(err().expRepr(owner))+" claims the extension "+disp(ext)+" more than once:")

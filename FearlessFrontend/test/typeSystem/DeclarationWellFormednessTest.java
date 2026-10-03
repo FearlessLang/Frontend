@@ -643,7 +643,7 @@ C:B,base.OpenWith[Icon,"a"]{}
 @Test void claimMainInherited(){ok(List.of("""
 Icon:base.ImageFile{}
 M:base.Main{}
-A:M,base.Shortcut[Icon,"a"]{}
+A:M,base.Shortcut[Icon,"zq"]{}
 """));}
 @Test void claimFearFappFfile(){ok(List.of("""
 Icon:base.ImageFile{}
@@ -827,17 +827,17 @@ Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,`fearless`]{}
 """));}
 @Test void claimExtTwice(){failWf("""
-003| A:base.Main,base.OpenWith[Icon,"a"],base.Shortcut[Icon2,"a"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+003| A:base.Main,base.OpenWith[Icon,"zq"],base.Shortcut[Icon2,"zq"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Type declaration "A" claims the extension "a" more than once:
-both `base.OpenWith[Icon,"a"]` and `base.Shortcut[Icon2,"a"]` claim it.
+Type declaration "A" claims the extension "zq" more than once:
+both `base.OpenWith[Icon,"zq"]` and `base.Shortcut[Icon2,"zq"]` claim it.
 A main can claim each extension at most once, across all its "base.OpenWith[_,_]" and "base.Shortcut[_,_]", since one extension has one icon.
 """,List.of("""
 Icon:base.ImageFile{}
 Icon2:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"a"],base.Shortcut[Icon2,"a"]{}
+A:base.Main,base.OpenWith[Icon,"zq"],base.Shortcut[Icon2,"zq"]{}
 """));}
 @Test void claimExtTwiceDelimiters(){failWf("""
 002| A:base.Main,base.OpenWith[Icon,"txt"],base.OpenWith[Icon,`txt`]{}
@@ -850,6 +850,62 @@ A main can claim each extension at most once, across all its "base.OpenWith[_,_]
 """,List.of("""
 Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,"txt"],base.OpenWith[Icon,`txt`]{}
+"""));}
+@Test void claimShortcutDoc(){failWf("""
+002| A:base.Main,base.Shortcut[Icon,"doc"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.Shortcut[Icon,"doc"]`.
+"doc" is a well known extension: the shortcut file would look like a file of another program, to the user and to every other program.
+Choose an extension of its own for this shortcut, or implement "base.Shortcut[_]" to let the Fearless manager choose one.
+""",List.of("""
+Icon:base.ImageFile{}
+A:base.Main,base.Shortcut[Icon,"doc"]{}
+"""));}
+@Test void claimShortcutFear(){failWf("""
+002| A:base.Main,base.Shortcut[Icon,`fear`]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.Shortcut[Icon,`fear`]".
+"fear" is a well known extension: the shortcut file would look like a file of another program, to the user and to every other program.
+Choose an extension of its own for this shortcut, or implement "base.Shortcut[_]" to let the Fearless manager choose one.
+""",List.of("""
+Icon:base.ImageFile{}
+A:base.Main,base.Shortcut[Icon,`fear`]{}
+"""));}
+@Test void claimShortcutZip(){failWf("""
+002| A:base.Main,base.Shortcut[Icon,"zip"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.Shortcut[Icon,"zip"]`.
+"zip" is a well known extension: the shortcut file would look like a file of another program, to the user and to every other program.
+Choose an extension of its own for this shortcut, or implement "base.Shortcut[_]" to let the Fearless manager choose one.
+""",List.of("""
+Icon:base.ImageFile{}
+A:base.Main,base.Shortcut[Icon,"zip"]{}
+"""));}
+@Test void claimShortcutExe(){failWf("""
+002| A:base.Main,base.Shortcut[Icon,"exe"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.Shortcut[Icon,"exe"]`.
+"exe" is a well known extension: the shortcut file would look like a file of another program, to the user and to every other program.
+Choose an extension of its own for this shortcut, or implement "base.Shortcut[_]" to let the Fearless manager choose one.
+""",List.of("""
+Icon:base.ImageFile{}
+A:base.Main,base.Shortcut[Icon,"exe"]{}
+"""));}
+@Test void claimShortcutNotWellKnown(){ok(List.of("""
+Icon:base.ImageFile{}
+A:base.Main,base.Shortcut[Icon,"zq"]{}
+"""));}
+@Test void claimOpenWithWellKnown(){ok(List.of("""
+Icon:base.ImageFile{}
+A:base.Main,base.OpenWith[Icon,"doc"]{}
 """));}
 @Test void iconDeclaredInLaterLayer(){ok(List.of("""
 A:base.Main,base.OpenWith[Icon,"a"]{}

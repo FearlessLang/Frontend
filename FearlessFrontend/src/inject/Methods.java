@@ -20,6 +20,7 @@ import core.OtherPackages;
 import core.RC;
 import core.T;
 import core.TName;
+import core.WellKnownExtensions;
 import fearlessParser.Parser;
 import inference.E;
 import inference.IT;
@@ -144,6 +145,8 @@ public record Methods(
       var ext= lit.substring(1, lit.length()-1);
       var valid= Fs.isExtSeg(ext) && !ext.equals("fearless");
       if (!valid){ throw p.err().claimExtInvalid(d, c, ext); }
+      var wellKnown= c.name().equals(LiteralDeclarations.claims.get(3)) && WellKnownExtensions.all.contains(ext);
+      if (wellKnown){ throw p.err().claimExtWellKnown(d, c, ext); }
       var prev= exts.putIfAbsent(ext, c);
       if (prev != null){ throw p.err().claimExtTwice(d, prev, c, ext); }
     }
