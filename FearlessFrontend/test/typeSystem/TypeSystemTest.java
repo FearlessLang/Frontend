@@ -36,6 +36,16 @@ B[X:imm]:A{.foo[_AX:imm,_BX:imm](a:_AX,b:_BX):_AX->b}
 A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
 B[X]:A{ .foo(a,b)->b }
 """));}
+@Test void keptInheritedMethodGenericMustNotBeCapturedByNestedLiteral(){ok(List.of("""
+F[T]:{ .k[X](y:X):T; }
+Sup:{ .m[X](x:X):F[X]; }
+B:Sup{ .m(x)->{ .k(y)->x } }
+"""));}
+@Test void keptInheritedMethodGenericMustNotBeCapturedByNestedLiteralWrittenGeneric(){ok(List.of("""
+F[T]:{ .k[X](y:X):T; }
+Sup:{ .m[X](x:X):F[X]; }
+B:Sup{ .m[X](x:X):F[X]->{ .k(y)->x } }
+"""));}
 @Test void unnamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |                               -------------------~~~~^^^^^
