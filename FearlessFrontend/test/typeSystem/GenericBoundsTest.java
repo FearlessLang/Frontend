@@ -742,6 +742,17 @@ A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 Box[X:imm,mut,read]:{ read .get: read/imm X }
 A:{ .m[X:imm](x: X): read Box[X] -> read Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
 """));}
+@Test void narrowOuterBoundLambdaInsideWiderLiteralOk(){ok(List.of("""
+Get[R:imm,mut,read]:{ mut #: R }
+Box[X:imm,mut,read]:{ mut .get: mut Get[X] }
+A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> { x } } }
+"""));}
+@Test void narrowOuterBoundCapturingLambdaInsideWiderLiteralOk(){ok(List.of("""
+Sink:{ .take[Y:imm,mut,read](y: Y): Sink -> Sink }
+Run:{ mut #: Sink }
+Box[X:imm,mut,read]:{ mut .get: mut Run }
+A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> { Sink.take(x) } } }
+"""));}
 @Test void wideLiteralBoundIsNotPromotedToIso(){fail("""
 002| A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
    |     -----------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
