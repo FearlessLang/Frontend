@@ -147,7 +147,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (xpat.isPresent()){ atom= parsePost(atom); while (!end()){ atom= parsePost(atom); } }
     return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar
   }
-  boolean eqSugar(){ return peekOrder(t->t.is(LowercaseId,Underscore,_CurlyGroup),t->t.is(Eq)); }
+  boolean eqSugar(){ return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq)); }
   MName parseMName(){ return new MName(expect("method name", DotName,Op).content(),0); }
   MName parseDotName(){ return new MName(expect("method name",DotName).content(),0); }
   XPat parseXPat(){

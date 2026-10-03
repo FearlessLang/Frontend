@@ -335,15 +335,15 @@ c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]]
 ""","""
 A:{Block#.let x= {5} .return {x*2} }
 """);}
-@Test void eq_underscore(){ok("""
-FileFull[maps=[],uses=[],decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional.empty,body=Optional[
-Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]#false[]]
-.letfalseName[x=_]
-[Call[Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]
-.returnfalse[Literal[M[sig=Optional.empty,body=
-Optional[TypedLiteralRCC[rc=Optional.empty,
-c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]
+@Test void eq_underscoreIsNotASugar(){fail("""
+In file: [###].fear
+
+001| A:{Block#.let _ = {5} .return {2} }
+   |   -~~~~~~^^^^~~~~~~~~~~~~~~~~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+Error 6 MissingSeparator
 ""","""
 A:{Block#.let _ = {5} .return {2} }
 """);}
