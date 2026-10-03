@@ -128,6 +128,18 @@ A0:{.m:A->A:base.CaptureFree{}}
 B:A{}
 """)); }
 
+  @Test void captureFreeTypeInMethodWithSelfNameMutMethodCalledByName(){ ok(List.of("""
+Foo:{}
+A0:{.m:A->A:base.CaptureFree{'self mut .x:Foo->Foo}}
+B:{.m:mut A->mut A; .u:Foo->this.m.x[mut]}
+""")); }
+
+  @Test void captureFreeTypeInMethodWithoutSelfNameMutMethodCalledByName(){ ok(List.of("""
+Foo:{}
+A0:{.m:A->A:base.CaptureFree{mut .x:Foo->Foo}}
+B:{.m:mut A->mut A; .u:Foo->this.m.x[mut]}
+""")); }
+
   @Test void topLevelTypeByNameFromOtherPkg(){ okTwoPkgs("""
 A:{}
 ""","""
