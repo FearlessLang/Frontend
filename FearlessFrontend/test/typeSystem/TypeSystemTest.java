@@ -83,6 +83,20 @@ this.bar
 """,List.of("""
 Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
 """));}
+@Test void anonEnclosingLiteralThisMisbinding_hintDoesNotShowFreshName(){fail("""
+[###]
+This call to method ".bar" cannot typecheck.
+Method ".bar" is not declared on type "Outer".
+Hint:
+The method parameter "this" here has type "Outer".
+
+The method ".bar" is defined in the object literal [###]"G".
+No parameter refers to instances of this literal.
+[###]
+""",List.of("""
+G:{ .foo: base.Void; .bar: base.Void; }
+Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
+"""));}
 @Test void tsMiniFail(){fail("""
 001| A:{.foo123:A->this.ba}
    |    -----------~~~~^^^^
