@@ -324,6 +324,11 @@ Sub:{ .m[X:imm](x: Box[X]): Box[read/imm X] -> x; .n[X:imm](x: Box[read/imm X]):
 Box[T:**]:{}
 Sub:{ .m[X:iso](x: Box[imm X]): Box[read/imm X] -> x; .n[X:iso](x: Box[read/imm X]): Box[imm X] -> x }
 """));}
+@Test void typeArgumentReadImmXEqualsXWhenClassBoundIsNarrowerThanSupertypes(){ok(List.of("""
+Box[T:*]:{}
+Sup[X:imm,mut]:{ .m(x: Box[X]): Box[read/imm X] }
+Sub[Y:imm]:Sup[Y]{ .m(x) -> x }
+"""));}
 @Test void typeArgumentReadImmXDiffersFromReadXWhenBoundHasMoreCapabilities(){fail("""
 002| Sub:{ .m[X:mut,read](x: Box[read X]): Box[read/imm X] -> x }
    |       ---------------------------------------------------^

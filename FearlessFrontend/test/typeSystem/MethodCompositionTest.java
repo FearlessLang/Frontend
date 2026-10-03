@@ -552,6 +552,12 @@ Sub[X:mut]:Sup[X]{ .h(x: mut X): mut X }
 Sup[X:imm]:{ .h(x: X): X }
 Sub[X:imm]:Sup[X]{ .h(x: read/imm X): read/imm X }
 """));}
+@Test void classGenericNarrowerBoundOverrideSpellsReadImm(){ok(List.of("""
+Baz:{}
+Sup[X:imm,mut]:{ .h(x: X): X }
+Sub[Y:imm]:Sup[Y]{ .h(x: read/imm Y): read/imm Y -> x }
+User:{ .viaSup(s: Sup[Baz]): Baz -> s.h(Baz); .use: Baz -> this.viaSup(Sub[Baz]) }
+"""));}
 @Test void overrideStrengthensResultCapability(){fail("""
 003| Sub:Sup{ mut .h: iso P }
    | ---------^^^^^^^^^^^^^--
@@ -743,6 +749,13 @@ User:{
   .viaBar(a: A[Baz]): Baz -> this.asBar(a).get;
   .use: Baz -> this.viaBar(Make#Baz);
 }
+"""));}
+@Test void classGenericNarrowerBoundSupertypeImpliedWithRedundantRc(){ok(List.of("""
+Baz:{}
+Foo[T:*]:{ .get: T }
+Bar[X:imm,mut]:Foo[imm X]{}
+A[Y:imm]:Foo[Y],Bar[Y]{}
+User:{ .asFoo(a: A[Baz]): Foo[Baz] -> a; .get(a: A[Baz]): Baz -> a.get; .make: A[Baz] -> { .get -> Baz } }
 """));}
 @Test void classGenericSameBoundDifferingReadImmInherited(){failWf("""
 003| A[Y:imm,mut]:Foo[Y],Bar[Y]{}

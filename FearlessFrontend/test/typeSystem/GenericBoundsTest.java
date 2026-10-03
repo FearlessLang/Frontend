@@ -475,6 +475,33 @@ Foo:{}
 Util:{ .m[Y:imm](y: Y): Foo -> Foo }
 A:{ .f[Z:imm](z: Z): Foo -> Util.m(z) }
 """));}
+@Test void inferredTypeArgumentKeepsAClassTypeVariableOutsideTheBound(){fail("""
+003| A[Z:mut]:{ .f(z: Z): Foo -> Util.m(z) }
+   |            -----------------^^^^^^^^^
+
+While inspecting method call ".m(_)" > ".f(_)" line 3
+The call to ".m(_)" is invalid.
+Type argument 1 ("Z") does not satisfy the bounds
+for type parameter "Y" in "Util.m(_)".
+Here "Y" can only use capabilities "imm".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Util.m[imm,Z](z)
+""",List.of("""
+Foo:{}
+Util:{ .m[Y:imm](y: Y): Foo -> Foo }
+A[Z:mut]:{ .f(z: Z): Foo -> Util.m(z) }
+"""));}
+@Test void literalTypeArgumentKeepsATypeVariableOutsideTheBound(){fail("""
+[###]
+The type "Foo[Y]" is invalid.
+Type argument 1 ("Y") does not satisfy the bounds
+for type parameter "X" in "Foo[_]".
+Here "X" can only use capabilities "imm".
+[###]""",List.of("""
+Foo[X:imm]:{ .get: X }
+A:{ .m[Y:imm,mut](y: imm Y): Foo[imm Y] -> Foo[Y]{ .get -> y } }
+"""));}
 @Test void immParameterCannotSatisfyAMutBound(){fail("""
 003| Break:{ .m(f: imm Foo): imm Foo -> A#(f) }
    |         ---------------------------~^^~~
