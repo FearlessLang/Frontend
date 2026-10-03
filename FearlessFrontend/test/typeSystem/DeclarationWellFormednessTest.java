@@ -873,7 +873,7 @@ Test:{ #: C -> C: base.ImageFile{} }
 
 While inspecting type declaration "A"
 Type declaration "A" implements `base.OpenWith[base.Str,"a"]`.
-The icon "base.Str" is not an image file: it does not implement "base.ImageFile".
+The icon "base.Str" is not an image file.
 An icon is the type generated for an image file, like "IconsFoo" for "_pkg/icons/foo.png", or "base.IconsConflict".
 """,List.of("""
 A:base.Main,base.OpenWith[base.Str,"a"]{}
@@ -884,7 +884,7 @@ A:base.Main,base.OpenWith[base.Str,"a"]{}
 
 While inspecting type declaration "A"
 Type declaration "A" implements "base.Shortcut[base.ImageFile]".
-The icon "base.ImageFile" is not an image file: it does not implement "base.ImageFile".
+The icon "base.ImageFile" is not an image file.
 An icon is the type generated for an image file, like "IconsFoo" for "_pkg/icons/foo.png", or "base.IconsConflict".
 """,List.of("""
 A:base.Main,base.Shortcut[base.ImageFile]{}
@@ -895,7 +895,7 @@ A:base.Main,base.Shortcut[base.ImageFile]{}
 
 While inspecting type declaration "A"
 Type declaration "A" implements "base.Shortcut[Data]".
-The icon "Data" is not an image file: it does not implement "base.ImageFile".
+The icon "Data" is not an image file.
 An icon is the type generated for an image file, like "IconsFoo" for "_pkg/icons/foo.png", or "base.IconsConflict".
 """,List.of("""
 Data:Mid{}
@@ -908,7 +908,7 @@ A:base.Main,base.Shortcut[Data]{}
 
 While inspecting type declaration "A"
 Type declaration "A" implements "base.Shortcut[Data]".
-The icon "Data" is not an image file: it does not implement "base.ImageFile".
+The icon "Data" is not an image file.
 An icon is the type generated for an image file, like "IconsFoo" for "_pkg/icons/foo.png", or "base.IconsConflict".
 """,List.of("""
 Data:{}
@@ -921,7 +921,7 @@ A:base.Main,base.Shortcut[Data]{}
 
 While inspecting object literal "C"
 Object literal "C" implements `base.OpenWith[Data,"a"]`.
-The icon "Data" is not an image file: it does not implement "base.ImageFile".
+The icon "Data" is not an image file.
 An icon is the type generated for an image file, like "IconsFoo" for "_pkg/icons/foo.png", or "base.IconsConflict".
 """,List.of("""
 Data:{}
