@@ -145,7 +145,7 @@ public record Methods(
     var cs= TypeRename.itcToTC(d.cs());
     p().log().logInferenceDeclaration(d, cs);
     var ms= new ToCore(List.of()).msSyntetic(d.ms());
-    return new core.E.Literal(d.rc().get(),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName());
+    return new core.E.Literal(d.rc().orElse(RC.imm),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName());
   }
   inference.M withName(MName name,inference.M m){
     assert m.impl().isPresent();
@@ -191,7 +191,7 @@ public record Methods(
       ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && acc(match,s));
       var inferredRcOverloads= rc.isEmpty() && match.size() > 1;
       if (inferredRcOverloads){
-        var litRc= origin.rc().or(origin.t()::explicitRC).get();
+        var litRc= origin.rc().or(origin.t()::explicitRC).orElse(RC.imm);
         var neverMut= InjectionSteps.noH(litRc).isReadOrImm();
         if (neverMut){
           var dead= match.remove(RC.mut);

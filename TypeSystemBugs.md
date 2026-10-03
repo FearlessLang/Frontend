@@ -415,3 +415,31 @@ words of `genericNotFunnelled`, so the type system never sees a dropped binding 
 error for that case is unreachable. `ToCore` asserts that every inferred type argument, type
 expression and literal type parameter is in scope, where the scope of a named literal is its
 own type parameters only.
+
+## 15. Inference reads the capability of a literal typed by an open type argument
+
+Frontend#138, 2026-10-03. Crash, not unsoundness.
+`TypeSystemTest.anonLiteralWithRcOverloadsAgainstTypeArgumentWithoutRc`,
+`anonLiteralAgainstTypeArgumentWithoutRc`.
+
+A literal without a written capability takes it from the expected type (bug 9). The type
+argument of an `X` with `imm` in `D(X)` keeps the unknown capability `?` until the output,
+where it is emitted as `imm` (bug 13), so a literal passed where `X` is expected has expected
+type `? C[..]`. Every choice inference makes on the capability of a literal must read `?` as
+the `imm` it is emitted as. Two places required the capability to be known:
+- a method written without a capability is copied into the overloads it matches, and the
+  `mut` copy is dropped when the literal can never be `mut` (`Methods.pairWithSig`);
+- a committed literal is registered in the declaration table (`Methods.injectDeclaration`).
+
+    rc  = capability of the literal, else of its expected type
+    was:  drop the mut overload iff isReadOrImm(noH(rc));  register rc C[..]
+          rc = ? crashed in both
+    now:  as before, with rc = imm when rc = ?, as ToCore emits it
+
+Witness. `Ids:{ #[T:*](t: T): read T -> t }`,
+`User:{ .f: read base.Opt[Foo] -> Ids#({ .match m -> m.empty }) }`: the expected `read
+base.Opt[Foo]` against `read T` gives `T := ? base.Opt[Foo]`, the literal implements `.match`
+of `base.Opt`, declared `mut`, `read` and `imm`, and `pairWithSig` crashed. With
+`Sup:{ .g: Foo }` and `User:{ .f: read Sup -> Ids#({ .g -> Foo }) }` there are no overloads to
+drop and the crash moved to the commit of the literal. With the type argument written,
+`Ids#[base.Opt[Foo]]` and `Ids#[Sup]`, the capability is `imm` and both were accepted.

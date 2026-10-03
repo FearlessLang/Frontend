@@ -3928,6 +3928,12 @@ Foo:{}
 Ids:{ #[T:*](t: T): read T -> t }
 User:{ .f: read base.Opt[Foo] -> Ids#({ .match m -> m.empty }) }
 """));}
+@Test void anonLiteralAgainstTypeArgumentWithoutRc(){ok(List.of("""
+Foo:{}
+Sup:{ .g: Foo }
+Ids:{ #[T:*](t: T): read T -> t }
+User:{ .f: read Sup -> Ids#({ .g -> Foo }) }
+"""));}
 
 @Test void isoLiteralCanUseItsSelfName(){ok(List.of("""
 Counter:{ mut .inc: mut Counter; read .get: base.Nat; mut .inc2: mut Counter }
