@@ -861,6 +861,28 @@ Error 2 UnexpectedToken
 ""","""
 A[X:***]:{}
 """);}
+@Test void err_generic_bound_colon_without_bound(){fail("""
+In file: [###].fear
+[###]
+001| A[X:]:{}
+[###]
+While inspecting generic bounds declaration > type declaration > full file
+[###]
+Error 2 UnexpectedToken
+""","""
+A[X:]:{}
+""");}
+@Test void err_generic_bound_colon_without_bound_before_comma(){fail("""
+In file: [###].fear
+[###]
+001| A[X:,Y]:{}
+[###]
+While inspecting generic bounds declaration > type declaration > full file
+[###]
+Error 2 UnexpectedToken
+""","""
+A[X:,Y]:{}
+""");}
 
 @Test void err_name_redeclared_param2(){fail("""
 In file: [###].fear
