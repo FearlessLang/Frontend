@@ -604,4 +604,251 @@ Foo:{}
 A[X:*]:{}
 B:A[Foo],A[p.Foo]{}
 """));}
+@Test void claimOpenWithExt(){ok(List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon,"foo"]{}
+"""));}
+@Test void claimOpenWith(){ok(List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon]{}
+"""));}
+@Test void claimShortcutExt(){ok(List.of("""
+Icon:{}
+A:base.Main,base.Shortcut[Icon,"foo"]{}
+"""));}
+@Test void claimShortcut(){ok(List.of("""
+Icon:{}
+A:base.Main,base.Shortcut[Icon]{}
+"""));}
+@Test void claimAllFour(){ok(List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon,"a"],base.OpenWith[Icon],base.Shortcut[Icon,"b"],base.Shortcut[Icon]{}
+"""));}
+@Test void claimTwoExtensions(){ok(List.of("""
+Icon:{}
+Icon2:{}
+A:base.Main,base.OpenWith[Icon,"a"],base.OpenWith[Icon2,"b"]{}
+"""));}
+@Test void claimInheritedAlongTwoPaths(){ok(List.of("""
+Icon:{}
+B:base.Main,base.OpenWith[Icon,"a"],base.Shortcut[Icon]{}
+C:base.Main,base.OpenWith[Icon,"a"],base.Shortcut[Icon]{}
+D:B,C{}
+"""));}
+@Test void claimRepeatedAndInherited(){ok(List.of("""
+Icon:{}
+B:base.Main,base.OpenWith[Icon,"a"]{}
+C:B,base.OpenWith[Icon,"a"]{}
+"""));}
+@Test void claimMainInherited(){ok(List.of("""
+Icon:{}
+M:base.Main{}
+A:M,base.Shortcut[Icon,"a"]{}
+"""));}
+@Test void claimFearFappFfile(){ok(List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon,"fear"],base.Shortcut[Icon,"fapp123"],base.OpenWith[Icon,`ffile123`],base.Shortcut[Icon,"abcdefghij012345"]{}
+"""));}
+@Test void claimNotMain(){failWf("""
+002| A:base.OpenWith[Icon,"a"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.OpenWith[_,_]".
+Only a main can open files: type declaration "A" must also implement "base.Main", directly or through one of its supertypes.
+""",List.of("""
+Icon:{}
+A:base.OpenWith[Icon,"a"]{}
+"""));}
+@Test void claimNotMainInline(){failWf("""
+002| Test:{ #: C -> C: base.Shortcut[Icon]{} }
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal "C"
+Object literal "C" implements "base.Shortcut[_]".
+Only a main can open files: object literal "C" must also implement "base.Main", directly or through one of its supertypes.
+""",List.of("""
+Icon:{}
+Test:{ #: C -> C: base.Shortcut[Icon]{} }
+"""));}
+@Test void claimNotMainAnonymous(){failWf("""
+002| Test:{ #: base.Shortcut[Icon] -> { .foo: base.Void -> base.Void } }
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.Shortcut[_]"
+Object literal instance of "base.Shortcut[_]" implements "base.Shortcut[_]".
+Only a main can open files: object literal instance of "base.Shortcut[_]" must also implement "base.Main", directly or through one of its supertypes.
+""",List.of("""
+Icon:{}
+Test:{ #: base.Shortcut[Icon] -> { .foo: base.Void -> base.Void } }
+"""));}
+@Test void claimNotMainIntermediate(){failWf("""
+002| A:base.OpenWith[Icon,"a"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.OpenWith[_,_]".
+Only a main can open files: type declaration "A" must also implement "base.Main", directly or through one of its supertypes.
+""",List.of("""
+Icon:{}
+A:base.OpenWith[Icon,"a"]{}
+M:base.Main,A{}
+"""));}
+@Test void claimIconTypeVariable(){failWf("""
+001| A[X:imm]:base.Main,base.OpenWith[X,"a"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Type declaration "A[_]" implements `base.OpenWith[X,"a"]`.
+The icon "X" is not a concrete type name.
+An icon is a type name with no type variables and no generic arguments, like "IconsFoo".
+""",List.of("""
+A[X:imm]:base.Main,base.OpenWith[X,"a"]{}
+"""));}
+@Test void claimIconGeneric(){failWf("""
+003| A:base.Main,base.Shortcut[Box[Icon]]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.Shortcut[Box[Icon]]".
+The icon "Box[Icon]" is not a concrete type name.
+An icon is a type name with no type variables and no generic arguments, like "IconsFoo".
+""",List.of("""
+Icon:{}
+Box[X:imm]:{}
+A:base.Main,base.Shortcut[Box[Icon]]{}
+"""));}
+@Test void claimExtTypeVariable(){failWf("""
+002| A[X:imm]:base.Main,base.OpenWith[Icon,X]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Type declaration "A[_]" implements "base.OpenWith[Icon,X]".
+The extension "X" is not a string literal type.
+An extension is written as a string literal type, like `"foo"` or "`foo`".
+""",List.of("""
+Icon:{}
+A[X:imm]:base.Main,base.OpenWith[Icon,X]{}
+"""));}
+@Test void claimExtNotStr(){failWf("""
+002| A:base.Main,base.OpenWith[Icon,Icon]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.OpenWith[Icon,Icon]".
+The extension "Icon" is not a string literal type.
+An extension is written as a string literal type, like `"foo"` or "`foo`".
+""",List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon,Icon]{}
+"""));}
+@Test void claimExtNat(){failWf("""
+002| A:base.Main,base.Shortcut[Icon,42]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.Shortcut[Icon,42]".
+The extension "42" is not a string literal type.
+An extension is written as a string literal type, like `"foo"` or "`foo`".
+""",List.of("""
+Icon:{}
+A:base.Main,base.Shortcut[Icon,42]{}
+"""));}
+@Test void claimExtUpper(){failWf("""
+002| A:base.Main,base.OpenWith[Icon,"Txt"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.OpenWith[Icon,"Txt"]`.
+"Txt" is not a valid extension.
+An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
+""",List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon,"Txt"]{}
+"""));}
+@Test void claimExtDot(){failWf("""
+002| A:base.Main,base.OpenWith[Icon,"tar.gz"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.OpenWith[Icon,"tar.gz"]`.
+"tar.gz" is not a valid extension.
+An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
+""",List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon,"tar.gz"]{}
+"""));}
+@Test void claimExtLeadingDot(){failWf("""
+002| A:base.Main,base.OpenWith[Icon,".txt"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.OpenWith[Icon,".txt"]`.
+".txt" is not a valid extension.
+An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
+""",List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon,".txt"]{}
+"""));}
+@Test void claimExtEmpty(){failWf("""
+002| A:base.Main,base.OpenWith[Icon,""]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.OpenWith[Icon,""]`.
+"" is not a valid extension.
+An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
+""",List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon,""]{}
+"""));}
+@Test void claimExtTooLong(){failWf("""
+002| A:base.Main,base.OpenWith[Icon,"abcdefghij0123456"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.OpenWith[Icon,"abcd-3456"]`.
+"abcdefghij0123456" is not a valid extension.
+An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
+""",List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon,"abcdefghij0123456"]{}
+"""));}
+@Test void claimExtFearless(){failWf("""
+002| A:base.Main,base.OpenWith[Icon,`fearless`]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.OpenWith[Icon,`fearless`]".
+"fearless" is not a valid extension.
+An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
+""",List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon,`fearless`]{}
+"""));}
+@Test void claimExtTwice(){failWf("""
+003| A:base.Main,base.OpenWith[Icon,"a"],base.Shortcut[Icon2,"a"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" claims the extension "a" more than once:
+both `base.OpenWith[Icon,"a"]` and `base.Shortcut[Icon2,"a"]` claim it.
+A main can claim each extension at most once, across all its "base.OpenWith[_,_]" and "base.Shortcut[_,_]", since one extension has one icon.
+""",List.of("""
+Icon:{}
+Icon2:{}
+A:base.Main,base.OpenWith[Icon,"a"],base.Shortcut[Icon2,"a"]{}
+"""));}
+@Test void claimExtTwiceDelimiters(){failWf("""
+002| A:base.Main,base.OpenWith[Icon,"txt"],base.OpenWith[Icon,`txt`]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" claims the extension "txt" more than once:
+both `base.OpenWith[Icon,"txt"]` and "base.OpenWith[Icon,`txt`]" claim it.
+A main can claim each extension at most once, across all its "base.OpenWith[_,_]" and "base.Shortcut[_,_]", since one extension has one icon.
+""",List.of("""
+Icon:{}
+A:base.Main,base.OpenWith[Icon,"txt"],base.OpenWith[Icon,`txt`]{}
+"""));}
 }

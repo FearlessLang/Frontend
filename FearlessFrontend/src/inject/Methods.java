@@ -28,6 +28,7 @@ import inference.M.Sig;
 import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
+import tools.Fs;
 import utils.Push;
 import utils.Streams;
 
@@ -118,11 +119,33 @@ public record Methods(
     if (widen.size() > 1){ throw p.err().multipleWidenTo(d, widen); }
     var isBaseId= allCs.stream().anyMatch(c->c.name().equals(LiteralDeclarations.baseId));
     if (isBaseId){ checkBaseId(d); }
+    checkClaims(d, allCs);
     var unsealed= allCs.stream().noneMatch(c->c.name().equals(LiteralDeclarations.sealed));
     if (unsealed){ return; }
     allCs.stream()
       .filter(c->!c.name().pkgName().equals(d.name().pkgName()))
       .forEach(c->notSealed(c.name(),d));
+  }
+  private void checkClaims(E.Literal d, List<IT.C> allCs){
+    var claims= allCs.stream().filter(c->LiteralDeclarations.claims.contains(c.name())).toList();
+    if (claims.isEmpty()){ return; }
+    var isMain= allCs.stream().anyMatch(c->c.name().equals(LiteralDeclarations.main));
+    if (!isMain){ throw p.err().claimNotMain(d, claims.getFirst().name()); }
+    var exts= new HashMap<String,IT.C>();
+    for (var c: claims){
+      var icon= c.ts().getFirst();
+      var concrete= icon instanceof IT.RCC i && i.c().ts().isEmpty();
+      if (!concrete){ throw p.err().claimIconNotConcrete(d, c, icon); }
+      if (c.ts().size() == 1){ continue; }
+      var arg= c.ts().get(1);
+      var lit= arg instanceof IT.RCC e ? e.c().name().simpleName() : "";
+      if (!LiteralDeclarations.isStrLiteral(lit)){ throw p.err().claimExtNotStr(d, c, arg); }
+      var ext= lit.substring(1, lit.length()-1);
+      var valid= Fs.isExtSeg(ext) && !ext.equals("fearless");
+      if (!valid){ throw p.err().claimExtInvalid(d, c, ext); }
+      var prev= exts.putIfAbsent(ext, c);
+      if (prev != null){ throw p.err().claimExtTwice(d, prev, c, ext); }
+    }
   }
   private void checkBaseId(E.Literal d){
     var ms= d.ms();

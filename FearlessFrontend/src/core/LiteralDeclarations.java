@@ -26,8 +26,11 @@ public final class LiteralDeclarations{
   public static final TName baseContainer= new TName("base.BaseContainer",1,Pos.unknown);
   public static final TName inferUnknown= new TName("base.InferUnknown",0,Pos.unknown);
   public static final List<TName> inferErrs= List.of(new TName("base.InferErr",2,Pos.unknown),new TName("base.InferErr",3,Pos.unknown),new TName("base.InferErr",4,Pos.unknown));
+  public static final TName main= new TName("base.Main",0,Pos.unknown);
+  public static final List<TName> claims= List.of(new TName("base.OpenWith",1,Pos.unknown),new TName("base.OpenWith",2,Pos.unknown),new TName("base.Shortcut",1,Pos.unknown),new TName("base.Shortcut",2,Pos.unknown));
   public static boolean has(List<T.C> cs, TName magic){ return cs.stream().anyMatch(c->c.name().equals(magic)); }
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
+  public static boolean isStrLiteral(String name){ return name.startsWith("`") || name.startsWith("\""); }
   private static core.E.Literal forge(TName name, Function<TName,Literal> map, OtherPackages other){
     var lit= superLiteral(name);
     var res= from(lit,map,other);
@@ -46,8 +49,7 @@ public final class LiteralDeclarations{
   public static TName superLiteral(TName name){
     assert name.pkgName().equals("base");
     var s= name.simpleName();
-    var strLit= s.startsWith("`") || s.startsWith("\"");
-    if (strLit){ return baseStr; }
+    if (isStrLiteral(s)){ return baseStr; }
     if (TokenKind.isKind(s,TokenKind.UnsignedInt)){ return baseNat; }
     if (TokenKind.isKind(s,TokenKind.SignedInt)){ return baseInt; }
     if (TokenKind.isKind(s,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){ return baseFloat; }
@@ -99,8 +101,7 @@ public final class LiteralDeclarations{
     catch(NumberFormatException ex){ return raw.startsWith("-") ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY; }
   }
   public static String toJavaLiteral(String s){
-    var strLit= s.startsWith("`") || s.startsWith("\"");
-    if (strLit){ return javaStrLit(s.substring(1,s.length()-1)); }
+    if (isStrLiteral(s)){ return javaStrLit(s.substring(1,s.length()-1)); }
     var ns= stripUnderscores(s);
     if (TokenKind.isKind(ns,TokenKind.UnsignedInt)){
       // base.Nat: produce the signed int whose 64-bit pattern equals the unsigned value.
