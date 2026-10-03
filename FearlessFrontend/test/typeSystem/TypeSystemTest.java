@@ -3934,7 +3934,18 @@ Sup:{ .g: Foo }
 Ids:{ #[T:*](t: T): read T -> t }
 User:{ .f: read Sup -> Ids#({ .g -> Foo }) }
 """));}
-@Test void anonLiteralCapturingMutAgainstTypeArgumentWithoutRc(){ok(List.of("""
+@Test void inferenceLimit_anonLiteralCapturingMutAgainstTypeArgumentWithoutRc(){fail("""
+004| User:{ .f(s: mut Sup, c: mut Foo): Foo -> Two#(s, { .run -> c }) }
+   |        ---------------------------------------------~~~~~~~~^---
+
+While inspecting parameter "c" > ".run" line 4 > ".f(_,_)" line 4
+parameter "c" has type "mut Foo".
+parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
+Hint: capture an immutable copy instead, or move this use outside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+c
+""",List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }
 Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
@@ -3946,7 +3957,18 @@ Sup:{ mut .run: mut Foo }
 Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
 User:{ .f(s: mut Sup, c: mut Foo): Foo -> Two#[mut Sup](s, mut Sup{ .run -> c }) }
 """));}
-@Test void anonLiteralWithRcOverloadsCapturingMutAgainstTypeArgumentWithoutRc(){ok(List.of("""
+@Test void inferenceLimit_anonLiteralWithRcOverloadsCapturingMutAgainstTypeArgumentWithoutRc(){fail("""
+004| User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#(s, { .get -> c }) }
+   |        ---------------------------------------------~~~~~~~~^---
+
+While inspecting parameter "c" > ".get" line 4 > ".f(_,_)" line 4
+parameter "c" has type "mut Foo".
+parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Box" (line 4).
+Hint: capture an immutable copy instead, or move this use outside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+c
+""",List.of("""
 Foo:{}
 Box:{ mut .get: mut Foo; read .get: read Foo }
 Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
@@ -3958,7 +3980,18 @@ Box:{ mut .get: mut Foo; read .get: read Foo }
 Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
 User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#[mut Box](s, mut Box{ .get -> c }) }
 """));}
-@Test void anonLiteralCapturingMutAgainstTypeArgumentFromIsoArgument(){ok(List.of("""
+@Test void inferenceLimit_anonLiteralCapturingMutAgainstTypeArgumentFromIsoArgument(){fail("""
+004| User:{ .f(s: iso Sup, c: mut Foo): Foo -> Two#(s, { .run -> c }) }
+   |        ---------------------------------------------~~~~~~~~^---
+
+While inspecting parameter "c" > ".run" line 4 > ".f(_,_)" line 4
+parameter "c" has type "mut Foo".
+parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
+Hint: capture an immutable copy instead, or move this use outside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+c
+""",List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }
 Two:{ #[T:*](a: T, b: T): Foo -> Foo }
