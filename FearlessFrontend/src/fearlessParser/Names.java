@@ -7,7 +7,7 @@ import utils.Push;
 
 record Names(List<String> xs, List<String> Xs, List<String> hiddenXs, String funnelOwner){
   Names{
-    assert xs.stream().allMatch(s->TokenKind.validate(s,"parameter name", TokenKind.LowercaseId,TokenKind.Underscore) && !TokenKind.isKind(s,TokenKind.RCap));
+    assert xs.stream().allMatch(s->TokenKind.validate(s,"parameter name", TokenKind.LowercaseId) && !TokenKind.isKind(s,TokenKind.RCap));
     assert Xs.stream().allMatch(s->TokenKind.validate(s,"generic type name", TokenKind.UppercaseId));
   }
   boolean xIn(String x){ return xs.contains(x); }

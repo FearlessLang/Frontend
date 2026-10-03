@@ -336,16 +336,31 @@ c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]]
 A:{Block#.let x= {5} .return {x*2} }
 """);}
 @Test void eq_underscore(){ok("""
-[###]
+FileFull[maps=[],uses=[],decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
+M[sig=Optional.empty,body=Optional[
+Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]]#false[]]
 .letfalseName[x=_]
 [Call[Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]
 .returnfalse[Literal[M[sig=Optional.empty,body=
 Optional[TypedLiteralRCC[rc=Optional.empty,
-c=C[name=2/0,ts=Optional.empty]][###]
+c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]
 ""","""
 A:{Block#.let _ = {5} .return {2} }
 """);}
-
+@Test void self_underscore(){ok("""
+FileFull[[###]l=Literal[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.m],bs=Optional.empty,hasParenthesis=false,parameters=[],
+t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
+body=Optional[Literal_[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.k],bs=Optional.empty,hasParenthesis=false,parameters=[],
+t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
+body=Optional[Literal_[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.j],bs=Optional.empty,hasParenthesis=true,
+parameters=[Parameter[xp=Optional[Name[x=_]],t=Optional.empty]],
+t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
+body=Optional[this]]]]]]]]]]]]
+""","""
+A:{ .m:A -> {'_
+  .k:A -> {'_
+    .j(_):A -> this } } }
+""");}
 @Test void calls_square_rc_only(){ok("""
 FileFull[[###]decs=[
 Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[

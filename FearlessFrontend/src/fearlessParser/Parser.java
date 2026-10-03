@@ -147,7 +147,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (xpat.isPresent()){ atom= parsePost(atom); while (!end()){ atom= parsePost(atom); } }
     return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar
   }
-  boolean eqSugar(){ return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq)); }
+  boolean eqSugar(){ return peekOrder(t->t.is(LowercaseId,Underscore,_CurlyGroup),t->t.is(Eq)); }
   MName parseMName(){ return new MName(expect("method name", DotName,Op).content(),0); }
   MName parseDotName(){ return new MName(expect("method name",DotName).content(),0); }
   XPat parseXPat(){
@@ -200,11 +200,10 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var start= expect("object literal",OCurly);
     var end= expectLast("object literal",CCurly);
     var thisName= parseIf(fwdIf(peek(SQuote)),this::parseDecX);
-    var n= thisName.map(E.X::name).orElse("this");
+    var n= thisName.map(E.X::name).orElse(top?"this":"_");
     var badTopSelfName= top && !n.equals("this");
     if (badTopSelfName){ throw errFactory().badTopSelfName(thisName.get().span().inner, n); }
-    var selfNamed= top || thisName.isPresent();
-    if (selfNamed){ updateNames(names.add(List.of(n),List.of())); }
+    if (!n.equals("_")){ updateNames(names.add(List.of(n),List.of())); }
     var ms= splitBy("method declaration",semiSkip,p->p.parseMethod(top));
     checkRedeclaration(start, end, ms);
     return new E.Literal(thisName,ms,tspan());
