@@ -418,24 +418,30 @@ own type parameters only.
 
 ## 15. An inherited method type parameter keeps a name already in scope
 
-Frontend#142, 2026-10-04. Crash, not unsoundness.
+Frontend#142, 2026-10-04. Crash, and a type parameter named as a type; not unsoundness.
 `TypeSystemTest.keptInheritedMethodGenericMustNotBeCapturedByNestedLiteral`,
 `keptInheritedMethodGenericMustNotBeShadowedByNestedLiteral`,
-`freshMethodGenericMustNotCaptureKeptEnclosingGeneric`.
+`freshMethodGenericMustNotCaptureKeptEnclosingGeneric`,
+`keptInheritedMethodGenericMustNotBeTypeNameInLiteral`,
+`TestInference.boundAlphaAvoidsDeclaredTypeName`, `boundAlphaAvoidsUseName`.
 
 A literal inheriting `.m[X](..)` gets the signature with the supertype parameters
 substituted, and `X` either keeps its name or is renamed to a fresh one. Substitution must
 avoid capture: the name chosen for `X` cannot be one already in scope at the literal.
 `gen` is the set of type parameters written anywhere in the top declaration, plus the fresh
 ones; `S` is the set of type parameters in scope at the literal: its own for a declaration,
-the enclosing class and methods ones for an inferred-name literal. A kept name is never in
-`gen`, so a kept enclosing method type parameter is in `S` but not in `gen`.
+the enclosing class and methods ones for an inferred-name literal; `Ts` is the set of type
+names of the package, declared or `use` aliases. A kept name is never in `gen`, so a kept
+enclosing method type parameter is in `S` but not in `gen`. A written type parameter is never
+in `Ts` (`genericTypeVarShadowsTName`); a kept one came from another declaration, possibly of
+another package, where that check says nothing. A name is kept only if it avoids the same
+sets a fresh name avoids, siblings aside.
 
     rename(X, siblings, S) =
-      was:  X                                  if X not in gen
-            fresh(X) not in gen + siblings     otherwise
-      now:  X                                  if X not in gen + S
-            fresh(X) not in gen + siblings + S otherwise
+      was:  X                                       if X not in gen
+            fresh(X) not in gen + Ts + siblings     otherwise
+      now:  X                                       if X not in gen + Ts + S
+            fresh(X) not in gen + Ts + siblings + S otherwise
 
 Witness. `F[T]:{ .k[X](y:X):T; }`, `Sup:{ .m[X](x:X):F[X]; }`, `B:Sup{ .m(x)->{ .k(y)->x } }`:
 `.m` keeps `X`, then the nested literal implementing `F[X]` keeps the `X` of `.k`, and
@@ -445,4 +451,9 @@ Witness. `F[T]:{ .k[X](y:X):T; }`, `Sup:{ .m[X](x:X):F[X]; }`, `B:Sup{ .m(x)->{ 
 the outer `X`, the type system dropped the binding of `x`, and the error printer crashed in
 `whyDrop`; now it is the type error "Parameter "x" has type "imm X" instead of a subtype of
 "_AX"". With `Sup:{ .m[_AX](x:_AX):F[_AX]; }` and an `X` written elsewhere in `B`, the
-inner `X` was renamed to `_AX`, the kept outer name.
+inner `X` was renamed to `_AX`, the kept outer name. With `R:{}` (or `use base.Void as R;`)
+and `A:base.Todo{}`, where `Todo:{ ![R:**]: R -> Todo!; }`, `A` was inferred as
+`A:base.Todo{ ![R:**]:R }`, which could not be written by hand, and the type parameter `R`
+printed as the type `R` in errors: `A:{ .foo:base.Todo->{ ! -> this } }` said "Parameter
+"this" has type "A" instead of a subtype of "R"". Now it is `![_AR:**]:_AR` and "a subtype of
+"_AR"".

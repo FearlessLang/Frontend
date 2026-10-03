@@ -67,6 +67,21 @@ F[T]:{ .k[X](y:X):T; }
 Sup:{ .m[_AX](x:_AX):F[_AX]; }
 B:Sup{ .m(x)->{ .k(y)->x }; .q[X]:Sup->this }
 """));}
+@Test void keptInheritedMethodGenericMustNotBeTypeNameInLiteral(){fail("""
+002| A:{ .foo:base.Todo->{ ! -> this } }
+   |     ------------------~~~~~^^^^--
+
+While inspecting parameter "this" > "!" line 2 > ".foo" line 2
+Method "!" inside the object literal instance of "iso base.Todo" (line 2)
+is implemented with an expression returning "A".
+Parameter "this" has type "A" instead of a subtype of "_AR".
+
+See inferred typing context below for how type "_AR" was introduced: (compression indicated by `-`)
+A:{.foo:-.Todo->-.Todo{![_AR:**]:_AR->this}}
+""",List.of("""
+R:{}
+A:{ .foo:base.Todo->{ ! -> this } }
+"""));}
 @Test void unnamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |                               -------------------~~~~^^^^^

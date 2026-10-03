@@ -39,7 +39,7 @@ public record FreshPrefix(
     aliasOwner(hint,res);
     return res;
   }
-  public boolean isFreshGeneric(TName owner,String x){ return !owners.get(owner).gen().contains(x); }
+  public boolean isFreshGeneric(TName owner,String x,List<String> scope){ return !owners.get(owner).gen().contains(x) && !usedTopTypes.contains(x) && !scope.contains(x); }
   public String freshGeneric(TName owner,String hint,List<String> siblings){
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);

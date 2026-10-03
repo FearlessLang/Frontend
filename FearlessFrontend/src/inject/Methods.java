@@ -80,8 +80,7 @@ public record Methods(
     var newBs= new ArrayList<B>(s.bs().size());
     for (B b: s.bs()){
       var x= b.x();
-      var keep= fresh.isFreshGeneric(child.name(),x) && !scope.contains(x);
-      if (keep){ newBs.add(b); continue; }
+      if (fresh.isFreshGeneric(child.name(),x,scope)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
       var newX= new IT.X(fresh.freshGeneric(child.name(),x,Push.of(B.xs(s.bs()),scope)),child.name().approxSpan());
