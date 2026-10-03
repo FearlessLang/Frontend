@@ -84,18 +84,65 @@ this.bar
 Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
 """));}
 @Test void anonEnclosingLiteralThisMisbinding_hintDoesNotShowFreshName(){fail("""
-[###]
+002| Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
+   |                   -------------------~~~~^^^^^
+
+While inspecting ".foo" line 2 > "#" line 2
 This call to method ".bar" cannot typecheck.
 Method ".bar" is not declared on type "Outer".
 Hint:
 The method parameter "this" here has type "Outer".
 
-The method ".bar" is defined in the object literal [###]"G".
+The method ".bar" is defined in the object literal instance of "G".
 No parameter refers to instances of this literal.
-[###]
+To declare one, use the single quote as in the example below:
+  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect
+    .area: Nat -> width * height;
+    .str: Str -> "area: "+(rect.area.str);
+    .withWidth(width': Nat): Rectangle -> this#(width', height);
+  }}
+
+Available methods on type "Outer":
+-       #:G
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.bar
 """,List.of("""
 G:{ .foo: base.Void; .bar: base.Void; }
 Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
+"""));}
+@Test void anonReceiverTypeArgBounds_doesNotShowFreshName(){fail("""
+002| Outer:{ #: G -> {'self .foo[X:imm]: base.Void -> base.Void; .bar: base.Void -> self.foo[mut Outer]; } }
+   |         ----------------------------------------------------~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^--
+
+While inspecting method call ".foo" > ".bar" line 2 > "#" line 2
+The call to ".foo" is invalid.
+Type argument 1 ("mut Outer") does not satisfy the bounds
+for type parameter "X" in "G.foo".
+Here "X" can only use capabilities "imm".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+self.foo[imm,mut Outer]
+""",List.of("""
+G:{ .foo[X:imm]: base.Void; .bar: base.Void; }
+Outer:{ #: G -> {'self .foo[X:imm]: base.Void -> base.Void; .bar: base.Void -> self.foo[mut Outer]; } }
+"""));}
+@Test void anonLiteralAsTypeArgument_doesNotShowFreshName(){fail("""
+004| Outer:{ #: G -> {'self .bar -> base.Void; .v -> Boxes#(self) } }
+   |         ----------------------------------~~~~~~^^^^^^^^^^^^--
+
+While inspecting method call "#(_)" > ".v" line 4 > "#" line 4
+Method ".v" inside the object literal instance of "G" (line 4)
+is implemented with an expression returning "Box[G]".
+Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
+
+See inferred typing context below for how type "base.Void" was introduced: (compression indicated by `-`)
+Outer:{#:G->G{'self .bar:-.Void->-.Void;.v:-.Void->Boxes#[imm,_AOute](self)}}
+""",List.of("""
+Box[E]:{ .get: E }
+Boxes:{ #[E](e: E): Box[E] -> {.get -> e} }
+G:{ .bar: base.Void; .v: base.Void; }
+Outer:{ #: G -> {'self .bar -> base.Void; .v -> Boxes#(self) } }
 """));}
 @Test void tsMiniFail(){fail("""
 001| A:{.foo123:A->this.ba}
