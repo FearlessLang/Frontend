@@ -3951,11 +3951,11 @@ Sup:{ mut .run: mut Foo }
 Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
 User:{ .f(s: mut Sup, c: mut Foo): Foo -> Two#(s, { .run -> c }) }
 """));}
-@Test void mutLiteralCapturingMutAgainstWrittenTypeArgument(){ok(List.of("""
+@Test void mutLiteralCapturingMutAgainstTypeArgumentWithoutRc(){ok(List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }
 Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
-User:{ .f(s: mut Sup, c: mut Foo): Foo -> Two#[mut Sup](s, mut Sup{ .run -> c }) }
+User:{ .f(s: mut Sup, c: mut Foo): Foo -> Two#(s, mut Sup{ .run -> c }) }
 """));}
 @Test void inferenceLimit_anonLiteralWithRcOverloadsCapturingMutAgainstTypeArgumentWithoutRc(){fail("""
 004| User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#(s, { .get -> c }) }
@@ -3974,11 +3974,11 @@ Box:{ mut .get: mut Foo; read .get: read Foo }
 Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
 User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#(s, { .get -> c }) }
 """));}
-@Test void mutLiteralWithRcOverloadsCapturingMutAgainstWrittenTypeArgument(){ok(List.of("""
+@Test void mutLiteralWithRcOverloadsCapturingMutAgainstTypeArgumentWithoutRc(){ok(List.of("""
 Foo:{}
 Box:{ mut .get: mut Foo; read .get: read Foo }
 Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
-User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#[mut Box](s, mut Box{ .get -> c }) }
+User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#(s, mut Box{ .get -> c }) }
 """));}
 @Test void inferenceLimit_anonLiteralCapturingMutAgainstTypeArgumentFromIsoArgument(){fail("""
 004| User:{ .f(s: iso Sup, c: mut Foo): Foo -> Two#(s, { .run -> c }) }
@@ -3997,11 +3997,11 @@ Sup:{ mut .run: mut Foo }
 Two:{ #[T:*](a: T, b: T): Foo -> Foo }
 User:{ .f(s: iso Sup, c: mut Foo): Foo -> Two#(s, { .run -> c }) }
 """));}
-@Test void mutLiteralCapturingMutAgainstWrittenTypeArgumentWithIsoArgument(){ok(List.of("""
+@Test void mutLiteralCapturingMutAgainstTypeArgumentFromIsoArgument(){ok(List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }
 Two:{ #[T:*](a: T, b: T): Foo -> Foo }
-User:{ .f(s: iso Sup, c: mut Foo): Foo -> Two#[mut Sup](s, mut Sup{ .run -> c }) }
+User:{ .f(s: iso Sup, c: mut Foo): Foo -> Two#(s, mut Sup{ .run -> c }) }
 """));}
 
 @Test void isoLiteralCanUseItsSelfName(){ok(List.of("""
