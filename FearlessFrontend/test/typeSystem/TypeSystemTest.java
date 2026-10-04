@@ -364,6 +364,7 @@ The type "A[Y]" is invalid.
 Type argument 1 ("Y") does not satisfy the bounds
 for type parameter "X" in "A[_]".
 Here "X" can only use capabilities "imm".
+But type argument "Y" can use capabilities "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User[Y:read]:A[Y]{}

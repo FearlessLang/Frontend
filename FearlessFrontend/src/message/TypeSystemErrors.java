@@ -68,29 +68,30 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///declared in Id[Bs]. This is a "type arguments vs generic header" error,
   ///not a method-resolution or expression-typing error.
   ///Raised when checking types anywhere they appear.
-  public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds){
+  public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     assert index >= 0;
     var allowedStr= Join.of(bounds.stream().map(Err::disp).sorted(), "", " or ", "");
+    var gotStr= Join.of(got.stream().map(Err::disp).sorted(), "", " or ", "");
     var err= switch (target){
-      case T.RCC rcc -> typeNotWellKinded("type "+err().typeRepr(true,rcc),rcc.c(), index, allowedStr);
-      case T.C c -> typeNotWellKinded("type "+err().typeRepr(c),c, index, allowedStr);
-      case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t,c, index, allowedStr);
+      case T.RCC rcc -> typeNotWellKinded("type "+err().typeRepr(true,rcc),rcc.c(), index, allowedStr, gotStr);
+      case T.C c -> typeNotWellKinded("type "+err().typeRepr(c),c, index, allowedStr, gotStr);
+      case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t,c, index, allowedStr, gotStr);
     };
     var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
     return addExpFrame(toErr,err.ex(toErr).addSpan(span));
   }
-  private Err typeNotWellKinded(String name,T.C c, int index, String allowedStr){
+  private Err typeNotWellKinded(String name,T.C c, int index, String allowedStr, String gotStr){
     var bad= c.ts().get(index);
     var bs= decs.apply(c.name()).bs();
-    return err().pTypeArgBounds(name, err().tNameADisp(c.name()), disp(bs.get(index).x()), index, err().typeRepr(true,bad), allowedStr);
+    return err().pTypeArgBounds(name, err().tNameADisp(c.name()), disp(bs.get(index).x()), index, bad, allowedStr, gotStr);
   }
-  private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr){
+  private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr, String gotStr){
     var d= decs.apply(t.name());
     var m= OneOr.of("Malformed methods",d.ms().stream().filter(mi->mi.sig().m().equals(c.name()) && mi.sig().rc() == c.rc()));
     var param= m.sig().bs().get(index);
     var decName= err().methodSig(c.rc().toStrSpace(),d, c.name()); // p.A.m(...)
     var bad= c.targs().get(index);
-    return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, err().typeRepr(true,bad), allowedStr);
+    return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, bad, allowedStr, gotStr);
   }
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals

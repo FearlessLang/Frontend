@@ -552,6 +552,12 @@ Sub[X:mut]:Sup[X]{ .h(x: mut X): mut X }
 Sup[X:imm]:{ .h(x: X): X }
 Sub[X:imm]:Sup[X]{ .h(x: read/imm X): read/imm X }
 """));}
+@Test void classGenericNarrowerBoundOverrideSpellsReadImm(){ok(List.of("""
+Baz:{}
+Sup[X:imm,mut]:{ .h(x: X): X }
+Sub[Y:imm]:Sup[Y]{ .h(x: read/imm Y): read/imm Y -> x }
+User:{ .viaSup(s: Sup[Baz]): Baz -> s.h(Baz); .use: Baz -> this.viaSup(Sub[Baz]) }
+"""));}
 @Test void overrideStrengthensResultCapability(){fail("""
 003| Sub:Sup{ mut .h: iso P }
    | ---------^^^^^^^^^^^^^--
@@ -729,6 +735,32 @@ Foo[X:imm]:{ .get: X }
 Bar[X:imm]:{ .get: read/imm X }
 A[Y:imm]:Foo[Y],Bar[Y]{}
 """));}
+@Test void classGenericAgainstNominalWithTheSameCapabilityInherited(){failWf("""
+003| A[Y:imm]:Foo[Y],Foo[Bar]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types: "Y", "Bar".
+They are different types and "Y" is a type parameter, so no method ".get" can implement all of them.
+""",List.of("""
+Bar:{}
+Foo[T:*]:{ .get: T }
+A[Y:imm]:Foo[Y],Foo[Bar]{}
+"""));}
+@Test void classGenericAgainstNominalWithADifferentCapabilityInherited(){failWf("""
+003| A[Y:imm,mut]:Foo[Y],Foo[Bar]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types: "Y", "imm Bar".
+They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+""",List.of("""
+Bar:{}
+Foo[T:*]:{ .get: T }
+A[Y:imm,mut]:Foo[Y],Foo[Bar]{}
+"""));}
 @Test void classGenericNarrowerBoundSameReadImmInherited(){ok(List.of("""
 Baz:{}
 Foo[X:imm,mut]:{ .get: X }
@@ -743,6 +775,13 @@ User:{
   .viaBar(a: A[Baz]): Baz -> this.asBar(a).get;
   .use: Baz -> this.viaBar(Make#Baz);
 }
+"""));}
+@Test void classGenericNarrowerBoundSupertypeImpliedWithRedundantRc(){ok(List.of("""
+Baz:{}
+Foo[T:*]:{ .get: T }
+Bar[X:imm,mut]:Foo[imm X]{}
+A[Y:imm]:Foo[Y],Bar[Y]{}
+User:{ .asFoo(a: A[Baz]): Foo[Baz] -> a; .get(a: A[Baz]): Baz -> a.get; .make: A[Baz] -> { .get -> Baz } }
 """));}
 @Test void classGenericSameBoundDifferingReadImmInherited(){failWf("""
 003| A[Y:imm,mut]:Foo[Y],Bar[Y]{}

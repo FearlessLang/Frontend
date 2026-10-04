@@ -25,11 +25,11 @@ public record Kinding(TypeSystemErrors tsE){
   public Function<TName,Literal> decs(){ return tsE.decs(); }
   public void check(E toErr, KindingTarget target, int index, List<B> bs, T t, EnumSet<RC> allowed){
     if (t instanceof T.RCC(var rc, var c, _)){
-      if (!allowed.contains(rc)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
+      if (!allowed.contains(rc)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed,EnumSet.of(rc)); }
       checkC(toErr,bs,c);
       return;
     }
-    if (!of(bs,t,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed); }
+    if (!of(bs,t,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed,intrinsicRCs(bs,t)); }
   }
   public boolean of(List<B> bs, T t, EnumSet<RC> allowed){
     if (!allowed.containsAll(intrinsicRCs(bs, t))){ return false; }
@@ -37,7 +37,7 @@ public record Kinding(TypeSystemErrors tsE){
     var params= decs().apply(c.name()).bs();
     return Streams.zip(c.ts(), params).allMatch((ti,p)->of(bs, ti, p.rcs()));
   }
-  static EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch (t){
+  public static EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch (t){
     case T.RCC(var rc, _, _) -> EnumSet.of(rc);
     case T.RCX(var rc, _) -> EnumSet.of(rc);
     case T.X(var x, _) -> get(bs, x).rcs();

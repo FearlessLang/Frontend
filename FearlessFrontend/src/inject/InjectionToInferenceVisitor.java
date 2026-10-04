@@ -197,7 +197,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     decs.add(l);
     return l;
   }
-  private static Optional<List<Integer>> duplicatedSupertypes(List<B> bs, List<core.T.C> cs){
+  static Optional<List<Integer>> duplicatedSupertypes(List<B> bs, List<core.T.C> cs){
     var ts= cs.stream().map(c->new core.T.RCC(RC.imm,c,TSpan.fromPos(Pos.unknown))).toList();
     return IntStream.range(0,ts.size()).boxed()
       .flatMap(j->IntStream.range(0,j).filter(i->sameType(bs,ts.get(i),ts.get(j))).mapToObj(i->List.of(i,j)))
