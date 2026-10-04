@@ -410,9 +410,6 @@ public record InjectionSteps(Methods meths){
     return !ms.stream()
       .allMatch(m->m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t->t.get().isTV()));
   }
-  private List<Optional<IT>> updateArgs(inference.M m, Gamma g){
-    return Streams.zip(m.impl().get().xs(), m.sig().ts()).map((x,oi)->x.equals("_") ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
-  }
   record TSM(List<IT> ts, inference.M m){}
   TSM nextMStarAbs(IT.RCC rcc, inference.M m){
     assert m.impl().isEmpty();
@@ -431,7 +428,7 @@ public record InjectionSteps(Methods meths){
     assert m.sig().m().get().arity() == m.impl().get().xs().size();
     Streams.zip(m.impl().get().xs(), m.sig().ts()).forEach((x,t)->g.declare(x, t.get()));
     var e= nextStar(Push.of(litBs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
-    var args= updateArgs(m, g);
+    var args= Streams.zip(m.impl().get().xs(), m.sig().ts()).map((x,oi)->x.equals("_") ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
     g.popScope();
     g.popScope();
     return nextMStarOpRun(rcc, m, e, args);

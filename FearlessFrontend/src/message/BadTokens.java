@@ -96,21 +96,8 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     }
     throw Bug.unreachable();
   }
-  private static String errStart(int quoteChar){
-    return "String literal " + Message.displayChar(quoteChar)
-    + " reaches the end of the line.\n";
-  }
-  private static FearlessException errNoInfo(Span at, int quoteChar){ return Code.UnexpectedToken.of(errStart(quoteChar)).addFrame("a string literal",at); }
-  private static FearlessException errEatAfter(Span at, int quoteChar){
-    return Code.UnexpectedToken.of(errStart(quoteChar)
-    + "A comment opening sign is present later on this line; did you mean to close the string before it?"
-      ).addFrame("a string literal", at);
-  }
-  private static FearlessException errEatBefore(Span at, int quoteChar){
-    return Code.UnexpectedToken.of(errStart(quoteChar)
-    + "A preceding block comment \"/* ... */\" on this line contains that quote.\n"
-    + "Did it swallow the intended opening quote?"
-      ).addFrame("a string literal",at);
+  private static FearlessException strErr(Span at, int quoteChar, String more){
+    return Code.UnexpectedToken.of("String literal " + Message.displayChar(quoteChar) + " reaches the end of the line.\n" + more).addFrame("a string literal",at);
   }
   private static Stream<Token> badBlockComment(Tokenizer tz, Token t){
     var file= tz.fileName();
@@ -132,23 +119,23 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     var idxComment= openSL == -1 ? openML : openML == -1 ? openSL : Math.min(openSL, openML);
     if (idxComment != -1){
       var after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
-      throw errEatAfter(after, quoteChar);
+      throw strErr(after, quoteChar, "A comment opening sign is present later on this line; did you mean to close the string before it?");
     }
     var all= tz.allTokens();
     var j= idx - 1;
     while (j > 0 && !all.get(j).is(BlockComment)){ j -= 1; }
     var prev= all.get(j);
-    if (!prev.is(BlockComment)){ throw errNoInfo(b, quoteChar); }
+    if (!prev.is(BlockComment)){ throw strErr(b, quoteChar, ""); }
     var s= prev.span(file);
-    if (s.endLine() != t.line()){ throw errNoInfo(b, quoteChar); }
+    if (s.endLine() != t.line()){ throw strErr(b, quoteChar, ""); }
     var quote= prev.content().lastIndexOf(quoteChar);
     var nl= prev.content().lastIndexOf('\n');
     var swallowedByComment= quote != -1 && quote > nl;
-    if (!swallowedByComment){ throw errNoInfo(b, quoteChar); }
+    if (!swallowedByComment){ throw strErr(b, quoteChar, ""); }
     var line= b.endLine();
     var endCol= b.startCol()+1;//invert the caret
     var startCol= s.endCol()-(prev.content().length()-quote);
     var before= new Span(file,line,startCol,line,endCol);
-    throw errEatBefore(before, quoteChar);
+    throw strErr(before, quoteChar, "A preceding block comment \"/* ... */\" on this line contains that quote.\nDid it swallow the intended opening quote?");
   }
 }
