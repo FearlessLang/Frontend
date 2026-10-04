@@ -243,12 +243,9 @@ public record WellFormednessErrors(String pkgName){
     var n= allXs.values().stream().flatMap(Set::stream)
       .filter(x->allNames.contains(x.name()) || use.contains(x.name()))
       .findFirst().get();
-    return shadowMsg(n, use.contains(n.name()));
-  }
-  private FearlessException shadowMsg(T.X n, boolean use){
     return err()
       .line("Type parameter "+disp(n.name())+" is declared in package "+disp(pkgName)+".")
-      .line("Name "+disp(n.name())+" is also used "+(use ? "in a \"use\" directive." : "as a type name."))
+      .line("Name "+disp(n.name())+" is also used "+(use.contains(n.name()) ? "in a \"use\" directive." : "as a type name."))
       .wf()
       .addFrame("a type name", n.span().inner);
   }
@@ -285,18 +282,12 @@ public record WellFormednessErrors(String pkgName){
       .addFrame("a type name", name.approxSpan().inner);
   }
   public FearlessException circularImplements(Map<TName,E.Literal> rem){
-    var name= findCycleNode(rem);
+    var color= new HashMap<TName,Integer>(rem.size());
+    var name= rem.keySet().stream().map(k->_dfs(rem, k, color)).filter(Objects::nonNull).findFirst().get();
     return err()
       .line("Circular implementation relation found involving "+err().tNameADisp(name)+".")
       .wf()
       .addFrame("type declarations", name.approxSpan().inner);
-  }
-  private TName findCycleNode(Map<TName,E.Literal> rem){
-    var color= new HashMap<TName,Integer>(rem.size());
-    return rem.keySet().stream()
-      .map(k->_dfs(rem, k, color))
-      .filter(Objects::nonNull)
-      .findFirst().get();
   }
   private TName _dfs(Map<TName,E.Literal> rem, TName u, HashMap<TName,Integer> color){
     var cu= color.get(u);

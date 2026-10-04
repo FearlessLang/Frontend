@@ -97,13 +97,10 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi),ts.v());
     var res= cts.typeOf(bs,g,c.es().get(argi),reqs);
     assert res.size() == acc.cs().size();
-    var ok= okSet(res);
+    var ok= IntStream.range(0,res.size()).filter(i->res.get(i).isEmpty()).boxed().toList();
     if (ok.isEmpty()){ throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res); }
     acc.okByArg().add(ok);
     acc.resByArg().add(res);
-  }
-  private static List<Integer> okSet(List<Reason> res){
-    return IntStream.range(0,res.size()).filter(i->res.get(i).isEmpty()).boxed().toList();
   }
   private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){
     var okRet= possible.stream()

@@ -22,8 +22,8 @@ public record ViewPointAdaptation(Kinding k){
     var rc= m.sig().rc();
     var t= w.currentT();
     if (rc == read){
-      if (isMutReadForm(t)){ return Change.keepSetToRead(l,m,w); }
-      if (isXReadImmXForm(t)){ return Change.keepSetToReadImm(l,m,w); }
+      if (t.explicitRC().stream().anyMatch(r->r == mut || r == read)){ return Change.keepSetToRead(l,m,w); }
+      if (t instanceof T.X || t instanceof T.ReadImmX){ return Change.keepSetToReadImm(l,m,w); }
     }
     assert rc == mut;//meth RC can only be imm, mut, read and imm is filtered before
     var noIsoNoHygienic= k.of(l.bs(),t,EnumSet.of(imm, mut, read));
@@ -43,7 +43,4 @@ public record ViewPointAdaptation(Kinding k){
     return w;
   }
   private boolean kindIsoImm(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm)); }
-
-  private boolean isMutReadForm(T t){ return t.explicitRC().stream().anyMatch(rc->rc == mut || rc == read); }
-  private boolean isXReadImmXForm(T t){ return t instanceof T.X || t instanceof T.ReadImmX; }
 }

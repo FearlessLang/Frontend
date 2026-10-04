@@ -69,17 +69,13 @@ public class FrontendLogicMain{
     for (var u : files){ all.put(u, Parse.from(u.fearURI(), u.loadString())); }
     return Collections.unmodifiableMap(all);
   }
-  private void checkOnlyHeadHasDirectives(WellFormednessErrors err, Ref headPkg, Map<Ref, FileFull> raw){
-    raw.entrySet().stream()
-      .filter(e->!e.getKey().equals(headPkg))
-      .filter(e->!e.getValue().noDirectives())
-      .forEach(e->{ throw err.notClean(e.getKey(), e.getValue()); });
-  }
   Package mergeToPackage(String pkgName,Map<Ref, FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
     var err= new WellFormednessErrors(pkgName);
     var headPkg= findHeadUri(err, raw.keySet());
-    checkOnlyHeadHasDirectives(err,headPkg, raw);
+    raw.entrySet().stream()
+      .filter(e->!e.getKey().equals(headPkg) && !e.getValue().noDirectives())
+      .forEach(e->{ throw err.notClean(e.getKey(), e.getValue()); });
     var head= raw.get(headPkg);
     var ds= raw.values().stream()
       .flatMap(f->f.decs().stream())

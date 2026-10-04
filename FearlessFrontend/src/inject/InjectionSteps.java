@@ -486,9 +486,8 @@ public record InjectionSteps(Methods meths){
     var targetBs= B.xs(improvedSig.bs().get());
     var h= methodHeader(rcc, improvedSig.m().get(), improvedSig.rc()).get();
     assert h.bsArity() == targetBs.size();
-    return improvedSig.withTsT(
-      h.psStr(improvedSig.span(), targetBs),
-      h.retStr(improvedSig.span(), targetBs));
+    var xs= MSigL.toXs(improvedSig.span(), targetBs);
+    return improvedSig.withTsT(h.ps0().stream().map(p->Optional.of(h.inst(p, xs))).toList(), h.inst(h.ret0(), xs));
   }
   private List<IT> dropMethBsFromClsTs(IT.RCC rcc, M.Sig improvedSig){ return dropMethBs(rcc.c().ts(), B.xs(improvedSig.bs().get())); }
   List<IT> dropMethBs(List<IT> ts, List<String> methBs){
@@ -636,7 +635,7 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
     return new MSigL(rc, xs, clsBs, clsArgs, methBs, ps0, ret0);
   }
 
-  private IT inst(IT t, List<IT> targs){//Note: this will eventually become an error at type system time.
+  IT inst(IT t, List<IT> targs){//Note: this will eventually become an error at type system time.
     targs= fixTargs(targs, bsArity());
     var ts= Push.of(clsArgs,targs);//performance? we could cache this result since targs is fixed and used over and over
     return TypeRename.of(t, xs, ts);
@@ -645,15 +644,6 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
     var k= targs.size();
     if (k > n){ return targs.subList(0, n); }
     return Push.of(targs, InjectionSteps.qMarks(n-k));
-  }
-  List<Optional<IT>> psStr(TSpan span,List<String> targetBs){
-    assert targetBs.size() == bsArity();
-    var ts= toXs(span, targetBs);
-    return ps0.stream().map(p->Optional.of(inst(p, ts))).toList();
-  }
-  IT retStr(TSpan span,List<String> targetBs){
-    assert targetBs.size() == bsArity();
-    return inst(ret0, toXs(span,targetBs));
   }
   static List<IT> toXs(TSpan span,List<String> targetBs){ return targetBs.stream().<IT>map(n->new IT.X(n,span)).toList(); }
 }

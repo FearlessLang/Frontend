@@ -40,12 +40,9 @@ final class Sources{
     return sources;
   }
   private static long unionCount(TypeSystem ts, Literal l){
-    return supers(ts,l).flatMap(li->
+    return Stream.concat(Stream.of(l), l.cs().stream().map(T.C::name).map(ts.decs()::apply)).flatMap(li->
       li.ms().stream().map(M::sig).filter(s->s.origin().equals(li.name()))
     ).count();
-  }
-  private static Stream<Literal> supers(TypeSystem ts, Literal l){
-    return Stream.concat(Stream.of(l), l.cs().stream().map(T.C::name).map(ts.decs()::apply));
   }
   static Sig findCanonical(Literal l, MName name, RC rc){
     return OneOr.of("Methods with duplicates or absent",l.ms().stream().map(M::sig).filter(s->

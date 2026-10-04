@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.SequencedMap;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -154,12 +153,6 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private boolean callable(RC litRC, RC recRc){ return recRc != mut || !litRC.isReadOrImm(); }
 
   private record Key(MName m, RC rc){}
-  //Sources is needed, not assert only: the user can simply try to override with a non subtype signature.
-  //l.ms is the resolved set, either inferred or resolved by hand in a wrong way.
-  SequencedMap<Key,List<Sig>> sources(Literal l){
-    return Sources.collect(this, l).stream()
-      .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()));
-  }
   private static final MName asOne= new MName(".as",1);
   private void baseIdOk(Literal l){
     var isBaseId= LiteralDeclarations.has(l.cs(),LiteralDeclarations.baseId);
@@ -187,7 +180,11 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var span= l.name().approxSpan();
     var selfT= new T.C(l.name(),dom(delta,span));
     l.cs().forEach(c->csOk(l,delta,c));
-    sources(l).forEach((k,group)->methodTableOk(l,k,group));
+    //Sources is needed, not assert only: the user can simply try to override with a non subtype signature.
+    //l.ms is the resolved set, either inferred or resolved by hand in a wrong way.
+    Sources.collect(this, l).stream()
+      .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()))
+      .forEach((k,group)->methodTableOk(l,k,group));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
     l.ms().forEach(m->methOk(l,delta,v().of(g1,l,m),m));//passing l and m instead of their RC for better errors
   }
@@ -236,14 +233,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var chosen= Sources.findCanonical(l,k.m(),k.rc());
     assert group.stream().allMatch(s->s.m().equals(chosen.m()) && s.rc() == chosen.rc());
     assert mostSpecificByOrigin(l,group,chosen);
-    assert absPreserved(chosen);//This assert and the one below do the same thing in working programs but may differ in buggy ones
+    assert !Sources.findCanonical(decs().apply(chosen.origin()),chosen.m(),chosen.rc()).abs() || chosen.abs();//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s->s.origin().equals(chosen.origin())).allMatch(s->chosen.abs() == s.abs());
     for (var s:group){ sigSub(l,chosen,s); }
-    assert concreteConflictsSolved(group,chosen);
-  }
-  private boolean concreteConflictsSolved(List<Sig> group,Sig chosen){
-    return group.stream().filter(s->!s.abs())
-      .allMatch(s->isOriginSub(chosen.origin(),s.origin()));
+    assert group.stream().filter(s->!s.abs()).allMatch(s->isOriginSub(chosen.origin(),s.origin()));
   }
   private boolean mostSpecificByOrigin(Literal l, List<Sig> group, Sig chosen){
     for (var s : group){
@@ -264,12 +257,6 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var ctx= Push.of(bs,a.bs());
     return a.origin().equals(b.origin()) && a.bs().equals(b.bs()) && a.abs() == b.abs()
       && eqModXRC(ctx,a.ret(),b.ret()) && Streams.zip(a.ts(),b.ts()).allMatch((x,y)->eqModXRC(ctx,x,y));
-  }
-  private boolean absPreserved(Sig chosen){
-    var o= decs().apply(chosen.origin());
-    var src= Sources.findCanonical(o,chosen.m(),chosen.rc());
-    assert !src.abs() || chosen.abs();
-    return true;
   }
   private boolean isOriginSub(TName sub, TName sup){
     return sub.equals(sup) || decs().apply(sub).cs().stream().anyMatch(parent->isOriginSub(parent.name(), sup));
