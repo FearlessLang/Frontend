@@ -100,7 +100,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     l.ms().forEach(m->checkImplemented(l,m,tt));
     return reqs(t,bs,tt.type(),rs);//reqs correctly used for two similar things
   }
-  private static boolean hasInstance(Literal l){
+  public static boolean hasInstance(Literal l){
     return l.thisName().equals("this") || LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
   }
   private static boolean uses(E e, String x){ return switch (e){

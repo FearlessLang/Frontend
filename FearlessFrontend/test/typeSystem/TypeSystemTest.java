@@ -2208,6 +2208,51 @@ A:{}
    .m:A -> B:{ }.foo
   }
 """));}
+@Test void anonReceiverSealedHeadSelfCall(){ok(List.of("""
+Outer:{ .m: base.Void -> {'self .a: base.Void -> base.Void{}; .b: base.Void -> self.a }.b }
+"""));}
+@Test void anonReceiverSealedHead(){ok(List.of("""
+Outer:{ .m: base.Void -> { .a: base.Void -> base.Void{} }.a }
+"""));}
+@Test void err_anonReceiverSealedHeadReturnsSelf(){fail("""
+001| Outer:{ .m: base.Void -> {'self .a: Outer -> self}.a }
+   |         ------------------------~~~~~~~~~~~~~^^^^^--
+
+While inspecting parameter "self" > ".a" line 1 > ".m" line 1
+Method ".a" inside the object literal "{...}" (line 1)
+is implemented with an expression returning "_AOute".
+Parameter "self" has type "_AOute" instead of a subtype of "Outer".
+
+See inferred typing context below for how type "Outer" was introduced: (compression indicated by `-`)
+Outer:{.m:-.Void->{'self .a:Outer->self}.a}
+""",List.of("""
+Outer:{ .m: base.Void -> {'self .a: Outer -> self}.a }
+"""));}
+@Test void err_anonReceiverSealedHeadUnwrittenSig(){failWf("""
+001| Outer:{ .m: base.Void -> { .a -> base.Void{} }.a }
+   |                          --^^^^^^^^^^^^^^^^^--
+
+While inspecting object literal instance of "_BOute"
+Missing return type for method ".a".
+Add an explicit return type before '->'.
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".a".
+No supertype has a method named ".a" with 0 parameters.
+""",List.of("""
+Outer:{ .m: base.Void -> { .a -> base.Void{} }.a }
+"""));}
+@Test void anonReceiverSealedHeadCapturesGeneric(){ok(List.of("""
+Outer:{ .m[X](x:X): base.Void -> { .a: X -> x; .b[Y](y:Y): Y -> y }.b(base.Void) }
+"""));}
+@Test void anonReceiverImplementableHeadGivesSignatures(){ok(List.of("""
+A:{ .get(x:A): A }
+Main:{ .m(a:A): A -> { .get(x) -> x }.get(a) }
+"""));}
+@Test void anonReceiverSealedHeadSamePkgGivesSignatures(){ok(List.of("""
+S:base.Sealed{ .get(x:S): S }
+Main:{ .m(s:S): S -> { .get(x) -> x }.get(s) }
+"""));}
 
 @Test void passInt(){ok(List.of("""
  Main:{ .m:base.Int -> +42 }
