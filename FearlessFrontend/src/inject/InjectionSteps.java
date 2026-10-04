@@ -188,19 +188,17 @@ public record InjectionSteps(Methods meths){
   }
   E next(List<B> bs, Gamma g, E e){
     try{
-      var res= _next(bs,g,e);
       //assert meet(e.t(),res.t()).equals(res.t()): e.t()+" "+res.t();// Does not hold. How can it be?
-      return res;
+      return switch (e){
+        case E.X x -> nextX(g, x);
+        case E.Literal l -> nextL(bs, g, l);
+        case E.Call c -> nextC(bs, g, c);
+        case E.ICall c -> nextIC(bs, g, c);
+        case E.Type c -> nextT(c);
+      };
     }
     catch(WellFormednessErrors.ErrToFetchContext depthErr){ throw meths.p().err().itTooDeep(e,depthErr.c); }
   }
-  E _next(List<B> bs, Gamma g, E e){ return switch (e){
-    case E.X x -> nextX(g, x);
-    case E.Literal l -> nextL(bs, g, l);
-    case E.Call c -> nextC(bs, g, c);
-    case E.ICall c -> nextIC(bs, g, c);
-    case E.Type c -> nextT(c);
-  };}
   private IT preferred(IT.RCC type){
     var d= meths._from(type.c().name());//d.cs() does contain all the transitive supertypes already.
     if (d == null){ return type; }//This can happen for {..}.foo

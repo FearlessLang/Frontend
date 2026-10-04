@@ -11,15 +11,8 @@ import utils.Range;
 
 public final class Monotonicity{
   private Monotonicity(){}
-  private enum K{eT,callRc,callTarg,litMArg,litMRet}
+  enum K{eT,callRc,callTarg,litMArg,litMRet}
 
-  // Packs (kind, a, b) into one 64-bit key.
-  //
-  // Bit layout (high -> low):
-  //   [63..48] 16 bits: kind id (K.ordinal())
-  //   [47..16] 32 bits: a (unsigned, truncated to 32 bits)
-  //   [15..00] 16 bits: b (unsigned, truncated to 16 bits)
-  //
   // Intended usage:
   // - E.t:                 kind=eT      a=0                 b=0
   // - Call.rc:             kind=callRc  a=0                 b=0
@@ -27,23 +20,9 @@ public final class Monotonicity{
   // - Literal.ms[mi].ret:  kind=litMRet a=mi                b=0
   // - Literal.ms[mi].arg[pi]:
   //                         kind=litMArg a=mi               b=pi
-  //
-  // Limits implied by packing:
-  // - kind: up to 2^16-1 distinct K values (65535) (far more than needed)
-  // - a:    up to 2^32-1 (4,294,967,295)  (effectively "unbounded" for realistic code)
-  // - b:    up to 2^16-1 (65535)
-  //
-  // If b might exceed 65535 (very unlikely: >65k params), you'd need a wider b field.
-  private static long slot(K k, int a, int b){
-    assert (k.ordinal() & ~0xFFFF) == 0;
-    assert (b & ~0xFFFF) == 0;
-    var kind= ((long)k.ordinal() & 0xFFFFL) << 48;  // 16-bit kind
-    var aa= ((long)a & 0xFFFF_FFFFL) << 16;      // 32-bit a
-    var bb= ((long)b & 0xFFFFL);                 // 16-bit b
-    return kind | aa | bb;
-  }
+  record Slot(K k, int a, int b){}
 
-  private static boolean step(GammaSignature g, long slot, Object from, Object to, String what){
+  private static boolean step(GammaSignature g, Slot slot, Object from, Object to, String what){
     var l= g.monotonicity.computeIfAbsent(slot, _->new ArrayList<>(4));
     if (l.isEmpty()){ l.add(from); }
     var last= l.getLast();
@@ -64,24 +43,14 @@ public final class Monotonicity{
   }
 
   public static boolean eT(E e, IT to){
-    return step(e.g(), slot(K.eT,0,0), e.t(), to, "E.t "+e.getClass().getSimpleName());
+    return step(e.g(), new Slot(K.eT,0,0), e.t(), to, "E.t "+e.getClass().getSimpleName());
   }
 
-  private static boolean hasLitHistory(GammaSignature g){
-    return hasAnyKind(g,K.litMArg) || hasAnyKind(g,K.litMRet);
-  }
-  private static boolean hasAnyKind(GammaSignature g, K k){
-    var kind= k.ordinal();
-    for (long key: g.monotonicity.keySet()){
-      if (kindOf(key) == kind){ return true; }
-    }
-    return false;
-  }
-  private static int kindOf(long key){ return (int)(key >>> 48); }
+  private static boolean hasAnyKind(GammaSignature g, K k){ return g.monotonicity.keySet().stream().anyMatch(s->s.k() == k); }
 
   public static boolean onCallWithMore(E.Call c, Optional<RC> nextRc, List<IT> nextTargs, IT nextT){
-    step(c.g(), slot(K.eT,0,0), c.t(), nextT, "Call.t");
-    step(c.g(), slot(K.callRc,0,0), c.rc(), nextRc, "Call.rc");
+    step(c.g(), new Slot(K.eT,0,0), c.t(), nextT, "Call.t");
+    step(c.g(), new Slot(K.callRc,0,0), c.rc(), nextRc, "Call.rc");
     var oldN= c.targs().size();
     var newN= nextTargs.size();
     // Arity repair is allowed, but only before we started tracking per-index targs.
@@ -92,7 +61,7 @@ public final class Monotonicity{
     }
     var from= oldN == newN ? c.targs() : nextTargs;
     for (int i : Range.of(nextTargs)){
-      step(c.g(), slot(K.callTarg,i,0), from.get(i), nextTargs.get(i), "Call.targs["+i+"]");
+      step(c.g(), new Slot(K.callTarg,i,0), from.get(i), nextTargs.get(i), "Call.targs["+i+"]");
     }
     return true;
   }
@@ -101,9 +70,7 @@ public final class Monotonicity{
     return ms.stream().allMatch(m->m.sig().m().isPresent());
   }
   private static void clearLitHistory(GammaSignature g){
-    var marg= K.litMArg.ordinal();
-    var mret= K.litMRet.ordinal();
-    g.monotonicity.keySet().removeIf(k->kindOf(k) == marg || kindOf(k) == mret);
+    g.monotonicity.keySet().removeIf(s->s.k() == K.litMArg || s.k() == K.litMRet);
   }
 
   public static boolean onLiteralWithMs(E.Literal l, List<M> nextMs){
@@ -115,7 +82,7 @@ public final class Monotonicity{
       return true;
     }
     // First stable snapshot: start tracking from nextMs (not from l.ms()).
-    var oldMs= hasLitHistory(l.g()) ? l.ms() : nextMs;
+    var oldMs= hasAnyKind(l.g(),K.litMArg) || hasAnyKind(l.g(),K.litMRet) ? l.ms() : nextMs;
     var oldN= oldMs.size();
     var newN= nextMs.size();
     if (oldN != newN){
@@ -139,9 +106,9 @@ public final class Monotonicity{
           +"\nlit="+l);
       }
       for (int pi : Range.of(ops)){
-        step(l.g(), slot(K.litMArg,mi,pi), ops.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] "+l);
+        step(l.g(), new Slot(K.litMArg,mi,pi), ops.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] "+l);
       }
-      step(l.g(), slot(K.litMRet,mi,0), sigRet(om), sigRet(nm), "Lit.ms["+mi+"].ret "+l);
+      step(l.g(), new Slot(K.litMRet,mi,0), sigRet(om), sigRet(nm), "Lit.ms["+mi+"].ret "+l);
     }
     return true;
   }

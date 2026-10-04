@@ -89,17 +89,13 @@ public class CompactPrinter{
   public record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k) implements PE{
     public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace());
-      accName(sb);
+      if (!priv){ sb.append(name); } else if (!cs.isEmpty()){ cs.getFirst().accString(sb); }
       if (!k.isCompactable()){ sb.append("{-}"); return; }
       if (!priv){ wrap(sb,"","",cs,",",PC::accString); }
       if (ms.isEmpty()){ sb.append("{}"); return; }
       var selfHidden= self.equals("this") || self.equals("_");
       var start= selfHidden ? "{" : "{'"+self+" ";
       wrap(sb,start,"}",ms,";",PN::accString);
-    }
-    private void accName(CompactPrinter sb){
-      if (!priv){ sb.append(name); return; }
-      if (!cs.isEmpty()){ cs.getFirst().accString(sb); }
     }
   }
   public record PTX(String x) implements PT{
@@ -150,7 +146,7 @@ public class CompactPrinter{
     return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, Compactable.of());
   }
   PE ofLit(Literal l){
-    var ms= ofMs(l);
+    var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).map(m->ofM(m.sig(), m.xs(), m.e().map(this::ofE))).toList();
     var priv= l.infName();
     var name= priv ? ""
       : t.of(l.name()) + bounds(l.bs())+":"; // name[bs]:
@@ -181,24 +177,13 @@ public class CompactPrinter{
     };
     var original= oCs.stream().map(c->c.name()).toList();
     return cs.stream()
-      .filter(c->extracted(c,original))
+      .filter(c->original.isEmpty() || original.contains(c.name()) || original.contains(c.name().withoutPkgName()))
       .map(this::ofC)
       .toList();
-  }
-  private boolean extracted(C c, List<TName> original){
-    return original.isEmpty()
-      || original.contains(c.name())
-      || original.contains(c.name().withoutPkgName());
   }
   PM ofM(Sig s, List<String> xs, Optional<PE> body){
     var bs= bounds(s.bs());
     return new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), body, Compactable.of());
-  }
-  List<PM> ofMs(Literal l){
-    return l.ms().stream()
-      .filter(m->m.sig().origin().equals(l.name()))
-      .map(m->ofM(m.sig(), m.xs(), m.e().map(this::ofE)))
-      .toList();
   }
   public String sig(Sig s){
     var pm= ofM(s, Collections.nCopies(s.m().arity(),"_"),Optional.empty());
