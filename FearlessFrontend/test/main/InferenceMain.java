@@ -16,8 +16,8 @@ import tools.SourceOracle;
 import tools.SourceOracle.Ref;
 
 public class InferenceMain extends FrontendLogicMain{
-  @Override Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
-    return new Package(name, map, decs, names, Package.onLogger());
+  @Override Package makePackage(String name, Map<String,String> map, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
+    return new Package(name, map, uses, decs, names, Package.onLogger());
   }
   public Methods ofMethods(String pkgName, List<Ref> files, SourceOracle o, OtherPackages other, boolean infer){
     Map<Ref, FileFull> rawAST= parseFiles(files);

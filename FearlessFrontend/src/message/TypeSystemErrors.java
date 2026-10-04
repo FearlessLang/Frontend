@@ -4,13 +4,16 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import fearlessFullGrammar.FileFull;
 import inject.TypeRename;
 import metaParser.NameSuggester;
 import typeSystem.TypeSystem.*;
@@ -28,8 +31,20 @@ import core.E.*;
 
 import static message.Err.*;
 
-public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pkg, Map<String,String> map){
-  public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg().name(),map,t),new StringBuilder()); }
+public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pkg, Map<String,String> map, LinkedHashSet<String> printed){
+  public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg().name(),map,printed::add,t),this::notes,new StringBuilder()); }
+  private List<String> notes(){ return printed.stream().flatMap(this::spellingNotes).distinct().toList(); }
+  private Stream<String> spellingNotes(String n){
+    var dot= TName.pkgDot(n);
+    var pkgN= n.substring(0,dot);
+    var aliases= pkg.uses().stream().map(FileFull.Use::out).filter(x->n.equals(pkg.map().get(x)));
+    var mapped= pkg.map().entrySet().stream()
+      .filter(e->e.getValue().equals(pkgN) && !e.getKey().equals(pkgN))
+      .map(e->e.getKey()+n.substring(dot)).sorted();
+    var ws= Stream.concat(aliases,mapped).toList();
+    if (ws.stream().allMatch(w->w.equals(map.get(n)))){ return Stream.of(); }
+    return ws.stream().flatMap(w->WellFormednessErrors.resolution(pkg,w).stream());
+  }
   private TName preferredForFresh(TName n){
     var res= decs.apply(n);
     var showSuper= res.infName() && !res.cs().isEmpty();

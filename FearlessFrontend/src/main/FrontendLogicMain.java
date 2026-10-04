@@ -86,10 +86,10 @@ public class FrontendLogicMain{
     var names= DeclaredNames.of(pkgName, ds, head.uses().stream().map(FileFull.Use::out).collect(Collectors.toUnmodifiableSet()));
     var map= new HashMap<String, String>(override);
     accUses(err, map, head.uses(), other, names);
-    return makePackage(pkgName, Collections.unmodifiableMap(map), ds, names);
+    return makePackage(pkgName, Collections.unmodifiableMap(map), head.uses(), ds, names);
   }
-  Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
-    return new Package(name,map,decs,names,Package.offLogger());//this method exists to change logger in mocking
+  Package makePackage(String name, Map<String,String> map, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
+    return new Package(name,map,uses,decs,names,Package.offLogger());//this method exists to change logger in mocking
   }
   //map a as b in c //inside c, a written a stands for b
   private void accUses(WellFormednessErrors err, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other, DeclaredNames names){
