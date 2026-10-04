@@ -19,14 +19,16 @@ public class CompactPrinter{
   public String limit(E e,int limit){
     assert limit >= 0;
     var root= ofE(e);
-    while (root.size() > limit){
+    while (render(root).length() > limit){
       var k= new BestPicker().pick(root);
       if (!k.isCompactable()){ break; }
       k.compact();
     }
-    assert sb.isEmpty();
+    return render(root);
+  }
+  private String render(PE root){
+    sb.setLength(0);
     root.accString(this);
-    assert sb.length() == root.size();
     return sb.toString();
   }
   StringBuilder sb= new StringBuilder();
@@ -45,12 +47,6 @@ public class CompactPrinter{
     public boolean isCompactable(){ return !compacted; }
     public void compact(){ assert !compacted; compacted= true; }
   }
-  interface ToInt<XX>{ int of(XX x); }//Can not use X since E.X is imported
-  static <XX> int sum(List<XX> xs, ToInt<XX> f){ return xs.stream().mapToInt(f::of).sum(); }
-  static int seps(int n){ return n <= 1 ? 0 : n - 1; }
-  static <XX> int wrapLen(List<XX> xs,int openClose,ToInt<XX> itemLen){
-    return xs.isEmpty() ? 0 : openClose + seps(xs.size()) + sum(xs,itemLen);
-  }
   interface Acc<XX>{ void acc(XX x,CompactPrinter sb); }
   static <XX> void wrap(CompactPrinter sb, String open, String close, List<XX> xs, String sep, Acc<XX> a){
     if (xs.isEmpty()){ return; }
@@ -61,20 +57,7 @@ public class CompactPrinter{
     }
     sb.append(close);
   }
-  static int rcPrefixLen(RC rc){ return rc == RC.imm ? 0 : rc.toString().length() + 1; }
   static boolean showTargs(RC rc, int nt){ return rc != RC.imm || nt != 0; }
-  static int targsPunctLen(RC rc, int nt){
-    if (!showTargs(rc,nt)){ return 0; }
-    if (nt == 0){ return 2 + rc.toString().length(); }//[]
-    return 3 + rc.toString().length() + seps(nt);//[,]
-  }
-  static int argsPunctLen(int na){ return na == 0 ? 0 : 2 + seps(na); } //()
-  static int callLen(String m, RC rc, int nt, int na){
-    return m.length() + targsPunctLen(rc,nt) + argsPunctLen(na);
-  }
-  static int xsWithColonsLen(List<String> xs){
-    return sum(xs, x->x.equals("_") ? 0 : x.length() + 1);
-  } // nothing if x is _ it will be printed as just the type, or "x:"
   static void accTargs(CompactPrinter sb, RC rc, List<PT> targs){
     if (!showTargs(rc,targs.size())){ return; }
     sb.append("[").append(rc);
@@ -85,23 +68,16 @@ public class CompactPrinter{
     default Compactable k(){ return Compactable.no; }
     void accString(CompactPrinter sb);
   }
-  public sealed interface PE extends PN{ int size(); }
-  public sealed interface PT extends PN{ int size(); }
+  public sealed interface PE extends PN{}
+  public sealed interface PT extends PN{}
 
   public record PX(String x) implements PE{
-    public int size(){ return x.length(); }
     public void accString(CompactPrinter sb){ sb.append(x); }
   }
   public record PTypeE(PT t) implements PE{
-    public int size(){ return t.size(); }
     public void accString(CompactPrinter sb){ t.accString(sb); }
   }
-  public record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k, int length) implements PE{
-    public int size(){
-      var s= length + sum(targs, PT::size);
-      if (k.isCompactable()){ return s + recv.size() + sum(args, PE::size); }
-      return s + 1 + args.size(); // "-" receiver + one "-" per hidden arg
-    }
+  public record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k) implements PE{
     public void accString(CompactPrinter sb){
       Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b)->b.append("-");
       acc.acc(recv,sb);
@@ -110,13 +86,7 @@ public class CompactPrinter{
       wrap(sb,"(",")",args,",",acc);
     }
   }
-  public record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k, int length) implements PE{
-    public int size(){
-      if (k.isCompactable()){ return length + wrapLen(cs,0,PC::size) + sum(ms, PM::size); }
-      if (!priv){ return rcPrefixLen(rc) + name.length() + 3; }            // name already has ":"; then "{-}"
-      var c0= cs.isEmpty() ? 0 : cs.getFirst().size();
-      return rcPrefixLen(rc) + c0 + 3;                                     // Bar{-} or {-}
-    }
+  public record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k) implements PE{
     public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace());
       accName(sb);
@@ -133,35 +103,21 @@ public class CompactPrinter{
     }
   }
   public record PTX(String x) implements PT{
-    public int size(){ return x.length(); }
     public void accString(CompactPrinter sb){ sb.append(x); }
   }
   public record PTRCC(RC rc, PC c) implements PT{
-    public int size(){ return rcPrefixLen(rc) + c.size(); }
     public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace());
       c.accString(sb);
     }
   }
   public record PC(String name, List<PT> ts, Compactable k) implements PN{
-    public int size(){
-      if (k.isCompactable()){ return name.length() + wrapLen(ts,2,PT::size); } // [ , ]
-      return name.length() + wrapLen(ts,2,_->1); // one "-" per hidden arg
-    }
     public void accString(CompactPrinter sb){
       sb.append(name);
       wrap(sb,"[","]",ts,",",k.isCompactable()?PN::accString:(_,b)->b.append("-"));
     }
   }
-  public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k, int length) implements PN{
-    public int size(){
-      if (k.isCompactable()){
-        var s= length + sum(ts, PT::size) + ret.size();
-        return body.map(b->s+b.size()).orElse(s);
-      }
-      if (body.isPresent()){ return wrapLen(xs,4,_->1) + body.get().size(); } // (-s)->e
-      return m.length() + wrapLen(xs,2,_->1); // m(-s)
-    }
+  public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{
     public void accString(CompactPrinter sb){
       if (!k.isCompactable()){ accCompactedMeth(sb); return; }
       sb.append(rc.toStrSpace());
@@ -191,8 +147,7 @@ public class CompactPrinter{
   PE ofCall(Call c){
     var targs= ofTs(c.targs());
     var args= ofEs(c.es());
-    return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, Compactable.of(),
-      callLen(c.name().s(), c.rc(), targs.size(), args.size()));
+    return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, Compactable.of());
   }
   PE ofLit(Literal l){
     var ms= ofMs(l);
@@ -203,10 +158,7 @@ public class CompactPrinter{
     var cs= ofCs(l.src(),onlyFirstC ? List.of(l.cs().getFirst()) : l.cs());
     var top= l.thisName().equals("this");
     var rc= top ? RC.imm : l.rc();
-    var s= rcPrefixLen(rc) + 2 + seps(ms.size()) + name.length(); // {} and ";"
-    var addSelf= !ms.isEmpty() && !top && !l.thisName().equals("_");
-    if (addSelf){ s += 2 + l.thisName().length(); } // "'x "
-    return new PLit(rc, priv, name, cs, l.thisName(), ms, Compactable.of(), s);
+    return new PLit(rc, priv, name, cs, l.thisName(), ms, Compactable.of());
   }
   List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
   List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
@@ -240,8 +192,7 @@ public class CompactPrinter{
   }
   PM ofM(Sig s, List<String> xs, Optional<PE> body){
     var bs= bounds(s.bs());
-    var len= rcPrefixLen(s.rc()) + s.m().s().length() + bs.length() + (xs.isEmpty() ? 1 : 3 + seps(xs.size()) + xsWithColonsLen(xs)) + (body.isPresent() ? 2 : 0);
-    return new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), body, Compactable.of(), len);
+    return new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), body, Compactable.of());
   }
   List<PM> ofMs(Literal l){
     return l.ms().stream()
@@ -252,7 +203,7 @@ public class CompactPrinter{
   public String sig(Sig s){
     var pm= ofM(s, Collections.nCopies(s.m().arity(),"_"),Optional.empty());
     assert sb.isEmpty();
-    sb.append(" ".repeat(6-rcPrefixLen(s.rc())));//line up
+    sb.append(" ".repeat(6-s.rc().toStrSpace().length()));//line up
     pm.accString(this);
     return sb.toString();
   }
