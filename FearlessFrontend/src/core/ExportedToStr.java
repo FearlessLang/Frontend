@@ -9,8 +9,8 @@ import message.TypeNamePrinter;
 import utils.Join;
 
 public record ExportedToStr(String pkgName, Map<String,String> uses){
-  private CompactPrinter printer(){ return new CompactPrinter(pkgName,uses,false); }
-  private TypeNamePrinter names(){ return new TypeNamePrinter(false,pkgName,uses); }
+  private CompactPrinter printer(){ return new CompactPrinter(pkgName,uses,_->{},false); }
+  private TypeNamePrinter names(){ return new TypeNamePrinter(false,pkgName,uses,_->{}); }
   public String expr(E e){ return printer().limit(e,220); }
   public String sig(Sig s){ return printer().sig(s).stripLeading(); }
   public String lit(Literal l){ return expr(l); }

@@ -38,7 +38,7 @@ public class FrontendLogicMain{
     TypeSystem.allOk(coreAST, pkg, other); //Phase 7: type checking
     return coreAST;
   }
-  public Map<String,Map<String,String>> parseRankFiles(List<Ref> files, Comparator<Ref> c){
+  public Map<String,Map<String,String>> parseRankFiles(List<Ref> files, Comparator<Ref> c, Collection<String> pkgs){
     var parsed= parseFiles(files);
     record Key(String target,String in){}
     record Cand(Ref uri,String target,String in,String out){
@@ -59,6 +59,7 @@ public class FrontendLogicMain{
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
       var conflicting= bests.stream().map(Cand::out).distinct().count() != 1;
       if (conflicting){ throw new WellFormednessErrors(k.target()).mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
+      if (!pkgs.contains(best.out())){ throw new WellFormednessErrors(k.target()).mapToMissingPackage(k.in(), best.out(), best.toString(), pkgs.stream().sorted().toList()); }
       res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), best.out());
     }
     return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e->Map.copyOf(e.getValue())));
@@ -80,27 +81,27 @@ public class FrontendLogicMain{
     var headPkg= findHeadUri(err, raw.keySet());
     checkOnlyHeadHasDirectives(err,headPkg, raw);
     var head= raw.get(headPkg);
-    var map= new HashMap<String, String>(override);
-    accUses(err, map, head.uses(), other);
     var ds= raw.values().stream()
       .flatMap(f->f.decs().stream())
       .sorted().toList();
-    var readOnlyMap= Collections.unmodifiableMap(map);
-    var names= DeclaredNames.of(pkgName, ds, readOnlyMap);
-    return makePackage(pkgName, readOnlyMap, ds, names);
+    var names= DeclaredNames.of(pkgName, ds, head.uses().stream().map(FileFull.Use::out).collect(Collectors.toUnmodifiableSet()));
+    var map= new HashMap<String, String>(override);
+    accUses(err, map, head.uses(), other, names);
+    return makePackage(pkgName, Collections.unmodifiableMap(map), head.uses(), ds, names);
   }
-  Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
-    return new Package(name,map,decs,names,Package.offLogger());//this method exists to change logger in mocking
+  Package makePackage(String name, Map<String,String> map, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
+    return new Package(name,map,uses,decs,names,Package.offLogger());//this method exists to change logger in mocking
   }
   //map a as b in c //inside c, a written a stands for b
-  private void accUses(WellFormednessErrors err, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other){
+  private void accUses(WellFormednessErrors err, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other, DeclaredNames names){
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
       var p= u.in().pkgName();
       p= map.getOrDefault(p, p); //thus if p is "" we get ""
       var in= p + "." + u.in().simpleName();
       map.put(u.out(), in);
-      var ok= otherDom.stream().anyMatch(e->e.s().equals(in));
+      var dom= p.equals(err.pkgName()) ? names.decNames().stream().map(n->n.withPkgName(err.pkgName())) : otherDom.stream();
+      var ok= dom.anyMatch(e->e.s().equals(in));
       if (!ok){ throw err.unknownUseHead(u.in(), p); }
     }//map a as b in c + use a.F as aF will replace aF with b.F
   }

@@ -43,7 +43,30 @@ public record WellFormednessErrors(String pkgName){
     public final IT.RCC c;
     public ErrToFetchContext(IT.RCC c){ this.c= c; }
   }
-  Err err(){ return new Err(y->y,x->x, trunk->new CompactPrinter(pkgName, Map.of(), trunk), new StringBuilder()); }
+  Err err(){ return new Err(y->y,x->x, trunk->new CompactPrinter(pkgName, Map.of(), _->{}, trunk), List::of, new StringBuilder()); }
+  private Err err(List<String> lines){
+    var e= err();
+    lines.forEach(e::line);
+    return e;
+  }
+  public static List<String> resolution(pkgmerge.Package p, String written){
+    var dot= TName.pkgDot(written);
+    if (dot != -1){
+      var in= written.substring(0,dot);
+      return mapStep(p.name(), in, p.map().getOrDefault(in,in), written.substring(dot+1));
+    }
+    return p.uses().stream()
+      .filter(u->u.out().equals(written))
+      .flatMap(u->Push.of(standsFor(written, u.in().s(), u), resolution(p, u.in().s())).stream())
+      .toList();
+  }
+  private static List<String> mapStep(String target, String in, String out, String simple){
+    if (in.equals(out)){ return List.of(); }
+    return List.of(standsFor(in+"."+simple, out+"."+simple, new FileFull.Map(in, out, target)));
+  }
+  private static String standsFor(String from, String to, Object directive){
+    return "Name "+disp(from)+" stands for "+disp(to)+" because of "+disp(directive)+".";
+  }
   private FearlessException wf(Err e, E at){ return e.wf().addFrame(err().expRepr(at), at.span().inner); }
   private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }
   private FearlessException wf(Err e, M m, E.Literal origin){ return e.wf().addSpan(m.sig().span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
@@ -100,6 +123,14 @@ public record WellFormednessErrors(String pkgName){
             +" package), so that it overrides the conflicting ones.");
     return e.wf();
   }
+  public FearlessException mapToMissingPackage(String in, String out, String directive, List<String> pkgs){
+    var e= err()
+      .line("For package "+disp(pkgName)+", the virtual package name "+disp(in)+" is mapped to "+disp(out)+",")
+      .line("but package "+disp(out)+" does not exist:")
+      .line(directive);
+    NameSuggester.suggest(out, pkgs, (_,_,best)->{ best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?")); return null; });
+    return e.line(Join.of(pkgs.stream().map(Err::disp), "Existing packages: ", ", ", ".")).wf();
+  }
   public Err badRank(Err err){
     return err
       .line("Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.")
@@ -118,12 +149,12 @@ public record WellFormednessErrors(String pkgName){
       .wf()
       .addFrame("a type name", n.approxSpan().inner);
   }
-  public FearlessException usedUndeclaredName(TName tn, String contextPkg, List<TName> scope, List<TName> all){
+  public FearlessException usedUndeclaredName(TName written, TName resolved, List<TName> scope, List<TName> all, List<String> steps){
     return new UndeclaredNameContext(
-      this::err,
-      tn, contextPkg, scope, all,
+      ()->err(steps),
+      written, pkgName, scope, all,
       all.stream().map(TName::pkgName).filter(p->!p.isEmpty()).distinct().sorted().toList(),
-      tn.pkgName(), tn.simpleName()
+      resolved.pkgName(), resolved.simpleName()
     ).build();
   }
   private record UndeclaredNameContext(
@@ -208,7 +239,7 @@ public record WellFormednessErrors(String pkgName){
   }
   public FearlessException unknownUseHead(TName tn, String pkg){
     var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;
-    return err()
+    return err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
       .line("\"use\" directive refers to undeclared name: type "+disp(tn.simpleName())
         +" is not declared in package "+disp(pkg)+".")
       .wf()

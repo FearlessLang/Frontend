@@ -5,6 +5,7 @@ import static core.RC.*;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.SequencedMap;
@@ -40,7 +41,7 @@ import pkgmerge.Package;
 public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   Kinding k(){ return v.k(); }
   public TypeSystemErrors tsE(){ return v.k().tsE(); }
-  public Err err(){ return tsE().err(); }
+  public Err err(){ var e= tsE(); return new TypeSystemErrors(e.decs(),e.pkg(),e.map(),new LinkedHashSet<>()).err(); }
   public Function<TName,Literal> decs(){ return tsE().decs(); }
   public record TRequirement(String reqName,T t){}
   public record MType(String promotion,RC rc,List<T> ts,T t){
@@ -54,7 +55,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     Function<TName,Literal> decs= n->LiteralDeclarations.from(n,map::get,other);
     var invMap= pkg.map().entrySet().stream()
       .collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey, BinaryOperator.<String>minBy(Comparator.naturalOrder())));
-    var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg,invMap))));
+    var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs,pkg,invMap,new LinkedHashSet<>()))));
     tops.forEach(l->ts.litOk(Gamma.empty(),l));
   }
   public boolean isSub(List<B> bs, T t1, T t2){
