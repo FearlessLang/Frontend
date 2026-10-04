@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -262,7 +261,7 @@ public record Methods(
     var ts= IntStream.range(0, name.arity()).mapToObj(i->Optional.of(pairWithTs(at,i,Optional.empty(),ssAligned))).toList();
     var res= agreement(at,ssAligned,e->e.ret().get(),p.err().retTypeDisagreement());
     var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
-    var conflicts= ssAligned.stream().filter(e->!e.abs() || overridesAny(e,impl)).map(e->e.origin().get()).distinct().toList();
+    var conflicts= ssAligned.stream().filter(e->!e.abs() || from(e.origin().get()).cs().stream().anyMatch(c->impl.contains(c.name()))).map(e->e.origin().get()).distinct().toList();
     if (conflicts.size() > 1){ throw p.err().ambiguousImplementationFor(conflicts,at); }
     var originName= impl.size() == 1? impl.getFirst() : origin.name();
     var rc= rcAgreement(ssAligned);
@@ -270,9 +269,6 @@ public record Methods(
     return new M(sig,Optional.empty());
   }
 
-  private boolean overridesAny(M.Sig s, List<TName> origins){
-    return from(s.origin().get()).cs().stream().anyMatch(c->origins.contains(c.name()));
-  }
   M toCompleteM(inference.M m,E.Literal origin){
     var s= m.sig();
     var ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(()->p.err().noSourceToInferFrom(origin,m)))).toList();

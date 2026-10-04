@@ -29,9 +29,6 @@ public record TName(String s, int arity, Pos pos){
     assert !pkgName().isEmpty();
     return new TName(simpleName(), arity, pos);
   }
-  public TName withOverridePkgName(String pkg){
-    return new TName(pkg+"."+simpleName(), arity, pos);
-  }
   public TName withArity(int arity){ return new TName(s, arity, pos); }
   public String toString(){ return s+"/"+arity; }
 

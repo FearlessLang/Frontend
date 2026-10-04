@@ -198,11 +198,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   static Optional<List<Integer>> duplicatedSupertypes(List<B> bs, List<core.T.C> cs){
     var ts= cs.stream().map(c->new core.T.RCC(RC.imm,c,TSpan.fromPos(Pos.unknown))).toList();
     return IntStream.range(0,ts.size()).boxed()
-      .flatMap(j->IntStream.range(0,j).filter(i->sameType(bs,ts.get(i),ts.get(j))).mapToObj(i->List.of(i,j)))
+      .flatMap(j->IntStream.range(0,j).filter(i->TypeSystem.isSameShapeSubtype(bs,ts.get(i),ts.get(j)) && TypeSystem.isSameShapeSubtype(bs,ts.get(j),ts.get(i))).mapToObj(i->List.of(i,j)))
       .findFirst();
-  }
-  private static boolean sameType(List<B> bs, core.T a, core.T b){
-    return TypeSystem.isSameShapeSubtype(bs,a,b) && TypeSystem.isSameShapeSubtype(bs,b,a);
   }
   E visitCall(fearlessFullGrammar.E.Call c){
     if (c.pat().isPresent()){ c= desugarCPat(c); }
