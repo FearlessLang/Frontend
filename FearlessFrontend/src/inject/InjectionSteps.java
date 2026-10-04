@@ -350,10 +350,9 @@ public record InjectionSteps(Methods meths){
     return Optional.of(new IT.RCC(l.rc(), new IT.C(l.name(), MSigL.toXs(span,B.xs(l.bs()))),span));
   }
   private Optional<IT.RCC> superSelf(E.Literal l){
-    if (l.cs().size() != 1){ return preciseSelf(l); }
-    var selfUnknown= l.infName() && l.rc().isEmpty();
-    if (selfUnknown){ return Optional.empty(); }
-    return Optional.of(new IT.RCC(l.rc(), l.cs().getFirst(),l.name().approxSpan()));
+    var precise= preciseSelf(l);
+    if (l.cs().size() != 1){ return precise; }
+    return precise.map(p->new IT.RCC(p.rc(), l.cs().getFirst(), p.span()));
   }
   private E nextL(List<B> bs, Gamma g, E.Literal l){
     var infHead= l.infHead();//infHead is set in l.withCsMs and l.withMsT

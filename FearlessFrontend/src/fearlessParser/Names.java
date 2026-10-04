@@ -17,10 +17,6 @@ record Names(List<String> xs, List<String> Xs, List<String> hiddenXs, String fun
     assert compatible(xs,Xs);
     return new Names(Push.of(this.xs,xs),Push.of(this.Xs,Xs),hiddenXs,funnelOwner);
   }
-  Names addXs(List<String> Xs){
-    assert compatible(List.of(),Xs);
-    return new Names(this.xs,Push.of(this.Xs,Xs),hiddenXs,funnelOwner);
-  }
   Names setFunnelledXs(String owner, List<String> FXs){
     assert Xs.containsAll(FXs);
     return new Names(xs,FXs,Push.of(hiddenXs,Xs),owner);

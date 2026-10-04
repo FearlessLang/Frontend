@@ -291,7 +291,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   private Sig parseSigAfterName(Optional<RC> rc, Optional<MName> m){
     var bs= parseIf(peek(_SquareGroup),()->parseBs(true));
     var Xs= bsXs(bs);
-    updateNames(names.addXs(Xs));//added both inside and outside since different parsers
+    updateNames(names.add(List.of(),Xs));//added both inside and outside since different parsers
     var hasPar= peek(_RoundGroup);
     var ps= hasPar
       ?parseGroupSep("","method parameters declaration",Parser::parseParameter,ORound,CRound,commaSkip)
@@ -377,7 +377,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var bs= parseIf(peek(_SquareGroup),()->this.parseBs(top));
     var Xs= bsXs(bs);
     var outer= names;
-    updateNames(top ? names.addXs(Xs) : names.setFunnelledXs(c.s(),Xs));
+    updateNames(top ? names.add(List.of(),Xs) : names.setFunnelledXs(c.s(),Xs));
     c= c.withArity(Xs.size());
     expect("type declaration (:) symbol",Colon);
     var cs= this.parseImpl();
