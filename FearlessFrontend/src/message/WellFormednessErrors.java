@@ -19,6 +19,8 @@ import core.MName;
 import core.RC;
 import core.TName;
 import core.TSpan;
+import core.WellKnownExtensions;
+import core.WellKnownExtensions.Kind;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.T;
@@ -34,6 +36,7 @@ import metaParser.Span;
 import tools.Fs;
 import tools.SourceOracle.Ref;
 import utils.Join;
+import utils.Pos;
 import utils.Push;
 
 import static message.Err.*;
@@ -486,6 +489,36 @@ public record WellFormednessErrors(String pkgName){
       .line(up(err().expRepr(owner))+" claims the extension "+disp(ext)+" more than once:")
       .line("both "+err().typeRepr(TypeRename.itcToTC(first))+" and "+err().typeRepr(TypeRename.itcToTC(second))+" claim it.")
       .line("A main can claim each extension at most once, across all its "+err().tNameADisp(LiteralDeclarations.claims.get(1))+" and "+err().tNameADisp(LiteralDeclarations.claims.get(3))+", since one extension has one icon."), owner);
+  }
+  public FearlessException claimExtUnclaimable(E.Literal owner, IT.C claim, String ext){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+err().typeRepr(TypeRename.itcToTC(claim))+".")
+      .line(disp(ext)+" is the name of several kinds of file ("+types(WellKnownExtensions.unclaimable.get(ext))+"): the desktop could hand this main any of those kinds.")
+      .line("A main can not open "+disp(ext)+" files; use an extension of its own, or implement "+err().tNameADisp(LiteralDeclarations.claims.get(0))+" to let the Fearless manager choose one."), owner);
+  }
+  public FearlessException claimGroupMissing(E.Literal owner, IT.C claim, String ext, List<String> missing){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+err().typeRepr(TypeRename.itcToTC(claim))+".")
+      .line(sameKind(ext))
+      .line("Also implement "+and(missing.stream().map(e->claimWith(claim, e)).toList())+"."), owner);
+  }
+  public FearlessException claimGroupIcons(E.Literal owner, IT.C claim, String ext, List<IT.C> differ){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+err().typeRepr(TypeRename.itcToTC(claim))+".")
+      .line(sameKind(ext))
+      .line("A kind of file has one icon: use "+err().typeRepr(claim.ts().getFirst())+" also in "+and(differ.stream().map(c->err().typeRepr(TypeRename.itcToTC(c))).toList())+"."), owner);
+  }
+  private static String sameKind(String ext){
+    var group= WellKnownExtensions.groups.get(ext);
+    var names= Stream.concat(Stream.of(ext), group.exts().stream().filter(e->!e.equals(ext))).map(Err::disp).toList();
+    return and(names)+" are names of the same kind of file ("+types(group)+"): on Linux a program opens the kind, not the name, so opening one of them opens all of them.";
+  }
+  private static String types(Kind k){ return Join.of(k.types().stream().map(Err::disp),"",", ",""); }
+  private static String and(List<String> ss){ return Join.of(ss.subList(0, ss.size()-1),"",", "," and ","")+ss.getLast(); }
+  private String claimWith(IT.C claim, String ext){
+    var lit= (IT.RCC)claim.ts().get(1);
+    var t= new IT.RCC(lit.rc(), new IT.C(new TName("base.\""+ext+"\"",0,Pos.unknown),List.of()), lit.span());
+    return err().typeRepr(TypeRename.itcToTC(new IT.C(claim.name(), List.of(claim.ts().getFirst(), t))));
   }
   public FearlessException claimIconNotImage(E.Literal owner, IT.C claim){
     return wf(err()
