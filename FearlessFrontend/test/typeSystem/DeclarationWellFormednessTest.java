@@ -1,16 +1,8 @@
 package typeSystem;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.List;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
-
-import core.WellKnownExtensions;
-import tools.Fs;
 
 public class DeclarationWellFormednessTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
@@ -622,7 +614,7 @@ A:base.Main,base.OpenWith[Icon]{}
 """));}
 @Test void claimShortcutExt(){ok(List.of("""
 Icon:base.ImageFile{}
-A:base.Main,base.Shortcut[Icon,"foo"]{}
+A:base.Main,base.Shortcut[Icon,"fapp042"]{}
 """));}
 @Test void claimShortcut(){ok(List.of("""
 Icon:base.ImageFile{}
@@ -630,7 +622,7 @@ A:base.Main,base.Shortcut[Icon]{}
 """));}
 @Test void claimAllFour(){ok(List.of("""
 Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"q"],base.OpenWith[Icon],base.Shortcut[Icon,"b"],base.Shortcut[Icon]{}
+A:base.Main,base.OpenWith[Icon,"q"],base.OpenWith[Icon],base.Shortcut[Icon,"fapp001"],base.Shortcut[Icon]{}
 """));}
 @Test void claimTwoExtensions(){ok(List.of("""
 Icon:base.ImageFile{}
@@ -651,11 +643,11 @@ C:B,base.OpenWith[Icon,"q"]{}
 @Test void claimMainInherited(){ok(List.of("""
 Icon:base.ImageFile{}
 M:base.Main{}
-A:M,base.Shortcut[Icon,"zq"]{}
+A:M,base.Shortcut[Icon,"fapp042"]{}
 """));}
 @Test void claimFearFappFfile(){ok(List.of("""
 Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"fear"],base.Shortcut[Icon,"fapp123"],base.OpenWith[Icon,`ffile123`],base.Shortcut[Icon,"abcdefghij012345"]{}
+A:base.Main,base.OpenWith[Icon,"fear"],base.Shortcut[Icon,"fapp123"],base.OpenWith[Icon,`ffile123`],base.OpenWith[Icon,"abcdefghij012345"]{}
 """));}
 @Test void claimNotMain(){failWf("""
 002| A:base.OpenWith[Icon,"q"]{}
@@ -835,17 +827,17 @@ Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,`fearless`]{}
 """));}
 @Test void claimExtTwice(){failWf("""
-003| A:base.Main,base.OpenWith[Icon,"zq"],base.Shortcut[Icon2,"zq"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+003| A:base.Main,base.Shortcut[Icon,"fapp042"],base.Shortcut[Icon2,"fapp042"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Type declaration "A" claims the extension "zq" more than once:
-both `base.OpenWith[Icon,"zq"]` and `base.Shortcut[Icon2,"zq"]` claim it.
+Type declaration "A" claims the extension "fapp042" more than once:
+both `base.Shortcut[Icon,"fapp042"]` and `base.Shortcut[Icon2,"fapp042"]` claim it.
 A main can claim each extension at most once, across all its "base.OpenWith[_,_]" and "base.Shortcut[_,_]", since one extension has one icon.
 """,List.of("""
 Icon:base.ImageFile{}
 Icon2:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"zq"],base.Shortcut[Icon2,"zq"]{}
+A:base.Main,base.Shortcut[Icon,"fapp042"],base.Shortcut[Icon2,"fapp042"]{}
 """));}
 @Test void claimExtTwiceDelimiters(){failWf("""
 002| A:base.Main,base.OpenWith[Icon,"txt"],base.OpenWith[Icon,`txt`]{}
@@ -859,61 +851,61 @@ A main can claim each extension at most once, across all its "base.OpenWith[_,_]
 Icon:base.ImageFile{}
 A:base.Main,base.OpenWith[Icon,"txt"],base.OpenWith[Icon,`txt`]{}
 """));}
+@Test void claimShortcutFapp(){ok(List.of("""
+Icon:base.ImageFile{}
+A:base.Main,base.Shortcut[Icon,"fapp042"]{}
+"""));}
+@Test void claimShortcutBar(){failWf("""
+002| A:base.Main,base.Shortcut[Icon,"bar"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.Shortcut[Icon,"bar"]`.
+"bar" is not a shortcut extension: a shortcut file only starts its main, so it must not look like a document of another program or a file of the project.
+A shortcut extension is "fapp" followed by three digits, like "fapp042"; or implement "base.Shortcut[_]" to let the Fearless manager choose one.
+""",List.of("""
+Icon:base.ImageFile{}
+A:base.Main,base.Shortcut[Icon,"bar"]{}
+"""));}
+@Test void claimShortcutFfile(){failWf("""
+002| A:base.Main,base.Shortcut[Icon,"ffile042"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.Shortcut[Icon,"ffile042"]`.
+"ffile042" is not a shortcut extension: a shortcut file only starts its main, so it must not look like a document of another program or a file of the project.
+A shortcut extension is "fapp" followed by three digits, like "fapp042"; or implement "base.Shortcut[_]" to let the Fearless manager choose one.
+""",List.of("""
+Icon:base.ImageFile{}
+A:base.Main,base.Shortcut[Icon,"ffile042"]{}
+"""));}
 @Test void claimShortcutDoc(){failWf("""
 002| A:base.Main,base.Shortcut[Icon,"doc"]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
 Type declaration "A" implements `base.Shortcut[Icon,"doc"]`.
-"doc" is a well known extension: the shortcut file would look like a file of another program, to the user and to every other program.
-Choose an extension of its own for this shortcut, or implement "base.Shortcut[_]" to let the Fearless manager choose one.
+"doc" is not a shortcut extension: a shortcut file only starts its main, so it must not look like a document of another program or a file of the project.
+A shortcut extension is "fapp" followed by three digits, like "fapp042"; or implement "base.Shortcut[_]" to let the Fearless manager choose one.
 """,List.of("""
 Icon:base.ImageFile{}
 A:base.Main,base.Shortcut[Icon,"doc"]{}
 """));}
-@Test void claimShortcutFear(){failWf("""
-002| A:base.Main,base.Shortcut[Icon,`fear`]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+@Test void claimOpenWithFapp(){failWf("""
+002| A:base.Main,base.OpenWith[Icon,"fapp042"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Type declaration "A" implements "base.Shortcut[Icon,`fear`]".
-"fear" is a well known extension: the shortcut file would look like a file of another program, to the user and to every other program.
-Choose an extension of its own for this shortcut, or implement "base.Shortcut[_]" to let the Fearless manager choose one.
+Type declaration "A" implements `base.OpenWith[Icon,"fapp042"]`.
+"fapp042" is a shortcut extension: "fapp" followed by three digits names the shortcut files of the Fearless manager.
+Use an extension of the form "ffile" followed by three digits, like "ffile042", or a system extension, like "htm"; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
 """,List.of("""
 Icon:base.ImageFile{}
-A:base.Main,base.Shortcut[Icon,`fear`]{}
+A:base.Main,base.OpenWith[Icon,"fapp042"]{}
 """));}
-@Test void claimShortcutZip(){failWf("""
-002| A:base.Main,base.Shortcut[Icon,"zip"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements `base.Shortcut[Icon,"zip"]`.
-"zip" is a well known extension: the shortcut file would look like a file of another program, to the user and to every other program.
-Choose an extension of its own for this shortcut, or implement "base.Shortcut[_]" to let the Fearless manager choose one.
-""",List.of("""
+@Test void claimOpenWithFfileAndSystem(){ok(List.of("""
 Icon:base.ImageFile{}
-A:base.Main,base.Shortcut[Icon,"zip"]{}
-"""));}
-@Test void claimShortcutExe(){failWf("""
-002| A:base.Main,base.Shortcut[Icon,"exe"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements `base.Shortcut[Icon,"exe"]`.
-"exe" is a well known extension: the shortcut file would look like a file of another program, to the user and to every other program.
-Choose an extension of its own for this shortcut, or implement "base.Shortcut[_]" to let the Fearless manager choose one.
-""",List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.Shortcut[Icon,"exe"]{}
-"""));}
-@Test void claimShortcutNotWellKnown(){ok(List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.Shortcut[Icon,"zq"]{}
-"""));}
-@Test void claimOpenWithWellKnown(){ok(List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"doc"]{}
+A:base.Main,base.OpenWith[Icon,"ffile042"],base.OpenWith[Icon,"doc"],base.OpenWith[Icon,`htm`],base.OpenWith[Icon,"notes"],base.OpenWith[Icon,"fapp0420"]{}
 """));}
 @Test void iconDeclaredInLaterLayer(){ok(List.of("""
 A:base.Main,base.OpenWith[Icon,"q"]{}
@@ -991,170 +983,4 @@ An icon is the type generated for an image file, like "IconsFoo" for "_pkg/icons
 Data:{}
 Test:{ #: C -> C: base.Main,base.OpenWith[Data,"q"]{} }
 """));}
-@Test void claimGroupComplete(){ok(List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"yml"],base.OpenWith[Icon,`yaml`]{}
-"""));}
-@Test void claimGroupTxtAsc(){ok(List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"asc"],base.OpenWith[Icon,"txt"]{}
-"""));}
-@Test void claimGroupFromSupertype(){ok(List.of("""
-Icon:base.ImageFile{}
-Y:base.Main,base.OpenWith[Icon,"yml"],base.OpenWith[Icon,"yaml"]{}
-A:Y,base.OpenWith[Icon,"yml"]{}
-"""));}
-@Test void claimGroupMissing(){failWf("""
-002| A:base.Main,base.OpenWith[Icon,"yml"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements `base.OpenWith[Icon,"yml"]`.
-"yml" and "yaml" are names of the same kind of file ("application/yaml"): on Linux a program opens the kind, not the name, so opening one of them opens all of them.
-Also implement `base.OpenWith[Icon,"yaml"]`.
-""",List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"yml"]{}
-"""));}
-@Test void claimGroupMissingSeveral(){failWf("""
-002| A:base.Main,base.OpenWith[Icon,`jpg`]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements "base.OpenWith[Icon,`jpg`]".
-"jpg", "jfif", "jpe" and "jpeg" are names of the same kind of file ("image/jpeg"): on Linux a program opens the kind, not the name, so opening one of them opens all of them.
-Also implement `base.OpenWith[Icon,"jfif"]`, `base.OpenWith[Icon,"jpe"]` and `base.OpenWith[Icon,"jpeg"]`.
-""",List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,`jpg`]{}
-"""));}
-@Test void claimGroupMissingOne(){failWf("""
-002| A:base.Main,base.OpenWith[Icon,"jpg"],base.OpenWith[Icon,"jpe"],base.OpenWith[Icon,"jfif"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements `base.OpenWith[Icon,"jpg"]`.
-"jpg", "jfif", "jpe" and "jpeg" are names of the same kind of file ("image/jpeg"): on Linux a program opens the kind, not the name, so opening one of them opens all of them.
-Also implement `base.OpenWith[Icon,"jpeg"]`.
-""",List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"jpg"],base.OpenWith[Icon,"jpe"],base.OpenWith[Icon,"jfif"]{}
-"""));}
-@Test void claimGroupIcons(){failWf("""
-003| A:base.Main,base.OpenWith[Icon,"yml"],base.OpenWith[Icon2,"yaml"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements `base.OpenWith[Icon,"yml"]`.
-"yml" and "yaml" are names of the same kind of file ("application/yaml"): on Linux a program opens the kind, not the name, so opening one of them opens all of them.
-A kind of file has one icon: use "Icon" also in `base.OpenWith[Icon2,"yaml"]`.
-""",List.of("""
-Icon:base.ImageFile{}
-Icon2:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"yml"],base.OpenWith[Icon2,"yaml"]{}
-"""));}
-@Test void claimGroupSplit(){failWf("""
-002| A:base.Main,base.OpenWith[Icon,"yml"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements `base.OpenWith[Icon,"yml"]`.
-"yml" and "yaml" are names of the same kind of file ("application/yaml"): on Linux a program opens the kind, not the name, so opening one of them opens all of them.
-Also implement `base.OpenWith[Icon,"yaml"]`.
-""",List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"yml"]{}
-B:base.Main,base.OpenWith[Icon,"yaml"]{}
-"""));}
-@Test void claimGroupSplitOther(){failWf("""
-002| B:base.Main,base.OpenWith[Icon,"yaml"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "B"
-Type declaration "B" implements `base.OpenWith[Icon,"yaml"]`.
-"yaml" and "yml" are names of the same kind of file ("application/yaml"): on Linux a program opens the kind, not the name, so opening one of them opens all of them.
-Also implement `base.OpenWith[Icon,"yml"]`.
-""",List.of("""
-Icon:base.ImageFile{}
-B:base.Main,base.OpenWith[Icon,"yaml"]{}
-A:base.Main,base.OpenWith[Icon,"yml"],base.OpenWith[Icon,"yaml"]{}
-"""));}
-@Test void claimGroupUnclaimable(){failWf("""
-002| A:base.Main,base.OpenWith[Icon,"ts"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements `base.OpenWith[Icon,"ts"]`.
-"ts" is the name of several kinds of file ("text/vnd.trolltech.linguist", "video/mp2t"): the desktop could hand this main any of those kinds.
-A main can not open "ts" files; use an extension of its own, or implement "base.OpenWith[_]" to let the Fearless manager choose one.
-""",List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"ts"]{}
-"""));}
-@Test void claimGroupFamilyC(){failWf("""
-002| A:base.Main,base.OpenWith[Icon,"c"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements `base.OpenWith[Icon,"c"]`.
-"c", "cc", "cpp" and "cxx" are names of the same kind of file ("text/x-c++src", "text/x-csrc"): on Linux a program opens the kind, not the name, so opening one of them opens all of them.
-Also implement `base.OpenWith[Icon,"cc"]`, `base.OpenWith[Icon,"cpp"]` and `base.OpenWith[Icon,"cxx"]`.
-""",List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"c"]{}
-"""));}
-@Test void claimGroupFamilyCComplete(){ok(List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"cxx"],base.OpenWith[Icon,"c"],base.OpenWith[Icon,"cpp"],base.OpenWith[Icon,"cc"]{}
-"""));}
-@Test void claimGroupFamilyOgg(){failWf("""
-002| A:base.Main,base.OpenWith[Icon,"opus"],base.OpenWith[Icon,"ogg"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements `base.OpenWith[Icon,"opus"]`.
-"opus", "oga", "ogg", "ogv" and "spx" are names of the same kind of file ("audio/ogg", "audio/x-flac+ogg", "audio/x-opus+ogg", "audio/x-speex", "audio/x-speex+ogg", "audio/x-vorbis+ogg", "video/ogg", "video/x-theora+ogg"): on Linux a program opens the kind, not the name, so opening one of them opens all of them.
-Also implement `base.OpenWith[Icon,"oga"]`, `base.OpenWith[Icon,"ogv"]` and `base.OpenWith[Icon,"spx"]`.
-""",List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.OpenWith[Icon,"opus"],base.OpenWith[Icon,"ogg"]{}
-"""));}
-@Test void claimShortcutFfile(){failWf("""
-002| A:base.Main,base.Shortcut[Icon,"ffile042"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements `base.Shortcut[Icon,"ffile042"]`.
-"ffile042" is a well known extension: the shortcut file would look like a file of another program, to the user and to every other program.
-Choose an extension of its own for this shortcut, or implement "base.Shortcut[_]" to let the Fearless manager choose one.
-""",List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.Shortcut[Icon,"ffile042"]{}
-"""));}
-@Test void claimShortcutInfo(){failWf("""
-002| A:base.Main,base.Shortcut[Icon,"info"]{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "A"
-Type declaration "A" implements `base.Shortcut[Icon,"info"]`.
-"info" is a well known extension: the shortcut file would look like a file of another program, to the user and to every other program.
-Choose an extension of its own for this shortcut, or implement "base.Shortcut[_]" to let the Fearless manager choose one.
-""",List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.Shortcut[Icon,"info"]{}
-"""));}
-@Test void claimShortcutFfileLike(){ok(List.of("""
-Icon:base.ImageFile{}
-A:base.Main,base.Shortcut[Icon,"ffile0420"],base.Shortcut[Icon,"ffilex42"]{}
-"""));}
-@Test void extensionTablesConsistent(){
-  var groups= WellKnownExtensions.groups;
-  var unclaimable= WellKnownExtensions.unclaimable;
-  groups.forEach((e,k)->assertTrue(k.exts().contains(e) && k.exts().size() > 1 && !k.types().isEmpty(), e));
-  unclaimable.forEach((e,k)->assertEquals(List.of(e), k.exts(), e));
-  unclaimable.values().forEach(k->assertTrue(k.types().size() > 1, k.toString()));
-  Stream.concat(groups.keySet().stream(), unclaimable.keySet().stream()).forEach(e->assertTrue(WellKnownExtensions.isWellKnown(e) && Fs.isExtSeg(e), e));
-  unclaimable.keySet().forEach(e->assertFalse(groups.containsKey(e), e));
-  assertEquals(groups.size(), groups.values().stream().distinct().mapToInt(k->k.exts().size()).sum());
-}
 }

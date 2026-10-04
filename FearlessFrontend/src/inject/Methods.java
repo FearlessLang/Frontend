@@ -20,7 +20,6 @@ import core.OtherPackages;
 import core.RC;
 import core.T;
 import core.TName;
-import core.WellKnownExtensions;
 import fearlessParser.Parser;
 import inference.E;
 import inference.IT;
@@ -133,7 +132,7 @@ public record Methods(
     if (claims.isEmpty()){ return; }
     var isMain= allCs.stream().anyMatch(c->c.name().equals(LiteralDeclarations.main));
     if (!isMain){ throw p.err().claimNotMain(d, claims.getFirst().name()); }
-    var exts= new LinkedHashMap<String,IT.C>();
+    var exts= new HashMap<String,IT.C>();
     for (var c: claims){
       var icon= c.ts().getFirst();
       var concrete= icon instanceof IT.RCC i && i.c().ts().isEmpty();
@@ -145,29 +144,19 @@ public record Methods(
       var ext= lit.substring(1, lit.length()-1);
       var valid= Fs.isExtSeg(ext) && !ext.equals("fearless");
       if (!valid){ throw p.err().claimExtInvalid(d, c, ext); }
-      var wellKnown= c.name().equals(LiteralDeclarations.claims.get(3)) && WellKnownExtensions.isWellKnown(ext);
-      if (wellKnown){ throw p.err().claimExtWellKnown(d, c, ext); }
+      var fapp= ext.matches("fapp[0-9]{3}");
+      var shortcut= c.name().equals(LiteralDeclarations.claims.get(3));
+      if (shortcut && !fapp){ throw p.err().claimShortcutNotFapp(d, c, ext); }
+      if (!shortcut && fapp){ throw p.err().claimOpenWithFapp(d, c, ext); }
       var prev= exts.putIfAbsent(ext, c);
       if (prev != null){ throw p.err().claimExtTwice(d, prev, c, ext); }
     }
-    exts.forEach((ext,c)->checkGroup(d, c, ext, exts));
   }
-  private void checkGroup(E.Literal d, IT.C c, String ext, Map<String,IT.C> exts){
-    if (!c.name().equals(LiteralDeclarations.claims.get(1))){ return; }
-    if (WellKnownExtensions.unclaimable.containsKey(ext)){ throw p.err().claimExtUnclaimable(d, c, ext); }
-    var group= WellKnownExtensions.groups.get(ext);
-    if (group == null){ return; }
-    var missing= group.exts().stream().filter(e->!exts.containsKey(e)).toList();
-    if (!missing.isEmpty()){ throw p.err().claimGroupMissing(d, c, ext, missing); }
-    var differ= group.exts().stream().map(exts::get).filter(o->!icon(o).equals(icon(c))).toList();
-    if (!differ.isEmpty()){ throw p.err().claimGroupIcons(d, c, ext, differ); }
-  }
-  private static TName icon(IT.C claim){ return ((IT.RCC)claim.ts().getFirst()).c().name(); }
   private void checkIcons(E.Literal d){
     d.cs().stream().filter(c->LiteralDeclarations.claims.contains(c.name())).forEach(c->checkIcon(d,c));
   }
   private void checkIcon(E.Literal d, IT.C claim){
-    var icon= from(icon(claim));
+    var icon= from(((IT.RCC)claim.ts().getFirst()).c().name());
     if (!LiteralDeclarations.has(icon.cs(), LiteralDeclarations.imageFile)){ throw p.err().claimIconNotImage(d, claim); }
   }
   private void checkBaseId(E.Literal d){
