@@ -33,7 +33,6 @@ import utils.Streams;
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
     LinkedHashMap<TName, core.E.Literal> cache){
-  boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c->c.name().pkgName().equals(p.name()) && rem.containsKey(c.name())); }
   public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
@@ -42,7 +41,7 @@ public record Methods(
     for (E.Literal d : decs){ rem.put(d.name(), d); }
     var out= new ArrayList<List<E.Literal>>();
     while (!rem.isEmpty()){
-      var layer= rem.values().stream().filter(d->free(d,rem)).toList();
+      var layer= rem.values().stream().filter(d->d.cs().stream().noneMatch(c->c.name().pkgName().equals(p.name()) && rem.containsKey(c.name()))).toList();
       if (layer.isEmpty()){ throw p.err().circularImplements(rem); }
       out.add(layer);
       for (E.Literal d : layer){ rem.remove(d.name()); }
@@ -147,12 +146,6 @@ public record Methods(
     var ms= new ToCore(List.of()).msSyntetic(d.ms());
     cache.put(d.name(), new core.E.Literal(d.rc().orElse(RC.imm),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName()));
   }
-  inference.M withName(MName name,inference.M m){
-    assert m.impl().isPresent();
-    assert m.sig().m().isEmpty();
-    var s= m.sig();
-    return new inference.M(new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span()),m.impl());
-  }
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     assert ss.stream().allMatch(M.Sig::isFull);
     var res= new ArrayList<M>(ms.size());
@@ -171,12 +164,14 @@ public record Methods(
     return changed ? List.copyOf(res) : ms;
   }
   private M nameFromSigs(M m, ArrayList<M.Sig> ss, E.Literal origin){
-    var arity= m.sig().ts().size();
+    var sig= m.sig();
+    assert m.impl().isPresent() && sig.m().isEmpty();
+    var arity= sig.ts().size();
     for (var abs : List.of(true,false)){
       var match= new ArrayList<M.Sig>();
       ss.removeIf(s->s.m().get().arity() == arity && (s.abs() || !abs) && match.add(s));
       var count= namesCount(match);
-      if (count == 1){ return withName(match.getFirst().m().get(),m); }
+      if (count == 1){ return m.withSig(new M.Sig(sig.rc(),match.getFirst().m(),sig.bs(),sig.ts(),sig.ret(),sig.origin(),sig.abs(),sig.span())); }
       if (count > 1){ throw p.err().ambiguousImpl(origin,abs,m,match); }
     }
     throw p.err().noSourceToInferFrom(origin,m);

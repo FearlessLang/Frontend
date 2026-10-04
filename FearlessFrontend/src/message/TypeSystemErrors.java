@@ -352,7 +352,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     }
     var rcs= sameArity.stream().map(Sig::rc).sorted().toList();
     var availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
-    var explicit= explicitRc(c);
+    var explicit= !(c.src().inner instanceof fearlessFullGrammar.E.Call fc) || fc.targs().flatMap(fearlessFullGrammar.E.CallSquare::rc).isPresent();
     var e2= err()
       .pCallCantBeSatisfied(c)
       .line(err().methodSig(c.name())+" exists on type "+err().bestNameNoRc(d)+", but not with the requested capability.")
@@ -362,10 +362,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("Available capabilities for this method: "+availRc);
     if (!explicit){ e2.line("Hint: state the capability after the method name, as in "+disp(c.name().s()+"["+rcs.getFirst()+"]")+"."); }
     return withCallSpans(e2.ex(c), c);
-  }
-  private static boolean explicitRc(Call c){
-    if (!(c.src().inner instanceof fearlessFullGrammar.E.Call fc)){ return true; }
-    return fc.targs().flatMap(fearlessFullGrammar.E.CallSquare::rc).isPresent();
   }
   private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
     var receiverIsThis= c.e() instanceof X(var xName, _) && xName.equals("this");
@@ -453,7 +449,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     assert reqs.size() == res.size();
     assert res.stream().noneMatch(Reason::isEmpty);
     var reqCanon= reqCanon(reqs);
-    if (isWrongUnderlyingType(ts,bs,reqCanon,res)){ return wrongUnderlyingTypeErr(ts,d,c,argi,reqs,res); }
+    if (res.stream().map(r->canon(r.best)).noneMatch(r->ts.isSub(bs,r,reqCanon))){ return wrongUnderlyingTypeErr(ts,d,c,argi,reqs,res); }
     var gotHdr= headerBest(res);
     var any= reqs.stream().map(TRequirement::t).map(t->err().typeRepr(false,t)).distinct().toList();
     var r= pickReason(reqs,res);
@@ -495,9 +491,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var c0= canon(reqs.getFirst().t());
     assert reqs.stream().allMatch(r->canon(r.t()).equals(c0));
     return c0;
-  }
-  private static boolean isWrongUnderlyingType(TypeSystem ts, List<B> bs, T reqCanon, List<Reason> res){
-    return res.stream().map(r->canon(r.best)).noneMatch(r->ts.isSub(bs, r, reqCanon));
   }
   private static T canon(T t){ return t.withRC(core.RC.imm); }
 
