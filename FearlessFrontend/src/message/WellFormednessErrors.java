@@ -31,6 +31,7 @@ import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
 import tools.SourceOracle.Ref;
+import typeSystem.Kinding;
 import utils.Join;
 import utils.Push;
 
@@ -306,30 +307,25 @@ public record WellFormednessErrors(String pkgName){
   }
   public String retTypeDisagreement(){ return "Return type disagreement"; }
   public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
-  public FearlessException noAgreement(Agreement at, List<?> res, String msg){
+  public FearlessException noAgreement(Agreement at, List<B> bs, List<IT> res, String msg){
     var rc= at.rc().map(r->r.toStrSpace(false)).orElse("");
-    var rcDiffers= outerRCs(res) > 1;
+    var rcDiffers= res.stream().map(t->Kinding.intrinsicRCs(bs,inject.TypeRename.itToT(t))).distinct().count() > 1;
+    var x= res.stream().filter(t->!(t instanceof IT.RCC)).findFirst();
     var e= err()
       .line(msg+" for method "+err().methodSig(rc,at.mName())+" with "+at.mName().arity()+" parameters.")
       .line(Join.of(
-        res.stream().map(o->option(rcDiffers,o)),//Can be RC or inference.IT.RCC
+        res.stream().map(o->option(rcDiffers,o)),
         "Different options are present in the implemented types: ", ", ", "."
-      ))
-      .line(rcDiffers
-        ? "They differ in reference capability, and an overriding method must keep it, so no method "+err().methodSig(at.mName())+" can implement all of them."
-        : up(err().expRepr(at.lit()))+" must declare a method "+err().methodSig(at.mName())+" explicitly choosing the desired option.");
-    return wf(e, at);
+      ));
+    var m= err().methodSig(at.mName());
+    if (rcDiffers){ return wf(e.line("They differ in reference capability, and an overriding method must keep it, so no method "+m+" can implement all of them."), at); }
+    if (x.isPresent()){ return wf(e.line("They are different types and "+option(false,x.get())+" is a type parameter, so no method "+m+" can implement all of them."), at); }
+    return wf(e.line(up(err().expRepr(at.lit()))+" must declare a method "+m+" explicitly choosing the desired option."), at);
   }
-  private String option(boolean showImm, Object o){
-    if (!(o instanceof inference.IT.RCC rcc)){ return disp(o); }
+  private String option(boolean showImm, IT o){
+    if (!(o instanceof IT.RCC rcc)){ return disp(o); }
     return showImm ? err().typeRepr(false,inject.TypeRename.itToT(rcc)) : err().typeRepr(rcc);
   }
-  private static long outerRCs(List<?> res){ return res.stream().map(o->switch (o){
-    case inference.IT.RCC rcc -> rcc.rc().map(RC::name).orElse("imm");
-    case inference.IT.RCX rcx -> rcx.rc().name();
-    case inference.IT.ReadImmX _ -> "read/imm";
-    default -> "";
-  }).distinct().count(); }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
       .line("The number of type parameters disagrees for method "+err().methodSig(at.mName())

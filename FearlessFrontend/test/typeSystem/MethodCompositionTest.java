@@ -735,6 +735,32 @@ Foo[X:imm]:{ .get: X }
 Bar[X:imm]:{ .get: read/imm X }
 A[Y:imm]:Foo[Y],Bar[Y]{}
 """));}
+@Test void classGenericAgainstNominalWithTheSameCapabilityInherited(){failWf("""
+003| A[Y:imm]:Foo[Y],Foo[Bar]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types: "Y", "Bar".
+They are different types and "Y" is a type parameter, so no method ".get" can implement all of them.
+""",List.of("""
+Bar:{}
+Foo[T:*]:{ .get: T }
+A[Y:imm]:Foo[Y],Foo[Bar]{}
+"""));}
+@Test void classGenericAgainstNominalWithADifferentCapabilityInherited(){failWf("""
+003| A[Y:imm,mut]:Foo[Y],Foo[Bar]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types: "Y", "imm Bar".
+They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+""",List.of("""
+Bar:{}
+Foo[T:*]:{ .get: T }
+A[Y:imm,mut]:Foo[Y],Foo[Bar]{}
+"""));}
 @Test void classGenericNarrowerBoundSameReadImmInherited(){ok(List.of("""
 Baz:{}
 Foo[X:imm,mut]:{ .get: X }
