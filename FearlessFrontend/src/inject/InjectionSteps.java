@@ -299,8 +299,7 @@ public record InjectionSteps(Methods meths){
     var m= om.get();
     var es= nextStar(bs, g, requiredOnArgs(bs, c, m));
     assert es == c.es() || !es.equals(c.es());
-    var rc= c.rc().orElse(m.rc());
-    assert m.arity() == es.size();
+    assert m.ps0().size() == es.size();
     var all= newAllTs(c, es, m);
     assert all.size() == m.nCls()+m.bsArity();
     var clsTs= normToBounds(bs,m.clsBs(),all.subList(0, m.nCls()));
@@ -311,7 +310,7 @@ public record InjectionSteps(Methods meths){
     var es1= meetWithTargs(c.es(),es, m, targs);
     var noChange= e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
     if (noChange){ return c; }
-    return c.withMore(e, rc, targs, es1, it);
+    return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
   private List<E> requiredOnArgs(List<B> bs, E.Call c, MSigL m){
     var all= decidedThen(c, m, c.es(), Stream.of(refine(m.xs(), m.ret0(), c.t())));
@@ -618,7 +617,6 @@ public record InjectionSteps(Methods meths){
 }
 
 record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> methBs, List<IT> ps0, IT ret0){
-  int arity(){ return ps0.size(); }
   int nCls(){ return clsArgs.size(); }
   int bsArity(){ return methBs.size(); }
 
