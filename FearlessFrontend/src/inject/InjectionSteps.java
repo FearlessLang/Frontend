@@ -21,6 +21,7 @@ import inference.IT;
 import inference.IT.RCC;
 import inference.M;
 import message.WellFormednessErrors;
+import typeSystem.TypeSystem;
 import utils.OneOr;
 import utils.Push;
 import utils.Range;
@@ -83,7 +84,7 @@ public record InjectionSteps(Methods meths){
     if (e instanceof E.Type tt){ return nextT(tt); }
     var typedLit= e instanceof E.Literal l && l.t().isTV();
     if (typedLit){ return e; }
-    e= prototypeAscribeRootReceiver(e, t);
+    e= prototypeAscribeRootReceiver(e, t, false);
     return e.withT(meet(e.t(), t));
   }
   private long badnessAs(RCC src, TName targetHead){
@@ -362,7 +363,7 @@ public record InjectionSteps(Methods meths){
     if (!infHead){
       l= l.infName() ? selfSuper.map(l::withT).orElse(l) : l.withT(selfPrecise.get());
       if (!(l.t() instanceof IT.RCC(_, var c, _))){ return l; }//!infHead after passing this test means right now we can expand methods
-      l= l.infName() ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l,true);
+      l= l.infName() && !c.name().equals(l.name()) ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l,true);
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
     var changedMs= false;
@@ -410,6 +411,7 @@ public record InjectionSteps(Methods meths){
     meths.checkMagicSupertypes(l, cs);
     assert l.infHead();
     l= new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, t, l.src(),l.infName(), l.infHead(), l.g());
+    if (selfInferred){ l= l.withT(preciseSelf(l).get()); }
     var resD= meths.injectDeclaration(l);
     assert !meths.cache().containsKey(name);
     meths.cache().put(resD.name(), resD);
@@ -588,16 +590,27 @@ public record InjectionSteps(Methods meths){
     if (headKnown){ return false; }
     return (l.t() instanceof IT.U /*&& l.ms().stream().anyMatch(m-> !m.sig().isFull())*/);
   }
-  private E prototypeAscribeRootReceiver(E arg, IT expected){
+  private E prototypeAscribeRootReceiver(E arg, IT expected, boolean receiver){
     if (!(expected instanceof IT.RCC exp)){ return arg; }
     return switch (arg){
-      case E.Call c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected));
-      case E.ICall c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected));
-      case E.Literal l -> needsPrototypeAscription(l)
-        ? l.withT(prototypeHead(exp,l.span()))
-        : arg;
+      case E.Call c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected, true));
+      case E.ICall c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected, true));
+      case E.Literal l when !needsPrototypeAscription(l) -> arg;
+      case E.Literal l when !receiver || implementable(exp.c().name()) -> l.withT(prototypeHead(exp,l.span()));
+      case E.Literal l -> itself(l);
       default -> arg;
     };
+  }
+  private boolean implementable(TName head){
+    var d= meths._from(head);
+    if (d == null){ return false; }
+    var foreign= !head.pkgName().equals(meths.p().name());
+    var foreignForbidden= foreign && (!head.isPublic() || LiteralDeclarations.has(d.cs(),LiteralDeclarations.sealed));
+    return !foreignForbidden && TypeSystem.hasInstance(d);
+  }
+  private E.Literal itself(E.Literal l){
+    var res= new E.Literal(Optional.of(RC.imm), l.name(), l.bs(), l.cs(), l.thisName(), l.ms(), l.src(), true);
+    return res.withT(preciseSelf(res).get());
   }
   private IT.RCC prototypeHead(IT.RCC expected, TSpan span){
     return new IT.RCC(expected.rc(), new IT.C(expected.c().name(), qMarks(expected.c().ts().size())), span);
