@@ -14,10 +14,8 @@ import core.Src;
 import core.TName;
 import core.TSpan;
 import utils.Join;
-import utils.Pos;
 
 public sealed interface E{
-  default Pos pos(){ return src().inner.pos(); }
   default TSpan span(){ return src().inner.span(); }
   Src src();
   IT t();
@@ -61,13 +59,6 @@ public sealed interface E{
     public String toString(){
       var res= rc.map(RC::toStrSpace).orElse("")+name.s()+Join.of(bs,"[",",","]","")+(rc.isEmpty() ? ":$?" : Join.of(cs,":",", ","",":"));
       return res+Join.of(ms,"{'"+thisName,"","}","")+":"+t;
-    }
-    public Literal withMs(List<M> ms){
-      assert t instanceof IT.RCC;
-      assert Monotonicity.onLiteralWithMs(this, ms);
-      var noChange= infHead && ms == this.ms;
-      if (noChange){ return this; }
-      return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
     }
     public Literal withMsT(List<M> ms, IT t){
       assert t instanceof IT.RCC;

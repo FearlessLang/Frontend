@@ -71,7 +71,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch (e){
     case X x -> checkX(bs,g,x,rs);
-    case Type t -> checkType(bs,g,t,rs);
+    case Type t -> checkType(bs,t,rs);
     case Literal l -> checkLiteral(bs,g,l,rs);
     case Call c -> new CallTyping(this,bs,g,c,rs).run();
   };}
@@ -90,7 +90,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var declaredOk= isSub(bs,declared,r.t());
     return Reason.parameterDoesNotHaveRequiredTypeHere(this,x, r, declared, w, declaredOk);
   }
-  private List<Reason> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
+  private List<Reason> checkType(List<B> bs, Type t, List<TRequirement> rs){
     k().check(t,bs,t.type());
     var ll= decs().apply(t.type().c().name());
     if (!hasInstance(ll)){ throw tsE().typeDeclaredInMethod(t, ll); }
@@ -207,7 +207,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private void bodyOk(Literal forErr,List<B> delta, Gamma g, M m){
     var ts= m.sig().ts();
     var xs= m.xs();
-    g= g.addAll(ts, xs);//Note: 'this' already in g1
+    g= Streams.zip(xs, ts).fold(Gamma::add, g);//Note: 'this' already in g1
     var t= new TypeSystem(scope.pushM(forErr, m),v);
     t.check(delta,g,m.e().get(),m.sig().ret());
     Streams.zip(xs, ts)

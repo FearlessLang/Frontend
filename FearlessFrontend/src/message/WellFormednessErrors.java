@@ -197,9 +197,9 @@ public record WellFormednessErrors(String pkgName){
     }
     private FearlessException undeclaredInPkg(){
       var inPkg= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
-      var simpleInPkg= simpleNames(inPkg);
+      var simpleInPkg= userMap(TName::simpleName, inPkg.stream());
       var e= err.get()
-        .line("Type "+disp(typedSimple)+" is not declared in package "+relevantPkgMsg()+".");
+        .line("Type "+disp(typedSimple)+" is not declared in package "+(typedPkg.isEmpty() ? disp(contextPkg)+" and is not made visible via \"use\"" : disp(typedPkg))+".");
       var suggest= NameSuggester.suggest(typedSimple, simpleInPkg);
       if (!suggest.isEmpty()){ e.line(suggest); }
       if (!typedPkg.isEmpty()){ addOtherPkgNotePkgExplicit(e); return make(e); }
@@ -207,12 +207,7 @@ public record WellFormednessErrors(String pkgName){
       if (noBestLocal){ addOtherPkgNotePkgImplicit(e); }
       return make(e);
     }
-    private String relevantPkgMsg(){
-      if (!typedPkg.isEmpty()){ return disp(typedPkg); }
-      return disp(contextPkg)+" and is not made visible via \"use\"";
-    }
     private List<TName> typesInPkg(String pkg){ return all.stream().filter(t->t.pkgName().equals(pkg)).toList(); }
-    private List<String> simpleNames(List<TName> xs){ return userMap(TName::simpleName, xs.stream()); }
     private void addOtherPkgNotePkgExplicit(Err e){
       var sameSimpleOther= userMap(TName::s, all.stream()
         .filter(t->!t.pkgName().equals(typedPkg))
@@ -233,9 +228,8 @@ public record WellFormednessErrors(String pkgName){
        .line(addUse);
     }
     private FearlessException make(Err e){
-      return e.wf().addFrame("a type name", at());
+      return e.wf().addFrame("a type name", TSpan.fromPos(tn.pos(), tn.s().length()).inner);
     }
-    private Span at(){ return TSpan.fromPos(tn.pos(), tn.s().length()).inner; }
   }
   public FearlessException unknownUseHead(TName tn, String pkg){
     var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;

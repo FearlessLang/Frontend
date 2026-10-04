@@ -17,7 +17,6 @@ import utils.Join;
 
 public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }
-  CompactPrinter cp(boolean trunk){ return _cp.apply(trunk); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
   public static String genArity(int n){ return Join.of(Collections.nCopies(n,"_"),"[",",", "]","");}
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
@@ -74,13 +73,12 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   static String up(String s){ return s.substring(0, 1).toUpperCase() + s.substring(1); }
   String expRepr(E toErr){return switch (toErr){
     case Call c->"method call "+methodSig(c.name());
-    case X x->"parameter " +displayX(x);
+    case X x->"parameter " +disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());
     case Literal l->l.thisName().equals("this")
       ? "type declaration " +tNameADisp(l.name())
       : "object literal " +bestNamePkg0(showInstanceOf(l), bestLitName(false,true,l));
     case Type(var t, _)-> "object literal instance of " + typeRepr(true,t);
     };}
-  String displayX(X x){ return disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name()); }
   String expReprDirect(boolean skipImm, E toErr){return switch (toErr){
     case Call c->methodSig(c.name());
     case X(var name, _)->disp(name);
@@ -124,7 +122,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return line("Invalid method signature overriding for "+methodSig(pre,l,m)+".");
   }
 
-  Err compactPrinterLine(E e){ return line(cp(true).limit(e,120)); }
   Err line(String s){
     assert !s.isEmpty();
     assert sb.lastIndexOf("\n") == sb.length()-1;
@@ -153,7 +150,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err pCallCantBeSatisfied(Call c){
     return line("This call to method "+methodSig(c.name())+" cannot typecheck.");
   }
-  Err pPromotionFailuresHdr(){ return blank().line("Promotion failures:"); }
   Err pReceiverRequiredByPromotion(List<MType> promos){
     var byRc= promos.stream().collect(Collectors.groupingBy(MType::rc,LinkedHashMap::new,Collectors.mapping(MType::promotion,Collectors.toList())));
     if (byRc.size() <= 1){ return this; }
@@ -185,7 +181,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     notes.get().forEach(this::line);
     return Code.TypeError.of(blank()
       .line(footerHdr)
-      .compactPrinterLine(footerE)
+      .line(_cp.apply(true).limit(footerE,120))
       .text());
   }
   FearlessException wf(){

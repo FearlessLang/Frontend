@@ -11,14 +11,12 @@ import core.RC;
 import core.TName;
 import core.TSpan;
 import message.WellFormednessErrors;
-import utils.Bug;
 import utils.Join;
 
 public sealed interface IT{
   default boolean isTV(){ return true; }
   default long badness(){ return 0; }
   default Optional<RC> explicitRC(){ return Optional.empty(); }
-  TSpan span();
   default int depth(){ return 1; }
   record X(String name, TSpan span) implements IT{
     public X{ assert validate(name,"generic type name", _XId); }
@@ -27,13 +25,11 @@ public sealed interface IT{
   record RCX(RC rc, X x) implements IT{
     public RCX{ assert nonNull(rc,x); }
     public String toString(){ return rc.name()+" "+x.name; }
-    public TSpan span(){ return x.span();}
     public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   record ReadImmX(X x) implements IT{
     public ReadImmX{ assert nonNull(x); }
     public String toString(){ return "read/imm "+x.name; }
-    public TSpan span(){ return x.span();}
   }
   record C(TName name, List<IT> ts, int depth){
     public C{
@@ -68,7 +64,6 @@ public sealed interface IT{
   enum U implements IT{ Instance;
     public String toString(){ return "?";}
     public boolean isTV(){ return false; }
-    public TSpan span(){ throw Bug.unreachable(); }
     public long badness(){ return 1; }
   }
   default IT withRC(RC rc){ return switch (this){ // T[RC]

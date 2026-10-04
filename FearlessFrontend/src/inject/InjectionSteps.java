@@ -198,7 +198,7 @@ public record InjectionSteps(Methods meths){
     catch(WellFormednessErrors.ErrToFetchContext depthErr){ throw meths.p().err().itTooDeep(e,depthErr.c); }
   }
   E _next(List<B> bs, Gamma g, E e){ return switch (e){
-    case E.X x -> nextX(bs, g, x);
+    case E.X x -> nextX(g, x);
     case E.Literal l -> nextL(bs, g, l);
     case E.Call c -> nextC(bs, g, c);
     case E.ICall c -> nextIC(bs, g, c);
@@ -251,7 +251,7 @@ public record InjectionSteps(Methods meths){
   }
   static List<IT> qMarks(int n){ return Stream.<IT>generate(()->IT.U.Instance).limit(n).toList(); }
   private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i->i == n ? t : IT.U.Instance).toList(); }
-  private E nextX(List<B> bs, Gamma g, E.X x){
+  private E nextX(Gamma g, E.X x){
     var t1Base= g.get(x.name());
     var notIn= g.notFunnelledInto(x.name());
     if (notIn.isPresent()){ throw meths.p().err().captureNotFunnelled(x, t1Base, notIn.get()); }
@@ -356,7 +356,7 @@ public record InjectionSteps(Methods meths){
     return Optional.of(new IT.RCC(l.rc(), l.cs().getFirst(),l.name().approxSpan()));
   }
   private E nextL(List<B> bs, Gamma g, E.Literal l){
-    var infHead= l.infHead();//infHead is set in l.withCsMs and l.withMs and l.withMsT
+    var infHead= l.infHead();//infHead is set in l.withCsMs and l.withMsT
     // to mean the HEAD is inferred as IT.RCC and has already been used to expand methods
     var selfPrecise= preciseSelf(l);
     var selfSuper= superSelf(l);

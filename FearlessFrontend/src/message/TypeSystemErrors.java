@@ -539,7 +539,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       var got= err().typeRepr(true,headerBest(mat.resByArg().get(argi)));
       e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos,"",", ","")+".");
     }
-    e.blank().pPromotionFailuresHdr();
+    e.blank().line("Promotion failures:");
     var byArg= IntStream.range(0,args)
       .mapToObj(_->new LinkedHashMap<String,ArrayList<String>>()).toList();
     var promosN= mat.resByArg().getFirst().size();
