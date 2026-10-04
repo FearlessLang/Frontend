@@ -130,9 +130,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       var notInferred= m.sig().origin().equals(LiteralDeclarations.inferUnknown);
       if (notInferred){ throw tsE().methodNotInferred(l,m); }
     }
-    var ts= dom(l.bs(),span);
     var ms= l.ms().stream().filter(m->m.e().isPresent()).toList();
-    var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
+    var thisType= new T.RCC(l.rc(),new T.C(l.name(),dom(l.bs(),span)),span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l,bs1,thisType);
     litOk(v().discard(g.filterFTV(l),l),l);
@@ -178,14 +177,13 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     baseIdOk(l);
     var delta= l.bs();
     var span= l.name().approxSpan();
-    var selfT= new T.C(l.name(),dom(delta,span));
     l.cs().forEach(c->csOk(l,delta,c));
     //Sources is needed, not assert only: the user can simply try to override with a non subtype signature.
     //l.ms is the resolved set, either inferred or resolved by hand in a wrong way.
     Sources.collect(this, l).stream()
       .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()))
       .forEach((k,group)->methodTableOk(l,k,group));
-    var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
+    var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),new T.C(l.name(),dom(delta,span)),span));
     l.ms().forEach(m->methOk(l,delta,v().of(g1,l,m),m));//passing l and m instead of their RC for better errors
   }
   private void csOk(Literal l, List<B> delta, T.C c){
