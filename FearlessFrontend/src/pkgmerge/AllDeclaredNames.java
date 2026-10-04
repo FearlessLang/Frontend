@@ -31,17 +31,15 @@ public class AllDeclaredNames{
     xs.put(n, Collections.unmodifiableSet(lastTopNames));
     Xs.put(n, Collections.unmodifiableSet(lastTopXs));
   }
-  private void visitInnerB(B b){ lastTopXs.add(b.x()); }
-  private void visitInnerParameter(Parameter p){ p.xp().ifPresent(this::visitInnerXPat); }
   private void visitInnerXPat(XPat x){ x.parameterNames().forEach(lastTopNames::add); }
   private void visitInnerSig(Sig s){
-    s.bs().ifPresent(bs->bs.forEach(this::visitInnerB));
-    s.parameters().forEach(this::visitInnerParameter);
+    s.bs().ifPresent(bs->bs.forEach(b->lastTopXs.add(b.x())));
+    s.parameters().forEach(p->p.xp().ifPresent(this::visitInnerXPat));
   }
   private void visitInnerDeclaration(Declaration d){
     //Note: there is never any kind of shadowing allowed in fearless. Also, nested names do live in the top level scope
     if (!decNames.add(d.name())){ throw err.duplicatedName(d.name()); }
-    d.bs().ifPresent(bs->bs.forEach(this::visitInnerB));
+    d.bs().ifPresent(bs->bs.forEach(b->lastTopXs.add(b.x())));
     visitLiteral(d.l());
   }
   private void visitLiteral(Literal c){
@@ -59,12 +57,7 @@ public class AllDeclaredNames{
       case TypedLiteral(_, var l, _) -> l.ifPresent(this::visitLiteral);
       case DeclarationLiteral(_, var dec) -> visitInnerDeclaration(dec);
       case Literal c -> visitLiteral(c);
-      case Call c -> visitCall(c);
+      case Call c -> { visitE(c.e()); c.pat().ifPresent(this::visitInnerXPat); c.es().forEach(this::visitE); }
     }
-  }
-  private void visitCall(Call c){
-    visitE(c.e());
-    c.pat().ifPresent(this::visitInnerXPat);
-    c.es().forEach(this::visitE);
   }
 }

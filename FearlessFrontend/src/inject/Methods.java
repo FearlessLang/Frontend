@@ -55,7 +55,7 @@ public record Methods(
       for (var d : l){
         var e= expandDeclaration(d,false);
         if (d.thisName().equals("this")){ acc.add(e); }
-        cache.put(d.name(), injectDeclaration(e));
+        register(e);
       }
     }
     return List.copyOf(acc);
@@ -140,12 +140,12 @@ public record Methods(
     throw p.err().extendedSealed(owner, target);
   }
 
-  core.E.Literal injectDeclaration(E.Literal d){
+  void register(E.Literal d){
     var cs= TypeRename.itcToTC(d.cs());
     assert InjectionToInferenceVisitor.duplicatedSupertypes(d.bs(),cs).isEmpty();
     p().log().logInferenceDeclaration(d, cs);
     var ms= new ToCore(List.of()).msSyntetic(d.ms());
-    return new core.E.Literal(d.rc().orElse(RC.imm),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName());
+    cache.put(d.name(), new core.E.Literal(d.rc().orElse(RC.imm),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName()));
   }
   inference.M withName(MName name,inference.M m){
     assert m.impl().isPresent();
@@ -166,20 +166,20 @@ public record Methods(
     for (var m: ms){//for methods WITHOUT name
       if (m.sig().m().isPresent()){ continue; }
       changed= true;
-      var arity= m.sig().ts().size();
-      var match= new ArrayList<M.Sig>();
-      ss.removeIf(s->s.m().get().arity() == arity && s.abs() && match.add(s));
-      var count= namesCount(match);
-      if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw p.err().ambiguousImpl(origin,true,m,match); }
-      assert match.isEmpty();
-      ss.removeIf(s->s.m().get().arity() == arity && match.add(s));
-      count= namesCount(match);
-      if (count == 1){ res.add(withName(match.getFirst().m().get(),m)); continue; }
-      if (count > 1){ throw p.err().ambiguousImpl(origin,false,m,match); }
-      throw p.err().noSourceToInferFrom(origin,m);
+      res.add(nameFromSigs(m,ss,origin));
     }
     return changed ? List.copyOf(res) : ms;
+  }
+  private M nameFromSigs(M m, ArrayList<M.Sig> ss, E.Literal origin){
+    var arity= m.sig().ts().size();
+    for (var abs : List.of(true,false)){
+      var match= new ArrayList<M.Sig>();
+      ss.removeIf(s->s.m().get().arity() == arity && (s.abs() || !abs) && match.add(s));
+      var count= namesCount(match);
+      if (count == 1){ return withName(match.getFirst().m().get(),m); }
+      if (count > 1){ throw p.err().ambiguousImpl(origin,abs,m,match); }
+    }
+    throw p.err().noSourceToInferFrom(origin,m);
   }
   List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     var res= new ArrayList<M>();

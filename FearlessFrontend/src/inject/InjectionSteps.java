@@ -294,12 +294,8 @@ public record InjectionSteps(Methods meths){
     if (om.isEmpty()){ return c.withEEs(e, es); }
     var m= om.get();
     var ts= qMarks(m.bsArity());
-    var es1= IntStream.range(0, es.size())
-      .mapToObj(i->meet(es.get(i), m.p(i,ts)))
-      .toList();
-    var t= meet(c.t(), m.ret(ts));
-    var call= new E.Call(e, c.name(), Optional.of(m.rc()), ts, es1, c.src());
-    return call.withT(t);
+    var call= new E.Call(e, c.name(), Optional.of(m.rc()), ts, meetWithTargs(es, es, m, ts), c.src());
+    return call.withT(meet(c.t(), m.ret(ts)));
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
     var e= nextStar(bs, g, c.e());
@@ -395,9 +391,7 @@ public record InjectionSteps(Methods meths){
     var orc= l.rc().or(rcc::rc).map(InjectionSteps::noH);
     if (!l.infName()){
       l= new E.Literal(orc, newName, localBs, l.cs(), l.thisName(), ms, l.t(), l.src(),l.infName(), l.infHead(), l.g());
-      assert !meths.cache().containsKey(name);
-      var resD= meths.injectDeclaration(l);
-      meths.cache().put(resD.name(), resD);
+      meths.register(l);
       return l;
     }
     assert l.bs().isEmpty();
@@ -411,9 +405,7 @@ public record InjectionSteps(Methods meths){
     assert l.infHead();
     l= new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, t, l.src(),l.infName(), l.infHead(), l.g());
     if (selfInferred){ l= l.withT(preciseSelf(l).get()); }
-    var resD= meths.injectDeclaration(l);
-    assert !meths.cache().containsKey(name);
-    meths.cache().put(resD.name(), resD);
+    meths.register(l);
     return l;
   }
   private M fixArity(M m, TName name, TName newName){
@@ -512,20 +504,17 @@ public record InjectionSteps(Methods meths){
     if (methBs.isEmpty()){ return ts; }
     return ts.stream().map(t->dropMethBs(t, methBs)).toList();
   }
-  IT dropMethBs(IT t, List<String> methBs){ return switch (t){
-    case IT.X(var name, _) -> methBs.contains(name) ? IT.U.Instance : t;
-    case IT.RCX(_, var x) -> methBs.contains(x.name()) ? IT.U.Instance : t;
-    case IT.ReadImmX(var x) -> methBs.contains(x.name()) ? IT.U.Instance : t;
-    case IT.RCC rcc -> withTsNormBs(rcc,dropMethBs(rcc.c().ts(), methBs));
-    case IT.U _ -> t;
-  };}
+  IT dropMethBs(IT t, List<String> methBs){
+    if (t instanceof IT.RCC rcc){ return withTsNormBs(rcc,dropMethBs(rcc.c().ts(), methBs)); }
+    return xName(t).filter(methBs::contains).isPresent() ? IT.U.Instance : t;
+  }
   private boolean assertNoBinderClash(IT.RCC rcc, core.M m){
     return Collections.disjoint(B.xs(meths.from(rcc.c().name()).bs()), B.xs(m.sig().bs()));
   }
   List<IT> refine(List<String> xs, IT t, IT t1){
     if (t1 instanceof IT.U){ return qMarks(xs.size()); }
     return switch (t){
-      case IT.X x -> refineXs(xs, x, t1);
+      case IT.X x -> qMarks(xs.indexOf(x.name()), t1, xs.size());
       case IT.RCX(_, var x) -> refine(xs, x, stripRCAlsoThisSide(t1));
       case IT.ReadImmX(var x) -> refine(xs, x, t1 instanceof IT.ReadImmX(var x1) ? x1 : t1);
       case IT.RCC rcc -> propagateXs(xs, rcc, t1);
@@ -543,7 +532,6 @@ public record InjectionSteps(Methods meths){
     case IT.RCC(_, var c, var span) -> new IT.RCC(Optional.empty(), c, span);
     case IT.U _ -> t;
   };}
-  List<IT> refineXs(List<String> xs, IT.X x, IT t1){ return qMarks(xs.indexOf(x.name()), t1, xs.size()); }
   private boolean isASuperB(TName a, TName b){
     var d= meths._from(b);
     if (d == null){ return false; } // {..}.foo etc.
