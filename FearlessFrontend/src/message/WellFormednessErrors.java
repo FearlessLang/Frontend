@@ -123,6 +123,14 @@ public record WellFormednessErrors(String pkgName){
             +" package), so that it overrides the conflicting ones.");
     return e.wf();
   }
+  public FearlessException mapToMissingPackage(String in, String out, String directive, List<String> pkgs){
+    var e= err()
+      .line("For package "+disp(pkgName)+", the virtual package name "+disp(in)+" is mapped to "+disp(out)+",")
+      .line("but package "+disp(out)+" does not exist:")
+      .line(directive);
+    NameSuggester.suggest(out, pkgs, (_,_,best)->{ best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?")); return null; });
+    return e.line(Join.of(pkgs.stream().map(Err::disp), "Existing packages: ", ", ", ".")).wf();
+  }
   public Err badRank(Err err){
     return err
       .line("Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.")

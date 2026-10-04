@@ -38,7 +38,7 @@ public class FrontendLogicMain{
     TypeSystem.allOk(coreAST, pkg, other); //Phase 7: type checking
     return coreAST;
   }
-  public Map<String,Map<String,String>> parseRankFiles(List<Ref> files, Comparator<Ref> c){
+  public Map<String,Map<String,String>> parseRankFiles(List<Ref> files, Comparator<Ref> c, Collection<String> pkgs){
     var parsed= parseFiles(files);
     record Key(String target,String in){}
     record Cand(Ref uri,String target,String in,String out){
@@ -59,6 +59,7 @@ public class FrontendLogicMain{
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
       var conflicting= bests.stream().map(Cand::out).distinct().count() != 1;
       if (conflicting){ throw new WellFormednessErrors(k.target()).mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
+      if (!pkgs.contains(best.out())){ throw new WellFormednessErrors(k.target()).mapToMissingPackage(k.in(), best.out(), best.toString(), pkgs.stream().sorted().toList()); }
       res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), best.out());
     }
     return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e->Map.copyOf(e.getValue())));
