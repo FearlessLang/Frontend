@@ -168,10 +168,6 @@ public record InjectionSteps(Methods meths){
       e= oe;
     }
   }
-  private List<M> fixArity(List<M> ms, TName name, TName newName){
-    if (name.equals(newName)){ return ms; }
-    return norm(ms,ms.stream().map(mi->fixArity(mi, name, newName)).toList());
-  }
   private List<E> nextStar(List<B> bs, Gamma g, List<E> es){
     return norm(es,es.stream().map(ei->nextStar(bs, g, ei)).toList());
   }
@@ -337,8 +333,7 @@ public record InjectionSteps(Methods meths){
     var span= l.name().approxSpan();
     return Optional.of(new IT.RCC(l.rc(), new IT.C(l.name(), MSigL.toXs(span,B.xs(l.bs()))),span));
   }
-  private Optional<IT.RCC> superSelf(E.Literal l){
-    var precise= preciseSelf(l);
+  private Optional<IT.RCC> superSelf(E.Literal l, Optional<IT.RCC> precise){
     if (l.cs().size() != 1){ return precise; }
     return precise.map(p->new IT.RCC(p.rc(), l.cs().getFirst(), p.span()));
   }
@@ -346,7 +341,7 @@ public record InjectionSteps(Methods meths){
     var infHead= l.infHead();//infHead is set in l.withCsMs and l.withMsT
     // to mean the HEAD is inferred as IT.RCC and has already been used to expand methods
     var selfPrecise= preciseSelf(l);
-    var selfSuper= superSelf(l);
+    var selfSuper= superSelf(l,selfPrecise);
     if (!infHead){
       l= l.infName() ? selfSuper.map(l::withT).orElse(l) : l.withT(selfPrecise.get());
       if (!(l.t() instanceof IT.RCC(_, var c, _))){ return l; }//!infHead after passing this test means right now we can expand methods
@@ -379,7 +374,7 @@ public record InjectionSteps(Methods meths){
     var freeNames= Streams.of(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()), t.ftv());
     var localBs= freeNames.distinct().map(x->RC.get(bs, x)).toList();
     var newName= name.withArity(localBs.size());
-    var ms= fixArity(l.ms(), name, newName);
+    var ms= name.equals(newName) ? l.ms() : norm(l.ms(),l.ms().stream().map(mi->fixArity(mi, name, newName)).toList());
     var orc= l.rc().or(rcc::rc).map(InjectionSteps::noH);
     if (!l.infName()){
       l= new E.Literal(orc, newName, localBs, l.cs(), l.thisName(), ms, l.t(), l.src(),l.infName(), l.infHead(), l.g());

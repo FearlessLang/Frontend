@@ -60,12 +60,9 @@ public record ToCore(List<B> ctx){
   }
   static List<IT.C> distinctTypes(List<B> bs, List<IT.C> cs){
     var res= new ArrayList<IT.C>();
-    for (var c: cs){ if (res.stream().noneMatch(r->sameType(bs,r,c))){ res.add(c); } }
-    return Collections.unmodifiableList(res);
-  }
-  private static boolean sameType(List<B> bs, IT.C a, IT.C b){
     var span= TSpan.fromPos(Pos.unknown);
-    return TypeSystem.eqModXRC(bs,new T.RCC(RC.imm,TypeRename.itcToTC(a),span),new T.RCC(RC.imm,TypeRename.itcToTC(b),span));
+    for (var c: cs){ if (res.stream().noneMatch(r->TypeSystem.eqModXRC(bs,new T.RCC(RC.imm,TypeRename.itcToTC(r),span),new T.RCC(RC.imm,TypeRename.itcToTC(c),span)))){ res.add(c); } }
+    return Collections.unmodifiableList(res);
   }
   private static core.M withOrigin(core.M m, TName from, TName to){
     var s= m.sig();
@@ -97,12 +94,8 @@ public record ToCore(List<B> ctx){
   }
   private List<core.M> mapMs(List<inference.M> es, List<inference.M> os){
     return es.stream()
-      .map(me->m(me,me.impl().isEmpty() ? me : matchM(os,me)))
+      .map(me->m(me,me.impl().isEmpty() ? me : OneOr.of("failing to connect methods @"+me.sig().span(), os.stream().filter(o->o.sig().span() == me.sig().span()))))
       .toList();
-  }
-  private static inference.M matchM(List<inference.M> os, inference.M e){
-    var s= e.sig().span();
-    return OneOr.of("failing to connect methods @"+s, os.stream().filter(o->o.sig().span() == s));
   }
   private core.M m(inference.M e, inference.M o){
     var s= sig(e.sig(), o.sig());

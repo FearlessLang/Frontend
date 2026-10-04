@@ -69,16 +69,13 @@ public final class Monotonicity{
   private static boolean litStable(List<M> ms){
     return ms.stream().allMatch(m->m.sig().m().isPresent());
   }
-  private static void clearLitHistory(GammaSignature g){
-    g.monotonicity.keySet().removeIf(s->s.k() == K.litMArg || s.k() == K.litMRet);
-  }
 
   public static boolean onLiteralWithMs(E.Literal l, List<M> nextMs){
     // Methods may be inserted/reordered while any method has no name.
     // In that phase, we DO NOT track literal method slots at all.
     var unstable= !litStable(l.ms()) || !litStable(nextMs);
     if (unstable){
-      clearLitHistory(l.g());
+      l.g().monotonicity.keySet().removeIf(s->s.k() == K.litMArg || s.k() == K.litMRet);
       return true;
     }
     // First stable snapshot: start tracking from nextMs (not from l.ms()).

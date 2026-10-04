@@ -452,7 +452,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     if (res.stream().map(r->canon(r.best)).noneMatch(r->ts.isSub(bs,r,reqCanon))){ return wrongUnderlyingTypeErr(ts,d,c,argi,reqs,res); }
     var gotHdr= headerBest(res);
     var any= reqs.stream().map(TRequirement::t).map(t->err().typeRepr(false,t)).distinct().toList();
-    var r= pickReason(reqs,res);
+    var r= Streams.zip(res, reqs).filter((ri,q)->rcOnlyMismatch(ri.best, q.t())).map((ri,_)->ri).findFirst().orElse(res.getFirst());
     var e= err()
       .pCallCantBeSatisfied(d,c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true,gotHdr)+".")
@@ -505,12 +505,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     case T.X _ -> 1000;
     case T.ReadImmX _ -> 1001;
   };}
-  private static Reason pickReason(List<TRequirement> reqs, List<Reason> res){
-    return Streams.zip(res, reqs)
-      .filter((r,q)->rcOnlyMismatch(r.best, q.t()))
-      .map((r,_)->r)
-      .findFirst().orElse(res.getFirst());
-  }
   ///Each argument of call c is compatible with at least one promotion, but no promotion fits all arguments.
   ///The per-argument sets of acceptable promotions have empty intersection.
   ///Raised when checking method calls.
@@ -537,7 +531,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .mapToObj(_->new LinkedHashMap<String,ArrayList<String>>()).toList();
     var promosN= mat.resByArg().getFirst().size();
     for (int pi : Range.of(0,promosN)){
-      var argi= firstFailingArg(mat, pi);
+      var argi= IntStream.range(0, args).filter(a->!mat.okByArg().get(a).contains(pi)).findFirst().getAsInt();
       var r= mat.resByArg().get(argi).get(pi);
       assert !r.isEmpty();
       byArg.get(argi).computeIfAbsent(up(r.info),_->new ArrayList<>())
@@ -547,10 +541,5 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       byArg.get(argi).forEach((info,names)->e.bullet("Argument "+(argi+1)+Join.of(names," fails:    ",", ","\n")+info));
     }
     return withCallSpans(e.ex(c), c);
-  }
-  private static int firstFailingArg(ArgMatrix mat, int promoIdx){
-    return IntStream.range(0, mat.okByArg().size())
-      .filter(argi->!mat.okByArg().get(argi).contains(promoIdx))
-      .findFirst().getAsInt();
   }
 }
