@@ -24,4 +24,7 @@ public class InferenceCrashesTest extends testUtils.FearlessTestBase{
   failExt("[###]","T0[X]:{ .m: T0[base.Void] -> {this}.m }");}
 @Test void expansiveSupertypeDoesNotMakeInferenceRecurseForever(){
   failExt("[###]","T0[X]:{ } T1:T0[T0[T1]]{ .m(a: T0[T1]): T1 -> this.m(this) }");}
+@Test void reAbstractedMethodBesideAnUnrelatedImplementation(){
+  try{ ok("R:{ } A:{ .m: R -> R } B:{ .m: R -> R } C:B{ .m: R; } D:A,C{ }"); }
+  catch(core.FearlessException _){}}
 }
