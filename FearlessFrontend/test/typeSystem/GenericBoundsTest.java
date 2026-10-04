@@ -492,7 +492,7 @@ Foo:{}
 Util:{ .m[Y:imm](y: Y): Foo -> Foo }
 A[Z:mut]:{ .f(z: Z): Foo -> Util.m(z) }
 """));}
-@Test void literalTypeArgumentKeepsATypeVariableOutsideTheBound(){fail("""
+@Test void literalTypeArgumentOutsideTheBoundIsAKindingError(){fail("""
 [###]
 The type "Foo[Y]" is invalid.
 Type argument 1 ("Y") does not satisfy the bounds

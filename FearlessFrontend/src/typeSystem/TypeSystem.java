@@ -185,8 +185,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var delta= l.bs();
     var span= l.name().approxSpan();
     var selfT= new T.C(l.name(),dom(delta,span));
-    sources(l).forEach((k,group)->methodTableOk(l,k,group));
     l.cs().forEach(c->csOk(l,delta,c));
+    sources(l).forEach((k,group)->methodTableOk(l,k,group));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
     l.ms().forEach(m->methOk(l,delta,v().of(g1,l,m),m));//passing l and m instead of their RC for better errors
   }
