@@ -37,11 +37,8 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return rc.toStrSpace(skipImm)+tNameA(l.name());
   }
   private String bestLitName(inference.E.Literal l){
-    return tNameA(l.infName() ? guessImplName(l) : l.name());
-  }
-  private TName guessImplName(inference.E.Literal l){
-    if (!l.cs().isEmpty()){ return l.cs().getFirst().name(); }
-    return ((T.RCC)TypeRename.itToT(l.t())).c().name();
+    if (!l.infName()){ return tNameA(l.name()); }
+    return tNameA(!l.cs().isEmpty() ? l.cs().getFirst().name() : ((T.RCC)TypeRename.itToT(l.t())).c().name());
   }
   private String bestNamePkg0(boolean instanceOf, String n){
     return (instanceOf ? "instance of " : "")+disp(n);

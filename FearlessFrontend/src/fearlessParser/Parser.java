@@ -145,7 +145,11 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar
   }
   boolean eqSugar(){
-    if (peekOrder(t->t.is(Underscore),t->t.is(Eq))){ throw errFactory().underscoreInEqSugar(lastMName(),span(peek().get()).get()); }
+    if (peekOrder(t->t.is(Underscore),t->t.is(Eq))){
+      var last= peek(-1).get();
+      if (last.is(_SquareGroup)){ last= peek(-2).get(); }
+      throw errFactory().underscoreInEqSugar(new MName(last.content(),0),span(peek().get()).get());
+    }
     return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq));
   }
   MName parseMName(){ return new MName(expect("method name", DotName,Op).content(),0); }
@@ -464,7 +468,8 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   ;}
   int headEnd(){ while (!guessHeadEnd()){ expectAny(""); } return 0; }
   public void checkAbruptExprEnd(){
-    absurd();
+    var absurd= peek(Colon,Arrow,SQuote,Eq,Comma,SemiColon,Underscore,ReadImm);//will add more when we find other absurd cases
+    if (absurd){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
     eatAtom();
     while (!end()){
       if (peek(SignedInt, SignedFloat)){ expectAny(""); continue; }
@@ -477,15 +482,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   }
 
   TSpan tspan(){ return new TSpan(span()); }
-  private void absurd(){
-    var absurd= peek(Colon,Arrow,SQuote,Eq,Comma,SemiColon,Underscore,ReadImm);//will add more when we find other absurd cases
-    if (absurd){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
-  }
-  private MName lastMName(){
-    var t= peek(-1).get();
-    if (t.is(_SquareGroup)){ t= peek(-2).get(); }
-    return new MName(t.content(),0);
-  }
   private void eatAtom(){
     if (eqSugar()){ expectAny(""); expectAny(""); }
     var simple= peek(LowercaseId,_RoundGroup,ColonColon,_CurlyGroup);
