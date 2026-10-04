@@ -146,8 +146,7 @@ public record Methods(
       if (!valid){ throw p.err().claimExtInvalid(d, c, ext); }
       var fapp= ext.matches("fapp[0-9]{3}");
       var shortcut= c.name().equals(LiteralDeclarations.claims.get(3));
-      if (shortcut && !fapp){ throw p.err().claimShortcutNotFapp(d, c, ext); }
-      if (!shortcut && fapp){ throw p.err().claimOpenWithFapp(d, c, ext); }
+      if (shortcut != fapp){ throw shortcut ? p.err().claimShortcutNotFapp(d, c, ext) : p.err().claimOpenWithFapp(d, c, ext); }
       var prev= exts.putIfAbsent(ext, c);
       if (prev != null){ throw p.err().claimExtTwice(d, prev, c, ext); }
     }
