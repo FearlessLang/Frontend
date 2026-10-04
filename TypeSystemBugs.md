@@ -2,7 +2,8 @@
 
 One entry per bug in the type system itself. Each gives the rule as implemented, before
 and after, minimized to pseudocode, so this file can be diffed against the formalism:
-was the formalism wrong too, or did the implementation deviate?
+was the formalism wrong too, or did the implementation deviate? The intended differences from
+the formalism are in `PaperDifferences.md`.
 
 Notation. `D` maps a type variable to its capability bound. `rcs(D,T)` is the set of
 capabilities `T` can have: `{rc}` for `rc C[..]` and for `rc X`, all of `D(X)` for a bare
@@ -61,7 +62,7 @@ Frontend#38 with StandardLibrary#49, 2026-09-08. Unsound. `GenericCapabilityAlia
 
     eqModVar(D, A, B) = match (A, B) with
       A = B                           -> true
-      (X, rc X) or (rc X, X)          -> D(X) = {rc}
+      (A, B) spellings of one X       -> as in entry 15
       (rc1 C[A1..An], rc2 C'[B1..Bn]) -> C = C'
                                          and forall i. eqModVar(D, Ai, Bi)
                                          was: rc1 and rc2 discarded here
@@ -136,7 +137,8 @@ rejected as an illegal capture. Only `iso` shows it: for a `mut`/`read`/`imm` li
 `self` never meets the drop condition. The literal's capability now only decides what is
 kept; the method's capability alone decides how it is seen. The dropped `rc0` guard on the
 `imm` case was redundant: after `keep` everything an `iso`/`imm` literal holds is
-`iso`/`imm` and is strengthened to `imm` by the first case anyway.
+`iso`/`imm` and is strengthened to `imm` by the first case anyway. The formalism's `Lit-ok`
+has the same two steps: `G|_{XBs,R}` before adding the self binding, then `G'[XBs,rcOf(M)]`.
 
 ## 5. A named declaration inside a method body could use the enclosing type parameters
 
@@ -326,8 +328,8 @@ Under `D(Y) = {readH}` it gave `read Y` too; swapping the order without changing
 unchanged test would give `read/imm Y`, still `read`, since `hyg(readImm(readH)) = readH`:
 the test must compare against `readImm(rc)`, not `rc`. On parameters the same order made
 `useRead` require `imm Y` for `read/imm Y` with `D(Y) = {mut}` where the concrete call
-requires `readH`, rejecting valid calls. The formalism has the same definition
-(`\prom^\f(\XBs,\readImm\,\X)` and `\noChangeRI`).
+requires `readH`, rejecting valid calls. The formalism defines `\prom^\f(\XBs,\readImm\,\X)`
+and `\noChangeRI` as `now`.
 
 The old order also gave one call two candidates with equivalent but different results. With
 `D(X) = {iso,imm}`, `readImm(iso) = imm` failed the unchanged test, so every promotion of
