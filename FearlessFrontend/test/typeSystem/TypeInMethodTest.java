@@ -148,6 +148,30 @@ B:A{mut .y:Foo->Foo}
 C:{.m:mut B->mut B; .u:Foo->this.m.x[mut]}
 """)); }
 
+  @Test void anonReceiverTypeInMethodHead(){ ok(List.of("""
+A0:{.m(x:A0):A->A:{.foo:A0->x}}
+B:{.m(a:A):A->{ .get: A -> a }.get}
+""")); }
+
+  @Test void anonReceiverCaptureFreeTypeInMethodHead(){ ok(List.of("""
+A0:{.m:A->A:base.CaptureFree{ .get(x:A): A -> x }}
+B:{.m(a:A):A->{ .get(x) -> x }.get(a)}
+""")); }
+
+  @Test void anonReceiverPrivateHeadFromOtherPkg(){ okTwoPkgs("""
+_P:{ .foo: base.Void }
+Q:_P{ .foo -> base.Void }
+Take:{ #(p:_P): base.Void -> base.Void }
+""","""
+B:{.m: base.Void -> a.Take#({ .q: a.Q -> a.Q }.q)}
+"""); }
+
+  @Test void anonReceiverTypeInMethodHeadFromOtherPkg(){ okTwoPkgs("""
+A0:{.m(x:A0):A->A:{.foo:A0->x}}
+""","""
+B:{.m(a:a.A):a.A->{ .get: a.A -> a }.get}
+"""); }
+
   @Test void topLevelTypeByNameFromOtherPkg(){ okTwoPkgs("""
 A:{}
 ""","""
