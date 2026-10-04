@@ -80,27 +80,27 @@ public class FrontendLogicMain{
     var headPkg= findHeadUri(err, raw.keySet());
     checkOnlyHeadHasDirectives(err,headPkg, raw);
     var head= raw.get(headPkg);
-    var map= new HashMap<String, String>(override);
-    accUses(err, map, head.uses(), other);
     var ds= raw.values().stream()
       .flatMap(f->f.decs().stream())
       .sorted().toList();
-    var readOnlyMap= Collections.unmodifiableMap(map);
-    var names= DeclaredNames.of(pkgName, ds, readOnlyMap);
-    return makePackage(pkgName, readOnlyMap, ds, names);
+    var names= DeclaredNames.of(pkgName, ds, head.uses().stream().map(FileFull.Use::out).collect(Collectors.toUnmodifiableSet()));
+    var map= new HashMap<String, String>(override);
+    accUses(err, map, head.uses(), other, names);
+    return makePackage(pkgName, Collections.unmodifiableMap(map), ds, names);
   }
   Package makePackage(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names){
     return new Package(name,map,decs,names,Package.offLogger());//this method exists to change logger in mocking
   }
   //map a as b in c //inside c, a written a stands for b
-  private void accUses(WellFormednessErrors err, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other){
+  private void accUses(WellFormednessErrors err, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other, DeclaredNames names){
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
       var p= u.in().pkgName();
       p= map.getOrDefault(p, p); //thus if p is "" we get ""
       var in= p + "." + u.in().simpleName();
       map.put(u.out(), in);
-      var ok= otherDom.stream().anyMatch(e->e.s().equals(in));
+      var dom= p.equals(err.pkgName()) ? names.decNames().stream().map(n->n.withPkgName(err.pkgName())) : otherDom.stream();
+      var ok= dom.anyMatch(e->e.s().equals(in));
       if (!ok){ throw err.unknownUseHead(u.in(), p); }
     }//map a as b in c + use a.F as aF will replace aF with b.F
   }

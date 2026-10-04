@@ -105,6 +105,38 @@ B:{.m(x:a.B):B->x.self; .self:b.B->this}
 use a.B as X;
 B:{.m(x:X):a.B->x.self; .self:b.B->this}
 """); }
+  @Test void useOfTheCurrentPackage(){ ok(Map.of(), Map.of(), """
+use b.B as X;
+B:{.m(x:X):B->x.self; .self:X->this}
+"""); }
+  @Test void useThroughMapIntoTheCurrentPackageUndeclared(){ fail("""
+In file: [###].fear
+
+001| use a.Z as X;
+   |     ^^^
+
+While inspecting package header
+"use" directive refers to undeclared name: type "Z" is not declared in package "b".
+Error 7 WellFormedness
+""", Map.of(), Map.of("a","b"), """
+use a.Z as X;
+B:{}
+"""); }
+  @Test void useOfTheCurrentPackageOtherArity(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:X[B]):B->this}
+   |         ^^
+
+While inspecting a type name
+Name "X" is not declared with 1 type parameter(s) in package "b".
+Name "X" is only declared with 0 type parameter(s).
+Did you accidentally add or omit a type parameter?
+Error 7 WellFormedness
+""", Map.of(), Map.of(), """
+use b.B as X;
+B:{.m(x:X[B]):B->this}
+"""); }
   @Test void mapIntoTheCurrentPackageUndeclared(){ fail("""
 In file: [###].fear
 

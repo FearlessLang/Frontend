@@ -24,16 +24,15 @@ public final class ToInference{
   }
   private static FearlessException undeclaredType(TName tn, String contextPkg, Methods meths){
     var p= meths.p();
-    var otherTypes= meths.other().dom();
     var declared= p.names().decNames();
+    var all= Stream.concat(declared.stream().map(t->t.withPkgName(p.name())), meths.other().dom().stream()).toList();
     var imported= p.map().entrySet().stream()
       .filter(e->TokenKind.isKind(e.getKey(), TokenKind.UppercaseId))
-      .flatMap(e->otherTypes.stream()
+      .flatMap(e->all.stream()
         .filter(t->t.s().equals(e.getValue()))
         .map(t->new TName(p.name()+"."+e.getKey(), t.arity(),t.pos()))
       ).toList();
     var scope= Stream.concat(declared.stream(), imported.stream()).toList();
-    var all= Stream.concat(declared.stream().map(t->t.withPkgName(p.name())), otherTypes.stream()).toList();
     return p.err().usedUndeclaredName(tn, contextPkg, scope, all);
   }
   private static TName resolve(Methods meths, TName tn){
@@ -54,7 +53,8 @@ public final class ToInference{
     var mapped= p.map().get(tn.s());
     if (mapped == null){ return fCurrent(meths,tn.withPkgName(p.name()),false); }
     var res= new TName(mapped,tn.arity(),tn.pos());
-    var ok= meths.other().dom().contains(res);
+    var current= res.pkgName().equals(p.name());
+    var ok= current ? p.names().decNames().contains(res.withoutPkgName()) : meths.other().dom().contains(res);
     if (!ok){ throw undeclaredType(tn,res.pkgName(),meths); }
     return res;
   }
