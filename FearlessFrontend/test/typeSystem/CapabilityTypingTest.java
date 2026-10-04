@@ -955,11 +955,37 @@ Ignore:{ #[T:*](t: T): Nothing -> Nothing }
 Holder:{ mut .n: Nothing }
 User:{ .m[X:iso,imm](x: X): mut Holder -> mut Holder{ .n -> Ignore#x } }
 """));}
-@Test void mutMethodCaptureOfIsoMutTypeParamInfersReadTypeArg(){ok(List.of("""
+@Test void mutMethodCaptureOfIsoMutTypeParamInfersReadImmTypeArg(){ok(List.of("""
 Nothing:{}
 Ignore:{ #[T:*](t: T): Nothing -> Nothing }
 Holder:{ mut .n: Nothing }
 User:{ .m[X:iso,mut](x: X): mut Holder -> mut Holder{ .n -> Ignore#x } }
+"""));}
+@Test void mutMethodCaptureOfIsoMutTypeParamIsReadImm(){ok(List.of("""
+Get[Y:*]:{ mut .get: Y }
+A:{ .m[X:iso,mut](x: X): mut Get[read/imm X] -> mut Get[read/imm X]{ mut .get: read/imm X -> x } }
+"""));}
+@Test void mutMethodCaptureOfIsoReadTypeParamIsReadImm(){ok(List.of("""
+Get[Y:*]:{ mut .get: Y }
+A:{ .m[X:iso,read](x: X): mut Get[read/imm X] -> mut Get[read/imm X]{ mut .get: read/imm X -> x } }
+"""));}
+@Test void mutMethodCaptureOfIsoMutTypeParamIsNotX(){fail("""
+002| A:{ .m[X:iso,mut](x: X): mut Get[X] -> mut Get[X]{ mut .get: X -> x } }
+   |     -----------------------------------------------~~~~~~~~~~~~~~~^--
+
+While inspecting parameter "x" > ".get" line 2 > ".m(_)" line 2
+Method ".get" inside the object literal instance of "mut Get[X]" (line 2)
+is implemented with an expression returning "read/imm X".
+Parameter "x" has type "read/imm X" instead of a subtype of "X".
+Note: the declared type "X" would instead be a valid subtype.
+Capture adaptation trace:
+"X" --setToReadImm(line 2)--> "read/imm X".
+
+See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+A:{.m[X:mut,iso](x:X):mut Get[X]->mut Get[X]{mut .get:X->x}}
+""",List.of("""
+Get[Y:**]:{ mut .get: Y }
+A:{ .m[X:iso,mut](x: X): mut Get[X] -> mut Get[X]{ mut .get: X -> x } }
 """));}
 @Test void readMethodCaptureOfIsoMutTypeParamInfersReadImmTypeArg(){ok(List.of("""
 Nothing:{}

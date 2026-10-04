@@ -80,7 +80,7 @@ public final class Gamma{
     if (rc == RC.imm || EnumSet.of(RC.iso, RC.imm).containsAll(xRcs)){ return t.withRC(RC.imm); }
     if (xRcs.stream().anyMatch(RC::isH)){ return t; }
     if (rc == RC.read){ return t.readImm(); }
-    return t instanceof IT.ReadImmX || !xRcs.contains(RC.iso) ? t : t.withRC(RC.read);
+    return xRcs.contains(RC.iso) ? t.readImm() : t;
   }
   private static IT adaptRC(IT t, RC rc){
     var trc= t.explicitRC();
