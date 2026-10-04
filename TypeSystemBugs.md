@@ -451,3 +451,24 @@ rejected with "Different options are present in the implemented types: "T", "rea
 They differ in reference capability", while `A:Foo,Bar{ .get[T:imm]: T }`, the same choice
 written by hand, was accepted. The same with class type parameters,
 `Foo[X:imm]:{ .get: X }`, `Bar[X:imm]:{ .get: read/imm X }`, `A[Y:imm]:Foo[Y],Bar[Y]{}`.
+
+## 16. A captured `X` that may be `iso` is seen as `read X` by a `mut` method
+
+Frontend#151, 2026-10-04. Rejects valid programs, not unsoundness; the formalism had the same rule.
+`CapabilityTypingTest.mutMethodCaptureOfIsoMutTypeParamIsReadImm`,
+`mutMethodCaptureOfIsoReadTypeParamIsReadImm`, `mutMethodCaptureOfIsoMutTypeParamIsNotX`,
+`mutMethodCaptureOfIsoMutTypeParamInfersReadImmTypeArg`.
+
+    adapt(D, mut, T)                              -- the last case, after the imm and mut ones
+      was:  T[read]     if rcs(D,T) not subsetOf {imm,mut,read}
+      now:  readImm X   if T = X and rcs(D,X) not subsetOf {imm,mut,read}
+
+Only a bare `X` reaches this case: `rc X` has its own capability, `readImm X` is `read` or
+`imm`, and a type that is only `iso` or `imm` is strengthened to `imm` by the first case.
+`readImm X` is `imm` when `X` is `iso`, where the captured reference is frozen as in the first
+case, and `read` otherwise: every instantiation keeps its precise capability, where `read X`
+turned the `iso` case into `read`. Inference (`Gamma.adaptX`) has the same rule.
+
+Witness. `Get[Y:*]:{ mut .get: Y }`,
+`A:{ .m[X:iso,mut](x: X): mut Get[read/imm X] -> mut Get[read/imm X]{ mut .get: read/imm X -> x } }`
+was rejected: `x` was `read X`, not a subtype of `read/imm X` when `X` is `iso`.

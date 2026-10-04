@@ -28,7 +28,8 @@ public record ViewPointAdaptation(Kinding k){
     assert rc == mut;//meth RC can only be imm, mut, read and imm is filtered before
     var noIsoNoHygienic= k.of(l.bs(),t,EnumSet.of(imm, mut, read));
     if (noIsoNoHygienic){ return w; }
-    return Change.keepSetToRead(l,m,w);
+    assert t instanceof T.X;
+    return Change.keepSetToReadImm(l,m,w);
   }
   private Change discard(Change current, Literal l){
     if (!(current instanceof Change.WithT w)){ return current; }
