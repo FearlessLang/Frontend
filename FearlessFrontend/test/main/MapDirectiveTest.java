@@ -101,6 +101,10 @@ B:{.m(x:a.A):a.A->x.fromD}
   @Test void mapIntoTheCurrentPackage(){ ok(Map.of(), Map.of("a","b"), """
 B:{.m(x:a.B):B->x.self; .self:b.B->this}
 """); }
+  @Test void useThroughMapIntoTheCurrentPackage(){ ok(Map.of(), Map.of("a","b"), """
+use a.B as X;
+B:{.m(x:X):a.B->x.self; .self:b.B->this}
+"""); }
   @Test void mapIntoTheCurrentPackageUndeclared(){ fail("""
 In file: [###].fear
 
