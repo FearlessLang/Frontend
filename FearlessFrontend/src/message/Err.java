@@ -109,11 +109,15 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return t instanceof T.RCC(_, var c, _) && LiteralDeclarations.inferErrs.contains(c.name());
   }
   String text(){ return sb.toString().stripTrailing(); }
-  public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, String badStr, String allowedStr){
-    return line("The "+what+" is invalid.")
+  public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, T bad, String allowedStr, String gotStr){
+    var badStr= typeRepr(true,bad);
+    var e= line("The "+what+" is invalid.")
       .line("Type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
       .line("for type parameter "+paramName+" in "+kindingTarget+".")
       .line("Here "+paramName+" can only use capabilities "+allowedStr+".");
+    var capabilityHidden= bad instanceof T.X || bad instanceof T.ReadImmX;
+    if (!capabilityHidden){ return e; }
+    return e.line("But type argument "+badStr+" can use capabilities "+gotStr+".");
   }
   public Err invalidMethImpl(String pre,Literal l, MName m){
     return line("Invalid method signature overriding for "+methodSig(pre,l,m)+".");
