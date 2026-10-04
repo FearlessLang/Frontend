@@ -68,7 +68,7 @@ public record Methods(
   List<IT.C> fetchCs(IT.C c){
     var d= _from(c.name());
     if (d == null){ return List.of(); }//case {..}.foo
-    return TypeRename.ofITC(TypeRename.tcToITC(d.cs()),B.xs(d.bs()),c.ts()).stream().distinct().toList();
+    return d.cs().stream().map(TypeRename::tcToITC).map(ci->TypeRename.of(ci,B.xs(d.bs()),c.ts())).distinct().toList();
   }
   private inference.M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child, List<String> scope){
     var s= m.sig();
@@ -84,7 +84,7 @@ public record Methods(
       fullTs.add(newX);
       newBs.add(new B(newX.name(),b.rcs()));
     }
-    var newTs= TypeRename.ofITOpt(TypeRename.tToIT(s.ts()),fullXs,fullTs);
+    var newTs= TypeRename.ofIT(TypeRename.tToIT(s.ts()),fullXs,fullTs).stream().map(Optional::of).toList();
     var newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
     return new inference.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),child.span());
   }
@@ -304,7 +304,7 @@ public record Methods(
     var fromXs= B.xs(superSig.bs().get());
     var toITs= MSigL.toXs(superSig.span(),B.xs(targetBs));
     assert fromXs.size() == toITs.size();
-    var renamedTs= TypeRename.ofOptITOpt(superSig.ts(), fromXs, toITs);
+    var renamedTs= superSig.ts().stream().map(t->Optional.of(TypeRename.of(t.get(), fromXs, toITs))).toList();
     var renamedRet= superSig.ret().map(it->TypeRename.of(it, fromXs, toITs));
     return new M.Sig(superSig.rc(), superSig.m(), Optional.of(targetBs),
       renamedTs, renamedRet, superSig.origin(), superSig.abs(), superSig.span());

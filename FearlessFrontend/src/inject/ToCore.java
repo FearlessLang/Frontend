@@ -122,7 +122,7 @@ public record ToCore(List<B> ctx){
     var m= usr.m().or(inf::m).orElse(new MName(".inferenceFailed", ts.size()));
     var bs= usr.bs().or(inf::bs).orElse(List.of());
     var origin= usr.origin().or(inf::origin).orElse(LiteralDeclarations.inferUnknown);
-    return new core.Sig(rc,m,bs,TypeRename.itOptToT(ts),TypeRename.itToT(ret),origin,usr.abs(),usr.span());
+    return new core.Sig(rc,m,bs,ts.stream().map(TypeRename::itToT).toList(),TypeRename.itToT(ret),origin,usr.abs(),usr.span());
   }
   private record CallLike(inference.E e,List<inference.E> es,Optional<RC> rc,List<IT> targs){}
   private static CallLike callLike(inference.E o,MName name){

@@ -55,7 +55,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var d= decs.apply(c.name());
     if (!d.infName()){ return c; }
     return d.cs().stream()
-      .<T.C>map(sc->TypeRename.of(sc, B.xs(d.bs()), c.ts()))
+      .map(sc->sc.withTs(TypeRename.ofT(sc.ts(), B.xs(d.bs()), c.ts())))
       .filter(scC->!decs.apply(scC.name()).infName())
       .findFirst().orElse(c);
   }
