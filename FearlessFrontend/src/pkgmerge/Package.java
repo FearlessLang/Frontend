@@ -6,11 +6,12 @@ import java.util.Map;
 
 import core.T;
 import fearlessFullGrammar.Declaration;
+import fearlessFullGrammar.FileFull;
 import inference.E;
 import message.WellFormednessErrors;
 import utils.Join;
 
-public record Package(String name, Map<String,String> map, List<Declaration> decs, DeclaredNames names, Logger log){
+public record Package(String name, Map<String,String> map, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names, Logger log){
   public WellFormednessErrors err(){ return new WellFormednessErrors(name); }
   public record Logger(boolean active, ArrayList<String> logs){
     public void logInferenceDeclaration(E.Literal d, List<T.C> cs){

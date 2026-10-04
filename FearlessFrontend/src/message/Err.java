@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -14,7 +15,7 @@ import metaParser.Message;
 import typeSystem.TypeSystem.*;
 import utils.Join;
 
-public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<Boolean,CompactPrinter> _cp, StringBuilder sb){
+public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }
   CompactPrinter cp(boolean trunk){ return _cp.apply(trunk); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
@@ -180,6 +181,8 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return ex("See inferred typing context below for how type "+req+" was introduced: (compression indicated by `-`)", e);
   }
   FearlessException ex(String footerHdr, core.E footerE){
+    blank();
+    notes.get().forEach(this::line);
     return Code.TypeError.of(blank()
       .line(footerHdr)
       .compactPrinterLine(footerE)
