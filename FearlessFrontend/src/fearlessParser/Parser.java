@@ -59,15 +59,12 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (!peek(Token.typeName)){ expect("expression",LowercaseId,UppercaseId,ORound,OCurly); }
     //the expect above is guaranteed to go in error, the list of tokens is cherry picked to produce
     //and intuitive error message
-    return parseTypedLiteral(startPos,rc);
-  }
-  RC parseRC(){ return RC.valueOf(expect("reference capability",RCap).content()); }
-  Optional<RC> parseOptRC(){ return parseIf(peek(RCap),this::parseRC); }
-  E.TypedLiteral parseTypedLiteral(int startPos, Optional<RC> rc){
     var pos= pos();
     var c= parseRCC(startPos,rc);
     return new E.TypedLiteral(c,parseIf(peek(_CurlyGroup),()->parseGroup("typed literal",p->p.parseLiteral(false))),pos);
   }
+  RC parseRC(){ return RC.valueOf(expect("reference capability",RCap).content()); }
+  Optional<RC> parseOptRC(){ return parseIf(peek(RCap),this::parseRC); }
   T.RCC parseRCC(int startPos, Optional<RC> rc){
     var c= parseC();
     return new T.RCC(rc,c,new TSpan(spanAround(startPos,index())));
@@ -290,17 +287,13 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var hasPar= peek(_RoundGroup);
     var ps= hasPar
       ?parseGroupSep("","method parameters declaration",Parser::parseParameter,ORound,CRound,commaSkip)
-      :parseNakedParameters();
+      :peek(Colon) ? List.<Parameter>of() : splitBy("method parameters declaration",commaSkip,Parser::parseParameter);
     var t= parseOptT();
     m= m.map(_m->_m.withArity(ps.size()));
     var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();
     var duplicated= xs.stream().distinct().count() < xs.size();
     if (duplicated){ throw errFactory().duplicateParamInMethodSignature(xs,span()); }
     return new Sig(rc,m,bs,hasPar,ps,t);
-  }
-  List<Parameter> parseNakedParameters(){
-    if (peek(Colon)){ return List.of(); }
-    return splitBy("method parameters declaration",commaSkip,Parser::parseParameter);
   }
   Optional<T> parseOptT(){ return parseIf(fwdIf(peek(Colon)),this::parseT); }
   Parameter parseParameter(){
