@@ -97,7 +97,7 @@ public record Methods(
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
     var ds= d.cs().stream().map(c->fetch(d,c,from(c.name()),List.of())).toList();
     var implied= ds.stream().flatMap(dsi->dsi.cs().stream()).toList();
-    var allCs= Push.of(d.cs(),implied.stream().filter(c->!d.cs().contains(c)).distinct().sorted(Comparator.comparing(Object::toString)).toList());
+    var allCs= ToCore.distinctTypes(d.bs(),Push.of(d.cs(),implied.stream().sorted(Comparator.comparing(Object::toString)).toList()));
     var allSig= Streams.zip(d.cs(),ds).filter((c,_)->!implied.contains(c))
       .flatMap((_,dsi)->dsi.sigs().stream()).toList();
     var allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
@@ -144,6 +144,7 @@ public record Methods(
 
   core.E.Literal injectDeclaration(E.Literal d){
     var cs= TypeRename.itcToTC(d.cs());
+    assert InjectionToInferenceVisitor.duplicatedSupertypes(d.bs(),cs).isEmpty();
     p().log().logInferenceDeclaration(d, cs);
     var ms= new ToCore(List.of()).msSyntetic(d.ms());
     return new core.E.Literal(d.rc().orElse(RC.imm),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName());

@@ -7,6 +7,30 @@ public class TestInferenceSteps extends testUtils.FearlessTestBase{
   static void okI(String expected, List<String> input){ inferenceOk(expected, input, true); }
   static void failI(String expected, List<String> input){ inferenceFail(expected, input, true); }
 
+@Test void impliedSupertypeSpelledDifferentlyIsListedOnce(){okI("""
+p.A[Y:imm]:p.Foo[Y], p.Bar[Y]{'this}
+p.Bar[X:imm,mut]:p.Foo[imm X]{'this}
+p.Foo[X:imm]:{'this}
+~-----------
+~mut p.A[Y:imm]:p.Foo[Y], p.Bar[Y]{'this }
+~mut p.Bar[X:imm,mut]:p.Foo[imm X]{'this }
+~mut p.Foo[X:imm]:{'this }
+""",List.of("""
+Foo[X:imm]:{}
+Bar[X:imm,mut]:Foo[imm X]{}
+A[Y:imm]:Foo[Y],Bar[Y]{}
+"""));}
+@Test void literalSupertypeSpelledDifferentlyIsListedOnce(){okI("""
+p.A:{'this .m[Y:imm](Y):p.Foo[Y]@p.A;(y)->p._AA:p.Foo[Y]{'_ ? .get[?]:?@!;->y:?;}:?;}
+p.Foo[X:imm]:{'this .get:X@p.Foo;}
+p._AA[Y:imm]:p.Foo[imm Y]{'_ .get:imm Y@p._AA;->y:imm Y;}
+~-----------
+~mut p.A:{'this .m[Y:imm](y:Y):p.Foo[Y]->imm p._AA[Y:imm]:p.Foo[Y]{'_ .get:imm Y->y}}
+~mut p.Foo[X:imm]:{'this .get:X}
+""",List.of("""
+Foo[X:imm]:{ .get: X }
+A:{ .m[Y:imm](y: Y): Foo[Y] -> Foo[Y]{ .get -> y } }
+"""));}
 @Test void inferMini(){okI("""
 p.A:{'this .foo:p.A@p.A;->this:?.foo():?;}
 ~-----------

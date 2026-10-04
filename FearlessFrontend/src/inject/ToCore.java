@@ -11,11 +11,14 @@ import core.RC;
 import core.Src;
 import core.T;
 import core.TName;
+import core.TSpan;
 import inference.Gamma;
 import inference.IT;
 import offensiveUtils.EqTransparent;
+import typeSystem.TypeSystem;
 import utils.Bug;
 import utils.OneOr;
+import utils.Pos;
 import utils.Push;
 import utils.Streams;
 
@@ -46,8 +49,18 @@ public record ToCore(List<B> ctx){
     var name= e.name().withArity(bs.size());
     var inner= new ToCore(e.infName() ? Push.of(ctx,bs).stream().distinct().toList() : bs);
     var ms= inner.mapMs(e.ms(),o.ms()).stream().map(m->withOrigin(m,e.name(),name)).toList();
-    var cs= TypeRename.itcToTC(o.cs().isEmpty() ? e.cs() : Push.of(o.cs(),e.cs()).stream().distinct().toList());
+    var cs= TypeRename.itcToTC(distinctTypes(inner.ctx(),o.cs().isEmpty() ? e.cs() : Push.of(o.cs(),e.cs())));
+    assert InjectionToInferenceVisitor.duplicatedSupertypes(inner.ctx(),cs).isEmpty();
     return new core.E.Literal(rc,name,bs,cs,e.thisName(),ms,e.src(),e.infName());
+  }
+  static List<IT.C> distinctTypes(List<B> bs, List<IT.C> cs){
+    var res= new ArrayList<IT.C>();
+    for (var c: cs){ if (res.stream().noneMatch(r->sameType(bs,r,c))){ res.add(c); } }
+    return Collections.unmodifiableList(res);
+  }
+  private static boolean sameType(List<B> bs, IT.C a, IT.C b){
+    var span= TSpan.fromPos(Pos.unknown);
+    return TypeSystem.eqModXRC(bs,new T.RCC(RC.imm,TypeRename.itcToTC(a),span),new T.RCC(RC.imm,TypeRename.itcToTC(b),span));
   }
   private List<B> uncommittedBs(inference.E.Literal e){
     var free= new FreeXs(new Gamma());
