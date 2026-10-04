@@ -1,7 +1,6 @@
 package core;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -13,12 +12,7 @@ public interface OtherPackages{
   Collection<TName> dom();
   long stamp();
   Map<String,Map<String,String>> virtualizationMap();
-  static OtherPackages empty(){ return new OtherPackages(){
-    public Collection<TName> dom(){ return List.of(); }
-    public core.E.Literal __of(TName name){ return null; }
-    public long stamp(){ return -1; }
-    public Map<String,Map<String,String>> virtualizationMap(){ return Map.of(); }
-  };}
+  static OtherPackages empty(){ return start(Map.of(),Map.<TName,Literal>of(),-1); }
   static OtherPackages start(Map<String,Map<String,String>> vMap, Map<TName,Literal> core, long newStamp){
     return new OtherPackages(){
       public Collection<TName> dom(){ return core.keySet(); }

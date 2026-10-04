@@ -5,7 +5,6 @@ import static fearlessParser.TokenKind.*;
 import java.util.List;
 
 import utils.Pos;
-import metaParser.Span;
 
 public record Token(
   TokenKind kind, String content, int line, int column, List<Token> tokens

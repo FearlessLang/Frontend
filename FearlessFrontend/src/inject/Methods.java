@@ -17,7 +17,6 @@ import core.LiteralDeclarations;
 import core.MName;
 import core.OtherPackages;
 import core.RC;
-import core.T;
 import core.TName;
 import fearlessParser.Parser;
 import inference.E;
