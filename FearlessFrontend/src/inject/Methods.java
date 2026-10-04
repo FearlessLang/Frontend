@@ -3,7 +3,6 @@ package inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -190,7 +189,7 @@ public record Methods(
       var name= m.sig().m().get();
       var rc= m.sig().rc();
       var match= new LinkedHashMap<RC,ArrayList<M.Sig>>();
-      ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && acc(match,s));
+      ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s));
       var inferredRcOverloads= rc.isEmpty() && match.size() > 1;
       if (inferredRcOverloads){
         var litRc= origin.rc().or(origin.t()::explicitRC).orElse(RC.imm);
@@ -224,10 +223,6 @@ public record Methods(
     }
     assert !changed == res.equals(ms);
     return changed ? List.copyOf(res) : ms;
-  }
-  private boolean acc(HashMap<RC,ArrayList<Sig>> match, Sig s){
-    match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s);
-    return true;
   }
   long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m().get()).distinct().count(); }
 

@@ -19,6 +19,4 @@ public record Package(String name, Map<String,String> map, List<FileFull.Use> us
       logs.add(d.name().s()+Join.of(d.bs(),"[",", ","]","")+":"+Join.of(cs,"",", ","","")+"{'"+d.thisName()+Join.of(d.ms(),"","","","")+"}");
     }
   }
-  public static Logger onLogger(){ return new Logger(true,new ArrayList<>()); }
-  public static Logger offLogger(){ return new Logger(false,null); }
 }

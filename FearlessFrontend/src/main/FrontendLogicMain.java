@@ -90,7 +90,7 @@ public class FrontendLogicMain{
     return makePackage(pkgName, Collections.unmodifiableMap(map), head.uses(), ds, names);
   }
   Package makePackage(String name, Map<String,String> map, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
-    return new Package(name,map,uses,decs,names,Package.offLogger());//this method exists to change logger in mocking
+    return new Package(name,map,uses,decs,names,new Package.Logger(false,null));//this method exists to change logger in mocking
   }
   //map a as b in c //inside c, a written a stands for b
   private void accUses(WellFormednessErrors err, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other, DeclaredNames names){
