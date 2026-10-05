@@ -54,6 +54,11 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
          + "Write: "+disp(hint)+"\n"
          + "Not:   "+disp(hint+";")+"\n";
   }
+  public FearlessException straySemicolon(Span at){
+    return Code.UnexpectedToken.of(
+      "Extra semicolon: no method declaration comes before this \";\".\n"
+    + "Methods are separated by a single \";\". Remove this semicolon.\n").addSpan(at);
+  }
   public FearlessException topLevelNotATypeDeclaration(Span at, String found){
     return Code.UnexpectedToken.of(()->
       lastTop.map(t->"This should probably be inside the declaration of "+staticTypeDecName(t)+".\n")
