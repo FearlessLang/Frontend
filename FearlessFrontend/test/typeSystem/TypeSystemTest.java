@@ -3731,6 +3731,37 @@ User:{
   .n(css: base.MList[base.MList[Customer]]): base.MList[base.MList[Person]] -> css.as{::.as{::}};
   }
 """));}
+@Test void baseIdAsImmListOfMutElements(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(cs: base.MList[mut Customer]): base.MList[Person] -> cs.as{::} }
+"""));}
+@Test void baseIdAsNestedImmListsOfMutElements(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(css: base.MList[mut base.MList[mut Customer]]): base.MList[base.MList[Person]] -> css.as{::.as{::}} }
+"""));}
+@Test void baseIdAsMutList(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(cs: mut base.MList[Customer]): base.MList[Person] -> cs.as{::} }
+"""));}
+@Test void baseIdAsReadListOfMutElements(){fail("""
+003| User:{ .n(cs: read base.MList[mut Customer]): base.MList[Person] -> cs.as{::} }
+   |        -------------------------------------------------------------------^^^
+
+While inspecting parameter "::" > "#(_)" line 3 > ".n(_)" line 3
+Method "#(_)" inside the object literal instance of "iso base.BaseId[read Customer,Person]" (line 3)
+is implemented with an expression returning "read Customer".
+Parameter "::" has type "read Customer" instead of a subtype of "Person".
+
+See inferred typing context below for how type "Person" was introduced: (compression indicated by `-`)
+User:{.n(cs:read -.MList[mut Customer]):-.MList[Person]->cs.as[read,Person](-.BaseId[read Customer,Person]{(-)->::})}
+""",List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(cs: read base.MList[mut Customer]): base.MList[Person] -> cs.as{::} }
+"""));}
 @Test void baseIdNotSubtype(){fail("""
 003| User:{ .m: base.BaseId[Person,Customer] -> {::} }
    |        -------------------------------------^^^
@@ -3887,6 +3918,14 @@ User:{ .u(p: Pt): base.Nat -> base.Block#.let {._aeqS,.y} = {p}.return{_aeqS + y
 @Test void eqSugarDestructNamesSameAsFreshDestructName(){ok(List.of("""
 Pt:{ ._adiv: base.Nat -> 1; .y: base.Nat -> 2 }
 User:{ .u(p: Pt): base.Nat -> base.Block#.let {._adiv,.y}1 = {p}.let {._adiv} = {p}.return{_adiv1 + y1 + _adiv} }
+"""));}
+@Test void destructParameterWithHygienicResult(){ok(List.of("""
+Pt:{ .x: base.Nat -> 1; .y: base.Nat -> 2 }
+User:{ .u[R:**]({.x,.y}1: Pt, f: mut base.MF[base.Nat,base.Nat,R]): R -> f#(x1,y1) }
+"""));}
+@Test void destructParametersMoreThanFourNames(){ok(List.of("""
+P3:{ .a: base.Nat -> 1; .b: base.Nat -> 2; .c: base.Nat -> 3 }
+User:{ .u({.a,.b,.c}1: P3, {.a,.b,.c}2: P3): base.Nat -> a1 + b1 + c1 + a2 + b2 + c2 }
 """));}
 @Test void destructParameterNamesSameAsFreshName(){ok(List.of("""
 Pt:{ ._aeqS: base.Nat -> 1; .y: base.Nat -> 2 }

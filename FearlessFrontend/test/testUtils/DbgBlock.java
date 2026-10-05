@@ -99,8 +99,12 @@ Sealed:{}
 CaptureFree: {}
 WidenTo[T]:{}
 BaseId[T1:*,T2]: CaptureFree{ #(x: T1): T2 }
-BaseContainer[T1:*]: Sealed{ imm .as[T2](f: BaseId[T1,T2]): BaseContainer[T2] -> Nope! }
-MList[E:*]: BaseContainer[imm E]{
+BaseContainer[T1:*]: Sealed{
+  read .as[T2](f: BaseId[read/imm T1,T2]): BaseContainer[T2] -> Nope!;
+  imm .as[T2](f: BaseId[imm T1,T2]): BaseContainer[T2] -> Nope!;
+  }
+MList[E:*]: BaseContainer[E]{
+  read .as[T2](f: BaseId[read/imm E,T2]): MList[T2] -> Nope!;
   imm .as[T2](f: BaseId[imm E,T2]): MList[T2] -> Nope!;
   .get: imm E -> Nope!;
   }
@@ -123,6 +127,12 @@ MF[A:**,R:**]: { mut #(a: A): R }
 MF[A:**, B:**, R:**]: { mut #(a: A, b: B): R }
 MF[A:**, B:**, C:**, R:**]: { mut #(a: A, b: B, c: C): R }
 MF[A:**, B:**, C:**, D:**, R:**]: { mut #(a: A, b: B, c: C, d: D): R }
+Destruct: Sealed {
+  #[A:**, R:**](a: A, f: mut MF[A, R]): R -> f#a;
+  #[A:**, B:**, R:**](a: A, b: B, f: mut MF[A, B, R]): R -> f#(a, b);
+  #[A:**, B:**, C:**, R:**](a: A, b: B, c: C, f: mut MF[A, B, C, R]): R -> f#(a, b, c);
+  #[A:**, B:**, C:**, D:**, R:**](a: A, b: B, c: C, d: D, f: mut MF[A, B, C, D, R]): R -> f#(a, b, c, d);
+  }
 Nope:{![T:**]:T->Nope!}
 Num:Sealed,WidenTo[Num]{ +(Num):Num->Nope!; *(Num):Num->Nope! }
 Nat:Sealed,WidenTo[Nat]{ +(Nat):Nat->Nope!; *(Nat):Nat->Nope! }
