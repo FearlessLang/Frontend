@@ -99,8 +99,12 @@ Sealed:{}
 CaptureFree: {}
 WidenTo[T]:{}
 BaseId[T1:*,T2]: CaptureFree{ #(x: T1): T2 }
-BaseContainer[T1:*]: Sealed{ imm .as[T2](f: BaseId[T1,T2]): BaseContainer[T2] -> Nope! }
-MList[E:*]: BaseContainer[imm E]{
+BaseContainer[T1:*]: Sealed{
+  read .as[T2](f: BaseId[read/imm T1,T2]): BaseContainer[T2] -> Nope!;
+  imm .as[T2](f: BaseId[imm T1,T2]): BaseContainer[T2] -> Nope!;
+  }
+MList[E:*]: BaseContainer[E]{
+  read .as[T2](f: BaseId[read/imm E,T2]): MList[T2] -> Nope!;
   imm .as[T2](f: BaseId[imm E,T2]): MList[T2] -> Nope!;
   .get: imm E -> Nope!;
   }
