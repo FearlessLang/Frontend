@@ -2637,7 +2637,7 @@ In file: [###].fear
 
 While inspecting type declaration > full file
 Missing type declaration (:) symbol.
-Found instead: "".
+Found instead: a group in {..}.
 Expected: ":".
 Error 2 UnexpectedToken
 ""","""
@@ -2856,6 +2856,34 @@ A:{}
 B:{};
 C:{}
 """);}
+@Test void groupFoundInsteadOfBoundColon(){fail("""
+In file: [###].fear
+
+001| A[X[Y]]:{}
+   | --~^~~----
+
+While inspecting generic bounds declaration > type declaration > full file
+Missing generic bounds.
+Found instead: a group in [..].
+Expected: ":".
+Error 2 UnexpectedToken
+""","""
+A[X[Y]]:{}
+""");}
+@Test void groupFoundInsteadOfMethodBoundColon(){fail("""
+In file: [###].fear
+
+001| A:{ .a[X[Y]]: A -> this }
+   |     ---~^~~----
+
+While inspecting generic bounds declaration > method signature > method declaration > type declaration body > type declaration > full file
+Missing generic bounds.
+Found instead: a group in [..].
+Expected: ":".
+Error 2 UnexpectedToken
+""","""
+A:{ .a[X[Y]]: A -> this }
+""");}
 @Test void doubleSemicolonAfterMethod(){fail("""
 In file: [###].fear
 
@@ -2939,7 +2967,7 @@ While inspecting type declaration > full file
 This is not a top level type declaration.
 Top level code can only contain type declarations.
 A type declaration starts with a type name, like "Point:{..}".
-Found instead: "".
+Found instead: a group in (..).
 Likely cause: an extra "}" closed a type declaration unintentionally.
 Error 2 UnexpectedToken
 ""","""

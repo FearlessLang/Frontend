@@ -59,13 +59,14 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       "Extra semicolon: no method declaration comes before this \";\".\n"
     + "Methods are separated by a single \";\". Remove this semicolon.\n").addSpan(at);
   }
-  public FearlessException topLevelNotATypeDeclaration(Span at, String found){
+  private static String found(Token t){ return t.tokens().isEmpty() ? disp(t.content()) : "a "+t.kind().human; }
+  public FearlessException topLevelNotATypeDeclaration(Span at, Token found){
     return Code.UnexpectedToken.of(()->
       lastTop.map(t->"This should probably be inside the declaration of "+staticTypeDecName(t)+".\n")
         .orElse("This is not a top level type declaration.\n")
       + "Top level code can only contain type declarations.\n"
       + "A type declaration starts with a type name, like \"Point:{..}\".\n"
-      + "Found instead: " + disp(found) + ".\n"
+      + "Found instead: " + found(found) + ".\n"
       + "Likely cause: an extra \"}\" closed a type declaration unintentionally.\n"
       ).addSpan(at);
   }
@@ -373,7 +374,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     assert nonNull(at, what, found, expectedTokens);
     var msg=
       "Missing " + (what.isBlank() ? "element" : what) + ".\n"
-    + "Found instead: " + disp(found.content()) + ".\n"
+    + "Found instead: " + found(found) + ".\n"
     + expected(expectedTokens);
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
