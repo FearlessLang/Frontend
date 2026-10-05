@@ -64,8 +64,11 @@ public record InjectionSteps(Methods meths){
       .map(l->s.stepDec(meths.cache().get(l.name()), l)).toList();
   }
   private core.E.Literal stepDec(core.E.Literal di, inference.E.Literal li){ return di.withMs(li.ms().stream().map(m->stepDecM(di, m)).toList()); }
+  private boolean sameM(core.Sig s1, inference.M.Sig s2){
+    return s1.m().equals(s2.m().get()) && s1.rc() == s2.rc().orElse(RC.imm);
+  }
   private core.M stepDecM(core.E.Literal di, inference.M m){
-    var mCore= OneOr.of("Method mismatch", di.ms().stream().filter(mi->mi.sig().m().equals(m.sig().m().get()) && mi.sig().rc() == m.sig().rc().orElse(RC.imm)));
+    var mCore= OneOr.of("Method mismatch", di.ms().stream().filter(mi->sameM(mi.sig(), m.sig())));
     if (m.impl().isEmpty()){ return mCore; }//assert same type as m lifted to core
     var e= m.impl().get().e();
     var span= di.name().approxSpan();
@@ -204,6 +207,7 @@ public record InjectionSteps(Methods meths){
     if (!(wid instanceof IT.RCC(_, var widC, _))){ return type; }
     return new IT.RCC(type.rc(), widC,type.span());
   }
+  private RC overloadNorm(Optional<RC> rc){ return rc.map(r->r == RC.iso ? RC.imm : noH(r)).orElse(RC.imm); }
   private Optional<core.M> oneFromGuessRC(List<core.M> ms, RC rc){
     if (ms.size() == 1){ return Optional.of(ms.getFirst()); }
     var readOne= OneOr.opt("not well formed ms", ms.stream().filter(m->m.sig().rc() == RC.read));
@@ -220,7 +224,7 @@ public record InjectionSteps(Methods meths){
     var ms= d.ms().stream().filter(m->m.sig().m().equals(name));
     var om= favorite
       .map(rc->OneOr.opt("Ambiguous method header for explicit RC", ms.filter(mi->mi.sig().rc() == rc)))
-      .orElseGet(()->oneFromGuessRC(ms.toList(), rcc.rc().map(r->r == RC.iso ? RC.imm : noH(r)).orElse(RC.imm)));
+      .orElseGet(()->oneFromGuessRC(ms.toList(), overloadNorm(rcc.rc())));
     return om.map(mm->f.apply(d, mm));
   }
   private MSigL methodHeaderInstance(IT.RCC rcc, core.E.Literal d, core.M m){
@@ -320,12 +324,13 @@ public record InjectionSteps(Methods meths){
   private List<IT> decidedThen(E.Call c, MSigL m, List<E> es, Stream<List<IT>> refinements){
     var targs= MSigL.fixTargs(c.targs(), m.bsArity());
     var all= meet(Streams.of(Stream.of(Push.of(m.clsArgs(), targs)), refinements).toList());
-    var written= Push.of(m.clsArgs(), c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent() ? targs : qMarks(m.bsArity()));
+    var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
     var fromLiterals= Streams.zip(m.ps0(), es).filter((_,e2)->e2 instanceof E.Literal).map((p,e2)->refine(m.xs(), p, e2.t()));
     var hard= meet(Streams.of(Stream.of(qMarks(written.size())), fromLiterals).toList());
     var fixed= Streams.zip(written, hard).map((w,h)->decided(w) ? w : h).toList();
     return Streams.zip(fixed, all).map((b,r)->decided(b) ? b : r).toList();
   }
+  private static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
   private static boolean decided(IT t){ return t.isTV() && !(t instanceof IT.RCC(var rc, _, _) && rc.isEmpty()); }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
     var selfUnknown= l.infName() && l.rc().isEmpty();
@@ -374,10 +379,11 @@ public record InjectionSteps(Methods meths){
     var freeNames= Streams.of(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()), t.ftv());
     var localBs= freeNames.distinct().map(x->RC.get(bs, x)).toList();
     var newName= name.withArity(localBs.size());
-    var ms= name.equals(newName) ? l.ms() : norm(l.ms(),l.ms().stream().map(mi->fixArity(mi, name, newName)).toList());
+    var ms= fixArity(l.ms(), name, newName);
     var orc= l.rc().or(rcc::rc).map(InjectionSteps::noH);
     if (!l.infName()){
       l= new E.Literal(orc, newName, localBs, l.cs(), l.thisName(), ms, l.t(), l.src(),l.infName(), l.infHead(), l.g());
+      assert !meths.cache().containsKey(name);
       meths.register(l);
       return l;
     }
@@ -392,8 +398,13 @@ public record InjectionSteps(Methods meths){
     assert l.infHead();
     l= new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, t, l.src(),l.infName(), l.infHead(), l.g());
     if (selfInferred){ l= l.withT(preciseSelf(l).get()); }
+    assert !meths.cache().containsKey(name);
     meths.register(l);
     return l;
+  }
+  private List<M> fixArity(List<M> ms, TName name, TName newName){
+    if (name.equals(newName)){ return ms; }
+    return norm(ms,ms.stream().map(mi->fixArity(mi, name, newName)).toList());
   }
   private M fixArity(M m, TName name, TName newName){
     var s= m.sig();
@@ -403,6 +414,9 @@ public record InjectionSteps(Methods meths){
   private static boolean hasU(List<inference.M> ms){
     return !ms.stream()
       .allMatch(m->m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t->t.get().isTV()));
+  }
+  private List<Optional<IT>> updateArgs(inference.M m, Gamma g){
+    return Streams.zip(m.impl().get().xs(), m.sig().ts()).map((x,oi)->x.equals("_") ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
   }
   record TSM(List<IT> ts, inference.M m){}
   TSM nextMStarAbs(IT.RCC rcc, inference.M m){
@@ -422,7 +436,7 @@ public record InjectionSteps(Methods meths){
     assert m.sig().m().get().arity() == m.impl().get().xs().size();
     Streams.zip(m.impl().get().xs(), m.sig().ts()).forEach((x,t)->g.declare(x, t.get()));
     var e= nextStar(Push.of(litBs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
-    var args= Streams.zip(m.impl().get().xs(), m.sig().ts()).map((x,oi)->x.equals("_") ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
+    var args= updateArgs(m, g);
     g.popScope();
     g.popScope();
     return nextMStarOpRun(rcc, m, e, args);
@@ -562,7 +576,7 @@ public record InjectionSteps(Methods meths){
       case E.Call c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected, true));
       case E.ICall c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected, true));
       case E.Literal l when !needsPrototypeAscription(l) -> arg;
-      case E.Literal l when !receiver || implementable(exp.c().name()) -> l.withT(new IT.RCC(exp.rc(), new IT.C(exp.c().name(), qMarks(exp.c().ts().size())), l.span()));
+      case E.Literal l when !receiver || implementable(exp.c().name()) -> l.withT(prototypeHead(exp,l.span()));
       case E.Literal l -> itself(l);
       default -> arg;
     };
@@ -577,6 +591,9 @@ public record InjectionSteps(Methods meths){
   private E.Literal itself(E.Literal l){
     var res= new E.Literal(Optional.of(RC.imm), l.name(), l.bs(), l.cs(), l.thisName(), l.ms(), l.src(), true);
     return res.withT(preciseSelf(res).get());
+  }
+  private IT.RCC prototypeHead(IT.RCC expected, TSpan span){
+    return new IT.RCC(expected.rc(), new IT.C(expected.c().name(), qMarks(expected.c().ts().size())), span);
   }
 
   private static IT normToBound(IT t, EnumSet<RC> allowed){

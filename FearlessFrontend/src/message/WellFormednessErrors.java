@@ -199,13 +199,17 @@ public record WellFormednessErrors(String pkgName){
       var inPkg= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
       var simpleInPkg= userMap(TName::simpleName, inPkg.stream());
       var e= err.get()
-        .line("Type "+disp(typedSimple)+" is not declared in package "+(typedPkg.isEmpty() ? disp(contextPkg)+" and is not made visible via \"use\"" : disp(typedPkg))+".");
+        .line("Type "+disp(typedSimple)+" is not declared in package "+relevantPkgMsg()+".");
       var suggest= NameSuggester.suggest(typedSimple, simpleInPkg);
       if (!suggest.isEmpty()){ e.line(suggest); }
       if (!typedPkg.isEmpty()){ addOtherPkgNotePkgExplicit(e); return make(e); }
       var noBestLocal= NameSuggester.bestName(typedSimple, simpleInPkg).isEmpty();
       if (noBestLocal){ addOtherPkgNotePkgImplicit(e); }
       return make(e);
+    }
+    private String relevantPkgMsg(){
+      if (!typedPkg.isEmpty()){ return disp(typedPkg); }
+      return disp(contextPkg)+" and is not made visible via \"use\"";
     }
     private List<TName> typesInPkg(String pkg){ return all.stream().filter(t->t.pkgName().equals(pkg)).toList(); }
     private void addOtherPkgNotePkgExplicit(Err e){

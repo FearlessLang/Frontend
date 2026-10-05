@@ -103,7 +103,11 @@ public final class LiteralDeclarations{
       assert inRange(v,natMin,natMax);
       return v.longValue() +"L";// wraps to low 64 bits (exactly what we want given the range)
     }
-    if (TokenKind.isKind(ns,TokenKind.SignedInt)){ return big(ns).longValueExact() +"L"; }
+    if (TokenKind.isKind(ns,TokenKind.SignedInt)){
+      var v= big(ns);
+      assert inRange(v,intMin,intMax);
+      return v.longValueExact() +"L";
+    }
     if (TokenKind.isKind(ns,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){
       assert floatLiteralOk(ns);
       return floatLiteralDouble(ns) +"d";

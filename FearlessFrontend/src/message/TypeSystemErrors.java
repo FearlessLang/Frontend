@@ -449,7 +449,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     assert reqs.size() == res.size();
     assert res.stream().noneMatch(Reason::isEmpty);
     var reqCanon= reqCanon(reqs);
-    if (res.stream().map(r->canon(r.best)).noneMatch(r->ts.isSub(bs,r,reqCanon))){ return wrongUnderlyingTypeErr(ts,d,c,argi,reqs,res); }
+    if (isWrongUnderlyingType(ts,bs,reqCanon,res)){ return wrongUnderlyingTypeErr(ts,d,c,argi,reqs,res); }
     var gotHdr= headerBest(res);
     var any= reqs.stream().map(TRequirement::t).map(t->err().typeRepr(false,t)).distinct().toList();
     var r= Streams.zip(res, reqs).filter((ri,q)->rcOnlyMismatch(ri.best, q.t())).map((ri,_)->ri).findFirst().orElse(res.getFirst());
@@ -491,6 +491,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var c0= canon(reqs.getFirst().t());
     assert reqs.stream().allMatch(r->canon(r.t()).equals(c0));
     return c0;
+  }
+  private static boolean isWrongUnderlyingType(TypeSystem ts, List<B> bs, T reqCanon, List<Reason> res){
+    return res.stream().map(r->canon(r.best)).noneMatch(r->ts.isSub(bs, r, reqCanon));
   }
   private static T canon(T t){ return t.withRC(core.RC.imm); }
 

@@ -131,8 +131,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var sig= new fearlessFullGrammar.Sig(empty(),empty(),empty(),false,ps,empty());
     var f= new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(of(sig), of(inner), false, span)), span);
     var args= Push.of(xes.subList(0, n).stream().map(XE::e).toList(), f);
-    var destruct= new fearlessFullGrammar.E.TypedLiteral(new fearlessFullGrammar.T.RCC(empty(),new fearlessFullGrammar.T.C(new TName("base.Destruct",0,p),of(List.of())),body.span()), empty(), p);
-    return call(destruct, "#", args, p);
+    return call(typedLiteral("base.Destruct", body.span(),p), "#", args, p);
   }
   record XE(String x, fearlessFullGrammar.E e){}
   List<XE> xpats(List<String> lowered, List<fearlessFullGrammar.Parameter> original, TSpan span){
@@ -197,8 +196,11 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   static Optional<List<Integer>> duplicatedSupertypes(List<B> bs, List<core.T.C> cs){
     var ts= cs.stream().map(c->new core.T.RCC(RC.imm,c,TSpan.fromPos(Pos.unknown))).toList();
     return IntStream.range(0,ts.size()).boxed()
-      .flatMap(j->IntStream.range(0,j).filter(i->TypeSystem.isSameShapeSubtype(bs,ts.get(i),ts.get(j)) && TypeSystem.isSameShapeSubtype(bs,ts.get(j),ts.get(i))).mapToObj(i->List.of(i,j)))
+      .flatMap(j->IntStream.range(0,j).filter(i->sameType(bs,ts.get(i),ts.get(j))).mapToObj(i->List.of(i,j)))
       .findFirst();
+  }
+  private static boolean sameType(List<B> bs, core.T a, core.T b){
+    return TypeSystem.isSameShapeSubtype(bs,a,b) && TypeSystem.isSameShapeSubtype(bs,b,a);
   }
   E visitCall(fearlessFullGrammar.E.Call c){
     if (c.pat().isPresent()){ c= desugarCPat(c); }
@@ -231,6 +233,11 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return par;
   }
   public E visitICall(fearlessFullGrammar.E.Call c){ return new E.ICall(visitReceiver(c.e()), c.name(), mapE(c.es()), new Src(c)); }
+  private fearlessFullGrammar.E.TypedLiteral typedLiteral(String str,TSpan s,Pos p){
+    var tn= new TName(str, 0,p);
+    var c= new fearlessFullGrammar.T.C(tn,of(List.of()));
+    return new fearlessFullGrammar.E.TypedLiteral(new fearlessFullGrammar.T.RCC(empty(),c,s), empty(), p);
+  }
   private fearlessFullGrammar.E call(fearlessFullGrammar.E e, String m, List<fearlessFullGrammar.E> args, Pos p){
     return new fearlessFullGrammar.E.Call(e, new MName(m, args.size()), empty(), true, empty(), args, p);
   }

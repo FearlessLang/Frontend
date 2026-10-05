@@ -209,8 +209,13 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     return new E.Literal(thisName,ms,tspan());
   }
   public record RCMName(Optional<RC> rc,MName name){}
+  private Stream<RCMName> declaredName(M m){
+    return m.sig()
+      .flatMap(s->s.m().map(n->new RCMName(s.rc(),n)))
+      .stream();
+  }
   private void checkRedeclaration(Token start, Token end, List<M> ms){
-    var names= ms.stream().flatMap(m->m.sig().flatMap(s->s.m().map(n->new RCMName(s.rc(),n))).stream()).toList();
+    var names= ms.stream().flatMap(this::declaredName).toList();
     var at= span(start,end).get();
     var redeclared= names.stream().distinct().count() < names.size();
     if (redeclared){ throw errFactory().methNameRedeclared(ms,names,at); }
@@ -287,13 +292,17 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var hasPar= peek(_RoundGroup);
     var ps= hasPar
       ?parseGroupSep("","method parameters declaration",Parser::parseParameter,ORound,CRound,commaSkip)
-      :peek(Colon) ? List.<Parameter>of() : splitBy("method parameters declaration",commaSkip,Parser::parseParameter);
+      :parseNakedParameters();
     var t= parseOptT();
     m= m.map(_m->_m.withArity(ps.size()));
     var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();
     var duplicated= xs.stream().distinct().count() < xs.size();
     if (duplicated){ throw errFactory().duplicateParamInMethodSignature(xs,span()); }
     return new Sig(rc,m,bs,hasPar,ps,t);
+  }
+  List<Parameter> parseNakedParameters(){
+    if (peek(Colon)){ return List.of(); }
+    return splitBy("method parameters declaration",commaSkip,Parser::parseParameter);
   }
   Optional<T> parseOptT(){ return parseIf(fwdIf(peek(Colon)),this::parseT); }
   Parameter parseParameter(){

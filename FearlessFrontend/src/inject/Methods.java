@@ -3,8 +3,10 @@ package inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -32,6 +34,7 @@ import utils.Streams;
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
     LinkedHashMap<TName, core.E.Literal> cache){
+  boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c->c.name().pkgName().equals(p.name()) && rem.containsKey(c.name())); }
   public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
@@ -40,7 +43,7 @@ public record Methods(
     for (E.Literal d : decs){ rem.put(d.name(), d); }
     var out= new ArrayList<List<E.Literal>>();
     while (!rem.isEmpty()){
-      var layer= rem.values().stream().filter(d->d.cs().stream().noneMatch(c->c.name().pkgName().equals(p.name()) && rem.containsKey(c.name()))).toList();
+      var layer= rem.values().stream().filter(d->free(d,rem)).toList();
       if (layer.isEmpty()){ throw p.err().circularImplements(rem); }
       out.add(layer);
       for (E.Literal d : layer){ rem.remove(d.name()); }
@@ -162,15 +165,19 @@ public record Methods(
     }
     return changed ? List.copyOf(res) : ms;
   }
+  inference.M withName(MName name,inference.M m){
+    assert m.impl().isPresent();
+    assert m.sig().m().isEmpty();
+    var s= m.sig();
+    return new inference.M(new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span()),m.impl());
+  }
   private M nameFromSigs(M m, ArrayList<M.Sig> ss, E.Literal origin){
-    var sig= m.sig();
-    assert m.impl().isPresent() && sig.m().isEmpty();
-    var arity= sig.ts().size();
+    var arity= m.sig().ts().size();
     for (var abs : List.of(true,false)){
       var match= new ArrayList<M.Sig>();
       ss.removeIf(s->s.m().get().arity() == arity && (s.abs() || !abs) && match.add(s));
       var count= namesCount(match);
-      if (count == 1){ return m.withSig(new M.Sig(sig.rc(),match.getFirst().m(),sig.bs(),sig.ts(),sig.ret(),sig.origin(),sig.abs(),sig.span())); }
+      if (count == 1){ return withName(match.getFirst().m().get(),m); }
       if (count > 1){ throw p.err().ambiguousImpl(origin,abs,m,match); }
     }
     throw p.err().noSourceToInferFrom(origin,m);
@@ -182,7 +189,7 @@ public record Methods(
       var name= m.sig().m().get();
       var rc= m.sig().rc();
       var match= new LinkedHashMap<RC,ArrayList<M.Sig>>();
-      ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s));
+      ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && acc(match,s));
       var inferredRcOverloads= rc.isEmpty() && match.size() > 1;
       if (inferredRcOverloads){
         var litRc= origin.rc().or(origin.t()::explicitRC).orElse(RC.imm);
@@ -216,6 +223,10 @@ public record Methods(
     }
     assert !changed == res.equals(ms);
     return changed ? List.copyOf(res) : ms;
+  }
+  private boolean acc(HashMap<RC,ArrayList<Sig>> match, Sig s){
+    match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s);
+    return true;
   }
   long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m().get()).distinct().count(); }
 
@@ -261,7 +272,7 @@ public record Methods(
     var ts= IntStream.range(0, name.arity()).mapToObj(i->Optional.of(pairWithTs(at,i,Optional.empty(),ssAligned))).toList();
     var res= agreement(at,ssAligned,e->e.ret().get(),p.err().retTypeDisagreement());
     var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
-    var conflicts= ssAligned.stream().filter(e->!e.abs() || from(e.origin().get()).cs().stream().anyMatch(c->impl.contains(c.name()))).map(e->e.origin().get()).distinct().toList();
+    var conflicts= ssAligned.stream().filter(e->!e.abs() || overridesAny(e,impl)).map(e->e.origin().get()).distinct().toList();
     if (conflicts.size() > 1){ throw p.err().ambiguousImplementationFor(conflicts,at); }
     var originName= impl.size() == 1? impl.getFirst() : origin.name();
     var rc= rcAgreement(ssAligned);
@@ -269,6 +280,9 @@ public record Methods(
     return new M(sig,Optional.empty());
   }
 
+  private boolean overridesAny(M.Sig s, List<TName> origins){
+    return from(s.origin().get()).cs().stream().anyMatch(c->origins.contains(c.name()));
+  }
   M toCompleteM(inference.M m,E.Literal origin){
     var s= m.sig();
     var ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(()->p.err().noSourceToInferFrom(origin,m)))).toList();
