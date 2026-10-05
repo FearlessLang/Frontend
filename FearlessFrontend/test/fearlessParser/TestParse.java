@@ -1422,6 +1422,17 @@ A:{
 }
 """);
 }
+@Test void long_block_comment(){ok("""
+FileFull[[###] decs=[
+  Declaration[name=A/0, bs=Optional.empty, cs=[], l=Literal[]],
+  Declaration[name=B/0, bs=Optional.empty, cs=[], l=Literal[]]]]
+""", "A:{} /*"+"*a".repeat(50_000)+"*/ B:{}");}
+@Test void long_unclosed_block_comment(){fail("""
+[###]
+While inspecting a block comment
+Unterminated block comment. Add "*/" to close it.
+Error 2 UnexpectedToken
+""", "A:{} /*"+"a*".repeat(50_000)+" B:{}");}
 @Test void good_float_requires_sign_and_digits_both_sides_of_dot(){ok("""
 [###]C[name=+1.2/0,ts=Optional.empty]]]]]]]]
 """, """

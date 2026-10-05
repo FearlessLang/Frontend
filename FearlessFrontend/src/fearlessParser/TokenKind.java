@@ -10,7 +10,7 @@ import metaParser.TokenMatch;
 public enum TokenKind implements metaParser.TokenKind{
   Ws("\\s+"," white space or new line"),
   LineComment("//[^\\n]*", "//.."),
-  BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", "/*..*/"),
+  BlockComment("(?s)/\\*.*?\\*/", "/*..*/"),
   BadUnclosedBlockComment("(?s)/\\*(?!.*?\\*/).*"),
   BadUnopenedBlockCommentClose("\\*/"),
 
