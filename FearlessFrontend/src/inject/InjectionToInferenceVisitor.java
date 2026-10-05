@@ -125,17 +125,16 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return of(new M.Impl(name,ps,e));
   }
   private fearlessFullGrammar.E makeXPatsBody(fearlessFullGrammar.E body, List<XE> xes){
-    var p= body.pos(); //Block#.let x1={e1}.. .let xn={en}.return{body}
+    var p= body.pos(); //Destruct#(e1,..,e4,{x1,..,x4->Destruct#(e5,..,{x5,..->body})})
     var span= TSpan.fromPos(p);
-    Function<fearlessFullGrammar.E,fearlessFullGrammar.E> k=
-      recv->call(recv, ".return", List.of(lambda(body,span)), p);
-    for (var xe: xes.reversed()){
-      var pat= new XPat.Name(new fearlessFullGrammar.E.X(xe.x, p));
-      var thunk= lambda(xe.e, span);
-      var k0= k;
-      k= recv->callPat(recv, ".let", pat, k0.apply(thunk), p);
-    }
-    return k.apply(call(typedLiteral("base.Block", body.span(),p), "#",List.of(), p));
+    var n= Math.min(xes.size(), 4);
+    var inner= n == xes.size() ? body : makeXPatsBody(body, xes.subList(n, xes.size()));
+    var ps= xes.subList(0, n).stream()
+      .map(xe->new Parameter(of(new XPat.Name(new fearlessFullGrammar.E.X(xe.x, p))), empty())).toList();
+    var sig= new fearlessFullGrammar.Sig(empty(),empty(),empty(),false,ps,empty());
+    var f= new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(of(sig), of(inner), false, span)), span);
+    var args= Push.of(xes.subList(0, n).stream().map(XE::e).toList(), f);
+    return call(typedLiteral("base.Destruct", body.span(),p), "#", args, p);
   }
   record XE(String x, fearlessFullGrammar.E e){}
   List<XE> xpats(List<String> lowered, List<fearlessFullGrammar.Parameter> original, TSpan span){
@@ -242,13 +241,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var c= new fearlessFullGrammar.T.C(tn,of(List.of()));
     return new fearlessFullGrammar.E.TypedLiteral(new fearlessFullGrammar.T.RCC(empty(),c,s), empty(), p);
   }
-  private fearlessFullGrammar.E lambda(fearlessFullGrammar.E body, TSpan span){
-    return new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(empty(), of(body), false, span)), span);
-  }
   private fearlessFullGrammar.E call(fearlessFullGrammar.E e, String m, List<fearlessFullGrammar.E> args, Pos p){
     return new fearlessFullGrammar.E.Call(e, new MName(m, args.size()), empty(), true, empty(), args, p);
-  }
-  private fearlessFullGrammar.E callPat(fearlessFullGrammar.E e, String m, XPat pat, fearlessFullGrammar.E a, Pos p){
-    return new fearlessFullGrammar.E.Call(e, new MName(m, 2), empty(), true, of(pat), List.of(a), p);
   }
 }
