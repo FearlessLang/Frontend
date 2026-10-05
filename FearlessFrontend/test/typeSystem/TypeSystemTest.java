@@ -3731,6 +3731,37 @@ User:{
   .n(css: base.MList[base.MList[Customer]]): base.MList[base.MList[Person]] -> css.as{::.as{::}};
   }
 """));}
+@Test void baseIdAsImmListOfMutElements(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(cs: base.MList[mut Customer]): base.MList[Person] -> cs.as{::} }
+"""));}
+@Test void baseIdAsNestedImmListsOfMutElements(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(css: base.MList[mut base.MList[mut Customer]]): base.MList[base.MList[Person]] -> css.as{::.as{::}} }
+"""));}
+@Test void baseIdAsMutList(){ok(List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(cs: mut base.MList[Customer]): base.MList[Person] -> cs.as{::} }
+"""));}
+@Test void baseIdAsReadListOfMutElements(){fail("""
+003| User:{ .n(cs: read base.MList[mut Customer]): base.MList[Person] -> cs.as{::} }
+   |        -------------------------------------------------------------------^^^
+
+While inspecting parameter "::" > "#(_)" line 3 > ".n(_)" line 3
+Method "#(_)" inside the object literal instance of "iso base.BaseId[read Customer,Person]" (line 3)
+is implemented with an expression returning "read Customer".
+Parameter "::" has type "read Customer" instead of a subtype of "Person".
+
+See inferred typing context below for how type "Person" was introduced: (compression indicated by `-`)
+User:{.n(cs:read -.MList[mut Customer]):-.MList[Person]->cs.as[read,Person](-.BaseId[read Customer,Person]{(-)->::})}
+""",List.of("""
+Person:{}
+Customer:Person{}
+User:{ .n(cs: read base.MList[mut Customer]): base.MList[Person] -> cs.as{::} }
+"""));}
 @Test void baseIdNotSubtype(){fail("""
 003| User:{ .m: base.BaseId[Person,Customer] -> {::} }
    |        -------------------------------------^^^
