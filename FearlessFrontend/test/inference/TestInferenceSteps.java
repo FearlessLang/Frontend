@@ -1660,13 +1660,11 @@ West : {.turn-> North;}
 
 @Test void paramMatch1(){ okI("""
 p.A:{'this .foo:p.A@p.A;}
-p.B:{'this .of(p.A):p.A@p.B;(_adiv)->base.Block:?#():?.let(p._AB:$?{'_ ? [?]:?@!;->_adiv:?.foo():?;}:?,p._CB:$?{'_ ? [?](?,?):?@!;(foo, _aeqS)->_aeqS:?.return(p._BB:$?{'_ ? [?]:?@!;->foo:?;}:?):?;}:?):?;}
-p._AB:base.ReturnStmt[p.A]{'_ mut #:p.A@p._AB;->_adiv:p.A.foo[imm]():p.A;}
-p._BB:base.ReturnStmt[p.A]{'_ mut #:p.A@p._BB;->foo:p.A;}
-p._CB:base.Continuation[p.A,mut base.Block[p.A],p.A]{'_ mut #(p.A,mut base.Block[p.A]):p.A@p._CB;(foo, _aeqS)->_aeqS:mut base.Block[p.A].return[mut](mut p._BB:base.ReturnStmt[p.A]{'_ mut #:p.A@p._BB;->foo:p.A;}:mut base.ReturnStmt[p.A]):p.A;}
+p.B:{'this .of(p.A):p.A@p.B;(_adiv)->base.Destruct:?#(_adiv:?.foo():?,p._AB:$?{'_ ? [?](?):?@!;(foo)->foo:?;}:?):?;}
+p._AB:base.MF[p.A,p.A]{'_ mut #(p.A):p.A@p._AB;(foo)->foo:p.A;}
 ~-----------
 ~mut p.A:{'this .foo:p.A}
-~mut p.B:{'this .of(_adiv:p.A):p.A->base.Block#[imm,p.A].let[mut,p.A](mut p._AB:base.ReturnStmt[p.A]{'_ mut #:p.A->_adiv.foo[imm]}, mut p._CB:base.Continuation[p.A,mut base.Block[p.A],p.A]{'_ mut #(foo:p.A, _aeqS:mut base.Block[p.A]):p.A->_aeqS.return[mut](mut p._BB:base.ReturnStmt[p.A]{'_ mut #:p.A->foo})})}
+~mut p.B:{'this .of(_adiv:p.A):p.A->base.Destruct#[imm,p.A,p.A](_adiv.foo[imm], mut p._AB:base.MF[p.A,p.A]{'_ mut #(foo:p.A):p.A->foo})}
 """, List.of("""
 A:{.foo:A}
 B:{.of({.foo}:A):A->foo}

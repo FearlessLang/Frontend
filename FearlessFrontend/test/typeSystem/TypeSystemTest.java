@@ -3919,6 +3919,14 @@ User:{ .u(p: Pt): base.Nat -> base.Block#.let {._aeqS,.y} = {p}.return{_aeqS + y
 Pt:{ ._adiv: base.Nat -> 1; .y: base.Nat -> 2 }
 User:{ .u(p: Pt): base.Nat -> base.Block#.let {._adiv,.y}1 = {p}.let {._adiv} = {p}.return{_adiv1 + y1 + _adiv} }
 """));}
+@Test void destructParameterWithHygienicResult(){ok(List.of("""
+Pt:{ .x: base.Nat -> 1; .y: base.Nat -> 2 }
+User:{ .u[R:**]({.x,.y}1: Pt, f: mut base.MF[base.Nat,base.Nat,R]): R -> f#(x1,y1) }
+"""));}
+@Test void destructParametersMoreThanFourNames(){ok(List.of("""
+P3:{ .a: base.Nat -> 1; .b: base.Nat -> 2; .c: base.Nat -> 3 }
+User:{ .u({.a,.b,.c}1: P3, {.a,.b,.c}2: P3): base.Nat -> a1 + b1 + c1 + a2 + b2 + c2 }
+"""));}
 @Test void destructParameterNamesSameAsFreshName(){ok(List.of("""
 Pt:{ ._aeqS: base.Nat -> 1; .y: base.Nat -> 2 }
 User:{ .u({._aeqS,.y}: Pt): base.Nat -> base.Block#.let z = {y}.return{_aeqS + z} }
