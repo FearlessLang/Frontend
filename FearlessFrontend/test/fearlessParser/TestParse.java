@@ -2856,6 +2856,58 @@ A:{}
 B:{};
 C:{}
 """);}
+@Test void doubleSemicolonAfterMethod(){fail("""
+In file: [###].fear
+
+001| A:{ .a: A -> this;; }
+   | --~~~~~~~~~~~~~~~~^~~
+
+While inspecting type declaration body > type declaration > full file
+Extra semicolon: no method declaration comes before this ";".
+Methods are separated by a single ";". Remove this semicolon.
+Error 2 UnexpectedToken
+""","""
+A:{ .a: A -> this;; }
+""");}
+@Test void leadingSemicolonInTypeDeclaration(){fail("""
+In file: [###].fear
+
+001| A:{ ; .a: A -> this }
+   | --~~^~~~~~~~~~~~~~~~~
+
+While inspecting type declaration body > type declaration > full file
+Extra semicolon: no method declaration comes before this ";".
+Methods are separated by a single ";". Remove this semicolon.
+Error 2 UnexpectedToken
+""","""
+A:{ ; .a: A -> this }
+""");}
+@Test void onlySemicolonInObjectLiteral(){fail("""
+In file: [###].fear
+
+001| A:{ .a: A -> {;} }
+   |     ---------~^~
+
+While inspecting object literal > method body > method declaration > type declaration body > type declaration > full file
+Extra semicolon: no method declaration comes before this ";".
+Methods are separated by a single ";". Remove this semicolon.
+Error 2 UnexpectedToken
+""","""
+A:{ .a: A -> {;} }
+""");}
+@Test void doubleSemicolonBetweenMethods(){fail("""
+In file: [###].fear
+
+001| A:{ .a: A -> this;; .b: A -> this }
+   | --~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+
+While inspecting type declaration body > type declaration > full file
+Extra semicolon: no method declaration comes before this ";".
+Methods are separated by a single ";". Remove this semicolon.
+Error 2 UnexpectedToken
+""","""
+A:{ .a: A -> this;; .b: A -> this }
+""");}
 
 
 @Test void topLevelMethodDecl(){fail("""

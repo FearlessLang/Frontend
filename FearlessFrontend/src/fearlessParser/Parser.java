@@ -204,9 +204,16 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var badTopSelfName= top && !n.equals("this");
     if (badTopSelfName){ throw errFactory().badTopSelfName(thisName.get().span().inner, n); }
     if (!n.equals("_")){ updateNames(names.add(List.of(n),List.of())); }
+    checkStraySemicolons();
     var ms= splitBy("method declaration",semiSkip,p->p.parseMethod(top));
     checkRedeclaration(start, end, ms);
     return new E.Literal(thisName,ms,tspan());
+  }
+  private void checkStraySemicolons(){
+    for (int i= 0; peek(i).isPresent(); i++){
+      var stray= peek(i).get().is(SemiColon) && (i == 0 || peek(i-1).get().is(SemiColon));
+      if (stray){ throw errFactory().straySemicolon(span(peek(i).get()).get()); }
+    }
   }
   public record RCMName(Optional<RC> rc,MName name){}
   private Stream<RCMName> declaredName(M m){
