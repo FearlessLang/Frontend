@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.SequencedMap;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -71,7 +70,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch (e){
     case X x -> checkX(bs,g,x,rs);
-    case Type t -> checkType(bs,g,t,rs);
+    case Type t -> checkType(bs,t,rs);
     case Literal l -> checkLiteral(bs,g,l,rs);
     case Call c -> new CallTyping(this,bs,g,c,rs).run();
   };}
@@ -90,7 +89,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var declaredOk= isSub(bs,declared,r.t());
     return Reason.parameterDoesNotHaveRequiredTypeHere(this,x, r, declared, w, declaredOk);
   }
-  private List<Reason> checkType(List<B> bs, Gamma g, Type t, List<TRequirement> rs){
+  private List<Reason> checkType(List<B> bs, Type t, List<TRequirement> rs){
     k().check(t,bs,t.type());
     var ll= decs().apply(t.type().c().name());
     if (!hasInstance(ll)){ throw tsE().typeDeclaredInMethod(t, ll); }
@@ -131,9 +130,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       var notInferred= m.sig().origin().equals(LiteralDeclarations.inferUnknown);
       if (notInferred){ throw tsE().methodNotInferred(l,m); }
     }
-    var ts= dom(l.bs(),span);
     var ms= l.ms().stream().filter(m->m.e().isPresent()).toList();
-    var thisType= new T.RCC(l.rc(),new T.C(l.name(),ts),span);
+    var thisType= new T.RCC(l.rc(),new T.C(l.name(),dom(l.bs(),span)),span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l,bs1,thisType);
     litOk(v().discard(g.filterFTV(l),l),l);
@@ -154,12 +152,6 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private boolean callable(RC litRC, RC recRc){ return recRc != mut || !litRC.isReadOrImm(); }
 
   private record Key(MName m, RC rc){}
-  //Sources is needed, not assert only: the user can simply try to override with a non subtype signature.
-  //l.ms is the resolved set, either inferred or resolved by hand in a wrong way.
-  SequencedMap<Key,List<Sig>> sources(Literal l){
-    return Sources.collect(this, l).stream()
-      .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()));
-  }
   private static final MName asOne= new MName(".as",1);
   private void baseIdOk(Literal l){
     var isBaseId= LiteralDeclarations.has(l.cs(),LiteralDeclarations.baseId);
@@ -185,10 +177,13 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     baseIdOk(l);
     var delta= l.bs();
     var span= l.name().approxSpan();
-    var selfT= new T.C(l.name(),dom(delta,span));
     l.cs().forEach(c->csOk(l,delta,c));
-    sources(l).forEach((k,group)->methodTableOk(l,k,group));
-    var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),selfT,span));
+    //Sources is needed, not assert only: the user can simply try to override with a non subtype signature.
+    //l.ms is the resolved set, either inferred or resolved by hand in a wrong way.
+    Sources.collect(this, l).stream()
+      .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()))
+      .forEach((k,group)->methodTableOk(l,k,group));
+    var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),new T.C(l.name(),dom(delta,span)),span));
     l.ms().forEach(m->methOk(l,delta,v().of(g1,l,m),m));//passing l and m instead of their RC for better errors
   }
   private void csOk(Literal l, List<B> delta, T.C c){
@@ -207,7 +202,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private void bodyOk(Literal forErr,List<B> delta, Gamma g, M m){
     var ts= m.sig().ts();
     var xs= m.xs();
-    g= g.addAll(ts, xs);//Note: 'this' already in g1
+    g= Streams.zip(xs, ts).fold(Gamma::add, g);//Note: 'this' already in g1
     var t= new TypeSystem(scope.pushM(forErr, m),v);
     t.check(delta,g,m.e().get(),m.sig().ret());
     Streams.zip(xs, ts)
@@ -236,14 +231,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var chosen= Sources.findCanonical(l,k.m(),k.rc());
     assert group.stream().allMatch(s->s.m().equals(chosen.m()) && s.rc() == chosen.rc());
     assert mostSpecificByOrigin(l,group,chosen);
-    assert absPreserved(chosen);//This assert and the one below do the same thing in working programs but may differ in buggy ones
+    assert !Sources.findCanonical(decs().apply(chosen.origin()),chosen.m(),chosen.rc()).abs() || chosen.abs();//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s->s.origin().equals(chosen.origin())).allMatch(s->chosen.abs() == s.abs());
     for (var s:group){ sigSub(l,chosen,s); }
-    assert concreteConflictsSolved(group,chosen);
-  }
-  private boolean concreteConflictsSolved(List<Sig> group,Sig chosen){
-    return group.stream().filter(s->!s.abs())
-      .allMatch(s->isOriginSub(chosen.origin(),s.origin()));
+    assert group.stream().filter(s->!s.abs()).allMatch(s->isOriginSub(chosen.origin(),s.origin()));
   }
   private boolean mostSpecificByOrigin(Literal l, List<Sig> group, Sig chosen){
     for (var s : group){
@@ -264,12 +255,6 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var ctx= Push.of(bs,a.bs());
     return a.origin().equals(b.origin()) && a.bs().equals(b.bs()) && a.abs() == b.abs()
       && eqModXRC(ctx,a.ret(),b.ret()) && Streams.zip(a.ts(),b.ts()).allMatch((x,y)->eqModXRC(ctx,x,y));
-  }
-  private boolean absPreserved(Sig chosen){
-    var o= decs().apply(chosen.origin());
-    var src= Sources.findCanonical(o,chosen.m(),chosen.rc());
-    assert !src.abs() || chosen.abs();
-    return true;
   }
   private boolean isOriginSub(TName sub, TName sup){
     return sub.equals(sup) || decs().apply(sub).cs().stream().anyMatch(parent->isOriginSub(parent.name(), sup));
@@ -295,13 +280,12 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
   public static boolean eqModXRC(List<B> bs,T a,T b){
     if (a.equals(b)){ return true; }
-    if (!(a instanceof T.RCC(var aRc, var aC, _) && b instanceof T.RCC(var bRc, var bC, _))){ return redundantOnX(bs,a,b); }
+    if (!(a instanceof T.RCC(var aRc, var aC, _) && b instanceof T.RCC(var bRc, var bC, _))){
+      if (!(a.withRC(imm) instanceof T.RCX(_, var x)) || !a.withRC(imm).equals(b.withRC(imm))){ return false; }
+      return get(bs,x.name()).rcs().size() == 1 && Kinding.intrinsicRCs(bs,a).equals(Kinding.intrinsicRCs(bs,b));
+    }
     var sameHead= aRc == bRc && aC.name().equals(bC.name());
     if (!sameHead){ return false; }
     return Streams.zip(aC.ts(), bC.ts()).allMatch((x,y)->eqModXRC(bs,x,y));
-  }
-  private static boolean redundantOnX(List<B> bs,T a,T b){
-    if (!(a.withRC(imm) instanceof T.RCX(_, var x)) || !a.withRC(imm).equals(b.withRC(imm))){ return false; }
-    return get(bs,x.name()).rcs().size() == 1 && Kinding.intrinsicRCs(bs,a).equals(Kinding.intrinsicRCs(bs,b));
   }
 }

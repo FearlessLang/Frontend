@@ -73,10 +73,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   }
   List<E> mapE(List<fearlessFullGrammar.E> es){ return es.stream().map(this::visitE).toList(); }
   List<IT> mapT(List<fearlessFullGrammar.T> ts){ return ts.stream().map(this::visitT).toList(); }
-  List<IT.C> mapC(List<fearlessFullGrammar.T.C> cs){ return cs.stream().map(this::visitC).toList(); }
   List<B> mapB(List<fearlessFullGrammar.B> bs){ return bs.stream().map(this::visitB).toList(); }
-  List<Optional<IT>> mapPT(List<fearlessFullGrammar.Parameter> ps){ return ps.stream().map(p->p.t().map(this::visitT)).toList(); }
-  List<String> mapPX(List<fearlessFullGrammar.Parameter> ps){ return ps.stream().map(this::parameterToName).toList(); }
   String parameterToName(fearlessFullGrammar.Parameter p){
     if (p.xp().isEmpty()){ return "_"; }
     return switch (p.xp().get()){
@@ -93,7 +90,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     }
     var s= mm.sig().get();
     var bs= s.bs().map(this::mapB);
-    var ts= mapPT(s.parameters());
+    var ts= s.parameters().stream().map(p->p.t().map(this::visitT)).toList();
     if (mm.hasImplicit()){ ts= Push.of(ts,empty()); }
     var res= s.t().map(this::visitT);
     return new M.Sig(s.rc(),s.m(),bs,ts,res,empty(),mm.body().isEmpty(),mm.span());
@@ -115,7 +112,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     if (m.body().isEmpty()){ return empty(); }
     var body= m.body().get();
     var original= m.sig().map(s->s.parameters()).orElse(List.of());
-    var ps= mapPX(original);
+    var ps= original.stream().map(this::parameterToName).toList();
     var xpats= xpats(ps,original,m.span());
     if (!xpats.isEmpty()){ body= makeXPatsBody(body,xpats); }
     if (m.hasImplicit()){ var p= meths.fresh().freshVar(currentTop, "impl"); ps= Push.of(ps,p); implicits.add(p); }
@@ -188,7 +185,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   public E.Literal addDeclaration(TName name,RC rc,fearlessFullGrammar.Declaration d, boolean top){
     var thisName= d.l().thisName().map(n->n.name()).orElseGet(()->top?"this":"_");
     var bs= d.bs().map(this::mapB).orElse(List.of());
-    var cs= mapC(d.cs());
+    var cs= d.cs().stream().map(this::visitC).toList();
     var dup= duplicatedSupertypes(bs,TypeRename.itcToTC(cs));
     if (dup.isPresent()){ throw meths.p().err().duplicatedSupertype(d,dup.get().getFirst(),dup.get().getLast()); }
     var ms= mapM(d.l().methods());

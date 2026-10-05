@@ -14,10 +14,8 @@ import core.Src;
 import core.TName;
 import core.TSpan;
 import utils.Join;
-import utils.Pos;
 
 public sealed interface E{
-  default Pos pos(){ return src().inner.pos(); }
   default TSpan span(){ return src().inner.span(); }
   Src src();
   IT t();
@@ -47,7 +45,7 @@ public sealed interface E{
     public String toString(){ return ""+type+":"+t; }
   }
   // **rc is present implies no inference needed**
-  record Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, IT t, Src src,boolean infName, boolean infHead, Gamma.GammaSignature g) implements E, Comparable<Literal>{
+  record Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, IT t, Src src,boolean infName, boolean infHead, Gamma.GammaSignature g) implements E{
     public Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, Src src,boolean infName){
       this(rc,name,bs,cs,thisName,ms,IT.U.Instance,src,infName,false,new Gamma.GammaSignature());
     }
@@ -61,13 +59,6 @@ public sealed interface E{
     public String toString(){
       var res= rc.map(RC::toStrSpace).orElse("")+name.s()+Join.of(bs,"[",",","]","")+(rc.isEmpty() ? ":$?" : Join.of(cs,":",", ","",":"));
       return res+Join.of(ms,"{'"+thisName,"","}","")+":"+t;
-    }
-    public Literal withMs(List<M> ms){
-      assert t instanceof IT.RCC;
-      assert Monotonicity.onLiteralWithMs(this, ms);
-      var noChange= infHead && ms == this.ms;
-      if (noChange){ return this; }
-      return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
     }
     public Literal withMsT(List<M> ms, IT t){
       assert t instanceof IT.RCC;
@@ -87,7 +78,6 @@ public sealed interface E{
       assert ms == this.ms || !ms.equals(this.ms);
       return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,setInfHead,g.clear());
     }
-    @Override public int compareTo(Literal o){ return span().inner.compareTo(o.span().inner); }
   }
   record Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, IT t, Src src, Gamma.GammaSignature g) implements E{
     public Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, Src src){

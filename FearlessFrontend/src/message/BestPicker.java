@@ -6,7 +6,7 @@ final class BestPicker{
   Score best= Score.none;
   Compactable pick(PE root){ visit(root,0); return best.k(); }
   void visit(PN n,int depth){
-    consider(n,depth+bonus(n));
+    consider(n,depth+(n instanceof PM ? 10 : 1));
     switch (n){
       case PX _, PTX _ -> {}
       case PTypeE(var t) -> visit(t, depth + 1);
@@ -48,5 +48,4 @@ final class BestPicker{
   record Score(int score, Compactable k){
     static final Score none= new Score(-1, Compactable.no);
   }
-  static int bonus(PN n){ return n instanceof PM ? 10 : 1; }
 }

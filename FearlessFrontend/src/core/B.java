@@ -13,9 +13,8 @@ public record B(String x, EnumSet<RC> rcs){
     return x+":"+Join.of(rcs.stream().map(RC::name),"",",","","");
   }
   public String compactToString(){
-    var starStar= rcs.equals(EnumSet.allOf(RC.class));
-    var star= rcs.equals(EnumSet.of(RC.imm,RC.mut,RC.read));
-    var bs= starStar?"**":star?"*":Join.of(rcs.stream().map(RC::name),"",",","","");
-    return x+":"+bs;
+    if (rcs.equals(EnumSet.allOf(RC.class))){ return x+":**"; }
+    if (rcs.equals(EnumSet.of(RC.imm,RC.mut,RC.read))){ return x+":*"; }
+    return toString();
   }
 }

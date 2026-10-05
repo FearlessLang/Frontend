@@ -26,7 +26,7 @@ public record ToCore(List<B> ctx){
   core.E of(inference.E exp, inference.E orig){ return switch (exp){
     case inference.E.X(var name, _, var src, _) -> new core.E.X(name,src);
     case inference.E.Type(var type, _, var src, _) -> type(type,src);
-    case inference.E.Literal le -> literal(le,litLike(orig,le));
+    case inference.E.Literal le -> literal(le,orig);
     case inference.E.Call ce -> call(ce,callLike(orig,ce.name()));
     case inference.E.ICall ic -> callFromICall(ic,callLike(orig,ic.name()));
   };}
@@ -35,7 +35,9 @@ public record ToCore(List<B> ctx){
     assert inScope(List.of(type));
     return new core.E.Type(new T.RCC(type.rc().orElse(RC.imm),TypeRename.itcToTC(type.c()),type.span()),src);
   }
-  core.E.Literal literal(inference.E.Literal e, inference.E.Literal o){
+  core.E.Literal literal(inference.E.Literal e, inference.E orig){
+    var o= (inference.E.Literal)orig;
+    assert o.name().s().equals(e.name().s());
     var rc= o.rc().or(e::rc).orElse(RC.imm);
     assert o.infName() == e.infName();
     assert o.infName() || e.name().equals(o.name());
@@ -44,7 +46,10 @@ public record ToCore(List<B> ctx){
     assert oBs.isEmpty() || !o.infName();
     var bs= oBs.orElse(e.bs());
     var uncommitted= e.infName() && bs.isEmpty();
-    if (uncommitted){ bs= uncommittedBs(e); }
+    if (uncommitted){
+      var free= new FreeXs(new Gamma());
+      bs= Stream.concat(free.ftvCs(e.cs()),free.ftvMs(e.ms())).distinct().map(x->RC.get(ctx,x)).toList();
+    }
     assert !e.infName() || B.xs(ctx).containsAll(B.xs(bs));
     var name= e.name().withArity(bs.size());
     var inner= new ToCore(e.infName() ? Push.of(ctx,bs).stream().distinct().toList() : bs);
@@ -61,10 +66,6 @@ public record ToCore(List<B> ctx){
   private static boolean sameType(List<B> bs, IT.C a, IT.C b){
     var span= TSpan.fromPos(Pos.unknown);
     return TypeSystem.eqModXRC(bs,new T.RCC(RC.imm,TypeRename.itcToTC(a),span),new T.RCC(RC.imm,TypeRename.itcToTC(b),span));
-  }
-  private List<B> uncommittedBs(inference.E.Literal e){
-    var free= new FreeXs(new Gamma());
-    return Stream.concat(free.ftvCs(e.cs()),free.ftvMs(e.ms())).distinct().map(x->RC.get(ctx,x)).toList();
   }
   private static core.M withOrigin(core.M m, TName from, TName to){
     var s= m.sig();
@@ -121,12 +122,7 @@ public record ToCore(List<B> ctx){
     var m= usr.m().or(inf::m).orElse(new MName(".inferenceFailed", ts.size()));
     var bs= usr.bs().or(inf::bs).orElse(List.of());
     var origin= usr.origin().or(inf::origin).orElse(LiteralDeclarations.inferUnknown);
-    return new core.Sig(rc,m,bs,TypeRename.itOptToT(ts),TypeRename.itToT(ret),origin,usr.abs(),usr.span());
-  }
-  private static inference.E.Literal litLike(inference.E o,inference.E.Literal e){
-    var ol= (inference.E.Literal)o;
-    assert ol.name().s().equals(e.name().s());
-    return ol;
+    return new core.Sig(rc,m,bs,ts.stream().map(TypeRename::itToT).toList(),TypeRename.itToT(ret),origin,usr.abs(),usr.span());
   }
   private record CallLike(inference.E e,List<inference.E> es,Optional<RC> rc,List<IT> targs){}
   private static CallLike callLike(inference.E o,MName name){

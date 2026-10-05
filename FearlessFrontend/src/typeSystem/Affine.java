@@ -22,17 +22,9 @@ final class Affine{
   private static void collect(String x, E e, boolean activeOnly, ArrayList<X> acc){
     switch (e){
       case X v -> { if (v.name().equals(x)){ acc.add(v); } }
-      case Call c -> collectCall(x, c, activeOnly, acc);
-      case Literal l -> collectLiteral(x, l, activeOnly, acc);
+      case Call c -> { collect(x, c.e(), activeOnly, acc); c.es().forEach(arg->collect(x, arg, activeOnly, acc)); }
+      case Literal l -> { if (!activeOnly){ l.ms().forEach(m->m.e().ifPresent(e1->collect(x, e1, false, acc))); } }
       case Type _ -> {}
     }
-  }
-  private static void collectCall(String x, Call c, boolean activeOnly, ArrayList<X> acc){
-    collect(x, c.e(), activeOnly, acc);
-    for (var arg : c.es()){ collect(x, arg, activeOnly, acc); }
-  }
-  private static void collectLiteral(String x, Literal l, boolean activeOnly, ArrayList<X> acc){
-    if (activeOnly){ return; }
-    for (M m : l.ms()){ m.e().ifPresent(e->collect(x, e, false, acc)); }
   }
 }

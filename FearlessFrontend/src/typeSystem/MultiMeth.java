@@ -34,13 +34,11 @@ final class MultiMeth{
   private static void oneMutHToMut(LinkedHashMap<Key,MType> out, List<B> d, MType m){
     var tsi= m.ts().stream().map(ti->modeF(d,ti, Mode.flexy, RCLubGlb::glb)).toList();
     add(out,new MType("Allow mutH receiver", Mode.hyg.of(m.rc()), tsi, modeF(d,m.t(), Mode.hyg, RCLubGlb::lub)));
-    for (int i : Range.of(m.ts())){ iMutHToMut(out,d,m,i); }
-  }
-  private static void iMutHToMut(LinkedHashMap<Key,MType> out, List<B> d, MType m, int i){
-    var tsi= IntStream.range(0, m.ts().size())
-      .mapToObj(j->modeF(d,m.ts().get(j), j == i ? Mode.hyg : Mode.flexy, RCLubGlb::glb)).toList();
-    var t= modeF(d,m.t(), Mode.hyg, RCLubGlb::lub);
-    add(out,new MType("Allow mutH argument "+(i+1), Mode.flexy.of(m.rc()), tsi, t));
+    for (int i : Range.of(m.ts())){
+      var tsj= IntStream.range(0, m.ts().size())
+        .mapToObj(j->modeF(d,m.ts().get(j), j == i ? Mode.hyg : Mode.flexy, RCLubGlb::glb)).toList();
+      add(out,new MType("Allow mutH argument "+(i+1), Mode.flexy.of(m.rc()), tsj, modeF(d,m.t(), Mode.hyg, RCLubGlb::lub)));
+    }
   }
   private static MType apply(String promotion, List<B> d, MType m, Mode modeP, Mode modeR){
     var ts= m.ts().stream().map(ti->modeF(d,ti,modeP,RCLubGlb::glb)).toList();

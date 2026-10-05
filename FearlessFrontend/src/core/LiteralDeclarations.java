@@ -65,16 +65,6 @@ public final class LiteralDeclarations{
   static boolean inRange(BigInteger v, BigInteger min, BigInteger max){ return v.compareTo(min) >= 0 && v.compareTo(max) <= 0; }
   public static boolean intLiteralInRange(String raw){ return inRange(big(raw),intMin,intMax); }
   public static boolean natLiteralInRange(String raw){ return inRange(big(raw),natMin,natMax); }
-  static long intLiteral64(String raw){
-    var v= big(raw);
-    assert inRange(v,intMin,intMax);
-    return v.longValueExact();
-  }
-  static long natLiteralBits64(String raw){
-    var v= big(raw);
-    assert inRange(v,natMin,natMax);
-    return v.longValue(); // wraps to low 64 bits (exactly what we want given the range)
-  }
   public static boolean floatLiteralExactlyRepresentable(String raw){
     var ns= floatPayload(raw);
     if (ns.startsWith("+")){ ns= ns.substring(1); }
@@ -100,22 +90,28 @@ public final class LiteralDeclarations{
   }
   public static String toJavaLiteral(String s){
     var strLit= s.startsWith("`") || s.startsWith("\"");
-    if (strLit){ return javaStrLit(s.substring(1,s.length()-1)); }
+    if (strLit){
+      var raw= s.substring(1,s.length()-1);
+      assert !raw.contains("\n");
+      return "\""+raw.replace("\\","\\\\").replace("\"","\\\"")+"\"";
+    }
     var ns= stripUnderscores(s);
     if (TokenKind.isKind(ns,TokenKind.UnsignedInt)){
       // base.Nat: produce the signed int whose 64-bit pattern equals the unsigned value.
       // Later ops use: Integer.toUnsignedLong(x), compareUnsigned, divideUnsigned, etc.
-      return natLiteralBits64(ns) +"L";
+      var v= big(ns);
+      assert inRange(v,natMin,natMax);
+      return v.longValue() +"L";// wraps to low 64 bits (exactly what we want given the range)
     }
-    if (TokenKind.isKind(ns,TokenKind.SignedInt)){ return intLiteral64(ns) +"L"; }
+    if (TokenKind.isKind(ns,TokenKind.SignedInt)){
+      var v= big(ns);
+      assert inRange(v,intMin,intMax);
+      return v.longValueExact() +"L";
+    }
     if (TokenKind.isKind(ns,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){
       assert floatLiteralOk(ns);
       return floatLiteralDouble(ns) +"d";
     }
     throw Bug.unreachable();
-  }
-  static String javaStrLit(String raw){
-    assert !raw.contains("\n");
-    return "\""+raw.replace("\\","\\\\").replace("\"","\\\"")+"\"";
   }
 }

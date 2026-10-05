@@ -12,7 +12,7 @@ record CaptureWalk(List<B> bs, Gamma g, Predicate<RC> freeRC){
   boolean isFree(E e){
     return switch (e){
       case E.Literal l -> isFree(l);
-      case E.Call c -> isFree(c);
+      case E.Call c -> isFree(c.e()) && c.es().stream().allMatch(this::isFree);
       case E.Type _ -> true;
       case E.X x -> isFree(x);
     };
@@ -24,9 +24,6 @@ record CaptureWalk(List<B> bs, Gamma g, Predicate<RC> freeRC){
     //mut {imm .foo->captMut} may pass. The same reason we can skip imm methods is reason to
     //not promote mut->iso?
     return m.e().stream().allMatch(this::isFree);
-  }
-  private boolean isFree(E.Call c){
-    return isFree(c.e()) && c.es().stream().allMatch(this::isFree);
   }
   private boolean isFree(T t){
     return switch (t){

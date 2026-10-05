@@ -39,9 +39,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels, Parser parser){
     assert nonNull(at,what,expectedLabels);
-    var label= what.isBlank() ? "element" : what;
-    var msg= "Missing " + label + ".\n"+expected(expectedLabels);
-    return Code.UnexpectedToken.of(msg).addSpan(at);
+    return Code.UnexpectedToken.of("Missing " + (what.isBlank() ? "element" : what) + ".\n"+expected(expectedLabels)).addSpan(at);
   }
   public FearlessException topLevelSemicolon(Span at){ return Code.UnexpectedToken.of(this::topLevelSemicolonMsg).addSpan(at); }
   private String topLevelSemicolonMsg(){
@@ -280,15 +278,12 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   private static String patternRepr(XPat.Destruct p){
     return Join.of(p.extract().stream().map(c->Join.of(c.stream().map(MName::s),"","","")),"{",", ","}")+p.id().orElse("");
   }
-  public FearlessException duplicateParamInMethodSignature(List<String> xs, Span at){
+  public FearlessException duplicateParamInMethodSignature(List<String> xs, Span at){ return duplicateInMethodSignature("parameters","Parameter",xs,at); }
+  public FearlessException duplicateGenericInMethodSignature(List<String> Xs, Span at){ return duplicateInMethodSignature("generic type parameters","Generic type parameter",Xs,at); }
+  private FearlessException duplicateInMethodSignature(String plural, String singular, List<String> names, Span at){
     return Code.UnexpectedToken.of(
-      "A method signature cannot declare multiple parameters with the same name\n"
-      +"Parameter "+disp(redeclaredElement(xs))+" is repeated").addSpan(at);
-  }
-  public FearlessException duplicateGenericInMethodSignature(List<String> Xs, Span at){
-    return Code.UnexpectedToken.of(
-      "A method signature cannot declare multiple generic type parameters with the same name\n"
-      +"Generic type parameter "+disp(redeclaredElement(Xs))+" is repeated").addSpan(at);
+      "A method signature cannot declare multiple "+plural+" with the same name\n"
+      +singular+" "+disp(redeclaredElement(names))+" is repeated").addSpan(at);
   }
   private static String expected(Collection<TokenKind> items){ return expected("","Expected: ","Expected one of: ",items,tk->tk.human); }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){

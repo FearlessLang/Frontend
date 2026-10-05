@@ -197,7 +197,7 @@ public record WellFormednessErrors(String pkgName){
     }
     private FearlessException undeclaredInPkg(){
       var inPkg= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
-      var simpleInPkg= simpleNames(inPkg);
+      var simpleInPkg= userMap(TName::simpleName, inPkg.stream());
       var e= err.get()
         .line("Type "+disp(typedSimple)+" is not declared in package "+relevantPkgMsg()+".");
       var suggest= NameSuggester.suggest(typedSimple, simpleInPkg);
@@ -212,7 +212,6 @@ public record WellFormednessErrors(String pkgName){
       return disp(contextPkg)+" and is not made visible via \"use\"";
     }
     private List<TName> typesInPkg(String pkg){ return all.stream().filter(t->t.pkgName().equals(pkg)).toList(); }
-    private List<String> simpleNames(List<TName> xs){ return userMap(TName::simpleName, xs.stream()); }
     private void addOtherPkgNotePkgExplicit(Err e){
       var sameSimpleOther= userMap(TName::s, all.stream()
         .filter(t->!t.pkgName().equals(typedPkg))
@@ -233,9 +232,8 @@ public record WellFormednessErrors(String pkgName){
        .line(addUse);
     }
     private FearlessException make(Err e){
-      return e.wf().addFrame("a type name", at());
+      return e.wf().addFrame("a type name", TSpan.fromPos(tn.pos(), tn.s().length()).inner);
     }
-    private Span at(){ return TSpan.fromPos(tn.pos(), tn.s().length()).inner; }
   }
   public FearlessException unknownUseHead(TName tn, String pkg){
     var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;
@@ -249,12 +247,9 @@ public record WellFormednessErrors(String pkgName){
     var n= allXs.values().stream().flatMap(Set::stream)
       .filter(x->allNames.contains(x.name()) || use.contains(x.name()))
       .findFirst().get();
-    return shadowMsg(n, use.contains(n.name()));
-  }
-  private FearlessException shadowMsg(T.X n, boolean use){
     return err()
       .line("Type parameter "+disp(n.name())+" is declared in package "+disp(pkgName)+".")
-      .line("Name "+disp(n.name())+" is also used "+(use ? "in a \"use\" directive." : "as a type name."))
+      .line("Name "+disp(n.name())+" is also used "+(use.contains(n.name()) ? "in a \"use\" directive." : "as a type name."))
       .wf()
       .addFrame("a type name", n.span().inner);
   }
@@ -291,18 +286,12 @@ public record WellFormednessErrors(String pkgName){
       .addFrame("a type name", name.approxSpan().inner);
   }
   public FearlessException circularImplements(Map<TName,E.Literal> rem){
-    var name= findCycleNode(rem);
+    var color= new HashMap<TName,Integer>(rem.size());
+    var name= rem.keySet().stream().map(k->_dfs(rem, k, color)).filter(Objects::nonNull).findFirst().get();
     return err()
       .line("Circular implementation relation found involving "+err().tNameADisp(name)+".")
       .wf()
       .addFrame("type declarations", name.approxSpan().inner);
-  }
-  private TName findCycleNode(Map<TName,E.Literal> rem){
-    var color= new HashMap<TName,Integer>(rem.size());
-    return rem.keySet().stream()
-      .map(k->_dfs(rem, k, color))
-      .filter(Objects::nonNull)
-      .findFirst().get();
   }
   private TName _dfs(Map<TName,E.Literal> rem, TName u, HashMap<TName,Integer> color){
     var cu= color.get(u);
