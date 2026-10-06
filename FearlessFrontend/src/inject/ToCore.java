@@ -48,7 +48,7 @@ public record ToCore(List<B> ctx){
     var uncommitted= e.infName() && bs.isEmpty();
     if (uncommitted){
       var free= new FreeXs(new Gamma());
-      bs= Stream.concat(free.ftvCs(e.cs()),free.ftvMs(e.ms())).distinct().map(x->RC.get(ctx,x)).toList();
+      bs= Streams.of(free.ftvCs(e.cs()),free.ftvMs(e.ms()),free.ftvMs(o.ms())).distinct().map(x->RC.get(ctx,x)).toList();
     }
     assert !e.infName() || B.xs(ctx).containsAll(B.xs(bs));
     var name= e.name().withArity(bs.size());
