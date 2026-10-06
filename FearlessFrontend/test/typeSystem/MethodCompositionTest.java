@@ -211,6 +211,29 @@ A:B,C{}
 B:{ .m(b:Foo): Foo -> b }
 C:{ .m(c:Foo): Foo -> c }
 """));}
+@Test void reAbstractedImplBesideAnotherImpl(){ok(List.of("""
+R:{}
+A:{ .m: R -> R }
+B:{ .m: R -> R }
+C:B{ .m: R; }
+D:A,C{}
+"""));}
+@Test void inheritedImplBesideAnotherImpl(){failWf("""
+005| D:A,C{}
+   | ^^^^^^^
+
+While inspecting type declaration "D"
+Ambiguous implementation for method ".m" with 0 parameters.
+Different options are present in the implemented types:
+Candidates: "A", "B".
+Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
+""",List.of("""
+R:{}
+A:{ .m: R -> R }
+B:{ .m: R -> R }
+C:B{}
+D:A,C{}
+"""));}
 @Test void bothSupersInheritTheSameImpl(){ok(List.of("""
 Foo:{}
 A:B,C{}
@@ -473,20 +496,219 @@ A:{ .m:A->this }
 B:A{ .m:A->A }
 C:A,B{}
 """));}
-@Test void reAbstractedMethodAndInheritedImplementation(){failWf("""
-004| C:B,D{}
-   | ^^^^^^^
-
-While inspecting type declaration "C"
-Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types:
-Candidates: "B", "A".
-Type declaration "C" must declare a method ".m" explicitly implementing the desired behaviour.
-""",List.of("""
+@Test void reAbstractedMethodAndInheritedImplementation(){ok(List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
 D:A{}
 C:B,D{}
+"""));}
+@Test void reAbstractedMethodAndInheritedImplementationIsAbstract(){fail("""
+004| User:{ #:C->C:B,D{} }
+   |        -----^^^^^^^
+
+While inspecting object literal "iso C" > "#" line 4
+This object literal is missing a required method.
+Missing: "imm .m".
+Required by: "C".
+Hint: add an implementation for ".m" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso C:B,D{.m:A}
+""",List.of("""
+A:{ .m:A->this }
+B:A{ .m:A }
+D:A{}
+User:{ #:C->C:B,D{} }
+"""));}
+@Test void reAbstractedMethodAndInheritedImplementationSubLast(){ok(List.of("""
+A:{ .m:A->this }
+B:A{ .m:A }
+D:A{}
+C:D,B{}
+"""));}
+@Test void reAbstractedDeepInOneBranch(){fail("""
+007| User:{ #:D->D:E,F{} }
+   |        -----^^^^^^^
+
+While inspecting object literal "iso D" > "#" line 7
+This object literal is missing a required method.
+Missing: "imm .m".
+Required by: "D".
+Hint: add an implementation for ".m" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso D:E,F{.m:R}
+""",List.of("""
+R:{}
+A:{ .m: R -> R }
+B:A{}
+C:B{ .m: R; }
+E:C{}
+F:A{}
+User:{ #:D->D:E,F{} }
+"""));}
+@Test void reAbstractedSuperBesideImpl(){ok(List.of("""
+R:{}
+A:{ .m: R -> R }
+X:A{ .m: R; }
+B:{ .m: R -> R }
+User:{ #:D->D:X,B{} }
+"""));}
+@Test void reAbstractedSuperBesideImplImplFirst(){ok(List.of("""
+R:{}
+A:{ .m: R -> R }
+X:A{ .m: R; }
+B:{ .m: R -> R }
+User:{ #:D->D:B,X{} }
+"""));}
+@Test void abstractSuperBesideImplIsInstantiable(){ok(List.of("""
+R:{}
+B:{ .m: R -> R }
+C:{ .m: R; }
+User:{ #:A->A:B,C{} }
+"""));}
+@Test void implBesideTwoAbstractSupers(){ok(List.of("""
+R:{}
+A:{ .m: R -> R }
+B:{ .m: R; }
+C:{ .m: R; }
+User:{ #:D->D:B,A,C{} }
+"""));}
+@Test void reAbstractedImplHiddenInsideAnotherSuper(){ok(List.of("""
+R:{}
+J:{ .m: R -> R }
+X:J{ .m: R; }
+I:{ .m: R -> R }
+P:X,I{}
+Q:J{}
+User:{ #:D->D:P,Q{} }
+"""));}
+@Test void reAbstractedImplHiddenInsideAnotherAbstractSuper(){fail("""
+007| User:{ #:D->D:P,Q{} }
+   |        -----^^^^^^^
+
+While inspecting object literal "iso D" > "#" line 7
+This object literal is missing a required method.
+Missing: "imm .m".
+Required by: "D".
+Hint: add an implementation for ".m" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso D:P,Q{.m:R}
+""",List.of("""
+R:{}
+J:{ .m: R -> R }
+X:J{ .m: R; }
+K:{ .m: R; }
+P:X,K{}
+Q:J{}
+User:{ #:D->D:P,Q{} }
+"""));}
+@Test void eachImplReAbstractedByTheOtherBranch(){fail("""
+006| User:{ #:D->D:A1,A2{} }
+   |        -----^^^^^^^^^
+
+While inspecting object literal "iso D" > "#" line 6
+This object literal is missing a required method.
+Missing: "imm .m".
+Required by: "D".
+Hint: add an implementation for ".m" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso D:A1,A2{.m:R}
+""",List.of("""
+R:{}
+I1:{ .m: R -> R }
+I2:{ .m: R -> R }
+A1:I2{ .m: R; }
+A2:I1{ .m: R; }
+User:{ #:D->D:A1,A2{} }
+"""));}
+@Test void eachImplReAbstractedByTheOtherBranchDeclared(){ok(List.of("""
+R:{}
+I1:{ .m: R -> R }
+I2:{ .m: R -> R }
+A1:I2{ .m: R; }
+A2:I1{ .m: R; }
+D:A1,A2{}
+"""));}
+@Test void implOverriddenByImplInAnotherBranch(){ok(List.of("""
+R:{}
+J:{ .m: R -> R }
+K:J{ .m: R -> R }
+Q:J{}
+User:{ #:D->D:Q,K{} }
+"""));}
+@Test void reAbstractedThenReImplementedInAnotherBranch(){ok(List.of("""
+R:{}
+A:{ .m: R -> R }
+X:A{ .m: R; }
+Z:A{ .m: R -> R }
+User:{ #:D->D:X,Z{} }
+"""));}
+@Test void reImplementedBelowReAbstraction(){ok(List.of("""
+R:{}
+A:{ .m: R -> R }
+B:A{ .m: R; }
+C:B{ .m: R -> R }
+E:A{}
+User:{ #:D->D:E,C{} }
+"""));}
+@Test void twoImplsReAbstractedTogetherBesideAThird(){ok(List.of("""
+R:{}
+A:{ .m: R -> R }
+B:{ .m: R -> R }
+X:A,B{ .m: R; }
+C:{ .m: R -> R }
+User:{ #:D->D:X,C{} }
+"""));}
+@Test void oneReAbstractedTwoLeftAmbiguous(){failWf("""
+006| D:X,B,C{}
+   | ^^^^^^^^^
+
+While inspecting type declaration "D"
+Ambiguous implementation for method ".m" with 0 parameters.
+Different options are present in the implemented types:
+Candidates: "B", "C".
+Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
+""",List.of("""
+R:{}
+A:{ .m: R -> R }
+B:{ .m: R -> R }
+C:{ .m: R -> R }
+X:A{ .m: R; }
+D:X,B,C{}
+"""));}
+@Test void reAbstractedOnlyInAnUnrelatedBranch(){failWf("""
+006| D:X,B{}
+   | ^^^^^^^
+
+While inspecting type declaration "D"
+Ambiguous implementation for method ".m" with 0 parameters.
+Different options are present in the implemented types:
+Candidates: "A", "B".
+Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
+""",List.of("""
+R:{}
+A:{ .m: R -> R }
+B:{ .m: R -> R }
+Y:{ .m: R; }
+X:A,Y{}
+D:X,B{}
+"""));}
+@Test void ambiguityResolvedByOwnMethod(){ok(List.of("""
+R:{}
+A:{ .m: R -> R }
+B:{ .m: R -> R }
+X:A{}
+User:{ #:D->D:X,B{ .m->R } }
+"""));}
+@Test void reAbstractedOtherCapabilityKeepsImpl(){ok(List.of("""
+R:{}
+A:{ imm .m: R -> R; mut .m: R -> R }
+X:A{ mut .m: R; }
+B:{ mut .m: R -> R }
+User:{ #:mut D->D:X,B{} }
 """));}
 @Test void reAbstractedMethodInNestedDeclaration(){fail("""
 003| User:{ #:C->C:A,B{} }

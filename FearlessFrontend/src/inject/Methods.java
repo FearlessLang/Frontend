@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import core.B;
 import core.LiteralDeclarations;
@@ -271,17 +272,23 @@ public record Methods(
     var name= ssAligned.getFirst().m().get();
     var ts= IntStream.range(0, name.arity()).mapToObj(i->Optional.of(pairWithTs(at,i,Optional.empty(),ssAligned))).toList();
     var res= agreement(at,ssAligned,e->e.ret().get(),p.err().retTypeDisagreement());
-    var impl= ssAligned.stream().filter(e->!e.abs()).map(e->e.origin().get()).distinct().toList();
-    var conflicts= ssAligned.stream().filter(e->!e.abs() || overridesAny(e,impl)).map(e->e.origin().get()).distinct().toList();
-    if (conflicts.size() > 1){ throw p.err().ambiguousImplementationFor(conflicts,at); }
+    var impl= ssAligned.stream().filter(e->!e.abs() && !overridden(e,origin)).map(e->e.origin().get()).distinct().toList();
+    if (impl.size() > 1){ throw p.err().ambiguousImplementationFor(impl,at); }
     var originName= impl.size() == 1? impl.getFirst() : origin.name();
     var rc= rcAgreement(ssAligned);
     var sig= new M.Sig(rc,name,bs,ts,res,originName,impl.isEmpty(),ssAligned.getFirst().span());
     return new M(sig,Optional.empty());
   }
 
-  private boolean overridesAny(M.Sig s, List<TName> origins){
-    return from(s.origin().get()).cs().stream().anyMatch(c->origins.contains(c.name()));
+  private boolean overridden(M.Sig s, E.Literal lit){
+    var sup= s.origin().get();
+    return lit.cs().stream()
+      .flatMap(c->Stream.concat(Stream.of(c.name()),from(c.name()).cs().stream().map(core.T.C::name)))
+      .anyMatch(t->!t.equals(sup) && declares(from(t),sup,s));
+  }
+  private boolean declares(core.E.Literal d, TName sup, M.Sig s){
+    return LiteralDeclarations.has(d.cs(),sup) && d.ms().stream().map(core.M::sig)
+      .anyMatch(o->o.origin().equals(d.name()) && o.m().equals(s.m().get()) && o.rc() == s.rc().get());
   }
   M toCompleteM(inference.M m,E.Literal origin){
     var s= m.sig();

@@ -239,7 +239,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     assert !Sources.findCanonical(decs().apply(chosen.origin()),chosen.m(),chosen.rc()).abs() || chosen.abs();//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s->s.origin().equals(chosen.origin())).allMatch(s->chosen.abs() == s.abs());
     for (var s:group){ sigSub(l,chosen,s); }
-    assert group.stream().filter(s->!s.abs()).allMatch(s->isOriginSub(chosen.origin(),s.origin()));
+    assert group.stream().filter(s->!s.abs()).allMatch(s->isOriginSub(chosen.origin(),s.origin()) || overridden(group,s));
+  }
+  private boolean overridden(List<Sig> group, Sig s){
+    return group.stream().anyMatch(o->!o.origin().equals(s.origin()) && isOriginSub(o.origin(),s.origin()));
   }
   private boolean mostSpecificByOrigin(Literal l, List<Sig> group, Sig chosen){
     for (var s : group){
