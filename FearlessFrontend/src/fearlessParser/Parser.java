@@ -359,7 +359,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (peekIf(Token::isTypeName)){ return; }
     var t= peek().get();
     if (!isProbablyTopLevelNonDecl(t)){ return; }
-    throw errFactory().topLevelNotATypeDeclaration(span(t).get(), t.content());
+    throw errFactory().topLevelNotATypeDeclaration(span(t).get(), t);
   }
   private static boolean isProbablyTopLevelNonDecl(Token t){
     return t.is(
