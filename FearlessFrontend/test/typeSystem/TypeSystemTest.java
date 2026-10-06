@@ -31,6 +31,113 @@ U:{ .u: T1 -> T1{ .m: A -> A{ .k: A -> A } } }
 @Test void manyNestedLiterals(){
   var open= IntStream.range(0,300).mapToObj(_->"A{ .a -> ").collect(Collectors.joining());
   ok(List.of("A:{ .a: A } User:{ .u: A -> "+open+"A{ .a -> this.u }"+" }".repeat(300)+" }"));}
+@Test void expansiveSupertypeArgumentNotASubtype(){fail("""
+002| T1:T0[T0[T1]]{ .m(a: T0[T1]): T1 -> this.m(this) }
+   |                ---------------------~~~~^^^~~~~~
+
+While inspecting ".m(_)" line 2
+This call to method "T1.m(_)" cannot typecheck.
+Argument 1 has type "T1".
+That is not a subtype of "T0[T1]" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.m(this)
+""",List.of("""
+T0[X]:{ }
+T1:T0[T0[T1]]{ .m(a: T0[T1]): T1 -> this.m(this) }
+"""));}
+@Test void expansiveSupertypeArgument(){ok(List.of("""
+T0[X]:{ }
+T1:T0[T0[T1]]{ .m(a: T0[T0[T1]]): T1 -> this.m(this) }
+"""));}
+@Test void expansiveSupertypeResultNotASubtype(){fail("""
+002| T1:T0[T0[T1]]{ .m: T0[T1] -> this }
+   |                --------------^^^^
+
+While inspecting parameter "this" > ".m" line 2
+The body of method ".m" of type declaration "T1" is an expression returning "T1".
+Parameter "this" has type "T1" instead of a subtype of "T0[T1]".
+
+See inferred typing context below for how type "T0[T1]" was introduced: (compression indicated by `-`)
+T1:T0[T0[T1]]{.m:T0[T1]->this}
+""",List.of("""
+T0[X]:{ }
+T1:T0[T0[T1]]{ .m: T0[T1] -> this }
+"""));}
+@Test void expansiveGenericSupertypeArgumentNotASubtype(){fail("""
+002| T1[X]:T0[T0[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
+   |                      ---------------------------~~~~^^^~~~~~
+
+While inspecting ".m(_)" line 2
+This call to method "T1[_].m(_)" cannot typecheck.
+Argument 1 has type "T1[X]".
+That is not a subtype of "T0[T1[X]]" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.m(this)
+""",List.of("""
+T0[X]:{ }
+T1[X]:T0[T0[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
+"""));}
+@Test void expansiveGenericSupertypeArgument(){ok(List.of("""
+T0[X]:{ }
+T1[X]:T0[T0[T1[X]]]{ .m(a: T0[T0[T1[X]]]): T1[X] -> this.m(this) }
+"""));}
+@Test void growingSupertypeArgumentNotASubtype(){fail("""
+002| T1[X]:T0[T1[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
+   |                      ---------------------------~~~~^^^~~~~~
+
+While inspecting ".m(_)" line 2
+This call to method "T1[_].m(_)" cannot typecheck.
+Argument 1 has type "T1[X]".
+That is not a subtype of "T0[T1[X]]" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.m(this)
+""",List.of("""
+T0[X]:{ }
+T1[X]:T0[T1[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
+"""));}
+@Test void growingSupertypeArgument(){ok(List.of("""
+T0[X]:{ }
+T1[X]:T0[T1[T1[X]]]{ .m(a: T0[T1[T1[X]]]): T1[X] -> this.m(this) }
+"""));}
+@Test void growingSupertypeResultNotASubtype(){fail("""
+002| T1[X]:T0[T1[T1[X]]]{ .m: T0[T1[X]] -> this }
+   |                      -----------------^^^^
+
+While inspecting parameter "this" > ".m" line 2
+The body of method ".m" of type declaration "T1[_]" is an expression returning "T1[X]".
+Parameter "this" has type "T1[X]" instead of a subtype of "T0[T1[X]]".
+
+See inferred typing context below for how type "T0[T1[X]]" was introduced: (compression indicated by `-`)
+T1[X:imm]:T0[T1[T1[X]]]{.m:T0[T1[X]]->this}
+""",List.of("""
+T0[X]:{ }
+T1[X]:T0[T1[T1[X]]]{ .m: T0[T1[X]] -> this }
+"""));}
+@Test void growingSupertypeResult(){ok(List.of("""
+T0[X]:{ }
+T1[X]:T0[T1[T1[X]]]{ .m: T0[T1[T1[X]]] -> this }
+"""));}
+@Test void growingSupertypeInfersMethodTypeArgument(){ok(List.of("""
+T0[X]:{ .get: X }
+T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[T1[X]] -> this.m(this) }
+"""));}
+@Test void growingSupertypeInfersMethodTypeArgumentNotASubtype(){fail("""
+002| T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
+   |                                                   -------------^^^^^^^^^^^^
+
+While inspecting method call ".m(_)" > ".k" line 2
+The body of method ".k" of type declaration "T1[_]" is an expression returning "T1[T1[X]]".
+Method call "T1[_].m(_)" has type "T1[T1[X]]" instead of a subtype of "T1[X]".
+
+See inferred typing context below for how type "T1[X]" was introduced: (compression indicated by `-`)
+T1[X:imm]:T0[T1[T1[X]]]{.m[Y:imm](a:T0[Y]):Y->a.get;.k:T1[X]->this.m[imm,T1[T1[X]]](this)}
+""",List.of("""
+T0[X]:{ .get: X }
+T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
+"""));}
 @Test void receiverLiteralWithUndeterminedTypeArguments(){fail("""
 001| T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
    |                                    --------------------------^^---

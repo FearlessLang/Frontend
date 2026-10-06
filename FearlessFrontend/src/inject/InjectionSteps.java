@@ -551,8 +551,12 @@ public record InjectionSteps(Methods meths){
       if (!subOk.isEmpty()){ return propagateXs(xs,subOk.getFirst(),t1); }
       return qMarks(xs.size());
     }
-    var res= Streams.zip(c.ts(), cc.c().ts()).map((t,ti)->refine(xs, t, ti)).toList();
+    var res= Streams.zip(c.ts(), cc.c().ts()).map((t,ti)->refineArg(xs, t, ti)).toList();
     return res.isEmpty() ? qMarks(xs.size()) : meet(res);
+  }
+  private List<IT> refineArg(List<String> xs, IT t, IT t1){
+    var otherHead= t instanceof IT.RCC r && !(t1 instanceof IT.RCC cc && cc.c().name().equals(r.c().name()));
+    return otherHead ? qMarks(xs.size()) : refine(xs, t, t1);
   }
   static <TT> List<TT> norm(List<TT> original, List<TT> candidate){
     if (candidate == original){ return original; }
