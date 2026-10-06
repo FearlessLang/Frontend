@@ -145,7 +145,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (peekOrder(t->t.is(Underscore),t->t.is(Eq))){
       var last= peek(-1).get();
       if (last.is(_SquareGroup)){ last= peek(-2).get(); }
-      throw errFactory().underscoreInEqSugar(new MName(last.content(),0),span(peek().get()).get());
+      if (last.is(DotName,Op)){ throw errFactory().underscoreInEqSugar(new MName(last.content(),0),span(peek().get()).get()); }
     }
     return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq));
   }
