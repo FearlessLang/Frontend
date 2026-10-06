@@ -238,4 +238,23 @@ public class TestGamma{
     g.declare("x", X("X"));
     assertTrue(g.changed(s), "after a change, changed() should be true");
   }
+
+  // 16) Nesting and bindings grow past the initial capacities
+  @Test public void deep_scopes_and_many_bindings_grow(){
+    Gamma g= new Gamma();
+    Gamma.GammaSignature root= new Gamma.GammaSignature();
+    g.sign(root);
+    int n= 1000;
+    for (int i= 0; i < n; i++){
+      g.newScope(RC.mut, List.of(), null);
+      for (int j= 0; j < 10; j++){ g.declare("v" + i + "_" + j, X("T" + i)); }
+    }
+    assertEquals(X("T0"), g.get("v0_0"));
+    assertEquals(X("T999"), g.get("v999_9"));
+    g.update("v0_0", X("U"));
+    assertEquals(X("U"), g.get("v0_0"));
+    for (int i= 0; i < n; i++){ g.popScope(); }
+    assertTrue(g.represents(root));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("v0_0"));
+  }
 }
