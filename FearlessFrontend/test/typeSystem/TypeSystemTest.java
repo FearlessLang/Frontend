@@ -28,8 +28,8 @@ U:{ .u: T1 -> T1{ .m: A -> A{ .k: A -> A } } }
    |                                    --------------------------^^---
 
 While inspecting object literal instance of "iso T0[base.InferUnknown,base.InferUnknown]" > ".m0" line 1
-Cannot infer the type arguments of "T0[_,_]" for this object literal.
-Nothing in the surrounding code decides them: write them explicitly.
+Type inference concluded that this object literal implements "T0[?,?]",
+but it could not infer type arguments 1 and 2 for type parameters "X0" and "X1" of "T0[_,_]".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso T0[-.Inf-own,-.Inf-own]{}
@@ -41,8 +41,8 @@ T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
    |         ---------------------^^^^^^--
 
 While inspecting object literal instance of "iso T0[base.InferUnknown]" > ".m" line 1
-Cannot infer the type arguments of "T0[_]" for this object literal.
-Nothing in the surrounding code decides them: write them explicitly.
+Type inference concluded that this object literal implements "T0[?]",
+but it could not infer type argument 1 for type parameter "X" of "T0[_]".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso T0[-.Inf-own]{.m:T0[-.Void]->this}

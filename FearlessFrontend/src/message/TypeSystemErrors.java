@@ -189,9 +189,16 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .ex(at));
   }
   public FearlessException literalHeadNotInferred(Literal at, T.C c){
+    var cp= err().cp();
+    var unknown= IntStream.range(0,c.ts().size()).filter(i->TypeSystem.mentionsInferUnknown(c.ts().get(i))).boxed().toList();
+    var head= cp.t.ofFull(c.name())+Join.of(c.ts().stream().map(t->t.equals(TypeRename.inferUnknown) ? "?" : cp.msgT(t)),"[",",","]","");
+    var xs= decs.apply(c.name()).bs();
+    var s= unknown.size() == 1 ? "" : "s";
     return addExpFrame(at, err()
-      .line("Cannot infer the type arguments of "+err().tNameADisp(c.name())+" for this object literal.")
-      .line("Nothing in the surrounding code decides them: write them explicitly.")
+      .line("Type inference concluded that this object literal implements "+disp(head)+",")
+      .line("but it could not infer type argument"+s+" "+Join.of(unknown.stream().map(i->i+1),""," and ","","")
+        +" for type parameter"+s+" "+Join.of(unknown.stream().map(i->disp(xs.get(i).x())),""," and ","","")
+        +" of "+err().tNameADisp(c.name())+".")
       .ex(at));
   }
   public FearlessException typeDeclaredInMethod(E at, Literal l){

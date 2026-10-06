@@ -269,8 +269,8 @@ A[X:*]:{ #: X -> {this}* }
    |            ------------------------------------------------^^^^^^^^^^^^^^^^^^^^^^^^--
 
 While inspecting object literal instance of "iso Match[R5,base.InferUnknown]" > ".loop(_)" line 4
-Cannot infer the type arguments of "Match[_,_]" for this object literal.
-Nothing in the surrounding code decides them: write them explicitly.
+Type inference concluded that this object literal implements "Match[R5,?]",
+but it could not infer type argument 2 for type parameter "R" of "Match[_,_]".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Match[R5,-.Inf-own]{mut .return(rv:R5):-.Inf-own->Any#[imm,-.Inf-own]}
