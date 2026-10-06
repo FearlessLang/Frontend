@@ -1,6 +1,7 @@
 package inference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -23,32 +24,47 @@ public final class Gamma{
     @Override public boolean equals(Object o){ return o instanceof GammaSignature; }
     @Override public int hashCode(){ return 0; }
   }
-  private static final int maxBindings= 4096;
-  private static final int maxDepth= 256;
+  private static final int initialBindings= 4096;
+  private static final int initialDepth= 256;
   private static final int indexThreshold= 12;
 
-  private final String[] xs= new String[maxBindings];
-  private final IT[]     ts= new IT[maxBindings];
-  private final int[] declDepth= new int[maxBindings];
+  private String[] xs= new String[initialBindings];
+  private IT[]     ts= new IT[initialBindings];
+  private int[] declDepth= new int[initialBindings];
   private int size= 0;
 
-  private final int[]  marks= new int[maxDepth];
-  private final long[] envHash= new long[maxDepth];
-  private final RC[]  rcs= new RC[maxDepth];
+  private int[]  marks= new int[initialDepth];
+  private long[] envHash= new long[initialDepth];
+  private RC[]  rcs= new RC[initialDepth];
   @SuppressWarnings("unchecked")
-  private final List<B>[] bss= (List<B>[])new List<?>[maxDepth];
-  private final E.Literal[] owners= new E.Literal[maxDepth];
+  private List<B>[] bss= (List<B>[])new List<?>[initialDepth];
+  private E.Literal[] owners= new E.Literal[initialDepth];
   private int depth= 0;
 
   private final HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
   public Gamma(){ marks[0]= 0; envHash[0]= 0L; depth= 1; }
   public void newScope(RC rc, List<B> bs, E.Literal owner){
+    if (depth == marks.length){ growScopes(); }
     marks[depth]= size;
     envHash[depth]= envHash[depth - 1];
     rcs[depth]= rc;
     bss[depth]= bs;
     owners[depth]= owner;
     depth++;
+  }
+  private void growScopes(){
+    var n= 2 * depth;
+    marks= Arrays.copyOf(marks, n);
+    envHash= Arrays.copyOf(envHash, n);
+    rcs= Arrays.copyOf(rcs, n);
+    bss= Arrays.copyOf(bss, n);
+    owners= Arrays.copyOf(owners, n);
+  }
+  private void growBindings(){
+    var n= 2 * size;
+    xs= Arrays.copyOf(xs, n);
+    ts= Arrays.copyOf(ts, n);
+    declDepth= Arrays.copyOf(declDepth, n);
   }
   public void popScope(){
     assert depth > 1;
@@ -95,6 +111,7 @@ public final class Gamma{
   public void declare(String x, IT t){
     if (x.equals("_")){ return; }
     assert indexOf(x) == -1;
+    if (size == xs.length){ growBindings(); }
     xs[size]= x;
     ts[size]= t;
     declDepth[size]= depth - 1;
