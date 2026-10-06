@@ -361,6 +361,18 @@ Error 2 UnexpectedToken
 ""","""
 A:{Block#.let[base.Nat] _ = {5} .return {2} }
 """);}
+@Test void eq_underscoreAfterTypedName(){fail("""
+In file: [###].fear
+
+001| A:{Block#.let[base.Nat] s: _ = {5} .return: {2} }
+   |   -~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+Error 6 MissingSeparator
+""","""
+A:{Block#.let[base.Nat] s: _ = {5} .return: {2} }
+""");}
 @Test void eq_underscoreIsNotASugarAfterTypeArgumentsInParenthesis(){fail("""
 In file: [###].fear
 
