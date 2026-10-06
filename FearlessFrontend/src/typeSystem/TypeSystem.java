@@ -130,6 +130,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       var notInferred= m.sig().origin().equals(LiteralDeclarations.inferUnknown);
       if (notInferred){ throw tsE().methodNotInferred(l,m); }
     }
+    for (var c : l.cs()){ if (mentionsInferUnknown(c)){ throw tsE().literalHeadNotInferred(l,c); } }
     var ms= l.ms().stream().filter(m->m.e().isPresent()).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),dom(l.bs(),span)),span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
@@ -139,6 +140,10 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     ms.forEach(m->checkCallable(l,m));
     l.ms().forEach(m->checkImplemented(l,m,l));
     return reqs(l,bs1,thisType,rs);
+  }
+  private static boolean mentionsInferUnknown(T.C c){
+    return c.name().equals(LiteralDeclarations.inferUnknown)
+      || c.ts().stream().anyMatch(t->t instanceof T.RCC(_, var ci, _) && mentionsInferUnknown(ci));
   }
   private void checkImplemented(Literal l, M m,E blame){
     if (!m.sig().abs()){ return; }

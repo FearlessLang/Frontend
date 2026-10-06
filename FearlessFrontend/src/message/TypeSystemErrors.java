@@ -188,6 +188,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .line("No supertype of "+err().expRepr(at)+" has a method with "+n+" parameters.")
       .ex(at));
   }
+  public FearlessException literalHeadNotInferred(Literal at, T.C c){
+    return addExpFrame(at, err()
+      .line("Cannot infer the type arguments of "+err().tNameADisp(c.name())+" for this object literal.")
+      .line("Nothing in the surrounding code decides them: write them explicitly.")
+      .ex(at));
+  }
   public FearlessException typeDeclaredInMethod(E at, Literal l){
     return addExpFrame(at, err()
       .line("The type "+err().tNameADisp(l.name())+" is declared inside a method body.")

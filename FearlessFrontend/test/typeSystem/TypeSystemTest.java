@@ -23,6 +23,32 @@ T0:{ .m: A; }
 T1:T0{ read .m: A -> A }
 U:{ .u: T1 -> T1{ .m: A -> A{ .k: A -> A } } }
 """));}
+@Test void receiverLiteralWithUndeterminedTypeArguments(){fail("""
+001| T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
+   |                                    --------------------------^^---
+
+While inspecting object literal instance of "iso T0[base.InferUnknown,base.InferUnknown]" > ".m0" line 1
+Cannot infer the type arguments of "T0[_,_]" for this object literal.
+Nothing in the surrounding code decides them: write them explicitly.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso T0[-.Inf-own,-.Inf-own]{}
+""",List.of("""
+T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
+"""));}
+@Test void receiverLiteralCapturingThis(){fail("""
+001| T0[X]:{ .m: T0[base.Void] -> {this}.m }
+   |         ---------------------^^^^^^--
+
+While inspecting object literal instance of "iso T0[base.InferUnknown]" > ".m" line 1
+Cannot infer the type arguments of "T0[_]" for this object literal.
+Nothing in the surrounding code decides them: write them explicitly.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso T0[-.Inf-own]{.m:T0[-.Void]->this}
+""",List.of("""
+T0[X]:{ .m: T0[base.Void] -> {this}.m }
+"""));}
 @Test void methodTypeParameterOnlyInLiteralResult(){fail("""
 002| T1:{ .m[Y]: T1 -> { .k: Z[Y] -> this } }
    |      ---------------~~~~~~~~~~~~^^^^--
