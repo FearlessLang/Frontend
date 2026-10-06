@@ -23,6 +23,21 @@ T0:{ .m: A; }
 T1:T0{ read .m: A -> A }
 U:{ .u: T1 -> T1{ .m: A -> A{ .k: A -> A } } }
 """));}
+@Test void methodTypeParameterOnlyInLiteralResult(){fail("""
+002| T1:{ .m[Y]: T1 -> { .k: Z[Y] -> this } }
+   |      ---------------~~~~~~~~~~~~^^^^--
+
+While inspecting parameter "this" > ".k" line 2 > ".m" line 2
+Method ".k" inside the object literal instance of "iso T1" (line 2)
+is implemented with an expression returning "T1".
+Parameter "this" has type "T1" instead of a subtype of "Z[Y]".
+
+See inferred typing context below for how type "Z[Y]" was introduced: (compression indicated by `-`)
+T1:{.m[Y:imm]:T1->T1{.k:Z[Y]->this}}
+""",List.of("""
+Z[X]:{ }
+T1:{ .m[Y]: T1 -> { .k: Z[Y] -> this } }
+"""));}
 @Test void freshMethodGenericMustNotCaptureInheritedSiblingGeneric(){ok(List.of("""
 A:{ .foo[_AX,X](a:_AX,b:X):A; }
 B[X]:A{ .foo(a,b)->this }

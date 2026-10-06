@@ -7,6 +7,17 @@ public class TestInferenceSteps extends testUtils.FearlessTestBase{
   static void okI(String expected, List<String> input){ inferenceOk(expected, input, true); }
   static void failI(String expected, List<String> input){ inferenceFail(expected, input, true); }
 
+@Test void methodTypeParameterOnlyInLiteralResult(){okI("""
+p.T1:{'this .m[Y:imm]:p.T1@p.T1;->p._AT1:$?{'_ ? .k[?]:p.Z[Y]@!;->this:?;}:?;}
+p.Z[X:imm]:{'this}
+p._AT1:p.T1{'_ .k:p.T1@p._AT1;->this:p.T1; .m[_AY:imm]:p.T1@p.T1;}
+~-----------
+~mut p.T1:{'this .m[Y:imm]:p.T1->imm p._AT1[Y:imm]:p.T1{'_ .k:p.Z[Y]->this; .m[_AY:imm]:p.T1}}
+~mut p.Z[X:imm]:{'this }
+""",List.of("""
+Z[X]:{ }
+T1:{ .m[Y]: T1 -> { .k: Z[Y] -> this } }
+"""));}
 @Test void anonLiteralInDuplicatedBody(){okI("""
 p.A:{'this .k:p.A@p.A;->this:?;}
 p.T0:{'this .m:p.A@p.T0;}
