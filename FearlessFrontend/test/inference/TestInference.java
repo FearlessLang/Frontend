@@ -656,18 +656,11 @@ A3:A1{ }
 B:A2,A3{ }
 """));}
 
-@Test void diamondBad1(){fail("""
-In file: [###].fear
-
-004| B:A2,A3{ }
-   | ^^^^^^^^^^
-
-While inspecting type declaration "B"
-Ambiguous implementation for method ".foo" with 0 parameters.
-Different options are present in the implemented types:
-Candidates: "A2", "A1".
-Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
-Error 7 WellFormedness
+@Test void diamondOverriddenInOneBranch(){ok("""
+p.A1:{'this .foo:p.A1@p.A1;->this:?;}
+p.A2:p.A1{'this .foo:p.A1@p.A2;->this:?;}
+p.A3:p.A1{'this .foo:p.A1@p.A1;}
+p.B:p.A2, p.A3, p.A1{'this .foo:p.A1@p.A2;}
 """,List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ .foo->this; }
@@ -694,6 +687,64 @@ A3:A1{ .foo->this; }
 B:A2,A3{ }
 """));}
 
+@Test void reAbstractedBesideImplPicksImpl(){ok("""
+p.A:{'this .m:p.R@p.A;->p.R:?;}
+p.B:{'this .m:p.R@p.B;->p.R:?;}
+p.D:p.X, p.B, p.A{'this .m:p.R@p.B;}
+p.R:{'this}
+p.X:p.A{'this .m:p.R@p.X;}
+""",List.of("""
+R:{}
+A:{ .m:R->R; }
+X:A{ .m:R; }
+B:{ .m:R->R; }
+D:X,B{ }
+"""));}
+@Test void reAbstractedBesideReAbstractedPicksNone(){ok("""
+p.A1:p.I2{'this .m:p.R@p.A1;}
+p.A2:p.I1{'this .m:p.R@p.A2;}
+p.D:p.A1, p.A2, p.I1, p.I2{'this .m:p.R@p.D;}
+p.I1:{'this .m:p.R@p.I1;->p.R:?;}
+p.I2:{'this .m:p.R@p.I2;->p.R:?;}
+p.R:{'this}
+""",List.of("""
+R:{}
+I1:{ .m:R->R; }
+I2:{ .m:R->R; }
+A1:I2{ .m:R; }
+A2:I1{ .m:R; }
+D:A1,A2{ }
+"""));}
+@Test void reAbstractedInOneBranchHidesImplOfTheOther(){ok("""
+p.A:p.B{'this .m:p.R@p.B;}
+p.B:{'this .m:p.R@p.B;->p.R:?;}
+p.C:p.B{'this .m:p.R@p.C;}
+p.D:p.A, p.C, p.B{'this .m:p.R@p.D;}
+p.R:{'this}
+""",List.of("""
+R:{}
+B:{ .m:R->R; }
+A:B{ }
+C:B{ .m:R; }
+D:A,C{ }
+"""));}
+@Test void reAbstractedInsideAnotherSuperPicksRemainingImpl(){ok("""
+p.D:p.P, p.Q, p.I, p.J, p.X{'this .m:p.R@p.I;}
+p.I:{'this .m:p.R@p.I;->p.R:?;}
+p.J:{'this .m:p.R@p.J;->p.R:?;}
+p.P:p.X, p.I, p.J{'this .m:p.R@p.I;}
+p.Q:p.J{'this .m:p.R@p.J;}
+p.R:{'this}
+p.X:p.J{'this .m:p.R@p.X;}
+""",List.of("""
+R:{}
+J:{ .m:R->R; }
+X:J{ .m:R; }
+I:{ .m:R->R; }
+P:X,I{ }
+Q:J{ }
+D:P,Q{ }
+"""));}
 @Test void undefinedUse(){fail("""
 In file: [###].fear
 
