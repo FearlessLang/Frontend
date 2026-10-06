@@ -17,6 +17,12 @@ public class TypeSystemTest extends testUtils.FearlessTestBase{
 @Test void tsMiniOk(){ok(List.of("""
 A:{.foo123:A->this.foo123}
 """));}
+@Test void anonLiteralInDuplicatedBody(){ok(List.of("""
+A:{ .k: A -> this }
+T0:{ .m: A; }
+T1:T0{ read .m: A -> A }
+U:{ .u: T1 -> T1{ .m: A -> A{ .k: A -> A } } }
+"""));}
 @Test void freshMethodGenericMustNotCaptureInheritedSiblingGeneric(){ok(List.of("""
 A:{ .foo[_AX,X](a:_AX,b:X):A; }
 B[X]:A{ .foo(a,b)->this }
