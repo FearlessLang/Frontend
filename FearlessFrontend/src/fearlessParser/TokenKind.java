@@ -54,7 +54,7 @@ public enum TokenKind implements metaParser.TokenKind{
     "type name"),//correctly allows only one '.' since packages are not nested inside each others
   BadUppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*"),
   LowercaseId("_*[a-z][A-Za-z0-9_]*'*","name"),
-  BadSStrQuote("'[^'\\x0A]*'"),
+  BadSStrQuote("'[^'\\x0A]*'(?!_*[a-z])"),
    //\  /  #  *   -   +   %  <  >  =  !  &   ^   ~   ?     |
   //[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F:\\x7C#]
   //forbid:  /*   */   //

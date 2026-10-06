@@ -2666,6 +2666,16 @@ A{ .foo:A ->
   .return {Void}
 }
 """);}
+@Test void twoSelfNamesOnOneLine(){ok("""
+[###]Literalx[###]Literaly[###]body=Optional[x][###]
+""","""
+A:{ .a: A -> A{ 'x .a: A -> A{ 'y .a: A -> x } } }
+""");}
+@Test void twoSelfNamesOnOneLineInTwoReceivers(){ok("""
+[###]Literalx[###]body=Optional[Call[x].btrue[c]][###]Literaly[###]body=Optional[Call[y].btrue[c]][###]
+""","""
+A:{ .a: B -> B{ 'x .b(c: B): B -> x.b(c) }.b(B{ 'y .b(c: B): B -> y.b(c) }) }
+""");}
 @Test void badStackGuide(){fail("""
 In file: [###].fear
 
