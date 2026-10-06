@@ -211,6 +211,29 @@ A:B,C{}
 B:{ .m(b:Foo): Foo -> b }
 C:{ .m(c:Foo): Foo -> c }
 """));}
+@Test void reAbstractedImplBesideAnotherImpl(){ok(List.of("""
+R:{}
+A:{ .m: R -> R }
+B:{ .m: R -> R }
+C:B{ .m: R; }
+D:A,C{}
+"""));}
+@Test void inheritedImplBesideAnotherImpl(){failWf("""
+005| D:A,C{}
+   | ^^^^^^^
+
+While inspecting type declaration "D"
+Ambiguous implementation for method ".m" with 0 parameters.
+Different options are present in the implemented types:
+Candidates: "A", "B".
+Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
+""",List.of("""
+R:{}
+A:{ .m: R -> R }
+B:{ .m: R -> R }
+C:B{}
+D:A,C{}
+"""));}
 @Test void bothSupersInheritTheSameImpl(){ok(List.of("""
 Foo:{}
 A:B,C{}
