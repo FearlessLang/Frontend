@@ -7,6 +7,26 @@ public class TestInferenceSteps extends testUtils.FearlessTestBase{
   static void okI(String expected, List<String> input){ inferenceOk(expected, input, true); }
   static void failI(String expected, List<String> input){ inferenceFail(expected, input, true); }
 
+@Test void anonLiteralInDuplicatedBody(){okI("""
+p.A:{'this .k:p.A@p.A;->this:?;}
+p.T0:{'this .m:p.A@p.T0;}
+p.T1:p.T0{'this read .m:p.A@p.T1;->p.A:?; .m:p.A@p.T0;}
+p.U:{'this .u:p.T1@p.U;->p._BU:p.T1{'_ ? .m[?]:p.A@!;->p._AU:p.A{'_ ? .k[?]:p.A@!;->p.A:?;}:?;}:?;}
+p._AAU:p.A{'_ .k:p.A@p._AAU;->p.A:p.A;}
+p._AU:p.A{'_ .k:p.A@p._AU;->p.A:p.A;}
+p._BU:p.T1, p.T0{'_ read .m:p.A@p._BU;->p._AU:p.A{'_ .k:p.A@p._AU;->p.A:p.A;}:p.A; .m:p.A@p._BU;->p._AAU:p.A{'_ .k:p.A@p._AAU;->p.A:p.A;}:p.A;}
+~-----------
+~mut p.A:{'this .k:p.A->this}
+~mut p.T0:{'this .m:p.A}
+~mut p.T1:p.T0{'this read .m:p.A->p.A; .m:p.A}
+~mut p.U:{'this .u:p.T1->imm p._BU:p.T1, p.T0{'_ read .m:p.A->imm p._AU:p.A{'_ .k:p.A->p.A}; .m:p.A->imm p._AAU:p.A{'_ .k:p.A->p.A}}}
+""",List.of("""
+A:{ .k: A -> this }
+T0:{ .m: A; }
+T1:T0{ read .m: A -> A }
+U:{ .u: T1 -> T1{ .m: A -> A{ .k: A -> A } } }
+"""));}
+
 @Test void impliedSupertypeSpelledDifferentlyIsListedOnce(){okI("""
 p.A[Y:imm]:p.Foo[Y], p.Bar[Y]{'this}
 p.Bar[X:imm,mut]:p.Foo[imm X]{'this}

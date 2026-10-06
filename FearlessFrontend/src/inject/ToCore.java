@@ -37,7 +37,7 @@ public record ToCore(List<B> ctx){
   }
   core.E.Literal literal(inference.E.Literal e, inference.E orig){
     var o= (inference.E.Literal)orig;
-    assert o.name().s().equals(e.name().s());
+    assert o.src() == e.src();
     var rc= o.rc().or(e::rc).orElse(RC.imm);
     assert o.infName() == e.infName();
     assert o.infName() || e.name().equals(o.name());
