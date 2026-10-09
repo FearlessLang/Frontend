@@ -206,9 +206,6 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   private static String eqSugarUse(MName m){
     return "Use: \""+m.s()+" x = expression\" or \""+m.s()+" {a,b} = expression\".\n";
   }
-  public FearlessException parameterNameExpected(Span at){
-    return Code.UnexpectedToken.of("Parameter name expected.").addSpan(at);
-  }
   public FearlessException spaceBeforeId(Span at, String id){
     return Code.UnexpectedToken.of(
       "Found spacing between closed curly and destruct id "+disp(id)+"."

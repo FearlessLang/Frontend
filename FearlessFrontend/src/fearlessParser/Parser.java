@@ -153,7 +153,6 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
   MName parseDotName(){ return new MName(expect("method name",DotName).content(),0); }
   XPat parseXPat(){
     if (peek(LowercaseId,Underscore)){ return new XPat.Name(parseDecX()); }
-    if (!peek(_CurlyGroup)){ throw errFactory().parameterNameExpected(remainingSpan()); }
     var res= parseGroup("nominal pattern",Parser::parseDestruct);
     if (!peek(LowercaseId,UnsignedInt,UppercaseId)){ return res; }
     throw errFactory().spaceBeforeId(span(peek().get()).get(),peek().get().content());
