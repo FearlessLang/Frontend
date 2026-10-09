@@ -18,10 +18,5 @@ public record ExportedToStr(String pkgName, Map<String,String> uses){
   public String typeName(T.C c){
     return typeName(c.name())+Join.of(c.ts().stream().map(this::type),"[",",","]","");
   }
-  public String type(T t){ return switch (t){
-    case T.X(var name, _) -> name;
-    case T.RCX(var rc, var x) -> rc+" "+x.name();
-    case T.ReadImmX(var x) -> "read/imm "+x.name();
-    case T.RCC(var rc, var c, _) -> rc.toStrSpace()+typeName(c);
-  };}
+  public String type(T t){ return printer().msgT(t); }
 }

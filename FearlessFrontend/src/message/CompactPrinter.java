@@ -33,7 +33,7 @@ public class CompactPrinter{
   }
   StringBuilder sb= new StringBuilder();
   TypeNamePrinter t;
-  String msgT(T t){
+  public String msgT(T t){
     ofT(t).accString(this);
     return sb.toString();
   }
