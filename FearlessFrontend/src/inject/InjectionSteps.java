@@ -371,12 +371,11 @@ public record InjectionSteps(Methods meths){
     var t= withTsNormBs(rcc,ts);
     return commitToTable(g, bs, l.withMsT(ms, t), t);
   }
-  private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT t){
+  private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT.RCC rcc){
     var name= l.name();
-    if (!(t instanceof IT.RCC rcc)){ return l; }
-    var notReady= !t.isTV() || hasU(l.ms()) || meths.cache().containsKey(name);
+    var notReady= !rcc.isTV() || hasU(l.ms()) || meths.cache().containsKey(name);
     if (notReady){ return l; }
-    var freeNames= Streams.of(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()), t.ftv());
+    var freeNames= Streams.of(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()), rcc.ftv());
     var localBs= freeNames.distinct().map(x->RC.get(bs, x)).toList();
     var newName= name.withArity(localBs.size());
     var ms= fixArity(l.ms(), name, newName);
@@ -396,7 +395,7 @@ public record InjectionSteps(Methods meths){
     var cs= selfInferred? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c()));
     meths.checkMagicSupertypes(l, cs);
     assert l.infHead();
-    l= new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, t, l.src(),l.infName(), l.infHead(), l.g());
+    l= new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, rcc, l.src(),l.infName(), l.infHead(), l.g());
     if (selfInferred){ l= l.withT(preciseSelf(l).get()); }
     assert !meths.cache().containsKey(name);
     meths.register(l);
