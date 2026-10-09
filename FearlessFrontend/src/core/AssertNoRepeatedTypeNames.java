@@ -17,21 +17,17 @@ public final class AssertNoRepeatedTypeNames{
   }
   private static void walk(E e, LinkedHashMap<TName,E.Literal> firstLit, Set<E> visited){
     if (!visited.add(e)){ return; }
-    switch (e){
-      case E.X _, E.Type _ -> {}
-      case E.Call c -> { walk(c.e(), firstLit, visited); c.es().forEach(a->walk(a, firstLit, visited)); }
-      case E.Literal l -> {
-        var prev= firstLit.putIfAbsent(l.name(), l);
-        var duplicate= prev != null && prev != l;
-        if (duplicate){
-          throw new AssertionError(
-            "Duplicate type name after inference: "+l.name().s()+" @"+l.name().arity()
-            +"\n  first: "+prev.span()
-            +"\n  again: "+l.span()
-            +"\n  first infName="+prev.infName()+" again infName="+l.infName());
-        }
-        l.ms().forEach(m->m.e().ifPresent(body->walk(body, firstLit, visited)));
+    if (e instanceof E.Literal l){
+      var prev= firstLit.putIfAbsent(l.name(), l);
+      var duplicate= prev != null && prev != l;
+      if (duplicate){
+        throw new AssertionError(
+          "Duplicate type name after inference: "+l.name().s()+" @"+l.name().arity()
+          +"\n  first: "+prev.span()
+          +"\n  again: "+l.span()
+          +"\n  first infName="+prev.infName()+" again infName="+l.infName());
       }
     }
+    e.children().forEach(c->walk(c, firstLit, visited));
   }
 }

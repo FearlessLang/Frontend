@@ -103,12 +103,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   public static boolean hasInstance(Literal l){
     return l.thisName().equals("this") || LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
   }
-  private static boolean uses(E e, String x){ return switch (e){
-    case E.X(var n, _) -> n.equals(x);
-    case E.Type _ -> false;
-    case E.Literal l -> l.ms().stream().flatMap(m->m.e().stream()).anyMatch(ei->uses(ei,x));
-    case E.Call c -> uses(c.e(),x) || c.es().stream().anyMatch(ei->uses(ei,x));
-  };}
+  private static boolean uses(E e, String x){ return e instanceof E.X(var n, _) ? n.equals(x) : e.children().anyMatch(ei->uses(ei,x)); }
   private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m->m.sig().abs() && m.sig().rc() == mut); }
   private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }

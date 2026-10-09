@@ -7,6 +7,7 @@ import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import offensiveUtils.EqTransparent;
 
@@ -14,6 +15,11 @@ public sealed interface E{
   default Pos pos(){ return src().inner.pos(); }
   default TSpan span(){ return src().inner.span(); }
   Src src();
+  default Stream<E> children(){ return switch (this){
+    case X _, Type _ -> Stream.of();
+    case Literal l -> l.ms().stream().flatMap(m->m.e().stream());
+    case Call c -> Stream.concat(Stream.of(c.e()), c.es().stream());
+  };}
   record X(String name, Src src) implements E{
     public X{ assert name.equals("-") || validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name; }
