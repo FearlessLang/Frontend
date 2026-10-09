@@ -76,7 +76,6 @@ public record ToCore(List<B> ctx){
     var explicit= switch (o.src().inner){
       case fearlessFullGrammar.E.TypedLiteral _->false; //Not tl.t().c().ts().isPresent(): this would be about the first eventual c in cs; not the anon heir
       case fearlessFullGrammar.E.Literal _->false;
-      case fearlessFullGrammar.E.DeclarationLiteral(_, var dec)->dec.bs().isPresent();
       case fearlessFullGrammar.Declaration(_, var bs, _, _)->bs.isPresent();
       default -> throw Bug.of(o.src().inner.getClass().getName());
     };
