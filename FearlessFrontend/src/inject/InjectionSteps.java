@@ -143,16 +143,7 @@ public record InjectionSteps(Methods meths){
   }
   static RC noH(RC a){ return a == RC.readH ? RC.read : a == RC.mutH ? RC.mut : a; }
   List<IT> meet(List<IT> t1, List<IT> t2){ return Streams.zip(t1, t2).map(this::meet).toList(); }
-  List<IT> meet(List<List<IT>> tss){
-    var size= tss.getFirst().size();
-    assert tss.stream().allMatch(ts->ts.size() == size);
-    return IntStream.range(0,size)
-    .mapToObj(i->tss.stream()
-      .map(ts->ts.get(i))
-      .reduce(this::meet)
-      .get())
-    .toList();
-  }
+  List<IT> meet(List<List<IT>> tss){ return tss.stream().reduce(this::meet).get(); }
   E nextStar(List<B> bs, Gamma g, E e){
     var start= e;
     if (e.done(g)){ return e; }
