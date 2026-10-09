@@ -301,17 +301,16 @@ public record InjectionSteps(Methods meths){
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
   private List<E> requiredOnArgs(List<B> bs, E.Call c, MSigL m){
-    var all= decidedThen(c, m, c.es(), Stream.of(refine(m.xs(), m.ret0(), c.t())));
+    var all= decidedThen(c, m, c.es(), Stream.of());
     var m0= m.withClsArgs(normToBounds(bs, m.clsBs(), all.subList(0, m.nCls())));
     return meetWithTargs(c.es(), c.es(), m0, normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size())));
   }
   private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){
-    var a= Streams.zip(m.ps0(), es).map((p,e2)->refine(m.xs(), p, e2.t()));
-    return decidedThen(c, m, es, Streams.of(a, Stream.of(refine(m.xs(), m.ret0(), c.t()))));
+    return decidedThen(c, m, es, Streams.zip(m.ps0(), es).map((p,e2)->refine(m.xs(), p, e2.t())));
   }
-  private List<IT> decidedThen(E.Call c, MSigL m, List<E> es, Stream<List<IT>> refinements){
+  private List<IT> decidedThen(E.Call c, MSigL m, List<E> es, Stream<List<IT>> argRefinements){
     var targs= MSigL.fixTargs(c.targs(), m.bsArity());
-    var all= meet(Streams.of(Stream.of(Push.of(m.clsArgs(), targs)), refinements).toList());
+    var all= meet(Streams.of(Stream.of(Push.of(m.clsArgs(), targs)), argRefinements, Stream.of(refine(m.xs(), m.ret0(), c.t()))).toList());
     var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
     var fromLiterals= Streams.zip(m.ps0(), es).filter((_,e2)->e2 instanceof E.Literal).map((p,e2)->refine(m.xs(), p, e2.t()));
     var hard= meet(Streams.of(Stream.of(qMarks(written.size())), fromLiterals).toList());
