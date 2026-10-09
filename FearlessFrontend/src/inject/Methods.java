@@ -38,26 +38,24 @@ public record Methods(
   public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
-  List<List<E.Literal>> layer(List<E.Literal> decs){
+  List<E.Literal> supertypesFirst(List<E.Literal> decs){
     var rem= new LinkedHashMap<TName,E.Literal>();
     for (E.Literal d : decs){ rem.put(d.name(), d); }
-    var out= new ArrayList<List<E.Literal>>();
+    var out= new ArrayList<E.Literal>();
     while (!rem.isEmpty()){
       var layer= rem.values().stream().filter(d->free(d,rem)).toList();
       if (layer.isEmpty()){ throw p.err().circularImplements(rem); }
-      out.add(layer);
+      out.addAll(layer);
       for (E.Literal d : layer){ rem.remove(d.name()); }
     }
     return out;
   }
   public List<inference.E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     var acc= new ArrayList<E.Literal>();
-    for (var l : layer(iDecs.stream().filter(d->!d.infName()).toList())){
-      for (var d : l){
-        var e= expandDeclaration(d,false);
-        if (d.thisName().equals("this")){ acc.add(e); }
-        register(e);
-      }
+    for (var d : supertypesFirst(iDecs.stream().filter(l->!l.infName()).toList())){
+      var e= expandDeclaration(d,false);
+      if (d.thisName().equals("this")){ acc.add(e); }
+      register(e);
     }
     return List.copyOf(acc);
   }
