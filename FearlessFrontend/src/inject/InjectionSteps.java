@@ -165,8 +165,7 @@ public record InjectionSteps(Methods meths){
     return norm(es,es.stream().map(ei->nextStar(bs, g, ei)).toList());
   }
   private List<E> meetWithTargs(List<E> originEs,List<E> es, MSigL m, List<IT> targs){
-    var res= norm(es,IntStream.range(0, es.size())
-      .mapToObj(i->meet(es.get(i), m.p(i,targs))).toList());
+    var res= norm(es,Streams.zip(es, m.ps0()).map((e,p)->meet(e, m.inst(p,targs))).toList());
     assert notBackToOrigin(originEs, res);
     return res;
   }
@@ -617,7 +616,6 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
   int nCls(){ return clsArgs.size(); }
   int bsArity(){ return methBs.size(); }
 
-  IT p(int i, List<IT> targs){ return inst(ps0.get(i), targs); }
   IT ret(List<IT> targs){ return inst(ret0, targs); }
 
   MSigL withClsArgs(List<IT> clsArgs){
