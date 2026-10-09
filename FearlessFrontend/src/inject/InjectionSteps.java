@@ -600,11 +600,9 @@ public record InjectionSteps(Methods meths){
     return new IT.RCC(allowed.contains(RC.imm) ? Optional.empty() : Optional.of(RC.read), c, span);
   }
   static List<IT> normToBounds(List<B> bs, List<IT> ts){
-    if (bs.size() != ts.size()){ return ts; }
     return Streams.zip(ts,bs).map((ti,bi)->normToBound(ti,bi.rcs())).toList();
   }
   private static List<IT> normToBounds(List<B> scope, List<B> bs, List<IT> ts){
-    if (bs.size() != ts.size()){ return ts; }
     return Streams.zip(ts,bs).map((ti,bi)->normToBound(scope,ti,bi.rcs())).toList();
   }
   private static IT normToBound(List<B> scope, IT t, EnumSet<RC> allowed){
