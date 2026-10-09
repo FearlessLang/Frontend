@@ -139,5 +139,4 @@ public record ToCore(List<B> ctx){
     if (m.impl().isEmpty()){ return new core.M(s,nUnderscores(s.ts().size()),Optional.empty()); }
     return new core.M(s,m.impl().get().xs(),synteticBody);
   }
-  public List<core.M> msSyntetic(List<inference.M> ms){ return ms.stream().map(this::mSyntetic).toList(); }
 }

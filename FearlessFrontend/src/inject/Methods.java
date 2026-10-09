@@ -146,7 +146,7 @@ public record Methods(
     var cs= TypeRename.itcToTC(d.cs());
     assert InjectionToInferenceVisitor.duplicatedSupertypes(d.bs(),cs).isEmpty();
     p().log().logInferenceDeclaration(d, cs);
-    var ms= new ToCore(List.of()).msSyntetic(d.ms());
+    var ms= d.ms().stream().map(new ToCore(List.of())::mSyntetic).toList();
     cache.put(d.name(), new core.E.Literal(d.rc().orElse(RC.imm),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName()));
   }
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
@@ -177,7 +177,7 @@ public record Methods(
     for (var abs : List.of(true,false)){
       var match= new ArrayList<M.Sig>();
       ss.removeIf(s->s.m().get().arity() == arity && (s.abs() || !abs) && match.add(s));
-      var count= namesCount(match);
+      var count= match.stream().map(s->s.m().get()).distinct().count();
       if (count == 1){ return withName(match.getFirst().m().get(),m); }
       if (count > 1){ throw p.err().ambiguousImpl(origin,abs,m,match); }
     }
@@ -229,7 +229,6 @@ public record Methods(
     match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s);
     return true;
   }
-  long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m().get()).distinct().count(); }
 
   M pairWithSig(List<M.Sig> ss, inference.M m, E.Literal origin){
     if (ss.isEmpty()){ return toCompleteM(m,origin); }
