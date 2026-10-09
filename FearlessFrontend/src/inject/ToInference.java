@@ -43,8 +43,6 @@ public final class ToInference{
     var pkg= p.map().getOrDefault(pN,pN);
     var full= new TName(pkg+"."+tn.simpleName(),tn.arity(),tn.pos());
     if (pkg.equals(p.name())){ return fCurrent(meths,tn,full); }
-    var lit= pkg.equals("base") && LiteralDeclarations.isPrimitiveLiteral(full.simpleName());
-    if (lit){ return full; }
     if (meths.other().__of(full) != null){ return full; }
     throw undeclaredType(meths,tn,full);
   }
