@@ -88,7 +88,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var allowedStr= Join.of(bounds.stream().map(Err::disp).sorted(), "", " or ", "");
     var gotStr= Join.of(got.stream().map(Err::disp).sorted(), "", " or ", "");
     var err= switch (target){
-      case T.RCC rcc -> typeNotWellKinded("type "+err().typeRepr(true,rcc),rcc.c(), index, allowedStr, gotStr);
       case T.C c -> typeNotWellKinded("type "+err().typeRepr(c),c, index, allowedStr, gotStr);
       case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t,c, index, allowedStr, gotStr);
     };

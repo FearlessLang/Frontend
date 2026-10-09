@@ -20,7 +20,7 @@ public record Kinding(TypeSystemErrors tsE){
     for (int i : Range.of(params)){ check(toErr, c, i, bs, args.get(i), params.get(i).rcs()); }
   }
   public void check(E toErr, List<B> bs, T t){
-    if (t instanceof T.RCC rcc){ check(toErr,rcc,-1,bs,rcc,EnumSet.allOf(RC.class)); }
+    if (t instanceof T.RCC rcc){ check(toErr,rcc.c(),-1,bs,rcc,EnumSet.allOf(RC.class)); }
   }
   public Function<TName,Literal> decs(){ return tsE.decs(); }
   public void check(E toErr, KindingTarget target, int index, List<B> bs, T t, EnumSet<RC> allowed){

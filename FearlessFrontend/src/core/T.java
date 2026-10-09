@@ -47,7 +47,7 @@ public sealed interface T{
         end.endLine(),end.endCol()+1));//the closing "]"
     }
   }
-  record RCC(RC rc, C c, TSpan span) implements T, KindingTarget{
+  record RCC(RC rc, C c, TSpan span) implements T{
     public RCC{ assert nonNull(rc,c); }
     public String toString(){ return rc.toStrSpace() + c; }
     public RCC withTs(List<T> ts){ return new RCC(rc,c.withTs(ts),span); }
