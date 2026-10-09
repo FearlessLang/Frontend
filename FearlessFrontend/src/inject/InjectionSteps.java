@@ -106,7 +106,6 @@ public record InjectionSteps(Methods meths){
   private IT leastBad(IT a, IT b){
     assert !(a instanceof IT.U);
     assert !(b instanceof IT.U);
-    if (a instanceof RCC aa && b instanceof RCC bb){ return leastBad(aa, bb); }
     if (a instanceof RCC){ return a; }
     if (b instanceof RCC){ return b; }
     var aRcOverBareB= a instanceof IT.RCX && (b instanceof IT.X || b instanceof IT.ReadImmX);
