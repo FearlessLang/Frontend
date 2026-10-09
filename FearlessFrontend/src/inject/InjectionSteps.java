@@ -198,8 +198,7 @@ public record InjectionSteps(Methods meths){
     catch(WellFormednessErrors.ErrToFetchContext depthErr){ throw meths.p().err().itTooDeep(e,depthErr.c); }
   }
   private IT preferred(IT.RCC type){
-    var d= meths._from(type.c().name());//d.cs() does contain all the transitive supertypes already.
-    if (d == null){ return type; }//This can happen for {..}.foo
+    var d= meths.from(type.c().name());//d.cs() does contain all the transitive supertypes already.
     var c= OneOr.opt("Repeated WidenTo supertype", d.cs().stream().filter(ci->ci.name().equals(LiteralDeclarations.widen)));
     if (c.isEmpty()){ return type; }
     var wid= TypeRename.of(TypeRename.tToIT(OneOr.of("WidenTo has one type argument", c.get().ts().stream())), B.xs(d.bs()), type.c().ts());
