@@ -126,13 +126,12 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       if (notInferred){ throw tsE().methodNotInferred(l,m); }
     }
     for (var c : l.cs()){ if (c.ts().stream().anyMatch(TypeSystem::mentionsInferUnknown)){ throw tsE().literalHeadNotInferred(l,c); } }
-    var ms= l.ms().stream().filter(m->m.e().isPresent()).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),dom(l.bs(),span)),span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l,bs1,thisType);
     litOk(v().discard(g.filterFTV(l),l),l);
     if (selfNamed && !uses(_l,_l.thisName())){ throw tsE().selfNameDeadCode(_l); }
-    ms.forEach(m->checkCallable(l,m));
+    l.ms().stream().filter(m->m.e().isPresent()).forEach(m->checkCallable(l,m));
     l.ms().forEach(m->checkImplemented(l,m,l));
     return reqs(l,bs1,thisType,rs);
   }
