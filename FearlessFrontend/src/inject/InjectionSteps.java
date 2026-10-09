@@ -380,12 +380,7 @@ public record InjectionSteps(Methods meths){
     var newName= name.withArity(localBs.size());
     var ms= fixArity(l.ms(), name, newName);
     var orc= l.rc().or(rcc::rc).map(InjectionSteps::noH);
-    if (!l.infName()){
-      l= new E.Literal(orc, newName, localBs, l.cs(), l.thisName(), ms, l.t(), l.src(),l.infName(), l.infHead(), l.g());
-      assert !meths.cache().containsKey(name);
-      meths.register(l);
-      return l;
-    }
+    assert l.infName();
     assert l.bs().isEmpty();
     var noMeth= l.ms().stream().allMatch(m->m.impl().isEmpty());
     var justAType= noMeth && l.infHead() && meths._from(rcc.c().name()) != null;
