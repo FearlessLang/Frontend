@@ -341,7 +341,6 @@ public record InjectionSteps(Methods meths){
       l= l.infName() && !c.name().equals(l.name()) ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l,true);
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
-    var changedMs= false;
     var res= new ArrayList<inference.M>(l.ms().size());
     var ts= rcc.c().ts();
     for (var mi : l.ms()){
@@ -350,12 +349,11 @@ public record InjectionSteps(Methods meths){
       var next= mi.impl().isEmpty() ? nextMStarAbs(rcci, mi) : nextMStarOp(bs, g, l, selfPrecise, rcci, mi);
       assert next.m == mi || !next.m.equals(mi);
       ts= meet(ts, next.ts);
-      changedMs |= next.m != mi;
       res.add(next.m);
     }
-    var noChange= !changedMs && ts.equals(rcc.c().ts());
+    var ms= norm(l.ms(),Collections.unmodifiableList(res));
+    var noChange= ms == l.ms() && ts.equals(rcc.c().ts());
     if (noChange){ return commitToTable(g,bs, l, rcc); }
-    var ms= changedMs?Collections.unmodifiableList(res):l.ms();
     var t= withTsNormBs(rcc,ts);
     return commitToTable(g, bs, l.withMsT(ms, t), t);
   }
