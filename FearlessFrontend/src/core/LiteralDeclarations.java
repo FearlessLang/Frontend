@@ -96,14 +96,12 @@ public final class LiteralDeclarations{
     if (TokenKind.isKind(ns,TokenKind.UnsignedInt)){
       // base.Nat: produce the signed int whose 64-bit pattern equals the unsigned value.
       // Later ops use: Integer.toUnsignedLong(x), compareUnsigned, divideUnsigned, etc.
-      var v= big(ns);
-      assert inRange(v,natMin,natMax);
-      return v.longValue() +"L";// wraps to low 64 bits (exactly what we want given the range)
+      assert natLiteralInRange(ns);
+      return big(ns).longValue() +"L";// wraps to low 64 bits (exactly what we want given the range)
     }
     if (TokenKind.isKind(ns,TokenKind.SignedInt)){
-      var v= big(ns);
-      assert inRange(v,intMin,intMax);
-      return v.longValueExact() +"L";
+      assert intLiteralInRange(ns);
+      return big(ns).longValueExact() +"L";
     }
     if (TokenKind.isKind(ns,TokenKind.SignedFloat,TokenKind.UnSignedFloat)){
       assert floatLiteralOk(ns);
