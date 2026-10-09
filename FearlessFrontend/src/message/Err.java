@@ -13,6 +13,7 @@ import core.E.*;
 import inject.TypeRename;
 import metaParser.Message;
 import typeSystem.TypeSystem.*;
+import utils.Bug;
 import utils.Join;
 
 public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
@@ -77,12 +78,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case Type(var t, _)-> "object literal instance of " + typeRepr(true,t);
     };}
   String expReprDirect(boolean skipImm, E toErr){return switch (toErr){
-    case Call c->methodSig(c.name());
-    case X(var name, _)->disp(name);
-    case Literal l->l.thisName().equals("this")
-      ? tNameADisp(l.name())
-      : bestNamePkg0(false, bestLitName(false,skipImm,l));
+    case Literal l->bestNamePkg0(false, bestLitName(false,skipImm,l));
     case Type(var t, _) -> typeRepr(skipImm,t);
+    default -> throw Bug.unreachable();
     };}
   String expRepr(inference.E toErr){return switch (toErr){
     case inference.E.Call c->"method call "+methodSig(c.name());
