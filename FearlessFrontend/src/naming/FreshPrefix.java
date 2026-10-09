@@ -34,7 +34,7 @@ public record FreshPrefix(
     }
   }
   public TName freshTopType(TName hint,int arity){
-    var cand= freshCandidate(hint.simpleName(), true, up, topSeq, usedTopTypes, List.of(allGenericNames));
+    var cand= freshCandidate(hint.simpleName(), up, topSeq, usedTopTypes, List.of(allGenericNames));
     var res= new TName(pkgName+"."+cand,arity,hint.pos());//all fresh names should start with _ to be pkg private
     aliasOwner(hint,res);
     return res;
@@ -43,19 +43,19 @@ public record FreshPrefix(
   public String freshGeneric(TName owner,String hint,List<String> siblings){
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
-    var cand= freshCandidate(hint, true, up, st.genSeq(), st.gen(), List.of(usedTopTypes,siblings));
+    var cand= freshCandidate(hint, up, st.genSeq(), st.gen(), List.of(usedTopTypes,siblings));
     allGenericNames.add(cand);
     return cand;
   }
   public String freshVar(TName owner,String hint){
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
-    return freshCandidate(hint, false, low, st.varSeq(), st.vars(), List.of());
+    return freshCandidate(hint, low, st.varSeq(), st.vars(), List.of());
   }
   // commitScope is checked and updated with the winning candidate; extraChecks are read-only.
-  private static String freshCandidate(String hint, boolean type, char[] alphabet,
+  private static String freshCandidate(String hint, char[] alphabet,
       HashMap<String,Integer> seq, HashSet<String> commitScope, List<Collection<String>> extraChecks){
-    var base= sanitizeBase(hint, type);
+    var base= sanitizeBase(hint);
     for (int n= seq.getOrDefault(base, 1);; n++){
       var cand= "_"+encodeBijective(n, alphabet)+base;
       var taken= commitScope.contains(cand) || extraChecks.stream().anyMatch(e->e.contains(cand));
@@ -71,10 +71,8 @@ public record FreshPrefix(
     assert !owners.containsKey(alias);
     owners.put(alias, Objects.requireNonNull(owners.get(original)));
   }
-  private static String sanitizeBase(String raw,boolean type){
+  private static String sanitizeBase(String raw){
     var s= raw.replaceAll("[^A-Za-z0-9]", "");
-    if (s.isEmpty()){ s= type ? "T" : "v"; }
-    if (!Character.isLetter(s.charAt(0))){ s= (type ? "T" : "v") + s; }
     return (s.length() <= 4) ? s : s.substring(0, 4);
   }
   private static String encodeBijective(int n,char[] alphabet){

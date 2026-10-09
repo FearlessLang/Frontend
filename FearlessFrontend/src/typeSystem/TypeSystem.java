@@ -103,12 +103,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   public static boolean hasInstance(Literal l){
     return l.thisName().equals("this") || LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
   }
-  private static boolean uses(E e, String x){ return switch (e){
-    case E.X(var n, _) -> n.equals(x);
-    case E.Type _ -> false;
-    case E.Literal l -> l.ms().stream().flatMap(m->m.e().stream()).anyMatch(ei->uses(ei,x));
-    case E.Call c -> uses(c.e(),x) || c.es().stream().anyMatch(ei->uses(ei,x));
-  };}
+  private static boolean uses(E e, String x){ return e instanceof E.X(var n, _) ? n.equals(x) : e.children().anyMatch(ei->uses(ei,x)); }
   private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m->m.sig().abs() && m.sig().rc() == mut); }
   private List<Reason> reqs(E blame, List<B> bs, T got, List<TRequirement> rs){
     if (rs.isEmpty()){ return List.of(Reason.pass(got)); }
@@ -131,13 +126,12 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       if (notInferred){ throw tsE().methodNotInferred(l,m); }
     }
     for (var c : l.cs()){ if (c.ts().stream().anyMatch(TypeSystem::mentionsInferUnknown)){ throw tsE().literalHeadNotInferred(l,c); } }
-    var ms= l.ms().stream().filter(m->m.e().isPresent()).toList();
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),dom(l.bs(),span)),span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l,bs1,thisType);
     litOk(v().discard(g.filterFTV(l),l),l);
     if (selfNamed && !uses(_l,_l.thisName())){ throw tsE().selfNameDeadCode(_l); }
-    ms.forEach(m->checkCallable(l,m));
+    l.ms().stream().filter(m->m.e().isPresent()).forEach(m->checkCallable(l,m));
     l.ms().forEach(m->checkImplemented(l,m,l));
     return reqs(l,bs1,thisType,rs);
   }

@@ -12,8 +12,7 @@ record CaptureWalk(List<B> bs, Gamma g, Predicate<RC> freeRC){
   boolean isFree(E e){
     return switch (e){
       case E.Literal l -> isFree(l);
-      case E.Call c -> isFree(c.e()) && c.es().stream().allMatch(this::isFree);
-      case E.Type _ -> true;
+      case E.Call _, E.Type _ -> e.children().allMatch(this::isFree);
       case E.X x -> isFree(x);
     };
   }

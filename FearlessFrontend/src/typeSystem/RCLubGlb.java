@@ -22,18 +22,12 @@ public final class RCLubGlb{
   static boolean isUb(EnumSet<RC> options, RC ub){ return options.stream().allMatch(x->x.isSubType(ub)); }
   static boolean isLb(EnumSet<RC> options,RC lb){ return options.stream().allMatch(lb::isSubType); }
   static boolean isLub(EnumSet<RC> options,RC lub){
-    var isUb= isUb(options,lub);
-    var isLowest= allRC.stream()
-      .filter(rc->isUb(options,rc))
-      .allMatch(lub::isSubType);
-    return isUb && isLowest;
+    var isLowest= allRC.stream().filter(rc->isUb(options,rc)).allMatch(lub::isSubType);
+    return isUb(options,lub) && isLowest;
   }
   static boolean isGlb(EnumSet<RC> options,RC glb){
-    var isLb= isLb(options,glb);
-    var isGreatest= allRC.stream()
-      .filter(rc->isLb(options,rc))
-      .allMatch(lb->lb.isSubType(glb));
-    return isLb && isGreatest;
+    var isGreatest= allRC.stream().filter(rc->isLb(options,rc)).allMatch(lb->lb.isSubType(glb));
+    return isLb(options,glb) && isGreatest;
   }
   static void init(EnumSet<RC> options,RC glb,RC lub){
     var novel1= lubMap.put(options,lub);

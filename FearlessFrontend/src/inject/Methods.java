@@ -3,7 +3,6 @@ package inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,26 +38,24 @@ public record Methods(
   public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
-  List<List<E.Literal>> layer(List<E.Literal> decs){
+  List<E.Literal> supertypesFirst(List<E.Literal> decs){
     var rem= new LinkedHashMap<TName,E.Literal>();
     for (E.Literal d : decs){ rem.put(d.name(), d); }
-    var out= new ArrayList<List<E.Literal>>();
+    var out= new ArrayList<E.Literal>();
     while (!rem.isEmpty()){
       var layer= rem.values().stream().filter(d->free(d,rem)).toList();
       if (layer.isEmpty()){ throw p.err().circularImplements(rem); }
-      out.add(layer);
+      out.addAll(layer);
       for (E.Literal d : layer){ rem.remove(d.name()); }
     }
     return out;
   }
   public List<inference.E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     var acc= new ArrayList<E.Literal>();
-    for (var l : layer(iDecs.stream().filter(d->!d.infName()).toList())){
-      for (var d : l){
-        var e= expandDeclaration(d,false);
-        if (d.thisName().equals("this")){ acc.add(e); }
-        register(e);
-      }
+    for (var d : supertypesFirst(iDecs.stream().filter(l->!l.infName()).toList())){
+      var e= expandDeclaration(d,false);
+      if (d.thisName().equals("this")){ acc.add(e); }
+      register(e);
     }
     return List.copyOf(acc);
   }
@@ -146,7 +143,7 @@ public record Methods(
     var cs= TypeRename.itcToTC(d.cs());
     assert InjectionToInferenceVisitor.duplicatedSupertypes(d.bs(),cs).isEmpty();
     p().log().logInferenceDeclaration(d, cs);
-    var ms= new ToCore(List.of()).msSyntetic(d.ms());
+    var ms= d.ms().stream().map(new ToCore(List.of())::mSyntetic).toList();
     cache.put(d.name(), new core.E.Literal(d.rc().orElse(RC.imm),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName()));
   }
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
@@ -175,9 +172,9 @@ public record Methods(
   private M nameFromSigs(M m, ArrayList<M.Sig> ss, E.Literal origin){
     var arity= m.sig().ts().size();
     for (var abs : List.of(true,false)){
-      var match= new ArrayList<M.Sig>();
-      ss.removeIf(s->s.m().get().arity() == arity && (s.abs() || !abs) && match.add(s));
-      var count= namesCount(match);
+      var match= ss.stream().filter(s->s.m().get().arity() == arity && (s.abs() || !abs)).toList();
+      ss.removeAll(match);
+      var count= match.stream().map(s->s.m().get()).distinct().count();
       if (count == 1){ return withName(match.getFirst().m().get(),m); }
       if (count > 1){ throw p.err().ambiguousImpl(origin,abs,m,match); }
     }
@@ -189,8 +186,9 @@ public record Methods(
     for (var m: ms){
       var name= m.sig().m().get();
       var rc= m.sig().rc();
-      var match= new LinkedHashMap<RC,ArrayList<M.Sig>>();
-      ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && acc(match,s));
+      var taken= ss.stream().filter(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))).toList();
+      ss.removeAll(taken);
+      var match= taken.stream().collect(Collectors.groupingBy(s->s.rc().get(),LinkedHashMap::new,Collectors.toList()));
       var inferredRcOverloads= rc.isEmpty() && match.size() > 1;
       if (inferredRcOverloads){
         var litRc= origin.rc().or(origin.t()::explicitRC).orElse(RC.imm);
@@ -225,11 +223,6 @@ public record Methods(
     assert !changed == res.equals(ms);
     return changed ? List.copyOf(res) : ms;
   }
-  private boolean acc(HashMap<RC,ArrayList<Sig>> match, Sig s){
-    match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s);
-    return true;
-  }
-  long namesCount(List<M.Sig> ss){ return ss.stream().map(s->s.m().get()).distinct().count(); }
 
   M pairWithSig(List<M.Sig> ss, inference.M m, E.Literal origin){
     if (ss.isEmpty()){ return toCompleteM(m,origin); }

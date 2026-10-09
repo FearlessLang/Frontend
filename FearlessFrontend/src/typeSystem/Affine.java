@@ -20,11 +20,8 @@ final class Affine{
     if (total.size() > 1){ throw err.notAffineIso(l,m, x,false, total); }
   }
   private static void collect(String x, E e, boolean activeOnly, ArrayList<X> acc){
-    switch (e){
-      case X v -> { if (v.name().equals(x)){ acc.add(v); } }
-      case Call c -> { collect(x, c.e(), activeOnly, acc); c.es().forEach(arg->collect(x, arg, activeOnly, acc)); }
-      case Literal l -> { if (!activeOnly){ l.ms().forEach(m->m.e().ifPresent(e1->collect(x, e1, false, acc))); } }
-      case Type _ -> {}
-    }
+    if (e instanceof X v && v.name().equals(x)){ acc.add(v); }
+    var skipLiteral= activeOnly && e instanceof Literal;
+    if (!skipLiteral){ e.children().forEach(c->collect(x, c, activeOnly, acc)); }
   }
 }

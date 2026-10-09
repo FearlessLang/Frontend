@@ -33,7 +33,7 @@ public class CompactPrinter{
   }
   StringBuilder sb= new StringBuilder();
   TypeNamePrinter t;
-  String msgT(T t){
+  public String msgT(T t){
     ofT(t).accString(this);
     return sb.toString();
   }
@@ -169,7 +169,6 @@ public class CompactPrinter{
   }
   List<PC> ofCs(Src src,List<T.C> cs){
     List<fearlessFullGrammar.T.C> oCs= switch (src.inner){
-      case fearlessFullGrammar.E.DeclarationLiteral(_, var dec)->dec.cs();
       case fearlessFullGrammar.Declaration(_, _, var decCs, _)->decCs;
       case fearlessFullGrammar.E.TypedLiteral(var rcc, _, _)->List.of(rcc.c());
       case fearlessFullGrammar.E.Literal _->List.of();
