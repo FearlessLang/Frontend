@@ -3,8 +3,9 @@ package message;
 import message.CompactPrinter.*;
 
 final class BestPicker{
-  Score best= Score.none;
-  Compactable pick(PE root){ visit(root,0); return best.k(); }
+  int bestScore= -1;
+  Compactable best= Compactable.no;
+  Compactable pick(PE root){ visit(root,0); return best; }
   void visit(PN n,int depth){
     consider(n,depth+(n instanceof PM ? 10 : 1));
     switch (n){
@@ -43,9 +44,6 @@ final class BestPicker{
   }
   void consider(PN n, int score){
     if (!n.k().isCompactable()){ return; }
-    if (score > best.score){ best= new Score(score,n.k()); }
-  }
-  record Score(int score, Compactable k){
-    static final Score none= new Score(-1, Compactable.no);
+    if (score > bestScore){ bestScore= score; best= n.k(); }
   }
 }
