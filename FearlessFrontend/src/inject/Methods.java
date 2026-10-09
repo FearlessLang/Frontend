@@ -3,7 +3,6 @@ package inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -175,8 +174,8 @@ public record Methods(
   private M nameFromSigs(M m, ArrayList<M.Sig> ss, E.Literal origin){
     var arity= m.sig().ts().size();
     for (var abs : List.of(true,false)){
-      var match= new ArrayList<M.Sig>();
-      ss.removeIf(s->s.m().get().arity() == arity && (s.abs() || !abs) && match.add(s));
+      var match= ss.stream().filter(s->s.m().get().arity() == arity && (s.abs() || !abs)).toList();
+      ss.removeAll(match);
       var count= match.stream().map(s->s.m().get()).distinct().count();
       if (count == 1){ return withName(match.getFirst().m().get(),m); }
       if (count > 1){ throw p.err().ambiguousImpl(origin,abs,m,match); }
@@ -189,8 +188,9 @@ public record Methods(
     for (var m: ms){
       var name= m.sig().m().get();
       var rc= m.sig().rc();
-      var match= new LinkedHashMap<RC,ArrayList<M.Sig>>();
-      ss.removeIf(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc())) && acc(match,s));
+      var taken= ss.stream().filter(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))).toList();
+      ss.removeAll(taken);
+      var match= taken.stream().collect(Collectors.groupingBy(s->s.rc().get(),LinkedHashMap::new,Collectors.toList()));
       var inferredRcOverloads= rc.isEmpty() && match.size() > 1;
       if (inferredRcOverloads){
         var litRc= origin.rc().or(origin.t()::explicitRC).orElse(RC.imm);
@@ -224,10 +224,6 @@ public record Methods(
     }
     assert !changed == res.equals(ms);
     return changed ? List.copyOf(res) : ms;
-  }
-  private boolean acc(HashMap<RC,ArrayList<Sig>> match, Sig s){
-    match.computeIfAbsent(s.rc().get(),_->new ArrayList<>()).add(s);
-    return true;
   }
 
   M pairWithSig(List<M.Sig> ss, inference.M m, E.Literal origin){
