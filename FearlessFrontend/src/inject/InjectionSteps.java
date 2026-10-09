@@ -224,7 +224,7 @@ public record InjectionSteps(Methods meths){
     var clsArgs= rcc.c().ts();
     assert clsArgs.size() == clsXs.size();
     var xs= Push.of(clsXs,methXs);//TODO: could avoid materializing the two lists
-    var ps0= m.sig().ts().stream().map(TypeRename::tToIT).toList();
+    var ps0= TypeRename.tToIT(m.sig().ts());
     var ret0= TypeRename.tToIT(m.sig().ret());
     return new MSigL(m.sig().rc(), xs, d.bs(), clsArgs, m.sig().bs(), ps0, ret0);
   }
@@ -508,7 +508,7 @@ public record InjectionSteps(Methods meths){
   private boolean isASuperB(TName a, TName b){
     var d= meths._from(b);
     if (d == null){ return false; } // {..}.foo etc.
-    return d.cs().stream().anyMatch(c->c.name().equals(a));
+    return LiteralDeclarations.has(d.cs(),a);
   }
   private List<IT.RCC> adaptedSuperTs(IT.RCC src, TName target){
     var d= meths._from(src.c().name());
