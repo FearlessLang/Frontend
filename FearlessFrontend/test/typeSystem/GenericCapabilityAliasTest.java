@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-class GenericCapabilityAliasTest extends testUtils.FearlessTestBase{
+public class GenericCapabilityAliasTest extends testUtils.FearlessTestBase{
   private static final String cellAndBox= """
 Cell:{ read .get:base.Nat; mut .set(value:base.Nat):base.Void; }
 Box[X:imm,mut]:{ mut .get:X; }

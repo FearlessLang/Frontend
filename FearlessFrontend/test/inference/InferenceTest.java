@@ -10,7 +10,7 @@ import core.FearlessException;
 import testUtils.DbgBlock;
 import tools.SourceOracle;
 
-public class TestInference extends testUtils.FearlessTestBase{
+public class InferenceTest extends testUtils.FearlessTestBase{
   static void ok(String expected,List<String> input){ inferenceOk(expected, input,false); }
   static void fail(String expected, List<String> input){ inferenceFail(expected, input); }
 

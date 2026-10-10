@@ -2,7 +2,7 @@ package fearlessParser;
 
 import org.junit.jupiter.api.Test;
 
-public class TestParse extends testUtils.FearlessTestBase{
+public class ParseTest extends testUtils.FearlessTestBase{
   static void ok(String expected,String input){ parseOkNormalized(expected, input); }
   static void fail(String expectedErr, String input){ parseFail(expectedErr, input); }
 @Test void mini(){ok("""

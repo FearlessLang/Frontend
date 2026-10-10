@@ -8,7 +8,7 @@ import java.util.List;
 import core.RC;
 import utils.Range;
 
-public class TestGamma{
+public class GammaTest{
 
   private static IT X(String name){ return new IT.X(name,null); }
 
