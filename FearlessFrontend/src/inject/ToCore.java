@@ -132,10 +132,10 @@ public record ToCore(List<B> ctx){
   }
   private List<String> nUnderscores(int n){ return Stream.generate(()->"_").limit(n).toList(); }
 
-  private static final Optional<core.E> synteticBody= Optional.of(new core.E.X("this",Src.syntetic));
-  core.M mSyntetic(inference.M m){
+  private static final Optional<core.E> syntheticBody= Optional.of(new core.E.X("this",Src.synthetic));
+  core.M mSynthetic(inference.M m){
     var s= sig(m.sig(),m.sig());
     if (m.impl().isEmpty()){ return new core.M(s,nUnderscores(s.ts().size()),Optional.empty()); }
-    return new core.M(s,m.impl().get().xs(),synteticBody);
+    return new core.M(s,m.impl().get().xs(),syntheticBody);
   }
 }

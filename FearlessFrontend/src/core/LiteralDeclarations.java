@@ -31,7 +31,7 @@ public final class LiteralDeclarations{
     var lit= superLiteral(name);
     var res= from(lit,map,other);
     var ms= res.ms().stream().map(m->m.withSig(m.sig().implementedBy(name))).toList();
-    return new Literal(RC.imm,name,List.of(),Push.of(new T.C(lit,List.of()),res.cs()),"this",ms,Src.syntetic,true);
+    return new Literal(RC.imm,name,List.of(),Push.of(new T.C(lit,List.of()),res.cs()),"this",ms,Src.synthetic,true);
   }
   public static Literal from(TName n, Function<TName,Literal> map, OtherPackages other){ return Objects.requireNonNull(_from(n,map,other)); }
   public static Literal _from(TName n, Function<TName,Literal> map, OtherPackages other){

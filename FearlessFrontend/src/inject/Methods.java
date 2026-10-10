@@ -142,7 +142,7 @@ public record Methods(
     var cs= TypeRename.itcToTC(d.cs());
     assert InjectionToInferenceVisitor.duplicatedSupertypes(d.bs(),cs).isEmpty();
     p.log().logInferenceDeclaration(d, cs);
-    var ms= d.ms().stream().map(new ToCore(List.of())::mSyntetic).toList();
+    var ms= d.ms().stream().map(new ToCore(List.of())::mSynthetic).toList();
     cache.put(d.name(), new core.E.Literal(d.rc().orElse(RC.imm),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName()));
   }
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
