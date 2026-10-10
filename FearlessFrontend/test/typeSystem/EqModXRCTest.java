@@ -31,7 +31,7 @@ public class EqModXRCTest{
   static final List<EnumSet<RC>> bounds= IntStream.range(1,1<<RC.values().length).mapToObj(EqModXRCTest::bound).toList();
   static EnumSet<RC> bound(int mask){
     var res= EnumSet.noneOf(RC.class);
-    for (var rc: RC.values()){ if ((mask & 1<<rc.ordinal()) != 0){ res.add(rc); } }
+    for (var rc : RC.values()){ if ((mask & 1<<rc.ordinal()) != 0){ res.add(rc); } }
     return res;
   }
   static boolean eq(EnumSet<RC> rcs,T a,T b){ return TypeSystem.eqModXRC(List.of(new B("X",rcs)),a,b); }
@@ -44,7 +44,7 @@ public class EqModXRCTest{
   static boolean sameInstances(EnumSet<RC> rcs,T a,T b){ return rcs.stream().allMatch(rc->inst(a,rc).equals(inst(b,rc))); }
   static List<String> violations(Check check){
     var res= new ArrayList<String>();
-    for (var rcs: bounds){ for (var a: types){ for (var b: types){
+    for (var rcs : bounds){ for (var a : types){ for (var b : types){
       if (!check.holds(rcs,a,b)){ res.add(rcs+" "+a+" "+b); }
     }}}
     return res;

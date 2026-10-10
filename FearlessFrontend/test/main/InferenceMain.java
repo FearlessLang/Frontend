@@ -29,7 +29,7 @@ public class InferenceMain extends FrontendLogicMain{
     if (!infer){ return ctx; }
     var res= InjectionSteps.steps(ctx, iDecs);
     ctx.p().log().logs().add("~-----------");
-    for (var r: res){ ctx.p().log().logs().add("~"+r); }
+    for (var r : res){ ctx.p().log().logs().add("~"+r); }
     return ctx;
   }
 }

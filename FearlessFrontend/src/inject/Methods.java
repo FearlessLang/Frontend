@@ -40,13 +40,13 @@ public record Methods(
   }
   List<E.Literal> supertypesFirst(List<E.Literal> decs){
     var rem= new LinkedHashMap<TName,E.Literal>();
-    for (E.Literal d : decs){ rem.put(d.name(), d); }
+    for (var d : decs){ rem.put(d.name(), d); }
     var out= new ArrayList<E.Literal>();
     while (!rem.isEmpty()){
       var layer= rem.values().stream().filter(d->free(d,rem)).toList();
       if (layer.isEmpty()){ throw p.err().circularImplements(rem); }
       out.addAll(layer);
-      for (E.Literal d : layer){ rem.remove(d.name()); }
+      for (var d : layer){ rem.remove(d.name()); }
     }
     return out;
   }
@@ -76,7 +76,7 @@ public record Methods(
     var fullXs= new ArrayList<>(B.xs(d.bs()));
     var fullTs= new ArrayList<>(c.ts());
     var newBs= new ArrayList<B>(s.bs().size());
-    for (B b : s.bs()){
+    for (var b : s.bs()){
       var x= b.x();
       if (fresh.isFreshGeneric(child.name(),x,scope)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
