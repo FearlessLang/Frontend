@@ -9,7 +9,7 @@ import utils.Pos;
 public record Token(
   TokenKind kind, String content, int line, int column, List<Token> tokens
   ) implements metaParser.Token<Token,TokenKind>{
-  public String toString(){return kind.name()+"|"+content;}
+  public String toString(){ return kind.name()+"|"+content; }
   boolean isTypeName(){ return is(typeName); }
   public static final TokenKind[] typeName= new TokenKind[]{UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SStr,UStr};
   public Token tokenFirstHalf(int length){

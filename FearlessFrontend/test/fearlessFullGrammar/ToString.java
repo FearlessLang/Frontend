@@ -10,27 +10,27 @@ import fearlessFullGrammar.XPat.Name;
 import utils.Range;
 
 public class ToString{
-  public static String declaration(Declaration d){ 
+  public static String declaration(Declaration d){
     var v= new ToString();
     v.visitInnerDeclaration(d);
     return v.res.toString();
   }
-  public static String t(T t){ 
+  public static String t(T t){
     var v= new ToString();
     v.visitT(t);
     return v.res.toString();
   }
-  public static String c(T.C c){ 
+  public static String c(T.C c){
     var v= new ToString();
     v.visitInnerC(c);
     return v.res.toString();
   }
-  public static String e(E e){ 
+  public static String e(E e){
     var v= new ToString();
     v.visitE(e);
     return v.res.toString();
   }
-  public static String sig(Sig sig){ 
+  public static String sig(Sig sig){
     var v= new ToString();
     v.visitInnerSig(sig);
     return v.res.toString();
@@ -44,7 +44,7 @@ public class ToString{
       c.accept(es.get(i));
     }
     return append(end);
-  }    
+  }
   StringBuilder visitT(T t){ return switch (t){ case T.X x -> visitTX(x); case RCX x -> visitRCX(x); case ReadImmX x -> visitReadImmX(x); case RCC c -> visitRCC(c); }; }
   StringBuilder visitE(E e){
     return switch (e){
@@ -64,7 +64,7 @@ public class ToString{
     ns->ns.forEach(n->append(n.s())),
     ",",
     "}").append(d.id().orElse(""));
-  }  
+  }
   StringBuilder visitTX(T.X x){ return append(x.name()); }
   StringBuilder visitX(E.X n){ return append(n.name()); }
   StringBuilder visitRCX(RCX x){ return append(x.rc().name()).append(" ").append(x.x().name()); }
@@ -125,7 +125,7 @@ public class ToString{
     if (m.sig().isPresent() && m.body().isPresent()){ append(" -> "); }
     m.body().ifPresent(this::visitE);
     append(";");
-    return m; 
+    return m;
   }
   private T.C visitInnerC(T.C c){
     append(c.name().s());
@@ -153,7 +153,7 @@ public class ToString{
         append(":",rcs,rc->append(rc.name()),",","");
         }
       };
-    return b; 
+    return b;
     }
   private Parameter visitInnerParameter(Parameter p){
     p.xp().ifPresent(this::visitXPat);

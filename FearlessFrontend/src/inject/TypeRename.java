@@ -46,13 +46,13 @@ public final class TypeRename{
   public static T.C itcToTC(IT.C c){ return new T.C(c.name(),itToT(c.ts())); }
   public static List<T.C> itcToTC(List<IT.C> cs){ return cs.stream().map(TypeRename::itcToTC).toList(); }
   public static IT.C tcToITC(T.C c){ return new IT.C(c.name(),tToIT(c.ts())); }
-  public static IT tToIT(T t){return switch (t){
+  public static IT tToIT(T t){ return switch (t){
     case T.X(var name, var span) -> new IT.X(name,span);
     case T.ReadImmX(var x) -> new IT.ReadImmX(new IT.X(x.name(),x.span()));
     case T.RCX(var rc, var x) -> new IT.RCX(rc,new IT.X(x.name(),x.span()));
     case T.RCC(var rc, var c, var span) -> new IT.RCC(Optional.of(rc),tcToITC(c),span);
   };}
-  public static T itToT(IT t){return switch (t){
+  public static T itToT(IT t){ return switch (t){
     case IT.X(var name, var span) -> new T.X(name,span);
     case IT.ReadImmX(var x) -> new T.ReadImmX(new T.X(x.name(),x.span()));
     case IT.RCX(var rc, var x) -> new T.RCX(rc,new T.X(x.name(),x.span()));
