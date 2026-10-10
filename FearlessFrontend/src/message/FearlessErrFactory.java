@@ -324,10 +324,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
         ? "Unclosed " + openLabel + " group before " + stopLabel + ".\n"
         : ("Wrong closer for " + openLabel + " group.\nFound instead: " + stopLabel + ".\n");
     var hint= switch (likely){
-      case MissingCloser -> "Insert the expected closer before " + stopLabel + ".\n";
       case StrayCloser   -> "This "+stopLabel+" may be unintended.\n";
       case StrayOpener   -> "This "+openLabel+" may be unintended.\n";
-      case MissingOpener -> "Insert the matching opener before this closer.\n";
       case Unknown       -> "";
     };
     var other= hint.isEmpty()?"Expected":"Otherwise expected";
