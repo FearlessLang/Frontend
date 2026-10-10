@@ -23,7 +23,7 @@ public sealed interface T{
   record C(TName name, Optional<List<T>> ts){
     public C{
       assert validOpt(ts,_ts->{
-        unmodifiable(_ts,"T.C.args");
+        unmodifiable(_ts,"T.C.ts");
         eq(_ts.size(), name.arity(),"Type arity");
       });
     }

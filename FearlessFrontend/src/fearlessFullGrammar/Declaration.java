@@ -12,8 +12,8 @@ public record Declaration(TName name, Optional<List<B>> bs, List<T.C> cs, E.Lite
     assert nonNull(name,l);
     assert bs.isPresent() || name.arity() == 0;
     assert validOpt(bs,b->{
-      unmodifiableDistinct(b, "E.TypeDeclarationLiteral.bs");
-      eq(name.arity(),b.size(),"E.TypeDeclarationLiteral.bs");
+      unmodifiableDistinct(b, "Declaration.bs");
+      eq(name.arity(),b.size(),"Declaration.bs");
     });
     assert unmodifiable(cs,"Declaration.cs");
   }

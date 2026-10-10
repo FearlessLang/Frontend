@@ -21,9 +21,9 @@ public sealed interface XPat{
   record Destruct(List<List<MName>> extract, Optional<String> id) implements XPat{
     public Destruct{
       assert !extract.isEmpty();
-      assert unmodifiable(extract, "ParamPat.Destruct.extract",
+      assert unmodifiable(extract, "XPat.Destruct.extract",
         sm->{ assert !sm.isEmpty();
-          unmodifiable(sm,"ParamPat.Destruct.extract element",
+          unmodifiable(sm,"XPat.Destruct.extract element",
             m->{assert m.s().startsWith(".");});});
       assert validOpt(id,n->validate("}"+n, "pattern id",CCurlyId));
     }

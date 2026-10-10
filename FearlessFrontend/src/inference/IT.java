@@ -33,7 +33,7 @@ public sealed interface IT{
   }
   record C(TName name, List<IT> ts, int depth){
     public C{
-      assert unmodifiable(ts,"T.C.args");
+      assert unmodifiable(ts,"IT.C.ts");
       assert eq(ts.size(), name.arity(),"Type arity");
     }
     public C(TName name, List<IT> ts){ this(name,ts,RCC.depthFromTs(ts)); }
