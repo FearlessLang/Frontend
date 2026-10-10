@@ -361,7 +361,7 @@ public record InjectionSteps(Methods meths){
     var notReady= !rcc.isTV() || hasU(l.ms()) || meths.cache().containsKey(name);
     if (notReady){ return l; }
     var freeNames= Streams.of(new FreeXs(g).ftvMs(l.ms()), new FreeXs(g).ftvCs(l.cs()), rcc.ftv());
-    var localBs= freeNames.distinct().map(x->RC.get(bs, x)).toList();
+    var localBs= freeNames.distinct().map(x->B.get(bs, x)).toList();
     var newName= name.withArity(localBs.size());
     var ms= fixArity(l.ms(), name, newName);
     var orc= l.rc().or(rcc::rc).map(InjectionSteps::noH);
@@ -593,7 +593,7 @@ public record InjectionSteps(Methods meths){
     return Streams.zip(ts,bs).map((ti,bi)->normToBound(scope,ti,bi.rcs())).toList();
   }
   private static IT normToBound(List<B> scope, IT t, EnumSet<RC> allowed){
-    var sameType= xName(t).map(x->RC.get(scope,x).rcs().equals(allowed)).orElse(true);
+    var sameType= xName(t).map(x->B.get(scope,x).rcs().equals(allowed)).orElse(true);
     return sameType ? normToBound(t,allowed) : t;
   }
   private static Optional<String> xName(IT t){ return switch (t){

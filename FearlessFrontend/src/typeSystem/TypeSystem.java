@@ -284,7 +284,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (a.equals(b)){ return true; }
     if (!(a instanceof T.RCC(var aRc, var aC, _) && b instanceof T.RCC(var bRc, var bC, _))){
       if (!(a.withRC(imm) instanceof T.RCX(_, var x)) || !a.withRC(imm).equals(b.withRC(imm))){ return false; }
-      return get(bs,x.name()).rcs().size() == 1 && Kinding.intrinsicRCs(bs,a).equals(Kinding.intrinsicRCs(bs,b));
+      return B.get(bs,x.name()).rcs().size() == 1 && Kinding.intrinsicRCs(bs,a).equals(Kinding.intrinsicRCs(bs,b));
     }
     var sameHead= aRc == bRc && aC.name().equals(bC.name());
     if (!sameHead){ return false; }

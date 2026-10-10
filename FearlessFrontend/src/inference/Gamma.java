@@ -88,8 +88,8 @@ public final class Gamma{
     return IntStream.range(declDepth[i] + 1, depth).filter(s->!B.xs(bss[s]).containsAll(xs)).mapToObj(s->owners[s]).findFirst();
   }
   private static IT adapt(IT t, RC rc, List<B> bs){ return switch (t){
-    case IT.X(var x, _) -> adaptX(t, RC.get(bs, x).rcs(), rc);
-    case IT.ReadImmX(IT.X(var x, _)) -> adaptX(t, RC.get(bs, x).rcs(), rc);
+    case IT.X(var x, _) -> adaptX(t, B.get(bs, x).rcs(), rc);
+    case IT.ReadImmX(IT.X(var x, _)) -> adaptX(t, B.get(bs, x).rcs(), rc);
     default -> adaptRC(t, rc);
   };}
   private static IT adaptX(IT t, EnumSet<RC> xRcs, RC rc){
