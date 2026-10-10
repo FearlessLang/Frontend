@@ -23,7 +23,6 @@ import fearlessParser.Parser;
 import inference.E;
 import inference.IT;
 import inference.M;
-import inference.M.Sig;
 import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
@@ -50,7 +49,7 @@ public record Methods(
     }
     return out;
   }
-  public List<inference.E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
+  public List<E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     var acc= new ArrayList<E.Literal>();
     for (var d : supertypesFirst(iDecs.stream().filter(l->!l.infName()).toList())){
       var e= expandDeclaration(d,false);
@@ -59,7 +58,7 @@ public record Methods(
     }
     return List.copyOf(acc);
   }
-  record CsMs(List<IT.C> cs, List<inference.M.Sig> sigs){}
+  record CsMs(List<IT.C> cs, List<M.Sig> sigs){}
   //TODO: performance: currently fetch rewrites for the class generics
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps? Something similar has been done for MSigL
@@ -71,7 +70,7 @@ public record Methods(
     if (d == null){ return List.of(); }//case {..}.foo
     return d.cs().stream().map(TypeRename::tcToITC).map(ci->TypeRename.of(ci,B.xs(d.bs()),c.ts())).distinct().toList();
   }
-  private inference.M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child, List<String> scope){
+  private M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child, List<String> scope){
     var s= m.sig();
     var fullXs= new ArrayList<>(B.xs(d.bs()));
     var fullTs= new ArrayList<>(c.ts());
@@ -87,7 +86,7 @@ public record Methods(
     }
     var newTs= TypeRename.ofIT(TypeRename.tToIT(s.ts()),fullXs,fullTs).stream().map(Optional::of).toList();
     var newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
-    return new inference.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),child.span());
+    return new M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),child.span());
   }
   public core.E.Literal from(TName name){ return Objects.requireNonNull(_from(name)); }
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache::get,other); }
@@ -163,11 +162,11 @@ public record Methods(
     }
     return changed ? List.copyOf(res) : ms;
   }
-  inference.M withName(MName name,inference.M m){
+  M withName(MName name,M m){
     assert m.impl().isPresent();
     assert m.sig().m().isEmpty();
     var s= m.sig();
-    return new inference.M(new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span()),m.impl());
+    return new M(new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span()),m.impl());
   }
   private M nameFromSigs(M m, ArrayList<M.Sig> ss, E.Literal origin){
     var arity= m.sig().ts().size();
@@ -224,7 +223,7 @@ public record Methods(
     return changed ? List.copyOf(res) : ms;
   }
 
-  M pairWithSig(List<M.Sig> ss, inference.M m, E.Literal origin){
+  M pairWithSig(List<M.Sig> ss, M m, E.Literal origin){
     if (ss.isEmpty()){ return toCompleteM(m,origin); }
     var s= m.sig();
     var at= new Agreement(origin, ss.getFirst().rc(), ss.getFirst().m().get(), m.sig().span().inner);
@@ -237,7 +236,7 @@ public record Methods(
     var rc= s.rc().orElseGet(()->rcAgreement(ssAligned));
     return m.withSig(new M.Sig(rc,name,bs,ts,res,origin.name(),m.impl().isEmpty(),s.span()));
   }
-  private List<B> agreementWithSize(List<M.Sig> ss, Sig s, Agreement at){
+  private List<B> agreementWithSize(List<M.Sig> ss, M.Sig s, Agreement at){
     var allBounds= ss.stream().map(e->e.bs().get()).distinct().toList();
     if (s.bs().isEmpty()){ return agreementBs(at,allBounds); }
     var userBs= s.bs().get();
@@ -283,7 +282,7 @@ public record Methods(
     return LiteralDeclarations.has(d.cs(),sup) && d.ms().stream().map(core.M::sig)
       .anyMatch(o->o.origin().equals(d.name()) && o.m().equals(s.m().get()) && o.rc() == s.rc().get());
   }
-  M toCompleteM(inference.M m,E.Literal origin){
+  M toCompleteM(M m,E.Literal origin){
     var s= m.sig();
     var ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(()->p.err().noSourceToInferFrom(origin,m)))).toList();
     var res= s.ret().orElseThrow(()->p.err().noSourceToInferFrom(origin,m));

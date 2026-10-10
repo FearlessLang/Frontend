@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import fearlessFullGrammar.FileFull;
 import inject.TypeRename;
 import metaParser.NameSuggester;
+import pkgmerge.Package;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
@@ -31,7 +32,7 @@ import utils.Streams;
 import core.*;
 import core.E.*;
 
-public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pkg, Map<String,String> map, LinkedHashSet<String> printed){
+public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<String,String> map, LinkedHashSet<String> printed){
   public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg.name(),map,printed::add,t),this::notes,new StringBuilder()); }
   private List<String> notes(){ return printed.stream().flatMap(this::spellingNotes).distinct().toList(); }
   private Stream<String> spellingNotes(String n){
@@ -507,7 +508,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   private static boolean isWrongUnderlyingType(TypeSystem ts, List<B> bs, T reqCanon, List<Reason> res){
     return res.stream().map(r->canon(r.best)).noneMatch(r->ts.isSub(bs, r, reqCanon));
   }
-  private static T canon(T t){ return t.withRC(core.RC.imm); }
+  private static T canon(T t){ return t.withRC(RC.imm); }
 
   private static T headerBest(List<Reason> res){
     return res.stream().map(r->r.best)

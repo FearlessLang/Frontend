@@ -74,7 +74,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   List<E> mapE(List<fearlessFullGrammar.E> es){ return es.stream().map(this::visitE).toList(); }
   List<IT> mapT(List<fearlessFullGrammar.T> ts){ return ts.stream().map(this::visitT).toList(); }
   List<B> mapB(List<fearlessFullGrammar.B> bs){ return bs.stream().map(this::visitB).toList(); }
-  String parameterToName(fearlessFullGrammar.Parameter p){
+  String parameterToName(Parameter p){
     if (p.xp().isEmpty()){ return "_"; }
     return switch (p.xp().get()){
     case XPat.Name(var x) -> x.name();
@@ -134,7 +134,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return call(typedLiteral("base.Destruct", body.span(),p), "#", args, p);
   }
   record XE(String x, fearlessFullGrammar.E e){}
-  List<XE> xpats(List<String> lowered, List<fearlessFullGrammar.Parameter> original, TSpan span){
+  List<XE> xpats(List<String> lowered, List<Parameter> original, TSpan span){
     return Streams.zip(lowered, original)
       .flatMap((x,p)->p.xp().stream().flatMap(xp->xp instanceof XPat.Destruct d ? xpat(d,x,span) : Stream.empty()))
       .toList();
