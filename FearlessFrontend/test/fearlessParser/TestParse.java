@@ -2688,6 +2688,11 @@ A:{ .a: A -> A{ 'x .a: A -> A{ 'y .a: A -> x } } }
 ""","""
 A:{ .a: B -> B{ 'x .b(c: B): B -> x.b(c) }.b(B{ 'y .b(c: B): B -> y.b(c) }) }
 """);}
+@Test void selfNameThenPrimedParameterOnOneLine(){ok("""
+[###]Literalx[###]body=Optional[y'][###]
+""","""
+A:{ .a: A -> A{ 'x .b(y': A): A -> y'; .c: A -> x } }
+""");}
 @Test void badStackGuide(){fail("""
 In file: [###].fear
 
