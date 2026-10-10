@@ -1,5 +1,7 @@
 package message;
 
+import static message.Err.*;
+
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -10,8 +12,6 @@ import typeSystem.TypeSystem;
 import typeSystem.Change.*;
 import typeSystem.TypeSystem.TRequirement;
 import utils.Bug;
-
-import static message.Err.*;
 
 public final class Reason{
   final Supplier<E> footerE;

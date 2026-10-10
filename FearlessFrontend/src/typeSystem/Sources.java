@@ -1,6 +1,7 @@
 package typeSystem;
 
 import static offensiveUtils.Require.*;
+
 import java.util.*;
 import java.util.stream.Stream;
 

@@ -12,7 +12,6 @@ import utils.Pos;
 import utils.Push;
 import utils.Bug;
 
-
 public final class LiteralDeclarations{
   private LiteralDeclarations(){}
   public static final TName baseStr= new TName("base.Str",0,Pos.unknown);

@@ -1,5 +1,9 @@
 package fearlessParser;
 
+import static fearlessParser.TokenKind.*;
+import static java.util.Optional.*;
+import static metaParser.MetaParser.SplitMode.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -18,11 +22,6 @@ import metaParser.MetaParser;
 import metaParser.Span;
 import utils.Bug;
 import utils.Range;
-
-import static fearlessParser.TokenKind.*;
-import static java.util.Optional.*;
-import static metaParser.MetaParser.SplitMode.*;
-
 
 public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
   Names names;

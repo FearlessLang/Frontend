@@ -1,10 +1,10 @@
 package core;
 
-import utils.Join;
-import utils.Pos;
-
 import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
+
+import utils.Join;
+import utils.Pos;
 
 import java.util.*;
 import java.util.stream.Stream;

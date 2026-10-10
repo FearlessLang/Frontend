@@ -1,5 +1,7 @@
 package message;
 
+import static message.Err.*;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -28,8 +30,6 @@ import utils.Range;
 import utils.Streams;
 import core.*;
 import core.E.*;
-
-import static message.Err.*;
 
 public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pkg, Map<String,String> map, LinkedHashSet<String> printed){
   public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg.name(),map,printed::add,t),this::notes,new StringBuilder()); }

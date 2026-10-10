@@ -26,6 +26,7 @@ import utils.OneOr;
 import utils.Push;
 import utils.Range;
 import utils.Streams;
+
 /**
 Inference fix-point core loop relies on identity for E.
 Core loop relies on `oe == e` to detect stabilization in O(1) and avoid a deep

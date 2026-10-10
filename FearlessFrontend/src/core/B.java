@@ -7,6 +7,7 @@ import java.util.List;
 
 import utils.Join;
 import utils.OneOr;
+
 public record B(String x, EnumSet<RC> rcs){
   public B{ assert nonNull(x); assert !rcs.isEmpty(); }
   public static List<String> xs(List<B> bs){ return bs.stream().map(B::x).toList(); }

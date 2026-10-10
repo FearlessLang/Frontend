@@ -1,5 +1,9 @@
 package inject;
 
+import static java.util.Optional.*;
+import static core.LiteralDeclarations.*;
+import static fearlessParser.TokenKind.*;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -25,10 +29,6 @@ import inference.E;
 import inference.IT;
 import inference.M;
 import typeSystem.TypeSystem;
-
-import static java.util.Optional.*;
-import static core.LiteralDeclarations.*;
-import static fearlessParser.TokenKind.*;
 
 public record InjectionToInferenceVisitor(Methods meths, TName currentTop, ArrayList<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs)
 {

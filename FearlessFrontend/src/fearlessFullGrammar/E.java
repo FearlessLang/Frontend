@@ -1,14 +1,14 @@
 package fearlessFullGrammar;
 
+import static fearlessParser.TokenKind.*;
+import static offensiveUtils.Require.*;
+
 import java.util.*;
 
 import core.MName;
 import core.RC;
 import core.TSpan;
 import utils.Pos;
-
-import static fearlessParser.TokenKind.*;
-import static offensiveUtils.Require.*;
 
 public sealed interface E extends core.Src.SrcObj{
   Pos pos();

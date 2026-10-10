@@ -1,5 +1,7 @@
 package message;
 
+import static message.Err.*;
+
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
@@ -34,8 +36,6 @@ import tools.SourceOracle.Ref;
 import typeSystem.Kinding;
 import utils.Join;
 import utils.Push;
-
-import static message.Err.*;
 
 public record WellFormednessErrors(String pkgName){
   @SuppressWarnings("serial")
