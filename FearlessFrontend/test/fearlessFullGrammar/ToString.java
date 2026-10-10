@@ -104,10 +104,10 @@ public class ToString{
       if (cs.rc().isPresent() && !cs.ts().isEmpty()){ append(","); }
       append("", cs.ts(), this::visitT, ",", "]");
       });
-    append(c.pars()?"(":(c.es().isEmpty()?"":" "));
+    append(c.pars() ? "(" : (c.es().isEmpty() ? "" : " "));
     c.pat().ifPresent(pat->visitXPat(pat).append("= "));
     append("",c.es(),this::visitE,", ","");
-    append(c.pars()?")":"");
+    append(c.pars() ? ")" : "");
     return res;
   }
   private Declaration visitInnerDeclaration(Declaration d){
@@ -135,7 +135,7 @@ public class ToString{
   private Sig visitInnerSig(Sig s){
     var p= s.hasParenthesis();
     s.rc().ifPresent(rc->append(rc.name()).append(" "));
-    s.m().ifPresent(m->append(m.s()).append(p || s.parameters().isEmpty()?"":" "));
+    s.m().ifPresent(m->append(m.s()).append(p || s.parameters().isEmpty() ? "" : " "));
     s.bs().ifPresent(bs->append("[",bs,this::visitInnerB,",","]"));
     if (p){ append("("); }
     append("",s.parameters(),this::visitInnerParameter,", ","");

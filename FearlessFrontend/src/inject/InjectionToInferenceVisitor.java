@@ -183,7 +183,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return addDeclaration(name, c.rc().orElse(RC.imm),c.dec(),false);
   }
   public E.Literal addDeclaration(TName name,RC rc,fearlessFullGrammar.Declaration d, boolean top){
-    var thisName= d.l().thisName().map(n->n.name()).orElseGet(()->top?"this":"_");
+    var thisName= d.l().thisName().map(n->n.name()).orElseGet(()->top ? "this" : "_");
     var bs= d.bs().map(this::mapB).orElse(List.of());
     var cs= d.cs().stream().map(this::visitC).toList();
     var dup= duplicatedSupertypes(bs,TypeRename.itcToTC(cs));

@@ -152,7 +152,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public int parCount(M m){//-1 == explicitly named method
     if (m.sig().flatMap(Sig::m).isPresent()){ return -1; }
-    return m.sig().map(s->s.parameters().size()).orElse(0) + (m.hasImplicit()?1:0);
+    return m.sig().map(s->s.parameters().size()).orElse(0) + (m.hasImplicit() ? 1 : 0);
   }
   public FearlessException missingDotBeforeMethodName(Span at, String name){
     return Code.WellFormedness.of(
@@ -291,7 +291,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   private static String expected(Collection<TokenKind> items){ return expected("","Expected: ","Expected one of: ",items,tk->tk.human); }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
     return Join.of(items.stream().map(e->disp(f.apply(e))),
-      items.size() == 1 ? pre1 : preMany,", ",".\n",pre0.isEmpty()? "" : pre0+".\n");
+      items.size() == 1 ? pre1 : preMany,", ",".\n",pre0.isEmpty() ? "" : pre0+".\n");
   }
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     var head= what.isBlank()
