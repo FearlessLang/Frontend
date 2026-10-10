@@ -32,7 +32,7 @@ public final class Monotonicity{
         +"\nLast="+last+"\nFrom="+from+"\nHist="+l);
     }
     if (from.equals(to)){ return true; } // after sync/init
-    for (var old: l){
+    for (var old : l){
       if (old.equals(to)){
         throw new AssertionError("Non-monotone evolution (cycle) for "+what
           +"\nTo="+to+"\nHist="+l);

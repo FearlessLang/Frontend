@@ -76,7 +76,7 @@ public record Methods(
     var fullXs= new ArrayList<>(B.xs(d.bs()));
     var fullTs= new ArrayList<>(c.ts());
     var newBs= new ArrayList<B>(s.bs().size());
-    for (B b: s.bs()){
+    for (B b : s.bs()){
       var x= b.x();
       if (fresh.isFreshGeneric(child.name(),x,scope)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
@@ -150,13 +150,13 @@ public record Methods(
     assert ss.stream().allMatch(M.Sig::isFull);
     var res= new ArrayList<M>(ms.size());
     var changed= false;
-    for (var m: ms){//for methods WITH name
+    for (var m : ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
       var name= m.sig().m().get();
       ss.removeIf(s->s.m().get().equals(name));
       res.add(m);
     }
-    for (var m: ms){//for methods WITHOUT name
+    for (var m : ms){//for methods WITHOUT name
       if (m.sig().m().isPresent()){ continue; }
       changed= true;
       res.add(nameFromSigs(m,ss,origin));
@@ -183,7 +183,7 @@ public record Methods(
   List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     var res= new ArrayList<M>();
     var changed= false;
-    for (var m: ms){
+    for (var m : ms){
       var name= m.sig().m().get();
       var rc= m.sig().rc();
       var taken= ss.stream().filter(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))).toList();
@@ -200,7 +200,7 @@ public record Methods(
       }
       List<List<M.Sig>> groups= match.isEmpty() ? List.of(List.of()) : List.copyOf(match.values());
       var first= true;
-      for (var matches: groups){
+      for (var matches : groups){
         var mi= first ? m : new DupE(fresh,origin,m,p.err()).ofM(m,origin.name(),origin.name());
         first= false;
         var m2= pairWithSig(Collections.unmodifiableList(matches), mi, origin);

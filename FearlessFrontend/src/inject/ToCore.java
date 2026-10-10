@@ -60,7 +60,7 @@ public record ToCore(List<B> ctx){
   }
   static List<IT.C> distinctTypes(List<B> bs, List<IT.C> cs){
     var res= new ArrayList<IT.C>();
-    for (var c: cs){ if (res.stream().noneMatch(r->sameType(bs,r,c))){ res.add(c); } }
+    for (var c : cs){ if (res.stream().noneMatch(r->sameType(bs,r,c))){ res.add(c); } }
     return Collections.unmodifiableList(res);
   }
   private static boolean sameType(List<B> bs, IT.C a, IT.C b){

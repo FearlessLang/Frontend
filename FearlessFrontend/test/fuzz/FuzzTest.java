@@ -71,7 +71,7 @@ public class FuzzTest extends testUtils.FearlessTestBase{
     return t.getClass().getName()+" at "+at.map(e->e.getClassName()+"."+e.getMethodName()).orElse("an unknown location");
   }
   static List<String> seeds(){
-    try(var files= Files.walk(testClasses())){
+    try (var files= Files.walk(testClasses())){
       return files.filter(p->p.toString().endsWith(".class"))
         .flatMap(FuzzTest::strings).filter(FuzzTest::isProgram).distinct().sorted().toList();
     }

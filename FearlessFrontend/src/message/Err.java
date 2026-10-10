@@ -45,7 +45,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return (instanceOf ? "instance of " : "")+disp(n);
   }
   private boolean anonLit(Literal l){ return l.infName() && l.cs().isEmpty(); }
-  private static final String anonRepr="{...}";
+  private static final String anonRepr= "{...}";
   private String typeOrAnon(Literal l,String typePrefix,String anonPrefix){
     if (anonLit(l)){ return anonPrefix + disp(anonRepr); }
     return typePrefix+disp(bestLitName(false,true,l));
