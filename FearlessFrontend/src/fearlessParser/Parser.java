@@ -375,13 +375,13 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var c= parseTName();
     if (top){ errFactory().noteTop(c); }
     var _= expectValidate(back("simple type name"), UppercaseId,_XId); //to get error if of form foo.Bar
-    var bs= parseIf(peek(_SquareGroup),()->this.parseBs(top));
+    var bs= parseIf(peek(_SquareGroup),()->parseBs(top));
     var Xs= bsXs(bs);
     var outer= names;
     updateNames(top ? names.add(List.of(),Xs) : names.setFunnelledXs(c.s(),Xs));
     c= c.withArity(Xs.size());
     expect("type declaration (:) symbol",Colon);
-    var cs= this.parseImpl();
+    var cs= parseImpl();
     assert peek(_CurlyGroup);
     var l= parseGroup("type declaration body",p->p.parseLiteral(top));
     updateNames(outer);

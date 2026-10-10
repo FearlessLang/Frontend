@@ -25,6 +25,6 @@ public interface OtherPackages{
     return start(vMap,map,newStamp);
   }
   default OtherPackages mergeWith(Map<TName,Literal> core, long newStamp){
-    return start(this.virtualizationMap(),Stream.concat(this.dom().stream().map(this::__of),core.values().stream()).toList(),newStamp);
+    return start(virtualizationMap(),Stream.concat(dom().stream().map(this::__of),core.values().stream()).toList(),newStamp);
   }
 }
