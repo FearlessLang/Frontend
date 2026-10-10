@@ -50,7 +50,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     var n= staticTypeDecName(lastTop.get());
     var hint= lastTop.get().s()+(lastTop.get().arity() == 0 ? ":..{...}" : "[..]:..{...}");
     return "Top level type declarations do not end with \";\".\n"
-         + "The defintion of " + n + " ends with a semicolon. Remove it.\n"
+         + "The definition of " + n + " ends with a semicolon. Remove it.\n"
          + "Write: "+disp(hint)+"\n"
          + "Not:   "+disp(hint+";")+"\n";
   }

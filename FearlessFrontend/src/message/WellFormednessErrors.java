@@ -416,7 +416,7 @@ public record WellFormednessErrors(String pkgName){
   public FearlessException itTooDeep(E at,IT.RCC blame){
     return wf(err()
       .line("Type "+err().typeRepr(blame))
-      .line("grew incontrollably during inference."), at);
+      .line("grew uncontrollably during inference."), at);
   }
   public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<inference.M.Sig> options){
     return wf(err()
