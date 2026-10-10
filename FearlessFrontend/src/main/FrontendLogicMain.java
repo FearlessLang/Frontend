@@ -42,7 +42,7 @@ public class FrontendLogicMain{
     var parsed= parseFiles(files);
     record Key(String target,String in){}
     record Cand(Ref uri,String target,String in,String out){
-    @Override public String toString(){
+    public String toString(){
       var f= PrettyFileName.displayFileName(uri.fearURI());
       return " - "+f+"\n"
            + "   \"map  "+in+"  as  "+out+"  in  "+target+";\"";
