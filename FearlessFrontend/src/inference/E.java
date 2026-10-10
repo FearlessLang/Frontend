@@ -102,7 +102,7 @@ public sealed interface E{
     public String toString(){
       var open= rc.map(r->"["+r).orElse("[");
       return ""+e+name+open
-        +Join.of(targs,rc.isEmpty()?"":",",",","](","](")
+        +Join.of(targs,rc.isEmpty() ? "" : ",",",","](","](")
         +Join.of(es,"",",","):","):")+t;
     }
   }

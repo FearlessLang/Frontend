@@ -267,7 +267,7 @@ public record Methods(
     var res= agreement(at,ssAligned,e->e.ret().get(),p.err().retTypeDisagreement());
     var impl= ssAligned.stream().filter(e->!e.abs() && !overridden(e,origin)).map(e->e.origin().get()).distinct().toList();
     if (impl.size() > 1){ throw p.err().ambiguousImplementationFor(impl,at); }
-    var originName= impl.size() == 1? impl.getFirst() : origin.name();
+    var originName= impl.size() == 1 ? impl.getFirst() : origin.name();
     var rc= rcAgreement(ssAligned);
     var sig= new M.Sig(rc,name,bs,ts,res,originName,impl.isEmpty(),ssAligned.getFirst().span());
     return new M(sig,Optional.empty());

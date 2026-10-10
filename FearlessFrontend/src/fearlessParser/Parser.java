@@ -139,7 +139,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     checkNewXs(xs);
     updateNames(names.add(xs, List.of()));//zero if xpat is empty
     if (xpat.isPresent()){ atom= parsePost(atom); while (!end()){ atom= parsePost(atom); } }
-    return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar
+    return new E.Call(receiver, m.withArity(xpat.isPresent() ? 2 : 1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar
   }
   boolean eqSugar(){
     if (peekOrder(t->t.is(Underscore),t->t.is(Eq))){
@@ -177,7 +177,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var rc= parseIf(hasRC,this::parseRC);
     var moreTargs= hasRC && !end();
     if (moreTargs){ expect("method call generic type argument",Comma); }
-    return new E.CallSquare(rc, end()?List.of():splitBy("genericTypes",commaSkip,Parser::parseT),pos());
+    return new E.CallSquare(rc, end() ? List.of() : splitBy("genericTypes",commaSkip,Parser::parseT),pos());
   }
   E.Implicit parseImplicit(){ return new E.Implicit(pos(expect("",ColonColon))); }
   E.Round parseRound(){
@@ -199,7 +199,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var start= expect("object literal",OCurly);
     var end= expectLast("object literal",CCurly);
     var thisName= parseIf(fwdIf(peek(SQuote)),this::parseDecX);
-    var n= thisName.map(E.X::name).orElse(top?"this":"_");
+    var n= thisName.map(E.X::name).orElse(top ? "this" : "_");
     var badTopSelfName= top && !n.equals("this");
     if (badTopSelfName){ throw errFactory().badTopSelfName(thisName.get().span().inner, n); }
     if (!n.equals("_")){ updateNames(names.add(List.of(n),List.of())); }

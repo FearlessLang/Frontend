@@ -32,7 +32,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
   private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
   private String bestLitName(boolean skipRc,boolean skipImm,Literal l){
-    var rc= skipRc?RC.imm:l.rc();
+    var rc= skipRc ? RC.imm : l.rc();
     if (showInstanceOf(l)){ return typeReprRaw(skipImm || skipRc,new T.RCC(rc,l.cs().getFirst(),l.span())); }
     if (anonLit(l)){ return anonRepr; }
     return rc.toStrSpace(skipImm)+tNameA(l.name());

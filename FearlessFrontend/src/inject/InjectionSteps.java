@@ -112,7 +112,7 @@ public record InjectionSteps(Methods meths){
     if (aRcOverBareB){ return a; }
     var bRcOverBareA= b instanceof IT.RCX && (a instanceof IT.X || a instanceof IT.ReadImmX);
     if (bRcOverBareA){ return b; }
-    return a.toString().compareTo(b.toString()) < 0 ? a: b;
+    return a.toString().compareTo(b.toString()) < 0 ? a : b;
   }
   IT meet(IT t1, IT t2){
     if (t2 instanceof IT.U){ return t1; }
@@ -372,7 +372,7 @@ public record InjectionSteps(Methods meths){
     var orcc= new IT.RCC(orc, rcc.c(), rcc.span());
     if (justAType){ return new E.Type(orcc, preferred(orcc), l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());
-    var cs= selfInferred? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c()));
+    var cs= selfInferred ? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c()));
     meths.checkMagicSupertypes(l, cs);
     assert l.infHead();
     l= new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, rcc, l.src(),l.infName(), l.infHead(), l.g());

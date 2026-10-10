@@ -15,8 +15,8 @@ public enum RC{
   public boolean isH(){ return this == mutH || this == readH; }
   public boolean isReadOrImm(){ return this == read || this == imm; }
   public boolean isIsoOrImm(){ return this == iso || this == imm; }
-  public RC isoToMut(){ return this == iso? mut : this; }
+  public RC isoToMut(){ return this == iso ? mut : this; }
   public RC readImm(){ return isIsoOrImm() ? imm : read; }
   public String toStrSpace(){ return toStrSpace(true); }
-  public String toStrSpace(boolean skipImm){ return this == imm && skipImm?"":this+" "; }
+  public String toStrSpace(boolean skipImm){ return this == imm && skipImm ? "" : this+" "; }
 }

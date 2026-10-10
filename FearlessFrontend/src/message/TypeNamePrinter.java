@@ -8,7 +8,7 @@ import core.TName;
 
 public record TypeNamePrinter(boolean trunc,String mainPkg, Map<String,String> uses, Consumer<String> printed){
   public TypeNamePrinter{ assert !mainPkg.isEmpty(); }
-  public String of(TName n){ return trunc?trunc(ofFull(n)):ofFull(n); }
+  public String of(TName n){ return trunc ? trunc(ofFull(n)) : ofFull(n); }
   public String ofFull(TName n){
     printed.accept(n.s());
     return uses.getOrDefault(n.s(),dropMainPkg(dropBaseForLit(n.s())));
