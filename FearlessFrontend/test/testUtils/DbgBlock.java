@@ -18,7 +18,7 @@ public class DbgBlock{
       .build();
   }
 
-  static String baseHead="";
+  static String baseHead= "";
 
 
 
@@ -93,8 +93,8 @@ public class DbgBlock{
 
 
 
-public static String _baseBody="Sealed:{} InferUnknown:Sealed{} InferErr[A,B]:Sealed{} InferErr[A,B,C]:Sealed{} InferErr[A,B,C,D]:Sealed{}";
-public static String baseBody="""
+public static String _baseBody= "Sealed:{} InferUnknown:Sealed{} InferErr[A,B]:Sealed{} InferErr[A,B,C]:Sealed{} InferErr[A,B,C,D]:Sealed{}";
+public static String baseBody= """
 Sealed:{}
 CaptureFree: {}
 WidenTo[T]:{}

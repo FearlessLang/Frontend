@@ -55,7 +55,7 @@ public abstract class FearlessTestBase{
   protected static <R> R printError(Supplier<R> r, SourceOracle o){
     try{ return r.get(); }
     catch(FearlessException fe){
-      o=o.withFallback(DbgBlock.dbgMiniBase()); 
+      o= o.withFallback(DbgBlock.dbgMiniBase());
       System.out.println(fe.render(o));
       throw fe;
     }

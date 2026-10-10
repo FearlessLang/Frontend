@@ -69,7 +69,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t),t.span()))); }
   static String up(String s){ return s.substring(0, 1).toUpperCase() + s.substring(1); }
-  String expRepr(E toErr){return switch (toErr){
+  String expRepr(E toErr){ return switch (toErr){
     case Call c -> "method call "+methodSig(c.name());
     case X x -> "parameter " +disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());
     case Literal l -> l.thisName().equals("this")
@@ -77,12 +77,12 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       : "object literal " +bestNamePkg0(showInstanceOf(l), bestLitName(false,true,l));
     case Type(var t, _) -> "object literal instance of " + typeRepr(true,t);
     };}
-  String expReprDirect(boolean skipImm, E toErr){return switch (toErr){
+  String expReprDirect(boolean skipImm, E toErr){ return switch (toErr){
     case Literal l -> bestNamePkg0(false, bestLitName(false,skipImm,l));
     case Type(var t, _) -> typeRepr(skipImm,t);
     default -> throw Bug.unreachable();
     };}
-  String expRepr(inference.E toErr){return switch (toErr){
+  String expRepr(inference.E toErr){ return switch (toErr){
     case inference.E.Call c -> "method call "+methodSig(c.name());
     case inference.E.ICall c -> "method call "+methodSig(c.name());
     case inference.E.X(var name, _, _, _) -> "parameter " +disp(name);
@@ -103,7 +103,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return t instanceof T.RCC(_, var c, _) && LiteralDeclarations.inferErrs.contains(c.name());
   }
   String text(){ return sb.toString().stripTrailing(); }
-  public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, T bad, String allowedStr, String gotStr){
+  public Err pTypeArgBounds(String what, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
     var badStr= typeRepr(true,bad);
     var e= line("The "+what+" is invalid.")
       .line("Type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")

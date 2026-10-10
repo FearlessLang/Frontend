@@ -463,7 +463,7 @@ public record InjectionSteps(Methods meths){
     }
     return b.withRCTs(aRc.or(b::rc), Streams.zip(aC.ts(),b.c().ts()).map(this::keepDecided).toList());
   }
-  private List<IT> refine(List<String> Xs, core.T t,Optional<IT> it){return refine(Xs,TypeRename.tToIT(t), it.get()); }
+  private List<IT> refine(List<String> Xs, core.T t,Optional<IT> it){ return refine(Xs,TypeRename.tToIT(t), it.get()); }
   private M.Sig normalizeSigAgainstHeader(IT.RCC rcc, M.Sig improvedSig){
     var targetBs= B.xs(improvedSig.bs().get());
     var h= methodHeader(rcc, improvedSig.m().get(), improvedSig.rc()).get();

@@ -92,14 +92,14 @@ User:{
   }
 """));}
 
-static String importMini="""
+static String importMini= """
 use base.Nat as Nat;
 use base.F as F;
 use base.Bool  as Bool;
 use base.Void as Void;
 
 """;
-static String stackStart="""
+static String stackStart= """
 StackMatch[T,R]: {
   .empty: R;
   .elem(top:T, tail: Stack[T]): R;
@@ -207,7 +207,7 @@ Z4ExampleFluent: { #(ns: Stack[Nat]): Nat -> ns
   }
 """));}
 //-----------Now with numbers as userDefNames
-static String importTo10="""
+static String importTo10= """
 use base.Nat as Nat;
 use base.F as F;
 use base.Bool  as Bool;
