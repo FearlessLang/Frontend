@@ -1,6 +1,7 @@
 # Type system bugs
 
-One entry per bug in the type system itself. Each gives the rule as implemented, before
+One entry per bug in the type system itself; implementation details away from the formalism
+(fresh name choice, error printing, parsing) get no entry. Each gives the rule as implemented, before
 and after, minimized to pseudocode, so this file can be diffed against the formalism:
 was the formalism wrong too, or did the implementation deviate? The intended differences from
 the formalism are in `PaperDifferences.md`.
