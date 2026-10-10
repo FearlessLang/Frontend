@@ -1,4 +1,7 @@
 package inference;
+
+import static offensiveUtils.Require.*;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -8,8 +11,6 @@ import core.RC;
 import core.TName;
 import core.TSpan;
 import utils.Join;
-
-import static offensiveUtils.Require.*;
 
 public record M(Sig sig, Optional<Impl> impl){
   public M{ assert nonNull(sig,impl); }

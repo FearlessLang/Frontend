@@ -1,10 +1,11 @@
 package inference;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.net.URI;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import core.FearlessException;
 import testUtils.DbgBlock;

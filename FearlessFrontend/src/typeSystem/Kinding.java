@@ -1,6 +1,8 @@
 package typeSystem;
+
 import static core.RC.*;
 import static offensiveUtils.Require.*;
+
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;

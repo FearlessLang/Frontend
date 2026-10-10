@@ -8,6 +8,7 @@ import core.E;
 import core.M;
 import core.RC;
 import core.T;
+
 record CaptureWalk(List<B> bs, Gamma g, Predicate<RC> freeRC){
   boolean isFree(E e){
     return switch (e){

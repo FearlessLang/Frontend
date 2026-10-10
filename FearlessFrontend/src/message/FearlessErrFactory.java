@@ -1,5 +1,9 @@
 package message;
 
+import static fearlessParser.TokenKind.*;
+import static message.Err.*;
+import static offensiveUtils.Require.*;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +22,6 @@ import fearlessFullGrammar.XPat;
 import fearlessParser.Parser;
 import fearlessParser.Token;
 import fearlessParser.TokenKind;
-import static fearlessParser.TokenKind.*;
 import fearlessParser.Tokenizer;
 import metaParser.ErrFactory;
 import metaParser.Frame;
@@ -27,9 +30,6 @@ import metaParser.NameSuggester;
 import metaParser.Span;
 import utils.Join;
 import utils.Push;
-
-import static message.Err.*;
-import static offensiveUtils.Require.*;
 
 public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
   Optional<TName> lastTop= Optional.empty();

@@ -1,6 +1,8 @@
 package message;
 
 import static fearlessParser.TokenKind.*;
+import static message.Err.*;
+
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -13,8 +15,6 @@ import metaParser.Message;
 import metaParser.Span;
 import metaParser.TokenProcessor;
 import utils.Bug;
-
-import static message.Err.*;
 
 public final class BadTokens{
   private BadTokens(){}
