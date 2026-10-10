@@ -2812,8 +2812,8 @@ In file: [###].fear
 005| }
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Did you forget a space in "!!!->"?
-Did you mean "!!! ->"?
+Did you forget a space in "!!!->" ?
+Did you mean "!!! ->" ?
 Error 2 UnexpectedToken
 ""","""
 Box[E:*]: _Box[E]{
