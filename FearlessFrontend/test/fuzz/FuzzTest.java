@@ -39,23 +39,23 @@ public class FuzzTest extends testUtils.FearlessTestBase{
     "\\b((?:mut|read|imm|iso|readH|mutH) )"
   ).map(Pattern::compile).toList();
 
-@Test void mutatedTestProgramsNeverCrash(){
-  var seeds= seeds();
-  var other= otherFrom(DbgBlock.all());
-  var rnd= new Random(0);
-  var crashes= new TreeMap<String,String>();
-  for (var s : seeds){ run(s,other,crashes); }
-  for (int i= 0; i < cases; i++){ run(mutate(seeds.get(rnd.nextInt(seeds.size())),rnd,seeds),other,crashes); }
-  strCmp("", Join.of(crashes.entrySet().stream().map(e->e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
-}
-@Test void underAnnotatedTestProgramsNeverCrash(){
-  var seeds= seeds().stream().filter(FuzzTest::annotated).filter(FuzzTest::parses).toList();
-  var other= otherFrom(DbgBlock.all());
-  var rnd= new Random(0);
-  var crashes= new TreeMap<String,String>();
-  for (int i= 0; i < cases; i++){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())),rnd),other,crashes); }
-  strCmp("", Join.of(crashes.entrySet().stream().map(e->e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
-}
+  @Test void mutatedTestProgramsNeverCrash(){
+    var seeds= seeds();
+    var other= otherFrom(DbgBlock.all());
+    var rnd= new Random(0);
+    var crashes= new TreeMap<String,String>();
+    for (var s : seeds){ run(s,other,crashes); }
+    for (int i= 0; i < cases; i++){ run(mutate(seeds.get(rnd.nextInt(seeds.size())),rnd,seeds),other,crashes); }
+    strCmp("", Join.of(crashes.entrySet().stream().map(e->e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
+  }
+  @Test void underAnnotatedTestProgramsNeverCrash(){
+    var seeds= seeds().stream().filter(FuzzTest::annotated).filter(FuzzTest::parses).toList();
+    var other= otherFrom(DbgBlock.all());
+    var rnd= new Random(0);
+    var crashes= new TreeMap<String,String>();
+    for (int i= 0; i < cases; i++){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())),rnd),other,crashes); }
+    strCmp("", Join.of(crashes.entrySet().stream().map(e->e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
+  }
   static void run(String src, OtherPackages other, TreeMap<String,String> crashes){
     var o= SourceOracle.debugBuilder().put(0,src).build();
     try{
