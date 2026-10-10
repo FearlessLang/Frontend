@@ -46,7 +46,6 @@ public final class Parse{
     var t= new Tokenizer()
       .input(fileName,input)
       .tokenKinds(kinds,_SOF,_EOF)
-      .startingPosition(1,1)
       .setErrFactory(new FearlessErrFactory())
       .whiteList(Fs.allowed)
       .tokenize()
