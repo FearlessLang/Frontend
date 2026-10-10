@@ -38,8 +38,8 @@ A:{ .foo(this: A): A }
    | --~~^^^^^^^^^^^^^^^^^^^~~
 
 While inspecting method declaration > type declaration body > type declaration > full file
-A method signature cannot declare multiple parameters with the same name
-Parameter "a" is repeated
+A method signature cannot declare multiple parameters with the same name.
+Parameter "a" is repeated.
 """,List.of("""
 A:{ .foo(a: A, a: A): A }
 """));}
@@ -48,8 +48,8 @@ A:{ .foo(a: A, a: A): A }
    | --~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^~~
 
 While inspecting method declaration > type declaration body > type declaration > full file
-A method signature cannot declare multiple generic type parameters with the same name
-Generic type parameter "T" is repeated
+A method signature cannot declare multiple generic type parameters with the same name.
+Generic type parameter "T" is repeated.
 """,List.of("""
 A:{ .foo[T:*,T:*](a: T, b: T): A }
 """));}
@@ -58,8 +58,8 @@ A:{ .foo[T:*,T:*](a: T, b: T): A }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration > full file
-A method signature cannot declare multiple generic type parameters with the same name
-Generic type parameter "T" is repeated
+A method signature cannot declare multiple generic type parameters with the same name.
+Generic type parameter "T" is repeated.
 """,List.of("""
 A[T:*,T:*]:{ .foo(a: T, b: T): A }
 """));}

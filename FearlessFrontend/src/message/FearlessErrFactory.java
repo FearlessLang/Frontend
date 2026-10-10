@@ -226,8 +226,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException badBound(T.X name, Span at){
     var x= name.name();
-    return Code.UnexpectedToken.of("Invalid bound for generic "+disp(x)+"\n"
-      +"Only \"*\" or \"**\" are allowed here\n"
+    return Code.UnexpectedToken.of("Invalid bound for generic "+disp(x)+".\n"
+      +"Only \"*\" or \"**\" are allowed here.\n"
       +"Write: ["+x+": *]   meaning mut,read,imm\n"
       +"   or: ["+x+": **]  meaning everything.\n").addSpan(at);
   }
@@ -285,8 +285,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   public FearlessException duplicatedGenericInMethodSignature(List<String> Xs, Span at){ return duplicatedInMethodSignature("generic type parameters","Generic type parameter",Xs,at); }
   private FearlessException duplicatedInMethodSignature(String plural, String singular, List<String> names, Span at){
     return Code.UnexpectedToken.of(
-      "A method signature cannot declare multiple "+plural+" with the same name\n"
-      +singular+" "+disp(redeclaredElement(names))+" is repeated").addSpan(at);
+      "A method signature cannot declare multiple "+plural+" with the same name.\n"
+      +singular+" "+disp(redeclaredElement(names))+" is repeated.").addSpan(at);
   }
   private static String expected(Collection<TokenKind> items){ return expected("","Expected: ","Expected one of: ",items,tk->tk.human); }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
