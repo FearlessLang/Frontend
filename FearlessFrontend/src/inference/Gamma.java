@@ -107,7 +107,7 @@ public final class Gamma{
     return trc.equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
   }
   public IT get(String x){ return ts[indexOf(x)]; }
-  public Optional<IT> getOpt(String x){ var i= indexOf(x); return i == -1 ? Optional.empty() : Optional.of(ts[i]); }
+  public IT _get(String x){ var i= indexOf(x); return i == -1 ? null : ts[i]; }
 
   public void declare(String x, IT t){
     if (x.equals("_")){ return; }

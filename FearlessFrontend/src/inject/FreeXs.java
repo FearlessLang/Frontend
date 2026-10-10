@@ -14,7 +14,7 @@ import utils.Streams;
 
 public record FreeXs(Gamma g){
   Stream<String> ftvE(E e){ return switch (e){
-    case X(var name, var t, _, _) -> Stream.concat(t.ftv(),g.getOpt(name).stream().flatMap(IT::ftv));
+    case X(var name, var t, _, _) -> Stream.concat(t.ftv(),Stream.ofNullable(g._get(name)).flatMap(IT::ftv));
     case Literal l -> Streams.of(l.bs().stream().map(B::x),ftvCs(l.cs()),ftvMs(l.ms()));
     //Used to be l.bs().stream().map(b->b.x()); with comment //Correct since bs will contain all the ftv found anywhere in the literal
     //This is not correct because of inference order: we may have not inferred the l.bs() yet!
