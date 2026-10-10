@@ -500,7 +500,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     if (fwdIf(peek(Colon))){ while (fwdIf(peek(UppercaseId,SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SStr,UStr,Comma,_SquareGroup))){} }
     fwdIf(peek(_CurlyGroup));
   }
-  interface Cut extends NextCut<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{}
+  interface Cut extends NextCut<Parser>{}
   Cut commaSkip=  p->p.splitOn(Skipped,Comma);
   Cut semiSkip=   p->p.splitOn(Skipped,SemiColon);
   Cut arrowSkip=  p->p.splitOn(Skipped,Arrow);
