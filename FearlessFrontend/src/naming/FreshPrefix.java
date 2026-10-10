@@ -81,7 +81,7 @@ public record FreshPrefix(
     while (n > 0){
       n--;
       sb.append(alphabet[n % base]);
-      n/= base;
+      n /= base;
     }
     return sb.reverse().toString();
   }

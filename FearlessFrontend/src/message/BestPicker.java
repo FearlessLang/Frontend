@@ -20,24 +20,24 @@ final class BestPicker{
   }
   void visitPC(PC x,int depth){
     if (!x.k().isCompactable()){ return; }
-    for (var t: x.ts()){ visit(t,depth); }
+    for (var t : x.ts()){ visit(t,depth); }
   }
   void visitPCall(PCall x,int depth){
     var targsVisible= CompactPrinter.showTargs(x.rc(),x.targs().size());
-    if (targsVisible){ for (var t: x.targs()){ visit(t,depth); } }
+    if (targsVisible){ for (var t : x.targs()){ visit(t,depth); } }
     if (!x.k().isCompactable()){ return; }
     visit(x.recv(),depth);
-    for (var a: x.args()){ visit(a,depth); }
+    for (var a : x.args()){ visit(a,depth); }
   }
   void visitPLit(PLit x,int depth){
     var cVisible= x.k().isCompactable() || x.priv();
-    if (cVisible){ for (var a: x.cs()){ visit(a,depth); } }
+    if (cVisible){ for (var a : x.cs()){ visit(a,depth); } }
     if (!x.k().isCompactable()){ return; }
-    for (var m: x.ms()){ visit(m,depth); }
+    for (var m : x.ms()){ visit(m,depth); }
   }
   void visitPM(PM x,int depth){
     if (x.k().isCompactable()){
-      for (var t: x.ts()){ visit(t,depth); }
+      for (var t : x.ts()){ visit(t,depth); }
       visit(x.ret(),depth);
     }
     x.body().ifPresent(b->visit(b,depth));
