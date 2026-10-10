@@ -3,7 +3,7 @@ package inference;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class TestInferenceSteps extends testUtils.FearlessTestBase{
+public class InferenceStepsTest extends testUtils.FearlessTestBase{
   static void okI(String expected, List<String> input){ inferenceOk(expected, input, true); }
   static void failI(String expected, List<String> input){ inferenceFail(expected, input, true); }
 
