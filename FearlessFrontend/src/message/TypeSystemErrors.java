@@ -255,7 +255,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   ///Expression at method body has a type that does not meet its result requirement(s).
   ///"body has wrong type" error; can only trigger if all current-expressions at are well typed.
   ///Raised when checking object literals
-  public FearlessException methBodyWrongType(TypeScope.Method s, E at, Reason got, T req){
+  public FearlessException methodBodyWrongType(TypeScope.Method s, E at, Reason got, T req){
     var l= s.l();
     var m= s.m();
     assert !got.isEmpty();
