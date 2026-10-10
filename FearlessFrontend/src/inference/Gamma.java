@@ -10,13 +10,14 @@ import java.util.stream.IntStream;
 
 import core.B;
 import core.RC;
+import offensiveUtils.NeverAsKey;
 import utils.Range;
 import utils.Streams;
 
 public final class Gamma{
- /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
- @offensiveUtils.NeverAsKey
- public static final class GammaSignature{
+  /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
+  @NeverAsKey
+  public static final class GammaSignature{
     long hash;
     final HashMap<Monotonicity.Slot,ArrayList<Object>> monotonicity= new HashMap<>();
     //public GammaSignature clear(){ hash = 0; return this;}//more performance
@@ -88,8 +89,8 @@ public final class Gamma{
     return IntStream.range(declDepth[i] + 1, depth).filter(s->!B.xs(bss[s]).containsAll(xs)).mapToObj(s->owners[s]).findFirst();
   }
   private static IT adapt(IT t, RC rc, List<B> bs){ return switch (t){
-    case IT.X(var x, _) -> adaptX(t, RC.get(bs, x).rcs(), rc);
-    case IT.ReadImmX(IT.X(var x, _)) -> adaptX(t, RC.get(bs, x).rcs(), rc);
+    case IT.X(var x, _) -> adaptX(t, B.get(bs, x).rcs(), rc);
+    case IT.ReadImmX(IT.X(var x, _)) -> adaptX(t, B.get(bs, x).rcs(), rc);
     default -> adaptRC(t, rc);
   };}
   private static IT adaptX(IT t, EnumSet<RC> xRcs, RC rc){
@@ -106,7 +107,7 @@ public final class Gamma{
     return trc.equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
   }
   public IT get(String x){ return ts[indexOf(x)]; }
-  public Optional<IT> getOpt(String x){ var i= indexOf(x); return i == -1 ? Optional.empty() : Optional.of(ts[i]); }
+  public IT _get(String x){ var i= indexOf(x); return i == -1 ? null : ts[i]; }
 
   public void declare(String x, IT t){
     if (x.equals("_")){ return; }

@@ -110,7 +110,7 @@ public class CompactPrinter{
   public record PC(String name, List<PT> ts, Compactable k) implements PN{
     public void accString(CompactPrinter sb){
       sb.append(name);
-      wrap(sb,"[","]",ts,",",k.isCompactable()?PN::accString:(_,b)->b.append("-"));
+      wrap(sb,"[","]",ts,",",k.isCompactable() ? PN::accString : (_,b)->b.append("-"));
     }
   }
   public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{
@@ -135,7 +135,7 @@ public class CompactPrinter{
     }
   }
   public PE ofE(E e){ return switch (e){
-    case X(var name, var src) -> new PX(src.inner instanceof fearlessFullGrammar.E.Implicit?"::": name);
+    case X(var name, var src) -> new PX(src.inner instanceof fearlessFullGrammar.E.Implicit ? "::" : name);
     case Type(var type, _) -> new PTypeE(ofT(type));
     case Call c -> ofCall(c);
     case Literal l -> ofLit(l);
@@ -169,9 +169,9 @@ public class CompactPrinter{
   }
   List<PC> ofCs(Src src,List<T.C> cs){
     List<fearlessFullGrammar.T.C> oCs= switch (src.inner){
-      case fearlessFullGrammar.Declaration(_, _, var decCs, _)->decCs;
-      case fearlessFullGrammar.E.TypedLiteral(var rcc, _, _)->List.of(rcc.c());
-      case fearlessFullGrammar.E.Literal _->List.of();
+      case fearlessFullGrammar.Declaration(_, _, var decCs, _) -> decCs;
+      case fearlessFullGrammar.E.TypedLiteral(var rcc, _, _) -> List.of(rcc.c());
+      case fearlessFullGrammar.E.Literal _ -> List.of();
       default -> throw Bug.of(src.inner.getClass().getSimpleName());
     };
     var original= oCs.stream().map(c->c.name()).toList();

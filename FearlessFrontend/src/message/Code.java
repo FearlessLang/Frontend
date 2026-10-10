@@ -21,10 +21,10 @@ public enum Code{
   TypeError,
   ;
   FearlessException of(BiFunction<SourceOracle,List<Frame>,String> f){ return new FearlessException(this, f); }
-  FearlessException of(String msg){ return this.of((o,fs)->Message.of(o::loadString,fs,msg)); }
-  FearlessException of(Supplier<String> msg){ return this.of((o,fs)->Message.of(o::loadString,fs,msg.get())); }
+  FearlessException of(String msg){ return of((o,fs)->Message.of(o::loadString,fs,msg)); }
+  FearlessException of(Supplier<String> msg){ return of((o,fs)->Message.of(o::loadString,fs,msg.get())); }
 
   public String toString(){
-    return "Error "+this.ordinal()+" "+this.name();
+    return "Error "+ordinal()+" "+name();
   }
 }

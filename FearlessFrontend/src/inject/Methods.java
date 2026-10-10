@@ -23,7 +23,6 @@ import fearlessParser.Parser;
 import inference.E;
 import inference.IT;
 import inference.M;
-import inference.M.Sig;
 import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
@@ -33,24 +32,24 @@ import utils.Streams;
 
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
-    LinkedHashMap<TName, core.E.Literal> cache){
+    LinkedHashMap<TName,core.E.Literal> cache){
   boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c->c.name().pkgName().equals(p.name()) && rem.containsKey(c.name())); }
   public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
   List<E.Literal> supertypesFirst(List<E.Literal> decs){
     var rem= new LinkedHashMap<TName,E.Literal>();
-    for (E.Literal d : decs){ rem.put(d.name(), d); }
+    for (var d : decs){ rem.put(d.name(), d); }
     var out= new ArrayList<E.Literal>();
     while (!rem.isEmpty()){
       var layer= rem.values().stream().filter(d->free(d,rem)).toList();
       if (layer.isEmpty()){ throw p.err().circularImplements(rem); }
       out.addAll(layer);
-      for (E.Literal d : layer){ rem.remove(d.name()); }
+      for (var d : layer){ rem.remove(d.name()); }
     }
     return out;
   }
-  public List<inference.E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
+  public List<E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     var acc= new ArrayList<E.Literal>();
     for (var d : supertypesFirst(iDecs.stream().filter(l->!l.infName()).toList())){
       var e= expandDeclaration(d,false);
@@ -59,7 +58,7 @@ public record Methods(
     }
     return List.copyOf(acc);
   }
-  record CsMs(List<IT.C> cs, List<inference.M.Sig> sigs){}
+  record CsMs(List<IT.C> cs, List<M.Sig> sigs){}
   //TODO: performance: currently fetch rewrites for the class generics
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps? Something similar has been done for MSigL
@@ -71,12 +70,12 @@ public record Methods(
     if (d == null){ return List.of(); }//case {..}.foo
     return d.cs().stream().map(TypeRename::tcToITC).map(ci->TypeRename.of(ci,B.xs(d.bs()),c.ts())).distinct().toList();
   }
-  private inference.M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child, List<String> scope){
+  private M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child, List<String> scope){
     var s= m.sig();
     var fullXs= new ArrayList<>(B.xs(d.bs()));
     var fullTs= new ArrayList<>(c.ts());
     var newBs= new ArrayList<B>(s.bs().size());
-    for (B b: s.bs()){
+    for (var b : s.bs()){
       var x= b.x();
       if (fresh.isFreshGeneric(child.name(),x,scope)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
@@ -87,7 +86,7 @@ public record Methods(
     }
     var newTs= TypeRename.ofIT(TypeRename.tToIT(s.ts()),fullXs,fullTs).stream().map(Optional::of).toList();
     var newRet= TypeRename.of(TypeRename.tToIT(s.ret()),fullXs,fullTs);
-    return new inference.M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),child.span());
+    return new M.Sig(s.rc(),s.m(),Collections.unmodifiableList(newBs),newTs,newRet,s.origin(),s.abs(),child.span());
   }
   public core.E.Literal from(TName name){ return Objects.requireNonNull(_from(name)); }
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache::get,other); }
@@ -142,32 +141,32 @@ public record Methods(
   void register(E.Literal d){
     var cs= TypeRename.itcToTC(d.cs());
     assert InjectionToInferenceVisitor.duplicatedSupertypes(d.bs(),cs).isEmpty();
-    p().log().logInferenceDeclaration(d, cs);
-    var ms= d.ms().stream().map(new ToCore(List.of())::mSyntetic).toList();
+    p.log().logInferenceDeclaration(d, cs);
+    var ms= d.ms().stream().map(new ToCore(List.of())::mSynthetic).toList();
     cache.put(d.name(), new core.E.Literal(d.rc().orElse(RC.imm),d.name(),d.bs(),cs,d.thisName(),ms,d.src(),d.infName()));
   }
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     assert ss.stream().allMatch(M.Sig::isFull);
     var res= new ArrayList<M>(ms.size());
     var changed= false;
-    for (var m: ms){//for methods WITH name
+    for (var m : ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
       var name= m.sig().m().get();
       ss.removeIf(s->s.m().get().equals(name));
       res.add(m);
     }
-    for (var m: ms){//for methods WITHOUT name
+    for (var m : ms){//for methods WITHOUT name
       if (m.sig().m().isPresent()){ continue; }
       changed= true;
       res.add(nameFromSigs(m,ss,origin));
     }
     return changed ? List.copyOf(res) : ms;
   }
-  inference.M withName(MName name,inference.M m){
+  M withName(MName name,M m){
     assert m.impl().isPresent();
     assert m.sig().m().isEmpty();
     var s= m.sig();
-    return new inference.M(new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span()),m.impl());
+    return new M(new M.Sig(s.rc(),Optional.of(name),s.bs(), s.ts(),s.ret(),s.origin(),s.abs(),s.span()),m.impl());
   }
   private M nameFromSigs(M m, ArrayList<M.Sig> ss, E.Literal origin){
     var arity= m.sig().ts().size();
@@ -183,7 +182,7 @@ public record Methods(
   List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     var res= new ArrayList<M>();
     var changed= false;
-    for (var m: ms){
+    for (var m : ms){
       var name= m.sig().m().get();
       var rc= m.sig().rc();
       var taken= ss.stream().filter(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))).toList();
@@ -200,7 +199,7 @@ public record Methods(
       }
       List<List<M.Sig>> groups= match.isEmpty() ? List.of(List.of()) : List.copyOf(match.values());
       var first= true;
-      for (var matches: groups){
+      for (var matches : groups){
         var mi= first ? m : new DupE(fresh,origin,m,p.err()).ofM(m,origin.name(),origin.name());
         first= false;
         var m2= pairWithSig(Collections.unmodifiableList(matches), mi, origin);
@@ -224,7 +223,7 @@ public record Methods(
     return changed ? List.copyOf(res) : ms;
   }
 
-  M pairWithSig(List<M.Sig> ss, inference.M m, E.Literal origin){
+  M pairWithSig(List<M.Sig> ss, M m, E.Literal origin){
     if (ss.isEmpty()){ return toCompleteM(m,origin); }
     var s= m.sig();
     var at= new Agreement(origin, ss.getFirst().rc(), ss.getFirst().m().get(), m.sig().span().inner);
@@ -237,7 +236,7 @@ public record Methods(
     var rc= s.rc().orElseGet(()->rcAgreement(ssAligned));
     return m.withSig(new M.Sig(rc,name,bs,ts,res,origin.name(),m.impl().isEmpty(),s.span()));
   }
-  private List<B> agreementWithSize(List<M.Sig> ss, Sig s, Agreement at){
+  private List<B> agreementWithSize(List<M.Sig> ss, M.Sig s, Agreement at){
     var allBounds= ss.stream().map(e->e.bs().get()).distinct().toList();
     if (s.bs().isEmpty()){ return agreementBs(at,allBounds); }
     var userBs= s.bs().get();
@@ -267,7 +266,7 @@ public record Methods(
     var res= agreement(at,ssAligned,e->e.ret().get(),p.err().retTypeDisagreement());
     var impl= ssAligned.stream().filter(e->!e.abs() && !overridden(e,origin)).map(e->e.origin().get()).distinct().toList();
     if (impl.size() > 1){ throw p.err().ambiguousImplementationFor(impl,at); }
-    var originName= impl.size() == 1? impl.getFirst() : origin.name();
+    var originName= impl.size() == 1 ? impl.getFirst() : origin.name();
     var rc= rcAgreement(ssAligned);
     var sig= new M.Sig(rc,name,bs,ts,res,originName,impl.isEmpty(),ssAligned.getFirst().span());
     return new M(sig,Optional.empty());
@@ -283,7 +282,7 @@ public record Methods(
     return LiteralDeclarations.has(d.cs(),sup) && d.ms().stream().map(core.M::sig)
       .anyMatch(o->o.origin().equals(d.name()) && o.m().equals(s.m().get()) && o.rc() == s.rc().get());
   }
-  M toCompleteM(inference.M m,E.Literal origin){
+  M toCompleteM(M m,E.Literal origin){
     var s= m.sig();
     var ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(()->p.err().noSourceToInferFrom(origin,m)))).toList();
     var res= s.ret().orElseThrow(()->p.err().noSourceToInferFrom(origin,m));

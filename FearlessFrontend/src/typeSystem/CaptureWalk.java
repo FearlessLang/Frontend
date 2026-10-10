@@ -8,6 +8,7 @@ import core.E;
 import core.M;
 import core.RC;
 import core.T;
+
 record CaptureWalk(List<B> bs, Gamma g, Predicate<RC> freeRC){
   boolean isFree(E e){
     return switch (e){
@@ -26,7 +27,7 @@ record CaptureWalk(List<B> bs, Gamma g, Predicate<RC> freeRC){
   }
   private boolean isFree(T t){
     return switch (t){
-      case T.X(var name, _) -> RC.get(bs, name).rcs().stream().allMatch(freeRC);
+      case T.X(var name, _) -> B.get(bs, name).rcs().stream().allMatch(freeRC);
       case T.RCX(var rc, _) -> freeRC.test(rc);
       case T.ReadImmX(var x) -> isFree(x);
       case T.RCC(var rc, _, _) -> freeRC.test(rc);

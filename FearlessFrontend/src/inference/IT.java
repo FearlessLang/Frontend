@@ -33,7 +33,7 @@ public sealed interface IT{
   }
   record C(TName name, List<IT> ts, int depth){
     public C{
-      assert unmodifiable(ts,"T.C.args");
+      assert unmodifiable(ts,"IT.C.ts");
       assert eq(ts.size(), name.arity(),"Type arity");
     }
     public C(TName name, List<IT> ts){ this(name,ts,RCC.depthFromTs(ts)); }
@@ -42,10 +42,10 @@ public sealed interface IT{
     }
   }
   record RCC(Optional<RC> rc, C c, TSpan span) implements IT{
-    static final int maxDepth=100;
+    static final int maxDepth= 100;
     public RCC(Optional<RC> rc, C c, TSpan span){
       assert nonNull(rc,c);
-      this.rc=rc; this.c=c; this.span= span;
+      this.rc= rc; this.c= c; this.span= span;
       if (c.depth() > maxDepth){ throw new WellFormednessErrors.ErrToFetchContext(this); }
     }
     static int depthFromTs(List<IT> ts){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1); }
@@ -78,7 +78,7 @@ public sealed interface IT{
     case RCX(_, var x) -> x.ftv();
     case ReadImmX(var x) -> x.ftv();
     case RCC(_, var c, _) -> c.ts().stream().flatMap(IT::ftv);
-    case U _ -> Stream.of();
+    case U _ -> Stream.empty();
   };}
   default IT readImm(){ return switch (this){ // T[read/imm]
     case X x -> new ReadImmX(x);

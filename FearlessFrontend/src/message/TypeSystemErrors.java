@@ -1,5 +1,7 @@
 package message;
 
+import static message.Err.*;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -16,6 +18,7 @@ import java.util.stream.Stream;
 import fearlessFullGrammar.FileFull;
 import inject.TypeRename;
 import metaParser.NameSuggester;
+import pkgmerge.Package;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
@@ -29,10 +32,8 @@ import utils.Streams;
 import core.*;
 import core.E.*;
 
-import static message.Err.*;
-
-public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pkg, Map<String,String> map, LinkedHashSet<String> printed){
-  public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg().name(),map,printed::add,t),this::notes,new StringBuilder()); }
+public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<String,String> map, LinkedHashSet<String> printed){
+  public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg.name(),map,printed::add,t),this::notes,new StringBuilder()); }
   private List<String> notes(){ return printed.stream().flatMap(this::spellingNotes).distinct().toList(); }
   private Stream<String> spellingNotes(String n){
     var dot= TName.pkgDot(n);
@@ -42,7 +43,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
       .filter(e->e.getValue().equals(pkgN) && !e.getKey().equals(pkgN))
       .map(e->e.getKey()+n.substring(dot)).sorted();
     var ws= Stream.concat(aliases,mapped).toList();
-    if (ws.stream().allMatch(w->w.equals(map.get(n)))){ return Stream.of(); }
+    if (ws.stream().allMatch(w->w.equals(map.get(n)))){ return Stream.empty(); }
     return ws.stream().flatMap(w->WellFormednessErrors.resolution(pkg,w).stream());
   }
   private TName preferredForFresh(TName n){
@@ -242,7 +243,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var ex= isoMisuse(e,earlyErrOnMoreThenOnceDirectly,usages.size())
       .line("Allowed: capture into object literals as "+disp(RC.imm)+", or use directly once.")
       .ex(m.e().get());
-    for (var u:usages){ ex.addSpan(u.span().inner); }
+    for (var u : usages){ ex.addSpan(u.span().inner); }
     return ex;
   }
   private static Err isoMisuse(Err e, boolean moreThanOnceDirectly, int usages){
@@ -254,7 +255,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   ///Expression at method body has a type that does not meet its result requirement(s).
   ///"body has wrong type" error; can only trigger if all current-expressions at are well typed.
   ///Raised when checking object literals
-  public FearlessException methBodyWrongType(TypeScope.Method s, E at, Reason got, T req){
+  public FearlessException methodBodyWrongType(TypeScope.Method s, E at, Reason got, T req){
     var l= s.l();
     var m= s.m();
     assert !got.isEmpty();
@@ -407,7 +408,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   void bestNameMsg(Err e, String onStr, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
     e.blank().line("Available methods on "+onStr+":");
-    for (String n:cs){
+    for (var n : cs){
       candidates.stream()
         .filter(s->s.m().s().equals(n))
         .forEach(s->e.bullet(e.cp().sig(s)));
@@ -507,7 +508,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   private static boolean isWrongUnderlyingType(TypeSystem ts, List<B> bs, T reqCanon, List<Reason> res){
     return res.stream().map(r->canon(r.best)).noneMatch(r->ts.isSub(bs, r, reqCanon));
   }
-  private static T canon(T t){ return t.withRC(core.RC.imm); }
+  private static T canon(T t){ return t.withRC(RC.imm); }
 
   private static T headerBest(List<Reason> res){
     return res.stream().map(r->r.best)

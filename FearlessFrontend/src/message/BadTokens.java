@@ -1,6 +1,8 @@
 package message;
 
 import static fearlessParser.TokenKind.*;
+import static message.Err.*;
+
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -14,12 +16,10 @@ import metaParser.Span;
 import metaParser.TokenProcessor;
 import utils.Bug;
 
-import static message.Err.*;
-
 public final class BadTokens{
   private BadTokens(){}
-  public static TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory> badTokensMap(){
-    return new TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory>()
+  public static TokenProcessor.Map<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> badTokensMap(){
+    return new TokenProcessor.Map<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>()
       .put(Ws,           (_,_,_)->Stream.empty())
       .put(LineComment,  (_,_,_)->Stream.empty())
       .put(BlockComment, (_,_,_)->Stream.empty())
@@ -123,7 +123,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     }
     var all= tz.allTokens();
     var j= idx - 1;
-    while (j > 0 && !all.get(j).is(BlockComment)){ j -= 1; }
+    while (j > 0 && !all.get(j).is(BlockComment)){ j--; }
     var prev= all.get(j);
     if (!prev.is(BlockComment)){ throw strErr(b, quoteChar, ""); }
     var s= prev.span(file);

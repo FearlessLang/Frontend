@@ -1,5 +1,9 @@
 package inject;
 
+import static java.util.Optional.*;
+import static core.LiteralDeclarations.*;
+import static fearlessParser.TokenKind.*;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -25,10 +29,6 @@ import inference.E;
 import inference.IT;
 import inference.M;
 import typeSystem.TypeSystem;
-
-import static java.util.Optional.*;
-import static core.LiteralDeclarations.*;
-import static fearlessParser.TokenKind.*;
 
 public record InjectionToInferenceVisitor(Methods meths, TName currentTop, ArrayList<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs)
 {
@@ -74,7 +74,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   List<E> mapE(List<fearlessFullGrammar.E> es){ return es.stream().map(this::visitE).toList(); }
   List<IT> mapT(List<fearlessFullGrammar.T> ts){ return ts.stream().map(this::visitT).toList(); }
   List<B> mapB(List<fearlessFullGrammar.B> bs){ return bs.stream().map(this::visitB).toList(); }
-  String parameterToName(fearlessFullGrammar.Parameter p){
+  String parameterToName(Parameter p){
     if (p.xp().isEmpty()){ return "_"; }
     return switch (p.xp().get()){
     case XPat.Name(var x) -> x.name();
@@ -134,7 +134,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return call(typedLiteral("base.Destruct", body.span(),p), "#", args, p);
   }
   record XE(String x, fearlessFullGrammar.E e){}
-  List<XE> xpats(List<String> lowered, List<fearlessFullGrammar.Parameter> original, TSpan span){
+  List<XE> xpats(List<String> lowered, List<Parameter> original, TSpan span){
     return Streams.zip(lowered, original)
       .flatMap((x,p)->p.xp().stream().flatMap(xp->xp instanceof XPat.Destruct d ? xpat(d,x,span) : Stream.empty()))
       .toList();
@@ -144,7 +144,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   }
   XE xpat(List<MName> pat, String x, String fresh, TSpan span){
     fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, span.pos());
-    for (MName m : pat){ res= call(res, m.s(),List.of(), span.pos()); }
+    for (var m : pat){ res= call(res, m.s(),List.of(), span.pos()); }
     return new XE(x, res);
   }
   private fearlessFullGrammar.E stripRound(fearlessFullGrammar.E e){
@@ -183,7 +183,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return addDeclaration(name, c.rc().orElse(RC.imm),c.dec(),false);
   }
   public E.Literal addDeclaration(TName name,RC rc,fearlessFullGrammar.Declaration d, boolean top){
-    var thisName= d.l().thisName().map(n->n.name()).orElseGet(()->top?"this":"_");
+    var thisName= d.l().thisName().map(n->n.name()).orElseGet(()->top ? "this" : "_");
     var bs= d.bs().map(this::mapB).orElse(List.of());
     var cs= d.cs().stream().map(this::visitC).toList();
     var dup= duplicatedSupertypes(bs,TypeRename.itcToTC(cs));

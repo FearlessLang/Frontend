@@ -1,6 +1,7 @@
 package typeSystem;
 
 import static offensiveUtils.Require.*;
+
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -23,15 +24,15 @@ final class Sources{
 //ancestors again once per path to them.
   static List<Sig> collect(TypeSystem ts, Literal l){//Note: this uses l instead of D[Ts] since more direct/efficient
     var sources= new ArrayList<Sig>();
-    for (T.C parent : l.cs()){
+    for (var parent : l.cs()){
       var parentDef= ts.decs().apply(parent.name());
-      for (M m : parentDef.ms()){
+      for (var m : parentDef.ms()){
         if (!m.sig().origin().equals(parentDef.name())){ continue; }
         var canonical= findCanonical(l, m.sig().m(), m.sig().rc());
         sources.add(instantiate(m.sig(), parentDef.bs(), parent.ts(), canonical.bs()));
       }
     }
-    for (M m : l.ms()){ if (m.sig().origin().equals(l.name())){ sources.add(m.sig()); } }
+    for (var m : l.ms()){ if (m.sig().origin().equals(l.name())){ sources.add(m.sig()); } }
     assert unionCount(ts,l) == sources.size();
     assert sources.stream().allMatch(s->l.ms().stream().anyMatch(m->m.sig().m().equals(s.m()) && m.sig().rc() == s.rc()));
     assert l.ms().stream().map(M::sig).allMatch(s->sources.stream().anyMatch(si->

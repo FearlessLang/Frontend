@@ -34,7 +34,7 @@ public sealed interface E{
   }
   record X(String name, IT t, Src src, Gamma.GammaSignature g) implements E{
     public X(String name, Src src){ this(name,IT.U.Instance,src,new Gamma.GammaSignature()); }
-    public X{ assert nonNull(t); assert validate(name, "parameter name",LowercaseId); }
+    public X{ assert nonNull(t,src,g); assert validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name+":"+t; }
     public E withT(IT t){ return sameTOr(this, t, ()->new X(name,t,src,g.clear())); }
   }
@@ -50,10 +50,10 @@ public sealed interface E{
       this(rc,name,bs,cs,thisName,ms,IT.U.Instance,src,infName,false,new Gamma.GammaSignature());
     }
     public Literal{
-      assert unmodifiableDistinct(bs,"L.bs");
-      assert unmodifiable(cs,"L.cs") && cs.stream().distinct().count() == cs.size();
-      assert unmodifiableDistinct(ms, "L.ms");
-      assert nonNull(name,thisName,t);
+      assert unmodifiableDistinct(bs,"E.Literal.bs");
+      assert unmodifiable(cs,"E.Literal.cs") && cs.stream().distinct().count() == cs.size();
+      assert unmodifiableDistinct(ms, "E.Literal.ms");
+      assert nonNull(rc,name,thisName,t,src,g);
     }
     public E.Literal withT(IT t){ return sameTOr(this, t, ()->new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear())); }
     public String toString(){
@@ -84,7 +84,7 @@ public sealed interface E{
       this(e,name,rc,targs,es,IT.U.Instance,src,new Gamma.GammaSignature());
     }
     public Call{
-      assert nonNull(e,name,rc,targs,t);
+      assert nonNull(e,name,rc,targs,t,src,g);
       assert unmodifiable(es, "E.Call.es");
       assert unmodifiable(targs, "E.Call.targs");
     }
@@ -102,14 +102,14 @@ public sealed interface E{
     public String toString(){
       var open= rc.map(r->"["+r).orElse("[");
       return ""+e+name+open
-        +Join.of(targs,rc.isEmpty()?"":",",",","](","](")
+        +Join.of(targs,rc.isEmpty() ? "" : ",",",","](","](")
         +Join.of(es,"",",","):","):")+t;
     }
   }
   record ICall(E e, MName name, List<E> es, IT t, Src src, Gamma.GammaSignature g) implements E{
     public ICall(E e, MName name, List<E> es, Src src){ this(e,name,es,IT.U.Instance,src,new Gamma.GammaSignature());}
     public ICall{
-      assert nonNull(e,name,t);
+      assert nonNull(e,name,t,src,g);
       assert unmodifiable(es, "E.ICall.es");
     }
     public E withT(IT t){ return sameTOr(this, t, ()->new ICall(e,name,es,t,src,g.clear())); }

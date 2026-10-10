@@ -28,7 +28,7 @@ public sealed interface T{
   }
   record C(TName name, List<T> ts) implements KindingTarget{
     public C{
-      assert unmodifiable(ts,"T.C.args");
+      assert unmodifiable(ts,"T.C.ts");
       assert eq(ts.size(), name.arity(),"Type arity");
     }
     public String toString(){

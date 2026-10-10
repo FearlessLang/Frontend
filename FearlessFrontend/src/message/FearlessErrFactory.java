@@ -1,5 +1,9 @@
 package message;
 
+import static fearlessParser.TokenKind.*;
+import static message.Err.*;
+import static offensiveUtils.Require.*;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +22,6 @@ import fearlessFullGrammar.XPat;
 import fearlessParser.Parser;
 import fearlessParser.Token;
 import fearlessParser.TokenKind;
-import static fearlessParser.TokenKind.*;
 import fearlessParser.Tokenizer;
 import metaParser.ErrFactory;
 import metaParser.Frame;
@@ -27,9 +30,6 @@ import metaParser.NameSuggester;
 import metaParser.Span;
 import utils.Join;
 import utils.Push;
-
-import static message.Err.*;
-import static offensiveUtils.Require.*;
 
 public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
   Optional<TName> lastTop= Optional.empty();
@@ -50,7 +50,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     var n= staticTypeDecName(lastTop.get());
     var hint= lastTop.get().s()+(lastTop.get().arity() == 0 ? ":..{...}" : "[..]:..{...}");
     return "Top level type declarations do not end with \";\".\n"
-         + "The defintion of " + n + " ends with a semicolon. Remove it.\n"
+         + "The definition of " + n + " ends with a semicolon. Remove it.\n"
          + "Write: "+disp(hint)+"\n"
          + "Not:   "+disp(hint+";")+"\n";
   }
@@ -99,8 +99,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException forgotSpace(Span at,String name){
     return Code.UnexpectedToken.of(
-      "Did you forget a space in "+disp(name)+"?\n"
-      +"Did you mean "+disp(name.substring(0,name.length()-2)+" ->")+"?\n"
+      "Did you forget a space in "+disp(name)+" ?\n"
+      +"Did you mean "+disp(name.substring(0,name.length()-2)+" ->")+" ?\n"
     ).addSpan(at);
   }
   public FearlessException duplicatedMap(Span at, String what, String in){
@@ -133,7 +133,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of("Name "+disp(c.content())+" already in scope.").addSpan(at);
   }
   private Span redeclaredMethSpan(List<M> ms,Predicate<M> p){ return ms.reversed().stream().filter(p).findFirst().get().span().inner; }
-  public FearlessException methNameRedeclared(List<M> ms,List<Parser.RCMName> names, Span at){
+  public FearlessException methodNameRedeclared(List<M> ms,List<Parser.RCMName> names, Span at){
     var name= redeclaredElement(names);
     Predicate<M> p= mi->mi.sig().stream().anyMatch(sig->sig.m().equals(Optional.of(name.name())) && sig.rc().equals(name.rc()));
     var s= redeclaredMethSpan(ms,p);
@@ -142,7 +142,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     + "A method with the same name, arity and reference capability is already present.\n")
       .addSpan(s).addSpan(at);
   }
-  public FearlessException methMixedExplicitRC(List<M> ms, MName name, Span at){
+  public FearlessException methodMixedExplicitRC(List<M> ms, MName name, Span at){
     Predicate<M> p= mi->mi.sig().stream().anyMatch(s->s.m().equals(Optional.of(name)) && s.rc().isEmpty());
     var s= redeclaredMethSpan(ms,p);
     return Code.WellFormedness.of(
@@ -152,7 +152,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public int parCount(M m){//-1 == explicitly named method
     if (m.sig().flatMap(Sig::m).isPresent()){ return -1; }
-    return m.sig().map(s->s.parameters().size()).orElse(0) + (m.hasImplicit()?1:0);
+    return m.sig().map(s->s.parameters().size()).orElse(0) + (m.hasImplicit() ? 1 : 0);
   }
   public FearlessException missingDotBeforeMethodName(Span at, String name){
     return Code.WellFormedness.of(
@@ -166,7 +166,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       .flatMap(p->p.xp().stream())
       .flatMap(xp->xp instanceof XPat.Name(var x) ? Stream.of(x.name()) : Stream.empty());
   }
-  public FearlessException methNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
+  public FearlessException methodNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
     var count= redeclaredElement(noNames);
     var s= redeclaredMethSpan(ms,mi->parCount(mi) == count);
     var hints= ms.stream()
@@ -226,8 +226,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException badBound(T.X name, Span at){
     var x= name.name();
-    return Code.UnexpectedToken.of("Invalid bound for generic "+disp(x)+"\n"
-      +"Only \"*\" or \"**\" are allowed here\n"
+    return Code.UnexpectedToken.of("Invalid bound for generic "+disp(x)+".\n"
+      +"Only \"*\" or \"**\" are allowed here.\n"
       +"Write: ["+x+": *]   meaning mut,read,imm\n"
       +"   or: ["+x+": **]  meaning everything.\n").addSpan(at);
   }
@@ -281,17 +281,17 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   private static String patternRepr(XPat.Destruct p){
     return Join.of(p.extract().stream().map(c->Join.of(c.stream().map(MName::s),"","","")),"{",", ","}")+p.id().orElse("");
   }
-  public FearlessException duplicateParamInMethodSignature(List<String> xs, Span at){ return duplicateInMethodSignature("parameters","Parameter",xs,at); }
-  public FearlessException duplicateGenericInMethodSignature(List<String> Xs, Span at){ return duplicateInMethodSignature("generic type parameters","Generic type parameter",Xs,at); }
-  private FearlessException duplicateInMethodSignature(String plural, String singular, List<String> names, Span at){
+  public FearlessException duplicatedParamInMethodSignature(List<String> xs, Span at){ return duplicatedInMethodSignature("parameters","Parameter",xs,at); }
+  public FearlessException duplicatedGenericInMethodSignature(List<String> Xs, Span at){ return duplicatedInMethodSignature("generic type parameters","Generic type parameter",Xs,at); }
+  private FearlessException duplicatedInMethodSignature(String plural, String singular, List<String> names, Span at){
     return Code.UnexpectedToken.of(
-      "A method signature cannot declare multiple "+plural+" with the same name\n"
-      +singular+" "+disp(redeclaredElement(names))+" is repeated").addSpan(at);
+      "A method signature cannot declare multiple "+plural+" with the same name.\n"
+      +singular+" "+disp(redeclaredElement(names))+" is repeated.").addSpan(at);
   }
   private static String expected(Collection<TokenKind> items){ return expected("","Expected: ","Expected one of: ",items,tk->tk.human); }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
     return Join.of(items.stream().map(e->disp(f.apply(e))),
-      items.size() == 1 ? pre1 : preMany,", ",".\n",pre0.isEmpty()? "" : pre0+".\n");
+      items.size() == 1 ? pre1 : preMany,", ",".\n",pre0.isEmpty() ? "" : pre0+".\n");
   }
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     var head= what.isBlank()

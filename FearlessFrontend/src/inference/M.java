@@ -1,4 +1,7 @@
 package inference;
+
+import static offensiveUtils.Require.*;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -8,8 +11,6 @@ import core.RC;
 import core.TName;
 import core.TSpan;
 import utils.Join;
-
-import static offensiveUtils.Require.*;
 
 public record M(Sig sig, Optional<Impl> impl){
   public M{ assert nonNull(sig,impl); }
@@ -21,7 +22,7 @@ public record M(Sig sig, Optional<Impl> impl){
     return new M(sig,impl);
   }
   public record Sig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<Optional<IT>> ts, Optional<IT> ret, Optional<TName> origin, boolean abs, TSpan span){
-    public Sig{ assert nonNull(rc,m,bs,ts,ret,origin); assert validOpt(bs,_bs->unmodifiableDistinct(_bs,"bounds")); assert unmodifiable(ts,"Sig.ts"); }
+    public Sig{ assert nonNull(rc,m,bs,ts,ret,origin); assert validOpt(bs,_bs->unmodifiableDistinct(_bs,"Sig.bs")); assert unmodifiable(ts,"Sig.ts"); }
     public Sig(RC rc, MName m, List<B> bs, List<Optional<IT>> ts, IT ret, TName origin, boolean abs, TSpan span){
       this(Optional.of(rc),Optional.of(m),Optional.of(bs),ts,Optional.of(ret),Optional.of(origin),abs,span);
     }

@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import core.B;
-import core.E;
 import core.LiteralDeclarations;
 import core.MName;
 import core.RC;
@@ -48,7 +47,7 @@ public record ToCore(List<B> ctx){
     var uncommitted= e.infName() && bs.isEmpty();
     if (uncommitted){
       var free= new FreeXs(new Gamma());
-      bs= Streams.of(free.ftvCs(e.cs()),free.ftvMs(e.ms()),free.ftvMs(o.ms())).distinct().map(x->RC.get(ctx,x)).toList();
+      bs= Streams.of(free.ftvCs(e.cs()),free.ftvMs(e.ms()),free.ftvMs(o.ms())).distinct().map(x->B.get(ctx,x)).toList();
     }
     assert !e.infName() || B.xs(ctx).containsAll(B.xs(bs));
     var name= e.name().withArity(bs.size());
@@ -60,7 +59,7 @@ public record ToCore(List<B> ctx){
   }
   static List<IT.C> distinctTypes(List<B> bs, List<IT.C> cs){
     var res= new ArrayList<IT.C>();
-    for (var c: cs){ if (res.stream().noneMatch(r->sameType(bs,r,c))){ res.add(c); } }
+    for (var c : cs){ if (res.stream().noneMatch(r->sameType(bs,r,c))){ res.add(c); } }
     return Collections.unmodifiableList(res);
   }
   private static boolean sameType(List<B> bs, IT.C a, IT.C b){
@@ -74,9 +73,9 @@ public record ToCore(List<B> ctx){
   }
   Optional<List<B>> originalBs(inference.E.Literal o){
     var explicit= switch (o.src().inner){
-      case fearlessFullGrammar.E.TypedLiteral _->false; //Not tl.t().c().ts().isPresent(): this would be about the first eventual c in cs; not the anon heir
-      case fearlessFullGrammar.E.Literal _->false;
-      case fearlessFullGrammar.Declaration(_, var bs, _, _)->bs.isPresent();
+      case fearlessFullGrammar.E.TypedLiteral _ -> false; //Not tl.t().c().ts().isPresent(): this would be about the first eventual c in cs; not the anon heir
+      case fearlessFullGrammar.E.Literal _ -> false;
+      case fearlessFullGrammar.Declaration(_, var bs, _, _) -> bs.isPresent();
       default -> throw Bug.of(o.src().inner.getClass().getName());
     };
     return explicit ? Optional.of(o.bs()) : Optional.empty();
@@ -101,7 +100,7 @@ public record ToCore(List<B> ctx){
   }
   private static inference.M matchM(List<inference.M> os, inference.M e){
     var s= e.sig().span();
-    return OneOr.of("failing to connect methods @"+s, os.stream().filter(o->o.sig().span() == s));
+    return OneOr.of("Failing to connect methods @"+s, os.stream().filter(o->o.sig().span() == s));
   }
   private core.M m(inference.M e, inference.M o){
     var s= sig(e.sig(), o.sig());
@@ -133,10 +132,10 @@ public record ToCore(List<B> ctx){
   }
   private List<String> nUnderscores(int n){ return Stream.generate(()->"_").limit(n).toList(); }
 
-  private static final Optional<E> synteticBody= Optional.of(new E.X("this",Src.syntetic));
-  core.M mSyntetic(inference.M m){
+  private static final Optional<core.E> syntheticBody= Optional.of(new core.E.X("this",Src.synthetic));
+  core.M mSynthetic(inference.M m){
     var s= sig(m.sig(),m.sig());
     if (m.impl().isEmpty()){ return new core.M(s,nUnderscores(s.ts().size()),Optional.empty()); }
-    return new core.M(s,m.impl().get().xs(),synteticBody);
+    return new core.M(s,m.impl().get().xs(),syntheticBody);
   }
 }

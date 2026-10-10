@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import message.FearlessErrFactory;
 import metaParser.Span;
 
-public class MiscTests{
+public class MiscTest{
   @Test void XIn_checks_Xs_not_xs(){
     var n = new Names(List.of("a"), List.of("X","Y"), List.of(), "");
     assertTrue(n.XIn("X"));
@@ -31,7 +31,7 @@ public class MiscTests{
     p.expectAny("");//front already consumed a,b: active window is now c,d,e,f
     var res= p.parseBack("back",false,
       pp->{ pp.expectAnyLast(""); pp.expectAnyLast(""); return 0; },
-      pp->{ var out= new ArrayList<String>(); while(!pp.end()){ out.add(pp.expectAny("").content()); } return out; });
+      pp->{ var out= new ArrayList<String>(); while (!pp.end()){ out.add(pp.expectAny("").content()); } return out; });
     assertEquals(List.of("e","f"), res.get());
     assertEquals(2, p.index());
     assertEquals(4, p.limit());

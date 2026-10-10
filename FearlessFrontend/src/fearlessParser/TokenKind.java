@@ -6,7 +6,6 @@ import java.util.stream.Stream;
 
 import metaParser.TokenMatch;
 
-
 public enum TokenKind implements metaParser.TokenKind{
   Ws("\\s+"," white space or new line"),
   LineComment("//[^\\n]*", "//.."),
@@ -50,7 +49,7 @@ public enum TokenKind implements metaParser.TokenKind{
   SStr("`[^`\\x0A]*`","`...`"),
   DotName("\\._*[a-z][A-Za-z0-9_]*'*",".name"),
   UppercaseId(
-    "(?:(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*",
+    "(?:"+core.TName.pkgNameRegex+"\\x2E)?_*[A-Z][A-Za-z0-9_]*'*",
     "type name"),//correctly allows only one '.' since packages are not nested inside each others
   BadUppercaseId("(?:[a-z][a-z0-9_]*\\x2E)?_*[A-Z][A-Za-z0-9_]*'*"),
   LowercaseId("_*[a-z][A-Za-z0-9_]*'*","name"),
@@ -85,8 +84,8 @@ public enum TokenKind implements metaParser.TokenKind{
     this.human= human;
   }
   @Override public TokenMatch matcher(){ return match; }
-  public boolean syntetic(){ return this.name().startsWith("_"); }
-  @Override public int priority(){ return this.ordinal(); }
+  public boolean synthetic(){ return name().startsWith("_"); }
+  @Override public int priority(){ return ordinal(); }
 
   public static boolean validate(String input, String what, TokenKind... kinds){
     if (isKind(input,kinds)){ return true; }
