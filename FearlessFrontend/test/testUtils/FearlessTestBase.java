@@ -129,7 +129,7 @@ public abstract class FearlessTestBase{
 
   protected static OtherPackages otherFrom(List<core.E.Literal> ds){ return OtherPackages.start(Map.of(), ds, -1); }
   protected static List<core.E.Literal> compileAll(String pkgName, SourceOracle o, OtherPackages other){
-    return new main.FrontendLogicMain().of(pkgName,Map.of(), o.allFiles(), other);
+    return new FrontendLogicMain().of(pkgName,Map.of(), o.allFiles(), other);
   }
   public static SourceOracle oracleFromDir(Path root){
     if (!Files.isDirectory(root)){ throw Bug.of("Not a directory: "+root); }

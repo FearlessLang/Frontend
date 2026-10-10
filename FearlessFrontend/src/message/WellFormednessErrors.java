@@ -29,9 +29,11 @@ import inference.E;
 import inference.IT;
 import inference.M;
 import inject.Methods.Agreement;
+import inject.TypeRename;
 import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
+import pkgmerge.Package;
 import tools.SourceOracle.Ref;
 import typeSystem.Kinding;
 import utils.Join;
@@ -49,7 +51,7 @@ public record WellFormednessErrors(String pkgName){
     lines.forEach(e::line);
     return e;
   }
-  public static List<String> resolution(pkgmerge.Package p, String written){
+  public static List<String> resolution(Package p, String written){
     var dot= TName.pkgDot(written);
     if (dot != -1){
       var in= written.substring(0,dot);
@@ -329,7 +331,7 @@ public record WellFormednessErrors(String pkgName){
   public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
   public FearlessException noAgreement(Agreement at, List<B> bs, List<IT> res, String msg){
     var rc= at.rc().map(r->r.toStrSpace(false)).orElse("");
-    var rcDiffers= res.stream().map(t->Kinding.intrinsicRCs(bs,inject.TypeRename.itToT(t))).distinct().count() > 1;
+    var rcDiffers= res.stream().map(t->Kinding.intrinsicRCs(bs,TypeRename.itToT(t))).distinct().count() > 1;
     var x= res.stream().filter(t->!(t instanceof IT.RCC)).findFirst();
     var e= err()
       .line(msg+" for method "+err().methodSig(rc,at.mName())+" with "+at.mName().arity()+" parameters.")
@@ -344,7 +346,7 @@ public record WellFormednessErrors(String pkgName){
   }
   private String option(boolean showImm, IT o){
     if (!(o instanceof IT.RCC rcc)){ return disp(o); }
-    return showImm ? err().typeRepr(false,inject.TypeRename.itToT(rcc)) : err().typeRepr(rcc);
+    return showImm ? err().typeRepr(false,TypeRename.itToT(rcc)) : err().typeRepr(rcc);
   }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
@@ -408,7 +410,7 @@ public record WellFormednessErrors(String pkgName){
     var declares= xs.isEmpty() ? " declares none" : " declares "+Join.of(xs.stream().map(Err::disp),"",", ","","");
     var uses= t instanceof IT.RCC ? ", using the generic type "+disp(missing)+"." : ".";
     return wf(err()
-      .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(true,inject.TypeRename.itToT(t))+uses)
+      .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(true,TypeRename.itToT(t))+uses)
       .line("Generic type "+disp(missing)+" is not in scope inside the type declaration "+dec+".")
       .line("A type declaration only sees the generic types it declares itself; here "+dec+declares+".")
       .line("Hint: funnel "+disp(missing)+" into "+dec+" by writing "+funnelled+", restating the bounds of "+disp(missing)+"."), x);
@@ -418,7 +420,7 @@ public record WellFormednessErrors(String pkgName){
       .line("Type "+err().typeRepr(blame))
       .line("grew uncontrollably during inference."), at);
   }
-  public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<inference.M.Sig> options){
+  public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<M.Sig> options){
     return wf(err()
       .line("Cannot infer the name for a method with "+m.sig().ts().size()+" parameters.")
       .line("Many"+(abs ? " abstract" : "")+" methods with "+m.sig().ts().size()+" parameters could be selected:")

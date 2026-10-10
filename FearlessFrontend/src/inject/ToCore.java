@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import core.B;
-import core.E;
 import core.LiteralDeclarations;
 import core.MName;
 import core.RC;
@@ -133,7 +132,7 @@ public record ToCore(List<B> ctx){
   }
   private List<String> nUnderscores(int n){ return Stream.generate(()->"_").limit(n).toList(); }
 
-  private static final Optional<E> synteticBody= Optional.of(new E.X("this",Src.syntetic));
+  private static final Optional<core.E> synteticBody= Optional.of(new core.E.X("this",Src.syntetic));
   core.M mSyntetic(inference.M m){
     var s= sig(m.sig(),m.sig());
     if (m.impl().isEmpty()){ return new core.M(s,nUnderscores(s.ts().size()),Optional.empty()); }

@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import core.E.Literal;
 
 public interface OtherPackages{
-  core.E.Literal __of(TName name);//This method should only be used inside LiteralDeclatations and ToInference Function<TName,TName> f= tn->{..}
+  Literal __of(TName name);//This method should only be used inside LiteralDeclatations and ToInference Function<TName,TName> f= tn->{..}
   Collection<TName> dom();
   long stamp();
   Map<String,Map<String,String>> virtualizationMap();
@@ -16,7 +16,7 @@ public interface OtherPackages{
   static OtherPackages start(Map<String,Map<String,String>> vMap, Map<TName,Literal> core, long newStamp){
     return new OtherPackages(){
       public Collection<TName> dom(){ return core.keySet(); }
-      public core.E.Literal __of(TName name){ return core.get(name); }
+      public Literal __of(TName name){ return core.get(name); }
       public long stamp(){ return newStamp; }
       public Map<String,Map<String,String>> virtualizationMap(){ return vMap; }
     };}
