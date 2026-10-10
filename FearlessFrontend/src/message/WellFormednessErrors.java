@@ -91,7 +91,7 @@ public record WellFormednessErrors(String pkgName){
     if (heads.isEmpty()){
       return badRank(err()
         .line("No rank file found for package "+disp(pkgName)+".")
-        .line("Each package must have exactly one source file whose name is their rank.")
+        .line("Each package must have exactly one source file whose name is their rank,")
         .line("in some folder inside the project folder."))
         .wf();
     }

@@ -65,8 +65,8 @@ In file: [###].fear
    | ^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration > full file
-A method signature cannot declare multiple generic type parameters with the same name
-Generic type parameter "X" is repeated
+A method signature cannot declare multiple generic type parameters with the same name.
+Generic type parameter "X" is repeated.
 Error 2 UnexpectedToken""","""
 Pair[X,X]:{ .x:X; .y:X;}
 """);}
@@ -77,8 +77,8 @@ In file: [###].fear
    |       -^^^^^^^^^^^^~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
-A method signature cannot declare multiple generic type parameters with the same name
-Generic type parameter "X" is repeated
+A method signature cannot declare multiple generic type parameters with the same name.
+Generic type parameter "X" is repeated.
 Error 2 UnexpectedToken""","""
 Pairs:{.of[X,X]():A->A;}
 """);}
@@ -90,8 +90,8 @@ In file: [###].fear
    |       -^^^^^^^^^^~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
-A method signature cannot declare multiple generic type parameters with the same name
-Generic type parameter "X" is repeated
+A method signature cannot declare multiple generic type parameters with the same name.
+Generic type parameter "X" is repeated.
 Error 2 UnexpectedToken""","""
 Pairs:{#[X,X]():A->A;}
 """);}//here we need to fix the tokenizer
@@ -898,8 +898,8 @@ In file: [###].fear
    |   --^^^^^^^~~~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
-A method signature cannot declare multiple parameters with the same name
-Parameter "x" is repeated
+A method signature cannot declare multiple parameters with the same name.
+Parameter "x" is repeated.
 Error 2 UnexpectedToken
 ""","""
 A:{ .m(x,x) -> x }
@@ -930,8 +930,8 @@ In file: [###].fear
    | --~~^^^----
 
 While inspecting generic bounds declaration > type declaration > full file
-Invalid bound for generic "X"
-Only "*" or "**" are allowed here
+Invalid bound for generic "X".
+Only "*" or "**" are allowed here.
 Write: [X: *]   meaning mut,read,imm
    or: [X: **]  meaning everything.
 Error 2 UnexpectedToken
@@ -978,8 +978,8 @@ In file: [###].fear
    |   --^^^^^^^^^^^~~~~~--
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
-A method signature cannot declare multiple parameters with the same name
-Parameter "a" is repeated
+A method signature cannot declare multiple parameters with the same name.
+Parameter "a" is repeated.
 Error 2 UnexpectedToken
 ""","""
 A:{ .m(a,b,b,a) -> a }
