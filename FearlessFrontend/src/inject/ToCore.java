@@ -100,7 +100,7 @@ public record ToCore(List<B> ctx){
   }
   private static inference.M matchM(List<inference.M> os, inference.M e){
     var s= e.sig().span();
-    return OneOr.of("failing to connect methods @"+s, os.stream().filter(o->o.sig().span() == s));
+    return OneOr.of("Failing to connect methods @"+s, os.stream().filter(o->o.sig().span() == s));
   }
   private core.M m(inference.M e, inference.M o){
     var s= sig(e.sig(), o.sig());

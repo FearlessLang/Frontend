@@ -199,9 +199,9 @@ public record InjectionSteps(Methods meths){
   private RC overloadNorm(Optional<RC> rc){ return rc.map(r->r == RC.iso ? RC.imm : noH(r)).orElse(RC.imm); }
   private Optional<core.M> oneFromGuessRC(List<core.M> ms, RC rc){
     if (ms.size() == 1){ return Optional.of(ms.getFirst()); }
-    var readOne= OneOr.opt("not well formed ms", ms.stream().filter(m->m.sig().rc() == RC.read));
-    var mutOne= OneOr.opt("not well formed ms", ms.stream().filter(m->m.sig().rc() == RC.mut));
-    var immOne= OneOr.opt("not well formed ms", ms.stream().filter(m->m.sig().rc() == RC.imm));
+    var readOne= OneOr.opt("Not well formed ms", ms.stream().filter(m->m.sig().rc() == RC.read));
+    var mutOne= OneOr.opt("Not well formed ms", ms.stream().filter(m->m.sig().rc() == RC.mut));
+    var immOne= OneOr.opt("Not well formed ms", ms.stream().filter(m->m.sig().rc() == RC.imm));
     if (rc == RC.read){ return readOne.or(()->immOne).or(()->mutOne); }
     if (rc == RC.mut){ return mutOne.or(()->readOne).or(()->immOne); }
     assert rc == RC.imm;
