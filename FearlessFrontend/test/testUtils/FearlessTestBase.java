@@ -30,6 +30,7 @@ import utils.Bug;
 import utils.Err;
 import utils.Join;
 import utils.Pos;
+import utils.Range;
 
 public abstract class FearlessTestBase{
 
@@ -40,12 +41,12 @@ public abstract class FearlessTestBase{
 
   protected static SourceOracle oracleRaw(List<String> files){
     var b= SourceOracle.debugBuilder();
-    for (int i= 0; i < files.size(); i += 1){ b= b.put(i, files.get(i)); }
+    for (int i : Range.of(files)){ b= b.put(i, files.get(i)); }
     return b.build();
   }
   protected static SourceOracle oraclePkg(List<String> bodies){
     var b= SourceOracle.debugBuilder();
-    for (int i= 0; i < bodies.size(); i += 1){ b= b.put(i, bodies.get(i)); }
+    for (int i : Range.of(bodies)){ b= b.put(i, bodies.get(i)); }
     return b.build();
   }
   protected static List<URI> filesUri(int n){

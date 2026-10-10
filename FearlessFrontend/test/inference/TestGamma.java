@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import core.RC;
+import utils.Range;
 
 public class TestGamma{
 
@@ -129,7 +130,7 @@ public class TestGamma{
   @Test public void large_scope_correctness_under_many_binds_and_pops(){
     Gamma g= new Gamma();
     int n= 64;
-    for (int i= 0; i < n; i++){ g.declare("v" + i, X("T" + i)); }
+    for (int i : Range.of(0,n)){ g.declare("v" + i, X("T" + i)); }
 
     Gamma.GammaSignature sigParent = new Gamma.GammaSignature();
     g.sign(sigParent);
@@ -156,7 +157,7 @@ public class TestGamma{
     assertSame(t, g.get("v31"));
 
     g.newScope(RC.mut, List.of(), null);
-    for (int i= 0; i < 10; i++){ g.declare("w" + i, X("W" + i)); }
+    for (int i : Range.of(0,10)){ g.declare("w" + i, X("W" + i)); }
     g.popScope();
 
     assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("w0"));
@@ -170,7 +171,7 @@ public class TestGamma{
   @Test public void popped_name_get_after_slot_reuse_throws(){
     Gamma g= new Gamma();
     int base= 13;
-    for (int i= 0; i < base; i++){ g.declare("v" + i, X("V" + i)); }
+    for (int i : Range.of(0,base)){ g.declare("v" + i, X("V" + i)); }
     g.newScope(RC.mut, List.of(), null);
     g.declare("w0", X("W0"));
     g.popScope(); // w0 out of scope
@@ -182,7 +183,7 @@ public class TestGamma{
   @Test public void popped_name_update_after_slot_reuse_throws(){
     Gamma g= new Gamma();
     int base= 13;
-    for (int i= 0; i < base; i++){ g.declare("v" + i, X("V" + i)); }
+    for (int i : Range.of(0,base)){ g.declare("v" + i, X("V" + i)); }
     g.newScope(RC.mut, List.of(), null);
     g.declare("w0", X("W0"));
     g.popScope(); // w0 out of scope
@@ -245,15 +246,15 @@ public class TestGamma{
     Gamma.GammaSignature root= new Gamma.GammaSignature();
     g.sign(root);
     int n= 1000;
-    for (int i= 0; i < n; i++){
+    for (int i : Range.of(0,n)){
       g.newScope(RC.mut, List.of(), null);
-      for (int j= 0; j < 10; j++){ g.declare("v" + i + "_" + j, X("T" + i)); }
+      for (int j : Range.of(0,10)){ g.declare("v" + i + "_" + j, X("T" + i)); }
     }
     assertEquals(X("T0"), g.get("v0_0"));
     assertEquals(X("T999"), g.get("v999_9"));
     g.update("v0_0", X("U"));
     assertEquals(X("U"), g.get("v0_0"));
-    for (int i= 0; i < n; i++){ g.popScope(); }
+    for (int _ : Range.of(0,n)){ g.popScope(); }
     assertTrue(g.represents(root));
     assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("v0_0"));
   }
