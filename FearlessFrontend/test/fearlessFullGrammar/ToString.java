@@ -7,6 +7,7 @@ import fearlessFullGrammar.E.*;
 import fearlessFullGrammar.T.*;
 import fearlessFullGrammar.XPat.Destruct;
 import fearlessFullGrammar.XPat.Name;
+import utils.Range;
 
 public class ToString{
   public static String declaration(Declaration d){ 
@@ -38,7 +39,7 @@ public class ToString{
   StringBuilder append(String s){ return res.append(s); }
   <EE>StringBuilder append(String start, List<EE> es, Consumer<EE> c, String sep, String end){
     append(start);
-    for (int i= 0; i < es.size(); i += 1){
+    for (int i : Range.of(es)){
       if (i > 0){ append(sep); }
       c.accept(es.get(i));
     }
