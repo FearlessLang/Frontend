@@ -43,7 +43,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       .filter(e->e.getValue().equals(pkgN) && !e.getKey().equals(pkgN))
       .map(e->e.getKey()+n.substring(dot)).sorted();
     var ws= Stream.concat(aliases,mapped).toList();
-    if (ws.stream().allMatch(w->w.equals(map.get(n)))){ return Stream.of(); }
+    if (ws.stream().allMatch(w->w.equals(map.get(n)))){ return Stream.empty(); }
     return ws.stream().flatMap(w->WellFormednessErrors.resolution(pkg,w).stream());
   }
   private TName preferredForFresh(TName n){

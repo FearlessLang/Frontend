@@ -284,9 +284,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var tok= peek();
     var m= parseIf(peek(DotName,Op),this::parseMName);
     try{ return parseSigAfterName(rc, m); }
-    catch(FearlessException exc){
+    catch(FearlessException fe){
       var forgotSpace= m.stream().anyMatch(mi->mi.s().endsWith("->"));
-      if (!forgotSpace){ throw exc; }
+      if (!forgotSpace){ throw fe; }
       throw errFactory().forgotSpace(span(tok.get()).get(),m.get().s());
     }
   }

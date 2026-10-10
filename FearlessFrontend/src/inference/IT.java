@@ -78,7 +78,7 @@ public sealed interface IT{
     case RCX(_, var x) -> x.ftv();
     case ReadImmX(var x) -> x.ftv();
     case RCC(_, var c, _) -> c.ts().stream().flatMap(IT::ftv);
-    case U _ -> Stream.of();
+    case U _ -> Stream.empty();
   };}
   default IT readImm(){ return switch (this){ // T[read/imm]
     case X x -> new ReadImmX(x);

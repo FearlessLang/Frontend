@@ -302,7 +302,7 @@ public record InjectionSteps(Methods meths){
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
   private List<E> requiredOnArgs(List<B> bs, E.Call c, MSigL m){
-    var all= decidedThen(c, m, c.es(), Stream.of());
+    var all= decidedThen(c, m, c.es(), Stream.empty());
     var m0= m.withClsArgs(normToBounds(bs, m.clsBs(), all.subList(0, m.nCls())));
     return meetWithTargs(c.es(), c.es(), m0, normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size())));
   }

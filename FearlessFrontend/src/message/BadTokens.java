@@ -123,7 +123,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     }
     var all= tz.allTokens();
     var j= idx - 1;
-    while (j > 0 && !all.get(j).is(BlockComment)){ j -= 1; }
+    while (j > 0 && !all.get(j).is(BlockComment)){ j--; }
     var prev= all.get(j);
     if (!prev.is(BlockComment)){ throw strErr(b, quoteChar, ""); }
     var s= prev.span(file);

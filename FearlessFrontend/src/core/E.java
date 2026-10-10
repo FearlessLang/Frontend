@@ -16,7 +16,7 @@ public sealed interface E{
   default TSpan span(){ return src().inner.span(); }
   Src src();
   default Stream<E> children(){ return switch (this){
-    case X _, Type _ -> Stream.of();
+    case X _, Type _ -> Stream.empty();
     case Literal l -> l.ms().stream().flatMap(m->m.e().stream());
     case Call c -> Stream.concat(Stream.of(c.e()), c.es().stream());
   };}
