@@ -29,11 +29,11 @@ import inject.TypeRename;
 import message.Err;
 import message.Reason;
 import message.TypeSystemErrors;
+import tools.UriSort;
 import utils.OneOr;
 import utils.Push;
 import utils.Range;
 import utils.Streams;
-import utils.UriSort;
 import core.E.*;
 import pkgmerge.Package;
 
