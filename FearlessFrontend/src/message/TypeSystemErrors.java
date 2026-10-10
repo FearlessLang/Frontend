@@ -32,7 +32,7 @@ import core.E.*;
 import static message.Err.*;
 
 public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pkg, Map<String,String> map, LinkedHashSet<String> printed){
-  public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg().name(),map,printed::add,t),this::notes,new StringBuilder()); }
+  public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg.name(),map,printed::add,t),this::notes,new StringBuilder()); }
   private List<String> notes(){ return printed.stream().flatMap(this::spellingNotes).distinct().toList(); }
   private Stream<String> spellingNotes(String n){
     var dot= TName.pkgDot(n);

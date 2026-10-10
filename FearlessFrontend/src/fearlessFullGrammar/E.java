@@ -32,7 +32,7 @@ public sealed interface E extends core.Src.SrcObj{
     public Pos pos(){ return span.pos(); }
     public String toString(){ return "Literal"+thisName.map(Object::toString).orElse("")+methods; }
     public Literal withSpan(TSpan span){ return new Literal(thisName,methods,span); }
-    @Override public int compareTo(Literal o){ return span().inner.compareTo(o.span().inner); }
+    @Override public int compareTo(Literal o){ return span.inner.compareTo(o.span.inner); }
   }
   record TypedLiteral(T.RCC t, Optional<Literal> l,Pos pos) implements E{
     public TypedLiteral{ assert nonNull(t,l,pos); }

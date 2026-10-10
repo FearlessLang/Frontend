@@ -129,7 +129,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),dom(l.bs(),span)),span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l,bs1,thisType);
-    litOk(v().discard(g.filterFTV(l),l),l);
+    litOk(v.discard(g.filterFTV(l),l),l);
     if (selfNamed && !uses(_l,_l.thisName())){ throw tsE().selfNameDeadCode(_l); }
     l.ms().stream().filter(m->m.e().isPresent()).forEach(m->checkCallable(l,m));
     l.ms().forEach(m->checkImplemented(l,m,l));
@@ -183,7 +183,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()))
       .forEach((k,group)->methodTableOk(l,k,group));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),new T.C(l.name(),dom(delta,span)),span));
-    l.ms().forEach(m->methOk(l,delta,v().of(g1,l,m),m));//passing l and m instead of their RC for better errors
+    l.ms().forEach(m->methOk(l,delta,v.of(g1,l,m),m));//passing l and m instead of their RC for better errors
   }
   private void csOk(Literal l, List<B> delta, T.C c){
     k().checkC(l,delta,c);
