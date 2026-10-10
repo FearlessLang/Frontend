@@ -223,18 +223,18 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var names= ms.stream().flatMap(this::declaredName).toList();
     var at= span(start,end).get();
     var redeclared= names.stream().distinct().count() < names.size();
-    if (redeclared){ throw errFactory().methNameRedeclared(ms,names,at); }
+    if (redeclared){ throw errFactory().methodNameRedeclared(ms,names,at); }
     checkMixedExplicitRC(ms,names,at);
     var noNames= ms.stream()
       .map(errFactory()::parCount).filter(i->i != -1).toList();
     var noNameRedeclared= noNames.stream().distinct().count() < noNames.size();
-    if (noNameRedeclared){ throw errFactory().methNoNameRedeclared(ms,noNames,at); }
+    if (noNameRedeclared){ throw errFactory().methodNoNameRedeclared(ms,noNames,at); }
   }
   private void checkMixedExplicitRC(List<M> ms, List<RCMName> names, Span at){
     for (var n : names){
       if (n.rc().isPresent()){ continue; }
       var mixed= names.stream().anyMatch(o->o.name().equals(n.name()) && o.rc().isPresent());
-      if (mixed){ throw errFactory().methMixedExplicitRC(ms,n.name(),at); }
+      if (mixed){ throw errFactory().methodMixedExplicitRC(ms,n.name(),at); }
     }
   }
   Stream<String> xsOf(Optional<XPat> xp){ return xp.stream().flatMap(XPat::parameterNames).filter(x->!x.equals("_")); }
@@ -302,7 +302,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     m= m.map(_m->_m.withArity(ps.size()));
     var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();
     var duplicated= xs.stream().distinct().count() < xs.size();
-    if (duplicated){ throw errFactory().duplicateParamInMethodSignature(xs,span()); }
+    if (duplicated){ throw errFactory().duplicatedParamInMethodSignature(xs,span()); }
     return new Sig(rc,m,bs,hasPar,ps,t);
   }
   List<Parameter> parseNakedParameters(){
@@ -323,7 +323,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       var res= p.splitBy("generic bounds declaration",commaB,pi->pi.parseB(mustNew));
       var Xs= bsXs(of(res));
       var duplicated= Xs.stream().distinct().count() < Xs.size();
-      if (duplicated){ throw errFactory().duplicateGenericInMethodSignature(Xs,span()); }
+      if (duplicated){ throw errFactory().duplicatedGenericInMethodSignature(Xs,span()); }
       return res;
     });
   }

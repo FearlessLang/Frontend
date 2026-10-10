@@ -133,7 +133,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     return Code.UnexpectedToken.of("Name "+disp(c.content())+" already in scope.").addSpan(at);
   }
   private Span redeclaredMethSpan(List<M> ms,Predicate<M> p){ return ms.reversed().stream().filter(p).findFirst().get().span().inner; }
-  public FearlessException methNameRedeclared(List<M> ms,List<Parser.RCMName> names, Span at){
+  public FearlessException methodNameRedeclared(List<M> ms,List<Parser.RCMName> names, Span at){
     var name= redeclaredElement(names);
     Predicate<M> p= mi->mi.sig().stream().anyMatch(sig->sig.m().equals(Optional.of(name.name())) && sig.rc().equals(name.rc()));
     var s= redeclaredMethSpan(ms,p);
@@ -142,7 +142,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
     + "A method with the same name, arity and reference capability is already present.\n")
       .addSpan(s).addSpan(at);
   }
-  public FearlessException methMixedExplicitRC(List<M> ms, MName name, Span at){
+  public FearlessException methodMixedExplicitRC(List<M> ms, MName name, Span at){
     Predicate<M> p= mi->mi.sig().stream().anyMatch(s->s.m().equals(Optional.of(name)) && s.rc().isEmpty());
     var s= redeclaredMethSpan(ms,p);
     return Code.WellFormedness.of(
@@ -166,7 +166,7 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
       .flatMap(p->p.xp().stream())
       .flatMap(xp->xp instanceof XPat.Name(var x) ? Stream.of(x.name()) : Stream.empty());
   }
-  public FearlessException methNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
+  public FearlessException methodNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
     var count= redeclaredElement(noNames);
     var s= redeclaredMethSpan(ms,mi->parCount(mi) == count);
     var hints= ms.stream()
@@ -281,9 +281,9 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   private static String patternRepr(XPat.Destruct p){
     return Join.of(p.extract().stream().map(c->Join.of(c.stream().map(MName::s),"","","")),"{",", ","}")+p.id().orElse("");
   }
-  public FearlessException duplicateParamInMethodSignature(List<String> xs, Span at){ return duplicateInMethodSignature("parameters","Parameter",xs,at); }
-  public FearlessException duplicateGenericInMethodSignature(List<String> Xs, Span at){ return duplicateInMethodSignature("generic type parameters","Generic type parameter",Xs,at); }
-  private FearlessException duplicateInMethodSignature(String plural, String singular, List<String> names, Span at){
+  public FearlessException duplicatedParamInMethodSignature(List<String> xs, Span at){ return duplicatedInMethodSignature("parameters","Parameter",xs,at); }
+  public FearlessException duplicatedGenericInMethodSignature(List<String> Xs, Span at){ return duplicatedInMethodSignature("generic type parameters","Generic type parameter",Xs,at); }
+  private FearlessException duplicatedInMethodSignature(String plural, String singular, List<String> names, Span at){
     return Code.UnexpectedToken.of(
       "A method signature cannot declare multiple "+plural+" with the same name\n"
       +singular+" "+disp(redeclaredElement(names))+" is repeated").addSpan(at);

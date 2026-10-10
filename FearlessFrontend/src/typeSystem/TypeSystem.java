@@ -67,7 +67,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   public void check(List<B> bs, Gamma g, E e, T expected){
     var got= OneOr.of("One reason per requirement", typeOf(bs,g,e,List.of(new TRequirement("", expected))).stream());
     if (got.isEmpty()){ return; }
-    throw tsE().methBodyWrongType((TypeScope.Method)scope,e,got,expected);
+    throw tsE().methodBodyWrongType((TypeScope.Method)scope,e,got,expected);
   }
   List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch (e){
     case X x -> checkX(bs,g,x,rs);
@@ -184,14 +184,14 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()))
       .forEach((k,group)->methodTableOk(l,k,group));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),new T.C(l.name(),dom(delta,span)),span));
-    l.ms().forEach(m->methOk(l,delta,v.of(g1,l,m),m));//passing l and m instead of their RC for better errors
+    l.ms().forEach(m->methodOk(l,delta,v.of(g1,l,m),m));//passing l and m instead of their RC for better errors
   }
   private void csOk(Literal l, List<B> delta, T.C c){
     k().checkC(l,delta,c);
     var d= decs().apply(c.name());
     if (!hasInstance(d)){ throw tsE().typeDeclaredInMethod(l, d); }
   }
-  private void methOk(Literal forErr,List<B> delta, Gamma g, M m){
+  private void methodOk(Literal forErr,List<B> delta, Gamma g, M m){
     var allBs= Push.of(delta,m.sig().bs());
     m.sig().ts().forEach(t->k().check(forErr,allBs,t));
     k().check(forErr,allBs,m.sig().ret());
