@@ -2869,7 +2869,7 @@ In file: [###].fear
 
 While inspecting type declaration > full file
 Top level type declarations do not end with ";".
-The defintion of "B" ends with a semicolon. Remove it.
+The definition of "B" ends with a semicolon. Remove it.
 Write: "B:..{...}"
 Not:   "B:..{...};"
 Error 2 UnexpectedToken
