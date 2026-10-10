@@ -245,7 +245,7 @@ public record WellFormednessErrors(String pkgName){
       .wf()
       .addFrame("package header", at);
   }
-  public FearlessException genericTypeVariableShadowTName(Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
+  public FearlessException genericTypeVariableShadowTName(Map<TName,Set<X>> allXs, List<String> allNames, Set<String> use){
     var n= allXs.values().stream().flatMap(Set::stream)
       .filter(x->allNames.contains(x.name()) || use.contains(x.name()))
       .findFirst().get();

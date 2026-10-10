@@ -18,8 +18,8 @@ import utils.Bug;
 
 public final class BadTokens{
   private BadTokens(){}
-  public static TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory> badTokensMap(){
-    return new TokenProcessor.Map<Token, TokenKind, FearlessException, Tokenizer, Parser, FearlessErrFactory>()
+  public static TokenProcessor.Map<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> badTokensMap(){
+    return new TokenProcessor.Map<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>()
       .put(Ws,           (_,_,_)->Stream.empty())
       .put(LineComment,  (_,_,_)->Stream.empty())
       .put(BlockComment, (_,_,_)->Stream.empty())

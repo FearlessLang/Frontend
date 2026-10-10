@@ -64,12 +64,12 @@ public class FrontendLogicMain{
     }
     return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e->Map.copyOf(e.getValue())));
   }
-  Map<Ref, FileFull> parseFiles(List<Ref> files){
+  Map<Ref,FileFull> parseFiles(List<Ref> files){
     var all= new LinkedHashMap<Ref,FileFull>();
     for (var u : files){ all.put(u, Parse.from(u.fearURI(), u.loadString())); }
     return Collections.unmodifiableMap(all);
   }
-  Package mergeToPackage(String pkgName,Map<Ref, FileFull> raw, Map<String,String> override, OtherPackages other){
+  Package mergeToPackage(String pkgName,Map<Ref,FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
     var err= new WellFormednessErrors(pkgName);
     var headPkg= findHeadUri(err, raw.keySet());
@@ -81,7 +81,7 @@ public class FrontendLogicMain{
       .flatMap(f->f.decs().stream())
       .sorted().toList();
     var names= DeclaredNames.of(pkgName, ds, head.uses().stream().map(FileFull.Use::out).collect(Collectors.toUnmodifiableSet()));
-    var map= new HashMap<String, String>(override);
+    var map= new HashMap<String,String>(override);
     accUses(err, map, head.uses(), other, names);
     return makePackage(pkgName, Collections.unmodifiableMap(map), head.uses(), ds, names);
   }
@@ -89,7 +89,7 @@ public class FrontendLogicMain{
     return new Package(name,map,uses,decs,names,new Package.Logger(false,null));//this method exists to change logger in mocking
   }
   //map a as b in c //inside c, a written a stands for b
-  private void accUses(WellFormednessErrors err, HashMap<String, String> map, List<FileFull.Use> uses, OtherPackages other, DeclaredNames names){
+  private void accUses(WellFormednessErrors err, HashMap<String,String> map, List<FileFull.Use> uses, OtherPackages other, DeclaredNames names){
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
       var p= u.in().pkgName();
