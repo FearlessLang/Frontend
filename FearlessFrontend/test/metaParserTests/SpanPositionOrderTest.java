@@ -37,6 +37,28 @@ public class SpanPositionOrderTest{
     assertFalse(outer.contained(new Span(f,1,3,2,1)));
     assertFalse(outer.contained(new Span(f,2,1,3,6)));
   }
+  @Test void compareToSeparatesSpansThatOnlyDifferInTheirStart(){
+    var a= new Span(f,1,1,3,5);
+    var b= new Span(f,2,1,3,5);
+    var c= new Span(f,2,4,3,5);
+    assertTrue(a.compareTo(b) < 0);
+    assertTrue(b.compareTo(a) > 0);
+    assertTrue(b.compareTo(c) < 0);
+    assertTrue(c.compareTo(b) > 0);
+    assertEquals(0, a.compareTo(new Span(f,1,1,3,5)));
+  }
+  @Test void compareToOrdersByEndBeforeStart(){
+    var startsFirstEndsLast= new Span(f,1,1,3,5);
+    var startsLastEndsFirst= new Span(f,2,1,2,5);
+    assertTrue(startsLastEndsFirst.compareTo(startsFirstEndsLast) < 0);
+    assertTrue(startsFirstEndsLast.compareTo(startsLastEndsFirst) > 0);
+  }
+  @Test void compareToOrdersByFileBeforePositions(){
+    var early= new Span(URI.create("fear:/a/a.fear"),9,1,9,5);
+    var late= new Span(URI.create("fear:/a/b.fear"),1,1,1,5);
+    assertTrue(early.compareTo(late) < 0);
+    assertTrue(late.compareTo(early) > 0);
+  }
   @Test void makeSpanEndColOnLaterLineIsNotFirstColumn(){
     var first= new T(K.Word,"a",1,10,List.of());
     var last= new T(K.Word,"x",3,1,List.of());
