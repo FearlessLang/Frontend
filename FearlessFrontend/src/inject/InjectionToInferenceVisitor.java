@@ -144,7 +144,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   }
   XE xpat(List<MName> pat, String x, String fresh, TSpan span){
     fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, span.pos());
-    for (MName m : pat){ res= call(res, m.s(),List.of(), span.pos()); }
+    for (var m : pat){ res= call(res, m.s(),List.of(), span.pos()); }
     return new XE(x, res);
   }
   private fearlessFullGrammar.E stripRound(fearlessFullGrammar.E e){

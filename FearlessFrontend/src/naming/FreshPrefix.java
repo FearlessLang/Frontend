@@ -3,7 +3,6 @@ import java.util.*;
 
 import core.TName;
 import pkgmerge.Package;
-import fearlessFullGrammar.T;
 
 public record FreshPrefix(
     HashSet<String> usedTopTypes,
@@ -20,14 +19,14 @@ public record FreshPrefix(
       HashMap<String,Integer> varSeq){}
   public FreshPrefix(Package p){
     this(new HashSet<>(),new HashMap<>(),new HashSet<>(),new HashMap<>(),p.name());
-    for (TName tn : p.names().decNames()){ usedTopTypes.add(tn.simpleName()); }
-    for (String s : p.map().keySet()){ usedTopTypes.add(s); }
+    for (var tn : p.names().decNames()){ usedTopTypes.add(tn.simpleName()); }
+    for (var s : p.map().keySet()){ usedTopTypes.add(s); }
     var xs= p.names().allXs();
     var params= p.names().allParameters();
     assert xs.keySet().equals(params.keySet());
     for (var owner : xs.keySet()){
       var genNames= new HashSet<String>();
-      for (T.X x : xs.get(owner)){ genNames.add(x.name()); }
+      for (var x : xs.get(owner)){ genNames.add(x.name()); }
       allGenericNames.addAll(genNames);
       var vars= new HashSet<>(params.get(owner));
       owners.put(owner,new OwnerState(genNames,new HashMap<>(),vars,new HashMap<>()));

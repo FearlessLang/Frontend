@@ -297,7 +297,7 @@ public record WellFormednessErrors(String pkgName){
     var cu= color.get(u);
     if (cu != null){ return cu == 1 ? u : null; }
     color.put(u, 1);
-    for (var c:rem.get(u).cs()){
+    for (var c : rem.get(u).cs()){
       if (!rem.containsKey(c.name())){ continue; }
       var hit= _dfs(rem, c.name(), color);
       if (hit != null){ return hit; }

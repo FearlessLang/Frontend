@@ -140,7 +140,7 @@ public abstract class FearlessTestBase{
         .sorted(Comparator.comparing(p->root.relativize(p).toString()))
         .toList();
       if (files.isEmpty()){ throw Bug.of("No .fear files under: "+root); }
-      for (var p:files){
+      for (var p : files){
         String src= Fs.readUtf8(p);
         URI u= p.toAbsolutePath().normalize().toUri();
         b = b.putURI(u, src);

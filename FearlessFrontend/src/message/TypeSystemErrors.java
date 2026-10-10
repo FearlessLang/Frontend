@@ -242,7 +242,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
     var ex= isoMisuse(e,earlyErrOnMoreThenOnceDirectly,usages.size())
       .line("Allowed: capture into object literals as "+disp(RC.imm)+", or use directly once.")
       .ex(m.e().get());
-    for (var u:usages){ ex.addSpan(u.span().inner); }
+    for (var u : usages){ ex.addSpan(u.span().inner); }
     return ex;
   }
   private static Err isoMisuse(Err e, boolean moreThanOnceDirectly, int usages){
@@ -407,7 +407,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, pkgmerge.Package pk
   void bestNameMsg(Err e, String onStr, List<Sig> candidates, List<String> cs, Optional<String> best){
     best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
     e.blank().line("Available methods on "+onStr+":");
-    for (String n:cs){
+    for (var n : cs){
       candidates.stream()
         .filter(s->s.m().s().equals(n))
         .forEach(s->e.bullet(e.cp().sig(s)));

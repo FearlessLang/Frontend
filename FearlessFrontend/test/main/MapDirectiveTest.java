@@ -18,7 +18,7 @@ public class MapDirectiveTest extends testUtils.FearlessTestBase{
   static final String dA= "A:{.fromD:A->this}";
   static OtherPackages others(Map<String,String> pkgs){
     var res= otherFrom(DbgBlock.all());
-    for (var e:pkgs.entrySet()){
+    for (var e : pkgs.entrySet()){
       var o= oraclePkg(List.of(e.getValue()));
       var lits= compileAll(e.getKey(), o, otherFrom(DbgBlock.all()));
       res= res.mergeWith(AllLs.of(lits), -1);
