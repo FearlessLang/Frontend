@@ -21,7 +21,7 @@ public sealed interface E{
     case Call c -> Stream.concat(Stream.of(c.e()), c.es().stream());
   };}
   record X(String name, Src src) implements E{
-    public X{ assert name.equals("-") || validate(name, "parameter name",LowercaseId); }
+    public X{ assert nonNull(src); assert name.equals("-") || validate(name, "parameter name",LowercaseId); }
     public String toString(){ return name; }
   }
   record Type(T.RCC type, Src src) implements E{
@@ -32,9 +32,9 @@ public sealed interface E{
   record Literal(RC rc, TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Src src, boolean infName, EqTransparent<Boolean> onlyImmCapture) implements E{
     public Literal(RC rc, TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Src src, boolean infName){ this(rc,name,bs,cs,thisName,ms,src,infName,new EqTransparent<>(false)); }
     public Literal{
-      assert unmodifiableDistinct(bs,"L.bs");
-      assert unmodifiable(cs,"L.cs") && cs.stream().distinct().count() == cs.size();
-      assert unmodifiableDistinct(ms, "L.ms");
+      assert unmodifiableDistinct(bs,"E.Literal.bs");
+      assert unmodifiable(cs,"E.Literal.cs") && cs.stream().distinct().count() == cs.size();
+      assert unmodifiableDistinct(ms, "E.Literal.ms");
       assert nonNull(rc,name,thisName,src,onlyImmCapture) && !rc.isH();
       assert eq(bs.size(), name.arity(),"Type arity");
     }
