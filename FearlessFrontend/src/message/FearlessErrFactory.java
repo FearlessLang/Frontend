@@ -99,8 +99,8 @@ public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessEx
   }
   public FearlessException forgotSpace(Span at,String name){
     return Code.UnexpectedToken.of(
-      "Did you forget a space in "+disp(name)+"?\n"
-      +"Did you mean "+disp(name.substring(0,name.length()-2)+" ->")+"?\n"
+      "Did you forget a space in "+disp(name)+" ?\n"
+      +"Did you mean "+disp(name.substring(0,name.length()-2)+" ->")+" ?\n"
     ).addSpan(at);
   }
   public FearlessException duplicatedMap(Span at, String what, String in){
