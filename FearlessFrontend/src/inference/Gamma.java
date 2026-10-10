@@ -10,13 +10,14 @@ import java.util.stream.IntStream;
 
 import core.B;
 import core.RC;
+import offensiveUtils.NeverAsKey;
 import utils.Range;
 import utils.Streams;
 
 public final class Gamma{
- /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
- @offensiveUtils.NeverAsKey
- public static final class GammaSignature{
+  /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
+  @NeverAsKey
+  public static final class GammaSignature{
     long hash;
     final HashMap<Monotonicity.Slot,ArrayList<Object>> monotonicity= new HashMap<>();
     //public GammaSignature clear(){ hash = 0; return this;}//more performance
