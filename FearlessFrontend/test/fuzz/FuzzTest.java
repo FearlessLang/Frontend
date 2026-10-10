@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.TreeMap;
-import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -126,7 +125,7 @@ public class FuzzTest extends testUtils.FearlessTestBase{
   static String slice(String s, int from, int maxLen){ return s.substring(from,Math.min(s.length(),from+maxLen)); }
   static String slice(String s, Random r, int maxLen){ return slice(s,r.nextInt(s.length()),1+r.nextInt(maxLen)); }
   static String swapRc(String s, Random r){
-    List<MatchResult> ms= rc.matcher(s).results().toList();
+    var ms= rc.matcher(s).results().toList();
     if (ms.isEmpty()){ return s; }
     var m= ms.get(r.nextInt(ms.size()));
     return s.substring(0,m.start()) + rcs.get(r.nextInt(rcs.size())) + s.substring(m.end());
