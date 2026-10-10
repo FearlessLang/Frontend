@@ -2597,6 +2597,24 @@ Error 2 UnexpectedToken
 """,List.of("""
 A:{ .m: A -> -1.5[] }
 """));}
+@Test void failNumberLiteralCommentThenTypeParameters(){failExt("""
+In file: [###].fear
+
+001| A:{ .m: A -> 1/*c*/[A] }
+[###]
+Error 2 UnexpectedToken
+""",List.of("""
+A:{ .m: A -> 1/*c*/[A] }
+"""));}
+@Test void failNumberLiteralCommentThenEmptyTypeParameters(){failExt("""
+In file: [###].fear
+
+001| A:{ .m: A -> 1/*c*/[] }
+[###]
+Error 2 UnexpectedToken
+""",List.of("""
+A:{ .m: A -> 1/*c*/[] }
+"""));}
 @Test void failFloatTooSmall(){failExt("""
 In file: [###].fear
 
