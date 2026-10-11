@@ -849,6 +849,117 @@ Error 2 UnexpectedToken
 ""","""
 A:{ x -> x.foo [read] }
 """);}
+@Test void err_bad_open_square_after_block_comment_method(){fail("""
+In file: [###].fear
+
+001| A:{ x -> x.foo/*c*/[read] }
+   |                    ^
+
+While inspecting common ambiguities
+Unrecognized text "[".
+Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+Write "Foo[Bar]" not "Foo [Bar]".
+Write "x.foo[read]" not "x.foo [read]".
+Error 2 UnexpectedToken
+""","""
+A:{ x -> x.foo/*c*/[read] }
+""");}
+@Test void err_bad_open_square_after_block_comment_type(){fail("""
+In file: [###].fear
+
+001| A:{ .m: B/*c*/[C] -> this.m }
+   |               ^
+
+While inspecting common ambiguities
+Unrecognized text "[".
+Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+Write "Foo[Bar]" not "Foo [Bar]".
+Write "x.foo[read]" not "x.foo [read]".
+Error 2 UnexpectedToken
+""","""
+A:{ .m: B/*c*/[C] -> this.m }
+""");}
+@Test void err_bad_open_square_after_block_comment_operator(){fail("""
+In file: [###].fear
+
+001| A:{ x -> x +/*c*/[read] x }
+   |                  ^
+
+While inspecting common ambiguities
+Unrecognized text "[".
+Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+Write "Foo[Bar]" not "Foo [Bar]".
+Write "x.foo[read]" not "x.foo [read]".
+Error 2 UnexpectedToken
+""","""
+A:{ x -> x +/*c*/[read] x }
+""");}
+@Test void err_bad_open_square_after_line_comment(){fail("""
+In file: [###].fear
+
+002| [read] }
+   | ^
+
+While inspecting common ambiguities
+Unrecognized text "[".
+Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+Write "Foo[Bar]" not "Foo [Bar]".
+Write "x.foo[read]" not "x.foo [read]".
+Error 2 UnexpectedToken
+""","""
+A:{ x -> x.foo//c
+[read] }
+""");}
+@Test void err_bad_open_square_after_number_and_block_comment(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A -> 1/*c*/[A] }
+   |                    ^
+
+While inspecting common ambiguities
+Unrecognized text "[".
+Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+Write "Foo[Bar]" not "Foo [Bar]".
+Write "x.foo[read]" not "x.foo [read]".
+Error 2 UnexpectedToken
+""","""
+A:{ .m: A -> 1/*c*/[A] }
+""");}
+@Test void err_bad_open_square_after_number_and_block_comment_empty(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A -> 1/*c*/[] }
+   |                    ^
+
+While inspecting common ambiguities
+Unrecognized text "[".
+Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+Write "Foo[Bar]" not "Foo [Bar]".
+Write "x.foo[read]" not "x.foo [read]".
+Error 2 UnexpectedToken
+""","""
+A:{ .m: A -> 1/*c*/[] }
+""");}
+@Test void err_bad_open_square_after_string_and_block_comment(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A -> "a"/*c*/[A] }
+   |                      ^
+
+While inspecting common ambiguities
+Unrecognized text "[".
+Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+Write "Foo[Bar]" not "Foo [Bar]".
+Write "x.foo[read]" not "x.foo [read]".
+Error 2 UnexpectedToken
+""","""
+A:{ .m: A -> "a"/*c*/[A] }
+""");}
+@Test void op_slash_with_square(){ok("""
+[###]CallSquare[rc=Optional[read],ts=[]][###]
+""","""
+A:{ x -> x /[read] x }
+""");}
 @Test void err_disallowed_readH_on_closure(){fail("""
 In file: [###].fear
 
