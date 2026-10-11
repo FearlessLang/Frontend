@@ -2688,6 +2688,112 @@ A:{ .a: A -> A{ 'x .a: A -> A{ 'y .a: A -> x } } }
 ""","""
 A:{ .a: B -> B{ 'x .b(c: B): B -> x.b(c) }.b(B{ 'y .b(c: B): B -> y.b(c) }) }
 """);}
+@Test void selfNameThenQuoteInBlockComment(){ok("""
+[###]Literalx[###]body=Optional[x][###]
+""","""
+A:{ .a: A -> A{ 'x .a: A -> x /* users' list */ } }
+""");}
+@Test void selfNameThenQuoteInLineComment(){ok("""
+[###]Literalx[###]body=Optional[x][###]
+""","""
+A:{ .a: A -> A{ 'x .a: A -> x // users' list
+  } }
+""");}
+@Test void selfNameThenQuoteInString(){ok("""
+[###]Literalx[###]body=Optional[x][###]
+""","""
+A:{ .a: A -> A{ 'x .a: A -> x; .b: B -> "users' list" } }
+""");}
+@Test void selfNameThenQuoteInBacktickString(){ok("""
+[###]Literalx[###]body=Optional[x][###]
+""","""
+A:{ .a: A -> A{ 'x .a: A -> x; .b: B -> `users' list` } }
+""");}
+@Test void selfNameThenQuoteInCommentThenSelfName(){ok("""
+[###]Literalx[###]Literaly[###]body=Optional[x][###]
+""","""
+A:{ .a: A -> A{ 'x /* x's */ .a: A -> A{ 'y .a: A -> x } } }
+""");}
+@Test void selfNameThenTwoQuotesInComment(){ok("""
+[###]Literalx[###]body=Optional[x][###]
+""","""
+A:{ .a: A -> A{ 'x .a: A -> x /* 'quoted' */ } }
+""");}
+@Test void badSQuoteWithSlash(){fail("""
+In file: [###].fear
+
+003|   .let foo={'a/b'}
+   |             ^^^^^
+
+While inspecting common ambiguities
+Unrecognized text "'a/b'".
+Simple string literals are of form `"..."`, not "'...'";
+that is: use double quotes (`"`) instead of single quotes ("'").
+Error 2 UnexpectedToken
+""","""
+A:{ .foo:A ->
+  Block#
+  .let foo={'a/b'}
+  .return {Void}
+}
+""");}
+@Test void badSQuoteWithLineComment(){fail("""
+In file: [###].fear
+
+001| A:{ .foo:A ->
+002|   Block#
+003|   .let foo={'see http://x'}
+
+While inspecting groups of parenthesis
+Unclosed "{" group.
+Found a matching closer inside a line comment "//" between here and the stopping point.
+Did you mean to place the closer outside the line comment "//"?
+Otherwise expected one of: "}id", "}".
+Error 0 Unclosed
+""","""
+A:{ .foo:A ->
+  Block#
+  .let foo={'see http://x'}
+  .return {Void}
+}
+""");}
+@Test void badSQuoteWithBlockComment(){fail("""
+In file: [###].fear
+
+002|   Block#
+003|   .let foo={'a /* b */ c'}
+   |            ------------^^-
+004|   .return {Void}
+
+While inspecting method body > method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+Name "c'" is not in scope.
+In scope: "a", "this".
+Error 2 UnexpectedToken
+""","""
+A:{ .foo:A ->
+  Block#
+  .let foo={'a /* b */ c'}
+  .return {Void}
+}
+""");}
+@Test void badSQuoteWithDoubleQuotes(){fail("""
+In file: [###].fear
+
+002|   Block#
+003|   .let foo={'say "hi"'}
+   |            ------^^^^~-
+004|   .return {Void}
+
+While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+Error 6 MissingSeparator
+""","""
+A:{ .foo:A ->
+  Block#
+  .let foo={'say "hi"'}
+  .return {Void}
+}
+""");}
 @Test void badStackGuide(){fail("""
 In file: [###].fear
 
