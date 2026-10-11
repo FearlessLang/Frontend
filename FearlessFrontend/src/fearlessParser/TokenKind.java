@@ -20,7 +20,7 @@ public enum TokenKind implements metaParser.TokenKind{
   OCurly("\\{","{"),
   CCurlyId("\\}[A-Za-z0-9_]+'*","}id"),
   CCurly("\\}","}"),
-  OSquareArg("(?<=[A-Za-z0-9_'`\\x22\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])\\[","["),//correctly not working for preceding literals
+  OSquareArg("(?<=[A-Za-z0-9_'`\\x22\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])(?<!\\x2A/)\\[","["),//correctly not working for preceding literals
   BadOSquare("\\["),
   CSquare("\\]","]"),
   Underscore("_","underscore"),
