@@ -4,10 +4,12 @@ import static offensiveUtils.Require.*;
 import static fearlessParser.TokenKind.*;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import pkgmerge.DeclaredNames;
 import pkgmerge.Package;
+import core.AllLs;
 import core.OtherPackages;
 import core.TName;
 import fearlessFullGrammar.Declaration;
@@ -21,6 +23,7 @@ import metaParser.PrettyFileName;
 import tools.Fs;
 import tools.SourceOracle.Ref;
 import typeSystem.TypeSystem;
+import utils.Push;
 
 public class FrontendLogicMain{
   public List<core.E.Literal> of(
@@ -29,13 +32,36 @@ public class FrontendLogicMain{
       List<Ref> files,
       OtherPackages other
     ){
+    return of(pkgName, override, files, other, _->Optional.empty());
+  }
+  public List<core.E.Literal> of(
+      String pkgName,
+      Map<String,String> override,
+      List<Ref> files,
+      OtherPackages other,
+      Function<List<core.E.Literal>,Optional<Ref>> tests
+    ){
     var rawAST= parseFiles(files); // Phase 1: Parse Files
     var pkg= mergeToPackage(pkgName,rawAST, override, other); // Phase 2: Merge & Well-formedness
     var ctx= Methods.create(pkg, other); // Phase 3: // Creates the scope (Methods) and FreshPrefix generators
+    var coreAST= core(ctx);
+    var test= tests.apply(coreAST);
+    if (test.isEmpty()){ return coreAST; }
+    var testAST= Parse.from(test.get().fearURI(), test.get().loadString());
+    var raw= new LinkedHashMap<>(rawAST);
+    raw.put(test.get(), testAST);
+    var all= mergeToPackage(pkgName, raw, override, other);
+    var testPkg= makePackage(pkgName, all.map(), all.uses(), testAST.decs().stream().sorted().toList(), all.names());
+    var lits= AllLs.of(coreAST);
+    var testCtx= Methods.create(testPkg, other.mergeWith(lits, other.stamp()));
+    lits.keySet().forEach(n->testCtx.fresh().usedTopTypes().add(n.simpleName()));
+    return Push.of(coreAST, core(testCtx));
+  }
+  private static List<core.E.Literal> core(Methods ctx){
     var inferrableAST= ToInference.of(ctx); // Phase 4: Desugar
     inferrableAST= ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
     var coreAST= InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
-    TypeSystem.allOk(coreAST, pkg, other); //Phase 7: type checking
+    TypeSystem.allOk(coreAST, ctx.p(), ctx.other()); //Phase 7: type checking
     return coreAST;
   }
   public Map<String,Map<String,String>> parseRankFiles(List<Ref> files, Comparator<Ref> c, Collection<String> pkgs){
