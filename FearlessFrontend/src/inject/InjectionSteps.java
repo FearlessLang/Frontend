@@ -78,14 +78,14 @@ public record InjectionSteps(Methods meths){
     var ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     var g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
     var bs= Push.of(di.bs(), m.sig().bs().get());
-    ei= nextStar(bs, g, ei);
+    ei = nextStar(bs, g, ei);
     return new core.M(mCore.sig(), xs, Optional.of(new ToCore(bs).of(ei, e)));
   }
   E meet(E e, IT t){
     if (e instanceof E.Type tt){ return nextT(tt); }
     var typedLit= e instanceof E.Literal l && l.t().isTV();
     if (typedLit){ return e; }
-    e= prototypeAscribeRootReceiver(e, t, false);
+    e = prototypeAscribeRootReceiver(e, t, false);
     return e.withT(meet(e.t(), t));
   }
   private long badnessAs(RCC src, TName targetHead){
@@ -159,7 +159,7 @@ public record InjectionSteps(Methods meths){
         return e;
       }
       //if (oe.equals(e) && !g.changed(s)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
-      e= oe;
+      e = oe;
     }
   }
   private List<E> nextStar(List<B> bs, Gamma g, List<E> es){
@@ -259,7 +259,7 @@ public record InjectionSteps(Methods meths){
     return Optional.of(glbRcNoH(a.get(), b.get()));
   }
   static RC glbRcNoH(RC a, RC b){
-    a= noH(a); b= noH(b);
+    a = noH(a); b = noH(b);
     if (a == b){ return a; }
     if (a == RC.read){ return b; }
     if (b == RC.read){ return a; }
@@ -293,8 +293,8 @@ public record InjectionSteps(Methods meths){
     assert all.size() == m.nCls()+m.bsArity();
     var clsTs= normToBounds(bs,m.clsBs(),all.subList(0, m.nCls()));
     var targs= normToBounds(bs,m.methBs(),all.subList(m.nCls(), all.size()));
-    e= meet(e, rcc.withTs(clsTs));
-    m= m.withClsArgs(clsTs);
+    e = meet(e, rcc.withTs(clsTs));
+    m = m.withClsArgs(clsTs);
     var it= meet(c.t(), m.ret(targs));
     var es1= meetWithTargs(c.es(),es, m, targs);
     var noChange= e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
@@ -336,9 +336,9 @@ public record InjectionSteps(Methods meths){
     var selfPrecise= preciseSelf(l);
     var selfSuper= superSelf(l,selfPrecise);
     if (!infHead){
-      l= l.infName() ? selfSuper.map(l::withT).orElse(l) : l.withT(selfPrecise.get());
+      l = l.infName() ? selfSuper.map(l::withT).orElse(l) : l.withT(selfPrecise.get());
       if (!(l.t() instanceof IT.RCC(_, var c, _))){ return l; }//!infHead after passing this test means right now we can expand methods
-      l= l.infName() && !c.name().equals(l.name()) ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l,true);
+      l = l.infName() && !c.name().equals(l.name()) ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l,true);
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
     var res= new ArrayList<M>(l.ms().size());
@@ -348,7 +348,7 @@ public record InjectionSteps(Methods meths){
       var rcci= withTsNormBs(rcc,ts);
       var next= mi.impl().isEmpty() ? nextMStarAbs(rcci, mi) : nextMStarOp(bs, g, l, selfPrecise, rcci, mi);
       assert next.m == mi || !next.m.equals(mi);
-      ts= meet(ts, next.ts);
+      ts = meet(ts, next.ts);
       res.add(next.m);
     }
     var ms= norm(l.ms(),Collections.unmodifiableList(res));
@@ -376,8 +376,8 @@ public record InjectionSteps(Methods meths){
     var cs= selfInferred ? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c()));
     meths.checkMagicSupertypes(l, cs);
     assert l.infHead();
-    l= new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, rcc, l.src(),l.infName(), l.infHead(), l.g());
-    if (selfInferred){ l= l.withT(preciseSelf(l).get()); }
+    l = new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, rcc, l.src(),l.infName(), l.infHead(), l.g());
+    if (selfInferred){ l = l.withT(preciseSelf(l).get()); }
     assert !meths.cache().containsKey(name);
     meths.register(l);
     return l;

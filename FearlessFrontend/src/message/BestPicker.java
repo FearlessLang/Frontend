@@ -44,6 +44,6 @@ final class BestPicker{
   }
   void consider(PN n, int score){
     if (!n.k().isCompactable()){ return; }
-    if (score > bestScore){ bestScore= score; best= n.k(); }
+    if (score > bestScore){ bestScore = score; best = n.k(); }
   }
 }

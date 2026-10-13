@@ -379,7 +379,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
     var receiverIsThis= c.e() instanceof X(var xName, _) && xName.equals("this");
     if (!receiverIsThis){ return; }
-    for (var s= scope; !s.isTop(); s= s.outer()){
+    for (var s= scope; !s.isTop(); s = s.outer()){
       if (!(s instanceof TypeScope.Method(var l, _, _))){ continue; }
       var has= l.ms().stream().anyMatch(m->m.sig().m().s().equals(name));
       if (!has){ continue; }

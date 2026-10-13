@@ -12,7 +12,7 @@ import metaParser.Span;
 
 public final class MiscTest{
   @Test void XIn_checks_Xs_not_xs(){
-    var n = new Names(List.of("a"), List.of("X","Y"), List.of(), "");
+    var n= new Names(List.of("a"), List.of("X","Y"), List.of(), "");
     assertTrue(n.XIn("X"));
     assertFalse(n.XIn("a"));
   }

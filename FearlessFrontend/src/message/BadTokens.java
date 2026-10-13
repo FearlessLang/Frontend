@@ -102,7 +102,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     var file= tz.fileName();
     var s= t.span(file);
     var lineEnd= t.content().indexOf('\n');
-    if (lineEnd != -1){ s= new Span(file,s.startLine(),s.startCol(),s.startLine(),s.startCol()+lineEnd); }
+    if (lineEnd != -1){ s = new Span(file,s.startLine(),s.startCol(),s.startLine(),s.startCol()+lineEnd); }
     throw Code.UnexpectedToken
       .of("Unterminated block comment. Add \"*/\" to close it.")
       .addFrame("a block comment", s);

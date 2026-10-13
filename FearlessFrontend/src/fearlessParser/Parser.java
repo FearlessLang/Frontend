@@ -29,7 +29,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   Parser(Span base, Names names, List<Token> ts, FearlessErrFactory err){
     super(base,ts); this.names= names; this.err= err;
   }
-  void updateNames(Names names){ this.names= names; }
+  void updateNames(Names names){ this.names = names; }
   @Override public Parser self(){ return this; }
   @Override public boolean skip(Token t){ return t.is(_SOF,_EOF); }
   @Override public Parser make(Span s, List<Token> tokens){
@@ -37,7 +37,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   E parseE(){
     var e= parseAtom();
-    while (!end()){ e= parsePost(e); }
+    while (!end()){ e = parsePost(e); }
     return e;
   }
   boolean hasPost(){ return peek(DotName,Op,Colon); }
@@ -137,13 +137,13 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var xs= xsOf(xpat).toList();
     checkNewXs(xs);
     updateNames(names.add(xs, List.of()));//zero if xpat is empty
-    if (xpat.isPresent()){ atom= parsePost(atom); while (!end()){ atom= parsePost(atom); } }
+    if (xpat.isPresent()){ atom = parsePost(atom); while (!end()){ atom = parsePost(atom); } }
     return new E.Call(receiver, m.withArity(xpat.isPresent() ? 2 : 1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar
   }
   boolean eqSugar(){
     if (peekOrder(t->t.is(Underscore),t->t.is(Eq))){
       var last= peek(-1).get();
-      if (last.is(_SquareGroup)){ last= peek(-2).get(); }
+      if (last.is(_SquareGroup)){ last = peek(-2).get(); }
       if (last.is(DotName,Op)){ throw errFactory().underscoreInEqSugar(new MName(last.content(),0),span(peek().get()).get()); }
     }
     return peekOrder(t->t.is(LowercaseId,_CurlyGroup),t->t.is(Eq));
@@ -299,7 +299,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
       ?parseGroupSep("","method parameters declaration",Parser::parseParameter,ORound,CRound,commaSkip)
       :parseNakedParameters();
     var t= parseOptT();
-    m= m.map(_m->_m.withArity(ps.size()));
+    m = m.map(_m->_m.withArity(ps.size()));
     var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();
     var duplicated= xs.stream().distinct().count() < xs.size();
     if (duplicated){ throw errFactory().duplicatedParamInMethodSignature(xs,span()); }
@@ -379,7 +379,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var Xs= bsXs(bs);
     var outer= names;
     updateNames(top ? names.add(List.of(),Xs) : names.setFunnelledXs(c.s(),Xs));
-    c= c.withArity(Xs.size());
+    c = c.withArity(Xs.size());
     expect("type declaration (:) symbol",Colon);
     var cs= parseImpl();
     assert peek(_CurlyGroup);
@@ -454,8 +454,8 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
       var t= expectAny("");
       var separator= t.is(Comma) && !inColon;
       if (separator){ return 1; }
-      if (!t.is(_SquareGroup,Comma,UppercaseId)){ inColon= false; } //purposely not allowing SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr even if valid TNames
-      if (t.is(Colon)){ inColon= true; }
+      if (!t.is(_SquareGroup,Comma,UppercaseId)){ inColon = false; } //purposely not allowing SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr even if valid TNames
+      if (t.is(Colon)){ inColon = true; }
     }
     return 0;
   }

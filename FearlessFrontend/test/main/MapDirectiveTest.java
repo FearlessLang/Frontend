@@ -21,7 +21,7 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
     for (var e : pkgs.entrySet()){
       var o= oraclePkg(List.of(e.getValue()));
       var lits= compileAll(e.getKey(), o, otherFrom(DbgBlock.all()));
-      res= res.mergeWith(AllLs.of(lits), -1);
+      res = res.mergeWith(AllLs.of(lits), -1);
     }
     return res;
   }

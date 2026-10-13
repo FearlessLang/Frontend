@@ -91,7 +91,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var s= mm.sig().get();
     var bs= s.bs().map(this::mapB);
     var ts= s.parameters().stream().map(p->p.t().map(this::visitT)).toList();
-    if (mm.hasImplicit()){ ts= Push.of(ts,empty()); }
+    if (mm.hasImplicit()){ ts = Push.of(ts,empty()); }
     var res= s.t().map(this::visitT);
     return new M.Sig(s.rc(),s.m(),bs,ts,res,empty(),mm.body().isEmpty(),mm.span());
   }
@@ -114,8 +114,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var original= m.sig().map(s->s.parameters()).orElse(List.of());
     var ps= original.stream().map(this::parameterToName).toList();
     var xpats= xpats(ps,original,m.span());
-    if (!xpats.isEmpty()){ body= makeXPatsBody(body,xpats); }
-    if (m.hasImplicit()){ var p= meths.fresh().freshVar(currentTop, "impl"); ps= Push.of(ps,p); implicits.add(p); }
+    if (!xpats.isEmpty()){ body = makeXPatsBody(body,xpats); }
+    if (m.hasImplicit()){ var p= meths.fresh().freshVar(currentTop, "impl"); ps = Push.of(ps,p); implicits.add(p); }
     var e= visitE(body);
     if (m.hasImplicit()){ implicits.removeLast(); }
     var name= m.sig().flatMap(s->s.m());
@@ -144,11 +144,11 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   }
   XE xpat(List<MName> pat, String x, String fresh, TSpan span){
     fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, span.pos());
-    for (var m : pat){ res= call(res, m.s(),List.of(), span.pos()); }
+    for (var m : pat){ res = call(res, m.s(),List.of(), span.pos()); }
     return new XE(x, res);
   }
   private fearlessFullGrammar.E stripRound(fearlessFullGrammar.E e){
-    while (e instanceof fearlessFullGrammar.E.Round(var inner)){ e= inner; }
+    while (e instanceof fearlessFullGrammar.E.Round(var inner)){ e = inner; }
     return e;
   }
   private E.Literal liftLiteral(Optional<RC> rc,List<IT.C> impl,Optional<String> thisName, List<M> ms, Src src){
@@ -203,7 +203,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return TypeSystem.isSameShapeSubtype(bs,a,b) && TypeSystem.isSameShapeSubtype(bs,b,a);
   }
   E visitCall(fearlessFullGrammar.E.Call c){
-    if (c.pat().isPresent()){ c= desugarCPat(c); }
+    if (c.pat().isPresent()){ c = desugarCPat(c); }
     if (c.targs().isEmpty()){ return visitICall(c); }
     var e= visitReceiver(c.e());
     var targs= c.targs().get();
@@ -215,7 +215,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var par1= OneOr.of("Equals sugar has one argument",c.es().stream());
     var fresh= new fearlessFullGrammar.E.X(meths.fresh().freshVar(currentTop, "eqS"),c.pos());
     var res= replaceAtom(par1,fresh);
-    par1= extractAtom(par1);
+    par1 = extractAtom(par1);
     var param1= new Parameter(of(pat),empty());
     var param2= new Parameter(of(new XPat.Name(fresh)),empty());
     var sig= new fearlessFullGrammar.Sig(empty(),empty(),empty(),false,List.of(param1,param2),empty());
@@ -229,7 +229,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return new fearlessFullGrammar.E.Call(replaceAtom(c.e(),atom),c.name(),c.targs(),c.pars(),c.pat(),c.es(),c.pos());
   }
   private fearlessFullGrammar.E extractAtom(fearlessFullGrammar.E par){
-    while (par instanceof fearlessFullGrammar.E.Call c){ par= c.e(); }
+    while (par instanceof fearlessFullGrammar.E.Call c){ par = c.e(); }
     return par;
   }
   public E visitICall(fearlessFullGrammar.E.Call c){ return new E.ICall(visitReceiver(c.e()), c.name(), mapE(c.es()), new Src(c)); }

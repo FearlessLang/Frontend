@@ -43,35 +43,35 @@ public final class Gamma{
   private int depth= 0;
 
   private final HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
-  public Gamma(){ marks[0]= 0; envHash[0]= 0L; depth= 1; }
+  public Gamma(){ marks[0] = 0; envHash[0] = 0L; depth = 1; }
   public void newScope(RC rc, List<B> bs, E.Literal owner){
     if (depth == marks.length){ growScopes(); }
-    marks[depth]= size;
-    envHash[depth]= envHash[depth - 1];
-    rcs[depth]= rc;
-    bss[depth]= bs;
-    owners[depth]= owner;
+    marks[depth] = size;
+    envHash[depth] = envHash[depth - 1];
+    rcs[depth] = rc;
+    bss[depth] = bs;
+    owners[depth] = owner;
     depth++;
   }
   private void growScopes(){
     var n= 2 * depth;
-    marks= Arrays.copyOf(marks, n);
-    envHash= Arrays.copyOf(envHash, n);
-    rcs= Arrays.copyOf(rcs, n);
-    bss= Arrays.copyOf(bss, n);
-    owners= Arrays.copyOf(owners, n);
+    marks = Arrays.copyOf(marks, n);
+    envHash = Arrays.copyOf(envHash, n);
+    rcs = Arrays.copyOf(rcs, n);
+    bss = Arrays.copyOf(bss, n);
+    owners = Arrays.copyOf(owners, n);
   }
   private void growBindings(){
     var n= 2 * size;
-    xs= Arrays.copyOf(xs, n);
-    ts= Arrays.copyOf(ts, n);
-    declDepth= Arrays.copyOf(declDepth, n);
+    xs = Arrays.copyOf(xs, n);
+    ts = Arrays.copyOf(ts, n);
+    declDepth = Arrays.copyOf(declDepth, n);
   }
   public void popScope(){
     assert depth > 1;
     var newSize= marks[depth - 1];
-    for (var i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i]= null; ts[i]= null; }
-    size= newSize;
+    for (var i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i] = null; ts[i] = null; }
+    size = newSize;
     depth--;
   }
   public IT getWithRC(String x){
@@ -80,7 +80,7 @@ public final class Gamma{
     // if there is read over (not under) x and theIt.explicitRC().equals(Optional.of(RC.mut), turn the IT to read and return theIt.withRC(read)
     var i= indexOf(x);         // offensive: -1 would crash later
     var t= ts[i];              // the stored (true) type
-    for (var s= declDepth[i] + 1; s < depth; s++){ t= adapt(t, rcs[s], bss[s]); }
+    for (var s= declDepth[i] + 1; s < depth; s++){ t = adapt(t, rcs[s], bss[s]); }
     return t;
   }
   public Optional<E.Literal> notFunnelledInto(String x){
@@ -113,9 +113,9 @@ public final class Gamma{
     if (x.equals("_")){ return; }
     assert indexOf(x) == -1;
     if (size == xs.length){ growBindings(); }
-    xs[size]= x;
-    ts[size]= t;
-    declDepth[size]= depth - 1;
+    xs[size] = x;
+    ts[size] = t;
+    declDepth[size] = depth - 1;
     idx.put(x, size);
     envHash[depth - 1] ^= contrib(x, t);
     size++;
@@ -127,12 +127,12 @@ public final class Gamma{
     var cnew= contrib(xs[i], t);
     var d= declDepth[i];
     for (int s : Range.of(d,depth)){ envHash[s] ^= cold ^ cnew; }
-    ts[i]= t;
+    ts[i] = t;
   }
   public boolean represents(GammaSignature sig){
     return sig.hash == envHash[depth - 1];
   }
-  public void sign(GammaSignature sig){ sig.hash= envHash[depth - 1]; }
+  public void sign(GammaSignature sig){ sig.hash = envHash[depth - 1]; }
   public long snapshot(){ return envHash[depth - 1]; }
   public boolean changed(long shot){ return shot != envHash[depth - 1]; }
   private int indexOf(String x){

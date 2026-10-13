@@ -57,9 +57,9 @@ public sealed interface TypeScope{
   static TypeScope bestInterestingScope(TypeScope start, List<T> interest){
     var min= 4;
     var best= start;
-    for (var it= start; !it.isTop(); it= it.outer()){
+    for (var it= start; !it.isTop(); it = it.outer()){
       var interesting= min-- > 0 || mentionsAny(it, interest);
-      if (interesting){ best= it; }
+      if (interesting){ best = it; }
     }
     return best;
   }

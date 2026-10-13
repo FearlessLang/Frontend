@@ -24,7 +24,7 @@ public final class InferenceMain extends FrontendLogicMain{
     var pkg= mergeToPackage(pkgName,rawAST, Map.of(), other);
     var ctx= Methods.create(pkg, other);
     var iDecs= ToInference.of(ctx);
-    iDecs= ctx.registerTypeHeadersAndReturnRoots(iDecs);
+    iDecs = ctx.registerTypeHeadersAndReturnRoots(iDecs);
     if (!infer){ return ctx; }
     var res= InjectionSteps.steps(ctx, iDecs);
     ctx.p().log().logs().add("~-----------");

@@ -2914,7 +2914,7 @@ Top:{
   .m17(b:mutH Box[mut A]):Bool -> b.order{::} == b;
   }
 """));}
-static String flatMapDecs="""
+static String flatMapDecs= """
 use base.F as F;
 List[E:*]:{}
 Cat:{}

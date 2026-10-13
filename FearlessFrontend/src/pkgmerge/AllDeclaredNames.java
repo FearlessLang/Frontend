@@ -22,8 +22,8 @@ public final class AllDeclaredNames{
   // lastTopXs: all generic Bs appearing anywhere in the the current top Declaration
   LinkedHashSet<T.X> lastTopXs;
   public void visitTopDeclaration(Declaration d){
-    lastTopNames= new LinkedHashSet<>();
-    lastTopXs= new LinkedHashSet<>();
+    lastTopNames = new LinkedHashSet<>();
+    lastTopXs = new LinkedHashSet<>();
     visitInnerDeclaration(d);
     var n= d.name().withPkgName(err.pkgName());
     assert !xs.containsKey(n);

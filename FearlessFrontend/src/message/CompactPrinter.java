@@ -45,7 +45,7 @@ public final class CompactPrinter{
     boolean compacted; private Compactable(boolean can){ compacted= !can; }
     public static Compactable of(){ return new Compactable(true); }
     public boolean isCompactable(){ return !compacted; }
-    public void compact(){ assert !compacted; compacted= true; }
+    public void compact(){ assert !compacted; compacted = true; }
   }
   interface Acc<XX>{ void acc(XX x,CompactPrinter sb); }
   static <XX> void wrap(CompactPrinter sb, String open, String close, List<XX> xs, String sep, Acc<XX> a){

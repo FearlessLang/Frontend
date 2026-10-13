@@ -49,7 +49,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   }
 
   public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
-    tops= UriSort.byFolderThenFile(tops, l->l.span().inner.fileName());
+    tops = UriSort.byFolderThenFile(tops, l->l.span().inner.fileName());
     assert AssertNoRepeatedTypeNames.ok(tops);
     var map= AllLs.of(tops);
     Function<TName,Literal> decs= n->LiteralDeclarations.from(n,map::get,other);
@@ -119,7 +119,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var selfNamed= !_l.thisName().equals("_");
     var getIso= ((_l.rc().isReadOrImm() && !hasAbstractMut(_l) && !selfNamed) || _l.rc() == mut)
       && new CaptureWalk(_l.bs(),g.filterFTV(_l),RC::isIsoOrImm).isFree(_l);
-    _l.onlyImmCapture().inner= new CaptureWalk(bs1,g,rc->rc == imm).isFree(_l);
+    _l.onlyImmCapture().inner = new CaptureWalk(bs1,g,rc->rc == imm).isFree(_l);
     var l= getIso ? _l.withRC(iso) : _l;
     for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(l,r.t()); } }
     for (var m : l.ms()){
@@ -202,7 +202,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private void bodyOk(Literal forErr,List<B> delta, Gamma g, M m){
     var ts= m.sig().ts();
     var xs= m.xs();
-    g= Streams.zip(xs, ts).fold(Gamma::add, g);//Note: 'this' already in g1
+    g = Streams.zip(xs, ts).fold(Gamma::add, g);//Note: 'this' already in g1
     var t= new TypeSystem(scope.pushM(forErr, m),v);
     t.check(delta,g,m.e().get(),m.sig().ret());
     Streams.zip(xs, ts)

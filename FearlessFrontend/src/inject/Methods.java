@@ -157,7 +157,7 @@ public record Methods(
     }
     for (var m : ms){//for methods WITHOUT name
       if (m.sig().m().isPresent()){ continue; }
-      changed= true;
+      changed = true;
       res.add(nameFromSigs(m,ss,origin));
     }
     return changed ? List.copyOf(res) : ms;
@@ -201,7 +201,7 @@ public record Methods(
       var first= true;
       for (var matches : groups){
         var mi= first ? m : new DupE(fresh,origin,m,p.err()).ofM(m,origin.name(),origin.name());
-        first= false;
+        first = false;
         var m2= pairWithSig(Collections.unmodifiableList(matches), mi, origin);
         assert (m2 == mi) == m2.equals(mi);
         changed |= m2 != mi;
@@ -210,7 +210,7 @@ public record Methods(
       //--------
     }
     if (!ss.isEmpty()){
-      changed= true;
+      changed = true;
       ss.stream()
         .collect(Collectors.groupingBy(
           s->new Parser.RCMName(s.rc(), s.m().get()),

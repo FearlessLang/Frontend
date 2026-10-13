@@ -91,7 +91,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   }
   static String mutate(String s, Random r, List<String> seeds){
     int k= 1 + r.nextInt(3);
-    for (int i= 0; i < k && !s.isEmpty(); i++){ s= mutateOnce(s,r,seeds); }
+    for (int i= 0; i < k && !s.isEmpty(); i++){ s = mutateOnce(s,r,seeds); }
     return s;
   }
   static String mutateOnce(String s, Random r, List<String> seeds){
@@ -106,7 +106,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   }
   static String underAnnotate(String s, Random r){
     int k= 1 + r.nextInt(4);
-    for (int i= 0; i < k; i++){ s= dropAnnotation(s,r); }
+    for (int i= 0; i < k; i++){ s = dropAnnotation(s,r); }
     return s;
   }
   static String dropAnnotation(String s, Random r){

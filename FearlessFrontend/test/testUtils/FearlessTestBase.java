@@ -41,12 +41,12 @@ public abstract class FearlessTestBase{
 
   protected static SourceOracle oracleRaw(List<String> files){
     var b= SourceOracle.debugBuilder();
-    for (int i : Range.of(files)){ b= b.put(i, files.get(i)); }
+    for (int i : Range.of(files)){ b = b.put(i, files.get(i)); }
     return b.build();
   }
   protected static SourceOracle oraclePkg(List<String> bodies){
     var b= SourceOracle.debugBuilder();
-    for (int i : Range.of(bodies)){ b= b.put(i, bodies.get(i)); }
+    for (int i : Range.of(bodies)){ b = b.put(i, bodies.get(i)); }
     return b.build();
   }
   protected static List<URI> filesUri(int n){
@@ -55,7 +55,7 @@ public abstract class FearlessTestBase{
   protected static <R> R printError(Supplier<R> r, SourceOracle o){
     try{ return r.get(); }
     catch(FearlessException fe){
-      o= o.withFallback(DbgBlock.dbgMiniBase());
+      o = o.withFallback(DbgBlock.dbgMiniBase());
       System.out.println(fe.render(o));
       throw fe;
     }

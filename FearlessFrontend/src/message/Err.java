@@ -120,7 +120,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err line(String s){
     assert !s.isEmpty();
     assert sb.lastIndexOf("\n") == sb.length()-1;
-    s= s.stripTrailing();
+    s = s.stripTrailing();
     sb.append(s).append("\n");
     return this;
   }

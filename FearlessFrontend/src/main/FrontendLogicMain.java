@@ -59,7 +59,7 @@ public class FrontendLogicMain{
   }
   private static List<core.E.Literal> core(Methods ctx){
     var inferrableAST= ToInference.of(ctx); // Phase 4: Desugar
-    inferrableAST= ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
+    inferrableAST = ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
     var coreAST= InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
     TypeSystem.allOk(coreAST, ctx.p(), ctx.other()); //Phase 7: type checking
     return coreAST;
@@ -119,7 +119,7 @@ public class FrontendLogicMain{
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
       var p= u.in().pkgName();
-      p= map.getOrDefault(p, p); //thus if p is "" we get ""
+      p = map.getOrDefault(p, p); //thus if p is "" we get ""
       var in= p + "." + u.in().simpleName();
       map.put(u.out(), in);
       var dom= p.equals(err.pkgName()) ? names.decNames().stream().map(n->n.withPkgName(err.pkgName())) : otherDom.stream();
