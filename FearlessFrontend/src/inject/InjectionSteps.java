@@ -186,7 +186,7 @@ public record InjectionSteps(Methods meths){
         case E.Type c -> nextT(c);
       };
     }
-    catch(WellFormednessErrors.ErrToFetchContext depthErr){ throw meths.p().err().itTooDeep(e,depthErr.c); }
+    catch (WellFormednessErrors.ErrToFetchContext depthErr){ throw meths.p().err().itTooDeep(e,depthErr.c); }
   }
   private IT preferred(IT.RCC type){
     var d= meths.from(type.c().name());//d.cs() does contain all the transitive supertypes already.

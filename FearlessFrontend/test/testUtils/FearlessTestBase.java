@@ -54,7 +54,7 @@ public abstract class FearlessTestBase{
   }
   protected static <R> R printError(Supplier<R> r, SourceOracle o){
     try{ return r.get(); }
-    catch(FearlessException fe){
+    catch (FearlessException fe){
       o = o.withFallback(DbgBlock.dbgMiniBase());
       System.out.println(fe.render(o));
       throw fe;
@@ -82,7 +82,7 @@ public abstract class FearlessTestBase{
   protected static void toStringOk(String expected,String input){
     FileFull res;
     try{ res= Parse.from(SourceOracle.defaultDbgFearPath(0), input); }
-    catch(FearlessException fe){
+    catch (FearlessException fe){
       var o= SourceOracle.debugBuilder().put(0, input).build();
       System.out.println(fe.render(o));
       throw fe;
@@ -147,11 +147,11 @@ public abstract class FearlessTestBase{
       }
       return b.build();
     }
-    catch(IOException e){ throw new UncheckedIOException(e); }
+    catch (IOException e){ throw new UncheckedIOException(e); }
   }
   protected static <T> T okOrPrint(SourceOracle o, Supplier<T> run){
     try{ return run.get(); }
-    catch(FearlessException fe){
+    catch (FearlessException fe){
       System.out.println(fe.render(o));
       throw fe;
     }

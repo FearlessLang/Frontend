@@ -60,8 +60,8 @@ public final class InstantiationSweepTest extends testUtils.FearlessTestBase{
   static boolean ok(String src){
     var o= oraclePkg(List.of(src));
     try{ new FrontendLogicMain().of("p",Map.of(),o.allFiles(),otherFrom(base)); return true; }
-    catch(FearlessException _){ return false; }
-    catch(RuntimeException | AssertionError e){ crashes.add(e+"\n"+src); return false; }
+    catch (FearlessException _){ return false; }
+    catch (RuntimeException | AssertionError e){ crashes.add(e+"\n"+src); return false; }
   }
   static Optional<Case> decode(long i){
     var tr= forms.get((int)(i % 8)); i /= 8;

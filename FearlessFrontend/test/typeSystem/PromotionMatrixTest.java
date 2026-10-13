@@ -26,7 +26,7 @@ public final class PromotionMatrixTest extends testUtils.FearlessTestBase{
   static String cell(String bound, String recv, String gRc, String ret){
     var o= SourceOracle.debugBuilder().put(0,src(bound,recv,gRc,ret)).build();
     try{ new FrontendLogicMain().of("p",Map.of(), o.allFiles(), base); return "o"; }
-    catch(FearlessException _){ return "e"; }
+    catch (FearlessException _){ return "e"; }
   }
   static String row(String bound, String recv, String gRc){
     return Join.of(rets.stream().map(ret -> cell(bound,recv,gRc,ret)),String.format("  %-5s ",gRc),"","\n");

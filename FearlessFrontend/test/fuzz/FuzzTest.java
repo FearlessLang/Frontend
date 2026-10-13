@@ -60,9 +60,9 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     var o= SourceOracle.debugBuilder().put(0,src).build();
     try{
       try{ compileAll("p",o,other); }
-      catch(FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); }
+      catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); }
     }
-    catch(Throwable t){ crashes.merge(signature(t),src,FuzzTest::shorter); }
+    catch (Throwable t){ crashes.merge(signature(t),src,FuzzTest::shorter); }
   }
   static String shorter(String a, String b){ return a.length() <= b.length() ? a : b; }
   static String signature(Throwable t){
@@ -74,16 +74,16 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
       return files.filter(p -> p.toString().endsWith(".class"))
         .flatMap(FuzzTest::strings).filter(FuzzTest::isProgram).distinct().sorted().toList();
     }
-    catch(IOException e){ throw new UncheckedIOException(e); }
+    catch (IOException e){ throw new UncheckedIOException(e); }
   }
   static Path testClasses(){
     try{ return Path.of(FuzzTest.class.getProtectionDomain().getCodeSource().getLocation().toURI()); }
-    catch(URISyntaxException e){ throw new IllegalStateException(e); }
+    catch (URISyntaxException e){ throw new IllegalStateException(e); }
   }
   static Stream<String> strings(Path classFile){
     var res= new ArrayList<String>();
     try{ for (var e : ClassFile.of().parse(classFile).constantPool()){ if (e instanceof StringEntry s){ res.add(s.stringValue()); } } }
-    catch(IOException e){ throw new UncheckedIOException(e); }
+    catch (IOException e){ throw new UncheckedIOException(e); }
     return res.stream();
   }
   static boolean isProgram(String s){
@@ -119,7 +119,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   static boolean annotated(String s){ return annotations.stream().anyMatch(p -> p.matcher(s).find()); }
   static boolean parses(String s){
     try{ Parse.from(SourceOracle.defaultDbgFearPath(0), s); return true; }
-    catch(FearlessException _){ return false; }
+    catch (FearlessException _){ return false; }
   }
   static String insert(String s, int at, String t){ return s.substring(0,at) + t + s.substring(at); }
   static String slice(String s, int from, int maxLen){ return s.substring(from,Math.min(s.length(),from+maxLen)); }

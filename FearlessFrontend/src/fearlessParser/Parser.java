@@ -284,7 +284,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var tok= peek();
     var m= parseIf(peek(DotName,Op),this::parseMName);
     try{ return parseSigAfterName(rc, m); }
-    catch(FearlessException fe){
+    catch (FearlessException fe){
       var forgotSpace= m.stream().anyMatch(mi -> mi.s().endsWith("->"));
       if (!forgotSpace){ throw fe; }
       throw errFactory().forgotSpace(span(tok.get()).get(),m.get().s());
@@ -401,7 +401,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   Token expectValidate(String human, TokenKind kind, TokenKind validation){
     if (peekValidate(validation)){ return expect(human,kind); }
     try{ expect(human,validation); }
-    catch(FearlessException fe){ throw fe.addSpan(spanAround(index(),index()));}
+    catch (FearlessException fe){ throw fe.addSpan(spanAround(index(),index()));}
     throw Bug.unreachable();
   }
   void parseMap(HeadAcc acc){

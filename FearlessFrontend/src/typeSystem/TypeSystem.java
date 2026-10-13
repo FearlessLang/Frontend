@@ -197,7 +197,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     k().check(forErr,allBs,m.sig().ret());
     if (m.e().isEmpty()){ return; }
     try{ bodyOk(forErr,allBs,g,m); }
-    catch(FearlessException fe){ throw tsE().mCallFrame(m, fe); }
+    catch (FearlessException fe){ throw tsE().mCallFrame(m, fe); }
   }
   private void bodyOk(Literal forErr,List<B> delta, Gamma g, M m){
     var ts= m.sig().ts();
