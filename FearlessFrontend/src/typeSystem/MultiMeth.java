@@ -14,7 +14,6 @@ import typeSystem.TypeSystem.MType;
 import utils.Range;
 
 final class MultiMeth{
-  private MultiMeth(){}
   private enum Mode{
     useRead(iso,readH,mutH,readH), flexy(iso,imm,mutH,readH), hyg(mutH,readH,mutH,readH), strong(iso,imm,iso,imm);
     final RC m, r, mh, rh;

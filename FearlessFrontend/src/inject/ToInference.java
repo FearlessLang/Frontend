@@ -14,7 +14,6 @@ import inference.E;
 import message.WellFormednessErrors;
 
 public final class ToInference{
-  private ToInference(){}
   private static TName fCurrent(Methods meths, TName written, TName full){
     var p= meths.p();
     var simple= full.withoutPkgName();

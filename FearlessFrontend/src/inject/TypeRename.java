@@ -11,7 +11,6 @@ import utils.Pos;
 import inference.IT;
 
 public final class TypeRename{
-  private TypeRename(){}
   public static T of(T t, List<String> xs, List<T> ts){
     assert xs.size() == ts.size();
     return switch (t){

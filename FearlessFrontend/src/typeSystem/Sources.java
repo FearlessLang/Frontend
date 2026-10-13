@@ -17,7 +17,6 @@ import utils.OneOr;
 import utils.Push;
 
 final class Sources{
-  private Sources(){}
 //l.cs() is already the fully flattened, fully substituted transitive ancestor set (Methods.expandDeclaration
 //builds it that way before type checking runs), so every ancestor's own-declared signatures are reachable
 //in one hop from l; recursing into each ancestor's own (already flattened) cs() would just revisit the same

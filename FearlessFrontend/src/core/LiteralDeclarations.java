@@ -13,7 +13,6 @@ import utils.Push;
 import utils.Bug;
 
 public final class LiteralDeclarations{
-  private LiteralDeclarations(){}
   public static final TName baseStr= new TName("base.Str",0,Pos.unknown);
   public static final TName baseNat= new TName("base.Nat",0,Pos.unknown);
   public static final TName baseInt= new TName("base.Int",0,Pos.unknown);

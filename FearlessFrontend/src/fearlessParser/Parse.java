@@ -15,7 +15,6 @@ import metaParser.TokenTreeSpec;
 import tools.Fs;
 
 public final class Parse{
-  private Parse(){}
   public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t->!t.synthetic()).toList();
   private static final TokenTreeSpec<Token,TokenKind> map= new TokenTreeSpec<Token,TokenKind>()
     .addOpenClose(_SOF,_EOF,_All)

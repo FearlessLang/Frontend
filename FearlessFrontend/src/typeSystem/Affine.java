@@ -8,7 +8,6 @@ import core.M;
 import message.TypeSystemErrors;
 
 final class Affine{
-  private Affine(){}
   static void usedOnce(TypeSystemErrors err, Literal l,M m, String x){
     var active= new ArrayList<X>();
     collect(x, m.e().get(), true, active);

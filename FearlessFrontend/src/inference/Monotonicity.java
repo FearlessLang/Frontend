@@ -10,7 +10,6 @@ import inference.Gamma.GammaSignature;
 import utils.Range;
 
 public final class Monotonicity{
-  private Monotonicity(){}
   enum K{eT,callRc,callTarg,litMArg,litMRet}
 
   // Intended usage:

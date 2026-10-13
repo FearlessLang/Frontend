@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Set;
 
 public final class AssertNoRepeatedTypeNames{
-  private AssertNoRepeatedTypeNames(){}
-
   public static boolean ok(List<E.Literal> tops){
     var firstLit= new LinkedHashMap<TName,E.Literal>();
     var visited= Collections.newSetFromMap(new IdentityHashMap<E,Boolean>());

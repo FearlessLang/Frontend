@@ -17,7 +17,6 @@ import metaParser.TokenProcessor;
 import utils.Bug;
 
 public final class BadTokens{
-  private BadTokens(){}
   public static TokenProcessor.Map<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> badTokensMap(){
     return new TokenProcessor.Map<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>()
       .put(Ws,           (_,_,_)->Stream.of())

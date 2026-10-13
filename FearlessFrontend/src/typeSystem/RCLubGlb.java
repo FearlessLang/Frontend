@@ -12,7 +12,6 @@ import java.util.Set;
 import core.RC;
 
 public final class RCLubGlb{
-  private RCLubGlb(){}
   private static final EnumSet<RC> allRC= EnumSet.allOf(RC.class);
   private static final HashMap<Set<RC>,RC> lubMap= new HashMap<>();
   private static final HashMap<Set<RC>,RC> glbMap= new HashMap<>();
