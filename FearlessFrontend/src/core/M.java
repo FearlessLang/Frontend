@@ -10,17 +10,17 @@ import utils.Streams;
 
 public record M(Sig sig, List<String> xs, Optional<E> e){
   public M{
-    assert nonNull(sig,e);
-    assert unmodifiable(xs,"M.xs");
+    assert nonNull(sig, e);
+    assert unmodifiable(xs, "M.xs");
     assert xs.size() == sig.ts().size();
   }
-  public M withSig(Sig sig){ return new M(sig,xs,e); }
+  public M withSig(Sig sig){ return new M(sig, xs, e); }
   @Override public String toString(){
     var sb= new StringBuilder();
     sb.append(sig.rc().toStrSpace());
     sb.append(sig.m());
-    sb.append(Join.of(sig.bs(),"[",",","]",""));
-    sb.append(Join.of(Streams.zip(xs,sig.ts()).map((x,t) -> x+":"+t),"(",", ",")",""));
+    sb.append(Join.of(sig.bs(), "[", ",", "]", ""));
+    sb.append(Join.of(Streams.zip(xs, sig.ts()).map((x,t) -> x+":"+t), "(", ", ", ")", ""));
     sb.append(':').append(sig.ret());
     e.ifPresent(body -> sb.append("->").append(body));
     return sb.toString();

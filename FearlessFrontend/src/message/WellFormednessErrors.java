@@ -45,7 +45,7 @@ public record WellFormednessErrors(String pkgName){
     public final IT.RCC c;
     public ErrToFetchContext(IT.RCC c){ this.c= c; }
   }
-  Err err(){ return new Err(y -> y,x -> x, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
+  Err err(){ return new Err(y -> y, x -> x, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
   private Err err(List<String> lines){
     var e= err();
     lines.forEach(e::line);
@@ -54,8 +54,8 @@ public record WellFormednessErrors(String pkgName){
   public static List<String> resolution(Package p, String written){
     var dot= TName.pkgDot(written);
     if (dot != -1){
-      var in= written.substring(0,dot);
-      return mapStep(p.name(), in, p.map().getOrDefault(in,in), written.substring(dot+1));
+      var in= written.substring(0, dot);
+      return mapStep(p.name(), in, p.map().getOrDefault(in, in), written.substring(dot+1));
     }
     return p.uses().stream()
       .filter(u -> u.out().equals(written))
@@ -81,10 +81,10 @@ public record WellFormednessErrors(String pkgName){
     assert !f.noDirectives();
     if (!f.maps().isEmpty()){ e.bullet("maps: " + previewList(f.maps(), 5)); }
     if (!f.uses().isEmpty()){ e.bullet("uses: " + previewList(f.uses(), 8)); }
-    return e.wf().addSpan(new Span(uri.fearURI(),0,0,1,1));
+    return e.wf().addSpan(new Span(uri.fearURI(), 0, 0, 1, 1));
   }
   private String previewList(List<?> c, int limit){
-    var shown= Join.of(c.stream().limit(limit),"",", ","","");
+    var shown= Join.of(c.stream().limit(limit), "", ", ", "", "");
     return c.size() <= limit ? shown : shown+", ... (size="+c.size()+")";
   }
   public FearlessException expectedSingleUriForPackage(List<Ref> heads){
@@ -279,7 +279,7 @@ public record WellFormednessErrors(String pkgName){
     case T.RCC(var rc, var c, _) -> rc.map(r -> r+" ").orElse("")+spelling(c);
   };}
   private static String spelling(T.C c){
-    return c.name().s()+Join.of(c.ts().orElse(List.of()).stream().map(WellFormednessErrors::spelling),"[",",","]","");
+    return c.name().s()+Join.of(c.ts().orElse(List.of()).stream().map(WellFormednessErrors::spelling), "[", ",", "]", "");
   }
   public FearlessException duplicatedName(TName name){
     return err()
@@ -331,22 +331,22 @@ public record WellFormednessErrors(String pkgName){
   public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
   public FearlessException noAgreement(Agreement at, List<B> bs, List<IT> res, String msg){
     var rc= at.rc().map(r -> r.toStrSpace(false)).orElse("");
-    var rcDiffers= res.stream().map(t -> Kinding.intrinsicRCs(bs,TypeRename.itToT(t))).distinct().count() > 1;
+    var rcDiffers= res.stream().map(t -> Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var e= err()
-      .line(msg+" for method "+err().methodSig(rc,at.mName())+" with "+at.mName().arity()+" parameters.")
+      .line(msg+" for method "+err().methodSig(rc, at.mName())+" with "+at.mName().arity()+" parameters.")
       .line(Join.of(
-        res.stream().map(o -> option(rcDiffers,o)),
+        res.stream().map(o -> option(rcDiffers, o)),
         "Different options are present in the implemented types: ", ", ", "."
       ));
     var m= err().methodSig(at.mName());
     if (rcDiffers){ return wf(e.line("They differ in reference capability, and an overriding method must keep it, so no method "+m+" can implement all of them."), at); }
-    if (x.isPresent()){ return wf(e.line("They are different types and "+option(false,x.get())+" is a type parameter, so no method "+m+" can implement all of them."), at); }
+    if (x.isPresent()){ return wf(e.line("They are different types and "+option(false, x.get())+" is a type parameter, so no method "+m+" can implement all of them."), at); }
     return wf(e.line(up(err().expRepr(at.lit()))+" must declare a method "+m+" explicitly choosing the desired option."), at);
   }
   private String option(boolean showImm, IT o){
     if (!(o instanceof IT.RCC rcc)){ return disp(o); }
-    return showImm ? err().typeRepr(false,TypeRename.itToT(rcc)) : err().typeRepr(rcc);
+    return showImm ? err().typeRepr(false, TypeRename.itToT(rcc)) : err().typeRepr(rcc);
   }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
@@ -359,7 +359,7 @@ public record WellFormednessErrors(String pkgName){
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
     var sB= disp(superBs.stream().map(b -> new B("-", b.rcs())).toList());
     return wf(err()
-      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(),at.lit(), at.mName())+".")
+      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(), at.lit(), at.mName())+".")
       .line("The method "+err().methodSig(at.mName())+" declares "+userBs.size()+" type parameter(s), but supertypes declare "+superBs.size()+".")
       .line("Local declaration: "+disp(userBs)+".")
       .line("From supertypes: "+sB+".")
@@ -373,7 +373,7 @@ public record WellFormednessErrors(String pkgName){
     var opts= Join.of(res.stream().map(bs -> disp(bs.get(i))).distinct().sorted(), "", " and ", ".");
     var m= err().methodSig(at.mName());
     return wf(err()
-      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(),at.lit(), at.mName())+".")
+      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(), at.lit(), at.mName())+".")
       .line("Supertypes disagree on the capability bounds for type parameter "+(i+1)+" of "+m+".")
       .line("Type parameter names may differ across supertypes; only the position matters.")
       .line("Different supertypes declare: "+opts)
@@ -389,7 +389,7 @@ public record WellFormednessErrors(String pkgName){
     var uB= disp(u);
     var sB= disp(new B("-", s.rcs()));
     return wf(err()
-      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(),at.lit(), at.mName())+".")
+      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(), at.lit(), at.mName())+".")
       .line("The local declaration uses different capability bounds than the supertypes for type parameter "+(i+1)+" of "+m+".")
       .line("Local: "+uB+".")
       .line("From supertypes: "+sB+".")
@@ -406,16 +406,16 @@ public record WellFormednessErrors(String pkgName){
     var missing= t.ftv().filter(X -> !xs.contains(X)).findFirst().get();
     var name= owner.name().simpleName();
     var dec= disp(name);
-    var funnelled= disp(Join.of(Push.of(xs,missing).stream().map(s -> s+":.."),name+"[",",","]",""));
-    var declares= xs.isEmpty() ? " declares none" : " declares "+Join.of(xs.stream().map(Err::disp),"",", ","","");
+    var funnelled= disp(Join.of(Push.of(xs, missing).stream().map(s -> s+":.."), name+"[", ",", "]", ""));
+    var declares= xs.isEmpty() ? " declares none" : " declares "+Join.of(xs.stream().map(Err::disp), "", ", ", "", "");
     var uses= t instanceof IT.RCC ? ", using the generic type "+disp(missing)+"." : ".";
     return wf(err()
-      .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(true,TypeRename.itToT(t))+uses)
+      .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(true, TypeRename.itToT(t))+uses)
       .line("Generic type "+disp(missing)+" is not in scope inside the type declaration "+dec+".")
       .line("A type declaration only sees the generic types it declares itself; here "+dec+declares+".")
       .line("Hint: funnel "+disp(missing)+" into "+dec+" by writing "+funnelled+", restating the bounds of "+disp(missing)+"."), x);
   }
-  public FearlessException itTooDeep(E at,IT.RCC blame){
+  public FearlessException itTooDeep(E at, IT.RCC blame){
     return wf(err()
       .line("Type "+err().typeRepr(blame))
       .line("grew uncontrollably during inference."), at);
@@ -447,11 +447,11 @@ public record WellFormednessErrors(String pkgName){
     widen.forEach(c -> e.bullet(disp(c)));
     return wf(e, owner);
   }
-  public FearlessException duplicatedNamedLiteral(E.Literal owner,M m, E.Literal in){
+  public FearlessException duplicatedNamedLiteral(E.Literal owner, M m, E.Literal in){
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
-      .line("The body of method "+err().methodSig("",owner,m.sig().m().get())+" needs to be duplicated to satisfy multiple RC overloads from the supertypes.")
+      .line("The body of method "+err().methodSig("", owner, m.sig().m().get())+" needs to be duplicated to satisfy multiple RC overloads from the supertypes.")
       .line("However, it contains "+err().expRepr(in)+".")
       .line("Object literals with their own unique explicit type cannot be duplicated."), owner);
   }
@@ -459,14 +459,14 @@ public record WellFormednessErrors(String pkgName){
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
-      .line("Only the method "+err().methodSig(new MName("#",1))+" can be declared or inherited here."), owner);
+      .line("Only the method "+err().methodSig(new MName("#", 1))+" can be declared or inherited here."), owner);
   }
   public FearlessException baseIdInheritedHash(E.Literal owner, TName origin){
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
-      .line("It inherits the implementation of "+err().methodSig(new MName("#",1))+" from "+err().tNameADisp(origin)+", that does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
-      .line("Method "+err().methodSig(new MName("#",1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner);
+      .line("It inherits the implementation of "+err().methodSig(new MName("#", 1))+" from "+err().tNameADisp(origin)+", that does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
+      .line("Method "+err().methodSig(new MName("#", 1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner);
   }
   public FearlessException extendedSealed(E.Literal owner, TName isSealed){
     var ownerPkg= owner.name().pkgName();
@@ -480,12 +480,12 @@ public record WellFormednessErrors(String pkgName){
       .line("Type "+disp(isSealed.simpleName())+" is defined in package "+disp(sealedPkg)+"."), owner);
   }
   public FearlessException intLiteralOutOfRange(TName lit){
-    return intOrNatLiteralOutOfRange(lit,LiteralDeclarations.baseInt,"Integer","signed",LiteralDeclarations.intMin,LiteralDeclarations.intMax);
+    return intOrNatLiteralOutOfRange(lit, LiteralDeclarations.baseInt, "Integer", "signed", LiteralDeclarations.intMin, LiteralDeclarations.intMax);
   }
   public FearlessException natLiteralOutOfRange(TName lit){
-    return intOrNatLiteralOutOfRange(lit,LiteralDeclarations.baseNat,"Natural","unsigned",LiteralDeclarations.natMin,LiteralDeclarations.natMax);
+    return intOrNatLiteralOutOfRange(lit, LiteralDeclarations.baseNat, "Natural", "unsigned", LiteralDeclarations.natMin, LiteralDeclarations.natMax);
   }
-  private FearlessException intOrNatLiteralOutOfRange(TName lit,TName type,String kind,String signed,BigInteger min,BigInteger max){
+  private FearlessException intOrNatLiteralOutOfRange(TName lit, TName type, String kind, String signed, BigInteger min, BigInteger max){
     var t= err().tNameADisp(type);
     return err()
       .line(kind+" literal is out of range for "+t+".")
@@ -498,7 +498,7 @@ public record WellFormednessErrors(String pkgName){
   public FearlessException floatLiteralNotExactlyRepresentable(TName lit){
     var raw= lit.simpleName();
     var d= LiteralDeclarations.floatLiteralDouble(raw);
-    var nearD= Double.isFinite(d) ? d : Math.copySign(Double.MAX_VALUE,d);
+    var nearD= Double.isFinite(d) ? d : Math.copySign(Double.MAX_VALUE, d);
     var near= LiteralDeclarations.floatExactFearlessLit(nearD);
     var t= err().tNameADisp(LiteralDeclarations.baseFloat);
     var e= err()

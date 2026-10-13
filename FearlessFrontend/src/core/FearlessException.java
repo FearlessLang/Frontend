@@ -22,7 +22,7 @@ public final class FearlessException extends RuntimeException implements HasFram
     this.msgFactory= Objects.requireNonNull(f);
   }
   public String render(SourceOracle env){
-    var msg= msgFactory.apply(env,Collections.unmodifiableList(frames));
+    var msg= msgFactory.apply(env, Collections.unmodifiableList(frames));
     if (msg.endsWith("\n")){ return msg + code; }
     return msg + "\n" + code;
   }

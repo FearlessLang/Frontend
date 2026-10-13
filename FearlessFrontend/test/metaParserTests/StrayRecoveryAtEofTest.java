@@ -39,47 +39,47 @@ public final class StrayRecoveryAtEofTest{
   }
   static final class Tz extends MetaTokenizer<Tok,K,Ex,Tz,Ps,Ef>{
     @Override public Tz self(){ return this; }
-    @Override public Tok make(K kind, String text, int line, int col, List<Tok> tokens){ return new Tok(kind,text,line,col,tokens); }
+    @Override public Tok make(K kind, String text, int line, int col, List<Tok> tokens){ return new Tok(kind, text, line, col, tokens); }
   }
   static final class Ps extends MetaParser<Tok,K,Ex,Tz,Ps,Ef>{
-    Ps(Span s, List<Tok> ts){ super(s,ts); }
+    Ps(Span s, List<Tok> ts){ super(s, ts); }
     @Override public Ps self(){ return this; }
-    @Override public boolean skip(Tok t){ return t.is(K.Sof,K.Eof); }
-    @Override public Ps make(Span s, List<Tok> ts){ return new Ps(s,ts); }
+    @Override public boolean skip(Tok t){ return t.is(K.Sof, K.Eof); }
+    @Override public Ps make(Span s, List<Tok> ts){ return new Ps(s, ts); }
     @Override public Ef errFactory(){ return new Ef(); }
   }
   static final class Ef implements ErrFactory<Tok,K,Ex,Tz,Ps,Ef>{
-    @Override public Ex illegalCharAt(Span at, int cp, Tz tz){ return new Ex("illegalChar",null); }
-    @Override public Ex unrecognizedTextAt(Span at, String what, Tz tz){ return new Ex("unrecognized",null); }
-    @Override public Ex groupHalt(Tok open, Tok stop, Collection<K> closers, LikelyCause likely, Tz tz){ return new Ex("groupHalt",likely); }
-    @Override public Ex eatenCloserBetween(Tok open, Tok stop, Collection<K> closers, Tok frag, Tok container, Tz tz){ return new Ex("eatenCloser",null); }
-    @Override public Ex eatenOpenerBetween(Tok open, Tok stop, Collection<K> closers, Tok frag, Tok container, Tz tz){ return new Ex("eatenOpener",null); }
-    @Override public Ex missing(Span at, String what, List<K> expected, Ps p){ return new Ex("missing",null); }
-    @Override public Ex missingButFound(Span at, String what, Tok found, Collection<K> expected, Ps p){ return new Ex("missingButFound",null); }
-    @Override public Ex extraContent(Span from, String what, Collection<K> expected, Ps p){ return new Ex("extraContent",null); }
-    @Override public Ex probeStalledIn(String label, Span at, int s, int e, Ps p){ return new Ex("probeStalled",null); }
-    @Override public Ex badProbeDropIn(String label, Span at, int s, int e, int drop, Ps p){ return new Ex("badProbeDrop",null); }
+    @Override public Ex illegalCharAt(Span at, int cp, Tz tz){ return new Ex("illegalChar", null); }
+    @Override public Ex unrecognizedTextAt(Span at, String what, Tz tz){ return new Ex("unrecognized", null); }
+    @Override public Ex groupHalt(Tok open, Tok stop, Collection<K> closers, LikelyCause likely, Tz tz){ return new Ex("groupHalt", likely); }
+    @Override public Ex eatenCloserBetween(Tok open, Tok stop, Collection<K> closers, Tok frag, Tok container, Tz tz){ return new Ex("eatenCloser", null); }
+    @Override public Ex eatenOpenerBetween(Tok open, Tok stop, Collection<K> closers, Tok frag, Tok container, Tz tz){ return new Ex("eatenOpener", null); }
+    @Override public Ex missing(Span at, String what, List<K> expected, Ps p){ return new Ex("missing", null); }
+    @Override public Ex missingButFound(Span at, String what, Tok found, Collection<K> expected, Ps p){ return new Ex("missingButFound", null); }
+    @Override public Ex extraContent(Span from, String what, Collection<K> expected, Ps p){ return new Ex("extraContent", null); }
+    @Override public Ex probeStalledIn(String label, Span at, int s, int e, Ps p){ return new Ex("probeStalled", null); }
+    @Override public Ex badProbeDropIn(String label, Span at, int s, int e, int drop, Ps p){ return new Ex("badProbeDrop", null); }
   }
   static Ex treeError(String src){
     var spec= new TokenTreeSpec<Tok,K>()
-      .addOpenClose(K.Sof,K.Eof,K.File)
-      .addOpenClose(K.Lb,K.Rb,K.Braces)
-      .addOpenClose(K.Lp,K.Rp,K.Parens);
+      .addOpenClose(K.Sof, K.Eof, K.File)
+      .addOpenClose(K.Lb, K.Rb, K.Braces)
+      .addOpenClose(K.Lp, K.Rp, K.Parens);
     var tz= new Tz()
-      .tokenKinds(List.of(K.Lb,K.Rb,K.Lp,K.Rp),K.Sof,K.Eof)
-      .input(URI.create("fear:/a.fear"),src)
+      .tokenKinds(List.of(K.Lb, K.Rb, K.Lp, K.Rp), K.Sof, K.Eof)
+      .input(URI.create("fear:/a.fear"), src)
       .setErrFactory(new Ef())
       .tokenize();
-    return assertThrows(Ex.class,() -> tz.buildTokenTree(spec));
+    return assertThrows(Ex.class, () -> tz.buildTokenTree(spec));
   }
   @Test void unclosedParenInsideBracesIsStrayOpener(){
     var e= treeError("{(}");
-    assertEquals("groupHalt",e.name);
-    assertEquals(LikelyCause.StrayOpener,e.likely);
+    assertEquals("groupHalt", e.name);
+    assertEquals(LikelyCause.StrayOpener, e.likely);
   }
   @Test void unclosedBraceInsideParensIsStrayOpener(){
     var e= treeError("({)");
-    assertEquals("groupHalt",e.name);
-    assertEquals(LikelyCause.StrayOpener,e.likely);
+    assertEquals("groupHalt", e.name);
+    assertEquals(LikelyCause.StrayOpener, e.likely);
   }
 }

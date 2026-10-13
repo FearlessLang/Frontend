@@ -25,10 +25,10 @@ import utils.Join;
 
 public final class FuzzTest extends testUtils.FearlessTestBase{
   static final int cases= 10_000;
-  static final List<String> tokens= List.of("{","}","(",")","[","]",":",";","->","=",",",
-    "mut ","read ","iso ","imm ","readH ","mutH ","read/imm ","this"," x"," .m"," .foo","'self ",
-    "::","A","B","X","_","*","**","base.Void","#"," +");
-  static final List<String> rcs= List.of("mut","read","imm","iso","readH","mutH");
+  static final List<String> tokens= List.of("{", "}", "(", ")", "[", "]", ":", ";", "->", "=", ",",
+    "mut ", "read ", "iso ", "imm ", "readH ", "mutH ", "read/imm ", "this", " x", " .m", " .foo", "'self ",
+    "::", "A", "B", "X", "_", "*", "**", "base.Void", "#", " +");
+  static final List<String> rcs= List.of("mut", "read", "imm", "iso", "readH", "mutH");
   static final Pattern rc= Pattern.compile("\\b(mut|read|imm|iso|readH|mutH)\\b");
   static final String type= "(?:(?:mut|read|imm|iso|readH|mutH) )?[A-Z][\\w.]*(?:\\[[^\\[\\]]*\\])?";
   static final List<Pattern> annotations= Stream.of(
@@ -44,8 +44,8 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     var other= otherFrom(DbgBlock.all());
     var rnd= new Random(0);
     var crashes= new TreeMap<String,String>();
-    for (var s : seeds){ run(s,other,crashes); }
-    for (int i= 0; i < cases; i++){ run(mutate(seeds.get(rnd.nextInt(seeds.size())),rnd,seeds),other,crashes); }
+    for (var s : seeds){ run(s, other, crashes); }
+    for (int i= 0; i < cases; i++){ run(mutate(seeds.get(rnd.nextInt(seeds.size())), rnd, seeds), other, crashes); }
     strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
   }
   @Test void underAnnotatedTestProgramsNeverCrash(){
@@ -53,16 +53,16 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     var other= otherFrom(DbgBlock.all());
     var rnd= new Random(0);
     var crashes= new TreeMap<String,String>();
-    for (int i= 0; i < cases; i++){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())),rnd),other,crashes); }
+    for (int i= 0; i < cases; i++){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())), rnd), other, crashes); }
     strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
   }
   static void run(String src, OtherPackages other, TreeMap<String,String> crashes){
-    var o= SourceOracle.debugBuilder().put(0,src).build();
+    var o= SourceOracle.debugBuilder().put(0, src).build();
     try{
-      try{ compileAll("p",o,other); }
+      try{ compileAll("p", o, other); }
       catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); }
     }
-    catch (Throwable t){ crashes.merge(signature(t),src,FuzzTest::shorter); }
+    catch (Throwable t){ crashes.merge(signature(t), src, FuzzTest::shorter); }
   }
   static String shorter(String a, String b){ return a.length() <= b.length() ? a : b; }
   static String signature(Throwable t){
@@ -91,22 +91,22 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   }
   static String mutate(String s, Random r, List<String> seeds){
     int k= 1 + r.nextInt(3);
-    for (int i= 0; i < k && !s.isEmpty(); i++){ s = mutateOnce(s,r,seeds); }
+    for (int i= 0; i < k && !s.isEmpty(); i++){ s = mutateOnce(s, r, seeds); }
     return s;
   }
   static String mutateOnce(String s, Random r, List<String> seeds){
     int p= r.nextInt(s.length());
     return switch (r.nextInt(5)){
-      case 0 -> s.substring(0,p) + s.substring(Math.min(s.length(),p+1+r.nextInt(4)));
-      case 1 -> insert(s,p,tokens.get(r.nextInt(tokens.size())));
-      case 2 -> insert(s,r.nextInt(s.length()),slice(s,p,1+r.nextInt(12)));
-      case 3 -> insert(s,p,slice(seeds.get(r.nextInt(seeds.size())),r,20));
-      default -> swapRc(s,r);
+      case 0 -> s.substring(0, p) + s.substring(Math.min(s.length(), p+1+r.nextInt(4)));
+      case 1 -> insert(s, p, tokens.get(r.nextInt(tokens.size())));
+      case 2 -> insert(s, r.nextInt(s.length()), slice(s, p, 1+r.nextInt(12)));
+      case 3 -> insert(s, p, slice(seeds.get(r.nextInt(seeds.size())), r, 20));
+      default -> swapRc(s, r);
     };
   }
   static String underAnnotate(String s, Random r){
     int k= 1 + r.nextInt(4);
-    for (int i= 0; i < k; i++){ s = dropAnnotation(s,r); }
+    for (int i= 0; i < k; i++){ s = dropAnnotation(s, r); }
     return s;
   }
   static String dropAnnotation(String s, Random r){
@@ -114,20 +114,20 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     if (byPattern.isEmpty()){ return s; }
     var ms= byPattern.get(r.nextInt(byPattern.size()));
     var m= ms.get(r.nextInt(ms.size()));
-    return s.substring(0,m.start(1)) + s.substring(m.end(1));
+    return s.substring(0, m.start(1)) + s.substring(m.end(1));
   }
   static boolean annotated(String s){ return annotations.stream().anyMatch(p -> p.matcher(s).find()); }
   static boolean parses(String s){
     try{ Parse.from(SourceOracle.defaultDbgFearPath(0), s); return true; }
     catch (FearlessException _){ return false; }
   }
-  static String insert(String s, int at, String t){ return s.substring(0,at) + t + s.substring(at); }
-  static String slice(String s, int from, int maxLen){ return s.substring(from,Math.min(s.length(),from+maxLen)); }
-  static String slice(String s, Random r, int maxLen){ return slice(s,r.nextInt(s.length()),1+r.nextInt(maxLen)); }
+  static String insert(String s, int at, String t){ return s.substring(0, at) + t + s.substring(at); }
+  static String slice(String s, int from, int maxLen){ return s.substring(from, Math.min(s.length(), from+maxLen)); }
+  static String slice(String s, Random r, int maxLen){ return slice(s, r.nextInt(s.length()), 1+r.nextInt(maxLen)); }
   static String swapRc(String s, Random r){
     var ms= rc.matcher(s).results().toList();
     if (ms.isEmpty()){ return s; }
     var m= ms.get(r.nextInt(ms.size()));
-    return s.substring(0,m.start()) + rcs.get(r.nextInt(rcs.size())) + s.substring(m.end());
+    return s.substring(0, m.start()) + rcs.get(r.nextInt(rcs.size())) + s.substring(m.end());
   }
 }

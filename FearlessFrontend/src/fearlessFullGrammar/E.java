@@ -14,9 +14,9 @@ public sealed interface E extends core.Src.SrcObj{
   @Override Pos pos();
   @Override TSpan span();
   record X(String name, Pos pos) implements E{
-    public X{ assert validate(name, "parameter name",LowercaseId,Underscore); }
+    public X{ assert validate(name, "parameter name", LowercaseId, Underscore); }
     @Override public String toString(){ return name; }
-    @Override public TSpan span(){ return TSpan.fromPos(pos,name.length()); }
+    @Override public TSpan span(){ return TSpan.fromPos(pos, name.length()); }
   }
   record Round(E e) implements E{
     public Round{ assert nonNull(e); }
@@ -27,20 +27,20 @@ public sealed interface E extends core.Src.SrcObj{
   record Literal(Optional<E.X> thisName, List<M> methods, TSpan span) implements E, Comparable<Literal>{
     public Literal{
       assert unmodifiableDistinct(methods, "E.Literal.methods");
-      assert nonNull(thisName,span);
+      assert nonNull(thisName, span);
     }
     @Override public Pos pos(){ return span.pos(); }
     @Override public String toString(){ return "Literal"+thisName.map(Object::toString).orElse("")+methods; }
-    public Literal withSpan(TSpan span){ return new Literal(thisName,methods,span); }
+    public Literal withSpan(TSpan span){ return new Literal(thisName, methods, span); }
     @Override public int compareTo(Literal o){ return span.inner.compareTo(o.span.inner); }
   }
-  record TypedLiteral(T.RCC t, Optional<Literal> l,Pos pos) implements E{
-    public TypedLiteral{ assert nonNull(t,l,pos); }
+  record TypedLiteral(T.RCC t, Optional<Literal> l, Pos pos) implements E{
+    public TypedLiteral{ assert nonNull(t, l, pos); }
     @Override public String toString(){ return "TypedLiteral"+t+l.map(Object::toString).orElse(""); }
-    @Override public TSpan span(){ return TSpan.fromPos(pos,t.c().name().s().length()); }
+    @Override public TSpan span(){ return TSpan.fromPos(pos, t.c().name().s().length()); }
   }
   record DeclarationLiteral(Optional<RC> rc, Declaration dec) implements E{
-    public DeclarationLiteral{ assert nonNull(rc,dec); }
+    public DeclarationLiteral{ assert nonNull(rc, dec); }
     @Override public Pos pos(){ return dec.pos(); }
     @Override public TSpan span(){ return dec.span(); }
     @Override public String toString(){ return "DeclarationLiteral"+rc.map(Object::toString).orElse("")+dec; }
@@ -52,23 +52,23 @@ public sealed interface E extends core.Src.SrcObj{
   }
   record Call(E e, MName name, Optional<CallSquare> targs, boolean pars, Optional<XPat> pat, List<E> es, Pos pos) implements E{
     public Call{
-      assert nonNull(e,name,targs,pat,pos);
+      assert nonNull(e, name, targs, pat, pos);
       assert unmodifiable(es, "E.Call.es");
-      assert pat.isPresent() || eq(es.size(),name.arity(),"Call arity");
+      assert pat.isPresent() || eq(es.size(), name.arity(), "Call arity");
       assert pars || es.size() < 2;
-      assert validOpt(pat,_ -> eq(es.size(),1,"invalid equal sugar"));
-      assert validOpt(pat,_ -> eq(name.arity(),2,"invalid equal sugar"));
+      assert validOpt(pat, _ -> eq(es.size(), 1, "invalid equal sugar"));
+      assert validOpt(pat, _ -> eq(name.arity(), 2, "invalid equal sugar"));
     }
     @Override public String toString(){ return "Call["+e+"]"+name
       +targs.map(Object::toString).orElse("")
       +pars+pat.map(Object::toString).orElse("")+es; }
     @Override public TSpan span(){
-      if (!es.isEmpty()){ return TSpan.merge(e.span(),es.getLast().span()); }
-      return TSpan.merge(e.span(),targs.map(t -> TSpan.fromPos(t.endPos())).orElseGet(() -> TSpan.fromPos(pos,name.s().length())));
+      if (!es.isEmpty()){ return TSpan.merge(e.span(), es.getLast().span()); }
+      return TSpan.merge(e.span(), targs.map(t -> TSpan.fromPos(t.endPos())).orElseGet(() -> TSpan.fromPos(pos, name.s().length())));
     }
   }
   record Implicit(Pos pos) implements E{
     @Override public String toString(){ return "::"; }
-    @Override public TSpan span(){ return TSpan.fromPos(pos,2); }
+    @Override public TSpan span(){ return TSpan.fromPos(pos, 2); }
   }
 }

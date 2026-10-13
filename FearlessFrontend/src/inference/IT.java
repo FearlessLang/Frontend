@@ -19,11 +19,11 @@ public sealed interface IT{
   default Optional<RC> explicitRC(){ return Optional.empty(); }
   default int depth(){ return 1; }
   record X(String name, TSpan span) implements IT{
-    public X{ assert validate(name,"generic type name", _XId); }
+    public X{ assert validate(name, "generic type name", _XId); }
     @Override public String toString(){ return name; }
   }
   record RCX(RC rc, X x) implements IT{
-    public RCX{ assert nonNull(rc,x); }
+    public RCX{ assert nonNull(rc, x); }
     @Override public String toString(){ return rc.name()+" "+x.name; }
     @Override public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
@@ -33,18 +33,18 @@ public sealed interface IT{
   }
   record C(TName name, List<IT> ts, int depth){
     public C{
-      assert unmodifiable(ts,"IT.C.ts");
-      assert eq(ts.size(), name.arity(),"Type arity");
+      assert unmodifiable(ts, "IT.C.ts");
+      assert eq(ts.size(), name.arity(), "Type arity");
     }
-    public C(TName name, List<IT> ts){ this(name,ts,RCC.depthFromTs(ts)); }
+    public C(TName name, List<IT> ts){ this(name, ts, RCC.depthFromTs(ts)); }
     @Override public String toString(){
-      return name.s()+Join.of(ts,"[",",","]","");
+      return name.s()+Join.of(ts, "[", ",", "]", "");
     }
   }
   record RCC(Optional<RC> rc, C c, TSpan span) implements IT{
     static final int maxDepth= 100;
     public RCC(Optional<RC> rc, C c, TSpan span){
-      assert nonNull(rc,c);
+      assert nonNull(rc, c);
       this.rc= rc; this.c= c; this.span= span;
       if (c.depth() > maxDepth){ throw new WellFormednessErrors.ErrToFetchContext(this); }
     }

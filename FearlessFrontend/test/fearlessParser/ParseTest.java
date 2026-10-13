@@ -3,48 +3,48 @@ package fearlessParser;
 import org.junit.jupiter.api.Test;
 
 public final class ParseTest extends testUtils.FearlessTestBase{
-  static void ok(String expected,String input){ parseOkNormalized(expected, input); }
+  static void ok(String expected, String input){ parseOkNormalized(expected, input); }
   static void fail(String expectedErr, String input){ parseFail(expectedErr, input); }
 @Test void mini(){ok("""
 FileFull[[###] decs=[
   Declaration[name=A/0, bs=Optional.empty, cs=[], l=Literal[]]]]
-""","""
+""", """
 A:{}
 """);}
 @Test void decl_generics_plain(){ok("""
 FileFull[[###] decs=[
 Declaration[name=Pair/2, bs=Optional[[B[x=X[name=X], bt=RCS[rcs=[]]], B[x=X[name=Y], bt=RCS[rcs=[]]]]], cs=[], l=Literal[]]]]
-""","""
+""", """
 Pair[X,Y]:{}
 """);}
 @Test void decl_generics_with_rcs(){ok("""
 FileFull[[###] decs=[
 Declaration[name=Box/1, bs=Optional[[B[x=X[name=X], bt=RCS[rcs=[imm]]]]], cs=[], l=Literal[]]]]
-""","""
+""", """
 Box[X:imm]:{}
 """);}
 @Test void decl_generics_star1(){ok("""
 FileFull[[###] decs=[
 Declaration[name=Vec/1, bs=Optional[[B[x=X[name=X], bt=Star[]]]], cs=[], l=Literal[]]]]
-""","""
+""", """
 Vec[X: *]:{}
 """);}
 @Test void decl_generics_star2(){ok("""
 FileFull[[###] decs=[
 Declaration[name=Vec/1, bs=Optional[[B[x=X[name=X], bt=Star[]]]], cs=[], l=Literal[]]]]
-""","""
+""", """
 Vec[X:*]:{}
 """);}
 @Test void decl_generics_starstar1(){ok("""
 FileFull[[###] decs=[
 Declaration[name=Graph/1, bs=Optional[[B[x=X[name=X], bt=StarStar[]]]], cs=[], l=Literal[]]]]
-""","""
+""", """
 Graph[X: **]:{}
 """);}
 @Test void decl_generics_starstar2(){ok("""
 FileFull[[###] decs=[
 Declaration[name=Graph/1, bs=Optional[[B[x=X[name=X], bt=StarStar[]]]], cs=[], l=Literal[]]]]
-""","""
+""", """
 Graph[X:**]:{}
 """);}
 @Test void decl_generics_use(){ok("""
@@ -55,7 +55,7 @@ l=Literal[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[
 body=Optional.empty],
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.y],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[X[name=Y]]]],
 body=Optional.empty]]]]]
-""","""
+""", """
 Pair[X,Y]:{ .x:X; .y:Y;}
 """);}
 @Test void decl_generics_use_repeat(){fail("""
@@ -67,7 +67,7 @@ In file: [###].fear
 While inspecting type declaration > full file
 A method signature cannot declare multiple generic type parameters with the same name.
 Generic type parameter "X" is repeated.
-Error 2 UnexpectedToken""","""
+Error 2 UnexpectedToken""", """
 Pair[X,X]:{ .x:X; .y:X;}
 """);}
 @Test void meth_generics_use_repeat(){fail("""
@@ -79,7 +79,7 @@ In file: [###].fear
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple generic type parameters with the same name.
 Generic type parameter "X" is repeated.
-Error 2 UnexpectedToken""","""
+Error 2 UnexpectedToken""", """
 Pairs:{.of[X,X]():A->A;}
 """);}
 
@@ -92,7 +92,7 @@ In file: [###].fear
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple generic type parameters with the same name.
 Generic type parameter "X" is repeated.
-Error 2 UnexpectedToken""","""
+Error 2 UnexpectedToken""", """
 Pairs:{#[X,X]():A->A;}
 """);}//here we need to fix the tokenizer
 
@@ -105,7 +105,7 @@ In file: [###].fear
 While inspecting generic bounds declaration > method declaration > type declaration body > type declaration > full file
 Name "X" already in scope.
 Error 2 UnexpectedToken
-""","""
+""", """
 Pair[X,Y]:{ .x:X; .y:Y; .foo[X](x:X):X; }
 """);}
 
@@ -118,12 +118,12 @@ In file: [###].fear
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Name "X" already in scope.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{.foo[X]:A->B:{.bar[X]:B->B}; }
 """);}
 @Test void type_type_repeatFunnel(){ok("""
 [###][B[x=X[name=X],bt=RCS[rcs=[]]]]],cs=[],l=[###]
-""","""
+""", """
 A[X]:{.foo:AA->B[X]:{.bar:BB->BB}; }
 """);}
 @Test void type_type_noFunnel(){fail("""
@@ -136,14 +136,14 @@ While inspecting generic bounds declaration > method body > method declaration >
 Generic type "C" is not in scope.
 Declared generics: "X".
 Error 2 UnexpectedToken
-""","""
+""", """
 A[X]:{.foo:AA->B[C]:{.bar:BB->BB}; }
 """);}
 @Test void use_this(){ok("""
 FileFull[[###]decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.foo],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
 body=Optional[this]]]]]]
-""","""
+""", """
 A:{.foo:A->this; }
 """);}
 @Test void use_selfBadBackTick(){fail("""
@@ -158,7 +158,7 @@ Found a matching closer inside a string literal between here and the stopping po
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{ `x .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
 """);}
 @Test void use_self(){fail("""
@@ -171,7 +171,7 @@ While inspecting type declaration body > type declaration > full file
 Self name "abc" is invalid in a top level type.
 Top level types self names can only be "this".
 Error 7 WellFormedness
-""","""
+""", """
 A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be this or nothing
 """);}
 
@@ -180,7 +180,7 @@ FileFull[[###]decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.foo],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
 body=Optional[DeclarationLiteralDeclaration[name=B/0,bs=Optional.empty,cs=[],
 l=Literalx[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.foo],bs=Optional.empty,hasParenthesis=false,parameters=[Parameter[xp=Optional[Name[x=y]],t=Optional.empty],Parameter[xp=Optional[Name[x=a]],t=Optional.empty]],t=Optional.empty]],body=Optional[Call[Call[this]+false[x]]+false[a]]]]]]]]]]]
-""","""
+""", """
 A:{ .foo:A->B:{'x .foo y,a -> this + x + a; } }
 """);}
 
@@ -190,7 +190,7 @@ Declaration[name=Id/0, bs=Optional.empty, cs=[], l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty, m=Optional[.id], bs=Optional.empty, hasParenthesis=true,
 parameters=[Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 body=Optional[x]]]]]]
-""","""
+""", """
 Id:{ .id(x:X):X -> x }
 """);}
 @Test void method_without_parens_sig_form(){ok("""
@@ -199,7 +199,7 @@ Declaration[name=NoPar/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.one],bs=Optional.empty,hasParenthesis=false,parameters=[
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 t=Optional.empty]],body=Optional[x]]]]]]
-""","""
+""", """
 NoPar:{ .one x:X -> x }
 """);}
 @Test void abstract_method_only_sig(){ok("""
@@ -209,7 +209,7 @@ M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.abs],bs=Optional.empty,hasParen
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 body=Optional.empty]]]]]
-""","""
+""", """
 Abs:{ .abs(x:X):X }
 """);}
 @Test void call_inside_body_simple_dotname(){ok("""
@@ -221,7 +221,7 @@ Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,t
 Parameter[xp=Optional[Name[x=y]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 body=Optional[Call[x].plustrue[y]]]]]]]
-""","""
+""", """
 Sum:{ .sum(x:X,y:X):X -> x.plus(y) }
 """);}
 @Test void round_group_in_body(){ok("""
@@ -231,7 +231,7 @@ M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.paren],bs=Optional.empty,hasPar
 Parameter[xp=Optional[Name[x=x]],t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 t=Optional[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]],
 body=Optional[(x)]]]]]]
-""","""
+""", """
 Par:{ .paren(x:X):X -> (x) }
 """);}
 @Test void typed_literal_in_body_unsigned(){ok("""
@@ -241,7 +241,7 @@ sig=Optional[Sig[rc=Optional.empty,m=Optional[.lit],bs=Optional.empty,hasParenth
 t=Optional[RCC[rc=Optional.empty,c=C[name=+45/0,ts=Optional.empty]]]]],
 body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=+45/0,ts=Optional.empty]]
 Literal[]]]]]]]
-""","""
+""", """
 Lit:{ .lit(): +45 -> +45{} }//:+45 would (correctly) trigger BadOpDigit :+
 """);}
 @Test void typed_literal_in_body_with_rc(){ok("""
@@ -251,21 +251,21 @@ M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.lit2],bs=Optional.empty,hasPare
 t=Optional[RCC[rc=Optional.empty,c=C[name=+45/0,ts=Optional.empty]]]]],
 body=Optional[TypedLiteralRCC[rc=Optional[read],c=C[name=+45/0,ts=Optional.empty]]
 Literal[]]]]]]]
-""","""
+""", """
 Lit2:{ .lit2(): +45 -> read +45{} }
 """);}
 @Test void literal_with_thisname_and_method1(){ok("""
 [###]
 body=Optional[self]
 [###]
-""","""
+""", """
 A:{Selfy:{'self .me():Selfy -> self}}
 """);}
 @Test void literal_with_thisname_and_method2(){ok("""
 [###]
 body=Optional[self]
 [###]
-""","""
+""", """
 B:{Selfy:{'self .me:Selfy -> self}}
 """);}
 @Test void calls_1(){ok("""
@@ -276,7 +276,7 @@ Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
 t=Optional.empty]],
 body=Optional[Call[x]#false[y]]]]]]]
-""","""
+""", """
 A:{x,y ->x#y;}
 """);}
 @Test void calls_2(){ok("""
@@ -287,7 +287,7 @@ Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
 t=Optional.empty]],
 body=Optional[Call[x]#true[y]]]]]]]
-""","""
+""", """
 A:{x,y, ->x#(y);}
 """);}
 @Test void calls_3(){ok("""
@@ -298,7 +298,7 @@ Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
 t=Optional.empty]],
 body=Optional[Call[x]++false[y]]]]]]]
-""","""
+""", """
 A:{x,y ->x++y}
 """);}
 @Test void calls_4(){ok("""
@@ -309,7 +309,7 @@ Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
 t=Optional.empty]],
 body=Optional[Call[x].foofalse[y]]]]]]]
-""","""
+""", """
 A:{x,y ->x .foo y}
 """);}
 
@@ -321,7 +321,7 @@ Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
 Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
 t=Optional.empty]],
 body=Optional[Call[::].foofalse[y]]]]]]]
-""","""
+""", """
 A:{x,y ->::.foo y}
 """);}
 
@@ -332,7 +332,7 @@ letfalseName[x=x]
 .returnfalse[Literal[M[sig=Optional.empty,body=
 Optional[Call[x]*false[TypedLiteralRCC[rc=Optional.empty,
 c=C[name=2/0,ts=Optional.empty]]]]]]]]]]]]]]
-""","""
+""", """
 A:{Block#.let x= {5} .return {x*2} }
 """);}
 @Test void eq_underscoreIsNotASugar(){fail("""
@@ -345,7 +345,7 @@ While inspecting method declaration > type declaration body > type declaration >
 The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{Block#.let _ = {5} .return {2} }
 """);}
 @Test void eq_underscoreIsNotASugarAfterTypeArguments(){fail("""
@@ -358,7 +358,7 @@ While inspecting method declaration > type declaration body > type declaration >
 The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{Block#.let[base.Nat] _ = {5} .return {2} }
 """);}
 @Test void eq_underscoreAfterTypedName(){fail("""
@@ -370,7 +370,7 @@ In file: [###].fear
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
 Error 6 MissingSeparator
-""","""
+""", """
 A:{Block#.let[base.Nat] s: _ = {5} .return: {2} }
 """);}
 @Test void eq_underscoreIsNotASugarAfterTypeArgumentsInParenthesis(){fail("""
@@ -383,7 +383,7 @@ While inspecting expression in round parenthesis > method body > method declarat
 The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{(Block#.let[base.Nat] _ = {5} .return {2}) }
 """);}
 @Test void eq_underscoreIsNotASugarInParenthesis(){fail("""
@@ -396,7 +396,7 @@ While inspecting expression in round parenthesis > method body > method declarat
 The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{(Block#.let _ = {5} .return {2}) }
 """);}
 @Test void self_underscore(){ok("""
@@ -408,7 +408,7 @@ body=Optional[Literal_[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.j],bs=Op
 parameters=[Parameter[xp=Optional[Name[x=_]],t=Optional.empty]],
 t=Optional[RCC[rc=Optional.empty,c=C[name=A/0,ts=Optional.empty]]]]],
 body=Optional[this]]]]]]]]]]]]
-""","""
+""", """
 A:{ .m:A -> {'_
   .k:A -> {'_
     .j(_):A -> this } } }
@@ -421,7 +421,7 @@ Parameter[xp=Optional[Name[x=x]],
 t=Optional.empty]],t=Optional.empty]],
 body=Optional[Call[x].foo
 CallSquare[rc=Optional[read],ts=[]]false[]]]]]]]
-""","""
+""", """
 A:{ x -> x.foo[read] }
 """);}
 @Test void calls_square_rc_only_comma_ok(){ok("""
@@ -432,7 +432,7 @@ Parameter[xp=Optional[Name[x=x]],
 t=Optional.empty]],t=Optional.empty]],
 body=Optional[Call[x].foo
 CallSquare[rc=Optional[read],ts=[]]false[]]]]]]]
-""","""
+""", """
 A:{ x -> x.foo[read,] }
 """);}
 @Test void calls_square_rc_T(){ok("""
@@ -443,7 +443,7 @@ Parameter[xp=Optional[Name[x=x]],t=Optional.empty]],
 t=Optional.empty]],
 body=Optional[Call[x].foo
 CallSquare[rc=Optional[read],ts=[RCC[rc=Optional.empty,c=C[name=X/0,ts=Optional.empty]]]]false[]]]]]]]
-""","""
+""", """
 A:{ x -> x.foo[read,X] }
 """);}
 @Test void mini_inner_Declaration(){ok("""
@@ -452,7 +452,7 @@ Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
 M[sig=Optional[Sig[rc=Optional.empty,m=Optional[
 .m],bs=Optional.empty,hasParenthesis=false,parameters=[],t=Optional.empty]],
 body=Optional[DeclarationLiteralDeclaration[name=B/0,bs=Optional.empty,cs=[],l=Literal[]]]]]]]]
-""","""
+""", """
 A:{ .m -> B:{} }
 """);}
 
@@ -464,7 +464,7 @@ Block/0,ts=Optional.empty]]]
 .letfalseDestruct[extract=[[.name,.size],[.age]],
 id=Optional[Bob]][Call[Literal[]]
 .usetrue[sizeBob,ageBob]]]]]]]]
-""","""
+""", """
 A:{ .m -> Block#.let {.name.size,.age}Bob = {} .use(sizeBob,ageBob) }
 """);}
 @Test void eRound1(){ok("""
@@ -477,7 +477,7 @@ TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]
 .barfalse[]]
 )]
 .usetrue[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]]]]
-""","""
+""", """
 A:{ .m -> (Block#.let x={5}.bar) .use(5) }
 """);}
 
@@ -491,7 +491,7 @@ While inspecting method signature > method declaration > type declaration body >
 Missing type name.
 Expected: "type name".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m(): -> (Block#.let x={5}) .use(x) }
 """);}
 @Test void useOutOfScopeBad(){fail("""
@@ -504,7 +504,7 @@ While inspecting expression in round parenthesis > method body > method declarat
 Missing method name.
 Expected one of: ".name", "binary operator (eg. +, *, -)".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m -> (Block#.let x={5}) .use(x) }
 """);}
 
@@ -518,7 +518,7 @@ While inspecting arguments list > method body > method declaration > type declar
 Name "x" is not in scope.
 In scope: "this".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m -> (Block#.let x={5}.bar) .use(x) }
 """);}
 
@@ -533,7 +533,7 @@ While inspecting arguments list > expression in round parenthesis > method body 
 Name "x" is not in scope.
 In scope: "this".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m ->
 ( (Block#.let x={5}.bar) .use(x) )
  }
@@ -550,7 +550,7 @@ While inspecting arguments list > expression in round parenthesis > expression i
 Name "x" is not in scope.
 In scope: "this".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m ->
 (   (  (Block#.let x={5}.bar) .use(x)       )      )
  }
@@ -568,7 +568,7 @@ While inspecting expression in round parenthesis > expression in round parenthes
 Missing expression after "=" in the equals sugar.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m ->
 (   (    Block#.let x= .use(x)    )      )
  }
@@ -585,7 +585,7 @@ While inspecting method parameters declaration > method declaration > type decla
 Missing type name.
 Expected: "type name".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m(a,,b):C }
 """);}
 
@@ -599,7 +599,7 @@ While inspecting arguments list > method body > method declaration > type declar
 Missing expression.
 Expected one of: "name", "type name", "(", "{".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m(x:C):C->x.foo(,) }
 """);}
 
@@ -612,7 +612,7 @@ In file: [###].fear
 While inspecting the file
 Illegal character [Tab 0x09]
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ \t .m(x:C):C->x.foo(,) }
 """);}
 
@@ -627,7 +627,7 @@ File ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{
 """);}
 
@@ -642,7 +642,7 @@ File ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{ fdfdds
 dsdds
 fssdf
@@ -667,7 +667,7 @@ While inspecting method parameters declaration > method signature > method decla
 Missing type name.
 Expected: "type name".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{
 
 .m(a,,b):C -> this
@@ -682,7 +682,7 @@ Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=Block/0,ts=Optional.empty]]
 .letfalseName[x=z][Call[Call[Literal[M[sig=Optional.empty,body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=5/0,ts=Optional.empty]]]]]]
 .usetrue[z]]
 .usetrue[z]]]]]]]]
-""","""
+""", """
 A:{
 .m(x:C):C ->
 Block#.let z={5}
@@ -702,7 +702,7 @@ While inspecting arguments list > method body > method declaration > type declar
 Name "y" is not in scope.
 In scope: "this", "x".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{
 .m ->
 Block#.let x={5}
@@ -723,7 +723,7 @@ Missing expression.
 Found instead: ".use".
 Expected one of: "name", "type name", "(", "{".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{
 .m ->
 .use(y)
@@ -741,7 +741,7 @@ While inspecting arguments list > method body > method declaration > type declar
 Missing expression.
 Expected one of: "name", "type name", "(", "{".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{
 .m(x:C):C ->
 x.foo(
@@ -762,7 +762,7 @@ While inspecting method body > method declaration > type declaration body > type
 Name "y" is not in scope.
 In scope: "this".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{//comment1
 .m -> y;//removing this semicol should give a clear missing separator error
 .n -> {}
@@ -782,7 +782,7 @@ While inspecting method body > method declaration > type declaration body > type
 Name "y" is not in scope.
 In scope: "this".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{
 .m -> y;//removing this semicol should give a clear missing separator error
 .n -> {}
@@ -799,7 +799,7 @@ In file: [###].fear
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
 Error 6 MissingSeparator
-""","""
+""", """
 A:{
 .m -> this
 .n -> {}
@@ -816,7 +816,7 @@ While inspecting groups of parenthesis
 Unopened "}".
 This "}" may be unintended.
 Error 1 Unopened
-""","""
+""", """
 A: a b c } f e
 """);}
 
@@ -831,7 +831,7 @@ Missing expression.
 Found instead: ":".
 Expected one of: "name", "type name", "(", "{".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m -> :+45 }
 """);}
 @Test void err_bad_open_square_with_space(){fail("""
@@ -846,7 +846,7 @@ Here we expect "[" as a generic/RC argument opener and must follow the name with
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ x -> x.foo [read] }
 """);}
 @Test void err_bad_open_square_after_block_comment_method(){fail("""
@@ -861,7 +861,7 @@ Here we expect "[" as a generic/RC argument opener and must follow the name with
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ x -> x.foo/*c*/[read] }
 """);}
 @Test void err_bad_open_square_after_block_comment_type(){fail("""
@@ -876,7 +876,7 @@ Here we expect "[" as a generic/RC argument opener and must follow the name with
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m: B/*c*/[C] -> this.m }
 """);}
 @Test void err_bad_open_square_after_block_comment_operator(){fail("""
@@ -891,7 +891,7 @@ Here we expect "[" as a generic/RC argument opener and must follow the name with
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ x -> x +/*c*/[read] x }
 """);}
 @Test void err_bad_open_square_after_line_comment(){fail("""
@@ -906,7 +906,7 @@ Here we expect "[" as a generic/RC argument opener and must follow the name with
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ x -> x.foo//c
 [read] }
 """);}
@@ -922,7 +922,7 @@ Here we expect "[" as a generic/RC argument opener and must follow the name with
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m: A -> 1/*c*/[A] }
 """);}
 @Test void err_bad_open_square_after_number_and_block_comment_empty(){fail("""
@@ -937,7 +937,7 @@ Here we expect "[" as a generic/RC argument opener and must follow the name with
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m: A -> 1/*c*/[] }
 """);}
 @Test void err_bad_open_square_after_string_and_block_comment(){fail("""
@@ -952,12 +952,12 @@ Here we expect "[" as a generic/RC argument opener and must follow the name with
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m: A -> "a"/*c*/[A] }
 """);}
 @Test void op_slash_with_square(){ok("""
 [###]CallSquare[rc=Optional[read],ts=[]][###]
-""","""
+""", """
 A:{ x -> x /[read] x }
 """);}
 @Test void err_disallowed_readH_on_closure(){fail("""
@@ -971,7 +971,7 @@ Capability readH used.
 Capabilities readH and mutH are not allowed on object literals.
 Use one of read, mut, imm, iso.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m -> readH +5{} }
 """);}
 @Test void err_disallowed_mutH_on_closure(){fail("""
@@ -985,7 +985,7 @@ Capability mutH used.
 Capabilities readH and mutH are not allowed on object literals.
 Use one of read, mut, imm, iso.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m -> mutH -5{} }
 """);}
 @Test void err_missing_expr_after_eq_sugar(){fail("""
@@ -998,7 +998,7 @@ While inspecting method body > method declaration > type declaration body > type
 Missing expression after "=" in the equals sugar.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m -> Block#.let x= .use(x) }
 """);}
 
@@ -1012,7 +1012,7 @@ While inspecting method signature > method declaration > type declaration body >
 A method signature cannot declare multiple parameters with the same name.
 Parameter "x" is repeated.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m(x,x) -> x }
 """);}
 
@@ -1030,7 +1030,7 @@ In file: [###].fear
 While inspecting super types declaration > type declaration > full file
 Name "X" is used as a type name, but "X" is already a generic type parameter in scope.
 Error 2 UnexpectedToken
-""","""
+""", """
 A[X]: X {}
 """);}
 
@@ -1046,7 +1046,7 @@ Only "*" or "**" are allowed here.
 Write: [X: *]   meaning mut,read,imm
    or: [X: **]  meaning everything.
 Error 2 UnexpectedToken
-""","""
+""", """
 A[X:***]:{}
 """);}
 @Test void err_generic_bound_colon_without_bound(){fail("""
@@ -1062,7 +1062,7 @@ Write: [X] alone (note, no colon) as a shortcut for [X: imm]
    or: [X: **]  meaning everything
    or something like: [X: imm, read]  meaning imm or read.
 Error 2 UnexpectedToken
-""","""
+""", """
 A[X:]:{}
 """);}
 @Test void err_generic_bound_colon_without_bound_before_comma(){fail("""
@@ -1078,7 +1078,7 @@ Write: [X] alone (note, no colon) as a shortcut for [X: imm]
    or: [X: **]  meaning everything
    or something like: [X: imm, read]  meaning imm or read.
 Error 2 UnexpectedToken
-""","""
+""", """
 A[X:,Y]:{}
 """);}
 
@@ -1092,7 +1092,7 @@ While inspecting method signature > method declaration > type declaration body >
 A method signature cannot declare multiple parameters with the same name.
 Parameter "a" is repeated.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m(a,b,b,a) -> a }
 """);
 }
@@ -1107,7 +1107,7 @@ While inspecting method parameters declaration > method declaration > type decla
 Found spacing between closed curly and destruct id "Bob".
 There must be no space between the closed curly and the destruct id.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m({.a} Bob:X):X }
 """);
 }
@@ -1122,7 +1122,7 @@ While inspecting nominal pattern > method parameters declaration > method declar
 This destructuring pattern extracts nothing.
 Write at least one chain, for example {.a}, instead of an empty {}.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m({}):X }
 """);
 }
@@ -1137,7 +1137,7 @@ While inspecting nominal pattern > method parameters declaration > method declar
 This destructuring pattern has an empty chain between commas.
 Each comma must separate two non-empty chains; remove the stray comma, for example write {.a,.b} instead of {.a,,.b} or {,.a}.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m({,}Bob:X):X }
 """);
 }
@@ -1152,7 +1152,7 @@ While inspecting arguments list > method body > method declaration > type declar
 Missing expression.
 Expected one of: "name", "type name", "(", "{".
 Error 2 UnexpectedToken
-""","""
+""", """
 \uFEFFA:{ .m(x:C):C->x.foo(,) }
 """);}
 @Test void err_illegal_form_feed_char(){fail("""
@@ -1255,14 +1255,14 @@ bs=Optional.empty,cs=[],l=Literal[M[sig=Optional.empty,
 body=Optional[Call[TypedLiteralRCC[rc=Optional.empty,
 c=C[name=A/0,ts=Optional.empty]]]
 #false[TypedLiteralRCC[rc=Optional.empty,c=C[name=+1/0,ts=Optional.empty]]]]]]]]]
-""","""
+""", """
 A:{ A # +1 }
 """); }
 @Test void plusOneSplit(){ ok("""
 FileFull[maps=[],uses=[],decs=[Declaration[name=A/0,
 bs=Optional.empty,cs=[],l=Literal[M[sig=Optional.empty,
 body=Optional[Call[TypedLiteralRCC[rc=Optional.empty,
-c=C[name=A/0,ts=Optional.empty]]]+false[TypedLiteralRCC[rc=Optional.empty,c=C[name=1/0,ts=Optional.empty]]]]]]]]]""","""
+c=C[name=A/0,ts=Optional.empty]]]+false[TypedLiteralRCC[rc=Optional.empty,c=C[name=1/0,ts=Optional.empty]]]]]]]]]""", """
 A:{ A  +1 }
 """); }
 @Test void plusOneTogetherFloat(){ ok("""
@@ -1271,14 +1271,14 @@ bs=Optional.empty,cs=[],l=Literal[M[sig=Optional.empty,
 body=Optional[Call[TypedLiteralRCC[rc=Optional.empty,
 c=C[name=A/0,ts=Optional.empty]]]
 #false[TypedLiteralRCC[rc=Optional.empty,c=C[name=+1.0/0,ts=Optional.empty]]]]]]]]]
-""","""
+""", """
 A:{ A # +1.0 }
 """); }
 @Test void plusOneSplitFloat(){ ok("""
 FileFull[maps=[],uses=[],decs=[Declaration[name=A/0,
 bs=Optional.empty,cs=[],l=Literal[M[sig=Optional.empty,
 body=Optional[Call[TypedLiteralRCC[rc=Optional.empty,
-c=C[name=A/0,ts=Optional.empty]]]+false[TypedLiteralRCC[rc=Optional.empty,c=C[name=1.0/0,ts=Optional.empty]]]]]]]]]""","""
+c=C[name=A/0,ts=Optional.empty]]]+false[TypedLiteralRCC[rc=Optional.empty,c=C[name=1.0/0,ts=Optional.empty]]]]]]]]]""", """
 A:{ A  +1.0 }
 """); }
 
@@ -1567,7 +1567,7 @@ Found a matching closer inside a string literal between here and the stopping po
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> "price is } dollars" ) }
 """);}
 
@@ -1583,7 +1583,7 @@ Found a matching closer inside a string literal between here and the stopping po
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> `oops } here` ) }
 """);}
 
@@ -1600,7 +1600,7 @@ Found a matching closer inside a block comment "/* ... */" between here and the 
 Did you mean to place the closer outside the block comment "/* ... */"?
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> /* } inside */ ) }
 """);}
 
@@ -1616,7 +1616,7 @@ Found a matching closer inside a line comment "//" between here and the stopping
 Did you mean to place the closer outside the line comment "//"?
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> // } swallowed
 ) }
 """);}
@@ -1633,7 +1633,7 @@ Found a matching closer inside a string literal between here and the stopping po
 Did you mean to place the closer outside the string literal?
 Otherwise expected: ")".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> ( ")]" + " has ) here ) inside" }
 """);}
 
@@ -1649,7 +1649,7 @@ Found a matching closer inside a string literal between here and the stopping po
 Did you mean to place the closer outside the string literal?
 Otherwise expected: "]".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> W[ "list ] marker" ) ] }
 """);}
 
@@ -1665,7 +1665,7 @@ Found a matching closer inside a string literal between here and the stopping po
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> { "inner } hidden"
 """);}
 
@@ -1681,7 +1681,7 @@ Found a matching closer inside a block comment "/* ... */" between here and the 
 Did you mean to place the closer outside the block comment "/* ... */"?
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> { /* } hidden */
 """);}
 
@@ -1697,7 +1697,7 @@ Found a matching closer inside a block comment "/* ... */" between here and the 
 Did you mean to place the closer outside the block comment "/* ... */"?
 Otherwise expected: "]".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> Foo[ /* ] hidden */ } ]
 """);}
 
@@ -1712,7 +1712,7 @@ Unopened ")".
 Found a matching opener hidden inside a string literal before this point.
 Did you mean to place the opener outside the string literal?
 Error 1 Unopened
-""","""
+""", """
 A:{ .m:Str -> "call (" ) }
 """);}
 
@@ -1727,7 +1727,7 @@ Unopened ")".
 Found a matching opener hidden inside a line comment "//" before this point.
 Did you mean to place the opener outside the line comment "//"?
 Error 1 Unopened
-""","""
+""", """
 A:{ .m:Str -> // ( swallowed
 ) }
 """);}
@@ -1743,7 +1743,7 @@ Unopened "]".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
 Did you mean to place the opener outside the block comment "/* ... */"?
 Error 1 Unopened
-""","""
+""", """
 A:{ .m:Str -> /* [ hidden */ ] }
 """);}
 
@@ -1758,7 +1758,7 @@ Unopened "}".
 Found a matching opener hidden inside a string literal before this point.
 Did you mean to place the opener outside the string literal?
 Error 1 Unopened
-""","""
+""", """
 .m:Str -> "start { here" }
 """);}
 
@@ -1773,7 +1773,7 @@ Unopened ")".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
 Did you mean to place the opener outside the block comment "/* ... */"?
 Error 1 Unopened
-""","""
+""", """
 A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
 """);}
 
@@ -1790,7 +1790,7 @@ Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:Str -> ((1 + 2)) ) }
 """);}
 
@@ -1805,7 +1805,7 @@ Wrong closer for "{" group.
 Found instead: "]".
 Expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:Str -> Foo[Bar] ] ) }
 """);}
 
@@ -1821,7 +1821,7 @@ Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m(a,b):Str -> (a + b)) }
 """);}
 
@@ -1836,7 +1836,7 @@ Wrong closer for "{" group.
 Found instead: "]".
 Expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:Str -> A[mut,imm]] ) }
 """);}
 
@@ -1852,7 +1852,7 @@ Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m(foo,bar):Str -> (foo + bar))
 """);}
 
@@ -1868,7 +1868,7 @@ Found instead: "]".
 This "]" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:Str -> A[X,Y,Z]]
 """);}
 
@@ -1884,7 +1884,7 @@ Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
 """);}
 
@@ -1899,7 +1899,7 @@ Wrong closer for "{" group.
 Found instead: "]".
 Expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
 """);}
 
@@ -1915,7 +1915,7 @@ Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:Str -> (((x))) ) }
 """);}
 
@@ -1931,7 +1931,7 @@ Found instead: "]".
 This "]" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:Str -> A[B[X]] ] }
 """);}
 
@@ -1946,7 +1946,7 @@ Wrong closer for "(" group.
 Found instead: "]".
 Expected: ")".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:Str -> (1 + 2 ] }
 """);}
 
@@ -1961,7 +1961,7 @@ Wrong closer for "[" group.
 Found instead: ")".
 Expected: "]".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:Str -> E[1,2) }
 """);}
 
@@ -1976,7 +1976,7 @@ File ended while parsing a "(" group.
 This "(" may be unintended.
 Otherwise expected: ")".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> (1 + 2
 """);}
 
@@ -1991,7 +1991,7 @@ File ended while parsing a "[" group.
 This "[" may be unintended.
 Otherwise expected: "]".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> E[1, 2, 3
 """);}
 @Test void wrongCloser_CurlyClosedByParen(){fail("""
@@ -2006,7 +2006,7 @@ Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:Str -> { x: 1 ) }
 """);}
 
@@ -2022,7 +2022,7 @@ Found instead: ")".
 This ")" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:Str -> { x: 1 ) }
 B:{} C:{}
 """);}
@@ -2038,7 +2038,7 @@ Unclosed "(" group before ";".
 This ";" may be unintended.
 Otherwise expected: ")".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> ( 1 + 2; ) }
 """);}
 
@@ -2053,7 +2053,7 @@ While inspecting groups of parenthesis
 Unclosed "[" group before "{".
 Expected: "]".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> ( Foo[ { a } ) ] }
 """);}
 
@@ -2068,7 +2068,7 @@ File ended while parsing a "{" group.
 This "{" may be unintended.
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> { a: 1, b: 2
 """);}
 
@@ -2084,7 +2084,7 @@ Found instead: "}".
 This "(" may be unintended.
 Otherwise expected: ")".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:A -> this.foo( }
 """);}
 @Test void strayOpenerBeforeBarrierFarAhead(){fail("""
@@ -2099,7 +2099,7 @@ Found instead: "}".
 This "(" may be unintended.
 Otherwise expected: ")".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:A -> this.foo( } B:{} C:{};
 """);}
 
@@ -2115,13 +2115,13 @@ Found a matching closer inside a string literal between here and the stopping po
 Did you mean to place the closer outside the string literal?
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .m:Str -> { "json } aaa"
 """);}
 
 @Test void pkgName(){ok("""
 FileFull[[###]
-""","""
+""", """
 A:{}
 """);}
 
@@ -2130,7 +2130,7 @@ FileFull[
 maps=[map goo as boo in foo_bar,map gor as goo in foo],
 uses=[],
 decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[]]]]
-""","""
+""", """
 map goo as boo in foo_bar;
 map gor as goo in foo;
 A:{}
@@ -2139,13 +2139,13 @@ A:{}
 @Test void tNameWithDot(){ok("""
 [###]
 C[name=foo.Bar/0,ts=Optional.empty]]]]],body=Optional.empty]]]]]
-""","""
+""", """
 A:{ .m: foo.Bar }
 """);}
 
 @Test void pkgFull(){ok("""
 [###]
-""","""
+""", """
 map goo as boo in baz;
 map gor as goo in beer;
 use foo.Bar as Baz;
@@ -2163,7 +2163,7 @@ In file: [###].fear
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
 Error 6 MissingSeparator
-""","""
+""", """
 A: base.Main{ .foo->A .beer->B}
 """);}
 
@@ -2180,7 +2180,7 @@ While inspecting header element > file header > full file
 Missing "in" keyword.
 Expected: "in".
 Error 2 UnexpectedToken
-""","""
+""", """
 map goo as boo;
 map gor as goo;
 use foo.Bar as Baz;
@@ -2190,70 +2190,70 @@ A: base.Main{ }
 
 @Test void pkgName_leadingUnderscore_fail(){ fail("""
 [###]
-""","""
+""", """
 package _foo
 A:{}
 """); }
 
 @Test void pkgName_reserved_con_fail(){ fail("""
 [###]
-""","""
+""", """
 package con
 A:{}
 """); }
 
 @Test void pkgName_reserved_prn_fail(){ fail("""
 [###]
-""","""
+""", """
 package prn
 A:{}
 """); }
 
 @Test void pkgName_reserved_aux_fail(){ fail("""
 [###]
-""","""
+""", """
 package aux
 A:{}
 """); }
 
 @Test void pkgName_reserved_nul_fail(){ fail("""
 [###]
-""","""
+""", """
 package nul
 A:{}
 """); }
 
 @Test void pkgName_reserved_com1_fail(){ fail("""
 [###]
-""","""
+""", """
 package com1
 A:{}
 """); }
 
 @Test void pkgName_reserved_lpt9_fail(){ fail("""
 [###]
-""","""
+""", """
 package lpt9
 A:{}
 """); }
 
 @Test void pkgName_reserved_con_withBlockComments_fail(){ fail("""
 [###]
-""","""
+""", """
 package /* pre */ con /* post */
 A:{}
 """); }
 
 @Test void pkgName_reserved_com9_tightComments_fail(){ fail("""
 [###]
-""","""
+""", """
 package/*x*/com9/*y*/
 A:{}
 """); }
 
 @Test void pkgName_reserved_nul_withLineCommentAfter_fail(){ fail("""
 [###]
-""","""
+""", """
 package nul // device name on Windows
 A:{}
 """); }
@@ -2268,14 +2268,14 @@ In file: [###].fear
 While inspecting header element > file header > full file
 There is already an entry in the mapping for "a" in "c".
 Error 2 UnexpectedToken
-""","""
+""", """
 map a as b1 in c;
 map a as b2 in c;
 """); }
 
 @Test void pkgDupMapOk(){ ok("""
 [###]
-""","""
+""", """
 map a1 as b in c;
 map a2 as b in c;
 """); }
@@ -2290,7 +2290,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 There is already an entry in the using with source "a1.B".
 Error 2 UnexpectedToken
-""","""
+""", """
 
 use a1.B as B1;
 use a1.B as B2;
@@ -2306,7 +2306,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 There is already an entry in the using with destination "F1".
 Error 2 UnexpectedToken
-""","""
+""", """
 use a1.F as F1;
 use a2.F as F1;
 """); }
@@ -2323,7 +2323,7 @@ Missing simple type name.
 Found instead: "beer.F1".
 Expected: "type name".
 Error 2 UnexpectedToken
-""","""
+""", """
 
 use a1.F as beer.F1;
 use a2.F as F2;
@@ -2339,7 +2339,7 @@ Missing type name.
 Found instead: "a1".
 Expected one of: "type name", "signed number (eg. -23.0045)", "unsigned number (eg. 23.0045)", "signed number (eg. -23)", "unsigned number (eg. 23)", "`...`", `"..."`.
 Error 2 UnexpectedToken
-""","""
+""", """
 use a1 as F1;
 """); }
 
@@ -2347,21 +2347,21 @@ use a1 as F1;
 [###]
 c=C[name="aaa"/0
 [###]
-""","""
+""", """
 A:{ .m:Str -> "aaa"}
 """); }
 @Test void uStrWithDotUnderscore(){ ok("""
 [###]
 c=C[name="file._tmp"/0
 [###]
-""","""
+""", """
 A:{ .m:Str -> "file._tmp"}
 """); }
 @Test void sStrWithDotUnderscore(){ ok("""
 [###]
 c=C[name=`file._tmp`/0
 [###]
-""","""
+""", """
 A:{ .m:Str -> `file._tmp`}
 """); }
 
@@ -2369,7 +2369,7 @@ A:{ .m:Str -> `file._tmp`}
 [###]
 c=C[name="aa\\na"/0
 [###]
-""","""
+""", """
 A:{ .m:Str -> "aa\\na"}
 """); }
 
@@ -2377,13 +2377,13 @@ A:{ .m:Str -> "aa\\na"}
 [###]
 [TypedLiteralRCC[rc=Optional.empty,
 c=C[name="oops:\\x"/0,ts=Optional.empty]]]]]]]]
-""","""
+""", """
 A:{ .m:Str -> "oops: \\x" } // unknown escape \\x but no escapes in Fearless
 """); }
 
 @Test void uStr_err_empty_block(){ ok("""
 [###]C[name="bad:{}"/0,[###]
-""","""
+""", """
 A:{ .m:Str -> "bad: {}" } // just curly
 """); }
 
@@ -2397,7 +2397,7 @@ While inspecting method declaration > type declaration body > type declaration >
 Code is attempting to use private name "_Bar" from package "foo".
 Type names starting with "_" can only be used in their own package, and only by their simple name.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:foo._Bar }
 """); }
 
@@ -2412,7 +2412,7 @@ While inspecting header element > file header > full file
 Code is attempting to use private name "_Beer" from package "foo".
 Type names starting with "_" can only be used in their own package, and only by their simple name.
 Error 2 UnexpectedToken
-""","""
+""", """
 use foo._Beer as Beer;
 A:{  }
 """); }
@@ -2428,7 +2428,7 @@ Missing simple type name.
 Found instead: "foo.A".
 Expected: "type name".
 Error 2 UnexpectedToken
-""","""
+""", """
 foo.A:{  }
 """); }
 
@@ -2443,13 +2443,13 @@ Unrecognized text "aux.Bar".
 Package names are restricted to be valid filenames on all operating systems.
 Names like aux, nul, lpt2 are invalid on Windows.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .foo:aux.Bar }
 """); }
 
 @Test void mutMethOk(){ ok("""
 [###]
-""","""
+""", """
 A:{ mut .foo:Bar }
 """); }
 @Test void isoMethBad(){ fail("""
@@ -2463,7 +2463,7 @@ Capability iso used.
 Capabilities iso, readH and mutH are not allowed on method declarations.
 Use one of read, mut, imm.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ iso .foo:Bar }
 """); }
 @Test void readHMethBad(){ fail("""
@@ -2478,7 +2478,7 @@ Capabilities iso, readH and mutH are not allowed on method declarations.
 Use one of read, mut, imm.
 Error 2 UnexpectedToken
 
-""","""
+""", """
 A:{ readH .foo:Bar }
 """); }
 @Test void mutHMethBad(){ fail("""
@@ -2492,7 +2492,7 @@ Capability mutH used.
 Capabilities iso, readH and mutH are not allowed on method declarations.
 Use one of read, mut, imm.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ mutH .foo:Bar }
 """); }
 @Test void redeclaredMeth1(){ fail("""
@@ -2509,7 +2509,7 @@ While inspecting type declaration body > type declaration > full file
 Method ".foo" redeclared.
 A method with the same name, arity and reference capability is already present.
 Error 7 WellFormedness
-""","""
+""", """
 A:{
  mut .baz:Bar;
  mut .foo:Bar;
@@ -2532,7 +2532,7 @@ While inspecting type declaration body > type declaration > full file
 Method ".ban" redeclared.
 A method with the same name, arity and reference capability is already present.
 Error 7 WellFormedness
-""","""
+""", """
 A:{
  mut .ban(x):Bar;
  mut .foo:Bar;
@@ -2558,7 +2558,7 @@ While inspecting type declaration body > type declaration > full file
 Method ".foo" redeclared.
 A method with the same name, arity and reference capability is already present.
 Error 7 WellFormedness
-""","""
+""", """
 A:{
  mut .ban(x,y):Bar;
  mut .foo:Bar;
@@ -2588,7 +2588,7 @@ Found unnamed methods with parameters: "a", "b".
 To declare a method named "a", write ".a" (dot a).
 Without the dot, "a" is interpreted as a parameter name for an anonymous method.
 Error 7 WellFormedness
-""","""
+""", """
 A:{
  mut .ban(x,y):Bar;
  a->a;
@@ -2618,7 +2618,7 @@ Found unnamed methods with parameters: "a", "b".
 To declare a method named "a", write ".a" (dot a).
 Without the dot, "a" is interpreted as a parameter name for an anonymous method.
 Error 7 WellFormedness
-""","""
+""", """
 A:{
  mut .ban(x,y):Bar;
  a,b,c,d,e,f->a;
@@ -2648,7 +2648,7 @@ Found unnamed methods with parameters: "b", "a".
 To declare a method named "b", write ".b" (dot b).
 Without the dot, "b" is interpreted as a parameter name for an anonymous method.
 Error 7 WellFormedness
-""","""
+""", """
 A:{
  mut .ban(x,y):Bar;
  a,b,c,d,e,f->a;
@@ -2666,7 +2666,7 @@ C[name=B/0,ts=Optional.empty],
 C[name=C/0,ts=Optional.empty],
 C[name=D/0,ts=Optional.empty]
 ][###]
-""","""
+""", """
 A:B,C,D{
  mut .ban(y):Bar->Block#
    .let x={2}
@@ -2684,7 +2684,7 @@ In file: [###].fear
 While inspecting type declaration > full file
 Duplicated supertype in type declaration: "B".
 Error 7 WellFormedness
-""","""
+""", """
 A:B,C,B,D{
  mut .ban(y):Bar->Block#
    .let x={2}
@@ -2703,7 +2703,7 @@ While inspecting method declaration > object literal > method body > method decl
 Abstract method declaration for ".foo".
 Only top level methods can be abstract.
 Error 7 WellFormedness
-""","""
+""", """
 A:{
  mut .ban(y):Bar->
    {'self .foo:Bar;};
@@ -2711,22 +2711,22 @@ A:{
 """); }
 
 @Test void explicitThis(){ ok("""
-[###]""","""
+[###]""", """
 A:B{'this .foo->this }
 """); }
 @Test void recOrderFree1(){ ok("""
 [###]RCS[rcs=[mut,imm]][###]
-""","""
+""", """
 A[X:mut,imm]:{}
 """); }
 @Test void recOrderFree2(){ ok("""
 [###]RCS[rcs=[imm,mut]][###]
-""","""
+""", """
 A[X:imm,mut]:{}
 """); }
 @Test void readImmX1(){ ok("""
 [###][ReadImmX[x=X[name=X]]][###]
-""","""
+""", """
 A:{ .t[X](x:mut X, y:read/imm X):X -> x }
 """); }
 @Test void readImmX2(){ fail("""
@@ -2739,7 +2739,7 @@ While inspecting method parameters declaration > method signature > method decla
 Generic type "X" is not in scope.
 Declared generics: "Y".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .t[Y](x:mut X, y:read/imm X):X -> x }
 """); }
 
@@ -2747,7 +2747,7 @@ A:{ .t[Y](x:mut X, y:read/imm X):X -> x }
 [###].foo[###]
 TypedLiteralRCC[rc=Optional.empty,c=C[name=`aaa\\nbbb`/0,
 ts=Optional.empty]]]]]]]]
-""","""
+""", """
 A:{ .foo:Str -> `aaa\\nbbb` }
 """); }
 @Test void forgotSemiStart1(){fail("""
@@ -2763,7 +2763,7 @@ Missing type declaration (:) symbol.
 Found instead: a group in {..}.
 Expected: ":".
 Error 2 UnexpectedToken
-""","""
+""", """
 A{ .foo:A->
  this.foo
  .foo
@@ -2782,7 +2782,7 @@ Unrecognized text "'bar'".
 Simple string literals are of form `"..."`, not "'...'";
 that is: use double quotes (`"`) instead of single quotes ("'").
 Error 2 UnexpectedToken
-""","""
+""", """
 A{ .foo:A ->
   Block#
   .let foo={'bar'}
@@ -2791,43 +2791,43 @@ A{ .foo:A ->
 """);}
 @Test void twoSelfNamesOnOneLine(){ok("""
 [###]Literalx[###]Literaly[###]body=Optional[x][###]
-""","""
+""", """
 A:{ .a: A -> A{ 'x .a: A -> A{ 'y .a: A -> x } } }
 """);}
 @Test void twoSelfNamesOnOneLineInTwoReceivers(){ok("""
 [###]Literalx[###]body=Optional[Call[x].btrue[c]][###]Literaly[###]body=Optional[Call[y].btrue[c]][###]
-""","""
+""", """
 A:{ .a: B -> B{ 'x .b(c: B): B -> x.b(c) }.b(B{ 'y .b(c: B): B -> y.b(c) }) }
 """);}
 @Test void selfNameThenQuoteInBlockComment(){ok("""
 [###]Literalx[###]body=Optional[x][###]
-""","""
+""", """
 A:{ .a: A -> A{ 'x .a: A -> x /* users' list */ } }
 """);}
 @Test void selfNameThenQuoteInLineComment(){ok("""
 [###]Literalx[###]body=Optional[x][###]
-""","""
+""", """
 A:{ .a: A -> A{ 'x .a: A -> x // users' list
   } }
 """);}
 @Test void selfNameThenQuoteInString(){ok("""
 [###]Literalx[###]body=Optional[x][###]
-""","""
+""", """
 A:{ .a: A -> A{ 'x .a: A -> x; .b: B -> "users' list" } }
 """);}
 @Test void selfNameThenQuoteInBacktickString(){ok("""
 [###]Literalx[###]body=Optional[x][###]
-""","""
+""", """
 A:{ .a: A -> A{ 'x .a: A -> x; .b: B -> `users' list` } }
 """);}
 @Test void selfNameThenQuoteInCommentThenSelfName(){ok("""
 [###]Literalx[###]Literaly[###]body=Optional[x][###]
-""","""
+""", """
 A:{ .a: A -> A{ 'x /* x's */ .a: A -> A{ 'y .a: A -> x } } }
 """);}
 @Test void selfNameThenTwoQuotesInComment(){ok("""
 [###]Literalx[###]body=Optional[x][###]
-""","""
+""", """
 A:{ .a: A -> A{ 'x .a: A -> x /* 'quoted' */ } }
 """);}
 @Test void badSQuoteWithSlash(){fail("""
@@ -2841,7 +2841,7 @@ Unrecognized text "'a/b'".
 Simple string literals are of form `"..."`, not "'...'";
 that is: use double quotes (`"`) instead of single quotes ("'").
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .foo:A ->
   Block#
   .let foo={'a/b'}
@@ -2861,7 +2861,7 @@ Found a matching closer inside a line comment "//" between here and the stopping
 Did you mean to place the closer outside the line comment "//"?
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
-""","""
+""", """
 A:{ .foo:A ->
   Block#
   .let foo={'see http://x'}
@@ -2880,7 +2880,7 @@ While inspecting method body > method declaration > object literal > method body
 Name "c'" is not in scope.
 In scope: "a", "this".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .foo:A ->
   Block#
   .let foo={'a /* b */ c'}
@@ -2898,7 +2898,7 @@ In file: [###].fear
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
 Error 6 MissingSeparator
-""","""
+""", """
 A:{ .foo:A ->
   Block#
   .let foo={'say "hi"'}
@@ -2916,7 +2916,7 @@ While inspecting method declaration > type declaration body > type declaration >
 Expected semicolon or closed curly.
 Expected one of: ";", "}".
 Error 4 ExtraTokenInGroup
-""","""
+""", """
 StackMatch[T,R]: {
   .empty: R,
   .elem(top:T, tail: Stack[T]): R,
@@ -2929,7 +2929,7 @@ m=Optional[.foo2][###]
 m=Optional[.k],bs=Optional[[B[x=X[name=K][###]
 .kCallSquare[rc=Optional.empty,ts=[RCC[rc=Optional.empty,
 c=C[name=K/0,ts=Optional.empty]]]]false[]]]]]]]
-""","""
+""", """
 GG[A,B]:{ .apply[C,D](A,B,C):D }
 Baba[C,D]:GG[Any,Any]{}
 Any:{![T]:T->Any![T]}
@@ -2957,7 +2957,7 @@ Found unnamed methods with parameters: "x", "y".
 To declare a method named "x", write ".x" (dot x).
 Without the dot, "x" is interpreted as a parameter name for an anonymous method.
 Error 7 WellFormedness
-""","""
+""", """
 Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
 Absorb:{ #[T]:base.Void->base.Void; }
 User1:{.bla(p:Point):base.Void->Absorb#p;}
@@ -2976,7 +2976,7 @@ While inspecting method signature > method declaration > type declaration body >
 Method declaration missing "." before the name.
 To declare a method named "x", write ".x" (dot x).
 Error 7 WellFormedness
-""","""
+""", """
 Foo:{ .m : Point -> Point:{ x():base.Nat->0; y:base.Nat->0;} }
 Absorb:{ #[T]:base.Void->base.Void; }
 User1:{.bla(p:Point):base.Void->Absorb#p;}
@@ -2992,12 +2992,12 @@ While inspecting method signature > method declaration > type declaration body >
 Method declaration missing "." before the name.
 To declare a method named "x", write ".x" (dot x).
 Error 7 WellFormedness
-""","""
+""", """
 A:{ x[X](a:X):X->a; }
 """);}
 @Test void partialGenInstantiation(){ok("""
 [###]name=A/0[###]#CallSquare[rc=Optional.empty,ts=[RCC[rc=Optional[read],c=C[name=A/0,ts=Optional.empty]]]][###]
-""","""
+""", """
 Skip:{#[X:**](X):B->B}
 Id:{#[X:**](x:X):X->x}
 B:{}
@@ -3009,7 +3009,7 @@ A:{
 
 @Test void nestedLiterals(){ok("""
 [###]
-""","""
+""", """
 A:{}
 Get:{ imm .get: iso A; }
 Wrap:{ read .wrap: imm Get; }
@@ -3032,7 +3032,7 @@ While inspecting method declaration > type declaration body > type declaration >
 Did you forget a space in "!!!->" ?
 Did you mean "!!! ->" ?
 Error 2 UnexpectedToken
-""","""
+""", """
 Box[E:*]: _Box[E]{
   !! -> this.match{ .some x -> x; .empty  -> Boom.msg Str; };
   !!!-> this.match{ .some x -> x; .empty  -> Boom.msg Str; };
@@ -3052,7 +3052,7 @@ While inspecting method parameters declaration > method signature > method decla
 Expected comma , colon or arrow.
 Expected one of: ",", ":", "->".
 Error 4 ExtraTokenInGroup
-""","""
+""", """
 User:{
 .hash by h -> h.hash(by#(this.get))
 }
@@ -3071,7 +3071,7 @@ Missing method name.
 Found instead: "h".
 Expected one of: ".name", "binary operator (eg. +, *, -)".
 Error 2 UnexpectedToken
-""","""
+""", """
 User:{
  .hash h -> h.hash(h,h h)
 }
@@ -3090,7 +3090,7 @@ The definition of "B" ends with a semicolon. Remove it.
 Write: "B:..{...}"
 Not:   "B:..{...};"
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{}
 B:{};
 C:{}
@@ -3106,7 +3106,7 @@ Missing generic bounds.
 Found instead: a group in [..].
 Expected: ":".
 Error 2 UnexpectedToken
-""","""
+""", """
 A[X[Y]]:{}
 """);}
 @Test void groupFoundInsteadOfMethodBoundColon(){fail("""
@@ -3120,7 +3120,7 @@ Missing generic bounds.
 Found instead: a group in [..].
 Expected: ":".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .a[X[Y]]: A -> this }
 """);}
 @Test void doubleSemicolonAfterMethod(){fail("""
@@ -3133,7 +3133,7 @@ While inspecting type declaration body > type declaration > full file
 Extra semicolon: no method declaration comes before this ";".
 Methods are separated by a single ";". Remove this semicolon.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .a: A -> this;; }
 """);}
 @Test void leadingSemicolonInTypeDeclaration(){fail("""
@@ -3146,7 +3146,7 @@ While inspecting type declaration body > type declaration > full file
 Extra semicolon: no method declaration comes before this ";".
 Methods are separated by a single ";". Remove this semicolon.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ ; .a: A -> this }
 """);}
 @Test void onlySemicolonInObjectLiteral(){fail("""
@@ -3159,7 +3159,7 @@ While inspecting object literal > method body > method declaration > type declar
 Extra semicolon: no method declaration comes before this ";".
 Methods are separated by a single ";". Remove this semicolon.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .a: A -> {;} }
 """);}
 @Test void doubleSemicolonBetweenMethods(){fail("""
@@ -3172,7 +3172,7 @@ While inspecting type declaration body > type declaration > full file
 Extra semicolon: no method declaration comes before this ";".
 Methods are separated by a single ";". Remove this semicolon.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .a: A -> this;; .b: A -> this }
 """);}
 
@@ -3191,7 +3191,7 @@ A type declaration starts with a type name, like "Point:{..}".
 Found instead: ".foo".
 Likely cause: an extra "}" closed a type declaration unintentionally.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{}
 .foo:Void;
 B:{}
@@ -3209,7 +3209,7 @@ A type declaration starts with a type name, like "Point:{..}".
 Found instead: a group in (..).
 Likely cause: an extra "}" closed a type declaration unintentionally.
 Error 2 UnexpectedToken
-""","""
+""", """
 ()
 """);}
 @Test void okFork(){ok("""
@@ -3218,7 +3218,7 @@ Call[this].choosetrue[DeclarationLiteralDeclaration[
   name=SomeLeftRight/0,bs=Optional[[]],
   cs=[C[name=LeftRight/1,ts=Optional[[RCC[rc=Optional.empty,
   c=C[name=Str/0,ts=Optional.empty]]]]]],l=Literal[M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.left],bs=Optional[[]],hasParenthesis=true,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],body=Optional[DeclarationLiteralDeclaration[name=Str1/0,bs=Optional[[]],cs=[C[name="Hello"/0,ts=Optional.empty]],l=Literal[]]]],M[sig=Optional[Sig[rc=Optional.empty,m=Optional[.right],bs=Optional[[]],hasParenthesis=true,parameters=[],t=Optional[RCC[rc=Optional.empty,c=C[name=Str/0,ts=Optional.empty]]]]],body=Optional[DeclarationLiteralDeclaration[name=Str2/0,bs=Optional[[]],cs=[C[name="Hi"/0,ts=Optional.empty]],l=Literal[]]]]]]]]]]]]]
-""","""
+""", """
 A:{this.choose( SomeLeftRight[]:LeftRight[Str]{
   .left[](): Str -> Str1[]:"Hello"{};
   .right[](): Str-> Str2[]:"Hi"{};
@@ -3235,7 +3235,7 @@ While inspecting type declaration body > type declaration > full file
 Method ".foo" mixes an explicit and an inferred reference capability.
 Once one overload of ".foo" declares a reference capability, every overload of that method must.
 Error 7 WellFormedness
-""","""
+""", """
 A:{ .foo:A->this; mut .foo:A->this; }
 """);}
 
@@ -3249,7 +3249,7 @@ While inspecting type declaration > full file
 Missing type declaration body.
 Expected: "{".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:
 """);}
 @Test void declarationWithSupertypesMissingBody(){fail("""
@@ -3262,7 +3262,7 @@ While inspecting type declaration > full file
 Missing type declaration body.
 Expected: "{".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:B,C
 """);}
 @Test void underscoreAsMethodBody(){fail("""
@@ -3276,7 +3276,7 @@ Missing expression.
 Found instead: "_".
 Expected one of: "name", "type name", "(", "{".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{ .m:A->_ }
 """);}
 @Test void underscoreBeforeExpressionInMethodBody(){fail("""
@@ -3290,7 +3290,7 @@ Missing expression.
 Found instead: "_".
 Expected one of: "name", "type name", "(", "{".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{_ A +1.0 }
 """);}
 @Test void qualifiedGenericDeclaration(){fail("""
@@ -3304,7 +3304,7 @@ Missing Generic type name declaration.
 Found instead: "base.Nat".
 Expected: "type name".
 Error 2 UnexpectedToken
-""","""
+""", """
 A[base.Nat]:{}
 """);}
 @Test void implicitMethodsRedeclared(){fail("""
@@ -3318,7 +3318,7 @@ While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
 Error 7 WellFormedness
-""","""
+""", """
 A:{ #(x:A):A; #(x:A,y:A):A }
 C:A{::; ::}
 """);}
@@ -3332,7 +3332,7 @@ While inspecting type declaration body > type declaration > full file
 Method with inferred name and 0 parameter redeclared.
 A method with the inferred name and the same parameter count is already present above.
 Error 7 WellFormedness
-""","""
+""", """
 A:{ this; this }
 """);}
 @Test void patternNameInScope(){fail("""
@@ -3345,7 +3345,7 @@ While inspecting method declaration > type declaration body > method body > meth
 Name "a" already in scope.
 It is declared by a nominal pattern: a pattern like "{.a.b, .c}id" declares the names "bid" and "cid".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{.m(a:A):A->B:{.k({.a}:A):A->a}}
 """);}
 @Test void eqPatternNameInScope(){fail("""
@@ -3358,7 +3358,7 @@ While inspecting method body > method declaration > type declaration body > type
 Name "a" already in scope.
 It is declared by a nominal pattern: a pattern like "{.a.b, .c}id" declares the names "bid" and "cid".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{.m(a:A):A->a.m {.a} = a; a}
 """);}
 @Test void eqPatternNameRepeated(){fail("""
@@ -3371,7 +3371,7 @@ While inspecting method body > method declaration > type declaration body > type
 Name "bx" already in scope.
 It is declared by a nominal pattern: a pattern like "{.a.b, .c}id" declares the names "bid" and "cid".
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{.m(a:A):A->a.m {.b, .b}x = a; a}
 """);}
 @Test void patternPrimedNameWithIdParameter(){fail("""
@@ -3385,7 +3385,7 @@ Nominal pattern "{.a'}1" declares the name "a'1", which is not a valid parameter
 A name can only have "'" at its end, but here the id follows a method name ending with "'".
 For example "{.a'}" is accepted.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{.m({.a'}1:A):A->A}
 """);}
 @Test void patternPrimedNameWithIdEqSugar(){fail("""
@@ -3399,7 +3399,7 @@ Nominal pattern "{.b'}x" declares the name "b'x", which is not a valid parameter
 A name can only have "'" at its end, but here the id follows a method name ending with "'".
 For example "{.b'}" is accepted.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{.m(a:A):A->a.m {.b'}x = a; a}
 """);}
 @Test void patternRCapNameAbstract(){fail("""
@@ -3413,7 +3413,7 @@ Nominal pattern "{.b, .read}" declares the name "read", which is not a valid par
 Reference capabilities, like "read", can not be parameter names.
 For example "{.b, .read}1" is accepted.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{.m({.b, .read}:A):A}
 """);}
 @Test void patternPrimedAndRCapNames(){fail("""
@@ -3424,7 +3424,7 @@ A name can only have "'" at its end, but here the id follows a method name endin
 Reference capabilities, like "imm", can not be parameter names.
 For example "{.a', .i}" is accepted.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{.m({.a', .i}mm:A):A}
 """);}
 @Test void patternNoIdFixesAllNames(){fail("""
@@ -3434,7 +3434,7 @@ Nominal pattern "{.a', .read, .mut}" declares the names "read", "mut", which are
 Reference capabilities, like "read", can not be parameter names.
 No choice of id makes all the names of this pattern valid.
 Error 2 UnexpectedToken
-""","""
+""", """
 A:{.m({.a', .read, .mut}:A):A}
 """);}
 }

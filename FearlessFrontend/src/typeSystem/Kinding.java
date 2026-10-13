@@ -22,16 +22,16 @@ public record Kinding(TypeSystemErrors tsE){
     for (int i : Range.of(params)){ check(toErr, c, i, bs, args.get(i), params.get(i).rcs()); }
   }
   public void check(E toErr, List<B> bs, T t){
-    if (t instanceof T.RCC rcc){ check(toErr,rcc.c(),-1,bs,rcc,EnumSet.allOf(RC.class)); }
+    if (t instanceof T.RCC rcc){ check(toErr, rcc.c(), -1, bs, rcc, EnumSet.allOf(RC.class)); }
   }
   public Function<TName,Literal> decs(){ return tsE.decs(); }
   public void check(E toErr, KindingTarget target, int index, List<B> bs, T t, EnumSet<RC> allowed){
     if (t instanceof T.RCC(var rc, var c, _)){
-      if (!allowed.contains(rc)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed,EnumSet.of(rc)); }
-      checkC(toErr,bs,c);
+      if (!allowed.contains(rc)){ throw tsE.typeNotWellKinded(toErr, target, index, allowed, EnumSet.of(rc)); }
+      checkC(toErr, bs, c);
       return;
     }
-    if (!of(bs,t,allowed)){ throw tsE.typeNotWellKinded(toErr,target,index,allowed,intrinsicRCs(bs,t)); }
+    if (!of(bs, t, allowed)){ throw tsE.typeNotWellKinded(toErr, target, index, allowed, intrinsicRCs(bs, t)); }
   }
   public boolean of(List<B> bs, T t, EnumSet<RC> allowed){
     if (!allowed.containsAll(intrinsicRCs(bs, t))){ return false; }

@@ -32,7 +32,7 @@ final class Sources{
       }
     }
     for (var m : l.ms()){ if (m.sig().origin().equals(l.name())){ sources.add(m.sig()); } }
-    assert unionCount(ts,l) == sources.size();
+    assert unionCount(ts, l) == sources.size();
     assert sources.stream().allMatch(s -> l.ms().stream().anyMatch(m -> m.sig().m().equals(s.m()) && m.sig().rc() == s.rc()));
     assert l.ms().stream().map(M::sig).allMatch(s -> sources.stream().anyMatch(si ->
       si.m().equals(s.m()) && si.rc() == s.rc()
@@ -45,13 +45,13 @@ final class Sources{
     ).count();
   }
   static Sig findCanonical(Literal l, MName name, RC rc){
-    return OneOr.of("Methods with duplicates or absent",l.ms().stream().map(M::sig).filter(s ->
+    return OneOr.of("Methods with duplicates or absent", l.ms().stream().map(M::sig).filter(s ->
       s.m().equals(name) && s.rc() == rc));
   }
   private static Sig instantiate(Sig s, List<B> bs, List<T> ts, List<B> canonical){
     assert eq(s.bs().size(), canonical.size(), "Generic arity mismatch in instantiate");
     var mapXs= B.xs(Push.of(s.bs(), bs));
-    var mapTs= Push.of(TypeSystem.dom(canonical,s.span()), ts);
+    var mapTs= Push.of(TypeSystem.dom(canonical, s.span()), ts);
     var newTs= TypeRename.ofT(s.ts(), mapXs, mapTs);
     var newRet= TypeRename.of(s.ret(), mapXs, mapTs);
     return new Sig(s.rc(), s.m(), canonical, newTs, newRet, s.origin(), s.abs(), s.span());

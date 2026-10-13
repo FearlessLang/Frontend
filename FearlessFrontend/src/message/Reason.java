@@ -17,63 +17,63 @@ public final class Reason{
   final Supplier<E> footerE;
   final String info;//package-private: only message.* should read it
   public final T best;//exposed, seen by the type system
-  private Reason(T best,String info, Supplier<E> footerE){
+  private Reason(T best, String info, Supplier<E> footerE){
     this.best= best; this.info= info; this.footerE= footerE;
   }
   public boolean isEmpty(){ return info.isEmpty(); }
-  public static Reason pass(T got){ return new Reason(got,"",() -> {throw Bug.unreachable();}); }
+  public static Reason pass(T got){ return new Reason(got, "", () -> {throw Bug.unreachable();}); }
   public static Reason literalDoesNotHaveRequiredType(
     TypeSystem ts, E blame, List<B> bs, T got, T expected
     ){
     var er= (T.RCC)expected;
     var rc= er.rc() == RC.mutH ? RC.mut : er.rc();
-    var explRC= rc != RC.imm && ts.isSub(bs,got.withRC(rc),er) && switch (blame){
+    var explRC= rc != RC.imm && ts.isSub(bs, got.withRC(rc), er) && switch (blame){
       case Literal l -> l.rc() != RC.imm;
       case Type(var t, _) -> t.rc() != RC.imm;
       default -> throw Bug.unreachable();
     };
-    if (!explRC){ return new Reason(got, base(ts,blame,bs,got,expected), () -> baseFooterE(ts.scope(),got,expected)); }
-    return hintExplicitRC(ts,got, base(ts,blame,bs,got,expected), er,rc,blame);
+    if (!explRC){ return new Reason(got, base(ts, blame, bs, got, expected), () -> baseFooterE(ts.scope(), got, expected)); }
+    return hintExplicitRC(ts, got, base(ts, blame, bs, got, expected), er, rc, blame);
   }
   private static String base(TypeSystem ts, E blame, List<B> bs, T got, T expected){
-    if (isInferErr(expected)){ return ts.err().gotMsgInferErr(ts.err().expRepr(blame),got); }
+    if (isInferErr(expected)){ return ts.err().gotMsgInferErr(ts.err().expRepr(blame), got); }
     var skipImm= !ts.isSub(bs, got, expected.withRC(RC.imm));
-    return "Object literal is of type "+ts.err().expReprDirect(skipImm,blame)+" instead of a subtype of "+ts.err().typeRepr(skipImm,expected)+".";
+    return "Object literal is of type "+ts.err().expReprDirect(skipImm, blame)+" instead of a subtype of "+ts.err().typeRepr(skipImm, expected)+".";
   }
-  private static Reason hintExplicitRC(TypeSystem ts,T got, String base, T.RCC expected, RC rc, E blame){
+  private static Reason hintExplicitRC(TypeSystem ts, T got, String base, T.RCC expected, RC rc, E blame){
     E blameOk= switch (blame){
       case Literal l -> l.withRC(rc);
-      case Type(var t, var src) -> new Type(t.withRC(rc),src);
+      case Type(var t, var src) -> new Type(t.withRC(rc), src);
       default -> throw Bug.unreachable();
     };
     var why= rc == expected.rc() ? "." : " (needed to satisfy the "+disp(expected.rc())+" requirement).";
     var e= ts.err()
       .line(base)
-      .line("Hint: write "+ts.err().expReprDirect(false,blameOk)
+      .line("Hint: write "+ts.err().expReprDirect(false, blameOk)
       +" if you need a "+disp(rc)+" object literal"+why);
-    return new Reason(got, e.text(), () -> baseFooterE(ts.scope(),got,expected));
+    return new Reason(got, e.text(), () -> baseFooterE(ts.scope(), got, expected));
   }
-  private static E baseFooterE(TypeScope s,T actual, T req){ return TypeScope.bestInterestingScope(s, TypeScope.interestFromDeclVsReq(actual, req)).contextE(); }
+  private static E baseFooterE(TypeScope s, T actual, T req){ return TypeScope.bestInterestingScope(s, TypeScope.interestFromDeclVsReq(actual, req)).contextE(); }
   public static Reason callResultCannotHaveRequiredType(TypeSystem ts, Literal d, Call call, TRequirement req, List<T> got, Sig sig){
-    return new Reason(got.getFirst(),ts.err().gotMsg(true,"Method call "+ts.err().methodSig(call.rc().toStrSpace(),d,call.name()),got, req.t()),
-      () -> baseFooterE(ts.scope(),sig.ret().withRC(RC.imm),req.t().withRC(RC.imm)));
+    return new Reason(got.getFirst(), ts.err().gotMsg(true, "Method call "+ts.err().methodSig(call.rc().toStrSpace(), d, call.name()), got, req.t()),
+      () -> baseFooterE(ts.scope(), sig.ret().withRC(RC.imm), req.t().withRC(RC.imm)));
   }
   public static Reason parameterDoesNotHaveRequiredTypeHere(
-    TypeSystem ts,X x, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
+    TypeSystem ts, X x, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
   ){
     var got= cur.currentT();
     var rcOnly= rcOnlyMismatch(got, req.t());
-    var base= ts.err().gotMsg(!rcOnly,ts.err().expRepr(x), List.of(got), req.t());
+    var base= ts.err().gotMsg(!rcOnly, ts.err().expRepr(x), List.of(got), req.t());
     var noDeclaredNote= !rcOnly || declared.equals(got);
-    if (noDeclaredNote){ return new Reason(got, base,() -> baseFooterE(ts.scope(),got,req.t())); }
+    if (noDeclaredNote){ return new Reason(got, base, () -> baseFooterE(ts.scope(), got, req.t())); }
     var e= ts.err().line(base);
     e.line(declaredOkExpected
-      ? "Note: the declared type "+ts.err().typeRepr(true,declared)+" would instead be a valid subtype."
-      : "Note: the declared type "+ts.err().typeRepr(true,declared)+" also does not satisfy the requirement."
+      ? "Note: the declared type "+ts.err().typeRepr(true, declared)+" would instead be a valid subtype."
+      : "Note: the declared type "+ts.err().typeRepr(true, declared)+" also does not satisfy the requirement."
     );
-    var trace= vpaTrace(ts,cur);
+    var trace= vpaTrace(ts, cur);
     if (!trace.isEmpty()){ e.line("Capture adaptation trace:\n"+trace+"."); }
-    return new Reason(got, e.text(),() -> baseFooterE(ts.scope(),got,req.t()));
+    return new Reason(got, e.text(), () -> baseFooterE(ts.scope(), got, req.t()));
   }
   private static String vpaTrace(TypeSystem ts, WithT cur){ return switch (cur){
     case Same _ -> "";
@@ -82,10 +82,10 @@ public final class Reason{
     case KeepSetToReadImm(_, var m, var to, var tail) -> traceKeep(ts, tail, "setToReadImm", to, m);
   };}
   private static String traceKeep(TypeSystem ts, WithT tail, String op, T to, M m){
-    var prev= vpaTrace(ts,tail);
+    var prev= vpaTrace(ts, tail);
     if (tail.currentT().equals(to)){ return prev; }
-    var edge= " --"+op+"(line "+m.sig().span().inner.startLine()+")--> "+ts.err().typeRepr(true,to);
-    if (prev.isEmpty()){ return ts.err().typeRepr(true,tail.currentT())+edge; }
+    var edge= " --"+op+"(line "+m.sig().span().inner.startLine()+")--> "+ts.err().typeRepr(true, to);
+    if (prev.isEmpty()){ return ts.err().typeRepr(true, tail.currentT())+edge; }
     return prev+edge;
   }
 }

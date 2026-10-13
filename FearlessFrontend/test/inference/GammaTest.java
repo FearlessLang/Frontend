@@ -11,7 +11,7 @@ import utils.Range;
 
 public final class GammaTest{
 
-  private static IT X(String name){ return new IT.X(name,null); }
+  private static IT X(String name){ return new IT.X(name, null); }
 
   // 1) Root: declare, get, update change the signature appropriately
   @Test void root_declare_get_update_and_signature(){
@@ -131,7 +131,7 @@ public final class GammaTest{
   @Test void large_scope_correctness_under_many_binds_and_pops(){
     var g= new Gamma();
     int n= 64;
-    for (int i : Range.of(0,n)){ g.declare("v" + i, X("T" + i)); }
+    for (int i : Range.of(0, n)){ g.declare("v" + i, X("T" + i)); }
 
     var sigParent= new Gamma.GammaSignature();
     g.sign(sigParent);
@@ -158,7 +158,7 @@ public final class GammaTest{
     assertSame(t, g.get("v31"));
 
     g.newScope(RC.mut, List.of(), null);
-    for (int i : Range.of(0,10)){ g.declare("w" + i, X("W" + i)); }
+    for (int i : Range.of(0, 10)){ g.declare("w" + i, X("W" + i)); }
     g.popScope();
 
     assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("w0"));
@@ -172,7 +172,7 @@ public final class GammaTest{
   @Test void popped_name_get_after_slot_reuse_throws(){
     var g= new Gamma();
     int base= 13;
-    for (int i : Range.of(0,base)){ g.declare("v" + i, X("V" + i)); }
+    for (int i : Range.of(0, base)){ g.declare("v" + i, X("V" + i)); }
     g.newScope(RC.mut, List.of(), null);
     g.declare("w0", X("W0"));
     g.popScope(); // w0 out of scope
@@ -184,7 +184,7 @@ public final class GammaTest{
   @Test void popped_name_update_after_slot_reuse_throws(){
     var g= new Gamma();
     int base= 13;
-    for (int i : Range.of(0,base)){ g.declare("v" + i, X("V" + i)); }
+    for (int i : Range.of(0, base)){ g.declare("v" + i, X("V" + i)); }
     g.newScope(RC.mut, List.of(), null);
     g.declare("w0", X("W0"));
     g.popScope(); // w0 out of scope
@@ -247,15 +247,15 @@ public final class GammaTest{
     var root= new Gamma.GammaSignature();
     g.sign(root);
     int n= 1000;
-    for (int i : Range.of(0,n)){
+    for (int i : Range.of(0, n)){
       g.newScope(RC.mut, List.of(), null);
-      for (int j : Range.of(0,10)){ g.declare("v" + i + "_" + j, X("T" + i)); }
+      for (int j : Range.of(0, 10)){ g.declare("v" + i + "_" + j, X("T" + i)); }
     }
     assertEquals(X("T0"), g.get("v0_0"));
     assertEquals(X("T999"), g.get("v999_9"));
     g.update("v0_0", X("U"));
     assertEquals(X("U"), g.get("v0_0"));
-    for (int _ : Range.of(0,n)){ g.popScope(); }
+    for (int _ : Range.of(0, n)){ g.popScope(); }
     assertTrue(g.represents(root));
     assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("v0_0"));
   }

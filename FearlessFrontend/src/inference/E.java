@@ -33,32 +33,32 @@ public sealed interface E{
     return e == oldE && es == oldEs ? self : make.get();
   }
   record X(String name, IT t, Src src, Gamma.GammaSignature g) implements E{
-    public X(String name, Src src){ this(name,IT.U.Instance,src,new Gamma.GammaSignature()); }
-    public X{ assert nonNull(t,src,g); assert validate(name, "parameter name",LowercaseId); }
+    public X(String name, Src src){ this(name, IT.U.Instance, src, new Gamma.GammaSignature()); }
+    public X{ assert nonNull(t, src, g); assert validate(name, "parameter name", LowercaseId); }
     @Override public String toString(){ return name+":"+t; }
-    @Override public E withT(IT t){ return sameTOr(this, t, () -> new X(name,t,src,g.clear())); }
+    @Override public E withT(IT t){ return sameTOr(this, t, () -> new X(name, t, src, g.clear())); }
   }
   record Type(IT.RCC type, IT t, Src src, Gamma.GammaSignature g) implements E{
-    public Type{ assert nonNull(type,t,src,g); }
-    public Type(IT.RCC type, Src src){ this(type,IT.U.Instance,src,new Gamma.GammaSignature()); }
-    @Override public E withT(IT t){ return sameTOr(this, t, () -> new Type(type,t,src,g.clear())); }
+    public Type{ assert nonNull(type, t, src, g); }
+    public Type(IT.RCC type, Src src){ this(type, IT.U.Instance, src, new Gamma.GammaSignature()); }
+    @Override public E withT(IT t){ return sameTOr(this, t, () -> new Type(type, t, src, g.clear())); }
     @Override public String toString(){ return ""+type+":"+t; }
   }
   // **rc is present implies no inference needed**
-  record Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, IT t, Src src,boolean infName, boolean infHead, Gamma.GammaSignature g) implements E{
-    public Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, Src src,boolean infName){
-      this(rc,name,bs,cs,thisName,ms,IT.U.Instance,src,infName,false,new Gamma.GammaSignature());
+  record Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, IT t, Src src, boolean infName, boolean infHead, Gamma.GammaSignature g) implements E{
+    public Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, Src src, boolean infName){
+      this(rc, name, bs, cs, thisName, ms, IT.U.Instance, src, infName, false, new Gamma.GammaSignature());
     }
     public Literal{
-      assert unmodifiableDistinct(bs,"E.Literal.bs");
-      assert unmodifiable(cs,"E.Literal.cs") && cs.stream().distinct().count() == cs.size();
+      assert unmodifiableDistinct(bs, "E.Literal.bs");
+      assert unmodifiable(cs, "E.Literal.cs") && cs.stream().distinct().count() == cs.size();
       assert unmodifiableDistinct(ms, "E.Literal.ms");
-      assert nonNull(rc,name,thisName,t,src,g);
+      assert nonNull(rc, name, thisName, t, src, g);
     }
-    @Override public E.Literal withT(IT t){ return sameTOr(this, t, () -> new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear())); }
+    @Override public E.Literal withT(IT t){ return sameTOr(this, t, () -> new Literal(rc, name, bs, cs, thisName, ms, t, src, infName, infHead, g.clear())); }
     @Override public String toString(){
-      var res= rc.map(RC::toStrSpace).orElse("")+name.s()+Join.of(bs,"[",",","]","")+(rc.isEmpty() ? ":$?" : Join.of(cs,":",", ","",":"));
-      return res+Join.of(ms,"{'"+thisName,"","}","")+":"+t;
+      var res= rc.map(RC::toStrSpace).orElse("")+name.s()+Join.of(bs, "[", ",", "]", "")+(rc.isEmpty() ? ":$?" : Join.of(cs, ":", ", ", "", ":"));
+      return res+Join.of(ms, "{'"+thisName, "", "}", "")+":"+t;
     }
     public Literal withMsT(List<M> ms, IT t){
       assert t instanceof IT.RCC;
@@ -67,7 +67,7 @@ public sealed interface E{
       var noChange= infHead && ms == this.ms && t.equals(this.t);
       if (noChange){ return this; }
       assert !t.equals(this.t) || ms == this.ms || !ms.equals(this.ms);
-      return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,true,g.clear());
+      return new Literal(rc, name, bs, cs, thisName, ms, t, src, infName, true, g.clear());
     }
     public Literal withCsMs(List<IT.C> cs, List<M> ms, boolean setInfHead){
       assert !setInfHead || !infHead;
@@ -76,45 +76,45 @@ public sealed interface E{
       if (noChange){ return this; }
       assert Monotonicity.onLiteralWithMs(this, ms);
       assert ms == this.ms || !ms.equals(this.ms);
-      return new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,setInfHead,g.clear());
+      return new Literal(rc, name, bs, cs, thisName, ms, t, src, infName, setInfHead, g.clear());
     }
   }
   record Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, IT t, Src src, Gamma.GammaSignature g) implements E{
     public Call(E e, MName name, Optional<RC> rc, List<IT> targs, List<E> es, Src src){
-      this(e,name,rc,targs,es,IT.U.Instance,src,new Gamma.GammaSignature());
+      this(e, name, rc, targs, es, IT.U.Instance, src, new Gamma.GammaSignature());
     }
     public Call{
-      assert nonNull(e,name,rc,targs,t,src,g);
+      assert nonNull(e, name, rc, targs, t, src, g);
       assert unmodifiable(es, "E.Call.es");
       assert unmodifiable(targs, "E.Call.targs");
     }
-    public Call withMore(E e,RC rc,List<IT> targs,List<E> es,IT t){
+    public Call withMore(E e, RC rc, List<IT> targs, List<E> es, IT t){
       assert e == this.e || !e.equals(this.e);
       assert es == this.es || !es.equals(this.es);
       assert Monotonicity.onCallWithMore(this, Optional.of(rc), targs, t);
       var noChange= e == this.e && this.rc.equals(Optional.of(rc)) && targs.equals(this.targs) && es == this.es && t.equals(this.t);
       if (noChange){ return this; }
-      return new E.Call(e, name, Optional.of(rc),targs,es,t,src,g.clear());
+      return new E.Call(e, name, Optional.of(rc), targs, es, t, src, g.clear());
     }
-    public Call withEEs(E e,List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, () -> new E.Call(e, name, rc,targs,es,t,src,g.clear())); }
-    public Call withE(E e){ return withEEs(e,es); }
-    @Override public Call withT(IT t){ return sameTOr(this, t, () -> new Call(e,name,rc,targs,es,t,src,g.clear())); }
+    public Call withEEs(E e, List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, () -> new E.Call(e, name, rc, targs, es, t, src, g.clear())); }
+    public Call withE(E e){ return withEEs(e, es); }
+    @Override public Call withT(IT t){ return sameTOr(this, t, () -> new Call(e, name, rc, targs, es, t, src, g.clear())); }
     @Override public String toString(){
       var open= rc.map(r -> "["+r).orElse("[");
       return ""+e+name+open
-        +Join.of(targs,rc.isEmpty() ? "" : ",",",","](","](")
-        +Join.of(es,"",",","):","):")+t;
+        +Join.of(targs, rc.isEmpty() ? "" : ",", ",", "](", "](")
+        +Join.of(es, "", ",", "):", "):")+t;
     }
   }
   record ICall(E e, MName name, List<E> es, IT t, Src src, Gamma.GammaSignature g) implements E{
-    public ICall(E e, MName name, List<E> es, Src src){ this(e,name,es,IT.U.Instance,src,new Gamma.GammaSignature());}
+    public ICall(E e, MName name, List<E> es, Src src){ this(e, name, es, IT.U.Instance, src, new Gamma.GammaSignature());}
     public ICall{
-      assert nonNull(e,name,t,src,g);
+      assert nonNull(e, name, t, src, g);
       assert unmodifiable(es, "E.ICall.es");
     }
-    @Override public E withT(IT t){ return sameTOr(this, t, () -> new ICall(e,name,es,t,src,g.clear())); }
-    @Override public String toString(){ return ""+e+name+Join.of(es,"(",",","):","():")+t; }
-    public E withEEs(E e, List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, () -> new ICall(e,name,es,t,src,g.clear())); }
-    public E withE(E e){ return withEEs(e,es); }
+    @Override public E withT(IT t){ return sameTOr(this, t, () -> new ICall(e, name, es, t, src, g.clear())); }
+    @Override public String toString(){ return ""+e+name+Join.of(es, "(", ",", "):", "():")+t; }
+    public E withEEs(E e, List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, () -> new ICall(e, name, es, t, src, g.clear())); }
+    public E withE(E e){ return withEEs(e, es); }
   }
 }

@@ -22,24 +22,24 @@ public final class BadTokens{
       .put(Ws,           (_,_,_) -> Stream.of())
       .put(LineComment,  (_,_,_) -> Stream.of())
       .put(BlockComment, (_,_,_) -> Stream.of())
-      .put(BadUStrUnclosed, (idx, t, tz) -> frontOrBack(idx,t,tz,'\"'))
-      .put(BadSStrUnclosed, (idx, t, tz) -> frontOrBack(idx,t,tz,'`'))
-      .put(BadUnclosedBlockComment, (_, t, tz) -> badBlockComment(tz,t))
+      .put(BadUStrUnclosed, (idx, t, tz) -> frontOrBack(idx, t, tz, '\"'))
+      .put(BadSStrUnclosed, (idx, t, tz) -> frontOrBack(idx, t, tz, '`'))
+      .put(BadUnclosedBlockComment, (_, t, tz) -> badBlockComment(tz, t))
       .put(BadUnopenedBlockCommentClose, BadTokens::strayBlockCommentCloser)
       .put(OSquareArg, BadTokens::squareAfterLiteral)
-      .putStr(BadOSquare,Code.UnexpectedToken::of,"""
+      .putStr(BadOSquare, Code.UnexpectedToken::of, """
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
 Write "Foo[Bar]" not "Foo [Bar]".
 Write "x.foo[read]" not "x.foo [read]".
-""","common ambiguities")
-      .putStr(BadUppercaseId,Code.UnexpectedToken::of,"""
+""", "common ambiguities")
+      .putStr(BadUppercaseId, Code.UnexpectedToken::of, """
 Package names are restricted to be valid filenames on all operating systems.
 Names like aux, nul, lpt2 are invalid on Windows.
-""","package names")
-      .putStr(BadSStrQuote,Code.UnexpectedToken::of,"""
+""", "package names")
+      .putStr(BadSStrQuote, Code.UnexpectedToken::of, """
 Simple string literals are of form `"..."`, not "'...'";
 that is: use double quotes (`"`) instead of single quotes ("'").
-""","common ambiguities")
+""", "common ambiguities")
 ;}
   private static Stream<Token> strayBlockCommentCloser(int idx, Token t, Tokenizer tokenizer){
     var file= tokenizer.fileName();
@@ -48,24 +48,24 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     if (hit.isEmpty()){
       throw Code.UnexpectedToken
         .of("Unopened block comment close \"*/\".\nRemove it, or add a matching \"/*\" earlier on.")
-        .addFrame("comments",base);
+        .addFrame("comments", base);
     }
     var h= hit.get();
     var s= h.span(file);
     assert s.isSingleLine();
     var line= s.startLine();
     var index= h.content().indexOf("/*");
-    var primary= new Span(file,line, s.startCol()+index, base.endLine(), base.endCol());
+    var primary= new Span(file, line, s.startCol()+index, base.endLine(), base.endCol());
     var where= "inside a"+describeFree(h);
     throw Code.UnexpectedToken.of(
       "Unopened block comment close \"*/\".\n"
     + "Found a \"/*\" " + where + " before this point.\n"
     + "Did you mean to place the opener outside the string/comment?")
-      .addFrame("comments",primary);
+      .addFrame("comments", primary);
   }
   private static Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
     var lit= tz.allTokens().get(idx - 1);
-    var afterLiteral= lit.is(SStr,UStr,SignedInt,UnsignedInt,SignedFloat,UnSignedFloat);
+    var afterLiteral= lit.is(SStr, UStr, SignedInt, UnsignedInt, SignedFloat, UnSignedFloat);
     if (!afterLiteral){ return Stream.of(t); }
     var file= tz.fileName();
     var s= lit.span(file);
@@ -74,7 +74,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
       "Literal "+name+" is directly followed by \"[\".\n"
     + "Number and string literals take no generic arguments.\n"
     + "Remove the \"[...]\" after "+name+".")
-      .addFrame("a literal",new Span(file,s.startLine(),s.startCol(),t.line(),t.span(file).endCol()));
+      .addFrame("a literal", new Span(file, s.startLine(), s.startCol(), t.line(), t.span(file).endCol()));
   }
   public static String describeFree(Token t){
     return switch (t.kind()){
@@ -89,20 +89,20 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     var all= tz.allTokens();
     for (var j= idx - 1; j >= 0; j--){
       var p= all.get(j);
-      if (p.is(BlockComment,_SOF)){ return Optional.empty(); }
+      if (p.is(BlockComment, _SOF)){ return Optional.empty(); }
       var hidesOpener= p.is(LineComment, UStr, SStr) && p.content().contains("/*");
       if (hidesOpener){ return Optional.of(p); }
     }
     throw Bug.unreachable();
   }
   private static FearlessException strErr(Span at, int quoteChar, String more){
-    return Code.UnexpectedToken.of("String literal " + Message.displayChar(quoteChar) + " reaches the end of the line.\n" + more).addFrame("a string literal",at);
+    return Code.UnexpectedToken.of("String literal " + Message.displayChar(quoteChar) + " reaches the end of the line.\n" + more).addFrame("a string literal", at);
   }
   private static Stream<Token> badBlockComment(Tokenizer tz, Token t){
     var file= tz.fileName();
     var s= t.span(file);
     var lineEnd= t.content().indexOf('\n');
-    if (lineEnd != -1){ s = new Span(file,s.startLine(),s.startCol(),s.startLine(),s.startCol()+lineEnd); }
+    if (lineEnd != -1){ s = new Span(file, s.startLine(), s.startCol(), s.startLine(), s.startCol()+lineEnd); }
     throw Code.UnexpectedToken
       .of("Unterminated block comment. Add \"*/\" to close it.")
       .addFrame("a block comment", s);
@@ -134,7 +134,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     var line= b.endLine();
     var endCol= b.startCol()+1;//invert the caret
     var startCol= s.endCol()-(prev.content().length()-quote);
-    var before= new Span(file,line,startCol,line,endCol);
+    var before= new Span(file, line, startCol, line, endCol);
     throw strErr(before, quoteChar, "A preceding block comment \"/* ... */\" on this line contains that quote.\nDid it swallow the intended opening quote?");
   }
 }

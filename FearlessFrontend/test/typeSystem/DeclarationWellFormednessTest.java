@@ -21,7 +21,7 @@ public final class DeclarationWellFormednessTest extends testUtils.FearlessTestB
 
 While inspecting object literal > method body > method declaration > type declaration body > type declaration > full file
 Name "this" already in scope.
-""",List.of("""
+""", List.of("""
 A:{ .m1: A -> {'this} }
 """));}
 @Test void noExplicitThisMethArg(){failParse("""
@@ -30,7 +30,7 @@ A:{ .m1: A -> {'this} }
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
 Name "this" already in scope.
-""",List.of("""
+""", List.of("""
 A:{ .foo(this: A): A }
 """));}
 @Test void disjointArgList(){failParse("""
@@ -40,7 +40,7 @@ A:{ .foo(this: A): A }
 While inspecting method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple parameters with the same name.
 Parameter "a" is repeated.
-""",List.of("""
+""", List.of("""
 A:{ .foo(a: A, a: A): A }
 """));}
 @Test void disjointMethGens(){failParse("""
@@ -50,7 +50,7 @@ A:{ .foo(a: A, a: A): A }
 While inspecting method declaration > type declaration body > type declaration > full file
 A method signature cannot declare multiple generic type parameters with the same name.
 Generic type parameter "T" is repeated.
-""",List.of("""
+""", List.of("""
 A:{ .foo[T:*,T:*](a: T, b: T): A }
 """));}
 @Test void disjointDecGens(){failParse("""
@@ -60,7 +60,7 @@ A:{ .foo[T:*,T:*](a: T, b: T): A }
 While inspecting type declaration > full file
 A method signature cannot declare multiple generic type parameters with the same name.
 Generic type parameter "T" is repeated.
-""",List.of("""
+""", List.of("""
 A[T:*,T:*]:{ .foo(a: T, b: T): A }
 """));}
 @Test void noShadowingMeths(){failWf("""
@@ -70,7 +70,7 @@ A[T:*,T:*]:{ .foo(a: T, b: T): A }
 While inspecting type declaration body > type declaration > full file
 Method ".a" redeclared.
 A method with the same name, arity and reference capability is already present.
-""",List.of("""
+""", List.of("""
 A:{ .a: A; .a: A }
 """));}
 @Test void useUndefinedX(){failParse("""
@@ -81,7 +81,7 @@ A:{ .a: A; .a: A }
 While inspecting method declaration > type declaration body > type declaration > full file
 Generic type "X" is not in scope.
 No generic parameters are declared here.
-""",List.of("""
+""", List.of("""
 A[X:*]:{ .foo(x: X): X -> B{ x }.argh }
 B:{ read .argh: read/imm X }
 """));}
@@ -92,7 +92,7 @@ B:{ read .argh: read/imm X }
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Name "b" is not in scope.
 In scope: "this", "x".
-""",List.of("""
+""", List.of("""
 A[X:*]:{ .foo(x: X): X -> this.foo(b) }
 """));}
 @Test void noShadowingSelfName(){failParse("""
@@ -103,7 +103,7 @@ A[X:*]:{ .foo(x: X): X -> this.foo(b) }
 
 While inspecting object literal > method body > method declaration > typed literal > method body > method declaration > type declaration body > type declaration > full file
 Name "unique" already in scope.
-""",List.of("""
+""", List.of("""
 Foo:{ .m1: Foo -> Foo{ 'unique
   .m1 -> {'unique}
   } }
@@ -117,7 +117,7 @@ Foo:{ .m1: Foo -> Foo{ 'unique
 While inspecting type declaration body > type declaration > full file
 Self name "self" is invalid in a top level type.
 Top level types self names can only be "this".
-""",List.of("""
+""", List.of("""
 A:{ 'self
   .me: A -> self;
   }
@@ -134,7 +134,7 @@ A:{ .m1(a: A): A -> {.m1(b) -> a} }
 
 While inspecting method parameters declaration > method signature > method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
 Name "a" already in scope.
-""",List.of("""
+""", List.of("""
 A:{ .m1(a: A): A -> {.m1(a) -> a} }
 """));}
 @Test void lambdaImplementingItself(){failWf("""
@@ -143,7 +143,7 @@ A:{ .m1(a: A): A -> {.m1(a) -> a} }
 
 While inspecting type declarations
 Circular implementation relation found involving "A".
-""",List.of("""
+""", List.of("""
 A:A{}
 """));}
 @Test void noMutHLambdaCreation(){failParse("""
@@ -154,7 +154,7 @@ While inspecting method body > method declaration > type declaration body > type
 Capability mutH used.
 Capabilities readH and mutH are not allowed on object literals.
 Use one of read, mut, imm, iso.
-""",List.of("""
+""", List.of("""
 A:{ #: mutH A -> mutH A }
 """));}
 @Test void noReadHLambdaCreation(){failParse("""
@@ -165,7 +165,7 @@ While inspecting method body > method declaration > type declaration body > type
 Capability readH used.
 Capabilities readH and mutH are not allowed on object literals.
 Use one of read, mut, imm, iso.
-""",List.of("""
+""", List.of("""
 A:{ #: readH A -> readH A }
 """));}
 @Test void noReadImmLambdaCreation(){failParse("""
@@ -176,7 +176,7 @@ While inspecting arguments list > method body > method declaration > type declar
 Missing expression.
 Found instead: "read/imm".
 Expected one of: "name", "type name", "(", "{".
-""",List.of("""
+""", List.of("""
 A:{ #: A -> this.eat(read/imm A); .eat(a: A): A -> a }
 """));}
 @Test void noReadImmOnNominalType(){failParse("""
@@ -186,7 +186,7 @@ A:{ #: A -> this.eat(read/imm A); .eat(a: A): A -> a }
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 Generic type "A" is not in scope.
 No generic parameters are declared here.
-""",List.of("""
+""", List.of("""
 A:{ #: read/imm A -> this# }
 """));}
 @Test void abstractMethodOnlyAtTopLevel(){failWf("""
@@ -198,7 +198,7 @@ A:{ #: read/imm A -> this# }
 While inspecting method declaration > typed literal > method body > method declaration > type declaration body > type declaration > full file
 Abstract method declaration for ".foo".
 Only top level methods can be abstract.
-""",List.of("""
+""", List.of("""
 A:{ .foo: A }
 B:A{}
 Bs:{ #: B -> B{ .foo: A } }
@@ -224,7 +224,7 @@ A:{ #: base.Str -> "Hello" }
 
 While inspecting a type name
 Duplicate type declaration for "A".
-""",List.of("""
+""", List.of("""
 A:{}
 B:{ #: A -> A:{} }
 """));}
@@ -234,7 +234,7 @@ B:{ #: A -> A:{} }
 
 While inspecting a type name
 Duplicate type declaration for "A".
-""",List.of("""
+""", List.of("""
 B:{ #: A -> A:{} }
 C:{ #: A -> A:{} }
 """));}
@@ -272,7 +272,7 @@ Hint: if it captures nothing, declare it implementing "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Bad:Person{}
-""",List.of("""
+""", List.of("""
 Str:{} Nat:{}
 FPerson:{ #(name: Str, age: Nat): Person -> Person:{
   .name: Str -> name;
@@ -291,7 +291,7 @@ While inspecting method signature > method declaration > type declaration body >
 Generic type "N" is not in scope inside the type declaration "Person".
 A type declaration only sees the generic types it declares itself; here "Person" declares none.
 Hint: funnel "N" into "Person" by writing "Person[N:..]", restating the bounds of "N".
-""",List.of("""
+""", List.of("""
 Str:{}
 FPerson:{ #[N:*](name: Str, age: N): Person -> Person:{
   .name: Str -> name;
@@ -326,7 +326,7 @@ FPerson:{ #[N:imm](name: Str, age: N): Person[N] -> Person2[N] }
 While inspecting a type name
 Type "Break" is not declared in package "p" and is not made visible via "use".
 In scope: "A", "BreakInner", "BreakOuter".
-""",List.of("""
+""", List.of("""
 A[X:mut]:{}
 BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
 """));}
@@ -339,7 +339,7 @@ While inspecting generic types > super types declaration > method body > method 
 Generic type "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
-""",List.of("""
+""", List.of("""
 A[X:mut]:{}
 BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[Z]{} }
 """));}
@@ -356,7 +356,7 @@ While inspecting generic types > method signature > method declaration > type de
 Generic type "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
-""",List.of("""
+""", List.of("""
 A[X:*]:{}
 BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A[Z] -> A[Z] } }
 """));}
@@ -373,7 +373,7 @@ While inspecting generic types > super types declaration > method body > method 
 Generic type "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
-""",List.of("""
+""", List.of("""
 A[X:mut]:{}
 BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[mut Z]{} }
 """));}
@@ -386,7 +386,7 @@ While inspecting generic types > method signature > method declaration > type de
 Generic type "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic types it declares itself; here "BreakInner" declares "Y".
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Y:..,Z:..]", restating the bounds of "Z".
-""",List.of("""
+""", List.of("""
 A[X:*]:{}
 BreakOuter[Y:*,Z:*]:{ #: BreakInner[Y] -> BreakInner[Y:*]:{ .z: A[Z] -> A[Z] } }
 """));}
@@ -397,7 +397,7 @@ BreakOuter[Y:*,Z:*]:{ #: BreakInner[Y] -> BreakInner[Y:*]:{ .z: A[Z] -> A[Z] } }
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Name "Z" already in scope.
-""",List.of("""
+""", List.of("""
 A[X:*]:{}
 BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z[Z:*](z: Z): Z -> z } }
 """));}
@@ -410,7 +410,7 @@ While inspecting generic bounds declaration > method body > method declaration >
 Generic type "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
-""",List.of("""
+""", List.of("""
 A:{}
 BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A -> Inner2[Z:*]: A{} } }
 """));}
@@ -423,7 +423,7 @@ While inspecting method signature > method declaration > type declaration body >
 Generic type "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
-""",List.of("""
+""", List.of("""
 A:{}
 BreakOuter[Z:*]:{ #(z: Z): BreakInner -> BreakInner:{ .z: read/imm Z -> z } }
 """));}
@@ -443,7 +443,7 @@ Hint: add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso B:A{}
-""",List.of("""
+""", List.of("""
 A:{ .foo: A }
 Bs:{ #: B -> B: A{} }
 """));}
@@ -464,7 +464,7 @@ Hint: add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso B
-""",List.of("""
+""", List.of("""
 A:{ .foo: A }
 B:A{}
 Bs:{ #: B -> B{} }
@@ -478,7 +478,7 @@ Type declaration "C" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
 Type declaration "C" is defined in package "p".
 Type "Void" is defined in package "base".
-""",List.of("""
+""", List.of("""
 C:base.Void{}
 """));}
 @Test void sealedOutsidePkgInline(){failWf("""
@@ -490,7 +490,7 @@ Object literal "C" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
 Object literal "C" is defined in package "p".
 Type "Void" is defined in package "base".
-""",List.of("""
+""", List.of("""
 Test:{ #: C -> C: base.Void{} }
 """));}
 @Test void sealedOutsidePkgMultiImpl(){failWf("""
@@ -502,7 +502,7 @@ Object literal "C" implements sealed type "base.Void".
 Sealed types can only be implemented in their own package.
 Object literal "C" is defined in package "p".
 Type "Void" is defined in package "base".
-""",List.of("""
+""", List.of("""
 A:{}
 Test:{ #: C -> C: base.Void,A{} }
 """));}
@@ -525,7 +525,7 @@ Good:{ .ok: mut _RootCap -> {} }
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 Code is attempting to use private name "_RootCap" from package "base".
 Type names starting with "_" can only be used in their own package, and only by their simple name.
-""",List.of("""
+""", List.of("""
 A:{ #: base._RootCap -> {} }
 """));}
 @Test void mutTypeWithGenericArgument(){ok(List.of("""
@@ -541,7 +541,7 @@ A[X:*]:{ .no: read A[read A[X]] }
 While inspecting type declaration "B"
 Duplicated supertype in type declaration: "A[Foo]" and "A[imm Foo]" denote the same type.
 Remove one of them.
-""",List.of("""
+""", List.of("""
 Foo:{}
 A[X:*]:{}
 B:A[Foo],A[imm Foo]{}
@@ -553,7 +553,7 @@ B:A[Foo],A[imm Foo]{}
 While inspecting type declaration "A[_]"
 Duplicated supertype in type declaration: "Foo[Y]" and "Foo[imm Y]" denote the same type.
 Remove one of them.
-""",List.of("""
+""", List.of("""
 Foo[T:*]:{ .get: T }
 A[Y:imm]:Foo[Y],Foo[imm Y]{}
 """));}
@@ -561,7 +561,7 @@ A[Y:imm]:Foo[Y],Foo[imm Y]{}
 [###]
 Duplicated supertype in type declaration: "Foo[Box[read Y]]" and "Foo[Box[Y]]" denote the same type.
 Remove one of them.
-""",List.of("""
+""", List.of("""
 Box[T:*]:{}
 Foo[T:*]:{}
 A[Y:read]:Foo[Box[read Y]],Foo[Box[Y]]{}
@@ -577,7 +577,7 @@ A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
 While inspecting type declaration "B"
 Duplicated supertype in type declaration: "A" and "p.A" denote the same type.
 Remove one of them.
-""",List.of("""
+""", List.of("""
 A:{}
 B:A,p.A{}
 """));}
@@ -588,7 +588,7 @@ B:A,p.A{}
 While inspecting type declaration "B"
 Duplicated supertype in type declaration: "CF" and "base.CaptureFree" denote the same type.
 Remove one of them.
-""",List.of("""
+""", List.of("""
 use base.CaptureFree as CF;
 B:CF,base.CaptureFree{}
 """));}
@@ -599,7 +599,7 @@ B:CF,base.CaptureFree{}
 While inspecting type declaration "B"
 Duplicated supertype in type declaration: "A[Foo]" and "A[p.Foo]" denote the same type.
 Remove one of them.
-""",List.of("""
+""", List.of("""
 Foo:{}
 A[X:*]:{}
 B:A[Foo],A[p.Foo]{}

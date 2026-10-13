@@ -17,11 +17,11 @@ import tools.SourceOracle.Ref;
 
 public final class InferenceMain extends FrontendLogicMain{
   @Override Package makePackage(String name, Map<String,String> map, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
-    return new Package(name, map, uses, decs, names, new Package.Logger(true,new ArrayList<>()));
+    return new Package(name, map, uses, decs, names, new Package.Logger(true, new ArrayList<>()));
   }
   public Methods ofMethods(String pkgName, List<Ref> files, SourceOracle o, OtherPackages other, boolean infer){
     var rawAST= parseFiles(files);
-    var pkg= mergeToPackage(pkgName,rawAST, Map.of(), other);
+    var pkg= mergeToPackage(pkgName, rawAST, Map.of(), other);
     var ctx= Methods.create(pkg, other);
     var iDecs= ToInference.of(ctx);
     iDecs = ctx.registerTypeHeadersAndReturnRoots(iDecs);

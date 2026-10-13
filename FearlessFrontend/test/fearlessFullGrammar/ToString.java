@@ -106,15 +106,15 @@ public final class ToString{
       });
     append(c.pars() ? "(" : (c.es().isEmpty() ? "" : " "));
     c.pat().ifPresent(pat -> visitXPat(pat).append("= "));
-    append("",c.es(),this::visitE,", ","");
+    append("", c.es(), this::visitE, ", ", "");
     append(c.pars() ? ")" : "");
     return res;
   }
   private Declaration visitInnerDeclaration(Declaration d){
     append(d.name().s());
-    d.bs().ifPresent(bs -> append("[",bs,this::visitInnerB,",","]"));
+    d.bs().ifPresent(bs -> append("[", bs, this::visitInnerB, ",", "]"));
     append(": ");
-    append("",d.cs(),this::visitInnerC,", ","");
+    append("", d.cs(), this::visitInnerC, ", ", "");
     if (!d.cs().isEmpty()){ append(" "); }
     visitLiteral(d.l());
     return d;
@@ -129,16 +129,16 @@ public final class ToString{
   }
   private T.C visitInnerC(T.C c){
     append(c.name().s());
-    c.ts().ifPresent(ts -> append("[",ts,this::visitT,",","]"));
+    c.ts().ifPresent(ts -> append("[", ts, this::visitT, ",", "]"));
     return c;
   }
   private Sig visitInnerSig(Sig s){
     var p= s.hasParenthesis();
     s.rc().ifPresent(rc -> append(rc.name()).append(" "));
     s.m().ifPresent(m -> append(m.s()).append(p || s.parameters().isEmpty() ? "" : " "));
-    s.bs().ifPresent(bs -> append("[",bs,this::visitInnerB,",","]"));
+    s.bs().ifPresent(bs -> append("[", bs, this::visitInnerB, ",", "]"));
     if (p){ append("("); }
-    append("",s.parameters(),this::visitInnerParameter,", ","");
+    append("", s.parameters(), this::visitInnerParameter, ", ", "");
     if (p){ append(")"); }
     s.t().ifPresent(t -> {append(": "); visitT(t);});
     return s;
@@ -150,7 +150,7 @@ public final class ToString{
       case B.StarStar() -> append(":**");
       case B.RCS(List<RC> rcs) -> {
         if (rcs.isEmpty()){ return b; }
-        append(":",rcs,rc -> append(rc.name()),",","");
+        append(":", rcs, rc -> append(rc.name()), ",", "");
         }
       };
     return b;

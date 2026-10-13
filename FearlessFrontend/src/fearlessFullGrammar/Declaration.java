@@ -11,13 +11,13 @@ import utils.Pos;
 
 public record Declaration(TName name, Optional<List<B>> bs, List<T.C> cs, E.Literal l) implements core.Src.SrcObj, Comparable<Declaration>{
   public Declaration{
-    assert nonNull(name,l);
+    assert nonNull(name, l);
     assert bs.isPresent() || name.arity() == 0;
-    assert validOpt(bs,b -> {
+    assert validOpt(bs, b -> {
       unmodifiableDistinct(b, "Declaration.bs");
-      eq(name.arity(),b.size(),"Declaration.bs");
+      eq(name.arity(), b.size(), "Declaration.bs");
     });
-    assert unmodifiable(cs,"Declaration.cs");
+    assert unmodifiable(cs, "Declaration.cs");
   }
   @Override public Pos pos(){ return l.pos(); }
   @Override public TSpan span(){ return l.span(); }

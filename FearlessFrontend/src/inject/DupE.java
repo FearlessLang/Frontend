@@ -21,7 +21,7 @@ public record DupE(FreshPrefix fresh, E.Literal out, M m, WellFormednessErrors e
   private List<E> ofEs(List<E> es){ return es.stream().map(this::of).toList(); }
 
   private E.Literal ofL(E.Literal l){
-    if (!l.infName()){ throw err.duplicatedNamedLiteral(out,m,l); }
+    if (!l.infName()){ throw err.duplicatedNamedLiteral(out, m, l); }
     var oldName= l.name();
     var newName= fresh.freshTopType(oldName, oldName.arity());
     var ms= l.ms().stream().map(m -> ofM(m, oldName, newName)).toList();

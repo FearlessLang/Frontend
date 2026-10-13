@@ -9,9 +9,9 @@ import core.E.*;
 import typeSystem.Change.*;
 
 public record Gamma(Gamma tail, String name, T t, Change current){
-  private static final Gamma _empty= new Gamma(null,null,null,null);
+  private static final Gamma _empty= new Gamma(null, null, null, null);
   public static Gamma empty(){ return _empty; }
-  public Gamma add(String name, T t){ return new Gamma(this, name, t,new Same(t)); }
+  public Gamma add(String name, T t){ return new Gamma(this, name, t, new Same(t)); }
   public Gamma map(Function<Change,Change> f){
     if (this == _empty){ return this; }
     return new Gamma(tail.map(f), name, t, f.apply(current));
@@ -24,24 +24,24 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     return tail._bind(x);
   }
   public Gamma filterFTV(Literal l){
-    return filterFTV(l,LiteralDeclarations.has(l.cs(),LiteralDeclarations.captureFree));
+    return filterFTV(l, LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree));
   }
-  private Gamma filterFTV(Literal l,boolean captureFree){//we only care about dom(bs)
+  private Gamma filterFTV(Literal l, boolean captureFree){//we only care about dom(bs)
     //\u0393|Xs= {x : T | x : T \u2208 \u0393 \u2227 FTV(T) \u2286 Xs}
     if (this == _empty){ return this; }
-    var rest= tail.filterFTV(l,captureFree);
-    if (captureFree){ return new Gamma(rest, name, t, new Change.CapFree(l,t)); }
+    var rest= tail.filterFTV(l, captureFree);
+    if (captureFree){ return new Gamma(rest, name, t, new Change.CapFree(l, t)); }
     if (!(current instanceof Change.WithT w)){ return new Gamma(rest, name, t, current); }
-    var ftvEscapes= !hasOnlyFTV(w.currentT(),l.bs());
+    var ftvEscapes= !hasOnlyFTV(w.currentT(), l.bs());
     if (ftvEscapes){ return new Gamma(rest, name, t, new Change.DropFTV(l, w.currentT())); }
     return new Gamma(rest, name, t, current);//core.E.Literal l, core.M m, T atDrop
   }
   //Above can not reuse FreeXs since FreeXs works on IT
   boolean hasOnlyFTV(T t, List<B> bs){ return switch (t){
     case T.X(var x, _) -> B.xs(bs).contains(x);
-    case T.RCX(_, var x) -> hasOnlyFTV(x,bs);
-    case T.ReadImmX(var x) -> hasOnlyFTV(x,bs);
-    case T.RCC(_, var c, _) -> c.ts().stream().allMatch(ti -> hasOnlyFTV(ti,bs));
+    case T.RCX(_, var x) -> hasOnlyFTV(x, bs);
+    case T.ReadImmX(var x) -> hasOnlyFTV(x, bs);
+    case T.RCC(_, var c, _) -> c.ts().stream().allMatch(ti -> hasOnlyFTV(ti, bs));
   };}
 }
 //Deliberately simple: \u0393 never gets deeper than 18 (2.33 on average), and all of its

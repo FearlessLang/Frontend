@@ -23,7 +23,7 @@ While inspecting method signature > method declaration > type declaration body >
 Capability iso used.
 Capabilities iso, readH and mutH are not allowed on method declarations.
 Use one of read, mut, imm.
-""",List.of("""
+""", List.of("""
 A:{ iso .m1: iso A -> this }
 """));}
 @Test void callMutFromMutH(){ok(List.of("""
@@ -45,7 +45,7 @@ Method call "read A.b" has type "mutH B" instead of a subtype of "mut B".
 
 See inferred typing context below for how type "mut B" was introduced: (compression indicated by `-`)
 A:{read .b:mutH B->mut B;read .doThing:mut B->this.b[read]}
-""",List.of("""
+""", List.of("""
 A:{ read .b: mutH B -> {}; read .doThing: mut B -> this.b }
 B:{}
 """));}
@@ -79,7 +79,7 @@ Capture adaptation trace:
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 Con-erF:{#(a:mut A):mutH Container->mut Container{read .a1:mut A->a;mut .a2:mut A->a}}
-""",List.of("""
+""", List.of("""
 A:{}
 ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }
 Container:{ read .a1: mut A; mut .a2: mut A }
@@ -98,7 +98,7 @@ Capture adaptation trace:
 
 See inferred typing context below for how type "mut X" was introduced: (compression indicated by `-`)
 A:{.m[X:*](x:mut X):mut Get[mut X]->mut Get[mut X]{read .get:mut X->x}}
-""",List.of("""
+""", List.of("""
 Get[Y:*]:{ read .get: Y }
 A:{ .m[X:*](x: mut X): mut Get[mut X] -> mut Get[mut X]{ read .get: mut X -> x } }
 """));}
@@ -117,7 +117,7 @@ Receiver required by each promotion:
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.b.foo[mut]
-""",List.of("""
+""", List.of("""
 Void:{}
 A:{ .b: imm B -> {}; .doThing: Void -> this.b.foo.ret }
 B:{ mut .foo: mut B -> this; mut .ret: Void -> {} }
@@ -137,7 +137,7 @@ Receiver required by each promotion:
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.b.foo[mut]
-""",List.of("""
+""", List.of("""
 Void:{}
 A:{ .b: readH B -> {}; .doThing: Void -> this.b.foo.ret }
 B:{ mut .foo: mut B -> this; mut .ret: Void -> {} }
@@ -157,7 +157,7 @@ Receiver required by each promotion:
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.b.foo[mut]
-""",List.of("""
+""", List.of("""
 Void:{}
 A:{ .b: read B -> {}; .doThing: Void -> this.b.foo.ret }
 B:{ mut .foo: mut B -> this; mut .ret: Void -> {} }
@@ -176,7 +176,7 @@ and thus it cannot be captured in the object literal instance of "mut A[readH B]
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 prisoner
-""",List.of("""
+""", List.of("""
 A[X:imm,mut,read,readH]:{ mut .prison: X }
 B:{ .break(prisoner: readH B): mut A[readH B] -> {prisoner} }
 """));}
@@ -191,7 +191,7 @@ and thus it cannot be captured in the object literal instance of "mut A[X]" (lin
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 x
-""",List.of("""
+""", List.of("""
 A[X:mut,imm,read,mutH,readH]:{ mut .prison: X }
 B[X:mut,imm,read,mutH,readH]:{ .break(x: X): mut A[X] -> { x } }
 """));}
@@ -205,7 +205,7 @@ Method call "read L[_].absMeth" has type "B" instead of a subtype of "mutH B".
 
 See inferred typing context below for how type "mutH B" was introduced: (compression indicated by `-`)
 C:{#:mutH B->A.m[read](B).absMeth[read]}
-""",List.of("""
+""", List.of("""
 B:{}
 L[X:*]:{ read .absMeth: read/imm X }
 A:{ read .m(par: imm B) : mutH L[imm B] -> mut L[imm B]{.absMeth->par} }
@@ -232,7 +232,7 @@ and thus it cannot be captured in the object literal instance of "mut L[mutH T]"
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 par
-""",List.of("""
+""", List.of("""
 B:{}
 L[X:mut,imm,read,readH,mutH]:{ mut .absMeth: imm X }
 A:{ read .m[T:mut,imm,read,readH,mutH](par: T) : read L[mutH T] -> mut L[mutH T]{.absMeth->par} }
@@ -248,7 +248,7 @@ Hint: capture an immutable copy instead, or move this use outside the object lit
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 par
-""",List.of("""
+""", List.of("""
 B:{}
 L:{ mut .absMeth: mut B }
 A:{ read .m(par: mut B) : iso L -> iso L{.absMeth->par} }
@@ -264,7 +264,7 @@ Hint: capture an immutable copy instead, or move this use outside the object lit
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 par
-""",List.of("""
+""", List.of("""
 B:{}
 L:{ imm .absMeth: read B }
 A:{ read .m(par: read B) : imm L -> imm L{.absMeth->par} }
@@ -280,7 +280,7 @@ Hint: capture an immutable copy instead, or move this use outside the object lit
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 a
-""",List.of("""
+""", List.of("""
 A:{}
 Foos:{ #(a: mut A): iso Foo -> iso Foo{a} }
 Foo:{ mut #: mut A }
@@ -311,7 +311,7 @@ Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
 See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
 B:{.foo(a:mut A,aa:mutH A):iso A->a}
-""",List.of("""
+""", List.of("""
 A:{ mut .a: iso A -> B.foo(this, this) }
 B:{ .foo(a: mut A, aa: mutH A): iso A -> a }
 """));}
@@ -325,7 +325,7 @@ Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
 See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
 B:{.foo(a:mut A,aa:mut A):iso A->a}
-""",List.of("""
+""", List.of("""
 A:{ mut .a: iso A -> B.foo(this, this) }
 B:{ .foo(a: mut A, aa: mut A): iso A -> a }
 """));}
@@ -339,7 +339,7 @@ Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
 See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
 B:{.foo(a:mut A):iso A->a}
-""",List.of("""
+""", List.of("""
 A:{ mut .a(randomSharedMut: mut A): iso A -> B.foo(this) }
 B:{ .foo(a: mut A): iso A -> a }
 """));}
@@ -359,7 +359,7 @@ Method call "mut Person.name" has type "mutH Ref[Name]" instead of a subtype of 
 
 See inferred typing context below for how type "iso Ref[Name]" was introduced: (compression indicated by `-`)
 Usage:{.mutate(p:mutH Person):iso Ref[Name]->p.name[mut]}
-""",List.of("""
+""", List.of("""
 Void:{} Name:{}
 Person:{ mut .name: mut Ref[Name] }
 Usage:{ .mutate(p: mutH Person): iso Ref[Name] -> p.name }
@@ -381,7 +381,7 @@ Allowed: capture into object literals as "imm", or use directly once.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.break(x1,x1)
-""",List.of("""
+""", List.of("""
 Caps:{} Void:{}
 A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
 """));}
@@ -397,7 +397,7 @@ Allowed: capture into object literals as "imm", or use directly once.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.breakTwo(x1,B{.x:Caps->x1})
-""",List.of("""
+""", List.of("""
 Caps:{} Void:{}
 A:{
   .break(x1: iso Caps, x2: iso Caps): Void -> this.breakTwo(x1, B{ x1 });
@@ -443,7 +443,7 @@ Method call "read Box[_].get" has type "readH Foo" instead of a subtype of "Foo"
 
 See inferred typing context below for how type "Foo" was introduced: (compression indicated by `-`)
 Test:{#(r:readH Box[Foo]):Foo->r.get[read]}
-""",List.of("""
+""", List.of("""
 Foo:{}
 Box[X:*]:{ mut .get: X; read .get: read X }
 Test:{ #(r: readH Box[Foo]): Foo -> r.get }
@@ -479,7 +479,7 @@ Parameter "this" has type "mut B" instead of a subtype of "A".
 
 See inferred typing context below for how type "A" was introduced: (compression indicated by `-`)
 B:A{.m1:A->this;mut .m1:A->this;.m2:A->this.m1}
-""",List.of("""
+""", List.of("""
 A:{ imm .m1: A; mut .m1: A; .m2: A }
 B:A{ .m1 -> this; .m2 -> this.m1 }
 """));}
@@ -509,7 +509,7 @@ Method call "read A.m1" has type "read B" instead of a subtype of "mut A".
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 Test:{read .aRead(a:read A):mut A->a.m1[read];mut .aMut(a:mut A):mut A->a.m1[mut]}
-""",List.of("""
+""", List.of("""
 A:{ read .m1: read B -> {}; mut .m1: mut A -> this }
 B:{}
 Test:{
@@ -542,7 +542,7 @@ Method call "mut A.m1" has type "mutH A" instead of a subtype of "mut A".
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 A:{mut .m1:mut A->this;.call(a:mutH A):mut A->a.m1[mut]}
-""",List.of("""
+""", List.of("""
 A:{ mut .m1: mut A -> this; .call(a: mutH A): mut A -> a.m1 }
 """));}
 @Test void oneMutHArgumentPromotesInThirdPosition(){ok(List.of("""
@@ -581,7 +581,7 @@ Promotion failures:
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.m1(A,iso A,a,a)
-""",List.of("""
+""", List.of("""
 A:{
   .m1(a1: imm A, a2: iso A, a3: mut A, a4: mut A): mut A -> a3;
   .call(a: mutH A): mutH A -> this.m1(imm A, iso A, a, a);
@@ -601,7 +601,7 @@ Type required by each promotion:
 
 See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
 A:{mut .m1(a1:A,a2:iso A,a3:mut A,a4:mut A):mut A->this;.call(a:mutH A):mutH A->a.m1[mut](A,iso A,a,iso A)}
-""",List.of("""
+""", List.of("""
 A:{
   mut .m1(a1: imm A, a2: iso A, a3: mut A, a4: mut A): mut A -> this;
   .call(a: mutH A): mutH A -> a.m1(imm A, iso A, a, iso A);
@@ -617,21 +617,21 @@ A:{
 @Test void captureAsImmThroughMutGet(){ok(List.of("""
 A:{ #(b: imm B): imm B -> Box#b.get }
 B:{}
-""",box));}
+""", box));}
 @Test void captureAsImmThroughReadImmGet(){ok(List.of("""
 A:{ #(b: imm B): imm B -> Box#b.riget }
 B:{}
-""",box));}
+""", box));}
 @Test void captureAsImmThroughMutGetWithMethodGeneric(){ok(List.of("""
 A:{ #[B:*](b: imm B): imm B -> Box#b.get }
-""",box));}
+""", box));}
 @Test void immFromReadBox(){ok(List.of("""
 A:{ #(b: read Box[imm B]): imm B -> b.riget }
 B:{}
-""",box));}
+""", box));}
 @Test void immFromReadBoxWithClassGeneric(){ok(List.of("""
 A[B:*]:{ #(b: read Box[imm B]): imm B -> b.riget }
-""",box));}
+""", box));}
 @Test void readImmOfAMutBoundedTypeVariable(){ok(List.of("""
 A[X:mut]:{ #(x: X): read/imm X -> x }
 """));}
@@ -645,7 +645,7 @@ Parameter "x" has type "X" instead of a subtype of "read/imm X".
 
 See inferred typing context below for how type "read/imm X" was introduced: (compression indicated by `-`)
 A[X:**]:{#(x:X):read/imm X->x}
-""",List.of("""
+""", List.of("""
 A[X:**]:{ #(x: X): read/imm X -> x }
 """));}
 @Test void readParameterAcceptsAnyNonHygienicArgument(){ok(List.of("""
@@ -669,7 +669,7 @@ Type required by each promotion:
 
 See inferred typing context below for how type "read/imm Y" was introduced: (compression indicated by `-`)
 C:{.m[Y:*](y:read Y):read/imm Y->A.m[imm,Y](y)}
-""",List.of("""
+""", List.of("""
 Foo:{}
 A:{ .m[X:*](x: read/imm X): read/imm X -> x }
 C:{ .m[Y:*](y: read Y): read/imm Y -> A.m[Y](y) }
@@ -695,14 +695,14 @@ B[X:*]:{
 @Test void genericReadHBoxReadImmGetIsNotRead(){fail("""
 [###]Method call "read Box[_].get" has type "readH Y" instead of a subtype of "read Y".
 [###]
-""",List.of("""
+""", List.of("""
 Box[X:*]:{ mut .get: X; read .get: read/imm X }
 Test:{ #[Y:mut](r: readH Box[Y]): read Y -> r.get }
 """));}
 @Test void genericReadHBoxReadImmGetOfReadHIsNotRead(){fail("""
 [###]Method call "read Box[_].get" has type "readH Y" instead of a subtype of "read Y".
 [###]
-""",List.of("""
+""", List.of("""
 Box[X:**]:{ mut .get: X; read .get: read/imm X }
 Test:{ #[Y:readH](r: readH Box[Y]): read Y -> r.get }
 """));}
@@ -729,7 +729,7 @@ Method call "Box[_].get" has type "read/imm Y" instead of a subtype of "iso Y".
 
 See inferred typing context below for how type "iso Y" was introduced: (compression indicated by `-`)
 User:{.use[Y:imm,iso](b:Box[Y]):iso Y->b.get}
-""",List.of("""
+""", List.of("""
 Box[X:iso,imm]:{ .get: read/imm X }
 User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
 """));}
@@ -744,7 +744,7 @@ Type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "read/imm Y" was introduced: (compression indicated by `-`)
 User:{.use[Y:imm,iso](b:Box[Y]):Box[Y]->b.get.foo}
-""",List.of("""
+""", List.of("""
 Box[X:iso,imm]:{ .get: read/imm X }
 User:{ .use[Y:iso,imm](b: Box[Y]): Box[Y] -> b.get.foo }
 """));}
@@ -799,7 +799,7 @@ Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso B
-""",List.of("""
+""", List.of("""
 B:{ mut .m: B }
 A:{ .b: mutH B -> {} }
 """));}
@@ -983,7 +983,7 @@ Capture adaptation trace:
 
 See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
 A:{.m[X:mut,iso](x:X):mut Get[X]->mut Get[X]{mut .get:X->x}}
-""",List.of("""
+""", List.of("""
 Get[Y:**]:{ mut .get: Y }
 A:{ .m[X:iso,mut](x: X): mut Get[X] -> mut Get[X]{ mut .get: X -> x } }
 """));}

@@ -21,19 +21,19 @@ public sealed interface TypeScope{
     @Override public TypeScope outer(){ throw Bug.unreachable(); }//consistently offensive
     @Override public E contextE(){ throw Bug.unreachable(); }
   }
-  default TypeScope pushM(Literal l, M m){ return new Method(l,m,this); }
+  default TypeScope pushM(Literal l, M m){ return new Method(l, m, this); }
   record Method(Literal l, M m, TypeScope outer) implements TypeScope{
     @Override public E contextE(){ return l; }
     @Override public List<T> mentionedTs(){ return l.cs().stream().flatMap(c -> c.ts().stream()).toList(); }
   }
   default TypeScope pushCallRec(Call c){
     var es= c.es().stream().map(this::omit).toList();
-    return new CallSite(new Call(c.e(),c.name(),c.rc(),c.targs(),es,c.expectedRes(),c.src()),this);
+    return new CallSite(new Call(c.e(), c.name(), c.rc(), c.targs(), es, c.expectedRes(), c.src()), this);
   }
-  default E omit(E e){ return new X("-",e.src()); }
+  default E omit(E e){ return new X("-", e.src()); }
   default TypeScope pushCallArgi(Call c, int i){
     var es= IntStream.range(0, c.es().size()).mapToObj(j -> j == i ? c.es().get(j) : omit(c.es().get(j))).toList();
-    return new CallSite(new Call(omit(c.e()),c.name(),c.rc(),c.targs(),es,c.expectedRes(),c.src()),this);
+    return new CallSite(new Call(omit(c.e()), c.name(), c.rc(), c.targs(), es, c.expectedRes(), c.src()), this);
   }
   record CallSite(Call c, TypeScope outer) implements TypeScope{
     @Override public E contextE(){ return c; }

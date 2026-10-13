@@ -42,14 +42,14 @@ public final class Monotonicity{
   }
 
   public static boolean eT(E e, IT to){
-    return step(e.g(), new Slot(K.eT,0,0), e.t(), to, "E.t "+e.getClass().getSimpleName());
+    return step(e.g(), new Slot(K.eT, 0, 0), e.t(), to, "E.t "+e.getClass().getSimpleName());
   }
 
   private static boolean hasAnyKind(GammaSignature g, K k){ return g.monotonicity.keySet().stream().anyMatch(s -> s.k() == k); }
 
   public static boolean onCallWithMore(E.Call c, Optional<RC> nextRc, List<IT> nextTargs, IT nextT){
-    step(c.g(), new Slot(K.eT,0,0), c.t(), nextT, "Call.t");
-    step(c.g(), new Slot(K.callRc,0,0), c.rc(), nextRc, "Call.rc");
+    step(c.g(), new Slot(K.eT, 0, 0), c.t(), nextT, "Call.t");
+    step(c.g(), new Slot(K.callRc, 0, 0), c.rc(), nextRc, "Call.rc");
     var oldN= c.targs().size();
     var newN= nextTargs.size();
     // Arity repair is allowed, but only before we started tracking per-index targs.
@@ -60,7 +60,7 @@ public final class Monotonicity{
     }
     var from= oldN == newN ? c.targs() : nextTargs;
     for (int i : Range.of(nextTargs)){
-      step(c.g(), new Slot(K.callTarg,i,0), from.get(i), nextTargs.get(i), "Call.targs["+i+"]");
+      step(c.g(), new Slot(K.callTarg, i, 0), from.get(i), nextTargs.get(i), "Call.targs["+i+"]");
     }
     return true;
   }
@@ -78,7 +78,7 @@ public final class Monotonicity{
       return true;
     }
     // First stable snapshot: start tracking from nextMs (not from l.ms()).
-    var oldMs= hasAnyKind(l.g(),K.litMArg) || hasAnyKind(l.g(),K.litMRet) ? l.ms() : nextMs;
+    var oldMs= hasAnyKind(l.g(), K.litMArg) || hasAnyKind(l.g(), K.litMRet) ? l.ms() : nextMs;
     var oldN= oldMs.size();
     var newN= nextMs.size();
     if (oldN != newN){
@@ -102,9 +102,9 @@ public final class Monotonicity{
           +"\nlit="+l);
       }
       for (int pi : Range.of(ops)){
-        step(l.g(), new Slot(K.litMArg,mi,pi), ops.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] "+l);
+        step(l.g(), new Slot(K.litMArg, mi, pi), ops.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] "+l);
       }
-      step(l.g(), new Slot(K.litMRet,mi,0), sigRet(om), sigRet(nm), "Lit.ms["+mi+"].ret "+l);
+      step(l.g(), new Slot(K.litMRet, mi, 0), sigRet(om), sigRet(nm), "Lit.ms["+mi+"].ret "+l);
     }
     return true;
   }

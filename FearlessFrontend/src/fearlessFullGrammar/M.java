@@ -8,10 +8,10 @@ import core.TSpan;
 import fearlessParser.HasImplicitVisitor;
 
 public record M(Optional<Sig> sig, Optional<E> body, boolean hasImplicit, TSpan span){
-  public M(Optional<Sig> sig, Optional<E> body, TSpan span){ this(sig,body,body.stream().anyMatch(HasImplicitVisitor::of),span); }
+  public M(Optional<Sig> sig, Optional<E> body, TSpan span){ this(sig, body, body.stream().anyMatch(HasImplicitVisitor::of), span); }
   //Call to new HasImplicitVisitor() does not make parsing quadratic since HasImplicitVisitor does not enter in nested literals
   public M{
-    assert nonNull(sig,body);
+    assert nonNull(sig, body);
     assert sig.isPresent() || body.isPresent();
     if (hasImplicit){ sig = sig.map(Sig::withImplicit); }
   }

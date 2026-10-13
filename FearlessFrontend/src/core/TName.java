@@ -8,7 +8,7 @@ public record TName(String s, int arity, Pos pos){
   public static final String pkgNameRegex= "(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*";
   public TName{
     assert arity >= 0;
-    assert hasPkgDot(s) || validate(s,"TName", UppercaseId,UnsignedInt, SignedInt, SignedFloat, UnSignedFloat, UStr, SStr);
+    assert hasPkgDot(s) || validate(s, "TName", UppercaseId, UnsignedInt, SignedInt, SignedFloat, UnSignedFloat, UStr, SStr);
   }
   static boolean hasPkgDot(String s){
     if (!s.contains(".")){ return false; }
@@ -41,6 +41,6 @@ public record TName(String s, int arity, Pos pos){
     return i == -1 ? s : s.substring(i + 1);
   }
   public boolean isPublic(){ return !simpleName().startsWith("_"); }
-  public static boolean isTypeName(String s){ return isKind(s,_XId); }
-  public static boolean isPkgName(String s){ return isKind(s,_pkgName); }
+  public static boolean isTypeName(String s){ return isKind(s, _XId); }
+  public static boolean isPkgName(String s){ return isKind(s, _pkgName); }
 }

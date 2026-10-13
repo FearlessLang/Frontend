@@ -5,9 +5,9 @@ import message.CompactPrinter.*;
 final class BestPicker{
   int bestScore= -1;
   Compactable best= Compactable.no;
-  Compactable pick(PE root){ visit(root,0); return best; }
-  void visit(PN n,int depth){
-    consider(n,depth+(n instanceof PM ? 10 : 1));
+  Compactable pick(PE root){ visit(root, 0); return best; }
+  void visit(PN n, int depth){
+    consider(n, depth+(n instanceof PM ? 10 : 1));
     switch (n){
       case PX _, PTX _ -> {}
       case PTypeE(var t) -> visit(t, depth + 1);
@@ -18,29 +18,29 @@ final class BestPicker{
       case PM x -> visitPM(x, depth + 1);
     }
   }
-  void visitPC(PC x,int depth){
+  void visitPC(PC x, int depth){
     if (!x.k().isCompactable()){ return; }
-    for (var t : x.ts()){ visit(t,depth); }
+    for (var t : x.ts()){ visit(t, depth); }
   }
-  void visitPCall(PCall x,int depth){
-    var targsVisible= CompactPrinter.showTargs(x.rc(),x.targs().size());
-    if (targsVisible){ for (var t : x.targs()){ visit(t,depth); } }
+  void visitPCall(PCall x, int depth){
+    var targsVisible= CompactPrinter.showTargs(x.rc(), x.targs().size());
+    if (targsVisible){ for (var t : x.targs()){ visit(t, depth); } }
     if (!x.k().isCompactable()){ return; }
-    visit(x.recv(),depth);
-    for (var a : x.args()){ visit(a,depth); }
+    visit(x.recv(), depth);
+    for (var a : x.args()){ visit(a, depth); }
   }
-  void visitPLit(PLit x,int depth){
+  void visitPLit(PLit x, int depth){
     var cVisible= x.k().isCompactable() || x.priv();
-    if (cVisible){ for (var a : x.cs()){ visit(a,depth); } }
+    if (cVisible){ for (var a : x.cs()){ visit(a, depth); } }
     if (!x.k().isCompactable()){ return; }
-    for (var m : x.ms()){ visit(m,depth); }
+    for (var m : x.ms()){ visit(m, depth); }
   }
-  void visitPM(PM x,int depth){
+  void visitPM(PM x, int depth){
     if (x.k().isCompactable()){
-      for (var t : x.ts()){ visit(t,depth); }
-      visit(x.ret(),depth);
+      for (var t : x.ts()){ visit(t, depth); }
+      visit(x.ret(), depth);
     }
-    x.body().ifPresent(b -> visit(b,depth));
+    x.body().ifPresent(b -> visit(b, depth));
   }
   void consider(PN n, int score){
     if (!n.k().isCompactable()){ return; }

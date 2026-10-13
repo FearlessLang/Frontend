@@ -17,60 +17,60 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var rcc0= recvRcc();
     var d= ts.decs().apply(rcc0.c().name());
     var sig= sigOf(d);
-    checkTargsKinding(rcc0.c(),d,sig);
-    var base= baseMType(rcc0.c(),d,sig);
+    checkTargsKinding(rcc0.c(), d, sig);
+    var base= baseMType(rcc0.c(), d, sig);
     c.expectedRes().inner = base.t();
-    var promos= MultiMeth.of(bs,base,true);
+    var promos= MultiMeth.of(bs, base, true);
     var app= promos.stream().filter(m -> rcc0.rc().isSubType(m.rc())).toList();
-    if (app.isEmpty()){ throw ts.tsE().receiverRCBlocksCall(d,c,rcc0.rc(),MultiMeth.of(bs,base,mayBeH(rcc0.rc(),base))); }
-    var mat= typeArgsOnce(d,app);
+    if (app.isEmpty()){ throw ts.tsE().receiverRCBlocksCall(d, c, rcc0.rc(), MultiMeth.of(bs, base, mayBeH(rcc0.rc(), base))); }
+    var mat= typeArgsOnce(d, app);
     var possible= mat.candidatesOkForAllArgs();//This is indexes of MTypes allowed by the arguments
-    if (possible.isEmpty()){ throw ts.tsE().methodPromotionsDisagreeOnArguments(c,mat); }
-    if (rs.isEmpty()){ return List.of(Reason.pass(bestUnique(mat,possible))); }
-    return rs.stream().map(req -> resForReq(d,sig,mat,possible,req)).toList();
+    if (possible.isEmpty()){ throw ts.tsE().methodPromotionsDisagreeOnArguments(c, mat); }
+    if (rs.isEmpty()){ return List.of(Reason.pass(bestUnique(mat, possible))); }
+    return rs.stream().map(req -> resForReq(d, sig, mat, possible, req)).toList();
   }
   private boolean mayBeH(RC recv, MType base){
-    return recv.isH() || Push.of(base.ts(),base.t()).stream().anyMatch(this::mayBeH);
+    return recv.isH() || Push.of(base.ts(), base.t()).stream().anyMatch(this::mayBeH);
   }
   private boolean mayBeH(T t){
-    if (t instanceof T.X(var name, _)){ return B.get(bs,name).rcs().stream().anyMatch(RC::isH); }
+    if (t instanceof T.X(var name, _)){ return B.get(bs, name).rcs().stream().anyMatch(RC::isH); }
     return t.explicitH();
   }
   private T.RCC recvRcc(){
-    var cts= new TypeSystem(ts.scope().pushCallRec(this.c),ts.v());
-    var r= OneOr.of("One reason without requirements",cts.typeOf(bs,g,c.e(),List.of()).stream());
+    var cts= new TypeSystem(ts.scope().pushCallRec(this.c), ts.v());
+    var r= OneOr.of("One reason without requirements", cts.typeOf(bs, g, c.e(), List.of()).stream());
     assert r.isEmpty();//else would have thrown
     var t= r.best;
     if (t instanceof T.RCC x){ return x; }
-    throw ts.tsE().methodReceiverIsTypeParameter(cts.scope(),c,t);
+    throw ts.tsE().methodReceiverIsTypeParameter(cts.scope(), c, t);
   }
   private Sig sigOf(Literal d){
-    var sig= OneOr.opt("Methods with duplicates",d.ms().stream().map(M::sig)
+    var sig= OneOr.opt("Methods with duplicates", d.ms().stream().map(M::sig)
       .filter(s -> s.m().equals(c.name()) && s.rc() == c.rc()))
-      .orElseThrow(() -> ts.tsE().methodNotDeclared(ts.scope(),c,d));
+      .orElseThrow(() -> ts.tsE().methodNotDeclared(ts.scope(), c, d));
     assert sig.ts().size() == c.es().size();//ensured by well formedness
     if (sig.bs().size() == c.targs().size()){ return sig; }
-    throw ts.tsE().methodTArgsArityError(d,c,sig.bs());
+    throw ts.tsE().methodTArgsArityError(d, c, sig.bs());
   }
   private MType baseMType(T.C c0, Literal d, Sig sig){
-    var xs= B.xs(Push.of(d.bs(),sig.bs()));
-    var ts0= Push.of(c0.ts(),c.targs());
-    var ps= TypeRename.ofT(sig.ts(),xs,ts0);
-    var ret= TypeRename.of(sig.ret(),xs,ts0);
-    return new MType("As declared",sig.rc(),ps,ret);
+    var xs= B.xs(Push.of(d.bs(), sig.bs()));
+    var ts0= Push.of(c0.ts(), c.targs());
+    var ps= TypeRename.ofT(sig.ts(), xs, ts0);
+    var ret= TypeRename.of(sig.ret(), xs, ts0);
+    return new MType("As declared", sig.rc(), ps, ret);
   }
   private void checkTargsKinding(T.C c0, Literal d, Sig sig){
     assert c0.ts().size() == d.bs().size();
     var targs= c.targs();
-    var kt= new KindingTarget.CallKinding(c0,c);
+    var kt= new KindingTarget.CallKinding(c0, c);
     for (int i : Range.of(targs)){
-      ts.k().check(c,kt,i,bs,targs.get(i),sig.bs().get(i).rcs());
+      ts.k().check(c, kt, i, bs, targs.get(i), sig.bs().get(i).rcs());
     }
   }
-  private ArgMatrix typeArgsOnce(Literal d,List<MType> app){
+  private ArgMatrix typeArgsOnce(Literal d, List<MType> app){
     var size= c.es().size();
-    var acc= new ArgMatrix(app,new ArrayList<>(size),new ArrayList<>(size));
-    for (int argi : Range.of(0,size)){ accArgi(d,acc,argi); }
+    var acc= new ArgMatrix(app, new ArrayList<>(size), new ArrayList<>(size));
+    for (int argi : Range.of(0, size)){ accArgi(d, acc, argi); }
     return acc;
   }
   private List<TRequirement> argRequirements(List<MType> app, int argi){
@@ -80,7 +80,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     //the subtyping checks. The commented code below saves that duplicated computation
     //But if we deduplicate here we have to re expand directly later to be able to fit the
     //ArgMatrix acc with the right number of elements.
-    return app.stream().map(m -> new TRequirement(m.promotion(),m.ts().get(argi))).toList();
+    return app.stream().map(m -> new TRequirement(m.promotion(), m.ts().get(argi))).toList();
     /*var byT= new LinkedHashMap<T,List<String>>();
     for (var m:app){
       var t= m.ts().get(argi);
@@ -93,30 +93,30 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
       .toList();*/
   }
   private void accArgi(Literal d, ArgMatrix acc, int argi){
-    var reqs= argRequirements(acc.cs(),argi);
-    var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi),ts.v());
-    var res= cts.typeOf(bs,g,c.es().get(argi),reqs);
+    var reqs= argRequirements(acc.cs(), argi);
+    var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi), ts.v());
+    var res= cts.typeOf(bs, g, c.es().get(argi), reqs);
     assert res.size() == acc.cs().size();
-    var ok= IntStream.range(0,res.size()).filter(i -> res.get(i).isEmpty()).boxed().toList();
-    if (ok.isEmpty()){ throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res); }
+    var ok= IntStream.range(0, res.size()).filter(i -> res.get(i).isEmpty()).boxed().toList();
+    if (ok.isEmpty()){ throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, reqs, res); }
     acc.okByArg().add(ok);
     acc.resByArg().add(res);
   }
   private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){
     var okRet= possible.stream()
-      .filter(i -> ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
-    if (!okRet.isEmpty()){ return Reason.pass(bestUnique(mat,okRet)); }
-    return Reason.callResultCannotHaveRequiredType(ts,d,c, req, bests(mat,possible),sig);
+      .filter(i -> ts.isSub(bs, mat.candidate(i).t(), req.t())).toList();
+    if (!okRet.isEmpty()){ return Reason.pass(bestUnique(mat, okRet)); }
+    return Reason.callResultCannotHaveRequiredType(ts, d, c, req, bests(mat, possible), sig);
   }
   //Unique unless the minimal types are a bare 'X' and some 'rc X'. A bare X stands for its whole
   //bound, so those two are incomparable, but both are sound and the "As declared" one comes first.
-  private T bestUnique(ArgMatrix mat, List<Integer> idxs){ return bests(mat,idxs).getFirst(); }
+  private T bestUnique(ArgMatrix mat, List<Integer> idxs){ return bests(mat, idxs).getFirst(); }
   private List<T> bests(ArgMatrix mat, List<Integer> idxs){
     var all= idxs.stream().map(i -> mat.candidate(i).t()).toList();
-    assert all.stream().allMatch(ti -> all.stream().allMatch(tj -> tj.equals(ti) || !ts.isSub(bs,tj,ti) || !ts.isSub(bs,ti,tj)));
+    assert all.stream().allMatch(ti -> all.stream().allMatch(tj -> tj.equals(ti) || !ts.isSub(bs, tj, ti) || !ts.isSub(bs, ti, tj)));
     return all.stream()
       .filter(ti -> all.stream().noneMatch(tj ->
-        !tj.equals(ti) && ts.isSub(bs,tj,ti)))
+        !tj.equals(ti) && ts.isSub(bs, tj, ti)))
       .distinct().toList();
   }
 }

@@ -126,7 +126,7 @@ public final class Gamma{
     var cold= contrib(xs[i], ts[i]);
     var cnew= contrib(xs[i], t);
     var d= declDepth[i];
-    for (int s : Range.of(d,depth)){ envHash[s] ^= cold ^ cnew; }
+    for (int s : Range.of(d, depth)){ envHash[s] ^= cold ^ cnew; }
     ts[i] = t;
   }
   public boolean represents(GammaSignature sig){
@@ -137,7 +137,7 @@ public final class Gamma{
   public boolean changed(long shot){ return shot != envHash[depth - 1]; }
   private int indexOf(String x){
     assert x != null;
-    if (size > indexThreshold){ return idx.getOrDefault(x,-1); }
+    if (size > indexThreshold){ return idx.getOrDefault(x, -1); }
     for (var i= size - 1; i >= 0; i--){ if (xs[i].equals(x)){ return i; } }
     return -1;
   }
@@ -158,11 +158,11 @@ public final class Gamma{
 
   @Override public String toString(){
     var sb= new StringBuilder();
-    for (int s : Range.of(0,depth)){
+    for (int s : Range.of(0, depth)){
       var start= marks[s];
       var end= (s + 1 < depth) ? marks[s + 1] : size;
       sb.append('[');
-      for (int i : Range.of(start,end)){
+      for (int i : Range.of(start, end)){
         if (i > start){ sb.append(','); }
         sb.append(xs[i]).append("->").append(ts[i]);
       }

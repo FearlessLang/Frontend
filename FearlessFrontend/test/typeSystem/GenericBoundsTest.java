@@ -43,7 +43,7 @@ Object literal is of type "FortyThree" instead of a subtype of "FortyTwo".
 
 See inferred typing context below for how type "FortyTwo" was introduced: (compression indicated by `-`)
 B:A[FortyTwo]{.count:FortyTwo->FortyTwo;.sum:FortyTwo->For-ree}
-""",List.of("""
+""", List.of("""
 Res1:{} Res2:{}
 FortyTwo:{ .get: Res1 -> Res1 }
 FortyThree:{ .get: Res2 -> Res2 }
@@ -60,7 +60,7 @@ Parameter "n" has type "mut FortyTwo" instead of a subtype of "imm FortyTwo".
 
 See inferred typing context below for how type "FortyTwo" was introduced: (compression indicated by `-`)
 B:A[FortyTwo]{mut .count:FortyTwo->FortyTwo;mut .sum(n:mut FortyTwo):FortyTwo->n}
-""",List.of("""
+""", List.of("""
 Res1:{}
 FortyTwo:{ .get: Res1 -> Res1 }
 A[N:*]:{ mut .count: N; mut .sum(n: mut FortyTwo): N }
@@ -122,7 +122,7 @@ Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "iso Beer[
 
 See inferred typing context below for how type "iso Beer[Y]" was introduced: (compression indicated by `-`)
 Bar:{.k[Y:*](y:Y):iso Beer[Y]->Foo.m[imm,Y](y)}
-""",List.of("""
+""", List.of("""
 Baz:{}
 Beer[X:*]:{ mut .x: X; read .x: read X }
 Foo:{ .m[X:*](x: X): mut Beer[X] -> {x} }
@@ -142,7 +142,7 @@ Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "Beer[Y]".
 
 See inferred typing context below for how type "Beer[Y]" was introduced: (compression indicated by `-`)
 Bar:{.k[Y:*](y:Y):Beer[Y]->Foo.m[imm,Y](y)}
-""",List.of("""
+""", List.of("""
 Baz:{}
 Beer[X:*]:{ mut .x: X; read .x: read X }
 Foo:{ .m[X:*](x: X): mut Beer[X] -> {x} }
@@ -235,7 +235,7 @@ Object literal "{...}" cannot implement "X".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso {}
-""",List.of("""
+""", List.of("""
 A[X:*]:{ #: X -> {} }
 """));}
 @Test void literalWithMethodCannotImplementATypeVariable(){fail("""
@@ -248,7 +248,7 @@ Object literal "{...}" cannot implement "X".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso {}
-""",List.of("""
+""", List.of("""
 A[X:*]:{ #: X -> {this} }
 """));}
 @Test void literalMethodNotInferredAsReceiver(){fail("""
@@ -261,7 +261,7 @@ No supertype of object literal "{...}" has a method with 0 parameters.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso {}
-""",List.of("""
+""", List.of("""
 A[X:*]:{ #: X -> {this}* }
 """));}
 @Test void uninferredLiteralInGenericDeclaration(){fail("""
@@ -274,7 +274,7 @@ but it could not infer type argument 2 for type parameter "R" of "Match[_,_]".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Match[R5,-.Inf-own]{mut .return(rv:R5):-.Inf-own->Any#[imm,-.Inf-own]}
-""",List.of("""
+""", List.of("""
 Any:{#[T:*]:T->Any#}
 Flow[T:*]: { mut .match[R:*](m: mut Match[T,R]): R }
 Match[T:*,R:*]: { mut .return(t: T): R; }
@@ -291,7 +291,7 @@ Type inference could not infer an expected type; computed type is "iso B".
 
 See inferred typing context below for how type "base.InferErr[A,B,A]" was introduced: (compression indicated by `-`)
 C:{.m:-.InferErr[A,B,A]->B}
-""",List.of("""
+""", List.of("""
 A:{} B:{}
 C:{ .m: base.InferErr[A,B,A] -> B }
 """));}
@@ -305,7 +305,7 @@ Object literal "{...}" cannot implement "X".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso {}
-""",List.of("""
+""", List.of("""
 A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
 """));}
 @Test void typeVariableCannotBeUsedAsALiteralName(){failParse("""
@@ -314,7 +314,7 @@ A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Name "X" is used as a type name, but "X" is already a generic type parameter in scope.
-""",List.of("""
+""", List.of("""
 A[X:*]:{ #: X -> X }
 """));}
 @Test void literalCopiesTheMethodsOfItsEnclosingType(){ok(List.of("""
@@ -368,7 +368,7 @@ Type required by each promotion:
 
 See inferred typing context below for how type "iso Foo" was introduced: (compression indicated by `-`)
 Bad:{#[Y:mut,mutH,readH](y:Y,isoF:iso Foo):iso Foo->Expect.isoFoo(A#[imm,Y](y,isoF))}
-""",List.of("""
+""", List.of("""
 Foo:{}
 A:{ #[X:mut,mutH,readH](x: X, f: mut Foo): mut Foo -> f }
 Expect:{ .isoFoo(f: iso Foo): iso Foo -> f }
@@ -386,7 +386,7 @@ Here "X" can only use capabilities "imm" or "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Foo:{.bar:A[mutH Foo]->A[mutH Foo]}
-""",List.of("""
+""", List.of("""
 A[X:imm,mut]:{}
 Foo:{ .bar: A[mutH Foo] -> A[mutH Foo] }
 """));}
@@ -402,7 +402,7 @@ Here "X" can only use capabilities "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Break:A[Break]{}
-""",List.of("""
+""", List.of("""
 A[X:mut]:{}
 Break:A[imm Break]{}
 """));}
@@ -418,7 +418,7 @@ Here "X" can only use capabilities "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Break:A[Break]{}
-""",List.of("""
+""", List.of("""
 A[X:mut]:{ .a1: X }
 Break:A[imm Break]{}
 """));}
@@ -438,7 +438,7 @@ Here "X" can only use capabilities "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Bre-ner:A[Break]{}
-""",List.of("""
+""", List.of("""
 A[X:mut]:{}
 Break:{}
 BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
@@ -465,7 +465,7 @@ But type argument "Z" can use capabilities "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Util.m[imm,Z](z)
-""",List.of("""
+""", List.of("""
 Foo:{}
 Util:{ .m[Y:imm](y: Y): Foo -> Foo }
 A:{ .f[Z:mut](z: Z): Foo -> Util.m(z) }
@@ -488,7 +488,7 @@ But type argument "Z" can use capabilities "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Util.m[imm,Z](z)
-""",List.of("""
+""", List.of("""
 Foo:{}
 Util:{ .m[Y:imm](y: Y): Foo -> Foo }
 A[Z:mut]:{ .f(z: Z): Foo -> Util.m(z) }
@@ -499,7 +499,7 @@ The type "Foo[Y]" is invalid.
 Type argument 1 ("Y") does not satisfy the bounds
 for type parameter "X" in "Foo[_]".
 Here "X" can only use capabilities "imm".
-[###]""",List.of("""
+[###]""", List.of("""
 Foo[X:imm]:{ .get: X }
 A:{ .m[Y:imm,mut](y: imm Y): Foo[imm Y] -> Foo[Y]{ .get -> y } }
 """));}
@@ -520,7 +520,7 @@ Type required by each promotion:
 
 See inferred typing context below for how type "mut Foo" was introduced: (compression indicated by `-`)
 Break:{.m(f:Foo):Foo->A#[imm,mut Foo](f)}
-""",List.of("""
+""", List.of("""
 Foo:{}
 A:{ #[X:mut](x: X): X -> x }
 Break:{ .m(f: imm Foo): imm Foo -> A#(f) }
@@ -537,7 +537,7 @@ Here "X" can only use capabilities "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A#[imm,Foo](f)
-""",List.of("""
+""", List.of("""
 Foo:{}
 A:{ #[X:mut](x: X): X -> x }
 Break:{ .m(f: imm Foo): imm Foo -> A#[imm Foo](f) }
@@ -559,7 +559,7 @@ But type argument "Y" can use capabilities "imm" or "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{.bar[Y:*]:Foo[Y]->Foo[Y]}
-""",List.of("""
+""", List.of("""
 Foo[X:mut]:{}
 A:{ .bar[Y:mut,read,imm]: imm Foo[Y] -> imm Foo[Y] }
 """));}
@@ -573,11 +573,11 @@ A:{ .bar[Y:mut,read,imm]: imm Foo[read/imm Y] -> imm Foo[read/imm Y] }
 """));}
 @Test void isoPromotionOfABoxOfImm(){ok(List.of("""
 A:{ #[S:imm](s: S): iso Box[S] -> Box#s }
-""",box));}
+""", box));}
 @Test void isoPromotionOfABoxPassedToAnIsoParameter(){ok(List.of("""
 B:{ #[Y:*](b: iso Y): mut B -> {} }
 A:{ #[S:imm](s: S): mut B -> B#[mut Box[S]](Box#[S]s) }
-""",box));}
+""", box));}
 @Test void personFactory(){ok(List.of("""
 FPerson:{ #(name: Str, age: Nat): Person -> Person:{
   .name: Str -> name;
@@ -587,7 +587,7 @@ Ex:{
   .create: Person -> FPerson#(Bob, TwentyFour);
   .name(p: Person): Str -> p.name;
   }
-""",people));}
+""", people));}
 @Test void genericPerson(){ok(List.of("""
 Person[N:*]:{ .name: Str; .age: imm N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[N] -> {
@@ -598,7 +598,7 @@ Ex:{
   .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour);
   .name(p: Person[Nat]): Str -> p.name;
   }
-""",people));}
+""", people));}
 @Test void genericPersonInline(){ok(List.of("""
 FPerson:{ #[N:*](name: Str, age: imm N): Person[N] -> Person[N:*]:{
   .name: Str -> name;
@@ -608,7 +608,7 @@ Ex:{
   .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour);
   .name(p: Person[Nat]): Str -> p.name;
   }
-""",people));}
+""", people));}
 @Test void inlineBoundsForwarding(){ok(List.of("""
 FPerson:{ #[N:imm](name: Str, age: imm N): Person[N] -> Person[N:imm]:{
   .name: Str -> name;
@@ -618,7 +618,7 @@ Ex:{
   .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour);
   .name(p: Person[Nat]): Str -> p.name;
   }
-""",people));}
+""", people));}
 @Test void inlineBoundsForwardingMismatch(){fail("""
 006|   .create: Person[Nat] -> FPerson#(Bob, TwentyFour);
    |   ------------------------^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -629,7 +629,7 @@ Method call "FPerson#(_,_)" has type "Person[TwentyFour]" instead of a subtype o
 
 See inferred typing context below for how type "Person[Nat]" was introduced: (compression indicated by `-`)
 Ex:{.create:Person[Nat]->FPerson#[imm,Twe-our](Bob,Twe-our);.name(p:Person[Nat]):Str->p.name}
-""",List.of("""
+""", List.of("""
 FPerson:{ #[N:imm](name: Str, age: imm N): Person[N] -> Person[N:*]:{
   .name: Str -> name;
   .age: imm N -> age;
@@ -638,7 +638,7 @@ Ex:{
   .create: Person[Nat] -> FPerson#(Bob, TwentyFour);
   .name(p: Person[Nat]): Str -> p.name;
   }
-""",people));}
+""", people));}
 @Test void boundsForwardingImplicit(){ok(List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[imm N] -> {
@@ -649,7 +649,7 @@ Ex:{
   .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour);
   .name(p: Person[Nat]): Str -> p.name;
   }
-""",people));}
+""", people));}
 @Test void boundsForwardingImplicitBreak(){fail("""
 002| FPerson:{ #[N:*](name: Str, age: imm N): Person[N] -> {
    |                                          ^^^^^^^^^
@@ -665,7 +665,7 @@ But type argument "N" can use capabilities "imm" or "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 FPerson:{#[N:*](name:Str,age:imm N):Person[N]->Person[imm N]{.name:Str->name;.age:imm N->age}}
-""",List.of("""
+""", List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[N] -> {
   .name -> name;
@@ -675,7 +675,7 @@ Ex:{
   .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour);
   .name(p: Person[Nat]): Str -> p.name;
   }
-""",people));}
+""", people));}
 @Test void boundsForwardingExplicit(){ok(List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[imm N] -> Fresh[N:*]:Person[imm N]{
@@ -687,7 +687,7 @@ Ex:{
   .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour);
   .name(p: Person[Nat]): Str -> p.name;
   }
-""",people));}
+""", people));}
 @Test void boundsForwardingExplicitBreak(){fail("""
 002| FPerson:{ #[N:*](name: Str, age: imm N): Person[imm N] -> Fresh[N:*]:Person[N]{
    |                                                                      ^^^^^^^^^
@@ -703,7 +703,7 @@ But type argument "N" can use capabilities "imm" or "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Fresh[N:*]:Person[N]{.name:Str->name;.age:N->age}
-""",List.of("""
+""", List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[imm N] -> Fresh[N:*]:Person[N]{
   .name -> name;
@@ -714,7 +714,7 @@ Ex:{
   .create: Person[Nat] -> FPerson#[Nat](Bob, TwentyFour);
   .name(p: Person[Nat]): Str -> p.name;
   }
-""",people));}
+""", people));}
 @Test void funnellingInADifferentOrder(){ok(List.of("""
 Foo:{ .m[X:imm,Y:imm](x: X, y: Y): Box[X,Y] ->
   Anon[Y:imm, X:imm]: Box[X,Y]{.x -> x; .y -> y}
@@ -728,7 +728,7 @@ Box[X:imm,Y:imm]:{ .x: X; .y: Y }
 While inspecting a type name
 Type "Z" is not declared in package "p" and is not made visible via "use".
 In scope: "Box", "Foo".
-""",List.of("""
+""", List.of("""
 Foo:{ .m[X:imm,Y:imm](x: X, y: Y): Box[X,Y] ->
   Box[X,Y]{'b
     .x -> x; .y -> y; .z: Z -> b.z}
@@ -743,7 +743,7 @@ Box[X:imm,Y:imm]:{ .x: X; .y: Y }
 While inspecting generic bounds declaration > method body > method declaration > type declaration body > type declaration > full file
 Generic type "Z" is not in scope.
 Declared generics: "X", "Y".
-""",List.of("""
+""", List.of("""
 Foo:{ .m[X:imm,Y:imm](x: X, y: Y): Box[X,Y] ->
   Anon[Y:imm, X:imm, Z:imm]: Box[X,Y]{'b
     .x -> x; .y -> y; .z: Z -> b.z}
@@ -763,7 +763,7 @@ But type argument "X" can use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Foo[X:mut]:{}
-""",List.of("""
+""", List.of("""
 A:{ .m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]:{} }
 """));}
 @Test void narrowOuterBoundMutLiteralOk(){ok(List.of("""
@@ -796,7 +796,7 @@ Hint: write "iso Fresh[_]" if you need a "iso" object literal.
 
 See inferred typing context below for how type "iso Box[X]" was introduced: (compression indicated by `-`)
 A:{.m[X:imm](x:X):iso Box[X]->mut Fresh[X:*]:Box[X]{mut .get:X->x}}
-""",List.of("""
+""", List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
 """));}
@@ -811,7 +811,7 @@ Hint: capture an immutable copy instead, or move this use outside the object lit
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 x
-""",List.of("""
+""", List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
 """));}
@@ -827,7 +827,7 @@ and thus parameter "b" cannot be captured.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 b
-""",List.of("""
+""", List.of("""
 Box[X:imm]:{ .get: X }
 Get[X:imm,mut,read]:{ read .get: read/imm X }
 A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }
@@ -844,7 +844,7 @@ and thus parameter "b" cannot be captured.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 b
-""",List.of("""
+""", List.of("""
 Box[X:imm]:{ .get: X }
 Get[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](b: Box[X]): mut Get[X] -> mut Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }
@@ -856,7 +856,7 @@ A:{ .m[X:imm](b: Box[X]): mut Get[X] -> mut Fresh[X:imm]:Get[X]{ .get -> b.get }
 """));}@Test void mutableOuterBoundIsoLiteralDoesNotCapture(){fail("""
 [###]parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "iso Fresh[_]" (line 2).
 [###]
-""",List.of("""
+""", List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm,mut](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
 """));}
