@@ -35,14 +35,14 @@ public sealed interface E{
   record X(String name, IT t, Src src, Gamma.GammaSignature g) implements E{
     public X(String name, Src src){ this(name,IT.U.Instance,src,new Gamma.GammaSignature()); }
     public X{ assert nonNull(t,src,g); assert validate(name, "parameter name",LowercaseId); }
-    public String toString(){ return name+":"+t; }
-    public E withT(IT t){ return sameTOr(this, t, ()->new X(name,t,src,g.clear())); }
+    @Override public String toString(){ return name+":"+t; }
+    @Override public E withT(IT t){ return sameTOr(this, t, ()->new X(name,t,src,g.clear())); }
   }
   record Type(IT.RCC type, IT t, Src src, Gamma.GammaSignature g) implements E{
     public Type{ assert nonNull(type,t,src,g); }
     public Type(IT.RCC type, Src src){ this(type,IT.U.Instance,src,new Gamma.GammaSignature()); }
-    public E withT(IT t){ return sameTOr(this, t, ()->new Type(type,t,src,g.clear())); }
-    public String toString(){ return ""+type+":"+t; }
+    @Override public E withT(IT t){ return sameTOr(this, t, ()->new Type(type,t,src,g.clear())); }
+    @Override public String toString(){ return ""+type+":"+t; }
   }
   // **rc is present implies no inference needed**
   record Literal(Optional<RC> rc, TName name, List<B> bs, List<IT.C> cs, String thisName, List<M> ms, IT t, Src src,boolean infName, boolean infHead, Gamma.GammaSignature g) implements E{
@@ -55,8 +55,8 @@ public sealed interface E{
       assert unmodifiableDistinct(ms, "E.Literal.ms");
       assert nonNull(rc,name,thisName,t,src,g);
     }
-    public E.Literal withT(IT t){ return sameTOr(this, t, ()->new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear())); }
-    public String toString(){
+    @Override public E.Literal withT(IT t){ return sameTOr(this, t, ()->new Literal(rc,name,bs,cs,thisName,ms,t,src,infName,infHead,g.clear())); }
+    @Override public String toString(){
       var res= rc.map(RC::toStrSpace).orElse("")+name.s()+Join.of(bs,"[",",","]","")+(rc.isEmpty() ? ":$?" : Join.of(cs,":",", ","",":"));
       return res+Join.of(ms,"{'"+thisName,"","}","")+":"+t;
     }
@@ -98,8 +98,8 @@ public sealed interface E{
     }
     public Call withEEs(E e,List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, ()->new E.Call(e, name, rc,targs,es,t,src,g.clear())); }
     public Call withE(E e){ return withEEs(e,es); }
-    public Call withT(IT t){ return sameTOr(this, t, ()->new Call(e,name,rc,targs,es,t,src,g.clear())); }
-    public String toString(){
+    @Override public Call withT(IT t){ return sameTOr(this, t, ()->new Call(e,name,rc,targs,es,t,src,g.clear())); }
+    @Override public String toString(){
       var open= rc.map(r->"["+r).orElse("[");
       return ""+e+name+open
         +Join.of(targs,rc.isEmpty() ? "" : ",",",","](","](")
@@ -112,8 +112,8 @@ public sealed interface E{
       assert nonNull(e,name,t,src,g);
       assert unmodifiable(es, "E.ICall.es");
     }
-    public E withT(IT t){ return sameTOr(this, t, ()->new ICall(e,name,es,t,src,g.clear())); }
-    public String toString(){ return ""+e+name+Join.of(es,"(",",","):","():")+t; }
+    @Override public E withT(IT t){ return sameTOr(this, t, ()->new ICall(e,name,es,t,src,g.clear())); }
+    @Override public String toString(){ return ""+e+name+Join.of(es,"(",",","):","():")+t; }
     public E withEEs(E e, List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, ()->new ICall(e,name,es,t,src,g.clear())); }
     public E withE(E e){ return withEEs(e,es); }
   }

@@ -17,14 +17,14 @@ public sealed interface TypeScope{
   List<T> mentionedTs();
   enum Top implements TypeScope{
     Instance;
-    public List<T> mentionedTs(){ return List.of(); }
-    public TypeScope outer(){ throw Bug.unreachable(); }//consistently offensive
-    public E contextE(){ throw Bug.unreachable(); }
+    @Override public List<T> mentionedTs(){ return List.of(); }
+    @Override public TypeScope outer(){ throw Bug.unreachable(); }//consistently offensive
+    @Override public E contextE(){ throw Bug.unreachable(); }
   }
   default TypeScope pushM(Literal l, M m){ return new Method(l,m,this); }
   record Method(Literal l, M m, TypeScope outer) implements TypeScope{
-    public E contextE(){ return l; }
-    public List<T> mentionedTs(){ return l.cs().stream().flatMap(c->c.ts().stream()).toList(); }
+    @Override public E contextE(){ return l; }
+    @Override public List<T> mentionedTs(){ return l.cs().stream().flatMap(c->c.ts().stream()).toList(); }
   }
   default TypeScope pushCallRec(Call c){
     var es= c.es().stream().map(this::omit).toList();
@@ -36,8 +36,8 @@ public sealed interface TypeScope{
     return new CallSite(new Call(omit(c.e()),c.name(),c.rc(),c.targs(),es,c.expectedRes(),c.src()),this);
   }
   record CallSite(Call c, TypeScope outer) implements TypeScope{
-    public E contextE(){ return c; }
-    public List<T> mentionedTs(){ return c.targs(); }
+    @Override public E contextE(){ return c; }
+    @Override public List<T> mentionedTs(){ return c.targs(); }
   }
   static List<T> interestFromDeclVsReq(T declRet, T reqRet){
     var out= new ArrayList<T>();

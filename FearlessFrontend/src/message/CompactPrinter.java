@@ -72,13 +72,13 @@ public final class CompactPrinter{
   public sealed interface PT extends PN{}
 
   public record PX(String x) implements PE{
-    public void accString(CompactPrinter sb){ sb.append(x); }
+    @Override public void accString(CompactPrinter sb){ sb.append(x); }
   }
   public record PTypeE(PT t) implements PE{
-    public void accString(CompactPrinter sb){ t.accString(sb); }
+    @Override public void accString(CompactPrinter sb){ t.accString(sb); }
   }
   public record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k) implements PE{
-    public void accString(CompactPrinter sb){
+    @Override public void accString(CompactPrinter sb){
       Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b)->b.append("-");
       acc.acc(recv,sb);
       sb.append(m);
@@ -87,7 +87,7 @@ public final class CompactPrinter{
     }
   }
   public record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k) implements PE{
-    public void accString(CompactPrinter sb){
+    @Override public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace());
       if (!priv){ sb.append(name); } else if (!cs.isEmpty()){ cs.getFirst().accString(sb); }
       if (!k.isCompactable()){ sb.append("{-}"); return; }
@@ -99,22 +99,22 @@ public final class CompactPrinter{
     }
   }
   public record PTX(String x) implements PT{
-    public void accString(CompactPrinter sb){ sb.append(x); }
+    @Override public void accString(CompactPrinter sb){ sb.append(x); }
   }
   public record PTRCC(RC rc, PC c) implements PT{
-    public void accString(CompactPrinter sb){
+    @Override public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace());
       c.accString(sb);
     }
   }
   public record PC(String name, List<PT> ts, Compactable k) implements PN{
-    public void accString(CompactPrinter sb){
+    @Override public void accString(CompactPrinter sb){
       sb.append(name);
       wrap(sb,"[","]",ts,",",k.isCompactable() ? PN::accString : (_,b)->b.append("-"));
     }
   }
   public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{
-    public void accString(CompactPrinter sb){
+    @Override public void accString(CompactPrinter sb){
       if (!k.isCompactable()){ accCompactedMeth(sb); return; }
       sb.append(rc.toStrSpace());
       sb.append(m);

@@ -24,7 +24,7 @@ public enum Code{
   FearlessException of(String msg){ return of((o,fs)->Message.of(o::loadString,fs,msg)); }
   FearlessException of(Supplier<String> msg){ return of((o,fs)->Message.of(o::loadString,fs,msg.get())); }
 
-  public String toString(){
+  @Override public String toString(){
     return "Error "+ordinal()+" "+name();
   }
 }

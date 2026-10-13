@@ -15,7 +15,7 @@ public record M(Sig sig, List<String> xs, Optional<E> e){
     assert xs.size() == sig.ts().size();
   }
   public M withSig(Sig sig){ return new M(sig,xs,e); }
-  public String toString(){
+  @Override public String toString(){
     var sb= new StringBuilder();
     sb.append(sig.rc().toStrSpace());
     sb.append(sig.m());

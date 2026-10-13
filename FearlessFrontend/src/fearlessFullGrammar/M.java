@@ -15,5 +15,5 @@ public record M(Optional<Sig> sig, Optional<E> body, boolean hasImplicit, TSpan 
     assert sig.isPresent() || body.isPresent();
     if (hasImplicit){ sig= sig.map(Sig::withImplicit); }
   }
-  public String toString(){ return "M[sig="+sig+", body="+body+"]"; }
+  @Override public String toString(){ return "M[sig="+sig+", body="+body+"]"; }
 }

@@ -18,8 +18,8 @@ public final class SpanPositionOrderTest{
   static final URI f= URI.create("fear:/a/b.fear");
   enum K implements TokenKind{
     Word;
-    public TokenMatch matcher(){ return TokenMatch.fromRegex("[a-z]+"); }
-    public int priority(){ return 0; }
+    @Override public TokenMatch matcher(){ return TokenMatch.fromRegex("[a-z]+"); }
+    @Override public int priority(){ return 0; }
   }
   record T(K kind, String content, int line, int column, List<T> tokens) implements Token<T,K>{}
   @Test void containedMultiLineOuterStartColAfterInnerStartCol(){

@@ -9,5 +9,5 @@ public record MName(String s, int arity){
   }
   public MName withArity(int arity){ return new MName(s,arity); }
   public static boolean isMethodName(String s){ return isKind(s,DotName,Op); }
-  public String toString(){ return s; }
+  @Override public String toString(){ return s; }
 }

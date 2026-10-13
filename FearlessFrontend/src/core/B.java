@@ -14,7 +14,7 @@ public record B(String x, EnumSet<RC> rcs){
   public static B get(List<B> bs, String name){
     return OneOr.of("Type variable not found",bs.stream().filter(b->b.x().equals(name)));
   }
-  public String toString(){
+  @Override public String toString(){
     return x+":"+Join.of(rcs.stream().map(RC::name),"",",","","");
   }
   public String compactToString(){

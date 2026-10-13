@@ -20,16 +20,16 @@ public sealed interface IT{
   default int depth(){ return 1; }
   record X(String name, TSpan span) implements IT{
     public X{ assert validate(name,"generic type name", _XId); }
-    public String toString(){ return name; }
+    @Override public String toString(){ return name; }
   }
   record RCX(RC rc, X x) implements IT{
     public RCX{ assert nonNull(rc,x); }
-    public String toString(){ return rc.name()+" "+x.name; }
-    public Optional<RC> explicitRC(){ return Optional.of(rc); }
+    @Override public String toString(){ return rc.name()+" "+x.name; }
+    @Override public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   record ReadImmX(X x) implements IT{
     public ReadImmX{ assert nonNull(x); }
-    public String toString(){ return "read/imm "+x.name; }
+    @Override public String toString(){ return "read/imm "+x.name; }
   }
   record C(TName name, List<IT> ts, int depth){
     public C{
@@ -37,7 +37,7 @@ public sealed interface IT{
       assert eq(ts.size(), name.arity(),"Type arity");
     }
     public C(TName name, List<IT> ts){ this(name,ts,RCC.depthFromTs(ts)); }
-    public String toString(){
+    @Override public String toString(){
       return name.s()+Join.of(ts,"[",",","]","");
     }
   }
@@ -55,16 +55,16 @@ public sealed interface IT{
       if (depth > maxDepth){ return this; }
       return new RCC(rc, new C(c.name(), ts, depth), span);
     }
-    public long badness(){ return c.ts.stream().mapToLong(IT::badness).sum(); }
-    public String toString(){ return rc.map(RC::toStrSpace).orElse("AnyRC ")+c; }
-    public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
-    public int depth(){ return c.depth(); }
-    public Optional<RC> explicitRC(){ return rc; }
+    @Override public long badness(){ return c.ts.stream().mapToLong(IT::badness).sum(); }
+    @Override public String toString(){ return rc.map(RC::toStrSpace).orElse("AnyRC ")+c; }
+    @Override public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
+    @Override public int depth(){ return c.depth(); }
+    @Override public Optional<RC> explicitRC(){ return rc; }
   }
   enum U implements IT{ Instance;
-    public String toString(){ return "?";}
-    public boolean isTV(){ return false; }
-    public long badness(){ return 1; }
+    @Override public String toString(){ return "?";}
+    @Override public boolean isTV(){ return false; }
+    @Override public long badness(){ return 1; }
   }
   default IT withRC(RC rc){ return switch (this){ // T[RC]
     case RCC(_, var c, var span) -> new RCC(Optional.of(rc), c, span);

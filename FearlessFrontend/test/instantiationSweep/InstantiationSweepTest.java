@@ -31,7 +31,7 @@ public final class InstantiationSweepTest extends testUtils.FearlessTestBase{
   record Found(String title, AtomicLong n, List<String> sample){
     Found(String title){ this(title,new AtomicLong(),Collections.synchronizedList(new ArrayList<>())); }
     void add(String s){ n.incrementAndGet(); if (sample.size() < 20){ sample.add(s); } }
-    public String toString(){ return title+": "+n+"\n"+Join.of(sample.stream().sorted(),"","\n","\n",""); }
+    @Override public String toString(){ return title+": "+n+"\n"+Join.of(sample.stream().sorted(),"","\n","\n",""); }
   }
   static final Found unsound= new Found("Generic accepted, some instantiation rejected");
   static final Found unexplained= new Found("Generic rejected, every instantiation accepted, some singleton bound rejected");

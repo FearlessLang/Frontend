@@ -14,7 +14,7 @@ import utils.Join;
 
 public record M(Sig sig, Optional<Impl> impl){
   public M{ assert nonNull(sig,impl); }
-  public String toString(){
+  @Override public String toString(){
     return impl.map(i->sig+Join.of(i.xs,"(",", ",")","")+"->"+i.e()+";").orElseGet(sig::toString);
   }
   public M withSig(Sig sig){
@@ -26,7 +26,7 @@ public record M(Sig sig, Optional<Impl> impl){
     public Sig(RC rc, MName m, List<B> bs, List<Optional<IT>> ts, IT ret, TName origin, boolean abs, TSpan span){
       this(Optional.of(rc),Optional.of(m),Optional.of(bs),ts,Optional.of(ret),Optional.of(origin),abs,span);
     }
-    public String toString(){
+    @Override public String toString(){
       var bsS= bs.map(b->Join.of(b,"[",",","]","")).orElse("[?]");
       return " "+rc.map(RC::toStrSpace).orElse("? ")+m.map(MName::toString).orElse("")+bsS
         +Join.of(ts.stream().map(this::t),"(",",",")","")+":"+t(ret)+origin.map(o->"@"+o.s()).orElse("@!")+";";
@@ -40,7 +40,7 @@ public record M(Sig sig, Optional<Impl> impl){
   }
   public record Impl(Optional<MName> m, List<String> xs, E e){
     public Impl{ assert nonNull(m,e); assert unmodifiable(xs,"Impl.xs"); }
-    public String toString(){
+    @Override public String toString(){
       var xsC= Join.of(xs,"(",", ",")->","()->");
       return " "+m.map(MName::s).orElse("")+xsC+e+";";
     }
