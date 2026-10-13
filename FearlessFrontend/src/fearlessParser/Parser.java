@@ -23,7 +23,7 @@ import metaParser.Span;
 import utils.Bug;
 import utils.Range;
 
-public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
+public final class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
   Names names;
   final FearlessErrFactory err;
   Parser(Span base, Names names, List<Token> ts, FearlessErrFactory err){

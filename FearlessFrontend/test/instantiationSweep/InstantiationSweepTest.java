@@ -20,7 +20,7 @@ import main.FrontendLogicMain;
 import testUtils.DbgBlock;
 import utils.Join;
 
-public class InstantiationSweepTest extends testUtils.FearlessTestBase{
+public final class InstantiationSweepTest extends testUtils.FearlessTestBase{
   static final List<String> rcs= List.of("iso","imm","mut","read","mutH","readH");
   static final List<String> forms= List.of("_","read/imm _","iso _","imm _","mut _","read _","mutH _","readH _");
   static final List<String> mRcs= List.of("imm","read","mut");

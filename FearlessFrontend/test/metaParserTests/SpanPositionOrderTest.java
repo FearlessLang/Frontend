@@ -14,7 +14,7 @@ import metaParser.Token;
 import metaParser.TokenKind;
 import metaParser.TokenMatch;
 
-public class SpanPositionOrderTest{
+public final class SpanPositionOrderTest{
   static final URI f= URI.create("fear:/a/b.fear");
   enum K implements TokenKind{
     Word;

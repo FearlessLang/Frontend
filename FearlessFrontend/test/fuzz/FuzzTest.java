@@ -23,7 +23,7 @@ import testUtils.DbgBlock;
 import tools.SourceOracle;
 import utils.Join;
 
-public class FuzzTest extends testUtils.FearlessTestBase{
+public final class FuzzTest extends testUtils.FearlessTestBase{
   static final int cases= 10_000;
   static final List<String> tokens= List.of("{","}","(",")","[","]",":",";","->","=",",",
     "mut ","read ","iso ","imm ","readH ","mutH ","read/imm ","this"," x"," .m"," .foo","'self ",

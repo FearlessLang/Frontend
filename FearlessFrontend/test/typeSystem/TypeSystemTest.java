@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import core.LiteralDeclarations;
 
-public class TypeSystemTest extends testUtils.FearlessTestBase{
+public final class TypeSystemTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
   static void fail(String expected, List<String> input){ typeFail(expected, input); }
   static void failExt(String expected, List<String> input){ typeFailRaw(expected, input); }

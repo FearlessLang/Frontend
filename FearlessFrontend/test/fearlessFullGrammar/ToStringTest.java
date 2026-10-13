@@ -2,7 +2,7 @@ package fearlessFullGrammar;
 
 import org.junit.jupiter.api.Test;
 
-public class ToStringTest extends testUtils.FearlessTestBase{
+public final class ToStringTest extends testUtils.FearlessTestBase{
   static void ok(String expected,String input){ toStringOk(expected, input);}
   @Test void decl_empty(){ ok("A: {}\n","A:{}"); }
 

@@ -13,7 +13,7 @@ import testUtils.DbgBlock;
 import tools.SourceOracle;
 import utils.Join;
 
-public class PromotionMatrixTest extends testUtils.FearlessTestBase{
+public final class PromotionMatrixTest extends testUtils.FearlessTestBase{
   static final List<String> rets= List.of("R","imm R","read R","mut R","readH R","mutH R","iso R","read/imm R");
   static final List<String> gRcs= List.of("imm","read","mut","iso","readH","mutH");
   static final List<String> recvs= List.of("imm","read","mut");

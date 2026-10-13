@@ -12,7 +12,7 @@ import core.FearlessException;
 import main.FrontendLogicMain;
 import testUtils.DbgBlock;
 
-public class TypeInMethodTest extends testUtils.FearlessTestBase{
+public final class TypeInMethodTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
   static void fail(String expected, List<String> input){ typeFail(expected, input); }
 

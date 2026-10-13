@@ -15,7 +15,7 @@ import pkgmerge.Package;
 import tools.SourceOracle;
 import tools.SourceOracle.Ref;
 
-public class InferenceMain extends FrontendLogicMain{
+public final class InferenceMain extends FrontendLogicMain{
   @Override Package makePackage(String name, Map<String,String> map, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
     return new Package(name, map, uses, decs, names, new Package.Logger(true,new ArrayList<>()));
   }

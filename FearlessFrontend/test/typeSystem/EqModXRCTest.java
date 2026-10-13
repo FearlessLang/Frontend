@@ -18,7 +18,7 @@ import core.TName;
 import core.TSpan;
 import utils.Pos;
 
-public class EqModXRCTest{
+public final class EqModXRCTest{
   static final TSpan span= TSpan.fromPos(Pos.unknown);
   static final T.X x= new T.X("X",span);
   static final TName foo= new TName("Foo",0,Pos.unknown);

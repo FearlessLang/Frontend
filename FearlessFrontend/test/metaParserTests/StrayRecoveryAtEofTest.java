@@ -22,7 +22,7 @@ import metaParser.TokenKind;
 import metaParser.TokenMatch;
 import metaParser.TokenTreeSpec;
 
-public class StrayRecoveryAtEofTest{
+public final class StrayRecoveryAtEofTest{
   enum K implements TokenKind{
     Sof("(?!)"), Eof("(?!)"), Lb("\\{"), Rb("\\}"), Lp("\\("), Rp("\\)"), File("(?!)"), Braces("(?!)"), Parens("(?!)");
     final TokenMatch m;
@@ -32,23 +32,23 @@ public class StrayRecoveryAtEofTest{
   }
   record Tok(K kind, String content, int line, int column, List<Tok> tokens) implements Token<Tok,K>{}
   @SuppressWarnings("serial")
-  static class Ex extends RuntimeException implements HasFrames<Ex>{
+  static final class Ex extends RuntimeException implements HasFrames<Ex>{
     final String name; final LikelyCause likely; final ArrayList<Frame> frames= new ArrayList<>();
     Ex(String name, LikelyCause likely){ super(name+" "+likely); this.name= name; this.likely= likely; }
     public Ex addFrame(Frame f){ frames.add(f); return this; }
   }
-  static class Tz extends MetaTokenizer<Tok,K,Ex,Tz,Ps,Ef>{
+  static final class Tz extends MetaTokenizer<Tok,K,Ex,Tz,Ps,Ef>{
     public Tz self(){ return this; }
     public Tok make(K kind, String text, int line, int col, List<Tok> tokens){ return new Tok(kind,text,line,col,tokens); }
   }
-  static class Ps extends MetaParser<Tok,K,Ex,Tz,Ps,Ef>{
+  static final class Ps extends MetaParser<Tok,K,Ex,Tz,Ps,Ef>{
     Ps(Span s, List<Tok> ts){ super(s,ts); }
     public Ps self(){ return this; }
     public boolean skip(Tok t){ return t.is(K.Sof,K.Eof); }
     public Ps make(Span s, List<Tok> ts){ return new Ps(s,ts); }
     public Ef errFactory(){ return new Ef(); }
   }
-  static class Ef implements ErrFactory<Tok,K,Ex,Tz,Ps,Ef>{
+  static final class Ef implements ErrFactory<Tok,K,Ex,Tz,Ps,Ef>{
     public Ex illegalCharAt(Span at, int cp, Tz tz){ return new Ex("illegalChar",null); }
     public Ex unrecognizedTextAt(Span at, String what, Tz tz){ return new Ex("unrecognized",null); }
     public Ex groupHalt(Tok open, Tok stop, Collection<K> closers, LikelyCause likely, Tz tz){ return new Ex("groupHalt",likely); }

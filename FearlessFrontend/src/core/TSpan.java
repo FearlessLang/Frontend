@@ -7,7 +7,7 @@ import offensiveUtils.NeverAsKey;
 
 /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
 @NeverAsKey
-public class TSpan extends EqTransparent<Span>{
+public final class TSpan extends EqTransparent<Span>{
   public TSpan(Span inner){ super(inner); }
   public Pos pos(){ return new Pos(inner.fileName(),inner.startLine(),inner.startCol());}
   public static TSpan fromPos(Pos pos){ return fromPos(pos,1); }

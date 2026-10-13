@@ -12,7 +12,7 @@ import core.FearlessException;
 import core.OtherPackages;
 import testUtils.DbgBlock;
 
-public class MapDirectiveTest extends testUtils.FearlessTestBase{
+public final class MapDirectiveTest extends testUtils.FearlessTestBase{
   static final String aA= "A:{.fromA:A->this}";
   static final String cA= "A:{.fromC:A->this}";
   static final String dA= "A:{.fromD:A->this}";

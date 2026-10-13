@@ -41,7 +41,7 @@ import utils.Push;
 
 public record WellFormednessErrors(String pkgName){
   @SuppressWarnings("serial")
-  public static class ErrToFetchContext extends RuntimeException{
+  public static final class ErrToFetchContext extends RuntimeException{
     public final IT.RCC c;
     public ErrToFetchContext(IT.RCC c){ this.c= c; }
   }

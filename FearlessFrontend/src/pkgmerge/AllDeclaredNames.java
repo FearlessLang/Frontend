@@ -10,7 +10,7 @@ import fearlessFullGrammar.*;
 import fearlessFullGrammar.E.*;
 import message.WellFormednessErrors;
 
-public class AllDeclaredNames{
+public final class AllDeclaredNames{
   AllDeclaredNames(WellFormednessErrors err){ this.err= err; }
   WellFormednessErrors err;
   LinkedHashSet<TName> decNames= new LinkedHashSet<>();

@@ -16,7 +16,7 @@ import testUtils.DbgBlock;
 import tools.SourceOracle;
 import utils.Join;
 
-public class GeneratedTestsTest extends testUtils.FearlessTestBase{
+public final class GeneratedTestsTest extends testUtils.FearlessTestBase{
   static final String pkg= """
 A:{ .m: A -> this; .n: A -> A{ .m -> this } }
 _H:{ .h: _H -> this }

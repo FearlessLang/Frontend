@@ -9,7 +9,7 @@ import fearlessFullGrammar.XPat.Destruct;
 import fearlessFullGrammar.XPat.Name;
 import utils.Range;
 
-public class ToString{
+public final class ToString{
   public static String declaration(Declaration d){
     var v= new ToString();
     v.visitInnerDeclaration(d);

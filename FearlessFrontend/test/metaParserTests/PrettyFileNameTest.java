@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import metaParser.PrettyFileName;
 
-public class PrettyFileNameTest{
+public final class PrettyFileNameTest{
   static final Path cwd= Path.of("").toAbsolutePath();
   static void same(String uri){ assertEquals(uri, PrettyFileName.displayFileName(URI.create(uri))); }
   @Test void fearUriVerbatim(){ same("fear:/_pkb/_rank_app200.fear"); }

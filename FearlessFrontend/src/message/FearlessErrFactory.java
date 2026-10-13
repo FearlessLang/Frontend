@@ -31,7 +31,7 @@ import metaParser.Span;
 import utils.Join;
 import utils.Push;
 
-public class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
+public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
   Optional<TName> lastTop= Optional.empty();
   public void noteTop(TName t){ lastTop= Optional.of(t); }
   @Override public FearlessException illegalCharAt(Span at, int cp, Tokenizer tokenizer){
