@@ -86,7 +86,7 @@ public final class Gamma{
   public Optional<E.Literal> notFunnelledInto(String x){
     var i= indexOf(x);
     var xs= ts[i].ftv().toList();
-    return IntStream.range(declDepth[i] + 1, depth).filter(s->!B.xs(bss[s]).containsAll(xs)).mapToObj(s->owners[s]).findFirst();
+    return IntStream.range(declDepth[i] + 1, depth).filter(s -> !B.xs(bss[s]).containsAll(xs)).mapToObj(s -> owners[s]).findFirst();
   }
   private static IT adapt(IT t, RC rc, List<B> bs){ return switch (t){
     case IT.X(var x, _) -> adaptX(t, B.get(bs, x).rcs(), rc);

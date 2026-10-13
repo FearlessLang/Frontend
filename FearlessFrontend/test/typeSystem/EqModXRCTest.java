@@ -25,9 +25,9 @@ public final class EqModXRCTest{
   static final TName box= new TName("Box",1,Pos.unknown);
   static final List<T> spellings= Stream.concat(
     Stream.<T>of(x,new T.ReadImmX(x)),
-    Arrays.stream(RC.values()).<T>map(rc->new T.RCX(rc,x))).toList();
+    Arrays.stream(RC.values()).<T>map(rc -> new T.RCX(rc,x))).toList();
   static final List<T> types= Stream.concat(spellings.stream(),
-    spellings.stream().<T>map(s->new T.RCC(RC.imm,new T.C(box,List.of(s)),span))).toList();
+    spellings.stream().<T>map(s -> new T.RCC(RC.imm,new T.C(box,List.of(s)),span))).toList();
   static final List<EnumSet<RC>> bounds= IntStream.range(1,1<<RC.values().length).mapToObj(EqModXRCTest::bound).toList();
   static EnumSet<RC> bound(int mask){
     var res= EnumSet.noneOf(RC.class);
@@ -39,9 +39,9 @@ public final class EqModXRCTest{
     case T.X _ -> new T.RCC(rc,new T.C(foo,List.of()),span);
     case T.RCX(var rcx, _) -> new T.RCC(rcx,new T.C(foo,List.of()),span);
     case T.ReadImmX _ -> new T.RCC(rc.readImm(),new T.C(foo,List.of()),span);
-    case T.RCC(var rcc, var c, _) -> new T.RCC(rcc,c.withTs(c.ts().stream().map(ti->inst(ti,rc)).toList()),span);
+    case T.RCC(var rcc, var c, _) -> new T.RCC(rcc,c.withTs(c.ts().stream().map(ti -> inst(ti,rc)).toList()),span);
   };}
-  static boolean sameInstances(EnumSet<RC> rcs,T a,T b){ return rcs.stream().allMatch(rc->inst(a,rc).equals(inst(b,rc))); }
+  static boolean sameInstances(EnumSet<RC> rcs,T a,T b){ return rcs.stream().allMatch(rc -> inst(a,rc).equals(inst(b,rc))); }
   static List<String> violations(Check check){
     var res= new ArrayList<String>();
     for (var rcs : bounds){ for (var a : types){ for (var b : types){
@@ -51,16 +51,16 @@ public final class EqModXRCTest{
   }
   interface Check{ boolean holds(EnumSet<RC> rcs,T a,T b); }
   @Test void equalSpellingsDenoteTheSameTypeForEveryCapabilityOfTheBound(){
-    assertEquals(List.of(),violations((rcs,a,b)->!eq(rcs,a,b) || sameInstances(rcs,a,b)));
+    assertEquals(List.of(),violations((rcs,a,b) -> !eq(rcs,a,b) || sameInstances(rcs,a,b)));
   }
   @Test void equalSpellingsStayEqualUnderEverySmallerBound(){
-    assertEquals(List.of(),violations((rcs,a,b)->!eq(rcs,a,b)
-      || bounds.stream().filter(rcs::containsAll).allMatch(smaller->eq(smaller,a,b))));
+    assertEquals(List.of(),violations((rcs,a,b) -> !eq(rcs,a,b)
+      || bounds.stream().filter(rcs::containsAll).allMatch(smaller -> eq(smaller,a,b))));
   }
   @Test void underASingleCapabilityBoundSpellingsDenotingTheSameTypeAreEqual(){
-    assertEquals(List.of(),violations((rcs,a,b)->rcs.size() != 1 || eq(rcs,a,b) == sameInstances(rcs,a,b)));
+    assertEquals(List.of(),violations((rcs,a,b) -> rcs.size() != 1 || eq(rcs,a,b) == sameInstances(rcs,a,b)));
   }
   @Test void underABoundOfSeveralCapabilitiesSpellingsAreComparedAsWritten(){
-    assertEquals(List.of(),violations((rcs,a,b)->rcs.size() == 1 || eq(rcs,a,b) == a.equals(b)));
+    assertEquals(List.of(),violations((rcs,a,b) -> rcs.size() == 1 || eq(rcs,a,b) == a.equals(b)));
   }
 }

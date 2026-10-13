@@ -33,19 +33,19 @@ final class Sources{
     }
     for (var m : l.ms()){ if (m.sig().origin().equals(l.name())){ sources.add(m.sig()); } }
     assert unionCount(ts,l) == sources.size();
-    assert sources.stream().allMatch(s->l.ms().stream().anyMatch(m->m.sig().m().equals(s.m()) && m.sig().rc() == s.rc()));
-    assert l.ms().stream().map(M::sig).allMatch(s->sources.stream().anyMatch(si->
+    assert sources.stream().allMatch(s -> l.ms().stream().anyMatch(m -> m.sig().m().equals(s.m()) && m.sig().rc() == s.rc()));
+    assert l.ms().stream().map(M::sig).allMatch(s -> sources.stream().anyMatch(si ->
       si.m().equals(s.m()) && si.rc() == s.rc()
       ));
     return sources;
   }
   private static long unionCount(TypeSystem ts, Literal l){
-    return Stream.concat(Stream.of(l), l.cs().stream().map(T.C::name).map(ts.decs()::apply)).flatMap(li->
-      li.ms().stream().map(M::sig).filter(s->s.origin().equals(li.name()))
+    return Stream.concat(Stream.of(l), l.cs().stream().map(T.C::name).map(ts.decs()::apply)).flatMap(li ->
+      li.ms().stream().map(M::sig).filter(s -> s.origin().equals(li.name()))
     ).count();
   }
   static Sig findCanonical(Literal l, MName name, RC rc){
-    return OneOr.of("Methods with duplicates or absent",l.ms().stream().map(M::sig).filter(s->
+    return OneOr.of("Methods with duplicates or absent",l.ms().stream().map(M::sig).filter(s ->
       s.m().equals(name) && s.rc() == rc));
   }
   private static Sig instantiate(Sig s, List<B> bs, List<T> ts, List<B> canonical){

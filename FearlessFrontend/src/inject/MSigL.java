@@ -29,5 +29,5 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
     if (k > n){ return targs.subList(0, n); }
     return Push.of(targs, InjectionSteps.qMarks(n-k));
   }
-  static List<IT> toXs(TSpan span,List<String> targetBs){ return targetBs.stream().<IT>map(n->new IT.X(n,span)).toList(); }
+  static List<IT> toXs(TSpan span,List<String> targetBs){ return targetBs.stream().<IT>map(n -> new IT.X(n,span)).toList(); }
 }

@@ -23,7 +23,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
   static <A> A redeclaredElement(List<A> es){
     return IntStream.range(0, es.size())
-      .filter(i->i != es.lastIndexOf(es.get(i)))
+      .filter(i -> i != es.lastIndexOf(es.get(i)))
       .mapToObj(es::get)
       .findFirst().get();
   }
@@ -151,12 +151,12 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     blank().line("Receiver required by each promotion:");
     byRc.keySet().stream()
       .sorted()
-      .forEach(rc->bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(),""," / ","")+")"));
+      .forEach(rc -> bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(),""," / ","")+")"));
     return this;
   }
   public String gotMsg(boolean skipImm,String label, List<T> got, T expected){
     if (isInferErr(expected)){ return gotMsgInferErr(label,got.getFirst()); }
-    return label+" has type "+Join.of(got.stream().map(t->typeRepr(skipImm,t)),""," or ","")
+    return label+" has type "+Join.of(got.stream().map(t -> typeRepr(skipImm,t)),""," or ","")
       +" instead of a subtype of "+typeRepr(skipImm,expected)+".";
   }
   public String gotMsgInferErr(String label, T got){

@@ -22,12 +22,12 @@ public sealed interface XPat{
     public Destruct{
       assert !extract.isEmpty();
       assert unmodifiable(extract, "XPat.Destruct.extract",
-        sm->{ assert !sm.isEmpty();
+        sm -> { assert !sm.isEmpty();
           unmodifiable(sm,"XPat.Destruct.extract element",
-            m->{assert m.s().startsWith(".");});});
-      assert validOpt(id,n->validate("}"+n, "pattern id",CCurlyId));
+            m -> {assert m.s().startsWith(".");});});
+      assert validOpt(id,n -> validate("}"+n, "pattern id",CCurlyId));
     }
-    @Override public Stream<String> parameterNames(){ return extract.stream().map(e->e.getLast().s().substring(1) + id.orElse("")); }
-    public Stream<String> invalidNames(){ return parameterNames().filter(x->!isKind(x,LowercaseId) || isKind(x,RCap)); }
+    @Override public Stream<String> parameterNames(){ return extract.stream().map(e -> e.getLast().s().substring(1) + id.orElse("")); }
+    public Stream<String> invalidNames(){ return parameterNames().filter(x -> !isKind(x,LowercaseId) || isKind(x,RCap)); }
   }
 }

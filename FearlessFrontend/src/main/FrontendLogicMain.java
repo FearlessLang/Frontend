@@ -32,7 +32,7 @@ public class FrontendLogicMain{
       List<Ref> files,
       OtherPackages other
     ){
-    return of(pkgName, override, files, other, _->Optional.empty());
+    return of(pkgName, override, files, other, _ -> Optional.empty());
   }
   public List<core.E.Literal> of(
       String pkgName,
@@ -54,7 +54,7 @@ public class FrontendLogicMain{
     var testPkg= makePackage(pkgName, all.map(), all.uses(), testAST.decs().stream().sorted().toList(), all.names());
     var lits= AllLs.of(coreAST);
     var testCtx= Methods.create(testPkg, other.mergeWith(lits, other.stamp()));
-    lits.keySet().forEach(n->testCtx.fresh().usedTopTypes().add(n.simpleName()));
+    lits.keySet().forEach(n -> testCtx.fresh().usedTopTypes().add(n.simpleName()));
     return Push.of(coreAST, core(testCtx));
   }
   private static List<core.E.Literal> core(Methods ctx){
@@ -74,21 +74,21 @@ public class FrontendLogicMain{
            + "   \"map  "+in+"  as  "+out+"  in  "+target+";\"";
     }}
     var byKey= parsed.entrySet().stream()
-      .flatMap(e->e.getValue().maps().stream().map(m->new Cand(e.getKey(), m.target(), m.in(), m.out())
-      )).collect(Collectors.groupingBy(x->new Key(x.target(),x.in())));
+      .flatMap(e -> e.getValue().maps().stream().map(m -> new Cand(e.getKey(), m.target(), m.in(), m.out())
+      )).collect(Collectors.groupingBy(x -> new Key(x.target(),x.in())));
     var res= new HashMap<String,HashMap<String,String>>();
     for (var e : byKey.entrySet()){
       var k= e.getKey();
       var cs= e.getValue();
       var best= cs.stream().max(Comparator.comparing(Cand::uri,c)).get();
-      var bests= cs.stream().filter(x->c.compare(x.uri(), best.uri()) == 0).toList();
+      var bests= cs.stream().filter(x -> c.compare(x.uri(), best.uri()) == 0).toList();
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
       var conflicting= bests.stream().map(Cand::out).distinct().count() != 1;
       if (conflicting){ throw new WellFormednessErrors(k.target()).mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
       if (!pkgs.contains(best.out())){ throw new WellFormednessErrors(k.target()).mapToMissingPackage(k.in(), best.out(), best.toString(), pkgs.stream().sorted().toList()); }
-      res.computeIfAbsent(k.target(), _->new HashMap<>()).put(k.in(), best.out());
+      res.computeIfAbsent(k.target(), _ -> new HashMap<>()).put(k.in(), best.out());
     }
-    return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e->Map.copyOf(e.getValue())));
+    return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Map.copyOf(e.getValue())));
   }
   Map<Ref,FileFull> parseFiles(List<Ref> files){
     var all= new LinkedHashMap<Ref,FileFull>();
@@ -100,11 +100,11 @@ public class FrontendLogicMain{
     var err= new WellFormednessErrors(pkgName);
     var headPkg= findHeadUri(err, raw.keySet());
     raw.entrySet().stream()
-      .filter(e->!e.getKey().equals(headPkg) && !e.getValue().noDirectives())
-      .forEach(e->{ throw err.notClean(e.getKey(), e.getValue()); });
+      .filter(e -> !e.getKey().equals(headPkg) && !e.getValue().noDirectives())
+      .forEach(e -> { throw err.notClean(e.getKey(), e.getValue()); });
     var head= raw.get(headPkg);
     var ds= raw.values().stream()
-      .flatMap(f->f.decs().stream())
+      .flatMap(f -> f.decs().stream())
       .sorted().toList();
     var names= DeclaredNames.of(pkgName, ds, head.uses().stream().map(FileFull.Use::out).collect(Collectors.toUnmodifiableSet()));
     var map= new HashMap<String,String>(override);
@@ -122,8 +122,8 @@ public class FrontendLogicMain{
       p = map.getOrDefault(p, p); //thus if p is "" we get ""
       var in= p + "." + u.in().simpleName();
       map.put(u.out(), in);
-      var dom= p.equals(err.pkgName()) ? names.decNames().stream().map(n->n.withPkgName(err.pkgName())) : otherDom.stream();
-      var ok= dom.anyMatch(e->e.s().equals(in));
+      var dom= p.equals(err.pkgName()) ? names.decNames().stream().map(n -> n.withPkgName(err.pkgName())) : otherDom.stream();
+      var ok= dom.anyMatch(e -> e.s().equals(in));
       if (!ok){ throw err.unknownUseHead(u.in(), p); }
     }//map a as b in c + use a.F as aF will replace aF with b.F
   }

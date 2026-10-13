@@ -58,7 +58,7 @@ public record FreshPrefix(
     var base= sanitizeBase(hint);
     for (int n= seq.getOrDefault(base, 1);; n++){
       var cand= "_"+encodeBijective(n, alphabet)+base;
-      var taken= commitScope.contains(cand) || extraChecks.stream().anyMatch(e->e.contains(cand));
+      var taken= commitScope.contains(cand) || extraChecks.stream().anyMatch(e -> e.contains(cand));
       if (taken){ continue; }
       commitScope.add(cand);
       seq.put(base, n+1);

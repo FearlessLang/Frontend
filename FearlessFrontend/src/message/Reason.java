@@ -21,7 +21,7 @@ public final class Reason{
     this.best= best; this.info= info; this.footerE= footerE;
   }
   public boolean isEmpty(){ return info.isEmpty(); }
-  public static Reason pass(T got){ return new Reason(got,"",()->{throw Bug.unreachable();}); }
+  public static Reason pass(T got){ return new Reason(got,"",() -> {throw Bug.unreachable();}); }
   public static Reason literalDoesNotHaveRequiredType(
     TypeSystem ts, E blame, List<B> bs, T got, T expected
     ){
@@ -32,7 +32,7 @@ public final class Reason{
       case Type(var t, _) -> t.rc() != RC.imm;
       default -> throw Bug.unreachable();
     };
-    if (!explRC){ return new Reason(got, base(ts,blame,bs,got,expected), ()->baseFooterE(ts.scope(),got,expected)); }
+    if (!explRC){ return new Reason(got, base(ts,blame,bs,got,expected), () -> baseFooterE(ts.scope(),got,expected)); }
     return hintExplicitRC(ts,got, base(ts,blame,bs,got,expected), er,rc,blame);
   }
   private static String base(TypeSystem ts, E blame, List<B> bs, T got, T expected){
@@ -51,12 +51,12 @@ public final class Reason{
       .line(base)
       .line("Hint: write "+ts.err().expReprDirect(false,blameOk)
       +" if you need a "+disp(rc)+" object literal"+why);
-    return new Reason(got, e.text(), ()->baseFooterE(ts.scope(),got,expected));
+    return new Reason(got, e.text(), () -> baseFooterE(ts.scope(),got,expected));
   }
   private static E baseFooterE(TypeScope s,T actual, T req){ return TypeScope.bestInterestingScope(s, TypeScope.interestFromDeclVsReq(actual, req)).contextE(); }
   public static Reason callResultCannotHaveRequiredType(TypeSystem ts, Literal d, Call call, TRequirement req, List<T> got, Sig sig){
     return new Reason(got.getFirst(),ts.err().gotMsg(true,"Method call "+ts.err().methodSig(call.rc().toStrSpace(),d,call.name()),got, req.t()),
-      ()->baseFooterE(ts.scope(),sig.ret().withRC(RC.imm),req.t().withRC(RC.imm)));
+      () -> baseFooterE(ts.scope(),sig.ret().withRC(RC.imm),req.t().withRC(RC.imm)));
   }
   public static Reason parameterDoesNotHaveRequiredTypeHere(
     TypeSystem ts,X x, TRequirement req, T declared, WithT cur, boolean declaredOkExpected
@@ -65,7 +65,7 @@ public final class Reason{
     var rcOnly= rcOnlyMismatch(got, req.t());
     var base= ts.err().gotMsg(!rcOnly,ts.err().expRepr(x), List.of(got), req.t());
     var noDeclaredNote= !rcOnly || declared.equals(got);
-    if (noDeclaredNote){ return new Reason(got, base,()->baseFooterE(ts.scope(),got,req.t())); }
+    if (noDeclaredNote){ return new Reason(got, base,() -> baseFooterE(ts.scope(),got,req.t())); }
     var e= ts.err().line(base);
     e.line(declaredOkExpected
       ? "Note: the declared type "+ts.err().typeRepr(true,declared)+" would instead be a valid subtype."
@@ -73,7 +73,7 @@ public final class Reason{
     );
     var trace= vpaTrace(ts,cur);
     if (!trace.isEmpty()){ e.line("Capture adaptation trace:\n"+trace+"."); }
-    return new Reason(got, e.text(),()->baseFooterE(ts.scope(),got,req.t()));
+    return new Reason(got, e.text(),() -> baseFooterE(ts.scope(),got,req.t()));
   }
   private static String vpaTrace(TypeSystem ts, WithT cur){ return switch (cur){
     case Same _ -> "";

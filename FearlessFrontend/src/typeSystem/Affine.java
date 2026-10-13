@@ -21,6 +21,6 @@ final class Affine{
   private static void collect(String x, E e, boolean activeOnly, ArrayList<X> acc){
     if (e instanceof X v && v.name().equals(x)){ acc.add(v); }
     var skipLiteral= activeOnly && e instanceof Literal;
-    if (!skipLiteral){ e.children().forEach(c->collect(x, c, activeOnly, acc)); }
+    if (!skipLiteral){ e.children().forEach(c -> collect(x, c, activeOnly, acc)); }
   }
 }

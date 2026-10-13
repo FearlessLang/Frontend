@@ -40,7 +40,7 @@ final class BestPicker{
       for (var t : x.ts()){ visit(t,depth); }
       visit(x.ret(),depth);
     }
-    x.body().ifPresent(b->visit(b,depth));
+    x.body().ifPresent(b -> visit(b,depth));
   }
   void consider(PN n, int score){
     if (!n.k().isCompactable()){ return; }

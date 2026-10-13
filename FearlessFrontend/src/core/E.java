@@ -17,7 +17,7 @@ public sealed interface E{
   Src src();
   default Stream<E> children(){ return switch (this){
     case X _, Type _ -> Stream.of();
-    case Literal l -> l.ms().stream().flatMap(m->m.e().stream());
+    case Literal l -> l.ms().stream().flatMap(m -> m.e().stream());
     case Call c -> Stream.concat(Stream.of(c.e()), c.es().stream());
   };}
   record X(String name, Src src) implements E{

@@ -21,7 +21,7 @@ public interface OtherPackages{
       @Override public Map<String,Map<String,String>> virtualizationMap(){ return vMap; }
     };}
   static OtherPackages start(Map<String,Map<String,String>> vMap,Collection<Literal> core, long newStamp){
-    var map= core.stream().collect(Collectors.toUnmodifiableMap(Literal::name, d->d));
+    var map= core.stream().collect(Collectors.toUnmodifiableMap(Literal::name, d -> d));
     return start(vMap,map,newStamp);
   }
   default OtherPackages mergeWith(Map<TName,Literal> core, long newStamp){

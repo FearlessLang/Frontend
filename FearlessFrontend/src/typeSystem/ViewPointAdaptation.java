@@ -10,8 +10,8 @@ import core.E.*;
 import typeSystem.Change.*;
 
 public record ViewPointAdaptation(Kinding k){
-  public Gamma discard(Gamma g,Literal l){ return g.map(curr->discard(curr,l)); }
-  public Gamma of(Gamma g,Literal l, M m){ return g.map(curr->of(curr,l,m)); }
+  public Gamma discard(Gamma g,Literal l){ return g.map(curr -> discard(curr,l)); }
+  public Gamma of(Gamma g,Literal l, M m){ return g.map(curr -> of(curr,l,m)); }
   private Change of(Change current, Literal l, M m){    //Literal l, M m, T atDrop
     if (!(current instanceof Change.WithT w)){ return current; }
     var withImm= m.sig().rc() == imm || kindIsoImm(w.currentT(), l.bs());
@@ -22,7 +22,7 @@ public record ViewPointAdaptation(Kinding k){
     var rc= m.sig().rc();
     var t= w.currentT();
     if (rc == read){
-      if (t.explicitRC().stream().anyMatch(r->r == mut || r == read)){ return Change.keepSetToRead(l,m,w); }
+      if (t.explicitRC().stream().anyMatch(r -> r == mut || r == read)){ return Change.keepSetToRead(l,m,w); }
       if (t instanceof T.X || t instanceof T.ReadImmX){ return Change.keepSetToReadImm(l,m,w); }
     }
     assert rc == mut;//meth RC can only be imm, mut, read and imm is filtered before

@@ -18,14 +18,14 @@ public final class RCLubGlb{
   public static Set<Set<RC>> domain(){ return Collections.unmodifiableSet(lubMap.keySet()); }
   public static RC lub(EnumSet<RC> options){ return Objects.requireNonNull(lubMap.get(options)); }
   public static RC glb(EnumSet<RC> options){ return Objects.requireNonNull(glbMap.get(options)); }
-  static boolean isUb(EnumSet<RC> options, RC ub){ return options.stream().allMatch(x->x.isSubType(ub)); }
+  static boolean isUb(EnumSet<RC> options, RC ub){ return options.stream().allMatch(x -> x.isSubType(ub)); }
   static boolean isLb(EnumSet<RC> options,RC lb){ return options.stream().allMatch(lb::isSubType); }
   static boolean isLub(EnumSet<RC> options,RC lub){
-    var isLowest= allRC.stream().filter(rc->isUb(options,rc)).allMatch(lub::isSubType);
+    var isLowest= allRC.stream().filter(rc -> isUb(options,rc)).allMatch(lub::isSubType);
     return isUb(options,lub) && isLowest;
   }
   static boolean isGlb(EnumSet<RC> options,RC glb){
-    var isGreatest= allRC.stream().filter(rc->isLb(options,rc)).allMatch(lb->lb.isSubType(glb));
+    var isGreatest= allRC.stream().filter(rc -> isLb(options,rc)).allMatch(lb -> lb.isSubType(glb));
     return isLb(options,glb) && isGreatest;
   }
   static void init(EnumSet<RC> options,RC glb,RC lub){
@@ -35,8 +35,8 @@ public final class RCLubGlb{
     assert novel2 == null;
     assert isLub(options,lub);
     assert isGlb(options,glb);
-    assert allRC.stream().noneMatch(rc->rc != lub && isLub(options,rc));
-    assert allRC.stream().noneMatch(rc->rc != glb && isGlb(options,rc));
+    assert allRC.stream().noneMatch(rc -> rc != lub && isLub(options,rc));
+    assert allRC.stream().noneMatch(rc -> rc != glb && isGlb(options,rc));
   }
   static {// RCs                  | GLB     | LUB
     init(of(iso),                   iso,     iso);

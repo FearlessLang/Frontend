@@ -33,17 +33,17 @@ public final class AllDeclaredNames{
   }
   private void visitInnerXPat(XPat x){ x.parameterNames().forEach(lastTopNames::add); }
   private void visitInnerSig(Sig s){
-    s.bs().ifPresent(bs->bs.forEach(b->lastTopXs.add(b.x())));
-    s.parameters().forEach(p->p.xp().ifPresent(this::visitInnerXPat));
+    s.bs().ifPresent(bs -> bs.forEach(b -> lastTopXs.add(b.x())));
+    s.parameters().forEach(p -> p.xp().ifPresent(this::visitInnerXPat));
   }
   private void visitInnerDeclaration(Declaration d){
     //Note: there is never any kind of shadowing allowed in fearless. Also, nested names do live in the top level scope
     if (!decNames.add(d.name())){ throw err.duplicatedName(d.name()); }
-    d.bs().ifPresent(bs->bs.forEach(b->lastTopXs.add(b.x())));
+    d.bs().ifPresent(bs -> bs.forEach(b -> lastTopXs.add(b.x())));
     visitLiteral(d.l());
   }
   private void visitLiteral(Literal c){
-    c.thisName().ifPresent(n->lastTopNames.add(n.name()));
+    c.thisName().ifPresent(n -> lastTopNames.add(n.name()));
     c.methods().forEach(this::visitInnerM);
   }
   private void visitInnerM(M m){

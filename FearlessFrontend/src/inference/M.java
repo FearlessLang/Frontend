@@ -15,21 +15,21 @@ import utils.Join;
 public record M(Sig sig, Optional<Impl> impl){
   public M{ assert nonNull(sig,impl); }
   @Override public String toString(){
-    return impl.map(i->sig+Join.of(i.xs,"(",", ",")","")+"->"+i.e()+";").orElseGet(sig::toString);
+    return impl.map(i -> sig+Join.of(i.xs,"(",", ",")","")+"->"+i.e()+";").orElseGet(sig::toString);
   }
   public M withSig(Sig sig){
     if (sig.equals(this.sig)){ return this; }
     return new M(sig,impl);
   }
   public record Sig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<Optional<IT>> ts, Optional<IT> ret, Optional<TName> origin, boolean abs, TSpan span){
-    public Sig{ assert nonNull(rc,m,bs,ts,ret,origin); assert validOpt(bs,_bs->unmodifiableDistinct(_bs,"Sig.bs")); assert unmodifiable(ts,"Sig.ts"); }
+    public Sig{ assert nonNull(rc,m,bs,ts,ret,origin); assert validOpt(bs,_bs -> unmodifiableDistinct(_bs,"Sig.bs")); assert unmodifiable(ts,"Sig.ts"); }
     public Sig(RC rc, MName m, List<B> bs, List<Optional<IT>> ts, IT ret, TName origin, boolean abs, TSpan span){
       this(Optional.of(rc),Optional.of(m),Optional.of(bs),ts,Optional.of(ret),Optional.of(origin),abs,span);
     }
     @Override public String toString(){
-      var bsS= bs.map(b->Join.of(b,"[",",","]","")).orElse("[?]");
+      var bsS= bs.map(b -> Join.of(b,"[",",","]","")).orElse("[?]");
       return " "+rc.map(RC::toStrSpace).orElse("? ")+m.map(MName::toString).orElse("")+bsS
-        +Join.of(ts.stream().map(this::t),"(",",",")","")+":"+t(ret)+origin.map(o->"@"+o.s()).orElse("@!")+";";
+        +Join.of(ts.stream().map(this::t),"(",",",")","")+":"+t(ret)+origin.map(o -> "@"+o.s()).orElse("@!")+";";
     }
     private String t(Optional<IT> ot){ return ot.map(Object::toString).orElse("?"); }
     public Sig withTsT(List<Optional<IT>> ts, IT ret){ return new Sig(rc,m,bs,ts,Optional.of(ret),origin,abs,span); }

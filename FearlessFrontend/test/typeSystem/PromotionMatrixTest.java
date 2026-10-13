@@ -29,14 +29,14 @@ public final class PromotionMatrixTest extends testUtils.FearlessTestBase{
     catch(FearlessException _){ return "e"; }
   }
   static String row(String bound, String recv, String gRc){
-    return Join.of(rets.stream().map(ret->cell(bound,recv,gRc,ret)),String.format("  %-5s ",gRc),"","\n");
+    return Join.of(rets.stream().map(ret -> cell(bound,recv,gRc,ret)),String.format("  %-5s ",gRc),"","\n");
   }
   static String block(String bound, String recv){
-    return "R:"+bound+" .get is "+recv+"\n"+Join.of(gRcs.stream().map(g->row(bound,recv,g)),"","","");
+    return "R:"+bound+" .get is "+recv+"\n"+Join.of(gRcs.stream().map(g -> row(bound,recv,g)),"","","");
   }
   static String matrix(){
     return Join.of(rets,"cols: "," | ","\n\n")
-      +bounds.stream().flatMap(b->recvs.stream().map(recv->block(b,recv))).collect(Collectors.joining("\n"));
+      +bounds.stream().flatMap(b -> recvs.stream().map(recv -> block(b,recv))).collect(Collectors.joining("\n"));
   }
 @Test void promotionMatrix(){ strCmp("""
 cols: R | imm R | read R | mut R | readH R | mutH R | iso R | read/imm R

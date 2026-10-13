@@ -19,12 +19,12 @@ import utils.Bug;
 public final class BadTokens{
   public static TokenProcessor.Map<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory> badTokensMap(){
     return new TokenProcessor.Map<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>()
-      .put(Ws,           (_,_,_)->Stream.of())
-      .put(LineComment,  (_,_,_)->Stream.of())
-      .put(BlockComment, (_,_,_)->Stream.of())
-      .put(BadUStrUnclosed, (idx, t, tz)->frontOrBack(idx,t,tz,'\"'))
-      .put(BadSStrUnclosed, (idx, t, tz)->frontOrBack(idx,t,tz,'`'))
-      .put(BadUnclosedBlockComment, (_, t, tz)->badBlockComment(tz,t))
+      .put(Ws,           (_,_,_) -> Stream.of())
+      .put(LineComment,  (_,_,_) -> Stream.of())
+      .put(BlockComment, (_,_,_) -> Stream.of())
+      .put(BadUStrUnclosed, (idx, t, tz) -> frontOrBack(idx,t,tz,'\"'))
+      .put(BadSStrUnclosed, (idx, t, tz) -> frontOrBack(idx,t,tz,'`'))
+      .put(BadUnclosedBlockComment, (_, t, tz) -> badBlockComment(tz,t))
       .put(BadUnopenedBlockCommentClose, BadTokens::strayBlockCommentCloser)
       .put(OSquareArg, BadTokens::squareAfterLiteral)
       .putStr(BadOSquare,Code.UnexpectedToken::of,"""

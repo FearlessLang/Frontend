@@ -24,12 +24,12 @@ public final class LiteralDeclarations{
   public static final TName baseContainer= new TName("base.BaseContainer",1,Pos.unknown);
   public static final TName inferUnknown= new TName("base.InferUnknown",0,Pos.unknown);
   public static final List<TName> inferErrs= List.of(new TName("base.InferErr",2,Pos.unknown),new TName("base.InferErr",3,Pos.unknown),new TName("base.InferErr",4,Pos.unknown));
-  public static boolean has(List<T.C> cs, TName magic){ return cs.stream().anyMatch(c->c.name().equals(magic)); }
+  public static boolean has(List<T.C> cs, TName magic){ return cs.stream().anyMatch(c -> c.name().equals(magic)); }
   public static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
   private static Literal forge(TName name, Function<TName,Literal> map, OtherPackages other){
     var lit= superLiteral(name);
     var res= from(lit,map,other);
-    var ms= res.ms().stream().map(m->m.withSig(m.sig().implementedBy(name))).toList();
+    var ms= res.ms().stream().map(m -> m.withSig(m.sig().implementedBy(name))).toList();
     return new Literal(RC.imm,name,List.of(),Push.of(new T.C(lit,List.of()),res.cs()),"this",ms,Src.synthetic,true);
   }
   public static Literal from(TName n, Function<TName,Literal> map, OtherPackages other){ return Objects.requireNonNull(_from(n,map,other)); }

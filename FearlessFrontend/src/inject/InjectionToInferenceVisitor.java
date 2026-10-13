@@ -90,7 +90,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     }
     var s= mm.sig().get();
     var bs= s.bs().map(this::mapB);
-    var ts= s.parameters().stream().map(p->p.t().map(this::visitT)).toList();
+    var ts= s.parameters().stream().map(p -> p.t().map(this::visitT)).toList();
     if (mm.hasImplicit()){ ts = Push.of(ts,empty()); }
     var res= s.t().map(this::visitT);
     return new M.Sig(s.rc(),s.m(),bs,ts,res,empty(),mm.body().isEmpty(),mm.span());
@@ -111,14 +111,14 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   Optional<M.Impl> visitMImpl(fearlessFullGrammar.M m){
     if (m.body().isEmpty()){ return empty(); }
     var body= m.body().get();
-    var original= m.sig().map(s->s.parameters()).orElse(List.of());
+    var original= m.sig().map(s -> s.parameters()).orElse(List.of());
     var ps= original.stream().map(this::parameterToName).toList();
     var xpats= xpats(ps,original,m.span());
     if (!xpats.isEmpty()){ body = makeXPatsBody(body,xpats); }
     if (m.hasImplicit()){ var p= meths.fresh().freshVar(currentTop, "impl"); ps = Push.of(ps,p); implicits.add(p); }
     var e= visitE(body);
     if (m.hasImplicit()){ implicits.removeLast(); }
-    var name= m.sig().flatMap(s->s.m());
+    var name= m.sig().flatMap(s -> s.m());
     return of(new M.Impl(name,ps,e));
   }
   private fearlessFullGrammar.E makeXPatsBody(fearlessFullGrammar.E body, List<XE> xes){
@@ -127,7 +127,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var n= Math.min(xes.size(), 4);
     var inner= n == xes.size() ? body : makeXPatsBody(body, xes.subList(n, xes.size()));
     var ps= xes.subList(0, n).stream()
-      .map(xe->new Parameter(of(new XPat.Name(new fearlessFullGrammar.E.X(xe.x, p))), empty())).toList();
+      .map(xe -> new Parameter(of(new XPat.Name(new fearlessFullGrammar.E.X(xe.x, p))), empty())).toList();
     var sig= new fearlessFullGrammar.Sig(empty(),empty(),empty(),false,ps,empty());
     var f= new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(of(sig), of(inner), false, span)), span);
     var args= Push.of(xes.subList(0, n).stream().map(XE::e).toList(), f);
@@ -136,11 +136,11 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   record XE(String x, fearlessFullGrammar.E e){}
   List<XE> xpats(List<String> lowered, List<Parameter> original, TSpan span){
     return Streams.zip(lowered, original)
-      .flatMap((x,p)->p.xp().stream().flatMap(xp->xp instanceof XPat.Destruct d ? xpat(d,x,span) : Stream.of()))
+      .flatMap((x,p) -> p.xp().stream().flatMap(xp -> xp instanceof XPat.Destruct d ? xpat(d,x,span) : Stream.of()))
       .toList();
   }
   Stream<XE> xpat(XPat.Destruct pat, String fresh, TSpan span){
-    return Streams.zip(pat.extract(), pat.parameterNames().toList()).map((e,x)->xpat(e,x,fresh,span));
+    return Streams.zip(pat.extract(), pat.parameterNames().toList()).map((e,x) -> xpat(e,x,fresh,span));
   }
   XE xpat(List<MName> pat, String x, String fresh, TSpan span){
     fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, span.pos());
@@ -164,7 +164,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   //Here new FreeXs().ftvMs(ms) is all since by construction no Cs and no inferred type;
   E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){
     var ms= mapM(l.methods());
-    var name= l.thisName().map(n->n.name());
+    var name= l.thisName().map(n -> n.name());
     return liftLiteral(empty(),List.of(),name,ms,new Src(l));
   }
   E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(),new Src(x)); }
@@ -173,7 +173,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     if (t.l().isEmpty()){ return new E.Type(visitRCC(t.t()),new Src(t)); }
     var impl= List.of(visitC(t.t().c()));
     var ms= mapM(t.l().get().methods());
-    var l= liftLiteral(of(t.t().rc().orElse(RC.imm)),impl,t.l().get().thisName().map(n->n.name()), ms,new Src(t));
+    var l= liftLiteral(of(t.t().rc().orElse(RC.imm)),impl,t.l().get().thisName().map(n -> n.name()), ms,new Src(t));
     decs.add(l);
     return l;
   }
@@ -183,7 +183,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return addDeclaration(name, c.rc().orElse(RC.imm),c.dec(),false);
   }
   public E.Literal addDeclaration(TName name,RC rc,fearlessFullGrammar.Declaration d, boolean top){
-    var thisName= d.l().thisName().map(n->n.name()).orElseGet(()->top ? "this" : "_");
+    var thisName= d.l().thisName().map(n -> n.name()).orElseGet(() -> top ? "this" : "_");
     var bs= d.bs().map(this::mapB).orElse(List.of());
     var cs= d.cs().stream().map(this::visitC).toList();
     var dup= duplicatedSupertypes(bs,TypeRename.itcToTC(cs));
@@ -194,9 +194,9 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return l;
   }
   static Optional<List<Integer>> duplicatedSupertypes(List<B> bs, List<core.T.C> cs){
-    var ts= cs.stream().map(c->new core.T.RCC(RC.imm,c,TSpan.fromPos(Pos.unknown))).toList();
+    var ts= cs.stream().map(c -> new core.T.RCC(RC.imm,c,TSpan.fromPos(Pos.unknown))).toList();
     return IntStream.range(0,ts.size()).boxed()
-      .flatMap(j->IntStream.range(0,j).filter(i->sameType(bs,ts.get(i),ts.get(j))).mapToObj(i->List.of(i,j)))
+      .flatMap(j -> IntStream.range(0,j).filter(i -> sameType(bs,ts.get(i),ts.get(j))).mapToObj(i -> List.of(i,j)))
       .findFirst();
   }
   private static boolean sameType(List<B> bs, core.T a, core.T b){

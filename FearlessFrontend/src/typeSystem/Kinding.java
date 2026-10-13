@@ -37,7 +37,7 @@ public record Kinding(TypeSystemErrors tsE){
     if (!allowed.containsAll(intrinsicRCs(bs, t))){ return false; }
     if (!(t instanceof T.RCC(_, var c, _))){ return true; }
     var params= decs().apply(c.name()).bs();
-    return Streams.zip(c.ts(), params).allMatch((ti,p)->of(bs, ti, p.rcs()));
+    return Streams.zip(c.ts(), params).allMatch((ti,p) -> of(bs, ti, p.rcs()));
   }
   public static EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch (t){
     case T.RCC(var rc, _, _) -> EnumSet.of(rc);

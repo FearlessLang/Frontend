@@ -46,7 +46,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     var crashes= new TreeMap<String,String>();
     for (var s : seeds){ run(s,other,crashes); }
     for (int i= 0; i < cases; i++){ run(mutate(seeds.get(rnd.nextInt(seeds.size())),rnd,seeds),other,crashes); }
-    strCmp("", Join.of(crashes.entrySet().stream().map(e->e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
+    strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
   }
   @Test void underAnnotatedTestProgramsNeverCrash(){
     var seeds= seeds().stream().filter(FuzzTest::annotated).filter(FuzzTest::parses).toList();
@@ -54,7 +54,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     var rnd= new Random(0);
     var crashes= new TreeMap<String,String>();
     for (int i= 0; i < cases; i++){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())),rnd),other,crashes); }
-    strCmp("", Join.of(crashes.entrySet().stream().map(e->e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
+    strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
   }
   static void run(String src, OtherPackages other, TreeMap<String,String> crashes){
     var o= SourceOracle.debugBuilder().put(0,src).build();
@@ -66,12 +66,12 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   }
   static String shorter(String a, String b){ return a.length() <= b.length() ? a : b; }
   static String signature(Throwable t){
-    var at= Stream.of(t.getStackTrace()).filter(e->!e.getClassName().startsWith("java.")).findFirst();
-    return t.getClass().getName()+" at "+at.map(e->e.getClassName()+"."+e.getMethodName()).orElse("an unknown location");
+    var at= Stream.of(t.getStackTrace()).filter(e -> !e.getClassName().startsWith("java.")).findFirst();
+    return t.getClass().getName()+" at "+at.map(e -> e.getClassName()+"."+e.getMethodName()).orElse("an unknown location");
   }
   static List<String> seeds(){
     try (var files= Files.walk(testClasses())){
-      return files.filter(p->p.toString().endsWith(".class"))
+      return files.filter(p -> p.toString().endsWith(".class"))
         .flatMap(FuzzTest::strings).filter(FuzzTest::isProgram).distinct().sorted().toList();
     }
     catch(IOException e){ throw new UncheckedIOException(e); }
@@ -110,13 +110,13 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     return s;
   }
   static String dropAnnotation(String s, Random r){
-    var byPattern= annotations.stream().map(p->p.matcher(s).results().toList()).filter(ms->!ms.isEmpty()).toList();
+    var byPattern= annotations.stream().map(p -> p.matcher(s).results().toList()).filter(ms -> !ms.isEmpty()).toList();
     if (byPattern.isEmpty()){ return s; }
     var ms= byPattern.get(r.nextInt(byPattern.size()));
     var m= ms.get(r.nextInt(ms.size()));
     return s.substring(0,m.start(1)) + s.substring(m.end(1));
   }
-  static boolean annotated(String s){ return annotations.stream().anyMatch(p->p.matcher(s).find()); }
+  static boolean annotated(String s){ return annotations.stream().anyMatch(p -> p.matcher(s).find()); }
   static boolean parses(String s){
     try{ Parse.from(SourceOracle.defaultDbgFearPath(0), s); return true; }
     catch(FearlessException _){ return false; }

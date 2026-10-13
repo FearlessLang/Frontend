@@ -22,7 +22,7 @@ public final class TypeRename{
   }
   //TODO: much code could be made faster if instead of xs+ts being list, they were Function<Integer,XX>..
   //no, we need get, size and indexof. But, what about a single data structure that pairs them somehow?
-  public static List<T> ofT(List<T> tsi ,List<String> xs, List<T> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
+  public static List<T> ofT(List<T> tsi ,List<String> xs, List<T> ts){ return tsi.stream().map(ti -> of(ti,xs,ts)).toList(); }
   public static IT of(IT t, List<String> xs, List<IT> ts){
     assert xs.size() == ts.size();
     return switch (t){
@@ -33,7 +33,7 @@ public final class TypeRename{
       case IT.U _ -> t;
     };
   }
-  public static List<IT> ofIT(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti->of(ti,xs,ts)).toList(); }
+  public static List<IT> ofIT(List<IT> tsi ,List<String> xs, List<IT> ts){ return tsi.stream().map(ti -> of(ti,xs,ts)).toList(); }
   public static IT.C of(IT.C c, List<String> xs, List<IT> ts){ return new IT.C(c.name(), ofIT(c.ts(),xs,ts)); }
   public static <A> A getOrSame(A x, String name, List<String> xs, List<A> ts){
     var i= xs.indexOf(name);
@@ -56,7 +56,7 @@ public final class TypeRename{
     case IT.ReadImmX(var x) -> new T.ReadImmX(new T.X(x.name(),x.span()));
     case IT.RCX(var rc, var x) -> new T.RCX(rc,new T.X(x.name(),x.span()));
     case IT.RCC(var rc, var c, var span) -> new T.RCC(rc.orElse(RC.imm),itcToTC(c),span);
-    case IT.U _ ->inferUnknown;
+    case IT.U _ -> inferUnknown;
      //throw Bug.of();// bug is good for testing, it will be replaced with this later: inferUnknown;
   };}
   public static final T.RCC inferUnknown= new T.RCC(RC.imm,new T.C(LiteralDeclarations.inferUnknown, List.of()),TSpan.fromPos(Pos.unknown));

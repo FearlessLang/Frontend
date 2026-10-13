@@ -79,7 +79,7 @@ public final class CompactPrinter{
   }
   public record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k) implements PE{
     @Override public void accString(CompactPrinter sb){
-      Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b)->b.append("-");
+      Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b) -> b.append("-");
       acc.acc(recv,sb);
       sb.append(m);
       accTargs(sb,rc,targs);
@@ -110,7 +110,7 @@ public final class CompactPrinter{
   public record PC(String name, List<PT> ts, Compactable k) implements PN{
     @Override public void accString(CompactPrinter sb){
       sb.append(name);
-      wrap(sb,"[","]",ts,",",k.isCompactable() ? PN::accString : (_,b)->b.append("-"));
+      wrap(sb,"[","]",ts,",",k.isCompactable() ? PN::accString : (_,b) -> b.append("-"));
     }
   }
   public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{
@@ -119,18 +119,18 @@ public final class CompactPrinter{
       sb.append(rc.toStrSpace());
       sb.append(m);
       sb.append(bs);
-      wrap(sb,"(",")",Streams.zip(xs,ts).<Consumer<CompactPrinter>>map((x,t)->b->param(b,x,t)).toList(),",",Consumer::accept);
+      wrap(sb,"(",")",Streams.zip(xs,ts).<Consumer<CompactPrinter>>map((x,t) -> b -> param(b,x,t)).toList(),",",Consumer::accept);
       sb.append(":");
       ret.accString(sb);
-      body.ifPresent(e->{ sb.append("->"); e.accString(sb); });
+      body.ifPresent(e -> { sb.append("->"); e.accString(sb); });
     }
     private static void param(CompactPrinter b, String x, PT t){
       if (!x.equals("_")){ b.append(x).append(":"); }
       t.accString(b);
     }
     private void accCompactedMeth(CompactPrinter sb){
-      if (body.isEmpty()){ sb.append(m); wrap(sb,"(",")",xs,",",(_,b)->b.append("-")); return; }
-      wrap(sb,"(",")->",xs,",",(_,b)->b.append("-"));
+      if (body.isEmpty()){ sb.append(m); wrap(sb,"(",")",xs,",",(_,b) -> b.append("-")); return; }
+      wrap(sb,"(",")->",xs,",",(_,b) -> b.append("-"));
       body.get().accString(sb);
     }
   }
@@ -146,7 +146,7 @@ public final class CompactPrinter{
     return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, Compactable.of());
   }
   PE ofLit(Literal l){
-    var ms= l.ms().stream().filter(m->m.sig().origin().equals(l.name())).map(m->ofM(m.sig(), m.xs(), m.e().map(this::ofE))).toList();
+    var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.xs(), m.e().map(this::ofE))).toList();
     var priv= l.infName();
     var name= priv ? ""
       : t.of(l.name()) + bounds(l.bs())+":"; // name[bs]:
@@ -174,9 +174,9 @@ public final class CompactPrinter{
       case fearlessFullGrammar.E.Literal _ -> List.of();
       default -> throw Bug.of(src.inner.getClass().getSimpleName());
     };
-    var original= oCs.stream().map(c->c.name()).toList();
+    var original= oCs.stream().map(c -> c.name()).toList();
     return cs.stream()
-      .filter(c->original.isEmpty() || original.contains(c.name()) || original.contains(c.name().withoutPkgName()))
+      .filter(c -> original.isEmpty() || original.contains(c.name()) || original.contains(c.name().withoutPkgName()))
       .map(this::ofC)
       .toList();
   }

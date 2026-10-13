@@ -40,7 +40,7 @@ public final class InstantiationSweepTest extends testUtils.FearlessTestBase{
 
   record Case(List<String> bound, boolean classGen, String rm, String rk, Optional<String> p, String r, String ta, String tr){
     String program(String zDecl, UnaryOperator<String> ty, String targ){
-      var ps= p.map(pi->"a: "+pi.replace("_","Y")).orElse("");
+      var ps= p.map(pi -> "a: "+pi.replace("_","Y")).orElse("");
       var k= classGen
         ? "K[Y:"+allRcs+"]:{ "+rm+" .m("+ps+"): "+r.replace("_","Y")+" }\n"
         : "K:{ "+rm+" .m[Y:"+allRcs+"]("+ps+"): "+r.replace("_","Y")+" }\n";
@@ -49,8 +49,8 @@ public final class InstantiationSweepTest extends testUtils.FearlessTestBase{
       var as= p.isPresent() ? ", a: "+ty.apply(ta) : "";
       return "Foo:{}\n"+k+"C:{ .c"+zDecl+"(k: "+kt+as+"): "+ty.apply(tr)+" -> "+call+(p.isPresent() ? "a" : "")+") }\n";
     }
-    String generic(List<String> b){ return program("[Z:"+String.join(",",b)+"]", f->f.replace("_","Z"), "Z"); }
-    String instance(String rc){ return program("", f->inst(f,rc), rc+" Foo"); }
+    String generic(List<String> b){ return program("[Z:"+String.join(",",b)+"]", f -> f.replace("_","Z"), "Z"); }
+    String instance(String rc){ return program("", f -> inst(f,rc), rc+" Foo"); }
   }
   static String inst(String form, String rc){
     if (form.equals("_")){ return rc+" Foo"; }
@@ -73,17 +73,17 @@ public final class InstantiationSweepTest extends testUtils.FearlessTestBase{
     var classGen= i % 2 == 0; i /= 2;
     var mask= (int)i + 1;
     if (pi == 8 && !ta.equals("_")){ return Optional.empty(); }
-    var bound= IntStream.range(0,6).filter(j->(mask & (1 << j)) != 0).mapToObj(rcs::get).toList();
+    var bound= IntStream.range(0,6).filter(j -> (mask & (1 << j)) != 0).mapToObj(rcs::get).toList();
     return Optional.of(new Case(bound,classGen,rm,rk,pi == 8 ? Optional.empty() : Optional.of(forms.get(pi)),r,ta,tr));
   }
   static void check(Case c){
     var n= done.incrementAndGet();
     if (n % 500_000 == 0){ System.out.println("checked "+n+" unsound "+unsound.n()+" unexplained "+unexplained.n()+" crashes "+crashes.n()); }
     var g= ok(c.generic(c.bound()));
-    var insts= c.bound().stream().allMatch(rc->concrete.computeIfAbsent(c.instance(rc),InstantiationSweepTest::ok));
+    var insts= c.bound().stream().allMatch(rc -> concrete.computeIfAbsent(c.instance(rc),InstantiationSweepTest::ok));
     if (g && !insts){ unsound.add(c.generic(c.bound())); return; }
     if (g || !insts){ return; }
-    var bySingleton= c.bound().stream().allMatch(rc->ok(c.generic(List.of(rc))));
+    var bySingleton= c.bound().stream().allMatch(rc -> ok(c.generic(List.of(rc))));
     if (!bySingleton){ unexplained.add(c.generic(c.bound())); return; }
     split.merge(String.join(",",c.bound()),1,Integer::sum);
   }
@@ -92,7 +92,7 @@ public final class InstantiationSweepTest extends testUtils.FearlessTestBase{
     var total= 63L*2*3*6*9*8*8*8;
     IntStream.range(0,(int)total).parallel().mapToObj(InstantiationSweepTest::decode).flatMap(Optional::stream).forEach(InstantiationSweepTest::check);
     System.out.println("Generic rejected, every instantiation and every singleton bound accepted, by bound:");
-    new TreeMap<>(split).forEach((b,n)->System.out.println("  Z:"+b+" "+n));
+    new TreeMap<>(split).forEach((b,n) -> System.out.println("  Z:"+b+" "+n));
     if (unsound.n().get() + unexplained.n().get() + crashes.n().get() == 0){ return; }
     fail(""+unsound+unexplained+crashes);
   }

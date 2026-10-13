@@ -24,12 +24,12 @@ public record FreeXs(Gamma g){
   };}
   private Stream<String> ftvM(M m){
     var domBs= B.xs(m.sig().bs().orElse(List.of()));
-    return Streams.of(ftvOTs(m.sig().ts()),m.sig().ret().stream().flatMap(IT::ftv),m.impl().stream().flatMap(i->ftvE(i.e())))
-      .filter(x->!domBs.contains(x));
+    return Streams.of(ftvOTs(m.sig().ts()),m.sig().ret().stream().flatMap(IT::ftv),m.impl().stream().flatMap(i -> ftvE(i.e())))
+      .filter(x -> !domBs.contains(x));
   }
-  public Stream<String> ftvCs(List<IT.C> cs){ return cs.stream().flatMap(c->ftvTs(c.ts())); }
+  public Stream<String> ftvCs(List<IT.C> cs){ return cs.stream().flatMap(c -> ftvTs(c.ts())); }
   public Stream<String> ftvEs(List<E> es){ return es.stream().flatMap(this::ftvE); }
   public Stream<String> ftvMs(List<M> ms){ return ms.stream().flatMap(this::ftvM); }
-  public Stream<String> ftvOTs(List<Optional<IT>> ts){ return ts.stream().flatMap(o->o.stream().flatMap(IT::ftv)); }
+  public Stream<String> ftvOTs(List<Optional<IT>> ts){ return ts.stream().flatMap(o -> o.stream().flatMap(IT::ftv)); }
   public Stream<String> ftvTs(List<IT> ts){ return ts.stream().flatMap(IT::ftv); }
 }

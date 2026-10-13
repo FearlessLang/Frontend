@@ -15,7 +15,7 @@ import metaParser.TokenTreeSpec;
 import tools.Fs;
 
 public final class Parse{
-  public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t->!t.synthetic()).toList();
+  public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t -> !t.synthetic()).toList();
   private static final TokenTreeSpec<Token,TokenKind> map= new TokenTreeSpec<Token,TokenKind>()
     .addOpenClose(_SOF,_EOF,_All)
     .addOpenClose(ORound,CRound,_RoundGroup)
@@ -26,14 +26,14 @@ public final class Parse{
     .addBarriers(ORound,Set.of(SemiColon,Arrow,SQuote))
     .addBarriers(OSquareArg,Set.of(SemiColon,Arrow,SQuote,LowercaseId,ORound,OCurly,DotName))
 
-    .addCloserEater(CRound,t->splitOn(t,")",true))
-    .addCloserEater(CSquare,t->splitOn(t,"]",true))
-    .addCloserEater(CCurly,t->splitOn(t,"}",true))
-    .addCloserEater(CCurlyId,t->splitOn(t,"}",true))
+    .addCloserEater(CRound,t -> splitOn(t,")",true))
+    .addCloserEater(CSquare,t -> splitOn(t,"]",true))
+    .addCloserEater(CCurly,t -> splitOn(t,"}",true))
+    .addCloserEater(CCurlyId,t -> splitOn(t,"}",true))
 
-    .addOpenerEater(ORound,t->splitOn(t,"(",false))
-    .addOpenerEater(OSquareArg,t->splitOn(t,"[",false))
-    .addOpenerEater(OCurly,t->splitOn(t,"{",false))
+    .addOpenerEater(ORound,t -> splitOn(t,"(",false))
+    .addOpenerEater(OSquareArg,t -> splitOn(t,"[",false))
+    .addOpenerEater(OCurly,t -> splitOn(t,"{",false))
     ;
   private static Optional<Token> splitOn(Token t, String s,boolean first){
     if (!t.is(BlockComment, LineComment, UStr, SStr)){ return Optional.empty(); }

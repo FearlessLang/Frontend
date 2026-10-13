@@ -21,13 +21,13 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var base= baseMType(rcc0.c(),d,sig);
     c.expectedRes().inner = base.t();
     var promos= MultiMeth.of(bs,base,true);
-    var app= promos.stream().filter(m->rcc0.rc().isSubType(m.rc())).toList();
+    var app= promos.stream().filter(m -> rcc0.rc().isSubType(m.rc())).toList();
     if (app.isEmpty()){ throw ts.tsE().receiverRCBlocksCall(d,c,rcc0.rc(),MultiMeth.of(bs,base,mayBeH(rcc0.rc(),base))); }
     var mat= typeArgsOnce(d,app);
     var possible= mat.candidatesOkForAllArgs();//This is indexes of MTypes allowed by the arguments
     if (possible.isEmpty()){ throw ts.tsE().methodPromotionsDisagreeOnArguments(c,mat); }
     if (rs.isEmpty()){ return List.of(Reason.pass(bestUnique(mat,possible))); }
-    return rs.stream().map(req->resForReq(d,sig,mat,possible,req)).toList();
+    return rs.stream().map(req -> resForReq(d,sig,mat,possible,req)).toList();
   }
   private boolean mayBeH(RC recv, MType base){
     return recv.isH() || Push.of(base.ts(),base.t()).stream().anyMatch(this::mayBeH);
@@ -46,8 +46,8 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   }
   private Sig sigOf(Literal d){
     var sig= OneOr.opt("Methods with duplicates",d.ms().stream().map(M::sig)
-      .filter(s->s.m().equals(c.name()) && s.rc() == c.rc()))
-      .orElseThrow(()->ts.tsE().methodNotDeclared(ts.scope(),c,d));
+      .filter(s -> s.m().equals(c.name()) && s.rc() == c.rc()))
+      .orElseThrow(() -> ts.tsE().methodNotDeclared(ts.scope(),c,d));
     assert sig.ts().size() == c.es().size();//ensured by well formedness
     if (sig.bs().size() == c.targs().size()){ return sig; }
     throw ts.tsE().methodTArgsArityError(d,c,sig.bs());
@@ -80,7 +80,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     //the subtyping checks. The commented code below saves that duplicated computation
     //But if we deduplicate here we have to re expand directly later to be able to fit the
     //ArgMatrix acc with the right number of elements.
-    return app.stream().map(m->new TRequirement(m.promotion(),m.ts().get(argi))).toList();
+    return app.stream().map(m -> new TRequirement(m.promotion(),m.ts().get(argi))).toList();
     /*var byT= new LinkedHashMap<T,List<String>>();
     for (var m:app){
       var t= m.ts().get(argi);
@@ -97,14 +97,14 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi),ts.v());
     var res= cts.typeOf(bs,g,c.es().get(argi),reqs);
     assert res.size() == acc.cs().size();
-    var ok= IntStream.range(0,res.size()).filter(i->res.get(i).isEmpty()).boxed().toList();
+    var ok= IntStream.range(0,res.size()).filter(i -> res.get(i).isEmpty()).boxed().toList();
     if (ok.isEmpty()){ throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts,bs,d,c,argi,reqs,res); }
     acc.okByArg().add(ok);
     acc.resByArg().add(res);
   }
   private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){
     var okRet= possible.stream()
-      .filter(i->ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
+      .filter(i -> ts.isSub(bs,mat.candidate(i).t(),req.t())).toList();
     if (!okRet.isEmpty()){ return Reason.pass(bestUnique(mat,okRet)); }
     return Reason.callResultCannotHaveRequiredType(ts,d,c, req, bests(mat,possible),sig);
   }
@@ -112,10 +112,10 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   //bound, so those two are incomparable, but both are sound and the "As declared" one comes first.
   private T bestUnique(ArgMatrix mat, List<Integer> idxs){ return bests(mat,idxs).getFirst(); }
   private List<T> bests(ArgMatrix mat, List<Integer> idxs){
-    var all= idxs.stream().map(i->mat.candidate(i).t()).toList();
-    assert all.stream().allMatch(ti->all.stream().allMatch(tj->tj.equals(ti) || !ts.isSub(bs,tj,ti) || !ts.isSub(bs,ti,tj)));
+    var all= idxs.stream().map(i -> mat.candidate(i).t()).toList();
+    assert all.stream().allMatch(ti -> all.stream().allMatch(tj -> tj.equals(ti) || !ts.isSub(bs,tj,ti) || !ts.isSub(bs,ti,tj)));
     return all.stream()
-      .filter(ti->all.stream().noneMatch(tj->
+      .filter(ti -> all.stream().noneMatch(tj ->
         !tj.equals(ti) && ts.isSub(bs,tj,ti)))
       .distinct().toList();
   }

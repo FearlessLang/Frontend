@@ -18,17 +18,17 @@ public final class TypeInMethodTest extends testUtils.FearlessTestBase{
 
   static void okTwoPkgs(String aSrc, String bSrc){
     var oB= oraclePkg(List.of(bSrc));
-    okOrPrint(oB, ()->compileB(aSrc, oB));
+    okOrPrint(oB, () -> compileB(aSrc, oB));
   }
   static void failTwoPkgs(String expected, String aSrc, String bSrc){
     var oB= oraclePkg(List.of(bSrc));
-    var fe= assertThrows(FearlessException.class, ()->compileB(aSrc, oB));
+    var fe= assertThrows(FearlessException.class, () -> compileB(aSrc, oB));
     strCmp("In file: [###].fear\n\n"+expected+"Error 8 TypeError", fe.render(oB));
   }
   private static List<core.E.Literal> compileB(String aSrc, tools.SourceOracle oB){
     var base= otherFrom(DbgBlock.all());
     var oA= oraclePkg(List.of(aSrc));
-    var aLits= okOrPrint(oA, ()->compileAll("a", oA, base));
+    var aLits= okOrPrint(oA, () -> compileAll("a", oA, base));
     var other= base.mergeWith(AllLs.of(aLits), -1);
     return new FrontendLogicMain().of("b", Map.of(), oB.allFiles(), other);
   }

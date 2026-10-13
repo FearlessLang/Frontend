@@ -20,9 +20,9 @@ public record M(Sig sig, List<String> xs, Optional<E> e){
     sb.append(sig.rc().toStrSpace());
     sb.append(sig.m());
     sb.append(Join.of(sig.bs(),"[",",","]",""));
-    sb.append(Join.of(Streams.zip(xs,sig.ts()).map((x,t)->x+":"+t),"(",", ",")",""));
+    sb.append(Join.of(Streams.zip(xs,sig.ts()).map((x,t) -> x+":"+t),"(",", ",")",""));
     sb.append(':').append(sig.ret());
-    e.ifPresent(body->sb.append("->").append(body));
+    e.ifPresent(body -> sb.append("->").append(body));
     return sb.toString();
   }
 }

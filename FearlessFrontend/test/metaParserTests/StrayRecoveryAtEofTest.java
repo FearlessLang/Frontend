@@ -70,7 +70,7 @@ public final class StrayRecoveryAtEofTest{
       .input(URI.create("fear:/a.fear"),src)
       .setErrFactory(new Ef())
       .tokenize();
-    return assertThrows(Ex.class,()->tz.buildTokenTree(spec));
+    return assertThrows(Ex.class,() -> tz.buildTokenTree(spec));
   }
   @Test void unclosedParenInsideBracesIsStrayOpener(){
     var e= treeError("{(}");

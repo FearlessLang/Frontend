@@ -22,7 +22,7 @@ public final class Monotonicity{
   record Slot(K k, int a, int b){}
 
   private static boolean step(GammaSignature g, Slot slot, Object from, Object to, String what){
-    var l= g.monotonicity.computeIfAbsent(slot, _->new ArrayList<>(4));
+    var l= g.monotonicity.computeIfAbsent(slot, _ -> new ArrayList<>(4));
     if (l.isEmpty()){ l.add(from); }
     var last= l.getLast();
     var outOfSync= !(from instanceof IT.U) && !last.equals(from);
@@ -45,7 +45,7 @@ public final class Monotonicity{
     return step(e.g(), new Slot(K.eT,0,0), e.t(), to, "E.t "+e.getClass().getSimpleName());
   }
 
-  private static boolean hasAnyKind(GammaSignature g, K k){ return g.monotonicity.keySet().stream().anyMatch(s->s.k() == k); }
+  private static boolean hasAnyKind(GammaSignature g, K k){ return g.monotonicity.keySet().stream().anyMatch(s -> s.k() == k); }
 
   public static boolean onCallWithMore(E.Call c, Optional<RC> nextRc, List<IT> nextTargs, IT nextT){
     step(c.g(), new Slot(K.eT,0,0), c.t(), nextT, "Call.t");
@@ -66,7 +66,7 @@ public final class Monotonicity{
   }
 
   private static boolean litStable(List<M> ms){
-    return ms.stream().allMatch(m->m.sig().m().isPresent());
+    return ms.stream().allMatch(m -> m.sig().m().isPresent());
   }
 
   public static boolean onLiteralWithMs(E.Literal l, List<M> nextMs){
@@ -74,7 +74,7 @@ public final class Monotonicity{
     // In that phase, we DO NOT track literal method slots at all.
     var unstable= !litStable(l.ms()) || !litStable(nextMs);
     if (unstable){
-      l.g().monotonicity.keySet().removeIf(s->s.k() == K.litMArg || s.k() == K.litMRet);
+      l.g().monotonicity.keySet().removeIf(s -> s.k() == K.litMArg || s.k() == K.litMRet);
       return true;
     }
     // First stable snapshot: start tracking from nextMs (not from l.ms()).
@@ -110,7 +110,7 @@ public final class Monotonicity{
   }
 
   private static List<IT> sigPs(M m){
-    return m.sig().ts().stream().map(it->it.orElse(IT.U.Instance)).toList();
+    return m.sig().ts().stream().map(it -> it.orElse(IT.U.Instance)).toList();
   }
   private static IT sigRet(M m){
     return m.sig().ret().orElse(IT.U.Instance);
@@ -119,6 +119,6 @@ public final class Monotonicity{
     return m.sig().m().map(MName::s).orElse("<nameToInfer>");
   }
   private static List<String> msBrief(List<M> ms){
-    return ms.stream().map(m->mName(m)+"/"+sigPs(m).size()).toList();
+    return ms.stream().map(m -> mName(m)+"/"+sigPs(m).size()).toList();
   }
 }

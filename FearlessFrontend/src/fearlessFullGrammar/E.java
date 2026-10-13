@@ -56,15 +56,15 @@ public sealed interface E extends core.Src.SrcObj{
       assert unmodifiable(es, "E.Call.es");
       assert pat.isPresent() || eq(es.size(),name.arity(),"Call arity");
       assert pars || es.size() < 2;
-      assert validOpt(pat,_->eq(es.size(),1,"invalid equal sugar"));
-      assert validOpt(pat,_->eq(name.arity(),2,"invalid equal sugar"));
+      assert validOpt(pat,_ -> eq(es.size(),1,"invalid equal sugar"));
+      assert validOpt(pat,_ -> eq(name.arity(),2,"invalid equal sugar"));
     }
     @Override public String toString(){ return "Call["+e+"]"+name
       +targs.map(Object::toString).orElse("")
       +pars+pat.map(Object::toString).orElse("")+es; }
     @Override public TSpan span(){
       if (!es.isEmpty()){ return TSpan.merge(e.span(),es.getLast().span()); }
-      return TSpan.merge(e.span(),targs.map(t->TSpan.fromPos(t.endPos())).orElseGet(()->TSpan.fromPos(pos,name.s().length())));
+      return TSpan.merge(e.span(),targs.map(t -> TSpan.fromPos(t.endPos())).orElseGet(() -> TSpan.fromPos(pos,name.s().length())));
     }
   }
   record Implicit(Pos pos) implements E{

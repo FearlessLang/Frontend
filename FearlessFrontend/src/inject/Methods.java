@@ -33,7 +33,7 @@ import utils.Streams;
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
     LinkedHashMap<TName,core.E.Literal> cache){
-  boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c->c.name().pkgName().equals(p.name()) && rem.containsKey(c.name())); }
+  boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c -> c.name().pkgName().equals(p.name()) && rem.containsKey(c.name())); }
   public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
@@ -42,7 +42,7 @@ public record Methods(
     for (var d : decs){ rem.put(d.name(), d); }
     var out= new ArrayList<E.Literal>();
     while (!rem.isEmpty()){
-      var layer= rem.values().stream().filter(d->free(d,rem)).toList();
+      var layer= rem.values().stream().filter(d -> free(d,rem)).toList();
       if (layer.isEmpty()){ throw p.err().circularImplements(rem); }
       out.addAll(layer);
       for (var d : layer){ rem.remove(d.name()); }
@@ -51,7 +51,7 @@ public record Methods(
   }
   public List<E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     var acc= new ArrayList<E.Literal>();
-    for (var d : supertypesFirst(iDecs.stream().filter(l->!l.infName()).toList())){
+    for (var d : supertypesFirst(iDecs.stream().filter(l -> !l.infName()).toList())){
       var e= expandDeclaration(d,false);
       if (d.thisName().equals("this")){ acc.add(e); }
       register(e);
@@ -63,12 +63,12 @@ public record Methods(
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps? Something similar has been done for MSigL
   CsMs fetch(E.Literal child,IT.C c,core.E.Literal d,List<String> scope){ //d == from(c.name()); but from can be undefined for {..}.foo
-    return new CsMs(fetchCs(c),d.ms().stream().map(m->alphaSig(m,d,c,child,scope)).toList());
+    return new CsMs(fetchCs(c),d.ms().stream().map(m -> alphaSig(m,d,c,child,scope)).toList());
   }
   List<IT.C> fetchCs(IT.C c){
     var d= _from(c.name());
     if (d == null){ return List.of(); }//case {..}.foo
-    return d.cs().stream().map(TypeRename::tcToITC).map(ci->TypeRename.of(ci,B.xs(d.bs()),c.ts())).distinct().toList();
+    return d.cs().stream().map(TypeRename::tcToITC).map(ci -> TypeRename.of(ci,B.xs(d.bs()),c.ts())).distinct().toList();
   }
   private M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child, List<String> scope){
     var s= m.sig();
@@ -91,11 +91,11 @@ public record Methods(
   public core.E.Literal from(TName name){ return Objects.requireNonNull(_from(name)); }
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name,cache::get,other); }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
-    var ds= d.cs().stream().map(c->fetch(d,c,from(c.name()),List.of())).toList();
-    var implied= ds.stream().flatMap(dsi->dsi.cs().stream()).toList();
+    var ds= d.cs().stream().map(c -> fetch(d,c,from(c.name()),List.of())).toList();
+    var implied= ds.stream().flatMap(dsi -> dsi.cs().stream()).toList();
     var allCs= ToCore.distinctTypes(d.bs(),Push.of(d.cs(),implied.stream().sorted(Comparator.comparing(Object::toString)).toList()));
-    var allSig= Streams.zip(d.cs(),ds).filter((c,_)->!implied.contains(c))
-      .flatMap((_,dsi)->dsi.sigs().stream()).toList();
+    var allSig= Streams.zip(d.cs(),ds).filter((c,_) -> !implied.contains(c))
+      .flatMap((_,dsi) -> dsi.sigs().stream()).toList();
     var allMs= pairWithSig(inferMNames(d.ms(),new ArrayList<>(allSig),d),new ArrayList<>(allSig),d);
     var res= d.withCsMs(allCs,allMs,setInfHead);
     checkMagicSupertypes(res, allCs);
@@ -110,16 +110,16 @@ public record Methods(
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
     var widen= allCs.stream()
-      .filter(c->c.name().equals(LiteralDeclarations.widen))
+      .filter(c -> c.name().equals(LiteralDeclarations.widen))
       .toList();
     if (widen.size() > 1){ throw p.err().multipleWidenTo(d, widen); }
-    var isBaseId= allCs.stream().anyMatch(c->c.name().equals(LiteralDeclarations.baseId));
+    var isBaseId= allCs.stream().anyMatch(c -> c.name().equals(LiteralDeclarations.baseId));
     if (isBaseId){ checkBaseId(d); }
-    var unsealed= allCs.stream().noneMatch(c->c.name().equals(LiteralDeclarations.sealed));
+    var unsealed= allCs.stream().noneMatch(c -> c.name().equals(LiteralDeclarations.sealed));
     if (unsealed){ return; }
     allCs.stream()
-      .filter(c->!c.name().pkgName().equals(d.name().pkgName()))
-      .forEach(c->notSealed(c.name(),d));
+      .filter(c -> !c.name().pkgName().equals(d.name().pkgName()))
+      .forEach(c -> notSealed(c.name(),d));
   }
   private void checkBaseId(E.Literal d){
     var ms= d.ms();
@@ -152,7 +152,7 @@ public record Methods(
     for (var m : ms){//for methods WITH name
       if (m.sig().m().isEmpty()){ continue; }
       var name= m.sig().m().get();
-      ss.removeIf(s->s.m().get().equals(name));
+      ss.removeIf(s -> s.m().get().equals(name));
       res.add(m);
     }
     for (var m : ms){//for methods WITHOUT name
@@ -171,9 +171,9 @@ public record Methods(
   private M nameFromSigs(M m, ArrayList<M.Sig> ss, E.Literal origin){
     var arity= m.sig().ts().size();
     for (var abs : List.of(true,false)){
-      var match= ss.stream().filter(s->s.m().get().arity() == arity && (s.abs() || !abs)).toList();
+      var match= ss.stream().filter(s -> s.m().get().arity() == arity && (s.abs() || !abs)).toList();
       ss.removeAll(match);
-      var count= match.stream().map(s->s.m().get()).distinct().count();
+      var count= match.stream().map(s -> s.m().get()).distinct().count();
       if (count == 1){ return withName(match.getFirst().m().get(),m); }
       if (count > 1){ throw p.err().ambiguousImpl(origin,abs,m,match); }
     }
@@ -185,9 +185,9 @@ public record Methods(
     for (var m : ms){
       var name= m.sig().m().get();
       var rc= m.sig().rc();
-      var taken= ss.stream().filter(s->s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))).toList();
+      var taken= ss.stream().filter(s -> s.m().get().equals(name) && (rc.isEmpty() || rc.equals(s.rc()))).toList();
       ss.removeAll(taken);
-      var match= taken.stream().collect(Collectors.groupingBy(s->s.rc().get(),LinkedHashMap::new,Collectors.toList()));
+      var match= taken.stream().collect(Collectors.groupingBy(s -> s.rc().get(),LinkedHashMap::new,Collectors.toList()));
       var inferredRcOverloads= rc.isEmpty() && match.size() > 1;
       if (inferredRcOverloads){
         var litRc= origin.rc().or(origin.t()::explicitRC).orElse(RC.imm);
@@ -213,11 +213,11 @@ public record Methods(
       changed = true;
       ss.stream()
         .collect(Collectors.groupingBy(
-          s->new Parser.RCMName(s.rc(), s.m().get()),
+          s -> new Parser.RCMName(s.rc(), s.m().get()),
           LinkedHashMap::new,
           Collectors.toList()))
         .values()
-        .forEach(v->res.add(pairWithSig(v, origin)));
+        .forEach(v -> res.add(pairWithSig(v, origin)));
     }
     assert !changed == res.equals(ms);
     return changed ? List.copyOf(res) : ms;
@@ -230,17 +230,17 @@ public record Methods(
     var bs= agreementWithSize(ss, s, at);
     var ssAligned= alignMethodSigsTo(ss, bs);
     var name= ssAligned.getFirst().m().get();
-    var ts= IntStream.range(0, s.ts().size()).mapToObj(i->Optional.of(pairWithTs(at,i, s.ts().get(i),ssAligned))).toList();
-    var res= s.ret().orElseGet(()->agreement(at,ssAligned,e->e.ret().get(),
+    var ts= IntStream.range(0, s.ts().size()).mapToObj(i -> Optional.of(pairWithTs(at,i, s.ts().get(i),ssAligned))).toList();
+    var res= s.ret().orElseGet(() -> agreement(at,ssAligned,e -> e.ret().get(),
       p.err().retTypeDisagreement()));
-    var rc= s.rc().orElseGet(()->rcAgreement(ssAligned));
+    var rc= s.rc().orElseGet(() -> rcAgreement(ssAligned));
     return m.withSig(new M.Sig(rc,name,bs,ts,res,origin.name(),m.impl().isEmpty(),s.span()));
   }
   private List<B> agreementWithSize(List<M.Sig> ss, M.Sig s, Agreement at){
-    var allBounds= ss.stream().map(e->e.bs().get()).distinct().toList();
+    var allBounds= ss.stream().map(e -> e.bs().get()).distinct().toList();
     if (s.bs().isEmpty()){ return agreementBs(at,allBounds); }
     var userBs= s.bs().get();
-    var superBsList= ss.stream().map(e->e.bs().get()).toList();
+    var superBsList= ss.stream().map(e -> e.bs().get()).toList();
     var superArities= superBsList.stream().map(List::size).distinct().toList();
     if (superArities.size() != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at, superBsList); }
     if (superArities.getFirst() != userBs.size()){ throw p.err().methodGenericArityDisagreesWithSupers(at, userBs, superBsList.getFirst()); }
@@ -252,19 +252,19 @@ public record Methods(
     throw p.err().methodBsDisagreesWithSupers(at, userBs,supBs);
   }
   IT pairWithTs(Agreement at, int i, Optional<IT> t,List<M.Sig> ss){
-    return t.orElseGet(()->agreement(at,ss,e->e.ts().get(i).get(),
+    return t.orElseGet(() -> agreement(at,ss,e -> e.ts().get(i).get(),
       p.err().argTypeDisagreement(i)));
   }
   M pairWithSig(List<M.Sig> ss, E.Literal origin){
     assert !ss.isEmpty();
     if (ss.size() == 1){ return new M(ss.getFirst(),Optional.empty()); }
     var at= new Agreement(origin,ss.getFirst().rc(),ss.getFirst().m().get(),origin.span().inner);
-    var bs= agreementBs(at,ss.stream().map(e->e.bs().get()).distinct().toList());
+    var bs= agreementBs(at,ss.stream().map(e -> e.bs().get()).distinct().toList());
     var ssAligned= alignMethodSigsTo(ss, bs);
     var name= ssAligned.getFirst().m().get();
-    var ts= IntStream.range(0, name.arity()).mapToObj(i->Optional.of(pairWithTs(at,i,Optional.empty(),ssAligned))).toList();
-    var res= agreement(at,ssAligned,e->e.ret().get(),p.err().retTypeDisagreement());
-    var impl= ssAligned.stream().filter(e->!e.abs() && !overridden(e,origin)).map(e->e.origin().get()).distinct().toList();
+    var ts= IntStream.range(0, name.arity()).mapToObj(i -> Optional.of(pairWithTs(at,i,Optional.empty(),ssAligned))).toList();
+    var res= agreement(at,ssAligned,e -> e.ret().get(),p.err().retTypeDisagreement());
+    var impl= ssAligned.stream().filter(e -> !e.abs() && !overridden(e,origin)).map(e -> e.origin().get()).distinct().toList();
     if (impl.size() > 1){ throw p.err().ambiguousImplementationFor(impl,at); }
     var originName= impl.size() == 1 ? impl.getFirst() : origin.name();
     var rc= rcAgreement(ssAligned);
@@ -275,31 +275,31 @@ public record Methods(
   private boolean overridden(M.Sig s, E.Literal lit){
     var sup= s.origin().get();
     return lit.cs().stream()
-      .flatMap(c->Stream.concat(Stream.of(c.name()),from(c.name()).cs().stream().map(core.T.C::name)))
-      .anyMatch(t->!t.equals(sup) && declares(from(t),sup,s));
+      .flatMap(c -> Stream.concat(Stream.of(c.name()),from(c.name()).cs().stream().map(core.T.C::name)))
+      .anyMatch(t -> !t.equals(sup) && declares(from(t),sup,s));
   }
   private boolean declares(core.E.Literal d, TName sup, M.Sig s){
     return LiteralDeclarations.has(d.cs(),sup) && d.ms().stream().map(core.M::sig)
-      .anyMatch(o->o.origin().equals(d.name()) && o.m().equals(s.m().get()) && o.rc() == s.rc().get());
+      .anyMatch(o -> o.origin().equals(d.name()) && o.m().equals(s.m().get()) && o.rc() == s.rc().get());
   }
   M toCompleteM(M m,E.Literal origin){
     var s= m.sig();
-    var ts= s.ts().stream().map(t->Optional.of(t.orElseThrow(()->p.err().noSourceToInferFrom(origin,m)))).toList();
-    var res= s.ret().orElseThrow(()->p.err().noSourceToInferFrom(origin,m));
+    var ts= s.ts().stream().map(t -> Optional.of(t.orElseThrow(() -> p.err().noSourceToInferFrom(origin,m)))).toList();
+    var res= s.ret().orElseThrow(() -> p.err().noSourceToInferFrom(origin,m));
     return m.withSig(new M.Sig(s.rc().orElse(RC.imm),s.m().get(),s.bs().orElse(List.of()),ts,res,origin.name(),m.impl().isEmpty(),s.span()));
   }
   private IT agreement(Agreement at,List<M.Sig> ss,Function<M.Sig,IT> f, String msg){
     var res= ss.stream().map(f).distinct().toList();
     var bs= Push.of(at.lit().bs(),ss.getFirst().bs().get());
     var first= TypeRename.itToT(res.getFirst());
-    var same= res.stream().allMatch(t->TypeSystem.eqModXRC(bs,first,TypeRename.itToT(t)));
+    var same= res.stream().allMatch(t -> TypeSystem.eqModXRC(bs,first,TypeRename.itToT(t)));
     if (same){ return res.getFirst(); }
     throw p.err().noAgreement(at,bs,res,msg);
   }
   //ssAligned is always grouped/bucketed by rc upstream (see pairWithSig callers), so rc is always uniform here.
   private RC rcAgreement(List<M.Sig> ssAligned){
     var rc= ssAligned.getFirst().rc().get();
-    assert ssAligned.stream().allMatch(e->e.rc().get() == rc);
+    assert ssAligned.stream().allMatch(e -> e.rc().get() == rc);
     return rc;
   }
   public record Agreement(E.Literal lit,Optional<RC> rc, MName mName, Span span){}
@@ -307,18 +307,18 @@ public record Methods(
   List<B> agreementBs(Agreement at,List<List<B>> res){
     var sizes= res.stream().map(List::size).distinct().count();
     if (sizes != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at,res); }
-    var bounds= res.stream().map(l->l.stream().map(B::rcs).toList()).distinct().count();
+    var bounds= res.stream().map(l -> l.stream().map(B::rcs).toList()).distinct().count();
     if (bounds == 1){ return res.getFirst(); }
     throw p.err().methodBsDisagreementBetweenSupers(at, res);
   }
-  private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s->alignMethodSigTo(s,bs)).toList(); }
+  private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s -> alignMethodSigTo(s,bs)).toList(); }
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){
     assert superSig.isFull();
     var fromXs= B.xs(superSig.bs().get());
     var toITs= MSigL.toXs(superSig.span(),B.xs(targetBs));
     assert fromXs.size() == toITs.size();
-    var renamedTs= superSig.ts().stream().map(t->Optional.of(TypeRename.of(t.get(), fromXs, toITs))).toList();
-    var renamedRet= superSig.ret().map(it->TypeRename.of(it, fromXs, toITs));
+    var renamedTs= superSig.ts().stream().map(t -> Optional.of(TypeRename.of(t.get(), fromXs, toITs))).toList();
+    var renamedRet= superSig.ret().map(it -> TypeRename.of(it, fromXs, toITs));
     return new M.Sig(superSig.rc(), superSig.m(), Optional.of(targetBs),
       renamedTs, renamedRet, superSig.origin(), superSig.abs(), superSig.span());
   }

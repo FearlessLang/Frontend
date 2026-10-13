@@ -105,20 +105,20 @@ public final class GammaTest{
   // 5) get on unknown throws by design
   @Test void get_unknown_throws_by_design(){
     var g= new Gamma();
-    assertThrows(ArrayIndexOutOfBoundsException.class, ()->g.get("nope"));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("nope"));
   }
 
   // 6) update on unknown throws by design
   @Test void update_unknown_throws_by_design(){
     var g= new Gamma();
-    assertThrows(ArrayIndexOutOfBoundsException.class, ()->g.update("nope", X("T")));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.update("nope", X("T")));
   }
 
   // 7) duplicate declare fails with assertion if enabled
   @Test void duplicate_declare_fails_with_assertion_if_enabled(){
     var g= new Gamma();
     g.declare("x", X("A"));
-    assertThrows(AssertionError.class, ()->g.declare("x", X("Foo")));
+    assertThrows(AssertionError.class, () -> g.declare("x", X("Foo")));
   }
 
   // 8) pop root fails with assertion if enabled
@@ -161,7 +161,7 @@ public final class GammaTest{
     for (int i : Range.of(0,10)){ g.declare("w" + i, X("W" + i)); }
     g.popScope();
 
-    assertThrows(ArrayIndexOutOfBoundsException.class, ()->g.get("w0"));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("w0"));
     assertSame(t, g.get("v31"));
 
     // Inner-only declares should not disturb parent after pop
@@ -177,7 +177,7 @@ public final class GammaTest{
     g.declare("w0", X("W0"));
     g.popScope(); // w0 out of scope
     g.declare("a0", X("A0")); // reuse slot
-    assertThrows(ArrayIndexOutOfBoundsException.class, ()->g.get("w0"));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("w0"));
   }
 
   // 11) Popped name update after slot reuse throws
@@ -190,7 +190,7 @@ public final class GammaTest{
     g.popScope(); // w0 out of scope
     var a0= X("A0");
     g.declare("a0", a0);
-    assertThrows(ArrayIndexOutOfBoundsException.class, ()->g.update("w0", X("POISON")));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.update("w0", X("POISON")));
     assertSame(a0, g.get("a0"));
   }
 
@@ -211,7 +211,7 @@ public final class GammaTest{
     g.sign(before);
     g.declare("_", X("IGNORED"));
     assertTrue(g.represents(before), "declaring '_' must not change signature");
-    assertThrows(ArrayIndexOutOfBoundsException.class, ()->g.get("_"));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("_"));
   }
 
   // 14) Commutativity of declares: same bindings, different order => same signature
@@ -257,6 +257,6 @@ public final class GammaTest{
     assertEquals(X("U"), g.get("v0_0"));
     for (int _ : Range.of(0,n)){ g.popScope(); }
     assertTrue(g.represents(root));
-    assertThrows(ArrayIndexOutOfBoundsException.class, ()->g.get("v0_0"));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("v0_0"));
   }
 }

@@ -24,7 +24,7 @@ public sealed interface TypeScope{
   default TypeScope pushM(Literal l, M m){ return new Method(l,m,this); }
   record Method(Literal l, M m, TypeScope outer) implements TypeScope{
     @Override public E contextE(){ return l; }
-    @Override public List<T> mentionedTs(){ return l.cs().stream().flatMap(c->c.ts().stream()).toList(); }
+    @Override public List<T> mentionedTs(){ return l.cs().stream().flatMap(c -> c.ts().stream()).toList(); }
   }
   default TypeScope pushCallRec(Call c){
     var es= c.es().stream().map(this::omit).toList();
@@ -32,7 +32,7 @@ public sealed interface TypeScope{
   }
   default E omit(E e){ return new X("-",e.src()); }
   default TypeScope pushCallArgi(Call c, int i){
-    var es= IntStream.range(0, c.es().size()).mapToObj(j->j == i ? c.es().get(j) : omit(c.es().get(j))).toList();
+    var es= IntStream.range(0, c.es().size()).mapToObj(j -> j == i ? c.es().get(j) : omit(c.es().get(j))).toList();
     return new CallSite(new Call(omit(c.e()),c.name(),c.rc(),c.targs(),es,c.expectedRes(),c.src()),this);
   }
   record CallSite(Call c, TypeScope outer) implements TypeScope{
@@ -52,7 +52,7 @@ public sealed interface TypeScope{
       && reqC.name().equals(declC.name())
       && reqC.ts().size() == declC.ts().size();
     if (!sameShape){ return; }
-    Streams.zip(declC.ts(), reqC.ts()).forEach((d,r)->walk(d, r, out));
+    Streams.zip(declC.ts(), reqC.ts()).forEach((d,r) -> walk(d, r, out));
   }
   static TypeScope bestInterestingScope(TypeScope start, List<T> interest){
     var min= 4;
@@ -64,8 +64,8 @@ public sealed interface TypeScope{
     return best;
   }
   static boolean mentionsAny(TypeScope s, List<T> interest){
-    return s.mentionedTs().stream().anyMatch(mt->
-      interest.stream().anyMatch(it->eqForHeuristic(mt, it))
+    return s.mentionedTs().stream().anyMatch(mt ->
+      interest.stream().anyMatch(it -> eqForHeuristic(mt, it))
     );
   }
   static boolean eqForHeuristic(T a, T b){

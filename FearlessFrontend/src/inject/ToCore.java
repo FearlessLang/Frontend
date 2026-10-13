@@ -47,19 +47,19 @@ public record ToCore(List<B> ctx){
     var uncommitted= e.infName() && bs.isEmpty();
     if (uncommitted){
       var free= new FreeXs(new Gamma());
-      bs = Streams.of(free.ftvCs(e.cs()),free.ftvMs(e.ms()),free.ftvMs(o.ms())).distinct().map(x->B.get(ctx,x)).toList();
+      bs = Streams.of(free.ftvCs(e.cs()),free.ftvMs(e.ms()),free.ftvMs(o.ms())).distinct().map(x -> B.get(ctx,x)).toList();
     }
     assert !e.infName() || B.xs(ctx).containsAll(B.xs(bs));
     var name= e.name().withArity(bs.size());
     var inner= new ToCore(e.infName() ? Push.of(ctx,bs).stream().distinct().toList() : bs);
-    var ms= inner.mapMs(e.ms(),o.ms()).stream().map(m->withOrigin(m,e.name(),name)).toList();
+    var ms= inner.mapMs(e.ms(),o.ms()).stream().map(m -> withOrigin(m,e.name(),name)).toList();
     var cs= TypeRename.itcToTC(distinctTypes(inner.ctx(),o.cs().isEmpty() ? e.cs() : Push.of(o.cs(),e.cs())));
     assert InjectionToInferenceVisitor.duplicatedSupertypes(inner.ctx(),cs).isEmpty();
     return new core.E.Literal(rc,name,bs,cs,e.thisName(),ms,e.src(),e.infName());
   }
   static List<IT.C> distinctTypes(List<B> bs, List<IT.C> cs){
     var res= new ArrayList<IT.C>();
-    for (var c : cs){ if (res.stream().noneMatch(r->sameType(bs,r,c))){ res.add(c); } }
+    for (var c : cs){ if (res.stream().noneMatch(r -> sameType(bs,r,c))){ res.add(c); } }
     return Collections.unmodifiableList(res);
   }
   private static boolean sameType(List<B> bs, IT.C a, IT.C b){
@@ -95,12 +95,12 @@ public record ToCore(List<B> ctx){
   }
   private List<core.M> mapMs(List<inference.M> es, List<inference.M> os){
     return es.stream()
-      .map(me->m(me,me.impl().isEmpty() ? me : matchM(os,me)))
+      .map(me -> m(me,me.impl().isEmpty() ? me : matchM(os,me)))
       .toList();
   }
   private static inference.M matchM(List<inference.M> os, inference.M e){
     var s= e.sig().span();
-    return OneOr.of("Failing to connect methods @"+s, os.stream().filter(o->o.sig().span() == s));
+    return OneOr.of("Failing to connect methods @"+s, os.stream().filter(o -> o.sig().span() == s));
   }
   private core.M m(inference.M e, inference.M o){
     var s= sig(e.sig(), o.sig());
@@ -114,7 +114,7 @@ public record ToCore(List<B> ctx){
     return new core.M(s,ei.xs(),Optional.of(inner.of(ei.e(),oi.e())));
   }
   core.Sig sig(inference.M.Sig inf, inference.M.Sig usr){
-    var ts= Streams.zip(usr.ts(),inf.ts()).map((u,i)->u.or(()->i)).toList();
+    var ts= Streams.zip(usr.ts(),inf.ts()).map((u,i) -> u.or(() -> i)).toList();
     var ret= usr.ret().or(inf::ret);
     var rc= usr.rc().or(inf::rc).orElse(RC.imm);
     var m= usr.m().or(inf::m).orElse(new MName(".inferenceFailed", ts.size()));
@@ -130,7 +130,7 @@ public record ToCore(List<B> ctx){
       default -> throw Bug.unreachable();
     };
   }
-  private List<String> nUnderscores(int n){ return Stream.generate(()->"_").limit(n).toList(); }
+  private List<String> nUnderscores(int n){ return Stream.generate(() -> "_").limit(n).toList(); }
 
   private static final Optional<core.E> syntheticBody= Optional.of(new core.E.X("this",Src.synthetic));
   core.M mSynthetic(inference.M m){

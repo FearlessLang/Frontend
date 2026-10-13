@@ -61,7 +61,7 @@ public abstract class FearlessTestBase{
     }
   }
   protected static FileFull parseFull(String input){
-    return printError(()->Parse.from(SourceOracle.defaultDbgFearPath(0), input), oracleRaw(List.of(input)));
+    return printError(() -> Parse.from(SourceOracle.defaultDbgFearPath(0), input), oracleRaw(List.of(input)));
   }
   protected static void parseOkNormalized(String expectedNoWs, String input){
     var res= Parse.from(Pos.unknown.fileName(), input);
@@ -70,7 +70,7 @@ public abstract class FearlessTestBase{
   protected static void parseFail(String expectedErr, String input){
     var o= oracleRaw(List.of(input));
     var fe= assertThrows(FearlessException.class,
-      ()->Parse.from(SourceOracle.defaultDbgFearPath(0), input));
+      () -> Parse.from(SourceOracle.defaultDbgFearPath(0), input));
     strCmp(expectedErr, fe.render(o));
   }
   protected static Methods parsePackage(String pkgName,SourceOracle o, OtherPackages other, boolean infer){
@@ -98,13 +98,13 @@ public abstract class FearlessTestBase{
   }
   protected static void inferenceOk(String expected, List<String> input, boolean infer){
     var o= oraclePkg(input);
-    var res= printError(()->parsePackage("p",o, infer), o);
+    var res= printError(() -> parsePackage("p",o, infer), o);
     var got= Join.of(res.p().log().logs().stream().sorted(), "", "\n", "", "");
     strCmp(expected, got);
   }
   protected static void inferenceFail(String expected, List<String> input, boolean infer){
     var o= oraclePkg(input);
-    var fe= assertThrows(FearlessException.class, ()->parsePackage("p",o, infer));
+    var fe= assertThrows(FearlessException.class, () -> parsePackage("p",o, infer));
     strCmp(expected, fe.render(o));
   }
   protected static void inferenceFail(String expected, List<String> input){
@@ -112,14 +112,14 @@ public abstract class FearlessTestBase{
   }
   protected static void typeOk(List<String> input){
     var o= oraclePkg(input);
-    var other= printError(()->otherFrom(DbgBlock.all()),o);
-    printError(()->new FrontendLogicMain().of("p",Map.of(), o.allFiles(), other), o);
+    var other= printError(() -> otherFrom(DbgBlock.all()),o);
+    printError(() -> new FrontendLogicMain().of("p",Map.of(), o.allFiles(), other), o);
   }
   protected static void typeFailRaw(String expected, List<String> input){
     var o= oraclePkg(input);
     var other= otherFrom(DbgBlock.all());
     var fe= assertThrows(FearlessException.class,
-      ()->new FrontendLogicMain().of("p",Map.of(), o.allFiles(), other));
+      () -> new FrontendLogicMain().of("p",Map.of(), o.allFiles(), other));
     strCmp(expected, fe.render(o));
   }
   protected static void typeFail(String expected, List<String> input){
@@ -136,8 +136,8 @@ public abstract class FearlessTestBase{
     var b= SourceOracle.debugBuilder();
     try{
       var files= Files.walk(root)
-        .filter(p->Files.isRegularFile(p) && p.toString().endsWith(".fear"))
-        .sorted(Comparator.comparing(p->root.relativize(p).toString()))
+        .filter(p -> Files.isRegularFile(p) && p.toString().endsWith(".fear"))
+        .sorted(Comparator.comparing(p -> root.relativize(p).toString()))
         .toList();
       if (files.isEmpty()){ throw Bug.of("No .fear files under: "+root); }
       for (var p : files){
@@ -157,6 +157,6 @@ public abstract class FearlessTestBase{
     }
   }
   protected static void okOrPrint(SourceOracle o, Runnable run){
-    okOrPrint(o, ()->{ run.run(); return null; });
+    okOrPrint(o, () -> { run.run(); return null; });
   }
 }

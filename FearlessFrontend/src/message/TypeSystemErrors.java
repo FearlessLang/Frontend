@@ -33,18 +33,18 @@ import core.*;
 import core.E.*;
 
 public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<String,String> map, LinkedHashSet<String> printed){
-  public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t->new CompactPrinter(pkg.name(),map,printed::add,t),this::notes,new StringBuilder()); }
+  public Err err(){ return new Err(this::publicHead,this::preferredForFresh,t -> new CompactPrinter(pkg.name(),map,printed::add,t),this::notes,new StringBuilder()); }
   private List<String> notes(){ return printed.stream().flatMap(this::spellingNotes).distinct().toList(); }
   private Stream<String> spellingNotes(String n){
     var dot= TName.pkgDot(n);
     var pkgN= n.substring(0,dot);
-    var aliases= pkg.uses().stream().map(FileFull.Use::out).filter(x->n.equals(pkg.map().get(x)));
+    var aliases= pkg.uses().stream().map(FileFull.Use::out).filter(x -> n.equals(pkg.map().get(x)));
     var mapped= pkg.map().entrySet().stream()
-      .filter(e->e.getValue().equals(pkgN) && !e.getKey().equals(pkgN))
-      .map(e->e.getKey()+n.substring(dot)).sorted();
+      .filter(e -> e.getValue().equals(pkgN) && !e.getKey().equals(pkgN))
+      .map(e -> e.getKey()+n.substring(dot)).sorted();
     var ws= Stream.concat(aliases,mapped).toList();
-    if (ws.stream().allMatch(w->w.equals(map.get(n)))){ return Stream.of(); }
-    return ws.stream().flatMap(w->WellFormednessErrors.resolution(pkg,w).stream());
+    if (ws.stream().allMatch(w -> w.equals(map.get(n)))){ return Stream.of(); }
+    return ws.stream().flatMap(w -> WellFormednessErrors.resolution(pkg,w).stream());
   }
   private TName preferredForFresh(TName n){
     var res= decs.apply(n);
@@ -56,8 +56,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var d= decs.apply(c.name());
     if (!d.infName()){ return c; }
     return d.cs().stream()
-      .map(sc->sc.withTs(TypeRename.ofT(sc.ts(), B.xs(d.bs()), c.ts())))
-      .filter(scC->!decs.apply(scC.name()).infName())
+      .map(sc -> sc.withTs(TypeRename.ofT(sc.ts(), B.xs(d.bs()), c.ts())))
+      .filter(scC -> !decs.apply(scC.name()).infName())
       .findFirst().orElse(c);
   }
   public FearlessException baseIdBadBody(Literal l, M m){
@@ -102,7 +102,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr, String gotStr){
     var d= decs.apply(t.name());
-    var m= OneOr.of("Malformed methods",d.ms().stream().filter(mi->mi.sig().m().equals(c.name()) && mi.sig().rc() == c.rc()));
+    var m= OneOr.of("Malformed methods",d.ms().stream().filter(mi -> mi.sig().m().equals(c.name()) && mi.sig().rc() == c.rc()));
     var param= m.sig().bs().get(index);
     var decName= err().methodSig(c.rc().toStrSpace(),d, c.name()); // p.A.m(...)
     var bad= c.targs().get(index);
@@ -190,14 +190,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   }
   public FearlessException literalHeadNotInferred(Literal at, T.C c){
     var cp= err().cp();
-    var unknown= IntStream.range(0,c.ts().size()).filter(i->TypeSystem.mentionsInferUnknown(c.ts().get(i))).boxed().toList();
-    var head= cp.t.ofFull(c.name())+Join.of(c.ts().stream().map(t->t.equals(TypeRename.inferUnknown) ? "?" : cp.msgT(t)),"[",",","]","");
+    var unknown= IntStream.range(0,c.ts().size()).filter(i -> TypeSystem.mentionsInferUnknown(c.ts().get(i))).boxed().toList();
+    var head= cp.t.ofFull(c.name())+Join.of(c.ts().stream().map(t -> t.equals(TypeRename.inferUnknown) ? "?" : cp.msgT(t)),"[",",","]","");
     var xs= decs.apply(c.name()).bs();
     var s= unknown.size() == 1 ? "" : "s";
     return addExpFrame(at, err()
       .line("Type inference concluded that this object literal implements "+disp(head)+",")
-      .line("but it could not infer type argument"+s+" "+Join.of(unknown.stream().map(i->i+1),""," and ","","")
-        +" for type parameter"+s+" "+Join.of(unknown.stream().map(i->disp(xs.get(i).x())),""," and ","","")
+      .line("but it could not infer type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1),""," and ","","")
+        +" for type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i).x())),""," and ","","")
         +" of "+err().tNameADisp(c.name())+".")
       .ex(at));
   }
@@ -346,17 +346,17 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var name= c.name().s();
     var candidates= d.ms().stream().map(M::sig).toList();
     var sameName= candidates.stream()
-      .filter(s->s.m().s().equals(name)).toList();
+      .filter(s -> s.m().s().equals(name)).toList();
     if (sameName.isEmpty()){
       addEnclosingLiteralHintIfReceiverIsThis(e,scope,c,name,subj);
       if (candidates.isEmpty()){ return withCallSpans(e.line(up(subj)+" does not have any methods.").ex(c), c); }
-      var names= candidates.stream().map(s->s.m().s()).distinct().sorted().toList();
-      NameSuggester.suggest(name, names,(_,cs,best)->{ bestNameMsg(e,on,candidates,cs,best); return null; } );
+      var names= candidates.stream().map(s -> s.m().s()).distinct().sorted().toList();
+      NameSuggester.suggest(name, names,(_,cs,best) -> { bestNameMsg(e,on,candidates,cs,best); return null; } );
       return withCallSpans(e.ex(c), c);
     }
-    var sameArity= sameName.stream().filter(s->s.m().arity() == c.es().size()).toList();
+    var sameArity= sameName.stream().filter(s -> s.m().arity() == c.es().size()).toList();
     if (sameArity.isEmpty()){
-      var avail= Join.of(sameName.stream().map(s->Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
+      var avail= Join.of(sameName.stream().map(s -> Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
       return withCallSpans(err()
         .pCallCantBeSatisfied(c)
         .line("There is a method "+disp(c.name().s())+" on "+on+",\nbut with different number of arguments.")
@@ -381,7 +381,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     if (!receiverIsThis){ return; }
     for (var s= scope; !s.isTop(); s = s.outer()){
       if (!(s instanceof TypeScope.Method(var l, _, _))){ continue; }
-      var has= l.ms().stream().anyMatch(m->m.sig().m().s().equals(name));
+      var has= l.ms().stream().anyMatch(m -> m.sig().m().s().equals(name));
       if (!has){ continue; }
       var sig= err().methodSig(c.name());
       var lit= l.infName() ? err().bestNameNoRc(l) : "of type "+err().tNameADisp(l.name());
@@ -406,12 +406,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     }
   }
   void bestNameMsg(Err e, String onStr, List<Sig> candidates, List<String> cs, Optional<String> best){
-    best.ifPresent(b->e.line("Did you mean "+disp(b)+" ?"));
+    best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
     e.blank().line("Available methods on "+onStr+":");
     for (var n : cs){
       candidates.stream()
-        .filter(s->s.m().s().equals(n))
-        .forEach(s->e.bullet(e.cp().sig(s)));
+        .filter(s -> s.m().s().equals(n))
+        .forEach(s -> e.bullet(e.cp().sig(s)));
     }
   }
   ///A method matching c by name / arity / RC exists, but c supplies the wrong number of type arguments.
@@ -419,7 +419,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   ///Raised when checking method calls.
   public FearlessException methodTArgsArityError(Literal d, Call c, List<B> bs){
     var expected= bs.size();
-    var args= Join.of(bs.stream().map(b->disp(b.x())), ": ", " and ","","");
+    var args= Join.of(bs.stream().map(b -> disp(b.x())), ": ", " and ","","");
     var got= c.targs().size(); assert got != expected;
     var expS= expected == 0
       ? "no type arguments"
@@ -464,8 +464,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var reqCanon= reqCanon(reqs);
     if (isWrongUnderlyingType(ts,bs,reqCanon,res)){ return wrongUnderlyingTypeErr(ts,d,c,argi,reqs,res); }
     var gotHdr= headerBest(res);
-    var any= reqs.stream().map(TRequirement::t).map(t->err().typeRepr(false,t)).distinct().toList();
-    var r= Streams.zip(res, reqs).filter((ri,q)->rcOnlyMismatch(ri.best, q.t())).map((ri,_)->ri).findFirst().orElse(res.getFirst());
+    var any= reqs.stream().map(TRequirement::t).map(t -> err().typeRepr(false,t)).distinct().toList();
+    var r= Streams.zip(res, reqs).filter((ri,q) -> rcOnlyMismatch(ri.best, q.t())).map((ri,_) -> ri).findFirst().orElse(res.getFirst());
     var e= err()
       .pCallCantBeSatisfied(d,c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true,gotHdr)+".")
@@ -475,7 +475,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       .line("Type required by each promotion:");
     reqs.stream()
       .collect(Collectors.groupingBy(TRequirement::t,LinkedHashMap::new,Collectors.mapping(TRequirement::reqName,Collectors.toList())))
-      .forEach((t,names)->e.bullet(err().typeRepr(false,t)+"  ("+Join.of(names.stream().distinct(),"",", ","")+")"));
+      .forEach((t,names) -> e.bullet(err().typeRepr(false,t)+"  ("+Join.of(names.stream().distinct(),"",", ","")+")"));
     addNoPrecedenceHintIfOperator(e,c);
     var footer= r.footerE.get();
     return withCallSpans(e.exInferMsg(footer,err().typeRepr(false,reqs.getFirst().t())),c);
@@ -502,16 +502,16 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   }
   private static T reqCanon(List<TRequirement> reqs){
     var c0= canon(reqs.getFirst().t());
-    assert reqs.stream().allMatch(r->canon(r.t()).equals(c0));
+    assert reqs.stream().allMatch(r -> canon(r.t()).equals(c0));
     return c0;
   }
   private static boolean isWrongUnderlyingType(TypeSystem ts, List<B> bs, T reqCanon, List<Reason> res){
-    return res.stream().map(r->canon(r.best)).noneMatch(r->ts.isSub(bs, r, reqCanon));
+    return res.stream().map(r -> canon(r.best)).noneMatch(r -> ts.isSub(bs, r, reqCanon));
   }
   private static T canon(T t){ return t.withRC(RC.imm); }
 
   private static T headerBest(List<Reason> res){
-    return res.stream().map(r->r.best)
+    return res.stream().map(r -> r.best)
       .min(Comparator.comparingInt(TypeSystemErrors::headerKey))
       .get();
   }
@@ -538,23 +538,23 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     for (int argi : Range.of(0,args)){
       var ok= mat.okByArg().get(argi);
       assert !ok.isEmpty();
-      var promos= ok.stream().map(i->mat.candidate(i).promotion()).distinct().sorted().toList();
+      var promos= ok.stream().map(i -> mat.candidate(i).promotion()).distinct().sorted().toList();
       var got= err().typeRepr(true,headerBest(mat.resByArg().get(argi)));
       e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos,"",", ","")+".");
     }
     e.blank().line("Promotion failures:");
     var byArg= IntStream.range(0,args)
-      .mapToObj(_->new LinkedHashMap<String,ArrayList<String>>()).toList();
+      .mapToObj(_ -> new LinkedHashMap<String,ArrayList<String>>()).toList();
     var promosN= mat.resByArg().getFirst().size();
     for (int pi : Range.of(0,promosN)){
-      var argi= IntStream.range(0, args).filter(a->!mat.okByArg().get(a).contains(pi)).findFirst().getAsInt();
+      var argi= IntStream.range(0, args).filter(a -> !mat.okByArg().get(a).contains(pi)).findFirst().getAsInt();
       var r= mat.resByArg().get(argi).get(pi);
       assert !r.isEmpty();
-      byArg.get(argi).computeIfAbsent(up(r.info),_->new ArrayList<>())
+      byArg.get(argi).computeIfAbsent(up(r.info),_ -> new ArrayList<>())
         .add(mat.candidate(pi).promotion());
     }
     for (int argi : Range.of(0,args)){
-      byArg.get(argi).forEach((info,names)->e.bullet("Argument "+(argi+1)+Join.of(names," fails:    ",", ","\n")+info));
+      byArg.get(argi).forEach((info,names) -> e.bullet("Argument "+(argi+1)+Join.of(names," fails:    ",", ","\n")+info));
     }
     return withCallSpans(e.ex(c), c);
   }

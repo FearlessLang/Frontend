@@ -13,7 +13,7 @@ public record Declaration(TName name, Optional<List<B>> bs, List<T.C> cs, E.Lite
   public Declaration{
     assert nonNull(name,l);
     assert bs.isPresent() || name.arity() == 0;
-    assert validOpt(bs,b->{
+    assert validOpt(bs,b -> {
       unmodifiableDistinct(b, "Declaration.bs");
       eq(name.arity(),b.size(),"Declaration.bs");
     });
