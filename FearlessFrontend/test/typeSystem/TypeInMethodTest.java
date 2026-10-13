@@ -12,23 +12,23 @@ import core.FearlessException;
 import main.FrontendLogicMain;
 import testUtils.DbgBlock;
 
-public class TypeInMethodTest extends testUtils.FearlessTestBase{
+public final class TypeInMethodTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
   static void fail(String expected, List<String> input){ typeFail(expected, input); }
 
   static void okTwoPkgs(String aSrc, String bSrc){
     var oB= oraclePkg(List.of(bSrc));
-    okOrPrint(oB, ()->compileB(aSrc, oB));
+    okOrPrint(oB, () -> compileB(aSrc, oB));
   }
   static void failTwoPkgs(String expected, String aSrc, String bSrc){
     var oB= oraclePkg(List.of(bSrc));
-    var fe= assertThrows(FearlessException.class, ()->compileB(aSrc, oB));
+    var fe= assertThrows(FearlessException.class, () -> compileB(aSrc, oB));
     strCmp("In file: [###].fear\n\n"+expected+"Error 8 TypeError", fe.render(oB));
   }
   private static List<core.E.Literal> compileB(String aSrc, tools.SourceOracle oB){
     var base= otherFrom(DbgBlock.all());
     var oA= oraclePkg(List.of(aSrc));
-    var aLits= okOrPrint(oA, ()->compileAll("a", oA, base));
+    var aLits= okOrPrint(oA, () -> compileAll("a", oA, base));
     var other= base.mergeWith(AllLs.of(aLits), -1);
     return new FrontendLogicMain().of("b", Map.of(), oB.allFiles(), other);
   }
@@ -73,17 +73,17 @@ B:{.m:A->A}
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
 """)); }
 
-  @Test void typeInMethodCapturingThisByName(){ fail(byName,List.of("""
+  @Test void typeInMethodCapturingThisByName(){ fail(byName, List.of("""
 A0:{.m:A->A:{.foo:A0->this}}
 B:{.m:A->A}
 """)); }
 
-  @Test void typeInMethodCapturingParameterByName(){ fail(byName,List.of("""
+  @Test void typeInMethodCapturingParameterByName(){ fail(byName, List.of("""
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
 B:{.m:A->A}
 """)); }
 
-  @Test void typeInMethodCapturingNothingByName(){ fail(byName,List.of("""
+  @Test void typeInMethodCapturingNothingByName(){ fail(byName, List.of("""
 A0:{.m:A->A:{}}
 B:{.m:A->A}
 """)); }
@@ -100,7 +100,7 @@ Hint: if it captures nothing, declare it implementing "CF".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A
-""",List.of("""
+""", List.of("""
 use base.CaptureFree as CF;
 A0:{.m:A->A:{}}
 B:{.m:A->A}
@@ -118,7 +118,7 @@ Hint: if it captures nothing, declare it implementing "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 B:A{}
-""",List.of("""
+""", List.of("""
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
 B:A{}
 """)); }
@@ -162,37 +162,37 @@ B:{.m(a:A):A->{ .get(x) -> x }.get(a)}
 _P:{ .foo: base.Void }
 Q:_P{ .foo -> base.Void }
 Take:{ #(p:_P): base.Void -> base.Void }
-""","""
+""", """
 B:{.m: base.Void -> a.Take#({ .q: a.Q -> a.Q }.q)}
 """); }
 
   @Test void anonReceiverTypeInMethodHeadFromOtherPkg(){ okTwoPkgs("""
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
-""","""
+""", """
 B:{.m(a:a.A):a.A->{ .get: a.A -> a }.get}
 """); }
 
   @Test void topLevelTypeByNameFromOtherPkg(){ okTwoPkgs("""
 A:{}
-""","""
+""", """
 B:{.m:a.A->a.A}
 """); }
 
   @Test void captureFreeTypeInMethodByNameFromOtherPkg(){ okTwoPkgs("""
 A0:{.m:A->A:base.CaptureFree{}}
-""","""
+""", """
 B:{.m:a.A->a.A}
 """); }
 
-  @Test void typeInMethodCapturingThisByNameFromOtherPkg(){ failTwoPkgs(byNameOtherPkg,"""
+  @Test void typeInMethodCapturingThisByNameFromOtherPkg(){ failTwoPkgs(byNameOtherPkg, """
 A0:{.m:A->A:{.foo:A0->this}}
-""","""
+""", """
 B:{.m:a.A->a.A}
 """); }
 
-  @Test void typeInMethodCapturingParameterByNameFromOtherPkg(){ failTwoPkgs(byNameOtherPkg,"""
+  @Test void typeInMethodCapturingParameterByNameFromOtherPkg(){ failTwoPkgs(byNameOtherPkg, """
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
-""","""
+""", """
 B:{.m:a.A->a.A}
 """); }
 
@@ -208,9 +208,9 @@ Hint: if it captures nothing, declare it implementing "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 B:-.A{}
-""","""
+""", """
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
-""","""
+""", """
 B:a.A{}
 """); }
 }

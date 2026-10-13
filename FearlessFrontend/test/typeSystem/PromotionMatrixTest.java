@@ -13,30 +13,30 @@ import testUtils.DbgBlock;
 import tools.SourceOracle;
 import utils.Join;
 
-public class PromotionMatrixTest extends testUtils.FearlessTestBase{
-  static final List<String> rets= List.of("R","imm R","read R","mut R","readH R","mutH R","iso R","read/imm R");
-  static final List<String> gRcs= List.of("imm","read","mut","iso","readH","mutH");
-  static final List<String> recvs= List.of("imm","read","mut");
-  static final List<String> bounds= List.of("imm","mut","read","imm,mut","*","**");
+public final class PromotionMatrixTest extends testUtils.FearlessTestBase{
+  static final List<String> rets= List.of("R", "imm R", "read R", "mut R", "readH R", "mutH R", "iso R", "read/imm R");
+  static final List<String> gRcs= List.of("imm", "read", "mut", "iso", "readH", "mutH");
+  static final List<String> recvs= List.of("imm", "read", "mut");
+  static final List<String> bounds= List.of("imm", "mut", "read", "imm,mut", "*", "**");
   static final OtherPackages base= OtherPackages.start(Map.of(), DbgBlock.all(), -1);
   static String src(String bound, String recv, String gRc, String ret){
     return "G[R:"+bound+"]: { "+recv+" .get: R }\n"
       +"C: { .m[R:"+bound+"](g: "+gRc+" G[R]): "+ret+" -> g.get; }\n";
   }
   static String cell(String bound, String recv, String gRc, String ret){
-    var o= SourceOracle.debugBuilder().put(0,src(bound,recv,gRc,ret)).build();
-    try{ new FrontendLogicMain().of("p",Map.of(), o.allFiles(), base); return "o"; }
-    catch(FearlessException _){ return "e"; }
+    var o= SourceOracle.debugBuilder().put(0, src(bound, recv, gRc, ret)).build();
+    try{ new FrontendLogicMain().of("p", Map.of(), o.allFiles(), base); return "o"; }
+    catch (FearlessException _){ return "e"; }
   }
   static String row(String bound, String recv, String gRc){
-    return Join.of(rets.stream().map(ret->cell(bound,recv,gRc,ret)),String.format("  %-5s ",gRc),"","\n");
+    return Join.of(rets.stream().map(ret -> cell(bound, recv, gRc, ret)), String.format("  %-5s ", gRc), "", "\n");
   }
   static String block(String bound, String recv){
-    return "R:"+bound+" .get is "+recv+"\n"+Join.of(gRcs.stream().map(g->row(bound,recv,g)),"","","");
+    return "R:"+bound+" .get is "+recv+"\n"+Join.of(gRcs.stream().map(g -> row(bound, recv, g)), "", "", "");
   }
   static String matrix(){
-    return Join.of(rets,"cols: "," | ","\n\n")
-      +bounds.stream().flatMap(b->recvs.stream().map(recv->block(b,recv))).collect(Collectors.joining("\n"));
+    return Join.of(rets, "cols: ", " | ", "\n\n")
+      +bounds.stream().flatMap(b -> recvs.stream().map(recv -> block(b, recv))).collect(Collectors.joining("\n"));
   }
 @Test void promotionMatrix(){ strCmp("""
 cols: R | imm R | read R | mut R | readH R | mutH R | iso R | read/imm R
@@ -184,5 +184,5 @@ R:** .get is mut
   iso   oooeoeeo
   readH eeeeeeee
   mutH  eeeeoeee
-""",matrix()); }
+""", matrix()); }
 }

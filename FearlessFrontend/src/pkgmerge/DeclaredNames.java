@@ -19,12 +19,12 @@ public record DeclaredNames(Set<TName> decNames, Map<TName,Set<T.X>> allXs, Map<
     var allDecs= Collections.unmodifiableSet(v.decNames);
     var allXs= Collections.unmodifiableMap(v.Xs);
     var decStrs= allDecs.stream().map(TName::s).toList();
-    var disj= Collections.disjoint(decStrs,uses);
-    if (!disj){ throw err.usedDeclaredNameClash(allDecs,uses); }
+    var disj= Collections.disjoint(decStrs, uses);
+    if (!disj){ throw err.usedDeclaredNameClash(allDecs, uses); }
     var allNames= Stream.concat(decStrs.stream(), uses.stream()).toList();
     var mergeAllXs= allXs.values().stream().flatMap(Set::stream).map(T.X::name).toList();
-    var disjXs= Collections.disjoint(allNames,mergeAllXs);
-    if (!disjXs){ throw err.genericTypeVariableShadowTName(allXs,allNames,uses); }
-    return new DeclaredNames(allDecs,allXs,Collections.unmodifiableMap(v.xs));
+    var disjXs= Collections.disjoint(allNames, mergeAllXs);
+    if (!disjXs){ throw err.genericTypeVariableShadowTName(allXs, allNames, uses); }
+    return new DeclaredNames(allDecs, allXs, Collections.unmodifiableMap(v.xs));
   }
 }

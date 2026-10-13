@@ -14,9 +14,9 @@ public record Sig(
   List<Parameter> parameters, Optional<T> t
   ){
   public Sig{
-    assert nonNull(rc,m,bs,t);
-    assert unmodifiableDistinct(parameters,"Sig.parameters");
+    assert nonNull(rc, m, bs, t);
+    assert unmodifiableDistinct(parameters, "Sig.parameters");
     //NO: can be +1 with implicit assert validOpt(m,_m->eq(_m.arity(),parameters.size(),"Method name arity"));
   }
-  public Sig withImplicit(){ return new Sig(rc,m.map(mi->mi.withArity(parameters.size()+1)),bs,hasParenthesis,parameters, t); }
+  public Sig withImplicit(){ return new Sig(rc, m.map(mi -> mi.withArity(parameters.size()+1)), bs, hasParenthesis, parameters, t); }
 }

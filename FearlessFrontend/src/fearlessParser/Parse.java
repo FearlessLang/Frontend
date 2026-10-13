@@ -15,43 +15,42 @@ import metaParser.TokenTreeSpec;
 import tools.Fs;
 
 public final class Parse{
-  private Parse(){}
-  public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t->!t.synthetic()).toList();
+  public static final List<TokenKind> kinds= Stream.of(TokenKind.values()).filter(t -> !t.synthetic()).toList();
   private static final TokenTreeSpec<Token,TokenKind> map= new TokenTreeSpec<Token,TokenKind>()
-    .addOpenClose(_SOF,_EOF,_All)
-    .addOpenClose(ORound,CRound,_RoundGroup)
-    .addOpenClose(OSquareArg,CSquare,_SquareGroup)
-    .addOpenClose(OCurly,CCurly,_CurlyGroup)
-    .addOpenClose(OCurly,CCurlyId,_CurlyGroup)
+    .addOpenClose(_SOF, _EOF, _All)
+    .addOpenClose(ORound, CRound, _RoundGroup)
+    .addOpenClose(OSquareArg, CSquare, _SquareGroup)
+    .addOpenClose(OCurly, CCurly, _CurlyGroup)
+    .addOpenClose(OCurly, CCurlyId, _CurlyGroup)
 
-    .addBarriers(ORound,Set.of(SemiColon,Arrow,SQuote))
-    .addBarriers(OSquareArg,Set.of(SemiColon,Arrow,SQuote,LowercaseId,ORound,OCurly,DotName))
+    .addBarriers(ORound, Set.of(SemiColon, Arrow, SQuote))
+    .addBarriers(OSquareArg, Set.of(SemiColon, Arrow, SQuote, LowercaseId, ORound, OCurly, DotName))
 
-    .addCloserEater(CRound,t->splitOn(t,")",true))
-    .addCloserEater(CSquare,t->splitOn(t,"]",true))
-    .addCloserEater(CCurly,t->splitOn(t,"}",true))
-    .addCloserEater(CCurlyId,t->splitOn(t,"}",true))
+    .addCloserEater(CRound, t -> splitOn(t, ")", true))
+    .addCloserEater(CSquare, t -> splitOn(t, "]", true))
+    .addCloserEater(CCurly, t -> splitOn(t, "}", true))
+    .addCloserEater(CCurlyId, t -> splitOn(t, "}", true))
 
-    .addOpenerEater(ORound,t->splitOn(t,"(",false))
-    .addOpenerEater(OSquareArg,t->splitOn(t,"[",false))
-    .addOpenerEater(OCurly,t->splitOn(t,"{",false))
+    .addOpenerEater(ORound, t -> splitOn(t, "(", false))
+    .addOpenerEater(OSquareArg, t -> splitOn(t, "[", false))
+    .addOpenerEater(OCurly, t -> splitOn(t, "{", false))
     ;
-  private static Optional<Token> splitOn(Token t, String s,boolean first){
+  private static Optional<Token> splitOn(Token t, String s, boolean first){
     if (!t.is(BlockComment, LineComment, UStr, SStr)){ return Optional.empty(); }
     var index= t.content().indexOf(s);
     if (index == -1){ return Optional.empty(); }
     return Optional.of(first ? t.tokenFirstHalf(index+1) : t.tokenSecondHalf(index));
   }
-  public static FileFull from(URI fileName,String input){
+  public static FileFull from(URI fileName, String input){
     var t= new Tokenizer()
-      .input(fileName,input)
-      .tokenKinds(kinds,_SOF,_EOF)
+      .input(fileName, input)
+      .tokenKinds(kinds, _SOF, _EOF)
       .setErrFactory(new FearlessErrFactory())
       .whiteList(Fs.allowed)
       .tokenize()
       .postTokenize(BadTokens.badTokensMap())
       .buildTokenTree(map);
-    var p= new Parser(t.span(),new Names(List.of(),List.of(),List.of(),""),t.tokenTree(),new FearlessErrFactory());
-    return p.parseAll("full file",Parser::parseFileFull);
+    var p= new Parser(t.span(), new Names(List.of(), List.of(), List.of(), ""), t.tokenTree(), new FearlessErrFactory());
+    return p.parseAll("full file", Parser::parseFileFull);
   }
 }

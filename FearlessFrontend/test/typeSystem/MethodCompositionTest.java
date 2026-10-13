@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-public class MethodCompositionTest extends testUtils.FearlessTestBase{
+public final class MethodCompositionTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
   static void fail(String expected, List<String> input){ typeFail(expected, input); }
   static void failWf(String expected, List<String> input){
@@ -50,7 +50,7 @@ It is instead a supertype: you are strengthening the parameter instead of weaken
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 B:A{.foo(B):Int}
-""",List.of("""
+""", List.of("""
 Str:{} Int:{}
 A:{ .foo(a:A):Str }
 B:A{ .foo(b:B):Int }
@@ -67,7 +67,7 @@ It is instead a supertype: you are strengthening the parameter instead of weaken
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:B,C{.foo(A):A}
-""",List.of("""
+""", List.of("""
 A:B,C{ .foo(a:A):A }
 B:{ .foo(b:B):B }
 C:{ .foo(c:C):C }
@@ -93,7 +93,7 @@ The two types are unrelated.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:B{.m:Str}
-""",List.of("""
+""", List.of("""
 Int:{} Str:{}
 A:B{ .m: Str }
 B:{ .m: Int }
@@ -111,7 +111,7 @@ While inspecting type declaration "A"
 Return type disagreement for method "imm .m" with 0 parameters.
 Different options are present in the implemented types: "B", "C".
 Type declaration "A" must declare a method ".m" explicitly choosing the desired option.
-""",List.of("""
+""", List.of("""
 A:B,C{}
 B:{ .m: B }
 C:{ .m: C }
@@ -124,7 +124,7 @@ While inspecting type declaration "AA"
 Return type disagreement for method "imm .m" with 0 parameters.
 Different options are present in the implemented types: "B", "C".
 Type declaration "AA" must declare a method ".m" explicitly choosing the desired option.
-""",List.of("""
+""", List.of("""
 A:AA{ .m: Int }
 Int:{}
 AA:B,C{}
@@ -155,7 +155,7 @@ It is instead a subtype: you are weakening the result instead of strengthening i
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:B,C,D{.m:D}
-""",List.of("""
+""", List.of("""
 A:B,C,D{ .m: D }
 B:D{ .m: B }
 C:D{ .m: B }
@@ -173,7 +173,7 @@ The two types are unrelated.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A[X:*]:A[X,X]{.m(A):A}
-""",List.of("""
+""", List.of("""
 A:A[A],A[A,A]{ .m(a:A):A }
 A[X:*]:A[X,X]{ .m(b:A):A }
 A[X:*,Y:*]:{ .m(c:A):A[X,Y] }
@@ -205,7 +205,7 @@ Ambiguous implementation for method ".m" with 1 parameters.
 Different options are present in the implemented types:
 Candidates: "B", "C".
 Type declaration "A" must declare a method ".m" explicitly implementing the desired behaviour.
-""",List.of("""
+""", List.of("""
 Foo:{}
 A:B,C{}
 B:{ .m(b:Foo): Foo -> b }
@@ -227,7 +227,7 @@ Ambiguous implementation for method ".m" with 0 parameters.
 Different options are present in the implemented types:
 Candidates: "A", "B".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
-""",List.of("""
+""", List.of("""
 R:{}
 A:{ .m: R -> R }
 B:{ .m: R -> R }
@@ -262,7 +262,7 @@ While inspecting type declaration "A"
 Return type disagreement for method "imm .kk" with 0 parameters.
 Different options are present in the implemented types: "A", "List[A]".
 Type declaration "A" must declare a method ".kk" explicitly choosing the desired option.
-""",List.of("""
+""", List.of("""
 A:B[A],C[List[A]]{}
 B[X:*]:K[X]{ .m: List[X] }
 C[Y:*]:K[Y]{ .m: Y }
@@ -296,7 +296,7 @@ C:{ .withTArg(a:A): Foo -> a.m[Foo]; .noTArg(a:A): Foo -> a.m }
 While inspecting a type name
 Type "X" is not declared in package "p" and is not made visible via "use".
 In scope: "A", "B", "Foo".
-""",List.of("""
+""", List.of("""
 Foo:{}
 A:B{ .m(x: X): Foo }
 B:{ .m[X:*](x: X): Foo }
@@ -311,7 +311,7 @@ The method ".m" declares 2 type parameter(s), but supertypes declare 1.
 Local declaration: "[X:imm,mut,read, Y:imm,mut,read]".
 From supertypes: "[-:imm,mut,read]".
 Change the local number of type parameters to 1, or adjust the supertypes.
-""",List.of("""
+""", List.of("""
 Foo:{}
 A:B{ .m[X:*,Y:*]: Foo }
 B:{ .m[X:*]: Foo }
@@ -327,7 +327,7 @@ Local: "X:imm".
 From supertypes: "-:imm,mut,read".
 The parameter name may differ; only the position matters.
 Change the local bounds to match the supertypes, or adjust the supertypes.
-""",List.of("""
+""", List.of("""
 Foo:{}
 A:B{ .m[X:imm]: Foo }
 B:{ .m[X:*]: Foo }
@@ -353,7 +353,7 @@ The two types are unrelated.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:B{.m:Break[A]}
-""",List.of("""
+""", List.of("""
 A:B{ .m: Break[A] }
 B:{ .m: Break[B] }
 Break[X:*]:{}
@@ -370,7 +370,7 @@ The two types are unrelated.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:B{.m:Break[B]}
-""",List.of("""
+""", List.of("""
 A:B{ .m: Break[B] }
 B:{ .m: Break[A] }
 Break[X:*]:{}
@@ -387,7 +387,7 @@ The two types are unrelated.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:B{.m:Break[A]}
-""",List.of("""
+""", List.of("""
 A:B{ .m: Break[A] }
 B:{ .m: Break[B] }
 Break[X:*]:{ .b: X }
@@ -404,7 +404,7 @@ The two types are unrelated.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:B{.m:Break[B]}
-""",List.of("""
+""", List.of("""
 A:B{ .m: Break[B] }
 B:{ .m: Break[A] }
 Break[X:*]:{ .b: X }
@@ -421,7 +421,7 @@ The two types are unrelated.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:B{.m:Break[A]}
-""",List.of("""
+""", List.of("""
 A:B{ .m: Break[A] }
 B:{ .m: Break[B] }
 Break[X:*]:{ .b: Break[X] }
@@ -438,7 +438,7 @@ The two types are unrelated.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:B{.m:Break[B]}
-""",List.of("""
+""", List.of("""
 A:B{ .m: Break[B] }
 B:{ .m: Break[A] }
 Break[X:*]:{ .b: Break[X] }
@@ -475,7 +475,7 @@ While inspecting type declaration "D"
 Type disagreement about argument 0 for method "imm .m(_)" with 1 parameters.
 Different options are present in the implemented types: "base.Int", "base.Float".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
-""",List.of("""
+""", List.of("""
 A[X:*]:{ .m(x:X):X->x }
 B:A[base.Int]{}
 C:A[base.Float]{}
@@ -514,7 +514,7 @@ Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso C:B,D{.m:A}
-""",List.of("""
+""", List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
 D:A{}
@@ -538,7 +538,7 @@ Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso D:E,F{.m:R}
-""",List.of("""
+""", List.of("""
 R:{}
 A:{ .m: R -> R }
 B:A{}
@@ -595,7 +595,7 @@ Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso D:P,Q{.m:R}
-""",List.of("""
+""", List.of("""
 R:{}
 J:{ .m: R -> R }
 X:J{ .m: R; }
@@ -616,7 +616,7 @@ Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso D:A1,A2{.m:R}
-""",List.of("""
+""", List.of("""
 R:{}
 I1:{ .m: R -> R }
 I2:{ .m: R -> R }
@@ -671,7 +671,7 @@ Ambiguous implementation for method ".m" with 0 parameters.
 Different options are present in the implemented types:
 Candidates: "B", "C".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
-""",List.of("""
+""", List.of("""
 R:{}
 A:{ .m: R -> R }
 B:{ .m: R -> R }
@@ -688,7 +688,7 @@ Ambiguous implementation for method ".m" with 0 parameters.
 Different options are present in the implemented types:
 Candidates: "A", "B".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
-""",List.of("""
+""", List.of("""
 R:{}
 A:{ .m: R -> R }
 B:{ .m: R -> R }
@@ -722,7 +722,7 @@ Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso C:A,B{}
-""",List.of("""
+""", List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
 User:{ #:C->C:A,B{} }
@@ -739,7 +739,7 @@ Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso C:B{}
-""",List.of("""
+""", List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
 User:{ #:C->C:B{} }
@@ -792,7 +792,7 @@ An overriding method can refine the types of its parameters and result, but not 
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub:Sup{mut .h:iso P}
-""",List.of("""
+""", List.of("""
 P:{}
 Sup:{ mut .h: mut P }
 Sub:Sup{ mut .h: iso P }
@@ -809,7 +809,7 @@ An overriding method can refine the types of its parameters and result, but not 
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub:Sup{.g(read P):P}
-""",List.of("""
+""", List.of("""
 P:{}
 Sup:{ .g(x: mut P): P }
 Sub:Sup{ .g(x: read P): P }
@@ -826,7 +826,7 @@ An overriding method can refine the types of its parameters and result, but not 
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub:Sup{.g(readH P):P}
-""",List.of("""
+""", List.of("""
 P:{}
 Sup:{ .g(x: mutH P): P }
 Sub:Sup{ .g(x: readH P): P }
@@ -843,7 +843,7 @@ An overriding method can refine the types of its parameters and result, but not 
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub[X:*]:Sup[X]{.h(X):X}
-""",List.of("""
+""", List.of("""
 Sup[X:*]:{ .h(x: X): read/imm X }
 Sub[X:*]:Sup[X]{ .h(x: X): X }
 """));}
@@ -859,7 +859,7 @@ An overriding method can refine the types of its parameters and result, but not 
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Sup{mut .h:iso P->P}
-""",List.of("""
+""", List.of("""
 P:{}
 Sup:{ mut .h: mut P }
 User:{ #: mut Sup -> mut Sup{ mut .h: iso P -> P } }
@@ -889,7 +889,7 @@ An overriding method can refine the types of its parameters and result, but not 
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:Foo[Bar],Foo[mut Beer]{.get:Both->Both}
-""",List.of("""
+""", List.of("""
 Bar:{}
 Beer:{}
 Both:Bar,Beer{}
@@ -904,7 +904,7 @@ While inspecting type declaration "A"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "imm Bar", "mut Beer".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
-""",List.of("""
+""", List.of("""
 Bar:{}
 Beer:{}
 Foo[T:*]:{ .get: T }
@@ -922,7 +922,7 @@ An overriding method can refine the types of its parameters and result, but not 
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub[X:*]:Sup[X]{.h(X):X}
-""",List.of("""
+""", List.of("""
 Sup[X:*]:{ .h(x: X): imm X }
 Sub[X:*]:Sup[X]{ .h(x: X): X }
 """));}
@@ -934,7 +934,7 @@ While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "Y", "imm Y".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
-""",List.of("""
+""", List.of("""
 Foo[T:*]:{ .get: T }
 A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
 """));}
@@ -965,7 +965,7 @@ While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "Y", "Bar".
 They are different types and "Y" is a type parameter, so no method ".get" can implement all of them.
-""",List.of("""
+""", List.of("""
 Bar:{}
 Foo[T:*]:{ .get: T }
 A[Y:imm]:Foo[Y],Foo[Bar]{}
@@ -978,7 +978,7 @@ While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "Y", "imm Bar".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
-""",List.of("""
+""", List.of("""
 Bar:{}
 Foo[T:*]:{ .get: T }
 A[Y:imm,mut]:Foo[Y],Foo[Bar]{}
@@ -1013,7 +1013,7 @@ While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "Y", "read/imm Y".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
-""",List.of("""
+""", List.of("""
 Foo[X:imm,mut]:{ .get: X }
 Bar[X:imm,mut]:{ .get: read/imm X }
 A[Y:imm,mut]:Foo[Y],Bar[Y]{}
@@ -1032,7 +1032,7 @@ While inspecting type declaration "A"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "T", "read/imm T".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
-""",List.of("""
+""", List.of("""
 Foo:{ .get[T:mut]: T }
 Bar:{ .get[T:mut]: read/imm T }
 A:Foo,Bar{}

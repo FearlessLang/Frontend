@@ -16,7 +16,7 @@ import testUtils.DbgBlock;
 import tools.SourceOracle;
 import utils.Join;
 
-public class GeneratedTestsTest extends testUtils.FearlessTestBase{
+public final class GeneratedTestsTest extends testUtils.FearlessTestBase{
   static final String pkg= """
 A:{ .m: A -> this; .n: A -> A{ .m -> this } }
 _H:{ .h: _H -> this }
@@ -26,16 +26,16 @@ S:base.Sealed{ .s: S -> this }
   static List<Literal> compile(String tests){
     var o= oraclePkg(List.of(pkg));
     var t= tests(tests);
-    return new FrontendLogicMain().of("p", Map.of(), o.allFiles(), otherFrom(DbgBlock.all()), _->Optional.of(t.allFiles().getFirst()));
+    return new FrontendLogicMain().of("p", Map.of(), o.allFiles(), otherFrom(DbgBlock.all()), _ -> Optional.of(t.allFiles().getFirst()));
   }
-  static String names(List<Literal> core){ return Join.of(AllLs.of(core).keySet().stream().map(n->n.s()).sorted(), "", "\n", "\n", ""); }
+  static String names(List<Literal> core){ return Join.of(AllLs.of(core).keySet().stream().map(n -> n.s()).sorted(), "", "\n", "\n", ""); }
   static void ok(String expected, String tests){
     var o= oraclePkg(List.of(pkg)).withFallback(tests(tests));
-    strCmp(expected, names(okOrPrint(o, ()->compile(tests))));
+    strCmp(expected, names(okOrPrint(o, () -> compile(tests))));
   }
   static void fail(String expected, String tests){
     var o= oraclePkg(List.of(pkg)).withFallback(tests(tests));
-    var fe= assertThrows(FearlessException.class, ()->compile(tests));
+    var fe= assertThrows(FearlessException.class, () -> compile(tests));
     strCmp(expected, fe.render(o));
   }
   @Test void noTestsCompilesThePackageAlone(){
@@ -45,7 +45,7 @@ p.A
 p.S
 p._AA
 p._H
-""", names(new FrontendLogicMain().of("p", Map.of(), o.allFiles(), otherFrom(DbgBlock.all()), _->Optional.empty())));
+""", names(new FrontendLogicMain().of("p", Map.of(), o.allFiles(), otherFrom(DbgBlock.all()), _ -> Optional.empty())));
   }
   @Test void testsSeeEveryTypeOfThePackage(){ ok("""
 p.A

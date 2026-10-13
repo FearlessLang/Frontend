@@ -6,10 +6,10 @@ import core.E;
 import core.OtherPackages;
 import tools.SourceOracle;
 
-public class DbgBlock{
+public final class DbgBlock{
   static OtherPackages err(){ return FearlessTestBase.otherErr(); }
 
-  public static List<E.Literal> all(){ return FearlessTestBase.compileAll("base",dbgMiniBase(), err()); }
+  public static List<E.Literal> all(){ return FearlessTestBase.compileAll("base", dbgMiniBase(), err()); }
 
   public static SourceOracle dbgMiniBase(){
     return SourceOracle.debugBuilder()

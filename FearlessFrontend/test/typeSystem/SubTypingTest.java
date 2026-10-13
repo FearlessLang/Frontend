@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-public class SubTypingTest extends testUtils.FearlessTestBase{
+public final class SubTypingTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
   static void fail(String expected, List<String> input){ typeFail(expected, input); }
 
@@ -22,7 +22,7 @@ Parameter "x" has type "A" instead of a subtype of "B".
 
 See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
 Sub:{.m(x:A):B->x}
-""",List.of("""
+""", List.of("""
 A:{} B:{}
 Sub:{ .m(x: A): B -> x }
 """));}
@@ -40,7 +40,7 @@ Parameter "x" has type "B" instead of a subtype of "A".
 
 See inferred typing context below for how type "A" was introduced: (compression indicated by `-`)
 Sub:{.m(x:B):A->x}
-""",List.of("""
+""", List.of("""
 A:B{} B:{}
 Sub:{ .m(x: B): A -> x }
 """));}
@@ -58,7 +58,7 @@ Parameter "x" has type "read A" instead of a subtype of "imm A".
 
 See inferred typing context below for how type "A" was introduced: (compression indicated by `-`)
 Sub:{.m(x:read A):A->x}
-""",List.of("""
+""", List.of("""
 A:{}
 Sub:{ .m(x: read A): imm A -> x }
 """));}
@@ -72,7 +72,7 @@ Parameter "x" has type "mut A" instead of a subtype of "imm A".
 
 See inferred typing context below for how type "A" was introduced: (compression indicated by `-`)
 Sub:{.m(x:mut A):A->x}
-""",List.of("""
+""", List.of("""
 A:{}
 Sub:{ .m(x: mut A): imm A -> x }
 """));}
@@ -90,7 +90,7 @@ Parameter "x" has type "A" instead of a subtype of "C".
 
 See inferred typing context below for how type "C" was introduced: (compression indicated by `-`)
 Sub:{.m(x:A):C->x}
-""",List.of("""
+""", List.of("""
 A:{} B:A{} C:B{}
 Sub:{ .m(x: A): C -> x }
 """));}
@@ -108,7 +108,7 @@ Parameter "x" has type "A" instead of a subtype of "E".
 
 See inferred typing context below for how type "E" was introduced: (compression indicated by `-`)
 Sub:{.m(x:A):E->x}
-""",List.of("""
+""", List.of("""
 A:{} B:A{} C:B{} D:C{} E:D{}
 Sub:{ .m(x: A): E -> x }
 """));}
@@ -148,7 +148,7 @@ Parameter "x" has type "mutH A" instead of a subtype of "read A".
 
 See inferred typing context below for how type "read A" was introduced: (compression indicated by `-`)
 Sub:{.m(x:mutH A):read A->x}
-""",List.of("""
+""", List.of("""
 A:{}
 Sub:{ .m(x: mutH A): read A -> x }
 """));}
@@ -168,7 +168,7 @@ Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[mut Int]"
 
 See inferred typing context below for how type "List[mut Int]" was introduced: (compression indicated by `-`)
 Sub:{.m(x:Sor-ist[Int]):List[mut Int]->x}
-""",List.of("""
+""", List.of("""
 Int:{}
 List[T:*]:{ read .get: read/imm T }
 SortedList[T:*]:List[T]{}
@@ -184,7 +184,7 @@ Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[read Int]
 
 See inferred typing context below for how type "List[read Int]" was introduced: (compression indicated by `-`)
 Sub:{.m(x:Sor-ist[Int]):List[read Int]->x}
-""",List.of("""
+""", List.of("""
 Int:{}
 List[T:*]:{ read .get: read/imm T }
 SortedList[T:*]:List[T]{}
@@ -200,7 +200,7 @@ Parameter "x" has type "SortedList[read Int]" instead of a subtype of "List[Int]
 
 See inferred typing context below for how type "List[Int]" was introduced: (compression indicated by `-`)
 Sub:{.m(x:Sor-ist[read Int]):List[Int]->x}
-""",List.of("""
+""", List.of("""
 Int:{}
 List[T:*]:{ read .get: read/imm T }
 SortedList[T:*]:List[T]{}
@@ -222,7 +222,7 @@ Parameter "x" has type "SortedList[X]" instead of a subtype of "List[Int]".
 
 See inferred typing context below for how type "List[Int]" was introduced: (compression indicated by `-`)
 Sub:{.m[X:*](x:Sor-ist[X]):List[Int]->x}
-""",List.of("""
+""", List.of("""
 Int:{}
 List[T:*]:{ read .get: read/imm T }
 SortedList[T:*]:List[T]{}
@@ -238,7 +238,7 @@ Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[X]".
 
 See inferred typing context below for how type "List[X]" was introduced: (compression indicated by `-`)
 Sub:{.m[X:*](x:Sor-ist[Int]):List[X]->x}
-""",List.of("""
+""", List.of("""
 Int:{}
 List[T:*]:{ read .get: read/imm T }
 SortedList[T:*]:List[T]{}
@@ -254,7 +254,7 @@ Parameter "x" has type "SortedList[ColouredPoint]" instead of a subtype of "Sort
 
 See inferred typing context below for how type "SortedList[Point]" was introduced: (compression indicated by `-`)
 Sub:{.m(x:Sor-ist[Col-int]):Sor-ist[Point]->x}
-""",List.of("""
+""", List.of("""
 Int:{}
 Point:{ .x: Int; .y: Int }
 ColouredPoint:Point{ .colour: Int }
@@ -272,7 +272,7 @@ Parameter "x" has type "SortedList[Point]" instead of a subtype of "SortedList[C
 
 See inferred typing context below for how type "SortedList[ColouredPoint]" was introduced: (compression indicated by `-`)
 Sub:{.m(x:Sor-ist[Point]):Sor-ist[Col-int]->x}
-""",List.of("""
+""", List.of("""
 Int:{}
 Point:{ .x: Int; .y: Int }
 ColouredPoint:Point{ .colour: Int }
@@ -290,7 +290,7 @@ Parameter "x" has type "X" instead of a subtype of "read Foo".
 
 See inferred typing context below for how type "read Foo" was introduced: (compression indicated by `-`)
 Sub:{.m[X:*](x:X):read Foo->x}
-""",List.of("""
+""", List.of("""
 Foo:{}
 Sub:{ .m[X:*](x: X): read Foo -> x }
 """));}
@@ -308,7 +308,7 @@ Parameter "x" has type "Box[X]" instead of a subtype of "Box[mut X]".
 
 See inferred typing context below for how type "Box[mut X]" was introduced: (compression indicated by `-`)
 Sub:{.m[X:mut,read](x:Box[X]):Box[mut X]->x}
-""",List.of("""
+""", List.of("""
 Box[T:*]:{}
 Sub:{ .m[X:mut,read](x: Box[X]): Box[mut X] -> x }
 """));}
@@ -339,7 +339,7 @@ Parameter "x" has type "Box[read X]" instead of a subtype of "Box[read/imm X]".
 
 See inferred typing context below for how type "Box[read/imm X]" was introduced: (compression indicated by `-`)
 Sub:{.m[X:mut,read](x:Box[read X]):Box[read/imm X]->x}
-""",List.of("""
+""", List.of("""
 Box[T:*]:{}
 Sub:{ .m[X:mut,read](x: Box[read X]): Box[read/imm X] -> x }
 """));}

@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import core.LiteralDeclarations;
 
-public class TypeSystemTest extends testUtils.FearlessTestBase{
+public final class TypeSystemTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
   static void fail(String expected, List<String> input){ typeFail(expected, input); }
   static void failExt(String expected, List<String> input){ typeFailRaw(expected, input); }
@@ -26,10 +26,10 @@ T1:T0{ read .m: A -> A }
 U:{ .u: T1 -> T1{ .m: A -> A{ .k: A -> A } } }
 """));}
 @Test void manyConsecutiveLetsInOneMethod(){
-  var lets= IntStream.rangeClosed(1,300).mapToObj(i->".let x"+i+"= {5} ").collect(Collectors.joining());
+  var lets= IntStream.rangeClosed(1, 300).mapToObj(i -> ".let x"+i+"= {5} ").collect(Collectors.joining());
   ok(List.of("use base.Nat as Nat; User:{ .u: Nat -> base.Block#"+lets+".return {x300} }"));}
 @Test void manyNestedLiterals(){
-  var open= IntStream.range(0,300).mapToObj(_->"A{ .a -> ").collect(Collectors.joining());
+  var open= IntStream.range(0, 300).mapToObj(_ -> "A{ .a -> ").collect(Collectors.joining());
   ok(List.of("A:{ .a: A } User:{ .u: A -> "+open+"A{ .a -> this.u }"+" }".repeat(300)+" }"));}
 @Test void expansiveSupertypeArgumentNotASubtype(){fail("""
 002| T1:T0[T0[T1]]{ .m(a: T0[T1]): T1 -> this.m(this) }
@@ -42,7 +42,7 @@ That is not a subtype of "T0[T1]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 -.m(this)
-""",List.of("""
+""", List.of("""
 T0[X]:{ }
 T1:T0[T0[T1]]{ .m(a: T0[T1]): T1 -> this.m(this) }
 """));}
@@ -60,7 +60,7 @@ Parameter "this" has type "T1" instead of a subtype of "T0[T1]".
 
 See inferred typing context below for how type "T0[T1]" was introduced: (compression indicated by `-`)
 T1:T0[T0[T1]]{.m:T0[T1]->this}
-""",List.of("""
+""", List.of("""
 T0[X]:{ }
 T1:T0[T0[T1]]{ .m: T0[T1] -> this }
 """));}
@@ -75,7 +75,7 @@ That is not a subtype of "T0[T1[X]]" (the type required by the method signature)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 -.m(this)
-""",List.of("""
+""", List.of("""
 T0[X]:{ }
 T1[X]:T0[T0[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
 """));}
@@ -94,7 +94,7 @@ That is not a subtype of "T0[T1[X]]" (the type required by the method signature)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 -.m(this)
-""",List.of("""
+""", List.of("""
 T0[X]:{ }
 T1[X]:T0[T1[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
 """));}
@@ -112,7 +112,7 @@ Parameter "this" has type "T1[X]" instead of a subtype of "T0[T1[X]]".
 
 See inferred typing context below for how type "T0[T1[X]]" was introduced: (compression indicated by `-`)
 T1[X:imm]:T0[T1[T1[X]]]{.m:T0[T1[X]]->this}
-""",List.of("""
+""", List.of("""
 T0[X]:{ }
 T1[X]:T0[T1[T1[X]]]{ .m: T0[T1[X]] -> this }
 """));}
@@ -134,7 +134,7 @@ Method call "T1[_].m(_)" has type "T1[T1[X]]" instead of a subtype of "T1[X]".
 
 See inferred typing context below for how type "T1[X]" was introduced: (compression indicated by `-`)
 T1[X:imm]:T0[T1[T1[X]]]{.m[Y:imm](a:T0[Y]):Y->a.get;.k:T1[X]->this.m[imm,T1[T1[X]]](this)}
-""",List.of("""
+""", List.of("""
 T0[X]:{ .get: X }
 T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
 """));}
@@ -148,7 +148,7 @@ but it could not infer type arguments 1 and 2 for type parameters "X0" and "X1" 
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso T0[-.Inf-own,-.Inf-own]{}
-""",List.of("""
+""", List.of("""
 T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
 """));}
 @Test void receiverLiteralCapturingThis(){fail("""
@@ -161,7 +161,7 @@ but it could not infer type argument 1 for type parameter "X" of "T0[_]".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso T0[-.Inf-own]{.m:T0[-.Void]->this}
-""",List.of("""
+""", List.of("""
 T0[X]:{ .m: T0[base.Void] -> {this}.m }
 """));}
 @Test void methodTypeParameterOnlyInLiteralResult(){fail("""
@@ -175,7 +175,7 @@ Parameter "this" has type "T1" instead of a subtype of "Z[Y]".
 
 See inferred typing context below for how type "Z[Y]" was introduced: (compression indicated by `-`)
 T1:{.m[Y:imm]:T1->T1{.k:Z[Y]->this}}
-""",List.of("""
+""", List.of("""
 Z[X]:{ }
 T1:{ .m[Y]: T1 -> { .k: Z[Y] -> this } }
 """));}
@@ -194,7 +194,7 @@ Parameter "b" has type "_BX" instead of a subtype of "_AX".
 
 See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
 B[X:imm]:A{.foo[_AX:imm,_BX:imm](a:_AX,b:_BX):_AX->b}
-""",List.of("""
+""", List.of("""
 A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
 B[X]:A{ .foo(a,b)->b }
 """));}
@@ -219,7 +219,7 @@ Parameter "x" has type "imm X" instead of a subtype of "_AX".
 
 See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
 B:Sup{.m[X:imm](x:X):G->G{.k[_AX:imm](y:_AX):_AX->x}}
-""",List.of("""
+""", List.of("""
 G:{ .k[X](y:X):X; }
 Sup:{ .m[X](x:X):G; }
 B:Sup{ .m(x)->{ .k(y)->x } }
@@ -240,7 +240,7 @@ Parameter "this" has type "A" instead of a subtype of "_AR".
 
 See inferred typing context below for how type "_AR" was introduced: (compression indicated by `-`)
 A:{.foo:-.Todo->-.Todo{![_AR:**]:_AR->this}}
-""",List.of("""
+""", List.of("""
 R:{}
 A:{ .foo:base.Todo->{ ! -> this } }
 """));}
@@ -268,7 +268,7 @@ Available methods on type "Outer":
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.bar
-""",List.of("""
+""", List.of("""
 Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
 """));}
 @Test void namedEnclosingLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
@@ -288,7 +288,7 @@ Available methods on type "Outer":
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.bar
-""",List.of("""
+""", List.of("""
 Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
 """));}
 @Test void anonEnclosingLiteralThisMisbinding_hintDoesNotShowFreshName(){fail("""
@@ -315,7 +315,7 @@ Available methods on type "Outer":
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.bar
-""",List.of("""
+""", List.of("""
 G:{ .foo: base.Void; .bar: base.Void; }
 Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
 """));}
@@ -331,7 +331,7 @@ Here "X" can only use capabilities "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 self.foo[imm,mut Outer]
-""",List.of("""
+""", List.of("""
 G:{ .foo[X:imm]: base.Void; .bar: base.Void; }
 Outer:{ #: G -> {'self .foo[X:imm]: base.Void -> base.Void; .bar: base.Void -> self.foo[mut Outer]; } }
 """));}
@@ -346,7 +346,7 @@ Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
 
 See inferred typing context below for how type "base.Void" was introduced: (compression indicated by `-`)
 Outer:{#:G->G{'self .bar:-.Void->-.Void;.v:-.Void->Boxes#[imm,_AOute](self)}}
-""",List.of("""
+""", List.of("""
 Box[E]:{ .get: E }
 Boxes:{ #[E](e: E): Box[E] -> {.get -> e} }
 G:{ .bar: base.Void; .v: base.Void; }
@@ -365,7 +365,7 @@ Available methods on type "A":
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.ba
-""",List.of("""
+""", List.of("""
 A:{.foo123:A->this.ba}
 """));}
 @Test void typeNotWellKinded_genericInstantiationViolatesBounds(){fail("""
@@ -1587,7 +1587,7 @@ Hint: Fearless has no operator precedence, so an expression like "a.get + b.get"
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 -+(this)
-""",List.of("""
+""", List.of("""
 A:{}
 Plus:{
   +(x:A):Plus->this;
@@ -1606,7 +1606,7 @@ That is not a subtype of "mut A" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 -#(AsRead#(aaaa))
-""",List.of("""
+""", List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
 AsRead:{ #(x:read B):read B->x }
@@ -1632,7 +1632,7 @@ Type required by each promotion:
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
-""",List.of("""
+""", List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
 AsRead:{ #(x:read A):read A->x }
@@ -1661,7 +1661,7 @@ Type required by each promotion:
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa)}}
-""",List.of("""
+""", List.of("""
 
 Skip:{#[X:**](X):B->B}
 B:{}
@@ -1692,7 +1692,7 @@ Here "X" can only use capabilities "imm" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 IdRO#[imm,mut A](aaaa)
-""",List.of("""
+""", List.of("""
 
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -1721,7 +1721,7 @@ Type required by each promotion:
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):B->Need#(IdRO#[imm,read A](aaaa))}
-""",List.of("""
+""", List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
 IdRO:{ #[X:imm,read](x:X):X->x }
@@ -1750,7 +1750,7 @@ Type required by each promotion:
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 User:{.f:B->Need#(read A)}
-""",List.of("""
+""", List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
 A:{ mut .foo:A}
@@ -1782,7 +1782,7 @@ Promotion failures:
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.f(x,y)
-""",List.of("""
+""", List.of("""
 A:{
   .f(a:read A, b:mut A):A->this;
   .caller(x:readH A, y:mutH A):A->this.f(x,y);
@@ -1811,7 +1811,7 @@ Promotion failures:
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.f(x,y)
-""",List.of("""
+""", List.of("""
 A:{
   .f(a:mut A, b:mut A):A->this;
   .caller(x:mutH A, y:mutH A):A->this.f(x,y);
@@ -1838,7 +1838,7 @@ Available methods on type "A":
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foO123
-""",List.of("""
+""", List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
 """));}
 
@@ -1857,7 +1857,7 @@ Available methods on type "A":
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo23
-""",List.of("""
+""", List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
 """));}
 
@@ -1876,7 +1876,7 @@ Available methods on type "A":
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo1123
-""",List.of("""
+""", List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
 """));}
 
@@ -1892,7 +1892,7 @@ This call supplies 1, but available methods take 0 or 3.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123(this)
-""",List.of("""
+""", List.of("""
 A:{
   .foo123:A->this.foo123;
   .bar:A->this.foo123(this);
@@ -1912,7 +1912,7 @@ This call supplies 1, but available methods take 0 or 3.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123(this)
-""",List.of("""
+""", List.of("""
 A:{
   .foo123:A->this.foo123;
   .bar:A->this.foo123(this      );
@@ -1930,7 +1930,7 @@ This call requires a receiver with capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123
-""",List.of("""
+""", List.of("""
 A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
 """));}
 @Test void tsOkIndirectFail6a(){fail("""
@@ -1944,7 +1944,7 @@ This call requires a receiver with capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123
-""",List.of("""
+""", List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
 """));}//With inference we infer [imm] (next case)
 @Test void tsOkIndirectFail6b(){fail("""
@@ -1958,7 +1958,7 @@ This call requires a receiver with capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123
-""",List.of("""
+""", List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 """));}
 @Test void tsOkIndirectFail6c(){fail("""
@@ -1973,7 +1973,7 @@ Available capabilities for this method: "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123[read]
-""",List.of("""
+""", List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
 """));}
 @Test void implicitRcNotInferredInNestedLiteral(){fail("""
@@ -1992,7 +1992,7 @@ Hint: state the capability after the method name, as in ".inc[mut]".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 self.inc
-""",List.of("""
+""", List.of("""
 Counter:{ mut .inc: mut Counter; mut .inc2: mut Counter }
 Make:{ #: mut Counter -> mut Counter{'self
   mut .inc: mut Counter -> self;
@@ -2015,7 +2015,7 @@ Receiver required by each promotion:
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123[mut]
-""",List.of("""
+""", List.of("""
 A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
 """));}
 @Test void tsOkIndirectFail8(){fail("""
@@ -2029,7 +2029,7 @@ This call requires a receiver with capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123
-""",List.of("""
+""", List.of("""
 A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 """));}
 
@@ -2052,7 +2052,7 @@ Receiver required by each promotion:
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123[mut]
-""",List.of("""
+""", List.of("""
 A:{
   mut .foo123:A->
     this.foo123;
@@ -2072,7 +2072,7 @@ Parameter "b" has type "B" instead of a subtype of "A".
 
 See inferred typing context below for how type "A" was introduced: (compression indicated by `-`)
 A:{.bar(b:B):A->b}
-""",List.of("""
+""", List.of("""
 A:{ .bar(b:B):A->b; }
 B:{ }
 """));}
@@ -2091,7 +2091,7 @@ But it implements method "mut .bar", which requires a "mut" receiver.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 read B{mut .bar:mut B->b}
-""",List.of("""
+""", List.of("""
 B:{ mut .bar:mut B }
 A:{ mut .baz(b: mut B):read B-> { .bar->b}; }
 """));}
@@ -2128,7 +2128,7 @@ Type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
 A:{.foo123:A->this.foo123;.bar[X:*](x:X):A->x.foo123}
-""",List.of("""
+""", List.of("""
 A:{
   .foo123:A->this.foo123;
   .bar[X:imm,mut,read](x:X):A->x.foo123;
@@ -2146,7 +2146,7 @@ This method expects 1 type argument: "X"; but this call provides 2 type argument
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.id[imm,A,A](this)
-""",List.of("""
+""", List.of("""
 A:{
   .id[X:imm,mut,read](x:X):X->x;
   .bar:A->this.id[A,A](this);
@@ -2175,7 +2175,7 @@ Promotion failures:
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.f(x,y)
-""",List.of("""
+""", List.of("""
 A:{
   .f(a:read A, b:mut A):A->this;
   .caller(x:readH A, y:mutH A):A->this.f(x,y);
@@ -2204,7 +2204,7 @@ Promotion failures:
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.f(x,ID#[imm,mutH A](y))
-""",List.of("""
+""", List.of("""
 ID:{#[T:**](x:T):T->x}
 A:{
   .f(a:read A, b:mut A):A->this;
@@ -2230,7 +2230,7 @@ Hint: capture an immutable copy instead, or move this use outside the object lit
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 aaaa
-""",List.of("""
+""", List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
 A:{
@@ -2249,7 +2249,7 @@ Hint: capture an immutable copy instead, or move this use outside the object lit
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 aaaa
-""",List.of("""
+""", List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
 A:{
@@ -2297,7 +2297,7 @@ Type required by each promotion:
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
-""",List.of("""
+""", List.of("""
 
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -2328,7 +2328,7 @@ Available methods on object literal instance of "A":
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A{.bar:A->A}.foo
-""",List.of("""
+""", List.of("""
 A:{}
 Main:{
   .m:A -> { .bar:A->A }.foo
@@ -2346,7 +2346,7 @@ Type "A" does not have any methods.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A.foo
-""",List.of("""
+""", List.of("""
 
 A:{}
  Main:{
@@ -2364,7 +2364,7 @@ Type "B" does not have any methods.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 B:{}.foo
-""",List.of("""
+""", List.of("""
 A:{}
  Main:{
    .m:A -> B:{ }.foo
@@ -2387,7 +2387,7 @@ Parameter "self" has type "_AOute" instead of a subtype of "Outer".
 
 See inferred typing context below for how type "Outer" was introduced: (compression indicated by `-`)
 Outer:{.m:-.Void->{'self .a:Outer->self}.a}
-""",List.of("""
+""", List.of("""
 Outer:{ .m: base.Void -> {'self .a: Outer -> self}.a }
 """));}
 @Test void err_anonReceiverSealedHeadUnwrittenSig(){failWf("""
@@ -2401,7 +2401,7 @@ Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".a".
 No supertype has a method named ".a" with 0 parameters.
-""",List.of("""
+""", List.of("""
 Outer:{ .m: base.Void -> { .a -> base.Void{} }.a }
 """));}
 @Test void anonReceiverSealedHeadCapturesGeneric(){ok(List.of("""
@@ -2441,7 +2441,7 @@ Object literal is of type "base.Float" instead of a subtype of "base.Int".
 
 See inferred typing context below for how type "base.Int" was introduced: (compression indicated by `-`)
 Main:{.m:-.Int->+1.5}
-""",List.of("""
+""", List.of("""
  Main:{ .m:base.Int -> +1.5 }
 """));}
 @Test void failIntTooBig(){failExt("""
@@ -2457,7 +2457,7 @@ Valid range: -9223372036854775808 ..9223372036854775807.
 This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
  Main:{ .m:base.Int -> +421381834238972893748972389723 }
 """));}
 @Test void failNatTooBig(){failExt("""
@@ -2473,7 +2473,7 @@ Valid range: 0 ..18446744073709551615.
 This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
  Main:{ .m:base.Nat -> 421381834238972893748972389723 }
 """));}
 
@@ -2489,7 +2489,7 @@ Float literal is not exactly representable as "base.Float".
 This literal is: "+1.0e309".
 This literal overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
  Main:{ .m:base.Float -> +1.0e309 }
 """));}
 @Test void failFloatExponentBeyondIntRange(){failExt("""
@@ -2504,7 +2504,7 @@ Float literal is not exactly representable as "base.Float".
 This literal is: "+1.0e99999999999".
 This literal overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
  Main:{ .m:base.Float -> +1.0e99999999999 }
 """));}
 @Test void failFloatNegativeExponentBeyondIntRange(){failExt("""
@@ -2521,7 +2521,7 @@ If rounded, the nearest representable value is "+0.0".
 Write "+1.0e-99999999999soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
  Main:{ .m:base.Float -> +1.0e-99999999999 }
 """));}
 @Test void okFloatZeroExponentBeyondIntRange(){ok(List.of("""
@@ -2538,7 +2538,7 @@ Literal "1" is directly followed by "[".
 Number and string literals take no generic arguments.
 Remove the "[...]" after "1".
 Error 2 UnexpectedToken
-""",List.of("""
+""", List.of("""
 A:{ .m: A -> 1[A] }
 """));}
 @Test void failNumberLiteralWithEmptyTypeParameters(){failExt("""
@@ -2552,7 +2552,7 @@ Literal "1" is directly followed by "[".
 Number and string literals take no generic arguments.
 Remove the "[...]" after "1".
 Error 2 UnexpectedToken
-""",List.of("""
+""", List.of("""
 A:{ .m: A -> 1[] }
 """));}
 @Test void failStrLiteralWithTypeParameters(){failExt("""
@@ -2566,7 +2566,7 @@ Literal "`a`" is directly followed by "[".
 Number and string literals take no generic arguments.
 Remove the "[...]" after "`a`".
 Error 2 UnexpectedToken
-""",List.of("""
+""", List.of("""
 A:{ .m: `a`[A] }
 """));}
 @Test void failUStrLiteralWithTypeParameters(){failExt("""
@@ -2580,7 +2580,7 @@ Literal `"a"` is directly followed by "[".
 Number and string literals take no generic arguments.
 Remove the "[...]" after `"a"`.
 Error 2 UnexpectedToken
-""",List.of("""
+""", List.of("""
 A:{ .m: "a"[A] }
 """));}
 @Test void failFloatLiteralWithTypeParameters(){failExt("""
@@ -2594,7 +2594,7 @@ Literal "-1.5" is directly followed by "[".
 Number and string literals take no generic arguments.
 Remove the "[...]" after "-1.5".
 Error 2 UnexpectedToken
-""",List.of("""
+""", List.of("""
 A:{ .m: A -> -1.5[] }
 """));}
 @Test void failFloatTooSmall(){failExt("""
@@ -2611,7 +2611,7 @@ If rounded, the nearest representable value is "+0.0".
 Write "+1.0e-400soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
  Main:{ .m:base.Float -> +1.0e-400 }
 """));}
 @Test void failFloatImprecise1(){failExt("""
@@ -2628,7 +2628,7 @@ If rounded, the nearest representable value is "+0.10000000000000000555111512312
 Write "+0.1soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
  Main:{ .m:base.Float -> +0.1 }
 """));}
 @Test void failFloatImprecise2(){failExt("""
@@ -2645,12 +2645,12 @@ If rounded, the nearest representable value is "+0.20000000000000001110223024625
 Write "+0.2soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
  Main:{ .m:base.Float -> +0.2 }
 """));}
 @Test void floatExactFearlessLitScientific(){
-  assertEquals("+9.31322574615478515625e-10", LiteralDeclarations.floatExactFearlessLit(Math.scalb(1.0,-30)));
-  assertEquals("-9.31322574615478515625e-10", LiteralDeclarations.floatExactFearlessLit(-Math.scalb(1.0,-30)));
+  assertEquals("+9.31322574615478515625e-10", LiteralDeclarations.floatExactFearlessLit(Math.scalb(1.0, -30)));
+  assertEquals("-9.31322574615478515625e-10", LiteralDeclarations.floatExactFearlessLit(-Math.scalb(1.0, -30)));
 }
 @Test void okFloatTooBig(){ok(List.of("""
  Main:{ .m:base.Float -> +179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0 }
@@ -2685,7 +2685,7 @@ Float literal is not exactly representable as "base.Float".
 This literal is: "+1.0e309soft".
 This literal overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
  Main:{ .m:base.Float -> +1.0e309soft }
 """));}
 
@@ -2711,7 +2711,7 @@ Hint: add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso B
-""",List.of("""
+""", List.of("""
  A:{.foo:A}
  B:A{}
  Main:{ .m:B -> B }
@@ -2728,7 +2728,7 @@ Hint: add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso B{.bar:A->A}
-""",List.of("""
+""", List.of("""
  A:{.foo:A->A}
  B:A{.foo:A}
  Main:{ .m:B -> B{.bar:A->A} }
@@ -2914,7 +2914,7 @@ Top:{
   .m17(b:mutH Box[mut A]):Bool -> b.order{::} == b;
   }
 """));}
-static String flatMapDecs="""
+static String flatMapDecs= """
 use base.F as F;
 List[E:*]:{}
 Cat:{}
@@ -3372,7 +3372,7 @@ Box[E:*]: _Box[E]{
 [###]
 Did you mean "FooBar" ?
 [###]
-""",List.of("""
+""", List.of("""
 FooBar:{}
 User:{.foo:Foo;}
 """));}
@@ -3381,7 +3381,7 @@ User:{.foo:Foo;}
 [###]
 Did you mean "abcDef" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{.foo(abc:A, abcDef:A):A->abcDeee;}
 """));}
@@ -3390,7 +3390,7 @@ User:{.foo(abc:A, abcDef:A):A->abcDeee;}
 [###]
 Did you mean ".foo2" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{
   .foo1:A->this.foo22;
@@ -3405,7 +3405,7 @@ User:{
 [###]
 Did you mean "FooBar" ?
 [###]
-""",List.of("""
+""", List.of("""
 FooBar:{}
 User:{.foo:FooBaar;}
 """));}
@@ -3414,7 +3414,7 @@ User:{.foo:FooBaar;}
 [###]
 Did you mean "NumExact" ?
 [###]
-""",List.of("""
+""", List.of("""
 NumExact:{}
 User:{.foo:Num;}
 """));}
@@ -3423,7 +3423,7 @@ User:{.foo:Num;}
 [###]
 Did you mean "ReadOnly" ?
 [###]
-""",List.of("""
+""", List.of("""
 ReadOnly:{}
 User:{.foo:ReadOnyl;}
 """));}
@@ -3432,7 +3432,7 @@ User:{.foo:ReadOnyl;}
 [###]
 Did you mean "HTTPServer" ?
 [###]
-""",List.of("""
+""", List.of("""
 HTTPServer:{}
 User:{.foo:HttpServer;}
 """));}
@@ -3441,7 +3441,7 @@ User:{.foo:HttpServer;}
 [###]
 Did you mean "JSONParser" ?
 [###]
-""",List.of("""
+""", List.of("""
 JSONParser:{}
 User:{.foo:JsonParser;}
 """));}
@@ -3450,7 +3450,7 @@ User:{.foo:JsonParser;}
 [###]
 Did you mean "XMLHttpRequest" ?
 [###]
-""",List.of("""
+""", List.of("""
 XMLHttpRequest:{}
 User:{.foo:XmlHttpRequest;}
 """));}
@@ -3459,7 +3459,7 @@ User:{.foo:XmlHttpRequest;}
 [###]
 Did you mean "URLDecoder" ?
 [###]
-""",List.of("""
+""", List.of("""
 URLDecoder:{}
 User:{.foo:UrlDecoder;}
 """));}
@@ -3468,7 +3468,7 @@ User:{.foo:UrlDecoder;}
 [###]
 Did you mean "ASCIIParser" ?
 [###]
-""",List.of("""
+""", List.of("""
 ASCIIParser:{}
 User:{.foo:AsciiParser;}
 """));}
@@ -3477,7 +3477,7 @@ User:{.foo:AsciiParser;}
 [###]
 Did you mean "FooBar''''" ?
 [###]
-""",List.of("""
+""", List.of("""
 FooBar'''':{}
 User:{.foo:FooBar'';}
 """));}
@@ -3486,7 +3486,7 @@ User:{.foo:FooBar'';}
 [###]
 Did you mean "FooBar" ?
 [###]
-""",List.of("""
+""", List.of("""
 FooBar:{}
 User:{.foo:Bar;}
 """));}
@@ -3497,7 +3497,7 @@ User:{.foo:Bar;}
 [###]
 Did you mean ".numExact" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{
   .numExact:A;
@@ -3509,7 +3509,7 @@ User:{
 [###]
 Did you mean ".toJSON" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{
   .toJSON:A;
@@ -3521,7 +3521,7 @@ User:{
 [###]
 Did you mean ".parseXML" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{
   .parseXML:A;
@@ -3533,7 +3533,7 @@ User:{
 [###]
 Did you mean ".myHttpServer" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{
   .myHttpServer:A;
@@ -3545,7 +3545,7 @@ User:{
 [###]
 Did you mean ".sha256" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{
   .sha256:A;
@@ -3557,7 +3557,7 @@ User:{
 [###]
 Did you mean ".foo'''''" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{
   .foo''''':A;
@@ -3569,7 +3569,7 @@ User:{
 [###]
 Did you mean ".readOnly" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{
   .readOnly:A;
@@ -3581,7 +3581,7 @@ User:{
 [###]
 Did you mean ".makeUUID" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{
   .makeUUID:A;
@@ -3593,7 +3593,7 @@ User:{
 [###]
 Did you mean ".asUTF8" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{
   .asUTF8:A;
@@ -3605,7 +3605,7 @@ User:{
 [###]
 Did you mean ".xmlHttpRequest" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{
   .xmlHttpRequest:A;
@@ -3619,7 +3619,7 @@ User:{
 [###]
 Did you mean "numExact" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{.f(numExact:A):A->num;}
 """));}
@@ -3628,7 +3628,7 @@ User:{.f(numExact:A):A->num;}
 [###]
 Did you mean "toJSON" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{.f(toJSON:A):A->toJson;}
 """));}
@@ -3637,7 +3637,7 @@ User:{.f(toJSON:A):A->toJson;}
 [###]
 Did you mean "httpServer" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{.f(httpServer:A):A->myHttpServer;}
 """));}
@@ -3646,7 +3646,7 @@ User:{.f(httpServer:A):A->myHttpServer;}
 [###]
 Did you mean "x'''''" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{.f(x''''':A):A->x'';}
 """));}
@@ -3655,7 +3655,7 @@ User:{.f(x''''':A):A->x'';}
 [###]
 Did you mean "byteBuffer" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{.f(byteBuffer:A):A->buffer;}
 """));}
@@ -3664,7 +3664,7 @@ User:{.f(byteBuffer:A):A->buffer;}
 [###]
 Did you mean "fooBarBaz" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{.f(fooBarBaz:A):A->fooBarBax;}
 """));}
@@ -3673,7 +3673,7 @@ User:{.f(fooBarBaz:A):A->fooBarBax;}
 [###]
 Did you mean "length" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{.f(length:A):A->lenght;}
 """));}
@@ -3682,7 +3682,7 @@ User:{.f(length:A):A->lenght;}
 [###]
 Did you mean "sha256" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{.f(sha256:A):A->sha265;}
 """));}
@@ -3691,7 +3691,7 @@ User:{.f(sha256:A):A->sha265;}
 [###]
 Did you mean "fooBar" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{.f(fooBar:A):A->myFooBar;}
 """));}
@@ -3700,7 +3700,7 @@ User:{.f(fooBar:A):A->myFooBar;}
 [###]
 Did you mean "httpServerPort" ?
 [###]
-""",List.of("""
+""", List.of("""
 A:{}
 User:{.f(httpServerPort:A):A->serverPort;}
 """));}
@@ -3714,7 +3714,7 @@ Parameter "c" has type "C[A]" instead of a subtype of "C[B]".
 
 See inferred typing context below for how type "C[B]" was introduced: (compression indicated by `-`)
 User:{.f(c:C[A]):C[B]->c}
-""",List.of("""
+""", List.of("""
 A:{}
 B:{}
 C[X]:{}
@@ -3730,7 +3730,7 @@ Object literal is of type "iso C[A]" instead of a subtype of "C[B]".
 
 See inferred typing context below for how type "C[B]" was introduced: (compression indicated by `-`)
 User:{.f(c:C[A]):C[B]->C[A]{.foo:A->A}}
-""",List.of("""
+""", List.of("""
 A:{}
 B:{}
 C[X]:{}
@@ -3804,7 +3804,7 @@ Object literal is of type "Sup" instead of a subtype of "Target".
 
 See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
 B:{.m:Target->Sup}
-""",List.of("""
+""", List.of("""
 Sup:base.WidenTo[Target]{}
 Target:Sup{}
 B:{.m:Target->Sup{}}
@@ -3820,7 +3820,7 @@ Object literal is of type "Sup" instead of a subtype of "Target".
 
 See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
 B:{.m:Target->Sup}
-""",List.of("""
+""", List.of("""
 Sup:{}
 Target:Sup{}
 B:{.m:Target->Sup{}}
@@ -3836,7 +3836,7 @@ Object literal is of type "iso Sup" instead of a subtype of "Target".
 
 See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
 B:{.m:Target->Sup{.foo:-.Str->-.Str}}
-""",List.of("""
+""", List.of("""
 Sup:base.WidenTo[Target]{ .foo:base.Str }
 Target:Sup{ .extra:base.Str }
 B:{.m:Target->Sup{.foo->base.Str}}
@@ -3919,7 +3919,7 @@ Parameter "::" has type "read Customer" instead of a subtype of "Person".
 
 See inferred typing context below for how type "Person" was introduced: (compression indicated by `-`)
 User:{.n(cs:read -.MList[mut Customer]):-.MList[Person]->cs.as[read,Person](-.BaseId[read Customer,Person]{(-)->::})}
-""",List.of("""
+""", List.of("""
 Person:{}
 Customer:Person{}
 User:{ .n(cs: read base.MList[mut Customer]): base.MList[Person] -> cs.as{::} }
@@ -3935,7 +3935,7 @@ Parameter "::" has type "Person" instead of a subtype of "Customer".
 
 See inferred typing context below for how type "Customer" was introduced: (compression indicated by `-`)
 User:{.m:-.BaseId[Person,Customer]->-.BaseId[Person,Customer]{#(_aimpl:Person):Customer->::}}
-""",List.of("""
+""", List.of("""
 Person:{}
 Customer:Person{}
 User:{ .m: base.BaseId[Person,Customer] -> {::} }
@@ -3951,7 +3951,7 @@ Only those two shapes are the identity function.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Person
-""",List.of("""
+""", List.of("""
 Person:{}
 Customer:Person{}
 MyId:base.BaseId[Customer,Person]{ #(x)->Person }
@@ -3967,7 +3967,7 @@ Only those two shapes are the identity function.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Other.cs.as[imm,Person](-.BaseId[Customer,Person]{#(_aimpl:Customer):Person->::})
-""",List.of("""
+""", List.of("""
 Person:{}
 Customer:Person{}
 Other:{ .cs: base.MList[Customer] -> base.Nope! }
@@ -3988,7 +3988,7 @@ In file: [###].fear
 While inspecting type declaration "MyId"
 Type declaration "MyId" implements "base.BaseId[_,_]".
 Only the method "#(_)" can be declared or inherited here.
-Error 7 WellFormedness""",List.of("""
+Error 7 WellFormedness""", List.of("""
 Person:{}
 Customer:Person{}
 MyId:base.BaseId[Customer,Person]{ #(x)->x; .extra: Person -> Person }
@@ -4003,7 +4003,7 @@ While inspecting type declaration "MyId"
 Type declaration "MyId" implements "base.BaseId[_,_]".
 It inherits the implementation of "#(_)" from "Forge", that does not implement "base.BaseId[_,_]".
 Method "#(_)" must be implemented here, or inherited from a type implementing "base.BaseId[_,_]".
-Error 7 WellFormedness""",List.of("""
+Error 7 WellFormedness""", List.of("""
 Person:{}
 Customer:{}
 Forge:{ #(x: Customer): Person -> Person }
@@ -4020,7 +4020,7 @@ While inspecting type declaration "Sub"
 Type declaration "Sub" implements "base.BaseId[_,_]".
 It inherits the implementation of "#(_)" from "Forge", that does not implement "base.BaseId[_,_]".
 Method "#(_)" must be implemented here, or inherited from a type implementing "base.BaseId[_,_]".
-Error 7 WellFormedness""",List.of("""
+Error 7 WellFormedness""", List.of("""
 Person:{}
 Customer:{}
 Forge:{ #(x: Customer): Person -> Person }
@@ -4036,7 +4036,7 @@ In file: [###].fear
 While inspecting type declaration "MyId"
 Type declaration "MyId" implements "base.BaseId[_,_]".
 Only the method "#(_)" can be declared or inherited here.
-Error 7 WellFormedness""",List.of("""
+Error 7 WellFormedness""", List.of("""
 Person:{}
 Customer:Person{}
 Extra:{ .extra: Person }
@@ -4051,7 +4051,7 @@ In file: [###].fear
 While inspecting object literal instance of "base.BaseId[_,_]"
 Object literal instance of "base.BaseId[_,_]" implements "base.BaseId[_,_]".
 Only the method "#(_)" can be declared or inherited here.
-Error 7 WellFormedness""",List.of("""
+Error 7 WellFormedness""", List.of("""
 Person:{}
 Customer:Person{}
 User:{ .m: base.BaseId[Customer,Person] -> {#(x)->x; .extra: Person -> Person} }
@@ -4196,7 +4196,7 @@ That is not a subtype of "mut MF[Opt[imm E]]" (the type required by the method s
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 -.let[mut,Opt[imm E]](mut MF[mut Opt[imm E]]{mut #:mut Opt[imm E]->s.opt[mut](e)},-)
-""",List.of("""
+""", List.of("""
 use base.MF as MF;
 Blocks: { #[R:*]: mut Block[R] -> {} }
 Block[R:*]: {
@@ -4252,7 +4252,7 @@ It is instead a subtype: you are weakening the result instead of strengthening i
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 B:A{.m1:P->P;.m2:P->P}
-""",List.of("""
+""", List.of("""
 P:{}
 Q:P{}
 A: { .m1: Q; .m2: Q }
@@ -4299,7 +4299,7 @@ Hint: capture an immutable copy instead, or move this use outside the object lit
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 c
-""",List.of("""
+""", List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }
 Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
@@ -4322,7 +4322,7 @@ Hint: capture an immutable copy instead, or move this use outside the object lit
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 c
-""",List.of("""
+""", List.of("""
 Foo:{}
 Box:{ mut .get: mut Foo; read .get: read Foo }
 Two:{ #[T:*](a: mut T, b: T): Foo -> Foo }
@@ -4345,7 +4345,7 @@ Hint: capture an immutable copy instead, or move this use outside the object lit
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 c
-""",List.of("""
+""", List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }
 Two:{ #[T:*](a: T, b: T): Foo -> Foo }
@@ -4389,7 +4389,7 @@ Receiver required by each promotion:
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 self.inc[mut]
-""",List.of("""
+""", List.of("""
 Counter:{ mut .inc: mut Counter; read .get: read Counter }
 Make:{ #: iso Counter -> iso Counter{'self
   mut .inc: mut Counter -> self;
@@ -4417,7 +4417,7 @@ Object literal is of type "imm A" instead of a subtype of "iso A".
 
 See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
 Make:{#:iso A->A{'self read .me:A->self}}
-""",List.of("""
+""", List.of("""
 A:{ read .me: imm A }
 Make:{ #: iso A -> imm A{'self read .me: imm A -> self } }
 """));}
@@ -4432,7 +4432,7 @@ Remove "'self" from the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A{'self read .get:-.Nat->0}
-""",List.of("""
+""", List.of("""
 A:{ read .get: base.Nat }
 Make:{ #: A -> A{'self read .get: base.Nat -> 0 } }
 """));}
@@ -4496,7 +4496,7 @@ Hint: write "mut A" if you need a "mut" object literal (needed to satisfy the "m
 
 Type required by each promotion:
 [###]
-""",List.of("""
+""", List.of("""
 B:{}
 Need:{ #(a:mutH A):B->B{} }
 A:{ mut .foo:A}
@@ -4516,7 +4516,7 @@ Object literal is of type "read C" instead of a subtype of "mut A".
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 User:{.f:mut A->read C}
-""",List.of("""
+""", List.of("""
 A:{ mut .foo:A}
 C:{ mut .bar:C}
 User:{

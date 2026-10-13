@@ -3,7 +3,7 @@ package inference;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class InferenceStepsTest extends testUtils.FearlessTestBase{
+public final class InferenceStepsTest extends testUtils.FearlessTestBase{
   static void okI(String expected, List<String> input){ inferenceOk(expected, input, true); }
   static void failI(String expected, List<String> input){ inferenceFail(expected, input, true); }
 
@@ -14,7 +14,7 @@ p._AT1:p.T1{'_ .k:p.T1@p._AT1;->this:p.T1; .m[_AY:imm]:p.T1@p.T1;}
 ~-----------
 ~mut p.T1:{'this .m[Y:imm]:p.T1->imm p._AT1[Y:imm]:p.T1{'_ .k:p.Z[Y]->this; .m[_AY:imm]:p.T1}}
 ~mut p.Z[X:imm]:{'this }
-""",List.of("""
+""", List.of("""
 Z[X]:{ }
 T1:{ .m[Y]: T1 -> { .k: Z[Y] -> this } }
 """));}
@@ -31,7 +31,7 @@ p._BU:p.T1, p.T0{'_ read .m:p.A@p._BU;->p._AU:p.A{'_ .k:p.A@p._AU;->p.A:p.A;}:p.
 ~mut p.T0:{'this .m:p.A}
 ~mut p.T1:p.T0{'this read .m:p.A->p.A; .m:p.A}
 ~mut p.U:{'this .u:p.T1->imm p._BU:p.T1, p.T0{'_ read .m:p.A->imm p._AU:p.A{'_ .k:p.A->p.A}; .m:p.A->imm p._AAU:p.A{'_ .k:p.A->p.A}}}
-""",List.of("""
+""", List.of("""
 A:{ .k: A -> this }
 T0:{ .m: A; }
 T1:T0{ read .m: A -> A }
@@ -46,7 +46,7 @@ p.Foo[X:imm]:{'this}
 ~mut p.A[Y:imm]:p.Foo[Y], p.Bar[Y]{'this }
 ~mut p.Bar[X:imm,mut]:p.Foo[imm X]{'this }
 ~mut p.Foo[X:imm]:{'this }
-""",List.of("""
+""", List.of("""
 Foo[X:imm]:{}
 Bar[X:imm,mut]:Foo[imm X]{}
 A[Y:imm]:Foo[Y],Bar[Y]{}
@@ -58,7 +58,7 @@ p._AA[Y:imm]:p.Foo[imm Y]{'_ .get:imm Y@p._AA;->y:imm Y;}
 ~-----------
 ~mut p.A:{'this .m[Y:imm](y:Y):p.Foo[Y]->imm p._AA[Y:imm]:p.Foo[Y]{'_ .get:imm Y->y}}
 ~mut p.Foo[X:imm]:{'this .get:X}
-""",List.of("""
+""", List.of("""
 Foo[X:imm]:{ .get: X }
 A:{ .m[Y:imm](y: Y): Foo[Y] -> Foo[Y]{ .get -> y } }
 """));}
@@ -67,14 +67,14 @@ p.A:{'this .foo:p.A@p.A;->this:?.foo():?;}
 ~-----------
 ~mut p.A:{'this .foo:p.A->this.foo[imm]}
 
-""",List.of("""
+""", List.of("""
 A:{.foo:A->this.foo}
 """));}
 @Test void inferMini2(){okI("""
 p.A:{'this .foo[X:imm](X):X@p.A;(x)->this:?.foo(x:?):?;}
 ~-----------
 ~mut p.A:{'this .foo[X:imm](x:X):X->this.foo[imm,imm X](x)}
-""",List.of("""
+""", List.of("""
 A:{.foo[X](x:X):X->this.foo(x)}
 """));}
 @Test void inferMini3(){okI("""
@@ -84,7 +84,7 @@ p._AUser:p.F[p.User,p.User]{'_ #(p.User):p.User@p._AUser;(_aimpl)->_aimpl:p.User
 ~-----------
 ~mut p.F[A:imm,B:imm]:{'this #(_:A):B}
 ~mut p.User:{'this .foo[X:imm](x:X, f:p.F[X,X]):X->f#[imm](x); .bar:p.User->this.foo[imm,p.User](p.User, imm p._AUser:p.F[p.User,p.User]{'_ #(_aimpl:p.User):p.User->_aimpl})}
-""",List.of("""
+""", List.of("""
 F[A,B]:{#(A):B}
 User:{
   .foo[X](x:X,f:F[X,X]):X->f#x;
@@ -128,7 +128,7 @@ Stack[T]: {
 ->ns.fold[imm,base.Nat](base.0,\
  imm p._AZ0Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
-""",List.of(importMini+stackStart+"""
+""", List.of(importMini+stackStart+"""
 Z0ExampleSum: { #(ns: Stack[Nat]): Nat -> ns.fold(0, { n1,n2 -> n1 + n2 })  }
 """));}
 @Test void inferStackGuideExampleTimesLit(){okI("""
@@ -144,7 +144,7 @@ p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](p.StackMatch[imm T,_GR]):_GR@p
 ~mut p.Z1ExampleTimes:{'this #(ns:p.Stack[base.Nat]):base.Nat\
 ->ns.fold[imm,base.Nat](base.1, imm p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1*[imm](n2)})}
-""",List.of(importMini+stackStart+"""
+""", List.of(importMini+stackStart+"""
 Z1ExampleTimes: { #(ns: Stack[Nat]): Nat -> ns.fold(1, { n1,n2 -> n1 * n2 })  }
 """));}
 
@@ -157,7 +157,7 @@ Z1ExampleTimes: { #(ns: Stack[Nat]): Nat -> ns.fold(1, { n1,n2 -> n1 * n2 })  }
  .empty:base.Nat->base.0;\
  .elem(top:base.Nat, tail:p.Stack[base.Nat]):base.Nat\
 ->top+[imm](this.sum[imm](tail))})}
-""",List.of(importMini+stackStart+"""
+""", List.of(importMini+stackStart+"""
 Z2Example: {
   .sum(ns: Stack[Nat]): Nat -> ns.match{
     .empty -> 0;
@@ -177,7 +177,7 @@ imm p._BZ3Ex:p.StackMatch[base.Nat,p.Stack[base.Nat]]{'_\
  .empty:p.Stack[base.Nat]->p.Stack[base.Nat];\
  .elem(top:base.Nat, tail:p.Stack[base.Nat]):p.Stack[base.Nat]->\
 p.Z3ExampleAdd5.add5[imm](tail)+[imm](top+[imm](base.5))})}
-""",List.of(importTo10+stackStart+"""
+""", List.of(importTo10+stackStart+"""
 Z3ExampleAdd5:{
   .add5(ns: Stack[Nat]): Stack[Nat] -> ns.match{
     .empty -> {};
@@ -199,7 +199,7 @@ Z3ExampleAdd5:{
 .fold[imm,base.Nat](base.0,\
  imm p._CZ4Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
-""",List.of(importMini+stackStart+"""
+""", List.of(importMini+stackStart+"""
 Z4ExampleFluent: { #(ns: Stack[Nat]): Nat -> ns
   .map { n -> n + 10 }
   .map { n -> n *  3 }
@@ -232,7 +232,7 @@ p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](p.StackMatch[imm T,_GR]):_GR@p
 ~-----------
 ~mut p.StackMatch[T:imm,R:imm]:{'this .empty:R; .elem(_:T, _:p.Stack[T]):R}
 ~mut p.Stack[T:imm]:{'this .match[R:imm](m:p.StackMatch[T,R]):R->m.empty[imm]; .fold[R:imm](start:R, f:base.F[R,T,R]):R->start; .map[R:imm](f:base.F[T,R]):p.Stack[R]->p.Stack[imm R]; .filter(f:base.F[T,base.Bool]):p.Stack[T]->p.Stack[imm T]; +(e:T):p.Stack[T]->imm p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](m:p.StackMatch[imm T,_GR]):_GR->m.elem[imm](e, this); .fold[_HR:imm](start:_HR, f:base.F[_HR,imm T,_HR]):_HR->f#[read](this.fold[imm,imm _HR](start, f), e); .map[_JR:imm](f:base.F[imm T,_JR]):p.Stack[_JR]->this.map[imm,imm _JR](f)+[imm](f#[read](e)); .filter(f:base.F[imm T,base.Bool]):p.Stack[imm T]->f#[read](e).if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]->this.filter[imm](f)+[imm](e); mut .else:p.Stack[T]->this.filter[imm](f)}); +(_:imm T):p.Stack[imm T]}}
-""",List.of(importTo10+stackStart));}
+""", List.of(importTo10+stackStart));}
 
 @Test void inferStackGuideExampleSum(){okI("""
 [###]~-----------
@@ -243,7 +243,7 @@ p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_GR:imm](p.StackMatch[imm T,_GR]):_GR@p
 ns.fold[imm,base.Nat](base.Zero,\
  imm p._AZ0Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
-""",List.of(importTo10+stackStart+"""
+""", List.of(importTo10+stackStart+"""
 Z0ExampleSum: { #(ns: Stack[Nat]): Nat -> ns.fold(Zero, { n1,n2 -> n1 + n2 })  }
 """));}
 @Test void inferStackGuideExampleTimes(){okI("""
@@ -255,7 +255,7 @@ Z0ExampleSum: { #(ns: Stack[Nat]): Nat -> ns.fold(Zero, { n1,n2 -> n1 + n2 })  }
 ns.fold[imm,base.Nat](base.One,\
  imm p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1*[imm](n2)})}
-""",List.of(importTo10+stackStart+"""
+""", List.of(importTo10+stackStart+"""
 Z1ExampleTimes: { #(ns: Stack[Nat]): Nat -> ns.fold(One, { n1,n2 -> n1 * n2 })  }
 """));}
 
@@ -269,7 +269,7 @@ imm p._AZ2Ex:p.StackMatch[base.Nat,base.Nat]{'_\
  .empty:base.Nat->base.Zero;\
  .elem(top:base.Nat, tail:p.Stack[base.Nat]):base.Nat\
 ->top+[imm](this.sum[imm](tail))})}
-""",List.of(importTo10+stackStart+"""
+""", List.of(importTo10+stackStart+"""
 Z2Example: {
   .sum(ns: Stack[Nat]): Nat -> ns.match{
     .empty -> Zero;
@@ -288,7 +288,7 @@ imm p._BZ3Ex:p.StackMatch[base.Nat,p.Stack[base.Nat]]{'_\
  .empty:p.Stack[base.Nat]->p.Stack[base.Nat];\
  .elem(top:base.Nat, tail:p.Stack[base.Nat]):p.Stack[base.Nat]\
 ->p.Z3ExampleAdd5.add5[imm](tail)+[imm](top+[imm](base.Five))})}
-""",List.of(importTo10+stackStart+"""
+""", List.of(importTo10+stackStart+"""
 Z3ExampleAdd5:{
   .add5(ns: Stack[Nat]): Stack[Nat] -> ns.match{
     .empty -> {};
@@ -308,7 +308,7 @@ Z3ExampleAdd5:{
  read #(n:base.Nat):base.Nat->n*[imm](base.Three)})\
 .fold[imm,base.Nat](base.Zero, imm p._CZ4Ex:base.F[base.Nat,base.Nat,base.Nat]{'_\
  read #(n1:base.Nat, n2:base.Nat):base.Nat->n1+[imm](n2)})}
-""",List.of(importTo10+stackStart+"""
+""", List.of(importTo10+stackStart+"""
 Z4ExampleFluent: { #(ns: Stack[Nat]): Nat -> ns
   .map { n -> n + Ten }
   .map { n -> n *  Three }
@@ -326,7 +326,7 @@ p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
 ~mut p.B1:p.A{'this .m[Y:imm](z:p.Foo[Y]):Y->z.get[imm]}
 ~mut p.B2:p.A{'this .m[Y:imm](z:p.Foo[Y]):Y->z.beer[imm,Y]}
 ~mut p.Foo[K:imm]:{'this .get:K; .beer[G:imm]:G}
-""",List.of("""
+""", List.of("""
 Foo[K]:{.get:K; .beer[G]:G;}
 A:{.m[X](x:Foo[X]):X}
 B1:A{.m[Y](z)->z.get}
@@ -446,7 +446,7 @@ p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
 ~mut p.A:{'this .m[X:imm](_:p.Foo[X]):X}
 ~mut p.B1[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.get[imm]}
 ~mut p.Foo[K:imm]:{'this .get:K; .beer[G:imm]:G}
-""",List.of("""
+""", List.of("""
 Foo[K]:{.get:K; .beer[G]:G;}
 A:{.m[X](x:Foo[X]):X}
 B1[X]:A{.m(z)->z.get}
@@ -456,7 +456,7 @@ B1[X]:A{.m(z)->z.get}
 [###]~-----------
 ~mut p.User:{'this\
  .m:p.User->imm p.Bla:{'_ .bla:p.User->p.User}.bla[imm]}
-""",List.of("""
+""", List.of("""
 User:{.m:User->
  Bla:{.bla:User->User;}.bla
 }
@@ -465,7 +465,7 @@ User:{.m:User->
 @Test void inLineAnonObject2(){okI("""
 [###]~-----------
 ~mut p.User:{'this .m:p.User->imm p._AUser:p.User{'_ .bla:p.User->p.User; .m:p.User}.bla[imm]}
-""",List.of("""
+""", List.of("""
 User:{.m:User->
  {.bla:User->User;}.bla
 }
@@ -478,7 +478,7 @@ p._AUser:p.A{'_ .m:p.A@p._AUser;->p.A:p.A;}
 ~-----------
 ~mut p.A:{'this }
 ~mut p.User:{'this .m:p.A->imm p._AUser:p.A{'_ .m:p.A->p.A}}
-""",List.of("""
+""", List.of("""
 A:{}
 User:{ .m:A->{ .m:A->A;}; }
 """));}
@@ -497,7 +497,7 @@ the signature must be inherited from a supertype.
 Cannot infer signature of method ".m".
 No supertype has a method named ".m" with 0 parameters.
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A:{}
 User:{ .m:A->{ .m->A;}; }
 """));}
@@ -514,7 +514,7 @@ Sealed types can only be implemented in their own package.
 Type declaration "User" is defined in package "p".
 Type "Void" is defined in package "base".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A:{}
 User:base.Void{ .m:A->A }
 """));}
@@ -531,7 +531,7 @@ Sealed types can only be implemented in their own package.
 Type declaration "User" is defined in package "p".
 Type "Void" is defined in package "base".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A:{}
 User:base.Void{ .foo:A }
 """));}
@@ -548,7 +548,7 @@ Sealed types can only be implemented in their own package.
 Type declaration "User" is defined in package "p".
 Type "Void" is defined in package "base".
 Error 7 WellFormedness
-""",List.of(importMini+"""
+""", List.of(importMini+"""
 A:{}
 User:Void{ .m:A->A }
 """));}
@@ -565,7 +565,7 @@ Sealed types can only be implemented in their own package.
 Object literal instance of "base.Void" is defined in package "p".
 Type "Void" is defined in package "base".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A:{}
 User:{ .m:base.Void->{ .m:A->A;}; }
 """));}
@@ -579,7 +579,7 @@ p.User:{'this .m:base.Void@p.User;->p._AUser:$?:?;}
 ~-----------
 ~mut p.A:{'this }
 ~mut p.User:{'this .m:base.Void->base.Void}
-""",List.of("""
+""", List.of("""
 A:{}
 User:{ .m:base.Void->{ }; }
 """));}
@@ -590,7 +590,7 @@ p.User:{'this .m:base.Void@p.User;->base.Block:?;}
 ~-----------
 ~mut p.A:{'this }
 ~mut p.User:{'this .m:base.Void->base.Block}
-""",List.of("""
+""", List.of("""
 A:{}
 User:{ .m:base.Void->base.Block; }
 """));}
@@ -604,7 +604,7 @@ p.C:p.B, p.A{'this .m:base.Nat@p.B;}
 ~mut p.A:{'this .m:base.Nat->base.1}
 ~mut p.B:p.A{'this .m:base.Nat->base.2}
 ~mut p.C:p.B, p.A{'this .m:base.Nat}
-""",List.of("""
+""", List.of("""
 A: { .m():base.Nat -> 1; }
 B:A{ .m():base.Nat -> 2; }
 C:B{}
@@ -621,7 +621,7 @@ p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:rea
 ~mut p.Box[T:imm,mut,read]:{'this mut .expose:T; read .get:read/imm T}
 ~mut p.MakeBox:{'this #[T:imm,mut,read](t:T):mut p.Box[T]->mut p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T->t; read .get:read/imm T->t}}
 ~mut p.MyB:p.Box[p.MakeBox]{'this .foo:p.MyB->p.MyB; mut .expose:p.MakeBox; read .get:p.MakeBox}
-""",List.of("""
+""", List.of("""
 Box[T:*]:{
   mut .expose:T;
   read .get: read/imm T;
@@ -646,7 +646,7 @@ p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T@p._AMake;->t:T; read .get:rea
 ~mut p.A4[X:read]:p.Box[X]{'this mut .expose:X; read .get:read/imm X}
 ~mut p.Box[T:imm,mut,read]:{'this mut .expose:T; read .get:read/imm T}
 ~mut p.MakeBox:{'this #[T:imm,mut,read](t:T):mut p.Box[T]->mut p._AMake[T:imm,mut,read]:p.Box[T]{'_ mut .expose:T->t; read .get:read/imm T->t}}
-""",List.of("""
+""", List.of("""
 Box[T:*]:{
   mut .expose:T;
   read .get: read/imm T;
@@ -718,7 +718,7 @@ p.User2:{'this .bla(p.Point):base.Void@p.User2;(p)->p.Absorb:?#(p:?.x():?):?;}
 ~mut p.Foo:{'this .m:p.Point->imm p.Point:{'_ .x:base.Nat->base.0; .y:base.Nat->base.0}}
 ~mut p.User1:{'this .bla(p:p.Point):base.Void->p.Absorb#[imm](p)}
 ~mut p.User2:{'this .bla(p:p.Point):base.Void->p.Absorb#[imm](p.x[imm])}
-""",List.of("""
+""", List.of("""
 Foo:{ .m : Point -> Point:{ .x:base.Nat->0; .y:base.Nat->0;} }
 Absorb:{ #[T]:base.Void -> base.Void; }
 User1:{ .bla(p:Point):base.Void -> Absorb#p; }
@@ -731,7 +731,7 @@ User2:{ .bla(p:Point):base.Void -> Absorb#(p.x); }
 ~mut p.Foo:{'this .m:p.Point->imm p.Point:{'_ .x:base.Nat->base.0; .y:base.Nat->base.0}}
 ~mut p.User1:{'this .bla(p:p.Point):base.Void->p.Absorb#[imm,p.Point](p)}
 ~mut p.User2:{'this .bla(p:p.Point):base.Void->p.Absorb#[imm,base.Nat](p.x[imm])}
-""",List.of("""
+""", List.of("""
 Foo:{ .m : Point -> Point:{ .x:base.Nat->0; .y:base.Nat->0;} }
 Absorb:{ #[T](T):base.Void -> base.Void; }
 User1:{ .bla(p:Point):base.Void -> Absorb#p; }
@@ -751,7 +751,7 @@ p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
 ~mut p.B1[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.get[imm]}
 ~mut p.B2[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.beer[imm,X]}
 ~mut p.Foo[K:imm]:{'this .get:K; .beer[G:imm]:G}
-""",List.of("""
+""", List.of("""
 Foo[K]:{.get:K; .beer[G]:G;}
 A:{.m[X](x:Foo[X]):X}
 B1[X]:A{.m(z)->z.get}
@@ -769,7 +769,7 @@ B2[X]:A{.m(z)->z.beer[X]}
 ~mut p.Foo:{'this .get[T:imm](a:T, b:T):T->a}
 ~mut p.I:{'this }
 ~mut p.User:{'this .m:p.I->p.Foo.get[imm,p.A](p.A, p.B)}
-""",List.of("""
+""", List.of("""
 I:{}
 A:I{}
 B:I{}
@@ -784,7 +784,7 @@ User:{.m:I->Foo.get(A,B)}
 ~mut p.Foo:{'this .get[T:imm](a:T, b:T):T->a}
 ~mut p.I:{'this }
 ~mut p.User:{'this .m:p.I->p.Foo.get[imm,p.I](p.A, p.B)}
-""",List.of("""
+""", List.of("""
 I:{}
 A:I{}
 B:I{}
@@ -802,7 +802,7 @@ User:{.m:I->Foo.get[I](A,B)}
 ~mut p.ControlFlowQ[T:imm,mut,read]:{'this mut .match[R3:imm,mut,read](m:mut p.ControlFlowMatchQ[T,R3]):R3->m.return[mut](p.Any#[imm,T])}
 ~mut p.LoopBodyQ[R2:imm,mut,read]:p.ReturnStmtQ[mut p.ControlFlowQ[R2]]{'this mut #:mut p.ControlFlowQ[R2]}
 ~mut p.ReturnStmtQ[R1:imm,mut,read,iso]:{'this mut #:R1}
-""",List.of("""
+""", List.of("""
 Any:{#[T:*]:T->Any#[imm,T]}
 ReturnStmtQ[R1:iso,imm,mut,read]: {mut #: R1}
 LoopBodyQ[R2:*]: ReturnStmtQ[mut ControlFlowQ[R2]]{}
@@ -831,7 +831,7 @@ BlockQ[R5:*]: {
 ~mut p.ControlFlowQ[T:imm,mut,read]:{'this mut .match[R3:imm,mut,read](m:mut p.ControlFlowMatchQ[T,R3]):R3->m.return[mut](p.Any#[imm,T])}
 ~mut p.LoopBodyQ[R2:imm,mut,read]:p.ReturnStmtQ[mut p.ControlFlowQ[R2]]{'this mut #:mut p.ControlFlowQ[R2]}
 ~mut p.ReturnStmtQ[R1:imm,mut,read,iso]:{'this mut #:R1}
-""",List.of("""
+""", List.of("""
 Any:{#[T:*]:T->Any#[imm,T]}
 ReturnStmtQ[R1:iso,imm,mut,read]: {mut #: R1}
 LoopBodyQ[R2:*]: ReturnStmtQ[mut ControlFlowQ[R2]]{}
@@ -865,7 +865,7 @@ BlockQ[R5:*]: {
 ~mut p.LoopBody[R:imm,mut,read]:p.ReturnStmt[mut p.ControlFlow[R]]{'this mut #:mut p.ControlFlow[R]}
 ~mut p.ReturnStmt[R:imm,mut,read,iso]:{'this mut #:R}
 ~mut p._DecidedBlock:{'this #[R1:imm,mut,read](res:R1):mut p.Block[R1]->mut p._BDeci[R1:imm,mut,read]:p.Block[R1]{'self mut .return(_:mut p.ReturnStmt[R1]):R1->res; mut .do(_:mut p.ReturnStmt[base.Void]):mut p.Block[R1]->self; mut .let[X:imm,mut,read](_:mut p.ReturnStmt[X], _:mut p.Continuation[X,mut p.Block[R1],R1]):R1->res; mut .openIso[X:imm,mut,read,iso](_:iso X, _:mut p.Continuation[mut X,mut p.Block[R1],R1]):R1->res; mut .if(_:mut p.Condition):mut p.BlockIf[R1]->mut p._ADeci[R1:imm,mut,read]:p.BlockIf[R1]{'_ mut .return(_:mut p.ReturnStmt[R1]):mut p.Block[R1]->self; mut .do(_:mut p.ReturnStmt[base.Void]):mut p.Block[R1]->self}; mut .loop(_:mut p.LoopBody[R1]):mut p.Block[R1]->self; mut .done:base.Void; mut ._do(_:base.Void):mut p.Block[R1]}}
-""",List.of("""
+""", List.of("""
 use base.Void as Void; use base.Bool as Bool;
 Any:{#[T]:T->Any#[imm,T]}
 ReturnStmt[R:iso,imm,mut,read]: {mut #: R}
@@ -960,7 +960,7 @@ p.User:{'this mut .go[R:imm,mut,read](mut p.Box[R],R):p.Dool@p.User;(b, x)->b:?.
 ~mut p.Box[X:imm,mut,read]:{'this mut .f[R:imm,mut,read](_:X):R}
 ~mut p.Dool:{'this }
 ~mut p.User:{'this mut .go[R:imm,mut,read](b:mut p.Box[R], x:R):p.Dool->b.f[mut,p.Dool](x)}
-""",List.of("""
+""", List.of("""
 Dool:{}
 Box[X:*]:{ mut .f[R:*](x: X): R }
 User:{
@@ -982,7 +982,7 @@ p._BUser:p.F[p.User,p.User,p.Dool]{'_ #(p.User,p.User):p.Dool@p._BUser;(aa, bb)-
 ~mut p.Dool:{'this }
 ~mut p.F[A:imm,B:imm,C:imm]:{'this #(_:A, _:B):C}
 ~mut p.User:{'this mut .go1[R:imm,mut,read](b:p.Box[R]):p.Dool->b.f[imm,p.Dool](imm p._AUser[R:imm,mut,read]:p.F[imm R,imm R,p.Dool]{'_ #(aa:imm R, bb:imm R):p.Dool->p.Any#[imm,p.Dool]}); mut .go2(b:p.Box[p.User]):p.Dool->b.f[imm,p.Dool](imm p._BUser:p.F[p.User,p.User,p.Dool]{'_ #(aa:p.User, bb:p.User):p.Dool->p.Any#[imm,p.Dool]})}
-""",List.of("""
+""", List.of("""
 Any:{#[T]:T}
 Dool:{}
 F[A,B,C]:{ #(A,B):C }
@@ -1006,7 +1006,7 @@ p._AUser:p.F[p.User,p.Dool]{'_ #(p.User):p.Dool@p._AUser;(aa)->p.Any:p.Any#[imm,
 ~mut p.Dool:{'this }
 ~mut p.F[A:imm,C:imm]:{'this #(_:A):C}
 ~mut p.User:{'this mut .go(b:p.Box):p.Dool->b.f[imm,p.Dool](imm p._AUser:p.F[p.User,p.Dool]{'_ #(aa:p.User):p.Dool->p.Any#[imm,p.Dool]})}
-""",List.of("""
+""", List.of("""
 Any:{#[T]:T}
 Dool:{}
 F[A,C]:{ #(A):C }
@@ -1023,7 +1023,7 @@ User:{
  mut .foo123:p.A->this.foo123[mut];\
  read .foo123:p.A->this.foo123[read];\
  .bar:p.A->this.foo123[read]}
-""",List.of("""
+""", List.of("""
 A:{mut .foo123:A->this.foo123; read .foo123:A->this.foo123; imm .bar:A->this.foo123;}
 """));}
 
@@ -1033,7 +1033,7 @@ A:{mut .foo123:A->this.foo123; read .foo123:A->this.foo123; imm .bar:A->this.foo
 ~mut p.A:{'this\
  mut .foo123:p.A->this.foo123[mut];\
  .bar:p.A->this.foo123[mut]}
-""",List.of("""
+""", List.of("""
 A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
 """));}
 
@@ -1041,7 +1041,7 @@ A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
 [###]
 ~-----------
 ~mut p.A:{'this .foo123:p.A->this.foo123[imm]; read .foo123:p.A->this.foo123[read]; mut .bar:p.A->this.foo123[read]}
-""",List.of("""
+""", List.of("""
 A:{imm .foo123:A->this.foo123; read .foo123:A->this.foo123; mut .bar:A->this.foo123;}
 """));}
 
@@ -1076,7 +1076,7 @@ A:{
 ~mut p.A:{'this .f(aaaa:mut p.A):read p.B->read p.BB:p.B{'_\
  read .foo:p.B->p.Skip#[imm,read p.A](p.Id#[imm,read p.A](aaaa))}}
 [###]
-""",List.of("""
+""", List.of("""
 Skip:{#[X:**](X):B->B}
 Id:{#[X:**](x:X):X->x}
 B:{}
@@ -1091,7 +1091,7 @@ A:{
 read p._BUser:p.Wrap{'_ read .wrap:p.Get->\
 mut p._AUser:p.Get{'_ .get:iso p.A->pppName}}}
 ~mut p.Wrap:{'this read .wrap:p.Get}
-""",List.of("""
+""", List.of("""
 A:{}
 Get:{ imm .get: iso A; }
 Wrap:{ read .wrap: imm Get; }
@@ -1108,7 +1108,7 @@ User:{
 ~mut p.B:{'this }
 ~mut p.Need:{'this #(a:mut p.A):p.B->p.B}
 ~mut p.User:{'this .f:p.B->p.Need#[imm](p.A)}
-""",List.of("""
+""", List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
 A:{}
@@ -1124,7 +1124,7 @@ User:{
 ~mut p.User:{'this\
  .go(e:p.E1):p.E2->p.Map#[imm,p.E1,p.E2]\
 (e, imm p._AUser:p.F[p.E1,p.E2]{'_ #(_:p.E1):p.E2->p.E2})}
-""",List.of("""
+""", List.of("""
 F[R]:{#:R}
 F[A,R]:{#(A):R}
 F[A,B,R]:{#(A,B):R}
@@ -1140,7 +1140,7 @@ User:{.go(e:E1):E2->Map#(e,{_->E2}) }
 ~mut p.User:{'this\
  .go(e:p.E1):p.E2->p.Map#[imm,p.E1,p.E2]\
 (imm p._AUser:p.F[p.E1,p.E2]{'_ #(_:p.E1):p.E2->p.E2}, e)}
-""",List.of("""
+""", List.of("""
 F[R]:{#:R}
 F[A,R]:{#(A):R}
 F[A,B,R]:{#(A,B):R}
@@ -1155,7 +1155,7 @@ User:{.go(e:E1):E2->Map#({_->E2},e) }
 [###]
 ~mut p.Snd:{'this #[A:imm](x:p.Int):p.F[A,A]->imm p._ASnd[A:imm]:p.F[imm A,imm A]{'_ #(y:imm A):imm A->y}}
 ~mut p.User2:{'this .go2:p.Float->p.Snd#[imm,p.Float](p.Int)#[imm](p.Float)}
-""",List.of("""
+""", List.of("""
 F[A,R]:{#(A):R}
 Int:{}
 Float:{}
@@ -1167,7 +1167,7 @@ User2:{.go2:Float->(Snd#Int)#Float}
 [###]
 ~mut p.TestIt:{'this .go:p.Float->p.Trash#[imm,p.Int](p.One)}
 ~mut p.Trash:{'this #[T:imm](_:T):p.Float->p.FOne}
-""",List.of("""
+""", List.of("""
 Int:base.WidenTo[Int]{}
 One:Int{}
 Float:base.WidenTo[Float]{}
@@ -1182,7 +1182,7 @@ TestIt:{.go:Float->Trash#(One) }
 ~mut p.User3:{'this .go3:p.Float->p.Trash#[imm,p.F[base.InferUnknown,base.InferUnknown]](p.Top.top[imm,base.InferUnknown](imm p._BUser:p.F[p.Int,p.F[base.InferUnknown,base.InferUnknown]]{'_ #(x:p.Int):p.F[base.InferUnknown,base.InferUnknown]->imm p._AUser:p.F[base.InferUnknown,base.InferUnknown]{'_ #(y:base.InferUnknown):base.InferUnknown->y}})#[imm](p.One))}
 ~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._DUser[A:imm]:p.F[p.Int,p.F[A,A]]{'_ #(x:p.Int):p.F[A,A]->imm p._CUser[A:imm]:p.F[imm A,imm A]{'_ #(y:imm A):imm A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
 ~mut p.User5:{'this .go3:p.Float->p.Trash#[imm,p.Float](p.Top.top[imm,p.Float](imm p._FUser:p.F[p.Int,p.F[p.Float,p.Float]]{'_ #(x:p.Int):p.F[p.Float,p.Float]->imm p._EUser:p.F[p.Float,p.Float]{'_ #(y:p.Float):p.Float->y}})#[imm](p.One)#[imm](p.FOne))}
-""",List.of("""
+""", List.of("""
 F[A,R]:{#(A):R}
 Int:base.WidenTo[Int]{}
 One:Int{}
@@ -1207,7 +1207,7 @@ User5:{.go3:Float->Trash#(Top.top {x->{y->y}} # One # FOne) }
 [###]
 ~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._BUser[A:imm]:p.F[p.Int,p.F[A,A]]{'_ #(x:p.Int):p.F[A,A]->imm p._AUser[A:imm]:p.F[imm A,imm A]{'_ #(y:imm A):imm A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
 ~mut p.User5:{'this .go3:p.Float->p.Trash#[imm,p.Float](p.Top.top[imm,p.Float](imm p._DUser:p.F[p.Int,p.F[p.Float,p.Float]]{'_ #(x:p.Int):p.F[p.Float,p.Float]->imm p._CUser:p.F[p.Float,p.Float]{'_ #(y:p.Float):p.Float->y}})#[imm](p.One)#[imm](p.FOne))}
-""",List.of("""
+""", List.of("""
 F[A,R]:{#(A):R}
 Int:base.WidenTo[Int]{}
 One:Int{}
@@ -1239,7 +1239,7 @@ While inspecting method declaration > object literal > method body > method decl
 Abstract method declaration for ".bar".
 Only top level methods can be abstract.
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A:{}
 Main:{
   .m:A -> { .bar:A }.foo
@@ -1251,7 +1251,7 @@ Main:{
 [###]
 ~mut p.A[X:imm]:{'this .bar:p.Foo; .makeTrash:p.Foo->imm p._AA[X:imm]:p.Foo{'_ .capture:p.Foo->this.bar[imm]}}
 ~mut p.Foo:{'this .capture:p.Foo}
-""",List.of("""
+""", List.of("""
 Foo:{.capture:Foo}
 A[X]:{
   .bar:Foo;
@@ -1263,7 +1263,7 @@ A[X]:{
 [###]
 ~mut p.A[X:imm]:{'this .bar[K:imm]:p.Foo[K]; .makeTrash[Z:imm]:p.Foo[Z]->imm p._AA[Z:imm,X:imm]:p.Foo[imm Z]{'_ .capture:p.Foo[imm Z]->this.bar[imm,imm Z]}}
 ~mut p.Foo[Z:imm]:{'this .capture:p.Foo[Z]}
-""",List.of("""
+""", List.of("""
 Foo[Z]:{.capture:Foo[Z]}
 A[X]:{
   .bar[K]:Foo[K];
@@ -1275,7 +1275,7 @@ A[X]:{
 [###]
 ~mut p.OrderBy[T:imm]:p.F[T,read p.Order[T]]{'this .view[A:imm](f:p.F[A,read T]):p.OrderBy[A]->imm p._BOrde[A:imm,T:imm]:p.OrderBy[imm A], p.F[imm A,read p.Order[imm A]]{'_ #(a:imm A):read p.Order[imm A]->read p._AOrde[A:imm,T:imm]:p.Order[imm A]{'_ <=>(b:imm A):p.Void->this#[imm](f#[imm](a))<=>[imm](f#[imm](b))}; .view[_AA:imm](_:p.F[_AA,read A]):p.OrderBy[_AA]}; #(_:T):read p.Order[T]}
 [###]
-""",List.of("""
+""", List.of("""
 F[A,B]:{#(A):B}
 Void:{}
 Order[T]: { <=>(other: T): Void; }
@@ -1290,7 +1290,7 @@ OrderBy[T]:F[T,read Order[T]]{
 ~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->imm p._AMap[B:imm,R:imm,A:imm]:p.F[imm B,imm R]{'_ #(b:imm B):imm R->f.core[imm,imm B](a, b)}}
 [###]
 ~mut p.User:{'this .done[Y:imm](t1:p.T1, t2:p.T2, y:Y):p.T3[Y]->p.Map.of[imm,p.T1,imm Y,p.T3[Y]](t1, imm p._AUser[Y:imm]:p.GF[p.T1,p.T3[Y]]{'_ .core[WW:imm](a:p.T1, b:WW):p.T3[imm WW]->a.and[imm,imm WW](b)})#[imm](y)}
-""",List.of("""
+""", List.of("""
 GF[A,R]:{.core[B](A,B):R}
 F[A,R]:{#(A):R}
 T1:{.and[X](X):T3[X]}
@@ -1306,7 +1306,7 @@ User:{.done[Y](t1:T1,t2:T2,y:Y):T3[Y]->
 ~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->imm p._AMap[B:imm,R:imm,A:imm]:p.F[imm B,imm R]{'_ #(b:imm B):imm R->f.core[imm,imm B](a, b)}}
 [###]
 ~mut p.User:{'this .done[Y:imm](t1:p.T1, t2:p.T2, y:Y):p.AnyT3->p.Map.of[imm,p.T1,imm Y,p.AnyT3](t1, imm p._AUser:p.GF[p.T1,p.AnyT3]{'_ .core[WW:imm](a:p.T1, b:WW):p.AnyT3->a.and[imm,imm WW](b)})#[imm](y)}
-""",List.of("""
+""", List.of("""
 GF[A,R]:{.core[B](A,B):R}
 F[A,R]:{#(A):R}
 T1:{.and[X](X):T3[X]}
@@ -1324,7 +1324,7 @@ User:{.done[Y](t1:T1,t2:T2,y:Y):AnyT3->
 ~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->imm p._AMap[B:imm,R:imm,A:imm]:p.F[imm B,imm R]{'_ #(b:imm B):imm R->f.core[imm,imm B](a, b)}}
 [###]
 ~mut p.User:{'this .done[Y:imm](t1:p.T1, t2:p.T2, y:Y):p.T3[Y]->p.Map.of[imm,p.T1,imm Y,p.T3[Y]](t1, imm p._AUser[Y:imm]:p.GF[p.T1,p.T3[Y]]{'_ .core[B:imm](a:p.T1, b:B):p.T3[imm B]->a.and[imm,imm B](b)})#[imm](y)}
-""",List.of("""
+""", List.of("""
 GF[A,R]:{.core[B](A,B):R}
 F[A,R]:{#(A):R}
 T1:{.and[X](X):T3[X]}
@@ -1338,7 +1338,7 @@ User:{.done[Y](t1:T1,t2:T2,y:Y):T3[Y]->
 @Test void wrongTargsTooManyDoesNotLeakClsBinder1(){okI("""
 [###]
 ~mut p.User:{'this .go:p.Bool->p.Flows.flow[read].mapping[imm,p.KeyElem[p.Str,p.Info],p.Str,p.Info](imm p._AUser:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],p.Str,p.Info]{'_ .key(e:p.KeyElem[p.Str,p.Info]):p.Str->e.key[imm]; .elem(e:p.KeyElem[p.Str,p.Info]):p.Info->e.elem[imm]})}
-""",List.of("""
+""", List.of("""
 Str:{} Info:{} Bool:{} True:{} False:{}
 KeyElem[K,E]:{.key:K;.elem:E;}
 KeyElemMapper[A,K,E]:{.key(A):K;.elem(A):E;}
@@ -1365,7 +1365,7 @@ User:{.go:Bool->
 @Test void wrongTargsTooFewPadsErr1(){okI("""
 [###]
 ~mut p.User:{'this .go:p.Bool->p.Flows.flow[read].mapping[imm,p.Str](imm p._AUser:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],p.Str,p.Info]{'_ .key(e:p.KeyElem[p.Str,p.Info]):p.Str->e.key[imm]; .elem(e:p.KeyElem[p.Str,p.Info]):p.Info->e.elem[imm]})}
-""",List.of("""
+""", List.of("""
 Str:{} Info:{} Bool:{} True:{} False:{}
 KeyElem[K,E]:{.key:K;.elem:E;}
 KeyElemMapper[A,K,E]:{.key(A):K;.elem(A):E;}
@@ -1398,7 +1398,7 @@ User:{.go:Bool->
 ~mut p.Str:{'this }
 ~mut p.True:{'this }
 ~mut p.User:{'this .go:p.Bool->p.Flows.flow[read].mapping[imm,p.KeyElem[p.Str,p.Info],p.Str,p.Info](imm p._AUser:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],p.KeyElem[p.Str,p.Info],p.Str]{'_ .key(e:p.KeyElem[p.Str,p.Info]):p.KeyElem[p.Str,p.Info]->e.key[imm]; .elem(e:p.KeyElem[p.Str,p.Info]):p.Str->e.elem[imm]})}
-""",List.of("""
+""", List.of("""
 Str:{} Info:{} Bool:{} True:{} False:{}
 KeyElem[K,E]:{.key:K;.elem:E;}
 KeyElemMapper[A,K,E]:{.key(A):K;.elem(A):E;}
@@ -1428,7 +1428,7 @@ User:{.go:Bool->
 ~mut p.Top:{'this .m(b:p.Box[p.A]):p.Str->\
 b.str[read](imm p._ATop:p.ToStrBy[p.A]{'_\
  #(_aimpl:read p.A):read p.ToStr->_aimpl})}
-""",List.of("""
+""", List.of("""
 Str:{}
 ToStr:{ read .str: Str }
 ToStrBy[T]:{#(read T):read ToStr}
@@ -1447,7 +1447,7 @@ Top:{
 @Test void inferFromExpected_swap_ok(){ okI("""
 [###]
 ~mut p.Use:{'this read .u:p.Bar[p.Nat,p.Str]->p.Mk.mk[read,p.Str,p.Nat]}
-""",List.of("""
+""", List.of("""
 Nat:{} Str:{}
 Bar[X:*,Y:*]:{}
 Foo[A:*,B:*]:Bar[B,A]{}
@@ -1462,7 +1462,7 @@ Use:{
 @Test void inferFromExpected_nested_ok(){ okI("""
 [###]
 ~mut p.Use:{'this read .u:p.Bar[p.Nat,p.List[p.Str]]->p.Mk.mk[read,p.Str,p.Nat]}
-""",List.of("""
+""", List.of("""
 Nat:{} Str:{} List[T:*]:{}
 Bar[X:*,Y:*]:{}
 Foo[A:*,B:*]:Bar[B,List[A]]{}
@@ -1478,7 +1478,7 @@ Use:{
 @Test void inferFromExpected_recursive_ok(){ okI("""
 [###]
 ~mut p.Use:{'this read .u:p.Bar3[p.Nat,p.Str,p.Foo[p.Str,p.Nat]]->p.Mk.mk[read,p.Str,p.Nat]}
-""",List.of("""
+""", List.of("""
 Nat:{} Str:{}
 Bar3[X:*,Y:*,Z:*]:{}
 Foo[A:*,B:*]:Bar3[B,A,Foo[A,B]]{}
@@ -1494,7 +1494,7 @@ Use:{
 @Test void inferFromExpected_multiHop_ok(){ okI("""
 [###]
 ~mut p.Use:{'this read .u:p.Bar[p.Nat,p.Str]->p.Mk.mk[read,p.Str,p.Nat]}
-""",List.of("""
+""", List.of("""
 Nat:{} Str:{}
 Bar[X:*,Y:*]:{}
 Mid[A:*,B:*]:Bar[B,A]{}
@@ -1511,7 +1511,7 @@ Use:{
 @Test void inferFromExpected_partial_ok(){ okI("""
 [###]
 ~mut p.Use:{'this read .u:p.Bar1[p.Nat]->p.Mk.mk[read,base.InferUnknown,p.Nat]}
-""",List.of("""
+""", List.of("""
 Nat:{} Str:{}
 Bar1[X:*]:{}
 Foo[A:*,B:*]:Bar1[B]{}
@@ -1532,7 +1532,7 @@ Use:{
  .m(a:p.A):p.A->p.Any![imm,p.A]}}
 ~mut p.User3:{'this .foo:p.B->imm p.C3:p.B{'_\
  .m(a:p.A):p.A->p.Any![imm,p.A]}}
-""",List.of("""
+""", List.of("""
 Any:{![T]:T->Any!}
 A:{.baz:A}
 B:{ .m(a:A):A; }
@@ -1548,7 +1548,7 @@ p._ABoxs[ET:imm,mut,read]:p.Box[ET]{'_ .get:imm ET@p._ABoxs;->e:imm ET;}
 ~-----------
 ~mut p.Box[EE:imm,mut,read]:{'this .get:imm EE}
 ~mut p.Boxs1:{'this #[ET:imm,mut,read](e:ET):mut p.Box[ET]->mut p._ABoxs[ET:imm,mut,read]:p.Box[ET]{'_ .get:imm ET->e}}
-""",List.of("""
+""", List.of("""
 Box[EE:*]:{
   imm  .get: imm EE;
   }
@@ -1565,7 +1565,7 @@ p._BBoxs[ET:imm,mut,read]:p.Box[ET]{'_ mut .get:ET@p._BBoxs;->e:ET; read .get:re
 ~mut p.Box[EE:imm,mut,read]:{'this mut .get:EE; read .get:read/imm EE; .get:imm EE}
 ~mut p.Boxs1:{'this #[ET:imm,mut,read](e:ET):mut p.Box[ET]->mut p._ABoxs[ET:imm,mut,read]:p.Box[ET]{'_ mut .get:ET->e; read .get:read/imm ET->e; .get:imm ET->e}}
 ~mut p.Boxs:{'this #[ET:imm,mut,read](e:ET):mut p.Box[ET]->mut p._BBoxs[ET:imm,mut,read]:p.Box[ET]{'_ mut .get:ET->e; read .get:read/imm ET->e; .get:imm ET->e}}
-""",List.of("""
+""", List.of("""
 Box[EE:*]:{
   mut  .get: EE;
   read .get: read/imm EE;
@@ -1585,7 +1585,7 @@ Boxs:{#[ET:*](e:ET):mut Box[ET]->{e}}
  .m1:p.A->p.A;\
  .m2:read p.A->read p.A;\
  .m3:mut p.A->mut p.A}
-""",List.of("""
+""", List.of("""
 A:{}
 B:{
   .m1:A->{};
@@ -1599,7 +1599,7 @@ B:{
 ~mut p.B:{'this .m1:p.A[p.B]->p.A[p.B];\
  .m2:read p.A[read p.B]->read p.A[read p.B];\
  .m3:mut p.A[mut p.B]->mut p.A[mut p.B]}
-""",List.of("""
+""", List.of("""
 A[T:*]:{}
 B:{
   .m1:A[B]->{};
@@ -1613,7 +1613,7 @@ B:{
  .m2a:read p.A[read X]->read p.A[read X];\
  .m2b:read p.A[read/imm X]->read p.A[read/imm X];\
  .m3:mut p.A[mut X]->mut p.A[mut X]}
-""",List.of("""
+""", List.of("""
 A[T:*]:{}
 B[X]:{
   .m1:A[X]->{};
@@ -1632,7 +1632,7 @@ B[X]:{
 ~mut p.KK[E:imm,mut,read]:p.I[E]{'this read\
  .m:mut p.Opt[read/imm E]->mut p.Opt[read/imm E]}
 [###]
-""",List.of("""
+""", List.of("""
 A[T:*]:{}
 B[X]:{
   .m1:A[X];
@@ -1659,7 +1659,7 @@ KK[E:*]:I[E]{
 ~mut p.L1[E:imm]:{'this read .opt:mut p.O1[read/imm E]->mut p.O1[read/imm E]}
 ~mut p.L2[E:imm]:{'this read .opt:mut p.O2[read/imm E]->mut p.O2[read/imm E]}
 [###]
-""",List.of("""
+""", List.of("""
 M1[E:*]:{}
 O1[E:*]:{  read .match[R:**](m: mut M1[read/imm E]):R->this.match m; }
 L1[E]:{ read .opt:mut O1[read/imm E]->{}; }
@@ -1682,7 +1682,7 @@ the signature must be inherited from a supertype.
 Cannot infer signature of method ".turn".
 No supertype has a method named ".turn" with 0 parameters.
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 North: {.turn-> East; }
 East : {.turn-> South;}
 South: {.turn-> West; }
@@ -1707,7 +1707,7 @@ p.B[Y:imm]:{'this .m(p.A[Y]):p.A[Y]@p.B;(_)->p.A[Y]:?;}
 ~-----------
 ~mut p.A[X:imm]:base.WidenTo[X]{'this }
 ~mut p.B[Y:imm]:{'this .m(_:p.A[Y]):p.A[Y]->p.A[Y]}
-""",List.of("""
+""", List.of("""
 A[X]:base.WidenTo[X]{}
 B[Y]:{.m(A[Y]):A[Y]->A[Y]}
 """));}
@@ -1720,7 +1720,7 @@ p.Target:p.Sup, base.WidenTo[p.Target]{'this}
 ~mut p.B:{'this .m:p.Target->p.Sup}
 ~mut p.Sup:base.WidenTo[p.Target]{'this }
 ~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this }
-""",List.of("""
+""", List.of("""
 Sup:base.WidenTo[Target]{}
 Target:Sup{}
 B:{.m:Target->Sup{}}
@@ -1735,7 +1735,7 @@ p._AB:p.Sup, base.WidenTo[p.Target]{'_ .foo:base.Str@p._AB;->base.Str:base.Str;}
 ~mut p.B:{'this .m:p.Target->imm p._AB:p.Sup, base.WidenTo[p.Target]{'_ .foo:base.Str->base.Str}}
 ~mut p.Sup:base.WidenTo[p.Target]{'this .foo:base.Str}
 ~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this .foo:base.Str}
-""",List.of("""
+""", List.of("""
 Sup:base.WidenTo[Target]{ .foo:base.Str }
 Target:Sup{}
 B:{.m:Target->Sup{.foo->base.Str}}
@@ -1750,7 +1750,7 @@ p.Target:p.Sup, base.WidenTo[p.Target]{'this}
 ~mut p.B:{'this .m:p.Target->imm p.N:p.Sup, base.WidenTo[p.Target]{'_ }}
 ~mut p.Sup:base.WidenTo[p.Target]{'this }
 ~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this }
-""",List.of("""
+""", List.of("""
 Sup:base.WidenTo[Target]{}
 Target:Sup{}
 B:{.m:Target-> N:Sup{} }
@@ -1765,7 +1765,7 @@ p._AB:p.Sub, p.Sup, base.WidenTo[p.Sup]{'_ .foo:base.Str@p._AB;->base.Str:base.S
 ~mut p.B:{'this .m:p.Sub->imm p._AB:p.Sub, p.Sup, base.WidenTo[p.Sup]{'_ .foo:base.Str->base.Str; .bar:base.Str}}
 ~mut p.Sub:p.Sup, base.WidenTo[p.Sup]{'this .bar:base.Str->base.Str; .foo:base.Str}
 ~mut p.Sup:base.WidenTo[p.Sup]{'this .foo:base.Str}
-""",List.of("""
+""", List.of("""
 Sup:base.WidenTo[Sup]{ .foo:base.Str }
 Sub:Sup{ .bar:base.Str->base.Str }
 B:{.m:Sub->Sub{.foo->base.Str}}
@@ -1780,7 +1780,7 @@ p._AB:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'_ .close(p.MyT):p.D[p.MyT,base.S
 ~mut p.B:{'this .m:p.D[p.MyT,base.Str]->imm p._AB:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'_ .close(t:p.MyT):p.D[p.MyT,base.Str]->t}}
 ~mut p.D[T:imm,T0:imm]:base.WidenTo[T]{'this .close(_:T):p.D[T,T0]}
 ~mut p.MyT:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'this .close(t:p.MyT):p.D[p.MyT,base.Str]->t}
-""",List.of("""
+""", List.of("""
 D[T,T0]:base.WidenTo[T]{ .close(t:T):D[T,T0] }
 MyT:D[MyT,base.Str]{ .close(t)->t }
 B:{.m:D[MyT,base.Str]->D[MyT,base.Str]{.close(t)->t}}
@@ -1795,7 +1795,7 @@ p._AB:p.Sup, base.WidenTo[p.Target]{'_ mut .foo:base.Str@p._AB;->base.Str:base.S
 ~mut p.B:{'this .m:mut p.Target->mut p._AB:p.Sup, base.WidenTo[p.Target]{'_ mut .foo:base.Str->base.Str}}
 ~mut p.Sup:base.WidenTo[p.Target]{'this mut .foo:base.Str}
 ~mut p.Target:p.Sup, base.WidenTo[p.Target]{'this mut .foo:base.Str}
-""",List.of("""
+""", List.of("""
 Sup:base.WidenTo[Target]{ mut .foo:base.Str }
 Target:Sup{}
 B:{.m:mut Target->mut Sup{.foo->base.Str}}
@@ -1810,7 +1810,7 @@ p.Target:{'this .foo(p.Target):p.Target@p.Target;}
 ~mut p.B:{'this .m:p.Sup->imm p.N:p.Sup, base.WidenTo[p.Target]{'_ .foo(x:base.Str):base.Str->x}}
 ~mut p.Sup:{'this .foo(_:base.Str):base.Str}
 ~mut p.Target:{'this .foo(_:p.Target):p.Target}
-""",List.of("""
+""", List.of("""
 Target:{ .foo(x:Target):Target }
 Sup:{ .foo(x:base.Str):base.Str }
 B:{ .m:Sup-> N:Sup,base.WidenTo[Target]{ .foo(x)->x } }
@@ -1825,7 +1825,7 @@ p.Target:{'this .foo(p.Target):p.Target@p.Target;}
 ~mut p.B:{'this .m:p.Sup->imm p.N:p.Sup{'_ .foo(x:base.Str):base.Str->x}}
 ~mut p.Sup:{'this .foo(_:base.Str):base.Str}
 ~mut p.Target:{'this .foo(_:p.Target):p.Target}
-""",List.of("""
+""", List.of("""
 Target:{ .foo(x:Target):Target }
 Sup:{ .foo(x:base.Str):base.Str }
 B:{ .m:Sup-> N:Sup{ .foo(x)->x } }

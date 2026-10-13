@@ -12,47 +12,47 @@ import utils.Join;
 public sealed interface T{
   TSpan span();
   record X(String name, TSpan span) implements T{
-    public X{ assert validate(name,"generic type name", _XId); }
-    public String toString(){ return name; }
+    public X{ assert validate(name, "generic type name", _XId); }
+    @Override public String toString(){ return name; }
   }
   record RCX(RC rc, X x) implements T{
-    public RCX{ assert nonNull(rc,x); }
-    public String toString(){ return rc.name()+" "+x.name; }
-    public TSpan span(){ return x.span();}
-    public Optional<RC> explicitRC(){ return Optional.of(rc); }
+    public RCX{ assert nonNull(rc, x); }
+    @Override public String toString(){ return rc.name()+" "+x.name; }
+    @Override public TSpan span(){ return x.span();}
+    @Override public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   record ReadImmX(X x) implements T{
     public ReadImmX{ assert nonNull(x); }
-    public String toString(){ return "read/imm "+x.name; }
-    public TSpan span(){ return x.span();}
+    @Override public String toString(){ return "read/imm "+x.name; }
+    @Override public TSpan span(){ return x.span();}
   }
   record C(TName name, List<T> ts) implements KindingTarget{
     public C{
-      assert unmodifiable(ts,"T.C.ts");
-      assert eq(ts.size(), name.arity(),"Type arity");
+      assert unmodifiable(ts, "T.C.ts");
+      assert eq(ts.size(), name.arity(), "Type arity");
     }
-    public String toString(){
-      return name.s()+Join.of(ts,"[",",","]","");
+    @Override public String toString(){
+      return name.s()+Join.of(ts, "[", ",", "]", "");
     }
-    public C withTs(List<T> ts){ return new C(name,ts); }
-    public TSpan span(){
+    public C withTs(List<T> ts){ return new C(name, ts); }
+    @Override public TSpan span(){
       var start= name.pos();
-      if (ts.isEmpty()){ return TSpan.fromPos(start,name.s().length()); }
+      if (ts.isEmpty()){ return TSpan.fromPos(start, name.s().length()); }
       var end= ts.getLast().span().inner;
       var len= end.endCol() - start.column();
       var bad= len <= 0 || end.endLine() < start.line();
-      if (bad){ return TSpan.fromPos(start,name.s().length()); }
+      if (bad){ return TSpan.fromPos(start, name.s().length()); }
       return new TSpan(new Span(start.fileName(),
-        start.line(),start.column(),
-        end.endLine(),end.endCol()+1));//the closing "]"
+        start.line(), start.column(),
+        end.endLine(), end.endCol()+1));//the closing "]"
     }
   }
   record RCC(RC rc, C c, TSpan span) implements T{
-    public RCC{ assert nonNull(rc,c); }
-    public String toString(){ return rc.toStrSpace() + c; }
-    public RCC withTs(List<T> ts){ return new RCC(rc,c.withTs(ts),span); }
-    public RCC withRC(RC rc){ return new RCC(rc,c,span); }
-    public Optional<RC> explicitRC(){ return Optional.of(rc); }
+    public RCC{ assert nonNull(rc, c); }
+    @Override public String toString(){ return rc.toStrSpace() + c; }
+    public RCC withTs(List<T> ts){ return new RCC(rc, c.withTs(ts), span); }
+    @Override public RCC withRC(RC rc){ return new RCC(rc, c, span); }
+    @Override public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   default T withRC(RC rc){ return switch (this){ // T[RC]
     case RCC(_, var c, var span) -> new RCC(rc, c, span);

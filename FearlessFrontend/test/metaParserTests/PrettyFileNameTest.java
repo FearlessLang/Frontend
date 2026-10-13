@@ -9,14 +9,14 @@ import org.junit.jupiter.api.Test;
 
 import metaParser.PrettyFileName;
 
-public class PrettyFileNameTest{
+public final class PrettyFileNameTest{
   static final Path cwd= Path.of("").toAbsolutePath();
   static void same(String uri){ assertEquals(uri, PrettyFileName.displayFileName(URI.create(uri))); }
   @Test void fearUriVerbatim(){ same("fear:/_pkb/_rank_app200.fear"); }
   @Test void longUriNotTruncated(){ same("fear:/"+"a/".repeat(60)+"b.fear"); }
   @Test void underCwdIsRelative(){
     var p= cwd.resolve("src").resolve("a.fear");
-    assertEquals(Path.of("src","a.fear").toString(), PrettyFileName.displayFileName(p.toUri()));
+    assertEquals(Path.of("src", "a.fear").toString(), PrettyFileName.displayFileName(p.toUri()));
   }
   @Test void cwdItselfIsAbsolute(){ assertEquals(cwd.toString(), PrettyFileName.displayFileName(cwd.toUri())); }
   @Test void outsideCwdIsAbsolute(){

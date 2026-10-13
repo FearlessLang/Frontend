@@ -12,19 +12,19 @@ public interface OtherPackages{
   Collection<TName> dom();
   long stamp();
   Map<String,Map<String,String>> virtualizationMap();
-  static OtherPackages empty(){ return start(Map.of(),Map.<TName,Literal>of(),-1); }
+  static OtherPackages empty(){ return start(Map.of(), Map.<TName,Literal>of(), -1); }
   static OtherPackages start(Map<String,Map<String,String>> vMap, Map<TName,Literal> core, long newStamp){
     return new OtherPackages(){
-      public Collection<TName> dom(){ return core.keySet(); }
-      public Literal __of(TName name){ return core.get(name); }
-      public long stamp(){ return newStamp; }
-      public Map<String,Map<String,String>> virtualizationMap(){ return vMap; }
+      @Override public Collection<TName> dom(){ return core.keySet(); }
+      @Override public Literal __of(TName name){ return core.get(name); }
+      @Override public long stamp(){ return newStamp; }
+      @Override public Map<String,Map<String,String>> virtualizationMap(){ return vMap; }
     };}
-  static OtherPackages start(Map<String,Map<String,String>> vMap,Collection<Literal> core, long newStamp){
-    var map= core.stream().collect(Collectors.toUnmodifiableMap(Literal::name, d->d));
-    return start(vMap,map,newStamp);
+  static OtherPackages start(Map<String,Map<String,String>> vMap, Collection<Literal> core, long newStamp){
+    var map= core.stream().collect(Collectors.toUnmodifiableMap(Literal::name, d -> d));
+    return start(vMap, map, newStamp);
   }
   default OtherPackages mergeWith(Map<TName,Literal> core, long newStamp){
-    return start(virtualizationMap(),Stream.concat(dom().stream().map(this::__of),core.values().stream()).toList(),newStamp);
+    return start(virtualizationMap(), Stream.concat(dom().stream().map(this::__of), core.values().stream()).toList(), newStamp);
   }
 }

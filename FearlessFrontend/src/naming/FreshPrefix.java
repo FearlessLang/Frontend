@@ -19,7 +19,7 @@ public record FreshPrefix(
       HashSet<String> vars,
       HashMap<String,Integer> varSeq){}
   public FreshPrefix(Package p){
-    this(new HashSet<>(),new HashMap<>(),new HashSet<>(),new HashMap<>(),p.name());
+    this(new HashSet<>(), new HashMap<>(), new HashSet<>(), new HashMap<>(), p.name());
     for (var tn : p.names().decNames()){ usedTopTypes.add(tn.simpleName()); }
     for (var s : p.map().keySet()){ usedTopTypes.add(s); }
     var xs= p.names().allXs();
@@ -30,24 +30,24 @@ public record FreshPrefix(
       for (var x : xs.get(owner)){ genNames.add(x.name()); }
       allGenericNames.addAll(genNames);
       var vars= new HashSet<>(params.get(owner));
-      owners.put(owner,new OwnerState(genNames,new HashMap<>(),vars,new HashMap<>()));
+      owners.put(owner, new OwnerState(genNames, new HashMap<>(), vars, new HashMap<>()));
     }
   }
-  public TName freshTopType(TName hint,int arity){
+  public TName freshTopType(TName hint, int arity){
     var cand= freshCandidate(hint.simpleName(), up, topSeq, usedTopTypes, List.of(allGenericNames));
-    var res= new TName(pkgName+"."+cand,arity,hint.pos());//all fresh names should start with _ to be pkg private
-    aliasOwner(hint,res);
+    var res= new TName(pkgName+"."+cand, arity, hint.pos());//all fresh names should start with _ to be pkg private
+    aliasOwner(hint, res);
     return res;
   }
-  public boolean isFreshGeneric(TName owner,String x,List<String> scope){ return !owners.get(owner).gen().contains(x) && !usedTopTypes.contains(x) && !scope.contains(x); }
-  public String freshGeneric(TName owner,String hint,List<String> siblings){
+  public boolean isFreshGeneric(TName owner, String x, List<String> scope){ return !owners.get(owner).gen().contains(x) && !usedTopTypes.contains(x) && !scope.contains(x); }
+  public String freshGeneric(TName owner, String hint, List<String> siblings){
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
-    var cand= freshCandidate(hint, up, st.genSeq(), st.gen(), List.of(usedTopTypes,siblings));
+    var cand= freshCandidate(hint, up, st.genSeq(), st.gen(), List.of(usedTopTypes, siblings));
     allGenericNames.add(cand);
     return cand;
   }
-  public String freshVar(TName owner,String hint){
+  public String freshVar(TName owner, String hint){
     assert pkgName.equals(owner.pkgName());
     var st= owners.get(owner);
     return freshCandidate(hint, low, st.varSeq(), st.vars(), List.of());
@@ -58,14 +58,14 @@ public record FreshPrefix(
     var base= sanitizeBase(hint);
     for (int n= seq.getOrDefault(base, 1);; n++){
       var cand= "_"+encodeBijective(n, alphabet)+base;
-      var taken= commitScope.contains(cand) || extraChecks.stream().anyMatch(e->e.contains(cand));
+      var taken= commitScope.contains(cand) || extraChecks.stream().anyMatch(e -> e.contains(cand));
       if (taken){ continue; }
       commitScope.add(cand);
       seq.put(base, n+1);
       return cand;
     }
   }
-  public void aliasOwner(TName original,TName alias){// aliasing is deliberate: owner and alias share the same OwnerState
+  public void aliasOwner(TName original, TName alias){// aliasing is deliberate: owner and alias share the same OwnerState
     assert pkgName.equals(original.pkgName());
     assert pkgName.equals(alias.pkgName());
     assert !owners.containsKey(alias);
@@ -75,7 +75,7 @@ public record FreshPrefix(
     var s= raw.replaceAll("[^A-Za-z0-9]", "");
     return (s.length() <= 4) ? s : s.substring(0, 4);
   }
-  private static String encodeBijective(int n,char[] alphabet){
+  private static String encodeBijective(int n, char[] alphabet){
     var base= alphabet.length;
     var sb= new StringBuilder(4);
     while (n > 0){

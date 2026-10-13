@@ -10,37 +10,37 @@ import core.E.*;
 import typeSystem.Change.*;
 
 public record ViewPointAdaptation(Kinding k){
-  public Gamma discard(Gamma g,Literal l){ return g.map(curr->discard(curr,l)); }
-  public Gamma of(Gamma g,Literal l, M m){ return g.map(curr->of(curr,l,m)); }
+  public Gamma discard(Gamma g, Literal l){ return g.map(curr -> discard(curr, l)); }
+  public Gamma of(Gamma g, Literal l, M m){ return g.map(curr -> of(curr, l, m)); }
   private Change of(Change current, Literal l, M m){    //Literal l, M m, T atDrop
     if (!(current instanceof Change.WithT w)){ return current; }
     var withImm= m.sig().rc() == imm || kindIsoImm(w.currentT(), l.bs());
-    if (withImm){ return Change.keepStrengthenToImm(l,m,w); }
+    if (withImm){ return Change.keepStrengthenToImm(l, m, w); }
     return adapt(w, l, m);
   }
   private Change adapt(WithT w, Literal l, M m){ // T[delta, RC]
     var rc= m.sig().rc();
     var t= w.currentT();
     if (rc == read){
-      if (t.explicitRC().stream().anyMatch(r->r == mut || r == read)){ return Change.keepSetToRead(l,m,w); }
-      if (t instanceof T.X || t instanceof T.ReadImmX){ return Change.keepSetToReadImm(l,m,w); }
+      if (t.explicitRC().stream().anyMatch(r -> r == mut || r == read)){ return Change.keepSetToRead(l, m, w); }
+      if (t instanceof T.X || t instanceof T.ReadImmX){ return Change.keepSetToReadImm(l, m, w); }
     }
     assert rc == mut;//meth RC can only be imm, mut, read and imm is filtered before
-    var noIsoNoHygienic= k.of(l.bs(),t,EnumSet.of(imm, mut, read));
+    var noIsoNoHygienic= k.of(l.bs(), t, EnumSet.of(imm, mut, read));
     if (noIsoNoHygienic){ return w; }
     assert t instanceof T.X;
-    return Change.keepSetToReadImm(l,m,w);
+    return Change.keepSetToReadImm(l, m, w);
   }
   private Change discard(Change current, Literal l){
     if (!(current instanceof Change.WithT w)){ return current; }
     var t= w.currentT();
-    var notKinded= !k.of(l.bs(),t,EnumSet.allOf(RC.class));
-    if (notKinded){ return new Change.DropNotKinded(l,t); }
-    var mayBeHygienic= !k.of(l.bs(),t,EnumSet.of(iso, imm, mut, read));
-    if (mayBeHygienic){ return new Change.DropReadHMutH(l,t); }
+    var notKinded= !k.of(l.bs(), t, EnumSet.allOf(RC.class));
+    if (notKinded){ return new Change.DropNotKinded(l, t); }
+    var mayBeHygienic= !k.of(l.bs(), t, EnumSet.of(iso, imm, mut, read));
+    if (mayBeHygienic){ return new Change.DropReadHMutH(l, t); }
     var mutInImm= l.rc().isIsoOrImm() && !kindIsoImm(t, l.bs());
-    if (mutInImm){ return new Change.DropMutInImm(l,t); }
+    if (mutInImm){ return new Change.DropMutInImm(l, t); }
     return w;
   }
-  private boolean kindIsoImm(T t, List<B> delta){ return k.of(delta,t,EnumSet.of(iso, imm)); }
+  private boolean kindIsoImm(T t, List<B> delta){ return k.of(delta, t, EnumSet.of(iso, imm)); }
 }

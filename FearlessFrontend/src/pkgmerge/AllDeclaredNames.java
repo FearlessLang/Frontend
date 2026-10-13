@@ -10,7 +10,7 @@ import fearlessFullGrammar.*;
 import fearlessFullGrammar.E.*;
 import message.WellFormednessErrors;
 
-public class AllDeclaredNames{
+public final class AllDeclaredNames{
   AllDeclaredNames(WellFormednessErrors err){ this.err= err; }
   WellFormednessErrors err;
   LinkedHashSet<TName> decNames= new LinkedHashSet<>();
@@ -22,8 +22,8 @@ public class AllDeclaredNames{
   // lastTopXs: all generic Bs appearing anywhere in the the current top Declaration
   LinkedHashSet<T.X> lastTopXs;
   public void visitTopDeclaration(Declaration d){
-    lastTopNames= new LinkedHashSet<>();
-    lastTopXs= new LinkedHashSet<>();
+    lastTopNames = new LinkedHashSet<>();
+    lastTopXs = new LinkedHashSet<>();
     visitInnerDeclaration(d);
     var n= d.name().withPkgName(err.pkgName());
     assert !xs.containsKey(n);
@@ -33,17 +33,17 @@ public class AllDeclaredNames{
   }
   private void visitInnerXPat(XPat x){ x.parameterNames().forEach(lastTopNames::add); }
   private void visitInnerSig(Sig s){
-    s.bs().ifPresent(bs->bs.forEach(b->lastTopXs.add(b.x())));
-    s.parameters().forEach(p->p.xp().ifPresent(this::visitInnerXPat));
+    s.bs().ifPresent(bs -> bs.forEach(b -> lastTopXs.add(b.x())));
+    s.parameters().forEach(p -> p.xp().ifPresent(this::visitInnerXPat));
   }
   private void visitInnerDeclaration(Declaration d){
     //Note: there is never any kind of shadowing allowed in fearless. Also, nested names do live in the top level scope
     if (!decNames.add(d.name())){ throw err.duplicatedName(d.name()); }
-    d.bs().ifPresent(bs->bs.forEach(b->lastTopXs.add(b.x())));
+    d.bs().ifPresent(bs -> bs.forEach(b -> lastTopXs.add(b.x())));
     visitLiteral(d.l());
   }
   private void visitLiteral(Literal c){
-    c.thisName().ifPresent(n->lastTopNames.add(n.name()));
+    c.thisName().ifPresent(n -> lastTopNames.add(n.name()));
     c.methods().forEach(this::visitInnerM);
   }
   private void visitInnerM(M m){

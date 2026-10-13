@@ -13,7 +13,7 @@ public sealed interface XPat{
   Stream<String> parameterNames();
   record Name(E.X x) implements XPat{
     public Name{ assert nonNull(x); }
-    public Stream<String> parameterNames(){ return Stream.of(x.name()); }
+    @Override public Stream<String> parameterNames(){ return Stream.of(x.name()); }
   }
   //xE ::= x m* is represented as an element of extract, for example
   //new Destruct(List.of(List.of(.foo,.bar,.baz),List.of(.x.y)),Optional.of("1"))
@@ -22,12 +22,12 @@ public sealed interface XPat{
     public Destruct{
       assert !extract.isEmpty();
       assert unmodifiable(extract, "XPat.Destruct.extract",
-        sm->{ assert !sm.isEmpty();
-          unmodifiable(sm,"XPat.Destruct.extract element",
-            m->{assert m.s().startsWith(".");});});
-      assert validOpt(id,n->validate("}"+n, "pattern id",CCurlyId));
+        sm -> { assert !sm.isEmpty();
+          unmodifiable(sm, "XPat.Destruct.extract element",
+            m -> {assert m.s().startsWith(".");});});
+      assert validOpt(id, n -> validate("}"+n, "pattern id", CCurlyId));
     }
-    public Stream<String> parameterNames(){ return extract.stream().map(e->e.getLast().s().substring(1) + id.orElse("")); }
-    public Stream<String> invalidNames(){ return parameterNames().filter(x->!isKind(x,LowercaseId) || isKind(x,RCap)); }
+    @Override public Stream<String> parameterNames(){ return extract.stream().map(e -> e.getLast().s().substring(1) + id.orElse("")); }
+    public Stream<String> invalidNames(){ return parameterNames().filter(x -> !isKind(x, LowercaseId) || isKind(x, RCap)); }
   }
 }

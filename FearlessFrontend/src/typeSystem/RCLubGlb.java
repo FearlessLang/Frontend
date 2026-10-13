@@ -12,34 +12,33 @@ import java.util.Set;
 import core.RC;
 
 public final class RCLubGlb{
-  private RCLubGlb(){}
   private static final EnumSet<RC> allRC= EnumSet.allOf(RC.class);
   private static final HashMap<Set<RC>,RC> lubMap= new HashMap<>();
   private static final HashMap<Set<RC>,RC> glbMap= new HashMap<>();
   public static Set<Set<RC>> domain(){ return Collections.unmodifiableSet(lubMap.keySet()); }
   public static RC lub(EnumSet<RC> options){ return Objects.requireNonNull(lubMap.get(options)); }
   public static RC glb(EnumSet<RC> options){ return Objects.requireNonNull(glbMap.get(options)); }
-  static boolean isUb(EnumSet<RC> options, RC ub){ return options.stream().allMatch(x->x.isSubType(ub)); }
-  static boolean isLb(EnumSet<RC> options,RC lb){ return options.stream().allMatch(lb::isSubType); }
-  static boolean isLub(EnumSet<RC> options,RC lub){
-    var isLowest= allRC.stream().filter(rc->isUb(options,rc)).allMatch(lub::isSubType);
-    return isUb(options,lub) && isLowest;
+  static boolean isUb(EnumSet<RC> options, RC ub){ return options.stream().allMatch(x -> x.isSubType(ub)); }
+  static boolean isLb(EnumSet<RC> options, RC lb){ return options.stream().allMatch(lb::isSubType); }
+  static boolean isLub(EnumSet<RC> options, RC lub){
+    var isLowest= allRC.stream().filter(rc -> isUb(options, rc)).allMatch(lub::isSubType);
+    return isUb(options, lub) && isLowest;
   }
-  static boolean isGlb(EnumSet<RC> options,RC glb){
-    var isGreatest= allRC.stream().filter(rc->isLb(options,rc)).allMatch(lb->lb.isSubType(glb));
-    return isLb(options,glb) && isGreatest;
+  static boolean isGlb(EnumSet<RC> options, RC glb){
+    var isGreatest= allRC.stream().filter(rc -> isLb(options, rc)).allMatch(lb -> lb.isSubType(glb));
+    return isLb(options, glb) && isGreatest;
   }
-  static void init(EnumSet<RC> options,RC glb,RC lub){
-    var novel1= lubMap.put(options,lub);
+  static void init(EnumSet<RC> options, RC glb, RC lub){
+    var novel1= lubMap.put(options, lub);
     var novel2= glbMap.put(options, glb);
     assert novel1 == null;
     assert novel2 == null;
-    assert isLub(options,lub);
-    assert isGlb(options,glb);
-    assert allRC.stream().noneMatch(rc->rc != lub && isLub(options,rc));
-    assert allRC.stream().noneMatch(rc->rc != glb && isGlb(options,rc));
+    assert isLub(options, lub);
+    assert isGlb(options, glb);
+    assert allRC.stream().noneMatch(rc -> rc != lub && isLub(options, rc));
+    assert allRC.stream().noneMatch(rc -> rc != glb && isGlb(options, rc));
   }
-  static {// RCs                  | GLB     | LUB
+  static{// RCs                  | GLB     | LUB
     init(of(iso),                   iso,     iso);
     init(of(imm),                   imm,     imm);
     init(of(mut),                   mut,     mut);
@@ -47,8 +46,8 @@ public final class RCLubGlb{
     init(of(read),                  read,    read);
     init(of(readH),                 readH,   readH);
 
-    init(of(iso,imm),               iso,     imm);
-    init(of(iso,mut),               iso,     mut);
+    init(of(iso, imm),               iso,     imm);
+    init(of(iso, mut),               iso,     mut);
     init(of(iso, mutH),             iso,     mutH);
     init(of(iso, read),             iso,     read);
     init(of(iso, readH),            iso,     readH);
@@ -93,12 +92,12 @@ public final class RCLubGlb{
     init(of(iso, mut, mutH, read),  iso,     readH);
     init(of(iso, mut, mutH, readH), iso,     readH);
     init(of(iso, mut, read, readH), iso,     readH);
-    init(of(iso, mutH, read, readH),iso,     readH);
+    init(of(iso, mutH, read, readH), iso,     readH);
     init(of(imm, mut, mutH, read),  iso,     readH);
     init(of(imm, mut, mutH, readH), iso,     readH);
     init(of(imm, mut, read, readH), iso,     readH);
-    init(of(imm, mutH, read, readH),iso,     readH);
-    init(of(mut, mutH, read, readH),mut,     readH);
+    init(of(imm, mutH, read, readH), iso,     readH);
+    init(of(mut, mutH, read, readH), mut,     readH);
 
     init(of(iso, imm, mut, mutH, read),       iso, readH);
     init(of(iso, imm, mut, mutH, readH),      iso, readH);

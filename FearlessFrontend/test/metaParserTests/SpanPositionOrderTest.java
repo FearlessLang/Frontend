@@ -14,54 +14,54 @@ import metaParser.Token;
 import metaParser.TokenKind;
 import metaParser.TokenMatch;
 
-public class SpanPositionOrderTest{
+public final class SpanPositionOrderTest{
   static final URI f= URI.create("fear:/a/b.fear");
   enum K implements TokenKind{
     Word;
-    public TokenMatch matcher(){ return TokenMatch.fromRegex("[a-z]+"); }
-    public int priority(){ return 0; }
+    @Override public TokenMatch matcher(){ return TokenMatch.fromRegex("[a-z]+"); }
+    @Override public int priority(){ return 0; }
   }
   record T(K kind, String content, int line, int column, List<T> tokens) implements Token<T,K>{}
   @Test void containedMultiLineOuterStartColAfterInnerStartCol(){
-    var outer= new Span(f,1,10,5,2);
-    var inner= new Span(f,2,1,3,50);
+    var outer= new Span(f, 1, 10, 5, 2);
+    var inner= new Span(f, 2, 1, 3, 50);
     assertTrue(outer.contained(inner));
   }
   @Test void containedInnerLineStrictlyInsideLongerThanOuterEndCol(){
-    var outer= new Span(f,1,1,3,5);
-    var inner= new Span(f,2,1,2,20);
+    var outer= new Span(f, 1, 1, 3, 5);
+    var inner= new Span(f, 2, 1, 2, 20);
     assertTrue(outer.contained(inner));
   }
   @Test void containedColumnsStillMatterOnSharedBoundaryLines(){
-    var outer= new Span(f,1,5,3,5);
-    assertFalse(outer.contained(new Span(f,1,3,2,1)));
-    assertFalse(outer.contained(new Span(f,2,1,3,6)));
+    var outer= new Span(f, 1, 5, 3, 5);
+    assertFalse(outer.contained(new Span(f, 1, 3, 2, 1)));
+    assertFalse(outer.contained(new Span(f, 2, 1, 3, 6)));
   }
   @Test void compareToSeparatesSpansThatOnlyDifferInTheirStart(){
-    var a= new Span(f,1,1,3,5);
-    var b= new Span(f,2,1,3,5);
-    var c= new Span(f,2,4,3,5);
+    var a= new Span(f, 1, 1, 3, 5);
+    var b= new Span(f, 2, 1, 3, 5);
+    var c= new Span(f, 2, 4, 3, 5);
     assertTrue(a.compareTo(b) < 0);
     assertTrue(b.compareTo(a) > 0);
     assertTrue(b.compareTo(c) < 0);
     assertTrue(c.compareTo(b) > 0);
-    assertEquals(0, a.compareTo(new Span(f,1,1,3,5)));
+    assertEquals(0, a.compareTo(new Span(f, 1, 1, 3, 5)));
   }
   @Test void compareToOrdersByEndBeforeStart(){
-    var startsFirstEndsLast= new Span(f,1,1,3,5);
-    var startsLastEndsFirst= new Span(f,2,1,2,5);
+    var startsFirstEndsLast= new Span(f, 1, 1, 3, 5);
+    var startsLastEndsFirst= new Span(f, 2, 1, 2, 5);
     assertTrue(startsLastEndsFirst.compareTo(startsFirstEndsLast) < 0);
     assertTrue(startsFirstEndsLast.compareTo(startsLastEndsFirst) > 0);
   }
   @Test void compareToOrdersByFileBeforePositions(){
-    var early= new Span(URI.create("fear:/a/a.fear"),9,1,9,5);
-    var late= new Span(URI.create("fear:/a/b.fear"),1,1,1,5);
+    var early= new Span(URI.create("fear:/a/a.fear"), 9, 1, 9, 5);
+    var late= new Span(URI.create("fear:/a/b.fear"), 1, 1, 1, 5);
     assertTrue(early.compareTo(late) < 0);
     assertTrue(late.compareTo(early) > 0);
   }
   @Test void makeSpanEndColOnLaterLineIsNotFirstColumn(){
-    var first= new T(K.Word,"a",1,10,List.of());
-    var last= new T(K.Word,"x",3,1,List.of());
-    assertEquals(new Span(f,1,10,3,1), Token.makeSpan(f,first,last));
+    var first= new T(K.Word, "a", 1, 10, List.of());
+    var last= new T(K.Word, "x", 3, 1, List.of());
+    assertEquals(new Span(f, 1, 10, 3, 1), Token.makeSpan(f, first, last));
   }
 }

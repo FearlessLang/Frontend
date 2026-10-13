@@ -11,13 +11,13 @@ import core.FearlessException;
 import testUtils.DbgBlock;
 import tools.SourceOracle;
 
-public class InferenceTest extends testUtils.FearlessTestBase{
-  static void ok(String expected,List<String> input){ inferenceOk(expected, input,false); }
+public final class InferenceTest extends testUtils.FearlessTestBase{
+  static void ok(String expected, List<String> input){ inferenceOk(expected, input, false); }
   static void fail(String expected, List<String> input){ inferenceFail(expected, input); }
 
 @Test void base(){ok("""
 p.A:{'this}
-""",List.of("""
+""", List.of("""
 A:{}
 """));}
 
@@ -31,7 +31,7 @@ While inspecting a type name
 Name clash: name "B" is declared in package "p".
 Name "B" is also used in a "use" directive.
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 use base.Block as B;
 B:{}
 """));}
@@ -49,9 +49,9 @@ Only the rank file should not contain directives like maps and uses.
 Found non-empty:
 - uses: use base.Void as Void
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 use base.Block as B;
-""","""
+""", """
 use base.Void as Void;
 B:{}
 """));}
@@ -100,14 +100,14 @@ Error 7 WellFormedness
 
 @Test void meth(){ok("""
 p.A:{'this .foo:p.A@p.A;->p.A:?;}
-""",List.of("""
+""", List.of("""
 A:{ .foo:A-> A}
 """));}
 
 @Test void decls_crossRef_param_and_return(){ ok("""
 p.A:{'this .id:p.A@p.A;->p.A:?;}
 p.C:{'this}
-""",List.of(
+""", List.of(
 "A:{ .id:A->A }",
 "C:{}"));}
 
@@ -122,13 +122,13 @@ While inspecting a type name
 Type "Z" is not declared in package "p" and is not made visible via "use".
 In scope: "A".
 Error 7 WellFormedness
-""",List.of(
+""", List.of(
 "A:{ .f:Z->A }"));}
 
 @Test void use_alias_happy_path(){ok(
 """
 p.A:{'this .m:base.Void@p.A;->base.Void:?;}
-""",List.of(
+""", List.of(
 "use base.Void as D;\nA:{ .m:D->D }"));}
 
 @Test void use_alias_clash_with_declared(){fail(
@@ -142,11 +142,11 @@ While inspecting a type name
 Name clash: name "D" is declared in package "p".
 Name "D" is also used in a "use" directive.
 Error 7 WellFormedness
-""",List.of(
+""", List.of(
 "use base.Void as D;\nD:{}"));}
 
 @Test void round_elimination_in_simple_positions(){ok(
-"p.A:{'this .id:p.A@p.A;->p.A:?;}",List.of(
+"p.A:{'this .id:p.A@p.A;->p.A:?;}", List.of(
 "A:{ .id:A->((A)) }"));}
 
 @Test void extract_multiple_sigs_no_impls(){ok(
@@ -207,7 +207,7 @@ While inspecting a type name
 Name clash: name "A" is declared in package "p".
 Name "A" is also used in a "use" directive.
 Error 7 WellFormedness
-""",List.of(
+""", List.of(
 "use base.Void as A;\nA:{}",
 "C:{ .f:A->A }"));} // ambiguous A: local and alias
 
@@ -221,7 +221,7 @@ While inspecting a type name
 Type "D" is not declared in package "p" and is not made visible via "use".
 In scope: "A".
 Error 7 WellFormedness
-""",List.of(
+""", List.of(
 "A:{ .m:D->D }"));}
 
 @Test void duplicate_decl_same_name(){fail("""
@@ -233,8 +233,8 @@ In file: [###].fear
 While inspecting a type name
 Duplicate type declaration for "A".
 Error 7 WellFormedness
-""",List.of(
-"A:{}","B:{} A:{}"));}
+""", List.of(
+"A:{}", "B:{} A:{}"));}
 
 @Test void duplicate_decl_same_name_nested(){fail("""
 In file: [###].fear
@@ -245,8 +245,8 @@ In file: [###].fear
 While inspecting a type name
 Duplicate type declaration for "A".
 Error 7 WellFormedness
-""",List.of(
-"B:{.foo:A-> A:{} }","A:{}"));}
+""", List.of(
+"B:{.foo:A-> A:{} }", "A:{}"));}
 
 @Test void opt_explicit(){ok("""
 p.OptMatch[T:imm, R:imm]:{'this\
@@ -259,7 +259,7 @@ p.Opts:{'this\
  ? .match[?](?):?@!;(m)->m:?.some(t:?):?;}:?;}
 p.Some[T:imm]:p.Opt[T]{'_\
  .match[R:imm](p.OptMatch[T,R]):R@p.Some;(m)->m:?.some(t:?):?;}
-""",List.of("""
+""", List.of("""
 Opt[T]: {
   .match[R](m: OptMatch[T,R]): R -> m.empty
   }
@@ -280,7 +280,7 @@ p.Opts:{'this\
  #[T:imm](T):p.Opt[T]@p.Opts;\
 (t)->p._AOpts:$?{'_ ? .match[?](?):?@!;\
 (m)->m:?.some(t:?):?;}:?;}
-""",List.of("""
+""", List.of("""
 Opt[T]: {
   .match[R](m: OptMatch[T,R]): R -> m.empty
   }
@@ -298,7 +298,7 @@ p.F[R:imm]:{'this #:R@p.F;}
 p.User:{'this\
  .use:p.User@p.User;\
 ->p.A:?.a(p._AUser:$?{'_ ? [?]:?@!;->p.User:?;}:?):?;}
-""",List.of("""
+""", List.of("""
 F[R]:{#:R}
 A:{ .a[R](f:F[R]):R->f#; }
 User:{ .use:User->A.a{User}}
@@ -309,7 +309,7 @@ p.F[R:imm]:{'this #:R@p.F;}
 p.User:{'this\
  .use:p.User@p.User;\
 ->p.A:?.a(p._AUser:p.F[p.User]{'_ ? [?]:?@!;->p.User:?;}:?):?;}
-""",List.of("""
+""", List.of("""
 F[R]:{#:R}
 A:{ .a[R](f:F[R]):R->f#; }
 User:{ .use:User->A.a F[User]{User}}
@@ -321,7 +321,7 @@ p.User:{'this\
  .use:p.User@p.User;\
 ->p.A:?.a(p._AUser:p.F[p.User]{'_ ? [?]:?@!;->p.User:?;}:?):?;}
 p._AF:{'this}
-""",List.of("""
+""", List.of("""
 use base.Void as _BF;
 F[R]:{#:R}
 _AF:{}
@@ -336,7 +336,7 @@ p.User:{'this\
  .use:p.User@p.User;\
 ->p.A:?.a(p._AUser:p.F[p.User]{'_ ? [?]:?@!;->p.User:?;}:?):?;}
 p._BF:{'this}
-""",List.of("""
+""", List.of("""
 use base.Void as _AF;
 F[R]:{#:R}
 _BF:{}
@@ -347,7 +347,7 @@ User:{ .use:User->A.a F[User]{User}}
 p.A:p.B, p.C{'this}
 p.B:p.C{'this}
 p.C:{'this}
-""",List.of("""
+""", List.of("""
 A:B{}
 B:C{}
 C:{}
@@ -361,7 +361,7 @@ In file: [###].fear
 While inspecting type declarations
 Circular implementation relation found involving "A".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A:B{}
 B:A{}
 """));}
@@ -374,16 +374,16 @@ In file: [###]/in_memory1.fear
 While inspecting type declarations
 Circular implementation relation found involving "A".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A:B{}
-""","""
+""", """
 B:A{}
 """));}
 @Test void importSig(){ok("""
 p.A:p.B, p.C{'this .foo:p.C@p.B;}
 p.B:p.C{'this .foo:p.C@p.B;->p.C:?.foo():?;}
 p.C:{'this .foo:p.C@p.C;}
-""",List.of("""
+""", List.of("""
 A:B{}
 B:C{ .foo->C.foo}
 C:{.foo:C;}
@@ -393,7 +393,7 @@ p.A:{'this #(p.A):p.A@p.A;}
 p.B:p.A{'this #(p.A):p.A@p.B;(_aimpl)->_aimpl:?;}
 p.C:p.A{'this #(p.A):p.A@p.C;(_aimpl)->_aimpl:?#(_aimpl:?):?;}
 p.D:p.A{'this #(p.A):p.A@p.D;(_aimpl)->_aimpl:?#():?#():?;}
-""",List.of("""
+""", List.of("""
 A:{ #(x:A):A }
 B:A{::}
 C:A{::#::}
@@ -405,7 +405,7 @@ p.A:{'this #(p.A):p.A@p.A; #(p.A,p.A):p.A@p.A;}
 p.B:p.A{'this #(p.A):p.A@p.B;(_aimpl)->_aimpl:?; #(p.A,p.A):p.A@p.A;}
 p.C:p.A{'this #(p.A):p.A@p.C;(_aimpl)->_aimpl:?; #(p.A,p.A):p.A@p.C;(z, _bimpl)->_bimpl:?;}
 p.D:p.A{'this #(p.A,p.A):p.A@p.D;(z, _aimpl)->_aimpl:?.bar(p._AD:$?{'_ ? [?](?):?@!;(_bimpl)->_bimpl:?.foo(p.D:?):?;}:?):?; #(p.A):p.A@p.A;}
-""",List.of("""
+""", List.of("""
 A:{ #(x:A):A; #(x:A,y:A):A }
 B:A{::}
 C:A{::; z->::}
@@ -414,7 +414,7 @@ D:A{z->::.bar {::.foo(D)}}
 
 @Test void baseBlock(){ok("""
 [###]
-""",List.of(DbgBlock.baseBody));}
+""", List.of(DbgBlock.baseBody));}
 
 @Test void baseLet(){ok("""
 p.A:{'this\
@@ -424,7 +424,7 @@ p._AA:$?{'_ ? [?]:?@!;->p.A:?;}:?,\
 p._CA:$?{'_ ? [?](?,?):?@!;\
 (x, _aeqS)->_aeqS:?\
 .return(p._BA:$?{'_ ? [?]:?@!;->x:?;}:?):?;}:?):?;}
-""",List.of("""
+""", List.of("""
 use base.Block as Block;
 A:{ #:A->Block#.let x={A}.return {x} }
 """));}
@@ -432,7 +432,7 @@ A:{ #:A->Block#.let x={A}.return {x} }
 @Test void xpat1(){ok("""
 p.A:{'this #(p.A):p.A@p.A;}
 p.B:p.A{'this #(p.A):p.A@p.B;(_adiv)->base.Destruct:?#(_adiv:?.a():?.b():?,_adiv:?.c():?.d():?,p._AB:$?{'_ ? [?](?,?):?@!;(b3, d3)->b3:?+(d3:?):?;}:?):?;}
-""",List.of("""
+""", List.of("""
 A:{ #(A):A }
 B:A{ #{.a.b,.c.d}3->b3+d3 }
 """));}
@@ -447,7 +447,7 @@ p._BB:$?{'_ ? [?](?,?):?@!;\
 (x, _aeqS)->_aeqS:?.bla(base.2:?):?\
 .let(base.3:?,p._AB:$?{'_ ? [?](?,?):?@!;\
 (y, _beqS)->_beqS:?.beer(base.4:?):?;}:?):?;}:?):?;}
-""",List.of("""
+""", List.of("""
 A:{ .bar(A):A}
 B:A{ ::.foo.let x=1 .bla 2 .let y= 3 .beer 4}
 """));}
@@ -462,7 +462,7 @@ _aimpl:?,p._BB:$?{'_\
 _aimpl:?,p._AB:$?{'_\
  ? [?](?,?):?@!;\
 (y, _beqS)->_beqS:?.beer(_aimpl:?):?;}:?):?;}:?):?;}
-""",List.of("""
+""", List.of("""
 A:{ .bar(A):A}
 B:A{ ::.foo.let x=:: .bla :: .let y= :: .beer ::}
 """));}
@@ -471,7 +471,7 @@ B:A{ ::.foo.let x=:: .bla :: .let y= :: .beer ::}
 p.A1:{'this .foo:p.A1@p.A1;}
 p.A2:{'this .foo:p.A1@p.A2;}
 p.B:p.A1, p.A2{'this .foo:p.A1@p.B;->p.A1:?;}
-""",List.of("""
+""", List.of("""
 A1:{ imm .foo:A1;}
 A2:{ .foo:A1;}
 B:A1,A2{ .foo->A1 }
@@ -481,7 +481,7 @@ B:A1,A2{ .foo->A1 }
 p.A1:{'this .foo:p.A1@p.A1;}
 p.A2:{'this .foo:p.A1@p.A2;}
 p.B:p.A1, p.A2{'this .foo:p.A1@p.B;}
-""",List.of("""
+""", List.of("""
 A1:{ imm .foo:A1;}
 A2:{ .foo:A1;}
 B:A1,A2{ }
@@ -497,7 +497,7 @@ While inspecting type declaration "B"
 Return type disagreement for method "imm .foo" with 0 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
-Error 7 WellFormedness""",List.of("""
+Error 7 WellFormedness""", List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
 B:A1,A2{ }
@@ -512,7 +512,7 @@ While inspecting type declaration "B"
 Return type disagreement for method "imm .foo" with 0 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
-Error 7 WellFormedness""",List.of("""
+Error 7 WellFormedness""", List.of("""
 A1:{ .foo:A1;}
 A2:{ .foo:A2;}
 B:A1,A2{ .foo->this.foo}
@@ -527,7 +527,7 @@ While inspecting type declaration "B"
 Type disagreement about argument 1 for method "imm .foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
-Error 7 WellFormedness""",List.of("""
+Error 7 WellFormedness""", List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
 B:A1,A2{ }
@@ -542,7 +542,7 @@ While inspecting type declaration "B"
 Type disagreement about argument 1 for method "imm .foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
-Error 7 WellFormedness""",List.of("""
+Error 7 WellFormedness""", List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
 A2:{ .foo(a:A1,b:A2):A1;}
 B:A1,A2{ .foo(a,b)->this.foo}
@@ -558,7 +558,7 @@ The number of type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A1:{ .foo[X:imm]():A1;}
 A2:{ .foo():A1;}
 B:A1,A2{}
@@ -574,7 +574,7 @@ The number of type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A1:{ .foo[X:imm]():A1;}
 A2:{ .foo():A1;}
 B:A1,A2{ .foo()->this.foo }
@@ -583,7 +583,7 @@ B:A1,A2{ .foo()->this.foo }
 p.A1:{'this .foo[X:imm]:p.A1@p.A1;}
 p.A2:{'this .foo[Y:imm]:p.A1@p.A2;}
 p.B:p.A1, p.A2{'this .foo[X:imm]:p.A1@p.B;->this:?.foo():?;}
-""",List.of("""
+""", List.of("""
 A1:{ .foo[X:imm]():A1;}
 A2:{ .foo[Y:imm]():A1;}
 B:A1,A2{ .foo()->this.foo }
@@ -593,7 +593,7 @@ p.A1:{'this .foo[X:imm]:p.A1@p.A1;}
 p.A2:{'this .foo[X:imm]:p.A1@p.A2;}
 p.B[X:imm]:p.A1, p.A2{'this\
  .foo[_AX:imm]:p.A1@p.B;->this:?.foo():?;}
-""",List.of("""
+""", List.of("""
 A1:{ .foo[X:imm]():A1;}
 A2:{ .foo[X:imm]():A1;}
 B[X:imm]:A1,A2{ .foo()->this.foo }
@@ -601,13 +601,13 @@ B[X:imm]:A1,A2{ .foo()->this.foo }
 @Test void boundAlphaAvoidsDeclaredTypeName(){ok("""
 p.A:base.Todo{'this ![_AR:imm,mut,read,iso,mutH,readH]:_AR@base.Todo;}
 p.R:{'this}
-""",List.of("""
+""", List.of("""
 R:{}
 A:base.Todo{}
 """));}
 @Test void boundAlphaAvoidsUseName(){ok("""
 p.A:base.Todo{'this ![_AR:imm,mut,read,iso,mutH,readH]:_AR@base.Todo;}
-""",List.of("""
+""", List.of("""
 use base.Void as R;
 A:base.Todo{}
 """));}
@@ -623,7 +623,7 @@ Cannot infer the name for a method with 0 parameters.
 Many abstract methods with 0 parameters could be selected:
 Candidates: "imm .foo", "imm .bar".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
 A2:{ .bar():A1; .baz:A1->this.baz}
 B:A1,A2{ this.foo }
@@ -639,7 +639,7 @@ Cannot infer the name for a method with 1 parameters.
 Many methods with 1 parameters could be selected:
 Candidates: "imm .baz", "imm .beer".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
 A2:{ .bar():A1; .baz:A1->this.baz}
 B:A1,A2{ y->this.foo }
@@ -650,7 +650,7 @@ p.A1:{'this .foo:p.A1@p.A1;->this:?;}
 p.A2:p.A1{'this .foo:p.A1@p.A1;}
 p.A3:p.A1{'this .foo:p.A1@p.A1;}
 p.B:p.A2, p.A3, p.A1{'this .foo:p.A1@p.A1;}
-""",List.of("""
+""", List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ }
 A3:A1{ }
@@ -662,7 +662,7 @@ p.A1:{'this .foo:p.A1@p.A1;->this:?;}
 p.A2:p.A1{'this .foo:p.A1@p.A2;->this:?;}
 p.A3:p.A1{'this .foo:p.A1@p.A1;}
 p.B:p.A2, p.A3, p.A1{'this .foo:p.A1@p.A2;}
-""",List.of("""
+""", List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ .foo->this; }
 A3:A1{ }
@@ -681,7 +681,7 @@ Different options are present in the implemented types:
 Candidates: "A2", "A3".
 Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A1:{ .foo():A1->this;}
 A2:A1{ .foo->this; }
 A3:A1{ .foo->this; }
@@ -694,7 +694,7 @@ p.B:{'this .m:p.R@p.B;->p.R:?;}
 p.D:p.X, p.B, p.A{'this .m:p.R@p.B;}
 p.R:{'this}
 p.X:p.A{'this .m:p.R@p.X;}
-""",List.of("""
+""", List.of("""
 R:{}
 A:{ .m:R->R; }
 X:A{ .m:R; }
@@ -708,7 +708,7 @@ p.D:p.A1, p.A2, p.I1, p.I2{'this .m:p.R@p.D;}
 p.I1:{'this .m:p.R@p.I1;->p.R:?;}
 p.I2:{'this .m:p.R@p.I2;->p.R:?;}
 p.R:{'this}
-""",List.of("""
+""", List.of("""
 R:{}
 I1:{ .m:R->R; }
 I2:{ .m:R->R; }
@@ -722,7 +722,7 @@ p.B:{'this .m:p.R@p.B;->p.R:?;}
 p.C:p.B{'this .m:p.R@p.C;}
 p.D:p.A, p.C, p.B{'this .m:p.R@p.D;}
 p.R:{'this}
-""",List.of("""
+""", List.of("""
 R:{}
 B:{ .m:R->R; }
 A:B{ }
@@ -737,7 +737,7 @@ p.P:p.X, p.I, p.J{'this .m:p.R@p.I;}
 p.Q:p.J{'this .m:p.R@p.J;}
 p.R:{'this}
 p.X:p.J{'this .m:p.R@p.X;}
-""",List.of("""
+""", List.of("""
 R:{}
 J:{ .m:R->R; }
 X:J{ .m:R; }
@@ -755,7 +755,7 @@ In file: [###].fear
 While inspecting package header
 "use" directive refers to undeclared name: type "AAAA" is not declared in package "base".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 use base.AAAA as BBB;
 B:{ }
 """));}
@@ -765,7 +765,7 @@ p.A2:{'this mut .foo:p.A2@p.A2;}
 p.B:p.A1, p.A2{'this\
  .foo:p.A1@p.B;->p.B:?;\
  mut .foo:p.A2@p.B;->p.B:?;}
-""",List.of("""
+""", List.of("""
 A1:{ imm .foo():A1; }
 A2:{ mut .foo():A2; }
 B:A1,A2{ .foo->B; }
@@ -777,7 +777,7 @@ p.A2:{'this .foo:p.A1@p.A2;}
 p.B:p.A1, p.A2{'this\
  mut .foo:p.A1@p.B;->p.A1:?;\
  .foo:p.A1@p.B;->p.A1:?;}
-""",List.of("""
+""", List.of("""
 A1:{ mut .foo:A1;}
 A2:{ imm .foo:A1;}
 B:A1,A2{ A1 }
@@ -789,7 +789,7 @@ p.A2:{'this .foo:p.A2@p.A2;}
 p.B:p.A1, p.A2{'this\
  mut .foo:p.A1@p.B;\
  .foo:p.A2@p.B;}
-""",List.of("""
+""", List.of("""
 A1:{ mut .foo:A1;}
 A2:{ imm .foo:A2;}
 B:A1,A2{ mut .foo:A1; imm .foo:A2; }
@@ -801,7 +801,7 @@ p.A2:{'this .foo:p.A2@p.A2;}
 p.B:p.A1, p.A2{'this\
  mut .foo:p.A1@p.A1;\
  .foo:p.A2@p.A2;}
-""",List.of("""
+""", List.of("""
 A1:{ mut .foo:A1;}
 A2:{ imm .foo:A2;}
 B:A1,A2{ }
@@ -811,7 +811,7 @@ B:A1,A2{ }
 p.A1:{'this mut .foo:p.A1@p.A1;}
 p.A2:{'this .foo:p.A1@p.A2;}
 p.B:p.A1, p.A2{'this mut .foo:p.A1@p.A1; .foo:p.A1@p.A2;}
-""",List.of("""
+""", List.of("""
 A1:{ mut .foo:A1;}
 A2:{ imm .foo:A1;}
 B:A1,A2{ }
@@ -820,7 +820,7 @@ B:A1,A2{ }
 p.A1:{'this mut .foo:p.A1@p.A1;}
 p.A2:{'this .foo:p.A1@p.A2;}
 p.B:p.A1, p.A2{'this mut .foo:p.A1@p.A1; .foo:p.A1@p.A2;}
-""",List.of("""
+""", List.of("""
 A1:{ mut .foo:A1;}
 A2:{ .foo:A1;}
 B:A1,A2{ }
@@ -836,7 +836,7 @@ Name "F" is not declared with 2 type parameter(s) in package "p".
 Name "F" is only declared with 0 type parameter(s).
 Did you accidentally add or omit a type parameter?
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 F:{#[A,B](A):B}
 User:{
   .foo[X](x:X,f:F[X,X]):X->f#x;
@@ -980,7 +980,7 @@ p.User:{'this\
  .m:p.User@p.User;\
 ->p.Bla:{'_\
  ? .bla[?]:p.User@!;->p.User:?;}:?.bla():?;}
-""",List.of("""
+""", List.of("""
 User:{.m:User->
  Bla:{.bla:User->User;}.bla
 }
@@ -991,7 +991,7 @@ p.User:{'this\
  .m:p.User@p.User;\
 ->p._AUser:$?{'_\
  ? .bla[?]:p.User@!;->p.User:?;}:?.bla():?;}
-""",List.of("""
+""", List.of("""
 User:{.m:User->
  {.bla:User->User;}.bla
 }
@@ -1007,7 +1007,7 @@ While inspecting a type name
 Type "Widen" is not declared in package "base".
 Did you mean "WidenTo" ?
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A:base.Widen[A]{}
 B:base.Widen[B]{}
 C:A,B{}
@@ -1027,7 +1027,7 @@ Found the following "base.WidenTo[_]" supertypes:
 - "base.WidenTo[p.A]"
 - "base.WidenTo[p.B]"
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 A:base.WidenTo[A]{}
 B:base.WidenTo[B]{}
 C:A,B{}
@@ -1043,7 +1043,7 @@ While inspecting a type name
 Type "Missing" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 User:{
  'this
   .foo(x:Missing):Missing;
@@ -1061,7 +1061,7 @@ Type "Fod" is not declared in package "p" and is not made visible via "use".
 Did you mean "Food" ?
 In scope: "Food", "User".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 Food:{}
 User:{
  'this
@@ -1079,7 +1079,7 @@ While inspecting a type name
 Type "GG" is not declared in package "p" and is not made visible via "use".
 In scope: "G", "User".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 use base.F as G;
 User:{
  'this
@@ -1099,7 +1099,7 @@ In scope: "User".
 Did you mean "base.F" ?
 Add a "use" or write the fully qualified name.
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 User:{
  'this
   .foo(x:F):F;
@@ -1118,7 +1118,7 @@ In scope: "User".
 Did you mean "base.Block" ?
 Add a "use" or write the fully qualified name.
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 User:{
  'this
   .foo(xs:Blok):Blok;
@@ -1136,7 +1136,7 @@ Package "basee" does not exist.
 Did you mean "base" ?
 Visible packages: "base", "p".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 use base.F as F;
 User:{
   .foo(x:basee.F):basee.F;
@@ -1152,7 +1152,7 @@ In file: [###].fear
 While inspecting a type name
 Type "Foo" is not declared in package "base".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 use base.F as F;
 User:{
   .foo(x:base.Foo):base.Foo;
@@ -1170,7 +1170,7 @@ Name "Block" is not declared with 2 type parameter(s) in package "base".
 Name "Block" is only declared with the following numbers of type parameters: 0, 1.
 Did you accidentally add or omit a type parameter?
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 User:{
   .foo[X,Y](x:base.Block[X,Y]):base.Block[X,Y];
 }
@@ -1188,7 +1188,7 @@ Name "Block" is not declared with 2 type parameter(s) in package "base".
 Name "Block" is only declared with the following numbers of type parameters: 0, 1.
 Did you accidentally add or omit a type parameter?
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 use base.Block as Block;
 User:{
   .foo[X,Y](x:Block[X,Y]):Block[X,Y];
@@ -1205,7 +1205,7 @@ Type "FOo" is not declared in package "p" and is not made visible via "use".
 Did you mean "Foo" ?
 In scope: "Foo", "User".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 Foo:{}
 User:{ .foo(x:FOo):FOo; }
 """));}
@@ -1220,7 +1220,7 @@ While inspecting a type name
 Type "Abc" is not declared in package "p" and is not made visible via "use".
 In scope: "Aaa", "Abb", "Acc", "User".
 Error 7 WellFormedness
-""",List.of("""
+""", List.of("""
 Aaa:{}
 Abb:{}
 Acc:{}
@@ -1385,7 +1385,7 @@ p.B:p.A{'this}
 p.C:p.B, p.A{'this}
 p.D:{'this .m:p.A@p.D;->p.K:p.C{'_ ? .foo[?]:p.A@!;->p.A:?;}:?;}
 p.K:p.C, p.A, p.B{'_ .foo:p.A@p.K;->p.A:?;}
-""",List.of("""
+""", List.of("""
 A:{ }
 B:A{}
 C:B{}
