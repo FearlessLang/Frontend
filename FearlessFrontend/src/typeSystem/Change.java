@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import core.*;
 import core.E.*;
+
 //intentionally merging "set to read" vs "weakened to read"
 public sealed interface Change{
   sealed interface WithT extends Change{ T currentT(); }

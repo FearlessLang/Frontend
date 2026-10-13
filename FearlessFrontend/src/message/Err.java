@@ -32,7 +32,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
   private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
   private String bestLitName(boolean skipRc,boolean skipImm,Literal l){
-    var rc= skipRc?RC.imm:l.rc();
+    var rc= skipRc ? RC.imm : l.rc();
     if (showInstanceOf(l)){ return typeReprRaw(skipImm || skipRc,new T.RCC(rc,l.cs().getFirst(),l.span())); }
     if (anonLit(l)){ return anonRepr; }
     return rc.toStrSpace(skipImm)+tNameA(l.name());
@@ -45,7 +45,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return (instanceOf ? "instance of " : "")+disp(n);
   }
   private boolean anonLit(Literal l){ return l.infName() && l.cs().isEmpty(); }
-  private static final String anonRepr="{...}";
+  private static final String anonRepr= "{...}";
   private String typeOrAnon(Literal l,String typePrefix,String anonPrefix){
     if (anonLit(l)){ return anonPrefix + disp(anonRepr); }
     return typePrefix+disp(bestLitName(false,true,l));
@@ -69,27 +69,27 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t),t.span()))); }
   static String up(String s){ return s.substring(0, 1).toUpperCase() + s.substring(1); }
-  String expRepr(E toErr){return switch (toErr){
-    case Call c->"method call "+methodSig(c.name());
-    case X x->"parameter " +disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());
-    case Literal l->l.thisName().equals("this")
+  String expRepr(E toErr){ return switch (toErr){
+    case Call c -> "method call "+methodSig(c.name());
+    case X x -> "parameter " +disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());
+    case Literal l -> l.thisName().equals("this")
       ? "type declaration " +tNameADisp(l.name())
       : "object literal " +bestNamePkg0(showInstanceOf(l), bestLitName(false,true,l));
-    case Type(var t, _)-> "object literal instance of " + typeRepr(true,t);
+    case Type(var t, _) -> "object literal instance of " + typeRepr(true,t);
     };}
-  String expReprDirect(boolean skipImm, E toErr){return switch (toErr){
-    case Literal l->bestNamePkg0(false, bestLitName(false,skipImm,l));
+  String expReprDirect(boolean skipImm, E toErr){ return switch (toErr){
+    case Literal l -> bestNamePkg0(false, bestLitName(false,skipImm,l));
     case Type(var t, _) -> typeRepr(skipImm,t);
     default -> throw Bug.unreachable();
     };}
-  String expRepr(inference.E toErr){return switch (toErr){
-    case inference.E.Call c->"method call "+methodSig(c.name());
-    case inference.E.ICall c->"method call "+methodSig(c.name());
-    case inference.E.X(var name, _, _, _)->"parameter " +disp(name);
-    case inference.E.Literal l->l.thisName().equals("this")
+  String expRepr(inference.E toErr){ return switch (toErr){
+    case inference.E.Call c -> "method call "+methodSig(c.name());
+    case inference.E.ICall c -> "method call "+methodSig(c.name());
+    case inference.E.X(var name, _, _, _) -> "parameter " +disp(name);
+    case inference.E.Literal l -> l.thisName().equals("this")
       ? "type declaration " +tNameADisp(l.name())
       : "object literal " +bestNamePkg0(l.infName(), bestLitName(l));
-    case inference.E.Type t-> "object literal instance of " + t;
+    case inference.E.Type t -> "object literal instance of " + t;
     };}
   String methodSig(MName m){ return methodSig("",m); }
   String methodSig(String pre, TName t, MName m){ return methodSig(pre+tNameA(t),m); }
@@ -103,7 +103,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return t instanceof T.RCC(_, var c, _) && LiteralDeclarations.inferErrs.contains(c.name());
   }
   String text(){ return sb.toString().stripTrailing(); }
-  public Err pTypeArgBounds(String what, String kindingTarget, String paramName,  int index, T bad, String allowedStr, String gotStr){
+  public Err pTypeArgBounds(String what, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
     var badStr= typeRepr(true,bad);
     var e= line("The "+what+" is invalid.")
       .line("Type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")

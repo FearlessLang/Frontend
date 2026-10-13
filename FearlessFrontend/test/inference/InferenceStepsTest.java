@@ -3,7 +3,7 @@ package inference;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class TestInferenceSteps extends testUtils.FearlessTestBase{
+public class InferenceStepsTest extends testUtils.FearlessTestBase{
   static void okI(String expected, List<String> input){ inferenceOk(expected, input, true); }
   static void failI(String expected, List<String> input){ inferenceFail(expected, input, true); }
 
@@ -92,14 +92,14 @@ User:{
   }
 """));}
 
-static String importMini="""
+static String importMini= """
 use base.Nat as Nat;
 use base.F as F;
 use base.Bool  as Bool;
 use base.Void as Void;
 
 """;
-static String stackStart="""
+static String stackStart= """
 StackMatch[T,R]: {
   .empty: R;
   .elem(top:T, tail: Stack[T]): R;
@@ -207,7 +207,7 @@ Z4ExampleFluent: { #(ns: Stack[Nat]): Nat -> ns
   }
 """));}
 //-----------Now with numbers as userDefNames
-static String importTo10="""
+static String importTo10= """
 use base.Nat as Nat;
 use base.F as F;
 use base.Bool  as Bool;

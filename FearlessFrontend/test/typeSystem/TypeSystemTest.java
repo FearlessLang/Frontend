@@ -734,7 +734,7 @@ User:{
 }
 """));}
 
-@Test void methBodyWrongType_xWrongNominal_shortNames(){ fail("""
+@Test void methodBodyWrongType_xWrongNominal_shortNames(){ fail("""
 004|   imm .m(x:imm A):B->x;
    |   -------------------^^
 
@@ -752,7 +752,7 @@ User:{
 }
 """));}
 
-@Test void methBodyWrongType_xWrongNominal_longNames_indent(){ fail("""
+@Test void methodBodyWrongType_xWrongNominal_longNames_indent(){ fail("""
 004|   imm .veryLongMethodName(veryVeryLongParamName:imm Alpha):Beta->
 005|     veryVeryLongParamName;
    |     ^^^^^^^^^^^^^^^^^^^^^^
@@ -772,7 +772,7 @@ User:{
 }
 """));}
 
-@Test void methBodyWrongType_callWrongType_namedCallee(){ fail("""
+@Test void methodBodyWrongType_callWrongType_namedCallee(){ fail("""
 005|   imm .m():B->MakeA#({  }    );
    |   ------------^^^^^^^^^^^-----
 
@@ -791,7 +791,7 @@ User:{
 }
 """));}
 
-@Test void methBodyWrongType_callWrongType_rcOnly(){ fail("""
+@Test void methodBodyWrongType_callWrongType_rcOnly(){ fail("""
 004|   imm .m():mut A->MakeA#({  }    );
    |   ----------------^^^^^^^^^^^-----
 
@@ -809,7 +809,7 @@ User:{
 }
 """));}
 
-@Test void methBodyWrongType_callWrongType_rcOnly_nested(){ fail("""
+@Test void methodBodyWrongType_callWrongType_rcOnly_nested(){ fail("""
 005|   imm .m():Get->mut Get{
 006|     mut .get:mut A->MakeA#({});
    |     ----------------^^^^^^^^^-
@@ -833,7 +833,7 @@ User:{
 }
 """));}
 
-@Test void methBodyWrongType_inferredContextShowsInferredGenericInstantiation(){fail("""
+@Test void methodBodyWrongType_inferredContextShowsInferredGenericInstantiation(){fail("""
 007|   imm .m():Car->Apply#(Person,{_->Foo});
    |   -----------------------------~~~^^^^-
 
@@ -854,7 +854,7 @@ User:{
   imm .m():Car->Apply#(Person,{_->Foo});
 }
 """));}
-@Test void methBodyWrongType_callWrongType_nestedCall(){ fail("""
+@Test void methodBodyWrongType_callWrongType_nestedCall(){ fail("""
 006|   imm .m():B->Wrap#(Mk#({}));
    |   ------------^^^^^^^^^^^^--
 
@@ -874,7 +874,7 @@ User:{
 }
 """));}
 
-@Test void methBodyWrongType_literalWrongType_namedLiteral(){ fail("""
+@Test void methodBodyWrongType_literalWrongType_namedLiteral(){ fail("""
 004|   imm .m():B->imm AA:A{};
    |   ----------------^^^^^^
 
@@ -891,7 +891,7 @@ User:{
   imm .m():B->imm AA:A{};
 }
 """));}
-@Test void methBodyWrongType_xWeakenedCapability_dueToCapture(){fail("""
+@Test void methodBodyWrongType_xWeakenedCapability_dueToCapture(){fail("""
 004|   read .m(loooooong:mut A):mut A->
 005|     read Get{ loooooong };
    |               ^^^^^^^^^
@@ -914,7 +914,7 @@ User:{
     read Get{ loooooong };
 }
 """));}
-@Test void methBodyWrongType_xWeakenedCapability_dueToCapture2(){fail("""
+@Test void methodBodyWrongType_xWeakenedCapability_dueToCapture2(){fail("""
 004|   read .m(loooooong:mut A):read Get->
 005|     read Get{ loooooong };
    |               ^^^^^^^^^
@@ -961,7 +961,7 @@ User:{
 }
 """));}
 
-@Test void methBodyWrongType_xWeakenedCapability_dueToCapture_chain(){fail("""
+@Test void methodBodyWrongType_xWeakenedCapability_dueToCapture_chain(){fail("""
 005|   read .m(loooooong:mut A):mut A->
 006|     read Wrap{ mut Get{ loooooong } };
    |                ---------^^^^^^^^^--

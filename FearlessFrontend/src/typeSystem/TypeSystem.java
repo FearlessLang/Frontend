@@ -13,6 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import core.AllLs;
+import core.AssertNoRepeatedTypeNames;
 import core.B;
 import core.E;
 import core.FearlessException;
@@ -49,7 +50,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
 
   public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
     tops= UriSort.byFolderThenFile(tops, l->l.span().inner.fileName());
-    assert core.AssertNoRepeatedTypeNames.ok(tops);
+    assert AssertNoRepeatedTypeNames.ok(tops);
     var map= AllLs.of(tops);
     Function<TName,Literal> decs= n->LiteralDeclarations.from(n,map::get,other);
     var invMap= pkg.map().entrySet().stream()
@@ -66,7 +67,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   public void check(List<B> bs, Gamma g, E e, T expected){
     var got= OneOr.of("One reason per requirement", typeOf(bs,g,e,List.of(new TRequirement("", expected))).stream());
     if (got.isEmpty()){ return; }
-    throw tsE().methBodyWrongType((TypeScope.Method)scope,e,got,expected);
+    throw tsE().methodBodyWrongType((TypeScope.Method)scope,e,got,expected);
   }
   List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch (e){
     case X x -> checkX(bs,g,x,rs);
@@ -129,7 +130,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var thisType= new T.RCC(l.rc(),new T.C(l.name(),dom(l.bs(),span)),span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l,bs1,thisType);
-    litOk(v().discard(g.filterFTV(l),l),l);
+    litOk(v.discard(g.filterFTV(l),l),l);
     if (selfNamed && !uses(_l,_l.thisName())){ throw tsE().selfNameDeadCode(_l); }
     l.ms().stream().filter(m->m.e().isPresent()).forEach(m->checkCallable(l,m));
     l.ms().forEach(m->checkImplemented(l,m,l));
@@ -183,14 +184,14 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       .collect(Collectors.groupingBy(s->new Key(s.m(), s.rc()),LinkedHashMap::new,Collectors.toList()))
       .forEach((k,group)->methodTableOk(l,k,group));
     var g1= g.add(l.thisName(),new T.RCC(l.rc().isoToMut(),new T.C(l.name(),dom(delta,span)),span));
-    l.ms().forEach(m->methOk(l,delta,v().of(g1,l,m),m));//passing l and m instead of their RC for better errors
+    l.ms().forEach(m->methodOk(l,delta,v.of(g1,l,m),m));//passing l and m instead of their RC for better errors
   }
   private void csOk(Literal l, List<B> delta, T.C c){
     k().checkC(l,delta,c);
     var d= decs().apply(c.name());
     if (!hasInstance(d)){ throw tsE().typeDeclaredInMethod(l, d); }
   }
-  private void methOk(Literal forErr,List<B> delta, Gamma g, M m){
+  private void methodOk(Literal forErr,List<B> delta, Gamma g, M m){
     var allBs= Push.of(delta,m.sig().bs());
     m.sig().ts().forEach(t->k().check(forErr,allBs,t));
     k().check(forErr,allBs,m.sig().ret());
@@ -232,7 +233,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     assert mostSpecificByOrigin(l,group,chosen);
     assert !Sources.findCanonical(decs().apply(chosen.origin()),chosen.m(),chosen.rc()).abs() || chosen.abs();//This assert and the one below do the same thing in working programs but may differ in buggy ones
     assert group.stream().filter(s->s.origin().equals(chosen.origin())).allMatch(s->chosen.abs() == s.abs());
-    for (var s:group){ sigSub(l,chosen,s); }
+    for (var s : group){ sigSub(l,chosen,s); }
     assert group.stream().filter(s->!s.abs()).allMatch(s->isOriginSub(chosen.origin(),s.origin()) || overridden(group,s));
   }
   private boolean overridden(List<Sig> group, Sig s){
@@ -284,7 +285,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (a.equals(b)){ return true; }
     if (!(a instanceof T.RCC(var aRc, var aC, _) && b instanceof T.RCC(var bRc, var bC, _))){
       if (!(a.withRC(imm) instanceof T.RCX(_, var x)) || !a.withRC(imm).equals(b.withRC(imm))){ return false; }
-      return get(bs,x.name()).rcs().size() == 1 && Kinding.intrinsicRCs(bs,a).equals(Kinding.intrinsicRCs(bs,b));
+      return B.get(bs,x.name()).rcs().size() == 1 && Kinding.intrinsicRCs(bs,a).equals(Kinding.intrinsicRCs(bs,b));
     }
     var sameHead= aRc == bRc && aC.name().equals(bC.name());
     if (!sameHead){ return false; }

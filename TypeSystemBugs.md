@@ -161,7 +161,7 @@ there (funnelling), and the same name cannot be declared twice along the nesting
 
 Witness. `BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[Z]{} }`: `Z` reached the
 type system in the supertype of `BreakInner`, whose own `bs` is empty, and `Kinding.ofX`
-looked it up with `RC.get(bs,"Z")`, which is offensive: `OneOr.OneOrException` instead of
+looked it up with `B.get(bs,"Z")`, which is offensive: `OneOr.OneOrException` instead of
 a message. The same happened with `Z` in one of the declaration's own signatures, and `mut
 Z` passed kinding altogether because `checkRCX` never consults `bs`. The formalism has the
 rule (B2 in the appendix, `X in dom(XBs)` for every type in `Lit-ok`), the implementation
@@ -408,7 +408,7 @@ there, which no one could write (the parser rejects it, `genericNotFunnelled`).
     now:  error at the use if FTV(T) not subsetOf Xs(si) for some si, else as before
 
 Witness. `User:{ read .m[X:*](x:X):read Foo -> read Foo:{ read .m:Bar -> x } }`: `adapt`
-looked `X` up in the bounds of `Foo`, which are empty, and `RC.get` crashed. A type other than
+looked `X` up in the bounds of `Foo`, which are empty, and `B.get` crashed. A type other than
 a bare `X` was adapted by its capability alone, so with `beer:Beer[X]` inference typed it and
 carried `X` further: `Id#beer` became `Id#[Beer[X]]`, and the type system, which checks the
 type arguments of a call before its arguments, crashed in `Kinding` looking `X` up in the

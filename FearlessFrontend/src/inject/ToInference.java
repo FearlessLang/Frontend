@@ -21,7 +21,7 @@ public final class ToInference{
     assert p.names().decNames().stream().allMatch(n->n.pkgName().isEmpty());
     var defined= p.names().decNames().contains(simple); //this also checks arity
     if (defined){ return full; } //here, we know it is not defined (either at all or with the right arity)
-    throw undeclaredType(meths,written,written.pkgName().isEmpty()?simple:full);
+    throw undeclaredType(meths,written,written.pkgName().isEmpty() ? simple : full);
   }
   private static FearlessException undeclaredType(Methods meths, TName written, TName resolved){
     var p= meths.p();

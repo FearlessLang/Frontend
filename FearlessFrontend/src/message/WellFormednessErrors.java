@@ -1,5 +1,7 @@
 package message;
 
+import static message.Err.*;
+
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
@@ -27,15 +29,15 @@ import inference.E;
 import inference.IT;
 import inference.M;
 import inject.Methods.Agreement;
+import inject.TypeRename;
 import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
+import pkgmerge.Package;
 import tools.SourceOracle.Ref;
 import typeSystem.Kinding;
 import utils.Join;
 import utils.Push;
-
-import static message.Err.*;
 
 public record WellFormednessErrors(String pkgName){
   @SuppressWarnings("serial")
@@ -49,7 +51,7 @@ public record WellFormednessErrors(String pkgName){
     lines.forEach(e::line);
     return e;
   }
-  public static List<String> resolution(pkgmerge.Package p, String written){
+  public static List<String> resolution(Package p, String written){
     var dot= TName.pkgDot(written);
     if (dot != -1){
       var in= written.substring(0,dot);
@@ -89,7 +91,7 @@ public record WellFormednessErrors(String pkgName){
     if (heads.isEmpty()){
       return badRank(err()
         .line("No rank file found for package "+disp(pkgName)+".")
-        .line("Each package must have exactly one source file whose name is their rank.")
+        .line("Each package must have exactly one source file whose name is their rank,")
         .line("in some folder inside the project folder."))
         .wf();
     }
@@ -243,7 +245,7 @@ public record WellFormednessErrors(String pkgName){
       .wf()
       .addFrame("package header", at);
   }
-  public FearlessException genericTypeVariableShadowTName(Map<TName, Set<X>> allXs, List<String> allNames, Set<String> use){
+  public FearlessException genericTypeVariableShadowTName(Map<TName,Set<X>> allXs, List<String> allNames, Set<String> use){
     var n= allXs.values().stream().flatMap(Set::stream)
       .filter(x->allNames.contains(x.name()) || use.contains(x.name()))
       .findFirst().get();
@@ -297,7 +299,7 @@ public record WellFormednessErrors(String pkgName){
     var cu= color.get(u);
     if (cu != null){ return cu == 1 ? u : null; }
     color.put(u, 1);
-    for (var c:rem.get(u).cs()){
+    for (var c : rem.get(u).cs()){
       if (!rem.containsKey(c.name())){ continue; }
       var hit= _dfs(rem, c.name(), color);
       if (hit != null){ return hit; }
@@ -329,7 +331,7 @@ public record WellFormednessErrors(String pkgName){
   public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
   public FearlessException noAgreement(Agreement at, List<B> bs, List<IT> res, String msg){
     var rc= at.rc().map(r->r.toStrSpace(false)).orElse("");
-    var rcDiffers= res.stream().map(t->Kinding.intrinsicRCs(bs,inject.TypeRename.itToT(t))).distinct().count() > 1;
+    var rcDiffers= res.stream().map(t->Kinding.intrinsicRCs(bs,TypeRename.itToT(t))).distinct().count() > 1;
     var x= res.stream().filter(t->!(t instanceof IT.RCC)).findFirst();
     var e= err()
       .line(msg+" for method "+err().methodSig(rc,at.mName())+" with "+at.mName().arity()+" parameters.")
@@ -344,7 +346,7 @@ public record WellFormednessErrors(String pkgName){
   }
   private String option(boolean showImm, IT o){
     if (!(o instanceof IT.RCC rcc)){ return disp(o); }
-    return showImm ? err().typeRepr(false,inject.TypeRename.itToT(rcc)) : err().typeRepr(rcc);
+    return showImm ? err().typeRepr(false,TypeRename.itToT(rcc)) : err().typeRepr(rcc);
   }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
@@ -408,7 +410,7 @@ public record WellFormednessErrors(String pkgName){
     var declares= xs.isEmpty() ? " declares none" : " declares "+Join.of(xs.stream().map(Err::disp),"",", ","","");
     var uses= t instanceof IT.RCC ? ", using the generic type "+disp(missing)+"." : ".";
     return wf(err()
-      .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(true,inject.TypeRename.itToT(t))+uses)
+      .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(true,TypeRename.itToT(t))+uses)
       .line("Generic type "+disp(missing)+" is not in scope inside the type declaration "+dec+".")
       .line("A type declaration only sees the generic types it declares itself; here "+dec+declares+".")
       .line("Hint: funnel "+disp(missing)+" into "+dec+" by writing "+funnelled+", restating the bounds of "+disp(missing)+"."), x);
@@ -416,9 +418,9 @@ public record WellFormednessErrors(String pkgName){
   public FearlessException itTooDeep(E at,IT.RCC blame){
     return wf(err()
       .line("Type "+err().typeRepr(blame))
-      .line("grew incontrollably during inference."), at);
+      .line("grew uncontrollably during inference."), at);
   }
-  public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<inference.M.Sig> options){
+  public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<M.Sig> options){
     return wf(err()
       .line("Cannot infer the name for a method with "+m.sig().ts().size()+" parameters.")
       .line("Many"+(abs ? " abstract" : "")+" methods with "+m.sig().ts().size()+" parameters could be selected:")

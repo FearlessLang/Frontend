@@ -1,14 +1,14 @@
 package fearlessFullGrammar;
 
+import static fearlessParser.TokenKind.*;
+import static offensiveUtils.Require.*;
+
 import java.util.*;
 
 import core.MName;
 import core.RC;
 import core.TSpan;
 import utils.Pos;
-
-import static fearlessParser.TokenKind.*;
-import static offensiveUtils.Require.*;
 
 public sealed interface E extends core.Src.SrcObj{
   Pos pos();
@@ -26,13 +26,13 @@ public sealed interface E extends core.Src.SrcObj{
   }
   record Literal(Optional<E.X> thisName, List<M> methods, TSpan span) implements E, Comparable<Literal>{
     public Literal{
-      assert unmodifiableDistinct(methods, "L.Full.methods");
+      assert unmodifiableDistinct(methods, "E.Literal.methods");
       assert nonNull(thisName,span);
     }
     public Pos pos(){ return span.pos(); }
     public String toString(){ return "Literal"+thisName.map(Object::toString).orElse("")+methods; }
     public Literal withSpan(TSpan span){ return new Literal(thisName,methods,span); }
-    @Override public int compareTo(Literal o){ return span().inner.compareTo(o.span().inner); }
+    @Override public int compareTo(Literal o){ return span.inner.compareTo(o.span.inner); }
   }
   record TypedLiteral(T.RCC t, Optional<Literal> l,Pos pos) implements E{
     public TypedLiteral{ assert nonNull(t,l,pos); }
@@ -47,7 +47,7 @@ public sealed interface E extends core.Src.SrcObj{
   }
   //if pat is present, this is an x=e posts, if absent this is a normal meth call.
   record CallSquare(Optional<RC> rc, List<T> ts, Pos endPos){
-    public CallSquare{ assert nonNull(rc); assert unmodifiable(ts, "E.Call.targs"); }
+    public CallSquare{ assert nonNull(rc); assert unmodifiable(ts, "E.CallSquare.ts"); }
     public String toString(){ return "CallSquare[rc="+rc+",ts="+ts+"]"; }
   }
   record Call(E e, MName name, Optional<CallSquare> targs, boolean pars, Optional<XPat> pat, List<E> es, Pos pos) implements E{

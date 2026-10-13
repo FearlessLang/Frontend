@@ -7,7 +7,6 @@ import java.util.Map;
 import core.OtherPackages;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
-import inference.E;
 import inject.InjectionSteps;
 import inject.Methods;
 import inject.ToInference;
@@ -21,15 +20,15 @@ public class InferenceMain extends FrontendLogicMain{
     return new Package(name, map, uses, decs, names, new Package.Logger(true,new ArrayList<>()));
   }
   public Methods ofMethods(String pkgName, List<Ref> files, SourceOracle o, OtherPackages other, boolean infer){
-    Map<Ref, FileFull> rawAST= parseFiles(files);
-    Package pkg= mergeToPackage(pkgName,rawAST, Map.of(), other);
-    Methods ctx= Methods.create(pkg, other);
-    List<E.Literal> iDecs= ToInference.of(ctx);
+    var rawAST= parseFiles(files);
+    var pkg= mergeToPackage(pkgName,rawAST, Map.of(), other);
+    var ctx= Methods.create(pkg, other);
+    var iDecs= ToInference.of(ctx);
     iDecs= ctx.registerTypeHeadersAndReturnRoots(iDecs);
     if (!infer){ return ctx; }
     var res= InjectionSteps.steps(ctx, iDecs);
     ctx.p().log().logs().add("~-----------");
-    for (var r: res){ ctx.p().log().logs().add("~"+r); }
+    for (var r : res){ ctx.p().log().logs().add("~"+r); }
     return ctx;
   }
 }

@@ -1,6 +1,8 @@
 package typeSystem;
+
 import static core.RC.*;
 import static offensiveUtils.Require.*;
+
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
@@ -40,7 +42,7 @@ public record Kinding(TypeSystemErrors tsE){
   public static EnumSet<RC> intrinsicRCs(List<B> bs, T t){ return switch (t){
     case T.RCC(var rc, _, _) -> EnumSet.of(rc);
     case T.RCX(var rc, _) -> EnumSet.of(rc);
-    case T.X(var x, _) -> get(bs, x).rcs();
+    case T.X(var x, _) -> B.get(bs, x).rcs();
     case T.ReadImmX(var x) -> readImmRCs(intrinsicRCs(bs, x));
   };}
   private static EnumSet<RC> readImmRCs(EnumSet<RC> rcs){

@@ -1,5 +1,9 @@
 package fearlessParser;
 
+import static fearlessParser.TokenKind.*;
+import static java.util.Optional.*;
+import static metaParser.MetaParser.SplitMode.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -18,11 +22,6 @@ import metaParser.MetaParser;
 import metaParser.Span;
 import utils.Bug;
 import utils.Range;
-
-import static fearlessParser.TokenKind.*;
-import static java.util.Optional.*;
-import static metaParser.MetaParser.SplitMode.*;
-
 
 public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
   Names names;
@@ -139,7 +138,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     checkNewXs(xs);
     updateNames(names.add(xs, List.of()));//zero if xpat is empty
     if (xpat.isPresent()){ atom= parsePost(atom); while (!end()){ atom= parsePost(atom); } }
-    return new E.Call(receiver, m.withArity(xpat.isPresent()?2:1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar
+    return new E.Call(receiver, m.withArity(xpat.isPresent() ? 2 : 1), sq, false,xpat,List.of(atom),pos);//note: arity 2 is special case for = sugar
   }
   boolean eqSugar(){
     if (peekOrder(t->t.is(Underscore),t->t.is(Eq))){
@@ -177,7 +176,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var rc= parseIf(hasRC,this::parseRC);
     var moreTargs= hasRC && !end();
     if (moreTargs){ expect("method call generic type argument",Comma); }
-    return new E.CallSquare(rc, end()?List.of():splitBy("genericTypes",commaSkip,Parser::parseT),pos());
+    return new E.CallSquare(rc, end() ? List.of() : splitBy("genericTypes",commaSkip,Parser::parseT),pos());
   }
   E.Implicit parseImplicit(){ return new E.Implicit(pos(expect("",ColonColon))); }
   E.Round parseRound(){
@@ -199,7 +198,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var start= expect("object literal",OCurly);
     var end= expectLast("object literal",CCurly);
     var thisName= parseIf(fwdIf(peek(SQuote)),this::parseDecX);
-    var n= thisName.map(E.X::name).orElse(top?"this":"_");
+    var n= thisName.map(E.X::name).orElse(top ? "this" : "_");
     var badTopSelfName= top && !n.equals("this");
     if (badTopSelfName){ throw errFactory().badTopSelfName(thisName.get().span().inner, n); }
     if (!n.equals("_")){ updateNames(names.add(List.of(n),List.of())); }
@@ -224,18 +223,18 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var names= ms.stream().flatMap(this::declaredName).toList();
     var at= span(start,end).get();
     var redeclared= names.stream().distinct().count() < names.size();
-    if (redeclared){ throw errFactory().methNameRedeclared(ms,names,at); }
+    if (redeclared){ throw errFactory().methodNameRedeclared(ms,names,at); }
     checkMixedExplicitRC(ms,names,at);
     var noNames= ms.stream()
       .map(errFactory()::parCount).filter(i->i != -1).toList();
     var noNameRedeclared= noNames.stream().distinct().count() < noNames.size();
-    if (noNameRedeclared){ throw errFactory().methNoNameRedeclared(ms,noNames,at); }
+    if (noNameRedeclared){ throw errFactory().methodNoNameRedeclared(ms,noNames,at); }
   }
   private void checkMixedExplicitRC(List<M> ms, List<RCMName> names, Span at){
     for (var n : names){
       if (n.rc().isPresent()){ continue; }
       var mixed= names.stream().anyMatch(o->o.name().equals(n.name()) && o.rc().isPresent());
-      if (mixed){ throw errFactory().methMixedExplicitRC(ms,n.name(),at); }
+      if (mixed){ throw errFactory().methodMixedExplicitRC(ms,n.name(),at); }
     }
   }
   Stream<String> xsOf(Optional<XPat> xp){ return xp.stream().flatMap(XPat::parameterNames).filter(x->!x.equals("_")); }
@@ -285,9 +284,9 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var tok= peek();
     var m= parseIf(peek(DotName,Op),this::parseMName);
     try{ return parseSigAfterName(rc, m); }
-    catch(FearlessException exc){
+    catch(FearlessException fe){
       var forgotSpace= m.stream().anyMatch(mi->mi.s().endsWith("->"));
-      if (!forgotSpace){ throw exc; }
+      if (!forgotSpace){ throw fe; }
       throw errFactory().forgotSpace(span(tok.get()).get(),m.get().s());
     }
   }
@@ -303,7 +302,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     m= m.map(_m->_m.withArity(ps.size()));
     var xs= ps.stream().flatMap(p->xsOf(p.xp())).toList();
     var duplicated= xs.stream().distinct().count() < xs.size();
-    if (duplicated){ throw errFactory().duplicateParamInMethodSignature(xs,span()); }
+    if (duplicated){ throw errFactory().duplicatedParamInMethodSignature(xs,span()); }
     return new Sig(rc,m,bs,hasPar,ps,t);
   }
   List<Parameter> parseNakedParameters(){
@@ -324,7 +323,7 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
       var res= p.splitBy("generic bounds declaration",commaB,pi->pi.parseB(mustNew));
       var Xs= bsXs(of(res));
       var duplicated= Xs.stream().distinct().count() < Xs.size();
-      if (duplicated){ throw errFactory().duplicateGenericInMethodSignature(Xs,span()); }
+      if (duplicated){ throw errFactory().duplicatedGenericInMethodSignature(Xs,span()); }
       return res;
     });
   }
@@ -376,13 +375,13 @@ public class Parser extends MetaParser<Token,TokenKind,FearlessException,Tokeniz
     var c= parseTName();
     if (top){ errFactory().noteTop(c); }
     var _= expectValidate(back("simple type name"), UppercaseId,_XId); //to get error if of form foo.Bar
-    var bs= parseIf(peek(_SquareGroup),()->this.parseBs(top));
+    var bs= parseIf(peek(_SquareGroup),()->parseBs(top));
     var Xs= bsXs(bs);
     var outer= names;
     updateNames(top ? names.add(List.of(),Xs) : names.setFunnelledXs(c.s(),Xs));
     c= c.withArity(Xs.size());
     expect("type declaration (:) symbol",Colon);
-    var cs= this.parseImpl();
+    var cs= parseImpl();
     assert peek(_CurlyGroup);
     var l= parseGroup("type declaration body",p->p.parseLiteral(top));
     updateNames(outer);

@@ -1,16 +1,17 @@
 package inference;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.net.URI;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import core.FearlessException;
 import testUtils.DbgBlock;
 import tools.SourceOracle;
 
-public class TestInference extends testUtils.FearlessTestBase{
+public class InferenceTest extends testUtils.FearlessTestBase{
   static void ok(String expected,List<String> input){ inferenceOk(expected, input,false); }
   static void fail(String expected, List<String> input){ inferenceFail(expected, input); }
 
@@ -60,7 +61,7 @@ B:{}
   FearlessException fe= assertThrows(FearlessException.class, () -> parsePackage("p", o, false));
   strCmp("""
 No rank file found for package "p".
-Each package must have exactly one source file whose name is their rank.
+Each package must have exactly one source file whose name is their rank,
 in some folder inside the project folder.
 Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
 The rank file is the file whose name matches the rank name.

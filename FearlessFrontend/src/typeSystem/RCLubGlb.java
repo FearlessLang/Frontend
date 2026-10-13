@@ -1,5 +1,8 @@
 package typeSystem;
 
+import static core.RC.*;
+import static java.util.EnumSet.of;
+
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -7,9 +10,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import core.RC;
-
-import static core.RC.*;
-import static java.util.EnumSet.of;
 
 public final class RCLubGlb{
   private RCLubGlb(){}
