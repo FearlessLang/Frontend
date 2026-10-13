@@ -38,7 +38,7 @@ public final class RCLubGlb{
     assert allRC.stream().noneMatch(rc -> rc != lub && isLub(options, rc));
     assert allRC.stream().noneMatch(rc -> rc != glb && isGlb(options, rc));
   }
-  static {// RCs                  | GLB     | LUB
+  static{// RCs                  | GLB     | LUB
     init(of(iso),                   iso,     iso);
     init(of(imm),                   imm,     imm);
     init(of(mut),                   mut,     mut);
