@@ -56,7 +56,7 @@ public record FreshPrefix(
   private static String freshCandidate(String hint, char[] alphabet,
       HashMap<String,Integer> seq, HashSet<String> commitScope, List<Collection<String>> extraChecks){
     var base= sanitizeBase(hint);
-    for (int n= seq.getOrDefault(base, 1);; n++){
+    for (int n= seq.getOrDefault(base, 1);; n += 1){
       var cand= "_"+encodeBijective(n, alphabet)+base;
       var taken= commitScope.contains(cand) || extraChecks.stream().anyMatch(e -> e.contains(cand));
       if (taken){ continue; }
@@ -79,7 +79,7 @@ public record FreshPrefix(
     var base= alphabet.length;
     var sb= new StringBuilder(4);
     while (n > 0){
-      n--;
+      n -= 1;
       sb.append(alphabet[n % base]);
       n /= base;
     }

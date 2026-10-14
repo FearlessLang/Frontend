@@ -45,7 +45,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     var rnd= new Random(0);
     var crashes= new TreeMap<String,String>();
     for (var s : seeds){ run(s, other, crashes); }
-    for (int i= 0; i < cases; i++){ run(mutate(seeds.get(rnd.nextInt(seeds.size())), rnd, seeds), other, crashes); }
+    for (int i= 0; i < cases; i += 1){ run(mutate(seeds.get(rnd.nextInt(seeds.size())), rnd, seeds), other, crashes); }
     strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
   }
   @Test void underAnnotatedTestProgramsNeverCrash(){
@@ -53,7 +53,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     var other= otherFrom(DbgBlock.all());
     var rnd= new Random(0);
     var crashes= new TreeMap<String,String>();
-    for (int i= 0; i < cases; i++){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())), rnd), other, crashes); }
+    for (int i= 0; i < cases; i += 1){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())), rnd), other, crashes); }
     strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
   }
   static void run(String src, OtherPackages other, TreeMap<String,String> crashes){
@@ -91,7 +91,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   }
   static String mutate(String s, Random r, List<String> seeds){
     int k= 1 + r.nextInt(3);
-    for (int i= 0; i < k && !s.isEmpty(); i++){ s = mutateOnce(s, r, seeds); }
+    for (int i= 0; i < k && !s.isEmpty(); i += 1){ s = mutateOnce(s, r, seeds); }
     return s;
   }
   static String mutateOnce(String s, Random r, List<String> seeds){
@@ -106,7 +106,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   }
   static String underAnnotate(String s, Random r){
     int k= 1 + r.nextInt(4);
-    for (int i= 0; i < k; i++){ s = dropAnnotation(s, r); }
+    for (int i= 0; i < k; i += 1){ s = dropAnnotation(s, r); }
     return s;
   }
   static String dropAnnotation(String s, Random r){

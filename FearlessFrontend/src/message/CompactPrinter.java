@@ -89,7 +89,8 @@ public final class CompactPrinter{
   public record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k) implements PE{
     @Override public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace());
-      if (!priv){ sb.append(name); } else if (!cs.isEmpty()){ cs.getFirst().accString(sb); }
+      if (!priv){ sb.append(name); }
+      else if (!cs.isEmpty()){ cs.getFirst().accString(sb); }
       if (!k.isCompactable()){ sb.append("{-}"); return; }
       if (!priv){ wrap(sb, "", "", cs, ",", PC::accString); }
       if (ms.isEmpty()){ sb.append("{}"); return; }

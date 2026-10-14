@@ -87,7 +87,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
 
   private static Optional<Token> findPseudoOpenerBefore(int idx, Tokenizer tz){
     var all= tz.allTokens();
-    for (var j= idx - 1; j >= 0; j--){
+    for (var j= idx - 1; j >= 0; j -= 1){
       var p= all.get(j);
       if (p.is(BlockComment, _SOF)){ return Optional.empty(); }
       var hidesOpener= p.is(LineComment, UStr, SStr) && p.content().contains("/*");
@@ -122,7 +122,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     }
     var all= tz.allTokens();
     var j= idx - 1;
-    while (j > 0 && !all.get(j).is(BlockComment)){ j--; }
+    while (j > 0 && !all.get(j).is(BlockComment)){ j -= 1; }
     var prev= all.get(j);
     if (!prev.is(BlockComment)){ throw strErr(b, quoteChar, ""); }
     var s= prev.span(file);
