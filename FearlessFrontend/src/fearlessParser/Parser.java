@@ -208,7 +208,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     return new E.Literal(thisName, ms, tspan());
   }
   private void checkStraySemicolons(){
-    for (int i= 0; peek(i).isPresent(); i++){
+    for (int i= 0; peek(i).isPresent(); i += 1){
       var stray= peek(i).get().is(SemiColon) && (i == 0 || peek(i-1).get().is(SemiColon));
       if (stray){ throw errFactory().straySemicolon(span(peek(i).get()).get()); }
     }

@@ -51,7 +51,7 @@ public final class Gamma{
     rcs[depth] = rc;
     bss[depth] = bs;
     owners[depth] = owner;
-    depth++;
+    depth += 1;
   }
   private void growScopes(){
     var n= 2 * depth;
@@ -70,9 +70,9 @@ public final class Gamma{
   public void popScope(){
     assert depth > 1;
     var newSize= marks[depth - 1];
-    for (var i= size - 1; i >= newSize; i--){ idx.remove(xs[i]); xs[i] = null; ts[i] = null; }
+    for (var i= size - 1; i >= newSize; i -= 1){ idx.remove(xs[i]); xs[i] = null; ts[i] = null; }
     size = newSize;
-    depth--;
+    depth -= 1;
   }
   public IT getWithRC(String x){
     //Can this be done? need to locate the dept of x.
@@ -80,7 +80,7 @@ public final class Gamma{
     // if there is read over (not under) x and theIt.explicitRC().equals(Optional.of(RC.mut), turn the IT to read and return theIt.withRC(read)
     var i= indexOf(x);         // offensive: -1 would crash later
     var t= ts[i];              // the stored (true) type
-    for (var s= declDepth[i] + 1; s < depth; s++){ t = adapt(t, rcs[s], bss[s]); }
+    for (var s= declDepth[i] + 1; s < depth; s += 1){ t = adapt(t, rcs[s], bss[s]); }
     return t;
   }
   public Optional<E.Literal> notFunnelledInto(String x){
@@ -118,7 +118,7 @@ public final class Gamma{
     declDepth[size] = depth - 1;
     idx.put(x, size);
     envHash[depth - 1] ^= contrib(x, t);
-    size++;
+    size += 1;
   }
   public void update(String x, IT t){
     var i= indexOf(x);
@@ -138,7 +138,7 @@ public final class Gamma{
   private int indexOf(String x){
     assert x != null;
     if (size > indexThreshold){ return idx.getOrDefault(x, -1); }
-    for (var i= size - 1; i >= 0; i--){ if (xs[i].equals(x)){ return i; } }
+    for (var i= size - 1; i >= 0; i -= 1){ if (xs[i].equals(x)){ return i; } }
     return -1;
   }
   private static long contrib(String x, IT t){
