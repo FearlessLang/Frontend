@@ -96,7 +96,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String methodSig(String pre, TName t, MName m){ return methodSig(pre+tNameA(t), m); }
   String methodSig(String pre, Literal l, MName m){ return methodSig(pre+bestLitName(true, true, l), m); }
   String methodSig(String pre, inference.E.Literal l, MName m){ return methodSig(pre+bestLitName(l), m); }
-  String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(), "_"), pre+m.s()+"(", ",", ")", pre+m.s())); }
+  static String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(), "_"), pre+m.s()+"(", ",", ")", pre+m.s())); }
   public static boolean rcOnlyMismatch(T got, T req){
     return got.withRC(RC.imm).equals(req.withRC(RC.imm));
   }

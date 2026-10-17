@@ -1236,7 +1236,7 @@ In file: [###].fear
 004|   }
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-Abstract method declaration for ".bar".
+Abstract method declaration for ".bar" with 0 parameters.
 Only top level methods can be abstract.
 Error 7 WellFormedness
 """, List.of("""

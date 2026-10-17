@@ -637,7 +637,7 @@ In file: [###].fear
 While inspecting type declaration "B"
 Cannot infer the name for a method with 1 parameter.
 Many methods with 1 parameter could be selected:
-Candidates: "imm .baz", "imm .beer".
+Candidates: "imm .baz(_)", "imm .beer(_)".
 Error 7 WellFormedness
 """, List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
@@ -1314,7 +1314,7 @@ In file: [###].fear
    | --~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^~
 
 While inspecting type declaration body > type declaration > full file
-Method ".m" redeclared.
+Method ".m" with 0 parameters redeclared.
 A method with the same name, arity and reference capability is already present.
 Error 7 WellFormedness
 """,

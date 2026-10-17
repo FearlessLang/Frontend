@@ -1476,7 +1476,7 @@ User:{
 
 While inspecting ".m(_,_)" line 7
 This call to method ".mix(_,_,_)" cannot typecheck.
-There is a method ".mix" on type "Mixer",
+There are methods ".mix(_)" and ".mix(_,_)" on type "Mixer",
 but with different number of arguments.
 This call supplies 3, but available methods take 1 or 2.
 
@@ -1917,7 +1917,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
 
 While inspecting ".bar" line 3
 This call to method ".foo123(_)" cannot typecheck.
-There is a method ".foo123" on type "A",
+There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
 but with different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
 
@@ -1937,7 +1937,7 @@ A:{
 
 While inspecting ".bar" line 3
 This call to method ".foo123(_)" cannot typecheck.
-There is a method ".foo123" on type "A",
+There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
 but with different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
 

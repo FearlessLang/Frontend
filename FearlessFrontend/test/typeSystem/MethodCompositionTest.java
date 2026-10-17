@@ -201,10 +201,10 @@ C:{ .m(c:Foo): Foo -> c }
    | ^^^^^^^
 
 While inspecting type declaration "A"
-Ambiguous implementation for method ".m" with 1 parameter.
+Ambiguous implementation for method ".m(_)" with 1 parameter.
 Different options are present in the implemented types:
 Candidates: "B", "C".
-Type declaration "A" must declare a method ".m" explicitly implementing the desired behaviour.
+Type declaration "A" must declare a method ".m(_)" explicitly implementing the desired behaviour.
 """, List.of("""
 Foo:{}
 A:B,C{}
