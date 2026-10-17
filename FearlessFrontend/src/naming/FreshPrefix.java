@@ -21,7 +21,7 @@ public record FreshPrefix(
   public FreshPrefix(Package p){
     this(new HashSet<>(), new HashMap<>(), new HashSet<>(), new HashMap<>(), p.name());
     for (var tn : p.names().decNames()){ usedTopTypes.add(tn.simpleName()); }
-    for (var s : p.map().keySet()){ usedTopTypes.add(s); }
+    usedTopTypes.addAll(p.map().keySet());
     var xs= p.names().allXs();
     var params= p.names().allParameters();
     assert xs.keySet().equals(params.keySet());

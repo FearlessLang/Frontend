@@ -40,10 +40,9 @@ public final class Gamma{
   @SuppressWarnings("unchecked")
   private List<B>[] bss= (List<B>[])new List<?>[initialDepth];
   private E.Literal[] owners= new E.Literal[initialDepth];
-  private int depth= 0;
+  private int depth= 1;
 
   private final HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
-  public Gamma(){ marks[0] = 0; envHash[0] = 0L; depth = 1; }
   public void newScope(RC rc, List<B> bs, E.Literal owner){
     if (depth == marks.length){ growScopes(); }
     marks[depth] = size;
