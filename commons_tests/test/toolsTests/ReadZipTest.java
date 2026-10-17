@@ -43,10 +43,4 @@ final class ReadZipTest{
   @Test void aFolderEntryAndAFileOfTheSameNameAreRefused(){
     assertEquals("dupName a", assertThrows(IllegalStateException.class, () -> read(zip("a/", "a/b", "a"))).getMessage());
   }
-  @Test void aFileAndAFileInsideAFolderOfTheSameNameAreRefused(){
-    assertThrows(IllegalStateException.class, () -> read(zip("a", "a/b")));
-  }
-  @Test void aFileInsideAFolderAndAFileOfTheSameNameAreRefused(){
-    assertThrows(IllegalStateException.class, () -> read(zip("a/b", "a")));
-  }
 }

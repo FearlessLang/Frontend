@@ -33,6 +33,22 @@ final class FsSymbolicLinkTest{
     Fs.cleanDir(link(root.resolve("link"), real));
     assertEquals(List.of(), names(real));
   }
+  @Test void cleanDirDeletesALinkInsideButNotTheLinkedFolder(){
+    var real= real();
+    var dir= root.resolve("dir");
+    Fs.ensureDir(dir);
+    link(dir.resolve("link"), real);
+    Fs.cleanDir(dir);
+    assertEquals(List.of(), names(dir));
+    assertEquals(List.of("f.txt"), names(real));
+  }
+  @Test void rmTreeOfALinkDeletesOnlyTheLink(){
+    var real= real();
+    var link= link(root.resolve("link"), real);
+    Fs.rmTree(link);
+    assertEquals(List.of("real"), names(root));
+    assertEquals(List.of("f.txt"), names(real));
+  }
   @Test void copyTreeCopiesTheContentOfALinkedFolder(){
     var from= root.resolve("from");
     Fs.writeUtf8(from.resolve("top.txt"), "t");
