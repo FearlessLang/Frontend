@@ -195,6 +195,14 @@ x
 A[X:mut,imm,read,mutH,readH]:{ mut .prison: X }
 B[X:mut,imm,read,mutH,readH]:{ .break(x: X): mut A[X] -> { x } }
 """));}
+@Test void nominalPatternOfFiveNamesOnReadHParameter(){ok(List.of("""
+P:{ read .a: P; read .b: P; read .c: P; read .d: P; read .e: P }
+User:{ .m({.a, .b, .c, .d, .e}: readH P): P -> e }
+"""));}
+@Test void nominalPatternsOfFiveNamesWithMutHParameterLast(){ok(List.of("""
+P:{ read .a: P; read .b: P; read .c: P; read .d: P; read .e: P }
+User:{ .m({.d, .e}: P, {.a, .b, .c}: mutH P): P -> e }
+"""));}
 @Test void noReadImmEscapeFromIsoReceiver(){fail("""
 004| C:{ #: mutH B -> A.m(B).absMeth }
    |     -------------^^^^^^^^^^^^^^
