@@ -108,7 +108,7 @@ C:{ .m: C }
    | ^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .m".
+Return type disagreement for method "imm .m" with 0 parameters.
 Different options are present in the implemented types: "B", "C".
 Type declaration "A" must declare a method ".m" explicitly choosing the desired option.
 """, List.of("""
@@ -121,7 +121,7 @@ C:{ .m: C }
    | ^^^^^^^^
 
 While inspecting type declaration "AA"
-Return type disagreement for method "imm .m".
+Return type disagreement for method "imm .m" with 0 parameters.
 Different options are present in the implemented types: "B", "C".
 Type declaration "AA" must declare a method ".m" explicitly choosing the desired option.
 """, List.of("""
@@ -201,7 +201,7 @@ C:{ .m(c:Foo): Foo -> c }
    | ^^^^^^^
 
 While inspecting type declaration "A"
-Ambiguous implementation for method ".m(_)".
+Ambiguous implementation for method ".m(_)" with 1 parameter.
 Different options are present in the implemented types:
 Candidates: "B", "C".
 Type declaration "A" must declare a method ".m(_)" explicitly implementing the desired behaviour.
@@ -223,7 +223,7 @@ D:A,C{}
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Ambiguous implementation for method ".m".
+Ambiguous implementation for method ".m" with 0 parameters.
 Different options are present in the implemented types:
 Candidates: "A", "B".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
@@ -259,7 +259,7 @@ List[T:*]:{}
    | ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .kk".
+Return type disagreement for method "imm .kk" with 0 parameters.
 Different options are present in the implemented types: "A", "List[A]".
 Type declaration "A" must declare a method ".kk" explicitly choosing the desired option.
 """, List.of("""
@@ -472,7 +472,7 @@ Bar[X:*]:{ .m: Foo[X] -> Foo[X:*]:{} }
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Type disagreement about parameter 1 for method "imm .m(_)".
+Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
 Different options are present in the implemented types: "base.Int", "base.Float".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 """, List.of("""
@@ -667,7 +667,7 @@ User:{ #:D->D:X,C{} }
    | ^^^^^^^^^
 
 While inspecting type declaration "D"
-Ambiguous implementation for method ".m".
+Ambiguous implementation for method ".m" with 0 parameters.
 Different options are present in the implemented types:
 Candidates: "B", "C".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
@@ -684,7 +684,7 @@ D:X,B,C{}
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Ambiguous implementation for method ".m".
+Ambiguous implementation for method ".m" with 0 parameters.
 Different options are present in the implemented types:
 Candidates: "A", "B".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
@@ -901,7 +901,7 @@ A:Foo[imm Bar],Foo[mut Beer]{ .get: Both -> Both }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .get".
+Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "imm Bar", "mut Beer".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
@@ -931,7 +931,7 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get".
+Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "Y", "imm Y".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
@@ -962,7 +962,7 @@ A[Y:imm]:Foo[Y],Bar[Y]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get".
+Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "Y", "Bar".
 They are different types and "Y" is a type parameter, so no method ".get" can implement all of them.
 """, List.of("""
@@ -975,7 +975,7 @@ A[Y:imm]:Foo[Y],Foo[Bar]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get".
+Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "Y", "imm Bar".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
@@ -1010,7 +1010,7 @@ User:{ .asFoo(a: A[Baz]): Foo[Baz] -> a; .get(a: A[Baz]): Baz -> a.get; .make: A
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get".
+Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "Y", "read/imm Y".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
@@ -1029,7 +1029,7 @@ A:Foo,Bar{}
    | ^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .get".
+Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "T", "read/imm T".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""

@@ -2431,7 +2431,7 @@ Add an explicit return type before '->'.
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".a".
-No supertype has a method ".a".
+No supertype has a method named ".a" with 0 parameters.
 """, List.of("""
 Outer:{ .m: base.Void -> { .a -> base.Void{} }.a }
 """));}

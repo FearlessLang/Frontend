@@ -138,7 +138,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     Predicate<M> p= mi -> mi.sig().stream().anyMatch(sig -> sig.m().equals(Optional.of(name.name())) && sig.rc().equals(name.rc()));
     var s= redeclaredMethSpan(ms, p);
     return Code.WellFormedness.of(
-      "Method "+methodSig("", name.name())+" redeclared.\n"
+      "Method "+methodSig("", name.name())+" with "+count(name.name().arity(), "parameter")+" redeclared.\n"
     + "A method with the same name, arity and reference capability is already present.\n")
       .addSpan(s).addSpan(at);
   }
@@ -146,7 +146,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     Predicate<M> p= mi -> mi.sig().stream().anyMatch(s -> s.m().equals(Optional.of(name)) && s.rc().isEmpty());
     var s= redeclaredMethSpan(ms, p);
     return Code.WellFormedness.of(
-      "Method "+methodSig("", name)+" mixes an explicit and an inferred reference capability.\n"
+      "Method "+methodSig("", name)+" with "+count(name.arity(), "parameter")+" mixes an explicit and an inferred reference capability.\n"
     + "Once one overload of "+methodSig("", name)+" declares a reference capability, every overload of that method must.\n"
     ).addSpan(s).addSpan(at);
   }
@@ -388,7 +388,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     return Code.WellFormedness.of(msg).addSpan(at);
   }
   public FearlessException noAbstractMethod(Sig sig, Span at){
-    var msg= "Abstract method declaration for "+methodSig("", sig.m().get())
+    var msg= "Abstract method declaration for "+methodSig("", sig.m().get())+" with "+count(sig.m().get().arity(), "parameter")
       +".\nOnly top level methods can be abstract.\n";
     return Code.WellFormedness.of(msg).addSpan(at);
   }
