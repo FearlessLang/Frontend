@@ -2794,6 +2794,11 @@ A{ .foo:A ->
 """, """
 A:{ .a: A -> A{ 'x .a: A -> A{ 'y .a: A -> x } } }
 """);}
+@Test void selfNameThenUnderscoreSelfNameOnOneLine(){ok("""
+[###]Literalx[###]Literal_[###]body=Optional[x][###]
+""", """
+A:{ .a: A -> A{ 'x .a: A -> A{ '_ .a: A -> x } } }
+""");}
 @Test void twoSelfNamesOnOneLineInTwoReceivers(){ok("""
 [###]Literalx[###]body=Optional[Call[x].btrue[c]][###]Literaly[###]body=Optional[Call[y].btrue[c]][###]
 """, """
@@ -3373,6 +3378,28 @@ It is declared by a nominal pattern: a pattern like "{.a.b, .c}id" declares the 
 Error 2 UnexpectedToken
 """, """
 A:{.m(a:A):A->a.m {.b, .b}x = a; a}
+""");}
+@Test void patternsOfOneMethodHeaderGetTooManyParameters(){fail("""
+In file: [###].fear
+
+[###]
+While inspecting method declaration > type declaration body > type declaration > full file
+This method header gets 33 parameters by using the nominal patterns "{.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16}" and "{.a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}".
+A method header can not use nominal patterns to get more than 32 parameters.
+Error 2 UnexpectedToken
+""", """
+A:{.m(x:A, {.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16}:A, {.a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}:A):A->x}
+""");}
+@Test void eqSugarPatternDeclaresTooManyNames(){fail("""
+In file: [###].fear
+
+[###]
+While inspecting method body > method declaration > type declaration body > type declaration > full file
+This equals sugar declares 32 names by using the nominal pattern "{.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16, .a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}".
+The equals sugar can not use a nominal pattern to declare more than 31 names.
+Error 2 UnexpectedToken
+""", """
+A:{.m(a:A):A->a.m {.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16, .a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32} = a; a}
 """);}
 @Test void patternPrimedNameWithIdParameter(){fail("""
 In file: [###].fear
