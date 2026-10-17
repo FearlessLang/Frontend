@@ -352,7 +352,6 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   void checkCommonTopLevelIssues(){
     if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).get()); }
-    if (isDec()){ return; }
     if (peekIf(Token::isTypeName)){ return; }
     var t= peek().get();
     if (!isProbablyTopLevelNonDecl(t)){ return; }
