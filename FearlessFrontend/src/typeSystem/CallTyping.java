@@ -2,6 +2,8 @@ package typeSystem;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import core.*;
 import core.E.*;
@@ -74,32 +76,19 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return acc;
   }
   private List<TRequirement> argRequirements(List<MType> app, int argi){
-    //TODO:This is actually a really confusing point:
-    //app has MTypes pre merged if two promotions had the same MType, but their argi may
-    //still be the same, so we are doing some duplicated computation when eventually do
-    //the subtyping checks. The commented code below saves that duplicated computation
-    //But if we deduplicate here we have to re expand directly later to be able to fit the
-    //ArgMatrix acc with the right number of elements.
-    return app.stream().map(m -> new TRequirement(m.promotion(), m.ts().get(argi))).toList();
-    /*var byT= new LinkedHashMap<T,List<String>>();
-    for (var m:app){
-      var t= m.ts().get(argi);
-      byT.computeIfAbsent(t,_->new ArrayList<>()).add(m.promotion());
-    }
-    return byT.entrySet().stream()
-      .map(e->new TRequirement(
-        Join.of(e.getValue().stream().distinct(),"",", ",""),
-        e.getKey()))
-      .toList();*/
+    return app.stream()
+      .collect(Collectors.groupingBy(m -> m.ts().get(argi), LinkedHashMap::new, Collectors.mapping(MType::promotion, Collectors.joining(", "))))
+      .entrySet().stream().map(e -> new TRequirement(e.getValue(), e.getKey())).toList();
   }
   private void accArgi(Literal d, ArgMatrix acc, int argi){
     var reqs= argRequirements(acc.cs(), argi);
     var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi), ts.v());
-    var res= cts.typeOf(bs, g, c.es().get(argi), reqs);
-    assert res.size() == acc.cs().size();
-    var ok= IntStream.range(0, res.size()).filter(i -> res.get(i).isEmpty()).boxed().toList();
-    if (ok.isEmpty()){ throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, reqs, res); }
-    acc.okByArg().add(ok);
+    var resByReq= cts.typeOf(bs, g, c.es().get(argi), reqs);
+    assert resByReq.size() == reqs.size();
+    if (resByReq.stream().noneMatch(Reason::isEmpty)){ throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, reqs, resByReq); }
+    var reqTs= reqs.stream().map(TRequirement::t).toList();
+    var res= acc.cs().stream().map(m -> resByReq.get(reqTs.indexOf(m.ts().get(argi)))).toList();
+    acc.okByArg().add(IntStream.range(0, res.size()).filter(i -> res.get(i).isEmpty()).boxed().toList());
     acc.resByArg().add(res);
   }
   private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){

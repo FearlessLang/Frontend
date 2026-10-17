@@ -473,9 +473,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       .line(up(r.info))
       .blank()
       .line("Type required by each promotion:");
-    reqs.stream()
-      .collect(Collectors.groupingBy(TRequirement::t, LinkedHashMap::new, Collectors.mapping(TRequirement::reqName, Collectors.toList())))
-      .forEach((t,names) -> e.bullet(err().typeRepr(false, t)+"  ("+Join.of(names.stream().distinct(), "", ", ", "")+")"));
+    reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+"  ("+q.reqName()+")"));
     addNoPrecedenceHintIfOperator(e, c);
     var footer= r.footerE.get();
     return withCallSpans(e.exInferMsg(footer, err().typeRepr(false, reqs.getFirst().t())), c);
