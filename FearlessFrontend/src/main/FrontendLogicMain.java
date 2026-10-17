@@ -107,7 +107,7 @@ public class FrontendLogicMain{
       .flatMap(f -> f.decs().stream())
       .sorted().toList();
     var names= DeclaredNames.of(pkgName, ds, head.uses().stream().map(FileFull.Use::out).collect(Collectors.toUnmodifiableSet()));
-    var map= new HashMap<String,String>(override);
+    var map= new HashMap<>(override);
     accUses(err, map, head.uses(), other, names);
     return makePackage(pkgName, Collections.unmodifiableMap(map), head.uses(), ds, names);
   }
