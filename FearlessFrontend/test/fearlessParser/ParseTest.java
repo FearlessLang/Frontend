@@ -2794,6 +2794,11 @@ A{ .foo:A ->
 """, """
 A:{ .a: A -> A{ 'x .a: A -> A{ 'y .a: A -> x } } }
 """);}
+@Test void selfNameThenUnderscoreSelfNameOnOneLine(){ok("""
+[###]Literalx[###]Literal_[###]body=Optional[x][###]
+""", """
+A:{ .a: A -> A{ 'x .a: A -> A{ '_ .a: A -> x } } }
+""");}
 @Test void twoSelfNamesOnOneLineInTwoReceivers(){ok("""
 [###]Literalx[###]body=Optional[Call[x].btrue[c]][###]Literaly[###]body=Optional[Call[y].btrue[c]][###]
 """, """
