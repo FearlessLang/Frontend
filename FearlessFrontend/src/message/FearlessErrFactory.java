@@ -261,6 +261,10 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     return Code.UnexpectedToken.of("Name "+disp(name)+" already in scope.\n"
       +"It is declared by a nominal pattern: a pattern like \"{.a.b, .c}id\" declares the names \"bid\" and \"cid\".\n").addSpan(at);
   }
+  public FearlessException tooManyPatternNames(Span at, int n){
+    return Code.UnexpectedToken.of("Nominal patterns declare "+n+" names here.\n"
+      +"The nominal patterns of one method declare at most 32 names in total.\n").addSpan(at);
+  }
   public FearlessException patternNameInvalid(Span at, XPat.Destruct p){
     var bad= p.invalidNames().toList();
     var rcs= bad.stream().filter(x -> isKind(x, RCap)).toList();

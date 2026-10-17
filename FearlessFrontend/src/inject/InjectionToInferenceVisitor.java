@@ -122,15 +122,13 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return of(new M.Impl(name, ps, e));
   }
   private fearlessFullGrammar.E makeXPatsBody(fearlessFullGrammar.E body, List<XE> xes){
-    var p= body.pos(); //Destruct#(e1,..,e4,{x1,..,x4->Destruct#(e5,..,{x5,..->body})})
+    var p= body.pos(); //Destruct#(e1,..,en,{x1,..,xn->body})
     var span= TSpan.fromPos(p);
-    var n= Math.min(xes.size(), 4);
-    var inner= n == xes.size() ? body : makeXPatsBody(body, xes.subList(n, xes.size()));
-    var ps= xes.subList(0, n).stream()
+    var ps= xes.stream()
       .map(xe -> new Parameter(of(new XPat.Name(new fearlessFullGrammar.E.X(xe.x, p))), empty())).toList();
     var sig= new fearlessFullGrammar.Sig(empty(), empty(), empty(), false, ps, empty());
-    var f= new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(of(sig), of(inner), false, span)), span);
-    var args= Push.of(xes.subList(0, n).stream().map(XE::e).toList(), f);
+    var f= new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(of(sig), of(body), false, span)), span);
+    var args= Push.of(xes.stream().map(XE::e).toList(), f);
     return call(typedLiteral("base.Destruct", body.span(), p), "#", args, p);
   }
   record XE(String x, fearlessFullGrammar.E e){}

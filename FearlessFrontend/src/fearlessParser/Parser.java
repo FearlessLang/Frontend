@@ -164,6 +164,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (chains.stream().anyMatch(List::isEmpty)){ throw errFactory().emptyDestructChain(span()); }
     var res= new XPat.Destruct(chains, id);
     if (res.invalidNames().findAny().isPresent()){ throw errFactory().patternNameInvalid(span(), res); }
+    if (chains.size() > 32){ throw errFactory().tooManyPatternNames(span(), chains.size()); }
     return res;
   }
   List<MName> parseChain(){ return splitBy("", anyLeft, Parser::parseDotName); }
@@ -252,6 +253,8 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   M parseMethodWithSig(Sig sig){
     var xs= sig.parameters().stream().flatMap(p -> xsOf(p.xp())).toList();
     checkNewXs(xs);
+    var patternNames= sig.parameters().stream().flatMap(p -> p.xp().stream()).mapToInt(xp -> xp instanceof XPat.Destruct d ? d.extract().size() : 0).sum();
+    if (patternNames > 32){ throw errFactory().tooManyPatternNames(span(), patternNames); }
     names = names.add(xs, bsXs(sig.bs()));
     return new M(of(sig), of(parseMethodBody()), tspan());
   }
