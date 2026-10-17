@@ -20,7 +20,6 @@ public record TypeNamePrinter(boolean trunc, String mainPkg, Map<String,String> 
   private static String dropBaseForLit(String s){
     if (!s.startsWith("base.")){ return s; }
     var r= s.substring(5);
-    if (r.isEmpty()){ return s; }
     if (!LiteralDeclarations.isPrimitiveLiteral(r)){ return s; }
     var d= r.length();
     if (d <= 15){ return r; }
