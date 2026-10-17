@@ -135,6 +135,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var atom= parseAtom();//we need to avoid parsing the posts if e0 + e1 + e2
     var xs= xsOf(xpat).toList();
     checkNewXs(xs);
+    if (xpat.isPresent() && xpat.get() instanceof XPat.Destruct d && xs.size() > 31){ throw errFactory().eqSugarPatternTooManyNames(span(), d); }
     names = names.add(xs, List.of());//zero if xpat is empty
     if (xpat.isPresent()){ atom = parsePost(atom); while (!end()){ atom = parsePost(atom); } }
     return new E.Call(receiver, m.withArity(xpat.isPresent() ? 2 : 1), sq, false, xpat, List.of(atom), pos);//note: arity 2 is special case for = sugar
@@ -164,7 +165,6 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (chains.stream().anyMatch(List::isEmpty)){ throw errFactory().emptyDestructChain(span()); }
     var res= new XPat.Destruct(chains, id);
     if (res.invalidNames().findAny().isPresent()){ throw errFactory().patternNameInvalid(span(), res); }
-    if (chains.size() > 32){ throw errFactory().tooManyPatternNames(span(), chains.size()); }
     return res;
   }
   List<MName> parseChain(){ return splitBy("", anyLeft, Parser::parseDotName); }
@@ -253,10 +253,12 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   M parseMethodWithSig(Sig sig){
     var xs= sig.parameters().stream().flatMap(p -> xsOf(p.xp())).toList();
     checkNewXs(xs);
-    var patternNames= sig.parameters().stream().flatMap(p -> p.xp().stream()).mapToInt(xp -> xp instanceof XPat.Destruct d ? d.extract().size() : 0).sum();
-    if (patternNames > 32){ throw errFactory().tooManyPatternNames(span(), patternNames); }
     names = names.add(xs, bsXs(sig.bs()));
-    return new M(of(sig), of(parseMethodBody()), tspan());
+    var m= new M(of(sig), of(parseMethodBody()), tspan());
+    var pats= sig.parameters().stream().flatMap(p -> p.xp().stream()).filter(XPat.Destruct.class::isInstance).map(XPat.Destruct.class::cast).toList();
+    var n= xs.size() + (m.hasImplicit() ? 1 : 0);
+    if (!pats.isEmpty() && n > 32){ throw errFactory().patternsGetTooManyParameters(span(), pats, n); }
+    return m;
   }
   private static List<String> bsXs(Optional<List<B>> bs){ return bs.orElse(List.of()).stream().map(b -> b.x().name()).toList(); }
   M parseMethodAux(boolean top){//assumes to be called on only the tokens of this specific method

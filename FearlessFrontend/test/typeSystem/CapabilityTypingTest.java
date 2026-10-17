@@ -195,6 +195,15 @@ x
 A[X:mut,imm,read,mutH,readH]:{ mut .prison: X }
 B[X:mut,imm,read,mutH,readH]:{ .break(x: X): mut A[X] -> { x } }
 """));}
+@Test void nominalPatternNextToHygienicParameter(){ok(List.of("""
+P:{ read .a: P; read .b: P }
+User:{ .m(bar: readH P, {.a, .b}: P): P -> bar.a }
+"""));}
+@Test void nominalPatternNextToHygienicImplicitParameter(){ok(List.of("""
+P:{ read .a: P; read .b: P }
+I:{ .m(x: P, y: readH P): P }
+User:I{ .m({.a, .b}) -> ::.a }
+"""));}
 @Test void nominalPatternOf32NamesOnReadHParameter(){ok(List.of("""
 P:{ read .a1: P; read .a2: P; read .a3: P; read .a4: P; read .a5: P; read .a6: P; read .a7: P; read .a8: P; read .a9: P; read .a10: P; read .a11: P; read .a12: P; read .a13: P; read .a14: P; read .a15: P; read .a16: P; read .a17: P; read .a18: P; read .a19: P; read .a20: P; read .a21: P; read .a22: P; read .a23: P; read .a24: P; read .a25: P; read .a26: P; read .a27: P; read .a28: P; read .a29: P; read .a30: P; read .a31: P; read .a32: P; }
 User:{ .m({.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16, .a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}: readH P): P -> a32 }

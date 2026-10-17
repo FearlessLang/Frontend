@@ -261,9 +261,14 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     return Code.UnexpectedToken.of("Name "+disp(name)+" already in scope.\n"
       +"It is declared by a nominal pattern: a pattern like \"{.a.b, .c}id\" declares the names \"bid\" and \"cid\".\n").addSpan(at);
   }
-  public FearlessException tooManyPatternNames(Span at, int n){
-    return Code.UnexpectedToken.of("Nominal patterns declare "+n+" names here.\n"
-      +"The nominal patterns of one method declare at most 32 names in total.\n").addSpan(at);
+  public FearlessException patternsGetTooManyParameters(Span at, List<XPat.Destruct> ps, int n){
+    return Code.UnexpectedToken.of("This method header gets "+n+" parameters by using the nominal "+(ps.size() == 1 ? "pattern " : "patterns ")
+      +Join.of(ps.stream().map(p -> disp(patternRepr(p))), "", " and ", "")+".\n"
+      +"A method header can not use nominal patterns to get more than 32 parameters.\n").addSpan(at);
+  }
+  public FearlessException eqSugarPatternTooManyNames(Span at, XPat.Destruct p){
+    return Code.UnexpectedToken.of("This equals sugar declares "+p.extract().size()+" names by using the nominal pattern "+disp(patternRepr(p))+".\n"
+      +"The equals sugar can not use a nominal pattern to declare more than 31 names.\n").addSpan(at);
   }
   public FearlessException patternNameInvalid(Span at, XPat.Destruct p){
     var bad= p.invalidNames().toList();
