@@ -440,10 +440,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     return acc;
   }
   boolean isTName(Token t){ return t.isTypeName() && !names.XIn(t.content()); }
-  Pos pos(){
-    var s= spanAround(index(), index());
-    return new Pos(s.fileName(), s.startLine(), s.startCol());
-  }
+  Pos pos(){ return new TSpan(spanAround(index(), index())).pos(); }
   Pos pos(Token t){ return new Pos(span().fileName(), t.line(), t.column()); }
   <R> Optional<R> parseIf(boolean cond, Supplier<R> s){ return cond ? of(s.get()) : empty(); }
   int onCommaExp(){
