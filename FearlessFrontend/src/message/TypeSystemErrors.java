@@ -189,9 +189,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       .ex(at));
   }
   public FearlessException literalHeadNotInferred(Literal at, T.C c){
-    var cp= err().cp();
     var unknown= IntStream.range(0, c.ts().size()).filter(i -> TypeSystem.mentionsInferUnknown(c.ts().get(i))).boxed().toList();
-    var head= cp.t.ofFull(c.name())+Join.of(c.ts().stream().map(t -> t.equals(TypeRename.inferUnknown) ? "?" : cp.msgT(t)), "[", ",", "]", "");
+    var head= err().cp().t.ofFull(c.name())+Join.of(c.ts().stream().map(t -> t.equals(TypeRename.inferUnknown) ? "?" : err().cp().msgT(t)), "[", ",", "]", "");
     var xs= decs.apply(c.name()).bs();
     var s= unknown.size() == 1 ? "" : "s";
     return addExpFrame(at, err()
