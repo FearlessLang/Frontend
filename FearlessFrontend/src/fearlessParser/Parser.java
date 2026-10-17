@@ -29,7 +29,6 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   Parser(Span base, Names names, List<Token> ts, FearlessErrFactory err){
     super(base, ts); this.names= names; this.err= err;
   }
-  void updateNames(Names names){ this.names = names; }
   @Override public Parser self(){ return this; }
   @Override public boolean skip(Token t){ return t.is(_SOF, _EOF); }
   @Override public Parser make(Span s, List<Token> tokens){
@@ -136,7 +135,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var atom= parseAtom();//we need to avoid parsing the posts if e0 + e1 + e2
     var xs= xsOf(xpat).toList();
     checkNewXs(xs);
-    updateNames(names.add(xs, List.of()));//zero if xpat is empty
+    names = names.add(xs, List.of());//zero if xpat is empty
     if (xpat.isPresent()){ atom = parsePost(atom); while (!end()){ atom = parsePost(atom); } }
     return new E.Call(receiver, m.withArity(xpat.isPresent() ? 2 : 1), sq, false, xpat, List.of(atom), pos);//note: arity 2 is special case for = sugar
   }
@@ -201,7 +200,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var n= thisName.map(E.X::name).orElse(top ? "this" : "_");
     var badTopSelfName= top && !n.equals("this");
     if (badTopSelfName){ throw errFactory().badTopSelfName(thisName.get().span().inner, n); }
-    if (!n.equals("_")){ updateNames(names.add(List.of(n), List.of())); }
+    if (!n.equals("_")){ names = names.add(List.of(n), List.of()); }
     checkStraySemicolons();
     var ms= splitBy("method declaration", semiSkip, p -> p.parseMethod(top));
     checkRedeclaration(start, end, ms);
@@ -253,7 +252,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   M parseMethodWithSig(Sig sig){
     var xs= sig.parameters().stream().flatMap(p -> xsOf(p.xp())).toList();
     checkNewXs(xs);
-    updateNames(names.add(xs, bsXs(sig.bs())));
+    names = names.add(xs, bsXs(sig.bs()));
     return new M(of(sig), of(parseMethodBody()), tspan());
   }
   private static List<String> bsXs(Optional<List<B>> bs){ return bs.orElse(List.of()).stream().map(b -> b.x().name()).toList(); }
@@ -293,7 +292,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   private Sig parseSigAfterName(Optional<RC> rc, Optional<MName> m){
     var bs= parseIf(peek(_SquareGroup), () -> parseBs(true));
     var Xs= bsXs(bs);
-    updateNames(names.add(List.of(), Xs));//added both inside and outside since different parsers
+    names = names.add(List.of(), Xs);//added both inside and outside since different parsers
     var hasPar= peek(_RoundGroup);
     var ps= hasPar
       ?parseGroupSep("", "method parameters declaration", Parser::parseParameter, ORound, CRound, commaSkip)
@@ -378,13 +377,13 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var bs= parseIf(peek(_SquareGroup), () -> parseBs(top));
     var Xs= bsXs(bs);
     var outer= names;
-    updateNames(top ? names.add(List.of(), Xs) : names.setFunnelledXs(c.s(), Xs));
+    names = top ? names.add(List.of(), Xs) : names.setFunnelledXs(c.s(), Xs);
     c = c.withArity(Xs.size());
     expect("type declaration (:) symbol", Colon);
     var cs= parseImpl();
     assert peek(_CurlyGroup);
     var l= parseGroup("type declaration body", p -> p.parseLiteral(top));
-    updateNames(outer);
+    names = outer;
     var span= new TSpan(spanAround(startPos, index()));
     return new Declaration(c, bs, cs, l.withSpan(span));
   }
