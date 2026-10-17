@@ -557,8 +557,8 @@ public record InjectionSteps(Methods meths){
   private E prototypeAscribeRootReceiver(E arg, IT expected, boolean receiver){
     if (!(expected instanceof IT.RCC exp)){ return arg; }
     return switch (arg){
-      case E.Call c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected, true));
-      case E.ICall c -> c.withE(prototypeAscribeRootReceiver(c.e(), expected, true));
+      case E.Call c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, true), c.es());
+      case E.ICall c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, true), c.es());
       case E.Literal l when !needsPrototypeAscription(l) -> arg;
       case E.Literal l when !receiver || implementable(exp.c().name()) -> l.withT(prototypeHead(exp, l.span()));
       case E.Literal l -> itself(l);

@@ -97,7 +97,6 @@ public sealed interface E{
       return new E.Call(e, name, Optional.of(rc), targs, es, t, src, g.clear());
     }
     public Call withEEs(E e, List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, () -> new E.Call(e, name, rc, targs, es, t, src, g.clear())); }
-    public Call withE(E e){ return withEEs(e, es); }
     @Override public Call withT(IT t){ return sameTOr(this, t, () -> new Call(e, name, rc, targs, es, t, src, g.clear())); }
     @Override public String toString(){
       var open= rc.map(r -> "["+r).orElse("[");
@@ -115,6 +114,5 @@ public sealed interface E{
     @Override public E withT(IT t){ return sameTOr(this, t, () -> new ICall(e, name, es, t, src, g.clear())); }
     @Override public String toString(){ return ""+e+name+Join.of(es, "(", ",", "):", "():")+t; }
     public E withEEs(E e, List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, () -> new ICall(e, name, es, t, src, g.clear())); }
-    public E withE(E e){ return withEEs(e, es); }
   }
 }
