@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 
 import core.*;
 import core.E.*;
-import core.T.C;
 import utils.Bug;
 import utils.Join;
 import utils.Range;
@@ -38,7 +37,6 @@ public final class CompactPrinter{
     return sb.toString();
   }
   CompactPrinter append(String s){ sb.append(s); return this; }
-  CompactPrinter append(RC rc){ sb.append(rc); return this; }
   String bounds(List<B> bs){ return Join.of(bs.stream().map(B::compactToString), "[", ",", "]", ""); }
   public static final class Compactable{
     public static final Compactable no= new Compactable(false);
@@ -60,7 +58,7 @@ public final class CompactPrinter{
   static boolean showTargs(RC rc, int nt){ return rc != RC.imm || nt != 0; }
   static void accTargs(CompactPrinter sb, RC rc, List<PT> targs){
     if (!showTargs(rc, targs.size())){ return; }
-    sb.append("[").append(rc);
+    sb.append("["+rc);
     wrap(sb, ",", "", targs, ",", PN::accString);
     sb.append("]");
   }
