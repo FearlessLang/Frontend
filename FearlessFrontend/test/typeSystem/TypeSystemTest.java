@@ -755,7 +755,7 @@ User:{ .bad:base.F[iso B,Unit]->{ Use2#(::,::) } }
 002| User:{ .bad({.a,.b}:iso B):B->a }
 [###]
 While inspecting ".bad(_)" line 2
-Iso parameter "{.a,.b}" violates the single-use rule in method "User.bad(_)" (line 2).
+Iso parameter "{.a, .b}" violates the single-use rule in method "User.bad(_)" (line 2).
 It is used directly 2 times.
 Iso parameters can be used directly at most once.
 Allowed: capture into object literals as "imm", or use directly once.
