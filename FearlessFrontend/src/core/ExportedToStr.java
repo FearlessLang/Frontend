@@ -10,8 +10,7 @@ import utils.Join;
 
 public record ExportedToStr(String pkgName, Map<String,String> uses){
   private CompactPrinter printer(){ return new CompactPrinter(pkgName, uses, _ -> {}, false); }
-  public String expr(E e){ return printer().limit(e, 220); }
-  public String lit(Literal l){ return expr(l); }
+  public String lit(Literal l){ return printer().limit(l, 220); }
   public String sig(Sig s){ return printer().sig(s).stripLeading(); }
   public String typeName(TName n){ return new TypeNamePrinter(false, pkgName, uses, _ -> {}).ofFull(n); }
   public String typeNameWithArity(TName n){ return typeName(n)+Err.genArity(n.arity()); }
