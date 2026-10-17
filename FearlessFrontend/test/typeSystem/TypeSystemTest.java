@@ -4541,6 +4541,10 @@ User:{ #:A[S]->{ .m->S{} } }
 """));}
 @Test void tsSupertypesCollapsingUnderInstantiationSpelledDifferently(){ok(List.of(
   "Foo[X:*]:{} S:{} A[X:*,Y:*]:Foo[X],Foo[Y]{ .m:S; } User:{ #[Z:imm]:A[Z,imm Z]->{ .m->S{} } }"));}
+@Test void tsSupertypesCollapsingUnderInstantiationSpelledDifferentlyTyped(){ok(List.of(
+  "Foo[X:*]:{} S:{} A[X:*,Y:*]:Foo[X],Foo[Y]{ .m:S; } User:{ #[Z:imm]:A[Z,imm Z]->A[Z,imm Z]{ .m->S{} } }"));}
+@Test void tsSupertypesCollapsingUnderInstantiationSpelledDifferentlyReadImm(){ok(List.of(
+  "Foo[X:**]:{} S:{} A[X:**,Y:**]:Foo[X],Foo[Y]{ .m:S; } User:{ #[Z:imm]:A[Z,read/imm Z]->{ .m->S{} } }"));}
 @Test void nestedSelfDispatchUsesMethodCapability(){ok(List.of("""
 A:{ imm .m1: A; mut .m1: mut A; .m2: A }
 User:{ #: mut A -> mut B:A{'self .m1 -> self; .m2 -> self.m1 } }
