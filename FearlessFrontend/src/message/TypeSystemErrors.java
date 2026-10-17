@@ -169,7 +169,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var s= got.sig();
     return addExpFrame(at, err()
       .line("This object literal is missing a required method.")
-      .line("Missing: "+err().methodSig(s.rc()+" ", s.m())+".")
+      .line("Missing: "+methodSig(s.rc()+" ", s.m())+".")
       .line("Required by: "+err().tNameADisp(s.origin())+".")
       .line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.")
       .ex(at));
@@ -215,7 +215,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var s= got.sig();
     assert s.rc() == RC.mut;
     assert l.rc().isReadOrImm();
-    var m= err().methodSig(s.rc()+" ", s.m());
+    var m= methodSig(s.rc()+" ", s.m());
     return addExpFrame(l, err()
       .line("The method "+err().methodSig(s.rc().toStrSpace(), l, s.m())+" is dead code.")
       .line("The "+err().expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".")
@@ -368,9 +368,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var sameArity= sameName.stream().filter(s -> s.m().arity() == c.es().size()).toList();
     if (sameArity.isEmpty()){
       var avail= Join.of(sameName.stream().map(s -> Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
+      var forms= sameName.stream().map(s -> methodSig("", s.m())).distinct().sorted().toList();
       return withCallSpans(err()
         .pCallCantBeSatisfied(c)
-        .line("There is a method "+disp(c.name().s())+" on "+on+",\nbut with different number of arguments.")
+        .line((forms.size() == 1 ? "There is a method " : "There are methods ")+Join.of(forms, "", " and ", "")+" on "+on+",\nbut with different number of arguments.")
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .ex(c), c);
     }

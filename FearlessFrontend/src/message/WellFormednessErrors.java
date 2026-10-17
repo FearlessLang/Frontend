@@ -325,7 +325,7 @@ public record WellFormednessErrors(String pkgName){
     }
     return wf(e
       .line("Cannot infer signature of method "+name+".")
-      .line("No supertype has a method named "+name+" with "+count(size, "parameter")+"."), m, origin);
+      .line("No supertype has a method "+name+"."), m, origin);
   }
   public String retTypeDisagreement(){ return "Return type disagreement"; }
   public String paramTypeDisagreement(int i){ return "Type disagreement about parameter "+(i+1); }
@@ -334,7 +334,7 @@ public record WellFormednessErrors(String pkgName){
     var rcDiffers= res.stream().map(t -> Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var e= err()
-      .line(msg+" for method "+err().methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
+      .line(msg+" for method "+methodSig(rc, at.mName())+".")
       .line(Join.of(
         res.stream().map(o -> option(rcDiffers, o)),
         "Different options are present in the implemented types: ", ", ", "."
@@ -350,8 +350,7 @@ public record WellFormednessErrors(String pkgName){
   }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
-      .line("The number of type parameters disagrees for method "+err().methodSig(at.mName())
-        +" with "+count(at.mName().arity(), "parameter")+".")
+      .line("The number of type parameters disagrees for method "+err().methodSig(at.mName())+".")
       .line(Join.of(res.stream().map(Err::disp), "Different options are present in the implemented types: ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" cannot implement all of those types.");
     return wf(e, at);
@@ -425,17 +424,16 @@ public record WellFormednessErrors(String pkgName){
       .line("Cannot infer the name for a method with "+count(m.sig().ts().size(), "parameter")+".")
       .line("Many"+(abs ? " abstract" : "")+" methods with "+count(m.sig().ts().size(), "parameter")+" could be selected:")
       .line(Join.of(
-        options.stream().map(mi -> disp(mi.rc().get()+" "+mi.m().get().s())),
+        options.stream().map(mi -> methodSig(mi.rc().get()+" ", mi.m().get())),
         "Candidates: ", ", ", "."
       )), m, origin);
   }
   public FearlessException ambiguousImplementationFor(List<TName> options, Agreement at){
     return wf(err()
-      .line("Ambiguous implementation for method "+disp(at.mName().s())+" with "+count(at.mName().arity(), "parameter")+".")
+      .line("Ambiguous implementation for method "+err().methodSig(at.mName())+".")
       .line("Different options are present in the implemented types:")
       .line(Join.of(options.stream().map(err()::tNameADisp), "Candidates: ", ", ", "."))
-      .line(up(err().expRepr(at.lit()))+" must declare a method "+disp(at.mName().s())
-        +" explicitly implementing the desired behaviour."), at);
+      .line(up(err().expRepr(at.lit()))+" must declare a method "+err().methodSig(at.mName())+" explicitly implementing the desired behaviour."), at);
   }
   public FearlessException multipleWidenTo(E.Literal owner, List<IT.C> widen){
     var w= err().tNameADisp(LiteralDeclarations.widen);

@@ -495,7 +495,7 @@ Add an explicit return type before '->'.
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".m".
-No supertype has a method named ".m" with 0 parameters.
+No supertype has a method ".m".
 Error 7 WellFormedness
 """, List.of("""
 A:{}
@@ -1680,7 +1680,7 @@ Add an explicit return type before '->'.
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".turn".
-No supertype has a method named ".turn" with 0 parameters.
+No supertype has a method ".turn".
 Error 7 WellFormedness
 """, List.of("""
 North: {.turn-> East; }

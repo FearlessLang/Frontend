@@ -170,7 +170,7 @@ Add an explicit return type before '->'.
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".use(_)".
-No supertype has a method named ".use(_)" with 1 parameter.
+No supertype has a method ".use(_)".
 Error 7 WellFormedness
 """, List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }"));}
@@ -183,7 +183,7 @@ In file: [###].fear
 
 While inspecting type declaration "A"
 Cannot infer signature of method ".use(_)".
-No supertype has a method named ".use(_)" with 1 parameter.
+No supertype has a method ".use(_)".
 Error 7 WellFormedness
 """, List.of(
 "A:{ .use:A->A; .use(x)->x; }"));}
@@ -494,7 +494,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .foo" with 0 parameters.
+Return type disagreement for method "imm .foo".
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -509,7 +509,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .foo" with 0 parameters.
+Return type disagreement for method "imm .foo".
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -524,7 +524,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about parameter 2 for method "imm .foo(_,_)" with 2 parameters.
+Type disagreement about parameter 2 for method "imm .foo(_,_)".
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -539,7 +539,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about parameter 2 for method "imm .foo(_,_)" with 2 parameters.
+Type disagreement about parameter 2 for method "imm .foo(_,_)".
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -554,7 +554,7 @@ In file: [###].fear
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-The number of type parameters disagrees for method ".foo" with 0 parameters.
+The number of type parameters disagrees for method ".foo".
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
 Error 7 WellFormedness
@@ -570,7 +570,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-The number of type parameters disagrees for method ".foo" with 0 parameters.
+The number of type parameters disagrees for method ".foo".
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
 Error 7 WellFormedness
@@ -637,7 +637,7 @@ In file: [###].fear
 While inspecting type declaration "B"
 Cannot infer the name for a method with 1 parameter.
 Many methods with 1 parameter could be selected:
-Candidates: "imm .baz", "imm .beer".
+Candidates: "imm .baz(_)", "imm .beer(_)".
 Error 7 WellFormedness
 """, List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
@@ -676,7 +676,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Ambiguous implementation for method ".foo" with 0 parameters.
+Ambiguous implementation for method ".foo".
 Different options are present in the implemented types:
 Candidates: "A2", "A3".
 Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
@@ -927,7 +927,7 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
+Type disagreement about parameter 1 for method "imm .m(_)".
 Different options are present in the implemented types: "Twice[Pair[X,Y]]", "Twice[Pair[Y,X]]".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 Error 7 WellFormedness

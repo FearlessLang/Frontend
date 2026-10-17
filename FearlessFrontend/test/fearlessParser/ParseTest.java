@@ -2529,7 +2529,7 @@ In file: [###].fear
 008|    .return{x};
 
 While inspecting type declaration body > type declaration > full file
-Method ".ban" redeclared.
+Method ".ban(_)" redeclared.
 A method with the same name, arity and reference capability is already present.
 Error 7 WellFormedness
 """, """
