@@ -278,7 +278,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +fix.map(d -> "For example "+disp(patternRepr(d))+" is accepted.\n").orElse("No choice of id makes all the names of this pattern valid.\n")
       ).addSpan(at);
   }
-  private static String patternRepr(XPat.Destruct p){
+  static String patternRepr(XPat.Destruct p){
     return Join.of(p.extract().stream().map(c -> Join.of(c.stream().map(MName::s), "", "", "")), "{", ", ", "}")+p.id().orElse("");
   }
   public FearlessException duplicatedParamInMethodSignature(List<String> xs, Span at){ return duplicatedInMethodSignature("parameters", "Parameter", xs, at); }

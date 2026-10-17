@@ -733,6 +733,37 @@ User:{
   );
 }
 """));}
+@Test void notAffineIso_implicitParameterUsedDirectlyTwice(){ fail("""
+004| User:{ .bad:base.F[iso B,Unit]->{ Use2#(::,::) } }
+   |                                   ------^^^~~~
+
+While inspecting "#(_)" line 4 > ".bad" line 4
+Iso parameter "::" violates the single-use rule in method "read base.F[iso B,Unit]#(_)" (line 4).
+It is used directly 2 times.
+Iso parameters can be used directly at most once.
+Allowed: capture into object literals as "imm", or use directly once.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Use2#(::,::)
+""", List.of("""
+Unit:{}
+B:{}
+Use2:{ #(a:iso B,b:iso B):Unit->Unit{} }
+User:{ .bad:base.F[iso B,Unit]->{ Use2#(::,::) } }
+"""));}
+@Test void notAffineIso_destructuredParameterUsedDirectlyTwice(){ fail("""
+002| User:{ .bad({.a,.b}:iso B):B->a }
+[###]
+While inspecting ".bad(_)" line 2
+Iso parameter "{.a, .b}" violates the single-use rule in method "User.bad(_)" (line 2).
+It is used directly 2 times.
+Iso parameters can be used directly at most once.
+Allowed: capture into object literals as "imm", or use directly once.
+[###]
+""", List.of("""
+B:{ .a:B->this; .b:B->this; }
+User:{ .bad({.a,.b}:iso B):B->a }
+"""));}
 
 @Test void methodBodyWrongType_xWrongNominal_shortNames(){ fail("""
 004|   imm .m(x:imm A):B->x;

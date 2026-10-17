@@ -237,13 +237,25 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     assert !usages.isEmpty();
     var line= m.sig().span().inner.startLine();
     var ms= err().methodSig(m.sig().rc().toStrSpace(), l, m.sig().m());
-    var x= disp(name);
+    var x= disp(paramRepr(l, m, name, usages.getFirst()));
     var e= err().line("Iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+line+").");
     var ex= isoMisuse(e, earlyErrOnMoreThenOnceDirectly, usages.size())
       .line("Allowed: capture into object literals as "+disp(RC.imm)+", or use directly once.")
       .ex(m.e().get());
     for (var u : usages){ ex.addSpan(u.span().inner); }
     return ex;
+  }
+  private static String paramRepr(Literal l, M m, String name, E.X usage){
+    if (usage.src().inner instanceof fearlessFullGrammar.E.Implicit){ return "::"; }
+    var ms= switch (l.src().inner){
+      case fearlessFullGrammar.Declaration d -> d.l().methods();
+      case fearlessFullGrammar.E.Literal gl -> gl.methods();
+      case fearlessFullGrammar.E.TypedLiteral t -> t.l().get().methods();
+      default -> throw Bug.unreachable();
+    };
+    var gm= OneOr.of("Malformed methods", ms.stream().filter(mi -> mi.span().inner.equals(m.sig().span().inner)));
+    var xp= gm.sig().get().parameters().get(m.xs().indexOf(name)).xp().get();
+    return xp instanceof fearlessFullGrammar.XPat.Destruct d ? FearlessErrFactory.patternRepr(d) : name;
   }
   private static Err isoMisuse(Err e, boolean moreThanOnceDirectly, int usages){
     if (moreThanOnceDirectly){ return e.line("It is used directly "+usages+" times.").line("Iso parameters can be used directly at most once."); }
