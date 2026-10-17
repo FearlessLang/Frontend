@@ -135,8 +135,8 @@ In file: [###].fear
 
 While inspecting a type name
 Name "X" stands for "b.B" because of "use b.B as X".
-Name "B" is not declared with 1 type parameter(s) in package "b".
-Name "B" is only declared with 0 type parameter(s).
+Name "B" is not declared with 1 type parameter in package "b".
+Name "B" is only declared with 0 type parameters.
 Did you accidentally add or omit a type parameter?
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
@@ -177,8 +177,8 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Name "B" is not declared with 1 type parameter(s) in package "b".
-Name "B" is only declared with 0 type parameter(s).
+Name "B" is not declared with 1 type parameter in package "b".
+Name "B" is only declared with 0 type parameters.
 Did you accidentally add or omit a type parameter?
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
@@ -330,8 +330,8 @@ In file: [###].fear
 
 While inspecting a type name
 Name "X" stands for "c.A" because of "use c.A as X".
-Name "A" is not declared with 1 type parameter(s) in package "c".
-Name "A" is only declared with 0 type parameter(s).
+Name "A" is not declared with 1 type parameter in package "c".
+Name "A" is only declared with 0 type parameters.
 Did you accidentally add or omit a type parameter?
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of(), """
@@ -347,8 +347,8 @@ In file: [###].fear
 While inspecting a type name
 Name "X" stands for "a.A" because of "use a.A as X".
 Name "a.A" stands for "c.A" because of "map a as c in b".
-Name "A" is not declared with 1 type parameter(s) in package "c".
-Name "A" is only declared with 0 type parameter(s).
+Name "A" is not declared with 1 type parameter in package "c".
+Name "A" is only declared with 0 type parameters.
 Did you accidentally add or omit a type parameter?
 Error 7 WellFormedness
 """, Map.of("a", aA, "c", cA), Map.of("a", "c"), """

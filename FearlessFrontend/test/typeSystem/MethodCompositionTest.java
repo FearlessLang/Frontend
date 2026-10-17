@@ -201,7 +201,7 @@ C:{ .m(c:Foo): Foo -> c }
    | ^^^^^^^
 
 While inspecting type declaration "A"
-Ambiguous implementation for method ".m" with 1 parameters.
+Ambiguous implementation for method ".m" with 1 parameter.
 Different options are present in the implemented types:
 Candidates: "B", "C".
 Type declaration "A" must declare a method ".m" explicitly implementing the desired behaviour.
@@ -307,7 +307,7 @@ B:{ .m[X:*](x: X): Foo }
 
 While inspecting type declaration "A"
 Invalid method implementation for "A.m".
-The method ".m" declares 2 type parameter(s), but supertypes declare 1.
+The method ".m" declares 2 type parameters, but supertypes declare 1.
 Local declaration: "[X:imm,mut,read, Y:imm,mut,read]".
 From supertypes: "[-:imm,mut,read]".
 Change the local number of type parameters to 1, or adjust the supertypes.
@@ -472,7 +472,7 @@ Bar[X:*]:{ .m: Foo[X] -> Foo[X:*]:{} }
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Type disagreement about argument 0 for method "imm .m(_)" with 1 parameters.
+Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
 Different options are present in the implemented types: "base.Int", "base.Float".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 """, List.of("""

@@ -170,7 +170,7 @@ Add an explicit return type before '->'.
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".use(_)".
-No supertype has a method named ".use(_)" with 1 parameters.
+No supertype has a method named ".use(_)" with 1 parameter.
 Error 7 WellFormedness
 """, List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }"));}
@@ -183,7 +183,7 @@ In file: [###].fear
 
 While inspecting type declaration "A"
 Cannot infer signature of method ".use(_)".
-No supertype has a method named ".use(_)" with 1 parameters.
+No supertype has a method named ".use(_)" with 1 parameter.
 Error 7 WellFormedness
 """, List.of(
 "A:{ .use:A->A; .use(x)->x; }"));}
@@ -524,7 +524,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about argument 1 for method "imm .foo(_,_)" with 2 parameters.
+Type disagreement about parameter 2 for method "imm .foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -539,7 +539,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about argument 1 for method "imm .foo(_,_)" with 2 parameters.
+Type disagreement about parameter 2 for method "imm .foo(_,_)" with 2 parameters.
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -635,8 +635,8 @@ In file: [###].fear
    | ---------^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Cannot infer the name for a method with 1 parameters.
-Many methods with 1 parameters could be selected:
+Cannot infer the name for a method with 1 parameter.
+Many methods with 1 parameter could be selected:
 Candidates: "imm .baz", "imm .beer".
 Error 7 WellFormedness
 """, List.of("""
@@ -832,8 +832,8 @@ In file: [###].fear
    |                 ^^
 
 While inspecting a type name
-Name "F" is not declared with 2 type parameter(s) in package "p".
-Name "F" is only declared with 0 type parameter(s).
+Name "F" is not declared with 2 type parameters in package "p".
+Name "F" is only declared with 0 type parameters.
 Did you accidentally add or omit a type parameter?
 Error 7 WellFormedness
 """, List.of("""
@@ -892,7 +892,7 @@ In file: [###].fear
 
 While inspecting type declaration "E"
 Invalid method implementation for "E.m(_,_)".
-The method ".m(_,_)" declares 1 type parameter(s), but supertypes declare 2.
+The method ".m(_,_)" declares 1 type parameter, but supertypes declare 2.
 Local declaration: "[U:imm]".
 From supertypes: "[-:imm, -:imm]".
 Change the local number of type parameters to 2, or adjust the supertypes.
@@ -927,7 +927,7 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Type disagreement about argument 0 for method "imm .m(_)" with 1 parameters.
+Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
 Different options are present in the implemented types: "Twice[Pair[X,Y]]", "Twice[Pair[Y,X]]".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 Error 7 WellFormedness
@@ -1166,7 +1166,7 @@ In file: [###].fear
    |               ^^^^^^^^^^^
 
 While inspecting a type name
-Name "Block" is not declared with 2 type parameter(s) in package "base".
+Name "Block" is not declared with 2 type parameters in package "base".
 Name "Block" is only declared with the following numbers of type parameters: 0, 1.
 Did you accidentally add or omit a type parameter?
 Error 7 WellFormedness
@@ -1184,7 +1184,7 @@ In file: [###].fear
 
 While inspecting a type name
 Name "Block" stands for "base.Block" because of "use base.Block as Block".
-Name "Block" is not declared with 2 type parameter(s) in package "base".
+Name "Block" is not declared with 2 type parameters in package "base".
 Name "Block" is only declared with the following numbers of type parameters: 0, 1.
 Did you accidentally add or omit a type parameter?
 Error 7 WellFormedness

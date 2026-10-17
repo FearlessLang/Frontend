@@ -184,8 +184,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   public FearlessException methodNotInferred(Literal at, M m){
     var n= m.sig().ts().size();
     return addExpFrame(at, err()
-      .line("Cannot infer signature and name for a method with "+n+" parameters.")
-      .line("No supertype of "+err().expRepr(at)+" has a method with "+n+" parameters.")
+      .line("Cannot infer signature and name for a method with "+count(n, "parameter")+".")
+      .line("No supertype of "+err().expRepr(at)+" has a method with "+count(n, "parameter")+".")
       .ex(at));
   }
   public FearlessException literalHeadNotInferred(Literal at, T.C c){
@@ -432,12 +432,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var expected= bs.size();
     var args= Join.of(bs.stream().map(b -> disp(b.x())), ": ", " and ", "", "");
     var got= c.targs().size(); assert got != expected;
-    var expS= expected == 0
-      ? "no type arguments"
-      : expected+" type argument"+(expected == 1 ? args : "s"+args);
-    var gotS= got == 0
-      ? "no type arguments"
-      : got+" type argument"+(got == 1 ? "" : "s");
+    var expS= expected == 0 ? "no type arguments" : count(expected, "type argument")+args;
+    var gotS= got == 0 ? "no type arguments" : count(got, "type argument");
     return withCallSpans(err()
       .pCallCantBeSatisfied(d, c)
       .line("Wrong number of type arguments for "+err().methodSig(c.name())+".")

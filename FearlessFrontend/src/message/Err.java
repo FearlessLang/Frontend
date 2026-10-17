@@ -68,6 +68,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return new T.RCC(rc, p.withTs(p.ts().stream().map(this::showPublic).toList()), span);
   }
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t), t.span()))); }
+  static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
   static String up(String s){ return s.substring(0, 1).toUpperCase() + s.substring(1); }
   String expRepr(E toErr){ return switch (toErr){
     case Call c -> "method call "+methodSig(c.name());

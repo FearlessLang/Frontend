@@ -253,7 +253,7 @@ public record Methods(
   }
   IT pairWithTs(Agreement at, int i, Optional<IT> t, List<M.Sig> ss){
     return t.orElseGet(() -> agreement(at, ss, e -> e.ts().get(i).get(),
-      p.err().argTypeDisagreement(i)));
+      p.err().paramTypeDisagreement(i)));
   }
   M pairWithSig(List<M.Sig> ss, E.Literal origin){
     assert !ss.isEmpty();

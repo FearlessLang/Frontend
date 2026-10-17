@@ -1271,7 +1271,7 @@ In file: [###].fear
 
 While inspecting type declaration "Sub"
 Invalid method implementation for "Sub.f(_)".
-The method ".f(_)" declares 2 type parameter(s), but supertypes declare 1.
+The method ".f(_)" declares 2 type parameters, but supertypes declare 1.
 Local declaration: "[X:imm, Y:imm]".
 From supertypes: "[-:imm]".
 Change the local number of type parameters to 1, or adjust the supertypes.

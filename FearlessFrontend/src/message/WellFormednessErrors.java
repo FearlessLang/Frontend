@@ -188,10 +188,10 @@ public record WellFormednessErrors(String pkgName){
       if (arities.isEmpty()){ return Optional.empty(); }
       var targetPkg= typedPkg.isEmpty() ? contextPkg : typedPkg;
       var e= err.get()
-        .line("Name "+disp(typedSimple)+" is not declared with "+tn.arity()+" type parameter(s) in package "+disp(targetPkg)+".")
+        .line("Name "+disp(typedSimple)+" is not declared with "+count(tn.arity(), "type parameter")+" in package "+disp(targetPkg)+".")
         .line("Name "+disp(typedSimple)+" is only declared with "
           +(arities.size() == 1
-            ? arities.getFirst()+" type parameter(s)."
+            ? count(arities.getFirst(), "type parameter")+"."
             : Join.of(arities, "the following numbers of type parameters: ", ", ", ".")
           ))
         .line("Did you accidentally add or omit a type parameter?");
@@ -311,8 +311,8 @@ public record WellFormednessErrors(String pkgName){
     var size= m.sig().ts().size();
     if (m.sig().m().isEmpty()){
       return wf(err()
-        .line("Cannot infer signature and name for a method with "+size+" parameters.")
-        .line("No supertype has a method with "+size+" parameters."), m, origin);
+        .line("Cannot infer signature and name for a method with "+count(size, "parameter")+".")
+        .line("No supertype has a method with "+count(size, "parameter")+"."), m, origin);
     }
     var name= err().methodSig(m.sig().m().get());
     var allParHasType= m.sig().ts().stream().allMatch(Optional::isPresent);
@@ -325,16 +325,16 @@ public record WellFormednessErrors(String pkgName){
     }
     return wf(e
       .line("Cannot infer signature of method "+name+".")
-      .line("No supertype has a method named "+name+" with "+size+" parameters."), m, origin);
+      .line("No supertype has a method named "+name+" with "+count(size, "parameter")+"."), m, origin);
   }
   public String retTypeDisagreement(){ return "Return type disagreement"; }
-  public String argTypeDisagreement(int i){ return "Type disagreement about argument "+i; }
+  public String paramTypeDisagreement(int i){ return "Type disagreement about parameter "+(i+1); }
   public FearlessException noAgreement(Agreement at, List<B> bs, List<IT> res, String msg){
     var rc= at.rc().map(r -> r.toStrSpace(false)).orElse("");
     var rcDiffers= res.stream().map(t -> Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var e= err()
-      .line(msg+" for method "+err().methodSig(rc, at.mName())+" with "+at.mName().arity()+" parameters.")
+      .line(msg+" for method "+err().methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
       .line(Join.of(
         res.stream().map(o -> option(rcDiffers, o)),
         "Different options are present in the implemented types: ", ", ", "."
@@ -351,7 +351,7 @@ public record WellFormednessErrors(String pkgName){
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
       .line("The number of type parameters disagrees for method "+err().methodSig(at.mName())
-        +" with "+at.mName().arity()+" parameters.")
+        +" with "+count(at.mName().arity(), "parameter")+".")
       .line(Join.of(res.stream().map(Err::disp), "Different options are present in the implemented types: ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" cannot implement all of those types.");
     return wf(e, at);
@@ -360,7 +360,7 @@ public record WellFormednessErrors(String pkgName){
     var sB= disp(superBs.stream().map(b -> new B("-", b.rcs())).toList());
     return wf(err()
       .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(), at.lit(), at.mName())+".")
-      .line("The method "+err().methodSig(at.mName())+" declares "+userBs.size()+" type parameter(s), but supertypes declare "+superBs.size()+".")
+      .line("The method "+err().methodSig(at.mName())+" declares "+count(userBs.size(), "type parameter")+", but supertypes declare "+superBs.size()+".")
       .line("Local declaration: "+disp(userBs)+".")
       .line("From supertypes: "+sB+".")
       .line("Change the local number of type parameters to "+superBs.size()+", or adjust the supertypes."), at);
@@ -422,8 +422,8 @@ public record WellFormednessErrors(String pkgName){
   }
   public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<M.Sig> options){
     return wf(err()
-      .line("Cannot infer the name for a method with "+m.sig().ts().size()+" parameters.")
-      .line("Many"+(abs ? " abstract" : "")+" methods with "+m.sig().ts().size()+" parameters could be selected:")
+      .line("Cannot infer the name for a method with "+count(m.sig().ts().size(), "parameter")+".")
+      .line("Many"+(abs ? " abstract" : "")+" methods with "+count(m.sig().ts().size(), "parameter")+" could be selected:")
       .line(Join.of(
         options.stream().map(mi -> disp(mi.rc().get()+" "+mi.m().get().s())),
         "Candidates: ", ", ", "."
@@ -431,7 +431,7 @@ public record WellFormednessErrors(String pkgName){
   }
   public FearlessException ambiguousImplementationFor(List<TName> options, Agreement at){
     return wf(err()
-      .line("Ambiguous implementation for method "+disp(at.mName().s())+" with "+at.mName().arity()+" parameters.")
+      .line("Ambiguous implementation for method "+disp(at.mName().s())+" with "+count(at.mName().arity(), "parameter")+".")
       .line("Different options are present in the implemented types:")
       .line(Join.of(options.stream().map(err()::tNameADisp), "Candidates: ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" must declare a method "+disp(at.mName().s())
