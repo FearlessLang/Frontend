@@ -8,6 +8,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -16,6 +17,8 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Assertions;
 import org.opentest4j.AssertionFailedError;
 
+import compact.Frontend;
+import compact.Frontend.Fail;
 import core.OtherPackages;
 import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.ToString;
@@ -61,17 +64,21 @@ public abstract class FearlessTestBase{
     }
   }
   protected static FileFull parseFull(String input){
-    return printError(() -> Parse.from(SourceOracle.defaultDbgFearPath(0), input), oracleRaw(List.of(input)));
+    var res= printError(() -> Parse.from(SourceOracle.defaultDbgFearPath(0), input), oracleRaw(List.of(input)));
+    Frontend.parse(input);
+    return res;
   }
   protected static void parseOkNormalized(String expectedNoWs, String input){
     var res= Parse.from(Pos.unknown.fileName(), input);
     strCmp(stripWs(expectedNoWs), stripWs(res.toString()));
+    Frontend.parse(input);
   }
   protected static void parseFail(String expectedErr, String input){
     var o= oracleRaw(List.of(input));
     var fe= assertThrows(FearlessException.class,
       () -> Parse.from(SourceOracle.defaultDbgFearPath(0), input));
     strCmp(expectedErr, fe.render(o));
+    assertThrows(Fail.class, () -> Frontend.parse(input));
   }
   protected static Methods parsePackage(String pkgName, SourceOracle o, OtherPackages other, boolean infer){
     return new InferenceMain().ofMethods(pkgName, o.allFiles(), o, other, infer);
@@ -87,6 +94,7 @@ public abstract class FearlessTestBase{
       System.out.println(fe.render(o));
       throw fe;
     }
+    Frontend.parse(input);
     var got= Join.of(
       res.decs().stream().map(ToString::declaration),
       "",
@@ -112,8 +120,11 @@ public abstract class FearlessTestBase{
   }
   protected static void typeOk(List<String> input){
     var o= oraclePkg(input);
-    var other= printError(() -> otherFrom(DbgBlock.all()), o);
-    printError(() -> new FrontendLogicMain().of("p", Map.of(), o.allFiles(), other), o);
+    var base= printError(DbgBlock::all, o);
+    var res= printError(() -> new FrontendLogicMain().of("p", Map.of(), o.allFiles(), otherFrom(base)), o);
+    var compactBase= compactBase();
+    strCmp(lines(base), lines(compactBase));
+    strCmp(lines(res), lines(compactAll("p", o, compactBase)));
   }
   protected static void typeFailRaw(String expected, List<String> input){
     var o= oraclePkg(input);
@@ -121,6 +132,17 @@ public abstract class FearlessTestBase{
     var fe= assertThrows(FearlessException.class,
       () -> new FrontendLogicMain().of("p", Map.of(), o.allFiles(), other));
     strCmp(expected, fe.render(o));
+    var compactBase= compactBase();
+    assertThrows(Fail.class, () -> compactAll("p", o, compactBase));
+  }
+  protected static String lines(List<?> res){ return Join.of(res, "", "\n", "", ""); }
+  protected static List<Frontend.Literal> compactBase(){
+    return compactAll("base", DbgBlock.dbgMiniBase(), List.of());
+  }
+  protected static List<Frontend.Literal> compactAll(String pkgName, SourceOracle o, List<Frontend.Literal> other){
+    var files= new LinkedHashMap<String,String>();
+    for (var r : o.allFiles()){ files.put(r.fearPath(), r.loadString()); }
+    return Frontend.compile(pkgName, Map.of(), files, other);
   }
   protected static void typeFail(String expected, List<String> input){
     typeFailRaw("In file: [###].fear\n\n"+expected+"Error 8 TypeError", input);

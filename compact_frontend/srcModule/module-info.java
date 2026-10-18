@@ -1,0 +1,3 @@
+module CompactFrontend{
+  exports compact;
+}
