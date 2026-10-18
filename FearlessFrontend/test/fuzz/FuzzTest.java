@@ -44,8 +44,9 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     var other= otherFrom(DbgBlock.all());
     var rnd= new Random(0);
     var crashes= new TreeMap<String,String>();
-    for (var s : seeds){ run(s, other, crashes); }
-    for (int i= 0; i < cases; i += 1){ run(mutate(seeds.get(rnd.nextInt(seeds.size())), rnd, seeds), other, crashes); }
+    var cBase= compactBase();
+    for (var s : seeds){ run(s, other, cBase, crashes); }
+    for (int i= 0; i < cases; i += 1){ run(mutate(seeds.get(rnd.nextInt(seeds.size())), rnd, seeds), other, cBase, crashes); }
     strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
   }
   @Test void underAnnotatedTestProgramsNeverCrash(){
@@ -53,14 +54,20 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     var other= otherFrom(DbgBlock.all());
     var rnd= new Random(0);
     var crashes= new TreeMap<String,String>();
-    for (int i= 0; i < cases; i += 1){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())), rnd), other, crashes); }
+    var cBase= compactBase();
+    for (int i= 0; i < cases; i += 1){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())), rnd), other, cBase, crashes); }
     strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
   }
-  static void run(String src, OtherPackages other, TreeMap<String,String> crashes){
+  static void run(String src, OtherPackages other, List<compact.Frontend.Literal> cBase, TreeMap<String,String> crashes){
     var o= SourceOracle.debugBuilder().put(0, src).build();
     try{
-      try{ compileAll("p", o, other); }
+      var expected= "error";
+      try{ expected= lines(compileAll("p", o, other)); }
       catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); }
+      var got= "error";
+      try{ got= lines(compactAll("p", o, cBase)); }
+      catch (compact.Frontend.Fail _){}
+      if (!expected.equals(got)){ crashes.merge("compact frontend disagrees", src, FuzzTest::shorter); }
     }
     catch (Throwable t){ crashes.merge(signature(t), src, FuzzTest::shorter); }
   }
