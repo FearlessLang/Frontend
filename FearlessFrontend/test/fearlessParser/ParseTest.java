@@ -603,6 +603,40 @@ Error 2 UnexpectedToken
 A:{ .m(x:C):C->x.foo(,) }
 """);}
 
+@Test void rcThenNameThenType(){fail("""
+In file: [###].fear
+
+001| A:{}
+002| B:{ .m: mut A -> (mut x A) }
+   |     -------------~~~~~^~~~
+
+While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
+Missing expression.
+Found instead: "x".
+Expected: "type name".
+Error 2 UnexpectedToken
+""", """
+A:{}
+B:{ .m: mut A -> (mut x A) }
+""");}
+
+@Test void rcThenNameThenTypedLiteral(){fail("""
+In file: [###].fear
+
+001| A:{ .k: A -> this }
+002| B:{ .m: A -> (imm x A{ .k -> A }) }
+   |     ---------~~~~~^~~~~~~~~~~~~~~
+
+While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
+Missing expression.
+Found instead: "x".
+Expected: "type name".
+Error 2 UnexpectedToken
+""", """
+A:{ .k: A -> this }
+B:{ .m: A -> (imm x A{ .k -> A }) }
+""");}
+
 @Test void err_illegal_tab_char(){fail("""
 In file: [###].fear
 
