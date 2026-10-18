@@ -54,6 +54,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var invalid= rc.stream().anyMatch(RC::isH);
     if (invalid){ throw errFactory().disallowedReadHMutH(span(peek(-1).get()).get(), rc.get()); }
     if (isDec()){ return new E.DeclarationLiteral(rc, parseDeclaration(false)); }
+    if (rc.isPresent() && !peek(Token.typeName)){ expect("expression", UppercaseId); }
     if (!peek(Token.typeName)){ expect("expression", LowercaseId, UppercaseId, ORound, OCurly); }
     //the expect above is guaranteed to go in error, the list of tokens is cherry picked to produce
     //and intuitive error message
