@@ -138,29 +138,23 @@ T1[X:imm]:T0[T1[T1[X]]]{.m[Y:imm](a:T0[Y]):Y->a.get;.k:T1[X]->this.m[imm,T1[T1[X
 T0[X]:{ .get: X }
 T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
 """));}
-@Test void receiverLiteralWithUndeterminedTypeArguments(){fail("""
+@Test void receiverLiteralWithUndeterminedTypeArguments(){failWf("""
 001| T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
-   |                                    --------------------------^^---
+   |                                                              ^^
 
-While inspecting object literal instance of "iso T0[base.InferUnknown,base.InferUnknown]" > ".m0" line 1
+While inspecting object literal instance of "T0[_,_]"
 Type inference concluded that this object literal implements "T0[?,?]",
 but it could not infer type arguments 1 and 2 for type parameters "X0" and "X1" of "T0[_,_]".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso T0[-.Inf-own,-.Inf-own]{}
 """, List.of("""
 T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
 """));}
-@Test void receiverLiteralCapturingThis(){fail("""
+@Test void receiverLiteralCapturingThis(){failWf("""
 001| T0[X]:{ .m: T0[base.Void] -> {this}.m }
-   |         ---------------------^^^^^^--
+   |                              ^^^^^^
 
-While inspecting object literal instance of "iso T0[base.InferUnknown]" > ".m" line 1
+While inspecting object literal instance of "T0[_]"
 Type inference concluded that this object literal implements "T0[?]",
 but it could not infer type argument 1 for type parameter "X" of "T0[_]".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso T0[-.Inf-own]{.m:T0[-.Void]->this}
 """, List.of("""
 T0[X]:{ .m: T0[base.Void] -> {this}.m }
 """));}
@@ -4593,5 +4587,57 @@ User:{ #: mut A -> mut B:A{'self .m1 -> self; .m2 -> mut G{ .get -> self.m1 } } 
 A:{ imm .m1: A; mut .m1: mut A; mut .m2: mut G }
 G:{ mut .get: mut A }
 User:{ #: iso A -> iso B:A{'self .m1 -> self; .m2 -> mut G{ .get -> self.m1 } } }
+"""));}
+@Test void genericArgumentsJoinToTheSupertype(){ok(List.of("""
+A:{} Z:A{}
+U:{ .both[T](a: T, b: T): T -> a; .use(a: A, z: Z): A -> this.both(a, z) }
+"""));}
+@Test void genericArgumentsJoinToTheSupertypeInEitherOrder(){ok(List.of("""
+A:{} Z:A{}
+U:{ .both[T](a: T, b: T): T -> a; .use(a: A, z: Z): A -> this.both(z, a) }
+"""));}
+@Test void genericArgumentsJoinMutAndImmToRead(){ok(List.of("""
+A:{}
+U:{ .both[T:*](a: T, b: T): T -> a; .use(m: mut A, i: imm A): read A -> this.both(m, i) }
+"""));}
+@Test void genericArgumentFromALiteralJoinsToo(){ok(List.of("""
+A:{} Z:A{}
+U:{ .app[T](f: base.F[T], x: T): T -> x; .use(a: A, z: Z): A -> this.app({ z }, a) }
+"""));}
+@Test void siblingsJoinToTheExpectedSupertypeA(){ok(List.of("""
+A:{} B:{} Y:A,B{} Z:A,B{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z) }
+"""));}
+@Test void siblingsJoinToTheExpectedSupertypeB(){ok(List.of("""
+A:{} B:{} Y:A,B{} Z:A,B{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): B -> this.both(y, z) }
+"""));}
+@Test void siblingsWithoutContextCannotBeInferred(){failWf("""
+002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+   |                                                          ^^^^^^^^^^^^^^^
+
+While inspecting method call ".both(_,_)"
+The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+"T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
+Write the type argument explicitly, as in "this.both[A](y, z)".
+""", List.of("""
+A:{} B:{} Y:A,B{} Z:A,B{}
+U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+"""));}
+@Test void siblingsWithOneCommonSupertypeInferIt(){ok(List.of("""
+A:{ .k: A -> this } Y:A{} Z:A{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
+"""));}
+@Test void unrelatedTypesCannotBeInferred(){failWf("""
+002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+   |                                                          ^^^^^^^^^^^^^^^
+
+While inspecting method call ".both(_,_)"
+The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "this.both[Type1](y, z)".
+""", List.of("""
+A:{} Y:{} Z:{}
+U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
 """));}
 }

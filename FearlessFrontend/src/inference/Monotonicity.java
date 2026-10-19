@@ -25,7 +25,7 @@ public final class Monotonicity{
     var l= g.monotonicity.computeIfAbsent(slot, _ -> new ArrayList<>(4));
     if (l.isEmpty()){ l.add(from); }
     var last= l.getLast();
-    var outOfSync= !(from instanceof IT.U) && !last.equals(from);
+    var outOfSync= !(from instanceof IT u && u.undecided()) && !last.equals(from);
     if (outOfSync){
       throw new AssertionError("Monotonicity tracker out of sync for "+what
         +"\nLast="+last+"\nFrom="+from+"\nHist="+l);

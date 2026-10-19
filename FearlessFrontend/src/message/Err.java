@@ -39,7 +39,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   private String bestLitName(inference.E.Literal l){
     if (!l.infName()){ return tNameA(l.name()); }
-    return tNameA(!l.cs().isEmpty() ? l.cs().getFirst().name() : ((T.RCC)TypeRename.itToT(l.t())).c().name());
+    return tNameA(!l.cs().isEmpty() ? l.cs().getFirst().name() : l.t() instanceof inference.IT.RCC r ? r.c().name() : l.name());
   }
   private String bestNamePkg0(boolean instanceOf, String n){
     return (instanceOf ? "instance of " : "")+disp(n);
@@ -54,7 +54,13 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String theTypeOrObjectLiteral(Literal l){ return typeOrAnon(l, "type ", "object literal "); }
   public String bestNameNoRc(Literal l){ return bestNamePkg0(showInstanceOf(l), bestLitName(true, true, l)); }
   T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()), t.ts()); }//Correct to not propagate here
-  String typeRepr(inference.IT t){ return typeRepr(true, TypeRename.itToT(t)); }
+  String typeRepr(inference.IT t){ return typeRepr(true, t); }
+  String typeRepr(boolean skipImm, inference.IT t){ return t.isTV() ? typeRepr(skipImm, TypeRename.itToT(t)) : disp(typeReprRaw(t)); }
+  String typeReprRaw(inference.IT t){ return switch (t){
+    case inference.IT.RCC(var rc, var c, _) -> rc.map(RC::toStrSpace).orElse("")+cp().t.ofFull(c.name())+Join.of(c.ts().stream().map(this::typeReprRaw), "[", ",", "]", "");
+    case inference.IT.U _, inference.IT.Amb _ -> "?";
+    default -> typeReprRaw(true, TypeRename.itToT(t));
+  };}
   String typeRepr(boolean skipImm, T t){ return disp(typeReprRaw(skipImm, t)); }
   private String typeReprRaw(boolean skipImm, T t){
     var str= cp().msgT(showPublic(t));
@@ -89,6 +95,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case inference.E.X(var name, _, _, _) -> "parameter " +disp(name);
     case inference.E.Literal l -> l.thisName().equals("this")
       ? "type declaration " +tNameADisp(l.name())
+      : l.infName() && l.cs().isEmpty() && !(l.t() instanceof inference.IT.RCC) ? "object literal "+disp(anonRepr)
       : "object literal " +bestNamePkg0(l.infName(), bestLitName(l));
     case inference.E.Type t -> "object literal instance of " + t;
     };}
@@ -99,9 +106,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   static String methodSig(String pre, MName m){ return disp(Join.of(Collections.nCopies(m.arity(), "_"), pre+m.s()+"(", ",", ")", pre+m.s())); }
   public static boolean rcOnlyMismatch(T got, T req){
     return got.withRC(RC.imm).equals(req.withRC(RC.imm));
-  }
-  static boolean isInferErr(T t){
-    return t instanceof T.RCC(_, var c, _) && LiteralDeclarations.inferErrs.contains(c.name());
   }
   String text(){ return sb.toString().stripTrailing(); }
   public Err pTypeArgBounds(String what, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
@@ -156,16 +160,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return this;
   }
   public String gotMsg(boolean skipImm, String label, List<T> got, T expected){
-    if (isInferErr(expected)){ return gotMsgInferErr(label, got.getFirst()); }
     return label+" has type "+Join.of(got.stream().map(t -> typeRepr(skipImm, t)), "", " or ", "")
       +" instead of a subtype of "+typeRepr(skipImm, expected)+".";
   }
-  public String gotMsgInferErr(String label, T got){
-    return label
-      + " cannot be checked against an expected supertype.\n"
-      + "Type inference could not infer an expected type; computed type is "+typeRepr(true, got)+".";
-  }
-
   FearlessException ex(E e){
     return ex("Compressed relevant code with inferred types: (compression indicated by `-`)", e);
   }

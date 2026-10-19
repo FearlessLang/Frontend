@@ -181,25 +181,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       .line(x+" is a type parameter; object literals can only implement nominal types.")
       .ex(at));
   }
-  public FearlessException methodNotInferred(Literal at, M m){
-    var n= m.sig().ts().size();
-    return addExpFrame(at, err()
-      .line("Cannot infer signature and name for a method with "+count(n, "parameter")+".")
-      .line("No supertype of "+err().expRepr(at)+" has a method with "+count(n, "parameter")+".")
-      .ex(at));
-  }
-  public FearlessException literalHeadNotInferred(Literal at, T.C c){
-    var unknown= IntStream.range(0, c.ts().size()).filter(i -> TypeSystem.mentionsInferUnknown(c.ts().get(i))).boxed().toList();
-    var head= err().cp().t.ofFull(c.name())+Join.of(c.ts().stream().map(t -> t.equals(TypeRename.inferUnknown) ? "?" : err().cp().msgT(t)), "[", ",", "]", "");
-    var xs= decs.apply(c.name()).bs();
-    var s= unknown.size() == 1 ? "" : "s";
-    return addExpFrame(at, err()
-      .line("Type inference concluded that this object literal implements "+disp(head)+",")
-      .line("but it could not infer type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
-        +" for type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i).x())), "", " and ", "", "")
-        +" of "+err().tNameADisp(c.name())+".")
-      .ex(at));
-  }
   public FearlessException typeDeclaredInMethod(E at, Literal l){
     return addExpFrame(at, err()
       .line("The type "+err().tNameADisp(l.name())+" is declared inside a method body.")
