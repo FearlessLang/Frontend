@@ -18,7 +18,10 @@ public final class PrettyFileNameTest{
     var p= cwd.resolve("src").resolve("a.fear");
     assertEquals(Path.of("src", "a.fear").toString(), PrettyFileName.displayFileName(p.toUri()));
   }
-  @Test void cwdItselfIsAbsolute(){ assertEquals(cwd.toString(), PrettyFileName.displayFileName(cwd.toUri())); }
+  @Test void cwdItselfIsAbsolute(){
+    var plain= cwd.toString().chars().allMatch(c -> c>' ' && c<127);
+    assertEquals(plain ? cwd.toString() : cwd.toUri().toASCIIString(), PrettyFileName.displayFileName(cwd.toUri()));
+  }
   @Test void outsideCwdIsAbsolute(){
     var p= cwd.getRoot().resolve("zzOutside").resolve("a.fear");
     assertEquals(p.toString(), PrettyFileName.displayFileName(p.toUri()));
