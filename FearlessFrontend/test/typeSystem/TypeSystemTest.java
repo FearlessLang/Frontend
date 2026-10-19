@@ -4624,14 +4624,34 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): B -> this.both(y, z) }
 
 While inspecting ".use(_,_)" line 2
 This call to method "U.both(_,_)" cannot typecheck.
-Argument 1 has type "Y".
-The type argument in this position could not be inferred: "Y", "Z" are all required, and none of them is a supertype of the others.
-Write the type argument explicitly. <HELP ME WITH WORDING>
+The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+"T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
+Write the type argument explicitly, as in "this.both[A](y, z)".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 -.both[imm,-.InferErr[Y,Z]](y,-)
 """, List.of("""
 A:{} B:{} Y:A,B{} Z:A,B{}
+U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+"""));}
+@Test void siblingsWithOneCommonSupertypeInferIt(){ok(List.of("""
+A:{ .k: A -> this } Y:A{} Z:A{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
+"""));}
+@Test void unrelatedTypesCannotBeInferred(){fail("""
+002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+   |                                   -----------------------~~~~^^^^^^~~~~~
+
+While inspecting ".use(_,_)" line 2
+This call to method "U.both(_,_)" cannot typecheck.
+The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "this.both[Type1](y, z)".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.both[imm,-.InferErr[Y,Z]](y,-)
+""", List.of("""
+A:{} Y:{} Z:{}
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
 """));}
 }

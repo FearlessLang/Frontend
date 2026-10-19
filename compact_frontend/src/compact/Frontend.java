@@ -472,7 +472,13 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       return of(RC.imm); } static RC noH(RC a){ return a == RC.readH ? RC.read : a == RC.mutH ? RC.mut : a; }
     IT join(IT t1, IT t2){ if (t2 instanceof IT.U){ return t1; } if (t1 instanceof IT.U || t1.equals(t2)){ return t2; }
       var cands= push(candidates(t1), candidates(t2)); for (var top : cands){ var res= aboveAll(top, cands); if (res != null){ return res; } }
+      var common= commonSupertype(cands); if (common != null){ return aboveAll(common, cands); }
       var cs= cands.size() > 4 ? cands.subList(0, 4) : cands; return new IT.RCC(of(RC.imm), new IT.C(inferErrs.get(cs.size()-2), cs)); }
+    IT commonSupertype(List<IT> cands){ if (!cands.stream().allMatch(c -> c instanceof IT.RCC)){ return null; }
+      var heads= cands.stream().map(c -> new ArrayList<>(superHeads((IT.RCC)c))).reduce((a,b) -> { a.retainAll(b); return a; }).get();
+      var minimal= heads.stream().filter(h -> heads.stream().noneMatch(h2 -> !h2.equals(h) && isASuperB(h, h2))).toList();
+      return minimal.size() == 1 ? adaptedSuperTs((IT.RCC)cands.getFirst(), minimal.getFirst()).getFirst() : null; }
+    List<TName> superHeads(IT.RCC t){ var d= from(t.c().name()); return d == null ? List.of() : d.cs().stream().map(IT.C::name).toList(); }
     static boolean isInferErr(IT t){ return t instanceof IT.RCC(_, var c) && inferErrs.contains(c.name()); }
     static List<IT> candidates(IT t){ return isInferErr(t) ? ((IT.RCC)t).c().ts() : List.of(t); }
     IT aboveAll(IT top, List<IT> cands){ IT res= top; for (var c : cands){ var up= liftTo(c, top); if (up == null){ return null; } res = sameShapeJoin(res, up); } return res; }

@@ -153,7 +153,19 @@ public record InjectionSteps(Methods meths){
     if (t1.equals(t2)){ return t1; }
     var cands= Push.of(candidates(t1), candidates(t2));
     for (var top : cands){ var res= aboveAll(top, cands); if (res != null){ return res; } }
-    return inferErr(cands);
+    var common= commonSupertype(cands);
+    return common == null ? inferErr(cands) : aboveAll(common, cands);
+  }
+  private IT commonSupertype(List<IT> cands){
+    if (!cands.stream().allMatch(c -> c instanceof IT.RCC)){ return null; }
+    var heads= cands.stream().map(c -> new ArrayList<>(superHeads((IT.RCC)c))).reduce((a,b) -> { a.retainAll(b); return a; }).get();
+    var minimal= heads.stream().filter(h -> heads.stream().noneMatch(h2 -> !h2.equals(h) && isASuperB(h, h2))).toList();
+    if (minimal.size() != 1){ return null; }
+    return adaptedSuperTs((IT.RCC)cands.getFirst(), minimal.getFirst()).getFirst();
+  }
+  private List<TName> superHeads(IT.RCC t){
+    var d= meths._from(t.c().name());
+    return d == null ? List.of() : d.cs().stream().map(core.T.C::name).toList();
   }
   static boolean isInferErr(IT t){ return t instanceof IT.RCC(_, var c, _) && LiteralDeclarations.inferErrs.contains(c.name()); }
   private static List<IT> candidates(IT t){ return isInferErr(t) ? ((IT.RCC)t).c().ts() : List.of(t); }

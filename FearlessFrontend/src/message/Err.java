@@ -163,8 +163,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   public String gotMsgInferErr(String label, T got, T expected){
     var cands= ((T.RCC)expected).c().ts().stream().map(t -> typeRepr(true, t)).toList();
     return label+" has type "+typeRepr(true, got)+".\n"
-      +"The type argument in this position could not be inferred: "+Join.of(cands, "", ", ", "")+" are all required, and none of them is a supertype of the others.\n"
-      +"Write the type argument explicitly. <HELP ME WITH WORDING>";
+      +"It is checked against "+typeRepr(true, expected)+", which is not a type: it stands for a type argument that inference could not choose among "+Join.of(cands, "", ", ", "")+".";
   }
 
   FearlessException ex(E e){
