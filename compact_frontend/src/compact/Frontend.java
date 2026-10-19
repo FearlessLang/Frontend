@@ -330,11 +330,10 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     for (var di : meths.p.decs){ v.currentTop = v.f(di.name); v.addDeclaration(v.currentTop, mut, di, true); } return v.decs; } record XE(String x, PE e){}
   static final class Visitor{ final Methods meths; TName currentTop; final ArrayList<String> implicits= new ArrayList<>(); final ArrayList<Literal> decs= new ArrayList<>();
     Visitor(Methods meths){ this.meths= meths; } TName f(TName tn){ var p= meths.p; var pN= tn.pkgName(); if (pN.isEmpty() && isPrimitiveLiteral(tn.s)){ return tn.withPkgName("base"); }
-      var mapped= pN.isEmpty() ? p.map.get(tn.s) : null;
-      var full= pN.isEmpty() ? (mapped == null ? tn.withPkgName(p.name) : new TName(mapped, tn.arity)) : new TName(p.map.getOrDefault(pN, pN)+"."+tn.simpleName(), tn.arity);
+      var full= new TName(pN.isEmpty() ? p.map.getOrDefault(tn.s, p.name+"."+tn.s) : p.map.getOrDefault(pN, pN)+"."+tn.simpleName(), tn.arity);
       ck(!(full.pkgName().equals(p.name) ? p.decNames.contains(new TName(full.simpleName(), full.arity)) : meths.other.containsKey(full))); return full; }
     IT visitT(IT t){ return t instanceof RCC(var rc, var c) ? new RCC(rc, visitC(c)) : t; } IE visitE(PE e){ return switch (e){
-        case PE.X x -> new IE.X(x.name); case PE.Implicit n -> new IE.X(implicits.getLast());
+        case PE.X x -> new IE.X(x.name); case PE.Implicit _ -> new IE.X(implicits.getLast());
         case PE.TypedLiteral t -> t.l.isEmpty() ? new Type(new RCC(of(t.rc), visitC(t.c))) : liftLiteral(of(t.rc), list(visitC(t.c)), t.l.get());
         case PE.DeclarationLiteral c -> { var name= f(c.dec.name); meths.fresh.owners.put(name, meths.fresh.owners.get(currentTop));
           yield addDeclaration(name, c.rc.orElse(imm), c.dec, false); } case PE.Lit l -> liftLiteral(empty(), list(), l); case PE.Call c0 -> {
@@ -348,9 +347,8 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
         case XPat.Name(var x) -> hasPat && !x.equals("_") ? meths.fresh.freshVar(currentTop, x) : x;
         case XPat.Destruct _ -> meths.fresh.freshVar(currentTop, "div"); }; }
     List<IM> visitMs(List<PM> ms){ return IntStream.range(0, ms.size()).mapToObj(i -> visitM(ms.get(i), i)).toList(); }
-    ISig visitMSig(PM mm, int idx){ IT u= U.Instance;
-      if (mm.sig.isEmpty()){ return new ISig(empty(), empty(), empty(), mm.hasImplicit ? list(u) : list(), u, empty(), false, idx); }
-      var s= mm.sig.get(); var ts= map(s.ps, p -> p.t.map(this::visitT).orElse(u)); if (mm.hasImplicit){ ts = push(ts, u); }
+    ISig visitMSig(PM mm, int idx){ IT u= U.Instance; var s= mm.sig.orElse(new PSig(empty(), empty(), empty(), list(), empty()));
+      var ts= map(s.ps, p -> p.t.map(this::visitT).orElse(u)); if (mm.hasImplicit){ ts = push(ts, u); }
       return new ISig(s.rc, s.m.map(mi -> mi.withArity(mm.arity())), s.bs, ts, s.t.map(this::visitT).orElse(u), empty(), mm.body.isEmpty(), idx); } IM visitM(PM m, int idx){ var sig= visitMSig(m, idx);
       if (m.body.isEmpty()){ return new IM(sig); } var body= m.body.get(); var original= m.sig.map(s -> s.ps).orElse(list());
       var hasPat= any(original, p -> p.xp.stream().anyMatch(XPat.Destruct.class::isInstance));
@@ -395,10 +393,9 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
         var newX= new X(fresh.freshGeneric(child.name, x, push(B.xs(s.bs.get()), scope))); fullTs.add(newX); newBs.add(new B(newX.name, b.rcs)); }
       return s.subst(newBs, fullXs, fullTs); }
     Literal from(TName name){ return Frontend.from(name, cache::get, other); } Literal expandDeclaration(Literal d, boolean setInfHead){
-      var ds= map(d.cs, c -> fetchSigs(d, c, from(c.name), list()));
       var implied= flat(d.cs, c -> fetchCs(c).stream());
       var allCs= ToCore.distinctTypes(d.bs, push(d.cs, implied.stream().sorted(Comparator.comparing(Object::toString)).toList()));
-      var allSig= zip(d.cs, ds, (c,sigs) -> implied.contains(c) ? Stream.<ISig>of() : sigs.stream()).flatMap(s -> s).toList();
+      var allSig= flat(filter(d.cs, c -> !implied.contains(c)), c -> fetchSigs(d, c, from(c.name), list()).stream());
       var res= d.withCsMs(allCs, pair(inferMNames(d.ms, new ArrayList<>(allSig)), new ArrayList<>(allSig), d), setInfHead);
       checkMagicSupertypes(res, allCs); return res; } Literal expandLiteral(Literal d, C c, List<B> scope){ var dd= from(c.name);
       List<ISig> allSig= dd == null ? list() : fetchSigs(d, c, dd, B.xs(scope));
@@ -412,12 +409,12 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       var ms= map(d.ms, m -> m.withSig(ToCore.sig(m.sig, m.sig)));
       cache.put(d.name, new Literal(of(d.rc.orElse(imm)), d.name, d.bs, map(d.cs, Frontend::normC), d.thisName, ms, d.infName)); }
     List<IM> inferMNames(List<IM> ms, ArrayList<ISig> ss){ ss.removeIf(s -> any(ms, m -> m.sig.m.equals(s.m)));
-      var named= filter(ms, m -> m.sig.m.isPresent()); if (named.size() == ms.size()){ return ms; }
-      return push(named, ms.stream().filter(m -> m.sig.m.isEmpty()).map(m -> nameFromSigs(m, ss)).toList()); } IM nameFromSigs(IM m, ArrayList<ISig> ss){
+      var named= filter(ms, m -> m.sig.m.isPresent());
+      return named.size() == ms.size() ? ms : push(named, ms.stream().filter(m -> m.sig.m.isEmpty()).map(m -> nameFromSigs(m, ss)).toList()); } IM nameFromSigs(IM m, ArrayList<ISig> ss){
       var arity= m.sig.ts.size(); for (var abs : list(true, false)){
         var match= filter(ss, s -> s.m.get().arity == arity && (s.abs || !abs)); ss.removeAll(match);
         var count= match.stream().map(s -> s.m.get()).distinct().count(); ck(count > 1); if (count == 1){ var s= m.sig;
-          return new IM(new ISig(s.rc, match.getFirst().m, s.bs, s.ts, s.ret, s.origin, s.abs, s.idx), m.xs, m.e); } } throw new Fail(); }
+          return m.withSig(new ISig(s.rc, match.getFirst().m, s.bs, s.ts, s.ret, s.origin, s.abs, s.idx)); } } throw new Fail(); }
     List<IM> pair(List<IM> ms, ArrayList<ISig> ss, Literal origin){ var res= new ArrayList<IM>(); for (var m : ms){
         var name= m.sig.m.get(); var rc= m.sig.rc;
         var taken= filter(ss, s -> s.m.get().equals(name) && (rc.isEmpty() || rc.equals(s.rc))); ss.removeAll(taken);
@@ -447,8 +444,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       ck(!all(res, t -> TypeSystem.eqModXRC(bs, first, Frontend.norm(t)))); return res.getFirst(); }
     List<ISig> alignSigs(List<ISig> ss, List<B> bs){ return map(ss, s -> s.subst(bs, B.xs(s.bs.get()), toXs(B.xs(bs)))); }
     List<Literal> steps(List<Literal> tops){
-      return map(tops, l -> { var di= cache.get(l.name); var ms= zip(l.ms, di.ms, (m,mCore) -> stepDecM(di, mCore, m)).toList();
-        return new Literal(di.rc, di.name, di.bs, di.cs, di.thisName, ms, di.infName); }); }
+      return map(tops, l -> { var di= cache.get(l.name); return di.withCsMs(di.cs, zip(l.ms, di.ms, (m,mCore) -> stepDecM(di, mCore, m)).toList(), false); }); }
     IM stepDecM(Literal di, IM mCore, IM m){
       if (m.e.isEmpty()){ return mCore; } var e= m.e.get(); var xs= m.xs; var ei= meet(e, mCore.sig.ret); var g= new IGamma();
       for (int i= 0; i < xs.size(); i++){ g.declare(xs.get(i), mCore.sig.ts.get(i)); }
@@ -522,7 +518,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
         var selfSuper= cs0.size() != 1 ? selfPrecise : selfPrecise.map(p -> new RCC(p.rc, cs0.getFirst()));
         l = l.infName ? selfSuper.map(l::withT).orElse(l) : l.withT(selfPrecise.get()); if (!(l.t instanceof RCC(_, var c))){ return l; }
         l = l.infName && !c.name.equals(l.name) ? expandLiteral(l, c, bs) : expandDeclaration(l, true); }
-      if (!(l.t instanceof RCC rcc)){ return l; } var res= new ArrayList<IM>(l.ms.size()); var ts= rcc.c.ts; for (var mi : l.ms){
+      if (!(l.t instanceof RCC rcc)){ return l; } var res= new ArrayList<IM>(); var ts= rcc.c.ts; for (var mi : l.ms){
         var rcci= boundedTs(rcc, ts); var next= mi.e.isEmpty() ? header(rcci, mi) : nextM(bs, g, l, selfPrecise, rcci, mi);
         ts = meet(ts, next.ts); res.add(next.m); } var ms= norm(l.ms, res);
       if (ms == l.ms && ts.equals(rcc.c.ts)){ return commitToTable(g, bs, l, rcc); } var t= boundedTs(rcc, ts);
