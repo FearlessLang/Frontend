@@ -16,6 +16,6 @@ public final class Print{
     case IE.Call c -> of(c.e())+of(c.name())+"["+c.rc()+join(c.targs(),",", ",", "")+"]"+join(c.es(),"(",", ", ")");
     case Literal l -> l.rc()+" "+l.name().s()+join(l.bs(), "[", ",", "]")+":"+join(l.cs(), "", ", ","")+"{'"+l.self()+" "+join(l.ms(), "", "; ","")+"}";
     case IM m -> rc(m.sig().rc())+of(m.sig().m())+join(m.sig().bs(), "[", ",", "]")+join(zip(m.xs(),m.sig().ts(),(x,t)-> x+":"+of(t)), "(",", ", ")")
-      +":"+of(m.sig().ret())+m.e().map(b -> "->"+of(b)).orElse("");
+      +":"+of(m.sig().ret())+(m.e()== null ? "" : "->"+of(m.e()));
     default -> o.toString(); };}
 }
