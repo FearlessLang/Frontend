@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Assertions;
 import org.opentest4j.AssertionFailedError;
 
 import compact.Frontend;
+import compact.Print;
 import compact.Frontend.Fail;
 import core.OtherPackages;
 import fearlessFullGrammar.FileFull;
@@ -123,8 +124,8 @@ public abstract class FearlessTestBase{
     var base= printError(DbgBlock::all, o);
     var res= printError(() -> new FrontendLogicMain().of("p", Map.of(), o.allFiles(), otherFrom(base)), o);
     var compactBase= compactBase();
-    strCmp(lines(base), lines(compactBase));
-    strCmp(lines(res), lines(compactAll("p", o, compactBase)));
+    strCmp(lines(base), Print.lines(compactBase));
+    strCmp(lines(res), Print.lines(compactAll("p", o, compactBase)));
   }
   protected static void typeFailRaw(String expected, List<String> input){
     var o= oraclePkg(input);

@@ -2,6 +2,7 @@ package compact;
 import static compact.Frontend.TK.*;
 import static compact.Frontend.RC.*;
 import static compact.Frontend.Mode.*;
+import static compact.Util.*;
 import static java.util.Optional.*;
 import compact.Frontend.IT.*;
 import compact.Frontend.IE.Call;
@@ -11,24 +12,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.regex.Pattern;
 import java.util.stream.*;
-public final class Frontend{ @SuppressWarnings("serial") public static final class Fail extends RuntimeException{}
-
-  static <A,B> List<B> map(Collection<A> xs, Function<A,B> f){ return xs.stream().map(f).toList(); }
-  static <A,B> List<B> flat(Collection<A> xs, Function<A,Stream<B>> f){ return xs.stream().flatMap(f).toList(); }
-  static <A> List<A> filter(Collection<A> xs, Predicate<A> p){ return xs.stream().filter(p).toList(); }
-  static <A> boolean any(Collection<A> xs, Predicate<A> p){ return xs.stream().anyMatch(p); }
-  static <A> boolean all(Collection<A> xs, Predicate<A> p){ return xs.stream().allMatch(p); }
-  static <A> Optional<A> find(Collection<A> xs, Predicate<A> p){ return xs.stream().filter(p).findFirst(); }
-  static <K,V> Map<K,List<V>> group(Collection<V> xs, Function<V,K> f){ return xs.stream().collect(Collectors.groupingBy(f, LinkedHashMap::new, Collectors.toList())); }
-  @SafeVarargs @SuppressWarnings("varargs") static <A> List<A> list(A... xs){ return List.of(xs); }
-  static void ck(boolean b){ if (b){ throw new Fail(); } } static boolean dup(List<?> l){ return l.stream().distinct().count() < l.size(); }
-  static <V> List<V> push(List<V> a, List<V> b){ return Stream.concat(a.stream(), b.stream()).toList(); }
-  static <V> List<V> push(List<V> a, V b){ return Stream.concat(a.stream(), Stream.of(b)).toList(); }
-  static <V> List<V> push(V a, List<V> b){ return Stream.concat(Stream.of(a), b.stream()).toList(); }
-  static <A,B,R> List<R> zip(List<A> as, List<B> bs, BiFunction<A,B,R> f){ return IntStream.range(0, as.size()).mapToObj(i -> f.apply(as.get(i), bs.get(i))).toList(); }
-  @SafeVarargs @SuppressWarnings("varargs") static <V> Stream<V> cat(Stream<V>... ss){ return Stream.of(ss).flatMap(s -> s); }
-  static String join(Collection<?> l, String start, String sep, String end){
-    return l.isEmpty() ? "" : l.stream().map(Object::toString).collect(Collectors.joining(sep, start, end)); }
+public final class Frontend{ @SuppressWarnings("serial") public static final class Fail extends RuntimeException{} static void ck(boolean b){ if (b){ throw new Fail(); } }
   public static Object parse(String input){ return new Parser(new Names(list(), list(), list(), null), tokens(input)).parseAll(Parser::parseFileFull); }
   public static List<Literal> compile(String pkgName, Map<String,String> override, Map<String,String> files, List<Literal> otherLits){
     var other= otherLits.stream().collect(Collectors.toMap(Literal::name, d -> d)); var raw= new TreeMap<String,FileFull>();
@@ -47,16 +31,15 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     imm, mut, read, iso, mutH, readH; boolean isSubType(RC other){ return this == other || other == readH || this == iso || other == read && !isH() || this == mut && other == mutH; }
     boolean isH(){ return this == mutH || this == readH; } boolean isReadOrImm(){ return this == read || this == imm; }
     boolean isIsoOrImm(){ return this == iso || this == imm; } RC isoToMut(){ return this == iso ? mut : this; }
-    RC readImm(){ return isIsoOrImm() ? imm : read; } String toStrSpace(){ return this == imm ? "" : this+" "; } } public record TName(String s, int arity){
+    RC readImm(){ return isIsoOrImm() ? imm : read; } } public record TName(String s, int arity){
     static int pkgDot(String s){ return Character.isLowerCase(s.charAt(0)) ? s.indexOf('.') : -1; }
     TName withPkgName(String pkg){ return new TName(pkg+"."+s, arity); }
     TName withArity(int arity){ return new TName(s, arity); }
     String pkgName(){ var i= pkgDot(s); return i == -1 ? "" : s.substring(0, i); }
     String simpleName(){ var i= pkgDot(s); return i == -1 ? s : s.substring(i + 1); } boolean isPublic(){ return !simpleName().startsWith("_"); } }
-  public record MName(String s, int arity){ MName withArity(int arity){ return new MName(s, arity); } @Override public String toString(){ return s; } }
+  public record MName(String s, int arity){ MName withArity(int arity){ return new MName(s, arity); } }
   public record B(String x, EnumSet<RC> rcs){ static List<String> xs(List<B> bs){ return map(bs, B::x); }
-    static B get(List<B> bs, String name){ return find(bs, b -> b.x.equals(name)).get(); }
-    @Override public String toString(){ return x+":"+join(rcs, "", ",", ""); } }
+    static B get(List<B> bs, String name){ return find(bs, b -> b.x.equals(name)).get(); } }
   enum TK{
     Ws("\\s+"), LineComment("//[^\\n]*"), BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/"),
     Arrow("->"), ORound("\\("), CRound("\\)"), OCurly("\\{"), CCurlyId("\\}[A-Za-z0-9_]+'*"), CCurly("\\}"),
@@ -236,16 +219,14 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     return Double.isFinite(d) && (soft || (d == 0 ? new BigDecimal(ns.replaceAll("[eE].*", "")) : new BigDecimal(ns).subtract(new BigDecimal(d))).signum() == 0); }
   public sealed interface IT{ default boolean isTV(){ return true; }
     default long badness(){ return 0; } default Optional<RC> explicitRC(){ return empty(); } default int depth(){ return 1; }
-    record X(String name) implements IT{ @Override public String toString(){ return name; } } record RCX(RC rc, X x) implements IT{
-      @Override public String toString(){ return rc.name()+" "+x.name; } @Override public Optional<RC> explicitRC(){ return of(rc); } }
-    record ReadImmX(X x) implements IT{ @Override public String toString(){ return "read/imm "+x.name; } } record C(TName name, List<IT> ts, int depth){
-      C(TName name, List<IT> ts){ this(name, ts, 1+ts.stream().mapToInt(IT::depth).max().orElse(1)); } @Override public String toString(){ return name.s+join(ts, "[", ",", "]"); } }
+    record X(String name) implements IT{} record RCX(RC rc, X x) implements IT{ @Override public Optional<RC> explicitRC(){ return of(rc); } }
+    record ReadImmX(X x) implements IT{} record C(TName name, List<IT> ts, int depth){
+      C(TName name, List<IT> ts){ this(name, ts, 1+ts.stream().mapToInt(IT::depth).max().orElse(1)); } }
     record RCC(Optional<RC> rc, C c) implements IT{ public RCC{ if (c.depth > 100){ throw new Fail(); } } RCC withTs(List<IT> ts){ return withRCTs(rc, ts); }
       RCC withRCTs(Optional<RC> rc, List<IT> ts){ var c1= new C(c.name, ts); return c1.depth > 100 ? this : new RCC(rc, c1); }
       @Override public long badness(){ return c.ts.stream().mapToLong(IT::badness).sum(); }
-      @Override public String toString(){ return rc.map(RC::toStrSpace).orElse("AnyRC ")+c; }
       @Override public boolean isTV(){ return all(c.ts, IT::isTV); } @Override public int depth(){ return c.depth; }
-      @Override public Optional<RC> explicitRC(){ return rc; } } enum U implements IT{ Instance; @Override public String toString(){ return "?";}
+      @Override public Optional<RC> explicitRC(){ return rc; } } enum U implements IT{ Instance;
       @Override public boolean isTV(){ return false; } @Override public long badness(){ return 1; } } default IT withRC(RC rc){ return switch (this){
       case RCC(_, var c) -> new RCC(of(rc), c); case RCX(_, var x) -> new RCX(rc, x); case X x -> new RCX(rc, x);
       case ReadImmX(var x) -> new RCX(rc, x); case U _ -> this; };} default Stream<String> ftv(){ return switch (this){ case X(var name) -> Stream.of(name);
@@ -255,14 +236,13 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
   public sealed interface IE{ IT t(); IE withT(IT t); default Stream<IE> children(){ return switch (this){
       case X _, Type _ -> Stream.of(); case Literal l -> l.ms.stream().flatMap(m -> m.e.stream()); case Call c -> Stream.concat(Stream.of(c.e), c.es.stream()); };}
     record X(String name, IT t) implements IE{ X(String name){ this(name, U.Instance); }
-      @Override public IE withT(IT t){ return t.equals(this.t) ? this : new X(name, t); } @Override public String toString(){ return name; } }
+      @Override public IE withT(IT t){ return t.equals(this.t) ? this : new X(name, t); } }
     record Type(RCC type, IT t) implements IE{ Type(RCC type){ this(type, U.Instance); }
-      @Override public IE withT(IT t){ return t.equals(this.t) ? this : new Type(type, t); } @Override public String toString(){ return type.toString(); } }
+      @Override public IE withT(IT t){ return t.equals(this.t) ? this : new Type(type, t); } }
     record Call(IE e, MName name, Optional<RC> rc, List<IT> targs, List<IE> es, IT t, boolean written) implements IE{
       Call(IE e, MName name, Optional<RC> rc, List<IT> targs, List<IE> es, boolean written){ this(e, name, rc, targs, es, U.Instance, written); }
       Call withEEs(IE e, List<IE> es){ return e == this.e && es == this.es ? this : new Call(e, name, rc, targs, es, t, written); }
-      @Override public Call withT(IT t){ return t.equals(this.t) ? this : new Call(e, name, rc, targs, es, t, written); }
-      @Override public String toString(){ return ""+e+name+"["+rc.get()+join(targs, ",", ",", "")+"]"+join(es, "(", ", ", ")"); } } }
+      @Override public Call withT(IT t){ return t.equals(this.t) ? this : new Call(e, name, rc, targs, es, t, written); } } }
   public record Literal(Optional<RC> rc, TName name, List<B> bs, List<C> cs, String thisName, List<IM> ms, IT t, boolean infName, boolean infHead) implements IE{
     Literal(Optional<RC> rc, TName name, List<B> bs, List<C> cs, String thisName, List<IM> ms, boolean infName){
       this(rc, name, bs, cs, thisName, ms, U.Instance, infName, false); }
@@ -272,12 +252,9 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       if (infHead == setInfHead && cs.equals(this.cs) && ms == this.ms){ return this; }
       return new Literal(rc, name, bs, cs, thisName, ms, t, infName, setInfHead); }
     RCC self(Optional<RC> rc){ return new RCC(rc, new C(name, toXs(B.xs(bs)))); }
-    Literal withRC(RC rc){ return new Literal(of(rc), name, bs, cs, thisName, ms, infName); }
-    @Override public String toString(){ return rc.get()+" "+name.s+join(bs, "[", ",", "]")+":"+join(cs, "", ", ", "")+"{'"+thisName+" "+join(ms, "", "; ", "")+"}"; } }
+    Literal withRC(RC rc){ return new Literal(of(rc), name, bs, cs, thisName, ms, infName); } }
   public record IM(ISig sig, List<String> xs, Optional<IE> e){ IM(ISig sig){ this(sig, Collections.nCopies(sig.ts.size(), "_"), empty()); }
-    IM withSig(ISig sig){ return sig.equals(this.sig) ? this : new IM(sig, xs, e); }
-    @Override public String toString(){ return sig.rc.get().toStrSpace()+sig.m.get()+join(sig.bs.get(), "[", ",", "]")+join(zip(xs, sig.ts, (x,t) -> x+":"+t), "(", ", ", ")")
-      +":"+sig.ret+e.map(body -> "->"+body).orElse(""); } }
+    IM withSig(ISig sig){ return sig.equals(this.sig) ? this : new IM(sig, xs, e); } }
   public record ISig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<IT> ts, IT ret, Optional<TName> origin, boolean abs, int idx){
     ISig(RC rc, MName m, List<B> bs, List<IT> ts, IT ret, TName origin, boolean abs, int idx){
       this(of(rc), of(m), of(bs), ts, ret, of(origin), abs, idx); }
@@ -320,14 +297,14 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
   static Stream<String> ftvCs(List<C> cs){ return cs.stream().flatMap(c -> c.ts.stream().flatMap(IT::ftv)); }
   static Stream<String> ftvMs(IGamma g, List<IM> ms){ return ms.stream().flatMap(m -> { var domBs= B.xs(m.sig.bs.orElse(list()));
       return cat(m.sig.ts.stream().flatMap(IT::ftv), m.sig.ret.ftv(), m.e.stream().flatMap(ei -> ftvE(g, ei))).filter(x -> !domBs.contains(x));
-    }); } static IE dup(Fresh fresh, IE e){ return switch (e){ case IE.X(var name, var t) -> new IE.X(name, t);
+    }); } static IE copy(Fresh fresh, IE e){ return switch (e){ case IE.X(var name, var t) -> new IE.X(name, t);
     case Type(var type, var t) -> new Type(type, t);
-    case Call c -> new Call(dup(fresh, c.e), c.name, c.rc, c.targs, map(c.es, x -> dup(fresh, x)), c.t, c.written);
+    case Call c -> new Call(copy(fresh, c.e), c.name, c.rc, c.targs, map(c.es, x -> copy(fresh, x)), c.t, c.written);
     case Literal l -> { ck(!l.infName); var newName= fresh.freshTopType(l.name, l.name.arity);
-      yield new Literal(l.rc, newName, l.bs, l.cs, l.thisName, map(l.ms, m -> dupM(fresh, m, l.name, newName)), l.t, true, l.infHead);
-    } };} static IM dupM(Fresh fresh, IM m, TName oldName, TName newName){
+      yield new Literal(l.rc, newName, l.bs, l.cs, l.thisName, map(l.ms, m -> copyM(fresh, m, l.name, newName)), l.t, true, l.infHead);
+    } };} static IM copyM(Fresh fresh, IM m, TName oldName, TName newName){
     var sig= m.sig.origin.equals(of(oldName)) ? m.sig.withOrigin(newName) : m.sig;
-    return new IM(sig, m.xs, m.e.map(ei -> dup(fresh, ei))); } static List<Literal> toInference(Methods meths){ var v= new Visitor(meths);
+    return new IM(sig, m.xs, m.e.map(ei -> copy(fresh, ei))); } static List<Literal> toInference(Methods meths){ var v= new Visitor(meths);
     for (var di : meths.p.decs){ v.currentTop = v.f(di.name); v.addDeclaration(v.currentTop, mut, di, true); } return v.decs; } record XE(String x, PE e){}
   static final class Visitor{ final Methods meths; TName currentTop; final ArrayList<String> implicits= new ArrayList<>(); final ArrayList<Literal> decs= new ArrayList<>();
     Visitor(Methods meths){ this.meths= meths; } TName f(TName tn){ var p= meths.p; var pN= tn.pkgName(); if (pN.isEmpty() && isPrimitiveLiteral(tn.s)){ return tn.withPkgName("base"); }
@@ -395,7 +372,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       return s.subst(newBs, fullXs, fullTs); }
     Literal from(TName name){ return Frontend.from(name, cache::get, other); } Literal expandDeclaration(Literal d, boolean setInfHead){
       var implied= flat(d.cs, c -> fetchCs(c).stream());
-      var allCs= ToCore.distinctTypes(d.bs, push(d.cs, implied.stream().sorted(Comparator.comparing(Object::toString)).toList()));
+      var allCs= ToCore.distinctTypes(d.bs, push(d.cs, implied.stream().sorted(Comparator.comparing(Print::of)).toList()));
       var allSig= flat(filter(d.cs, c -> !implied.contains(c)), c -> fetchSigs(d, c, from(c.name), list()).stream());
       var res= d.withCsMs(allCs, pair(inferMNames(d.ms, new ArrayList<>(allSig)), new ArrayList<>(allSig), d), setInfHead);
       checkMagicSupertypes(res, allCs); return res; } Literal expandLiteral(Literal d, C c, List<B> scope){ var dd= from(c.name);
@@ -423,9 +400,9 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
         if (rc.isEmpty() && match.size() > 1 && noH(origin.rc.or(origin.t::explicitRC).orElse(imm)).isReadOrImm()){
           var dead= match.remove(mut); if (dead != null){ ss.addAll(dead); } } var first= true;
         for (var matches : match.isEmpty() ? list(List.<ISig>of()) : match.values()){
-          var mi= first ? m : dupM(fresh, m, origin.name, origin.name); first = false; res.add(pair(matches, of(mi), origin)); } }
+          var mi= first ? m : copyM(fresh, m, origin.name, origin.name); first = false; res.add(pair(matches, of(mi), origin)); } }
       group(ss, s -> new RCMName(s.rc, s.m.get())).values().forEach(v -> res.add(pair(v, empty(), origin)));
-      return res.size() == ms.size() ? norm(ms, res) : res; }
+      return res.size() == ms.size() ? same(ms, res) : res; }
     IM pair(List<ISig> ss, Optional<IM> om, Literal origin){ if (om.isEmpty() && ss.size() == 1){ return new IM(ss.getFirst()); }
       var s= om.map(IM::sig).orElseGet(() -> new ISig(empty(), empty(), empty(), qMarks(ss.getFirst().m.get().arity), U.Instance, empty(), false, 0));
       if (ss.isEmpty()){ ck(any(s.ts, t -> t instanceof U) || s.ret instanceof U);
@@ -458,7 +435,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       var bBad= aSuper ? Math.max(adaptedSuperTs(b, a.c.name).getFirst().badness(), b.badness()) : b.badness();
       if (aBad != bBad){ return aBad < bBad ? a : b; } if (aSuper){ return b; } if (bSuper){ return a; }
       if (a.depth() != b.depth()){ return a.depth() < b.depth() ? a : b; } return a.c.name.s.compareTo(b.c.name.s) < 0 ? a : b; }
-    IT leastBad(IT a, IT b){ var ra= rank(a); var rb= rank(b); return ra != rb ? (ra > rb ? a : b) : a.toString().compareTo(b.toString()) < 0 ? a : b; }
+    IT leastBad(IT a, IT b){ var ra= rank(a); var rb= rank(b); return ra != rb ? (ra > rb ? a : b) : Print.of(a).compareTo(Print.of(b)) < 0 ? a : b; }
     static int rank(IT t){ return t instanceof RCC ? 2 : t instanceof RCX ? 1 : 0; }
     IT meet(IT t1, IT t2){ if (t2 instanceof U || t1.equals(t2)){ return t1; } if (t1 instanceof U){ return t2; }
       if (t1 instanceof ReadImmX(var x1) && x1.equals(t2)){ return t1; } if (t2 instanceof ReadImmX(var x2) && x2.equals(t1)){ return t2; }
@@ -473,8 +450,8 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     List<IT> meet(List<List<IT>> tss){ return tss.stream().reduce(this::meet).get(); } IE nextStar(List<B> bs, IGamma g, IE e){
       if (g.snap().equals(memo.get(e))){ return e; } while (true){ var s= g.snap(); var oe= next(bs, g, e);
         if (oe == e && s.equals(g.snap())){ memo.put(e, s); return e; } e = oe; } }
-    List<IE> nextStar(List<B> bs, IGamma g, List<IE> es){ return norm(es, map(es, ei -> nextStar(bs, g, ei))); }
-    List<IE> meetWithTargs(List<IE> es, MSigL m, List<IT> targs){ return norm(es, zip(es, m.ps0, (e,p) -> meet(e, m.inst(p, targs)))); }
+    List<IE> nextStar(List<B> bs, IGamma g, List<IE> es){ return same(es, map(es, ei -> nextStar(bs, g, ei))); }
+    List<IE> meetWithTargs(List<IE> es, MSigL m, List<IT> targs){ return same(es, zip(es, m.ps0, (e,p) -> meet(e, m.inst(p, targs)))); }
     IE next(List<B> bs, IGamma g, IE e){ return switch (e){ case IE.X x -> { ck(g.notFunnelledInto(x.name));
           var t1= g.getWithRC(x.name); var t2= x.t; if (t1.equals(t2)){ yield x; } if (!(t2 instanceof U)){ updateG(g, x.name, t2); }
           yield x.withT(meet(t1, t2)); } case Literal l -> nextL(bs, g, l); case Call c when c.written || c.rc.isPresent() -> nextC(bs, g, c); case Call c -> {
@@ -521,12 +498,12 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
         l = l.infName && !c.name.equals(l.name) ? expandLiteral(l, c, bs) : expandDeclaration(l, true); }
       if (!(l.t instanceof RCC rcc)){ return l; } var res= new ArrayList<IM>(); var ts= rcc.c.ts; for (var mi : l.ms){
         var rcci= boundedTs(rcc, ts); var next= mi.e.isEmpty() ? header(rcci, mi) : nextM(bs, g, l, selfPrecise, rcci, mi);
-        ts = meet(ts, next.ts); res.add(next.m); } var ms= norm(l.ms, res);
+        ts = meet(ts, next.ts); res.add(next.m); } var ms= same(l.ms, res);
       if (ms == l.ms && ts.equals(rcc.c.ts)){ return commitToTable(g, bs, l, rcc); } var t= boundedTs(rcc, ts);
       return commitToTable(g, bs, l.withMsT(ms, t), t); } IE commitToTable(IGamma g, List<B> bs, Literal l, RCC rcc){ var name= l.name;
       if (!rcc.isTV() || !all(l.ms, m -> m.sig.ret.isTV() && all(m.sig.ts, IT::isTV)) || cache.containsKey(name)){ return l; }
       var localBs= cat(ftvMs(g, l.ms), ftvCs(l.cs), rcc.ftv()).distinct().map(x -> B.get(bs, x)).toList(); var newName= name.withArity(localBs.size());
-      var ms= name.equals(newName) ? l.ms : norm(l.ms, map(l.ms, mi -> !mi.sig.origin.get().equals(name) ? mi : mi.withSig(mi.sig.withOrigin(newName))));
+      var ms= name.equals(newName) ? l.ms : same(l.ms, map(l.ms, mi -> !mi.sig.origin.get().equals(name) ? mi : mi.withSig(mi.sig.withOrigin(newName))));
       var orc= l.rc.or(rcc::rc).map(Methods::noH); var orcc= new RCC(orc, rcc.c);
       if (all(l.ms, m -> m.e.isEmpty()) && l.infHead && from(rcc.c.name) != null){ return new Type(orcc, preferred(orcc)); }
       var selfInferred= rcc.c.name.equals(l.name);
@@ -571,9 +548,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
         if (!supOk.isEmpty()){ return propagateXs(xs, r, supOk.getFirst()); } var subOk= adaptedSuperTs(r, cc.c.name);
         if (!subOk.isEmpty()){ return propagateXs(xs, subOk.getFirst(), t1); } return qMarks(xs.size()); }
       var res= zip(c.ts, cc.c.ts, (t,ti) -> t instanceof RCC rr && !(ti instanceof RCC ci && ci.c.name.equals(rr.c.name)) ? qMarks(xs.size()) : refine(xs, t, ti));
-      return res.isEmpty() ? qMarks(xs.size()) : meet(res); } static <TT> List<TT> norm(List<TT> original, List<TT> candidate){
-      if (candidate == original){ return original; } for (int i= 0; i < original.size(); i++){ if (candidate.get(i) != original.get(i)){ return candidate; } }
-      return original; } IE ascribe(IE arg, IT expected, boolean receiver){ if (!(expected instanceof RCC exp)){ return arg; }
+      return res.isEmpty() ? qMarks(xs.size()) : meet(res); } IE ascribe(IE arg, IT expected, boolean receiver){ if (!(expected instanceof RCC exp)){ return arg; }
       return switch (arg){ case Call c -> c.withEEs(ascribe(c.e, expected, true), c.es);
         case Literal l when l.infHead || !l.infName || !l.cs.isEmpty() || !(l.t instanceof U) -> arg;
         case Literal l when !receiver || implementable(exp.c.name) -> l.withT(new RCC(exp.rc, new C(exp.c.name, qMarks(exp.c.ts.size()))));
