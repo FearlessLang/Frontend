@@ -69,7 +69,9 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
       var floatNotExact= isKind(s, SignedFloat, UnSignedFloat) && !floatLiteralOk(s);
       if (floatNotExact){ throw meths.p().err().floatLiteralNotExactlyRepresentable(tName); }
     }
-    return new IT.C(f.apply(tName), mapT(c.ts().orElse(List.of())));
+    var res= new IT.C(f.apply(tName), mapT(c.ts().orElse(List.of())));
+    if (res.depth() > IT.RCC.maxDepth){ throw meths.p().err().typeTooDeep(tName); }
+    return res;
   }
   List<E> mapE(List<fearlessFullGrammar.E> es){ return es.stream().map(this::visitE).toList(); }
   List<IT> mapT(List<fearlessFullGrammar.T> ts){ return ts.stream().map(this::visitT).toList(); }

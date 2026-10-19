@@ -229,13 +229,13 @@ public final class GammaTest{
     var sBA= new Gamma.GammaSignature();
     g2.sign(sBA);
 
-    assertEquals(sAB.hash, sBA.hash, "hash must be order-independent across declares");
+    assertEquals(sAB.shot, sBA.shot, "signature must be order-independent across declares");
   }
 
   // 15) snapshot/changed semantics: changed should be false after snapshot, true after a change
   @Test void snapshot_and_changed_semantics(){
     var g= new Gamma();
-    long s= g.snapshot();
+    var s= g.snapshot();
     assertFalse(g.changed(s), "immediately after snapshot, changed() should be false");
     g.declare("x", X("X"));
     assertTrue(g.changed(s), "after a change, changed() should be true");

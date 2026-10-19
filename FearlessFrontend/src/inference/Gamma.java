@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
@@ -18,7 +19,7 @@ public final class Gamma{
   /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
   @NeverAsKey
   public static final class GammaSignature{
-    long hash;
+    Map<String,IT> shot;
     final HashMap<Monotonicity.Slot,ArrayList<Object>> monotonicity= new HashMap<>();
     //public GammaSignature clear(){ hash = 0; return this;}//more performance
     public GammaSignature clear(){ return new GammaSignature(); }//more safe
@@ -35,7 +36,6 @@ public final class Gamma{
   private int size= 0;
 
   private int[]  marks= new int[initialDepth];
-  private long[] envHash= new long[initialDepth];
   private RC[]  rcs= new RC[initialDepth];
   @SuppressWarnings("unchecked")
   private List<B>[] bss= (List<B>[])new List<?>[initialDepth];
@@ -46,7 +46,6 @@ public final class Gamma{
   public void newScope(RC rc, List<B> bs, E.Literal owner){
     if (depth == marks.length){ growScopes(); }
     marks[depth] = size;
-    envHash[depth] = envHash[depth - 1];
     rcs[depth] = rc;
     bss[depth] = bs;
     owners[depth] = owner;
@@ -55,7 +54,6 @@ public final class Gamma{
   private void growScopes(){
     var n= 2 * depth;
     marks = Arrays.copyOf(marks, n);
-    envHash = Arrays.copyOf(envHash, n);
     rcs = Arrays.copyOf(rcs, n);
     bss = Arrays.copyOf(bss, n);
     owners = Arrays.copyOf(owners, n);
@@ -112,43 +110,24 @@ public final class Gamma{
     ts[size] = t;
     declDepth[size] = depth - 1;
     idx.put(x, size);
-    envHash[depth - 1] ^= contrib(x, t);
     size += 1;
   }
   public void update(String x, IT t){
-    var i= indexOf(x);
-    if (ts[i].equals(t)){ return; }
-    var cold= contrib(xs[i], ts[i]);
-    var cnew= contrib(xs[i], t);
-    var d= declDepth[i];
-    for (int s : Range.of(d, depth)){ envHash[s] ^= cold ^ cnew; }
-    ts[i] = t;
+    ts[indexOf(x)] = t;
   }
-  public boolean represents(GammaSignature sig){
-    return sig.hash == envHash[depth - 1];
+  public boolean represents(GammaSignature sig){ return snapshot().equals(sig.shot); }
+  public void sign(GammaSignature sig){ sig.shot = snapshot(); }
+  public Map<String,IT> snapshot(){
+    var res= new HashMap<String,IT>();
+    for (int i : Range.of(0, size)){ res.put(xs[i], ts[i]); }
+    return res;
   }
-  public void sign(GammaSignature sig){ sig.hash = envHash[depth - 1]; }
-  public long snapshot(){ return envHash[depth - 1]; }
-  public boolean changed(long shot){ return shot != envHash[depth - 1]; }
+  public boolean changed(Map<String,IT> shot){ return !shot.equals(snapshot()); }
   private int indexOf(String x){
     assert x != null;
     if (size > indexThreshold){ return idx.getOrDefault(x, -1); }
     for (var i= size - 1; i >= 0; i -= 1){ if (xs[i].equals(x)){ return i; } }
     return -1;
-  }
-  private static long contrib(String x, IT t){
-    var hx= x.hashCode();
-    var ht= t.hashCode();
-    var packed= ((hx & 0xffffffffL) << 32) | (ht & 0xffffffffL);
-    return fmix64(packed ^ 0x9e3779b97f4a7c15L);
-  }
-  private static long fmix64(long x){
-    x ^= x >>> 33;
-    x *= 0xff51afd7ed558ccdL;
-    x ^= x >>> 33;
-    x *= 0xc4ceb9fe1a85ec53L;
-    x ^= x >>> 33;
-    return x;
   }
 
   @Override public String toString(){

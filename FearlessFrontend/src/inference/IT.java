@@ -41,7 +41,7 @@ public sealed interface IT{
     }
   }
   record RCC(Optional<RC> rc, C c, TSpan span) implements IT{
-    static final int maxDepth= 100;
+    public static final int maxDepth= 100;
     public RCC(Optional<RC> rc, C c, TSpan span){
       assert nonNull(rc, c);
       this.rc= rc; this.c= c; this.span= span;
