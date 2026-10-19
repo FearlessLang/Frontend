@@ -4640,4 +4640,19 @@ Write the type argument explicitly, as in "this.both[Type1](y, z)".
 A:{} Y:{} Z:{}
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
 """));}
+@Test void writtenSupertypeTooDeep(){failWf("""
+002| B:[###]
+   |   ^^
+
+While inspecting the file
+Type "A[...]" is nested too deeply.
+A type can nest at most 99 type names inside each other.
+""", List.of("A[X:**]:{}\nB:"+"A[".repeat(99)+"B"+"]".repeat(99)+"{}\n"));}
+@Test void parameterHashCollidingWithThis(){ok(List.of("""
+A:{ .id[Y:**](y:Y):Y -> y; .u(tiJs:A):A -> this.id(tiJs) }
+"""));}
+@Test void abstractParameterNameNotReusedAsFreshName(){ok(List.of("""
+use base.F as F;
+A:{ .m(_aimpl:A):A; .k(f:F[A,A]):A; .z:A -> this.k{::.m(this)} }
+"""));}
 }

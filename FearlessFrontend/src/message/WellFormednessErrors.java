@@ -470,6 +470,12 @@ public record WellFormednessErrors(String pkgName){
       .line("Type "+err().typeRepr(blame))
       .line("grew uncontrollably during inference."), at);
   }
+  public FearlessException typeTooDeep(TName name){
+    return err()
+      .line("Type "+disp(name.s()+"[...]")+" is nested too deeply.")
+      .line("A type can nest at most "+(IT.RCC.maxDepth-1)+" type names inside each other.")
+      .wf().addSpan(name.approxSpan().inner);
+  }
   public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<M.Sig> options){
     return wf(err()
       .line("Cannot infer the name for a method with "+count(m.sig().ts().size(), "parameter")+".")

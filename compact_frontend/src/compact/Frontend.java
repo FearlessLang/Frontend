@@ -150,7 +150,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       names = names.add(list(), B.v(or(b,list())));
       var ps= see(Round)? items(Parser::parameter, comma): see(Colon)? List.<Par>of(): by(comma, Parser::parameter);
       var t= fwd(see(Colon))? type(): u; no(!end()); var v= flat(ps,p -> xsOf(p.xp));
-      no(dup(v)); return new PSig(r,m, b, ps,t);} Par parameter(){
+      no(dup(v)); names.owner.vars.used.addAll(v); return new PSig(r,m, b, ps,t);} Par parameter(){
       var x= see(Low, Underscore,Curly)? pattern(): null;
       var p=new Par(x,x == null ? type(): fwd(see(Colon))? type(): u); no(!end()); return p;}
     List<B> bounds(boolean mustNew){ var res= items(p -> p.bound(mustNew), Parser::commaBound); no(dup(B.v(res))); return res;} B bound(boolean mustNew){
