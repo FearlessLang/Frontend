@@ -12,13 +12,13 @@ import java.util.function.*;
 import java.util.regex.Pattern;
 import java.util.stream.*;
 public final class Frontend{ @SuppressWarnings("serial") public static final class Fail extends RuntimeException{} static void ck(boolean b){ if(b) throw new Fail();}
-  public static Object parse(String input){ return new Parser(new Names(list(), list(), list(), null), tokens(input)).whole(Parser::file);}
+  public static Object parse(String input){ return new Parser(new Names(list(), list(), list(), null), tokens(input)).group(Parser::file);}
   public static List<Literal> compile(String pkg, Map<String,String> override, Map<String,String> files,List<Literal> otherLits){
     var other= otherLits.stream().collect(Collectors.toMap(Literal::name,d -> d)); var raw=new TreeMap<String,File>();
     files.forEach((path, content)-> raw.put(path,(File)parse(content)));
     var heads= filter(raw.keySet(), p -> p.matches("(.*/)?_rank_[^/]*\\.[^/]*"));
     ck(heads.size()!=1); var head= raw.get(heads.getFirst());
-    ck(any(raw.values(), f -> f != head && !(f.maps.isEmpty() && f.uses.isEmpty())));
+    ck(any(raw.values(), f -> f != head && f.maps.size()+f.uses.size()>0));
     var ds= flat(raw.values(), f -> f.decs.stream()); var uses= map(head.uses, File.Use::out);
     var decNames= flat(ds,d -> d.owner.decs.stream()); ck(dup(decNames)); var decStrs= map(decNames,TName::s);
     ck(!Collections.disjoint(decStrs, uses)); ck(ds.stream().flatMap(d -> d.owner.gen.used.stream()).anyMatch(x -> decStrs.contains(x)|| uses.contains(x)));
@@ -31,11 +31,10 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     boolean isH(){ return this == mutH || this == readH;} boolean readOnly(){ return this == read || this == imm;}
     boolean isoImm(){ return this == iso || this == imm;} RC isoToMut(){ return this == iso ? mut : this;}
     RC readImm(){ return isoImm()? imm : read;} } public record TName(String s,int arity){
-    static int pkgDot(String s){ return Character.isLowerCase(s.charAt(0)) ? s.indexOf('.') :-1;}
     TName qualify(String pkg){ return new TName(pkg+"."+s,arity);}
     TName arity(int arity){ return new TName(s,arity);}
-    String pkg(){ var i= pkgDot(s); return i == -1 ? "" : s.substring(0,i);}
-    String simple(){ var i= pkgDot(s); return i == -1 ? s : s.substring(i +1);} boolean visible(){ return !simple().startsWith("_"); }}
+    String pkg(){ return s.replaceFirst("^(?![a-z]).*|\\..*", "");}
+    String simple(){ return s.replaceFirst("^[a-z][^.]*\\.", "");} boolean visible(){ return !simple().startsWith("_"); }}
   public record MName(String s,int arity){ MName arity(int arity){ return new MName(s,arity);} }
   public record B(String x, EnumSet<RC> rcs){ static List<String> xs(List<B> bs){ return map(bs,B::x);}
     static B get(List<B> bs,String name){ return find(bs,b -> b.x.equals(name)); }}
@@ -47,7 +46,6 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     SignedFloat("[+-]"+TK.flt), UnSignedFloat(TK.flt), SignedInt("[+-]"+TK.nat),UnsignedInt(TK.nat), UStr("\"[^\"\\n]*\""), SStr("`[^`\\n]*`"),
     DotName("\\._*[a-z]"+TK.id), UppercaseId("(?:"+TK.pkg+"\\.)?_*[A-Z]"+TK.id),
     LowercaseId("_*[a-z]"+TK.id), BadSStrQuote("'(?:(?!//|/\\*)[^'\\n\"`])*'(?![_a-z])"), Op("(?:(?!/\\*|\\*/|//)["+TK.op+"])+"),
-    _XId("_*[A-Z]"+TK.id), _pkgName(TK.pkg), _use("use"), _map("map"), _as("as"), _in("in"),
     _EOF(""), _SOF(""), _CurlyGroup(""), _SquareGroup(""), _RoundGroup("");
     static final String pkg="(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*", id="[A-Za-z0-9_]*'*",
       op="\\\\/#*\\-+%<>=!&^~?|", nat="[0-9](?:[0-9_]*[0-9])?",flt= nat+"\\."+nat+"(?:[eE][+-]?"+nat+")?(?:soft)?"; final Pattern p;
@@ -63,7 +61,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       TK best=null; int len=0; for(var k : TK.values()){ var l=k.match(s,i); if(l > len){ best=k; len=l;} } ck(best == null);
       var t=new Token(best,s.substring(i,i+len), list()); i += len;if(t.is(Ws, LineComment, BlockComment)) continue;
       ck(t.is(BadSStrQuote)|| t.is(OSquareArg)&& res.getLast().is(SStr, UStr, SignedInt,UnsignedInt, SignedFloat, UnSignedFloat)); res.add(t);}
-    res.add(new Token(_EOF, "", list())); var it=res.iterator(); return tree(it,it.next()).tokens;} static Token tree(Iterator<Token> it, Token open){
+    res.add(new Token(_EOF, "", list())); var it=res.iterator(); return list(tree(it,it.next()));} static Token tree(Iterator<Token> it, Token open){
     var out=new ArrayList<Token>(list(open)); while(true){ var c= it.next();
       var g= groups.get(open.kind).get(c.kind); if(g != null){ out.add(c); return new Token(g, "", out);}
       if(groups.containsKey(c.kind)){ out.add(tree(it,c)); continue;} ck(any(groups.values(), m -> m.containsKey(c.kind))); out.add(c);} }
@@ -92,7 +90,6 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     boolean peek(int la, TK... kinds){ return index+la < limit && ts.get(index+la).is(kinds);}
     boolean peek(TK... kinds){ return peek(0, kinds);} boolean peekIf(Predicate<Token> p){ return !end() && p.test(ts.get(index)); }
     Token expect(TK... kinds){ ck(end()); var t= ts.get(index++); ck(kinds.length >0 && !t.is(kinds)); return t;}
-    Token expectLast(TK... kinds){ ck(!ts.get(limit -1).is(kinds)); limit -=1; return ts.get(limit);}
     boolean fwdIf(boolean v){ if(v) index +=1; return v;} <R> R group(Function<Parser,R> r){
       var p= make(ts.get(index++).tokens); p.index=1;p.limit -=1; return p.whole(r);} Parser front(ToIntFunction<Parser> probe){
       var sp= make(ts.subList(index, limit)); int drop= probe.applyAsInt(sp); var res= make(ts.subList(index,index+sp.index-drop)); index += sp.index; return res;}
@@ -104,7 +101,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     boolean isDec(){ return peek(typeName)&&(peek(1, Colon)|| peek(1,_SquareGroup)&& peek(2, Colon)); }
     PE atom(){ if (peek(LowercaseId)){ var x= expect().content; ck(!names.xs.contains(x)); return new PE.X(x);}
       if (peek(_RoundGroup)) return group(Parser::expr);
-      if (peek(ColonColon)){ expect(); return new PE.Implicit(); } if (peek(_CurlyGroup)) return group(p -> p.literal(false));
+      if(fwdIf(peek(ColonColon))) return new PE.Implicit(); if (peek(_CurlyGroup)) return group(p -> p.literal(false));
       var rc= optCap(); ck(rc != null && rc.isH()); if(isDec()) return new PE.Declared(rc, parseDeclaration(false));
       return new PE.Typed(or(rc, imm), constructor(), peek(_CurlyGroup)? group(p -> p.literal(false)): null); }
     RC cap(){ return RC.valueOf(expect(RCap).content);} RC optCap(){ return peek(RCap)? cap(): null;} C constructor(){
@@ -114,7 +111,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     IT type(){ if(fwdIf(peek(ReadImm))) return new ReadImmX(variable(false)); var rc= optCap();
       if (peekIf(t -> t.is(typeName)&& !names.Xs.contains(t.content))) return new RCC(or(rc, imm), constructor());
       var res= variable(false); return rc == null ? res : new RCX(rc,res);} X variable(boolean mustNew){
-      var c= expectValidate(UppercaseId,_XId).content; ck(mustNew ? names.Xs.contains(c)|| names.hiddenXs.contains(c): !names.Xs.contains(c));
+      var c= expect(UppercaseId,"[^.]*"); ck(mustNew ? names.Xs.contains(c)|| names.hiddenXs.contains(c): !names.Xs.contains(c));
       return new X(c);} PE post(PE receiver){ if (peek(SignedFloat, SignedInt)){ var num= expect().content;
         var lit=new PE.Typed(imm,new C(new TName(num.substring(1),0), list()), null);
         return new PE.Call(receiver,new MName(num.substring(0,1),1), null, null, list(lit)); }
@@ -160,21 +157,21 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       var x= variable(mustNew).name;if(end()) return new B(x, rcs(imm)); expect(Colon); ck(end()); if (!peek(Op)){
         var rcs= splitBy(commaSkip, Parser::cap); ck(dup(rcs)); return new B(x, EnumSet.copyOf(rcs)); }
       return switch(expect(Op).content){ case "**" -> new B(x, allRC); case "*" -> new B(x, rcs(imm, mut, read));
-        default -> throw new Fail(); }; } Declaration parseDeclaration(boolean top){ var c=name(); ck(!matches(c.s,_XId));
+        default -> throw new Fail(); }; } Declaration parseDeclaration(boolean top){ var c=name(); ck(c.s.contains(".")|| primitive(c.s));
       var bs= peek(_SquareGroup)? bounds(top): List.<B>of(); var Xs=B.xs(bs); var outer= names; var owner= top ? new Owner(): names.owner;
       names = new Names(names.xs,list(), push(names.hiddenXs, names.Xs), owner).add(list(),Xs); c = c.arity(Xs.size()); owner.decs.add(c); expect(Colon);
       var cs= required(prefix(p -> p.splitOn(2,_CurlyGroup), p -> p.splitBy(commaSkip, Parser::constructor))); ck(dup(cs));
-      var l= group(p -> p.literal(top)); names = outer; return new Declaration(c, bs, cs,l, owner);} File file(){ expect(_SOF);
-      expectLast(_EOF); var maps=new ArrayList<String>(); var uses=new ArrayList<File.Use>(); Function<Parser,Object> header=p -> {
-        if (!p.peek(LowercaseId)) return ""; p.expectLast(SemiColon); return p.splitBy(q -> q.splitOn(1, SemiColon), q -> q.directive(maps, uses));
+      var l= group(p -> p.literal(top)); names = outer; return new Declaration(c, bs, cs,l, owner);} File file(){
+      var maps=new ArrayList<String>(); var uses=new ArrayList<File.Use>(); Function<Parser,Object> header=p -> {
+        if (!p.peek(LowercaseId)) return ""; ck(!p.ts.get(--p.limit).is(SemiColon)); return p.splitBy(q -> q.splitOn(1, SemiColon), q -> q.directive(maps, uses));
       }; if(prefix(Parser::headEnd, header)== null) whole(header);
       var ds= splitBy(p -> p.splitOn(0,_CurlyGroup), p -> p.parseDeclaration(true)); return new File(maps, uses, ds);}
-    Token expectValidate(TK kind, TK validation){ ck(!peekIs(validation)); return expect(kind);} boolean peekIs(TK validation){ return peekIf(t -> matches(t.content, validation)); }
-    Object directive(ArrayList<String> maps, ArrayList<File.Use> uses){ if(fwdIf(peekIs(_map))){
-        var in= expectValidate(LowercaseId,_pkgName).content; expectValidate(LowercaseId,_as); expectValidate(LowercaseId,_pkgName);
-        expectValidate(LowercaseId,_in); var key=in+" "+expectValidate(LowercaseId,_pkgName).content; ck(maps.contains(key)); maps.add(key);} else{
-        ck(!fwdIf(peekIs(_use))); var t1=name(); expectValidate(LowercaseId,_as);
-        var t2= expectValidate(UppercaseId,_XId).content; ck(any(uses,u -> u.in.equals(t1)|| u.out.equals(t2)));
+    String expect(TK kind, String regex){ var s= expect(kind).content; ck(!s.matches(regex)); return s;}
+    Object directive(ArrayList<String> maps, ArrayList<File.Use> uses){ if(fwdIf(peekIf(t -> t.content.equals("map")))){
+        var in= expect(LowercaseId,TK.pkg); expect(LowercaseId,"as"); expect(LowercaseId,TK.pkg);
+        expect(LowercaseId,"in"); var key=in+" "+expect(LowercaseId,TK.pkg); ck(maps.contains(key)); maps.add(key);} else{
+        expect(LowercaseId,"use"); var t1=name(); expect(LowercaseId,"as");
+        var t2= expect(UppercaseId,"[^.]*"); ck(any(uses,u -> u.in.equals(t1)|| u.out.equals(t2)));
         uses.add(new File.Use(t1,t2)); } ck(!end()); return null;}
     int commaExpr(){ var inColon=false; while (!end()){
         var t= expect(); if(t.is(Comma)&& !inColon)return 1;if (!t.is(_SquareGroup,Comma, UppercaseId)) inColon = false;
@@ -210,18 +207,17 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     var lit=s.startsWith("`") || s.startsWith("\"") ? baseStr : matches(s,UnsignedInt)? baseNat : matches(s, SignedInt)? baseInt : baseFloat;
     var sup= from(lit,map, other); var ms= map(sup.ms,m -> m.signature(new ISig(m.sig.rc,m.sig.m,m.sig.bs,m.sig.ts,m.sig.ret,n,false,m.sig.idx)));
     return new Literal(imm,n,list(), push(new C(lit,list()), sup.cs),"this", ms,true);}
-  static boolean inRange(String raw, BigInteger min, BigInteger max){ var b=new BigInteger(raw.replace("_","")); return b.compareTo(min)>=0 && b.compareTo(max)<=0;}
+  static int bits(String s){ return new BigInteger(s.replace("_","")).bitLength();}
   static boolean floatOk(String raw){ var soft= raw.endsWith("soft"); var ns= raw.replace("soft", "").replace("_",""); var d= Double.parseDouble(ns);
     return Double.isFinite(d)&&(soft || (d ==0 ? new BigDecimal(ns.replaceAll("[eE].*", "")): new BigDecimal(ns).subtract(new BigDecimal(d))).signum()==0);}
   static final IT unknown= U.Instance; static final PSig noSig=new PSig(null,null,null,list(), unknown);
   public sealed interface IT{ default boolean isTV(){ return !undecided();}
     default RC explicitRC(){ return null;} default int depth(){ return 1;}
     record X(String name) implements IT{} record RCX(RC rc,X x) implements IT{ public RC explicitRC(){ return rc;} }
-    record ReadImmX(X x) implements IT{} record C(TName name,List<IT> ts,int depth){
-      C(TName name,List<IT> ts){ this(name, ts,1+ts.stream().mapToInt(IT::depth).max().orElse(1)); }}
-    record RCC(RC rc,C c) implements IT{ public RCC{ if(c.depth >100) throw new Fail(); } RCC withTs(List<IT> ts){ return with(rc, ts);}
-      RCC with(RC rc,List<IT> ts){ var c1=new C(c.name, ts); return c1.depth >100 ? this : new RCC(rc,c1);}
-      public boolean isTV(){ return all(c.ts, IT::isTV);} public int depth(){ return c.depth;}
+    record ReadImmX(X x) implements IT{} record C(TName name,List<IT> ts){ int depth(){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1);} }
+    record RCC(RC rc,C c) implements IT{ public RCC{ if(c.depth() >100) throw new Fail(); } RCC withTs(List<IT> ts){ return with(rc, ts);}
+      RCC with(RC rc,List<IT> ts){ var c1=new C(c.name, ts); return c1.depth() >100 ? this : new RCC(rc,c1);}
+      public boolean isTV(){ return all(c.ts, IT::isTV);} public int depth(){ return c.depth();}
       public RC explicitRC(){ return rc;} } enum U implements IT{ Instance }
     record Amb(List<IT> cs) implements IT{}
     default boolean undecided(){ return this instanceof U || this instanceof Amb;} default IT withRC(RC rc){ return switch(this){
@@ -309,8 +305,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
           var c=c0.pat != null ? desugarCPat(c0): c0; var recv= visitE(c.e); var es= map(c.es,this::visitE);
           var sq= or(c.targs,new PE.Args(null, list()));
           yield new Call(recv,c.name,sq.rc, map(sq.ts,this::visitT), es,c.targs != null); } }; } C visitC(C c){ var s=c.name.s;
-      var bad= primitive(s)&&(matches(s,UnsignedInt)&& !inRange(s, BigInteger.ZERO,new BigInteger(Long.toUnsignedString(-1L)))
-        || matches(s, SignedInt)&& !inRange(s, BigInteger.valueOf(Long.MIN_VALUE), BigInteger.valueOf(Long.MAX_VALUE))
+      var bad= primitive(s)&&(matches(s,UnsignedInt)&& bits(s)>64 || matches(s, SignedInt)&& bits(s)>63
         || matches(s, SignedFloat, UnSignedFloat)&& !floatOk(s)); ck(bad); return new C(f(c.name), map(c.ts,this::visitT)); }
     String parameterToName(Parameter p, boolean hasPat){ return switch(p.xp){ case null -> "_";
         case XPat.Name(var x)-> hasPat && !x.equals("_") ? meths.fresh.variable(owner,x): x;
