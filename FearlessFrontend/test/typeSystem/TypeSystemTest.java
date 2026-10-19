@@ -138,29 +138,23 @@ T1[X:imm]:T0[T1[T1[X]]]{.m[Y:imm](a:T0[Y]):Y->a.get;.k:T1[X]->this.m[imm,T1[T1[X
 T0[X]:{ .get: X }
 T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
 """));}
-@Test void receiverLiteralWithUndeterminedTypeArguments(){fail("""
+@Test void receiverLiteralWithUndeterminedTypeArguments(){failWf("""
 001| T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
-   |                                    --------------------------^^---
+   |                                                              ^^
 
-While inspecting object literal instance of "iso T0[base.InferUnknown,base.InferUnknown]" > ".m0" line 1
+While inspecting object literal instance of "T0[_,_]"
 Type inference concluded that this object literal implements "T0[?,?]",
 but it could not infer type arguments 1 and 2 for type parameters "X0" and "X1" of "T0[_,_]".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso T0[-.Inf-own,-.Inf-own]{}
 """, List.of("""
 T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
 """));}
-@Test void receiverLiteralCapturingThis(){fail("""
+@Test void receiverLiteralCapturingThis(){failWf("""
 001| T0[X]:{ .m: T0[base.Void] -> {this}.m }
-   |         ---------------------^^^^^^--
+   |                              ^^^^^^
 
-While inspecting object literal instance of "iso T0[base.InferUnknown]" > ".m" line 1
+While inspecting object literal instance of "T0[_]"
 Type inference concluded that this object literal implements "T0[?]",
 but it could not infer type argument 1 for type parameter "X" of "T0[_]".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso T0[-.Inf-own]{.m:T0[-.Void]->this}
 """, List.of("""
 T0[X]:{ .m: T0[base.Void] -> {this}.m }
 """));}
@@ -4618,18 +4612,14 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z) }
 A:{} B:{} Y:A,B{} Z:A,B{}
 U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): B -> this.both(y, z) }
 """));}
-@Test void siblingsWithoutContextCannotBeInferred(){fail("""
+@Test void siblingsWithoutContextCannotBeInferred(){failWf("""
 002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
-   |                                   -----------------------~~~~^^^^^^~~~~~
+   |                                                          ^^^^^^^^^^^^^^^
 
-While inspecting ".use(_,_)" line 2
-This call to method "U.both(_,_)" cannot typecheck.
+While inspecting method call ".both(_,_)"
 The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
 "T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
 Write the type argument explicitly, as in "this.both[A](y, z)".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.both[imm,-.InferErr[Y,Z]](y,-)
 """, List.of("""
 A:{} B:{} Y:A,B{} Z:A,B{}
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
@@ -4638,18 +4628,14 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
 A:{ .k: A -> this } Y:A{} Z:A{}
 U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
 """));}
-@Test void unrelatedTypesCannotBeInferred(){fail("""
+@Test void unrelatedTypesCannotBeInferred(){failWf("""
 002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
-   |                                   -----------------------~~~~^^^^^^~~~~~
+   |                                                          ^^^^^^^^^^^^^^^
 
-While inspecting ".use(_,_)" line 2
-This call to method "U.both(_,_)" cannot typecheck.
+While inspecting method call ".both(_,_)"
 The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
 No type is a supertype of all of them.
 Write the type argument explicitly, as in "this.both[Type1](y, z)".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.both[imm,-.InferErr[Y,Z]](y,-)
 """, List.of("""
 A:{} Y:{} Z:{}
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }

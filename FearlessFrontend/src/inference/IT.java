@@ -65,26 +65,34 @@ public sealed interface IT{
     @Override public String toString(){ return "?";}
     @Override public boolean isTV(){ return false; }
     @Override public long badness(){ return 1; }
+    @Override public boolean undecided(){ return true; }
   }
+  record Amb(List<IT> candidates) implements IT{
+    @Override public String toString(){ return Join.of(candidates, "?{", ",", "}", "?"); }
+    @Override public boolean isTV(){ return false; }
+    @Override public long badness(){ return 1; }
+    @Override public boolean undecided(){ return true; }
+  }
+  default boolean undecided(){ return false; }
   default IT withRC(RC rc){ return switch (this){ // T[RC]
     case RCC(_, var c, var span) -> new RCC(Optional.of(rc), c, span);
     case RCX(_, var x) -> new RCX(rc, x);
     case X x -> new RCX(rc, x);
     case ReadImmX(var x) -> new RCX(rc, x);
-    case U _   -> this;
+    case U _, Amb _ -> this;
   };}
   default Stream<String> ftv(){ return switch (this){
     case X(var name, _) -> Stream.of(name);
     case RCX(_, var x) -> x.ftv();
     case ReadImmX(var x) -> x.ftv();
     case RCC(_, var c, _) -> c.ts().stream().flatMap(IT::ftv);
-    case U _ -> Stream.of();
+    case U _, Amb _ -> Stream.of();
   };}
   default IT readImm(){ return switch (this){ // T[read/imm]
     case X x -> new ReadImmX(x);
     case ReadImmX _ -> this;
     case RCC(var rc, var c, var span) -> new RCC(rc.map(RC::readImm), c, span);
     case RCX(var rc, var x) -> new RCX(rc.readImm(), x);
-    case U _   -> this;
+    case U _, Amb _ -> this;
   };}
 }

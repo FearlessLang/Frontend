@@ -37,6 +37,7 @@ import pkgmerge.Package;
 import tools.SourceOracle.Ref;
 import typeSystem.Kinding;
 import utils.Join;
+import java.util.EnumSet;
 import utils.Push;
 
 public record WellFormednessErrors(String pkgName){
@@ -331,7 +332,7 @@ public record WellFormednessErrors(String pkgName){
   public String paramTypeDisagreement(int i){ return "Type disagreement about parameter "+(i+1); }
   public FearlessException noAgreement(Agreement at, List<B> bs, List<IT> res, String msg){
     var rc= at.rc().map(r -> r.toStrSpace(false)).orElse("");
-    var rcDiffers= res.stream().map(t -> Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
+    var rcDiffers= res.stream().map(t -> t instanceof IT.RCC r ? EnumSet.of(r.rc().orElse(RC.imm)) : Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var e= err()
       .line(msg+" for method "+methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
@@ -346,7 +347,7 @@ public record WellFormednessErrors(String pkgName){
   }
   private String option(boolean showImm, IT o){
     if (!(o instanceof IT.RCC rcc)){ return disp(o); }
-    return showImm ? err().typeRepr(false, TypeRename.itToT(rcc)) : err().typeRepr(rcc);
+    return err().typeRepr(!showImm, rcc);
   }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
@@ -410,11 +411,60 @@ public record WellFormednessErrors(String pkgName){
     var declares= xs.isEmpty() ? " declares none" : " declares "+Join.of(xs.stream().map(Err::disp), "", ", ", "", "");
     var uses= t instanceof IT.RCC ? ", using the generic type "+disp(missing)+"." : ".";
     return wf(err()
-      .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(true, TypeRename.itToT(t))+uses)
+      .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(t)+uses)
       .line("Generic type "+disp(missing)+" is not in scope inside the type declaration "+dec+".")
       .line("A type declaration only sees the generic types it declares itself; here "+dec+declares+".")
       .line("Hint: funnel "+disp(missing)+" into "+dec+" by writing "+funnelled+", restating the bounds of "+disp(missing)+"."), x);
   }
+  public FearlessException typeArgNotInferred(E.Call at, Optional<String> x, String example){
+    return wf(err()
+      .line("The type argument "+x.map(Err::disp).map(n -> n+" ").orElse("")+"of "+disp(at.name().s())+" is not determined by this call: nothing in the arguments or in the expected result decides it.")
+      .line("Write it explicitly, as in "+disp(example)+"."), at);
+  }
+  public FearlessException typeArgAmbiguous(E.Call at, Optional<String> x, List<IT> cands, List<TName> common, String example){
+    var cs= cands.stream().map(err()::typeRepr).toList();
+    var xs= x.map(Err::disp).orElse("the type argument");
+    var e= err().line("The type argument "+x.map(Err::disp).map(n -> n+" ").orElse("")+"of "+disp(at.name().s())+" is inferred from the arguments, but they disagree: some need "+Join.of(cs, "", ", some need ", "")+".");
+    if (common.isEmpty()){ e.line("No type is a supertype of all of them."); }
+    else{ e.line(up(xs)+" could be "+Join.of(common.stream().map(n -> disp(err().tNameA(n))), "", " or ", "")+": each is a supertype of "+Join.of(cs, "", " and ", "")+". The choice is ambiguous."); }
+    return wf(e.line("Write the type argument explicitly, as in "+disp(example)+"."), at);
+  }
+  public String typeName(TName n){ return err().tNameA(n); }
+  public String callWithTargs(E.Call c, List<IT> targs, int k, String example){
+    var ts= IntStream.range(0, targs.size()).mapToObj(j -> j == k ? example : err().typeReprRaw(targs.get(j))).toList();
+    return src(c.e())+c.name().s()+Join.of(ts, "[", ",", "]")+Join.of(c.es().stream().map(this::src), "(", ", ", ")", "");
+  }
+  private String src(E e){ return switch (e){
+    case E.X x -> x.name();
+    case E.Literal _ -> "{...}";
+    case E.Type t -> err().typeReprRaw(t.type());
+    case E.Call c -> src(c.e())+c.name().s()+Join.of(c.es().stream().map(this::src), "(", ", ", ")", "");
+    case E.ICall c -> src(c.e())+c.name().s()+Join.of(c.es().stream().map(this::src), "(", ", ", ")", "");
+  };}
+  public FearlessException literalHeadNotInferred(E.Literal at, IT.C c, List<Integer> unknown, List<String> xs){
+    var head= err().cp().t.ofFull(c.name())+Join.of(c.ts().stream().map(err()::typeReprRaw), "[", ",", "]", "");
+    var s= unknown.size() == 1 ? "" : "s";
+    return wf(err()
+      .line("Type inference concluded that this object literal implements "+disp(head)+",")
+      .line("but it could not infer type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
+        +" for type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i))), "", " and ", "", "")
+        +" of "+err().tNameADisp(c.name())+"."), at);
+  }
+  public FearlessException methodNotInferred(E.Literal at, M.Sig s){
+    var n= s.ts().size();
+    return wf(err()
+      .line("Cannot infer signature and name for a method with "+count(n, "parameter")+".")
+      .line("No supertype of "+err().expRepr(at)+" has a method with "+count(n, "parameter")+"."), s, at);
+  }
+  public FearlessException methodTypeNotInferred(E.Literal at, M.Sig s, MName m, String what){
+    return wf(err().line("Cannot infer the type of "+what+" of "+err().methodSig(m)+" in "+err().expRepr(at)+"."), s, at);
+  }
+  public FearlessException literalImplementsTypeParameter(E.Literal at, IT t){
+    return wf(err()
+      .line(up(err().expRepr(at))+" cannot implement "+err().typeRepr(t)+".")
+      .line(err().typeRepr(t)+" is a type parameter; object literals can only implement nominal types."), at);
+  }
+  private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
   public FearlessException itTooDeep(E at, IT.RCC blame){
     return wf(err()
       .line("Type "+err().typeRepr(blame))
