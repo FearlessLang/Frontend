@@ -15,7 +15,6 @@ import utils.Join;
 
 public sealed interface IT{
   default boolean isTV(){ return true; }
-  default long badness(){ return 0; }
   default Optional<RC> explicitRC(){ return Optional.empty(); }
   default int depth(){ return 1; }
   record X(String name, TSpan span) implements IT{
@@ -55,7 +54,6 @@ public sealed interface IT{
       if (depth > maxDepth){ return this; }
       return new RCC(rc, new C(c.name(), ts, depth), span);
     }
-    @Override public long badness(){ return c.ts.stream().mapToLong(IT::badness).sum(); }
     @Override public String toString(){ return rc.map(RC::toStrSpace).orElse("AnyRC ")+c; }
     @Override public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
     @Override public int depth(){ return c.depth(); }
@@ -64,13 +62,11 @@ public sealed interface IT{
   enum U implements IT{ Instance;
     @Override public String toString(){ return "?";}
     @Override public boolean isTV(){ return false; }
-    @Override public long badness(){ return 1; }
     @Override public boolean undecided(){ return true; }
   }
   record Amb(List<IT> candidates) implements IT{
     @Override public String toString(){ return Join.of(candidates, "?{", ",", "}", "?"); }
     @Override public boolean isTV(){ return false; }
-    @Override public long badness(){ return 1; }
     @Override public boolean undecided(){ return true; }
   }
   default boolean undecided(){ return false; }

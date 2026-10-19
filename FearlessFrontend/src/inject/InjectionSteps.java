@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
@@ -89,32 +90,21 @@ public record InjectionSteps(Methods meths){
     e = prototypeAscribeRootReceiver(e, t, false);
     return e.withT(meet(e.t(), t));
   }
-  private long badnessAs(RCC src, TName targetHead){
-    assert !src.c().name().equals(targetHead);
-    return adaptedSuperTs(src, targetHead).getFirst().badness();
+  private IT belowOrDecided(RCC x1, RCC x2){
+    var s1= below(x1, x2);
+    if (s1 != null){ return s1.isTV() || !x2.isTV() ? s1 : x2; }
+    var s2= below(x2, x1);
+    if (s2 != null){ return s2.isTV() || !x1.isTV() ? s2 : x1; }
+    return x1;
   }
-  private IT leastBad(RCC a, RCC b){
-    var aSuper= isASuperB(a.c().name(), b.c().name()); // a is super of b
-    var bSuper= isASuperB(b.c().name(), a.c().name()); // b is super of a
-    var aBad= bSuper ? Math.max(badnessAs(a, b.c().name()), a.badness()) : a.badness();
-    var bBad= aSuper ? Math.max(badnessAs(b, a.c().name()), b.badness()) : b.badness();
-    //Cases considered: A[?] < B[?,?] vs B[X,?] = B[X,?] win;   A[?] < B vs A[T] = A[T] win
-    if (aBad != bBad){ return aBad < bBad ? a : b; }
-    if (aSuper){ return b; }
-    if (bSuper){ return a; }
-    if (a.depth() != b.depth()){ return a.depth() < b.depth() ? a : b; }
-    return a.c().name().s().compareTo(b.c().name().s()) < 0 ? a : b;
-  }
-  private IT leastBad(IT a, IT b){
-    assert !(a instanceof IT.U);
-    assert !(b instanceof IT.U);
-    if (a instanceof RCC){ return a; }
-    if (b instanceof RCC){ return b; }
-    var aRcOverBareB= a instanceof IT.RCX && (b instanceof IT.X || b instanceof IT.ReadImmX);
-    if (aRcOverBareB){ return a; }
-    var bRcOverBareA= b instanceof IT.RCX && (a instanceof IT.X || a instanceof IT.ReadImmX);
-    if (bRcOverBareA){ return b; }
-    return a.toString().compareTo(b.toString()) < 0 ? a : b;
+  private IT below(RCC sub, RCC sup){
+    var d= meths._from(sub.c().name());
+    if (d == null){ return null; }
+    var patterns= d.cs().stream().filter(c -> c.name().equals(sup.c().name())).toList();
+    if (patterns.isEmpty()){ return null; }
+    var xs= B.xs(d.bs());
+    var refined= meet(patterns.stream().map(c -> refine(xs, new IT.RCC(Optional.empty(), TypeRename.tcToITC(c), sub.span()), sup)).toList());
+    return sub.withRCTs(meetRcNoH(sub.rc(), sup.rc()), meet(sub.c().ts(), refined));
   }
   IT meet(IT t1, IT t2){
     if (t2.undecided()){ return t1 instanceof IT.U ? t2 : t1; }
@@ -125,12 +115,11 @@ public record InjectionSteps(Methods meths){
     var t2ReadImmOfT1= t2 instanceof IT.ReadImmX(var x2) && x2.equals(t1);
     if (t2ReadImmOfT1){ return t2; }
     if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){
-      if (!x1.c().name().equals(x2.c().name())){ return leastBad(x1, x2); }
+      if (!x1.c().name().equals(x2.c().name())){ return belowOrDecided(x1, x2); }
       var rc= meetRcNoH(x1.rc(), x2.rc());
       return x1.withRCTs(rc, meet(x1.c().ts(), x2.c().ts()));
     }
-    if (!(t1 instanceof IT.RCX x1 && t2 instanceof IT.RCX(var rc2, var x2))){ return leastBad(t1, t2); }
-    if (!x1.x().equals(x2)){ return leastBad(t1, t2); }
+    if (!(t1 instanceof IT.RCX x1 && t2 instanceof IT.RCX(var rc2, var x2)) || !x1.x().equals(x2)){ return t1; }
     return x1.withRC(meetRcNoH(Optional.of(x1.rc()), Optional.of(rc2)).get());
   }
   static Optional<RC> meetRcNoH(Optional<RC> a, Optional<RC> b){
