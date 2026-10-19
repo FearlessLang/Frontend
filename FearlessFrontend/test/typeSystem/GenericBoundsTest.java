@@ -302,8 +302,9 @@ B[R5:*,R6:*]: { mut .loop(f: mut Flow[R5,R6]): mut B[R5,R6] -> f.match{ .return(
 
 While inspecting object literal instance of "B" > ".m" line 2
 The body of method ".m" of type declaration "C" is an expression returning "iso B".
-Object literal instance of "B" cannot be checked against an expected supertype.
-Type inference could not infer an expected type; computed type is "iso B".
+Object literal instance of "B" has type "iso B".
+The type argument in this position could not be inferred: "A", "B", "A" are all required, and none of them is a supertype of the others.
+Write the type argument explicitly. <HELP ME WITH WORDING>
 
 See inferred typing context below for how type "base.InferErr[A,B,A]" was introduced: (compression indicated by `-`)
 C:{.m:-.InferErr[A,B,A]->B}

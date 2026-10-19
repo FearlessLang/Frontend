@@ -4610,4 +4610,28 @@ U:{ .both[T:*](a: T, b: T): T -> a; .use(m: mut A, i: imm A): read A -> this.bot
 A:{} Z:A{}
 U:{ .app[T](f: base.F[T], x: T): T -> x; .use(a: A, z: Z): A -> this.app({ z }, a) }
 """));}
+@Test void siblingsJoinToTheExpectedSupertypeA(){ok(List.of("""
+A:{} B:{} Y:A,B{} Z:A,B{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z) }
+"""));}
+@Test void siblingsJoinToTheExpectedSupertypeB(){ok(List.of("""
+A:{} B:{} Y:A,B{} Z:A,B{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): B -> this.both(y, z) }
+"""));}
+@Test void siblingsWithoutContextCannotBeInferred(){fail("""
+002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+   |                                   -----------------------~~~~^^^^^^~~~~~
+
+While inspecting ".use(_,_)" line 2
+This call to method "U.both(_,_)" cannot typecheck.
+Argument 1 has type "Y".
+The type argument in this position could not be inferred: "Y", "Z" are all required, and none of them is a supertype of the others.
+Write the type argument explicitly. <HELP ME WITH WORDING>
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.both[imm,-.InferErr[Y,Z]](y,-)
+""", List.of("""
+A:{} B:{} Y:A,B{} Z:A,B{}
+U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+"""));}
 }

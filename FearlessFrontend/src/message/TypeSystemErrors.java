@@ -491,10 +491,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var required= reqs.getFirst().t(); //should make an attempt to say what the generics in the result should have been instantiate to instead
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
     //TODO: line reqs.getFirst().t(); above, should we use the best return with ordering on rcs?
-    var e= err()
-      .pCallCantBeSatisfied(d, c)
-      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
-      .line("That is not a subtype of "+err().typeRepr(true, required)+" (the type required by the method signature).");
+    var msg= Err.isInferErr(required) ? err().gotMsgInferErr("Argument "+(argi+1), gotHdr, required)
+      : "Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".\n"
+      + "That is not a subtype of "+err().typeRepr(true, required)+" (the type required by the method signature).";
+    var e= err().pCallCantBeSatisfied(d, c).line(msg);
     addNoPrecedenceHintIfOperator(e, c);
     return withCallSpans(e.ex(ts.scope().pushCallArgi(c, argi).contextE()), c);
   }

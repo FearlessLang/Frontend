@@ -768,7 +768,7 @@ B2[X]:A{.m(z)->z.beer[X]}
 ~mut p.B:p.I{'this }
 ~mut p.Foo:{'this .get[T:imm](a:T, b:T):T->a}
 ~mut p.I:{'this }
-~mut p.User:{'this .m:p.I->p.Foo.get[imm,p.A](p.A, p.B)}
+~mut p.User:{'this .m:p.I->p.Foo.get[imm,p.I](p.A, p.B)}
 """, List.of("""
 I:{}
 A:I{}
