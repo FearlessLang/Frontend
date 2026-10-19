@@ -460,6 +460,8 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     IT leastBad(IT a, IT b){ var ra= rank(a); var rb= rank(b); return ra != rb ? (ra > rb ? a : b) : a.toString().compareTo(b.toString()) < 0 ? a : b; }
     static int rank(IT t){ return t instanceof IT.RCC ? 2 : t instanceof IT.RCX ? 1 : 0; }
     IT meet(IT t1, IT t2){ if (t2 instanceof IT.U || t1.equals(t2)){ return t1; } if (t1 instanceof IT.U){ return t2; }
+      if (isInferErr(t1) && isInferErr(t2)){ return join(t1, t2); } if (isInferErr(t1)){ var r= aboveAll(t2, candidates(t1)); return r == null ? t1 : r; }
+      if (isInferErr(t2)){ var r= aboveAll(t1, candidates(t2)); return r == null ? t2 : r; }
       if (t1 instanceof IT.ReadImmX(var x1) && x1.equals(t2)){ return t1; } if (t2 instanceof IT.ReadImmX(var x2) && x2.equals(t1)){ return t2; }
       if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){ if (!x1.c().name().equals(x2.c().name())){ return leastBad(x1, x2); }
         return x1.withRCTs(meetRcNoH(x1.rc(), x2.rc()), meet(x1.c().ts(), x2.c().ts())); }
@@ -469,11 +471,21 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       if (x == y || y == RC.iso || y == RC.read && x != RC.iso){ return of(x); } if (x == RC.iso || x == RC.read){ return of(y); }
       return of(RC.imm); } static RC noH(RC a){ return a == RC.readH ? RC.read : a == RC.mutH ? RC.mut : a; }
     IT join(IT t1, IT t2){ if (t2 instanceof IT.U){ return t1; } if (t1 instanceof IT.U || t1.equals(t2)){ return t2; }
-      if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){ if (x1.c().name().equals(x2.c().name())){ return x1.withRCTs(joinRcNoH(x1.rc(), x2.rc()), meet(x1.c().ts(), x2.c().ts())); }
-        var up1= adaptedSuperTs(x1, x2.c().name()); if (!up1.isEmpty()){ return join(up1.getFirst(), x2); }
-        var up2= adaptedSuperTs(x2, x1.c().name()); return up2.isEmpty() ? meet(t1, t2) : join(x1, up2.getFirst()); }
-      if (!(t1 instanceof IT.RCX x1 && t2 instanceof IT.RCX(var rc2, var x2)) || !x1.x().equals(x2)){ return meet(t1, t2); }
-      return x1.withRC(joinRcNoH(of(x1.rc()), of(rc2)).get()); } static Optional<RC> joinRcNoH(Optional<RC> a, Optional<RC> b){
+      var cands= push(candidates(t1), candidates(t2)); for (var top : cands){ var res= aboveAll(top, cands); if (res != null){ return res; } }
+      var common= commonSupertype(cands); if (common != null){ return aboveAll(common, cands); }
+      var cs= cands.size() > 4 ? cands.subList(0, 4) : cands; return new IT.RCC(of(RC.imm), new IT.C(inferErrs.get(cs.size()-2), cs)); }
+    IT commonSupertype(List<IT> cands){ if (!cands.stream().allMatch(c -> c instanceof IT.RCC)){ return null; }
+      var heads= cands.stream().map(c -> new ArrayList<>(superHeads((IT.RCC)c))).reduce((a,b) -> { a.retainAll(b); return a; }).get();
+      var minimal= heads.stream().filter(h -> heads.stream().noneMatch(h2 -> !h2.equals(h) && isASuperB(h, h2))).toList();
+      return minimal.size() == 1 ? adaptedSuperTs((IT.RCC)cands.getFirst(), minimal.getFirst()).getFirst() : null; }
+    List<TName> superHeads(IT.RCC t){ var d= from(t.c().name()); return d == null ? List.of() : d.cs().stream().map(IT.C::name).toList(); }
+    static boolean isInferErr(IT t){ return t instanceof IT.RCC(_, var c) && inferErrs.contains(c.name()); }
+    static List<IT> candidates(IT t){ return isInferErr(t) ? ((IT.RCC)t).c().ts() : List.of(t); }
+    IT aboveAll(IT top, List<IT> cands){ IT res= top; for (var c : cands){ var up= liftTo(c, top); if (up == null){ return null; } res = sameShapeJoin(res, up); } return res; }
+    IT liftTo(IT c, IT top){ if (c instanceof IT.RCC rc && top instanceof IT.RCC rt){ if (rc.c().name().equals(rt.c().name())){ return c; }
+        var up= adaptedSuperTs(rc, rt.c().name()); return up.isEmpty() ? null : up.getFirst(); } return xName(c).isPresent() && xName(c).equals(xName(top)) ? c : null; }
+    IT sameShapeJoin(IT a, IT b){ if (a instanceof IT.RCC x1 && b instanceof IT.RCC x2){ return x1.withRCTs(joinRcNoH(x1.rc(), x2.rc()), meet(x1.c().ts(), x2.c().ts())); }
+      if (a instanceof IT.RCX x1 && b instanceof IT.RCX x2){ return x1.withRC(joinRcNoH(of(x1.rc()), of(x2.rc())).get()); } return meet(a, b); } static Optional<RC> joinRcNoH(Optional<RC> a, Optional<RC> b){
       if (a.isEmpty()){ return b; } if (b.isEmpty()){ return a; } var x= noH(a.get()); var y= noH(b.get());
       return of(x == y || y == RC.iso ? x : x == RC.iso ? y : RC.read); }
     List<IT> join(List<IT> t1, List<IT> t2){ return zip(t1, t2, this::join).toList(); }

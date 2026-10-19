@@ -156,14 +156,14 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return this;
   }
   public String gotMsg(boolean skipImm, String label, List<T> got, T expected){
-    if (isInferErr(expected)){ return gotMsgInferErr(label, got.getFirst()); }
+    if (isInferErr(expected)){ return gotMsgInferErr(label, got.getFirst(), expected); }
     return label+" has type "+Join.of(got.stream().map(t -> typeRepr(skipImm, t)), "", " or ", "")
       +" instead of a subtype of "+typeRepr(skipImm, expected)+".";
   }
-  public String gotMsgInferErr(String label, T got){
-    return label
-      + " cannot be checked against an expected supertype.\n"
-      + "Type inference could not infer an expected type; computed type is "+typeRepr(true, got)+".";
+  public String gotMsgInferErr(String label, T got, T expected){
+    var cands= ((T.RCC)expected).c().ts().stream().map(t -> typeRepr(true, t)).toList();
+    return label+" has type "+typeRepr(true, got)+".\n"
+      +"It is checked against "+typeRepr(true, expected)+", which is not a type: it stands for a type argument that inference could not choose among "+Join.of(cands, "", ", ", "")+".";
   }
 
   FearlessException ex(E e){

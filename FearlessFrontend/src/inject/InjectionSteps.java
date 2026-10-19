@@ -25,6 +25,7 @@ import typeSystem.TypeSystem;
 import utils.OneOr;
 import utils.Push;
 import utils.Range;
+import utils.Pos;
 import utils.Streams;
 
 /**
@@ -119,6 +120,9 @@ public record InjectionSteps(Methods meths){
     if (t2 instanceof IT.U){ return t1; }
     if (t1 instanceof IT.U){ return t2; }
     if (t1.equals(t2)){ return t1; }
+    if (isInferErr(t1) && isInferErr(t2)){ return join(t1, t2); }
+    if (isInferErr(t1)){ return Optional.ofNullable(aboveAll(t2, candidates(t1))).orElse(t1); }
+    if (isInferErr(t2)){ return Optional.ofNullable(aboveAll(t1, candidates(t2))).orElse(t2); }
     var t1ReadImmOfT2= t1 instanceof IT.ReadImmX(var x1) && x1.equals(t2);
     if (t1ReadImmOfT2){ return t1; }
     var t2ReadImmOfT1= t2 instanceof IT.ReadImmX(var x2) && x2.equals(t1);
@@ -147,17 +151,51 @@ public record InjectionSteps(Methods meths){
     if (t2 instanceof IT.U){ return t1; }
     if (t1 instanceof IT.U){ return t2; }
     if (t1.equals(t2)){ return t1; }
-    if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){
-      if (x1.c().name().equals(x2.c().name())){ return x1.withRCTs(joinRcNoH(x1.rc(), x2.rc()), meet(x1.c().ts(), x2.c().ts())); }
-      var up1= adaptedSuperTs(x1, x2.c().name());
-      if (!up1.isEmpty()){ return join(up1.getFirst(), x2); }
-      var up2= adaptedSuperTs(x2, x1.c().name());
-      if (!up2.isEmpty()){ return join(x1, up2.getFirst()); }
-      return meet(t1, t2);
+    var cands= Push.of(candidates(t1), candidates(t2));
+    for (var top : cands){ var res= aboveAll(top, cands); if (res != null){ return res; } }
+    var common= commonSupertype(cands);
+    return common == null ? inferErr(cands) : aboveAll(common, cands);
+  }
+  private IT commonSupertype(List<IT> cands){
+    if (!cands.stream().allMatch(c -> c instanceof IT.RCC)){ return null; }
+    var heads= cands.stream().map(c -> new ArrayList<>(superHeads((IT.RCC)c))).reduce((a,b) -> { a.retainAll(b); return a; }).get();
+    var minimal= heads.stream().filter(h -> heads.stream().noneMatch(h2 -> !h2.equals(h) && isASuperB(h, h2))).toList();
+    if (minimal.size() != 1){ return null; }
+    return adaptedSuperTs((IT.RCC)cands.getFirst(), minimal.getFirst()).getFirst();
+  }
+  private List<TName> superHeads(IT.RCC t){
+    var d= meths._from(t.c().name());
+    return d == null ? List.of() : d.cs().stream().map(core.T.C::name).toList();
+  }
+  static boolean isInferErr(IT t){ return t instanceof IT.RCC(_, var c, _) && LiteralDeclarations.inferErrs.contains(c.name()); }
+  private static List<IT> candidates(IT t){ return isInferErr(t) ? ((IT.RCC)t).c().ts() : List.of(t); }
+  private static IT inferErr(List<IT> cands){
+    var cs= cands.size() > 4 ? cands.subList(0, 4) : cands;
+    var span= cs.stream().filter(c -> c instanceof IT.RCC).map(c -> ((IT.RCC)c).span()).findFirst().orElseGet(() -> TSpan.fromPos(Pos.unknown));
+    return new IT.RCC(Optional.of(RC.imm), new IT.C(LiteralDeclarations.inferErrs.get(cs.size()-2), cs), span);
+  }
+  private IT aboveAll(IT top, List<IT> cands){
+    IT res= top;
+    for (var c : cands){
+      var up= liftTo(c, top);
+      if (up == null){ return null; }
+      res = sameShapeJoin(res, up);
     }
-    var sameX= t1 instanceof IT.RCX x1 && t2 instanceof IT.RCX(var rc2, var x2) && x1.x().equals(x2);
-    if (!sameX){ return meet(t1, t2); }
-    return t1.withRC(joinRcNoH(Optional.of(((IT.RCX)t1).rc()), Optional.of(((IT.RCX)t2).rc())).get());
+    return res;
+  }
+  private IT liftTo(IT c, IT top){
+    if (c instanceof IT.RCC rc && top instanceof IT.RCC rt){
+      if (rc.c().name().equals(rt.c().name())){ return c; }
+      var up= adaptedSuperTs(rc, rt.c().name());
+      return up.isEmpty() ? null : up.getFirst();
+    }
+    var sameX= xName(c).isPresent() && xName(c).equals(xName(top));
+    return sameX ? c : null;
+  }
+  private IT sameShapeJoin(IT a, IT b){
+    if (a instanceof IT.RCC x1 && b instanceof IT.RCC x2){ return x1.withRCTs(joinRcNoH(x1.rc(), x2.rc()), meet(x1.c().ts(), x2.c().ts())); }
+    if (a instanceof IT.RCX x1 && b instanceof IT.RCX x2){ return x1.withRC(joinRcNoH(Optional.of(x1.rc()), Optional.of(x2.rc())).get()); }
+    return meet(a, b);
   }
   static Optional<RC> joinRcNoH(Optional<RC> a, Optional<RC> b){
     if (a.isEmpty()){ return b; }

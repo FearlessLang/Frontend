@@ -491,12 +491,32 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var required= reqs.getFirst().t(); //should make an attempt to say what the generics in the result should have been instantiate to instead
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
     //TODO: line reqs.getFirst().t(); above, should we use the best return with ordering on rcs?
+    if (Err.isInferErr(required)){ return withCallSpans(ambiguousTypeArg(d, c, (T.RCC)required).ex(ts.scope().pushCallArgi(c, argi).contextE()), c); }
     var e= err()
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, required)+" (the type required by the method signature).");
     addNoPrecedenceHintIfOperator(e, c);
     return withCallSpans(e.ex(ts.scope().pushCallArgi(c, argi).contextE()), c);
+  }
+  private Err ambiguousTypeArg(Literal d, Call c, T.RCC required){
+    var sig= OneOr.of("Method mismatch", d.ms().stream().map(M::sig).filter(s -> s.m().equals(c.name()) && s.rc() == c.rc()));
+    var k= c.targs().indexOf(required);
+    var x= disp(sig.bs().get(k).x());
+    var cands= required.c().ts().stream().map(t -> err().typeRepr(true, t)).toList();
+    var common= commonSupertypes(required.c().ts()).stream().map(err()::tNameA).toList();
+    var e= err().pCallCantBeSatisfied(d, c)
+      .line("The type argument "+x+" of "+disp(c.name().s())+" is inferred from the arguments, but they disagree: some need "+Join.of(cands, "", ", some need ", "")+".");
+    if (common.isEmpty()){ e.line("No type is a supertype of all of them."); }
+    else{ e.line(x+" could be "+Join.of(common.stream().map(Err::disp), "", " or ", "")+": each is a supertype of "+Join.of(cands, "", " and ", "")+". The choice is ambiguous."); }
+    var targs= IntStream.range(0, sig.bs().size()).mapToObj(j -> j == k ? (common.isEmpty() ? "Type"+(j+1) : common.getFirst()) : err().cp().msgT(c.targs().get(j))).toList();
+    var args= c.es().stream().map(a -> err().cp().limit(a, 20)).toList();
+    return e.line("Write the type argument explicitly, as in "+disp(err().cp().limit(c.e(), 20)+c.name().s()+Join.of(targs, "[", ",", "]")+Join.of(args, "(", ", ", ")"))+".");
+  }
+  private List<TName> commonSupertypes(List<T> cands){
+    if (!cands.stream().allMatch(t -> t instanceof T.RCC)){ return List.of(); }
+    var heads= cands.stream().map(t -> new ArrayList<>(decs.apply(((T.RCC)t).c().name()).cs().stream().map(T.C::name).toList())).reduce((a,b) -> { a.retainAll(b); return a; }).get();
+    return heads.stream().filter(h -> heads.stream().noneMatch(h2 -> !h2.equals(h) && decs.apply(h2).cs().stream().anyMatch(ci -> ci.name().equals(h)))).toList();
   }
   private void addNoPrecedenceHintIfOperator(Err e, Call c){
     var s= c.name().s();
