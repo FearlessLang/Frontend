@@ -4655,4 +4655,54 @@ A:{ .id[Y:**](y:Y):Y -> y; .u(tiJs:A):A -> this.id(tiJs) }
 use base.F as F;
 A:{ .m(_aimpl:A):A; .k(f:F[A,A]):A; .z:A -> this.k{::.m(this)} }
 """));}
+static String box(int n, String in){ return "Box[".repeat(n)+in+"]".repeat(n); }
+@Test void supertypeImpliedByAnotherSupertype(){ok(List.of("""
+C:{ .m[X](x:X):X; }
+B:C{}
+A[X]:C,B{}
+"""));}
+@Test void instantiatedParameterDeeperThanTheLimit(){ok(List.of("""
+N:{}
+Box[T:*]:{}
+A:{ .mk[T:*]: Box[T] -> Box[T]; .use[S:*](s: Box[S]): N -> N; .go: N -> this.use[imm,D](this.mk[imm,D]) }
+""".replace("D", box(98, "N"))));}
+@Test void instantiatedParameterDeeperThanTheLimitNotASubtype(){fail("""
+[###]This call to method "Take#(_)" cannot typecheck.
+Argument 1 has type "Box[Y]".
+That is not a subtype of "Box[[###]
+""", List.of("""
+N:{}
+Box[X]:{}
+Take:{ #[Y](c: Box[Y]): N -> N }
+Use:{ .m[Y](c: Box[Y]): N -> Take#[D](c) }
+""".replace("D", box(98, "N"))));}
+@Test void impliedSupertypeTooDeep(){failWf("[###]", List.of("""
+N:{}
+Box[X]:{}
+C[X]:{}
+B[X]:C[Box[X]]{}
+A:B[D]{}
+""".replace("D", box(97, "N"))));}
+@Test void unrelatedCandidatesNestedInInferredTypeArgument(){failWf("[###]", List.of("""
+A:{}
+B:{}
+Bar[X]:{}
+Foo[X]:{ .m(a: X, b: X): Bar[X] -> {} }
+Mk:{ #[X]: Foo[X] -> {} }
+Ign:{ #[T](t: T): A -> A }
+User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
+"""));}
+@Test void voidDefaultTooDeep(){failWf("[###]", List.of("""
+N:{}
+Box[X]:{}
+Mk:{ #[T]: D -> {} }
+Ign:{ #[K](k: K): N -> N }
+Use:{ .m: N -> Ign#(Mk#) }
+""".replace("D", box(99, "T"))));}
+@Test void inferredTypeArgumentTooDeep(){failWf("[###]", List.of("""
+N:{}
+Box[X]:{ .get: X }
+W:{ #[T](t: T): Box[T] -> {} }
+Use:{ .m(x: D): N -> W#(x).get }
+""".replace("D", box(98, "N"))));}
 }
