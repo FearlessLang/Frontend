@@ -32,6 +32,7 @@ import org.opentest4j.AssertionFailedError;
 import fileAssociations.FileAssociations;
 import fileAssociations.Icon;
 import fileAssociations.LinuxAssociations;
+import fileAssociations.WindowIcon;
 import tools.Fs;
 import utils.Err;
 
@@ -85,10 +86,11 @@ final class LinuxAssociationsTest{
     Fs.ofV(() -> ImageIO.write(img, "png", file.toFile()));
     return file;
   }
-  private void reconcile(String... extensions){
+  private void reconcile(String... extensions){ reconcile(List.of(), extensions); }
+  private void reconcile(List<WindowIcon> windows, String... extensions){
     var program= icon(0x123456);
     var icons= Stream.of(extensions).map(e -> { var png= icon(e.hashCode() & 0xffffff); return new Icon(e, png, png); }).toList();
-    FileAssociations.reconcile(identity, family, command, icons, program, program,
+    FileAssociations.reconcile(identity, family, command, icons, windows, program, program,
       s -> new IllegalStateException("ambiguous "+s),
       s -> new IllegalStateException("userLocked "+s),
       s -> new IllegalStateException("notOurs "+s),
@@ -271,6 +273,36 @@ final class LinuxAssociationsTest{
     Fs.writeUtf8(sys.resolve("applications").resolve("fearlessManaged0_000.desktop"), "[Desktop Entry]\n");
     FileAssociations.eradicateAll(family, IllegalStateException::new);
     assertEquals(List.of(), FileAssociations.identities(family));
+  }
+  private List<String> windowEntries(){
+    return Fs.of(() -> { try (var s= Files.list(home.resolve("applications"))){ return s.map(p -> p.getFileName().toString()).filter(n -> !n.equals(identity+".desktop")).sorted().toList(); }});
+  }
+  @Test void aWindowClassGetsAHiddenEntryShowingItsIcon(){
+    var game= new WindowIcon("fearless-1a2b-game.IconsGame", "Game", Path.of("/projects/game"), icon(0x00ff00));
+    var tool= new WindowIcon("fearless-1a2b-game.IconsTool", "Game", Path.of("/projects/game"), icon(0x00ff00));
+    reconcile(List.of(game, tool), ".fearless");
+    var entries= windowEntries();
+    assertEquals(2, entries.size());
+    entries.forEach(n -> assertTrue(n.matches(identity+"-[0-9a-f]+\\.desktop"), n));
+    Err.strCmp("""
+      [Desktop Entry]
+      Type=Application
+      Name=Game
+      Exec="/opt/fearlessManaged0_001/bin/fearlessManaged0_001" "/projects/game"
+      Icon=[###]/home/icons/hicolor/256x256/mimetypes/fearlessManaged0_001-[###].png
+      StartupWMClass=fearless-1a2b-game.IconsGame
+      NoDisplay=true
+      Terminal=false
+      """, Fs.readUtf8(home.resolve("applications").resolve(entries.stream().filter(n -> Fs.readUtf8(home.resolve("applications").resolve(n)).contains("IconsGame")).findFirst().orElseThrow())));
+    assertEquals(2, icons().size());
+    assertEquals(List.of(identity), FileAssociations.identities(family));
+    ran.clear();
+    reconcile(List.of(game, tool), ".fearless");
+    assertEquals(List.of(), ran);
+    reconcile(List.of(game), ".fearless");
+    assertEquals(1, windowEntries().size());
+    FileAssociations.eradicateAll(family, IllegalStateException::new);
+    assertEquals(List.of(), windowEntries());
   }
   @Test void noExtensionsLeavesNoFileOfTheIdentity(){
     reconcile(".ffile001");
