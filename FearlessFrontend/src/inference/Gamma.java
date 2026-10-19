@@ -94,16 +94,12 @@ public final class Gamma{
   };}
   private static IT adaptX(IT t, EnumSet<RC> xRcs, RC rc){
     if (rc == RC.imm || EnumSet.of(RC.iso, RC.imm).containsAll(xRcs)){ return t.withRC(RC.imm); }
-    if (xRcs.stream().anyMatch(RC::isH)){ return t; }
-    if (rc == RC.read){ return t.readImm(); }
-    return xRcs.contains(RC.iso) ? t.readImm() : t;
+    return rc == RC.read || xRcs.contains(RC.iso) ? t.readImm() : t;
   }
   private static IT adaptRC(IT t, RC rc){
     var trc= t.explicitRC();
     if (rc == RC.imm || trc.equals(Optional.of(RC.iso))){ return t.withRC(RC.imm); }
-    if (rc == RC.mut){ return t; }
-    if (trc.equals(Optional.of(RC.mutH))){ return t.withRC(RC.readH); }
-    return trc.equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
+    return rc == RC.read && trc.equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
   }
   public IT get(String x){ return ts[indexOf(x)]; }
   public IT _get(String x){ var i= indexOf(x); return i == -1 ? null : ts[i]; }

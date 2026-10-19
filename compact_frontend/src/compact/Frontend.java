@@ -270,10 +270,8 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       for (var s= i + 1; s < fs.size(); s += 1){ t = adapt(t, fs.get(s).rc, fs.get(s).bs); } return t; } boolean notFunnelledInto(String x){
       var fxs= get(x).ftv().toList(); return IntStream.range(at(x) + 1, fs.size()).anyMatch(s -> !B.xs(fs.get(s).bs).containsAll(fxs)); }
     static IT adapt(IT t, RC rc, List<B> bs){ var x= t instanceof X(var n) ? n : t instanceof ReadImmX(X(var n)) ? n : null; if (x != null){
-        var xRcs= B.get(bs, x).rcs; if (rc == imm || isoImm.containsAll(xRcs)){ return t.withRC(imm); }
-        if (any(xRcs, RC::isH)){ return t; } return rc == read || xRcs.contains(iso) ? t.readImm() : t; } var trc= t.explicitRC();
-      if (rc == imm || trc.equals(of(iso))){ return t.withRC(imm); } if (rc == mut){ return t; }
-      if (trc.equals(of(mutH))){ return t.withRC(readH); } return trc.equals(of(mut)) ? t.withRC(read) : t; }
+        var xRcs= B.get(bs, x).rcs; if (rc == imm || isoImm.containsAll(xRcs)){ return t.withRC(imm); } return rc == read || xRcs.contains(iso) ? t.readImm() : t; }
+      var trc= t.explicitRC(); if (rc == imm || trc.equals(of(iso))){ return t.withRC(imm); } return rc == read && trc.equals(of(mut)) ? t.withRC(read) : t; }
     void declare(String x, IT t){ if (!x.equals("_")){ fs.getLast().vars.put(x, t); } }
     Object snap(){ var m= new HashMap<String,IT>(); fs.forEach(f -> m.putAll(f.vars)); return m; } }
   static C normC(C c){ ck(!all(c.ts, IT::isTV)); return fillC(c); } static IT norm(IT t){ ck(!t.isTV()); return fill(t); }
