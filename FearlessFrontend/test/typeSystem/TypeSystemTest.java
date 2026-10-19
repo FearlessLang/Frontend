@@ -4594,4 +4594,20 @@ A:{ imm .m1: A; mut .m1: mut A; mut .m2: mut G }
 G:{ mut .get: mut A }
 User:{ #: iso A -> iso B:A{'self .m1 -> self; .m2 -> mut G{ .get -> self.m1 } } }
 """));}
+@Test void genericArgumentsJoinToTheSupertype(){ok(List.of("""
+A:{} Z:A{}
+U:{ .both[T](a: T, b: T): T -> a; .use(a: A, z: Z): A -> this.both(a, z) }
+"""));}
+@Test void genericArgumentsJoinToTheSupertypeInEitherOrder(){ok(List.of("""
+A:{} Z:A{}
+U:{ .both[T](a: T, b: T): T -> a; .use(a: A, z: Z): A -> this.both(z, a) }
+"""));}
+@Test void genericArgumentsJoinMutAndImmToRead(){ok(List.of("""
+A:{}
+U:{ .both[T:*](a: T, b: T): T -> a; .use(m: mut A, i: imm A): read A -> this.both(m, i) }
+"""));}
+@Test void genericArgumentFromALiteralJoinsToo(){ok(List.of("""
+A:{} Z:A{}
+U:{ .app[T](f: base.F[T], x: T): T -> x; .use(a: A, z: Z): A -> this.app({ z }, a) }
+"""));}
 }

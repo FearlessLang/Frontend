@@ -468,6 +468,16 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       if (a.isEmpty()){ return b; } if (b.isEmpty()){ return a; } var x= noH(a.get()); var y= noH(b.get());
       if (x == y || y == RC.iso || y == RC.read && x != RC.iso){ return of(x); } if (x == RC.iso || x == RC.read){ return of(y); }
       return of(RC.imm); } static RC noH(RC a){ return a == RC.readH ? RC.read : a == RC.mutH ? RC.mut : a; }
+    IT join(IT t1, IT t2){ if (t2 instanceof IT.U){ return t1; } if (t1 instanceof IT.U || t1.equals(t2)){ return t2; }
+      if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){ if (x1.c().name().equals(x2.c().name())){ return x1.withRCTs(joinRcNoH(x1.rc(), x2.rc()), meet(x1.c().ts(), x2.c().ts())); }
+        var up1= adaptedSuperTs(x1, x2.c().name()); if (!up1.isEmpty()){ return join(up1.getFirst(), x2); }
+        var up2= adaptedSuperTs(x2, x1.c().name()); return up2.isEmpty() ? meet(t1, t2) : join(x1, up2.getFirst()); }
+      if (!(t1 instanceof IT.RCX x1 && t2 instanceof IT.RCX(var rc2, var x2)) || !x1.x().equals(x2)){ return meet(t1, t2); }
+      return x1.withRC(joinRcNoH(of(x1.rc()), of(rc2)).get()); } static Optional<RC> joinRcNoH(Optional<RC> a, Optional<RC> b){
+      if (a.isEmpty()){ return b; } if (b.isEmpty()){ return a; } var x= noH(a.get()); var y= noH(b.get());
+      return of(x == y || y == RC.iso ? x : x == RC.iso ? y : RC.read); }
+    List<IT> join(List<IT> t1, List<IT> t2){ return zip(t1, t2, this::join).toList(); }
+    List<IT> join(List<List<IT>> tss){ return tss.stream().reduce(this::join).get(); }
     List<IT> meet(List<IT> t1, List<IT> t2){ return zip(t1, t2, this::meet).toList(); }
     List<IT> meet(List<List<IT>> tss){ return tss.stream().reduce(this::meet).get(); } IE nextStar(List<B> bs, IGamma g, IE e){
       if (g.snap().equals(memo.get(e))){ return e; } while (true){ var s= g.snap(); var oe= next(bs, g, e);
@@ -500,17 +510,21 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     IE nextC(List<B> bs, IGamma g, IE.Call c){ var e= nextStar(bs, g, c.e());
       if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); } var om= methodHeader(rcc, c.name(), c.rc());
       if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); } var m= om.get(); var nCls= m.clsArgs().size();
-      var all0= decidedThen(c, m, c.es(), Stream.of()); var m0= m.withClsArgs(normToBounds(bs, m.clsBs(), all0.subList(0, nCls)));
+      var all0= decidedThen(c, m, c.es(), false); var m0= m.withClsArgs(normToBounds(bs, m.clsBs(), all0.subList(0, nCls)));
       var es= nextStar(bs, g, meetWithTargs(c.es(), m0, normToBounds(bs, m.methBs(), all0.subList(nCls, all0.size()))));
-      var all= decidedThen(c, m, es, zip(m.ps0(), es, (p,e2) -> refine(m.xs(), p, e2.t()))); var clsTs= normToBounds(bs, m.clsBs(), all.subList(0, nCls));
+      var all= decidedThen(c, m, es, true); var clsTs= normToBounds(bs, m.clsBs(), all.subList(0, nCls));
       var targs= normToBounds(bs, m.methBs(), all.subList(nCls, all.size())); e = meet(e, rcc.withTs(clsTs)); var m1= m.withClsArgs(clsTs);
       var it= meet(c.t(), m1.inst(m1.ret0(), targs)); var es1= meetWithTargs(es, m1, targs);
       if (e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t())){ return c; } return c.withMore(e, c.rc().orElse(m1.rc()), targs, es1, it);
-    } List<IT> decidedThen(IE.Call c, MSigL m, List<IE> es, Stream<List<IT>> argRefinements){ var targs= MSigL.fixTargs(c.targs(), m.methBs().size());
-      var all= meet(cat(Stream.of(push(m.clsArgs(), targs)), argRefinements, Stream.of(refine(m.xs(), m.ret0(), c.t()))).toList());
-      var written= push(m.clsArgs(), c.written() ? targs : qMarks(m.methBs().size()));
-      var fromLiterals= IntStream.range(0, es.size()).filter(i -> es.get(i) instanceof Literal).mapToObj(i -> refine(m.xs(), m.ps0().get(i), es.get(i).t()));
-      var hard= meet(Stream.concat(Stream.of(qMarks(written.size())), fromLiterals).toList());
+    } List<IT> fromArgs(MSigL m, List<IE> es, boolean onlyLiterals){ var n= m.clsArgs().size()+m.methBs().size();
+      var is= IntStream.range(0, es.size()).filter(i -> !onlyLiterals || es.get(i) instanceof Literal).boxed().toList();
+      Function<Integer,List<IT>> ref= i -> refine(m.xs(), m.ps0().get(i), es.get(i).t());
+      var lower= is.stream().filter(i -> !(m.ps0().get(i) instanceof IT.RCC)).map(ref); var exact= is.stream().filter(i -> m.ps0().get(i) instanceof IT.RCC).map(ref);
+      return meet(Stream.concat(Stream.of(join(Stream.concat(Stream.of(qMarks(n)), lower).toList())), exact).toList()); }
+    List<IT> decidedThen(IE.Call c, MSigL m, List<IE> es, boolean useArgs){ var targs= MSigL.fixTargs(c.targs(), m.methBs().size());
+      var args= useArgs ? fromArgs(m, es, false) : qMarks(m.clsArgs().size()+m.methBs().size());
+      var all= meet(List.of(push(m.clsArgs(), targs), args, refine(m.xs(), m.ret0(), c.t())));
+      var written= push(m.clsArgs(), c.written() ? targs : qMarks(m.methBs().size())); var hard= fromArgs(m, es, true);
       var fixed= zip(written, hard, (w,h) -> decided(w) ? w : h).toList(); return zip(fixed, all, (b,r) -> decided(b) ? b : r).toList(); }
     static boolean decided(IT t){ return t.isTV() && !(t instanceof IT.RCC(var rc, _) && rc.isEmpty()); } Optional<IT.RCC> preciseSelf(Literal l){
       if (l.infName() && l.rc().isEmpty()){ return empty(); } return of(new IT.RCC(l.rc(), new IT.C(l.name(), toXs(B.xs(l.bs()))))); }

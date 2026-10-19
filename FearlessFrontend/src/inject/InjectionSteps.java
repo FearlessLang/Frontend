@@ -143,6 +143,33 @@ public record InjectionSteps(Methods meths){
     return Optional.of(RC.imm);// returning Optional.empty(); could make it go in loop
   }
   static RC noH(RC a){ return a == RC.readH ? RC.read : a == RC.mutH ? RC.mut : a; }
+  IT join(IT t1, IT t2){
+    if (t2 instanceof IT.U){ return t1; }
+    if (t1 instanceof IT.U){ return t2; }
+    if (t1.equals(t2)){ return t1; }
+    if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){
+      if (x1.c().name().equals(x2.c().name())){ return x1.withRCTs(joinRcNoH(x1.rc(), x2.rc()), meet(x1.c().ts(), x2.c().ts())); }
+      var up1= adaptedSuperTs(x1, x2.c().name());
+      if (!up1.isEmpty()){ return join(up1.getFirst(), x2); }
+      var up2= adaptedSuperTs(x2, x1.c().name());
+      if (!up2.isEmpty()){ return join(x1, up2.getFirst()); }
+      return meet(t1, t2);
+    }
+    var sameX= t1 instanceof IT.RCX x1 && t2 instanceof IT.RCX(var rc2, var x2) && x1.x().equals(x2);
+    if (!sameX){ return meet(t1, t2); }
+    return t1.withRC(joinRcNoH(Optional.of(((IT.RCX)t1).rc()), Optional.of(((IT.RCX)t2).rc())).get());
+  }
+  static Optional<RC> joinRcNoH(Optional<RC> a, Optional<RC> b){
+    if (a.isEmpty()){ return b; }
+    if (b.isEmpty()){ return a; }
+    var x= noH(a.get());
+    var y= noH(b.get());
+    if (x == y || y == RC.iso){ return Optional.of(x); }
+    if (x == RC.iso){ return Optional.of(y); }
+    return Optional.of(RC.read);
+  }
+  List<IT> join(List<IT> t1, List<IT> t2){ return Streams.zip(t1, t2).map(this::join).toList(); }
+  List<IT> join(List<List<IT>> tss){ return tss.stream().reduce(this::join).get(); }
   List<IT> meet(List<IT> t1, List<IT> t2){ return Streams.zip(t1, t2).map(this::meet).toList(); }
   List<IT> meet(List<List<IT>> tss){ return tss.stream().reduce(this::meet).get(); }
   E nextStar(List<B> bs, Gamma g, E e){
@@ -302,19 +329,23 @@ public record InjectionSteps(Methods meths){
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
   private List<E> requiredOnArgs(List<B> bs, E.Call c, MSigL m){
-    var all= decidedThen(c, m, c.es(), Stream.of());
+    var all= decidedThen(c, m, c.es(), false);
     var m0= m.withClsArgs(normToBounds(bs, m.clsBs(), all.subList(0, m.nCls())));
     return meetWithTargs(c.es(), c.es(), m0, normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size())));
   }
-  private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){
-    return decidedThen(c, m, es, Streams.zip(m.ps0(), es).map((p,e2) -> refine(m.xs(), p, e2.t())));
+  private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){ return decidedThen(c, m, es, true); }
+  private List<IT> fromArgs(MSigL m, List<E> es, boolean onlyLiterals){
+    var n= m.nCls()+m.bsArity();
+    var lower= Streams.zip(m.ps0(), es).filter((p,e) -> !(p instanceof IT.RCC) && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, e.t()));
+    var exact= Streams.zip(m.ps0(), es).filter((p,e) -> p instanceof IT.RCC && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, e.t()));
+    return meet(Streams.of(Stream.of(join(Streams.of(Stream.of(qMarks(n)), lower).toList())), exact).toList());
   }
-  private List<IT> decidedThen(E.Call c, MSigL m, List<E> es, Stream<List<IT>> argRefinements){
+  private List<IT> decidedThen(E.Call c, MSigL m, List<E> es, boolean useArgs){
     var targs= MSigL.fixTargs(c.targs(), m.bsArity());
-    var all= meet(Streams.of(Stream.of(Push.of(m.clsArgs(), targs)), argRefinements, Stream.of(refine(m.xs(), m.ret0(), c.t()))).toList());
+    var args= useArgs ? fromArgs(m, es, false) : qMarks(m.nCls()+m.bsArity());
+    var all= meet(List.of(Push.of(m.clsArgs(), targs), args, refine(m.xs(), m.ret0(), c.t())));
     var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
-    var fromLiterals= Streams.zip(m.ps0(), es).filter((_,e2) -> e2 instanceof E.Literal).map((p,e2) -> refine(m.xs(), p, e2.t()));
-    var hard= meet(Streams.of(Stream.of(qMarks(written.size())), fromLiterals).toList());
+    var hard= fromArgs(m, es, true);
     var fixed= Streams.zip(written, hard).map((w,h) -> decided(w) ? w : h).toList();
     return Streams.zip(fixed, all).map((b,r) -> decided(b) ? b : r).toList();
   }
