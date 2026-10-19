@@ -65,7 +65,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
       try{ expected= lines(compileAll("p", o, other)); }
       catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); }
       var got= "error";
-      try{ got= lines(compactAll("p", o, cBase)); }
+      try{ got= compact.Print.lines(compactAll("p", o, cBase)); }
       catch (compact.Frontend.Fail _){}
       if (!expected.equals(got)){ crashes.merge("compact frontend disagrees", src, FuzzTest::shorter); }
     }
