@@ -2,15 +2,15 @@ package toolsTests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-
+import java.io.UncheckedIOException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -18,13 +18,19 @@ import tools.Fs;
 
 final class FsSymbolicLinkTest{
   @TempDir Path root;
-  @BeforeEach void links(){ assumeFalse(Fs.isWindows()); }
   private Path real(){
     var res= root.resolve("real");
     Fs.writeUtf8(res.resolve("f.txt"), "x");
     return res;
   }
-  private static Path link(Path link, Path target){ return Fs.of(() -> Files.createSymbolicLink(link, target)); }
+  private static Path link(Path link, Path target){
+    try{ return Fs.of(() -> Files.createSymbolicLink(link, target)); }
+    catch (UncheckedIOException e){
+      var refused= Fs.isWindows() && e.getCause().getClass() == FileSystemException.class;
+      if (!refused){ throw e; }
+      return Assumptions.abort("Windows does not give this process the privilege to create symbolic links");
+    }
+  }
   private static List<String> names(Path dir){
     return Fs.of(() -> { try (var s= Files.list(dir)){ return s.map(p -> p.getFileName().toString()).sorted().toList(); }});
   }
