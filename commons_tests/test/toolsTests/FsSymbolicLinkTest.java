@@ -26,7 +26,7 @@ final class FsSymbolicLinkTest{
   private static Path link(Path link, Path target){
     try{ return Fs.of(() -> Files.createSymbolicLink(link, target)); }
     catch (UncheckedIOException e){
-      var refused= Fs.isWindows() && e.getCause().getClass() == FileSystemException.class;
+      var refused= Fs.isWindows() && e.getCause() instanceof FileSystemException;
       if (!refused){ throw e; }
       return Assumptions.abort("Windows does not give this process the privilege to create symbolic links");
     }
