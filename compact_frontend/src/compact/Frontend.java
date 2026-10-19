@@ -17,7 +17,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     var other= otherLits.stream().collect(Collectors.toMap(Literal::name,d -> d)); var raw=new TreeMap<String,File>();
     files.forEach((path, content)-> raw.put(path,(File)parse(content)));
     var heads= filter(raw.keySet(), p -> p.matches("(.*/)?_rank_[^/]*\\.[^/]*"));
-    ck(heads.size()!=1); var head= raw.get(heads.getFirst());
+    ck(heads.size()!=1); var head= raw.get(heads.get(0));
     ck(any(raw.values(), f -> f != head && f.maps.size()+f.uses.size()>0));
     var ds= flat(raw.values(), f -> f.decs.stream()); var uses= map(head.uses, File.Use::out);
     var decNames= flat(ds,d -> d.owner.decs.stream()); ck(dup(decNames)); var decStrs= map(decNames,TName::s);
@@ -36,7 +36,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     String pkg(){ return s.replaceFirst("^(?![a-z]).*|\\..*", "");}
     String simple(){ return s.replaceFirst("^[a-z][^.]*\\.", "");} boolean visible(){ return !simple().startsWith("_"); }}
   public record MName(String s,int arity){ MName arity(int arity){ return new MName(s,arity);} }
-  public record B(String x, EnumSet<RC> rcs){ static List<String> xs(List<B> bs){ return map(bs,B::x);}
+  public record B(String x, Set<RC> rcs){ static List<String> xs(List<B> bs){ return map(bs,B::x);}
     static B get(List<B> bs,String name){ return find(bs,b -> b.x.equals(name)); }}
   enum TK{
     Ws("\\s+"), LineComment("//[^\\n]*"), BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/"),
@@ -198,8 +198,8 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
   static final TName baseStr=new TName("base.Str",0), baseNat=new TName("base.Nat",0), baseInt=new TName("base.Int",0), baseFloat=new TName("base.Float",0),
     widen=new TName("base.WidenTo",1), sealed=new TName("base.Sealed",0), captureFree=new TName("base.CaptureFree",0), baseId=new TName("base.BaseId",2),
     baseContainer=new TName("base.BaseContainer",1), baseVoid=new TName("base.Void",0);
-  static EnumSet<RC> rcs(RC first, RC... rest){ return EnumSet.of(first, rest);}
-  static final EnumSet<RC> isoImm= rcs(iso, imm), noHyg= rcs(iso, imm, mut, read), allRC= EnumSet.allOf(RC.class);
+  static Set<RC> rcs(RC first, RC... rest){ return EnumSet.of(first, rest);}
+  static final Set<RC> isoImm= rcs(iso, imm), noHyg= rcs(iso, imm, mut, read), allRC= EnumSet.allOf(RC.class);
   static boolean has(List<C> cs,TName magic){ return any(cs,c -> c.name.equals(magic)); }
   static boolean primitive(String name){ return "+-1234567890\"`".contains(name.substring(0,1)); }
   static Literal from(TName n, Function<TName,Literal> map, Map<TName,Literal> other){ var res= map.apply(n); if(res == null) res = other.get(n);
@@ -220,7 +220,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       public boolean isTV(){ return all(c.ts, IT::isTV);} public int depth(){ return c.depth();}
       public RC explicitRC(){ return rc;} } enum U implements IT{ Instance }
     record Amb(List<IT> cs) implements IT{}
-    default boolean undecided(){ return this instanceof U || this instanceof Amb;} default IT withRC(RC rc){ return switch(this){
+    default boolean undecided(){ return this == unknown || this instanceof Amb;} default IT withRC(RC rc){ return switch(this){
       case RCC(_, var c)-> new RCC(rc,c); case RCX(_, var x)-> new RCX(rc,x); case X x -> new RCX(rc,x);
       case ReadImmX(var x)-> new RCX(rc,x); case U _, Amb _ -> this; };} default Stream<String> ftv(){ return switch(this){ case X(var name)-> Stream.of(name);
       case RCX(_, var x)-> x.ftv(); case ReadImmX(var x)-> x.ftv(); case RCC(_, var c)-> c.ts.stream().flatMap(IT::ftv); case U _, Amb _ -> Stream.of(); };}
@@ -335,7 +335,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     } PE.Call desugarCPat(PE.Call c){ var fresh=new PE.X(meths.fresh.variable(owner,"eqS")); var res= replaceAtom(c.es.get(1), fresh);
       var sig=new PSig(null,null,null, list(new Parameter(c.pat, unknown), new Parameter(new XPat.Name(fresh.name), unknown)), unknown);
       var par2=new PE.Lit(null, list(new PM(sig, res, false)));
-      return new PE.Call(c.e,c.name,c.targs, null, list(c.es.getFirst(), par2)); } PE replaceAtom(PE par, PE atom){
+      return new PE.Call(c.e,c.name,c.targs, null, list(c.es.get(0), par2)); } PE replaceAtom(PE par, PE atom){
       if (!(par instanceof PE.Call c)) return atom; return new PE.Call(replaceAtom(c.e, atom), c.name,c.targs,c.pat,c.es);} }
   static boolean duplicates(List<B> bs,List<C> cs){ var ts= map(cs,c -> new RCC(imm,c));
     return range(ts.size()).anyMatch(j -> range(j).anyMatch(i -> TypeSystem.shapeSub(bs, ts.get(i), ts.get(j)) && TypeSystem.shapeSub(bs, ts.get(j), ts.get(i))));
@@ -365,19 +365,18 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       return d.header(push(c, fetchCs(c)), pair(names(d.ms,new ArrayList<>(allSig)), new ArrayList<>(allSig), d), true);}
     void magic(Literal d,List<C> allCs){ ck(allCs.stream().filter(c -> c.name.equals(widen)).count()>1);
       if(any(allCs,c -> c.name.equals(baseId))){ var ms=d.ms;
-        ck(ms.size()!=1 || !ms.getFirst().sig.m.equals(new MName("#",1))); var s= ms.getFirst().sig;
-        ck(!(ms.getFirst().e != null || s.abs || has(from(s.origin).cs, baseId))); }
+        ck(ms.size()!=1 || !ms.get(0).sig.m.equals(new MName("#",1))); var s= ms.get(0).sig;
+        ck(!(ms.get(0).e != null || s.abs || has(from(s.origin).cs, baseId))); }
       if (!any(allCs,c -> c.name.equals(sealed))) return;
       ck(any(allCs,c -> !c.name.pkg().equals(d.name.pkg()) && has(from(c.name).cs, sealed))); } void register(Literal d){
       var ms= map(d.ms,m -> m.signature(ToCore.sig(m.sig,m.sig)));
       cache.put(d.name,new Literal(or(d.rc, imm), d.name,d.bs,map(d.cs,Frontend::normC), d.self, ms,d.anonymous)); }
     List<IM> names(List<IM> ms, ArrayList<ISig> ss){ ss.removeIf(s -> any(ms,m -> Objects.equals(m.sig.m,s.m)));
-      var named= filter(ms,m -> m.sig.m != null);
-      return named.size()== ms.size()? ms : push(named, ms.stream().filter(m -> m.sig.m == null).map(m -> name(m, ss)).toList()); } IM name(IM m, ArrayList<ISig> ss){
+      var named= filter(ms,m -> m.sig.m != null); return push(named, ms.stream().filter(m -> m.sig.m == null).map(m -> name(m, ss)).toList()); } IM name(IM m, ArrayList<ISig> ss){
       var arity=m.sig.ts.size(); for(var abs : list(true,false)){
         var match= filter(ss,s -> s.m.arity ==arity && (s.abs || !abs)); ss.removeAll(match);
         var count= match.stream().map(s -> s.m).distinct().count(); ck(count >1); if(count ==1){ var s=m.sig;
-          return m.signature(new ISig(s.rc, match.getFirst().m,s.bs,s.ts,s.ret,s.origin,s.abs,s.idx)); }} throw new Fail();}
+          return m.signature(new ISig(s.rc, match.get(0).m,s.bs,s.ts,s.ret,s.origin,s.abs,s.idx)); }} throw new Fail();}
     List<IM> pair(List<IM> ms, ArrayList<ISig> ss, Literal origin){ var res=new ArrayList<IM>(); for(var m : ms){
         var name=m.sig.m; var rc=m.sig.rc;
         var taken= filter(ss,s -> s.m.equals(name)&&(rc == null || rc == s.rc)); ss.removeAll(taken);
@@ -388,23 +387,23 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
           var mi= first ? m : copyM(fresh,m, origin.name, origin.name); first = false; res.add(pair(matches, mi, origin)); }}
       group(ss,s -> new Key(s.rc, s.m)).values().forEach(v -> res.add(pair(v, null, origin)));
       return res;}
-    IM pair(List<ISig> ss, IM om, Literal origin){ if (om == null && ss.size()==1)return new IM(ss.getFirst());
-      var s= om == null ? new ISig(null,null,null,qMarks(ss.getFirst().m.arity), unknown,null,false,0): om.sig;
-      if(ss.isEmpty()){ ck(any(s.ts,t -> t instanceof U)|| s.ret instanceof U);
+    IM pair(List<ISig> ss, IM om, Literal origin){ if (om == null && ss.size()==1)return new IM(ss.get(0));
+      var s= om == null ? new ISig(null,null,null,qMarks(ss.get(0).m.arity), unknown,null,false,0): om.sig;
+      if(ss.isEmpty()){ ck(any(s.ts,t -> t == unknown)|| s.ret == unknown);
         return om.signature(new ISig(or(s.rc, imm), s.m, or(s.bs,list()), s.ts,s.ret, origin.name, om.e == null, s.idx)); }
-      var bs= or(s.bs, ss.getFirst().bs); var rcss= ss.stream().map(e -> map(e.bs,B::rcs)).distinct().toList();
-      ck(rcss.size()!=1 || !rcss.getFirst().equals(map(bs,B::rcs)));
-      var ssAligned= align(ss, bs); var first= ssAligned.getFirst();
-      var ts= range(s.ts.size()).mapToObj(i -> s.ts.get(i) instanceof U ? agreement(origin, ssAligned,e -> e.ts.get(i)): s.ts.get(i)).toList();
-      var res=s.ret instanceof U ? agreement(origin, ssAligned, ISig::ret): s.ret;
+      var bs= or(s.bs, ss.get(0).bs); var rcss= ss.stream().map(e -> map(e.bs,B::rcs)).distinct().toList();
+      ck(rcss.size()!=1 || !rcss.get(0).equals(map(bs,B::rcs)));
+      var ssAligned= align(ss, bs); var first= ssAligned.get(0);
+      var ts= range(s.ts.size()).mapToObj(i -> s.ts.get(i) == unknown ? agreement(origin, ssAligned,e -> e.ts.get(i)): s.ts.get(i)).toList();
+      var res=s.ret == unknown ? agreement(origin, ssAligned, ISig::ret): s.ret;
       var impl= om != null ? List.<TName>of(): ssAligned.stream().filter(e -> !e.abs && !overridden(e, origin)).map(e -> e.origin).distinct().toList(); ck(impl.size()>1);
-      var sig=new ISig(or(s.rc, first.rc), first.m, bs, ts,res, impl.size()==1 ? impl.getFirst(): origin.name, om == null ? impl.isEmpty(): om.e == null, s.idx);
+      var sig=new ISig(or(s.rc, first.rc), first.m, bs, ts,res, impl.size()==1 ? impl.get(0): origin.name, om == null ? impl.isEmpty(): om.e == null, s.idx);
       return om == null ? new IM(sig): om.signature(sig); } boolean overridden(ISig s, Literal lit){ var sup=s.origin; return lit.cs.stream()
         .flatMap(c -> Stream.concat(Stream.of(c.name), from(c.name).cs.stream().map(C::name))).anyMatch(t -> { var d= from(t);
           return !t.equals(sup)&& has(d.cs, sup)&& d.ms.stream().map(IM::sig).anyMatch(o -> o.origin.equals(d.name)&& o.m.equals(s.m)&& o.rc == s.rc);
         }); } IT agreement(Literal lit,List<ISig> ss, Function<ISig,IT> f){ var res= ss.stream().map(f).distinct().toList();
-      var bs= push(lit.bs, ss.getFirst().bs); var first=Frontend.fill(res.getFirst());
-      ck(!all(res,t -> TypeSystem.equivalent(bs, first,Frontend.fill(t)))); return res.getFirst();}
+      var bs= push(lit.bs, ss.get(0).bs); var first= fill(res.get(0));
+      ck(!all(res,t -> TypeSystem.equivalent(bs, first, fill(t)))); return res.get(0);}
     List<ISig> align(List<ISig> ss,List<B> bs){ return map(ss,s -> s.subst(bs,B.xs(s.bs), vars(bs))); }
     List<Literal> steps(List<Literal> tops){
       return map(tops,l -> { var di= cache.get(l.name); return di.header(di.cs, zip(l.ms, di.ms,(m,mCore)-> body(di,mCore,m)), false); }); }
@@ -415,9 +414,9 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       ei = solve(bs,g, ei); return new IM(mCore.sig, xs, new ToCore(bs,this).core(ei,e)); } IE meet(IE e, IT t){
       if(e instanceof Type tt)return nextT(tt); if(e instanceof Literal l && l.t.isTV()) return e;e = ascribe(e,t,false);
       return e.withT(meet(e.t(), t)); } IT between(RCC x1, RCC x2){ var s1= below(x1,x2); if(s1 != null)return s1.isTV() || !x2.isTV()? s1 : x2;
-      var s2= below(x2,x1); return s2 == null ? x1 : s2.isTV() || !x1.isTV()? s2 : x1;} IT below(RCC sub, RCC sup){ var d= from(sub.c.name); if(d == null)return null; var ps= filter(d.cs,c -> c.name.equals(sup.c.name)); if(ps.isEmpty()) return null;
+      return below(x2,x1)== null ? x1 : between(x2,x1);} IT below(RCC sub, RCC sup){ var d= from(sub.c.name); if(d == null)return null; var ps= filter(d.cs,c -> c.name.equals(sup.c.name)); if(ps.isEmpty()) return null;
       var refined= meet(map(ps,c -> refine(B.xs(d.bs), new RCC(null,c), sup))); return sub.with(meetCap(sub.rc, sup.rc), meet(sub.c.ts, refined)); }
-    IT meet(IT t1, IT t2){ if(t2.undecided()) return t1 instanceof U ? t2 : t1;if(t1.undecided() || t1.equals(t2)) return t2;
+    IT meet(IT t1, IT t2){ if(t2.undecided()) return t1 == unknown ? t2 : t1;if(t1.undecided() || t1.equals(t2)) return t2;
       if(t1 instanceof ReadImmX(var x1)&& x1.equals(t2)) return t1;if(t2 instanceof ReadImmX(var x2)&& x2.equals(t1)) return t2;
       if(t1 instanceof RCC x1 && t2 instanceof RCC x2){ if (!x1.c.name.equals(x2.c.name)) return between(x1,x2);
         return x1.with(meetCap(x1.rc,x2.rc), meet(x1.c.ts,x2.c.ts)); }
@@ -426,23 +425,23 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       if(a == null)return b;if(b == null)return a; var x=noH(a); var y=noH(b);
       if(x == y || y == iso || y == read && x != iso)return x;if(x == iso || x == read)return y;
       return imm;} static RC noH(RC a){ return a == readH ? read : a == mutH ? mut : a;}
-    IT join(IT t1, IT t2){ if(t2 instanceof U)return t1;if(t1 instanceof U || t1.equals(t2)) return t2;
+    IT join(IT t1, IT t2){ if(t2 == unknown)return t1;if(t1 == unknown || t1.equals(t2)) return t2;
       var cands= push(candidates(t1), candidates(t2)); for(var top : cands){ var res= aboveAll(top,cands); if(res != null)return res;}
       var common= common(cands); return common == null ? new Amb(cands): aboveAll(common,cands);}
     IT common(List<IT> cands){ if (!all(cands,c -> c instanceof RCC)) return null;
       var heads=cands.stream().map(c -> new ArrayList<>(superHeads((RCC)c))).reduce((a,b)-> { a.retainAll(b); return a; }).get();
       var minimal= filter(heads,h -> !any(heads,h2 -> !h2.equals(h)&& isSuper(h,h2)));
-      return minimal.size()==1 ? supertypes((RCC)cands.getFirst(), minimal.getFirst()).getFirst(): null;}
+      return minimal.size()==1 ? supertypes((RCC)cands.get(0), minimal.get(0)).get(0): null;}
     List<TName> superHeads(RCC t){ var d= from(t.c.name); return d == null ? list(): map(d.cs,C::name);}
     static List<IT> candidates(IT t){ return t instanceof Amb(var cs)? cs : list(t);}
     IT aboveAll(IT top,List<IT> cands){ IT res= top; for(var c : cands){ var up= liftTo(c, top); if(up == null)return null; res = joinShape(res, up);} return res;}
     IT liftTo(IT c, IT top){ if(c instanceof RCC rc && top instanceof RCC rt){ if(rc.c.name.equals(rt.c.name)) return c;
-        var up= supertypes(rc, rt.c.name); return up.isEmpty()? null : up.getFirst(); } return variable(c)!= null && variable(c).equals(variable(top)) ? c : null;}
+        var up= supertypes(rc, rt.c.name); return up.isEmpty()? null : up.get(0); } return variable(c)!= null && variable(c).equals(variable(top)) ? c : null;}
     IT joinShape(IT a, IT b){ if(a instanceof RCC x1 && b instanceof RCC x2)return x1.with(joinCap(x1.rc,x2.rc), meet(x1.c.ts,x2.c.ts));
       if(a instanceof RCX x1 && b instanceof RCX x2)return x1.withRC(joinCap(x1.rc,x2.rc)); return meet(a,b);}
     static RC joinCap(RC a, RC b){ if(a == null)return b;if(b == null)return a; var x=noH(a); var y=noH(b);
       return x == y || y == iso ? x : x == iso ? y : read;}
-    List<IT> join(List<IT> t1,List<IT> t2){ return zip(t1,t2,this::join);} List<IT> join(List<List<IT>> tss){ return tss.stream().reduce(this::join).get();}
+    List<IT> join(List<List<IT>> tss){ return tss.stream().reduce((a,b)-> zip(a,b,this::join)).get();}
     List<IT> meet(List<IT> t1,List<IT> t2){ return zip(t1,t2,this::meet);}
     List<IT> meet(List<List<IT>> tss){ return tss.stream().reduce(this::meet).get(); } IE solve(List<B> bs, IGamma g, IE e){
       if(g.snap().equals(memo.get(e))) return e; while(true){ var s=g.snap(); var oe= next(bs,g,e);
@@ -458,13 +457,13 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
           yield new Call(ee,c.name,m.rc, ts, expectArgs(es,m, ts), false).withT(meet(c.t,m.inst(m.ret0, ts))); }
         case Type c -> nextT(c); }; } IT preferred(RCC type){ var d= from(type.c.name);
       var c=find(d.cs, ci -> ci.name.equals(widen)); if(c == null) return type;
-      var wid= rename(c.ts.getFirst(), B.xs(d.bs), type.c.ts); if (!(wid instanceof RCC(_, var widC))) return type;
+      var wid= rename(c.ts.get(0), B.xs(d.bs), type.c.ts); if (!(wid instanceof RCC(_, var widC))) return type;
       return new RCC(type.rc, widC);} IM lookup(RCC rcc,MName name, RC favorite){
       var d= from(rcc.c.name); if(d == null)return null; var ms= filter(d.ms,m -> m.sig.m.equals(name));
       Function<RC,IM> one= rc -> find(ms,m -> m.sig.rc == rc);
       var rc=rcc.rc == null || rcc.rc == iso ? imm : noH(rcc.rc);
       var order= rc == read ? list(read, imm, mut): rc == mut ? list(mut, read, imm): list(imm, read, mut);
-      return favorite != null ? one.apply(favorite): ms.size()==1 ? ms.getFirst() : order.stream().map(one).filter(Objects::nonNull).findFirst().orElse(null);}
+      return favorite != null ? one.apply(favorite): ms.size()==1 ? ms.get(0) : order.stream().map(one).filter(Objects::nonNull).findFirst().orElse(null);}
     MSigL signature(RCC rcc,MName name, RC favorite){ var d= from(rcc.c.name); var m= lookup(rcc,name, favorite);
       return m == null ? null : new MSigL(m.sig.rc, push(B.xs(d.bs), B.xs(m.sig.bs)), d.bs,rcc.c.ts,m.sig.bs,m.sig.ts,m.sig.ret); }
     static void updateG(IGamma g,String x, IT t2){ var t1=g.get(x); var t=t1.undecided()? t2
@@ -480,20 +479,20 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       var all= inferArgs(c,m, es,true); var clsTs= normalize(bs,m.clsBs, all.subList(0,nCls));
       var targs= normalize(bs,m.methBs, all.subList(nCls, all.size())); e = meet(e,rcc.withTs(clsTs)); var m1=m.arguments(clsTs);
       return new Call(e,c.name,or(c.rc,m1.rc), targs, expectArgs(es,m1,targs), meet(c.t,m1.inst(m1.ret0,targs)),c.written);
-    } List<IT> fromArgs(MSigL m,List<IE> es, boolean onlyLiterals){ var n=m.clsArgs.size()+m.methBs.size();
+    } List<IT> fromArgs(MSigL m,List<IE> es, boolean onlyLiterals){
       var is= range(es.size()).filter(i -> !onlyLiterals || es.get(i) instanceof Literal).boxed().toList();
       Function<Integer,List<IT>> ref=i -> refine(m.xs,m.ps0.get(i), es.get(i).t());
-      var lower= filter(is,i -> !(m.ps0.get(i) instanceof RCC)).stream().map(ref); var exact= filter(is,i -> m.ps0.get(i) instanceof RCC).stream().map(ref);
-      return meet(Stream.concat(Stream.of(join(Stream.concat(Stream.of(qMarks(n)), lower).toList())), exact).toList()); }
+      var lower= map(filter(is,i -> !(m.ps0.get(i) instanceof RCC)), ref); var exact= map(filter(is,i -> m.ps0.get(i) instanceof RCC), ref);
+      return meet(push(join(push(qMarks(m.xs.size()), lower)), exact)); }
     List<IT> inferArgs(Call c, MSigL m,List<IE> es, boolean useArgs){ var targs= MSigL.fixTargs(c.targs,m.methBs.size());
-      var args= useArgs ? fromArgs(m, es,false): qMarks(m.clsArgs.size()+m.methBs.size());
+      var args= useArgs ? fromArgs(m, es,false): qMarks(m.xs.size());
       var all= meet(List.of(push(m.clsArgs,targs), args, refine(m.xs,m.ret0,c.t)));
       var written= push(m.clsArgs,c.written ? targs : qMarks(m.methBs.size())); var hard= fromArgs(m, es,true);
       var fixed= zip(written, hard,(w,h)-> decided(w)? w : h); return zip(fixed, all,(b,r)-> decided(b)? b : r);}
     static boolean decided(IT t){ return t.isTV() && !(t instanceof RCC(var rc, _) && rc == null);} RCC self(Literal l){
       return l.anonymous && l.rc == null ? null : l.self(l.rc); }
     IE nextL(List<B> bs, IGamma g, Literal l){ var selfPrecise=self(l); if (!l.expanded){ var cs0=l.cs;
-        var selfSuper= cs0.size()!=1 || selfPrecise == null ? selfPrecise : new RCC(selfPrecise.rc, cs0.getFirst());
+        var selfSuper= cs0.size()!=1 || selfPrecise == null ? selfPrecise : new RCC(selfPrecise.rc, cs0.get(0));
         l = l.withT(l.anonymous ? or(selfSuper,l.t): selfPrecise); if (!(l.t instanceof RCC(_, var c))) return l;
         l = l.anonymous && !c.name.equals(l.name)? implement(l,c, bs): expand(l,true);}
       if (!(l.t instanceof RCC rcc)) return l; var res=new ArrayList<IM>(); var ts=rcc.c.ts; for(var mi : l.ms){
@@ -529,7 +528,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       if(variable(decided)!= null && variable(decided).equals(variable(fromBody)) && !decidedIso)return decided;
       if (!(decided instanceof RCC(var aRc,var aC)&& fromBody instanceof RCC b)) return meet(decided, fromBody);
       if (!aC.name.equals(b.c.name)){ var asDecided= supertypes(b,aC.name);
-        return asDecided.isEmpty()? decided : keep(decided, asDecided.getFirst()); }
+        return asDecided.isEmpty()? decided : keep(decided, asDecided.get(0)); }
       return b.with(or(aRc,b.rc), zip(aC.ts,b.c.ts,this::keep)); } ISig signature(RCC rcc, ISig improvedSig){
       var h= signature(rcc, improvedSig.m, improvedSig.rc); var xs= vars(improvedSig.bs);
       return improvedSig.types(map(h.ps0,p -> h.inst(p, xs)), h.inst(h.ret0, xs)); }
@@ -545,8 +544,8 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       return d.cs.stream().filter(sc -> sc.name.equals(target)).distinct()
         .map(ci -> (RCC)rename(new RCC(src.rc, ci), B.xs(d.bs), src.c.ts)).toList(); } List<IT> propagate(List<String> xs, RCC r, IT t1){
       if (!(t1 instanceof RCC cc)) return qMarks(xs.size()); var c=r.c;if (!cc.c.name.equals(c.name)){ var supOk= supertypes(cc,c.name);
-        if (!supOk.isEmpty()) return propagate(xs,r, supOk.getFirst()); var subOk= supertypes(r, cc.c.name);
-        if (!subOk.isEmpty()) return propagate(xs, subOk.getFirst(), t1); return qMarks(xs.size()); }
+        if (!supOk.isEmpty()) return propagate(xs,r, supOk.get(0)); var subOk= supertypes(r, cc.c.name);
+        if (!subOk.isEmpty()) return propagate(xs, subOk.get(0), t1); return qMarks(xs.size()); }
       var res= zip(c.ts, cc.c.ts,(t,ti)-> t instanceof RCC rr && !(ti instanceof RCC ci && ci.c.name.equals(rr.c.name)) ? qMarks(xs.size()) : refine(xs,t, ti));
       return res.isEmpty()? qMarks(xs.size()) : meet(res);} IE ascribe(IE arg, IT expected, boolean receiver){ if (!(expected instanceof RCC exp)) return arg;
       return switch(arg){ case Call c -> c.children(ascribe(c.e, expected,true), c.es);
@@ -555,7 +554,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
         case Literal l -> { var res=new Literal(imm,l.name,l.bs,l.cs,l.self,l.ms,true);
           yield res.withT(self(res)); } default -> arg; }; } boolean implementable(TName head){ var d= from(head);
       if(d == null)return false; var foreignForbidden=!head.pkg().equals(p.name)&& (!head.visible() || has(d.cs, sealed));
-      return !foreignForbidden && TypeSystem.hasInstance(d);} static IT normalize(IT t, EnumSet<RC> allowed){
+      return !foreignForbidden && TypeSystem.hasInstance(d);} static IT normalize(IT t, Set<RC> allowed){
       if (allowed.size()==1)return t.withRC(allowed.iterator().next()); if (!(t instanceof RCC(var rc,var c))) return t;
       if (!(rc == null || rc == iso && !allowed.contains(iso))) return t;
       return new RCC(allowed.contains(imm)? null : read,c);}
@@ -568,10 +567,10 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
   record ToCore(List<B> ctx, Methods meths){ IE core(IE exp, IE orig){ return switch(exp){ case IE.X(var name, _) -> new IE.X(name);
       case Type(var type, _) -> new Type((RCC)norm(type)); case Literal le -> literal(le,(Literal)orig); case Call e -> { var o=(Call)orig; var ts=o.targs.isEmpty()? e.targs : o.targs;
         yield new Call(core(e.e,o.e), e.name,or(e.rc, imm), range(ts.size()).<IT>mapToObj(i -> targ(e, ts.get(i), i)).toList(), zip(e.es,o.es,this::core), false);
-      }};} IT targ(Call e, IT t,int i){ if (!(t instanceof U)) return norm(fillVoid(t));
+      }};} IT targ(Call e, IT t,int i){ if (!(t == unknown)) return norm(fillVoid(t));
       var m=e.e.t() instanceof RCC rcc ? meths.lookup(rcc,e.name,e.rc): null; var rcs= m == null ? rcs(imm): m.sig.bs.get(i).rcs;
       return voidT(rcs.contains(imm)? imm : rcs.iterator().next()); } static IT voidT(RC rc){ return new RCC(rc,new C(baseVoid,list())); }
-    static IT fillVoid(IT t){ ck(t instanceof Amb); return t instanceof U ? voidT(imm): t instanceof RCC rcc ? rcc.withTs(map(rcc.c.ts, ToCore::fillVoid)): t;}
+    static IT fillVoid(IT t){ ck(t instanceof Amb); return t == unknown ? voidT(imm): t instanceof RCC rcc ? rcc.withTs(map(rcc.c.ts, ToCore::fillVoid)): t;}
     Literal literal(Literal e, Literal o){ ck(!(e.t instanceof RCC)&& !e.t.undecided()); var bs=e.bs;if(e.anonymous && bs.isEmpty()){ var g=new IGamma();
         bs = cat(ftvCs(e.cs), ftvMs(g,e.ms), ftvMs(g,o.ms)).distinct().map(x -> B.get(ctx,x)).toList(); } var name=e.name.arity(bs.size());
       var inner=e.anonymous ? with(bs): new ToCore(bs, meths);
@@ -583,9 +582,9 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       for(var c : cs){ if (!any(res,r -> TypeSystem.equivalent(bs, fill(new RCC(imm,r)), fill(new RCC(imm,c))))) res.add(c);}
       return res;} ToCore with(List<B> bs){ return new ToCore(push(ctx, bs).stream().distinct().toList(), meths);} IM m(IM e, IM o){ var s= sig(e.sig,o.sig);
       return new IM(s,e.xs,e.e == null ? null : with(s.bs).core(e.e,o.e));}
-    static ISig sig(ISig inf, ISig usr){ var ts= zip(usr.ts, inf.ts,(u,i)-> u instanceof U ? i : u);
+    static ISig sig(ISig inf, ISig usr){ var ts= zip(usr.ts, inf.ts,(u,i)-> u == unknown ? i : u);
       return new ISig(or(usr.rc, or(inf.rc, imm)), required(or(usr.m, inf.m)), or(usr.bs, or(inf.bs,list())),
-        map(ts,Frontend::norm), norm(usr.ret instanceof U ? inf.ret : usr.ret), required(or(usr.origin, inf.origin)), usr.abs, usr.idx);} }
+        map(ts,Frontend::norm), norm(usr.ret == unknown ? inf.ret : usr.ret), required(or(usr.origin, inf.origin)), usr.abs, usr.idx);} }
   record Gamma(Gamma tail,String name, IT current){ static final Gamma empty=new Gamma(null,null,null);
     Gamma add(String name, IT t){ return new Gamma(this,name,t);}
     Gamma map(UnaryOperator<IT> f){ return this == empty ? this : new Gamma(tail.map(f), name,current == null ? null : f.apply(current)); }
@@ -601,11 +600,11 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
   record TypeSystem(Function<TName,Literal> decs){ static void allOk(List<Literal> tops, Map<TName,Literal> other){ var map=new HashMap<TName,Literal>();
       tops.forEach(t -> collect(t,map)); var ts=new TypeSystem(n -> from(n,map::get, other)); tops.forEach(l -> ts.litOk(Gamma.empty,l)); }
     static void collect(IE e, HashMap<TName,Literal> map){ if(e instanceof Literal l) map.put(l.name,l); e.children().forEach(c -> collect(c,map)); }
-    boolean kindOf(List<B> bs, IT t, EnumSet<RC> allowed){ if (!allowed.containsAll(caps(bs,t))) return false;
+    boolean kindOf(List<B> bs, IT t, Set<RC> allowed){ if (!allowed.containsAll(caps(bs,t))) return false;
       if (!(t instanceof RCC(_, var c))) return true; var params= decs.apply(c.name).bs;
       return all(zip(c.ts, params,(ti,p)-> kindOf(bs, ti,p.rcs)), v -> v);}
-    void kind(List<B> bs, IT t){ kind(bs,t, allRC);} void kind(List<B> bs, IT t, EnumSet<RC> allowed){ ck(!kindOf(bs,t, allowed)); }
-    static EnumSet<RC> caps(List<B> bs, IT t){ return switch(t){ case RCC(var rc, _) -> rcs(rc);
+    void kind(List<B> bs, IT t, Set<RC> allowed){ ck(!kindOf(bs,t, allowed)); }
+    static Set<RC> caps(List<B> bs, IT t){ return switch(t){ case RCC(var rc, _) -> rcs(rc);
       case RCX(var rc, _) -> rcs(rc); case X(var x)-> B.get(bs,x).rcs; case U _, Amb _ -> throw new Fail(); case ReadImmX(var x)-> {
         var rcs= caps(bs,x);
         yield isoImm.containsAll(rcs)? rcs(imm): rcs(mut, mutH, read, readH).containsAll(rcs)? rcs(read): rcs(read, imm);
@@ -621,9 +620,9 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
         || t1 instanceof RCC(var rc1,var c1)&& any(decs.apply(c1.name).cs, ci -> isSub(bs, rename(new RCC(rc1, ci), B.xs(decs.apply(c1.name).bs), c1.ts), t2));
     } List<IT> typeOf(List<B> bs, Gamma g, IE e,List<IT> rs){ return switch(e){ case IE.X x -> {
         var t=g.bind(x.name); ck(t == null); yield reqs(bs,t, rs,false);} case Type t -> {
-        kind(bs,t.type); var ll= decs.apply(t.type.c.name); ck(!hasInstance(ll)); var rc=t.type.rc;
+        kind(bs,t.type,allRC); var ll= decs.apply(t.type.c.name); ck(!hasInstance(ll)); var rc=t.type.rc;
         var getIso=(rc.readOnly() && !abstractMut(ll)) || rc == mut || rc == mutH; var l= ll.withRC(getIso ? iso : rc);
-        l.ms.forEach(m -> implemented(l,m)); yield reqs(bs,getIso ? t.type.withRC(iso): t.type, rs,true);}
+        l.ms.forEach(m -> ck(m.sig.abs && callable(l.rc,m.sig.rc))); yield reqs(bs,getIso ? t.type.withRC(iso): t.type, rs,true);}
       case Literal l -> literal(bs,g,l, rs); case Call c -> call(bs,g,c, rs); };}
     static boolean hasInstance(Literal l){ return l.self.equals("this") || has(l.cs, captureFree);}
     static long count(String x, IE e, boolean active){ var here=e instanceof IE.X v && v.name.equals(x)?1 :0;
@@ -635,18 +634,17 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       var getIso= ((_l.rc.readOnly() && !abstractMut(_l)&& !selfNamed)|| _l.rc == mut)&& captureFree(_l.bs,g.filterFTV(_l, cf), _l);
       var l=getIso ? _l.withRC(iso): _l;
       ck(any(rs,r -> !(r instanceof RCC)));
-      var thisType=l.self(l.rc); kind(bs1,thisType); litOk(discard(g.filterFTV(l, cf), l), l);
+      var thisType=l.self(l.rc); kind(bs1,thisType,allRC); litOk(discard(g.filterFTV(l, cf), l), l);
       ck(selfNamed && count(_l.self,_l,false)==0); ck(any(l.ms,m -> m.e != null && !hasInstance(l)&& !callable(l.rc,m.sig.rc)));
-      l.ms.forEach(m -> implemented(l,m)); return reqs(bs1,thisType, rs,false);}
+      l.ms.forEach(m -> ck(m.sig.abs && callable(l.rc,m.sig.rc))); return reqs(bs1,thisType, rs,false);}
     static boolean captureFree(List<B> bs, Gamma g, IE e){ if (!(e instanceof IE.X x)) return e.children().allMatch(c -> captureFree(bs,g,c));
       return g.bind(x.name)== null || all(caps(bs,g.bind(x.name)), RC::isoImm);}
-    void implemented(Literal l, IM m){ ck(m.sig.abs && callable(l.rc,m.sig.rc)); }
     static boolean callable(RC litRC, RC recRc){ return recRc != mut || !litRC.readOnly(); } void litOk(Gamma g, Literal l){
-      if(has(l.cs, baseId)){ var m=l.ms.getFirst(); var isId= switch(m.e){ case null -> true;
-          case IE.X(var name, _) -> name.equals(m.xs.getFirst());
-          case Call c -> c.e instanceof IE.X(var recv, _) && recv.equals(m.xs.getFirst()) && c.name.equals(new MName(".as",1))
-            && m.sig.ts.getFirst() instanceof RCC(_, var cc)&& has(decs.apply(cc.name).cs, baseContainer); default -> false; }; ck(!isId);}
-      var delta=l.bs; for(var c : l.cs){ kind(delta,new RCC(imm,c)); ck(!hasInstance(decs.apply(c.name))); } var sources=new ArrayList<ISig>();
+      if(has(l.cs, baseId)){ var m=l.ms.get(0); var isId= switch(m.e){ case null -> true;
+          case IE.X(var name, _) -> name.equals(m.xs.get(0));
+          case Call c -> c.e instanceof IE.X(var recv, _) && recv.equals(m.xs.get(0)) && c.name.equals(new MName(".as",1))
+            && m.sig.ts.get(0) instanceof RCC(_, var cc)&& has(decs.apply(cc.name).cs, baseContainer); default -> false; }; ck(!isId);}
+      var delta=l.bs; for(var c : l.cs){ kind(delta,new RCC(imm,c),allRC); ck(!hasInstance(decs.apply(c.name))); } var sources=new ArrayList<ISig>();
       for(var parent : l.cs){ var parentDef= decs.apply(parent.name); for(var m : parentDef.ms){
           if (!m.sig.origin.equals(parentDef.name)) continue; var s=m.sig; var canonical= canonical(l,s.m,s.rc).bs;
           var mapXs=B.xs(push(s.bs,parentDef.bs)); var mapTs= push(vars(canonical), parent.ts);
@@ -656,8 +654,8 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
           for(int i=0;i < chosen.ts.size(); i++) ck(!sameCap(ctx, chosen.ts.get(i), s.ts.get(i)) || !isSub(ctx,s.ts.get(i), chosen.ts.get(i)));
           ck(!sameCap(ctx, chosen.ret,s.ret)|| !isSub(ctx, chosen.ret,s.ret)); } });
       var g1=g.add(l.self,l.self(l.rc.isoToMut())); for(var m : l.ms){ var g2=vpaOf(g1,l,m);
-        var allBs= push(delta,m.sig.bs); m.sig.ts.forEach(t -> kind(allBs,t)); kind(allBs,m.sig.ret); if(m.e == null) continue;
-        for(int i=0;i < m.xs.size(); i++) g2 = g2.add(m.xs.get(i), m.sig.ts.get(i)); ck(typeOf(allBs,g2,m.e, list(m.sig.ret)).getFirst()== null);
+        var allBs= push(delta,m.sig.bs); m.sig.ts.forEach(t -> kind(allBs,t,allRC)); kind(allBs,m.sig.ret,allRC); if(m.e == null) continue;
+        for(int i=0;i < m.xs.size(); i++) g2 = g2.add(m.xs.get(i), m.sig.ts.get(i)); ck(typeOf(allBs,g2,m.e, list(m.sig.ret)).get(0)== null);
         for(int i=0;i < m.xs.size(); i++){ var x=m.xs.get(i); if(kindOf(allBs,m.sig.ts.get(i), rcs(mut, read, mutH, readH, imm))) continue;
           ck(count(x,m.e, true)>0 && count(x,m.e, false)!=1);}
       }} static ISig canonical(Literal l,MName name, RC rc){ return find(l.ms,m -> m.sig.m.equals(name)&& m.sig.rc == rc).sig;}
@@ -671,7 +669,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
         return B.get(bs,x.name).rcs.size()==1 && caps(bs,a).equals(caps(bs,b)); }
       return aRc == bRc && aC.name.equals(bC.name)&& all(zip(aC.ts,bC.ts,(x,y)-> equivalent(bs,x,y)), v -> v);}
     List<IT> call(List<B> bs, Gamma g, Call c,List<IT> rs){
-      if (!(typeOf(bs,g,c.e,list()).getFirst() instanceof RCC rcc0)) throw new Fail(); var d= decs.apply(rcc0.c.name);
+      if (!(typeOf(bs,g,c.e,list()).get(0) instanceof RCC rcc0)) throw new Fail(); var d= decs.apply(rcc0.c.name);
       var sig= required(find(d.ms,m -> m.sig.m.equals(c.name)&& m.sig.rc == c.rc)).sig;
       ck(sig.bs.size()!= c.targs.size()); for(int i=0;i < c.targs.size(); i++) kind(bs,c.targs.get(i), sig.bs.get(i).rcs);
       var xs=B.xs(push(d.bs, sig.bs)); var ts0= push(rcc0.c.ts,c.targs);
@@ -685,17 +683,16 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
         var ok= filter(candidates,m -> isSub(bs,m.t, req)); return ok.isEmpty()? null : best(bs, ok); }); }
     IT best(List<B> bs,List<MType> ms){ var ts= map(ms,MType::t);
       return find(ts,a -> !any(ts,b -> !b.equals(a)&& isSub(bs,b,a)));}
-    static RC lub(EnumSet<RC> rcs){ return bound(rcs, RC::isSubType);} static RC glb(EnumSet<RC> rcs){ return bound(rcs,(a,b)-> b.isSubType(a)); }
-    static RC bound(EnumSet<RC> rcs, BiPredicate<RC,RC> le){ var bs= Stream.of(RC.values()).filter(b -> all(rcs,x -> le.test(x,b))).toList();
+    static RC lub(Set<RC> rcs){ return bound(rcs, RC::isSubType);} static RC glb(Set<RC> rcs){ return bound(rcs,(a,b)-> b.isSubType(a)); }
+    static RC bound(Set<RC> rcs, BiPredicate<RC,RC> le){ var bs= Stream.of(RC.values()).filter(b -> all(rcs,x -> le.test(x,b))).toList();
       return find(bs,b -> all(bs,o -> le.test(b,o))); } static List<MType> promotions(List<B>d,MType m){
-      var out=new LinkedHashSet<MType>(list(m, apply(d,m, flexy,_ -> flexy, flexy), apply(d,m,strong,_ -> strong,strong),
-        apply(d,m,useRead,_ -> useRead, hyg), apply(d,m, hyg,_ -> flexy, hyg)));
-      for(int i=0;i < m.ts.size(); i++){ var ii=i; out.add(apply(d,m, flexy,j -> j == ii ? hyg : flexy, hyg)); } return List.copyOf(out);}
-    static MType apply(List<B>d,MType m, Mode rcM, IntFunction<Mode> tsM, Mode retM){
-      return new MType(rcM.of(m.rc), range(m.ts.size()).mapToObj(j -> modeF(d,m.ts.get(j), tsM.apply(j), TypeSystem::glb)).toList(), modeF(d,m.t, retM, TypeSystem::lub)); }
-    static IT modeF(List<B>d, IT t, Mode mode, Function<EnumSet<RC>,RC> f){ return switch(t){ case RCC rcc -> rcc.withRC(mode.of(rcc.rc));
+      return Stream.concat(Stream.of(m, apply(d,m, flexy,flexy,-1, flexy), apply(d,m,strong,strong,-1,strong), apply(d,m,useRead,useRead,-1, hyg), apply(d,m, hyg,flexy,-1, hyg)),
+        range(m.ts.size()).mapToObj(i -> apply(d,m, flexy,flexy,i, hyg))).distinct().toList();}
+    static MType apply(List<B>d,MType m, Mode rcM, Mode tsM,int at, Mode retM){
+      return new MType(rcM.of(m.rc), range(m.ts.size()).mapToObj(j -> modeF(d,m.ts.get(j), j == at ? hyg : tsM, TypeSystem::glb)).toList(), modeF(d,m.t, retM, TypeSystem::lub)); }
+    static IT modeF(List<B>d, IT t, Mode mode, Function<Set<RC>,RC> f){ return switch(t){ case RCC rcc -> rcc.withRC(mode.of(rcc.rc));
         case RCX rcx -> rcx.withRC(mode.of(rcx.rc)); case X x -> modeVar(d,x, rc -> rc, mode,f,t);
         case ReadImmX(var x)-> modeVar(d,x, RC::readImm, mode,f,t); case U _, Amb _ -> t; }; }
-    static IT modeVar(List<B>d,X x, UnaryOperator<RC> inst, Mode mode, Function<EnumSet<RC>,RC> f, IT original){
+    static IT modeVar(List<B>d,X x, UnaryOperator<RC> inst, Mode mode, Function<Set<RC>,RC> f, IT original){
       var rcs= EnumSet.copyOf(map(B.get(d,x.name).rcs, inst)); if(all(rcs, rc -> mode.of(rc)== rc)) return original;
       return new RCX(f.apply(EnumSet.copyOf(map(rcs, mode::of))), x);} }}
