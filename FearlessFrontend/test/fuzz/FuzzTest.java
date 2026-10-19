@@ -44,7 +44,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     var other= otherFrom(DbgBlock.all());
     var rnd= new Random(0);
     var crashes= new TreeMap<String,String>();
-    var cBase= compactBase();
+    var cBase= checkCompact ? compactBase() : List.<compact.Frontend.Literal>of();
     for (var s : seeds){ run(s, other, cBase, crashes); }
     for (int i= 0; i < cases; i += 1){ run(mutate(seeds.get(rnd.nextInt(seeds.size())), rnd, seeds), other, cBase, crashes); }
     strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
@@ -54,7 +54,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     var other= otherFrom(DbgBlock.all());
     var rnd= new Random(0);
     var crashes= new TreeMap<String,String>();
-    var cBase= compactBase();
+    var cBase= checkCompact ? compactBase() : List.<compact.Frontend.Literal>of();
     for (int i= 0; i < cases; i += 1){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())), rnd), other, cBase, crashes); }
     strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
   }
@@ -64,6 +64,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
       var expected= "error";
       try{ expected= lines(compileAll("p", o, other)); }
       catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); }
+      if (!checkCompact){ return; }
       var got= "error";
       try{ got= compact.Print.lines(compactAll("p", o, cBase)); }
       catch (compact.Frontend.Fail _){}

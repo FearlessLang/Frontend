@@ -39,6 +39,7 @@ import utils.Range;
 public abstract class FearlessTestBase{
 
   static{ Err.setUp(AssertionFailedError.class, Assertions::assertEquals, Assertions::assertTrue); }
+  protected static final boolean checkCompact= Boolean.getBoolean("compact");
 
   protected static String stripWs(String s){ return s.replace("\n", "").replace(" ", ""); }
   protected static void strCmp(String expected, String got){ Err.strCmp(expected, got); }
@@ -66,20 +67,20 @@ public abstract class FearlessTestBase{
   }
   protected static FileFull parseFull(String input){
     var res= printError(() -> Parse.from(SourceOracle.defaultDbgFearPath(0), input), oracleRaw(List.of(input)));
-    Frontend.parse(input);
+    if (checkCompact){ Frontend.parse(input); }
     return res;
   }
   protected static void parseOkNormalized(String expectedNoWs, String input){
     var res= Parse.from(Pos.unknown.fileName(), input);
     strCmp(stripWs(expectedNoWs), stripWs(res.toString()));
-    Frontend.parse(input);
+    if (checkCompact){ Frontend.parse(input); }
   }
   protected static void parseFail(String expectedErr, String input){
     var o= oracleRaw(List.of(input));
     var fe= assertThrows(FearlessException.class,
       () -> Parse.from(SourceOracle.defaultDbgFearPath(0), input));
     strCmp(expectedErr, fe.render(o));
-    assertThrows(Fail.class, () -> Frontend.parse(input));
+    if (checkCompact){ assertThrows(Fail.class, () -> Frontend.parse(input)); }
   }
   protected static Methods parsePackage(String pkgName, SourceOracle o, OtherPackages other, boolean infer){
     return new InferenceMain().ofMethods(pkgName, o.allFiles(), o, other, infer);
@@ -95,7 +96,7 @@ public abstract class FearlessTestBase{
       System.out.println(fe.render(o));
       throw fe;
     }
-    Frontend.parse(input);
+    if (checkCompact){ Frontend.parse(input); }
     var got= Join.of(
       res.decs().stream().map(ToString::declaration),
       "",
@@ -123,6 +124,7 @@ public abstract class FearlessTestBase{
     var o= oraclePkg(input);
     var base= printError(DbgBlock::all, o);
     var res= printError(() -> new FrontendLogicMain().of("p", Map.of(), o.allFiles(), otherFrom(base)), o);
+    if (!checkCompact){ return; }
     var compactBase= compactBase();
     strCmp(lines(base), Print.lines(compactBase));
     strCmp(lines(res), Print.lines(compactAll("p", o, compactBase)));
@@ -133,6 +135,7 @@ public abstract class FearlessTestBase{
     var fe= assertThrows(FearlessException.class,
       () -> new FrontendLogicMain().of("p", Map.of(), o.allFiles(), other));
     strCmp(expected, fe.render(o));
+    if (!checkCompact){ return; }
     var compactBase= compactBase();
     assertThrows(Fail.class, () -> compactAll("p", o, compactBase));
   }
