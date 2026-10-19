@@ -181,25 +181,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       .line(x+" is a type parameter; object literals can only implement nominal types.")
       .ex(at));
   }
-  public FearlessException methodNotInferred(Literal at, M m){
-    var n= m.sig().ts().size();
-    return addExpFrame(at, err()
-      .line("Cannot infer signature and name for a method with "+count(n, "parameter")+".")
-      .line("No supertype of "+err().expRepr(at)+" has a method with "+count(n, "parameter")+".")
-      .ex(at));
-  }
-  public FearlessException literalHeadNotInferred(Literal at, T.C c){
-    var unknown= IntStream.range(0, c.ts().size()).filter(i -> TypeSystem.mentionsInferUnknown(c.ts().get(i))).boxed().toList();
-    var head= err().cp().t.ofFull(c.name())+Join.of(c.ts().stream().map(t -> t.equals(TypeRename.inferUnknown) ? "?" : err().cp().msgT(t)), "[", ",", "]", "");
-    var xs= decs.apply(c.name()).bs();
-    var s= unknown.size() == 1 ? "" : "s";
-    return addExpFrame(at, err()
-      .line("Type inference concluded that this object literal implements "+disp(head)+",")
-      .line("but it could not infer type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
-        +" for type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i).x())), "", " and ", "", "")
-        +" of "+err().tNameADisp(c.name())+".")
-      .ex(at));
-  }
   public FearlessException typeDeclaredInMethod(E at, Literal l){
     return addExpFrame(at, err()
       .line("The type "+err().tNameADisp(l.name())+" is declared inside a method body.")
@@ -491,32 +472,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var required= reqs.getFirst().t(); //should make an attempt to say what the generics in the result should have been instantiate to instead
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
     //TODO: line reqs.getFirst().t(); above, should we use the best return with ordering on rcs?
-    if (Err.isInferErr(required)){ return withCallSpans(ambiguousTypeArg(d, c, (T.RCC)required).ex(ts.scope().pushCallArgi(c, argi).contextE()), c); }
     var e= err()
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, required)+" (the type required by the method signature).");
     addNoPrecedenceHintIfOperator(e, c);
     return withCallSpans(e.ex(ts.scope().pushCallArgi(c, argi).contextE()), c);
-  }
-  private Err ambiguousTypeArg(Literal d, Call c, T.RCC required){
-    var sig= OneOr.of("Method mismatch", d.ms().stream().map(M::sig).filter(s -> s.m().equals(c.name()) && s.rc() == c.rc()));
-    var k= c.targs().indexOf(required);
-    var x= disp(sig.bs().get(k).x());
-    var cands= required.c().ts().stream().map(t -> err().typeRepr(true, t)).toList();
-    var common= commonSupertypes(required.c().ts()).stream().map(err()::tNameA).toList();
-    var e= err().pCallCantBeSatisfied(d, c)
-      .line("The type argument "+x+" of "+disp(c.name().s())+" is inferred from the arguments, but they disagree: some need "+Join.of(cands, "", ", some need ", "")+".");
-    if (common.isEmpty()){ e.line("No type is a supertype of all of them."); }
-    else{ e.line(x+" could be "+Join.of(common.stream().map(Err::disp), "", " or ", "")+": each is a supertype of "+Join.of(cands, "", " and ", "")+". The choice is ambiguous."); }
-    var targs= IntStream.range(0, sig.bs().size()).mapToObj(j -> j == k ? (common.isEmpty() ? "Type"+(j+1) : common.getFirst()) : err().cp().msgT(c.targs().get(j))).toList();
-    var args= c.es().stream().map(a -> err().cp().limit(a, 20)).toList();
-    return e.line("Write the type argument explicitly, as in "+disp(err().cp().limit(c.e(), 20)+c.name().s()+Join.of(targs, "[", ",", "]")+Join.of(args, "(", ", ", ")"))+".");
-  }
-  private List<TName> commonSupertypes(List<T> cands){
-    if (!cands.stream().allMatch(t -> t instanceof T.RCC)){ return List.of(); }
-    var heads= cands.stream().map(t -> new ArrayList<>(decs.apply(((T.RCC)t).c().name()).cs().stream().map(T.C::name).toList())).reduce((a,b) -> { a.retainAll(b); return a; }).get();
-    return heads.stream().filter(h -> heads.stream().noneMatch(h2 -> !h2.equals(h) && decs.apply(h2).cs().stream().anyMatch(ci -> ci.name().equals(h)))).toList();
   }
   private void addNoPrecedenceHintIfOperator(Err e, Call c){
     var s= c.name().s();

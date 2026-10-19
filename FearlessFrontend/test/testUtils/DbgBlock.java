@@ -93,7 +93,7 @@ public final class DbgBlock{
 
 
 
-public static String _baseBody= "Sealed:{} InferUnknown:Sealed{} InferErr[A,B]:Sealed{} InferErr[A,B,C]:Sealed{} InferErr[A,B,C,D]:Sealed{}";
+public static String _baseBody= "Sealed:{}";
 public static String baseBody= """
 Sealed:{}
 CaptureFree: {}
@@ -108,10 +108,6 @@ MList[E:*]: BaseContainer[E]{
   imm .as[T2](f: BaseId[imm E,T2]): MList[T2] -> Nope!;
   .get: imm E -> Nope!;
   }
-InferUnknown:Sealed{}
-InferErr[A,B]:Sealed{}
-InferErr[A,B,C]:Sealed{}
-InferErr[A,B,C,D]:Sealed{}
 Todo: { ![R:**]: R -> Todo!;  }
 
 

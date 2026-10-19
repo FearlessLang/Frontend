@@ -225,102 +225,69 @@ A[X:*,Y:*]:{}
 B[X:*]:A[X,Default]{}
 Break:{ #(b: B[Foo]): A[Foo,Default] -> b }
 """));}
-@Test void literalCannotImplementATypeVariable(){fail("""
+@Test void literalCannotImplementATypeVariable(){failWf("""
 001| A[X:*]:{ #: X -> {} }
-   |          --------^^
+   |                  ^^
 
-While inspecting object literal "{...}" > "#" line 1
+While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "X".
 "X" is a type parameter; object literals can only implement nominal types.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso {}
 """, List.of("""
 A[X:*]:{ #: X -> {} }
 """));}
-@Test void literalWithMethodCannotImplementATypeVariable(){fail("""
+@Test void literalWithMethodCannotImplementATypeVariable(){failWf("""
 001| A[X:*]:{ #: X -> {this} }
-   |          --------^^^^^^
+   |                  ^^^^^^
 
-While inspecting object literal "{...}" > "#" line 1
+While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "X".
 "X" is a type parameter; object literals can only implement nominal types.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso {}
 """, List.of("""
 A[X:*]:{ #: X -> {this} }
 """));}
-@Test void literalMethodNotInferredAsReceiver(){fail("""
+@Test void literalMethodNotInferredAsReceiver(){failWf("""
 001| A[X:*]:{ #: X -> {this}* }
-   |          --------^^^^^^-
+   |                  -^^^^-
 
-While inspecting object literal "{...}" > "#" line 1
+While inspecting object literal "{...}"
 Cannot infer signature and name for a method with 0 parameters.
 No supertype of object literal "{...}" has a method with 0 parameters.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso {}
 """, List.of("""
 A[X:*]:{ #: X -> {this}* }
 """));}
-@Test void uninferredLiteralInGenericDeclaration(){fail("""
+@Test void uninferredLiteralInGenericDeclaration(){failWf("""
 004| B[R5:*]: { mut .loop(f: mut Flow[R5]): mut B[R5] -> f.match{ .return(rv) -> Any#; }**; }
-   |            ------------------------------------------------^^^^^^^^^^^^^^^^^^^^^^^^--
+   |                                                            ^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "iso Match[R5,base.InferUnknown]" > ".loop(_)" line 4
+While inspecting object literal instance of "Match[_,_]"
 Type inference concluded that this object literal implements "Match[R5,?]",
 but it could not infer type argument 2 for type parameter "R" of "Match[_,_]".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Match[R5,-.Inf-own]{mut .return(rv:R5):-.Inf-own->Any#[imm,-.Inf-own]}
 """, List.of("""
 Any:{#[T:*]:T->Any#}
 Flow[T:*]: { mut .match[R:*](m: mut Match[T,R]): R }
 Match[T:*,R:*]: { mut .return(t: T): R; }
 B[R5:*]: { mut .loop(f: mut Flow[R5]): mut B[R5] -> f.match{ .return(rv) -> Any#; }**; }
 """));}
-@Test void uninferredLiteralHeadPrintsEachKnownTypeArgumentOnce(){fail("""
+@Test void uninferredLiteralHeadPrintsEachKnownTypeArgumentOnce(){failWf("""
 004| B[R5:*,R6:*]: { mut .loop(f: mut Flow[R5,R6]): mut B[R5,R6] -> f.match{ .return(rv, uv) -> Any#; }**; }
-   |                 ------------------------------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^--
+   |                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "iso Match[R5,R6,base.InferUnknown]" > ".loop(_)" line 4
+While inspecting object literal instance of "Match[_,_,_]"
 Type inference concluded that this object literal implements "Match[R5,R6,?]",
 but it could not infer type argument 3 for type parameter "R" of "Match[_,_,_]".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Match[R5,R6,-.Inf-own]{mut .return(rv:R5,uv:R6):-.Inf-own->Any#[imm,-.Inf-own]}
 """, List.of("""
 Any:{#[T:*]:T->Any#}
 Flow[T:*,U:*]: { mut .match[R:*](m: mut Match[T,U,R]): R }
 Match[T:*,U:*,R:*]: { mut .return(t: T, u: U): R; }
 B[R5:*,R6:*]: { mut .loop(f: mut Flow[R5,R6]): mut B[R5,R6] -> f.match{ .return(rv, uv) -> Any#; }**; }
 """));}
-@Test void explicitInferErrReturnType(){fail("""
-002| C:{ .m: base.InferErr[A,B,A] -> B }
-   |     ----------------------------^
-
-While inspecting object literal instance of "B" > ".m" line 2
-The body of method ".m" of type declaration "C" is an expression returning "iso B".
-Object literal instance of "B" has type "iso B".
-It is checked against "base.InferErr[A,B,A]", which is not a type: it stands for a type argument that inference could not choose among "A", "B", "A".
-
-See inferred typing context below for how type "base.InferErr[A,B,A]" was introduced: (compression indicated by `-`)
-C:{.m:-.InferErr[A,B,A]->B}
-""", List.of("""
-A:{} B:{}
-C:{ .m: base.InferErr[A,B,A] -> B }
-"""));}
-@Test void literalCannotBePassedAsATypeVariable(){fail("""
+@Test void literalCannotBePassedAsATypeVariable(){failWf("""
 001| A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
-   |                            ----------------^^-
+   |                                            ^^
 
-While inspecting object literal "{...}" > ".k" line 1
+While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "X".
 "X" is a type parameter; object literals can only implement nominal types.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso {}
 """, List.of("""
 A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
 """));}
