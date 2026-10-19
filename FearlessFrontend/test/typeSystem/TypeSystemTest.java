@@ -4655,4 +4655,25 @@ A:{ .id[Y:**](y:Y):Y -> y; .u(tiJs:A):A -> this.id(tiJs) }
 use base.F as F;
 A:{ .m(_aimpl:A):A; .k(f:F[A,A]):A; .z:A -> this.k{::.m(this)} }
 """));}
+@Test void callResultDeeperThanTheLimit(){fail("""
+002| U[X]:{ .m(k: K[[###]]): Box[Box[X]] -> k.get }
+   |        [###]^^^^^
+
+While inspecting method call ".get" > ".m(_)" line 2
+The body of method ".m(_)" of type declaration "U[_]" is an expression returning "Box[Box[Box[[###]".
+Method call "K[_].get" has type "Box[Box[Box[[###]" instead of a subtype of "Box[Box[X]]".
+
+See inferred typing context below for how type "Box[Box[X]]" was introduced: (compression indicated by `-`)
+U[X:imm]:{.m(k:K[[###]]):Box[Box[X]]->k.get}
+""", List.of("A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }\nU[X]:{ .m(k: K["+"Box[".repeat(97)+"A"+"]".repeat(97)+"]): Box[Box[X]] -> k.get }\n"));}
+@Test void unrelatedTypesInsideAnInferredTypeArgument(){failWf("""
+002| U:{ .mk[R]: R; .two[T](a: T, b: T, c: Box[T]): A; .use(y: Y, z: Z): A -> this.two(y, z, this.mk) }
+[###]
+The type argument "T" of ".two" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+No type is a supertype of all of them.
+[###]
+""", List.of("""
+A:{} Y:{} Z:{} Box[X]:{}
+U:{ .mk[R]: R; .two[T](a: T, b: T, c: Box[T]): A; .use(y: Y, z: Z): A -> this.two(y, z, this.mk) }
+"""));}
 }
