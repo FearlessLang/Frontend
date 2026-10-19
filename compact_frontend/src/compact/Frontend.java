@@ -217,17 +217,16 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
   static boolean floatOk(String raw){ var soft= raw.endsWith("soft"); var ns= raw.replace("soft", "").replace("_", ""); var d= Double.parseDouble(ns);
     return Double.isFinite(d) && (soft || (d == 0 ? new BigDecimal(ns.replaceAll("[eE].*", "")) : new BigDecimal(ns).subtract(new BigDecimal(d))).signum() == 0); }
   public sealed interface IT{ default boolean isTV(){ return true; }
-    default long badness(){ return 0; } default Optional<RC> explicitRC(){ return empty(); } default int depth(){ return 1; }
+    default Optional<RC> explicitRC(){ return empty(); } default int depth(){ return 1; }
     record X(String name) implements IT{} record RCX(RC rc, X x) implements IT{ @Override public Optional<RC> explicitRC(){ return of(rc); } }
     record ReadImmX(X x) implements IT{} record C(TName name, List<IT> ts, int depth){
       C(TName name, List<IT> ts){ this(name, ts, 1+ts.stream().mapToInt(IT::depth).max().orElse(1)); } }
     record RCC(Optional<RC> rc, C c) implements IT{ public RCC{ if (c.depth > 100){ throw new Fail(); } } RCC withTs(List<IT> ts){ return withRCTs(rc, ts); }
       RCC withRCTs(Optional<RC> rc, List<IT> ts){ var c1= new C(c.name, ts); return c1.depth > 100 ? this : new RCC(rc, c1); }
-      @Override public long badness(){ return c.ts.stream().mapToLong(IT::badness).sum(); }
       @Override public boolean isTV(){ return all(c.ts, IT::isTV); } @Override public int depth(){ return c.depth; }
       @Override public Optional<RC> explicitRC(){ return rc; } } enum U implements IT{ Instance;
-      @Override public boolean isTV(){ return false; } @Override public long badness(){ return 1; } @Override public boolean undecided(){ return true; } }
-    record Amb(List<IT> cs) implements IT{ @Override public boolean isTV(){ return false; } @Override public long badness(){ return 1; } @Override public boolean undecided(){ return true; } }
+      @Override public boolean isTV(){ return false; } @Override public boolean undecided(){ return true; } }
+    record Amb(List<IT> cs) implements IT{ @Override public boolean isTV(){ return false; } @Override public boolean undecided(){ return true; } }
     default boolean undecided(){ return false; } default IT withRC(RC rc){ return switch (this){
       case RCC(_, var c) -> new RCC(of(rc), c); case RCX(_, var x) -> new RCX(rc, x); case X x -> new RCX(rc, x);
       case ReadImmX(var x) -> new RCX(rc, x); case U _, Amb _ -> this; };} default Stream<String> ftv(){ return switch (this){ case X(var name) -> Stream.of(name);
@@ -429,19 +428,14 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       g.declare(di.thisName, di.self(mCore.sig.rc)); var bs= push(di.bs, m.sig.bs.get());
       ei = nextStar(bs, g, ei); return new IM(mCore.sig, xs, of(new ToCore(bs, this).core(ei, e))); } IE meet(IE e, IT t){
       if (e instanceof Type tt){ return nextT(tt); } if (e instanceof Literal l && l.t.isTV()){ return e; } e = ascribe(e, t, false);
-      return e.withT(meet(e.t(), t)); } IT leastBad(RCC a, RCC b){ var aSuper= isSuper(a.c.name, b.c.name);
-      var bSuper= isSuper(b.c.name, a.c.name);
-      var aBad= bSuper ? Math.max(adaptedSuperTs(a, b.c.name).getFirst().badness(), a.badness()) : a.badness();
-      var bBad= aSuper ? Math.max(adaptedSuperTs(b, a.c.name).getFirst().badness(), b.badness()) : b.badness();
-      if (aBad != bBad){ return aBad < bBad ? a : b; } if (aSuper){ return b; } if (bSuper){ return a; }
-      if (a.depth() != b.depth()){ return a.depth() < b.depth() ? a : b; } return a.c.name.s.compareTo(b.c.name.s) < 0 ? a : b; }
-    IT leastBad(IT a, IT b){ var ra= rank(a); var rb= rank(b); return ra != rb ? (ra > rb ? a : b) : Print.of(a).compareTo(Print.of(b)) < 0 ? a : b; }
-    static int rank(IT t){ return t instanceof RCC ? 2 : t instanceof RCX ? 1 : 0; }
+      return e.withT(meet(e.t(), t)); } IT belowOrDecided(RCC x1, RCC x2){ var s1= below(x1, x2); if (s1 != null){ return s1.isTV() || !x2.isTV() ? s1 : x2; }
+      var s2= below(x2, x1); return s2 == null ? x1 : s2.isTV() || !x1.isTV() ? s2 : x1; } IT below(RCC sub, RCC sup){ var d= from(sub.c.name); if (d == null){ return null; } var ps= filter(d.cs, c -> c.name.equals(sup.c.name)); if (ps.isEmpty()){ return null; }
+      var refined= meet(map(ps, c -> refine(B.xs(d.bs), new RCC(empty(), c), sup))); return sub.withRCTs(meetRcNoH(sub.rc, sup.rc), meet(sub.c.ts, refined)); }
     IT meet(IT t1, IT t2){ if (t2.undecided()){ return t1 instanceof U ? t2 : t1; } if (t1.undecided() || t1.equals(t2)){ return t2; }
       if (t1 instanceof ReadImmX(var x1) && x1.equals(t2)){ return t1; } if (t2 instanceof ReadImmX(var x2) && x2.equals(t1)){ return t2; }
-      if (t1 instanceof RCC x1 && t2 instanceof RCC x2){ if (!x1.c.name.equals(x2.c.name)){ return leastBad(x1, x2); }
+      if (t1 instanceof RCC x1 && t2 instanceof RCC x2){ if (!x1.c.name.equals(x2.c.name)){ return belowOrDecided(x1, x2); }
         return x1.withRCTs(meetRcNoH(x1.rc, x2.rc), meet(x1.c.ts, x2.c.ts)); }
-      if (!(t1 instanceof RCX x1 && t2 instanceof RCX(var rc2, var x2)) || !x1.x.equals(x2)){ return leastBad(t1, t2); }
+      if (!(t1 instanceof RCX x1 && t2 instanceof RCX(var rc2, var x2)) || !x1.x.equals(x2)){ return t1; }
       return x1.withRC(meetRcNoH(of(x1.rc), of(rc2)).get()); } static Optional<RC> meetRcNoH(Optional<RC> a, Optional<RC> b){
       if (a.isEmpty()){ return b; } if (b.isEmpty()){ return a; } var x= noH(a.get()); var y= noH(b.get());
       if (x == y || y == iso || y == read && x != iso){ return of(x); } if (x == iso || x == read){ return of(y); }

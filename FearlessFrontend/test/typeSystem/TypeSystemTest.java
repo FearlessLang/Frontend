@@ -573,12 +573,12 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
-Type argument 1 ("base.Void") does not satisfy the bounds
+Type argument 1 ("B") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-a.id[imm,-.Void](b)
+a.id[imm,B](b)
 """, List.of("""
 A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
@@ -4216,11 +4216,11 @@ TypeSystem.methodTableOk rather than reporting a user error.*/
 
 While inspecting ".take(_,_)" line 11
 This call to method "mut Block[_].let(_,_)" cannot typecheck.
-Argument 1 has type "mut MF[mut Opt[imm E]]".
-That is not a subtype of "mut MF[Opt[imm E]]" (the type required by the method signature).
+Argument 1 has type "mut MF[mut Opt[E]]".
+That is not a subtype of "mut MF[Opt[E]]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.let[mut,Opt[imm E]](mut MF[mut Opt[imm E]]{mut #:mut Opt[imm E]->s.opt[mut](e)},-)
+-.let[mut,Opt[E]](mut MF[mut Opt[E]]{mut #:mut Opt[E]->s.opt[mut](e)},-)
 """, List.of("""
 use base.MF as MF;
 Blocks: { #[R:*]: mut Block[R] -> {} }
