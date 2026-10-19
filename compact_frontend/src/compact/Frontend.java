@@ -1,6 +1,7 @@
 package compact;
 import static compact.Frontend.TK.*;
 import static compact.Frontend.RC.*;
+import static compact.Frontend.Mode.*;
 import static java.util.Optional.*;
 import compact.Frontend.IT.*;
 import compact.Frontend.IE.Call;
@@ -179,7 +180,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     List<B> parseBs(boolean mustNew){ var res= parseGroupSep(p -> p.parseB(mustNew), Parser::onCommaB); ck(dup(B.xs(res))); return res; } B parseB(boolean mustNew){
       var x= parseTX(mustNew).name; if (end()){ return new B(x, EnumSet.of(imm)); } expect(Colon); ck(end()); if (!peek(Op)){
         var rcs= splitBy(commaSkip, Parser::parseRC); ck(dup(rcs)); return new B(x, EnumSet.copyOf(rcs)); }
-      return switch (expect(Op).content){ case "**" -> new B(x, EnumSet.allOf(RC.class)); case "*" -> new B(x, EnumSet.of(imm, mut, read));
+      return switch (expect(Op).content){ case "**" -> new B(x, allRC); case "*" -> new B(x, EnumSet.of(imm, mut, read));
         default -> throw new Fail(); }; } Declaration parseDeclaration(boolean top){ var c= parseTName(); ck(!isKind(c.s, _XId));
       var bs= peek(_SquareGroup) ? parseBs(top) : List.<B>of(); var Xs= B.xs(bs); var outer= names; var owner= top ? new Owner() : names.owner;
       names = new Names(names.xs, list(), push(names.hiddenXs, names.Xs), owner).add(list(), Xs); c = c.withArity(Xs.size()); owner.decs.add(c); expect(Colon);
@@ -222,6 +223,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     widen= new TName("base.WidenTo", 1), sealed= new TName("base.Sealed", 0), captureFree= new TName("base.CaptureFree", 0), baseId= new TName("base.BaseId", 2),
     baseContainer= new TName("base.BaseContainer", 1), inferUnknown= new TName("base.InferUnknown", 0);
   static final List<TName> inferErrs= list(new TName("base.InferErr", 2), new TName("base.InferErr", 3), new TName("base.InferErr", 4));
+  static final EnumSet<RC> isoImm= EnumSet.of(iso, imm), noHyg= EnumSet.of(iso, imm, mut, read), allRC= EnumSet.allOf(RC.class);
   static boolean has(List<C> cs, TName magic){ return any(cs, c -> c.name.equals(magic)); }
   static boolean isPrimitiveLiteral(String name){ return "+-1234567890\"`".contains(name.substring(0, 1)); }
   static Literal from(TName n, Function<TName,Literal> map, Map<TName,Literal> other){ var res= map.apply(n); if (res == null){ res = other.get(n); }
@@ -292,7 +294,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       for (var s= i + 1; s < fs.size(); s += 1){ t = adapt(t, fs.get(s).rc, fs.get(s).bs); } return t; } boolean notFunnelledInto(String x){
       var fxs= get(x).ftv().toList(); return IntStream.range(at(x) + 1, fs.size()).anyMatch(s -> !B.xs(fs.get(s).bs).containsAll(fxs)); }
     static IT adapt(IT t, RC rc, List<B> bs){ var x= t instanceof X(var n) ? n : t instanceof ReadImmX(X(var n)) ? n : null; if (x != null){
-        var xRcs= B.get(bs, x).rcs; if (rc == imm || EnumSet.of(iso, imm).containsAll(xRcs)){ return t.withRC(imm); }
+        var xRcs= B.get(bs, x).rcs; if (rc == imm || isoImm.containsAll(xRcs)){ return t.withRC(imm); }
         if (any(xRcs, RC::isH)){ return t; } return rc == read || xRcs.contains(iso) ? t.readImm() : t; } var trc= t.explicitRC();
       if (rc == imm || trc.equals(of(iso))){ return t.withRC(imm); } if (rc == mut){ return t; }
       if (trc.equals(of(mutH))){ return t.withRC(readH); } return trc.equals(of(mut)) ? t.withRC(read) : t; }
@@ -594,15 +596,15 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
         yield new Call(core(e.e, o.e), e.name, of(e.rc.orElse(imm)), map(o.targs.isEmpty() ? e.targs : o.targs, Frontend::norm), zip(e.es, o.es, this::core).toList(), false);
       } };} Literal literal(Literal e, Literal o){ var bs= e.bs; if (e.infName && bs.isEmpty()){ var g= new IGamma();
         bs = cat(ftvCs(e.cs), ftvMs(g, e.ms), ftvMs(g, o.ms)).distinct().map(x -> B.get(ctx, x)).toList(); } var name= e.name.withArity(bs.size());
-      var inner= new ToCore(e.infName ? push(ctx, bs).stream().distinct().toList() : bs);
+      var inner= e.infName ? with(bs) : new ToCore(bs);
       var ms= e.ms.stream().map(me -> inner.m(me, me.e.isEmpty() ? me : o.ms.get(me.sig.idx)))
         .map(m -> !m.sig.origin.get().equals(e.name) ? m : m.withSig(m.sig.withOrigin(name))).toList();
       var cs= map(distinctTypes(inner.ctx, o.cs.isEmpty() ? e.cs : push(o.cs, e.cs)), Frontend::normC);
       return new Literal(of(e.rc.orElse(imm)), name, bs, cs, e.thisName, ms, e.infName); }
     static List<C> distinctTypes(List<B> bs, List<C> cs){ var res= new ArrayList<C>();
       for (var c : cs){ if (!any(res, r -> TypeSystem.eqModXRC(bs, norm(new RCC(of(imm), r)), norm(new RCC(of(imm), c))))){ res.add(c); } }
-      return res; } IM m(IM e, IM o){ var s= sig(e.sig, o.sig);
-      return new IM(s, e.xs, e.e.map(ei -> new ToCore(push(ctx, s.bs.get()).stream().distinct().toList()).core(ei, o.e.get()))); }
+      return res; } ToCore with(List<B> bs){ return new ToCore(push(ctx, bs).stream().distinct().toList()); } IM m(IM e, IM o){ var s= sig(e.sig, o.sig);
+      return new IM(s, e.xs, e.e.map(ei -> with(s.bs.get()).core(ei, o.e.get()))); }
     static ISig sig(ISig inf, ISig usr){ var ts= zip(usr.ts, inf.ts, (u,i) -> u instanceof U ? i : u).toList();
       return new ISig(usr.rc.or(inf::rc).orElse(imm), usr.m.or(inf::m).orElse(new MName(".inferenceFailed", ts.size())), usr.bs.or(inf::bs).orElse(list()),
         map(ts, Frontend::norm), norm(usr.ret instanceof U ? inf.ret : usr.ret), usr.origin.or(inf::origin).orElse(inferUnknown), usr.abs, usr.idx); } }
@@ -624,19 +626,19 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     boolean kindOf(List<B> bs, IT t, EnumSet<RC> allowed){ if (!allowed.containsAll(intrinsicRCs(bs, t))){ return false; }
       if (!(t instanceof RCC(_, var c))){ return true; } var params= decs.apply(c.name).bs;
       return zip(c.ts, params, (ti,p) -> kindOf(bs, ti, p.rcs)).allMatch(v -> v); }
-    void kind(List<B> bs, IT t){ kind(bs, t, EnumSet.allOf(RC.class)); } void kind(List<B> bs, IT t, EnumSet<RC> allowed){ ck(!kindOf(bs, t, allowed)); }
+    void kind(List<B> bs, IT t){ kind(bs, t, allRC); } void kind(List<B> bs, IT t, EnumSet<RC> allowed){ ck(!kindOf(bs, t, allowed)); }
     static EnumSet<RC> intrinsicRCs(List<B> bs, IT t){ return switch (t){ case RCC(var rc, _) -> EnumSet.of(rc.get());
       case RCX(var rc, _) -> EnumSet.of(rc); case X(var x) -> B.get(bs, x).rcs; case U _ -> throw new Fail(); case ReadImmX(var x) -> {
         var rcs= intrinsicRCs(bs, x);
-        yield EnumSet.of(iso, imm).containsAll(rcs) ? EnumSet.of(imm) : EnumSet.of(mut, mutH, read, readH).containsAll(rcs) ? EnumSet.of(read) : EnumSet.of(read, imm);
+        yield isoImm.containsAll(rcs) ? EnumSet.of(imm) : EnumSet.of(mut, mutH, read, readH).containsAll(rcs) ? EnumSet.of(read) : EnumSet.of(read, imm);
       } };} Gamma vpaOf(Gamma g, Literal l, IM m){
-      return g.map(t -> { if (m.sig.rc.get() == imm || kindOf(l.bs, t, EnumSet.of(iso, imm))){ return t.withRC(imm); } if (m.sig.rc.get() == read){
+      return g.map(t -> { if (m.sig.rc.get() == imm || kindOf(l.bs, t, isoImm)){ return t.withRC(imm); } if (m.sig.rc.get() == read){
           if (t.explicitRC().stream().anyMatch(r -> r == mut || r == read)){ return t.withRC(read); }
           if (t instanceof X || t instanceof ReadImmX){ return t.readImm(); } }
         return kindOf(l.bs, t, EnumSet.of(imm, mut, read)) ? t : t.readImm(); }); } Gamma discard(Gamma g, Literal l){
-      return g.map(t -> { var drop= !kindOf(l.bs, t, EnumSet.allOf(RC.class)) || !kindOf(l.bs, t, EnumSet.of(iso, imm, mut, read)) || l.rc.get().isIsoOrImm() && !kindOf(l.bs, t, EnumSet.of(iso, imm));
+      return g.map(t -> { var drop= !kindOf(l.bs, t, allRC) || !kindOf(l.bs, t, noHyg) || l.rc.get().isIsoOrImm() && !kindOf(l.bs, t, isoImm);
         return drop ? null : t; }); } boolean isSub(List<B> bs, IT t1, IT t2){ return t1.equals(t2)
-        || t2 instanceof ReadImmX(var x2) && t1 instanceof X x && x2.name.equals(x.name) && kindOf(bs, x, EnumSet.of(iso, imm, mut, read))
+        || t2 instanceof ReadImmX(var x2) && t1 instanceof X x && x2.name.equals(x.name) && kindOf(bs, x, noHyg)
         || isSameShapeSubtype(bs, t1, t2)
         || t1 instanceof RCC(var rc1, var c1) && any(decs.apply(c1.name).cs, ci -> isSub(bs, rename(new RCC(rc1, ci), B.xs(decs.apply(c1.name).bs), c1.ts), t2));
     } List<IT> typeOf(List<B> bs, Gamma g, IE e, List<IT> rs){ return switch (e){ case IE.X x -> {
@@ -651,12 +653,12 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     static boolean hasAbstractMut(Literal l){ return any(l.ms, m -> m.sig.abs && m.sig.rc.get() == mut); }
     List<IT> reqs(List<B> bs, IT got, List<IT> rs, boolean rccOnly){ if (rs.isEmpty()){ return list(got); }
       ck(rccOnly && any(rs, r -> !(r instanceof RCC))); return map(rs, r -> isSub(bs, got, r) ? got : null); }
-    List<IT> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<IT> rs){ var selfNamed= !_l.thisName.equals("_");
-      var getIso= ((_l.rc.get().isReadOrImm() && !hasAbstractMut(_l) && !selfNamed) || _l.rc.get() == mut) && captureFree(_l.bs, g.filterFTV(_l, has(_l.cs, captureFree)), _l);
+    List<IT> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<IT> rs){ var selfNamed= !_l.thisName.equals("_"); var cf= has(_l.cs, captureFree);
+      var getIso= ((_l.rc.get().isReadOrImm() && !hasAbstractMut(_l) && !selfNamed) || _l.rc.get() == mut) && captureFree(_l.bs, g.filterFTV(_l, cf), _l);
       var l= getIso ? _l.withRC(iso) : _l;
       ck(any(rs, r -> !(r instanceof RCC)));
       ck(any(l.ms, m -> m.sig.origin.get().equals(inferUnknown)) || any(l.cs, c -> any(c.ts, TypeSystem::mentionsInferUnknown)));
-      var thisType= l.self(l.rc); kind(bs1, thisType); litOk(discard(g.filterFTV(l, has(l.cs, captureFree)), l), l);
+      var thisType= l.self(l.rc); kind(bs1, thisType); litOk(discard(g.filterFTV(l, cf), l), l);
       ck(selfNamed && count(_l.thisName, _l, false) == 0); ck(any(l.ms, m -> m.e.isPresent() && !hasInstance(l) && !callable(l.rc.get(), m.sig.rc.get())));
       l.ms.forEach(m -> checkImplemented(l, m)); return reqs(bs1, thisType, rs, false); }
     static boolean captureFree(List<B> bs, Gamma g, IE e){ if (!(e instanceof IE.X x)){ return e.children().allMatch(c -> captureFree(bs, g, c)); }
@@ -710,14 +712,14 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     static RC lub(EnumSet<RC> rcs){ return bound(rcs, RC::isSubType); } static RC glb(EnumSet<RC> rcs){ return bound(rcs, (a,b) -> b.isSubType(a)); }
     static RC bound(EnumSet<RC> rcs, BiPredicate<RC,RC> le){ var bs= Stream.of(RC.values()).filter(b -> all(rcs, x -> le.test(x, b))).toList();
       return find(bs, b -> all(bs, o -> le.test(b, o))).get(); } static List<MType> promotions(List<B> d, MType m){
-      var out= new LinkedHashSet<MType>(list(m, apply(d, m, Mode.flexy, _ -> Mode.flexy, Mode.flexy), apply(d, m, Mode.strong, _ -> Mode.strong, Mode.strong),
-        apply(d, m, Mode.useRead, _ -> Mode.useRead, Mode.hyg), apply(d, m, Mode.hyg, _ -> Mode.flexy, Mode.hyg)));
-      for (int i= 0; i < m.ts.size(); i++){ var ii= i; out.add(apply(d, m, Mode.flexy, j -> j == ii ? Mode.hyg : Mode.flexy, Mode.hyg)); } return List.copyOf(out); }
+      var out= new LinkedHashSet<MType>(list(m, apply(d, m, flexy, _ -> flexy, flexy), apply(d, m, strong, _ -> strong, strong),
+        apply(d, m, useRead, _ -> useRead, hyg), apply(d, m, hyg, _ -> flexy, hyg)));
+      for (int i= 0; i < m.ts.size(); i++){ var ii= i; out.add(apply(d, m, flexy, j -> j == ii ? hyg : flexy, hyg)); } return List.copyOf(out); }
     static MType apply(List<B> d, MType m, Mode rcM, IntFunction<Mode> tsM, Mode retM){
       return new MType(rcM.of(m.rc), IntStream.range(0, m.ts.size()).mapToObj(j -> modeF(d, m.ts.get(j), tsM.apply(j), TypeSystem::glb)).toList(), modeF(d, m.t, retM, TypeSystem::lub)); }
     static IT modeF(List<B> d, IT t, Mode mode, Function<EnumSet<RC>,RC> f){ return switch (t){ case RCC rcc -> rcc.withRC(mode.of(rcc.rc.get()));
         case RCX rcx -> rcx.withRC(mode.of(rcx.rc)); case X x -> modeVar(d, x, rc -> rc, mode, f, t);
         case ReadImmX(var x) -> modeVar(d, x, RC::readImm, mode, f, t); case U _ -> t; }; }
-    static IT modeVar(List<B> d, X x, UnaryOperator<RC> inst, Mode mode, Function<EnumSet<RC>,RC> f, IT original){ var rcs= EnumSet.noneOf(RC.class);
-      B.get(d, x.name).rcs.forEach(rc -> rcs.add(inst.apply(rc))); if (all(rcs, rc -> mode.of(rc) == rc)){ return original; }
-      var mapped= EnumSet.noneOf(RC.class); rcs.forEach(rc -> mapped.add(mode.of(rc))); return new RCX(f.apply(mapped), x); } } }
+    static IT modeVar(List<B> d, X x, UnaryOperator<RC> inst, Mode mode, Function<EnumSet<RC>,RC> f, IT original){
+      var rcs= EnumSet.copyOf(map(B.get(d, x.name).rcs, inst)); if (all(rcs, rc -> mode.of(rc) == rc)){ return original; }
+      return new RCX(f.apply(EnumSet.copyOf(map(rcs, mode::of))), x); } } }
