@@ -231,7 +231,7 @@ public record InjectionSteps(Methods meths){
         case E.Type c -> nextT(c);
       };
     }
-    catch (WellFormednessErrors.TooDeep t){ throw meths.p().err().frame(e, t); }
+    catch (WellFormednessErrors.TooDeep t){ throw meths.p().err().frame(e, t.by("Type inference")); }
   }
   private IT preferred(IT.RCC type){
     var d= meths.from(type.c().name());//d.cs() does contain all the transitive supertypes already.

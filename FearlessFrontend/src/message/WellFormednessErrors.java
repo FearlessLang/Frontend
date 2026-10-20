@@ -30,26 +30,50 @@ import inference.IT;
 import inference.M;
 import inject.Methods.Agreement;
 import inject.TypeRename;
+import metaParser.Frame;
 import metaParser.Message;
 import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
 import pkgmerge.Package;
+import tools.SourceOracle;
 import tools.SourceOracle.Ref;
 import typeSystem.Kinding;
+import utils.Bug;
 import utils.Join;
 import java.util.EnumSet;
 import utils.Push;
 
 public record WellFormednessErrors(String pkgName){
   @SuppressWarnings("serial") public static final class TooDeep extends FearlessException{
-    TooDeep(TName name, String msg){ super(Code.WellFormedness, (o,fs) -> Message.of(o::loadString, fs, msg)); addSpan(name.approxSpan().inner); }
+    final TName name; final List<IT> ts; String actor= "The type checker"; IT in; List<String> xs; List<IT> with;
+    TooDeep(TName name, List<IT> ts){
+      super(Code.WellFormedness, (_,_) -> { throw Bug.unreachable(); });
+      this.name= name; this.ts= ts;
+      addSpan(name.approxSpan().inner);
+    }
+    public TooDeep by(String actor){ this.actor= actor; return this; }
+    public TooDeep replacing(List<String> xs, List<IT> with, IT in){
+      if (this.in != null){ return this; }
+      this.xs= xs; this.with= with; this.in= in;
+      return this;
+    }
+    @Override protected String msg(SourceOracle env, List<Frame> frames){
+      var err= new WellFormednessErrors(name.pkgName()).err();
+      var max= core.T.C.maxDepth-1;
+      var what= in == null
+        ? actor+" builds the type "+err.typeRepr(name, ts)+".\nIt nests "
+        : actor+" replaces "+Join.of(replacements(err), "", " and ", "")+" in "+err.typeRepr(in)+".\nThe result nests ";
+      return Message.of(env::loadString, frames, what+count(max+1, "type name")+"; a type can nest at most "+count(max, "type name")+" inside each other.\n");
+    }
+    private List<String> replacements(Err err){
+      var free= in.ftv().toList();
+      return IntStream.range(0, xs.size()).filter(i -> free.contains(xs.get(i)))
+        .mapToObj(i -> disp(xs.get(i))+" with "+err.typeRepr(with.get(i), 2)+" ("+count(with.get(i).depth()-1, "type name")+")").toList();
+    }
   }
-  public static TooDeep instantiatedTooDeep(TName name){
-    return new TooDeep(name,
-      "Type "+disp(name.simpleName()+"[...]")+" is instantiated with a type argument that nests "+(core.T.C.maxDepth-1)+" type names, so the result nests "+core.T.C.maxDepth+".\n"
-      +"A type can nest at most "+(core.T.C.maxDepth-1)+" type names inside each other.\n");
-  }
+  public static TooDeep tooDeepIT(TName name, List<IT> ts){ return new TooDeep(name, ts); }
+  public static TooDeep tooDeepT(TName name, List<core.T> ts){ return new TooDeep(name, TypeRename.tToIT(ts)); }
   Err err(){ return new Err(y -> y, x -> x, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
   private Err err(List<String> lines){
     var e= err();

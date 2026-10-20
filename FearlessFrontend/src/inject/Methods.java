@@ -23,6 +23,7 @@ import fearlessParser.Parser;
 import inference.E;
 import inference.IT;
 import inference.M;
+import message.Err;
 import message.WellFormednessErrors;
 import metaParser.Span;
 import naming.FreshPrefix;
@@ -91,7 +92,7 @@ public record Methods(
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name, cache::get, other); }
   private E.Literal expandHeader(E.Literal d){
     try{ return expandDeclaration(d, false); }
-    catch (WellFormednessErrors.TooDeep t){ throw p.err().frame(d, t); }
+    catch (WellFormednessErrors.TooDeep t){ throw p.err().frame(d, t.by("Expanding the supertypes of "+Err.disp(p.err().typeName(d.name())))); }
   }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
     var implied= d.cs().stream().flatMap(c -> fetchCs(c).stream()).toList();

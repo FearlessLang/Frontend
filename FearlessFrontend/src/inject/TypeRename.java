@@ -8,6 +8,7 @@ import core.RC;
 import core.T;
 import core.TSpan;
 import core.B;
+import message.WellFormednessErrors;
 import typeSystem.Kinding;
 import utils.Streams;
 import utils.Bug;
@@ -17,28 +18,37 @@ import inference.IT;
 public final class TypeRename{
   public static T of(T t, List<String> xs, List<T> ts){
     assert xs.size() == ts.size();
-    return switch (t){
-      case T.X x -> getOrSame(x, x.name(), xs, ts);
-      case T.RCX(var rc, var x) -> withRC(of(x, xs, ts), rc);
-      case T.RCC rcc -> rcc.withTs(ofT(rcc.c().ts(), xs, ts));
-      case T.ReadImmX(var x) -> readImm(of(x, xs, ts));
-    };
+    try{
+      return switch (t){
+        case T.X x -> getOrSame(x, x.name(), xs, ts);
+        case T.RCX(var rc, var x) -> withRC(of(x, xs, ts), rc);
+        case T.RCC rcc -> rcc.withTs(ofT(rcc.c().ts(), xs, ts));
+        case T.ReadImmX(var x) -> readImm(of(x, xs, ts));
+      };
+    }
+    catch (WellFormednessErrors.TooDeep td){ throw td.replacing(xs, tToIT(ts), tToIT(t)); }
   }
   //TODO: much code could be made faster if instead of xs+ts being list, they were Function<Integer,XX>..
   //no, we need get, size and indexof. But, what about a single data structure that pairs them somehow?
   public static List<T> ofT(List<T> tsi , List<String> xs, List<T> ts){ return tsi.stream().map(ti -> of(ti, xs, ts)).toList(); }
   public static IT of(IT t, List<String> xs, List<IT> ts){
     assert xs.size() == ts.size();
-    return switch (t){
-      case IT.X x -> getOrSame(x, x.name(), xs, ts);
-      case IT.RCX(var rc, var x) -> of(x, xs, ts).withRC(rc);
-      case IT.RCC rcc -> rcc.withTs(ofIT(rcc.c().ts(), xs, ts));
-      case IT.ReadImmX(var x) -> of(x, xs, ts).readImm();
-      case IT.U _, IT.Amb _ -> t;
-    };
+    try{
+      return switch (t){
+        case IT.X x -> getOrSame(x, x.name(), xs, ts);
+        case IT.RCX(var rc, var x) -> of(x, xs, ts).withRC(rc);
+        case IT.RCC rcc -> rcc.withTs(ofIT(rcc.c().ts(), xs, ts));
+        case IT.ReadImmX(var x) -> of(x, xs, ts).readImm();
+        case IT.U _, IT.Amb _ -> t;
+      };
+    }
+    catch (WellFormednessErrors.TooDeep td){ throw td.replacing(xs, ts, t); }
   }
   public static List<IT> ofIT(List<IT> tsi , List<String> xs, List<IT> ts){ return tsi.stream().map(ti -> of(ti, xs, ts)).toList(); }
-  public static IT.C of(IT.C c, List<String> xs, List<IT> ts){ return new IT.C(c.name(), ofIT(c.ts(), xs, ts)); }
+  public static IT.C of(IT.C c, List<String> xs, List<IT> ts){
+    try{ return new IT.C(c.name(), ofIT(c.ts(), xs, ts)); }
+    catch (WellFormednessErrors.TooDeep td){ throw td.replacing(xs, ts, new IT.RCC(Optional.empty(), c, TSpan.fromPos(Pos.unknown))); }
+  }
   public static <A> A getOrSame(A x, String name, List<String> xs, List<A> ts){
     var i= xs.indexOf(name);
     return i == -1 ? x : ts.get(i);

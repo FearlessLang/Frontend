@@ -61,6 +61,13 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case inference.IT.U _, inference.IT.Amb _ -> "?";
     default -> typeReprRaw(true, TypeRename.itToT(t));
   };}
+  String typeRepr(inference.IT t, int levels){ return disp(typeReprRaw(t, levels)); }
+  private String typeReprRaw(inference.IT t, int levels){
+    if (!(t instanceof inference.IT.RCC(var rc, var c, _)) || c.ts().isEmpty()){ return typeReprRaw(t); }
+    var ts= levels == 0 ? "[...]" : Join.of(c.ts().stream().map(ti -> typeReprRaw(ti, levels-1)), "[", ",", "]", "");
+    return rc.map(RC::toStrSpace).orElse("")+cp().t.ofFull(c.name())+ts;
+  }
+  String typeRepr(TName name, List<inference.IT> ts){ return disp(cp().t.ofFull(name)+Join.of(ts.stream().map(t -> typeReprRaw(t, 1)), "[", ",", "]", "")); }
   String typeRepr(boolean skipImm, T t){ return disp(typeReprRaw(skipImm, t)); }
   private String typeReprRaw(boolean skipImm, T t){
     var str= cp().msgT(showPublic(t));
