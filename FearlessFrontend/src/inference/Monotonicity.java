@@ -3,6 +3,7 @@ package inference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import core.MName;
 import core.RC;
@@ -21,19 +22,19 @@ public final class Monotonicity{
   //                         kind=litMArg a=mi               b=pi
   record Slot(K k, int a, int b){}
 
-  private static boolean step(GammaSignature g, Slot slot, Object from, Object to, String what){
+  private static boolean step(GammaSignature g, Slot slot, Object from, Object to, Supplier<String> what){
     var l= g.monotonicity.computeIfAbsent(slot, _ -> new ArrayList<>(4));
     if (l.isEmpty()){ l.add(from); }
     var last= l.getLast();
     var outOfSync= !(from instanceof IT u && u.undecided()) && !last.equals(from);
     if (outOfSync){
-      throw new AssertionError("Monotonicity tracker out of sync for "+what
+      throw new AssertionError("Monotonicity tracker out of sync for "+what.get()
         +"\nLast="+last+"\nFrom="+from+"\nHist="+l);
     }
     if (from.equals(to)){ return true; } // after sync/init
     for (var old : l){
       if (old.equals(to)){
-        throw new AssertionError("Non-monotone evolution (cycle) for "+what
+        throw new AssertionError("Non-monotone evolution (cycle) for "+what.get()
           +"\nTo="+to+"\nHist="+l);
       }
     }
@@ -42,14 +43,14 @@ public final class Monotonicity{
   }
 
   public static boolean eT(E e, IT to){
-    return step(e.g(), new Slot(K.eT, 0, 0), e.t(), to, "E.t "+e.getClass().getSimpleName());
+    return step(e.g(), new Slot(K.eT, 0, 0), e.t(), to, () -> "E.t "+e.getClass().getSimpleName());
   }
 
   private static boolean hasAnyKind(GammaSignature g, K k){ return g.monotonicity.keySet().stream().anyMatch(s -> s.k() == k); }
 
   public static boolean onCallWithMore(E.Call c, Optional<RC> nextRc, List<IT> nextTargs, IT nextT){
-    step(c.g(), new Slot(K.eT, 0, 0), c.t(), nextT, "Call.t");
-    step(c.g(), new Slot(K.callRc, 0, 0), c.rc(), nextRc, "Call.rc");
+    step(c.g(), new Slot(K.eT, 0, 0), c.t(), nextT, () -> "Call.t");
+    step(c.g(), new Slot(K.callRc, 0, 0), c.rc(), nextRc, () -> "Call.rc");
     var oldN= c.targs().size();
     var newN= nextTargs.size();
     // Arity repair is allowed, but only before we started tracking per-index targs.
@@ -60,7 +61,7 @@ public final class Monotonicity{
     }
     var from= oldN == newN ? c.targs() : nextTargs;
     for (int i : Range.of(nextTargs)){
-      step(c.g(), new Slot(K.callTarg, i, 0), from.get(i), nextTargs.get(i), "Call.targs["+i+"]");
+      step(c.g(), new Slot(K.callTarg, i, 0), from.get(i), nextTargs.get(i), () -> "Call.targs["+i+"]");
     }
     return true;
   }
@@ -102,9 +103,9 @@ public final class Monotonicity{
           +"\nlit="+l);
       }
       for (int pi : Range.of(ops)){
-        step(l.g(), new Slot(K.litMArg, mi, pi), ops.get(pi), nps.get(pi), "Lit.ms["+mi+"].arg["+pi+"] "+l);
+        step(l.g(), new Slot(K.litMArg, mi, pi), ops.get(pi), nps.get(pi), () -> "Lit.ms["+mi+"].arg["+pi+"] "+l);
       }
-      step(l.g(), new Slot(K.litMRet, mi, 0), sigRet(om), sigRet(nm), "Lit.ms["+mi+"].ret "+l);
+      step(l.g(), new Slot(K.litMRet, mi, 0), sigRet(om), sigRet(nm), () -> "Lit.ms["+mi+"].ret "+l);
     }
     return true;
   }
