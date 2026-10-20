@@ -193,9 +193,10 @@ public record InjectionSteps(Methods meths){
   E nextStar(List<B> bs, Gamma g, E e){
     var start= e;
     if (e.done(g)){ return e; }
+    var grew= 0;
     while (true){
       var s= g.snapshot();
-      var oe= next(bs, g, e);
+      var oe= bounded(bs, g, e);
       assert oe == e || !oe.equals(e) : "Allocated equal E:"+e.getClass()+"\n"+e;
       var stable= oe == e && !g.changed(s);
       if (stable){
@@ -204,8 +205,14 @@ public record InjectionSteps(Methods meths){
         return e;
       }
       //if (oe.equals(e) && !g.changed(s)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
+      grew = oe.t().depth() > e.t().depth() ? grew+1 : 0;
+      if (grew == IT.C.maxDepth/2){ throw meths.p().err().typeGrowsForever(oe); }
       e = oe;
     }
+  }
+  private E bounded(List<B> bs, Gamma g, E e){
+    try{ return next(bs, g, e); }
+    catch (WellFormednessErrors.TooDeep _){ throw meths.p().err().typeGrowsForever(e); }
   }
   private List<E> nextStar(List<B> bs, Gamma g, List<E> es){
     return norm(es, es.stream().map(ei -> nextStar(bs, g, ei)).toList());
@@ -221,17 +228,14 @@ public record InjectionSteps(Methods meths){
     return Streams.zip(res, originEs).allMatch((r,o) -> r == o || !r.equals(o));
   }
   E next(List<B> bs, Gamma g, E e){
-    try{
-      //assert meet(e.t(),res.t()).equals(res.t()): e.t()+" "+res.t();// Does not hold. How can it be?
-      return switch (e){
-        case E.X x -> nextX(g, x);
-        case E.Literal l -> nextL(bs, g, l);
-        case E.Call c -> nextC(bs, g, c);
-        case E.ICall c -> nextIC(bs, g, c);
-        case E.Type c -> nextT(c);
-      };
-    }
-    catch (WellFormednessErrors.ErrToFetchContext depthErr){ throw meths.p().err().itTooDeep(e, depthErr.c); }
+    //assert meet(e.t(),res.t()).equals(res.t()): e.t()+" "+res.t();// Does not hold. How can it be?
+    return switch (e){
+      case E.X x -> nextX(g, x);
+      case E.Literal l -> nextL(bs, g, l);
+      case E.Call c -> nextC(bs, g, c);
+      case E.ICall c -> nextIC(bs, g, c);
+      case E.Type c -> nextT(c);
+    };
   }
   private IT preferred(IT.RCC type){
     var d= meths.from(type.c().name());//d.cs() does contain all the transitive supertypes already.
@@ -420,9 +424,11 @@ public record InjectionSteps(Methods meths){
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
     var justAType= noMeth && l.infHead() && meths._from(rcc.c().name()) != null;
     var orcc= new IT.RCC(orc, rcc.c(), rcc.span());
+    if (rcc.depth() > IT.C.maxDepth){ throw meths.p().err().addedSupertypeTooDeep(l, rcc.c(), Optional.empty()); }
     if (justAType){ return new E.Type(orcc, preferred(orcc), l.src(), l.g()); }
+    for (var m : ms){ meths.writable(l, m.sig()); }
     var selfInferred= rcc.c().name().equals(l.name());
-    var cs= ToCore.distinctTypes(localBs, selfInferred ? meths.fetchCs(rcc.c()) : Push.of(rcc.c(), meths.fetchCs(rcc.c())));
+    var cs= ToCore.distinctTypes(localBs, selfInferred ? meths.implied(l, rcc.c()) : Push.of(rcc.c(), meths.implied(l, rcc.c())));
     meths.checkMagicSupertypes(l, cs);
     assert l.infHead();
     l = new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, rcc, l.src(), l.infName(), l.infHead(), l.g());

@@ -28,7 +28,7 @@ import naming.FreshPrefix;
 import pkgmerge.Package;
 import typeSystem.TypeSystem;
 import utils.Push;
-import utils.Streams;
+import utils.Range;
 
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
@@ -58,12 +58,22 @@ public record Methods(
     }
     return List.copyOf(acc);
   }
-  record CsMs(List<IT.C> cs, List<M.Sig> sigs){}
   //TODO: performance: currently fetch rewrites for the class generics
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps? Something similar has been done for MSigL
-  CsMs fetch(E.Literal child, IT.C c, core.E.Literal d, List<String> scope){ //d == from(c.name()); but from can be undefined for {..}.foo
-    return new CsMs(fetchCs(c), d.ms().stream().map(m -> alphaSig(m, d, c, child, scope)).toList());
+  List<M.Sig> fetchSigs(E.Literal child, IT.C c, core.E.Literal d, List<String> scope){ //d == from(c.name()); but from can be undefined for {..}.foo
+    var res= d.ms().stream().map(m -> alphaSig(m, d, c, child, scope)).toList();
+    res.forEach(s -> writable(child, s));
+    return res;
+  }
+  void writable(E.Literal at, M.Sig s){
+    var ts= Push.of(s.ts().stream().map(Optional::get).toList(), s.ret().get());
+    for (int i : Range.of(ts)){ if (ts.get(i).depth() > IT.C.maxDepth){ throw p.err().addedMethodTooDeep(at, s, i, ts.get(i)); } }
+  }
+  List<IT.C> implied(E.Literal at, IT.C c){
+    var res= fetchCs(c);
+    for (var ci : res){ if (ci.depth() > IT.C.maxDepth){ throw p.err().addedSupertypeTooDeep(at, ci, Optional.of(c)); } }
+    return res;
   }
   List<IT.C> fetchCs(IT.C c){
     var d= _from(c.name());
@@ -91,11 +101,9 @@ public record Methods(
   public core.E.Literal from(TName name){ return Objects.requireNonNull(_from(name)); }
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name, cache::get, other); }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
-    var ds= d.cs().stream().map(c -> fetch(d, c, from(c.name()), List.of())).toList();
-    var implied= ds.stream().flatMap(dsi -> dsi.cs().stream()).toList();
+    var implied= d.cs().stream().flatMap(c -> implied(d, c).stream()).toList();
     var allCs= ToCore.distinctTypes(d.bs(), Push.of(d.cs(), implied.stream().sorted(Comparator.comparing(Object::toString)).toList()));
-    var allSig= Streams.zip(d.cs(), ds).filter((c,_) -> !implied.contains(c))
-      .flatMap((_,dsi) -> dsi.sigs().stream()).toList();
+    var allSig= d.cs().stream().filter(c -> !implied.contains(c)).flatMap(c -> fetchSigs(d, c, from(c.name()), List.of()).stream()).toList();
     var allMs= pairWithSig(inferMNames(d.ms(), new ArrayList<>(allSig), d), new ArrayList<>(allSig), d);
     var res= d.withCsMs(allCs, allMs, setInfHead);
     checkMagicSupertypes(res, allCs);
@@ -104,9 +112,9 @@ public record Methods(
   //expandLiteral works on an incomplete literal with the cs list not there yet
   public E.Literal expandLiteral(E.Literal d, IT.C c, List<B> scope){//Correct to have both expandLiteral and expandDeclaration
     var dd= _from(c.name());//null for the case {..}.foo
-    List<M.Sig> allSig= dd == null ? List.of() : fetch(d, c, dd, B.xs(scope)).sigs();
+    List<M.Sig> allSig= dd == null ? List.of() : fetchSigs(d, c, dd, B.xs(scope));
     var allMs= pairWithSig(inferMNames(d.ms(), new ArrayList<>(allSig), d), new ArrayList<>(allSig), d);
-    return d.withCsMs(Push.of(c, fetchCs(c)), allMs, true);
+    return d.withCsMs(Push.of(c, implied(d, c)), allMs, true);
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
     var widen= allCs.stream()

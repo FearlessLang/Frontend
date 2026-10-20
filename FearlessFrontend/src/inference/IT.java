@@ -31,29 +31,22 @@ public sealed interface IT{
     @Override public String toString(){ return "read/imm "+x.name; }
   }
   record C(TName name, List<IT> ts, int depth){
+    public static final int maxDepth= 100;
     public C{
       assert unmodifiable(ts, "IT.C.ts");
       assert eq(ts.size(), name.arity(), "Type arity");
+      if (depth > 10*maxDepth){ throw WellFormednessErrors.tooDeep(name); }
     }
-    public C(TName name, List<IT> ts){ this(name, ts, RCC.depthFromTs(ts)); }
+    public C(TName name, List<IT> ts){ this(name, ts, depth(ts)); }
+    public static int depth(List<IT> ts){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1); }
     @Override public String toString(){
       return name.s()+Join.of(ts, "[", ",", "]", "");
     }
   }
   record RCC(Optional<RC> rc, C c, TSpan span) implements IT{
-    public static final int maxDepth= 100;
-    public RCC(Optional<RC> rc, C c, TSpan span){
-      assert nonNull(rc, c);
-      this.rc= rc; this.c= c; this.span= span;
-      if (c.depth() > maxDepth){ throw new WellFormednessErrors.ErrToFetchContext(this); }
-    }
-    static int depthFromTs(List<IT> ts){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1); }
+    public RCC{ assert nonNull(rc, c); }
     public RCC withTs(List<IT> ts){ return withRCTs(rc, ts); }
-    public RCC withRCTs(Optional<RC> rc, List<IT> ts){
-      var depth= depthFromTs(ts);
-      if (depth > maxDepth){ return this; }
-      return new RCC(rc, new C(c.name(), ts, depth), span);
-    }
+    public RCC withRCTs(Optional<RC> rc, List<IT> ts){ return new RCC(rc, new C(c.name(), ts), span); }
     @Override public String toString(){ return rc.map(RC::toStrSpace).orElse("AnyRC ")+c; }
     @Override public boolean isTV(){ return c.ts.stream().allMatch(IT::isTV); }
     @Override public int depth(){ return c.depth(); }

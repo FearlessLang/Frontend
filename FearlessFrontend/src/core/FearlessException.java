@@ -12,7 +12,7 @@ import metaParser.HasFrames;
 import tools.SourceOracle;
 
 @SuppressWarnings("serial")
-public final class FearlessException extends RuntimeException implements HasFrames<FearlessException>{
+public class FearlessException extends RuntimeException implements HasFrames<FearlessException>{
   private final Code code;
   private final ArrayList<Frame> frames= new ArrayList<>();
   private final BiFunction<SourceOracle,List<Frame>,String> msgFactory;
