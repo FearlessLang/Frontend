@@ -4838,4 +4838,12 @@ Mk:{ #[X]: Foo[X] -> {} }
 Ign:{ #[T](t: T): A -> A }
 User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
 """));}
+@Test void isoReceiverOverloadFollowsTheExpectedResult(){ok(List.of("""
+S:{ read .m: read S -> this; mut .m: mut S -> this }
+A:{ .k(s: iso S): mut S -> s.m; .j(s: iso S): read S -> s.m; .i(s: iso S): imm S -> s.m }
+"""));}
+@Test void receiverLiteralDeclaringTheCalledMethodKeepsItsOwnType(){ok(List.of("""
+A: {.m: A}
+D: { .k: A -> {.size: A -> D.k}.size }
+"""));}
 }

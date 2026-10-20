@@ -606,7 +606,7 @@ public final class Frontend{
       ei=solve(b,g,ei);return new M(m.s,m.v,new Core(b,this).core(ei,m.e));
     }
     E meet(E e,T t){
-      if(e instanceof Type tt)return type(tt);if(e instanceof Literal l&&l.t.tv())return e;e=ascribe(e,t,false);
+      if(e instanceof Type tt)return type(tt);if(e instanceof Literal l&&l.t.tv())return e;e=ascribe(e,t,null);
       return e.t(meet(e.t(),t));
     }
     T between(R p,R q){var s=below(p,q);if(s!=null)return pick(s,q);s=below(q,p);return s==null?p:pick(s,p);}
@@ -677,7 +677,7 @@ public final class Frontend{
       case Call c when c.written||c.r!=null->call(b,g,c);
       case Call c->{
         var ee=solve(b,g,c.e);var es=solve(b,g,c.es);
-        var m=ee.t() instanceof R w?signature(w,c.name,null):null;if(m==null)yield c.children(ee,es);
+        var m=ee.t() instanceof R w?signature(w,c.name,null,c.t.erc()):null;if(m==null)yield c.children(ee,es);
         var types=qs(m.mb.size());
         yield new Call(ee,c.name,m.r,types,expect(es,m,types),false).t(meet(c.t,m.inst(m.ret,types)));
       }
@@ -688,14 +688,14 @@ public final class Frontend{
       var wid=rename(c.types.get(0),B.v(d.b),type.c.types);if(!(wid instanceof R(_,var widC)))return type;
       return new R(type.r,widC);
     }
-    M lookup(R w,MN name,RC favorite){
+    M lookup(R w,MN name,RC favorite,RC hint){
       var d=from(w.c.name);if(d==null)return null;var ms=filter(d.ms,m->m.s.m.equals(name));
       Function<RC,M>one=r->find(ms,m->m.s.r==r);
-      var r=w.r==null||w.r==iso?imm:noH(w.r);
+      var r=noH(or(w.r==iso?hint:w.r,imm));
       var order=r==read?list(read,imm,mut):r==mut?list(mut,read,imm):list(imm,read,mut);
       return favorite!=null?one.apply(favorite):ms.size()==1?ms.get(0):order.stream().map(one).filter(Objects::nonNull).findFirst().orElse(null);
     }
-    MS signature(R w,MN name,RC favorite){var d=from(w.c.name);var m=lookup(w,name,favorite);
+    MS signature(R w,MN name,RC favorite,RC hint){var d=from(w.c.name);var m=lookup(w,name,favorite,hint);
       return m==null?null:new MS(m.s.r,push(B.v(d.b),B.v(m.s.b)),d.b,w.c.types,m.s.b,m.s.types,m.s.t);
     }
     static void updateG(IG g,String x,T z){var a=g.get(x);var t=a.und()?z
@@ -706,8 +706,8 @@ public final class Frontend{
     static RC lowerCap(RC a,RC b){a=noH(a);b=noH(b);return a==b||b==read?a:a==read?b:iso;}
     E type(Type t){return t.t.und()?t.t(preferred(t.type)):t;}
     E call(List<B>b,IG g,Call c){var e=solve(b,g,c.e);
-      if(!(e.t() instanceof R w)||signature(w,c.name,c.r)==null)return c.children(e,solve(b,g,c.es));
-      var m=signature(w,c.name,c.r);var n=m.cas.size();
+      if(!(e.t() instanceof R w)||signature(w,c.name,c.r,null)==null)return c.children(e,solve(b,g,c.es));
+      var m=signature(w,c.name,c.r,null);var n=m.cas.size();
       var all0=infer(c,m,c.es,false);var m0=m.arguments(normalize(b,m.cb,all0.subList(0,n)));
       var es=solve(b,g,expect(c.es,m0,normalize(b,m.mb,all0.subList(n,all0.size()))));
       var all=infer(c,m,es,true);var ts=normalize(b,m.cb,all.subList(0,n));
@@ -752,7 +752,7 @@ public final class Frontend{
     }
     record TSM(List<T>types,M m){}
     TSM header(R w,M m){
-      var s=m.s;var omh=lookup(w,s.m,s.r);if(omh==null)return new TSM(w.c.types,m);
+      var s=m.s;var omh=lookup(w,s.m,s.r,null);if(omh==null)return new TSM(w.c.types,m);
       var v=bound(w,refine(w,s,omh.s));
       return new TSM(erase(v.c.types,B.v(s.b)),m.signature(signature(v,s)));
     }
@@ -780,7 +780,7 @@ public final class Frontend{
       return b.with(or(aRc,b.r),zip(aC.types,b.c.types,this::keep));
     }
     S signature(R w,S sig){
-      var h=signature(w,sig.m,sig.r);var v=vars(sig.b);
+      var h=signature(w,sig.m,sig.r,null);var v=vars(sig.b);
       return sig.types(map(h.ps,p->h.inst(p,v)),h.inst(h.ret,v));
     }
     List<T>erase(List<T>types,List<String>mb){
@@ -810,16 +810,17 @@ public final class Frontend{
       var res=zip(c.types,cc.c.types,(t,ti)->t instanceof R rr&&!(ti instanceof R ci&&ci.c.name.equals(rr.c.name))?qs(v.size()):refine(v,t,ti));
       return res.size()==0?qs(v.size()):meet(res);
     }
-    E ascribe(E arg,T expected,boolean receiver){
+    E ascribe(E arg,T expected,MN called){
       if(!(expected instanceof R exp))return arg;
       return switch(arg){
-        case Call c->c.children(ascribe(c.e,expected,true),c.es);
+        case Call c->c.children(ascribe(c.e,expected,c.name),c.es);
         case Literal l when l.expanded||!l.anon||l.cs.size()>0||!l.t.und()->arg;
-        case Literal l when!receiver||implementable(exp.c.name)->l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size()))));
+        case Literal l when called==null||implementable(exp.c.name)&&!declares(l,called)->l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size()))));
         case Literal l->{var res=new Literal(imm,l.name,l.b,l.cs,l.self,l.ms,true);yield res.t(self(res));}
         default->arg;
       };
     }
+    boolean declares(Literal l,MN called){return any(l.ms,m->called.equals(m.s.m)&&m.s.t!=u&&!any(m.s.types,t->t==u));}
     boolean implementable(N head){
       var d=from(head);if(d==null)return false;var foreign=!head.pk().equals(p.name)&&(!head.visible()||has(d.cs,sealed));
       return!foreign&&TS.inst(d);
@@ -846,7 +847,7 @@ public final class Frontend{
     };}
     T targ(Call e,T t,int i){
       if(t!=u)return norm(fillVoid(t));
-      var m=e.e.t() instanceof R w?meths.lookup(w,e.name,e.r):null;var caps=m==null?caps(imm):m.s.b.get(i).caps;
+      var m=e.e.t() instanceof R w?meths.lookup(w,e.name,e.r,null):null;var caps=m==null?caps(imm):m.s.b.get(i).caps;
       return voidT(caps.contains(imm)?imm:caps.iterator().next());
     }
     static T voidT(RC r){return new R(r,new C(voidName,list()));}
