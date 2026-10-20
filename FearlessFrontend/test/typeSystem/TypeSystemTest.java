@@ -4687,16 +4687,45 @@ Take:{ #[Y](c: Box[Y]): N -> N }
 Use:{ .m[Y](c: Box[Y]): N -> Take#[D](c) }
 """.replace("D", box(98, "N"))));}
 @Test void callResultDeeperThanTheLimit(){failWf("""
-002| U[X]:{ .m(k: K[[###]]): Box[Box[X]] -> k.get }
-   | [###]
+003|   k.get }
+   |   ^^^^^
 
 While inspecting method call ".get"
 Type inference builds the type for the result of ".get": "Box[Box[X]]" with "X" = "Box[Box[Box[...]]]" (98 type names).
 It nests 100 type names; a type can nest at most 99 type names inside each other.
 """, List.of("""
 A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }
-U[X]:{ .m(k: K[D]): Box[Box[X]] -> k.get }
+U[X]:{ .m(k: K[D]): Box[Box[X]] ->
+  k.get }
 """.replace("D", box(97, "A"))));}
+@Test void argumentTypeTooDeepFromReceiver(){failWf("""
+005|   u.use(x) }
+   |   ------^^
+
+While inspecting parameter "x" > method call ".use(_)"
+Type inference builds the type for argument 1 of ".use": "Box[Box[S]]" with "S" = "Box[Box[Box[...]]]" (98 type names).
+It nests 100 type names; a type can nest at most 99 type names inside each other.
+""", List.of("""
+N:{}
+Box[X]:{}
+U[S]:{ .use(s: Box[Box[S]]): N }
+Use:{ .go(u: U[D], x: N): N ->
+  u.use(x) }
+""".replace("D", box(97, "N"))));}
+@Test void argumentTypeTooDeepFromAnotherArgument(){failWf("""
+005|   Take#(a, c) }
+   |   ---------^^
+
+While inspecting parameter "c" > method call "#(_,_)"
+Type inference builds the type for argument 2 of "#": "Box[Y]" with "Y" = "Box[Box[Box[...]]]" (99 type names).
+It nests 100 type names; a type can nest at most 99 type names inside each other.
+""", List.of("""
+N:{}
+Box[X]:{}
+Take:{ #[Y](a: Y, c: Box[Y]): N -> N }
+Use:{ .m(a: D, c: N): N ->
+  Take#(a, c) }
+""".replace("D", box(98, "N"))));}
 @Test void impliedSupertypeTooDeep(){failWf("""
 005| A:B[[###]]{}
    | [###]
@@ -4726,8 +4755,8 @@ Ign:{ #[K](k: K): N -> N }
 Use:{ .m: N -> Ign#(Mk#) }
 """.replace("D", box(99, "T"))));}
 @Test void inferredTypeArgumentTooDeep(){failWf("""
-004| Use:{ .m(x: [###]): N -> W#(x).get }
-   | [###]
+005|   W#(x).get }
+   |   ^^^^^----
 
 While inspecting method call "#(_)" > method call ".get"
 Type inference builds the type for the result of "#": "Box[T]" with "T" = "Box[Box[Box[...]]]" (99 type names).
@@ -4736,18 +4765,42 @@ It nests 100 type names; a type can nest at most 99 type names inside each other
 N:{}
 Box[X]:{ .get: X }
 W:{ #[T](t: T): Box[T] -> {} }
-Use:{ .m(x: D): N -> W#(x).get }
+Use:{ .m(x: D): N ->
+  W#(x).get }
 """.replace("D", box(98, "N"))));}
-@Test void subtypingWalkTooDeep(){failWf("""
-002| U:{ .m(w: W[[###]]): Top -> w }
+@Test void inheritedSupertypeTooDeepAcrossDeclarations(){failWf("""
+102| B99[X]:B98[Box[X]]{}
+   | ^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B99[_]"
+Type inference builds the type for what "B99[_]" inherits: "B0[Box[Box[Box[...]]]]" with "X" = "Box[X]" (1 type name).
+It nests 100 type names; a type can nest at most 99 type names inside each other.
+""", List.of("N:{}\nBox[X]:{}\nB0[X]:{}\n"+IntStream.rangeClosed(1, 99).mapToObj(i -> "B"+i+"[X]:B"+(i-1)+"[Box[X]]{}\n").collect(Collectors.joining())));}
+@Test void inheritedSignatureTooDeep(){failWf("""
+004| A:B[[###]]{}
    | [###]
+
+While inspecting type declaration "A"
+Type inference builds the type for what "A" inherits: "Box[Box[X]]" with "X" = "Box[Box[Box[...]]]" (98 type names).
+It nests 100 type names; a type can nest at most 99 type names inside each other.
+""", List.of("""
+N:{}
+Box[X]:{}
+B[X]:{ .m(x: Box[Box[X]]): N }
+A:B[D]{}
+""".replace("D", box(97, "N"))));}
+@Test void subtypingWalkTooDeep(){failWf("""
+002| U:{ .m(w: W[[###]]): Top ->
+003|   w }
+   |   ^
 
 While inspecting parameter "w" > ".m(_)" line 2 > type declaration "U"
 The type checker builds the type for a supertype of "W[Box[Box[...]]]": "Box[Box[X]]" with "X" = "Box[Box[Box[...]]]" (98 type names).
 It nests 100 type names; a type can nest at most 99 type names inside each other.
 """, List.of("""
 A:{} Top:{} Box[X]:Top{} W[X]:Box[Box[X]]{}
-U:{ .m(w: W[D]): Top -> w }
+U:{ .m(w: W[D]): Top ->
+  w }
 """.replace("D", box(97, "A"))));}
 @Test void typeGrowsForever(){failWf("""
 006| Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }

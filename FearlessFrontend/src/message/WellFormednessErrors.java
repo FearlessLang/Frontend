@@ -63,7 +63,7 @@ public record WellFormednessErrors(String pkgName){
       var max= core.T.C.maxDepth-1;
       var who= actor == null ? "The type checker" : actor;
       var use= purpose == null ? "" : " for "+purpose;
-      var what= in == null ? err.typeRepr(name, ts) : err.typeRepr(in)+" with "+Join.of(replacements(err), "", " and ", "");
+      var what= in == null ? err.typeRepr(name, ts) : err.typeRepr(in, 3)+" with "+Join.of(replacements(err), "", " and ", "");
       return Message.of(env::loadString, frames, who+" builds the type"+use+": "+what+".\nIt nests "+count(max+1, "type name")+"; a type can nest at most "+count(max, "type name")+" inside each other.\n");
     }
     private List<String> replacements(Err err){
