@@ -8,6 +8,8 @@ import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.attribute.FileTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Assumptions;
@@ -51,7 +53,31 @@ final class FsSymbolicLinkTest{
       () -> Fs.copyTreeFlat(dirLink, root.resolve("to")),
       () -> Fs.copyTree(real, dirLink),
       () -> Fs.walk(dirLink, s -> s.toList()),
-      () -> Fs.realPath(dirLink)
+      () -> Fs.realPath(dirLink),
+      () -> Fs.exists(fileLink),
+      () -> Fs.notExists(fileLink),
+      () -> Fs.isDirectory(dirLink),
+      () -> Fs.isRegularFile(fileLink),
+      () -> Fs.isWritable(fileLink),
+      () -> Fs.readAllBytes(fileLink),
+      () -> Fs.readAllLines(fileLink),
+      () -> Fs.newInputStream(fileLink).close(),
+      () -> Fs.write(fileLink, new byte[0]),
+      () -> Fs.writeString(fileLink, "y"),
+      () -> Fs.move(fileLink, root.resolve("moved.txt")),
+      () -> Fs.move(file, fileLink),
+      () -> Fs.delete(fileLink),
+      () -> Fs.deleteIfExists(fileLink),
+      () -> Fs.createDirectories(dirLink),
+      () -> Fs.list(dirLink).close(),
+      () -> Fs.list(root).toList(),
+      () -> Fs.size(fileLink),
+      () -> Fs.getLastModifiedTime(fileLink),
+      () -> Fs.setLastModifiedTime(fileLink, FileTime.fromMillis(0)),
+      () -> Fs.getAttribute(fileLink, "size"),
+      () -> Fs.getFileStore(fileLink),
+      () -> Fs.openChannel(fileLink).close(),
+      () -> Fs.watch(dirLink, root.getFileSystem().newWatchService(), StandardWatchEventKinds.ENTRY_CREATE)
     ).forEach(FsSymbolicLinkTest::refused);
     assertEquals("x", Fs.readUtf8(file));
     assertEquals("x", Fs.readUtf8(real.resolve("f.txt")));
