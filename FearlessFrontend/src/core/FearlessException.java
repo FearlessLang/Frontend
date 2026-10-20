@@ -22,10 +22,9 @@ public class FearlessException extends RuntimeException implements HasFrames<Fea
     this.msgFactory= Objects.requireNonNull(f);
   }
   public String render(SourceOracle env){
-    var msg= msg(env, Collections.unmodifiableList(frames));
+    var msg= msgFactory.apply(env, Collections.unmodifiableList(frames));
     if (msg.endsWith("\n")){ return msg + code; }
     return msg + "\n" + code;
   }
-  protected String msg(SourceOracle env, List<Frame> frames){ return msgFactory.apply(env, frames); }
   @Override public FearlessException addFrame(Frame f){ frames.add(f); return this; }
 }

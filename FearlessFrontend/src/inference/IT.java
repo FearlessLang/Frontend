@@ -35,7 +35,7 @@ public sealed interface IT{
     public C{
       assert unmodifiable(ts, "IT.C.ts");
       assert eq(ts.size(), name.arity(), "Type arity");
-      if (depth > maxDepth){ throw WellFormednessErrors.tooDeep(name, ts); }
+      if (depth > 10*maxDepth){ throw WellFormednessErrors.tooDeep(name); }
     }
     public C(TName name, List<IT> ts){ this(name, ts, depth(ts)); }
     public static int depth(List<IT> ts){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1); }

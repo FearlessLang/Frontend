@@ -3,13 +3,12 @@ package inject;
 import java.util.List;
 
 import core.B;
-import core.MName;
 import core.RC;
 import core.TSpan;
 import inference.IT;
 import utils.Push;
 
-record MSigL(RC rc, MName name, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> methBs, List<IT> ps0, IT ret0){
+record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> methBs, List<IT> ps0, IT ret0){
   int nCls(){ return clsArgs.size(); }
   int bsArity(){ return methBs.size(); }
 
@@ -17,7 +16,7 @@ record MSigL(RC rc, MName name, List<String> xs, List<B> clsBs, List<IT> clsArgs
 
   MSigL withClsArgs(List<IT> clsArgs){
     assert clsArgs.size() == this.clsArgs.size();
-    return new MSigL(rc, name, xs, clsBs, clsArgs, methBs, ps0, ret0);
+    return new MSigL(rc, xs, clsBs, clsArgs, methBs, ps0, ret0);
   }
 
   IT inst(IT t, List<IT> targs){//Note: this will eventually become an error at type system time.

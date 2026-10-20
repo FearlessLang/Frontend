@@ -30,47 +30,44 @@ import inference.IT;
 import inference.M;
 import inject.Methods.Agreement;
 import inject.TypeRename;
-import metaParser.Frame;
 import metaParser.Message;
 import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
 import pkgmerge.Package;
-import tools.SourceOracle;
 import tools.SourceOracle.Ref;
 import typeSystem.Kinding;
-import utils.Bug;
 import utils.Join;
+import utils.Pos;
 import java.util.EnumSet;
 import utils.Push;
 
 public record WellFormednessErrors(String pkgName){
   @SuppressWarnings("serial") public static final class TooDeep extends FearlessException{
-    final TName name; final List<IT> ts; String purpose; IT in; List<String> xs; List<IT> with;
-    TooDeep(TName name, List<IT> ts){
-      super(Code.WellFormedness, (_,_) -> { throw Bug.unreachable(); });
-      this.name= name; this.ts= ts;
-    }
-    public TooDeep as(String purpose){ if (this.purpose == null){ this.purpose= purpose; } return this; }
-    public TooDeep replacing(List<String> xs, List<IT> with, IT in){
-      if (this.in != null){ return this; }
-      this.xs= xs; this.with= with; this.in= in;
-      return this;
-    }
-    @Override protected String msg(SourceOracle env, List<Frame> frames){
-      var err= new WellFormednessErrors(name.pkgName()).err();
-      var max= IT.C.maxDepth-1;
-      var use= purpose == null ? "" : " for "+purpose;
-      var what= in == null ? err.typeRepr(name, ts) : err.typeRepr(in, 3)+" with "+Join.of(replacements(err), "", " and ", "");
-      return Message.of(env::loadString, frames, "Type inference builds the type"+use+": "+what+".\nIt nests "+count(max+1, "type name")+"; a type can nest at most "+count(max, "type name")+" inside each other.\n");
-    }
-    private List<String> replacements(Err err){
-      var free= in.ftv().toList();
-      return IntStream.range(0, xs.size()).filter(i -> free.contains(xs.get(i)))
-        .mapToObj(i -> disp(xs.get(i))+" = "+err.typeRepr(with.get(i), 2)+" ("+count(with.get(i).depth()-1, "type name")+")").toList();
+    TooDeep(TName name){
+      super(Code.WellFormedness, (o,fs) -> Message.of(o::loadString, fs, "Type inference finds no type: "+disp(name.simpleName()+"[...]")+" nests more than "+(10*IT.C.maxDepth-1)+" type names and would grow without bound.\n"));
+      addSpan(name.approxSpan().inner);
     }
   }
-  public static TooDeep tooDeep(TName name, List<IT> ts){ return new TooDeep(name, ts); }
+  public static TooDeep tooDeep(TName name){ return new TooDeep(name); }
+  public FearlessException addedSupertypeTooDeep(E.Literal at, IT.C t, Optional<IT.C> from){
+    var of= from.map(f -> " of "+err().tNameADisp(f.name())).orElse("");
+    return addedTooDeep(at, "the supertype "+err().typeRepr(new IT.RCC(Optional.empty(), t, TSpan.fromPos(Pos.unknown)), 3)+of, t.depth());
+  }
+  public FearlessException addedMethodTooDeep(E.Literal at, M.Sig s, int i, IT t){
+    var part= i == s.ts().size() ? "result" : "parameter "+(i+1);
+    var origin= s.origin().get();
+    var m= origin.s().equals(at.name().s()) ? "the signature of "+err().methodSig(s.m().get()) : "the method "+err().methodSig(s.m().get())+" of "+err().tNameADisp(origin);
+    return addedTooDeep(at, m+", whose "+part+" has type "+err().typeRepr(t, 3), t.depth());
+  }
+  public FearlessException addedTypeArgumentTooDeep(E.Call at, int i, IT t){
+    return addedTooDeep(at, "the type argument "+(i+1)+" "+err().typeRepr(t, 3), t.depth());
+  }
+  private FearlessException addedTooDeep(E at, String what, int depth){
+    return wf(err()
+      .line("Type inference adds to "+err().expRepr(at)+" "+what+".")
+      .line("That type nests "+count(depth-1, "type name")+"; a type can nest at most "+count(IT.C.maxDepth-1, "type name")+" inside each other."), at);
+  }
   Err err(){ return new Err(y -> y, x -> x, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
   private Err err(List<String> lines){
     var e= err();
@@ -95,8 +92,7 @@ public record WellFormednessErrors(String pkgName){
   private static String standsFor(String from, String to, Object directive){
     return "Name "+disp(from)+" stands for "+disp(to)+" because of "+disp(directive)+".";
   }
-  public FearlessException frame(E at, FearlessException fe){ return fe.addFrame(err().expRepr(at), at.span().inner); }
-  private FearlessException wf(Err e, E at){ return frame(at, e.wf()); }
+  private FearlessException wf(Err e, E at){ return e.wf().addFrame(err().expRepr(at), at.span().inner); }
   private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }
   private FearlessException wf(Err e, M m, E.Literal origin){ return e.wf().addSpan(m.sig().span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
   public FearlessException notClean(Ref uri, FileFull f){

@@ -14,14 +14,13 @@ import core.TName;
 import core.TSpan;
 import inference.Gamma;
 import inference.IT;
-import message.Err;
-import message.WellFormednessErrors;
 import offensiveUtils.EqTransparent;
 import typeSystem.TypeSystem;
 import utils.Bug;
 import utils.OneOr;
 import utils.Pos;
 import utils.Push;
+import utils.Range;
 import utils.Streams;
 
 public record ToCore(List<B> ctx, Methods meths){
@@ -94,6 +93,7 @@ public record ToCore(List<B> ctx, Methods meths){
     assert inScope(targs);
     var recv= of(e.e(), o.e);
     var fixed= IntStream.range(0, targs.size()).mapToObj(i -> targ(e, targs, i)).toList();
+    for (int i : Range.of(fixed)){ if (fixed.get(i).depth() > IT.C.maxDepth){ throw meths.p().err().addedTypeArgumentTooDeep(e, i, fixed.get(i)); } }
     var args= mapArgs(e.es(), o.es);
     return new core.E.Call(recv, e.name(), rc, TypeRename.itToT(fixed), args, new EqTransparent<>(null), e.src());
   }
@@ -106,10 +106,7 @@ public record ToCore(List<B> ctx, Methods meths){
       return voidT(rcs.contains(RC.imm) ? RC.imm : rcs.iterator().next());
     }
     var amb= ambs(t).findFirst();
-    if (amb.isEmpty()){
-      try{ return fillVoid(t); }
-      catch (WellFormednessErrors.TooDeep td){ throw meths.p().err().frame(e, td.as("type argument "+(i+1)+" of "+Err.disp(e.name().s()))); }
-    }
+    if (amb.isEmpty()){ return fillVoid(t); }
     var x= sig.map(s -> s.bs().get(i).x());
     var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
     var common= t instanceof IT.Amb ? commonSupertypes(cs) : List.<TName>of();

@@ -215,7 +215,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     default RC erc(){ return null;} default int depth(){ return 1;}
     record X(String name) implements T{} record RX(RC r,X x) implements T{ public RC erc(){ return r;} }
     record RI(X x) implements T{} record C(N name,List<T> types){ int depth(){ return 1+types.stream().mapToInt(T::depth).max().orElse(1);} }
-    record R(RC r,C c) implements T{ public R{ no(TS.lim && c.depth() >100); } R withTs(List<T> types){ return with(r, types);}
+    record R(RC r,C c) implements T{ public R{ no(c.depth() >1000); } R withTs(List<T> types){ return with(r, types);}
       R with(RC r,List<T> types){ return new R(r,new C(c.name, types));}
       public boolean tv(){ return all(c.types, T::tv);} public int depth(){ return c.depth();}
       public RC erc(){ return r;} } enum U implements T{ Instance }
@@ -264,7 +264,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
       var trc=t.erc(); if(r == imm || trc == iso)return t.rc(imm); return r == read && trc == mut ? t.rc(read): t;}
     void declare(String x, T t){ if (!x.equals("_")) fs.getLast().vars.put(x,t);}
     Object snap(){ var m=new HashMap<String,T>(); fs.forEach(f -> m.putAll(f.vars)); return m;} }
-  static C normC(C c){ no(!all(c.types, T::tv)); return fillC(c);} static T norm(T t){ no(!t.tv()); return fill(t);}
+  static C normC(C c){ no(!all(c.types, T::tv)|| c.depth()>100); return fillC(c);} static T norm(T t){ no(!t.tv()|| t.depth()>100); return fill(t);}
   static C fillC(C c){ return new C(c.name,map(c.types,Frontend::fill)); } static T fill(T t){ return t instanceof R(var r,var c)? new R(or(r, imm), fillC(c)): t;}
   static T rename(T t,List<String> v,List<T> types){ return switch(t){ case X x -> v.contains(x.name)? types.get(v.indexOf(x.name)): x;
       case RX(var r,var x)-> rename(x, v, types).rc(r); case R w -> w.withTs(renameIT(w.c.types, v, types));
@@ -306,7 +306,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
           var sq= or(c.y,new P.Args(null, list()));
           yield new Call(recv,c.name,sq.r, map(sq.types,this::vT), es,c.y != null); } }; } C vC(C c){ var s=c.name.s;
       var bad= primitive(s)&&(matches(s,UnsignedInt)&& bits(s)>64 || matches(s, SignedInt)&& bits(s)>63
-        || matches(s, SignedFloat, UnSignedFloat)&& !floatOk(s)); no(bad); return new C(f(c.name), map(c.types,this::vT)); }
+        || matches(s, SignedFloat, UnSignedFloat)&& !floatOk(s)); no(bad); var res=new C(f(c.name), map(c.types,this::vT)); no(res.depth()>100); return res; }
     String parameterToName(Par p, boolean hasPat){ return switch(p.xp){ case null -> "_";
         case XPat.Name(var x)-> hasPat && !x.equals("_") ? meths.fresh.variable(owner,x): x;
         case XPat.Des _ -> meths.fresh.variable(owner,"div"); }; }
@@ -444,8 +444,8 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     List<T> join(List<List<T>> tss){ return tss.stream().reduce((a,b)-> zip(a,b,this::join)).get();}
     List<T> meet(List<T> a,List<T> z){ return zip(a,z,this::meet);}
     List<T> meet(List<List<T>> tss){ return tss.stream().reduce(this::meet).get(); } E solve(List<B> b, IG g, E e){
-      if(g.snap().equals(memo.get(e))) return e; while(true){ var s=g.snap(); var oe= next(b,g,e);
-        if (oe.equals(e) && s.equals(g.snap())){ memo.put(e,s); return e;} e = oe;} }
+      if(g.snap().equals(memo.get(e))) return e; var grew=0; while(true){ var s=g.snap(); var oe= next(b,g,e);
+        if (oe.equals(e) && s.equals(g.snap())){ memo.put(e,s); return e;} grew = oe.t().depth()> e.t().depth()? grew+1 : 0; no(grew ==50); e = oe;} }
     List<E> solve(List<B> b, IG g,List<E> es){ return map(es, ei -> solve(b,g, ei)); }
     List<E> expectArgs(List<E> es, MS m,List<T> y){ return zip(es,m.ps0,(e,p)-> meet(e,m.inst(p,y))); }
     E next(List<B> b, IG g, E e){ return switch(e){ case E.X x -> { no(g.escapes(x.name));
@@ -597,8 +597,8 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     useRead(iso, readH, mutH, readH), flexy(iso, imm, mutH, readH), hyg(mutH, readH, mutH, readH), strong(iso, imm, iso, imm); final RC m,r, mh, rh;
     Mode(RC m, RC r, RC mh, RC rh){ this.m=m; this.r=r; this.mh= mh; this.rh= rh;}
     RC of(RC x){ return switch(x){ case mut -> m; case read -> r; case mutH -> mh; case readH -> rh; default -> x; }; }}
-  record TS(Function<N,Literal> decs){ static boolean lim= true; static void allOk(List<Literal> tops, Map<N,Literal> other){ var map=new HashMap<N,Literal>();
-      tops.forEach(t -> collect(t,map)); var sys=new TS(n -> from(n,map::get, other)); lim = false; try{ tops.forEach(l -> sys.litOk(G.empty,l)); } finally{ lim = true; } }
+  record TS(Function<N,Literal> decs){ static void allOk(List<Literal> tops, Map<N,Literal> other){ var map=new HashMap<N,Literal>();
+      tops.forEach(t -> collect(t,map)); var sys=new TS(n -> from(n,map::get, other)); tops.forEach(l -> sys.litOk(G.empty,l)); }
     static void collect(E e, HashMap<N,Literal> map){ if(e instanceof Literal l) map.put(l.name,l); e.children().forEach(c -> collect(c,map)); }
     boolean kindOf(List<B> b, T t, Set<RC> al){ if (!al.containsAll(kinds(b,t))) return false;
       if (!(t instanceof R(_, var c))) return true; var params= decs.apply(c.name).b;
