@@ -50,7 +50,8 @@ final class FsSymbolicLinkTest{
       () -> Fs.copyTree(dirLink, root.resolve("to")),
       () -> Fs.copyTreeFlat(dirLink, root.resolve("to")),
       () -> Fs.copyTree(real, dirLink),
-      () -> Fs.walk(dirLink, s -> s.toList())
+      () -> Fs.walk(dirLink, s -> s.toList()),
+      () -> Fs.realPath(dirLink)
     ).forEach(FsSymbolicLinkTest::refused);
     assertEquals("x", Fs.readUtf8(file));
     assertEquals("x", Fs.readUtf8(real.resolve("f.txt")));
