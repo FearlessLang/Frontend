@@ -87,7 +87,7 @@ public record InjectionSteps(Methods meths){
     if (e instanceof E.Type tt){ return nextT(tt); }
     var typedLit= e instanceof E.Literal l && l.t().isTV();
     if (typedLit){ return e; }
-    e = prototypeAscribeRootReceiver(e, t, false);
+    e = prototypeAscribeRootReceiver(e, t, Optional.empty());
     return e.withT(meet(e.t(), t));
   }
   private IT belowOrDecided(RCC x1, RCC x2){
@@ -257,12 +257,15 @@ public record InjectionSteps(Methods meths){
     return immOne.or(() -> readOne).or(() -> mutOne);
   }
   private <R> Optional<R> methodHeaderAnd(IT.RCC rcc, MName name, Optional<RC> favorite, BiFunction<core.E.Literal,core.M,R> f){
+    return methodHeaderAnd(rcc, name, favorite, overloadNorm(rcc.rc()), f);
+  }
+  private <R> Optional<R> methodHeaderAnd(IT.RCC rcc, MName name, Optional<RC> favorite, RC guess, BiFunction<core.E.Literal,core.M,R> f){
     var d= meths._from(rcc.c().name());
     if (d == null){ return Optional.empty(); }//case {..}.foo
     var ms= d.ms().stream().filter(m -> m.sig().m().equals(name));
     var om= favorite
       .map(rc -> OneOr.opt("Ambiguous method header for explicit RC", ms.filter(mi -> mi.sig().rc() == rc)))
-      .orElseGet(() -> oneFromGuessRC(ms.toList(), overloadNorm(rcc.rc())));
+      .orElseGet(() -> oneFromGuessRC(ms.toList(), guess));
     return om.map(mm -> f.apply(d, mm));
   }
   private MSigL methodHeaderInstance(IT.RCC rcc, core.E.Literal d, core.M m){
@@ -322,7 +325,8 @@ public record InjectionSteps(Methods meths){
     var e= nextStar(bs, g, c.e());
     var es= nextStar(bs, g, c.es());
     if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, es); }
-    var om= methodHeader(rcc, c.name(), Optional.empty());
+    var guess= overloadNorm(rcc.rc().map(rc -> rc == RC.iso ? c.t().explicitRC().orElse(rc) : rc));
+    var om= methodHeaderAnd(rcc, c.name(), Optional.empty(), guess, (d,m) -> methodHeaderInstance(rcc, d, m));
     if (om.isEmpty()){ return c.withEEs(e, es); }
     var m= om.get();
     var ts= qMarks(m.bsArity());
@@ -609,16 +613,19 @@ public record InjectionSteps(Methods meths){
     if (headKnown){ return false; }
     return l.t().undecided();
   }
-  private E prototypeAscribeRootReceiver(E arg, IT expected, boolean receiver){
+  private E prototypeAscribeRootReceiver(E arg, IT expected, Optional<MName> called){
     if (!(expected instanceof IT.RCC exp)){ return arg; }
     return switch (arg){
-      case E.Call c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, true), c.es());
-      case E.ICall c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, true), c.es());
+      case E.Call c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, Optional.of(c.name())), c.es());
+      case E.ICall c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, Optional.of(c.name())), c.es());
       case E.Literal l when !needsPrototypeAscription(l) -> arg;
-      case E.Literal l when !receiver || implementable(exp.c().name()) -> l.withT(prototypeHead(exp, l.span()));
+      case E.Literal l when called.map(name -> implementable(exp.c().name()) && !declares(l, name)).orElse(true) -> l.withT(prototypeHead(exp, l.span()));
       case E.Literal l -> itself(l);
       default -> arg;
     };
+  }
+  private static boolean declares(E.Literal l, MName name){
+    return l.ms().stream().map(M::sig).anyMatch(s -> s.m().equals(Optional.of(name)) && s.ret().isPresent() && s.ts().stream().allMatch(Optional::isPresent));
   }
   private boolean implementable(TName head){
     var d= meths._from(head);
