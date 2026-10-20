@@ -35,9 +35,10 @@ public sealed interface IT{
     public C{
       assert unmodifiable(ts, "IT.C.ts");
       assert eq(ts.size(), name.arity(), "Type arity");
-      if (depth > T.C.maxDepth){ throw WellFormednessErrors.typeTooDeep(name); }
+      if (depth > T.C.maxDepth){ throw WellFormednessErrors.instantiatedTooDeep(name); }
     }
-    public C(TName name, List<IT> ts){ this(name, ts, 1+ts.stream().mapToInt(IT::depth).max().orElse(1)); }
+    public C(TName name, List<IT> ts){ this(name, ts, depth(ts)); }
+    public static int depth(List<IT> ts){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1); }
     @Override public String toString(){
       return name.s()+Join.of(ts, "[", ",", "]", "");
     }

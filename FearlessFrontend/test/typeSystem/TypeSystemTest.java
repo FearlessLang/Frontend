@@ -4663,10 +4663,10 @@ A[X]:C,B{}
 """));}
 @Test void instantiatedParameterDeeperThanTheLimit(){failWf("""
 003| A:{ .mk[T:*]: Box[T] -> Box[T]; .use[S:*](s: Box[S]): N -> N; .go: N -> this.use[imm,[###]) }
-   |                                              ^^^^
+   |                                              ^^^^[###]
 
-While inspecting the file
-Type "Box[...]" is nested too deeply.
+While inspecting method call ".use(_)"
+Type "Box[...]" is instantiated with a type argument that nests 99 type names, so the result nests 100.
 A type can nest at most 99 type names inside each other.
 """, List.of("""
 N:{}
@@ -4676,9 +4676,10 @@ A:{ .mk[T:*]: Box[T] -> Box[T]; .use[S:*](s: Box[S]): N -> N; .go: N -> this.use
 @Test void instantiatedParameterDeeperThanTheLimitNotASubtype(){failWf("""
 003| Take:{ #[Y](c: Box[Y]): N -> N }
    |                ^^^^
+004| Use:{ .m[Y](c: Box[Y]): N -> Take#[[###]](c) }
 
-While inspecting the file
-Type "Box[...]" is nested too deeply.
+While inspecting method call "#(_)"
+Type "Box[...]" is instantiated with a type argument that nests 99 type names, so the result nests 100.
 A type can nest at most 99 type names inside each other.
 """, List.of("""
 N:{}
@@ -4689,9 +4690,10 @@ Use:{ .m[Y](c: Box[Y]): N -> Take#[D](c) }
 @Test void callResultDeeperThanTheLimit(){failWf("""
 001| A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }
    |                             ^^^^
+002| U[X]:{ .m(k: K[[###]]): Box[Box[X]] -> k.get }
 
-While inspecting the file
-Type "Box[...]" is nested too deeply.
+While inspecting method call ".get"
+Type "Box[...]" is instantiated with a type argument that nests 99 type names, so the result nests 100.
 A type can nest at most 99 type names inside each other.
 """, List.of("""
 A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }
@@ -4700,9 +4702,10 @@ U[X]:{ .m(k: K[D]): Box[Box[X]] -> k.get }
 @Test void impliedSupertypeTooDeep(){failWf("""
 004| B[X]:C[Box[X]]{}
    |      ^^
+005| A:B[[###]]{}
 
-While inspecting the file
-Type "C[...]" is nested too deeply.
+While inspecting type declaration "A"
+Type "C[...]" is instantiated with a type argument that nests 99 type names, so the result nests 100.
 A type can nest at most 99 type names inside each other.
 """, List.of("""
 N:{}
@@ -4714,9 +4717,11 @@ A:B[D]{}
 @Test void voidDefaultTooDeep(){failWf("""
 003| Mk:{ #[T]: [###] -> {} }
    |            ^^^^
+004| Ign:{ #[K](k: K): N -> N }
+005| Use:{ .m: N -> Ign#(Mk#) }
 
-While inspecting the file
-Type "Box[...]" is nested too deeply.
+While inspecting method call "#(_)"
+Type "Box[...]" is instantiated with a type argument that nests 99 type names, so the result nests 100.
 A type can nest at most 99 type names inside each other.
 """, List.of("""
 N:{}
@@ -4728,9 +4733,10 @@ Use:{ .m: N -> Ign#(Mk#) }
 @Test void inferredTypeArgumentTooDeep(){failWf("""
 003| W:{ #[T](t: T): Box[T] -> {} }
    |                 ^^^^
+004| Use:{ .m(x: [###]): N -> W#(x).get }
 
-While inspecting the file
-Type "Box[...]" is nested too deeply.
+While inspecting method call "#(_)" > method call ".get"
+Type "Box[...]" is instantiated with a type argument that nests 99 type names, so the result nests 100.
 A type can nest at most 99 type names inside each other.
 """, List.of("""
 N:{}

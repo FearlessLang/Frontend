@@ -33,7 +33,7 @@ public sealed interface T{
     public C{
       assert unmodifiable(ts, "T.C.ts");
       assert eq(ts.size(), name.arity(), "Type arity");
-      if (depth > maxDepth){ throw WellFormednessErrors.typeTooDeep(name); }
+      if (depth > maxDepth){ throw WellFormednessErrors.instantiatedTooDeep(name); }
     }
     public C(TName name, List<T> ts){ this(name, ts, 1+ts.stream().mapToInt(T::depth).max().orElse(1)); }
     @Override public String toString(){

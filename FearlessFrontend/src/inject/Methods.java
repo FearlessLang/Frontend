@@ -23,6 +23,7 @@ import fearlessParser.Parser;
 import inference.E;
 import inference.IT;
 import inference.M;
+import message.WellFormednessErrors;
 import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
@@ -51,7 +52,7 @@ public record Methods(
   public List<E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     var acc= new ArrayList<E.Literal>();
     for (var d : supertypesFirst(iDecs.stream().filter(l -> !l.infName()).toList())){
-      var e= expandDeclaration(d, false);
+      var e= expandHeader(d);
       if (d.thisName().equals("this")){ acc.add(e); }
       register(e);
     }
@@ -88,6 +89,10 @@ public record Methods(
   }
   public core.E.Literal from(TName name){ return Objects.requireNonNull(_from(name)); }
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name, cache::get, other); }
+  private E.Literal expandHeader(E.Literal d){
+    try{ return expandDeclaration(d, false); }
+    catch (WellFormednessErrors.TooDeep t){ throw p.err().frame(d, t); }
+  }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
     var implied= d.cs().stream().flatMap(c -> fetchCs(c).stream()).toList();
     var allCs= ToCore.distinctTypes(d.bs(), Push.of(d.cs(), implied.stream().sorted(Comparator.comparing(Object::toString)).toList()));

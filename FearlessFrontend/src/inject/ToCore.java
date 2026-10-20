@@ -14,6 +14,7 @@ import core.TName;
 import core.TSpan;
 import inference.Gamma;
 import inference.IT;
+import message.WellFormednessErrors;
 import offensiveUtils.EqTransparent;
 import typeSystem.TypeSystem;
 import utils.Bug;
@@ -104,7 +105,10 @@ public record ToCore(List<B> ctx, Methods meths){
       return voidT(rcs.contains(RC.imm) ? RC.imm : rcs.iterator().next());
     }
     var amb= ambs(t).findFirst();
-    if (amb.isEmpty()){ return fillVoid(t); }
+    if (amb.isEmpty()){
+      try{ return fillVoid(t); }
+      catch (WellFormednessErrors.TooDeep td){ throw meths.p().err().frame(e, td); }
+    }
     var x= sig.map(s -> s.bs().get(i).x());
     var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
     var common= t instanceof IT.Amb ? commonSupertypes(cs) : List.<TName>of();

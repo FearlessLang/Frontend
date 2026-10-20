@@ -30,6 +30,7 @@ import inference.IT;
 import inference.M;
 import inject.Methods.Agreement;
 import inject.TypeRename;
+import metaParser.Message;
 import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
@@ -41,6 +42,14 @@ import java.util.EnumSet;
 import utils.Push;
 
 public record WellFormednessErrors(String pkgName){
+  @SuppressWarnings("serial") public static final class TooDeep extends FearlessException{
+    TooDeep(TName name, String msg){ super(Code.WellFormedness, (o,fs) -> Message.of(o::loadString, fs, msg)); addSpan(name.approxSpan().inner); }
+  }
+  public static TooDeep instantiatedTooDeep(TName name){
+    return new TooDeep(name,
+      "Type "+disp(name.simpleName()+"[...]")+" is instantiated with a type argument that nests "+(core.T.C.maxDepth-1)+" type names, so the result nests "+core.T.C.maxDepth+".\n"
+      +"A type can nest at most "+(core.T.C.maxDepth-1)+" type names inside each other.\n");
+  }
   Err err(){ return new Err(y -> y, x -> x, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
   private Err err(List<String> lines){
     var e= err();
@@ -65,7 +74,8 @@ public record WellFormednessErrors(String pkgName){
   private static String standsFor(String from, String to, Object directive){
     return "Name "+disp(from)+" stands for "+disp(to)+" because of "+disp(directive)+".";
   }
-  private FearlessException wf(Err e, E at){ return e.wf().addFrame(err().expRepr(at), at.span().inner); }
+  public FearlessException frame(E at, FearlessException fe){ return fe.addFrame(err().expRepr(at), at.span().inner); }
+  private FearlessException wf(Err e, E at){ return frame(at, e.wf()); }
   private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }
   private FearlessException wf(Err e, M m, E.Literal origin){ return e.wf().addSpan(m.sig().span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
   public FearlessException notClean(Ref uri, FileFull f){
@@ -460,8 +470,8 @@ public record WellFormednessErrors(String pkgName){
       .line(err().typeRepr(t)+" is a type parameter; object literals can only implement nominal types."), at);
   }
   private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
-  public static FearlessException typeTooDeep(TName name){
-    return new WellFormednessErrors(name.pkgName()).err()
+  public FearlessException typeTooDeep(TName name){
+    return err()
       .line("Type "+disp(name.simpleName()+"[...]")+" is nested too deeply.")
       .line("A type can nest at most "+(core.T.C.maxDepth-1)+" type names inside each other.")
       .wf().addSpan(name.approxSpan().inner);
