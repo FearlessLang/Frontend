@@ -6,14 +6,11 @@ import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
 
+import message.WellFormednessErrors;
 import metaParser.Span;
 import utils.Join;
 
 public sealed interface T{
-  @SuppressWarnings("serial") final class TooDeep extends RuntimeException{
-    public final TName name;
-    public TooDeep(TName name){ this.name= name; }
-  }
   TSpan span();
   default int depth(){ return 1; }
   record X(String name, TSpan span) implements T{
@@ -31,15 +28,14 @@ public sealed interface T{
     @Override public String toString(){ return "read/imm "+x.name; }
     @Override public TSpan span(){ return x.span();}
   }
-  record C(TName name, List<T> ts) implements KindingTarget{
+  record C(TName name, List<T> ts, int depth) implements KindingTarget{
     public static final int maxDepth= 100;
     public C{
       assert unmodifiable(ts, "T.C.ts");
       assert eq(ts.size(), name.arity(), "Type arity");
-      if (depth(ts) > maxDepth){ throw new TooDeep(name); }
+      if (depth > maxDepth){ throw WellFormednessErrors.typeTooDeep(name); }
     }
-    static int depth(List<T> ts){ return 1+ts.stream().mapToInt(T::depth).max().orElse(1); }
-    public int depth(){ return depth(ts); }
+    public C(TName name, List<T> ts){ this(name, ts, 1+ts.stream().mapToInt(T::depth).max().orElse(1)); }
     @Override public String toString(){
       return name.s()+Join.of(ts, "[", ",", "]", "");
     }

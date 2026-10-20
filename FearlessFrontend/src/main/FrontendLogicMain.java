@@ -11,7 +11,6 @@ import pkgmerge.DeclaredNames;
 import pkgmerge.Package;
 import core.AllLs;
 import core.OtherPackages;
-import core.T;
 import core.TName;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
@@ -59,14 +58,11 @@ public class FrontendLogicMain{
     return Push.of(coreAST, core(testCtx));
   }
   private static List<core.E.Literal> core(Methods ctx){
-    try{
-      var inferrableAST= ToInference.of(ctx); // Phase 4: Desugar
-      inferrableAST = ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
-      var coreAST= InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
-      TypeSystem.allOk(coreAST, ctx.p(), ctx.other()); //Phase 7: type checking
-      return coreAST;
-    }
-    catch (T.TooDeep e){ throw ctx.p().err().typeTooDeep(e.name); }
+    var inferrableAST= ToInference.of(ctx); // Phase 4: Desugar
+    inferrableAST = ctx.registerTypeHeadersAndReturnRoots(inferrableAST); // Phase 5: Build Synthetic type table inside ctx
+    var coreAST= InjectionSteps.steps(ctx, inferrableAST);  // Phase 6: Inference
+    TypeSystem.allOk(coreAST, ctx.p(), ctx.other()); //Phase 7: type checking
+    return coreAST;
   }
   public Map<String,Map<String,String>> parseRankFiles(List<Ref> files, Comparator<Ref> c, Collection<String> pkgs){
     var parsed= parseFiles(files);

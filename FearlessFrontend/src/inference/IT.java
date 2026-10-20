@@ -11,6 +11,7 @@ import core.RC;
 import core.T;
 import core.TName;
 import core.TSpan;
+import message.WellFormednessErrors;
 import utils.Join;
 
 public sealed interface IT{
@@ -34,7 +35,7 @@ public sealed interface IT{
     public C{
       assert unmodifiable(ts, "IT.C.ts");
       assert eq(ts.size(), name.arity(), "Type arity");
-      if (depth > T.C.maxDepth){ throw new T.TooDeep(name); }
+      if (depth > T.C.maxDepth){ throw WellFormednessErrors.typeTooDeep(name); }
     }
     public C(TName name, List<IT> ts){ this(name, ts, 1+ts.stream().mapToInt(IT::depth).max().orElse(1)); }
     @Override public String toString(){

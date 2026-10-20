@@ -460,9 +460,9 @@ public record WellFormednessErrors(String pkgName){
       .line(err().typeRepr(t)+" is a type parameter; object literals can only implement nominal types."), at);
   }
   private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
-  public FearlessException typeTooDeep(TName name){
-    return err()
-      .line("Type "+disp(err().cp().t.ofFull(name)+"[...]")+" is nested too deeply.")
+  public static FearlessException typeTooDeep(TName name){
+    return new WellFormednessErrors(name.pkgName()).err()
+      .line("Type "+disp(name.simpleName()+"[...]")+" is nested too deeply.")
       .line("A type can nest at most "+(core.T.C.maxDepth-1)+" type names inside each other.")
       .wf().addSpan(name.approxSpan().inner);
   }
