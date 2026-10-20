@@ -57,7 +57,11 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var invMap= pkg.map().entrySet().stream()
       .collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey, BinaryOperator.<String>minBy(Comparator.naturalOrder())));
     var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs, pkg, invMap, new LinkedHashSet<>()))));
-    tops.forEach(l -> ts.litOk(Gamma.empty(), l));
+    tops.forEach(ts::topOk);
+  }
+  private void topOk(Literal l){
+    try{ litOk(Gamma.empty(), l); }
+    catch (WellFormednessErrors.TooDeep td){ throw tsE().addExpFrame(l, td); }
   }
   public boolean isSub(List<B> bs, T t1, T t2){
     return t1.equals(t2)
@@ -70,12 +74,17 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (got.isEmpty()){ return; }
     throw tsE().methodBodyWrongType((TypeScope.Method)scope, e, got, expected);
   }
-  List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch (e){
-    case X x -> checkX(bs, g, x, rs);
-    case Type t -> checkType(bs, t, rs);
-    case Literal l -> checkLiteral(bs, g, l, rs);
-    case Call c -> new CallTyping(this, bs, g, c, rs).run();
-  };}
+  List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){
+    try{
+      return switch (e){
+        case X x -> checkX(bs, g, x, rs);
+        case Type t -> checkType(bs, t, rs);
+        case Literal l -> checkLiteral(bs, g, l, rs);
+        case Call c -> new CallTyping(this, bs, g, c, rs).run();
+      };
+    }
+    catch (WellFormednessErrors.TooDeep td){ throw tsE().addExpFrame(e, td); }
+  }
   private List<Reason> checkX(List<B> bs, Gamma g, X x, List<TRequirement> rs){
     var b= g.bind(x.name());
     var declared= b.declared();

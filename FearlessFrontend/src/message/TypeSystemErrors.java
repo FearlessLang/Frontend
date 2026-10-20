@@ -75,7 +75,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   private FearlessException withCallSpans(FearlessException ex, Call c){
     return ex.addSpan(TSpan.fromPos(c.pos(), c.name().s().length()).inner).addSpan(c.span().inner);
   }
-  private FearlessException addExpFrame(E toErr, FearlessException err){
+  public FearlessException addExpFrame(E toErr, FearlessException err){
     return err.addFrame(err().expRepr(toErr), toErr.span().inner);
   }
   private FearlessException overrideErr(Literal l, Sig sub, Err e){

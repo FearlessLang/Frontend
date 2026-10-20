@@ -21,6 +21,7 @@ import inference.Gamma;
 import inference.IT;
 import inference.IT.RCC;
 import inference.M;
+import message.Err;
 import message.WellFormednessErrors;
 import typeSystem.TypeSystem;
 import utils.OneOr;
@@ -193,6 +194,7 @@ public record InjectionSteps(Methods meths){
   E nextStar(List<B> bs, Gamma g, E e){
     var start= e;
     if (e.done(g)){ return e; }
+    var grew= 0;
     while (true){
       var s= g.snapshot();
       var oe= next(bs, g, e);
@@ -204,6 +206,8 @@ public record InjectionSteps(Methods meths){
         return e;
       }
       //if (oe.equals(e) && !g.changed(s)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
+      grew = oe.t().depth() > e.t().depth() ? grew+1 : 0;
+      if (grew == core.T.C.maxDepth/2){ throw meths.p().err().typeGrowsForever(oe); }
       e = oe;
     }
   }
@@ -211,17 +215,17 @@ public record InjectionSteps(Methods meths){
     return norm(es, es.stream().map(ei -> nextStar(bs, g, ei)).toList());
   }
   private List<E> meetWithTargs(List<E> originEs, List<E> es, MSigL m, List<IT> targs){
-    var res= norm(es, IntStream.range(0, es.size()).mapToObj(i -> meet(es.get(i), arg(m, i, targs))).toList());
+    var res= norm(es, IntStream.range(0, es.size()).mapToObj(i -> meet(es.get(i), arg(es.get(i), m, i, targs))).toList());
     assert notBackToOrigin(originEs, res);
     return res;
   }
-  private IT arg(MSigL m, int i, List<IT> targs){
+  private IT arg(E e, MSigL m, int i, List<IT> targs){
     try{ return m.inst(m.ps0().get(i), targs); }
-    catch (WellFormednessErrors.TooDeep td){ throw td.as("argument "+(i+1)+" of this call"); }
+    catch (WellFormednessErrors.TooDeep td){ throw meths.p().err().frame(e, td.as("argument "+(i+1)+" of "+Err.disp(m.name().s()))); }
   }
   private IT ret(MSigL m, List<IT> targs){
     try{ return m.ret(targs); }
-    catch (WellFormednessErrors.TooDeep td){ throw td.as("the result of this call"); }
+    catch (WellFormednessErrors.TooDeep td){ throw td.as("the result of "+Err.disp(m.name().s())); }
   }
   private boolean notBackToOrigin(List<E> originEs, List<E> res){
     //complex but invaluable: if it fails it means we are going 'back and forth'
@@ -280,7 +284,7 @@ public record InjectionSteps(Methods meths){
     var xs= Push.of(clsXs, methXs);//TODO: could avoid materializing the two lists
     var ps0= TypeRename.tToIT(m.sig().ts());
     var ret0= TypeRename.tToIT(m.sig().ret());
-    return new MSigL(m.sig().rc(), xs, d.bs(), clsArgs, m.sig().bs(), ps0, ret0);
+    return new MSigL(m.sig().rc(), m.sig().m(), xs, d.bs(), clsArgs, m.sig().bs(), ps0, ret0);
   }
   Optional<MSigL> methodHeader(IT.RCC rcc, MName name, Optional<RC> favorite){
     return methodHeaderAnd(rcc, name, favorite, (d,m) -> methodHeaderInstance(rcc, d, m));

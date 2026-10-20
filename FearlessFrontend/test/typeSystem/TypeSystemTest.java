@@ -4663,24 +4663,23 @@ A[X]:C,B{}
 """));}
 @Test void instantiatedParameterDeeperThanTheLimit(){failWf("""
 003| A:{ .mk[T:*]: Box[T] -> Box[T]; .use[S:*](s: Box[S]): N -> N; .go: N -> this.use[imm,[###]) }
-   |                                              ^^^^[###]
+   | [###]
 
-While inspecting method call ".use(_)"
-Type inference instantiates "Box[S]", written here, with "S" = "Box[Box[Box[...]]]" (99 type names) for argument 1 of this call.
-The result nests 100 type names; a type can nest at most 99 type names inside each other.
+While inspecting method call ".mk" > method call ".use(_)"
+Type inference builds the type for argument 1 of ".use": "Box[S]" with "S" = "Box[Box[Box[...]]]" (99 type names).
+It nests 100 type names; a type can nest at most 99 type names inside each other.
 """, List.of("""
 N:{}
 Box[T:*]:{}
 A:{ .mk[T:*]: Box[T] -> Box[T]; .use[S:*](s: Box[S]): N -> N; .go: N -> this.use[imm,D](this.mk[imm,D]) }
 """.replace("D", box(98, "N"))));}
 @Test void instantiatedParameterDeeperThanTheLimitNotASubtype(){failWf("""
-003| Take:{ #[Y](c: Box[Y]): N -> N }
-   |                ^^^^
 004| Use:{ .m[Y](c: Box[Y]): N -> Take#[[###]](c) }
+   | [###]
 
-While inspecting method call "#(_)"
-Type inference instantiates "Box[Y]", written here, with "Y" = "Box[Box[Box[...]]]" (99 type names) for argument 1 of this call.
-The result nests 100 type names; a type can nest at most 99 type names inside each other.
+While inspecting parameter "c" > method call "#(_)"
+Type inference builds the type for argument 1 of "#": "Box[Y]" with "Y" = "Box[Box[Box[...]]]" (99 type names).
+It nests 100 type names; a type can nest at most 99 type names inside each other.
 """, List.of("""
 N:{}
 Box[X]:{}
@@ -4688,25 +4687,23 @@ Take:{ #[Y](c: Box[Y]): N -> N }
 Use:{ .m[Y](c: Box[Y]): N -> Take#[D](c) }
 """.replace("D", box(98, "N"))));}
 @Test void callResultDeeperThanTheLimit(){failWf("""
-001| A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }
-   |                             ^^^^
 002| U[X]:{ .m(k: K[[###]]): Box[Box[X]] -> k.get }
+   | [###]
 
 While inspecting method call ".get"
-Type inference instantiates "Box[Box[X]]", written here, with "X" = "Box[Box[Box[...]]]" (98 type names) for the result of this call.
-The result nests 100 type names; a type can nest at most 99 type names inside each other.
+Type inference builds the type for the result of ".get": "Box[Box[X]]" with "X" = "Box[Box[Box[...]]]" (98 type names).
+It nests 100 type names; a type can nest at most 99 type names inside each other.
 """, List.of("""
 A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }
 U[X]:{ .m(k: K[D]): Box[Box[X]] -> k.get }
 """.replace("D", box(97, "A"))));}
 @Test void impliedSupertypeTooDeep(){failWf("""
-004| B[X]:C[Box[X]]{}
-   |      ^^
 005| A:B[[###]]{}
+   | [###]
 
 While inspecting type declaration "A"
-Type inference instantiates "C[Box[X]]", written here, with "X" = "Box[Box[Box[...]]]" (98 type names) for what "A" inherits.
-The result nests 100 type names; a type can nest at most 99 type names inside each other.
+Type inference builds the type for what "A" inherits: "C[Box[X]]" with "X" = "Box[Box[Box[...]]]" (98 type names).
+It nests 100 type names; a type can nest at most 99 type names inside each other.
 """, List.of("""
 N:{}
 Box[X]:{}
@@ -4715,13 +4712,11 @@ B[X]:C[Box[X]]{}
 A:B[D]{}
 """.replace("D", box(97, "N"))));}
 @Test void voidDefaultTooDeep(){failWf("""
-003| Mk:{ #[T]: [###] -> {} }
-   |            ^^^^
-004| Ign:{ #[K](k: K): N -> N }
 005| Use:{ .m: N -> Ign#(Mk#) }
+   |                ^^^^^^^^^
 
 While inspecting method call "#(_)"
-Type inference builds "Box[Box[Box[...]]]" from the type written here for type argument 1 of this call.
+Type inference builds the type for type argument 1 of "#": "Box[Box[Box[...]]]".
 It nests 100 type names; a type can nest at most 99 type names inside each other.
 """, List.of("""
 N:{}
@@ -4731,13 +4726,12 @@ Ign:{ #[K](k: K): N -> N }
 Use:{ .m: N -> Ign#(Mk#) }
 """.replace("D", box(99, "T"))));}
 @Test void inferredTypeArgumentTooDeep(){failWf("""
-003| W:{ #[T](t: T): Box[T] -> {} }
-   |                 ^^^^
 004| Use:{ .m(x: [###]): N -> W#(x).get }
+   | [###]
 
 While inspecting method call "#(_)" > method call ".get"
-Type inference instantiates "Box[T]", written here, with "T" = "Box[Box[Box[...]]]" (99 type names) for the result of this call.
-The result nests 100 type names; a type can nest at most 99 type names inside each other.
+Type inference builds the type for the result of "#": "Box[T]" with "T" = "Box[Box[Box[...]]]" (99 type names).
+It nests 100 type names; a type can nest at most 99 type names inside each other.
 """, List.of("""
 N:{}
 Box[X]:{ .get: X }
@@ -4745,17 +4739,31 @@ W:{ #[T](t: T): Box[T] -> {} }
 Use:{ .m(x: D): N -> W#(x).get }
 """.replace("D", box(98, "N"))));}
 @Test void subtypingWalkTooDeep(){failWf("""
-001| A:{} Top:{} Box[X]:Top{} W[X]:Box[Box[X]]{}
-   |                               ^^^^
 002| U:{ .m(w: W[[###]]): Top -> w }
+   | [###]
 
-While inspecting ".m(_)" line 2
-The type checker instantiates "Box[Box[X]]", written here, with "X" = "Box[Box[Box[...]]]" (98 type names) for a supertype of "W[Box[Box[...]]]".
-The result nests 100 type names; a type can nest at most 99 type names inside each other.
+While inspecting parameter "w" > ".m(_)" line 2 > type declaration "U"
+The type checker builds the type for a supertype of "W[Box[Box[...]]]": "Box[Box[X]]" with "X" = "Box[Box[Box[...]]]" (98 type names).
+It nests 100 type names; a type can nest at most 99 type names inside each other.
 """, List.of("""
 A:{} Top:{} Box[X]:Top{} W[X]:Box[Box[X]]{}
 U:{ .m(w: W[D]): Top -> w }
 """.replace("D", box(97, "A"))));}
+@Test void typeGrowsForever(){failWf("""
+006| Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
+   |                      ^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "Foo[_]"
+Type inference finds no type for object literal instance of "Foo[_]".
+Each round of inference nests its type one level deeper, as "Foo[Box[Box[...]]]"; it would grow without bound.
+""", List.of("""
+N:{}
+Box[X]:{}
+Wrap:{ #[Y](y: Y): Box[Y] -> {} }
+Foo[X]:{ .m(x: X): X }
+Take:{ #[Z](f: Foo[Z]): N -> N }
+Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
+"""));}
 @Test void unrelatedTypesInsideAnInferredTypeArgument(){failWf("""
 002| U:{ .mk[R]: R; .two[T](a: T, b: T, c: Box[T]): A; .use(y: Y, z: Z): A -> this.two(y, z, this.mk) }
    |                                                                          ^^^^^^^^^^^^^^^^^^^^^^^

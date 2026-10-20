@@ -50,7 +50,6 @@ public record WellFormednessErrors(String pkgName){
     TooDeep(TName name, List<IT> ts){
       super(Code.WellFormedness, (_,_) -> { throw Bug.unreachable(); });
       this.name= name; this.ts= ts;
-      addSpan(name.approxSpan().inner);
     }
     public TooDeep by(String actor){ if (this.actor == null){ this.actor= actor; } return this; }
     public TooDeep as(String purpose){ if (this.purpose == null){ this.purpose= purpose; } return this; }
@@ -64,10 +63,8 @@ public record WellFormednessErrors(String pkgName){
       var max= core.T.C.maxDepth-1;
       var who= actor == null ? "The type checker" : actor;
       var use= purpose == null ? "" : " for "+purpose;
-      var what= in == null
-        ? who+" builds "+err.typeRepr(name, ts)+" from the type written here"+use+".\nIt nests "
-        : who+" instantiates "+err.typeRepr(in)+", written here, with "+Join.of(replacements(err), "", " and ", "")+use+".\nThe result nests ";
-      return Message.of(env::loadString, frames, what+count(max+1, "type name")+"; a type can nest at most "+count(max, "type name")+" inside each other.\n");
+      var what= in == null ? err.typeRepr(name, ts) : err.typeRepr(in)+" with "+Join.of(replacements(err), "", " and ", "");
+      return Message.of(env::loadString, frames, who+" builds the type"+use+": "+what+".\nIt nests "+count(max+1, "type name")+"; a type can nest at most "+count(max, "type name")+" inside each other.\n");
     }
     private List<String> replacements(Err err){
       var free= in.ftv().toList();
@@ -497,6 +494,11 @@ public record WellFormednessErrors(String pkgName){
       .line(err().typeRepr(t)+" is a type parameter; object literals can only implement nominal types."), at);
   }
   private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
+  public FearlessException typeGrowsForever(E at){
+    return wf(err()
+      .line("Type inference finds no type for "+err().expRepr(at)+".")
+      .line("Each round of inference nests its type one level deeper, as "+err().typeRepr(at.t(), 2)+"; it would grow without bound."), at);
+  }
   public FearlessException typeTooDeep(TName name){
     return err()
       .line("Type "+disp(name.simpleName()+"[...]")+" is nested too deeply.")

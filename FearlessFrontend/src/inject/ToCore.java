@@ -14,6 +14,7 @@ import core.TName;
 import core.TSpan;
 import inference.Gamma;
 import inference.IT;
+import message.Err;
 import message.WellFormednessErrors;
 import offensiveUtils.EqTransparent;
 import typeSystem.TypeSystem;
@@ -107,7 +108,7 @@ public record ToCore(List<B> ctx, Methods meths){
     var amb= ambs(t).findFirst();
     if (amb.isEmpty()){
       try{ return fillVoid(t); }
-      catch (WellFormednessErrors.TooDeep td){ throw meths.p().err().frame(e, td.by("Type inference").as("type argument "+(i+1)+" of this call")); }
+      catch (WellFormednessErrors.TooDeep td){ throw meths.p().err().frame(e, td.by("Type inference").as("type argument "+(i+1)+" of "+Err.disp(e.name().s()))); }
     }
     var x= sig.map(s -> s.bs().get(i).x());
     var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
