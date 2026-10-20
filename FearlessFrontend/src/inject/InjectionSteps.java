@@ -211,9 +211,17 @@ public record InjectionSteps(Methods meths){
     return norm(es, es.stream().map(ei -> nextStar(bs, g, ei)).toList());
   }
   private List<E> meetWithTargs(List<E> originEs, List<E> es, MSigL m, List<IT> targs){
-    var res= norm(es, Streams.zip(es, m.ps0()).map((e,p) -> meet(e, m.inst(p, targs))).toList());
+    var res= norm(es, IntStream.range(0, es.size()).mapToObj(i -> meet(es.get(i), arg(m, i, targs))).toList());
     assert notBackToOrigin(originEs, res);
     return res;
+  }
+  private IT arg(MSigL m, int i, List<IT> targs){
+    try{ return m.inst(m.ps0().get(i), targs); }
+    catch (WellFormednessErrors.TooDeep td){ throw td.as("argument "+(i+1)+" of this call"); }
+  }
+  private IT ret(MSigL m, List<IT> targs){
+    try{ return m.ret(targs); }
+    catch (WellFormednessErrors.TooDeep td){ throw td.as("the result of this call"); }
   }
   private boolean notBackToOrigin(List<E> originEs, List<E> res){
     //complex but invaluable: if it fails it means we are going 'back and forth'
@@ -323,7 +331,7 @@ public record InjectionSteps(Methods meths){
     var m= om.get();
     var ts= qMarks(m.bsArity());
     var call= new E.Call(e, c.name(), Optional.of(m.rc()), ts, meetWithTargs(es, es, m, ts), c.src());
-    return call.withT(meet(c.t(), m.ret(ts)));
+    return call.withT(meet(c.t(), ret(m, ts)));
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
     var e= nextStar(bs, g, c.e());
@@ -340,7 +348,7 @@ public record InjectionSteps(Methods meths){
     var targs= normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size()));
     e = meet(e, rcc.withTs(clsTs));
     m = m.withClsArgs(clsTs);
-    var it= meet(c.t(), m.ret(targs));
+    var it= meet(c.t(), ret(m, targs));
     var es1= meetWithTargs(c.es(), es, m, targs);
     var noChange= e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
     if (noChange){ return c; }

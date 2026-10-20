@@ -46,13 +46,14 @@ import utils.Push;
 
 public record WellFormednessErrors(String pkgName){
   @SuppressWarnings("serial") public static final class TooDeep extends FearlessException{
-    final TName name; final List<IT> ts; String actor= "The type checker"; IT in; List<String> xs; List<IT> with;
+    final TName name; final List<IT> ts; String actor; String purpose; IT in; List<String> xs; List<IT> with;
     TooDeep(TName name, List<IT> ts){
       super(Code.WellFormedness, (_,_) -> { throw Bug.unreachable(); });
       this.name= name; this.ts= ts;
       addSpan(name.approxSpan().inner);
     }
-    public TooDeep by(String actor){ this.actor= actor; return this; }
+    public TooDeep by(String actor){ if (this.actor == null){ this.actor= actor; } return this; }
+    public TooDeep as(String purpose){ if (this.purpose == null){ this.purpose= purpose; } return this; }
     public TooDeep replacing(List<String> xs, List<IT> with, IT in){
       if (this.in != null){ return this; }
       this.xs= xs; this.with= with; this.in= in;
@@ -61,15 +62,17 @@ public record WellFormednessErrors(String pkgName){
     @Override protected String msg(SourceOracle env, List<Frame> frames){
       var err= new WellFormednessErrors(name.pkgName()).err();
       var max= core.T.C.maxDepth-1;
+      var who= actor == null ? "The type checker" : actor;
+      var use= purpose == null ? "" : " for "+purpose;
       var what= in == null
-        ? actor+" builds the type "+err.typeRepr(name, ts)+".\nIt nests "
-        : actor+" replaces "+Join.of(replacements(err), "", " and ", "")+" in "+err.typeRepr(in)+".\nThe result nests ";
+        ? who+" builds "+err.typeRepr(name, ts)+" from the type written here"+use+".\nIt nests "
+        : who+" instantiates "+err.typeRepr(in)+", written here, with "+Join.of(replacements(err), "", " and ", "")+use+".\nThe result nests ";
       return Message.of(env::loadString, frames, what+count(max+1, "type name")+"; a type can nest at most "+count(max, "type name")+" inside each other.\n");
     }
     private List<String> replacements(Err err){
       var free= in.ftv().toList();
       return IntStream.range(0, xs.size()).filter(i -> free.contains(xs.get(i)))
-        .mapToObj(i -> disp(xs.get(i))+" with "+err.typeRepr(with.get(i), 2)+" ("+count(with.get(i).depth()-1, "type name")+")").toList();
+        .mapToObj(i -> disp(xs.get(i))+" = "+err.typeRepr(with.get(i), 2)+" ("+count(with.get(i).depth()-1, "type name")+")").toList();
     }
   }
   public static TooDeep tooDeepIT(TName name, List<IT> ts){ return new TooDeep(name, ts); }

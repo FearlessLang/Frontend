@@ -68,6 +68,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       .line("Only those two shapes are the identity function.")
       .ex(m.e().get()).addSpan(m.e().get().span().inner);
   }
+  public String typeRepr(T t){ return err().typeRepr(t, 2); }
   public FearlessException mCallFrame(M m, FearlessException fe){
     return fe.addFrame(err().methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
   }

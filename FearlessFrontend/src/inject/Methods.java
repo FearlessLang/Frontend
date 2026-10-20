@@ -92,7 +92,7 @@ public record Methods(
   core.E.Literal _from(TName name){ return LiteralDeclarations._from(name, cache::get, other); }
   private E.Literal expandHeader(E.Literal d){
     try{ return expandDeclaration(d, false); }
-    catch (WellFormednessErrors.TooDeep t){ throw p.err().frame(d, t.by("Expanding the supertypes of "+Err.disp(p.err().typeName(d.name())))); }
+    catch (WellFormednessErrors.TooDeep t){ throw p.err().frame(d, t.by("Type inference").as("what "+Err.disp(p.err().typeName(d.name()))+" inherits")); }
   }
   public E.Literal expandDeclaration(E.Literal d, boolean setInfHead){
     var implied= d.cs().stream().flatMap(c -> fetchCs(c).stream()).toList();

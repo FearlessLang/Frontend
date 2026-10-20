@@ -30,6 +30,7 @@ import inject.TypeRename;
 import message.Err;
 import message.Reason;
 import message.TypeSystemErrors;
+import message.WellFormednessErrors;
 import tools.UriSort;
 import utils.OneOr;
 import utils.Push;
@@ -205,7 +206,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private boolean isImplSubtype(List<B> bs, T t1, T t2){
     if (!(t1 instanceof T.RCC(var rc1, var c1, var span1))){ return false; }
     var d= decs().apply(c1.name());
-    return d.cs().stream().anyMatch(ci -> isSub(bs, TypeRename.of(new T.RCC(rc1, ci, span1), B.xs(d.bs()), c1.ts()), t2));
+    try{ return d.cs().stream().anyMatch(ci -> isSub(bs, TypeRename.of(new T.RCC(rc1, ci, span1), B.xs(d.bs()), c1.ts()), t2)); }
+    catch (WellFormednessErrors.TooDeep td){ throw td.as("a supertype of "+tsE().typeRepr(t1)); }
   }
   private boolean isXReadImmXSubtype(List<B> bs, T t1, T t2){
     return t2 instanceof T.ReadImmX(var x2)
