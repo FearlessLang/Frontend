@@ -1,89 +1,104 @@
 package toolsTests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.attribute.FileTime;
-import java.time.Duration;
 import java.util.List;
 
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.api.io.TempDir;
 
 import tools.Fs;
+import utils.Err;
 
 final class FsSymbolicLinkTest{
   @TempDir Path root;
-  private Path real(){
-    var res= root.resolve("real");
-    Fs.writeUtf8(res.resolve("f.txt"), "x");
-    return res;
-  }
   private static Path link(Path link, Path target){
-    try{ return Fs.of(() -> Files.createSymbolicLink(link, target)); }
-    catch (UncheckedIOException e){
-      var refused= Fs.isWindows() && e.getCause().getClass() == FileSystemException.class;
-      if (!refused){ throw e; }
+    try{ return Files.createSymbolicLink(link, target); }
+    catch (FileSystemException e){
+      if (!Fs.isWindows()){ throw new UncheckedIOException(e); }
       return Assumptions.abort("Windows does not give this process the privilege to create symbolic links");
     }
+    catch (IOException e){ throw new UncheckedIOException(e); }
   }
-  private static List<String> names(Path dir){
-    return Fs.of(() -> { try (var s= Files.list(dir)){ return s.map(p -> p.getFileName().toString()).sorted().toList(); }});
+  private static void refused(Executable e){
+    var msg= assertThrows(IllegalArgumentException.class, e).getMessage();
+    Err.strCmp("\"[###]\" is a symbolic link; Fs does not read, write, copy or delete through symbolic links: replace it with the file or folder it points to.", msg);
   }
-  @Test void cleanDirThroughALinkEmptiesTheLinkedFolder(){
-    var real= real();
-    Fs.cleanDir(link(root.resolve("link"), real));
-    assertEquals(List.of(), names(real));
+  @Test void everyOperationRefusesALink(){
+    var file= root.resolve("f.txt");
+    Fs.writeUtf8(file, "x");
+    var real= root.resolve("real");
+    Fs.writeUtf8(real.resolve("f.txt"), "x");
+    var fileLink= link(root.resolve("l.txt"), file);
+    var dirLink= link(root.resolve("ldir"), real);
+    List.<Executable>of(
+      () -> Fs.readUtf8(fileLink),
+      () -> Fs.writeUtf8(fileLink, "y"),
+      () -> Fs.lastModified(fileLink),
+      () -> Fs.ensureDir(dirLink),
+      () -> Fs.reqDir(dirLink, "a test"),
+      () -> Fs.cleanDir(dirLink),
+      () -> Fs.rmTree(dirLink),
+      () -> Fs.copyTree(dirLink, root.resolve("to")),
+      () -> Fs.copyTreeFlat(dirLink, root.resolve("to")),
+      () -> Fs.copyTree(real, dirLink),
+      () -> Fs.walk(dirLink, s -> s.toList()),
+      () -> Fs.exists(fileLink),
+      () -> Fs.notExists(fileLink),
+      () -> Fs.isDirectory(dirLink),
+      () -> Fs.isRegularFile(fileLink),
+      () -> Fs.readAllBytes(fileLink),
+      () -> Fs.newInputStream(fileLink).close(),
+      () -> Fs.write(fileLink, new byte[0]),
+      () -> Fs.writeString(fileLink, "y"),
+      () -> Fs.move(fileLink, root.resolve("moved.txt")),
+      () -> Fs.move(file, fileLink),
+      () -> Fs.delete(fileLink),
+      () -> Fs.deleteIfExists(fileLink),
+      () -> Fs.createDirectories(dirLink),
+      () -> Fs.list(dirLink).close(),
+      () -> Fs.list(root).toList(),
+      () -> Fs.size(fileLink),
+      () -> Fs.getLastModifiedTime(fileLink),
+      () -> Fs.setLastModifiedTime(fileLink, FileTime.fromMillis(0)),
+      () -> Fs.getFileStore(fileLink),
+      () -> Fs.openChannel(fileLink).close(),
+      () -> Fs.watch(dirLink, root.getFileSystem().newWatchService(), StandardWatchEventKinds.ENTRY_CREATE)
+    ).forEach(FsSymbolicLinkTest::refused);
+    assertEquals("x", Fs.readUtf8(file));
+    assertEquals("x", Fs.readUtf8(real.resolve("f.txt")));
+    assertFalse(Files.exists(root.resolve("to")));
   }
-  @Test void cleanDirDeletesALinkInsideButNotTheLinkedFolder(){
-    var real= real();
+  @Test void aLinkInsideATreeStopsTheOperationBeforeAnyChange(){
+    var real= root.resolve("real");
+    Fs.writeUtf8(real.resolve("f.txt"), "x");
     var dir= root.resolve("dir");
-    Fs.ensureDir(dir);
+    Fs.writeUtf8(dir.resolve("a.txt"), "a");
     link(dir.resolve("link"), real);
-    Fs.cleanDir(dir);
-    assertEquals(List.of(), names(dir));
-    assertEquals(List.of("f.txt"), names(real));
+    refused(() -> Fs.cleanDir(dir));
+    refused(() -> Fs.rmTree(dir));
+    refused(() -> Fs.copyTree(dir, root.resolve("to")));
+    assertEquals("a", Fs.readUtf8(dir.resolve("a.txt")));
+    assertEquals("x", Fs.readUtf8(real.resolve("f.txt")));
+    assertFalse(Files.exists(root.resolve("to")));
   }
-  @Test void rmTreeOfALinkDeletesOnlyTheLink(){
-    var real= real();
-    var link= link(root.resolve("link"), real);
-    Fs.rmTree(link);
-    assertEquals(List.of("real"), names(root));
-    assertEquals(List.of("f.txt"), names(real));
-  }
-  @Test void copyTreeCopiesTheContentOfALinkedFolder(){
-    var from= root.resolve("from");
-    Fs.writeUtf8(from.resolve("top.txt"), "t");
-    link(from.resolve("sub"), real());
-    var to= root.resolve("to");
-    Fs.copyTree(from, to);
-    assertEquals(List.of("f.txt"), names(to.resolve("sub")));
-  }
-  @Test void copyTreeFlatCopiesTheFilesOfALinkedFolder(){
-    var from= root.resolve("from");
-    Fs.writeUtf8(from.resolve("top.txt"), "t");
-    link(from.resolve("sub"), real());
-    var to= root.resolve("to");
-    Fs.copyTreeFlat(from, to);
-    assertEquals(List.of("f.txt", "top.txt"), names(to));
-  }
-  @Test void lastModifiedOfALinkIsTheTimeOfTheLinkedFile(){
+  @Test void theConfiguredErrorIsThrown(){
     var file= root.resolve("f.txt");
     Fs.writeUtf8(file, "x");
-    var link= link(root.resolve("l.txt"), file);
-    Fs.ofV(() -> Files.setLastModifiedTime(file, FileTime.fromMillis(1_000_000_000_000L)));
-    assertEquals(1_000_000_000_000L, Fs.lastModified(link));
-  }
-  @Test void writeUtf8WithAMinimumTimeThroughALinkReturns(){
-    var file= root.resolve("f.txt");
-    Fs.writeUtf8(file, "x");
-    var link= link(root.resolve("l.txt"), file);
-    var min= Fs.lastModified(link);
-    assertTimeoutPreemptively(Duration.ofSeconds(5), () -> Fs.writeUtf8(link, "y", min));
-    assertEquals("y", Fs.readUtf8(file));
+    var fileLink= link(root.resolve("l.txt"), file);
+    var old= Fs.onSymbolicLink;
+    Fs.onSymbolicLink= p -> new IllegalStateException("configured for "+p.getFileName());
+    try{ assertEquals("configured for l.txt", assertThrows(IllegalStateException.class, () -> Fs.readUtf8(fileLink)).getMessage()); }
+    finally{ Fs.onSymbolicLink= old; }
   }
 }
