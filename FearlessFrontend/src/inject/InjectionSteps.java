@@ -21,7 +21,6 @@ import inference.Gamma;
 import inference.IT;
 import inference.IT.RCC;
 import inference.M;
-import message.WellFormednessErrors;
 import typeSystem.TypeSystem;
 import utils.OneOr;
 import utils.Push;
@@ -221,17 +220,14 @@ public record InjectionSteps(Methods meths){
     return Streams.zip(res, originEs).allMatch((r,o) -> r == o || !r.equals(o));
   }
   E next(List<B> bs, Gamma g, E e){
-    try{
-      //assert meet(e.t(),res.t()).equals(res.t()): e.t()+" "+res.t();// Does not hold. How can it be?
-      return switch (e){
-        case E.X x -> nextX(g, x);
-        case E.Literal l -> nextL(bs, g, l);
-        case E.Call c -> nextC(bs, g, c);
-        case E.ICall c -> nextIC(bs, g, c);
-        case E.Type c -> nextT(c);
-      };
-    }
-    catch (WellFormednessErrors.ErrToFetchContext depthErr){ throw meths.p().err().itTooDeep(e, depthErr.c); }
+    //assert meet(e.t(),res.t()).equals(res.t()): e.t()+" "+res.t();// Does not hold. How can it be?
+    return switch (e){
+      case E.X x -> nextX(g, x);
+      case E.Literal l -> nextL(bs, g, l);
+      case E.Call c -> nextC(bs, g, c);
+      case E.ICall c -> nextIC(bs, g, c);
+      case E.Type c -> nextT(c);
+    };
   }
   private IT preferred(IT.RCC type){
     var d= meths.from(type.c().name());//d.cs() does contain all the transitive supertypes already.

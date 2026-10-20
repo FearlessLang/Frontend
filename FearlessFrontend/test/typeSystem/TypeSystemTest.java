@@ -4655,4 +4655,116 @@ A:{ .id[Y:**](y:Y):Y -> y; .u(tiJs:A):A -> this.id(tiJs) }
 use base.F as F;
 A:{ .m(_aimpl:A):A; .k(f:F[A,A]):A; .z:A -> this.k{::.m(this)} }
 """));}
+static String box(int n, String in){ return "Box[".repeat(n)+in+"]".repeat(n); }
+@Test void supertypeImpliedByAnotherSupertype(){ok(List.of("""
+C:{ .m[X](x:X):X; }
+B:C{}
+A[X]:C,B{}
+"""));}
+@Test void instantiatedParameterDeeperThanTheLimit(){failWf("""
+003| A:{ .mk[T:*]: Box[T] -> Box[T]; .use[S:*](s: Box[S]): N -> N; .go: N -> this.use[imm,[###]) }
+   |                                              ^^^^
+
+While inspecting the file
+Type "Box[...]" is nested too deeply.
+A type can nest at most 99 type names inside each other.
+""", List.of("""
+N:{}
+Box[T:*]:{}
+A:{ .mk[T:*]: Box[T] -> Box[T]; .use[S:*](s: Box[S]): N -> N; .go: N -> this.use[imm,D](this.mk[imm,D]) }
+""".replace("D", box(98, "N"))));}
+@Test void instantiatedParameterDeeperThanTheLimitNotASubtype(){failWf("""
+003| Take:{ #[Y](c: Box[Y]): N -> N }
+   |                ^^^^
+
+While inspecting the file
+Type "Box[...]" is nested too deeply.
+A type can nest at most 99 type names inside each other.
+""", List.of("""
+N:{}
+Box[X]:{}
+Take:{ #[Y](c: Box[Y]): N -> N }
+Use:{ .m[Y](c: Box[Y]): N -> Take#[D](c) }
+""".replace("D", box(98, "N"))));}
+@Test void callResultDeeperThanTheLimit(){failWf("""
+001| A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }
+   |                             ^^^^
+
+While inspecting the file
+Type "Box[...]" is nested too deeply.
+A type can nest at most 99 type names inside each other.
+""", List.of("""
+A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }
+U[X]:{ .m(k: K[D]): Box[Box[X]] -> k.get }
+""".replace("D", box(97, "A"))));}
+@Test void impliedSupertypeTooDeep(){failWf("""
+004| B[X]:C[Box[X]]{}
+   |      ^^
+
+While inspecting the file
+Type "C[...]" is nested too deeply.
+A type can nest at most 99 type names inside each other.
+""", List.of("""
+N:{}
+Box[X]:{}
+C[X]:{}
+B[X]:C[Box[X]]{}
+A:B[D]{}
+""".replace("D", box(97, "N"))));}
+@Test void voidDefaultTooDeep(){failWf("""
+003| Mk:{ #[T]: [###] -> {} }
+   |            ^^^^
+
+While inspecting the file
+Type "Box[...]" is nested too deeply.
+A type can nest at most 99 type names inside each other.
+""", List.of("""
+N:{}
+Box[X]:{}
+Mk:{ #[T]: D -> {} }
+Ign:{ #[K](k: K): N -> N }
+Use:{ .m: N -> Ign#(Mk#) }
+""".replace("D", box(99, "T"))));}
+@Test void inferredTypeArgumentTooDeep(){failWf("""
+003| W:{ #[T](t: T): Box[T] -> {} }
+   |                 ^^^^
+
+While inspecting the file
+Type "Box[...]" is nested too deeply.
+A type can nest at most 99 type names inside each other.
+""", List.of("""
+N:{}
+Box[X]:{ .get: X }
+W:{ #[T](t: T): Box[T] -> {} }
+Use:{ .m(x: D): N -> W#(x).get }
+""".replace("D", box(98, "N"))));}
+@Test void unrelatedTypesInsideAnInferredTypeArgument(){failWf("""
+002| U:{ .mk[R]: R; .two[T](a: T, b: T, c: Box[T]): A; .use(y: Y, z: Z): A -> this.two(y, z, this.mk) }
+   |                                                                          ^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting method call ".two(_,_,_)"
+The type argument "T" of ".two" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "this.two[Type1](y, z, this.mk)".
+""", List.of("""
+A:{} Y:{} Z:{} Box[X]:{}
+U:{ .mk[R]: R; .two[T](a: T, b: T, c: Box[T]): A; .use(y: Y, z: Z): A -> this.two(y, z, this.mk) }
+"""));}
+@Test void unrelatedCandidatesNestedInInferredTypeArgument(){failWf("""
+007| User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
+   |                              ^^^^^^^^^^^^^^^^
+
+While inspecting method call "#(_)"
+The type argument "T" of "#" is inferred from the arguments, but they disagree: some need "Bar[A]", some need "Bar[B]".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "Ign#[Type1](Mk#.m(a, b))".
+""", List.of("""
+A:{}
+B:{}
+Bar[X]:{}
+Foo[X]:{ .m(a: X, b: X): Bar[X] -> {} }
+Mk:{ #[X]: Foo[X] -> {} }
+Ign:{ #[T](t: T): A -> A }
+User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
+"""));}
 }

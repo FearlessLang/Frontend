@@ -216,7 +216,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     record X(String name) implements T{} record RX(RC r,X x) implements T{ public RC erc(){ return r;} }
     record RI(X x) implements T{} record C(N name,List<T> types){ int depth(){ return 1+types.stream().mapToInt(T::depth).max().orElse(1);} }
     record R(RC r,C c) implements T{ public R{ if(c.depth() >100) throw new Fail(); } R withTs(List<T> types){ return with(r, types);}
-      R with(RC r,List<T> types){ var c1=new C(c.name, types); return c1.depth() >100 ? this : new R(r,c1);}
+      R with(RC r,List<T> types){ return new R(r,new C(c.name, types));}
       public boolean tv(){ return all(c.types, T::tv);} public int depth(){ return c.depth();}
       public RC erc(){ return r;} } enum U implements T{ Instance }
     record Amb(List<T> cs) implements T{}

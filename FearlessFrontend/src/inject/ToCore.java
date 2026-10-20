@@ -91,8 +91,8 @@ public record ToCore(List<B> ctx, Methods meths){
     var targs= o.targs.isEmpty() ? e.targs() : o.targs;
     assert inScope(targs);
     var recv= of(e.e(), o.e);
-    var args= mapArgs(e.es(), o.es);
     var fixed= IntStream.range(0, targs.size()).mapToObj(i -> targ(e, targs, i)).toList();
+    var args= mapArgs(e.es(), o.es);
     return new core.E.Call(recv, e.name(), rc, TypeRename.itToT(fixed), args, new EqTransparent<>(null), e.src());
   }
   private IT targ(inference.E.Call e, List<IT> targs, int i){
@@ -103,11 +103,23 @@ public record ToCore(List<B> ctx, Methods meths){
       var rcs= sig.map(s -> s.bs().get(i).rcs()).orElse(EnumSet.of(RC.imm));
       return voidT(rcs.contains(RC.imm) ? RC.imm : rcs.iterator().next());
     }
-    if (!(t instanceof IT.Amb(var cs))){ return fillVoid(t); }
+    var amb= ambs(t).findFirst();
+    if (amb.isEmpty()){ return fillVoid(t); }
     var x= sig.map(s -> s.bs().get(i).x());
-    var common= commonSupertypes(cs);
+    var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
+    var common= t instanceof IT.Amb ? commonSupertypes(cs) : List.<TName>of();
     var example= meths.p().err().callWithTargs(e, targs, i, common.isEmpty() ? "Type"+(i+1) : meths.p().err().typeName(common.getFirst()));
     throw meths.p().err().typeArgAmbiguous(e, x, cs, common, example);
+  }
+  private static Stream<IT.Amb> ambs(IT t){ return switch (t){
+    case IT.Amb a -> Stream.of(a);
+    case IT.RCC rcc -> rcc.c().ts().stream().flatMap(ToCore::ambs);
+    default -> Stream.of();
+  };}
+  private static IT replace(IT t, IT from, IT to){
+    if (t == from){ return to; }
+    if (!(t instanceof IT.RCC rcc)){ return t; }
+    return rcc.withTs(rcc.c().ts().stream().map(ti -> replace(ti, from, to)).toList());
   }
   private static IT voidT(RC rc){ return new IT.RCC(Optional.of(rc), new IT.C(LiteralDeclarations.baseVoid, List.of()), TSpan.fromPos(Pos.unknown)); }
   private static IT fillVoid(IT t){ return switch (t){

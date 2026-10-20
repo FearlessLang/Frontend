@@ -41,11 +41,6 @@ import java.util.EnumSet;
 import utils.Push;
 
 public record WellFormednessErrors(String pkgName){
-  @SuppressWarnings("serial")
-  public static final class ErrToFetchContext extends RuntimeException{
-    public final IT.RCC c;
-    public ErrToFetchContext(IT.RCC c){ this.c= c; }
-  }
   Err err(){ return new Err(y -> y, x -> x, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
   private Err err(List<String> lines){
     var e= err();
@@ -465,15 +460,10 @@ public record WellFormednessErrors(String pkgName){
       .line(err().typeRepr(t)+" is a type parameter; object literals can only implement nominal types."), at);
   }
   private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
-  public FearlessException itTooDeep(E at, IT.RCC blame){
-    return wf(err()
-      .line("Type "+err().typeRepr(blame))
-      .line("grew uncontrollably during inference."), at);
-  }
   public FearlessException typeTooDeep(TName name){
     return err()
-      .line("Type "+disp(name.s()+"[...]")+" is nested too deeply.")
-      .line("A type can nest at most "+(IT.RCC.maxDepth-1)+" type names inside each other.")
+      .line("Type "+disp(err().cp().t.ofFull(name)+"[...]")+" is nested too deeply.")
+      .line("A type can nest at most "+(core.T.C.maxDepth-1)+" type names inside each other.")
       .wf().addSpan(name.approxSpan().inner);
   }
   public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<M.Sig> options){
