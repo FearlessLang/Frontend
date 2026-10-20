@@ -4789,18 +4789,9 @@ Box[X]:{}
 B[X]:{ .m(x: Box[Box[X]]): N }
 A:B[D]{}
 """.replace("D", box(97, "N"))));}
-@Test void subtypingWalkTooDeep(){failWf("""
-002| U:{ .m(w: W[[###]]): Top ->
-003|   w }
-   |   ^
-
-While inspecting parameter "w" > ".m(_)" line 2 > type declaration "U"
-The type checker builds the type for a supertype of "W[Box[Box[...]]]": "Box[Box[X]]" with "X" = "Box[Box[Box[...]]]" (98 type names).
-It nests 100 type names; a type can nest at most 99 type names inside each other.
-""", List.of("""
+@Test void supertypeWalkedByTheTypeCheckerIsNotLimited(){ok(List.of("""
 A:{} Top:{} Box[X]:Top{} W[X]:Box[Box[X]]{}
-U:{ .m(w: W[D]): Top ->
-  w }
+U:{ .m(w: W[D]): Top -> w }
 """.replace("D", box(97, "A"))));}
 @Test void typeGrowsForever(){failWf("""
 006| Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }

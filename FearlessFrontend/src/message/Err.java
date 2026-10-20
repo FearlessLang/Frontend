@@ -67,7 +67,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var ts= levels == 0 ? "[...]" : Join.of(c.ts().stream().map(ti -> typeReprRaw(ti, levels-1)), "[", ",", "]", "");
     return rc.map(RC::toStrSpace).orElse("")+cp().t.ofFull(c.name())+ts;
   }
-  String typeRepr(T t, int levels){ return typeRepr(TypeRename.tToIT(t), levels); }
   String typeRepr(TName name, List<inference.IT> ts){ return disp(cp().t.ofFull(name)+Join.of(ts.stream().map(t -> typeReprRaw(t, 1)), "[", ",", "]", "")); }
   String typeRepr(boolean skipImm, T t){ return disp(typeReprRaw(skipImm, t)); }
   private String typeReprRaw(boolean skipImm, T t){

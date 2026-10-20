@@ -70,7 +70,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
       if (floatNotExact){ throw meths.p().err().floatLiteralNotExactlyRepresentable(tName); }
     }
     var ts= mapT(c.ts().orElse(List.of()));
-    if (IT.C.depth(ts) > core.T.C.maxDepth){ throw meths.p().err().typeTooDeep(tName); }
+    if (IT.C.depth(ts) > IT.C.maxDepth){ throw meths.p().err().typeTooDeep(tName); }
     return new IT.C(f.apply(tName), ts);
   }
   List<E> mapE(List<fearlessFullGrammar.E> es){ return es.stream().map(this::visitE).toList(); }

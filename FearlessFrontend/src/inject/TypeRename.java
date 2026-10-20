@@ -18,15 +18,12 @@ import inference.IT;
 public final class TypeRename{
   public static T of(T t, List<String> xs, List<T> ts){
     assert xs.size() == ts.size();
-    try{
-      return switch (t){
-        case T.X x -> getOrSame(x, x.name(), xs, ts);
-        case T.RCX(var rc, var x) -> withRC(of(x, xs, ts), rc);
-        case T.RCC rcc -> rcc.withTs(ofT(rcc.c().ts(), xs, ts));
-        case T.ReadImmX(var x) -> readImm(of(x, xs, ts));
-      };
-    }
-    catch (WellFormednessErrors.TooDeep td){ throw td.replacing(xs, tToIT(ts), tToIT(t)); }
+    return switch (t){
+      case T.X x -> getOrSame(x, x.name(), xs, ts);
+      case T.RCX(var rc, var x) -> withRC(of(x, xs, ts), rc);
+      case T.RCC rcc -> rcc.withTs(ofT(rcc.c().ts(), xs, ts));
+      case T.ReadImmX(var x) -> readImm(of(x, xs, ts));
+    };
   }
   //TODO: much code could be made faster if instead of xs+ts being list, they were Function<Integer,XX>..
   //no, we need get, size and indexof. But, what about a single data structure that pairs them somehow?

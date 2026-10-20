@@ -197,7 +197,7 @@ public record InjectionSteps(Methods meths){
     var grew= 0;
     while (true){
       var s= g.snapshot();
-      var oe= next(bs, g, e);
+      var oe= next(bs, g, e, grew);
       assert oe == e || !oe.equals(e) : "Allocated equal E:"+e.getClass()+"\n"+e;
       var stable= oe == e && !g.changed(s);
       if (stable){
@@ -207,9 +207,12 @@ public record InjectionSteps(Methods meths){
       }
       //if (oe.equals(e) && !g.changed(s)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
       grew = oe.t().depth() > e.t().depth() ? grew+1 : 0;
-      if (grew == core.T.C.maxDepth/2){ throw meths.p().err().typeGrowsForever(oe); }
       e = oe;
     }
+  }
+  private E next(List<B> bs, Gamma g, E e, int grew){
+    try{ return next(bs, g, e); }
+    catch (WellFormednessErrors.TooDeep td){ throw grew < IT.C.maxDepth/2 ? td : meths.p().err().typeGrowsForever(e); }
   }
   private List<E> nextStar(List<B> bs, Gamma g, List<E> es){
     return norm(es, es.stream().map(ei -> nextStar(bs, g, ei)).toList());
@@ -243,7 +246,7 @@ public record InjectionSteps(Methods meths){
         case E.Type c -> nextT(c);
       };
     }
-    catch (WellFormednessErrors.TooDeep t){ throw meths.p().err().frame(e, t.by("Type inference")); }
+    catch (WellFormednessErrors.TooDeep t){ throw meths.p().err().frame(e, t); }
   }
   private IT preferred(IT.RCC type){
     var d= meths.from(type.c().name());//d.cs() does contain all the transitive supertypes already.

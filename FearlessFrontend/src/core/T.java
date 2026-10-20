@@ -6,13 +6,11 @@ import static offensiveUtils.Require.*;
 import java.util.List;
 import java.util.Optional;
 
-import message.WellFormednessErrors;
 import metaParser.Span;
 import utils.Join;
 
 public sealed interface T{
   TSpan span();
-  default int depth(){ return 1; }
   record X(String name, TSpan span) implements T{
     public X{ assert validate(name, "generic type name", _XId); }
     @Override public String toString(){ return name; }
@@ -28,14 +26,11 @@ public sealed interface T{
     @Override public String toString(){ return "read/imm "+x.name; }
     @Override public TSpan span(){ return x.span();}
   }
-  record C(TName name, List<T> ts, int depth) implements KindingTarget{
-    public static final int maxDepth= 100;
+  record C(TName name, List<T> ts) implements KindingTarget{
     public C{
       assert unmodifiable(ts, "T.C.ts");
       assert eq(ts.size(), name.arity(), "Type arity");
-      if (depth > maxDepth){ throw WellFormednessErrors.tooDeepT(name, ts); }
     }
-    public C(TName name, List<T> ts){ this(name, ts, 1+ts.stream().mapToInt(T::depth).max().orElse(1)); }
     @Override public String toString(){
       return name.s()+Join.of(ts, "[", ",", "]", "");
     }
@@ -56,7 +51,6 @@ public sealed interface T{
     public RCC{ assert nonNull(rc, c); }
     @Override public String toString(){ return rc.toStrSpace() + c; }
     public RCC withTs(List<T> ts){ return new RCC(rc, c.withTs(ts), span); }
-    @Override public int depth(){ return c.depth(); }
     @Override public RCC withRC(RC rc){ return new RCC(rc, c, span); }
     @Override public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }

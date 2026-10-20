@@ -215,7 +215,7 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     default RC erc(){ return null;} default int depth(){ return 1;}
     record X(String name) implements T{} record RX(RC r,X x) implements T{ public RC erc(){ return r;} }
     record RI(X x) implements T{} record C(N name,List<T> types){ int depth(){ return 1+types.stream().mapToInt(T::depth).max().orElse(1);} }
-    record R(RC r,C c) implements T{ public R{ if(c.depth() >100) throw new Fail(); } R withTs(List<T> types){ return with(r, types);}
+    record R(RC r,C c) implements T{ public R{ no(TS.lim && c.depth() >100); } R withTs(List<T> types){ return with(r, types);}
       R with(RC r,List<T> types){ return new R(r,new C(c.name, types));}
       public boolean tv(){ return all(c.types, T::tv);} public int depth(){ return c.depth();}
       public RC erc(){ return r;} } enum U implements T{ Instance }
@@ -597,8 +597,8 @@ public final class Frontend{ @SuppressWarnings("serial") public static final cla
     useRead(iso, readH, mutH, readH), flexy(iso, imm, mutH, readH), hyg(mutH, readH, mutH, readH), strong(iso, imm, iso, imm); final RC m,r, mh, rh;
     Mode(RC m, RC r, RC mh, RC rh){ this.m=m; this.r=r; this.mh= mh; this.rh= rh;}
     RC of(RC x){ return switch(x){ case mut -> m; case read -> r; case mutH -> mh; case readH -> rh; default -> x; }; }}
-  record TS(Function<N,Literal> decs){ static void allOk(List<Literal> tops, Map<N,Literal> other){ var map=new HashMap<N,Literal>();
-      tops.forEach(t -> collect(t,map)); var sys=new TS(n -> from(n,map::get, other)); tops.forEach(l -> sys.litOk(G.empty,l)); }
+  record TS(Function<N,Literal> decs){ static boolean lim= true; static void allOk(List<Literal> tops, Map<N,Literal> other){ var map=new HashMap<N,Literal>();
+      tops.forEach(t -> collect(t,map)); var sys=new TS(n -> from(n,map::get, other)); lim = false; try{ tops.forEach(l -> sys.litOk(G.empty,l)); } finally{ lim = true; } }
     static void collect(E e, HashMap<N,Literal> map){ if(e instanceof Literal l) map.put(l.name,l); e.children().forEach(c -> collect(c,map)); }
     boolean kindOf(List<B> b, T t, Set<RC> al){ if (!al.containsAll(kinds(b,t))) return false;
       if (!(t instanceof R(_, var c))) return true; var params= decs.apply(c.name).b;

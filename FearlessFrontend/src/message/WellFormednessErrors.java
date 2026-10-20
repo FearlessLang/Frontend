@@ -46,12 +46,11 @@ import utils.Push;
 
 public record WellFormednessErrors(String pkgName){
   @SuppressWarnings("serial") public static final class TooDeep extends FearlessException{
-    final TName name; final List<IT> ts; String actor; String purpose; IT in; List<String> xs; List<IT> with;
+    final TName name; final List<IT> ts; String purpose; IT in; List<String> xs; List<IT> with;
     TooDeep(TName name, List<IT> ts){
       super(Code.WellFormedness, (_,_) -> { throw Bug.unreachable(); });
       this.name= name; this.ts= ts;
     }
-    public TooDeep by(String actor){ if (this.actor == null){ this.actor= actor; } return this; }
     public TooDeep as(String purpose){ if (this.purpose == null){ this.purpose= purpose; } return this; }
     public TooDeep replacing(List<String> xs, List<IT> with, IT in){
       if (this.in != null){ return this; }
@@ -60,11 +59,10 @@ public record WellFormednessErrors(String pkgName){
     }
     @Override protected String msg(SourceOracle env, List<Frame> frames){
       var err= new WellFormednessErrors(name.pkgName()).err();
-      var max= core.T.C.maxDepth-1;
-      var who= actor == null ? "The type checker" : actor;
+      var max= IT.C.maxDepth-1;
       var use= purpose == null ? "" : " for "+purpose;
       var what= in == null ? err.typeRepr(name, ts) : err.typeRepr(in, 3)+" with "+Join.of(replacements(err), "", " and ", "");
-      return Message.of(env::loadString, frames, who+" builds the type"+use+": "+what+".\nIt nests "+count(max+1, "type name")+"; a type can nest at most "+count(max, "type name")+" inside each other.\n");
+      return Message.of(env::loadString, frames, "Type inference builds the type"+use+": "+what+".\nIt nests "+count(max+1, "type name")+"; a type can nest at most "+count(max, "type name")+" inside each other.\n");
     }
     private List<String> replacements(Err err){
       var free= in.ftv().toList();
@@ -72,8 +70,7 @@ public record WellFormednessErrors(String pkgName){
         .mapToObj(i -> disp(xs.get(i))+" = "+err.typeRepr(with.get(i), 2)+" ("+count(with.get(i).depth()-1, "type name")+")").toList();
     }
   }
-  public static TooDeep tooDeepIT(TName name, List<IT> ts){ return new TooDeep(name, ts); }
-  public static TooDeep tooDeepT(TName name, List<core.T> ts){ return new TooDeep(name, TypeRename.tToIT(ts)); }
+  public static TooDeep tooDeep(TName name, List<IT> ts){ return new TooDeep(name, ts); }
   Err err(){ return new Err(y -> y, x -> x, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
   private Err err(List<String> lines){
     var e= err();
@@ -502,7 +499,7 @@ public record WellFormednessErrors(String pkgName){
   public FearlessException typeTooDeep(TName name){
     return err()
       .line("Type "+disp(name.simpleName()+"[...]")+" is nested too deeply.")
-      .line("A type can nest at most "+(core.T.C.maxDepth-1)+" type names inside each other.")
+      .line("A type can nest at most "+(IT.C.maxDepth-1)+" type names inside each other.")
       .wf().addSpan(name.approxSpan().inner);
   }
   public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<M.Sig> options){

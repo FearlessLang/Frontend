@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import core.RC;
-import core.T;
 import core.TName;
 import core.TSpan;
 import message.WellFormednessErrors;
@@ -32,10 +31,11 @@ public sealed interface IT{
     @Override public String toString(){ return "read/imm "+x.name; }
   }
   record C(TName name, List<IT> ts, int depth){
+    public static final int maxDepth= 100;
     public C{
       assert unmodifiable(ts, "IT.C.ts");
       assert eq(ts.size(), name.arity(), "Type arity");
-      if (depth > T.C.maxDepth){ throw WellFormednessErrors.tooDeepIT(name, ts); }
+      if (depth > maxDepth){ throw WellFormednessErrors.tooDeep(name, ts); }
     }
     public C(TName name, List<IT> ts){ this(name, ts, depth(ts)); }
     public static int depth(List<IT> ts){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1); }
