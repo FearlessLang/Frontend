@@ -42,3 +42,8 @@ C: some place where they both pass but with different tree printout.
 
 Then, for each of the identified cases, try to see if the case is isolated or if it is part of a more general famly.
 Open a PR with the tests showing the difference by failing, do not fix the code, just add the failing tests. If there is a family of similar tests, add only a few well chosen representative (could be just one)
+
+A difference counts only in the result of the whole frontend: the printed core, or the fact that the frontend fails.
+The compact frontend may detect an error in a different phase than the full frontend.
+For example, the compact parser rejects the repeated capability in A[X:imm,imm]:{}, while the full frontend rejects A[X:imm,imm]:{} later, during the well-formedness checks.
+A difference in the phase that detects an error is not a DeltaHunt finding.
