@@ -67,7 +67,7 @@ public record WellFormednessErrors(String pkgName){
   }
   private FearlessException wf(Err e, E at){ return e.wf().addFrame(err().expRepr(at), at.span().inner); }
   private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }
-  private FearlessException wf(Err e, M m, E.Literal origin){ return e.wf().addSpan(m.sig().span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
+  private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
   public FearlessException notClean(Ref uri, FileFull f){
     var e= err()
       .line("Package directives outside of rank file.")
@@ -308,7 +308,7 @@ public record WellFormednessErrors(String pkgName){
     if (m.sig().m().isEmpty()){
       return wf(err()
         .line("Cannot infer signature and name for a method with "+count(size, "parameter")+".")
-        .line("No supertype has a method with "+count(size, "parameter")+"."), m, origin);
+        .line("No supertype has a method with "+count(size, "parameter")+"."), m.sig(), origin);
     }
     var name= err().methodSig(m.sig().m().get());
     var allParHasType= m.sig().ts().stream().allMatch(Optional::isPresent);
@@ -321,7 +321,7 @@ public record WellFormednessErrors(String pkgName){
     }
     return wf(e
       .line("Cannot infer signature of method "+name+".")
-      .line("No supertype has a method named "+name+" with "+count(size, "parameter")+"."), m, origin);
+      .line("No supertype has a method named "+name+" with "+count(size, "parameter")+"."), m.sig(), origin);
   }
   public String retTypeDisagreement(){ return "Return type disagreement"; }
   public String paramTypeDisagreement(int i){ return "Type disagreement about parameter "+(i+1); }
@@ -411,11 +411,6 @@ public record WellFormednessErrors(String pkgName){
       .line("A type declaration only sees the generic types it declares itself; here "+dec+declares+".")
       .line("Hint: funnel "+disp(missing)+" into "+dec+" by writing "+funnelled+", restating the bounds of "+disp(missing)+"."), x);
   }
-  public FearlessException typeArgNotInferred(E.Call at, Optional<String> x, String example){
-    return wf(err()
-      .line("The type argument "+x.map(Err::disp).map(n -> n+" ").orElse("")+"of "+disp(at.name().s())+" is not determined by this call: nothing in the arguments or in the expected result decides it.")
-      .line("Write it explicitly, as in "+disp(example)+"."), at);
-  }
   public FearlessException typeArgAmbiguous(E.Call at, Optional<String> x, List<IT> cands, List<TName> common, String example){
     var cs= cands.stream().map(err()::typeRepr).toList();
     var xs= x.map(Err::disp).orElse("the type argument");
@@ -459,7 +454,6 @@ public record WellFormednessErrors(String pkgName){
       .line(up(err().expRepr(at))+" cannot implement "+err().typeRepr(t)+".")
       .line(err().typeRepr(t)+" is a type parameter; object literals can only implement nominal types."), at);
   }
-  private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
   public FearlessException typeGrowsForever(E at){
     return wf(err()
       .line("Type inference finds no type for "+err().expRepr(at)+".")
@@ -472,7 +466,7 @@ public record WellFormednessErrors(String pkgName){
       .line(Join.of(
         options.stream().map(mi -> methodSig(mi.rc().get()+" ", mi.m().get())),
         "Candidates: ", ", ", "."
-      )), m, origin);
+      )), m.sig(), origin);
   }
   public FearlessException ambiguousImplementationFor(List<TName> options, Agreement at){
     return wf(err()

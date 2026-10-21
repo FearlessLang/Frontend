@@ -13,7 +13,6 @@ public final class DeclarationWellFormednessTest extends testUtils.FearlessTestB
   static void failParse(String expected, List<String> input){
     typeFailRaw("In file: [###].fear\n\n"+expected+"Error 2 UnexpectedToken", input);
   }
-  static void failsWithACompileError(List<String> input){ typeFailRaw("[###]", input); }
 
 @Test void noExplicitThisSelfName(){failParse("""
 001| A:{ .m1: A -> {'this} }

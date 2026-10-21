@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
@@ -25,7 +24,6 @@ import typeSystem.TypeSystem;
 import utils.OneOr;
 import utils.Push;
 import utils.Range;
-import utils.Pos;
 import utils.Streams;
 
 /**
@@ -164,15 +162,9 @@ public record InjectionSteps(Methods meths, int cap){
     return common == null ? new IT.Amb(cands) : aboveAll(common, cands);
   }
   private IT commonSupertype(List<IT> cands){
-    if (!cands.stream().allMatch(c -> c instanceof IT.RCC)){ return null; }
-    var heads= cands.stream().map(c -> new ArrayList<>(superHeads((IT.RCC)c))).reduce((a,b) -> { a.retainAll(b); return a; }).get();
-    var minimal= heads.stream().filter(h -> heads.stream().noneMatch(h2 -> !h2.equals(h) && isASuperB(h, h2))).toList();
+    var minimal= meths.commonSuperHeads(cands);
     if (minimal.size() != 1){ return null; }
     return adaptedSuperTs((IT.RCC)cands.getFirst(), minimal.getFirst()).getFirst();
-  }
-  private List<TName> superHeads(IT.RCC t){
-    var d= meths._from(t.c().name());
-    return d == null ? List.of() : d.cs().stream().map(core.T.C::name).toList();
   }
   private static List<IT> candidates(IT t){ return t instanceof IT.Amb(var cs) ? cs : List.of(t); }
   private IT aboveAll(IT top, List<IT> cands){
@@ -360,7 +352,7 @@ public record InjectionSteps(Methods meths, int cap){
     var es= nextStar(bs, g, requiredOnArgs(bs, c, m));
     assert es == c.es() || !es.equals(c.es());
     assert m.ps0().size() == es.size();
-    var all= newAllTs(c, es, m);
+    var all= decidedThen(c, m, es, true);
     assert all.size() == m.nCls()+m.bsArity();
     var clsTs= normToBounds(bs, m.clsBs(), all.subList(0, m.nCls()));
     var targs= normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size()));
@@ -377,7 +369,6 @@ public record InjectionSteps(Methods meths, int cap){
     var m0= m.withClsArgs(normToBounds(bs, m.clsBs(), all.subList(0, m.nCls())));
     return meetWithTargs(c.es(), c.es(), m0, normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size())));
   }
-  private List<IT> newAllTs(E.Call c, List<E> es, MSigL m){ return decidedThen(c, m, es, true); }
   private List<IT> fromArgs(MSigL m, List<E> es, boolean onlyLiterals){
     var n= m.nCls()+m.bsArity();
     var lower= Streams.zip(m.ps0(), es).filter((p,e) -> !(p instanceof IT.RCC) && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, e.t()));
@@ -580,21 +571,8 @@ public record InjectionSteps(Methods meths, int cap){
     case IT.RCC(_, var c, var span) -> new IT.RCC(Optional.empty(), c, span);
     case IT.U _, IT.Amb _ -> t;
   };}
-  private boolean isASuperB(TName a, TName b){
-    var d= meths._from(b);
-    if (d == null){ return false; } // {..}.foo etc.
-    return LiteralDeclarations.has(d.cs(), a);
-  }
   private List<IT.RCC> adaptedSuperTs(IT.RCC src, TName target){
-    var d= meths._from(src.c().name());
-    if (d == null){ return List.of(); } // {..}.foo etc.
-    var xs= B.xs(d.bs());
-    return d.cs().stream()
-      .filter(sc -> sc.name().equals(target))
-      .distinct()
-      .map(ci -> new IT.RCC(src.rc(), TypeRename.tcToITC(ci), src.span()))
-      .map(rcc -> (IT.RCC)TypeRename.of(rcc, xs, src.c().ts()))
-      .toList();
+    return meths.implied(src.c()).stream().filter(c -> c.name().equals(target)).map(c -> new IT.RCC(src.rc(), c, src.span())).toList();
   }
   List<IT> propagateXs(List<String> xs, IT.RCC r, IT t1){
     if (!(t1 instanceof IT.RCC cc)){ return qMarks(xs.size()); }

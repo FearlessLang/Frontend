@@ -13,7 +13,6 @@ public final class GenericBoundsTest extends testUtils.FearlessTestBase{
   static void failParse(String expected, List<String> input){
     typeFailRaw("In file: [###].fear\n\n"+expected+"Error 2 UnexpectedToken", input);
   }
-  static void failsWithACompileError(List<String> input){ typeFailRaw("[###]", input); }
   static final String box= """
 Box:{ #[T:*](t: T): mut Box[T] -> { .get -> t; .rget -> t; .riget -> t } }
 Box[T:*]:{ mut .get: T; read .rget: read T; read .riget: read/imm T }

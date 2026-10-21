@@ -102,7 +102,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return reqs(t, bs, tt.type(), rs);//reqs correctly used for two similar things
   }
   public static boolean hasInstance(Literal l){
-    return l.thisName().equals("this") || LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
+    return l.thisName().equals("this") || captureFree(l);
   }
   private static boolean uses(E e, String x){ return e instanceof E.X(var n, _) ? n.equals(x) : e.children().anyMatch(ei -> uses(ei, x)); }
   private static boolean hasAbstractMut(Literal l){ return l.ms().stream().anyMatch(m -> m.sig().abs() && m.sig().rc() == mut); }

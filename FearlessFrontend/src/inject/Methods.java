@@ -26,7 +26,6 @@ import inference.M;
 import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
-import typeSystem.TypeSystem;
 import utils.Push;
 
 public record Methods(
@@ -67,6 +66,15 @@ public record Methods(
     var d= _from(c.name());
     if (d == null){ return List.of(); }//case {..}.foo
     return d.cs().stream().map(TypeRename::tcToITC).map(ci -> TypeRename.of(ci, B.xs(d.bs()), c.ts())).distinct().toList();
+  }
+  private List<TName> superHeads(TName n){
+    var d= _from(n);
+    return d == null ? List.of() : d.cs().stream().map(core.T.C::name).toList();
+  }
+  List<TName> commonSuperHeads(List<IT> cands){
+    if (!cands.stream().allMatch(t -> t instanceof IT.RCC)){ return List.of(); }
+    var heads= cands.stream().map(t -> new ArrayList<>(superHeads(((IT.RCC)t).c().name()))).reduce((a,b) -> { a.retainAll(b); return a; }).get();
+    return heads.stream().filter(h -> heads.stream().noneMatch(h2 -> !h2.equals(h) && superHeads(h2).contains(h))).toList();
   }
   private M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child, List<String> scope){
     var s= m.sig();

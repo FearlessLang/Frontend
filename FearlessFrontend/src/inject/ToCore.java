@@ -15,7 +15,6 @@ import core.TSpan;
 import inference.Gamma;
 import inference.IT;
 import offensiveUtils.EqTransparent;
-import typeSystem.TypeSystem;
 import utils.Bug;
 import utils.OneOr;
 import utils.Pos;
@@ -107,7 +106,7 @@ public record ToCore(List<B> ctx, Methods meths){
     if (amb.isEmpty()){ return fillVoid(t); }
     var x= sig.map(s -> s.bs().get(i).x());
     var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
-    var common= t instanceof IT.Amb ? commonSupertypes(cs) : List.<TName>of();
+    var common= t instanceof IT.Amb ? meths.commonSuperHeads(cs) : List.<TName>of();
     var example= meths.p().err().callWithTargs(e, targs, i, common.isEmpty() ? "Type"+(i+1) : meths.p().err().typeName(common.getFirst()));
     throw meths.p().err().typeArgAmbiguous(e, x, cs, common, example);
   }
@@ -132,16 +131,6 @@ public record ToCore(List<B> ctx, Methods meths){
     if (!(e.e().t() instanceof IT.RCC rcc) || meths._from(rcc.c().name()) == null){ return Optional.empty(); }
     return meths._from(rcc.c().name()).ms().stream().map(core.M::sig).filter(s -> s.m().equals(e.name()) && e.rc().map(rc -> rc == s.rc()).orElse(true)).findFirst();
   }
-  private List<TName> commonSupertypes(List<IT> cands){
-    if (!cands.stream().allMatch(t -> t instanceof IT.RCC)){ return List.of(); }
-    var heads= cands.stream().map(t -> new ArrayList<>(superHeads((IT.RCC)t))).reduce((a,b) -> { a.retainAll(b); return a; }).get();
-    return heads.stream().filter(h -> heads.stream().noneMatch(h2 -> !h2.equals(h) && superHeads(h2).contains(h))).toList();
-  }
-  private List<TName> superHeads(IT.RCC t){ return superHeads(t.c().name()); }
-  private List<TName> superHeads(TName n){
-    var d= meths._from(n);
-    return d == null ? List.of() : d.cs().stream().map(T.C::name).toList();
-  }
   private void checkHead(inference.E.Literal e, IT.C c){
     var unknown= IntStream.range(0, c.ts().size()).filter(i -> !c.ts().get(i).isTV()).boxed().toList();
     if (unknown.isEmpty()){ return; }
@@ -165,7 +154,7 @@ public record ToCore(List<B> ctx, Methods meths){
     var s= sig(e.sig(), o.sig(), at);
     if (e.impl().isEmpty()){
       assert o.impl().isEmpty();
-      return new core.M(s, nUnderscores(s.ts().size()), Optional.empty());
+      return new core.M(s, Collections.nCopies(s.ts().size(), "_"), Optional.empty());
     }
     var ei= e.impl().get();
     var oi= o.impl().get();
@@ -178,21 +167,13 @@ public record ToCore(List<B> ctx, Methods meths){
     var rc= usr.rc().or(inf::rc).orElse(RC.imm);
     var m= usr.m().or(inf::m);
     var origin= usr.origin().or(inf::origin);
-    if (m.isEmpty() || origin.isEmpty()){ throw notInferred(at, usr); }
-    for (int i= 0; i < ts.size(); i++){ if (!decided(ts.get(i))){ throw typeNotInferred(at, usr, m.get(), "parameter "+(i+1)); } }
-    if (!decided(ret)){ throw typeNotInferred(at, usr, m.get(), "the result"); }
+    if (m.isEmpty() || origin.isEmpty()){ throw meths.p().err().methodNotInferred(at, usr); }
+    for (int i= 0; i < ts.size(); i += 1){ if (!decided(ts.get(i))){ throw meths.p().err().methodTypeNotInferred(at, usr, m.get(), "parameter "+(i+1)); } }
+    if (!decided(ret)){ throw meths.p().err().methodTypeNotInferred(at, usr, m.get(), "the result"); }
     var bs= usr.bs().or(inf::bs).orElse(List.of());
     return new core.Sig(rc, m.get(), bs, ts.stream().map(TypeRename::itToT).toList(), TypeRename.itToT(ret), origin.get(), usr.abs(), usr.span());
   }
   private static boolean decided(Optional<IT> t){ return t.map(IT::isTV).orElse(false); }
-  private RuntimeException notInferred(inference.E.Literal at, inference.M.Sig s){
-    if (at == null){ throw Bug.unreachable(); }
-    return meths.p().err().methodNotInferred(at, s);
-  }
-  private RuntimeException typeNotInferred(inference.E.Literal at, inference.M.Sig s, MName m, String what){
-    if (at == null){ throw Bug.unreachable(); }
-    return meths.p().err().methodTypeNotInferred(at, s, m, what);
-  }
   private record CallLike(inference.E e, List<inference.E> es, Optional<RC> rc, List<IT> targs){}
   private static CallLike callLike(inference.E o, MName name){
     return switch (o){
@@ -201,12 +182,11 @@ public record ToCore(List<B> ctx, Methods meths){
       default -> throw Bug.unreachable();
     };
   }
-  private List<String> nUnderscores(int n){ return Stream.generate(() -> "_").limit(n).toList(); }
 
   private static final Optional<core.E> syntheticBody= Optional.of(new core.E.X("this", Src.synthetic));
   core.M mSynthetic(inference.M m){
     var s= sig(m.sig(), m.sig(), null);
-    if (m.impl().isEmpty()){ return new core.M(s, nUnderscores(s.ts().size()), Optional.empty()); }
+    if (m.impl().isEmpty()){ return new core.M(s, Collections.nCopies(s.ts().size(), "_"), Optional.empty()); }
     return new core.M(s, m.impl().get().xs(), syntheticBody);
   }
 }
