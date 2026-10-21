@@ -4848,4 +4848,12 @@ A:{ .k: iso S -> imm S{'s .m -> { s } } }
 A: base.CaptureFree, base.F[A]{ #: A -> this }
 B: base.CaptureFree{ read .me: imm A -> A; mut .self: imm B -> this }
 """));}
+@Test void nestedLiteralCapturesLambdaParameterInferredFromIsoArgument(){ok(List.of("""
+A:{}
+Use:{
+  .k[X:*](f: base.F[X,A]): A -> A;
+  .two[Y:*](y1: Y, y2: Y): base.Void -> {};
+  .go: A -> this.k({y -> base.Block#.do {this.two(iso A, y)} .return {y} })
+}
+"""));}
 }
