@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -42,5 +43,9 @@ final class ReadZipTest{
   }
   @Test void aFolderEntryAndAFileOfTheSameNameAreRefused(){
     assertEquals("dupName a", assertThrows(IllegalStateException.class, () -> read(zip("a/", "a/b", "a"))).getMessage());
+  }
+  @Test void aFileAndAFileInsideAFolderOfTheSameNameAreAccepted(){
+    assertEquals(List.of("a", "a/b"), List.copyOf(read(zip("a", "a/b")).keySet()));
+    assertEquals(List.of("a/b", "a"), List.copyOf(read(zip("a/b", "a")).keySet()));
   }
 }
