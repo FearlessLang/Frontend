@@ -4181,7 +4181,7 @@ of "{::}" at "By[InferUnknown,InferUnknown]" while its method table is refined w
 literal is then internally inconsistent: this one fails the "mostSpecificByOrigin" assert inside
 TypeSystem.methodTableOk rather than reporting a user error.*/
 
-@Test void blockLetKeepsTheMutTypeSoTheReturnCanPromote(){fail("""
+@Test void blockLetOfAMutResultCannotBePromotedThroughACapturedMut(){fail("""
 011|   mut .take(s: mut Set[E], e: E): Opt[E] -> Blocks#
 012|     .let o = {s.opt(e)}
    |     ^^^^
@@ -4210,11 +4210,6 @@ User[E:imm]: {
     .return {o};
   }
 """));}
-/*Minimizes base.ESet.take in datatypes/collections/sets/eset.fear, and base.List.info in
-datatypes/collections/lists/list.fear is the same shape. Here the use site does decide X, as
-"Opt[E]", but the body of the lambda is "mut Opt[E]". The meet keeps the mut type in the inferred
-signature and the mut to imm promotion is applied later, by CallTyping. Taking the required type
-instead pins X to "Opt[E]" and the promotion has nowhere left to happen.*/
 
 @Test void blockLetTypeCarriesTheClassTypeParameterIntoTheLambda(){ok(List.of("""
 use base.MF as MF; use base.Nat as Nat; use base.Ten as Ten;
