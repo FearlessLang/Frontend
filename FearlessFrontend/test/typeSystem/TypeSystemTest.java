@@ -4848,6 +4848,13 @@ A:{ .k: iso S -> imm S{'s .m -> { s } } }
 A: base.CaptureFree, base.F[A]{ #: A -> this }
 B: base.CaptureFree{ read .me: imm A -> A; mut .self: imm B -> this }
 """));}
+@Test void writtenOverrideOfAnInheritedSignatureDeeperThanTheLimit(){ok(List.of("""
+N:{}
+Top:{}
+Box[X]:Top{}
+B[X]:{ .m(x: Box[Box[X]]): N }
+A:B[D]{ .m(x: Top): N -> N }
+""".replace("D", box(97, "N"))));}
 @Test void typeArgumentWithOpenCapabilityCapturedInANestedLiteral(){ok(List.of("""
 Foo:{ .k: Foo -> this }
 User:{ .m[X:*](x: imm X, f: base.F[X,Foo]): Foo; .go: Foo -> this.m(Foo, {y -> {#: Foo -> y.k}#}) }
