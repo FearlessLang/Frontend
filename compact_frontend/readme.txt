@@ -45,5 +45,4 @@ Open a PR with the tests showing the difference by failing, do not fix the code,
 
 A difference counts only in the result of the whole frontend: the printed core, or the fact that the frontend fails.
 The compact frontend may detect an error in a different phase than the full frontend.
-For example, the compact parser rejects the repeated capability in A[X:imm,imm]:{}, while the full frontend rejects A[X:imm,imm]:{} later, during the well-formedness checks.
 A difference in the phase that detects an error is not a DeltaHunt finding.
