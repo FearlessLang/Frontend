@@ -20,6 +20,11 @@ Not fixed; recorded so the next attempt starts from the mechanism.
   only; the argument list drives the argument matrix, and a hygienic argument against a
   non-hygienic signature is legitimate (`Allow mutH argument i`), so it can only be
   trimmed at display time, once the argument types are known.
+  These tests assert the trimmed lists and fail until this is fixed:
+  `TypeSystemTest.hopelessArg_calls_pArgHasType`, `hopelessArg_calls_pArgHasType_baselineConsistent`,
+  `noVar2Fail_viewpointAdaptation_reasonShown`, `argFromGenericCall_boundForcesRead_inferenceHint`,
+  `argFromObjectLiteral_defaultImm_hintToAnnotate`, `GenericBoundsTest.immParameterCannotSatisfyAMutBound`,
+  `CapabilityTypingTest.readCannotBeLaunderedIntoImm`.
 
 ## 1. The minimal type of a call is not unique
 

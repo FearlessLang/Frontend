@@ -690,7 +690,7 @@ Parameter "y" has type "read Y" instead of a subtype of "read/imm Y".
 
 Type required by each promotion:
 - "read/imm Y"  (As declared)
-- "imm Y"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1)
+- "imm Y"  (Strengthen result)
 
 See inferred typing context below for how type "read/imm Y" was introduced: (compression indicated by `-`)
 C:{.m[Y:*](y:read Y):read/imm Y->A.m[imm,Y](y)}
