@@ -346,7 +346,7 @@ Argument 1 has type "mut Foo".
 Method call "A#(_,_)" has type "mut Foo" instead of a subtype of "iso Foo".
 
 Type required by each promotion:
-- "iso Foo"  (As declared, Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1)
+- "iso Foo"  (As declared, Strengthen result)
 
 See inferred typing context below for how type "iso Foo" was introduced: (compression indicated by `-`)
 Bad:{#[Y:mut,mutH,readH](y:Y,isoF:iso Foo):iso Foo->Expect.isoFoo(A#[imm,Y](y,isoF))}
