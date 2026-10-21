@@ -111,13 +111,13 @@ public record InjectionSteps(Methods meths, int cap){
     return e.withT(meet(e.t(), t));
   }
   private IT belowOrDecided(RCC x1, RCC x2){
-    var s1= below(x1, x2);
+    var s1= _below(x1, x2);
     if (s1 != null){ return s1.isTV() || !x2.isTV() ? s1 : x2; }
-    var s2= below(x2, x1);
+    var s2= _below(x2, x1);
     if (s2 != null){ return s2.isTV() || !x1.isTV() ? s2 : x1; }
     return x1;
   }
-  private IT below(RCC sub, RCC sup){
+  private IT _below(RCC sub, RCC sup){
     var d= meths._from(sub.c().name());
     if (d == null){ return null; }
     var patterns= d.cs().stream().filter(c -> c.name().equals(sup.c().name())).toList();
@@ -158,26 +158,26 @@ public record InjectionSteps(Methods meths, int cap){
     if (t1 instanceof IT.U){ return t2; }
     if (t1.equals(t2)){ return t1; }
     var cands= Push.of(candidates(t1), candidates(t2));
-    for (var top : cands){ var res= aboveAll(top, cands); if (res != null){ return res; } }
-    var common= commonSupertype(cands);
-    return common == null ? new IT.Amb(cands) : aboveAll(common, cands);
+    for (var top : cands){ var res= _aboveAll(top, cands); if (res != null){ return res; } }
+    var common= _commonSupertype(cands);
+    return common == null ? new IT.Amb(cands) : _aboveAll(common, cands);
   }
-  private IT commonSupertype(List<IT> cands){
+  private IT _commonSupertype(List<IT> cands){
     var minimal= meths.commonSuperHeads(cands);
     if (minimal.size() != 1){ return null; }
     return adaptedSuperTs((IT.RCC)cands.getFirst(), minimal.getFirst()).getFirst();
   }
   private static List<IT> candidates(IT t){ return t instanceof IT.Amb(var cs) ? cs : List.of(t); }
-  private IT aboveAll(IT top, List<IT> cands){
+  private IT _aboveAll(IT top, List<IT> cands){
     IT res= top;
     for (var c : cands){
-      var up= liftTo(c, top);
+      var up= _liftTo(c, top);
       if (up == null){ return null; }
       res = sameShapeJoin(res, up);
     }
     return res;
   }
-  private IT liftTo(IT c, IT top){
+  private IT _liftTo(IT c, IT top){
     if (c instanceof IT.RCC rc && top instanceof IT.RCC rt){
       if (rc.c().name().equals(rt.c().name())){ return c; }
       var up= adaptedSuperTs(rc, rt.c().name());

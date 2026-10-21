@@ -160,7 +160,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   XPat.Destruct parseDestruct(){
     expect("nominal pattern", OCurly);
     var last= expectLast("nominal pattern", CCurly, CCurlyId).content();
-    var id= parseIf(last.length()>1, () -> last.substring(1));//"}" or "}id"
+    var id= parseIf(last.length() > 1, () -> last.substring(1));//"}" or "}id"
     var chains= splitBy("nominal pattern", commaSkip, Parser::parseChain);
     if (chains.isEmpty()){ throw errFactory().emptyDestructPattern(span()); }
     if (chains.stream().anyMatch(List::isEmpty)){ throw errFactory().emptyDestructChain(span()); }
@@ -301,8 +301,8 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     names = names.add(List.of(), Xs);//added both inside and outside since different parsers
     var hasPar= peek(_RoundGroup);
     var ps= hasPar
-      ?parseGroupSep("", "method parameters declaration", Parser::parseParameter, ORound, CRound, commaSkip)
-      :parseNakedParameters();
+      ? parseGroupSep("", "method parameters declaration", Parser::parseParameter, ORound, CRound, commaSkip)
+      : parseNakedParameters();
     var t= parseOptT();
     m = m.map(_m -> _m.withArity(ps.size()));
     var xs= ps.stream().flatMap(p -> xsOf(p.xp())).toList();
@@ -405,7 +405,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   Token expectValidate(String human, TokenKind kind, TokenKind validation){
     if (peekValidate(validation)){ return expect(human, kind); }
     try{ expect(human, validation); }
-    catch (FearlessException fe){ throw fe.addSpan(spanAround(index(), index()));}
+    catch (FearlessException fe){ throw fe.addSpan(spanAround(index(), index())); }
     throw Bug.unreachable();
   }
   void parseMap(HeadAcc acc){
@@ -428,10 +428,10 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (dupD){ throw errFactory().duplicatedUse(spanLast(), t2, "destination"); }
     acc.use.add(new FileFull.Use(t1, t2));
   }
-  record HeadAcc(ArrayList<FileFull.Map>map, ArrayList<FileFull.Use>use){
-    HeadAcc(){this(new ArrayList<>(), new ArrayList<>());}
+  record HeadAcc(ArrayList<FileFull.Map> map, ArrayList<FileFull.Use> use){
+    HeadAcc(){ this(new ArrayList<>(), new ArrayList<>()); }
   }
-  Void endHE(){ expectEnd("semicolon", SemiColon); return null;}
+  Void endHE(){ expectEnd("semicolon", SemiColon); return null; }
   Void parseHeaderElement(HeadAcc acc){
     if (fwdIf(peekValidate(_map))){ parseMap(acc); return endHE(); }
     if (fwdIf(peekValidate(_use))){ parseUse(acc); return endHE(); }

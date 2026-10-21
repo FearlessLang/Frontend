@@ -39,7 +39,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels, Parser parser){
     assert nonNull(at, what, expectedLabels);
-    return Code.UnexpectedToken.of("Missing " + (what.isBlank() ? "element" : what) + ".\n"+expected(expectedLabels)).addSpan(at);
+    return Code.UnexpectedToken.of("Missing "+(what.isBlank() ? "element" : what)+".\n"+expected(expectedLabels)).addSpan(at);
   }
   public FearlessException topLevelSemicolon(Span at){ return Code.UnexpectedToken.of(this::topLevelSemicolonMsg).addSpan(at); }
   private String topLevelSemicolonMsg(){
@@ -127,7 +127,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var scope= inScope.isEmpty()
       ? "No names are in scope here.\n"
       : NameSuggester.suggest(name.content(), inScope.stream().sorted().toList());
-    return "Name "+disp(name.content())+" is not in scope.\n" + scope;
+    return "Name "+disp(name.content())+" is not in scope.\n"+scope;
   }
   public FearlessException nameRedeclared(Token c, Span at){
     return Code.UnexpectedToken.of("Name "+disp(c.content())+" already in scope.").addSpan(at);
@@ -305,7 +305,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     var head= what.isBlank()
       ? "Unrecognized text."
-      : "Unrecognized text " + disp(what)+".";
+      : "Unrecognized text "+disp(what)+".";
     return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
   }
   public FearlessException missingSemicolonOrOperator(Span at){
@@ -341,7 +341,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var expected= sof?"":expected("", other+": ", other+" one of: ", expectedClosers, tk -> tk.human);
     var span= eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
     var code= sof ? Code.Unopened : (eof || isBarrier) ? Code.Unclosed : Code.UnexpectedToken;
-    return code.of(base + hint+ expected).addFrame("groups of parenthesis", span);
+    return code.of(base+hint+expected).addFrame("groups of parenthesis", span);
   }
   @Override public FearlessException eatenCloserBetween(
       Token open, Token stop, Collection<TokenKind> expectedClosers,

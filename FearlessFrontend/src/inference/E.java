@@ -106,7 +106,7 @@ public sealed interface E{
     }
   }
   record ICall(E e, MName name, List<E> es, IT t, Src src, Gamma.GammaSignature g) implements E{
-    public ICall(E e, MName name, List<E> es, Src src){ this(e, name, es, IT.U.Instance, src, new Gamma.GammaSignature());}
+    public ICall(E e, MName name, List<E> es, Src src){ this(e, name, es, IT.U.Instance, src, new Gamma.GammaSignature()); }
     public ICall{
       assert nonNull(e, name, t, src, g);
       assert unmodifiable(es, "E.ICall.es");

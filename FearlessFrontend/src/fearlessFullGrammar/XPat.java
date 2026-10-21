@@ -24,7 +24,7 @@ public sealed interface XPat{
       assert unmodifiable(extract, "XPat.Destruct.extract",
         sm -> { assert !sm.isEmpty();
           unmodifiable(sm, "XPat.Destruct.extract element",
-            m -> {assert m.s().startsWith(".");});});
+            m -> { assert m.s().startsWith("."); }); });
       assert validOpt(id, n -> validate("}"+n, "pattern id", CCurlyId));
     }
     @Override public Stream<String> parameterNames(){ return extract.stream().map(e -> e.getLast().s().substring(1) + id.orElse("")); }

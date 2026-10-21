@@ -18,13 +18,13 @@ public sealed interface T{
   record RCX(RC rc, X x) implements T{
     public RCX{ assert nonNull(rc, x); }
     @Override public String toString(){ return rc.name()+" "+x.name; }
-    @Override public TSpan span(){ return x.span();}
+    @Override public TSpan span(){ return x.span(); }
     @Override public Optional<RC> explicitRC(){ return Optional.of(rc); }
   }
   record ReadImmX(X x) implements T{
     public ReadImmX{ assert nonNull(x); }
     @Override public String toString(){ return "read/imm "+x.name; }
-    @Override public TSpan span(){ return x.span();}
+    @Override public TSpan span(){ return x.span(); }
   }
   record C(TName name, List<T> ts) implements KindingTarget{
     public C{
