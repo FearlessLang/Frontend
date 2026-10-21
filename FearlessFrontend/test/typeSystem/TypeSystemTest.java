@@ -4817,6 +4817,28 @@ A:Show{read .str:-.Str->-.Void}
 use base.ToStr as Show;
 A:Show{ .str -> base.Void }
 """));}
+@Test void useOfATypeOfTheSamePackageByItsSimpleName(){ok(List.of("""
+use Foo as Bar;
+Foo:{}
+A:{ .m(x: Bar): Foo -> x }
+"""));}
+@Test void nestedDeclarationWithTheSameBoundAsTheMethodTypeParameter(){ok(List.of("""
+B[Y:*]:{ .get: Y }
+A:{ .m[X:imm](x: X): B[X] -> Bx[X:imm]:B[X]{ .get -> x } }
+"""));}
+@Test void nestedDeclarationWithAWiderBoundThanTheMethodTypeParameter(){failWf("""
+002| A:{ .m[X:imm](x: X): B[X] -> Bx[X:imm,mut]:B[X]{ .get -> x } }
+   |     -------------------------^^^^^^^^^^^^^~~~~~~~~~~~~~~~~~~~-
+
+While inspecting object literal "iso Bx[_]" > ".m(_)" line 2
+Type parameter "X" of "Bx[_]" stands for type parameter "X" of method ".m(_)", but has a different bound.
+Here "X" of "Bx[_]" can use capabilities "imm" or "mut".
+But "X" of ".m(_)" can only use capabilities "imm".
+A declaration inside a method must declare the type parameters it takes from the method with the same bounds.
+""", List.of("""
+B[Y:*]:{ .get: Y }
+A:{ .m[X:imm](x: X): B[X] -> Bx[X:imm,mut]:B[X]{ .get -> x } }
+"""));}
 @Test void sameCallInReadAndMutMethodsOfOneLiteral(){ok(List.of("""
 Foo:{}
 Id:{ #[T:*](t: T): T -> t }

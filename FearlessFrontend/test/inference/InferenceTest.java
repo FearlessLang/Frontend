@@ -44,7 +44,7 @@ In file: [###].fear
 
 While inspecting the file
 Package directives outside of rank file.
-Only the rank file should not contain directives like maps and uses.
+Only the rank file can contain directives like maps and uses.
 
 Found non-empty:
 - uses: use base.Void as Void
