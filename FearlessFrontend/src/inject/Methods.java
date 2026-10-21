@@ -62,9 +62,7 @@ public record Methods(
   //but we are likely to also do the rewriting for the meth generics very soon later.
   //can we merge the two steps? Something similar has been done for MSigL
   List<M.Sig> fetchSigs(E.Literal child, IT.C c, core.E.Literal d, List<String> scope){ //d == from(c.name()); but from can be undefined for {..}.foo
-    var res= d.ms().stream().map(m -> alphaSig(m, d, c, child, scope)).toList();
-    res.forEach(s -> writable(child, s));
-    return res;
+    return d.ms().stream().map(m -> alphaSig(m, d, c, child, scope)).toList();
   }
   void writable(E.Literal at, M.Sig s){
     var ts= Push.of(s.ts().stream().map(Optional::get).toList(), s.ret().get());
@@ -105,6 +103,7 @@ public record Methods(
     var allCs= ToCore.distinctTypes(d.bs(), Push.of(d.cs(), implied.stream().sorted(Comparator.comparing(Object::toString)).toList()));
     var allSig= d.cs().stream().filter(c -> !implied.contains(c)).flatMap(c -> fetchSigs(d, c, from(c.name()), List.of()).stream()).toList();
     var allMs= pairWithSig(inferMNames(d.ms(), new ArrayList<>(allSig), d), new ArrayList<>(allSig), d);
+    allMs.forEach(m -> writable(d, m.sig()));
     var res= d.withCsMs(allCs, allMs, setInfHead);
     checkMagicSupertypes(res, allCs);
     return res;
@@ -114,6 +113,7 @@ public record Methods(
     var dd= _from(c.name());//null for the case {..}.foo
     List<M.Sig> allSig= dd == null ? List.of() : fetchSigs(d, c, dd, B.xs(scope));
     var allMs= pairWithSig(inferMNames(d.ms(), new ArrayList<>(allSig), d), new ArrayList<>(allSig), d);
+    allMs.forEach(m -> writable(d, m.sig()));
     return d.withCsMs(Push.of(c, implied(d, c)), allMs, true);
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
