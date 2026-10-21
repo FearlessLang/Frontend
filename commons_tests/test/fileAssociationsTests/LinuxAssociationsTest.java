@@ -9,10 +9,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.UncheckedIOException;
-import java.nio.charset.MalformedInputException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -236,27 +233,24 @@ final class LinuxAssociationsTest{
     finally{ apps.toFile().setWritable(true); }
     assertTrue(Files.exists(desktopFile()));
   }
-  @Test void aWindowEntryOfTheIdentityInAnUnwritableFolderEscapesTheWritableCheck(){
+  @Test void aWindowEntryOfTheIdentityInAnUnwritableFolderIsRefusedBeforeWritingAnything(){
     reconcile(".ffile001");
     var apps= sys.resolve("applications");
     Fs.writeUtf8(apps.resolve(identity+"-1a2b.desktop"), "[Desktop Entry]\nNoDisplay=true\n");
     assertTrue(apps.toFile().setWritable(false));
     try{
       assumeFalse(Files.isWritable(apps));
-      var e= assertThrows(UncheckedIOException.class, () -> reconcile(".ffile002"));
-      assertEquals(AccessDeniedException.class, e.getCause().getClass());
+      assertEquals("notWritable "+apps, refused(".ffile002"));
     }
     finally{ apps.toFile().setWritable(true); }
-    assertFalse(Files.exists(desktopFile()));
-    assertTrue(Files.exists(packageFile()));
+    assertTrue(Files.exists(desktopFile()));
   }
-  @Test void aDesktopFileOfAnotherProgramThatIsNotUtf8StopsReconcile(){
+  @Test void aDesktopFileOfAnotherProgramThatIsNotUtf8IsIgnored(){
     var other= sys.resolve("applications").resolve("other.desktop");
     Fs.ensureDir(other.getParent());
-    Fs.ofV(() -> Fs.write(other, "[Desktop Entry]\nName=Café\n".getBytes(StandardCharsets.ISO_8859_1)));
-    var e= assertThrows(UncheckedIOException.class, () -> reconcile(".ffile001"));
-    assertEquals(MalformedInputException.class, e.getCause().getClass());
-    assertFalse(Files.exists(home));
+    Fs.ofV(() -> Fs.write(other, "[Desktop Entry]\nName=Caf\u00E9\nMimeType=application/x-fearless-ffile001;\n".getBytes(StandardCharsets.ISO_8859_1)));
+    reconcile(".ffile001");
+    assertTrue(Files.exists(desktopFile()));
   }
   @Test void removingEveryIdentityRemovesTheIconsOfIdentitiesAlreadyGone(){
     Fs.writeUtf8(mimetypes().resolve("fearlessBin0_001-a52baa.png"), "");

@@ -1,6 +1,6 @@
 package toolsTests;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.file.Path;
 
@@ -9,9 +9,12 @@ import org.junit.jupiter.api.Test;
 import tools.Fs;
 
 final class FsWriteUtf8Test{
-  @Test void aFileNameWithoutFolderThrowsNullPointerException(){
+  @Test void aFileNameWithoutFolderIsWritten(){
     var file= Path.of("fs_write_utf8_test.txt");
-    try{ assertThrows(NullPointerException.class, () -> Fs.writeUtf8(file, "a")); }
+    try{
+      Fs.writeUtf8(file, "a");
+      assertEquals("a", Fs.readUtf8(file));
+    }
     finally{ Fs.ofV(() -> Fs.deleteIfExists(file)); }
   }
 }
