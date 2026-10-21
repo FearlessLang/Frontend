@@ -902,7 +902,7 @@ public final class Frontend{
     }
     void kind(List<B>b,T t,Set<RC>al){no(!kinded(b,t,al));}
     static Set<RC>kinds(List<B>b,T t){return switch(t){
-      case R(var r,_)->caps(r);case RX(var r,_)->caps(r);case X(var x)->B.get(b,x).caps;case U _,Amb _->throw new Fail();
+      case R(var r,_)->caps(or(r,read));case RX(var r,_)->caps(r);case X(var x)->B.get(b,x).caps;case U _,Amb _->throw new Fail();
       case RI(var x)->{var caps=kinds(b,x);
         yield ii.containsAll(caps)?caps(imm):caps(mut,mutH,read,readH).containsAll(caps)?caps(read):caps(read,imm);
       }

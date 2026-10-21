@@ -4848,4 +4848,37 @@ A:{ .k: iso S -> imm S{'s .m -> { s } } }
 A: base.CaptureFree, base.F[A]{ #: A -> this }
 B: base.CaptureFree{ read .me: imm A -> A; mut .self: imm B -> this }
 """));}
+@Test void typeArgumentWithOpenCapabilityCapturedInANestedLiteral(){ok(List.of("""
+Foo:{ .k: Foo -> this }
+User:{ .m[X:*](x: imm X, f: base.F[X,Foo]): Foo; .go: Foo -> this.m(Foo, {y -> {#: Foo -> y.k}#}) }
+"""));}
+@Test void parameterUpdatedWithOpenCapabilityCapturedInANestedLiteral(){ok(List.of("""
+A:{}
+Foo[X]:{ .m(x: X): A }
+Take:{ #[Z](f: Foo[Z]): A -> A }
+Id:{ #[Y:*](y: Y, f: base.F[A]): imm Y -> base.Todo! }
+Use:{ .go: A -> Take#{ .m(x) -> Id#(x, {# -> x}) } }
+"""));}
+@Test void capturedLambdaParameterInferredFromIsoArgument(){ok(List.of("""
+A:{}
+G[T:*]:{ .k(t: T): H }
+H:{ .h: A }
+Opt[T:*]:{ .match(m: G[T]): H }
+Mk:{ #[T:*](t: T): Opt[T] -> base.Nope! }
+U:{ .m(a: iso A): H -> Mk#(a).match{ .k(v1) -> { .h -> v1 } } }
+"""));}
+@Test void isoResultNormalizedToOpenCapabilityCapturedInANestedLiteral(){fail("""
+002| U:{ .m: iso A -> base.Block#.let v1 = {A} .return {v1} }
+   |     -------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting method call ".let(_,_)" > ".m" line 2
+The body of method ".m" of type declaration "U" is an expression returning "A".
+Method call "mut base.Block[_].let(_,_)" has type "A" instead of a subtype of "iso A".
+
+See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
+U:{-.Block#[imm,A].let[mut,A](mut -.Ret-tmt[A]{A},mut -.Con-ion[A,mut -.Block[-],A]{(-,-)->-.return[mut](-)})}
+""", List.of("""
+A:{}
+U:{ .m: iso A -> base.Block#.let v1 = {A} .return {v1} }
+"""));}
 }
