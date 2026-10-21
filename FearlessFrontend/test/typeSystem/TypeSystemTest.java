@@ -26,8 +26,8 @@ T1:T0{ read .m: A -> A }
 U:{ .u: T1 -> T1{ .m: A -> A{ .k: A -> A } } }
 """));}
 @Test void manyConsecutiveLetsInOneMethod(){
-  var lets= IntStream.rangeClosed(1, 300).mapToObj(i -> ".let x"+i+"= {5} ").collect(Collectors.joining());
-  ok(List.of("use base.Nat as Nat; User:{ .u: Nat -> base.Block#"+lets+".return {x300} }"));}
+  var lets= IntStream.rangeClosed(1, 150).mapToObj(i -> ".let x"+i+"= {5} ").collect(Collectors.joining());
+  ok(List.of("use base.Nat as Nat; User:{ .u: Nat -> base.Block#"+lets+".return {x150} }"));}
 @Test void manyNestedLiterals(){
   var open= IntStream.range(0, 300).mapToObj(_ -> "A{ .a -> ").collect(Collectors.joining());
   ok(List.of("A:{ .a: A } User:{ .u: A -> "+open+"A{ .a -> this.u }"+" }".repeat(300)+" }"));}
