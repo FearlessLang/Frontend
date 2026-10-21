@@ -1998,23 +1998,7 @@ this.foo123[read]
 """, List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
 """));}
-@Test void implicitRcNotInferredInNestedLiteral(){fail("""
-002| Make:{ #: mut Counter -> mut Counter{'self
-003|   mut .inc: mut Counter -> self;
-004|   mut .inc2: mut Counter -> self.inc.inc;
-   |   --------------------------~~~~^^^^^---
-005|   } }
-
-While inspecting ".inc2" line 4 > "#" line 2
-This call to method ".inc" cannot typecheck.
-".inc" exists on type instance of "Counter", but not with the requested capability.
-This call does not state a capability and none could be inferred, so "imm" is assumed.
-Available capabilities for this method: "mut".
-Hint: state the capability after the method name, as in ".inc[mut]".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-self.inc
-""", List.of("""
+@Test void implicitRcIsInferredInNestedLiteral(){ok(List.of("""
 Counter:{ mut .inc: mut Counter; mut .inc2: mut Counter }
 Make:{ #: mut Counter -> mut Counter{'self
   mut .inc: mut Counter -> self;

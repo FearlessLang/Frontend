@@ -21,8 +21,8 @@ Not fixed; recorded so the next attempt starts from the mechanism.
   has unknowns (`commitToTable`, `hasU`), so no later pass resolves it either;
   `ToCore.callFromICall` finally stamps `imm`. Top-level declarations do not suffer:
   `stepDecM` types `this` against the declared name, in the table from the start.
-  Explicit `[rc]` sidesteps it. `TypeSystemTest.implicitRcNotInferredInNestedLiteral`
-  pins the current message, which names the assumption.
+  Explicit `[rc]` sidesteps it. `TypeSystemTest.implicitRcIsInferredInNestedLiteral`
+  fails until this is fixed.
 - Argument errors ("Type required by each promotion" in
   `methodArgumentCannotMeetAnyPromotion`) list the hygienic promotions also when nothing
   in the program is hygienic. The receiver error trims them because its list is display
