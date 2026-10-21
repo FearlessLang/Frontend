@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import core.*;
 import core.E.*;
 import inject.TypeRename;
@@ -25,7 +26,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var promos= MultiMeth.of(bs, base, true);
     var app= promos.stream().filter(m -> rcc0.rc().isSubType(m.rc())).toList();
     if (app.isEmpty()){ throw ts.tsE().receiverRCBlocksCall(d, c, rcc0.rc(), MultiMeth.of(bs, base, mayBeH(rcc0.rc(), base))); }
-    var mat= typeArgsOnce(d, app);
+    var mat= typeArgsOnce(d, rcc0.rc(), base, app);
     var possible= mat.candidatesOkForAllArgs();//This is indexes of MTypes allowed by the arguments
     if (possible.isEmpty()){ throw ts.tsE().methodPromotionsDisagreeOnArguments(c, mat); }
     if (rs.isEmpty()){ return List.of(Reason.pass(bestUnique(mat, possible))); }
@@ -69,10 +70,10 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
       ts.k().check(c, kt, i, bs, targs.get(i), sig.bs().get(i).rcs());
     }
   }
-  private ArgMatrix typeArgsOnce(Literal d, List<MType> app){
+  private ArgMatrix typeArgsOnce(Literal d, RC recv, MType base, List<MType> app){
     var size= c.es().size();
     var acc= new ArgMatrix(app, new ArrayList<>(size), new ArrayList<>(size));
-    for (int argi : Range.of(0, size)){ accArgi(d, acc, argi); }
+    for (int argi : Range.of(0, size)){ accArgi(d, recv, base, acc, argi); }
     return acc;
   }
   private List<TRequirement> argRequirements(List<MType> app, int argi){
@@ -80,16 +81,24 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
       .collect(Collectors.groupingBy(m -> m.ts().get(argi), LinkedHashMap::new, Collectors.mapping(MType::promotion, Collectors.joining(", "))))
       .entrySet().stream().map(e -> new TRequirement(e.getValue(), e.getKey())).toList();
   }
-  private void accArgi(Literal d, ArgMatrix acc, int argi){
+  private void accArgi(Literal d, RC recv, MType base, ArgMatrix acc, int argi){
     var reqs= argRequirements(acc.cs(), argi);
     var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi), ts.v());
     var resByReq= cts.typeOf(bs, g, c.es().get(argi), reqs);
     assert resByReq.size() == reqs.size();
-    if (resByReq.stream().noneMatch(Reason::isEmpty)){ throw cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, reqs, resByReq); }
+    if (resByReq.stream().noneMatch(Reason::isEmpty)){ throw argCannotMeetAnyPromotion(cts, d, recv, base, acc, argi, reqs, resByReq); }
     var reqTs= reqs.stream().map(TRequirement::t).toList();
     var res= acc.cs().stream().map(m -> resByReq.get(reqTs.indexOf(m.ts().get(argi)))).toList();
     acc.okByArg().add(IntStream.range(0, res.size()).filter(i -> res.get(i).isEmpty()).boxed().toList());
     acc.resByArg().add(res);
+  }
+  private FearlessException argCannotMeetAnyPromotion(TypeSystem cts, Literal d, RC recv, MType base, ArgMatrix acc, int argi, List<TRequirement> reqs, List<Reason> resByReq){
+    var args= Stream.concat(acc.resByArg().stream().flatMap(List::stream), resByReq.stream());
+    if (mayBeH(recv, base) || args.anyMatch(r -> mayBeH(r.best))){ return cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, reqs, resByReq); }
+    var reqTs= reqs.stream().map(TRequirement::t).toList();
+    var shown= argRequirements(MultiMeth.of(bs, base, false).stream().filter(m -> recv.isSubType(m.rc())).toList(), argi);
+    var res= shown.stream().map(q -> resByReq.get(reqTs.indexOf(q.t()))).toList();
+    return cts.tsE().methodArgumentCannotMeetAnyPromotion(cts, bs, d, c, argi, shown, res);
   }
   private Reason resForReq(Literal d, Sig sig, ArgMatrix mat, List<Integer> possible, TRequirement req){
     var okRet= possible.stream()

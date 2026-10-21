@@ -346,7 +346,7 @@ Argument 1 has type "mut Foo".
 Method call "A#(_,_)" has type "mut Foo" instead of a subtype of "iso Foo".
 
 Type required by each promotion:
-- "iso Foo"  (As declared, Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1)
+- "iso Foo"  (As declared, Strengthen result)
 
 See inferred typing context below for how type "iso Foo" was introduced: (compression indicated by `-`)
 Bad:{#[Y:mut,mutH,readH](y:Y,isoF:iso Foo):iso Foo->Expect.isoFoo(A#[imm,Y](y,isoF))}
@@ -492,13 +492,12 @@ A:{ .m[Y:imm,mut](y: imm Y): Foo[imm Y] -> Foo[Y]{ .get -> y } }
 While inspecting ".m(_)" line 3
 This call to method "A#(_)" cannot typecheck.
 Argument 1 has type "Foo".
-That is not a subtype of any of "mut Foo" or "iso Foo" or "mutH Foo".
+That is not a subtype of any of "mut Foo" or "iso Foo".
 Parameter "f" has type "imm Foo" instead of a subtype of "mut Foo".
 
 Type required by each promotion:
 - "mut Foo"  (As declared)
-- "iso Foo"  (Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver)
-- "mutH Foo"  (Allow mutH argument 1)
+- "iso Foo"  (Strengthen result)
 
 See inferred typing context below for how type "mut Foo" was introduced: (compression indicated by `-`)
 Break:{.m(f:Foo):Foo->A#[imm,mut Foo](f)}
