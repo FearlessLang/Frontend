@@ -64,8 +64,9 @@ public class FrontendLogicMain{
     TypeSystem.allOk(coreAST, ctx.p(), ctx.other()); //Phase 7: type checking
     return coreAST;
   }
-  public Map<String,Map<String,String>> parseRankFiles(List<Ref> files, Comparator<Ref> c, Collection<String> pkgs){
-    var parsed= parseFiles(files);
+  public Map<String,Map<String,String>> parseRankFiles(Map<String,Ref> ranks, Comparator<Ref> c){
+    var pkgs= Push.of(List.copyOf(ranks.keySet()), "base");
+    var parsed= parseFiles(List.copyOf(ranks.values()));
     record Key(String target, String in){}
     record Cand(Ref uri, String target, String in, String out){
     @Override public String toString(){
@@ -88,7 +89,16 @@ public class FrontendLogicMain{
       if (!pkgs.contains(best.out())){ throw new WellFormednessErrors(k.target()).mapToMissingPackage(k.in(), best.out(), best.toString(), pkgs.stream().sorted().toList()); }
       res.computeIfAbsent(k.target(), _ -> new HashMap<>()).put(k.in(), best.out());
     }
+    ranks.forEach((pkg, f) -> usesOnlyLowerRanks(pkg, parsed.get(f).uses(), res.getOrDefault(pkg, new HashMap<>()), ranks, c));
     return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Map.copyOf(e.getValue())));
+  }
+  private void usesOnlyLowerRanks(String pkg, List<FileFull.Use> uses, Map<String,String> map, Map<String,Ref> ranks, Comparator<Ref> c){
+    for (var u : uses){
+      var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
+      var other= ranks.get(p);
+      var allowed= p.equals(pkg) || other == null || c.compare(other, ranks.get(pkg)) < 0;
+      if (!allowed){ throw new WellFormednessErrors(pkg).useOfNotLowerRank(u.in(), p, ranks.get(pkg), other, c.compare(other, ranks.get(pkg)) == 0); }
+    }
   }
   Map<Ref,FileFull> parseFiles(List<Ref> files){
     var all= new LinkedHashMap<Ref,FileFull>();
