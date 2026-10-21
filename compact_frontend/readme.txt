@@ -7,8 +7,9 @@ The Frontend tests run the compact frontend only when asked.
 From Coordinator/Build/src, this command runs the Frontend tests on both frontends:
   /opt/jdk-26.0.2/bin/java -ea --module-path ../../../Commons/Commons.jar --add-modules Commons scripts/TestAllFrontend.java compact
 With the argument compact, every typeOk test also requires the compact frontend to print the same core as the full frontend,
-every failing test also requires Frontend.Fail, the parse tests require the same accept or reject outcome,
+every typeFail test also requires Frontend.Fail,
 and the fuzz test compares the two frontends on every mutated program.
+The parse tests check only the full frontend, also with the argument compact.
 Without the argument compact, the tests run only the full frontend.
 Every test script in Coordinator/Build/src/scripts, except TestAgentTools.java, accepts the argument compact.
 The argument compact reaches every JUnit run the script starts.

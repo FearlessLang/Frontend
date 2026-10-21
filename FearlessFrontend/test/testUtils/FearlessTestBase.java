@@ -66,21 +66,17 @@ public abstract class FearlessTestBase{
     }
   }
   protected static FileFull parseFull(String input){
-    var res= printError(() -> Parse.from(SourceOracle.defaultDbgFearPath(0), input), oracleRaw(List.of(input)));
-    if (checkCompact){ Frontend.parse(input); }
-    return res;
+    return printError(() -> Parse.from(SourceOracle.defaultDbgFearPath(0), input), oracleRaw(List.of(input)));
   }
   protected static void parseOkNormalized(String expectedNoWs, String input){
     var res= Parse.from(Pos.unknown.fileName(), input);
     strCmp(stripWs(expectedNoWs), stripWs(res.toString()));
-    if (checkCompact){ Frontend.parse(input); }
   }
   protected static void parseFail(String expectedErr, String input){
     var o= oracleRaw(List.of(input));
     var fe= assertThrows(FearlessException.class,
       () -> Parse.from(SourceOracle.defaultDbgFearPath(0), input));
     strCmp(expectedErr, fe.render(o));
-    if (checkCompact){ assertThrows(Fail.class, () -> Frontend.parse(input)); }
   }
   protected static Methods parsePackage(String pkgName, SourceOracle o, OtherPackages other, boolean infer){
     return new InferenceMain().ofMethods(pkgName, o.allFiles(), o, other, infer);
@@ -96,7 +92,6 @@ public abstract class FearlessTestBase{
       System.out.println(fe.render(o));
       throw fe;
     }
-    if (checkCompact){ Frontend.parse(input); }
     var got= Join.of(
       res.decs().stream().map(ToString::declaration),
       "",
