@@ -381,7 +381,7 @@ public final class Frontend{
       }return caps(imm,mut,read).containsAll(caps)?t:t.ri();
     }
     void declare(String x,T t){if(!x.equals("_"))fs.getLast().vars.put(x,t);}
-    Object snap(){var m=new HashMap<String,T>();fs.forEach(f->m.putAll(f.vars));return m;}
+    Object snap(){var m=new HashMap<String,T>();fs.forEach(f->m.putAll(f.vars));return list(m,map(fs,f->f.r),map(fs,f->f.b));}
   }
   static C normC(C c){no(!all(c.types,T::tv)||c.depth()>100);return fillC(c);}
   static T norm(T t){no(!t.tv()||t.depth()>100);return fill(t);}
