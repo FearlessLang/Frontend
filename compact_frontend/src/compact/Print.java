@@ -14,7 +14,7 @@ public final class Print{
     case MN(var s,_)->s;
     case B(var x,var cs)->x+":"+join(cs,",");
     case X(var x)->x;
-    case RX(var r,X(var x))->r.name()+" "+x;
+    case RX(var r,X(var x))->r+" "+x;
     case RI(X(var x))->"read/imm "+x;
     case U _->"?";
     case C(var n,var ts)->n.s()+square(ts);
