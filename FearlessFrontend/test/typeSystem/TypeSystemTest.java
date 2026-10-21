@@ -4853,6 +4853,7 @@ Foo:{}
 Id:{ #[T:*](t: T): T -> t }
 K:{ read .a: read Foo; mut .b: read Foo }
 User:{ .go(x: mut Foo): mut K -> mut K{ read .a -> Id#[imm](x); mut .b -> Id#[imm](x) } }
+"""));}
 @Test void writtenOverrideOfAnInheritedSignatureDeeperThanTheLimit(){ok(List.of("""
 N:{}
 Top:{}
