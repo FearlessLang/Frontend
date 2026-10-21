@@ -47,6 +47,22 @@ Declaration[name=Graph/1, bs=Optional[[B[x=X[name=X], bt=StarStar[]]]], cs=[], l
 """, """
 Graph[X:**]:{}
 """);}
+@Test void decl_generics_repeated_rc_in_bound(){ok("""
+FileFull[[###] decs=[
+Declaration[name=Box/1, bs=Optional[[B[x=X[name=X], bt=RCS[rcs=[imm, imm]]]]], cs=[], l=Literal[]]]]
+""", "Box[X:imm,imm]:{}");}
+@Test void decl_supers_repeated_with_empty_arguments(){ok("""
+FileFull[[###] decs=[
+Declaration[name=Foo/0, bs=Optional.empty, cs=[], l=Literal[]],
+Declaration[name=A/0, bs=Optional.empty, cs=[C[name=Foo/0, ts=Optional.empty], C[name=Foo/0, ts=Optional[[]]]], l=Literal[]]]]
+""", "Foo:{} A:Foo,Foo[]{}");}
+@Test void decl_supers_repeated_with_explicit_imm_argument(){ok("""
+FileFull[[###] decs=[
+Declaration[name=Foo/1, bs=Optional[[B[x=X[name=X], bt=RCS[rcs=[]]]]], cs=[], l=Literal[]],
+Declaration[name=A/0, bs=Optional.empty, cs=[
+C[name=Foo/1, ts=Optional[[RCC[rc=Optional.empty, c=C[name=A/0, ts=Optional.empty]]]]],
+C[name=Foo/1, ts=Optional[[RCC[rc=Optional[imm], c=C[name=A/0, ts=Optional.empty]]]]]], l=Literal[]]]]
+""", "Foo[X]:{} A:Foo[A],Foo[imm A]{}");}
 @Test void decl_generics_use(){ok("""
 FileFull[[###]decs=[Declaration[name=Pair/2,
 bs=Optional[[B[x=X[name=X],bt=RCS[rcs=[]]],B[x=X[name=Y],bt=RCS[rcs=[]]]]],cs=[],
