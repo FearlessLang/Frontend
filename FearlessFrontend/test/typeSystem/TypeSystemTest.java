@@ -4894,4 +4894,18 @@ U:{-.Block#[imm,A].let[mut,A](mut -.Ret-tmt[A]{A},mut -.Con-ion[A,mut -.Block[-]
 A:{}
 U:{ .m: iso A -> base.Block#.let v1 = {A} .return {v1} }
 """));}
+@Test void literalWithoutBodiesInheritingASignatureDeeperThanTheLimit(){ok(List.of("""
+N:{}
+Box[X]:{}
+Foo[X]:{ mut .m(x: Box[Box[X]]): N }
+Use:{ .go: Foo[D] -> Foo[D]{} }
+""".replace("D", box(97, "N"))));}
+@Test void inferredLiteralWithoutBodiesInheritingASupertypeDeeperThanTheLimit(){ok(List.of("""
+N:{}
+Box[X]:{}
+C[X]:{}
+Foo[X]:C[Box[Box[X]]]{}
+Take:{ #(f: Foo[D]): N -> N }
+Use:{ .go: N -> Take#{} }
+""".replace("D", box(97, "N"))));}
 }
