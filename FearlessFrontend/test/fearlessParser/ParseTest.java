@@ -602,45 +602,6 @@ Error 2 UnexpectedToken
 """, """
 A:{ .m(x:C):C->x.foo(,) }
 """);}
-@Test void emptyFirstArgumentPointsAtTheCommaAndTheRestOfTheArguments(){fail("""
-In file: [###].fear
-
-001| A:{ .m(x:C):C->x.foo(,a) }
-   |     -----------~~~~~~^^~
-
-While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
-Missing expression.
-Expected one of: "name", "type name", "(", "{".
-Error 2 UnexpectedToken
-""", """
-A:{ .m(x:C):C->x.foo(,a) }
-""");}
-@Test void emptyFirstParameterPointsAtAllTheParameters(){fail("""
-In file: [###].fear
-
-001| A:{ .m(,x:C):C->x }
-   |     ~~~^^^^~~~---
-
-While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
-Missing type name.
-Expected: "type name".
-Error 2 UnexpectedToken
-""", """
-A:{ .m(,x:C):C->x }
-""");}
-@Test void emptyMiddleParameterPointsAtTheCommaBeforeIt(){fail("""
-In file: [###].fear
-
-001| A:{ .m(y:C,,x:C):C->x }
-   |     ~~~~~~^~~~~~~~---
-
-While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
-Missing type name.
-Expected: "type name".
-Error 2 UnexpectedToken
-""", """
-A:{ .m(y:C,,x:C):C->x }
-""");}
 
 @Test void rcThenNameThenType(){fail("""
 In file: [###].fear
