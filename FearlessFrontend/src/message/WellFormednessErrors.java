@@ -252,8 +252,9 @@ public record WellFormednessErrors(String pkgName){
       .addFrame("package header", at);
   }
   private static String rankDisp(Ref rank){
-    var file= Fs.fileNameWithExtension(rank.fearPath());
-    return disp(file.substring("_rank_".length(), file.length()-".fear".length()))+" ("+disp(file)+")";
+    var name= Fs.fileNameWithoutExtension(rank.fearPath()).substring("_rank_".length());
+    var full= Character.isDigit(name.charAt(name.length()-1)) ? name : name+"999";
+    return disp(full)+" ("+disp(Fs.fileNameWithExtension(rank.fearPath()))+")";
   }
   public FearlessException genericTypeVariableShadowTName(Map<TName,Set<X>> allXs, List<String> allNames, Set<String> use){
     var n= allXs.values().stream().flatMap(Set::stream)
