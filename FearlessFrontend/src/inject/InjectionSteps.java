@@ -446,6 +446,7 @@ public record InjectionSteps(Methods meths, int cap){
     if (selfInferred){ l = l.withT(preciseSelf(l).get()); }
     assert !meths.cache().containsKey(name);
     meths.register(l);
+    g.tableGrew();
     return l;
   }
   private List<M> fixArity(List<M> ms, TName name, TName newName){

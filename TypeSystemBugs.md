@@ -14,15 +14,6 @@ capabilities `T` can have: `{rc}` for `rc C[..]` and for `rc X`, all of `D(X)` f
 
 Not fixed; recorded so the next attempt starts from the mechanism.
 
-- A call on the self name of a nested literal with no `[rc]` reaches the type system as
-  `imm`, whatever the receiver. `InjectionSteps.nextMStarOp` declares `self : rc Fresh`
-  (`rc` as seen from the method, bug 11) with the literal's own not-yet-committed name; `methodHeaderAnd` finds no declaration for
-  `Fresh`, so the `ICall` keeps an unknown type; the literal cannot commit while a body
-  has unknowns (`commitToTable`, `hasU`), so no later pass resolves it either;
-  `ToCore.callFromICall` finally stamps `imm`. Top-level declarations do not suffer:
-  `stepDecM` types `this` against the declared name, in the table from the start.
-  Explicit `[rc]` sidesteps it. `TypeSystemTest.implicitRcNotInferredInNestedLiteral`
-  pins the current message, which names the assumption.
 - Argument errors ("Type required by each promotion" in
   `methodArgumentCannotMeetAnyPromotion`) list the hygienic promotions also when nothing
   in the program is hygienic. The receiver error trims them because its list is display
@@ -473,3 +464,23 @@ turned the `iso` case into `read`. Inference (`Gamma.adaptX`) has the same rule.
 Witness. `Get[Y:*]:{ mut .get: Y }`,
 `A:{ .m[X:iso,mut](x: X): mut Get[read/imm X] -> mut Get[read/imm X]{ mut .get: read/imm X -> x } }`
 was rejected: `x` was `read X`, not a subtype of `read/imm X` when `X` is `iso`.
+
+## 17. A call on the self name of a nested literal is never resolved
+
+Frontend#244, 2026-10-22. Rejects valid programs, not unsoundness; the formalism has no such step.
+`TypeSystemTest.implicitRcIsInferredInNestedLiteral`.
+
+    done(e, Gamma)                                -- nextStar does not revisit a done e
+      was:  sig(e) = Gamma
+      now:  sig(e) = Gamma and no literal entered the table since e was signed
+
+`InjectionSteps.nextMStarOp` declares the self name of a nested literal as `rc Fresh`, with the
+literal's own name. A call on the self name finds no declaration of `Fresh` (`methodHeaderAnd`),
+keeps an unknown type, and the method body is signed as done. `commitToTable` then registers
+`Fresh`, but Gamma does not change, so the body stayed done, no pass looked up the call again,
+and `ToCore.callFromICall` stamped `imm`. Top-level declarations do not suffer: `stepDecM` types
+`this` against the declared name, in the table from the start.
+
+Witness. `Counter:{ mut .inc: mut Counter; mut .inc2: mut Counter }`,
+`Make:{ #: mut Counter -> mut Counter{'self mut .inc: mut Counter -> self; mut .inc2: mut Counter -> self.inc.inc; } }`
+was rejected: "This call does not state a capability and none could be inferred, so "imm" is assumed."
