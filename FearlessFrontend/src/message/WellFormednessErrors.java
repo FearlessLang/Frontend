@@ -34,6 +34,7 @@ import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
 import pkgmerge.Package;
+import tools.Fs;
 import tools.SourceOracle.Ref;
 import typeSystem.Kinding;
 import utils.Join;
@@ -240,6 +241,20 @@ public record WellFormednessErrors(String pkgName){
         +" is not declared in package "+disp(pkg)+".")
       .wf()
       .addFrame("package header", at);
+  }
+  public FearlessException useOfNotLowerRank(TName tn, String pkg, Ref rank, Ref otherRank, boolean sameRank){
+    var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;
+    return err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
+      .line("\"use\" directive refers to package "+disp(pkg)+", which has "+(sameRank ? "the same rank as" : "a higher rank than")+" package "+disp(pkgName)+".")
+      .line("Package "+disp(pkgName)+" has rank "+rankDisp(rank)+" and package "+disp(pkg)+" has rank "+rankDisp(otherRank)+".")
+      .line("A package can only use packages of a lower rank.")
+      .wf()
+      .addFrame("package header", at);
+  }
+  private static String rankDisp(Ref rank){
+    var name= Fs.fileNameWithoutExtension(rank.fearPath()).substring("_rank_".length());
+    var full= Character.isDigit(name.charAt(name.length()-1)) ? name : name+"999";
+    return disp(full)+" ("+disp(Fs.fileNameWithExtension(rank.fearPath()))+")";
   }
   public FearlessException genericTypeVariableShadowTName(Map<TName,Set<X>> allXs, List<String> allNames, Set<String> use){
     var n= allXs.values().stream().flatMap(Set::stream)
