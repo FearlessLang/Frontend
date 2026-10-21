@@ -5,7 +5,7 @@ import metaParser.Span;
 import offensiveUtils.EqTransparent;
 import offensiveUtils.NeverAsKey;
 
-/** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
+/** Never as Map/Set key (nondiscriminating equals/hashCode). */
 @NeverAsKey
 public final class TSpan extends EqTransparent<Span>{
   public TSpan(Span inner){ super(inner); }

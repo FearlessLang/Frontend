@@ -4,7 +4,7 @@ import utils.Pos;
 import offensiveUtils.EqTransparent;
 import offensiveUtils.NeverAsKey;
 
-/** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
+/** Never as Map/Set key (nondiscriminating equals/hashCode). */
 @NeverAsKey
 public final class Src extends EqTransparent<core.Src.SrcObj>{
   public interface SrcObj{ Pos pos(); TSpan span(); }

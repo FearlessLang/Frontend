@@ -16,7 +16,7 @@ import utils.Range;
 import utils.Streams;
 
 public final class Gamma{
-  /** Never as Map/Set key (nondiscriminating equals/hashCode). Build-time checker rejects it. */
+  /** Never as Map/Set key (nondiscriminating equals/hashCode). */
   @NeverAsKey
   public static final class GammaSignature{
     Map<String,IT> shot;

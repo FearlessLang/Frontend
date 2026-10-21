@@ -584,9 +584,6 @@ A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
 User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
 """));}
-//TODO: this used to print, hinting at some other issue in the compact printer
-//mut User:{.m(A,B):-Void->{a.id[mut B](b)}} ?? why mut here? Why meth sig printed as .m(A,B) with no par names
-//but it prints correctly in typeNotWellKinded_literalSupertypeViolatesBounds,.. why??
 
 @Test void typeNotWellKinded_methodTypeArgOnTypeInfer2(){fail("""
 003| User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
@@ -4147,12 +4144,9 @@ User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as[Person]{::} }
 /*The five tests below are the minimized shapes of every place base stops compiling if
 InjectionSteps.nextMStarOpRun stops meeting a method's declared return type with the type of its
 body, that is if
-  IT ret= isBaseId(rcc) ? m.sig().ret().get() : meet(m.sig().ret().get(), e.t());
+  var ret= meet(m.sig().ret().get(), e.t());
 becomes
-  IT ret= m.sig().ret().get();
-Before these tests, all five reasons were invisible to the Frontend suite: the change kept every
-typeSystem test green except toOrderHash and toOrderHashDesign3, and base was the only thing that
-noticed.*/
+  var ret= m.sig().ret().get();*/
 
 @Test void blockLetInfersItsTypeFromTheLambdaBody(){ok(List.of("""
 use base.MF as MF; use base.Bool as Bool; use base.True as True;
@@ -4201,7 +4195,7 @@ Box[T]: {}
 Mk: { #[T,K](by: By[T,K], t: T): Box[T] -> Nope! }
 Caller: { .go(x: Key): Box[Key] -> Mk#({::}, x) }
 """));}
-/*Minimizes the "Maps#({::},k1,e1.info)" calls of base.Infos in datatypes/info.fear. "T" of "By"
+/*Minimizes the "Maps#({::},k1,e1.info)" calls of base.Infos in datatypes/info/info.fear. "T" of "By"
 comes from the use site, "K" does not: it can only come from the body of "{::}", which is the
 parameter of the very method whose return type we are deciding. Dropping the meet leaves the head
 of "{::}" at "By[InferUnknown,InferUnknown]" while its method table is refined with "Key", and the
@@ -4284,10 +4278,10 @@ A: { .m1: Q; .m2: Q }
 B: A { .m1: P -> P; .m2: P -> P }
 """));}
 /*Both ".m1" and ".m2" are bad overrides, and litOk reports whichever method key it visits first.
-That used to be the iteration order of the HashMap of TypeSystem.sources, which is keyed on a
-record holding an RC, and enum hashCodes are identity hashCodes: the order depends on the JVM's
-allocation sequence, so an unrelated change elsewhere in the run silently changes which of the two
-errors the user is shown. This test pinned ".m2" before sources became ordered.*/
+litOk groups the result of Sources.collect by method key in a LinkedHashMap, so that order is fixed
+from run to run. A HashMap keyed on a record holding an RC would not do: enum hashCodes are identity hashCodes, the
+order would depend on the JVM's allocation sequence, and an unrelated change elsewhere in the run
+would silently change which of the two errors the user is shown.*/
 
 @Test void miniClassDoesntCauseCompilationProblem(){ok(List.of("""
 use base.Opt as Opt;
