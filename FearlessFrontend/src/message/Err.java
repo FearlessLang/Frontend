@@ -20,7 +20,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   CompactPrinter cp(){ return _cp.apply(false); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
   public static String genArity(int n){ return Join.of(Collections.nCopies(n, "_"), "[", ",", "]", "");}
-  static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser only
+  static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser and the well formedness errors only
   static <A> A redeclaredElement(List<A> es){
     return IntStream.range(0, es.size())
       .filter(i -> i != es.lastIndexOf(es.get(i)))

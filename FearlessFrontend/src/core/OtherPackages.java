@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import core.E.Literal;
 
 public interface OtherPackages{
-  Literal __of(TName name);//This method should only be used inside LiteralDeclatations and ToInference Function<TName,TName> f= tn->{..}
+  Literal __of(TName name);//This method should only be used inside LiteralDeclarations and ToInference.resolve
   Collection<TName> dom();
   long stamp();
   Map<String,Map<String,String>> virtualizationMap();

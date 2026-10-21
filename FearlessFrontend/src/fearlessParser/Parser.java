@@ -455,7 +455,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
       var t= expectAny("");
       var separator= t.is(Comma) && !inColon;
       if (separator){ return 1; }
-      if (!t.is(_SquareGroup, Comma, UppercaseId)){ inColon = false; } //purposely not allowing SignedFloat,SignedInt,UnsignedInt,SignedRational,SStr,UStr even if valid TNames
+      if (!t.is(_SquareGroup, Comma, UppercaseId)){ inColon = false; } //purposely not allowing SignedFloat,UnSignedFloat,SignedInt,UnsignedInt,SStr,UStr even if valid TNames
       if (t.is(Colon)){ inColon = true; }
     }
     return 0;

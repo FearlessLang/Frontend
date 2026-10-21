@@ -91,8 +91,8 @@ public final class LiteralDeclarations{
     }
     var ns= stripUnderscores(s);
     if (TokenKind.isKind(ns, TokenKind.UnsignedInt)){
-      // base.Nat: produce the signed int whose 64-bit pattern equals the unsigned value.
-      // Later ops use: Integer.toUnsignedLong(x), compareUnsigned, divideUnsigned, etc.
+      // base.Nat: produce the signed long whose 64-bit pattern equals the unsigned value.
+      // Later ops use: Long.compareUnsigned, Long.divideUnsigned, Long.toUnsignedString, etc.
       assert natLiteralInRange(ns);
       return big(ns).longValue() +"L";// wraps to low 64 bits (exactly what we want given the range)
     }

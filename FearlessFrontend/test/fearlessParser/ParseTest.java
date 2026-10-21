@@ -242,7 +242,7 @@ t=Optional[RCC[rc=Optional.empty,c=C[name=+45/0,ts=Optional.empty]]]]],
 body=Optional[TypedLiteralRCC[rc=Optional.empty,c=C[name=+45/0,ts=Optional.empty]]
 Literal[]]]]]]]
 """, """
-Lit:{ .lit(): +45 -> +45{} }//:+45 would (correctly) trigger BadOpDigit :+
+Lit:{ .lit(): +45 -> +45{} }
 """);}
 @Test void typed_literal_in_body_with_rc(){ok("""
 FileFull[[###]decs=[
