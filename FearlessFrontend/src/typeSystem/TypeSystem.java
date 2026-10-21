@@ -13,7 +13,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import core.AllLs;
-import core.AssertNoRepeatedTypeNames;
 import core.B;
 import core.E;
 import core.FearlessException;
@@ -50,7 +49,6 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
 
   public static void allOk(List<Literal> tops, Package pkg, OtherPackages other){
     tops = UriSort.byFolderThenFile(tops, l -> l.span().inner.fileName());
-    assert AssertNoRepeatedTypeNames.ok(tops);
     var map= AllLs.of(tops);
     Function<TName,Literal> decs= n -> LiteralDeclarations.from(n, map::get, other);
     var invMap= pkg.map().entrySet().stream()

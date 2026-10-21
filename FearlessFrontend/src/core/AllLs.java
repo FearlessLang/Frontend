@@ -13,7 +13,7 @@ public record AllLs(HashMap<TName,Literal> ls){
     return Map.copyOf(all.ls);
   }
   void allLs(E e){
-    if (e instanceof E.Literal l){ ls.put(l.name(), l); }
+    if (e instanceof E.Literal l){ var prev= ls.put(l.name(), l); assert prev == null; }
     e.children().forEach(this::allLs);
   }
 }
