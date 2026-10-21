@@ -4848,4 +4848,9 @@ A:{ .k: iso S -> imm S{'s .m -> { s } } }
 A: base.CaptureFree, base.F[A]{ #: A -> this }
 B: base.CaptureFree{ read .me: imm A -> A; mut .self: imm B -> this }
 """));}
+@Test void capturedParameterWithUndecidedInferredCapability(){ok(List.of("""
+A:{ .foo: A -> this }
+B:{ .m[T:*](t: read T, f: base.F[T,A]): A; }
+U:{ .u(b: B, a: A): A -> b.m(a, {x -> base.F[A]{ x.foo }#}) }
+"""));}
 }
