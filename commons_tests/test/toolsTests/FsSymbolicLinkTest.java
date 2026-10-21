@@ -92,6 +92,26 @@ final class FsSymbolicLinkTest{
     assertEquals("x", Fs.readUtf8(real.resolve("f.txt")));
     assertFalse(Files.exists(root.resolve("to")));
   }
+  @Test void aJlinkLegalNoticeLinkIsAccepted(){
+    var image= root.resolve("image");
+    Fs.writeUtf8(image.resolve("legal/java.base/LICENSE"), "x");
+    Fs.ensureDir(image.resolve("legal/java.naming"));
+    var notice= link(image.resolve("legal/java.naming/LICENSE"), Path.of("..", "java.base", "LICENSE"));
+    assertEquals("x", Fs.readUtf8(notice));
+    Fs.copyTree(image, root.resolve("to"));
+    assertFalse(Files.isSymbolicLink(root.resolve("to/legal/java.naming/LICENSE")));
+    assertEquals("x", Fs.readUtf8(root.resolve("to/legal/java.naming/LICENSE")));
+    Fs.rmTree(image);
+    assertFalse(Files.exists(image));
+  }
+  @Test void aLinkToAnotherLegalNoticeIsRefused(){
+    var image= root.resolve("image");
+    Fs.writeUtf8(image.resolve("legal/java.base/LICENSE"), "x");
+    Fs.ensureDir(image.resolve("legal/java.naming"));
+    link(image.resolve("legal/java.naming/COPYRIGHT"), Path.of("..", "java.base", "LICENSE"));
+    refused(() -> Fs.rmTree(image));
+    assertEquals("x", Fs.readUtf8(image.resolve("legal/java.base/LICENSE")));
+  }
   @Test void theConfiguredErrorIsThrown(){
     var file= root.resolve("f.txt");
     Fs.writeUtf8(file, "x");
