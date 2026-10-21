@@ -313,7 +313,7 @@ public final class Frontend{
     record RI(X x)implements T{}
     record C(N name,List<T>types){int depth(){return 1+types.stream().mapToInt(T::depth).max().orElse(1);}}
     record R(RC r,C c)implements T{
-      public R{no(c.depth()>1000);}R withTs(List<T>types){return with(r,types);}
+      R withTs(List<T>types){return with(r,types);}
       R with(RC r,List<T>types){return new R(r,new C(c.name,types));}
       public boolean tv(){return all(c.types,T::tv);}public int depth(){return c.depth();}
       public RC erc(){return r;}
@@ -383,8 +383,17 @@ public final class Frontend{
     void declare(String x,T t){if(!x.equals("_"))fs.getLast().vars.put(x,t);}
     Object snap(){var m=new HashMap<String,T>();fs.forEach(f->m.putAll(f.vars));return list(m,map(fs,f->f.r),map(fs,f->f.b));}
   }
-  static C normC(C c){no(!all(c.types,T::tv)||c.depth()>100);return fillC(c);}
-  static T norm(T t){no(!t.tv()||t.depth()>100);return fill(t);}
+  static C normC(C c){no(!all(c.types,T::tv));return fillC(c);}
+  static T norm(T t){no(!t.tv());return fill(t);}
+  static int size(T t){return t instanceof R w?size(w.c):1;}
+  static int size(C c){return 1+c.types.stream().mapToInt(Frontend::size).sum();}
+  static int size(E e){return size(e.t())+e.children().mapToInt(Frontend::size).sum()+switch(e){
+    case E.X _->0;case Type t->size(t.type);case Call c->c.y.stream().mapToInt(Frontend::size).sum();
+    case Literal l->l.cs.stream().mapToInt(Frontend::size).sum()+l.ms.stream().flatMap(m->push(m.s.types,m.s.t).stream()).mapToInt(Frontend::size).sum();
+  };}
+  static IntStream depths(Literal d){
+    return IntStream.concat(d.cs.stream().mapToInt(C::depth),d.ms.stream().flatMap(m->push(m.s.types,m.s.t).stream()).mapToInt(T::depth));
+  }
   static C fillC(C c){return new C(c.name,map(c.types,Frontend::fill));}
   static T fill(T t){return t instanceof R(var r,var c)?new R(or(r,imm),fillC(c)):t;}
   static T rename(T t,List<String>v,List<T>types){
@@ -456,7 +465,7 @@ public final class Frontend{
     };}
     C constructor(C c){var s=c.name.s;
       var bad=primitive(s)&&(matches(s,UI)&&bits(s)>64||matches(s,SI)&&bits(s)>63||matches(s,SF,UF)&&!floatOk(s));
-      no(bad);var res=new C(f(c.name),map(c.types,this::type));no(res.depth()>100);return res;
+      no(bad);return new C(f(c.name),map(c.types,this::type));
     }
     String parameter(Par p,boolean patterns){return switch(p.xp){
       case null->"_";case Pat.Name(var x)->patterns&&!x.equals("_")?meths.fresh.variable(owner,x):x;
@@ -506,7 +515,7 @@ public final class Frontend{
   }
   static final class Methods{
     final Pkg p;final Map<N,Literal>other;final Fresh fresh;final HashMap<N,Literal>cache=new HashMap<>();
-    final HashMap<E,Object>memo=new HashMap<>();
+    final HashMap<E,Object>memo=new HashMap<>();int deep,cap;
     Methods(Pkg p,Map<N,Literal>other){this.p=p;this.other=other;fresh=new Fresh(p);}
     List<Literal>headers(List<Literal>decs){var rem=new LinkedHashMap<N,Literal>();
       decs.forEach(d->rem.put(d.name,d));var acc=new Vector<Literal>();while(rem.size()>0){
@@ -598,9 +607,10 @@ public final class Frontend{
       no(!all(res,t->TS.equivalent(b,first,fill(t))));return res.get(0);
     }
     List<S>align(List<S>ss,List<B>b){return map(ss,s->s.subst(b,B.v(s.b),vars(b)));}
-    List<Literal>steps(List<Literal>tops){return map(tops,di->di.header(di.cs,map(di.ms,m->body(di,m)),false));}
+    List<Literal>steps(List<Literal>tops){
+      deep=cat(cache.values().stream(),other.values().stream()).flatMapToInt(Frontend::depths).max().orElse(1);return map(tops,di->di.header(di.cs,map(di.ms,m->body(di,m)),false));}
     M body(Literal di,M m){
-      if(m.e==null)return m;var ei=meet(m.e,m.s.t);var g=new IG();
+      if(m.e==null)return m;var ei=meet(m.e,m.s.t);cap=deep*size(ei);var g=new IG();
       for(int i=0;i<m.v.size();i++)g.declare(m.v.get(i),m.s.types.get(i));
       g.declare(di.self,di.self(m.s.r));var b=push(di.b,m.s.b);
       ei=solve(b,g,ei);return new M(m.s,m.v,new Core(b,this).core(ei,m.e));
@@ -663,7 +673,7 @@ public final class Frontend{
     E solve(List<B>b,IG g,E e){
       if(g.snap().equals(memo.get(e)))return e;var grew=0;while(true){var s=g.snap();var oe=next(b,g,e);
         if(oe.equals(e)&&s.equals(g.snap())){memo.put(e,s);return e;}
-        grew=oe.t().depth()>e.t().depth()?grew+1:0;no(grew==50);e=oe;
+        grew=oe.t().depth()>e.t().depth()?grew+1:0;no(grew==50||oe.t().depth()>cap);e=oe;
       }
     }
     List<E>solve(List<B>b,IG g,List<E>es){return map(es,ei->solve(b,g,ei));}
