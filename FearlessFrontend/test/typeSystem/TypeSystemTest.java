@@ -334,7 +334,7 @@ Outer:{ #: G -> {'self .foo[X:imm]: base.Void -> base.Void; .bar: base.Void -> s
    |         ----------------------------------~~~~~~^^^^^^^^^^^^--
 
 While inspecting method call "#(_)" > ".v" line 4 > "#" line 4
-Method ".v" inside the object literal instance of "G" (line 4)
+Method ".v" inside the object literal instance of "iso G" (line 4)
 is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
 
@@ -4432,17 +4432,7 @@ Make:{ #: iso Counter -> mut Counter{'self
   read .get: base.Nat -> 0;
   } }
 """));}
-@Test void isoLiteralDoesNotPromoteSelfNamedImmLiteral(){fail("""
-002| Make:{ #: iso A -> imm A{'self read .me: imm A -> self } }
-   |        ----------------^^-------------------------------
-
-While inspecting object literal instance of "A" > "#" line 2
-The body of method "#" of type declaration "Make" is an expression returning "A".
-Object literal is of type "imm A" instead of a subtype of "iso A".
-
-See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
-Make:{#:iso A->A{'self read .me:A->self}}
-""", List.of("""
+@Test void isoLiteralPromotesSelfNamedImmLiteral(){ok(List.of("""
 A:{ read .me: imm A }
 Make:{ #: iso A -> imm A{'self read .me: imm A -> self } }
 """));}
@@ -4845,5 +4835,17 @@ A:{ .k(s: iso S): mut S -> s.m; .j(s: iso S): read S -> s.m; .i(s: iso S): imm S
 @Test void receiverLiteralDeclaringTheCalledMethodKeepsItsOwnType(){ok(List.of("""
 A: {.m: A}
 D: { .k: A -> {.size: A -> D.k}.size }
+"""));}
+@Test void readNamedLiteralWithoutMutMethodsIsPromotedToIso(){ok(List.of("""
+S:{ read .m: read S }
+A:{ .k: imm S -> read S{'s .m -> s}; .j: iso S -> imm S{'s .m -> s} }
+"""));}
+@Test void promotedNamedLiteralKeepsTheWrittenSelfCapability(){ok(List.of("""
+S:{ read .m: base.F[S] }
+A:{ .k: iso S -> imm S{'s .m -> { s } } }
+"""));}
+@Test void captureFreeTopLevelThisIsImmInEveryMethod(){ok(List.of("""
+A: base.CaptureFree, base.F[A]{ #: A -> this }
+B: base.CaptureFree{ read .me: imm A -> A; mut .self: imm B -> this }
 """));}
 }

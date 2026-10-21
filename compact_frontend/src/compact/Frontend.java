@@ -737,7 +737,8 @@ public final class Frontend{
         var k=bound(w,types);var next=mi.e==null?header(k,mi):method(b,g,l,sp,k,mi);
         types=meet(types,next.types);res.add(next.m);
       }
-      var t=bound(w,types);return commit(g,b,l.header(l.cs,res,true).t(t),t);
+      if(res.equals(l.ms)&&types.equals(w.c.types))return commit(g,b,l,w);var t=bound(w,types);
+      return commit(g,b,l.header(l.cs,res,true).t(t),t);
     }
     E commit(IG g,List<B>b,Literal l,R w){var name=l.name;
       if(!w.tv()||!all(l.ms,m->m.s.t.tv()&&all(m.s.types,T::tv))||cache.containsKey(name))return l;
@@ -891,7 +892,7 @@ public final class Frontend{
   }
   record TS(Function<N,Literal>decs){
     static void check(List<Literal>tops,Map<N,Literal>other){var map=new HashMap<N,Literal>();
-      tops.forEach(t->collect(t,map));var sys=new TS(n->from(n,map::get,other));tops.forEach(l->sys.check(G.empty,l));
+      tops.forEach(t->collect(t,map));var sys=new TS(n->from(n,map::get,other));tops.forEach(l->sys.check(G.empty,l,has(l.cs,cf)?imm:l.r));
     }
     static void collect(E e,HashMap<N,Literal>map){if(e instanceof Literal l)map.put(l.name,l);e.children().forEach(c->collect(c,map));}
     boolean kinded(List<B>b,T t,Set<RC>al){
@@ -935,10 +936,10 @@ public final class Frontend{
     }
     List<T>literal(List<B>bs1,G g,Literal _l,List<T>rs){
       var named=!_l.self.equals("_");var free=has(_l.cs,cf);
-      var getIso=((_l.r.ro()&&!mutable(_l)&&!named)||_l.r==mut)&&cf(_l.b,g.filter(_l,free),_l);
+      var getIso=((_l.r.ro()&&!mutable(_l))||_l.r==mut)&&cf(_l.b,g.filter(_l,free),_l);
       var l=getIso?_l.rc(iso):_l;
       no(any(rs,r->!(r instanceof R)));
-      var t=l.self(l.r);kind(bs1,t,allRC);check(discard(g.filter(l,free),l),l);
+      var t=l.self(l.r);kind(bs1,t,allRC);check(discard(g.filter(l,free),l),l,_l.r.mutable());
       no(named&&count(_l.self,_l,false)==0);no(any(l.ms,m->m.e!=null&&!inst(l)&&!callable(l.r,m.s.r)));
       l.ms.forEach(m->no(m.s.abs&&callable(l.r,m.s.r)));return reqs(bs1,t,rs,false);
     }
@@ -947,7 +948,7 @@ public final class Frontend{
       return g.bind(x.name)==null||all(kinds(b,g.bind(x.name)),RC::ii);
     }
     static boolean callable(RC litRC,RC recRc){return recRc!=mut||!litRC.ro();}
-    void check(G g,Literal l){
+    void check(G g,Literal l,RC self){
       if(has(l.cs,identity)){var m=l.ms.get(0);var isId=switch(m.e){
         case null->true;
         case E.X(var name,_)->name.equals(m.v.get(0));
@@ -968,7 +969,7 @@ public final class Frontend{
           no(!same(ctx,chosen.t,s.t)||!sub(ctx,chosen.t,s.t));
         }
       });
-      var g1=g.add(l.self,l.self(l.r.mutable()));for(var m:l.ms){var g2=adapt(g1,l,m);
+      var g1=g.add(l.self,l.self(self));for(var m:l.ms){var g2=adapt(g1,l,m);
         var bs=push(delta,m.s.b);m.s.types.forEach(t->kind(bs,t,allRC));kind(bs,m.s.t,allRC);if(m.e==null)continue;
         for(int i=0;i<m.v.size();i++)g2=g2.add(m.v.get(i),m.s.types.get(i));no(type(bs,g2,m.e,list(m.s.t)).get(0)==null);
         for(int i=0;i<m.v.size();i++){var x=m.v.get(i);if(kinded(bs,m.s.types.get(i),caps(mut,read,mutH,readH,imm)))continue;

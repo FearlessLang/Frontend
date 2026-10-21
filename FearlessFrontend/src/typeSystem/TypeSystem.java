@@ -56,7 +56,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var invMap= pkg.map().entrySet().stream()
       .collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey, BinaryOperator.<String>minBy(Comparator.naturalOrder())));
     var ts= new TypeSystem(TypeScope.top(), new ViewPointAdaptation(new Kinding(new TypeSystemErrors(decs, pkg, invMap, new LinkedHashSet<>()))));
-    tops.forEach(l -> ts.litOk(Gamma.empty(), l));
+    tops.forEach(l -> ts.litOk(Gamma.empty(), l, captureFree(l) ? imm : l.rc()));
   }
   public boolean isSub(List<B> bs, T t1, T t2){
     return t1.equals(t2)
@@ -117,7 +117,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   private List<Reason> checkLiteral(List<B> bs1, Gamma g, Literal _l, List<TRequirement> rs){
     var span= _l.name().approxSpan();
     var selfNamed= !_l.thisName().equals("_");
-    var getIso= ((_l.rc().isReadOrImm() && !hasAbstractMut(_l) && !selfNamed) || _l.rc() == mut)
+    var getIso= ((_l.rc().isReadOrImm() && !hasAbstractMut(_l)) || _l.rc() == mut)
       && new CaptureWalk(_l.bs(), g.filterFTV(_l), RC::isIsoOrImm).isFree(_l);
     _l.onlyImmCapture().inner = new CaptureWalk(bs1, g, rc -> rc == imm).isFree(_l);
     var l= getIso ? _l.withRC(iso) : _l;
@@ -125,7 +125,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var thisType= new T.RCC(l.rc(), new T.C(l.name(), dom(l.bs(), span)), span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l, bs1, thisType);
-    litOk(v.discard(g.filterFTV(l), l), l);
+    litOk(v.discard(g.filterFTV(l), l), l, _l.rc().isoToMut());
     if (selfNamed && !uses(_l, _l.thisName())){ throw tsE().selfNameDeadCode(_l); }
     l.ms().stream().filter(m -> m.e().isPresent()).forEach(m -> checkCallable(l, m));
     l.ms().forEach(m -> checkImplemented(l, m, l));
@@ -164,7 +164,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     return t instanceof T.RCC(_, var c, _)
       && LiteralDeclarations.has(decs().apply(c.name()).cs(), LiteralDeclarations.baseContainer);
   }
-  private void litOk(Gamma g, Literal l){
+  private static boolean captureFree(Literal l){ return LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree); }
+  private void litOk(Gamma g, Literal l, RC selfRC){
     baseIdOk(l);
     var delta= l.bs();
     var span= l.name().approxSpan();
@@ -174,7 +175,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     Sources.collect(this, l).stream()
       .collect(Collectors.groupingBy(s -> new Key(s.m(), s.rc()), LinkedHashMap::new, Collectors.toList()))
       .forEach((k,group) -> methodTableOk(l, k, group));
-    var g1= g.add(l.thisName(), new T.RCC(l.rc().isoToMut(), new T.C(l.name(), dom(delta, span)), span));
+    var g1= g.add(l.thisName(), new T.RCC(selfRC, new T.C(l.name(), dom(delta, span)), span));
     l.ms().forEach(m -> methodOk(l, delta, v.of(g1, l, m), m));//passing l and m instead of their RC for better errors
   }
   private void csOk(Literal l, List<B> delta, T.C c){
