@@ -20,7 +20,6 @@ import utils.Bug;
 import utils.OneOr;
 import utils.Pos;
 import utils.Push;
-import utils.Range;
 import utils.Streams;
 
 public record ToCore(List<B> ctx, Methods meths){
@@ -93,7 +92,6 @@ public record ToCore(List<B> ctx, Methods meths){
     assert inScope(targs);
     var recv= of(e.e(), o.e);
     var fixed= IntStream.range(0, targs.size()).mapToObj(i -> targ(e, targs, i)).toList();
-    for (int i : Range.of(fixed)){ if (fixed.get(i).depth() > IT.C.maxDepth){ throw meths.p().err().addedTypeArgumentTooDeep(e, i, fixed.get(i)); } }
     var args= mapArgs(e.es(), o.es);
     return new core.E.Call(recv, e.name(), rc, TypeRename.itToT(fixed), args, new EqTransparent<>(null), e.src());
   }

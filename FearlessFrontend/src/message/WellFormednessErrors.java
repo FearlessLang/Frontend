@@ -30,7 +30,6 @@ import inference.IT;
 import inference.M;
 import inject.Methods.Agreement;
 import inject.TypeRename;
-import metaParser.Message;
 import metaParser.NameSuggester;
 import metaParser.PrettyFileName;
 import metaParser.Span;
@@ -38,36 +37,10 @@ import pkgmerge.Package;
 import tools.SourceOracle.Ref;
 import typeSystem.Kinding;
 import utils.Join;
-import utils.Pos;
 import java.util.EnumSet;
 import utils.Push;
 
 public record WellFormednessErrors(String pkgName){
-  @SuppressWarnings("serial") public static final class TooDeep extends FearlessException{
-    TooDeep(TName name){
-      super(Code.WellFormedness, (o,fs) -> Message.of(o::loadString, fs, "Type inference finds no type: "+disp(name.simpleName()+"[...]")+" nests more than "+(10*IT.C.maxDepth-1)+" type names and would grow without bound.\n"));
-      addSpan(name.approxSpan().inner);
-    }
-  }
-  public static TooDeep tooDeep(TName name){ return new TooDeep(name); }
-  public FearlessException addedSupertypeTooDeep(E.Literal at, IT.C t, Optional<IT.C> from){
-    var of= from.map(f -> " of "+err().tNameADisp(f.name())).orElse("");
-    return addedTooDeep(at, "the supertype "+err().typeRepr(new IT.RCC(Optional.empty(), t, TSpan.fromPos(Pos.unknown)), 3)+of, t.depth());
-  }
-  public FearlessException addedMethodTooDeep(E.Literal at, M.Sig s, int i, IT t){
-    var part= i == s.ts().size() ? "result" : "parameter "+(i+1);
-    var origin= s.origin().get();
-    var m= origin.s().equals(at.name().s()) ? "the signature of "+err().methodSig(s.m().get()) : "the method "+err().methodSig(s.m().get())+" of "+err().tNameADisp(origin);
-    return addedTooDeep(at, m+", whose "+part+" has type "+err().typeRepr(t, 3), t.depth());
-  }
-  public FearlessException addedTypeArgumentTooDeep(E.Call at, int i, IT t){
-    return addedTooDeep(at, "the type argument "+(i+1)+" "+err().typeRepr(t, 3), t.depth());
-  }
-  private FearlessException addedTooDeep(E at, String what, int depth){
-    return wf(err()
-      .line("Type inference adds to "+err().expRepr(at)+" "+what+".")
-      .line("That type nests "+count(depth-1, "type name")+"; a type can nest at most "+count(IT.C.maxDepth-1, "type name")+" inside each other."), at);
-  }
   Err err(){ return new Err(y -> y, x -> x, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
   private Err err(List<String> lines){
     var e= err();
@@ -491,12 +464,6 @@ public record WellFormednessErrors(String pkgName){
     return wf(err()
       .line("Type inference finds no type for "+err().expRepr(at)+".")
       .line("Each round of inference nests its type one level deeper, as "+err().typeRepr(at.t(), 2)+"; it would grow without bound."), at);
-  }
-  public FearlessException typeTooDeep(TName name){
-    return err()
-      .line("Type "+disp(name.simpleName()+"[...]")+" is nested too deeply.")
-      .line("A type can nest at most "+(IT.C.maxDepth-1)+" type names inside each other.")
-      .wf().addSpan(name.approxSpan().inner);
   }
   public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<M.Sig> options){
     return wf(err()

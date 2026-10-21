@@ -21,7 +21,6 @@ import inference.Gamma;
 import inference.IT;
 import inference.IT.RCC;
 import inference.M;
-import message.WellFormednessErrors;
 import typeSystem.TypeSystem;
 import utils.OneOr;
 import utils.Push;
@@ -58,14 +57,36 @@ Offensive style: Optional.get() is intentional where invariants guarantee presen
 absence indicates a bug and should crash.
 */
 
-public record InjectionSteps(Methods meths){
+public record InjectionSteps(Methods meths, int cap){
   public static List<core.E.Literal> steps(Methods meths, List<E.Literal> tops){
-    var s= new InjectionSteps(meths);
+    var s= new InjectionSteps(meths, deepest(meths));
     assert tops.stream().allMatch(l -> l.thisName().equals("this"));
     //No! at this point they have been (correctly) divided in layers assert tops.stream().sorted().toList().equals(tops);
     return tops.stream()
       .map(l -> s.stepDec(meths.cache().get(l.name()), l)).toList();
   }
+  private static int deepest(Methods meths){
+    var ds= Stream.concat(meths.cache().values().stream(), meths.other().dom().stream().map(meths::from));
+    return ds.flatMapToInt(InjectionSteps::depths).max().orElse(1);
+  }
+  private static IntStream depths(core.E.Literal d){
+    var cs= d.cs().stream().mapToInt(c -> TypeRename.tcToITC(c).depth());
+    var ms= d.ms().stream().flatMap(m -> Push.of(m.sig().ts(), m.sig().ret()).stream()).mapToInt(t -> TypeRename.tToIT(t).depth());
+    return IntStream.concat(cs, ms);
+  }
+  private static int size(IT t){ return t instanceof IT.RCC rcc ? size(rcc.c()) : 1; }
+  private static int size(IT.C c){ return 1+c.ts().stream().mapToInt(InjectionSteps::size).sum(); }
+  private static int size(M m){
+    var ts= Push.of(m.sig().ts(), m.sig().ret()).stream().mapToInt(t -> t.map(InjectionSteps::size).orElse(1)).sum();
+    return ts+m.impl().map(i -> size(i.e())).orElse(0);
+  }
+  private static int size(E e){ return size(e.t())+switch (e){
+    case E.X _ -> 0;
+    case E.Type t -> size(t.type());
+    case E.Call c -> size(c.e())+c.targs().stream().mapToInt(InjectionSteps::size).sum()+c.es().stream().mapToInt(InjectionSteps::size).sum();
+    case E.ICall c -> size(c.e())+c.es().stream().mapToInt(InjectionSteps::size).sum();
+    case E.Literal l -> l.cs().stream().mapToInt(InjectionSteps::size).sum()+l.ms().stream().mapToInt(InjectionSteps::size).sum();
+  };}
   private core.E.Literal stepDec(core.E.Literal di, E.Literal li){ return di.withMs(li.ms().stream().map(m -> stepDecM(di, m)).toList()); }
   private boolean sameM(core.Sig s1, M.Sig s2){
     return s1.m().equals(s2.m().get()) && s1.rc() == s2.rc().orElse(RC.imm);
@@ -80,7 +101,7 @@ public record InjectionSteps(Methods meths){
     var ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     var g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
     var bs= Push.of(di.bs(), m.sig().bs().get());
-    ei = nextStar(bs, g, ei);
+    ei = new InjectionSteps(meths, cap*size(ei)).nextStar(bs, g, ei);
     return new core.M(mCore.sig(), xs, Optional.of(new ToCore(bs, meths).of(ei, e)));
   }
   E meet(E e, IT t){
@@ -196,7 +217,7 @@ public record InjectionSteps(Methods meths){
     var grew= 0;
     while (true){
       var s= g.snapshot();
-      var oe= bounded(bs, g, e);
+      var oe= next(bs, g, e);
       assert oe == e || !oe.equals(e) : "Allocated equal E:"+e.getClass()+"\n"+e;
       var stable= oe == e && !g.changed(s);
       if (stable){
@@ -206,13 +227,10 @@ public record InjectionSteps(Methods meths){
       }
       //if (oe.equals(e) && !g.changed(s)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
       grew = oe.t().depth() > e.t().depth() ? grew+1 : 0;
-      if (grew == IT.C.maxDepth/2){ throw meths.p().err().typeGrowsForever(oe); }
+      var forever= grew == 50 || oe.t().depth() > cap;
+      if (forever){ throw meths.p().err().typeGrowsForever(oe); }
       e = oe;
     }
-  }
-  private E bounded(List<B> bs, Gamma g, E e){
-    try{ return next(bs, g, e); }
-    catch (WellFormednessErrors.TooDeep _){ throw meths.p().err().typeGrowsForever(e); }
   }
   private List<E> nextStar(List<B> bs, Gamma g, List<E> es){
     return norm(es, es.stream().map(ei -> nextStar(bs, g, ei)).toList());
@@ -428,11 +446,9 @@ public record InjectionSteps(Methods meths){
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
     var justAType= noMeth && l.infHead() && meths._from(rcc.c().name()) != null;
     var orcc= new IT.RCC(orc, rcc.c(), rcc.span());
-    if (rcc.depth() > IT.C.maxDepth){ throw meths.p().err().addedSupertypeTooDeep(l, rcc.c(), Optional.empty()); }
     if (justAType){ return new E.Type(orcc, preferred(orcc), l.src(), l.g()); }
-    for (var m : ms){ meths.writable(l, m.sig()); }
     var selfInferred= rcc.c().name().equals(l.name());
-    var cs= ToCore.distinctTypes(localBs, selfInferred ? meths.implied(l, rcc.c()) : Push.of(rcc.c(), meths.implied(l, rcc.c())));
+    var cs= ToCore.distinctTypes(localBs, selfInferred ? meths.implied(rcc.c()) : Push.of(rcc.c(), meths.implied(rcc.c())));
     meths.checkMagicSupertypes(l, cs);
     assert l.infHead();
     l = new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, rcc, l.src(), l.infName(), l.infHead(), l.g());

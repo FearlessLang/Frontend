@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 import core.RC;
 import core.TName;
 import core.TSpan;
-import message.WellFormednessErrors;
 import utils.Join;
 
 public sealed interface IT{
@@ -31,11 +30,9 @@ public sealed interface IT{
     @Override public String toString(){ return "read/imm "+x.name; }
   }
   record C(TName name, List<IT> ts, int depth){
-    public static final int maxDepth= 100;
     public C{
       assert unmodifiable(ts, "IT.C.ts");
       assert eq(ts.size(), name.arity(), "Type arity");
-      if (depth > 10*maxDepth){ throw WellFormednessErrors.tooDeep(name); }
     }
     public C(TName name, List<IT> ts){ this(name, ts, depth(ts)); }
     public static int depth(List<IT> ts){ return 1+ts.stream().mapToInt(IT::depth).max().orElse(1); }
