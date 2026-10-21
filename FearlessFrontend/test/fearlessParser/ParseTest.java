@@ -3498,5 +3498,20 @@ Error 2 UnexpectedToken
 """, """
 A:{.m({.a', .read, .mut}:A):A}
 """);}
+@Test void repeatedCapabilityInGenericBound(){ok("""
+FileFull[[###] decs=[
+  Declaration[name=A/1, bs=Optional[[B[x=X[name=X], bt=RCS[rcs=[imm, imm]]]]], cs=[], l=Literal[]]]]
+""", """
+A[X:imm,imm]:{}
+""");}
+@Test void supertypeWrittenWithAndWithoutItsDefaultCapability(){ok("""
+FileFull[[###] decs=[
+  Declaration[name=A/0, bs=Optional.empty, cs=[
+    C[name=B/1, ts=Optional[[RCC[rc=Optional.empty,c=C[name=C/0, ts=Optional.empty]]]]],
+    C[name=B/1, ts=Optional[[RCC[rc=Optional[imm],c=C[name=C/0, ts=Optional.empty]]]]]
+    ], l=Literal[]]]]
+""", """
+A:B[C], B[imm C]{}
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?
