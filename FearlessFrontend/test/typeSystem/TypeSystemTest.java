@@ -4848,4 +4848,17 @@ A:{ .k: iso S -> imm S{'s .m -> { s } } }
 A: base.CaptureFree, base.F[A]{ #: A -> this }
 B: base.CaptureFree{ read .me: imm A -> A; mut .self: imm B -> this }
 """));}
+@Test void lambdaParameterInferredWithoutCapabilityUsedInNestedLiteral(){ok(List.of("""
+A:{}
+Ap:{ #[Y:*](f: base.F[Y,A]): imm Y -> base.Todo! }
+K:{ #(f: base.F[A]): A -> f# }
+Use:{ .go: A -> Ap#{x -> K#{# -> x}} }
+"""));}
+@Test void parameterUpdatedWithoutCapabilityUsedInNestedLiteral(){ok(List.of("""
+A:{}
+Foo[X]:{ .m(x: X): A }
+Take:{ #[Z](f: Foo[Z]): A -> A }
+Id:{ #[Y:*](y: Y, f: base.F[A]): imm Y -> base.Todo! }
+Use:{ .go: A -> Take#{ .m(x) -> Id#(x, {# -> x}) } }
+"""));}
 }
