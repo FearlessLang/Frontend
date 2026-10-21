@@ -2,17 +2,10 @@ package testUtils;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Assertions;
 import org.opentest4j.AssertionFailedError;
@@ -28,9 +21,7 @@ import inject.Methods;
 import core.FearlessException;
 import main.FrontendLogicMain;
 import main.InferenceMain;
-import tools.Fs;
 import tools.SourceOracle;
-import utils.Bug;
 import utils.Err;
 import utils.Join;
 import utils.Pos;
@@ -44,18 +35,10 @@ public abstract class FearlessTestBase{
   protected static String stripWs(String s){ return s.replace("\n", "").replace(" ", ""); }
   protected static void strCmp(String expected, String got){ Err.strCmp(expected, got); }
 
-  protected static SourceOracle oracleRaw(List<String> files){
-    var b= SourceOracle.debugBuilder();
-    for (int i : Range.of(files)){ b = b.put(i, files.get(i)); }
-    return b.build();
-  }
   protected static SourceOracle oraclePkg(List<String> bodies){
     var b= SourceOracle.debugBuilder();
     for (int i : Range.of(bodies)){ b = b.put(i, bodies.get(i)); }
     return b.build();
-  }
-  protected static List<URI> filesUri(int n){
-    return IntStream.range(0, n).mapToObj(SourceOracle::defaultDbgFearPath).toList();
   }
   protected static <R> R printError(Supplier<R> r, SourceOracle o){
     try{ return r.get(); }
@@ -65,15 +48,12 @@ public abstract class FearlessTestBase{
       throw fe;
     }
   }
-  protected static FileFull parseFull(String input){
-    return printError(() -> Parse.from(SourceOracle.defaultDbgFearPath(0), input), oracleRaw(List.of(input)));
-  }
   protected static void parseOkNormalized(String expectedNoWs, String input){
     var res= Parse.from(Pos.unknown.fileName(), input);
     strCmp(stripWs(expectedNoWs), stripWs(res.toString()));
   }
   protected static void parseFail(String expectedErr, String input){
-    var o= oracleRaw(List.of(input));
+    var o= oraclePkg(List.of(input));
     var fe= assertThrows(FearlessException.class,
       () -> Parse.from(SourceOracle.defaultDbgFearPath(0), input));
     strCmp(expectedErr, fe.render(o));
@@ -151,24 +131,6 @@ public abstract class FearlessTestBase{
   protected static OtherPackages otherFrom(List<core.E.Literal> ds){ return OtherPackages.start(Map.of(), ds, -1); }
   protected static List<core.E.Literal> compileAll(String pkgName, SourceOracle o, OtherPackages other){
     return new FrontendLogicMain().of(pkgName, Map.of(), o.allFiles(), other);
-  }
-  public static SourceOracle oracleFromDir(Path root){
-    if (!Files.isDirectory(root)){ throw Bug.of("Not a directory: "+root); }
-    var b= SourceOracle.debugBuilder();
-    try{
-      var files= Files.walk(root)
-        .filter(p -> Files.isRegularFile(p) && p.toString().endsWith(".fear"))
-        .sorted(Comparator.comparing(p -> root.relativize(p).toString()))
-        .toList();
-      if (files.isEmpty()){ throw Bug.of("No .fear files under: "+root); }
-      for (var p : files){
-        var src= Fs.readUtf8(p);
-        var u= p.toAbsolutePath().normalize().toUri();
-        b = b.putURI(u, src);
-      }
-      return b.build();
-    }
-    catch (IOException e){ throw new UncheckedIOException(e); }
   }
   protected static <T> T okOrPrint(SourceOracle o, Supplier<T> run){
     try{ return run.get(); }

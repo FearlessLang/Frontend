@@ -3,15 +3,12 @@ package inject;
 import java.util.List;
 import java.util.Optional;
 
-import core.LiteralDeclarations;
 import core.RC;
 import core.T;
-import core.TSpan;
 import core.B;
 import typeSystem.Kinding;
 import utils.Streams;
 import utils.Bug;
-import utils.Pos;
 import inference.IT;
 
 public final class TypeRename{
@@ -19,9 +16,9 @@ public final class TypeRename{
     assert xs.size() == ts.size();
     return switch (t){
       case T.X x -> getOrSame(x, x.name(), xs, ts);
-      case T.RCX(var rc, var x) -> withRC(of(x, xs, ts), rc);
+      case T.RCX(var rc, var x) -> of(x, xs, ts).withRC(rc);
       case T.RCC rcc -> rcc.withTs(ofT(rcc.c().ts(), xs, ts));
-      case T.ReadImmX(var x) -> readImm(of(x, xs, ts));
+      case T.ReadImmX(var x) -> of(x, xs, ts).readImm();
     };
   }
   //TODO: much code could be made faster if instead of xs+ts being list, they were Function<Integer,XX>..
@@ -72,6 +69,4 @@ public final class TypeRename{
     if (!sameHead){ return false; }
     return Streams.zip(aC.ts(), bC.ts()).allMatch((x,y) -> eqModXRC(bs, x, y));
   }
-  private static T withRC(T t, RC rc){ return t.withRC(rc); }
-  private static T readImm(T t){ return t.readImm(); }
 }
