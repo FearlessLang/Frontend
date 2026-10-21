@@ -175,9 +175,13 @@ public final class CompactPrinter{
     };
     var original= oCs.stream().map(c -> c.name()).toList();
     return cs.stream()
-      .filter(c -> original.isEmpty() || original.contains(c.name()) || original.contains(c.name().withoutPkgName()))
+      .filter(c -> original.isEmpty() || original.contains(c.name()) || original.contains(c.name().withoutPkgName()) || writtenByAlias(original, c.name()))
       .map(this::ofC)
       .toList();
+  }
+  private boolean writtenByAlias(List<TName> original, TName n){
+    var alias= t.uses().get(n.s());
+    return alias != null && original.contains(new TName(alias, n.arity(), n.pos()));
   }
   PM ofM(Sig s, List<String> xs, Optional<PE> body){
     var bs= bounds(s.bs());

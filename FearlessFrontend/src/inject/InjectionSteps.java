@@ -95,7 +95,8 @@ public record InjectionSteps(Methods meths, int cap){
     var e= m.impl().get().e();
     var span= di.name().approxSpan();
     var xs= m.impl().get().xs();
-    var thisType= new IT.RCC(Optional.of(mCore.sig().rc()), new IT.C(di.name(), MSigL.toXs(span, B.xs(di.bs()))), span);//no preferred on self names
+    var thisRc= LiteralDeclarations.has(di.cs(), LiteralDeclarations.captureFree) ? RC.imm : mCore.sig().rc();
+    var thisType= new IT.RCC(Optional.of(thisRc), new IT.C(di.name(), MSigL.toXs(span, B.xs(di.bs()))), span);//no preferred on self names
     var ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     var g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
     var bs= Push.of(di.bs(), m.sig().bs().get());
@@ -439,6 +440,9 @@ public record InjectionSteps(Methods meths, int cap){
     var orcc= new IT.RCC(orc, rcc.c(), rcc.span());
     if (justAType){ return new E.Type(orcc, preferred(orcc), l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());
+    var head= rcc.c().name();
+    var foreignPrivate= !selfInferred && !head.isPublic() && !head.pkgName().equals(meths.p().name());
+    if (foreignPrivate){ throw meths.p().err().extendedForeign(l, head, "private"); }
     var cs= ToCore.distinctTypes(localBs, selfInferred ? meths.implied(rcc.c()) : Push.of(rcc.c(), meths.implied(rcc.c())));
     meths.checkMagicSupertypes(l, cs);
     assert l.infHead();

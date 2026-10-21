@@ -139,7 +139,7 @@ public record Methods(
   void notSealed(TName target, E.Literal owner){
     var targetSealed= LiteralDeclarations.has(from(target).cs(), LiteralDeclarations.sealed);
     if (!targetSealed){ return; }
-    throw p.err().extendedSealed(owner, target);
+    throw p.err().extendedForeign(owner, target, "sealed");
   }
 
   void register(E.Literal d){

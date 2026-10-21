@@ -477,3 +477,23 @@ and `ToCore.callFromICall` stamped `imm`. Top-level declarations do not suffer: 
 Witness. `Counter:{ mut .inc: mut Counter; mut .inc2: mut Counter }`,
 `Make:{ #: mut Counter -> mut Counter{'self mut .inc: mut Counter -> self; mut .inc2: mut Counter -> self.inc.inc; } }`
 was rejected: "This call does not state a capability and none could be inferred, so "imm" is assumed."
+
+## 18. Inference sees `this` of a `base.CaptureFree` declaration with the capability of the method
+
+Frontend#237, 2026-10-22. Rejects valid programs, not unsoundness; the formalism has no such step.
+`TypeSystemTest.captureFreeTopLevelThisInMutMethodInfersTheImmOverload`,
+`captureFreeTopLevelThisInMutMethodInfersImmLetType`.
+
+    this in stepDecM, for a top-level D[Xs] and a method with capability rc
+      was:  this : rc D[Xs]
+      now:  this : imm D[Xs]   if D implements base.CaptureFree
+            this : rc D[Xs]    otherwise
+
+The type system types `this` of a top-level declaration as `rc0 D[Xs]` adapted to the method
+(`TypeSystem.allOk`), with `rc0 = imm` for a `CaptureFree` declaration, so `this` is
+`imm D[Xs]` in every method. In a `mut` method inference chose overloads and type arguments
+for a `mut` receiver, and the type system rejected what inference wrote. The compact frontend
+has the same rule.
+
+Witness. `A:base.CaptureFree{ imm .bar: A -> this; mut .bar: A -> this; mut .foo: A -> this.bar; }`
+was rejected: inference wrote `this.bar[mut]`.

@@ -4767,6 +4767,56 @@ A:{ .k: iso S -> imm S{'s .m -> { s } } }
 A: base.CaptureFree, base.F[A]{ #: A -> this }
 B: base.CaptureFree{ read .me: imm A -> A; mut .self: imm B -> this }
 """));}
+@Test void captureFreeTopLevelThisInMutMethodInfersTheImmOverload(){ok(List.of("""
+A:base.CaptureFree{
+  imm .bar: A -> this;
+  mut .bar: A -> this;
+  mut .foo: A -> this.bar;
+  }
+"""));}
+@Test void captureFreeTopLevelThisInMutMethodWrittenImmOverload(){ok(List.of("""
+A:base.CaptureFree{
+  imm .bar: A -> this;
+  mut .bar: A -> this;
+  mut .foo: A -> this.bar[imm];
+  }
+"""));}
+@Test void captureFreeTopLevelThisInMutMethodInfersImmLetType(){ok(List.of("""
+A:base.CaptureFree{ mut .foo: A -> base.Block#.let x= {this} .return {x} }
+"""));}
+@Test void captureFreeTopLevelThisInMutMethodWrittenLetType(){ok(List.of("""
+A:base.CaptureFree{ mut .foo: A -> base.Block#.let[A] x= {this} .return {x} }
+"""));}
+@Test void captureFreeTopLevelThisInImmMethodInfersLetType(){ok(List.of("""
+A:base.CaptureFree{ imm .foo: A -> base.Block#.let x= {this} .return {x} }
+"""));}
+@Test void typingContextShowsSupertypeWrittenByFullName(){fail("""
+001| A:base.ToStr{ .str -> base.Void }
+   |               --------^^^^^^^^^
+
+While inspecting object literal instance of "base.Void" > ".str" line 1
+The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
+Object literal is of type "base.Void" instead of a subtype of "base.Str".
+
+See inferred typing context below for how type "base.Str" was introduced: (compression indicated by `-`)
+A:-.ToStr{read .str:-.Str->-.Void}
+""", List.of("""
+A:base.ToStr{ .str -> base.Void }
+"""));}
+@Test void typingContextShowsSupertypeWrittenByUseAlias(){fail("""
+002| A:Show{ .str -> base.Void }
+   |         --------^^^^^^^^^
+
+While inspecting object literal instance of "base.Void" > ".str" line 2
+The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
+Object literal is of type "base.Void" instead of a subtype of "base.Str".
+
+See inferred typing context below for how type "base.Str" was introduced: (compression indicated by `-`)
+A:Show{read .str:-.Str->-.Void}
+""", List.of("""
+use base.ToStr as Show;
+A:Show{ .str -> base.Void }
+"""));}
 @Test void sameCallInReadAndMutMethodsOfOneLiteral(){ok(List.of("""
 Foo:{}
 Id:{ #[T:*](t: T): T -> t }
