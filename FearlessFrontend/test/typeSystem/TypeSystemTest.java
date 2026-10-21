@@ -4848,4 +4848,25 @@ A:{ .k: iso S -> imm S{'s .m -> { s } } }
 A: base.CaptureFree, base.F[A]{ #: A -> this }
 B: base.CaptureFree{ read .me: imm A -> A; mut .self: imm B -> this }
 """));}
+@Test void writtenOverrideOfAnInheritedSignatureDeeperThanTheLimit(){ok(List.of("""
+N:{}
+Top:{}
+Box[X]:Top{}
+B[X]:{ .m(x: Box[Box[X]]): N }
+A:B[D]{ .m(x: Top): N -> N }
+""".replace("D", box(97, "N"))));}
+@Test void lambdaParameterInferredWithoutCapabilityUsedInANestedLiteral(){ok(List.of("""
+A:{}
+Ign:{ #[T:*](t: T): A -> A }
+Two:{ #[X:*](a: mut X, b: X, k: G[A]): A -> A }
+G[Y:*]:{ #(y: Y): A }
+Ap:{ #[Y:*](g: G[Y]): A -> A }
+User:{ .go: A -> Ap#{ y -> Two#(mut A, y, { z -> Ign#(y) }) } }
+"""));}
+@Test void sameCallInReadAndMutMethodsOfOneLiteral(){ok(List.of("""
+Foo:{}
+Id:{ #[T:*](t: T): T -> t }
+K:{ read .a: read Foo; mut .b: read Foo }
+User:{ .go(x: mut Foo): mut K -> mut K{ read .a -> Id#[imm](x); mut .b -> Id#[imm](x) } }
+"""));}
 }
