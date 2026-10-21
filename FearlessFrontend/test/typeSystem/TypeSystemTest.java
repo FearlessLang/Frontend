@@ -4848,4 +4848,20 @@ A:{ .k: iso S -> imm S{'s .m -> { s } } }
 A: base.CaptureFree, base.F[A]{ #: A -> this }
 B: base.CaptureFree{ read .me: imm A -> A; mut .self: imm B -> this }
 """));}
+@Test void capturedLambdaParameterInferredThroughReadParameter(){ok(List.of("""
+A:{}
+G[T:*]:{ .k(t: T): H }
+H:{ .h: A }
+Opt[T:*]:{ .match(m: G[T]): H }
+Mk:{ #[T:*](t: read T): Opt[T] -> base.Nope! }
+U:{ .m(a: A): H -> Mk#(a).match{ .k(v1) -> { .h -> v1 } } }
+"""));}
+@Test void capturedLambdaParameterInferredFromIsoArgument(){ok(List.of("""
+A:{}
+G[T:*]:{ .k(t: T): H }
+H:{ .h: A }
+Opt[T:*]:{ .match(m: G[T]): H }
+Mk:{ #[T:*](t: T): Opt[T] -> base.Nope! }
+U:{ .m(a: iso A): H -> Mk#(a).match{ .k(v1) -> { .h -> v1 } } }
+"""));}
 }
