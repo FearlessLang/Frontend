@@ -1089,11 +1089,6 @@ Error 2 UnexpectedToken
 A:{ .m(x,x) -> x }
 """);}
 
-//@Test void err_generic_not_in_scope_in_sig(){fail("""
-//""","""
-//A:{ .m(x:X):X -> x }
-//""");}//NOPE, that becomes just a type name
-
 @Test void err_type_name_conflicts_with_generic_in_impl(){fail("""
 In file: [###].fear
 
