@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.opentest4j.AssertionFailedError;
@@ -119,9 +120,16 @@ public abstract class FearlessTestBase{
     return compactAll("base", DbgBlock.dbgMiniBase(), List.of());
   }
   protected static List<Frontend.Literal> compactAll(String pkgName, SourceOracle o, List<Frontend.Literal> other){
+    return compactAll(pkgName, Map.of(), o, other);
+  }
+  protected static List<Frontend.Literal> compactAll(String pkgName, Map<String,String> map, SourceOracle o, List<Frontend.Literal> other){
     var files= new LinkedHashMap<String,String>();
     for (var r : o.allFiles()){ files.put(r.fearPath(), r.loadString()); }
-    return Frontend.compile(pkgName, Map.of(), files, other);
+    return Frontend.compile(pkgName, map, files, other);
+  }
+  protected static Stream<Frontend.Literal> compactAllLs(Frontend.E e){
+    var own= e instanceof Frontend.Literal l ? Stream.of(l) : Stream.<Frontend.Literal>of();
+    return Stream.concat(own, e.children().flatMap(FearlessTestBase::compactAllLs));
   }
   protected static void typeFail(String expected, List<String> input){
     typeFailRaw("In file: [###].fear\n\n"+expected+"Error 8 TypeError", input);

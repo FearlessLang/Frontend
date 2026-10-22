@@ -2,6 +2,7 @@ package main;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -28,13 +29,23 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
   static void ok(Map<String,String> pkgs, Map<String,String> map, String bSrc){
     var o= oraclePkg(List.of(bSrc));
     var other= others(pkgs);
-    okOrPrint(o, () -> new FrontendLogicMain().of("b", map, o.allFiles(), other));
+    var res= okOrPrint(o, () -> new FrontendLogicMain().of("b", map, o.allFiles(), other));
+    if (!checkCompact){ return; }
+    strCmp(lines(res), compact.Print.lines(compactB(pkgs, map, o)));
   }
   static void fail(String expected, Map<String,String> pkgs, Map<String,String> map, String bSrc){
     var o= oraclePkg(List.of(bSrc));
     var other= others(pkgs);
     var fe= assertThrows(FearlessException.class, () -> new FrontendLogicMain().of("b", map, o.allFiles(), other));
     strCmp(expected, fe.render(o));
+    if (!checkCompact){ return; }
+    assertThrows(compact.Frontend.Fail.class, () -> compactB(pkgs, map, o));
+  }
+  static List<compact.Frontend.Literal> compactB(Map<String,String> pkgs, Map<String,String> map, tools.SourceOracle o){
+    var base= compactBase();
+    var other= new ArrayList<>(base);
+    for (var e : pkgs.entrySet()){ compactAll(e.getKey(), oraclePkg(List.of(e.getValue())), base).stream().flatMap(MapDirectiveTest::compactAllLs).forEach(other::add); }
+    return compactAll("b", map, o, other);
   }
   @Test void typingContextShowsSupertypeWrittenThroughAMap(){ fail("""
 In file: [###].fear
