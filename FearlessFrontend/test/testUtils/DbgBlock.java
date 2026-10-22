@@ -97,6 +97,7 @@ public static String _baseBody= "Sealed:{}";
 public static String baseBody= """
 Sealed:{}
 CaptureFree: {}
+FileLog: CaptureFree{ .name: Str; }
 WidenTo[T]:{}
 BaseId[T1:*,T2]: CaptureFree{ #(x: T1): T2 }
 BaseContainer[T1:*]: Sealed{

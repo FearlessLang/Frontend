@@ -20,6 +20,7 @@ public final class LiteralDeclarations{
   public static final TName widen= new TName("base.WidenTo", 1, Pos.unknown);
   public static final TName sealed= new TName("base.Sealed", 0, Pos.unknown);
   public static final TName captureFree= new TName("base.CaptureFree", 0, Pos.unknown);
+  public static final TName fileLog= new TName("base.FileLog", 0, Pos.unknown);
   public static final TName baseId= new TName("base.BaseId", 2, Pos.unknown);
   public static final TName baseContainer= new TName("base.BaseContainer", 1, Pos.unknown);
   public static final TName baseVoid= new TName("base.Void", 0, Pos.unknown);

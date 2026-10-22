@@ -521,6 +521,21 @@ public record WellFormednessErrors(String pkgName){
       .line("It inherits the implementation of "+err().methodSig(new MName("#", 1))+" from "+err().tNameADisp(origin)+", that does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
       .line("Method "+err().methodSig(new MName("#", 1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner);
   }
+  public FearlessException fileLogWithoutFileName(E.Literal owner){
+    var ctx= up(err().expRepr(owner));
+    var fileLog= err().tNameADisp(LiteralDeclarations.fileLog);
+    return wf(err()
+      .line(ctx+" implements "+fileLog+", so it writes to a log file named after it.")
+      .line("Type name "+disp(owner.name().simpleName())+" has no file name.")
+      .line("The name of a "+fileLog+" type can only use letters, digits and underscores, and an underscore can not be followed by a lowercase letter."), owner);
+  }
+  public FearlessException fileLogFileNameNotAllowed(E.Literal owner, String path, String why){
+    var ctx= up(err().expRepr(owner));
+    return wf(err()
+      .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.fileLog)+", so it writes to the log file "+disp(path)+".")
+      .line(why)
+      .line("Rename "+disp(owner.name().simpleName())+", so that its log file has a name allowed in a Fearless project."), owner);
+  }
   public FearlessException extendedForeign(E.Literal owner, TName target, String kind){
     var ownerPkg= owner.name().pkgName();
     var targetPkg= target.pkgName();
