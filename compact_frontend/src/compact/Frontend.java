@@ -24,9 +24,7 @@ public final class Frontend{
     var names=flat(ds,d->d.owner.decs.stream());no(dup(names));var strings=map(names,N::s);
     no(!Collections.disjoint(strings,uses));no(ds.stream().flatMap(d->d.owner.gen.used.stream()).anyMatch(x->strings.contains(x)||uses.contains(x)));
     var map=new HashMap<>(override);for(var u:head.uses){var p=map.getOrDefault(u.in.pk(),u.in.pk());
-      var in=p+"."+u.in.simple();map.put(u.out,in);
-      var dom=p.equals(pk)?names.stream().map(n->n.qualify(pk)):other.keySet().stream();
-      no(dom.noneMatch(e->e.s.equals(in)));
+      var in=p+"."+u.in.simple();map.put(u.out,in);no(p.equals(pk)||other.keySet().stream().noneMatch(e->e.s.equals(in)));
     }var ctx=new Methods(new Pkg(pk,map,ds,new HashSet<>(names)),other);
     var res=ctx.headers(lower(ctx));TS.check(res,other);return res;
   }
@@ -276,7 +274,7 @@ public final class Frontend{
     }
   }
   static final N str=new N("base.Str",0),nat=new N("base.Nat",0),integer=new N("base.Int",0),floating=new N("base.Float",0),
-    widen=new N("base.WidenTo",1),sealed=new N("base.Sealed",0),cf=new N("base.CaptureFree",0),identity=new N("base.BaseId",2),
+    widen=new N("base.WidenTo",1),sealed=new N("base.Sealed",0),cf=new N("base.CaptureFree",0),identity=new N("base.BaseId",2),log=new N("base.FileLog",0),
     container=new N("base.BaseContainer",1),voidName=new N("base.Void",0);
   static Set<RC>caps(RC first,RC...rest){return EnumSet.of(first,rest);}
   static final Set<RC>ii=caps(iso,imm),plain=caps(iso,imm,mut,read),allRC=EnumSet.allOf(RC.class);
@@ -529,6 +527,9 @@ public final class Frontend{
         no(ms.size()!=1||!ms.get(0).s.m.equals(new MN("#",1)));var s=ms.get(0).s;
         no(!(ms.get(0).e!=null||s.abs||has(from(s.o).cs,identity)));
       }
+      if(has(supers,log)){var s=d.name.simple();no(s.matches(".*('|_[a-z]).*"));var f=s.replaceAll("[A-Z]","_$0").toLowerCase(Locale.ROOT).substring(1);
+        no(f.matches("con|prn|aux|nul|(com|lpt)[1-9]|_rank_.*")||f.length()+d.name.pk().length()>184);
+      }
       if(!has(supers,sealed))return;
       no(any(supers,c->!c.name.pk().equals(d.name.pk())&&has(from(c.name).cs,sealed)));
     }
@@ -644,8 +645,8 @@ public final class Frontend{
     List<T>meet(List<T>a,List<T>z){return zip(a,z,this::meet);}
     List<T>meet(List<List<T>>tss){return tss.stream().reduce(this::meet).get();}
     E solve(List<B>b,IG g,E e){
-      if(g.snap().equals(memo.get(e)))return e;var grew=0;while(true){var s=g.snap();var oe=next(b,g,e);
-        if(oe.equals(e)&&s.equals(g.snap())){memo.put(e,s);return e;}
+      if(list(g.snap(),cache.size()).equals(memo.get(e)))return e;var grew=0;while(true){var s=g.snap();var oe=next(b,g,e);
+        if(oe.equals(e)&&s.equals(g.snap())){memo.put(e,list(s,cache.size()));return e;}
         grew=oe.t().depth()>e.t().depth()?grew+1:0;no(grew==50||oe.t().depth()>cap);e=oe;
       }
     }
@@ -722,7 +723,7 @@ public final class Frontend{
       var ms=map(l.ms,mi->!mi.s.o.equals(name)?mi:mi.signature(mi.s.o(name1)));
       var cap=noH(or(l.r,w.r));var target=new R(cap,w.c);
       if(all(l.ms,m->m.e==null)&&from(w.c.name)!=null)return new Type(target,preferred(target));
-      var own=w.c.name.equals(l.name);
+      var own=w.c.name.equals(l.name);no(!own&&!w.c.name.visible()&&!w.c.name.pk().equals(p.name));
       var cs=Core.distinct(bs,own?parents(w.c):push(w.c,parents(w.c)));magic(l,cs);
       l=new Literal(cap,name1,bs,cs,l.self,ms,w,l.anon,l.expanded);
       if(own)l=l.t(self(l));register(l);return l;
