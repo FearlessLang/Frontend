@@ -26,6 +26,7 @@ import inference.M;
 import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
+import tools.Fs;
 import utils.Push;
 
 public record Methods(
@@ -119,6 +120,8 @@ public record Methods(
     if (widen.size() > 1){ throw p.err().multipleWidenTo(d, widen); }
     var isBaseId= allCs.stream().anyMatch(c -> c.name().equals(LiteralDeclarations.baseId));
     if (isBaseId){ checkBaseId(d); }
+    var isFileLog= allCs.stream().anyMatch(c -> c.name().equals(LiteralDeclarations.fileLog));
+    if (isFileLog){ checkFileLogName(d); }
     var unsealed= allCs.stream().noneMatch(c -> c.name().equals(LiteralDeclarations.sealed));
     if (unsealed){ return; }
     allCs.stream()
@@ -134,6 +137,13 @@ public record Methods(
     var validHash= ms.getFirst().impl().isPresent() || s.abs() || LiteralDeclarations.has(from(origin).cs(), LiteralDeclarations.baseId);
     if (validHash){ return; }
     throw p.err().baseIdInheritedHash(d, origin);
+  }
+  private void checkFileLogName(E.Literal d){
+    var file= Fs.fileNameOfType(d.name().simpleName()).orElseThrow(() -> p.err().fileLogWithoutFileName(d));
+    var path= ".out/logs/_"+d.name().pkgName()+"/"+file+".log";
+    if (Fs.winReserved.contains(file)){ throw p.err().fileLogFileNameNotAllowed(d, path, "\""+file+"\" is a Windows reserved device name."); }
+    if (file.startsWith("_rank_")){ throw p.err().fileLogFileNameNotAllowed(d, path, "Only rank files can start with \"_rank_\"."); }
+    if (path.length() > 200){ throw p.err().fileLogFileNameNotAllowed(d, path, "The path is longer than 200 characters."); }
   }
   private static final MName hashOne= new MName("#", 1);
   void notSealed(TName target, E.Literal owner){
