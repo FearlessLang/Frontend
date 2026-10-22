@@ -117,10 +117,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var xpats= xpats(ps, original, m.span());
     if (m.hasImplicit()){
       var p= meths.fresh().freshVar(currentTop, "impl");
-      var inner= hasPat ? meths.fresh().freshVar(currentTop, "impl") : p;
       ps = Push.of(ps, p);
-      if (hasPat){ xpats = Push.of(xpats, new XE(inner, new fearlessFullGrammar.E.X(p, m.span().pos()))); }
-      implicits.add(inner);
+      implicits.add(p);
     }
     if (hasPat){ body = makeXPatsBody(body, xpats); }
     var e= visitE(body);

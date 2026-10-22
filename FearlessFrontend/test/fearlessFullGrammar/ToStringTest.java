@@ -109,11 +109,11 @@ public final class ToStringTest extends testUtils.FearlessTestBase{
     "A: { .a -> this; .b -> this; .c -> this;}\n",
     "A:{ .a -> this; .b -> this; .c -> this; }"); }
   @Test void implicit_receiver_call(){ ok(
-    "A: { x, y -> :: .foo y;}\n",
-    "A:{ x, y -> :: .foo y }"); }
+    "A: { :: .foo this;}\n",
+    "A:{ :: .foo this }"); }
   @Test void implicit_receiver_call_paren(){ ok(
-      "A: { x, y -> :: .foo(y);}\n",
-      "A:{ x, y -> :: .foo(y) }"); }
+      "A: { :: .foo(this);}\n",
+      "A:{ :: .foo(this) }"); }
   @Test void dot_call_no_parens_chain(){ ok(
     "A: { .m a: X, b: X -> a .foo b;}\n",
     "A:{ .m a:X, b:X -> a .foo b }"); }
@@ -203,8 +203,8 @@ public final class ToStringTest extends testUtils.FearlessTestBase{
     "A: { .t[X](x: mut X, y: read/imm X): X -> x;}\n",
     "A:{ .t[X](x:mut X, y:read/imm X):X -> x }");}
   @Test void implicit_receiver_token(){ ok(
-    "A: { x, y -> :: .foo y;}\n",
-    "A:{ x, y -> :: .foo y }");}
+    "A: { :: .foo this;}\n",
+    "A:{ :: .foo this }");}
   @Test void multiple_decls_joined(){ ok(
     "A: { .id(x: X): X -> x;}\nB: {}\n",
     "A:{ .id(x:X):X -> x } B:{}");}
@@ -294,11 +294,11 @@ public final class ToStringTest extends testUtils.FearlessTestBase{
     "A: { .m -> read B: {'s};}\n",
     "A:{ .m -> read B:{'s} }");}
   @Test void implicit_receiver_then_dot_call(){ok(
-    "A: { x -> :: .a x;}\n",
-    "A:{ x -> :: .a x }");}
+    "A: { :: .a this;}\n",
+    "A:{ :: .a this }");}
   @Test void implicit_receiver_then_chained_calls_mixed(){ ok(
-    "A: { x, y -> :: .a x .b y;}\n",
-    "A:{ x, y -> :: .a x .b y }");}
+    "A: { :: .a this .b this;}\n",
+    "A:{ :: .a this .b this }");}
   @Test void pkg_types_in_param_and_return(){ok(
     "A: { .m(x: foo.Bar): baz.Qux -> x;}\n",
     "A:{ .m(x:foo.Bar):baz.Qux -> x }");}

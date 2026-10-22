@@ -93,7 +93,7 @@ public final class Frontend{
   record PS(RC r,String m,List<B>b,List<Par>ps,T t){}
   record PM(PS s,P body,boolean implicit){
     PM(PS s,P body){this(s,body,body!=null&&Frontend.implicit(body));}
-    int arity(){return s.ps.size()+(implicit?1:0);}
+    int arity(){return implicit?1:s.ps.size();}
   }
   static boolean implicit(P e){return switch(e){
     case P.Implicit _->true;case P.Call c->implicit(c.e)||any(c.es,Frontend::implicit);default->false;
@@ -197,7 +197,7 @@ public final class Frontend{
     PM body(PS s){
       var v=flat(s.ps,p->xsOf(p.xp));fresh(v);
       names=names.add(v,B.v(or(s.b,list())));var m=new PM(s,whole(Parser::expr));
-      no(any(s.ps,p->p.xp instanceof Pat.Des)&&v.size()+(m.implicit?1:0)>32);return m;
+      no(m.implicit&&s.ps.size()>0||any(s.ps,p->p.xp instanceof Pat.Des)&&v.size()>32);return m;
     }
     PM method(boolean top){
       var m=prefix(p->p.so(1,Arrow),Parser::signature);if(m!=null)return body(m);
@@ -458,8 +458,7 @@ public final class Frontend{
       var patterns=any(original,p->p.xp instanceof Pat.Des);
       var ps=map(original,p->parameter(p,patterns));
       var xpats=flat(zip(ps,original,(x,p)->xpat(p.xp,x)),y->y);if(m.implicit){
-        var p=meths.fresh.variable(owner,"impl");var inner=patterns?meths.fresh.variable(owner,"impl"):p;ps=push(ps,p);
-        if(patterns)xpats=push(xpats,new XE(inner,new P.X(p)));implicits.add(inner);
+        var p=meths.fresh.variable(owner,"impl");ps=push(ps,p);implicits.add(p);
       }if(patterns){
         var fl=lambda(map(xpats,xe->new Par(new Pat.Name(xe.x),u)),body);
         body=new P.Call(new P.Typed(imm,new C(new N("base.Destruct",0),list()),null),"#",null,null,push(map(xpats,XE::e),fl));

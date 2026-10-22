@@ -401,15 +401,15 @@ D:A{::# #}
 """));}
 
 @Test void implicit2(){ok("""
-p.A:{'this #(p.A):p.A@p.A; #(p.A,p.A):p.A@p.A;}
-p.B:p.A{'this #(p.A):p.A@p.B;(_aimpl)->_aimpl:?; #(p.A,p.A):p.A@p.A;}
-p.C:p.A{'this #(p.A):p.A@p.C;(_aimpl)->_aimpl:?; #(p.A,p.A):p.A@p.C;(z, _bimpl)->_bimpl:?;}
-p.D:p.A{'this #(p.A,p.A):p.A@p.D;(z, _aimpl)->_aimpl:?.bar(p._AD:$?{'_ ? [?](?):?@!;(_bimpl)->_bimpl:?.foo(p.D:?):?;}:?):?; #(p.A):p.A@p.A;}
+p.A:{'this #(p.A):p.A@p.A; #(p.A,p.A):p.A@p.A; .b(p.A):p.A@p.A;(x)->x:?;}
+p.B:p.A{'this #(p.A):p.A@p.B;(_aimpl)->_aimpl:?; #(p.A,p.A):p.A@p.A; .b(p.A):p.A@p.A;}
+p.C:p.A{'this .b(p.A):p.A@p.C;(_bimpl)->_bimpl:?; #(p.A):p.A@p.C;(_aimpl)->_aimpl:?; #(p.A,p.A):p.A@p.A;}
+p.D:p.A{'this .b(p.A):p.A@p.D;(_aimpl)->_aimpl:?.bar(p._AD:$?{'_ ? [?](?):?@!;(_bimpl)->_bimpl:?.foo(p.D:?):?;}:?):?; #(p.A):p.A@p.A; #(p.A,p.A):p.A@p.A;}
 """, List.of("""
-A:{ #(x:A):A; #(x:A,y:A):A }
+A:{ #(x:A):A; #(x:A,y:A):A; .b(x:A):A -> x }
 B:A{::}
-C:A{::; z->::}
-D:A{z->::.bar {::.foo(D)}}
+C:A{::; .b -> ::}
+D:A{.b -> ::.bar {::.foo(D)}}
 """));}
 
 @Test void baseBlock(){ok("""

@@ -316,13 +316,10 @@ A:{x,y ->x .foo y}
 @Test void calls_5(){ok("""
 FileFull[[###]decs=[
 Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[
-M[sig=Optional[Sig[rc=Optional.empty,m=Optional.empty,bs=Optional.empty,hasParenthesis=false,parameters=[
-Parameter[xp=Optional[Name[x=x]],t=Optional.empty],
-Parameter[xp=Optional[Name[x=y]],t=Optional.empty]],
-t=Optional.empty]],
-body=Optional[Call[::].foofalse[y]]]]]]]
+M[sig=Optional.empty,
+body=Optional[Call[::].foofalse[this]]]]]]]
 """, """
-A:{x,y ->::.foo y}
+A:{::.foo this}
 """);}
 
 @Test void eq_1(){ok("""
@@ -2673,8 +2670,8 @@ In file: [###].fear
 
 001| A:{
    | ... 3 lines ...
-005|  b->:: .foo;
-   |  ^^^^^^^^^^
+005|  b,c->c;
+   |  ^^^^^^
    | ... 3 lines ...
 009|  }
 
@@ -2691,7 +2688,7 @@ A:{
  mut .ban(x,y):Bar;
  a,b,c,d,e,f->a;
  (a,b)->a;
- b->:: .foo;
+ b,c->c;
  mut .ban(y):Bar->Block#
    .let x={2}
    .return{x};
@@ -2720,7 +2717,7 @@ Error 7 WellFormedness
 A:{
  mut .ban(x,y):Bar;
  a,b,c,d,e,f->a;
- b->:: .foo;
+ b,c->c;
  (a,b)->a;
  mut .ban(y):Bar->Block#
    .let x={2}
@@ -2775,6 +2772,41 @@ Error 7 WellFormedness
 A:{
  mut .ban(y):Bar->
    {'self .foo:Bar;};
+ }
+"""); }
+
+@Test void implicitWithParameters(){ fail("""
+In file: [###].fear
+
+001| A:{
+002|  .ban(y) -> ::.foo(y);
+   |  ^^^^^^^^^^^^^^^^^^^^
+003|  }
+
+While inspecting method declaration > type declaration body > type declaration > full file
+This method declares 1 parameter and its body uses "::".
+"::" is the only parameter of the method using it: a method using "::" declares no parameter.
+Error 2 UnexpectedToken
+""", """
+A:{
+ .ban(y) -> ::.foo(y);
+ }
+"""); }
+@Test void implicitWithLambdaParameters(){ fail("""
+In file: [###].fear
+
+001| A:{
+002|  .ban -> {x, y -> ::.foo};
+   |  --------~^^^^^^^^^^^^^^~
+003|  }
+
+While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
+This method declares 2 parameters and its body uses "::".
+"::" is the only parameter of the method using it: a method using "::" declares no parameter.
+Error 2 UnexpectedToken
+""", """
+A:{
+ .ban -> {x, y -> ::.foo};
  }
 """); }
 

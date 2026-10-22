@@ -256,9 +256,9 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     checkNewXs(xs);
     names = names.add(xs, bsXs(sig.bs()));
     var m= new M(of(sig), of(parseMethodBody()), tspan());
+    if (m.hasImplicit() && !sig.parameters().isEmpty()){ throw errFactory().implicitWithParameters(span(), sig.parameters().size()); }
     var pats= sig.parameters().stream().flatMap(p -> p.xp().stream()).filter(XPat.Destruct.class::isInstance).map(XPat.Destruct.class::cast).toList();
-    var n= xs.size() + (m.hasImplicit() ? 1 : 0);
-    if (!pats.isEmpty() && n > 32){ throw errFactory().patternsGetTooManyParameters(span(), pats, n); }
+    if (!pats.isEmpty() && xs.size() > 32){ throw errFactory().patternsGetTooManyParameters(span(), pats, xs.size()); }
     return m;
   }
   private static List<String> bsXs(Optional<List<B>> bs){ return bs.orElse(List.of()).stream().map(b -> b.x().name()).toList(); }
