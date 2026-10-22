@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,9 @@ public final class TypeInMethodTest extends testUtils.FearlessTestBase{
 
   static void okTwoPkgs(String aSrc, String bSrc){
     var oB= oraclePkg(List.of(bSrc));
-    okOrPrint(oB, () -> compileB(aSrc, oB));
+    var res= okOrPrint(oB, () -> compileB(aSrc, oB));
+    if (!checkCompact){ return; }
+    strCmp(lines(res), compact.Print.lines(compactB(aSrc, oB)));
   }
   static void failTwoPkgs(String expected, String aSrc, String bSrc){
     failTwoPkgsRaw("In file: [###].fear\n\n"+expected+"Error 8 TypeError", aSrc, bSrc);
@@ -27,6 +30,13 @@ public final class TypeInMethodTest extends testUtils.FearlessTestBase{
     var oB= oraclePkg(List.of(bSrc));
     var fe= assertThrows(FearlessException.class, () -> compileB(aSrc, oB));
     strCmp(expected, fe.render(oB));
+    if (!checkCompact){ return; }
+    assertThrows(compact.Frontend.Fail.class, () -> compactB(aSrc, oB));
+  }
+  private static List<compact.Frontend.Literal> compactB(String aSrc, tools.SourceOracle oB){
+    var base= compactBase();
+    var aLits= compactAll("a", oraclePkg(List.of(aSrc)), base).stream().flatMap(TypeInMethodTest::compactAllLs);
+    return compactAll("b", oB, Stream.concat(base.stream(), aLits).toList());
   }
   private static List<core.E.Literal> compileB(String aSrc, tools.SourceOracle oB){
     var base= otherFrom(DbgBlock.all());
