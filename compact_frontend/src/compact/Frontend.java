@@ -44,7 +44,7 @@ public final class Frontend{
   }
   public record MN(String s,int arity){MN arity(int arity){return new MN(s,arity);}}
   public record B(String x,Set<RC>caps){
-    static List<String>v(List<B>b){return map(b,B::x);}
+    static List<String>v(List<B>b){return b==null?list():map(b,B::x);}
     static B get(List<B>b,String name){return find(b,e->e.x.equals(name));}
   }
   enum K{
@@ -122,7 +122,6 @@ public final class Frontend{
     boolean end(){return limit==index;}
     boolean see(int la,K...ks){return index+la<limit&&tokens.get(index+la).is(ks);}
     boolean see(K...ks){return see(0,ks);}
-    boolean peek(Predicate<Token>p){return!end()&&p.test(tokens.get(index));}
     Token take(K...ks){no(end());var t=tokens.get(index++);no(ks.length>0&&!t.is(ks));return t;}
     boolean fwd(boolean v){if(v)index+=1;return v;}
     <A>A group(Function<Parser,A>r){
@@ -153,7 +152,7 @@ public final class Frontend{
     }
     T type(){
       if(fwd(see(RIcap)))return new RI(variable(false));var r=optCap();
-      if(peek(t->t.is(heads)&&!names.Xs.contains(t.content)))return new R(or(r,imm),constructor());
+      if(see(heads)&&!names.Xs.contains(tokens.get(index).content))return new R(or(r,imm),constructor());
       var res=variable(false);return r==null?res:new RX(r,res);
     }
     X variable(boolean mustNew){
@@ -161,8 +160,7 @@ public final class Frontend{
     }
     P post(P receiver){
       if(see(SF,SI)){var num=take().content;
-        var lit=new P.Typed(imm,new C(new N(num.substring(1),0),list()),null);
-        return new P.Call(receiver,num.substring(0,1),null,null,list(lit));
+        return new P.Call(receiver,num.substring(0,1),null,null,list(new P.Typed(imm,new C(new N(num.substring(1),0),list()),null)));
       }
       var m=take(Dot,Op).content;var sq=see(Square)?group(Parser::arguments):null;
       if(see(Round))return new P.Call(receiver,m,sq,null,items(Parser::exprEnd,Parser::expr));
@@ -196,7 +194,7 @@ public final class Frontend{
     void fresh(List<String>v){no(dup(v)||any(v,names.v::contains));}
     PM body(PS s){
       var v=flat(s.ps,p->xsOf(p.xp));fresh(v);
-      names=names.add(v,B.v(or(s.b,list())));var m=new PM(s,whole(Parser::expr));
+      names=names.add(v,B.v(s.b));var m=new PM(s,whole(Parser::expr));
       no(m.implicit&&s.ps.size()>0||any(s.ps,p->p.xp instanceof Pat.Des)&&v.size()>32);return m;
     }
     PM method(boolean top){
@@ -206,7 +204,7 @@ public final class Frontend{
     PS signature(){
       var r=optCap();no(r!=null&&(r.isH()||r==iso));
       var m=see(Dot,Op)?take().content:null;var b=see(Square)?bounds(true):null;
-      names=names.add(list(),B.v(or(b,list())));
+      names=names.add(list(),B.v(b));
       var ps=see(Round)?items(comma,Parser::parameter):see(Colon)?List.<Par>of():by(comma,Parser::parameter);
       var t=fwd(see(Colon))?type():u;no(!end());var v=flat(ps,p->xsOf(p.xp));
       no(dup(v));names.owner.vars.used.addAll(v);return new PS(r,m,b,ps,t);
@@ -237,11 +235,11 @@ public final class Frontend{
     }
     String take(K kind,String regex){var s=take(kind).content;no(!s.matches(regex));return s;}
     Object directive(Vector<String>maps,Vector<File.Use>uses){
-      if(fwd(peek(t->t.content.equals("map")))){
+      if(take(Low,"map|use").equals("map")){
         var in=take(Low,K.pk);take(Low,"as");take(Low,K.pk);
         take(Low,"in");var key=in+" "+take(Low,K.pk);no(maps.contains(key));maps.add(key);
       }else{
-        take(Low,"use");var a=name();take(Low,"as");
+        var a=name();take(Low,"as");
         var z=take(Up,"[^.]*");no(any(uses,u->u.in.equals(a)||u.out.equals(z)));
         uses.add(new File.Use(a,z));
       }no(!end());return null;
@@ -327,7 +325,6 @@ public final class Frontend{
       Type(R type){this(type,u);}public E t(T t){return new Type(type,t);}
     }
     record Call(E e,MN name,RC r,List<T>y,List<E>es,T t,boolean written)implements E{
-      Call(E e,MN name,RC r,List<T>y,List<E>es,boolean written){this(e,name,r,y,es,u,written);}
       Call children(E e,List<E>es){return new Call(e,name,r,y,es,t,written);}
       public Call t(T t){return new Call(e,name,r,y,es,t,written);}
     }
@@ -354,7 +351,7 @@ public final class Frontend{
     record Frame(RC r,List<B>b,HashMap<String,T>vars){}
     final Vector<Frame>fs=new Vector<>(list(new Frame(null,list(),new HashMap<>())));
     int at(String x){return fs.indexOf(find(fs,f->f.vars.containsKey(x)));}
-    T get(String x){var i=at(x);return i==-1?null:fs.get(i).vars.get(x);}
+    T get(String x){return find(map(fs,f->f.vars.get(x)),Objects::nonNull);}
     T adapted(String x){var t=get(x);var fxs=t.ftv().toList();
       for(var f:fs.subList(at(x)+1,fs.size())){no(!B.v(f.b).containsAll(fxs));t=adapt(t,f.r,f.b);}return t;
     }
@@ -365,6 +362,7 @@ public final class Frontend{
       }return caps(imm,mut,read).containsAll(caps)?t:t.ri();
     }
     void declare(String x,T t){if(!x.equals("_"))fs.getLast().vars.put(x,t);}
+    void declare(M m){for(int i=0;i<m.v.size();i++)declare(m.v.get(i),m.s.types.get(i));}
     Object snap(){return map(fs,f->new Frame(f.r,f.b,new HashMap<>(f.vars)));}
   }
   static C normC(C c){return((R)norm(new R(null,c))).c;}
@@ -372,8 +370,9 @@ public final class Frontend{
   static int size(T t){return t instanceof R w?1+w.c.types.stream().mapToInt(Frontend::size).sum():1;}
   static int size(E e){return size(e.t())+e.children().mapToInt(Frontend::size).sum()+switch(e){
     case Type t->size(t.type);case Call c->c.y.stream().mapToInt(Frontend::size).sum();
-    case Literal l->l.cs.stream().mapToInt(c->size(new R(null,c))).sum()+l.ms.stream().flatMap(m->push(m.s.types,m.s.t).stream()).mapToInt(Frontend::size).sum();default->0;
+    case Literal l->ts(l).mapToInt(Frontend::size).sum();default->0;
   };}
+  static Stream<T>ts(Literal l){return cat(l.cs.stream().map(c->new R(null,c)),l.ms.stream().flatMap(m->push(m.s.types,m.s.t).stream()));}
   static T fill(T t){return t instanceof R(var r,var c)?new R(or(r,imm),new C(c.name,map(c.types,Frontend::fill))):t;}
   static T rename(T t,List<String>v,List<T>types){
     if(t instanceof R w)return w.withTs(rename(w.c.types,v,types));
@@ -401,7 +400,7 @@ public final class Frontend{
   };}
   static Stream<String>supFree(List<C>cs){return cs.stream().flatMap(c->typeFree(c.types));}
   static Stream<String>methodFree(IG g,List<M>ms){return ms.stream().flatMap(m->{
-    var domBs=B.v(or(m.s.b,list()));
+    var domBs=B.v(m.s.b);
     return cat(typeFree(m.s.types),m.s.t.ftv(),Stream.ofNullable(m.e).flatMap(ei->free(g,ei))).filter(x->!domBs.contains(x));
   });}
   static E copy(Fresh fresh,E e){return switch(e){
@@ -438,7 +437,7 @@ public final class Frontend{
       case P.Call c0->{
         var c=c0.pat!=null?desugar(c0):c0;var recv=expr(c.e);var es=map(c.es,this::expr);
         var sq=or(c.y,new P.Args(null,list()));
-        yield new Call(recv,new MN(c.name,c.es.size()),sq.r,map(sq.types,this::type),es,c.y!=null);
+        yield new Call(recv,new MN(c.name,c.es.size()),sq.r,map(sq.types,this::type),es,u,c.y!=null);
       }
     };}
     C constructor(C c){var s=c.name.s;
@@ -498,7 +497,7 @@ public final class Frontend{
         no(layer.size()==0);for(var d:layer){
           rem.remove(d.name);register(expand(d,false));if(d.self.equals("this"))acc.add(cache.get(d.name));
         }
-      }deep=cat(cache.values().stream(),other.values().stream()).flatMap(d->cat(d.cs.stream().map(c->new R(null,c)),d.ms.stream().flatMap(m->push(m.s.types,m.s.t).stream()))).mapToInt(T::depth).max().orElse(1);
+      }deep=cat(cache.values().stream(),other.values().stream()).flatMap(Frontend::ts).mapToInt(T::depth).max().orElse(1);
       return map(acc,di->di.header(di.cs,map(di.ms,m->body(di,m)),false));
     }
     List<C>parents(C c){var d=from(c.name);if(d==null)return list();
@@ -584,8 +583,7 @@ public final class Frontend{
       no(!all(res,t->TS.equivalent(b,first,fill(t))));return res.get(0);
     }
     M body(Literal di,M m){
-      if(m.e==null)return m;var ei=meet(m.e,m.s.t);cap=deep*size(ei);var g=new IG();
-      for(int i=0;i<m.v.size();i++)g.declare(m.v.get(i),m.s.types.get(i));
+      if(m.e==null)return m;var ei=meet(m.e,m.s.t);cap=deep*size(ei);var g=new IG();g.declare(m);
       g.declare(di.self,di.self(has(di.cs,cf)?imm:m.s.r));var b=push(di.b,m.s.b);
       ei=solve(b,g,ei);return new M(m.s,m.v,new Core(b,this).core(ei,m.e));
     }
@@ -615,13 +613,10 @@ public final class Frontend{
     T join(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
       var cands=push(candidates(a),candidates(z));for(var top:cands){var res=above(top,cands);if(res!=null)return res;}
-      var common=common(cands);return common==null?new Amb(cands):above(common,cands);
-    }
-    T common(List<T>cands){
-      if(!all(cands,c->c instanceof R))return null;
-      var heads=cands.stream().map(c->new Vector<>(ancestors((R)c))).reduce((a,b)->{a.retainAll(b);return a;}).get();
+      if(!all(cands,c->c instanceof R))return new Amb(cands);
+      var heads=cands.stream().map(c->new Vector<>(ancestors((R)c))).reduce((p,q)->{p.retainAll(q);return p;}).get();
       var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&from(h2)!=null&&has(from(h2).cs,h)));
-      return minimal.size()==1?sup((R)cands.get(0),minimal.get(0)):null;
+      return minimal.size()==1?above(sup((R)cands.get(0),minimal.get(0)),cands):new Amb(cands);
     }
     List<N>ancestors(R t){var d=from(t.c.name);return d==null?list():map(d.cs,C::name);}
     static List<T>candidates(T t){return t instanceof Amb(var cs)?cs:list(t);}
@@ -665,7 +660,7 @@ public final class Frontend{
         var ee=solve(b,g,c.e);var es=solve(b,g,c.es);
         var m=ee.t() instanceof R w?signature(w,c.name,null,c.t.erc()):null;if(m==null)yield c.children(ee,es);
         var types=qs(m.mb.size());
-        yield new Call(ee,c.name,m.r,types,expect(es,m,types),false).t(meet(c.t,m.inst(m.ret,types)));
+        yield new Call(ee,c.name,m.r,types,expect(es,m,types),meet(c.t,m.inst(m.ret,types)),false);
       }
       case Type c->type(c);
     };}
@@ -702,8 +697,7 @@ public final class Frontend{
       var written=push(m.cas,c.written?y:qs(m.mb.size()));var hard=arguments(m,es,true);
       return zip(zip(written,hard,Methods::choose),all,Methods::choose);
     }
-    static T choose(T a,T b){return decided(a)?a:b;}
-    static boolean decided(T t){return t.tv()&&!(t instanceof R(var r,_)&&r==null);}
+    static T choose(T a,T b){return a.tv()&&!(a instanceof R(var r,_)&&r==null)?a:b;}
     R self(Literal l){return l.r==null?null:l.self(l.r);}
     E literal(List<B>b,IG g,Literal l){var sp=self(l);if(!l.expanded){
       l=l.t(!l.anon?sp:l.cs.size()==1?new R(l.r,l.cs.get(0)):or(sp,l.t));if(!(l.t instanceof R(_,var c)))return l;
@@ -736,8 +730,7 @@ public final class Frontend{
     TSM method(List<B>b,IG g,Literal l,R sp,R w,M m){var bs=l.anon?b:l.b;
       g.fs.add(new IG.Frame(m.s.r,bs,new HashMap<>()));
       g.declare(l.self,sp==null?u:new R(sp.r==null?null:sp.r.mutable(),sp.c));
-      g.fs.add(new IG.Frame(m.s.r,bs,new HashMap<>()));
-      for(int i=0;i<m.v.size();i++)g.declare(m.v.get(i),m.s.types.get(i));
+      g.fs.add(new IG.Frame(m.s.r,bs,new HashMap<>()));g.declare(m);
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
       var args=zip(m.v,m.s.types,(x,t)->x.equals("_")?t:meet(t,g.get(x)));g.fs.removeLast();
       g.fs.removeLast();var h=header(w,m.signature(m.s.types(args,meet(m.s.t,e.t()))));var s=h.m.s;
@@ -784,12 +777,11 @@ public final class Frontend{
       return switch(arg){
         case Call c->c.children(ascribe(c.e,expected,c.name),c.es);
         case Literal l when l.expanded||!l.anon||l.cs.size()>0||!l.t.und()->arg;
-        case Literal l when called==null||implementable(exp.c.name)&&!declares(l,called)->l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size()))));
+        case Literal l when called==null||implementable(exp.c.name)&&!any(l.ms,m->called.equals(m.s.m)&&m.s.t!=u&&!any(m.s.types,t->t==u))->l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size()))));
         case Literal l->{var res=new Literal(imm,l.name,l.b,l.cs,l.self,l.ms,true);yield res.t(self(res));}
         default->arg;
       };
     }
-    boolean declares(Literal l,MN called){return any(l.ms,m->called.equals(m.s.m)&&m.s.t!=u&&!any(m.s.types,t->t==u));}
     boolean implementable(N head){
       var d=from(head);return d!=null&&(head.pk().equals(p.name)||head.visible()&&!has(d.cs,sealed))&&TS.inst(d);
     }
@@ -810,7 +802,7 @@ public final class Frontend{
       case Type(var type,_)->new Type((R)norm(type));
       case Literal le->literal(le,(Literal)orig);
       case Call e->{var o=(Call)orig;var types=o.y.size()==0?e.y:o.y;
-        yield new Call(core(e.e,o.e),e.name,or(e.r,imm),seq(types.size(),i->targ(e,types.get(i),i)),zip(e.es,o.es,this::core),false);
+        yield new Call(core(e.e,o.e),e.name,or(e.r,imm),seq(types.size(),i->targ(e,types.get(i),i)),zip(e.es,o.es,this::core),u,false);
       }
     };}
     T targ(Call e,T t,int i){
@@ -906,18 +898,16 @@ public final class Frontend{
     }
     static boolean callable(RC litRC,RC recRc){return recRc!=mut||!litRC.ro();}
     void check(G g,Literal l,RC self){
-      if(has(l.cs,identity)){var m=l.ms.get(0);var isId=switch(m.e){
+      if(has(l.cs,identity)){var m=l.ms.get(0);no(!switch(m.e){
         case null->true;
         case E.X(var name,_)->name.equals(m.v.get(0));
         case Call c->c.e instanceof E.X(var recv,_)&&recv.equals(m.v.get(0))&&c.name.equals(new MN(".as",1))
           &&m.s.types.get(0) instanceof R(_,var cc)&&has(decs.apply(cc.name).cs,container);
         default->false;
-      };no(!isId);}
-      var delta=l.b;for(var c:l.cs){kind(delta,new R(imm,c),allRC);no(!inst(decs.apply(c.name)));}var sources=new Vector<S>();
-      for(var parent:l.cs){var sup=decs.apply(parent.name);for(var m:sup.ms){
+      });}
+      var sources=new Vector<S>();for(var parent:l.cs){kind(l.b,new R(imm,parent),allRC);var sup=decs.apply(parent.name);no(!inst(sup));for(var m:sup.ms){
         if(!m.s.o.equals(sup.name))continue;var s=m.s;var canonical=canonical(l,s.m,s.r).b;
-        var xs=B.v(push(s.b,sup.b));var ts=push(vars(canonical),parent.types);
-        sources.add(s.subst(canonical,xs,ts));
+        sources.add(s.subst(canonical,B.v(push(s.b,sup.b)),push(vars(canonical),parent.types)));
       }}
       for(var m:l.ms){if(m.s.o.equals(l.name))sources.add(m.s);}
       group(sources,s->new Key(s.r,s.m)).forEach((k,sigs)->{
@@ -927,7 +917,7 @@ public final class Frontend{
         }
       });
       var g1=g.add(l.self,l.self(self));for(var m:l.ms){var g2=g1.map(t->IG.adapt(t,m.s.r,l.b));
-        var bs=push(delta,m.s.b);m.s.types.forEach(t->kind(bs,t,allRC));kind(bs,m.s.t,allRC);if(m.e==null)continue;
+        var bs=push(l.b,m.s.b);push(m.s.types,m.s.t).forEach(t->kind(bs,t,allRC));if(m.e==null)continue;
         for(int i=0;i<m.v.size();i++)g2=g2.add(m.v.get(i),m.s.types.get(i));no(type(bs,g2,m.e,list(m.s.t)).get(0)==null);
         for(int i=0;i<m.v.size();i++){var x=m.v.get(i);if(kinded(bs,m.s.types.get(i),caps(mut,read,mutH,readH,imm)))continue;
           no(count(x,m.e,true)>0&&count(x,m.e,false)!=1);
