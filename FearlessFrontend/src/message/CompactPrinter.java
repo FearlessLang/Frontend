@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import core.*;
 import core.E.*;
@@ -180,8 +181,9 @@ public final class CompactPrinter{
       .toList();
   }
   private boolean writtenByAlias(List<TName> original, TName n){
-    var alias= t.uses().get(n.s());
-    return alias != null && original.contains(new TName(alias, n.arity(), n.pos()));
+    var byUse= Optional.ofNullable(t.uses().get(n.s()));
+    var byMap= Optional.ofNullable(t.uses().get(n.pkgName())).map(p -> p+"."+n.simpleName());
+    return Stream.of(byUse, byMap).flatMap(Optional::stream).anyMatch(a -> original.contains(new TName(a, n.arity(), n.pos())));
   }
   PM ofM(Sig s, List<String> xs, Optional<PE> body){
     var bs= bounds(s.bs());

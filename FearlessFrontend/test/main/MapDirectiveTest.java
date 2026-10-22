@@ -36,6 +36,23 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
     var fe= assertThrows(FearlessException.class, () -> new FrontendLogicMain().of("b", map, o.allFiles(), other));
     strCmp(expected, fe.render(o));
   }
+  @Test void typingContextShowsSupertypeWrittenThroughAMap(){ fail("""
+In file: [###].fear
+
+001| B:a.A{ .fromC -> base.Void }
+   |        ----------^^^^^^^^^
+
+While inspecting object literal instance of "base.Void" > ".fromC" line 1
+The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
+Object literal is of type "base.Void" instead of a subtype of "c.A".
+
+Name "a.A" stands for "c.A" because of "map a as c in b".
+
+See inferred typing context below for how type "c.A" was introduced: (compression indicated by `-`)
+B:-.A{.fromC:-.A->-.Void}
+Error 8 TypeError""", Map.of("a", aA, "c", cA), Map.of("a", "c"), """
+B:a.A{ .fromC -> base.Void }
+"""); }
   @Test void noMapQualifiedNameIsLiteral(){ ok(Map.of("a", aA, "c", cA), Map.of(), """
 B:{.m(x:a.A):a.A->x.fromA}
 """); }
