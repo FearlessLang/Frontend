@@ -7,6 +7,7 @@ import static fearlessParser.TokenKind.*;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -100,7 +101,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     });
   }
   private EnumSet<RC> inOrder(List<RC> es, fearlessFullGrammar.T.X x){
-    var duplicated= es.stream().distinct().count() < es.size();
+    var duplicated= Set.copyOf(es).size() < es.size();
     if (duplicated){ throw meths.p().err().duplicatedBound(es, x); }
     return EnumSet.copyOf(es);
   }

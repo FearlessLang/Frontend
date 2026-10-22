@@ -67,5 +67,5 @@ public sealed interface T{
     case RCX(var rc, var x) -> new RCX(rc.readImm(), x);
   };}
   default Optional<RC> explicitRC(){ return Optional.empty(); }
-  default boolean explicitH(){ return explicitRC().stream().anyMatch(RC::isH); }
+  default boolean explicitH(){ return explicitRC().filter(RC::isH).isPresent(); }
 }

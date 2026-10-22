@@ -129,7 +129,7 @@ public record ToCore(List<B> ctx, Methods meths){
   };}
   private Optional<core.Sig> methodSig(inference.E.Call e){
     if (!(e.e().t() instanceof IT.RCC rcc) || meths._from(rcc.c().name()) == null){ return Optional.empty(); }
-    return meths._from(rcc.c().name()).ms().stream().map(core.M::sig).filter(s -> s.m().equals(e.name()) && e.rc().stream().allMatch(rc -> rc == s.rc())).findFirst();
+    return meths._from(rcc.c().name()).ms().stream().map(core.M::sig).filter(s -> s.m().equals(e.name()) && e.rc().map(rc -> rc == s.rc()).orElse(true)).findFirst();
   }
   private void checkHead(inference.E.Literal e, IT.C c){
     var unknown= IntStream.range(0, c.ts().size()).filter(i -> !c.ts().get(i).isTV()).boxed().toList();
@@ -173,7 +173,7 @@ public record ToCore(List<B> ctx, Methods meths){
     var bs= usr.bs().or(inf::bs).orElse(List.of());
     return new core.Sig(rc, m.get(), bs, ts.stream().map(TypeRename::itToT).toList(), TypeRename.itToT(ret), origin.get(), usr.abs(), usr.span());
   }
-  private static boolean decided(Optional<IT> t){ return t.stream().anyMatch(IT::isTV); }
+  private static boolean decided(Optional<IT> t){ return t.filter(IT::isTV).isPresent(); }
   private record CallLike(inference.E e, List<inference.E> es, Optional<RC> rc, List<IT> targs){}
   private static CallLike callLike(inference.E o, MName name){
     return switch (o){
