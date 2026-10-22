@@ -266,6 +266,10 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +Join.of(ps.stream().map(p -> disp(patternRepr(p))), "", " and ", "")+".\n"
       +"A method header can not use nominal patterns to get more than 32 parameters.\n").addSpan(at);
   }
+  public FearlessException implicitWithParameters(Span at, int n){
+    return Code.UnexpectedToken.of("This method declares "+count(n, "parameter")+" and its body uses \"::\".\n"
+      +"\"::\" is the only parameter of the method using it: a method using \"::\" declares no parameter.\n").addSpan(at);
+  }
   public FearlessException eqSugarPatternTooManyNames(Span at, XPat.Destruct p){
     return Code.UnexpectedToken.of("This equals sugar declares "+p.extract().size()+" names by using the nominal pattern "+disp(patternRepr(p))+".\n"
       +"The equals sugar can not use a nominal pattern to declare more than 31 names.\n").addSpan(at);
