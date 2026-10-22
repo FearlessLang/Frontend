@@ -1636,6 +1636,25 @@ A:{
   .f(aaaa:mut B):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
 }
 """));}
+@Test void hopelessArg_wrongNominal_mutHReceiver_showsDeclaredType(){fail("""
+005|   .f(n:mutH Need, b:B):B->n#b
+   |   ------------------------~^^
+
+While inspecting ".f(_,_)" line 5
+This call to method "mut Need#(_)" cannot typecheck.
+Argument 1 has type "B".
+That is not a subtype of "mut A" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#[mut](b)
+""", List.of("""
+A:{}
+B:{}
+Need:{ mut #(a:mut A):B->B }
+User:{
+  .f(n:mutH Need, b:B):B->n#b
+}
+"""));}
 
 @Test void hopelessArg_calls_pArgHasType_baselineConsistent(){fail("""
 005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}

@@ -443,14 +443,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   /// - Arguments return type is likely impacted by inference: argument is a generic method call or object literal
   ///   Do the Reason help here? if not, can we expand it or provide a parallel support?
   ///Raised when checking method calls.
-  public FearlessException methodArgumentCannotMeetAnyPromotion(TypeSystem ts, List<B> bs, Literal d, Call c, int argi, List<TRequirement> reqs, List<Reason> res){
+  public FearlessException methodArgumentCannotMeetAnyPromotion(TypeSystem ts, List<B> bs, Literal d, Call c, int argi, T declared, List<TRequirement> reqs, List<Reason> res){
     assert argi >= 0;
     assert argi < c.es().size();
     assert !reqs.isEmpty();
     assert reqs.size() == res.size();
     assert res.stream().noneMatch(Reason::isEmpty);
-    var reqCanon= reqCanon(reqs);
-    if (isWrongUnderlyingType(ts, bs, reqCanon, res)){ return wrongUnderlyingTypeErr(ts, d, c, argi, reqs, res); }
+    assert reqs.stream().allMatch(r -> canon(r.t()).equals(canon(declared)));
+    if (isWrongUnderlyingType(ts, bs, canon(declared), res)){ return wrongUnderlyingTypeErr(ts, d, c, argi, declared, res); }
     var gotHdr= headerBest(res);
     var any= reqs.stream().map(TRequirement::t).map(t -> err().typeRepr(false, t)).distinct().toList();
     var r= Streams.zip(res, reqs).filter((ri,q) -> rcOnlyMismatch(ri.best, q.t())).map((ri,_) -> ri).findFirst().orElse(res.getFirst());
@@ -466,15 +466,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var footer= r.footerE.get();
     return withCallSpans(e.exInferMsg(footer, err().typeRepr(false, reqs.getFirst().t())), c);
   }
-  private FearlessException wrongUnderlyingTypeErr(TypeSystem ts, Literal d, Call c, int argi, List<TRequirement> reqs, List<Reason> res){
+  private FearlessException wrongUnderlyingTypeErr(TypeSystem ts, Literal d, Call c, int argi, T declared, List<Reason> res){
     var gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both
-    var required= reqs.getFirst().t(); //should make an attempt to say what the generics in the result should have been instantiate to instead
+    //should make an attempt to say what the generics in the result should have been instantiate to instead
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
-    //TODO: line reqs.getFirst().t(); above, should we use the best return with ordering on rcs?
     var e= err()
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
-      .line("That is not a subtype of "+err().typeRepr(true, required)+" (the type required by the method signature).");
+      .line("That is not a subtype of "+err().typeRepr(true, declared)+" (the type required by the method signature).");
     addNoPrecedenceHintIfOperator(e, c);
     return withCallSpans(e.ex(ts.scope().pushCallArgi(c, argi).contextE()), c);
   }
@@ -485,11 +484,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     e.line("Hint: Fearless has no operator precedence, so an expression like \"a.get + b.get\" "
          + "parses as \"(a.get + b).get\", not \"a.get + (b.get)\". "
          + "If this argument needed a method applied to it first, wrap it in parentheses.");
-  }
-  private static T reqCanon(List<TRequirement> reqs){
-    var c0= canon(reqs.getFirst().t());
-    assert reqs.stream().allMatch(r -> canon(r.t()).equals(c0));
-    return c0;
   }
   private static boolean isWrongUnderlyingType(TypeSystem ts, List<B> bs, T reqCanon, List<Reason> res){
     return res.stream().map(r -> canon(r.best)).noneMatch(r -> ts.isSub(bs, r, reqCanon));
