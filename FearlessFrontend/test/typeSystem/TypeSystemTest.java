@@ -4419,6 +4419,36 @@ A{'self read .get:-.Nat->0}
 A:{ read .get: base.Nat }
 Make:{ #: A -> A{'self read .get: base.Nat -> 0 } }
 """));}
+@Test void selfNameDeadCodeLiteralWithoutMethods(){fail("""
+002| Make:{ #: A -> A{'self} }
+   |[###]
+
+While inspecting object literal instance of "A" > "#" line 2
+The self name "self" is dead code.
+No method of the object literal instance of "A" uses it.
+Remove "'self" from the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+[###]
+""", List.of("""
+A:{ read .get: base.Nat -> 0 }
+Make:{ #: A -> A{'self} }
+"""));}
+@Test void selfNameDeadCodeInferredLiteralWithoutMethods(){fail("""
+002| Make:{ #: A -> {'self} }
+   |[###]
+
+While inspecting object literal instance of "A" > "#" line 2
+The self name "self" is dead code.
+No method of the object literal instance of "A" uses it.
+Remove "'self" from the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+[###]
+""", List.of("""
+A:{ read .get: base.Nat -> 0 }
+Make:{ #: A -> {'self} }
+"""));}
 @Test void selfNameUsedOnlyInNestedLiteral(){ok(List.of("""
 A:{ read .get: A }
 Make:{ #: A -> A{'self read .get: A -> A{ read .get: A -> self } } }
