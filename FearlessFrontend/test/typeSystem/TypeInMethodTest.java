@@ -197,6 +197,24 @@ Take:{ #(p:_P): base.Void -> base.Void }
 B:{.m: base.Void -> a.Take#({ base.Void })}
 """); }
 
+  @Test void anonEmptyArgumentImplementsPrivateTypeFromOtherPkg(){ failTwoPkgsRaw("""
+In file: [###].fear
+
+001| B:{.m: base.Void -> a.Take#({})}
+   |                             ^^
+
+While inspecting object literal instance of "a._P"
+Object literal instance of "a._P" implements private type "a._P".
+Private types can only be implemented in their own package.
+Object literal instance of "a._P" is defined in package "b".
+Type "_P" is defined in package "a".
+Error 7 WellFormedness""", """
+_P:{ .foo: base.Void -> base.Void }
+Take:{ #(p:_P): base.Void -> base.Void }
+""", """
+B:{.m: base.Void -> a.Take#({})}
+"""); }
+
   @Test void typedLiteralImplementsPrivateTypeFromOtherPkg(){ failTwoPkgsRaw("""
 In file: [###].fear
 
