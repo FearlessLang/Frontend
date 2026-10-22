@@ -257,7 +257,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var top= l.thisName().equals("this");
     e.line(top
       ? "The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."
-      : "Method "+meth+" inside the "+err().expRepr(l) + " (line "+l.span().inner.startLine()+")"
+      : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+")"
         +"\nis implemented with an expression returning "+got0+".");
     e.line(up(got.info));
     return addExpFrame(at, e.exInferMsg(got.footerE.get(), req0).addSpan(at.span().inner));
@@ -299,7 +299,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       ? "The type of "+subject+" is hygienic (readH or mutH)\n"
       : "The type of "+subject+" can be instantiated with hygienics (readH or mutH)\n";
     return subject+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    + explicitH+ "and thus it cannot be captured in the "+err().expRepr(why.l())
+    + explicitH+"and thus it cannot be captured in the "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n";
   }
   private String whyDropCapFree(String subject, Change.NoT why){

@@ -13,7 +13,7 @@ import core.TSpan;
 public sealed interface T{
   record X(String name, TSpan span) implements T{
     public X{ assert validate(name, "generic type name", _XId); }
-    @Override public String toString(){ return "X[name="+name+"]";}
+    @Override public String toString(){ return "X[name="+name+"]"; }
   }
   record RCX(RC rc, X x) implements T{
     public RCX{ assert nonNull(rc, x); }

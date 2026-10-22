@@ -19,7 +19,7 @@ import utils.Join;
 public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
-  public static String genArity(int n){ return Join.of(Collections.nCopies(n, "_"), "[", ",", "]", "");}
+  public static String genArity(int n){ return Join.of(Collections.nCopies(n, "_"), "[", ",", "]", ""); }
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser and the well formedness errors only
   static <A> A redeclaredElement(List<A> es){
     return IntStream.range(0, es.size())
@@ -84,11 +84,11 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   static String up(String s){ return s.substring(0, 1).toUpperCase() + s.substring(1); }
   String expRepr(E toErr){ return switch (toErr){
     case Call c -> "method call "+methodSig(c.name());
-    case X x -> "parameter " +disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());
+    case X x -> "parameter "+disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());
     case Literal l -> l.thisName().equals("this")
-      ? "type declaration " +tNameADisp(l.name())
-      : "object literal " +bestNamePkg0(showInstanceOf(l), bestLitName(false, true, l));
-    case Type(var t, _) -> "object literal instance of " + typeRepr(true, t);
+      ? "type declaration "+tNameADisp(l.name())
+      : "object literal "+bestNamePkg0(showInstanceOf(l), bestLitName(false, true, l));
+    case Type(var t, _) -> "object literal instance of "+typeRepr(true, t);
     };}
   String expReprDirect(boolean skipImm, E toErr){ return switch (toErr){
     case Literal l -> bestNamePkg0(false, bestLitName(false, skipImm, l));
@@ -98,12 +98,12 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String expRepr(inference.E toErr){ return switch (toErr){
     case inference.E.Call c -> "method call "+methodSig(c.name());
     case inference.E.ICall c -> "method call "+methodSig(c.name());
-    case inference.E.X(var name, _, _, _) -> "parameter " +disp(name);
+    case inference.E.X(var name, _, _, _) -> "parameter "+disp(name);
     case inference.E.Literal l -> l.thisName().equals("this")
-      ? "type declaration " +tNameADisp(l.name())
+      ? "type declaration "+tNameADisp(l.name())
       : l.infName() && l.cs().isEmpty() && !(l.t() instanceof inference.IT.RCC) ? "object literal "+disp(anonRepr)
-      : "object literal " +bestNamePkg0(l.infName(), bestLitName(l));
-    case inference.E.Type t -> "object literal instance of " + t;
+      : "object literal "+bestNamePkg0(l.infName(), bestLitName(l));
+    case inference.E.Type t -> "object literal instance of "+t;
     };}
   String methodSig(MName m){ return methodSig("", m); }
   String methodSig(String pre, TName t, MName m){ return methodSig(pre+tNameA(t), m); }

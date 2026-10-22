@@ -21,7 +21,7 @@ public final class Reason{
     this.best= best; this.info= info; this.footerE= footerE;
   }
   public boolean isEmpty(){ return info.isEmpty(); }
-  public static Reason pass(T got){ return new Reason(got, "", () -> {throw Bug.unreachable();}); }
+  public static Reason pass(T got){ return new Reason(got, "", () -> { throw Bug.unreachable(); }); }
   public static Reason literalDoesNotHaveRequiredType(
     TypeSystem ts, E blame, List<B> bs, T got, T expected
     ){

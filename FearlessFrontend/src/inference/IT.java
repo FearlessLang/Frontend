@@ -50,7 +50,7 @@ public sealed interface IT{
     @Override public Optional<RC> explicitRC(){ return rc; }
   }
   enum U implements IT{ Instance;
-    @Override public String toString(){ return "?";}
+    @Override public String toString(){ return "?"; }
     @Override public boolean isTV(){ return false; }
     @Override public boolean undecided(){ return true; }
   }

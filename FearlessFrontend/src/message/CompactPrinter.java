@@ -149,7 +149,7 @@ public final class CompactPrinter{
     var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.xs(), m.e().map(this::ofE))).toList();
     var priv= l.infName();
     var name= priv ? ""
-      : t.of(l.name()) + bounds(l.bs())+":"; // name[bs]:
+      : t.of(l.name())+bounds(l.bs())+":"; // name[bs]:
     var onlyFirstC= priv && !l.cs().isEmpty();
     var cs= ofCs(l.src(), onlyFirstC ? List.of(l.cs().getFirst()) : l.cs());
     var top= l.thisName().equals("this");
@@ -174,7 +174,7 @@ public final class CompactPrinter{
       case fearlessFullGrammar.E.Literal _ -> List.of();
       default -> throw Bug.of(src.inner.getClass().getSimpleName());
     };
-    var original= oCs.stream().map(c -> c.name()).toList();
+    var original= oCs.stream().map(fearlessFullGrammar.T.C::name).toList();
     return cs.stream()
       .filter(c -> original.isEmpty() || original.contains(c.name()) || original.contains(c.name().withoutPkgName()) || writtenByAlias(original, c.name()))
       .map(this::ofC)
