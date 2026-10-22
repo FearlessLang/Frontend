@@ -550,7 +550,7 @@ public record InjectionSteps(Methods meths, int cap){
   }
   IT dropMethBs(IT t, List<String> methBs){
     if (t instanceof IT.RCC rcc){ return withTsNormBs(rcc, dropMethBs(rcc.c().ts(), methBs)); }
-    return xName(t).filter(methBs::contains).isPresent() ? IT.U.Instance : t;
+    return xName(t).stream().anyMatch(methBs::contains) ? IT.U.Instance : t;
   }
   private boolean assertNoBinderClash(IT.RCC rcc, core.M m){
     return Collections.disjoint(B.xs(meths.from(rcc.c().name()).bs()), B.xs(m.sig().bs()));
@@ -618,7 +618,7 @@ public record InjectionSteps(Methods meths, int cap){
       case E.Call c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, Optional.of(c.name())), c.es());
       case E.ICall c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, Optional.of(c.name())), c.es());
       case E.Literal l when !needsPrototypeAscription(l) -> arg;
-      case E.Literal l when called.map(name -> implementable(exp.c().name()) && !declares(l, name)).orElse(true) -> l.withT(prototypeHead(exp, l.span()));
+      case E.Literal l when called.stream().allMatch(name -> implementable(exp.c().name()) && !declares(l, name)) -> l.withT(prototypeHead(exp, l.span()));
       case E.Literal l -> itself(l);
       default -> arg;
     };
@@ -655,7 +655,7 @@ public record InjectionSteps(Methods meths, int cap){
     return Streams.zip(ts, bs).map((ti,bi) -> normToBound(scope, ti, bi.rcs())).toList();
   }
   private static IT normToBound(List<B> scope, IT t, EnumSet<RC> allowed){
-    var sameType= xName(t).map(x -> B.get(scope, x).rcs().equals(allowed)).orElse(true);
+    var sameType= xName(t).stream().allMatch(x -> B.get(scope, x).rcs().equals(allowed));
     return sameType ? normToBound(t, allowed) : t;
   }
   private static Optional<String> xName(IT t){ return switch (t){
