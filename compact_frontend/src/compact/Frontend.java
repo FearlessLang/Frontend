@@ -586,7 +586,7 @@ public final class Frontend{
     M body(Literal di,M m){
       if(m.e==null)return m;var ei=meet(m.e,m.s.t);cap=deep*size(ei);var g=new IG();
       for(int i=0;i<m.v.size();i++)g.declare(m.v.get(i),m.s.types.get(i));
-      g.declare(di.self,di.self(m.s.r));var b=push(di.b,m.s.b);
+      g.declare(di.self,di.self(has(di.cs,cf)?imm:m.s.r));var b=push(di.b,m.s.b);
       ei=solve(b,g,ei);return new M(m.s,m.v,new Core(b,this).core(ei,m.e));
     }
     E meet(E e,T t){

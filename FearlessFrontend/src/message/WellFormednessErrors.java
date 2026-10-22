@@ -521,16 +521,16 @@ public record WellFormednessErrors(String pkgName){
       .line("It inherits the implementation of "+err().methodSig(new MName("#", 1))+" from "+err().tNameADisp(origin)+", that does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
       .line("Method "+err().methodSig(new MName("#", 1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner);
   }
-  public FearlessException extendedSealed(E.Literal owner, TName isSealed){
+  public FearlessException extendedForeign(E.Literal owner, TName target, String kind){
     var ownerPkg= owner.name().pkgName();
-    var sealedPkg= isSealed.pkgName();
-    assert !ownerPkg.equals(sealedPkg);
+    var targetPkg= target.pkgName();
+    assert !ownerPkg.equals(targetPkg);
     var ctx= up(err().expRepr(owner));
     return wf(err()
-      .line(ctx+" implements sealed type "+err().tNameADisp(isSealed)+".")
-      .line("Sealed types can only be implemented in their own package.")
+      .line(ctx+" implements "+kind+" type "+err().tNameADisp(target)+".")
+      .line(up(kind)+" types can only be implemented in their own package.")
       .line(ctx+" is defined in package "+disp(ownerPkg)+".")
-      .line("Type "+disp(isSealed.simpleName())+" is defined in package "+disp(sealedPkg)+"."), owner);
+      .line("Type "+disp(target.simpleName())+" is defined in package "+disp(targetPkg)+"."), owner);
   }
   public FearlessException intLiteralOutOfRange(TName lit){
     return intOrNatLiteralOutOfRange(lit, LiteralDeclarations.baseInt, "Integer", "signed", LiteralDeclarations.intMin, LiteralDeclarations.intMax);

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import core.*;
 import core.E.*;
@@ -175,9 +176,14 @@ public final class CompactPrinter{
     };
     var original= oCs.stream().map(c -> c.name()).toList();
     return cs.stream()
-      .filter(c -> original.isEmpty() || original.contains(c.name()) || original.contains(c.name().withoutPkgName()))
+      .filter(c -> original.isEmpty() || original.contains(c.name()) || original.contains(c.name().withoutPkgName()) || writtenByAlias(original, c.name()))
       .map(this::ofC)
       .toList();
+  }
+  private boolean writtenByAlias(List<TName> original, TName n){
+    var byUse= Optional.ofNullable(t.uses().get(n.s()));
+    var byMap= Optional.ofNullable(t.uses().get(n.pkgName())).map(p -> p+"."+n.simpleName());
+    return Stream.of(byUse, byMap).flatMap(Optional::stream).anyMatch(a -> original.contains(new TName(a, n.arity(), n.pos())));
   }
   PM ofM(Sig s, List<String> xs, Optional<PE> body){
     var bs= bounds(s.bs());

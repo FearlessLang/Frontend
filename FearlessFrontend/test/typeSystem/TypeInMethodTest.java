@@ -21,9 +21,12 @@ public final class TypeInMethodTest extends testUtils.FearlessTestBase{
     okOrPrint(oB, () -> compileB(aSrc, oB));
   }
   static void failTwoPkgs(String expected, String aSrc, String bSrc){
+    failTwoPkgsRaw("In file: [###].fear\n\n"+expected+"Error 8 TypeError", aSrc, bSrc);
+  }
+  static void failTwoPkgsRaw(String expected, String aSrc, String bSrc){
     var oB= oraclePkg(List.of(bSrc));
     var fe= assertThrows(FearlessException.class, () -> compileB(aSrc, oB));
-    strCmp("In file: [###].fear\n\n"+expected+"Error 8 TypeError", fe.render(oB));
+    strCmp(expected, fe.render(oB));
   }
   private static List<core.E.Literal> compileB(String aSrc, tools.SourceOracle oB){
     var base= otherFrom(DbgBlock.all());
@@ -164,6 +167,58 @@ Q:_P{ .foo -> base.Void }
 Take:{ #(p:_P): base.Void -> base.Void }
 """, """
 B:{.m: base.Void -> a.Take#({ .q: a.Q -> a.Q }.q)}
+"""); }
+
+  @Test void anonArgumentImplementsPrivateTypeFromOtherPkg(){ failTwoPkgsRaw("""
+In file: [###].fear
+
+001| B:{.m: base.Void -> a.Take#({ base.Void })}
+   |                             ^^^^^^^^^^^^^
+
+While inspecting object literal instance of "a._P"
+Object literal instance of "a._P" implements private type "a._P".
+Private types can only be implemented in their own package.
+Object literal instance of "a._P" is defined in package "b".
+Type "_P" is defined in package "a".
+Error 7 WellFormedness""", """
+_P:{ .foo: base.Void }
+Take:{ #(p:_P): base.Void -> base.Void }
+""", """
+B:{.m: base.Void -> a.Take#({ base.Void })}
+"""); }
+
+  @Test void typedLiteralImplementsPrivateTypeFromOtherPkg(){ failTwoPkgsRaw("""
+In file: [###].fear
+
+001| B:{.m: base.Void -> a.Take#(a._P{ base.Void })}
+   |                     --------^^^^~~~~~~~~~~~~~-
+
+While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
+Code is attempting to use private name "_P" from package "a".
+Type names starting with "_" can only be used in their own package, and only by their simple name.
+Error 2 UnexpectedToken""", """
+_P:{ .foo: base.Void }
+Take:{ #(p:_P): base.Void -> base.Void }
+""", """
+B:{.m: base.Void -> a.Take#(a._P{ base.Void })}
+"""); }
+
+  @Test void anonArgumentImplementsSealedTypeFromOtherPkg(){ failTwoPkgsRaw("""
+In file: [###].fear
+
+001| B:{.m: base.Void -> a.Take#({ base.Void })}
+   |                             ^^^^^^^^^^^^^
+
+While inspecting object literal instance of "a.S"
+Object literal instance of "a.S" implements sealed type "a.S".
+Sealed types can only be implemented in their own package.
+Object literal instance of "a.S" is defined in package "b".
+Type "S" is defined in package "a".
+Error 7 WellFormedness""", """
+S:base.Sealed{ .foo: base.Void }
+Take:{ #(p:S): base.Void -> base.Void }
+""", """
+B:{.m: base.Void -> a.Take#({ base.Void })}
 """); }
 
   @Test void anonReceiverTypeInMethodHeadFromOtherPkg(){ okTwoPkgs("""
