@@ -76,8 +76,8 @@ public record WellFormednessErrors(String pkgName){
       .blank()
       .line("Found non-empty:");
     assert !f.noDirectives();
-    if (!f.maps().isEmpty()){ e.bullet("maps: " + previewList(f.maps(), 5)); }
-    if (!f.uses().isEmpty()){ e.bullet("uses: " + previewList(f.uses(), 8)); }
+    if (!f.maps().isEmpty()){ e.bullet("maps: "+previewList(f.maps(), 5)); }
+    if (!f.uses().isEmpty()){ e.bullet("uses: "+previewList(f.uses(), 8)); }
     return e.wf().addSpan(new Span(uri.fearURI(), 0, 0, 1, 1));
   }
   private String previewList(List<?> c, int limit){

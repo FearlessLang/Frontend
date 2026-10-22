@@ -14,7 +14,7 @@ public record TypeNamePrinter(boolean trunc, String mainPkg, Map<String,String> 
     return uses.getOrDefault(n.s(), dropMainPkg(dropBaseForLit(n.s())));
   }
   private String dropMainPkg(String s){
-    var pre= mainPkg + '.';
+    var pre= mainPkg+'.';
     return s.startsWith(pre) ? s.substring(pre.length()) : s;
   }
   private static String dropBaseForLit(String s){

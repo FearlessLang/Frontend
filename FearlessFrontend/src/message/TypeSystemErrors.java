@@ -282,32 +282,32 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   }
   private String whyDropMutInImm(String subject, Change.NoT why){
     return subject+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    + subject+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
+    +subject+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n"
     +"Hint: capture an immutable copy instead, or move this use outside the object literal.";
   }
   private String whyDropNotKinded(String subject, Change.NoT why){
     var bounds= disp(Join.of(why.l().bs(), "", ", ", "", ""));
     return subject+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    + "That type is not well kinded under the type parameters of "+err().expRepr(why.l())
+    +"That type is not well kinded under the type parameters of "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+"): "+bounds+".\n"
-    + "The bounds declared by the object literal are all it knows about its type parameters,\n"
-    + "and thus "+subject+" cannot be captured.\n";
+    +"The bounds declared by the object literal are all it knows about its type parameters,\n"
+    +"and thus "+subject+" cannot be captured.\n";
   }
   private String whyDropReadHMutH(String subject, Change.NoT why){
     var explicitH= why.atDrop().explicitH()
       ? "The type of "+subject+" is hygienic (readH or mutH)\n"
       : "The type of "+subject+" can be instantiated with hygienics (readH or mutH)\n";
     return subject+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    + explicitH+"and thus it cannot be captured in the "+err().expRepr(why.l())
+    +explicitH+"and thus it cannot be captured in the "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n";
   }
   private String whyDropCapFree(String subject, Change.NoT why){
     return
     err().expRepr(why.l())+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".\n"
-    + "Thus "+subject
+    +"Thus "+subject
     +" (line "+why.l().span().inner.startLine()+")"
-    + " cannot be captured in this scope.\n";
+    +" cannot be captured in this scope.\n";
   }
   ///Receiver expression of call c is typed into a type parameter (X / RC X / read/imm X), not a concrete RC C.
   ///Methods cannot be called on type parameters, so this call can never resolve.
@@ -383,7 +383,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
        .blank();
       if (!selfName.equals("_")){
         e.line("The method "+sig+" is defined in the object literal "+lit+"; the parameter "
-             + "referring to its instances is named "+disp(selfName)+".");
+             +"referring to its instances is named "+disp(selfName)+".");
         return;
       }
       e.line("The method "+sig+" is defined in the object literal "+lit+".")
@@ -483,8 +483,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var notOperator= s.startsWith(".") || s.equals("#");
     if (notOperator){ return; }
     e.line("Hint: Fearless has no operator precedence, so an expression like \"a.get + b.get\" "
-         + "parses as \"(a.get + b).get\", not \"a.get + (b.get)\". "
-         + "If this argument needed a method applied to it first, wrap it in parentheses.");
+         +"parses as \"(a.get + b).get\", not \"a.get + (b.get)\". "
+         +"If this argument needed a method applied to it first, wrap it in parentheses.");
   }
   private static T reqCanon(List<TRequirement> reqs){
     var c0= canon(reqs.getFirst().t());

@@ -47,7 +47,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   private boolean anonLit(Literal l){ return l.infName() && l.cs().isEmpty(); }
   private static final String anonRepr= "{...}";
   private String typeOrAnon(Literal l, String typePrefix, String anonPrefix){
-    if (anonLit(l)){ return anonPrefix + disp(anonRepr); }
+    if (anonLit(l)){ return anonPrefix+disp(anonRepr); }
     return typePrefix+disp(bestLitName(false, true, l));
   }
   String onTypeOrAnon(Literal l){ return typeOrAnon(l, "object literal instance of ", ""); }
@@ -81,7 +81,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t), t.span()))); }
   static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
-  static String up(String s){ return s.substring(0, 1).toUpperCase() + s.substring(1); }
+  static String up(String s){ return s.substring(0, 1).toUpperCase()+s.substring(1); }
   String expRepr(E toErr){ return switch (toErr){
     case Call c -> "method call "+methodSig(c.name());
     case X x -> "parameter "+disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());

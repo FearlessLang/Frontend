@@ -49,7 +49,7 @@ public sealed interface T{
   }
   record RCC(RC rc, C c, TSpan span) implements T{
     public RCC{ assert nonNull(rc, c); }
-    @Override public String toString(){ return rc.toStrSpace() + c; }
+    @Override public String toString(){ return rc.toStrSpace()+c; }
     public RCC withTs(List<T> ts){ return new RCC(rc, c.withTs(ts), span); }
     @Override public RCC withRC(RC rc){ return new RCC(rc, c, span); }
     @Override public Optional<RC> explicitRC(){ return Optional.of(rc); }

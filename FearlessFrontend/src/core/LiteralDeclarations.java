@@ -79,7 +79,7 @@ public final class LiteralDeclarations{
     var sign= neg ? "-" : "+";
     var e= mag.indexOf('E');
     if (e != -1){ return sign+mag.substring(0, e)+"e"+mag.substring(e+1); }
-    if (!mag.contains(".")){ mag = mag + ".0"; }
+    if (!mag.contains(".")){ mag = mag+".0"; }
     return sign+mag;
   }
   public static double floatLiteralDouble(String raw){ return Double.parseDouble(floatPayload(raw)); }
