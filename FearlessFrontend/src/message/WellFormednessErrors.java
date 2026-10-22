@@ -72,7 +72,7 @@ public record WellFormednessErrors(String pkgName){
   public FearlessException notClean(Ref uri, FileFull f){
     var e= err()
       .line("Package directives outside of rank file.")
-      .line("Only the rank file should not contain directives like maps and uses.")
+      .line("Only the rank file can contain directives like maps and uses.")
       .blank()
       .line("Found non-empty:");
     assert !f.noDirectives();
@@ -233,6 +233,22 @@ public record WellFormednessErrors(String pkgName){
     private FearlessException make(Err e){
       return e.wf().addFrame("a type name", TSpan.fromPos(tn.pos(), tn.s().length()).inner);
     }
+  }
+  public FearlessException useNotFullyQualified(TName tn){
+    var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;
+    return err()
+      .line("\"use\" directive refers to "+disp(tn.s())+", which is not a fully qualified name.")
+      .line("A \"use\" directive refers to a type of another package by its fully qualified name, as in \"use base.Str as Str;\".")
+      .wf()
+      .addFrame("package header", at);
+  }
+  public FearlessException useOfTheCurrentPackage(TName tn, String pkg){
+    var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;
+    return err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
+      .line("\"use\" directive refers to type "+disp(tn.simpleName())+" of the current package "+disp(pkg)+".")
+      .line("A \"use\" directive can only refer to types of other packages: the types of package "+disp(pkg)+" are already in scope by their simple names.")
+      .wf()
+      .addFrame("package header", at);
   }
   public FearlessException unknownUseHead(TName tn, String pkg){
     var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;

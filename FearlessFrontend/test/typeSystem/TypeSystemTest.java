@@ -4817,6 +4817,18 @@ A:Show{read .str:-.Str->-.Void}
 use base.ToStr as Show;
 A:Show{ .str -> base.Void }
 """));}
+@Test void useWithASimpleNameIsNotFullyQualified(){failWf("""
+001| use Foo as Bar;
+   |     ^^^
+
+While inspecting package header
+"use" directive refers to "Foo", which is not a fully qualified name.
+A "use" directive refers to a type of another package by its fully qualified name, as in "use base.Str as Str;".
+""", List.of("""
+use Foo as Bar;
+Foo:{}
+A:{ .m(x: Bar): Foo -> x }
+"""));}
 @Test void sameCallInReadAndMutMethodsOfOneLiteral(){ok(List.of("""
 Foo:{}
 Id:{ #[T:*](t: T): T -> t }
