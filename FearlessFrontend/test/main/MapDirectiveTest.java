@@ -122,11 +122,30 @@ B:{.m(x:a.A):a.A->x.fromD}
   @Test void mapIntoTheCurrentPackage(){ ok(Map.of(), Map.of("a", "b"), """
 B:{.m(x:a.B):B->x.self; .self:b.B->this}
 """); }
-  @Test void useThroughMapIntoTheCurrentPackage(){ ok(Map.of(), Map.of("a", "b"), """
+  @Test void useThroughMapIntoTheCurrentPackage(){ fail("""
+In file: [###].fear
+
+001| use a.B as X;
+   |     ^^^
+
+While inspecting package header
+Name "a.B" stands for "b.B" because of "map a as b in b".
+"use" directive refers to type "B" of the current package "b".
+A "use" directive can only refer to types of other packages: the types of package "b" are already in scope by their simple names.
+Error 7 WellFormedness""", Map.of(), Map.of("a", "b"), """
 use a.B as X;
 B:{.m(x:X):a.B->x.self; .self:b.B->this}
 """); }
-  @Test void useOfTheCurrentPackage(){ ok(Map.of(), Map.of(), """
+  @Test void useOfTheCurrentPackage(){ fail("""
+In file: [###].fear
+
+001| use b.B as X;
+   |     ^^^
+
+While inspecting package header
+"use" directive refers to type "B" of the current package "b".
+A "use" directive can only refer to types of other packages: the types of package "b" are already in scope by their simple names.
+Error 7 WellFormedness""", Map.of(), Map.of(), """
 use b.B as X;
 B:{.m(x:X):B->x.self; .self:X->this}
 """); }
@@ -138,27 +157,12 @@ In file: [###].fear
 
 While inspecting package header
 Name "a.Z" stands for "b.Z" because of "map a as b in b".
-"use" directive refers to undeclared name: type "Z" is not declared in package "b".
+"use" directive refers to type "Z" of the current package "b".
+A "use" directive can only refer to types of other packages: the types of package "b" are already in scope by their simple names.
 Error 7 WellFormedness
 """, Map.of(), Map.of("a", "b"), """
 use a.Z as X;
 B:{}
-"""); }
-  @Test void useOfTheCurrentPackageOtherArity(){ fail("""
-In file: [###].fear
-
-002| B:{.m(x:X[B]):B->this}
-   |         ^^
-
-While inspecting a type name
-Name "X" stands for "b.B" because of "use b.B as X".
-Name "B" is not declared with 1 type parameter in package "b".
-Name "B" is only declared with 0 type parameters.
-Did you accidentally add or omit a type parameter?
-Error 7 WellFormedness
-""", Map.of(), Map.of(), """
-use b.B as X;
-B:{.m(x:X[B]):B->this}
 """); }
   @Test void mapIntoTheCurrentPackageUndeclared(){ fail("""
 In file: [###].fear

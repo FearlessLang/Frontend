@@ -118,23 +118,22 @@ public class FrontendLogicMain{
       .sorted().toList();
     var names= DeclaredNames.of(pkgName, ds, head.uses().stream().map(FileFull.Use::out).collect(Collectors.toUnmodifiableSet()));
     var map= new HashMap<>(override);
-    accUses(err, map, head.uses(), other, names);
+    accUses(err, map, head.uses(), other);
     return makePackage(pkgName, Collections.unmodifiableMap(map), head.uses(), ds, names);
   }
   Package makePackage(String name, Map<String,String> map, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
     return new Package(name, map, uses, decs, names, new Package.Logger(false, null));//this method exists to change logger in mocking
   }
   //map a as b in c //inside c, a written a stands for b
-  private void accUses(WellFormednessErrors err, HashMap<String,String> map, List<FileFull.Use> uses, OtherPackages other, DeclaredNames names){
+  private void accUses(WellFormednessErrors err, HashMap<String,String> map, List<FileFull.Use> uses, OtherPackages other){
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
-      var p= u.in().pkgName();
-      p = map.getOrDefault(p, p); //thus if p is "" we get ""
+      if (u.in().pkgName().isEmpty()){ throw err.useNotFullyQualified(u.in()); }
+      var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
+      if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in(), p); }
       var in= p + "." + u.in().simpleName();
       map.put(u.out(), in);
-      var dom= p.equals(err.pkgName()) ? names.decNames().stream().map(n -> n.withPkgName(err.pkgName())) : otherDom.stream();
-      var ok= dom.anyMatch(e -> e.s().equals(in));
-      if (!ok){ throw err.unknownUseHead(u.in(), p); }
+      if (otherDom.stream().noneMatch(e -> e.s().equals(in))){ throw err.unknownUseHead(u.in(), p); }
     }//map a as b in c + use a.F as aF will replace aF with b.F
   }
   private Ref findHeadUri(WellFormednessErrors err, Set<Ref> uris){
