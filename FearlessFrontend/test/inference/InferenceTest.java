@@ -919,7 +919,6 @@ A:{.id[X](x:Box[X]):X}
 B[X]:A{.id[X](b:Box[X])->b.get} // class X vs method X
 """));}
 
-//TODO: why in the test below and others in this file, I get always 4 ^s?
 @Test void inferAlph_AMergeTwoSupers_SwappedOrder_NestedArgs(){ fail("""
 In file: [###].fear
 

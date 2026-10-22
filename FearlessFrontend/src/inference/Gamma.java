@@ -74,9 +74,6 @@ public final class Gamma{
     depth -= 1;
   }
   public IT getWithRC(String x){
-    //Can this be done? need to locate the dept of x.
-    //Then, if there is imm over (not under) x turn the IT to imm and return theIt.withRC(imm)
-    // if there is read over (not under) x and theIt.explicitRC().equals(Optional.of(RC.mut), turn the IT to read and return theIt.withRC(read)
     var i= indexOf(x);         // offensive: -1 would crash later
     var t= ts[i];              // the stored (true) type
     for (var s= declDepth[i] + 1; s < depth; s += 1){ t = adapt(t, rcs[s], bss[s]); }
