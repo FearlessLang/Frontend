@@ -711,8 +711,8 @@ public final class Frontend{
       if(!w.tv()||!all(l.ms,m->m.s.t.tv()&&all(m.s.types,T::tv))||cache.containsKey(name))return l;
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
       var cap=noH(or(l.r,w.r));var target=new R(cap,w.c);
-      if(all(l.ms,m->m.e==null)&&from(w.c.name)!=null)return new Type(target,preferred(target));
       var own=w.c.name.equals(name);no(!own&&!w.c.name.visible()&&!w.c.name.pk().equals(p.name));
+      if(all(l.ms,m->m.e==null)&&from(w.c.name)!=null)return new Type(target,preferred(target));
       var cs=Core.distinct(bs,own?parents(w.c):push(w.c,parents(w.c)));magic(l,cs);
       l=new Literal(cap,name1,bs,cs,l.self,map(l.ms,mi->mi.o(name,name1)),w,l.anon,l.expanded);
       if(own)l=l.t(self(l));register(l);return l;

@@ -438,12 +438,12 @@ public record InjectionSteps(Methods meths, int cap){
     assert l.bs().isEmpty();
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
     var justAType= noMeth && l.infHead() && meths._from(rcc.c().name()) != null;
-    var orcc= new IT.RCC(orc, rcc.c(), rcc.span());
-    if (justAType){ return new E.Type(orcc, preferred(orcc), l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());
     var head= rcc.c().name();
     var foreignPrivate= !selfInferred && !head.isPublic() && !head.pkgName().equals(meths.p().name());
     if (foreignPrivate){ throw meths.p().err().extendedForeign(l, head, "private"); }
+    var orcc= new IT.RCC(orc, rcc.c(), rcc.span());
+    if (justAType){ return new E.Type(orcc, preferred(orcc), l.src(), l.g()); }
     var cs= ToCore.distinctTypes(localBs, selfInferred ? meths.implied(rcc.c()) : Push.of(rcc.c(), meths.implied(rcc.c())));
     assert l.infHead();
     l = new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, rcc, l.src(), l.infName(), l.infHead(), l.g());
