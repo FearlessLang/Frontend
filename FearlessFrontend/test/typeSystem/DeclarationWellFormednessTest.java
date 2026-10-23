@@ -122,7 +122,7 @@ A:{ 'self
   }
 """));}
 @Test void lambdaSelfNameOk(){ok(List.of("""
-A:{ .me: A -> {'self} }
+A:{ .me: A -> {'self .me -> self} }
 """));}
 @Test void noShadowingOk(){ok(List.of("""
 A:{ .m1(a: A): A -> {.m1(b) -> a} }
