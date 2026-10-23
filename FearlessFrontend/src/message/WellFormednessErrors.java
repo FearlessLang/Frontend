@@ -69,6 +69,8 @@ public record WellFormednessErrors(String pkgName){
   private FearlessException wf(Err e, E at){ return e.wf().addFrame(err().expRepr(at), at.span().inner); }
   private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }
   private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
+  private FearlessException wfUse(Err e, TName tn){ return e.wf().addFrame("package header", TSpan.fromPos(tn.pos(), tn.s().length()).inner); }
+  private Err invalidMethImpl(Agreement at){ return err().line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(), at.lit(), at.mName())+"."); }
   public FearlessException notClean(Ref uri, FileFull f){
     var e= err()
       .line("Package directives outside of rank file.")
@@ -235,37 +237,25 @@ public record WellFormednessErrors(String pkgName){
     }
   }
   public FearlessException useNotFullyQualified(TName tn){
-    var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;
-    return err()
+    return wfUse(err()
       .line("\"use\" directive refers to "+disp(tn.s())+", which is not a fully qualified name.")
-      .line("A \"use\" directive refers to a type of another package by its fully qualified name, as in \"use base.Str as Str;\".")
-      .wf()
-      .addFrame("package header", at);
+      .line("A \"use\" directive refers to a type of another package by its fully qualified name, as in \"use base.Str as Str;\"."), tn);
   }
   public FearlessException useOfTheCurrentPackage(TName tn, String pkg){
-    var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;
-    return err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
+    return wfUse(err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
       .line("\"use\" directive refers to type "+disp(tn.simpleName())+" of the current package "+disp(pkg)+".")
-      .line("A \"use\" directive can only refer to types of other packages: the types of package "+disp(pkg)+" are already in scope by their simple names.")
-      .wf()
-      .addFrame("package header", at);
+      .line("A \"use\" directive can only refer to types of other packages: the types of package "+disp(pkg)+" are already in scope by their simple names."), tn);
   }
   public FearlessException unknownUseHead(TName tn, String pkg){
-    var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;
-    return err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
+    return wfUse(err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
       .line("\"use\" directive refers to undeclared name: type "+disp(tn.simpleName())
-        +" is not declared in package "+disp(pkg)+".")
-      .wf()
-      .addFrame("package header", at);
+        +" is not declared in package "+disp(pkg)+"."), tn);
   }
   public FearlessException useOfNotLowerRank(TName tn, String pkg, Ref rank, Ref otherRank, boolean sameRank){
-    var at= TSpan.fromPos(tn.pos(), tn.s().length()).inner;
-    return err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
+    return wfUse(err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
       .line("\"use\" directive refers to package "+disp(pkg)+", which has "+(sameRank ? "the same rank as" : "a higher rank than")+" package "+disp(pkgName)+".")
       .line("Package "+disp(pkgName)+" has rank "+rankDisp(rank)+" and package "+disp(pkg)+" has rank "+rankDisp(otherRank)+".")
-      .line("A package can only use packages of a lower rank.")
-      .wf()
-      .addFrame("package header", at);
+      .line("A package can only use packages of a lower rank."), tn);
   }
   private static String rankDisp(Ref rank){
     var name= Fs.fileNameWithoutExtension(rank.fearPath()).substring("_rank_".length());
@@ -385,8 +375,7 @@ public record WellFormednessErrors(String pkgName){
   }
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
     var sB= disp(superBs.stream().map(b -> new B("-", b.rcs())).toList());
-    return wf(err()
-      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(), at.lit(), at.mName())+".")
+    return wf(invalidMethImpl(at)
       .line("The method "+err().methodSig(at.mName())+" declares "+count(userBs.size(), "type parameter")+", but supertypes declare "+superBs.size()+".")
       .line("Local declaration: "+disp(userBs)+".")
       .line("From supertypes: "+sB+".")
@@ -399,8 +388,7 @@ public record WellFormednessErrors(String pkgName){
     var i= firstRcsDisagreementIndex(res);
     var opts= Join.of(res.stream().map(bs -> disp(bs.get(i))).distinct().sorted(), "", " and ", ".");
     var m= err().methodSig(at.mName());
-    return wf(err()
-      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(), at.lit(), at.mName())+".")
+    return wf(invalidMethImpl(at)
       .line("Supertypes disagree on the capability bounds for type parameter "+(i+1)+" of "+m+".")
       .line("Type parameter names may differ across supertypes; only the position matters.")
       .line("Different supertypes declare: "+opts)
@@ -415,8 +403,7 @@ public record WellFormednessErrors(String pkgName){
     var m= err().methodSig(at.mName());
     var uB= disp(u);
     var sB= disp(new B("-", s.rcs()));
-    return wf(err()
-      .line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(), at.lit(), at.mName())+".")
+    return wf(invalidMethImpl(at)
       .line("The local declaration uses different capability bounds than the supertypes for type parameter "+(i+1)+" of "+m+".")
       .line("Local: "+uB+".")
       .line("From supertypes: "+sB+".")
@@ -453,15 +440,16 @@ public record WellFormednessErrors(String pkgName){
   public String typeName(TName n){ return err().tNameA(n); }
   public String callWithTargs(E.Call c, List<IT> targs, int k, String example){
     var ts= IntStream.range(0, targs.size()).mapToObj(j -> j == k ? example : err().typeReprRaw(targs.get(j))).toList();
-    return src(c.e())+c.name().s()+Join.of(ts, "[", ",", "]")+Join.of(c.es().stream().map(this::src), "(", ", ", ")", "");
+    return src(c.e(), c.name(), Join.of(ts, "[", ",", "]"), c.es());
   }
   private String src(E e){ return switch (e){
     case E.X x -> x.name();
     case E.Literal _ -> "{...}";
     case E.Type t -> err().typeReprRaw(t.type());
-    case E.Call c -> src(c.e())+c.name().s()+Join.of(c.es().stream().map(this::src), "(", ", ", ")", "");
-    case E.ICall c -> src(c.e())+c.name().s()+Join.of(c.es().stream().map(this::src), "(", ", ", ")", "");
+    case E.Call c -> src(c.e(), c.name(), "", c.es());
+    case E.ICall c -> src(c.e(), c.name(), "", c.es());
   };}
+  private String src(E recv, MName m, String targs, List<E> es){ return src(recv)+m.s()+targs+Join.of(es.stream().map(this::src), "(", ", ", ")", ""); }
   public FearlessException literalHeadNotInferred(E.Literal at, IT.C c, List<Integer> unknown, List<String> xs){
     var head= err().cp().t.ofFull(c.name())+Join.of(c.ts().stream().map(err()::typeReprRaw), "[", ",", "]", "");
     var s= unknown.size() == 1 ? "" : "s";

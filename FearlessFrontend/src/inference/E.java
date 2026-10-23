@@ -4,6 +4,7 @@ import static fearlessParser.TokenKind.*;
 import static offensiveUtils.Require.*;
 
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -51,7 +52,7 @@ public sealed interface E{
     }
     public Literal{
       assert unmodifiableDistinct(bs, "E.Literal.bs");
-      assert unmodifiable(cs, "E.Literal.cs") && cs.stream().distinct().count() == cs.size();
+      assert unmodifiable(cs, "E.Literal.cs") && Set.copyOf(cs).size() == cs.size();
       assert unmodifiableDistinct(ms, "E.Literal.ms");
       assert nonNull(rc, name, thisName, t, src, g);
     }

@@ -22,7 +22,7 @@ public record ViewPointAdaptation(Kinding k){
     var rc= m.sig().rc();
     var t= w.currentT();
     if (rc == read){
-      if (t.explicitRC().stream().anyMatch(r -> r == mut || r == read)){ return Change.keepSetToRead(l, m, w); }
+      if (t.explicitRC().filter(r -> r == mut || r == read).isPresent()){ return Change.keepSetToRead(l, m, w); }
       if (t instanceof T.X || t instanceof T.ReadImmX){ return Change.keepSetToReadImm(l, m, w); }
     }
     assert rc == mut;//meth RC can only be imm, mut, read and imm is filtered before

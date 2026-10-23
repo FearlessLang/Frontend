@@ -173,7 +173,7 @@ public record ToCore(List<B> ctx, Methods meths){
     var bs= usr.bs().or(inf::bs).orElse(List.of());
     return new core.Sig(rc, m.get(), bs, ts.stream().map(TypeRename::itToT).toList(), TypeRename.itToT(ret), origin.get(), usr.abs(), usr.span());
   }
-  private static boolean decided(Optional<IT> t){ return t.map(IT::isTV).orElse(false); }
+  private static boolean decided(Optional<IT> t){ return t.filter(IT::isTV).isPresent(); }
   private record CallLike(inference.E e, List<inference.E> es, Optional<RC> rc, List<IT> targs){}
   private static CallLike callLike(inference.E o, MName name){
     return switch (o){

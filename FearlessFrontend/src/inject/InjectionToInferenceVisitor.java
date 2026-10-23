@@ -7,6 +7,7 @@ import static fearlessParser.TokenKind.*;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -23,6 +24,7 @@ import utils.Push;
 import utils.Streams;
 import fearlessFullGrammar.E.Call;
 import fearlessFullGrammar.Parameter;
+import fearlessFullGrammar.Sig;
 import fearlessFullGrammar.XPat;
 import utils.Pos;
 import inference.E;
@@ -84,16 +86,12 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   List<M> mapM(List<fearlessFullGrammar.M> ms){ return ms.stream().map(this::visitM).toList(); }
   M visitM(fearlessFullGrammar.M m){ return new M(visitMSig(m), visitMImpl(m)); }
   M.Sig visitMSig(fearlessFullGrammar.M mm){
-    if (mm.sig().isEmpty()){
-      List<Optional<IT>> ts= mm.hasImplicit() ? List.of(empty()) : List.of();
-      return new M.Sig(empty(), empty(), empty(), ts, empty(), empty(), false, mm.span());
-    }
-    var s= mm.sig().get();
-    var bs= s.bs().map(this::mapB);
-    var ts= s.parameters().stream().map(p -> p.t().map(this::visitT)).toList();
-    if (mm.hasImplicit()){ ts = Push.of(ts, empty()); }
-    var res= s.t().map(this::visitT);
-    return new M.Sig(s.rc(), s.m(), bs, ts, res, empty(), mm.body().isEmpty(), mm.span());
+    var s= mm.sig();
+    var bs= s.flatMap(Sig::bs).map(this::mapB);
+    var ps= s.map(Sig::parameters).orElse(List.of());
+    List<Optional<IT>> ts= mm.hasImplicit() ? List.of(empty()) : ps.stream().map(p -> p.t().map(this::visitT)).toList();
+    var res= s.flatMap(Sig::t).map(this::visitT);
+    return new M.Sig(s.flatMap(Sig::rc), s.flatMap(Sig::m), bs, ts, res, empty(), mm.body().isEmpty(), mm.span());
   }
   public B visitB(fearlessFullGrammar.B b){
     return new B(b.x().name(), switch (b.bt()){
@@ -103,7 +101,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     });
   }
   private EnumSet<RC> inOrder(List<RC> es, fearlessFullGrammar.T.X x){
-    var duplicated= es.stream().distinct().count() < es.size();
+    var duplicated= Set.copyOf(es).size() < es.size();
     if (duplicated){ throw meths.p().err().duplicatedBound(es, x); }
     return EnumSet.copyOf(es);
   }
@@ -111,7 +109,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   Optional<M.Impl> visitMImpl(fearlessFullGrammar.M m){
     if (m.body().isEmpty()){ return empty(); }
     var body= m.body().get();
-    var original= m.sig().map(fearlessFullGrammar.Sig::parameters).orElse(List.of());
+    var original= m.sig().map(Sig::parameters).orElse(List.of());
     var hasPat= original.stream().anyMatch(p -> p.xp().stream().anyMatch(XPat.Destruct.class::isInstance));
     var ps= original.stream().map(p -> parameterToName(p, hasPat)).toList();
     var xpats= xpats(ps, original, m.span());
@@ -123,7 +121,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     if (hasPat){ body = makeXPatsBody(body, xpats); }
     var e= visitE(body);
     if (m.hasImplicit()){ implicits.removeLast(); }
-    var name= m.sig().flatMap(fearlessFullGrammar.Sig::m);
+    var name= m.sig().flatMap(Sig::m);
     return of(new M.Impl(name, ps, e));
   }
   private fearlessFullGrammar.E makeXPatsBody(fearlessFullGrammar.E body, List<XE> xes){
@@ -131,7 +129,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var span= TSpan.fromPos(p);
     var ps= xes.stream()
       .map(xe -> new Parameter(of(new XPat.Name(new fearlessFullGrammar.E.X(xe.x, p))), empty())).toList();
-    var sig= new fearlessFullGrammar.Sig(empty(), empty(), empty(), false, ps, empty());
+    var sig= new Sig(empty(), empty(), empty(), false, ps, empty());
     var f= new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(of(sig), of(body), false, span)), span);
     var args= Push.of(xes.stream().map(XE::e).toList(), f);
     return call(typedLiteral("base.Destruct", body.span(), p), "#", args, p);
@@ -222,7 +220,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     par1 = extractAtom(par1);
     var param1= new Parameter(of(pat), empty());
     var param2= new Parameter(of(new XPat.Name(fresh)), empty());
-    var sig= new fearlessFullGrammar.Sig(empty(), empty(), empty(), false, List.of(param1, param2), empty());
+    var sig= new Sig(empty(), empty(), empty(), false, List.of(param1, param2), empty());
     var m= new fearlessFullGrammar.M(of(sig), of(res), false, c.span());
     var par2= new fearlessFullGrammar.E.Literal(empty(), List.of(m), c.span());
     return new fearlessFullGrammar.E.Call(

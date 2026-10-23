@@ -6,6 +6,7 @@ import static metaParser.MetaParser.SplitMode.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -51,7 +52,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (peek(_CurlyGroup)){ return parseGroup("object literal", p -> p.parseLiteral(false)); }
     var startPos= index();
     var rc= parseOptRC();
-    var invalid= rc.stream().anyMatch(RC::isH);
+    var invalid= rc.filter(RC::isH).isPresent();
     if (invalid){ throw errFactory().disallowedReadHMutH(span(peek(-1).get()).get(), rc.get()); }
     if (isDec()){ return new E.DeclarationLiteral(rc, parseDeclaration(false)); }
     if (rc.isPresent() && !peek(Token.typeName)){ expect("expression", UppercaseId); }
@@ -223,12 +224,12 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   private void checkRedeclaration(Token start, Token end, List<M> ms){
     var names= ms.stream().flatMap(this::declaredName).toList();
     var at= span(start, end).get();
-    var redeclared= names.stream().distinct().count() < names.size();
+    var redeclared= Set.copyOf(names).size() < names.size();
     if (redeclared){ throw errFactory().methodNameRedeclared(ms, names, at); }
     checkMixedExplicitRC(ms, names, at);
     var noNames= ms.stream()
       .map(errFactory()::parCount).filter(i -> i != -1).toList();
-    var noNameRedeclared= noNames.stream().distinct().count() < noNames.size();
+    var noNameRedeclared= Set.copyOf(noNames).size() < noNames.size();
     if (noNameRedeclared){ throw errFactory().methodNoNameRedeclared(ms, noNames, at); }
   }
   private void checkMixedExplicitRC(List<M> ms, List<RCMName> names, Span at){
@@ -279,7 +280,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   Sig parseSig(){
     var rc= parseOptRC();
-    var invalid= rc.stream().anyMatch(_rc -> _rc.isH() || _rc == RC.iso);
+    var invalid= rc.filter(_rc -> _rc.isH() || _rc == RC.iso).isPresent();
     if (invalid){ throw errFactory().disallowedSigRC(span(peek(-1).get()).get(), rc.get()); }
     var noDot= peekOrder(t -> t.is(LowercaseId), t -> t.is(_RoundGroup, _SquareGroup));
     if (noDot){
@@ -306,7 +307,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var t= parseOptT();
     m = m.map(_m -> _m.withArity(ps.size()));
     var xs= ps.stream().flatMap(p -> xsOf(p.xp())).toList();
-    var duplicated= xs.stream().distinct().count() < xs.size();
+    var duplicated= Set.copyOf(xs).size() < xs.size();
     if (duplicated){ throw errFactory().duplicatedParamInMethodSignature(xs, span()); }
     return new Sig(rc, m, bs, hasPar, ps, t);
   }
@@ -327,7 +328,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
       p.expectLast("generic bounds declaration", CSquare);
       var res= p.splitBy("generic bounds declaration", commaB, pi -> pi.parseB(mustNew));
       var Xs= bsXs(of(res));
-      var duplicated= Xs.stream().distinct().count() < Xs.size();
+      var duplicated= Set.copyOf(Xs).size() < Xs.size();
       if (duplicated){ throw errFactory().duplicatedGenericInMethodSignature(Xs, span()); }
       return res;
     });
@@ -352,7 +353,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
       curlyRight,
       p -> p.splitBy("super types declaration", commaSkip, Parser::parseC)
     ).orElseThrow(() -> errFactory().missing(remainingSpan(), "type declaration body", List.of(OCurly), this));
-    var duplicated= res.stream().distinct().count() < res.size();
+    var duplicated= Set.copyOf(res).size() < res.size();
     if (duplicated){ throw errFactory().duplicatedImpl(res, spanAround(back(start), index())); }
     return res;
   }

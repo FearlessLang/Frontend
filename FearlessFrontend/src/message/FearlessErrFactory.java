@@ -135,7 +135,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   private Span redeclaredMethSpan(List<M> ms, Predicate<M> p){ return ms.reversed().stream().filter(p).findFirst().get().span().inner; }
   public FearlessException methodNameRedeclared(List<M> ms, List<Parser.RCMName> names, Span at){
     var name= redeclaredElement(names);
-    Predicate<M> p= mi -> mi.sig().stream().anyMatch(sig -> sig.m().equals(Optional.of(name.name())) && sig.rc().equals(name.rc()));
+    Predicate<M> p= mi -> mi.sig().filter(sig -> sig.m().equals(Optional.of(name.name())) && sig.rc().equals(name.rc())).isPresent();
     var s= redeclaredMethSpan(ms, p);
     return Code.WellFormedness.of(
       "Method "+methodSig("", name.name())+" with "+count(name.name().arity(), "parameter")+" redeclared.\n"
@@ -143,7 +143,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       .addSpan(s).addSpan(at);
   }
   public FearlessException methodMixedExplicitRC(List<M> ms, MName name, Span at){
-    Predicate<M> p= mi -> mi.sig().stream().anyMatch(s -> s.m().equals(Optional.of(name)) && s.rc().isEmpty());
+    Predicate<M> p= mi -> mi.sig().filter(s -> s.m().equals(Optional.of(name)) && s.rc().isEmpty()).isPresent();
     var s= redeclaredMethSpan(ms, p);
     return Code.WellFormedness.of(
       "Method "+methodSig("", name)+" with "+count(name.arity(), "parameter")+" mixes an explicit and an inferred reference capability.\n"

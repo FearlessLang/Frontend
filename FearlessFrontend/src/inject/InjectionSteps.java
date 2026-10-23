@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
@@ -281,9 +282,9 @@ public record InjectionSteps(Methods meths, int cap){
   }
   private MSigL methodHeaderInstance(IT.RCC rcc, core.E.Literal d, core.M m){
     var clsXs= B.xs(d.bs());
-    assert clsXs.stream().distinct().count() == clsXs.size();
+    assert Set.copyOf(clsXs).size() == clsXs.size();
     var methXs= B.xs(m.sig().bs());
-    assert methXs.stream().distinct().count() == methXs.size();
+    assert Set.copyOf(methXs).size() == methXs.size();
     assert Collections.disjoint(clsXs, methXs);
     var clsArgs= rcc.c().ts();
     assert clsArgs.size() == clsXs.size();

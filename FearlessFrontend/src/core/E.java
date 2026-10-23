@@ -33,7 +33,7 @@ public sealed interface E{
     public Literal(RC rc, TName name, List<B> bs, List<T.C> cs, String thisName, List<M> ms, Src src, boolean infName){ this(rc, name, bs, cs, thisName, ms, src, infName, new EqTransparent<>(false)); }
     public Literal{
       assert unmodifiableDistinct(bs, "E.Literal.bs");
-      assert unmodifiable(cs, "E.Literal.cs") && cs.stream().distinct().count() == cs.size();
+      assert unmodifiable(cs, "E.Literal.cs") && Set.copyOf(cs).size() == cs.size();
       assert unmodifiableDistinct(ms, "E.Literal.ms");
       assert nonNull(rc, name, thisName, src, onlyImmCapture) && !rc.isH();
       assert eq(bs.size(), name.arity(), "Type arity");

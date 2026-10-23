@@ -114,16 +114,12 @@ public record Methods(
     return d.withCsMs(Push.of(c, implied(c)), allMs, true);
   }
   public void checkMagicSupertypes(E.Literal d, List<IT.C> allCs){
-    var widen= allCs.stream()
-      .filter(c -> c.name().equals(LiteralDeclarations.widen))
-      .toList();
+    var names= allCs.stream().map(IT.C::name).toList();
+    var widen= allCs.stream().filter(c -> c.name().equals(LiteralDeclarations.widen)).toList();
     if (widen.size() > 1){ throw p.err().multipleWidenTo(d, widen); }
-    var isBaseId= allCs.stream().anyMatch(c -> c.name().equals(LiteralDeclarations.baseId));
-    if (isBaseId){ checkBaseId(d); }
-    var isFileLog= allCs.stream().anyMatch(c -> c.name().equals(LiteralDeclarations.fileLog));
-    if (isFileLog){ checkFileLogName(d); }
-    var unsealed= allCs.stream().noneMatch(c -> c.name().equals(LiteralDeclarations.sealed));
-    if (unsealed){ return; }
+    if (names.contains(LiteralDeclarations.baseId)){ checkBaseId(d); }
+    if (names.contains(LiteralDeclarations.fileLog)){ checkFileLogName(d); }
+    if (!names.contains(LiteralDeclarations.sealed)){ return; }
     allCs.stream()
       .filter(c -> !c.name().pkgName().equals(d.name().pkgName()))
       .forEach(c -> notSealed(c.name(), d));

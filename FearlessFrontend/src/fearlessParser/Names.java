@@ -2,6 +2,7 @@ package fearlessParser;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import utils.Push;
 
@@ -22,8 +23,8 @@ record Names(List<String> xs, List<String> Xs, List<String> hiddenXs, String fun
     return new Names(xs, FXs, Push.of(hiddenXs, Xs), owner);
   }
   boolean compatible(List<String> xs, List<String> Xs){
-    return xs.stream().distinct().count() == xs.size()
-      &&   Xs.stream().distinct().count() == Xs.size()
+    return Set.copyOf(xs).size() == xs.size()
+      &&   Set.copyOf(Xs).size() == Xs.size()
       &&   Collections.disjoint(xs, this.xs)
       &&   Collections.disjoint(Xs, this.Xs)
       &&   Collections.disjoint(Xs, hiddenXs);
