@@ -174,6 +174,7 @@ public record Methods(
   void register(E.Literal d){
     var cs= TypeRename.itcToTC(d.cs());
     assert InjectionToInferenceVisitor.duplicatedSupertypes(d.bs(), cs).isEmpty();
+    assert !d.infName() || !d.thisName().equals("_") || d.ms().stream().anyMatch(m -> m.impl().isPresent());
     p.log().logInferenceDeclaration(d, cs);
     var ms= d.ms().stream().map(new ToCore(List.of(), this)::mSynthetic).toList();
     cache.put(d.name(), new core.E.Literal(d.rc().orElse(RC.imm), d.name(), d.bs(), cs, d.thisName(), ms, d.src(), d.infName()));

@@ -21,7 +21,7 @@ public final class TypeInMethodTest extends testUtils.FearlessTestBase{
     var oB= oraclePkg(List.of(bSrc));
     var res= okOrPrint(oB, () -> compileB(aSrc, oB));
     if (!checkCompact){ return; }
-    strCmp(lines(res), compact.Print.lines(compactB(aSrc, oB)));
+    coreCmp(lines(res), compact.Print.lines(compactB(aSrc, oB)));
   }
   static void failTwoPkgs(String expected, String aSrc, String bSrc){
     failTwoPkgsRaw("In file: [###].fear\n\n"+expected+"Error 8 TypeError", aSrc, bSrc);

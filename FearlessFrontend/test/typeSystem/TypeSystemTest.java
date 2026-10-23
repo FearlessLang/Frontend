@@ -2414,7 +2414,7 @@ Outer:{ .m: base.Void -> {'self .a: Outer -> self}.a }
 001| Outer:{ .m: base.Void -> { .a -> base.Void{} }.a }
    |                          --^^^^^^^^^^^^^^^^^--
 
-While inspecting object literal instance of "_BOute"
+While inspecting object literal instance of "_AOute"
 Missing return type for method ".a".
 Add an explicit return type before '->'.
 Alternatively (less common), if you intended to override and omit the signature,

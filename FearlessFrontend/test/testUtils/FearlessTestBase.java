@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -34,6 +36,17 @@ public abstract class FearlessTestBase{
   protected static final boolean checkCompact= Boolean.getBoolean("compact");
 
   protected static String stripWs(String s){ return s.replace("\n", "").replace(" ", ""); }
+  //The full frontend turns an object literal without methods into a type expression and gives it no fresh name; the compact frontend does neither.
+  protected static String canon(String core){
+    var imm= core.replaceAll("imm \\w+\\._[A-Za-z0-9]*(\\[[^\\]]*\\])?:([^{]*?)(, [^{]*)?\\{'_ (?:(?!->)[^{}])*\\}", "$2");
+    var rc= imm.replaceAll("(mut |iso |read )\\w+\\._[A-Za-z0-9]*(\\[[^\\]]*\\])?:([^{]*?)(, [^{]*)?\\{'_ (?:(?!->)[^{}])*\\}", "$1$3");
+    return Stream.of(rc.split("\\{'", -1)).map(FearlessTestBase::renumber).collect(Collectors.joining("{'"));
+  }
+  private static String renumber(String s){
+    var names= new LinkedHashMap<String,String>();
+    return Pattern.compile("\\b_[A-Z][A-Za-z0-9]*").matcher(s).replaceAll(m -> names.computeIfAbsent(m.group(), _ -> "_N"+names.size()));
+  }
+  protected static void coreCmp(String full, String compact){ strCmp(canon(full), canon(compact)); }
   protected static void strCmp(String expected, String got){ Err.strCmp(expected, got); }
 
   protected static SourceOracle oraclePkg(List<String> bodies){
@@ -102,8 +115,8 @@ public abstract class FearlessTestBase{
     var res= printError(() -> new FrontendLogicMain().of("p", Map.of(), o.allFiles(), otherFrom(base)), o);
     if (!checkCompact){ return; }
     var compactBase= compactBase();
-    strCmp(lines(base), Print.lines(compactBase));
-    strCmp(lines(res), Print.lines(compactAll("p", o, compactBase)));
+    coreCmp(lines(base), Print.lines(compactBase));
+    coreCmp(lines(res), Print.lines(compactAll("p", o, compactBase)));
   }
   protected static void typeFailRaw(String expected, List<String> input){
     var o= oraclePkg(input);

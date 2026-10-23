@@ -20,7 +20,6 @@ public final class Print{
     case C(var n,var ts)->n.s()+square(ts);
     case R(var r,var c)->(r==null?"AnyRC ":r(r))+of(c);
     case E.X(var x,_)->x;
-    case E.Type(var t,_)->of(t);
     case E.Call(var e,var n,var r,var y,var es,_,_)->of(e)+of(n)+"["+r+(y.isEmpty()?"":","+join(y,","))+"]"+wrap(es,"()",", ");
     case Literal(var r,var n,var b,var cs,var self,var ms,_,_,_)->r+" "+n.s()+square(b)+":"+join(cs,", ")+"{'"+self+" "+join(ms,"; ")+"}";
     case M(var s,var v,var e)->r(s.r())+of(s.m())+square(s.b())+wrap(zip(v,s.types(),(x,t)->x+":"+of(t)),"()",", ")+":"+of(s.t())+(e==null?"":"->"+of(e));

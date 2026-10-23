@@ -122,7 +122,31 @@ A:{ 'self
   }
 """));}
 @Test void lambdaSelfNameOk(){ok(List.of("""
-A:{ .me: A -> {'self} }
+A:{ .me: A -> {'self .me -> self} }
+"""));}
+@Test void selfNameDeadCodeLiteralWithoutMethods(){failWf("""
+002| Make:{ #: A -> A{'self} }
+   |[###]
+
+While inspecting object literal instance of "A"
+The self name "self" is dead code.
+No method of the object literal instance of "A" uses it.
+Remove "'self" from the object literal.
+""", List.of("""
+A:{ read .get: base.Nat -> 0 }
+Make:{ #: A -> A{'self} }
+"""));}
+@Test void selfNameDeadCodeInferredLiteralWithoutMethods(){failWf("""
+002| Make:{ #: A -> {'self} }
+   |[###]
+
+While inspecting object literal instance of "A"
+The self name "self" is dead code.
+No method of the object literal instance of "A" uses it.
+Remove "'self" from the object literal.
+""", List.of("""
+A:{ read .get: base.Nat -> 0 }
+Make:{ #: A -> {'self} }
 """));}
 @Test void noShadowingOk(){ok(List.of("""
 A:{ .m1(a: A): A -> {.m1(b) -> a} }
