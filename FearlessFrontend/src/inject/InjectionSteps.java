@@ -437,7 +437,8 @@ public record InjectionSteps(Methods meths, int cap){
     assert l.infName();
     assert l.bs().isEmpty();
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
-    var justAType= noMeth && l.infHead() && l.thisName().equals("_") && meths._from(rcc.c().name()) != null;
+    var justAType= noMeth && l.infHead() && meths._from(rcc.c().name()) != null;
+    if (justAType && !l.thisName().equals("_")){ throw meths.p().err().selfNameDeadCode(l); }
     var orcc= new IT.RCC(orc, rcc.c(), rcc.span());
     if (justAType){ return new E.Type(orcc, preferred(orcc), l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());

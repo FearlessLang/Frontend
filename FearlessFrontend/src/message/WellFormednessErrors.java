@@ -596,6 +596,12 @@ public record WellFormednessErrors(String pkgName){
       .line(ctx+" is defined in package "+disp(ownerPkg)+".")
       .line("Type "+disp(target.simpleName())+" is defined in package "+disp(targetPkg)+"."), owner);
   }
+  public FearlessException selfNameDeadCode(E.Literal l){
+    return wf(err()
+      .line("The self name "+disp(l.thisName())+" is dead code.")
+      .line("No method of the "+err().expRepr(l)+" uses it.")
+      .line("Remove "+disp("'"+l.thisName())+" from the object literal."), l);
+  }
   public FearlessException intLiteralOutOfRange(TName lit){
     return intOrNatLiteralOutOfRange(lit, LiteralDeclarations.baseInt, "Integer", "signed", LiteralDeclarations.intMin, LiteralDeclarations.intMax);
   }
