@@ -267,6 +267,50 @@ Take:{ #(p:S): base.Void -> base.Void }
 B:{.m: base.Void -> a.Take#({ base.Void })}
 """); }
 
+  @Test void anonEmptyArgumentOfAbstractSealedTypeFromOtherPkg(){ failTwoPkgsRaw("""
+In file: [###].fear
+
+001| B:{.m: base.Void -> a.Take#({})}
+   |    -------------------------^^-
+
+While inspecting object literal instance of "iso a.S" > ".m" line 1
+This object literal is missing a required method.
+Missing: "imm .foo".
+Required by: "a.S".
+Sealed types can only be implemented in their own package.
+Type "S" is defined in package "a".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso -.S
+Error 8 TypeError""", """
+S:base.Sealed{ .foo: base.Void }
+Take:{ #(p:S): base.Void -> base.Void }
+""", """
+B:{.m: base.Void -> a.Take#({})}
+"""); }
+
+  @Test void typeExpressionOfAbstractSealedTypeFromOtherPkg(){ failTwoPkgsRaw("""
+In file: [###].fear
+
+001| B:{.m: base.Void -> a.Take#(a.S)}
+   |    -------------------------^^^^
+
+While inspecting object literal instance of "iso a.S" > ".m" line 1
+This object literal is missing a required method.
+Missing: "imm .foo".
+Required by: "a.S".
+Sealed types can only be implemented in their own package.
+Type "S" is defined in package "a".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso -.S
+Error 8 TypeError""", """
+S:base.Sealed{ .foo: base.Void }
+Take:{ #(p:S): base.Void -> base.Void }
+""", """
+B:{.m: base.Void -> a.Take#(a.S)}
+"""); }
+
   @Test void anonReceiverTypeInMethodHeadFromOtherPkg(){ okTwoPkgs("""
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
 """, """
