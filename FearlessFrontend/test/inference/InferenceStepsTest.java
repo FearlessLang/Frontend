@@ -608,8 +608,6 @@ B:A{ .m():base.Nat -> 2; }
 C:B{}
 """));}
 
-//The Err below is ok, associated to t:Err and not impacting the method signature
-//it is produced by subtype read/imm T > T not being considered
 @Test void genericInterfaces(){okI("""
 p.Box[T:imm,mut,read]:{'this mut .expose:T@p.Box; read .get:read/imm T@p.Box;}
 p.MakeBox:{'this #[T:imm,mut,read](T):mut p.Box[T]@p.MakeBox;(t)->p._AMake:$?{'_ ? .expose[?]:?@!;->t:?; ? .get[?]:?@!;->t:?;}:?;}
@@ -704,7 +702,6 @@ IdUser:{
 
 //Here we declare absorb as taking zero args.
 //Thus, we can not infer # generics, the method does not exists.
-//TODO: this needs to move to type system and have a good error there
 @Test void usesLocalTypeForInferenceBadArgCount(){okI("""
 p.Absorb:{'this #[T:imm]:base.Void@p.Absorb;->base.Void:?;}
 p.Foo:{'this .m:p.Point@p.Foo;->p.Point:{'_ ? .x[?]:base.Nat@!;->base.0:?; ? .y[?]:base.Nat@!;->base.0:?;}:?;}
@@ -736,9 +733,6 @@ User1:{ .bla(p:Point):base.Void -> Absorb#p; }
 User2:{ .bla(p:Point):base.Void -> Absorb#(p.x); }
 """));}
 
-//TODO: this correctly shows that we can override a user defined type
-//.beer[imm,X] becomes .beer[imm,Err]
-//we will then merge back the user defined types when creating the core
 @Test void boundMustAlpha(){okI("""
 p.A:{'this .m[X:imm](p.Foo[X]):X@p.A;}
 p.B1[X:imm]:p.A{'this .m[_AX:imm](p.Foo[_AX]):_AX@p.B1;(z)->z:?.get():?;}
@@ -755,8 +749,6 @@ A:{.m[X](x:Foo[X]):X}
 B1[X]:A{.m(z)->z.get}
 B2[X]:A{.m(z)->z.beer[X]}
 """));}
-//The above could be solved by comparing the input and the result on the top level inference steps.
-//arguably, this could be applied when making the transition inference->core
 //TODO: when committing to class table consider replacing all the bodies with Void or _Magic! to avoid worst case shenario quadratic memory consumption.
 
 
@@ -1682,7 +1674,7 @@ KK[E:*]:I[E]{
   read .m->{};
 }
 """));}
-//Used to discard the read/imm part in the L1 side
+//The read/imm part in the L1 side is kept
 @Test void inferLitRcGenXInh2(){okI("""
 [###]
 ~mut p.L1[E:imm]:{'this read .opt:mut p.O1[read/imm E]->mut p.O1[read/imm E]}
