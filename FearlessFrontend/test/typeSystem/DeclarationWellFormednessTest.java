@@ -578,6 +578,9 @@ An attenuator can not have generic parameters: applying an attenuator by name gi
 """, List.of("""
 NoGui[X]: base.SystemAttenuator{ # -> base.Void }
 """));}
+@Test void abstractAttenuatorWithGenericParameters(){ok(List.of("""
+Shape[X]: base.SystemAttenuator{ .extra: X }
+"""));}
 @Test void openWithWithoutMain(){failWf("""
 001| Assoc: base.OpenWith[Icon,"foo"]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
