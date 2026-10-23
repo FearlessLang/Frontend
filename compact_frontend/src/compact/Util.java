@@ -17,6 +17,6 @@ final class Util{
   static<V>List<V>push(List<V>a,List<V>b){return cat(a.stream(),b.stream()).toList();}
   static<V>List<V>push(List<V>a,V b){return cat(a.stream(),Stream.of(b)).toList();}
   static<V>List<V>push(V a,List<V>b){return cat(Stream.of(a),b.stream()).toList();}
-  static<A,B,R>List<R>zip(List<A>as,List<B>b,BiFunction<A,B,R>f){return range(as.size()).mapToObj(i->f.apply(as.get(i),b.get(i))).toList();}
+  static<A,B,R>List<R>zip(List<A>as,List<B>b,BiFunction<A,B,R>f){return seq(as.size(),i->f.apply(as.get(i),b.get(i)));}
   @SafeVarargs@SuppressWarnings("varargs")static<V>Stream<V>cat(Stream<V>...ss){return Stream.of(ss).flatMap(s->s);}
 }
