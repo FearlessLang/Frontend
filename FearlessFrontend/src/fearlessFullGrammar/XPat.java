@@ -27,7 +27,7 @@ public sealed interface XPat{
             m -> { assert m.s().startsWith("."); }); });
       assert validOpt(id, n -> validate("}"+n, "pattern id", CCurlyId));
     }
-    @Override public Stream<String> parameterNames(){ return extract.stream().map(e -> e.getLast().s().substring(1) + id.orElse("")); }
+    @Override public Stream<String> parameterNames(){ return extract.stream().map(e -> e.getLast().s().substring(1)+id.orElse("")); }
     public Stream<String> invalidNames(){ return parameterNames().filter(x -> !isKind(x, LowercaseId) || isKind(x, RCap)); }
   }
 }

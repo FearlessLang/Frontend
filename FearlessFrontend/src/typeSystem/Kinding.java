@@ -18,7 +18,7 @@ public record Kinding(TypeSystemErrors tsE){
     var d= decs().apply(c.name());
     var params= d.bs();
     var args= c.ts();
-    assert eq(params.size(), args.size(), "Arity mismatch for " + c.name());
+    assert eq(params.size(), args.size(), "Arity mismatch for "+c.name());
     for (int i : Range.of(params)){ check(toErr, c, i, bs, args.get(i), params.get(i).rcs()); }
   }
   public void check(E toErr, List<B> bs, T t){

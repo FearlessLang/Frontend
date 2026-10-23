@@ -59,8 +59,8 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     var where= "inside a"+describeFree(h);
     throw Code.UnexpectedToken.of(
       "Unopened block comment close \"*/\".\n"
-    + "Found a \"/*\" " + where + " before this point.\n"
-    + "Did you mean to place the opener outside the string/comment?")
+    +"Found a \"/*\" "+where+" before this point.\n"
+    +"Did you mean to place the opener outside the string/comment?")
       .addFrame("comments", primary);
   }
   private static Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
@@ -72,8 +72,8 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     var name= disp(lit.content());
     throw Code.UnexpectedToken.of(
       "Literal "+name+" is directly followed by \"[\".\n"
-    + "Number and string literals take no generic arguments.\n"
-    + "Remove the \"[...]\" after "+name+".")
+    +"Number and string literals take no generic arguments.\n"
+    +"Remove the \"[...]\" after "+name+".")
       .addFrame("a literal", new Span(file, s.startLine(), s.startCol(), t.line(), t.span(file).endCol()));
   }
   public static String describeFree(Token t){
@@ -96,7 +96,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     throw Bug.unreachable();
   }
   private static FearlessException strErr(Span at, int quoteChar, String more){
-    return Code.UnexpectedToken.of("String literal " + Message.displayChar(quoteChar) + " reaches the end of the line.\n" + more).addFrame("a string literal", at);
+    return Code.UnexpectedToken.of("String literal "+Message.displayChar(quoteChar)+" reaches the end of the line.\n"+more).addFrame("a string literal", at);
   }
   private static Stream<Token> badBlockComment(Tokenizer tz, Token t){
     var file= tz.fileName();

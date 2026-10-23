@@ -72,7 +72,7 @@ public class FrontendLogicMain{
     @Override public String toString(){
       var f= PrettyFileName.displayFileName(uri.fearURI());
       return " - "+f+"\n"
-           + "   \"map  "+in+"  as  "+out+"  in  "+target+";\"";
+           +"   \"map  "+in+"  as  "+out+"  in  "+target+";\"";
     }}
     var byKey= parsed.entrySet().stream()
       .flatMap(e -> e.getValue().maps().stream().map(m -> new Cand(e.getKey(), m.target(), m.in(), m.out())
@@ -131,7 +131,7 @@ public class FrontendLogicMain{
       if (u.in().pkgName().isEmpty()){ throw err.useNotFullyQualified(u.in()); }
       var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
       if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in(), p); }
-      var in= p + "." + u.in().simpleName();
+      var in= p+"."+u.in().simpleName();
       map.put(u.out(), in);
       if (otherDom.stream().noneMatch(e -> e.s().equals(in))){ throw err.unknownUseHead(u.in(), p); }
     }//map a as b in c + use a.F as aF will replace aF with b.F

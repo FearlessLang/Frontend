@@ -23,8 +23,8 @@ public final class FearlessException extends RuntimeException implements HasFram
   }
   public String render(SourceOracle env){
     var msg= msgFactory.apply(env, Collections.unmodifiableList(frames));
-    if (msg.endsWith("\n")){ return msg + code; }
-    return msg + "\n" + code;
+    if (msg.endsWith("\n")){ return msg+code; }
+    return msg+"\n"+code;
   }
   @Override public FearlessException addFrame(Frame f){ frames.add(f); return this; }
 }

@@ -45,29 +45,29 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   private String topLevelSemicolonMsg(){
     if (lastTop.isEmpty()){
       return "Extra semicolon before the first top level type declarations.\n"
-           + "Remove this semicolon.\n";
+           +"Remove this semicolon.\n";
     }
     var n= staticTypeDecName(lastTop.get());
     var hint= lastTop.get().s()+(lastTop.get().arity() == 0 ? ":..{...}" : "[..]:..{...}");
     return "Top level type declarations do not end with \";\".\n"
-         + "The definition of " + n + " ends with a semicolon. Remove it.\n"
-         + "Write: "+disp(hint)+"\n"
-         + "Not:   "+disp(hint+";")+"\n";
+         +"The definition of "+n+" ends with a semicolon. Remove it.\n"
+         +"Write: "+disp(hint)+"\n"
+         +"Not:   "+disp(hint+";")+"\n";
   }
   public FearlessException straySemicolon(Span at){
     return Code.UnexpectedToken.of(
       "Extra semicolon: no method declaration comes before this \";\".\n"
-    + "Methods are separated by a single \";\". Remove this semicolon.\n").addSpan(at);
+    +"Methods are separated by a single \";\". Remove this semicolon.\n").addSpan(at);
   }
   private static String found(Token t){ return t.tokens().isEmpty() ? disp(t.content()) : "a "+t.kind().human; }
   public FearlessException topLevelNotATypeDeclaration(Span at, Token found){
     return Code.UnexpectedToken.of(() ->
       lastTop.map(t -> "This should probably be inside the declaration of "+staticTypeDecName(t)+".\n")
         .orElse("This is not a top level type declaration.\n")
-      + "Top level code can only contain type declarations.\n"
-      + "A type declaration starts with a type name, like \"Point:{..}\".\n"
-      + "Found instead: " + found(found) + ".\n"
-      + "Likely cause: an extra \"}\" closed a type declaration unintentionally.\n"
+      +"Top level code can only contain type declarations.\n"
+      +"A type declaration starts with a type name, like \"Point:{..}\".\n"
+      +"Found instead: "+found(found)+".\n"
+      +"Likely cause: an extra \"}\" closed a type declaration unintentionally.\n"
       ).addSpan(at);
   }
   @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
@@ -78,11 +78,11 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     return Code.ExtraTokenInGroup.of(msg).addSpan(here).addSpan(from);
   }
   @Override public FearlessException probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx, Parser parser){
-    return Code.ProbeError.of("Probe stalled while scanning " + groupLabel).addSpan(at);
+    return Code.ProbeError.of("Probe stalled while scanning "+groupLabel).addSpan(at);
   }
   @Override public FearlessException badProbeDropIn(String groupLabel, Span at, int startIdx, int endIdx, int drop, Parser parser){
-    var msg= "Probe returned invalid drop=" + drop
-      + " in " + groupLabel + " at [" + startIdx + ".." + endIdx + "]";
+    var msg= "Probe returned invalid drop="+drop
+      +" in "+groupLabel+" at ["+startIdx+".."+endIdx+"]";
     return Code.ProbeError.of(msg).addSpan(at);
   }
   public FearlessException disallowedReadHMutH(Span at, RC rc){
@@ -94,8 +94,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   private FearlessException disallowedRc(Span at, RC rc, String disallowed, String where, String allowed){
     return Code.UnexpectedToken.of(
       "Capability "+rc+" used.\n"
-    + "Capabilities "+disallowed+" are not allowed on "+where+".\n"
-    + "Use one of "+allowed+".\n").addSpan(at);
+    +"Capabilities "+disallowed+" are not allowed on "+where+".\n"
+    +"Use one of "+allowed+".\n").addSpan(at);
   }
   public FearlessException forgotSpace(Span at, String name){
     return Code.UnexpectedToken.of(
@@ -139,7 +139,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var s= redeclaredMethSpan(ms, p);
     return Code.WellFormedness.of(
       "Method "+methodSig("", name.name())+" with "+count(name.name().arity(), "parameter")+" redeclared.\n"
-    + "A method with the same name, arity and reference capability is already present.\n")
+    +"A method with the same name, arity and reference capability is already present.\n")
       .addSpan(s).addSpan(at);
   }
   public FearlessException methodMixedExplicitRC(List<M> ms, MName name, Span at){
@@ -147,7 +147,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var s= redeclaredMethSpan(ms, p);
     return Code.WellFormedness.of(
       "Method "+methodSig("", name)+" with "+count(name.arity(), "parameter")+" mixes an explicit and an inferred reference capability.\n"
-    + "Once one overload of "+methodSig("", name)+" declares a reference capability, every overload of that method must.\n"
+    +"Once one overload of "+methodSig("", name)+" declares a reference capability, every overload of that method must.\n"
     ).addSpan(s).addSpan(at);
   }
   public int parCount(M m){//-1 == explicitly named method
@@ -157,7 +157,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   public FearlessException missingDotBeforeMethodName(Span at, String name){
     return Code.WellFormedness.of(
       "Method declaration missing \".\" before the name.\n"
-    + "To declare a method named "+disp(name)+", write \"."+name+"\" (dot "+name+").\n"
+    +"To declare a method named "+disp(name)+", write \"."+name+"\" (dot "+name+").\n"
     ).addSpan(at);
   }
   private Stream<String> potentialMethodNames(M m){
@@ -174,16 +174,16 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       .flatMap(this::potentialMethodNames)
       .distinct().toList();
     var base= "Method with inferred name and "+count+" parameter redeclared.\n"
-    + "A method with the inferred name and the same parameter count is already present above.\n";
+    +"A method with the inferred name and the same parameter count is already present above.\n";
     if (hints.isEmpty()){ return Code.WellFormedness.of(base).addSpan(s).addSpan(at); }
     var ex= hints.getFirst();
     return Code.WellFormedness.of(
       base
-    + "Likely cause: method declaration missing \".\" before the name.\n"
-    + Join.of(hints.stream().map(Err::disp),
+    +"Likely cause: method declaration missing \".\" before the name.\n"
+    +Join.of(hints.stream().map(Err::disp),
       "Found unnamed methods with parameters: ", ", ", ".\n")
-    + "To declare a method named "+disp(ex)+", write \"."+ex+"\" (dot "+ex+").\n"
-    + "Without the dot, "+disp(ex)+" is interpreted as a parameter name for an anonymous method.\n"
+    +"To declare a method named "+disp(ex)+", write \"."+ex+"\" (dot "+ex+").\n"
+    +"Without the dot, "+disp(ex)+" is interpreted as a parameter name for an anonymous method.\n"
     ).addSpan(s).addSpan(at);
   }
   public FearlessException typeNameConflictsGeneric(Token name, Span at){
@@ -241,8 +241,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
     return Code.UnexpectedToken.of(() ->
-      "Generic type "+disp(X.content())+" is not in scope.\n" +
-      expected(
+      "Generic type "+disp(X.content())+" is not in scope.\n"
+      +expected(
         "No generic parameters are declared here",
         "Declared generics: ", "Declared generics: ",
         Xs, s -> s)).addSpan(at);
@@ -330,19 +330,19 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var stopLabel= eof ? "end of group" : disp(stop.kind().human);
     var base=
       sof
-        ?"Unopened " + stopLabel + ".\n"
-      :eof
-        ? "File ended while parsing a " + openLabel + " group.\n"
+        ? "Unopened "+stopLabel+".\n"
+      : eof
+        ? "File ended while parsing a "+openLabel+" group.\n"
       : isBarrier
-        ? "Unclosed " + openLabel + " group before " + stopLabel + ".\n"
-        : ("Wrong closer for " + openLabel + " group.\nFound instead: " + stopLabel + ".\n");
+        ? "Unclosed "+openLabel+" group before "+stopLabel+".\n"
+        : ("Wrong closer for "+openLabel+" group.\nFound instead: "+stopLabel+".\n");
     var hint= switch (likely){
       case StrayCloser   -> "This "+stopLabel+" may be unintended.\n";
       case StrayOpener   -> "This "+openLabel+" may be unintended.\n";
       case Unknown       -> "";
     };
-    var other= hint.isEmpty()?"Expected":"Otherwise expected";
-    var expected= sof?"":expected("", other+": ", other+" one of: ", expectedClosers, tk -> tk.human);
+    var other= hint.isEmpty() ? "Expected" : "Otherwise expected";
+    var expected= sof ? "" : expected("", other+": ", other+" one of: ", expectedClosers, tk -> tk.human);
     var span= eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
     var code= sof ? Code.Unopened : (eof || isBarrier) ? Code.Unclosed : Code.UnexpectedToken;
     return code.of(base+hint+expected).addFrame("groups of parenthesis", span);
@@ -354,10 +354,10 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var file= tokenizer.fileName();
     var where= BadTokens.describeFree(hiddenContainer);
     var msg=
-      "Unclosed " + disp(open.kind().human) + " group.\n"
-    + "Found a matching closer inside a" + where + " between here and the stopping point.\n"
-    + "Did you mean to place the closer outside the" + where + "?\n"
-    + expected("", "Otherwise expected: ", "Otherwise expected one of: ", expectedClosers, tk -> tk.human);
+      "Unclosed "+disp(open.kind().human)+" group.\n"
+    +"Found a matching closer inside a"+where+" between here and the stopping point.\n"
+    +"Did you mean to place the closer outside the"+where+"?\n"
+    +expected("", "Otherwise expected: ", "Otherwise expected one of: ", expectedClosers, tk -> tk.human);
     var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
     var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
     return Code.Unclosed.of(msg).addFrame("groups of parenthesis", primary).addSpan(secondary);
@@ -369,9 +369,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var file= tokenizer.fileName();
     var where= BadTokens.describeFree(hiddenContainer);
     var msg=
-      "Unopened " + disp(stop.kind().human) + ".\n"
-    + "Found a matching opener hidden inside a" + where + " before this point.\n"
-    + "Did you mean to place the opener outside the" + where + "?";
+      "Unopened "+disp(stop.kind().human)+".\n"
+    +"Found a matching opener hidden inside a"+where+" before this point.\n"
+    +"Did you mean to place the opener outside the"+where+"?";
     var primary= metaParser.Token.makeSpan(file, hiddenFragment, stop);
     var secondary= metaParser.Token.makeSpan(file, hiddenContainer, stop);
     return Code.Unopened.of(msg).addSpan(primary).addFrame("groups of parenthesis", secondary);
@@ -381,14 +381,14 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       Span at, String what, Token found, Collection<TokenKind> expectedTokens, Parser parser){
     assert nonNull(at, what, found, expectedTokens);
     var msg=
-      "Missing " + (what.isBlank() ? "element" : what) + ".\n"
-    + "Found instead: " + found(found) + ".\n"
-    + expected(expectedTokens);
+      "Missing "+(what.isBlank() ? "element" : what)+".\n"
+    +"Found instead: "+found(found)+".\n"
+    +expected(expectedTokens);
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   public FearlessException badTopSelfName(Span at, String name){
     var msg= "Self name "+disp(name)+" is invalid in a top level type.\n"
-      + "Top level types self names can only be \"this\".\n";
+      +"Top level types self names can only be \"this\".\n";
     return Code.WellFormedness.of(msg).addSpan(at);
   }
   public FearlessException noAbstractMethod(Sig sig, Span at){
