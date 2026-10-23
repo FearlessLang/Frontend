@@ -121,7 +121,8 @@ public record Methods(
     if (names.contains(LiteralDeclarations.baseId)){ checkBaseId(d); }
     if (names.contains(LiteralDeclarations.fileLog)){ checkFileLogName(d); }
     checkClaims(d, names, allCs);
-    if (names.contains(LiteralDeclarations.main) && !d.bs().isEmpty()){ throw p.err().mainGeneric(d); }
+    if (names.contains(LiteralDeclarations.main) && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.main, "A main", "running a main"); }
+    if (names.contains(LiteralDeclarations.attenuator) && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.attenuator, "An attenuator", "applying an attenuator by name"); }
     if (!names.contains(LiteralDeclarations.sealed)){ return; }
     allCs.stream()
       .filter(c -> !c.name().pkgName().equals(d.name().pkgName()))

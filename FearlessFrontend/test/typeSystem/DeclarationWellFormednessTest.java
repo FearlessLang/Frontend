@@ -568,6 +568,16 @@ A main can not have generic parameters: running a main gives no generic argument
 """, List.of("""
 Box: { .mk[X]: base.Main -> { .main -> base.Void{}; .id(y: X): X -> y } }
 """));}
+@Test void attenuatorWithGenericParameters(){failWf("""
+001| NoGui[X]: base.SystemAttenuator{ # -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "NoGui[_]"
+Type declaration "NoGui[_]" implements "base.SystemAttenuator" and has generic parameters.
+An attenuator can not have generic parameters: applying an attenuator by name gives no generic arguments to it.
+""", List.of("""
+NoGui[X]: base.SystemAttenuator{ # -> base.Void }
+"""));}
 @Test void openWithWithoutMain(){failWf("""
 001| Assoc: base.OpenWith[Icon,"foo"]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
