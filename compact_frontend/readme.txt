@@ -1,7 +1,8 @@
 The compact frontend is a second implementation of the Fearless frontend, written to be as short as possible.
 It has the same observable behavior as the full frontend, except that every error is the single exception Frontend.Fail.
 It has no type expression: `A` is the object literal `A{}`, and an object literal without methods is a declaration like any other.
-The full frontend turns such a literal into a type expression as early as it can, so that no declaration and no fresh name is made for it; the tests compare the two cores modulo this optimization.
+The full frontend turns such a literal into a type expression as early as it can, so that no declaration and no fresh name is made for it.
+The tests compare the two printed cores after FearlessTestBase.canon rewrites both: a literal with a fresh name, the self name _ and no method body prints as its head type, as a type expression prints; then the fresh names are renumbered in order of first appearance, restarting at every literal body, since the compact frontend allocates names (for the literal and for the method headers it copies into it) that the full frontend never allocates.
 Its source is the three files src/compact/Frontend.java, src/compact/Util.java and src/compact/Print.java.
 
 Testing:
