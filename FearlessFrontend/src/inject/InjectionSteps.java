@@ -445,9 +445,9 @@ public record InjectionSteps(Methods meths, int cap){
     var foreignPrivate= !selfInferred && !head.isPublic() && !head.pkgName().equals(meths.p().name());
     if (foreignPrivate){ throw meths.p().err().extendedForeign(l, head, "private"); }
     var cs= ToCore.distinctTypes(localBs, selfInferred ? meths.implied(rcc.c()) : Push.of(rcc.c(), meths.implied(rcc.c())));
-    meths.checkMagicSupertypes(l, cs);
     assert l.infHead();
     l = new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, rcc, l.src(), l.infName(), l.infHead(), l.g());
+    meths.checkMagicSupertypes(l, cs);
     if (selfInferred){ l = l.withT(preciseSelf(l).get()); }
     assert !meths.cache().containsKey(name);
     meths.register(l);

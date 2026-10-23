@@ -540,6 +540,51 @@ public record WellFormednessErrors(String pkgName){
       .line(why)
       .line("Rename "+disp(owner.name().simpleName())+", so that its log file has a name allowed in a Fearless project."), owner);
   }
+  public FearlessException mainGeneric(E.Literal owner){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+err().tNameADisp(LiteralDeclarations.main)+" and has generic parameters.")
+      .line("A main can not have generic parameters: running a main gives no generic arguments to it."), owner);
+  }
+  public FearlessException claimNotMain(E.Literal owner, TName claim){
+    var ctx= err().expRepr(owner);
+    var c= err().tNameADisp(claim);
+    return wf(err()
+      .line(up(ctx)+" implements "+c+".")
+      .line("Only a main can implement "+c+": "+ctx+" must also implement "+err().tNameADisp(LiteralDeclarations.main)+", directly or through one of its supertypes."), owner);
+  }
+  public FearlessException claimIconNotConcrete(E.Literal owner, IT.C c){
+    return wf(claim(owner, c)
+      .line("The icon "+err().typeRepr(c.ts().getFirst())+" is not a concrete type name.")
+      .line("An icon is a type name with no type variables and no generic arguments, like \"IconsFoo\"."), owner);
+  }
+  public FearlessException claimExtNotStr(E.Literal owner, IT.C c){
+    return wf(claim(owner, c)
+      .line("The extension "+err().typeRepr(c.ts().get(1))+" is not a string literal type.")
+      .line("An extension is written as a string literal type, like "+disp("\"foo\"")+" or "+disp("`foo`")+"."), owner);
+  }
+  public FearlessException claimExtInvalid(E.Literal owner, IT.C c, String ext){
+    return wf(claim(owner, c)
+      .line(disp(ext)+" is not a valid extension.")
+      .line("An extension is 1 to "+Fs.maxExtSeg+" characters, each a lowercase letter \"a\"-\"z\" or a digit \"0\"-\"9\", with no dot; \"fearless\" is reserved."), owner);
+  }
+  public FearlessException claimShortcutNotFapp(E.Literal owner, IT.C c, String ext){
+    return wf(claim(owner, c)
+      .line(disp(ext)+" is not a shortcut extension: a shortcut file only starts its main, so it must not look like a document of another program or a file of the project.")
+      .line("A shortcut extension is \"fapp\" followed by three digits, like \"fapp042\"; or implement "+err().tNameADisp(LiteralDeclarations.claims.get(2))+" to let the Fearless manager choose one."), owner);
+  }
+  public FearlessException claimOpenWithFapp(E.Literal owner, IT.C c, String ext){
+    return wf(claim(owner, c)
+      .line(disp(ext)+" is a shortcut extension: \"fapp\" followed by three digits names the shortcut files of the Fearless manager.")
+      .line("Use an extension of the form \"ffile\" followed by three digits, like \"ffile042\", or a system extension, like \"htm\"; or implement "+err().tNameADisp(LiteralDeclarations.claims.get(0))+" to let the Fearless manager choose one."), owner);
+  }
+  public FearlessException claimExtTwice(E.Literal owner, IT.C first, IT.C second, String ext){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" claims the extension "+disp(ext)+" more than once:")
+      .line("both "+claimRepr(owner, first)+" and "+claimRepr(owner, second)+" claim it.")
+      .line("A main can claim each extension at most once, across all its "+err().tNameADisp(LiteralDeclarations.claims.get(1))+" and "+err().tNameADisp(LiteralDeclarations.claims.get(3))+", since one extension has one icon."), owner);
+  }
+  private Err claim(E.Literal owner, IT.C c){ return err().line(up(err().expRepr(owner))+" implements "+claimRepr(owner, c)+"."); }
+  private String claimRepr(E.Literal owner, IT.C c){ return disp(err().typeReprRaw(new IT.RCC(Optional.empty(), c, owner.span()))); }
   public FearlessException extendedForeign(E.Literal owner, TName target, String kind){
     var ownerPkg= owner.name().pkgName();
     var targetPkg= target.pkgName();
