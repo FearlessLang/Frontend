@@ -166,12 +166,19 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   ///Raised when checking object literals
   public FearlessException callableMethodStillAbstract(E at, M got){
     var s= got.sig();
-    return addExpFrame(at, err()
+    var e= err()
       .line("This object literal is missing a required method.")
       .line("Missing: "+methodSig(s.rc()+" ", s.m())+".")
-      .line("Required by: "+err().tNameADisp(s.origin())+".")
-      .line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.")
+      .line("Required by: "+err().tNameADisp(s.origin())+".");
+    if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.").ex(at)); }
+    var name= t.type().c().name();
+    return addExpFrame(at, e
+      .line("Sealed types can only be implemented in their own package.")
+      .line("Type "+disp(name.simpleName())+" is defined in package "+disp(name.pkgName())+".")
       .ex(at));
+  }
+  private boolean foreignSealed(TName name){
+    return !name.pkgName().equals(pkg.name()) && LiteralDeclarations.has(decs.apply(name).cs(), LiteralDeclarations.sealed);
   }
   public FearlessException literalImplementsTypeParameter(E at, T req){
     var x= err().typeRepr(true, req);
