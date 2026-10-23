@@ -406,7 +406,9 @@ public record InjectionSteps(Methods meths, int cap){
     if (!infHead){
       l = l.infName() ? selfSuper.map(l::withT).orElse(l) : l.withT(selfPrecise.get());
       if (!(l.t() instanceof IT.RCC(_, var c, _))){ return l; }//!infHead after passing this test means right now we can expand methods
-      l = l.infName() && !c.name().equals(l.name()) ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l, true);
+      var anon= l.infName() && !c.name().equals(l.name());
+      if (anon && l.ms().isEmpty() && l.t().isTV() && meths._from(c.name()) != null){ return literalAsType(l, (IT.RCC)l.t()); }
+      l = anon ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l, true);
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
     var res= new ArrayList<M>(l.ms().size());
@@ -437,10 +439,8 @@ public record InjectionSteps(Methods meths, int cap){
     assert l.infName();
     assert l.bs().isEmpty();
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
-    var justAType= noMeth && l.infHead() && meths._from(rcc.c().name()) != null;
-    var orcc= new IT.RCC(orc, rcc.c(), rcc.span());
-    if (justAType){ return new E.Type(orcc, preferred(orcc), l.src(), l.g()); }
     var selfInferred= rcc.c().name().equals(l.name());
+    if (noMeth && !selfInferred && meths._from(rcc.c().name()) != null){ return literalAsType(l, rcc); }
     var head= rcc.c().name();
     var foreignPrivate= !selfInferred && !head.isPublic() && !head.pkgName().equals(meths.p().name());
     if (foreignPrivate){ throw meths.p().err().extendedForeign(l, head, "private"); }
@@ -453,6 +453,14 @@ public record InjectionSteps(Methods meths, int cap){
     meths.register(l);
     g.tableGrew();
     return l;
+  }
+  private E.Type literalAsType(E.Literal l, IT.RCC rcc){
+    if (!l.thisName().equals("_")){ throw meths.p().err().selfNameDeadCode(l); }
+    var head= rcc.c().name();
+    var foreignPrivate= !head.isPublic() && !head.pkgName().equals(meths.p().name());
+    if (foreignPrivate){ throw meths.p().err().extendedForeign(l, head, "private"); }
+    var orcc= new IT.RCC(l.rc().or(rcc::rc).map(InjectionSteps::noH), rcc.c(), rcc.span());
+    return new E.Type(orcc, preferred(orcc), l.src(), l.g());
   }
   private List<M> fixArity(List<M> ms, TName name, TName newName){
     if (name.equals(newName)){ return ms; }

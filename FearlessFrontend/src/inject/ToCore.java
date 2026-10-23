@@ -55,6 +55,7 @@ public record ToCore(List<B> ctx, Methods meths){
     if (!(e.t() instanceof IT.RCC) && !e.t().undecided()){ throw meths.p().err().literalImplementsTypeParameter(e, e.t()); }
     var csIT= distinctTypes(inner.ctx(), o.cs().isEmpty() ? e.cs() : Push.of(o.cs(), e.cs()));
     for (var c : csIT){ checkHead(e, c); }
+    assert !e.infName() || !e.thisName().equals("_") || e.ms().stream().anyMatch(m -> m.impl().isPresent());
     var ms= inner.mapMs(e.ms(), o.ms(), e).stream().map(m -> withOrigin(m, e.name(), name)).toList();
     var cs= TypeRename.itcToTC(csIT);
     assert InjectionToInferenceVisitor.duplicatedSupertypes(inner.ctx(), cs).isEmpty();

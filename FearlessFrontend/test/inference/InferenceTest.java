@@ -1322,9 +1322,9 @@ A:{imm .m:base.Void; imm .m:base.Void}
 """));}
 
 @Test void goodImplementsVoid(){ ok("""
-p.Bad:p.Sup{'_ .h:base.Void@p.Bad;->p._AUser:base.Void:?; .k:base.Void@p.Sup;}
+p.Bad:p.Sup{'_ .h:base.Void@p.Bad;->base.Void:?; .k:base.Void@p.Sup;}
 p.Sup:{'this .h:base.Void@p.Sup; .k:base.Void@p.Sup;}
-p.User:{'this .m:p.Sup@p.User;->p.Bad:p.Sup{'_ .h[?]:base.Void@!;->p._AUser:base.Void:?;}:?;}
+p.User:{'this .m:p.Sup@p.User;->p.Bad:p.Sup{'_ .h[?]:base.Void@!;->base.Void:?;}:?;}
 """, List.of("""
 Sup:{
   imm .h:base.Void;

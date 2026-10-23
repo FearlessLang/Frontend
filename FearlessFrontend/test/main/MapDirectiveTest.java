@@ -31,7 +31,7 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
     var other= others(pkgs);
     var res= okOrPrint(o, () -> new FrontendLogicMain().of("b", map, o.allFiles(), other));
     if (!checkCompact){ return; }
-    strCmp(lines(res), compact.Print.lines(compactB(pkgs, map, o)));
+    coreCmp(lines(res), compact.Print.lines(compactB(pkgs, map, o)));
   }
   static void fail(String expected, Map<String,String> pkgs, Map<String,String> map, String bSrc){
     var o= oraclePkg(List.of(bSrc));

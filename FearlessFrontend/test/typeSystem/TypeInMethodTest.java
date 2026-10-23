@@ -21,7 +21,7 @@ public final class TypeInMethodTest extends testUtils.FearlessTestBase{
     var oB= oraclePkg(List.of(bSrc));
     var res= okOrPrint(oB, () -> compileB(aSrc, oB));
     if (!checkCompact){ return; }
-    strCmp(lines(res), compact.Print.lines(compactB(aSrc, oB)));
+    coreCmp(lines(res), compact.Print.lines(compactB(aSrc, oB)));
   }
   static void failTwoPkgs(String expected, String aSrc, String bSrc){
     failTwoPkgsRaw("In file: [###].fear\n\n"+expected+"Error 8 TypeError", aSrc, bSrc);
@@ -195,6 +195,42 @@ _P:{ .foo: base.Void }
 Take:{ #(p:_P): base.Void -> base.Void }
 """, """
 B:{.m: base.Void -> a.Take#({ base.Void })}
+"""); }
+
+  @Test void anonEmptyArgumentImplementsPrivateTypeFromOtherPkg(){ failTwoPkgsRaw("""
+In file: [###].fear
+
+001| B:{.m: base.Void -> a.Take#({})}
+   |                             ^^
+
+While inspecting object literal instance of "a._P"
+Object literal instance of "a._P" implements private type "a._P".
+Private types can only be implemented in their own package.
+Object literal instance of "a._P" is defined in package "b".
+Type "_P" is defined in package "a".
+Error 7 WellFormedness""", """
+_P:{ .foo: base.Void -> base.Void }
+Take:{ #(p:_P): base.Void -> base.Void }
+""", """
+B:{.m: base.Void -> a.Take#({})}
+"""); }
+
+  @Test void anonEmptyArgumentImplementsAbstractPrivateTypeFromOtherPkg(){ failTwoPkgsRaw("""
+In file: [###].fear
+
+001| B:{.m: base.Void -> a.Take#({})}
+   |                             ^^
+
+While inspecting object literal instance of "a._P"
+Object literal instance of "a._P" implements private type "a._P".
+Private types can only be implemented in their own package.
+Object literal instance of "a._P" is defined in package "b".
+Type "_P" is defined in package "a".
+Error 7 WellFormedness""", """
+_P:{ .foo: base.Void }
+Take:{ #(p:_P): base.Void -> base.Void }
+""", """
+B:{.m: base.Void -> a.Take#({})}
 """); }
 
   @Test void typedLiteralImplementsPrivateTypeFromOtherPkg(){ failTwoPkgsRaw("""

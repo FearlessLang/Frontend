@@ -172,7 +172,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   E visitX(fearlessFullGrammar.E.X x){ return new E.X(x.name(), new Src(x)); }
   E visitImplicit(fearlessFullGrammar.E.Implicit n){ return new E.X(implicits.getLast(), new Src(n)); }
   E visitTypedLiteral(fearlessFullGrammar.E.TypedLiteral t){
-    if (t.l().isEmpty()){ return new E.Type(visitRCC(t.t()), new Src(t)); }
+    var trivial= t.l().map(l -> l.methods().isEmpty() && l.thisName().isEmpty()).orElse(true);
+    if (trivial){ return new E.Type(visitRCC(t.t()), new Src(t)); }
     var impl= List.of(visitC(t.t().c()));
     var ms= mapM(t.l().get().methods());
     var l= liftLiteral(of(t.t().rc().orElse(RC.imm)), impl, t.l().get().thisName().map(fearlessFullGrammar.E.X::name), ms, new Src(t));
