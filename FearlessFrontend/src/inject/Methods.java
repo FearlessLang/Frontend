@@ -3,6 +3,7 @@ package inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +120,8 @@ public record Methods(
     if (widen.size() > 1){ throw p.err().multipleWidenTo(d, widen); }
     if (names.contains(LiteralDeclarations.baseId)){ checkBaseId(d); }
     if (names.contains(LiteralDeclarations.fileLog)){ checkFileLogName(d); }
+    checkClaims(d, names, allCs);
+    if (names.contains(LiteralDeclarations.main) && !d.bs().isEmpty()){ throw p.err().mainGeneric(d); }
     if (!names.contains(LiteralDeclarations.sealed)){ return; }
     allCs.stream()
       .filter(c -> !c.name().pkgName().equals(d.name().pkgName()))
@@ -140,6 +143,24 @@ public record Methods(
     if (Fs.winReserved.contains(file)){ throw p.err().fileLogFileNameNotAllowed(d, path, "\""+file+"\" is a Windows reserved device name."); }
     if (file.startsWith("_rank_")){ throw p.err().fileLogFileNameNotAllowed(d, path, "Only rank files can start with \"_rank_\"."); }
     if (path.length() > 200){ throw p.err().fileLogFileNameNotAllowed(d, path, "The path is longer than 200 characters."); }
+  }
+  private void checkClaims(E.Literal d, List<TName> names, List<IT.C> allCs){
+    var cs= allCs.stream().filter(c -> LiteralDeclarations.claims.contains(c.name())).toList();
+    if (cs.isEmpty()){ return; }
+    if (!names.contains(LiteralDeclarations.main)){ throw p.err().claimNotMain(d, cs.getFirst().name()); }
+    var exts= new HashMap<String,IT.C>();
+    for (var c : cs){
+      if (!(c.ts().getFirst() instanceof IT.RCC i && i.c().ts().isEmpty())){ throw p.err().claimIconNotConcrete(d, c); }
+      if (c.ts().size() == 1){ continue; }
+      var lit= c.ts().get(1) instanceof IT.RCC e ? e.c().name().simpleName() : "";
+      if (!lit.startsWith("\"") && !lit.startsWith("`")){ throw p.err().claimExtNotStr(d, c); }
+      var ext= lit.substring(1, lit.length()-1);
+      if (!Fs.isExtSeg(ext) || ext.equals("fearless")){ throw p.err().claimExtInvalid(d, c, ext); }
+      var shortcut= c.name().simpleName().equals("Shortcut");
+      if (shortcut != ext.matches("fapp[0-9]{3}")){ throw shortcut ? p.err().claimShortcutNotFapp(d, c, ext) : p.err().claimOpenWithFapp(d, c, ext); }
+      var prev= exts.putIfAbsent(ext, c);
+      if (prev != null){ throw p.err().claimExtTwice(d, prev, c, ext); }
+    }
   }
   private static final MName hashOne= new MName("#", 1);
   void notSealed(TName target, E.Literal owner){

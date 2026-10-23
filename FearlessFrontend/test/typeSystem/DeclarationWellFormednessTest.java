@@ -528,6 +528,70 @@ Rename "Longongongongongongongongongongongongongongongongongongongongongongongon
 """, List.of("""
 Longongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongongong: base.FileLog{ .name -> base.Nope! }
 """));}
+@Test void mainWithGenericParameters(){failWf("""
+001| Hello[X]: base.Main{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Hello[_]"
+Type declaration "Hello[_]" implements "base.Main" and has generic parameters.
+A main can not have generic parameters: running a main gives no generic arguments to it.
+""", List.of("""
+Hello[X]: base.Main{ .main -> base.Void }
+"""));}
+@Test void abstractMainWithGenericParameters(){failWf("""
+001| Runner[X]: base.Main{ .go: X }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Runner[_]"
+Type declaration "Runner[_]" implements "base.Main" and has generic parameters.
+A main can not have generic parameters: running a main gives no generic arguments to it.
+""", List.of("""
+Runner[X]: base.Main{ .go: X }
+"""));}
+@Test void namedMainInAGenericMethod(){failWf("""
+001| Box: { .mk[X]: base.Main -> Free[X]: base.Main{ .main -> base.Void{}; .id(y: X): X -> y } }
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Free[_]"
+Object literal "Free[_]" implements "base.Main" and has generic parameters.
+A main can not have generic parameters: running a main gives no generic arguments to it.
+""", List.of("""
+Box: { .mk[X]: base.Main -> Free[X]: base.Main{ .main -> base.Void{}; .id(y: X): X -> y } }
+"""));}
+@Test void anonymousMainInAGenericMethod(){failWf("""
+001| Box: { .mk[X]: base.Main -> { .main -> base.Void{}; .id(y: X): X -> y } }
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.Main"
+Object literal instance of "base.Main" implements "base.Main" and has generic parameters.
+A main can not have generic parameters: running a main gives no generic arguments to it.
+""", List.of("""
+Box: { .mk[X]: base.Main -> { .main -> base.Void{}; .id(y: X): X -> y } }
+"""));}
+@Test void openWithWithoutMain(){failWf("""
+001| Assoc: base.OpenWith[Icon,"foo"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Assoc"
+Type declaration "Assoc" implements "base.OpenWith[_,_]".
+Only a main can implement "base.OpenWith[_,_]": type declaration "Assoc" must also implement "base.Main", directly or through one of its supertypes.
+""", List.of("""
+Assoc: base.OpenWith[Icon,"foo"]{}
+Icon: {}
+"""));}
+@Test void openWithTwice(){failWf("""
+001| Two: base.Main, base.OpenWith[Icon,"foo"], base.Shortcut[Icon,"fapp001"], base.OpenWith[Icon2,"foo"]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Two"
+Type declaration "Two" claims the extension "foo" more than once:
+both `base.OpenWith[Icon,"foo"]` and `base.OpenWith[Icon2,"foo"]` claim it.
+A main can claim each extension at most once, across all its "base.OpenWith[_,_]" and "base.Shortcut[_,_]", since one extension has one icon.
+""", List.of("""
+Two: base.Main, base.OpenWith[Icon,"foo"], base.Shortcut[Icon,"fapp001"], base.OpenWith[Icon2,"foo"]{ .main -> base.Void }
+Icon: {}
+Icon2: {}
+"""));}
 @Test void sealedOutsidePkg(){failWf("""
 001| C:base.Void{}
    | ^^^^^^^^^^^^^
