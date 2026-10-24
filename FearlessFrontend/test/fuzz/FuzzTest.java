@@ -24,7 +24,7 @@ import tools.SourceOracle;
 import utils.Join;
 
 public final class FuzzTest extends testUtils.FearlessTestBase{
-  static final int cases= 10_000;
+  static final int perSeed= 9;
   static final List<String> tokens= List.of("{", "}", "(", ")", "[", "]", ":", ";", "->", "=", ",",
     "mut ", "read ", "iso ", "imm ", "readH ", "mutH ", "read/imm ", "this", " x", " .m", " .foo", "'self ",
     "::", "A", "B", "X", "_", "*", "**", "base.Void", "#", " +");
@@ -41,21 +41,27 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
 
   @Test void mutatedTestProgramsNeverCrash(){
     var seeds= seeds();
+    var donors= new TreeMap<Integer,String>();
+    for (var s : seeds){ donors.put(s.hashCode(), s); }
     var other= otherFrom(DbgBlock.all());
-    var rnd= new Random(0);
     var crashes= new TreeMap<String,String>();
     var cBase= checkCompact ? compactBase() : List.<compact.Frontend.Literal>of();
-    for (var s : seeds){ run(s, other, cBase, crashes); }
-    for (int i= 0; i < cases; i += 1){ run(mutate(seeds.get(rnd.nextInt(seeds.size())), rnd, seeds), other, cBase, crashes); }
+    for (var s : seeds){
+      run(s, other, cBase, crashes);
+      var rnd= new Random(s.hashCode());
+      for (int i= 0; i < perSeed; i += 1){ run(mutate(s, rnd, donors), other, cBase, crashes); }
+    }
     strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
   }
   @Test void underAnnotatedTestProgramsNeverCrash(){
     var seeds= seeds().stream().filter(FuzzTest::annotated).filter(FuzzTest::parses).toList();
     var other= otherFrom(DbgBlock.all());
-    var rnd= new Random(0);
     var crashes= new TreeMap<String,String>();
     var cBase= checkCompact ? compactBase() : List.<compact.Frontend.Literal>of();
-    for (int i= 0; i < cases; i += 1){ run(underAnnotate(seeds.get(rnd.nextInt(seeds.size())), rnd), other, cBase, crashes); }
+    for (var s : seeds){
+      var rnd= new Random(s.hashCode());
+      for (int i= 0; i < perSeed; i += 1){ run(underAnnotate(s, rnd), other, cBase, crashes); }
+    }
     strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
   }
   static void run(String src, OtherPackages other, List<compact.Frontend.Literal> cBase, TreeMap<String,String> crashes){
@@ -97,20 +103,24 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   static boolean isProgram(String s){
     return s.contains("\n") && !s.contains("|") && !s.contains("Error") && (s.contains("->") || s.contains(":{"));
   }
-  static String mutate(String s, Random r, List<String> seeds){
+  static String mutate(String s, Random r, TreeMap<Integer,String> donors){
     int k= 1 + r.nextInt(3);
-    for (int i= 0; i < k && !s.isEmpty(); i += 1){ s = mutateOnce(s, r, seeds); }
+    for (int i= 0; i < k && !s.isEmpty(); i += 1){ s = mutateOnce(s, r, donors); }
     return s;
   }
-  static String mutateOnce(String s, Random r, List<String> seeds){
+  static String mutateOnce(String s, Random r, TreeMap<Integer,String> donors){
     int p= r.nextInt(s.length());
     return switch (r.nextInt(5)){
       case 0 -> s.substring(0, p) + s.substring(Math.min(s.length(), p+1+r.nextInt(4)));
       case 1 -> insert(s, p, tokens.get(r.nextInt(tokens.size())));
       case 2 -> insert(s, r.nextInt(s.length()), slice(s, p, 1+r.nextInt(12)));
-      case 3 -> insert(s, p, slice(seeds.get(r.nextInt(seeds.size())), r, 20));
+      case 3 -> insert(s, p, slice(donor(donors, r), r, 20));
       default -> swapRc(s, r);
     };
+  }
+  static String donor(TreeMap<Integer,String> donors, Random r){
+    var e= donors.ceilingEntry(r.nextInt());
+    return (e == null ? donors.firstEntry() : e).getValue();
   }
   static String underAnnotate(String s, Random r){
     int k= 1 + r.nextInt(4);
