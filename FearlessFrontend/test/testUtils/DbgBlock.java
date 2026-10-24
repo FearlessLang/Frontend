@@ -98,6 +98,7 @@ public static String baseBody= """
 Sealed:{}
 CaptureFree: {}
 FileLog: CaptureFree{ .name: Str; }
+InMemoryLog[T]: CaptureFree{ .name: Str; }
 Main: CaptureFree{ .main: Void }
 SystemAttenuator: CaptureFree{ #: Void }
 OpenWith[I,E]: {}
