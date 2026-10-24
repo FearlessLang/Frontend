@@ -540,10 +540,10 @@ public record WellFormednessErrors(String pkgName){
       .line(why)
       .line("Rename "+disp(owner.name().simpleName())+", so that its log file has a name allowed in a Fearless project."), owner);
   }
-  public FearlessException namedGeneric(E.Literal owner, TName t){
+  public FearlessException namedGeneric(E.Literal owner, TName t, String what){
     return wf(err()
       .line(up(err().expRepr(owner))+" implements "+err().tNameADisp(t)+" and has generic parameters.")
-      .line("A type implementing "+err().tNameADisp(t)+" must have zero generic parameters."), owner);
+      .line(what+" implementing "+err().tNameADisp(t)+" must have zero generic parameters."), owner);
   }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
     var ctx= err().expRepr(owner);

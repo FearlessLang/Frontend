@@ -598,7 +598,7 @@ Box: { .mk[X]: base.Main -> { .main -> base.Void{}; .id(y: X): X -> y } }
 
 While inspecting type declaration "NoGui[_]"
 Type declaration "NoGui[_]" implements "base.SystemAttenuator" and has generic parameters.
-A type implementing "base.SystemAttenuator" must have zero generic parameters.
+A concrete type implementing "base.SystemAttenuator" must have zero generic parameters.
 """, List.of("""
 NoGui[X]: base.SystemAttenuator{ # -> base.Void }
 """));}
@@ -611,7 +611,7 @@ Shape[X]: base.SystemAttenuator{ .extra: X }
 
 While inspecting type declaration "MyLog[_]"
 Type declaration "MyLog[_]" implements "base.FileLog" and has generic parameters.
-A type implementing "base.FileLog" must have zero generic parameters.
+A concrete type implementing "base.FileLog" must have zero generic parameters.
 """, List.of("""
 MyLog[X]: base.FileLog{ .name -> base.Nope! }
 """));}
@@ -621,7 +621,7 @@ MyLog[X]: base.FileLog{ .name -> base.Nope! }
 
 While inspecting type declaration "Steps[_]"
 Type declaration "Steps[_]" implements "base.InMemoryLog[_]" and has generic parameters.
-A type implementing "base.InMemoryLog[_]" must have zero generic parameters.
+A concrete type implementing "base.InMemoryLog[_]" must have zero generic parameters.
 """, List.of("""
 Steps[X]: base.InMemoryLog[X]{ .name -> base.Nope! }
 """));}
@@ -631,7 +631,7 @@ Steps[X]: base.InMemoryLog[X]{ .name -> base.Nope! }
 
 While inspecting object literal instance of "base.InMemoryLog[_]"
 Object literal instance of "base.InMemoryLog[_]" implements "base.InMemoryLog[_]" and has generic parameters.
-A type implementing "base.InMemoryLog[_]" must have zero generic parameters.
+A concrete type implementing "base.InMemoryLog[_]" must have zero generic parameters.
 """, List.of("""
 Box: { .mk[X]: base.InMemoryLog[X] -> { .name -> base.Nope! } }
 """));}
