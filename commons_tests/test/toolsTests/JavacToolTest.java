@@ -1,10 +1,12 @@
 package toolsTests;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -25,4 +27,10 @@ final class JavacToolTest{
   }
   @Test void apostropheInProjectFolder(@TempDir Path tmp){ compiles(tmp, "it's"); }
   @Test void backslashInProjectFolder(@TempDir Path tmp){ compiles(tmp, "a\\b"); }
+  @Test void managerFolderIsNextToTheProgramFolderOfTheLauncher(){
+    var dir= Path.of("opt", "fearlessManaged0_002");
+    assertEquals(Optional.of(dir.resolveSibling("fearless0_002")), JavacTool.managerFolderOf(dir.resolve("fearlessManaged0_002w.exe")));
+    assertEquals(Optional.of(dir.resolveSibling("fearless0_002")), JavacTool.managerFolderOf(dir.resolve("bin").resolve("fearlessManaged0_002")));
+    assertEquals(Optional.empty(), JavacTool.managerFolderOf(Path.of("opt", "fearless0_002", "bin", "fearless0_002")));
+  }
 }
