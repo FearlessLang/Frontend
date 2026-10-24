@@ -362,6 +362,21 @@ this.ba
 """, List.of("""
 A:{.foo123:A->this.ba}
 """));}
+@Test void emptyLiteralArgumentOfUndeclaredMethod(){fail("""
+001| A:{ .m(x: B): B -> x.foo({}); }
+   |     ---------------~^^^^^~~-
+
+While inspecting ".m(_)" line 1
+This call to method ".foo(_)" cannot typecheck.
+Method ".foo(_)" is not declared on type "B".
+Type "B" does not have any methods.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x.foo({})
+""", List.of("""
+A:{ .m(x: B): B -> x.foo({}); }
+B:{}
+"""));}
 @Test void typeNotWellKinded_genericInstantiationViolatesBounds(){fail("""
 003| User:{ imm .m(a:imm A[mut B]):base.Void; }
    | --------------------^^^^^^^^--------------
