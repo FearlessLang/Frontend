@@ -558,7 +558,7 @@ Longongongongongongongongongongongongongongongongongongongongongongongongongongo
 
 While inspecting type declaration "Hello[_]"
 Type declaration "Hello[_]" implements "base.Main" and has generic parameters.
-A main can not have generic parameters: running a main gives no generic arguments to it.
+A type implementing "base.Main" must have zero generic parameters.
 """, List.of("""
 Hello[X]: base.Main{ .main -> base.Void }
 """));}
@@ -568,7 +568,7 @@ Hello[X]: base.Main{ .main -> base.Void }
 
 While inspecting type declaration "Runner[_]"
 Type declaration "Runner[_]" implements "base.Main" and has generic parameters.
-A main can not have generic parameters: running a main gives no generic arguments to it.
+A type implementing "base.Main" must have zero generic parameters.
 """, List.of("""
 Runner[X]: base.Main{ .go: X }
 """));}
@@ -578,7 +578,7 @@ Runner[X]: base.Main{ .go: X }
 
 While inspecting object literal "Free[_]"
 Object literal "Free[_]" implements "base.Main" and has generic parameters.
-A main can not have generic parameters: running a main gives no generic arguments to it.
+A type implementing "base.Main" must have zero generic parameters.
 """, List.of("""
 Box: { .mk[X]: base.Main -> Free[X]: base.Main{ .main -> base.Void{}; .id(y: X): X -> y } }
 """));}
@@ -588,7 +588,7 @@ Box: { .mk[X]: base.Main -> Free[X]: base.Main{ .main -> base.Void{}; .id(y: X):
 
 While inspecting object literal instance of "base.Main"
 Object literal instance of "base.Main" implements "base.Main" and has generic parameters.
-A main can not have generic parameters: running a main gives no generic arguments to it.
+A type implementing "base.Main" must have zero generic parameters.
 """, List.of("""
 Box: { .mk[X]: base.Main -> { .main -> base.Void{}; .id(y: X): X -> y } }
 """));}
@@ -598,7 +598,7 @@ Box: { .mk[X]: base.Main -> { .main -> base.Void{}; .id(y: X): X -> y } }
 
 While inspecting type declaration "NoGui[_]"
 Type declaration "NoGui[_]" implements "base.SystemAttenuator" and has generic parameters.
-An attenuator can not have generic parameters: applying an attenuator by name gives no generic arguments to it.
+A type implementing "base.SystemAttenuator" must have zero generic parameters.
 """, List.of("""
 NoGui[X]: base.SystemAttenuator{ # -> base.Void }
 """));}
@@ -611,7 +611,7 @@ Shape[X]: base.SystemAttenuator{ .extra: X }
 
 While inspecting type declaration "MyLog[_]"
 Type declaration "MyLog[_]" implements "base.FileLog" and has generic parameters.
-A log can not have generic parameters: there is one log per type, and all the generic instantiations of the type would share it.
+A type implementing "base.FileLog" must have zero generic parameters.
 """, List.of("""
 MyLog[X]: base.FileLog{ .name -> base.Nope! }
 """));}
@@ -621,7 +621,7 @@ MyLog[X]: base.FileLog{ .name -> base.Nope! }
 
 While inspecting type declaration "Steps[_]"
 Type declaration "Steps[_]" implements "base.InMemoryLog[_]" and has generic parameters.
-A log can not have generic parameters: there is one log per type, and all the generic instantiations of the type would share it.
+A type implementing "base.InMemoryLog[_]" must have zero generic parameters.
 """, List.of("""
 Steps[X]: base.InMemoryLog[X]{ .name -> base.Nope! }
 """));}
@@ -631,7 +631,7 @@ Steps[X]: base.InMemoryLog[X]{ .name -> base.Nope! }
 
 While inspecting object literal instance of "base.InMemoryLog[_]"
 Object literal instance of "base.InMemoryLog[_]" implements "base.InMemoryLog[_]" and has generic parameters.
-A log can not have generic parameters: there is one log per type, and all the generic instantiations of the type would share it.
+A type implementing "base.InMemoryLog[_]" must have zero generic parameters.
 """, List.of("""
 Box: { .mk[X]: base.InMemoryLog[X] -> { .name -> base.Nope! } }
 """));}
