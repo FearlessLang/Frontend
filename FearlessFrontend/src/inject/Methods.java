@@ -121,11 +121,11 @@ public record Methods(
     if (names.contains(LiteralDeclarations.baseId)){ checkBaseId(d); }
     if (names.contains(LiteralDeclarations.fileLog)){ checkFileLogName(d); }
     checkClaims(d, names, allCs);
-    if (names.contains(LiteralDeclarations.main) && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.main); }
+    if (names.contains(LiteralDeclarations.main) && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.main, "A type"); }
     var concrete= d.ms().stream().allMatch(m -> m.impl().isPresent() || !m.sig().abs());
-    if (names.contains(LiteralDeclarations.attenuator) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.attenuator); }
+    if (names.contains(LiteralDeclarations.attenuator) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.attenuator, "A concrete type"); }
     for (var log : LiteralDeclarations.logs){
-      if (names.contains(log) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, log); }
+      if (names.contains(log) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, log, "A concrete type"); }
     }
     if (!names.contains(LiteralDeclarations.sealed)){ return; }
     allCs.stream()
