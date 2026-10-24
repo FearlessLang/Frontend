@@ -121,11 +121,11 @@ public record Methods(
     if (names.contains(LiteralDeclarations.baseId)){ checkBaseId(d); }
     if (names.contains(LiteralDeclarations.fileLog)){ checkFileLogName(d); }
     checkClaims(d, names, allCs);
-    if (names.contains(LiteralDeclarations.main) && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.main, "A main can not have generic parameters: running a main gives no generic arguments to it."); }
+    if (names.contains(LiteralDeclarations.main) && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.main); }
     var concrete= d.ms().stream().allMatch(m -> m.impl().isPresent() || !m.sig().abs());
-    if (names.contains(LiteralDeclarations.attenuator) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.attenuator, "An attenuator can not have generic parameters: applying an attenuator by name gives no generic arguments to it."); }
+    if (names.contains(LiteralDeclarations.attenuator) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.attenuator); }
     for (var log : LiteralDeclarations.logs){
-      if (names.contains(log) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, log, "A log can not have generic parameters: there is one log per type, and all the generic instantiations of the type would share it."); }
+      if (names.contains(log) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, log); }
     }
     if (!names.contains(LiteralDeclarations.sealed)){ return; }
     allCs.stream()
