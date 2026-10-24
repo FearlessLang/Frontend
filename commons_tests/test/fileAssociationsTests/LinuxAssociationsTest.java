@@ -47,6 +47,7 @@ final class LinuxAssociationsTest{
   private Path home;
   private Path sys;
   private final List<List<String>> ran= new ArrayList<>();
+  private final List<Path> replaced= new ArrayList<>();
   private Function<String,String> env;
   private BiConsumer<List<String>,Function<String,RuntimeException>> run;
   @BeforeEach void desktop(){
@@ -91,7 +92,7 @@ final class LinuxAssociationsTest{
   private void reconcile(List<WindowIcon> windows, String... extensions){
     var program= icon(0x123456);
     var icons= Stream.of(extensions).map(e -> { var png= icon(e.hashCode() & 0xffffff); return new Icon(e, png, png); }).toList();
-    FileAssociations.reconcile(identity, family, command, icons, windows, program, program,
+    FileAssociations.reconcile(identity, family, command, icons, windows, program, program, replaced::add,
       s -> new IllegalStateException("ambiguous "+s),
       s -> new IllegalStateException("userLocked "+s),
       s -> new IllegalStateException("notOurs "+s),
@@ -292,6 +293,15 @@ final class LinuxAssociationsTest{
     assertFalse(Files.exists(appIcon()));
     assertFalse(Files.exists(desktopFile()));
     assertFalse(Files.exists(packageFile()));
+  }
+  @Test void takingOverAnotherProgramReportsItsCommandAndNotOurOwn(){
+    var old= "fearlessManaged0_000";
+    var oldCommand= "/opt/fearlessManaged0_000/bin/fearlessManaged0_000";
+    Fs.writeUtf8(home.resolve("applications").resolve(old+".desktop"), LinuxAssociations.desktopEntry(old, oldCommand, "x", List.of("application/x-fearless")));
+    reconcile(".htm");
+    assertEquals(List.of(Path.of(oldCommand)), replaced);
+    reconcile(".htm", ".ffile001");
+    assertEquals(List.of(Path.of(oldCommand)), replaced);
   }
   @Test void anIdentityOfASystemDataFolderIsDeletedInFull(){
     var old= "fearlessManaged0_000";
