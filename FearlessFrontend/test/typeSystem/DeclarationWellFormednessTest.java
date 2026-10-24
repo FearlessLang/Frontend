@@ -605,6 +605,41 @@ NoGui[X]: base.SystemAttenuator{ # -> base.Void }
 @Test void abstractAttenuatorWithGenericParameters(){ok(List.of("""
 Shape[X]: base.SystemAttenuator{ .extra: X }
 """));}
+@Test void fileLogWithGenericParameters(){failWf("""
+001| MyLog[X]: base.FileLog{ .name -> base.Nope! }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "MyLog[_]"
+Type declaration "MyLog[_]" implements "base.FileLog" and has generic parameters.
+A log can not have generic parameters: there is one log per type, and all the generic instantiations of the type would share it.
+""", List.of("""
+MyLog[X]: base.FileLog{ .name -> base.Nope! }
+"""));}
+@Test void inMemoryLogWithGenericParameters(){failWf("""
+001| Steps[X]: base.InMemoryLog[X]{ .name -> base.Nope! }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Steps[_]"
+Type declaration "Steps[_]" implements "base.InMemoryLog[_]" and has generic parameters.
+A log can not have generic parameters: there is one log per type, and all the generic instantiations of the type would share it.
+""", List.of("""
+Steps[X]: base.InMemoryLog[X]{ .name -> base.Nope! }
+"""));}
+@Test void anonymousInMemoryLogInAGenericMethod(){failWf("""
+001| Box: { .mk[X]: base.InMemoryLog[X] -> { .name -> base.Nope! } }
+   |                                       ^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.InMemoryLog[_]"
+Object literal instance of "base.InMemoryLog[_]" implements "base.InMemoryLog[_]" and has generic parameters.
+A log can not have generic parameters: there is one log per type, and all the generic instantiations of the type would share it.
+""", List.of("""
+Box: { .mk[X]: base.InMemoryLog[X] -> { .name -> base.Nope! } }
+"""));}
+@Test void concreteLogsOfConcreteTypes(){ok(List.of("""
+Steps: base.InMemoryLog[Steps]{ .name -> base.Nope! }
+Shape[X]: base.InMemoryLog[X]{ .extra: X }
+Box: { .mk[X]: base.InMemoryLog[Steps] -> { .name -> base.Nope! } }
+"""));}
 @Test void openWithWithoutMain(){failWf("""
 001| Assoc: base.OpenWith[Icon,"foo"]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

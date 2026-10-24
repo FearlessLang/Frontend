@@ -21,6 +21,7 @@ public final class LiteralDeclarations{
   public static final TName sealed= new TName("base.Sealed", 0, Pos.unknown);
   public static final TName captureFree= new TName("base.CaptureFree", 0, Pos.unknown);
   public static final TName fileLog= new TName("base.FileLog", 0, Pos.unknown);
+  public static final List<TName> logs= List.of(fileLog, new TName("base.InMemoryLog", 1, Pos.unknown));
   public static final TName main= new TName("base.Main", 0, Pos.unknown);
   public static final TName attenuator= new TName("base.SystemAttenuator", 0, Pos.unknown);
   public static final List<TName> claims= List.of(new TName("base.OpenWith", 1, Pos.unknown), new TName("base.OpenWith", 2, Pos.unknown), new TName("base.Shortcut", 1, Pos.unknown), new TName("base.Shortcut", 2, Pos.unknown), new TName("base.PreLoadIcon", 1, Pos.unknown));
