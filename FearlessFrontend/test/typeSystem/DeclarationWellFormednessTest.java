@@ -629,6 +629,67 @@ Two: base.Main, base.OpenWith[Icon,"foo"], base.Shortcut[Icon,"fapp001"], base.O
 Icon: {}
 Icon2: {}
 """));}
+@Test void openWithIconNotConcrete(){failWf("""
+001| One: base.Main, base.OpenWith[Box[Icon],"foo"]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "One"
+Type declaration "One" implements `base.OpenWith[Box[Icon],"foo"]`.
+The icon "Box[Icon]" is not a concrete type name.
+An icon is a type name with no type variables and no generic arguments, like "IconsFoo".
+""", List.of("""
+One: base.Main, base.OpenWith[Box[Icon],"foo"]{ .main -> base.Void }
+Box[X]: {}
+Icon: {}
+"""));}
+@Test void openWithExtensionNotAString(){failWf("""
+001| One: base.Main, base.OpenWith[Icon,Icon]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "One"
+Type declaration "One" implements "base.OpenWith[Icon,Icon]".
+The extension "Icon" is not a string literal type.
+An extension is written as a string literal type, like `"foo"` or "`foo`".
+""", List.of("""
+One: base.Main, base.OpenWith[Icon,Icon]{ .main -> base.Void }
+Icon: {}
+"""));}
+@Test void openWithInvalidExtension(){failWf("""
+001| One: base.Main, base.OpenWith[Icon,"Foo"]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "One"
+Type declaration "One" implements `base.OpenWith[Icon,"Foo"]`.
+"Foo" is not a valid extension.
+An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
+""", List.of("""
+One: base.Main, base.OpenWith[Icon,"Foo"]{ .main -> base.Void }
+Icon: {}
+"""));}
+@Test void shortcutNotFapp(){failWf("""
+001| One: base.Main, base.Shortcut[Icon,"foo"]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "One"
+Type declaration "One" implements `base.Shortcut[Icon,"foo"]`.
+"foo" is not a shortcut extension: a shortcut file only starts its main, so it must not look like a document of another program or a file of the project.
+A shortcut extension is "fapp" followed by three digits, like "fapp042"; or implement "base.Shortcut[_]" to let the Fearless manager choose one.
+""", List.of("""
+One: base.Main, base.Shortcut[Icon,"foo"]{ .main -> base.Void }
+Icon: {}
+"""));}
+@Test void openWithFapp(){failWf("""
+001| One: base.Main, base.OpenWith[Icon,"fapp001"]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "One"
+Type declaration "One" implements `base.OpenWith[Icon,"fapp001"]`.
+"fapp001" is a shortcut extension: "fapp" followed by three digits names the shortcut files of the Fearless manager.
+Use an extension of the form "ffile" followed by three digits, like "ffile042", or a system extension, like "htm"; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
+""", List.of("""
+One: base.Main, base.OpenWith[Icon,"fapp001"]{ .main -> base.Void }
+Icon: {}
+"""));}
 @Test void sealedOutsidePkg(){failWf("""
 001| C:base.Void{}
    | ^^^^^^^^^^^^^

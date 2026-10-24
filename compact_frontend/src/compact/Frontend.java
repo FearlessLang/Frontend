@@ -272,7 +272,8 @@ public final class Frontend{
   }
   static final N str=new N("base.Str",0),nat=new N("base.Nat",0),integer=new N("base.Int",0),floating=new N("base.Float",0),
     widen=new N("base.WidenTo",1),sealed=new N("base.Sealed",0),cf=new N("base.CaptureFree",0),identity=new N("base.BaseId",2),log=new N("base.FileLog",0),
-    container=new N("base.BaseContainer",1),voidName=new N("base.Void",0);
+    container=new N("base.BaseContainer",1),voidName=new N("base.Void",0),main=new N("base.Main",0),attenuator=new N("base.SystemAttenuator",0);
+  static final List<N>claims=List.of(new N("base.OpenWith",1),new N("base.OpenWith",2),new N("base.Shortcut",1),new N("base.Shortcut",2),new N("base.PreLoadIcon",1));
   static Set<RC>caps(RC first,RC...rest){return EnumSet.of(first,rest);}
   static final Set<RC>ii=caps(iso,imm),plain=caps(iso,imm,mut,read),allRC=EnumSet.allOf(RC.class);
   static boolean has(List<C>cs,N magic){return any(cs,c->c.name.equals(magic));}
@@ -523,6 +524,12 @@ public final class Frontend{
       if(has(supers,log)){var s=d.name.simple();no(s.matches(".*('|_[a-z]).*"));var f=s.replaceAll("[A-Z]","_$0").toLowerCase(Locale.ROOT).substring(1);
         no(f.matches("con|prn|aux|nul|(com|lpt)[1-9]|_rank_.*")||f.length()+d.name.pk().length()>184);
       }
+      var cl=filter(supers,c->claims.contains(c.name));no(!cl.isEmpty()&&!has(supers,main));var exts=new HashSet<String>();
+      for(var c:cl){no(!(c.types.get(0)instanceof R(_,var i)&&i.types.isEmpty()));if(c.types.size()==1)continue;
+        var lit=c.types.get(1)instanceof R(_,var e)?e.name.simple():"";no(!lit.matches("[\"`].*"));var ext=lit.substring(1,lit.length()-1);
+        no(!ext.matches("[a-z0-9]{1,16}")||ext.equals("fearless")||c.name.simple().equals("Shortcut")!=ext.matches("fapp[0-9]{3}")||!exts.add(ext));
+      }
+      no(!d.b.isEmpty()&&(has(supers,main)||has(supers,attenuator)&&all(d.ms,m->m.e!=null||!m.s.abs)));
       no(has(supers,sealed)&&any(supers,c->!c.name.pk().equals(d.name.pk())&&has(from(c.name).cs,sealed)));
     }
     void register(Literal d){
@@ -706,8 +713,8 @@ public final class Frontend{
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
       var cap=noH(or(l.r,w.r));var instance=instance(l);
       var own=w.c.name.equals(name);no(!own&&!w.c.name.visible()&&!w.c.name.pk().equals(p.name));
-      var cs=Core.distinct(bs,own?parents(w.c):push(w.c,parents(w.c)));if(!instance)magic(l,cs);
-      l=new Literal(cap,name1,bs,cs,l.self,map(l.ms,mi->mi.o(name,name1)),w,l.anon,l.expanded);
+      var cs=Core.distinct(bs,own?parents(w.c):push(w.c,parents(w.c)));
+      l=new Literal(cap,name1,bs,cs,l.self,map(l.ms,mi->mi.o(name,name1)),w,l.anon,l.expanded);if(!instance)magic(l,cs);
       if(own)l=l.t(self(l));register(l);return instance?l.t(preferred(new R(cap,w.c))):l;
     }
     record TSM(List<T>types,M m){}
