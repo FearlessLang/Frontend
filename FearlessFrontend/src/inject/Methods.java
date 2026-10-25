@@ -121,6 +121,7 @@ public record Methods(
     if (names.contains(LiteralDeclarations.baseId)){ checkBaseId(d); }
     if (names.contains(LiteralDeclarations.fileLog)){ checkFileLogName(d); }
     checkClaims(d, names, allCs);
+    allCs.stream().filter(c -> c.name().equals(LiteralDeclarations.finalMethods)).forEach(c -> checkFinal(d, finalMethod(d, c), allCs));
     if (names.contains(LiteralDeclarations.main) && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.main, "A type"); }
     var concrete= d.ms().stream().allMatch(m -> m.impl().isPresent() || !m.sig().abs());
     if (names.contains(LiteralDeclarations.attenuator) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.attenuator, "A concrete type"); }
@@ -168,6 +169,20 @@ public record Methods(
       var prev= exts.putIfAbsent(ext, c);
       if (prev != null){ throw p.err().claimExtTwice(d, prev, c, ext); }
     }
+  }
+  private String finalMethod(E.Literal d, IT.C c){
+    var lit= c.ts().getFirst() instanceof IT.RCC e ? e.c().name().simpleName() : "";
+    var quoted= lit.startsWith("\"") || lit.startsWith("`");
+    var m= quoted ? lit.substring(1, lit.length()-1) : "";
+    if (!MName.isMethodName(m)){ throw p.err().finalNotMethodName(d, c); }
+    return m;
+  }
+  private void checkFinal(E.Literal d, String m, List<IT.C> allCs){
+    var heirs= allCs.stream().filter(o -> !o.name().equals(LiteralDeclarations.finalMethods) && implied(o).stream().anyMatch(c -> c.name().equals(LiteralDeclarations.finalMethods) && finalMethod(d, c).equals(m))).toList();
+    if (heirs.isEmpty()){ return; }
+    var origin= heirs.stream().filter(o -> heirs.stream().noneMatch(h -> implied(o).stream().anyMatch(c -> c.name().equals(h.name())))).findFirst().orElseThrow();
+    d.ms().stream().filter(mi -> mi.sig().m().get().s().equals(m) && mi.sig().origin().equals(Optional.of(d.name()))).findFirst()
+      .ifPresent(mi -> { throw p.err().finalImplemented(d, mi, origin.name(), m); });
   }
   private static final MName hashOne= new MName("#", 1);
   void notSealed(TName target, E.Literal owner){

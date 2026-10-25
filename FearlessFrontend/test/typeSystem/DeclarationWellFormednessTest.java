@@ -641,6 +641,66 @@ Diary[X]: base.DataEdit{}
 @Test void abstractDataReadWithGenericParameters(){ok(List.of("""
 Shape[X]: base.DataRead{ .extra: X }
 """));}
+@Test void finalMethodImplementedBelowTheOrigin(){failWf("""
+001| Fake: base.DataRead{ .name -> base.Nope! }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Fake"
+Type declaration "Fake" implements method ".name".
+Every method named ".name" is final: "base.Named" implements `base.Final[".name"]`.
+A final method is implemented only by the type implementing "base.Final[_]" directly.
+""", List.of("""
+Fake: base.DataRead{ .name -> base.Nope! }
+"""));}
+@Test void finalMethodImplementedInALiteral(){failWf("""
+001| Forge: { #: base.DataRead -> base.DataRead{ .name -> base.Nope! } }
+   |                              ^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.DataRead"
+Object literal instance of "base.DataRead" implements method ".name".
+Every method named ".name" is final: "base.Named" implements `base.Final[".name"]`.
+A final method is implemented only by the type implementing "base.Final[_]" directly.
+""", List.of("""
+Forge: { #: base.DataRead -> base.DataRead{ .name -> base.Nope! } }
+"""));}
+@Test void finalCoversEveryArityOfItsName(){failWf("""
+002| B: A{ .foo(x: A): A -> x }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Type declaration "B" implements method ".foo(_)".
+Every method named ".foo" is final: "A" implements `base.Final[".foo"]`.
+A final method is implemented only by the type implementing "base.Final[_]" directly.
+""", List.of("""
+A: base.Final[".foo"]{ .foo: A -> this; }
+B: A{ .foo(x: A): A -> x }
+"""));}
+@Test void finalMethodsAreImplementedByTheOriginAndInheritedBelowIt(){ok(List.of("""
+A: base.Final[".foo"]{ .foo: A -> this; .foo(x: A): A -> x; }
+B: A{ .bar: A -> this; }
+C: base.Final["+"]{ +(c: C): C -> c; }
+D: base.Final[`.foo`]{ .foo: D }
+"""));}
+@Test void finalTakesAMethodName(){failWf("""
+001| A: base.Final["foo"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `base.Final["foo"]`.
+The type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+""", List.of("""
+A: base.Final["foo"]{}
+"""));}
+@Test void finalTakesAStringLiteralType(){failWf("""
+001| A: base.Final[A]{}
+   | ^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.Final[A]".
+The type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+""", List.of("""
+A: base.Final[A]{}
+"""));}
 @Test void fileLogWithGenericParameters(){failWf("""
 001| MyLog[X]: base.FileLog{ .name -> base.Nope! }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
