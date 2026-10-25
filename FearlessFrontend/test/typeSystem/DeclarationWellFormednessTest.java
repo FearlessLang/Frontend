@@ -605,6 +605,19 @@ NoGui[X]: base.SystemAttenuator{ # -> base.Void }
 @Test void abstractAttenuatorWithGenericParameters(){ok(List.of("""
 Shape[X]: base.SystemAttenuator{ .extra: X }
 """));}
+@Test void infoMainWithGenericParameters(){failWf("""
+001| Twice[X]: base.InfoMain{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Twice[_]"
+Type declaration "Twice[_]" implements "base.InfoMain" and has generic parameters.
+A concrete type implementing "base.InfoMain" must have zero generic parameters.
+""", List.of("""
+Twice[X]: base.InfoMain{ .main -> base.Void }
+"""));}
+@Test void abstractInfoMainWithGenericParameters(){ok(List.of("""
+Shape[X]: base.InfoMain{ .extra: X }
+"""));}
 @Test void fileLogWithGenericParameters(){failWf("""
 001| MyLog[X]: base.FileLog{ .name -> base.Nope! }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
