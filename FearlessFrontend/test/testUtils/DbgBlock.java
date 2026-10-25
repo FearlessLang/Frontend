@@ -102,6 +102,8 @@ InMemoryLog[T]: CaptureFree{ .name: Str; }
 Main: CaptureFree{ .main: Void }
 InfoMain: CaptureFree{ .main: Void }
 SystemAttenuator: CaptureFree{ #: Void }
+DataRead: CaptureFree{}
+DataEdit: DataRead{}
 OpenWith[I,E]: {}
 Shortcut[I,E]: {}
 WidenTo[T]:{}

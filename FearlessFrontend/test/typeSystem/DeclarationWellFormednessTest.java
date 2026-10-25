@@ -618,6 +618,29 @@ Twice[X]: base.InfoMain{ .main -> base.Void }
 @Test void abstractInfoMainWithGenericParameters(){ok(List.of("""
 Shape[X]: base.InfoMain{ .extra: X }
 """));}
+@Test void dataReadWithGenericParameters(){failWf("""
+001| Pub[X]: base.DataRead{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Pub[_]"
+Type declaration "Pub[_]" implements "base.DataRead" and has generic parameters.
+A concrete type implementing "base.DataRead" must have zero generic parameters.
+""", List.of("""
+Pub[X]: base.DataRead{}
+"""));}
+@Test void dataEditWithGenericParameters(){failWf("""
+001| Diary[X]: base.DataEdit{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Diary[_]"
+Type declaration "Diary[_]" implements "base.DataRead" and has generic parameters.
+A concrete type implementing "base.DataRead" must have zero generic parameters.
+""", List.of("""
+Diary[X]: base.DataEdit{}
+"""));}
+@Test void abstractDataReadWithGenericParameters(){ok(List.of("""
+Shape[X]: base.DataRead{ .extra: X }
+"""));}
 @Test void fileLogWithGenericParameters(){failWf("""
 001| MyLog[X]: base.FileLog{ .name -> base.Nope! }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
