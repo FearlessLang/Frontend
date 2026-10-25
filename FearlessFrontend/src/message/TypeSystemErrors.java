@@ -76,8 +76,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   private FearlessException addExpFrame(E toErr, FearlessException err){
     return err.addFrame(err().expRepr(toErr), toErr.span().inner);
   }
-  private FearlessException overrideErr(Literal l, Sig sub, Err e){
-    return addExpFrame(l, e.ex(l).addSpan(sub.span().inner));
+  private FearlessException overrideErr(Literal l, Sig current, Sig parent, String got, String want, String why){
+    var e= err()
+      .invalidMethImpl(current.rc().toStrSpace(), l, current.m())
+      .line("The method "+err().methodSig(current.m())+" "+got+".")
+      .line("But "+err().methodSig(current.rc().toStrSpace(), parent.origin(), current.m())+" "+want+".")
+      .line(why);
+    return addExpFrame(l, e.ex(l).addSpan(current.span().inner));
   }
   ///Fired when a generic instantiation Id[Ts] does not respect the RC bounds
   ///declared in Id[Bs]. This is a "type arguments vs generic header" error,
@@ -110,57 +115,45 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchContravariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent, int index){
-    var mName= current.m();
-    assert mName.equals(parent.m());
+    assert current.m().equals(parent.m());
     var parentArg= parent.ts().get(index);
     var currentArg= current.ts().get(index);
     assert !ts.isSub(ctx, parentArg, currentArg);
     var inverse= ts.isSub(ctx, currentArg, parentArg)
       ? "It is instead a supertype: you are strengthening the parameter instead of weakening it."
       : "The two types are unrelated.";
-    return overrideErr(l, current, err()
-      .invalidMethImpl(current.rc().toStrSpace(), l, mName)
-      .line("The method "+err().methodSig(mName)+" accepts parameter "+(index+1)+" of type "+err().typeRepr(true, currentArg)+".")
-      .line("But "+err().methodSig(current.rc().toStrSpace(), parent.origin(), mName)+" requires "+err().typeRepr(true, parentArg)+", which is not a subtype of "+err().typeRepr(true, currentArg)+".")
-      .line(inverse)
-    );
+    return overrideErr(l, current, parent,
+      "accepts parameter "+(index+1)+" of type "+err().typeRepr(true, currentArg),
+      "requires "+err().typeRepr(true, parentArg)+", which is not a subtype of "+err().typeRepr(true, currentArg),
+      inverse);
   }
   public FearlessException methodOverrideArgCapabilityChanged(Literal l, Sig current, Sig parent, int index){
-    var mName= current.m();
-    return overrideErr(l, current, err()
-      .invalidMethImpl(current.rc().toStrSpace(), l, mName)
-      .line("The method "+err().methodSig(mName)+" accepts parameter "+(index+1)+" of type "+err().typeRepr(false, current.ts().get(index))+".")
-      .line("But "+err().methodSig(current.rc().toStrSpace(), parent.origin(), mName)+" requires "+err().typeRepr(false, parent.ts().get(index))+".")
-      .line(capabilityLocked)
-    );
+    return overrideErr(l, current, parent,
+      "accepts parameter "+(index+1)+" of type "+err().typeRepr(false, current.ts().get(index)),
+      "requires "+err().typeRepr(false, parent.ts().get(index)),
+      capabilityLocked);
   }
   public FearlessException methodOverrideRetCapabilityChanged(Literal l, Sig current, Sig parent){
-    var mName= current.m();
-    return overrideErr(l, current, err()
-      .invalidMethImpl(current.rc().toStrSpace(), l, mName)
-      .line("The method "+err().methodSig(mName)+" returns type "+err().typeRepr(false, current.ret())+".")
-      .line("But "+err().methodSig(current.rc().toStrSpace(), parent.origin(), mName)+" returns type "+err().typeRepr(false, parent.ret())+".")
-      .line(capabilityLocked)
-    );
+    return overrideErr(l, current, parent,
+      "returns type "+err().typeRepr(false, current.ret()),
+      "returns type "+err().typeRepr(false, parent.ret()),
+      capabilityLocked);
   }
   private static final String capabilityLocked= "An overriding method can refine the types of its parameters and result, but not their reference capabilities.";
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchCovariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent){
-    var mName= current.m();
-    assert mName.equals(parent.m());
+    assert current.m().equals(parent.m());
     var parentRet= parent.ret();
     var currentRet= current.ret();
     assert !ts.isSub(ctx, currentRet, parentRet);
     var inverse= ts.isSub(ctx, parentRet, currentRet)
       ? "It is instead a subtype: you are weakening the result instead of strengthening it."
       : "The two types are unrelated.";
-    return overrideErr(l, current, err()
-      .invalidMethImpl(current.rc().toStrSpace(), l, mName)
-      .line("The method "+err().methodSig(mName)+" returns type "+err().typeRepr(true, currentRet)+".")
-      .line("But "+err().methodSig(current.rc().toStrSpace(), parent.origin(), mName)+" returns type "+err().typeRepr(true, parentRet)+", which is not a supertype of "+err().typeRepr(true, currentRet)+".")
-      .line(inverse)
-    );
+    return overrideErr(l, current, parent,
+      "returns type "+err().typeRepr(true, currentRet),
+      "returns type "+err().typeRepr(true, parentRet)+", which is not a supertype of "+err().typeRepr(true, currentRet),
+      inverse);
   }
   ///A required method was left abstract instead of being implemented.
   ///Raised when checking object literals
