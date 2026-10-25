@@ -135,8 +135,16 @@ public record ToCore(List<B> ctx, Methods meths){
   private void checkHead(inference.E.Literal e, IT.C c){
     var unknown= IntStream.range(0, c.ts().size()).filter(i -> !c.ts().get(i).isTV()).boxed().toList();
     if (unknown.isEmpty()){ return; }
+    calls(e).forEach(this::targs);
     throw meths.p().err().literalHeadNotInferred(e, c, unknown, B.xs(meths.from(c.name()).bs()));
   }
+  private void targs(inference.E.Call c){ IntStream.range(0, c.targs().size()).forEach(i -> targ(c, c.targs(), i)); }
+  private static Stream<inference.E.Call> calls(inference.E e){ return switch (e){
+    case inference.E.Call c -> Streams.of(calls(c.e()), Stream.of(c), c.es().stream().flatMap(ToCore::calls));
+    case inference.E.ICall c -> Streams.of(calls(c.e()), c.es().stream().flatMap(ToCore::calls));
+    case inference.E.Literal l -> l.ms().stream().flatMap(m -> m.impl().stream()).flatMap(i -> calls(i.e()));
+    case inference.E.X _, inference.E.Type _ -> Stream.of();
+  };}
   core.E.Call callFromICall(inference.E.ICall e, CallLike o){
     assert o.rc.isEmpty();
     assert o.targs.isEmpty();

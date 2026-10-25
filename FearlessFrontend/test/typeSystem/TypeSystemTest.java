@@ -4804,6 +4804,36 @@ Mk:{ #[X]: Foo[X] -> {} }
 Ign:{ #[T](t: T): A -> A }
 User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
 """));}
+@Test void unrelatedTypesInsideAnInferredLiteral(){failWf("""
+006| Use:{ .go(y: Y, z: Z): A -> Take#{ Left.choose(y, z) } }
+   |                                    ^^^^^^^^^^^^^^^^^
+
+While inspecting method call ".choose(_,_)"
+The type argument "V" of ".choose" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "Left.choose[Type1](y, z)".
+""", List.of("""
+A:{} Y:{} Z:{}
+Fork:{ .choose[V](l: V, r: V): V }
+Left:Fork{ l,r -> l }
+F[R]:{ #: R }
+Take:{ #[R](f: F[R]): A -> A }
+Use:{ .go(y: Y, z: Z): A -> Take#{ Left.choose(y, z) } }
+"""));}
+@Test void unrelatedTypesInsideALetValue(){failWf("""
+004| Use:{ .go: base.Void -> base.Block#.let x= {Left.choose("Hello", TankNN)}.return{base.Void} }
+   |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting method call ".choose(_,_)"
+The type argument "Val" of ".choose" is inferred from the arguments, but they disagree: some need "base.Str", some need "TankNN".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in `Left.choose[Type1]("Hello", TankNN)`.
+""", List.of("""
+Fork:{ .choose[Val](leftVal: Val, rightVal: Val): Val }
+Left:Fork{ l,r -> l }
+Tank:{} TankNN:Tank{}
+Use:{ .go: base.Void -> base.Block#.let x= {Left.choose("Hello", TankNN)}.return{base.Void} }
+"""));}
 @Test void isoReceiverOverloadFollowsTheExpectedResult(){ok(List.of("""
 S:{ read .m: read S -> this; mut .m: mut S -> this }
 A:{ .k(s: iso S): mut S -> s.m; .j(s: iso S): read S -> s.m; .i(s: iso S): imm S -> s.m }
