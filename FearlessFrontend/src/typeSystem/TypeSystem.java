@@ -234,12 +234,12 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       if (sameSig(l.bs(), s, chosen)){ continue; }
       assert !s.origin().equals(chosen.origin()):
         s+" "+chosen+"""
-        The assert above is actually a big deal. It can logically break in an better version of Fearless
-        when inference would know about subtypes when selecting the 'chosen'.
-        Same origin can appear multiple times when the same generic supertype is inherited with
-        different instantiation arguments (Fearless allows this; Java forbids it).
-        Currently, Fearless requires the programmer to select a winning signature by overriding it.
-        """;
+The assert above is actually a big deal. It can logically break in an better version of Fearless
+when inference would know about subtypes when selecting the 'chosen'.
+Same origin can appear multiple times when the same generic supertype is inherited with
+different instantiation arguments (Fearless allows this; Java forbids it).
+Currently, Fearless requires the programmer to select a winning signature by overriding it.
+""";
       assert !isOriginSub(s.origin(), chosen.origin());
     }
     return true;
