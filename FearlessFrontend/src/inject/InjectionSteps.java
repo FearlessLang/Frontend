@@ -384,9 +384,9 @@ public record InjectionSteps(Methods meths, int cap){
     var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
     var hard= fromArgs(m, es, true);
     var exactRet= m.ret0() instanceof IT.RCC ? fromRet : qMarks(fromRet.size());
-    var fixed= Streams.zip(written, hard).map((w,h) -> decided(w) ? w : h).toList();
-    var exact= Streams.zip(fixed, exactRet).map((f,r) -> decided(f) ? f : r).toList();
-    return Streams.zip(exact, all).map((b,r) -> decided(b) ? b : r).toList();
+    var exact= Streams.zip(written, exactRet).map((w,r) -> decided(w) ? w : r).toList();
+    var fixed= Streams.zip(exact, hard).map((f,h) -> decided(f) ? f : h).toList();
+    return Streams.zip(fixed, all).map((b,r) -> decided(b) ? b : r).toList();
   }
   private static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
   private static boolean decided(IT t){ return t.isTV() && !(t instanceof IT.RCC(var rc, _, _) && rc.isEmpty()); }

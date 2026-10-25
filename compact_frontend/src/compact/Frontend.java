@@ -694,7 +694,7 @@ public final class Frontend{
       var ret=refine(m.v,m.ret,c.t);var all=meet(List.of(push(m.cas,y),args,ret));
       var written=push(m.cas,c.written?y:qs(m.mb.size()));var hard=arguments(m,es,true);
       var exact=m.ret instanceof R?ret:qs(m.v.size());
-      return zip(zip(zip(written,hard,Methods::choose),exact,Methods::choose),all,Methods::choose);
+      return zip(zip(zip(written,exact,Methods::choose),hard,Methods::choose),all,Methods::choose);
     }
     static T choose(T a,T b){return a.tv()&&!(a instanceof R(var r,_)&&r==null)?a:b;}
     R self(Literal l){return l.r==null?null:l.self(l.r);}
