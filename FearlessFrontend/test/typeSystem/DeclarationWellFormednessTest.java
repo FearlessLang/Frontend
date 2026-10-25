@@ -515,7 +515,7 @@ Con: base.FileLog{ .name -> base.Nope! }
 While inspecting type declaration "Foo_bar"
 Type declaration "Foo_bar" implements "base.FileLog", so it writes to a log file named after it.
 Type name "Foo_bar" has no file name.
-The name of a "base.FileLog" type can only use letters, digits and underscores, and an underscore can not be followed by a lowercase letter.
+The name of a "base.FileLog" type can only use letters, digits and underscores, and an underscore cannot be followed by a lowercase letter.
 """, List.of("""
 Foo_bar: base.FileLog{ .name -> base.Nope! }
 """));}
@@ -526,7 +526,7 @@ Foo_bar: base.FileLog{ .name -> base.Nope! }
 While inspecting type declaration "Log'"
 Type declaration "Log'" implements "base.FileLog", so it writes to a log file named after it.
 Type name "Log'" has no file name.
-The name of a "base.FileLog" type can only use letters, digits and underscores, and an underscore can not be followed by a lowercase letter.
+The name of a "base.FileLog" type can only use letters, digits and underscores, and an underscore cannot be followed by a lowercase letter.
 """, List.of("""
 Log': base.FileLog{ .name -> base.Nope! }
 """));}

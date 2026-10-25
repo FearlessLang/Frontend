@@ -3485,7 +3485,7 @@ In file: [###].fear
 [###]
 While inspecting method declaration > type declaration body > type declaration > full file
 This method header gets 33 parameters by using the nominal patterns "{.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16}" and "{.a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}".
-A method header can not use nominal patterns to get more than 32 parameters.
+A method header cannot use nominal patterns to get more than 32 parameters.
 Error 2 UnexpectedToken
 """, """
 A:{.m(x:A, {.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16}:A, {.a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}:A):A->x}
@@ -3496,7 +3496,7 @@ In file: [###].fear
 [###]
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 This equals sugar declares 32 names by using the nominal pattern "{.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16, .a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}".
-The equals sugar can not use a nominal pattern to declare more than 31 names.
+The equals sugar cannot use a nominal pattern to declare more than 31 names.
 Error 2 UnexpectedToken
 """, """
 A:{.m(a:A):A->a.m {.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16, .a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32} = a; a}
@@ -3537,7 +3537,7 @@ In file: [###].fear
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
 Nominal pattern "{.b, .read}" declares the name "read", which is not a valid parameter name.
-Reference capabilities, like "read", can not be parameter names.
+Reference capabilities, like "read", cannot be parameter names.
 For example "{.b, .read}1" is accepted.
 Error 2 UnexpectedToken
 """, """
@@ -3548,7 +3548,7 @@ In file: [###].fear
 [###]
 Nominal pattern "{.a', .i}mm" declares the names "a'mm", "imm", which are not valid parameter names.
 A name can only have "'" at its end, but here the id follows a method name ending with "'".
-Reference capabilities, like "imm", can not be parameter names.
+Reference capabilities, like "imm", cannot be parameter names.
 For example "{.a', .i}" is accepted.
 Error 2 UnexpectedToken
 """, """
@@ -3558,7 +3558,7 @@ A:{.m({.a', .i}mm:A):A}
 In file: [###].fear
 [###]
 Nominal pattern "{.a', .read, .mut}" declares the names "read", "mut", which are not valid parameter names.
-Reference capabilities, like "read", can not be parameter names.
+Reference capabilities, like "read", cannot be parameter names.
 No choice of id makes all the names of this pattern valid.
 Error 2 UnexpectedToken
 """, """

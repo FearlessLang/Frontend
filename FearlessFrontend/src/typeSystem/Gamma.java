@@ -36,7 +36,7 @@ public record Gamma(Gamma tail, String name, T t, Change current){
     if (ftvEscapes){ return new Gamma(rest, name, t, new Change.DropFTV(l, w.currentT())); }
     return new Gamma(rest, name, t, current);//core.E.Literal l, core.M m, T atDrop
   }
-  //Above can not reuse FreeXs since FreeXs works on IT
+  //Above cannot reuse FreeXs since FreeXs works on IT
   boolean hasOnlyFTV(T t, List<B> bs){ return switch (t){
     case T.X(var x, _) -> B.xs(bs).contains(x);
     case T.RCX(_, var x) -> hasOnlyFTV(x, bs);
