@@ -545,6 +545,18 @@ public record WellFormednessErrors(String pkgName){
       .line(up(err().expRepr(owner))+" implements "+err().tNameADisp(t)+" and has generic parameters.")
       .line(what+" implementing "+err().tNameADisp(t)+" must have zero generic parameters."), owner);
   }
+  public FearlessException finalNotMethodName(E.Literal owner, IT.C c){
+    return wf(err()
+      .line(up(err().expRepr(owner))+" implements "+claimRepr(owner, c)+".")
+      .line("The type argument of "+err().tNameADisp(LiteralDeclarations.finalMethods)+" is a string literal type holding a method name, like "+disp("\".name\"")+" or "+disp("\"+\"")+"."), owner);
+  }
+  public FearlessException finalImplemented(E.Literal owner, M m, TName origin, String name){
+    var ctx= up(err().expRepr(owner));
+    return wf(err()
+      .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
+      .line("Every method named "+disp(name)+" is final: "+err().tNameADisp(origin)+" implements "+disp("base.Final[\""+name+"\"]")+".")
+      .line("A final method is implemented only by the type implementing "+err().tNameADisp(LiteralDeclarations.finalMethods)+" directly."), owner);
+  }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
     var ctx= err().expRepr(owner);
     var c= err().tNameADisp(claim);
