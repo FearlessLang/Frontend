@@ -3446,6 +3446,61 @@ Box[E:*]: _Box[E]{
 }
 """));}
 
+@Test void slotReadOptAdaptsOnlyTheOpt(){fail("""
+003| Slots:{ #[E:*](e: mut Var[mut Opt[E]]): mut Slot[E] -> mut Slot[E:*]:{
+004|   mut  .opt: mut Opt[E] -> e.get;
+005|   read .opt: read Opt[read/imm E] -> e.get;
+   |   -----------------------------------^^^^^^
+006|   } }
+
+While inspecting method call ".get" > ".opt" line 5 > "#(_)" line 3
+Method ".opt" inside the object literal "mut Slot[_]" (line 3)
+is implemented with an expression returning "read Opt[E]".
+Method call "read Var[_].get" has type "read Opt[E]" instead of a subtype of "read Opt[read/imm E]".
+
+See inferred typing context below for how type "read Opt[read/imm E]" was introduced: (compression indicated by `-`)
+Slots:{#[E:*](e:mut Var[mut Opt[E]]):mut Slot[E]->mut Slot[E:*]:{e.get[mut];e.get[read]}}
+""", List.of("""
+Opt[E:*]:{}
+Var[E:imm,mut,read]:{ read .get: read/imm E; mut .get: E; }
+Slots:{ #[E:*](e: mut Var[mut Opt[E]]): mut Slot[E] -> mut Slot[E:*]:{
+  mut  .opt: mut Opt[E] -> e.get;
+  read .opt: read Opt[read/imm E] -> e.get;
+  } }
+"""));}
+@Test void slotReadOpt(){ok(List.of("""
+Opt[E:*]:{}
+Var[E:imm,mut,read]:{ read .get: read/imm E; mut .get: E; }
+Slots:{ #[E:*](e: mut Var[mut Opt[E]]): mut Slot[E] -> mut Slot[E:*]:{
+  mut  .opt: mut Opt[E] -> e.get;
+  read .opt: read Opt[E] -> e.get;
+  } }
+"""));}
+@Test void slotReadOptFresh(){ok(List.of("""
+Opt[E:*]:{ read .mapSome[R:*](f: mut F[read/imm E, R]): mut Opt[R]; }
+F[A:*,R:*]:{ mut #(a: A): R; }
+Var[E:imm,mut,read]:{ read .get: read/imm E; mut .get: E; }
+Slots:{ #[E:*](e: mut Var[mut Opt[E]]): mut Slot[E] -> mut Slot[E:*]:{
+  mut  .opt: mut Opt[E] -> e.get;
+  read .opt: mut Opt[read/imm E] -> e.get.mapSome{x -> x};
+  } }
+"""));}
+@Test void readOptOfMutNotReadOptOfRead(){fail("""
+003| User:{ .u(o: read Opt[mut X]): read Opt[read X] -> o; }
+   |        --------------------------------------------^^
+
+While inspecting parameter "o" > ".u(_)" line 3
+The body of method ".u(_)" of type declaration "User" is an expression returning "read Opt[mut X]".
+Parameter "o" has type "read Opt[mut X]" instead of a subtype of "read Opt[read X]".
+
+See inferred typing context below for how type "read Opt[read X]" was introduced: (compression indicated by `-`)
+User:{.u(o:read Opt[mut X]):read Opt[read X]->o}
+""", List.of("""
+Opt[E:*]:{}
+X:{}
+User:{ .u(o: read Opt[mut X]): read Opt[read X] -> o; }
+"""));}
+
 
 //----Testing name suggester
 @Test void nameSuggester_1(){failExt("""
