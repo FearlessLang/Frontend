@@ -600,17 +600,7 @@ Ex:{
   .name(p: Person[Nat]): Str -> p.name;
   }
 """, people));}
-@Test void inlineBoundsForwardingMismatch(){fail("""
-006|   .create: Person[Nat] -> FPerson#(Bob, TwentyFour);
-   |   ------------------------^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting method call "#(_,_)" > ".create" line 6
-The body of method ".create" of type declaration "Ex" is an expression returning "Person[TwentyFour]".
-Method call "FPerson#(_,_)" has type "Person[TwentyFour]" instead of a subtype of "Person[Nat]".
-
-See inferred typing context below for how type "Person[Nat]" was introduced: (compression indicated by `-`)
-Ex:{.create:Person[Nat]->FPerson#[imm,Twe-our](Bob,Twe-our);.name(p:Person[Nat]):Str->p.name}
-""", List.of("""
+@Test void inlineBoundsForwardingMismatch(){ok(List.of("""
 FPerson:{ #[N:imm](name: Str, age: imm N): Person[N] -> Person[N:*]:{
   .name: Str -> name;
   .age: imm N -> age;

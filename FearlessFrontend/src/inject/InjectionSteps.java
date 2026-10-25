@@ -335,14 +335,13 @@ public record InjectionSteps(Methods meths, int cap){
   }
   private E nextIC(List<B> bs, Gamma g, E.ICall c){
     var e= nextStar(bs, g, c.e());
-    var es= nextStar(bs, g, c.es());
-    if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, es); }
+    if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var guess= overloadNorm(rcc.rc().map(rc -> rc == RC.iso ? c.t().explicitRC().orElse(rc) : rc));
     var om= methodHeaderAnd(rcc, c.name(), Optional.empty(), guess, (d,m) -> methodHeaderInstance(rcc, d, m));
-    if (om.isEmpty()){ return c.withEEs(e, es); }
+    if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var m= om.get();
     var ts= qMarks(m.bsArity());
-    var call= new E.Call(e, c.name(), Optional.of(m.rc()), ts, meetWithTargs(es, es, m, ts), c.src());
+    var call= new E.Call(e, c.name(), Optional.of(m.rc()), ts, meetWithTargs(c.es(), c.es(), m, ts), c.src());
     return call.withT(meet(c.t(), m.ret(ts)));
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
@@ -380,11 +379,14 @@ public record InjectionSteps(Methods meths, int cap){
   private List<IT> decidedThen(E.Call c, MSigL m, List<E> es, boolean useArgs){
     var targs= MSigL.fixTargs(c.targs(), m.bsArity());
     var args= useArgs ? fromArgs(m, es, false) : qMarks(m.nCls()+m.bsArity());
-    var all= meet(List.of(Push.of(m.clsArgs(), targs), args, refine(m.xs(), m.ret0(), c.t())));
+    var fromRet= refine(m.xs(), m.ret0(), c.t());
+    var all= meet(List.of(Push.of(m.clsArgs(), targs), args, fromRet));
     var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
     var hard= fromArgs(m, es, true);
+    var exactRet= m.ret0() instanceof IT.RCC ? fromRet : qMarks(fromRet.size());
     var fixed= Streams.zip(written, hard).map((w,h) -> decided(w) ? w : h).toList();
-    return Streams.zip(fixed, all).map((b,r) -> decided(b) ? b : r).toList();
+    var exact= Streams.zip(fixed, exactRet).map((f,r) -> decided(f) ? f : r).toList();
+    return Streams.zip(exact, all).map((b,r) -> decided(b) ? b : r).toList();
   }
   private static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
   private static boolean decided(IT t){ return t.isTV() && !(t instanceof IT.RCC(var rc, _, _) && rc.isEmpty()); }
