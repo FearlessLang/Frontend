@@ -267,8 +267,18 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+")"
         +"\nis implemented with an expression returning "+got0+".");
     e.line(up(got.info));
+    var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
+    if (thisNotMut){ captureFreeHint(e, l, m); }
     return addExpFrame(at, e.exInferMsg(got.footerE.get(), req0).addSpan(at.span().inner));
   }
+  private void captureFreeHint(Err e, Literal l, M m){
+    var mut= methodSig("mut ", m.sig().m());
+    e.line("Hint: "+err().expRepr(l)+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method.")
+      .line("A value of "+err().tNameADisp(l.name())+" is never \"mut\", so "+mut+" can stay abstract.")
+      .line("A method written without a receiver capability also implements "+mut+": write the receiver capability, as in "+methodSig("read ", m.sig().m())+".");
+  }
+
+
   ///Parameter x is syntactically in scope but its value was dropped by viewpoint adaptation.
   ///Raised when a use of x occurs after capturing have made it unavailable.
   ///Raised when checking parameters.

@@ -2775,6 +2775,29 @@ iso B{.bar:A->A}
  Main:{ .m:B -> B{.bar:A->A} }
 """));}
 
+@Test void captureFreeThisIsNotMut(){fail("""
+002|  B:A,base.CaptureFree{ .get->this; }
+   |                        ------^^^^^
+
+While inspecting parameter "this" > ".get" line 2
+The body of method ".get" of type declaration "B" is an expression returning "B".
+Parameter "this" has type "B" instead of a subtype of "mut A".
+Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+A value of "B" is never "mut", so "mut .get" can stay abstract.
+A method written without a receiver capability also implements "mut .get": write the receiver capability, as in "read .get".
+
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+B:A,-.Cap-ree{read .get:read A->this;mut .get:mut A->this}
+""", List.of("""
+ A:{ read .get: read A; mut .get: mut A; }
+ B:A,base.CaptureFree{ .get->this; }
+"""));}
+@Test void captureFreeThisReadOnly(){ok(List.of("""
+ A:{ read .get: read A; mut .get: mut A; }
+ B:A,base.CaptureFree{ read .get->this; }
+ Main:{ .m:B -> B }
+"""));}
+
 @Test void simpleBox(){ok(List.of("""
 Box[EE:*]:{
   mut  .get: EE;
