@@ -125,6 +125,7 @@ public record Methods(
     var concrete= d.ms().stream().allMatch(m -> m.impl().isPresent() || !m.sig().abs());
     if (names.contains(LiteralDeclarations.attenuator) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.attenuator, "A concrete type"); }
     if (names.contains(LiteralDeclarations.infoMain) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.infoMain, "A concrete type"); }
+    if (names.contains(LiteralDeclarations.dataRead) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.dataRead, "A concrete type"); }
     for (var log : LiteralDeclarations.logs){
       if (names.contains(log) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, log, "A concrete type"); }
     }
