@@ -100,6 +100,7 @@ CaptureFree: {}
 FileLog: CaptureFree{ .name: Str; }
 InMemoryLog[T]: CaptureFree{ .name: Str; }
 Main: CaptureFree{ .main: Void }
+InfoMain: CaptureFree{ .main: Void }
 SystemAttenuator: CaptureFree{ #: Void }
 OpenWith[I,E]: {}
 Shortcut[I,E]: {}
