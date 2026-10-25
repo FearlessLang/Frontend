@@ -656,10 +656,10 @@ public final class Frontend{
       case Literal l->literal(b,g,l);
       case Call c when c.written||c.r!=null->call(b,g,c);
       case Call c->{
-        var ee=solve(b,g,c.e);var es=solve(b,g,c.es);
-        var m=ee.t() instanceof R w?signature(w,c.name,null,c.t.erc()):null;if(m==null)yield c.children(ee,es);
+        var ee=solve(b,g,c.e);
+        var m=ee.t() instanceof R w?signature(w,c.name,null,c.t.erc()):null;if(m==null)yield c.children(ee,solve(b,g,c.es));
         var types=qs(m.mb.size());
-        yield new Call(ee,c.name,m.r,types,expect(es,m,types),meet(c.t,m.inst(m.ret,types)),false);
+        yield new Call(ee,c.name,m.r,types,expect(c.es,m,types),meet(c.t,m.inst(m.ret,types)),false);
       }
     };}
     T preferred(R type){var s=sup(type,widen);return s!=null&&s.c.types.get(0) instanceof R(_,var c)?new R(type.r,c):type;}
@@ -691,9 +691,10 @@ public final class Frontend{
     }
     List<T>infer(Call c,MS m,List<E>es,boolean use){var y=MS.fixTargs(c.y,m.mb.size());
       var args=use?arguments(m,es,false):qs(m.v.size());
-      var all=meet(List.of(push(m.cas,y),args,refine(m.v,m.ret,c.t)));
+      var ret=refine(m.v,m.ret,c.t);var all=meet(List.of(push(m.cas,y),args,ret));
       var written=push(m.cas,c.written?y:qs(m.mb.size()));var hard=arguments(m,es,true);
-      return zip(zip(written,hard,Methods::choose),all,Methods::choose);
+      var exact=m.ret instanceof R?ret:qs(m.v.size());
+      return zip(zip(zip(written,hard,Methods::choose),exact,Methods::choose),all,Methods::choose);
     }
     static T choose(T a,T b){return a.tv()&&!(a instanceof R(var r,_)&&r==null)?a:b;}
     R self(Literal l){return l.r==null?null:l.self(l.r);}

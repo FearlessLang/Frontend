@@ -4198,6 +4198,45 @@ Customer:Person{}
 MFList[E:*]: { imm .as[R](f: base.MF[imm E,R]): MFList[R] -> base.Nope! }
 User:{ .n(cs: MFList[Customer]): MFList[Person] -> cs.as[Person]{::} }
 """));}
+@Test void expectedTypeDecidesTypeArgument(){ok(List.of("""
+Person:{}
+Customer:Person{}
+Box[E:*]:{}
+Boxes:{ #[E:*](e: E): Box[E] -> {} }
+User:{ .m(c: Customer): Box[Person] -> Boxes#c }
+"""));}
+@Test void expectedTypeDecidesTypeArgumentOverJoin(){ok(List.of("""
+Animal:{}
+Dog:Animal{}
+Rex:Dog{}
+Fido:Dog{}
+Pair[E:*]:{}
+Pairs:{ #[E:*](a: E, b: E): Pair[E] -> {} }
+User:{ .m: Pair[Animal] -> Pairs#(Rex, Fido) }
+"""));}
+@Test void expectedTypeDecidesTypeArgumentOverWidenTo(){ok(List.of("""
+Box[E:*]:{}
+Boxes:{ #[E:*](e: E): Box[E] -> {} }
+Family[T]:base.WidenTo[T]{}
+Dir:Family[Dir]{}
+North:Dir{}
+User:{ .m: Box[Family[Dir]] -> Boxes#North }
+"""));}
+@Test void expectedTypeDecidesNestedTypeArguments(){ok(List.of("""
+Person:{}
+Customer:Person{}
+Box[E:*]:{}
+Boxes:{ #[E:*](e: E): Box[E] -> {} }
+User:{ .m(c: Customer): Box[Box[Person]] -> Boxes#(Boxes#c) }
+"""));}
+@Test void expectedSupertypeDecidesTypeArgument(){ok(List.of("""
+Person:{}
+Customer:Person{}
+Sup[E:*]:{}
+Box[E:*]:Sup[E]{}
+Boxes:{ #[E:*](e: E): Box[E] -> {} }
+User:{ .m(c: Customer): Sup[Person] -> Boxes#c }
+"""));}
 
 /*The five tests below are the minimized shapes of every place base stops compiling if
 InjectionSteps.nextMStarOpRun stops meeting a method's declared return type with the type of its
