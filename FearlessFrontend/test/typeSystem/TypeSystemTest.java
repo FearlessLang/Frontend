@@ -2797,6 +2797,28 @@ B:A,-.Cap-ree{read .get:read A->this;mut .get:mut A->this}
  B:A,base.CaptureFree{ read .get->this; }
  Main:{ .m:B -> B }
 """));}
+@Test void byNameAbstractMutImm(){ok(List.of("""
+ A:{mut .foo:A}
+ B:A{}
+ Main:{ .m:B -> B }
+"""));}
+@Test void byNameAbstractMutMut(){fail("""
+003|  Main:{ .m:mut B -> mut B }
+   |         ----------------^
+
+While inspecting object literal instance of "iso B" > ".m" line 3
+This object literal is missing a required method.
+Missing: "mut .foo".
+Required by: "A".
+Hint: add an implementation for ".foo" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso B
+""", List.of("""
+ A:{mut .foo:A}
+ B:A{}
+ Main:{ .m:mut B -> mut B }
+"""));}
 
 @Test void simpleBox(){ok(List.of("""
 Box[EE:*]:{
