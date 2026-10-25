@@ -4269,6 +4269,13 @@ Pair[E:*]:{}
 Pairs:{ #[E:*](a: E, b: E): Pair[E] -> {} }
 User:{ .m: Pair[Animal] -> Pairs#(Rex, Fido) }
 """));}
+@Test void expectedTypeDecidesTypeArgumentOverNamedLiterals(){ok(List.of("""
+Animal:{}
+Dog:Animal{}
+Pair[E:*]:{}
+Pairs:{ #[E:*](a: E, b: E): Pair[E] -> {} }
+User:{ .m: Pair[Animal] -> Pairs#(Rex:Dog{}, Fido:Dog{}) }
+"""));}
 @Test void expectedTypeDecidesTypeArgumentOverWidenTo(){ok(List.of("""
 Box[E:*]:{}
 Boxes:{ #[E:*](e: E): Box[E] -> {} }
