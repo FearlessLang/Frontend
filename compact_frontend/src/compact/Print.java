@@ -10,7 +10,7 @@ public final class Print{
   static String wrap(Collection<?>l,String ends,String sep){return l.isEmpty()?"":ends.charAt(0)+join(l,sep)+ends.charAt(1);}
   static String square(Collection<?>l){return wrap(l,"[]",",");}
   static String r(RC r){return r==RC.imm?"":r+" ";}
-  public static String of(Object o){return switch(o){
+  static String of(Object o){return switch(o){
     case MN(var s,_)->s;
     case B(var x,var cs)->x+":"+join(cs,",");
     case X(var x)->x;
