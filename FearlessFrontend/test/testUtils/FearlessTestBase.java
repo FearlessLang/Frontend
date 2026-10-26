@@ -38,7 +38,7 @@ public abstract class FearlessTestBase{
   protected static String stripWs(String s){ return s.replace("\n", "").replace(" ", ""); }
   //The full frontend turns an object literal without methods into a type expression and gives it no fresh name; the compact frontend does neither.
   protected static String canon(String core){
-    var imm= core.replaceAll("imm \\w+\\._[A-Za-z0-9]*(\\[[^\\]]*\\])?:([^{]*?)(, [^{]*)?\\{'_ (?:(?!->)[^{}])*\\}", "$2");
+    var imm= core.replaceAll("\\b_[a-z]+0\\b", "_").replaceAll("imm \\w+\\._[A-Za-z0-9]*(\\[[^\\]]*\\])?:([^{]*?)(, [^{]*)?\\{'_ (?:(?!->)[^{}])*\\}", "$2");
     var rc= imm.replaceAll("(mut |iso |read )\\w+\\._[A-Za-z0-9]*(\\[[^\\]]*\\])?:([^{]*?)(, [^{]*)?\\{'_ (?:(?!->)[^{}])*\\}", "$1$3");
     return Stream.of(rc.split("\\{'", -1)).map(FearlessTestBase::renumber).collect(Collectors.joining("{'"));
   }
