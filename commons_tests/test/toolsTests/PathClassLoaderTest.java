@@ -64,7 +64,7 @@ final class PathClassLoaderTest{
     return run(env, Push.<String>of(PathClassLoader.codeArgs(List.of(odd, plain)), List.of("-cp", PathClassLoader.jar().toString(), PathClassLoader.class.getName(), "Probe", "x", "y")));
   }
   @Test void aPathReadsBackFromItsText(){
-    var back= PathClassLoader.path(PathClassLoader.text(odd.resolve("a.jar")));
+    var back= PathClassLoader.pathOf(PathClassLoader.argOf(odd.resolve("a.jar")));
     assertEquals(odd.resolve("a.jar"), back);
     assertTrue(Files.isRegularFile(back));
   }
