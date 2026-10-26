@@ -2,7 +2,7 @@ package compact;
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
-final class Util{
+class Util{
   static<A>List<A>seq(int n,IntFunction<A>f){return range(n).mapToObj(f).toList();}
   static IntStream range(int n){return IntStream.range(0,n);}
   static<A,B>List<B>map(Collection<A>v,Function<A,B>f){return v.stream().map(f).toList();}

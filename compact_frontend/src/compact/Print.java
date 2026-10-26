@@ -4,7 +4,7 @@ import compact.Frontend.*;
 import compact.Frontend.T.*;
 import java.util.*;
 import java.util.stream.*;
-public final class Print{
+public class Print{
   public static String lines(List<Literal>ls){return join(ls,"\n");}
   static String join(Collection<?>l,String sep){return l.stream().map(Print::of).collect(Collectors.joining(sep));}
   static String wrap(Collection<?>l,String ends,String sep){return l.isEmpty()?"":ends.charAt(0)+join(l,sep)+ends.charAt(1);}
