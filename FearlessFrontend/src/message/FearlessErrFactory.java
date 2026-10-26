@@ -264,7 +264,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   public FearlessException patternsGetTooManyParameters(Span at, List<XPat.Destruct> ps, int n){
     return Code.UnexpectedToken.of("This method header gets "+n+" parameters by using the nominal "+(ps.size() == 1 ? "pattern " : "patterns ")
       +Join.of(ps.stream().map(p -> disp(patternRepr(p))), "", " and ", "")+".\n"
-      +"A method header can not use nominal patterns to get more than 32 parameters.\n").addSpan(at);
+      +"A method header cannot use nominal patterns to get more than 32 parameters.\n").addSpan(at);
   }
   public FearlessException implicitWithParameters(Span at, int n){
     return Code.UnexpectedToken.of("This method declares "+count(n, "parameter")+" and its body uses \"::\".\n"
@@ -272,7 +272,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException eqSugarPatternTooManyNames(Span at, XPat.Destruct p){
     return Code.UnexpectedToken.of("This equals sugar declares "+p.extract().size()+" names by using the nominal pattern "+disp(patternRepr(p))+".\n"
-      +"The equals sugar can not use a nominal pattern to declare more than 31 names.\n").addSpan(at);
+      +"The equals sugar cannot use a nominal pattern to declare more than 31 names.\n").addSpan(at);
   }
   public FearlessException patternNameInvalid(Span at, XPat.Destruct p){
     var bad= p.invalidNames().toList();
@@ -287,7 +287,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +(one ? "the name " : "the names ")+Join.of(bad.stream().map(Err::disp), "", ", ", "")
       +(one ? ", which is not a valid parameter name.\n" : ", which are not valid parameter names.\n")
       +(rcs.size() == bad.size() ? "" : "A name can only have \"'\" at its end, but here the id follows a method name ending with \"'\".\n")
-      +(rcs.isEmpty() ? "" : "Reference capabilities, like "+disp(rcs.getFirst())+", can not be parameter names.\n")
+      +(rcs.isEmpty() ? "" : "Reference capabilities, like "+disp(rcs.getFirst())+", cannot be parameter names.\n")
       +fix.map(d -> "For example "+disp(patternRepr(d))+" is accepted.\n").orElse("No choice of id makes all the names of this pattern valid.\n")
       ).addSpan(at);
   }

@@ -701,7 +701,7 @@ IdUser:{
 """));}
 
 //Here we declare absorb as taking zero args.
-//Thus, we can not infer # generics, the method does not exists.
+//Thus, we cannot infer # generics, the method does not exists.
 @Test void usesLocalTypeForInferenceBadArgCount(){okI("""
 p.Absorb:{'this #[T:imm]:base.Void@p.Absorb;->base.Void:?;}
 p.Foo:{'this .m:p.Point@p.Foo;->p.Point:{'_ ? .x[?]:base.Nat@!;->base.0:?; ? .y[?]:base.Nat@!;->base.0:?;}:?;}

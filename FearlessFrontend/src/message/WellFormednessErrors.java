@@ -531,7 +531,7 @@ public record WellFormednessErrors(String pkgName){
     return wf(err()
       .line(ctx+" implements "+fileLog+", so it writes to a log file named after it.")
       .line("Type name "+disp(owner.name().simpleName())+" has no file name.")
-      .line("The name of a "+fileLog+" type can only use letters, digits and underscores, and an underscore can not be followed by a lowercase letter."), owner);
+      .line("The name of a "+fileLog+" type can only use letters, digits and underscores, and an underscore cannot be followed by a lowercase letter."), owner);
   }
   public FearlessException fileLogFileNameNotAllowed(E.Literal owner, String path, String why){
     var ctx= up(err().expRepr(owner));
