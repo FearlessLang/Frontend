@@ -126,12 +126,12 @@ public class Frontend{
       var p=make(tokens.get(index++).tokens);p.index=1;p.limit-=1;return p.whole(r);
     }
     Parser front(ToIntFunction<Parser>probe){
-      var sub=make(tokens.subList(index,limit));int drop=probe.applyAsInt(sub);var res=make(tokens.subList(index,index+sub.index-drop));index+=sub.index;return res;
+      var sub=make(tokens.subList(index,limit));var res=make(tokens.subList(index,index-probe.applyAsInt(sub)+sub.index));index+=sub.index;return res;
     }
     <A>List<A>by(ToIntFunction<Parser>probe,Function<Parser,A>elem){var res=new Vector<A>();while(!end())res.add(front(probe).whole(elem));return res;}
     <A>List<A>items(ToIntFunction<Parser>probe,Function<Parser,A>r){return group(p->p.by(probe,r));}
     <A>A prefix(ToIntFunction<Parser>probe,Function<Parser,A>first){var i=index;var p=front(probe);if(!end())return p.whole(first);index=i;return null;}
-    int so(int mode,K k){while(!end()){if(!take().is(k))continue;if(mode==2)index-=1;return mode&1;}return 0;}
+    int so(int mode,K k){while(!end())if(take().is(k)){if(mode==2)index--;return mode&1;}return 0;}
     P expr(){return posts(atom());}P posts(P e){while(!end())e=post(e);return e;}
     boolean isDec(){return see(heads)&&(see(1,Colon)||see(1,Square)&&see(2,Colon));}
     P atom(){
@@ -241,7 +241,7 @@ public class Frontend{
     int exprEnd(){var inColon=false;while(!end()){
       var t=take();if(t.is(Comma)&&!inColon)return 1;inColon=t.is(Colon)||inColon&&t.is(Square,Comma,Up);
     }return 0;}
-    int boundEnd(){while(!end()){if(take().is(Comma)&&!see(Cap))return 1;}return 0;}
+    int boundEnd(){while(!end())if(take().is(Comma)&&!see(Cap))return 1;return 0;}
     int headEnd(){while(!(end()||isDec()))take();return 0;}
     static ToIntFunction<Parser>comma=p->p.so(1,Comma);
   }
@@ -324,21 +324,21 @@ public class Frontend{
   }
   static<A>A or(A a,A b){return a==null?b:a;}
   static<A>A required(A a){no(a==null);return a;}
-  static class IG{
-    record Frame(RC r,List<B>b,HashMap<String,T>vars){}
-    Vector<Frame>fs=new Vector<>(list(new Frame(null,list(),new HashMap<>())));
-    int at(String x){return fs.indexOf(find(fs,f->f.vars.containsKey(x)));}
-    T get(String x){return find(map(fs,f->f.vars.get(x)),t->t!=null);}
+  record Frame(RC r,List<B>b,HashMap<String,T>vars){}
+  @SuppressWarnings("serial")static class IG extends Vector<Frame>{
+    IG(){push(null,list());}
+    int at(String x){return indexOf(find(this,f->f.vars.containsKey(x)));}
+    T get(String x){return find(map(this,f->f.vars.get(x)),t->t!=null);}
     T adapted(String x){var t=get(x);var fxs=t.ftv().toList();
-      for(var f:fs.subList(at(x)+1,fs.size())){no(!B.v(f.b).containsAll(fxs));t=adapt(t,f.r,f.b);}return t;
+      for(var f:subList(at(x)+1,size())){no(!B.v(f.b).containsAll(fxs));t=adapt(t,f.r,f.b);}return t;
     }
     static T adapt(T t,RC r,List<B>b){if(t.und())return t;var caps=TS.kinds(b,t);
       return r==imm||ii.containsAll(caps)?t.rc(imm):r==read&&(t.erc()==mut||t.erc()==read)?t.rc(read):r==read&&(t instanceof X||t instanceof RI)||!caps(imm,mut,read).containsAll(caps)?t.ri():t;
     }
-    void push(RC r,List<B>b){fs.add(new Frame(r,b,new HashMap<>()));}
-    Object declare(String x,T t){return fs.getLast().vars.put(x,t);}
+    void push(RC r,List<B>b){add(new Frame(r,b,new HashMap<>()));}
+    Object declare(String x,T t){return getLast().vars.put(x,t);}
     void declare(M m){zip(m.v,m.s.types,this::declare);}
-    Object snap(){return map(fs,f->new Frame(f.r,f.b,new HashMap<>(f.vars)));}
+    Object snap(){return map(this,f->new Frame(f.r,f.b,new HashMap<>(f.vars)));}
   }
   static C normC(C c){return((R)norm(new R(null,c))).c;}
   static T norm(T t){no(!t.tv());return fill(t);}
@@ -395,9 +395,9 @@ public class Frontend{
       case null,default->e;
     };}
     static String fresh(String hint,Scope s,List<Collection<String>>checks){
-      var base=hint.replaceAll("[^A-Za-z0-9]","").replaceFirst("(?<=.{4}).*","");var abc="abcdefghjkmnpqrstuvwxyz";if(base.matches("[A-Z].*"))abc=abc.toUpperCase();for(int n=s.seq.getOrDefault(base,1);;n+=1){
-        var sb=new StringBuilder();for(int k=n;k>0;k=(k-1)/23)sb.append(abc.charAt((k-1)%23));
-        var cand="_"+sb.reverse()+base;if(any(checks,e->e.contains(cand))||!s.used.add(cand))continue;
+      var base=hint.replaceAll("[^A-Za-z0-9]","").replaceFirst("(?<=.{4}).*","");var abc="abcdefghjkmnpqrstuvwxyz";if(base.matches("[A-Z].*"))abc=abc.toUpperCase();for(int n=s.seq.getOrDefault(base,1);;n++){
+        var sb="";for(int k=n;k-->0;k/=23)sb=abc.charAt(k%23)+sb;
+        var cand="_"+sb+base;if(any(checks,e->e.contains(cand))||!s.used.add(cand))continue;
         s.seq.put(base,n+1);return cand;
       }
     }
@@ -608,7 +608,7 @@ public class Frontend{
         var t=z.und()?null:o.und()?z
           :o instanceof R(var aRc,var aC)&&z instanceof R(var bRc,var bC)&&aC.name.equals(bC.name)?new R(aRc==null?bRc:bRc==null?aRc:lowerCap(aRc,bRc),aC)
           :o instanceof RX y&&z instanceof RX(var bRc,var bX)&&y.x.equals(bX)?y.rc(lowerCap(y.r,bRc)):null;
-        if(t!=null)g.fs.get(g.at(x.name)).vars.put(x.name,t);yield x.t(meet(a,z));
+        if(t!=null)g.get(g.at(x.name)).vars.put(x.name,t);yield x.t(meet(a,z));
       }
       case Literal l->literal(b,g,l);
       case Call c when c.written||c.r!=null->call(b,g,c);
@@ -681,8 +681,8 @@ public class Frontend{
       g.declare(l.self,sp==null?u:new R(sp.r==null?null:sp.r.mutable(),sp.c));
       g.push(m.s.r,bs);g.declare(m);
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
-      var args=zip(m.v,m.s.types,(x,t)->meet(t,g.get(x)));g.fs.removeLast();
-      g.fs.removeLast();var h=header(w,m.signature(m.s.types(args,meet(m.s.t,e.t()))));var s=h.m.s;
+      var args=zip(m.v,m.s.types,(x,t)->meet(t,g.get(x)));g.removeLast();
+      g.removeLast();var h=header(w,m.signature(m.s.types(args,meet(m.s.t,e.t()))));var s=h.m.s;
       return new TSM(h.types,new M(s,m.v,meet(e,s.t)));
     }
     T keep(T decided,T body){
@@ -753,7 +753,7 @@ public class Frontend{
   static T voidT(RC r){return new R(r,new C(voidName,list()));}
   static T fillVoid(T t){no(t instanceof Amb);return t==u?voidT(imm):t instanceof R w?w.withTs(map(w.c.types,Frontend::fillVoid)):t;}
   static List<C>distinct(List<B>b,List<C>cs){var res=new Vector<C>();
-    for(var c:cs){if(!any(res,r->TS.equivalent(b,fill(new R(imm,r)),fill(new R(imm,c)))))res.add(c);}return res;
+    for(var c:cs)if(!any(res,r->TS.equivalent(b,fill(new R(imm,r)),fill(new R(imm,c)))))res.add(c);return res;
   }
   static S merge(S inf,S usr){
     return new S(or(usr.r,or(inf.r,imm)),required(or(usr.m,inf.m)),or(usr.b,or(inf.b,list())),
@@ -819,7 +819,7 @@ public class Frontend{
         if(!m.s.o.equals(sup.name))continue;var s=m.s;var canonical=canonical(l,s.m,s.r).b;
         sources.add(s.subst(canonical,B.v(push(s.b,sup.b)),push(vars(canonical),parent.types)));
       }}
-      for(var m:l.ms){if(m.s.o.equals(l.name))sources.add(m.s);}
+      for(var m:l.ms)if(m.s.o.equals(l.name))sources.add(m.s);
       group(sources,s->new Key(s.r,s.m)).forEach((k,sigs)->{
         var chosen=canonical(l,k.name,k.r);var ctx=push(l.b,chosen.b);for(var s:sigs)
           no(zip(chosen.types,s.types,(p,q)->!same(ctx,p,q)||!sub(ctx,q,p)).contains(true)||!same(ctx,chosen.t,s.t)||!sub(ctx,chosen.t,s.t));
