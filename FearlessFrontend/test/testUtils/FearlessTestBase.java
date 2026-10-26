@@ -118,8 +118,8 @@ public abstract class FearlessTestBase{
     coreCmp(lines(base), Print.lines(compactBase));
     coreCmp(lines(res), Print.lines(compactAll("p", o, compactBase)));
   }
-  protected static void typeFailRaw(String expected, List<String> input){
-    var o= oraclePkg(input);
+  protected static void typeFailRaw(String expected, List<String> input){ typeFailRaw(expected, oraclePkg(input)); }
+  protected static void typeFailRaw(String expected, SourceOracle o){
     var other= otherFrom(DbgBlock.all());
     var fe= assertThrows(FearlessException.class,
       () -> new FrontendLogicMain().of("p", Map.of(), o.allFiles(), other));

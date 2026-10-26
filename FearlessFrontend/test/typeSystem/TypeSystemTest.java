@@ -5109,4 +5109,155 @@ Box[X]:{ .wrap: Box[Box[X]] -> {} }
 Ign:{ #[K](k: K): N -> N }
 Use:{ .go(b: Box[N]): N -> Ign#(bW) }
 """.replace("W", ".wrap".repeat(1000))));}
+@Test void pickJoinsMutAndReadOfOneTypeParameter(){ok(List.of("""
+Pick:{ #[T:*](a:T, b:T):T -> a }
+B[X:*]:{ .m(x:mut X, y:read X):read X -> Pick#(x,y) }
+"""));}
+@Test void pickOfATypeParameterAndVoid(){fail("""
+002| C[X:*]:{ .m(x:X, y:base.Void):X -> Pick#(x,y) }
+   |          --------------------------~~~~^^~~~~
+
+While inspecting ".m(_,_)" line 2
+This call to method "Pick#(_,_)" cannot typecheck.
+Argument 2 has type "base.Void".
+That is not a subtype of "X" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#[imm,X](-,y)
+""", List.of("""
+Pick:{ #[T:*](a:T, b:T):T -> a }
+C[X:*]:{ .m(x:X, y:base.Void):X -> Pick#(x,y) }
+"""));}
+@Test void pickOfThreeUnrelatedTypes(){fail("""
+005| U:{ .m:A -> Pick3#(A,B,C) }
+   |     --------~~~~~^^~~~~~~
+
+While inspecting ".m" line 5
+This call to method "Pick3#(_,_,_)" cannot typecheck.
+Argument 2 has type "iso B".
+That is not a subtype of "A" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#[imm,A](-,B,-)
+""", List.of("""
+Pick3:{ #[T:*](a:T, b:T, c:T):T -> a }
+A:{}
+B:{}
+C:{}
+U:{ .m:A -> Pick3#(A,B,C) }
+"""));}
+@Test void readImmArgumentForAReadParameter(){ok(List.of("""
+F2:{ #[T:*](x:read T):base.Void -> base.Void }
+D[Y:*]:{ .m(y: read/imm Y): base.Void -> F2#(y) }
+"""));}
+@Test void literalForATypeParameterArgument(){failWf("""
+002| H[X:*]:{ .m: X -> G#[X]({}) }
+   |                         ^^
+
+While inspecting object literal "{...}"
+Object literal "{...}" cannot implement "X".
+"X" is a type parameter; object literals can only implement nominal types.
+""", List.of("""
+G:{ #[T:*](x:T):T -> x }
+H[X:*]:{ .m: X -> G#[X]({}) }
+"""));}
+@Test void literalArgumentForAReadImmParameter(){ok(List.of("""
+F3:{ #[T:*](x: read/imm T):base.Void -> base.Void }
+A:{}
+U:{ .m:base.Void -> F3#(A{}) }
+"""));}
+@Test void baseIdReturningThis(){fail("""
+001| I: base.BaseId[I,I]{ #(x)->this }
+   |                            ^^^^
+
+While inspecting the file
+Type declaration "I" implements "base.BaseId[_,_]".
+The body of "#(_)" must be "x" or "x.as{...}".
+Only those two shapes are the identity function.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this
+""", List.of("""
+I: base.BaseId[I,I]{ #(x)->this }
+"""));}
+@Test void baseIdCallingItself(){fail("""
+001| I: base.BaseId[I,I]{ #(x)->this#(x) }
+   |                            ^^^^^^^^
+
+While inspecting the file
+Type declaration "I" implements "base.BaseId[_,_]".
+The body of "#(_)" must be "x" or "x.as{...}".
+Only those two shapes are the identity function.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this#(x)
+""", List.of("""
+I: base.BaseId[I,I]{ #(x)->this#(x) }
+"""));}
+@Test void pickJoinsIsoAndMutOfOneTypeParameter(){ok(List.of("""
+Pick:{ #[T:*](a:T, b:T):T -> a }
+B[X:*]:{ .m(x:iso X, y:mut X):mut X -> Pick#(x,y) }
+"""));}
+@Test void pickJoinsMutAndIsoOfOneTypeParameter(){ok(List.of("""
+Pick:{ #[T:*](a:T, b:T):T -> a }
+B[X:*]:{ .m(x:mut X, y:iso X):mut X -> Pick#(x,y) }
+"""));}
+@Test void returnOneTypeParameterAsAnother(){fail("""
+001| A:{ .m[X:*,Y:*](x:mut X):mut Y -> x }
+   |     ------------------------------^
+
+While inspecting parameter "x" > ".m(_)" line 1
+The body of method ".m(_)" of type declaration "A" is an expression returning "mut X".
+Parameter "x" has type "mut X" instead of a subtype of "mut Y".
+
+See inferred typing context below for how type "mut Y" was introduced: (compression indicated by `-`)
+A:{.m[X:*,Y:*](x:mut X):mut Y->x}
+""", List.of("""
+A:{ .m[X:*,Y:*](x:mut X):mut Y -> x }
+"""));}
+@Test void literalMethodParameterUnrelatedToTheTypeArgument(){fail("""
+004| U:{ .m:Box[A] -> Box[A]{ .get(x:B):B -> x } }
+   |     -------------~~~~~~~~^^^^^^^^^^^^^^^^--
+
+While inspecting object literal instance of "iso Box[A]" > ".m" line 4
+Invalid method signature overriding for "Box[A].get(_)".
+The method ".get(_)" accepts parameter 1 of type "B".
+But "Box[_].get(_)" requires "A", which is not a subtype of "B".
+The two types are unrelated.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso Box[A]{.get(x:B):B->x}
+""", List.of("""
+A:{}
+B:{}
+Box[T:*]:{ .get(x:T):T }
+U:{ .m:Box[A] -> Box[A]{ .get(x:B):B -> x } }
+"""));}
+@Test void baseIdInheritingHashFromANonBaseIdType(){failWf("""
+001| I: base.BaseId[I,I], Impl{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "I"
+Type declaration "I" implements "base.BaseId[_,_]".
+It inherits the implementation of "#(_)" from "Impl", that does not implement "base.BaseId[_,_]".
+Method "#(_)" must be implemented here, or inherited from a type implementing "base.BaseId[_,_]".
+""", List.of("""
+I: base.BaseId[I,I], Impl{}
+Impl:{ #(x:I):I -> x }
+"""));}
+@Test void baseIdAsOnANonContainer(){fail("""
+002| I: base.BaseId[Box,Box]{ #(x)->x.as{ #(y)->y } }
+   |                                ^^^^^^^^^^^^^^^
+
+While inspecting the file
+Type declaration "I" implements "base.BaseId[_,_]".
+The body of "#(_)" must be "x" or "x.as{...}".
+Only those two shapes are the identity function.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x.as(-.BaseId[Box,Box]{#(y:Box):Box->y})
+""", List.of("""
+Box:{ .as(f: base.BaseId[Box,Box]):Box -> this }
+I: base.BaseId[Box,Box]{ #(x)->x.as{ #(y)->y } }
+"""));}
 }

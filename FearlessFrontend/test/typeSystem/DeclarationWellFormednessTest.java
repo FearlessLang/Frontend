@@ -1,8 +1,11 @@
 package typeSystem;
 
+import java.net.URI;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+
+import tools.SourceOracle;
 
 public final class DeclarationWellFormednessTest extends testUtils.FearlessTestBase{
   static void ok(List<String> input){ typeOk(input); }
@@ -961,4 +964,202 @@ Foo:{}
 A[X:*]:{}
 B:A[Foo],A[p.Foo]{}
 """));}
+@Test void directivesOutsideTheRankFile(){failWf("""
+001| use base.Nat as N;
+   | ^
+
+While inspecting the file
+Package directives outside of rank file.
+Only the rank file can contain directives like maps and uses.
+
+Found non-empty:
+- uses: use base.Nat as N
+""", List.of("""
+A:{}
+""", """
+use base.Nat as N;
+B:{}
+"""));}
+@Test void useTwiceTheSameSource(){failParse("""
+001| use base.Nat as N;
+002| use base.Nat as M;
+   | ----------------^
+
+While inspecting header element > file header > full file
+There is already an entry in the using with source "base.Nat".
+""", List.of("""
+use base.Nat as N;
+use base.Nat as M;
+A:{}
+"""));}
+@Test void useTwiceTheSameDestination(){failParse("""
+001| use base.Nat as N;
+002| use base.Str as N;
+   | ----------------^
+
+While inspecting header element > file header > full file
+There is already an entry in the using with destination "N".
+""", List.of("""
+use base.Nat as N;
+use base.Str as N;
+A:{}
+"""));}
+@Test void mapTwiceTheSameNameInTheSamePackage(){failParse("""
+001| map foo as base in p;
+002| map foo as base in p;
+   | -------------------^
+
+While inspecting header element > file header > full file
+There is already an entry in the mapping for "foo" in "p".
+""", List.of("""
+map foo as base in p;
+map foo as base in p;
+A:{}
+"""));}
+@Test void typeParameterNamedAsAUseDestination(){failWf("""
+002| A[X]:{}
+   |   ^
+
+While inspecting a type name
+Type parameter "X" is declared in package "p".
+Name "X" is also used in a "use" directive.
+""", List.of("""
+use base.Nat as X;
+A[X]:{}
+"""));}
+@Test void finalOfATypeParameter(){failWf("""
+001| A[X]: base.Final[X]{}
+   | ^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A[_]"
+Type declaration "A[_]" implements "base.Final[X]".
+The type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+""", List.of("""
+A[X]: base.Final[X]{}
+"""));}
+@Test void widenToTwice(){failWf("""
+001| A: base.WidenTo[A], base.WidenTo[base.Nat]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements "base.WidenTo[_]" more than once.
+At most one "base.WidenTo[_]" supertype is allowed, because it defines the preferred widened type.
+
+Found the following "base.WidenTo[_]" supertypes:
+- "base.WidenTo[p.A]"
+- "base.WidenTo[base.Nat]"
+""", List.of("""
+A: base.WidenTo[A], base.WidenTo[base.Nat]{}
+"""));}
+@Test void openWithExtensionNotAStringLiteralType(){failWf("""
+002| M: base.Main, base.OpenWith[Icon,Icon]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "M"
+Type declaration "M" implements "base.OpenWith[Icon,Icon]".
+The extension "Icon" is not a string literal type.
+An extension is written as a string literal type, like `"foo"` or "`foo`".
+""", List.of("""
+Icon:{}
+M: base.Main, base.OpenWith[Icon,Icon]{ .main -> base.Void }
+"""));}
+@Test void openWithIconATypeParameter(){failWf("""
+002| M[X]: base.Main, base.OpenWith[X,"foo"]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "M[_]"
+Type declaration "M[_]" implements `base.OpenWith[X,"foo"]`.
+The icon "X" is not a concrete type name.
+An icon is a type name with no type variables and no generic arguments, like "IconsFoo".
+""", List.of("""
+Icon:{}
+M[X]: base.Main, base.OpenWith[X,"foo"]{ .main -> base.Void }
+"""));}
+@Test void openWithExtensionWithUppercaseLetters(){failWf("""
+002| M: base.Main, base.OpenWith[Icon,"FOO"]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "M"
+Type declaration "M" implements `base.OpenWith[Icon,"FOO"]`.
+"FOO" is not a valid extension.
+An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
+""", List.of("""
+Icon:{}
+M: base.Main, base.OpenWith[Icon,"FOO"]{ .main -> base.Void }
+"""));}
+@Test void openWithExtensionFearless(){failWf("""
+002| M: base.Main, base.OpenWith[Icon,"fearless"]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "M"
+Type declaration "M" implements `base.OpenWith[Icon,"fearless"]`.
+"fearless" is not a valid extension.
+An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
+""", List.of("""
+Icon:{}
+M: base.Main, base.OpenWith[Icon,"fearless"]{ .main -> base.Void }
+"""));}
+@Test void shortcutExtensionNotFapp(){failWf("""
+002| M: base.Main, base.Shortcut[Icon,"foo"]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "M"
+Type declaration "M" implements `base.Shortcut[Icon,"foo"]`.
+"foo" is not a shortcut extension: a shortcut file only starts its main, so it must not look like a document of another program or a file of the project.
+A shortcut extension is "fapp" followed by three digits, like "fapp042"; or implement "base.Shortcut[_]" to let the Fearless manager choose one.
+""", List.of("""
+Icon:{}
+M: base.Main, base.Shortcut[Icon,"foo"]{ .main -> base.Void }
+"""));}
+@Test void openWithExtensionFapp(){failWf("""
+002| M: base.Main, base.OpenWith[Icon,"fapp001"]{ .main -> base.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "M"
+Type declaration "M" implements `base.OpenWith[Icon,"fapp001"]`.
+"fapp001" is a shortcut extension: "fapp" followed by three digits names the shortcut files of the Fearless manager.
+Use an extension of the form "ffile" followed by three digits, like "ffile042", or a system extension, like "htm"; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
+""", List.of("""
+Icon:{}
+M: base.Main, base.OpenWith[Icon,"fapp001"]{ .main -> base.Void }
+"""));}
+@Test void finalMethodImplementedBelowTheFinalTypeWithAnotherFinal(){failWf("""
+002| B: base.Final[".b"], A{ .b: B -> this; .a: A -> this }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Type declaration "B" implements method ".a".
+Every method named ".a" is final: "A" implements `base.Final[".a"]`.
+A final method is implemented only by the type implementing "base.Final[_]" directly.
+""", List.of("""
+A: base.Final[".a"]{ .a: A -> this }
+B: base.Final[".b"], A{ .b: B -> this; .a: A -> this }
+"""));}
+@Test void twoRankFiles(){typeFailRaw("""
+Ambiguous rank file for package "p".
+Found 2 files that look like rank head candidates:
+- fear:/___DBG___/_rank_app999.fear
+- fear:/___DBG___/_rank_other000.fear
+There must be exactly one source file whose name represents this package rank.
+Rename or remove the extra files so that only one file name is of form "_rank_*.fear".
+Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
+The rank file is the file whose name matches the rank name.
+
+For example, for an application you would typically have a file named
+  "_rank_app.fear"
+Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
+As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
+Error 7 WellFormedness""", SourceOracle.debugBuilder().put(0, "A:{}").putURI(URI.create("fear:/___DBG___/_rank_other000.fear"), "B:{}").build());}
+@Test void noRankFile(){typeFailRaw("""
+No rank file found for package "p".
+Each package must have exactly one source file whose name is their rank,
+in some folder inside the project folder.
+Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
+The rank file is the file whose name matches the rank name.
+
+For example, for an application you would typically have a file named
+  "_rank_app.fear"
+Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
+As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
+Error 7 WellFormedness""", SourceOracle.debugBuilder().put(1, "A:{}").build());}
 }

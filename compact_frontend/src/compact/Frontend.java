@@ -378,7 +378,7 @@ public class Frontend{
   record XE(String x,P e){}
   static class Methods{
     Pkg p;Map<N,Literal>other;Scope top=new Scope();HashSet<String>reserved=new HashSet<>();HashMap<N,Owner>owners=new HashMap<>();HashMap<N,Literal>cache=new HashMap<>();
-    HashMap<E,Object>memo=new HashMap<>();int deep,cap;N owner;Vector<String>implicits=new Vector<>();Vector<Literal>decs=new Vector<>();
+    int deep,cap;N owner;Vector<String>implicits=new Vector<>();Vector<Literal>decs=new Vector<>();
     Methods(Pkg p,Map<N,Literal>other){this.p=p;this.other=other;
       top.used.addAll(map(p.names,N::simple));top.used.addAll(p.map.keySet());
       for(var d:p.decs){reserved.addAll(d.owner.gen.used);owners.put(d.name.qualify(p.name),d.owner);}
@@ -595,8 +595,8 @@ public class Frontend{
     List<T>meet(List<T>a,List<T>z){return zip(a,z,this::meet);}
     List<T>meet(List<List<T>>tss){return tss.stream().reduce(this::meet).get();}
     E solve(List<B>b,IG g,E e){
-      if(list(g.snap(),cache.size()).equals(memo.get(e)))return e;var grew=0;while(true){var s=g.snap();var oe=next(b,g,e);
-        if(oe.equals(e)&&s.equals(g.snap())){memo.put(e,list(s,cache.size()));return e;}
+      var grew=0;while(true){var s=g.snap();var oe=next(b,g,e);
+        if(oe.equals(e)&&s.equals(g.snap()))return e;
         grew=oe.t().depth()>e.t().depth()?grew+1:0;no(grew==50||oe.t().depth()>cap);e=oe;
       }
     }
@@ -653,11 +653,11 @@ public class Frontend{
       l=l.t(!l.anon?sp:l.cs.size()==1?new R(l.r,l.cs.get(0)):or(sp,l.t));if(!(l.t instanceof R(_,var c)))return l;
       l=l.anon&&!c.name.equals(l.name)?implement(l,c,b):expand(l,true);
     }
-      if(!(l.t instanceof R w))return l;var res=new Vector<M>();var types=w.c.types;for(var mi:l.ms){
+      var w=(R)l.t;var res=new Vector<M>();var types=w.c.types;for(var mi:l.ms){
         var k=bound(w,types);var next=mi.e==null?header(k,mi):method(b,g,l,sp,k,mi);
         types=meet(types,next.types);res.add(next.m);
       }
-      if(res.equals(l.ms)&&types.equals(w.c.types))return commit(g,b,l,w);var t=bound(w,types);
+      var t=bound(w,types);
       return commit(g,b,l.header(l.cs,res,true).t(t),t);
     }
     E commit(IG g,List<B>b,Literal l,R w){var name=l.name;
@@ -678,7 +678,7 @@ public class Frontend{
     }
     TSM method(List<B>b,IG g,Literal l,R sp,R w,M m){var bs=l.anon?b:l.b;
       g.push(m.s.r,bs);
-      g.declare(l.self,sp==null?u:new R(sp.r==null?null:sp.r.mutable(),sp.c));
+      g.declare(l.self,sp==null?u:new R(sp.r.mutable(),sp.c));
       g.push(m.s.r,bs);g.declare(m);
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
       var args=zip(m.v,m.s.types,(x,t)->meet(t,g.get(x)));g.removeLast();
@@ -700,7 +700,7 @@ public class Frontend{
         case RX(_,var x)->refine(v,x,switch(a){
           case RX(_,var p)->p;case RI(var p)->p;case R(_,var c)->new R(null,c);default->a;
         });
-        case RI(var x)->refine(v,x,a instanceof RI(var p)?p:a);case R w->propagate(v,w,a);default->qs(v.size());
+        case RI(var x)->refine(v,x,a instanceof RI(var p)?p:a);default->propagate(v,(R)t,a);
       };
     }
     R sup(R src,N target){var c=find(parents(src.c),ci->ci.name.equals(target));return c==null?null:new R(src.r,c);}
@@ -777,10 +777,10 @@ public class Frontend{
     }
     void kind(List<B>b,T t,Set<RC>al){no(!kinded(b,t,al));}
     static Set<RC>kinds(List<B>b,T t){return switch(t){
-      case R(var r,_)->caps(or(r,read));case RX(var r,_)->caps(r);case X(var x)->B.get(b,x).caps;
+      case R(var r,_)->caps(or(r,read));case RX(var r,_)->caps(r);
       case RI(var x)->{var caps=kinds(b,x);
         yield ii.containsAll(caps)?caps(imm):caps(mut,mutH,read,readH).containsAll(caps)?caps(read):caps(read,imm);
-      }default->throw new Fail();
+      }default->B.get(b,variable(t)).caps;
     };}
     boolean sub(List<B>b,T a,T z){return a.equals(z)
       ||z instanceof RI(var q)&&q.equals(a)&&kinded(b,a,plain)
@@ -858,7 +858,7 @@ public class Frontend{
       return new MT(receiver[m.r.ordinal()],seq(m.types.size(),j->adapt(d,m.types.get(j),j==at?hyg:args,(p,q)->q.sub(p))),adapt(d,m.t,result,RC::sub));
     }
     static T adapt(List<B>d,T t,RC[]mode,BiPredicate<RC,RC>le){
-      if(t.erc()!=null)return t.rc(mode[t.erc().ordinal()]);var x=variable(t);if(x==null)return t;
+      if(t.erc()!=null)return t.rc(mode[t.erc().ordinal()]);var x=variable(t);
       var caps=EnumSet.copyOf(map(B.get(d,x).caps,(RC r)->t instanceof RI?r.ri():r));if(all(caps,r->mode[r.ordinal()]==r))return t;
       var up=Stream.of(RC.values()).filter(p->all(caps,c->le.test(mode[c.ordinal()],p))).toList();return new RX(find(up,p->all(up,o->le.test(p,o))),new X(x));
     }
