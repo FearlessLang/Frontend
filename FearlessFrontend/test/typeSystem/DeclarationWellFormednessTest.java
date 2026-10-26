@@ -681,6 +681,11 @@ B: A{ .bar: A -> this; }
 C: base.Final["+"]{ +(c: C): C -> c; }
 D: base.Final[`.foo`]{ .foo: D }
 """));}
+@Test void finalOnAnInheritedMethodLetsTheTypeImplementingFinalImplementIt(){ok(List.of("""
+A:{ .foo: A -> this }
+B: A, base.Final[".foo"]{ .foo: A -> this }
+C: B{}
+"""));}
 @Test void finalTakesAMethodName(){failWf("""
 001| A: base.Final["foo"]{}
    | ^^^^^^^^^^^^^^^^^^^^^^

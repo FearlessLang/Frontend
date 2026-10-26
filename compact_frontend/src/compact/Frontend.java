@@ -272,12 +272,14 @@ public final class Frontend{
   }
   static final N str=new N("base.Str",0),nat=new N("base.Nat",0),integer=new N("base.Int",0),floating=new N("base.Float",0),
     widen=new N("base.WidenTo",1),sealed=new N("base.Sealed",0),cf=new N("base.CaptureFree",0),identity=new N("base.BaseId",2),log=new N("base.FileLog",0),
-    container=new N("base.BaseContainer",1),voidName=new N("base.Void",0),main=new N("base.Main",0),attenuator=new N("base.SystemAttenuator",0);
+    container=new N("base.BaseContainer",1),voidName=new N("base.Void",0),main=new N("base.Main",0),fin=new N("base.Final",1);
+  static final List<N>concrete=List.of(new N("base.SystemAttenuator",0),new N("base.InfoMain",0),new N("base.DataRead",0),log,new N("base.InMemoryLog",1));
   static final List<N>claims=List.of(new N("base.OpenWith",1),new N("base.OpenWith",2),new N("base.Shortcut",1),new N("base.Shortcut",2),new N("base.PreLoadIcon",1));
   static Set<RC>caps(RC first,RC...rest){return EnumSet.of(first,rest);}
   static final Set<RC>ii=caps(iso,imm),plain=caps(iso,imm,mut,read),allRC=EnumSet.allOf(RC.class);
   static boolean has(List<C>cs,N magic){return any(cs,c->c.name.equals(magic));}
   static boolean primitive(String name){return"+-1234567890\"`".contains(name.substring(0,1));}
+  static String quoted(T t){var s=t instanceof R(_,var e)?e.name.simple():"";no(!s.matches("[\"`].*"));return s.substring(1,s.length()-1);}
   static Literal from(N n,Function<N,Literal>map,Map<N,Literal>other){
     var res=or(map.apply(n),other.get(n));
     if(res!=null||!n.pk().equals("base")||!primitive(n.simple()))return res;var s=n.simple();
@@ -526,10 +528,13 @@ public final class Frontend{
       }
       var cl=filter(supers,c->claims.contains(c.name));no(!cl.isEmpty()&&!has(supers,main));var exts=new HashSet<String>();
       for(var c:cl){no(!(c.types.get(0)instanceof R(_,var i)&&i.types.isEmpty()));if(c.types.size()==1)continue;
-        var lit=c.types.get(1)instanceof R(_,var e)?e.name.simple():"";no(!lit.matches("[\"`].*"));var ext=lit.substring(1,lit.length()-1);
+        var ext=quoted(c.types.get(1));
         no(!ext.matches("[a-z0-9]{1,16}")||ext.equals("fearless")||c.name.simple().equals("Shortcut")!=ext.matches("fapp[0-9]{3}")||!exts.add(ext));
       }
-      no(!d.b.isEmpty()&&(has(supers,main)||has(supers,attenuator)&&all(d.ms,m->m.e!=null||!m.s.abs)));
+      for(var c:filter(supers,x->x.name.equals(fin))){var m=quoted(c.types.get(0));no(!matches(m,Dot,Op));
+        no(any(supers,o->!o.name.equals(fin)&&any(parents(o),p->p.name.equals(fin)&&quoted(p.types.get(0)).equals(m)))&&any(d.ms,mi->mi.s.m.s().equals(m)&&d.name.equals(mi.s.o)));
+      }
+      no(!d.b.isEmpty()&&(has(supers,main)||any(concrete,n->has(supers,n))&&all(d.ms,m->m.e!=null||!m.s.abs)));
       no(has(supers,sealed)&&any(supers,c->!c.name.pk().equals(d.name.pk())&&has(from(c.name).cs,sealed)));
     }
     void register(Literal d){
