@@ -1114,4 +1114,8 @@ For example, for an application you would typically have a file named
 Other examples: "_rank_driver.fear", "_rank_framework.fear" or "_rank_app175.fear"; with explicit rank number.
 As a rule of thumb: final applications use appNNN; shared libraries often use workerNNN or frameworkNNN.
 Error 7 WellFormedness""", SourceOracle.debugBuilder().put(1, "A:{}").build());}
+@Test void claimsWithoutExtension(){ok(List.of("""
+Icon:{}
+M: base.Main, base.OpenWith[Icon], base.Shortcut[Icon], base.PreLoadIcon[Icon]{ .main -> base.Void }
+"""));}
 }

@@ -261,7 +261,7 @@ public class Frontend{
   static String quoted(T t){var s=t instanceof R(_,var e)?e.name.simple():"";no(!s.matches("[\"`].*"));return s.substring(1,s.length()-1);}
   static Literal from(N n,Function<N,Literal>map,Map<N,Literal>other){
     var res=or(map.apply(n),other.get(n));
-    if(res!=null||!n.pk().equals("base")||!primitive(n.simple()))return res;var s=n.simple();
+    if(res!=null||!primitive(n.simple()))return res;var s=n.simple();
     var lit=matches(s,Str,Raw)?str:matches(s,UI)?nat:matches(s,SI)?integer:floating;
     var sup=from(lit,map,other);var ms=map(sup.ms,m->m.signature(new S(m.s.r,m.s.m,m.s.b,m.s.types,m.s.t,n,false,m.s.idx)));
     return new Literal(imm,n,list(),push(new C(lit,list()),sup.cs),"this",ms,u,true,false);
@@ -494,9 +494,7 @@ public class Frontend{
       return d.header(push(c,parents(c)),pair(d.ms,dd==null?list():map(dd.ms,m->alpha(m,c,d,B.v(scope))),d),true);
     }
     void magic(Literal d,List<C>supers){no(filter(supers,c->c.name.equals(widen)).size()>1);
-      if(has(supers,identity)){no(d.ms.size()!=1);var m=d.ms.get(0);var s=m.s;
-        no(!s.m.equals(new MN("#",1))||m.e==null&&!s.abs&&!has(from(s.o).cs,identity));
-      }
+      if(has(supers,identity)){var m=d.ms.get(0);no(d.ms.size()!=1||m.e==null&&!m.s.abs&&!has(from(m.s.o).cs,identity));}
       if(has(supers,log)){var s=d.name.simple();no(s.matches(".*('|_[a-z]).*"));var f=s.replaceAll("[A-Z]","_$0").toLowerCase(Locale.ROOT).substring(1);
         no(f.matches("con|prn|aux|nul|(com|lpt)[1-9]|_rank_.*")||f.length()+d.name.pk().length()>184);
       }
@@ -581,7 +579,7 @@ public class Frontend{
       var cands=push(candidates(a),candidates(z));for(var top:cands){var res=above(top,cands);if(res!=null)return res;}
       if(!all(cands,c->c instanceof R))return new Amb(cands);
       var heads=cands.stream().map(c->new Vector<>(map(parents(((R)c).c),C::name))).reduce((p,q)->{p.retainAll(q);return p;}).get();
-      var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&from(h2)!=null&&has(from(h2).cs,h)));
+      var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&has(from(h2).cs,h)));
       return minimal.size()==1?above(sup((R)cands.get(0),minimal.get(0)),cands):new Amb(cands);
     }
     static List<T>candidates(T t){return t instanceof Amb(var cs)?cs:list(t);}
@@ -740,7 +738,7 @@ public class Frontend{
       }
     };}
     T targ(Call e,T t,int i){
-      var m=t==u&&e.e.t() instanceof R w?lookup(w,e.name,e.r,null):null;return m==null?norm(fillVoid(t)):voidT(m.s.b.get(i).caps.iterator().next());
+      return t==u?voidT(lookup((R)e.e.t(),e.name,e.r,null).s.b.get(i).caps.iterator().next()):norm(fillVoid(t));
     }
     Literal literal(List<B>ctx,Literal e,Literal o){
       no(!(e.t instanceof R)&&!e.t.und());var b=e.anon&&e.b.size()==0?cat(supFree(e.cs),methodFree(new IG(),push(e.ms,o.ms))).distinct().map(x->B.get(ctx,x)).toList():e.b;
@@ -799,10 +797,10 @@ public class Frontend{
       return rs.isEmpty()?list(got):map(rs,r->sub(b,got,r)?got:null);
     }
     List<T>literal(List<B>bs1,G g,Literal l,List<T>rs){
-      var gf=g.map(t->has(l.cs,cf)||!t.ftv().allMatch(B.v(l.b)::contains)?null:t);var r=(l.r.ro()&&!any(l.ms,m->m.s.abs&&m.s.r==mut)||l.r==mut||l.r==mutH)&&cf(l.b,gf,l)?iso:l.r;
+      var gf=g.map(t->has(l.cs,cf)||!t.ftv().allMatch(B.v(l.b)::contains)?null:t);var r=(l.r.ro()&&!any(l.ms,m->m.s.abs&&m.s.r==mut)||l.r==mut)&&cf(l.b,gf,l)?iso:l.r;
       no(any(l.ms,m->(m.s.abs||m.e!=null&&!inst(l))&&m.s.abs==(m.s.r!=mut||!r.ro())));
       var t=l.self(r);kind(bs1,t,allRC);check(gf.map(x->!kinded(l.b,x,plain)||r.ii()&&!kinded(l.b,x,ii)?null:x),l,l.r.mutable());
-      no(any(rs,x->!(x instanceof R)));return reqs(bs1,t,rs);
+      return reqs(bs1,t,rs);
     }
     static boolean cf(List<B>b,G g,E e){
       return e instanceof E.X x?g.bind(x.name)==null||all(kinds(b,g.bind(x.name)),RC::ii):e.children().allMatch(c->cf(b,g,c));
