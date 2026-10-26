@@ -89,7 +89,10 @@ public final class LiteralDeclarations{
     if (!mag.contains(".")){ mag = mag+".0"; }
     return sign+mag;
   }
-  public static double floatLiteralDouble(String raw){ return Double.parseDouble(floatPayload(raw)); }
+  public static double floatLiteralDouble(String raw){
+    var d= Double.parseDouble(floatPayload(raw));
+    return d == 0 ? 0.0 : d;
+  }
   public static String toJavaLiteral(String s){
     var strLit= s.startsWith("`") || s.startsWith("\"");
     if (strLit){
