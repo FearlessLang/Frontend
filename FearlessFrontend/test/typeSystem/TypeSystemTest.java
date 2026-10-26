@@ -2683,6 +2683,10 @@ Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +0.2 }
 """));}
+@Test void everyZeroLiteralIsThePositiveZero(){
+  assertEquals(List.of("0.0d", "0.0d", "0.0d", "0.0d", "0.0d"),
+    List.of("-0.0", "+0.0", "0.0", "-0__0.000", "-0.0e5").stream().map(LiteralDeclarations::toJavaLiteral).toList());
+}
 @Test void floatExactFearlessLitScientific(){
   assertEquals("+9.31322574615478515625e-10", LiteralDeclarations.floatExactFearlessLit(Math.scalb(1.0, -30)));
   assertEquals("-9.31322574615478515625e-10", LiteralDeclarations.floatExactFearlessLit(-Math.scalb(1.0, -30)));
