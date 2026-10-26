@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.Locale;
 
 import core.*;
 import core.E.*;
@@ -81,7 +82,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t), t.span()))); }
   static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
-  static String up(String s){ return s.substring(0, 1).toUpperCase()+s.substring(1); }
+  static String up(String s){ return s.substring(0, 1).toUpperCase(Locale.ROOT)+s.substring(1); }
   String expRepr(E toErr){ return switch (toErr){
     case Call c -> "method call "+methodSig(c.name());
     case X x -> "parameter "+disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());
