@@ -49,4 +49,14 @@ Open a PR with the tests showing the difference by failing, do not fix the code,
 
 A difference counts only in the result of the whole frontend: the printed core, or the fact that the frontend fails.
 The compact frontend may detect an error in a different phase than the full frontend.
+
+DeltaWisdom:
+After a DeltaHunt: for each difference in the semantic, try to understand what is the wiser semantic.
+Do not try to understand what is the intended semantic, or what the user may wany. Try to understand what is the semantic that actually makes more sense. Treat the compact and the full frontend as two implementation wrote by different people; who did the right choice, and why? What are the cost of each choice.
+
+OverlallWisdom:
+Read the whole of the compact fronted, directly with no sub agents. Try to see if the design is wise.
+Is this a reasonable design for a language? what kind of pitfall there may be? What 'bad ideas' survived?
+What kind of semantic wrinkles are there because this was designed over years instead of all together in a single cohesive shot?
+How other languages create trouble for users? Is this design of fearless making the same mistake or new ones?
 A difference in the phase that detects an error is not a DeltaHunt finding.
