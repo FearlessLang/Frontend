@@ -246,8 +246,8 @@ public class Frontend{
     static ToIntFunction<Parser>comma=p->p.so(1,Comma);
   }
   record Pkg(String name,Map<String,String>map,List<Declaration>decs,Set<N>names){}
-  record Scope(HashSet<String>used,HashMap<String,Integer>seq){Scope(){this(new HashSet<>(),new HashMap<>());}}
-  record Owner(Scope gen,Scope vars,Vector<N>decs){Owner(){this(new Scope(),new Scope(),new Vector<>());}}
+  @SuppressWarnings("serial")static class Scope extends HashMap<String,Integer>{HashSet<String>used=new HashSet<>();}
+  static class Owner{Scope gen=new Scope(),vars=new Scope();Vector<N>decs=new Vector<>();}
 
   static N str=base("Str",0),nat=base("Nat",0),integer=base("Int",0),floating=base("Float",0),
     widen=base("WidenTo",1),sealed=base("Sealed",0),cf=base("CaptureFree",0),identity=base("BaseId",2),log=base("FileLog",0),
@@ -395,10 +395,10 @@ public class Frontend{
       case null,default->e;
     };}
     static String fresh(String hint,Scope s,List<Collection<String>>checks){
-      var base=hint.replaceAll("[^A-Za-z0-9]","").replaceFirst("(?<=.{4}).*","");var abc="abcdefghjkmnpqrstuvwxyz";if(base.matches("[A-Z].*"))abc=abc.toUpperCase();for(int n=s.seq.getOrDefault(base,1);;n++){
+      var base=hint.replaceAll("[^A-Za-z0-9]","").replaceFirst("(?<=.{4}).*","");var abc="abcdefghjkmnpqrstuvwxyz";if(base.matches("[A-Z].*"))abc=abc.toUpperCase();for(int n=s.getOrDefault(base,1);;n++){
         var sb="";for(int k=n;k-->0;k/=23)sb=abc.charAt(k%23)+sb;
         var cand="_"+sb+base;if(any(checks,e->e.contains(cand))||!s.used.add(cand))continue;
-        s.seq.put(base,n+1);return cand;
+        s.put(base,n+1);return cand;
       }
     }
     N f(N tn){
@@ -515,7 +515,7 @@ public class Frontend{
     M name(M m,Vector<S>ss){
       var arity=m.s.types.size();for(var abs:list(true,false)){
         var match=filter(ss,s->s.m.arity==arity&&(s.abs||!abs));ss.removeAll(match);
-        var count=match.stream().map(s->s.m).distinct().count();no(count>1);if(count==1){var s=m.s;
+        var count=match.stream().map(S::m).distinct().count();no(count>1);if(count==1){var s=m.s;
           return m.signature(new S(s.r,match.get(0).m,s.b,s.types,s.t,s.o,s.abs,s.idx));
         }
       }throw new Fail();
@@ -544,7 +544,7 @@ public class Frontend{
       var aligned=map(ss,e->e.subst(b,B.v(e.b),vars(b)));var first=aligned.get(0);
       var types=seq(s.types.size(),i->s.types.get(i)==u?agreement(o,aligned,e->e.types.get(i)):s.types.get(i));
       var res=s.t==u?agreement(o,aligned,S::t):s.t;
-      var impl=aligned.stream().filter(e->om==null&&!e.abs&&o.cs.stream().flatMap(c->cat(Stream.of(c),from(c.name).cs.stream())).map(c->from(c.name)).noneMatch(d->!d.name.equals(e.o)&&has(d.cs,e.o)&&any(d.ms,m->m.s.o.equals(d.name)&&m.s.m.equals(e.m)&&m.s.r==e.r))).map(e->e.o).distinct().toList();no(impl.size()>1);
+      var impl=aligned.stream().filter(e->om==null&&!e.abs&&o.cs.stream().flatMap(c->cat(Stream.of(c),from(c.name).cs.stream())).map(c->from(c.name)).noneMatch(d->!d.name.equals(e.o)&&has(d.cs,e.o)&&any(d.ms,m->m.s.o.equals(d.name)&&m.s.m.equals(e.m)&&m.s.r==e.r))).map(S::o).distinct().toList();no(impl.size()>1);
       var out=new S(or(s.r,first.r),first.m,b,types,res,impl.size()==1?impl.get(0):o.name,om==null?impl.size()==0:om.e==null,s.idx);
       return om==null?new M(out):om.signature(out);
     }
@@ -760,16 +760,16 @@ public class Frontend{
       zip(usr.types,inf.types,(y,i)->norm(y==u?i:y)),norm(usr.t==u?inf.t:usr.t),required(or(usr.o,inf.o)),usr.abs,usr.idx);
   }
   record G(G tail,String name,T t){
-    static G empty=new G(null,null,null);
+
     G add(String name,T t){return new G(this,name,t);}
-    G map(UnaryOperator<T>f){return this==empty?this:new G(tail.map(f),name,t==null?null:f.apply(t));}
-    T bind(String x){return this==empty?null:name.equals(x)?t:tail.bind(x);}
+    G map(UnaryOperator<T>f){return tail==null?this:new G(tail.map(f),name,t==null?null:f.apply(t));}
+    T bind(String x){return tail==null?null:name.equals(x)?t:tail.bind(x);}
   }
   record MT(RC r,List<T>types,T t){}
   static RC[]reading={imm,iso,readH,iso,mutH,readH},flexy={imm,iso,imm,iso,mutH,readH},hyg={imm,mutH,readH,iso,mutH,readH},strong={imm,iso,imm,iso,iso,imm};
   record TS(Function<N,Literal>decs){
     static void check(List<Literal>tops,Map<N,Literal>other){var map=new HashMap<N,Literal>();
-      tops.forEach(t->collect(t,map));var sys=new TS(n->from(n,map::get,other));tops.forEach(l->sys.check(G.empty,l,has(l.cs,cf)?imm:l.r));
+      tops.forEach(t->collect(t,map));var sys=new TS(n->from(n,map::get,other));tops.forEach(l->sys.check(new G(null,null,null),l,has(l.cs,cf)?imm:l.r));
     }
     static void collect(E e,HashMap<N,Literal>map){if(e instanceof Literal l)map.put(l.name,l);e.children().forEach(c->collect(c,map));}
     boolean kinded(List<B>b,T t,Set<RC>al){
