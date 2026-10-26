@@ -700,7 +700,7 @@ public class Frontend{
         case RX(_,var x)->refine(v,x,switch(a){
           case RX(_,var p)->p;case RI(var p)->p;case R(_,var c)->new R(null,c);default->a;
         });
-        case RI(var x)->refine(v,x,a instanceof RI(var p)?p:a);case R w->propagate(v,w,a);default->qs(v.size());
+        case RI(var x)->refine(v,x,a instanceof RI(var p)?p:a);default->propagate(v,(R)t,a);
       };
     }
     R sup(R src,N target){var c=find(parents(src.c),ci->ci.name.equals(target));return c==null?null:new R(src.r,c);}
@@ -777,10 +777,10 @@ public class Frontend{
     }
     void kind(List<B>b,T t,Set<RC>al){no(!kinded(b,t,al));}
     static Set<RC>kinds(List<B>b,T t){return switch(t){
-      case R(var r,_)->caps(or(r,read));case RX(var r,_)->caps(r);case X(var x)->B.get(b,x).caps;
+      case R(var r,_)->caps(or(r,read));case RX(var r,_)->caps(r);
       case RI(var x)->{var caps=kinds(b,x);
         yield ii.containsAll(caps)?caps(imm):caps(mut,mutH,read,readH).containsAll(caps)?caps(read):caps(read,imm);
-      }default->throw new Fail();
+      }default->B.get(b,variable(t)).caps;
     };}
     boolean sub(List<B>b,T a,T z){return a.equals(z)
       ||z instanceof RI(var q)&&q.equals(a)&&kinded(b,a,plain)
