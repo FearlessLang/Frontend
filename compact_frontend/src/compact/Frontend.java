@@ -21,7 +21,7 @@ public final class Frontend{
     no(any(raw.values(),f->f!=head&&f.maps.size()+f.uses.size()>0));
     var ds=flat(raw.values(),f->f.decs.stream());var uses=map(head.uses,File.Use::out);
     var names=flat(ds,d->d.owner.decs.stream());no(dup(names));var strings=map(names,N::s);
-    no(!Collections.disjoint(strings,uses));no(ds.stream().flatMap(d->d.owner.gen.used.stream()).anyMatch(x->strings.contains(x)||uses.contains(x)));
+    no(any(uses,strings::contains)||any(flat(ds,d->d.owner.gen.used.stream()),x->strings.contains(x)||uses.contains(x)));
     var map=new HashMap<>(override);for(var u:head.uses){var p=map.getOrDefault(u.in.pk(),u.in.pk());
       var in=p+"."+u.in.simple();map.put(u.out,in);no(p.equals(pk)||other.keySet().stream().noneMatch(e->e.s.equals(in)));
     }var ctx=new Methods(new Pkg(pk,map,ds,new HashSet<>(names)),other);
@@ -41,13 +41,13 @@ public final class Frontend{
     String simple(){return s.replaceFirst("^[a-z][^.]*\\.","");}
     boolean visible(){return!simple().startsWith("_");}
   }
-  public record MN(String s,int arity){MN arity(int arity){return new MN(s,arity);}}
+  public record MN(String s,int arity){}
   public record B(String x,Set<RC>caps){
     static List<String>v(List<B>b){return b==null?list():map(b,B::x);}
     static B get(List<B>b,String name){return find(b,e->e.x.equals(name));}
   }
   enum K{
-    Ws("\\s+"),LC("//[^\\n]*"),BC("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/"),
+    Ws("\\s+|//[^\\n]*|/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/"),
     Arrow("->"),LP("\\("),RP("\\)"),LB("\\{"),RBId("\\}[A-Za-z0-9_]+'*"),RB("\\}"),
     LA("(?<=[A-Za-z0-9_'"+K.op+"])(?<!\\*/)\\["),RA("\\]"),
     Hole("_"),Comma(","),Semi(";"),Implicit("::"),Colon(":"),Eq("="),Quote("'"),RIcap("read/imm"),Cap("readH|mutH|imm|iso|read|mut"),
@@ -69,7 +69,7 @@ public final class Frontend{
   static List<Token>tokens(String s){s=s.replaceFirst("^\\uFEFF","").replaceAll("[\\r\\u2028\\u2029\\u0085]","\n");
     no(s.codePoints().anyMatch(c->al.indexOf(c)<0));var res=new Vector<Token>(list(new Token(Start,"",list())));for(int i=0;i<s.length();){
       K best=null;int len=0;for(var k:K.values()){var l=k.match(s,i);if(l>len){best=k;len=l;}}no(best==null);
-      var t=new Token(best,s.substring(i,i+len),list());i+=len;if(t.is(Ws,LC,BC))continue;
+      var t=new Token(best,s.substring(i,i+len),list());i+=len;if(t.is(Ws))continue;
       no(t.is(Bad)||t.is(LA)&&res.getLast().is(SI,UI,SF,UF));res.add(t);
     }
     res.add(new Token(End,"",list()));var it=res.iterator();return list(tree(it,it.next()));
@@ -163,13 +163,13 @@ public final class Frontend{
       }
       var m=take(Dot,Op).content;var sq=see(Square)?group(Parser::arguments):null;
       if(see(Round))return new P.Call(receiver,m,sq,null,items(Parser::exprEnd,Parser::expr));
-      var xpat=see(Low,Curly)&&see(1,Eq)?pattern():null;if(xpat!=null)take(Eq);
+      var xpat=see(Low,Curly)&&see(1,Eq)?pattern():null;fwd(xpat!=null);
       if(end()||see(Dot,Op,Colon)){no(xpat!=null);return new P.Call(receiver,m,sq,null,list());}
       var atom=atom();var v=xsOf(xpat).toList();fresh(v);
       no(xpat instanceof Pat.Des&&v.size()>31);names=names.add(v,list());
       return new P.Call(receiver,m,sq,xpat,xpat==null?list(atom):list(atom,posts(post(new P.X("")))));
     }
-    Pat pattern(){if(see(Low,Hole))return new Pat.Name(binder().name);return group(Parser::destruct);}
+    Pat pattern(){return see(Low,Hole)?new Pat.Name(binder()):group(Parser::destruct);}
     Pat.Des destruct(){
       var id=tokens.get(limit).content.substring(1);
       var chains=by(comma,p->p.by(q->{q.take();return 0;},q->q.take(Dot).content));
@@ -180,9 +180,9 @@ public final class Frontend{
       var hasCap=see(Cap)&&tokens.get(index+1).is(Comma,RA);var r=hasCap?cap():null;
       if(hasCap&&!end())take(Comma);return new P.Args(r,by(comma,Parser::type));
     }
-    P.X binder(){var x=take(Low,Hole).content;no(names.v.contains(x));return new P.X(x);}
+    String binder(){var x=take(Low,Hole).content;no(names.v.contains(x));return x;}
     P.Lit literal(boolean top){
-      no(tokens.get(limit).is(RBId));var self=fwd(see(Quote))?binder().name:top?"this":"_";
+      no(tokens.get(limit).is(RBId));var self=fwd(see(Quote))?binder():top?"this":"_";
       no(top&&!self.equals("this"));if(!self.equals("_"))names=names.add(list(self),list());
       var ms=by(p->p.so(1,Semi),p->p.method(top));
       var ns=map(filter(ms,m->m.s.m!=null),m->new Key(m.s.r,new MN(m.s.m,m.arity())));no(dup(ns));
@@ -221,8 +221,8 @@ public final class Frontend{
     }
     Declaration declaration(boolean top){
       var c=name();no(c.s.contains(".")||primitive(c.s));
-      var b=see(Square)?bounds(top):List.<B>of();var Xs=B.v(b);var outer=names;var owner=top?new Owner():names.owner;
-      names=new Names(names.v,list(),push(names.hid,names.Xs),owner).add(list(),Xs);c=c.arity(Xs.size());owner.decs.add(c);take(Colon);
+      var b=see(Square)?bounds(top):List.<B>of();var outer=names;var owner=top?new Owner():names.owner;
+      names=new Names(names.v,list(),push(names.hid,names.Xs),owner).add(list(),B.v(b));owner.decs.add(c=c.arity(b.size()));take(Colon);
       var cs=required(prefix(p->p.so(2,Curly),p->p.by(comma,Parser::constructor)));no(dup(cs));
       var l=group(p->p.literal(top));names=outer;return new Declaration(c,b,cs,l,owner);
     }
@@ -259,12 +259,19 @@ public final class Frontend{
       for(var d:p.decs){reserved.addAll(d.owner.gen.used);owners.put(d.name.qualify(pk),d.owner);}
     }
     N type(N hint,int arity){
-      var res=new N(pk+"."+fresh(hint.simple(),"ABCDEFGHJKMNPQRSTUVWXYZ",top,list(reserved)),arity);owners.put(res,owners.get(hint));return res;
+      var res=new N(pk+"."+fresh(hint.simple(),top,list(reserved)),arity);owners.put(res,owners.get(hint));return res;
     }
-    String variable(N owner,String hint){return fresh(hint,"abcdefghjkmnpqrstuvwxyz",owners.get(owner).vars,list());}
-    static String fresh(String hint,String alphabet,Scope s,List<Collection<String>>checks){
-      var base=hint.replaceAll("[^A-Za-z0-9]","").replaceFirst("(?<=.{4}).*","");for(int n=s.seq.getOrDefault(base,1);;n+=1){
-        var sb=new StringBuilder();for(int k=n;k>0;k=(k-1)/alphabet.length())sb.append(alphabet.charAt((k-1)%alphabet.length()));
+    String variable(N owner,String hint){return fresh(hint,owners.get(owner).vars,list());}
+    E copy(E e){return switch(e){
+      case Call c->c.children(copy(c.e),map(c.es,this::copy));
+      case Literal l->{no(!l.anon);var name1=type(l.name,l.name.arity);
+        yield new Literal(l.r,name1,l.b,l.cs,l.self,map(l.ms,m->new M(m.o(l.name,name1).s,m.v,copy(m.e))),l.t,true,l.expanded);
+      }
+      case null,default->e;
+    };}
+    static String fresh(String hint,Scope s,List<Collection<String>>checks){
+      var base=hint.replaceAll("[^A-Za-z0-9]","").replaceFirst("(?<=.{4}).*","");var abc="abcdefghjkmnpqrstuvwxyz";if(base.matches("[A-Z].*"))abc=abc.toUpperCase();for(int n=s.seq.getOrDefault(base,1);;n+=1){
+        var sb=new StringBuilder();for(int k=n;k>0;k=(k-1)/23)sb.append(abc.charAt((k-1)%23));
         var cand="_"+sb.reverse()+base;if(s.used.contains(cand)||any(checks,e->e.contains(cand)))continue;
         s.used.add(cand);s.seq.put(base,n+1);return cand;
       }
@@ -285,7 +292,7 @@ public final class Frontend{
     if(res!=null||!n.pk().equals("base")||!primitive(n.simple()))return res;var s=n.simple();
     var lit=s.startsWith("`")||s.startsWith("\"")?str:matches(s,UI)?nat:matches(s,SI)?integer:floating;
     var sup=from(lit,map,other);var ms=map(sup.ms,m->m.signature(new S(m.s.r,m.s.m,m.s.b,m.s.types,m.s.t,n,false,m.s.idx)));
-    return new Literal(imm,n,list(),push(new C(lit,list()),sup.cs),"this",ms,true);
+    return new Literal(imm,n,list(),push(new C(lit,list()),sup.cs),"this",ms,u,true,false);
   }
   static int bits(String s){return new BigInteger(s.replace("_","")).bitLength();}
   static boolean floatOk(String raw){
@@ -329,11 +336,10 @@ public final class Frontend{
     }
   }
   public record Literal(RC r,N name,List<B>b,List<C>cs,String self,List<M>ms,T t,boolean anon,boolean expanded)implements E{
-    Literal(RC r,N name,List<B>b,List<C>cs,String self,List<M>ms,boolean anon){this(r,name,b,cs,self,ms,u,anon,false);}
     public Literal t(T t){return new Literal(r,name,b,cs,self,ms,t,anon,expanded);}
     Literal header(List<C>cs,List<M>ms,boolean ex){return new Literal(r,name,b,cs,self,ms,t,anon,ex);}
     R self(RC r){return new R(r,new C(name,vars(b)));}
-    Literal rc(RC r){return new Literal(r,name,b,cs,self,ms,anon);}
+    Literal rc(RC r){return new Literal(r,name,b,cs,self,ms,u,anon,false);}
   }
   public record M(S s,List<String>v,E e){
     M(S s){this(s,Collections.nCopies(s.types.size(),"_"),null);}
@@ -361,8 +367,8 @@ public final class Frontend{
         if(t instanceof X||t instanceof RI)return t.ri();
       }return caps(imm,mut,read).containsAll(caps)?t:t.ri();
     }
-    void declare(String x,T t){if(!x.equals("_"))fs.getLast().vars.put(x,t);}
-    void declare(M m){for(int i=0;i<m.v.size();i++)declare(m.v.get(i),m.s.types.get(i));}
+    Object declare(String x,T t){return x.equals("_")?x:fs.getLast().vars.put(x,t);}
+    void declare(M m){zip(m.v,m.s.types,this::declare);}
     Object snap(){return map(fs,f->new Frame(f.r,f.b,new HashMap<>(f.vars)));}
   }
   static C normC(C c){return((R)norm(new R(null,c))).c;}
@@ -398,20 +404,7 @@ public final class Frontend{
     case Call(var ei,_,_,var y,var es,_,_)->cat(free(g,ei),typeFree(y),es.stream().flatMap(x->free(g,x)));
   };}
   static Stream<String>supFree(List<C>cs){return cs.stream().flatMap(c->typeFree(c.types));}
-  static Stream<String>methodFree(IG g,List<M>ms){return ms.stream().flatMap(m->{
-    var domBs=B.v(m.s.b);
-    return cat(typeFree(m.s.types),m.s.t.ftv(),Stream.ofNullable(m.e).flatMap(ei->free(g,ei))).filter(x->!domBs.contains(x));
-  });}
-  static E copy(Fresh fresh,E e){return switch(e){
-    case Call c->c.children(copy(fresh,c.e),map(c.es,x->copy(fresh,x)));
-    case Literal l->{no(!l.anon);var name1=fresh.type(l.name,l.name.arity);
-      yield new Literal(l.r,name1,l.b,l.cs,l.self,map(l.ms,m->copy(fresh,m,l.name,name1)),l.t,true,l.expanded);
-    }
-    case null,default->e;
-  };}
-  static M copy(Fresh fresh,M m,N name0,N name1){
-    return new M(m.o(name0,name1).s,m.v,copy(fresh,m.e));
-  }
+  static Stream<String>methodFree(IG g,List<M>ms){return ms.stream().flatMap(m->cat(typeFree(m.s.types),m.s.t.ftv(),Stream.ofNullable(m.e).flatMap(ei->free(g,ei))).filter(x->!B.v(m.s.b).contains(x)));}
   static List<Literal>lower(Methods meths){var v=new Visitor(meths);
     for(var di:meths.p.decs){v.owner=v.f(di.name);v.declaration(v.owner,mut,di);}return v.decs;
   }
@@ -433,9 +426,8 @@ public final class Frontend{
       }
       case P.Lit l->literal(null,list(),l);
       case P.Call c0->{
-        var c=c0.pat!=null?desugar(c0):c0;var recv=expr(c.e);var es=map(c.es,this::expr);
-        var sq=or(c.y,new P.Args(null,list()));
-        yield new Call(recv,new MN(c.name,c.es.size()),sq.r,map(sq.types,this::type),es,u,c.y!=null);
+        var c=c0.pat!=null?desugar(c0):c0;var sq=or(c.y,new P.Args(null,list()));
+        yield new Call(expr(c.e),new MN(c.name,c.es.size()),sq.r,map(sq.types,this::type),map(c.es,this::expr),u,c.y!=null);
       }
     };}
     C constructor(C c){var s=c.name.s;
@@ -447,11 +439,9 @@ public final class Frontend{
       case Pat.Des _->meths.fresh.variable(owner,"div");
     };}
     List<M>methods(List<PM>ms){return seq(ms.size(),i->method(ms.get(i),i));}
-    S signature(PM mm,int idx){var s=mm.s;var types=map(s.ps,p->type(p.t));if(mm.implicit)types=push(types,u);
-      return new S(s.r,s.m==null?null:new MN(s.m,mm.arity()),s.b,types,type(s.t),null,mm.body==null,idx);
-    }
-    M method(PM m,int idx){var s=signature(m,idx);
-      if(m.body==null)return new M(s);var body=m.body;var original=m.s.ps;
+    M method(PM m,int idx){var q=m.s;var original=q.ps;var types=map(original,p->type(p.t));if(m.implicit)types=push(types,u);
+      var s=new S(q.r,q.m==null?null:new MN(q.m,m.arity()),q.b,types,type(q.t),null,m.body==null,idx);
+      if(m.body==null)return new M(s);var body=m.body;
       var patterns=any(original,p->p.xp instanceof Pat.Des);
       var ps=map(original,p->parameter(p,patterns));
       var xpats=flat(zip(ps,original,(x,p)->xpat(p.xp,x)),y->y);if(m.implicit){
@@ -470,11 +460,11 @@ public final class Frontend{
       case Pat.Name(var x)->x.equals(lowered)?Stream.of():Stream.of(new XE(x,new P.X(lowered)));
     };}
     Literal literal(RC r,List<C>impl,P.Lit l){var ms=methods(l.ms);
-      return new Literal(r,meths.fresh.type(owner,0),list(),impl,l.self,ms,true);
+      return new Literal(r,meths.fresh.type(owner,0),list(),impl,l.self,ms,u,true,false);
     }
     Literal declaration(N name,RC r,Declaration d){var cs=map(d.cs,this::constructor);
       no(Core.distinct(d.b,cs).size()<cs.size());
-      var l=new Literal(r,name,d.b,cs,d.l.self,methods(d.l.ms),false);decs.add(l);return l;
+      var l=new Literal(r,name,d.b,cs,d.l.self,methods(d.l.ms),u,false,false);decs.add(l);return l;
     }
     P.Call desugar(P.Call c){
       var x=meths.fresh.variable(owner,"eqS");
@@ -482,7 +472,7 @@ public final class Frontend{
     }
     static P lambda(List<Par>ps,P body){return new P.Lit("_",list(new PM(new PS(null,null,null,ps,u),body,false)));}
     P receiver(P par,P atom){
-      if(!(par instanceof P.Call c))return atom;return new P.Call(receiver(c.e,atom),c.name,c.y,c.pat,c.es);
+      return par instanceof P.Call c?new P.Call(receiver(c.e,atom),c.name,c.y,c.pat,c.es):atom;
     }
   }
   static final class Methods{
@@ -498,13 +488,12 @@ public final class Frontend{
       }deep=cat(cache.values().stream(),other.values().stream()).flatMap(Frontend::ts).mapToInt(T::depth).max().orElse(1);
       return map(acc,di->di.header(di.cs,map(di.ms,m->body(di,m)),false));
     }
-    List<C>parents(C c){var d=from(c.name);if(d==null)return list();
-      return d.cs.stream().map(ci->new C(ci.name,rename(ci.types,B.v(d.b),c.types))).distinct().toList();
+    List<C>parents(C c){var d=from(c.name);return d==null?list():d.cs.stream().map(ci->new C(ci.name,rename(ci.types,B.v(d.b),c.types))).distinct().toList();
     }
     S alpha(M m,C c,Literal child,List<String>scope){var s=m.s;var xs=new Vector<>(B.v(from(c.name).b));
       var ts=new Vector<>(c.types);var bs=new Vector<B>();var gen=fresh.owners.get(child.name).gen;var top=fresh.top.used;for(var b:s.b){var x=b.x;
         if(!gen.used.contains(x)&&!top.contains(x)&&!scope.contains(x)){bs.add(b);continue;}xs.add(x);
-        var next=Fresh.fresh(x,"ABCDEFGHJKMNPQRSTUVWXYZ",gen,list(top,push(B.v(s.b),scope)));fresh.reserved.add(next);ts.add(new X(next));bs.add(new B(next,b.caps));
+        var next=Fresh.fresh(x,gen,list(top,push(B.v(s.b),scope)));fresh.reserved.add(next);ts.add(new X(next));bs.add(new B(next,b.caps));
       }return s.subst(bs,xs,ts);
     }
     Literal from(N name){return Frontend.from(name,cache::get,other);}
@@ -519,9 +508,8 @@ public final class Frontend{
       return d.header(push(c,parents(c)),pair(d.ms,dd==null?list():map(dd.ms,m->alpha(m,c,d,B.v(scope))),d),true);
     }
     void magic(Literal d,List<C>supers){no(filter(supers,c->c.name.equals(widen)).size()>1);
-      if(has(supers,identity)){var ms=d.ms;
-        no(ms.size()!=1||!ms.get(0).s.m.equals(new MN("#",1)));var s=ms.get(0).s;
-        no(!(ms.get(0).e!=null||s.abs||has(from(s.o).cs,identity)));
+      if(has(supers,identity)){no(d.ms.size()!=1);var m=d.ms.get(0);var s=m.s;
+        no(!s.m.equals(new MN("#",1))||m.e==null&&!s.abs&&!has(from(s.o).cs,identity));
       }
       if(has(supers,log)){var s=d.name.simple();no(s.matches(".*('|_[a-z]).*"));var f=s.replaceAll("[A-Z]","_$0").toLowerCase(Locale.ROOT).substring(1);
         no(f.matches("con|prn|aux|nul|(com|lpt)[1-9]|_rank_.*")||f.length()+d.name.pk().length()>184);
@@ -538,7 +526,7 @@ public final class Frontend{
       no(has(supers,sealed)&&any(supers,c->!c.name.pk().equals(d.name.pk())&&has(from(c.name).cs,sealed)));
     }
     void register(Literal d){
-      cache.put(d.name,new Literal(or(d.r,imm),d.name,d.b,map(d.cs,Frontend::normC),d.self,map(d.ms,m->m.signature(Core.merge(m.s,m.s))),d.anon));
+      cache.put(d.name,new Literal(or(d.r,imm),d.name,d.b,map(d.cs,Frontend::normC),d.self,map(d.ms,m->m.signature(Core.merge(m.s,m.s))),u,d.anon,false));
     }
     M name(M m,Vector<S>ss){
       var arity=m.s.types.size();for(var abs:list(true,false)){
@@ -548,8 +536,7 @@ public final class Frontend{
         }
       }throw new Fail();
     }
-    List<M>pair(List<M>ms,List<S>sigs,Literal o){var res=new Vector<M>();var ss=new Vector<>(sigs);var ns=new Vector<>(sigs);
-      ns.removeIf(s->any(ms,m->Objects.equals(m.s.m,s.m)));
+    List<M>pair(List<M>ms,List<S>sigs,Literal o){var res=new Vector<M>();var ss=new Vector<>(sigs);var ns=new Vector<>(filter(sigs,s->!any(ms,m->Objects.equals(m.s.m,s.m))));
       for(var m:Util.<M>push(filter(ms,x->x.s.m!=null),map(filter(ms,x->x.s.m==null),x->name(x,ns)))){
       var name=m.s.m;var r=m.s.r;
       var taken=filter(ss,s->s.m.equals(name)&&(r==null||r==s.r));ss.removeAll(taken);
@@ -558,7 +545,7 @@ public final class Frontend{
         var dead=match.remove(mut);if(dead!=null)ss.addAll(dead);
       }var first=true;
       for(var matches:match.size()==0?list(List.<S>of()):match.values()){
-        var mi=first?m:copy(fresh,m,o.name,o.name);first=false;res.add(pair(matches,mi,o));
+        var mi=first?m:new M(m.s,m.v,fresh.copy(m.e));first=false;res.add(pair(matches,mi,o));
       }
     }
       group(ss,s->new Key(s.r,s.m)).values().forEach(v->res.add(pair(v,null,o)));return res;
@@ -573,14 +560,9 @@ public final class Frontend{
       var aligned=map(ss,e->e.subst(b,B.v(e.b),vars(b)));var first=aligned.get(0);
       var types=seq(s.types.size(),i->s.types.get(i)==u?agreement(o,aligned,e->e.types.get(i)):s.types.get(i));
       var res=s.t==u?agreement(o,aligned,S::t):s.t;
-      var impl=om!=null?List.<N>of():aligned.stream().filter(e->!e.abs&&!overridden(e,o)).map(e->e.o).distinct().toList();no(impl.size()>1);
+      var impl=om!=null?List.<N>of():aligned.stream().filter(e->!e.abs&&o.cs.stream().flatMap(c->cat(Stream.of(c),from(c.name).cs.stream())).map(c->from(c.name)).noneMatch(d->!d.name.equals(e.o)&&has(d.cs,e.o)&&any(d.ms,m->m.s.o.equals(d.name)&&m.s.m.equals(e.m)&&m.s.r==e.r))).map(e->e.o).distinct().toList();no(impl.size()>1);
       var out=new S(or(s.r,first.r),first.m,b,types,res,impl.size()==1?impl.get(0):o.name,om==null?impl.size()==0:om.e==null,s.idx);
       return om==null?new M(out):om.signature(out);
-    }
-    boolean overridden(S s,Literal lit){var sup=s.o;return lit.cs.stream()
-      .flatMap(c->cat(Stream.of(c.name),from(c.name).cs.stream().map(C::name))).anyMatch(t->{var d=from(t);
-        return!t.equals(sup)&&has(d.cs,sup)&&d.ms.stream().map(M::s).anyMatch(o->o.o.equals(d.name)&&o.m.equals(s.m)&&o.r==s.r);
-      });
     }
     T agreement(Literal lit,List<S>ss,Function<S,T>f){var res=map(ss,f);
       var b=push(lit.b,ss.get(0).b);var first=fill(res.get(0));
@@ -589,23 +571,20 @@ public final class Frontend{
     M body(Literal di,M m){
       if(m.e==null)return m;var ei=meet(m.e,m.s.t);cap=deep*size(ei);var g=new IG();g.declare(m);
       g.declare(di.self,di.self(has(di.cs,cf)?imm:m.s.r));var b=push(di.b,m.s.b);
-      ei=solve(b,g,ei);return new M(m.s,m.v,new Core(b,this).core(ei,m.e));
+      return new M(m.s,m.v,new Core(b,this).core(solve(b,g,ei),m.e));
     }
     E meet(E e,T t){
       if(e instanceof Literal l&&l.t.tv())return e;e=ascribe(e,t,null);
       return e.t(meet(e.t(),t));
     }
-    static T pick(T s,R q){return s.tv()||!q.tv()?s:q;}
     T below(R sub,R sup){
       var d=from(sub.c.name);if(d==null)return null;var ps=filter(d.cs,c->c.name.equals(sup.c.name));if(ps.size()==0)return null;
-      var refined=meet(map(ps,c->refine(B.v(d.b),new R(null,c),sup)));return sub.with(meet(sub.r,sup.r),meet(sub.c.types,refined));
+      var res=sub.with(meet(sub.r,sup.r),meet(sub.c.types,meet(map(ps,c->refine(B.v(d.b),new R(null,c),sup)))));return res.tv()||!sup.tv()?res:sup;
     }
     T meet(T a,T z){
       if(z.und())return a==u?z:a;if(a.und()||a.equals(z))return z;
       if(a instanceof RI(var p)&&p.equals(z))return a;if(z instanceof RI(var q)&&q.equals(a))return z;
-      if(a instanceof R p&&z instanceof R q){if(p.c.name.equals(q.c.name))return p.with(meet(p.r,q.r),meet(p.c.types,q.c.types));
-        var s=below(p,q);if(s!=null)return pick(s,q);s=below(q,p);return s==null?p:pick(s,p);
-      }
+      if(a instanceof R p&&z instanceof R q)return p.c.name.equals(q.c.name)?p.with(meet(p.r,q.r),meet(p.c.types,q.c.types)):or(below(p,q),or(below(q,p),p));
       if(!(a instanceof RX p&&z instanceof RX(var rc2,var q))||!p.x.equals(q))return a;
       return p.rc(meet(p.r,rc2));
     }
@@ -618,19 +597,13 @@ public final class Frontend{
       if(z==u)return a;if(a==u||a.equals(z))return z;
       var cands=push(candidates(a),candidates(z));for(var top:cands){var res=above(top,cands);if(res!=null)return res;}
       if(!all(cands,c->c instanceof R))return new Amb(cands);
-      var heads=cands.stream().map(c->new Vector<>(ancestors((R)c))).reduce((p,q)->{p.retainAll(q);return p;}).get();
+      var heads=cands.stream().map(c->new Vector<>(map(parents(((R)c).c),C::name))).reduce((p,q)->{p.retainAll(q);return p;}).get();
       var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&from(h2)!=null&&has(from(h2).cs,h)));
       return minimal.size()==1?above(sup((R)cands.get(0),minimal.get(0)),cands):new Amb(cands);
     }
-    List<N>ancestors(R t){var d=from(t.c.name);return d==null?list():map(d.cs,C::name);}
     static List<T>candidates(T t){return t instanceof Amb(var cs)?cs:list(t);}
     T above(T top,List<T>cands){
-      T res=top;for(var c:cands){var up=lift(c,top);if(up==null)return null;res=shape(res,up);}return res;
-    }
-    T lift(T c,T top){
-      if(c instanceof R r&&top instanceof R rt){if(r.c.name.equals(rt.c.name))return c;
-        return sup(r,rt.c.name);
-      }return variable(c)!=null&&variable(c).equals(variable(top))?c:null;
+      T res=top;for(var c:cands){var up=c instanceof R r&&top instanceof R rt?r.c.name.equals(rt.c.name)?c:sup(r,rt.c.name):variable(c)!=null&&variable(c).equals(variable(top))?c:null;if(up==null)return null;res=shape(res,up);}return res;
     }
     T shape(T a,T b){
       if(a instanceof R p&&b instanceof R q)return p.with(join(p.r,q.r),meet(p.c.types,q.c.types));
@@ -639,7 +612,6 @@ public final class Frontend{
     static RC join(RC a,RC b){
       if(a==null||b==null)return or(a,b);var x=noH(a);var y=noH(b);return x==y||y==iso?x:x==iso?y:read;
     }
-    List<T>join(List<List<T>>tss){return tss.stream().reduce((a,b)->zip(a,b,this::join)).get();}
     List<T>meet(List<T>a,List<T>z){return zip(a,z,this::meet);}
     List<T>meet(List<List<T>>tss){return tss.stream().reduce(this::meet).get();}
     E solve(List<B>b,IG g,E e){
@@ -667,7 +639,6 @@ public final class Frontend{
         yield new Call(ee,c.name,m.r,types,expect(c.es,m,types),meet(c.t,m.inst(m.ret,types)),false);
       }
     };}
-    T preferred(R type){var s=sup(type,widen);return s!=null&&s.c.types.get(0) instanceof R(_,var c)?new R(type.r,c):type;}
     M lookup(R w,MN name,RC favorite,RC hint){
       var d=from(w.c.name);if(d==null)return null;var ms=filter(d.ms,m->m.s.m.equals(name));
       var r=noH(or(w.r==iso?hint:w.r,imm));
@@ -692,16 +663,12 @@ public final class Frontend{
       var is=range(es.size()).filter(i->!literals||es.get(i) instanceof Literal l&&!instance(l)).boxed().toList();
       Function<Integer,List<T>>ref=i->refine(m.v,m.ps.get(i),es.get(i).t());
       var lower=map(filter(is,i->!(m.ps.get(i) instanceof R)),ref);var exact=map(filter(is,i->m.ps.get(i) instanceof R),ref);
-      return meet(push(join(push(qs(m.v.size()),lower)),exact));
+      return meet(push(lower.stream().reduce(qs(m.v.size()),(a,b)->zip(a,b,this::join)),exact));
     }
-    List<T>infer(Call c,MS m,List<E>es,boolean use){var y=MS.fixTargs(c.y,m.mb.size());
-      var args=use?arguments(m,es,false):qs(m.v.size());
-      var ret=refine(m.v,m.ret,c.t);var all=meet(List.of(push(m.cas,y),args,ret));
-      var written=push(m.cas,c.written?y:qs(m.mb.size()));var hard=arguments(m,es,true);
-      var exact=m.ret instanceof R?ret:qs(m.v.size());
-      return zip(zip(zip(written,exact,Methods::choose),hard,Methods::choose),all,Methods::choose);
+    List<T>infer(Call c,MS m,List<E>es,boolean use){var y=MS.fixTargs(c.y,m.mb.size());var ret=refine(m.v,m.ret,c.t);
+      return Stream.of(push(m.cas,c.written?y:qs(m.mb.size())),m.ret instanceof R?ret:qs(m.v.size()),arguments(m,es,true),meet(List.of(push(m.cas,y),use?arguments(m,es,false):qs(m.v.size()),ret)))
+        .reduce((p,q)->zip(p,q,(a,b)->a.tv()&&!(a instanceof R(var r,_)&&r==null)?a:b)).get();
     }
-    static T choose(T a,T b){return a.tv()&&!(a instanceof R(var r,_)&&r==null)?a:b;}
     R self(Literal l){return l.r==null?null:l.self(l.r);}
     E literal(List<B>b,IG g,Literal l){var sp=self(l);if(!l.expanded){
       l=l.t(!l.anon?sp:l.cs.size()==1?new R(l.r,l.cs.get(0)):or(sp,l.t));if(!(l.t instanceof R(_,var c)))return l;
@@ -721,7 +688,7 @@ public final class Frontend{
       var own=w.c.name.equals(name);no(!own&&!w.c.name.visible()&&!w.c.name.pk().equals(p.name));
       var cs=Core.distinct(bs,own?parents(w.c):push(w.c,parents(w.c)));
       l=new Literal(cap,name1,bs,cs,l.self,map(l.ms,mi->mi.o(name,name1)),w,l.anon,l.expanded);if(!instance)magic(l,cs);
-      if(own)l=l.t(self(l));register(l);return instance?l.t(preferred(new R(cap,w.c))):l;
+      if(own)l=l.t(self(l));register(l);var s=sup(w,widen);return!instance?l:l.t(new R(cap,s!=null&&s.c.types.get(0) instanceof R(_,var c)?c:w.c));
     }
     record TSM(List<T>types,M m){}
     TSM header(R w,M m){
@@ -739,12 +706,10 @@ public final class Frontend{
       return new TSM(h.types,new M(s,m.v,meet(e,s.t)));
     }
     List<T>refine(R w,S sig,S imh){var Xs=B.v(from(w.c.name).b);
-      var byArg=zip(imh.types,sig.types,(t,it)->refine(Xs,t,it));var body=meet(push(byArg,refine(Xs,imh.t,sig.t)));
-      return zip(w.c.types,body,this::keep);
+      var byArg=zip(imh.types,sig.types,(t,it)->refine(Xs,t,it));return zip(w.c.types,meet(push(byArg,refine(Xs,imh.t,sig.t))),this::keep);
     }
     T keep(T decided,T body){
-      var isolated=decided instanceof RX(var aRc,_)&&aRc==iso;
-      if(variable(decided)!=null&&variable(decided).equals(variable(body))&&!isolated)return decided;
+      if(variable(decided)!=null&&variable(decided).equals(variable(body))&&!(decided instanceof RX&&decided.erc()==iso))return decided;
       if(!(decided instanceof R(var aRc,var aC)&&body instanceof R b))return meet(decided,body);
       if(!aC.name.equals(b.c.name)){var s=sup(b,aC.name);return s==null?decided:keep(decided,s);}
       return b.with(or(aRc,b.r),zip(aC.types,b.c.types,this::keep));
@@ -754,11 +719,10 @@ public final class Frontend{
       return sig.types(map(h.ps,p->h.inst(p,v)),h.inst(h.ret,v));
     }
     List<T>erase(List<T>types,List<String>mb){
-      if(mb.size()==0)return types;
-      return map(types,t->t instanceof R w?bound(w,erase(w.c.types,mb)):mb.contains(variable(t))?u:t);
+      return mb.isEmpty()?types:map(types,t->t instanceof R w?bound(w,erase(w.c.types,mb)):mb.contains(variable(t))?u:t);
     }
     List<T>refine(List<String>v,T t,T a){
-      if(a.und())return qs(v.size());return switch(t){
+      return a.und()?qs(v.size()):switch(t){
         case X x->{var n=v.indexOf(x.name);yield seq(v.size(),i->i==n?a:u);}
         case RX(_,var x)->refine(v,x,switch(a){
           case RX(_,var p)->p;case RI(var p)->p;case R(_,var c)->new R(null,c);default->a;
@@ -778,9 +742,7 @@ public final class Frontend{
       if(!(expected instanceof R exp))return arg;
       return switch(arg){
         case Call c->c.children(ascribe(c.e,expected,c.name),c.es);
-        case Literal l when l.expanded||!l.anon||l.cs.size()>0||!l.t.und()->arg;
-        case Literal l when called==null||implementable(exp.c.name)&&!any(l.ms,m->called.equals(m.s.m)&&m.s.t!=u&&!any(m.s.types,t->t==u))->l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size()))));
-        case Literal l->{var res=new Literal(imm,l.name,l.b,l.cs,l.self,l.ms,true);yield res.t(self(res));}
+        case Literal l->l.expanded||!l.anon||l.cs.size()>0||!l.t.und()?arg:called==null||implementable(exp.c.name)&&!any(l.ms,m->called.equals(m.s.m)&&m.s.t!=u&&!any(m.s.types,t->t==u))?l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size())))):l.rc(imm).t(l.self(imm));
         default->arg;
       };
     }
@@ -789,7 +751,7 @@ public final class Frontend{
     }
     static T normalize(T t,Set<RC>al){
       if(al.size()==1)return t.rc(al.iterator().next());
-      if(!(t instanceof R(var r,var c))||!(r==null||r==iso&&!al.contains(iso)))return t;return new R(al.contains(imm)?null:read,c);
+      return t instanceof R(var r,var c)&&(r==null||r==iso&&!al.contains(iso))?new R(al.contains(imm)?null:read,c):t;
     }
     static List<T>normalize(List<B>scope,List<B>b,List<T>types){
       return zip(types,b,(ti,bi)->variable(ti)==null||B.get(scope,variable(ti)).caps.equals(bi.caps)?normalize(ti,bi.caps):ti);
@@ -807,29 +769,25 @@ public final class Frontend{
       }
     };}
     T targ(Call e,T t,int i){
-      if(t!=u)return norm(fillVoid(t));
-      var m=e.e.t() instanceof R w?meths.lookup(w,e.name,e.r,null):null;var caps=m==null?caps(imm):m.s.b.get(i).caps;
+      var m=t==u&&e.e.t() instanceof R w?meths.lookup(w,e.name,e.r,null):null;if(m==null)return norm(fillVoid(t));var caps=m.s.b.get(i).caps;
       return voidT(caps.contains(imm)?imm:caps.iterator().next());
     }
     static T voidT(RC r){return new R(r,new C(voidName,list()));}
     static T fillVoid(T t){no(t instanceof Amb);return t==u?voidT(imm):t instanceof R w?w.withTs(map(w.c.types,Core::fillVoid)):t;}
     Literal literal(Literal e,Literal o){
-      no(!(e.t instanceof R)&&!e.t.und());var b=e.b;if(e.anon&&b.size()==0){var g=new IG();
-        b=cat(supFree(e.cs),methodFree(g,e.ms),methodFree(g,o.ms)).distinct().map(x->B.get(ctx,x)).toList();
-      }var name=e.name.arity(b.size());
+      no(!(e.t instanceof R)&&!e.t.und());var b=e.anon&&e.b.isEmpty()?cat(supFree(e.cs),methodFree(new IG(),e.ms),methodFree(new IG(),o.ms)).distinct().map(x->B.get(ctx,x)).toList():e.b;
+      var name=e.name.arity(b.size());
       var inner=e.anon?with(b):new Core(b,meths);
-      var ms=map(e.ms,me->inner.m(me,me.e==null?me:o.ms.get(me.s.idx)).o(e.name,name));
-      var cs=map(distinct(inner.ctx,push(o.cs,e.cs)),Frontend::normC);
-      return new Literal(or(e.r,imm),name,b,cs,e.self,ms,e.anon);
+      return new Literal(or(e.r,imm),name,b,map(distinct(inner.ctx,push(o.cs,e.cs)),Frontend::normC),e.self,map(e.ms,me->inner.m(me,me.e==null?me:o.ms.get(me.s.idx)).o(e.name,name)),u,e.anon,false);
     }
     static List<C>distinct(List<B>b,List<C>cs){var res=new Vector<C>();
       for(var c:cs){if(!any(res,r->TS.equivalent(b,fill(new R(imm,r)),fill(new R(imm,c)))))res.add(c);}return res;
     }
     Core with(List<B>b){return new Core(push(ctx,b).stream().distinct().toList(),meths);}
     M m(M e,M o){var s=merge(e.s,o.s);return new M(s,e.v,e.e==null?null:with(s.b).core(e.e,o.e));}
-    static S merge(S inf,S usr){var types=zip(usr.types,inf.types,(y,i)->y==u?i:y);
+    static S merge(S inf,S usr){
       return new S(or(usr.r,or(inf.r,imm)),required(or(usr.m,inf.m)),or(usr.b,or(inf.b,list())),
-        map(types,Frontend::norm),norm(usr.t==u?inf.t:usr.t),required(or(usr.o,inf.o)),usr.abs,usr.idx);
+        zip(usr.types,inf.types,(y,i)->norm(y==u?i:y)),norm(usr.t==u?inf.t:usr.t),required(or(usr.o,inf.o)),usr.abs,usr.idx);
     }
   }
   record G(G tail,String name,T t){
@@ -840,10 +798,10 @@ public final class Frontend{
   }
   record MT(RC r,List<T>types,T t){}
   enum Mode{
-    reading(iso,readH,mutH,readH),flexy(iso,imm,mutH,readH),hyg(mutH,readH,mutH,readH),strong(iso,imm,iso,imm);
-    final RC m,r,mh,rh;
-    Mode(RC m,RC r,RC mh,RC rh){this.m=m;this.r=r;this.mh=mh;this.rh=rh;}
-    RC of(RC x){return switch(x){case mut->m;case read->r;case mutH->mh;case readH->rh;default->x;};}
+    reading(imm,iso,readH,iso,mutH,readH),flexy(imm,iso,imm,iso,mutH,readH),hyg(imm,mutH,readH,iso,mutH,readH),strong(imm,iso,imm,iso,iso,imm);
+    final RC[]v;
+    Mode(RC...v){this.v=v;}
+    RC of(RC x){return v[x.ordinal()];}
   }
   record TS(Function<N,Literal>decs){
     static void check(List<Literal>tops,Map<N,Literal>other){var map=new HashMap<N,Literal>();
@@ -851,9 +809,7 @@ public final class Frontend{
     }
     static void collect(E e,HashMap<N,Literal>map){if(e instanceof Literal l)map.put(l.name,l);e.children().forEach(c->collect(c,map));}
     boolean kinded(List<B>b,T t,Set<RC>al){
-      if(!al.containsAll(kinds(b,t)))return false;
-      if(!(t instanceof R(_,var c)))return true;var params=decs.apply(c.name).b;
-      return all(zip(c.types,params,(ti,p)->kinded(b,ti,p.caps)),v->v);
+      return al.containsAll(kinds(b,t))&&(!(t instanceof R(_,var c))||all(zip(c.types,decs.apply(c.name).b,(ti,p)->kinded(b,ti,p.caps)),v->v));
     }
     void kind(List<B>b,T t,Set<RC>al){no(!kinded(b,t,al));}
     static Set<RC>kinds(List<B>b,T t){return switch(t){
@@ -863,7 +819,7 @@ public final class Frontend{
       }default->throw new Fail();
     };}
     boolean sub(List<B>b,T a,T z){return a.equals(z)
-      ||z instanceof RI(var q)&&a instanceof X x&&q.name.equals(x.name)&&kinded(b,x,plain)
+      ||z instanceof RI(var q)&&q.equals(a)&&kinded(b,a,plain)
       ||shape(b,a,z)
       ||a instanceof R(var rc1,var c1)&&any(decs.apply(c1.name).cs,ci->sub(b,rename(new R(rc1,ci),B.v(decs.apply(c1.name).b),c1.types),z));
     }
@@ -873,27 +829,21 @@ public final class Frontend{
     };}
     static boolean inst(Literal l){return l.self.equals("this")||has(l.cs,cf);}
     static long count(String x,E e,boolean active){
-      var here=e instanceof E.X v&&v.name.equals(x)?1:0;
-      if(active&&e instanceof Literal)return here;return here+e.children().mapToLong(c->count(x,c,active)).sum();
-    }
-    static Literal born(Literal l,RC r,boolean cf){
-      var res=l.rc((r.ro()&&!any(l.ms,m->m.s.abs&&m.s.r==mut)||r==mut||r==mutH)&&cf?iso:r);
-      res.ms.forEach(m->no(m.s.abs&&callable(res.r,m.s.r)));return res;
+      return e instanceof E.X v?v.name.equals(x)?1:0:active&&e instanceof Literal?0:e.children().mapToLong(c->count(x,c,active)).sum();
     }
     List<T>reqs(List<B>b,T got,List<T>rs,boolean concrete){
       if(rs.size()==0)return list(got);no(concrete&&any(rs,r->!(r instanceof R)));return map(rs,r->sub(b,got,r)?got:null);
     }
     List<T>literal(List<B>bs1,G g,Literal _l,List<T>rs){
-      var gf=g.map(t->has(_l.cs,cf)||!t.ftv().allMatch(B.v(_l.b)::contains)?null:t);var l=born(_l,_l.r,cf(_l.b,gf,_l));
-      var t=l.self(l.r);kind(bs1,t,allRC);check(gf.map(x->!kinded(l.b,x,plain)||l.r.ii()&&!kinded(l.b,x,ii)?null:x),l,_l.r.mutable());
-      no(!_l.self.equals("_")&&count(_l.self,_l,false)==0);no(any(l.ms,m->m.e!=null&&!inst(l)&&!callable(l.r,m.s.r)));
+      var gf=g.map(t->has(_l.cs,cf)||!t.ftv().allMatch(B.v(_l.b)::contains)?null:t);var r=_l.r;var l=_l.rc((r.ro()&&!any(_l.ms,m->m.s.abs&&m.s.r==mut)||r==mut||r==mutH)&&cf(_l.b,gf,_l)?iso:r);
+      no(any(l.ms,m->(m.s.abs||m.e!=null&&!inst(l))&&m.s.abs==(m.s.r!=mut||!l.r.ro())));
+      var t=l.self(l.r);kind(bs1,t,allRC);check(gf.map(x->!kinded(l.b,x,plain)||l.r.ii()&&!kinded(l.b,x,ii)?null:x),l,r.mutable());
+      no(!_l.self.equals("_")&&count(_l.self,_l,false)==0);
       return reqs(bs1,t,rs,true);
     }
     static boolean cf(List<B>b,G g,E e){
-      if(!(e instanceof E.X x))return e.children().allMatch(c->cf(b,g,c));
-      return g.bind(x.name)==null||all(kinds(b,g.bind(x.name)),RC::ii);
+      return e instanceof E.X x?g.bind(x.name)==null||all(kinds(b,g.bind(x.name)),RC::ii):e.children().allMatch(c->cf(b,g,c));
     }
-    static boolean callable(RC litRC,RC recRc){return recRc!=mut||!litRC.ro();}
     void check(G g,Literal l,RC self){
       if(has(l.cs,identity)){var m=l.ms.get(0);no(!switch(m.e){
         case null->true;
@@ -908,32 +858,23 @@ public final class Frontend{
       }}
       for(var m:l.ms){if(m.s.o.equals(l.name))sources.add(m.s);}
       group(sources,s->new Key(s.r,s.m)).forEach((k,sigs)->{
-        var chosen=canonical(l,k.name,k.r);var ctx=push(l.b,chosen.b);for(var s:sigs){
-          for(int i=0;i<chosen.types.size();i++)no(!same(ctx,chosen.types.get(i),s.types.get(i))||!sub(ctx,s.types.get(i),chosen.types.get(i)));
-          no(!same(ctx,chosen.t,s.t)||!sub(ctx,chosen.t,s.t));
-        }
+        var chosen=canonical(l,k.name,k.r);var ctx=push(l.b,chosen.b);for(var s:sigs)
+          no(zip(chosen.types,s.types,(p,q)->!same(ctx,p,q)||!sub(ctx,q,p)).contains(true)||!same(ctx,chosen.t,s.t)||!sub(ctx,chosen.t,s.t));
       });
       var g1=g.add(l.self,l.self(self));for(var m:l.ms){var g2=g1.map(t->IG.adapt(t,m.s.r,l.b));
         var bs=push(l.b,m.s.b);push(m.s.types,m.s.t).forEach(t->kind(bs,t,allRC));if(m.e==null)continue;
-        for(int i=0;i<m.v.size();i++)g2=g2.add(m.v.get(i),m.s.types.get(i));no(type(bs,g2,m.e,list(m.s.t)).get(0)==null);
-        for(int i=0;i<m.v.size();i++){var x=m.v.get(i);if(kinded(bs,m.s.types.get(i),caps(mut,read,mutH,readH,imm)))continue;
-          no(count(x,m.e,true)>0&&count(x,m.e,false)!=1);
-        }
+        for(int i=0;i<m.v.size();i++){var x=m.v.get(i);var ti=m.s.types.get(i);g2=g2.add(x,ti);no(!kinded(bs,ti,caps(mut,read,mutH,readH,imm))&&count(x,m.e,true)>0&&count(x,m.e,false)!=1);}
+        no(type(bs,g2,m.e,list(m.s.t)).get(0)==null);
       }
     }
     static S canonical(Literal l,MN name,RC r){return required(find(l.ms,m->m.s.m.equals(name)&&m.s.r==r)).s;}
     static boolean shape(List<B>b,T a,T z){
-      if(!equivalent(b,a.rc(mut),z.rc(mut)))return false;var rcs2=kinds(b,z);
-      return all(kinds(b,a),r1->all(rcs2,r1::sub));
+      return equivalent(b,a.rc(mut),z.rc(mut))&&all(kinds(b,a),r1->all(kinds(b,z),r1::sub));
     }
     static boolean same(List<B>b,T p,T q){return(p instanceof RI)==(q instanceof RI)&&p.erc()==q.erc()||equivalent(b,p,q);}
     static boolean equivalent(List<B>b,T p,T q){
-      if(p.equals(q))return true;
-      if(!(p instanceof R(var aRc,var aC)&&q instanceof R(var bRc,var bC))){
-        if(!(p.rc(imm) instanceof RX(_,var x))||!p.rc(imm).equals(q.rc(imm)))return false;
-        return B.get(b,x.name).caps.size()==1&&kinds(b,p).equals(kinds(b,q));
-      }
-      return aRc==bRc&&aC.name.equals(bC.name)&&all(zip(aC.types,bC.types,(x,y)->equivalent(b,x,y)),v->v);
+      return p.equals(q)||(p instanceof R(var aRc,var aC)&&q instanceof R(var bRc,var bC)?aRc==bRc&&aC.name.equals(bC.name)&&all(zip(aC.types,bC.types,(s,t)->equivalent(b,s,t)),v->v)
+        :p.rc(imm) instanceof RX(_,var x)&&p.rc(imm).equals(q.rc(imm))&&B.get(b,x.name).caps.size()==1&&kinds(b,p).equals(kinds(b,q)));
     }
     List<T>call(List<B>b,G g,Call c,List<T>rs){
       if(!(type(b,g,c.e,list()).get(0) instanceof R h))throw new Fail();var d=decs.apply(h.c.name);
@@ -953,13 +894,10 @@ public final class Frontend{
     static MT apply(List<B>d,MT m,Mode receiver,Mode args,int at,Mode result){
       return new MT(receiver.of(m.r),seq(m.types.size(),j->adapt(d,m.types.get(j),j==at?hyg:args,(p,q)->q.sub(p))),adapt(d,m.t,result,RC::sub));
     }
-    static T adapt(List<B>d,T t,Mode mode,BiPredicate<RC,RC>le){return switch(t){
-      case R w->w.rc(mode.of(w.r));case RX rcx->rcx.rc(mode.of(rcx.r));
-      case X x->variable(d,x,r->r,mode,le,t);case RI(var x)->variable(d,x,RC::ri,mode,le,t);default->t;
-    };}
-    static T variable(List<B>d,X x,UnaryOperator<RC>inst,Mode mode,BiPredicate<RC,RC>le,T original){
-      var caps=EnumSet.copyOf(map(B.get(d,x.name).caps,inst));if(all(caps,r->mode.of(r)==r))return original;
-      var up=Stream.of(RC.values()).filter(p->all(caps,c->le.test(mode.of(c),p))).toList();return new RX(find(up,p->all(up,o->le.test(p,o))),x);
+    static T adapt(List<B>d,T t,Mode mode,BiPredicate<RC,RC>le){
+      if(t.erc()!=null)return t.rc(mode.of(t.erc()));var x=variable(t);if(x==null)return t;
+      var caps=EnumSet.copyOf(map(B.get(d,x).caps,(RC r)->t instanceof RI?r.ri():r));if(all(caps,r->mode.of(r)==r))return t;
+      var up=Stream.of(RC.values()).filter(p->all(caps,c->le.test(mode.of(c),p))).toList();return new RX(find(up,p->all(up,o->le.test(p,o))),new X(x));
     }
   }
 }
