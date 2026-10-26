@@ -83,7 +83,7 @@ public class Frontend{
     record X(String name)implements P{}
     record Lit(String self,List<PM>ms)implements P{}
     record Typed(RC r,C c,Lit l)implements P{}
-    record Declared(RC r,Declaration dec)implements P{}
+    record Declared(RC r,N name,List<B>b,List<C>cs,Lit l,Owner owner)implements P{}
     record Args(RC r,List<T>types){}
     record Call(P e,String name,Args y,Pat pat,List<P>es)implements P{}
     record Implicit()implements P{}
@@ -104,8 +104,8 @@ public class Frontend{
       public Stream<String>names(){return extract.stream().map(e->e.getLast().substring(1)+id);}
     }
   }
-  record Declaration(N name,List<B>b,List<C>cs,P.Lit l,Owner owner){}
-  record File(Set<String>maps,List<Use>uses,List<Declaration>decs){record Use(N in,String out){}}
+
+  record File(Set<String>maps,List<Use>uses,List<P.Declared>decs){record Use(N in,String out){}}
   record Names(List<String>v,List<String>Xs,List<String>hid,Owner owner){
     Names add(List<String>v,List<String>Xs){
       owner.vars.used.addAll(v);owner.gen.used.addAll(Xs);return new Names(push(this.v,v),push(this.Xs,Xs),hid,owner);
@@ -123,7 +123,7 @@ public class Frontend{
     Token take(K...ks){no(end());var t=tokens.get(index++);no(ks.length>0&&!t.is(ks));return t;}
     boolean fwd(boolean v){if(v)index++;return v;}
     <A>A group(Function<Parser,A>r){
-      var p=make(tokens.get(index++).tokens);p.index=1;p.limit-=1;return p.whole(r);
+      var p=make(tokens.get(index++).tokens);p.index=1;p.limit--;return p.whole(r);
     }
     Parser front(ToIntFunction<Parser>probe){
       var sub=make(tokens.subList(index,limit));var res=make(tokens.subList(index,index-probe.applyAsInt(sub)+sub.index));index+=sub.index;return res;
@@ -138,7 +138,7 @@ public class Frontend{
       if(see(Low)){var x=take().content;no(!names.v.contains(x));return new P.X(x);}
       if(see(Round))return group(Parser::expr);
       if(fwd(see(Implicit)))return new P.Implicit();if(see(Curly))return group(p->p.literal(false));
-      var r=optCap();no(r!=null&&r.isH());if(isDec())return new P.Declared(r,declaration(false));
+      var r=optCap();no(r!=null&&r.isH());if(isDec())return declaration(r,false);
       return new P.Typed(or(r,imm),constructor(),see(Curly)?group(p->p.literal(false)):null);
     }
     RC cap(){return RC.valueOf(take(Cap).content);}RC optCap(){return see(Cap)?cap():null;}
@@ -214,18 +214,18 @@ public class Frontend{
       }
       return switch(take(Op).content){case "**"->new B(x,allRC);case "*"->new B(x,caps(imm,mut,read));default->throw new Fail();};
     }
-    Declaration declaration(boolean top){
+    P.Declared declaration(RC r,boolean top){
       var c=name();no(c.s.contains(".")||primitive(c.s));
       var b=see(Square)?bounds(top):Util.<B>list();var outer=names;var owner=top?new Owner():names.owner;
       names=new Names(names.v,list(),push(names.hid,names.Xs),owner).add(list(),B.v(b));owner.decs.add(c=c.arity(b.size()));take(Colon);
       var cs=required(prefix(p->p.so(2,Curly),p->p.by(comma,Parser::constructor)));no(dup(cs));
-      var l=group(p->p.literal(top));names=outer;return new Declaration(c,b,cs,l,owner);
+      var l=group(p->p.literal(top));names=outer;return new P.Declared(r,c,b,cs,l,owner);
     }
     File file(){
       var maps=new HashSet<String>();var uses=new Vector<File.Use>();front(Parser::headEnd).whole(p->{
         if(!p.see(Low))return null;no(!p.tokens.get(--p.limit).is(Semi));return p.by(q->q.so(1,Semi),q->q.directive(maps,uses));
       });
-      return new File(maps,uses,by(p->p.so(0,Curly),p->p.declaration(true)));
+      return new File(maps,uses,by(p->p.so(0,Curly),p->p.declaration(null,true)));
     }
     String take(K kind,String regex){var s=take(kind).content;no(!s.matches(regex));return s;}
     Object directive(HashSet<String>maps,Vector<File.Use>uses){
@@ -245,7 +245,7 @@ public class Frontend{
     int headEnd(){while(!(end()||isDec()))take();return 0;}
     static ToIntFunction<Parser>comma=p->p.so(1,Comma);
   }
-  record Pkg(String name,Map<String,String>map,List<Declaration>decs,Set<N>names){}
+  record Pkg(String name,Map<String,String>map,List<P.Declared>decs,Set<N>names){}
   @SuppressWarnings("serial")static class Scope extends HashMap<String,Integer>{HashSet<String>used=new HashSet<>();}
   static class Owner{Scope gen=new Scope(),vars=new Scope();Vector<N>decs=new Vector<>();}
 
@@ -272,7 +272,7 @@ public class Frontend{
     return Double.isFinite(d)&&(soft||(d==0?new BigDecimal(ns.replaceAll("[eE].*","")):new BigDecimal(ns).subtract(new BigDecimal(d))).signum()==0);
   }
   static T u=U.Instance;static PS bare=new PS(null,null,null,list(),u);
-  public sealed interface T{
+  public interface T{
     default boolean tv(){return!und();}
     default RC erc(){return null;}default int depth(){return 1;}
     record X(String name)implements T{}
@@ -410,8 +410,8 @@ public class Frontend{
     E expr(P e){return switch(e){
       case P.X x->new E.X(x.name,u);case P.Implicit _->new E.X(implicits.getLast(),u);
       case P.Typed t->literal(t.r,list(constructor(t.c)),or(t.l,new P.Lit("_",list())));
-      case P.Declared c->{var name=f(c.dec.name);owners.put(name,owners.get(owner));
-        yield used(declaration(name,or(c.r,imm),c.dec),c.dec.l.self);
+      case P.Declared c->{var name=f(c.name);owners.put(name,owners.get(owner));
+        yield used(declaration(name,or(c.r,imm),c),c.l.self);
       }
       case P.Lit l->literal(null,list(),l);
       case P.Call c0->{
@@ -453,7 +453,7 @@ public class Frontend{
     }
     String name(String x){return x.equals("_")?fresh("0"):x;}
     static Literal used(Literal l,String x){no(!x.equals("_")&&TS.count(x,l,false)==0);return l;}
-    Literal declaration(N name,RC r,Declaration d){var cs=map(d.cs,this::constructor);
+    Literal declaration(N name,RC r,P.Declared d){var cs=map(d.cs,this::constructor);
       no(distinct(d.b,cs).size()<cs.size());
       var l=new Literal(r,name,d.b,cs,name(d.l.self),methods(d.l.ms),u,false,false);decs.add(l);return l;
     }
