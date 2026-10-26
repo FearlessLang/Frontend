@@ -23,7 +23,7 @@ final class AssociationTextTest{
   @Test void theOneDesktopEntryHandsEveryKindToTheRunningLauncher(){
     var entry= LinuxAssociations.desktopEntry(identity, linuxLauncher, "controller-Main", List.of("application/x-fearless", "application/x-fproof"));
     assertTrue(entry.startsWith("[Desktop Entry]\n"), entry);
-    assertTrue(entry.contains("Exec=\"/home/me/fearlessManaged0_001/bin/fearlessManaged0_001\" %f"), entry);
+    assertTrue(entry.contains("Exec=env LC_ALL=C.UTF-8 \"/home/me/fearlessManaged0_001/bin/fearlessManaged0_001\" %f"), entry);
     assertTrue(entry.contains("MimeType=application/x-fearless;application/x-fproof;"), entry);
     assertTrue(entry.contains("Icon=fearlessManaged0_001"), entry);
     assertTrue(entry.contains("StartupWMClass=controller-Main"), entry);
@@ -33,13 +33,13 @@ final class AssociationTextTest{
     return OneOr.of("one Exec line", entry.lines().filter(l -> l.startsWith("Exec=")));
   }
   @Test void theLauncherIsOneArgumentEvenWithSpaces(){
-    assertEquals("Exec=\"/opt/my apps/fearless/bin/fearless\" %f", exec("/opt/my apps/fearless/bin/fearless"));
+    assertEquals("Exec=env LC_ALL=C.UTF-8 \"/opt/my apps/fearless/bin/fearless\" %f", exec("/opt/my apps/fearless/bin/fearless"));
   }
   @Test void aPercentInTheLauncherIsNotAFieldCode(){
-    assertEquals("Exec=\"/opt/100%%/fearless/bin/fearless\" %f", exec("/opt/100%/fearless/bin/fearless"));
+    assertEquals("Exec=env LC_ALL=C.UTF-8 \"/opt/100%%/fearless/bin/fearless\" %f", exec("/opt/100%/fearless/bin/fearless"));
   }
   @Test void aDollarInTheLauncherIsEscapedForBothTheQuoteAndTheString(){
-    assertEquals("Exec=\"/opt/\\\\$apps/fearless/bin/fearless\" %f", exec("/opt/$apps/fearless/bin/fearless"));
+    assertEquals("Exec=env LC_ALL=C.UTF-8 \"/opt/\\\\$apps/fearless/bin/fearless\" %f", exec("/opt/$apps/fearless/bin/fearless"));
   }
   @Test void theWindowClassIsTheMainClassTheWayTheToolkitNamesIt(){
     assertEquals("controller-Main", LinuxAssociations.windowClass("Controller/controller.Main"));

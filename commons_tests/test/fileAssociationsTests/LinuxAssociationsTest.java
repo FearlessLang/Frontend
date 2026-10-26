@@ -330,7 +330,7 @@ final class LinuxAssociationsTest{
 [Desktop Entry]
 Type=Application
 Name=Game
-Exec="/opt/fearlessManaged0_001/bin/fearlessManaged0_001" "/projects/game"
+Exec=env LC_ALL=C.UTF-8 "/opt/fearlessManaged0_001/bin/fearlessManaged0_001" "/projects/game"
 Icon=[###]/home/icons/hicolor/256x256/mimetypes/fearlessManaged0_001-[###].png
 StartupWMClass=fearless-1a2b-game.IconsGame
 NoDisplay=true
