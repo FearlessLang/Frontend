@@ -3,7 +3,6 @@ package toolsTests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -40,9 +39,8 @@ final class ChildJvmTest{
   @Test void aChildKnowsNoLocaleAndNoEncodingButUtf8() throws InterruptedException{
     Err.strCmp("|,,|UTF-8|UTF-8|UTF-8|UTF-8", probe("locale", "file.encoding", "stdin.encoding", "stdout.encoding", "stderr.encoding"));
   }
-  @Test void aChildNamesFilesInUtf8() throws InterruptedException{
-    assumeFalse(Fs.isWindows());
-    Err.strCmp("|UTF-8", probe("sun.jnu.encoding"));
+  @Test void aChildNamesFilesLikeItsParent() throws InterruptedException{
+    Err.strCmp("|"+System.getProperty("sun.jnu.encoding"), probe("sun.jnu.encoding"));
   }
   @Test void killingAChildThatPrintsEndsAwaitNormally() throws InterruptedException{
     for (var i= 0; i < 20; i += 1){
