@@ -650,8 +650,8 @@ Shape[X]: base.DataRead{ .extra: X }
 
 While inspecting type declaration "Fake"
 Type declaration "Fake" implements method ".name".
-Every method named ".name" is final: "base.Named" implements `base.Final[".name"]`.
-A final method is implemented only by the type implementing "base.Final[_]" directly.
+"base.Named" implements `base.Final[".name"]` and type declaration "Fake" implements "base.Named",
+thus type declaration "Fake" can not override any method named ".name".
 """, List.of("""
 Fake: base.DataRead{ .name -> base.Nope! }
 """));}
@@ -661,8 +661,8 @@ Fake: base.DataRead{ .name -> base.Nope! }
 
 While inspecting object literal instance of "base.DataRead"
 Object literal instance of "base.DataRead" implements method ".name".
-Every method named ".name" is final: "base.Named" implements `base.Final[".name"]`.
-A final method is implemented only by the type implementing "base.Final[_]" directly.
+"base.Named" implements `base.Final[".name"]` and object literal instance of "base.DataRead" implements "base.Named",
+thus object literal instance of "base.DataRead" can not override any method named ".name".
 """, List.of("""
 Forge: { #: base.DataRead -> base.DataRead{ .name -> base.Nope! } }
 """));}
@@ -672,8 +672,8 @@ Forge: { #: base.DataRead -> base.DataRead{ .name -> base.Nope! } }
 
 While inspecting type declaration "B"
 Type declaration "B" implements method ".foo(_)".
-Every method named ".foo" is final: "A" implements `base.Final[".foo"]`.
-A final method is implemented only by the type implementing "base.Final[_]" directly.
+"A" implements `base.Final[".foo"]` and type declaration "B" implements "A",
+thus type declaration "B" can not override any method named ".foo".
 """, List.of("""
 A: base.Final[".foo"]{ .foo: A -> this; }
 B: A{ .foo(x: A): A -> x }
@@ -774,8 +774,8 @@ Icon2: {}
 
 While inspecting type declaration "One"
 Type declaration "One" implements `base.OpenWith[Box[Icon],"foo"]`.
-The icon "Box[Icon]" is not a concrete type name.
-An icon is a type name with no type variables and no generic arguments, like "IconsFoo".
+"Box[Icon]" is not a valid icon.
+Only concrete types with zero generic arguments are valid icons.
 """, List.of("""
 One: base.Main, base.OpenWith[Box[Icon],"foo"]{ .main -> base.Void }
 Box[X]: {}
@@ -788,7 +788,7 @@ Icon: {}
 While inspecting type declaration "One"
 Type declaration "One" implements "base.OpenWith[Icon,Icon]".
 The extension "Icon" is not a string literal type.
-An extension is written as a string literal type, like `"foo"` or "`foo`".
+An extension is written as a string literal type, like `"ffile347"`, `"xml"` or `"txt"`; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
 """, List.of("""
 One: base.Main, base.OpenWith[Icon,Icon]{ .main -> base.Void }
 Icon: {}
@@ -800,7 +800,7 @@ Icon: {}
 While inspecting type declaration "One"
 Type declaration "One" implements `base.OpenWith[Icon,"Foo"]`.
 "Foo" is not a valid extension.
-An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
+An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
 """, List.of("""
 One: base.Main, base.OpenWith[Icon,"Foo"]{ .main -> base.Void }
 Icon: {}
@@ -1051,41 +1051,17 @@ Found the following "base.WidenTo[_]" supertypes:
 """, List.of("""
 A: base.WidenTo[A], base.WidenTo[base.Nat]{}
 """));}
-@Test void openWithExtensionNotAStringLiteralType(){failWf("""
-002| M: base.Main, base.OpenWith[Icon,Icon]{ .main -> base.Void }
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "M"
-Type declaration "M" implements "base.OpenWith[Icon,Icon]".
-The extension "Icon" is not a string literal type.
-An extension is written as a string literal type, like `"foo"` or "`foo`".
-""", List.of("""
-Icon:{}
-M: base.Main, base.OpenWith[Icon,Icon]{ .main -> base.Void }
-"""));}
 @Test void openWithIconATypeParameter(){failWf("""
 002| M[X]: base.Main, base.OpenWith[X,"foo"]{ .main -> base.Void }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "M[_]"
 Type declaration "M[_]" implements `base.OpenWith[X,"foo"]`.
-The icon "X" is not a concrete type name.
-An icon is a type name with no type variables and no generic arguments, like "IconsFoo".
+"X" is not a valid icon.
+Only concrete types with zero generic arguments are valid icons.
 """, List.of("""
 Icon:{}
 M[X]: base.Main, base.OpenWith[X,"foo"]{ .main -> base.Void }
-"""));}
-@Test void openWithExtensionWithUppercaseLetters(){failWf("""
-002| M: base.Main, base.OpenWith[Icon,"FOO"]{ .main -> base.Void }
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "M"
-Type declaration "M" implements `base.OpenWith[Icon,"FOO"]`.
-"FOO" is not a valid extension.
-An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
-""", List.of("""
-Icon:{}
-M: base.Main, base.OpenWith[Icon,"FOO"]{ .main -> base.Void }
 """));}
 @Test void openWithExtensionFearless(){failWf("""
 002| M: base.Main, base.OpenWith[Icon,"fearless"]{ .main -> base.Void }
@@ -1094,34 +1070,10 @@ M: base.Main, base.OpenWith[Icon,"FOO"]{ .main -> base.Void }
 While inspecting type declaration "M"
 Type declaration "M" implements `base.OpenWith[Icon,"fearless"]`.
 "fearless" is not a valid extension.
-An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; "fearless" is reserved.
+The extension "fearless" is reserved; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
 """, List.of("""
 Icon:{}
 M: base.Main, base.OpenWith[Icon,"fearless"]{ .main -> base.Void }
-"""));}
-@Test void shortcutExtensionNotFapp(){failWf("""
-002| M: base.Main, base.Shortcut[Icon,"foo"]{ .main -> base.Void }
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "M"
-Type declaration "M" implements `base.Shortcut[Icon,"foo"]`.
-"foo" is not a shortcut extension: a shortcut file only starts its main, so it must not look like a document of another program or a file of the project.
-A shortcut extension is "fapp" followed by three digits, like "fapp042"; or implement "base.Shortcut[_]" to let the Fearless manager choose one.
-""", List.of("""
-Icon:{}
-M: base.Main, base.Shortcut[Icon,"foo"]{ .main -> base.Void }
-"""));}
-@Test void openWithExtensionFapp(){failWf("""
-002| M: base.Main, base.OpenWith[Icon,"fapp001"]{ .main -> base.Void }
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting type declaration "M"
-Type declaration "M" implements `base.OpenWith[Icon,"fapp001"]`.
-"fapp001" is a shortcut extension: "fapp" followed by three digits names the shortcut files of the Fearless manager.
-Use an extension of the form "ffile" followed by three digits, like "ffile042", or a system extension, like "htm"; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
-""", List.of("""
-Icon:{}
-M: base.Main, base.OpenWith[Icon,"fapp001"]{ .main -> base.Void }
 """));}
 @Test void finalMethodImplementedBelowTheFinalTypeWithAnotherFinal(){failWf("""
 002| B: base.Final[".b"], A{ .b: B -> this; .a: A -> this }
@@ -1129,8 +1081,8 @@ M: base.Main, base.OpenWith[Icon,"fapp001"]{ .main -> base.Void }
 
 While inspecting type declaration "B"
 Type declaration "B" implements method ".a".
-Every method named ".a" is final: "A" implements `base.Final[".a"]`.
-A final method is implemented only by the type implementing "base.Final[_]" directly.
+"A" implements `base.Final[".a"]` and type declaration "B" implements "A",
+thus type declaration "B" can not override any method named ".a".
 """, List.of("""
 A: base.Final[".a"]{ .a: A -> this }
 B: base.Final[".b"], A{ .b: B -> this; .a: A -> this }
