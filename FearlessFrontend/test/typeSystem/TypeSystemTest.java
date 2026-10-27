@@ -5441,7 +5441,8 @@ U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
 
 While inspecting object literal "{...}" (line 2)
 The inference concluded that the object literal at line 2, column 49 should extend the object literal at line 2, column 22;
-but an object literal can only extend a top level type or a type implementing "base.CaptureFree".
+but an object literal can only extend a standalone type.
+A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, {}) }.j }
@@ -5452,7 +5453,8 @@ U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, {}) }.j }
 
 While inspecting object literal "{...}" (line 2)
 The inference concluded that the object literal at line 2, column 49 should extend the object literal at line 2, column 22;
-but an object literal can only extend a top level type or a type implementing "base.CaptureFree".
+but an object literal can only extend a standalone type.
+A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, { .j -> base.Void }) }.j }

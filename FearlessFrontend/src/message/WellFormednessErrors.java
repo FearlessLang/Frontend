@@ -614,7 +614,8 @@ public record WellFormednessErrors(String pkgName){
   public FearlessException implementsAnonymousType(E.Literal l, E.Literal owner){
     return err()
       .line("The inference concluded that the object literal at "+at(l.span().inner)+" should extend the object literal at "+at(owner.span().inner)+";")
-      .line("but an object literal can only extend a top level type or a type implementing "+err().tNameADisp(LiteralDeclarations.captureFree)+".")
+      .line("but an object literal can only extend a standalone type.")
+      .line("A type is standalone if it is declared at top level, or if it implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".")
       .wf().addFrame("object literal "+disp("{...}")+" (line "+l.span().inner.startLine()+")", l.span().inner);
   }
   public FearlessException selfNameDeadCode(E.Literal l){
