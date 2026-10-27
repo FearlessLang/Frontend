@@ -40,7 +40,6 @@ Exact identity-sensitive set
 - inference.E.X
 - inference.E.Type
 - inference.E.Call
-- inference.E.ICall
 - inference.E.Literal
 - inference.M
 - inference.M.Impl
@@ -83,7 +82,6 @@ public record InjectionSteps(Methods meths, int cap){
     case E.X _ -> 0;
     case E.Type t -> size(t.type());
     case E.Call c -> size(c.e())+c.targs().stream().mapToInt(InjectionSteps::size).sum()+c.es().stream().mapToInt(InjectionSteps::size).sum();
-    case E.ICall c -> size(c.e())+c.es().stream().mapToInt(InjectionSteps::size).sum();
     case E.Literal l -> l.cs().stream().mapToInt(InjectionSteps::size).sum()+l.ms().stream().mapToInt(InjectionSteps::size).sum();
   };}
   private core.E.Literal stepDec(core.E.Literal di, E.Literal li){ return di.withMs(li.ms().stream().map(m -> stepDecM(di, m)).toList()); }
@@ -245,7 +243,6 @@ public record InjectionSteps(Methods meths, int cap){
       case E.X x -> nextX(g, x);
       case E.Literal l -> nextL(bs, g, l);
       case E.Call c -> nextC(bs, g, c);
-      case E.ICall c -> nextC(bs, g, new E.Call(c.e(), c.name(), Optional.empty(), List.of(), c.es(), c.t(), c.src(), c.g()));
       case E.Type c -> nextT(c);
     };
   }
@@ -626,7 +623,6 @@ public record InjectionSteps(Methods meths, int cap){
     if (!(expected instanceof IT.RCC exp)){ return arg; }
     return switch (arg){
       case E.Call c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, Optional.of(c.name())), c.es());
-      case E.ICall c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, Optional.of(c.name())), c.es());
       case E.Literal l when !needsPrototypeAscription(l) -> arg;
       case E.Literal l when called.map(name -> implementable(exp.c().name()) && !declares(l, name)).orElse(true) -> l.withT(prototypeHead(exp, l.span()));
       case E.Literal l -> itself(l);

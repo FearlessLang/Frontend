@@ -27,7 +27,6 @@ public record ToCore(List<B> ctx, Methods meths){
     case inference.E.Type(var type, _, var src, _) -> type(type, src);
     case inference.E.Literal le -> literal(le, orig);
     case inference.E.Call ce -> call(ce, callLike(orig, ce.name()));
-    case inference.E.ICall ic -> callFromICall(ic, callLike(orig, ic.name()));
   };}
   private boolean inScope(List<IT> ts){ return ts.stream().flatMap(IT::ftv).allMatch(B.xs(ctx)::contains); }
   core.E.Type type(IT.RCC type, Src src){
@@ -141,15 +140,9 @@ public record ToCore(List<B> ctx, Methods meths){
   private void targs(inference.E.Call c){ IntStream.range(0, c.targs().size()).forEach(i -> targ(c, c.targs(), i)); }
   private static Stream<inference.E.Call> calls(inference.E e){ return switch (e){
     case inference.E.Call c -> Streams.of(calls(c.e()), Stream.of(c), c.es().stream().flatMap(ToCore::calls));
-    case inference.E.ICall c -> Streams.of(calls(c.e()), c.es().stream().flatMap(ToCore::calls));
     case inference.E.Literal l -> l.ms().stream().flatMap(m -> m.impl().stream()).flatMap(i -> calls(i.e()));
     case inference.E.X _, inference.E.Type _ -> Stream.of();
   };}
-  core.E.Call callFromICall(inference.E.ICall e, CallLike o){
-    assert o.rc.isEmpty();
-    assert o.targs.isEmpty();
-    return new core.E.Call(of(e.e(), o.e), e.name(), RC.imm, List.of(), mapArgs(e.es(), o.es), new EqTransparent<>(null), e.src());
-  }
   private List<core.M> mapMs(List<inference.M> es, List<inference.M> os, inference.E.Literal at){
     return es.stream()
       .map(me -> m(me, me.impl().isEmpty() ? me : matchM(os, me), at))
@@ -187,7 +180,6 @@ public record ToCore(List<B> ctx, Methods meths){
   private static CallLike callLike(inference.E o, MName name){
     return switch (o){
       case inference.E.Call(var e, var n, var rc, var targs, var es, _, _, _) when n.equals(name) -> new CallLike(e, es, rc, targs);
-      case inference.E.ICall(var e, var n, var es, _, _, _) when n.equals(name) -> new CallLike(e, es, Optional.empty(), List.of());
       default -> throw Bug.unreachable();
     };
   }

@@ -207,10 +207,10 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   }
   E visitCall(fearlessFullGrammar.E.Call c){
     if (c.pat().isPresent()){ c = desugarCPat(c); }
-    if (c.targs().isEmpty()){ return visitICall(c); }
     var e= visitReceiver(c.e());
-    var targs= c.targs().get();
     var es= mapE(c.es());
+    if (c.targs().isEmpty()){ return new E.Call(e, c.name(), Optional.empty(), List.of(), es, new Src(c)); }
+    var targs= c.targs().get();
     return new E.Call(e, c.name(), targs.rc(), mapT(targs.ts()), es, new Src(c));
   }
   private Call desugarCPat(Call c){
@@ -235,7 +235,6 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     while (par instanceof fearlessFullGrammar.E.Call c){ par = c.e(); }
     return par;
   }
-  public E visitICall(fearlessFullGrammar.E.Call c){ return new E.ICall(visitReceiver(c.e()), c.name(), mapE(c.es()), new Src(c)); }
   private fearlessFullGrammar.E.TypedLiteral typedLiteral(String str, TSpan s, Pos p){
     var tn= new TName(str, 0, p);
     var c= new fearlessFullGrammar.T.C(tn, of(List.of()));

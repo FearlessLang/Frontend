@@ -18,7 +18,6 @@ public record FreeXs(Gamma g){
     case Literal l -> Streams.of(l.bs().stream().map(B::x), ftvCs(l.cs()), ftvMs(l.ms()));
     //l.bs() alone is not enough because of inference order: we may have not inferred the l.bs() yet!
     case Call(var ei, _, _, var targs, var es, _, _, _) -> Streams.of(ftvE(ei), ftvTs(targs), ftvEs(es));
-    case ICall(var ei, _, var es, _, _, _) -> Stream.concat(ftvE(ei), ftvEs(es));
     case Type(var t, _, _, _) -> t.ftv();
   };}
   private Stream<String> ftvM(M m){
