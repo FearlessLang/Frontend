@@ -394,7 +394,7 @@ public record InjectionSteps(Methods meths, int cap){
     var fixed= Streams.zip(exact, hard).map((f,h) -> decided(f) ? f : h).toList();
     return Streams.zip(fixed, all).map((b,r) -> decided(b) ? b : r).toList();
   }
-  private static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
+  static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
   private static boolean decided(IT t){ return t.isTV() && !(t instanceof IT.RCC(var rc, _, _) && rc.isEmpty()); }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
     var selfUnknown= l.infName() && l.rc().isEmpty();

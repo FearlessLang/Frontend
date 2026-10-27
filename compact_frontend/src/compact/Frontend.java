@@ -734,7 +734,7 @@ public class Frontend{
     E core(List<B>ctx,E exp,E orig){return switch(exp){
       case E.X x->x.t(u);
       case Literal le->literal(ctx,le,(Literal)orig);
-      case Call e->{var o=(Call)orig;var types=o.y.size()==0?e.y:o.y;
+      case Call e->{var o=(Call)orig;var types=o.written?o.y:e.y;
         yield new Call(core(ctx,e.e,o.e),e.name,or(e.r,imm),seq(types.size(),i->targ(e,types.get(i),i)),zip(e.es,o.es,(a,z)->core(ctx,a,z)),u,false);
       }
     };}

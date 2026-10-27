@@ -88,7 +88,7 @@ public record ToCore(List<B> ctx, Methods meths){
   private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){ return Streams.zip(es, oEs).map(this::of).toList(); }
   core.E.Call call(inference.E.Call e, CallLike o){
     var rc= o.rc.or(e::rc).orElse(RC.imm);
-    var targs= o.targs.isEmpty() ? e.targs() : o.targs;
+    var targs= InjectionSteps.writtenTargs(e) ? o.targs : e.targs();
     assert inScope(targs);
     var recv= of(e.e(), o.e);
     var fixed= IntStream.range(0, targs.size()).mapToObj(i -> targ(e, targs, i)).toList();
