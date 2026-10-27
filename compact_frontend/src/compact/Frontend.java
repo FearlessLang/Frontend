@@ -632,13 +632,13 @@ public class Frontend{
       if(!(e.t() instanceof R w)||(m=signature(w,c.name,c.r,null))==null)return c.children(e,solve(b,g,c.es));
       var n=m.cas.size();var bs=push(m.cb,m.mb);var all0=normalize(b,bs,infer(c,m,c.es,false));var m0=m.arguments(all0.subList(0,n));
       var es=solve(b,g,expect(c.es,m0,all0.subList(n,all0.size())));
-      var all=normalize(b,bs,infer(c,m,es,true));var ts=all.subList(0,n);
+      var all=normalize(b,bs,map(infer(c,m,es,true),this::up));var ts=all.subList(0,n);
       var y=all.subList(n,all.size());e=meet(e,w.withTs(ts));var m1=m.arguments(ts);
       return new Call(e,c.name,or(c.r,m1.r),y,expect(es,m1,y),meet(c.t,m1.inst(m1.ret,y)),c.written);
     }
     List<T>arguments(MS m,List<E>es,boolean literals){
       var is=range(es.size()).filter(i->!literals||es.get(i) instanceof Literal l&&!instance(l)).boxed().toList();
-      Function<Integer,List<T>>ref=i->refine(m.v,m.ps.get(i),es.get(i).t() instanceof R(var r,var c)&&sup.get(c.name) instanceof C s?new R(r,s):es.get(i).t());
+      Function<Integer,List<T>>ref=i->refine(m.v,m.ps.get(i),es.get(i).t());
       var lower=map(filter(is,i->!(m.ps.get(i) instanceof R)),ref);var exact=map(filter(is,i->m.ps.get(i) instanceof R),ref);
       return meet(push(lower.stream().reduce(qs(m.v.size()),(a,b)->zip(a,b,this::join)),exact));
     }
@@ -646,6 +646,7 @@ public class Frontend{
       return Stream.of(push(m.cas,c.written?y:qs(m.mb.size())),m.ret instanceof R?ret:qs(m.v.size()),arguments(m,es,true),meet(list(push(m.cas,y),use?arguments(m,es,false):qs(m.v.size()),ret)))
         .reduce((p,q)->zip(p,q,(a,b)->a.tv()&&!(a instanceof R(var r,_)&&r==null)?a:b)).get();
     }
+    T up(T t){if(!(t instanceof R(var r,var c)))return t;var h=sup.getOrDefault(c.name,c);return new R(r,h).withTs(map(h.types,this::up));}
     R self(Literal l){return l.r==null?null:l.self(l.r);}
     E literal(List<B>b,IG g,Literal l){var sp=self(l);if(!l.expanded){
       l=l.t(!l.anon?sp:l.cs.size()==1?new R(l.r,l.cs.get(0)):or(sp,l.t));if(!(l.t instanceof R(_,var c)))return l;
@@ -655,7 +656,7 @@ public class Frontend{
         var k=bound(w,types);var next=mi.e==null?header(k,mi):method(b,g,l,sp,k,mi);
         types=meet(types,next.types);res.add(next.m);
       }
-      var t=bound(w,types);
+      var t=bound(w,map(types,this::up));
       return commit(g,b,l.header(l.cs,res,true).t(t),t);
     }
     E commit(IG g,List<B>b,Literal l,R w){var name=l.name;

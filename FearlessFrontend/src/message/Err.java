@@ -13,11 +13,12 @@ import core.*;
 import core.E.*;
 import inject.TypeRename;
 import metaParser.Message;
+import metaParser.Span;
 import typeSystem.TypeSystem.*;
 import utils.Bug;
 import utils.Join;
 
-public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
+public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
   public static String genArity(int n){ return Join.of(Collections.nCopies(n, "_"), "[", ",", "]", ""); }
@@ -68,7 +69,16 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var ts= levels == 0 ? "[...]" : Join.of(c.ts().stream().map(ti -> typeReprRaw(ti, levels-1)), "[", ",", "]", "");
     return rc.map(RC::toStrSpace).orElse("")+cp().t.ofFull(c.name())+ts;
   }
-  String typeRepr(boolean skipImm, T t){ return disp(typeReprRaw(skipImm, t)); }
+  String typeRepr(boolean skipImm, T t){
+    if (t instanceof T.RCC r && _anon(r.c().name()) instanceof Literal l){ return "the anonymous type of the object literal at "+at(l.span().inner); }
+    return disp(typeReprRaw(skipImm, t));
+  }
+  private Literal _anon(TName n){
+    var d= _decs.apply(n);
+    if (d == null || !d.infName() || d.cs().stream().anyMatch(c -> !_decs.apply(c.name()).infName())){ return null; }
+    return d;
+  }
+  static String at(Span s){ return "line "+s.startLine()+", column "+s.startCol(); }
   private String typeReprRaw(boolean skipImm, T t){
     var str= cp().msgT(showPublic(t));
     var noImmPrefix= skipImm || !(t instanceof T.RCC rcc && rcc.rc() == RC.imm);
