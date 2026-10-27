@@ -5468,10 +5468,9 @@ U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, s) }.j }
    |     ---------------------------~~~~~~~~~~~~^^~--
 
 While inspecting object literal instance of "Foo" > ".v" line 3 > ".m" line 3
-The type "Foo" is declared inside a method body.
-A type declared inside a method can capture any parameter name in scope,
-so it cannot be extended or instantiated.
-Hint: if it captures nothing, declare it implementing "base.CaptureFree".
+The type "Foo" is not standalone: it is declared inside a method body.
+Only a standalone type can be extended or mentioned by name.
+A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Foo
