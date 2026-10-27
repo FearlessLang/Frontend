@@ -126,14 +126,15 @@ T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[T1[X]] -> this.m(this) 
 """));}
 @Test void growingSupertypeInfersMethodTypeArgumentNotASubtype(){fail("""
 002| T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
-   |                                                   -------------^^^^^^^^^^^^
+   |                                                   -------------~~~~^^^~~~~~
 
-While inspecting method call ".m(_)" > ".k" line 2
-The body of method ".k" of type declaration "T1[_]" is an expression returning "T1[T1[X]]".
-Method call "T1[_].m(_)" has type "T1[T1[X]]" instead of a subtype of "T1[X]".
+While inspecting ".k" line 2
+This call to method "T1[_].m(_)" cannot typecheck.
+Argument 1 has type "T1[X]".
+That is not a subtype of "T0[T1[X]]" (the type required by the method signature).
 
-See inferred typing context below for how type "T1[X]" was introduced: (compression indicated by `-`)
-T1[X:imm]:T0[T1[T1[X]]]{.m[Y:imm](a:T0[Y]):Y->a.get;.k:T1[X]->this.m[imm,T1[T1[X]]](this)}
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.m[imm,T1[X]](this)
 """, List.of("""
 T0[X]:{ .get: X }
 T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
@@ -588,12 +589,12 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
-Type argument 1 ("B") does not satisfy the bounds
+Type argument 1 ("base.Void") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-a.id[imm,B](b)
+a.id[imm,-.Void](b)
 """, List.of("""
 A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
