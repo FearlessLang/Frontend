@@ -739,6 +739,15 @@ A concrete type implementing "base.InMemoryLog[_]" must have zero generic parame
 """, List.of("""
 Box: { .mk[X]: base.InMemoryLog[X] -> { .name -> base.Nope! } }
 """));}
+@Test void anonymousFileLog(){failWf("""
+001| Box: { .mk: base.FileLog -> { .name -> base.Nope! } }
+[###]
+While inspecting object literal instance of "base.FileLog"
+Object literal instance of "base.FileLog" implements "base.FileLog", so it writes to a log file named after it.
+An object literal has no name: only a type declaration can implement "base.FileLog".
+""", List.of("""
+Box: { .mk: base.FileLog -> { .name -> base.Nope! } }
+"""));}
 @Test void concreteLogsOfConcreteTypes(){ok(List.of("""
 Steps: base.InMemoryLog[Steps]{ .name -> base.Nope! }
 Shape[X]: base.InMemoryLog[X]{ .extra: X }
