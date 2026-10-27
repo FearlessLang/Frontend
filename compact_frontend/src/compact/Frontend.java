@@ -377,7 +377,7 @@ public class Frontend{
   static Stream<String>methodFree(IG g,List<M>ms){return ms.stream().flatMap(m->cat(typeFree(m.s.types),m.s.t.ftv(),Stream.ofNullable(m.e).flatMap(ei->free(g,ei))).filter(x->!B.v(m.s.b).contains(x)));}
   record XE(String x,P e){}
   static class Methods{
-    Pkg p;Map<N,Literal>other;Scope top=new Scope();HashSet<String>reserved=new HashSet<>();HashMap<N,Owner>owners=new HashMap<>();HashMap<N,Literal>cache=new HashMap<>();
+    Pkg p;Map<N,Literal>other;Scope top=new Scope();HashSet<String>reserved=new HashSet<>();HashMap<N,Owner>owners=new HashMap<>();HashMap<N,Literal>cache=new HashMap<>();HashMap<N,C>sup=new HashMap<>();
     int deep,cap;N owner;Vector<String>implicits=new Vector<>();Vector<Literal>decs=new Vector<>();
     Methods(Pkg p,Map<N,Literal>other){this.p=p;this.other=other;
       top.used.addAll(map(p.names,N::simple));top.used.addAll(p.map.keySet());
@@ -638,7 +638,7 @@ public class Frontend{
     }
     List<T>arguments(MS m,List<E>es,boolean literals){
       var is=range(es.size()).filter(i->!literals||es.get(i) instanceof Literal l&&!instance(l)).boxed().toList();
-      Function<Integer,List<T>>ref=i->refine(m.v,m.ps.get(i),es.get(i).t());
+      Function<Integer,List<T>>ref=i->refine(m.v,m.ps.get(i),es.get(i).t() instanceof R(var r,var c)&&sup.get(c.name) instanceof C s?new R(r,s):es.get(i).t());
       var lower=map(filter(is,i->!(m.ps.get(i) instanceof R)),ref);var exact=map(filter(is,i->m.ps.get(i) instanceof R),ref);
       return meet(push(lower.stream().reduce(qs(m.v.size()),(a,b)->zip(a,b,this::join)),exact));
     }
@@ -675,7 +675,7 @@ public class Frontend{
       return new TSM(erase(v.c.types,B.v(s.b)),m.signature(s.types(map(h.ps,p->h.inst(p,x)),h.inst(h.ret,x))));
     }
     TSM method(List<B>b,IG g,Literal l,R sp,R w,M m){var bs=l.anon?b:l.b;
-      g.push(m.s.r,bs);
+      g.push(m.s.r,bs);if(l.anon&&!w.c.name.equals(l.name))sup.put(l.name,w.c);
       g.declare(l.self,sp==null?u:new R(sp.r.mutable(),sp.c));
       g.push(m.s.r,bs);g.declare(m);
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));

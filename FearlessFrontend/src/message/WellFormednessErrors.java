@@ -610,6 +610,13 @@ public record WellFormednessErrors(String pkgName){
       .line(ctx+" is defined in package "+disp(ownerPkg)+".")
       .line("Type "+disp(target.simpleName())+" is defined in package "+disp(targetPkg)+"."), owner);
   }
+  public FearlessException implementsAnonymousType(E.Literal l, E.Literal owner){
+    return err()
+      .line("This object literal is inferred to implement the anonymous type of the object literal at line "+owner.span().inner.startLine()+".")
+      .line("A type declared inside a method can capture any parameter name in scope,")
+      .line("so it cannot be extended.")
+      .wf().addFrame("object literal "+disp("{...}"), l.span().inner);
+  }
   public FearlessException selfNameDeadCode(E.Literal l){
     return wf(err()
       .line("The self name "+disp(l.thisName())+" is dead code.")

@@ -350,10 +350,10 @@ public record InjectionSteps(Methods meths, int cap){
     var om= methodHeader(rcc, c.name(), c.rc());
     if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var m= om.get();
-    var es= nextStar(bs, g, requiredOnArgs(bs, c, m));
+    var es= nextStar(bs, g, requiredOnArgs(bs, g, c, m));
     assert es == c.es() || !es.equals(c.es());
     assert m.ps0().size() == es.size();
-    var all= decidedThen(c, m, es, true);
+    var all= decidedThen(g, c, m, es, true);
     assert all.size() == m.nCls()+m.bsArity();
     var clsTs= normToBounds(bs, m.clsBs(), all.subList(0, m.nCls()));
     var targs= normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size()));
@@ -365,24 +365,30 @@ public record InjectionSteps(Methods meths, int cap){
     if (noChange){ return c; }
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
-  private List<E> requiredOnArgs(List<B> bs, E.Call c, MSigL m){
-    var all= decidedThen(c, m, c.es(), false);
+  private List<E> requiredOnArgs(List<B> bs, Gamma g, E.Call c, MSigL m){
+    var all= decidedThen(g, c, m, c.es(), false);
     var m0= m.withClsArgs(normToBounds(bs, m.clsBs(), all.subList(0, m.nCls())));
     return meetWithTargs(c.es(), c.es(), m0, normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size())));
   }
-  private List<IT> fromArgs(MSigL m, List<E> es, boolean onlyLiterals){
+  private List<IT> fromArgs(Gamma g, MSigL m, List<E> es, boolean onlyLiterals){
     var n= m.nCls()+m.bsArity();
-    var lower= Streams.zip(m.ps0(), es).filter((p,e) -> !(p instanceof IT.RCC) && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, e.t()));
-    var exact= Streams.zip(m.ps0(), es).filter((p,e) -> p instanceof IT.RCC && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, e.t()));
+    var lower= Streams.zip(m.ps0(), es).filter((p,e) -> !(p instanceof IT.RCC) && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, inferable(g, e.t())));
+    var exact= Streams.zip(m.ps0(), es).filter((p,e) -> p instanceof IT.RCC && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, inferable(g, e.t())));
     return meet(Streams.of(Stream.of(join(Streams.of(Stream.of(qMarks(n)), lower).toList())), exact).toList());
   }
-  private List<IT> decidedThen(E.Call c, MSigL m, List<E> es, boolean useArgs){
+  private static IT inferable(Gamma g, IT t){
+    if (!(t instanceof IT.RCC(var rc, var c, var span))){ return t; }
+    var o= g._owner(c.name());
+    if (o == null || !o.infName() || !(o.t() instanceof IT.RCC(_, var head, _)) || head.name().equals(o.name())){ return t; }
+    return new IT.RCC(rc, head, span);
+  }
+  private List<IT> decidedThen(Gamma g, E.Call c, MSigL m, List<E> es, boolean useArgs){
     var targs= MSigL.fixTargs(c.targs(), m.bsArity());
-    var args= useArgs ? fromArgs(m, es, false) : qMarks(m.nCls()+m.bsArity());
+    var args= useArgs ? fromArgs(g, m, es, false) : qMarks(m.nCls()+m.bsArity());
     var fromRet= refine(m.xs(), m.ret0(), c.t());
     var all= meet(List.of(Push.of(m.clsArgs(), targs), args, fromRet));
     var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
-    var hard= fromArgs(m, es, true);
+    var hard= fromArgs(g, m, es, true);
     var exactRet= m.ret0() instanceof IT.RCC ? fromRet : qMarks(fromRet.size());
     var exact= Streams.zip(written, exactRet).map((w,r) -> decided(w) ? w : r).toList();
     var fixed= Streams.zip(exact, hard).map((f,h) -> decided(f) ? f : h).toList();
@@ -410,6 +416,8 @@ public record InjectionSteps(Methods meths, int cap){
       if (!(l.t() instanceof IT.RCC(_, var c, _))){ return l; }//!infHead after passing this test means right now we can expand methods
       var anon= l.infName() && !c.name().equals(l.name());
       if (anon && l.ms().isEmpty() && l.t().isTV() && meths._from(c.name()) != null){ return literalAsType(l, (IT.RCC)l.t()); }
+      var o= anon ? g._owner(c.name()) : null;
+      if (o != null && o.infName()){ throw meths.p().err().implementsAnonymousType(l, o); }
       l = anon ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l, true);
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }

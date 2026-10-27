@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 
 import core.B;
 import core.RC;
+import core.TName;
 import offensiveUtils.NeverAsKey;
 import utils.Range;
 import utils.Streams;
@@ -97,6 +98,10 @@ public final class Gamma{
     var trc= t.explicitRC();
     if (rc == RC.imm || trc.equals(Optional.of(RC.iso))){ return t.withRC(RC.imm); }
     return rc == RC.read && trc.equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
+  }
+  public E.Literal _owner(TName n){
+    for (var s= 1; s < depth; s += 1){ if (owners[s].name().equals(n)){ return owners[s]; } }
+    return null;
   }
   public IT get(String x){ return ts[indexOf(x)]; }
   public IT _get(String x){ var i= indexOf(x); return i == -1 ? null : ts[i]; }
