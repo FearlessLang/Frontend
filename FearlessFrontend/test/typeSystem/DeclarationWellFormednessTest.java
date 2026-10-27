@@ -17,6 +17,17 @@ public final class DeclarationWellFormednessTest extends testUtils.FearlessTestB
     typeFailRaw("In file: [###].fear\n\n"+expected+"Error 2 UnexpectedToken", input);
   }
 
+@Test void unclosedLiteralAtEndOfFile(){typeFailRaw("""
+In file: [###].fear
+
+001| X:{
+   |   ^
+
+While inspecting groups of parenthesis
+File ended while parsing a "{" group.
+This "{" may be unintended.
+Otherwise expected one of: "}id", "}".
+Error 0 Unclosed""", List.of("X:{"));}
 @Test void noExplicitThisSelfName(){failParse("""
 001| A:{ .m1: A -> {'this} }
    |     ----------~~^^^^~

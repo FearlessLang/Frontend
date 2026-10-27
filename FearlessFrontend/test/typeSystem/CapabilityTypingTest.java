@@ -443,6 +443,11 @@ A:{ #[X:imm](a: X): B[X] -> Block#(B[X]{a}, B[X]{a}) }
 B[X:imm]:{ #: imm X }
 Block:{ #[X1:imm, R:imm](a1: X1, a2: R): R -> a2 }
 """));}
+@Test void immBoundedTypeVariableCapturedByALiteralInferredFromTheResult(){ok(List.of("""
+A:{ #[X:imm](a: X): B[X] -> Block#(B[X]{a}, {a}) }
+B[X:imm]:{ #: X }
+Block:{ #[X1:imm, R:imm](a1: X1, a2: R): R -> a2 }
+"""));}
 @Test void isoBoundedTypeVariableCanBeCapturedMultipleTimesAsImm(){ok(List.of("""
 A:{ #[X:iso](a: X): B[X] -> Block#(iso B[X]{a}, iso B[X]{a}) }
 B[X:iso]:{ #: imm X }

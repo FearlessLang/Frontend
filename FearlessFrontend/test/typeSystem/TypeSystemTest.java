@@ -5384,6 +5384,11 @@ G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A:{ .k: A; .v: base.Void }
 U:{ .m: A -> A{'s .k -> s; .v -> G#(s, { .k -> s; .v -> base.Void }) } }
 """));}
+@Test void anonymousLiteralImplementingTheEnclosingAnonymousLiteralType(){ok(List.of("""
+G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
+A:{ .k: A; .v: base.Void }
+U:{ .m: A -> {'s .k -> s; .v -> G#(s, { .k -> s; .v -> base.Void }) } }
+"""));}
 @Test void typeGrowsForeverBelowTheDepthCap(){failWf("""
 007| Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
    |                      ^^^^^^^^^^^^^^^^^^^^^
@@ -5541,6 +5546,23 @@ i.id[read](a)
 A:{}
 Id:{ read .id[X:imm,mut,read](x:X):X->x; }
 User:{ read .m(i:Id,a:mut A):mut A-> i.id[](a); }
+"""));}
+@Test void methodTArgsArityError_capabilityOnlyBrackets(){fail("""
+004| User:{ .go(x: Foo): mut K -> { read .a -> Id#[imm](x); .b -> Id#[imm](x) } }
+   |                                -----------~~^^~~~~~~~
+
+While inspecting ".a" line 4 > ".go(_)" line 4
+This call to method "Id#(_)" cannot typecheck.
+Wrong number of type arguments for "#(_)".
+This method expects 1 type argument: "T"; but this call provides no type arguments.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Id#(x)
+""", List.of("""
+Foo:{}
+Id:{ #[T:*](t: T): T -> t }
+K:{ read .a: Foo; mut .b: read Foo }
+User:{ .go(x: Foo): mut K -> { read .a -> Id#[imm](x); .b -> Id#[imm](x) } }
 """));}
 @Test void methodTArgsArityError_onlyACapability(){fail("""
 003| User:{ read .m(i:Id,a:mut A):mut A-> i.id[read](a); }
