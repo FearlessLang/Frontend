@@ -245,7 +245,7 @@ public record InjectionSteps(Methods meths, int cap){
       case E.X x -> nextX(g, x);
       case E.Literal l -> nextL(bs, g, l);
       case E.Call c -> nextC(bs, g, c);
-      case E.ICall c -> nextIC(bs, g, c);
+      case E.ICall c -> nextC(bs, g, new E.Call(c.e(), c.name(), Optional.empty(), List.of(), c.es(), c.t(), c.src(), c.g()));
       case E.Type c -> nextT(c);
     };
   }
@@ -333,21 +333,11 @@ public record InjectionSteps(Methods meths, int cap){
     if (!t.t().undecided()){ return t; }
     return t.withT(preferred(t.type()));
   }
-  private E nextIC(List<B> bs, Gamma g, E.ICall c){
-    var e= nextStar(bs, g, c.e());
-    if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
-    var guess= overloadNorm(rcc.rc().map(rc -> rc == RC.iso ? c.t().explicitRC().orElse(rc) : rc));
-    var om= methodHeaderAnd(rcc, c.name(), Optional.empty(), guess, (d,m) -> methodHeaderInstance(rcc, d, m));
-    if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
-    var m= om.get();
-    var ts= qMarks(m.bsArity());
-    var call= new E.Call(e, c.name(), Optional.of(m.rc()), ts, meetWithTargs(c.es(), c.es(), m, ts), c.src());
-    return call.withT(meet(c.t(), m.ret(ts)));
-  }
   private E nextC(List<B> bs, Gamma g, E.Call c){
     var e= nextStar(bs, g, c.e());
     if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
-    var om= methodHeader(rcc, c.name(), c.rc());
+    var guess= overloadNorm(rcc.rc().map(rc -> rc == RC.iso ? c.t().explicitRC().orElse(rc) : rc));
+    var om= methodHeaderAnd(rcc, c.name(), c.rc(), guess, (d,mm) -> methodHeaderInstance(rcc, d, mm));
     if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var m= om.get();
     var es= nextStar(bs, g, requiredOnArgs(bs, c, m));

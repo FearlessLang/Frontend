@@ -609,13 +609,7 @@ public class Frontend{
         if(t!=null)g.get(g.at(x.name)).vars.put(x.name,t);yield x.t(meet(a,z));
       }
       case Literal l->literal(b,g,l);
-      case Call c when c.written||c.r!=null->call(b,g,c);
-      case Call c->{
-        var ee=solve(b,g,c.e);
-        var m=ee.t() instanceof R w?signature(w,c.name,null,c.t.erc()):null;if(m==null)yield c.children(ee,solve(b,g,c.es));
-        var types=qs(m.mb.size());
-        yield new Call(ee,c.name,m.r,types,expect(c.es,m,types),meet(c.t,m.inst(m.ret,types)),false);
-      }
+      case Call c->call(b,g,c);
     };}
     M lookup(R w,MN name,RC favorite,RC hint){
       var d=from(w.c.name);if(d==null)return null;var ms=filter(d.ms,m->m.s.m.equals(name));
@@ -629,7 +623,7 @@ public class Frontend{
     static RC lowerCap(RC a,RC b){a=noH(a);b=noH(b);return a==b||b==read?a:a==read?b:iso;}
     static boolean instance(Literal l){return l.anon&&all(l.ms,m->m.e==null);}
     E call(List<B>b,IG g,Call c){var e=solve(b,g,c.e);MS m;
-      if(!(e.t() instanceof R w)||(m=signature(w,c.name,c.r,null))==null)return c.children(e,solve(b,g,c.es));
+      if(!(e.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)return c.children(e,solve(b,g,c.es));
       var n=m.cas.size();var bs=push(m.cb,m.mb);var all0=normalize(b,bs,infer(c,m,c.es,false));var m0=m.arguments(all0.subList(0,n));
       var es=solve(b,g,expect(c.es,m0,all0.subList(n,all0.size())));
       var all=normalize(b,bs,map(infer(c,m,es,true),this::up));var ts=all.subList(0,n);
