@@ -100,20 +100,11 @@ public sealed interface E{
     public Call withEEs(E e, List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, () -> new E.Call(e, name, rc, targs, es, t, src, g.clear())); }
     @Override public Call withT(IT t){ return sameTOr(this, t, () -> new Call(e, name, rc, targs, es, t, src, g.clear())); }
     @Override public String toString(){
+      if (rc.isEmpty() && targs.isEmpty()){ return ""+e+name+Join.of(es, "(", ",", "):", "():")+t; }
       var open= rc.map(r -> "["+r).orElse("[");
       return ""+e+name+open
         +Join.of(targs, rc.isEmpty() ? "" : ",", ",", "](", "](")
         +Join.of(es, "", ",", "):", "):")+t;
     }
-  }
-  record ICall(E e, MName name, List<E> es, IT t, Src src, Gamma.GammaSignature g) implements E{
-    public ICall(E e, MName name, List<E> es, Src src){ this(e, name, es, IT.U.Instance, src, new Gamma.GammaSignature()); }
-    public ICall{
-      assert nonNull(e, name, t, src, g);
-      assert unmodifiable(es, "E.ICall.es");
-    }
-    @Override public E withT(IT t){ return sameTOr(this, t, () -> new ICall(e, name, es, t, src, g.clear())); }
-    @Override public String toString(){ return ""+e+name+Join.of(es, "(", ",", "):", "():")+t; }
-    public E withEEs(E e, List<E> es){ return sameEEsOr(this, this.e, this.es, e, es, () -> new ICall(e, name, es, t, src, g.clear())); }
   }
 }

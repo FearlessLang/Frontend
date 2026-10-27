@@ -448,7 +448,6 @@ public record WellFormednessErrors(String pkgName){
     case E.Literal _ -> "{...}";
     case E.Type t -> err().typeReprRaw(t.type());
     case E.Call c -> src(c.e(), c.name(), "", c.es());
-    case E.ICall c -> src(c.e(), c.name(), "", c.es());
   };}
   private String src(E recv, MName m, String targs, List<E> es){ return src(recv)+m.s()+targs+Join.of(es.stream().map(this::src), "(", ", ", ")", ""); }
   public FearlessException literalHeadNotInferred(E.Literal at, IT.C c, List<Integer> unknown, List<String> xs){
