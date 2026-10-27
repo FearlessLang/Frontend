@@ -353,7 +353,7 @@ public record InjectionSteps(Methods meths, int cap){
     var es= nextStar(bs, g, requiredOnArgs(bs, c, m));
     assert es == c.es() || !es.equals(c.es());
     assert m.ps0().size() == es.size();
-    var all= decidedThen(c, m, es, true);
+    var all= decidedThen(c, m, es, true).stream().map(t -> deFresh(g, t)).toList();
     assert all.size() == m.nCls()+m.bsArity();
     var clsTs= normToBounds(bs, m.clsBs(), all.subList(0, m.nCls()));
     var targs= normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size()));
@@ -375,6 +375,12 @@ public record InjectionSteps(Methods meths, int cap){
     var lower= Streams.zip(m.ps0(), es).filter((p,e) -> !(p instanceof IT.RCC) && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, e.t()));
     var exact= Streams.zip(m.ps0(), es).filter((p,e) -> p instanceof IT.RCC && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, e.t()));
     return meet(Streams.of(Stream.of(join(Streams.of(Stream.of(qMarks(n)), lower).toList())), exact).toList());
+  }
+  private static IT deFresh(Gamma g, IT t){
+    if (!(t instanceof IT.RCC rcc)){ return t; }
+    var o= g._owner(rcc.c().name());
+    var head= o != null && o.infName() && o.t() instanceof IT.RCC h && !h.c().name().equals(o.name()) ? h.c() : rcc.c();
+    return new IT.RCC(rcc.rc(), head, rcc.span()).withTs(head.ts().stream().map(ti -> deFresh(g, ti)).toList());
   }
   private List<IT> decidedThen(E.Call c, MSigL m, List<E> es, boolean useArgs){
     var targs= MSigL.fixTargs(c.targs(), m.bsArity());
@@ -410,6 +416,8 @@ public record InjectionSteps(Methods meths, int cap){
       if (!(l.t() instanceof IT.RCC(_, var c, _))){ return l; }//!infHead after passing this test means right now we can expand methods
       var anon= l.infName() && !c.name().equals(l.name());
       if (anon && l.ms().isEmpty() && l.t().isTV() && meths._from(c.name()) != null){ return literalAsType(l, (IT.RCC)l.t()); }
+      var o= anon ? g._owner(c.name()) : null;
+      if (o != null && o.infName()){ throw meths.p().err().implementsAnonymousType(l, o); }
       l = anon ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l, true);
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
@@ -423,6 +431,7 @@ public record InjectionSteps(Methods meths, int cap){
       ts = meet(ts, next.ts);
       res.add(next.m);
     }
+    ts = ts.stream().map(t -> deFresh(g, t)).toList();
     var ms= norm(l.ms(), Collections.unmodifiableList(res));
     var noChange= ms == l.ms() && ts.equals(rcc.c().ts());
     if (noChange){ return commitToTable(g, bs, l, rcc); }

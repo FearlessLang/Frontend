@@ -42,7 +42,8 @@ import java.util.EnumSet;
 import utils.Push;
 
 public record WellFormednessErrors(String pkgName){
-  Err err(){ return new Err(y -> y, x -> x, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
+  Err err(){ return err(_ -> null); }
+  private Err err(Function<TName,core.E.Literal> decs){ return new Err(y -> y, x -> x, decs, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
   private Err err(List<String> lines){
     var e= err();
     lines.forEach(e::line);
@@ -429,8 +430,8 @@ public record WellFormednessErrors(String pkgName){
       .line("A type declaration only sees the generic types it declares itself; here "+dec+declares+".")
       .line("Hint: funnel "+disp(missing)+" into "+dec+" by writing "+funnelled+", restating the bounds of "+disp(missing)+"."), x);
   }
-  public FearlessException typeArgAmbiguous(E.Call at, Optional<String> x, List<IT> cands, List<TName> common, String example){
-    var cs= cands.stream().map(err()::typeRepr).toList();
+  public FearlessException typeArgAmbiguous(E.Call at, Optional<String> x, List<IT> cands, List<TName> common, String example, Function<TName,core.E.Literal> decs){
+    var cs= cands.stream().map(err(decs)::typeRepr).toList();
     var xs= x.map(Err::disp).orElse("the type argument");
     var e= err().line("The type argument "+x.map(Err::disp).map(n -> n+" ").orElse("")+"of "+disp(at.name().s())+" is inferred from the arguments, but they disagree: some need "+Join.of(cs, "", ", some need ", "")+".");
     if (common.isEmpty()){ e.line("No type is a supertype of all of them."); }
@@ -609,6 +610,12 @@ public record WellFormednessErrors(String pkgName){
       .line(up(kind)+" types can only be implemented in their own package.")
       .line(ctx+" is defined in package "+disp(ownerPkg)+".")
       .line("Type "+disp(target.simpleName())+" is defined in package "+disp(targetPkg)+"."), owner);
+  }
+  public FearlessException implementsAnonymousType(E.Literal l, E.Literal owner){
+    return err()
+      .line("The inference concluded that the object literal at "+at(l.span().inner)+" should extend the object literal at "+at(owner.span().inner)+";")
+      .line("but an object literal can only extend a top level type or a type implementing "+err().tNameADisp(LiteralDeclarations.captureFree)+".")
+      .wf().addFrame("object literal "+disp("{...}")+" (line "+l.span().inner.startLine()+")", l.span().inner);
   }
   public FearlessException selfNameDeadCode(E.Literal l){
     return wf(err()

@@ -339,7 +339,7 @@ is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
 
 See inferred typing context below for how type "base.Void" was introduced: (compression indicated by `-`)
-Outer:{#:G->G{'self .bar:-.Void->-.Void;.v:-.Void->Boxes#[imm,_AOute](self)}}
+Outer:{#:G->G{'self .bar:-.Void->-.Void;.v:-.Void->Boxes#[imm,G](self)}}
 """, List.of("""
 Box[E]:{ .get: E }
 Boxes:{ #[E](e: E): Box[E] -> {.get -> e} }
@@ -2417,8 +2417,8 @@ Outer:{ .m: base.Void -> { .a: base.Void -> base.Void{} }.a }
 
 While inspecting parameter "self" > ".a" line 1 > ".m" line 1
 Method ".a" inside the object literal "{...}" (line 1)
-is implemented with an expression returning "_AOute".
-Parameter "self" has type "_AOute" instead of a subtype of "Outer".
+is implemented with an expression returning the anonymous type of the object literal at line 1, column 26.
+Parameter "self" has type the anonymous type of the object literal at line 1, column 26 instead of a subtype of "Outer".
 
 See inferred typing context below for how type "Outer" was introduced: (compression indicated by `-`)
 Outer:{.m:-.Void->{'self .a:Outer->self}.a}
@@ -5374,37 +5374,15 @@ G:{ #[T:*](x: T): T -> x }
 A:{}
 H[X:*]:{ .m: X -> G#[X](A{}) }
 """));}
-@Test void literalReceiverExpectedAsTheEnclosingLiteralType(){fail("""
-003| U:{ .m: A -> A{'s .k -> s; .v -> G#(s, { .j: A -> s }.j) } }
-   |                            ------~^^~~~~~~~~~~~~~~~~~~~~
-
-While inspecting ".v" line 3 > ".m" line 3
-This call to method "G#(_,_)" cannot typecheck.
-Argument 2 has type "A".
-That is not a subtype of "A" (the type required by the method signature).
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#[imm,_BU](-,{.j:A->s}.j)
-""", List.of("""
+@Test void literalReceiverExpectedAsTheEnclosingLiteralType(){ok(List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A:{ .k: A; .v: base.Void }
 U:{ .m: A -> A{'s .k -> s; .v -> G#(s, { .j: A -> s }.j) } }
 """));}
-@Test void literalImplementingTheEnclosingLiteralType(){failWf("""
-003| U:{ .m: A -> A{'s .k -> s; .v -> G#(s, { .k -> this; .v -> base.Void }) } }
-   |                                        --^^^^^^^^^^-------------------
-
-While inspecting object literal instance of "_BU"
-Missing return type for method ".k".
-Add an explicit return type before '->'.
-Alternatively (less common), if you intended to override and omit the signature,
-the signature must be inherited from a supertype.
-Cannot infer signature of method ".k".
-No supertype has a method named ".k" with 0 parameters.
-""", List.of("""
+@Test void literalImplementingTheEnclosingLiteralType(){ok(List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A:{ .k: A; .v: base.Void }
-U:{ .m: A -> A{'s .k -> s; .v -> G#(s, { .k -> this; .v -> base.Void }) } }
+U:{ .m: A -> A{'s .k -> s; .v -> G#(s, { .k -> s; .v -> base.Void }) } }
 """));}
 @Test void typeGrowsForeverBelowTheDepthCap(){failWf("""
 007| Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
@@ -5421,5 +5399,130 @@ Wrap:{ #[Y](y: Y): Box[Y] -> {} }
 Foo[X]:{ .m(x: X): X }
 Take:{ #[Z](f: Foo[Z]): N -> N }
 Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
+"""));}
+@Test void literalExpectedAsTheTypeOfTheSelfName(){fail("""
+003| U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
+   |     -----------------------~~~~~~~~~~~~^^~--
+
+While inspecting object literal instance of "iso A" > ".v" line 3 > ".m" line 3
+This object literal is missing a required method.
+Missing: "imm .k".
+Required by: "A".
+Hint: add an implementation for ".k" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso A
+""", List.of("""
+G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
+A:{ .k: A; .v: base.Void }
+U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
+"""));}
+@Test void literalExpectedAsTheTypeOfTheSelfNameWithAnIndirectSupertype(){fail("""
+004| U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
+   |     -----------------------~~~~~~~~~~~~^^~--
+
+While inspecting object literal instance of "iso A" > ".v" line 4 > ".m" line 4
+This object literal is missing a required method.
+Missing: "imm .k".
+Required by: "A".
+Hint: add an implementation for ".k" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso A
+""", List.of("""
+G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
+A0:{}
+A:A0{ .k: A; .v: base.Void }
+U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
+"""));}
+@Test void literalExpectedAsTheTypeOfAnAnonymousSelfName(){failWf("""
+002| U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, {}) }.j }
+   |                                                 ^^
+
+While inspecting object literal "{...}" (line 2)
+The inference concluded that the object literal at line 2, column 49 should extend the object literal at line 2, column 22;
+but an object literal can only extend a top level type or a type implementing "base.CaptureFree".
+""", List.of("""
+G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
+U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, {}) }.j }
+"""));}
+@Test void literalWithAMethodExpectedAsTheTypeOfAnAnonymousSelfName(){failWf("""
+002| U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, { .j -> base.Void }) }.j }
+   |                                                 ^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal "{...}" (line 2)
+The inference concluded that the object literal at line 2, column 49 should extend the object literal at line 2, column 22;
+but an object literal can only extend a top level type or a type implementing "base.CaptureFree".
+""", List.of("""
+G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
+U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, { .j -> base.Void }) }.j }
+"""));}
+@Test void anonymousSelfNameAsBothArguments(){ok(List.of("""
+G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
+U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, s) }.j }
+"""));}
+@Test void literalExpectedAsATypeDeclaredInAMethod(){fail("""
+003| U:{ .m: A -> Foo:A{'s .k -> s; .v -> G#(s, {}) } }
+   |     ---------------------------~~~~~~~~~~~~^^~--
+
+While inspecting object literal instance of "Foo" > ".v" line 3 > ".m" line 3
+The type "Foo" is declared inside a method body.
+A type declared inside a method can capture any parameter name in scope,
+so it cannot be extended or instantiated.
+Hint: if it captures nothing, declare it implementing "base.CaptureFree".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Foo
+""", List.of("""
+G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
+A:{ .k: A; .v: base.Void }
+U:{ .m: A -> Foo:A{'s .k -> s; .v -> G#(s, {}) } }
+"""));}
+@Test void literalExpectedAsACaptureFreeTypeDeclaredInAMethod(){ok(List.of("""
+G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
+A:{ .k: A; .v: base.Void }
+U:{ .m: A -> Foo:A,base.CaptureFree{'s .k -> s; .v -> G#(s, {}) } }
+"""));}
+@Test void typeArgumentFromAnAnonymousSelfNameAndAnotherType(){failWf("""
+003| U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, B) }.j }
+   |                                           ^^^^^^^^
+
+While inspecting method call "#(_,_)"
+The type argument "X" of "#" is inferred from the arguments, but they disagree: some need the anonymous type of the object literal at line 3, column 22, some need "B".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "G#[Type1](s, B)".
+""", List.of("""
+G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
+B:{}
+U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, B) }.j }
+"""));}
+@Test void literalReturningTheSelfNameBeforeAnArgument(){ok(List.of("""
+Box[E:*]:{ .get: E }
+H:{ #[X:*](b: Box[X], x: X): base.Void -> base.Void }
+A:{ .k: A; .v: base.Void }
+U:{ .m: A -> A{'s .k -> s; .v -> H#({ .get -> s }, s.k) } }
+"""));}
+@Test void literalReturningTheSelfNameAfterAnArgument(){ok(List.of("""
+Box[E:*]:{ .get: E }
+H:{ #[X:*](x: X, b: Box[X]): base.Void -> base.Void }
+A:{ .k: A; .v: base.Void }
+U:{ .m: A -> A{'s .k -> s; .v -> H#(s.k, { .get -> s }) } }
+"""));}
+@Test void literalReturningAnAnonymousSelfName(){fail("""
+004| U:{ .m: base.Void -> {'s .j: base.Void -> H#({ .get -> s }, B) }.j }
+   |                          -----------------~^^~~~~~~~~~~~~~~~~~
+
+While inspecting ".j" line 4 > ".m" line 4
+This call to method "H#(_,_)" cannot typecheck.
+Argument 2 has type "iso B".
+That is not a subtype of the anonymous type of the object literal at line 4, column 22 (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#[imm,_BU](-,B)
+""", List.of("""
+Box[E:*]:{ .get: E }
+H:{ #[X:*](b: Box[X], x: X): base.Void -> base.Void }
+B:{}
+U:{ .m: base.Void -> {'s .j: base.Void -> H#({ .get -> s }, B) }.j }
 """));}
 }
