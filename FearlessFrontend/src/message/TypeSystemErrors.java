@@ -182,10 +182,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   }
   public FearlessException typeDeclaredInMethod(E at, Literal l){
     return addExpFrame(at, err()
-      .line("The type "+err().tNameADisp(l.name())+" is declared inside a method body.")
-      .line("A type declared inside a method can capture any parameter name in scope,")
-      .line("so it cannot be extended or instantiated.")
-      .line("Hint: if it captures nothing, declare it implementing "+err().tNameADisp(LiteralDeclarations.captureFree)+".")
+      .line("The type "+err().tNameADisp(l.name())+" is not standalone: it is declared inside a method body.")
+      .line("Only a standalone type can be extended or mentioned by name.")
+      .line("A type is standalone if it is declared at top level, or if it implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".")
       .ex(at));
   }
   ///Implemented method can never be called for any receiver obtained from the literal.
