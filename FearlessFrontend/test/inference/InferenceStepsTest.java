@@ -1807,6 +1807,16 @@ MyT:D[MyT,base.Str]{ .close(t)->t }
 B:{.m:D[MyT,base.Str]->D[MyT,base.Str]{.close(t)->t}}
 """));}
 
+@Test void typeVariableArgumentToGenericWithReadResultInfersRead(){okI("""
+p.A:{'this .f[X:imm,mut,read](X):read X@p.A;(x)->p.Util:?.m(x:?):?;}
+p.Util:{'this .m[Y:imm,mut,read](Y):Y@p.Util;(y)->y:?;}
+~-----------
+~mut p.A:{'this .f[X:imm,mut,read](x:X):read X->p.Util.m[imm,read X](x)}
+~mut p.Util:{'this .m[Y:imm,mut,read](y:Y):Y->y}
+""", List.of("""
+Util:{ .m[Y:*](y: Y): Y -> y }
+A:{ .f[X:*](x: X): read X -> Util.m(x) }
+"""));}
 @Test void magicWidenAnonLiteralHeadWithRC(){okI("""
 p.B:{'this .m:mut p.Target@p.B;->mut p._AB:p.Sup{'_ ? .foo[?]:?@!;->base.Str:?;}:?;}
 p.Sup:base.WidenTo[p.Target]{'this mut .foo:base.Str@p.Sup;}

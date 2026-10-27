@@ -608,9 +608,8 @@ public class Frontend{
     static boolean instance(Literal l){return l.anon&&all(l.ms,m->m.e==null);}
     E call(List<B>b,IG g,Call c){var e=solve(b,g,c.e);MS m;
       if(!(e.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)return c.children(e,solve(b,g,c.es));
-      var n=m.cas.size();var bs=push(m.cb,m.mb);var all0=normalize(bs,infer(c,m,c.es,false));
-      var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v,all0))));
-      var all=normalize(bs,map(infer(c,m,es,true),this::up));
+      var n=m.cas.size();var all=normalize(push(m.cb,m.mb),map(infer(c,m,c.es),this::up));
+      var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v,all))));
       return new Call(meet(e,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v,all)),c.written);
     }
     List<T>arguments(MS m,List<E>es,boolean literals){
@@ -619,8 +618,8 @@ public class Frontend{
       var lower=map(filter(is,i->!(m.ps.get(i) instanceof R)),ref);var exact=map(filter(is,i->m.ps.get(i) instanceof R),ref);
       return meet(push(lower.stream().reduce(qs(m.v.size()),(a,b)->zip(a,b,this::join)),exact));
     }
-    List<T>infer(Call c,MS m,List<E>es,boolean use){var n=m.mb.size();var y=push(c.y,qs(n)).subList(0,n);var ret=refine(m.v,m.ret,c.t);
-      return Stream.of(push(m.cas,c.written?y:qs(n)),m.ret instanceof R?ret:qs(m.v.size()),arguments(m,es,true),meet(list(push(m.cas,y),use?arguments(m,es,false):ret,ret)))
+    List<T>infer(Call c,MS m,List<E>es){var n=m.mb.size();var y=push(c.y,qs(n)).subList(0,n);var ret=refine(m.v,m.ret,c.t);
+      return Stream.of(push(m.cas,c.written?y:qs(n)),m.ret instanceof R?ret:qs(m.v.size()),arguments(m,es,true),meet(list(push(m.cas,y),arguments(m,es,false),ret)))
         .reduce((p,q)->zip(p,q,(a,b)->a.tv()&&!(a instanceof R(var r,_)&&r==null)?a:b)).get();
     }
     T up(T t){if(!(t instanceof R(var r,var c)))return t;var h=sup.getOrDefault(c.name,c);return new R(r,h).withTs(map(h.types,this::up));}

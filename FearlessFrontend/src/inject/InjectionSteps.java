@@ -337,25 +337,18 @@ public record InjectionSteps(Methods meths, int cap){
     var om= methodHeaderAnd(rcc, c.name(), c.rc(), guess, (d,mm) -> methodHeaderInstance(rcc, d, mm));
     if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var m= om.get();
-    var es= nextStar(bs, g, requiredOnArgs(bs, c, m));
-    assert es == c.es() || !es.equals(c.es());
-    assert m.ps0().size() == es.size();
-    var all= decidedThen(c, m, es, true).stream().map(t -> deFresh(g, t)).toList();
+    assert m.ps0().size() == c.es().size();
+    var all= decidedThen(c, m).stream().map(t -> deFresh(g, t)).toList();
     assert all.size() == m.nCls()+m.bsArity();
     var clsTs= normToBounds(bs, m.clsBs(), all.subList(0, m.nCls()));
     var targs= normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size()));
     e = meet(e, rcc.withTs(clsTs));
     m = m.withClsArgs(clsTs);
     var it= meet(c.t(), m.ret(targs));
-    var es1= meetWithTargs(c.es(), es, m, targs);
+    var es1= nextStar(bs, g, meetWithTargs(c.es(), c.es(), m, targs));
     var noChange= e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
     if (noChange){ return c; }
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
-  }
-  private List<E> requiredOnArgs(List<B> bs, E.Call c, MSigL m){
-    var all= decidedThen(c, m, c.es(), false);
-    var m0= m.withClsArgs(normToBounds(bs, m.clsBs(), all.subList(0, m.nCls())));
-    return meetWithTargs(c.es(), c.es(), m0, normToBounds(bs, m.methBs(), all.subList(m.nCls(), all.size())));
   }
   private List<IT> fromArgs(MSigL m, List<E> es, boolean onlyLiterals){
     var n= m.nCls()+m.bsArity();
@@ -369,13 +362,13 @@ public record InjectionSteps(Methods meths, int cap){
     var head= o != null && o.infName() && o.t() instanceof IT.RCC h && !h.c().name().equals(o.name()) ? h.c() : rcc.c();
     return new IT.RCC(rcc.rc(), head, rcc.span()).withTs(head.ts().stream().map(ti -> deFresh(g, ti)).toList());
   }
-  private List<IT> decidedThen(E.Call c, MSigL m, List<E> es, boolean useArgs){
+  private List<IT> decidedThen(E.Call c, MSigL m){
     var targs= MSigL.fixTargs(c.targs(), m.bsArity());
-    var args= useArgs ? fromArgs(m, es, false) : qMarks(m.nCls()+m.bsArity());
+    var args= fromArgs(m, c.es(), false);
     var fromRet= refine(m.xs(), m.ret0(), c.t());
     var all= meet(List.of(Push.of(m.clsArgs(), targs), args, fromRet));
     var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
-    var hard= fromArgs(m, es, true);
+    var hard= fromArgs(m, c.es(), true);
     var exactRet= m.ret0() instanceof IT.RCC ? fromRet : qMarks(fromRet.size());
     var exact= Streams.zip(written, exactRet).map((w,r) -> decided(w) ? w : r).toList();
     var fixed= Streams.zip(exact, hard).map((f,h) -> decided(f) ? f : h).toList();
@@ -507,7 +500,7 @@ public record InjectionSteps(Methods meths, int cap){
   }
   /*The meet below narrows a method's return type to the type of its body, so a literal only ever
   gets more precise than what the use site asked for. What keeps that from destroying an invariant
-  instantiation is that a decided type argument is never re-decided: requiredOnArgs and the meet in
+  instantiation is that a decided type argument is never re-decided: meetWithTargs in nextC and the meet in
   nextMStarOp push what is already known down before a body is inferred, and keepDecided then only
   fills the type arguments still unknown. See the five tests named in TypeSystemTest, next to
   blockLetInfersItsTypeFromTheLambdaBody, for what base needs the meet itself for.*/
