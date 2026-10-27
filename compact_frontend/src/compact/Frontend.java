@@ -726,7 +726,7 @@ public class Frontend{
       return t instanceof R(var r,var c)&&(r==null||r==iso&&!al.contains(iso))?new R(al.contains(imm)?null:read,c):t;
     }
     static List<T>normalize(List<B>scope,List<B>b,List<T>types){
-      return zip(types,b,(ti,bi)->variable(ti)==null||B.get(scope,variable(ti)).caps.equals(bi.caps)?normalize(ti,bi.caps):ti);
+      return zip(types,b,(ti,bi)->variable(ti)==null?normalize(ti,bi.caps):ti);
     }
     R bound(R w,List<T>types){
       var d=from(w.c.name);return w.withTs(d==null?types:zip(types,d.b,(ti,bi)->normalize(ti,bi.caps)));
