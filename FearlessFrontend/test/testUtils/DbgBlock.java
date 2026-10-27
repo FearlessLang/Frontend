@@ -107,7 +107,10 @@ Named: Final[".name"]{ read .name: Str -> Nope!; }
 DataRead: CaptureFree, Named{}
 DataEdit: DataRead{}
 OpenWith[I,E]: {}
+OpenWith[I]: {}
 Shortcut[I,E]: {}
+Shortcut[I]: {}
+PreLoadIcon[I]: {}
 WidenTo[T]:{}
 BaseId[T1:*,T2]: CaptureFree{ #(x: T1): T2 }
 BaseContainer[T1:*]: Sealed{

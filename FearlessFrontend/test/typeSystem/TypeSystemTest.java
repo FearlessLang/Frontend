@@ -5260,4 +5260,166 @@ x.as(-.BaseId[Box,Box]{#(y:Box):Box->y})
 Box:{ .as(f: base.BaseId[Box,Box]):Box -> this }
 I: base.BaseId[Box,Box]{ #(x)->x.as{ #(y)->y } }
 """));}
+@Test void mutMethodInheritedPastAReadOverride(){ok(List.of("""
+A:{ read .foo: base.Void -> base.Void; mut .foo: base.Void -> base.Void }
+B:A{ read .foo: base.Void -> base.Void }
+D:{ mut .foo: base.Void }
+C:B,D{}
+"""));}
+@Test void lambdaMethodTypedByALaterMethod(){ok(List.of("""
+Ig:{ #[Y:*](y: Y): base.Void -> base.Void }
+Two[X:*]:{ .a(x: X): base.Void; .b: X }
+F:{ #[X:*](t: Two[X]): X -> t.b }
+U:{ .m: base.Void -> Ig#(F#({ .a(x) -> base.Void; .b -> base.Void })) }
+"""));}
+@Test void lambdaMethodReturningThroughThisBeforeItsTypeIsKnown(){fail("""
+004| U:{ .m: base.Void -> Ig#(F#({ .a -> this.b; .b -> base.Void })) }
+   |                               ------~~~~^^^
+
+While inspecting ".a" line 4 > ".m" line 4
+This call to method ".b" cannot typecheck.
+Method ".b" is not declared on type "U".
+Hint:
+The method parameter "this" here has type "U".
+
+The method ".b" is defined in the object literal instance of "Two[base.Void]".
+No parameter refers to instances of this literal.
+To declare one, use the single quote as in the example below:
+  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect
+    .area: Nat -> width * height;
+    .str: Str -> "area: "+(rect.area.str);
+    .withWidth(width': Nat): Rectangle -> this#(width', height);
+  }}
+
+Available methods on type "U":
+-       .m:base.Void
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.b
+""", List.of("""
+Ig:{ #[Y:*](y: Y): base.Void -> base.Void }
+Two[X:*]:{ .a: X; .b: X }
+F:{ #[X:*](t: Two[X]): X -> t.b }
+U:{ .m: base.Void -> Ig#(F#({ .a -> this.b; .b -> base.Void })) }
+"""));}
+@Test void literalReceiverWithAnUntypedParameter(){failWf("""
+002| U:{ .m: A -> { .foo(x): A -> x }.foo(A) }
+   |              --^^^^^^^^^^^^^^^--
+
+While inspecting object literal instance of "A"
+Cannot infer signature of method ".foo(_)".
+No supertype has a method named ".foo(_)" with 1 parameter.
+""", List.of("""
+A:{}
+U:{ .m: A -> { .foo(x): A -> x }.foo(A) }
+"""));}
+@Test void literalReceiverWithATypedParameter(){ok(List.of("""
+A:{}
+U:{ .m: A -> { .foo(x: A): A -> x }.foo(A) }
+"""));}
+@Test void baseIdCallingItselfOnItsArgument(){fail("""
+001| I: base.BaseId[I,I]{ #(x)->x#(x) }
+   |                            ^^^^^
+
+While inspecting the file
+Type declaration "I" implements "base.BaseId[_,_]".
+The body of "#(_)" must be "x" or "x.as{...}".
+Only those two shapes are the identity function.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x#(x)
+""", List.of("""
+I: base.BaseId[I,I]{ #(x)->x#(x) }
+"""));}
+@Test void baseIdAsOnATypeParameterArgument(){fail("""
+001| I[X:*]: base.BaseId[X,I[X]]{ #(x)->x.as[I[X]](this) }
+   |                                    ^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Type declaration "I[_]" implements "base.BaseId[_,_]".
+The body of "#(_)" must be "x" or "x.as{...}".
+Only those two shapes are the identity function.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x.as[imm,I[X]](this)
+""", List.of("""
+I[X:*]: base.BaseId[X,I[X]]{ #(x)->x.as[I[X]](this) }
+"""));}
+@Test void readImmResultOfAMutTypeArgument(){ok(List.of("""
+Ig:{ #[Y:*](y: Y): base.Void -> base.Void }
+A:{}
+F:{ #[X:*](a: mut X): read/imm X -> base.Todo! }
+U:{ .m(x: mut A): base.Void -> Ig#(F#(x)) }
+"""));}
+@Test void subtypeArgumentWithAnUninferredTypeArgument(){ok(List.of("""
+Ig:{ #[Y:*](y: Y): base.Void -> base.Void }
+Box[X:*]:{ .get: X }
+SubBox[X:*]:Box[X]{}
+Mk:{ #[Y:*]: SubBox[Y] -> base.Todo! }
+F:{ #[X:*](b: Box[X], x: X): X -> x }
+U:{ .m: base.Void -> Ig#(F#(Mk#, base.Void)) }
+"""));}
+@Test void literalForAnExplicitTypeParameterArgument(){fail("""
+003| H[X:*]:{ .m: X -> G#[X](A{}) }
+   |          ---------------^^--
+
+While inspecting object literal instance of "A" > ".m" line 3
+Object literal instance of "A" cannot implement "X".
+"X" is a type parameter; object literals can only implement nominal types.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+A
+""", List.of("""
+G:{ #[T:*](x: T): T -> x }
+A:{}
+H[X:*]:{ .m: X -> G#[X](A{}) }
+"""));}
+@Test void literalReceiverExpectedAsTheEnclosingLiteralType(){fail("""
+003| U:{ .m: A -> A{'s .k -> s; .v -> G#(s, { .j: A -> s }.j) } }
+   |                            ------~^^~~~~~~~~~~~~~~~~~~~~
+
+While inspecting ".v" line 3 > ".m" line 3
+This call to method "G#(_,_)" cannot typecheck.
+Argument 2 has type "A".
+That is not a subtype of "A" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#[imm,_BU](-,{.j:A->s}.j)
+""", List.of("""
+G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
+A:{ .k: A; .v: base.Void }
+U:{ .m: A -> A{'s .k -> s; .v -> G#(s, { .j: A -> s }.j) } }
+"""));}
+@Test void literalImplementingTheEnclosingLiteralType(){failWf("""
+003| U:{ .m: A -> A{'s .k -> s; .v -> G#(s, { .k -> this; .v -> base.Void }) } }
+   |                                        --^^^^^^^^^^-------------------
+
+While inspecting object literal instance of "_BU"
+Missing return type for method ".k".
+Add an explicit return type before '->'.
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".k".
+No supertype has a method named ".k" with 0 parameters.
+""", List.of("""
+G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
+A:{ .k: A; .v: base.Void }
+U:{ .m: A -> A{'s .k -> s; .v -> G#(s, { .k -> this; .v -> base.Void }) } }
+"""));}
+@Test void typeGrowsForeverBelowTheDepthCap(){failWf("""
+007| Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
+   |                      ^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "Foo[_]"
+Type inference finds no type for object literal instance of "Foo[_]".
+Each round of inference nests its type one level deeper, as "Foo[Box[Box[...]]]"; it would grow without bound.
+""", List.of("""
+N:{}
+Box[X]:{}
+Deep:{ .d: Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[N]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] }
+Wrap:{ #[Y](y: Y): Box[Y] -> {} }
+Foo[X]:{ .m(x: X): X }
+Take:{ #[Z](f: Foo[Z]): N -> N }
+Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
+"""));}
 }
