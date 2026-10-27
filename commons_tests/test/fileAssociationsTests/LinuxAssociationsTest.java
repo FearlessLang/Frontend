@@ -360,10 +360,33 @@ Terminal=false
     reconcile(".ffile001");
     assertEquals(List.of(identity), FileAssociations.identities(family));
   }
+  @Test void aRebuildThatFailedIsDoneAgainByTheNextReconcile(){
+    LinuxAssociations.run = (cmd,halfDone) -> { throw halfDone.apply(cmd.getFirst()); };
+    assertEquals("halfDone update-mime-database", refused(".ffile001"));
+    LinuxAssociations.run = (cmd,_) -> ran.add(cmd);
+    reconcile(".ffile001");
+    assertEquals(rebuilt(), ran);
+  }
   @Test void reconcileRebuildsOnlyTheApplicationsFoldersItChanges(){
     Fs.writeUtf8(sys.resolve("applications").resolve("browser.desktop"), "[Desktop Entry]\nMimeType=text/html;\n");
     reconcile(".htm");
     assertEquals(rebuilt(), ran);
+  }
+  @Test void theDefaultOfTheMostImportantChoiceFileIsTheOneThatCounts(){
+    Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Default Applications]\napplication/x-fearless-htm="+identity+".desktop\n");
+    Fs.writeUtf8(root.resolve("etc").resolve("mimeapps.list"), "[Default Applications]\napplication/x-fearless-htm=browser.desktop\n");
+    reconcile(".htm");
+    assertEquals("MimeType=application/x-fearless-htm;", mimeTypes());
+  }
+  @Test void aFamilyDesktopFileWhoseExecEndsWithAnotherFieldCodeNamesItsCommand(){
+    Fs.writeUtf8(home.resolve("applications").resolve("fearlessBin0_000.desktop"), "[Desktop Entry]\nExec=/opt/fearlessBin0_000/bin/fearlessBin0_000 %F\n");
+    reconcile(".fearless");
+    assertEquals(List.of(Path.of("/opt/fearlessBin0_000/bin/fearlessBin0_000")), replaced);
+  }
+  @Test void aFamilyDesktopFileWithAnUnquotedExecNamesItsCommand(){
+    Fs.writeUtf8(home.resolve("applications").resolve("fearlessBin0_000.desktop"), "[Desktop Entry]\nExec=/opt/fearlessBin0_000/bin/fearlessBin0_000 %f\n");
+    reconcile(".fearless");
+    assertEquals(List.of(Path.of("/opt/fearlessBin0_000/bin/fearlessBin0_000")), replaced);
   }
   @Test void noExtensionsLeavesNoFileOfTheIdentity(){
     reconcile(".ffile001");
