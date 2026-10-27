@@ -93,7 +93,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var ll= decs().apply(t.type().c().name());
     if (!hasInstance(ll)){ throw tsE().typeDeclaredInMethod(t, ll); }
     var rc= t.type().rc();
-    var getIso= (rc.isReadOrImm() && !hasAbstractMut(ll)) || rc == mut || rc == mutH;
+    var getIso= (rc.isReadOrImm() && !hasAbstractMut(ll)) || rc == mut;
     var l= ll.withRC(getIso ? iso : rc);
     var tt= getIso ? new Type(t.type().withRC(iso), t.src()) : t;
     l.ms().forEach(m -> checkImplemented(l, m, tt));

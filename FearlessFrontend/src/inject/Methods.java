@@ -137,7 +137,7 @@ public record Methods(
   }
   private void checkBaseId(E.Literal d){
     var ms= d.ms();
-    var onlyHash= ms.size() == 1 && ms.getFirst().sig().m().get().equals(hashOne);
+    var onlyHash= ms.size() == 1;
     if (!onlyHash){ throw p.err().baseIdNotOnlyHash(d); }
     var s= ms.getFirst().sig();
     var origin= s.origin().get();
@@ -184,7 +184,6 @@ public record Methods(
     d.ms().stream().filter(mi -> mi.sig().m().get().s().equals(m) && mi.sig().origin().equals(Optional.of(d.name()))).findFirst()
       .ifPresent(mi -> { throw p.err().finalImplemented(d, mi, origin.name(), m); });
   }
-  private static final MName hashOne= new MName("#", 1);
   void notSealed(TName target, E.Literal owner){
     var targetSealed= LiteralDeclarations.has(from(target).cs(), LiteralDeclarations.sealed);
     if (!targetSealed){ return; }
