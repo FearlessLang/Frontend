@@ -64,6 +64,45 @@ B:-.A{.fromC:-.A->-.Void}
 Error 8 TypeError""", Map.of("a", aA, "c", cA), Map.of("a", "c"), """
 B:a.A{ .fromC -> base.Void }
 """); }
+  @Test void typingContextShowsSupertypeWrittenThroughTheSecondOfTwoMaps(){ fail("""
+In file: [###].fear
+
+001| B:d.A{ .fromC -> base.Void }
+   |        ----------^^^^^^^^^
+
+While inspecting object literal instance of "base.Void" > ".fromC" line 1
+The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
+Object literal is of type "base.Void" instead of a subtype of "c.A".
+
+Name "a.A" stands for "c.A" because of "map a as c in b".
+Name "d.A" stands for "c.A" because of "map d as c in b".
+
+See inferred typing context below for how type "c.A" was introduced: (compression indicated by `-`)
+B:-.A{.fromC:-.A->-.Void}
+Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c", "d", "c"), """
+B:d.A{ .fromC -> base.Void }
+"""); }
+  @Test void typingContextShowsSupertypeWrittenThroughTheSecondOfTwoUses(){ fail("""
+In file: [###].fear
+
+003| B:Y{ .fromC -> base.Void }
+   |      ----------^^^^^^^^^
+
+While inspecting object literal instance of "base.Void" > ".fromC" line 3
+The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
+Object literal is of type "base.Void" instead of a subtype of "X".
+
+Name "X" stands for "a.A" because of "use a.A as X".
+Name "a.A" stands for "c.A" because of "map a as c in b".
+Name "Y" stands for "c.A" because of "use c.A as Y".
+
+See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+B:X{.fromC:X->-.Void}
+Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
+use a.A as X;
+use c.A as Y;
+B:Y{ .fromC -> base.Void }
+"""); }
   @Test void mapToMissingTypeSuggestsNoNameTheMapRedirects(){ fail("""
 In file: [###].fear
 
