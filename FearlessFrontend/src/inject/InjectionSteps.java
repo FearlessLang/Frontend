@@ -675,8 +675,7 @@ public record InjectionSteps(Methods meths, int cap){
     return Streams.zip(ts, bs).map((ti,bi) -> normToBound(scope, ti, bi.rcs())).toList();
   }
   private static IT normToBound(List<B> scope, IT t, EnumSet<RC> allowed){
-    var sameType= xName(t).map(x -> B.get(scope, x).rcs().equals(allowed)).orElse(true);
-    return sameType ? normToBound(t, allowed) : t;
+    return xName(t).isEmpty() ? normToBound(t, allowed) : t;
   }
   private static Optional<String> xName(IT t){ return switch (t){
     case IT.X x -> Optional.of(x.name());
