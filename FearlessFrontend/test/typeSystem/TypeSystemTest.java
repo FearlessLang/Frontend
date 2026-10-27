@@ -1029,7 +1029,7 @@ User:{
    |      -----------^^
 
 While inspecting parameter "a" > "#" line 3 > "#(_)" line 3
-object literal instance of "iso G" implements "base.CaptureFree".
+Object literal instance of "iso G" implements "base.CaptureFree".
 Thus parameter "a" (line 3) cannot be captured in this scope.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1049,8 +1049,8 @@ Foo:{#(a:A):G->{a}}
 010|   );
 
 While inspecting parameter "loooooong" > "#" line 8 > ".m(_)" line 7
-parameter "loooooong" has type "mut A".
-parameter "loooooong" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "G" (line 8).
+Parameter "loooooong" has type "mut A".
+Parameter "loooooong" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "G" (line 8).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1077,7 +1077,7 @@ User:{
 010|   );
 
 While inspecting parameter "loooooong" > "#" line 8 > ".m(_)" line 7
-parameter "loooooong" has type "mutH A".
+Parameter "loooooong" has type "mutH A".
 The type of parameter "loooooong" is hygienic (readH or mutH)
 and thus it cannot be captured in the object literal instance of "G" (line 8).
 
@@ -1103,7 +1103,7 @@ User:{
    |      ------------------------^^^^^^^^^^
 
 While inspecting parameter "loooooong" > "#" line 6 > ".m(_)" line 5
-parameter "loooooong" has type "mutH A".
+Parameter "loooooong" has type "mutH A".
 The type of parameter "loooooong" is hygienic (readH or mutH)
 and thus it cannot be captured in the object literal instance of "G" (line 6).
 
@@ -1219,7 +1219,7 @@ Hint: funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of
    |                                    --------------^^^^^
 
 While inspecting parameter "beer" > ".get" line 3 > ".m(_)" line 2
-parameter "beer" has type "X".
+Parameter "beer" has type "X".
 The type of parameter "beer" can be instantiated with hygienics (readH or mutH)
 and thus it cannot be captured in the object literal "G[_]" (line 3).
 
@@ -1483,7 +1483,7 @@ User:{
 While inspecting ".m(_,_)" line 7
 This call to method ".mix(_,_,_)" cannot typecheck.
 There are methods ".mix(_)" and ".mix(_,_)" on type "Mixer",
-but with different number of arguments.
+but with a different number of arguments.
 This call supplies 3, but available methods take 1 or 2.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1521,6 +1521,22 @@ User:{
   mut .m(z:mut Z, a:A):A->
     z.zap[mut](a);
 }
+""")); }
+@Test void methodNotDeclared_wrongReceiverRc_onObjectLiteralInstance(){fail("""
+002| U:{ .u: base.Void -> mut A{ read .m: base.Void -> base.Void; mut .k: base.Void -> base.Void }.k[read] }
+   |     ---------------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^~~~~~
+
+While inspecting ".u" line 2
+This call to method ".k" cannot typecheck.
+".k" exists on object literal instance of "A", but not with the requested capability.
+This call requires the existence of a "read" method.
+Available capabilities for this method: "mut".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+mut A{read .m:-.Void->-.Void;mut .k:-.Void->-.Void}.k[read]
+""", List.of("""
+A:{ read .m: base.Void }
+U:{ .u: base.Void -> mut A{ read .m: base.Void -> base.Void; mut .k: base.Void -> base.Void }.k[read] }
 """)); }
 @Test void methodNotDeclared_wrongReceiverRc_twoOtherCapabilitiesExist(){fail("""
 002| User:{ #(a:read A):A->a.m[read] }
@@ -1939,7 +1955,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
 While inspecting ".bar" line 3
 This call to method ".foo123(_)" cannot typecheck.
 There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
-but with different number of arguments.
+but with a different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1959,7 +1975,7 @@ A:{
 While inspecting ".bar" line 3
 This call to method ".foo123(_)" cannot typecheck.
 There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
-but with different number of arguments.
+but with a different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -2260,8 +2276,8 @@ A:{
    |   ---------------------------~~~~~~~~~~~~~~^^^^^--
 
 While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
-parameter "aaaa" has type "mut A".
-parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal "BB" (line 4).
+Parameter "aaaa" has type "mut A".
+Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal "BB" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -2279,8 +2295,8 @@ A:{
    |   ------------------------~~~~~~~~~~~~~~^^^^^--
 
 While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
-parameter "aaaa" has type "mut A".
-parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "B" (line 4).
+Parameter "aaaa" has type "mut A".
+Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "B" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -2488,7 +2504,7 @@ In file: [###].fear
 While inspecting the file
 Integer literal is out of range for "base.Int".
 "base.Int" must be representable as a 64-bit signed integer.
-Valid range: -9223372036854775808 ..9223372036854775807.
+Valid range: -9223372036854775808 .. 9223372036854775807.
 This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
@@ -2504,7 +2520,7 @@ In file: [###].fear
 While inspecting the file
 Natural literal is out of range for "base.Nat".
 "base.Nat" must be representable as a 64-bit unsigned integer.
-Valid range: 0 ..18446744073709551615.
+Valid range: 0 .. 18446744073709551615.
 This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
@@ -4470,8 +4486,8 @@ User:{ .f: read Sup -> Ids#({ .g -> Foo }) }
    |        ---------------------------------------------~~~~~~~~^---
 
 While inspecting parameter "c" > ".run" line 4 > ".f(_,_)" line 4
-parameter "c" has type "mut Foo".
-parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
+Parameter "c" has type "mut Foo".
+Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -4493,8 +4509,8 @@ User:{ .f(s: mut Sup, c: mut Foo): Foo -> Two#(s, mut Sup{ .run -> c }) }
    |        ---------------------------------------------~~~~~~~~^---
 
 While inspecting parameter "c" > ".get" line 4 > ".f(_,_)" line 4
-parameter "c" has type "mut Foo".
-parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Box" (line 4).
+Parameter "c" has type "mut Foo".
+Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Box" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -4516,8 +4532,8 @@ User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#(s, mut Box{ .get -> c }) }
    |        ---------------------------------------------~~~~~~~~^---
 
 While inspecting parameter "c" > ".run" line 4 > ".f(_,_)" line 4
-parameter "c" has type "mut Foo".
-parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
+Parameter "c" has type "mut Foo".
+Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)

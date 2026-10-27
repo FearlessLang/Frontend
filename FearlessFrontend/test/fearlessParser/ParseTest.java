@@ -103,7 +103,7 @@ In file: [###].fear
    |           --------------~~~~~^~~~~~~~~---
 
 While inspecting generic bounds declaration > method declaration > type declaration body > type declaration > full file
-Name "X" already in scope.
+Name "X" is already in scope.
 Error 2 UnexpectedToken
 """, """
 Pair[X,Y]:{ .x:X; .y:Y; .foo[X](x:X):X; }
@@ -116,7 +116,7 @@ In file: [###].fear
    |                  ~~~~~^~~~---
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Name "X" already in scope.
+Name "X" is already in scope.
 Error 2 UnexpectedToken
 """, """
 A:{.foo[X]:A->B:{.bar[X]:B->B}; }
@@ -169,7 +169,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Self name "abc" is invalid in a top level type.
-Top level types self names can only be "this".
+The self name of a top level type can only be "this".
 Error 7 WellFormedness
 """, """
 A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be this or nothing
@@ -2676,7 +2676,7 @@ In file: [###].fear
 009|  }
 
 While inspecting type declaration body > type declaration > full file
-Method with inferred name and 2 parameter redeclared.
+Method with inferred name and 2 parameters redeclared.
 A method with the inferred name and the same parameter count is already present above.
 Likely cause: method declaration missing "." before the name.
 Found unnamed methods with parameters: "a", "b".
@@ -2706,7 +2706,7 @@ In file: [###].fear
 009|  }
 
 While inspecting type declaration body > type declaration > full file
-Method with inferred name and 2 parameter redeclared.
+Method with inferred name and 2 parameters redeclared.
 A method with the inferred name and the same parameter count is already present above.
 Likely cause: method declaration missing "." before the name.
 Found unnamed methods with parameters: "b", "a".
@@ -3154,7 +3154,7 @@ In file: [###].fear
 003| }
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
-Expected comma , colon or arrow.
+Expected comma, colon or arrow.
 Expected one of: ",", ":", "->".
 Error 4 ExtraTokenInGroup
 """, """
@@ -3405,7 +3405,7 @@ In file: [###].fear
    | --^^^^^^^^----
 
 While inspecting generic bounds declaration > type declaration > full file
-Missing Generic type name declaration.
+Missing generic type name declaration.
 Found instead: "base.Nat".
 Expected: "type name".
 Error 2 UnexpectedToken
@@ -3434,7 +3434,7 @@ In file: [###].fear
    | --~~~~~~~~^^^^~~
 
 While inspecting type declaration body > type declaration > full file
-Method with inferred name and 0 parameter redeclared.
+Method with inferred name and 0 parameters redeclared.
 A method with the inferred name and the same parameter count is already present above.
 Error 7 WellFormedness
 """, """
@@ -3447,7 +3447,7 @@ In file: [###].fear
    |               --~^^^^^^^^^^^^^^^~
 
 While inspecting method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Name "a" already in scope.
+Name "a" is already in scope.
 It is declared by a nominal pattern: a pattern like "{.a.b, .c}id" declares the names "bid" and "cid".
 Error 2 UnexpectedToken
 """, """
@@ -3460,7 +3460,7 @@ In file: [###].fear
    |   -~~~~~~~~~~~^^^^^^^^^^^^----
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-Name "a" already in scope.
+Name "a" is already in scope.
 It is declared by a nominal pattern: a pattern like "{.a.b, .c}id" declares the names "bid" and "cid".
 Error 2 UnexpectedToken
 """, """
@@ -3473,7 +3473,7 @@ In file: [###].fear
    |   -~~~~~~~~~~~^^^^^^^^^^^^^^^^^----
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-Name "bx" already in scope.
+Name "bx" is already in scope.
 It is declared by a nominal pattern: a pattern like "{.a.b, .c}id" declares the names "bid" and "cid".
 Error 2 UnexpectedToken
 """, """

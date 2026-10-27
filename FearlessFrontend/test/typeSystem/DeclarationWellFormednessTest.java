@@ -22,7 +22,7 @@ public final class DeclarationWellFormednessTest extends testUtils.FearlessTestB
    |     ----------~~^^^^~
 
 While inspecting object literal > method body > method declaration > type declaration body > type declaration > full file
-Name "this" already in scope.
+Name "this" is already in scope.
 """, List.of("""
 A:{ .m1: A -> {'this} }
 """));}
@@ -31,7 +31,7 @@ A:{ .m1: A -> {'this} }
    |     -----^^^^~~~----
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
-Name "this" already in scope.
+Name "this" is already in scope.
 """, List.of("""
 A:{ .foo(this: A): A }
 """));}
@@ -104,7 +104,7 @@ A[X:*]:{ .foo(x: X): X -> this.foo(b) }
 003|   } }
 
 While inspecting object literal > method body > method declaration > typed literal > method body > method declaration > type declaration body > type declaration > full file
-Name "unique" already in scope.
+Name "unique" is already in scope.
 """, List.of("""
 Foo:{ .m1: Foo -> Foo{ 'unique
   .m1 -> {'unique}
@@ -118,7 +118,7 @@ Foo:{ .m1: Foo -> Foo{ 'unique
 
 While inspecting type declaration body > type declaration > full file
 Self name "self" is invalid in a top level type.
-Top level types self names can only be "this".
+The self name of a top level type can only be "this".
 """, List.of("""
 A:{ 'self
   .me: A -> self;
@@ -159,7 +159,7 @@ A:{ .m1(a: A): A -> {.m1(b) -> a} }
    |                      ~~~~^~-----
 
 While inspecting method parameters declaration > method signature > method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-Name "a" already in scope.
+Name "a" is already in scope.
 """, List.of("""
 A:{ .m1(a: A): A -> {.m1(a) -> a} }
 """));}
@@ -421,7 +421,7 @@ BreakOuter[Y:*,Z:*]:{ #: BreakInner[Y] -> BreakInner[Y:*]:{ .z: A[Z] -> A[Z] } }
    |                                                 ---^~~----------
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Name "Z" already in scope.
+Name "Z" is already in scope.
 """, List.of("""
 A[X:*]:{}
 BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z[Z:*](z: Z): Z -> z } }
@@ -1103,7 +1103,7 @@ As a rule of thumb: final applications use appNNN; shared libraries often use wo
 Error 7 WellFormedness""", SourceOracle.debugBuilder().put(0, "A:{}").putURI(URI.create("fear:/___DBG___/_rank_other000.fear"), "B:{}").build());}
 @Test void noRankFile(){typeFailRaw("""
 No rank file found for package "p".
-Each package must have exactly one source file whose name is their rank,
+Each package must have exactly one source file whose name is its rank,
 in some folder inside the project folder.
 Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
 The rank file is the file whose name matches the rank name.
