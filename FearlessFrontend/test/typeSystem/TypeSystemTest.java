@@ -5047,7 +5047,7 @@ A:{ .m(x: Bar): Foo -> x }
 Foo:{}
 Id:{ #[T:*](t: T): T -> t }
 K:{ read .a: read Foo; mut .b: read Foo }
-User:{ .go(x: mut Foo): mut K -> mut K{ read .a -> Id#[imm](x); mut .b -> Id#[imm](x) } }
+User:{ .go(x: mut Foo): mut K -> mut K{ read .a -> Id#(x); mut .b -> Id#(x) } }
 """));}
 @Test void deepWrittenOverrideOfAnInheritedSignature(){ok(List.of("""
 N:{}
@@ -5526,5 +5526,42 @@ Box[E:*]:{ .get: E }
 H:{ #[X:*](b: Box[X], x: X): base.Void -> base.Void }
 B:{}
 U:{ .m: base.Void -> {'s .j: base.Void -> H#({ .get -> s }, B) }.j }
+"""));}
+@Test void methodTArgsArityError_emptyBrackets(){fail("""
+003| User:{ read .m(i:Id,a:mut A):mut A-> i.id[](a); }
+   |        ------------------------------~^^^^~~~~
+
+While inspecting ".m(_,_)" line 3
+This call to method "read Id.id(_)" cannot typecheck.
+Wrong number of type arguments for ".id(_)".
+This method expects 1 type argument: "X"; but this call provides no type arguments.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+i.id[read](a)
+""", List.of("""
+A:{}
+Id:{ read .id[X:imm,mut,read](x:X):X->x; }
+User:{ read .m(i:Id,a:mut A):mut A-> i.id[](a); }
+"""));}
+@Test void methodTArgsArityError_onlyACapability(){fail("""
+003| User:{ read .m(i:Id,a:mut A):mut A-> i.id[read](a); }
+   |        ------------------------------~^^^^~~~~~~~~
+
+While inspecting ".m(_,_)" line 3
+This call to method "read Id.id(_)" cannot typecheck.
+Wrong number of type arguments for ".id(_)".
+This method expects 1 type argument: "X"; but this call provides no type arguments.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+i.id[read](a)
+""", List.of("""
+A:{}
+Id:{ read .id[X:imm,mut,read](x:X):X->x; }
+User:{ read .m(i:Id,a:mut A):mut A-> i.id[read](a); }
+"""));}
+@Test void methodTArgsInferredWithoutBrackets(){ok(List.of("""
+A:{}
+Id:{ read .id[X:imm,mut,read](x:X):X->x; }
+User:{ read .m(i:Id,a:mut A):mut A-> i.id(a); }
 """));}
 }
