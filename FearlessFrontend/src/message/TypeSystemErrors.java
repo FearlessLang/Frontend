@@ -290,14 +290,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     };
   }
   private String whyDropMutInImm(String subject, Change.NoT why){
-    return subject+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    +subject+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
+    return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
+    +up(subject)+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n"
     +"Hint: capture an immutable copy instead, or move this use outside the object literal.";
   }
   private String whyDropNotKinded(String subject, Change.NoT why){
     var bounds= disp(Join.of(why.l().bs(), "", ", ", "", ""));
-    return subject+" has type "+err().typeRepr(true, why.atDrop())+".\n"
+    return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
     +"That type is not well kinded under the type parameters of "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+"): "+bounds+".\n"
     +"The bounds declared by the object literal are all it knows about its type parameters,\n"
@@ -307,13 +307,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var explicitH= why.atDrop().explicitH()
       ? "The type of "+subject+" is hygienic (readH or mutH)\n"
       : "The type of "+subject+" can be instantiated with hygienics (readH or mutH)\n";
-    return subject+" has type "+err().typeRepr(true, why.atDrop())+".\n"
+    return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
     +explicitH+"and thus it cannot be captured in the "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n";
   }
   private String whyDropCapFree(String subject, Change.NoT why){
     return
-    err().expRepr(why.l())+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".\n"
+    up(err().expRepr(why.l()))+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".\n"
     +"Thus "+subject
     +" (line "+why.l().span().inner.startLine()+")"
     +" cannot be captured in this scope.\n";
@@ -360,7 +360,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       var forms= sameName.stream().map(s -> methodSig("", s.m())).distinct().sorted().toList();
       return withCallSpans(err()
         .pCallCantBeSatisfied(c)
-        .line((forms.size() == 1 ? "There is a method " : "There are methods ")+Join.of(forms, "", " and ", "")+" on "+on+",\nbut with different number of arguments.")
+        .line((forms.size() == 1 ? "There is a method " : "There are methods ")+Join.of(forms, "", " and ", "")+" on "+on+",\nbut with a different number of arguments.")
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .ex(c), c);
     }
@@ -369,7 +369,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var explicit= !(c.src().inner instanceof fearlessFullGrammar.E.Call fc) || fc.targs().flatMap(fearlessFullGrammar.E.CallSquare::rc).isPresent();
     var e2= err()
       .pCallCantBeSatisfied(c)
-      .line(err().methodSig(c.name())+" exists on type "+err().bestNameNoRc(d)+", but not with the requested capability.")
+      .line(err().methodSig(c.name())+" exists on "+on+", but not with the requested capability.")
       .line(explicit
         ? "This call requires the existence of a "+disp(c.rc())+" method."
         : "This call does not state a capability and none could be inferred, so "+disp(c.rc())+" is assumed.")

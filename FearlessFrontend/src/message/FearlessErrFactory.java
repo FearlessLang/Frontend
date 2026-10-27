@@ -130,7 +130,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     return "Name "+disp(name.content())+" is not in scope.\n"+scope;
   }
   public FearlessException nameRedeclared(Token c, Span at){
-    return Code.UnexpectedToken.of("Name "+disp(c.content())+" already in scope.").addSpan(at);
+    return Code.UnexpectedToken.of("Name "+disp(c.content())+" is already in scope.").addSpan(at);
   }
   private Span redeclaredMethSpan(List<M> ms, Predicate<M> p){ return ms.reversed().stream().filter(p).findFirst().get().span().inner; }
   public FearlessException methodNameRedeclared(List<M> ms, List<Parser.RCMName> names, Span at){
@@ -173,7 +173,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       .filter(m -> parCount(m) == count)
       .flatMap(this::potentialMethodNames)
       .distinct().toList();
-    var base= "Method with inferred name and "+count+" parameter redeclared.\n"
+    var base= "Method with inferred name and "+count(count, "parameter")+" redeclared.\n"
     +"A method with the inferred name and the same parameter count is already present above.\n";
     if (hints.isEmpty()){ return Code.WellFormedness.of(base).addSpan(s).addSpan(at); }
     var ex= hints.getFirst();
@@ -258,7 +258,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +"Hint: funnel "+x+" into "+dec+" by writing "+funnelled+", restating the bounds of "+x+".").addSpan(at);
   }
   public FearlessException patternNameRedeclared(Span at, String name){
-    return Code.UnexpectedToken.of("Name "+disp(name)+" already in scope.\n"
+    return Code.UnexpectedToken.of("Name "+disp(name)+" is already in scope.\n"
       +"It is declared by a nominal pattern: a pattern like \"{.a.b, .c}id\" declares the names \"bid\" and \"cid\".\n").addSpan(at);
   }
   public FearlessException patternsGetTooManyParameters(Span at, List<XPat.Destruct> ps, int n){
@@ -388,7 +388,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException badTopSelfName(Span at, String name){
     var msg= "Self name "+disp(name)+" is invalid in a top level type.\n"
-      +"Top level types self names can only be \"this\".\n";
+      +"The self name of a top level type can only be \"this\".\n";
     return Code.WellFormedness.of(msg).addSpan(at);
   }
   public FearlessException noAbstractMethod(Sig sig, Span at){

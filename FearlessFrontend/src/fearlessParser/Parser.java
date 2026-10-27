@@ -95,7 +95,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   T.X parseDecTX(boolean mustNew){
     var startPos= index();
-    var c= expectValidate("Generic type name declaration", UppercaseId, _XId);
+    var c= expectValidate("generic type name declaration", UppercaseId, _XId);
     var declared= names.XIn(c.content()) || names.XHidden(c.content());
     var redeclared= mustNew && declared;
     if (redeclared){ throw errFactory().nameRedeclared(c, span(c).get()); }
@@ -319,7 +319,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   Parameter parseParameter(){
     var x= parseIf(peek(LowercaseId, Underscore, _CurlyGroup), this::parseXPat);
     var p= new Parameter(x, x.isPresent() ? parseOptT() : of(parseT()));
-    expectEnd("comma , colon or arrow", Comma, Colon, Arrow);
+    expectEnd("comma, colon or arrow", Comma, Colon, Arrow);
     return p;
   }
   List<B> parseBs(boolean mustNew){

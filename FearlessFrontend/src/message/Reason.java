@@ -49,7 +49,7 @@ public final class Reason{
     var e= ts.err()
       .line(base)
       .line("Hint: write "+ts.err().expReprDirect(false, blameOk)
-      +" if you need a "+disp(rc)+" object literal"+why);
+      +" if you need "+(rc == RC.iso ? "an " : "a ")+disp(rc)+" object literal"+why);
     return new Reason(got, e.text(), () -> baseFooterE(ts.scope(), got, expected));
   }
   private static E baseFooterE(TypeScope s, T actual, T req){ return TypeScope.bestInterestingScope(s, TypeScope.interestFromDeclVsReq(actual, req)).contextE(); }

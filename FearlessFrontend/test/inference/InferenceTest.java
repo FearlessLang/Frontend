@@ -61,7 +61,7 @@ B:{}
   FearlessException fe= assertThrows(FearlessException.class, () -> parsePackage("p", o, false));
   strCmp("""
 No rank file found for package "p".
-Each package must have exactly one source file whose name is their rank,
+Each package must have exactly one source file whose name is its rank,
 in some folder inside the project folder.
 Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
 The rank file is the file whose name matches the rank name.
@@ -911,7 +911,7 @@ In file: [###].fear
    |        ~~~~^~~~~~~~~~~~-------
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > type declaration > full file
-Name "X" already in scope.
+Name "X" is already in scope.
 Error 2 UnexpectedToken
 """, List.of("""
 Box[K]:{.get:K;}

@@ -91,7 +91,7 @@ public record WellFormednessErrors(String pkgName){
     if (heads.isEmpty()){
       return badRank(err()
         .line("No rank file found for package "+disp(pkgName)+".")
-        .line("Each package must have exactly one source file whose name is their rank,")
+        .line("Each package must have exactly one source file whose name is its rank,")
         .line("in some folder inside the project folder."))
         .wf();
     }
@@ -634,7 +634,7 @@ public record WellFormednessErrors(String pkgName){
     return err()
       .line(kind+" literal is out of range for "+t+".")
       .line(t+" must be representable as a 64-bit "+signed+" integer.")
-      .line("Valid range: "+min+" .."+max+".")
+      .line("Valid range: "+min+" .. "+max+".")
       .line("This literal is: "+disp(LiteralDeclarations.big(lit.simpleName()))+".")
       .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
       .wf().addSpan(lit.approxSpan().inner);
