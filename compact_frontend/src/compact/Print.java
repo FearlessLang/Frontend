@@ -11,7 +11,7 @@ public class Print{
   static String square(Collection<?>l){return wrap(l,"[]",",");}
   static String r(RC r){return r==RC.imm?"":r+" ";}
   static String of(Object o){return switch(o){
-    case MN(var s,_)->s;
+    case N(var s,_)->s;
     case B(var x,var cs)->x+":"+join(cs,",");
     case X(var x)->x;
     case RX(var r,X(var x))->r+" "+x;
