@@ -5563,4 +5563,24 @@ A:{}
 Id:{ read .id[X:imm,mut,read](x:X):X->x; }
 User:{ read .m(i:Id,a:mut A):mut A-> i.id(a); }
 """));}
+@Test void matchResultInferredFromAllTheCases(){ok(List.of("""
+use base.MF as MF;
+Blocks: { #[R:*]: mut Block[R] -> {} }
+Block[R:*]: {
+  mut .return(a: mut MF[R]): R -> a#;
+  mut .let[X:*](x: mut MF[X], cont: mut Continuation[X,R]): R -> cont#(x#, this);
+  }
+Continuation[T:*,R:*]: { mut #(x: T, self: mut Block[R]): R }
+North: Direction {::.north}
+East : Direction {::.east}
+South: Direction {::.south}
+West : Direction {::.west}
+DirectionMatch[R:**]: { mut .north: R; mut .east: R; mut .south: R; mut .west: R; }
+Direction: {
+  read .match[R: **](m: mut DirectionMatch[R]): R;
+  .turn2: Direction -> Blocks#
+    .let d= {this.match{ .north -> East; .east -> South; .south -> West; .west -> North; }}
+    .return{d};
+  }
+"""));}
 }

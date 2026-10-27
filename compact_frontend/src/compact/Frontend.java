@@ -646,11 +646,11 @@ public class Frontend{
       l=l.t(!l.anon?sp:l.cs.size()==1?new R(l.r,l.cs.get(0)):or(sp,l.t));if(!(l.t instanceof R(_,var c)))return l;
       l=l.anon&&!c.name.equals(l.name)?implement(l,c,b):expand(l,true);
     }
-      var w=(R)l.t;var res=new Vector<M>();var types=w.c.types;for(var mi:l.ms){
-        var k=bound(w,types);var next=mi.e==null?header(k,mi):method(b,g,l,sp,k,mi);
-        types=meet(types,next.types);res.add(next.m);
+      var w=(R)l.t;var res=new Vector<M>();var k=bound(w,w.c.types);var types=w.c.types;var low=qs(types.size());for(var mi:l.ms){
+        var next=mi.e==null?header(k,mi):method(b,g,l,sp,k,mi);
+        types=meet(types,next.types);low=zip(low,next.low,this::join);res.add(next.m);
       }
-      var t=bound(w,map(types,this::up));
+      var t=bound(w,map(orLow(types,low),this::up));
       return commit(g,b,l.header(l.cs,res,true).t(t),t);
     }
     E commit(IG g,List<B>b,Literal l,R w){var name=l.name;
@@ -662,12 +662,14 @@ public class Frontend{
       l=new Literal(cap,name1,bs,cs,l.self,map(l.ms,mi->mi.o(name,name1)),w,l.anon,l.expanded);if(!instance)magic(l,cs);
       if(own)l=l.t(self(l));register(l);var s=sup(w,widen);return!instance?l:l.t(new R(cap,s!=null&&s.c.types.get(0) instanceof R(_,var c)?c:w.c));
     }
-    record TSM(List<T>types,M m){}
+    record TSM(List<T>types,List<T>low,M m){}
+    static List<T>orLow(List<T>a,List<T>low){return zip(a,low,(x,lo)->x==u?lo:x);}
     TSM header(R w,M m){
-      var s=m.s;var omh=lookup(w,s.m,s.r,null);if(omh==null)return new TSM(w.c.types,m);
-      var Xs=B.v(from(w.c.name).b);var byArg=zip(omh.s.types,s.types,(t,it)->refine(Xs,t,it));var v=bound(w,zip(w.c.types,meet(push(byArg,refine(Xs,omh.s.t,s.t))),this::keep));
-      var h=signature(v,s.m,s.r,null);var x=vars(s.b);
-      return new TSM(erase(v.c.types,B.v(s.b)),m.signature(s.types(map(h.ps,p->h.inst(p,x)),h.inst(h.ret,x))));
+      var s=m.s;var omh=lookup(w,s.m,s.r,null);if(omh==null)return new TSM(w.c.types,qs(w.c.types.size()),m);
+      var Xs=B.v(from(w.c.name).b);var byArg=zip(omh.s.types,s.types,(t,it)->refine(Xs,t,it));var bare=!(omh.s.t instanceof R);var ret=refine(Xs,omh.s.t,s.t);
+      var low=zip(w.c.types,ret,(d,r)->bare&&d==u?r:u);List<T>ex=zip(w.c.types,ret,(d,r)->bare&&d==u?u:r);var v=bound(w,zip(w.c.types,meet(push(byArg,ex)),this::keep));
+      var h=signature(bound(w,orLow(v.c.types,low)),s.m,s.r,null);var x=vars(s.b);
+      return new TSM(erase(v.c.types,B.v(s.b)),erase(low,B.v(s.b)),m.signature(s.types(map(h.ps,p->h.inst(p,x)),h.inst(h.ret,x))));
     }
     TSM method(List<B>b,IG g,Literal l,R sp,R w,M m){var bs=l.anon?b:l.b;
       g.push(m.s.r,bs);if(l.anon&&!w.c.name.equals(l.name))sup.put(l.name,w.c);
@@ -676,7 +678,7 @@ public class Frontend{
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
       var args=zip(m.v,m.s.types,(x,t)->meet(t,g.get(x)));g.removeLast();
       g.removeLast();var h=header(w,m.signature(m.s.types(args,meet(m.s.t,e.t()))));var s=h.m.s;
-      return new TSM(h.types,new M(s,m.v,meet(e,s.t)));
+      return new TSM(h.types,h.low,new M(s,m.v,meet(e,s.t)));
     }
     T keep(T decided,T body){
       if(variable(decided)!=null&&variable(decided).equals(variable(body))&&!(decided instanceof RX&&decided.erc()==iso))return decided;
