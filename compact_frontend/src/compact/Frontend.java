@@ -647,7 +647,7 @@ public class Frontend{
     TSM header(R w,M m){
       var s=m.s;var h=signature(w,s.m,s.r,null);if(h==null)return new TSM(w.c.types,qs(w.c.types.size()),m);
       var Xs=B.v(h.cb);var byArg=zip(h.ps,s.types,(t,it)->refine(Xs,t,it));var bare=!(h.ret instanceof R);var ret=refine(Xs,h.ret,s.t);
-      var low=zip(w.c.types,ret,(d,r)->bare&&d==u?r:u);List<T>ex=zip(ret,low,(r,lo)->lo==u?r:u);var v=bound(w,zip(w.c.types,meet(push(byArg,ex)),this::keep));
+      var low=zip(w.c.types,ret,(d,r)->bare&&d.und()?r:u);List<T>ex=zip(ret,low,(r,lo)->lo==u?r:u);var v=bound(w,zip(w.c.types,meet(push(byArg,ex)),this::keep));
       var a=push(v.c.types,vars(s.b));
       return new TSM(erase(v.c.types,B.v(s.b)),erase(low,B.v(s.b)),m.signature(s.types(rename(h.ps,h.v,a),rename(h.ret,h.v,a))));
     }
@@ -715,8 +715,9 @@ public class Frontend{
       }
     };}
     T targ(Call e,T t,int i){
-      return t==u?voidT(signature((R)e.e.t(),e.name,e.r,null).mb.get(i).caps.iterator().next()):norm(fillVoid(t));
+      return norm(t.tv()?t:fillVoid(t,signature((R)e.e.t(),e.name,e.r,null).mb.get(i)));
     }
+    T fillVoid(T t,B b){no(t instanceof Amb);return t==u?voidT(b.caps.iterator().next()):t instanceof R w?w.withTs(zip(w.c.types,from(w.c.name).b,this::fillVoid)):t;}
     Literal literal(List<B>ctx,Literal e,Literal o){
       no(!(e.t instanceof R)&&!e.t.und());var inner=e.anon?push(ctx,e.b).stream().distinct().toList():e.b;
       return new Literal(or(e.r,imm),e.name,e.b,map(distinct(inner,push(o.cs,e.cs)),Frontend::normC),e.self,map(e.ms,me->m(inner,me,me.e==null?me:o.ms.get(me.s.idx))),u,e.anon,false);
@@ -724,7 +725,6 @@ public class Frontend{
     M m(List<B>ctx,M e,M o){var s=merge(e.s,o.s);return new M(s,e.v,e.e==null?null:core(push(ctx,s.b).stream().distinct().toList(),e.e,o.e));}
   }
   static T voidT(RC r){return new R(r,new C(base("Void",0),list()));}
-  static T fillVoid(T t){no(t instanceof Amb);return t==u?voidT(imm):t instanceof R w?w.withTs(map(w.c.types,Frontend::fillVoid)):t;}
   static List<C>distinct(List<B>b,List<C>cs){var res=new Vector<C>();
     for(var c:cs)if(!any(res,r->TS.equivalent(b,fill(new R(imm,r)),fill(new R(imm,c)))))res.add(c);return res;
   }

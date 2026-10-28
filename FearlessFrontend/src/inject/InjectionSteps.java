@@ -486,8 +486,8 @@ public record InjectionSteps(Methods meths, int cap){
     var Xs= B.xs(h.clsBs());
     var bareRet= !(h.ret0() instanceof IT.RCC);
     var fromRet= refine(Xs, h.ret0(), improvedSig.ret().get());
-    var lower= Streams.zip(rcc.c().ts(), fromRet).map((d,f) -> bareRet && d instanceof IT.U ? f : IT.U.Instance).toList();
-    var exactRet= Streams.zip(rcc.c().ts(), fromRet).map((d,f) -> bareRet && d instanceof IT.U ? IT.U.Instance : f).toList();
+    var lower= Streams.zip(rcc.c().ts(), fromRet).map((d,f) -> bareRet && d.undecided() ? f : IT.U.Instance).toList();
+    var exactRet= Streams.zip(rcc.c().ts(), fromRet).map((d,f) -> bareRet && d.undecided() ? IT.U.Instance : f).toList();
     var fromBody= meet(Streams.of(
       Streams.zip(h.ps0(), improvedSig.ts()).map((t,it) -> refine(Xs, t, it.get())),
       Stream.of(exactRet)).toList());
