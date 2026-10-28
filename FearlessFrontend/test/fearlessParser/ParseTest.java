@@ -3200,6 +3200,37 @@ A:{}
 B:{};
 C:{}
 """);}
+@Test void topSemiBeforeFirstDeclaration(){fail("""
+In file: [###].fear
+
+001| ;A:{}
+[###]
+Extra semicolon before the first top level type declaration.
+Remove this semicolon.
+Error 2 UnexpectedToken
+""", """
+;A:{}
+""");}
+@Test void missingMethodBodyAfterArrow(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A -> }
+[###]
+Missing method body after "->".
+[###]
+""", """
+A:{ .m: A -> }
+""");}
+@Test void missingMethodBodyAfterArrowInObjectLiteral(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A -> A{ .k: A -> } }
+[###]
+Missing method body after "->".
+[###]
+""", """
+A:{ .m: A -> A{ .k: A -> } }
+""");}
 @Test void groupFoundInsteadOfBoundColon(){fail("""
 In file: [###].fear
 

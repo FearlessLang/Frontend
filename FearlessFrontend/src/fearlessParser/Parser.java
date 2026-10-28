@@ -271,6 +271,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
       || peekOrder(t -> t.is(RCap), t -> t.is(DotName, Op));
     if (!hasSig){ return new M(empty(), of(parseMethodBody()), tspan()); }
     var sig= parseSig();
+    if (peek(Arrow)){ throw errFactory().missingMethodBody(span(peek().get()).get()); }
     if (!top){ throw errFactory().noAbstractMethod(sig, span()); }
     return new M(of(sig), empty(), tspan());
   }
@@ -441,6 +442,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   HeadAcc parseHeader(){
     var acc= new HeadAcc();
+    if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).get()); }
     if (!peek(LowercaseId)){ return acc; }
     expectLast("semicolon", SemiColon);
     splitBy("header element", semiSkip, p -> p.parseHeaderElement(acc));
