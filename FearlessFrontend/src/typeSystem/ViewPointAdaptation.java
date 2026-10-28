@@ -19,17 +19,8 @@ public record ViewPointAdaptation(Kinding k){
     return adapt(w, l, m);
   }
   private Change adapt(WithT w, Literal l, M m){ // T[delta, RC]
-    var rc= m.sig().rc();
-    var t= w.currentT();
-    if (rc == read){
-      if (t.explicitRC().filter(r -> r == mut || r == read).isPresent()){ return Change.keepSetToRead(l, m, w); }
-      if (t instanceof T.X || t instanceof T.ReadImmX){ return Change.keepSetToReadImm(l, m, w); }
-    }
-    assert rc == mut;//meth RC can only be imm, mut, read and imm is filtered before
-    var noIsoNoHygienic= k.of(l.bs(), t, EnumSet.of(imm, mut, read));
-    if (noIsoNoHygienic){ return w; }
-    assert t instanceof T.X;
-    return Change.keepSetToReadImm(l, m, w);
+    var toReadImm= m.sig().rc() == read || !k.of(l.bs(), w.currentT(), EnumSet.of(imm, mut, read));
+    return toReadImm ? Change.keepSetToReadImm(l, m, w) : w;
   }
   private Change discard(Change current, Literal l){
     if (!(current instanceof Change.WithT w)){ return current; }

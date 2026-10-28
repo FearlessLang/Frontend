@@ -23,26 +23,17 @@ final class MultiMeth{
   public static List<MType> of(List<B> d, MType mType, boolean hyg){
     var out= new LinkedHashMap<Key,MType>();
     add(out, mType);
-    add(out, apply("Strengthen result", d, mType, Mode.flexy, Mode.flexy));
+    add(out, apply("Strengthen result", d, mType, Mode.flexy, Mode.flexy, -1, Mode.flexy));
     if (!hyg){ return List.copyOf(out.values()); }
-    add(out, apply("Strengthen hygienic result", d, mType, Mode.strong, Mode.strong));
-    add(out, apply("Allow readH arguments", d, mType, Mode.useRead, Mode.hyg));
-    oneMutHToMut(out, d, mType);
+    add(out, apply("Strengthen hygienic result", d, mType, Mode.strong, Mode.strong, -1, Mode.strong));
+    add(out, apply("Allow readH arguments", d, mType, Mode.useRead, Mode.useRead, -1, Mode.hyg));
+    add(out, apply("Allow mutH receiver", d, mType, Mode.hyg, Mode.flexy, -1, Mode.hyg));
+    for (int i : Range.of(mType.ts())){ add(out, apply("Allow mutH argument "+(i+1), d, mType, Mode.flexy, Mode.flexy, i, Mode.hyg)); }
     return List.copyOf(out.values());
   }
-  private static void oneMutHToMut(LinkedHashMap<Key,MType> out, List<B> d, MType m){
-    var tsi= m.ts().stream().map(ti -> modeF(d, ti, Mode.flexy, RCLubGlb::glb)).toList();
-    add(out, new MType("Allow mutH receiver", Mode.hyg.of(m.rc()), tsi, modeF(d, m.t(), Mode.hyg, RCLubGlb::lub)));
-    for (int i : Range.of(m.ts())){
-      var tsj= IntStream.range(0, m.ts().size())
-        .mapToObj(j -> modeF(d, m.ts().get(j), j == i ? Mode.hyg : Mode.flexy, RCLubGlb::glb)).toList();
-      add(out, new MType("Allow mutH argument "+(i+1), Mode.flexy.of(m.rc()), tsj, modeF(d, m.t(), Mode.hyg, RCLubGlb::lub)));
-    }
-  }
-  private static MType apply(String promotion, List<B> d, MType m, Mode modeP, Mode modeR){
-    var ts= m.ts().stream().map(ti -> modeF(d, ti, modeP, RCLubGlb::glb)).toList();
-    var t= modeF(d, m.t(), modeR, RCLubGlb::lub);
-    return new MType(promotion, modeP.of(m.rc()), ts, t);
+  private static MType apply(String promotion, List<B> d, MType m, Mode modeRecv, Mode modeP, int hygAt, Mode modeR){
+    var ts= IntStream.range(0, m.ts().size()).mapToObj(j -> modeF(d, m.ts().get(j), j == hygAt ? Mode.hyg : modeP, RCLubGlb::glb)).toList();
+    return new MType(promotion, modeRecv.of(m.rc()), ts, modeF(d, m.t(), modeR, RCLubGlb::lub));
   }
   private static T modeF(List<B> d, T t, Mode mode, Function<EnumSet<RC>,RC> f){
     return switch (t){
