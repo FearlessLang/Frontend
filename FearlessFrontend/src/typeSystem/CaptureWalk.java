@@ -5,38 +5,20 @@ import java.util.function.Predicate;
 
 import core.B;
 import core.E;
-import core.M;
 import core.RC;
 import core.T;
 
 record CaptureWalk(List<B> bs, Gamma g, Predicate<RC> freeRC){
-  boolean isFree(E e){
-    return switch (e){
-      case E.Literal l -> isFree(l);
-      case E.Call _, E.Type _ -> e.children().allMatch(this::isFree);
-      case E.X x -> isFree(x);
-    };
-  }
-  boolean isFree(E.Literal l){ return l.ms().stream().allMatch(this::isFree); }
-  private boolean isFree(M m){
-    //NOTE: we could be more permissive skipping m.sig().rc() == RC.imm
-    //but is not that obvious. iso {imm .foo->captMut} fails but
-    //mut {imm .foo->captMut} may pass. The same reason we can skip imm methods is reason to
-    //not promote mut->iso?
-    return m.e().map(this::isFree).orElse(true);
-  }
-  private boolean isFree(T t){
-    return switch (t){
-      case T.X(var name, _) -> B.get(bs, name).rcs().stream().allMatch(freeRC);
-      case T.RCX(var rc, _) -> freeRC.test(rc);
-      case T.ReadImmX(var x) -> isFree(x);
-      case T.RCC(var rc, _, _) -> freeRC.test(rc);
-    };
-  }
+  //NOTE: we could be more permissive skipping m.sig().rc() == RC.imm
+  //but is not that obvious. iso {imm .foo->captMut} fails but
+  //mut {imm .foo->captMut} may pass. The same reason we can skip imm methods is reason to
+  //not promote mut->iso?
+  boolean isFree(E e){ return e instanceof E.X x ? isFree(x) : e.children().allMatch(this::isFree); }
   private boolean isFree(E.X x){
     var cur= g._bind(x.name());
     if (cur == null){ return true; }
     if (!(cur.current() instanceof Change.WithT w)){ return true; }
-    return isFree(w.currentT());
+    var t= w.currentT() instanceof T.ReadImmX(var y) ? y : w.currentT();
+    return Kinding.intrinsicRCs(bs, t).stream().allMatch(freeRC);
   }
 }

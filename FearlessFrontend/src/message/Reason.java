@@ -77,8 +77,7 @@ public final class Reason{
   private static String vpaTrace(TypeSystem ts, WithT cur){ return switch (cur){
     case Same _ -> "";
     case KeepStrengthenToImm(_, var m, var to, var tail) -> traceKeep(ts, tail, "strengthenToImm", to, m);
-    case KeepSetToRead(_, var m, var to, var tail) -> traceKeep(ts, tail, "setToRead", to, m);
-    case KeepSetToReadImm(_, var m, var to, var tail) -> traceKeep(ts, tail, "setToReadImm", to, m);
+    case KeepSetToReadImm(_, var m, var to, var tail) -> traceKeep(ts, tail, to.explicitRC().isPresent() ? "setToRead" : "setToReadImm", to, m);
   };}
   private static String traceKeep(TypeSystem ts, WithT tail, String op, T to, M m){
     var prev= vpaTrace(ts, tail);

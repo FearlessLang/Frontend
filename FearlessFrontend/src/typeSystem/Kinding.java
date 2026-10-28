@@ -6,6 +6,7 @@ import static offensiveUtils.Require.*;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import core.*;
 import core.E.*;
@@ -43,13 +44,6 @@ public record Kinding(TypeSystemErrors tsE){
     case T.RCC(var rc, _, _) -> EnumSet.of(rc);
     case T.RCX(var rc, _) -> EnumSet.of(rc);
     case T.X(var x, _) -> B.get(bs, x).rcs();
-    case T.ReadImmX(var x) -> readImmRCs(intrinsicRCs(bs, x));
+    case T.ReadImmX(var x) -> intrinsicRCs(bs, x).stream().map(RC::readImm).collect(Collectors.toCollection(() -> EnumSet.noneOf(RC.class)));
   };}
-  private static EnumSet<RC> readImmRCs(EnumSet<RC> rcs){
-    var onlyIsoImm= EnumSet.of(iso, imm).containsAll(rcs);
-    if (onlyIsoImm){ return EnumSet.of(imm); }
-    var noIsoNoImm= EnumSet.of(mut, mutH, read, readH).containsAll(rcs);
-    if (noIsoNoImm){ return EnumSet.of(read); }
-    return EnumSet.of(read, imm);
-  }
 }
