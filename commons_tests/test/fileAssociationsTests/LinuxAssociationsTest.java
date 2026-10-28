@@ -346,6 +346,25 @@ Terminal=false
     FileAssociations.eradicateAll(family, IllegalStateException::new);
     assertEquals(List.of(), windowEntries());
   }
+  @Test void aFamilyPackageOfASystemDataFolderWrittenOverSeveralLinesDeclaresNoSystemType(){
+    var old= "fearlessManaged0_000";
+    sysMime("globs2", "100:application/x-fearless-ffile001:*.ffile001\n");
+    Fs.writeUtf8(sys.resolve("mime").resolve("packages").resolve(old+".xml"), """
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-fearless-ffile001">
+    <glob pattern="*.ffile001" weight="100"/>
+  </mime-type>
+</mime-info>
+""");
+    reconcile(".ffile001");
+    assertEquals(List.of(identity), FileAssociations.identities(family));
+  }
+  @Test void reconcileRebuildsOnlyTheApplicationsFoldersItChanges(){
+    Fs.writeUtf8(sys.resolve("applications").resolve("browser.desktop"), "[Desktop Entry]\nMimeType=text/html;\n");
+    reconcile(".htm");
+    assertEquals(rebuilt(), ran);
+  }
   @Test void noExtensionsLeavesNoFileOfTheIdentity(){
     reconcile(".ffile001");
     reconcile();
