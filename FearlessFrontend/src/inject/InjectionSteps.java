@@ -533,7 +533,7 @@ public record InjectionSteps(Methods meths, int cap){
     case IT.RCX(_, var x) -> x;
     case IT.ReadImmX(var x) -> x;
     case IT.RCC(_, var c, var span) -> new IT.RCC(Optional.empty(), c, span);
-    case IT.U _, IT.Amb _ -> t;
+    case IT.U _, IT.Amb _ -> throw Bug.unreachable();
   };}
   private List<IT.RCC> adaptedSuperTs(IT.RCC src, TName target){
     return meths.implied(src.c()).stream().filter(c -> c.name().equals(target)).map(c -> new IT.RCC(src.rc(), c, src.span())).toList();
