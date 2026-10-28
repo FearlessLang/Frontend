@@ -5376,6 +5376,21 @@ Mk:{ #[Y:*]: SubBox[Y] -> base.Todo! }
 F:{ #[X:*](b: Box[X], x: X): X -> x }
 U:{ .m: base.Void -> Ig#(F#(Mk#, base.Void)) }
 """));}
+@Test void literalWithAMethodForAnExplicitTypeParameterArgument(){fail("""
+003| H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
+   |          ---------------^^-------------------
+
+While inspecting object literal instance of "iso A" > ".m" line 3
+Object literal instance of "iso A" cannot implement "X".
+"X" is a type parameter; object literals can only implement nominal types.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso A{.k:-.Void->-.Void}
+""", List.of("""
+G:{ #[T:*](x: T): T -> x }
+A:{ .k: base.Void }
+H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
+"""));}
 @Test void literalForAnExplicitTypeParameterArgument(){fail("""
 003| H[X:*]:{ .m: X -> G#[X](A{}) }
    |          ---------------^^--

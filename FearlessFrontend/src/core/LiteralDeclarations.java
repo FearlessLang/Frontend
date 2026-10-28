@@ -44,7 +44,7 @@ public final class LiteralDeclarations{
     var res= map.apply(n);
     if (res == null){ res = other.__of(n); }
     if (res != null){ return res; }
-    var lit= n.pkgName().equals("base") && isPrimitiveLiteral(n.simpleName());
+    var lit= isPrimitiveLiteral(n.simpleName());
     if (!lit){ return null; }
     return forge(n, map, other);
   }

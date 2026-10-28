@@ -97,18 +97,17 @@ public record ToCore(List<B> ctx, Methods meths){
   private IT targ(inference.E.Call e, List<IT> targs, int i){
     var t= targs.get(i);
     if (t.isTV()){ return t; }
-    var sig= methodSig(e).filter(s -> i < s.bs().size());
+    var b= methodSig(e).bs().get(i);
     if (t instanceof IT.U){
-      var rcs= sig.map(s -> s.bs().get(i).rcs()).orElse(EnumSet.of(RC.imm));
+      var rcs= b.rcs();
       return voidT(rcs.contains(RC.imm) ? RC.imm : rcs.iterator().next());
     }
     var amb= ambs(t).findFirst();
     if (amb.isEmpty()){ return fillVoid(t); }
-    var x= sig.map(s -> s.bs().get(i).x());
     var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
     var common= t instanceof IT.Amb ? meths.commonSuperHeads(cs) : List.<TName>of();
     var example= meths.p().err().callWithTargs(e, targs, i, common.isEmpty() ? "Type"+(i+1) : meths.p().err().typeName(common.getFirst()));
-    throw meths.p().err().typeArgAmbiguous(e, x, cs, common, example, meths::_from);
+    throw meths.p().err().typeArgAmbiguous(e, b.x(), cs, common, example, meths::_from);
   }
   private static Stream<IT.Amb> ambs(IT t){ return switch (t){
     case IT.Amb a -> Stream.of(a);
@@ -127,9 +126,9 @@ public record ToCore(List<B> ctx, Methods meths){
     case IT.Amb _ -> throw Bug.unreachable();
     default -> t;
   };}
-  private Optional<core.Sig> methodSig(inference.E.Call e){
-    if (!(e.e().t() instanceof IT.RCC rcc) || meths._from(rcc.c().name()) == null){ return Optional.empty(); }
-    return meths._from(rcc.c().name()).ms().stream().map(core.M::sig).filter(s -> s.m().equals(e.name()) && e.rc().map(rc -> rc == s.rc()).orElse(true)).findFirst();
+  private core.Sig methodSig(inference.E.Call e){
+    var d= meths.from(((IT.RCC)e.e().t()).c().name());
+    return OneOr.of("Method of a call with inferred type arguments", d.ms().stream().map(core.M::sig).filter(s -> s.m().equals(e.name()) && s.rc() == e.rc().get()));
   }
   private void checkHead(inference.E.Literal e, IT.C c){
     var unknown= IntStream.range(0, c.ts().size()).filter(i -> !c.ts().get(i).isTV()).boxed().toList();

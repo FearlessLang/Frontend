@@ -430,10 +430,10 @@ public record WellFormednessErrors(String pkgName){
       .line("A type declaration only sees the generic types it declares itself; here "+dec+declares+".")
       .line("Hint: funnel "+disp(missing)+" into "+dec+" by writing "+funnelled+", restating the bounds of "+disp(missing)+"."), x);
   }
-  public FearlessException typeArgAmbiguous(E.Call at, Optional<String> x, List<IT> cands, List<TName> common, String example, Function<TName,core.E.Literal> decs){
+  public FearlessException typeArgAmbiguous(E.Call at, String x, List<IT> cands, List<TName> common, String example, Function<TName,core.E.Literal> decs){
     var cs= cands.stream().map(err(decs)::typeRepr).toList();
-    var xs= x.map(Err::disp).orElse("the type argument");
-    var e= err().line("The type argument "+x.map(Err::disp).map(n -> n+" ").orElse("")+"of "+disp(at.name().s())+" is inferred from the arguments, but they disagree: some need "+Join.of(cs, "", ", some need ", "")+".");
+    var xs= Err.disp(x);
+    var e= err().line("The type argument "+xs+" of "+disp(at.name().s())+" is inferred from the arguments, but they disagree: some need "+Join.of(cs, "", ", some need ", "")+".");
     if (common.isEmpty()){ e.line("No type is a supertype of all of them."); }
     else{ e.line(up(xs)+" could be "+Join.of(common.stream().map(n -> disp(err().tNameA(n))), "", " or ", "")+": each is a supertype of "+Join.of(cs, "", " and ", "")+". The choice is ambiguous."); }
     return wf(e.line("Write the type argument explicitly, as in "+disp(example)+"."), at);
