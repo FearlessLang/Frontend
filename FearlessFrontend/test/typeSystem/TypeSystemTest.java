@@ -4852,6 +4852,44 @@ Write the type argument explicitly, as in "this.both[Type1](y, z)".
 A:{} Y:{} Z:{}
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
 """));}
+@Test void methodBodiesOfUnrelatedTypesCannotBeInferred(){failWf("""
+003| U:{ .use(c: base.Bool, y: Y, z: Z): A -> Sink#(c ? { .then -> y; .else -> z }) }
+   |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.ThenElse[_]"
+The type argument "R" of "base.ThenElse[_]" is inferred from the method bodies, but they disagree: some need "Y", some need "Z".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "base.ThenElse[Type1]{...}".
+""", List.of("""
+A:{} Y:{} Z:{}
+Sink:{ #[T](t: T): A -> A }
+U:{ .use(c: base.Bool, y: Y, z: Z): A -> Sink#(c ? { .then -> y; .else -> z }) }
+"""));}
+@Test void methodBodiesWithTwoCommonSupertypesCannotBeInferred(){failWf("""
+003| U:{ .use(c: base.Bool, y: Y, z: Z): A -> Sink#(c ? { .then -> y; .else -> z }) }
+   |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.ThenElse[_]"
+The type argument "R" of "base.ThenElse[_]" is inferred from the method bodies, but they disagree: some need "Y", some need "Z".
+"R" could be "S1" or "S2": each is a supertype of "Y" and "Z". The choice is ambiguous.
+Write the type argument explicitly, as in "base.ThenElse[S1]{...}".
+""", List.of("""
+A:{} S1:{} S2:{} Y:S1,S2{} Z:S1,S2{}
+Sink:{ #[T](t: T): A -> A }
+U:{ .use(c: base.Bool, y: Y, z: Z): A -> Sink#(c ? { .then -> y; .else -> z }) }
+"""));}
+@Test void unconstrainedTypeArgumentInsideATypeArgumentIsVoidWithinItsBound(){ok(List.of("""
+Box[X:mut]:{ .k: Box[X] -> this }
+Mk:{ #[X:mut]: Box[X] -> Box[X] }
+Block:{ #[A](a: A): base.Void -> {} }
+User:{ .go: base.Void -> Block#(Mk#) }
+"""));}
+@Test void unconstrainedTypeArgumentInsideATypeArgumentIsVoidWithinItsReadMutBound(){ok(List.of("""
+Box[X:read,mut]:{ .k: Box[X] -> this }
+Mk:{ #[X:read,mut]: Box[X] -> Box[X] }
+Block:{ #[A](a: A): base.Void -> {} }
+User:{ .go: base.Void -> Block#(Mk#) }
+"""));}
 @Test void deepWrittenSupertype(){ok(List.of("A[X:**]:{}\nB:"+"A[".repeat(99)+"B"+"]".repeat(99)+"{}\n"));}
 @Test void parameterHashCollidingWithThis(){ok(List.of("""
 A:{ .id[Y:**](y:Y):Y -> y; .u(tiJs:A):A -> this.id(tiJs) }

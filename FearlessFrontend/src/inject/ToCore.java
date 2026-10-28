@@ -87,12 +87,8 @@ public record ToCore(List<B> ctx, Methods meths){
     var t= targs.get(i);
     if (t.isTV()){ return t; }
     var b= methodSig(e).bs().get(i);
-    if (t instanceof IT.U){
-      var rcs= b.rcs();
-      return voidT(rcs.contains(RC.imm) ? RC.imm : rcs.iterator().next());
-    }
     var amb= ambs(t).findFirst();
-    if (amb.isEmpty()){ return fillVoid(t); }
+    if (amb.isEmpty()){ return fillVoid(t, b); }
     var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
     var common= t instanceof IT.Amb ? meths.commonSuperHeads(cs) : List.<TName>of();
     var example= meths.p().err().callWithTargs(e, targs, i, common.isEmpty() ? "Type"+(i+1) : meths.p().err().typeName(common.getFirst()));
@@ -108,10 +104,10 @@ public record ToCore(List<B> ctx, Methods meths){
     if (!(t instanceof IT.RCC rcc)){ return t; }
     return rcc.withTs(rcc.c().ts().stream().map(ti -> replace(ti, from, to)).toList());
   }
-  private static IT voidT(RC rc){ return new IT.RCC(Optional.of(rc), new IT.C(LiteralDeclarations.baseVoid, List.of()), TSpan.fromPos(Pos.unknown)); }
-  private static IT fillVoid(IT t){ return switch (t){
-    case IT.U _ -> voidT(RC.imm);
-    case IT.RCC rcc -> rcc.withTs(rcc.c().ts().stream().map(ToCore::fillVoid).toList());
+  private static IT voidT(B b){ return new IT.RCC(Optional.of(b.rcs().iterator().next()), new IT.C(LiteralDeclarations.baseVoid, List.of()), TSpan.fromPos(Pos.unknown)); }
+  private IT fillVoid(IT t, B b){ return switch (t){
+    case IT.U _ -> voidT(b);
+    case IT.RCC rcc -> rcc.withTs(Streams.zip(rcc.c().ts(), meths.from(rcc.c().name()).bs()).map(this::fillVoid).toList());
     case IT.Amb _ -> throw Bug.unreachable();
     default -> t;
   };}
@@ -123,7 +119,10 @@ public record ToCore(List<B> ctx, Methods meths){
     var unknown= IntStream.range(0, c.ts().size()).filter(i -> !c.ts().get(i).isTV()).boxed().toList();
     if (unknown.isEmpty()){ return; }
     calls(e).forEach(this::targs);
-    throw meths.p().err().literalHeadNotInferred(e, c, unknown, B.xs(meths.from(c.name()).bs()));
+    var xs= B.xs(meths.from(c.name()).bs());
+    var head= e.t() instanceof IT.RCC t && t.c().name().equals(c.name()) ? t.c() : c;
+    for (int i : unknown){ if (head.ts().get(i) instanceof IT.Amb(var cs)){ throw meths.p().err().literalHeadAmbiguous(e, head, i, xs.get(i), cs, meths.commonSuperHeads(cs), meths::_from); } }
+    throw meths.p().err().literalHeadNotInferred(e, c, unknown, xs);
   }
   private void targs(inference.E.Call c){ IntStream.range(0, c.targs().size()).forEach(i -> targ(c, c.targs(), i)); }
   private static Stream<inference.E.Call> calls(inference.E e){ return switch (e){

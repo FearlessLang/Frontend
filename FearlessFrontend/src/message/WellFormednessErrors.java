@@ -431,9 +431,18 @@ public record WellFormednessErrors(String pkgName){
       .line("Hint: funnel "+disp(missing)+" into "+dec+" by writing "+funnelled+", restating the bounds of "+disp(missing)+"."), x);
   }
   public FearlessException typeArgAmbiguous(E.Call at, String x, List<IT> cands, List<TName> common, String example, Function<TName,core.E.Literal> decs){
+    return typeArgAmbiguous(at, x, disp(at.name().s())+" is inferred from the arguments", cands, common, example, decs);
+  }
+  public FearlessException literalHeadAmbiguous(E.Literal at, IT.C c, int i, String x, List<IT> cands, List<TName> common, Function<TName,core.E.Literal> decs){
+    var example= common.isEmpty() ? "Type"+(i+1) : typeName(common.getFirst());
+    var ts= IntStream.range(0, c.ts().size()).mapToObj(j -> j == i ? example : err().typeReprRaw(c.ts().get(j))).toList();
+    var lit= err().cp().t.ofFull(c.name())+Join.of(ts, "[", ",", "]")+"{...}";
+    return typeArgAmbiguous(at, x, err().tNameADisp(c.name())+" is inferred from the method bodies", cands, common, lit, decs);
+  }
+  private FearlessException typeArgAmbiguous(E at, String x, String ofFrom, List<IT> cands, List<TName> common, String example, Function<TName,core.E.Literal> decs){
     var cs= cands.stream().map(err(decs)::typeRepr).toList();
     var xs= Err.disp(x);
-    var e= err().line("The type argument "+xs+" of "+disp(at.name().s())+" is inferred from the arguments, but they disagree: some need "+Join.of(cs, "", ", some need ", "")+".");
+    var e= err().line("The type argument "+xs+" of "+ofFrom+", but they disagree: some need "+Join.of(cs, "", ", some need ", "")+".");
     if (common.isEmpty()){ e.line("No type is a supertype of all of them."); }
     else{ e.line(up(xs)+" could be "+Join.of(common.stream().map(n -> disp(err().tNameA(n))), "", " or ", "")+": each is a supertype of "+Join.of(cs, "", " and ", "")+". The choice is ambiguous."); }
     return wf(e.line("Write the type argument explicitly, as in "+disp(example)+"."), at);
