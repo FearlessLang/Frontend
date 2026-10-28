@@ -1233,6 +1233,59 @@ User:{
 }
 """)); }
 
+@Test void receiverIsTypeParamDeepInsideCalls(){fail("""
+002| User:{ .m[X:*](x: X): X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
+   |        ----------------------------------------~^^^^^----
+
+While inspecting ".m(_)" line 2
+This call to method ".foo" cannot typecheck.
+The receiver is of type "X". This is a type parameter.
+Type parameters cannot be receivers of method calls.
+
+See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+-#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](x.foo)))))
+""", List.of("""
+Id:{ #[T:*](t: T): T -> t }
+User:{ .m[X:*](x: X): X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
+"""));}
+@Test void receiverIsReadTypeParamDeepInsideCalls(){fail("""
+004| User:Sup[Box[User]]{ .m[X:*](x: read X): read X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
+   |                      --------------------------------------------------~^^^^^----
+
+While inspecting ".m(_)" line 4
+This call to method ".foo" cannot typecheck.
+The receiver is of type "read X". This is a type parameter.
+Type parameters cannot be receivers of method calls.
+
+See inferred typing context below for how type "read X" was introduced: (compression indicated by `-`)
+-#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](x.foo)))))
+""", List.of("""
+Id:{ #[T:*](t: T): T -> t }
+Box[T:*]:{}
+Sup[T:*]:{}
+User:Sup[Box[User]]{ .m[X:*](x: read X): read X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
+"""));}
+@Test void receiverIsReadImmTypeParamDeepInsideCalls(){fail("""
+002| User:{ .m[X:*](x: read/imm X): read/imm X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
+   |        ----------------------------------------------------------~^^^^^----
+
+While inspecting ".m(_)" line 2
+This call to method ".foo" cannot typecheck.
+The receiver is of type "read/imm X". This is a type parameter.
+Type parameters cannot be receivers of method calls.
+
+See inferred typing context below for how type "read/imm X" was introduced: (compression indicated by `-`)
+-#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](x.foo)))))
+""", List.of("""
+Id:{ #[T:*](t: T): T -> t }
+User:{ .m[X:*](x: read/imm X): read/imm X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
+"""));}
+@Test void inferredTypeArgumentWithAnUnknownPartAndATypeParameter(){ok(List.of("""
+Pair[A:*,B:*]:{}
+Mk:{ #[A:*,B:*](a: A): Pair[A,B] -> {} }
+Ig:{ #[T:*](t: T): base.Void -> base.Void }
+User:{ .m[X:*](x: X): base.Void -> Ig#(Mk#(x)) }
+"""));}
 @Test void receiverIsTypeParam(){fail("""
 002|   .m[X:**](x:X):X->x.foo;
    |   -----------------~^^^^^
