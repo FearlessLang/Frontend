@@ -21,11 +21,11 @@ public final class LiteralDeclarations{
   public static final TName sealed= new TName("base.Sealed", 0, Pos.unknown);
   public static final TName captureFree= new TName("base.CaptureFree", 0, Pos.unknown);
   public static final TName fileLog= new TName("base.FileLog", 0, Pos.unknown);
-  public static final List<TName> logs= List.of(fileLog, new TName("base.InMemoryLog", 1, Pos.unknown));
   public static final TName main= new TName("base.Main", 0, Pos.unknown);
   public static final TName attenuator= new TName("base.SystemAttenuator", 0, Pos.unknown);
   public static final TName infoMain= new TName("base.InfoMain", 0, Pos.unknown);
   public static final TName dataRead= new TName("base.DataRead", 0, Pos.unknown);
+  public static final List<TName> concreteNotGeneric= List.of(attenuator, infoMain, dataRead, fileLog, new TName("base.InMemoryLog", 1, Pos.unknown));
   public static final TName finalMethods= new TName("base.Final", 1, Pos.unknown);
   public static final List<TName> claims= List.of(new TName("base.OpenWith", 1, Pos.unknown), new TName("base.OpenWith", 2, Pos.unknown), new TName("base.Shortcut", 1, Pos.unknown), new TName("base.Shortcut", 2, Pos.unknown), new TName("base.PreLoadIcon", 1, Pos.unknown));
   public static final TName baseId= new TName("base.BaseId", 2, Pos.unknown);
@@ -72,7 +72,6 @@ public final class LiteralDeclarations{
   public static boolean natLiteralInRange(String raw){ return inRange(big(raw), natMin, natMax); }
   public static boolean floatLiteralExactlyRepresentable(String raw){
     var ns= floatPayload(raw);
-    if (ns.startsWith("+")){ ns = ns.substring(1); }
     var d= Double.parseDouble(ns);
     if (!Double.isFinite(d)){ return false; } // overflow -> Infinity
     if (d == 0){ return new BigDecimal(ns.replaceAll("[eE].*", "")).signum() == 0; }

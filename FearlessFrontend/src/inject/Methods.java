@@ -33,7 +33,7 @@ import utils.Push;
 public record Methods(
     Package p, OtherPackages other, FreshPrefix fresh,
     LinkedHashMap<TName,core.E.Literal> cache){
-  boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c -> c.name().pkgName().equals(p.name()) && rem.containsKey(c.name())); }
+  boolean free(E.Literal d, Map<TName,E.Literal> rem){ return d.cs().stream().noneMatch(c -> rem.containsKey(c.name())); }
   public static Methods create(Package p, OtherPackages other){
     return new Methods(p, other, new FreshPrefix(p), new LinkedHashMap<>());
   }
@@ -51,7 +51,7 @@ public record Methods(
   }
   public List<E.Literal> registerTypeHeadersAndReturnRoots(List<E.Literal> iDecs){
     var acc= new ArrayList<E.Literal>();
-    for (var d : supertypesFirst(iDecs.stream().filter(l -> !l.infName()).toList())){
+    for (var d : supertypesFirst(iDecs)){
       var e= expandDeclaration(d, false);
       if (d.thisName().equals("this")){ acc.add(e); }
       register(e);
@@ -124,11 +124,8 @@ public record Methods(
     allCs.stream().filter(c -> c.name().equals(LiteralDeclarations.finalMethods)).forEach(c -> checkFinal(d, finalMethod(d, c), allCs));
     if (names.contains(LiteralDeclarations.main) && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.main, "A type"); }
     var concrete= d.ms().stream().allMatch(m -> m.impl().isPresent() || !m.sig().abs());
-    if (names.contains(LiteralDeclarations.attenuator) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.attenuator, "A concrete type"); }
-    if (names.contains(LiteralDeclarations.infoMain) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.infoMain, "A concrete type"); }
-    if (names.contains(LiteralDeclarations.dataRead) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, LiteralDeclarations.dataRead, "A concrete type"); }
-    for (var log : LiteralDeclarations.logs){
-      if (names.contains(log) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, log, "A concrete type"); }
+    for (var n : LiteralDeclarations.concreteNotGeneric){
+      if (names.contains(n) && concrete && !d.bs().isEmpty()){ throw p.err().namedGeneric(d, n, "A concrete type"); }
     }
     if (!names.contains(LiteralDeclarations.sealed)){ return; }
     allCs.stream()
@@ -192,7 +189,7 @@ public record Methods(
 
   void register(E.Literal d){
     var cs= TypeRename.itcToTC(d.cs());
-    assert InjectionToInferenceVisitor.duplicatedSupertypes(d.bs(), cs).isEmpty();
+    assert InjectionToInferenceVisitor.duplicatedSupertypes(d.bs(), d.cs()).isEmpty();
     assert !d.infName() || !d.thisName().equals("_") || d.ms().stream().anyMatch(m -> m.impl().isPresent());
     p.log().logInferenceDeclaration(d, cs);
     var ms= d.ms().stream().map(new ToCore(List.of(), this)::mSynthetic).toList();
