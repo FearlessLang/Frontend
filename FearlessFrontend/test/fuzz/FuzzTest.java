@@ -8,10 +8,12 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   static final List<String> tokens= List.of("{", "}", "(", ")", "[", "]", ":", ";", "->", "=", ",",
     "mut ", "read ", "iso ", "imm ", "readH ", "mutH ", "read/imm ", "this", " x", " .m", " .foo", "'self ",
     "::", "A", "B", "X", "_", "*", "**", "base.Void", "#", " +");
+  static final Pattern undeclared= Pattern.compile("Type \"([A-Z][A-Za-z0-9_]*)\" is not declared in package");
   static final List<String> rcs= List.of("mut", "read", "imm", "iso", "readH", "mutH");
   static final Pattern rc= Pattern.compile("\\b(mut|read|imm|iso|readH|mutH)\\b");
   static final String type= "(?:(?:mut|read|imm|iso|readH|mutH) )?[A-Z][\\w.]*(?:\\[[^\\[\\]]*\\])?";
@@ -63,6 +66,133 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
       for (int i= 0; i < perSeed; i += 1){ run(underAnnotate(s, rnd), other, cBase, crashes); }
     }
     strCmp("", Join.of(crashes.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
+  }
+  @Test void writingTheInferredTypesKeepsTheCore(){
+    var other= otherFrom(DbgBlock.all());
+    var cBase= checkCompact ? compactBase() : List.<compact.Frontend.Literal>of();
+    var found= new TreeMap<String,String>();
+    var underAnnotated= seeds().stream().filter(FuzzTest::annotated).filter(FuzzTest::parses).flatMap(FuzzTest::underAnnotations);
+    Stream.concat(seeds().stream(), underAnnotated).distinct().forEach(s -> writeInferred(s, other, cBase, found));
+    strCmp("", Join.of(found.entrySet().stream().map(e -> e.getKey()+"\n"+e.getValue()), "", "\n====\n", "", ""));
+  }
+  static Stream<String> underAnnotations(String s){
+    var rnd= new Random(s.hashCode());
+    return IntStream.range(0, perSeed).mapToObj(_ -> underAnnotate(s, rnd));
+  }
+  static void writeInferred(String src, OtherPackages other, List<compact.Frontend.Literal> cBase, TreeMap<String,String> found){
+    List<core.E.Literal> core;
+    try{ core= compileAll("p", SourceOracle.debugBuilder().put(0, src).build(), other); }
+    catch (Throwable _){ return; }
+    var targs= new Edits(src);
+    core.stream().flatMap(FuzzTest::calls).forEach(targs::call);
+    var heads= new Edits(src);
+    core.stream().flatMap(FuzzTest::literals).forEach(l -> heads.literal(l, false));
+    var sigs= new Edits(src);
+    core.stream().flatMap(FuzzTest::literals).forEach(l -> sigs.literal(l, true));
+    rewrite(src, core, targs, "the inferred type arguments", other, cBase, found);
+    rewrite(src, core, heads, "the inferred heads of object literals", other, cBase, found);
+    rewrite(src, core, sigs, "the inferred heads and method signatures of object literals", other, cBase, found);
+  }
+  static void rewrite(String src, List<core.E.Literal> core, Edits edits, String what, OtherPackages other, List<compact.Frontend.Literal> cBase, TreeMap<String,String> found){
+    edits.text.keySet().removeAll(edits.bad);
+    var written= src;
+    var got= "";
+    while (true){
+      if (edits.text.isEmpty()){ return; }
+      written = edits.apply();
+      var o= SourceOracle.debugBuilder().put(0, written).build();
+      try{ got = canon(lines(compileAll("p", o, other))); }
+      catch (FearlessException fe){ got = "rejected: "+fe.render(o); }
+      catch (Throwable t){ got = signature(t); }
+      var m= undeclared.matcher(got);
+      if (!m.find()){ break; }
+      var x= Pattern.compile("(^|[^A-Za-z0-9_])"+m.group(1)+"($|[^A-Za-z0-9_])");
+      if (!edits.text.values().removeIf(t -> x.matcher(t).find())){ break; }
+    }
+    var kind= got.startsWith("rejected: ") ? "rejected after writing "+what
+      : !got.contains("{") ? "crash after writing "+what+": "+got
+      : got.equals(canon(lines(core))) ? "" : "different core after writing "+what;
+    if (!kind.isEmpty()){ found.merge(kind, src+"\n---- written as ----\n"+written+"\n---- gives ----\n"+got+"\n---- instead of ----\n"+canon(lines(core)), FuzzTest::shorter); }
+    run(written, other, cBase, found);
+  }
+  static Stream<core.E.Call> calls(core.E e){
+    var here= e instanceof core.E.Call c ? Stream.of(c) : Stream.<core.E.Call>of();
+    return Stream.concat(here, e.children().flatMap(FuzzTest::calls));
+  }
+  static Stream<core.E.Literal> literals(core.E e){
+    var here= e instanceof core.E.Literal l ? Stream.of(l) : Stream.<core.E.Literal>of();
+    return Stream.concat(here, e.children().flatMap(FuzzTest::literals));
+  }
+  static final class Edits{
+    final String src;
+    final TreeMap<Integer,String> text= new TreeMap<>();
+    final HashSet<Integer> bad= new HashSet<>();
+    Edits(String src){ this.src= src; }
+    String apply(){
+      var res= src;
+      for (var e : text.descendingMap().entrySet()){ res = insert(res, e.getKey(), e.getValue()); }
+      return res;
+    }
+    void add(int at, String t){
+      if (at < 0){ return; }
+      var old= text.putIfAbsent(at, t);
+      var unwritable= Pattern.compile("(^|[^A-Za-z0-9])_").matcher(t).find();
+      if (unwritable || (old != null && !old.equals(t))){ bad.add(at); }
+    }
+    void call(core.E.Call c){
+      if (!(c.src().inner instanceof fearlessFullGrammar.E.Call sc) || sc.targs().isPresent() || !sc.name().s().equals(c.name().s()) || fresh(sc.e())){ return; }
+      var ts= Join.of(Stream.concat(Stream.of(c.rc().name()), c.targs().stream().map(FuzzTest::written)), "[", ",", "]", "");
+      add(nameEnd(sc.pos().line(), sc.pos().column(), c.name().s()), ts);
+    }
+    void literal(core.E.Literal l, boolean sigs){
+      if (l.src().inner instanceof fearlessFullGrammar.E.Literal sl && l.infName() && !l.cs().isEmpty()){
+        var at= offset(sl.span().inner.startLine(), sl.span().inner.startCol());
+        add(src.startsWith("{", at) ? at : src.startsWith("{", at+1) ? at+1 : -1, " "+l.rc().name()+" "+written(l.cs().getFirst()));
+      }
+      if (!sigs){ return; }
+      var ms= switch (l.src().inner){
+        case fearlessFullGrammar.E.Literal sl -> sl.methods();
+        case fearlessFullGrammar.E.TypedLiteral tl -> tl.l().map(fearlessFullGrammar.E.Literal::methods).orElse(List.of());
+        default -> List.<fearlessFullGrammar.M>of();
+      };
+      for (var sm : ms){ l.ms().stream().filter(cm -> cm.sig().span().inner.equals(sm.span().inner)).findFirst().ifPresent(cm -> method(sm, cm.sig())); }
+    }
+    void method(fearlessFullGrammar.M sm, core.Sig s){
+      if (sm.sig().isEmpty() || sm.body().isEmpty() || !sm.sig().get().hasParenthesis() || sm.sig().get().m().isEmpty()){ return; }
+      var ps= sm.sig().get().parameters();
+      if (ps.size() != s.ts().size()){ return; }
+      for (int i= 0; i < ps.size(); i += 1){
+        if (ps.get(i).t().isPresent() || !(ps.get(i).xp().orElse(null) instanceof fearlessFullGrammar.XPat.Name(var x))){ continue; }
+        add(nameEnd(x.pos().line(), x.pos().column(), x.name()), ": "+written(s.ts().get(i)));
+      }
+      if (sm.sig().get().t().isPresent()){ return; }
+      var open= src.indexOf('(', offset(sm.span().inner.startLine(), sm.span().inner.startCol()));
+      var close= open < 0 ? -1 : src.indexOf(')', open);
+      if (close >= 0){ add(close+1, ": "+written(s.ret())); }
+    }
+    int offset(int line, int column){
+      var start= 0;
+      for (int i= 1; i < line; i += 1){ start = src.indexOf('\n', start) + 1; }
+      return start+column-1;
+    }
+    int nameEnd(int line, int column, String name){
+      for (var at : List.of(offset(line, column), offset(line, column)+1)){
+        var end= at+name.length();
+        if (at >= 0 && src.startsWith(name, at) && !src.substring(end).matches("(?s)[A-Za-z0-9_'].*")){ return end; }
+      }
+      return -1;
+    }
+  }
+  static boolean fresh(fearlessFullGrammar.E e){ return e instanceof fearlessFullGrammar.E.Call c ? fresh(c.e()) : e instanceof fearlessFullGrammar.E.X x && x.name().startsWith("_"); }
+  static String written(core.T t){ return switch (t){
+    case core.T.X x -> x.name();
+    case core.T.RCX(var rc, var x) -> rc.name()+" "+x.name();
+    case core.T.ReadImmX(var x) -> "read/imm "+x.name();
+    case core.T.RCC(var rc, var c, _) -> rc.name()+" "+written(c);
+  };}
+  static String written(core.T.C c){
+    var n= c.name().pkgName().equals("p") ? c.name().simpleName() : c.name().s();
+    return n+Join.of(c.ts().stream().map(FuzzTest::written), "[", ",", "]", "");
   }
   static void run(String src, OtherPackages other, List<compact.Frontend.Literal> cBase, TreeMap<String,String> crashes){
     var o= SourceOracle.debugBuilder().put(0, src).build();
