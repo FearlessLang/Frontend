@@ -64,6 +64,20 @@ B:-.A{.fromC:-.A->-.Void}
 Error 8 TypeError""", Map.of("a", aA, "c", cA), Map.of("a", "c"), """
 B:a.A{ .fromC -> base.Void }
 """); }
+  @Test void mapToMissingTypeSuggestsNoNameTheMapRedirects(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.A):B->this}
+   |         ^^^^
+
+While inspecting a type name
+Name "a.A" stands for "c.A" because of "map a as c in b".
+Type "A" is not declared in package "c".
+In scope: "C".
+Error 7 WellFormedness
+""", Map.of("a", aA, "c", "C:{}"), Map.of("a", "c"), """
+B:{.m(x:a.A):B->this}
+"""); }
   @Test void noMapQualifiedNameIsLiteral(){ ok(Map.of("a", aA, "c", cA), Map.of(), """
 B:{.m(x:a.A):a.A->x.fromA}
 """); }
@@ -396,7 +410,7 @@ In file: [###].fear
 While inspecting a type name
 Name "a.A" stands for "zz.A" because of "map a as zz in b".
 Package "zz" does not exist.
-Visible packages: "a", "b", "base".
+Visible packages: "b", "base".
 Error 7 WellFormedness
 """, Map.of("a", aA), Map.of("a", "zz"), """
 B:{.m(x:a.A):B->this}

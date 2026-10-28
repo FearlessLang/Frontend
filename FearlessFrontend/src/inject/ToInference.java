@@ -17,7 +17,7 @@ public final class ToInference{
   private static FearlessException undeclaredType(Methods meths, TName written, TName resolved){
     var p= meths.p();
     var declared= p.names().decNames();
-    var all= Stream.concat(declared.stream().map(t -> t.withPkgName(p.name())), meths.other().dom().stream()).toList();
+    var all= Stream.concat(declared.stream().map(t -> t.withPkgName(p.name())), meths.other().dom().stream().filter(t -> !p.map().containsKey(t.pkgName()))).toList();
     var imported= p.map().entrySet().stream()
       .filter(e -> TokenKind.isKind(e.getKey(), TokenKind.UppercaseId))
       .flatMap(e -> all.stream()
