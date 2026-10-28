@@ -20,7 +20,7 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
   }
 
   IT inst(IT t, List<IT> targs){//Note: a wrong number of targs is an error at type system time.
-    targs = fixTargs(targs, bsArity());
+    assert targs.size() == bsArity();
     var ts= Push.of(clsArgs, targs);//performance? we could cache this result since targs is fixed and used over and over
     return TypeRename.of(t, xs, ts);
   }
