@@ -297,7 +297,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     }
   }
   private Sig parseSigAfterName(Optional<RC> rc, Optional<MName> m){
-    var bs= parseIf(peek(_SquareGroup), () -> parseBs(true));
+    var bs= parseIf(peek(_SquareGroup), () -> parseBs(true, "A method signature"));
     var Xs= bsXs(bs);
     names = names.add(List.of(), Xs);//added both inside and outside since different parsers
     var hasPar= peek(_RoundGroup);
@@ -322,14 +322,14 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     expectEnd("comma, colon or arrow", Comma, Colon, Arrow);
     return p;
   }
-  List<B> parseBs(boolean mustNew){
+  List<B> parseBs(boolean mustNew, String owner){
     return parseGroup("", p -> {
       p.expect("generic bounds declaration", OSquareArg);
       p.expectLast("generic bounds declaration", CSquare);
       var res= p.splitBy("generic bounds declaration", commaB, pi -> pi.parseB(mustNew));
       var Xs= bsXs(of(res));
       var duplicated= Set.copyOf(Xs).size() < Xs.size();
-      if (duplicated){ throw errFactory().duplicatedGenericInMethodSignature(Xs, span()); }
+      if (duplicated){ throw errFactory().duplicatedGeneric(owner, Xs, span()); }
       return res;
     });
   }
@@ -380,7 +380,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var c= parseTName();
     if (top){ errFactory().noteTop(c); }
     var _= expectValidate(back("simple type name"), UppercaseId, _XId); //to get error if of form foo.Bar
-    var bs= parseIf(peek(_SquareGroup), () -> parseBs(top));
+    var bs= parseIf(peek(_SquareGroup), () -> parseBs(top, "A type declaration"));
     var Xs= bsXs(bs);
     var outer= names;
     names = top ? names.add(List.of(), Xs) : names.setFunnelledXs(c.s(), Xs);

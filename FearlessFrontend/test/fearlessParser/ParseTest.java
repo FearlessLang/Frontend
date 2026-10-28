@@ -65,7 +65,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration > full file
-A method signature cannot declare multiple generic type parameters with the same name.
+A type declaration cannot declare multiple generic type parameters with the same name.
 Generic type parameter "X" is repeated.
 Error 2 UnexpectedToken""", """
 Pair[X,X]:{ .x:X; .y:X;}

@@ -294,11 +294,11 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   static String patternRepr(XPat.Destruct p){
     return Join.of(p.extract().stream().map(c -> Join.of(c.stream().map(MName::s), "", "", "")), "{", ", ", "}")+p.id().orElse("");
   }
-  public FearlessException duplicatedParamInMethodSignature(List<String> xs, Span at){ return duplicatedInMethodSignature("parameters", "Parameter", xs, at); }
-  public FearlessException duplicatedGenericInMethodSignature(List<String> Xs, Span at){ return duplicatedInMethodSignature("generic type parameters", "Generic type parameter", Xs, at); }
-  private FearlessException duplicatedInMethodSignature(String plural, String singular, List<String> names, Span at){
+  public FearlessException duplicatedParamInMethodSignature(List<String> xs, Span at){ return duplicated("A method signature", "parameters", "Parameter", xs, at); }
+  public FearlessException duplicatedGeneric(String owner, List<String> Xs, Span at){ return duplicated(owner, "generic type parameters", "Generic type parameter", Xs, at); }
+  private FearlessException duplicated(String owner, String plural, String singular, List<String> names, Span at){
     return Code.UnexpectedToken.of(
-      "A method signature cannot declare multiple "+plural+" with the same name.\n"
+      owner+" cannot declare multiple "+plural+" with the same name.\n"
       +singular+" "+disp(redeclaredElement(names))+" is repeated.").addSpan(at);
   }
   private static String expected(Collection<TokenKind> items){ return expected("", "Expected: ", "Expected one of: ", items, tk -> tk.human); }

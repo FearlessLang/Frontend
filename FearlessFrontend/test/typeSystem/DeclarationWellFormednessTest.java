@@ -71,7 +71,7 @@ A:{ .foo[T:*,T:*](a: T, b: T): A }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration > full file
-A method signature cannot declare multiple generic type parameters with the same name.
+A type declaration cannot declare multiple generic type parameters with the same name.
 Generic type parameter "T" is repeated.
 """, List.of("""
 A[T:*,T:*]:{ .foo(a: T, b: T): A }
