@@ -4322,7 +4322,7 @@ User:{ .m(c: Customer): Sup[Person] -> Boxes#c }
 """));}
 
 /*The five tests below are the minimized shapes of every place base stops compiling if
-InjectionSteps.nextMStarOpRun stops meeting a method's declared return type with the type of its
+InjectionSteps.nextMStarOp stops meeting a method's declared return type with the type of its
 body, that is if
   var ret= meet(m.sig().ret().get(), e.t());
 becomes
