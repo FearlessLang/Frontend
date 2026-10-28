@@ -90,7 +90,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
   ///Raised when checking types anywhere they appear.
   public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     assert index >= 0;
-    var allowedStr= Join.of(bounds.stream().map(Err::disp).sorted(), "", " or ", "");
+    var allowedStr= (bounds.size() == 1 ? "capability " : "capabilities ")+Join.of(bounds.stream().map(Err::disp).sorted(), "", " or ", "");
     var gotStr= Join.of(got.stream().map(Err::disp).sorted(), "", " or ", "");
     var err= switch (target){
       case T.C c -> typeNotWellKinded("type "+err().typeRepr(c), c, index, allowedStr, gotStr);

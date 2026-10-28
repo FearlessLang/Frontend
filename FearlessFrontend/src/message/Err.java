@@ -129,7 +129,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var e= line("The "+what+" is invalid.")
       .line("Type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
       .line("for type parameter "+paramName+" in "+kindingTarget+".")
-      .line("Here "+paramName+" can only use capabilities "+allowedStr+".");
+      .line("Here "+paramName+" can only use "+allowedStr+".");
     var capabilityHidden= bad instanceof T.X || bad instanceof T.ReadImmX;
     if (!capabilityHidden){ return e; }
     return e.line("But type argument "+badStr+" can use capabilities "+gotStr+".");

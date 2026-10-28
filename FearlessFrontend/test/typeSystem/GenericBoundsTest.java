@@ -380,7 +380,7 @@ While inspecting type declaration "Break"
 The type "A[Break]" is invalid.
 Type argument 1 ("Break") does not satisfy the bounds
 for type parameter "X" in "A[_]".
-Here "X" can only use capabilities "mut".
+Here "X" can only use capability "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Break:A[Break]{}
@@ -396,7 +396,7 @@ While inspecting type declaration "Break"
 The type "A[Break]" is invalid.
 Type argument 1 ("Break") does not satisfy the bounds
 for type parameter "X" in "A[_]".
-Here "X" can only use capabilities "mut".
+Here "X" can only use capability "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Break:A[Break]{}
@@ -416,7 +416,7 @@ While inspecting object literal "iso BreakInner" > "#" line 3
 The type "A[Break]" is invalid.
 Type argument 1 ("Break") does not satisfy the bounds
 for type parameter "X" in "A[_]".
-Here "X" can only use capabilities "mut".
+Here "X" can only use capability "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Bre-ner:A[Break]{}
@@ -442,7 +442,7 @@ While inspecting method call ".m(_)" > ".f(_)" line 3
 The call to ".m(_)" is invalid.
 Type argument 1 ("Z") does not satisfy the bounds
 for type parameter "Y" in "Util.m(_)".
-Here "Y" can only use capabilities "imm".
+Here "Y" can only use capability "imm".
 But type argument "Z" can use capabilities "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -465,7 +465,7 @@ While inspecting method call ".m(_)" > ".f(_)" line 3
 The call to ".m(_)" is invalid.
 Type argument 1 ("Z") does not satisfy the bounds
 for type parameter "Y" in "Util.m(_)".
-Here "Y" can only use capabilities "imm".
+Here "Y" can only use capability "imm".
 But type argument "Z" can use capabilities "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -480,7 +480,7 @@ A[Z:mut]:{ .f(z: Z): Foo -> Util.m(z) }
 The type "Foo[Y]" is invalid.
 Type argument 1 ("Y") does not satisfy the bounds
 for type parameter "X" in "Foo[_]".
-Here "X" can only use capabilities "imm".
+Here "X" can only use capability "imm".
 [###]""", List.of("""
 Foo[X:imm]:{ .get: X }
 A:{ .m[Y:imm,mut](y: imm Y): Foo[imm Y] -> Foo[Y]{ .get -> y } }
@@ -514,7 +514,7 @@ While inspecting method call "#(_)" > ".m(_)" line 3
 The call to "#(_)" is invalid.
 Type argument 1 ("Foo") does not satisfy the bounds
 for type parameter "X" in "A#(_)".
-Here "X" can only use capabilities "mut".
+Here "X" can only use capability "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A#[imm,Foo](f)
@@ -535,7 +535,7 @@ While inspecting type declaration "A"
 The type "Foo[Y]" is invalid.
 Type argument 1 ("Y") does not satisfy the bounds
 for type parameter "X" in "Foo[_]".
-Here "X" can only use capabilities "mut".
+Here "X" can only use capability "mut".
 But type argument "Y" can use capabilities "imm" or "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -631,7 +631,7 @@ While inspecting type declaration "FPerson"
 The type "Person[N]" is invalid.
 Type argument 1 ("N") does not satisfy the bounds
 for type parameter "N" in "Person[_]".
-Here "N" can only use capabilities "imm".
+Here "N" can only use capability "imm".
 But type argument "N" can use capabilities "imm" or "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -669,7 +669,7 @@ While inspecting object literal "iso Fresh[_]" > "#(_,_)" line 2
 The type "Person[N]" is invalid.
 Type argument 1 ("N") does not satisfy the bounds
 for type parameter "N" in "Person[_]".
-Here "N" can only use capabilities "imm".
+Here "N" can only use capability "imm".
 But type argument "N" can use capabilities "imm" or "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -729,7 +729,7 @@ While inspecting object literal "iso Foo[_]" > ".m" line 1
 The type "Foo[X]" is invalid.
 Type argument 1 ("X") does not satisfy the bounds
 for type parameter "X" in "Foo[_]".
-Here "X" can only use capabilities "mut".
+Here "X" can only use capability "mut".
 But type argument "X" can use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)

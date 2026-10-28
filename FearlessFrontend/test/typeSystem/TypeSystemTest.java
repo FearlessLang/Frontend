@@ -322,7 +322,7 @@ While inspecting method call ".foo" > ".bar" line 2 > "#" line 2
 The call to ".foo" is invalid.
 Type argument 1 ("mut Outer") does not satisfy the bounds
 for type parameter "X" in "G.foo".
-Here "X" can only use capabilities "imm".
+Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 self.foo[imm,mut Outer]
@@ -386,7 +386,7 @@ While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
 Type argument 1 ("mut B") does not satisfy the bounds
 for type parameter "X" in "A[_]".
-Here "X" can only use capabilities "imm".
+Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User:{.m(A[mut B]):-.Void}
@@ -423,7 +423,7 @@ While inspecting type declaration "User"
 The type "B[mut C]" is invalid.
 Type argument 1 ("mut C") does not satisfy the bounds
 for type parameter "Y" in "B[_]".
-Here "Y" can only use capabilities "imm".
+Here "Y" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User:{.m(A[B[mut C]]):-.Void}
@@ -460,7 +460,7 @@ While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
 Type argument 1 ("mut B") does not satisfy the bounds
 for type parameter "X" in "A[_]".
-Here "X" can only use capabilities "imm".
+Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User:{.m(B):A[mut B]}
@@ -478,7 +478,7 @@ While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
 Type argument 1 ("mut B") does not satisfy the bounds
 for type parameter "X" in "A.id(_)".
-Here "X" can only use capabilities "imm".
+Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 a.id[imm,mut B](b)
@@ -496,7 +496,7 @@ While inspecting method call ".pair(_,_)" > ".m(_,_,_)" line 5
 The call to ".pair(_,_)" is invalid.
 Type argument 2 ("mut C") does not satisfy the bounds
 for type parameter "Y" in "A.pair(_,_)".
-Here "Y" can only use capabilities "read".
+Here "Y" can only use capability "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 a.pair[imm,B,mut C](b,c)
@@ -516,7 +516,7 @@ While inspecting method call ".use(_)" > ".m(_,_,_)" line 4
 The type "B[mut C]" is invalid.
 Type argument 1 ("mut C") does not satisfy the bounds
 for type parameter "Y" in "B[_]".
-Here "Y" can only use capabilities "imm".
+Here "Y" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 a.use[imm,B[mut C]](b)
@@ -535,7 +535,7 @@ While inspecting type declaration "User[_]"
 The type "A[Y]" is invalid.
 Type argument 1 ("Y") does not satisfy the bounds
 for type parameter "X" in "A[_]".
-Here "X" can only use capabilities "imm".
+Here "X" can only use capability "imm".
 But type argument "Y" can use capabilities "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -553,7 +553,7 @@ While inspecting type declaration "User"
 The type "B[mut C]" is invalid.
 Type argument 1 ("mut C") does not satisfy the bounds
 for type parameter "Y" in "B[_]".
-Here "Y" can only use capabilities "read".
+Here "Y" can only use capability "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User:{.m(A[B[mut C]]):-.Void}
@@ -628,7 +628,7 @@ While inspecting object literal instance of "Thaw[mut Cell]" > ".break(_)" line 
 The type "Thaw[mut Cell]" is invalid.
 Type argument 1 ("mut Cell") does not satisfy the bounds
 for type parameter "X" in "Thaw[_]".
-Here "X" can only use capabilities "imm".
+Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Thaw[mut Cell]
@@ -4210,7 +4210,7 @@ In file: [###].fear
 
 While inspecting type declaration "MyId"
 Type declaration "MyId" implements "base.BaseId[_,_]".
-It inherits the implementation of "#(_)" from "Forge", that does not implement "base.BaseId[_,_]".
+It inherits the implementation of "#(_)" from "Forge", which does not implement "base.BaseId[_,_]".
 Method "#(_)" must be implemented here, or inherited from a type implementing "base.BaseId[_,_]".
 Error 7 WellFormedness""", List.of("""
 Person:{}
@@ -4227,7 +4227,7 @@ In file: [###].fear
 
 While inspecting type declaration "Sub"
 Type declaration "Sub" implements "base.BaseId[_,_]".
-It inherits the implementation of "#(_)" from "Forge", that does not implement "base.BaseId[_,_]".
+It inherits the implementation of "#(_)" from "Forge", which does not implement "base.BaseId[_,_]".
 Method "#(_)" must be implemented here, or inherited from a type implementing "base.BaseId[_,_]".
 Error 7 WellFormedness""", List.of("""
 Person:{}
@@ -5309,7 +5309,7 @@ U:{ .m:Box[A] -> Box[A]{ .get(x:B):B -> x } }
 
 While inspecting type declaration "I"
 Type declaration "I" implements "base.BaseId[_,_]".
-It inherits the implementation of "#(_)" from "Impl", that does not implement "base.BaseId[_,_]".
+It inherits the implementation of "#(_)" from "Impl", which does not implement "base.BaseId[_,_]".
 Method "#(_)" must be implemented here, or inherited from a type implementing "base.BaseId[_,_]".
 """, List.of("""
 I: base.BaseId[I,I], Impl{}

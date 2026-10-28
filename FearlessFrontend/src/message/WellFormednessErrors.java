@@ -285,7 +285,7 @@ public record WellFormednessErrors(String pkgName){
     var first= spelling(d.cs().get(i));
     var second= spelling(d.cs().get(j));
     return err()
-      .line("Duplicated supertype in type declaration: "+disp(first)+" and "+disp(second)+" denote the same type.")
+      .line("Duplicate supertype in type declaration: "+disp(first)+" and "+disp(second)+" denote the same type.")
       .line("Remove one of them.")
       .wf()
       .addFrame("type declaration "+staticTypeDecName(d.name()), d.span().inner);
@@ -522,7 +522,7 @@ public record WellFormednessErrors(String pkgName){
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
-      .line("It inherits the implementation of "+err().methodSig(new MName("#", 1))+" from "+err().tNameADisp(origin)+", that does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
+      .line("It inherits the implementation of "+err().methodSig(new MName("#", 1))+" from "+err().tNameADisp(origin)+", which does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
       .line("Method "+err().methodSig(new MName("#", 1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner);
   }
   public FearlessException fileLogWithoutFileName(E.Literal owner){
@@ -555,7 +555,7 @@ public record WellFormednessErrors(String pkgName){
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
       .line(err().tNameADisp(origin)+" implements "+disp("base.Final[\""+name+"\"]")+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
-      .line("thus "+err().expRepr(owner)+" can not override any method named "+disp(name)+"."), owner);
+      .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(name)+"."), owner);
   }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
     var ctx= err().expRepr(owner);

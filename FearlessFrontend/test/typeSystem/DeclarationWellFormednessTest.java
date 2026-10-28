@@ -661,7 +661,7 @@ Shape[X]: base.DataRead{ .extra: X }
 While inspecting type declaration "Fake"
 Type declaration "Fake" implements method ".name".
 "base.Named" implements `base.Final[".name"]` and type declaration "Fake" implements "base.Named",
-thus type declaration "Fake" can not override any method named ".name".
+thus type declaration "Fake" cannot override any method named ".name".
 """, List.of("""
 Fake: base.DataRead{ .name -> base.Nope! }
 """));}
@@ -672,7 +672,7 @@ Fake: base.DataRead{ .name -> base.Nope! }
 While inspecting object literal instance of "base.DataRead"
 Object literal instance of "base.DataRead" implements method ".name".
 "base.Named" implements `base.Final[".name"]` and object literal instance of "base.DataRead" implements "base.Named",
-thus object literal instance of "base.DataRead" can not override any method named ".name".
+thus object literal instance of "base.DataRead" cannot override any method named ".name".
 """, List.of("""
 Forge: { #: base.DataRead -> base.DataRead{ .name -> base.Nope! } }
 """));}
@@ -683,7 +683,7 @@ Forge: { #: base.DataRead -> base.DataRead{ .name -> base.Nope! } }
 While inspecting type declaration "B"
 Type declaration "B" implements method ".foo(_)".
 "A" implements `base.Final[".foo"]` and type declaration "B" implements "A",
-thus type declaration "B" can not override any method named ".foo".
+thus type declaration "B" cannot override any method named ".foo".
 """, List.of("""
 A: base.Final[".foo"]{ .foo: A -> this; }
 B: A{ .foo(x: A): A -> x }
@@ -909,7 +909,7 @@ A[X:*]:{ .no: read A[read A[X]] }
    | ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Duplicated supertype in type declaration: "A[Foo]" and "A[imm Foo]" denote the same type.
+Duplicate supertype in type declaration: "A[Foo]" and "A[imm Foo]" denote the same type.
 Remove one of them.
 """, List.of("""
 Foo:{}
@@ -921,7 +921,7 @@ B:A[Foo],A[imm Foo]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Duplicated supertype in type declaration: "Foo[Y]" and "Foo[imm Y]" denote the same type.
+Duplicate supertype in type declaration: "Foo[Y]" and "Foo[imm Y]" denote the same type.
 Remove one of them.
 """, List.of("""
 Foo[T:*]:{ .get: T }
@@ -929,7 +929,7 @@ A[Y:imm]:Foo[Y],Foo[imm Y]{}
 """));}
 @Test void supertypeNestedTypeVariableWithAndWithoutRedundantRc(){failWf("""
 [###]
-Duplicated supertype in type declaration: "Foo[Box[read Y]]" and "Foo[Box[Y]]" denote the same type.
+Duplicate supertype in type declaration: "Foo[Box[read Y]]" and "Foo[Box[Y]]" denote the same type.
 Remove one of them.
 """, List.of("""
 Box[T:*]:{}
@@ -945,7 +945,7 @@ A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-Duplicated supertype in type declaration: "A" and "p.A" denote the same type.
+Duplicate supertype in type declaration: "A" and "p.A" denote the same type.
 Remove one of them.
 """, List.of("""
 A:{}
@@ -956,7 +956,7 @@ B:A,p.A{}
    | ^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Duplicated supertype in type declaration: "CF" and "base.CaptureFree" denote the same type.
+Duplicate supertype in type declaration: "CF" and "base.CaptureFree" denote the same type.
 Remove one of them.
 """, List.of("""
 use base.CaptureFree as CF;
@@ -967,7 +967,7 @@ B:CF,base.CaptureFree{}
    | ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Duplicated supertype in type declaration: "A[Foo]" and "A[p.Foo]" denote the same type.
+Duplicate supertype in type declaration: "A[Foo]" and "A[p.Foo]" denote the same type.
 Remove one of them.
 """, List.of("""
 Foo:{}
@@ -1092,7 +1092,7 @@ M: base.Main, base.OpenWith[Icon,"fearless"]{ .main -> base.Void }
 While inspecting type declaration "B"
 Type declaration "B" implements method ".a".
 "A" implements `base.Final[".a"]` and type declaration "B" implements "A",
-thus type declaration "B" can not override any method named ".a".
+thus type declaration "B" cannot override any method named ".a".
 """, List.of("""
 A: base.Final[".a"]{ .a: A -> this }
 B: base.Final[".b"], A{ .b: B -> this; .a: A -> this }
