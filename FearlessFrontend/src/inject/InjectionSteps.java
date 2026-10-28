@@ -575,6 +575,7 @@ public record InjectionSteps(Methods meths, int cap){
       case E.Call c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, Optional.of(c.name())), c.es());
       case E.Literal l when !needsPrototypeAscription(l) -> arg;
       case E.Literal l when called.map(name -> implementable(exp.c().name()) && !declares(l, name)).orElse(true) -> l.withT(prototypeHead(exp, l.span()));
+      case E.Literal l when l.ms().isEmpty() -> arg;
       case E.Literal l -> itself(l);
       default -> arg;
     };
