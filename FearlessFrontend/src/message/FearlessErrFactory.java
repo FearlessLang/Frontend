@@ -44,7 +44,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   public FearlessException topLevelSemicolon(Span at){ return Code.UnexpectedToken.of(this::topLevelSemicolonMsg).addSpan(at); }
   private String topLevelSemicolonMsg(){
     if (lastTop.isEmpty()){
-      return "Extra semicolon before the first top level type declarations.\n"
+      return "Extra semicolon before the first top level type declaration.\n"
            +"Remove this semicolon.\n";
     }
     var n= staticTypeDecName(lastTop.get());
@@ -53,6 +53,11 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
          +"The definition of "+n+" ends with a semicolon. Remove it.\n"
          +"Write: "+disp(hint)+"\n"
          +"Not:   "+disp(hint+";")+"\n";
+  }
+  public FearlessException missingMethodBody(Span at){
+    return Code.UnexpectedToken.of(
+      "Missing method body after \"->\".\n"
+    +"The body of a method is the expression after \"->\".\n").addSpan(at);
   }
   public FearlessException straySemicolon(Span at){
     return Code.UnexpectedToken.of(
