@@ -30,7 +30,6 @@ import utils.Pos;
 import inference.E;
 import inference.IT;
 import inference.M;
-import typeSystem.TypeSystem;
 
 public record InjectionToInferenceVisitor(Methods meths, TName currentTop, ArrayList<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs){
   IT visitT(fearlessFullGrammar.T t){
@@ -149,19 +148,9 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     for (var m : pat){ res = call(res, m.s(), List.of(), span.pos()); }
     return new XE(x, res);
   }
-  private fearlessFullGrammar.E stripRound(fearlessFullGrammar.E e){
-    while (e instanceof fearlessFullGrammar.E.Round(var inner)){ e = inner; }
-    return e;
-  }
   private E.Literal liftLiteral(Optional<RC> rc, List<IT.C> impl, Optional<String> thisName, List<M> ms, Src src){
     var name= meths.fresh().freshTopType(currentTop, 0);
     return new E.Literal(rc, name, List.of(), impl, thisName.orElse("_"), ms, src, true);
-  }
-  private E visitReceiver(fearlessFullGrammar.E e){
-    if (!(stripRound(e) instanceof fearlessFullGrammar.E.Literal ol)){ return visitE(e); }
-    var l= visitLiteral(ol);
-    decs.add(l);
-    return l;
   }
   //Here new FreeXs().ftvMs(ms) is all since by construction no Cs and no inferred type;
   E.Literal visitLiteral(fearlessFullGrammar.E.Literal l){
@@ -176,9 +165,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     if (trivial){ return new E.Type(visitRCC(t.t()), new Src(t)); }
     var impl= List.of(visitC(t.t().c()));
     var ms= mapM(t.l().get().methods());
-    var l= liftLiteral(of(t.t().rc().orElse(RC.imm)), impl, t.l().get().thisName().map(fearlessFullGrammar.E.X::name), ms, new Src(t));
-    decs.add(l);
-    return l;
+    return liftLiteral(of(t.t().rc().orElse(RC.imm)), impl, t.l().get().thisName().map(fearlessFullGrammar.E.X::name), ms, new Src(t));
   }
   E visitDeclarationLiteral(fearlessFullGrammar.E.DeclarationLiteral c){
     var name= f.apply(c.dec().name());
@@ -189,25 +176,21 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var thisName= d.l().thisName().map(fearlessFullGrammar.E.X::name).orElseGet(() -> top ? "this" : "_");
     var bs= d.bs().map(this::mapB).orElse(List.of());
     var cs= d.cs().stream().map(this::visitC).toList();
-    var dup= duplicatedSupertypes(bs, TypeRename.itcToTC(cs));
+    var dup= duplicatedSupertypes(bs, cs);
     if (dup.isPresent()){ throw meths.p().err().duplicatedSupertype(d, dup.get().getFirst(), dup.get().getLast()); }
     var ms= mapM(d.l().methods());
     var l= new E.Literal(of(rc), name, bs, cs, thisName, ms, new Src(d), false);
     decs.add(l);
     return l;
   }
-  static Optional<List<Integer>> duplicatedSupertypes(List<B> bs, List<core.T.C> cs){
-    var ts= cs.stream().map(c -> new core.T.RCC(RC.imm, c, TSpan.fromPos(Pos.unknown))).toList();
-    return IntStream.range(0, ts.size()).boxed()
-      .flatMap(j -> IntStream.range(0, j).filter(i -> sameType(bs, ts.get(i), ts.get(j))).mapToObj(i -> List.of(i, j)))
+  static Optional<List<Integer>> duplicatedSupertypes(List<B> bs, List<IT.C> cs){
+    return IntStream.range(0, cs.size()).boxed()
+      .flatMap(j -> IntStream.range(0, j).filter(i -> ToCore.sameType(bs, cs.get(i), cs.get(j))).mapToObj(i -> List.of(i, j)))
       .findFirst();
-  }
-  private static boolean sameType(List<B> bs, core.T a, core.T b){
-    return TypeSystem.isSameShapeSubtype(bs, a, b) && TypeSystem.isSameShapeSubtype(bs, b, a);
   }
   E visitCall(fearlessFullGrammar.E.Call c){
     if (c.pat().isPresent()){ c = desugarCPat(c); }
-    var e= visitReceiver(c.e());
+    var e= visitE(c.e());
     var es= mapE(c.es());
     if (c.targs().isEmpty()){ return new E.Call(e, c.name(), Optional.empty(), List.of(), es, new Src(c)); }
     var targs= c.targs().get();

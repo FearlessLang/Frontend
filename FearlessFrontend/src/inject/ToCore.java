@@ -36,13 +36,11 @@ public record ToCore(List<B> ctx, Methods meths){
   core.E.Literal literal(inference.E.Literal e, inference.E orig){
     var o= (inference.E.Literal)orig;
     assert o.src() == e.src();
-    var rc= o.rc().or(e::rc).orElse(RC.imm);
+    var rc= e.rc().orElse(RC.imm);
     assert o.infName() == e.infName();
     assert o.infName() || e.name().equals(o.name());
     assert e.thisName().equals(o.thisName());
-    var oBs= originalBs(o);
-    assert oBs.isEmpty() || !o.infName();
-    var bs= oBs.orElse(e.bs());
+    var bs= e.bs();
     var uncommitted= e.infName() && bs.isEmpty();
     if (uncommitted){
       var free= new FreeXs(new Gamma());
@@ -52,12 +50,12 @@ public record ToCore(List<B> ctx, Methods meths){
     var name= e.name().withArity(bs.size());
     var inner= new ToCore(e.infName() ? Push.of(ctx, bs).stream().distinct().toList() : bs, meths);
     if (!(e.t() instanceof IT.RCC) && !e.t().undecided()){ throw meths.p().err().literalImplementsTypeParameter(e, e.t()); }
-    var csIT= distinctTypes(inner.ctx(), o.cs().isEmpty() ? e.cs() : Push.of(o.cs(), e.cs()));
+    var csIT= distinctTypes(inner.ctx(), Push.of(o.cs(), e.cs()));
     for (var c : csIT){ checkHead(e, c); }
     assert !e.infName() || !e.thisName().equals("_") || e.t().undecided() || e.ms().stream().anyMatch(m -> m.impl().isPresent());
     var ms= inner.mapMs(e.ms(), o.ms(), e).stream().map(m -> withOrigin(m, e.name(), name)).toList();
     var cs= TypeRename.itcToTC(csIT);
-    assert InjectionToInferenceVisitor.duplicatedSupertypes(inner.ctx(), cs).isEmpty();
+    assert InjectionToInferenceVisitor.duplicatedSupertypes(inner.ctx(), csIT).isEmpty();
     return new core.E.Literal(rc, name, bs, cs, e.thisName(), ms, e.src(), e.infName());
   }
   static List<IT.C> distinctTypes(List<B> bs, List<IT.C> cs){
@@ -65,7 +63,7 @@ public record ToCore(List<B> ctx, Methods meths){
     for (var c : cs){ if (res.stream().noneMatch(r -> sameType(bs, r, c))){ res.add(c); } }
     return Collections.unmodifiableList(res);
   }
-  private static boolean sameType(List<B> bs, IT.C a, IT.C b){
+  static boolean sameType(List<B> bs, IT.C a, IT.C b){
     var span= TSpan.fromPos(Pos.unknown);
     return TypeRename.eqModXRC(bs, new IT.RCC(Optional.of(RC.imm), a, span), new IT.RCC(Optional.of(RC.imm), b, span));
   }
@@ -74,19 +72,10 @@ public record ToCore(List<B> ctx, Methods meths){
     if (!s.origin().equals(from)){ return m; }
     return m.withSig(new core.Sig(s.rc(), s.m(), s.bs(), s.ts(), s.ret(), to, s.abs(), s.span()));
   }
-  Optional<List<B>> originalBs(inference.E.Literal o){
-    var explicit= switch (o.src().inner){
-      case fearlessFullGrammar.E.TypedLiteral _ -> false; //Not tl.t().c().ts().isPresent(): this would be about the first eventual c in cs; not the anon heir
-      case fearlessFullGrammar.E.Literal _ -> false;
-      case fearlessFullGrammar.Declaration(_, var bs, _, _) -> bs.isPresent();
-      default -> throw Bug.of(o.src().inner.getClass().getName());
-    };
-    return explicit ? Optional.of(o.bs()) : Optional.empty();
-  }
 
   private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){ return Streams.zip(es, oEs).map(this::of).toList(); }
   core.E.Call call(inference.E.Call e, CallLike o){
-    var rc= o.rc.or(e::rc).orElse(RC.imm);
+    var rc= e.rc().orElse(RC.imm);
     var targs= InjectionSteps.writtenTargs(e) ? o.targs : e.targs();
     assert inScope(targs);
     var recv= of(e.e(), o.e);
@@ -175,10 +164,10 @@ public record ToCore(List<B> ctx, Methods meths){
     return new core.Sig(rc, m.get(), bs, ts.stream().map(TypeRename::itToT).toList(), TypeRename.itToT(ret), origin.get(), usr.abs(), usr.span());
   }
   private static boolean decided(Optional<IT> t){ return t.filter(IT::isTV).isPresent(); }
-  private record CallLike(inference.E e, List<inference.E> es, Optional<RC> rc, List<IT> targs){}
+  private record CallLike(inference.E e, List<inference.E> es, List<IT> targs){}
   private static CallLike callLike(inference.E o, MName name){
     return switch (o){
-      case inference.E.Call(var e, var n, var rc, var targs, var es, _, _, _) when n.equals(name) -> new CallLike(e, es, rc, targs);
+      case inference.E.Call(var e, var n, _, var targs, var es, _, _, _) when n.equals(name) -> new CallLike(e, es, targs);
       default -> throw Bug.unreachable();
     };
   }
