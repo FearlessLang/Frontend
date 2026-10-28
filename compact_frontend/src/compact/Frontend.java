@@ -705,7 +705,7 @@ public class Frontend{
       return zip(types,b,(ti,bi)->variable(ti)==null?normalize(ti,bi.caps):ti);
     }
     R bound(R w,List<T>types){
-      var d=from(w.c.name);return w.withTs(d==null?types:zip(types,d.b,(ti,bi)->normalize(ti,bi.caps)));
+      var d=from(w.c.name);return w.withTs(d==null?types:normalize(d.b,types));
     }
     E core(List<B>ctx,E exp,E orig){return switch(exp){
       case E.X x->x.t(u);
