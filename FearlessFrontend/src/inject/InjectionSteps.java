@@ -619,6 +619,6 @@ public record InjectionSteps(Methods meths, int cap){
   private IT.RCC withTsNormBs(IT.RCC rcc, List<IT> ts){
     var d= meths._from(rcc.c().name());
     if (d == null){ return rcc.withTs(ts); }   // {..}.foo etc.
-    return rcc.withTs(normToBounds(d.bs(), ts));
+    return rcc.withTs(normToBoundsKeepXs(d.bs(), ts));
   }
 }

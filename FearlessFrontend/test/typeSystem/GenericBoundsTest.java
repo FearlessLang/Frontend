@@ -635,7 +635,7 @@ Here "N" can only use capabilities "imm".
 But type argument "N" can use capabilities "imm" or "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-FPerson:{#[N:*](name:Str,age:imm N):Person[N]->Person[imm N]{.name:Str->name;.age:imm N->age}}
+FPerson:{#[N:*](name:Str,age:imm N):Person[N]->Person[N]{.name:Str->name;.age:N->age}}
 """, List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[N] -> {

@@ -54,9 +54,9 @@ A[Y:imm]:Foo[Y],Bar[Y]{}
 @Test void literalSupertypeSpelledDifferentlyIsListedOnce(){okI("""
 p.A:{'this .m[Y:imm](Y):p.Foo[Y]@p.A;(y)->p._AA:p.Foo[Y]{'_ ? .get[?]:?@!;->y:?;}:?;}
 p.Foo[X:imm]:{'this .get:X@p.Foo;}
-p._AA[Y:imm]:p.Foo[imm Y]{'_ .get:imm Y@p._AA;->y:imm Y;}
+p._AA[Y:imm]:p.Foo[Y]{'_ .get:Y@p._AA;->y:imm Y;}
 ~-----------
-~mut p.A:{'this .m[Y:imm](y:Y):p.Foo[Y]->imm p._AA[Y:imm]:p.Foo[Y]{'_ .get:imm Y->y}}
+~mut p.A:{'this .m[Y:imm](y:Y):p.Foo[Y]->imm p._AA[Y:imm]:p.Foo[Y]{'_ .get:Y->y}}
 ~mut p.Foo[X:imm]:{'this .get:X}
 """, List.of("""
 Foo[X:imm]:{ .get: X }
@@ -137,10 +137,10 @@ p.Stack[T:imm]:{'this .match[R:imm](p.StackMatch[T,R]):R@p.Stack;(m)->m:?.empty(
 p.Z1ExampleTimes:{'this #(p.Stack[base.Nat]):base.Nat@p.Z1ExampleTimes;(ns)->ns:?.fold(base.1:?,p._AZ1Ex:$?{'_ ? [?](?,?):?@!;(n1, n2)->n1:?*(n2:?):?;}:?):?;}
 p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_ read #(base.Nat,base.Nat):base.Nat@p._AZ1Ex;(n1, n2)->n1:base.Nat*[imm](n2:base.Nat):base.Nat;}
 p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:imm T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}
-p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_AR:imm](p.StackMatch[imm T,_AR]):_AR@p._DStac;(m)->m:p.StackMatch[T,_AR].elem[imm](e:imm T,this:p.Stack[T]):_AR; .fold[_BR:imm](_BR,base.F[_BR,imm T,_BR]):_BR@p._DStac;(start, f)->f:base.F[_BR,T,_BR]#[read](this:p.Stack[T].fold[imm,_BR](start:_BR,f:base.F[_BR,T,_BR]):_BR,e:imm T):_BR; .map[_CR:imm](base.F[imm T,_CR]):p.Stack[_CR]@p._DStac;(f)->this:p.Stack[T].map[imm,_CR](f:base.F[T,_CR]):p.Stack[_CR]+[imm](f:base.F[T,_CR]#[read](e:imm T):_CR):p.Stack[_CR]; .filter(base.F[imm T,base.Bool]):p.Stack[imm T]@p._DStac;(f)->f:base.F[T,base.Bool]#[read](e:imm T):base.Bool.if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:imm T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}:mut base.ThenElse[p.Stack[T]]):p.Stack[T]; +(imm T):p.Stack[imm T]@p.Stack;}
+p._DStac[T:imm]:p.Stack[T]{'_ .match[_AR:imm](p.StackMatch[T,_AR]):_AR@p._DStac;(m)->m:p.StackMatch[T,_AR].elem[imm](e:imm T,this:p.Stack[T]):_AR; .fold[_BR:imm](_BR,base.F[_BR,T,_BR]):_BR@p._DStac;(start, f)->f:base.F[_BR,T,_BR]#[read](this:p.Stack[T].fold[imm,_BR](start:_BR,f:base.F[_BR,T,_BR]):_BR,e:imm T):_BR; .map[_CR:imm](base.F[T,_CR]):p.Stack[_CR]@p._DStac;(f)->this:p.Stack[T].map[imm,_CR](f:base.F[T,_CR]):p.Stack[_CR]+[imm](f:base.F[T,_CR]#[read](e:imm T):_CR):p.Stack[_CR]; .filter(base.F[T,base.Bool]):p.Stack[T]@p._DStac;(f)->f:base.F[T,base.Bool]#[read](e:imm T):base.Bool.if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:imm T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}:mut base.ThenElse[p.Stack[T]]):p.Stack[T]; +(T):p.Stack[T]@p.Stack;}
 ~-----------
 ~mut p.StackMatch[T:imm,R:imm]:{'this .empty:R; .elem(_:T, _:p.Stack[T]):R}
-~mut p.Stack[T:imm]:{'this .match[R:imm](m:p.StackMatch[T,R]):R->m.empty[imm]; .fold[R:imm](start:R, f:base.F[R,T,R]):R->start; .map[R:imm](f:base.F[T,R]):p.Stack[R]->p.Stack[R]; .filter(f:base.F[T,base.Bool]):p.Stack[T]->p.Stack[T]; +(e:T):p.Stack[T]->imm p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_AR:imm](m:p.StackMatch[imm T,_AR]):_AR->m.elem[imm](e, this); .fold[_BR:imm](start:_BR, f:base.F[_BR,imm T,_BR]):_BR->f#[read](this.fold[imm,_BR](start, f), e); .map[_CR:imm](f:base.F[imm T,_CR]):p.Stack[_CR]->this.map[imm,_CR](f)+[imm](f#[read](e)); .filter(f:base.F[imm T,base.Bool]):p.Stack[imm T]->f#[read](e).if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]->this.filter[imm](f)+[imm](e); mut .else:p.Stack[T]->this.filter[imm](f)}); +(_:imm T):p.Stack[imm T]}}
+~mut p.Stack[T:imm]:{'this .match[R:imm](m:p.StackMatch[T,R]):R->m.empty[imm]; .fold[R:imm](start:R, f:base.F[R,T,R]):R->start; .map[R:imm](f:base.F[T,R]):p.Stack[R]->p.Stack[R]; .filter(f:base.F[T,base.Bool]):p.Stack[T]->p.Stack[T]; +(e:T):p.Stack[T]->imm p._DStac[T:imm]:p.Stack[T]{'_ .match[_AR:imm](m:p.StackMatch[T,_AR]):_AR->m.elem[imm](e, this); .fold[_BR:imm](start:_BR, f:base.F[_BR,T,_BR]):_BR->f#[read](this.fold[imm,_BR](start, f), e); .map[_CR:imm](f:base.F[T,_CR]):p.Stack[_CR]->this.map[imm,_CR](f)+[imm](f#[read](e)); .filter(f:base.F[T,base.Bool]):p.Stack[T]->f#[read](e).if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]->this.filter[imm](f)+[imm](e); mut .else:p.Stack[T]->this.filter[imm](f)}); +(_:T):p.Stack[T]}}
 ~mut p.Z1ExampleTimes:{'this #(ns:p.Stack[base.Nat]):base.Nat->ns.fold[imm,base.Nat](base.1, imm p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_ read #(n1:base.Nat, n2:base.Nat):base.Nat->n1*[imm](n2)})}
 """, List.of(importMini+stackStart+"""
 Z1ExampleTimes: { #(ns: Stack[Nat]): Nat -> ns.fold(1, { n1,n2 -> n1 * n2 })  }
@@ -226,10 +226,10 @@ use base.Ten   as Ten;
 p.StackMatch[T:imm, R:imm]:{'this .empty:R@p.StackMatch; .elem(T,p.Stack[T]):R@p.StackMatch;}
 p.Stack[T:imm]:{'this .match[R:imm](p.StackMatch[T,R]):R@p.Stack;(m)->m:?.empty():?; .fold[R:imm](R,base.F[R,T,R]):R@p.Stack;(start, f)->start:?; .map[R:imm](base.F[T,R]):p.Stack[R]@p.Stack;(f)->p._AStac:$?:?; .filter(base.F[T,base.Bool]):p.Stack[T]@p.Stack;(f)->p._BStac:$?:?; +(T):p.Stack[T]@p.Stack;(e)->p._DStac:$?{'_ ? .match[?](?):?@!;(m)->m:?.elem(e:?,this:?):?; ? .fold[?](?,?):?@!;(start, f)->f:?#(this:?.fold(start:?,f:?):?,e:?):?; ? .map[?](?):?@!;(f)->this:?.map(f:?):?+(f:?#(e:?):?):?; ? .filter[?](?):?@!;(f)->f:?#(e:?):?.if(p._CStac:$?{'_ ? .then[?]:?@!;->this:?.filter(f:?):?+(e:?):?; ? .else[?]:?@!;->this:?.filter(f:?):?;}:?):?;}:?;}
 p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:imm T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}
-p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_AR:imm](p.StackMatch[imm T,_AR]):_AR@p._DStac;(m)->m:p.StackMatch[T,_AR].elem[imm](e:imm T,this:p.Stack[T]):_AR; .fold[_BR:imm](_BR,base.F[_BR,imm T,_BR]):_BR@p._DStac;(start, f)->f:base.F[_BR,T,_BR]#[read](this:p.Stack[T].fold[imm,_BR](start:_BR,f:base.F[_BR,T,_BR]):_BR,e:imm T):_BR; .map[_CR:imm](base.F[imm T,_CR]):p.Stack[_CR]@p._DStac;(f)->this:p.Stack[T].map[imm,_CR](f:base.F[T,_CR]):p.Stack[_CR]+[imm](f:base.F[T,_CR]#[read](e:imm T):_CR):p.Stack[_CR]; .filter(base.F[imm T,base.Bool]):p.Stack[imm T]@p._DStac;(f)->f:base.F[T,base.Bool]#[read](e:imm T):base.Bool.if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:imm T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}:mut base.ThenElse[p.Stack[T]]):p.Stack[T]; +(imm T):p.Stack[imm T]@p.Stack;}
+p._DStac[T:imm]:p.Stack[T]{'_ .match[_AR:imm](p.StackMatch[T,_AR]):_AR@p._DStac;(m)->m:p.StackMatch[T,_AR].elem[imm](e:imm T,this:p.Stack[T]):_AR; .fold[_BR:imm](_BR,base.F[_BR,T,_BR]):_BR@p._DStac;(start, f)->f:base.F[_BR,T,_BR]#[read](this:p.Stack[T].fold[imm,_BR](start:_BR,f:base.F[_BR,T,_BR]):_BR,e:imm T):_BR; .map[_CR:imm](base.F[T,_CR]):p.Stack[_CR]@p._DStac;(f)->this:p.Stack[T].map[imm,_CR](f:base.F[T,_CR]):p.Stack[_CR]+[imm](f:base.F[T,_CR]#[read](e:imm T):_CR):p.Stack[_CR]; .filter(base.F[T,base.Bool]):p.Stack[T]@p._DStac;(f)->f:base.F[T,base.Bool]#[read](e:imm T):base.Bool.if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:imm T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}:mut base.ThenElse[p.Stack[T]]):p.Stack[T]; +(T):p.Stack[T]@p.Stack;}
 ~-----------
 ~mut p.StackMatch[T:imm,R:imm]:{'this .empty:R; .elem(_:T, _:p.Stack[T]):R}
-~mut p.Stack[T:imm]:{'this .match[R:imm](m:p.StackMatch[T,R]):R->m.empty[imm]; .fold[R:imm](start:R, f:base.F[R,T,R]):R->start; .map[R:imm](f:base.F[T,R]):p.Stack[R]->p.Stack[R]; .filter(f:base.F[T,base.Bool]):p.Stack[T]->p.Stack[T]; +(e:T):p.Stack[T]->imm p._DStac[T:imm]:p.Stack[imm T]{'_ .match[_AR:imm](m:p.StackMatch[imm T,_AR]):_AR->m.elem[imm](e, this); .fold[_BR:imm](start:_BR, f:base.F[_BR,imm T,_BR]):_BR->f#[read](this.fold[imm,_BR](start, f), e); .map[_CR:imm](f:base.F[imm T,_CR]):p.Stack[_CR]->this.map[imm,_CR](f)+[imm](f#[read](e)); .filter(f:base.F[imm T,base.Bool]):p.Stack[imm T]->f#[read](e).if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]->this.filter[imm](f)+[imm](e); mut .else:p.Stack[T]->this.filter[imm](f)}); +(_:imm T):p.Stack[imm T]}}
+~mut p.Stack[T:imm]:{'this .match[R:imm](m:p.StackMatch[T,R]):R->m.empty[imm]; .fold[R:imm](start:R, f:base.F[R,T,R]):R->start; .map[R:imm](f:base.F[T,R]):p.Stack[R]->p.Stack[R]; .filter(f:base.F[T,base.Bool]):p.Stack[T]->p.Stack[T]; +(e:T):p.Stack[T]->imm p._DStac[T:imm]:p.Stack[T]{'_ .match[_AR:imm](m:p.StackMatch[T,_AR]):_AR->m.elem[imm](e, this); .fold[_BR:imm](start:_BR, f:base.F[_BR,T,_BR]):_BR->f#[read](this.fold[imm,_BR](start, f), e); .map[_CR:imm](f:base.F[T,_CR]):p.Stack[_CR]->this.map[imm,_CR](f)+[imm](f#[read](e)); .filter(f:base.F[T,base.Bool]):p.Stack[T]->f#[read](e).if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]->this.filter[imm](f)+[imm](e); mut .else:p.Stack[T]->this.filter[imm](f)}); +(_:T):p.Stack[T]}}
 """, List.of(importTo10+stackStart));}
 
 @Test void inferStackGuideExampleSum(){okI("""
@@ -403,13 +403,13 @@ p.Baba[C:imm, D:imm]:p.GG[p.Any,p.Any]{'this .apply[_AC:imm,_AD:imm](p.Any,p.Any
 p.GG[A:imm, B:imm]:{'this .apply[C:imm,D:imm](A,B,C):D@p.GG;}
 p.KK[C:imm, D:imm]:{'_ .k[K:imm]:K@p.KK;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}
 p.User:{'this .withGG[A1:imm,B1:imm](p.GG[A1,B1]):p.User@p.User; .foo1[C:imm,D:imm]:p.User@p.User;->this:?.withGG[C,D](p._AUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?; .foo2[C:imm,D:imm]:p.User@p.User;->p.KK[C:imm,D:imm]:{'_ ? .k[K:imm]:K@!;->this:?.withGG[C,D](p._BUser:$?{'_ ? [?](?,?,?):?@!;(a, b, c)->p.Any:?!():?;}:?):?;}:?.k[p.User]():?;}
-p._AUser[C:imm, D:imm]:p.GG[imm C,imm D]{'_ .apply[_AC:imm,_AD:imm](imm C,imm D,_AC):_AD@p._AUser;(a, b, c)->p.Any:p.Any![imm,_AD]():_AD;}
-p._BUser[C:imm, D:imm]:p.GG[imm C,imm D]{'_ .apply[_BC:imm,_BD:imm](imm C,imm D,_BC):_BD@p._BUser;(a, b, c)->p.Any:p.Any![imm,_BD]():_BD;}
+p._AUser[C:imm, D:imm]:p.GG[C,D]{'_ .apply[_AC:imm,_AD:imm](C,D,_AC):_AD@p._AUser;(a, b, c)->p.Any:p.Any![imm,_AD]():_AD;}
+p._BUser[C:imm, D:imm]:p.GG[C,D]{'_ .apply[_BC:imm,_BD:imm](C,D,_BC):_BD@p._BUser;(a, b, c)->p.Any:p.Any![imm,_BD]():_BD;}
 ~-----------
 ~mut p.Any:{'this ![T:imm]:T->p.Any![imm,T]}
 ~mut p.Baba[C:imm,D:imm]:p.GG[p.Any,p.Any]{'this .apply[_AC:imm,_AD:imm](_:p.Any, _:p.Any, _:_AC):_AD}
 ~mut p.GG[A:imm,B:imm]:{'this .apply[C:imm,D:imm](_:A, _:B, _:C):D}
-~mut p.User:{'this .withGG[A1:imm,B1:imm](_:p.GG[A1,B1]):p.User; .foo1[C:imm,D:imm]:p.User->this.withGG[imm,C,D](imm p._AUser[C:imm,D:imm]:p.GG[imm C,imm D]{'_ .apply[_AC:imm,_AD:imm](a:imm C, b:imm D, c:_AC):_AD->p.Any![imm,_AD]}); .foo2[C:imm,D:imm]:p.User->imm p.KK[C:imm,D:imm]:{'_ .k[K:imm]:K->this.withGG[imm,C,D](imm p._BUser[C:imm,D:imm]:p.GG[imm C,imm D]{'_ .apply[_BC:imm,_BD:imm](a:imm C, b:imm D, c:_BC):_BD->p.Any![imm,_BD]})}.k[imm,p.User]}
+~mut p.User:{'this .withGG[A1:imm,B1:imm](_:p.GG[A1,B1]):p.User; .foo1[C:imm,D:imm]:p.User->this.withGG[imm,C,D](imm p._AUser[C:imm,D:imm]:p.GG[C,D]{'_ .apply[_AC:imm,_AD:imm](a:C, b:D, c:_AC):_AD->p.Any![imm,_AD]}); .foo2[C:imm,D:imm]:p.User->imm p.KK[C:imm,D:imm]:{'_ .k[K:imm]:K->this.withGG[imm,C,D](imm p._BUser[C:imm,D:imm]:p.GG[C,D]{'_ .apply[_BC:imm,_BD:imm](a:C, b:D, c:_BC):_BD->p.Any![imm,_BD]})}.k[imm,p.User]}
 """, List.of("""
 GG[A,B]:{ .apply[C,D](A,B,C):D }
 Baba[C,D]:GG[Any,Any]{}
@@ -964,14 +964,14 @@ p.Box[X:imm,mut,read]:{'this .f[R:imm,mut,read](p.F[X,X,R]):R@p.Box;}
 p.Dool:{'this}
 p.F[A:imm, B:imm, C:imm]:{'this #(A,B):C@p.F;}
 p.User:{'this mut .go1[R:imm,mut,read](p.Box[R]):p.Dool@p.User;(b)->b:?.f(p._AUser:$?{'_ ? [?](?,?):?@!;(aa, bb)->p.Any:?#():?;}:?):?; mut .go2(p.Box[p.User]):p.Dool@p.User;(b)->b:?.f(p._BUser:$?{'_ ? [?](?,?):?@!;(aa, bb)->p.Any:?#():?;}:?):?;}
-p._AUser[R:imm,mut,read]:p.F[imm R,imm R,p.Dool]{'_ #(imm R,imm R):p.Dool@p._AUser;(aa, bb)->p.Any:p.Any#[imm,p.Dool]():p.Dool;}
+p._AUser[R:imm,mut,read]:p.F[R,R,p.Dool]{'_ #(R,R):p.Dool@p._AUser;(aa, bb)->p.Any:p.Any#[imm,p.Dool]():p.Dool;}
 p._BUser:p.F[p.User,p.User,p.Dool]{'_ #(p.User,p.User):p.Dool@p._BUser;(aa, bb)->p.Any:p.Any#[imm,p.Dool]():p.Dool;}
 ~-----------
 ~mut p.Any:{'this #[T:imm]:T}
 ~mut p.Box[X:imm,mut,read]:{'this .f[R:imm,mut,read](_:p.F[X,X,R]):R}
 ~mut p.Dool:{'this }
 ~mut p.F[A:imm,B:imm,C:imm]:{'this #(_:A, _:B):C}
-~mut p.User:{'this mut .go1[R:imm,mut,read](b:p.Box[R]):p.Dool->b.f[imm,p.Dool](imm p._AUser[R:imm,mut,read]:p.F[imm R,imm R,p.Dool]{'_ #(aa:imm R, bb:imm R):p.Dool->p.Any#[imm,p.Dool]}); mut .go2(b:p.Box[p.User]):p.Dool->b.f[imm,p.Dool](imm p._BUser:p.F[p.User,p.User,p.Dool]{'_ #(aa:p.User, bb:p.User):p.Dool->p.Any#[imm,p.Dool]})}
+~mut p.User:{'this mut .go1[R:imm,mut,read](b:p.Box[R]):p.Dool->b.f[imm,p.Dool](imm p._AUser[R:imm,mut,read]:p.F[R,R,p.Dool]{'_ #(aa:R, bb:R):p.Dool->p.Any#[imm,p.Dool]}); mut .go2(b:p.Box[p.User]):p.Dool->b.f[imm,p.Dool](imm p._BUser:p.F[p.User,p.User,p.Dool]{'_ #(aa:p.User, bb:p.User):p.Dool->p.Any#[imm,p.Dool]})}
 """, List.of("""
 Any:{#[T]:T}
 Dool:{}
@@ -1143,7 +1143,7 @@ User:{.go(e:E1):E2->Map#({_->E2},e) }
 
 @Test void challenge3(){okI("""
 [###]
-~mut p.Snd:{'this #[A:imm](x:p.Int):p.F[A,A]->imm p._ASnd[A:imm]:p.F[imm A,imm A]{'_ #(y:imm A):imm A->y}}
+~mut p.Snd:{'this #[A:imm](x:p.Int):p.F[A,A]->imm p._ASnd[A:imm]:p.F[A,A]{'_ #(y:A):A->y}}
 ~mut p.User2:{'this .go2:p.Float->p.Snd#[imm,p.Float](p.Int)#[imm](p.Float)}
 """, List.of("""
 F[A,R]:{#(A):R}
@@ -1200,7 +1200,7 @@ User5:{.go3:Float->Trash#(Top.top {x->{y->y}} # One # FOne) }
 //TODO: why the fresh names are different wrt the one before with User3???
 @Test void challenge4CommentedCorrectInferUnknown(){okI("""
 [###]
-~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._BUser[A:imm]:p.F[p.Int,p.F[A,A]]{'_ #(x:p.Int):p.F[A,A]->imm p._AUser[A:imm]:p.F[imm A,imm A]{'_ #(y:imm A):imm A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
+~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._BUser[A:imm]:p.F[p.Int,p.F[A,A]]{'_ #(x:p.Int):p.F[A,A]->imm p._AUser[A:imm]:p.F[A,A]{'_ #(y:A):A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
 ~mut p.User5:{'this .go3:p.Float->p.Trash#[imm,p.Float](p.Top.top[imm,p.Float](imm p._DUser:p.F[p.Int,p.F[p.Float,p.Float]]{'_ #(x:p.Int):p.F[p.Float,p.Float]->imm p._CUser:p.F[p.Float,p.Float]{'_ #(y:p.Float):p.Float->y}})#[imm](p.One)#[imm](p.FOne))}
 """, List.of("""
 F[A,R]:{#(A):R}
@@ -1256,7 +1256,7 @@ A[X]:{
 
 @Test void captureThisXZ(){okI("""
 [###]
-~mut p.A[X:imm]:{'this .bar[K:imm]:p.Foo[K]; .makeTrash[Z:imm]:p.Foo[Z]->imm p._AA[Z:imm,X:imm]:p.Foo[imm Z]{'_ .capture:p.Foo[imm Z]->this.bar[imm,Z]}}
+~mut p.A[X:imm]:{'this .bar[K:imm]:p.Foo[K]; .makeTrash[Z:imm]:p.Foo[Z]->imm p._AA[Z:imm,X:imm]:p.Foo[Z]{'_ .capture:p.Foo[Z]->this.bar[imm,Z]}}
 ~mut p.Foo[Z:imm]:{'this .capture:p.Foo[Z]}
 """, List.of("""
 Foo[Z]:{.capture:Foo[Z]}
@@ -1268,7 +1268,7 @@ A[X]:{
 
 @Test void captureNested(){okI("""
 [###]
-~mut p.OrderBy[T:imm]:p.F[T,read p.Order[T]]{'this .view[A:imm](f:p.F[A,read T]):p.OrderBy[A]->imm p._BOrde[A:imm,T:imm]:p.OrderBy[imm A], p.F[imm A,read p.Order[imm A]]{'_ #(a:imm A):read p.Order[imm A]->read p._AOrde[A:imm,T:imm]:p.Order[imm A]{'_ <=>(b:imm A):p.Void->this#[imm](f#[imm](a))<=>[imm](f#[imm](b))}; .view[_AA:imm](_:p.F[_AA,read A]):p.OrderBy[_AA]}; #(_:T):read p.Order[T]}
+~mut p.OrderBy[T:imm]:p.F[T,read p.Order[T]]{'this .view[A:imm](f:p.F[A,read T]):p.OrderBy[A]->imm p._BOrde[A:imm,T:imm]:p.OrderBy[A], p.F[A,read p.Order[A]]{'_ #(a:A):read p.Order[A]->read p._AOrde[A:imm,T:imm]:p.Order[A]{'_ <=>(b:A):p.Void->this#[imm](f#[imm](a))<=>[imm](f#[imm](b))}; .view[_AA:imm](_:p.F[_AA,read A]):p.OrderBy[_AA]}; #(_:T):read p.Order[T]}
 [###]
 """, List.of("""
 F[A,B]:{#(A):B}
@@ -1288,12 +1288,12 @@ p.T1:{'this .and[X:imm](X):p.T3[X]@p.T1;}
 p.T2:{'this}
 p.T3[X:imm]:{'this .x:X@p.T3;}
 p.User:{'this .done[Y:imm](p.T1,p.T2,Y):p.T3[Y]@p.User;(t1, t2, y)->p.Map:?.of(t1:?,p._AUser:$?{'_ ? .core[WW:imm](?,?):?@!;(a, b)->a:?.and(b:?):?;}:?):?#(y:?):?;}
-p._AMap[B:imm, R:imm, A:imm]:p.F[imm B,imm R]{'_ #(imm B):imm R@p._AMap;(b)->f:p.GF[A,R].core[imm,B](a:imm A,b:B):R;}
+p._AMap[B:imm, R:imm, A:imm]:p.F[B,R]{'_ #(B):R@p._AMap;(b)->f:p.GF[A,R].core[imm,B](a:imm A,b:B):R;}
 p._AUser[Y:imm]:p.GF[p.T1,p.T3[Y]]{'_ .core[WW:imm](p.T1,WW):p.T3[Y]@p._AUser;(a, b)->a:p.T1.and[imm,WW](b:WW):p.T3[WW];}
 ~-----------
 ~mut p.F[A:imm,R:imm]:{'this #(_:A):R}
 ~mut p.GF[A:imm,R:imm]:{'this .core[B:imm](_:A, _:B):R}
-~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->imm p._AMap[B:imm,R:imm,A:imm]:p.F[imm B,imm R]{'_ #(b:imm B):imm R->f.core[imm,B](a, b)}}
+~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->imm p._AMap[B:imm,R:imm,A:imm]:p.F[B,R]{'_ #(b:B):R->f.core[imm,B](a, b)}}
 ~mut p.T1:{'this .and[X:imm](_:X):p.T3[X]}
 ~mut p.T2:{'this }
 ~mut p.T3[X:imm]:{'this .x:X}
@@ -1311,7 +1311,7 @@ User:{.done[Y](t1:T1,t2:T2,y:Y):T3[Y]->
 
 @Test void partialTypeSig1Sub(){okI("""
 [###]
-~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->imm p._AMap[B:imm,R:imm,A:imm]:p.F[imm B,imm R]{'_ #(b:imm B):imm R->f.core[imm,B](a, b)}}
+~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->imm p._AMap[B:imm,R:imm,A:imm]:p.F[B,R]{'_ #(b:B):R->f.core[imm,B](a, b)}}
 [###]
 ~mut p.User:{'this .done[Y:imm](t1:p.T1, t2:p.T2, y:Y):p.AnyT3->p.Map.of[imm,p.T1,Y,p.AnyT3](t1, imm p._AUser:p.GF[p.T1,p.AnyT3]{'_ .core[WW:imm](a:p.T1, b:WW):p.AnyT3->a.and[imm,WW](b)})#[imm](y)}
 """, List.of("""
@@ -1335,12 +1335,12 @@ p.T1:{'this .and[X:imm](X):p.T3[X]@p.T1;}
 p.T2:{'this}
 p.T3[X:imm]:{'this .x:X@p.T3;}
 p.User:{'this .done[Y:imm](p.T1,p.T2,Y):p.T3[Y]@p.User;(t1, t2, y)->p.Map:?.of(t1:?,p._AUser:$?{'_ ? .core[?](?,?):?@!;(a, b)->a:?.and(b:?):?;}:?):?#(y:?):?;}
-p._AMap[B:imm, R:imm, A:imm]:p.F[imm B,imm R]{'_ #(imm B):imm R@p._AMap;(b)->f:p.GF[A,R].core[imm,B](a:imm A,b:B):R;}
+p._AMap[B:imm, R:imm, A:imm]:p.F[B,R]{'_ #(B):R@p._AMap;(b)->f:p.GF[A,R].core[imm,B](a:imm A,b:B):R;}
 p._AUser[Y:imm]:p.GF[p.T1,p.T3[Y]]{'_ .core[B:imm](p.T1,B):p.T3[Y]@p._AUser;(a, b)->a:p.T1.and[imm,B](b:B):p.T3[B];}
 ~-----------
 ~mut p.F[A:imm,R:imm]:{'this #(_:A):R}
 ~mut p.GF[A:imm,R:imm]:{'this .core[B:imm](_:A, _:B):R}
-~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->imm p._AMap[B:imm,R:imm,A:imm]:p.F[imm B,imm R]{'_ #(b:imm B):imm R->f.core[imm,B](a, b)}}
+~mut p.Map:{'this .of[A:imm,B:imm,R:imm](a:A, f:p.GF[A,R]):p.F[B,R]->imm p._AMap[B:imm,R:imm,A:imm]:p.F[B,R]{'_ #(b:B):R->f.core[imm,B](a, b)}}
 ~mut p.T1:{'this .and[X:imm](_:X):p.T3[X]}
 ~mut p.T2:{'this }
 ~mut p.T3[X:imm]:{'this .x:X}
