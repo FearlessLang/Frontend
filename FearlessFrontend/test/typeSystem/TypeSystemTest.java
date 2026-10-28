@@ -4904,6 +4904,22 @@ Compressed relevant code with inferred types: (compression indicated by `-`)
 """, List.of("""
 App:{ .m: base.Nat -> {}.a }
 """));}
+@Test void literalReceiverWithAMethodAndASealedExpectedTypeIsATypeError(){fail("""
+001| App:{ .m: base.Nat -> {.b:base.Void->base.Void;}.a }
+   |       ----------------~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+
+While inspecting ".m" line 1
+This call to method ".a" cannot typecheck.
+Method ".a" is not declared on "{...}".
+
+Available methods on "{...}":
+-       .b:base.Void
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+{.b:-.Void->-.Void}.a
+""", List.of("""
+App:{ .m: base.Nat -> {.b:base.Void->base.Void;}.a }
+"""));}
 @Test void deepWrittenSupertype(){ok(List.of("A[X:**]:{}\nB:"+"A[".repeat(99)+"B"+"]".repeat(99)+"{}\n"));}
 @Test void parameterHashCollidingWithThis(){ok(List.of("""
 A:{ .id[Y:**](y:Y):Y -> y; .u(tiJs:A):A -> this.id(tiJs) }
