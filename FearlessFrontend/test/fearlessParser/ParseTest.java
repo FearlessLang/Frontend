@@ -680,7 +680,7 @@ In file: [###].fear
    |     ^^^^
 
 While inspecting the file
-Illegal character [Tab 0x09]
+Illegal character [Tab 0x09].
 Error 2 UnexpectedToken
 """, """
 A:{ \t .m(x:C):C->x.foo(,) }
@@ -1227,7 +1227,7 @@ In file: [###].fear
    |           ^
 
 While inspecting the file
-Illegal character [Form Feed 0x0C]
+Illegal character [Form Feed 0x0C].
 Error 2 UnexpectedToken
 """,
 "A:{ .m():X\f}");
@@ -1239,7 +1239,7 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character [No-Break Space 0x00A0]
+Illegal character [No-Break Space 0x00A0].
 Error 2 UnexpectedToken
 """,
 "A:{\u00A0.m():X }");
@@ -1253,7 +1253,7 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character [Zero Width Joiner 0x200D]
+Illegal character [Zero Width Joiner 0x200D].
 Error 2 UnexpectedToken
 """,
 "A:{\u200D\u00A0\uFEFF\u202E.m():X }");
@@ -1267,7 +1267,7 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character [Right-To-Left Override 0x202E]
+Illegal character [Right-To-Left Override 0x202E].
 Error 2 UnexpectedToken
 """,
 "A:{\u202E\u00A0\u200D\u200C.m():X }");
@@ -1281,7 +1281,7 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character [Byte Order Mark 0xFEFF]
+Illegal character [Byte Order Mark 0xFEFF].
 Error 2 UnexpectedToken
 """,
 "A:{\uFEFF\u200B\u3000.m():X }");
@@ -1294,7 +1294,7 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character [Ideographic Space 0x3000]
+Illegal character [Ideographic Space 0x3000].
 Error 2 UnexpectedToken
 """,
 "A:{\u3000\u200B\u200F\u00A0.m():X }");
@@ -1307,7 +1307,7 @@ In file: [###].fear
    |    ^
 
 While inspecting the file
-Illegal character [U+01F600]
+Illegal character [U+01F600].
 Error 2 UnexpectedToken
 """,
 "A:{\uD83D\uDE00\u00A0\u200D.m():X }");
@@ -2747,7 +2747,7 @@ In file: [###].fear
 005|  }
 
 While inspecting type declaration > full file
-Duplicated supertype in type declaration: "B".
+Duplicate supertype in type declaration: "B".
 Error 7 WellFormedness
 """, """
 A:B,C,B,D{

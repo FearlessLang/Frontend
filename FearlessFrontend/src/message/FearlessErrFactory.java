@@ -35,7 +35,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   Optional<TName> lastTop= Optional.empty();
   public void noteTop(TName t){ lastTop = Optional.of(t); }
   @Override public FearlessException illegalCharAt(Span at, int cp, Tokenizer tokenizer){
-    return Code.UnexpectedToken.of("Illegal character "+Message.displayChar(cp)).addFrame(new Frame("", at));
+    return Code.UnexpectedToken.of("Illegal character "+Message.displayChar(cp)+".").addFrame(new Frame("", at));
   }
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels, Parser parser){
     assert nonNull(at, what, expectedLabels);
@@ -121,7 +121,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   public FearlessException duplicatedImpl(List<T.C> cs, Span at){
     var c= redeclaredElement(cs);
     return Code.WellFormedness.of(
-      "Duplicated supertype in type declaration: "+staticTypeDecName(c.name())+".\n"
+      "Duplicate supertype in type declaration: "+staticTypeDecName(c.name())+".\n"
     ).addSpan(at);
   }
 
