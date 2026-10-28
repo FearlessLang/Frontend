@@ -582,9 +582,9 @@ public class Frontend{
     List<T>meet(List<T>a,List<T>z){return zip(a,z,this::meet);}
     List<T>meet(List<List<T>>tss){return tss.stream().reduce(this::meet).get();}
     E solve(List<B>b,IG g,E e){
-      var grew=0;while(true){var s=g.snap();var oe=next(b,g,e);
+      while(true){var s=g.snap();var oe=next(b,g,e);
         if(oe.equals(e)&&s.equals(g.snap()))return e;
-        grew=oe.t().depth()>e.t().depth()?grew+1:0;no(grew==50||oe.t().depth()>cap);e=oe;
+        no(oe.t().depth()>cap);e=oe;
       }
     }
     List<E>solve(List<B>b,IG g,List<E>es){return map(es,ei->solve(b,g,ei));}

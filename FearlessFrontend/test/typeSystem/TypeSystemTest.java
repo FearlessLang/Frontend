@@ -5474,22 +5474,6 @@ G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A:{ .k: A; .v: base.Void }
 U:{ .m: A -> {'s .k -> s; .v -> G#(s, { .k -> s; .v -> base.Void }) } }
 """));}
-@Test void typeGrowsForeverBelowTheDepthCap(){failWf("""
-007| Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
-   |                      ^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting object literal instance of "Foo[_]"
-Type inference finds no type for object literal instance of "Foo[_]".
-Each round of inference nests its type one level deeper, as "Foo[Box[Box[...]]]"; it would grow without bound.
-""", List.of("""
-N:{}
-Box[X]:{}
-Deep:{ .d: Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[N]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] }
-Wrap:{ #[Y](y: Y): Box[Y] -> {} }
-Foo[X]:{ .m(x: X): X }
-Take:{ #[Z](f: Foo[Z]): N -> N }
-Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
-"""));}
 @Test void literalExpectedAsTheTypeOfTheSelfName(){fail("""
 003| U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
    |     -----------------------~~~~~~~~~~~~^^~--

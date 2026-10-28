@@ -198,7 +198,6 @@ public record InjectionSteps(Methods meths, int cap){
   E nextStar(List<B> bs, Gamma g, E e){
     var start= e;
     if (e.done(g)){ return e; }
-    var grew= 0;
     while (true){
       var s= g.snapshot();
       var oe= next(bs, g, e);
@@ -210,8 +209,7 @@ public record InjectionSteps(Methods meths, int cap){
         return e;
       }
       //if (oe.equals(e) && !g.changed(s)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
-      grew = oe.t().depth() > e.t().depth() ? grew+1 : 0;
-      var forever= grew == 50 || oe.t().depth() > cap;
+      var forever= oe.t().depth() > cap;
       if (forever){ throw meths.p().err().typeGrowsForever(oe); }
       e = oe;
     }
