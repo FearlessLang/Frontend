@@ -4951,6 +4951,42 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
 A:{} B:{} Top:{} Sup[T]:Top{ .k: T } Z:Sup[B]{ .k -> B }
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Sup[A], z: Z): A -> this.both(y, z) }
 """));}
+@Test void lambdaParameterCapturedBeforeItsOtherUseIsInferredAsWhenCapturedAfter(){ok(List.of("""
+A:{ mut .m: A -> A }
+Mut:{ #(a: mut A): A -> a.m }
+Imm:{ #(a: A): A -> a }
+G:{ imm #: A }
+Two:{ #[X:*,Y:*](a: X, b: Y): Y -> b }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U:{ .use: A -> Ap#{x -> Two#(mut G{ # -> Imm#x }, Mut#x)} }
+"""));}
+@Test void lambdaParameterCapturedAfterItsOtherUseIsInferredFromTheOtherUse(){ok(List.of("""
+A:{ mut .m: A -> A }
+Mut:{ #(a: mut A): A -> a.m }
+Imm:{ #(a: A): A -> a }
+G:{ imm #: A }
+Two:{ #[X:*,Y:*](a: X, b: Y): X -> a }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U:{ .use: A -> Ap#{x -> Two#(Mut#x, mut G{ # -> Imm#x })} }
+"""));}
+@Test void lambdaParameterOnlyCapturedInAnImmMethodIsImm(){ok(List.of("""
+A:{ mut .m: A -> A }
+Imm:{ #(a: A): A -> a }
+G:{ imm #: A }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U:{ .use: mut G -> Ap#{x -> mut G{ # -> Imm#x }} }
+"""));}
+@Test void lambdaParameterOnlyCapturedInAMutMethodIsMut(){ok(List.of("""
+A:{ mut .m: A -> A }
+Mut:{ #(a: mut A): A -> a.m }
+G:{ mut #: A }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U:{ .use: mut G -> Ap#{x -> mut G{ # -> Mut#x }} }
+"""));}
 @Test void deepWrittenSupertype(){ok(List.of("A[X:**]:{}\nB:"+"A[".repeat(99)+"B"+"]".repeat(99)+"{}\n"));}
 @Test void parameterHashCollidingWithThis(){ok(List.of("""
 A:{ .id[Y:**](y:Y):Y -> y; .u(tiJs:A):A -> this.id(tiJs) }

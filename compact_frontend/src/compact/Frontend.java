@@ -591,7 +591,7 @@ public class Frontend{
     E next(List<B>b,IG g,E e){return switch(e){
       case E.X x->{
         var o=g.get(x.name);var a=o;var i=g.indexOf(find(g,f->f.vars.containsKey(x.name)));for(var f:g.subList(i+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);}var z=x.t;if(a.equals(z))yield x;
-        var t=z.und()?null:o.und()?z
+        var t=z.und()?null:o.und()?i+1<g.size()&&z instanceof R(_,var c)?new R(null,c):z
           :o instanceof R(var aRc,var aC)&&z instanceof R(var bRc,var bC)&&aC.name.equals(bC.name)?new R(aRc==null?bRc:bRc==null?aRc:lowerCap(aRc,bRc),aC)
           :o instanceof RX y&&z instanceof RX(var bRc,var bX)&&y.x.equals(bX)?y.rc(lowerCap(y.r,bRc)):null;
         if(t!=null)g.get(i).vars.put(x.name,t);yield x.t(meet(a,z));
