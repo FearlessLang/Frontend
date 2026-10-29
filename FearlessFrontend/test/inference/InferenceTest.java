@@ -436,6 +436,14 @@ p.B:p.A{'this #(p.A):p.A@p.B;(_adiv)->base.Destruct:?#(_adiv:?.a():?.b():?,_adiv
 A:{ #(A):A }
 B:A{ #{.a.b,.c.d}3->b3+d3 }
 """));}
+@Test void xpatInAPackageWithAnAliasForDestruct(){ok("""
+p.A:{'this #(p.A):p.A@p.A;}
+p.B:p.A{'this #(p.A):p.A@p.B;(_adiv)->base.Destruct:?#(_adiv:?.a():?.b():?,_adiv:?.c():?.d():?,p._AB:$?{'_ ? [?](?,?):?@!;(b3, d3)->b3:?+(d3:?):?;}:?):?;}
+""", List.of("""
+use base.Destruct as D;
+A:{ #(A):A }
+B:A{ #{.a.b,.c.d}3->b3+d3 }
+"""));}
 
 @Test void eqDeep(){ok("""
 p.A:{'this .bar(p.A):p.A@p.A;}

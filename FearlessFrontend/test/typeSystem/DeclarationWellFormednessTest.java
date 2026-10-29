@@ -942,33 +942,33 @@ A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
 """));}
 @Test void supertypeSimpleAndQualified(){failWf("""
 002| B:A,p.A{}
-   | ^^^^^^^^^
+   |     ^^^^
 
-While inspecting type declaration "B"
-Duplicate supertype in type declaration: "A" and "p.A" denote the same type.
-Remove one of them.
+While inspecting a type name
+Type "p.A" is written "A" in package "p", because the types of package "p" are written by their simple names.
+In a package, each name refers to a single package or type, and each package or type has a single name.
 """, List.of("""
 A:{}
 B:A,p.A{}
 """));}
 @Test void supertypeUseAliasAndQualified(){failWf("""
 002| B:CF,base.CaptureFree{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^
+   |      ^^^^^^^^^^^^^^^^^
 
-While inspecting type declaration "B"
-Duplicate supertype in type declaration: "CF" and "base.CaptureFree" denote the same type.
-Remove one of them.
+While inspecting a type name
+Type "base.CaptureFree" is written "CF" in package "p", because of "use base.CaptureFree as CF".
+In a package, each name refers to a single package or type, and each package or type has a single name.
 """, List.of("""
 use base.CaptureFree as CF;
 B:CF,base.CaptureFree{}
 """));}
 @Test void supertypeDifferentSpellingOfTypeArgument(){failWf("""
 003| B:A[Foo],A[p.Foo]{}
-   | ^^^^^^^^^^^^^^^^^^^
+   |            ^^^^^^
 
-While inspecting type declaration "B"
-Duplicate supertype in type declaration: "A[Foo]" and "A[p.Foo]" denote the same type.
-Remove one of them.
+While inspecting a type name
+Type "p.Foo" is written "Foo" in package "p", because the types of package "p" are written by their simple names.
+In a package, each name refers to a single package or type, and each package or type has a single name.
 """, List.of("""
 Foo:{}
 A[X:*]:{}

@@ -61,7 +61,7 @@ Name "a.A" stands for "c.A" because of "map a as c in b".
 
 See inferred typing context below for how type "c.A" was introduced: (compression indicated by `-`)
 B:-.A{.fromC:-.A->-.Void}
-Error 8 TypeError""", Map.of("a", aA, "c", cA), Map.of("a", "c"), """
+Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
 B:a.A{ .fromC -> base.Void }
 """); }
   @Test void mapToMissingTypeSuggestsNoNameTheMapRedirects(){ fail("""
@@ -75,91 +75,27 @@ Name "a.A" stands for "c.A" because of "map a as c in b".
 Type "A" is not declared in package "c".
 In scope: "C".
 Error 7 WellFormedness
-""", Map.of("a", aA, "c", "C:{}"), Map.of("a", "c"), """
+""", Map.of("c", "C:{}"), Map.of("a", "c"), """
 B:{.m(x:a.A):B->this}
 """); }
   @Test void noMapQualifiedNameIsLiteral(){ ok(Map.of("a", aA, "c", cA), Map.of(), """
 B:{.m(x:a.A):a.A->x.fromA}
 """); }
-  @Test void mappedNameStandsForTheOutPackage(){ ok(Map.of("a", aA, "c", cA), Map.of("a", "c"), """
+  @Test void mappedNameStandsForTheOutPackage(){ ok(Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:a.A):a.A->x.fromC}
 """); }
-  @Test void mappedNameNoLongerReachesTheInPackage(){ fail("""
+  @Test void outPackageIsNotReachableByItsOwnName(){ fail("""
 In file: [###].fear
 
-001| B:{.m(x:a.A):a.A->x.fromA}
-   |    ---------------~^^^^^^^
+001| B:{.m(x:a.A):c.A->x.fromC}
+   |              ^^^^
 
-While inspecting ".m(_)" line 1
-This call to method ".fromA" cannot typecheck.
-Method ".fromA" is not declared on type "c.A".
-
-Available methods on type "c.A":
--       .fromC:c.A
-
-Name "a.A" stands for "c.A" because of "map a as c in b".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-x.fromA
-Error 8 TypeError
-""", Map.of("a", aA, "c", cA), Map.of("a", "c"), """
-B:{.m(x:a.A):a.A->x.fromA}
-"""); }
-  @Test void inPackageNeedNotExist(){ ok(Map.of("c", cA), Map.of("a", "c"), """
-B:{.m(x:a.A):a.A->x.fromC}
-"""); }
-  @Test void outPackageIsStillReachableByItsOwnName(){ ok(Map.of("a", aA, "c", cA), Map.of("a", "c"), """
+While inspecting a type name
+Type "c.A" is written "a.A" in package "b", because of "map a as c in b".
+In a package, each name refers to a single package or type, and each package or type has a single name.
+Error 7 WellFormedness
+""", Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:a.A):c.A->x.fromC}
-"""); }
-  @Test void swapTwoPackages(){ ok(Map.of("a", aA, "c", cA), Map.of("a", "c", "c", "a"), """
-B:{
-  .m1(x:a.A):a.A->x.fromC;
-  .m2(y:c.A):c.A->y.fromA;
-  }
-"""); }
-  @Test void mapIsNotTransitive(){ ok(Map.of("c", cA, "d", dA), Map.of("a", "c", "c", "d"), """
-B:{
-  .m1(x:a.A):a.A->x.fromC;
-  .m2(y:c.A):c.A->y.fromD;
-  }
-"""); }
-  @Test void mapIsNotTransitiveFail(){ fail("""
-In file: [###].fear
-
-001| B:{.m(x:a.A):a.A->x.fromD}
-   |    ---------------~^^^^^^^
-
-While inspecting ".m(_)" line 1
-This call to method ".fromD" cannot typecheck.
-Method ".fromD" is not declared on type "c.A".
-
-Available methods on type "c.A":
--       .fromC:c.A
-
-Name "a.A" stands for "c.A" because of "map a as c in b".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-x.fromD
-Error 8 TypeError
-""", Map.of("c", cA, "d", dA), Map.of("a", "c", "c", "d"), """
-B:{.m(x:a.A):a.A->x.fromD}
-"""); }
-  @Test void mapIntoTheCurrentPackage(){ ok(Map.of(), Map.of("a", "b"), """
-B:{.m(x:a.B):B->x.self; .self:b.B->this}
-"""); }
-  @Test void useThroughMapIntoTheCurrentPackage(){ fail("""
-In file: [###].fear
-
-001| use a.B as X;
-   |     ^^^
-
-While inspecting package header
-Name "a.B" stands for "b.B" because of "map a as b in b".
-"use" directive refers to type "B" of the current package "b".
-A "use" directive can only refer to types of other packages: the types of package "b" are already in scope by their simple names.
-Error 7 WellFormedness""", Map.of(), Map.of("a", "b"), """
-use a.B as X;
-B:{.m(x:X):a.B->x.self; .self:b.B->this}
 """); }
   @Test void useOfTheCurrentPackage(){ fail("""
 In file: [###].fear
@@ -174,34 +110,18 @@ Error 7 WellFormedness""", Map.of(), Map.of(), """
 use b.B as X;
 B:{.m(x:X):B->x.self; .self:X->this}
 """); }
-  @Test void useThroughMapIntoTheCurrentPackageUndeclared(){ fail("""
+  @Test void currentPackageQualified(){ fail("""
 In file: [###].fear
 
-001| use a.Z as X;
-   |     ^^^
-
-While inspecting package header
-Name "a.Z" stands for "b.Z" because of "map a as b in b".
-"use" directive refers to type "Z" of the current package "b".
-A "use" directive can only refer to types of other packages: the types of package "b" are already in scope by their simple names.
-Error 7 WellFormedness
-""", Map.of(), Map.of("a", "b"), """
-use a.Z as X;
-B:{}
-"""); }
-  @Test void mapIntoTheCurrentPackageUndeclared(){ fail("""
-In file: [###].fear
-
-001| B:{.m(x:a.Z):B->this}
+001| B:{.m(x:b.B):B->this}
    |         ^^^^
 
 While inspecting a type name
-Name "a.Z" stands for "b.Z" because of "map a as b in b".
-Type "Z" is not declared in package "b".
-In scope: "B".
+Type "b.B" is written "B" in package "b", because the types of package "b" are written by their simple names.
+In a package, each name refers to a single package or type, and each package or type has a single name.
 Error 7 WellFormedness
-""", Map.of(), Map.of("a", "b"), """
-B:{.m(x:a.Z):B->this}
+""", Map.of(), Map.of(), """
+B:{.m(x:b.B):B->this}
 """); }
   @Test void currentPackageQualifiedUndeclared(){ fail("""
 In file: [###].fear
@@ -210,25 +130,11 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Type "Z" is not declared in package "b".
-In scope: "B".
+Type "b.Z" is written "Z" in package "b", because the types of package "b" are written by their simple names.
+In a package, each name refers to a single package or type, and each package or type has a single name.
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
 B:{.m(x:b.Z):B->this}
-"""); }
-  @Test void currentPackageQualifiedOtherArity(){ fail("""
-In file: [###].fear
-
-001| B:{.m(x:b.B[B]):B->this}
-   |         ^^^^
-
-While inspecting a type name
-Name "B" is not declared with 1 type parameter in package "b".
-Name "B" is only declared with 0 type parameters.
-Did you accidentally add or omit a type parameter?
-Error 7 WellFormedness
-""", Map.of(), Map.of(), """
-B:{.m(x:b.B[B]):B->this}
 """); }
   @Test void mapToMissingType(){ fail("""
 In file: [###].fear
@@ -241,16 +147,12 @@ Name "a.Z" stands for "c.Z" because of "map a as c in b".
 Type "Z" is not declared in package "c".
 In scope: "A".
 Error 7 WellFormedness
-""", Map.of("a", aA, "c", cA), Map.of("a", "c"), """
+""", Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:a.Z):B->this}
 """); }
-  @Test void useThroughMap(){ ok(Map.of("a", aA, "c", cA), Map.of("a", "c"), """
+  @Test void useThroughMap(){ ok(Map.of("c", cA), Map.of("a", "c"), """
 use a.A as A;
-B:{.m(x:A):a.A->x.fromC}
-"""); }
-  @Test void useThroughMapInPackageMissing(){ ok(Map.of("c", cA), Map.of("a", "c"), """
-use a.A as A;
-B:{.m(x:A):a.A->x.fromC}
+B:{.m(x:A):A->x.fromC}
 """); }
   @Test void useThroughMapToMissingType(){ fail("""
 In file: [###].fear
@@ -262,47 +164,52 @@ While inspecting package header
 Name "a.Z" stands for "cc.Z" because of "map a as cc in b".
 "use" directive refers to undeclared name: type "Z" is not declared in package "cc".
 Error 7 WellFormedness
-""", Map.of("a", aA, "cc", cA), Map.of("a", "cc"), """
+""", Map.of("cc", cA), Map.of("a", "cc"), """
 use a.Z as Z;
 B:{}
 """); }
-  @Test void useThroughSwap(){ ok(Map.of("a", aA, "c", cA), Map.of("a", "c", "c", "a"), """
-use a.A as CA;
-use c.A as AA;
-B:{.m1(x:CA):a.A->x.fromC; .m2(y:AA):c.A->y.fromA}
-"""); }
-  @Test void twoVirtualPackagesMappedToTheSameRealPackage(){ ok(Map.of("c", cA), Map.of("a", "c", "d", "c"), """
-B:{.m(x:a.A):d.A->x.fromC}
-"""); }
-  @Test void twoUsesReachingTheSameTypeThroughMap(){ ok(Map.of("c", cA), Map.of("a", "c"), """
-use a.A as X;
-use c.A as Y;
-B:{.m(x:X):Y->x.fromC}
-"""); }
-  @Test void twoUsesReachingTheSameTypeThroughMapFail(){ fail("""
+  @Test void useOfAMapTarget(){ fail("""
 In file: [###].fear
 
-003| B:{.m(x:Y):X->x.fromA}
-   |    -----------~^^^^^^^
+001| use c.A as X;
+   |     ^^^
 
-While inspecting ".m(_)" line 3
-This call to method ".fromA" cannot typecheck.
-Method ".fromA" is not declared on type "X".
-
-Available methods on type "X":
--       .fromC:X
-
-Name "Y" stands for "a.A" because of "use a.A as Y".
-Name "a.A" stands for "c.A" because of "map a as c in b".
-Name "X" stands for "c.A" because of "use c.A as X".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-x.fromA
-Error 8 TypeError
+While inspecting package header
+"use" directive refers to package "c", which is written "a" in package "b" because of "map a as c in b".
+In a package, each name refers to a single package or type, and each package or type has a single name.
+Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
-use a.A as Y;
 use c.A as X;
-B:{.m(x:Y):X->x.fromA}
+B:{.m(x:X):X->x.fromC}
+"""); }
+  @Test void aliasedTypeWrittenQualified(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:X):c.A->x.fromC}
+   |            ^^^^
+
+While inspecting a type name
+Type "c.A" is written "X" in package "b", because of "use c.A as X".
+In a package, each name refers to a single package or type, and each package or type has a single name.
+Error 7 WellFormedness
+""", Map.of("c", cA), Map.of(), """
+use c.A as X;
+B:{.m(x:X):c.A->x.fromC}
+"""); }
+  @Test void aliasedTypeWrittenThroughAMap(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:X):a.A->x.fromC}
+   |            ^^^^
+
+While inspecting a type name
+Name "a.A" stands for "c.A" because of "map a as c in b".
+Type "c.A" is written "X" in package "b", because of "use a.A as X".
+In a package, each name refers to a single package or type, and each package or type has a single name.
+Error 7 WellFormedness
+""", Map.of("c", cA), Map.of("a", "c"), """
+use a.A as X;
+B:{.m(x:X):a.A->x.fromC}
 """); }
   @Test void useThroughMapFail(){ fail("""
 In file: [###].fear
@@ -323,7 +230,7 @@ Name "a.A" stands for "c.A" because of "map a as c in b".
 Compressed relevant code with inferred types: (compression indicated by `-`)
 x.fromA
 Error 8 TypeError
-""", Map.of("a", aA, "c", cA), Map.of("a", "c"), """
+""", Map.of("c", cA), Map.of("a", "c"), """
 use a.A as A;
 B:{.m(x:A):A->x.fromA}
 """); }
@@ -346,27 +253,6 @@ Error 8 TypeError
 """, Map.of("c", cA), Map.of(), """
 use c.A as X;
 B:{.m(x:X):X->x.fromA}
-"""); }
-  @Test void swapTwoPackagesFail(){ fail("""
-In file: [###].fear
-
-001| B:{.m(y:c.A):c.A->y.fromC}
-   |    ---------------~^^^^^^^
-
-While inspecting ".m(_)" line 1
-This call to method ".fromC" cannot typecheck.
-Method ".fromC" is not declared on type "a.A".
-
-Available methods on type "a.A":
--       .fromA:a.A
-
-Name "c.A" stands for "a.A" because of "map c as a in b".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-y.fromC
-Error 8 TypeError
-""", Map.of("a", aA, "c", cA), Map.of("a", "c", "c", "a"), """
-B:{.m(y:c.A):c.A->y.fromC}
 """); }
   @Test void useOfOtherPackageOtherArity(){ fail("""
 In file: [###].fear
@@ -397,22 +283,24 @@ Name "A" is not declared with 1 type parameter in package "c".
 Name "A" is only declared with 0 type parameters.
 Did you accidentally add or omit a type parameter?
 Error 7 WellFormedness
-""", Map.of("a", aA, "c", cA), Map.of("a", "c"), """
+""", Map.of("c", cA), Map.of("a", "c"), """
 use a.A as X;
 B:{.m(x:X[B]):B->this}
 """); }
-  @Test void mapToMissingPackage(){ fail("""
+  @Test void twoVersionsOfAPackageMappedFromTwoNames(){ ok(Map.of("webserver_v12", "Server:{.v12:Server->this}", "webserver_v13", "Server:{.v13:Server->this}"), Map.of("old", "webserver_v12", "webserver", "webserver_v13"), """
+B:{.m(x:old.Server, y:webserver.Server):webserver.Server->y.v13; .k(x:old.Server):old.Server->x.v12}
+"""); }
+  @Test void versionedPackageWrittenByItsRealName(){ fail("""
 In file: [###].fear
 
-001| B:{.m(x:a.A):B->this}
-   |         ^^^^
+001| B:{.m(x:webserver_v12.Server):webserver.Server->x.v12}
+   |         ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting a type name
-Name "a.A" stands for "zz.A" because of "map a as zz in b".
-Package "zz" does not exist.
-Visible packages: "b", "base".
+Type "webserver_v12.Server" is written "webserver.Server" in package "b", because of "map webserver as webserver_v12 in b".
+In a package, each name refers to a single package or type, and each package or type has a single name.
 Error 7 WellFormedness
-""", Map.of("a", aA), Map.of("a", "zz"), """
-B:{.m(x:a.A):B->this}
+""", Map.of("webserver_v12", "Server:{.v12:Server->this}"), Map.of("webserver", "webserver_v12"), """
+B:{.m(x:webserver_v12.Server):webserver.Server->x.v12}
 """); }
 }

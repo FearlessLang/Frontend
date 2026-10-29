@@ -12,6 +12,7 @@ import core.TName;
 import fearlessParser.TokenKind;
 import inference.E;
 import message.WellFormednessErrors;
+import pkgmerge.Package;
 
 public final class ToInference{
   private static FearlessException undeclaredType(Methods meths, TName written, TName resolved){
@@ -27,11 +28,21 @@ public final class ToInference{
     var scope= Stream.concat(declared.stream(), imported.stream()).toList();
     return p.err().usedUndeclaredName(written, resolved, scope, all, WellFormednessErrors.resolution(p, written.s()));
   }
+  private static String qualified(Package p, TName tn){
+    var pN= tn.pkgName();
+    if (pN.equals(p.name())){ throw p.err().typeOfTheCurrentPackageQualified(tn); }
+    var named= Package.mapTo(p.name(), p.map(), pN);
+    if (named.isPresent()){ throw p.err().typeOfAMapTarget(tn, named.get()); }
+    var full= p.map().getOrDefault(pN, pN)+"."+tn.simpleName();
+    var alias= p.uses().stream().filter(u -> full.equals(p.map().get(u.out()))).findFirst();
+    if (alias.isPresent()){ throw p.err().typeWithAnAlias(tn, full, alias.get()); }
+    return full;
+  }
   private static TName resolve(Methods meths, TName tn){
     var p= meths.p();
     var pN= tn.pkgName();
     if (pN.isEmpty() && LiteralDeclarations.isPrimitiveLiteral(tn.s())){ return tn.withPkgName("base"); }
-    var s= pN.isEmpty() ? p.map().getOrDefault(tn.s(), p.name()+"."+tn.s()) : p.map().getOrDefault(pN, pN)+"."+tn.simpleName();
+    var s= pN.isEmpty() ? p.map().getOrDefault(tn.s(), p.name()+"."+tn.s()) : qualified(p, tn);
     var full= new TName(s, tn.arity(), tn.pos());
     var current= full.pkgName().equals(p.name());
     assert p.names().decNames().stream().allMatch(n -> n.pkgName().isEmpty());

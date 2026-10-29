@@ -78,17 +78,31 @@ public class FrontendLogicMain{
       .flatMap(e -> e.getValue().maps().stream().map(m -> new Cand(e.getKey(), m.target(), m.in(), m.out())
       )).collect(Collectors.groupingBy(x -> new Key(x.target(), x.in())));
     var res= new HashMap<String,HashMap<String,String>>();
-    for (var e : byKey.entrySet()){
+    var chosen= new TreeMap<String,ArrayList<Cand>>();
+    var sorted= byKey.entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().target()+" "+e.getKey().in())).toList();
+    for (var e : sorted){
       var k= e.getKey();
       var cs= e.getValue();
       var best= Collections.max(cs, Comparator.comparing(Cand::uri, c));
       var bests= cs.stream().filter(x -> c.compare(x.uri(), best.uri()) == 0).toList();
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
       var conflicting= bests.stream().map(Cand::out).distinct().count() != 1;
-      if (conflicting){ throw new WellFormednessErrors(k.target()).mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
-      if (!pkgs.contains(best.out())){ throw new WellFormednessErrors(k.target()).mapToMissingPackage(k.in(), best.out(), best.toString(), pkgs.stream().sorted().toList()); }
+      var err= new WellFormednessErrors(k.target());
+      if (conflicting){ throw err.mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
+      if (k.target().equals("base")){ throw err.mapInBase(k.in(), best.out(), best.toString()); }
+      if (!ranks.containsKey(k.target())){ throw err.mapInMissingPackage(k.in(), best.out(), best.toString(), ranks.keySet().stream().sorted().toList()); }
+      if (pkgs.contains(k.in())){ throw err.mapOfAnExistingPackage(k.in(), best.out(), best.toString()); }
+      if (!pkgs.contains(best.out())){ throw err.mapToMissingPackage(k.in(), best.out(), best.toString(), pkgs.stream().sorted().toList()); }
+      if (best.out().equals(k.target())){ throw err.mapToItself(k.in(), best.toString()); }
+      var outRank= ranks.get(best.out());
+      var targetRank= ranks.get(k.target());
+      var lower= outRank == null || c.compare(outRank, targetRank) < 0;
+      if (!lower){ throw err.mapToNotLowerRank(k.in(), best.out(), best.toString(), targetRank, outRank, c.compare(outRank, targetRank) == 0); }
       res.computeIfAbsent(k.target(), _ -> new HashMap<>()).put(k.in(), best.out());
+      chosen.computeIfAbsent(k.target()+"."+best.out(), _ -> new ArrayList<>()).add(best);
     }
+    var shared= chosen.values().stream().filter(cs -> cs.size() > 1).findFirst();
+    shared.ifPresent(cs -> { throw new WellFormednessErrors(cs.getFirst().target()).mapToATargetOfAnotherMap(cs.getFirst().out(), cs.stream().map(Object::toString).toList()); });
     ranks.forEach((pkg, f) -> usesOnlyLowerRanks(pkg, parsed.get(f).uses(), res.getOrDefault(pkg, new HashMap<>()), ranks, c));
     return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Map.copyOf(e.getValue())));
   }
@@ -117,9 +131,18 @@ public class FrontendLogicMain{
       .flatMap(f -> f.decs().stream())
       .sorted().toList();
     var names= DeclaredNames.of(pkgName, ds, head.uses().stream().map(FileFull.Use::out).collect(Collectors.toUnmodifiableSet()));
+    return makePackage(pkgName, directives(err, override, head.uses(), other), head.uses(), ds, names);
+  }
+  public Function<TName,String> names(String pkgName, Map<String,String> override, List<Ref> files, OtherPackages other){
+    var err= new WellFormednessErrors(pkgName);
+    var head= findHeadUri(err, Set.copyOf(files));
+    var map= directives(err, override, Parse.from(head.fearURI(), head.loadString()).uses(), other);
+    return t -> Package.nameOf(pkgName, map, t);
+  }
+  private Map<String,String> directives(WellFormednessErrors err, Map<String,String> override, List<FileFull.Use> uses, OtherPackages other){
     var map= new HashMap<>(override);
-    accUses(err, map, head.uses(), other);
-    return makePackage(pkgName, Collections.unmodifiableMap(map), head.uses(), ds, names);
+    accUses(err, map, uses, other);
+    return Collections.unmodifiableMap(map);
   }
   Package makePackage(String name, Map<String,String> map, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
     return new Package(name, map, uses, decs, names, new Package.Logger(false, null));//this method exists to change logger in mocking
@@ -129,6 +152,8 @@ public class FrontendLogicMain{
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
       if (u.in().pkgName().isEmpty()){ throw err.useNotFullyQualified(u.in()); }
+      var named= Package.mapTo(err.pkgName(), map, u.in().pkgName());
+      if (named.isPresent()){ throw err.useOfAMapTarget(u.in(), named.get()); }
       var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
       if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in(), p); }
       var in= p+"."+u.in().simpleName();

@@ -247,6 +247,68 @@ public record WellFormednessErrors(String pkgName){
       .line("\"use\" directive refers to type "+disp(tn.simpleName())+" of the current package "+disp(pkg)+".")
       .line("A \"use\" directive can only refer to types of other packages: the types of package "+disp(pkg)+" are already in scope by their simple names."), tn);
   }
+  public FearlessException mapToATargetOfAnotherMap(String out, List<String> directives){
+    var e= err().line("For package "+disp(pkgName)+", the real package "+disp(out)+" is mapped from different virtual package names:");
+    directives.forEach(e::line);
+    return e.line(oneNamePerTarget).wf();
+  }
+  public FearlessException mapInBase(String in, String out, String directive){
+    return err()
+      .line("For package "+disp(pkgName)+", the virtual package name "+disp(in)+" is mapped to "+disp(out)+",")
+      .line("but the names written in package "+disp(pkgName)+" can not be mapped:")
+      .line(directive).wf();
+  }
+  public FearlessException mapInMissingPackage(String in, String out, String directive, List<String> pkgs){
+    var e= err()
+      .line("For package "+disp(pkgName)+", the virtual package name "+disp(in)+" is mapped to "+disp(out)+",")
+      .line("but package "+disp(pkgName)+" does not exist:")
+      .line(directive);
+    NameSuggester.suggest(pkgName, pkgs, (_,_,best) -> { best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?")); return null; });
+    return e.line(Join.of(pkgs.stream().map(Err::disp), "Existing packages: ", ", ", ".")).wf();
+  }
+  public FearlessException mapOfAnExistingPackage(String in, String out, String directive){
+    return err()
+      .line("For package "+disp(pkgName)+", the virtual package name "+disp(in)+" is mapped to "+disp(out)+",")
+      .line("but "+disp(in)+" is the name of an existing package:")
+      .line(directive)
+      .line("A map gives a name to a package that does not exist; it can not hide an existing package.").wf();
+  }
+  public FearlessException mapToItself(String in, String directive){
+    return err()
+      .line("For package "+disp(pkgName)+", the virtual package name "+disp(in)+" is mapped to "+disp(pkgName)+" itself:")
+      .line(directive)
+      .line("The types of package "+disp(pkgName)+" are written by their simple names.").wf();
+  }
+  public FearlessException mapToNotLowerRank(String in, String out, String directive, Ref rank, Ref otherRank, boolean sameRank){
+    return err()
+      .line("For package "+disp(pkgName)+", the virtual package name "+disp(in)+" is mapped to "+disp(out)+",")
+      .line("but package "+disp(out)+" has "+(sameRank ? "the same rank as" : "a higher rank than")+" package "+disp(pkgName)+":")
+      .line(directive)
+      .line("Package "+disp(pkgName)+" has rank "+rankDisp(rank)+" and package "+disp(out)+" has rank "+rankDisp(otherRank)+".")
+      .line("A package can only refer to packages of a lower rank.").wf();
+  }
+  public FearlessException useOfAMapTarget(TName tn, FileFull.Map m){
+    return wfUse(err()
+      .line("\"use\" directive refers to package "+disp(m.out())+", which is written "+disp(m.in())+" in package "+disp(pkgName)+" because of "+disp(m)+".")
+      .line(oneNamePerTarget), tn);
+  }
+  public FearlessException typeOfTheCurrentPackageQualified(TName tn){
+    return writtenAs(err(), tn, tn.s(), tn.simpleName(), "because the types of package "+disp(pkgName)+" are written by their simple names");
+  }
+  public FearlessException typeOfAMapTarget(TName tn, FileFull.Map m){
+    return writtenAs(err(), tn, tn.s(), m.in()+"."+tn.simpleName(), "because of "+disp(m));
+  }
+  public FearlessException typeWithAnAlias(TName tn, String full, FileFull.Use u){
+    var steps= mapStep(pkgName, tn.pkgName(), full.substring(0, TName.pkgDot(full)), tn.simpleName());
+    return writtenAs(err(steps), tn, full, u.out(), "because of "+disp(u));
+  }
+  private FearlessException writtenAs(Err e, TName tn, String full, String name, String because){
+    return e
+      .line("Type "+disp(full)+" is written "+disp(name)+" in package "+disp(pkgName)+", "+because+".")
+      .line(oneNamePerTarget)
+      .wf().addFrame("a type name", TSpan.fromPos(tn.pos(), tn.s().length()).inner);
+  }
+  private static final String oneNamePerTarget= "In a package, each name refers to a single package or type, and each package or type has a single name.";
   public FearlessException unknownUseHead(TName tn, String pkg){
     return wfUse(err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
       .line("\"use\" directive refers to undeclared name: type "+disp(tn.simpleName())

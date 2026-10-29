@@ -1500,7 +1500,7 @@ User:{
 """)); }
 
 @Test void methodNotDeclared_noSuchName_listAvailable_useVoid(){fail("""
-008|   read .m(o:Ops):base.Void->
+008|   read .m(o:Ops):Woid->
 009|     o.xyzzy();
    |     -^^^^^^^
 
@@ -1519,11 +1519,11 @@ o.xyzzy
 use base.Void as Woid;
 Ops:{
   read .alpha: Woid->{};
-  read .beta:  base.Void->{};
-  read .gamma: base.Void->{};
+  read .beta:  Woid->{};
+  read .gamma: Woid->{};
 }
 User:{
-  read .m(o:Ops):base.Void->
+  read .m(o:Ops):Woid->
     o.xyzzy();
 }
 """)); }
