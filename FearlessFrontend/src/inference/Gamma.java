@@ -80,6 +80,7 @@ public final class Gamma{
     for (var s= declDepth[i] + 1; s < depth; s += 1){ t = adapt(t, rcs[s], bss[s]); }
     return t;
   }
+  public boolean captured(String x){ return declDepth[indexOf(x)] + 1 < depth; }
   public Optional<E.Literal> notFunnelledInto(String x){
     var i= indexOf(x);
     var xs= ts[i].ftv().toList();
