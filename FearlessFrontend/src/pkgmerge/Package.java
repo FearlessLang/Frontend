@@ -1,6 +1,7 @@
 package pkgmerge;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,7 +15,7 @@ import message.WellFormednessErrors;
 import utils.Join;
 
 public record Package(String name, Map<String,String> map, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names, Logger log){
-  public WellFormednessErrors err(){ return new WellFormednessErrors(name); }
+  public WellFormednessErrors err(){ return new WellFormednessErrors(name, map, new LinkedHashSet<>()); }
   public static Optional<FileFull.Map> mapTo(String pkg, Map<String,String> map, String out){
     return map.keySet().stream().filter(k -> map.get(k).equals(out)).findFirst().map(k -> new FileFull.Map(k, out, pkg));
   }

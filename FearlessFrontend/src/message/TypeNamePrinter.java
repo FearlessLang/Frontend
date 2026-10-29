@@ -11,7 +11,9 @@ public record TypeNamePrinter(boolean trunc, String mainPkg, Map<String,String> 
   public String of(TName n){ return trunc ? trunc(ofFull(n)) : ofFull(n); }
   public String ofFull(TName n){
     printed.accept(n.s());
-    return uses.getOrDefault(n.s(), dropMainPkg(dropBaseForLit(n.s())));
+    var pkg= uses.get(n.pkgName());
+    var full= pkg == null ? dropMainPkg(dropBaseForLit(n.s())) : pkg+"."+n.simpleName();
+    return uses.getOrDefault(n.s(), full);
   }
   private String dropMainPkg(String s){
     var pre= mainPkg+'.';

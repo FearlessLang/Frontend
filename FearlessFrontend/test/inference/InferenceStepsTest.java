@@ -541,7 +541,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "User"
-Type declaration "User" implements sealed type "base.Void".
+Type declaration "User" implements sealed type "Void".
 Sealed types can only be implemented in their own package.
 Type declaration "User" is defined in package "p".
 Type "Void" is defined in package "base".

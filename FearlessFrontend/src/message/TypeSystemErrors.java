@@ -8,13 +8,10 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-import fearlessFullGrammar.FileFull;
 import inject.TypeRename;
 import metaParser.NameSuggester;
 import pkgmerge.Package;
@@ -31,19 +28,10 @@ import utils.Streams;
 import core.*;
 import core.E.*;
 
-public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<String,String> map, LinkedHashSet<String> printed){
-  public Err err(){ return new Err(this::publicHead, this::preferredForFresh, decs, t -> new CompactPrinter(pkg.name(), map, printed::add, t), this::notes, new StringBuilder()); }
-  private List<String> notes(){ return printed.stream().flatMap(this::spellingNotes).distinct().toList(); }
-  private Stream<String> spellingNotes(String n){
-    var dot= TName.pkgDot(n);
-    var pkgN= n.substring(0, dot);
-    var aliases= pkg.uses().stream().map(FileFull.Use::out).filter(x -> n.equals(pkg.map().get(x)));
-    var mapped= pkg.map().entrySet().stream()
-      .filter(e -> e.getValue().equals(pkgN) && !e.getKey().equals(pkgN))
-      .map(e -> e.getKey()+n.substring(dot)).sorted();
-    var ws= Stream.concat(aliases, mapped).toList();
-    if (ws.stream().allMatch(w -> w.equals(map.get(n)))){ return Stream.of(); }
-    return ws.stream().flatMap(w -> WellFormednessErrors.resolution(pkg, w).stream());
+public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, LinkedHashSet<String> printed){
+  public Err err(){
+    var written= WellFormednessErrors.written(pkg.map());
+    return new Err(this::publicHead, this::preferredForFresh, decs, t -> new CompactPrinter(pkg.name(), written, printed::add, t), () -> WellFormednessErrors.notes(pkg.name(), pkg.map(), printed), new StringBuilder());
   }
   private TName preferredForFresh(TName n){
     var res= decs.apply(n);
@@ -259,6 +247,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+")"
         +"\nis implemented with an expression returning "+got0+".");
     e.line(up(got.info));
+    printed.addAll(got.printed);
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ captureFreeHint(e, l, m); }
     return addExpFrame(at, e.exInferMsg(got.footerE.get(), req0).addSpan(at.span().inner));
@@ -470,6 +459,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       .line(up(r.info))
       .blank()
       .line("Type required by each promotion:");
+    printed.addAll(r.printed);
     reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+"  ("+q.reqName()+")"));
     addNoPrecedenceHintIfOperator(e, c);
     var footer= r.footerE.get();
@@ -539,6 +529,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       var argi= IntStream.range(0, args).filter(a -> !mat.okByArg().get(a).contains(pi)).findFirst().getAsInt();
       var r= mat.resByArg().get(argi).get(pi);
       assert !r.isEmpty();
+      printed.addAll(r.printed);
       byArg.get(argi).computeIfAbsent(up(r.info), _ -> new ArrayList<>())
         .add(mat.candidate(pi).promotion());
     }

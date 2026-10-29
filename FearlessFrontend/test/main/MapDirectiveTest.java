@@ -55,14 +55,47 @@ In file: [###].fear
 
 While inspecting object literal instance of "base.Void" > ".fromC" line 1
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
-Object literal is of type "base.Void" instead of a subtype of "c.A".
+Object literal is of type "base.Void" instead of a subtype of "a.A".
 
-Name "a.A" stands for "c.A" because of "map a as c in b".
+Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
 
-See inferred typing context below for how type "c.A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
 B:-.A{.fromC:-.A->-.Void}
 Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
 B:a.A{ .fromC -> base.Void }
+"""); }
+  @Test void typeErrorWritesTheMappedName(){ fail("""
+In file: [###].fear
+
+001| B:{.k(x:a.A):B->x.m}
+   |    -------------^^^^
+
+While inspecting method call ".m" > ".k(_)" line 1
+The body of method ".k(_)" of type declaration "B" is an expression returning "a.A".
+Method call "a.A.m" has type "a.A" instead of a subtype of "B".
+
+Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.k(x:-.A):B->x.m}
+Error 8 TypeError""", Map.of("c", "A:{.m:A->this}"), Map.of("a", "c"), """
+B:{.k(x:a.A):B->x.m}
+"""); }
+  @Test void inferenceErrorWritesTheMappedName(){ fail("""
+In file: [###].fear
+
+001| B:a.A,a.A2{}
+   | ^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Return type disagreement for method "imm .m" with 0 parameters.
+Different options are present in the implemented types: "a.A", "a.A2".
+Type declaration "B" must declare a method ".m" explicitly choosing the desired option.
+
+Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
+Type name "a.A2" in package "b" is mapped to the real source location "c.A2" because of "map a as c in b".
+Error 7 WellFormedness""", Map.of("c", "A:{.m:A->this} A2:{.m:A2->this}"), Map.of("a", "c"), """
+B:a.A,a.A2{}
 """); }
   @Test void mapToMissingTypeSuggestsNoNameTheMapRedirects(){ fail("""
 In file: [###].fear
@@ -71,7 +104,7 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Name "a.A" stands for "c.A" because of "map a as c in b".
+Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
 Type "A" is not declared in package "c".
 In scope: "C".
 Error 7 WellFormedness
@@ -143,7 +176,7 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Name "a.Z" stands for "c.Z" because of "map a as c in b".
+Type name "a.Z" in package "b" is mapped to the real source location "c.Z" because of "map a as c in b".
 Type "Z" is not declared in package "c".
 In scope: "A".
 Error 7 WellFormedness
@@ -161,7 +194,7 @@ In file: [###].fear
    |     ^^^
 
 While inspecting package header
-Name "a.Z" stands for "cc.Z" because of "map a as cc in b".
+Type name "a.Z" in package "b" is mapped to the real source location "cc.Z" because of "map a as cc in b".
 "use" directive refers to undeclared name: type "Z" is not declared in package "cc".
 Error 7 WellFormedness
 """, Map.of("cc", cA), Map.of("a", "cc"), """
@@ -203,8 +236,8 @@ In file: [###].fear
    |            ^^^^
 
 While inspecting a type name
-Name "a.A" stands for "c.A" because of "map a as c in b".
-Type "c.A" is written "X" in package "b", because of "use a.A as X".
+Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
+Type "a.A" is written "X" in package "b", because of "use a.A as X".
 In a package, each name refers to a single package or type, and each package or type has a single name.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
@@ -225,7 +258,7 @@ Available methods on type "A":
 -       .fromC:A
 
 Name "A" stands for "a.A" because of "use a.A as A".
-Name "a.A" stands for "c.A" because of "map a as c in b".
+Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 x.fromA
@@ -278,7 +311,7 @@ In file: [###].fear
 
 While inspecting a type name
 Name "X" stands for "a.A" because of "use a.A as X".
-Name "a.A" stands for "c.A" because of "map a as c in b".
+Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
 Name "A" is not declared with 1 type parameter in package "c".
 Name "A" is only declared with 0 type parameters.
 Did you accidentally add or omit a type parameter?

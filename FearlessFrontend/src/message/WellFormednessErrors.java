@@ -4,6 +4,7 @@ import static message.Err.*;
 
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -41,9 +43,32 @@ import utils.Join;
 import java.util.EnumSet;
 import utils.Push;
 
-public record WellFormednessErrors(String pkgName){
+public record WellFormednessErrors(String pkgName, Map<String,String> map, LinkedHashSet<String> printed){
+  public WellFormednessErrors(String pkgName){ this(pkgName, Map.of(), new LinkedHashSet<>()); }
   Err err(){ return err(_ -> null); }
-  private Err err(Function<TName,core.E.Literal> decs){ return new Err(y -> y, x -> x, decs, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
+  private Err err(Function<TName,core.E.Literal> decs){
+    var written= written(map);
+    return new Err(y -> y, x -> x, decs, trunk -> new CompactPrinter(pkgName, written, printed::add, trunk), () -> notes(pkgName, map, printed), new StringBuilder());
+  }
+  static Map<String,String> written(Map<String,String> map){
+    return map.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
+  }
+  static List<String> notes(String pkg, Map<String,String> map, Set<String> printed){
+    var written= written(map);
+    return printed.stream().flatMap(n -> note(pkg, written, n)).distinct().toList();
+  }
+  private static Stream<String> note(String pkg, Map<String,String> written, String n){
+    var dot= TName.pkgDot(n);
+    if (dot == -1){ return Stream.of(); }
+    var out= n.substring(0, dot);
+    var in= written.get(out);
+    if (in == null){ return Stream.of(); }
+    var simple= n.substring(dot+1);
+    var mapped= mapped(pkg, in, out, simple);
+    var alias= written.get(n);
+    if (alias == null){ return Stream.of(mapped); }
+    return Stream.of(standsFor(alias, in+"."+simple, "use "+in+"."+simple+" as "+alias), mapped);
+  }
   private Err err(List<String> lines){
     var e= err();
     lines.forEach(e::line);
@@ -62,7 +87,10 @@ public record WellFormednessErrors(String pkgName){
   }
   private static List<String> mapStep(String target, String in, String out, String simple){
     if (in.equals(out)){ return List.of(); }
-    return List.of(standsFor(in+"."+simple, out+"."+simple, new FileFull.Map(in, out, target)));
+    return List.of(mapped(target, in, out, simple));
+  }
+  private static String mapped(String target, String in, String out, String simple){
+    return "Type name "+disp(in+"."+simple)+" in package "+disp(target)+" is mapped to the real source location "+disp(out+"."+simple)+" because of "+disp(new FileFull.Map(in, out, target))+".";
   }
   private static String standsFor(String from, String to, Object directive){
     return "Name "+disp(from)+" stands for "+disp(to)+" because of "+disp(directive)+".";
@@ -293,18 +321,18 @@ public record WellFormednessErrors(String pkgName){
       .line(oneNamePerTarget), tn);
   }
   public FearlessException typeOfTheCurrentPackageQualified(TName tn){
-    return writtenAs(err(), tn, tn.s(), tn.simpleName(), "because the types of package "+disp(pkgName)+" are written by their simple names");
+    return writtenAs(err(), tn, tn.simpleName(), "because the types of package "+disp(pkgName)+" are written by their simple names");
   }
   public FearlessException typeOfAMapTarget(TName tn, FileFull.Map m){
-    return writtenAs(err(), tn, tn.s(), m.in()+"."+tn.simpleName(), "because of "+disp(m));
+    return writtenAs(err(), tn, m.in()+"."+tn.simpleName(), "because of "+disp(m));
   }
   public FearlessException typeWithAnAlias(TName tn, String full, FileFull.Use u){
     var steps= mapStep(pkgName, tn.pkgName(), full.substring(0, TName.pkgDot(full)), tn.simpleName());
-    return writtenAs(err(steps), tn, full, u.out(), "because of "+disp(u));
+    return writtenAs(err(steps), tn, u.out(), "because of "+disp(u));
   }
-  private FearlessException writtenAs(Err e, TName tn, String full, String name, String because){
+  private FearlessException writtenAs(Err e, TName tn, String name, String because){
     return e
-      .line("Type "+disp(full)+" is written "+disp(name)+" in package "+disp(pkgName)+", "+because+".")
+      .line("Type "+disp(tn.s())+" is written "+disp(name)+" in package "+disp(pkgName)+", "+because+".")
       .line(oneNamePerTarget)
       .wf().addFrame("a type name", TSpan.fromPos(tn.pos(), tn.s().length()).inner);
   }
