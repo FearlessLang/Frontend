@@ -163,11 +163,52 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Type "b.Z" is written "Z" in package "b", because the types of package "b" are written by their simple names.
-In a package, each name refers to a single package or type, and each package or type has a single name.
+Type "Z" is not declared in package "b".
+In scope: "B".
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
 B:{.m(x:b.Z):B->this}
+"""); }
+  @Test void currentPackageQualifiedOtherArity(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:b.B[B]):B->this}
+   |         ^^^^
+
+While inspecting a type name
+Name "B" is not declared with 1 type parameter in package "b".
+Name "B" is only declared with 0 type parameters.
+Did you accidentally add or omit a type parameter?
+Error 7 WellFormedness
+""", Map.of(), Map.of(), """
+B:{.m(x:b.B[B]):B->this}
+"""); }
+  @Test void mapTargetQualifiedUndeclared(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:c.Z):B->this}
+   |         ^^^^
+
+While inspecting a type name
+Type "Z" is not declared in package "c".
+In scope: "A".
+Error 7 WellFormedness
+""", Map.of("c", cA), Map.of("a", "c"), """
+B:{.m(x:c.Z):B->this}
+"""); }
+  @Test void mapToMissingPackage(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.A):B->this}
+   |         ^^^^
+
+While inspecting a type name
+Type name "a.A" in package "b" is mapped to the real source location "zz.A" because of "map a as zz in b".
+Package "zz" does not exist.
+Visible packages: "b", "base".
+Error 7 WellFormedness
+""", Map.of(), Map.of("a", "zz"), """
+B:{.m(x:a.A):B->this}
 """); }
   @Test void mapToMissingType(){ fail("""
 In file: [###].fear

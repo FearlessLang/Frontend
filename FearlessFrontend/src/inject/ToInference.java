@@ -28,26 +28,26 @@ public final class ToInference{
     var scope= Stream.concat(declared.stream(), imported.stream()).toList();
     return p.err().usedUndeclaredName(written, resolved, scope, all, WellFormednessErrors.resolution(p, written.s()));
   }
-  private static String qualified(Package p, TName tn){
+  private static TName writtenOnce(Package p, TName tn, TName full){
     var pN= tn.pkgName();
+    if (pN.isEmpty()){ return full; }
     if (pN.equals(p.name())){ throw p.err().typeOfTheCurrentPackageQualified(tn); }
     var named= Package.mapTo(p.name(), p.map(), pN);
     if (named.isPresent()){ throw p.err().typeOfAMapTarget(tn, named.get()); }
-    var full= p.map().getOrDefault(pN, pN)+"."+tn.simpleName();
-    var alias= p.uses().stream().filter(u -> full.equals(p.map().get(u.out()))).findFirst();
-    if (alias.isPresent()){ throw p.err().typeWithAnAlias(tn, full, alias.get()); }
+    var alias= p.uses().stream().filter(u -> full.s().equals(p.map().get(u.out()))).findFirst();
+    if (alias.isPresent()){ throw p.err().typeWithAnAlias(tn, full.s(), alias.get()); }
     return full;
   }
   private static TName resolve(Methods meths, TName tn){
     var p= meths.p();
     var pN= tn.pkgName();
     if (pN.isEmpty() && LiteralDeclarations.isPrimitiveLiteral(tn.s())){ return tn.withPkgName("base"); }
-    var s= pN.isEmpty() ? p.map().getOrDefault(tn.s(), p.name()+"."+tn.s()) : qualified(p, tn);
+    var s= pN.isEmpty() ? p.map().getOrDefault(tn.s(), p.name()+"."+tn.s()) : p.map().getOrDefault(pN, pN)+"."+tn.simpleName();
     var full= new TName(s, tn.arity(), tn.pos());
     var current= full.pkgName().equals(p.name());
     assert p.names().decNames().stream().allMatch(n -> n.pkgName().isEmpty());
     var defined= current ? p.names().decNames().contains(full.withoutPkgName()) : meths.other().__of(full) != null; //this also checks arity
-    if (defined){ return full; } //here, we know it is not defined (either at all or with the right arity)
+    if (defined){ return writtenOnce(p, tn, full); } //here, we know it is not defined (either at all or with the right arity)
     throw undeclaredType(meths, tn, current && pN.isEmpty() ? full.withoutPkgName() : full);
   }
   public static List<E.Literal> of(Methods meths){
