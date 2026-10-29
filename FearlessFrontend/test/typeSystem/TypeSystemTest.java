@@ -4920,6 +4920,37 @@ Compressed relevant code with inferred types: (compression indicated by `-`)
 """, List.of("""
 App:{ .m: base.Nat -> {.b:base.Void->base.Void;}.a }
 """));}
+@Test void typesWithDifferentInvariantArgumentsCannotBeInferred(){failWf("""
+002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+   |                                                          ^^^^^^^^^^^^^^^
+
+While inspecting method call ".both(_,_)"
+The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "this.both[Type1](y, z)".
+""", List.of("""
+A:{} B:{} Sup[T]:{ .k: T } Y:Sup[A]{ .k -> A } Z:Sup[B]{ .k -> B }
+U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+"""));}
+@Test void aTypeAndASubtypeWithDifferentInvariantArgumentsCannotBeInferred(){failWf("""
+002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Sup[A], z: Z): A -> this.both(y, z) }
+   |                                                               ^^^^^^^^^^^^^^^
+
+While inspecting method call ".both(_,_)"
+The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Sup[A]", some need "Z".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "this.both[Type1](y, z)".
+""", List.of("""
+A:{} B:{} Sup[T]:{ .k: T } Z:Sup[B]{ .k -> B }
+U:{ .both[T](a: T, b: T): A -> A; .use(y: Sup[A], z: Z): A -> this.both(y, z) }
+"""));}
+@Test void typesWithDifferentInvariantArgumentsJoinToACommonSupertypeAbove(){ok(List.of("""
+A:{} B:{} Top:{} Sup[T]:Top{ .k: T } Y:Sup[A]{ .k -> A } Z:Sup[B]{ .k -> B }
+U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+"""));}@Test void aTypeAndASubtypeWithDifferentInvariantArgumentsJoinToACommonSupertypeAbove(){ok(List.of("""
+A:{} B:{} Top:{} Sup[T]:Top{ .k: T } Z:Sup[B]{ .k -> B }
+U:{ .both[T](a: T, b: T): A -> A; .use(y: Sup[A], z: Z): A -> this.both(y, z) }
+"""));}
 @Test void deepWrittenSupertype(){ok(List.of("A[X:**]:{}\nB:"+"A[".repeat(99)+"B"+"]".repeat(99)+"{}\n"));}
 @Test void parameterHashCollidingWithThis(){ok(List.of("""
 A:{ .id[Y:**](y:Y):Y -> y; .u(tiJs:A):A -> this.id(tiJs) }

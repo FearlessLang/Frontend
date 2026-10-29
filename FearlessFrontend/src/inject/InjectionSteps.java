@@ -164,7 +164,8 @@ public record InjectionSteps(Methods meths, int cap){
     for (var c : cands){
       var up= _liftTo(c, top);
       if (up == null){ return null; }
-      res = sameShapeJoin(res, up);
+      res = _sameShapeJoin(res, up);
+      if (res == null){ return null; }
     }
     return res;
   }
@@ -177,8 +178,12 @@ public record InjectionSteps(Methods meths, int cap){
     var sameX= xName(c).isPresent() && xName(c).equals(xName(top));
     return sameX ? c : null;
   }
-  private IT sameShapeJoin(IT a, IT b){
-    if (a instanceof IT.RCC x1 && b instanceof IT.RCC x2){ return x1.withRCTs(joinRcNoH(x1.rc(), x2.rc()), meet(x1.c().ts(), x2.c().ts())); }
+  private IT _sameShapeJoin(IT a, IT b){
+    if (a instanceof IT.RCC x1 && b instanceof IT.RCC x2){
+      var differ= Streams.zip(x1.c().ts(), x2.c().ts()).anyMatch((t1,t2) -> t1.isTV() && t2.isTV() && !t1.equals(t2));
+      if (differ){ return null; }
+      return x1.withRCTs(joinRcNoH(x1.rc(), x2.rc()), meet(x1.c().ts(), x2.c().ts()));
+    }
     if (a instanceof IT.RCX x1 && b instanceof IT.RCX x2){ return x1.withRC(joinRcNoH(Optional.of(x1.rc()), Optional.of(x2.rc())).get()); }
     return meet(a, b);
   }
