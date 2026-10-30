@@ -1056,7 +1056,7 @@ Type declaration "A" implements "base.WidenTo[_]" more than once.
 At most one "base.WidenTo[_]" supertype is allowed, because it defines the preferred widened type.
 
 Found the following "base.WidenTo[_]" supertypes:
-- "base.WidenTo[p.A]"
+- "base.WidenTo[A]"
 - "base.WidenTo[base.Nat]"
 """, List.of("""
 A: base.WidenTo[A], base.WidenTo[base.Nat]{}

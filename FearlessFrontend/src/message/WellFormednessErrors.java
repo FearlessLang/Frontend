@@ -160,7 +160,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException usedDeclaredNameClash(Set<TName> names, Set<String> keySet){
     var n= names.stream().filter(x -> keySet.contains(x.s())).findFirst().get();
     return err()
-      .line("Name clash: name "+disp(n.s())+" is declared in package "+disp(pkgName)+".")
+      .line("Name clash: name "+disp(aliasShown(n.s()))+" is declared in package "+disp(pkgName)+".")
       .line("Name "+disp(n.s())+" is also used in a \"use\" directive.")
       .wf()
       .addFrame("a type name", n.approxSpan().inner);
@@ -300,7 +300,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var e= err()
       .line("The \"instead of\" list of a map must name exactly the folders chosen by the maps of lower rank that the map overrides:")
       .line(directive);
-    e.line(overridden.isEmpty() ? "The map overrides no map of lower rank." : "The map overrides these maps of lower rank:");
+    e.line(overridden.isEmpty() ? "No map of lower rank chooses another folder." : "These maps of lower rank choose other folders:");
     overridden.forEach(e::line);
     return e.line("Expected: "+disp(expected+";")+".").wf();
   }
@@ -345,7 +345,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .filter(x -> allNames.contains(x.name()) || use.contains(x.name()))
       .findFirst().get();
     return err()
-      .line("Type parameter "+disp(n.name())+" is declared in package "+disp(pkgName)+".")
+      .line("Type parameter "+disp(aliasShown(n.name()))+" is declared in package "+disp(pkgName)+".")
       .line("Name "+disp(n.name())+" is also used "+(use.contains(n.name()) ? "in a \"use\" directive." : "as a type name."))
       .wf()
       .addFrame("a type name", n.span().inner);
@@ -367,14 +367,16 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .wf()
       .addFrame("type declaration "+staticTypeDecName(d.name()), d.span().inner);
   }
-  private static String spelling(T t){ return switch (t){
+  private String spelling(T t){ return switch (t){
     case T.X x -> x.name();
     case T.RCX(var rc, var x) -> rc+" "+x.name();
     case T.ReadImmX(var x) -> "read/imm "+x.name();
     case T.RCC(var rc, var c, _) -> rc.map(r -> r+" ").orElse("")+spelling(c);
   };}
-  private static String spelling(T.C c){
-    return c.name().s()+Join.of(c.ts().orElse(List.of()).stream().map(WellFormednessErrors::spelling), "[", ",", "]", "");
+  private String spelling(T.C c){
+    var pkg= c.name().pkgName();
+    if (map.containsKey(pkg)){ printed.add(map.get(pkg)+"."+c.name().simpleName()); }
+    return aliasShown(c.name().s())+Join.of(c.ts().orElse(List.of()).stream().map(this::spelling), "[", ",", "]", "");
   }
   public FearlessException duplicatedName(TName name){
     return err()
@@ -587,7 +589,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("At most one "+w+" supertype is allowed, because it defines the preferred widened type.")
       .blank()
       .line("Found the following "+w+" supertypes:");
-    widen.forEach(c -> e.bullet(disp(c)));
+    widen.forEach(c -> e.bullet(claimRepr(owner, c)));
     return wf(e, owner);
   }
   public FearlessException duplicatedNamedLiteral(E.Literal owner, M m, E.Literal in){
@@ -640,7 +642,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
-      .line(err().tNameADisp(origin)+" implements "+disp("base.Final[\""+name+"\"]")+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
+      .line(err().tNameADisp(origin)+" implements "+disp(err().cp().t.ofFull(LiteralDeclarations.finalMethods)+"[\""+name+"\"]")+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
       .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(name)+"."), owner);
   }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
@@ -722,7 +724,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(t+" must be representable as a 64-bit "+signed+" integer.")
       .line("Valid range: "+min+" .. "+max+".")
       .line("This literal is: "+disp(LiteralDeclarations.big(lit.simpleName()))+".")
-      .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
+      .line(numHint())
       .wf().addSpan(lit.approxSpan().inner);
   }
   public FearlessException floatLiteralNotExactlyRepresentable(TName lit){
@@ -739,7 +741,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     if (!Double.isFinite(d)){ return e.line("This literal overflows; the nearest representable value is "+disp(near)+".").wf().addSpan(at); }
     return e.line("If rounded, the nearest representable value is "+disp(near)+".")
       .line("Write "+disp(raw+LiteralDeclarations.softSuffix)+" to accept that rounding.")
-      .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
+      .line(numHint())
       .wf().addSpan(at);
   }
+  private String numHint(){ return "Hint: if you need arbitrary precision numbers, use "+disp(err().cp().t.ofFull(new TName("base.Num", 0, Pos.unknown)))+"."; }
 }

@@ -121,7 +121,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   public FearlessException duplicatedImpl(List<T.C> cs, Span at){
     var c= redeclaredElement(cs);
     return Code.WellFormedness.of(
-      "Duplicate supertype in type declaration: "+staticTypeDecName(c.name())+".\n"
+      "Duplicate supertype in type declaration: "+disp(c.name().s()+genArity(c.name().arity()))+".\n"
     ).addSpan(at);
   }
 

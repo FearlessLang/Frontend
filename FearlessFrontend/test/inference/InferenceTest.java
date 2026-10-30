@@ -1031,8 +1031,8 @@ Type declaration "C" implements "base.WidenTo[_]" more than once.
 At most one "base.WidenTo[_]" supertype is allowed, because it defines the preferred widened type.
 
 Found the following "base.WidenTo[_]" supertypes:
-- "base.WidenTo[p.A]"
-- "base.WidenTo[p.B]"
+- "base.WidenTo[A]"
+- "base.WidenTo[B]"
 Error 7 WellFormedness
 """, List.of("""
 A:base.WidenTo[A]{}

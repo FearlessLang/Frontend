@@ -396,7 +396,7 @@ B:{.m(x:X[B]):B->this}
   @Test void twoVersionsOfAPackageMappedFromTwoNames(){ ok(Map.of("webserver_v12", "Server:{.v12:Server->this}", "webserver_v13", "Server:{.v13:Server->this}"), Map.of("old", "webserver_v12", "webserver", "webserver_v13"), """
 B:{.m(x:old.Server, y:webserver.Server):webserver.Server->y.v13; .k(x:old.Server):old.Server->x.v12}
 """); }
-  @Test void versionedPackageWrittenByItsRealName(){ fail("""
+  @Test void versionFolderNameWrittenAsAPackageName(){ fail("""
 In file: [###].fear
 
 001| B:{.m(x:webserver_v12.Server):webserver.Server->x.v12}
@@ -1712,5 +1712,1030 @@ B:{.m(x:json_v3.Parser):json.Parser->x.v2}
 """); }
   @Test void bothVersionsReachedThroughOneMapAndOneOwnName(){ ok(jsons, Map.of("json", "json_v2"), """
 B:{.m(x:json.Parser, y:json_v1.Parser):json_v1.Parser->y.v1; .k(x:json.Parser):json.Parser->x.v2}
+"""); }
+  static final String cOver= "P:{} Q:P{} Parent:{ .g(x:P):base.Void } Sup:{ .h:Q }";
+  static final Map<String,String> mapA= Map.of("a", "c");
+  static final Map<String,String> mapBb= Map.of("bb", "base");
+  static final Map<String,String> mapABb= Map.of("a", "c", "bb", "base");
+  @Test void sweepTypeArgumentOutOfTheBoundsOfAMappedGenericType(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.Box[mut B]):B->this}
+   | --------^^^^^^^^^^^^----------
+
+While inspecting type declaration "B"
+The type "a.Box[mut B]" is invalid.
+Type argument 1 ("mut B") does not satisfy the bounds
+for type parameter "X" in "a.Box[_]".
+Here "X" can only use capability "imm".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+B:{.m(x:-.Box[mut B]):B->this}
+Error 8 TypeError
+""", Map.of("c", "Box[X:imm]:{}"), mapA, """
+B:{.m(x:a.Box[mut B]):B->this}
+"""); }
+  @Test void sweepTypeArgumentOutOfTheBoundsOfAnAliasedGenericType(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:Bx[mut B]):B->this}
+   | --------^^^^^^^^^----------
+
+While inspecting type declaration "B"
+The type "Bx[mut B]" is invalid.
+Type argument 1 ("mut B") does not satisfy the bounds
+for type parameter "X" in "Bx[_]".
+Here "X" can only use capability "imm".
+
+Name "Bx" stands for "a.Box" because of "use a.Box as Bx".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+B:{.m(x:Bx[mut B]):B->this}
+Error 8 TypeError
+""", Map.of("c", "Box[X:imm]:{}"), mapA, """
+use a.Box as Bx;
+B:{.m(x:Bx[mut B]):B->this}
+"""); }
+  @Test void sweepMethodTypeArgumentOutOfTheBoundsOfAMappedMethod(){ fail("""
+In file: [###].fear
+
+001| B:{.m(g:a.G, b:mut B):a.G->g#[mut B](b)}
+   |    ------------------------^^^^^^^^^^^^
+
+While inspecting method call "#(_)" > ".m(_,_)" line 1
+The call to "#(_)" is invalid.
+Type argument 1 ("mut B") does not satisfy the bounds
+for type parameter "X" in "a.G#(_)".
+Here "X" can only use capability "imm".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+g#[imm,mut B](b)
+Error 8 TypeError
+""", Map.of("c", "G:{ #[X:imm](x:X):G->this }"), mapA, """
+B:{.m(g:a.G, b:mut B):a.G->g#[mut B](b)}
+"""); }
+  @Test void sweepOverrideAcceptsAMappedParameterOfAStrongerType(){ fail("""
+In file: [###].fear
+
+001| B:a.Parent{ .g(x:a.Q):base.Void -> base.Void }
+   | ------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--
+
+While inspecting type declaration "B"
+Invalid method signature overriding for "B.g(_)".
+The method ".g(_)" accepts parameter 1 of type "a.Q".
+But "a.Parent.g(_)" requires "a.P", which is not a subtype of "a.Q".
+It is instead a supertype: you are strengthening the parameter instead of weakening it.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+B:-.Parent{.g(x:-.Q):-.Void->-.Void}
+Error 8 TypeError
+""", Map.of("c", cOver), mapA, """
+B:a.Parent{ .g(x:a.Q):base.Void -> base.Void }
+"""); }
+  @Test void sweepOverrideChangesTheCapabilityOfAMappedParameter(){ fail("""
+In file: [###].fear
+
+001| B:a.Parent{ .g(x:read a.P):base.Void -> base.Void }
+   | ------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--
+
+While inspecting type declaration "B"
+Invalid method signature overriding for "B.g(_)".
+The method ".g(_)" accepts parameter 1 of type "read a.P".
+But "a.Parent.g(_)" requires "imm a.P".
+An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+B:-.Parent{.g(x:read -.P):-.Void->-.Void}
+Error 8 TypeError
+""", Map.of("c", cOver), mapA, """
+B:a.Parent{ .g(x:read a.P):base.Void -> base.Void }
+"""); }
+  @Test void sweepOverrideChangesTheCapabilityOfAMappedResult(){ fail("""
+In file: [###].fear
+
+001| B:a.Sup{ .h:read a.Q -> a.Q }
+   | ---------^^^^^^^^^^^^^^^^^^--
+
+While inspecting type declaration "B"
+Invalid method signature overriding for "B.h".
+The method ".h" returns type "read a.Q".
+But "a.Sup.h" returns type "imm a.Q".
+An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+B:-.Sup{.h:read -.Q->-.Q}
+Error 8 TypeError
+""", Map.of("c", cOver), mapA, """
+B:a.Sup{ .h:read a.Q -> a.Q }
+"""); }
+  @Test void sweepOverrideReturnsAMappedResultOfAWeakerType(){ fail("""
+In file: [###].fear
+
+001| B:a.Sup{ .h:a.P -> a.P }
+   | ---------^^^^^^^^^^^^^--
+
+While inspecting type declaration "B"
+Invalid method signature overriding for "B.h".
+The method ".h" returns type "a.P".
+But "a.Sup.h" returns type "a.Q", which is not a supertype of "a.P".
+It is instead a subtype: you are weakening the result instead of strengthening it.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+B:-.Sup{.h:-.P->-.P}
+Error 8 TypeError
+""", Map.of("c", cOver), mapA, """
+B:a.Sup{ .h:a.P -> a.P }
+"""); }
+  @Test void sweepOverrideOfAnAliasedSupertypeReturnsAWeakerType(){ fail("""
+In file: [###].fear
+
+002| B:S{ .h:a.P -> a.P }
+   | -----^^^^^^^^^^^^^--
+
+While inspecting type declaration "B"
+Invalid method signature overriding for "B.h".
+The method ".h" returns type "a.P".
+But "S.h" returns type "a.Q", which is not a supertype of "a.P".
+It is instead a subtype: you are weakening the result instead of strengthening it.
+
+Name "S" stands for "a.Sup" because of "use a.Sup as S".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+B:S{.h:-.P->-.P}
+Error 8 TypeError
+""", Map.of("c", cOver), mapA, """
+use a.Sup as S;
+B:S{ .h:a.P -> a.P }
+"""); }
+  @Test void sweepTypeDeclaredInAMethodWithBaseReachedThroughAMap(){ fail("""
+In file: [###].fear
+
+003| U:{ .m:A -> Foo:A{'s .k -> s; .v -> G#(s, {}) } }
+   |     --------------------------~~~~~~~~~~~~^^~--
+
+While inspecting object literal instance of "Foo" > ".v" line 3 > ".m" line 3
+The type "Foo" is not standalone: it is declared inside a method body.
+Only a standalone type can be extended or mentioned by name.
+A type is standalone if it is declared at top level, or if it implements "bb.CaptureFree".
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Foo
+Error 8 TypeError
+""", Map.of(), mapBb, """
+G:{ #[X:*](a:X, b:X):bb.Void -> bb.Void }
+A:{ .k:A; .v:bb.Void }
+U:{ .m:A -> Foo:A{'s .k -> s; .v -> G#(s, {}) } }
+"""); }
+  @Test void sweepDeadMutMethodInALiteralOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{ mut .baz(m:mut a.M):read a.M -> { .bar -> m } }
+   |     --------------------------------~~^^^^^^^^^~~
+
+While inspecting object literal instance of "read a.M" > ".baz(_)" line 1
+The method "mut a.M.bar" is dead code.
+The object literal instance of "a.M" is "read", so it will never be seen as "mut".
+But it implements method "mut .bar", which requires a "mut" receiver.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+read -.M{mut .bar:mut -.M->m}
+Error 8 TypeError
+""", Map.of("c", "M:{ mut .bar:mut M }"), mapA, """
+B:{ mut .baz(m:mut a.M):read a.M -> { .bar -> m } }
+"""); }
+  @Test void sweepDeadSelfNameInALiteralOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.A):a.A->a.A{'s .fromC -> x}}
+   |    ---------------^^^^---------------
+
+While inspecting object literal instance of "a.A" > ".m(_)" line 1
+The self name "s" is dead code.
+No method of the object literal instance of "a.A" uses it.
+Remove "'s" from the object literal.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.A{'s .fromC:-.A->x}
+Error 8 TypeError
+""", Map.of("c", cA), mapA, """
+B:{.m(x:a.A):a.A->a.A{'s .fromC -> x}}
+"""); }
+  @Test void sweepIsoUsedTwiceInALiteralOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{.k:a.F -> a.F{ .m(x) -> a.Use2#(x, x) }}
+   |                   -----------------^^~~~
+
+While inspecting ".m(_)" line 1 > ".k" line 1
+Iso parameter "x" violates the single-use rule in method "a.F.m(_)" (line 1).
+It is used directly 2 times.
+Iso parameters can be used directly at most once.
+Allowed: capture into object literals as "imm", or use directly once.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.Use2#(x,x)
+Error 8 TypeError
+""", Map.of("c", "D:{} F:{ .m(x:iso D):D } Use2:{ #(a:iso D, b:iso D):D -> a }"), mapA, """
+B:{.k:a.F -> a.F{ .m(x) -> a.Use2#(x, x) }}
+"""); }
+  @Test void sweepMutCapturedInAnImmLiteralOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{ .m(x:mut a.D):a.G -> a.G{ # -> a.Ignore#(x) } }
+   |     --------------------------~~~~~~~~~~~~~~~^^--
+
+While inspecting parameter "x" > "#" line 1 > ".m(_)" line 1
+Parameter "x" has type "mut a.D".
+Parameter "x" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "a.G" (line 1).
+Hint: capture an immutable copy instead, or move this use outside the object literal.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x
+Error 8 TypeError
+""", Map.of("c", "D:{} G:{ #:base.Void } Ignore:{ #(x:read D):base.Void -> {} }"), mapA, """
+B:{ .m(x:mut a.D):a.G -> a.G{ # -> a.Ignore#(x) } }
+"""); }
+  @Test void sweepCaptureInACaptureFreeLiteralOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{ #(d:a.D):a.G -> {d} }
+   |     -----------------^^
+
+While inspecting parameter "d" > "#" line 1 > "#(_)" line 1
+Object literal instance of "iso a.G" implements "bb.CaptureFree".
+Thus parameter "d" (line 1) cannot be captured in this scope.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+d
+Error 8 TypeError
+""", Map.of("c", "D:{} G:base.CaptureFree{ #:D }"), mapABb, """
+B:{ #(d:a.D):a.G -> {d} }
+"""); }
+  @Test void sweepMethodWithAnotherArityOnAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.A):a.A->x.fromC(x)}
+   |    ---------------~^^^^^^^~~
+
+While inspecting ".m(_)" line 1
+This call to method ".fromC(_)" cannot typecheck.
+There is a method ".fromC" on type "a.A",
+but with a different number of arguments.
+This call supplies 1, but available methods take 0.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x.fromC(x)
+Error 8 TypeError
+""", Map.of("c", cA), mapA, """
+B:{.m(x:a.A):a.A->x.fromC(x)}
+"""); }
+  @Test void sweepMethodWithAnotherCapabilityOnAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:mut a.R):a.R->x.go[read]}
+   |    -------------------~^^^^~~~~~~
+
+While inspecting ".m(_)" line 1
+This call to method ".go" cannot typecheck.
+".go" exists on type "a.R", but not with the requested capability.
+This call requires the existence of a "read" method.
+Available capabilities for this method: "mut".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x.go[read]
+Error 8 TypeError
+""", Map.of("c", "R:{ mut .go:R }"), mapA, """
+B:{.m(x:mut a.R):a.R->x.go[read]}
+"""); }
+  @Test void sweepReceiverTooWeakForAMethodOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:read a.R):a.R->x.go}
+   |    --------------------~^^^^
+
+While inspecting ".m(_)" line 1
+This call to method "mut a.R.go" cannot typecheck.
+The receiver (the expression before the method name) has capability "read".
+This call requires a receiver with capability "mut" or "iso".
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result)
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x.go[mut]
+Error 8 TypeError
+""", Map.of("c", "R:{ mut .go:R }"), mapA, """
+B:{.m(x:read a.R):a.R->x.go}
+"""); }
+  @Test void sweepWrongNumberOfTypeArgumentsForAMethodOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{.m(p:a.Pairer):B->p.pair[B](this, this)}
+   |    ------------------~^^^^^^~~~~~~~~~~~~~~
+
+While inspecting ".m(_)" line 1
+This call to method "a.Pairer.pair(_,_)" cannot typecheck.
+Wrong number of type arguments for ".pair(_,_)".
+This method expects 2 type arguments: "X" and "Y"; but this call provides 1 type argument.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+p.pair[imm,B](this,this)
+Error 8 TypeError
+""", Map.of("c", "Pairer:{ .pair[X,Y](x:X, y:Y):X -> x }"), mapA, """
+B:{.m(p:a.Pairer):B->p.pair[B](this, this)}
+"""); }
+  @Test void sweepReadLiteralOfAMappedTypeWhereMutIsRequiredHintsTheCapability(){ fail("""
+In file: [###].fear
+
+001| B:{.f:a.D->a.Need#(read a.A2{})}
+   |    --------~~~~~~^^~~~~~~~~~~--
+
+While inspecting ".f" line 1
+This call to method "a.Need#(_)" cannot typecheck.
+Argument 1 has type "read a.A2".
+That is not a subtype of any of "mut a.A2" or "iso a.A2".
+Object literal is of type "read a.A2" instead of a subtype of "mut a.A2".
+Hint: write "mut a.A2" if you need a "mut" object literal.
+
+Type required by each promotion:
+- "mut a.A2"  (As declared)
+- "iso a.A2"  (Strengthen result)
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "mut a.A2" was introduced: (compression indicated by `-`)
+B:{.f:-.D->-.Need#(read -.A2)}
+Error 8 TypeError
+""", Map.of("c", "D:{} A2:{ mut .foo:A2 } Need:{ #(x:mut A2):D -> D }"), mapA, """
+B:{.f:a.D->a.Need#(read a.A2{})}
+"""); }
+  @Test void sweepCaptureAdaptationTraceOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{ read .m(x:mut a.D):mut a.D -> read a.Get{ x } }
+   |     ------------------------------------------^--
+
+While inspecting parameter "x" > ".get" line 1 > ".m(_)" line 1
+Method ".get" inside the object literal instance of "read a.Get" (line 1)
+is implemented with an expression returning "read a.D".
+Parameter "x" has type "read a.D" instead of a subtype of "mut a.D".
+Note: the declared type "mut a.D" would instead be a valid subtype.
+Capture adaptation trace:
+"mut a.D" --setToRead(line 1)--> "read a.D".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "mut a.D" was introduced: (compression indicated by `-`)
+B:{read .m(x:mut -.D):mut -.D->read -.Get{read .get:mut -.D->x}}
+Error 8 TypeError
+""", Map.of("c", "D:{} Get:{ read .get:mut D }"), mapA, """
+B:{ read .m(x:mut a.D):mut a.D -> read a.Get{ x } }
+"""); }
+  @Test void sweepBaseIdBadBodyWithBaseReachedThroughAMap(){ fail("""
+In file: [###].fear
+
+001| I:bb.BaseId[I,I]{ #(x) -> this }
+   |                           ^^^^
+
+While inspecting the file
+Type declaration "I" implements "bb.BaseId[_,_]".
+The body of "#(_)" must be "x" or "x.as{...}".
+Only those two shapes are the identity function.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this
+Error 8 TypeError
+""", Map.of(), mapBb, """
+I:bb.BaseId[I,I]{ #(x) -> this }
+"""); }
+  @Test void sweepNameClashOfAMappedAlias(){ fail("""
+In file: [###].fear
+
+002| A:{}
+   | ^^
+
+While inspecting a type name
+Name clash: name "A" is declared in package "b".
+Name "A" is also used in a "use" directive.
+Error 7 WellFormedness
+""", Map.of("c", cA), mapA, """
+use a.A as A;
+A:{}
+"""); }
+  @Test void sweepTypeParameterNamedLikeAMappedAlias(){ fail("""
+In file: [###].fear
+
+002| B:{ .m[X](x:X):X -> x }
+   |        ^
+
+While inspecting a type name
+Type parameter "X" is declared in package "b".
+Name "X" is also used in a "use" directive.
+Error 7 WellFormedness
+""", Map.of("c", cA), mapA, """
+use a.A as X;
+B:{ .m[X](x:X):X -> x }
+"""); }
+  @Test void sweepDuplicatedMappedSupertype(){ fail("""
+In file: [###].fear
+
+001| B:a.A,a.A{}
+   | --^^^^^^^--
+
+While inspecting type declaration > full file
+Duplicate supertype in type declaration: "a.A".
+Error 7 WellFormedness
+""", Map.of("c", cA), mapA, """
+B:a.A,a.A{}
+"""); }
+  @Test void sweepDuplicatedMappedSupertypeWithAndWithoutDefaultImm(){ fail("""
+In file: [###].fear
+
+001| B:a.Box[a.A],a.Box[imm a.A]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Duplicate supertype in type declaration: "a.Box[a.A]" and "a.Box[imm a.A]" denote the same type.
+Remove one of them.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", cBox), mapA, """
+B:a.Box[a.A],a.Box[imm a.A]{}
+"""); }
+  @Test void sweepDuplicatedAliasedSupertype(){ fail("""
+In file: [###].fear
+
+001| use a.A as X;
+002| B:X,X{}
+   | --^^^--
+
+While inspecting type declaration > full file
+Duplicate supertype in type declaration: "X".
+Error 7 WellFormedness
+""", Map.of("c", cA), mapA, """
+use a.A as X;
+B:X,X{}
+"""); }
+  @Test void sweepParameterDisagreementBetweenMappedSupertypes(){ fail("""
+In file: [###].fear
+
+001| B:a.A1,a.A2{}
+   | ^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
+Different options are present in the implemented types: "a.P", "a.Q".
+Type declaration "B" must declare a method ".m(_)" explicitly choosing the desired option.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "P:{} Q:{} A1:{ .m(x:P):P } A2:{ .m(x:Q):P }"), mapA, """
+B:a.A1,a.A2{}
+"""); }
+  @Test void sweepCapabilityDisagreementBetweenMappedSupertypes(){ fail("""
+In file: [###].fear
+
+001| B:a.A1,a.A2{}
+   | ^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Return type disagreement for method "imm .m" with 0 parameters.
+Different options are present in the implemented types: "imm a.P", "mut a.P".
+They differ in reference capability, and an overriding method must keep it, so no method ".m" can implement all of them.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "P:{} A1:{ .m:P } A2:{ .m:mut P }"), mapA, """
+B:a.A1,a.A2{}
+"""); }
+  @Test void sweepGenericArityOfALiteralOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{ .k:a.Sup -> a.Sup{ .f[X,Y](x:X):base.Void -> base.Void } }
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "a.Sup"
+Invalid method implementation for "a.Sup.f(_)".
+The method ".f(_)" declares 2 type parameters, but supertypes declare 1.
+Local declaration: "[X:imm, Y:imm]".
+From supertypes: "[-:imm]".
+Change the local number of type parameters to 1, or adjust the supertypes.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "Sup:{ .f[X](x:X):base.Void }"), mapA, """
+B:{ .k:a.Sup -> a.Sup{ .f[X,Y](x:X):base.Void -> base.Void } }
+"""); }
+  @Test void sweepGenericBoundsOfALiteralOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{ .k:a.Sup -> a.Sup{ .id[X:imm,read](x:X):base.Void -> base.Void } }
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "a.Sup"
+Invalid method implementation for "a.Sup.id(_)".
+The local declaration uses different capability bounds than the supertypes for type parameter 1 of ".id(_)".
+Local: "X:imm,read".
+From supertypes: "-:imm".
+The parameter name may differ; only the position matters.
+Change the local bounds to match the supertypes, or adjust the supertypes.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "Sup:{ .id[X:imm](x:X):base.Void }"), mapA, """
+B:{ .k:a.Sup -> a.Sup{ .id[X:imm,read](x:X):base.Void -> base.Void } }
+"""); }
+  @Test void sweepCaptureNotFunnelledWithAMappedGenericType(){ fail("""
+In file: [###].fear
+
+001| B:{ read .m[X:imm,mut,read](beer:a.Beer[X]):read Foo -> read Foo:{ read .k:base.Void -> beer.bar } }
+   |                                                                                         ^^^^^
+
+While inspecting parameter "beer"
+Parameter "beer" has type "a.Beer[X]", using the generic type "X".
+Generic type "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic types it declares itself; here "Foo" declares none.
+Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "Beer[X:imm,mut,read]:{ read .bar:base.Void }"), mapA, """
+B:{ read .m[X:imm,mut,read](beer:a.Beer[X]):read Foo -> read Foo:{ read .k:base.Void -> beer.bar } }
+"""); }
+  @Test void sweepAmbiguousTypeArgumentBetweenMappedTypes(){ fail("""
+In file: [###].fear
+
+001| U:{ .both[T](x:T, y:T):a.A -> a.A; .use(y:a.Y, z:a.Z):a.A -> this.both(y, z) }
+   |                                                              ^^^^^^^^^^^^^^^
+
+While inspecting method call ".both(_,_)"
+The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "a.Y", some need "a.Z".
+"T" could be "a.A" or "a.B2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
+Write the type argument explicitly, as in "this.both[a.A](y, z)".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "A:{} B2:{} Y:A,B2{} Z:A,B2{}"), mapA, """
+U:{ .both[T](x:T, y:T):a.A -> a.A; .use(y:a.Y, z:a.Z):a.A -> this.both(y, z) }
+"""); }
+  @Test void sweepAmbiguousLiteralHeadBetweenMappedTypes(){ fail("""
+In file: [###].fear
+
+003| U:{ .use(c:bb.Bool, y:a.Y, z:a.Z):A -> Sink#(c ? { .then -> y; .else -> z }) }
+   |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "bb.ThenElse[_]"
+The type argument "R" of "bb.ThenElse[_]" is inferred from the method bodies, but they disagree: some need "a.Y", some need "a.Z".
+"R" could be "a.S1" or "a.S2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
+Write the type argument explicitly, as in "bb.ThenElse[a.S1]{...}".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "S1:{} S2:{} Y:S1,S2{} Z:S1,S2{}"), mapABb, """
+A:{}
+Sink:{ #[T](t:T):A -> A }
+U:{ .use(c:bb.Bool, y:a.Y, z:a.Z):A -> Sink#(c ? { .then -> y; .else -> z }) }
+"""); }
+  @Test void sweepLiteralHeadOfAMappedTypeNotInferred(){ fail("""
+In file: [###].fear
+
+001| B:{ .k:a.T0[base.Void] -> {}.m }
+   |                           ^^
+
+While inspecting object literal instance of "a.T0[_]"
+Type inference concluded that this object literal implements "a.T0[?]",
+but it could not infer type argument 1 for type parameter "X" of "a.T0[_]".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "T0[X]:{ .m:T0[base.Void] }"), mapA, """
+B:{ .k:a.T0[base.Void] -> {}.m }
+"""); }
+  @Test void sweepTypeGrowsForeverThroughMappedTypes(){ fail("""
+In file: [###].fear
+
+001| Use:{ .go:a.N -> a.Take#{ .m(x) -> a.Wrap#(x) } }
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "a.Foo[_]"
+Type inference finds no type for object literal instance of "a.Foo[_]".
+Each round of inference nests its type one level deeper, as "a.Foo[a.Box[a.Box[...]]]"; it would grow without bound.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "N:{} Box[X]:{} Wrap:{ #[Y](y:Y):Box[Y] -> {} } Foo[X]:{ .m(x:X):X } Take:{ #[Z](f:Foo[Z]):N -> N }"), mapA, """
+Use:{ .go:a.N -> a.Take#{ .m(x) -> a.Wrap#(x) } }
+"""); }
+  @Test void sweepAmbiguousImplementationBetweenMappedSupertypes(){ fail("""
+In file: [###].fear
+
+001| B:a.I1,a.I2{}
+   | ^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Ambiguous implementation for method ".m" with 0 parameters.
+Different options are present in the implemented types:
+Candidates: "a.I1", "a.I2".
+Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "I1:{ .m:base.Void -> base.Void } I2:{ .m:base.Void -> base.Void }"), mapA, """
+B:a.I1,a.I2{}
+"""); }
+  @Test void sweepMultipleWidenToThroughAMap(){ fail("""
+In file: [###].fear
+
+001| B:bb.WidenTo[B],bb.WidenTo[a.A]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Type declaration "B" implements "bb.WidenTo[_]" more than once.
+At most one "bb.WidenTo[_]" supertype is allowed, because it defines the preferred widened type.
+
+Found the following "bb.WidenTo[_]" supertypes:
+- "bb.WidenTo[B]"
+- "bb.WidenTo[a.A]"
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", cA), mapABb, """
+B:bb.WidenTo[B],bb.WidenTo[a.A]{}
+"""); }
+  @Test void sweepBaseIdWithAnExtraMethodThroughAMap(){ fail("""
+In file: [###].fear
+
+003| MyId:bb.BaseId[Cu,P]{ #(x) -> x; .extra:P -> P }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "MyId"
+Type declaration "MyId" implements "bb.BaseId[_,_]".
+Only the method "#(_)" can be declared or inherited here.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+P:{}
+Cu:P{}
+MyId:bb.BaseId[Cu,P]{ #(x) -> x; .extra:P -> P }
+"""); }
+  @Test void sweepBaseIdInheritingAMappedImplementation(){ fail("""
+In file: [###].fear
+
+001| MyId:bb.BaseId[a.Cu,a.P], a.Forge{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "MyId"
+Type declaration "MyId" implements "bb.BaseId[_,_]".
+It inherits the implementation of "#(_)" from "a.Forge", which does not implement "bb.BaseId[_,_]".
+Method "#(_)" must be implemented here, or inherited from a type implementing "bb.BaseId[_,_]".
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "P:{} Cu:{} Forge:{ #(x:Cu):P -> P }"), mapABb, """
+MyId:bb.BaseId[a.Cu,a.P], a.Forge{}
+"""); }
+  @Test void sweepFileLogWithoutFileNameThroughAMap(){ fail("""
+In file: [###].fear
+
+001| Foo_bar:bb.FileLog{ .name -> bb.Nope! }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Foo_bar"
+Type declaration "Foo_bar" implements "bb.FileLog", so it writes to a log file named after it.
+Type name "Foo_bar" has no file name.
+The name of a "bb.FileLog" type can only use letters, digits and underscores, and an underscore cannot be followed by a lowercase letter.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+Foo_bar:bb.FileLog{ .name -> bb.Nope! }
+"""); }
+  @Test void sweepFileLogFileNameNotAllowedThroughAMap(){ fail("""
+In file: [###].fear
+
+001| Con:bb.FileLog{ .name -> bb.Nope! }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Con"
+Type declaration "Con" implements "bb.FileLog", so it writes to the log file ".out/logs/_b/con.log".
+"con" is a Windows reserved device name.
+Rename "Con", so that its log file has a name allowed in a Fearless project.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+Con:bb.FileLog{ .name -> bb.Nope! }
+"""); }
+  @Test void sweepMainWithGenericParametersThroughAMap(){ fail("""
+In file: [###].fear
+
+001| Hello[X]:bb.Main{ .main -> bb.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Hello[_]"
+Type declaration "Hello[_]" implements "bb.Main" and has generic parameters.
+A type implementing "bb.Main" must have zero generic parameters.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+Hello[X]:bb.Main{ .main -> bb.Void }
+"""); }
+  @Test void sweepFinalWithoutAMethodNameThroughAMap(){ fail("""
+In file: [###].fear
+
+001| A:bb.Final["foo"]{}
+   | ^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Type declaration "A" implements `bb.Final["foo"]`.
+The type argument of "bb.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+A:bb.Final["foo"]{}
+"""); }
+  @Test void sweepFinalMethodImplementedThroughAMap(){ fail("""
+In file: [###].fear
+
+001| Fake:bb.DataRead{ .name -> bb.Nope! }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Fake"
+Type declaration "Fake" implements method ".name".
+"bb.Named" implements `bb.Final[".name"]` and type declaration "Fake" implements "bb.Named",
+thus type declaration "Fake" cannot override any method named ".name".
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+Fake:bb.DataRead{ .name -> bb.Nope! }
+"""); }
+  @Test void sweepFinalMethodOfAMappedTypeImplemented(){ fail("""
+In file: [###].fear
+
+001| B:a.A{ .foo -> this }
+   | ^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Type declaration "B" implements method ".foo".
+"a.A" implements `base.Final[".foo"]` and type declaration "B" implements "a.A",
+thus type declaration "B" cannot override any method named ".foo".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "A:base.Final[\".foo\"]{ .foo:A -> this }"), mapA, """
+B:a.A{ .foo -> this }
+"""); }
+  @Test void sweepOpenWithWithoutMainThroughAMap(){ fail("""
+In file: [###].fear
+
+001| Assoc:bb.OpenWith[Icon,"foo"]{}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Assoc"
+Type declaration "Assoc" implements "bb.OpenWith[_,_]".
+Only a main can implement "bb.OpenWith[_,_]": type declaration "Assoc" must also implement "bb.Main", directly or through one of its supertypes.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+Assoc:bb.OpenWith[Icon,"foo"]{}
+Icon:{}
+"""); }
+  @Test void sweepOpenWithMappedIconNotConcrete(){ fail("""
+In file: [###].fear
+
+001| One:bb.Main, bb.OpenWith[a.Box[a.Icon],"foo"]{ .main -> bb.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "One"
+Type declaration "One" implements `bb.OpenWith[a.Box[a.Icon],"foo"]`.
+"a.Box[a.Icon]" is not a valid icon.
+Only concrete types with zero generic arguments are valid icons.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "Box[X]:{} Icon:{}"), mapABb, """
+One:bb.Main, bb.OpenWith[a.Box[a.Icon],"foo"]{ .main -> bb.Void }
+"""); }
+  @Test void sweepOpenWithMappedExtensionNotAString(){ fail("""
+In file: [###].fear
+
+001| One:bb.Main, bb.OpenWith[a.Icon,a.Icon]{ .main -> bb.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "One"
+Type declaration "One" implements "bb.OpenWith[a.Icon,a.Icon]".
+The extension "a.Icon" is not a string literal type.
+An extension is written as a string literal type, like `"ffile347"`, `"xml"` or `"txt"`; or implement "bb.OpenWith[_]" to let the Fearless manager choose one.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "Icon:{}"), mapABb, """
+One:bb.Main, bb.OpenWith[a.Icon,a.Icon]{ .main -> bb.Void }
+"""); }
+  @Test void sweepOpenWithInvalidExtensionThroughAMap(){ fail("""
+In file: [###].fear
+
+001| One:bb.Main, bb.OpenWith[Icon,"Foo"]{ .main -> bb.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "One"
+Type declaration "One" implements `bb.OpenWith[Icon,"Foo"]`.
+"Foo" is not a valid extension.
+An extension is 1 to 16 characters, each a lowercase letter "a"-"z" or a digit "0"-"9", with no dot; or implement "bb.OpenWith[_]" to let the Fearless manager choose one.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+One:bb.Main, bb.OpenWith[Icon,"Foo"]{ .main -> bb.Void }
+Icon:{}
+"""); }
+  @Test void sweepShortcutNotFappThroughAMap(){ fail("""
+In file: [###].fear
+
+001| One:bb.Main, bb.Shortcut[Icon,"foo"]{ .main -> bb.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "One"
+Type declaration "One" implements `bb.Shortcut[Icon,"foo"]`.
+"foo" is not a shortcut extension: a shortcut file only starts its main, so it must not look like a document of another program or a file of the project.
+A shortcut extension is "fapp" followed by three digits, like "fapp042"; or implement "bb.Shortcut[_]" to let the Fearless manager choose one.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+One:bb.Main, bb.Shortcut[Icon,"foo"]{ .main -> bb.Void }
+Icon:{}
+"""); }
+  @Test void sweepOpenWithFappThroughAMap(){ fail("""
+In file: [###].fear
+
+001| One:bb.Main, bb.OpenWith[Icon,"fapp001"]{ .main -> bb.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "One"
+Type declaration "One" implements `bb.OpenWith[Icon,"fapp001"]`.
+"fapp001" is a shortcut extension: "fapp" followed by three digits names the shortcut files of the Fearless manager.
+Use an extension of the form "ffile" followed by three digits, like "ffile042", or a system extension, like "htm"; or implement "bb.OpenWith[_]" to let the Fearless manager choose one.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+One:bb.Main, bb.OpenWith[Icon,"fapp001"]{ .main -> bb.Void }
+Icon:{}
+"""); }
+  @Test void sweepOpenWithTwiceThroughAMap(){ fail("""
+In file: [###].fear
+
+001| Two:bb.Main, bb.OpenWith[Icon,"foo"], bb.OpenWith[Icon2,"foo"]{ .main -> bb.Void }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "Two"
+Type declaration "Two" claims the extension "foo" more than once:
+both `bb.OpenWith[Icon,"foo"]` and `bb.OpenWith[Icon2,"foo"]` claim it.
+A main can claim each extension at most once, across all its "bb.OpenWith[_,_]" and "bb.Shortcut[_,_]", since one extension has one icon.
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+Two:bb.Main, bb.OpenWith[Icon,"foo"], bb.OpenWith[Icon2,"foo"]{ .main -> bb.Void }
+Icon:{}
+Icon2:{}
+"""); }
+  @Test void sweepLiteralExtendingAnAnonymousLiteralThroughAMap(){ fail("""
+In file: [###].fear
+
+002| U:{ .m:bb.Void -> {'s .j:bb.Void -> G#(s, {}) }.j }
+   |                                           ^^
+
+While inspecting object literal "{...}" (line 2)
+The inference concluded that the object literal at line 2, column 43 should extend the object literal at line 2, column 19;
+but an object literal can only extend a standalone type.
+A type is standalone if it is declared at top level, or if it implements "bb.CaptureFree".
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+G:{ #[X:*](a:X, b:X):bb.Void -> bb.Void }
+U:{ .m:bb.Void -> {'s .j:bb.Void -> G#(s, {}) }.j }
+"""); }
+  @Test void sweepDeadSelfNameInAnInferredLiteralOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| Make:{ #:a.A -> {'self} }
+   |                 ^^^^^^^
+
+While inspecting object literal instance of "a.A"
+The self name "self" is dead code.
+No method of the object literal instance of "a.A" uses it.
+Remove "'self" from the object literal.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "A:{ read .get:base.Nat -> 0 }"), mapA, """
+Make:{ #:a.A -> {'self} }
+"""); }
+  @Test void sweepIntLiteralOutOfRangeThroughAMap(){ fail("""
+In file: [###].fear
+
+001| Main:{ .m:bb.Int -> +421381834238972893748972389723 }
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Integer literal is out of range for "bb.Int".
+"bb.Int" must be representable as a 64-bit signed integer.
+Valid range: -9223372036854775808 .. 9223372036854775807.
+This literal is: "421381834238972893748972389723".
+Hint: if you need arbitrary precision numbers, use "bb.Num".
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+Main:{ .m:bb.Int -> +421381834238972893748972389723 }
+"""); }
+  @Test void sweepNatLiteralOutOfRangeThroughAMap(){ fail("""
+In file: [###].fear
+
+001| Main:{ .m:bb.Nat -> 421381834238972893748972389723 }
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Natural literal is out of range for "bb.Nat".
+"bb.Nat" must be representable as a 64-bit unsigned integer.
+Valid range: 0 .. 18446744073709551615.
+This literal is: "421381834238972893748972389723".
+Hint: if you need arbitrary precision numbers, use "bb.Num".
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+Main:{ .m:bb.Nat -> 421381834238972893748972389723 }
+"""); }
+  @Test void sweepFloatLiteralNotExactlyRepresentableThroughAMap(){ fail("""
+In file: [###].fear
+
+001| Main:{ .m:bb.Float -> +0.1 }
+   |                       ^^^^
+
+While inspecting the file
+Float literal is not exactly representable as "bb.Float".
+"bb.Float" must be representable exactly as a 64-bit IEEE 754 double.
+This literal is: "+0.1".
+If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
+Write "+0.1soft" to accept that rounding.
+Hint: if you need arbitrary precision numbers, use "bb.Num".
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+Main:{ .m:bb.Float -> +0.1 }
 """); }
 }
