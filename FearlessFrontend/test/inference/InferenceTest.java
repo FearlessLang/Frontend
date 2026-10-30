@@ -1012,7 +1012,7 @@ In file: [###].fear
 
 While inspecting a type name
 Type "Widen" is not declared in package "base".
-Did you mean "WidenTo" ?
+Did you mean "base.WidenTo" ?
 Error 7 WellFormedness
 """, List.of("""
 A:base.Widen[A]{}
@@ -1190,10 +1190,11 @@ In file: [###].fear
    |               ^^^^^^
 
 While inspecting a type name
-Name "Block" stands for "base.Block" because of "use base.Block as Block".
 Name "Block" is not declared with 2 type parameters in package "base".
 Name "Block" is only declared with the following numbers of type parameters: 0, 1.
 Did you accidentally add or omit a type parameter?
+
+Name "Block" stands for "base.Block" because of "use base.Block as Block".
 Error 7 WellFormedness
 """, List.of("""
 use base.Block as Block;

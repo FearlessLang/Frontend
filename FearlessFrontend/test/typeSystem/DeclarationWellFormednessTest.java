@@ -945,8 +945,8 @@ A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
    |     ^^^^
 
 While inspecting a type name
-Type "p.A" is written "A" in package "p", because the types of package "p" are written by their simple names.
-In a package, each name refers to a single package or type, and each package or type has a single name.
+The full type name "p.A" is invalid inside package "p".
+Code inside package "p" uses the simple name "A" to refer to "p.A".
 """, List.of("""
 A:{}
 B:A,p.A{}
@@ -956,8 +956,8 @@ B:A,p.A{}
    |      ^^^^^^^^^^^^^^^^^
 
 While inspecting a type name
-Type "base.CaptureFree" is written "CF" in package "p", because of "use base.CaptureFree as CF".
-In a package, each name refers to a single package or type, and each package or type has a single name.
+The full type name "base.CaptureFree" is invalid inside package "p".
+Code inside package "p" uses the simple name "CF" to refer to "base.CaptureFree" because of "use base.CaptureFree as CF".
 """, List.of("""
 use base.CaptureFree as CF;
 B:CF,base.CaptureFree{}
@@ -967,8 +967,8 @@ B:CF,base.CaptureFree{}
    |            ^^^^^^
 
 While inspecting a type name
-Type "p.Foo" is written "Foo" in package "p", because the types of package "p" are written by their simple names.
-In a package, each name refers to a single package or type, and each package or type has a single name.
+The full type name "p.Foo" is invalid inside package "p".
+Code inside package "p" uses the simple name "Foo" to refer to "p.Foo".
 """, List.of("""
 Foo:{}
 A[X:*]:{}

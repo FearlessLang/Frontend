@@ -104,9 +104,10 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
-Type "A" is not declared in package "c".
-In scope: "C".
+Type "A" is not declared in package "a".
+In scope: "a.C".
+
+In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
 Error 7 WellFormedness
 """, Map.of("c", "C:{}"), Map.of("a", "c"), """
 B:{.m(x:a.A):B->this}
@@ -124,8 +125,9 @@ In file: [###].fear
    |              ^^^^
 
 While inspecting a type name
-Type "c.A" is written "a.A" in package "b", because of "map a as c in b".
-In a package, each name refers to a single package or type, and each package or type has a single name.
+Package "c" does not exist.
+Package "c" does exist as a real source location.
+In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:a.A):c.A->x.fromC}
@@ -150,8 +152,8 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Type "b.B" is written "B" in package "b", because the types of package "b" are written by their simple names.
-In a package, each name refers to a single package or type, and each package or type has a single name.
+The full type name "b.B" is invalid inside package "b".
+Code inside package "b" uses the simple name "B" to refer to "b.B".
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
 B:{.m(x:b.B):B->this}
@@ -190,25 +192,40 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Type "Z" is not declared in package "c".
-In scope: "A".
+Package "c" does not exist.
+Package "c" does exist as a real source location.
+In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:c.Z):B->this}
 """); }
-  @Test void mapToMissingPackage(){ fail("""
+  @Test void currentPackageQualifiedWithOtherOptions(){ fail("""
 In file: [###].fear
 
-001| B:{.m(x:a.A):B->this}
+002| B:{.m(x:b.B):B->this}
    |         ^^^^
 
 While inspecting a type name
-Type name "a.A" in package "b" is mapped to the real source location "zz.A" because of "map a as zz in b".
-Package "zz" does not exist.
-Visible packages: "b", "base".
+The full type name "b.B" is invalid inside package "b".
+Code inside package "b" uses the simple name "B" to refer to "b.B".
+Did you mean "a.B" or "d.B" ?
 Error 7 WellFormedness
-""", Map.of(), Map.of("a", "zz"), """
-B:{.m(x:a.A):B->this}
+""", Map.of("c", "B:{}", "d", "B:{}", "e", "B:{}"), Map.of("a", "c"), """
+use e.B as EB;
+B:{.m(x:b.B):B->this}
+"""); }
+  @Test void useOfAMissingPackage(){ fail("""
+In file: [###].fear
+
+001| use zz.A as X;
+   |     ^^^^
+
+While inspecting package header
+"use" directive refers to the non existent package "zz".
+Error 7 WellFormedness
+""", Map.of(), Map.of(), """
+use zz.A as X;
+B:{}
 """); }
   @Test void mapToMissingType(){ fail("""
 In file: [###].fear
@@ -217,9 +234,10 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Type name "a.Z" in package "b" is mapped to the real source location "c.Z" because of "map a as c in b".
-Type "Z" is not declared in package "c".
-In scope: "A".
+Type "Z" is not declared in package "a".
+In scope: "a.A".
+
+In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:a.Z):B->this}
@@ -235,8 +253,9 @@ In file: [###].fear
    |     ^^^
 
 While inspecting package header
-Type name "a.Z" in package "b" is mapped to the real source location "cc.Z" because of "map a as cc in b".
-"use" directive refers to undeclared name: type "Z" is not declared in package "cc".
+"use" directive refers to undeclared name: type "Z" is not declared in package "a".
+
+In package "b", package name "a" is used to refer to real source location "cc" because of "map a as cc in b".
 Error 7 WellFormedness
 """, Map.of("cc", cA), Map.of("a", "cc"), """
 use a.Z as Z;
@@ -249,8 +268,9 @@ In file: [###].fear
    |     ^^^
 
 While inspecting package header
-"use" directive refers to package "c", which is written "a" in package "b" because of "map a as c in b".
-In a package, each name refers to a single package or type, and each package or type has a single name.
+"use" directive refers to the non existent package "c".
+Package "c" does exist as a real source location.
+In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 use c.A as X;
@@ -263,8 +283,8 @@ In file: [###].fear
    |            ^^^^
 
 While inspecting a type name
-Type "c.A" is written "X" in package "b", because of "use c.A as X".
-In a package, each name refers to a single package or type, and each package or type has a single name.
+The full type name "c.A" is invalid inside package "b".
+Code inside package "b" uses the simple name "X" to refer to "c.A" because of "use c.A as X".
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of(), """
 use c.A as X;
@@ -277,9 +297,10 @@ In file: [###].fear
    |            ^^^^
 
 While inspecting a type name
+The full type name "a.A" is invalid inside package "b".
+Code inside package "b" uses the simple name "X" to refer to "a.A" because of "use a.A as X".
+
 Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
-Type "a.A" is written "X" in package "b", because of "use a.A as X".
-In a package, each name refers to a single package or type, and each package or type has a single name.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 use a.A as X;
@@ -335,10 +356,11 @@ In file: [###].fear
    |         ^^
 
 While inspecting a type name
-Name "X" stands for "c.A" because of "use c.A as X".
 Name "A" is not declared with 1 type parameter in package "c".
 Name "A" is only declared with 0 type parameters.
 Did you accidentally add or omit a type parameter?
+
+Name "X" stands for "c.A" because of "use c.A as X".
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of(), """
 use c.A as X;
@@ -351,11 +373,12 @@ In file: [###].fear
    |         ^^
 
 While inspecting a type name
-Name "X" stands for "a.A" because of "use a.A as X".
-Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
-Name "A" is not declared with 1 type parameter in package "c".
+Name "A" is not declared with 1 type parameter in package "a".
 Name "A" is only declared with 0 type parameters.
 Did you accidentally add or omit a type parameter?
+
+Name "X" stands for "a.A" because of "use a.A as X".
+In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 use a.A as X;
@@ -371,8 +394,9 @@ In file: [###].fear
    |         ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting a type name
-Type "webserver_v12.Server" is written "webserver.Server" in package "b", because of "map webserver as webserver_v12 in b".
-In a package, each name refers to a single package or type, and each package or type has a single name.
+Package "webserver_v12" does not exist.
+Package "webserver_v12" does exist as a real source location.
+In package "b", package name "webserver" is used to refer to real source location "webserver_v12" because of "map webserver as webserver_v12 in b".
 Error 7 WellFormedness
 """, Map.of("webserver_v12", "Server:{.v12:Server->this}"), Map.of("webserver", "webserver_v12"), """
 B:{.m(x:webserver_v12.Server):webserver.Server->x.v12}

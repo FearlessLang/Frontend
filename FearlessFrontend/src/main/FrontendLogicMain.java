@@ -158,7 +158,8 @@ public class FrontendLogicMain{
       if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in(), p); }
       var in= p+"."+u.in().simpleName();
       map.put(u.out(), in);
-      if (otherDom.stream().noneMatch(e -> e.s().equals(in))){ throw err.unknownUseHead(u.in(), p); }
+      if (otherDom.stream().noneMatch(e -> e.pkgName().equals(p))){ throw err.useOfMissingPackage(u.in()); }
+      if (otherDom.stream().noneMatch(e -> e.s().equals(in))){ throw err.unknownUseHead(u.in(), map); }
     }//map a as b in c + use a.F as aF will replace aF with b.F
   }
   private Ref findHeadUri(WellFormednessErrors err, Set<Ref> uris){
