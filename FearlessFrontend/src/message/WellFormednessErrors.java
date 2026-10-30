@@ -131,18 +131,15 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     bests.stream().limit(limit).forEach(e::line);
     if (bests.size() > limit){ e.line("- ... ("+(bests.size()-limit)+" more)"); }
     e.blank()
-     .line("These maps come from rank files with the same rank,")
-     .line("so there is no higher one to override the other.")
-     .blank()
      .line("How maps work:")
-     .bullet("A rank file can have lines like: map name as _folder in _target;")
+     .bullet("A rank file can have lines like \"map name as _folder in _target;\".")
      .bullet("With no map, package name \"x\" refers to the code inside folders named \"_x\".")
      .bullet("A map in a rank file of higher rank overrides the maps of lower rank, and lists their folders with \"instead of\".")
      .blank()
      .line("How to fix it:")
      .bullet("Decide which folder package name "+disp(in)+" refers to, for source code inside folders named "+disp("_"+pkgName)+".")
-     .bullet("Add one map in a rank file of higher rank (typically your top-level application"
-            +" package), with \"instead of\" listing every folder chosen by the maps of lower rank.");
+     .bullet("Add one map in a rank file of higher rank (typically the rank file of your application"
+            +"), with \"instead of\" listing every folder chosen by the maps of lower rank.");
     return e.wf();
   }
   public FearlessException mapToMissingFolder(String role, String folder, String directive, List<String> pkgs){
@@ -254,7 +251,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       if (cs.size() <= 12){ e.line(Join.of(cs.stream().map(c -> disp(shown.apply(c))).distinct(), "In scope: ", ", ", ".")); }
       return null;
     }
-    private static final String addUse= "Add a \"use\" or write the fully qualified name.";
+    private static final String addUse= "Add a \"use\" or write the full type name.";
     void addOptionsList(List<String> ss, Err e){
       if (ss.isEmpty()){ return; }
       e.line(Join.of(ss.stream().map(Err::disp), "Did you mean ", " or ", " ?"));
@@ -263,8 +260,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException useNotFullyQualified(TName tn){
     return wfUse(err()
-      .line("\"use\" directive refers to "+disp(tn.s())+", which is not a fully qualified name.")
-      .line("A \"use\" directive refers to a type of another package by its fully qualified name, as in \"use base.Str as Str;\"."), tn);
+      .line("\"use\" directive refers to "+disp(tn.s())+", which is not a full type name.")
+      .line("A \"use\" directive refers to a type of another package by its full type name, as in \"use base.Str as Str;\"."), tn);
   }
   public FearlessException useOfTheCurrentPackage(TName tn){
     return wfUse(err()
@@ -290,7 +287,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return err()
       .line("A map can not refer to the code inside folders named "+disp("_"+pkgName)+" for source code inside folders named "+disp("_"+pkgName)+":")
       .line(directive)
-      .line(inFolders(pkgName)+" refers to its own types by their simple names.").wf();
+      .line(inFolders(pkgName)+" uses the simple names of its own types.").wf();
   }
   public FearlessException mapToNotLowerRank(String out, String directive, Ref rank, Ref otherRank, boolean sameRank){
     return err()
@@ -326,14 +323,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return typeName(e, tn);
   }
   public FearlessException typeWithAnAlias(TName tn, FileFull.Use u){
-    return typeName(fullNameInvalid(err(pkgMapped(pkgName, tn.pkgName(), map, writtenIn)), tn).line(inFolders(pkgName)+" uses the simple name "+disp(u.out())+" to refer to "+disp(tn.s())+" because of "+disp(u)+"."), tn);
+    return typeName(fullNameInvalid(err(pkgMapped(pkgName, tn.pkgName(), map, writtenIn)), tn).line(inFolders(pkgName)+" uses the simple name "+disp(u.out())+" to refer to "+disp(tn.s())+", because of "+disp(u)+"."), tn);
   }
   private Err fullNameInvalid(Err e, TName tn){ return e.line("The full type name "+disp(tn.s())+" is invalid in source code inside folders named "+disp("_"+pkgName)+"."); }
   private static FearlessException typeName(Err e, TName tn){ return e.wf().addFrame("a type name", TSpan.fromPos(tn.pos(), tn.s().length()).inner); }
   public FearlessException unknownUseHead(TName tn, Map<String,String> map){
     return wfUse(err(pkgMapped(pkgName, tn.pkgName(), map, writtenIn))
-      .line("\"use\" directive refers to undeclared name: type "+disp(tn.simpleName())
-        +" is not declared in package "+disp(tn.pkgName())+"."), tn);
+      .line("\"use\" directive refers to type "+disp(tn.simpleName())+", which is not declared in package "+disp(tn.pkgName())+"."), tn);
   }
   public FearlessException useOfNotLowerRank(TName tn, String pkg, Ref rank, Ref otherRank, boolean sameRank){
     return wfUse(err()

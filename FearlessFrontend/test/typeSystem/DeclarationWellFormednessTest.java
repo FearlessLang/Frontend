@@ -957,7 +957,7 @@ B:A,p.A{}
 
 While inspecting a type name
 The full type name "base.CaptureFree" is invalid in source code inside folders named "_p".
-Source code inside folders named "_p" uses the simple name "CF" to refer to "base.CaptureFree" because of "use base.CaptureFree as CF".
+Source code inside folders named "_p" uses the simple name "CF" to refer to "base.CaptureFree", because of "use base.CaptureFree as CF".
 """, List.of("""
 use base.CaptureFree as CF;
 B:CF,base.CaptureFree{}
@@ -1020,7 +1020,7 @@ A:{}
    | --------------------^^
 
 While inspecting header element > file header > full file
-There is already a map for package name "foo" for source code inside folders named "_p".
+There is already a map of package name "foo" for source code inside folders named "_p".
 """, List.of("""
 map foo as _base in _p;
 map foo as _base in _p;

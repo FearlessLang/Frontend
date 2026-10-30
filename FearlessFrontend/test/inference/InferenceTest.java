@@ -761,7 +761,7 @@ In file: [###].fear
    |     ^^^^^^^^^
 
 While inspecting package header
-"use" directive refers to undeclared name: type "AAAA" is not declared in package "base".
+"use" directive refers to type "AAAA", which is not declared in package "base".
 Error 7 WellFormedness
 """, List.of("""
 use base.AAAA as BBB;
@@ -1104,7 +1104,7 @@ While inspecting a type name
 Type "F" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
 Did you mean "base.F" ?
-Add a "use" or write the fully qualified name.
+Add a "use" or write the full type name.
 Error 7 WellFormedness
 """, List.of("""
 User:{
@@ -1123,7 +1123,7 @@ While inspecting a type name
 Type "Blok" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
 Did you mean "base.Block" ?
-Add a "use" or write the fully qualified name.
+Add a "use" or write the full type name.
 Error 7 WellFormedness
 """, List.of("""
 User:{

@@ -2331,7 +2331,7 @@ In file: [###].fear
    | ----------------^^
 
 While inspecting header element > file header > full file
-There is already a map for package name "a" for source code inside folders named "_c".
+There is already a map of package name "a" for source code inside folders named "_c".
 Error 2 UnexpectedToken
 """, """
 map a as _b1 in _c;
@@ -2554,7 +2554,7 @@ In file: [###].fear
    | ------------------------------^^^
 
 While inspecting header element > file header > full file
-There is already a map for package name "a" for source code inside folders named "_c".
+There is already a map of package name "a" for source code inside folders named "_c".
 Error 2 UnexpectedToken
 """, """
 map a as _b1 in _c;
@@ -2571,6 +2571,33 @@ FileFull[maps=[map a as _b in _c],uses=[use base.Str as Str],decs=[]]
 """, """
 use base.Str as Str;
 map a as _b in _c;
+"""); }
+@Test void pkgMapOfKeywordLikeNames(){ ok("""
+FileFull[maps=[map as as _in in _of instead of _instead,_map,map in as _as in _of,map map as _use in _map instead of _as],uses=[use as.A as As],decs=[]]
+""", """
+map as as _in in _of instead of _instead, _map;
+map in as _as in _of;
+map map as _use in _map instead of _as;
+use as.A as As;
+"""); }
+@Test void pkgMapWithoutIn(){ fail("""
+In file: [###].fear
+
+001| map foo as _foo_v5 _lib;
+   | ~~~~~~~~~~~~~~~~~~~^^^^-
+
+While inspecting header element > file header > full file
+Missing "in" keyword.
+Found instead: "_lib".
+Expected: "in".
+Error 2 UnexpectedToken
+""", """
+map foo as _foo_v5 _lib;
+"""); }
+@Test void pkgMapOfExtraUnderscoreFolders(){ ok("""
+FileFull[maps=[map foo as _foo__v5_ in _lib_ instead of _foo_v4__],uses=[],decs=[]]
+""", """
+map foo as _foo__v5_ in _lib_ instead of _foo_v4__;
 """); }
 @Test void pkgDupMapOk(){ ok("""
 [###]

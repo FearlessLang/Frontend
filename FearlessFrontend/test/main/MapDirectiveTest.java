@@ -259,7 +259,7 @@ In file: [###].fear
    |     ^^^
 
 While inspecting package header
-"use" directive refers to undeclared name: type "Z" is not declared in package "a".
+"use" directive refers to type "Z", which is not declared in package "a".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_cc", because of "map a as _cc in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -290,7 +290,7 @@ In file: [###].fear
 
 While inspecting a type name
 The full type name "c.A" is invalid in source code inside folders named "_b".
-Source code inside folders named "_b" uses the simple name "X" to refer to "c.A" because of "use c.A as X".
+Source code inside folders named "_b" uses the simple name "X" to refer to "c.A", because of "use c.A as X".
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of(), """
 use c.A as X;
@@ -304,7 +304,7 @@ In file: [###].fear
 
 While inspecting a type name
 The full type name "a.A" is invalid in source code inside folders named "_b".
-Source code inside folders named "_b" uses the simple name "X" to refer to "a.A" because of "use a.A as X".
+Source code inside folders named "_b" uses the simple name "X" to refer to "a.A", because of "use a.A as X".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -553,7 +553,7 @@ While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
 In scope: "B".
 Did you mean "a.Server" ?
-Add a "use" or write the fully qualified name.
+Add a "use" or write the full type name.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -658,7 +658,7 @@ While inspecting a type name
 Type "Server" is not declared in package "d".
 In scope: "d.Client".
 Did you mean "a.Server" ?
-Add a "use" or write the fully qualified name.
+Add a "use" or write the full type name.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -748,7 +748,7 @@ In file: [###].fear
 
 While inspecting a type name
 The full type name "a.A" is invalid in source code inside folders named "_b".
-Source code inside folders named "_b" uses the simple name "X" to refer to "a.A" because of "use a.A as X".
+Source code inside folders named "_b" uses the simple name "X" to refer to "a.A", because of "use a.A as X".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -1100,7 +1100,7 @@ While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
 In scope: "B", "Remote".
 Did you mean "Remote" or "d.Server" ?
-Add a "use" or write the fully qualified name.
+Add a "use" or write the full type name.
 
 Name "Remote" stands for "a.Server" because of "use a.Server as Remote".
 """+noteA+"""
@@ -1172,7 +1172,7 @@ While inspecting a type name
 Type "Str" is not declared in package "b" and is not made visible via "use".
 In scope: "B".
 Did you mean "bb.Str" ?
-Add a "use" or write the fully qualified name.
+Add a "use" or write the full type name.
 
 """+noteBb+"""
 
@@ -1190,7 +1190,7 @@ While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
 In scope: "B".
 Did you mean "a.Server" or "z.Server" ?
-Add a "use" or write the fully qualified name.
+Add a "use" or write the full type name.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_c", because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1403,5 +1403,209 @@ Error 8 TypeError""", Map.of("c", cA, "e", dA), Map.of("a", "c", "z", "e"), """
 use a.A as X;
 use z.A as Y;
 B:{.m(x:Y):X->x}
+"""); }
+  @Test void packageNamesAsAndInThroughMaps(){ ok(Map.of("c", cA, "d", dA), Map.of("as", "c", "in", "d"), """
+map as as _c in _b;
+map in as _d in _b;
+B:{.m(x:as.A, y:in.A):as.A->x.fromC; .n(y:in.A):in.A->y.fromD}
+"""); }
+  @Test void packageNamesInsteadAndOfThroughMapsWithAnInsteadOfList(){ ok(Map.of("c", cA, "d", dA), Map.of("instead", "c", "of", "d"), """
+map instead as _c in _b instead of _instead, _of;
+map of as _d in _b instead of _instead;
+use of.A as OfA;
+B:{.m(x:instead.A, y:OfA):OfA->y.fromD}
+"""); }
+  @Test void packageNamesMapAndUseThroughMaps(){ ok(Map.of("c", cA, "d", dA), Map.of("map", "c", "use", "d"), """
+map map as _c in _b;
+map use as _d in _b;
+use map.A as M;
+B:{.m(x:M, y:use.A):use.A->y.fromD; .k(x:M):M->x.fromC}
+"""); }
+  @Test void aParameterNamedLikeTheMappedPackage(){ ok(Map.of("c", cA), Map.of("a", "c"), """
+B:{.m(a:a.A):a.A->a.fromC; .k(as:a.A):a.A->as.fromC}
+"""); }
+  @Test void aFolderNameWithExtraUnderscores(){ ok(Map.of("c__v_", cA), Map.of("a", "c__v_"), """
+map a as _c__v_ in _b instead of _c__v4_;
+B:{.m(x:a.A):a.A->x.fromC}
+"""); }
+  @Test void aFolderNameWithExtraUnderscoresWrittenByItsOwnName(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.A):c__v_.A->x.fromC}
+   |              ^^^^^^^^
+
+While inspecting a type name
+Source code inside folders named "_b" can not use package name "c__v_".
+Visible package names: "a", "base".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c__v_", because of "map a as _c__v_ in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c__v_", cA), Map.of("a", "c__v_"), """
+B:{.m(x:a.A):c__v_.A->x.fromC}
+"""); }
+  @Test void aKeywordLikeMapTargetWrittenByItsOwnName(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:as.A):in.A->x.fromC}
+   |               ^^^^^
+
+While inspecting a type name
+Source code inside folders named "_b" can not use package name "in".
+Visible package names: "as", "base".
+Source code inside folders named "_b" uses package name "as" to refer to the code inside folders named "_in", because of "map as as _in in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("in", cA), Map.of("as", "in"), """
+B:{.m(x:as.A):in.A->x.fromC}
+"""); }
+  @Test void useOfAKeywordLikeMappedNameToAMissingType(){ fail("""
+In file: [###].fear
+
+001| use of.Z as Z;
+   |     ^^^^
+
+While inspecting package header
+"use" directive refers to type "Z", which is not declared in package "of".
+
+Source code inside folders named "_b" uses package name "of" to refer to the code inside folders named "_c", because of "map of as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", cA), Map.of("of", "c"), """
+use of.Z as Z;
+B:{}
+"""); }
+  @Test void useOfASimpleNameNextToAMap(){ fail("""
+In file: [###].fear
+
+001| use A as X;
+   |     ^
+
+While inspecting package header
+"use" directive refers to "A", which is not a full type name.
+A "use" directive refers to a type of another package by its full type name, as in "use base.Str as Str;".
+Error 7 WellFormedness
+""", Map.of("c", cA), Map.of("a", "c"), """
+use A as X;
+B:{.m(x:a.A):a.A->x.fromC}
+"""); }
+  @Test void undeclaredSimpleNameThroughAKeywordLikeMap(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:A):B->this}
+   |         ^^
+
+While inspecting a type name
+Type "A" is not declared in package "b" and is not made visible via "use".
+In scope: "B".
+Did you mean "in.A" ?
+Add a "use" or write the full type name.
+
+Source code inside folders named "_b" uses package name "in" to refer to the code inside folders named "_c", because of "map in as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", cA), Map.of("in", "c"), """
+B:{.m(x:A):B->this}
+"""); }
+  @Test void literalsWithBaseMappedToAKeywordLikeName(){ ok(Map.of(), Map.of("in", "base"), """
+B:{ .m:in.Nat -> 5; .s:in.Str -> "hi"; .i:in.Int -> +5 }
+"""); }
+  @Test void reservedLookingButValidNamesInAMapLine(){ ok(Map.of("c", cA), Map.of("con1", "c"), """
+map con1 as _com0 in _lpt10 instead of _nul_, _aux2;
+B:{.m(x:con1.A):con1.A->x.fromC}
+"""); }
+  @Test void aReservedFolderNameInAMapLine(){ fail("""
+In file: [###].fear
+
+001| map a as _com1 in _b;
+   | ~~~~~~~~~^^^^^~~~~~~-
+002| B:{}
+
+While inspecting header element > file header > full file
+Missing folder name.
+Found instead: "_com1".
+Expected: "folder name: the _ symbol followed by a package name".
+Error 2 UnexpectedToken
+""", Map.of(), Map.of(), """
+map a as _com1 in _b;
+B:{}
+"""); }
+  @Test void anInsteadOfListWithoutSpacesAndWithComments(){ ok(Map.of("c", cA), Map.of("a", "c"), """
+map a as _c /*folder*/ in _b instead of _d,_e //older
+  ,_f;
+B:{.m(x:a.A):a.A->x.fromC}
+"""); }
+  @Test void anInsteadOfListWithATrailingComma(){ fail("""
+In file: [###].fear
+
+001| map a as _c in _b instead of _d,;
+   | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^-
+002| B:{}
+
+While inspecting header element > file header > full file
+Missing folder name.
+Expected: "folder name: the _ symbol followed by a package name".
+Error 2 UnexpectedToken
+""", Map.of("c", cA), Map.of("a", "c"), """
+map a as _c in _b instead of _d,;
+B:{}
+"""); }
+  @Test void anInsteadOfListWithoutOf(){ fail("""
+In file: [###].fear
+
+001| map a as _c in _b instead _d;
+   | ~~~~~~~~~~~~~~~~~~~~~~~~~~^^-
+002| B:{}
+
+While inspecting header element > file header > full file
+Missing "of" keyword.
+Found instead: "_d".
+Expected: "of".
+Error 2 UnexpectedToken
+""", Map.of("c", cA), Map.of("a", "c"), """
+map a as _c in _b instead _d;
+B:{}
+"""); }
+  @Test void aMapLineWithoutItsSemicolonBeforeADeclaration(){ fail("""
+In file: [###].fear
+
+001| map a as _c in _b instead of _d
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+002| B:{}
+
+While inspecting file header > full file
+Missing semicolon.
+Found instead: "_d".
+Expected: ";".
+Error 2 UnexpectedToken
+""", Map.of("c", cA), Map.of("a", "c"), """
+map a as _c in _b instead of _d
+B:{}
+"""); }
+  @Test void aRepeatedMapLineWithKeywordLikeNames(){ fail("""
+In file: [###].fear
+
+001| map in as _c in _as;
+002| map in as _d in _as instead of _c;
+   | -------------------------------^^
+
+While inspecting header element > file header > full file
+There is already a map of package name "in" for source code inside folders named "_as".
+Error 2 UnexpectedToken
+""", Map.of("c", cA), Map.of("in", "c"), """
+map in as _c in _as;
+map in as _d in _as instead of _c;
+B:{}
+"""); }
+  @Test void aMapLineWithAnUppercaseFolderName(){ fail("""
+In file: [###].fear
+
+001| map a as _cC in _b;
+   | ~~~~~~~~~^^^~~~~~~-
+002| B:{}
+
+While inspecting header element > file header > full file
+Missing folder name.
+Found instead: "_cC".
+Expected: "folder name: the _ symbol followed by a package name".
+Error 2 UnexpectedToken
+""", Map.of("c", cA), Map.of("a", "c"), """
+map a as _cC in _b;
+B:{}
 """); }
 }
