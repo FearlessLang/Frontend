@@ -413,13 +413,21 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   void parseMap(HeadAcc acc){
     var in= expectValidate("package name", LowercaseId, _pkgName).content();
     expectValidate("\"as\" keyword", LowercaseId, _as);
-    var out= expectValidate("package name", LowercaseId, _pkgName).content();
+    var out= folderName();
     expectValidate("\"in\" keyword", LowercaseId, _in);
-    var target= expectValidate("package name", LowercaseId, _pkgName).content();
+    var target= folderName();
     var dup= acc.map.stream().anyMatch(m -> m.in().equals(in) && m.target().equals(target));
-    if (dup){ throw errFactory().duplicatedMap(spanLast(), in, target); }
-    acc.map.add(new FileFull.Map(in, out, target));
+    if (dup){ throw errFactory().duplicatedMap(spanLast(), in, "_"+target); }
+    var insteadOf= fwdIf(peekValidate(_instead)) ? insteadOf() : new ArrayList<String>();
+    acc.map.add(new FileFull.Map(in, out, target, List.copyOf(insteadOf)));
   }
+  ArrayList<String> insteadOf(){
+    expectValidate("\"of\" keyword", LowercaseId, _of);
+    var res= new ArrayList<String>();
+    do { res.add(folderName()); } while (fwdIf(peek(Comma)));
+    return res;
+  }
+  String folderName(){ return expectValidate("folder name", LowercaseId, _folderName).content().substring(1); }
   void parseUse(HeadAcc acc){
     var t1= parseTName();
     expectValidate("\"as\" keyword", LowercaseId, _as);

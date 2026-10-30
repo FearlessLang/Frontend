@@ -436,6 +436,14 @@ p.B:p.A{'this #(p.A):p.A@p.B;(_adiv)->base.Destruct:?#(_adiv:?.a():?.b():?,_adiv
 A:{ #(A):A }
 B:A{ #{.a.b,.c.d}3->b3+d3 }
 """));}
+@Test void xpatInAPackageWithAnAliasForDestruct(){ok("""
+p.A:{'this #(p.A):p.A@p.A;}
+p.B:p.A{'this #(p.A):p.A@p.B;(_adiv)->base.Destruct:?#(_adiv:?.a():?.b():?,_adiv:?.c():?.d():?,p._AB:$?{'_ ? [?](?,?):?@!;(b3, d3)->b3:?+(d3:?):?;}:?):?;}
+""", List.of("""
+use base.Destruct as D;
+A:{ #(A):A }
+B:A{ #{.a.b,.c.d}3->b3+d3 }
+"""));}
 
 @Test void eqDeep(){ok("""
 p.A:{'this .bar(p.A):p.A@p.A;}
@@ -753,7 +761,7 @@ In file: [###].fear
    |     ^^^^^^^^^
 
 While inspecting package header
-"use" directive refers to undeclared name: type "AAAA" is not declared in package "base".
+"use" directive refers to type "AAAA", which is not declared in package "base".
 Error 7 WellFormedness
 """, List.of("""
 use base.AAAA as BBB;
@@ -1004,7 +1012,7 @@ In file: [###].fear
 
 While inspecting a type name
 Type "Widen" is not declared in package "base".
-Did you mean "WidenTo" ?
+Did you mean "base.WidenTo" ?
 Error 7 WellFormedness
 """, List.of("""
 A:base.Widen[A]{}
@@ -1023,8 +1031,8 @@ Type declaration "C" implements "base.WidenTo[_]" more than once.
 At most one "base.WidenTo[_]" supertype is allowed, because it defines the preferred widened type.
 
 Found the following "base.WidenTo[_]" supertypes:
-- "base.WidenTo[p.A]"
-- "base.WidenTo[p.B]"
+- "base.WidenTo[A]"
+- "base.WidenTo[B]"
 Error 7 WellFormedness
 """, List.of("""
 A:base.WidenTo[A]{}
@@ -1096,7 +1104,7 @@ While inspecting a type name
 Type "F" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
 Did you mean "base.F" ?
-Add a "use" or write the fully qualified name.
+Add a "use" or write the full type name.
 Error 7 WellFormedness
 """, List.of("""
 User:{
@@ -1115,7 +1123,7 @@ While inspecting a type name
 Type "Blok" is not declared in package "p" and is not made visible via "use".
 In scope: "User".
 Did you mean "base.Block" ?
-Add a "use" or write the fully qualified name.
+Add a "use" or write the full type name.
 Error 7 WellFormedness
 """, List.of("""
 User:{
@@ -1131,9 +1139,9 @@ In file: [###].fear
    |          ^^^^^^^^
 
 While inspecting a type name
-Package "basee" does not exist.
+Source code inside folders named "_p" can not use package name "basee".
 Did you mean "base" ?
-Visible packages: "base", "p".
+Visible package names: "base".
 Error 7 WellFormedness
 """, List.of("""
 use base.F as F;
@@ -1182,10 +1190,11 @@ In file: [###].fear
    |               ^^^^^^
 
 While inspecting a type name
-Name "Block" stands for "base.Block" because of "use base.Block as Block".
 Name "Block" is not declared with 2 type parameters in package "base".
 Name "Block" is only declared with the following numbers of type parameters: 0, 1.
 Did you accidentally add or omit a type parameter?
+
+Name "Block" stands for "base.Block" because of "use base.Block as Block".
 Error 7 WellFormedness
 """, List.of("""
 use base.Block as Block;

@@ -186,15 +186,13 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return ex("See inferred typing context below for how type "+req+" was introduced: (compression indicated by `-`)", e);
   }
   FearlessException ex(String footerHdr, core.E footerE){
-    blank();
-    notes.get().forEach(this::line);
-    return Code.TypeError.of(blank()
-      .line(footerHdr)
-      .line(_cp.apply(true).limit(footerE, 120))
-      .text());
+    var body= text();
+    var footer= _cp.apply(true).limit(footerE, 120).stripTrailing();
+    return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.get().stream(), "", "\n", "\n\n", "")+footerHdr+"\n"+footer);
   }
   FearlessException wf(){
     assert sb.length() != 0;
-    return Code.WellFormedness.of(text());
+    var body= text();
+    return Code.WellFormedness.of(() -> body+Join.of(notes.get().stream(), "\n\n", "\n", "", ""));
   }
 }

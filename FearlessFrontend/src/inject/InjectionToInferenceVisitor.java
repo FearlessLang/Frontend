@@ -30,6 +30,7 @@ import utils.Pos;
 import inference.E;
 import inference.IT;
 import inference.M;
+import pkgmerge.Package;
 
 public record InjectionToInferenceVisitor(Methods meths, TName currentTop, ArrayList<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs){
   IT visitT(fearlessFullGrammar.T t){
@@ -131,7 +132,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var sig= new Sig(empty(), empty(), empty(), false, ps, empty());
     var f= new fearlessFullGrammar.E.Literal(empty(), List.of(new fearlessFullGrammar.M(of(sig), of(body), false, span)), span);
     var args= Push.of(xes.stream().map(XE::e).toList(), f);
-    return call(typedLiteral("base.Destruct", body.span(), p), "#", args, p);
+    var destruct= Package.nameOf(meths.p().name(), meths.p().map(), new TName("base.Destruct", 0, p));
+    return call(typedLiteral(destruct, body.span(), p), "#", args, p);
   }
   record XE(String x, fearlessFullGrammar.E e){}
   List<XE> xpats(List<String> lowered, List<Parameter> original, TSpan span){

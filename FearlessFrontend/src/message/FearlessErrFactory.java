@@ -110,7 +110,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException duplicatedMap(Span at, String what, String in){
     return Code.UnexpectedToken.of(
-      "There is already an entry in the mapping for "+disp(what)+" in "+disp(in)+".\n"
+      "There is already a map of package name "+disp(what)+" for source code inside folders named "+disp(in)+".\n"
     ).addSpan(at);
   }
   public FearlessException duplicatedUse(Span at, String what, String kind){
@@ -121,7 +121,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   public FearlessException duplicatedImpl(List<T.C> cs, Span at){
     var c= redeclaredElement(cs);
     return Code.WellFormedness.of(
-      "Duplicate supertype in type declaration: "+staticTypeDecName(c.name())+".\n"
+      "Duplicate supertype in type declaration: "+disp(c.name().s()+genArity(c.name().arity()))+".\n"
     ).addSpan(at);
   }
 

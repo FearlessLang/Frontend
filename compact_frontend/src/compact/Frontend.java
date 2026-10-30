@@ -21,7 +21,7 @@ public class Frontend{
     var ds=flat(raw.values(),f->f.decs.stream());var uses=map(head.uses,File.Use::out);
     var names=flat(ds,d->d.owner.decs.stream());no(dup(names));var strings=map(names,N::s);
     no(any(uses,strings::contains)||any(flat(ds,d->d.owner.gen.used.stream()),x->strings.contains(x)||uses.contains(x)));
-    var map=new HashMap<>(override);for(var u:head.uses){var p=map.getOrDefault(u.in.pk(),u.in.pk());
+    var map=new HashMap<>(override);for(var u:head.uses){no(map.containsValue(u.in.pk()));var p=map.getOrDefault(u.in.pk(),u.in.pk());
       var in=p+"."+u.in.simple();map.put(u.out,in);no(p.equals(pk)||!any(other.keySet(),e->e.s.equals(in)));
     }var ctx=new Methods(new Pkg(pk,map,ds,new HashSet<>(names)),other);
     var res=ctx.headers();TS.check(res,other);return res;
@@ -229,8 +229,9 @@ public class Frontend{
     String take(K kind,String regex){var s=take(kind).content;no(!s.matches(regex));return s;}
     Object directive(HashSet<String>maps,Vector<File.Use>uses){
       if(take(Low,"map|use").equals("map")){
-        var in=take(Low,K.pk);take(Low,"as");take(Low,K.pk);
-        take(Low,"in");no(!maps.add(in+" "+take(Low,K.pk)));
+        var in=take(Low,K.pk);take(Low,"as");take(Low,"_"+K.pk);
+        take(Low,"in");no(!maps.add(in+" "+take(Low,"_"+K.pk)));
+        if(!end()){take(Low,"instead");take(Low,"of");do take(Low,"_"+K.pk);while(!end()&&take(Comma)!=null);}
       }else{
         var a=name();take(Low,"as");
         var z=take(Up,"[^.]*");no(any(uses,u->u.in.equals(a)||u.out.equals(z)));
@@ -395,8 +396,10 @@ public class Frontend{
     N f(N tn){
       var pN=tn.pk();if(pN.isEmpty()&&primitive(tn.s))return tn.qualify("base");
       var full=new N(pN.isEmpty()?p.map.getOrDefault(tn.s,p.name+"."+tn.s):p.map.getOrDefault(pN,pN)+"."+tn.simple(),tn.arity);
-      no(!(full.pk().equals(p.name)?p.names.contains(new N(full.simple(),full.arity)):other.containsKey(full)));return full;
+      no(!pN.isEmpty()&&(pN.equals(p.name)||p.map.containsValue(pN)||p.map.containsValue(full.s))||!(full.pk().equals(p.name)?p.names.contains(new N(full.simple(),full.arity)):other.containsKey(full)));return full;
     }
+    N single(N n){var w=new HashMap<String,String>();p.map.forEach((k,v)->w.put(v,k));
+      return new N(n.pk().equals(p.name)?n.simple():w.getOrDefault(n.s,w.getOrDefault(n.pk(),n.pk())+"."+n.simple()),n.arity);}
     T type(T t){return t instanceof R(var r,var c)?new R(r,constructor(c)):t;}
     E expr(P e){return switch(e){
       case P.X x->new E.X(x.name,u);case P.Implicit _->new E.X(implicits.getLast(),u);
@@ -428,7 +431,7 @@ public class Frontend{
         var p=fresh("impl");ps=push(ps,p);implicits.add(p);
       }if(patterns){
         var fl=lambda(map(xpats,xe->new Par(new Pat.Name(xe.x),u)),body);
-        body=new P.Call(new P.Typed(imm,new C(base("Destruct",0),list()),null),"#",null,null,push(map(xpats,XE::e),fl));
+        body=new P.Call(new P.Typed(imm,new C(single(base("Destruct",0)),list()),null),"#",null,null,push(map(xpats,XE::e),fl));
       }
       var e=expr(body);if(m.implicit)implicits.removeLast();return new M(s,ps,e);
     }

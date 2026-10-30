@@ -8,13 +8,10 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-import fearlessFullGrammar.FileFull;
 import inject.TypeRename;
 import metaParser.NameSuggester;
 import pkgmerge.Package;
@@ -31,20 +28,8 @@ import utils.Streams;
 import core.*;
 import core.E.*;
 
-public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<String,String> map, LinkedHashSet<String> printed){
-  public Err err(){ return new Err(this::publicHead, this::preferredForFresh, decs, t -> new CompactPrinter(pkg.name(), map, printed::add, t), this::notes, new StringBuilder()); }
-  private List<String> notes(){ return printed.stream().flatMap(this::spellingNotes).distinct().toList(); }
-  private Stream<String> spellingNotes(String n){
-    var dot= TName.pkgDot(n);
-    var pkgN= n.substring(0, dot);
-    var aliases= pkg.uses().stream().map(FileFull.Use::out).filter(x -> n.equals(pkg.map().get(x)));
-    var mapped= pkg.map().entrySet().stream()
-      .filter(e -> e.getValue().equals(pkgN) && !e.getKey().equals(pkgN))
-      .map(e -> e.getKey()+n.substring(dot)).sorted();
-    var ws= Stream.concat(aliases, mapped).toList();
-    if (ws.stream().allMatch(w -> w.equals(map.get(n)))){ return Stream.of(); }
-    return ws.stream().flatMap(w -> WellFormednessErrors.resolution(pkg, w).stream());
-  }
+public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, LinkedHashSet<String> printed){
+  public Err err(){ return new WellFormednessErrors(pkg.name(), pkg.map(), pkg.writtenIn(), printed).err(this::publicHead, this::preferredForFresh, decs, List.of()); }
   private TName preferredForFresh(TName n){
     var res= decs.apply(n);
     var showSuper= res.infName() && !res.cs().isEmpty();
@@ -167,7 +152,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
     var name= t.type().c().name();
     return addExpFrame(at, e
       .line("Sealed types can only be implemented in their own package.")
-      .line("Type "+disp(name.simpleName())+" is defined in package "+disp(name.pkgName())+".")
+      .line("Type "+disp(name.simpleName())+" is defined in package "+disp(Package.writtenPkg(pkg.map(), name.pkgName()))+".")
       .ex(at));
   }
   private boolean foreignSealed(TName name){
@@ -258,7 +243,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       ? "The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."
       : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+")"
         +"\nis implemented with an expression returning "+got0+".");
-    e.line(up(got.info));
+    e.line(up(got.info(printed)));
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ captureFreeHint(e, l, m); }
     return addExpFrame(at, e.exInferMsg(got.footerE.get(), req0).addSpan(at.span().inner));
@@ -467,7 +452,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
       .notInSubtypeList(any)
-      .line(up(r.info))
+      .line(up(r.info(printed)))
       .blank()
       .line("Type required by each promotion:");
     reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+"  ("+q.reqName()+")"));
@@ -539,7 +524,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Map<St
       var argi= IntStream.range(0, args).filter(a -> !mat.okByArg().get(a).contains(pi)).findFirst().getAsInt();
       var r= mat.resByArg().get(argi).get(pi);
       assert !r.isEmpty();
-      byArg.get(argi).computeIfAbsent(up(r.info), _ -> new ArrayList<>())
+      byArg.get(argi).computeIfAbsent(up(r.info(printed)), _ -> new ArrayList<>())
         .add(mat.candidate(pi).promotion());
     }
     for (int argi : Range.of(0, args)){

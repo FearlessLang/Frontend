@@ -3,7 +3,9 @@ package message;
 import static message.Err.*;
 
 import java.math.BigInteger;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -11,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -38,32 +41,48 @@ import tools.Fs;
 import tools.SourceOracle.Ref;
 import typeSystem.Kinding;
 import utils.Join;
+import utils.Pos;
 import java.util.EnumSet;
 import utils.Push;
 
-public record WellFormednessErrors(String pkgName){
-  Err err(){ return err(_ -> null); }
-  private Err err(Function<TName,core.E.Literal> decs){ return new Err(y -> y, x -> x, decs, trunk -> new CompactPrinter(pkgName, Map.of(), _ -> {}, trunk), List::of, new StringBuilder()); }
-  private Err err(List<String> lines){
-    var e= err();
-    lines.forEach(e::line);
-    return e;
+public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<String,String> writtenIn, LinkedHashSet<String> printed){
+  public WellFormednessErrors(String pkgName){ this(pkgName, Map.of(), Map.of(), new LinkedHashSet<>()); }
+  Err err(){ return err(List.of()); }
+  private Err err(List<String> steps){ return err(y -> y, x -> x, _ -> null, steps); }
+  Err err(Function<core.T.C,core.T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,core.E.Literal> decs, List<String> steps){
+    var written= written(map);
+    return new Err(publicHead, preferredForFresh, decs, trunk -> new CompactPrinter(pkgName, written, trunk ? _ -> {} : printed::add, trunk), () -> notes(written, steps), new StringBuilder());
+  }
+  private List<String> notes(Map<String,String> written, List<String> steps){ return Stream.concat(steps.stream(), printed.stream().flatMap(n -> note(written, n))).distinct().sorted(nameFirst).toList(); }
+  public static Map<String,String> written(Map<String,String> map){
+    return map.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
+  }
+  private static final Comparator<String> nameFirst= Comparator.comparing(s -> !s.startsWith("Name "));
+  private Stream<String> note(Map<String,String> written, String n){
+    var dot= TName.pkgDot(n);
+    var out= n.substring(0, dot);
+    var in= written.get(out);
+    var w= in+n.substring(dot);
+    return Stream.concat(Optional.ofNullable(written.get(n)).map(a -> standsFor(a, w, "use "+w+" as "+a)).stream(), Stream.of(refersTo(pkgName, in, out, writtenIn)));
   }
   public static List<String> resolution(Package p, String written){
     var dot= TName.pkgDot(written);
-    if (dot != -1){
-      var in= written.substring(0, dot);
-      return mapStep(p.name(), in, p.map().getOrDefault(in, in), written.substring(dot+1));
-    }
+    if (dot != -1){ return pkgMapped(p.name(), written.substring(0, dot), p.map(), p.writtenIn()); }
     return p.uses().stream()
       .filter(u -> u.out().equals(written))
       .flatMap(u -> Push.of(standsFor(written, u.in().s(), u), resolution(p, u.in().s())).stream())
       .toList();
   }
-  private static List<String> mapStep(String target, String in, String out, String simple){
-    if (in.equals(out)){ return List.of(); }
-    return List.of(standsFor(in+"."+simple, out+"."+simple, new FileFull.Map(in, out, target)));
+  private static List<String> pkgMapped(String target, String in, Map<String,String> map, Map<String,String> writtenIn){
+    var out= map.get(in);
+    if (out == null){ return List.of(); }
+    return List.of(refersTo(target, in, out, writtenIn));
   }
+  private static String refersTo(String target, String in, String out, Map<String,String> writtenIn){
+    var m= new FileFull.Map(in, out, target, List.of());
+    return inFolders(target)+" uses package name "+disp(in)+" to refer to the code inside folders named "+disp("_"+out)+", because of "+disp(m)+", written in "+Objects.requireNonNull(writtenIn.get(in))+".";
+  }
+  private static String inFolders(String pkg){ return "Source code inside folders named "+disp("_"+pkg); }
   private static String standsFor(String from, String to, Object directive){
     return "Name "+disp(from)+" stands for "+disp(to)+" because of "+disp(directive)+".";
   }
@@ -106,32 +125,25 @@ public record WellFormednessErrors(String pkgName){
   public FearlessException mapConflict(String in, List<String> bests){
     var limit= 12;
     var e= err()
-      .line("For package "+disp(pkgName)+", the virtual package name "+disp(in)
-           +" is mapped to different real packages:");
+      .line("Maps of the same rank give package name "+disp(in)+" different folders, for source code inside folders named "+disp("_"+pkgName)+":");
     bests.stream().limit(limit).forEach(e::line);
-    if (bests.size() > limit){ e.line(" - ... ("+(bests.size()-limit)+" more)"); }
+    if (bests.size() > limit){ e.line("- ... ("+(bests.size()-limit)+" more)"); }
     e.blank()
-     .line("These mappings come from rank files with the same priority (same rank),")
-     .line("so there is no higher one to override the other.")
-     .blank()
-     .line("How mapping works:")
-     .bullet("Each package rank file can have lines like: map 'virtual' as 'real' in 'target';")
-     .bullet("If a virtual package name is never mentioned, it implicitly maps to itself (identity).")
-     .bullet("Higher-rank packages override lower-rank ones.")
+     .line("How maps work:")
+     .bullet("A rank file can have lines like \"map name as _folder in _target;\".")
+     .bullet("With no map, package name \"x\" refers to the code inside folders named \"_x\".")
+     .bullet("A map in a rank file of higher rank overrides the maps of lower rank, and lists their folders with \"instead of\".")
      .blank()
      .line("How to fix it:")
-     .bullet("Decide which real package should represent "+disp(in)+" inside of "+disp(pkgName)+".")
-     .bullet("Add one mapping line in a higher-rank package (typically your top-level application"
-            +" package), so that it overrides the conflicting ones.");
+     .bullet("Decide which folder package name "+disp(in)+" refers to, for source code inside folders named "+disp("_"+pkgName)+".")
+     .bullet("Add one map in a rank file of higher rank (typically the rank file of your application"
+            +"), with \"instead of\" listing every folder chosen by the maps of lower rank.");
     return e.wf();
   }
-  public FearlessException mapToMissingPackage(String in, String out, String directive, List<String> pkgs){
-    var e= err()
-      .line("For package "+disp(pkgName)+", the virtual package name "+disp(in)+" is mapped to "+disp(out)+",")
-      .line("but package "+disp(out)+" does not exist:")
-      .line(directive);
-    NameSuggester.suggest(out, pkgs, (_,_,best) -> { best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?")); return null; });
-    return e.line(Join.of(pkgs.stream().map(Err::disp), "Existing packages: ", ", ", ".")).wf();
+  public FearlessException mapToMissingFolder(String role, String folder, String directive, List<String> pkgs){
+    var e= err().line("The map "+role+" folders named "+disp("_"+folder)+", but no folder is named "+disp("_"+folder)+":").line(directive);
+    NameSuggester.suggest(folder, pkgs, (_,_,best) -> { best.ifPresent(b -> e.line("Did you mean "+disp("_"+b)+" ?")); return null; });
+    return e.line(Join.of(pkgs.stream().map(p -> disp("_"+p)), "Existing folders: ", ", ", ".")).wf();
   }
   public Err badRank(Err err){
     return err
@@ -152,16 +164,21 @@ public record WellFormednessErrors(String pkgName){
       .addFrame("a type name", n.approxSpan().inner);
   }
   public FearlessException usedUndeclaredName(TName written, TName resolved, List<TName> scope, List<TName> all, List<String> steps){
+    Function<TName,String> shown= t -> err().cp().t.ofFull(t.withoutPkgName().withPkgName(map.getOrDefault(t.pkgName(), t.pkgName())));
     return new UndeclaredNameContext(
       () -> err(steps),
-      written, pkgName, scope, all,
+      written, pkgName, scope, all, shown, this::aliasShown,
       all.stream().map(TName::pkgName).filter(p -> !p.isEmpty()).distinct().sorted().toList(),
       resolved.pkgName(), resolved.simpleName()
     ).build();
   }
+  private String aliasShown(String s){
+    Optional.ofNullable(map.get(s)).ifPresent(r -> err().cp().t.ofFull(new TName(r, 0, Pos.unknown)));
+    return s;
+  }
   private record UndeclaredNameContext(
     Supplier<Err> err,
-    TName tn, String contextPkg, List<TName> scope, List<TName> all,
+    TName tn, String contextPkg, List<TName> scope, List<TName> all, Function<TName,String> display, Function<String,String> simpleShown,
     List<String> allPkgs, String typedPkg, String typedSimple
   ){
     FearlessException build(){
@@ -172,15 +189,10 @@ public record WellFormednessErrors(String pkgName){
     private Optional<FearlessException> pkgDoesNotExist(){
       if (typedPkg.isEmpty()){ return Optional.empty(); }
       if (allPkgs.contains(typedPkg)){ return Optional.empty(); }
-      var e= err.get().line("Package "+disp(typedPkg)+" does not exist.");
-      NameSuggester.suggest(typedPkg, allPkgs, (_,cs,best) -> {
-        best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
-        e.line(Join.of(cs.stream().map(Err::disp), "Visible packages: ", ", ", "."));
-        return null;
-      });
-      return Optional.of(make(e));
+      return Optional.of(typeName(missingPkg(err.get(), contextPkg, typedPkg, allPkgs, Optional.empty()), tn));
     }
     private <A,R> List<R> userMap(Function<A,R> f, Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
+    private List<String> shownInOrder(Stream<TName> s){ return s.sorted(Comparator.comparing(TName::s)).map(display).distinct().toList(); }
     private Optional<FearlessException> otherArity(){
       var candidates= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
       var arities= userMap(TName::arity, candidates.stream().filter(t -> t.simpleName().equals(typedSimple)));
@@ -195,19 +207,21 @@ public record WellFormednessErrors(String pkgName){
             : Join.of(arities, "the following numbers of type parameters: ", ", ", ".")
           ))
         .line("Did you accidentally add or omit a type parameter?");
-      return Optional.of(make(e));
+      return Optional.of(typeName(e, tn));
     }
     private FearlessException undeclaredInPkg(){
-      var inPkg= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
-      var simpleInPkg= userMap(TName::simpleName, inPkg.stream());
       var e= err.get()
         .line("Type "+disp(typedSimple)+" is not declared in package "+relevantPkgMsg()+".");
-      var suggest= NameSuggester.suggest(typedSimple, simpleInPkg);
-      if (!suggest.isEmpty()){ e.line(suggest); }
-      if (!typedPkg.isEmpty()){ addOtherPkgNotePkgExplicit(e); return make(e); }
+      if (!typedPkg.isEmpty()){
+        NameSuggester.suggest(typedPkg+"."+typedSimple, userMap(TName::s, typesInPkg(typedPkg).stream()), (_,cs,best) -> inScope(e, cs, best, c -> display.apply(new TName(c, 0, Pos.unknown))));
+        addOtherPkgNotePkgExplicit(e);
+        return typeName(e, tn);
+      }
+      var simpleInPkg= userMap(TName::simpleName, scope.stream());
+      NameSuggester.suggest(typedSimple, simpleInPkg, (_,cs,best) -> inScope(e, cs, best, simpleShown));
       var noBestLocal= NameSuggester.bestName(typedSimple, simpleInPkg).isEmpty();
       if (noBestLocal){ addOtherPkgNotePkgImplicit(e); }
-      return make(e);
+      return typeName(e, tn);
     }
     private String relevantPkgMsg(){
       if (!typedPkg.isEmpty()){ return disp(typedPkg); }
@@ -215,7 +229,7 @@ public record WellFormednessErrors(String pkgName){
     }
     private List<TName> typesInPkg(String pkg){ return all.stream().filter(t -> t.pkgName().equals(pkg)).toList(); }
     private void addOtherPkgNotePkgExplicit(Err e){
-      var sameSimpleOther= userMap(TName::s, all.stream()
+      var sameSimpleOther= shownInOrder(all.stream()
         .filter(t -> !t.pkgName().equals(typedPkg))
         .filter(t -> t.simpleName().equals(typedSimple)));
       addOptionsList(sameSimpleOther, e);
@@ -225,38 +239,86 @@ public record WellFormednessErrors(String pkgName){
       if (other.isEmpty()){ return; }
       var simpleCandidates= userMap(TName::simpleName, other.stream());
       NameSuggester.bestName(typedSimple, simpleCandidates).ifPresent(bestSimple ->
-        addOptionsList(userMap(TName::s, all.stream().filter(t -> t.simpleName().equals(bestSimple))), e));
+        addOptionsList(shownInOrder(all.stream().filter(t -> t.simpleName().equals(bestSimple))), e));
     }
-    private static final String addUse= "Add a \"use\" or write the fully qualified name.";
+    private static Void inScope(Err e, List<String> cs, Optional<String> best, Function<String,String> shown){
+      best.ifPresent(b -> e.line("Did you mean "+disp(shown.apply(b))+" ?"));
+      if (cs.size() <= 12){ e.line(Join.of(cs.stream().map(c -> disp(shown.apply(c))).distinct(), "In scope: ", ", ", ".")); }
+      return null;
+    }
+    private static final String addUse= "Add a \"use\" or write the full type name.";
     void addOptionsList(List<String> ss, Err e){
       if (ss.isEmpty()){ return; }
-      e.line(Join.of(ss.stream().map(Err::disp), "Did you mean ", " or ", " ?"))
-       .line(addUse);
-    }
-    private FearlessException make(Err e){
-      return e.wf().addFrame("a type name", TSpan.fromPos(tn.pos(), tn.s().length()).inner);
+      e.line(Join.of(ss.stream().map(Err::disp), "Did you mean ", " or ", " ?"));
+      if (ss.stream().anyMatch(s -> s.contains("."))){ e.line(addUse); }
     }
   }
   public FearlessException useNotFullyQualified(TName tn){
     return wfUse(err()
-      .line("\"use\" directive refers to "+disp(tn.s())+", which is not a fully qualified name.")
-      .line("A \"use\" directive refers to a type of another package by its fully qualified name, as in \"use base.Str as Str;\"."), tn);
+      .line("\"use\" directive refers to "+disp(tn.s())+", which is not a full type name.")
+      .line("A \"use\" directive refers to a type of another package by its full type name, as in \"use base.Str as Str;\"."), tn);
   }
-  public FearlessException useOfTheCurrentPackage(TName tn, String pkg){
-    return wfUse(err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
-      .line("\"use\" directive refers to type "+disp(tn.simpleName())+" of the current package "+disp(pkg)+".")
-      .line("A \"use\" directive can only refer to types of other packages: the types of package "+disp(pkg)+" are already in scope by their simple names."), tn);
+  public FearlessException useOfTheCurrentPackage(TName tn){
+    return wfUse(err()
+      .line("\"use\" directive refers to type "+disp(tn.simpleName())+" declared inside folders named "+disp("_"+pkgName)+".")
+      .line("A \"use\" directive can only refer to types declared in other folders.")
+      .line(inFolders(pkgName)+" uses the simple names of its own types."), tn);
   }
-  public FearlessException unknownUseHead(TName tn, String pkg){
-    return wfUse(err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
-      .line("\"use\" directive refers to undeclared name: type "+disp(tn.simpleName())
-        +" is not declared in package "+disp(pkg)+"."), tn);
+  public FearlessException mapToATargetOfAnotherMap(String out, List<String> directives){
+    var e= err().line(inFolders(pkgName)+" can use only one package name to refer to the code inside folders named "+disp("_"+out)+":");
+    directives.forEach(e::line);
+    return e.wf();
+  }
+  public FearlessException mapInBase(String directive){
+    return mapErr("A map can not apply to source code inside folders named "+disp("_base"), directive).wf();
+  }
+  private Err mapErr(String head, String directive){ return err().line(head+":").line(directive); }
+  public FearlessException mapOfAnExistingPackage(String in, String directive){
+    return mapErr("A map can not give package name "+disp(in)+", because folders named "+disp("_"+in)+" exist", directive)
+      .line("With no map, package name "+disp(in)+" refers to the code inside folders named "+disp("_"+in)+".").wf();
+  }
+  public FearlessException mapToItself(String directive){
+    return mapErr("A map can not refer to the code inside folders named "+disp("_"+pkgName)+" for source code inside folders named "+disp("_"+pkgName), directive)
+      .line(inFolders(pkgName)+" uses the simple names of its own types.").wf();
+  }
+  private String notLower(String out, boolean sameRank){ return "the code inside folders named "+disp("_"+out)+", which has "+(sameRank ? "the same rank as" : "a higher rank than")+" the code inside folders named "+disp("_"+pkgName); }
+  private Err ranks(Err e, String out, Ref rank, Ref otherRank){ return e.line("Folders named "+disp("_"+pkgName)+" have rank "+rankDisp(rank)+" and folders named "+disp("_"+out)+" have rank "+rankDisp(otherRank)+".").line("Source code can only refer to code of a lower rank."); }
+  public FearlessException mapToNotLowerRank(String out, String directive, Ref rank, Ref otherRank, boolean sameRank){
+    return ranks(mapErr("The map refers to "+notLower(out, sameRank), directive), out, rank, otherRank).wf();
+  }
+  public FearlessException insteadOfMismatch(String directive, List<String> overridden, FileFull.Map expected){
+    var e= mapErr("The \"instead of\" list of a map must name exactly the folders chosen by the maps of lower rank that the map overrides", directive);
+    e.line(overridden.isEmpty() ? "No map of lower rank chooses another folder." : "These maps of lower rank choose other folders:");
+    overridden.forEach(e::line);
+    return e.line("Expected: "+disp(expected+";")+".").wf();
+  }
+  private static Err missingPkg(Err e, String ctx, String pkg, List<String> visible, Optional<String> known){
+    e.line(inFolders(ctx)+" can not use package name "+disp(pkg)+".");
+    var vs= visible.stream().filter(p -> !p.equals(ctx)).toList();
+    known.or(() -> vs.isEmpty() ? Optional.empty() : NameSuggester.suggest(pkg, vs, (_,_,b) -> b)).ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
+    if (!vs.isEmpty()){ e.line(Join.of(vs.stream().map(Err::disp), "Visible package names: ", ", ", ".")); }
+    return e;
+  }
+  public FearlessException useOfMissingPackage(TName tn, List<String> visible){ return wfUse(missingPkg(err(), pkgName, tn.pkgName(), visible, Optional.empty()), tn); }
+  public FearlessException useOfAMapTarget(TName tn, String in, List<String> visible){ return wfUse(mappedAway(tn.pkgName(), in, visible), tn); }
+  public FearlessException typeOfAMapTarget(TName tn, List<String> visible){ return typeName(mappedAway(tn.pkgName(), written(map).get(tn.pkgName()), visible), tn); }
+  private Err mappedAway(String out, String in, List<String> visible){ return missingPkg(err(), pkgName, out, visible, Optional.of(in)).line(refersTo(pkgName, in, out, writtenIn)); }
+  public FearlessException typeOfTheCurrentPackageQualified(TName tn, List<TName> options){
+    var e= fullNameInvalid(err(), tn).line(inFolders(pkgName)+" uses the simple name "+disp(tn.simpleName())+" to refer to "+disp(tn.s())+".");
+    if (!options.isEmpty()){ e.line(Join.of(options.stream().map(o -> disp(err().cp().t.ofFull(o))).distinct(), "Did you mean ", " or ", " ?")); }
+    return typeName(e, tn);
+  }
+  public FearlessException typeWithAnAlias(TName tn, FileFull.Use u){
+    return typeName(fullNameInvalid(err(pkgMapped(pkgName, tn.pkgName(), map, writtenIn)), tn).line(inFolders(pkgName)+" uses the simple name "+disp(u.out())+" to refer to "+disp(tn.s())+", because of "+disp(u)+"."), tn);
+  }
+  private Err fullNameInvalid(Err e, TName tn){ return e.line("The full type name "+disp(tn.s())+" is invalid in source code inside folders named "+disp("_"+pkgName)+"."); }
+  private static FearlessException typeName(Err e, TName tn){ return e.wf().addFrame("a type name", TSpan.fromPos(tn.pos(), tn.s().length()).inner); }
+  public FearlessException unknownUseHead(TName tn, Map<String,String> directives){
+    return wfUse(err(pkgMapped(pkgName, tn.pkgName(), directives, writtenIn))
+      .line("\"use\" directive refers to type "+disp(tn.simpleName())+", which is not declared in package "+disp(tn.pkgName())+"."), tn);
   }
   public FearlessException useOfNotLowerRank(TName tn, String pkg, Ref rank, Ref otherRank, boolean sameRank){
-    return wfUse(err(mapStep(pkgName, tn.pkgName(), pkg, tn.simpleName()))
-      .line("\"use\" directive refers to package "+disp(pkg)+", which has "+(sameRank ? "the same rank as" : "a higher rank than")+" package "+disp(pkgName)+".")
-      .line("Package "+disp(pkgName)+" has rank "+rankDisp(rank)+" and package "+disp(pkg)+" has rank "+rankDisp(otherRank)+".")
-      .line("A package can only use packages of a lower rank."), tn);
+    return wfUse(ranks(err().line("\"use\" directive refers to "+notLower(pkg, sameRank)+"."), pkg, rank, otherRank), tn);
   }
   private static String rankDisp(Ref rank){
     var name= Fs.fileNameWithoutExtension(rank.fearPath()).substring("_rank_".length());
@@ -290,14 +352,16 @@ public record WellFormednessErrors(String pkgName){
       .wf()
       .addFrame("type declaration "+staticTypeDecName(d.name()), d.span().inner);
   }
-  private static String spelling(T t){ return switch (t){
+  private String spelling(T t){ return switch (t){
     case T.X x -> x.name();
     case T.RCX(var rc, var x) -> rc+" "+x.name();
     case T.ReadImmX(var x) -> "read/imm "+x.name();
     case T.RCC(var rc, var c, _) -> rc.map(r -> r+" ").orElse("")+spelling(c);
   };}
-  private static String spelling(T.C c){
-    return c.name().s()+Join.of(c.ts().orElse(List.of()).stream().map(WellFormednessErrors::spelling), "[", ",", "]", "");
+  private String spelling(T.C c){
+    var pkg= c.name().pkgName();
+    if (map.containsKey(pkg)){ printed.add(map.get(pkg)+"."+c.name().simpleName()); }
+    return aliasShown(c.name().s())+Join.of(c.ts().orElse(List.of()).stream().map(this::spelling), "[", ",", "]", "");
   }
   public FearlessException duplicatedName(TName name){
     return err()
@@ -440,7 +504,7 @@ public record WellFormednessErrors(String pkgName){
     return typeArgAmbiguous(at, x, err().tNameADisp(c.name())+" is inferred from the method bodies", cands, common, lit, decs);
   }
   private FearlessException typeArgAmbiguous(E at, String x, String ofFrom, List<IT> cands, List<TName> common, String example, Function<TName,core.E.Literal> decs){
-    var cs= cands.stream().map(err(decs)::typeRepr).toList();
+    var cs= cands.stream().map(err(h -> h, n -> n, decs, List.of())::typeRepr).toList();
     var xs= Err.disp(x);
     var e= err().line("The type argument "+xs+" of "+ofFrom+", but they disagree: some need "+Join.of(cs, "", ", some need ", "")+".");
     if (common.isEmpty()){ e.line("No type is a supertype of all of them."); }
@@ -510,7 +574,7 @@ public record WellFormednessErrors(String pkgName){
       .line("At most one "+w+" supertype is allowed, because it defines the preferred widened type.")
       .blank()
       .line("Found the following "+w+" supertypes:");
-    widen.forEach(c -> e.bullet(disp(c)));
+    widen.forEach(c -> e.bullet(claimRepr(owner, c)));
     return wf(e, owner);
   }
   public FearlessException duplicatedNamedLiteral(E.Literal owner, M m, E.Literal in){
@@ -563,7 +627,7 @@ public record WellFormednessErrors(String pkgName){
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
-      .line(err().tNameADisp(origin)+" implements "+disp("base.Final[\""+name+"\"]")+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
+      .line(err().tNameADisp(origin)+" implements "+disp(err().cp().t.ofFull(LiteralDeclarations.finalMethods)+"[\""+name+"\"]")+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
       .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(name)+"."), owner);
   }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
@@ -617,7 +681,7 @@ public record WellFormednessErrors(String pkgName){
       .line(ctx+" implements "+kind+" type "+err().tNameADisp(target)+".")
       .line(up(kind)+" types can only be implemented in their own package.")
       .line(ctx+" is defined in package "+disp(ownerPkg)+".")
-      .line("Type "+disp(target.simpleName())+" is defined in package "+disp(targetPkg)+"."), owner);
+      .line("Type "+disp(target.simpleName())+" is defined in package "+disp(Package.writtenPkg(map, targetPkg))+"."), owner);
   }
   public FearlessException implementsAnonymousType(E.Literal l, E.Literal owner){
     return err()
@@ -645,7 +709,7 @@ public record WellFormednessErrors(String pkgName){
       .line(t+" must be representable as a 64-bit "+signed+" integer.")
       .line("Valid range: "+min+" .. "+max+".")
       .line("This literal is: "+disp(LiteralDeclarations.big(lit.simpleName()))+".")
-      .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
+      .line(numHint())
       .wf().addSpan(lit.approxSpan().inner);
   }
   public FearlessException floatLiteralNotExactlyRepresentable(TName lit){
@@ -662,7 +726,8 @@ public record WellFormednessErrors(String pkgName){
     if (!Double.isFinite(d)){ return e.line("This literal overflows; the nearest representable value is "+disp(near)+".").wf().addSpan(at); }
     return e.line("If rounded, the nearest representable value is "+disp(near)+".")
       .line("Write "+disp(raw+LiteralDeclarations.softSuffix)+" to accept that rounding.")
-      .line("Hint: if you need arbitrary precision numbers, use \"base.Num\".")
+      .line(numHint())
       .wf().addSpan(at);
   }
+  private String numHint(){ return "Hint: if you need arbitrary precision numbers, use "+disp(err().cp().t.ofFull(new TName("base.Num", 0, Pos.unknown)))+"."; }
 }

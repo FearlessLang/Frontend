@@ -1500,7 +1500,7 @@ User:{
 """)); }
 
 @Test void methodNotDeclared_noSuchName_listAvailable_useVoid(){fail("""
-008|   read .m(o:Ops):base.Void->
+008|   read .m(o:Ops):Woid->
 009|     o.xyzzy();
    |     -^^^^^^^
 
@@ -1519,11 +1519,11 @@ o.xyzzy
 use base.Void as Woid;
 Ops:{
   read .alpha: Woid->{};
-  read .beta:  base.Void->{};
-  read .gamma: base.Void->{};
+  read .beta:  Woid->{};
+  read .gamma: Woid->{};
 }
 User:{
-  read .m(o:Ops):base.Void->
+  read .m(o:Ops):Woid->
     o.xyzzy();
 }
 """)); }
@@ -5263,8 +5263,8 @@ A:Show{ .str -> base.Void }
    |     ^^^
 
 While inspecting package header
-"use" directive refers to "Foo", which is not a fully qualified name.
-A "use" directive refers to a type of another package by its fully qualified name, as in "use base.Str as Str;".
+"use" directive refers to "Foo", which is not a full type name.
+A "use" directive refers to a type of another package by its full type name, as in "use base.Str as Str;".
 """, List.of("""
 use Foo as Bar;
 Foo:{}

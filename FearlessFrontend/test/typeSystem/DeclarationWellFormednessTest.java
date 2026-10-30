@@ -942,33 +942,33 @@ A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
 """));}
 @Test void supertypeSimpleAndQualified(){failWf("""
 002| B:A,p.A{}
-   | ^^^^^^^^^
+   |     ^^^^
 
-While inspecting type declaration "B"
-Duplicate supertype in type declaration: "A" and "p.A" denote the same type.
-Remove one of them.
+While inspecting a type name
+The full type name "p.A" is invalid in source code inside folders named "_p".
+Source code inside folders named "_p" uses the simple name "A" to refer to "p.A".
 """, List.of("""
 A:{}
 B:A,p.A{}
 """));}
 @Test void supertypeUseAliasAndQualified(){failWf("""
 002| B:CF,base.CaptureFree{}
-   | ^^^^^^^^^^^^^^^^^^^^^^^
+   |      ^^^^^^^^^^^^^^^^^
 
-While inspecting type declaration "B"
-Duplicate supertype in type declaration: "CF" and "base.CaptureFree" denote the same type.
-Remove one of them.
+While inspecting a type name
+The full type name "base.CaptureFree" is invalid in source code inside folders named "_p".
+Source code inside folders named "_p" uses the simple name "CF" to refer to "base.CaptureFree", because of "use base.CaptureFree as CF".
 """, List.of("""
 use base.CaptureFree as CF;
 B:CF,base.CaptureFree{}
 """));}
 @Test void supertypeDifferentSpellingOfTypeArgument(){failWf("""
 003| B:A[Foo],A[p.Foo]{}
-   | ^^^^^^^^^^^^^^^^^^^
+   |            ^^^^^^
 
-While inspecting type declaration "B"
-Duplicate supertype in type declaration: "A[Foo]" and "A[p.Foo]" denote the same type.
-Remove one of them.
+While inspecting a type name
+The full type name "p.Foo" is invalid in source code inside folders named "_p".
+Source code inside folders named "_p" uses the simple name "Foo" to refer to "p.Foo".
 """, List.of("""
 Foo:{}
 A[X:*]:{}
@@ -1015,15 +1015,15 @@ use base.Str as N;
 A:{}
 """));}
 @Test void mapTwiceTheSameNameInTheSamePackage(){failParse("""
-001| map foo as base in p;
-002| map foo as base in p;
-   | -------------------^
+001| map foo as _base in _p;
+002| map foo as _base in _p;
+   | --------------------^^
 
 While inspecting header element > file header > full file
-There is already an entry in the mapping for "foo" in "p".
+There is already a map of package name "foo" for source code inside folders named "_p".
 """, List.of("""
-map foo as base in p;
-map foo as base in p;
+map foo as _base in _p;
+map foo as _base in _p;
 A:{}
 """));}
 @Test void typeParameterNamedAsAUseDestination(){failWf("""
@@ -1056,7 +1056,7 @@ Type declaration "A" implements "base.WidenTo[_]" more than once.
 At most one "base.WidenTo[_]" supertype is allowed, because it defines the preferred widened type.
 
 Found the following "base.WidenTo[_]" supertypes:
-- "base.WidenTo[p.A]"
+- "base.WidenTo[A]"
 - "base.WidenTo[base.Nat]"
 """, List.of("""
 A: base.WidenTo[A], base.WidenTo[base.Nat]{}

@@ -10,9 +10,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -127,7 +129,19 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     final String src;
     final TreeMap<Integer,String> text= new TreeMap<>();
     final HashSet<Integer> bad= new HashSet<>();
-    Edits(String src){ this.src= src; }
+    final Map<String,String> aliases;
+    Edits(String src){ this.src= src; aliases= uses.matcher(src).results().collect(Collectors.toMap(m -> m.group(1), m -> m.group(2))); }
+    static final Pattern uses= Pattern.compile("use ([a-z][a-z0-9_]*\\.\\w+) as (\\w+);");
+    String written(core.T t){ return switch (t){
+      case core.T.X x -> x.name();
+      case core.T.RCX(var rc, var x) -> rc.name()+" "+x.name();
+      case core.T.ReadImmX(var x) -> "read/imm "+x.name();
+      case core.T.RCC(var rc, var c, _) -> rc.name()+" "+written(c);
+    };}
+    String written(core.T.C c){
+      var n= aliases.getOrDefault(c.name().s(), c.name().pkgName().equals("p") ? c.name().simpleName() : c.name().s());
+      return n+Join.of(c.ts().stream().map(this::written), "[", ",", "]", "");
+    }
     String apply(){
       var res= src;
       for (var e : text.descendingMap().entrySet()){ res = insert(res, e.getKey(), e.getValue()); }
@@ -141,7 +155,7 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     }
     void call(core.E.Call c){
       if (!(c.src().inner instanceof fearlessFullGrammar.E.Call sc) || sc.targs().isPresent() || !sc.name().s().equals(c.name().s()) || fresh(sc.e())){ return; }
-      var ts= Join.of(Stream.concat(Stream.of(c.rc().name()), c.targs().stream().map(FuzzTest::written)), "[", ",", "]", "");
+      var ts= Join.of(Stream.concat(Stream.of(c.rc().name()), c.targs().stream().map(this::written)), "[", ",", "]", "");
       add(nameEnd(sc.pos().line(), sc.pos().column(), c.name().s()), ts);
     }
     void literal(core.E.Literal l, boolean sigs){
@@ -184,16 +198,6 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
     }
   }
   static boolean fresh(fearlessFullGrammar.E e){ return e instanceof fearlessFullGrammar.E.Call c ? fresh(c.e()) : e instanceof fearlessFullGrammar.E.X x && x.name().startsWith("_"); }
-  static String written(core.T t){ return switch (t){
-    case core.T.X x -> x.name();
-    case core.T.RCX(var rc, var x) -> rc.name()+" "+x.name();
-    case core.T.ReadImmX(var x) -> "read/imm "+x.name();
-    case core.T.RCC(var rc, var c, _) -> rc.name()+" "+written(c);
-  };}
-  static String written(core.T.C c){
-    var n= c.name().pkgName().equals("p") ? c.name().simpleName() : c.name().s();
-    return n+Join.of(c.ts().stream().map(FuzzTest::written), "[", ",", "]", "");
-  }
   static void run(String src, OtherPackages other, List<compact.Frontend.Literal> cBase, TreeMap<String,String> crashes){
     var o= SourceOracle.debugBuilder().put(0, src).build();
     try{
