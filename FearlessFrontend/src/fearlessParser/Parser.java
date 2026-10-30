@@ -419,11 +419,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var dup= acc.map.stream().anyMatch(m -> m.in().equals(in) && m.target().equals(target));
     if (dup){ throw errFactory().duplicatedMap(spanLast(), in, "_"+target); }
     var insteadOf= new ArrayList<String>();
-    if (fwdIf(peekValidate(_instead))){
-      expectValidate("\"of\" keyword", LowercaseId, _of);
-      insteadOf.add(folderName());
-      while (fwdIf(peek(Comma))){ insteadOf.add(folderName()); }
-    }
+    if (fwdIf(peekValidate(_instead))){ expectValidate("\"of\" keyword", LowercaseId, _of); do { insteadOf.add(folderName()); } while (fwdIf(peek(Comma))); }
     acc.map.add(new FileFull.Map(in, out, target, List.copyOf(insteadOf)));
   }
   String folderName(){ return expectValidate("folder name", LowercaseId, _folderName).content().substring(1); }

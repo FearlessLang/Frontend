@@ -12,10 +12,9 @@ public record TypeNamePrinter(boolean trunc, String mainPkg, Map<String,String> 
   public String ofFull(TName n){
     var lit= dropBaseForLit(n.s());
     if (!lit.equals(n.s())){ return lit; }
-    printed.accept(n.s());
     var pkg= n.pkgName();
-    var full= pkg.isEmpty() || pkg.equals(mainPkg) ? n.simpleName() : uses.getOrDefault(pkg, pkg)+"."+n.simpleName();
-    return uses.getOrDefault(n.s(), full);
+    if (uses.containsKey(pkg)){ printed.accept(n.s()); }
+    return uses.getOrDefault(n.s(), pkg.isEmpty() || pkg.equals(mainPkg) ? n.simpleName() : uses.getOrDefault(pkg, pkg)+"."+n.simpleName());
   }
   private static String dropBaseForLit(String s){
     if (!s.startsWith("base.")){ return s; }

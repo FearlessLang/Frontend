@@ -18,6 +18,7 @@ public final class Reason{
   final Supplier<E> footerE;
   final String info;//package-private: only message.* should read it
   final Set<String> printed;
+  String info(Set<String> sink){ sink.addAll(printed); return info; }
   public final T best;//exposed, seen by the type system
   private Reason(T best, String info, Set<String> printed, Supplier<E> footerE){
     this.best= best; this.info= info; this.printed= printed; this.footerE= footerE;

@@ -212,6 +212,8 @@ While inspecting a type name
 The full type name "b.B" is invalid in source code inside folders named "_b".
 Source code inside folders named "_b" uses the simple name "B" to refer to "b.B".
 Did you mean "a.B" or "d.B" ?
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "B:{}", "d", "B:{}", "e", "B:{}"), Map.of("a", "c"), """
 use e.B as EB;
@@ -568,6 +570,9 @@ While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
 In scope: "B", "Remote".
 Did you mean "Remote" ?
+
+Name "Remote" stands for "a.Server" because of "use a.Server as Remote".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Server:{}"), Map.of("a", "c"), """
 use a.Server as Remote;
@@ -584,6 +589,7 @@ Type "Serve" is not declared in package "a".
 Did you mean "Remote" ?
 In scope: "Remote".
 
+Name "Remote" stands for "a.Server" because of "use a.Server as Remote".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Server:{}"), Map.of("a", "c"), """
@@ -600,6 +606,7 @@ While inspecting a type name
 Type "Z" is not declared in package "a".
 In scope: "X".
 
+Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
@@ -616,6 +623,9 @@ While inspecting a type name
 Type "Server" is not declared in package "d".
 In scope: "d.Client".
 Did you mean "Remote" ?
+
+Name "Remote" stands for "a.Server" because of "use a.Server as Remote".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "Server:{}", "d", "Client:{}"), Map.of("a", "c"), """
 use a.Server as Remote;
@@ -1062,5 +1072,336 @@ B:{.m:X->X{.fromC->B}}
 use bb.Nat as N;
 use bb.Str as S;
 B:{ .m:N -> 5; .k(x:N):N -> x+5; .s:S -> "hi"; .i:bb.Int -> +5; .f:bb.Float -> 1.5 }
+"""); }
+  static final String noteA= "Source code inside folders named \"_b\" uses package name \"a\" to refer to the code inside folders named \"_c\", because of \"map a as _c in _b\", written in fear:/_b/_rank_app.fear.";
+  static final String noteBb= "Source code inside folders named \"_b\" uses package name \"bb\" to refer to the code inside folders named \"_base\", because of \"map bb as _base in _b\", written in fear:/_b/_rank_app.fear.";
+  @Test void undeclaredSimpleNameSuggestsAnAliasOfAnUnmappedTypeWithNoNote(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:Server):B->this}
+   |         ^^^^^^^
+
+While inspecting a type name
+Type "Server" is not declared in package "b" and is not made visible via "use".
+In scope: "B", "Remote".
+Did you mean "Remote" ?
+Error 7 WellFormedness
+""", Map.of("c", cA, "d", "Server:{}"), Map.of("a", "c"), """
+use d.Server as Remote;
+B:{.m(x:Server):B->this}
+"""); }
+  @Test void undeclaredSimpleNameSuggestsAnAliasAndAnUnmappedName(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:Server):B->this}
+   |         ^^^^^^^
+
+While inspecting a type name
+Type "Server" is not declared in package "b" and is not made visible via "use".
+In scope: "B", "Remote".
+Did you mean "Remote" or "d.Server" ?
+Add a "use" or write the fully qualified name.
+
+Name "Remote" stands for "a.Server" because of "use a.Server as Remote".
+"""+noteA+"""
+
+Error 7 WellFormedness
+""", Map.of("c", "Server:{}", "d", "Server:{}"), Map.of("a", "c"), """
+use a.Server as Remote;
+B:{.m(x:Server):B->this}
+"""); }
+  @Test void undeclaredSimpleNameListsAMappedAliasInScope(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:Qqqqqq):B->this}
+   |         ^^^^^^^
+
+While inspecting a type name
+Type "Qqqqqq" is not declared in package "b" and is not made visible via "use".
+In scope: "B", "X".
+
+Name "X" stands for "a.A" because of "use a.A as X".
+"""+noteA+"""
+
+Error 7 WellFormedness
+""", Map.of("c", cA), Map.of("a", "c"), """
+use a.A as X;
+B:{.m(x:Qqqqqq):B->this}
+"""); }
+  @Test void undeclaredQualifiedNameInAMappedBaseSuggestsTheBaseType(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:bb.Strr):B->this}
+   |         ^^^^^^^^
+
+While inspecting a type name
+Type "Strr" is not declared in package "bb".
+Did you mean "bb.Str" ?
+
+"""+noteBb+"""
+
+Error 7 WellFormedness
+""", Map.of(), Map.of("bb", "base"), """
+B:{.m(x:bb.Strr):B->this}
+"""); }
+  @Test void undeclaredQualifiedNameInAMappedBaseSuggestsTheAliasOfTheBaseType(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:bb.Strr):B->this}
+   |         ^^^^^^^^
+
+While inspecting a type name
+Type "Strr" is not declared in package "bb".
+Did you mean "S" ?
+
+Name "S" stands for "bb.Str" because of "use bb.Str as S".
+"""+noteBb+"""
+
+Error 7 WellFormedness
+""", Map.of(), Map.of("bb", "base"), """
+use bb.Str as S;
+B:{.m(x:bb.Strr):B->this}
+"""); }
+  @Test void undeclaredSimpleNameSuggestsABaseTypeThroughAMap(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:Str):B->this}
+   |         ^^^^
+
+While inspecting a type name
+Type "Str" is not declared in package "b" and is not made visible via "use".
+In scope: "B".
+Did you mean "bb.Str" ?
+Add a "use" or write the fully qualified name.
+
+"""+noteBb+"""
+
+Error 7 WellFormedness
+""", Map.of(), Map.of("bb", "base"), """
+B:{.m(x:Str):B->this}
+"""); }
+  @Test void undeclaredSimpleNameSuggestsTwoMappedNamesWithTheirNotesInTheOrderShown(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:Server):B->this}
+   |         ^^^^^^^
+
+While inspecting a type name
+Type "Server" is not declared in package "b" and is not made visible via "use".
+In scope: "B".
+Did you mean "a.Server" or "z.Server" ?
+Add a "use" or write the fully qualified name.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_c", because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "Server:{}", "e", "Server:{}"), Map.of("z", "c", "a", "e"), """
+B:{.m(x:Server):B->this}
+"""); }
+  @Test void currentPackageQualifiedSuggestsAMappedNameWithItsNote(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:b.B):B->this}
+   |         ^^^^
+
+While inspecting a type name
+The full type name "b.B" is invalid in source code inside folders named "_b".
+Source code inside folders named "_b" uses the simple name "B" to refer to "b.B".
+Did you mean "a.B" ?
+
+"""+noteA+"""
+
+Error 7 WellFormedness
+""", Map.of("c", "B:{}"), Map.of("a", "c"), """
+B:{.m(x:b.B):B->this}
+"""); }
+  @Test void missingReturnTypeInALiteralOfAMappedTypeNamesTheMapOnlyInTheFrame(){ fail("""
+In file: [###].fear
+
+001| B:{ .m:a.A->{ .k->B; }; }
+   |             --^^^^^---
+
+While inspecting object literal instance of "a.A"
+Missing return type for method ".k".
+Add an explicit return type before '->'.
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".k".
+No supertype has a method named ".k" with 0 parameters.
+
+"""+noteA+"""
+
+Error 7 WellFormedness
+""", Map.of("c", "A:{}"), Map.of("a", "c"), """
+B:{ .m:a.A->{ .k->B; }; }
+"""); }
+  @Test void missingReturnTypeInALiteralOfAMappedAliasNamesTheAliasOnlyInTheFrame(){ fail("""
+In file: [###].fear
+
+002| B:{ .m:X->{ .k->B; }; }
+   |           --^^^^^---
+
+While inspecting object literal instance of "X"
+Missing return type for method ".k".
+Add an explicit return type before '->'.
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".k".
+No supertype has a method named ".k" with 0 parameters.
+
+Name "X" stands for "a.A" because of "use a.A as X".
+"""+noteA+"""
+
+Error 7 WellFormedness
+""", Map.of("c", "A:{}"), Map.of("a", "c"), """
+use a.A as X;
+B:{ .m:X->{ .k->B; }; }
+"""); }
+  static final String cIds= "IdRO:{ #[X:imm,read](x:X):X->x } Id:{ #[X:**](x:X):X->x }";
+  @Test void argumentMatchingNoPromotionNamesAMappedReceiverOnlyInTheReason(){ fail("""
+In file: [###].fear
+
+003| A:{ .f(aaaa:mut A):B->Need#(a.IdRO#[read A](aaaa)); }
+   |     ------------------~~~~^^~~~~~~~~~~~~~~~~~~~~~-
+
+While inspecting ".f(_)" line 3
+This call to method "Need#(_)" cannot typecheck.
+Argument 1 has type "read A".
+That is not a subtype of any of "mut A" or "iso A".
+Method call "a.IdRO#(_)" has type "read A" instead of a subtype of "mut A".
+
+Type required by each promotion:
+- "mut A"  (As declared)
+- "iso A"  (Strengthen result)
+
+"""+noteA+"""
+
+
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+A:{.f(aaaa:mut A):B->Need#(-.IdRO#[imm,read A](aaaa))}
+Error 8 TypeError""", Map.of("c", cIds), Map.of("a", "c"), """
+B:{}
+Need:{ #(x:mut A):B->B{} }
+A:{ .f(aaaa:mut A):B->Need#(a.IdRO#[read A](aaaa)); }
+"""); }
+  @Test void argumentMatchingNoPromotionNamesAMappedAliasOnlyInTheReason(){ fail("""
+In file: [###].fear
+
+004| A:{ .f(aaaa:mut A):B->Need#(Ro#[read A](aaaa)); }
+   |     ------------------~~~~^^~~~~~~~~~~~~~~~~~-
+
+While inspecting ".f(_)" line 4
+This call to method "Need#(_)" cannot typecheck.
+Argument 1 has type "read A".
+That is not a subtype of any of "mut A" or "iso A".
+Method call "Ro#(_)" has type "read A" instead of a subtype of "mut A".
+
+Type required by each promotion:
+- "mut A"  (As declared)
+- "iso A"  (Strengthen result)
+
+Name "Ro" stands for "a.IdRO" because of "use a.IdRO as Ro".
+"""+noteA+"""
+
+
+See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+A:{.f(aaaa:mut A):B->Need#(Ro#[imm,read A](aaaa))}
+Error 8 TypeError""", Map.of("c", cIds), Map.of("a", "c"), """
+use a.IdRO as Ro;
+B:{}
+Need:{ #(x:mut A):B->B{} }
+A:{ .f(aaaa:mut A):B->Need#(Ro#[read A](aaaa)); }
+"""); }
+  @Test void promotionsDisagreeNameAMappedReceiverOnlyInThePromotionFailures(){ fail("""
+In file: [###].fear
+
+001| A:{ .f(p:read A, q:mut A):A->this; .caller(x:readH A, y:mutH A):A->this.f(a.Id#(x), y); }
+   |                                    --------------------------------~~~~^^^~~~~~~~~~~~~
+
+While inspecting ".caller(_,_)" line 1
+This call to method ".f(_,_)" cannot typecheck.
+Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
+
+Compatible promotions by argument:
+- Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
+- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
+
+Promotion failures:
+- Argument 1 fails:    As declared
+  Method call "a.Id#(_)" has type "readH A" instead of a subtype of "read A".
+- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
+  Method call "a.Id#(_)" has type "readH A" instead of a subtype of "A".
+- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
+  Parameter "y" has type "mutH A" instead of a subtype of "iso A".
+
+"""+noteA+"""
+
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.f(-.Id#[imm,read A](x),y)
+Error 8 TypeError""", Map.of("c", cIds), Map.of("a", "c"), """
+A:{ .f(p:read A, q:mut A):A->this; .caller(x:readH A, y:mutH A):A->this.f(a.Id#(x), y); }
+"""); }
+  @Test void twoMapsInOneTypeErrorGiveTwoNotesInTheOrderTheNamesArePrinted(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:z.A):a.A->x}
+   |    ---------------^^
+
+While inspecting parameter "x" > ".m(_)" line 1
+The body of method ".m(_)" of type declaration "B" is an expression returning "z.A".
+Parameter "x" has type "z.A" instead of a subtype of "a.A".
+
+Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_c", because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
+B:{.m(x:-.A):-.A->x}
+Error 8 TypeError""", Map.of("c", cA, "e", aA), Map.of("z", "c", "a", "e"), """
+B:{.m(x:z.A):a.A->x}
+"""); }
+  @Test void aliasesOfAMappedAndOfAnUnmappedTypeNoteOnlyTheMappedOne(){ fail("""
+In file: [###].fear
+
+003| B:{.m(x:Dd):X->x}
+   |    ------------^^
+
+While inspecting parameter "x" > ".m(_)" line 3
+The body of method ".m(_)" of type declaration "B" is an expression returning "Dd".
+Parameter "x" has type "Dd" instead of a subtype of "X".
+
+Name "X" stands for "a.A" because of "use a.A as X".
+"""+noteA+"""
+
+
+See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+B:{.m(x:Dd):X->x}
+Error 8 TypeError""", Map.of("c", cA, "d", dA), Map.of("a", "c"), """
+use d.A as Dd;
+use a.A as X;
+B:{.m(x:Dd):X->x}
+"""); }
+  @Test void twoAliasesThroughTwoMapsGiveTheNameNotesFirst(){ fail("""
+In file: [###].fear
+
+003| B:{.m(x:Y):X->x}
+   |    -----------^^
+
+While inspecting parameter "x" > ".m(_)" line 3
+The body of method ".m(_)" of type declaration "B" is an expression returning "Y".
+Parameter "x" has type "Y" instead of a subtype of "X".
+
+Name "Y" stands for "z.A" because of "use z.A as Y".
+Name "X" stands for "a.A" because of "use a.A as X".
+Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_e", because of "map z as _e in _b", written in fear:/_b/_rank_app.fear.
+"""+noteA+"""
+
+
+See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+B:{.m(x:Y):X->x}
+Error 8 TypeError""", Map.of("c", cA, "e", dA), Map.of("a", "c", "z", "e"), """
+use a.A as X;
+use z.A as Y;
+B:{.m(x:Y):X->x}
 """); }
 }

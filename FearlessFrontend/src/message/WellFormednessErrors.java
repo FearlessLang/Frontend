@@ -3,7 +3,6 @@ package message;
 import static message.Err.*;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -42,6 +41,7 @@ import tools.Fs;
 import tools.SourceOracle.Ref;
 import typeSystem.Kinding;
 import utils.Join;
+import utils.Pos;
 import java.util.EnumSet;
 import utils.Push;
 
@@ -51,20 +51,19 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private Err err(List<String> steps){ return err(_ -> null, steps); }
   private Err err(Function<TName,core.E.Literal> decs, List<String> steps){
     var written= written(map);
-    return new Err(y -> y, x -> x, decs, trunk -> new CompactPrinter(pkgName, written, printed::add, trunk), () -> Stream.concat(steps.stream(), notes(pkgName, written, writtenIn, printed).stream()).distinct().toList(), new StringBuilder());
+    return new Err(y -> y, x -> x, decs, trunk -> new CompactPrinter(pkgName, written, printed::add, trunk), () -> Stream.concat(steps.stream(), notes(pkgName, written, writtenIn, printed).stream()).distinct().sorted(nameFirst).toList(), new StringBuilder());
   }
-  static Map<String,String> written(Map<String,String> map){
+  public static Map<String,String> written(Map<String,String> map){
     return map.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
   }
   static List<String> notes(String pkg, Map<String,String> written, Map<String,String> writtenIn, Set<String> printed){
-    return printed.stream().flatMap(n -> note(pkg, written, writtenIn, n)).distinct().sorted(Comparator.comparing((String s) -> !s.startsWith("Name "))).toList();
+    return printed.stream().flatMap(n -> note(pkg, written, writtenIn, n)).distinct().sorted(nameFirst).toList();
   }
+  private static final Comparator<String> nameFirst= Comparator.comparing(s -> !s.startsWith("Name "));
   private static Stream<String> note(String pkg, Map<String,String> written, Map<String,String> writtenIn, String n){
     var dot= TName.pkgDot(n);
-    if (dot == -1){ return Stream.of(); }
     var out= n.substring(0, dot);
     var in= written.get(out);
-    if (in == null){ return Stream.of(); }
     var w= in+n.substring(dot);
     return Stream.concat(Optional.ofNullable(written.get(n)).map(a -> standsFor(a, w, "use "+w+" as "+a)).stream(), Stream.of(refersTo(pkg, in, out, writtenIn)));
   }
@@ -169,23 +168,22 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .wf()
       .addFrame("a type name", n.approxSpan().inner);
   }
-  public FearlessException usedUndeclaredName(TName written, TName resolved, List<TName> scope, List<TName> all, Function<TName,String> display, List<String> steps){
-    var allSteps= new ArrayList<>(steps);
-    Function<TName,String> shown= t -> qualified(display.apply(t), t, allSteps);
+  public FearlessException usedUndeclaredName(TName written, TName resolved, List<TName> scope, List<TName> all, List<String> steps){
+    Function<TName,String> shown= t -> err().cp().t.ofFull(t.withoutPkgName().withPkgName(map.getOrDefault(t.pkgName(), t.pkgName())));
     return new UndeclaredNameContext(
-      () -> err(allSteps),
-      written, pkgName, scope, all, shown,
+      () -> err(steps),
+      written, pkgName, scope, all, shown, this::aliasShown,
       all.stream().map(TName::pkgName).filter(p -> !p.isEmpty()).distinct().sorted().toList(),
       resolved.pkgName(), resolved.simpleName()
     ).build();
   }
-  private String qualified(String shown, TName t, ArrayList<String> steps){
-    if (shown.contains(".")){ steps.addAll(pkgMapped(pkgName, t.pkgName(), map, writtenIn)); }
-    return shown;
+  private String aliasShown(String s){
+    Optional.ofNullable(map.get(s)).ifPresent(r -> err().cp().t.ofFull(new TName(r, 0, Pos.unknown)));
+    return s;
   }
   private record UndeclaredNameContext(
     Supplier<Err> err,
-    TName tn, String contextPkg, List<TName> scope, List<TName> all, Function<TName,String> display,
+    TName tn, String contextPkg, List<TName> scope, List<TName> all, Function<TName,String> display, Function<String,String> simpleShown,
     List<String> allPkgs, String typedPkg, String typedSimple
   ){
     FearlessException build(){
@@ -199,6 +197,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       return Optional.of(typeName(missingPkg(err.get(), contextPkg, typedPkg, allPkgs), tn));
     }
     private <A,R> List<R> userMap(Function<A,R> f, Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
+    private List<String> shownInOrder(Stream<TName> s){ return s.sorted(Comparator.comparing(TName::s)).map(display).distinct().toList(); }
     private Optional<FearlessException> otherArity(){
       var candidates= typedPkg.isEmpty() ? scope : typesInPkg(typedPkg);
       var arities= userMap(TName::arity, candidates.stream().filter(t -> t.simpleName().equals(typedSimple)));
@@ -221,14 +220,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       if (!typedPkg.isEmpty()){
         var current= typedPkg.equals(contextPkg);
         Function<TName,String> key= current ? TName::simpleName : TName::s;
-        var shown= typesInPkg(typedPkg).stream().collect(Collectors.toMap(key, display, (a, _) -> a));
-        NameSuggester.suggest(current ? typedSimple : typedPkg+"."+typedSimple, userMap(key, typesInPkg(typedPkg).stream()), (_,cs,best) -> inScope(e, cs, best, shown));
+        var byKey= typesInPkg(typedPkg).stream().collect(Collectors.toMap(key, t -> t, (a, _) -> a));
+        NameSuggester.suggest(current ? typedSimple : typedPkg+"."+typedSimple, userMap(key, typesInPkg(typedPkg).stream()), (_,cs,best) -> inScope(e, cs, best, c -> display.apply(byKey.get(c))));
         addOtherPkgNotePkgExplicit(e);
         return typeName(e, tn);
       }
       var simpleInPkg= userMap(TName::simpleName, scope.stream());
-      var suggest= NameSuggester.suggest(typedSimple, simpleInPkg);
-      if (!suggest.isEmpty()){ e.line(suggest); }
+      NameSuggester.suggest(typedSimple, simpleInPkg, (_,cs,best) -> inScope(e, cs, best, simpleShown));
       var noBestLocal= NameSuggester.bestName(typedSimple, simpleInPkg).isEmpty();
       if (noBestLocal){ addOtherPkgNotePkgImplicit(e); }
       return typeName(e, tn);
@@ -239,7 +237,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     }
     private List<TName> typesInPkg(String pkg){ return all.stream().filter(t -> t.pkgName().equals(pkg)).toList(); }
     private void addOtherPkgNotePkgExplicit(Err e){
-      var sameSimpleOther= userMap(display, all.stream()
+      var sameSimpleOther= shownInOrder(all.stream()
         .filter(t -> !t.pkgName().equals(typedPkg))
         .filter(t -> t.simpleName().equals(typedSimple)));
       addOptionsList(sameSimpleOther, e);
@@ -249,11 +247,11 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       if (other.isEmpty()){ return; }
       var simpleCandidates= userMap(TName::simpleName, other.stream());
       NameSuggester.bestName(typedSimple, simpleCandidates).ifPresent(bestSimple ->
-        addOptionsList(userMap(display, all.stream().filter(t -> t.simpleName().equals(bestSimple))), e));
+        addOptionsList(shownInOrder(all.stream().filter(t -> t.simpleName().equals(bestSimple))), e));
     }
-    private static Void inScope(Err e, List<String> cs, Optional<String> best, Map<String,String> shown){
-      best.ifPresent(b -> e.line("Did you mean "+disp(shown.get(b))+" ?"));
-      if (cs.size() <= 12){ e.line(Join.of(cs.stream().map(c -> disp(shown.get(c))).distinct(), "In scope: ", ", ", ".")); }
+    private static Void inScope(Err e, List<String> cs, Optional<String> best, Function<String,String> shown){
+      best.ifPresent(b -> e.line("Did you mean "+disp(shown.apply(b))+" ?"));
+      if (cs.size() <= 12){ e.line(Join.of(cs.stream().map(c -> disp(shown.apply(c))).distinct(), "In scope: ", ", ", ".")); }
       return null;
     }
     private static final String addUse= "Add a \"use\" or write the fully qualified name.";
@@ -282,7 +280,6 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException mapInBase(String directive){
     return err().line("A map can not apply to source code inside folders named "+disp("_base")+":").line(directive).wf();
   }
-
   public FearlessException mapOfAnExistingPackage(String in, String directive){
     return err()
       .line("A map can not give package name "+disp(in)+", because folders named "+disp("_"+in)+" exist:")
@@ -323,9 +320,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException useOfAMapTarget(TName tn, String in, List<String> visible){ return wfUse(mappedAway(tn.pkgName(), in, visible), tn); }
   public FearlessException typeOfAMapTarget(TName tn, String in, List<String> visible){ return typeName(mappedAway(tn.pkgName(), in, visible), tn); }
   private Err mappedAway(String out, String in, List<String> visible){ return missingPkg(err(), pkgName, out, visible).line(refersTo(pkgName, in, out, writtenIn)); }
-  public FearlessException typeOfTheCurrentPackageQualified(TName tn, List<String> options){
+  public FearlessException typeOfTheCurrentPackageQualified(TName tn, List<TName> options){
     var e= fullNameInvalid(err(), tn).line(inFolders(pkgName)+" uses the simple name "+disp(tn.simpleName())+" to refer to "+disp(tn.s())+".");
-    if (!options.isEmpty()){ e.line(Join.of(options.stream().map(Err::disp), "Did you mean ", " or ", " ?")); }
+    if (!options.isEmpty()){ e.line(Join.of(options.stream().map(o -> disp(err().cp().t.ofFull(o))).distinct(), "Did you mean ", " or ", " ?")); }
     return typeName(e, tn);
   }
   public FearlessException typeWithAnAlias(TName tn, FileFull.Use u){

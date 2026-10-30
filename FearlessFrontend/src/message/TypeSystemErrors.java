@@ -246,8 +246,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       ? "The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."
       : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+")"
         +"\nis implemented with an expression returning "+got0+".");
-    e.line(up(got.info));
-    printed.addAll(got.printed);
+    e.line(up(got.info(printed)));
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ captureFreeHint(e, l, m); }
     return addExpFrame(at, e.exInferMsg(got.footerE.get(), req0).addSpan(at.span().inner));
@@ -456,10 +455,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
       .notInSubtypeList(any)
-      .line(up(r.info))
+      .line(up(r.info(printed)))
       .blank()
       .line("Type required by each promotion:");
-    printed.addAll(r.printed);
     reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+"  ("+q.reqName()+")"));
     addNoPrecedenceHintIfOperator(e, c);
     var footer= r.footerE.get();
@@ -529,8 +527,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       var argi= IntStream.range(0, args).filter(a -> !mat.okByArg().get(a).contains(pi)).findFirst().getAsInt();
       var r= mat.resByArg().get(argi).get(pi);
       assert !r.isEmpty();
-      printed.addAll(r.printed);
-      byArg.get(argi).computeIfAbsent(up(r.info), _ -> new ArrayList<>())
+      byArg.get(argi).computeIfAbsent(up(r.info(printed)), _ -> new ArrayList<>())
         .add(mat.candidate(pi).promotion());
     }
     for (int argi : Range.of(0, args)){

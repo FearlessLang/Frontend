@@ -154,8 +154,8 @@ public class FrontendLogicMain{
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
       if (u.in().pkgName().isEmpty()){ throw err.useNotFullyQualified(u.in()); }
-      var named= Package.mapTo(map, u.in().pkgName());
-      if (named.isPresent()){ throw err.useOfAMapTarget(u.in(), named.get(), Package.visible(map, otherDom)); }
+      var named= WellFormednessErrors.written(map).get(u.in().pkgName());
+      if (named != null){ throw err.useOfAMapTarget(u.in(), named, Package.visible(map, otherDom)); }
       var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
       if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in()); }
       var in= p+"."+u.in().simpleName();
