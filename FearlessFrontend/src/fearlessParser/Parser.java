@@ -434,8 +434,8 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var t2= expectValidate("simple type name", UppercaseId, _XId).content();
     var dupS= acc.use.stream().anyMatch(u -> u.in().equals(t1));
     var dupD= acc.use.stream().anyMatch(u -> u.out().equals(t2));
-    if (dupS){ throw errFactory().duplicatedUse(spanLast(), t1.s(), "source"); }
-    if (dupD){ throw errFactory().duplicatedUse(spanLast(), t2, "destination"); }
+    if (dupS){ throw errFactory().duplicatedUse(spanLast(), t1.s(), "for type"); }
+    if (dupD){ throw errFactory().duplicatedUse(spanLast(), t2, "giving the simple name"); }
     acc.use.add(new FileFull.Use(t1, t2));
   }
   record HeadAcc(ArrayList<FileFull.Map> map, ArrayList<FileFull.Use> use){

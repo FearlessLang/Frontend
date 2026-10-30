@@ -996,7 +996,7 @@ B:{}
    | ----------------^
 
 While inspecting header element > file header > full file
-There is already an entry in the using with source "base.Nat".
+There is already a "use" directive for type "base.Nat".
 """, List.of("""
 use base.Nat as N;
 use base.Nat as M;
@@ -1008,7 +1008,7 @@ A:{}
    | ----------------^
 
 While inspecting header element > file header > full file
-There is already an entry in the using with destination "N".
+There is already a "use" directive giving the simple name "N".
 """, List.of("""
 use base.Nat as N;
 use base.Str as N;

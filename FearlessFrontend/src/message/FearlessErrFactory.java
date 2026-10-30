@@ -115,7 +115,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException duplicatedUse(Span at, String what, String kind){
     return Code.UnexpectedToken.of(
-        "There is already an entry in the using with "+kind+" "+disp(what)+".\n"
+        "There is already a \"use\" directive "+kind+" "+disp(what)+".\n"
     ).addSpan(at);
   }
   public FearlessException duplicatedImpl(List<T.C> cs, Span at){

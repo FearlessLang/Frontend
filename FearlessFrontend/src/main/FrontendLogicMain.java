@@ -150,7 +150,7 @@ public class FrontendLogicMain{
   }
   //map a as _b in _c //inside _c, the package name a stands for the code inside _b
   private void accUses(WellFormednessErrors err, HashMap<String,String> map, List<FileFull.Use> uses, OtherPackages other){
-    Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
+    var otherDom= other.dom();
     for (var u : uses){
       if (u.in().pkgName().isEmpty()){ throw err.useNotFullyQualified(u.in()); }
       if (map.containsValue(u.in().pkgName())){ throw err.useOfAMapTarget(u.in(), WellFormednessErrors.written(map).get(u.in().pkgName()), Package.visible(map, otherDom)); }

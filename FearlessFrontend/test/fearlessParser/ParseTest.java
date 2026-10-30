@@ -2614,7 +2614,7 @@ In file: [###].fear
    | ------------^^
 
 While inspecting header element > file header > full file
-There is already an entry in the using with source "a1.B".
+There is already a "use" directive for type "a1.B".
 Error 2 UnexpectedToken
 """, """
 
@@ -2630,7 +2630,7 @@ In file: [###].fear
    | ------------^^
 
 While inspecting header element > file header > full file
-There is already an entry in the using with destination "F1".
+There is already a "use" directive giving the simple name "F1".
 Error 2 UnexpectedToken
 """, """
 use a1.F as F1;
