@@ -197,13 +197,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Linke
     private Optional<FearlessException> pkgDoesNotExist(){
       if (typedPkg.isEmpty()){ return Optional.empty(); }
       if (allPkgs.contains(typedPkg)){ return Optional.empty(); }
-      var e= err.get().line("Package "+disp(typedPkg)+" does not exist.");
-      NameSuggester.suggest(typedPkg, allPkgs, (_,cs,best) -> {
-        best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
-        e.line(Join.of(cs.stream().map(Err::disp), "Visible packages: ", ", ", "."));
-        return null;
-      });
-      return Optional.of(make(e));
+      return Optional.of(make(missingPkg(err.get().line("Package "+disp(typedPkg)+" does not exist."), typedPkg, allPkgs)));
     }
     private <A,R> List<R> userMap(Function<A,R> f, Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
     private Optional<FearlessException> otherArity(){
@@ -318,14 +312,22 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Linke
       .line("Package "+disp(pkgName)+" has rank "+rankDisp(rank)+" and package "+disp(out)+" has rank "+rankDisp(otherRank)+".")
       .line("A package can only refer to packages of a lower rank.").wf();
   }
-  public FearlessException useOfMissingPackage(TName tn){ return wfUse(useOfMissing(tn.pkgName()), tn); }
-  public FearlessException useOfAMapTarget(TName tn, FileFull.Map m){ return wfUse(mappedAway(useOfMissing(m.out()), m), tn); }
-  private Err useOfMissing(String pkg){ return err().line("\"use\" directive refers to the non existent package "+disp(pkg)+"."); }
+  private static Err missingPkg(Err e, String pkg, List<String> visible){
+    NameSuggester.suggest(pkg, visible, (_,cs,best) -> {
+      best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
+      e.line(Join.of(cs.stream().map(Err::disp), "Visible packages: ", ", ", "."));
+      return null;
+    });
+    return e;
+  }
+  public FearlessException useOfMissingPackage(TName tn, List<String> visible){ return wfUse(useOfMissing(tn.pkgName(), visible), tn); }
+  public FearlessException useOfAMapTarget(TName tn, FileFull.Map m, List<String> visible){ return wfUse(mappedAway(useOfMissing(m.out(), visible), m), tn); }
+  private Err useOfMissing(String pkg, List<String> visible){ return missingPkg(err().line("\"use\" directive refers to the non existent package "+disp(pkg)+"."), pkg, visible); }
   private static Err mappedAway(Err e, FileFull.Map m){
     return e.line("Package "+disp(m.out())+" does exist as a real source location.").line(refersTo(m));
   }
-  public FearlessException typeOfAMapTarget(TName tn, FileFull.Map m){
-    return typeName(mappedAway(err().line("Package "+disp(m.out())+" does not exist."), m), tn);
+  public FearlessException typeOfAMapTarget(TName tn, FileFull.Map m, List<String> visible){
+    return typeName(mappedAway(missingPkg(err().line("Package "+disp(m.out())+" does not exist."), m.out(), visible), m), tn);
   }
   public FearlessException typeOfTheCurrentPackageQualified(TName tn, List<String> options){
     var e= fullNameInvalid(err(), tn).line("Code inside package "+disp(pkgName)+" uses the simple name "+disp(tn.simpleName())+" to refer to "+disp(tn.s())+".");

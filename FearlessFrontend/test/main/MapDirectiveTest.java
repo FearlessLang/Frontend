@@ -126,6 +126,7 @@ In file: [###].fear
 
 While inspecting a type name
 Package "c" does not exist.
+Visible packages: "a", "b", "base".
 Package "c" does exist as a real source location.
 In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
 Error 7 WellFormedness
@@ -193,6 +194,7 @@ In file: [###].fear
 
 While inspecting a type name
 Package "c" does not exist.
+Visible packages: "a", "b", "base".
 Package "c" does exist as a real source location.
 In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
 Error 7 WellFormedness
@@ -222,6 +224,7 @@ In file: [###].fear
 
 While inspecting package header
 "use" directive refers to the non existent package "zz".
+Visible packages: "b", "base".
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
 use zz.A as X;
@@ -269,6 +272,7 @@ In file: [###].fear
 
 While inspecting package header
 "use" directive refers to the non existent package "c".
+Visible packages: "a", "b", "base".
 Package "c" does exist as a real source location.
 In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
 Error 7 WellFormedness
@@ -395,6 +399,8 @@ In file: [###].fear
 
 While inspecting a type name
 Package "webserver_v12" does not exist.
+Did you mean "webserver" ?
+Visible packages: "b", "base", "webserver".
 Package "webserver_v12" does exist as a real source location.
 In package "b", package name "webserver" is used to refer to real source location "webserver_v12" because of "map webserver as webserver_v12 in b".
 Error 7 WellFormedness

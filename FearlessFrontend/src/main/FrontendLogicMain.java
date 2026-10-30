@@ -153,12 +153,12 @@ public class FrontendLogicMain{
     for (var u : uses){
       if (u.in().pkgName().isEmpty()){ throw err.useNotFullyQualified(u.in()); }
       var named= Package.mapTo(err.pkgName(), map, u.in().pkgName());
-      if (named.isPresent()){ throw err.useOfAMapTarget(u.in(), named.get()); }
+      if (named.isPresent()){ throw err.useOfAMapTarget(u.in(), named.get(), Package.visible(err.pkgName(), map, otherDom)); }
       var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
       if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in(), p); }
       var in= p+"."+u.in().simpleName();
       map.put(u.out(), in);
-      if (otherDom.stream().noneMatch(e -> e.pkgName().equals(p))){ throw err.useOfMissingPackage(u.in()); }
+      if (otherDom.stream().noneMatch(e -> e.pkgName().equals(p))){ throw err.useOfMissingPackage(u.in(), Package.visible(err.pkgName(), map, otherDom)); }
       if (otherDom.stream().noneMatch(e -> e.s().equals(in))){ throw err.unknownUseHead(u.in(), map); }
     }//map a as b in c + use a.F as aF will replace aF with b.F
   }

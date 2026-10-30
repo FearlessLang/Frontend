@@ -1,10 +1,12 @@
 package pkgmerge;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import core.T;
 import core.TName;
@@ -18,6 +20,11 @@ public record Package(String name, Map<String,String> map, List<FileFull.Use> us
   public WellFormednessErrors err(){ return new WellFormednessErrors(name, map, new LinkedHashSet<>()); }
   public static Optional<FileFull.Map> mapTo(String pkg, Map<String,String> map, String out){
     return map.keySet().stream().filter(k -> map.get(k).equals(out)).findFirst().map(k -> new FileFull.Map(k, out, pkg));
+  }
+  public static List<String> visible(String pkg, Map<String,String> map, Collection<TName> other){
+    return Stream.concat(Stream.of(pkg), other.stream().map(TName::pkgName))
+      .map(p -> mapTo(pkg, map, p).map(FileFull.Map::in).orElse(p))
+      .distinct().sorted().toList();
   }
   public static String nameOf(String pkg, Map<String,String> map, TName t){
     var alias= map.keySet().stream().filter(k -> map.get(k).equals(t.s())).findFirst();

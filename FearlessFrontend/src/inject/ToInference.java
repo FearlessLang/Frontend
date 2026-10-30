@@ -53,7 +53,7 @@ public final class ToInference{
     var pN= tn.pkgName();
     if (pN.isEmpty() && LiteralDeclarations.isPrimitiveLiteral(tn.s())){ return tn.withPkgName("base"); }
     var named= Package.mapTo(p.name(), p.map(), pN);
-    if (named.isPresent()){ throw p.err().typeOfAMapTarget(tn, named.get()); }
+    if (named.isPresent()){ throw p.err().typeOfAMapTarget(tn, named.get(), Package.visible(p.name(), p.map(), meths.other().dom())); }
     var s= pN.isEmpty() ? p.map().getOrDefault(tn.s(), p.name()+"."+tn.s()) : p.map().getOrDefault(pN, pN)+"."+tn.simpleName();
     var full= new TName(s, tn.arity(), tn.pos());
     var current= full.pkgName().equals(p.name());
