@@ -13,13 +13,9 @@ public record TypeNamePrinter(boolean trunc, String mainPkg, Map<String,String> 
     var lit= dropBaseForLit(n.s());
     if (!lit.equals(n.s())){ return lit; }
     printed.accept(n.s());
-    var pkg= uses.get(n.pkgName());
-    var full= pkg == null ? dropMainPkg(n.s()) : pkg+"."+n.simpleName();
+    var pkg= n.pkgName();
+    var full= pkg.isEmpty() || pkg.equals(mainPkg) ? n.simpleName() : uses.getOrDefault(pkg, pkg)+"."+n.simpleName();
     return uses.getOrDefault(n.s(), full);
-  }
-  private String dropMainPkg(String s){
-    var pre= mainPkg+'.';
-    return s.startsWith(pre) ? s.substring(pre.length()) : s;
   }
   private static String dropBaseForLit(String s){
     if (!s.startsWith("base.")){ return s; }

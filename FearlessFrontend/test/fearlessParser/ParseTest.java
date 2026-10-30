@@ -2498,6 +2498,54 @@ Error 2 UnexpectedToken
 """, """
 map foo.bar as _foo_v5 in _lib;
 """); }
+@Test void pkgMapToAReservedFolderName(){ fail("""
+In file: [###].fear
+
+001| map foo as _con in _lib;
+   | ~~~~~~~~~~~^^^^~~~~~~~~-
+
+While inspecting header element > file header > full file
+Missing folder name.
+Found instead: "_con".
+Expected: "folder name: the _ symbol followed by a package name".
+Error 2 UnexpectedToken
+""", """
+map foo as _con in _lib;
+"""); }
+@Test void pkgMapToAFolderNameWithTwoUnderscores(){ fail("""
+In file: [###].fear
+
+001| map foo as __foo in _lib;
+   | ~~~~~~~~~~~^^^^^~~~~~~~~-
+
+While inspecting header element > file header > full file
+Missing folder name.
+Found instead: "__foo".
+Expected: "folder name: the _ symbol followed by a package name".
+Error 2 UnexpectedToken
+""", """
+map foo as __foo in _lib;
+"""); }
+@Test void pkgMapInsteadOfAReservedFolderName(){ fail("""
+In file: [###].fear
+
+001| map foo as _foo_v5 in _lib instead of _foo_v4, _nul;
+   | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^-
+
+While inspecting header element > file header > full file
+Missing folder name.
+Found instead: "_nul".
+Expected: "folder name: the _ symbol followed by a package name".
+Error 2 UnexpectedToken
+""", """
+map foo as _foo_v5 in _lib instead of _foo_v4, _nul;
+"""); }
+@Test void pkgMapAndUseOfTheSameName(){ ok("""
+FileFull[maps=[map foo as _foo_v5 in _lib],uses=[use foo.Foo as Foo],decs=[]]
+""", """
+map foo as _foo_v5 in _lib;
+use foo.Foo as Foo;
+"""); }
 @Test void pkgDupMapWithInsteadOf(){ fail("""
 In file: [###].fear
 

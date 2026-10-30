@@ -73,8 +73,7 @@ public class FrontendLogicMain{
     var byKey= parsed.entrySet().stream()
       .flatMap(e -> e.getValue().maps().stream().map(m -> new Cand(e.getKey(), m)))
       .collect(Collectors.groupingBy(x -> x.m().target()+" "+x.m().in(), TreeMap::new, Collectors.toList()));
-    var res= new HashMap<String,HashMap<String,String>>();
-    var chosen= new TreeMap<String,ArrayList<Cand>>();
+    var winners= new ArrayList<Cand>();
     for (var cs : byKey.values()){
       var best= Collections.max(cs, Comparator.comparing(Cand::uri, c));
       var bests= cs.stream().filter(x -> c.compare(x.uri(), best.uri()) == 0).toList();
@@ -84,9 +83,9 @@ public class FrontendLogicMain{
       var err= new WellFormednessErrors(m.target());
       if (conflicting){ throw err.mapConflict(m.in(), bests.stream().map(Object::toString).toList()); }
       if (m.target().equals("base")){ throw err.mapInBase(best.toString()); }
-      if (!ranks.containsKey(m.target())){ throw err.mapInMissingPackage(best.toString(), ranks.keySet().stream().sorted().toList()); }
+      if (!ranks.containsKey(m.target())){ throw err.mapToMissingFolder("applies to source code inside", m.target(), best.toString(), ranks.keySet().stream().sorted().toList()); }
       if (pkgs.contains(m.in())){ throw err.mapOfAnExistingPackage(m.in(), best.toString()); }
-      if (!pkgs.contains(m.out())){ throw err.mapToMissingPackage(m.out(), best.toString(), pkgs.stream().sorted().toList()); }
+      if (!pkgs.contains(m.out())){ throw err.mapToMissingFolder("refers to the code inside", m.out(), best.toString(), pkgs.stream().sorted().toList()); }
       if (m.out().equals(m.target())){ throw err.mapToItself(best.toString()); }
       var outRank= ranks.get(m.out());
       var targetRank= ranks.get(m.target());
@@ -96,13 +95,12 @@ public class FrontendLogicMain{
       var expected= overridden.stream().map(x -> x.m().out()).distinct().sorted().toList();
       var wrong= bests.stream().filter(x -> !x.m().insteadOf().stream().sorted().toList().equals(expected)).findFirst();
       if (wrong.isPresent()){ throw err.insteadOfMismatch(wrong.get().toString(), overridden.stream().map(Object::toString).toList(), new FileFull.Map(m.in(), m.out(), m.target(), expected)); }
-      res.computeIfAbsent(m.target(), _ -> new HashMap<>()).put(m.in(), m.out()+" "+writtenIn(best.uri()));
-      chosen.computeIfAbsent(m.target()+"."+m.out(), _ -> new ArrayList<>()).add(best);
+      winners.add(best);
     }
-    var shared= chosen.values().stream().filter(cs -> cs.size() > 1).findFirst();
+    var shared= winners.stream().collect(Collectors.groupingBy(x -> x.m().target()+"."+x.m().out(), TreeMap::new, Collectors.toList())).values().stream().filter(cs -> cs.size() > 1).findFirst();
     shared.ifPresent(cs -> { throw new WellFormednessErrors(cs.getFirst().m().target()).mapToATargetOfAnotherMap(cs.getFirst().m().out(), cs.stream().map(Object::toString).toList()); });
     ranks.forEach((pkg, f) -> usesOnlyLowerRanks(pkg, parsed.get(f).uses(), ranks, c));
-    return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Map.copyOf(e.getValue())));
+    return Map.copyOf(winners.stream().collect(Collectors.groupingBy(x -> x.m().target(), Collectors.toUnmodifiableMap(x -> x.m().in(), x -> x.m().out()+" "+writtenIn(x.uri())))));
   }
   private static String writtenIn(Ref uri){ return PrettyFileName.displayFileName(uri.fearURI()); }
   private void usesOnlyLowerRanks(String pkg, List<FileFull.Use> uses, Map<String,Ref> ranks, Comparator<Ref> c){

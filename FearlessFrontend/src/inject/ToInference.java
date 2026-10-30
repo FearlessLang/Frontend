@@ -15,6 +15,7 @@ import fearlessParser.TokenKind;
 import inference.E;
 import message.WellFormednessErrors;
 import pkgmerge.Package;
+import utils.OneOr;
 
 public final class ToInference{
   private static FearlessException undeclaredType(Methods meths, TName written, TName resolved){
@@ -41,8 +42,7 @@ public final class ToInference{
     var pN= tn.pkgName();
     if (pN.isEmpty()){ return full; }
     if (pN.equals(p.name())){ throw p.err().typeOfTheCurrentPackageQualified(tn, sameSimpleName(meths, tn)); }
-    var alias= p.uses().stream().filter(u -> full.s().equals(p.map().get(u.out()))).findFirst();
-    if (alias.isPresent()){ throw p.err().typeWithAnAlias(tn, alias.get()); }
+    OneOr.opt("aliases of "+full, p.uses().stream().filter(u -> full.s().equals(p.map().get(u.out())))).ifPresent(u -> { throw p.err().typeWithAnAlias(tn, u); });
     return full;
   }
   private static List<String> sameSimpleName(Methods meths, TName tn){

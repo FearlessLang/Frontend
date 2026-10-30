@@ -4,6 +4,7 @@ import static message.Err.*;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -50,14 +51,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private Err err(List<String> steps){ return err(_ -> null, steps); }
   private Err err(Function<TName,core.E.Literal> decs, List<String> steps){
     var written= written(map);
-    return new Err(y -> y, x -> x, decs, trunk -> new CompactPrinter(pkgName, written, printed::add, trunk), () -> Stream.concat(steps.stream(), notes(pkgName, map, writtenIn, printed).stream()).distinct().toList(), new StringBuilder());
+    return new Err(y -> y, x -> x, decs, trunk -> new CompactPrinter(pkgName, written, printed::add, trunk), () -> Stream.concat(steps.stream(), notes(pkgName, written, writtenIn, printed).stream()).distinct().toList(), new StringBuilder());
   }
   static Map<String,String> written(Map<String,String> map){
     return map.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
   }
-  static List<String> notes(String pkg, Map<String,String> map, Map<String,String> writtenIn, Set<String> printed){
-    var written= written(map);
-    return printed.stream().flatMap(n -> note(pkg, written, writtenIn, n)).distinct().toList();
+  static List<String> notes(String pkg, Map<String,String> written, Map<String,String> writtenIn, Set<String> printed){
+    return printed.stream().flatMap(n -> note(pkg, written, writtenIn, n)).distinct().sorted(Comparator.comparing((String s) -> !s.startsWith("Name "))).toList();
   }
   private static Stream<String> note(String pkg, Map<String,String> written, Map<String,String> writtenIn, String n){
     var dot= TName.pkgDot(n);
@@ -65,11 +65,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var out= n.substring(0, dot);
     var in= written.get(out);
     if (in == null){ return Stream.of(); }
-    var simple= n.substring(dot+1);
-    var mapped= refersTo(pkg, in, out, writtenIn);
-    var alias= written.get(n);
-    if (alias == null){ return Stream.of(mapped); }
-    return Stream.of(standsFor(alias, in+"."+simple, "use "+in+"."+simple+" as "+alias), mapped);
+    var w= in+n.substring(dot);
+    return Stream.concat(Optional.ofNullable(written.get(n)).map(a -> standsFor(a, w, "use "+w+" as "+a)).stream(), Stream.of(refersTo(pkg, in, out, writtenIn)));
   }
   public static List<String> resolution(Package p, String written){
     var dot= TName.pkgDot(written);
@@ -149,14 +146,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
             +" package), with \"instead of\" listing every folder chosen by the maps of lower rank.");
     return e.wf();
   }
-  public FearlessException mapToMissingPackage(String out, String directive, List<String> pkgs){
-    return existingFolders(err()
-      .line("The map refers to the code inside folders named "+disp("_"+out)+", but no folder is named "+disp("_"+out)+":")
-      .line(directive), out, pkgs).wf();
-  }
-  private static Err existingFolders(Err e, String pkg, List<String> pkgs){
-    NameSuggester.suggest(pkg, pkgs, (_,_,best) -> { best.ifPresent(b -> e.line("Did you mean "+disp("_"+b)+" ?")); return null; });
-    return e.line(Join.of(pkgs.stream().map(p -> disp("_"+p)), "Existing folders: ", ", ", "."));
+  public FearlessException mapToMissingFolder(String role, String folder, String directive, List<String> pkgs){
+    var e= err().line("The map "+role+" folders named "+disp("_"+folder)+", but no folder is named "+disp("_"+folder)+":").line(directive);
+    NameSuggester.suggest(folder, pkgs, (_,_,best) -> { best.ifPresent(b -> e.line("Did you mean "+disp("_"+b)+" ?")); return null; });
+    return e.line(Join.of(pkgs.stream().map(p -> disp("_"+p)), "Existing folders: ", ", ", ".")).wf();
   }
   public Err badRank(Err err){
     return err
@@ -277,8 +270,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException useOfTheCurrentPackage(TName tn){
     return wfUse(err()
-      .line("\"use\" directive refers to type "+disp(tn.simpleName())+" of the current package "+disp(pkgName)+".")
-      .line("A \"use\" directive can only refer to types of other packages: the types of package "+disp(pkgName)+" are already in scope by their simple names."), tn);
+      .line("\"use\" directive refers to type "+disp(tn.simpleName())+" declared inside folders named "+disp("_"+pkgName)+".")
+      .line("A \"use\" directive can only refer to types declared in other folders.")
+      .line(inFolders(pkgName)+" uses the simple names of its own types."), tn);
   }
   public FearlessException mapToATargetOfAnotherMap(String out, List<String> directives){
     var e= err().line(inFolders(pkgName)+" can use only one package name to refer to the code inside folders named "+disp("_"+out)+":");
@@ -288,11 +282,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException mapInBase(String directive){
     return err().line("A map can not apply to source code inside folders named "+disp("_base")+":").line(directive).wf();
   }
-  public FearlessException mapInMissingPackage(String directive, List<String> pkgs){
-    return existingFolders(err()
-      .line("The map applies to source code inside folders named "+disp("_"+pkgName)+", but no folder is named "+disp("_"+pkgName)+":")
-      .line(directive), pkgName, pkgs).wf();
-  }
+
   public FearlessException mapOfAnExistingPackage(String in, String directive){
     return err()
       .line("A map can not give package name "+disp(in)+", because folders named "+disp("_"+in)+" exist:")
@@ -350,9 +340,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException useOfNotLowerRank(TName tn, String pkg, Ref rank, Ref otherRank, boolean sameRank){
     return wfUse(err()
-      .line("\"use\" directive refers to package "+disp(pkg)+", which has "+(sameRank ? "the same rank as" : "a higher rank than")+" package "+disp(pkgName)+".")
-      .line("Package "+disp(pkgName)+" has rank "+rankDisp(rank)+" and package "+disp(pkg)+" has rank "+rankDisp(otherRank)+".")
-      .line("A package can only use packages of a lower rank."), tn);
+      .line("\"use\" directive refers to the code inside folders named "+disp("_"+pkg)+", which has "+(sameRank ? "the same rank as" : "a higher rank than")+" the code inside folders named "+disp("_"+pkgName)+".")
+      .line("Folders named "+disp("_"+pkgName)+" have rank "+rankDisp(rank)+" and folders named "+disp("_"+pkg)+" have rank "+rankDisp(otherRank)+".")
+      .line("Source code can only refer to code of a lower rank."), tn);
   }
   private static String rankDisp(Ref rank){
     var name= Fs.fileNameWithoutExtension(rank.fearPath()).substring("_rank_".length());

@@ -141,8 +141,9 @@ In file: [###].fear
    |     ^^^
 
 While inspecting package header
-"use" directive refers to type "B" of the current package "b".
-A "use" directive can only refer to types of other packages: the types of package "b" are already in scope by their simple names.
+"use" directive refers to type "B" declared inside folders named "_b".
+A "use" directive can only refer to types declared in other folders.
+Source code inside folders named "_b" uses the simple names of its own types.
 Error 7 WellFormedness""", Map.of(), Map.of(), """
 use b.B as X;
 B:{.m(x:X):B->x.self; .self:X->this}
@@ -653,5 +654,413 @@ Source code inside folders named "_b" uses package name "a" to refer to the code
 Error 7 WellFormedness
 """, Map.of("c", "Server:{}", "d", "Client:{}"), Map.of("a", "c"), """
 B:{.m(x:d.Server):B->this}
+"""); }
+  static final String cBox= "A:{.fromC:A->this} D:{} Box[T]:{.get:T; .put(t:T):Box[T]->this}";
+  @Test void callResultWithAMappedTypeArgument(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.Box[a.A]):B->x.get}
+   |    --------------------^^^^^^
+
+While inspecting method call ".get" > ".m(_)" line 1
+The body of method ".m(_)" of type declaration "B" is an expression returning "a.A".
+Method call "a.Box[_].get" has type "a.A" instead of a subtype of "B".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m(x:-.Box[-.A]):B->x.get}
+Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
+B:{.m(x:a.Box[a.A]):B->x.get}
+"""); }
+  @Test void callResultWithAnOwnTypeAsTheArgumentOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.Box[B]):a.A->x.get}
+   |    --------------------^^^^^^
+
+While inspecting method call ".get" > ".m(_)" line 1
+The body of method ".m(_)" of type declaration "B" is an expression returning "B".
+Method call "a.Box[_].get" has type "B" instead of a subtype of "a.A".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
+B:{.m(x:-.Box[B]):-.A->x.get}
+Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
+B:{.m(x:a.Box[B]):a.A->x.get}
+"""); }
+  @Test void callResultWithAnAliasAsTheArgumentOfAMappedType(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:a.Box[X]):B->x.get}
+   |    ------------------^^^^^^
+
+While inspecting method call ".get" > ".m(_)" line 2
+The body of method ".m(_)" of type declaration "B" is an expression returning "X".
+Method call "a.Box[_].get" has type "X" instead of a subtype of "B".
+
+Name "X" stands for "a.A" because of "use a.A as X".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m(x:-.Box[X]):B->x.get}
+Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
+use a.A as X;
+B:{.m(x:a.Box[X]):B->x.get}
+"""); }
+  @Test void callResultWithTwoAliasesThroughTheSameMap(){ fail("""
+In file: [###].fear
+
+003| B:{.m(x:Bx[X]):B->x.get}
+   |    ---------------^^^^^^
+
+While inspecting method call ".get" > ".m(_)" line 3
+The body of method ".m(_)" of type declaration "B" is an expression returning "X".
+Method call "Bx[_].get" has type "X" instead of a subtype of "B".
+
+Name "X" stands for "a.A" because of "use a.A as X".
+Name "Bx" stands for "a.Box" because of "use a.Box as Bx".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m(x:Bx[X]):B->x.get}
+Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
+use a.Box as Bx;
+use a.A as X;
+B:{.m(x:Bx[X]):B->x.get}
+"""); }
+  @Test void aliasedTypeWrittenQualifiedAsATypeArgument(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:a.Box[a.A]):B->this}
+   |               ^^^^
+
+While inspecting a type name
+The full type name "a.A" is invalid in source code inside folders named "_b".
+Source code inside folders named "_b" uses the simple name "X" to refer to "a.A" because of "use a.A as X".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", cBox), Map.of("a", "c"), """
+use a.A as X;
+B:{.m(x:a.Box[a.A]):B->this}
+"""); }
+  @Test void mapTargetWrittenAsATypeArgument(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.Box[c.A]):B->this}
+   |               ^^^^
+
+While inspecting a type name
+Source code inside folders named "_b" can not use package name "c".
+Visible package names: "a", "base".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", cBox), Map.of("a", "c"), """
+B:{.m(x:a.Box[c.A]):B->this}
+"""); }
+  @Test void mappedGenericTypesWithAliasesAndOwnTypes(){ ok(Map.of("c", cBox), Map.of("a", "c"), """
+use a.A as X;
+B:{.m(x:a.Box[X]):X->x.get.fromC; .k(y:a.Box[X], z:X):a.Box[X]->y.put(z); .own(b:a.Box[B]):B->b.get}
+"""); }
+  static final Map<String,String> webVersions= Map.of("web_v1", "Server:{.v1:Server->this}", "web_v2", "Server:{.v2:Server->this}");
+  static final Map<String,String> legacyAndWeb= Map.of("legacy", "web_v1", "web", "web_v2");
+  @Test void anAliasAndAMapForTwoVersionsOfAPackage(){ ok(webVersions, legacyAndWeb, """
+use legacy.Server as OldServer;
+B:{.m(x:OldServer, y:web.Server):web.Server->y.v2; .k(x:OldServer):OldServer->x.v1}
+"""); }
+  @Test void anAliasAndAMapForTwoVersionsDisagree(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:OldServer):web.Server->x}
+   |    ----------------------------^^
+
+While inspecting parameter "x" > ".m(_)" line 2
+The body of method ".m(_)" of type declaration "B" is an expression returning "OldServer".
+Parameter "x" has type "OldServer" instead of a subtype of "web.Server".
+
+Name "OldServer" stands for "legacy.Server" because of "use legacy.Server as OldServer".
+Source code inside folders named "_b" uses package name "legacy" to refer to the code inside folders named "_web_v1", because of "map legacy as _web_v1 in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "web" to refer to the code inside folders named "_web_v2", because of "map web as _web_v2 in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "web.Server" was introduced: (compression indicated by `-`)
+B:{.m(x:OldServer):-.Server->x}
+Error 8 TypeError""", webVersions, legacyAndWeb, """
+use legacy.Server as OldServer;
+B:{.m(x:OldServer):web.Server->x}
+"""); }
+  @Test void aMethodOfTheOtherVersionThroughAnAlias(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:OldServer, y:web.Server):web.Server->x.v2}
+   |    ------------------------------------------~^^^^
+
+While inspecting ".m(_,_)" line 2
+This call to method ".v2" cannot typecheck.
+Method ".v2" is not declared on type "OldServer".
+Did you mean ".v1" ?
+
+Available methods on type "OldServer":
+-       .v1:OldServer
+
+Name "OldServer" stands for "legacy.Server" because of "use legacy.Server as OldServer".
+Source code inside folders named "_b" uses package name "legacy" to refer to the code inside folders named "_web_v1", because of "map legacy as _web_v1 in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x.v2
+Error 8 TypeError""", webVersions, legacyAndWeb, """
+use legacy.Server as OldServer;
+B:{.m(x:OldServer, y:web.Server):web.Server->x.v2}
+"""); }
+  @Test void methodNotDeclaredOnAQualifiedMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.A):a.A->x.nope}
+   |    ---------------~^^^^^^
+
+While inspecting ".m(_)" line 1
+This call to method ".nope" cannot typecheck.
+Method ".nope" is not declared on type "a.A".
+
+Available methods on type "a.A":
+-       .fromC:a.A
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+x.nope
+Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
+B:{.m(x:a.A):a.A->x.nope}
+"""); }
+  @Test void readMappedTypeWhereMutIsRequired(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:read a.A):mut a.A->x}
+   |    ------------------------^^
+
+While inspecting parameter "x" > ".m(_)" line 1
+The body of method ".m(_)" of type declaration "B" is an expression returning "read a.A".
+Parameter "x" has type "read a.A" instead of a subtype of "mut a.A".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "mut a.A" was introduced: (compression indicated by `-`)
+B:{.m(x:read -.A):mut -.A->x}
+Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
+B:{.m(x:read a.A):mut a.A->x}
+"""); }
+  @Test void mutAndReadMappedTypes(){ ok(Map.of("c", cBox), Map.of("a", "c"), """
+use a.A as X;
+B:{.k(x:mut X):read X->x; .j(x:mut a.Box[X]):read a.Box[X]->x; .d(x:mut a.D):read a.D->x}
+"""); }
+  @Test void argumentOfTheWrongMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.Box[a.A], d:a.D):a.Box[a.A]->x.put(d)}
+   |    ------------------------------------~^^^^^~~
+
+While inspecting ".m(_,_)" line 1
+This call to method "a.Box[_].put(_)" cannot typecheck.
+Argument 1 has type "a.D".
+That is not a subtype of "a.A" (the type required by the method signature).
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.put(d)
+Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
+B:{.m(x:a.Box[a.A], d:a.D):a.Box[a.A]->x.put(d)}
+"""); }
+  @Test void argumentOfTheWrongAliasedType(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:a.Box[X], d:a.D):a.Box[X]->x.put(d)}
+   |    --------------------------------~^^^^^~~
+
+While inspecting ".m(_,_)" line 2
+This call to method "a.Box[_].put(_)" cannot typecheck.
+Argument 1 has type "a.D".
+That is not a subtype of "X" (the type required by the method signature).
+
+Name "X" stands for "a.A" because of "use a.A as X".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.put(d)
+Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
+use a.A as X;
+B:{.m(x:a.Box[X], d:a.D):a.Box[X]->x.put(d)}
+"""); }
+  @Test void nestedObjectLiteralOfAMappedType(){ fail("""
+In file: [###].fear
+
+001| B:{.m:a.A->a.A{.fromC->base.Void}}
+   |    ------------~~~~~~~~^^^^^^^^^^
+
+While inspecting object literal instance of "base.Void" > ".fromC" line 1 > ".m" line 1
+Method ".fromC" inside the object literal instance of "iso a.A" (line 1)
+is implemented with an expression returning "iso base.Void".
+Object literal is of type "base.Void" instead of a subtype of "a.A".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
+B:{.m:-.A->-.A{.fromC:-.A->-.Void}}
+Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
+B:{.m:a.A->a.A{.fromC->base.Void}}
+"""); }
+  @Test void literalMissingTheMethodOfAMappedGenericType(){ fail("""
+In file: [###].fear
+
+001| B:{.m:a.Box[a.A]->{}}
+   |    ---------------^^
+
+While inspecting object literal instance of "iso a.Box[a.A]" > ".m" line 1
+This object literal is missing a required method.
+Missing: "imm .get".
+Required by: "a.Box[_]".
+Hint: add an implementation for ".get" inside the object literal.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso -.Box[-.A]
+Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
+B:{.m:a.Box[a.A]->{}}
+"""); }
+  @Test void stringWithBaseReachedThroughAMap(){ fail("""
+In file: [###].fear
+
+001| B:{ .m:B -> "hi" }
+   |     --------^^^^
+
+While inspecting object literal instance of "bb.Str" > ".m" line 1
+The body of method ".m" of type declaration "B" is an expression returning "iso bb.Str".
+Object literal is of type "bb.Str" instead of a subtype of "B".
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m:B->"hi"}
+Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
+B:{ .m:B -> "hi" }
+"""); }
+  @Test void numberWithAnAliasForNatThroughAMap(){ fail("""
+In file: [###].fear
+
+002| B:{ .m:B -> 5 }
+   |     --------^
+
+While inspecting object literal instance of "N" > ".m" line 2
+The body of method ".m" of type declaration "B" is an expression returning "iso N".
+Object literal is of type "N" instead of a subtype of "B".
+
+Name "N" stands for "bb.Nat" because of "use bb.Nat as N".
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m:B->5}
+Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
+use bb.Nat as N;
+B:{ .m:B -> 5 }
+"""); }
+  @Test void signedNumberWithBaseReachedThroughAMap(){ fail("""
+In file: [###].fear
+
+001| B:{ .m:bb.Nat -> +5 }
+   |     -------------^^
+
+While inspecting object literal instance of "bb.Int" > ".m" line 1
+The body of method ".m" of type declaration "B" is an expression returning "iso bb.Int".
+Object literal is of type "bb.Int" instead of a subtype of "bb.Nat".
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "bb.Nat" was introduced: (compression indicated by `-`)
+B:{.m:-.Nat->+5}
+Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
+B:{ .m:bb.Nat -> +5 }
+"""); }
+  @Test void ownTypeAndMappedTypeWithTheSameSimpleName(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.B):B->x}
+   |    -------------^^
+
+While inspecting parameter "x" > ".m(_)" line 1
+The body of method ".m(_)" of type declaration "B" is an expression returning "a.B".
+Parameter "x" has type "a.B" instead of a subtype of "B".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m(x:-.B):B->x}
+Error 8 TypeError""", Map.of("c", "B:{.fromC:B->this}"), Map.of("a", "c"), """
+B:{.m(x:a.B):B->x}
+"""); }
+  @Test void baseTypeInTheSignatureOfAMappedPackageWhenBaseIsMappedToo(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.A):B->x.n}
+   |    -------------^^^^
+
+While inspecting method call ".n" > ".m(_)" line 1
+The body of method ".m(_)" of type declaration "B" is an expression returning "bb.Nat".
+Method call "a.A.n" has type "bb.Nat" instead of a subtype of "B".
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m(x:-.A):B->x.n}
+Error 8 TypeError""", Map.of("c", "A:{.n:base.Nat->5}"), Map.of("a", "c", "bb", "base"), """
+B:{.m(x:a.A):B->x.n}
+"""); }
+  @Test void genericMethodCalledWithAMappedTypeArgument(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.G, d:a.D):B->x.id[a.D](d)}
+   |    --------------------^^^^^^^^^^^^
+
+While inspecting method call ".id(_)" > ".m(_,_)" line 1
+The body of method ".m(_,_)" of type declaration "B" is an expression returning "a.D".
+Method call "a.G.id(_)" has type "a.D" instead of a subtype of "B".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m(x:-.G,d:-.D):B->x.id[imm,-.D](d)}
+Error 8 TypeError""", Map.of("c", "D:{} G:{.id[X](x:X):X->x}"), Map.of("a", "c"), """
+B:{.m(x:a.G, d:a.D):B->x.id[a.D](d)}
+"""); }
+  @Test void genericMethodCalledWithAMappedTypeArgumentAndAnAlias(){ ok(Map.of("c", "D:{} G:{.id[X](x:X):X->x}"), Map.of("a", "c"), """
+use a.D as Dd;
+B:{.m(x:a.G, d:Dd):Dd->x.id[Dd](d); .k(x:a.G, d:Dd):Dd->x.id(d)}
+"""); }
+  @Test void nestedObjectLiteralOfAnAlias(){ fail("""
+In file: [###].fear
+
+002| B:{.m:X->X{.fromC->B}}
+   |    --------~~~~~~~~^^
+
+While inspecting object literal instance of "B" > ".fromC" line 2 > ".m" line 2
+Method ".fromC" inside the object literal instance of "iso X" (line 2)
+is implemented with an expression returning "iso B".
+Object literal is of type "B" instead of a subtype of "X".
+
+Name "X" stands for "a.A" because of "use a.A as X".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+B:{.m:X->X{.fromC:X->B}}
+Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
+use a.A as X;
+B:{.m:X->X{.fromC->B}}
+"""); }
+  @Test void literalsWithBaseReachedThroughAMapAndAliases(){ ok(Map.of(), Map.of("bb", "base"), """
+use bb.Nat as N;
+use bb.Str as S;
+B:{ .m:N -> 5; .k(x:N):N -> x+5; .s:S -> "hi"; .i:bb.Int -> +5; .f:bb.Float -> 1.5 }
 """); }
 }
