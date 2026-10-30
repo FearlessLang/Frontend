@@ -55,9 +55,9 @@ Offensive style: Optional.get() is intentional where invariants guarantee presen
 absence indicates a bug and should crash.
 */
 
-public record InjectionSteps(Methods meths, int cap){
+public record InjectionSteps(Methods meths, int cap, boolean late){
   public static List<core.E.Literal> steps(Methods meths, List<E.Literal> tops){
-    var s= new InjectionSteps(meths, deepest(meths));
+    var s= new InjectionSteps(meths, deepest(meths), false);
     assert tops.stream().allMatch(l -> l.thisName().equals("this"));
     //No! at this point they have been (correctly) divided in layers assert tops.stream().sorted().toList().equals(tops);
     return tops.stream()
@@ -95,7 +95,10 @@ public record InjectionSteps(Methods meths, int cap){
     var ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     var g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
     var bs= Push.of(di.bs(), m.sig().bs().get());
-    ei = new InjectionSteps(meths, cap*size(ei)).nextStar(bs, g, ei);
+    var limit= cap*size(ei);
+    ei = new InjectionSteps(meths, limit, false).nextStar(bs, g, ei);
+    g.tableGrew();
+    ei = new InjectionSteps(meths, limit, true).nextStar(bs, g, ei);
     return new core.M(mCore.sig(), xs, Optional.of(new ToCore(bs, meths).of(ei, e)));
   }
   E meet(E e, IT t){
@@ -444,7 +447,7 @@ public record InjectionSteps(Methods meths, int cap){
       .allMatch(m -> m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t -> t.get().isTV()));
   }
   private List<Optional<IT>> updateArgs(M m, Gamma g){
-    return Streams.zip(m.impl().get().xs(), m.sig().ts()).map((x,oi) -> x.equals("_") ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
+    return Streams.zip(m.impl().get().xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !late ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
   }
   record TSM(List<IT> ts, List<IT> lower, M m){
     TSM(List<IT> ts, M m){ this(ts, qMarks(ts.size()), m); }

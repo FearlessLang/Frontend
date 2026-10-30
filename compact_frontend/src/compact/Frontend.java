@@ -369,7 +369,7 @@ public class Frontend{
   record XE(String x,P e){}
   static class Methods{
     Pkg p;Map<N,Literal>other;Scope top=new Scope();HashSet<String>reserved=new HashSet<>();HashMap<N,Owner>owners=new HashMap<>();HashMap<N,Literal>cache=new HashMap<>();HashMap<N,C>sup=new HashMap<>();
-    int deep,cap;N owner;Vector<String>implicits=new Vector<>();Vector<Literal>decs=new Vector<>();
+    int deep,cap;boolean late;N owner;Vector<String>implicits=new Vector<>();Vector<Literal>decs=new Vector<>();
     Methods(Pkg p,Map<N,Literal>other){this.p=p;this.other=other;
       top.used.addAll(map(p.names,N::simple));top.used.addAll(p.map.keySet());
       for(var d:p.decs){reserved.addAll(d.owner.gen.used);owners.put(d.name.qualify(p.name),d.owner);}
@@ -543,7 +543,7 @@ public class Frontend{
     M body(Literal di,M m){
       if(m.e==null)return m;var ei=meet(m.e,m.s.t);cap=deep*size(ei);var g=new IG();g.declare(m);
       g.declare(di.self,di.self(has(di.cs,cf)?imm:m.s.r));var b=push(di.b,m.s.b);
-      return m.body(core(b,solve(b,g,ei),m.e));
+      late=false;var e1=solve(b,g,ei);late=true;return m.body(core(b,solve(b,g,e1),m.e));
     }
     E meet(E e,T t){
       if(e instanceof Literal l&&l.t.tv())return e;var a=ascribe(e,t,null);return a.t(meet(a.t(),t));
@@ -656,7 +656,7 @@ public class Frontend{
       g.declare(l.self,sp==null?u:new R(sp.r.mutable(),sp.c));
       g.push(m.s.r,bs);g.declare(m);
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
-      var args=zip(m.v,m.s.types,(x,t)->meet(t,g.get(x)));g.removeLast();
+      var args=zip(m.v,m.s.types,(x,t)->late?meet(t,g.get(x)):t);g.removeLast();
       g.removeLast();var h=header(w,m.signature(m.s.types(args,meet(m.s.t,e.t()))));
       return new TSM(h.types,h.low,h.m.body(meet(e,h.m.s.t)));
     }

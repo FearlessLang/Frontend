@@ -4133,6 +4133,28 @@ Person:{}
 Customer:Person{}
 User:{ .n(cs: read base.MList[mut Customer]): base.MList[Person] -> cs.as{::} }
 """));}
+@Test void baseIdProofKeepsTheTypeOfTheArgument(){ok(List.of("""
+Person:{}
+Customer:Person{ .n: base.Void }
+Box[T]:{ .get: T }
+Boxes:{ #[T](x: T, f: base.BaseId[T,Person]): Box[T] -> Boxes#(x,f) }
+User:{ .m(c: Customer): base.Void -> Boxes#(c,{::}).get.n }
+"""));}
+@Test void inferenceKeepsTheTypeOfTheArgumentWithoutALiteral(){ok(List.of("""
+Person:{}
+Customer:Person{ .n: base.Void }
+Box[T]:{ .get: T }
+Boxes:{ #[T](x: T): Box[T] -> Boxes#x }
+User:{ .m(c: Customer): base.Void -> Boxes#(c).get.n }
+"""));}
+@Test void inferenceKeepsTheTypeOfTheArgumentWithALambda(){ok(List.of("""
+Person:{}
+Customer:Person{ .n: base.Void }
+Box[T]:{ .get: T }
+Fn[A,B]:{ #(a: A): B }
+Boxes:{ #[T](x: T, f: Fn[T,Person]): Box[T] -> Boxes#(x,f) }
+User:{ .m(c: Customer): base.Void -> Boxes#(c,{x -> x}).get.n }
+"""));}
 @Test void baseIdNotSubtype(){fail("""
 003| User:{ .m: base.BaseId[Person,Customer] -> {::} }
    |        -------------------------------------^^^
@@ -4438,16 +4460,16 @@ TypeSystem.methodTableOk rather than reporting a user error.*/
 @Test void blockLetOfAMutResultCannotBePromotedThroughACapturedMut(){fail("""
 011|   mut .take(s: mut Set[E], e: E): Opt[E] -> Blocks#
 012|     .let o = {s.opt(e)}
-   |     ^^^^
 013|     .return {o};
+   |              ^^
 
-While inspecting ".take(_,_)" line 11
-This call to method "mut Block[_].let(_,_)" cannot typecheck.
-Argument 1 has type "mut MF[mut Opt[E]]".
-That is not a subtype of "mut MF[Opt[E]]" (the type required by the method signature).
+While inspecting parameter "o" > "#" line 13 > "#(_,_)" line 11 > ".take(_,_)" line 11
+Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13)
+is implemented with an expression returning "mut Opt[E]".
+Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.let[mut,Opt[E]](mut MF[mut Opt[E]]{mut #:mut Opt[E]->s.opt[mut](e)},-)
+See inferred typing context below for how type "Opt[E]" was introduced: (compression indicated by `-`)
+-.let[mut,mut Opt[E]](-,mut Con-ion[mut Opt[E],Opt[E]]{(-,-)->_aeqS.return[mut](mut MF[Opt[E]]{o})})
 """, List.of("""
 use base.MF as MF;
 Blocks: { #[R:*]: mut Block[R] -> {} }
