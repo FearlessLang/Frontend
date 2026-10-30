@@ -89,12 +89,12 @@ public class FrontendLogicMain{
       if (m.out().equals(m.target())){ throw err.mapToItself(best.toString()); }
       var outRank= ranks.get(m.out());
       var targetRank= ranks.get(m.target());
-      var lower= outRank == null || c.compare(outRank, targetRank) < 0;
-      if (!lower){ throw err.mapToNotLowerRank(m.out(), best.toString(), targetRank, outRank, c.compare(outRank, targetRank) == 0); }
+      var cmp= outRank == null ? -1 : c.compare(outRank, targetRank);
+      if (cmp >= 0){ throw err.mapToNotLowerRank(m.out(), best.toString(), targetRank, outRank, cmp == 0); }
       var overridden= cs.stream().filter(x -> c.compare(x.uri(), best.uri()) < 0 && !x.m().out().equals(m.out())).toList();
       var expected= overridden.stream().map(x -> x.m().out()).distinct().sorted().toList();
-      var wrong= bests.stream().filter(x -> !x.m().insteadOf().stream().sorted().toList().equals(expected)).findFirst();
-      if (wrong.isPresent()){ throw err.insteadOfMismatch(wrong.get().toString(), overridden.stream().map(Object::toString).toList(), new FileFull.Map(m.in(), m.out(), m.target(), expected)); }
+      bests.stream().filter(x -> !x.m().insteadOf().stream().sorted().toList().equals(expected)).findFirst()
+        .ifPresent(w -> { throw err.insteadOfMismatch(w.toString(), overridden.stream().map(Object::toString).toList(), new FileFull.Map(m.in(), m.out(), m.target(), expected)); });
       winners.add(best);
     }
     var shared= winners.stream().collect(Collectors.groupingBy(x -> x.m().target()+"."+x.m().out(), TreeMap::new, Collectors.toList())).values().stream().filter(cs -> cs.size() > 1).findFirst();

@@ -128,6 +128,7 @@ In file: [###].fear
 
 While inspecting a type name
 Source code inside folders named "_b" can not use package name "c".
+Did you mean "a" ?
 Visible package names: "a", "base".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -196,6 +197,7 @@ In file: [###].fear
 
 While inspecting a type name
 Source code inside folders named "_b" can not use package name "c".
+Did you mean "a" ?
 Visible package names: "a", "base".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -275,6 +277,7 @@ In file: [###].fear
 
 While inspecting package header
 Source code inside folders named "_b" can not use package name "c".
+Did you mean "a" ?
 Visible package names: "a", "base".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -442,6 +445,7 @@ In file: [###].fear
 
 While inspecting a type name
 Source code inside folders named "_b" can not use package name "base".
+Did you mean "bb" ?
 Visible package names: "bb".
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -764,6 +768,7 @@ In file: [###].fear
 
 While inspecting a type name
 Source code inside folders named "_b" can not use package name "c".
+Did you mean "a" ?
 Visible package names: "a", "base".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -1436,6 +1441,7 @@ In file: [###].fear
 
 While inspecting a type name
 Source code inside folders named "_b" can not use package name "c__v_".
+Did you mean "a" ?
 Visible package names: "a", "base".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c__v_", because of "map a as _c__v_ in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -1450,6 +1456,7 @@ In file: [###].fear
 
 While inspecting a type name
 Source code inside folders named "_b" can not use package name "in".
+Did you mean "as" ?
 Visible package names: "as", "base".
 Source code inside folders named "_b" uses package name "as" to refer to the code inside folders named "_in", because of "map as as _in in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -1607,5 +1614,103 @@ Error 2 UnexpectedToken
 """, Map.of("c", cA), Map.of("a", "c"), """
 map a as _cC in _b;
 B:{}
+"""); }
+  static void failBase(String expected, String src){
+    var o= oraclePkg(List.of(src));
+    var fe= assertThrows(FearlessException.class, () -> new FrontendLogicMain().of("base", Map.of(), o.allFiles(), OtherPackages.empty()));
+    strCmp(expected, fe.render(o));
+    if (!checkCompact){ return; }
+    assertThrows(compact.Frontend.Fail.class, () -> compactAll("base", o, List.of()));
+  }
+  @Test void compilingBaseWithAMisspelledPackageName(){ failBase("""
+In file: [###].fear
+
+002| A:{.m(x:bse.Str):A->this}
+   |         ^^^^^^^^
+
+While inspecting a type name
+Source code inside folders named "_base" can not use package name "bse".
+Error 7 WellFormedness
+""", """
+Str:{}
+A:{.m(x:bse.Str):A->this}
+"""); }
+  @Test void compilingBaseWithAMisspelledPackageNameInAMethodBody(){ failBase("""
+In file: [###].fear
+
+002| A:{.m:A->bse.A{}}
+   |          ^^^^^^
+
+While inspecting a type name
+Source code inside folders named "_base" can not use package name "bse".
+Error 7 WellFormedness
+""", """
+Str:{}
+A:{.m:A->bse.A{}}
+"""); }
+  @Test void compilingBaseWithAUseOfAMissingPackage(){ failBase("""
+In file: [###].fear
+
+001| use zz.A as X;
+   |     ^^^^
+
+While inspecting package header
+Source code inside folders named "_base" can not use package name "zz".
+Error 7 WellFormedness
+""", """
+use zz.A as X;
+Str:{}
+"""); }
+  static final Map<String,String> jsons= Map.of("json_v1", "Parser:{.v1:Parser->this}", "json_v2", "Parser:{.v2:Parser->this}");
+  static final String jsonNote= "Source code inside folders named \"_b\" uses package name \"json\" to refer to the code inside folders named \"_json_v2\", because of \"map json as _json_v2 in _b\", written in fear:/_b/_rank_app.fear.";
+  @Test void aHiddenVersionSuggestsTheMapNameOverACloserVersion(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:json_v2.Parser):json.Parser->x.v2}
+   |         ^^^^^^^^^^^^^^^
+
+While inspecting a type name
+Source code inside folders named "_b" can not use package name "json_v2".
+Did you mean "json" ?
+Visible package names: "base", "json", "json_v1".
+"""+jsonNote+"""
+
+Error 7 WellFormedness
+""", jsons, Map.of("json", "json_v2"), """
+B:{.m(x:json_v2.Parser):json.Parser->x.v2}
+"""); }
+  @Test void aUseOfAHiddenVersionSuggestsTheMapNameOverACloserVersion(){ fail("""
+In file: [###].fear
+
+001| use json_v2.Parser as P;
+   |     ^^^^^^^^^^^^^^
+
+While inspecting package header
+Source code inside folders named "_b" can not use package name "json_v2".
+Did you mean "json" ?
+Visible package names: "base", "json", "json_v1".
+"""+jsonNote+"""
+
+Error 7 WellFormedness
+""", jsons, Map.of("json", "json_v2"), """
+use json_v2.Parser as P;
+B:{.m(x:P):P->x.v2}
+"""); }
+  @Test void aMisspelledVersionNotHiddenByAMapSuggestsTheClosestName(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:json_v3.Parser):json.Parser->x.v2}
+   |         ^^^^^^^^^^^^^^^
+
+While inspecting a type name
+Source code inside folders named "_b" can not use package name "json_v3".
+Did you mean "json_v1" ?
+Visible package names: "base", "json", "json_v1".
+Error 7 WellFormedness
+""", jsons, Map.of("json", "json_v2"), """
+B:{.m(x:json_v3.Parser):json.Parser->x.v2}
+"""); }
+  @Test void bothVersionsReachedThroughOneMapAndOneOwnName(){ ok(jsons, Map.of("json", "json_v2"), """
+B:{.m(x:json.Parser, y:json_v1.Parser):json_v1.Parser->y.v1; .k(x:json.Parser):json.Parser->x.v2}
 """); }
 }

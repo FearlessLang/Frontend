@@ -22,7 +22,8 @@ public record Package(String name, Map<String,String> map, Map<String,String> wr
   }
   public static String nameOf(String pkg, Map<String,String> map, TName t){
     if (t.pkgName().equals(pkg)){ return t.simpleName(); }
-    return WellFormednessErrors.written(map).getOrDefault(t.s(), writtenPkg(map, t.pkgName())+"."+t.simpleName());
+    var w= WellFormednessErrors.written(map);
+    return w.getOrDefault(t.s(), w.getOrDefault(t.pkgName(), t.pkgName())+"."+t.simpleName());
   }
   public record Logger(boolean active, ArrayList<String> logs){
     public void logInferenceDeclaration(E.Literal d, List<T.C> cs){

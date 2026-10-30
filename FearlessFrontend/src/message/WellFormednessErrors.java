@@ -191,7 +191,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     private Optional<FearlessException> pkgDoesNotExist(){
       if (typedPkg.isEmpty()){ return Optional.empty(); }
       if (allPkgs.contains(typedPkg)){ return Optional.empty(); }
-      return Optional.of(typeName(missingPkg(err.get(), contextPkg, typedPkg, allPkgs), tn));
+      return Optional.of(typeName(missingPkg(err.get(), contextPkg, typedPkg, allPkgs, Optional.empty()), tn));
     }
     private <A,R> List<R> userMap(Function<A,R> f, Stream<A> s){ return s.map(f).distinct().sorted().toList(); }
     private List<String> shownInOrder(Stream<TName> s){ return s.sorted(Comparator.comparing(TName::s)).map(display).distinct().toList(); }
@@ -304,19 +304,17 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     overridden.forEach(e::line);
     return e.line("Expected: "+disp(expected+";")+".").wf();
   }
-  private static Err missingPkg(Err e, String ctx, String pkg, List<String> visible){
+  private static Err missingPkg(Err e, String ctx, String pkg, List<String> visible, Optional<String> known){
     e.line(inFolders(ctx)+" can not use package name "+disp(pkg)+".");
-    NameSuggester.suggest(pkg, visible.stream().filter(p -> !p.equals(ctx)).toList(), (_,cs,best) -> {
-      best.ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
-      e.line(Join.of(cs.stream().map(Err::disp), "Visible package names: ", ", ", "."));
-      return null;
-    });
+    var vs= visible.stream().filter(p -> !p.equals(ctx)).toList();
+    known.or(() -> vs.isEmpty() ? Optional.empty() : NameSuggester.suggest(pkg, vs, (_,_,b) -> b)).ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
+    if (!vs.isEmpty()){ e.line(Join.of(vs.stream().map(Err::disp), "Visible package names: ", ", ", ".")); }
     return e;
   }
-  public FearlessException useOfMissingPackage(TName tn, List<String> visible){ return wfUse(missingPkg(err(), pkgName, tn.pkgName(), visible), tn); }
+  public FearlessException useOfMissingPackage(TName tn, List<String> visible){ return wfUse(missingPkg(err(), pkgName, tn.pkgName(), visible, Optional.empty()), tn); }
   public FearlessException useOfAMapTarget(TName tn, String in, List<String> visible){ return wfUse(mappedAway(tn.pkgName(), in, visible), tn); }
   public FearlessException typeOfAMapTarget(TName tn, String in, List<String> visible){ return typeName(mappedAway(tn.pkgName(), in, visible), tn); }
-  private Err mappedAway(String out, String in, List<String> visible){ return missingPkg(err(), pkgName, out, visible).line(refersTo(pkgName, in, out, writtenIn)); }
+  private Err mappedAway(String out, String in, List<String> visible){ return missingPkg(err(), pkgName, out, visible, Optional.of(in)).line(refersTo(pkgName, in, out, writtenIn)); }
   public FearlessException typeOfTheCurrentPackageQualified(TName tn, List<TName> options){
     var e= fullNameInvalid(err(), tn).line(inFolders(pkgName)+" uses the simple name "+disp(tn.simpleName())+" to refer to "+disp(tn.s())+".");
     if (!options.isEmpty()){ e.line(Join.of(options.stream().map(o -> disp(err().cp().t.ofFull(o))).distinct(), "Did you mean ", " or ", " ?")); }
