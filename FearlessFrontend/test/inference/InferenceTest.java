@@ -1139,9 +1139,9 @@ In file: [###].fear
    |          ^^^^^^^^
 
 While inspecting a type name
-Package "basee" does not exist.
+Source code inside folders named "_p" can not use package name "basee".
 Did you mean "base" ?
-Visible packages: "base", "p".
+Visible package names: "base".
 Error 7 WellFormedness
 """, List.of("""
 use base.F as F;

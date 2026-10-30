@@ -2192,12 +2192,12 @@ A:{}
 
 @Test void pkgRoleMap(){ok("""
 FileFull[
-maps=[map goo as boo in foo_bar,map gor as goo in foo],
+maps=[map goo as _boo in _foo_bar,map gor as _goo in _foo],
 uses=[],
 decs=[Declaration[name=A/0,bs=Optional.empty,cs=[],l=Literal[]]]]
 """, """
-map goo as boo in foo_bar;
-map gor as goo in foo;
+map goo as _boo in _foo_bar;
+map gor as _goo in _foo;
 A:{}
 """);}
 
@@ -2211,8 +2211,8 @@ A:{ .m: foo.Bar }
 @Test void pkgFull(){ok("""
 [###]
 """, """
-map goo as boo in baz;
-map gor as goo in beer;
+map goo as _boo in _baz;
+map gor as _goo in _beer;
 use foo.Bar as Baz;
 use base.Str as Str;
 A: base.Main{ }
@@ -2236,8 +2236,8 @@ A: base.Main{ .foo->A .beer->B}
 @Test void pkgFullBadMap(){fail("""
 In file: [###].fear
 
-001| map goo as boo;
-   | -----------^^^
+001| map goo as _boo;
+   | -----------^^^^
    | ... 2 lines ...
 004| use base.Str as Str;
 
@@ -2246,8 +2246,8 @@ Missing "in" keyword.
 Expected: "in".
 Error 2 UnexpectedToken
 """, """
-map goo as boo;
-map gor as goo;
+map goo as _boo;
+map gor as _goo;
 use foo.Bar as Baz;
 use base.Str as Str;
 A: base.Main{ }
@@ -2326,23 +2326,42 @@ A:{}
 @Test void pkgDupMap(){ fail("""
 In file: [###].fear
 
-001| map a as b1 in c;
-002| map a as b2 in c;
-   | ---------------^
+001| map a as _b1 in _c;
+002| map a as _b2 in _c;
+   | ----------------^^
 
 While inspecting header element > file header > full file
-There is already an entry in the mapping for "a" in "c".
+There is already an entry in the mapping for "a" in "_c".
 Error 2 UnexpectedToken
 """, """
-map a as b1 in c;
-map a as b2 in c;
+map a as _b1 in _c;
+map a as _b2 in _c;
 """); }
 
+@Test void pkgMapInsteadOf(){ ok("""
+FileFull[maps=[map foo as _foo_v5 in _lib instead of _foo_v4, _foo_v3],uses=[],decs=[]]
+""", """
+map foo as _foo_v5 in _lib instead of _foo_v4, _foo_v3;
+"""); }
+@Test void pkgMapPackageNameAsFolder(){ fail("""
+In file: [###].fear
+
+001| map foo as foo_v5 in _lib;
+   | ~~~~~~~~~~~^^^^^^~~~~~~~~-
+
+While inspecting header element > file header > full file
+Missing folder name.
+Found instead: "foo_v5".
+Expected: "folder name: the _ symbol followed by a package name".
+Error 2 UnexpectedToken
+""", """
+map foo as foo_v5 in _lib;
+"""); }
 @Test void pkgDupMapOk(){ ok("""
 [###]
 """, """
-map a1 as b in c;
-map a2 as b in c;
+map a1 as _b in _c;
+map a2 as _b in _c;
 """); }
 
 @Test void pkgDupUse1(){ fail("""

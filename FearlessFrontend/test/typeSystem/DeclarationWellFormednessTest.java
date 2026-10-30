@@ -945,8 +945,8 @@ A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
    |     ^^^^
 
 While inspecting a type name
-The full type name "p.A" is invalid inside package "p".
-Code inside package "p" uses the simple name "A" to refer to "p.A".
+The full type name "p.A" is invalid in source code inside folders named "_p".
+Source code inside folders named "_p" uses the simple name "A" to refer to "p.A".
 """, List.of("""
 A:{}
 B:A,p.A{}
@@ -956,8 +956,8 @@ B:A,p.A{}
    |      ^^^^^^^^^^^^^^^^^
 
 While inspecting a type name
-The full type name "base.CaptureFree" is invalid inside package "p".
-Code inside package "p" uses the simple name "CF" to refer to "base.CaptureFree" because of "use base.CaptureFree as CF".
+The full type name "base.CaptureFree" is invalid in source code inside folders named "_p".
+Source code inside folders named "_p" uses the simple name "CF" to refer to "base.CaptureFree" because of "use base.CaptureFree as CF".
 """, List.of("""
 use base.CaptureFree as CF;
 B:CF,base.CaptureFree{}
@@ -967,8 +967,8 @@ B:CF,base.CaptureFree{}
    |            ^^^^^^
 
 While inspecting a type name
-The full type name "p.Foo" is invalid inside package "p".
-Code inside package "p" uses the simple name "Foo" to refer to "p.Foo".
+The full type name "p.Foo" is invalid in source code inside folders named "_p".
+Source code inside folders named "_p" uses the simple name "Foo" to refer to "p.Foo".
 """, List.of("""
 Foo:{}
 A[X:*]:{}
@@ -1015,15 +1015,15 @@ use base.Str as N;
 A:{}
 """));}
 @Test void mapTwiceTheSameNameInTheSamePackage(){failParse("""
-001| map foo as base in p;
-002| map foo as base in p;
-   | -------------------^
+001| map foo as _base in _p;
+002| map foo as _base in _p;
+   | --------------------^^
 
 While inspecting header element > file header > full file
-There is already an entry in the mapping for "foo" in "p".
+There is already an entry in the mapping for "foo" in "_p".
 """, List.of("""
-map foo as base in p;
-map foo as base in p;
+map foo as _base in _p;
+map foo as _base in _p;
 A:{}
 """));}
 @Test void typeParameterNamedAsAUseDestination(){failWf("""

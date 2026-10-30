@@ -39,7 +39,7 @@ public final class ToInference{
     if (pN.isEmpty()){ return full; }
     if (pN.equals(p.name())){ throw p.err().typeOfTheCurrentPackageQualified(tn, sameSimpleName(meths, tn)); }
     var alias= p.uses().stream().filter(u -> full.s().equals(p.map().get(u.out()))).findFirst();
-    if (alias.isPresent()){ throw p.err().typeWithAnAlias(tn, full.s(), alias.get()); }
+    if (alias.isPresent()){ throw p.err().typeWithAnAlias(tn, alias.get()); }
     return full;
   }
   private static List<String> sameSimpleName(Methods meths, TName tn){

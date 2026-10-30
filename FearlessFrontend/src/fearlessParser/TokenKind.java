@@ -63,10 +63,13 @@ public enum TokenKind implements metaParser.TokenKind{
   _XId("_*[A-Z][A-Za-z0-9_]*'*", "type name"),
   _pkgName(core.TName.pkgNameRegex,//"(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*"
     "id starting with a-z followed by any amount of a-z0-9 or the _ symbol"),
+  _folderName("_"+core.TName.pkgNameRegex, "folder name: the _ symbol followed by a package name"),
   _use("use"),
   _map("map"),
   _as("as"),
   _in("in"),
+  _instead("instead"),
+  _of("of"),
   _EOF("", "end of file"),
   _SOF("", "start of file"),
   _All("", "full file"),

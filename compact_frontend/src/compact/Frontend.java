@@ -229,8 +229,9 @@ public class Frontend{
     String take(K kind,String regex){var s=take(kind).content;no(!s.matches(regex));return s;}
     Object directive(HashSet<String>maps,Vector<File.Use>uses){
       if(take(Low,"map|use").equals("map")){
-        var in=take(Low,K.pk);take(Low,"as");take(Low,K.pk);
-        take(Low,"in");no(!maps.add(in+" "+take(Low,K.pk)));
+        var in=take(Low,K.pk);take(Low,"as");take(Low,"_"+K.pk);
+        take(Low,"in");no(!maps.add(in+" "+take(Low,"_"+K.pk)));
+        if(!end()){take(Low,"instead");take(Low,"of");take(Low,"_"+K.pk);while(!end()){take(Comma);take(Low,"_"+K.pk);}}
       }else{
         var a=name();take(Low,"as");
         var z=take(Up,"[^.]*");no(any(uses,u->u.in.equals(a)||u.out.equals(z)));

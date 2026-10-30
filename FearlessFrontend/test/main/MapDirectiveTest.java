@@ -29,17 +29,20 @@ public final class MapDirectiveTest extends testUtils.FearlessTestBase{
   static void ok(Map<String,String> pkgs, Map<String,String> map, String bSrc){
     var o= oraclePkg(List.of(bSrc));
     var other= others(pkgs);
-    var res= okOrPrint(o, () -> new FrontendLogicMain().of("b", map, o.allFiles(), other));
+    var res= okOrPrint(o, () -> new FrontendLogicMain().of("b", writtenIn(map), o.allFiles(), other));
     if (!checkCompact){ return; }
     coreCmp(lines(res), compact.Print.lines(compactB(pkgs, map, o)));
   }
   static void fail(String expected, Map<String,String> pkgs, Map<String,String> map, String bSrc){
     var o= oraclePkg(List.of(bSrc));
     var other= others(pkgs);
-    var fe= assertThrows(FearlessException.class, () -> new FrontendLogicMain().of("b", map, o.allFiles(), other));
+    var fe= assertThrows(FearlessException.class, () -> new FrontendLogicMain().of("b", writtenIn(map), o.allFiles(), other));
     strCmp(expected, fe.render(o));
     if (!checkCompact){ return; }
     assertThrows(compact.Frontend.Fail.class, () -> compactB(pkgs, map, o));
+  }
+  static Map<String,String> writtenIn(Map<String,String> map){
+    return map.entrySet().stream().collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, e -> e.getValue()+" fear:/_b/_rank_app.fear"));
   }
   static List<compact.Frontend.Literal> compactB(Map<String,String> pkgs, Map<String,String> map, tools.SourceOracle o){
     var base= compactBase();
@@ -57,7 +60,7 @@ While inspecting object literal instance of "base.Void" > ".fromC" line 1
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
 
-Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
 See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
 B:-.A{.fromC:-.A->-.Void}
@@ -74,7 +77,7 @@ While inspecting method call ".m" > ".k(_)" line 1
 The body of method ".k(_)" of type declaration "B" is an expression returning "a.A".
 Method call "a.A.m" has type "a.A" instead of a subtype of "B".
 
-Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
 See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
 B:{.k(x:-.A):B->x.m}
@@ -92,8 +95,7 @@ Return type disagreement for method "imm .m" with 0 parameters.
 Different options are present in the implemented types: "a.A", "a.A2".
 Type declaration "B" must declare a method ".m" explicitly choosing the desired option.
 
-Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
-Type name "a.A2" in package "b" is mapped to the real source location "c.A2" because of "map a as c in b".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness""", Map.of("c", "A:{.m:A->this} A2:{.m:A2->this}"), Map.of("a", "c"), """
 B:a.A,a.A2{}
 """); }
@@ -107,7 +109,7 @@ While inspecting a type name
 Type "A" is not declared in package "a".
 In scope: "a.C".
 
-In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", "C:{}"), Map.of("a", "c"), """
 B:{.m(x:a.A):B->this}
@@ -125,10 +127,9 @@ In file: [###].fear
    |              ^^^^
 
 While inspecting a type name
-Package "c" does not exist.
-Visible packages: "a", "b", "base".
-Package "c" does exist as a real source location.
-In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
+Source code inside folders named "_b" can not use package name "c".
+Visible package names: "a", "base".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:a.A):c.A->x.fromC}
@@ -153,8 +154,8 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-The full type name "b.B" is invalid inside package "b".
-Code inside package "b" uses the simple name "B" to refer to "b.B".
+The full type name "b.B" is invalid in source code inside folders named "_b".
+Source code inside folders named "_b" uses the simple name "B" to refer to "b.B".
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
 B:{.m(x:b.B):B->this}
@@ -193,10 +194,9 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Package "c" does not exist.
-Visible packages: "a", "b", "base".
-Package "c" does exist as a real source location.
-In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
+Source code inside folders named "_b" can not use package name "c".
+Visible package names: "a", "base".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:c.Z):B->this}
@@ -208,8 +208,8 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-The full type name "b.B" is invalid inside package "b".
-Code inside package "b" uses the simple name "B" to refer to "b.B".
+The full type name "b.B" is invalid in source code inside folders named "_b".
+Source code inside folders named "_b" uses the simple name "B" to refer to "b.B".
 Did you mean "a.B" or "d.B" ?
 Error 7 WellFormedness
 """, Map.of("c", "B:{}", "d", "B:{}", "e", "B:{}"), Map.of("a", "c"), """
@@ -223,8 +223,8 @@ In file: [###].fear
    |     ^^^^
 
 While inspecting package header
-"use" directive refers to the non existent package "zz".
-Visible packages: "b", "base".
+Source code inside folders named "_b" can not use package name "zz".
+Visible package names: "base".
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
 use zz.A as X;
@@ -240,7 +240,7 @@ While inspecting a type name
 Type "Z" is not declared in package "a".
 In scope: "a.A".
 
-In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 B:{.m(x:a.Z):B->this}
@@ -258,7 +258,7 @@ In file: [###].fear
 While inspecting package header
 "use" directive refers to undeclared name: type "Z" is not declared in package "a".
 
-In package "b", package name "a" is used to refer to real source location "cc" because of "map a as cc in b".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_cc", because of "map a as _cc in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("cc", cA), Map.of("a", "cc"), """
 use a.Z as Z;
@@ -271,10 +271,9 @@ In file: [###].fear
    |     ^^^
 
 While inspecting package header
-"use" directive refers to the non existent package "c".
-Visible packages: "a", "b", "base".
-Package "c" does exist as a real source location.
-In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
+Source code inside folders named "_b" can not use package name "c".
+Visible package names: "a", "base".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 use c.A as X;
@@ -287,8 +286,8 @@ In file: [###].fear
    |            ^^^^
 
 While inspecting a type name
-The full type name "c.A" is invalid inside package "b".
-Code inside package "b" uses the simple name "X" to refer to "c.A" because of "use c.A as X".
+The full type name "c.A" is invalid in source code inside folders named "_b".
+Source code inside folders named "_b" uses the simple name "X" to refer to "c.A" because of "use c.A as X".
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of(), """
 use c.A as X;
@@ -301,10 +300,10 @@ In file: [###].fear
    |            ^^^^
 
 While inspecting a type name
-The full type name "a.A" is invalid inside package "b".
-Code inside package "b" uses the simple name "X" to refer to "a.A" because of "use a.A as X".
+The full type name "a.A" is invalid in source code inside folders named "_b".
+Source code inside folders named "_b" uses the simple name "X" to refer to "a.A" because of "use a.A as X".
 
-Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 use a.A as X;
@@ -324,7 +323,7 @@ Available methods on type "A":
 -       .fromC:A
 
 Name "A" stands for "a.A" because of "use a.A as A".
-Type name "a.A" in package "b" is mapped to the real source location "c.A" because of "map a as c in b".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 x.fromA
@@ -382,7 +381,7 @@ Name "A" is only declared with 0 type parameters.
 Did you accidentally add or omit a type parameter?
 
 Name "X" stands for "a.A" because of "use a.A as X".
-In package "b", package name "a" is used to refer to real source location "c" because of "map a as c in b".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), Map.of("a", "c"), """
 use a.A as X;
@@ -398,11 +397,10 @@ In file: [###].fear
    |         ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting a type name
-Package "webserver_v12" does not exist.
+Source code inside folders named "_b" can not use package name "webserver_v12".
 Did you mean "webserver" ?
-Visible packages: "b", "base", "webserver".
-Package "webserver_v12" does exist as a real source location.
-In package "b", package name "webserver" is used to refer to real source location "webserver_v12" because of "map webserver as webserver_v12 in b".
+Visible package names: "base", "webserver".
+Source code inside folders named "_b" uses package name "webserver" to refer to the code inside folders named "_webserver_v12", because of "map webserver as _webserver_v12 in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("webserver_v12", "Server:{.v12:Server->this}"), Map.of("webserver", "webserver_v12"), """
 B:{.m(x:webserver_v12.Server):webserver.Server->x.v12}
