@@ -148,7 +148,7 @@ public class FrontendLogicMain{
   Package makePackage(String name, Map<String,String> map, Map<String,String> writtenIn, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
     return new Package(name, map, writtenIn, uses, decs, names, new Package.Logger(false, null));//this method exists to change logger in mocking
   }
-  //map a as b in c //inside c, a written a stands for b
+  //map a as _b in _c //inside _c, the package name a stands for the code inside _b
   private void accUses(WellFormednessErrors err, HashMap<String,String> map, List<FileFull.Use> uses, OtherPackages other){
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
@@ -160,7 +160,7 @@ public class FrontendLogicMain{
       map.put(u.out(), in);
       if (otherDom.stream().noneMatch(e -> e.pkgName().equals(p))){ throw err.useOfMissingPackage(u.in(), Package.visible(map, otherDom)); }
       if (otherDom.stream().noneMatch(e -> e.s().equals(in))){ throw err.unknownUseHead(u.in(), map); }
-    }//map a as b in c + use a.F as aF will replace aF with b.F
+    }//map a as _b in _c + use a.F as AF will replace AF with b.F
   }
   private Ref findHeadUri(WellFormednessErrors err, Set<Ref> uris){
     assert nonNull(uris);
