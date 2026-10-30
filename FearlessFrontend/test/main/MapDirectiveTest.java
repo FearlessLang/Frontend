@@ -417,6 +417,14 @@ use base.Destruct as D;
 """+pq+"""
 B:{ .m({.x, .y}:P):P -> x }
 """); }
+  @Test void destructuringInsideBase(){
+    var b= tools.SourceOracle.debugBuilder();
+    DbgBlock.dbgMiniBase().allFiles().forEach(r -> b.putURI(r.fearURI(), r.loadString()));
+    var o= b.put("baseExtra.fear", "Pq:{ .x:Pq->this; .y:Pq->this; }\nUsesDestruct:{ .m({.x, .y}:Pq):Pq -> y }\n").build();
+    var res= okOrPrint(o, () -> new FrontendLogicMain().of("base", Map.of(), o.allFiles(), OtherPackages.empty()));
+    if (!checkCompact){ return; }
+    coreCmp(lines(res), compact.Print.lines(compactAll("base", o, List.of())));
+  }
   @Test void destructuringWithBaseReachedThroughAMap(){ ok(Map.of(), Map.of("bb", "base"), pq+"""
 B:{ .m({.x, .y}:P):P -> y }
 """); }

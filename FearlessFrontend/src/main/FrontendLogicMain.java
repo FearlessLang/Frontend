@@ -92,12 +92,12 @@ public class FrontendLogicMain{
       if (cmp >= 0){ throw err.mapToNotLowerRank(m.out(), best.toString(), ranks.get(m.target()), outRank, cmp == 0); }
       var overridden= cs.stream().filter(x -> c.compare(x.uri(), best.uri()) < 0 && !x.m().out().equals(m.out())).toList();
       var expected= overridden.stream().map(x -> x.m().out()).distinct().sorted().toList();
-      bests.stream().filter(x -> !x.m().insteadOf().stream().sorted().toList().equals(expected)).findFirst()
-        .ifPresent(w -> { throw err.insteadOfMismatch(w.toString(), overridden.stream().map(Object::toString).toList(), new FileFull.Map(m.in(), m.out(), m.target(), expected)); });
+      var wrong= bests.stream().filter(x -> !x.m().insteadOf().stream().sorted().toList().equals(expected)).findFirst();
+      if (wrong.isPresent()){ throw err.insteadOfMismatch(wrong.get().toString(), overridden.stream().map(Object::toString).toList(), new FileFull.Map(m.in(), m.out(), m.target(), expected)); }
       winners.add(best);
     }
     var shared= winners.stream().collect(Collectors.groupingBy(x -> x.m().target()+"."+x.m().out(), TreeMap::new, Collectors.toList())).values().stream().filter(cs -> cs.size() > 1).findFirst();
-    shared.ifPresent(cs -> { throw new WellFormednessErrors(cs.getFirst().m().target()).mapToATargetOfAnotherMap(cs.getFirst().m().out(), cs.stream().map(Object::toString).toList()); });
+    if (shared.isPresent()){ throw new WellFormednessErrors(shared.get().getFirst().m().target()).mapToATargetOfAnotherMap(shared.get().getFirst().m().out(), shared.get().stream().map(Object::toString).toList()); }
     ranks.forEach((pkg, f) -> usesOnlyLowerRanks(pkg, parsed.get(f).uses(), ranks, c));
     return Map.copyOf(winners.stream().collect(Collectors.groupingBy(x -> x.m().target(), Collectors.toUnmodifiableMap(x -> x.m().in(), x -> x.m().out()+" "+writtenIn(x.uri())))));
   }
@@ -137,7 +137,8 @@ public class FrontendLogicMain{
     return t -> Package.nameOf(pkgName, map, t);
   }
   private Map<String,String> directives(WellFormednessErrors err, Map<String,String> override, List<FileFull.Use> uses, OtherPackages other){
-    var map= override.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().split(" ")[0], (a, _) -> a, HashMap::new));
+    var map= new HashMap<String,String>();
+    override.forEach((k, v) -> map.put(k, v.split(" ")[0]));
     accUses(err, map, uses, other);
     return Collections.unmodifiableMap(map);
   }

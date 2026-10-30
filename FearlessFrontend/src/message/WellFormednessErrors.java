@@ -51,8 +51,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private Err err(List<String> steps){ return err(y -> y, x -> x, _ -> null, steps); }
   Err err(Function<core.T.C,core.T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,core.E.Literal> decs, List<String> steps){
     var written= written(map);
-    return new Err(publicHead, preferredForFresh, decs, trunk -> new CompactPrinter(pkgName, written, trunk ? _ -> {} : printed::add, trunk), () -> Stream.concat(steps.stream(), printed.stream().flatMap(n -> note(written, n))).distinct().sorted(nameFirst).toList(), new StringBuilder());
+    return new Err(publicHead, preferredForFresh, decs, trunk -> new CompactPrinter(pkgName, written, trunk ? _ -> {} : printed::add, trunk), () -> notes(written, steps), new StringBuilder());
   }
+  private List<String> notes(Map<String,String> written, List<String> steps){ return Stream.concat(steps.stream(), printed.stream().flatMap(n -> note(written, n))).distinct().sorted(nameFirst).toList(); }
   public static Map<String,String> written(Map<String,String> map){
     return map.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
   }
@@ -312,8 +313,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   private Err fullNameInvalid(Err e, TName tn){ return e.line("The full type name "+disp(tn.s())+" is invalid in source code inside folders named "+disp("_"+pkgName)+"."); }
   private static FearlessException typeName(Err e, TName tn){ return e.wf().addFrame("a type name", TSpan.fromPos(tn.pos(), tn.s().length()).inner); }
-  public FearlessException unknownUseHead(TName tn, Map<String,String> map){
-    return wfUse(err(pkgMapped(pkgName, tn.pkgName(), map, writtenIn))
+  public FearlessException unknownUseHead(TName tn, Map<String,String> directives){
+    return wfUse(err(pkgMapped(pkgName, tn.pkgName(), directives, writtenIn))
       .line("\"use\" directive refers to type "+disp(tn.simpleName())+", which is not declared in package "+disp(tn.pkgName())+"."), tn);
   }
   public FearlessException useOfNotLowerRank(TName tn, String pkg, Ref rank, Ref otherRank, boolean sameRank){
