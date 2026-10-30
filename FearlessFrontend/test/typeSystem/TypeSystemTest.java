@@ -4133,6 +4133,13 @@ Person:{}
 Customer:Person{}
 User:{ .n(cs: read base.MList[mut Customer]): base.MList[Person] -> cs.as{::} }
 """));}
+@Test void baseIdProofKeepsTheTypeOfTheArgument(){ok(List.of("""
+Person:{}
+Customer:Person{ .n: base.Void }
+Box[T]:{ .get: T }
+Boxes:{ #[T](x: T, f: base.BaseId[T,Person]): Box[T] -> Boxes#(x,f) }
+User:{ .m(c: Customer): base.Void -> Boxes#(c,{::}).get.n }
+"""));}
 @Test void baseIdNotSubtype(){fail("""
 003| User:{ .m: base.BaseId[Person,Customer] -> {::} }
    |        -------------------------------------^^^
