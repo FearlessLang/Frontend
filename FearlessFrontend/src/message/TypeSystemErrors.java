@@ -29,10 +29,7 @@ import core.*;
 import core.E.*;
 
 public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, LinkedHashSet<String> printed){
-  public Err err(){
-    var written= WellFormednessErrors.written(pkg.map());
-    return new Err(this::publicHead, this::preferredForFresh, decs, t -> new CompactPrinter(pkg.name(), written, printed::add, t), () -> WellFormednessErrors.notes(pkg.name(), written, pkg.writtenIn(), printed), new StringBuilder());
-  }
+  public Err err(){ return new WellFormednessErrors(pkg.name(), pkg.map(), pkg.writtenIn(), printed).err(this::publicHead, this::preferredForFresh, decs, List.of()); }
   private TName preferredForFresh(TName n){
     var res= decs.apply(n);
     var showSuper= res.infName() && !res.cs().isEmpty();

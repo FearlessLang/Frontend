@@ -11,6 +11,7 @@ import core.TName;
 import fearlessFullGrammar.Declaration;
 import fearlessFullGrammar.FileFull;
 import inference.E;
+import message.TypeNamePrinter;
 import message.WellFormednessErrors;
 import utils.Join;
 
@@ -20,11 +21,7 @@ public record Package(String name, Map<String,String> map, Map<String,String> wr
   public static List<String> visible(Map<String,String> map, Collection<TName> other){
     return other.stream().map(t -> writtenPkg(map, t.pkgName())).distinct().sorted().toList();
   }
-  public static String nameOf(String pkg, Map<String,String> map, TName t){
-    if (t.pkgName().equals(pkg)){ return t.simpleName(); }
-    var w= WellFormednessErrors.written(map);
-    return w.getOrDefault(t.s(), w.getOrDefault(t.pkgName(), t.pkgName())+"."+t.simpleName());
-  }
+  public static String nameOf(String pkg, Map<String,String> map, TName t){ return new TypeNamePrinter(false, pkg, WellFormednessErrors.written(map), _ -> {}).ofFull(t); }
   public record Logger(boolean active, ArrayList<String> logs){
     public void logInferenceDeclaration(E.Literal d, List<T.C> cs){
       if (!active){ return; }

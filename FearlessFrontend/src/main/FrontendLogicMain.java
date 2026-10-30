@@ -88,9 +88,8 @@ public class FrontendLogicMain{
       if (!pkgs.contains(m.out())){ throw err.mapToMissingFolder("refers to the code inside", m.out(), best.toString(), pkgs.stream().sorted().toList()); }
       if (m.out().equals(m.target())){ throw err.mapToItself(best.toString()); }
       var outRank= ranks.get(m.out());
-      var targetRank= ranks.get(m.target());
-      var cmp= outRank == null ? -1 : c.compare(outRank, targetRank);
-      if (cmp >= 0){ throw err.mapToNotLowerRank(m.out(), best.toString(), targetRank, outRank, cmp == 0); }
+      var cmp= outRank == null ? -1 : c.compare(outRank, ranks.get(m.target()));
+      if (cmp >= 0){ throw err.mapToNotLowerRank(m.out(), best.toString(), ranks.get(m.target()), outRank, cmp == 0); }
       var overridden= cs.stream().filter(x -> c.compare(x.uri(), best.uri()) < 0 && !x.m().out().equals(m.out())).toList();
       var expected= overridden.stream().map(x -> x.m().out()).distinct().sorted().toList();
       bests.stream().filter(x -> !x.m().insteadOf().stream().sorted().toList().equals(expected)).findFirst()
@@ -138,8 +137,7 @@ public class FrontendLogicMain{
     return t -> Package.nameOf(pkgName, map, t);
   }
   private Map<String,String> directives(WellFormednessErrors err, Map<String,String> override, List<FileFull.Use> uses, OtherPackages other){
-    var map= new HashMap<String,String>();
-    override.forEach((in, v) -> map.put(in, v.substring(0, v.indexOf(' '))));
+    var map= override.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().split(" ")[0], (a, _) -> a, HashMap::new));
     accUses(err, map, uses, other);
     return Collections.unmodifiableMap(map);
   }
@@ -154,8 +152,7 @@ public class FrontendLogicMain{
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
       if (u.in().pkgName().isEmpty()){ throw err.useNotFullyQualified(u.in()); }
-      var named= WellFormednessErrors.written(map).get(u.in().pkgName());
-      if (named != null){ throw err.useOfAMapTarget(u.in(), named, Package.visible(map, otherDom)); }
+      if (map.containsValue(u.in().pkgName())){ throw err.useOfAMapTarget(u.in(), WellFormednessErrors.written(map).get(u.in().pkgName()), Package.visible(map, otherDom)); }
       var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
       if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in()); }
       var in= p+"."+u.in().simpleName();

@@ -52,8 +52,7 @@ public final class ToInference{
     var p= meths.p();
     var pN= tn.pkgName();
     if (pN.isEmpty() && LiteralDeclarations.isPrimitiveLiteral(tn.s())){ return tn.withPkgName("base"); }
-    var named= WellFormednessErrors.written(p.map()).get(pN);
-    if (named != null){ throw p.err().typeOfAMapTarget(tn, named, Package.visible(p.map(), meths.other().dom())); }
+    if (p.map().containsValue(pN)){ throw p.err().typeOfAMapTarget(tn, Package.visible(p.map(), meths.other().dom())); }
     var s= pN.isEmpty() ? p.map().getOrDefault(tn.s(), p.name()+"."+tn.s()) : p.map().getOrDefault(pN, pN)+"."+tn.simpleName();
     var full= new TName(s, tn.arity(), tn.pos());
     var current= full.pkgName().equals(p.name());
