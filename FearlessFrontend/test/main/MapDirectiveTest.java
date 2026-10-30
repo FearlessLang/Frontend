@@ -2773,4 +2773,328 @@ Error 7 WellFormedness
 """, Map.of("c", "A:{} B2:{} Y:A,B2{} Z:A,B2{}", "e", "Q:{}"), Map.of("a", "c", "d", "e"), """
 U:{ .two[S,T](s:S, x:T, y:T):a.A -> a.A; .use(q:d.Q, y:a.Y, z:a.Z):a.A -> this.two(q, y, z) }
 """); }
+  static final String noteD= "Source code inside folders named \"_b\" uses package name \"d\" to refer to the code inside folders named \"_e\", because of \"map d as _e in _b\", written in fear:/_b/_rank_app.fear.";
+  @Test void aMappedAliasOnlyInTheCompressedFooterAddsNoNotes(){ fail("""
+In file: [###].fear
+
+003| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
+   |     ---------^^------------------------------
+
+While inspecting object literal instance of "L" > ".k" line 3
+The self name "s" is dead code.
+No method of the object literal instance of "L" uses it.
+Remove "'s" from the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+L{'s .m0(x:X):X->x;.m1(x:X):X->x}
+Error 8 TypeError
+""", Map.of("c", "A:{}"), mapA, """
+use a.A as X;
+L:{ .m0(x:X):X; .m1(x:X):X; }
+B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
+"""); }
+  @Test void aMappedAliasInTheBodyAndInTheFooterAddsTheAliasNoteAndTheMapNoteOnce(){ fail("""
+In file: [###].fear
+
+002| B:{ .k:X -> X{'s .fromC -> this} }
+   |     -------------~~~~~~~~~~^^^^^
+
+While inspecting parameter "this" > ".fromC" line 2 > ".k" line 2
+Method ".fromC" inside the object literal instance of "iso X" (line 2)
+is implemented with an expression returning "B".
+Parameter "this" has type "B" instead of a subtype of "X".
+
+Name "X" stands for "a.A" because of "use a.A as X".
+"""+noteA+"""
+
+
+See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+B:{.k:X->X{'s .fromC:X->this}}
+Error 8 TypeError
+""", Map.of("c", cA), mapA, """
+use a.A as X;
+B:{ .k:X -> X{'s .fromC -> this} }
+"""); }
+  @Test void aMappedNameOnlyInTheReasonAndInTheFooterAddsOneNote(){ fail("""
+In file: [###].fear
+
+002| B:{ .k:a.A -> L{ .m0(x) -> x; } }
+   |     ----------^^---------------
+
+While inspecting object literal instance of "L" > ".k" line 2
+The body of method ".k" of type declaration "B" is an expression returning "iso L".
+Object literal is of type "iso L" instead of a subtype of "a.A".
+
+"""+noteA+"""
+
+
+See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
+B:{.k:-.A->L{.m0(x:-.A):-.A->x}}
+Error 8 TypeError
+""", Map.of("c", "A:{}"), mapA, """
+L:{ .m0(x:a.A):a.A; }
+B:{ .k:a.A -> L{ .m0(x) -> x; } }
+"""); }
+  @Test void aMappedNameInTheReasonNextToAMappedAliasOnlyInTheFooterAddsOnlyTheMapNote(){ fail("""
+In file: [###].fear
+
+003| B:{ .k:a.A2 -> L{ .m0(x) -> x; } }
+   |     -----------^^---------------
+
+While inspecting object literal instance of "L" > ".k" line 3
+The body of method ".k" of type declaration "B" is an expression returning "iso L".
+Object literal is of type "iso L" instead of a subtype of "a.A2".
+
+"""+noteA+"""
+
+
+See inferred typing context below for how type "a.A2" was introduced: (compression indicated by `-`)
+B:{.k:-.A2->L{.m0(x:X):X->x}}
+Error 8 TypeError
+""", Map.of("c", "A:{} A2:{}"), mapA, """
+use a.A as X;
+L:{ .m0(x:X):X; }
+B:{ .k:a.A2 -> L{ .m0(x) -> x; } }
+"""); }
+  @Test void aBaseNameThroughAMapInTheBodyAndAMappedNameOnlyInTheFooterNoteOnlyTheBase(){ fail("""
+In file: [###].fear
+
+001| B:{ .m(x:a.A):B -> 5 }
+   |     ---------------^
+
+While inspecting object literal instance of "bb.Nat" > ".m(_)" line 1
+The body of method ".m(_)" of type declaration "B" is an expression returning "iso bb.Nat".
+Object literal is of type "bb.Nat" instead of a subtype of "B".
+
+"""+noteBb+"""
+
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m(x:-.A):B->5}
+Error 8 TypeError
+""", Map.of("c", cA), mapABb, """
+B:{ .m(x:a.A):B -> 5 }
+"""); }
+  @Test void aMappedNameInTheBodyAndABaseNameThroughAMapOnlyInTheFooterNoteOnlyTheMappedName(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.A, n:bb.Nat):B->x}
+   |    -----------------------^^
+
+While inspecting parameter "x" > ".m(_,_)" line 1
+The body of method ".m(_,_)" of type declaration "B" is an expression returning "a.A".
+Parameter "x" has type "a.A" instead of a subtype of "B".
+
+"""+noteA+"""
+
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m(x:-.A,n:-.Nat):B->x}
+Error 8 TypeError
+""", Map.of("c", cA), mapABb, """
+B:{.m(x:a.A, n:bb.Nat):B->x}
+"""); }
+  @Test void twoMappedNamesInTheBodyAndAThirdOnlyInTheFooterGiveTwoNotes(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:z.A, q:d.Q):a.A->x}
+   |    ----------------------^^
+
+While inspecting parameter "x" > ".m(_,_)" line 1
+The body of method ".m(_,_)" of type declaration "B" is an expression returning "z.A".
+Parameter "x" has type "z.A" instead of a subtype of "a.A".
+
+Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_c", because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
+B:{.m(x:-.A,q:-.Q):-.A->x}
+Error 8 TypeError
+""", Map.of("c", cA, "e", aA, "f", "Q:{}"), Map.of("z", "c", "a", "e", "d", "f"), """
+B:{.m(x:z.A, q:d.Q):a.A->x}
+"""); }
+  @Test void baseNamesThroughAMapOnlyInTheCompressedFooterAddNoNote(){ fail("""
+In file: [###].fear
+
+002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
+   |     ---------^^------------------------------
+
+While inspecting object literal instance of "L" > ".k" line 2
+The self name "s" is dead code.
+No method of the object literal instance of "L" uses it.
+Remove "'s" from the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+L{'s .m0(x:-.Nat):-.Nat->x;.m1(x:-.Str):-.Str->x}
+Error 8 TypeError
+""", Map.of(), mapBb, """
+L:{ .m0(x:bb.Nat):bb.Nat; .m1(x:bb.Str):bb.Str; }
+B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
+"""); }
+  @Test void baseAliasesThroughAMapOnlyInTheCompressedFooterAddNoNotes(){ fail("""
+In file: [###].fear
+
+004| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
+   |     ---------^^------------------------------
+
+While inspecting object literal instance of "L" > ".k" line 4
+The self name "s" is dead code.
+No method of the object literal instance of "L" uses it.
+Remove "'s" from the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+L{'s .m0(x:N):N->x;.m1(x:S):S->x}
+Error 8 TypeError
+""", Map.of(), mapBb, """
+use bb.Nat as N;
+use bb.Str as S;
+L:{ .m0(x:N):N; .m1(x:S):S; }
+B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
+"""); }
+  @Test void aBaseNameThroughAMapInTheReasonAndTheFooterAddsOneNote(){ fail("""
+In file: [###].fear
+
+002| B:{ .k:bb.Str -> L{ .m0(x) -> x; } }
+   |     -------------^^---------------
+
+While inspecting object literal instance of "L" > ".k" line 2
+The body of method ".k" of type declaration "B" is an expression returning "iso L".
+Object literal is of type "iso L" instead of a subtype of "bb.Str".
+
+"""+noteBb+"""
+
+
+See inferred typing context below for how type "bb.Str" was introduced: (compression indicated by `-`)
+B:{.k:-.Str->L{.m0(x:-.Nat):-.Nat->x}}
+Error 8 TypeError
+""", Map.of(), mapBb, """
+L:{ .m0(x:bb.Nat):bb.Nat; }
+B:{ .k:bb.Str -> L{ .m0(x) -> x; } }
+"""); }
+  @Test void mappedTypeArgumentsOnlyInTheCompressedFooterAddNoNote(){ fail("""
+In file: [###].fear
+
+002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
+   |     ---------^^------------------------------
+
+While inspecting object literal instance of "L" > ".k" line 2
+The self name "s" is dead code.
+No method of the object literal instance of "L" uses it.
+Remove "'s" from the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+L{'s .m0(x:-.Box[-.Q]):-.Box[-.Q]->x;.m1(x:-.Box[-.Q]):-.Box[-.Q]->x}
+Error 8 TypeError
+""", Map.of("c", "Box[T]:{}", "e", "Q:{}"), Map.of("a", "c", "d", "e"), """
+L:{ .m0(x:a.Box[d.Q]):a.Box[d.Q]; .m1(x:a.Box[d.Q]):a.Box[d.Q]; }
+B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
+"""); }
+  @Test void aMappedGenericTypeOnlyInTheFrameNotesItsPackageButNotItsUnprintedTypeArgument(){ fail("""
+In file: [###].fear
+
+001| B:{ .m:a.Box[d.Q] -> { .k -> B; }; }
+   |                      --^^^^^^^---
+
+While inspecting object literal instance of "a.Box[_]"
+Missing return type for method ".k".
+Add an explicit return type before '->'.
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".k".
+No supertype has a method named ".k" with 0 parameters.
+
+"""+noteA+"""
+
+Error 7 WellFormedness
+""", Map.of("c", "Box[T]:{}", "e", "Q:{}"), Map.of("a", "c", "d", "e"), """
+B:{ .m:a.Box[d.Q] -> { .k -> B; }; }
+"""); }
+  static final String cI12= "I1:{ .m:base.Void -> base.Void } I2:{ .m:base.Void -> base.Void }";
+  @Test void anAliasAndAQualifiedNameThroughOneMapInAWellFormednessErrorGiveOneMapNote(){ fail("""
+In file: [###].fear
+
+002| B:X,a.I2{}
+   | ^^^^^^^^^^
+
+While inspecting type declaration "B"
+Ambiguous implementation for method ".m" with 0 parameters.
+Different options are present in the implemented types:
+Candidates: "X", "a.I2".
+Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
+
+Name "X" stands for "a.I1" because of "use a.I1 as X".
+"""+noteA+"""
+
+Error 7 WellFormedness
+""", Map.of("c", cI12), mapA, """
+use a.I1 as X;
+B:X,a.I2{}
+"""); }
+  @Test void twoMapsInAWellFormednessErrorGiveTwoNotesInTheOrderTheNamesArePrinted(){ fail("""
+In file: [###].fear
+
+001| B:d.I2,a.I1{}
+   | ^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Ambiguous implementation for method ".m" with 0 parameters.
+Different options are present in the implemented types:
+Candidates: "d.I2", "a.I1".
+Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
+
+"""+noteD+"\n"+noteA+"""
+
+Error 7 WellFormedness
+""", Map.of("c", "I1:{ .m:base.Void -> base.Void }", "e", "I2:{ .m:base.Void -> base.Void }"), Map.of("a", "c", "d", "e"), """
+B:d.I2,a.I1{}
+"""); }
+  @Test void aMappedSupertypeNotPrintedInAWellFormednessErrorAddsNoNote(){ fail("""
+In file: [###].fear
+
+001| B:a.A{ .k:B -> this; .k:B -> this; }
+   | -----~~~~~~~~~~~~~~~~^^^^^^^^^^^^~~~
+
+While inspecting type declaration body > type declaration > full file
+Method ".k" with 0 parameters redeclared.
+A method with the same name, arity and reference capability is already present.
+Error 7 WellFormedness
+""", Map.of("c", cA), mapA, """
+B:a.A{ .k:B -> this; .k:B -> this; }
+"""); }
+  @Test void aMappedAliasNotPrintedInAParserErrorAddsNoNote(){ fail("""
+In file: [###].fear
+
+001| use a.A as X;
+002| B:{ .m(x:X, x:X):B -> this }
+   |   --^^^^^^^^^^^^^^~~~~~~~~--
+
+While inspecting method signature > method declaration > type declaration body > type declaration > full file
+A method signature cannot declare multiple parameters with the same name.
+Parameter "x" is repeated.
+Error 2 UnexpectedToken
+""", Map.of("c", cA), mapA, """
+use a.A as X;
+B:{ .m(x:X, x:X):B -> this }
+"""); }
+  @Test void anAliasOfABaseTypeAndAHintThroughTheSameMapGiveOneMapNote(){ fail("""
+In file: [###].fear
+
+002| Main:{ .m:I -> +421381834238972893748972389723 }
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting the file
+Integer literal is out of range for "I".
+"I" must be representable as a 64-bit signed integer.
+Valid range: -9223372036854775808 .. 9223372036854775807.
+This literal is: "421381834238972893748972389723".
+Hint: if you need arbitrary precision numbers, use "bb.Num".
+
+Name "I" stands for "bb.Int" because of "use bb.Int as I".
+"""+noteBb+"""
+
+Error 7 WellFormedness
+""", Map.of(), mapBb, """
+use bb.Int as I;
+Main:{ .m:I -> +421381834238972893748972389723 }
+"""); }
 }
