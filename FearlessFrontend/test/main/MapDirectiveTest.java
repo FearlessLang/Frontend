@@ -2738,4 +2738,39 @@ Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Main:{ .m:bb.Float -> +0.1 }
 """); }
+  @Test void aMappedNameOnlyInTheCompressedFooterAddsNoNote(){ fail("""
+In file: [###].fear
+
+002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
+   |     ---------^^------------------------------
+
+While inspecting object literal instance of "L" > ".k" line 2
+The self name "s" is dead code.
+No method of the object literal instance of "L" uses it.
+Remove "'s" from the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+L{'s .m0(x:-.A):-.A->x;.m1(x:-.A):-.A->x}
+Error 8 TypeError
+""", Map.of("c", "A:{}"), Map.of("a", "c"), """
+L:{ .m0(x:a.A):a.A; .m1(x:a.A):a.A; }
+B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
+"""); }
+  @Test void anAmbiguousTypeArgumentExampleNotesEveryMappedName(){ fail("""
+In file: [###].fear
+
+001| U:{ .two[S,T](s:S, x:T, y:T):a.A -> a.A; .use(q:d.Q, y:a.Y, z:a.Z):a.A -> this.two(q, y, z) }
+   |                                                                           ^^^^^^^^^^^^^^^^^
+
+While inspecting method call ".two(_,_,_)"
+The type argument "T" of ".two" is inferred from the arguments, but they disagree: some need "a.Y", some need "a.Z".
+"T" could be "a.A" or "a.B2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
+Write the type argument explicitly, as in "this.two[d.Q,a.A](q, y, z)".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Source code inside folders named "_b" uses package name "d" to refer to the code inside folders named "_e", because of "map d as _e in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "A:{} B2:{} Y:A,B2{} Z:A,B2{}", "e", "Q:{}"), Map.of("a", "c", "d", "e"), """
+U:{ .two[S,T](s:S, x:T, y:T):a.A -> a.A; .use(q:d.Q, y:a.Y, z:a.Z):a.A -> this.two(q, y, z) }
+"""); }
 }

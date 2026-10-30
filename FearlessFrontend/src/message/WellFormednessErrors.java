@@ -51,7 +51,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private Err err(List<String> steps){ return err(y -> y, x -> x, _ -> null, steps); }
   Err err(Function<core.T.C,core.T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,core.E.Literal> decs, List<String> steps){
     var written= written(map);
-    return new Err(publicHead, preferredForFresh, decs, trunk -> new CompactPrinter(pkgName, written, printed::add, trunk), () -> Stream.concat(steps.stream(), printed.stream().flatMap(n -> note(written, n))).distinct().sorted(nameFirst).toList(), new StringBuilder());
+    return new Err(publicHead, preferredForFresh, decs, trunk -> new CompactPrinter(pkgName, written, trunk ? _ -> {} : printed::add, trunk), () -> Stream.concat(steps.stream(), printed.stream().flatMap(n -> note(written, n))).distinct().sorted(nameFirst).toList(), new StringBuilder());
   }
   public static Map<String,String> written(Map<String,String> map){
     return map.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
