@@ -29,7 +29,7 @@ public final class ToInference{
       ).toList();
     var scope= Stream.concat(declared.stream(), imported.stream()).toList();
     var all= real.stream().map(t -> written(p, t)).toList();
-    return p.err().usedUndeclaredName(written, resolved, scope, all, WellFormednessErrors.resolution(p, written.s()));
+    return p.err().usedUndeclaredName(written, resolved, scope, all, meths.other().ranks(), WellFormednessErrors.resolution(p, written.s()));
   }
   private static TName written(Package p, TName t){
     return t.withoutPkgName().withPkgName(Package.writtenPkg(p.map(), t.pkgName()));

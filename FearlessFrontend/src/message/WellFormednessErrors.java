@@ -163,7 +163,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .wf()
       .addFrame("a type name", n.approxSpan().inner);
   }
-  public FearlessException usedUndeclaredName(TName written, TName resolved, List<TName> scope, List<TName> all, List<String> steps){
+  public FearlessException usedUndeclaredName(TName written, TName resolved, List<TName> scope, List<TName> all, Map<String,Ref> ranks, List<String> steps){
+    var pkg= resolved.pkgName();
+    var notLower= ranks.containsKey(pkg) && !pkg.equals(pkgName) && all.stream().noneMatch(t -> t.pkgName().equals(pkg));
+    if (notLower){ return typeName(ranks(err().line("The type name "+disp(written.s())+" refers to "+notLower(pkg, rankName(ranks.get(pkg)).equals(rankName(ranks.get(pkgName))))+"."), pkg, ranks.get(pkgName), ranks.get(pkg)), written); }
     Function<TName,String> shown= t -> err().cp().t.ofFull(t.withoutPkgName().withPkgName(map.getOrDefault(t.pkgName(), t.pkgName())));
     return new UndeclaredNameContext(
       () -> err(steps),
@@ -320,11 +323,11 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException useOfNotLowerRank(TName tn, String pkg, Ref rank, Ref otherRank, boolean sameRank){
     return wfUse(ranks(err().line("\"use\" directive refers to "+notLower(pkg, sameRank)+"."), pkg, rank, otherRank), tn);
   }
-  private static String rankDisp(Ref rank){
+  private static String rankName(Ref rank){
     var name= Fs.fileNameWithoutExtension(rank.fearPath()).substring("_rank_".length());
-    var full= Character.isDigit(name.charAt(name.length()-1)) ? name : name+"999";
-    return disp(full)+" ("+disp(Fs.fileNameWithExtension(rank.fearPath()))+")";
+    return Character.isDigit(name.charAt(name.length()-1)) ? name : name+"999";
   }
+  private static String rankDisp(Ref rank){ return disp(rankName(rank))+" ("+disp(Fs.fileNameWithExtension(rank.fearPath()))+")"; }
   public FearlessException genericTypeVariableShadowTName(Map<TName,Set<X>> allXs, List<String> allNames, Set<String> use){
     var n= allXs.values().stream().flatMap(Set::stream)
       .filter(x -> allNames.contains(x.name()) || use.contains(x.name()))
