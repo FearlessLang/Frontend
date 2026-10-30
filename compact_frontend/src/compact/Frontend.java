@@ -398,6 +398,12 @@ public class Frontend{
       var full=new N(pN.isEmpty()?p.map.getOrDefault(tn.s,p.name+"."+tn.s):p.map.getOrDefault(pN,pN)+"."+tn.simple(),tn.arity);
       no(!pN.isEmpty()&&(pN.equals(p.name)||p.map.containsValue(pN)||p.map.containsValue(full.s)));no(!(full.pk().equals(p.name)?p.names.contains(new N(full.simple(),full.arity)):other.containsKey(full)));return full;
     }
+    N single(N n){
+      if(n.pk().equals(p.name))return new N(n.simple(),n.arity);
+      for(var e:p.map.entrySet())if(e.getValue().equals(n.s))return new N(e.getKey(),n.arity);
+      for(var e:p.map.entrySet())if(e.getValue().equals(n.pk()))return new N(e.getKey()+"."+n.simple(),n.arity);
+      return n;
+    }
     T type(T t){return t instanceof R(var r,var c)?new R(r,constructor(c)):t;}
     E expr(P e){return switch(e){
       case P.X x->new E.X(x.name,u);case P.Implicit _->new E.X(implicits.getLast(),u);
@@ -429,7 +435,7 @@ public class Frontend{
         var p=fresh("impl");ps=push(ps,p);implicits.add(p);
       }if(patterns){
         var fl=lambda(map(xpats,xe->new Par(new Pat.Name(xe.x),u)),body);
-        body=new P.Call(new P.Typed(imm,new C(base("Destruct",0),list()),null),"#",null,null,push(map(xpats,XE::e),fl));
+        body=new P.Call(new P.Typed(imm,new C(single(base("Destruct",0)),list()),null),"#",null,null,push(map(xpats,XE::e),fl));
       }
       var e=expr(body);if(m.implicit)implicits.removeLast();return new M(s,ps,e);
     }

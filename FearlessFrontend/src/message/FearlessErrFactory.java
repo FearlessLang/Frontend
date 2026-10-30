@@ -110,7 +110,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException duplicatedMap(Span at, String what, String in){
     return Code.UnexpectedToken.of(
-      "There is already an entry in the mapping for "+disp(what)+" in "+disp(in)+".\n"
+      "There is already a map for package name "+disp(what)+" for source code inside folders named "+disp(in)+".\n"
     ).addSpan(at);
   }
   public FearlessException duplicatedUse(Span at, String what, String kind){

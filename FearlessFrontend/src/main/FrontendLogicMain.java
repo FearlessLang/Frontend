@@ -67,54 +67,47 @@ public class FrontendLogicMain{
   public Map<String,Map<String,String>> parseRankFiles(Map<String,Ref> ranks, Comparator<Ref> c){
     var pkgs= Push.of(List.copyOf(ranks.keySet()), "base");
     var parsed= parseFiles(List.copyOf(ranks.values()));
-    record Key(String target, String in){}
     record Cand(Ref uri, FileFull.Map m){
       @Override public String toString(){ return "- \""+m+";\"; written in "+writtenIn(uri); }
     }
     var byKey= parsed.entrySet().stream()
       .flatMap(e -> e.getValue().maps().stream().map(m -> new Cand(e.getKey(), m)))
-      .collect(Collectors.groupingBy(x -> new Key(x.m().target(), x.m().in())));
-    var res= new HashMap<String,HashMap<String,Cand>>();
+      .collect(Collectors.groupingBy(x -> x.m().target()+" "+x.m().in(), TreeMap::new, Collectors.toList()));
+    var res= new HashMap<String,HashMap<String,String>>();
     var chosen= new TreeMap<String,ArrayList<Cand>>();
-    var sorted= byKey.entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().target()+" "+e.getKey().in())).toList();
-    for (var e : sorted){
-      var k= e.getKey();
-      var cs= e.getValue();
+    for (var cs : byKey.values()){
       var best= Collections.max(cs, Comparator.comparing(Cand::uri, c));
       var bests= cs.stream().filter(x -> c.compare(x.uri(), best.uri()) == 0).toList();
-      var out= best.m().out();
+      var m= best.m();
       // What to do if two different rank files with the SAME RANK give the SAME MAPPING? Here we are tolerant.
       var conflicting= bests.stream().map(x -> x.m().out()).distinct().count() != 1;
-      var err= new WellFormednessErrors(k.target());
-      if (conflicting){ throw err.mapConflict(k.in(), bests.stream().map(Object::toString).toList()); }
-      if (k.target().equals("base")){ throw err.mapInBase(best.toString()); }
-      if (!ranks.containsKey(k.target())){ throw err.mapInMissingPackage(best.toString(), ranks.keySet().stream().sorted().toList()); }
-      if (pkgs.contains(k.in())){ throw err.mapOfAnExistingPackage(k.in(), best.toString()); }
-      if (!pkgs.contains(out)){ throw err.mapToMissingPackage(out, best.toString(), pkgs.stream().sorted().toList()); }
-      if (out.equals(k.target())){ throw err.mapToItself(best.toString()); }
-      var outRank= ranks.get(out);
-      var targetRank= ranks.get(k.target());
+      var err= new WellFormednessErrors(m.target());
+      if (conflicting){ throw err.mapConflict(m.in(), bests.stream().map(Object::toString).toList()); }
+      if (m.target().equals("base")){ throw err.mapInBase(best.toString()); }
+      if (!ranks.containsKey(m.target())){ throw err.mapInMissingPackage(best.toString(), ranks.keySet().stream().sorted().toList()); }
+      if (pkgs.contains(m.in())){ throw err.mapOfAnExistingPackage(m.in(), best.toString()); }
+      if (!pkgs.contains(m.out())){ throw err.mapToMissingPackage(m.out(), best.toString(), pkgs.stream().sorted().toList()); }
+      if (m.out().equals(m.target())){ throw err.mapToItself(best.toString()); }
+      var outRank= ranks.get(m.out());
+      var targetRank= ranks.get(m.target());
       var lower= outRank == null || c.compare(outRank, targetRank) < 0;
-      if (!lower){ throw err.mapToNotLowerRank(out, best.toString(), targetRank, outRank, c.compare(outRank, targetRank) == 0); }
-      var overridden= cs.stream().filter(x -> c.compare(x.uri(), best.uri()) < 0 && !x.m().out().equals(out)).toList();
+      if (!lower){ throw err.mapToNotLowerRank(m.out(), best.toString(), targetRank, outRank, c.compare(outRank, targetRank) == 0); }
+      var overridden= cs.stream().filter(x -> c.compare(x.uri(), best.uri()) < 0 && !x.m().out().equals(m.out())).toList();
       var expected= overridden.stream().map(x -> x.m().out()).distinct().sorted().toList();
-      var wrong= bests.stream().filter(x -> !x.m().insteadOf().stream().distinct().sorted().toList().equals(expected)).findFirst();
-      if (wrong.isPresent()){ throw err.insteadOfMismatch(wrong.get().toString(), overridden.stream().map(Object::toString).toList(), new FileFull.Map(k.in(), out, k.target(), expected)); }
-      res.computeIfAbsent(k.target(), _ -> new HashMap<>()).put(k.in(), best);
-      chosen.computeIfAbsent(k.target()+"."+out, _ -> new ArrayList<>()).add(best);
+      var wrong= bests.stream().filter(x -> !x.m().insteadOf().stream().sorted().toList().equals(expected)).findFirst();
+      if (wrong.isPresent()){ throw err.insteadOfMismatch(wrong.get().toString(), overridden.stream().map(Object::toString).toList(), new FileFull.Map(m.in(), m.out(), m.target(), expected)); }
+      res.computeIfAbsent(m.target(), _ -> new HashMap<>()).put(m.in(), m.out()+" "+writtenIn(best.uri()));
+      chosen.computeIfAbsent(m.target()+"."+m.out(), _ -> new ArrayList<>()).add(best);
     }
     var shared= chosen.values().stream().filter(cs -> cs.size() > 1).findFirst();
     shared.ifPresent(cs -> { throw new WellFormednessErrors(cs.getFirst().m().target()).mapToATargetOfAnotherMap(cs.getFirst().m().out(), cs.stream().map(Object::toString).toList()); });
-    Function<String,Map<String,String>> outs= pkg -> res.getOrDefault(pkg, new HashMap<>()).entrySet().stream()
-      .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, x -> x.getValue().m().out()));
-    ranks.forEach((pkg, f) -> usesOnlyLowerRanks(pkg, parsed.get(f).uses(), outs.apply(pkg), ranks, c));
-    return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> e.getValue().entrySet().stream()
-      .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, x -> x.getValue().m().out()+" "+writtenIn(x.getValue().uri())))));
+    ranks.forEach((pkg, f) -> usesOnlyLowerRanks(pkg, parsed.get(f).uses(), ranks, c));
+    return res.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Map.copyOf(e.getValue())));
   }
   private static String writtenIn(Ref uri){ return PrettyFileName.displayFileName(uri.fearURI()); }
-  private void usesOnlyLowerRanks(String pkg, List<FileFull.Use> uses, Map<String,String> map, Map<String,Ref> ranks, Comparator<Ref> c){
+  private void usesOnlyLowerRanks(String pkg, List<FileFull.Use> uses, Map<String,Ref> ranks, Comparator<Ref> c){
     for (var u : uses){
-      var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
+      var p= u.in().pkgName();
       var other= ranks.get(p);
       var allowed= p.equals(pkg) || other == null || c.compare(other, ranks.get(pkg)) < 0;
       if (!allowed){ throw new WellFormednessErrors(pkg).useOfNotLowerRank(u.in(), p, ranks.get(pkg), other, c.compare(other, ranks.get(pkg)) == 0); }
@@ -163,13 +156,13 @@ public class FrontendLogicMain{
     Collection<TName> otherDom= uses.isEmpty() ? List.of() : other.dom();
     for (var u : uses){
       if (u.in().pkgName().isEmpty()){ throw err.useNotFullyQualified(u.in()); }
-      var named= Package.mapTo(err.pkgName(), map, u.in().pkgName());
-      if (named.isPresent()){ throw err.useOfAMapTarget(u.in(), named.get(), Package.visible(err.pkgName(), map, otherDom)); }
+      var named= Package.mapTo(map, u.in().pkgName());
+      if (named.isPresent()){ throw err.useOfAMapTarget(u.in(), named.get(), Package.visible(map, otherDom)); }
       var p= map.getOrDefault(u.in().pkgName(), u.in().pkgName());
-      if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in(), p); }
+      if (p.equals(err.pkgName())){ throw err.useOfTheCurrentPackage(u.in()); }
       var in= p+"."+u.in().simpleName();
       map.put(u.out(), in);
-      if (otherDom.stream().noneMatch(e -> e.pkgName().equals(p))){ throw err.useOfMissingPackage(u.in(), Package.visible(err.pkgName(), map, otherDom)); }
+      if (otherDom.stream().noneMatch(e -> e.pkgName().equals(p))){ throw err.useOfMissingPackage(u.in(), Package.visible(map, otherDom)); }
       if (otherDom.stream().noneMatch(e -> e.s().equals(in))){ throw err.unknownUseHead(u.in(), map); }
     }//map a as b in c + use a.F as aF will replace aF with b.F
   }

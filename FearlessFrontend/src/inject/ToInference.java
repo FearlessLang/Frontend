@@ -3,6 +3,7 @@ package inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import core.FearlessException;
@@ -28,10 +29,12 @@ public final class ToInference{
       ).toList();
     var scope= Stream.concat(declared.stream(), imported.stream()).toList();
     var all= real.stream().map(t -> written(p, t)).toList();
-    return p.err().usedUndeclaredName(written, resolved, scope, all, WellFormednessErrors.resolution(p, written.s()));
+    var aliases= p.uses().stream().collect(Collectors.toMap(u -> u.in().s(), FileFull.Use::out));
+    Function<TName,String> display= t -> t.pkgName().equals(p.name()) ? t.simpleName() : aliases.getOrDefault(t.s(), t.s());
+    return p.err().usedUndeclaredName(written, resolved, scope, all, display, WellFormednessErrors.resolution(p, written.s()));
   }
   private static TName written(Package p, TName t){
-    return t.withoutPkgName().withPkgName(Package.mapTo(p.name(), p.map(), t.pkgName()).map(FileFull.Map::in).orElse(t.pkgName()));
+    return t.withoutPkgName().withPkgName(Package.writtenPkg(p.map(), t.pkgName()));
   }
   private static TName writtenOnce(Methods meths, TName tn, TName full){
     var p= meths.p();
@@ -52,8 +55,8 @@ public final class ToInference{
     var p= meths.p();
     var pN= tn.pkgName();
     if (pN.isEmpty() && LiteralDeclarations.isPrimitiveLiteral(tn.s())){ return tn.withPkgName("base"); }
-    var named= Package.mapTo(p.name(), p.map(), pN);
-    if (named.isPresent()){ throw p.err().typeOfAMapTarget(tn, named.get(), Package.visible(p.name(), p.map(), meths.other().dom())); }
+    var named= Package.mapTo(p.map(), pN);
+    if (named.isPresent()){ throw p.err().typeOfAMapTarget(tn, named.get(), Package.visible(p.map(), meths.other().dom())); }
     var s= pN.isEmpty() ? p.map().getOrDefault(tn.s(), p.name()+"."+tn.s()) : p.map().getOrDefault(pN, pN)+"."+tn.simpleName();
     var full= new TName(s, tn.arity(), tn.pos());
     var current= full.pkgName().equals(p.name());

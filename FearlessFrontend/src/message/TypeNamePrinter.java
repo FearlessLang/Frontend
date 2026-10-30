@@ -10,9 +10,11 @@ public record TypeNamePrinter(boolean trunc, String mainPkg, Map<String,String> 
   public TypeNamePrinter{ assert !mainPkg.isEmpty(); }
   public String of(TName n){ return trunc ? trunc(ofFull(n)) : ofFull(n); }
   public String ofFull(TName n){
+    var lit= dropBaseForLit(n.s());
+    if (!lit.equals(n.s())){ return lit; }
     printed.accept(n.s());
     var pkg= uses.get(n.pkgName());
-    var full= pkg == null ? dropMainPkg(dropBaseForLit(n.s())) : pkg+"."+n.simpleName();
+    var full= pkg == null ? dropMainPkg(n.s()) : pkg+"."+n.simpleName();
     return uses.getOrDefault(n.s(), full);
   }
   private String dropMainPkg(String s){

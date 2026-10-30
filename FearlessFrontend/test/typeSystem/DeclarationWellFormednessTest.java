@@ -1020,7 +1020,7 @@ A:{}
    | --------------------^^
 
 While inspecting header element > file header > full file
-There is already an entry in the mapping for "foo" in "_p".
+There is already a map for package name "foo" for source code inside folders named "_p".
 """, List.of("""
 map foo as _base in _p;
 map foo as _base in _p;

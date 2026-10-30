@@ -2331,7 +2331,7 @@ In file: [###].fear
    | ----------------^^
 
 While inspecting header element > file header > full file
-There is already an entry in the mapping for "a" in "_c".
+There is already a map for package name "a" for source code inside folders named "_c".
 Error 2 UnexpectedToken
 """, """
 map a as _b1 in _c;
@@ -2356,6 +2356,173 @@ Expected: "folder name: the _ symbol followed by a package name".
 Error 2 UnexpectedToken
 """, """
 map foo as foo_v5 in _lib;
+"""); }
+@Test void pkgMapInsteadOfWithoutOf(){ fail("""
+In file: [###].fear
+
+001| map foo as _foo_v5 in _lib instead _foo_v4;
+   | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^-
+
+While inspecting header element > file header > full file
+Missing "of" keyword.
+Found instead: "_foo_v4".
+Expected: "of".
+Error 2 UnexpectedToken
+""", """
+map foo as _foo_v5 in _lib instead _foo_v4;
+"""); }
+@Test void pkgMapInsteadOfWithNoFolder(){ fail("""
+In file: [###].fear
+
+001| map foo as _foo_v5 in _lib instead of;
+   | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^-
+
+While inspecting header element > file header > full file
+Missing folder name.
+Expected: "folder name: the _ symbol followed by a package name".
+Error 2 UnexpectedToken
+""", """
+map foo as _foo_v5 in _lib instead of;
+"""); }
+@Test void pkgMapInsteadOfWithATrailingComma(){ fail("""
+In file: [###].fear
+
+001| map foo as _foo_v5 in _lib instead of _foo_v4,;
+   | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^-
+
+While inspecting header element > file header > full file
+Missing folder name.
+Expected: "folder name: the _ symbol followed by a package name".
+Error 2 UnexpectedToken
+""", """
+map foo as _foo_v5 in _lib instead of _foo_v4,;
+"""); }
+@Test void pkgMapInsteadOfAPackageName(){ fail("""
+In file: [###].fear
+
+001| map foo as _foo_v5 in _lib instead of foo_v4;
+   | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^-
+
+While inspecting header element > file header > full file
+Missing folder name.
+Found instead: "foo_v4".
+Expected: "folder name: the _ symbol followed by a package name".
+Error 2 UnexpectedToken
+""", """
+map foo as _foo_v5 in _lib instead of foo_v4;
+"""); }
+@Test void pkgMapInsteadOfWithoutComma(){ fail("""
+In file: [###].fear
+
+001| map foo as _foo_v5 in _lib instead of _foo_v4 _foo_v3;
+   | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^-
+
+While inspecting header element > file header > full file
+Expected semicolon: ";".
+Error 4 ExtraTokenInGroup
+""", """
+map foo as _foo_v5 in _lib instead of _foo_v4 _foo_v3;
+"""); }
+@Test void pkgMapInsteadOfRepeatedFolderParses(){ ok("""
+FileFull[maps=[map foo as _foo_v5 in _lib instead of _foo_v4, _foo_v4],uses=[],decs=[]]
+""", """
+map foo as _foo_v5 in _lib instead of _foo_v4,_foo_v4;
+"""); }
+@Test void pkgMapTargetIsAPackageName(){ fail("""
+In file: [###].fear
+
+001| map foo as _foo_v5 in lib;
+   | ~~~~~~~~~~~~~~~~~~~~~~^^^-
+
+While inspecting header element > file header > full file
+Missing folder name.
+Found instead: "lib".
+Expected: "folder name: the _ symbol followed by a package name".
+Error 2 UnexpectedToken
+""", """
+map foo as _foo_v5 in lib;
+"""); }
+@Test void pkgMapWithoutAs(){ fail("""
+In file: [###].fear
+
+001| map foo _foo_v5 in _lib;
+   | ~~~~~~~~^^^^^^^~~~~~~~~-
+
+While inspecting header element > file header > full file
+Missing "as" keyword.
+Found instead: "_foo_v5".
+Expected: "as".
+Error 2 UnexpectedToken
+""", """
+map foo _foo_v5 in _lib;
+"""); }
+@Test void pkgMapOfAReservedPackageName(){ fail("""
+In file: [###].fear
+
+001| map con as _foo_v5 in _lib;
+   | ~~~~^^^~~~~~~~~~~~~~~~~~~~-
+
+While inspecting header element > file header > full file
+Missing package name.
+Found instead: "con".
+Expected: "id starting with a-z followed by any amount of a-z0-9 or the _ symbol".
+Error 2 UnexpectedToken
+""", """
+map con as _foo_v5 in _lib;
+"""); }
+@Test void pkgMapOfAnUppercaseName(){ fail("""
+In file: [###].fear
+
+001| map Foo as _foo_v5 in _lib;
+   | ~~~~^^^~~~~~~~~~~~~~~~~~~~-
+
+While inspecting header element > file header > full file
+Missing package name.
+Found instead: "Foo".
+Expected: "id starting with a-z followed by any amount of a-z0-9 or the _ symbol".
+Error 2 UnexpectedToken
+""", """
+map Foo as _foo_v5 in _lib;
+"""); }
+@Test void pkgMapOfAQualifiedName(){ fail("""
+In file: [###].fear
+
+001| map foo.bar as _foo_v5 in _lib;
+   | ~~~~~~~^^^^~~~~~~~~~~~~~~~~~~~-
+
+While inspecting header element > file header > full file
+Missing "as" keyword.
+Found instead: ".bar".
+Expected: "as".
+Error 2 UnexpectedToken
+""", """
+map foo.bar as _foo_v5 in _lib;
+"""); }
+@Test void pkgDupMapWithInsteadOf(){ fail("""
+In file: [###].fear
+
+001| map a as _b1 in _c;
+002| map a as _b2 in _c instead of _b1;
+   | ------------------------------^^^
+
+While inspecting header element > file header > full file
+There is already a map for package name "a" for source code inside folders named "_c".
+Error 2 UnexpectedToken
+""", """
+map a as _b1 in _c;
+map a as _b2 in _c instead of _b1;
+"""); }
+@Test void pkgMapSameNameForTwoTargets(){ ok("""
+FileFull[maps=[map a as _b in _c,map a as _b2 in _d instead of _b],uses=[],decs=[]]
+""", """
+map a as _b in _c;
+map a as _b2 in _d instead of _b;
+"""); }
+@Test void pkgMapAfterUse(){ ok("""
+FileFull[maps=[map a as _b in _c],uses=[use base.Str as Str],decs=[]]
+""", """
+use base.Str as Str;
+map a as _b in _c;
 """); }
 @Test void pkgDupMapOk(){ ok("""
 [###]

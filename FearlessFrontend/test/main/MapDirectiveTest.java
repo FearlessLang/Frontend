@@ -405,4 +405,253 @@ Error 7 WellFormedness
 """, Map.of("webserver_v12", "Server:{.v12:Server->this}"), Map.of("webserver", "webserver_v12"), """
 B:{.m(x:webserver_v12.Server):webserver.Server->x.v12}
 """); }
+  static final String pq= "P:{ .x:P->this; .y:P->this; }\n";
+  @Test void destructuringWithAnAliasForDestruct(){ ok(Map.of(), Map.of(), """
+use base.Destruct as D;
+"""+pq+"""
+B:{ .m({.x, .y}:P):P -> x }
+"""); }
+  @Test void destructuringWithBaseReachedThroughAMap(){ ok(Map.of(), Map.of("bb", "base"), pq+"""
+B:{ .m({.x, .y}:P):P -> y }
+"""); }
+  @Test void destructuringWithBaseReachedThroughAMapAndAnAliasForDestruct(){ ok(Map.of(), Map.of("bb", "base"), """
+use bb.Destruct as D;
+"""+pq+"""
+B:{ .m({.x, .y}:P):P -> x; .k(d:D):D -> d }
+"""); }
+  @Test void destructuringNextToADeclaredTypeNamedDestruct(){ ok(Map.of(), Map.of(), pq+"""
+Destruct:{}
+B:{ .m({.x, .y}:P):P -> x; .k(d:Destruct):Destruct -> d }
+"""); }
+  @Test void baseTypesThroughAMapAndAnAlias(){ ok(Map.of(), Map.of("bb", "base"), """
+use bb.Str as S;
+B:{ .m(x:S):S -> x; .v:bb.Void -> {} }
+"""); }
+  @Test void aliasAndQualifiedNamesThroughTheSameMap(){ ok(Map.of("c", "A:{} A2:{}"), Map.of("a", "c"), """
+use a.A as X;
+B:{ .m(x:X):X -> x; .k(y:a.A2):a.A2 -> y }
+"""); }
+  @Test void baseByItsRealNameWhenAMapRenamesIt(){ fail("""
+In file: [###].fear
+
+001| B:{ .v:base.Void -> {} }
+   |        ^^^^^^^^^
+
+While inspecting a type name
+Source code inside folders named "_b" can not use package name "base".
+Visible package names: "bb".
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of(), Map.of("bb", "base"), """
+B:{ .v:base.Void -> {} }
+"""); }
+  @Test void numberWithBaseReachedThroughAMap(){ fail("""
+In file: [###].fear
+
+001| B:{ .m:B -> 5 }
+   |     --------^
+
+While inspecting object literal instance of "bb.Nat" > ".m" line 1
+The body of method ".m" of type declaration "B" is an expression returning "iso bb.Nat".
+Object literal is of type "bb.Nat" instead of a subtype of "B".
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m:B->5}
+Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
+B:{ .m:B -> 5 }
+"""); }
+  @Test void methodOfANumberWithBaseReachedThroughAMap(){ fail("""
+In file: [###].fear
+
+001| B:{ .m:B -> 5.foo }
+   |     --------~^^^^
+
+While inspecting ".m" line 1
+This call to method ".foo" cannot typecheck.
+Method ".foo" is not declared on type "bb.Nat".
+
+Available methods on type "bb.Nat":
+-       *(bb.Nat):bb.Nat
+-       +(bb.Nat):bb.Nat
+
+Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+5.foo
+Error 8 TypeError""",Map.of(), Map.of("bb", "base"), """
+B:{ .m:B -> 5.foo }
+"""); }
+  static final String sealedC= "S:base.Sealed{ .m:S }";
+  @Test void sealedTypeThroughAMap(){ fail("""
+In file: [###].fear
+
+001| B:a.S{ .m -> this }
+   | ^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Type declaration "B" implements sealed type "a.S".
+Sealed types can only be implemented in their own package.
+Type declaration "B" is defined in package "b".
+Type "S" is defined in package "a".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", sealedC), Map.of("a", "c"), """
+B:a.S{ .m -> this }
+"""); }
+  @Test void sealedTypeThroughAMapAndAnAlias(){ fail("""
+In file: [###].fear
+
+002| B:X{ .m -> this }
+   | ^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "B"
+Type declaration "B" implements sealed type "X".
+Sealed types can only be implemented in their own package.
+Type declaration "B" is defined in package "b".
+Type "S" is defined in package "a".
+
+Name "X" stands for "a.S" because of "use a.S as X".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", sealedC), Map.of("a", "c"), """
+use a.S as X;
+B:X{ .m -> this }
+"""); }
+  @Test void sealedTypeUsedAsAnExpressionThroughAMap(){ fail("""
+In file: [###].fear
+
+001| B:{ .k:a.S -> a.S }
+   |     ----------^^^
+
+While inspecting object literal instance of "iso a.S" > ".k" line 1
+This object literal is missing a required method.
+Missing: "imm .m".
+Required by: "a.S".
+Sealed types can only be implemented in their own package.
+Type "S" is defined in package "a".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso -.S
+Error 8 TypeError""",Map.of("c", sealedC), Map.of("a", "c"), """
+B:{ .k:a.S -> a.S }
+"""); }
+  @Test void undeclaredSimpleNameSuggestsTheMappedName(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:Server):B->this}
+   |         ^^^^^^^
+
+While inspecting a type name
+Type "Server" is not declared in package "b" and is not made visible via "use".
+In scope: "B".
+Did you mean "a.Server" ?
+Add a "use" or write the fully qualified name.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "Server:{}"), Map.of("a", "c"), """
+B:{.m(x:Server):B->this}
+"""); }
+  @Test void undeclaredSimpleNameSuggestsTheAlias(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:Server):B->this}
+   |         ^^^^^^^
+
+While inspecting a type name
+Type "Server" is not declared in package "b" and is not made visible via "use".
+In scope: "B", "Remote".
+Did you mean "Remote" ?
+Error 7 WellFormedness
+""", Map.of("c", "Server:{}"), Map.of("a", "c"), """
+use a.Server as Remote;
+B:{.m(x:Server):B->this}
+"""); }
+  @Test void undeclaredQualifiedNameSuggestsTheAlias(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:a.Serve):B->this}
+   |         ^^^^^^^^
+
+While inspecting a type name
+Type "Serve" is not declared in package "a".
+Did you mean "Remote" ?
+In scope: "Remote".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "Server:{}"), Map.of("a", "c"), """
+use a.Server as Remote;
+B:{.m(x:a.Serve):B->this}
+"""); }
+  @Test void undeclaredQualifiedNameListsTheAliasInScope(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:a.Z):B->this}
+   |         ^^^^
+
+While inspecting a type name
+Type "Z" is not declared in package "a".
+In scope: "X".
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", cA), Map.of("a", "c"), """
+use a.A as X;
+B:{.m(x:a.Z):B->this}
+"""); }
+  @Test void wrongPackageSuggestsTheAliasOfTheSameSimpleName(){ fail("""
+In file: [###].fear
+
+002| B:{.m(x:d.Server):B->this}
+   |         ^^^^^^^^^
+
+While inspecting a type name
+Type "Server" is not declared in package "d".
+In scope: "d.Client".
+Did you mean "Remote" ?
+Error 7 WellFormedness
+""", Map.of("c", "Server:{}", "d", "Client:{}"), Map.of("a", "c"), """
+use a.Server as Remote;
+B:{.m(x:d.Server):B->this}
+"""); }
+  @Test void wrongPackageSuggestsTheOwnSimpleName(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:a.Server):B->this}
+   |         ^^^^^^^^^
+
+While inspecting a type name
+Type "Server" is not declared in package "a".
+In scope: "a.A".
+Did you mean "Server" ?
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", cA), Map.of("a", "c"), """
+B:{.m(x:a.Server):B->this}
+Server:{}
+"""); }
+  @Test void wrongPackageSuggestsTheMappedName(){ fail("""
+In file: [###].fear
+
+001| B:{.m(x:d.Server):B->this}
+   |         ^^^^^^^^^
+
+While inspecting a type name
+Type "Server" is not declared in package "d".
+In scope: "d.Client".
+Did you mean "a.Server" ?
+Add a "use" or write the fully qualified name.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
+Error 7 WellFormedness
+""", Map.of("c", "Server:{}", "d", "Client:{}"), Map.of("a", "c"), """
+B:{.m(x:d.Server):B->this}
+"""); }
 }
