@@ -749,7 +749,6 @@ A:{.m[X](x:Foo[X]):X}
 B1[X]:A{.m(z)->z.get}
 B2[X]:A{.m(z)->z.beer[X]}
 """));}
-//TODO: when committing to class table consider replacing all the bodies with Void or _Magic! to avoid worst case shenario quadratic memory consumption.
 
 
 @Test void recoverUserTypes1(){okI("""
@@ -1197,7 +1196,7 @@ User4:{
 User5:{.go3:Float->Trash#(Top.top {x->{y->y}} # One # FOne) }
 """));}
 
-//TODO: why the fresh names are different wrt the one before with User3???
+//The fresh names of User5 follow the ones of User4: FreshPrefix keeps at most 4 characters of the hint, so User4 and User5 share the base User and one numbering.
 @Test void challenge4CommentedCorrectInferUnknown(){okI("""
 [###]
 ~mut p.User4:{'this .dec[A:imm]:p.F[p.Int,p.F[A,A]]->imm p._BUser[A:imm]:p.F[p.Int,p.F[A,A]]{'_ #(x:p.Int):p.F[A,A]->imm p._AUser[A:imm]:p.F[A,A]{'_ #(y:A):A->y}}; .use:p.Int->this.dec[imm,p.Int]#[imm](p.One)#[imm](p.One)}
@@ -1375,7 +1374,7 @@ Flows:{
 }
 
 User:{.go:Bool->
-  // WRONG: mapping has 2 method binders [K,E], but we pass 3 targs (old bug path).
+  // mapping has 2 method binders [K,E], but we pass 3 targs: inference drops the extra one (MSigL.fixTargs).
   Flows.flow.mapping[KeyElem[Str,Info],Str,Info]({
     .key(e)->e.key;
     .elem(e)->e.elem;
@@ -1383,7 +1382,7 @@ User:{.go:Bool->
 }
 """));}
 
-@Test void wrongTargsTooFewPadsErr1(){okI("""
+@Test void wrongTargsTooFewPadsUnknown1(){okI("""
 [###]
 ~mut p.User:{'this .go:p.Bool->p.Flows.flow[read].mapping[imm,p.Str](imm p._AUser:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],p.Str,p.Info]{'_ .key(e:p.KeyElem[p.Str,p.Info]):p.Str->e.key[imm]; .elem(e:p.KeyElem[p.Str,p.Info]):p.Info->e.elem[imm]})}
 """, List.of("""
@@ -1402,7 +1401,7 @@ Flows:{
 }
 
 User:{.go:Bool->
-  // WRONG: only 1 targ, should be 2. Missing one should be padded with IT.Err during inference.
+  // only 1 targ, should be 2: inference pads the missing one with an unknown type (MSigL.fixTargs).
   Flows.flow.mapping[Str]({
     .key(e)->e.key;
     .elem(e)->e.elem;
@@ -1436,7 +1435,7 @@ Flows:{
 }
 
 User:{.go:Bool->
-  // WRONG: 3 targs given to a 2-binder method. Old code would keep KeyElemMapper[TTT,K,E] raw and leak TTT.
+  // 3 targs given to a 2-binder method: inference drops the extra one (MSigL.fixTargs), so TTT does not leak.
   Flows.flow.mapping[KeyElem[Str,Info],Str,Info]({
     .key(e)->e.key;
     .elem(e)->e.elem;
