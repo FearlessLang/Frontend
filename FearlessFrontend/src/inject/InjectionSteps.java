@@ -236,7 +236,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return Streams.zip(res, originEs).allMatch((r,o) -> r == o || !r.equals(o));
   }
   E next(List<B> bs, Gamma g, E e){
-    //assert meet(e.t(),res.t()).equals(res.t()): e.t()+" "+res.t();// Does not hold. How can it be?
     return switch (e){
       case E.X x -> nextX(g, x);
       case E.Literal l -> nextL(bs, g, l);
