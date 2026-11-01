@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import fearlessFullGrammar.FileFull;
 import message.BadTokens;
 import message.FearlessErrFactory;
+import metaParser.Layout;
 import metaParser.TokenTreeSpec;
 import tools.Fs;
 
@@ -41,9 +42,11 @@ public final class Parse{
     if (index == -1){ return Optional.empty(); }
     return Optional.of(first ? t.tokenFirstHalf(index+1) : t.tokenSecondHalf(index));
   }
-  public static FileFull from(URI fileName, String input){
+  public static FileFull from(URI fileName, String input){ return from(fileName, input, Layout.same); }
+  public static FileFull from(URI fileName, String input, Layout layout){
     var t= new Tokenizer()
       .input(fileName, input)
+      .layout(layout)
       .tokenKinds(kinds, _SOF, _EOF)
       .setErrFactory(new FearlessErrFactory())
       .whiteList(Fs.allowed)

@@ -4,8 +4,10 @@ import static offensiveUtils.Require.*;
 import static fearlessParser.TokenKind.*;
 
 import java.util.*;
+import java.net.URI;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import pkgmerge.DeclaredNames;
 import pkgmerge.Package;
@@ -18,6 +20,7 @@ import fearlessParser.Parse;
 import inject.InjectionSteps;
 import inject.Methods;
 import inject.ToInference;
+import metaParser.Layout;
 import message.WellFormednessErrors;
 import metaParser.PrettyFileName;
 import tools.Fs;
@@ -26,20 +29,21 @@ import typeSystem.TypeSystem;
 import utils.Push;
 
 public class FrontendLogicMain{
+  public record TestSource(URI fileName, String text, Layout layout){}
   public List<core.E.Literal> of(
       String pkgName,
       Map<String,String> override,
       List<Ref> files,
       OtherPackages other
     ){
-    return of(pkgName, override, files, other, _ -> Optional.empty());
+    return of(pkgName, override, files, other, _ -> List.of());
   }
   public List<core.E.Literal> of(
       String pkgName,
       Map<String,String> override,
       List<Ref> files,
       OtherPackages other,
-      Function<List<core.E.Literal>,Optional<Ref>> tests
+      Function<List<core.E.Literal>,List<TestSource>> tests
     ){
     var rawAST= parseFiles(files); // Phase 1: Parse Files
     var pkg= mergeToPackage(pkgName, rawAST, override, other); // Phase 2: Merge & Well-formedness
@@ -47,11 +51,9 @@ public class FrontendLogicMain{
     var coreAST= core(ctx);
     var test= tests.apply(coreAST);
     if (test.isEmpty()){ return coreAST; }
-    var testAST= Parse.from(test.get().fearURI(), test.get().loadString());
-    var raw= new LinkedHashMap<>(rawAST);
-    raw.put(test.get(), testAST);
-    var all= mergeToPackage(pkgName, raw, override, other);
-    var testPkg= makePackage(pkgName, all.map(), all.writtenIn(), all.uses(), testAST.decs().stream().sorted().toList(), all.names());
+    var testDecs= test.stream().flatMap(t -> Parse.from(t.fileName(), t.text(), t.layout()).decs().stream()).sorted().toList();
+    var names= DeclaredNames.of(pkgName, Stream.concat(pkg.decs().stream(), testDecs.stream()).sorted().toList(), pkg.uses().stream().map(FileFull.Use::out).collect(Collectors.toUnmodifiableSet()));
+    var testPkg= makePackage(pkgName, pkg.map(), pkg.writtenIn(), pkg.uses(), testDecs, names);
     var lits= AllLs.of(coreAST);
     var testCtx= Methods.create(testPkg, other.mergeWith(lits, other.stamp()));
     lits.keySet().forEach(n -> testCtx.fresh().usedTopTypes().add(n.simpleName()));
