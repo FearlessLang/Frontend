@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -92,12 +93,18 @@ final class AssociationTextTest{
   @Test void theChoiceWindowsRemembersIsLookedForWhereWindowsKeepsIt(){
     assertEquals("HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.fearless\\UserChoice", WindowsAssociations.userChoiceKey(".fearless"));
   }
+  @Test void theRegistryFileKeepsTheDefaultOfAnExtensionTakenFromAnotherProgram(){
+    var lines= WindowsAssociations.regFile(identity, winLauncher, winIcons(), programIco, Map.of(".fproof", "SomeApp.fproof")).lines().toList();
+    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\fearlessManaged0_001\\PreviousDefaults]"), lines.toString());
+    assertTrue(lines.contains("\".fproof\"=\"SomeApp.fproof\""), lines.toString());
+    assertTrue(regFile().stream().noneMatch(l -> l.contains("PreviousDefaults")), regFile().toString());
+  }
   @Test void theRegistryFileUsesTheLineEndingsWindowsWrites(){
-    var reg= WindowsAssociations.regFile(identity, winLauncher, winIcons(), programIco);
+    var reg= WindowsAssociations.regFile(identity, winLauncher, winIcons(), programIco, Map.of());
     assertEquals(reg.split("\r\n", -1).length, reg.split("\n", -1).length);
   }
   private static List<Icon> winIcons(){ return List.of(new Icon(".fearless", winLauncher, winLauncher), new Icon(".fproof", proof, proof)); }
-  private static List<String> regFile(){ return WindowsAssociations.regFile(identity, winLauncher, winIcons(), programIco).lines().toList(); }
+  private static List<String> regFile(){ return WindowsAssociations.regFile(identity, winLauncher, winIcons(), programIco, Map.of()).lines().toList(); }
   private static byte[] png(int side){
     var res= new byte[24];
     write(res, 16, side);
