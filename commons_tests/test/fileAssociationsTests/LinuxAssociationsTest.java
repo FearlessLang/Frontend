@@ -137,7 +137,7 @@ final class LinuxAssociationsTest{
     Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Default Applications]\napplication/x-fearless-htm=browser.desktop\napplication/x-fearless-txt="+identity+".desktop\n"
       +"[Added Associations]\napplication/x-fearless-c=editor.desktop;\n");
     Fs.writeUtf8(sys.resolve("applications").resolve("editor.desktop"), "[Desktop Entry]\nMimeType=application/x-fearless-c;\n");
-    assertEquals("userLocked [.htm]", refused(".c", ".htm", ".txt"));
+    assertEquals("userLocked {.htm=[browser]}", refused(".c", ".htm", ".txt"));
     assertFalse(Files.exists(home));
     assertEquals(List.of(), ran);
   }
