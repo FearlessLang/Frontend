@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -136,7 +137,7 @@ final class LinuxAssociationsTest{
     Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Default Applications]\napplication/x-fearless-htm=browser.desktop\napplication/x-fearless-txt="+identity+".desktop\n"
       +"[Added Associations]\napplication/x-fearless-c=editor.desktop;\n");
     Fs.writeUtf8(sys.resolve("applications").resolve("editor.desktop"), "[Desktop Entry]\nMimeType=application/x-fearless-c;\n");
-    assertEquals("userLocked [.htm]", refused(".c", ".htm", ".txt"));
+    assertEquals("userLocked {.htm=[browser]}", refused(".c", ".htm", ".txt"));
     assertFalse(Files.exists(home));
     assertEquals(List.of(), ran);
   }
@@ -206,9 +207,11 @@ final class LinuxAssociationsTest{
     reconcile(".fearless", ".htm");
     Fs.writeUtf8(home.resolve("mime").resolve("globs2"), "100:application/x-fearless:*.fearless\n100:application/x-fearless-htm:*.htm\n");
     Fs.writeUtf8(home.resolve("mime").resolve("subclasses"), "application/x-fearless-htm text/html\napplication/x-fearless-htm application/xhtml+xml\n");
+    Fs.ofV(() -> Files.setLastModifiedTime(packageFile(), FileTime.fromMillis(1000)));
     ran.clear();
     reconcile(".fearless", ".htm");
-    assertEquals(List.of(), ran);
+    assertEquals(1000, Fs.lastModified(packageFile()));
+    assertEquals(rebuilt(), ran);
   }
   @Test void anUnwritableIconFolderIsRefusedBeforeWritingAnything(){
     Fs.writeUtf8(mimetypes().resolve(identity+"-0123abc.png"), "");
@@ -278,7 +281,7 @@ final class LinuxAssociationsTest{
     assertEquals(Stream.concat(wanted.stream(), others.stream()).sorted().toList(), icons());
     ran.clear();
     reconcile(".ffile001", ".htm");
-    assertEquals(List.of(), ran);
+    assertEquals(rebuilt(), ran);
     reconcile(".ffile001");
     assertEquals(1, icons().stream().filter(n -> n.matches(identity+"-[0-9a-f]+\\.png")).count());
   }
@@ -340,7 +343,7 @@ Terminal=false
     assertEquals(List.of(identity), FileAssociations.identities(family));
     ran.clear();
     reconcile(List.of(game, tool), ".fearless");
-    assertEquals(List.of(), ran);
+    assertEquals(rebuilt(), ran);
     reconcile(List.of(game), ".fearless");
     assertEquals(1, windowEntries().size());
     FileAssociations.eradicateAll(family, IllegalStateException::new);
