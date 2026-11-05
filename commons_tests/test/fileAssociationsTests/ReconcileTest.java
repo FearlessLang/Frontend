@@ -113,6 +113,15 @@ final class ReconcileTest{
     if (Fs.isLinux()){ Fs.writeUtf8(tmp.resolve("config").resolve("mimeapps.list"), "[Default Applications]\n"+LinuxAssociations.typeOf(ext)+"=other.desktop\n"); return; }
     importReg(regKey(fileExts+ext+"\\UserChoice", "ProgId", other(ext)));
   }
+  private void chooseAboutWhatFearlessSetUp(String ext){
+    if (Fs.isLinux()){ choose(ext); return; }
+    importReg(regKey(fileExts+ext+"\\UserChoice", "ProgId", identity+ext));
+  }
+  private List<String> choicesAboutWhatFearlessSetUp(String ext){
+    var choices= tmp.resolve("config").resolve("mimeapps.list");
+    if (Fs.isLinux()){ return !Files.exists(choices) ? List.of() : Fs.readUtf8(choices).lines().filter(l -> l.contains(LinuxAssociations.typeOf(ext))).toList(); }
+    return reg("query", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\"+ext+"\\UserChoice") == 0 ? List.of("UserChoice of "+ext) : List.of();
+  }
   private void partial(String identity){
     if (Fs.isLinux()){ Fs.writeUtf8(tmp.resolve("sys").resolve("applications").resolve(identity+".desktop"), "[Desktop Entry]\n"); return; }
     importReg(regKey(hkcu+identity+"\\Capabilities", "ApplicationName", identity));
@@ -173,5 +182,12 @@ final class ReconcileTest{
     FileAssociations.eradicateAll(family, IllegalStateException::new);
     assertEquals(List.of(), FileAssociations.identities(family));
     assertTrue(claimed(ext));
+  }
+  @Test void reconcilingToNothingLeavesNoChoiceOfTheUserAboutWhatFearlessSetUp(){
+    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext));
+    chooseAboutWhatFearlessSetUp(ext);
+    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of());
+    assertEquals(List.of(), FileAssociations.identities(family));
+    assertEquals(List.of(), choicesAboutWhatFearlessSetUp(ext));
   }
 }
