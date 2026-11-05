@@ -26,6 +26,7 @@ final class AssociationTextTest{
     assertTrue(entry.startsWith("[Desktop Entry]\n"), entry);
     assertTrue(entry.contains("Exec=env LC_ALL=C.UTF-8 \"/home/me/fearlessManaged0_001/bin/fearlessManaged0_001\" %f"), entry);
     assertTrue(entry.contains("MimeType=application/x-fearless;application/x-fproof;"), entry);
+    assertTrue(entry.contains("TryExec=/home/me/fearlessManaged0_001/bin/fearlessManaged0_001\n"), entry);
     assertTrue(entry.contains("Icon=fearlessManaged0_001"), entry);
     assertTrue(entry.contains("StartupWMClass=controller-Main"), entry);
   }
