@@ -12,8 +12,12 @@ Testing:
 From Coordinator/Build/src, this command runs the Frontend tests on both frontends:
   /opt/jdk-26.0.2/bin/java -ea --module-path ../../../Commons/Commons.jar --add-modules Commons scripts/TestAllFrontend.java compact
 With the argument compact, every typeOk test also requires the compact frontend to print the same core as the full frontend,
-every typeFail test also requires Frontend.Fail,
-and the fuzz test compares the two frontends on every mutated program.
+and every typeFail test also requires Frontend.Fail.
+TestAllFrontend.java does not run the fuzz tests of the package fuzz.
+From Coordinator/Build/src, this command runs only the fuzz tests:
+  /opt/jdk-26.0.2/bin/java -ea --module-path ../../../Commons/Commons.jar --add-modules Commons scripts/TestFuzz.java compact
+TestFuzz.java takes minutes.
+With the argument compact, the fuzz tests also compare the two frontends on every mutated program.
 The parse tests check only the full frontend, also with the argument compact.
 Without the argument compact, the tests run only the full frontend.
 Every test script in Coordinator/Build/src/scripts, except TestAgentTools.java, accepts the argument compact.
@@ -40,6 +44,7 @@ Find a difference,
 A: some place where the full version pass and the compact fails.
 B: some place where the compact pass and the full fails.
 C: some place where they both pass but with different tree printout.
+TestFuzz.java with the argument compact reports the mutated programs where the two frontends differ.
 
 Then, for each of the identified cases, try to see if the case is isolated or if it is part of a more general family.
 Open a PR with the tests showing the difference by failing, do not fix the code, just add the failing tests. If there is a family of similar tests, add only a few well chosen representative (could be just one)
