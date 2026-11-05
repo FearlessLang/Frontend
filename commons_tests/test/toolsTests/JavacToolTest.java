@@ -2,10 +2,8 @@ package toolsTests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -40,9 +38,8 @@ final class JavacToolTest{
   }
   @Test void apostropheInProjectFolder(@TempDir Path tmp){ compiles(tmp.resolve("it's")); }
   @Test void backslashInProjectFolder(@TempDir Path tmp){ compiles(tmp.resolve("a\\b")); }
-  @Test void projectFolderWhoseNameIsNotUtf8(@TempDir Path tmp){
-    assumeTrue(Fs.isLinux());
-    compiles(Path.of(URI.create(tmp.toUri()+"caf%E9")));
+  @Test void projectFolderWhoseNameIsNotUnicode(@TempDir Path tmp){
+    compiles(NotUnicode.in(tmp));
   }
   @Test void managerFolderIsNextToTheProgramFolderOfTheLauncher(){
     var dir= Path.of("opt", "fearlessManaged0_002");

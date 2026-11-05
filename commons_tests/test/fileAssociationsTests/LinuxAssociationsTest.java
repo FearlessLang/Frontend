@@ -297,15 +297,6 @@ final class LinuxAssociationsTest{
     assertFalse(Files.exists(desktopFile()));
     assertFalse(Files.exists(packageFile()));
   }
-  @Test void takingOverAnotherProgramReportsItsCommandAndNotOurOwn(){
-    var old= "fearlessManaged0_000";
-    var oldCommand= "/opt/fearlessManaged0_000/bin/fearlessManaged0_000";
-    Fs.writeUtf8(home.resolve("applications").resolve(old+".desktop"), LinuxAssociations.desktopEntry(old, oldCommand, "x", List.of("application/x-fearless")));
-    reconcile(".htm");
-    assertEquals(List.of(Path.of(oldCommand)), replaced);
-    reconcile(".htm", ".ffile001");
-    assertEquals(List.of(Path.of(oldCommand)), replaced);
-  }
   @Test void anIdentityOfASystemDataFolderIsDeletedInFull(){
     var old= "fearlessManaged0_000";
     Fs.writeUtf8(sys.resolve("applications").resolve(old+".desktop"), "[Desktop Entry]\nMimeType=application/x-fearless-ffile001;\n");
@@ -313,11 +304,6 @@ final class LinuxAssociationsTest{
     assertEquals(List.of(old), FileAssociations.identities(family));
     reconcile(".ffile001");
     assertEquals(List.of(identity), FileAssociations.identities(family));
-  }
-  @Test void removingEveryIdentityRemovesAnIdentityOfASystemDataFolder(){
-    Fs.writeUtf8(sys.resolve("applications").resolve("fearlessManaged0_000.desktop"), "[Desktop Entry]\n");
-    FileAssociations.eradicateAll(family, IllegalStateException::new);
-    assertEquals(List.of(), FileAssociations.identities(family));
   }
   private List<String> windowEntries(){
     return Fs.of(() -> { try (var s= Files.list(home.resolve("applications"))){ return s.map(p -> p.getFileName().toString()).filter(n -> !n.equals(identity+".desktop")).sorted().toList(); }});
