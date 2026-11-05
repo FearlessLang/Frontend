@@ -40,9 +40,6 @@ final class FsSymbolicLinkTest{
     catch (InterruptedException e){ throw new AssertionError(e); }
     return link;
   }
-  private static void checkedByHandOnWindows(){
-    assert !Fs.isWindows(): "This test was written on Linux, where a Windows junction can not be made: on this Windows desk check by hand that folderLink made a junction (dir shows <JUNCTION>), that Fs refused each operation through the junction, and that Fs.isLink is false for a folder inside OneDrive; then remove this assert.";
-  }
   @Test void everyOperationRefusesALinkToAFolder(){
     var real= root.resolve("real");
     Fs.writeUtf8(real.resolve("f.txt"), "x");
@@ -67,7 +64,6 @@ final class FsSymbolicLinkTest{
     ).forEach(FsSymbolicLinkTest::refused);
     assertEquals("x", Fs.readUtf8(real.resolve("f.txt")));
     assertFalse(Files.exists(root.resolve("to")));
-    checkedByHandOnWindows();
   }
   @Test void aLinkToAFolderThatIsGoneIsALink(){
     var gone= root.resolve("gone");
@@ -76,7 +72,6 @@ final class FsSymbolicLinkTest{
     Fs.ofV(() -> Files.delete(gone));
     assertTrue(Fs.isLink(dirLink));
     refused(() -> Fs.walk(root, s -> s.toList()));
-    checkedByHandOnWindows();
   }
   private static void refused(Executable e){
     var msg= assertThrows(IllegalArgumentException.class, e).getMessage();
