@@ -306,6 +306,25 @@ final class LinuxAssociationsTest{
     reconcile(".htm", ".ffile001");
     assertEquals(List.of(Path.of(oldCommand)), replaced);
   }
+  @Test void theCommandOfAnotherProgramKeepsItsSpacesAndBackslashes(){
+    var old= "fearlessManaged0_000";
+    var oldCommand= "/opt/my apps\\x/fearlessManaged0_000/bin/fearlessManaged0_000";
+    Fs.writeUtf8(home.resolve("applications").resolve(old+".desktop"), LinuxAssociations.desktopEntry(old, oldCommand, "x", List.of("application/x-fearless")));
+    reconcile(".fearless");
+    assertEquals(List.of(Path.of(oldCommand)), replaced);
+  }
+  @Test void aFamilyDesktopFileWithoutTryExecWhoseExecEndsWithAnotherFieldCodeNamesNoCommand(){
+    Fs.writeUtf8(home.resolve("applications").resolve("fearlessBin0_000.desktop"), "[Desktop Entry]\nExec=/opt/fearlessBin0_000/bin/fearlessBin0_000 %F\n");
+    reconcile(".fearless");
+    assertEquals(List.of(), replaced);
+    assertEquals(List.of(identity), FileAssociations.identities(family));
+  }
+  @Test void aFamilyDesktopFileWithoutTryExecWithAnUnquotedExecNamesNoCommand(){
+    Fs.writeUtf8(home.resolve("applications").resolve("fearlessBin0_000.desktop"), "[Desktop Entry]\nExec=/opt/fearlessBin0_000/bin/fearlessBin0_000 %f\n");
+    reconcile(".fearless");
+    assertEquals(List.of(), replaced);
+    assertEquals(List.of(identity), FileAssociations.identities(family));
+  }
   @Test void anIdentityOfASystemDataFolderIsDeletedInFull(){
     var old= "fearlessManaged0_000";
     Fs.writeUtf8(sys.resolve("applications").resolve(old+".desktop"), "[Desktop Entry]\nMimeType=application/x-fearless-ffile001;\n");
