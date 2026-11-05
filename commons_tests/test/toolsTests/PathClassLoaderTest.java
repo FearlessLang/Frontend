@@ -35,9 +35,9 @@ final class PathClassLoaderTest{
       public class Probe{ public static void main(String[] a) throws Exception{
         var l= Probe.class.getClassLoader();
         var url= l.getResource("data.txt");
-        System.out.println(l.getClass().getName()+" "+(Thread.currentThread().getContextClassLoader() == l)+" "+url.getProtocol());
-        System.out.println(new String(url.openStream().readAllBytes()).trim()+" "+new String(Probe.class.getResourceAsStream("/data.txt").readAllBytes()).trim());
-        System.out.println(Collections.list(l.getResources("data.txt")).size()+" "+Lib.name()+" "+String.join(",", a)+" "+System.getProperty("sun.jnu.encoding"));
+        System.out.print(l.getClass().getName()+" "+(Thread.currentThread().getContextClassLoader() == l)+" "+url.getProtocol()+"\\n");
+        System.out.print(new String(url.openStream().readAllBytes()).trim()+" "+new String(Probe.class.getResourceAsStream("/data.txt").readAllBytes()).trim()+"\\n");
+        System.out.print(Collections.list(l.getResources("data.txt")).size()+" "+Lib.name()+" "+String.join(",", a)+" "+System.getProperty("sun.jnu.encoding")+"\\n");
       } }
       """);
     Fs.writeUtf8(src.resolve("Lib.java"), "public class Lib{ public static String name(){ return \"lib\"; } }\n");
