@@ -3,7 +3,10 @@ package toolsTests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
@@ -29,6 +32,51 @@ final class FsSymbolicLinkTest{
       return Assumptions.abort("Windows does not give this process the privilege to create symbolic links");
     }
     catch (IOException e){ throw new UncheckedIOException(e); }
+  }
+  private static Path folderLink(Path link, Path target){
+    if (!Fs.isWindows()){ return link(link, target); }
+    var p= Fs.of(new ProcessBuilder("cmd", "/c", "mklink", "/J", link.toString(), target.toString()).redirectErrorStream(true).redirectOutput(Redirect.DISCARD)::start);
+    try{ assertEquals(0, p.waitFor()); }
+    catch (InterruptedException e){ throw new AssertionError(e); }
+    return link;
+  }
+  private static void checkedByHandOnWindows(){
+    assert !Fs.isWindows(): "This test was written on Linux, where a Windows junction can not be made: on this Windows desk check by hand that folderLink made a junction (dir shows <JUNCTION>), that Fs refused each operation through the junction, and that Fs.isLink is false for a folder inside OneDrive; then remove this assert.";
+  }
+  @Test void everyOperationRefusesALinkToAFolder(){
+    var real= root.resolve("real");
+    Fs.writeUtf8(real.resolve("f.txt"), "x");
+    var dirLink= folderLink(root.resolve("ldir"), real);
+    assertTrue(Fs.isLink(dirLink));
+    assertFalse(Fs.isLink(real));
+    List.<Executable>of(
+      () -> Fs.ensureDir(dirLink),
+      () -> Fs.reqDir(dirLink, "a test"),
+      () -> Fs.cleanDir(dirLink),
+      () -> Fs.rmTree(dirLink),
+      () -> Fs.copyTree(dirLink, root.resolve("to")),
+      () -> Fs.copyTreeFlat(dirLink, root.resolve("to")),
+      () -> Fs.copyTree(real, dirLink),
+      () -> Fs.walk(dirLink, s -> s.toList()),
+      () -> Fs.isDirectory(dirLink),
+      () -> Fs.createDirectories(dirLink),
+      () -> Fs.list(dirLink).close(),
+      () -> Fs.list(root).toList(),
+      () -> Fs.walk(root, s -> s.toList()),
+      () -> Fs.watch(dirLink, root.getFileSystem().newWatchService(), StandardWatchEventKinds.ENTRY_CREATE)
+    ).forEach(FsSymbolicLinkTest::refused);
+    assertEquals("x", Fs.readUtf8(real.resolve("f.txt")));
+    assertFalse(Files.exists(root.resolve("to")));
+    checkedByHandOnWindows();
+  }
+  @Test void aLinkToAFolderThatIsGoneIsALink(){
+    var gone= root.resolve("gone");
+    Fs.ensureDir(gone);
+    var dirLink= folderLink(root.resolve("ldir"), gone);
+    Fs.ofV(() -> Files.delete(gone));
+    assertTrue(Fs.isLink(dirLink));
+    refused(() -> Fs.walk(root, s -> s.toList()));
+    checkedByHandOnWindows();
   }
   private static void refused(Executable e){
     var msg= assertThrows(IllegalArgumentException.class, e).getMessage();
