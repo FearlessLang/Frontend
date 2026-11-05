@@ -2,10 +2,8 @@ package toolsTests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.File;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -27,7 +25,7 @@ final class PathClassLoaderTest{
   static Path odd;
   static Path plain;
   @BeforeAll static void jars(){
-    odd= Fs.isLinux() ? Path.of(URI.create(tmp.toUri()+"caf%E9")) : tmp.resolve("caf\u00e9");
+    odd= NotUnicode.in(tmp);
     plain= tmp.resolve("plain");
     Fs.ofV(() -> Files.createDirectories(odd));
     Fs.ofV(() -> Files.createDirectories(plain));
@@ -68,24 +66,21 @@ final class PathClassLoaderTest{
     assertEquals(odd.resolve("a.jar"), back);
     assertTrue(Files.isRegularFile(back));
   }
-  @Test void theLoaderReadsJarsInAFolderWhoseNameIsNotUtf8() throws InterruptedException{
-    assumeTrue(Fs.isLinux());
+  @Test void theLoaderReadsJarsInAFolderWhoseNameIsNotUnicode() throws InterruptedException{
     Err.strCmp("""
       tools.PathClassLoader true fearless
       odd odd
-      2 lib x,y UTF-8
+      2 lib x,y [###]
       """, probe(Map.of("LC_ALL", "C.UTF-8")));
   }
   @Test void theLoaderReadsJarsInAFolderWhoseNameIsNotAscii() throws InterruptedException{
-    assumeTrue(Fs.isLinux());
     Err.strCmp("""
       tools.PathClassLoader true fearless
       odd odd
       2 lib x,y [###]
       """, probe(Map.of("LC_ALL", "C")));
   }
-  @Test void theSystemLoaderDoesNotReadAJarInAFolderWhoseNameIsNotUtf8() throws InterruptedException{
-    assumeTrue(Fs.isLinux());
+  @Test void theSystemLoaderDoesNotReadAJarInAFolderWhoseNameIsNotUnicode() throws InterruptedException{
     Err.strCmp("Error: Could not find or load main class Probe[###]",
       run(Map.of("LC_ALL", "C.UTF-8"), List.of("-cp", odd.resolve("a.jar")+File.pathSeparator+plain.resolve("b.jar"), "Probe")));
   }
