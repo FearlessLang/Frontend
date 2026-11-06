@@ -354,6 +354,12 @@ Terminal=false
     reconcile(".htm");
     assertEquals(rebuilt(), ran);
   }
+  @Test void theDefaultOfTheMostImportantChoiceFileIsTheOneThatCounts(){
+    Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Default Applications]\napplication/x-fearless-htm="+identity+".desktop\n");
+    Fs.writeUtf8(root.resolve("etc").resolve("mimeapps.list"), "[Default Applications]\napplication/x-fearless-htm=browser.desktop\n");
+    reconcile(".htm");
+    assertEquals("MimeType=application/x-fearless-htm;", mimeTypes());
+  }
   @Test void noExtensionsLeavesNoFileOfTheIdentity(){
     reconcile(".ffile001");
     reconcile();
