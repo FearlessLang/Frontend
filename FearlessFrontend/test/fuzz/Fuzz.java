@@ -3,6 +3,8 @@ package fuzz;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -32,27 +34,41 @@ final class Fuzz extends testUtils.FearlessTestBase{
     var frequent= rejections.entrySet().stream().sorted(Map.Entry.<String,Integer>comparingByValue().reversed()).limit(3).map(e -> e.getKey()+" "+e.getValue());
     return name+": "+checked+" programs, "+(checked-rejected)+" accepted by the full frontend; most frequent rejections: "+Join.of(frequent, "", ", ", "", "");
   }
-  boolean check(String src){
-    var o= SourceOracle.debugBuilder().put(0, src).build();
+  record Outcome(String rejection, String finding){ boolean accepted(){ return rejection.isEmpty(); } }
+  boolean check(String src){ return check(src, finding -> Shrink.text(src, same(finding))); }
+  boolean check(Ast.Program p){
+    var src= Source.of(p);
+    return check(src, finding -> Shrink.text(Source.of(Shrink.tree(p, same(finding))), same(finding)));
+  }
+  boolean check(String src, UnaryOperator<String> shrink){
     checked += 1;
+    var o= outcome(src);
+    if (!o.accepted()){ rejections.merge(o.rejection(), 1, Integer::sum); }
+    var worthShrinking= !o.finding().isEmpty() && (!found.containsKey(o.finding()) || found.get(o.finding()).length() > src.length());
+    if (worthShrinking){ found(o.finding(), shrink.apply(o.finding())); }
+    return o.accepted();
+  }
+  Predicate<String> same(String finding){ return s -> outcome(s).finding().equals(finding); }
+  Outcome outcome(String src){
+    var o= SourceOracle.debugBuilder().put(0, src).build();
     try{
       String full;
       try{ full= canon(lines(compileAll("p", o, other))); }
-      catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); full= rejects(fe); rejections.merge(full.substring("rejects at ".length()), 1, Integer::sum); }
+      catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); full= rejects(fe); }
       var fullRejects= full.startsWith("rejects at ");
-      if (!checkCompact){ return !fullRejects; }
+      var rejection= fullRejects ? full.substring("rejects at ".length()) : "";
+      if (!checkCompact){ return new Outcome(rejection, ""); }
       String got;
       try{ got= canon(compact.Print.lines(compactAll("p", o, compactOther))); }
       catch (compact.Frontend.Fail f){ got= rejects(f); }
       var compactRejects= got.startsWith("rejects at ");
-      if (full.equals(got) || fullRejects && compactRejects){ return !fullRejects; }
+      if (full.equals(got) || fullRejects && compactRejects){ return new Outcome(rejection, ""); }
       var kind= compactRejects ? "A: the full frontend accepts, the compact frontend "+got
         : fullRejects ? "B: the compact frontend accepts, the full frontend "+full
         : "C: the full core has "+firstDifference(full, got);
-      found(kind, src);
-      return !fullRejects;
+      return new Outcome(rejection, kind);
     }
-    catch (Throwable t){ found(crash(t), src); return false; }
+    catch (Throwable t){ return new Outcome(crash(t), crash(t)); }
   }
   static final Pattern token= Pattern.compile("\\w+|\\S");
   static String firstDifference(String full, String compact){

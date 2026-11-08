@@ -27,7 +27,7 @@ public final class FuzzTest{
     var accepted= new ArrayDeque<Ast.Program>();
     for (int i= 0; i < 3000; i += 1){
       var p= new Gen(new Random(i), 7).of(Ast.Program.class);
-      if (fuzz.check(Source.of(p))){ accepted.add(p); }
+      if (fuzz.check(p)){ accepted.add(p); }
     }
     var rnd= new Random(0);
     for (int i= 0; i < 10000; i += 1){
@@ -36,7 +36,7 @@ public final class FuzzTest{
       var n= Trees.positions(p);
       if (n == 0){ continue; }
       var mutant= Trees.replace(p, rnd.nextInt(n), (_, t) -> new Gen(rnd, 5).value(t));
-      if (fuzz.check(Source.of(mutant))){ accepted.add(mutant); }
+      if (fuzz.check(mutant)){ accepted.add(mutant); }
     }
     fuzz.assertNothingFound();
   }
