@@ -7,8 +7,12 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 public final class FuzzTest{
-  @Test void mutatedTestProgramsNeverCrash(){
-    var fuzz= new Fuzz("mutatedTestProgramsNeverCrash");
+  static final int generated= 3000;
+  static final int generatedDepth= 7;
+  static final int mutants= 10000;
+  static final int mutantDepth= 5;
+  @Test void mutatedTestPrograms(){
+    var fuzz= new Fuzz("mutatedTestPrograms");
     var mutations= new Mutations(Seeds.all);
     for (var s : Seeds.all){
       fuzz.check(s);
@@ -17,25 +21,25 @@ public final class FuzzTest{
     }
     fuzz.assertNothingFound();
   }
-  @Test void underAnnotatedTestProgramsNeverCrash(){
-    var fuzz= new Fuzz("underAnnotatedTestProgramsNeverCrash");
+  @Test void underAnnotatedTestPrograms(){
+    var fuzz= new Fuzz("underAnnotatedTestPrograms");
     Seeds.annotated.stream().flatMap(Mutations::underAnnotations).forEach(fuzz::check);
     fuzz.assertNothingFound();
   }
-  @Test void generatedProgramsAgree(){
-    var fuzz= new Fuzz("generatedProgramsAgree");
+  @Test void generatedPrograms(){
+    var fuzz= new Fuzz("generatedPrograms");
     var accepted= new ArrayDeque<Ast.Program>();
-    for (int i= 0; i < 3000; i += 1){
-      var p= new Gen(new Random(i), 7).of(Ast.Program.class);
+    for (int i= 0; i < generated; i += 1){
+      var p= new Gen(new Random(i), generatedDepth).of(Ast.Program.class);
       if (fuzz.check(p)){ accepted.add(p); }
     }
     var rnd= new Random(0);
-    for (int i= 0; i < 10000; i += 1){
+    for (int i= 0; i < mutants; i += 1){
       var p= accepted.poll();
       accepted.add(p);
       var n= Trees.positions(p);
       if (n == 0){ continue; }
-      var mutant= Trees.replace(p, rnd.nextInt(n), (_, t) -> new Gen(rnd, 5).value(t));
+      var mutant= Trees.replace(p, rnd.nextInt(n), (_, t) -> new Gen(rnd, mutantDepth).value(t));
       if (fuzz.check(mutant)){ accepted.add(mutant); }
     }
     fuzz.assertNothingFound();

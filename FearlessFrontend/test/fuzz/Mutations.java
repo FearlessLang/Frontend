@@ -34,14 +34,21 @@ final class Mutations{
   String mutateOnce(String s, Random r){
     int p= r.nextInt(s.length());
     return switch (r.nextInt(7)){
-      case 0 -> s.substring(0, p) + s.substring(Math.min(s.length(), p+1+r.nextInt(4)));
-      case 1 -> insert(s, p, tokens.get(r.nextInt(tokens.size())));
-      case 2 -> insert(s, r.nextInt(s.length()), slice(s, p, 1+r.nextInt(12)));
-      case 3 -> insert(s, p, slice(donor(r), r, 20));
+      case 0 -> deleteCharacters(s, p, r);
+      case 1 -> insertToken(s, p, r);
+      case 2 -> copySlice(s, p, r);
+      case 3 -> insertDonorSlice(s, p, r);
       case 4 -> swapRc(s, r);
       default -> swapWord(s, r);
     };
   }
+  static String deleteCharacters(String s, int p, Random r){ return s.substring(0, p) + s.substring(Math.min(s.length(), p+1+r.nextInt(4))); }
+  static String insertToken(String s, int p, Random r){ return insert(s, p, tokens.get(r.nextInt(tokens.size()))); }
+  static String copySlice(String s, int p, Random r){
+    var at= r.nextInt(s.length());
+    return insert(s, at, slice(s, p, 1+r.nextInt(12)));
+  }
+  String insertDonorSlice(String s, int p, Random r){ return insert(s, p, slice(donor(r), r, 20)); }
   String donor(Random r){
     var e= donors.ceilingEntry(r.nextInt());
     return (e == null ? donors.firstEntry() : e).getValue();

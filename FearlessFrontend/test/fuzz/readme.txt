@@ -1,0 +1,50 @@
+The package fuzz compiles many programs with the full frontend and, with the argument compact, also with the compact frontend.
+From Coordinator/Build/src, TestFuzz.java runs only this package, and TestFuzz.java compact also runs the compact frontend.
+
+A 'finding' is a program where:
+- a frontend throws an exception other than its rejection (FearlessException for the full frontend, Frontend.Fail for the compact frontend), or
+- with the argument compact, the two frontends disagree:
+  A: the full frontend accepts, the compact frontend rejects;
+  B: the compact frontend accepts, the full frontend rejects;
+  C: both accept, and the cores differ after FearlessTestBase.canon.
+A program that both frontends reject is not a finding.
+Each test fails with its findings, one for each report key.
+The report key of a finding is its kind and its place:
+the class, method and line that rejects, the first token where the two cores differ, or the class and method that throws the exception.
+The program under a report key is shrunk (see Shrink below).
+
+The tests:
+- mutatedTestPrograms: the 'seeds', the string constants of the test classes that look like programs (Seeds),
+  each with 9 mutants of 1 to 3 text mutations (Mutations): deleted characters, an inserted token, a copied slice,
+  a slice of another seed, a swapped capability, a swapped name.
+- underAnnotatedTestPrograms: the seeds with annotations, each with 9 mutants that drop 1 to 4 annotations:
+  type arguments of calls, heads of literals, parameter types, return types, capabilities.
+- generatedPrograms: 3000 programs generated from the grammar Ast (Gen, printed by Source),
+  then 10000 mutants, each replacing one position of an accepted program with a new generated value (Trees).
+  Most mutants differ from an accepted program in one place, so most of them are accepted too.
+- writingTheInferredTypesKeepsTheCore: the programs of the first two tests, with the types the full frontend infers written in the source (InferredTypes).
+  The full frontend must accept the written program and print the same core.
+
+Every test prints a summary line: the number of programs, how many of them the full frontend accepts,
+and the three most frequent places where the full frontend rejects.
+
+Gen:
+A record is built by its canonical constructor, with a generated value for each component.
+A sealed interface is built as one of its permitted records, chosen at random.
+Past the maximum depth, Gen chooses only among the leaf records: the records without a component of a sealed type.
+@Size bounds the size of a list; @OneOf lists the values of a string.
+
+Source:
+A program is the helpers Id and Box[X], then the declarations A, B and C; B can implement A, and C can implement A and B.
+Methods are named by position, .m, .n and #; parameters are named x0, x1, ... in the order they are printed.
+A parameter reference names a variable in scope, the innermost first.
+A method omits its types only when a supertype, or the head of its literal, has a method in the same position;
+the method then takes the arity and the capability of that method.
+A literal writes its self name only when its methods use it.
+
+Shrink:
+A generated program is first shrunk as a tree: at each position, Shrink tries a list without one element,
+a subtree of the same type, a leaf, false, the first enum constant, the first string of @OneOf.
+Every program is then shrunk as text: Shrink deletes runs of tokens, from half of the tokens down to one token.
+A shrinking step is kept when the program keeps the same report key; a shrinking makes at most 2000 attempts.
+A program is shrunk only when its report key is new, or when it is shorter than the program kept for that key.

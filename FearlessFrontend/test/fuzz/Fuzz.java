@@ -51,24 +51,29 @@ final class Fuzz extends testUtils.FearlessTestBase{
   Predicate<String> same(String finding){ return s -> outcome(s).finding().equals(finding); }
   Outcome outcome(String src){
     var o= SourceOracle.debugBuilder().put(0, src).build();
-    try{
-      String full;
-      try{ full= canon(lines(compileAll("p", o, other))); }
-      catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); full= rejects(fe); }
-      var fullRejects= full.startsWith("rejects at ");
-      var rejection= fullRejects ? full.substring("rejects at ".length()) : "";
-      if (!checkCompact){ return new Outcome(rejection, ""); }
-      String got;
-      try{ got= canon(compact.Print.lines(compactAll("p", o, compactOther))); }
-      catch (compact.Frontend.Fail f){ got= rejects(f); }
-      var compactRejects= got.startsWith("rejects at ");
-      if (full.equals(got) || fullRejects && compactRejects){ return new Outcome(rejection, ""); }
-      var kind= compactRejects ? "A: the full frontend accepts, the compact frontend "+got
-        : fullRejects ? "B: the compact frontend accepts, the full frontend "+full
-        : "C: the full core has "+firstDifference(full, got);
-      return new Outcome(rejection, kind);
-    }
+    String full;
+    try{ full= full(o); }
     catch (Throwable t){ return new Outcome(crash(t), crash(t)); }
+    var fullRejects= full.startsWith("rejects at ");
+    var rejection= fullRejects ? full.substring("rejects at ".length()) : "";
+    if (!checkCompact){ return new Outcome(rejection, ""); }
+    String got;
+    try{ got= compact(o); }
+    catch (Throwable t){ return new Outcome(rejection, crash(t)); }
+    var compactRejects= got.startsWith("rejects at ");
+    if (full.equals(got) || fullRejects && compactRejects){ return new Outcome(rejection, ""); }
+    var kind= compactRejects ? "A: the full frontend accepts, the compact frontend "+got
+      : fullRejects ? "B: the compact frontend accepts, the full frontend "+full
+      : "C: the full core has "+firstDifference(full, got);
+    return new Outcome(rejection, kind);
+  }
+  String full(SourceOracle o){
+    try{ return canon(lines(compileAll("p", o, other))); }
+    catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); return rejects(fe); }
+  }
+  String compact(SourceOracle o){
+    try{ return canon(compact.Print.lines(compactAll("p", o, compactOther))); }
+    catch (compact.Frontend.Fail f){ return rejects(f); }
   }
   static final Pattern token= Pattern.compile("\\w+|\\S");
   static String firstDifference(String full, String compact){
