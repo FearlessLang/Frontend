@@ -5913,4 +5913,12 @@ B:{ #: mut A -> mut A{'s .a -> s.a} }
 @Test void letOfAGenericParameterUsedInTheReturn(){ok(List.of("""
 A:{ .k[X](x: X): base.Void -> base.Block#.let y= {x} .return{ base.Block#(y, base.Void) } }
 """));}
+@Test void selfNameCallOnAnImmLiteralGetsItsCapability(){ok(List.of("""
+A:{}
+Foo:{ .foo: A; read .r: A }
+B:{ .k: A -> B.ig(Foo{'s .foo -> s.r; read .r -> A }); .ig(z: Foo): A -> z.foo }
+"""));}
+@Test void declaredReceiverLiteralCapturesThisInAReadMethod(){ok(List.of("""
+A:{ read .q: A; read .k: A -> read Foo:{ read .z: A -> this.q }.z }
+"""));}
 }
