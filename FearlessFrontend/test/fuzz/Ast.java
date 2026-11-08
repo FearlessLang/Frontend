@@ -4,6 +4,7 @@ import java.util.List;
 
 import fuzz.Gen.OneOf;
 import fuzz.Gen.Size;
+import fuzz.Gen.Weight;
 
 interface Ast{
   enum Rc{ none, imm, read, mut, iso }
@@ -14,9 +15,9 @@ interface Ast{
   record Meth(Rc rc, boolean typed, @Size(max=2) List<Ty> parameters, Ty result, Body body){}
   sealed interface Body{}
   record Abstract() implements Body{}
-  record Returns(E e) implements Body{}
+  @Weight(3) record Returns(E e) implements Body{}
   sealed interface Ty{}
-  record Named(Rc rc, @OneOf({"A", "B", "C", "base.Void", "Box[A]", "Box[B]"}) String name) implements Ty{}
+  @Weight(4) record Named(Rc rc, @OneOf({"A", "B", "C", "base.Void", "Box[A]", "Box[B]", "Self", "Self"}) String name) implements Ty{}
   record Lambda(Rc rc, @Size(max=2) List<Named> arguments, Named result) implements Ty{}
   sealed interface E{}
   record This() implements E{}

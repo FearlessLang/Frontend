@@ -5,6 +5,8 @@ import static java.util.stream.Collectors.joining;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -20,20 +22,38 @@ final class Source{
     Box[X:**]:{ .m: X; .n(x: X): Box[X]; #: Box[X] }
     """;
   final HashMap<String,List<Meth>> signatures= new HashMap<>();
+  final HashMap<String,List<String>> supertypes= new HashMap<>();
+  final HashMap<String,Set<Integer>> abstracts= new HashMap<>();
   final ArrayList<String> scope= new ArrayList<>();
+  final ArrayList<String> scopeTypes= new ArrayList<>();
+  String declaring= "";
+  final ArrayList<String> selves= new ArrayList<>();
+  final ArrayList<String> selfTypes= new ArrayList<>();
   int fresh= 0;
   static String of(Program p){
     var s= new Source();
-    var x= new Named(Rc.none, "A");
-    var box= List.of(new Meth(Rc.none, true, List.of(), x, new Abstract()), new Meth(Rc.none, true, List.of(x), x, new Abstract()), new Meth(Rc.none, true, List.of(), x, new Abstract()));
-    s.signatures.put("Box[A]", box);
-    s.signatures.put("Box[B]", box);
+    s.box("A");
+    s.box("B");
     return helpers+s.declaration("A", List.of(), p.a())+"\n"+s.declaration("B", List.of("A"), p.b())+"\n"+s.declaration("C", List.of("A", "B"), p.c())+"\n";
   }
-  String declaration(String name, List<String> before, Dec d){
+  void box(String x){
+    var name= "Box["+x+"]";
+    var t= new Named(Rc.none, x);
+    var self= new Named(Rc.none, name);
+    signatures.put(name, List.of(new Meth(Rc.none, true, List.of(), t, new Abstract()), new Meth(Rc.none, true, List.of(t), self, new Abstract()), new Meth(Rc.none, true, List.of(), self, new Abstract())));
+    abstracts.put(name, Set.of(0, 1, 2));
+  }
+  String declaration(String name, List<String> before, Dec written){
+    var d= Trees.map(written, v -> v instanceof Named(var rc, var n) && n.equals("Self") ? new Named(rc, name) : v);
     var supers= IntStream.range(0, before.size()).filter(i -> d.supertypes() == Supers.both || d.supertypes().ordinal() == i+1).mapToObj(before::get).toList();
     var inherited= supers.stream().map(signatures::get).reduce(List.of(), (a, b) -> a.size() >= b.size() ? a : b);
     signatures.put(name, IntStream.range(0, Math.max(inherited.size(), d.methods().size())).mapToObj(i -> i < inherited.size() ? inherited.get(i) : d.methods().get(i)).toList());
+    supertypes.put(name, supers);
+    var open= new TreeSet<Integer>();
+    supers.forEach(s -> open.addAll(abstracts.get(s)));
+    IntStream.range(0, d.methods().size()).forEach(i -> { if (d.methods().get(i).body() instanceof Abstract){ open.add(i); } else { open.remove(i); } });
+    abstracts.put(name, open);
+    declaring= name;
     return name+":"+String.join(", ", supers)+"{ "+methods(d.methods(), inherited, true)+" }";
   }
   String methods(List<Meth> ms, List<Meth> inherited, boolean top){
@@ -47,26 +67,78 @@ final class Source{
     var sig= (shape.rc() == Rc.iso ? "" : rc(shape.rc()))+names.get(i)+Join.of(ps, "(", ", ", ")", "")+(typed ? ": "+type(m.result()) : "");
     if (top && m.body() instanceof Abstract){ return sig; }
     var body= m.body() instanceof Returns(var e) ? e : new This();
-    return sig+" -> "+scoped(xs, () -> expression(body));
+    var types= shape.parameters().stream().map(Source::name).toList();
+    return sig+" -> "+scoped(xs, types, () -> body(body, shape.result()));
   }
-  String scoped(List<String> xs, Supplier<String> inside){
+  String body(E e, Ty expected){
+    var got= typeOf(e);
+    var fits= got != null && name(expected) != null && subtype(got, name(expected));
+    var leaf= e instanceof This || e instanceof Parameter || e instanceof TypeName;
+    if (fits || got == null && !leaf){ return expression(e); }
+    var v= value(expected);
+    return v == null ? expression(e) : v;
+  }
+  String value(Ty t){ return switch (t){
+    case Named(_, var n) -> n.equals("base.Void") ? n : Stream.of("A", "B", "C").filter(d -> abstracts.containsKey(d) && abstracts.get(d).isEmpty() && subtype(d, n)).findFirst().orElse(null);
+    case Lambda(_, var as, var r) -> functionReturning(as.size(), value(r));
+  };}
+  String functionReturning(int arity, String result){
+    if (result == null){ return null; }
+    var xs= IntStream.range(0, arity).mapToObj(_ -> "x"+(fresh++)).toList();
+    return "{ "+String.join(", ", xs)+(xs.isEmpty() ? "" : " -> ")+result+" }";
+  }
+  boolean subtype(String a, String b){ return a.equals(b) || supertypes.getOrDefault(a, List.of()).stream().anyMatch(s -> subtype(s, b)); }
+  String typeOf(E e){ return switch (e){
+    case This _ -> selves.isEmpty() ? declaring : selfTypes.getLast();
+    case Parameter(var n) -> scope.isEmpty() ? declaring : scopeTypes.get(scope.size()-1-n.ordinal() % scope.size());
+    case TypeName(var n) -> n;
+    case Call(var r, var m, _, _) -> resultOf(typeOf(r), m.ordinal());
+    case Literal(_, var head, _, _) -> head.isEmpty() ? null : head;
+    default -> null;
+  };}
+  String resultOf(String type, int method){
+    if (type == null || !signatures.containsKey(type) || method >= signatures.get(type).size()){ return null; }
+    return name(signatures.get(type).get(method).result());
+  }
+  static String name(Ty t){ return t instanceof Named(_, var n) ? n : null; }
+  String scoped(List<String> xs, Supplier<String> inside){ return scoped(xs, xs.stream().map(_ -> (String)null).toList(), inside); }
+  String scoped(List<String> xs, List<String> types, Supplier<String> inside){
     scope.addAll(xs);
+    scopeTypes.addAll(types);
     try{ return inside.get(); }
-    finally{ scope.subList(scope.size()-xs.size(), scope.size()).clear(); }
+    finally{
+      scope.subList(scope.size()-xs.size(), scope.size()).clear();
+      scopeTypes.subList(scopeTypes.size()-xs.size(), scopeTypes.size()).clear();
+    }
   }
   String expression(E e){ return switch (e){
-    case This _ -> "this";
+    case This _ -> selves.isEmpty() ? "this" : selves.getLast();
     case Parameter(var n) -> scope.isEmpty() ? "this" : scope.get(scope.size()-1-n.ordinal() % scope.size());
     case TypeName(var n) -> n;
     case Call(var r, var m, var rc, var args) -> expression(r)+names.get(m.ordinal())+(rc == Rc.none ? "" : "["+rc+"]")+Join.of(args.stream().map(this::expression), "(", ", ", ")", "");
-    case Literal(var rc, var head, var self, var ms) -> literal(head.isEmpty() ? "" : rc(rc)+head, self ? List.of("s"+(fresh++)) : List.of(), ms, signatures.getOrDefault(head, List.of()));
-    case Declared(var rc, var sup, var ms) -> literal(rc(rc)+"D"+(fresh++)+":"+sup, List.of(), ms, signatures.getOrDefault(sup, List.of()));
+    case Literal(var rc, var head, var self, var ms) -> literal(head.isEmpty() ? "" : rc(rc)+head, self ? List.of("s"+(fresh++)) : List.of(), head.isEmpty() ? null : head, ms, signatures.getOrDefault(head, List.of()));
+    case Declared(var rc, var sup, var ms) -> literal(rc(rc)+"D"+(fresh++)+":"+sup, List.of(), null, ms, signatures.getOrDefault(sup, List.of()));
     case Function(var ps, var body) -> function(ps.stream().map(_ -> "x"+(fresh++)).toList(), body);
   };}
-  String literal(String head, List<String> self, List<Meth> ms, List<Meth> inherited){
-    var body= scoped(self, () -> methods(ms, inherited, false));
-    var used= self.stream().filter(x -> Pattern.compile("\\b"+x+"\\b").matcher(body).find()).map(x -> "'"+x+" ").collect(joining());
-    return head+"{ "+used+body+" }";
+  String literal(String head, List<String> self, String selfType, List<Meth> ms, List<Meth> inherited){
+    selves.addAll(self);
+    selfTypes.addAll(self.stream().map(_ -> selfType).toList());
+    String body;
+    try{ body= scoped(self, self.stream().map(_ -> selfType).toList(), () -> methods(ms, inherited, false)); }
+    finally{
+      selves.subList(selves.size()-self.size(), selves.size()).clear();
+      selfTypes.subList(selfTypes.size()-self.size(), selfTypes.size()).clear();
+    }
+    var completed= abstracts.getOrDefault(selfType, Set.of()).stream().filter(i -> i >= ms.size()).map(i -> completion(i, inherited.get(i))).filter(c -> c != null).toList();
+    var all= Stream.concat(Stream.of(body).filter(b -> !b.isEmpty()), completed.stream()).collect(joining("; "));
+    var used= self.stream().filter(x -> Pattern.compile("\\b"+x+"\\b").matcher(all).find()).map(x -> "'"+x+" ").collect(joining());
+    return head+"{ "+used+all+" }";
+  }
+  String completion(int i, Meth inherited){
+    var v= value(inherited.result());
+    if (v == null){ return null; }
+    var xs= inherited.parameters().stream().map(_ -> "x"+(fresh++)).toList();
+    return (inherited.rc() == Rc.iso ? "" : rc(inherited.rc()))+names.get(i)+Join.of(xs, "(", ", ", ")", "")+" -> "+v;
   }
   String function(List<String> xs, E body){ return "{ "+String.join(", ", xs)+(xs.isEmpty() ? "" : " -> ")+scoped(xs, () -> expression(body))+" }"; }
   String type(Ty t){ return switch (t){
