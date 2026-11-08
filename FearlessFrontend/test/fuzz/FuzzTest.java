@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -201,16 +202,35 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   static void run(String src, OtherPackages other, List<compact.Frontend.Literal> cBase, TreeMap<String,String> crashes){
     var o= SourceOracle.debugBuilder().put(0, src).build();
     try{
-      var expected= "error";
-      try{ expected= lines(compileAll("p", o, other)); }
-      catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); }
+      String full;
+      try{ full= canon(lines(compileAll("p", o, other))); }
+      catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); full= rejects(fe); }
       if (!checkCompact){ return; }
-      var got= "error";
-      try{ got= compact.Print.lines(compactAll("p", o, cBase)); }
-      catch (compact.Frontend.Fail _){}
-      if (!canon(expected).equals(canon(got))){ crashes.merge("compact frontend disagrees", src, FuzzTest::shorter); }
+      String got;
+      try{ got= canon(compact.Print.lines(compactAll("p", o, cBase))); }
+      catch (compact.Frontend.Fail f){ got= rejects(f); }
+      var fullRejects= full.startsWith("rejects at ");
+      var compactRejects= got.startsWith("rejects at ");
+      if (full.equals(got) || fullRejects && compactRejects){ return; }
+      var kind= compactRejects ? "A: the full frontend accepts, the compact frontend "+got
+        : fullRejects ? "B: the compact frontend accepts, the full frontend "+full
+        : "C: the full core has "+firstDifference(full, got);
+      crashes.merge(kind, src, FuzzTest::shorter);
     }
     catch (Throwable t){ crashes.merge(signature(t), src, FuzzTest::shorter); }
+  }
+  static final Pattern token= Pattern.compile("\\w+|\\S");
+  static String firstDifference(String full, String compact){
+    var f= token.matcher(full).results().map(MatchResult::group).toList();
+    var c= token.matcher(compact).results().map(MatchResult::group).toList();
+    var i= IntStream.range(0, Math.min(f.size(), c.size())).filter(j -> !f.get(j).equals(c.get(j))).findFirst().orElse(Math.min(f.size(), c.size()));
+    return quote(f, i)+" where the compact core has "+quote(c, i);
+  }
+  static String quote(List<String> ts, int i){ return i < ts.size() ? "\""+ts.get(i)+"\"" : "the end"; }
+  static final Pattern thrower= Pattern.compile("java\\..*|message\\.(Code|Err)\\..*|core\\.FearlessException\\..*|compact\\.Frontend(\\$Parser)?\\.(no|required|take)");
+  static String rejects(Throwable t){
+    var e= Stream.of(t.getStackTrace()).filter(f -> !thrower.matcher(f.getClassName()+"."+f.getMethodName()).matches()).findFirst().orElseThrow();
+    return "rejects at "+e.getClassName()+"."+e.getMethodName()+":"+e.getLineNumber();
   }
   static String shorter(String a, String b){ return a.length() <= b.length() ? a : b; }
   static String signature(Throwable t){
@@ -244,12 +264,13 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   }
   static String mutateOnce(String s, Random r, TreeMap<Integer,String> donors){
     int p= r.nextInt(s.length());
-    return switch (r.nextInt(5)){
+    return switch (r.nextInt(7)){
       case 0 -> s.substring(0, p) + s.substring(Math.min(s.length(), p+1+r.nextInt(4)));
       case 1 -> insert(s, p, tokens.get(r.nextInt(tokens.size())));
       case 2 -> insert(s, r.nextInt(s.length()), slice(s, p, 1+r.nextInt(12)));
       case 3 -> insert(s, p, slice(donor(donors, r), r, 20));
-      default -> swapRc(s, r);
+      case 4 -> swapRc(s, r);
+      default -> swapWord(s, r);
     };
   }
   static String donor(TreeMap<Integer,String> donors, Random r){
@@ -276,6 +297,15 @@ public final class FuzzTest extends testUtils.FearlessTestBase{
   static String insert(String s, int at, String t){ return s.substring(0, at) + t + s.substring(at); }
   static String slice(String s, int from, int maxLen){ return s.substring(from, Math.min(s.length(), from+maxLen)); }
   static String slice(String s, Random r, int maxLen){ return slice(s, r.nextInt(s.length()), 1+r.nextInt(maxLen)); }
+  static final Pattern word= Pattern.compile("[A-Z]\\w*|\\.[a-z]\\w*|(?<![.\\w])[a-z]\\w*");
+  static int kind(String w){ return w.startsWith(".") ? 0 : Character.isUpperCase(w.charAt(0)) ? 1 : 2; }
+  static String swapWord(String s, Random r){
+    var ms= word.matcher(s).results().toList();
+    if (ms.isEmpty()){ return s; }
+    var m= ms.get(r.nextInt(ms.size()));
+    var same= ms.stream().map(MatchResult::group).filter(w -> kind(w) == kind(m.group())).toList();
+    return s.substring(0, m.start()) + same.get(r.nextInt(same.size())) + s.substring(m.end());
+  }
   static String swapRc(String s, Random r){
     var ms= rc.matcher(s).results().toList();
     if (ms.isEmpty()){ return s; }
