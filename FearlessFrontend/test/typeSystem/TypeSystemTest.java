@@ -5831,4 +5831,94 @@ Direction: {
     .return{d};
   }
 """));}
+@Test void declaredReceiverLiteralKeepsItsCapability(){ok(List.of("""
+A:{ .k: A -> mut Foo:{ mut .bar: A -> A }.bar }
+"""));}
+@Test void declaredReceiverLiteralCapturesAMutParameter(){ok(List.of("""
+Bar:{ mut .b: base.Void }
+A:{ .k(x: mut Bar): base.Void -> mut Foo:{ mut .z: base.Void -> x.b }.z }
+"""));}
+@Test void declaredReceiverLiteralSelfNameIsNotImm(){fail("""
+002| A:{ .k: base.Void -> read Foo:{'s read .z: base.Void -> Use#s }.z }
+   |                                   ----------------------~~~^^
+
+While inspecting ".z" line 2 > ".k" line 2
+This call to method "Use#(_)" cannot typecheck.
+Argument 1 has type "read Foo".
+Parameter "s" has type "read Foo" instead of a subtype of "imm Foo".
+
+Type required by each promotion:
+- "imm Foo"  (As declared, Strengthen result)
+
+See inferred typing context below for how type "imm Foo" was introduced: (compression indicated by `-`)
+A:{.k:-.Void->read Foo:{'s read .z:-.Void->Use#(s)}.z[read]}
+""", List.of("""
+Use:{ #(f: Foo): base.Void -> base.Void }
+A:{ .k: base.Void -> read Foo:{'s read .z: base.Void -> Use#s }.z }
+"""));}
+@Test void joinOfTypesImplementingAGenericHeadTwice(){ok(List.of("""
+Box[T]:{}
+C:Box[A],Box[C]{}
+D:Box[A]{}
+A:{ .m[X](x: X, y: X): X -> y; .k: Box[A] -> this.m(C, D) }
+"""));}
+@Test void nestedLiteralCapturesALateInferredParameter(){ok(List.of("""
+use base.F as F;
+Foo:{ .foo: A }
+A:{
+  .app[T](t: T, f: F[T,A]): A -> f#t;
+  .ig(z: Foo): A -> z.foo;
+  .ig2[W](w: W): A -> A;
+  .k[X](x: X): A -> this.app(x, {y -> this.ig({ .foo -> this.ig2(y) })});
+  }
+"""));}
+@Test void nestedLiteralWithAGenericCapturesALateInferredParameter(){ok(List.of("""
+use base.F as F;
+Foo:{ .foo: A }
+A:{
+  .app[T](t: T, f: F[T,A]): A -> f#t;
+  .ig(z: Foo): A -> z.foo;
+  .ig2[W](w: W): A -> A;
+  .ig3(a: A): A -> a;
+  .k[X,Y](x: X, v: Y): A -> this.app(x, {y -> this.ig({ .foo -> this.ig2(v).ig3(this.ig2(y)) })});
+  }
+"""));}
+@Test void emptyLiteralArgumentDoesNotDecideATypeArgument(){ok(List.of("""
+Sup:{}
+Sub:Sup{}
+Box[X,Y]:{}
+K:{ #[X,Y](a: X, b: Box[X,Y], c: Y): X -> a }
+M:{ .m(y: Sub, z: Sup): Sup -> K#(y, {}, z) }
+"""));}
+@Test void innerLiteralCapturesALateInferredParameter(){ok(List.of("""
+use base.F as F;
+Foo:{ .foo: A }
+Ret[R]:{ #: R }
+A:{
+  .app[T](t: T, f: F[T,A]): A -> f#t;
+  .ig(z: Foo): A -> z.foo;
+  .ig4[W](r: Ret[W]): A -> A;
+  .k[X](x: X): A -> this.app(x, {y -> this.ig({ .foo -> this.ig4({y}) })});
+  }
+"""));}
+@Test void typeExpressionDoesNotShiftFreshGenericNames(){ok(List.of("""
+S:{ .s[K](k: K): K -> k; }
+D[K]:S{}
+T[K]:D[K]{ .m: S -> S.s[S]{.s k -> k}; }
+"""));}
+@Test void selfNameCallWithAnExpectedTypeGetsItsCapability(){ok(List.of("""
+A:{ mut .a: mut A }
+B:{ #: mut A -> mut A{'s .a -> s.a} }
+"""));}
+@Test void letOfAGenericParameterUsedInTheReturn(){ok(List.of("""
+A:{ .k[X](x: X): base.Void -> base.Block#.let y= {x} .return{ base.Block#(y, base.Void) } }
+"""));}
+@Test void selfNameCallOnAnImmLiteralGetsItsCapability(){ok(List.of("""
+A:{}
+Foo:{ .foo: A; read .r: A }
+B:{ .k: A -> B.ig(Foo{'s .foo -> s.r; read .r -> A }); .ig(z: Foo): A -> z.foo }
+"""));}
+@Test void declaredReceiverLiteralCapturesThisInAReadMethod(){ok(List.of("""
+A:{ read .q: A; read .k: A -> read Foo:{ read .z: A -> this.q }.z }
+"""));}
 }
