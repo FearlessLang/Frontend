@@ -1,5 +1,6 @@
 package fuzz;
 
+import java.util.ArrayDeque;
 import java.util.Random;
 import java.util.stream.Stream;
 
@@ -23,7 +24,20 @@ public final class FuzzTest{
   }
   @Test void generatedProgramsAgree(){
     var fuzz= new Fuzz("generatedProgramsAgree");
-    for (int i= 0; i < 3000; i += 1){ fuzz.check(Source.of(new Gen(new Random(i), 7).of(Ast.Program.class))); }
+    var accepted= new ArrayDeque<Ast.Program>();
+    for (int i= 0; i < 3000; i += 1){
+      var p= new Gen(new Random(i), 7).of(Ast.Program.class);
+      if (fuzz.check(Source.of(p))){ accepted.add(p); }
+    }
+    var rnd= new Random(0);
+    for (int i= 0; i < 10000; i += 1){
+      var p= accepted.poll();
+      accepted.add(p);
+      var n= Trees.positions(p);
+      if (n == 0){ continue; }
+      var mutant= Trees.replace(p, rnd.nextInt(n), (_, t) -> new Gen(rnd, 5).value(t));
+      if (fuzz.check(Source.of(mutant))){ accepted.add(mutant); }
+    }
     fuzz.assertNothingFound();
   }
   @Test void writingTheInferredTypesKeepsTheCore(){

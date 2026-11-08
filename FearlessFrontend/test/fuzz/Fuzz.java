@@ -32,26 +32,27 @@ final class Fuzz extends testUtils.FearlessTestBase{
     var frequent= rejections.entrySet().stream().sorted(Map.Entry.<String,Integer>comparingByValue().reversed()).limit(3).map(e -> e.getKey()+" "+e.getValue());
     return name+": "+checked+" programs, "+(checked-rejected)+" accepted by the full frontend; most frequent rejections: "+Join.of(frequent, "", ", ", "", "");
   }
-  void check(String src){
+  boolean check(String src){
     var o= SourceOracle.debugBuilder().put(0, src).build();
     checked += 1;
     try{
       String full;
       try{ full= canon(lines(compileAll("p", o, other))); }
       catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); full= rejects(fe); rejections.merge(full.substring("rejects at ".length()), 1, Integer::sum); }
-      if (!checkCompact){ return; }
+      var fullRejects= full.startsWith("rejects at ");
+      if (!checkCompact){ return !fullRejects; }
       String got;
       try{ got= canon(compact.Print.lines(compactAll("p", o, compactOther))); }
       catch (compact.Frontend.Fail f){ got= rejects(f); }
-      var fullRejects= full.startsWith("rejects at ");
       var compactRejects= got.startsWith("rejects at ");
-      if (full.equals(got) || fullRejects && compactRejects){ return; }
+      if (full.equals(got) || fullRejects && compactRejects){ return !fullRejects; }
       var kind= compactRejects ? "A: the full frontend accepts, the compact frontend "+got
         : fullRejects ? "B: the compact frontend accepts, the full frontend "+full
         : "C: the full core has "+firstDifference(full, got);
       found(kind, src);
+      return !fullRejects;
     }
-    catch (Throwable t){ found(crash(t), src); }
+    catch (Throwable t){ found(crash(t), src); return false; }
   }
   static final Pattern token= Pattern.compile("\\w+|\\S");
   static String firstDifference(String full, String compact){
