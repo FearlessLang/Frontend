@@ -5906,4 +5906,11 @@ S:{ .s[K](k: K): K -> k; }
 D[K]:S{}
 T[K]:D[K]{ .m: S -> S.s[S]{.s k -> k}; }
 """));}
+@Test void selfNameCallWithAnExpectedTypeGetsItsCapability(){ok(List.of("""
+A:{ mut .a: mut A }
+B:{ #: mut A -> mut A{'s .a -> s.a} }
+"""));}
+@Test void letOfAGenericParameterUsedInTheReturn(){ok(List.of("""
+A:{ .k[X](x: X): base.Void -> base.Block#.let y= {x} .return{ base.Block#(y, base.Void) } }
+"""));}
 }
