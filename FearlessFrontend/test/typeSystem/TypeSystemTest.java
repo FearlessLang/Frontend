@@ -5901,4 +5901,9 @@ A:{
   .k[X](x: X): A -> this.app(x, {y -> this.ig({ .foo -> this.ig4({y}) })});
   }
 """));}
+@Test void typeExpressionDoesNotShiftFreshGenericNames(){ok(List.of("""
+S:{ .s[K](k: K): K -> k; }
+D[K]:S{}
+T[K]:D[K]{ .m: S -> S.s[S]{.s k -> k}; }
+"""));}
 }
