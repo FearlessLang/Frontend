@@ -46,6 +46,7 @@ Compressed relevant code with inferred types: (compression indicated by `-`)
 T0[X]:{ }
 T1:T0[T0[T1]]{ .m(a: T0[T1]): T1 -> this.m(this) }
 """));}
+@Test void stringLiteralsWithACommaOrACurlyBrace(){ok(List.of("B:{ .m(s: base.Str): B -> this } A:{ .m(b: B): B -> b.m(\"a, b\").m(\"{\").m(`c, d`) }"));}
 @Test void expansiveSupertypeArgument(){ok(List.of("""
 T0[X]:{ }
 T1:T0[T0[T1]]{ .m(a: T0[T0[T1]]): T1 -> this.m(this) }
