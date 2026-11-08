@@ -27,6 +27,7 @@ final class Source{
   final ArrayList<String> scope= new ArrayList<>();
   final ArrayList<String> scopeTypes= new ArrayList<>();
   String declaring= "";
+  final ArrayList<String> generics= new ArrayList<>();
   final ArrayList<String> selves= new ArrayList<>();
   final ArrayList<String> selfTypes= new ArrayList<>();
   int fresh= 0;
@@ -40,12 +41,13 @@ final class Source{
     var name= "Box["+x+"]";
     var t= new Named(Rc.none, x);
     var self= new Named(Rc.none, name);
-    signatures.put(name, List.of(new Meth(Rc.none, true, List.of(), t, new Abstract()), new Meth(Rc.none, true, List.of(t), self, new Abstract()), new Meth(Rc.none, true, List.of(), self, new Abstract())));
+    signatures.put(name, List.of(new Meth(Rc.none, true, false, List.of(), t, new Abstract()), new Meth(Rc.none, true, false, List.of(t), self, new Abstract()), new Meth(Rc.none, true, false, List.of(), self, new Abstract())));
     abstracts.put(name, Set.of(0, 1, 2));
   }
   String declaration(String name, List<String> before, Dec written){
     var d= Trees.map(written, v -> v instanceof Named(var rc, var n) && n.equals("Self") ? new Named(rc, name) : v);
-    var supers= IntStream.range(0, before.size()).filter(i -> d.supertypes() == Supers.both || d.supertypes().ordinal() == i+1).mapToObj(before::get).toList();
+    var earlier= IntStream.range(0, before.size()).filter(i -> d.supertypes() == Supers.both || d.supertypes().ordinal() == i+1).mapToObj(before::get);
+    var supers= Stream.concat(earlier, d.boxes().stream().distinct()).toList();
     var inherited= supers.stream().map(signatures::get).reduce(List.of(), (a, b) -> a.size() >= b.size() ? a : b);
     signatures.put(name, IntStream.range(0, Math.max(inherited.size(), d.methods().size())).mapToObj(i -> i < inherited.size() ? inherited.get(i) : d.methods().get(i)).toList());
     supertypes.put(name, supers);
@@ -63,8 +65,14 @@ final class Source{
     var typed= m.typed() || inherited == null;
     var shape= typed ? m : inherited;
     var xs= shape.parameters().stream().map(_ -> "x"+(fresh++)).toList();
+    var generic= typed && m.generic();
+    if (generic){ generics.add("X"+(generics.size()+1)); }
+    try{ return method(i, m, typed, shape, xs, generic, top); }
+    finally{ if (generic){ generics.removeLast(); } }
+  }
+  String method(int i, Meth m, boolean typed, Meth shape, List<String> xs, boolean generic, boolean top){
     var ps= IntStream.range(0, xs.size()).mapToObj(j -> typed ? xs.get(j)+": "+type(m.parameters().get(j)) : xs.get(j)).toList();
-    var sig= (shape.rc() == Rc.iso ? "" : rc(shape.rc()))+names.get(i)+Join.of(ps, "(", ", ", ")", "")+(typed ? ": "+type(m.result()) : "");
+    var sig= (shape.rc() == Rc.iso ? "" : rc(shape.rc()))+names.get(i)+(generic ? "["+generics.getLast()+"]" : "")+Join.of(ps, "(", ", ", ")", "")+(typed ? ": "+type(m.result()) : "");
     if (top && m.body() instanceof Abstract){ return sig; }
     var body= m.body() instanceof Returns(var e) ? e : new This();
     var types= shape.parameters().stream().map(Source::name).toList();
@@ -142,7 +150,7 @@ final class Source{
   }
   String function(List<String> xs, E body){ return "{ "+String.join(", ", xs)+(xs.isEmpty() ? "" : " -> ")+scoped(xs, () -> expression(body))+" }"; }
   String type(Ty t){ return switch (t){
-    case Named(var rc, var n) -> rc(rc)+n;
+    case Named(var rc, var n) -> rc(rc)+(!n.equals("X") ? n : generics.isEmpty() ? declaring : generics.getLast());
     case Lambda(var rc, var as, var r) -> rc(rc)+"base.F"+Join.of(Stream.concat(as.stream(), Stream.of(r)).map(this::type), "[", ",", "]", "");
   };}
   static String rc(Rc rc){ return rc == Rc.none ? "" : rc+" "; }

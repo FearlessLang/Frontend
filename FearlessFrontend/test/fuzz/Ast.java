@@ -11,13 +11,13 @@ interface Ast{
   enum Nth{ first, second, third }
   record Program(Dec a, Dec b, Dec c){}
   enum Supers{ none, first, second, both }
-  record Dec(Supers supertypes, @Size(max=3) List<Meth> methods){}
-  record Meth(Rc rc, boolean typed, @Size(max=2) List<Ty> parameters, Ty result, Body body){}
+  record Dec(Supers supertypes, @Size(max=1) List<@OneOf({"Box[A]", "Box[B]"}) String> boxes, @Size(max=3) List<Meth> methods){}
+  record Meth(Rc rc, boolean typed, boolean generic, @Size(max=2) List<Ty> parameters, Ty result, Body body){}
   sealed interface Body{}
   record Abstract() implements Body{}
   @Weight(3) record Returns(E e) implements Body{}
   sealed interface Ty{}
-  @Weight(4) record Named(Rc rc, @OneOf({"A", "B", "C", "base.Void", "Box[A]", "Box[B]", "Self", "Self"}) String name) implements Ty{}
+  @Weight(4) record Named(Rc rc, @OneOf({"A", "B", "C", "base.Void", "Box[A]", "Box[B]", "Self", "Self", "X"}) String name) implements Ty{}
   record Lambda(Rc rc, @Size(max=2) List<Named> arguments, Named result) implements Ty{}
   sealed interface E{}
   record This() implements E{}
