@@ -5883,4 +5883,11 @@ A:{
   .k[X,Y](x: X, v: Y): A -> this.app(x, {y -> this.ig({ .foo -> this.ig2(v).ig3(this.ig2(y)) })});
   }
 """));}
+@Test void emptyLiteralArgumentDoesNotDecideATypeArgument(){ok(List.of("""
+Sup:{}
+Sub:Sup{}
+Box[X,Y]:{}
+K:{ #[X,Y](a: X, b: Box[X,Y], c: Y): X -> a }
+M:{ .m(y: Sub, z: Sup): Sup -> K#(y, {}, z) }
+"""));}
 }
