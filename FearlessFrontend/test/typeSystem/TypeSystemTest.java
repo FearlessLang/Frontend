@@ -5890,4 +5890,15 @@ Box[X,Y]:{}
 K:{ #[X,Y](a: X, b: Box[X,Y], c: Y): X -> a }
 M:{ .m(y: Sub, z: Sup): Sup -> K#(y, {}, z) }
 """));}
+@Test void innerLiteralCapturesALateInferredParameter(){ok(List.of("""
+use base.F as F;
+Foo:{ .foo: A }
+Ret[R]:{ #: R }
+A:{
+  .app[T](t: T, f: F[T,A]): A -> f#t;
+  .ig(z: Foo): A -> z.foo;
+  .ig4[W](r: Ret[W]): A -> A;
+  .k[X](x: X): A -> this.app(x, {y -> this.ig({ .foo -> this.ig4({y}) })});
+  }
+"""));}
 }
