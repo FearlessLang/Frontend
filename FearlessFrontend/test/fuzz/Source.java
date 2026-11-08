@@ -16,7 +16,8 @@ import fuzz.Ast.*;
 import utils.Join;
 
 final class Source{
-  static final List<String> names= List.of(".m", ".n", "#");
+  static final List<String> names= List.of(".m", ".n", "#", ".k");
+  static final List<String> declarations= List.of("A", "B", "C", "D");
   static final String helpers= """
     Id:{ #[Y:**](y: Y): Y -> y }
     Box[X:**]:{ .m: X; .n(x: X): Box[X]; #: Box[X] }
@@ -33,9 +34,9 @@ final class Source{
   int fresh= 0;
   static String of(Program p){
     var s= new Source();
-    s.box("A");
-    s.box("B");
-    return helpers+s.declaration("A", List.of(), p.a())+"\n"+s.declaration("B", List.of("A"), p.b())+"\n"+s.declaration("C", List.of("A", "B"), p.c())+"\n";
+    declarations.forEach(s::box);
+    var ds= List.of(p.a(), p.b(), p.c(), p.d());
+    return helpers+IntStream.range(0, ds.size()).mapToObj(i -> s.declaration(declarations.get(i), declarations.subList(0, i), ds.get(i))+"\n").collect(joining());
   }
   void box(String x){
     var name= "Box["+x+"]";
@@ -45,9 +46,10 @@ final class Source{
     abstracts.put(name, Set.of(0, 1, 2));
   }
   String declaration(String name, List<String> before, Dec written){
-    var d= Trees.map(written, v -> v instanceof Named(var rc, var n) && n.equals("Self") ? new Named(rc, name) : v);
-    var earlier= IntStream.range(0, before.size()).filter(i -> d.supertypes() == Supers.both || d.supertypes().ordinal() == i+1).mapToObj(before::get);
-    var supers= Stream.concat(earlier, d.boxes().stream().distinct()).toList();
+    var d= Trees.map(written, v -> v instanceof Named(var rc, var n) && n.contains("Self") ? new Named(rc, n.replace("Self", name)) : v);
+    var boxes= d.boxes().stream().map(b -> b.replace("Self", name));
+    var earlier= before.isEmpty() ? Stream.<String>empty() : d.supertypes().stream().map(n -> before.get(n.ordinal() % before.size()));
+    var supers= Stream.concat(earlier, boxes).distinct().toList();
     var inherited= supers.stream().map(signatures::get).reduce(List.of(), (a, b) -> a.size() >= b.size() ? a : b);
     signatures.put(name, IntStream.range(0, Math.max(inherited.size(), d.methods().size())).mapToObj(i -> i < inherited.size() ? inherited.get(i) : d.methods().get(i)).toList());
     supertypes.put(name, supers);
@@ -72,7 +74,7 @@ final class Source{
   }
   String method(int i, Meth m, boolean typed, Meth shape, List<String> xs, boolean generic, boolean top){
     var ps= IntStream.range(0, xs.size()).mapToObj(j -> typed ? xs.get(j)+": "+type(m.parameters().get(j)) : xs.get(j)).toList();
-    var sig= (shape.rc() == Rc.iso ? "" : rc(shape.rc()))+names.get(i)+(generic ? "["+generics.getLast()+"]" : "")+Join.of(ps, "(", ", ", ")", "")+(typed ? ": "+type(m.result()) : "");
+    var sig= methodRc(shape.rc())+names.get(i)+(generic ? "["+generics.getLast()+"]" : "")+Join.of(ps, "(", ", ", ")", "")+(typed ? ": "+type(m.result()) : "");
     if (top && m.body() instanceof Abstract){ return sig; }
     var body= m.body() instanceof Returns(var e) ? e : new This();
     var types= shape.parameters().stream().map(Source::name).toList();
@@ -87,7 +89,7 @@ final class Source{
     return v == null ? expression(e) : v;
   }
   String value(Ty t){ return switch (t){
-    case Named(_, var n) -> n.equals("base.Void") ? n : Stream.of("A", "B", "C").filter(d -> abstracts.containsKey(d) && abstracts.get(d).isEmpty() && subtype(d, n)).findFirst().orElse(null);
+    case Named(_, var n) -> n.equals("base.Void") ? n : declarations.stream().filter(d -> abstracts.containsKey(d) && abstracts.get(d).isEmpty() && subtype(d, n)).findFirst().orElse(null);
     case Lambda(_, var as, var r) -> functionReturning(as.size(), value(r));
   };}
   String functionReturning(int arity, String result){
@@ -123,9 +125,9 @@ final class Source{
     case This _ -> selves.isEmpty() ? "this" : selves.getLast();
     case Parameter(var n) -> scope.isEmpty() ? "this" : scope.get(scope.size()-1-n.ordinal() % scope.size());
     case TypeName(var n) -> n;
-    case Call(var r, var m, var rc, var args) -> expression(r)+names.get(m.ordinal())+(rc == Rc.none ? "" : "["+rc+"]")+Join.of(args.stream().map(this::expression), "(", ", ", ")", "");
-    case Literal(var rc, var head, var self, var ms) -> literal(head.isEmpty() ? "" : rc(rc)+head, self ? List.of("s"+(fresh++)) : List.of(), head.isEmpty() ? null : head, ms, signatures.getOrDefault(head, List.of()));
-    case Declared(var rc, var sup, var ms) -> literal(rc(rc)+"D"+(fresh++)+":"+sup, List.of(), null, ms, signatures.getOrDefault(sup, List.of()));
+    case Call(var r, var m, var rc, var args) -> expression(r)+names.get(m.ordinal())+(valueRc(rc).isEmpty() ? "" : "["+rc+"]")+Join.of(args.stream().map(this::expression), "(", ", ", ")", "");
+    case Literal(var rc, var head, var self, var ms) -> literal(head.isEmpty() ? "" : valueRc(rc)+head, self ? List.of("s"+(fresh++)) : List.of(), head.isEmpty() ? null : head, ms, signatures.getOrDefault(head, List.of()));
+    case Declared(var rc, var sup, var ms) -> literal(valueRc(rc)+"D"+(fresh++)+":"+sup, List.of(), null, ms, signatures.getOrDefault(sup, List.of()));
     case Function(var ps, var body) -> function(ps.stream().map(_ -> "x"+(fresh++)).toList(), body);
   };}
   String literal(String head, List<String> self, String selfType, List<Meth> ms, List<Meth> inherited){
@@ -146,7 +148,7 @@ final class Source{
     var v= value(inherited.result());
     if (v == null){ return null; }
     var xs= inherited.parameters().stream().map(_ -> "x"+(fresh++)).toList();
-    return (inherited.rc() == Rc.iso ? "" : rc(inherited.rc()))+names.get(i)+Join.of(xs, "(", ", ", ")", "")+" -> "+v;
+    return methodRc(inherited.rc())+names.get(i)+Join.of(xs, "(", ", ", ")", "")+" -> "+v;
   }
   String function(List<String> xs, E body){ return "{ "+String.join(", ", xs)+(xs.isEmpty() ? "" : " -> ")+scoped(xs, () -> expression(body))+" }"; }
   String type(Ty t){ return switch (t){
@@ -154,4 +156,6 @@ final class Source{
     case Lambda(var rc, var as, var r) -> rc(rc)+"base.F"+Join.of(Stream.concat(as.stream(), Stream.of(r)).map(this::type), "[", ",", "]", "");
   };}
   static String rc(Rc rc){ return rc == Rc.none ? "" : rc+" "; }
+  static String valueRc(Rc rc){ return rc == Rc.readH || rc == Rc.mutH ? "" : rc(rc); }
+  static String methodRc(Rc rc){ return rc == Rc.imm || rc == Rc.read || rc == Rc.mut ? rc+" " : ""; }
 }

@@ -39,13 +39,14 @@ Past the maximum depth, Gen chooses only among the leaf records: the records wit
 @Size bounds the size of a list; @OneOf lists the values of a string, and a repeated value is chosen more often.
 
 Source:
-A program is the helpers Id and Box[X], then the declarations A, B and C; B can implement A, and C can implement A and B.
-Each declaration can also implement Box[A] or Box[B].
-Methods are named by position, .m, .n and #; parameters are named x0, x1, ... in the order they are printed.
+A program is the helpers Id and Box[X], then the declarations A, B, C and D; each can implement the declarations before it,
+and one of Box[A], Box[B] and Box of itself.
+Methods are named by position, .m, .n, # and .k; parameters are named x0, x1, ... in the order they are printed.
 A parameter reference names a variable in scope, the innermost first.
 A method omits its types only when a supertype, or the head of its literal, has a method in the same position;
 the method then takes the arity and the capability of that method.
-The type name Self stands for the declaration that holds it.
+The type name Self stands for the declaration that holds it, also inside Box[Self].
+The capabilities readH and mutH are written only in types; a method is written without iso, readH and mutH.
 A typed method can have a generic X1, X2, ... (one more for each enclosing generic method); the type name X stands for the innermost one, or for the declaration when there is none.
 Inside a literal with a self name, this stands for the self name.
 A literal writes its self name only when its methods use it.
