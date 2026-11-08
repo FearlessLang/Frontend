@@ -35,14 +35,19 @@ final class Fuzz extends testUtils.FearlessTestBase{
     return name+": "+checked+" programs, "+(checked-rejected)+" accepted by the full frontend; most frequent rejections: "+Join.of(frequent, "", ", ", "", "");
   }
   record Outcome(String rejection, String finding){ boolean accepted(){ return rejection.isEmpty(); } }
-  boolean check(String src){ return check(src, finding -> Shrink.text(src, same(finding))); }
-  boolean check(Ast.Program p){
-    var src= Source.of(p);
-    return check(src, finding -> Shrink.text(Source.of(Shrink.tree(p, same(finding))), same(finding)));
+  boolean check(String src){ return record(src, outcome(src), finding -> Shrink.text(src, same(finding))); }
+  void check(List<String> srcs){
+    var outcomes= srcs.parallelStream().map(this::outcome).toList();
+    IntStream.range(0, srcs.size()).forEach(i -> record(srcs.get(i), outcomes.get(i), finding -> Shrink.text(srcs.get(i), same(finding))));
   }
-  boolean check(String src, UnaryOperator<String> shrink){
+  List<Ast.Program> accepted(List<Ast.Program> ps){
+    var srcs= ps.stream().map(Source::of).toList();
+    var outcomes= srcs.parallelStream().map(this::outcome).toList();
+    return IntStream.range(0, ps.size()).filter(i -> record(srcs.get(i), outcomes.get(i), finding -> shrink(ps.get(i), finding))).mapToObj(ps::get).toList();
+  }
+  String shrink(Ast.Program p, String finding){ return Shrink.text(Source.of(Shrink.tree(p, same(finding))), same(finding)); }
+  boolean record(String src, Outcome o, UnaryOperator<String> shrink){
     checked += 1;
-    var o= outcome(src);
     if (!o.accepted()){ rejections.merge(o.rejection(), 1, Integer::sum); }
     var worthShrinking= !o.finding().isEmpty() && (!found.containsKey(o.finding()) || found.get(o.finding()).length() > src.length());
     if (worthShrinking){ found(o.finding(), shrink.apply(o.finding())); }

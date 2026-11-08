@@ -19,12 +19,14 @@ The tests:
   a slice of another seed, a swapped capability, a swapped name.
 - underAnnotatedTestPrograms: the seeds with annotations, each with 9 mutants that drop 1 to 4 annotations:
   type arguments of calls, heads of literals, parameter types, return types, capabilities.
-- generatedPrograms: 3000 programs generated from the grammar Ast (Gen, printed by Source),
-  then 10000 mutants, each replacing one position of an accepted program with a new generated value (Trees).
+- generatedPrograms: 6000 programs generated from the grammar Ast (Gen, printed by Source),
+  then 40000 mutants, each replacing one position of an accepted program with a new generated value (Trees).
+  The mutants are made in batches of 500; the accepted mutants of a batch are mutated in the next batches.
   Most mutants differ from an accepted program in one place, so most of them are accepted too.
 - writingTheInferredTypesKeepsTheCore: the programs of the first two tests, with the types the full frontend infers written in the source (InferredTypes).
   The full frontend must accept the written program and print the same core.
 
+The two frontends compile the programs of a test in parallel; the findings, the summary and the shrinking follow the order of the programs, so a report does not depend on the threads.
 Every test prints a summary line: the number of programs, how many of them the full frontend accepts,
 and the three most frequent places where the full frontend rejects.
 
