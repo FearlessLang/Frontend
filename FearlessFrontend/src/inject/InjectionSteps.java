@@ -330,7 +330,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     m = m.withClsArgs(clsTs);
     var it= meet(c.t(), m.ret(targs));
     var es1= nextStar(bs, g, meetWithTargs(c.es(), m, targs));
-    var noChange= e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
+    var noChange= c.rc().isPresent() && e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
     if (noChange){ return c; }
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
