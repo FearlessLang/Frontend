@@ -722,8 +722,9 @@ public class Frontend{
     }
     T fillVoid(T t,B b){no(t instanceof Amb);return t==u?voidT(b.caps.iterator().next()):t instanceof R w?w.withTs(zip(w.c.types,from(w.c.name).b,this::fillVoid)):t;}
     Literal literal(List<B>ctx,Literal e,Literal o){
-      no(!(e.t instanceof R)&&!e.t.und());var inner=e.anon?push(ctx,e.b).stream().distinct().toList():e.b;
-      return new Literal(or(e.r,imm),e.name,e.b,map(distinct(inner,push(o.cs,e.cs)),Frontend::normC),e.self,map(e.ms,me->m(inner,me,me.e==null?me:o.ms.get(me.s.idx))),u,e.anon,false);
+      no(!(e.t instanceof R)&&!e.t.und());var b=e.anon?cat(e.b.stream(),cat(methodFree(new IG(),e.ms),supFree(e.cs)).map(x->B.get(ctx,x))).distinct().toList():e.b;
+      var name=e.name.arity(b.size());var inner=e.anon?push(ctx,b).stream().distinct().toList():b;
+      return new Literal(or(e.r,imm),name,b,map(distinct(inner,push(o.cs,e.cs)),Frontend::normC),e.self,map(e.ms,me->m(inner,me,me.e==null?me:o.ms.get(me.s.idx)).o(e.name,name)),u,e.anon,false);
     }
     M m(List<B>ctx,M e,M o){var s=merge(e.s,o.s);return new M(s,e.v,e.e==null?null:core(push(ctx,s.b).stream().distinct().toList(),e.e,o.e));}
   }

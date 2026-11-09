@@ -40,12 +40,8 @@ public record ToCore(List<B> ctx, Methods meths){
     assert o.infName() == e.infName();
     assert o.infName() || e.name().equals(o.name());
     assert e.thisName().equals(o.thisName());
-    var bs= e.bs();
-    var uncommitted= e.infName() && bs.isEmpty();
-    if (uncommitted){
-      var free= new FreeXs(new Gamma());
-      bs = Streams.of(free.ftvCs(e.cs()), free.ftvMs(e.ms()), free.ftvMs(o.ms())).distinct().map(x -> B.get(ctx, x)).toList();
-    }
+    var free= new FreeXs(new Gamma());
+    var bs= !e.infName() ? e.bs() : Streams.of(B.xs(e.bs()).stream(), free.ftvCs(e.cs()), free.ftvMs(e.ms()), free.ftvMs(o.ms())).distinct().map(x -> B.get(ctx, x)).toList();
     assert !e.infName() || B.xs(ctx).containsAll(B.xs(bs));
     var name= e.name().withArity(bs.size());
     var inner= new ToCore(e.infName() ? Push.of(ctx, bs).stream().distinct().toList() : bs, meths);
