@@ -176,7 +176,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (c instanceof IT.RCC rc && top instanceof IT.RCC rt){
       if (rc.c().name().equals(rt.c().name())){ return c; }
       var up= adaptedSuperTs(rc, rt.c().name());
-      return up.isEmpty() ? null : up.getFirst();
+      return up.size() != 1 ? null : up.getFirst();
     }
     var sameX= xName(c).isPresent() && xName(c).equals(xName(top));
     return sameX ? c : null;

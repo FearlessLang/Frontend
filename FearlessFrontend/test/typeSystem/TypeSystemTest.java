@@ -5863,6 +5863,40 @@ C:Box[A],Box[C]{}
 D:Box[A]{}
 A:{ .m[X](x: X, y: X): X -> y; .k: Box[A] -> this.m(C, D) }
 """));}
+@Test void joinOfTypesImplementingAGenericHeadTwiceIsAmbiguous(){failWf("""
+004| A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(C, D)) }
+   |                                                                          ^^^^^^^^^^^^
+
+While inspecting method call ".m(_,_)"
+The type argument "X" of ".m" is inferred from the arguments, but they disagree: some need "C", some need "D".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "this.m[Type1](C, D)".
+""", List.of("""
+Box[T]:{}
+C:Box[A],Box[C]{}
+D:Box[A]{}
+A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(C, D)) }
+"""));}
+@Test void joinOfTypesImplementingAGenericHeadTwiceInTheOtherOrderIsAmbiguous(){failWf("""
+004| A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(C, D)) }
+   |                                                                          ^^^^^^^^^^^^
+
+While inspecting method call ".m(_,_)"
+The type argument "X" of ".m" is inferred from the arguments, but they disagree: some need "C", some need "D".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "this.m[Type1](C, D)".
+""", List.of("""
+Box[T]:{}
+C:Box[C],Box[A]{}
+D:Box[A]{}
+A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(C, D)) }
+"""));}
+@Test void joinOfASubtypeRefiningAGenericHeadOfItsSupertype(){ok(List.of("""
+Box[T]:{}
+R:Box[R]{}
+S:R,Box[S]{}
+A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(R, S)) }
+"""));}
 @Test void nestedLiteralCapturesALateInferredParameter(){ok(List.of("""
 use base.F as F;
 Foo:{ .foo: A }

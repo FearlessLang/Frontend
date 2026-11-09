@@ -570,13 +570,13 @@ public class Frontend{
     T join(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
       var cands=push(candidates(a),candidates(z));for(var top:cands){var res=above(top,cands);if(res!=null)return res;}
-      if(all(cands,c->c instanceof R)&&cands.get(0) instanceof R r0){var heads=filter(map(parents(r0.c),C::name),h->all(cands,c->sup((R)c,h) instanceof R s&&s.c.equals(sup(r0,h).c)));
-        var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&has(from(h2).cs,h)));if(minimal.size()==1)return above(sup(r0,minimal.get(0)),cands);}
+      if(all(cands,c->c instanceof R)&&cands.get(0) instanceof R r0){var heads=filter(map(parents(r0.c),C::name),h->all(cands,c->one((R)c,h) instanceof R s&&s.c.equals(one(r0,h).c)));
+        var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&has(from(h2).cs,h)));if(minimal.size()==1)return above(one(r0,minimal.get(0)),cands);}
       return new Amb(cands);
     }
     static List<T>candidates(T t){return t instanceof Amb(var cs)?cs:list(t);}
     T above(T top,List<T>cands){
-      T res=top;for(var c:cands){var up=c instanceof R r&&top instanceof R rt?r.c.name.equals(rt.c.name)?c:sup(r,rt.c.name):Objects.equals(variable(c),variable(top))?c:null;if(up==null)return null;
+      T res=top;for(var c:cands){var up=c instanceof R r&&top instanceof R rt?r.c.name.equals(rt.c.name)?c:one(r,rt.c.name):Objects.equals(variable(c),variable(top))?c:null;if(up==null)return null;
         res=res instanceof R p&&up instanceof R q?any(zip(p.c.types,q.c.types,(x,y)->x.tv()&&y.tv()&&!x.equals(y)),b->b)?null:p.with(join(p.r,q.r),meet(p.c.types,q.c.types)):res instanceof RX p&&up instanceof RX q?p.rc(join(p.r,q.r)):meet(res,up);if(res==null)return null;}return res;
     }
     static RC join(RC a,RC b){
@@ -682,6 +682,7 @@ public class Frontend{
       };
     }
     R sup(R src,N target){var c=find(parents(src.c),ci->ci.name.equals(target));return c==null?null:new R(src.r,c);}
+    R one(R src,N target){var cs=filter(parents(src.c),ci->ci.name.equals(target));return cs.size()==1?new R(src.r,cs.get(0)):null;}
     List<T>propagate(List<String>v,R r,T a){
       if(!(a instanceof R cc))return qs(v.size());var c=r.c;if(!cc.c.name.equals(c.name)){var up=sup(cc,c.name);
         if(up!=null)return propagate(v,r,up);var down=sup(r,cc.c.name);return down==null?qs(v.size()):propagate(v,down,a);
