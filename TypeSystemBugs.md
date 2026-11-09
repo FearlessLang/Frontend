@@ -463,16 +463,18 @@ was rejected: `x` was `read X`, not a subtype of `read/imm X` when `X` is `iso`.
 Frontend#244, 2026-10-22. Rejects valid programs, not unsoundness; the formalism has no such step.
 `TypeSystemTest.implicitRcIsInferredInNestedLiteral`.
 
-    done(e, Gamma)                                -- nextStar does not revisit a done e
-      was:  sig(e) = Gamma
-      now:  sig(e) = Gamma and no literal entered the table since e was signed
+    header(x.m, Gamma)                            -- Gamma(x) = rc Fresh, x the self name of a literal of head C
+      was:  the header of .m in Fresh
+      now:  the header of .m in Fresh, or else the header of .m in C
 
 `InjectionSteps.nextMStarOp` declares the self name of a nested literal as `rc Fresh`, with the
-literal's own name. A call on the self name finds no declaration of `Fresh` (`methodHeaderAnd`),
+literal's own name. A call on the self name finds no declaration of `Fresh` (`methodHeader`),
 keeps an unknown type, and the method body is signed as done. `commitToTable` then registers
 `Fresh`, but Gamma does not change, so the body stayed done, no pass looked up the call again,
 and `ToCore.callFromICall` stamped `imm`. Top-level declarations do not suffer: `stepDecM` types
 `this` against the declared name, in the table from the start.
+`InjectionSteps.nextC` looks up a header absent from `Fresh` in the head of the literal, and leaves
+the type of the receiver as it is.
 
 Witness. `Counter:{ mut .inc: mut Counter; mut .inc2: mut Counter }`,
 `Make:{ #: mut Counter -> mut Counter{'self mut .inc: mut Counter -> self; mut .inc2: mut Counter -> self.inc.inc; } }`

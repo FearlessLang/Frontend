@@ -318,7 +318,8 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var e= nextStar(bs, g, c.e());
     if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var guess= overloadNorm(rcc.rc().map(rc -> rc == RC.iso ? c.t().explicitRC().orElse(rc) : rc));
-    var om= methodHeader(rcc, c.name(), c.rc(), guess);
+    var direct= methodHeader(rcc, c.name(), c.rc(), guess);
+    var om= direct.isPresent() ? direct : methodHeader((IT.RCC)deFresh(g, rcc), c.name(), c.rc(), guess);
     if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var m= om.get();
     assert m.ps0().size() == c.es().size();
@@ -326,11 +327,11 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     assert all.size() == m.nCls()+m.bsArity();
     var clsTs= normToBoundsKeepXs(m.clsBs(), all.subList(0, m.nCls()));
     var targs= normToBoundsKeepXs(m.methBs(), all.subList(m.nCls(), all.size()));
-    e = meet(e, rcc.withTs(clsTs));
+    if (direct.isPresent()){ e = meet(e, rcc.withTs(clsTs)); }
     m = m.withClsArgs(clsTs);
     var it= meet(c.t(), m.ret(targs));
     var es1= nextStar(bs, g, meetWithTargs(c.es(), m, targs));
-    var noChange= c.rc().isPresent() && e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
+    var noChange= e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
     if (noChange){ return c; }
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
@@ -422,7 +423,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (selfInferred){ l = l.withT(preciseSelf(l).get()); }
     assert !meths.cache().containsKey(name);
     meths.register(l);
-    g.tableGrew();
     return l;
   }
   private E.Type literalAsType(E.Literal l, IT.RCC rcc){
