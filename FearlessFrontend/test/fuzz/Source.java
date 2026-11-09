@@ -184,7 +184,7 @@ final class Source{
       selves.subList(selves.size()-self.size(), selves.size()).clear();
       selfTypes.subList(selfTypes.size()-self.size(), selfTypes.size()).clear();
     }
-    var completed= abstracts.getOrDefault(selfType, Set.of()).stream().filter(i -> i >= ms.size()).map(i -> completion(i, inherited.get(i))).filter(c -> c != null).toList();
+    var completed= abstracts.getOrDefault(selfType, Set.of()).stream().sorted().filter(i -> i >= ms.size()).map(i -> completion(i, inherited.get(i))).filter(c -> c != null).toList();
     var all= Stream.concat(Stream.of(body).filter(b -> !b.isEmpty()), completed.stream()).collect(joining("; "));
     var used= self.stream().filter(x -> Pattern.compile("\\b"+x+"\\b").matcher(all).find()).map(x -> "'"+x+" ").collect(joining());
     return head+"{ "+used+all+" }";
