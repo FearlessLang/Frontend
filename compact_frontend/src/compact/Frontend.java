@@ -681,7 +681,7 @@ public class Frontend{
         case RI(var x)->refine(v,x,a instanceof RI(var p)?p:a);default->propagate(v,(R)t,a);
       };
     }
-    R sup(R src,N target){var c=find(parents(src.c),ci->ci.name.equals(target));return c==null?null:new R(src.r,c);}
+    R sup(R src,N target){var cs=filter(parents(src.c),ci->ci.name.equals(target));return cs.size()==1?new R(src.r,cs.get(0)):null;}
     List<T>propagate(List<String>v,R r,T a){
       if(!(a instanceof R cc))return qs(v.size());var c=r.c;if(!cc.c.name.equals(c.name)){var up=sup(cc,c.name);
         if(up!=null)return propagate(v,r,up);var down=sup(r,cc.c.name);return down==null?qs(v.size()):propagate(v,down,a);

@@ -73,11 +73,10 @@ public record Methods(
     var d= _from(n);
     return d == null ? List.of() : d.cs().stream().map(core.T.C::name).toList();
   }
-  private IT.C superC(IT.RCC t, TName h){ return implied(t.c()).stream().filter(c -> c.name().equals(h)).findFirst().orElseThrow(); }
   List<TName> commonSuperHeads(List<IT> cands){
     if (!cands.stream().allMatch(t -> t instanceof IT.RCC)){ return List.of(); }
     var heads= cands.stream().map(t -> new ArrayList<>(superHeads(((IT.RCC)t).c().name()))).reduce((a,b) -> { a.retainAll(b); return a; }).get();
-    heads.removeIf(h -> cands.stream().map(t -> superC((IT.RCC)t, h)).distinct().count() != 1);
+    heads.removeIf(h -> cands.stream().flatMap(t -> implied(((IT.RCC)t).c()).stream().filter(c -> c.name().equals(h))).distinct().count() != 1);
     return heads.stream().filter(h -> heads.stream().noneMatch(h2 -> !h2.equals(h) && superHeads(h2).contains(h))).toList();
   }
   private M.Sig alphaSig(core.M m, core.E.Literal d, IT.C c, E.Literal child, List<String> scope){

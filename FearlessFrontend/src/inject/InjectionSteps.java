@@ -176,7 +176,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (c instanceof IT.RCC rc && top instanceof IT.RCC rt){
       if (rc.c().name().equals(rt.c().name())){ return c; }
       var up= adaptedSuperTs(rc, rt.c().name());
-      return up.isEmpty() ? null : up.getFirst();
+      return up.size() != 1 ? null : up.getFirst();
     }
     var sameX= xName(c).isPresent() && xName(c).equals(xName(top));
     return sameX ? c : null;
@@ -508,7 +508,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (!(decided instanceof IT.RCC(var aRc, var aC, _) && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
     if (!aC.name().equals(b.c().name())){
       var asDecided= adaptedSuperTs(b, aC.name());
-      return asDecided.isEmpty() ? decided : keepDecided(decided, asDecided.getFirst());
+      return asDecided.size() != 1 ? decided : keepDecided(decided, asDecided.getFirst());
     }
     return b.withRCTs(aRc.or(b::rc), Streams.zip(aC.ts(), b.c().ts()).map(this::keepDecided).toList());
   }
@@ -549,9 +549,9 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var c= r.c();
     if (!cc.c().name().equals(c.name())){
       var supOk= adaptedSuperTs(cc, c.name());
-      if (!supOk.isEmpty()){ return propagateXs(xs, r, supOk.getFirst()); }
+      if (supOk.size() == 1){ return propagateXs(xs, r, supOk.getFirst()); }
       var subOk= adaptedSuperTs(r, cc.c().name());
-      if (!subOk.isEmpty()){ return propagateXs(xs, subOk.getFirst(), t1); }
+      if (subOk.size() == 1){ return propagateXs(xs, subOk.getFirst(), t1); }
       return qMarks(xs.size());
     }
     var res= Streams.zip(c.ts(), cc.c().ts()).map((t,ti) -> refineArg(xs, t, ti)).toList();

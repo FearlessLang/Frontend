@@ -5863,6 +5863,72 @@ C:Box[A],Box[C]{}
 D:Box[A]{}
 A:{ .m[X](x: X, y: X): X -> y; .k: Box[A] -> this.m(C, D) }
 """));}
+@Test void joinOfTypesImplementingAGenericHeadTwiceIsAmbiguous(){failWf("""
+004| A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(C, D)) }
+   |                                                                          ^^^^^^^^^^^^
+
+While inspecting method call ".m(_,_)"
+The type argument "X" of ".m" is inferred from the arguments, but they disagree: some need "C", some need "D".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "this.m[Type1](C, D)".
+""", List.of("""
+Box[T]:{}
+C:Box[A],Box[C]{}
+D:Box[A]{}
+A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(C, D)) }
+"""));}
+@Test void joinOfTypesImplementingAGenericHeadTwiceInTheOtherOrderIsAmbiguous(){failWf("""
+004| A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(C, D)) }
+   |                                                                          ^^^^^^^^^^^^
+
+While inspecting method call ".m(_,_)"
+The type argument "X" of ".m" is inferred from the arguments, but they disagree: some need "C", some need "D".
+No type is a supertype of all of them.
+Write the type argument explicitly, as in "this.m[Type1](C, D)".
+""", List.of("""
+Box[T]:{}
+C:Box[C],Box[A]{}
+D:Box[A]{}
+A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(C, D)) }
+"""));}
+@Test void argumentImplementingAGenericHeadTwiceIsAmbiguous(){fail("""
+003| A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
+   |                                  ---------~~~~^^^~~
+
+While inspecting ".k" line 3
+This call to method "A.m(_)" cannot typecheck.
+Argument 1 has type "iso C".
+That is not a subtype of "Box[base.Void]" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.m[imm,-.Void](C)
+""", List.of("""
+Box[T]:{}
+C:Box[A],Box[C]{}
+A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
+"""));}
+@Test void argumentImplementingAGenericHeadTwiceInTheOtherOrderIsAmbiguous(){fail("""
+003| A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
+   |                                  ---------~~~~^^^~~
+
+While inspecting ".k" line 3
+This call to method "A.m(_)" cannot typecheck.
+Argument 1 has type "iso C".
+That is not a subtype of "Box[base.Void]" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.m[imm,-.Void](C)
+""", List.of("""
+Box[T]:{}
+C:Box[C],Box[A]{}
+A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
+"""));}
+@Test void joinOfASubtypeRefiningAGenericHeadOfItsSupertype(){ok(List.of("""
+Box[T]:{}
+R:Box[R]{}
+S:R,Box[S]{}
+A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(R, S)) }
+"""));}
 @Test void nestedLiteralCapturesALateInferredParameter(){ok(List.of("""
 use base.F as F;
 Foo:{ .foo: A }
