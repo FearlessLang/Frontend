@@ -76,10 +76,10 @@ final class Fuzz extends testUtils.FearlessTestBase{
   Outcome outcome(String src){
     return outcome("p", SourceOracle.debugBuilder().put(0, src).build());
   }
-  record Package(String name, SourceOracle oracle, String shown){}
+  record Package(String name, SourceOracle oracle, String shown, UnaryOperator<String> shrink){}
   void checkPackages(List<Package> ps){
     var outcomes= ps.parallelStream().map(p -> outcome(p.name(), p.oracle())).toList();
-    IntStream.range(0, ps.size()).forEach(i -> record(ps.get(i).shown(), outcomes.get(i), _ -> ps.get(i).shown()));
+    IntStream.range(0, ps.size()).forEach(i -> record(ps.get(i).shown(), outcomes.get(i), ps.get(i).shrink()));
   }
   Outcome outcome(String pkg, SourceOracle o){
     String full;

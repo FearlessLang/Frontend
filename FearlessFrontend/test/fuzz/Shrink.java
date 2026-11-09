@@ -15,12 +15,13 @@ import fuzz.Gen.OneOf;
 final class Shrink{
   static final int attempts= 2000;
   static final Pattern token= Pattern.compile("^\\s+|\\w+\\s*|\\S\\s*");
-  static Predicate<String> budget(Predicate<String> keeps){
+  static Predicate<String> budget(Predicate<String> keeps, int attempts){
     var left= new int[]{attempts};
     return s -> left[0]-- > 0 && keeps.test(s);
   }
-  static String text(String src, Predicate<String> keeps){
-    var tries= budget(keeps);
+  static String text(String src, Predicate<String> keeps){ return text(src, keeps, attempts); }
+  static String text(String src, Predicate<String> keeps, int attempts){
+    var tries= budget(keeps, attempts);
     var ts= token.matcher(src).results().map(MatchResult::group).toList();
     for (int chunk= Math.max(1, ts.size()/2); chunk >= 1; chunk /= 2){
       for (int i= 0; i+chunk <= ts.size();){
@@ -32,7 +33,7 @@ final class Shrink{
     return String.join("", ts);
   }
   static Ast.Program tree(Ast.Program p, Predicate<String> keeps){
-    var tries= budget(keeps);
+    var tries= budget(keeps, attempts);
     for (int k= 0; k < Trees.positions(p); k += 1){
       var smaller= smaller(p, k).stream().filter(c -> tries.test(Source.of(c))).findFirst();
       if (smaller.isPresent()){ p= smaller.get(); k= -1; }

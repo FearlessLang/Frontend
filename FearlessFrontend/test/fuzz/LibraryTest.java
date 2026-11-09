@@ -14,10 +14,12 @@ import org.junit.jupiter.api.Test;
 
 import core.AllLs;
 import tools.SourceOracle;
+import utils.Join;
 
 public final class LibraryTest extends testUtils.FearlessTestBase{
   static final Path root= Path.of(System.getProperty("standardLibrary"));
   static final int mutantsPerProject= 10;
+  static final int shrinkAttempts= 300;
   @Test void standardLibrary(){
     var base= oracle(root.resolve("base"));
     var full= compileAll("base", base, otherFrom(List.of()));
@@ -30,14 +32,15 @@ public final class LibraryTest extends testUtils.FearlessTestBase{
       var name= project.getFileName().toString().substring(1);
       var shown= project.getParent().getFileName().toString();
       var files= files(project);
-      packages.add(new Fuzz.Package(name, oracle(files), shown));
+      packages.add(new Fuzz.Package(name, oracle(files), shown, finding -> shrunk(fuzz, name, shown, files, finding)));
       var paths= new ArrayList<>(files.keySet());
       var rnd= new Random(shown.hashCode());
       for (int i= 0; i < mutantsPerProject; i += 1){
         var path= paths.get(rnd.nextInt(paths.size()));
         var mutant= new TreeMap<>(files);
         mutant.put(path, Mutations.underAnnotate(files.get(path), rnd, Mutations.inferable));
-        packages.add(new Fuzz.Package(name, oracle(mutant), shown+", with "+path+" written as\n"+mutant.get(path)));
+        var mutated= shown+", with "+path+" mutated";
+        packages.add(new Fuzz.Package(name, oracle(mutant), mutated, finding -> shrunk(fuzz, name, mutated, mutant, finding)));
       }
     }
     fuzz.checkPackages(packages);
@@ -50,6 +53,16 @@ public final class LibraryTest extends testUtils.FearlessTestBase{
       var c= cs.stream().filter(l -> key(l).equals(key(f))).findFirst().orElse("");
       if (!c.equals(f)){ fuzz.found("C: base, the full core has "+Fuzz.firstDifference(f, c), "full:    "+f+"\ncompact: "+c); }
     }
+  }
+  static String shrunk(Fuzz fuzz, String name, String shown, TreeMap<String,String> files, String finding){
+    var current= new TreeMap<>(files);
+    for (var path : files.keySet()){ current.put(path, Shrink.text(current.get(path), s -> fuzz.outcome(name, oracle(with(current, path, s))).finding().equals(finding), shrinkAttempts)); }
+    return shown+", shrunk to\n"+Join.of(current.entrySet().stream().map(e -> "---- "+e.getKey()+"\n"+e.getValue()), "", "\n", "", "");
+  }
+  static TreeMap<String,String> with(TreeMap<String,String> files, String path, String text){
+    var res= new TreeMap<>(files);
+    res.put(path, text);
+    return res;
   }
   static String key(String declaration){
     var colon= declaration.indexOf(':');

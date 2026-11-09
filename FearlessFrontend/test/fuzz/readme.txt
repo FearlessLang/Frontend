@@ -69,3 +69,4 @@ a subtree of the same type, a leaf, false, the first enum constant, the first st
 Every program is then shrunk as text: Shrink deletes runs of tokens, from half of the tokens down to one token.
 A shrinking step is kept when the program keeps the same report key; a shrinking makes at most 2000 attempts.
 A program is shrunk only when its report key is new, or when it is shorter than the program kept for that key.
+A project of the standard library is shrunk file by file, each file as text, with at most 300 attempts for each file.
