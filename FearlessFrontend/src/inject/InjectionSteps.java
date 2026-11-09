@@ -102,7 +102,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return new core.M(mCore.sig(), xs, Optional.of(new ToCore(bs, meths).of(ei, e)));
   }
   E meet(E e, IT t){
-    if (e instanceof E.Type tt){ return nextT(tt); }
+    if (e instanceof E.Type tt){ return meetT(tt, t); }
     var typedLit= e instanceof E.Literal l && l.t().isTV();
     if (typedLit){ return e; }
     e = prototypeAscribeRootReceiver(e, t, Optional.empty());
@@ -314,6 +314,11 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (!t.t().undecided()){ return t; }
     return t.withT(preferred(t.type()));
   }
+  private E meetT(E.Type tt, IT t){
+    var inferred= tt.src().inner instanceof fearlessFullGrammar.E.Literal;
+    if (!inferred || !(meet(tt.t(), t) instanceof IT.RCC r) || !r.isTV() || r.equals(tt.type())){ return nextT(tt); }
+    return new E.Type(r, preferred(r), tt.src(), tt.g().clear());
+  }
   private E nextC(List<B> bs, Gamma g, E.Call c){
     var e= nextStar(bs, g, c.e());
     if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
@@ -337,11 +342,10 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private List<IT> fromArgs(MSigL m, List<E> es, boolean onlyLiterals){
     var n= m.nCls()+m.bsArity();
-    var lower= Streams.zip(m.ps0(), es).filter((p,e) -> !(p instanceof IT.RCC) && (!onlyLiterals || withBodies(e))).map((p,e) -> refine(m.xs(), p, e.t()));
-    var exact= Streams.zip(m.ps0(), es).filter((p,e) -> p instanceof IT.RCC && (!onlyLiterals || withBodies(e))).map((p,e) -> refine(m.xs(), p, e.t()));
+    var lower= Streams.zip(m.ps0(), es).filter((p,e) -> !(p instanceof IT.RCC) && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, e.t()));
+    var exact= Streams.zip(m.ps0(), es).filter((p,e) -> p instanceof IT.RCC && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, e.t()));
     return meet(Streams.of(Stream.of(join(Streams.of(Stream.of(qMarks(n)), lower).toList())), exact).toList());
   }
-  private static boolean withBodies(E e){ return e instanceof E.Literal l && !(l.infName() && l.ms().stream().allMatch(m -> m.impl().isEmpty())); }
   private static IT deFresh(Gamma g, IT t){
     if (!(t instanceof IT.RCC rcc)){ return t; }
     var o= g._owner(rcc.c().name());
