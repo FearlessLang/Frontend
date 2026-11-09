@@ -45,6 +45,7 @@ final class JavacToolTest{
     var dir= Path.of("opt", "fearlessManaged0_002");
     assertEquals(Optional.of(dir.resolveSibling("fearless0_002")), JavacTool.managerFolderOf(dir.resolve("fearlessManaged0_002w.exe")));
     assertEquals(Optional.of(dir.resolveSibling("fearless0_002")), JavacTool.managerFolderOf(dir.resolve("bin").resolve("fearlessManaged0_002")));
+    assertEquals(Optional.of(dir.resolveSibling("fearless0_002")), JavacTool.managerFolderOf(Path.of("opt", "fearlessManaged0_002.app", "Contents", "MacOS", "fearlessManaged0_002")));
     assertEquals(Optional.empty(), JavacTool.managerFolderOf(Path.of("opt", "fearless0_002", "bin", "fearless0_002")));
   }
 }
