@@ -5891,6 +5891,38 @@ C:Box[C],Box[A]{}
 D:Box[A]{}
 A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(C, D)) }
 """));}
+@Test void argumentImplementingAGenericHeadTwiceIsAmbiguous(){fail("""
+003| A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
+   |                                  ---------~~~~^^^~~
+
+While inspecting ".k" line 3
+This call to method "A.m(_)" cannot typecheck.
+Argument 1 has type "iso C".
+That is not a subtype of "Box[base.Void]" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.m[imm,-.Void](C)
+""", List.of("""
+Box[T]:{}
+C:Box[A],Box[C]{}
+A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
+"""));}
+@Test void argumentImplementingAGenericHeadTwiceInTheOtherOrderIsAmbiguous(){fail("""
+003| A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
+   |                                  ---------~~~~^^^~~
+
+While inspecting ".k" line 3
+This call to method "A.m(_)" cannot typecheck.
+Argument 1 has type "iso C".
+That is not a subtype of "Box[base.Void]" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.m[imm,-.Void](C)
+""", List.of("""
+Box[T]:{}
+C:Box[C],Box[A]{}
+A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
+"""));}
 @Test void joinOfASubtypeRefiningAGenericHeadOfItsSupertype(){ok(List.of("""
 Box[T]:{}
 R:Box[R]{}
