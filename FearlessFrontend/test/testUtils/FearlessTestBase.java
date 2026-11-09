@@ -2,12 +2,13 @@ package testUtils;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
@@ -41,11 +42,19 @@ public abstract class FearlessTestBase{
   protected static String canon(String core){
     var imm= core.replaceAll("\\b_[a-z]+0\\b", "_").replaceAll("imm \\w+\\._[A-Za-z0-9]*(\\[[^\\]]*\\])?:("+head+"*?)(, "+head+"*)?\\{'_ (?:(?!->)[^{}])*\\}", "$2");
     var rc= imm.replaceAll("(mut |iso |read )\\w+\\._[A-Za-z0-9]*(\\[[^\\]]*\\])?:("+head+"*?)(, "+head+"*)?\\{'_ (?:(?!->)[^{}])*\\}", "$1$3");
-    return Stream.of(rc.split("\\{'", -1)).map(FearlessTestBase::renumber).collect(Collectors.joining("{'"));
+    var scopes= new ArrayList<LinkedHashMap<String,String>>(List.of(new LinkedHashMap<>()));
+    var opened= new ArrayList<Integer>(List.of(0));
+    return scopeToken.matcher(rc).replaceAll(m -> Matcher.quoteReplacement(renumber(m.group(), scopes, opened)));
   }
-  private static String renumber(String s){
-    var names= new LinkedHashMap<String,String>();
-    return Pattern.compile("\\b_[A-Z][A-Za-z0-9]*").matcher(s).replaceAll(m -> names.computeIfAbsent(m.group(), _ -> "_N"+names.size()));
+  private static final Pattern scopeToken= Pattern.compile("\"[^\"\\n]*\"|`[^`\\n]*`|\\{'|\\{|\\}|\\b_[A-Z][A-Za-z0-9]*");
+  private static String renumber(String token, ArrayList<LinkedHashMap<String,String>> scopes, ArrayList<Integer> opened){
+    if (token.equals("{'")){ scopes.add(new LinkedHashMap<>()); opened.add(0); return token; }
+    if (token.equals("{")){ opened.set(opened.size()-1, opened.getLast()+1); return token; }
+    if (token.equals("}") && opened.getLast() > 0){ opened.set(opened.size()-1, opened.getLast()-1); return token; }
+    if (token.equals("}")){ scopes.removeLast(); opened.removeLast(); return token; }
+    if (!token.startsWith("_")){ return token; }
+    var names= scopes.getLast();
+    return names.computeIfAbsent(token, _ -> "_N"+names.size());
   }
   protected static void coreCmp(String full, String compact){ strCmp(canon(full), canon(compact)); }
   protected static void strCmp(String expected, String got){ Err.strCmp(expected, got); }

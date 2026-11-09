@@ -5,7 +5,7 @@ It has no variable _: the lowering gives every parameter _ and every self name _
 The tests compare the two printed cores after FearlessTestBase.canon rewrites both:
 every name of the form _a0 becomes _;
 a literal with a fresh name, the self name _ and no method body prints as its head type, as a type expression prints;
-then the fresh names are renumbered in order of first appearance, restarting at every literal body.
+then the fresh names are renumbered in order of first appearance, separately in every literal body; after a literal body, the numbering of the enclosing body continues.
 Its source is the three files src/compact/Frontend.java, src/compact/Util.java and src/compact/Print.java.
 
 Testing:
