@@ -369,7 +369,7 @@ public class Frontend{
   static Stream<String>methodFree(IG g,List<M>ms){return ms.stream().flatMap(m->cat(typeFree(push(m.s.types,m.s.t)),Stream.ofNullable(m.e).flatMap(ei->free(g,ei))).filter(x->!B.v(m.s.b).contains(x)));}
   record XE(String x,P e){}
   static class Methods{
-    Pkg p;Map<N,Literal>other;Scope top=new Scope();HashSet<String>reserved=new HashSet<>();HashMap<N,Owner>owners=new HashMap<>();HashMap<N,Literal>cache=new HashMap<>();HashMap<N,C>sup=new HashMap<>();
+    Pkg p;Map<N,Literal>other;Scope top=new Scope();HashSet<String>reserved=new HashSet<>();HashMap<N,Owner>owners=new HashMap<>();HashMap<N,Literal>cache=new HashMap<>();HashMap<N,C>sup=new HashMap<>();HashSet<String>inferred=new HashSet<>();
     int deep,cap;boolean late;N owner;Vector<String>implicits=new Vector<>();Vector<Literal>decs=new Vector<>();
     Methods(Pkg p,Map<N,Literal>other){this.p=p;this.other=other;
       top.used.addAll(map(p.names,N::simple));top.used.addAll(p.map.keySet());
@@ -549,7 +549,7 @@ public class Frontend{
       late=false;var e1=solve(b,g,ei);late=true;return m.body(core(b,solve(b,g,e1),m.e));
     }
     E meet(E e,T t){
-      if(e instanceof Literal l&&l.t.tv())return e;var a=ascribe(e,t,null);return a.t(meet(a.t(),t));
+      if(e instanceof Literal l&&l.t.tv()&&!(instance(l)&&inferred.contains(l.name.s)))return e;var a=ascribe(e,t,null);return a.t(meet(a.t(),t));
     }
     T below(R sub,R sup){
       var d=from(sub.c.name);if(d==null)return null;var ps=filter(d.cs,c->c.name.equals(sup.c.name));if(ps.size()==0)return null;
@@ -626,7 +626,7 @@ public class Frontend{
         .reduce((p,q)->zip(p,q,(a,b)->a.tv()&&!(a instanceof R(var r,_)&&r==null)?a:b)).get();
     }
     T up(T t){if(!(t instanceof R(var r,var c)))return t;var h=sup.getOrDefault(c.name,c);return new R(r,h).withTs(map(h.types,this::up));}
-    E literal(List<B>b,IG g,Literal l){var sp=l.r==null?null:l.self(l.r);if(!l.expanded){
+    E literal(List<B>b,IG g,Literal l){var sp=l.r==null?null:l.self(l.r);if(!l.expanded){if(l.anon&&l.cs.size()==0)inferred.add(l.name.s);
       l=l.t(!l.anon?sp:l.cs.size()==1?new R(l.r,l.cs.get(0)):or(sp,l.t));if(!(l.t instanceof R(_,var c)))return l;
       l=l.anon&&!c.name.equals(l.name)?implement(l,c,b):expand(l);
     }
@@ -638,7 +638,7 @@ public class Frontend{
       return commit(g,b,l.header(l.cs,res).t(t),t);
     }
     E commit(IG g,List<B>b,Literal l,R w){var name=l.name;
-      if(!w.tv()||!all(l.ms,m->all(push(m.s.types,m.s.t),T::tv))||cache.containsKey(name))return l;
+      if(!w.tv()||!all(l.ms,m->all(push(m.s.types,m.s.t),T::tv))||cache.containsKey(name)&&!(instance(l)&&inferred.contains(name.s)))return l;
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
       var cap=noH(or(l.r,w.r));var instance=instance(l);
       var own=w.c.name.equals(name);no(!own&&!w.c.name.visible()&&!w.c.name.pk().equals(p.name));
