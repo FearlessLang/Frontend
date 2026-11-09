@@ -24,6 +24,7 @@ final class Mutations{
     "[)\\w](:"+type+")\\s*->",
     "\\b((?:mut|read|imm|iso|readH|mutH) )"
   ).map(Pattern::compile).toList();
+  static final List<Pattern> inferable= annotations.subList(0, 2);
   final TreeMap<Integer,String> donors= new TreeMap<>();
   Mutations(List<String> seeds){ for (var s : seeds){ donors.put(s.hashCode(), s); } }
   String mutate(String s, Random r){
@@ -57,13 +58,14 @@ final class Mutations{
     var rnd= new Random(s.hashCode());
     return IntStream.range(0, perSeed).mapToObj(_ -> underAnnotate(s, rnd));
   }
-  static String underAnnotate(String s, Random r){
+  static String underAnnotate(String s, Random r){ return underAnnotate(s, r, annotations); }
+  static String underAnnotate(String s, Random r, List<Pattern> ps){
     int k= 1 + r.nextInt(4);
-    for (int i= 0; i < k; i += 1){ s = dropAnnotation(s, r); }
+    for (int i= 0; i < k; i += 1){ s = dropAnnotation(s, r, ps); }
     return s;
   }
-  static String dropAnnotation(String s, Random r){
-    var byPattern= annotations.stream().map(p -> p.matcher(s).results().toList()).filter(ms -> !ms.isEmpty()).toList();
+  static String dropAnnotation(String s, Random r, List<Pattern> ps){
+    var byPattern= ps.stream().map(p -> p.matcher(s).results().toList()).filter(ms -> !ms.isEmpty()).toList();
     if (byPattern.isEmpty()){ return s; }
     var ms= byPattern.get(r.nextInt(byPattern.size()));
     var m= ms.get(r.nextInt(ms.size()));

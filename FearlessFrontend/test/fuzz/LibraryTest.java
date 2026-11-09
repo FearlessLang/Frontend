@@ -5,7 +5,10 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.TreeMap;
 
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +17,7 @@ import tools.SourceOracle;
 
 public final class LibraryTest extends testUtils.FearlessTestBase{
   static final Path root= Path.of(System.getProperty("standardLibrary"));
+  static final int mutantsPerProject= 10;
   @Test void standardLibrary(){
     var base= oracle(root.resolve("base"));
     var full= compileAll("base", base, otherFrom(List.of()));
@@ -21,7 +25,22 @@ public final class LibraryTest extends testUtils.FearlessTestBase{
     var compactOther= compactBase.stream().flatMap(LibraryTest::compactAllLs).toList();
     var fuzz= new Fuzz("standardLibrary", otherFrom(List.of()).mergeWith(AllLs.of(full), -1), compactOther, base);
     if (checkCompact){ differentDeclarations(fuzz, canon(lines(full)), canon(compact.Print.lines(compactBase))); }
-    for (var project : projects()){ fuzz.checkPackage(project.getFileName().toString().substring(1), oracle(project), project.getParent().getFileName().toString()); }
+    var packages= new ArrayList<Fuzz.Package>();
+    for (var project : projects()){
+      var name= project.getFileName().toString().substring(1);
+      var shown= project.getParent().getFileName().toString();
+      var files= files(project);
+      packages.add(new Fuzz.Package(name, oracle(files), shown));
+      var paths= new ArrayList<>(files.keySet());
+      var rnd= new Random(shown.hashCode());
+      for (int i= 0; i < mutantsPerProject; i += 1){
+        var path= paths.get(rnd.nextInt(paths.size()));
+        var mutant= new TreeMap<>(files);
+        mutant.put(path, Mutations.underAnnotate(files.get(path), rnd, Mutations.inferable));
+        packages.add(new Fuzz.Package(name, oracle(mutant), shown+", with "+path+" written as\n"+mutant.get(path)));
+      }
+    }
+    fuzz.checkPackages(packages);
     fuzz.assertNothingFound();
   }
   static void differentDeclarations(Fuzz fuzz, String full, String compact){
@@ -47,14 +66,20 @@ public final class LibraryTest extends testUtils.FearlessTestBase{
     try (var ps= Files.list(project)){ return ps.filter(p -> Files.isDirectory(p) && p.getFileName().toString().startsWith("_")).toList(); }
     catch (IOException e){ throw new UncheckedIOException(e); }
   }
-  static SourceOracle oracle(Path folder){
+  static SourceOracle oracle(Path folder){ return oracle(files(folder)); }
+  static SourceOracle oracle(TreeMap<String,String> files){
     var b= SourceOracle.debugBuilder();
+    for (var e : files.entrySet()){ b= b.putURI(URI.create(e.getKey()), e.getValue()); }
+    return b.build();
+  }
+  static TreeMap<String,String> files(Path folder){
+    var res= new TreeMap<String,String>();
     try (var fs= Files.walk(folder)){
-      for (var f : fs.filter(p -> p.toString().endsWith(".fear")).sorted().toList()){
-        b= b.putURI(URI.create("fear:/"+folder.getFileName()+"/"+folder.relativize(f).toString().replace('\\', '/')), Files.readString(f).replace("\r", ""));
+      for (var f : fs.filter(p -> p.toString().endsWith(".fear")).toList()){
+        res.put("fear:/"+folder.getFileName()+"/"+folder.relativize(f).toString().replace('\\', '/'), Files.readString(f).replace("\r", ""));
       }
     }
     catch (IOException e){ throw new UncheckedIOException(e); }
-    return b.build();
+    return res;
   }
 }
