@@ -107,8 +107,18 @@ final class Source{
     default -> null;
   };}
   String resultOf(String type, int method){
+    var m= signatureOf(type, method);
+    return m == null ? null : name(m.result());
+  }
+  Meth signatureOf(String type, int method){
     if (type == null || !signatures.containsKey(type) || method >= signatures.get(type).size()){ return null; }
-    return name(signatures.get(type).get(method).result());
+    return signatures.get(type).get(method);
+  }
+  String arguments(E receiver, Nth method, List<E> args){
+    var m= signatureOf(typeOf(receiver), method.ordinal());
+    if (m == null){ return Join.of(args.stream().map(this::expression), "(", ", ", ")", ""); }
+    var ps= m.parameters();
+    return Join.of(IntStream.range(0, ps.size()).mapToObj(i -> i < args.size() ? body(args.get(i), ps.get(i)) : value(ps.get(i))).map(a -> a == null ? "this" : a), "(", ", ", ")", "");
   }
   static String name(Ty t){ return t instanceof Named(_, var n) ? n : null; }
   String scoped(List<String> xs, Supplier<String> inside){ return scoped(xs, xs.stream().map(_ -> (String)null).toList(), inside); }
@@ -125,7 +135,7 @@ final class Source{
     case This _ -> selves.isEmpty() ? "this" : selves.getLast();
     case Parameter(var n) -> scope.isEmpty() ? "this" : scope.get(scope.size()-1-n.ordinal() % scope.size());
     case TypeName(var n) -> n;
-    case Call(var r, var m, var rc, var args) -> expression(r)+names.get(m.ordinal())+(valueRc(rc).isEmpty() ? "" : "["+rc+"]")+Join.of(args.stream().map(this::expression), "(", ", ", ")", "");
+    case Call(var r, var m, var rc, var args) -> expression(r)+names.get(m.ordinal())+(valueRc(rc).isEmpty() ? "" : "["+rc+"]")+arguments(r, m, args);
     case Literal(var rc, var head, var self, var ms) -> literal(head.isEmpty() ? "" : valueRc(rc)+head, self ? List.of("s"+(fresh++)) : List.of(), head.isEmpty() ? null : head, ms, signatures.getOrDefault(head, List.of()));
     case Declared(var rc, var sup, var ms) -> literal(valueRc(rc)+"D"+(fresh++)+":"+sup, List.of(), null, ms, signatures.getOrDefault(sup, List.of()));
     case Function(var ps, var body) -> function(ps.stream().map(_ -> "x"+(fresh++)).toList(), body);
