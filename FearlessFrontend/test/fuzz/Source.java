@@ -35,9 +35,37 @@ final class Source{
   static String of(Program p){
     var s= new Source();
     declarations.forEach(s::box);
+    s.bases();
     var ds= List.of(p.a(), p.b(), p.c(), p.d());
     return helpers+IntStream.range(0, ds.size()).mapToObj(i -> s.declaration(declarations.get(i), declarations.subList(0, i), ds.get(i))+"\n").collect(joining());
   }
+  final HashMap<String,List<String>> methodNames= new HashMap<>();
+  static final List<String> values= List.of("base.Void", "base.True", "base.False", "5");
+  void bases(){
+    var bool= new Named(Rc.none, "base.Bool");
+    var nat= new Named(Rc.none, "base.Nat");
+    var bools= List.of(sig(bool), sig(bool, bool), sig(bool, bool), sig(bool, bool));
+    var nats= List.of(sig(nat, nat), sig(nat, nat));
+    base("base.Bool", List.of(".not", ".and", ".or", "&"), bools, List.of(), Set.of(0));
+    base("base.True", List.of(".not", ".and", ".or", "&"), bools, List.of("base.Bool"), Set.of());
+    base("base.False", List.of(".not", ".and", ".or", "&"), bools, List.of("base.Bool"), Set.of());
+    base("base.Nat", List.of(" +", " *"), nats, List.of(), Set.of(0));
+    base("5", List.of(" +", " *"), nats, List.of("base.Nat"), Set.of());
+    supertypes.put("base.Void", List.of());
+    abstracts.put("base.Void", Set.of());
+  }
+  void base(String type, List<String> names, List<Meth> methods, List<String> supers, Set<Integer> open){
+    methodNames.put(type, names);
+    signatures.put(type, methods);
+    supertypes.put(type, supers);
+    abstracts.put(type, open);
+  }
+  static Meth sig(Named result, Named... parameters){ return new Meth(Rc.none, true, false, List.of(parameters), result, new Abstract()); }
+  String methodName(String type, int method){
+    var ns= methodNames.getOrDefault(type, names);
+    return ns.get(method % ns.size());
+  }
+  int methodIndex(String type, int method){ return methodNames.containsKey(type) ? method % methodNames.get(type).size() : method; }
   void box(String x){
     var name= "Box["+x+"]";
     var t= new Named(Rc.none, x);
@@ -89,7 +117,7 @@ final class Source{
     return v == null ? expression(e) : v;
   }
   String value(Ty t){ return switch (t){
-    case Named(_, var n) -> n.equals("base.Void") ? n : declarations.stream().filter(d -> abstracts.containsKey(d) && abstracts.get(d).isEmpty() && subtype(d, n)).findFirst().orElse(null);
+    case Named(_, var n) -> Stream.concat(values.stream(), declarations.stream()).filter(d -> abstracts.containsKey(d) && abstracts.get(d).isEmpty() && subtype(d, n)).findFirst().orElse(null);
     case Lambda(_, var as, var r) -> functionReturning(as.size(), value(r));
   };}
   String functionReturning(int arity, String result){
@@ -111,8 +139,8 @@ final class Source{
     return m == null ? null : name(m.result());
   }
   Meth signatureOf(String type, int method){
-    if (type == null || !signatures.containsKey(type) || method >= signatures.get(type).size()){ return null; }
-    return signatures.get(type).get(method);
+    if (type == null || !signatures.containsKey(type) || methodIndex(type, method) >= signatures.get(type).size()){ return null; }
+    return signatures.get(type).get(methodIndex(type, method));
   }
   String arguments(E receiver, Nth method, List<E> args){
     var m= signatureOf(typeOf(receiver), method.ordinal());
@@ -135,7 +163,7 @@ final class Source{
     case This _ -> selves.isEmpty() ? "this" : selves.getLast();
     case Parameter(var n) -> scope.isEmpty() ? "this" : scope.get(scope.size()-1-n.ordinal() % scope.size());
     case TypeName(var n) -> n;
-    case Call(var r, var m, var rc, var args) -> expression(r)+names.get(m.ordinal())+(valueRc(rc).isEmpty() ? "" : "["+rc+"]")+arguments(r, m, args);
+    case Call(var r, var m, var rc, var args) -> expression(r)+methodName(typeOf(r), m.ordinal())+(valueRc(rc).isEmpty() ? "" : "["+rc+"]")+arguments(r, m, args);
     case Literal(var rc, var head, var self, var ms) -> literal(head.isEmpty() ? "" : valueRc(rc)+head, self ? List.of("s"+(fresh++)) : List.of(), head.isEmpty() ? null : head, ms, signatures.getOrDefault(head, List.of()));
     case Declared(var rc, var sup, var ms) -> literal(valueRc(rc)+"D"+(fresh++)+":"+sup, List.of(), null, ms, signatures.getOrDefault(sup, List.of()));
     case Function(var ps, var body) -> function(ps.stream().map(_ -> "x"+(fresh++)).toList(), body);

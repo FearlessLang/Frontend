@@ -45,6 +45,8 @@ Source:
 A program is the helpers Id and Box[X], then the declarations A, B, C and D; each can implement the declarations before it,
 and one of Box[A], Box[B] and Box of itself.
 Methods are named by position, .m, .n, # and .k; parameters are named x0, x1, ... in the order they are printed.
+Source also knows base.Bool, base.True, base.False, base.Nat and 5, with the methods .not, .and, .or, & and +, *:
+a call on a receiver of one of these types calls one of their methods, and the values base.Void, base.True, base.False and 5 can replace a body.
 A parameter reference names a variable in scope, the innermost first.
 A method omits its types only when a supertype, or the head of its literal, has a method in the same position;
 the method then takes the arity and the capability of that method.
@@ -55,7 +57,7 @@ Inside a literal with a self name, this stands for the self name.
 A literal writes its self name only when its methods use it.
 Source knows the type of some expressions: this, the parameters with a type, the type names, the calls of a method with a known result, the literals with a head.
 When the type of a method body is known and is not a subtype of the result type of the method, or the body is a parameter of unknown type,
-Source writes instead a value of the result type: base.Void, a declaration without abstract methods implementing that type, or a function returning such a value.
+Source writes instead a value of the result type: one of the values above, a declaration without abstract methods implementing that type, or a function returning such a value.
 A literal with a head also implements the abstract methods of the head that its methods do not implement, when Source can write a value of their result type.
 When the type of the receiver of a call is known, the call has the arity of the method, and each argument is written as a method body of the type of its parameter.
 
