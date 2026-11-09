@@ -423,7 +423,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (selfInferred){ l = l.withT(preciseSelf(l).get()); }
     assert !meths.cache().containsKey(name);
     meths.register(l);
-    g.tableGrew();
     return l;
   }
   private E.Type literalAsType(E.Literal l, IT.RCC rcc){
