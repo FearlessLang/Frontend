@@ -28,7 +28,6 @@ import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
 import tools.Fs;
-import utils.OneOr;
 import utils.Push;
 
 public record Methods(
@@ -74,7 +73,7 @@ public record Methods(
     var d= _from(n);
     return d == null ? List.of() : d.cs().stream().map(core.T.C::name).toList();
   }
-  private IT.C superC(IT.RCC t, TName h){ return OneOr.of("Supertype "+h+" implemented once", implied(t.c()).stream().filter(c -> c.name().equals(h))); }
+  private IT.C superC(IT.RCC t, TName h){ return implied(t.c()).stream().filter(c -> c.name().equals(h)).findFirst().orElseThrow(); }
   List<TName> commonSuperHeads(List<IT> cands){
     if (!cands.stream().allMatch(t -> t instanceof IT.RCC)){ return List.of(); }
     var heads= cands.stream().map(t -> new ArrayList<>(superHeads(((IT.RCC)t).c().name()))).reduce((a,b) -> { a.retainAll(b); return a; }).get();
