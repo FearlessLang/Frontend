@@ -5,6 +5,8 @@ import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.RecordComponent;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 final class Trees{
@@ -20,10 +22,21 @@ final class Trees{
     if (position(t) && k[0]-- == 0){ return f.apply(v, t); }
     if (v instanceof List<?> l){ return l.stream().map(x -> replace(x, element(t), k, f)).toList(); }
     if (!v.getClass().isRecord()){ return v; }
-    var cs= v.getClass().getRecordComponents();
-    var args= Stream.of(cs).map(c -> replace(get(c, v), c.getAnnotatedType(), k, f)).toArray();
-    try{ return v.getClass().getDeclaredConstructor(Stream.of(cs).map(RecordComponent::getType).toArray(Class[]::new)).newInstance(args); }
+    return rebuild(v, c -> replace(get(c, v), c.getAnnotatedType(), k, f));
+  }
+  static Object rebuild(Object record, Function<RecordComponent,Object> component){
+    var cs= record.getClass().getRecordComponents();
+    try{ return record.getClass().getDeclaredConstructor(Stream.of(cs).map(RecordComponent::getType).toArray(Class[]::new)).newInstance(Stream.of(cs).map(component).toArray()); }
     catch (ReflectiveOperationException e){ throw new Error(e); }
+  }
+  static <T> T map(T root, UnaryOperator<Object> f){
+    @SuppressWarnings("unchecked") var res= (T)mapAll(root, f);
+    return res;
+  }
+  static Object mapAll(Object v, UnaryOperator<Object> f){
+    if (v instanceof List<?> l){ return f.apply(l.stream().map(x -> mapAll(x, f)).toList()); }
+    if (!v.getClass().isRecord()){ return f.apply(v); }
+    return f.apply(rebuild(v, c -> mapAll(get(c, v), f)));
   }
   static <T> T replace(T root, int k, BiFunction<Object,AnnotatedType,Object> f){
     @SuppressWarnings("unchecked") var res= (T)replace(root, null, new int[]{k}, f);

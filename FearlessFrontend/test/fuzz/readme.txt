@@ -19,28 +19,41 @@ The tests:
   a slice of another seed, a swapped capability, a swapped name.
 - underAnnotatedTestPrograms: the seeds with annotations, each with 9 mutants that drop 1 to 4 annotations:
   type arguments of calls, heads of literals, parameter types, return types, capabilities.
-- generatedPrograms: 3000 programs generated from the grammar Ast (Gen, printed by Source),
-  then 10000 mutants, each replacing one position of an accepted program with a new generated value (Trees).
+- generatedPrograms: 6000 programs generated from the grammar Ast (Gen, printed by Source),
+  then 40000 mutants, each replacing one position of an accepted program with a new generated value (Trees).
+  The mutants are made in batches of 500; the accepted mutants of a batch are mutated in the next batches.
+  An accepted mutant whose core holds a triple of tokens that no earlier accepted program had is mutated three times as often.
   Most mutants differ from an accepted program in one place, so most of them are accepted too.
 - writingTheInferredTypesKeepsTheCore: the programs of the first two tests, with the types the full frontend infers written in the source (InferredTypes).
   The full frontend must accept the written program and print the same core.
 
+The two frontends compile the programs of a test in parallel; the findings, the summary and the shrinking follow the order of the programs, so a report does not depend on the threads.
 Every test prints a summary line: the number of programs, how many of them the full frontend accepts,
+how many distinct triples of consecutive tokens the cores of the accepted programs hold (a measure of their variety),
 and the three most frequent places where the full frontend rejects.
 
 Gen:
 A record is built by its canonical constructor, with a generated value for each component.
-A sealed interface is built as one of its permitted records, chosen at random.
+A sealed interface is built as one of its permitted records, chosen at random in proportion to their @Weight (1 when absent).
 Past the maximum depth, Gen chooses only among the leaf records: the records without a component of a sealed type.
-@Size bounds the size of a list; @OneOf lists the values of a string.
+@Size bounds the size of a list; @OneOf lists the values of a string, and a repeated value is chosen more often.
 
 Source:
-A program is the helpers Id and Box[X], then the declarations A, B and C; B can implement A, and C can implement A and B.
-Methods are named by position, .m, .n and #; parameters are named x0, x1, ... in the order they are printed.
+A program is the helpers Id and Box[X], then the declarations A, B, C and D; each can implement the declarations before it,
+and one of Box[A], Box[B] and Box of itself.
+Methods are named by position, .m, .n, # and .k; parameters are named x0, x1, ... in the order they are printed.
 A parameter reference names a variable in scope, the innermost first.
 A method omits its types only when a supertype, or the head of its literal, has a method in the same position;
 the method then takes the arity and the capability of that method.
+The type name Self stands for the declaration that holds it, also inside Box[Self].
+The capabilities readH and mutH are written only in types; a method is written without iso, readH and mutH.
+A typed method can have a generic X1, X2, ... (one more for each enclosing generic method); the type name X stands for the innermost one, or for the declaration when there is none.
+Inside a literal with a self name, this stands for the self name.
 A literal writes its self name only when its methods use it.
+Source knows the type of some expressions: this, the parameters with a type, the type names, the calls of a method with a known result, the literals with a head.
+When the type of a method body is known and is not a subtype of the result type of the method, or the body is a parameter of unknown type,
+Source writes instead a value of the result type: base.Void, a declaration without abstract methods implementing that type, or a function returning such a value.
+A literal with a head also implements the abstract methods of the head that its methods do not implement, when Source can write a value of their result type.
 
 Shrink:
 A generated program is first shrunk as a tree: at each position, Shrink tries a list without one element,

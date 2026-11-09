@@ -1,5 +1,7 @@
 package fuzz;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -22,6 +24,7 @@ final class Fuzz extends testUtils.FearlessTestBase{
   final String name;
   final TreeMap<String,String> found= new TreeMap<>();
   final TreeMap<String,Integer> rejections= new TreeMap<>();
+  final HashSet<String> triples= new HashSet<>();
   int checked= 0;
   Fuzz(String name){ this.name= name; }
   void found(String key, String program){ found.merge(key, program, (a, b) -> a.length() <= b.length() ? a : b); }
@@ -32,40 +35,55 @@ final class Fuzz extends testUtils.FearlessTestBase{
   String summary(){
     var rejected= rejections.values().stream().mapToInt(i -> i).sum();
     var frequent= rejections.entrySet().stream().sorted(Map.Entry.<String,Integer>comparingByValue().reversed()).limit(3).map(e -> e.getKey()+" "+e.getValue());
-    return name+": "+checked+" programs, "+(checked-rejected)+" accepted by the full frontend; most frequent rejections: "+Join.of(frequent, "", ", ", "", "");
+    return name+": "+checked+" programs, "+(checked-rejected)+" accepted by the full frontend, "+triples.size()+" triples of core tokens; most frequent rejections: "+Join.of(frequent, "", ", ", "", "");
   }
-  record Outcome(String rejection, String finding){ boolean accepted(){ return rejection.isEmpty(); } }
-  boolean check(String src){ return check(src, finding -> Shrink.text(src, same(finding))); }
-  boolean check(Ast.Program p){
-    var src= Source.of(p);
-    return check(src, finding -> Shrink.text(Source.of(Shrink.tree(p, same(finding))), same(finding)));
+  record Outcome(String rejection, String finding, String core){ boolean accepted(){ return rejection.isEmpty(); } }
+  boolean check(String src){ return record(src, outcome(src), finding -> Shrink.text(src, same(finding))) >= 0; }
+  void check(List<String> srcs){
+    var outcomes= srcs.parallelStream().map(this::outcome).toList();
+    IntStream.range(0, srcs.size()).forEach(i -> record(srcs.get(i), outcomes.get(i), finding -> Shrink.text(srcs.get(i), same(finding))));
   }
-  boolean check(String src, UnaryOperator<String> shrink){
+  List<Ast.Program> accepted(List<Ast.Program> ps){
+    var srcs= ps.stream().map(Source::of).toList();
+    var outcomes= srcs.parallelStream().map(this::outcome).toList();
+    var res= new ArrayList<Ast.Program>();
+    for (int i= 0; i < ps.size(); i += 1){
+      var p= ps.get(i);
+      var novelty= record(srcs.get(i), outcomes.get(i), finding -> shrink(p, finding));
+      if (novelty >= 0){ res.add(p); }
+      if (novelty > 0){ res.add(p); res.add(p); }
+    }
+    return res;
+  }
+  String shrink(Ast.Program p, String finding){ return Shrink.text(Source.of(Shrink.tree(p, same(finding))), same(finding)); }
+  int record(String src, Outcome o, UnaryOperator<String> shrink){
     checked += 1;
-    var o= outcome(src);
     if (!o.accepted()){ rejections.merge(o.rejection(), 1, Integer::sum); }
     var worthShrinking= !o.finding().isEmpty() && (!found.containsKey(o.finding()) || found.get(o.finding()).length() > src.length());
     if (worthShrinking){ found(o.finding(), shrink.apply(o.finding())); }
-    return o.accepted();
+    if (!o.accepted()){ return -1; }
+    var ts= token.matcher(o.core()).results().map(MatchResult::group).toList();
+    return (int)IntStream.range(2, ts.size()).filter(i -> triples.add(ts.get(i-2)+" "+ts.get(i-1)+" "+ts.get(i))).count();
   }
   Predicate<String> same(String finding){ return s -> outcome(s).finding().equals(finding); }
   Outcome outcome(String src){
     var o= SourceOracle.debugBuilder().put(0, src).build();
     String full;
     try{ full= full(o); }
-    catch (Throwable t){ return new Outcome(crash(t), crash(t)); }
+    catch (Throwable t){ return new Outcome(crash(t), crash(t), ""); }
     var fullRejects= full.startsWith("rejects at ");
     var rejection= fullRejects ? full.substring("rejects at ".length()) : "";
-    if (!checkCompact){ return new Outcome(rejection, ""); }
+    var core= fullRejects ? "" : full;
+    if (!checkCompact){ return new Outcome(rejection, "", core); }
     String got;
     try{ got= compact(o); }
-    catch (Throwable t){ return new Outcome(rejection, crash(t)); }
+    catch (Throwable t){ return new Outcome(rejection, crash(t), core); }
     var compactRejects= got.startsWith("rejects at ");
-    if (full.equals(got) || fullRejects && compactRejects){ return new Outcome(rejection, ""); }
+    if (full.equals(got) || fullRejects && compactRejects){ return new Outcome(rejection, "", core); }
     var kind= compactRejects ? "A: the full frontend accepts, the compact frontend "+got
       : fullRejects ? "B: the compact frontend accepts, the full frontend "+full
       : "C: the full core has "+firstDifference(full, got);
-    return new Outcome(rejection, kind);
+    return new Outcome(rejection, kind, core);
   }
   String full(SourceOracle o){
     try{ return canon(lines(compileAll("p", o, other))); }

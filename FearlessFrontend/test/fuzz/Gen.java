@@ -1,5 +1,6 @@
 package fuzz;
 
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -15,9 +16,12 @@ import java.util.Random;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import utils.Bug;
+
 final class Gen{
   @Retention(RUNTIME) @Target(TYPE_USE) @interface Size{ int min() default 0; int max(); }
   @Retention(RUNTIME) @Target(TYPE_USE) @interface OneOf{ String[] value(); }
+  @Retention(RUNTIME) @Target(TYPE) @interface Weight{ int value(); }
   final Random r;
   final int maxDepth;
   int depth= 0;
@@ -34,9 +38,15 @@ final class Gen{
     if (c == boolean.class){ return r.nextBoolean(); }
     if (c.isEnum()){ return pick(List.of(c.getEnumConstants())); }
     if (!c.isSealed()){ return record(c); }
-    return record(pick(depth < maxDepth ? List.of(c.getPermittedSubclasses()) : leaves(c)));
+    return record(weighted(depth < maxDepth ? List.of(c.getPermittedSubclasses()) : leaves(c)));
   }
   <T> T pick(List<T> ts){ return ts.get(r.nextInt(ts.size())); }
+  Class<?> weighted(List<Class<?>> cs){
+    var left= r.nextInt(cs.stream().mapToInt(Gen::weight).sum());
+    for (var c : cs){ left -= weight(c); if (left < 0){ return c; } }
+    throw Bug.unreachable();
+  }
+  static int weight(Class<?> c){ var w= c.getAnnotation(Weight.class); return w == null ? 1 : w.value(); }
   Object record(Class<?> c){
     var cs= c.getRecordComponents();
     depth += 1;
