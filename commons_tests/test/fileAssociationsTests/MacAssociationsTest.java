@@ -115,9 +115,9 @@ final class MacAssociationsTest{
     assertEquals(List.of(bundle()), registered);
     assertEquals(List.of(), offered);
   }
-  @Test void theLauncherOfTheHelperBundleRunsTheCommandWithItsArguments(){
+  @Test void theLauncherOfTheHelperBundleRunsTheCommandWithFearlessCommandOpened(){
     reconcile(".fapp123");
-    assertEquals("#!/bin/sh\nexec '/Applications/it'\\''s here/fearlessManaged0_001.app/Contents/MacOS/fearlessManaged0_001' \"$@\"\n", Fs.readUtf8(contents("MacOS/"+identity)));
+    assertEquals("#!/bin/sh\nexec '/Applications/it'\\''s here/fearlessManaged0_001.app/Contents/MacOS/fearlessManaged0_001' FearlessCommandOpened\n", Fs.readUtf8(contents("MacOS/"+identity)));
     assertEquals(true, Files.isExecutable(contents("MacOS/"+identity)));
   }
   @Test void anIconIsAnIcnsHoldingOnePngOf256Pixels(){
