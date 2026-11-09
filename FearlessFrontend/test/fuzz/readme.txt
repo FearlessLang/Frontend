@@ -24,6 +24,9 @@ The tests:
   The mutants are made in batches of 500; the accepted mutants of a batch are mutated in the next batches.
   An accepted mutant whose core holds a triple of tokens that no earlier accepted program had is mutated three times as often.
   Most mutants differ from an accepted program in one place, so most of them are accepted too.
+- LibraryTest.standardLibrary: the package base of the standard library, with the full frontend and, with the argument compact, also with the compact frontend,
+  whose cores must be the same declaration by declaration; then every single-package project of the folder integrationTests of the standard library, compiled against that base.
+  The scripts give the folder of the standard library to the tests as the property standardLibrary.
 - writingTheInferredTypesKeepsTheCore: the programs of the first two tests, with the types the full frontend infers written in the source (InferredTypes).
   The full frontend must accept the written program and print the same core.
 

@@ -19,14 +19,21 @@ import tools.SourceOracle;
 import utils.Join;
 
 final class Fuzz extends testUtils.FearlessTestBase{
-  final OtherPackages other= otherFrom(DbgBlock.all());
-  final List<compact.Frontend.Literal> compactOther= checkCompact ? compactBase() : List.of();
+  final OtherPackages other;
+  final List<compact.Frontend.Literal> compactOther;
+  final SourceOracle fallback;
   final String name;
   final TreeMap<String,String> found= new TreeMap<>();
   final TreeMap<String,Integer> rejections= new TreeMap<>();
   final HashSet<String> triples= new HashSet<>();
   int checked= 0;
-  Fuzz(String name){ this.name= name; }
+  Fuzz(String name){ this(name, otherFrom(DbgBlock.all()), checkCompact ? compactBase() : List.of(), DbgBlock.dbgMiniBase()); }
+  Fuzz(String name, OtherPackages other, List<compact.Frontend.Literal> compactOther, SourceOracle fallback){
+    this.name= name;
+    this.other= other;
+    this.compactOther= compactOther;
+    this.fallback= fallback;
+  }
   void found(String key, String program){ found.merge(key, program, (a, b) -> a.length() <= b.length() ? a : b); }
   void assertNothingFound(){
     System.out.println(summary());
@@ -67,16 +74,19 @@ final class Fuzz extends testUtils.FearlessTestBase{
   }
   Predicate<String> same(String finding){ return s -> outcome(s).finding().equals(finding); }
   Outcome outcome(String src){
-    var o= SourceOracle.debugBuilder().put(0, src).build();
+    return outcome("p", SourceOracle.debugBuilder().put(0, src).build());
+  }
+  boolean checkPackage(String pkg, SourceOracle o, String shown){ return record(shown, outcome(pkg, o), _ -> shown) >= 0; }
+  Outcome outcome(String pkg, SourceOracle o){
     String full;
-    try{ full= full(o); }
+    try{ full= full(pkg, o); }
     catch (Throwable t){ return new Outcome(crash(t), crash(t), ""); }
     var fullRejects= full.startsWith("rejects at ");
     var rejection= fullRejects ? full.substring("rejects at ".length()) : "";
     var core= fullRejects ? "" : full;
     if (!checkCompact){ return new Outcome(rejection, "", core); }
     String got;
-    try{ got= compact(o); }
+    try{ got= compact(pkg, o); }
     catch (Throwable t){ return new Outcome(rejection, crash(t), core); }
     var compactRejects= got.startsWith("rejects at ");
     if (full.equals(got) || fullRejects && compactRejects){ return new Outcome(rejection, "", core); }
@@ -85,12 +95,12 @@ final class Fuzz extends testUtils.FearlessTestBase{
       : "C: the full core has "+firstDifference(full, got);
     return new Outcome(rejection, kind, core);
   }
-  String full(SourceOracle o){
-    try{ return canon(lines(compileAll("p", o, other))); }
-    catch (FearlessException fe){ fe.render(o.withFallback(DbgBlock.dbgMiniBase())); return rejects(fe); }
+  String full(String pkg, SourceOracle o){
+    try{ return canon(lines(compileAll(pkg, o, other))); }
+    catch (FearlessException fe){ fe.render(o.withFallback(fallback)); return rejects(fe); }
   }
-  String compact(SourceOracle o){
-    try{ return canon(compact.Print.lines(compactAll("p", o, compactOther))); }
+  String compact(String pkg, SourceOracle o){
+    try{ return canon(compact.Print.lines(compactAll(pkg, o, compactOther))); }
     catch (compact.Frontend.Fail f){ return rejects(f); }
   }
   static final Pattern token= Pattern.compile("\\w+|\\S");
