@@ -19,7 +19,8 @@ final class Source{
   static final List<String> names= List.of(".m", ".n", "#", ".k");
   static final List<String> declarations= List.of("A", "B", "C", "D");
   static final String helpers= """
-    Id:{ #[Y:**](y: Y): Y -> y }
+    Id:{ #[Y:**](y: Y): Y -> y; .tag[Y:**](y: Y, t: Tag[Y]): Y -> y }
+    Tag[X:**]:{}
     Box[X:**]:{ .m: X; .n(x: X): Box[X]; #: Box[X] }
     """;
   final HashMap<String,List<Meth>> signatures= new HashMap<>();
@@ -36,7 +37,8 @@ final class Source{
     var s= new Source();
     declarations.forEach(s::box);
     s.bases();
-    s.base("Id", List.of("#"), List.of(new Meth(Rc.none, true, true, List.of(new Named(Rc.none, "X")), new Named(Rc.none, "X"), new Abstract())), List.of(), Set.of());
+    var x= new Named(Rc.none, "X");
+    s.base("Id", List.of("#", ".tag"), List.of(new Meth(Rc.none, true, true, List.of(x), x, new Abstract()), new Meth(Rc.none, true, true, List.of(x, new Named(Rc.none, "Tag[X]")), x, new Abstract())), List.of(), Set.of());
     var ds= List.of(p.a(), p.b(), p.c(), p.d());
     return helpers+IntStream.range(0, ds.size()).mapToObj(i -> s.declaration(declarations.get(i), declarations.subList(0, i), ds.get(i))+"\n").collect(joining());
   }
@@ -73,6 +75,8 @@ final class Source{
     var self= new Named(Rc.none, name);
     signatures.put(name, List.of(new Meth(Rc.none, true, false, List.of(), t, new Abstract()), new Meth(Rc.none, true, false, List.of(t), self, new Abstract()), new Meth(Rc.none, true, false, List.of(), self, new Abstract())));
     abstracts.put(name, Set.of(0, 1, 2));
+    signatures.put("Tag["+x+"]", List.of());
+    abstracts.put("Tag["+x+"]", Set.of());
   }
   String declaration(String name, List<String> before, Dec written){
     var d= Trees.map(written, v -> v instanceof Named(var rc, var n) && n.contains("Self") ? new Named(rc, n.replace("Self", name)) : v);
@@ -118,6 +122,7 @@ final class Source{
     return v == null ? expression(e) : v;
   }
   String value(Ty t){ return switch (t){
+    case Named(_, var n) when n.startsWith("Tag[") -> "{}";
     case Named(_, var n) -> Stream.concat(values.stream(), declarations.stream()).filter(d -> abstracts.containsKey(d) && abstracts.get(d).isEmpty() && subtype(d, n)).findFirst().orElse(null);
     case Lambda(_, var as, var r) -> functionReturning(as.size(), value(r));
   };}
@@ -137,7 +142,7 @@ final class Source{
   };}
   String resultOf(String type, int method){
     var m= signatureOf(type, method);
-    return m == null ? null : name(m.result());
+    return m == null || "X".equals(name(m.result())) ? null : name(m.result());
   }
   Meth signatureOf(String type, int method){
     if (type == null || !signatures.containsKey(type) || methodIndex(type, method) >= signatures.get(type).size()){ return null; }
