@@ -36,6 +36,7 @@ final class Source{
     var s= new Source();
     declarations.forEach(s::box);
     s.bases();
+    s.base("Id", List.of("#"), List.of(new Meth(Rc.none, true, true, List.of(new Named(Rc.none, "X")), new Named(Rc.none, "X"), new Abstract())), List.of(), Set.of());
     var ds= List.of(p.a(), p.b(), p.c(), p.d());
     return helpers+IntStream.range(0, ds.size()).mapToObj(i -> s.declaration(declarations.get(i), declarations.subList(0, i), ds.get(i))+"\n").collect(joining());
   }
@@ -130,7 +131,7 @@ final class Source{
     case This _ -> selves.isEmpty() ? declaring : selfTypes.getLast();
     case Parameter(var n) -> scope.isEmpty() ? declaring : scopeTypes.get(scope.size()-1-n.ordinal() % scope.size());
     case TypeName(var n) -> n;
-    case Call(var r, var m, _, _) -> resultOf(typeOf(r), m.ordinal());
+    case Call(var r, var m, _, _, _) -> resultOf(typeOf(r), m.ordinal());
     case Literal(_, var head, _, _) -> head.isEmpty() ? null : head;
     default -> null;
   };}
@@ -141,6 +142,12 @@ final class Source{
   Meth signatureOf(String type, int method){
     if (type == null || !signatures.containsKey(type) || methodIndex(type, method) >= signatures.get(type).size()){ return null; }
     return signatures.get(type).get(methodIndex(type, method));
+  }
+  String typeArguments(E receiver, Nth method, Rc rc, List<Named> ts){
+    var m= signatureOf(typeOf(receiver), method.ordinal());
+    var generic= m != null && m.typed() && m.generic() && !ts.isEmpty();
+    var written= Stream.concat(Stream.of(valueRc(rc).trim()).filter(r -> !r.isEmpty()), generic ? Stream.of(type(ts.getFirst())) : Stream.<String>of()).toList();
+    return Join.of(written, "[", ",", "]", "");
   }
   String arguments(E receiver, Nth method, List<E> args){
     var m= signatureOf(typeOf(receiver), method.ordinal());
@@ -163,7 +170,7 @@ final class Source{
     case This _ -> selves.isEmpty() ? "this" : selves.getLast();
     case Parameter(var n) -> scope.isEmpty() ? "this" : scope.get(scope.size()-1-n.ordinal() % scope.size());
     case TypeName(var n) -> n;
-    case Call(var r, var m, var rc, var args) -> expression(r)+methodName(typeOf(r), m.ordinal())+(valueRc(rc).isEmpty() ? "" : "["+rc+"]")+arguments(r, m, args);
+    case Call(var r, var m, var rc, var ts, var args) -> expression(r)+methodName(typeOf(r), m.ordinal())+typeArguments(r, m, rc, ts)+arguments(r, m, args);
     case Literal(var rc, var head, var self, var ms) -> literal(head.isEmpty() ? "" : valueRc(rc)+head, self ? List.of("s"+(fresh++)) : List.of(), head.isEmpty() ? null : head, ms, signatures.getOrDefault(head, List.of()));
     case Declared(var rc, var sup, var ms) -> literal(valueRc(rc)+"D"+(fresh++)+":"+sup, List.of(), null, ms, signatures.getOrDefault(sup, List.of()));
     case Function(var ps, var body) -> function(ps.stream().map(_ -> "x"+(fresh++)).toList(), body);

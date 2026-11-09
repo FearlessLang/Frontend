@@ -60,6 +60,7 @@ When the type of a method body is known and is not a subtype of the result type 
 Source writes instead a value of the result type: one of the values above, a declaration without abstract methods implementing that type, or a function returning such a value.
 A literal with a head also implements the abstract methods of the head that its methods do not implement, when Source can write a value of their result type.
 When the type of the receiver of a call is known, the call has the arity of the method, and each argument is written as a method body of the type of its parameter.
+A call writes its type argument only when its method is known to have a generic; the helper Id has the generic method #.
 
 Shrink:
 A generated program is first shrunk as a tree: at each position, Shrink tries a list without one element,
