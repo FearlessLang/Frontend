@@ -16,13 +16,13 @@ interface Ast{
   record Abstract() implements Body{}
   @Weight(3) record Returns(E e) implements Body{}
   sealed interface Ty{}
-  @Weight(4) record Named(Rc rc, @OneOf({"A", "B", "C", "D", "base.Void", "Box[A]", "Box[B]", "Box[Self]", "Self", "Self", "X"}) String name) implements Ty{}
+  @Weight(4) record Named(Rc rc, @OneOf({"A", "B", "C", "D", "base.Void", "Box[A]", "Box[B]", "Box[Self]", "Self", "Self", "X", "base.Bool", "base.Nat", "Box[Box[A]]"}) String name) implements Ty{}
   record Lambda(Rc rc, @Size(max=2) List<Named> arguments, Named result) implements Ty{}
   sealed interface E{}
   record This() implements E{}
   record Parameter(Nth nth) implements E{}
-  record TypeName(@OneOf({"A", "B", "C", "D", "base.Void", "Id"}) String name) implements E{}
-  record Call(E receiver, Nth method, Rc rc, @Size(max=2) List<E> arguments) implements E{}
+  record TypeName(@OneOf({"A", "B", "C", "D", "base.Void", "Id", "base.True", "base.False", "5"}) String name) implements E{}
+  record Call(E receiver, Nth method, Rc rc, @Size(max=1) List<Named> typeArguments, @Size(max=2) List<E> arguments) implements E{}
   record Literal(Rc rc, @OneOf({"", "A", "B", "C", "D", "Box[A]", "Box[B]"}) String head, boolean selfName, @Size(max=2) List<Meth> methods) implements E{}
   record Declared(Rc rc, @OneOf({"", "A", "B", "C", "D"}) String supertype, @Size(max=2) List<Meth> methods) implements E{}
   record Function(@Size(max=2) List<Nth> parameters, E body) implements E{}

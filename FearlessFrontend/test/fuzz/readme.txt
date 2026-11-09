@@ -24,6 +24,10 @@ The tests:
   The mutants are made in batches of 500; the accepted mutants of a batch are mutated in the next batches.
   An accepted mutant whose core holds a triple of tokens that no earlier accepted program had is mutated three times as often.
   Most mutants differ from an accepted program in one place, so most of them are accepted too.
+- LibraryTest.standardLibrary: the package base of the standard library, with the full frontend and, with the argument compact, also with the compact frontend,
+  whose cores must be the same declaration by declaration; then every single-package project of the folder integrationTests of the standard library, compiled against that base.
+  Each project also has 10 mutants that drop 1 to 4 type arguments of calls or heads of literals in one of its files.
+  The scripts give the folder of the standard library to the tests as the property standardLibrary.
 - writingTheInferredTypesKeepsTheCore: the programs of the first two tests, with the types the full frontend infers written in the source (InferredTypes).
   The full frontend must accept the written program and print the same core.
 
@@ -42,6 +46,8 @@ Source:
 A program is the helpers Id and Box[X], then the declarations A, B, C and D; each can implement the declarations before it,
 and one of Box[A], Box[B] and Box of itself.
 Methods are named by position, .m, .n, # and .k; parameters are named x0, x1, ... in the order they are printed.
+Source also knows base.Bool, base.True, base.False, base.Nat and 5, with the methods .not, .and, .or, & and +, *:
+a call on a receiver of one of these types calls one of their methods, and the values base.Void, base.True, base.False and 5 can replace a body.
 A parameter reference names a variable in scope, the innermost first.
 A method omits its types only when a supertype, or the head of its literal, has a method in the same position;
 the method then takes the arity and the capability of that method.
@@ -52,8 +58,10 @@ Inside a literal with a self name, this stands for the self name.
 A literal writes its self name only when its methods use it.
 Source knows the type of some expressions: this, the parameters with a type, the type names, the calls of a method with a known result, the literals with a head.
 When the type of a method body is known and is not a subtype of the result type of the method, or the body is a parameter of unknown type,
-Source writes instead a value of the result type: base.Void, a declaration without abstract methods implementing that type, or a function returning such a value.
+Source writes instead a value of the result type: one of the values above, a declaration without abstract methods implementing that type, or a function returning such a value.
 A literal with a head also implements the abstract methods of the head that its methods do not implement, when Source can write a value of their result type.
+When the type of the receiver of a call is known, the call has the arity of the method, and each argument is written as a method body of the type of its parameter.
+A call writes its type argument only when its method is known to have a generic; the helper Id has the generic method #.
 
 Shrink:
 A generated program is first shrunk as a tree: at each position, Shrink tries a list without one element,
@@ -61,3 +69,4 @@ a subtree of the same type, a leaf, false, the first enum constant, the first st
 Every program is then shrunk as text: Shrink deletes runs of tokens, from half of the tokens down to one token.
 A shrinking step is kept when the program keeps the same report key; a shrinking makes at most 2000 attempts.
 A program is shrunk only when its report key is new, or when it is shorter than the program kept for that key.
+A project of the standard library is shrunk file by file, each file as text, with at most 300 attempts for each file.
