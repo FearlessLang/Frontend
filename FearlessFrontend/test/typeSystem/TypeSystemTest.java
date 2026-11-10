@@ -6135,4 +6135,22 @@ C:{ .k: C }
 B:base.WidenTo[C]{}
 A:{ .m: B -> {} }
 """));}
+@Test void emptyLiteralRefinedFromAReadExpectedTypeToAnImmExpectedType(){ok(List.of("""
+P:{}
+Box[X:**]:{ .get: X }
+Ids:{ #[X:**](a: X, b: Box[X]): X -> a }
+User:{ .m(b: Box[P]): read P -> Ids#({}, b) }
+"""));}
+@Test void emptyLiteralRefinedFromAnIsoExpectedTypeToAMutExpectedType(){ok(List.of("""
+P:{}
+Box[X:**]:{ .get: X }
+Ids:{ #[X:**](a: X, b: Box[X]): X -> a }
+User:{ .m(b: Box[mut P]): iso P -> Ids#({}, b) }
+"""));}
+@Test void emptyLiteralWithAMutAbstractMethodRefinedToAnImmExpectedType(){ok(List.of("""
+P:{ mut .k: P }
+Box[X:**]:{ .get: X }
+Ids:{ #[X:**](a: X, b: Box[X]): X -> a }
+User:{ .m(b: Box[P]): read P -> Ids#({}, b) }
+"""));}
 }
