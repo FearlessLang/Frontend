@@ -6106,4 +6106,12 @@ B:{ .k: A -> B.ig(Foo{'s .foo -> s.r; read .r -> A }); .ig(z: Foo): A -> z.foo }
 @Test void declaredReceiverLiteralCapturesThisInAReadMethod(){ok(List.of("""
 A:{ read .q: A; read .k: A -> read Foo:{ read .z: A -> this.q }.z }
 """));}
+@Test void emptyLiteralWithAnExpectedTypeWidenedToASupertype(){ok(List.of("""
+C:base.WidenTo[C]{}
+B:C{}
+A:{ .m: B -> {} }
+"""));}
+@Test void emptyLiteralArgumentWithAnExpectedNumberLiteralType(){ok(List.of("""
+A:{ .m(x: 45): A -> A; .k: A -> this.m({}) }
+"""));}
 }
