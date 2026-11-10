@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -54,7 +55,7 @@ final class ReconcileTest{
   private final ToIntFunction<Path> register= MacAssociations.register;
   private final BiConsumer<Path,String> offer= MacAssociations.offer;
   private final List<String> claims= new ArrayList<>();
-  private Map<String,List<String>> locked= Map.of();
+  private Map<String,List<String>> chosen= Map.of();
   @BeforeEach void desktop(){
     if (Fs.isWindows()){ cleanUp(); return; }
     if (Fs.isMac()){
@@ -115,14 +116,14 @@ final class ReconcileTest{
     var icons= extensions.stream().map(e -> new Icon(e, tmp.resolve("icon.ico"), png())).toList();
     FileAssociations.reconcile(identity, family, command, icons, List.of(), tmp.resolve("icon.ico"), png(), replaced::add,
       s -> new IllegalStateException("ambiguous "+s),
-      this::locked,
+      this::chosen,
       s -> new IllegalStateException("notOurs "+s),
       s -> new IllegalStateException("notWritable "+s),
       s -> new IllegalStateException("halfDone "+s));
   }
-  private RuntimeException locked(Map<String,List<String>> choices){
-    locked = choices;
-    return new IllegalStateException("userLocked "+choices);
+  private RuntimeException chosen(Map<String,List<String>> choices){
+    chosen = choices;
+    return new IllegalStateException("chosenByHand "+choices);
   }
   private String refused(List<String> extensions){
     return assertThrows(IllegalStateException.class, () -> reconcile(identity, tmp.resolve("new").resolve("fearless"), extensions)).getMessage();
@@ -139,6 +140,7 @@ final class ReconcileTest{
     return reg("query", "HKCU\\Software\\Classes\\"+ext+"\\OpenWithProgids", "/v", other(ext)) == 0;
   }
   private void choose(String ext){
+    if (Fs.isLinux()){ Fs.writeUtf8(tmp.resolve("config").resolve("mimeapps.list"), "[Default Applications]\ntext/plain=other.desktop\n"); return; }
     importReg(regKey(fileExts+ext+"\\UserChoice", "ProgId", other(ext)));
   }
   private void chooseTheFamily(String ext){
@@ -199,11 +201,26 @@ final class ReconcileTest{
     FileAssociations.eradicateAll(family, IllegalStateException::new);
     assertEquals(List.of(), FileAssociations.identities(family));
   }
-  @Test void aDefaultTheUserChoseForAnotherProgramLocksTheExtension(){
-    assumeTrue(Fs.isWindows());
+  @Test void aSystemExtensionIsTakenOverFromTheProgramTheUserChose(){
+    assumeFalse(Fs.isMac());
     choose(ext);
-    assertEquals("userLocked {"+ext+"=["+other(ext)+"]}", refused(List.of(ext)));
-    assertEquals(List.of(), FileAssociations.identities(family));
+    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext));
+    assertEquals(List.of(identity), FileAssociations.identities(family));
+    assertEquals(Fs.isLinux() ? "[Default Applications]\ntext/plain=other.desktop\n" : "", choicesLeft(ext));
+  }
+  @Test void aChoiceForAnExtensionTheFamilyOpensRefuses(){
+    assumeTrue(Fs.isWindows());
+    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext));
+    choose(ext);
+    assertEquals("chosenByHand {"+ext+"=["+other(ext)+"]}", refused(List.of()));
+  }
+  @Test void aChoiceForAFearlessExtensionRefusesInWhateverCaseTheRegistryKeepsTheExtension(){
+    assumeTrue(Fs.isWindows());
+    var upper= fearlessExt.toUpperCase(Locale.ROOT);
+    choose(upper);
+    assertEquals("chosenByHand {"+fearlessExt+"=["+other(upper)+"]}", refused(List.of()));
+    FileAssociations.forgetChoices(chosen, IllegalStateException::new);
+    assertEquals("", choicesLeft(fearlessExt));
   }
   @Test void aFearlessExtensionAnotherProgramClaimsIsNotOurs(){
     claim(fearlessExt);
@@ -223,10 +240,10 @@ final class ReconcileTest{
     var command= tmp.resolve("new").resolve("fearless");
     reconcile(identity, command, List.of(ext));
     chooseTheFamily(ext);
-    assertEquals("userLocked "+familyChoice(ext), refused(List.of()));
-    assertEquals("userLocked "+familyChoice(ext), refused(List.of(fearlessExt)));
+    assertEquals("chosenByHand "+familyChoice(ext), refused(List.of()));
+    assertEquals("chosenByHand "+familyChoice(ext), refused(List.of(fearlessExt)));
     assertEquals(List.of(identity), FileAssociations.identities(family));
-    FileAssociations.forgetChoices(locked, IllegalStateException::new);
+    FileAssociations.forgetChoices(chosen, IllegalStateException::new);
     assertEquals(Fs.isLinux() ? "[Default Applications]\ntext/plain=other.desktop\n" : "", choicesLeft(ext));
     reconcile(identity, command, List.of());
     assertEquals(List.of(), FileAssociations.identities(family));

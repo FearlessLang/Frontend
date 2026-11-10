@@ -72,7 +72,7 @@ final class MacAssociationsTest{
     var icons= Stream.of(extensions).map(e -> new Icon(e, png(), png())).toList();
     FileAssociations.reconcile(identity, family, command, icons, List.of(), png(), png(), _ -> {},
       s -> new IllegalStateException("ambiguous "+s),
-      s -> new IllegalStateException("userLocked "+s),
+      s -> new IllegalStateException("chosenByHand "+s),
       s -> new IllegalStateException("notOurs "+s),
       s -> new IllegalStateException("notWritable "+s),
       s -> new IllegalStateException("halfDone "+s));
