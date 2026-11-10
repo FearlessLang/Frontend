@@ -6153,4 +6153,19 @@ Box[X:**]:{ .get: X }
 Ids:{ #[X:**](a: X, b: Box[X]): X -> a }
 User:{ .m(b: Box[P]): read P -> Ids#({}, b) }
 """));}
+@Test void emptyLiteralRefinedFromAnAbstractSupertypeToAConcreteSubtype(){ok(List.of("""
+P:{}
+Sup:{ .name: P }
+Con:Sup{ .name -> P }
+Box[X]:{ .get: X }
+Ids:{ #[X](a: X, b: Box[X]): X -> a }
+User:{ .m(b: Box[Con]): Sup -> Ids#({}, b) }
+"""));}
+@Test void emptyLiteralRefinedFromASupertypeToASubtypeWithOneMoreMethod(){ok(List.of("""
+Sup:{}
+Sub:Sup{ .k: Sub -> this }
+Box[X]:{ .get: X }
+Ids:{ #[X](a: X, b: Box[X]): X -> a }
+User:{ .m(b: Box[Sub]): Sup -> Ids#({}, b) }
+"""));}
 }
