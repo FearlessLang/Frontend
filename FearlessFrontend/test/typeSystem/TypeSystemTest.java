@@ -5957,6 +5957,13 @@ Box[X,Y]:{}
 K:{ #[X,Y](a: X, b: Box[X,Y], c: Y): X -> a }
 M:{ .m(y: Sub, z: Sup): Sup -> K#(y, {}, z) }
 """));}
+@Test void emptyLiteralArgumentFollowsATypeArgumentBelowTheResultType(){ok(List.of("""
+Sup:{}
+Sub:Sup{}
+Box[X]:{}
+K:{ #[X](a: X, b: Box[X]): X -> a }
+M:{ .m(y: Sub): Sup -> K#(y, {}) }
+"""));}
 @Test void innerLiteralCapturesALateInferredParameter(){ok(List.of("""
 use base.F as F;
 Foo:{ .foo: A }
