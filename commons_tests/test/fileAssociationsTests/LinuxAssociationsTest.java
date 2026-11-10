@@ -133,13 +133,14 @@ final class LinuxAssociationsTest{
     reconcile(".htm");
     assertEquals("MimeType=application/x-fearless-htm;", mimeTypes());
   }
-  @Test void aDefaultApplicationOfAnotherProgramForTheTypeOfASystemExtensionLocksIt(){
+  @Test void aDefaultApplicationOfAnotherProgramForTheTypeOfASystemExtensionRefusesNothing(){
     Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Default Applications]\napplication/x-fearless-htm=browser.desktop\napplication/x-fearless-txt="+identity+".desktop\n"
       +"[Added Associations]\napplication/x-fearless-c=editor.desktop;\n");
+    Fs.writeUtf8(root.resolve("etc").resolve("mimeapps.list"), "[Default Applications]\napplication/x-fearless-txt=editor.desktop\n");
     Fs.writeUtf8(sys.resolve("applications").resolve("editor.desktop"), "[Desktop Entry]\nMimeType=application/x-fearless-c;\n");
-    assertEquals("userLocked {.htm=[browser]}", refused(".c", ".htm", ".txt"));
-    assertFalse(Files.exists(home));
-    assertEquals(List.of(), ran);
+    reconcile(".c", ".htm", ".txt");
+    assertEquals("MimeType=application/x-fearless-c;application/x-fearless-htm;application/x-fearless-txt;", mimeTypes());
+    assertEquals(rebuilt(), ran);
   }
   @Test void aFearlessExtensionAnotherPackageGivesATypeIsNotOurs(){
     sysMime("globs2", "50:application/x-other:*.ffile042\n50:application/x-wide:*.ffile04[0-9]\n50:application/x-near:*.ffile043\n");

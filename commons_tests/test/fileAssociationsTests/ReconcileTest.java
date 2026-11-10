@@ -3,7 +3,7 @@ package fileAssociationsTests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.awt.image.BufferedImage;
 import java.lang.ProcessBuilder.Redirect;
@@ -133,7 +133,6 @@ final class ReconcileTest{
     return reg("query", "HKCU\\Software\\Classes\\"+ext+"\\OpenWithProgids", "/v", other(ext)) == 0;
   }
   private void choose(String ext){
-    if (Fs.isLinux()){ Fs.writeUtf8(tmp.resolve("config").resolve("mimeapps.list"), "[Default Applications]\n"+LinuxAssociations.typeOf(ext)+"=other.desktop\n"); return; }
     importReg(regKey(fileExts+ext+"\\UserChoice", "ProgId", other(ext)));
   }
   private void partial(String identity){
@@ -183,7 +182,7 @@ final class ReconcileTest{
     assertEquals(List.of(), FileAssociations.identities(family));
   }
   @Test void aDefaultTheUserChoseForAnotherProgramLocksTheExtension(){
-    assumeFalse(Fs.isMac());
+    assumeTrue(Fs.isWindows());
     choose(ext);
     assertEquals("userLocked {"+ext+"=["+other(ext)+"]}", refused(List.of(ext)));
     assertEquals(List.of(), FileAssociations.identities(family));
