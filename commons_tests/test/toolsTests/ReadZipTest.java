@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -39,6 +40,20 @@ final class ReadZipTest{
       n -> new IllegalStateException("emptyDir "+n),
       (_,_) -> {}
     ).readAll(() -> new ZipInputStream(new ByteArrayInputStream(zip)));
+  }
+  private static String refused(String... names){
+    return assertThrows(IllegalStateException.class, () -> read(zip(names))).getMessage();
+  }
+  @Test void aFolderEntryWithNothingInsideIsRefused(){
+    assertEquals("emptyDir a", refused("a/", "b"));
+    assertEquals("emptyDir .a", refused(".a/", "b"));
+    assertEquals("emptyDir a/.b", refused("a/.b/", "a/c"));
+    assertEquals("emptyDir a.b/c", refused("a.b/c/"));
+  }
+  @Test void aFolderEntryWithNothingInsideIsKeptInsideAFolderWhoseNameStartsWithADot(){
+    assertEquals(List.of(".a/c/", "b"), List.copyOf(read(zip(".a/", ".a/c/", "b")).keySet()));
+    assertEquals(List.of("a/.b/c/e/", "a/.b/d"), List.copyOf(read(zip("a/.b/c/", "a/.b/c/e/", "a/.b/d")).keySet()));
+    assertEquals(0, read(zip(".a/c/")).get(".a/c/").length);
   }
   @Test void aFolderEntryAndAFileOfTheSameNameAreRefused(){
     assertEquals("dupName a", assertThrows(IllegalStateException.class, () -> read(zip("a/", "a/b", "a"))).getMessage());
