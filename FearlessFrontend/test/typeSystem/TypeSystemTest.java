@@ -6125,4 +6125,14 @@ D:C{ .k: D -> this }
 B:D,base.WidenTo[C]{}
 A:{ .m: C -> B }
 """));}
+@Test void typeNameExpressionWidenedToAnUnrelatedTypeWithAnotherGenericArity(){ok(List.of("""
+C:{ .k[Y](y: Y): Y -> y }
+B:base.WidenTo[C]{ .k(x: C): B -> this }
+A:{ .m: B -> B }
+"""));}
+@Test void emptyLiteralWithAnExpectedTypeWidenedToAnUnrelatedAbstractType(){ok(List.of("""
+C:{ .k: C }
+B:base.WidenTo[C]{}
+A:{ .m: B -> {} }
+"""));}
 }
