@@ -3,6 +3,7 @@ package fileAssociationsTests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.awt.image.BufferedImage;
@@ -53,6 +54,7 @@ final class ReconcileTest{
   private final ToIntFunction<Path> register= MacAssociations.register;
   private final BiConsumer<Path,String> offer= MacAssociations.offer;
   private final List<String> claims= new ArrayList<>();
+  private Map<String,List<String>> locked= Map.of();
   @BeforeEach void desktop(){
     if (Fs.isWindows()){ cleanUp(); return; }
     if (Fs.isMac()){
@@ -113,10 +115,14 @@ final class ReconcileTest{
     var icons= extensions.stream().map(e -> new Icon(e, tmp.resolve("icon.ico"), png())).toList();
     FileAssociations.reconcile(identity, family, command, icons, List.of(), tmp.resolve("icon.ico"), png(), replaced::add,
       s -> new IllegalStateException("ambiguous "+s),
-      s -> new IllegalStateException("userLocked "+s),
+      this::locked,
       s -> new IllegalStateException("notOurs "+s),
       s -> new IllegalStateException("notWritable "+s),
       s -> new IllegalStateException("halfDone "+s));
+  }
+  private RuntimeException locked(Map<String,List<String>> choices){
+    locked = choices;
+    return new IllegalStateException("userLocked "+choices);
   }
   private String refused(List<String> extensions){
     return assertThrows(IllegalStateException.class, () -> reconcile(identity, tmp.resolve("new").resolve("fearless"), extensions)).getMessage();
@@ -134,6 +140,18 @@ final class ReconcileTest{
   }
   private void choose(String ext){
     importReg(regKey(fileExts+ext+"\\UserChoice", "ProgId", other(ext)));
+  }
+  private void chooseTheFamily(String ext){
+    if (Fs.isLinux()){ Fs.writeUtf8(tmp.resolve("config").resolve("mimeapps.list"), "[Default Applications]\ntext/plain=other.desktop\n"+LinuxAssociations.typeOf(ext)+"=other.desktop\n"); return; }
+    importReg(regKey(fileExts+ext+"\\UserChoice", "ProgId", identity+ext));
+  }
+  private String familyChoice(String ext){
+    if (Fs.isLinux()){ return "{"+tmp.resolve("config").resolve("mimeapps.list")+"=["+LinuxAssociations.typeOf(ext)+"=other.desktop]}"; }
+    return "{"+ext+"=["+identity+ext+"]}";
+  }
+  private String choicesLeft(String ext){
+    if (Fs.isLinux()){ return Fs.readUtf8(tmp.resolve("config").resolve("mimeapps.list")); }
+    return reg("query", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\"+ext+"\\UserChoice") == 0 ? "UserChoice of "+ext : "";
   }
   private void partial(String identity){
     if (Fs.isMac()){ Fs.ensureDir(MacAssociations.home.resolve(identity+".app")); return; }
@@ -199,5 +217,18 @@ final class ReconcileTest{
     FileAssociations.eradicateAll(family, IllegalStateException::new);
     assertEquals(List.of(), FileAssociations.identities(family));
     assertTrue(claimed(ext));
+  }
+  @Test void aChoiceNamingTheFamilyRefusesEveryReconcileUntilTheChoiceIsForgotten(){
+    assumeFalse(Fs.isMac());
+    var command= tmp.resolve("new").resolve("fearless");
+    reconcile(identity, command, List.of(ext));
+    chooseTheFamily(ext);
+    assertEquals("userLocked "+familyChoice(ext), refused(List.of()));
+    assertEquals("userLocked "+familyChoice(ext), refused(List.of(fearlessExt)));
+    assertEquals(List.of(identity), FileAssociations.identities(family));
+    FileAssociations.forgetChoices(locked, IllegalStateException::new);
+    assertEquals(Fs.isLinux() ? "[Default Applications]\ntext/plain=other.desktop\n" : "", choicesLeft(ext));
+    reconcile(identity, command, List.of());
+    assertEquals(List.of(), FileAssociations.identities(family));
   }
 }
