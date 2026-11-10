@@ -140,6 +140,7 @@ final class ReconcileTest{
     return reg("query", "HKCU\\Software\\Classes\\"+ext+"\\OpenWithProgids", "/v", other(ext)) == 0;
   }
   private void choose(String ext){
+    if (Fs.isLinux()){ Fs.writeUtf8(tmp.resolve("config").resolve("mimeapps.list"), "[Default Applications]\ntext/plain=other.desktop\n"); return; }
     importReg(regKey(fileExts+ext+"\\UserChoice", "ProgId", other(ext)));
   }
   private void chooseTheFamily(String ext){
@@ -200,19 +201,26 @@ final class ReconcileTest{
     FileAssociations.eradicateAll(family, IllegalStateException::new);
     assertEquals(List.of(), FileAssociations.identities(family));
   }
-  @Test void aDefaultTheUserChoseForAnotherProgramRefusesTheExtension(){
-    assumeTrue(Fs.isWindows());
+  @Test void aSystemExtensionIsTakenOverFromTheProgramTheUserChose(){
+    assumeFalse(Fs.isMac());
     choose(ext);
-    assertEquals("chosenByHand {"+ext+"=["+other(ext)+"]}", refused(List.of(ext)));
-    assertEquals(List.of(), FileAssociations.identities(family));
+    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext));
+    assertEquals(List.of(identity), FileAssociations.identities(family));
+    assertEquals(Fs.isLinux() ? "[Default Applications]\ntext/plain=other.desktop\n" : "", choicesLeft(ext));
   }
-  @Test void aChoiceRefusesTheExtensionInWhateverCaseTheRegistryKeepsTheExtension(){
+  @Test void aChoiceForAnExtensionTheFamilyOpensRefuses(){
     assumeTrue(Fs.isWindows());
-    var upper= ext.toUpperCase(Locale.ROOT);
+    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext));
+    choose(ext);
+    assertEquals("chosenByHand {"+ext+"=["+other(ext)+"]}", refused(List.of()));
+  }
+  @Test void aChoiceForAFearlessExtensionRefusesInWhateverCaseTheRegistryKeepsTheExtension(){
+    assumeTrue(Fs.isWindows());
+    var upper= fearlessExt.toUpperCase(Locale.ROOT);
     choose(upper);
-    assertEquals("chosenByHand {"+ext+"=["+other(upper)+"]}", refused(List.of(ext)));
+    assertEquals("chosenByHand {"+fearlessExt+"=["+other(upper)+"]}", refused(List.of()));
     FileAssociations.forgetChoices(chosen, IllegalStateException::new);
-    assertEquals("", choicesLeft(ext));
+    assertEquals("", choicesLeft(fearlessExt));
   }
   @Test void aFearlessExtensionAnotherProgramClaimsIsNotOurs(){
     claim(fearlessExt);
