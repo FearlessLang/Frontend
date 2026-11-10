@@ -316,7 +316,9 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private E meetT(E.Type tt, IT t){
     var inferred= tt.src().inner instanceof fearlessFullGrammar.E.Literal;
-    if (!inferred || !(meet(tt.t(), t) instanceof IT.RCC r) || !r.isTV() || r.equals(tt.type())){ return nextT(tt); }
+    if (!inferred || !(meet(tt.t(), t) instanceof IT.RCC met) || !met.isTV()){ return nextT(tt); }
+    var r= selfArgument(met);
+    if (r.equals(tt.type())){ return nextT(tt); }
     return new E.Type(r, preferred(r), tt.src(), tt.g().clear());
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
@@ -431,11 +433,19 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private E.Type literalAsType(E.Literal l, IT.RCC rcc){
     if (!l.thisName().equals("_")){ throw meths.p().err().selfNameDeadCode(l); }
-    var head= rcc.c().name();
+    var written= new IT.RCC(l.rc().or(rcc::rc).map(InjectionSteps::noH), rcc.c(), rcc.span());
+    var orcc= l.src().inner instanceof fearlessFullGrammar.E.Literal ? selfArgument(written) : written;
+    var head= orcc.c().name();
     var foreignPrivate= !head.isPublic() && !head.pkgName().equals(meths.p().name());
     if (foreignPrivate){ throw meths.p().err().extendedForeign(l, head, "private"); }
-    var orcc= new IT.RCC(l.rc().or(rcc::rc).map(InjectionSteps::noH), rcc.c(), rcc.span());
     return new E.Type(orcc, preferred(orcc), l.src(), l.g());
+  }
+  private IT.RCC selfArgument(IT.RCC t){
+    var c= t.c();
+    var instantiable= meths._from(c.name()).ms().stream().noneMatch(m -> m.sig().abs() && m.sig().rc() != RC.mut);
+    if (instantiable){ return t; }
+    var selves= c.ts().stream().flatMap(ti -> ti instanceof IT.RCC r && meths.implied(r.c()).contains(c) ? Stream.of(r.c()) : Stream.of()).distinct().toList();
+    return selves.size() == 1 ? selfArgument(new IT.RCC(t.rc(), selves.getFirst(), t.span())) : t;
   }
   private List<M> fixArity(List<M> ms, TName name, TName newName){
     if (name.equals(newName)){ return ms; }

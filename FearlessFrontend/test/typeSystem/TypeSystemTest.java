@@ -4396,6 +4396,117 @@ Box[E:*]:Sup[E]{}
 Boxes:{ #[E:*](e: E): Box[E] -> {} }
 User:{ .m(c: Customer): Sup[Person] -> Boxes#c }
 """));}
+@Test void emptyLiteralTakesSelfArgument(){ok(List.of("""
+Closed[T]:{ read .close: read T }
+A:Closed[A]{ .close->this }
+Need:{ #(c: read Closed[A]): Need -> this }
+User:{ .m: Need -> Need#{} }
+"""));}
+@Test void emptyLiteralTakesSelfArgumentAmongTwo(){ok(List.of("""
+Closed[T,E:*]:{ read .close: read T }
+Box[E:*]:Closed[Box[E],E]{ .close->this }
+Need:{ #[E:*](c: read Closed[Box[E],E], e: E): Need -> this }
+User:{ .m: Need -> Need#({}, User) }
+"""));}
+@Test void emptyLiteralTakesRepeatedSelfArgument(){ok(List.of("""
+Closed[T,E]:{ read .close: read T }
+A:Closed[A,A]{ .close->this }
+Need:{ #(c: read Closed[A,A]): Need -> this }
+User:{ .m: Need -> Need#{} }
+"""));}
+@Test void emptyLiteralTakesSelfArgumentAfterWiderResult(){ok(List.of("""
+Sup:{}
+Closed[T]:Sup{ read .close: read T }
+A:Closed[A]{ .close->this }
+Ids:{ #[X](a: X, b: X): X -> a }
+User:{ .m(c: Closed[A]): Sup -> Ids#({}, c) }
+"""));}
+@Test void emptyLiteralKeepsHeadWithOnlyMutAbstract(){ok(List.of("""
+Closed[T]:{ mut .close: T }
+A:Closed[A]{ .close->A }
+Need:{ #(c: Closed[A]): Need -> this }
+User:{ .m: Need -> Need#{} }
+"""));}
+@Test void emptyLiteralTakesSelfArgumentTwice(){ok(List.of("""
+Closed[T]:{ read .close: read T }
+Wrap[T]:Closed[Wrap[T]]{ read .unwrap: read T }
+A:Wrap[A]{ .close->this; .unwrap->this }
+Need:{ #(c: read Closed[Wrap[A]]): Need -> this }
+User:{ .m: Need -> Need#{} }
+"""));}
+@Test void writtenHeadIsNotSelfArgument(){fail("""
+004| User:{ .m: Need -> Need#(Closed[A]{}) }
+   |        ------------------^^^^^^^-----
+
+While inspecting object literal instance of "iso Closed[A]" > ".m" line 4
+This object literal is missing a required method.
+Missing: "read .close".
+Required by: "Closed[_]".
+Hint: add an implementation for ".close" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso Closed[A]
+""", List.of("""
+Closed[T]:{ read .close: read T }
+A:Closed[A]{ .close->this }
+Need:{ #(c: read Closed[A]): Need -> this }
+User:{ .m: Need -> Need#(Closed[A]{}) }
+"""));}
+@Test void emptyLiteralNoSelfArgument(){fail("""
+004| User:{ .m: Need -> Need#{} }
+   |        -----------------^^
+
+While inspecting object literal instance of "iso Closed[B]" > ".m" line 4
+This object literal is missing a required method.
+Missing: "read .close".
+Required by: "Closed[_]".
+Hint: add an implementation for ".close" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso Closed[B]
+""", List.of("""
+Closed[T]:{ read .close: read T }
+B:{}
+Need:{ #(c: read Closed[B]): Need -> this }
+User:{ .m: Need -> Need#{} }
+"""));}
+@Test void emptyLiteralTwoSelfArguments(){fail("""
+005| User:{ .m: Need -> Need#{} }
+   |        -----------------^^
+
+While inspecting object literal instance of "iso Closed[A,B]" > ".m" line 5
+This object literal is missing a required method.
+Missing: "read .close".
+Required by: "Closed[_,_]".
+Hint: add an implementation for ".close" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso Closed[A,B]
+""", List.of("""
+Closed[T,E]:{ read .close: read T }
+A:Closed[A,B]{ .close->this }
+B:Closed[A,B]{ .close->A }
+Need:{ #(c: read Closed[A,B]): Need -> this }
+User:{ .m: Need -> Need#{} }
+"""));}
+@Test void emptyLiteralSelfArgumentStillAbstract(){fail("""
+004| User:{ .m: Need -> Need#{} }
+   |        -----------------^^
+
+While inspecting object literal instance of "iso A" > ".m" line 4
+This object literal is missing a required method.
+Missing: "imm .name".
+Required by: "A".
+Hint: add an implementation for ".name" inside the object literal.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+iso A
+""", List.of("""
+Closed[T]:{ read .close: read T }
+A:Closed[A]{ .name: A }
+Need:{ #(c: read Closed[A]): Need -> this }
+User:{ .m: Need -> Need#{} }
+"""));}
 
 /*The five tests below are the minimized shapes of every place base stops compiling if
 InjectionSteps.nextMStarOp stops meeting a method's declared return type with the type of its
