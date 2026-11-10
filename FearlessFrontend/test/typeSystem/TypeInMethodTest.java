@@ -353,4 +353,25 @@ A0:{.m(x:A0):A->A:{.foo:A0->x}}
 """, """
 B:a.A{}
 """); }
+
+  @Test void anonEmptyArgumentRefinedToPrivateTypeFromOtherPkg(){ failTwoPkgsRaw("""
+In file: [###].fear
+
+001| B:{.m: a.Sup -> a.Ids#({}, a.Get.p)}
+   |                        ^^
+
+While inspecting object literal instance of "a._P"
+Object literal instance of "a._P" implements private type "a._P".
+Private types can only be implemented in their own package.
+Object literal instance of "a._P" is defined in package "b".
+Type "_P" is defined in package "a".
+Error 7 WellFormedness""", """
+Sup:{}
+_P:Sup{}
+Box[X]:{ .get: X }
+Ids:{ #[X](a: X, b: Box[X]): X -> a }
+Get:{ .p: Box[_P] -> { _P } }
+""", """
+B:{.m: a.Sup -> a.Ids#({}, a.Get.p)}
+"""); }
 }

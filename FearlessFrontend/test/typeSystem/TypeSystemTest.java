@@ -6106,4 +6106,66 @@ B:{ .k: A -> B.ig(Foo{'s .foo -> s.r; read .r -> A }); .ig(z: Foo): A -> z.foo }
 @Test void declaredReceiverLiteralCapturesThisInAReadMethod(){ok(List.of("""
 A:{ read .q: A; read .k: A -> read Foo:{ read .z: A -> this.q }.z }
 """));}
+@Test void emptyLiteralWithAnExpectedTypeWidenedToASupertype(){ok(List.of("""
+C:base.WidenTo[C]{}
+B:C{}
+A:{ .m: B -> {} }
+"""));}
+@Test void emptyLiteralArgumentWithAnExpectedNumberLiteralType(){ok(List.of("""
+A:{ .m(x: 45): A -> A; .k: A -> this.m({}) }
+"""));}
+@Test void typeNameExpressionWidenedToASupertypeWithALessSpecificMethod(){ok(List.of("""
+C:{ .k: C }
+B:C,base.WidenTo[C]{ .k: B -> this }
+A:{ .m: C -> B }
+"""));}
+@Test void typeNameExpressionWidenedPastAnIntermediateOverride(){ok(List.of("""
+C:{ .k: C -> this }
+D:C{ .k: D -> this }
+B:D,base.WidenTo[C]{}
+A:{ .m: C -> B }
+"""));}
+@Test void typeNameExpressionWidenedToAnUnrelatedTypeWithAnotherGenericArity(){ok(List.of("""
+C:{ .k[Y](y: Y): Y -> y }
+B:base.WidenTo[C]{ .k(x: C): B -> this }
+A:{ .m: B -> B }
+"""));}
+@Test void emptyLiteralWithAnExpectedTypeWidenedToAnUnrelatedAbstractType(){ok(List.of("""
+C:{ .k: C }
+B:base.WidenTo[C]{}
+A:{ .m: B -> {} }
+"""));}
+@Test void emptyLiteralRefinedFromAReadExpectedTypeToAnImmExpectedType(){ok(List.of("""
+P:{}
+Box[X:**]:{ .get: X }
+Ids:{ #[X:**](a: X, b: Box[X]): X -> a }
+User:{ .m(b: Box[P]): read P -> Ids#({}, b) }
+"""));}
+@Test void emptyLiteralRefinedFromAnIsoExpectedTypeToAMutExpectedType(){ok(List.of("""
+P:{}
+Box[X:**]:{ .get: X }
+Ids:{ #[X:**](a: X, b: Box[X]): X -> a }
+User:{ .m(b: Box[mut P]): iso P -> Ids#({}, b) }
+"""));}
+@Test void emptyLiteralWithAMutAbstractMethodRefinedToAnImmExpectedType(){ok(List.of("""
+P:{ mut .k: P }
+Box[X:**]:{ .get: X }
+Ids:{ #[X:**](a: X, b: Box[X]): X -> a }
+User:{ .m(b: Box[P]): read P -> Ids#({}, b) }
+"""));}
+@Test void emptyLiteralRefinedFromAnAbstractSupertypeToAConcreteSubtype(){ok(List.of("""
+P:{}
+Sup:{ .name: P }
+Con:Sup{ .name -> P }
+Box[X]:{ .get: X }
+Ids:{ #[X](a: X, b: Box[X]): X -> a }
+User:{ .m(b: Box[Con]): Sup -> Ids#({}, b) }
+"""));}
+@Test void emptyLiteralRefinedFromASupertypeToASubtypeWithOneMoreMethod(){ok(List.of("""
+Sup:{}
+Sub:Sup{ .k: Sub -> this }
+Box[X]:{ .get: X }
+Ids:{ #[X](a: X, b: Box[X]): X -> a }
+User:{ .m(b: Box[Sub]): Sup -> Ids#({}, b) }
+"""));}
 }

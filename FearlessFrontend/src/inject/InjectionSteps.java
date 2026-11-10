@@ -319,7 +319,9 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (!inferred || !(meet(tt.t(), t) instanceof IT.RCC met) || !met.isTV()){ return nextT(tt); }
     var r= selfArgument(met);
     if (r.equals(tt.type())){ return nextT(tt); }
-    return new E.Type(r, preferred(r), tt.src(), tt.g().clear());
+    var res= new E.Type(r, preferred(r), tt.src(), tt.g().clear());
+    notForeignPrivate(res, r);
+    return res;
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
     var e= nextStar(bs, g, c.e());
@@ -419,9 +421,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
     var selfInferred= rcc.c().name().equals(l.name());
     if (noMeth && !selfInferred && meths._from(rcc.c().name()) != null){ return literalAsType(l, rcc); }
-    var head= rcc.c().name();
-    var foreignPrivate= !selfInferred && !head.isPublic() && !head.pkgName().equals(meths.p().name());
-    if (foreignPrivate){ throw meths.p().err().extendedForeign(l, head, "private"); }
+    notForeignPrivate(l, rcc);
     var cs= ToCore.distinctTypes(localBs, selfInferred ? meths.implied(rcc.c()) : Push.of(rcc.c(), meths.implied(rcc.c())));
     assert l.infHead();
     l = new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, rcc, l.src(), l.infName(), l.infHead(), l.g());
@@ -435,10 +435,13 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (!l.thisName().equals("_")){ throw meths.p().err().selfNameDeadCode(l); }
     var written= new IT.RCC(l.rc().or(rcc::rc).map(InjectionSteps::noH), rcc.c(), rcc.span());
     var orcc= l.src().inner instanceof fearlessFullGrammar.E.Literal ? selfArgument(written) : written;
-    var head= orcc.c().name();
-    var foreignPrivate= !head.isPublic() && !head.pkgName().equals(meths.p().name());
-    if (foreignPrivate){ throw meths.p().err().extendedForeign(l, head, "private"); }
+    notForeignPrivate(l, orcc);
     return new E.Type(orcc, preferred(orcc), l.src(), l.g());
+  }
+  private void notForeignPrivate(E owner, IT.RCC t){
+    var head= t.c().name();
+    var foreignPrivate= !head.isPublic() && !head.pkgName().equals(meths.p().name());
+    if (foreignPrivate){ throw meths.p().err().extendedForeign(owner, head, "private"); }
   }
   private IT.RCC selfArgument(IT.RCC t){
     var c= t.c();
