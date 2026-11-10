@@ -114,7 +114,7 @@ final class ReconcileTest{
   }
   private void reconcile(String identity, Path command, List<String> extensions){
     var icons= extensions.stream().map(e -> new Icon(e, tmp.resolve("icon.ico"), png())).toList();
-    FileAssociations.reconcile(identity, family, command, icons, List.of(), tmp.resolve("icon.ico"), png(), replaced::add,
+    FileAssociations.reconcile(identity, family, command, icons, List.of(), png(), replaced::add,
       s -> new IllegalStateException("ambiguous "+s),
       this::chosen,
       s -> new IllegalStateException("notOurs "+s),

@@ -70,7 +70,7 @@ final class MacAssociationsTest{
   }
   private void reconcile(String... extensions){
     var icons= Stream.of(extensions).map(e -> new Icon(e, png(), png())).toList();
-    FileAssociations.reconcile(identity, family, command, icons, List.of(), png(), png(), _ -> {},
+    FileAssociations.reconcile(identity, family, command, icons, List.of(), png(), _ -> {},
       s -> new IllegalStateException("ambiguous "+s),
       s -> new IllegalStateException("chosenByHand "+s),
       s -> new IllegalStateException("notOurs "+s),
