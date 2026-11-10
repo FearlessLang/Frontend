@@ -95,7 +95,7 @@ final class LinuxAssociationsTest{
     var icons= Stream.of(extensions).map(e -> { var png= icon(e.hashCode() & 0xffffff); return new Icon(e, png, png); }).toList();
     FileAssociations.reconcile(identity, family, command, icons, windows, program, program, replaced::add,
       s -> new IllegalStateException("ambiguous "+s),
-      s -> new IllegalStateException("userLocked "+s),
+      s -> new IllegalStateException("chosenByHand "+s),
       s -> new IllegalStateException("notOurs "+s),
       s -> new IllegalStateException("notWritable "+s),
       s -> new IllegalStateException("halfDone "+s));
@@ -138,7 +138,7 @@ final class LinuxAssociationsTest{
       +"[Added Associations]\napplication/x-fearless=editor.desktop;\n# application/x-fearless-c=editor.desktop;\n  # text/plain=fearlessBin0_000.desktop;\n[Removed Associations]\ntext/x-csrc=browser.desktop;fearlessBin0_000-0123abc.desktop;\n");
     Fs.writeUtf8(root.resolve("etc").resolve("mimeapps.list"), "[Default Applications]\n application/x-fearless-txt = "+identity+".desktop\n");
     Err.strCmp("""
-userLocked {[###]/config/mimeapps.list=[application/x-fearless-htm=browser.desktop, text/plain=fearlessManaged0_001.desktop, \
+chosenByHand {[###]/config/mimeapps.list=[application/x-fearless-htm=browser.desktop, text/plain=fearlessManaged0_001.desktop, \
 application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0_000-0123abc.desktop;], \
 [###]/etc/mimeapps.list=[application/x-fearless-txt = fearlessManaged0_001.desktop]}""", refused(".htm"));
     assertEquals(refused(".htm"), refused());
@@ -152,7 +152,7 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
     Fs.writeUtf8(kept, "[Default Applications]\ntext/html=browser.desktop\n"+line+"\n");
     Fs.ensureDir(link.getParent());
     Fs.ofV(() -> Files.createSymbolicLink(link, kept));
-    assertEquals("userLocked {"+link+"=["+line+"]}", refused());
+    assertEquals("chosenByHand {"+link+"=["+line+"]}", refused());
     FileAssociations.forgetChoices(Map.of(link.toString(), List.of(line)), IllegalStateException::new);
     assertEquals("[Default Applications]\ntext/html=browser.desktop\n", Fs.readUtf8(kept));
     assertTrue(Files.isSymbolicLink(link));
