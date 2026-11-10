@@ -50,10 +50,10 @@ final class ReadZipTest{
     assertEquals("emptyDir a/.b", refused("a/.b/", "a/c"));
     assertEquals("emptyDir a.b/c", refused("a.b/c/"));
   }
-  @Test void aFolderEntryWithNothingInsideIsReadAsNothingInsideAFolderWhoseNameStartsWithADot(){
-    assertEquals(List.of("b"), List.copyOf(read(zip(".a/c/", "b")).keySet()));
-    assertEquals(List.of("a/.b/d"), List.copyOf(read(zip("a/.b/c/e/", "a/.b/d")).keySet()));
-    assertEquals(List.of(), List.copyOf(read(zip(".a/c/")).keySet()));
+  @Test void aFolderEntryWithNothingInsideIsKeptInsideAFolderWhoseNameStartsWithADot(){
+    assertEquals(List.of(".a/c/", "b"), List.copyOf(read(zip(".a/", ".a/c/", "b")).keySet()));
+    assertEquals(List.of("a/.b/c/e/", "a/.b/d"), List.copyOf(read(zip("a/.b/c/", "a/.b/c/e/", "a/.b/d")).keySet()));
+    assertEquals(0, read(zip(".a/c/")).get(".a/c/").length);
   }
   @Test void aFolderEntryAndAFileOfTheSameNameAreRefused(){
     assertEquals("dupName a", assertThrows(IllegalStateException.class, () -> read(zip("a/", "a/b", "a"))).getMessage());
