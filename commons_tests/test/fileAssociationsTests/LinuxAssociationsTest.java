@@ -133,35 +133,35 @@ final class LinuxAssociationsTest{
     reconcile(".htm");
     assertEquals("MimeType=application/x-fearless-htm;", mimeTypes());
   }
-  @Test void aDefaultApplicationOfAnotherProgramForTheTypeOfASystemExtensionRefusesNothing(){
-    Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Default Applications]\napplication/x-fearless-htm=browser.desktop\napplication/x-fearless-txt="+identity+".desktop\n"
-      +"[Added Associations]\napplication/x-fearless-c=editor.desktop;\n");
-    Fs.writeUtf8(root.resolve("etc").resolve("mimeapps.list"), "[Default Applications]\napplication/x-fearless-txt=editor.desktop\n");
-    Fs.writeUtf8(sys.resolve("applications").resolve("editor.desktop"), "[Desktop Entry]\nMimeType=application/x-fearless-c;\n");
-    reconcile(".c", ".htm", ".txt");
-    assertEquals("MimeType=application/x-fearless-c;application/x-fearless-htm;application/x-fearless-txt;", mimeTypes());
-    assertEquals(rebuilt(), ran);
+  @Test void everyLineOfAChoiceFileMentioningTheFamilyIsABrokenDesk(){
+    Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Default Applications]\ntext/html=browser.desktop\napplication/x-fearless-htm=browser.desktop\ntext/plain="+identity+".desktop\n"
+      +"[Added Associations]\napplication/x-fearless=editor.desktop;\n# application/x-fearless-c=editor.desktop;\n[Removed Associations]\ntext/x-csrc=browser.desktop;fearlessBin0_000-0123abc.desktop;\n");
+    Fs.writeUtf8(root.resolve("etc").resolve("mimeapps.list"), "[Default Applications]\n application/x-fearless-txt = "+identity+".desktop\n");
+    Err.strCmp("""
+userLocked {[###]/config/mimeapps.list=[application/x-fearless-htm=browser.desktop, text/plain=fearlessManaged0_001.desktop, \
+application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0_000-0123abc.desktop;], \
+[###]/etc/mimeapps.list=[application/x-fearless-txt = fearlessManaged0_001.desktop]}""", refused(".htm"));
+    assertEquals(refused(".htm"), refused());
+    assertFalse(Files.exists(home));
+    assertEquals(List.of(), ran);
   }
   @Test void aFearlessExtensionAnotherPackageGivesATypeIsNotOurs(){
     sysMime("globs2", "50:application/x-other:*.ffile042\n50:application/x-wide:*.ffile04[0-9]\n50:application/x-near:*.ffile043\n");
     assertEquals("notOurs {.ffile042=[application/x-other, application/x-wide]}", refused(".htm", ".ffile042"));
     assertFalse(Files.exists(home));
   }
-  @Test void aFearlessExtensionWhoseTypeAnotherProgramListsOrIsAssociatedWithIsNotOurs(){
+  @Test void aFearlessExtensionWhoseTypeAnotherProgramListsIsNotOurs(){
     Fs.writeUtf8(sys.resolve("applications").resolve("vim.desktop"), "[Desktop Entry]\nMimeType=application/x-fearless-ffile042;\n");
-    Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Added Associations]\napplication/x-fearless-fapp001=other.desktop;\n[Removed Associations]\napplication/x-fearless-ffile042=gone.desktop;\n");
-    assertEquals("notOurs {.ffile042=[vim], .fapp001=[other]}", refused(".ffile042", ".fapp001"));
+    assertEquals("notOurs {.ffile042=[vim]}", refused(".ffile042", ".fapp001"));
     assertFalse(Files.exists(home));
   }
-  @Test void fearlessKeepsItsTypeAndIsHeldOnlyByTheProgramsListingItOrChosenForIt(){
+  @Test void fearlessKeepsItsTypeAndIsHeldOnlyByTheProgramsListingIt(){
     sysMime("globs2", "50:application/x-other:*.fearless\n");
-    Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Added Associations]\napplication/x-fearless=other.desktop;\n");
     reconcile(".fearless");
     Err.strCmp(mimeInfo("\"><comment>fearlessManaged0_001</comment><glob pattern=\"*.fearless\" weight=\"100\"/>"), Fs.readUtf8(packageFile()));
     assertEquals("MimeType=application/x-fearless;", mimeTypes());
     Fs.writeUtf8(sys.resolve("applications").resolve("vim.desktop"), "[Desktop Entry]\nMimeType=application/x-fearless;\n");
-    Fs.writeUtf8(root.resolve("etc").resolve("mimeapps.list"), "[Default Applications]\napplication/x-fearless=editor.desktop\n");
-    assertEquals("notOurs {.fearless=[vim, editor]}", refused(".fearless"));
+    assertEquals("notOurs {.fearless=[vim]}", refused(".fearless"));
   }
   @Test void releasingAnExtensionLeavesThePackageWithoutIt(){
     reconcile(".fearless", ".htm", ".ffile042");
