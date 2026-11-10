@@ -135,7 +135,7 @@ final class LinuxAssociationsTest{
   }
   @Test void everyLineOfAChoiceFileMentioningTheFamilyIsABrokenDesk(){
     Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Default Applications]\ntext/html=browser.desktop\napplication/x-fearless-htm=browser.desktop\ntext/plain="+identity+".desktop\n"
-      +"[Added Associations]\napplication/x-fearless=editor.desktop;\n# application/x-fearless-c=editor.desktop;\n[Removed Associations]\ntext/x-csrc=browser.desktop;fearlessBin0_000-0123abc.desktop;\n");
+      +"[Added Associations]\napplication/x-fearless=editor.desktop;\n# application/x-fearless-c=editor.desktop;\n  # text/plain=fearlessBin0_000.desktop;\n[Removed Associations]\ntext/x-csrc=browser.desktop;fearlessBin0_000-0123abc.desktop;\n");
     Fs.writeUtf8(root.resolve("etc").resolve("mimeapps.list"), "[Default Applications]\n application/x-fearless-txt = "+identity+".desktop\n");
     Err.strCmp("""
 userLocked {[###]/config/mimeapps.list=[application/x-fearless-htm=browser.desktop, text/plain=fearlessManaged0_001.desktop, \
@@ -144,6 +144,36 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
     assertEquals(refused(".htm"), refused());
     assertFalse(Files.exists(home));
     assertEquals(List.of(), ran);
+  }
+  @Test void forgettingAChoiceWritesThroughAChoiceFileThatIsASymbolicLink(){
+    var kept= root.resolve("kept").resolve("mimeapps.list");
+    var link= root.resolve("config").resolve("mimeapps.list");
+    var line= "text/plain="+identity+".desktop";
+    Fs.writeUtf8(kept, "[Default Applications]\ntext/html=browser.desktop\n"+line+"\n");
+    Fs.ensureDir(link.getParent());
+    Fs.ofV(() -> Files.createSymbolicLink(link, kept));
+    assertEquals("userLocked {"+link+"=["+line+"]}", refused());
+    FileAssociations.forgetChoices(Map.of(link.toString(), List.of(line)), IllegalStateException::new);
+    assertEquals("[Default Applications]\ntext/html=browser.desktop\n", Fs.readUtf8(kept));
+    assertTrue(Files.isSymbolicLink(link));
+    reconcile();
+  }
+  @Test void forgettingChoicesChangesNoChoiceFileWhenOneChoiceFileIsNotWritable(){
+    var config= root.resolve("config").resolve("mimeapps.list");
+    var etc= root.resolve("etc").resolve("mimeapps.list");
+    var line= "text/plain="+identity+".desktop";
+    var text= "[Default Applications]\n"+line+"\n";
+    Fs.writeUtf8(config, text);
+    Fs.writeUtf8(etc, text);
+    var choices= Map.of(config.toString(), List.of(line), etc.toString(), List.of(line));
+    assertTrue(etc.toFile().setWritable(false));
+    try{
+      assumeFalse(Files.isWritable(etc));
+      var refusal= assertThrows(IllegalStateException.class, () -> FileAssociations.forgetChoices(choices, s -> new IllegalStateException("notWritable "+s)));
+      assertEquals("notWritable "+etc, refusal.getMessage());
+    }
+    finally{ etc.toFile().setWritable(true); }
+    assertEquals(text, Fs.readUtf8(config));
   }
   @Test void aFearlessExtensionAnotherPackageGivesATypeIsNotOurs(){
     sysMime("globs2", "50:application/x-other:*.ffile042\n50:application/x-wide:*.ffile04[0-9]\n50:application/x-near:*.ffile043\n");

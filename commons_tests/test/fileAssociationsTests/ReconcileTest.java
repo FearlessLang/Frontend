@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -204,6 +205,14 @@ final class ReconcileTest{
     choose(ext);
     assertEquals("userLocked {"+ext+"=["+other(ext)+"]}", refused(List.of(ext)));
     assertEquals(List.of(), FileAssociations.identities(family));
+  }
+  @Test void aChoiceLocksTheExtensionInWhateverCaseTheRegistryKeepsTheExtension(){
+    assumeTrue(Fs.isWindows());
+    var upper= ext.toUpperCase(Locale.ROOT);
+    choose(upper);
+    assertEquals("userLocked {"+ext+"=["+other(upper)+"]}", refused(List.of(ext)));
+    FileAssociations.forgetChoices(locked, IllegalStateException::new);
+    assertEquals("", choicesLeft(ext));
   }
   @Test void aFearlessExtensionAnotherProgramClaimsIsNotOurs(){
     claim(fearlessExt);
