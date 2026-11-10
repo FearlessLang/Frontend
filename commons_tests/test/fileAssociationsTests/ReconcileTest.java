@@ -3,7 +3,7 @@ package fileAssociationsTests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.awt.image.BufferedImage;
 import java.lang.ProcessBuilder.Redirect;
@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 import javax.imageio.ImageIO;
 
@@ -27,11 +28,14 @@ import org.junit.jupiter.api.io.TempDir;
 import fileAssociations.FileAssociations;
 import fileAssociations.Icon;
 import fileAssociations.LinuxAssociations;
+import fileAssociations.MacAssociations;
+import fileAssociations.MacAssociations.Declared;
 import tools.Fs;
 import utils.Push;
 
 /// FileAssociations on the desktop of the current desk:
-/// on Linux a desktop made of the folders of a test, on Windows keys of the registry of the current user that only this test uses.
+/// on Linux a desktop made of the folders of a test, on Windows keys of the registry of the current user that only this test uses,
+/// on macOS a folder of a test for the helper bundles and the types this test declares.
 final class ReconcileTest{
   private static final String old= "fearlessCommonsTestProbe";
   private static final String identity= old+"New";
@@ -44,9 +48,20 @@ final class ReconcileTest{
   private final List<Path> replaced= new ArrayList<>();
   private Function<String,String> env;
   private BiConsumer<List<String>,Function<String,RuntimeException>> run;
+  private final Path home= MacAssociations.home;
+  private final Function<String,List<Declared>> declared= MacAssociations.declared;
+  private final ToIntFunction<Path> register= MacAssociations.register;
+  private final BiConsumer<Path,String> offer= MacAssociations.offer;
+  private final List<String> claims= new ArrayList<>();
   @BeforeEach void desktop(){
-    assumeTrue(Fs.isLinux() || Fs.isWindows());
     if (Fs.isWindows()){ cleanUp(); return; }
+    if (Fs.isMac()){
+      MacAssociations.home = tmp.resolve("home");
+      MacAssociations.declared = e -> claims.contains("."+e) ? List.of(new Declared("other."+e, Path.of("/Applications/other.app"))) : List.of();
+      MacAssociations.register = _ -> 0;
+      MacAssociations.offer = (_,_) -> {};
+      return;
+    }
     env = LinuxAssociations.env;
     run = LinuxAssociations.run;
     var vars= Map.of("XDG_DATA_HOME", tmp.resolve("home").toString(), "XDG_DATA_DIRS", tmp.resolve("sys").toString(),
@@ -55,9 +70,15 @@ final class ReconcileTest{
     LinuxAssociations.run = (_,_) -> {};
   }
   @AfterEach void restore(){
-    if (!Fs.isLinux() && !Fs.isWindows()){ return; }
     FileAssociations.eradicateAll(family, IllegalStateException::new);
     if (Fs.isWindows()){ cleanUp(); return; }
+    if (Fs.isMac()){
+      MacAssociations.home = home;
+      MacAssociations.declared = declared;
+      MacAssociations.register = register;
+      MacAssociations.offer = offer;
+      return;
+    }
     LinuxAssociations.env = env;
     LinuxAssociations.run = run;
   }
@@ -102,10 +123,12 @@ final class ReconcileTest{
   }
   private static String other(String ext){ return Fs.isWindows() ? "otherProgram"+ext : "other"; }
   private void claim(String ext){
+    if (Fs.isMac()){ claims.add(ext); return; }
     if (Fs.isLinux()){ Fs.writeUtf8(tmp.resolve("sys").resolve("applications").resolve("other.desktop"), "[Desktop Entry]\nMimeType="+LinuxAssociations.typeOf(ext)+";\n"); return; }
     importReg(regKey(hkcu+"Classes\\"+ext+"\\OpenWithProgids", other(ext), ""));
   }
   private boolean claimed(String ext){
+    if (Fs.isMac()){ return claims.contains(ext); }
     if (Fs.isLinux()){ return Fs.readUtf8(tmp.resolve("sys").resolve("applications").resolve("other.desktop")).contains(LinuxAssociations.typeOf(ext)); }
     return reg("query", "HKCU\\Software\\Classes\\"+ext+"\\OpenWithProgids", "/v", other(ext)) == 0;
   }
@@ -114,14 +137,17 @@ final class ReconcileTest{
     importReg(regKey(fileExts+ext+"\\UserChoice", "ProgId", other(ext)));
   }
   private void partial(String identity){
+    if (Fs.isMac()){ Fs.ensureDir(MacAssociations.home.resolve(identity+".app")); return; }
     if (Fs.isLinux()){ Fs.writeUtf8(tmp.resolve("sys").resolve("applications").resolve(identity+".desktop"), "[Desktop Entry]\n"); return; }
     importReg(regKey(hkcu+identity+"\\Capabilities", "ApplicationName", identity));
   }
   private static List<String> handWritten(Path command){
     if (Fs.isWindows()){ return List.of(command+" \"%1\""); }
+    if (Fs.isMac()){ return List.of("#!/bin/sh\n"+command+" \"$@\"\n"); }
     return List.of(command+" %F", command+" %f");
   }
   private void register(String command){
+    if (Fs.isMac()){ Fs.writeUtf8(MacAssociations.home.resolve(old+".app").resolve("Contents").resolve("MacOS").resolve(old), command); return; }
     if (Fs.isLinux()){ Fs.writeUtf8(tmp.resolve("home").resolve("applications").resolve(old+".desktop"), "[Desktop Entry]\nExec="+command+"\n"); return; }
     importReg(regKey(hkcu+old+"\\Capabilities\\FileAssociations", ext, old+ext)+regKey(hkcu+"Classes\\"+old+ext+"\\shell\\open\\command", "", command));
   }
@@ -157,6 +183,7 @@ final class ReconcileTest{
     assertEquals(List.of(), FileAssociations.identities(family));
   }
   @Test void aDefaultTheUserChoseForAnotherProgramLocksTheExtension(){
+    assumeFalse(Fs.isMac());
     choose(ext);
     assertEquals("userLocked {"+ext+"=["+other(ext)+"]}", refused(List.of(ext)));
     assertEquals(List.of(), FileAssociations.identities(family));
