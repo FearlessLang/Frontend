@@ -6114,4 +6114,15 @@ A:{ .m: B -> {} }
 @Test void emptyLiteralArgumentWithAnExpectedNumberLiteralType(){ok(List.of("""
 A:{ .m(x: 45): A -> A; .k: A -> this.m({}) }
 """));}
+@Test void typeNameExpressionWidenedToASupertypeWithALessSpecificMethod(){ok(List.of("""
+C:{ .k: C }
+B:C,base.WidenTo[C]{ .k: B -> this }
+A:{ .m: C -> B }
+"""));}
+@Test void typeNameExpressionWidenedPastAnIntermediateOverride(){ok(List.of("""
+C:{ .k: C -> this }
+D:C{ .k: D -> this }
+B:D,base.WidenTo[C]{}
+A:{ .m: C -> B }
+"""));}
 }
