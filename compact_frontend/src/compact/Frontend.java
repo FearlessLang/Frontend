@@ -639,12 +639,18 @@ public class Frontend{
     }
     E commit(IG g,List<B>b,Literal l,R w){var name=l.name;
       if(!w.tv()||!all(l.ms,m->all(push(m.s.types,m.s.t),T::tv))||cache.containsKey(name)&&!(instance(l)&&inferred.contains(name.s)))return l;
+      var h=instance(l)&&inferred.contains(name.s)&&!w.c.name.equals(name)?self(w.c):w.c;if(h!=w.c){w=new R(w.r,h);l=implement(l.header(list(),list()),h,b);}
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
       var cap=noH(or(l.r,w.r));var instance=instance(l);
       var own=w.c.name.equals(name);no(!own&&!w.c.name.visible()&&!w.c.name.pk().equals(p.name));
       var cs=distinct(bs,own?parents(w.c):push(w.c,parents(w.c)));
       l=new Literal(cap,name1,bs,cs,l.self,map(l.ms,mi->mi.o(name,name1)),w,true,true);if(!instance)magic(l,cs);
       if(own)l=l.t(l.self(cap));register(l);var s=sup(w,widen);return!instance?l:l.t(new R(cap,s!=null&&s.c.types.get(0) instanceof R(_,var c)?c:w.c));
+    }
+    C self(C c){
+      if(!any(from(c.name).ms,m->m.s.abs&&m.s.r!=mut))return c;
+      var ss=c.types.stream().flatMap(t->t instanceof R(_,var a)&&parents(a).contains(c)?Stream.of(a):Stream.of()).distinct().toList();
+      return ss.size()==1?self(ss.get(0)):c;
     }
     record TSM(List<T>types,List<T>low,M m){}
     TSM header(R w,M m){
