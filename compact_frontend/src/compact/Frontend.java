@@ -549,7 +549,9 @@ public class Frontend{
       late=false;var e1=solve(b,g,ei);late=true;return m.body(core(b,solve(b,g,e1),m.e));
     }
     E meet(E e,T t){
-      if(e instanceof Literal l&&l.t.tv()&&!(instance(l)&&inferred.contains(l.name.s)))return e;var a=ascribe(e,t,null);return a.t(meet(a.t(),t));
+      if(!(e instanceof Literal l&&l.t.tv())){var a=ascribe(e,t,null);return a.t(meet(a.t(),t));}
+      if(!(instance(l)&&inferred.contains(l.name.s)&&l.cs.size()>0&&meet(l.t,t) instanceof R m&&m.tv()))return e;
+      var r=new R(m.r,self(m.c));return r.equals(new R(l.r,l.cs.get(0)))?e:new Literal(null,l.name,list(),list(),l.self,list(),r,true,false);
     }
     T below(R sub,R sup){
       var d=from(sub.c.name);if(d==null)return null;var ps=filter(d.cs,c->c.name.equals(sup.c.name));if(ps.size()==0)return null;
@@ -629,7 +631,7 @@ public class Frontend{
     E literal(List<B>b,IG g,Literal l){var sp=l.r==null?null:l.self(l.r);if(!l.expanded){if(l.anon&&l.cs.size()==0)inferred.add(l.name.s);
       l=l.t(!l.anon?sp:l.cs.size()==1?new R(l.r,l.cs.get(0)):or(sp,l.t));if(!(l.t instanceof R(_,var c)))return l;
       l=l.anon&&!c.name.equals(l.name)?implement(l,c,b):expand(l);
-    }
+    }else if(instance(l)&&cache.containsKey(l.name))return l;
       var w=(R)l.t;var res=new Vector<M>();var types=w.c.types;var low=qs(types.size());for(var mi:l.ms){
         var next=mi.e==null?header(w,mi):method(b,g,l,sp,w,mi);
         types=meet(types,next.types);low=zip(low,next.low,this::join);res.add(next.m);
@@ -638,7 +640,7 @@ public class Frontend{
       return commit(g,b,l.header(l.cs,res).t(t),t);
     }
     E commit(IG g,List<B>b,Literal l,R w){var name=l.name;
-      if(!w.tv()||!all(l.ms,m->all(push(m.s.types,m.s.t),T::tv))||cache.containsKey(name)&&!(instance(l)&&inferred.contains(name.s)))return l;
+      if(!w.tv()||!all(l.ms,m->all(push(m.s.types,m.s.t),T::tv))||cache.containsKey(name)&&!instance(l))return l;
       var h=instance(l)&&inferred.contains(name.s)&&!w.c.name.equals(name)?self(w.c):w.c;if(h!=w.c){w=new R(w.r,h);l=implement(l.header(list(),list()),h,b);}
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
       var cap=noH(or(l.r,w.r));var instance=instance(l);

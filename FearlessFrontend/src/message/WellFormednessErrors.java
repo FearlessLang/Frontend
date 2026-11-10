@@ -675,15 +675,14 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private String chooseOne(IT.C c){ return "or implement "+err().tNameADisp(LiteralDeclarations.claims.get(LiteralDeclarations.claims.indexOf(c.name())-1))+" to let the Fearless manager choose one"; }
   private Err claim(E.Literal owner, IT.C c){ return err().line(up(err().expRepr(owner))+" implements "+claimRepr(owner, c)+"."); }
   private String claimRepr(E.Literal owner, IT.C c){ return disp(err().typeReprRaw(new IT.RCC(Optional.empty(), c, owner.span()))); }
-  public FearlessException extendedForeign(E.Literal owner, TName target, String kind){
-    var ownerPkg= owner.name().pkgName();
+  public FearlessException extendedForeign(E owner, TName target, String kind){
     var targetPkg= target.pkgName();
-    assert !ownerPkg.equals(targetPkg);
+    assert !pkgName.equals(targetPkg);
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements "+kind+" type "+err().tNameADisp(target)+".")
       .line(up(kind)+" types can only be implemented in their own package.")
-      .line(ctx+" is defined in package "+disp(ownerPkg)+".")
+      .line(ctx+" is defined in package "+disp(pkgName)+".")
       .line("Type "+disp(target.simpleName())+" is defined in package "+disp(Package.writtenPkg(map, targetPkg))+"."), owner);
   }
   public FearlessException implementsAnonymousType(E.Literal l, E.Literal owner){
