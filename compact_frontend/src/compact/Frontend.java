@@ -386,7 +386,7 @@ public interface Frontend{
       }
       case null,default->e;
     };}
-    static String fresh(String hint,Scope s,List<Collection<String>>checks){
+    String fresh(String hint,Scope s,List<Collection<String>>checks){
       var base=hint.replaceAll("[^A-Za-z0-9]","").replaceFirst("(?<=.{4}).*","");var abc="abcdefghjkmnpqrstuvwxyz";if(base.matches("[A-Z].*"))abc=abc.toUpperCase();for(int n=s.getOrDefault(base,1);;n++){
         var sb="";for(int k=n;k-->0;k/=23)sb=abc.charAt(k%23)+sb;
         var cand="_"+sb+base;if(any(checks,e->e.contains(cand))||!s.used.add(cand))continue;
@@ -446,12 +446,12 @@ public interface Frontend{
       return used(new Literal(r,type(owner,0),list(),impl,name(l.self),ms,u,true,false),l.self);
     }
     String name(String x){return x.equals("_")?fresh("0"):x;}
-    static Literal used(Literal l,String x){no(!x.equals("_")&&TS.count(x,l,false)==0);return l;}
+    Literal used(Literal l,String x){no(!x.equals("_")&&TS.count(x,l,false)==0);return l;}
     Literal declaration(N name,RC r,P.Declared d){var cs=map(d.cs,this::constructor);
       no(distinct(d.b,cs).size()<cs.size());
       var l=new Literal(r,name,d.b,cs,name(d.l.self),methods(d.l.ms),u,false,false);decs.add(l);return l;
     }
-    static P lambda(List<Par>ps,P body){return new P.Lit("_",list(new PM(new PS(null,null,null,ps,u),body,false)));}
+    P lambda(List<Par>ps,P body){return new P.Lit("_",list(new PM(new PS(null,null,null,ps,u),body,false)));}
     P receiver(P par,P atom){
       return par instanceof P.Call c?new P.Call(receiver(c.e,atom),c.name,c.y,c.pat,c.es):atom;
     }
@@ -560,11 +560,11 @@ public interface Frontend{
       if(!(a instanceof RX p&&z instanceof RX(var rc2,var q))||!p.x.equals(q))return a;
       return p.rc(meet(p.r,rc2));
     }
-    static RC meet(RC a,RC b){
+    RC meet(RC a,RC b){
       if(a==null||b==null)return or(a,b);var x=noH(a);var y=noH(b);
       return x==y||y==iso||y==read&&x!=iso?x:x==iso||x==read?y:imm;
     }
-    static RC noH(RC a){return a==readH?read:a==mutH?mut:a;}
+    RC noH(RC a){return a==readH?read:a==mutH?mut:a;}
     T join(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
       var cands=push(candidates(a),candidates(z));for(var top:cands){var res=above(top,cands);if(res!=null)return res;}
@@ -572,12 +572,12 @@ public interface Frontend{
         var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&has(from(h2).cs,h)));if(minimal.size()==1)return above(sup(r0,minimal.get(0)),cands);}
       return new Amb(cands);
     }
-    static List<T>candidates(T t){return t instanceof Amb(var cs)?cs:list(t);}
+    List<T>candidates(T t){return t instanceof Amb(var cs)?cs:list(t);}
     T above(T top,List<T>cands){
       T res=top;for(var c:cands){var up=c instanceof R r&&top instanceof R rt?r.c.name.equals(rt.c.name)?c:sup(r,rt.c.name):Objects.equals(variable(c),variable(top))?c:null;if(up==null)return null;
         res=res instanceof R p&&up instanceof R q?any(zip(p.c.types,q.c.types,(x,y)->x.tv()&&y.tv()&&!x.equals(y)),b->b)?null:p.with(join(p.r,q.r),meet(p.c.types,q.c.types)):res instanceof RX p&&up instanceof RX q?p.rc(join(p.r,q.r)):meet(res,up);if(res==null)return null;}return res;
     }
-    static RC join(RC a,RC b){
+    RC join(RC a,RC b){
       if(a==null||b==null)return or(a,b);var x=noH(a);var y=noH(b);return x==y||y==iso?x:x==iso?y:read;
     }
     List<T>meet(List<T>a,List<T>z){return zip(a,z,this::meet);}
@@ -605,8 +605,8 @@ public interface Frontend{
       var m=find(map(favorite!=null?list(favorite):list(r==iso?imm:r,read,imm,mut),o->find(d.ms,x->x.s.m.equals(name)&&x.s.r==o)),x->x!=null);
       return m==null?null:new MS(m.s.r,push(B.v(d.b),B.v(m.s.b)),d.b,w.c.types,m.s.b,m.s.types,m.s.t);
     }
-    static RC lowerCap(RC a,RC b){a=noH(a);b=noH(b);return a==b||b==read?a:a==read?b:iso;}
-    static boolean instance(Literal l){return l.anon&&all(l.ms,m->m.e==null);}
+    RC lowerCap(RC a,RC b){a=noH(a);b=noH(b);return a==b||b==read?a:a==read?b:iso;}
+    boolean instance(Literal l){return l.anon&&all(l.ms,m->m.e==null);}
     E call(List<B>b,IG g,Call c){var e=solve(b,g,c.e);MS m;
       if(!(e.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)return c.children(e,solve(b,g,c.es));
       var n=m.cas.size();var all=normalize(push(m.cb,m.mb),map(infer(c,m,c.es),this::up));
@@ -704,11 +704,11 @@ public interface Frontend{
     boolean implementable(N head){
       var d=from(head);return d!=null&&(head.pk().equals(p.name)||head.visible()&&!has(d.cs,sealed))&&TS.inst(d);
     }
-    static T normalize(T t,Set<RC>al){
+    T normalize(T t,Set<RC>al){
       if(al.size()==1)return t.rc(al.iterator().next());
       return t instanceof R(var r,var c)&&(r==null||r==iso&&!al.contains(iso))?new R(al.contains(imm)?null:read,c):t;
     }
-    static List<T>normalize(List<B>b,List<T>types){
+    List<T>normalize(List<B>b,List<T>types){
       return zip(types,b,(ti,bi)->variable(ti)==null?normalize(ti,bi.caps):ti);
     }
     R bound(R w,List<T>types){
@@ -781,7 +781,7 @@ public interface Frontend{
       var t=l.self(r);kind(bs1,t,allRC);check(gf.map(x->!kinded(l.b,x,plain)||r.ii()&&!kinded(l.b,x,ii)?null:x),l,l.r.mutable());
       return reqs(bs1,t,rs);
     }
-    static boolean cf(List<B>b,G g,E e){
+    boolean cf(List<B>b,G g,E e){
       return e instanceof E.X x?g.bind(x.name)==null||all(kinds(b,g.bind(x.name)),RC::ii):e.children().allMatch(c->cf(b,g,c));
     }
     void check(G g,Literal l,RC self){
@@ -802,7 +802,7 @@ public interface Frontend{
         no(type(bs,g2,m.e,list(m.s.t)).get(0)==null);
       }
     }
-    static S canonical(Literal l,N name,RC r){return required(find(l.ms,m->m.s.m.equals(name)&&m.s.r==r)).s;}
+    S canonical(Literal l,N name,RC r){return required(find(l.ms,m->m.s.m.equals(name)&&m.s.r==r)).s;}
     static boolean equivalent(List<B>b,T p,T q){
       return p.equals(q)||(p instanceof R(var aRc,var aC)&&q instanceof R(var bRc,var bC)?aRc==bRc&&aC.name.equals(bC.name)&&!zip(aC.types,bC.types,(s,t)->equivalent(b,s,t)).contains(false)
         :p.rc(imm) instanceof RX(_,var x)&&p.rc(imm).equals(q.rc(imm))&&B.get(b,x.name).caps.size()==1&&kinds(b,p).equals(kinds(b,q)));
@@ -822,10 +822,10 @@ public interface Frontend{
       no(possible.size()==0);return rs.size()==0?list(best(b,possible)):map(rs,req->best(b,filter(possible,m->sub(b,m.t,req))));
     }
     T best(List<B>b,List<MT>ms){var types=map(ms,MT::t);return find(types,p->!any(types,q->!q.equals(p)&&sub(b,q,p)));}
-    static MT apply(List<B>d,MT m,RC[]receiver,RC[]args,int at,RC[]result){
+    MT apply(List<B>d,MT m,RC[]receiver,RC[]args,int at,RC[]result){
       return new MT(receiver[m.r.ordinal()],seq(m.types.size(),j->adapt(d,m.types.get(j),j==at?hyg:args,(p,q)->q.sub(p))),adapt(d,m.t,result,RC::sub));
     }
-    static T adapt(List<B>d,T t,RC[]mode,BiPredicate<RC,RC>le){
+    T adapt(List<B>d,T t,RC[]mode,BiPredicate<RC,RC>le){
       if(t.erc()!=null)return t.rc(mode[t.erc().ordinal()]);var x=variable(t);
       var caps=map(B.get(d,x).caps,r->t instanceof RI?r.ri():r);if(all(caps,r->mode[r.ordinal()]==r))return t;
       var up=filter(allRC,p->all(caps,c->le.test(mode[c.ordinal()],p)));return new RX(find(up,p->all(up,o->le.test(p,o))),new X(x));
