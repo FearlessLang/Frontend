@@ -266,7 +266,6 @@ import java.util.stream.*;
     var sup=from(lit,map,other);var ms=map(sup.ms,m->m.signature(new S(m.s.r,m.s.m,m.s.b,m.s.types,m.s.t,n,false,m.s.idx)));
     return new Literal(imm,n,list(),push(new C(lit,list()),sup.cs),"this",ms,u,true,false);
   }
-  static int bits(String s){return new BigInteger(s.replace("_","")).bitLength();}
   static boolean floatOk(String raw){
     var soft=raw.endsWith("soft");var ns=raw.replace("soft","").replace("_","");var d=Double.parseDouble(ns);
     return Double.isFinite(d)&&(soft||(d==0?new BigDecimal(ns.replaceAll("[eE].*","")):new BigDecimal(ns).subtract(new BigDecimal(d))).signum()==0);
@@ -412,7 +411,7 @@ import java.util.stream.*;
       }
     };}
     C constructor(C c){var s=c.name.s;
-      no(primitive(s)&&(matches(s,UI)&&bits(s)>64||matches(s,SI)&&bits(s)>63||matches(s,SF,UF)&&!floatOk(s)));
+      no(primitive(s)&&(matches(s,UI,SI)&&new BigInteger(s.replace("_","")).bitLength()>(matches(s,UI)?64:63)||matches(s,SF,UF)&&!floatOk(s)));
       return new C(f(c.name),map(c.types,this::type));
     }
     List<M>methods(List<PM>ms){return seq(ms.size(),i->method(ms.get(i),i));}
