@@ -749,7 +749,26 @@ import java.util.stream.*;
     }
     List<T>type(List<B>b,G g,E e,List<T>rs){return switch(e){
       case E.X x->reqs(b,required(g.bind(x.name)),rs);
-      case Literal l->literal(b,g,l,rs);case Call c->call(b,g,c,rs);
+      case Literal l->{
+      var gf=g.map(t->has(l.cs,cf)||!t.ftv().allMatch(B.v(l.b)::contains)?null:t);var r=(l.r.ro()&&!any(l.ms,m->m.s.abs&&m.s.r==mut)||l.r==mut)&&cf(l.b,gf,l)?iso:l.r;
+      no(any(l.ms,m->(m.s.abs||m.e!=null&&!inst(l))&&m.s.abs==(m.s.r!=mut||!r.ro())));
+      var t=l.self(r);kind(b,t,allRC);check(gf.map(x->!kinded(l.b,x,plain)||r.ii()&&!kinded(l.b,x,ii)?null:x),l,l.r.mutable());
+      yield reqs(b,t,rs);
+      }
+      case Call c->{
+      if(!(type(b,g,c.e,list()).get(0) instanceof R h))throw new Fail();var d=decs.apply(h.c.name);
+      var s=canonical(d,c.name,c.r);
+      no(s.b.size()!=c.y.size()||zip(c.y,s.b,(t,p)->kinded(b,t,p.caps)).contains(false));
+      var v=B.v(push(d.b,s.b));var ts0=push(h.c.types,c.y);
+      var base=new MT(s.r,rename(s.types,v,ts0),rename(s.t,v,ts0));
+      var app=cat(Stream.of(base,apply(b,base,flexy,flexy,-1,flexy),apply(b,base,strong,strong,-1,strong),apply(b,base,reading,reading,-1,hyg),apply(b,base,hyg,flexy,-1,hyg)),
+        range(base.types.size()).mapToObj(i->apply(b,base,flexy,flexy,i,hyg))).distinct().filter(m->h.r.sub(m.r)).toList();
+      var possible=new Vector<>(app);range(c.es.size()).forEach(i->{
+        var reqs=app.stream().map(m->m.types.get(i)).distinct().toList();var got=type(b,g,c.es.get(i),reqs);
+        possible.removeIf(m->got.get(reqs.indexOf(m.types.get(i)))==null);
+      });
+      no(possible.size()==0);yield rs.size()==0?list(best(b,possible)):map(rs,req->best(b,filter(possible,m->sub(b,m.t,req))));
+      }
     };}
     static boolean inst(Literal l){return l.self.equals("this")||has(l.cs,cf);}
     static long count(String x,E e,boolean active){
@@ -757,12 +776,6 @@ import java.util.stream.*;
     }
     List<T>reqs(List<B>b,T got,List<T>rs){
       return rs.isEmpty()?list(got):map(rs,r->sub(b,got,r)?got:null);
-    }
-    List<T>literal(List<B>bs1,G g,Literal l,List<T>rs){
-      var gf=g.map(t->has(l.cs,cf)||!t.ftv().allMatch(B.v(l.b)::contains)?null:t);var r=(l.r.ro()&&!any(l.ms,m->m.s.abs&&m.s.r==mut)||l.r==mut)&&cf(l.b,gf,l)?iso:l.r;
-      no(any(l.ms,m->(m.s.abs||m.e!=null&&!inst(l))&&m.s.abs==(m.s.r!=mut||!r.ro())));
-      var t=l.self(r);kind(bs1,t,allRC);check(gf.map(x->!kinded(l.b,x,plain)||r.ii()&&!kinded(l.b,x,ii)?null:x),l,l.r.mutable());
-      return reqs(bs1,t,rs);
     }
     boolean cf(List<B>b,G g,E e){
       return e instanceof E.X x?g.bind(x.name)==null||all(kinds(b,g.bind(x.name)),RC::ii):e.children().allMatch(c->cf(b,g,c));
@@ -789,20 +802,6 @@ import java.util.stream.*;
     static boolean equivalent(List<B>b,T p,T q){
       return p.equals(q)||(p instanceof R(var aRc,var aC)&&q instanceof R(var bRc,var bC)?aRc==bRc&&aC.name.equals(bC.name)&&!zip(aC.types,bC.types,(s,t)->equivalent(b,s,t)).contains(false)
         :p.rc(imm) instanceof RX(_,var x)&&p.rc(imm).equals(q.rc(imm))&&B.get(b,x.name).caps.size()==1&&kinds(b,p).equals(kinds(b,q)));
-    }
-    List<T>call(List<B>b,G g,Call c,List<T>rs){
-      if(!(type(b,g,c.e,list()).get(0) instanceof R h))throw new Fail();var d=decs.apply(h.c.name);
-      var s=canonical(d,c.name,c.r);
-      no(s.b.size()!=c.y.size()||zip(c.y,s.b,(t,p)->kinded(b,t,p.caps)).contains(false));
-      var v=B.v(push(d.b,s.b));var ts0=push(h.c.types,c.y);
-      var base=new MT(s.r,rename(s.types,v,ts0),rename(s.t,v,ts0));
-      var app=cat(Stream.of(base,apply(b,base,flexy,flexy,-1,flexy),apply(b,base,strong,strong,-1,strong),apply(b,base,reading,reading,-1,hyg),apply(b,base,hyg,flexy,-1,hyg)),
-        range(base.types.size()).mapToObj(i->apply(b,base,flexy,flexy,i,hyg))).distinct().filter(m->h.r.sub(m.r)).toList();
-      var possible=new Vector<>(app);range(c.es.size()).forEach(i->{
-        var reqs=app.stream().map(m->m.types.get(i)).distinct().toList();var got=type(b,g,c.es.get(i),reqs);
-        possible.removeIf(m->got.get(reqs.indexOf(m.types.get(i)))==null);
-      });
-      no(possible.size()==0);return rs.size()==0?list(best(b,possible)):map(rs,req->best(b,filter(possible,m->sub(b,m.t,req))));
     }
     T best(List<B>b,List<MT>ms){var types=map(ms,MT::t);return find(types,p->!any(types,q->!q.equals(p)&&sub(b,q,p)));}
     MT apply(List<B>d,MT m,RC[]receiver,RC[]args,int at,RC[]result){
