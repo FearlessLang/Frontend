@@ -2,9 +2,13 @@ package toolsTests;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +28,12 @@ final class PathBytesTest{
     var res= Fs.isMac() ? dir : NotUnicode.in(dir);
     Fs.ensureDir(res);
     return res;
+  }
+  @Test void aFolderNameThatIsNotUnicodeIsHeldOnLinuxAndWindowsAndRefusedOnMacOS(@TempDir Path tmp){
+    if (Fs.isMac()){ assertThrows(IOException.class, () -> Files.createDirectory(Path.of(URI.create(tmp.toUri()+"caf%E9")))); return; }
+    var odd= NotUnicode.in(tmp);
+    Fs.ensureDir(odd);
+    assertEquals(List.of(odd), Fs.of(() -> { try (var s= Files.list(tmp)){ return s.toList(); } }));
   }
   @Test void aPathReadsBackFromItsBytes(@TempDir Path tmp){
     assumeFalse(Fs.isWindows());

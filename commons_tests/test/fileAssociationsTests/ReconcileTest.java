@@ -3,7 +3,7 @@ package fileAssociationsTests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.awt.image.BufferedImage;
@@ -201,8 +201,12 @@ final class ReconcileTest{
     FileAssociations.eradicateAll(family, IllegalStateException::new);
     assertEquals(List.of(), FileAssociations.identities(family));
   }
+  private static final String macChoice= """
+    Agent on macOS: ReconciliatorDesign defines a 'choice made by hand' on Linux and on Windows only, and FileAssociations.forgetChoices has no macOS branch.
+    Investigate what macOS keeps when the user picks a program for an extension (Get Info, Open with, Change All: the LSHandlers of the LaunchServices preferences),
+    then propose the macOS 'choice made by hand' for ReconciliatorDesign, and make this test make such a choice as it does on Linux and on Windows.""";
   @Test void aSystemExtensionIsTakenOverFromTheProgramTheUserChose(){
-    assumeFalse(Fs.isMac());
+    if (Fs.isMac()){ fail(macChoice); }
     choose(ext);
     reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext));
     assertEquals(List.of(identity), FileAssociations.identities(family));
@@ -236,7 +240,7 @@ final class ReconcileTest{
     assertTrue(claimed(ext));
   }
   @Test void aChoiceNamingTheFamilyRefusesEveryReconcileUntilTheChoiceIsForgotten(){
-    assumeFalse(Fs.isMac());
+    if (Fs.isMac()){ fail(macChoice); }
     var command= tmp.resolve("new").resolve("fearless");
     reconcile(identity, command, List.of(ext));
     chooseTheFamily(ext);
