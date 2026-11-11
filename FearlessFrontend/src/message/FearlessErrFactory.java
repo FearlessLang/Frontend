@@ -15,6 +15,7 @@ import core.FearlessException;
 import core.MName;
 import core.RC;
 import core.TName;
+import fearlessFullGrammar.FileFull;
 import fearlessFullGrammar.M;
 import fearlessFullGrammar.Sig;
 import fearlessFullGrammar.T;
@@ -113,9 +114,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       "There is already a map of package name "+disp(what)+" for source code inside folders named "+disp(in)+".\n"
     ).addSpan(at);
   }
-  public FearlessException duplicatedUse(Span at, String what, String kind){
+  public FearlessException duplicatedUse(Span at, FileFull.Use use, FileFull.Use earlier){
     return Code.UnexpectedToken.of(
-        "There is already a \"use\" directive "+kind+" "+disp(what)+".\n"
+        "The directive "+disp(use)+" clashes with the earlier "+disp(earlier)+".\n"
     ).addSpan(at);
   }
   public FearlessException duplicatedImpl(List<T.C> cs, Span at){

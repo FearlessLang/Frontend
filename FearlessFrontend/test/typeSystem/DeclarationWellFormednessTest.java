@@ -976,7 +976,7 @@ B:A[Foo],A[p.Foo]{}
 """));}
 @Test void directivesOutsideTheRankFile(){failWf("""
 001| use base.Nat as N;
-   | ^
+   |     ^^^^^^^^
 
 While inspecting the file
 Package directives outside of rank file.
@@ -990,13 +990,51 @@ A:{}
 use base.Nat as N;
 B:{}
 """));}
+@Test void directivesOutsideTheRankFileAfterAComment(){failWf("""
+002| use base.Nat as N;
+   |     ^^^^^^^^
+
+While inspecting the file
+Package directives outside of rank file.
+Only the rank file can contain directives like maps and uses.
+
+Found non-empty:
+- maps: map a as _p in _q
+- uses: use base.Nat as N
+""", List.of("""
+A:{}
+""", """
+//the header
+use base.Nat as N;
+map a as _p in _q;
+B:{}
+"""));}
+@Test void mapDirectiveOutsideTheRankFileAfterAComment(){failWf("""
+002| map a as _p in _q;
+   |     ^
+
+While inspecting the file
+Package directives outside of rank file.
+Only the rank file can contain directives like maps and uses.
+
+Found non-empty:
+- maps: map a as _p in _q
+- uses: use base.Nat as N
+""", List.of("""
+A:{}
+""", """
+//the header
+map a as _p in _q;
+use base.Nat as N;
+B:{}
+"""));}
 @Test void useTwiceTheSameSource(){failParse("""
 001| use base.Nat as N;
 002| use base.Nat as M;
    | ----------------^
 
 While inspecting header element > file header > full file
-There is already a "use" directive for type "base.Nat".
+The directive "use base.Nat as M" clashes with the earlier "use base.Nat as N".
 """, List.of("""
 use base.Nat as N;
 use base.Nat as M;
@@ -1008,7 +1046,7 @@ A:{}
    | ----------------^
 
 While inspecting header element > file header > full file
-There is already a "use" directive giving the simple name "N".
+The directive "use base.Str as N" clashes with the earlier "use base.Nat as N".
 """, List.of("""
 use base.Nat as N;
 use base.Str as N;
