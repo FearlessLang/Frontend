@@ -603,7 +603,9 @@ import java.util.stream.*;
     boolean instance(Literal l){return l.anon&&all(l.ms,m->m.e==null);}
     E call(List<B>b,IG g,Call c){var e=solve(b,g,c.e);MS m;
       if(!(e.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)return c.children(e,solve(b,g,c.es));
-      var n=m.cas.size();var all=normalize(push(m.cb,m.mb),map(infer(c,m,c.es),this::up));
+      var n=m.cas.size();var k=m.mb.size();var y=push(c.y,qs(k)).subList(0,k);var ret=refine(m.v,m.ret,c.t);
+      var all=normalize(push(m.cb,m.mb),map(Stream.of(push(m.cas,c.written?y:qs(k)),m.ret instanceof R?ret:qs(m.v.size()),arguments(m,c.es,true),meet(list(push(m.cas,y),arguments(m,c.es,false),ret)))
+        .reduce((p,q)->zip(p,q,(a,z)->a.tv()&&!(a instanceof R(var r,_)&&r==null)?a:z)).get(),this::up));
       var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v,all))));
       return new Call(meet(e,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v,all)),c.written);
     }
@@ -612,10 +614,6 @@ import java.util.stream.*;
       Function<Integer,List<T>>ref=i->refine(m.v,m.ps.get(i),es.get(i).t());
       var lower=map(filter(is,i->!(m.ps.get(i) instanceof R)),ref);var exact=map(filter(is,i->m.ps.get(i) instanceof R),ref);
       return meet(push(lower.stream().reduce(qs(m.v.size()),(a,b)->zip(a,b,this::join)),exact));
-    }
-    List<T>infer(Call c,MS m,List<E>es){var n=m.mb.size();var y=push(c.y,qs(n)).subList(0,n);var ret=refine(m.v,m.ret,c.t);
-      return Stream.of(push(m.cas,c.written?y:qs(n)),m.ret instanceof R?ret:qs(m.v.size()),arguments(m,es,true),meet(list(push(m.cas,y),arguments(m,es,false),ret)))
-        .reduce((p,q)->zip(p,q,(a,b)->a.tv()&&!(a instanceof R(var r,_)&&r==null)?a:b)).get();
     }
     T up(T t){if(!(t instanceof R(var r,var c)))return t;var h=sup.getOrDefault(c.name,c);return new R(r,h).withTs(map(h.types,this::up));}
     E literal(List<B>b,IG g,Literal l){var sp=l.r==null?null:l.self(l.r);if(!l.expanded){if(l.anon&&l.cs.size()==0)inferred.add(l.name.s);
