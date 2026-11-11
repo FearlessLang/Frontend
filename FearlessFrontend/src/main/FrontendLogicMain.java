@@ -95,7 +95,7 @@ public class FrontendLogicMain{
       var overridden= cs.stream().filter(x -> c.compare(x.uri(), best.uri()) < 0 && !x.m().out().equals(m.out())).toList();
       var expected= overridden.stream().map(x -> x.m().out()).distinct().sorted().toList();
       var wrong= bests.stream().filter(x -> !x.m().insteadOf().stream().sorted().toList().equals(expected)).findFirst();
-      if (wrong.isPresent()){ throw err.insteadOfMismatch(wrong.get().toString(), overridden.stream().map(Object::toString).toList(), new FileFull.Map(m.in(), m.out(), m.target(), expected)); }
+      if (wrong.isPresent()){ throw err.insteadOfMismatch(wrong.get().toString(), overridden.stream().map(Object::toString).toList(), new FileFull.Map(m.in(), m.out(), m.target(), expected, m.pos())); }
       winners.add(best);
     }
     var shared= winners.stream().collect(Collectors.groupingBy(x -> x.m().target()+"."+x.m().out(), TreeMap::new, Collectors.toList())).values().stream().filter(cs -> cs.size() > 1).findFirst();
@@ -124,7 +124,7 @@ public class FrontendLogicMain{
     var headPkg= findHeadUri(err, raw.keySet());
     raw.entrySet().stream()
       .filter(e -> !e.getKey().equals(headPkg) && !e.getValue().noDirectives())
-      .forEach(e -> { throw err.notClean(e.getKey(), e.getValue()); });
+      .forEach(e -> { throw err.notClean(e.getValue()); });
     var head= raw.get(headPkg);
     var ds= raw.values().stream()
       .flatMap(f -> f.decs().stream())

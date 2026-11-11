@@ -79,7 +79,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return List.of(refersTo(target, in, out, writtenIn));
   }
   private static String refersTo(String target, String in, String out, Map<String,String> writtenIn){
-    var m= new FileFull.Map(in, out, target, List.of());
+    var m= new FileFull.Map(in, out, target, List.of(), Pos.unknown);
     return inFolders(target)+" uses package name "+disp(in)+" to refer to the code inside folders named "+disp("_"+out)+", because of "+disp(m)+", written in "+Objects.requireNonNull(writtenIn.get(in))+".";
   }
   private static String inFolders(String pkg){ return "Source code inside folders named "+disp("_"+pkg); }
@@ -91,7 +91,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
   private FearlessException wfUse(Err e, TName tn){ return e.wf().addFrame("package header", TSpan.fromPos(tn.pos(), tn.s().length()).inner); }
   private Err invalidMethImpl(Agreement at){ return err().line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(), at.lit(), at.mName())+"."); }
-  public FearlessException notClean(Ref uri, FileFull f){
+  public FearlessException notClean(FileFull f){
     var e= err()
       .line("Package directives outside of rank file.")
       .line("Only the rank file can contain directives like maps and uses.")
@@ -100,7 +100,11 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     assert !f.noDirectives();
     if (!f.maps().isEmpty()){ e.bullet("maps: "+previewList(f.maps(), 5)); }
     if (!f.uses().isEmpty()){ e.bullet("uses: "+previewList(f.uses(), 8)); }
-    return e.wf().addSpan(new Span(uri.fearURI(), 0, 0, 1, 1));
+    var first= Stream.concat(
+        f.maps().stream().map(m -> TSpan.fromPos(m.pos(), m.in().length()).inner),
+        f.uses().stream().map(u -> TSpan.fromPos(u.in().pos(), u.in().s().length()).inner))
+      .min(Comparator.comparingInt(Span::startLine).thenComparingInt(Span::startCol)).orElseThrow();
+    return e.wf().addSpan(first);
   }
   private String previewList(List<?> c, int limit){
     var shown= Join.of(c.stream().limit(limit), "", ", ", "", "");

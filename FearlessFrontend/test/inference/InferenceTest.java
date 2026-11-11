@@ -40,7 +40,7 @@ B:{}
 In file: [###].fear
 
 001| use base.Void as Void;
-   | ^
+   |     ^^^^^^^^^
 
 While inspecting the file
 Package directives outside of rank file.

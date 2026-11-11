@@ -411,7 +411,8 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     throw Bug.unreachable();
   }
   void parseMap(HeadAcc acc){
-    var in= expectValidate("package name", LowercaseId, _pkgName).content();
+    var inToken= expectValidate("package name", LowercaseId, _pkgName);
+    var in= inToken.content();
     expectValidate("\"as\" keyword", LowercaseId, _as);
     var out= folderName();
     expectValidate("\"in\" keyword", LowercaseId, _in);
@@ -419,7 +420,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var dup= acc.map.stream().anyMatch(m -> m.in().equals(in) && m.target().equals(target));
     if (dup){ throw errFactory().duplicatedMap(spanLast(), in, "_"+target); }
     var insteadOf= fwdIf(peekValidate(_instead)) ? insteadOf() : new ArrayList<String>();
-    acc.map.add(new FileFull.Map(in, out, target, List.copyOf(insteadOf)));
+    acc.map.add(new FileFull.Map(in, out, target, List.copyOf(insteadOf), pos(inToken)));
   }
   ArrayList<String> insteadOf(){
     expectValidate("\"of\" keyword", LowercaseId, _of);
@@ -432,11 +433,10 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var t1= parseTName();
     expectValidate("\"as\" keyword", LowercaseId, _as);
     var t2= expectValidate("simple type name", UppercaseId, _XId).content();
-    var dupS= acc.use.stream().anyMatch(u -> u.in().equals(t1));
-    var dupD= acc.use.stream().anyMatch(u -> u.out().equals(t2));
-    if (dupS){ throw errFactory().duplicatedUse(spanLast(), t1.s(), "for type"); }
-    if (dupD){ throw errFactory().duplicatedUse(spanLast(), t2, "giving the simple name"); }
-    acc.use.add(new FileFull.Use(t1, t2));
+    var use= new FileFull.Use(t1, t2);
+    var earlier= acc.use.stream().filter(u -> u.in().equals(t1) || u.out().equals(t2)).findFirst();
+    if (earlier.isPresent()){ throw errFactory().duplicatedUse(spanLast(), use, earlier.get()); }
+    acc.use.add(use);
   }
   record HeadAcc(ArrayList<FileFull.Map> map, ArrayList<FileFull.Use> use){
     HeadAcc(){ this(new ArrayList<>(), new ArrayList<>()); }

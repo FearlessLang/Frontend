@@ -5,6 +5,7 @@ import static offensiveUtils.Require.*;
 
 import java.util.List;
 import core.TName;
+import utils.Pos;
 import utils.Join;
 
 public record FileFull(
@@ -21,12 +22,13 @@ public record FileFull(
     public Use{ assert nonNull(in, out); assert validate(out, "Use.out", _XId); }
     @Override public String toString(){ return "use "+in.s()+" as "+out; }
   }
-  public record Map(String in, String out, String target, List<String> insteadOf){
+  public record Map(String in, String out, String target, List<String> insteadOf, Pos pos){
     public Map{
       assert validate(in, "map.in", _pkgName);
       assert validate(out, "map.out", _pkgName);
       assert validate(target, "map.target", _pkgName);
       assert insteadOf.stream().allMatch(o -> validate(o, "map.insteadOf", _pkgName));
+      assert nonNull(pos);
     }
     @Override public String toString(){ return "map "+in+" as _"+out+" in _"+target+Join.of(insteadOf.stream().map(o -> "_"+o), " instead of ", ", ", "", ""); }
   }

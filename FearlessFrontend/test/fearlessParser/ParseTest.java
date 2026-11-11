@@ -2614,7 +2614,7 @@ In file: [###].fear
    | ------------^^
 
 While inspecting header element > file header > full file
-There is already a "use" directive for type "a1.B".
+The directive "use a1.B as B2" clashes with the earlier "use a1.B as B1".
 Error 2 UnexpectedToken
 """, """
 
@@ -2630,7 +2630,7 @@ In file: [###].fear
    | ------------^^
 
 While inspecting header element > file header > full file
-There is already a "use" directive giving the simple name "F1".
+The directive "use a2.F as F1" clashes with the earlier "use a1.F as F1".
 Error 2 UnexpectedToken
 """, """
 use a1.F as F1;
