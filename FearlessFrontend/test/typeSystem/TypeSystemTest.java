@@ -390,7 +390,7 @@ for type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-User:{.m(A[mut B]):-.Void}
+User:{.m(a:A[mut B]):-.Void}
 """, List.of("""
 A[X:imm]:{}
 B:{}
@@ -408,7 +408,7 @@ for type parameter "Y" in "A[_,_]".
 Here "Y" can only use capabilities "iso" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-User:{.m(A[B,mut C]):-.Void}
+User:{.m(a:A[B,mut C]):-.Void}
 """, List.of("""
 A[X:imm,Y:read,iso]:{}
 B:{}
@@ -427,7 +427,7 @@ for type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-User:{.m(A[B[mut C]]):-.Void}
+User:{.m(a:A[B[mut C]]):-.Void}
 """, List.of("""
 A[X:imm]:{}
 B[Y:imm]:{}
@@ -464,7 +464,7 @@ for type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-User:{.m(B):A[mut B]}
+User:{.m(a:B):A[mut B]}
 """, List.of("""
 A[X:imm]:{}
 B:{}
@@ -557,7 +557,7 @@ for type parameter "Y" in "B[_]".
 Here "Y" can only use capability "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-User:{.m(A[B[mut C]]):-.Void}
+User:{.m(x:A[B[mut C]]):-.Void}
 """, List.of("""
 A[X:imm]:{}
 B[Y:read]:{}
@@ -1354,7 +1354,7 @@ But "Parent.g(_)" requires "read P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Current:Parent{.g(P):-.Void}
+Current:Parent{.g(x:P):-.Void}
 """, List.of("""
 
 P:{}

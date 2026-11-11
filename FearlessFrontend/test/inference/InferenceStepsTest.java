@@ -139,7 +139,7 @@ p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_ read #(base.Nat,base.Nat):base.Na
 p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:imm T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}
 p._DStac[T:imm]:p.Stack[T]{'_ .match[_AR:imm](p.StackMatch[T,_AR]):_AR@p._DStac;(m)->m:p.StackMatch[T,_AR].elem[imm](e:imm T,this:p.Stack[T]):_AR; .fold[_BR:imm](_BR,base.F[_BR,T,_BR]):_BR@p._DStac;(start, f)->f:base.F[_BR,T,_BR]#[read](this:p.Stack[T].fold[imm,_BR](start:_BR,f:base.F[_BR,T,_BR]):_BR,e:imm T):_BR; .map[_CR:imm](base.F[T,_CR]):p.Stack[_CR]@p._DStac;(f)->this:p.Stack[T].map[imm,_CR](f:base.F[T,_CR]):p.Stack[_CR]+[imm](f:base.F[T,_CR]#[read](e:imm T):_CR):p.Stack[_CR]; .filter(base.F[T,base.Bool]):p.Stack[T]@p._DStac;(f)->f:base.F[T,base.Bool]#[read](e:imm T):base.Bool.if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:imm T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}:mut base.ThenElse[p.Stack[T]]):p.Stack[T]; +(T):p.Stack[T]@p.Stack;}
 ~-----------
-~mut p.StackMatch[T:imm,R:imm]:{'this .empty:R; .elem(_:T, _:p.Stack[T]):R}
+~mut p.StackMatch[T:imm,R:imm]:{'this .empty:R; .elem(top:T, tail:p.Stack[T]):R}
 ~mut p.Stack[T:imm]:{'this .match[R:imm](m:p.StackMatch[T,R]):R->m.empty[imm]; .fold[R:imm](start:R, f:base.F[R,T,R]):R->start; .map[R:imm](f:base.F[T,R]):p.Stack[R]->p.Stack[R]; .filter(f:base.F[T,base.Bool]):p.Stack[T]->p.Stack[T]; +(e:T):p.Stack[T]->imm p._DStac[T:imm]:p.Stack[T]{'_ .match[_AR:imm](m:p.StackMatch[T,_AR]):_AR->m.elem[imm](e, this); .fold[_BR:imm](start:_BR, f:base.F[_BR,T,_BR]):_BR->f#[read](this.fold[imm,_BR](start, f), e); .map[_CR:imm](f:base.F[T,_CR]):p.Stack[_CR]->this.map[imm,_CR](f)+[imm](f#[read](e)); .filter(f:base.F[T,base.Bool]):p.Stack[T]->f#[read](e).if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]->this.filter[imm](f)+[imm](e); mut .else:p.Stack[T]->this.filter[imm](f)}); +(_:T):p.Stack[T]}}
 ~mut p.Z1ExampleTimes:{'this #(ns:p.Stack[base.Nat]):base.Nat->ns.fold[imm,base.Nat](base.1, imm p._AZ1Ex:base.F[base.Nat,base.Nat,base.Nat]{'_ read #(n1:base.Nat, n2:base.Nat):base.Nat->n1*[imm](n2)})}
 """, List.of(importMini+stackStart+"""
@@ -228,7 +228,7 @@ p.Stack[T:imm]:{'this .match[R:imm](p.StackMatch[T,R]):R@p.Stack;(m)->m:?.empty(
 p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:imm T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}
 p._DStac[T:imm]:p.Stack[T]{'_ .match[_AR:imm](p.StackMatch[T,_AR]):_AR@p._DStac;(m)->m:p.StackMatch[T,_AR].elem[imm](e:imm T,this:p.Stack[T]):_AR; .fold[_BR:imm](_BR,base.F[_BR,T,_BR]):_BR@p._DStac;(start, f)->f:base.F[_BR,T,_BR]#[read](this:p.Stack[T].fold[imm,_BR](start:_BR,f:base.F[_BR,T,_BR]):_BR,e:imm T):_BR; .map[_CR:imm](base.F[T,_CR]):p.Stack[_CR]@p._DStac;(f)->this:p.Stack[T].map[imm,_CR](f:base.F[T,_CR]):p.Stack[_CR]+[imm](f:base.F[T,_CR]#[read](e:imm T):_CR):p.Stack[_CR]; .filter(base.F[T,base.Bool]):p.Stack[T]@p._DStac;(f)->f:base.F[T,base.Bool]#[read](e:imm T):base.Bool.if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T]+[imm](e:imm T):p.Stack[T]; mut .else:p.Stack[T]@p._CStac;->this:p.Stack[T].filter[imm](f:base.F[T,base.Bool]):p.Stack[T];}:mut base.ThenElse[p.Stack[T]]):p.Stack[T]; +(T):p.Stack[T]@p.Stack;}
 ~-----------
-~mut p.StackMatch[T:imm,R:imm]:{'this .empty:R; .elem(_:T, _:p.Stack[T]):R}
+~mut p.StackMatch[T:imm,R:imm]:{'this .empty:R; .elem(top:T, tail:p.Stack[T]):R}
 ~mut p.Stack[T:imm]:{'this .match[R:imm](m:p.StackMatch[T,R]):R->m.empty[imm]; .fold[R:imm](start:R, f:base.F[R,T,R]):R->start; .map[R:imm](f:base.F[T,R]):p.Stack[R]->p.Stack[R]; .filter(f:base.F[T,base.Bool]):p.Stack[T]->p.Stack[T]; +(e:T):p.Stack[T]->imm p._DStac[T:imm]:p.Stack[T]{'_ .match[_AR:imm](m:p.StackMatch[T,_AR]):_AR->m.elem[imm](e, this); .fold[_BR:imm](start:_BR, f:base.F[_BR,T,_BR]):_BR->f#[read](this.fold[imm,_BR](start, f), e); .map[_CR:imm](f:base.F[T,_CR]):p.Stack[_CR]->this.map[imm,_CR](f)+[imm](f#[read](e)); .filter(f:base.F[T,base.Bool]):p.Stack[T]->f#[read](e).if[imm,p.Stack[T]](mut p._CStac[T:imm]:base.ThenElse[p.Stack[T]]{'_ mut .then:p.Stack[T]->this.filter[imm](f)+[imm](e); mut .else:p.Stack[T]->this.filter[imm](f)}); +(_:T):p.Stack[T]}}
 """, List.of(importTo10+stackStart));}
 
@@ -320,7 +320,7 @@ p.B1:p.A{'this .m[Y:imm](p.Foo[Y]):Y@p.B1;(z)->z:?.get():?;}
 p.B2:p.A{'this .m[Y:imm](p.Foo[Y]):Y@p.B2;(z)->z:?.beer[Y]():?;}
 p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
 ~-----------
-~mut p.A:{'this .m[X:imm](_:p.Foo[X]):X}
+~mut p.A:{'this .m[X:imm](x:p.Foo[X]):X}
 ~mut p.B1:p.A{'this .m[Y:imm](z:p.Foo[Y]):Y->z.get[imm]}
 ~mut p.B2:p.A{'this .m[Y:imm](z:p.Foo[Y]):Y->z.beer[imm,Y]}
 ~mut p.Foo[K:imm]:{'this .get:K; .beer[G:imm]:G}
@@ -336,7 +336,7 @@ p.A:{'this .id[X:imm](p.Box[X]):X@p.A;}
 p.B:p.A{'this .id[T:imm](p.Box[T]):T@p.B;(b)->b:?.get():?;}
 p.Box[K:imm]:{'this .get:K@p.Box;}
 ~-----------
-~mut p.A:{'this .id[X:imm](_:p.Box[X]):X}
+~mut p.A:{'this .id[X:imm](x:p.Box[X]):X}
 ~mut p.B:p.A{'this .id[T:imm](b:p.Box[T]):T->b.get[imm]}
 ~mut p.Box[K:imm]:{'this .get:K}
 """, List.of("""
@@ -351,7 +351,7 @@ p.A:{'this .pick[X:imm,Y:imm](p.Pair[X,Y]):Y@p.A;}
 p.B:p.A{'this .pick[U:imm,V:imm](p.Pair[V,U]):V@p.B;(p)->p:?.fst():?;}
 p.Pair[AA:imm, BB:imm]:{'this .fst:AA@p.Pair; .snd:BB@p.Pair;}
 ~-----------
-~mut p.A:{'this .pick[X:imm,Y:imm](_:p.Pair[X,Y]):Y}
+~mut p.A:{'this .pick[X:imm,Y:imm](p:p.Pair[X,Y]):Y}
 ~mut p.B:p.A{'this .pick[U:imm,V:imm](p:p.Pair[V,U]):V->p.fst[imm]}
 ~mut p.Pair[AA:imm,BB:imm]:{'this .fst:AA; .snd:BB}
 """, List.of("""
@@ -367,9 +367,9 @@ p.Box[K:imm]:{'this .get:K@p.Box;}
 p.C:{'this .id[Y:imm](p.Box[Y]):Y@p.C;}
 p.D:p.A, p.C{'this .id[X:imm](p.Box[X]):X@p.D;}
 ~-----------
-~mut p.A:{'this .id[X:imm](_:p.Box[X]):X}
+~mut p.A:{'this .id[X:imm](x:p.Box[X]):X}
 ~mut p.Box[K:imm]:{'this .get:K}
-~mut p.C:{'this .id[Y:imm](_:p.Box[Y]):Y}
+~mut p.C:{'this .id[Y:imm](y:p.Box[Y]):Y}
 ~mut p.D:p.A, p.C{'this .id[X:imm](_:p.Box[X]):X}
 """, List.of("""
 Box[K]:{.get:K;}
@@ -385,7 +385,7 @@ p.Box[K:imm]:{'this .get:K@p.Box;}
 p.C:{'this .id[Y:imm](p.Box[Y]):Y@p.C;(y)->y:?.get():?;}
 p.D:p.A, p.C{'this .id[X:imm](p.Box[X]):X@p.C;}
 ~-----------
-~mut p.A:{'this .id[X:imm](_:p.Box[X]):X}
+~mut p.A:{'this .id[X:imm](x:p.Box[X]):X}
 ~mut p.Box[K:imm]:{'this .get:K}
 ~mut p.C:{'this .id[Y:imm](y:p.Box[Y]):Y->y.get[imm]}
 ~mut p.D:p.A, p.C{'this .id[X:imm](_:p.Box[X]):X}
@@ -425,9 +425,9 @@ p.A:{'this .use[X1:imm,Y1:imm](X1,p.Conv):Y1@p.A;}
 p.B:p.A{'this .use[U1:imm,V1:imm](U1,p.Conv):V1@p.B;(x, c)->c:?.apply[U1,V1](x:?):?;}
 p.Conv:{'this .apply[S1:imm,S2:imm](S1):S2@p.Conv;}
 ~-----------
-~mut p.A:{'this .use[X1:imm,Y1:imm](_:X1, _:p.Conv):Y1}
+~mut p.A:{'this .use[X1:imm,Y1:imm](x:X1, c:p.Conv):Y1}
 ~mut p.B:p.A{'this .use[U1:imm,V1:imm](x:U1, c:p.Conv):V1->c.apply[imm,U1,V1](x)}
-~mut p.Conv:{'this .apply[S1:imm,S2:imm](_:S1):S2}
+~mut p.Conv:{'this .apply[S1:imm,S2:imm](s:S1):S2}
 """, List.of("""
 Conv:{ .apply[S1,S2](s:S1):S2 }
 A:{ .use[X1,Y1](x:X1,c:Conv):Y1 }
@@ -441,7 +441,7 @@ p.A:{'this .m[X:imm](p.Foo[X]):X@p.A;}
 p.B1[X:imm]:p.A{'this .m[_AX:imm](p.Foo[_AX]):_AX@p.B1;(z)->z:?.get():?;}
 p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
 ~-----------
-~mut p.A:{'this .m[X:imm](_:p.Foo[X]):X}
+~mut p.A:{'this .m[X:imm](x:p.Foo[X]):X}
 ~mut p.B1[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.get[imm]}
 ~mut p.Foo[K:imm]:{'this .get:K; .beer[G:imm]:G}
 """, List.of("""
@@ -660,7 +660,7 @@ p.Box[T:imm,mut,read]:{'this}
 p.User:{'this read .idX[X:imm](X):X@p.User; read .idReadX[X:imm](X):read/imm X@p.User; read .idBox[X:imm](X):p.Box[X]@p.User;}
 ~-----------
 ~mut p.Box[T:imm,mut,read]:{'this }
-~mut p.User:{'this read .idX[X:imm](_:X):X; read .idReadX[X:imm](_:X):read/imm X; read .idBox[X:imm](_:X):p.Box[X]}
+~mut p.User:{'this read .idX[X:imm](x:X):X; read .idReadX[X:imm](x:X):read/imm X; read .idBox[X:imm](x:X):p.Box[X]}
 """, List.of("""
 Box[T:*]:{
 }
@@ -739,7 +739,7 @@ p.B1[X:imm]:p.A{'this .m[_AX:imm](p.Foo[_AX]):_AX@p.B1;(z)->z:?.get():?;}
 p.B2[X:imm]:p.A{'this .m[_AX:imm](p.Foo[_AX]):_AX@p.B2;(z)->z:?.beer[X]():?;}
 p.Foo[K:imm]:{'this .get:K@p.Foo; .beer[G:imm]:G@p.Foo;}
 ~-----------
-~mut p.A:{'this .m[X:imm](_:p.Foo[X]):X}
+~mut p.A:{'this .m[X:imm](x:p.Foo[X]):X}
 ~mut p.B1[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.get[imm]}
 ~mut p.B2[X:imm]:p.A{'this .m[_AX:imm](z:p.Foo[_AX]):_AX->z.beer[imm,X]}
 ~mut p.Foo[K:imm]:{'this .get:K; .beer[G:imm]:G}
@@ -786,7 +786,7 @@ User:{.m:I->Foo.get[I](A,B)}
 [###]~-----------
 ~mut p.Any:{'this #[T:imm,mut,read]:T->p.Any#[imm,T]}
 ~mut p.BlockQ[R5:imm,mut,read]:{'this mut .loop(body:mut p.ControlFlowQ[R5]):mut p.BlockQ[R5]->body.match[mut,mut p.BlockQ[R5]](mut p._ABloc[R5:imm,mut,read]:p.ControlFlowMatchQ[R5,mut p.BlockQ[R5]]{'_ mut .return(rv:R5):mut p.BlockQ[R5]->p.Any#[imm,mut p.BlockQ[R5]]})}
-~mut p.ControlFlowMatchQ[T:imm,mut,read,R4:imm,mut,read]:{'this mut .return(_:T):R4}
+~mut p.ControlFlowMatchQ[T:imm,mut,read,R4:imm,mut,read]:{'this mut .return(returnValue:T):R4}
 ~mut p.ControlFlowQ:{'this .return[T:imm,mut,read](returnValue:T):mut p.ControlFlowQ[T]->this.return[imm,T](returnValue)}
 ~mut p.ControlFlowQ[T:imm,mut,read]:{'this mut .match[R3:imm,mut,read](m:mut p.ControlFlowMatchQ[T,R3]):R3->m.return[mut](p.Any#[imm,T])}
 ~mut p.LoopBodyQ[R2:imm,mut,read]:p.ReturnStmtQ[mut p.ControlFlowQ[R2]]{'this mut #:mut p.ControlFlowQ[R2]}
@@ -815,7 +815,7 @@ BlockQ[R5:*]: {
 [###]~-----------
 ~mut p.Any:{'this #[T:imm,mut,read]:T->p.Any#[imm,T]}
 ~mut p.BlockQ[R5:imm,mut,read]:{'this mut .loop(body:mut p.LoopBodyQ[R5]):mut p.BlockQ[R5]->body#[mut].match[mut,mut p.BlockQ[R5]](mut p._ABloc[R5:imm,mut,read]:p.ControlFlowMatchQ[R5,mut p.BlockQ[R5]]{'_ mut .return(rv:R5):mut p.BlockQ[R5]->p.Any#[imm,mut p.BlockQ[R5]]})}
-~mut p.ControlFlowMatchQ[T:imm,mut,read,R4:imm,mut,read]:{'this mut .return(_:T):R4}
+~mut p.ControlFlowMatchQ[T:imm,mut,read,R4:imm,mut,read]:{'this mut .return(returnValue:T):R4}
 ~mut p.ControlFlowQ:{'this .return[T:imm,mut,read](returnValue:T):mut p.ControlFlowQ[T]->this.return[imm,T](returnValue)}
 ~mut p.ControlFlowQ[T:imm,mut,read]:{'this mut .match[R3:imm,mut,read](m:mut p.ControlFlowMatchQ[T,R3]):R3->m.return[mut](p.Any#[imm,T])}
 ~mut p.LoopBodyQ[R2:imm,mut,read]:p.ReturnStmtQ[mut p.ControlFlowQ[R2]]{'this mut #:mut p.ControlFlowQ[R2]}
@@ -844,12 +844,12 @@ BlockQ[R5:*]: {
 [###]~-----------
 ~mut p.Any:{'this #[T:imm]:T->p.Any#[imm,T]}
 ~mut p.Block:{'this #[R3:imm,mut,read]:mut p.Block[R3]->mut p.Block[R3]; #[X:imm,mut,read,iso,mutH,readH](x:X):base.Void->base.Void; #[X:imm,mut,read,iso,mutH,readH,R3:imm,mut,read,iso,mutH,readH](_:X, res:R3):R3->res; #[X1:imm,mut,read,iso,mutH,readH,X2:imm,mut,read,iso,mutH,readH,R3:imm,mut,read,iso,mutH,readH](_:X1, _:X2, res:R3):R3->res; #[X1:imm,mut,read,iso,mutH,readH,X2:imm,mut,read,iso,mutH,readH,X3:imm,mut,read,iso,mutH,readH,R3:imm,mut,read,iso,mutH,readH](_:X1, _:X2, _:X3, res:R3):R3->res; #[X1:imm,mut,read,iso,mutH,readH,X2:imm,mut,read,iso,mutH,readH,X3:imm,mut,read,iso,mutH,readH,X4:imm,mut,read,iso,mutH,readH,R3:imm,mut,read,iso,mutH,readH](_:X1, _:X2, _:X3, _:X4, res:R3):R3->res}
-~mut p.BlockIf[R2:imm,mut,read]:{'this mut .return(_:mut p.ReturnStmt[R2]):mut p.Block[R2]; mut .do(_:mut p.ReturnStmt[base.Void]):mut p.Block[R2]}
+~mut p.BlockIf[R2:imm,mut,read]:{'this mut .return(a:mut p.ReturnStmt[R2]):mut p.Block[R2]; mut .do(r:mut p.ReturnStmt[base.Void]):mut p.Block[R2]}
 ~mut p.Block[R:imm,mut,read]:{'this mut .done:base.Void->base.Void; mut .return(a:mut p.ReturnStmt[R]):R->a#[mut]; mut .do(r:mut p.ReturnStmt[base.Void]):mut p.Block[R]->this._do[mut](r#[mut]); mut ._do(v:base.Void):mut p.Block[R]->this; mut .let[X:imm,mut,read](x:mut p.ReturnStmt[X], cont:mut p.Continuation[X,mut p.Block[R],R]):R->cont#[mut](x#[mut], this); mut .openIso[X:imm,mut,read,iso](x:iso X, cont:mut p.Continuation[mut X,mut p.Block[R],R]):R->cont#[mut](x, this); mut .if(p:mut p.Condition):mut p.BlockIf[R]->p#[mut]?[imm,mut p.BlockIf[R]](mut p._FBloc[R:imm,mut,read]:base.ThenElse[mut p.BlockIf[R]]{'_ mut .then:mut p.BlockIf[R]->mut p._DBloc[R:imm,mut,read]:p.BlockIf[R]{'t mut .return(a:mut p.ReturnStmt[R]):mut p.Block[R]->p._DecidedBlock#[imm,R](a#[mut]); mut .do(r:mut p.ReturnStmt[base.Void]):mut p.Block[R]->t._do[mut](r#[mut]); mut ._do(v:base.Void):mut p.Block[R]->this}; mut .else:mut p.BlockIf[R]->mut p._EBloc[R:imm,mut,read]:p.BlockIf[R]{'_ mut .return(_:mut p.ReturnStmt[R]):mut p.Block[R]->this; mut .do(_:mut p.ReturnStmt[base.Void]):mut p.Block[R]->this}}); mut .loop(body:mut p.LoopBody[R]):mut p.Block[R]->body#[mut].match[mut,mut p.Block[R]](mut p._GBloc[R:imm,mut,read]:p.ControlFlowMatch[R,mut p.Block[R]]{'_ mut .continue:mut p.Block[R]->this.loop[mut](body); mut .break:mut p.Block[R]->this; mut .return(rv:R):mut p.Block[R]->p._DecidedBlock#[imm,R](rv)})}
 ~mut p.Condition:p.ReturnStmt[base.Bool]{'this mut #:base.Bool}
-~mut p.Continuation[T:imm,mut,read,C:imm,mut,read,R:imm,mut,read]:{'this mut #(_:T, _:C):R}
+~mut p.Continuation[T:imm,mut,read,C:imm,mut,read,R:imm,mut,read]:{'this mut #(x:T, self:C):R}
 ~mut p.ControlFlow:{'this .continue:mut p.ControlFlow[base.Void]->mut p.ControlFlowContinue:p.ControlFlow[base.Void]{'_ mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[base.Void,R]):R->m.continue[mut]}; .break:mut p.ControlFlow[base.Void]->mut p.ControlFlowBreak:p.ControlFlow[base.Void]{'_ mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[base.Void,R]):R->m.break[mut]}; .continueWith[T:imm,mut,read]:mut p.ControlFlow[T]->mut p.ControlFlowContinue[T:imm,mut,read]:p.ControlFlow[T]{'_ mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[T,R]):R->m.continue[mut]}; .breakWith[T:imm,mut,read]:mut p.ControlFlow[T]->mut p.ControlFlowBreak[T:imm,mut,read]:p.ControlFlow[T]{'_ mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[T,R]):R->m.break[mut]}; .return[T:imm,mut,read](returnValue:T):mut p.ControlFlow[T]->mut p.ControlFlowReturn[T:imm,mut,read]:p.ControlFlow[T]{'_ mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[T,R]):R->m.return[mut](returnValue); mut .value:T->returnValue}}
-~mut p.ControlFlowMatch[T:imm,mut,read,R4:imm,mut,read]:{'this mut .continue:R4; mut .break:R4; mut .return(_:T):R4}
+~mut p.ControlFlowMatch[T:imm,mut,read,R4:imm,mut,read]:{'this mut .continue:R4; mut .break:R4; mut .return(returnValue:T):R4}
 ~mut p.ControlFlow[T:imm,mut,read]:{'this mut .match[R:imm,mut,read](m:mut p.ControlFlowMatch[T,R]):R->m.continue[mut]}
 ~mut p.LoopBody[R:imm,mut,read]:p.ReturnStmt[mut p.ControlFlow[R]]{'this mut #:mut p.ControlFlow[R]}
 ~mut p.ReturnStmt[R:imm,mut,read,iso]:{'this mut #:R}
@@ -946,7 +946,7 @@ p.Box[X:imm,mut,read]:{'this mut .f[R:imm,mut,read](X):R@p.Box;}
 p.Dool:{'this}
 p.User:{'this mut .go[R:imm,mut,read](mut p.Box[R],R):p.Dool@p.User;(b, x)->b:?.f(x:?):?;}
 ~-----------
-~mut p.Box[X:imm,mut,read]:{'this mut .f[R:imm,mut,read](_:X):R}
+~mut p.Box[X:imm,mut,read]:{'this mut .f[R:imm,mut,read](x:X):R}
 ~mut p.Dool:{'this }
 ~mut p.User:{'this mut .go[R:imm,mut,read](b:mut p.Box[R], x:R):p.Dool->b.f[mut,p.Dool](x)}
 """, List.of("""
@@ -967,7 +967,7 @@ p._AUser[R:imm,mut,read]:p.F[R,R,p.Dool]{'_ #(R,R):p.Dool@p._AUser;(aa, bb)->p.A
 p._BUser:p.F[p.User,p.User,p.Dool]{'_ #(p.User,p.User):p.Dool@p._BUser;(aa, bb)->p.Any:p.Any#[imm,p.Dool]():p.Dool;}
 ~-----------
 ~mut p.Any:{'this #[T:imm]:T}
-~mut p.Box[X:imm,mut,read]:{'this .f[R:imm,mut,read](_:p.F[X,X,R]):R}
+~mut p.Box[X:imm,mut,read]:{'this .f[R:imm,mut,read](x:p.F[X,X,R]):R}
 ~mut p.Dool:{'this }
 ~mut p.F[A:imm,B:imm,C:imm]:{'this #(_:A, _:B):C}
 ~mut p.User:{'this mut .go1[R:imm,mut,read](b:p.Box[R]):p.Dool->b.f[imm,p.Dool](imm p._AUser[R:imm,mut,read]:p.F[R,R,p.Dool]{'_ #(aa:R, bb:R):p.Dool->p.Any#[imm,p.Dool]}); mut .go2(b:p.Box[p.User]):p.Dool->b.f[imm,p.Dool](imm p._BUser:p.F[p.User,p.User,p.Dool]{'_ #(aa:p.User, bb:p.User):p.Dool->p.Any#[imm,p.Dool]})}
@@ -991,7 +991,7 @@ p.User:{'this mut .go(p.Box):p.Dool@p.User;(b)->b:?.f(p._AUser:$?{'_ ? [?](?):?@
 p._AUser:p.F[p.User,p.Dool]{'_ #(p.User):p.Dool@p._AUser;(aa)->p.Any:p.Any#[imm,p.Dool]():p.Dool;}
 ~-----------
 ~mut p.Any:{'this #[T:imm]:T}
-~mut p.Box:{'this .f[R:imm,mut,read](_:p.F[p.User,R]):R}
+~mut p.Box:{'this .f[R:imm,mut,read](x:p.F[p.User,R]):R}
 ~mut p.Dool:{'this }
 ~mut p.F[A:imm,C:imm]:{'this #(_:A):C}
 ~mut p.User:{'this mut .go(b:p.Box):p.Dool->b.f[imm,p.Dool](imm p._AUser:p.F[p.User,p.Dool]{'_ #(aa:p.User):p.Dool->p.Any#[imm,p.Dool]})}
@@ -1798,7 +1798,7 @@ p.MyT:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'this .close(p.MyT):p.D[p.MyT,bas
 p._AB:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'_ .close(p.MyT):p.D[p.MyT,base.Str]@p._AB;(t)->t:p.MyT;}
 ~-----------
 ~mut p.B:{'this .m:p.D[p.MyT,base.Str]->imm p._AB:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'_ .close(t:p.MyT):p.D[p.MyT,base.Str]->t}}
-~mut p.D[T:imm,T0:imm]:base.WidenTo[T]{'this .close(_:T):p.D[T,T0]}
+~mut p.D[T:imm,T0:imm]:base.WidenTo[T]{'this .close(t:T):p.D[T,T0]}
 ~mut p.MyT:p.D[p.MyT,base.Str], base.WidenTo[p.MyT]{'this .close(t:p.MyT):p.D[p.MyT,base.Str]->t}
 """, List.of("""
 D[T,T0]:base.WidenTo[T]{ .close(t:T):D[T,T0] }
@@ -1838,8 +1838,8 @@ p.Sup:{'this .foo(base.Str):base.Str@p.Sup;}
 p.Target:{'this .foo(p.Target):p.Target@p.Target;}
 ~-----------
 ~mut p.B:{'this .m:p.Sup->imm p.N:p.Sup, base.WidenTo[p.Target]{'_ .foo(x:base.Str):base.Str->x}}
-~mut p.Sup:{'this .foo(_:base.Str):base.Str}
-~mut p.Target:{'this .foo(_:p.Target):p.Target}
+~mut p.Sup:{'this .foo(x:base.Str):base.Str}
+~mut p.Target:{'this .foo(x:p.Target):p.Target}
 """, List.of("""
 Target:{ .foo(x:Target):Target }
 Sup:{ .foo(x:base.Str):base.Str }
@@ -1853,8 +1853,8 @@ p.Sup:{'this .foo(base.Str):base.Str@p.Sup;}
 p.Target:{'this .foo(p.Target):p.Target@p.Target;}
 ~-----------
 ~mut p.B:{'this .m:p.Sup->imm p.N:p.Sup{'_ .foo(x:base.Str):base.Str->x}}
-~mut p.Sup:{'this .foo(_:base.Str):base.Str}
-~mut p.Target:{'this .foo(_:p.Target):p.Target}
+~mut p.Sup:{'this .foo(x:base.Str):base.Str}
+~mut p.Target:{'this .foo(x:p.Target):p.Target}
 """, List.of("""
 Target:{ .foo(x:Target):Target }
 Sup:{ .foo(x:base.Str):base.Str }

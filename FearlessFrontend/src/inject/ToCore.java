@@ -140,12 +140,12 @@ public record ToCore(List<B> ctx, Methods meths){
     var s= sig(e.sig(), o.sig(), at);
     if (e.impl().isEmpty()){
       assert o.impl().isEmpty();
-      return new core.M(s, Collections.nCopies(s.ts().size(), "_"), Optional.empty());
+      return new core.M(s, e.xs(), Optional.empty());
     }
     var ei= e.impl().get();
     var oi= o.impl().get();
     var inner= new ToCore(Push.of(ctx, s.bs()).stream().distinct().toList(), meths);
-    return new core.M(s, ei.xs(), Optional.of(inner.of(ei.e(), oi.e())));
+    return new core.M(s, e.xs(), Optional.of(inner.of(ei.e(), oi.e())));
   }
   core.Sig sig(inference.M.Sig inf, inference.M.Sig usr, inference.E.Literal at){
     var ts= Streams.zip(usr.ts(), inf.ts()).map((u,i) -> u.or(() -> i)).toList();
@@ -171,7 +171,6 @@ public record ToCore(List<B> ctx, Methods meths){
   private static final Optional<core.E> syntheticBody= Optional.of(new core.E.X("this", Src.synthetic));
   core.M mSynthetic(inference.M m){
     var s= sig(m.sig(), m.sig(), null);
-    if (m.impl().isEmpty()){ return new core.M(s, Collections.nCopies(s.ts().size(), "_"), Optional.empty()); }
-    return new core.M(s, m.impl().get().xs(), syntheticBody);
+    return new core.M(s, m.xs(), m.impl().isEmpty() ? Optional.empty() : syntheticBody);
   }
 }

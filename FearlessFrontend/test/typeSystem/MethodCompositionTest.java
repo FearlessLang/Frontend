@@ -49,7 +49,7 @@ But "A.foo(_)" requires "A", which is not a subtype of "B".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-B:A{.foo(B):Int}
+B:A{.foo(b:B):Int}
 """, List.of("""
 Str:{} Int:{}
 A:{ .foo(a:A):Str }
@@ -66,7 +66,7 @@ But "B.foo(_)" requires "B", which is not a subtype of "A".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-A:B,C{.foo(A):A}
+A:B,C{.foo(a:A):A}
 """, List.of("""
 A:B,C{ .foo(a:A):A }
 B:{ .foo(b:B):B }
@@ -172,7 +172,7 @@ But "A[_,_].m(_)" returns type "A[X,X]", which is not a supertype of "A".
 The two types are unrelated.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-A[X:*]:A[X,X]{.m(A):A}
+A[X:*]:A[X,X]{.m(b:A):A}
 """, List.of("""
 A:A[A],A[A,A]{ .m(a:A):A }
 A[X:*]:A[X,X]{ .m(b:A):A }
@@ -808,7 +808,7 @@ But "Sup.g(_)" requires "mut P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Sub:Sup{.g(read P):P}
+Sub:Sup{.g(x:read P):P}
 """, List.of("""
 P:{}
 Sup:{ .g(x: mut P): P }
@@ -825,7 +825,7 @@ But "Sup.g(_)" requires "mutH P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Sub:Sup{.g(readH P):P}
+Sub:Sup{.g(x:readH P):P}
 """, List.of("""
 P:{}
 Sup:{ .g(x: mutH P): P }
@@ -842,7 +842,7 @@ But "Sup[_].h(_)" returns type "read/imm X".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Sub[X:*]:Sup[X]{.h(X):X}
+Sub[X:*]:Sup[X]{.h(x:X):X}
 """, List.of("""
 Sup[X:*]:{ .h(x: X): read/imm X }
 Sub[X:*]:Sup[X]{ .h(x: X): X }
@@ -921,7 +921,7 @@ But "Sup[_].h(_)" returns type "imm X".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Sub[X:*]:Sup[X]{.h(X):X}
+Sub[X:*]:Sup[X]{.h(x:X):X}
 """, List.of("""
 Sup[X:*]:{ .h(x: X): imm X }
 Sub[X:*]:Sup[X]{ .h(x: X): X }
