@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.awt.Color;
@@ -168,7 +167,7 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
     var choices= Map.of(config.toString(), List.of(line), etc.toString(), List.of(line));
     assertTrue(etc.toFile().setWritable(false));
     try{
-      assumeFalse(Files.isWritable(etc));
+      assertFalse(Files.isWritable(etc), "This test needs a user that the permission denies: run the tests as a normal user, not as root.");
       var refusal= assertThrows(IllegalStateException.class, () -> FileAssociations.forgetChoices(choices, s -> new IllegalStateException("notWritable "+s)));
       assertEquals("notWritable "+etc, refusal.getMessage());
     }
@@ -248,7 +247,7 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
     Fs.writeUtf8(mimetypes().resolve(identity+"-0123abc.png"), "");
     assertTrue(mimetypes().toFile().setWritable(false));
     try{
-      assumeFalse(Files.isWritable(mimetypes()));
+      assertFalse(Files.isWritable(mimetypes()), "This test needs a user that the permission denies: run the tests as a normal user, not as root.");
       assertEquals("notWritable "+mimetypes(), refused(".ffile001"));
     }
     finally{ mimetypes().toFile().setWritable(true); }
@@ -262,7 +261,7 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
     Fs.writeUtf8(apps.resolve(identity+".desktop"), "[Desktop Entry]\n");
     assertTrue(apps.toFile().setWritable(false));
     try{
-      assumeFalse(Files.isWritable(apps));
+      assertFalse(Files.isWritable(apps), "This test needs a user that the permission denies: run the tests as a normal user, not as root.");
       assertEquals("notWritable "+apps, refused(".ffile002"));
     }
     finally{ apps.toFile().setWritable(true); }
@@ -274,7 +273,7 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
     Fs.writeUtf8(apps.resolve(identity+"-1a2b.desktop"), "[Desktop Entry]\nNoDisplay=true\n");
     assertTrue(apps.toFile().setWritable(false));
     try{
-      assumeFalse(Files.isWritable(apps));
+      assertFalse(Files.isWritable(apps), "This test needs a user that the permission denies: run the tests as a normal user, not as root.");
       assertEquals("notWritable "+apps, refused(".ffile002"));
     }
     finally{ apps.toFile().setWritable(true); }

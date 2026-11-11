@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
@@ -15,7 +16,6 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.attribute.FileTime;
 import java.util.List;
 
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.api.io.TempDir;
@@ -29,7 +29,7 @@ final class FsSymbolicLinkTest{
     try{ return Files.createSymbolicLink(link, target); }
     catch (FileSystemException e){
       if (!Fs.isWindows()){ throw new UncheckedIOException(e); }
-      return Assumptions.abort("Windows does not give this process the privilege to create symbolic links");
+      return fail("Agent on Windows: this process can not create symbolic links, so this test can not check them. Turn on Developer Mode (Settings, System, For developers), or run the tests with the privilege to create symbolic links.");
     }
     catch (IOException e){ throw new UncheckedIOException(e); }
   }
