@@ -9,8 +9,8 @@ import java.util.*;
 import java.util.function.*;
 import java.util.regex.Pattern;
 import java.util.stream.*;
-public interface Frontend{
-  @SuppressWarnings("serial")class Fail extends RuntimeException{}
+@SuppressWarnings("serial")public interface Frontend{
+  class Fail extends RuntimeException{}
   static void no(boolean b){if(b)throw new Fail();}
   static List<Literal>compile(String pk,Map<String,String>override,Map<String,String>files,List<Literal>lits){
     var other=lits.stream().collect(Collectors.toMap(Literal::name,d->d));var raw=new TreeMap<String,File>();
@@ -246,7 +246,7 @@ public interface Frontend{
     static ToIntFunction<Parser>comma=p->p.so(1,Comma);
   }
   record Pkg(String name,Map<String,String>map,List<P.Declared>decs,Set<N>names){}
-  @SuppressWarnings("serial")class Scope extends HashMap<String,Integer>{HashSet<String>used=new HashSet<>();}
+  class Scope extends HashMap<String,Integer>{HashSet<String>used=new HashSet<>();}
   class Owner{Scope gen=new Scope(),vars=new Scope();Vector<N>decs=new Vector<>();}
 
   N str=base("Str",0),nat=base("Nat",0),integer=base("Int",0),floating=base("Float",0),
@@ -325,7 +325,7 @@ public interface Frontend{
   static<A>A or(A a,A b){return a==null?b:a;}
   static<A>A required(A a){no(a==null);return a;}
   record Frame(RC r,List<B>b,HashMap<String,T>vars){}
-  @SuppressWarnings("serial")class IG extends Vector<Frame>{
+  class IG extends Vector<Frame>{
     IG(){push(null,list());}
     T get(String x){return find(map(this,f->f.vars.get(x)),t->t!=null);}
     static T adapt(T t,RC r,List<B>b){if(t.und())return t;var caps=TS.kinds(b,t);
