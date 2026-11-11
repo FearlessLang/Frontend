@@ -38,10 +38,12 @@ public abstract class FearlessTestBase{
 
   protected static String stripWs(String s){ return s.replace("\n", "").replace(" ", ""); }
   private static final String head= "(?:\"[^\"\\n]*\"|`[^`\\n]*`|[^{\"`])";
+  private static final String op= "[\\\\/#*+%<>=!&^~?|-]";
+  private static final String header= "(?:\"[^\"\\n]*\"|`[^`\\n]*`|(?!->(?!"+op+"))"+op+"++|[^{}\"`\\\\/#*+%<>=!&^~?|-])";
   //The full frontend turns an object literal without methods into a type expression and gives it no fresh name; the compact frontend does neither.
   protected static String canon(String core){
-    var imm= core.replaceAll("\\b_[a-z]+0\\b", "_").replaceAll("imm \\w+\\._[A-Za-z0-9]*(\\[[^\\]]*\\])?:("+head+"*?)(, "+head+"*)?\\{'_ (?:(?!->)[^{}])*\\}", "$2");
-    var rc= imm.replaceAll("(mut |iso |read )\\w+\\._[A-Za-z0-9]*(\\[[^\\]]*\\])?:("+head+"*?)(, "+head+"*)?\\{'_ (?:(?!->)[^{}])*\\}", "$1$3");
+    var imm= core.replaceAll("\\b_[a-z]+0\\b", "_").replaceAll("imm \\w+\\._[A-Za-z0-9]*(\\[[^\\]]*\\])?:("+head+"*?)(, "+head+"*)?\\{'_ "+header+"*\\}", "$2");
+    var rc= imm.replaceAll("(mut |iso |read )\\w+\\._[A-Za-z0-9]*(\\[[^\\]]*\\])?:("+head+"*?)(, "+head+"*)?\\{'_ "+header+"*\\}", "$1$3");
     var scopes= new ArrayList<LinkedHashMap<String,String>>(List.of(new LinkedHashMap<>()));
     var opened= new ArrayList<Integer>(List.of(0));
     return scopeToken.matcher(rc).replaceAll(m -> Matcher.quoteReplacement(renumber(m.group(), scopes, opened)));

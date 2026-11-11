@@ -6168,4 +6168,36 @@ Box[X]:{ .get: X }
 Ids:{ #[X](a: X, b: Box[X]): X -> a }
 User:{ .m(b: Box[Sub]): Sup -> Ids#({}, b) }
 """));}
+@Test void typeExpressionOfATypeWithAnOperatorMethodContainingAnArrow(){ok(List.of("""
+Q:{ -->(a: Q): Q -> a }
+A:{ .k: Q -> Q }
+"""));}
+@Test void typeExpressionOfATypeWithAClosedCurlyStringLiteralTypeInAMethod(){ok(List.of("""
+Q:{ .m: "}" -> "}" }
+A:{ .k: Q -> Q }
+"""));}
+@Test void lambdaParameterCapturedInAMutLiteralAndUsedAsMutHIsMut(){ok(List.of("""
+A:{ mut .m: A -> A }
+Mut:{ #(a: mutH A): A -> a.m }
+G:{ mut #: A }
+F1[X:*,R:*]:{ #(x: X): R }
+Ap:{ #[X:*,R:*](f: F1[X,R]): R -> this#f }
+User:{ .use: mut G -> Ap#{x -> mut G{ Mut#x }} }
+"""));}
+@Test void lambdaParameterCapturedInAMutLiteralAndUsedAsMutHIsMutAlsoWhenTheBoundAllowsMutH(){ok(List.of("""
+A:{ mut .m: A -> A }
+Mut:{ #(a: mutH A): A -> a.m }
+G:{ mut #: A }
+F1[X:**,R:*]:{ #(x: X): R }
+Ap:{ #[X:**,R:*](f: F1[X,R]): R -> this#f }
+User:{ .use: mut G -> Ap#{x -> mut G{ Mut#x }} }
+"""));}
+@Test void lambdaParameterCapturedInAReadLiteralAndUsedAsReadHIsRead(){ok(List.of("""
+A:{ read .m: A -> A }
+Use:{ #(a: readH A): A -> a.m }
+G:{ read #: A }
+F1[X:**,R:**]:{ #(x: X): R }
+Ap:{ #[X:**,R:**](f: F1[X,R]): R -> this#f }
+User:{ .use: read G -> Ap#{x -> read G{ Use#x }} }
+"""));}
 }
