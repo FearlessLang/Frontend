@@ -8,13 +8,14 @@ import java.util.Optional;
 import utils.Join;
 import utils.Streams;
 
-public record M(Sig sig, List<String> xs, Optional<E> e){
+public record M(Sig sig, List<String> xs, List<String> names, Optional<E> e){
   public M{
     assert nonNull(sig, e);
     assert unmodifiable(xs, "M.xs");
-    assert xs.size() == sig.ts().size();
+    assert unmodifiable(names, "M.names");
+    assert xs.size() == sig.ts().size() && names.size() == xs.size();
   }
-  public M withSig(Sig sig){ return new M(sig, xs, e); }
+  public M withSig(Sig sig){ return new M(sig, xs, names, e); }
   @Override public String toString(){
     var sb= new StringBuilder();
     sb.append(sig.rc().toStrSpace());

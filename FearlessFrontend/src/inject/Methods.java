@@ -217,7 +217,7 @@ public record Methods(
     assert m.impl().isPresent();
     assert m.sig().m().isEmpty();
     var s= m.sig();
-    return new M(new M.Sig(s.rc(), Optional.of(name), s.bs(), s.ts(), s.ret(), s.origin(), s.abs(), s.span()), m.xs(), m.impl());
+    return new M(new M.Sig(s.rc(), Optional.of(name), s.bs(), s.ts(), s.ret(), s.origin(), s.abs(), s.span()), m.xs(), m.names(), m.impl());
   }
   private M nameFromSigs(M m, ArrayList<M.Sig> ss, E.Literal origin){
     var arity= m.sig().ts().size();
@@ -308,7 +308,7 @@ public record Methods(
   }
   M pairWithSig(List<M.Sig> ss, E.Literal origin){
     assert !ss.isEmpty();
-    if (ss.size() == 1){ return new M(ss.getFirst(), Collections.nCopies(ss.getFirst().ts().size(), "_"), Optional.empty()); }
+    if (ss.size() == 1){ return unnamed(ss.getFirst()); }
     var at= new Agreement(origin, ss.getFirst().rc(), ss.getFirst().m().get(), origin.span().inner);
     var bs= agreementBs(at, ss.stream().map(e -> e.bs().get()).distinct().toList());
     var ssAligned= alignMethodSigsTo(ss, bs);
@@ -320,7 +320,11 @@ public record Methods(
     var originName= impl.size() == 1 ? impl.getFirst() : origin.name();
     var rc= rcAgreement(ssAligned);
     var sig= new M.Sig(rc, name, bs, ts, res, originName, impl.isEmpty(), ssAligned.getFirst().span());
-    return new M(sig, Collections.nCopies(ts.size(), "_"), Optional.empty());
+    return unnamed(sig);
+  }
+  static M unnamed(M.Sig s){
+    var xs= Collections.nCopies(s.ts().size(), "_");
+    return new M(s, xs, xs, Optional.empty());
   }
 
   private boolean overridden(M.Sig s, E.Literal lit){

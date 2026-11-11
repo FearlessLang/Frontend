@@ -30,6 +30,6 @@ public record DupE(FreshPrefix fresh, E.Literal out, M m, WellFormednessErrors e
     var sig= m.sig();
     if (sig.origin().equals(Optional.of(oldName))){ sig = sig.withOrigin(newName); }
     var impl= m.impl().map(i -> new M.Impl(i.m(), of(i.e())));
-    return new M(sig, m.xs(), impl);
+    return new M(sig, m.xs(), m.names(), impl);
   }
 }
