@@ -632,10 +632,7 @@ public interface Frontend{
         var next=mi.e==null?header(w,mi):method(b,g,l,sp,w,mi);
         types=meet(types,next.types);low=zip(low,next.low,this::join);res.add(next.m);
       }
-      var t=bound(w,map(zip(types,low,(x,lo)->x==u?lo:x),this::up));
-      return commit(g,b,l.header(l.cs,res).t(t),t);
-    }
-    E commit(IG g,List<B>b,Literal l,R w){var name=l.name;
+      w=bound(w,map(zip(types,low,(x,lo)->x==u?lo:x),this::up));l=l.header(l.cs,res).t(w);var name=l.name;
       if(!w.tv()||!all(l.ms,m->all(m.s.all(),T::tv))||cache.containsKey(name)&&!instance(l))return l;
       var h=instance(l)&&inferred.contains(name.s)&&!w.c.name.equals(name)?self(w.c):w.c;if(h!=w.c){w=new R(w.r,h);l=implement(l.header(list(),list()),h,b);}
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
