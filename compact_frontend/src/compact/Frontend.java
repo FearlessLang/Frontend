@@ -408,8 +408,8 @@ public class Frontend{
         yield used(declaration(name,or(c.r,imm),c),c.l.self);
       }
       case P.Lit l->literal(null,list(),l);
-      case P.Call c0->{
-        var c=c0.pat!=null?desugar(c0):c0;var sq=or(c.y,new P.Args(null,list()));
+      case P.Call c->{
+        if(c.pat!=null){var x=fresh("eqS");c=new P.Call(c.e,c.name,c.y,null,list(c.es.get(0),lambda(list(new Par(c.pat,u),new Par(new Pat.Name(x),u)),receiver(c.es.get(1),new P.X(x)))));}var sq=or(c.y,new P.Args(null,list()));
         yield new Call(expr(c.e),new N(c.name,c.es.size()),sq.r,map(sq.types,this::type),map(c.es,this::expr),u,c.y!=null);
       }
     };}
@@ -450,10 +450,6 @@ public class Frontend{
     Literal declaration(N name,RC r,P.Declared d){var cs=map(d.cs,this::constructor);
       no(distinct(d.b,cs).size()<cs.size());
       var l=new Literal(r,name,d.b,cs,name(d.l.self),methods(d.l.ms),u,false,false);decs.add(l);return l;
-    }
-    P.Call desugar(P.Call c){
-      var x=fresh("eqS");
-      return new P.Call(c.e,c.name,c.y,null,list(c.es.get(0),lambda(list(new Par(c.pat,u),new Par(new Pat.Name(x),u)),receiver(c.es.get(1),new P.X(x)))));
     }
     static P lambda(List<Par>ps,P body){return new P.Lit("_",list(new PM(new PS(null,null,null,ps,u),body,false)));}
     P receiver(P par,P atom){
@@ -728,7 +724,7 @@ public class Frontend{
     T targ(Call e,T t,int i){
       return norm(t.tv()?t:fillVoid(t,signature((R)e.e.t(),e.name,e.r,null).mb.get(i)));
     }
-    T fillVoid(T t,B b){no(t instanceof Amb);return t==u?voidT(b.caps.iterator().next()):t instanceof R w?w.withTs(zip(w.c.types,from(w.c.name).b,this::fillVoid)):t;}
+    T fillVoid(T t,B b){no(t instanceof Amb);return t==u?new R(b.caps.iterator().next(),new C(base("Void",0),list())):t instanceof R w?w.withTs(zip(w.c.types,from(w.c.name).b,this::fillVoid)):t;}
     Literal literal(List<B>ctx,Literal e,Literal o){
       no(!(e.t instanceof R)&&!e.t.und());var b=e.anon?cat(e.b.stream(),cat(methodFree(new IG(),e.ms),supFree(e.cs)).map(x->B.get(ctx,x))).distinct().toList():e.b;
       var name=e.name.arity(b.size());var inner=e.anon?push(ctx,b).stream().distinct().toList():b;
@@ -736,7 +732,6 @@ public class Frontend{
     }
     M m(List<B>ctx,M e,M o){var s=merge(e.s,o.s);return new M(s,e.v,e.e==null?null:core(push(ctx,s.b).stream().distinct().toList(),e.e,o.e));}
   }
-  static T voidT(RC r){return new R(r,new C(base("Void",0),list()));}
   static List<C>distinct(List<B>b,List<C>cs){var res=new Vector<C>();
     for(var c:cs)if(!any(res,r->TS.equivalent(b,fill(new R(imm,r)),fill(new R(imm,c)))))res.add(c);return res;
   }
@@ -799,7 +794,7 @@ public class Frontend{
       });}
       for(var parent:l.cs){kind(l.b,new R(imm,parent),allRC);var sup=decs.apply(parent.name);no(!inst(sup));for(var m:filter(sup.ms,x->x.s.o.equals(sup.name))){
         var c=canonical(l,m.s.m,m.s.r);var s=m.s.subst(c.b,B.v(push(m.s.b,sup.b)),push(vars(c.b),parent.types));var ctx=push(l.b,c.b);
-        no(zip(push(c.types,s.t),push(s.types,c.t),(p,q)->!same(ctx,p,q)||!sub(ctx,q,p)).contains(true));
+        no(zip(push(c.types,s.t),push(s.types,c.t),(p,q)->!((p instanceof RI)==(q instanceof RI)&&p.erc()==q.erc()||equivalent(ctx,p,q))||!sub(ctx,q,p)).contains(true));
       }}
       var g1=g.add(l.self,l.self(self));for(var m:l.ms){var g2=g1.map(t->IG.adapt(t,m.s.r,l.b));
         var bs=push(l.b,m.s.b);m.s.all().forEach(t->kind(bs,t,allRC));if(m.e==null)continue;
@@ -808,7 +803,6 @@ public class Frontend{
       }
     }
     static S canonical(Literal l,N name,RC r){return required(find(l.ms,m->m.s.m.equals(name)&&m.s.r==r)).s;}
-    static boolean same(List<B>b,T p,T q){return(p instanceof RI)==(q instanceof RI)&&p.erc()==q.erc()||equivalent(b,p,q);}
     static boolean equivalent(List<B>b,T p,T q){
       return p.equals(q)||(p instanceof R(var aRc,var aC)&&q instanceof R(var bRc,var bC)?aRc==bRc&&aC.name.equals(bC.name)&&!zip(aC.types,bC.types,(s,t)->equivalent(b,s,t)).contains(false)
         :p.rc(imm) instanceof RX(_,var x)&&p.rc(imm).equals(q.rc(imm))&&B.get(b,x.name).caps.size()==1&&kinds(b,p).equals(kinds(b,q)));
