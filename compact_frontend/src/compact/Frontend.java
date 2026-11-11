@@ -697,7 +697,11 @@ import java.util.stream.*;
     }
     E core(List<B>ctx,E exp,E orig){return switch(exp){
       case E.X x->x.t(u);
-      case Literal le->literal(ctx,le,(Literal)orig);
+      case Literal e->{var o=(Literal)orig;
+      no(!(e.t instanceof R)&&!e.t.und());var b=e.anon?cat(e.b.stream(),cat(methodFree(new IG(),e.ms),supFree(e.cs)).map(x->B.get(ctx,x))).distinct().toList():e.b;
+      var name=e.name.arity(b.size());var inner=e.anon?push(ctx,b).stream().distinct().toList():b;
+      yield new Literal(or(e.r,imm),name,b,map(distinct(inner,push(o.cs,e.cs)),Frontend::normC),e.self,map(e.ms,me->m(inner,me,me.e==null?me:o.ms.get(me.s.idx)).o(e.name,name)),u,e.anon,false);
+      }
       case Call e->{var o=(Call)orig;var types=o.written?o.y:e.y;
         yield new Call(core(ctx,e.e,o.e),e.name,or(e.r,imm),seq(types.size(),i->targ(e,types.get(i),i)),zip(e.es,o.es,(a,z)->core(ctx,a,z)),u,false);
       }
@@ -706,11 +710,6 @@ import java.util.stream.*;
       return norm(t.tv()?t:fillVoid(t,signature((R)e.e.t(),e.name,e.r,null).mb.get(i)));
     }
     T fillVoid(T t,B b){no(t instanceof Amb);return t==u?new R(b.caps.iterator().next(),new C(base("Void",0),list())):t instanceof R w?w.withTs(zip(w.c.types,from(w.c.name).b,this::fillVoid)):t;}
-    Literal literal(List<B>ctx,Literal e,Literal o){
-      no(!(e.t instanceof R)&&!e.t.und());var b=e.anon?cat(e.b.stream(),cat(methodFree(new IG(),e.ms),supFree(e.cs)).map(x->B.get(ctx,x))).distinct().toList():e.b;
-      var name=e.name.arity(b.size());var inner=e.anon?push(ctx,b).stream().distinct().toList():b;
-      return new Literal(or(e.r,imm),name,b,map(distinct(inner,push(o.cs,e.cs)),Frontend::normC),e.self,map(e.ms,me->m(inner,me,me.e==null?me:o.ms.get(me.s.idx)).o(e.name,name)),u,e.anon,false);
-    }
     M m(List<B>ctx,M e,M o){var s=merge(e.s,o.s);return new M(s,e.v,e.e==null?null:core(push(ctx,s.b).stream().distinct().toList(),e.e,o.e));}
   }
   static List<C>distinct(List<B>b,List<C>cs){var res=new Vector<C>();
