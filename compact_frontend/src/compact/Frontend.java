@@ -48,12 +48,12 @@ import java.util.stream.*;
     Ws("\\s+|//[^\\n]*|/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/"),
     Arrow("->"),LP("\\("),RP("\\)"),LB("\\{"),RBId("\\}[A-Za-z0-9_]+'*"),RB("\\}"),
     LA("(?<=[A-Za-z0-9_'"+K.op+"])(?<!\\*/)\\["),RA("\\]"),
-    Hole("_"),Comma(","),Semi(";"),Implicit("::"),Colon(":"),Eq("="),Quote("'"),RIcap("read/imm"),Cap("readH|mutH|imm|iso|read|mut"),
+    Hole("_"),Comma(","),Semi(";"),Implicit("::"),Colon(":"),Eq("="),Quote("'"),RIcap("read/imm"),Cap("(read|mut)H?|imm|iso"),
     SF("[+-]"+K.flt),UF(K.flt),SI("[+-]"+K.nat),UI(K.nat),Str("\"[^\"\\n]*\""),Raw("`[^`\\n]*`"),
     Dot("\\._*[a-z]"+K.id),Up("(?:"+K.pk+"\\.)?_*[A-Z]"+K.id),
     Low("_*[a-z]"+K.id),Bad("'(?:(?!//|/\\*)[^'\\n\"`])*'(?![_a-z])"),Op("(?:(?!/\\*|\\*/|//)["+K.op+"])+"),
     End,Start,Curly,Square,Round;
-    static final String pk="(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*",id="[A-Za-z0-9_]*'*",
+    static final String pk="(?!(?:con|prn|aux|nul|(?:com|lpt)[1-9])(?![a-z0-9_]))[a-z][a-z0-9_]*",id="[A-Za-z0-9_]*'*",
       op="\\\\/#*\\-+%<>=!&^~?|",nat="[0-9](?:[0-9_]*[0-9])?",flt=nat+"\\."+nat+"(?:[eE][+-]?"+nat+")?(?:soft)?";
     Pattern p;
     K(String regex){p=Pattern.compile(regex);}K(){this("");}
