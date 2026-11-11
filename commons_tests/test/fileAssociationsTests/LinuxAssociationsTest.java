@@ -121,7 +121,7 @@ final class LinuxAssociationsTest{
   }
   @Test void aSystemExtensionGetsATypeOfItsOwnBelowEveryTypeTheSystemGivesIt(){
     reconcile(".htm");
-    Err.strCmp(mimeInfo("-htm\"><comment>fearlessManaged0_001</comment><glob pattern=\"*.htm\" weight=\"100\"/><sub-class-of type=\"text/html\"/><sub-class-of type=\"application/xhtml+xml\"/>"), Fs.readUtf8(packageFile()));
+    Err.strCmp(mimeInfo("-htm\"><glob pattern=\"*.htm\" weight=\"100\"/><sub-class-of type=\"text/html\"/><sub-class-of type=\"application/xhtml+xml\"/>"), Fs.readUtf8(packageFile()));
     assertEquals("MimeType=application/x-fearless-htm;", mimeTypes());
     assertEquals(1, icons().size());
     assertTrue(Files.isRegularFile(appIcon()));
@@ -188,7 +188,7 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
   @Test void fearlessKeepsItsTypeAndIsHeldOnlyByTheProgramsListingIt(){
     sysMime("globs2", "50:application/x-other:*.fearless\n");
     reconcile(".fearless");
-    Err.strCmp(mimeInfo("\"><comment>fearlessManaged0_001</comment><glob pattern=\"*.fearless\" weight=\"100\"/>"), Fs.readUtf8(packageFile()));
+    Err.strCmp(mimeInfo("\"><glob pattern=\"*.fearless\" weight=\"100\"/>"), Fs.readUtf8(packageFile()));
     assertEquals("MimeType=application/x-fearless;", mimeTypes());
     Fs.writeUtf8(sys.resolve("applications").resolve("vim.desktop"), "[Desktop Entry]\nMimeType=application/x-fearless;\n");
     assertEquals("notOurs {.fearless=[vim]}", refused(".fearless"));
@@ -198,8 +198,8 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
     ran.clear();
     reconcile(".fearless", ".ffile042");
     Err.strCmp(mimeInfo(
-      "\"><comment>fearlessManaged0_001</comment><glob pattern=\"*.fearless\" weight=\"100\"/>",
-      "-ffile042\"><comment>fearlessManaged0_001</comment><glob pattern=\"*.ffile042\" weight=\"100\"/>"), Fs.readUtf8(packageFile()));
+      "\"><glob pattern=\"*.fearless\" weight=\"100\"/>",
+      "-ffile042\"><glob pattern=\"*.ffile042\" weight=\"100\"/>"), Fs.readUtf8(packageFile()));
     assertEquals("MimeType=application/x-fearless;application/x-fearless-ffile042;", mimeTypes());
     assertEquals(2, icons().size());
     assertEquals(rebuilt(), ran);
@@ -207,8 +207,8 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
   @Test void aGlobIgnoresCaseUnlessItsFlagSaysOtherwise(){
     reconcile(".bar", ".c");
     Err.strCmp(mimeInfo(
-      "-bar\"><comment>fearlessManaged0_001</comment><glob pattern=\"*.bar\" weight=\"100\"/><sub-class-of type=\"text/x-bar\"/>",
-      "-c\"><comment>fearlessManaged0_001</comment><glob pattern=\"*.c\" weight=\"100\"/><sub-class-of type=\"text/x-csrc\"/>"), Fs.readUtf8(packageFile()));
+      "-bar\"><glob pattern=\"*.bar\" weight=\"100\"/><sub-class-of type=\"text/x-bar\"/>",
+      "-c\"><glob pattern=\"*.c\" weight=\"100\"/><sub-class-of type=\"text/x-csrc\"/>"), Fs.readUtf8(packageFile()));
   }
   @Test void theTypesTheFamilyDeclaredAreNotSystemTypes(){
     var old= "fearlessManaged0_000";
@@ -231,8 +231,8 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
     Fs.writeUtf8(home.resolve("mime").resolve("packages").resolve("other.xml"), "<mime-type type='text/x-qux'><glob pattern='*.qux'/></mime-type>\n");
     reconcile(".ffile001", ".qux");
     Err.strCmp(mimeInfo(
-      "-ffile001\"><comment>fearlessManaged0_001</comment><glob pattern=\"*.ffile001\" weight=\"100\"/>",
-      "-qux\"><comment>fearlessManaged0_001</comment><glob pattern=\"*.qux\" weight=\"100\"/><sub-class-of type=\"text/x-qux\"/>"), Fs.readUtf8(packageFile()));
+      "-ffile001\"><glob pattern=\"*.ffile001\" weight=\"100\"/>",
+      "-qux\"><glob pattern=\"*.qux\" weight=\"100\"/><sub-class-of type=\"text/x-qux\"/>"), Fs.readUtf8(packageFile()));
   }
   @Test void theDatabaseRebuiltFromThePackageChangesNothing(){
     reconcile(".fearless", ".htm");

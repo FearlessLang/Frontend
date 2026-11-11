@@ -86,7 +86,7 @@ final class MacAssociationsTest{
       +"<key>LSItemContentTypes</key><array><string>"+type+"</string></array></dict>\n";
   }
   private static String exported(String ext){
-    return "<dict><key>UTTypeIdentifier</key><string>fearlessmanaged0-001."+ext+"</string><key>UTTypeDescription</key><string>fearlessManaged0_001</string>"
+    return "<dict><key>UTTypeIdentifier</key><string>fearlessmanaged0-001."+ext+"</string>"
       +"<key>UTTypeIconFile</key><string>"+ext+".icns</string><key>UTTypeConformsTo</key><array><string>public.data</string></array>"
       +"<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>"+ext+"</string></array></dict></dict>\n";
   }
