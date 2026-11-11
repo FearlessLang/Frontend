@@ -12,14 +12,14 @@ import core.TName;
 import core.TSpan;
 import utils.Join;
 
-public record M(Sig sig, List<String> xs, Optional<Impl> impl){
-  public M{ assert nonNull(sig, impl); assert unmodifiable(xs, "M.xs"); assert xs.size() == sig.ts().size(); }
+public record M(Sig sig, List<String> xs, List<String> names, Optional<Impl> impl){
+  public M{ assert nonNull(sig, impl); assert unmodifiable(xs, "M.xs"); assert unmodifiable(names, "M.names"); assert xs.size() == sig.ts().size() && names.size() == xs.size(); }
   @Override public String toString(){
     return impl.map(i -> sig+Join.of(xs, "(", ", ", ")", "")+"->"+i.e()+";").orElseGet(sig::toString);
   }
   public M withSig(Sig sig){
     if (sig.equals(this.sig)){ return this; }
-    return new M(sig, xs, impl);
+    return new M(sig, xs, names, impl);
   }
   public record Sig(Optional<RC> rc, Optional<MName> m, Optional<List<B>> bs, List<Optional<IT>> ts, Optional<IT> ret, Optional<TName> origin, boolean abs, TSpan span){
     public Sig{ assert nonNull(rc, m, bs, ts, ret, origin); assert validOpt(bs, _bs -> unmodifiableDistinct(_bs, "Sig.bs")); assert unmodifiable(ts, "Sig.ts"); }

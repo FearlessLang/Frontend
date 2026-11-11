@@ -99,7 +99,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     ei = new InjectionSteps(meths, limit, false).nextStar(bs, g, ei);
     g.tableGrew();
     ei = new InjectionSteps(meths, limit, true).nextStar(bs, g, ei);
-    return new core.M(mCore.sig(), xs, Optional.of(new ToCore(bs, meths).of(ei, e)));
+    return new core.M(mCore.sig(), xs, m.names(), Optional.of(new ToCore(bs, meths).of(ei, e)));
   }
   E meet(E e, IT t){
     if (e instanceof E.Type tt){ return meetT(tt, t); }
@@ -493,7 +493,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var h= header(rcc, m.withSig(m.sig().withTsT(args, ret)));
     var impl= m.impl().get().withE(meet(e, h.m().sig().ret().get()));
     var noChange= h.m().sig().equals(m.sig()) && impl == m.impl().get();
-    return new TSM(h.ts(), h.lower(), noChange ? m : new M(h.m().sig(), m.xs(), Optional.of(impl)));
+    return new TSM(h.ts(), h.lower(), noChange ? m : new M(h.m().sig(), m.xs(), m.names(), Optional.of(impl)));
   }
   private TSM header(IT.RCC rcc, M m){
     var sig= m.sig();

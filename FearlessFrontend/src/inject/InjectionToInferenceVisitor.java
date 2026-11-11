@@ -84,7 +84,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     };
   }
   List<M> mapM(List<fearlessFullGrammar.M> ms){ return ms.stream().map(this::visitM).toList(); }
-  String abstractParameterName(Parameter p){ return p.xp().map(x -> x instanceof XPat.Name(var n) ? n.name() : "_").orElse("_"); }
+  String writtenName(Parameter p){ return p.xp().map(x -> x instanceof XPat.Name(var n) ? n.name() : "_").orElse("_"); }
   M.Sig visitMSig(fearlessFullGrammar.M mm){
     var s= mm.sig();
     var bs= s.flatMap(Sig::bs).map(this::mapB);
@@ -109,7 +109,8 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   M visitM(fearlessFullGrammar.M m){
     var sig= visitMSig(m);
     var original= m.sig().map(Sig::parameters).orElse(List.of());
-    if (m.body().isEmpty()){ return new M(sig, original.stream().map(this::abstractParameterName).toList(), empty()); }
+    var names= original.stream().map(this::writtenName).toList();
+    if (m.body().isEmpty()){ return new M(sig, names, names, empty()); }
     var body= m.body().get();
     var hasPat= original.stream().anyMatch(p -> p.xp().stream().anyMatch(XPat.Destruct.class::isInstance));
     var ps= original.stream().map(p -> parameterToName(p, hasPat)).toList();
@@ -117,13 +118,14 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     if (m.hasImplicit()){
       var p= meths.fresh().freshVar(currentTop, "impl");
       ps = Push.of(ps, p);
+      names = Push.of(names, "_");
       implicits.add(p);
     }
     if (hasPat){ body = makeXPatsBody(body, xpats); }
     var e= visitE(body);
     if (m.hasImplicit()){ implicits.removeLast(); }
     var name= m.sig().flatMap(Sig::m);
-    return new M(sig, ps, of(new M.Impl(name, e)));
+    return new M(sig, ps, names, of(new M.Impl(name, e)));
   }
   private fearlessFullGrammar.E makeXPatsBody(fearlessFullGrammar.E body, List<XE> xes){
     var p= body.pos(); //Destruct#(e1,..,en,{x1,..,xn->body})
