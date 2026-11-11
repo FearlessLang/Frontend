@@ -6168,4 +6168,12 @@ Box[X]:{ .get: X }
 Ids:{ #[X](a: X, b: Box[X]): X -> a }
 User:{ .m(b: Box[Sub]): Sup -> Ids#({}, b) }
 """));}
+@Test void typeExpressionOfATypeWithAnOperatorMethodContainingAnArrow(){ok(List.of("""
+Q:{ -->(a: Q): Q -> a }
+A:{ .k: Q -> Q }
+"""));}
+@Test void typeExpressionOfATypeWithAClosedCurlyStringLiteralTypeInAMethod(){ok(List.of("""
+Q:{ .m: "}" -> "}" }
+A:{ .k: Q -> Q }
+"""));}
 }
