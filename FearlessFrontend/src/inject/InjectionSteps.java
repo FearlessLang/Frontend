@@ -89,7 +89,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (m.impl().isEmpty()){ return mCore; }//assert same type as m lifted to core
     var e= m.impl().get().e();
     var span= di.name().approxSpan();
-    var xs= m.impl().get().xs();
+    var xs= m.xs();
     var thisRc= LiteralDeclarations.has(di.cs(), LiteralDeclarations.captureFree) ? RC.imm : mCore.sig().rc();
     var thisType= new IT.RCC(Optional.of(thisRc), new IT.C(di.name(), MSigL.toXs(span, B.xs(di.bs()))), span);//no preferred on self names
     var ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
@@ -464,7 +464,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       .allMatch(m -> m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t -> t.get().isTV()));
   }
   private List<Optional<IT>> updateArgs(M m, Gamma g){
-    return Streams.zip(m.impl().get().xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !late ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
+    return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !late ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
   }
   record TSM(List<IT> ts, List<IT> lower, M m){
     TSM(List<IT> ts, M m){ this(ts, qMarks(ts.size()), m); }
@@ -477,8 +477,8 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     g.newScope(m.sig().rc().get(), litBs, l);
     g.declare(l.thisName(), selfPrecise.<IT>map(s -> new IT.RCC(s.rc().map(RC::isoToMut), s.c(), s.span())).orElse(IT.U.Instance));
     g.newScope(m.sig().rc().get(), litBs, l);
-    assert m.sig().m().get().arity() == m.impl().get().xs().size();
-    Streams.zip(m.impl().get().xs(), m.sig().ts()).forEach((x,t) -> g.declare(x, t.get()));
+    assert m.sig().m().get().arity() == m.xs().size();
+    Streams.zip(m.xs(), m.sig().ts()).forEach((x,t) -> g.declare(x, t.get()));
     var e= nextStar(Push.of(litBs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
     var args= updateArgs(m, g);
     g.popScope();
@@ -493,7 +493,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var h= header(rcc, m.withSig(m.sig().withTsT(args, ret)));
     var impl= m.impl().get().withE(meet(e, h.m().sig().ret().get()));
     var noChange= h.m().sig().equals(m.sig()) && impl == m.impl().get();
-    return new TSM(h.ts(), h.lower(), noChange ? m : new M(h.m().sig(), Optional.of(impl)));
+    return new TSM(h.ts(), h.lower(), noChange ? m : new M(h.m().sig(), m.xs(), Optional.of(impl)));
   }
   private TSM header(IT.RCC rcc, M m){
     var sig= m.sig();

@@ -424,7 +424,7 @@ public class Frontend{
     List<M>methods(List<PM>ms){return seq(ms.size(),i->method(ms.get(i),i));}
     M method(PM m,int idx){var q=m.s;var original=q.ps;var types=map(original,p->type(p.t));if(m.implicit)types=push(types,u);
       var s=new S(q.r,q.m==null?null:new N(q.m,m.arity()),q.b,types,type(q.t),null,m.body==null,idx);
-      if(m.body==null)return new M(s);var body=m.body;
+      if(m.body==null)return new M(s,map(original,p->p.xp instanceof Pat.Name(var x)?x:"_"),null);var body=m.body;
       var patterns=any(original,p->p.xp instanceof Pat.Des);
       var ps=map(original,p->parameter(p,patterns));
       var xpats=flat(zip(ps,original,(x,p)->xpat(p.xp,x)),y->y);if(m.implicit){
