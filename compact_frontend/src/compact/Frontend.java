@@ -398,8 +398,6 @@ import java.util.stream.*;
       var full=new N(pN.isEmpty()?p.map.getOrDefault(tn.s,p.name+"."+tn.s):p.map.getOrDefault(pN,pN)+"."+tn.simple(),tn.arity);
       no(!pN.isEmpty()&&(pN.equals(p.name)||p.map.containsValue(pN)||p.map.containsValue(full.s))||!(full.pk().equals(p.name)?p.names.contains(new N(full.simple(),full.arity)):other.containsKey(full)));return full;
     }
-    N single(N n){var w=new HashMap<String,String>();p.map.forEach((k,v)->w.put(v,k));
-      return new N(n.pk().equals(p.name)?n.simple():w.getOrDefault(n.s,w.getOrDefault(n.pk(),n.pk())+"."+n.simple()),n.arity);}
     T type(T t){return t instanceof R(var r,var c)?new R(r,constructor(c)):t;}
     E expr(P e){return switch(e){
       case P.X x->new E.X(x.name,u);case P.Implicit _->new E.X(implicits.getLast(),u);
@@ -429,9 +427,9 @@ import java.util.stream.*;
       var ps=map(original,p->parameter(p,patterns));
       var xpats=flat(zip(ps,original,(x,p)->xpat(p.xp,x)),y->y);if(m.implicit){
         var p=fresh("impl");ps=push(ps,p);implicits.add(p);
-      }if(patterns){
+      }if(patterns){var w=new HashMap<String,String>();p.map.forEach((k,v)->w.put(v,k));
         var fl=lambda(map(xpats,xe->new Par(new Pat.Name(xe.x),u)),body);
-        body=new P.Call(new P.Typed(imm,new C(single(base("Destruct",0)),list()),null),"#",null,null,push(map(xpats,XE::e),fl));
+        body=new P.Call(new P.Typed(imm,new C(new N(p.name.equals("base")?"Destruct":w.getOrDefault("base.Destruct",w.getOrDefault("base","base")+".Destruct"),0),list()),null),"#",null,null,push(map(xpats,XE::e),fl));
       }
       var e=expr(body);if(m.implicit)implicits.removeLast();return new M(s,ps,e);
     }
