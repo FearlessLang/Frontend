@@ -20,9 +20,11 @@ final class AssociationTextTest{
   private static final Path winLauncher= Path.of("C:\\fearlessManaged0_001\\fearlessManaged0_001.exe");
   private static final Path proof= Path.of("C:\\fearlessManaged0_001\\proof.ico");
   private static final String identity= "fearlessManaged0_001";
+  private static final String name= "Fearless Manager";
   @Test void theOneDesktopEntryHandsEveryKindToTheRunningLauncher(){
-    var entry= LinuxAssociations.desktopEntry(identity, linuxLauncher, "controller-Main", List.of("application/x-fearless", "application/x-fproof"));
+    var entry= LinuxAssociations.desktopEntry(identity, name, linuxLauncher, "controller-Main", List.of("application/x-fearless", "application/x-fproof"));
     assertTrue(entry.startsWith("[Desktop Entry]\n"), entry);
+    assertTrue(entry.contains("\nName=Fearless Manager\n"), entry);
     assertTrue(entry.contains("Exec=env LC_ALL=C.UTF-8 \"/home/me/fearlessManaged0_001/bin/fearlessManaged0_001\" %f"), entry);
     assertTrue(entry.contains("MimeType=application/x-fearless;application/x-fproof;"), entry);
     assertTrue(entry.contains("TryExec=/home/me/fearlessManaged0_001/bin/fearlessManaged0_001\n"), entry);
@@ -30,7 +32,7 @@ final class AssociationTextTest{
     assertTrue(entry.contains("StartupWMClass=controller-Main"), entry);
   }
   private static String exec(String launcher){
-    var entry= LinuxAssociations.desktopEntry(identity, launcher, "controller-Main", List.of("application/x-fearless"));
+    var entry= LinuxAssociations.desktopEntry(identity, name, launcher, "controller-Main", List.of("application/x-fearless"));
     return OneOr.of("one Exec line", entry.lines().filter(l -> l.startsWith("Exec=")));
   }
   @Test void theLauncherIsOneArgumentEvenWithSpaces(){
@@ -77,7 +79,7 @@ final class AssociationTextTest{
   }
   @Test void theRegistryFileSaysThisFearlessIsAnAppAndWhatItOpens(){
     var lines= regFile();
-    assertTrue(lines.contains("\"ApplicationName\"=\"fearlessManaged0_001\""), lines.toString());
+    assertTrue(lines.contains("\"ApplicationName\"=\"Fearless Manager\""), lines.toString());
     assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\fearlessManaged0_001\\Capabilities\\FileAssociations]"), lines.toString());
     assertTrue(lines.contains("\".fproof\"=\"fearlessManaged0_001.fproof\""), lines.toString());
   }
@@ -94,17 +96,17 @@ final class AssociationTextTest{
     assertEquals("HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.fearless\\UserChoice", WindowsAssociations.userChoiceKey(".fearless"));
   }
   @Test void theRegistryFileKeepsTheDefaultOfAnExtensionTakenFromAnotherProgram(){
-    var lines= WindowsAssociations.regFile(identity, winLauncher, winIcons(), Map.of(".fproof", "SomeApp.fproof")).lines().toList();
+    var lines= WindowsAssociations.regFile(identity, name, winLauncher, winIcons(), Map.of(".fproof", "SomeApp.fproof")).lines().toList();
     assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\fearlessManaged0_001\\PreviousDefaults]"), lines.toString());
     assertTrue(lines.contains("\".fproof\"=\"SomeApp.fproof\""), lines.toString());
     assertTrue(regFile().stream().noneMatch(l -> l.contains("PreviousDefaults")), regFile().toString());
   }
   @Test void theRegistryFileUsesTheLineEndingsWindowsWrites(){
-    var reg= WindowsAssociations.regFile(identity, winLauncher, winIcons(), Map.of());
+    var reg= WindowsAssociations.regFile(identity, name, winLauncher, winIcons(), Map.of());
     assertEquals(reg.split("\r\n", -1).length, reg.split("\n", -1).length);
   }
   private static List<Icon> winIcons(){ return List.of(new Icon(".fearless", winLauncher, winLauncher), new Icon(".fproof", proof, proof)); }
-  private static List<String> regFile(){ return WindowsAssociations.regFile(identity, winLauncher, winIcons(), Map.of()).lines().toList(); }
+  private static List<String> regFile(){ return WindowsAssociations.regFile(identity, name, winLauncher, winIcons(), Map.of()).lines().toList(); }
   private static byte[] png(int side){
     var res= new byte[24];
     write(res, 16, side);

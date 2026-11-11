@@ -93,7 +93,7 @@ final class LinuxAssociationsTest{
   private void reconcile(List<WindowIcon> windows, String... extensions){
     var program= icon(0x123456);
     var icons= Stream.of(extensions).map(e -> { var png= icon(e.hashCode() & 0xffffff); return new Icon(e, png, png); }).toList();
-    FileAssociations.reconcile(identity, family, command, icons, windows, program, replaced::add,
+    FileAssociations.reconcile(identity, "Fearless Manager", family, command, icons, windows, program, replaced::add,
       s -> new IllegalStateException("ambiguous "+s),
       s -> new IllegalStateException("chosenByHand "+s),
       s -> new IllegalStateException("notOurs "+s),

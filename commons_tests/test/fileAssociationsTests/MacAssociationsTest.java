@@ -70,7 +70,7 @@ final class MacAssociationsTest{
   }
   private void reconcile(String... extensions){
     var icons= Stream.of(extensions).map(e -> new Icon(e, png(), png())).toList();
-    FileAssociations.reconcile(identity, family, command, icons, List.of(), png(), _ -> {},
+    FileAssociations.reconcile(identity, "Fearless Manager", family, command, icons, List.of(), png(), _ -> {},
       s -> new IllegalStateException("ambiguous "+s),
       s -> new IllegalStateException("chosenByHand "+s),
       s -> new IllegalStateException("notOurs "+s),
@@ -90,7 +90,7 @@ final class MacAssociationsTest{
       +"<key>UTTypeIconFile</key><string>"+ext+".icns</string><key>UTTypeConformsTo</key><array><string>public.data</string></array>"
       +"<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>"+ext+"</string></array></dict></dict>\n";
   }
-  private void plistIs(String documents, String exported){ assertEquals(MacAssociations.plist(identity, documents, exported), Fs.readUtf8(contents("Info.plist"))); }
+  private void plistIs(String documents, String exported){ assertEquals(MacAssociations.plist(identity, "Fearless Manager", documents, exported), Fs.readUtf8(contents("Info.plist"))); }
   @Test void anExtensionNoBundleDeclaresGetsATypeOfTheIdentityWithTheRankOwner(){
     reconcile(".fapp123");
     Err.strCmp("""
@@ -99,7 +99,7 @@ final class MacAssociationsTest{
 <plist version="1.0"><dict>
 <key>CFBundleExecutable</key><string>fearlessManaged0_001</string>
 <key>CFBundleIdentifier</key><string>fearlessManaged0-001</string>
-<key>CFBundleName</key><string>fearlessManaged0_001</string>
+<key>CFBundleName</key><string>Fearless Manager</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleIconFile</key><string>_program.icns</string>
 <key>CFBundleVersion</key><string>1</string>
