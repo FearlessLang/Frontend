@@ -6176,19 +6176,7 @@ A:{ .k: Q -> Q }
 Q:{ .m: "}" -> "}" }
 A:{ .k: Q -> Q }
 """));}
-@Test void lambdaParameterCapturedInAMutLiteralInfersMutHOutsideTheBound(){fail("""
-006| User:{ .use: mut G -> Ap#{x -> mut G{ Mut#x }} }
-   |        ---------------^^^^^^^^^^^^^^^^^^^^^^^^
-
-While inspecting method call "#(_)" > ".use" line 6
-The call to "#(_)" is invalid.
-Type argument 1 ("mutH A") does not satisfy the bounds
-for type parameter "X" in "Ap#(_)".
-Here "X" can only use capabilities "imm" or "mut" or "read".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-Ap#[imm,mutH A,mut G](F1[mutH A,mut G]{#(x:mutH A):mut G->mut G{mut #:A->Mut#(x)}})
-""", List.of("""
+@Test void lambdaParameterCapturedInAMutLiteralAndUsedAsMutHIsMut(){ok(List.of("""
 A:{ mut .m: A -> A }
 Mut:{ #(a: mutH A): A -> a.m }
 G:{ mut #: A }
@@ -6196,18 +6184,7 @@ F1[X:*,R:*]:{ #(x: X): R }
 Ap:{ #[X:*,R:*](f: F1[X,R]): R -> this#f }
 User:{ .use: mut G -> Ap#{x -> mut G{ Mut#x }} }
 """));}
-@Test void lambdaParameterCapturedInAMutLiteralInfersMutHAndCannotBeCaptured(){fail("""
-006| User:{ .use: mut G -> Ap#{x -> mut G{ Mut#x }} }
-   |                           ------------~~~~^--
-
-While inspecting parameter "x" > "#" line 6 > "#(_)" line 6 > ".use" line 6
-Parameter "x" has type "mutH A".
-The type of parameter "x" is hygienic (readH or mutH)
-and thus it cannot be captured in the object literal instance of "mut G" (line 6).
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-x
-""", List.of("""
+@Test void lambdaParameterCapturedInAMutLiteralAndUsedAsMutHIsMutAlsoWhenTheBoundAllowsMutH(){ok(List.of("""
 A:{ mut .m: A -> A }
 Mut:{ #(a: mutH A): A -> a.m }
 G:{ mut #: A }
@@ -6215,18 +6192,7 @@ F1[X:**,R:*]:{ #(x: X): R }
 Ap:{ #[X:**,R:*](f: F1[X,R]): R -> this#f }
 User:{ .use: mut G -> Ap#{x -> mut G{ Mut#x }} }
 """));}
-@Test void lambdaParameterCapturedInAReadLiteralInfersReadHAndCannotBeCaptured(){fail("""
-006| User:{ .use: read G -> Ap#{x -> read G{ Use#x }} }
-   |                            -------------~~~~^--
-
-While inspecting parameter "x" > "#" line 6 > "#(_)" line 6 > ".use" line 6
-Parameter "x" has type "readH A".
-The type of parameter "x" is hygienic (readH or mutH)
-and thus it cannot be captured in the object literal instance of "read G" (line 6).
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-x
-""", List.of("""
+@Test void lambdaParameterCapturedInAReadLiteralAndUsedAsReadHIsRead(){ok(List.of("""
 A:{ read .m: A -> A }
 Use:{ #(a: readH A): A -> a.m }
 G:{ read #: A }

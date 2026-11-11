@@ -93,12 +93,13 @@ public final class Gamma{
   };}
   private static IT adaptX(IT t, EnumSet<RC> xRcs, RC rc){
     if (rc == RC.imm || EnumSet.of(RC.iso, RC.imm).containsAll(xRcs)){ return t.withRC(RC.imm); }
-    return rc == RC.read || xRcs.contains(RC.iso) ? t.readImm() : t;
+    return rc == RC.read || !EnumSet.of(RC.imm, RC.mut, RC.read).containsAll(xRcs) ? t.readImm() : t;
   }
   private static IT adaptRC(IT t, RC rc){
     var trc= t.explicitRC();
     if (rc == RC.imm || trc.equals(Optional.of(RC.iso))){ return t.withRC(RC.imm); }
-    return rc == RC.read && trc.equals(Optional.of(RC.mut)) ? t.withRC(RC.read) : t;
+    var hygienic= trc.equals(Optional.of(RC.mutH)) || trc.equals(Optional.of(RC.readH));
+    return rc == RC.read || hygienic ? t.readImm() : t;
   }
   public E.Literal _owner(TName n){
     for (var s= 1; s < depth; s += 1){ if (owners[s].name().equals(n)){ return owners[s]; } }
