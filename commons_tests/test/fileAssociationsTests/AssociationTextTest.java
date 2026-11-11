@@ -1,6 +1,7 @@
 package fileAssociationsTests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -54,8 +55,8 @@ final class AssociationTextTest{
   }
   @Test void theRegistryFileGivesEveryExtensionATypeOfItsOwn(){
     var lines= regFile();
-    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\fearlessManaged0_001.fearless]"), lines.toString());
-    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\fearlessManaged0_001.fproof]"), lines.toString());
+    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\fearlessManaged0_001.fearless\\DefaultIcon]"), lines.toString());
+    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\fearlessManaged0_001.fproof\\DefaultIcon]"), lines.toString());
     assertEquals("fearlessManaged0_001.fproof", WindowsAssociations.progId(identity, ".fproof"));
   }
   @Test void eachTypeCarriesItsOwnPictureAndTheOneSharedCommand(){
@@ -76,6 +77,7 @@ final class AssociationTextTest{
     assertTrue(lines.contains("@=\"fearlessManaged0_001.fearless\""), lines.toString());
     assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\.fproof\\OpenWithProgids]"), lines.toString());
     assertTrue(lines.contains("\"fearlessManaged0_001.fproof\"=\"\""), lines.toString());
+    assertFalse(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\fearlessManaged0_001.fproof]"), lines.toString());
   }
   @Test void theRegistryFileSaysThisFearlessIsAnAppAndWhatItOpens(){
     var lines= regFile();
