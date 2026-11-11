@@ -421,7 +421,11 @@ import java.util.stream.*;
       if(m.body==null)return new M(s,map(original,p->p.xp instanceof Pat.Name(var x)?x:"_"),null);var body=m.body;
       var patterns=any(original,p->p.xp instanceof Pat.Des);
       var ps=map(original,p->switch(p.xp){case null->fresh("0");case Pat.Name(var x)->patterns?fresh(x):x;case Pat.Des _->fresh("div");});
-      var xpats=flat(zip(ps,original,(x,p)->xpat(p.xp,x)),y->y);if(m.implicit){
+      var xpats=flat(zip(ps,original,(x,p)->switch(p.xp){
+        case null->Stream.<XE>of();
+        case Pat.Des d->zip(d.extract,d.names().toList(),(e,z)->{P res=new P.X(x);for(var n:e)res=new P.Call(res,n,null,null,list());return new XE(z,res);}).stream();
+        case Pat.Name(var z)->Stream.of(new XE(z,new P.X(x)));
+      }),y->y);if(m.implicit){
         var p=fresh("impl");ps=push(ps,p);implicits.add(p);
       }if(patterns){var w=new HashMap<String,String>();p.map.forEach((k,v)->w.put(v,k));
         var fl=lambda(map(xpats,xe->new Par(new Pat.Name(xe.x),u)),body);
@@ -429,13 +433,6 @@ import java.util.stream.*;
       }
       var e=expr(body);if(m.implicit)implicits.removeLast();return new M(s,ps,e);
     }
-    Stream<XE>xpat(Pat xp,String lowered){return switch(xp){
-      case null->Stream.of();
-      case Pat.Des d->zip(d.extract,d.names().toList(),(e,x)->{
-        P res=new P.X(lowered);for(var m:e)res=new P.Call(res,m,null,null,list());return new XE(x,res);
-      }).stream();
-      case Pat.Name(var x)->Stream.of(new XE(x,new P.X(lowered)));
-    };}
     Literal literal(RC r,List<C>impl,P.Lit l){var ms=methods(l.ms);
       return used(new Literal(r,type(owner,0),list(),impl,name(l.self),ms,u,true,false),l.self);
     }
