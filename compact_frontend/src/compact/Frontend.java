@@ -689,7 +689,7 @@ import java.util.stream.*;
     E core(List<B>ctx,E exp,E orig){return switch(exp){
       case E.X x->x.t(u);
       case Literal e->{var o=(Literal)orig;
-      no(!(e.t instanceof R)&&e.t!=u);var b=e.anon?cat(e.b.stream(),cat(methodFree(new IG(),e.ms),supFree(e.cs)).map(x->B.get(ctx,x))).distinct().toList():e.b;
+      var b=e.anon?cat(e.b.stream(),cat(methodFree(new IG(),e.ms),supFree(e.cs)).map(x->B.get(ctx,x))).distinct().toList():e.b;
       var name=e.name.arity(b.size());var inner=e.anon?push(ctx,b).stream().distinct().toList():b;
       yield new Literal(or(e.r,imm),name,b,map(distinct(inner,push(o.cs,e.cs)),Frontend::normC),e.self,map(e.ms,me->{var mo=me.e==null?me:o.ms.get(me.s.idx);var s=merge(me.s,mo.s);return new M(s,me.v,me.e==null?null:core(push(inner,s.b).stream().distinct().toList(),me.e,mo.e)).o(e.name,name);}),u,e.anon,false);
       }
