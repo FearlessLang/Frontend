@@ -1,9 +1,7 @@
 package fileAssociationsTests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -14,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import fileAssociations.Icon;
 import fileAssociations.LinuxAssociations;
 import fileAssociations.WindowsAssociations;
+import fileAssociations.WindowsAssociations.Entry;
 import utils.OneOr;
 
 final class AssociationTextTest{
@@ -22,15 +21,19 @@ final class AssociationTextTest{
   private static final Path proof= Path.of("C:\\fearlessManaged0_001\\proof.ico");
   private static final String identity= "fearlessManaged0_001";
   private static final String name= "Fearless Manager";
+  private static final String classes= "HKEY_CURRENT_USER\\Software\\Classes\\";
   @Test void theOneDesktopEntryHandsEveryKindToTheRunningLauncher(){
-    var entry= LinuxAssociations.desktopEntry(identity, name, linuxLauncher, "controller-Main", List.of("application/x-fearless", "application/x-fproof"));
-    assertTrue(entry.startsWith("[Desktop Entry]\n"), entry);
-    assertTrue(entry.contains("\nName=Fearless Manager\n"), entry);
-    assertTrue(entry.contains("Exec=env LC_ALL=C.UTF-8 \"/home/me/fearlessManaged0_001/bin/fearlessManaged0_001\" %f"), entry);
-    assertTrue(entry.contains("MimeType=application/x-fearless;application/x-fproof;"), entry);
-    assertTrue(entry.contains("TryExec=/home/me/fearlessManaged0_001/bin/fearlessManaged0_001\n"), entry);
-    assertTrue(entry.contains("Icon=fearlessManaged0_001"), entry);
-    assertTrue(entry.contains("StartupWMClass=controller-Main"), entry);
+    assertEquals("""
+[Desktop Entry]
+Type=Application
+Name=Fearless Manager
+Exec=env LC_ALL=C.UTF-8 "/home/me/fearlessManaged0_001/bin/fearlessManaged0_001" %f
+TryExec=/home/me/fearlessManaged0_001/bin/fearlessManaged0_001
+Icon=fearlessManaged0_001
+StartupWMClass=controller-Main
+Terminal=false
+MimeType=application/x-fearless;application/x-fproof;
+""", LinuxAssociations.desktopEntry(identity, name, linuxLauncher, "controller-Main", List.of("application/x-fearless", "application/x-fproof")));
   }
   private static String exec(String launcher){
     var entry= LinuxAssociations.desktopEntry(identity, name, launcher, "controller-Main", List.of("application/x-fearless"));
@@ -53,62 +56,34 @@ final class AssociationTextTest{
     assertEquals(LinuxAssociations.hash(png(48)), LinuxAssociations.hash(png(48)));
     assertNotEquals(LinuxAssociations.hash(png(48)), LinuxAssociations.hash(png(32)));
   }
-  @Test void theRegistryFileGivesEveryExtensionATypeOfItsOwn(){
-    var lines= regFile();
-    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\fearlessManaged0_001.fearless\\DefaultIcon]"), lines.toString());
-    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\fearlessManaged0_001.fproof\\DefaultIcon]"), lines.toString());
-    assertEquals("fearlessManaged0_001.fproof", WindowsAssociations.progId(identity, ".fproof"));
-  }
-  @Test void eachTypeCarriesItsOwnPictureAndTheOneSharedCommand(){
-    var lines= regFile();
-    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\fearlessManaged0_001.fproof\\DefaultIcon]"), lines.toString());
-    assertTrue(lines.contains("@=\"C:\\\\fearlessManaged0_001\\\\proof.ico,0\""), lines.toString());
-    assertEquals(2, lines.stream().filter(l -> l.endsWith("\\shell\\open\\command]")).count(), lines.toString());
-    assertEquals(2, lines.stream().filter(l -> l.equals("@=\"\\\"C:\\\\fearlessManaged0_001\\\\fearlessManaged0_001.exe\\\" \\\"%1\\\"\"")).count(), lines.toString());
-  }
-  @Test void theRegistryFileCarriesTheApplicationsOwnPictureToo(){
-    var lines= regFile();
-    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\fearlessManaged0_001\\Capabilities]"), lines.toString());
-    assertTrue(lines.contains("\"ApplicationIcon\"=\"C:\\\\fearlessManaged0_001\\\\fearlessManaged0_001.exe,0\""), lines.toString());
-  }
-  @Test void theRegistryFilePointsEachExtensionAtItsOwnType(){
-    var lines= regFile();
-    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\.fearless]"), lines.toString());
-    assertTrue(lines.contains("@=\"fearlessManaged0_001.fearless\""), lines.toString());
-    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\.fproof\\OpenWithProgids]"), lines.toString());
-    assertTrue(lines.contains("\"fearlessManaged0_001.fproof\"=\"\""), lines.toString());
-    assertFalse(lines.contains("[HKEY_CURRENT_USER\\Software\\Classes\\fearlessManaged0_001.fproof]"), lines.toString());
-  }
-  @Test void theRegistryFileSaysThisFearlessIsAnAppAndWhatItOpens(){
-    var lines= regFile();
-    assertTrue(lines.contains("\"ApplicationName\"=\"Fearless Manager\""), lines.toString());
-    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\fearlessManaged0_001\\Capabilities\\FileAssociations]"), lines.toString());
-    assertTrue(lines.contains("\".fproof\"=\"fearlessManaged0_001.fproof\""), lines.toString());
-  }
-  @Test void theRegistryFileListsThisFearlessAmongTheRegisteredApplications(){
-    var lines= regFile();
-    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\RegisteredApplications]"), lines.toString());
-    assertTrue(lines.contains("\"fearlessManaged0_001\"=\"Software\\\\fearlessManaged0_001\\\\Capabilities\""), lines.toString());
-  }
-  @Test void theExtensionsWeHoldAreReadFromTheOneKeyThatFilesThem(){
-    assertEquals("HKEY_CURRENT_USER\\Software\\fearlessManaged0_001\\Capabilities\\FileAssociations", WindowsAssociations.fileAssociations(identity));
-    assertEquals(".fearless", WindowsAssociations.regName("    .fearless    REG_SZ    fearlessManaged0_001.fearless"));
+  @Test void theRegistryGivesEveryExtensionATypeOfItsOwnWithItsPictureAndTheOneSharedCommandAndListsThisFearlessAsAnApp(){
+    var capabilities= "HKEY_CURRENT_USER\\Software\\fearlessManaged0_001\\Capabilities";
+    var opened= "\"C:\\fearlessManaged0_001\\fearlessManaged0_001.exe\" \"%1\"";
+    assertEquals(List.of(
+      new Entry(capabilities, "ApplicationName", "Fearless Manager"),
+      new Entry(capabilities, "ApplicationIcon", "C:\\fearlessManaged0_001\\fearlessManaged0_001.exe,0"),
+      new Entry(classes+"fearlessManaged0_001.fearless\\DefaultIcon", "", "C:\\fearlessManaged0_001\\fearlessManaged0_001.exe,0"),
+      new Entry(classes+"fearlessManaged0_001.fearless\\shell\\open\\command", "", opened),
+      new Entry(classes+".fearless", "", "fearlessManaged0_001.fearless"),
+      new Entry(classes+".fearless\\OpenWithProgids", "fearlessManaged0_001.fearless", ""),
+      new Entry(capabilities+"\\FileAssociations", ".fearless", "fearlessManaged0_001.fearless"),
+      new Entry(classes+"fearlessManaged0_001.fproof\\DefaultIcon", "", "C:\\fearlessManaged0_001\\proof.ico,0"),
+      new Entry(classes+"fearlessManaged0_001.fproof\\shell\\open\\command", "", opened),
+      new Entry(classes+".fproof", "", "fearlessManaged0_001.fproof"),
+      new Entry(classes+".fproof\\OpenWithProgids", "fearlessManaged0_001.fproof", ""),
+      new Entry(capabilities+"\\FileAssociations", ".fproof", "fearlessManaged0_001.fproof"),
+      new Entry("HKEY_CURRENT_USER\\Software\\RegisteredApplications", "fearlessManaged0_001", "Software\\fearlessManaged0_001\\Capabilities")), setup());
   }
   @Test void theChoiceWindowsRemembersIsLookedForWhereWindowsKeepsIt(){
-    assertEquals("HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.fearless\\UserChoice", WindowsAssociations.userChoiceKey(".fearless"));
+    assertEquals("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.fearless\\UserChoice", WindowsAssociations.userChoiceKey(".fearless"));
   }
-  @Test void theRegistryFileKeepsTheDefaultOfAnExtensionTakenFromAnotherProgram(){
-    var lines= WindowsAssociations.regFile(identity, name, winLauncher, winIcons(), Map.of(".fproof", "SomeApp.fproof")).lines().toList();
-    assertTrue(lines.contains("[HKEY_CURRENT_USER\\Software\\fearlessManaged0_001\\PreviousDefaults]"), lines.toString());
-    assertTrue(lines.contains("\".fproof\"=\"SomeApp.fproof\""), lines.toString());
-    assertTrue(regFile().stream().noneMatch(l -> l.contains("PreviousDefaults")), regFile().toString());
-  }
-  @Test void theRegistryFileUsesTheLineEndingsWindowsWrites(){
-    var reg= WindowsAssociations.regFile(identity, name, winLauncher, winIcons(), Map.of());
-    assertEquals(reg.split("\r\n", -1).length, reg.split("\n", -1).length);
+  @Test void theRegistryKeepsTheDefaultOfAnExtensionTakenFromAnotherProgram(){
+    var entries= WindowsAssociations.setup(identity, name, winLauncher, winIcons(), Map.of(".fproof", "SomeApp.fproof"));
+    assertEquals(List.of(new Entry("HKEY_CURRENT_USER\\Software\\fearlessManaged0_001\\PreviousDefaults", ".fproof", "SomeApp.fproof")), entries.stream().filter(e -> !setup().contains(e)).toList());
+    assertEquals(setup().size()+1, entries.size());
   }
   private static List<Icon> winIcons(){ return List.of(new Icon(".fearless", winLauncher, winLauncher), new Icon(".fproof", proof, proof)); }
-  private static List<String> regFile(){ return WindowsAssociations.regFile(identity, name, winLauncher, winIcons(), Map.of()).lines().toList(); }
+  private static List<Entry> setup(){ return WindowsAssociations.setup(identity, name, winLauncher, winIcons(), Map.of()); }
   private static byte[] png(int side){
     var res= new byte[24];
     write(res, 16, side);

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -67,12 +68,12 @@ final class AssociationsTest{
   private final Path macHome= MacAssociations.home;
   private final Function<String,List<Declared>> declared= MacAssociations.declared;
   private final ToIntFunction<Path> register= MacAssociations.register;
-  private final BiConsumer<Path,String> offer= MacAssociations.offer;
+  private final Function<String,Optional<Path>> holder= MacAssociations.holder;
   private final String preferences= MacAssociations.preferences;
   private final List<String> reload= MacAssociations.reload;
   private final Map<String,List<Declared>> types= new HashMap<>();
+  private final Map<String,Path> holders= new HashMap<>();
   private final List<Path> registered= new ArrayList<>();
-  private final List<String> offered= new ArrayList<>();
   @BeforeEach void desktop(){
     if (Fs.isWindows()){ return; }
     if (Fs.isMac()){ macDesktop(); return; }
@@ -100,7 +101,7 @@ final class AssociationsTest{
     MacAssociations.home = Fs.of(root::toRealPath).resolve("home");
     MacAssociations.declared = e -> types.getOrDefault(e, List.of());
     MacAssociations.register = b -> { registered.add(b); return 0; };
-    MacAssociations.offer = (_,type) -> offered.add(type);
+    MacAssociations.holder = e -> Optional.ofNullable(holders.get(e));
     MacAssociations.preferences = "fearless_test_"+root.getFileName();
     MacAssociations.reload = List.of("touch", root.resolve("reloaded").toString());
   }
@@ -114,7 +115,7 @@ final class AssociationsTest{
     MacAssociations.home = macHome;
     MacAssociations.declared = declared;
     MacAssociations.register = register;
-    MacAssociations.offer = offer;
+    MacAssociations.holder = holder;
     ReconcileTest.defaults("delete", MacAssociations.preferences);
     Fs.ofV(() -> Files.deleteIfExists(preferencesFile()));
     MacAssociations.preferences = preferences;
@@ -131,18 +132,20 @@ final class AssociationsTest{
     Fs.ofV(() -> ImageIO.write(img, "png", file.toFile()));
     return file;
   }
-  private void reconcile(String... extensions){ reconcile(List.of(), extensions); }
-  private void reconcile(List<WindowIcon> windows, String... extensions){
+  private void reconcile(String... extensions){ taking(List.of(), extensions); }
+  private void taking(List<String> taken, String... extensions){ reconcile(identity, List.of(), taken, extensions); }
+  private void reconcile(List<WindowIcon> windows, String... extensions){ reconcile(identity, windows, List.of(), extensions); }
+  private void reconcile(String identity, List<WindowIcon> windows, List<String> taken, String... extensions){
     var program= icon(0x123456);
     var icons= Stream.of(extensions).map(e -> { var png= icon(e.hashCode() & 0xffffff); return new Icon(e, png, png); }).toList();
-    FileAssociations.reconcile(identity, "Fearless Manager", family, command, icons, windows, program, replaced::add,
+    FileAssociations.reconcile(identity, "Fearless Manager", family, Fs.isMac() ? macCommand : command, icons, taken, windows, program, replaced::add,
       s -> new IllegalStateException("ambiguous "+s),
-      s -> new IllegalStateException("chosenByHand "+s),
       s -> new IllegalStateException("notOurs "+s),
       s -> new IllegalStateException("notWritable "+s),
       s -> new IllegalStateException("halfDone "+s));
   }
   private String refused(String... extensions){ return assertThrows(IllegalStateException.class, () -> reconcile(extensions)).getMessage(); }
+  private String refusedTaking(List<String> taken, String... extensions){ return assertThrows(IllegalStateException.class, () -> taking(taken, extensions)).getMessage(); }
   private Path mimetypes(){ return home.resolve("icons").resolve("hicolor").resolve("256x256").resolve("mimetypes"); }
   private Path appIcon(){ return home.resolve("icons").resolve("hicolor").resolve("256x256").resolve("apps").resolve(identity+".png"); }
   private Path desktopFile(){ return home.resolve("applications").resolve(identity+".desktop"); }
@@ -168,28 +171,7 @@ final class AssociationsTest{
   private List<String> windowEntries(){
     return Fs.of(() -> { try (var s= Files.list(home.resolve("applications"))){ return s.map(p -> p.getFileName().toString()).filter(n -> !n.equals(identity+".desktop")).sorted().toList(); }});
   }
-  private Path png(){
-    var file= root.resolve("icon.png");
-    Fs.ofV(() -> ImageIO.write(new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB), "png", file.toFile()));
-    return file;
-  }
-  private void macReconcile(String... extensions){ macReconcile(List.of(), extensions); }
-  private void macReconcile(List<WindowIcon> windows, String... extensions){
-    var icons= Stream.of(extensions).map(e -> new Icon(e, png(), png())).toList();
-    FileAssociations.reconcile(identity, "Fearless Manager", family, macCommand, icons, windows, png(), _ -> {},
-      s -> new IllegalStateException("ambiguous "+s),
-      s -> new IllegalStateException("chosenByHand "+s),
-      s -> new IllegalStateException("notOurs "+s),
-      s -> new IllegalStateException("notWritable "+s),
-      s -> new IllegalStateException("halfDone "+s));
-  }
-  private String macRefused(String... extensions){ return macRefused(List.of(), extensions); }
-  private String macRefused(List<WindowIcon> windows, String... extensions){ return assertThrows(IllegalStateException.class, () -> macReconcile(windows, extensions)).getMessage(); }
   private static Path preferencesFile(){ return Path.of(System.getProperty("user.home"), "Library", "Preferences", MacAssociations.preferences+".plist"); }
-  private static String choicesOfTheDesk(){
-    var p= Fs.of(new ProcessBuilder("/bin/sh", "-c", "defaults export \""+MacAssociations.preferences+"\" - | plutil -extract LSHandlers json -o - -").redirectErrorStream(true)::start);
-    return new String(Fs.of(() -> p.getInputStream().readAllBytes()), StandardCharsets.UTF_8);
-  }
   private static void withReadOnly(Path p, Runnable body){
     assertTrue(p.toFile().setWritable(false));
     try{
@@ -200,11 +182,12 @@ final class AssociationsTest{
   }
   private static final String unreadableExported= "<dict><key>UTTypeIdentifier</key><string>com.example.ffile996</string><key>UTTypeConformsTo</key><array><string>public.data</string></array>"
     +"<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>ffile996</string></array></dict></dict>\n";
+  private static String choices(String... types){ return ReconcileTest.choices("fearlessManaged0-001", types); }
   private Path bundle(){ return MacAssociations.home.resolve(identity+".app"); }
   private Path contents(String file){ return bundle().resolve("Contents").resolve(file); }
   private List<String> files(){ return Fs.walk(bundle(), s -> s.filter(Files::isRegularFile).map(f -> bundle().relativize(f).toString()).sorted().toList()); }
   private static String document(String ext, String rank, String type){
-    return "<dict><key>CFBundleTypeName</key><string>fearlessManaged0_001</string><key>CFBundleTypeRole</key><string>Viewer</string>"
+    return "<dict><key>CFBundleTypeRole</key><string>Viewer</string>"
       +"<key>CFBundleTypeIconFile</key><string>"+ext+".icns</string><key>LSHandlerRank</key><string>"+rank+"</string>"
       +"<key>LSItemContentTypes</key><array><string>"+type+"</string></array></dict>\n";
   }
@@ -217,9 +200,9 @@ final class AssociationsTest{
   @Test void anExtensionNoProgramDeclaresGetsATypeOfTheIdentity(){
     onWindows("""
       Classes\\.ffile001 names the ProgId <identity>.ffile001, which Classes\\.ffile001\\OpenWithProgids and Software\\<identity>\\Capabilities\\FileAssociations also list,
-      and RegisteredApplications names Software\\<identity>\\Capabilities (WindowsAssociations.regFile). Check every one of those keys after reconcile(".ffile001").""");
+      and RegisteredApplications names Software\\<identity>\\Capabilities (WindowsAssociations.setup). Check every one of those keys after reconcile(".ffile001").""");
     if (Fs.isMac()){
-      macReconcile(".fapp123");
+      reconcile(".fapp123");
       Err.strCmp("""
   <?xml version="1.0" encoding="UTF-8"?>
   <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -227,6 +210,7 @@ final class AssociationsTest{
   <key>CFBundleExecutable</key><string>fearlessManaged0_001</string>
   <key>CFBundleIdentifier</key><string>fearlessManaged0-001</string>
   <key>CFBundleName</key><string>Fearless Manager</string>
+  <key>CFBundleDisplayName</key><string>fearlessManaged0_001</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleIconFile</key><string>_program.icns</string>
   <key>CFBundleVersion</key><string>1</string>
@@ -238,9 +222,10 @@ final class AssociationsTest{
   </array>
   </dict></plist>
   """, Fs.readUtf8(contents("Info.plist")));
-      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/fapp123.icns"), files());
+      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/en.lproj/InfoPlist.strings", "Contents/Resources/fapp123.icns"), files());
+      assertEquals("CFBundleDisplayName = \"Fearless Manager\";\n", Fs.readUtf8(contents("Resources/en.lproj/InfoPlist.strings")));
       assertEquals(List.of(bundle()), registered);
-      assertEquals(List.of(), offered);
+      assertFalse(Files.exists(root.resolve("reloaded")));
       return;
     }
     reconcile(".ffile001");
@@ -253,7 +238,7 @@ final class AssociationsTest{
     onWindows("""
       Classes\\<identity>.<ext>\\shell\\open\\command is "<command>" "%1". Check it after reconcile, with a command whose folder holds a space and an apostrophe, as on macOS.""");
     if (Fs.isMac()){
-      macReconcile(".fapp123");
+      reconcile(".fapp123");
       assertEquals("#!/bin/sh\nexec '/Applications/it'\\''s here/fearlessManaged0_001.app/Contents/MacOS/fearlessManaged0_001' FearlessCommandOpened\n", Fs.readUtf8(contents("MacOS/"+identity)));
       assertEquals(true, Files.isExecutable(contents("MacOS/"+identity)));
       return;
@@ -262,6 +247,10 @@ final class AssociationsTest{
     var lines= Fs.readUtf8(desktopFile()).lines().filter(l -> l.startsWith("Exec=") || l.startsWith("TryExec=")).toList();
     assertEquals(List.of("Exec=env LC_ALL=C.UTF-8 \"/opt/fearlessManaged0_001/bin/fearlessManaged0_001\" %f", "TryExec=/opt/fearlessManaged0_001/bin/fearlessManaged0_001"), lines);
   }
+  private static String launchServices(String question, Path path){
+    var p= Fs.of(new ProcessBuilder("osascript", "-l", "JavaScript", "-e", "function run(a){ ObjC.import('AppKit'); "+question+" }", path.toString())::start);
+    return new String(Fs.of(p.getInputStream()::readAllBytes), StandardCharsets.UTF_8).strip();
+  }
   @Test void theDesktopKnowsTheTypeOfTheIdentityUntilTheIdentityIsRemoved(){
     onWindows("""
       Explorer finds the program of an extension through the registry, as AssocQueryStringW does (OpenPath.noProgramOpens).
@@ -269,12 +258,19 @@ final class AssociationsTest{
     if (Fs.isMac()){
       MacAssociations.declared = declared;
       MacAssociations.register = register;
+      var probe= MacAssociations.home.resolve("fearlessAssociationsTestProbe.app");
       assertEquals(html, declared.apply("htm").getFirst());
-      macReconcile(".fcommonsprobe");
-      assertEquals(List.of(new Declared("fearlessmanaged0-001.fcommonsprobe", bundle())), declared.apply("fcommonsprobe"));
+      reconcile("fearlessAssociationsTestProbe", List.of(), List.of(), ".fcommonsprobe");
+      assertEquals(List.of(new Declared("fearlessassociationstestprobe.fcommonsprobe", probe)), declared.apply("fcommonsprobe"));
+      var file= root.resolve("x.fcommonsprobe");
+      Fs.writeUtf8(file, "x");
+      assertEquals("Fearless Manager", launchServices("return ObjC.unwrap($.NSFileManager.defaultManager.displayNameAtPath(a[0]))", probe));
+      var kind= launchServices("var k= Ref(); $.NSURL.fileURLWithPath(a[0]).getResourceValueForKeyError(k, $.NSURLLocalizedTypeDescriptionKey, null); return ObjC.unwrap(k[0])", file);
+      assertFalse(kind.isEmpty() || kind.contains("fearlessAssociationsTestProbe"), kind);
       FileAssociations.eradicateAll(family, IllegalStateException::new);
       assertEquals(List.of(), declared.apply("fcommonsprobe"));
-      assertFalse(Files.exists(bundle()));
+      assertFalse(Files.exists(probe));
+      assertEquals(0, Fs.of(new ProcessBuilder("/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister", "-u", probe.toString()).inheritIO()::start).onExit().join().exitValue());
       return;
     }
     LinuxAssociations.run = run;
@@ -290,9 +286,9 @@ final class AssociationsTest{
       Check that, and that FileAssociations.eradicateAll puts that ProgId back as the default of Classes\\.htm.""");
     if (Fs.isMac()){
       types.put("htm", List.of(html));
-      macReconcile(".htm", ".fapp123");
+      reconcile(".htm", ".fapp123");
       plistIs(document("htm", "Alternate", "public.html")+document("fapp123", "Owner", "fearlessmanaged0-001.fapp123"), exported("fapp123"));
-      assertEquals(List.of(), offered);
+      assertFalse(Files.exists(preferencesFile()));
       return;
     }
     reconcile(".htm");
@@ -302,149 +298,207 @@ final class AssociationsTest{
     assertTrue(Files.isRegularFile(appIcon()));
     assertEquals(rebuilt(), ran);
   }
-  @Test void theProgramsOpeningTheSystemTypesDoNotHoldASystemExtension(){
+  @Test void theProgramOpeningTheSystemTypeOfASystemExtensionHoldsItUntilTaken(){
     onWindows("""
-      Another program listed in Classes\\.htm\\OpenWithProgids does not make reconcile(".htm") refuse: .htm is a system extension.
-      Check that, and that the other program stays in Classes\\.htm\\OpenWithProgids.""");
+      The ProgId of another program as the default of Classes\\.htm makes reconcile(".htm") refuse with notOurs naming that program, unless .htm is taken.
+      Check that, that reconcile with .htm taken makes Classes\\.htm name the ProgId of the identity, and that the ProgId of the other program stays in Classes\\.htm\\OpenWithProgids.""");
     if (Fs.isMac()){
-      types.put("htm", List.of(new Declared("public.html", Path.of("/Applications/Browser.app"))));
-      macReconcile(".htm");
+      types.put("htm", List.of(html));
+      holders.put(".htm", Path.of("/Applications/Browser.app"));
+      assertEquals("notOurs {.htm=Browser}", refused(".htm"));
+      assertFalse(Files.exists(bundle()));
+      taking(List.of(".htm"), ".htm");
       plistIs(document("htm", "Alternate", "public.html"), "");
+      assertEquals(choices("public.html"), ReconcileTest.choicesOfTheDesk());
+      assertTrue(Files.exists(root.resolve("reloaded")));
       return;
     }
     Fs.writeUtf8(sys.resolve("applications").resolve("browser.desktop"), "[Desktop Entry]\nMimeType=text/html;application/xhtml+xml;\n");
     Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Default Applications]\ntext/html=browser.desktop\n[Added Associations]\ntext/html=browser.desktop;\n");
-    reconcile(".htm");
-    assertEquals("MimeType=application/x-fearless-htm;", mimeTypes());
-  }
-  @Test void everyChoiceMadeByHandMentioningTheFamilyIsABrokenDesk(){
-    onWindows("""
-      A choice made by hand is a UserChoice or a UserChoiceLatest of an extension (Explorer\\FileExts\\<ext>); ReconciliatorDesign says which ones mention the family.
-      Make choices of each kind for several extensions, and check that one refusal lists all of them, also for a reconcile with no extension, and that nothing is written.""");
-    if (Fs.isMac()){
-      ReconcileTest.pick("fearlessmanaged0-001.htm");
-      ReconcileTest.pick("public.plain-text");
-      ReconcileTest.pick("FearlessManaged0-001.ffile001");
-      var refusal= "chosenByHand {fearlessmanaged0-001.htm=[other], FearlessManaged0-001.ffile001=[other]}";
-      assertEquals(refusal, macRefused(".htm"));
-      assertEquals(refusal, macRefused());
-      assertFalse(Files.exists(MacAssociations.home));
-      assertEquals(List.of(), registered);
-      return;
-    }
-    Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Default Applications]\ntext/html=browser.desktop\napplication/x-fearless-htm=browser.desktop\ntext/plain="+identity+".desktop\n"
-      +"[Added Associations]\napplication/x-fearless=editor.desktop;\n# application/x-fearless-c=editor.desktop;\n  # text/plain=fearlessBin0_000.desktop;\n[Removed Associations]\ntext/x-csrc=browser.desktop;fearlessBin0_000-0123abc.desktop;\n");
-    Fs.writeUtf8(root.resolve("etc").resolve("mimeapps.list"), "[Default Applications]\n application/x-fearless-txt = "+identity+".desktop\n");
-    Err.strCmp("""
-chosenByHand {[###]/config/mimeapps.list=[application/x-fearless-htm=browser.desktop, text/plain=fearlessManaged0_001.desktop, \
-application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0_000-0123abc.desktop;], \
-[###]/etc/mimeapps.list=[application/x-fearless-txt = fearlessManaged0_001.desktop]}""", refused(".htm"));
-    assertEquals(refused(".htm"), refused());
+    assertEquals("notOurs {.htm=browser}", refused(".htm"));
     assertFalse(Files.exists(home));
-    assertEquals(List.of(), ran);
+    taking(List.of(".htm"), ".htm");
+    assertEquals("MimeType=application/x-fearless-htm;", mimeTypes());
+    assertEquals("[Default Applications]\ntext/html=browser.desktop\n[Added Associations]\ntext/html=browser.desktop;\n", Fs.readUtf8(root.resolve("config").resolve("mimeapps.list")));
   }
-  @Test void forgettingAChoiceChangesTheChoicesWhereTheDeskReadsThem(){
+  @Test void aTypeWithNoProgramOfItsOwnIsHeldByTheProgramOfItsNearestParentType(){
+    if (!Fs.isLinux()){ return; }
+    sysMime("globs2", "50:text/markdown:*.md\n50:text/x-log:*.log\n");
+    sysMime("subclasses", "text/markdown text/plain\ntext/x-doc text/plain\ntext/x-log text/x-doc\n");
+    Fs.writeUtf8(sys.resolve("applications").resolve("editor.desktop"), "[Desktop Entry]\nMimeType=text/plain;\n");
+    Fs.writeUtf8(sys.resolve("applications").resolve("reader.desktop"), "[Desktop Entry]\nMimeType=text/x-doc;\n");
+    Fs.writeUtf8(root.resolve("config").resolve("mimeapps.list"), "[Default Applications]\ntext/x-log=viewer.desktop\n");
+    assertEquals("notOurs {.md=editor, .log=reader}", refused(".md", ".log"));
+    Fs.writeUtf8(sys.resolve("applications").resolve("viewer.desktop"), "[Desktop Entry]\n");
+    assertEquals("notOurs {.md=editor, .log=viewer}", refused(".md", ".log"));
+    assertFalse(Files.exists(home));
+    taking(List.of(".md"), ".md");
+    Fs.writeUtf8(home.resolve("mime").resolve("globs2"), "100:application/x-fearless-md:*.md\n");
+    Fs.writeUtf8(home.resolve("mime").resolve("subclasses"), "application/x-fearless-md text/markdown\n");
+    reconcile(".md");
+  }
+  @Test void aProgramRemovedFromATypeOfTheIdentityLeavesTheExtensionToTheProgramOfTheParentType(){
+    if (!Fs.isLinux()){ return; }
+    typesOfTheIdentity(".htm");
+    Fs.writeUtf8(home.resolve("mime").resolve("subclasses"), "application/x-fearless-htm text/html\n");
+    var config= root.resolve("config").resolve("mimeapps.list");
+    Fs.writeUtf8(config, "[Added Associations]\napplication/x-fearless-htm=fearlessManaged0_001.desktop;\n[Removed Associations]\napplication/x-fearless-htm=fearlessManaged0_001.desktop;\n");
+    assertEquals("notOurs {.htm=browser}", refused(".htm"));
+    taking(List.of(".htm"), ".htm");
+    assertEquals("[Added Associations]\n[Removed Associations]\n", Fs.readUtf8(config));
+    reconcile(".htm");
+  }
+  @Test void anEntryOfTheUserHidesTheTypesOfTheEntryOfTheSameNameInTheSystem(){
+    if (!Fs.isLinux()){ return; }
+    sysMime("globs2", "50:text/markdown:*.md\n");
+    Fs.writeUtf8(sys.resolve("applications").resolve("editor.desktop"), "[Desktop Entry]\nMimeType=text/markdown;\n");
+    assertEquals("notOurs {.md=editor}", refused(".md"));
+    Fs.writeUtf8(home.resolve("applications").resolve("editor.desktop"), "[Desktop Entry]\nMimeType=text/plain;\n");
+    reconcile(".md");
+    assertEquals("MimeType=application/x-fearless-md;", mimeTypes());
+  }
+  private void typesOfTheIdentity(String... extensions){
+    reconcile(extensions);
+    Fs.writeUtf8(home.resolve("mime").resolve("globs2"), String.join("", Stream.of(extensions).map(e -> "100:"+LinuxAssociations.typeOf(e)+":*"+e+"\n").toList()));
+    Fs.writeUtf8(sys.resolve("applications").resolve("browser.desktop"), "[Desktop Entry]\nMimeType=text/html;\n");
+    ran.clear();
+  }
+  @Test void aPreferenceForATypeOfTheIdentityIsRemovedFromEveryListOnlyWhenEveryHeldExtensionIsTaken(){
     onWindows("""
-      forgetChoices deletes the keys UserChoice and UserChoiceLatest of the extensions named, and nothing else under Explorer\\FileExts\\<ext>.
-      Check that OpenWithList and OpenWithProgids of other programs stay, and that the next reconcile is not refused.""");
+      A UserChoice or a UserChoiceLatest naming another program for an extension makes reconcile refuse with notOurs naming that program, unless the extension is taken;
+      reconcile with the extension taken deletes both keys. ReconcileTest.aPreferenceOfTheUserForAnotherProgramIsRefusedUntilTakenAndTakingRemovesIt checks the UserChoice.
+      Make choices of each kind for several extensions, and check that one refusal lists all of them, and that nothing is written.""");
     if (Fs.isMac()){
-      ReconcileTest.pick("public.plain-text");
-      ReconcileTest.pick("fearlessmanaged0-001.txt");
-      assertEquals("chosenByHand {fearlessmanaged0-001.txt=[other]}", macRefused());
-      FileAssociations.forgetChoices(Map.of("fearlessmanaged0-001.txt", List.of("other")), IllegalStateException::new);
-      Err.strCmp("[{\"LSHandlerContentType\":\"public.plain-text\",\"LSHandlerRoleAll\":\"other\"}]\n", choicesOfTheDesk());
-      assertTrue(Files.exists(root.resolve("reloaded")));
-      macReconcile();
+      reconcile(".htm", ".txt");
+      holders.put(".htm", Path.of("/Applications/Browser.app"));
+      holders.put(".txt", Path.of("/Applications/Browser.app"));
+      assertEquals("notOurs {.htm=Browser, .txt=Browser}", refused(".htm", ".txt"));
+      assertEquals("notOurs {.txt=Browser}", refusedTaking(List.of(".htm"), ".htm", ".txt"));
+      assertFalse(Files.exists(preferencesFile()));
+      taking(List.of(".htm", ".txt"), ".htm", ".txt");
+      assertEquals(choices("fearlessmanaged0-001.htm", "fearlessmanaged0-001.txt"), ReconcileTest.choicesOfTheDesk());
       return;
     }
+    typesOfTheIdentity(".htm", ".txt");
+    var config= root.resolve("config").resolve("mimeapps.list");
+    var etc= root.resolve("etc").resolve("mimeapps.list");
+    var text= "[Default Applications]\ntext/html=browser.desktop\napplication/x-fearless-htm=browser.desktop\n"
+      +"[Added Associations]\napplication/x-fearless-htm=editor.desktop;\n# application/x-fearless-htm=editor.desktop;\n[Removed Associations]\napplication/x-fearless-txt=browser.desktop;\n";
+    Fs.writeUtf8(config, text);
+    Fs.writeUtf8(etc, "[Default Applications]\n application/x-fearless-txt = browser.desktop\n");
+    assertEquals("notOurs {.htm=browser, .txt=browser}", refused(".htm", ".txt"));
+    assertEquals("notOurs {.txt=browser}", refusedTaking(List.of(".htm"), ".htm", ".txt"));
+    assertEquals(text, Fs.readUtf8(config));
+    assertEquals(List.of(), ran);
+    taking(List.of(".htm", ".txt"), ".htm", ".txt");
+    assertEquals("[Default Applications]\ntext/html=browser.desktop\n[Added Associations]\n# application/x-fearless-htm=editor.desktop;\n[Removed Associations]\n", Fs.readUtf8(config));
+    assertEquals("[Default Applications]\n", Fs.readUtf8(etc));
+    assertEquals(rebuilt(), ran);
+  }
+  @Test void takingAnExtensionChangesThePreferencesWhereTheDeskReadsThem(){
+    onWindows("""
+      reconcile with an extension taken deletes the keys UserChoice and UserChoiceLatest of that extension, and nothing else under Explorer\\FileExts\\<ext>.
+      Check that OpenWithList and OpenWithProgids of other programs stay.""");
+    if (Fs.isMac()){
+      types.put("htm", List.of(html));
+      reconcile(".htm");
+      holders.put(".htm", Path.of("/Applications/Browser.app"));
+      ReconcileTest.pick("public.plain-text", "other");
+      ReconcileTest.pick("PUBLIC.HTML", "other");
+      MacAssociations.register = b -> { assertTrue(Files.exists(root.resolve("reloaded"))); registered.add(b); return 0; };
+      taking(List.of(".htm"), ".htm");
+      Err.strCmp("[{\"LSHandlerContentType\":\"public.plain-text\",\"LSHandlerRoleAll\":\"other\"},"+choices("public.html").substring(1), ReconcileTest.choicesOfTheDesk());
+      assertEquals(List.of(bundle(), bundle()), registered);
+      return;
+    }
+    typesOfTheIdentity(".htm");
     var kept= root.resolve("kept").resolve("mimeapps.list");
     var link= root.resolve("config").resolve("mimeapps.list");
-    var line= "text/plain="+identity+".desktop";
-    Fs.writeUtf8(kept, "[Default Applications]\ntext/html=browser.desktop\n"+line+"\n");
+    Fs.writeUtf8(kept, "[Default Applications]\ntext/html=browser.desktop\napplication/x-fearless-htm=browser.desktop\n");
     Fs.ensureDir(link.getParent());
     Fs.ofV(() -> Files.createSymbolicLink(link, kept));
-    assertEquals("chosenByHand {"+link+"=["+line+"]}", refused());
-    FileAssociations.forgetChoices(Map.of(link.toString(), List.of(line)), IllegalStateException::new);
+    taking(List.of(".htm"), ".htm");
     assertEquals("[Default Applications]\ntext/html=browser.desktop\n", Fs.readUtf8(kept));
     assertTrue(Files.isSymbolicLink(link));
-    reconcile();
+    reconcile(".htm");
   }
-  @Test void forgettingChoicesChangesNothingWhenOneChoiceCanNotBeRemoved(){
+  @Test void aPreferenceTheUserCanNotChangeIsRefusedBeforeWritingAnything(){
     onWindows("""
-      Windows protects a UserChoice with a permission that denies changes to the user. Investigate whether reg delete removes such a key,
-      then make two choices, one the user can not remove, and check that forgetChoices refuses with notWritable naming that key and removes neither choice.""");
+      Windows protects a UserChoice with a permission that denies changes to the user. Investigate whether RegDeleteTreeW removes such a key,
+      then make two choices, one the user can not remove, and check that reconcile with both extensions taken refuses with notWritable naming that key and removes neither choice.""");
     if (Fs.isMac()){
-      ReconcileTest.pick("fearlessmanaged0-001.txt");
-      ReconcileTest.pick("fearlessmanaged0-001.htm");
-      var choices= MacAssociations.choices();
-      var before= choicesOfTheDesk();
-      withReadOnly(preferencesFile(), () -> assertEquals("notWritable "+preferencesFile(),
-        assertThrows(IllegalStateException.class, () -> FileAssociations.forgetChoices(choices, s -> new IllegalStateException("notWritable "+s))).getMessage()));
-      assertEquals(before, choicesOfTheDesk());
-      assertEquals(choices, MacAssociations.choices());
+      types.put("htm", List.of(html));
+      holders.put(".htm", Path.of("/Applications/Browser.app"));
+      ReconcileTest.pick("public.html", "other");
+      var before= ReconcileTest.choicesOfTheDesk();
+      withReadOnly(preferencesFile(), () -> assertEquals("notWritable "+preferencesFile(), refusedTaking(List.of(".htm"), ".htm")));
+      assertEquals(before, ReconcileTest.choicesOfTheDesk());
+      assertFalse(Files.exists(bundle()));
       assertFalse(Files.exists(root.resolve("reloaded")));
       return;
     }
+    typesOfTheIdentity(".htm");
     var config= root.resolve("config").resolve("mimeapps.list");
     var etc= root.resolve("etc").resolve("mimeapps.list");
-    var line= "text/plain="+identity+".desktop";
-    var text= "[Default Applications]\n"+line+"\n";
+    var text= "[Default Applications]\napplication/x-fearless-htm=browser.desktop\n";
     Fs.writeUtf8(config, text);
     Fs.writeUtf8(etc, text);
-    var choices= Map.of(config.toString(), List.of(line), etc.toString(), List.of(line));
     assertTrue(etc.toFile().setWritable(false));
     try{
       assertFalse(Files.isWritable(etc), "This test needs a user that the permission denies: run the tests as a normal user, not as root.");
-      var refusal= assertThrows(IllegalStateException.class, () -> FileAssociations.forgetChoices(choices, s -> new IllegalStateException("notWritable "+s)));
-      assertEquals("notWritable "+etc, refusal.getMessage());
+      assertEquals("notWritable "+etc, refusedTaking(List.of(".htm"), ".htm"));
     }
     finally{ etc.toFile().setWritable(true); }
     assertEquals(text, Fs.readUtf8(config));
+    assertEquals(List.of(), ran);
   }
-  @Test void aFearlessExtensionAnotherProgramDeclaresIsNotOurs(){
+  @Test void aFearlessExtensionAnotherProgramHoldsIsNotOurs(){
     onWindows("""
-      Classes\\.ffile042 naming the ProgId of another program as its default makes reconcile(".ffile042") refuse with notOurs naming that ProgId, and write nothing
-      (ReconcileTest.aFearlessExtensionAnotherProgramClaimsIsNotOurs checks the OpenWithProgids form). Check that.""");
+      Classes\\.ffile042 naming the ProgId of another program as its default makes reconcile(".ffile042") refuse with notOurs naming that program, and write nothing
+      (ReconcileTest.anExtensionAProgramOutsideTheFamilyHoldsIsRefusedUntilTakenWhateverItsKind checks it). Check that a ProgId of another program only listed in Classes\\.ffile042\\OpenWithProgids makes no refusal.""");
     if (Fs.isMac()){
       types.put("ffile042", List.of(sketch));
-      assertEquals("notOurs {.ffile042=[Sketch]}", Assertions.assertThrows(IllegalStateException.class, () -> macReconcile(".ffile042")).getMessage());
+      holders.put(".ffile042", sketch.bundle());
+      assertEquals("notOurs {.ffile042=Sketch}", refused(".ffile042"));
+      assertFalse(Files.exists(bundle()));
       return;
     }
-    sysMime("globs2", "50:application/x-other:*.ffile042\n50:application/x-wide:*.ffile04[0-9]\n50:application/x-near:*.ffile043\n");
-    assertEquals("notOurs {.ffile042=[application/x-other, application/x-wide]}", refused(".htm", ".ffile042"));
+    sysMime("globs2", "50:application/x-other:*.ffile042\n60:application/x-wide:*.ffile04[0-9]\n70:application/x-near:*.ffile043\n");
+    Fs.writeUtf8(sys.resolve("applications").resolve("other.desktop"), "[Desktop Entry]\nMimeType=application/x-other;application/x-near;\n");
+    Fs.writeUtf8(sys.resolve("applications").resolve("vim.desktop"), "[Desktop Entry]\nMimeType=application/x-wide;application/x-fearless-ffile052;\n");
+    assertEquals("notOurs {.ffile042=vim}", refused(".htm", ".ffile042"));
     assertFalse(Files.exists(home));
-    Fs.writeUtf8(sys.resolve("applications").resolve("vim.desktop"), "[Desktop Entry]\nMimeType=application/x-fearless-ffile052;\n");
-    assertEquals("notOurs {.ffile052=[vim]}", refused(".ffile052", ".fapp001"));
-    assertFalse(Files.exists(home));
+    reconcile(".ffile052", ".fapp001");
+    assertEquals("MimeType=application/x-fearless-ffile052;application/x-fearless-fapp001;", mimeTypes());
   }
   @Test void theExtensionFearlessKeepsTheTypeOfTheFamily(){
     onWindows("""
-      .fearless gets the ProgId <identity>.fearless, and another program in Classes\\.fearless\\OpenWithProgids makes reconcile(".fearless") refuse with notOurs. Check both.""");
+      .fearless gets the ProgId <identity>.fearless, and another program as the default of Classes\\.fearless makes reconcile(".fearless") refuse with notOurs. Check both.""");
     if (Fs.isMac()){
-      macReconcile(".fearless");
+      reconcile(".fearless");
       plistIs(document("fearless", "Owner", "fearlessmanaged0-001.fearless"), exported("fearless"));
-      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/fearless.icns"), files());
+      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/en.lproj/InfoPlist.strings", "Contents/Resources/fearless.icns"), files());
       assertEquals(List.of(bundle()), registered);
-      types.put("fearless", List.of(sketch));
-      assertEquals("notOurs {.fearless=[Sketch]}", macRefused(".fearless"));
+      holders.put(".fearless", sketch.bundle());
+      assertEquals("notOurs {.fearless=Sketch}", refused(".fearless"));
       return;
     }
     sysMime("globs2", "50:application/x-other:*.fearless\n");
     reconcile(".fearless");
-    Err.strCmp(mimeInfo("\"><glob pattern=\"*.fearless\" weight=\"100\"/>"), Fs.readUtf8(packageFile()));
+    Err.strCmp(mimeInfo("\"><glob pattern=\"*.fearless\" weight=\"100\"/><sub-class-of type=\"application/x-other\"/>"), Fs.readUtf8(packageFile()));
     assertEquals("MimeType=application/x-fearless;", mimeTypes());
-    Fs.writeUtf8(sys.resolve("applications").resolve("vim.desktop"), "[Desktop Entry]\nMimeType=application/x-fearless;\n");
-    assertEquals("notOurs {.fearless=[vim]}", refused(".fearless"));
+    Fs.writeUtf8(sys.resolve("applications").resolve("vim.desktop"), "[Desktop Entry]\nMimeType=application/x-other;\n");
+    assertEquals("notOurs {.fearless=vim}", refused(".fearless"));
   }
   @Test void releasingAnExtensionLeavesTheIdentityWithoutIt(){
     onWindows("""
       A reconcile with fewer extensions deletes Classes\\<identity>.<ext> and the value <ext> of Software\\<identity>\\Capabilities\\FileAssociations of each released extension,
       and keeps the keys of the others. Check that.""");
     if (Fs.isMac()){
-      macReconcile(".fapp123", ".ffile042");
-      macReconcile(".fapp123");
+      reconcile(".fapp123", ".ffile042");
+      reconcile(".fapp123");
       plistIs(document("fapp123", "Owner", "fearlessmanaged0-001.fapp123"), exported("fapp123"));
-      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/fapp123.icns"), files());
+      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/en.lproj/InfoPlist.strings", "Contents/Resources/fapp123.icns"), files());
       return;
     }
     reconcile(".fearless", ".htm", ".ffile042");
@@ -464,7 +518,7 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
     if (Fs.isMac()){
       MacAssociations.declared = declared;
       assertEquals(declared.apply("htm"), declared.apply("HTM"));
-      macReconcile(".htm");
+      reconcile(".htm");
       plistIs(document("htm", "Alternate", declared.apply("htm").getFirst().type()), "");
       return;
     }
@@ -475,14 +529,17 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
   }
   @Test void theTypesTheFamilyDeclaredAreNotTypesOfOtherPrograms(){
     onWindows("""
-      The keys an older identity of the family left (Classes\\<older identity>.<ext>, its value in Classes\\<ext>\\OpenWithProgids) do not make reconcile refuse with notOurs.
+      The keys an older identity of the family left (Classes\\<older identity>.<ext>, the default of Classes\\<ext> naming it) do not make reconcile refuse with notOurs.
       Check that, and that reconcile deletes those keys.""");
     if (Fs.isMac()){
       types.put("fapp123", List.of(new Declared("fearlessmanaged0-001.fapp123", bundle()), sketch));
       types.put("ffile123", List.of(new Declared("fearlessmanaged0-001.ffile123", bundle())));
-      macReconcile(".ffile123");
+      reconcile(".ffile123");
       plistIs(document("ffile123", "Owner", "fearlessmanaged0-001.ffile123"), exported("ffile123"));
-      assertEquals("notOurs {.fapp123=[Sketch]}", Assertions.assertThrows(IllegalStateException.class, () -> macReconcile(".fapp123")).getMessage());
+      holders.put(".fapp123", Path.of("/Applications/fearlessManaged0_000.app"));
+      reconcile(".fapp123");
+      plistIs(document("fapp123", "Alternate", "com.example.sketch"), "");
+      assertEquals(choices("com.example.sketch"), ReconcileTest.choicesOfTheDesk());
       return;
     }
     var old= "fearlessManaged0_000";
@@ -498,16 +555,16 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
   }
   @Test void anExtensionWithATypeOfAnotherProgramIsOpenedBelowThatType(){
     onWindows("""
-      A system extension whose Classes\\.qux names the ProgId of another program is taken over: Classes\\.qux names the ProgId of the identity,
+      A system extension whose Classes\\.qux names the ProgId of another program is taken over when taken: Classes\\.qux names the ProgId of the identity,
       and the ProgId of the other program stays in Classes\\.qux\\OpenWithProgids. Check that.""");
     if (Fs.isMac()){
       types.put("sketch", List.of(sketch, html));
-      macReconcile(".sketch");
+      reconcile(".sketch");
       plistIs(document("sketch", "Alternate", "com.example.sketch"), "");
-      assertEquals(List.of("com.example.sketch"), offered);
-      macReconcile(".sketch", ".fapp123");
-      macReconcile(".sketch");
-      assertEquals(List.of("com.example.sketch"), offered);
+      assertFalse(Files.exists(preferencesFile()));
+      holders.put(".sketch", sketch.bundle());
+      taking(List.of(".sketch"), ".sketch", ".fapp123");
+      assertEquals(choices("com.example.sketch"), ReconcileTest.choicesOfTheDesk());
       return;
     }
     Fs.writeUtf8(home.resolve("mime").resolve("globs2"), "100:application/x-gone:*.ffile001\n50:text/x-qux:*.qux\n");
@@ -519,12 +576,12 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
   }
   @Test void anUnchangedSetWritesNothingAndRefreshesTheDesktopAgain(){
     onWindows("""
-      A reconcile with the set the registry already holds imports no .reg file (WindowsAssociations.alreadyMatches) and still notifies the shell.
-      Check that a value the test adds under Software\\<identity> stays: an import would first delete that key.""");
+      A reconcile with the set the registry already holds writes no registry value (WindowsAssociations.alreadyMatches) and still notifies the shell.
+      Check that a value the test adds under Software\\<identity> stays: a new setup would first delete that key.""");
     if (Fs.isMac()){
-      macReconcile(".fapp123");
+      reconcile(".fapp123");
       var written= Fs.of(() -> Files.getLastModifiedTime(contents("Info.plist")));
-      macReconcile(".fapp123");
+      reconcile(".fapp123");
       assertEquals(written, Fs.of(() -> Files.getLastModifiedTime(contents("Info.plist"))));
       assertEquals(List.of(bundle(), bundle()), registered);
       return;
@@ -540,11 +597,11 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
   }
   @Test void aChangeTheDeskRefusesIsReported(){
     onWindows("""
-      A reg import that Windows refuses (a key of the identity whose permissions deny changes to the user) ends reconcile with halfDone naming the command and its output.
+      A registry write that Windows refuses (a key of the identity whose permissions deny changes to the user) ends reconcile with halfDone naming the Windows function, the key and the text Windows gives for the error code.
       Check that, and remove the permission after the test.""");
     if (Fs.isMac()){
       MacAssociations.register = _ -> -43;
-      Err.strCmp("halfDone LSRegisterURL [###]/home/fearlessManaged0_001.app\n-43", Assertions.assertThrows(IllegalStateException.class, () -> macReconcile(".fapp123")).getMessage());
+      Err.strCmp("halfDone LSRegisterURL [###]/home/fearlessManaged0_001.app\n-43", refused(".fapp123"));
       return;
     }
     Fs.writeUtf8(mimetypes().resolve(identity+"-0123abc.png"), "");
@@ -563,10 +620,10 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
       Investigate an identity registered under HKEY_LOCAL_MACHINE\\Software\\Classes, which the user can not change, while WindowsAssociations reads only HKEY_CURRENT_USER.
       Then check that reconcile refuses before writing, or say in ReconciliatorDesign why such an identity is not one of the family.""");
     if (Fs.isMac()){
-      macReconcile(".fapp123");
+      reconcile(".fapp123");
       withReadOnly(MacAssociations.home, () -> {
-        assertEquals("notWritable "+MacAssociations.home, macRefused());
-        assertEquals("notWritable "+MacAssociations.home, macRefused(".ffile002"));
+        assertEquals("notWritable "+MacAssociations.home, refused());
+        assertEquals("notWritable "+MacAssociations.home, refused(".ffile002"));
       });
       plistIs(document("fapp123", "Owner", "fearlessmanaged0-001.fapp123"), exported("fapp123"));
       assertEquals(List.of(bundle()), registered);
@@ -589,8 +646,8 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
       When that test has its Windows form, make this test check that a part of it the user can not change is refused before writing anything.""");
     if (Fs.isMac()){
       var game= new WindowIcon("fearless-1a2b-game.IconsGame", "Game", Path.of("/projects/game"), icon(0x00ff00));
-      macReconcile(List.of(game), ".fapp123");
-      withReadOnly(contents("Resources"), () -> assertEquals("notWritable "+contents("Resources"), macRefused(List.of(game), ".ffile002")));
+      reconcile(List.of(game), ".fapp123");
+      withReadOnly(contents("Resources"), () -> assertEquals("notWritable "+contents("Resources"), assertThrows(IllegalStateException.class, () -> reconcile(List.of(game), ".ffile002")).getMessage()));
       plistIs(document("fapp123", "Owner", "fearlessmanaged0-001.fapp123"), exported("fapp123"));
       assertEquals(List.of(bundle()), registered);
       return;
@@ -614,9 +671,9 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
     var game= new WindowIcon("fearless-1a2b-game.IconsGame", "Game", Path.of("/projects/game"), icon(0x00ff00));
     var tool= new WindowIcon("fearless-1a2b-game.IconsTool", "Game", Path.of("/projects/game"), icon(0x00ff00));
     if (Fs.isMac()){
-      macReconcile(List.of(game, tool), ".fearless");
+      reconcile(List.of(game, tool), ".fearless");
       plistIs(document("fearless", "Owner", "fearlessmanaged0-001.fearless"), exported("fearless"));
-      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/fearless.icns"), files());
+      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/en.lproj/InfoPlist.strings", "Contents/Resources/fearless.icns"), files());
       assertEquals(List.of(identity), FileAssociations.identities(family));
       return;
     }
@@ -646,7 +703,7 @@ Terminal=false
   }
   @Test void aRegistrationOfAnotherProgramThatCanNotBeReadIsIgnored(){
     onWindows("""
-      Investigate how reg query prints a value of another program under Classes\\.ffile001 that holds a newline or an unpaired surrogate,
+      Investigate what RegGetValueW gives for a value of another program under Classes\\.ffile001 that holds a newline or an unpaired surrogate,
       then check that reconcile(".ffile001") still reads the other values of that key.""");
     if (Fs.isMac()){
       MacAssociations.declared = declared;
@@ -656,7 +713,7 @@ Terminal=false
       assertEquals(0, register.applyAsInt(unreadable));
       try{
         assertEquals(List.of(), declared.apply("ffile996"));
-        macReconcile(".ffile996");
+        reconcile(".ffile996");
         assertEquals(List.of(identity), FileAssociations.identities(family));
       }
       finally{
@@ -699,7 +756,7 @@ Terminal=false
       The default of Classes\\<identity>.<ext>\\DefaultIcon is the .ico of the extension (Icon.ico) followed by ",0".
       Check that, and that a reconcile with another .ico for the extension writes the new one.""");
     if (Fs.isMac()){
-      macReconcile(".fapp123");
+      reconcile(".fapp123");
       var icns= ByteBuffer.wrap(Fs.of(() -> Files.readAllBytes(contents("Resources/fapp123.icns"))));
       var image= new byte[icns.capacity() - 16];
       icns.get(16, image);
@@ -729,7 +786,7 @@ Terminal=false
       FileAssociations.eradicateAll deletes Software\\<identity>, the value <identity> of RegisteredApplications, Classes\\<identity>.<ext>,
       and Classes\\<ext> when nothing else is left in it. Check every one.""");
     if (Fs.isMac()){
-      macReconcile(".fapp123");
+      reconcile(".fapp123");
       FileAssociations.eradicateAll(family, IllegalStateException::new);
       assertFalse(Files.exists(bundle()));
       return;
@@ -753,7 +810,7 @@ Terminal=false
       var installed= root.resolve("Applications").resolve("fearlessManaged0_000.app").resolve("Contents").resolve("Info.plist");
       Fs.writeUtf8(installed, MacAssociations.plist("fearlessManaged0_000", "Fearless Manager", "", ""));
       assertEquals(List.of(), FileAssociations.identities(family));
-      macReconcile(".ffile001");
+      reconcile(".ffile001");
       assertEquals(List.of(identity), FileAssociations.identities(family));
       assertTrue(Files.exists(installed));
       return;
@@ -797,7 +854,7 @@ Terminal=false
 """);
       assertEquals(0, register.applyAsInt(old));
       assertEquals(List.of(new Declared("fearlessmanaged0-000.ffile997", old)), declared.apply("ffile997"));
-      macReconcile(".ffile997");
+      reconcile(".ffile997");
       assertEquals(List.of(identity), FileAssociations.identities(family));
       FileAssociations.eradicateAll(family, IllegalStateException::new);
       assertEquals(List.of(), declared.apply("ffile997"));
@@ -821,12 +878,12 @@ Terminal=false
       Investigate how a test sees the notification of the shell (SHChangeNotify in WindowsAssociations),
       then check that one reconcile notifies the shell once, and that a reconcile with no extension and no identity notifies nothing.""");
     if (Fs.isMac()){
-      macReconcile(".fapp123");
+      reconcile(".fapp123");
       assertEquals(List.of(bundle()), registered);
       return;
     }
     Fs.writeUtf8(sys.resolve("applications").resolve("browser.desktop"), "[Desktop Entry]\nMimeType=text/html;\n");
-    reconcile(".htm");
+    taking(List.of(".htm"), ".htm");
     assertEquals(rebuilt(), ran);
   }
   @Test void noExtensionLeavesNothingOfTheIdentity(){
@@ -834,8 +891,8 @@ Terminal=false
       After reconcile with no extension no key of the identity is left (Software\\<identity>, the value of RegisteredApplications, Classes\\<identity>.<ext>),
       and a second reconcile with no extension notifies nothing. Check that (ReconcileTest.aReconcileWithNoExtensionsRemovesTheIdentity checks only the identities).""");
     if (Fs.isMac()){
-      macReconcile(".fearless");
-      macReconcile();
+      reconcile(".fearless");
+      reconcile();
       assertFalse(Files.exists(bundle()));
       assertEquals(List.of(bundle(), bundle()), registered);
       return;
