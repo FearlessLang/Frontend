@@ -113,7 +113,6 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
       && new CaptureWalk(_l.bs(), g.filterFTV(_l), RC::isIsoOrImm).isFree(_l);
     _l.onlyImmCapture().inner = new CaptureWalk(bs1, g, rc -> rc == imm).isFree(_l);
     var l= getIso ? _l.withRC(iso) : _l;
-    for (var r : rs){ if (!(r.t() instanceof T.RCC)){ throw tsE().literalImplementsTypeParameter(l, r.t()); } }
     var thisType= new T.RCC(l.rc(), new T.C(l.name(), dom(l.bs(), span)), span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l, bs1, thisType);
