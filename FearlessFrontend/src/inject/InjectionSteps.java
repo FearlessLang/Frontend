@@ -20,7 +20,6 @@ import inference.Gamma;
 import inference.IT;
 import inference.IT.RCC;
 import inference.M;
-import typeSystem.TypeSystem;
 import utils.Bug;
 import utils.OneOr;
 import utils.Push;
@@ -122,8 +121,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (t2.undecided()){ return t1 instanceof IT.U ? t2 : t1; }
     if (t1.undecided()){ return t2; }
     if (t1.equals(t2)){ return t1; }
-    var t2ReadImmOfT1= t2 instanceof IT.ReadImmX(var x2) && x2.equals(t1);
-    if (t2ReadImmOfT1){ return t2; }
     if (t1 instanceof IT.RCC x1 && t2 instanceof IT.RCC x2){
       if (!x1.c().name().equals(x2.c().name())){
         var s= _below(x1, x2);
@@ -141,10 +138,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (b.isEmpty()){ return a; }
     var x= noH(a.get());
     var y= noH(b.get());
-    var keepX= x == y || y == RC.iso || y == RC.read && x != RC.iso;
-    if (keepX){ return Optional.of(x); }
-    if (x == RC.iso || x == RC.read){ return Optional.of(y); }
-    return Optional.of(RC.imm);// returning Optional.empty(); could make it go in loop
+    return Optional.of(x.compareTo(y) < 0 ? x : y);// returning Optional.empty(); could make it go in loop
   }
   static RC noH(RC a){ return a == RC.readH ? RC.read : a == RC.mutH ? RC.mut : a; }
   IT join(IT t1, IT t2){
@@ -185,19 +179,17 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (a instanceof IT.RCC x1 && b instanceof IT.RCC x2){
       var differ= Streams.zip(x1.c().ts(), x2.c().ts()).anyMatch((t1,t2) -> t1.isTV() && t2.isTV() && !t1.equals(t2));
       if (differ){ return null; }
-      return x1.withRCTs(joinRcNoH(x1.rc(), x2.rc()), meet(x1.c().ts(), x2.c().ts()));
+      return x1.withRCTs(diamondRcNoH(x1.rc(), x2.rc(), RC.iso, RC.read), meet(x1.c().ts(), x2.c().ts()));
     }
-    if (a instanceof IT.RCX x1 && b instanceof IT.RCX x2){ return x1.withRC(joinRcNoH(Optional.of(x1.rc()), Optional.of(x2.rc())).get()); }
+    if (a instanceof IT.RCX x1 && b instanceof IT.RCX x2){ return x1.withRC(diamondRcNoH(Optional.of(x1.rc()), Optional.of(x2.rc()), RC.iso, RC.read).get()); }
     return meet(a, b);
   }
-  static Optional<RC> joinRcNoH(Optional<RC> a, Optional<RC> b){
+  static Optional<RC> diamondRcNoH(Optional<RC> a, Optional<RC> b, RC bot, RC top){
     if (a.isEmpty()){ return b; }
     if (b.isEmpty()){ return a; }
     var x= noH(a.get());
     var y= noH(b.get());
-    if (x == y || y == RC.iso){ return Optional.of(x); }
-    if (x == RC.iso){ return Optional.of(y); }
-    return Optional.of(RC.read);
+    return Optional.of(x == y || y == bot ? x : x == bot ? y : top);
   }
   List<IT> join(List<IT> t1, List<IT> t2){ return Streams.zip(t1, t2).map(this::join).toList(); }
   List<IT> join(List<List<IT>> tss){ return tss.stream().reduce(this::join).get(); }
@@ -291,24 +283,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private void updateG(Gamma g, String x, IT t1, IT t2){
     if (t1.undecided()){ g.update(x, g.captured(x) && t2 instanceof IT.RCC(_, var c, var span) ? new RCC(Optional.empty(), c, span) : t2); return; }
-    if (t1 instanceof IT.RCC(var aRc, var aC, var aSpan) && t2 instanceof IT.RCC(var bRc, var bC, _)){
-      if (aC.name().equals(bC.name())){ g.update(x, new RCC(glbRcNoH(aRc, bRc), aC, aSpan)); }
-      return;
-    }
-    if (!(t1 instanceof IT.RCX a && t2 instanceof IT.RCX(var bRc, var bX))){ return; }
-    if (a.x().equals(bX)){ g.update(x, a.withRC(glbRcNoH(a.rc(), bRc))); }
-  }
-  static Optional<RC> glbRcNoH(Optional<RC> a, Optional<RC> b){
-    if (a.isEmpty()){ return b; }
-    if (b.isEmpty()){ return a; }
-    return Optional.of(glbRcNoH(a.get(), b.get()));
-  }
-  static RC glbRcNoH(RC a, RC b){
-    a = noH(a); b = noH(b);
-    if (a == b){ return a; }
-    if (a == RC.read){ return b; }
-    if (b == RC.read){ return a; }
-    return RC.iso;
+    if (t1 instanceof IT.RCC(var aRc, var aC, var aSpan) && t2 instanceof IT.RCC(var bRc, var bC, _) && aC.name().equals(bC.name())){ g.update(x, new RCC(diamondRcNoH(aRc, bRc, RC.read, RC.iso), aC, aSpan)); }
   }
   private E nextT(E.Type t){
     if (!t.t().undecided()){ return t; }
@@ -364,10 +339,9 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
     var hard= fromArgs(m, c.es(), true);
     var exactRet= m.ret0() instanceof IT.RCC ? fromRet : qMarks(fromRet.size());
-    return Stream.of(written, exactRet, hard, all).reduce((p,q) -> Streams.zip(p, q).map((a,b) -> decided(a) ? a : b).toList()).get();
+    return Stream.of(written, exactRet, hard, all).reduce((p,q) -> Streams.zip(p, q).map((a,b) -> a.isTV() ? a : b).toList()).get();
   }
   static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
-  private static boolean decided(IT t){ return t.isTV() && !(t instanceof IT.RCC(var rc, _, _) && rc.isEmpty()); }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
     var selfUnknown= l.infName() && l.rc().isEmpty();
     if (selfUnknown){ return Optional.empty(); }
@@ -434,9 +408,8 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   private E.Type literalAsType(E.Literal l, IT.RCC rcc){
     if (!l.thisName().equals("_")){ throw meths.p().err().selfNameDeadCode(l); }
     var written= new IT.RCC(l.rc().or(rcc::rc).map(InjectionSteps::noH), rcc.c(), rcc.span());
-    var orcc= l.src().inner instanceof fearlessFullGrammar.E.Literal ? selfArgument(written) : written;
-    notForeignPrivate(l, orcc);
-    return new E.Type(orcc, preferred(orcc), l.src(), l.g());
+    notForeignPrivate(l, written);
+    return new E.Type(written, preferred(written), l.src(), l.g());
   }
   private void notForeignPrivate(E owner, IT.RCC t){
     var head= t.c().name();
@@ -448,7 +421,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var instantiable= meths._from(c.name()).ms().stream().noneMatch(m -> m.sig().abs() && m.sig().rc() != RC.mut);
     if (instantiable){ return t; }
     var selves= c.ts().stream().flatMap(ti -> ti instanceof IT.RCC r && meths.implied(r.c()).contains(c) ? Stream.of(r.c()) : Stream.of()).distinct().toList();
-    return selves.size() == 1 ? selfArgument(new IT.RCC(t.rc(), selves.getFirst(), t.span())) : t;
+    return selves.size() == 1 ? new IT.RCC(t.rc(), selves.getFirst(), t.span()) : t;
   }
   private List<M> fixArity(List<M> ms, TName name, TName newName){
     if (name.equals(newName)){ return ms; }
@@ -519,8 +492,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return new Refined(Streams.zip(rcc.c().ts(), fromBody).map(this::keepDecided).toList(), lower);
   }
   private IT keepDecided(IT decided, IT fromBody){
-    var decidedIso= decided instanceof IT.RCX(var aRc, _) && aRc == RC.iso;
-    var decidedSameX= xName(decided).isPresent() && xName(decided).equals(xName(fromBody)) && !decidedIso;
+    var decidedSameX= xName(decided).isPresent() && xName(decided).equals(xName(fromBody));
     if (decidedSameX){ return decided; }
     if (!(decided instanceof IT.RCC(var aRc, var aC, _) && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
     if (!aC.name().equals(b.c().name())){
@@ -613,7 +585,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (d == null){ return false; }
     var foreign= !head.pkgName().equals(meths.p().name());
     var foreignForbidden= foreign && (!head.isPublic() || LiteralDeclarations.has(d.cs(), LiteralDeclarations.sealed));
-    return !foreignForbidden && TypeSystem.hasInstance(d);
+    return !foreignForbidden;
   }
   private E.Literal itself(E.Literal l){
     var res= new E.Literal(Optional.of(RC.imm), l.name(), l.bs(), l.cs(), l.thisName(), l.ms(), l.src(), true);
