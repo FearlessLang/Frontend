@@ -3,7 +3,6 @@ package fileAssociationsTests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.awt.image.BufferedImage;
 import java.lang.ProcessBuilder.Redirect;
@@ -232,18 +231,19 @@ final class ReconcileTest{
     assertEquals(otherChoiceLeft(), choicesLeft(ext));
   }
   @Test void aChoiceForAnExtensionTheFamilyOpensRefuses(){
-    assumeTrue(Fs.isWindows());
     reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext));
-    choose(ext);
-    assertEquals("chosenByHand {"+ext+"=["+other(ext)+"]}", refused(List.of()));
+    if (Fs.isWindows()){ choose(ext); assertEquals("chosenByHand {"+ext+"=["+other(ext)+"]}", refused(List.of())); return; }
+    chooseTheFamily(ext);
+    assertEquals("chosenByHand "+familyChoice(ext), refused(List.of()));
   }
-  @Test void aChoiceForAFearlessExtensionRefusesInWhateverCaseTheRegistryKeepsTheExtension(){
-    assumeTrue(Fs.isWindows());
+  @Test void aChoiceForAFearlessExtensionRefusesUntilForgottenInWhateverCaseTheDeskKeepsTheExtension(){
     var upper= fearlessExt.toUpperCase(Locale.ROOT);
-    choose(upper);
-    assertEquals("chosenByHand {"+fearlessExt+"=["+other(upper)+"]}", refused(List.of()));
+    if (Fs.isWindows()){ choose(upper); }
+    if (!Fs.isWindows()){ chooseTheFamily(fearlessExt); }
+    var expected= Fs.isWindows() ? "{"+fearlessExt+"=["+other(upper)+"]}" : familyChoice(fearlessExt);
+    assertEquals("chosenByHand "+expected, refused(List.of()));
     FileAssociations.forgetChoices(chosen, IllegalStateException::new);
-    assertEquals("", choicesLeft(fearlessExt));
+    assertEquals(otherChoiceLeft(), choicesLeft(fearlessExt));
   }
   @Test void aFearlessExtensionAnotherProgramClaimsIsNotOurs(){
     claim(fearlessExt);
