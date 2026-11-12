@@ -30,7 +30,7 @@ import java.util.stream.*;
     imm,mut,read,iso,mutH,readH;
     boolean sub(RC other){return this==other||other==readH||this==iso||other==read&&!isH()||this==mut&&other==mutH;}
     boolean isH(){return ordinal()>3;}boolean ro(){return this==read||this==imm;}
-    boolean ii(){return this==iso||this==imm;}RC mutable(){return this==iso?mut:this;}
+    boolean ii(){return this==iso||this==imm;}
     RC ri(){return ii()?imm:read;}RC h(){return this==readH?read:this==mutH?mut:this;}
   }
   record N(String s,int arity){
@@ -281,8 +281,9 @@ import java.util.stream.*;
       public RC erc(){return r;}
     }
     enum U implements T{Instance}
-    default T rc(RC r){return this==u?this:this instanceof R w?new R(r,w.c):new RX(r,new X(variable(this)));}
-    default Stream<String>ftv(){return this instanceof R w?typeFree(w.c.types):Stream.ofNullable(variable(this));}
+    default String v(){return switch(this){case X x->x.name;case RX(_,var x)->x.name;case RI(var x)->x.name;default->null;};}
+    default T rc(RC r){return this==u?this:this instanceof R w?new R(r,w.c):new RX(r,new X(v()));}
+    default Stream<String>ftv(){return this instanceof R w?typeFree(w.c.types):Stream.ofNullable(v());}
     default T ri(){return switch(this){
       case X x->new RI(x);case R(var r,var c)->new R(r==null?null:r.ri(),c);case RX(var r,var x)->new RX(r.ri(),x);default->this;
     };}
@@ -341,14 +342,11 @@ import java.util.stream.*;
   static T fill(T t){return t instanceof R(var r,var c)?new R(or(r,imm),c).withTs(map(c.types,Frontend::fill)):t;}
   static T rename(T t,List<String>v,List<T>types){
     if(t instanceof R w)return w.withTs(rename(w.c.types,v,types));
-    var x=variable(t);if(x==null||!v.contains(x))return t;
+    var x=t.v();if(x==null||!v.contains(x))return t;
     var a=types.get(v.indexOf(x));
     return t instanceof RI?a.ri():t instanceof RX?a.rc(t.erc()):a;
   }
   static List<T>rename(List<T>tsi,List<String>v,List<T>types){return map(tsi,ti->rename(ti,v,types));}
-  static String variable(T t){return switch(t){
-    case X x->x.name;case RX(_,var x)->x.name;case RI(var x)->x.name;default->null;
-  };}
   static Stream<String>typeFree(List<T>ts){return ts.stream().flatMap(T::ftv);}
   static List<T>vars(List<B>b){return map(b,e->new X(e.x));}
   static List<T>qs(int n){return Collections.nCopies(n,u);}
@@ -544,8 +542,7 @@ import java.util.stream.*;
       return p.rc(meet(p.r,rc2));
     }
     RC meet(RC a,RC b){
-      if(a==null||b==null)return or(a,b);var x=a.h();var y=b.h();
-      return x.compareTo(y)<0?x:y;
+      if(a==null||b==null)return or(a,b);return a.h().compareTo(b.h())<0?a.h():b.h();
     }
     T join(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
@@ -555,7 +552,7 @@ import java.util.stream.*;
       return u;
     }
     T above(T top,List<T>cands){
-      T res=top;for(var c:cands){var up=c instanceof R r&&top instanceof R rt?r.c.name.equals(rt.c.name)?c:sup(r,rt.c.name):Objects.equals(variable(c),variable(top))?c:null;if(up==null)return null;
+      T res=top;for(var c:cands){var up=c instanceof R r&&top instanceof R rt?r.c.name.equals(rt.c.name)?c:sup(r,rt.c.name):Objects.equals(c.v(),top.v())?c:null;if(up==null)return null;
         res=res instanceof R p&&up instanceof R q?any(zip(p.c.types,q.c.types,(x,y)->x.tv()&&y.tv()&&!x.equals(y)),b->b)?null:p.with(lat(p.r,q.r,iso,read),meet(p.c.types,q.c.types)):res instanceof RX p&&up instanceof RX q?p.rc(lat(p.r,q.r,iso,read)):meet(res,up);if(res==null)return null;}return res;
     }
     RC lat(RC a,RC b,RC bot,RC top){
@@ -630,7 +627,7 @@ import java.util.stream.*;
     }
     TSM method(List<B>b,IG g,Literal l,R sp,R w,M m){var bs=l.anon?b:l.b;
       g.push(m.s.r,bs);if(l.anon&&!w.c.name.equals(l.name))sup.put(l.name,w.c);
-      g.declare(l.self,sp==null?u:new R(sp.r.mutable(),sp.c));
+      g.declare(l.self,sp==null?u:new R(sp.r==iso?mut:sp.r,sp.c));
       g.push(m.s.r,bs);g.declare(m);
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
       var args=zip(m.v,m.s.types,(x,t)->late?meet(t,g.get(x)):t);g.removeLast();
@@ -638,13 +635,13 @@ import java.util.stream.*;
       return new TSM(h.types,h.low,h.m.body(meet(e,h.m.s.t)));
     }
     T keep(T decided,T body){
-      if(variable(decided)!=null&&variable(decided).equals(variable(body)))return decided;
+      if(decided.v()!=null&&decided.v().equals(body.v()))return decided;
       if(!(decided instanceof R(var aRc,var aC)&&body instanceof R b))return meet(decided,body);
       if(!aC.name.equals(b.c.name)){var s=sup(b,aC.name);return s==null?decided:keep(decided,s);}
       return b.with(or(aRc,b.r),zip(aC.types,b.c.types,this::keep));
     }
     List<T>erase(List<T>types,List<String>mb){
-      return mb.size()==0?types:map(types,t->t instanceof R w?bound(w,erase(w.c.types,mb)):mb.contains(variable(t))?u:t);
+      return mb.size()==0?types:map(types,t->t instanceof R w?bound(w,erase(w.c.types,mb)):mb.contains(t.v())?u:t);
     }
     List<T>refine(List<String>v,T t,T a){
       return a==u?qs(v.size()):switch(t){
@@ -676,7 +673,7 @@ import java.util.stream.*;
       return t instanceof R(var r,var c)&&(r==null||r==iso&&!al.contains(iso))?new R(al.contains(imm)?null:read,c):t;
     }
     List<T>normalize(List<B>b,List<T>types){
-      return zip(types,b,(ti,bi)->variable(ti)==null?normalize(ti,bi.caps):ti);
+      return zip(types,b,(ti,bi)->ti.v()==null?normalize(ti,bi.caps):ti);
     }
     R bound(R w,List<T>types){
       var d=from(w.c.name);return w.withTs(d==null?types:normalize(d.b,types));
@@ -719,7 +716,7 @@ import java.util.stream.*;
     void kind(List<B>b,T t,Set<RC>al){no(!kinded(b,t,al));}
     static Set<RC>kinds(List<B>b,T t){return switch(t){
       case R(var r,_)->caps(or(r,read));case RX(var r,_)->caps(r);
-      case RI(var x)->EnumSet.copyOf(map(kinds(b,x),RC::ri));default->B.get(b,variable(t)).caps;
+      case RI(var x)->EnumSet.copyOf(map(kinds(b,x),RC::ri));default->B.get(b,t.v()).caps;
     };}
     boolean sub(List<B>b,T a,T z){return a.equals(z)
       ||z instanceof RI(var q)&&q.equals(a)&&kinded(b,a,plain)
@@ -731,7 +728,7 @@ import java.util.stream.*;
       case Literal l->{
       var gf=g.map(t->has(l.cs,cf)||!t.ftv().allMatch(B.v(l.b)::contains)?null:t);var r=(l.r.ro()&&!any(l.ms,m->m.s.abs&&m.s.r==mut)||l.r==mut)&&cf(l.b,gf,l)?iso:l.r;
       no(any(l.ms,m->(m.s.abs||m.e!=null&&!inst(l))&&m.s.abs==(m.s.r!=mut||!r.ro())));
-      var t=l.self(r);kind(b,t,allRC);check(gf.map(x->!kinded(l.b,x,plain)||r.ii()&&!kinded(l.b,x,ii)?null:x),l,l.r.mutable());
+      var t=l.self(r);kind(b,t,allRC);check(gf.map(x->!kinded(l.b,x,plain)||r.ii()&&!kinded(l.b,x,ii)?null:x),l,l.r==iso?mut:l.r);
       yield reqs(b,t,rs);
       }
       case Call c->{
@@ -787,7 +784,7 @@ import java.util.stream.*;
       return new MT(receiver[m.r.ordinal()],seq(m.types.size(),j->adapt(d,m.types.get(j),j==at?hyg:args,(p,q)->q.sub(p))),adapt(d,m.t,result,RC::sub));
     }
     T adapt(List<B>d,T t,RC[]mode,BiPredicate<RC,RC>le){
-      if(t.erc()!=null)return t.rc(mode[t.erc().ordinal()]);var x=variable(t);
+      if(t.erc()!=null)return t.rc(mode[t.erc().ordinal()]);var x=t.v();
       var caps=map(B.get(d,x).caps,r->t instanceof RI?r.ri():r);if(all(caps,r->mode[r.ordinal()]==r))return t;
       var up=filter(allRC,p->all(caps,c->le.test(mode[c.ordinal()],p)));return new RX(find(up,p->all(up,o->le.test(p,o))),new X(x));
     }
