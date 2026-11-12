@@ -544,7 +544,6 @@ import java.util.stream.*;
     }
     T meet(T a,T z){
       if(z.und())return a==u?z:a;if(a.und()||a.equals(z))return z;
-      if(z instanceof RI(var q)&&q.equals(a))return z;
       if(a instanceof R p&&z instanceof R q)return p.c.name.equals(q.c.name)?p.with(meet(p.r,q.r),meet(p.c.types,q.c.types)):or(below(p,q),or(below(q,p),p));
       if(!(a instanceof RX p&&z instanceof RX(var rc2,var q))||!p.x.equals(q))return a;
       return p.rc(meet(p.r,rc2));
@@ -581,8 +580,7 @@ import java.util.stream.*;
       case E.X x->{
         var o=g.get(x.name);var a=o;var i=g.indexOf(find(g,f->f.vars.containsKey(x.name)));for(var f:g.subList(i+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);}var z=x.t;if(a.equals(z))yield x;
         var t=z.und()?null:o.und()?i+1<g.size()&&z instanceof R(_,var c)?new R(null,c):z
-          :o instanceof R(var aRc,var aC)&&z instanceof R(var bRc,var bC)&&aC.name.equals(bC.name)?new R(lat(aRc,bRc,read,iso),aC)
-          :o instanceof RX y&&z instanceof RX(var bRc,var bX)&&y.x.equals(bX)?y.rc(lat(y.r,bRc,read,iso)):null;
+          :o instanceof R(var aRc,var aC)&&z instanceof R(var bRc,var bC)&&aC.name.equals(bC.name)?new R(lat(aRc,bRc,read,iso),aC):null;
         if(t!=null)g.get(i).vars.put(x.name,t);yield x.t(meet(a,z));
       }
       case Literal l->{var sp=l.r==null?null:l.self(l.r);if(!l.expanded){if(l.anon&&l.cs.size()==0)inferred.add(l.name.s);
@@ -607,7 +605,7 @@ import java.util.stream.*;
       if(!(e1.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
       var n=m.cas.size();var k=m.mb.size();var y=push(c.y,qs(k)).subList(0,k);var ret=refine(m.v,m.ret,c.t);
       var all=normalize(push(m.cb,m.mb),map(Stream.of(push(m.cas,c.written?y:qs(k)),m.ret instanceof R?ret:qs(m.v.size()),arguments(m,c.es,true),meet(list(push(m.cas,y),arguments(m,c.es,false),ret)))
-        .reduce((p,q)->zip(p,q,(a,z)->a.tv()&&!(a instanceof R(var r,_)&&r==null)?a:z)).get(),this::up));
+        .reduce((p,q)->zip(p,q,(a,z)->a.tv()?a:z)).get(),this::up));
       var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v,all))));
       yield new Call(meet(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v,all)),c.written);
       }
@@ -628,7 +626,7 @@ import java.util.stream.*;
     C self(C c){
       if(!any(from(c.name).ms,m->m.s.abs&&m.s.r!=mut))return c;
       var ss=c.types.stream().flatMap(t->t instanceof R(_,var a)&&parents(a).contains(c)?Stream.of(a):Stream.of()).distinct().toList();
-      return ss.size()==1?self(ss.get(0)):c;
+      return ss.size()==1?ss.get(0):c;
     }
     record TSM(List<T>types,List<T>low,M m){}
     TSM header(R w,M m){
