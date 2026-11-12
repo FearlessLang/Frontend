@@ -3,7 +3,6 @@ package toolsTests;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,9 +34,9 @@ final class PathBytesTest{
     Fs.ensureDir(odd);
     assertEquals(List.of(odd), Fs.of(() -> { try (var s= Files.list(tmp)){ return s.toList(); } }));
   }
-  @Test void aPathReadsBackFromItsBytes(@TempDir Path tmp){
-    assumeFalse(Fs.isWindows());
+  @Test void aPathReadsBackFromTheUnitsOfThisSystem(@TempDir Path tmp){
     var odd= odd(tmp);
+    if (Fs.isWindows()){ assertEquals(odd, Path.of(new String(odd.toString().toCharArray()))); return; }
     assertEquals(odd, PathBytes.path(PathBytes.of(odd)));
     assertEquals(Path.of("a", "b"), PathBytes.path("a/b".getBytes()));
     assertEquals(Path.of(""), PathBytes.path(new byte[0]));
