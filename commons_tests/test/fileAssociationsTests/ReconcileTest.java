@@ -104,12 +104,12 @@ final class ReconcileTest{
     try{ return p.waitFor(); }
     catch (InterruptedException e){ throw new AssertionError(e); }
   }
-  private static int defaults(String... args){
+  static int defaults(String... args){
     var p= Fs.of(new ProcessBuilder(Push.of("defaults", List.of(args))).redirectErrorStream(true).redirectOutput(Redirect.DISCARD)::start);
     try{ return p.waitFor(); }
     catch (InterruptedException e){ throw new AssertionError(e); }
   }
-  private static void pick(String type){
+  static void pick(String type){
     var entry= "<dict><key>LSHandlerContentType</key><string>"+type+"</string><key>LSHandlerRoleAll</key><string>other</string></dict>";
     assertEquals(0, defaults("write", MacAssociations.preferences, "LSHandlers", "-array-add", entry));
   }
