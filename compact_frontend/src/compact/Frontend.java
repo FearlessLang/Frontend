@@ -593,7 +593,6 @@ import java.util.stream.*;
       }
       w=bound(w,map(zip(types,low,(x,lo)->x==u?lo:x),this::up));l=l.header(l.cs,res).t(w);var name=l.name;
       if(!w.tv()||!all(l.ms,m->all(m.s.all(),T::tv))||cache.containsKey(name)&&!instance(l))yield l;
-      var h=instance(l)&&inferred.contains(name.s)&&!w.c.name.equals(name)?self(w.c):w.c;if(h!=w.c){w=new R(w.r,h);l=implement(l.header(list(),list()),h,b);}
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
       var cap=noH(or(l.r,w.r));var instance=instance(l);
       var own=w.c.name.equals(name);no(!own&&!w.c.name.visible()&&!w.c.name.pk().equals(p.name));
@@ -646,7 +645,7 @@ import java.util.stream.*;
       return new TSM(h.types,h.low,h.m.body(meet(e,h.m.s.t)));
     }
     T keep(T decided,T body){
-      if(variable(decided)!=null&&variable(decided).equals(variable(body))&&decided.erc()!=iso)return decided;
+      if(variable(decided)!=null&&variable(decided).equals(variable(body)))return decided;
       if(!(decided instanceof R(var aRc,var aC)&&body instanceof R b))return meet(decided,body);
       if(!aC.name.equals(b.c.name)){var s=sup(b,aC.name);return s==null?decided:keep(decided,s);}
       return b.with(or(aRc,b.r),zip(aC.types,b.c.types,this::keep));
@@ -675,7 +674,7 @@ import java.util.stream.*;
       if(!(expected instanceof R exp))return arg;
       return switch(arg){
         case Call c->c.children(ascribe(c.e,expected,c.name),c.es);
-        case Literal l->!l.anon||l.cs.size()>0||!l.t.und()?arg:called==null||from(exp.c.name) instanceof Literal d&&(exp.c.name.pk().equals(p.name)||exp.c.name.visible()&&!has(d.cs,sealed))&&TS.inst(d)&&!any(l.ms,m->called.equals(m.s.m)&&!m.s.all().contains(u))?l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size())))):new Literal(imm,l.name,l.b,l.cs,l.self,l.ms,l.self(imm),true,false);
+        case Literal l->!l.anon||l.cs.size()>0||!l.t.und()?arg:called==null||from(exp.c.name) instanceof Literal d&&(exp.c.name.pk().equals(p.name)||exp.c.name.visible()&&!has(d.cs,sealed))&&!any(l.ms,m->called.equals(m.s.m)&&!m.s.all().contains(u))?l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size())))):new Literal(imm,l.name,l.b,l.cs,l.self,l.ms,l.self(imm),true,false);
         default->arg;
       };
     }

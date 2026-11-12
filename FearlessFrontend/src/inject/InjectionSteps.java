@@ -20,7 +20,6 @@ import inference.Gamma;
 import inference.IT;
 import inference.IT.RCC;
 import inference.M;
-import typeSystem.TypeSystem;
 import utils.Bug;
 import utils.OneOr;
 import utils.Push;
@@ -409,9 +408,8 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   private E.Type literalAsType(E.Literal l, IT.RCC rcc){
     if (!l.thisName().equals("_")){ throw meths.p().err().selfNameDeadCode(l); }
     var written= new IT.RCC(l.rc().or(rcc::rc).map(InjectionSteps::noH), rcc.c(), rcc.span());
-    var orcc= l.src().inner instanceof fearlessFullGrammar.E.Literal ? selfArgument(written) : written;
-    notForeignPrivate(l, orcc);
-    return new E.Type(orcc, preferred(orcc), l.src(), l.g());
+    notForeignPrivate(l, written);
+    return new E.Type(written, preferred(written), l.src(), l.g());
   }
   private void notForeignPrivate(E owner, IT.RCC t){
     var head= t.c().name();
@@ -494,8 +492,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return new Refined(Streams.zip(rcc.c().ts(), fromBody).map(this::keepDecided).toList(), lower);
   }
   private IT keepDecided(IT decided, IT fromBody){
-    var decidedIso= decided instanceof IT.RCX(var aRc, _) && aRc == RC.iso;
-    var decidedSameX= xName(decided).isPresent() && xName(decided).equals(xName(fromBody)) && !decidedIso;
+    var decidedSameX= xName(decided).isPresent() && xName(decided).equals(xName(fromBody));
     if (decidedSameX){ return decided; }
     if (!(decided instanceof IT.RCC(var aRc, var aC, _) && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
     if (!aC.name().equals(b.c().name())){
@@ -588,7 +585,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (d == null){ return false; }
     var foreign= !head.pkgName().equals(meths.p().name());
     var foreignForbidden= foreign && (!head.isPublic() || LiteralDeclarations.has(d.cs(), LiteralDeclarations.sealed));
-    return !foreignForbidden && TypeSystem.hasInstance(d);
+    return !foreignForbidden;
   }
   private E.Literal itself(E.Literal l){
     var res= new E.Literal(Optional.of(RC.imm), l.name(), l.bs(), l.cs(), l.thisName(), l.ms(), l.src(), true);
