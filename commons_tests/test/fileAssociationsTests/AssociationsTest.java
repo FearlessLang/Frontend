@@ -422,9 +422,11 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
       .fearless gets the ProgId <identity>.fearless, and another program in Classes\\.fearless\\OpenWithProgids makes reconcile(".fearless") refuse with notOurs. Check both.""");
     if (Fs.isMac()){
       macReconcile(".fearless");
-      plistIs("", "");
-      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns"), files());
+      plistIs(document("fearless", "Owner", "fearlessmanaged0-001.fearless"), exported("fearless"));
+      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/fearless.icns"), files());
       assertEquals(List.of(bundle()), registered);
+      types.put("fearless", List.of(sketch));
+      assertEquals("notOurs {.fearless=[Sketch]}", macRefused(".fearless"));
       return;
     }
     sysMime("globs2", "50:application/x-other:*.fearless\n");
@@ -613,8 +615,8 @@ application/x-fearless=editor.desktop;, text/x-csrc=browser.desktop;fearlessBin0
     var tool= new WindowIcon("fearless-1a2b-game.IconsTool", "Game", Path.of("/projects/game"), icon(0x00ff00));
     if (Fs.isMac()){
       macReconcile(List.of(game, tool), ".fearless");
-      plistIs("", "");
-      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns"), files());
+      plistIs(document("fearless", "Owner", "fearlessmanaged0-001.fearless"), exported("fearless"));
+      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/fearless.icns"), files());
       assertEquals(List.of(identity), FileAssociations.identities(family));
       return;
     }
