@@ -672,7 +672,7 @@ import java.util.stream.*;
       if(!(expected instanceof R exp))return arg;
       return switch(arg){
         case Call c->c.children(ascribe(c.e,expected,c.name),c.es);
-        case Literal l->!l.anon||l.cs.size()>0||l.t!=u?arg:called==null||from(exp.c.name) instanceof Literal d&&(exp.c.name.pk().equals(p.name)||exp.c.name.visible()&&!has(d.cs,sealed))&&!any(l.ms,m->called.equals(m.s.m)&&!m.s.all().contains(u))?l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size())))):new Literal(imm,l.name,l.b,l.cs,l.self,l.ms,l.self(imm),true,false);
+        case Literal l->!l.anon||l.cs.size()>0||l.t!=u?arg:called==null||from(exp.c.name)!=null&&!any(l.ms,m->called.equals(m.s.m)&&!m.s.all().contains(u))?l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size())))):new Literal(imm,l.name,l.b,l.cs,l.self,l.ms,l.self(imm),true,false);
         default->arg;
       };
     }
