@@ -218,6 +218,30 @@ Fold[S:*,T:*]:{ #(acc: S, x: T): S }
 Abort:{ ![R:**]: R -> this! }
 Break:{ #(l: List[Num]): Num -> l.fold[Num](Zero, {acc, n -> acc + n}) }
 """));}
+@Test void foldInfersTheAccumulatorFromAnInferredFunction(){ok(List.of("""
+Num:{ +(other: Num): Num }
+Zero:Num{ +(other) -> other }
+List[E:*]:{ .fold[S:*](acc: S, f: Fold[S, E]): S -> Abort! }
+Fold[S:*,T:*]:{ #(acc: S, x: T): S }
+Abort:{ ![R:**]: R -> this! }
+Break:{ #(l: List[Num]): Num -> l.fold(Zero, {acc, n -> acc + n}) }
+"""));}
+@Test void foldInfersTheAccumulatorFromAFunctionParameter(){ok(List.of("""
+Num:{ +(other: Num): Num }
+Zero:Num{ +(other) -> other }
+List[E:*]:{ .fold[S:*](acc: S, f: Fold[S, E]): S -> Abort! }
+Fold[S:*,T:*]:{ #(acc: S, x: T): S }
+Abort:{ ![R:**]: R -> this! }
+Break:{ #(l: List[Num], f: Fold[Num, Num]): Num -> l.fold(Zero, f) }
+"""));}
+@Test void foldInfersTheAccumulatorFromAFunctionParameterWithoutExpectedType(){ok(List.of("""
+Num:{ +(other: Num): Num }
+Zero:Num{ +(other) -> other }
+List[E:*]:{ .fold[S:*](acc: S, f: Fold[S, E]): S -> Abort! }
+Fold[S:*,T:*]:{ #(acc: S, x: T): S }
+Abort:{ ![R:**]: R -> this! }
+Break:{ #(l: List[Num], f: Fold[Num, Num]): Num -> l.fold(Zero, f) + Zero }
+"""));}
 @Test void partiallyAppliedGenericSuperType(){ok(List.of("""
 Default:{} Foo:{}
 A[X:*,Y:*]:{}
