@@ -601,7 +601,7 @@ import java.util.stream.*;
       case Call c->{var e1=solve(b,g,c.e);MS m;
       if(!(e1.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
       var n=m.cas.size();var k=m.mb.size();var y=push(c.y,qs(k)).subList(0,k);var ret=refine(m.v,m.ret,c.t);
-      var all=normalize(push(m.cb,m.mb),map(Stream.of(push(m.cas,c.written?y:qs(k)),m.ret instanceof R?ret:qs(m.v.size()),arguments(m,c.es,true),meet(list(push(m.cas,y),arguments(m,c.es,false),ret)))
+      var all=normalize(push(m.cb,m.mb),map(Stream.of(push(m.cas,c.written?y:qs(k)),meet(list(m.ret instanceof R?ret:qs(m.v.size()),arguments(m,c.es,true))),meet(list(push(m.cas,y),arguments(m,c.es,false),ret)))
         .reduce((p,q)->zip(p,q,(a,z)->a.tv()?a:z)).get(),this::up));
       var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v,all))));
       yield new Call(meet(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v,all)),c.written);
@@ -613,8 +613,8 @@ import java.util.stream.*;
       return m==null?null:new MS(m.s.r,push(B.v(d.b),B.v(m.s.b)),d.b,w.c.types,m.s.b,m.s.types,m.s.t);
     }
     boolean instance(Literal l){return l.anon&&all(l.ms,m->m.e==null);}
-    List<T>arguments(MS m,List<E>es,boolean literals){
-      var is=range(es.size()).filter(i->!literals||es.get(i) instanceof Literal l&&!instance(l)).boxed().toList();
+    List<T>arguments(MS m,List<E>es,boolean eq){
+      var is=range(es.size()).filter(i->!eq||m.ps.get(i) instanceof R&&!(es.get(i) instanceof Literal l&&instance(l))).boxed().toList();
       Function<Integer,List<T>>ref=i->refine(m.v,m.ps.get(i),es.get(i).t());
       var lower=map(filter(is,i->!(m.ps.get(i) instanceof R)),ref);var exact=map(filter(is,i->m.ps.get(i) instanceof R),ref);
       return meet(push(lower.stream().reduce(qs(m.v.size()),(a,b)->zip(a,b,this::join)),exact));

@@ -319,10 +319,10 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (noChange){ return c; }
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
-  private List<IT> fromArgs(MSigL m, List<E> es, boolean onlyLiterals){
+  private List<IT> fromArgs(MSigL m, List<E> es, boolean eq){
     var n= m.nCls()+m.bsArity();
-    var lower= Streams.zip(m.ps0(), es).filter((p,e) -> !(p instanceof IT.RCC) && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, e.t()));
-    var exact= Streams.zip(m.ps0(), es).filter((p,e) -> p instanceof IT.RCC && (!onlyLiterals || e instanceof E.Literal)).map((p,e) -> refine(m.xs(), p, e.t()));
+    var lower= Streams.zip(m.ps0(), es).filter((p,e) -> !eq && !(p instanceof IT.RCC)).map((p,e) -> refine(m.xs(), p, e.t()));
+    var exact= Streams.zip(m.ps0(), es).filter((p,e) -> p instanceof IT.RCC && !(eq && emptyLiteral(e))).map((p,e) -> refine(m.xs(), p, e.t()));
     return meet(Streams.of(Stream.of(join(Streams.of(Stream.of(qMarks(n)), lower).toList())), exact).toList());
   }
   private static IT deFresh(Gamma g, IT t){
@@ -337,10 +337,11 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var fromRet= refine(m.xs(), m.ret0(), c.t());
     var all= meet(List.of(Push.of(m.clsArgs(), targs), args, fromRet));
     var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
-    var hard= fromArgs(m, c.es(), true);
     var exactRet= m.ret0() instanceof IT.RCC ? fromRet : qMarks(fromRet.size());
-    return Stream.of(written, exactRet, hard, all).reduce((p,q) -> Streams.zip(p, q).map((a,b) -> a.isTV() ? a : b).toList()).get();
+    var eqs= meet(List.of(exactRet, fromArgs(m, c.es(), true)));
+    return Stream.of(written, eqs, all).reduce((p,q) -> Streams.zip(p, q).map((a,b) -> a.isTV() ? a : b).toList()).get();
   }
+  private static boolean emptyLiteral(E e){ return e instanceof E.Type tt ? tt.src().inner instanceof fearlessFullGrammar.E.Literal : e instanceof E.Literal l && l.infName() && l.ms().isEmpty(); }
   static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
   private Optional<IT.RCC> preciseSelf(E.Literal l){
     var selfUnknown= l.infName() && l.rc().isEmpty();
