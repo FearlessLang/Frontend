@@ -75,7 +75,7 @@ final class FsSymbolicLinkTest{
   }
   private static void refused(Executable e){
     var msg= assertThrows(IllegalArgumentException.class, e).getMessage();
-    Err.strCmp("\"[###]\" is a symbolic link/junction/mount point; Fs does not read, write, copy or delete through symbolic links/junctions/mount points: replace it with the file or folder it points to.", msg);
+    Err.strCmp("\"[###]\" is a symbolic link/junction/mount point; Fs does not read, write, copy or delete through symbolic links/junctions/mount points.", msg);
   }
   @Test void everyOperationRefusesALink(){
     var file= root.resolve("f.txt");
