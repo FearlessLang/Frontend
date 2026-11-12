@@ -553,10 +553,10 @@ import java.util.stream.*;
     }
     T above(T top,List<T>cands){
       T res=top;for(var c:cands){var up=c instanceof R r&&top instanceof R rt?r.c.name.equals(rt.c.name)?c:sup(r,rt.c.name):Objects.equals(c.v(),top.v())?c:null;if(up==null)return null;
-        res=res instanceof R p&&up instanceof R q?any(zip(p.c.types,q.c.types,(x,y)->x.tv()&&y.tv()&&!x.equals(y)),b->b)?null:p.with(lat(p.r,q.r,iso,read),meet(p.c.types,q.c.types)):res instanceof RX p&&up instanceof RX q?p.rc(lat(p.r,q.r,iso,read)):meet(res,up);if(res==null)return null;}return res;
+        res=res instanceof R p&&up instanceof R q?any(zip(p.c.types,q.c.types,(x,y)->x.tv()&&y.tv()&&!x.equals(y)),b->b)?null:p.with(lub(p.r,q.r),meet(p.c.types,q.c.types)):res instanceof RX p&&up instanceof RX q?p.rc(lub(p.r,q.r)):meet(res,up);if(res==null)return null;}return res;
     }
-    RC lat(RC a,RC b,RC bot,RC top){
-      if(a==null||b==null)return or(a,b);var x=a.h();var y=b.h();return x==y||y==bot?x:x==bot?y:top;
+    RC lub(RC a,RC b){
+      if(a==null||b==null)return or(a,b);var x=a.h();var y=b.h();return x==y||y==iso?x:x==iso?y:read;
     }
     List<T>meet(List<T>a,List<T>z){return zip(a,z,this::meet);}
     List<T>meet(List<List<T>>tss){return tss.stream().reduce(this::meet).get();}
@@ -571,7 +571,7 @@ import java.util.stream.*;
       case E.X x->{
         var o=g.get(x.name);var a=o;var i=g.indexOf(find(g,f->f.vars.containsKey(x.name)));for(var f:g.subList(i+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);}var z=x.t;if(a.equals(z))yield x;
         var t=z==u?null:o==u?i+1<g.size()&&z instanceof R(_,var c)?new R(null,c):z
-          :o instanceof R(var aRc,var aC)&&z instanceof R(var bRc,var bC)&&aC.name.equals(bC.name)?new R(lat(aRc,bRc,read,iso),aC):null;
+          :o instanceof R(var aRc,var aC)&&z instanceof R(var bRc,var bC)&&aC.name.equals(bC.name)?new R(meet(aRc,bRc),aC):null;
         if(t!=null)g.get(i).vars.put(x.name,t);yield x.t(meet(a,z));
       }
       case Literal l->{var sp=l.r==null?null:l.self(l.r);if(!l.expanded){if(l.anon&&l.cs.size()==0)inferred.add(l.name.s);

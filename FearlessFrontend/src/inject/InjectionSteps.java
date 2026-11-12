@@ -179,17 +179,17 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (a instanceof IT.RCC x1 && b instanceof IT.RCC x2){
       var differ= Streams.zip(x1.c().ts(), x2.c().ts()).anyMatch((t1,t2) -> t1.isTV() && t2.isTV() && !t1.equals(t2));
       if (differ){ return null; }
-      return x1.withRCTs(diamondRcNoH(x1.rc(), x2.rc(), RC.iso, RC.read), meet(x1.c().ts(), x2.c().ts()));
+      return x1.withRCTs(joinRcNoH(x1.rc(), x2.rc()), meet(x1.c().ts(), x2.c().ts()));
     }
-    if (a instanceof IT.RCX x1 && b instanceof IT.RCX x2){ return x1.withRC(diamondRcNoH(Optional.of(x1.rc()), Optional.of(x2.rc()), RC.iso, RC.read).get()); }
+    if (a instanceof IT.RCX x1 && b instanceof IT.RCX x2){ return x1.withRC(joinRcNoH(Optional.of(x1.rc()), Optional.of(x2.rc())).get()); }
     return meet(a, b);
   }
-  static Optional<RC> diamondRcNoH(Optional<RC> a, Optional<RC> b, RC bot, RC top){
+  static Optional<RC> joinRcNoH(Optional<RC> a, Optional<RC> b){
     if (a.isEmpty()){ return b; }
     if (b.isEmpty()){ return a; }
     var x= noH(a.get());
     var y= noH(b.get());
-    return Optional.of(x == y || y == bot ? x : x == bot ? y : top);
+    return Optional.of(x == y || y == RC.iso ? x : x == RC.iso ? y : RC.read);
   }
   List<IT> join(List<IT> t1, List<IT> t2){ return Streams.zip(t1, t2).map(this::join).toList(); }
   List<IT> join(List<List<IT>> tss){ return tss.stream().reduce(this::join).get(); }
@@ -283,7 +283,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private void updateG(Gamma g, String x, IT t1, IT t2){
     if (t1.undecided()){ g.update(x, g.captured(x) && t2 instanceof IT.RCC(_, var c, var span) ? new RCC(Optional.empty(), c, span) : t2); return; }
-    if (t1 instanceof IT.RCC(var aRc, var aC, var aSpan) && t2 instanceof IT.RCC(var bRc, var bC, _) && aC.name().equals(bC.name())){ g.update(x, new RCC(diamondRcNoH(aRc, bRc, RC.read, RC.iso), aC, aSpan)); }
+    if (t1 instanceof IT.RCC(var aRc, var aC, var aSpan) && t2 instanceof IT.RCC(var bRc, var bC, _) && aC.name().equals(bC.name())){ g.update(x, new RCC(meetRcNoH(aRc, bRc), aC, aSpan)); }
   }
   private E nextT(E.Type t){
     if (!t.t().undecided()){ return t; }
