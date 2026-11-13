@@ -580,7 +580,7 @@ import java.util.stream.*;
     }else if(instance(l)&&cache.containsKey(l.name))yield l;
       var w0=(R)l.t;var ms=new Vector<M>();for(var mi:l.ms)ms.add(mi.e==null?mi:method(b,g,l,sp,w0,mi));var cn=new Vector<Con>();
       for(var m:ms){var h=signature(w0,m.s.m,m.s.r,null);if(h!=null){var mb=B.v(m.s.b);zip(h.ps,erase(m.s.types,mb),(p,a)->cn.add(new Con(p,a,false,true)));cn.add(new Con(h.ret,erase(list(m.s.t),mb).get(0),true,true));}}
-      var d=from(w0.c.name);var w=bound(w0,map(d==null?w0.c.types:decide(B.v(d.b),w0.c.types,cn),this::up));
+      var d=from(w0.c.name);var w=w0.withTs(d==null?map(w0.c.types,this::up):decide(d.b,w0.c.types,cn));
       l=l.header(l.cs,map(ms,m->instantiate(w,m))).t(w);var name=l.name;
       if(!w.tv()||!all(l.ms,m->all(m.s.all(),T::tv))||cache.containsKey(name)&&!instance(l))yield l;
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
@@ -592,9 +592,9 @@ import java.util.stream.*;
       }
       case Call c->{var e1=solve(b,g,c.e);MS m;
       if(!(e1.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
-      var n=m.cas.size();var k=m.mb.size();var y=push(c.y,qs(k)).subList(0,k);
+      var n=m.cas.size();var k=m.mb.size();
       var cs=push(new Con(m.ret,c.t,false,true),zip(m.ps,c.es,(p,x)->new Con(p,x.t(),true,!(x instanceof Literal l&&instance(l)))));
-      var all=normalize(push(m.cb,m.mb),map(decide(m.v,push(m.cas,c.written?y:qs(k)),cs),this::up));
+      var all=decide(push(m.cb,m.mb),push(m.cas,c.written?push(c.y,qs(k)).subList(0,k):qs(k)),cs);
       var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v,all))));
       yield new Call(meet(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v,all)),c.written);
       }
@@ -606,11 +606,11 @@ import java.util.stream.*;
     }
     boolean instance(Literal l){return l.anon&&all(l.ms,m->m.e==null);}
     record Con(T p,T a,boolean in,boolean eq){}
-    List<T>decide(List<String>v,List<T>given,List<Con>cs){
+    List<T>decide(List<B>bs,List<T>given,List<Con>cs){var v=B.v(bs);
       Function<Con,List<T>>ref=c->refine(v,c.p,c.a);BinaryOperator<List<T>>join=(a,z)->zip(a,z,this::join);
       var shape=cs.stream().filter(c->c.eq&&c.p instanceof R).map(ref).reduce(given,this::meet);
       var all=cs.stream().filter(c->c.p instanceof R?!c.eq:!c.in).map(ref).reduce(join.apply(shape,cs.stream().filter(c->c.in&&!(c.p instanceof R)).map(ref).reduce(qs(v.size()),join)),this::meet);
-      return Stream.of(given,shape,all).reduce((p,z)->zip(p,z,(a,x)->a.tv()?a:x)).get();
+      return normalize(bs,map(Stream.of(given,shape,all).reduce((p,z)->zip(p,z,(a,x)->a.tv()?a:x)).get(),this::up));
     }
     M instantiate(R w,M m){var h=signature(w,m.s.m,m.s.r,null);var a=h==null?null:push(w.c.types,vars(m.s.b));
       var n=h==null?m:m.signature(m.s.types(rename(h.ps,h.v,a),rename(h.ret,h.v,a)));return n;
@@ -663,9 +663,6 @@ import java.util.stream.*;
     }
     List<T>normalize(List<B>b,List<T>types){
       return zip(types,b,(ti,bi)->ti.v()==null?normalize(ti,bi.caps):ti);
-    }
-    R bound(R w,List<T>types){
-      var d=from(w.c.name);return w.withTs(d==null?types:normalize(d.b,types));
     }
     E core(List<B>ctx,E exp,E orig){return switch(exp){
       case E.X x->x.t(u);
