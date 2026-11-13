@@ -532,8 +532,8 @@ import java.util.stream.*;
       var r=new R(m.r,self(m.c));return r.equals(new R(l.r,l.cs.get(0)))?e:new Literal(null,l.name,list(),list(),l.self,list(),r,true,false);
     }
     T below(R sub,R sup){
-      var d=from(sub.c.name);if(d==null)return null;var ps=filter(d.cs,c->c.name.equals(sup.c.name));if(ps.size()==0)return null;
-      var res=sub.with(meet(sub.r,sup.r),meet(sub.c.types,meet(map(ps,c->refine(B.v(d.b),new R(null,c),sup)))));return res.tv()||!sup.tv()?res:sup;
+      var d=from(sub.c.name);if(d==null||!any(d.cs,c->c.name.equals(sup.c.name)))return null;
+      var res=sub.with(meet(sub.r,sup.r),meet(sub.c.types,refine(B.v(d.b),new R(null,new C(sub.c.name,vars(d.b))),sup)));return res.tv()||!sup.tv()?res:sup;
     }
     T meet(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
@@ -580,7 +580,7 @@ import java.util.stream.*;
     }else if(instance(l)&&cache.containsKey(l.name))yield l;
       var w0=(R)l.t;var ms=new Vector<M>();for(var mi:l.ms)ms.add(mi.e==null?mi:method(b,g,l,sp,w0,mi));var cn=new Vector<Con>();
       for(var m:ms){var h=signature(w0,m.s.m,m.s.r,null);if(h!=null){var mb=B.v(m.s.b);zip(h.ps,erase(m.s.types,mb),(p,a)->cn.add(new Con(p,a,false,true)));cn.add(new Con(h.ret,erase(list(m.s.t),mb).get(0),true,true));}}
-      var d=from(w0.c.name);var w=bound(w0,map(d==null?w0.c.types:decide(B.v(d.b),w0.c.types,qs(d.b.size()),cn),this::up));
+      var d=from(w0.c.name);var w=bound(w0,map(d==null?w0.c.types:decide(B.v(d.b),w0.c.types,cn),this::up));
       l=l.header(l.cs,map(ms,m->instantiate(w,m))).t(w);var name=l.name;
       if(!w.tv()||!all(l.ms,m->all(m.s.all(),T::tv))||cache.containsKey(name)&&!instance(l))yield l;
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
@@ -594,7 +594,7 @@ import java.util.stream.*;
       if(!(e1.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
       var n=m.cas.size();var k=m.mb.size();var y=push(c.y,qs(k)).subList(0,k);
       var cs=push(new Con(m.ret,c.t,false,true),zip(m.ps,c.es,(p,x)->new Con(p,x.t(),true,!(x instanceof Literal l&&instance(l)))));
-      var all=normalize(push(m.cb,m.mb),map(decide(m.v,push(m.cas,c.written?y:qs(k)),push(m.cas,y),cs),this::up));
+      var all=normalize(push(m.cb,m.mb),map(decide(m.v,push(m.cas,c.written?y:qs(k)),cs),this::up));
       var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v,all))));
       yield new Call(meet(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v,all)),c.written);
       }
@@ -606,11 +606,11 @@ import java.util.stream.*;
     }
     boolean instance(Literal l){return l.anon&&all(l.ms,m->m.e==null);}
     record Con(T p,T a,boolean in,boolean eq){}
-    List<T>decide(List<String>v,List<T>given,List<T>weak,List<Con>cs){
+    List<T>decide(List<String>v,List<T>given,List<Con>cs){
       Function<Con,List<T>>ref=c->refine(v,c.p,c.a);var q=qs(v.size());
       var low=cs.stream().filter(c->c.in&&!(c.p instanceof R)).map(ref).reduce(q,(a,z)->zip(a,z,this::join));
       var shape=cs.stream().filter(c->c.eq&&c.p instanceof R).map(ref).reduce(given,this::meet);
-      var all=meet(cs.stream().filter(c->c.p instanceof R?!c.eq:!c.in).map(ref).reduce(zip(shape,low,this::keep),this::meet),weak);
+      var all=cs.stream().filter(c->c.p instanceof R?!c.eq:!c.in).map(ref).reduce(zip(shape,low,this::keep),this::meet);
       return Stream.of(given,shape,all).reduce((p,z)->zip(p,z,(a,x)->a.tv()?a:x)).get();
     }
     M instantiate(R w,M m){var h=signature(w,m.s.m,m.s.r,null);var a=h==null?null:push(w.c.types,vars(m.s.b));
@@ -624,7 +624,7 @@ import java.util.stream.*;
     }
     M method(List<B>b,IG g,Literal l,R sp,R w,M m){var bs=l.anon?b:l.b;
       g.push(m.s.r,bs);if(l.anon&&!w.c.name.equals(l.name))sup.put(l.name,w.c);
-      g.declare(l.self,sp==null?u:new R(sp.r==iso?mut:sp.r,sp.c));
+      g.declare(l.self,sp==null?u:new R(m.s.r,sp.c));
       g.push(m.s.r,bs);g.declare(m);
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
       var args=zip(m.v,m.s.types,(x,t)->late?meet(t,g.get(x)):t);g.removeLast();

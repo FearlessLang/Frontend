@@ -110,12 +110,10 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private IT _below(RCC sub, RCC sup){
     var d= meths._from(sub.c().name());
-    if (d == null){ return null; }
-    var patterns= d.cs().stream().filter(c -> c.name().equals(sup.c().name())).toList();
-    if (patterns.isEmpty()){ return null; }
+    if (d == null || d.cs().stream().noneMatch(c -> c.name().equals(sup.c().name()))){ return null; }
     var xs= B.xs(d.bs());
-    var refined= meet(patterns.stream().map(c -> refine(xs, new IT.RCC(Optional.empty(), TypeRename.tcToITC(c), sub.span()), sup)).toList());
-    var res= sub.withRCTs(meetRcNoH(sub.rc(), sup.rc()), meet(sub.c().ts(), refined));
+    var generic= new IT.RCC(Optional.empty(), new IT.C(sub.c().name(), MSigL.toXs(sub.span(), xs)), sub.span());
+    var res= sub.withRCTs(meetRcNoH(sub.rc(), sup.rc()), meet(sub.c().ts(), refine(xs, generic, sup)));
     return res.isTV() || !sup.isTV() ? res : sup;
   }
   IT meet(IT t1, IT t2){
@@ -329,15 +327,15 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var targs= MSigL.fixTargs(c.targs(), m.bsArity());
     var given= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
     var args= Streams.zip(m.ps0(), c.es()).map((p,e) -> new Con(p, e.t(), true, !emptyLiteral(e))).toList();
-    return decide(m.xs(), given, Push.of(m.clsArgs(), targs), Push.of(new Con(m.ret0(), c.t(), false, true), args));
+    return decide(m.xs(), given, Push.of(new Con(m.ret0(), c.t(), false, true), args));
   }
   private record Con(IT declared, IT actual, boolean in, boolean eq){}
-  private List<IT> decide(List<String> xs, List<IT> given, List<IT> weak, List<Con> cons){
+  private List<IT> decide(List<String> xs, List<IT> given, List<Con> cons){
     Function<Con, List<IT>> ref= c -> refine(xs, c.declared(), c.actual());
     var lower= cons.stream().filter(c -> c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(qMarks(xs.size()), this::join);
     var shape= cons.stream().filter(c -> c.eq() && c.declared() instanceof IT.RCC).map(ref).reduce(given, this::meet);
     var lifted= Streams.zip(shape, lower).map(this::keepDecided).toList();
-    var all= meet(cons.stream().filter(c -> c.declared() instanceof IT.RCC ? !c.eq() : !c.in()).map(ref).reduce(lifted, this::meet), weak);
+    var all= cons.stream().filter(c -> c.declared() instanceof IT.RCC ? !c.eq() : !c.in()).map(ref).reduce(lifted, this::meet);
     return Stream.of(given, shape, all).reduce((p,q) -> Streams.zip(p, q).map((a,b) -> a.isTV() ? a : b).toList()).get();
   }
   private static boolean emptyLiteral(E e){ return e instanceof E.Type tt ? tt.src().inner instanceof fearlessFullGrammar.E.Literal : e instanceof E.Literal l && l.infName() && l.ms().isEmpty(); }
@@ -369,7 +367,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       solved.add(mi.impl().isEmpty() ? mi : nextMStarOp(bs, g, l, selfPrecise, rcci, mi));
     }
     var d= meths._from(rcc.c().name());
-    var decided= d == null ? rcc.c().ts() : decide(B.xs(d.bs()), rcc.c().ts(), qMarks(d.bs().size()), solved.stream().flatMap(m -> constraints(rcci, m)).toList());
+    var decided= d == null ? rcc.c().ts() : decide(B.xs(d.bs()), rcc.c().ts(), solved.stream().flatMap(m -> constraints(rcci, m)).toList());
     var ts= decided.stream().map(t -> deFresh(g, t)).toList();
     var t= withTsNormBs(rcc, ts);
     var ms= norm(l.ms(), Streams.zip(l.ms(), solved).map((mi, m) -> instantiate(t, mi, m)).toList());
@@ -439,7 +437,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     assert m.impl().isPresent();
     var litBs= l.infName() ? bs : l.bs();
     g.newScope(m.sig().rc().get(), litBs, l);
-    g.declare(l.thisName(), selfPrecise.<IT>map(s -> new IT.RCC(s.rc().map(RC::isoToMut), s.c(), s.span())).orElse(IT.U.Instance));
+    g.declare(l.thisName(), selfPrecise.<IT>map(s -> new IT.RCC(m.sig().rc(), s.c(), s.span())).orElse(IT.U.Instance));
     g.newScope(m.sig().rc().get(), litBs, l);
     assert m.sig().m().get().arity() == m.xs().size();
     Streams.zip(m.xs(), m.sig().ts()).forEach((x,t) -> g.declare(x, t.get()));
