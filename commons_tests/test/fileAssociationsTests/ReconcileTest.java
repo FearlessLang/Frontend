@@ -10,20 +10,26 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.opentest4j.AssertionFailedError;
 
 import fileAssociations.FileAssociations;
 import fileAssociations.Icon;
@@ -31,12 +37,14 @@ import fileAssociations.LinuxAssociations;
 import fileAssociations.MacAssociations;
 import fileAssociations.MacAssociations.Declared;
 import tools.Fs;
+import utils.Err;
 import utils.Push;
 
 /// FileAssociations on the desktop of the current desk:
 /// on Linux a desktop made of the folders of a test, on Windows keys of the registry of the current user that only this test uses,
-/// on macOS a folder of a test for the helper bundles and the types this test declares.
+/// on macOS a folder of a test for the helper bundles, a preferences domain that only this test uses, and the holders and the types this test gives.
 final class ReconcileTest{
+  static{ Err.setUp(AssertionFailedError.class, Assertions::assertEquals, Assertions::assertTrue); }
   private static final String old= "fearlessCommonsTestProbe";
   private static final String identity= old+"New";
   private static final String ext= ".fcommonsprobe";
@@ -51,18 +59,18 @@ final class ReconcileTest{
   private final Path home= MacAssociations.home;
   private final Function<String,List<Declared>> declared= MacAssociations.declared;
   private final ToIntFunction<Path> register= MacAssociations.register;
-  private final BiConsumer<Path,String> offer= MacAssociations.offer;
+  private final Function<String,Optional<Path>> holder= MacAssociations.holder;
   private final String preferences= MacAssociations.preferences;
   private final List<String> reload= MacAssociations.reload;
   private final List<String> claims= new ArrayList<>();
-  private Map<String,List<String>> chosen= Map.of();
+  private final Map<String,Path> holders= new HashMap<>();
   @BeforeEach void desktop(){
     if (Fs.isWindows()){ cleanUp(); return; }
     if (Fs.isMac()){
       MacAssociations.home = tmp.resolve("home");
       MacAssociations.declared = e -> claims.contains("."+e) ? List.of(new Declared("other."+e, Path.of("/Applications/other.app"))) : List.of();
       MacAssociations.register = _ -> 0;
-      MacAssociations.offer = (_,_) -> {};
+      MacAssociations.holder = this::holderOnTheDesk;
       MacAssociations.preferences = "fearless_test_"+tmp.getFileName();
       MacAssociations.reload = List.of("true");
       return;
@@ -81,7 +89,7 @@ final class ReconcileTest{
       MacAssociations.home = home;
       MacAssociations.declared = declared;
       MacAssociations.register = register;
-      MacAssociations.offer = offer;
+      MacAssociations.holder = holder;
       defaults("delete", MacAssociations.preferences);
       Fs.ofV(() -> Files.deleteIfExists(Path.of(System.getProperty("user.home"), "Library", "Preferences", MacAssociations.preferences+".plist")));
       MacAssociations.preferences = preferences;
@@ -90,6 +98,10 @@ final class ReconcileTest{
     }
     LinuxAssociations.env = env;
     LinuxAssociations.run = run;
+  }
+  private Optional<Path> holderOnTheDesk(String ext){
+    var choice= Pattern.compile("\"LSHandlerContentType\":\""+Pattern.quote(MacAssociations.typeOf(identity, ext))+"\",\"LSHandlerRoleAll\":\"([^\"]*)\"").matcher(choicesOfTheDesk());
+    return choice.find() ? Optional.of(Path.of("/Applications/"+choice.group(1)+".app")) : Optional.ofNullable(holders.get(ext));
   }
   private static void cleanUp(){
     FileAssociations.eradicateAll(family, IllegalStateException::new);
@@ -109,10 +121,15 @@ final class ReconcileTest{
     try{ return p.waitFor(); }
     catch (InterruptedException e){ throw new AssertionError(e); }
   }
-  static void pick(String type){
-    var entry= "<dict><key>LSHandlerContentType</key><string>"+type+"</string><key>LSHandlerRoleAll</key><string>other</string></dict>";
+  static void pick(String type, String program){
+    var entry= "<dict><key>LSHandlerContentType</key><string>"+type+"</string><key>LSHandlerRoleAll</key><string>"+program+"</string></dict>";
     assertEquals(0, defaults("write", MacAssociations.preferences, "LSHandlers", "-array-add", entry));
   }
+  static String choicesOfTheDesk(){
+    var p= Fs.of(new ProcessBuilder("/bin/sh", "-c", "defaults export \""+MacAssociations.preferences+"\" - | plutil -extract LSHandlers json -o - -").redirectErrorStream(true)::start);
+    return new String(Fs.of(() -> p.getInputStream().readAllBytes()), StandardCharsets.UTF_8);
+  }
+  static String choices(String program, String... types){ return Stream.of(types).map(t -> "{\"LSHandlerContentType\":\""+t+"\",\"LSHandlerRoleAll\":\""+program+"\"}").collect(Collectors.joining(",", "[", "]")); }
   private void importReg(String keys){
     var file= tmp.resolve("probe.reg");
     Fs.ofV(() -> Files.write(file, ("﻿Windows Registry Editor Version 5.00\r\n"+keys).getBytes(StandardCharsets.UTF_16LE)));
@@ -127,21 +144,18 @@ final class ReconcileTest{
     Fs.ofV(() -> ImageIO.write(new BufferedImage(64, 64, BufferedImage.TYPE_INT_RGB), "png", file.toFile()));
     return file;
   }
-  private void reconcile(String identity, Path command, List<String> extensions){
+  private Path command(){ return tmp.resolve("new").resolve("fearless"); }
+  private void reconcile(String identity, Path command, List<String> extensions){ reconcile(identity, command, extensions, List.of()); }
+  private void reconcile(String identity, Path command, List<String> extensions, List<String> taken){
     var icons= extensions.stream().map(e -> new Icon(e, tmp.resolve("icon.ico"), png())).toList();
-    FileAssociations.reconcile(identity, identity, family, command, icons, List.of(), png(), replaced::add,
+    FileAssociations.reconcile(identity, identity, family, command, icons, taken, List.of(), png(), replaced::add,
       s -> new IllegalStateException("ambiguous "+s),
-      this::chosen,
       s -> new IllegalStateException("notOurs "+s),
       s -> new IllegalStateException("notWritable "+s),
       s -> new IllegalStateException("halfDone "+s));
   }
-  private RuntimeException chosen(Map<String,List<String>> choices){
-    chosen = choices;
-    return new IllegalStateException("chosenByHand "+choices);
-  }
-  private String refused(List<String> extensions){
-    return assertThrows(IllegalStateException.class, () -> reconcile(identity, tmp.resolve("new").resolve("fearless"), extensions)).getMessage();
+  private String refused(List<String> extensions, List<String> taken){
+    return assertThrows(IllegalStateException.class, () -> reconcile(identity, command(), extensions, taken)).getMessage();
   }
   private static String other(String ext){ return Fs.isWindows() ? "otherProgram"+ext : "other"; }
   private void claim(String ext){
@@ -154,25 +168,37 @@ final class ReconcileTest{
     if (Fs.isLinux()){ return Fs.readUtf8(tmp.resolve("sys").resolve("applications").resolve("other.desktop")).contains(LinuxAssociations.typeOf(ext)); }
     return reg("query", "HKCU\\Software\\Classes\\"+ext+"\\OpenWithProgids", "/v", other(ext)) == 0;
   }
-  private void choose(String ext){
-    if (Fs.isMac()){ pick("public.plain-text"); return; }
-    if (Fs.isLinux()){ Fs.writeUtf8(tmp.resolve("config").resolve("mimeapps.list"), "[Default Applications]\ntext/plain=other.desktop\n"); return; }
-    importReg(regKey(fileExts+ext+"\\UserChoice", "ProgId", other(ext)));
+  private void registered(String program, String... extensions){
+    if (Fs.isMac()){ Stream.of(extensions).forEach(e -> holders.put(e, Path.of("/Applications/"+program+".app"))); return; }
+    if (Fs.isWindows()){ Stream.of(extensions).forEach(e -> importReg(regKey(hkcu+"Classes\\"+e, "", program+e))); return; }
+    var types= Stream.of(extensions).map(e -> "application/x-probe-"+e.substring(1)).toList();
+    Fs.writeUtf8(tmp.resolve("sys").resolve("mime").resolve("globs2"), String.join("", Stream.of(extensions).map(e -> "50:application/x-probe-"+e.substring(1)+":*"+e+"\n").toList()));
+    Fs.writeUtf8(tmp.resolve("sys").resolve("applications").resolve(program+".desktop"), "[Desktop Entry]\nMimeType="+String.join(";", types)+";\n");
   }
-  private void chooseTheFamily(String ext){
-    if (Fs.isMac()){ pick("public.plain-text"); pick(MacAssociations.typeOf(identity, ext)); return; }
-    if (Fs.isLinux()){ Fs.writeUtf8(tmp.resolve("config").resolve("mimeapps.list"), "[Default Applications]\ntext/plain=other.desktop\n"+LinuxAssociations.typeOf(ext)+"=other.desktop\n"); return; }
-    importReg(regKey(fileExts+ext+"\\UserChoice", "ProgId", identity+ext));
+  private void preferred(String program, String ext){
+    if (Fs.isMac()){ pick(MacAssociations.typeOf(identity, ext), program); return; }
+    if (Fs.isWindows()){ importReg(regKey(fileExts+ext+"\\UserChoice", "ProgId", program+ext)); return; }
+    Fs.writeUtf8(tmp.resolve("home").resolve("mime").resolve("globs2"), "100:"+LinuxAssociations.typeOf(ext)+":*"+ext+"\n");
+    Fs.writeUtf8(tmp.resolve("sys").resolve("applications").resolve(program+".desktop"), "[Desktop Entry]\n");
+    Fs.writeUtf8(tmp.resolve("config").resolve("mimeapps.list"), "[Default Applications]\ntext/plain="+program+".desktop\n"+LinuxAssociations.typeOf(ext)+"="+program+".desktop\n");
   }
-  private String familyChoice(String ext){
-    if (Fs.isMac()){ return "{"+MacAssociations.typeOf(identity, ext)+"=[other]}"; }
-    if (Fs.isLinux()){ return "{"+tmp.resolve("config").resolve("mimeapps.list")+"=["+LinuxAssociations.typeOf(ext)+"=other.desktop]}"; }
-    return "{"+ext+"=["+identity+ext+"]}";
+  private String preferenceLeft(String ext){
+    if (Fs.isMac()){ return choicesOfTheDesk(); }
+    if (Fs.isWindows()){ return reg("query", fileExts+ext+"\\UserChoice") == 0 ? "UserChoice of "+ext : ""; }
+    return Fs.readUtf8(tmp.resolve("config").resolve("mimeapps.list"));
   }
-  private String choicesLeft(String ext){
-    if (Fs.isMac()){ return MacAssociations.choices().toString(); }
-    if (Fs.isLinux()){ return Fs.readUtf8(tmp.resolve("config").resolve("mimeapps.list")); }
-    return reg("query", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\"+ext+"\\UserChoice") == 0 ? "UserChoice of "+ext : "";
+  private static String preference(String program){
+    if (Fs.isMac()){ return choices(program, MacAssociations.typeOf(identity, ext)); }
+    if (Fs.isWindows()){ return "UserChoice of "+ext; }
+    return "[Default Applications]\ntext/plain="+program+".desktop\n"+LinuxAssociations.typeOf(ext)+"="+program+".desktop\n";
+  }
+  private static String noPreference(String program){
+    if (Fs.isMac()){ return choices(identity, MacAssociations.typeOf(identity, ext)); }
+    return Fs.isWindows() ? "" : "[Default Applications]\ntext/plain="+program+".desktop\n";
+  }
+  private static String regOut(String... args){
+    var p= Fs.of(new ProcessBuilder(Push.of("reg", List.of(args))).redirectErrorStream(true)::start);
+    return Fs.of(() -> new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
   }
   private void partial(String identity){
     if (Fs.isMac()){ Fs.ensureDir(MacAssociations.home.resolve(identity+".app")); return; }
@@ -193,25 +219,25 @@ final class ReconcileTest{
     var oldCommand= tmp.resolve("my apps\\x").resolve("fearless");
     reconcile(old, oldCommand, List.of(ext));
     assertEquals(List.of(), replaced);
-    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext));
+    reconcile(identity, command(), List.of(ext));
     assertEquals(List.of(oldCommand), replaced);
     assertEquals(List.of(identity), FileAssociations.identities(family));
-    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext, fearlessExt));
+    reconcile(identity, command(), List.of(ext, fearlessExt));
     assertEquals(List.of(oldCommand), replaced);
   }
   @Test void aFamilyRegistrationNotWrittenByReconcileNamesNoCommand(){
     for (var command : handWritten(tmp.resolve("old").resolve("fearless"))){
       register(command);
       assertEquals(List.of(old), FileAssociations.identities(family));
-      reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of());
+      reconcile(identity, command(), List.of());
       assertEquals(List.of(), replaced);
       assertEquals(List.of(), FileAssociations.identities(family));
     }
   }
   @Test void aReconcileWithNoExtensionsRemovesTheIdentity(){
-    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext, fearlessExt));
+    reconcile(identity, command(), List.of(ext, fearlessExt));
     assertEquals(List.of(identity), FileAssociations.identities(family));
-    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of());
+    reconcile(identity, command(), List.of());
     assertEquals(List.of(), FileAssociations.identities(family));
   }
   @Test void aPartialRegistrationIsAnIdentityAndRemovingEveryIdentityRemovesIt(){
@@ -220,54 +246,75 @@ final class ReconcileTest{
     FileAssociations.eradicateAll(family, IllegalStateException::new);
     assertEquals(List.of(), FileAssociations.identities(family));
   }
-  private static String otherChoiceLeft(){
-    if (Fs.isMac()){ return "{public.plain-text=[other]}"; }
-    return Fs.isLinux() ? "[Default Applications]\ntext/plain=other.desktop\n" : "";
+  @Test void twoIdentitiesOfTheFamilyAreRefusedBeforeAnyCheckOfTheExtensions(){
+    partial(old);
+    partial(old+"Other");
+    registered("other", ext);
+    assertEquals("ambiguous "+old+"\n"+old+"Other", refused(List.of(ext), List.of()));
+    assertEquals(List.of(old, old+"Other"), FileAssociations.identities(family));
   }
-  @Test void aSystemExtensionIsTakenOverFromTheProgramTheUserChose(){
-    choose(ext);
-    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext));
-    assertEquals(List.of(identity), FileAssociations.identities(family));
-    assertEquals(otherChoiceLeft(), choicesLeft(ext));
-  }
-  @Test void aChoiceForAnExtensionTheFamilyOpensRefuses(){
-    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext));
-    if (Fs.isWindows()){ choose(ext); assertEquals("chosenByHand {"+ext+"=["+other(ext)+"]}", refused(List.of())); return; }
-    chooseTheFamily(ext);
-    assertEquals("chosenByHand "+familyChoice(ext), refused(List.of()));
-  }
-  @Test void aChoiceForAFearlessExtensionRefusesUntilForgottenInWhateverCaseTheDeskKeepsTheExtension(){
-    var upper= fearlessExt.toUpperCase(Locale.ROOT);
-    if (Fs.isWindows()){ choose(upper); }
-    if (!Fs.isWindows()){ chooseTheFamily(fearlessExt); }
-    var expected= Fs.isWindows() ? "{"+fearlessExt+"=["+other(upper)+"]}" : familyChoice(fearlessExt);
-    assertEquals("chosenByHand "+expected, refused(List.of()));
-    FileAssociations.forgetChoices(chosen, IllegalStateException::new);
-    assertEquals(otherChoiceLeft(), choicesLeft(fearlessExt));
-  }
-  @Test void aFearlessExtensionAnotherProgramClaimsIsNotOurs(){
-    claim(fearlessExt);
-    assertEquals("notOurs {"+fearlessExt+"=["+other(fearlessExt)+"]}", refused(List.of(ext, fearlessExt)));
+  @Test void anExtensionAProgramOutsideTheFamilyHoldsIsRefusedUntilTakenWhateverItsKind(){
+    registered("other", ext, fearlessExt);
+    assertEquals("notOurs {"+fearlessExt+"=other, "+ext+"=other}", refused(List.of(fearlessExt, ext), List.of()));
+    assertEquals("notOurs {"+fearlessExt+"=other}", refused(List.of(fearlessExt, ext), List.of(ext)));
     assertEquals(List.of(), FileAssociations.identities(family));
+    reconcile(identity, command(), List.of(fearlessExt, ext), List.of(ext, fearlessExt));
+    assertEquals(List.of(identity), FileAssociations.identities(family));
+    if (Fs.isMac()){ assertEquals(choices(identity, MacAssociations.typeOf(identity, fearlessExt), MacAssociations.typeOf(identity, ext)), choicesOfTheDesk()); }
+    if (Fs.isWindows()){ Err.strCmp("[###] "+identity+ext, regOut("query", "HKCR\\"+ext, "/ve")); }
+  }
+  @Test void anExtensionAnotherProgramOfTheFamilyHoldsIsTakenWithNoRefusal(){
+    registered(old+"Gone", ext);
+    reconcile(identity, command(), List.of(ext));
+    assertEquals(List.of(identity), FileAssociations.identities(family));
+    if (Fs.isMac()){ assertEquals(choices(identity, MacAssociations.typeOf(identity, ext)), choicesOfTheDesk()); }
+  }
+  @Test void aPreferenceOfTheUserForAnotherProgramIsRefusedUntilTakenAndTakingRemovesIt(){
+    reconcile(identity, command(), List.of(ext));
+    preferred("other", ext);
+    assertEquals("notOurs {"+ext+"=other}", refused(List.of(ext), List.of()));
+    assertEquals(preference("other"), preferenceLeft(ext));
+    reconcile(identity, command(), List.of(ext), List.of(ext));
+    assertEquals(noPreference("other"), preferenceLeft(ext));
+  }
+  @Test void aPreferenceOfTheUserForAProgramOfTheFamilyIsRemovedWithNoRefusal(){
+    reconcile(identity, command(), List.of(ext));
+    var window= identity+"-1a2b";
+    preferred(window, ext);
+    assertEquals(preference(window), preferenceLeft(ext));
+    reconcile(identity, command(), List.of(ext));
+    assertEquals(noPreference(window), preferenceLeft(ext));
+  }
+  @Test void anExtensionAnotherProgramTakesBackIsHeldByTheIdentityOnceTaken(){
+    reconcile(identity, command(), List.of(ext));
+    if (Fs.isWindows()){ registered("other", ext); }
+    if (!Fs.isWindows()){ preferred("other", ext); }
+    assertEquals("notOurs {"+ext+"=other}", refused(List.of(ext), List.of()));
+    reconcile(identity, command(), List.of(ext), List.of(ext));
+    reconcile(identity, command(), List.of(ext));
+  }
+  @Test void aDefaultValueSetByHandAmongTheExtensionsOfTheIdentityIsNoExtension(){
+    if (!Fs.isWindows()){ return; }
+    reconcile(identity, command(), List.of(ext));
+    var declared= hkcu+identity+"\\Capabilities\\FileAssociations";
+    importReg(regKey(declared, "", identity+ext));
+    reconcile(identity, command(), List.of(ext));
+    Err.strCmp("[###] "+identity+ext, regOut("query", declared, "/ve"));
+    reconcile(identity, command(), List.of());
+    assertEquals(List.of(), FileAssociations.identities(family));
+  }
+  @Test void aCommandOutsideAsciiReachesReplacedAsWritten(){
+    var oldCommand= tmp.resolve("café 中").resolve("fearless");
+    reconcile(old, oldCommand, List.of(ext));
+    reconcile(identity, command(), List.of(ext));
+    assertEquals(List.of(oldCommand), replaced);
   }
   @Test void removingAnIdentityKeepsTheClaimOfAnotherProgramOnTheSameExtension(){
     claim(ext);
-    reconcile(identity, tmp.resolve("new").resolve("fearless"), List.of(ext));
+    reconcile(identity, command(), List.of(ext));
     assertEquals(List.of(identity), FileAssociations.identities(family));
     FileAssociations.eradicateAll(family, IllegalStateException::new);
     assertEquals(List.of(), FileAssociations.identities(family));
     assertTrue(claimed(ext));
-  }
-  @Test void aChoiceNamingTheFamilyRefusesEveryReconcileUntilTheChoiceIsForgotten(){
-    var command= tmp.resolve("new").resolve("fearless");
-    reconcile(identity, command, List.of(ext));
-    chooseTheFamily(ext);
-    assertEquals("chosenByHand "+familyChoice(ext), refused(List.of()));
-    assertEquals("chosenByHand "+familyChoice(ext), refused(List.of(fearlessExt)));
-    assertEquals(List.of(identity), FileAssociations.identities(family));
-    FileAssociations.forgetChoices(chosen, IllegalStateException::new);
-    assertEquals(otherChoiceLeft(), choicesLeft(ext));
-    reconcile(identity, command, List.of());
-    assertEquals(List.of(), FileAssociations.identities(family));
   }
 }
