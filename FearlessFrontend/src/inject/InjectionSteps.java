@@ -280,7 +280,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return x.withT(meet(t1, t2));
   }
   private void updateG(Gamma g, String x, IT t1, IT t2){
-    if (t1.undecided()){ g.update(x, g.captured(x) && t2 instanceof IT.RCC(_, var c, var span) ? new RCC(Optional.empty(), c, span) : t2); return; }
+    if (t1.undecided()){ g.update(x, t2 instanceof IT.RCC(_, var c, var span) ? new RCC(Optional.empty(), c, span) : t2); return; }
     if (t1 instanceof IT.RCC a && t2 instanceof IT.RCC b && a.c().name().equals(b.c().name())){ g.update(x, meet(t1, t2)); }
   }
   private E nextT(E.Type t){
@@ -437,7 +437,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     assert m.impl().isPresent();
     var litBs= l.infName() ? bs : l.bs();
     g.newScope(m.sig().rc().get(), litBs, l);
-    g.declare(l.thisName(), selfPrecise.<IT>map(s -> new IT.RCC(m.sig().rc(), s.c(), s.span())).orElse(IT.U.Instance));
+    g.declare(l.thisName(), selfPrecise.<IT>map(s -> new IT.RCC(captureFree(l) ? Optional.of(RC.imm) : m.sig().rc(), s.c(), s.span())).orElse(IT.U.Instance));
     g.newScope(m.sig().rc().get(), litBs, l);
     assert m.sig().m().get().arity() == m.xs().size();
     Streams.zip(m.xs(), m.sig().ts()).forEach((x,t) -> g.declare(x, t.get()));
@@ -462,18 +462,17 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var ps= Streams.zip(oh.get().ps0(), sig.ts()).map((p,a) -> new Con(p, dropMethBs(a.get(), methXs), false, true));
     return Stream.concat(ps, Stream.of(new Con(oh.get().ret0(), dropMethBs(sig.ret().get(), methXs), true, true)));
   }
+  private static boolean captureFree(E.Literal l){ return l.cs().stream().anyMatch(c -> c.name().equals(LiteralDeclarations.captureFree)); }
   private M instantiate(IT.RCC t, M orig, M m){
     var sig= m.sig();
     var xs= MSigL.toXs(sig.span(), B.xs(sig.bs().get()));
     var norm= methodHeader(t, sig.m().get(), sig.rc()).map(h -> sig.withTsT(h.ps0().stream().map(p -> Optional.of(h.inst(p, xs))).toList(), h.inst(h.ret0(), xs))).orElse(sig);
     if (orig.impl().isEmpty()){ return orig.withSig(norm); }
-    var impl= orig.impl().get().withE(meet(m.impl().get().e(), norm.ret().get()));
+    var impl= orig.impl().get().withE(m.impl().get().e());
     var noChange= norm.equals(orig.sig()) && impl == orig.impl().get();
     return noChange ? orig : new M(norm, orig.xs(), orig.names(), Optional.of(impl));
   }
   private IT keepDecided(IT decided, IT fromBody){
-    var decidedSameX= xName(decided).isPresent() && xName(decided).equals(xName(fromBody));
-    if (decidedSameX){ return decided; }
     if (!(decided instanceof IT.RCC(var aRc, var aC, _) && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
     if (!aC.name().equals(b.c().name())){
       var asDecided= adaptedSuperTs(b, aC.name());

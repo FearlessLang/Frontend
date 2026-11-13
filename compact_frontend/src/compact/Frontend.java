@@ -570,7 +570,7 @@ import java.util.stream.*;
     E next(List<B>b,IG g,E e){return switch(e){
       case E.X x->{
         var o=g.get(x.name);var a=o;var i=g.indexOf(find(g,f->f.vars.containsKey(x.name)));for(var f:g.subList(i+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);}var z=x.t;if(a.equals(z))yield x;
-        var t=z==u?null:o==u?i+1<g.size()&&z instanceof R(_,var c)?new R(null,c):z
+        var t=z==u?null:o==u?z instanceof R(_,var c)?new R(null,c):z
           :o instanceof R p&&z instanceof R q&&p.c.name.equals(q.c.name)?meet(o,z):null;
         if(t!=null)g.get(i).vars.put(x.name,t);yield x.t(meet(a,z));
       }
@@ -614,7 +614,7 @@ import java.util.stream.*;
       return Stream.of(given,shape,all).reduce((p,z)->zip(p,z,(a,x)->a.tv()?a:x)).get();
     }
     M instantiate(R w,M m){var h=signature(w,m.s.m,m.s.r,null);var a=h==null?null:push(w.c.types,vars(m.s.b));
-      var n=h==null?m:m.signature(m.s.types(rename(h.ps,h.v,a),rename(h.ret,h.v,a)));return n.e==null?n:n.body(meet(n.e,n.s.t));
+      var n=h==null?m:m.signature(m.s.types(rename(h.ps,h.v,a),rename(h.ret,h.v,a)));return n;
     }
     T up(T t){if(!(t instanceof R(var r,var c)))return t;var h=sup.getOrDefault(c.name,c);return new R(r,h).withTs(map(h.types,this::up));}
     C self(C c){
@@ -624,14 +624,13 @@ import java.util.stream.*;
     }
     M method(List<B>b,IG g,Literal l,R sp,R w,M m){var bs=l.anon?b:l.b;
       g.push(m.s.r,bs);if(l.anon&&!w.c.name.equals(l.name))sup.put(l.name,w.c);
-      g.declare(l.self,sp==null?u:new R(m.s.r,sp.c));
+      g.declare(l.self,sp==null?u:l.self(has(l.cs,cf)?imm:m.s.r));
       g.push(m.s.r,bs);g.declare(m);
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
       var args=zip(m.v,m.s.types,(x,t)->late?meet(t,g.get(x)):t);g.removeLast();
       g.removeLast();return m.signature(m.s.types(args,meet(m.s.t,e.t()))).body(e);
     }
     T keep(T decided,T body){
-      if(decided.v()!=null&&decided.v().equals(body.v()))return decided;
       if(!(decided instanceof R(var aRc,var aC)&&body instanceof R b))return meet(decided,body);
       if(!aC.name.equals(b.c.name)){var s=sup(b,aC.name);return s==null?decided:keep(decided,s);}
       return b.with(or(aRc,b.r),zip(aC.types,b.c.types,this::keep));
