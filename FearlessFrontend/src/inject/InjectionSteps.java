@@ -354,7 +354,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       l = l.infName() && l.cs().size() == 1 ? l.withT(new IT.RCC(l.rc(), l.cs().getFirst(), l.name().approxSpan())) : selfPrecise.map(l::withT).orElse(l);
       if (!(l.t() instanceof IT.RCC(_, var c, _))){ return l; }//!infHead after passing this test means right now we can expand methods
       var anon= l.infName() && !c.name().equals(l.name());
-      if (anon && l.ms().isEmpty() && l.t().isTV() && meths._from(c.name()) != null){ return literalAsType(l, (IT.RCC)l.t()); }
       var o= anon ? g._owner(c.name()) : null;
       if (o != null && o.infName()){ throw meths.p().err().implementsAnonymousType(l, o); }
       l = anon ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l, true);
