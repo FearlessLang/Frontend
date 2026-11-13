@@ -1139,7 +1139,7 @@ In file: [###].fear
    |          ^^^^^^^^
 
 While inspecting a type name
-Source code inside folders named "_p" can not use package name "basee".
+Source code inside folders named "_p" cannot use package name "basee".
 Did you mean "base" ?
 Visible package names: "base".
 Error 7 WellFormedness
