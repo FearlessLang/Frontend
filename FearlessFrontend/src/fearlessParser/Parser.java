@@ -72,7 +72,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   T.C parseC(){
     var c= parseTName();
     if (!peek(_SquareGroup)){ return new T.C(c, empty()); }
-    var ts= parseGroupSep("", "generic types", Parser::parseT, OSquareArg, CSquare, commaSkip);
+    var ts= parseGroupSep("", "generic type arguments", Parser::parseT, OSquareArg, CSquare, commaSkip);
     return new T.C(c.withArity(ts.size()), of(ts));
   }
   TName parseTName(){
@@ -95,7 +95,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   T.X parseDecTX(boolean mustNew){
     var startPos= index();
-    var c= expectValidate("generic type name declaration", UppercaseId, _XId);
+    var c= expectValidate("generic type parameter name", UppercaseId, _XId);
     var declared= names.XIn(c.content()) || names.XHidden(c.content());
     var redeclared= mustNew && declared;
     if (redeclared){ throw errFactory().nameRedeclared(c, span(c).get()); }
@@ -123,7 +123,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
       return new E.Call(receiver, mm, empty(), false, empty(), List.of(new E.TypedLiteral(rcc, empty(), p)), pos);
     }
     var m= parseMName();
-    var sq= parseIf(peek(_SquareGroup), () -> parseGroup("method call generic parameters", Parser::parseCallSquare));
+    var sq= parseIf(peek(_SquareGroup), () -> parseGroup("method call generic type arguments", Parser::parseCallSquare));
     if (peek(_RoundGroup)){
       var es= parseGroupSep("", "arguments list", Parser::parseE, ORound, CRound, commaExp);
       return new E.Call(receiver, m.withArity(es.size()), sq, true, empty(), es, pos);
@@ -178,7 +178,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var rc= parseIf(hasRC, this::parseRC);
     var moreTargs= hasRC && !end();
     if (moreTargs){ expect("method call generic type argument", Comma); }
-    return new E.CallSquare(rc, end() ? List.of() : splitBy("genericTypes", commaSkip, Parser::parseT), pos());
+    return new E.CallSquare(rc, end() ? List.of() : splitBy("generic type arguments", commaSkip, Parser::parseT), pos());
   }
   E.Implicit parseImplicit(){ return new E.Implicit(pos(expect("", ColonColon))); }
   E.Round parseRound(){

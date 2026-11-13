@@ -162,7 +162,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var x= err().typeRepr(true, req);
     return addExpFrame(at, err()
       .line(up(err().expRepr(at))+" cannot implement "+x+".")
-      .line(x+" is a type parameter; object literals can only implement nominal types.")
+      .line(x+" is a generic type parameter; object literals can only implement nominal types.")
       .ex(at));
   }
   public FearlessException typeDeclaredInMethod(E at, Literal l){
@@ -283,9 +283,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private String whyDropNotKinded(String subject, Change.NoT why){
     var bounds= disp(Join.of(why.l().bs(), "", ", ", "", ""));
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    +"That type is not well kinded under the type parameters of "+err().expRepr(why.l())
+    +"That type is not well kinded under the generic type parameters of "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+"): "+bounds+".\n"
-    +"The bounds declared by the object literal are all it knows about its type parameters,\n"
+    +"The bounds declared by the object literal are all it knows about its generic type parameters,\n"
     +"and thus "+subject+" cannot be captured.\n";
   }
   private String whyDropReadHMutH(String subject, Change.NoT why){
@@ -310,8 +310,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var best= TypeScope.bestInterestingScope(s, List.of(recvType));
     return withCallSpans(err()
       .pCallCantBeSatisfied(c)
-      .line("The receiver is of type "+err().typeRepr(true, recvType)+". This is a type parameter.")
-      .line("Type parameters cannot be receivers of method calls.")
+      .line("The receiver is of type "+err().typeRepr(true, recvType)+". This is a generic type parameter.")
+      .line("Generic type parameters cannot be receivers of method calls.")
       .exInferMsg(best.contextE(), err().typeRepr(true, recvType)), c);
   }
   ///No method matches call c.
@@ -407,11 +407,11 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var expected= bs.size();
     var args= Join.of(bs.stream().map(b -> disp(b.x())), ": ", " and ", "", "");
     var got= c.targs().size(); assert got != expected;
-    var expS= expected == 0 ? "no type arguments" : count(expected, "type argument")+args;
-    var gotS= got == 0 ? "no type arguments" : count(got, "type argument");
+    var expS= expected == 0 ? "no generic type arguments" : count(expected, "generic type argument")+args;
+    var gotS= got == 0 ? "no generic type arguments" : count(got, "generic type argument");
     return withCallSpans(err()
       .pCallCantBeSatisfied(d, c)
-      .line("Wrong number of type arguments for "+err().methodSig(c.name())+".")
+      .line("Wrong number of generic type arguments for "+err().methodSig(c.name())+".")
       .line("This method expects "+expS+"; but this call provides "+gotS+".")
       .ex(c), c);
   }

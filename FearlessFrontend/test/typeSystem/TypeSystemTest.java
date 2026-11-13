@@ -145,7 +145,7 @@ T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
 
 While inspecting object literal instance of "T0[_,_]"
 Type inference concluded that this object literal implements "T0[?,?]",
-but it could not infer type arguments 1 and 2 for type parameters "X0" and "X1" of "T0[_,_]".
+but it could not infer generic type arguments 1 and 2 for generic type parameters "X0" and "X1" of "T0[_,_]".
 """, List.of("""
 T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
 """));}
@@ -155,7 +155,7 @@ T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
 
 While inspecting object literal instance of "T0[_]"
 Type inference concluded that this object literal implements "T0[?]",
-but it could not infer type argument 1 for type parameter "X" of "T0[_]".
+but it could not infer generic type argument 1 for generic type parameter "X" of "T0[_]".
 """, List.of("""
 T0[X]:{ .m: T0[base.Void] -> {this}.m }
 """));}
@@ -320,8 +320,8 @@ Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
 
 While inspecting method call ".foo" > ".bar" line 2 > "#" line 2
 The call to ".foo" is invalid.
-Type argument 1 ("mut Outer") does not satisfy the bounds
-for type parameter "X" in "G.foo".
+Generic type argument 1 ("mut Outer") does not satisfy the bounds
+for generic type parameter "X" in "G.foo".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -384,8 +384,8 @@ B:{}
 
 While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
-Type argument 1 ("mut B") does not satisfy the bounds
-for type parameter "X" in "A[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds
+for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -402,8 +402,8 @@ User:{ imm .m(a:imm A[mut B]):base.Void; }
 
 While inspecting type declaration "User"
 The type "A[B,mut C]" is invalid.
-Type argument 2 ("mut C") does not satisfy the bounds
-for type parameter "Y" in "A[_,_]".
+Generic type argument 2 ("mut C") does not satisfy the bounds
+for generic type parameter "Y" in "A[_,_]".
 Here "Y" can only use capabilities "iso" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -421,8 +421,8 @@ User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
 
 While inspecting type declaration "User"
 The type "B[mut C]" is invalid.
-Type argument 1 ("mut C") does not satisfy the bounds
-for type parameter "Y" in "B[_]".
+Generic type argument 1 ("mut C") does not satisfy the bounds
+for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -440,8 +440,8 @@ User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
 
 While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
-Type argument 1 ("mut B") does not satisfy the bounds
-for type parameter "X" in "A[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds
+for generic type parameter "X" in "A[_]".
 Here "X" can only use capabilities "imm" or "mutH" or "readH".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -458,8 +458,8 @@ User:A[mut B]{ .foo(b:B):B->b;}
 
 While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
-Type argument 1 ("mut B") does not satisfy the bounds
-for type parameter "X" in "A[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds
+for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -476,8 +476,8 @@ User:{ imm .m(a:imm B):imm A[mut B]; }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
-Type argument 1 ("mut B") does not satisfy the bounds
-for type parameter "X" in "A.id(_)".
+Generic type argument 1 ("mut B") does not satisfy the bounds
+for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -494,8 +494,8 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".pair(_,_)" > ".m(_,_,_)" line 5
 The call to ".pair(_,_)" is invalid.
-Type argument 2 ("mut C") does not satisfy the bounds
-for type parameter "Y" in "A.pair(_,_)".
+Generic type argument 2 ("mut C") does not satisfy the bounds
+for generic type parameter "Y" in "A.pair(_,_)".
 Here "Y" can only use capability "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -514,8 +514,8 @@ User:{ imm .m(a:imm A,b:imm B,c:imm C):base.Void->a.pair[imm B,mut C](b,c); }
 
 While inspecting method call ".use(_)" > ".m(_,_,_)" line 4
 The type "B[mut C]" is invalid.
-Type argument 1 ("mut C") does not satisfy the bounds
-for type parameter "Y" in "B[_]".
+Generic type argument 1 ("mut C") does not satisfy the bounds
+for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -533,10 +533,10 @@ User:{ imm .m(a:imm A,b:imm B[C],c:imm C):base.Void->a.use[B[mut C]](b); }
 
 While inspecting type declaration "User[_]"
 The type "A[Y]" is invalid.
-Type argument 1 ("Y") does not satisfy the bounds
-for type parameter "X" in "A[_]".
+Generic type argument 1 ("Y") does not satisfy the bounds
+for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
-But type argument "Y" can use capabilities "read".
+But generic type argument "Y" can use capabilities "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User[Y:read]:A[Y]{}
@@ -551,8 +551,8 @@ User[Y:read]:A[Y]{}
 
 While inspecting type declaration "User"
 The type "B[mut C]" is invalid.
-Type argument 1 ("mut C") does not satisfy the bounds
-for type parameter "Y" in "B[_]".
+Generic type argument 1 ("mut C") does not satisfy the bounds
+for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -570,8 +570,8 @@ User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
-Type argument 1 ("mut B") does not satisfy the bounds
-for type parameter "X" in "A.id(_)".
+Generic type argument 1 ("mut B") does not satisfy the bounds
+for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "imm" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -589,8 +589,8 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
-Type argument 1 ("B") does not satisfy the bounds
-for type parameter "X" in "A.id(_)".
+Generic type argument 1 ("B") does not satisfy the bounds
+for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -607,8 +607,8 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
-Type argument 1 ("B") does not satisfy the bounds
-for type parameter "X" in "A.id(_)".
+Generic type argument 1 ("B") does not satisfy the bounds
+for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -626,8 +626,8 @@ User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
 
 While inspecting object literal instance of "Thaw[mut Cell]" > ".break(_)" line 4
 The type "Thaw[mut Cell]" is invalid.
-Type argument 1 ("mut Cell") does not satisfy the bounds
-for type parameter "X" in "Thaw[_]".
+Generic type argument 1 ("mut Cell") does not satisfy the bounds
+for generic type parameter "X" in "Thaw[_]".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1134,9 +1134,9 @@ User:{
    |                                 ^^^^^
 
 While inspecting parameter "beer"
-Parameter "beer" has type "Beer[X]", using the generic type "X".
-Generic type "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic types it declares itself; here "Foo" declares none.
+Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
+Generic type parameter "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
 Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
@@ -1152,8 +1152,8 @@ Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 
 While inspecting parameter "x"
 Parameter "x" has type "X".
-Generic type "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic types it declares itself; here "Foo" declares none.
+Generic type parameter "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
 Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
@@ -1167,9 +1167,9 @@ Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
    |                                    ^^^^
 
 While inspecting parameter "beer"
-Parameter "beer" has type "Beer[X]", using the generic type "X".
-Generic type "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic types it declares itself; here "Foo" declares none.
+Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
+Generic type parameter "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
 Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
@@ -1185,9 +1185,9 @@ Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
    |                                      ^^^^^
 
 While inspecting parameter "beer"
-Parameter "beer" has type "Beer[X]", using the generic type "X".
-Generic type "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic types it declares itself; here "Foo" declares none.
+Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
+Generic type parameter "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
 Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
@@ -1201,9 +1201,9 @@ Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """));}
 @Test void drop_ftv_notPropagatedIntoFooDeclaringOther(){failWf("""
 [###]
-Parameter "beer" has type "Beer[X]", using the generic type "X".
-Generic type "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic types it declares itself; here "Foo" declares "Z".
+Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
+Generic type parameter "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic type parameters it declares itself; here "Foo" declares "Z".
 Hint: funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
@@ -1239,8 +1239,8 @@ User:{
 
 While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
-The receiver is of type "X". This is a type parameter.
-Type parameters cannot be receivers of method calls.
+The receiver is of type "X". This is a generic type parameter.
+Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
 -#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](x.foo)))))
@@ -1254,8 +1254,8 @@ User:{ .m[X:*](x: X): X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
 
 While inspecting ".m(_)" line 4
 This call to method ".foo" cannot typecheck.
-The receiver is of type "read X". This is a type parameter.
-Type parameters cannot be receivers of method calls.
+The receiver is of type "read X". This is a generic type parameter.
+Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "read X" was introduced: (compression indicated by `-`)
 -#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](x.foo)))))
@@ -1271,8 +1271,8 @@ User:Sup[Box[User]]{ .m[X:*](x: read X): read X -> Id#(Id#(Id#(Id#(Id#(x.foo))))
 
 While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
-The receiver is of type "read/imm X". This is a type parameter.
-Type parameters cannot be receivers of method calls.
+The receiver is of type "read/imm X". This is a generic type parameter.
+Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "read/imm X" was introduced: (compression indicated by `-`)
 -#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](x.foo)))))
@@ -1292,8 +1292,8 @@ User:{ .m[X:*](x: X): base.Void -> Ig#(Mk#(x)) }
 
 While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
-The receiver is of type "X". This is a type parameter.
-Type parameters cannot be receivers of method calls.
+The receiver is of type "X". This is a generic type parameter.
+Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
 User:{.m[X:**](x:X):X->x.foo}
@@ -1311,7 +1311,7 @@ In file: [###].fear
 
 While inspecting type declaration "Current"
 Invalid method implementation for "Current.id(_)".
-The local declaration uses different capability bounds than the supertypes for type parameter 1 of ".id(_)".
+The local declaration uses different capability bounds than the supertypes for generic type parameter 1 of ".id(_)".
 Local: "X:imm,read".
 From supertypes: "-:imm".
 The parameter name may differ; only the position matters.
@@ -1331,10 +1331,10 @@ In file: [###].fear
 
 While inspecting type declaration "Sub"
 Invalid method implementation for "Sub.f(_)".
-The method ".f(_)" declares 2 type parameters, but supertypes declare 1.
+The method ".f(_)" declares 2 generic type parameters, but supertypes declare 1.
 Local declaration: "[X:imm, Y:imm]".
 From supertypes: "[-:imm]".
-Change the local number of type parameters to 1, or adjust the supertypes.
+Change the local number of generic type parameters to 1, or adjust the supertypes.
 Error 7 WellFormedness
 """, List.of("""
 P:{}
@@ -1615,8 +1615,8 @@ User:{ #(a:read A):A->a.m[read] }
 
 While inspecting ".m(_,_,_)" line 7
 This call to method "read Pairer.pair(_,_)" cannot typecheck.
-Wrong number of type arguments for ".pair(_,_)".
-This method expects 2 type arguments: "X" and "Y"; but this call provides 1 type argument.
+Wrong number of generic type arguments for ".pair(_,_)".
+This method expects 2 generic type arguments: "X" and "Y"; but this call provides 1 generic type argument.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 p.pair[read,mut A](a,b)
@@ -1639,8 +1639,8 @@ User:{
 
 While inspecting ".m(_,_)" line 9
 This call to method "read Id.id(_)" cannot typecheck.
-Wrong number of type arguments for ".id(_)".
-This method expects 1 type argument: "X"; but this call provides 3 type arguments.
+Wrong number of generic type arguments for ".id(_)".
+This method expects 1 generic type argument: "X"; but this call provides 3 generic type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 i.id[read,mut A,mut B,mut C](a)
@@ -1810,8 +1810,8 @@ A:{
 
 While inspecting method call "#(_)" > ".f(_)" line 6
 The call to "#(_)" is invalid.
-Type argument 1 ("mut A") does not satisfy the bounds
-for type parameter "X" in "IdRO#(_)".
+Generic type argument 1 ("mut A") does not satisfy the bounds
+for generic type parameter "X" in "IdRO#(_)".
 Here "X" can only use capabilities "imm" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -2229,8 +2229,8 @@ User:{ #: read A -> read C:A,B{ .m -> Z } }
 
 While inspecting ".bar(_)" line 3
 This call to method ".foo123" cannot typecheck.
-The receiver is of type "X". This is a type parameter.
-Type parameters cannot be receivers of method calls.
+The receiver is of type "X". This is a generic type parameter.
+Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
 A:{.foo123:A->this.foo123;.bar[X:*](x:X):A->x.foo123}
@@ -2247,8 +2247,8 @@ A:{
 
 While inspecting ".bar" line 3
 This call to method "A.id(_)" cannot typecheck.
-Wrong number of type arguments for ".id(_)".
-This method expects 1 type argument: "X"; but this call provides 2 type arguments.
+Wrong number of generic type arguments for ".id(_)".
+This method expects 1 generic type argument: "X"; but this call provides 2 generic type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.id[imm,A,A](this)
@@ -2640,7 +2640,7 @@ In file: [###].fear
 
 While inspecting a literal
 Literal "1" is directly followed by "[".
-Number and string literals take no generic arguments.
+Number and string literals take no generic type arguments.
 Remove the "[...]" after "1".
 Error 2 UnexpectedToken
 """, List.of("""
@@ -2654,7 +2654,7 @@ In file: [###].fear
 
 While inspecting a literal
 Literal "1" is directly followed by "[".
-Number and string literals take no generic arguments.
+Number and string literals take no generic type arguments.
 Remove the "[...]" after "1".
 Error 2 UnexpectedToken
 """, List.of("""
@@ -2668,7 +2668,7 @@ In file: [###].fear
 
 While inspecting a literal
 Literal "`a`" is directly followed by "[".
-Number and string literals take no generic arguments.
+Number and string literals take no generic type arguments.
 Remove the "[...]" after "`a`".
 Error 2 UnexpectedToken
 """, List.of("""
@@ -2682,7 +2682,7 @@ In file: [###].fear
 
 While inspecting a literal
 Literal `"a"` is directly followed by "[".
-Number and string literals take no generic arguments.
+Number and string literals take no generic type arguments.
 Remove the "[...]" after `"a"`.
 Error 2 UnexpectedToken
 """, List.of("""
@@ -2696,7 +2696,7 @@ In file: [###].fear
 
 While inspecting a literal
 Literal "-1.5" is directly followed by "[".
-Number and string literals take no generic arguments.
+Number and string literals take no generic type arguments.
 Remove the "[...]" after "-1.5".
 Error 2 UnexpectedToken
 """, List.of("""
@@ -4616,7 +4616,7 @@ User[E:imm]: {
 /*Minimizes base.Set.difference in datatypes/collections/sets/set.fear. X is again only decided by
 the lambda body, but the body's type mentions "E", so the failure is not the one of
 blockLetInfersItsTypeFromTheLambdaBody: the literal generated for "{other.distinct}" is given the
-head "iso MF[InferUnknown]", which mentions no type parameter, so the fresh declaration is created
+head "iso MF[InferUnknown]", which mentions no generic type parameter, so the fresh declaration is created
 without binders and capturing "other" is then reported as a capture error.*/
 
 
@@ -4962,9 +4962,9 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): B -> this.both(y, z) }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
 "T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
-Write the type argument explicitly, as in "this.both[A](y, z)".
+Write the generic type argument explicitly, as in "this.both[A](y, z)".
 """, List.of("""
 A:{} B:{} Y:A,B{} Z:A,B{}
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
@@ -4978,9 +4978,9 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
 No type is a supertype of all of them.
-Write the type argument explicitly, as in "this.both[Type1](y, z)".
+Write the generic type argument explicitly, as in "this.both[Type1](y, z)".
 """, List.of("""
 A:{} Y:{} Z:{}
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
@@ -4990,9 +4990,9 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.ThenElse[_]"
-The type argument "R" of "base.ThenElse[_]" is inferred from the method bodies, but they disagree: some need "Y", some need "Z".
+The generic type argument "R" of "base.ThenElse[_]" is inferred from the method bodies, but they disagree: some need "Y", some need "Z".
 No type is a supertype of all of them.
-Write the type argument explicitly, as in "base.ThenElse[Type1]{...}".
+Write the generic type argument explicitly, as in "base.ThenElse[Type1]{...}".
 """, List.of("""
 A:{} Y:{} Z:{}
 Sink:{ #[T](t: T): A -> A }
@@ -5003,9 +5003,9 @@ U:{ .use(c: base.Bool, y: Y, z: Z): A -> Sink#(c ? { .then -> y; .else -> z }) }
    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.ThenElse[_]"
-The type argument "R" of "base.ThenElse[_]" is inferred from the method bodies, but they disagree: some need "Y", some need "Z".
+The generic type argument "R" of "base.ThenElse[_]" is inferred from the method bodies, but they disagree: some need "Y", some need "Z".
 "R" could be "S1" or "S2": each is a supertype of "Y" and "Z". The choice is ambiguous.
-Write the type argument explicitly, as in "base.ThenElse[S1]{...}".
+Write the generic type argument explicitly, as in "base.ThenElse[S1]{...}".
 """, List.of("""
 A:{} S1:{} S2:{} Y:S1,S2{} Z:S1,S2{}
 Sink:{ #[T](t: T): A -> A }
@@ -5058,9 +5058,9 @@ App:{ .m: base.Nat -> {.b:base.Void->base.Void;}.a }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
 No type is a supertype of all of them.
-Write the type argument explicitly, as in "this.both[Type1](y, z)".
+Write the generic type argument explicitly, as in "this.both[Type1](y, z)".
 """, List.of("""
 A:{} B:{} Sup[T]:{ .k: T } Y:Sup[A]{ .k -> A } Z:Sup[B]{ .k -> B }
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
@@ -5070,9 +5070,9 @@ U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                               ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Sup[A]", some need "Z".
+The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Sup[A]", some need "Z".
 No type is a supertype of all of them.
-Write the type argument explicitly, as in "this.both[Type1](y, z)".
+Write the generic type argument explicitly, as in "this.both[Type1](y, z)".
 """, List.of("""
 A:{} B:{} Sup[T]:{ .k: T } Z:Sup[B]{ .k -> B }
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Sup[A], z: Z): A -> this.both(y, z) }
@@ -5245,9 +5245,9 @@ Use:{ .go: N -> Take#{ .m(x) -> Wrap#(x) } }
    |                                                                          ^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".two(_,_,_)"
-The type argument "T" of ".two" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+The generic type argument "T" of ".two" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
 No type is a supertype of all of them.
-Write the type argument explicitly, as in "this.two[Type1](y, z, this.mk)".
+Write the generic type argument explicitly, as in "this.two[Type1](y, z, this.mk)".
 """, List.of("""
 A:{} Y:{} Z:{} Box[X]:{}
 U:{ .mk[R]: R; .two[T](a: T, b: T, c: Box[T]): A; .use(y: Y, z: Z): A -> this.two(y, z, this.mk) }
@@ -5257,9 +5257,9 @@ U:{ .mk[R]: R; .two[T](a: T, b: T, c: Box[T]): A; .use(y: Y, z: Z): A -> this.tw
    |                              ^^^^^^^^^^^^^^^^
 
 While inspecting method call "#(_)"
-The type argument "T" of "#" is inferred from the arguments, but they disagree: some need "Bar[A]", some need "Bar[B]".
+The generic type argument "T" of "#" is inferred from the arguments, but they disagree: some need "Bar[A]", some need "Bar[B]".
 No type is a supertype of all of them.
-Write the type argument explicitly, as in "Ign#[Type1](Mk#.m(a, b))".
+Write the generic type argument explicitly, as in "Ign#[Type1](Mk#.m(a, b))".
 """, List.of("""
 A:{}
 B:{}
@@ -5274,9 +5274,9 @@ User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
    |                                    ^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".choose(_,_)"
-The type argument "V" of ".choose" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+The generic type argument "V" of ".choose" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
 No type is a supertype of all of them.
-Write the type argument explicitly, as in "Left.choose[Type1](y, z)".
+Write the generic type argument explicitly, as in "Left.choose[Type1](y, z)".
 """, List.of("""
 A:{} Y:{} Z:{}
 Fork:{ .choose[V](l: V, r: V): V }
@@ -5290,9 +5290,9 @@ Use:{ .go(y: Y, z: Z): A -> Take#{ Left.choose(y, z) } }
    |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".choose(_,_)"
-The type argument "Val" of ".choose" is inferred from the arguments, but they disagree: some need "base.Str", some need "TankNN".
+The generic type argument "Val" of ".choose" is inferred from the arguments, but they disagree: some need "base.Str", some need "TankNN".
 No type is a supertype of all of them.
-Write the type argument explicitly, as in `Left.choose[Type1]("Hello", TankNN)`.
+Write the generic type argument explicitly, as in `Left.choose[Type1]("Hello", TankNN)`.
 """, List.of("""
 Fork:{ .choose[Val](leftVal: Val, rightVal: Val): Val }
 Left:Fork{ l,r -> l }
@@ -5494,7 +5494,7 @@ D[Y:*]:{ .m(y: read/imm Y): base.Void -> F2#(y) }
 
 While inspecting object literal "{...}"
 Object literal "{...}" cannot implement "X".
-"X" is a type parameter; object literals can only implement nominal types.
+"X" is a generic type parameter; object literals can only implement nominal types.
 """, List.of("""
 G:{ #[T:*](x:T):T -> x }
 H[X:*]:{ .m: X -> G#[X]({}) }
@@ -5703,7 +5703,7 @@ U:{ .m: base.Void -> Ig#(F#(Mk#, base.Void)) }
 
 While inspecting object literal instance of "iso A" > ".m" line 3
 Object literal instance of "iso A" cannot implement "X".
-"X" is a type parameter; object literals can only implement nominal types.
+"X" is a generic type parameter; object literals can only implement nominal types.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso A{.k:-.Void->-.Void}
@@ -5718,7 +5718,7 @@ H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
 
 While inspecting object literal instance of "A" > ".m" line 3
 Object literal instance of "A" cannot implement "X".
-"X" is a type parameter; object literals can only implement nominal types.
+"X" is a generic type parameter; object literals can only implement nominal types.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A
@@ -5831,9 +5831,9 @@ U:{ .m: A -> Foo:A,base.CaptureFree{'s .k -> s; .v -> G#(s, {}) } }
    |                                           ^^^^^^^^
 
 While inspecting method call "#(_,_)"
-The type argument "X" of "#" is inferred from the arguments, but they disagree: some need the anonymous type of the object literal at line 3, column 22, some need "B".
+The generic type argument "X" of "#" is inferred from the arguments, but they disagree: some need the anonymous type of the object literal at line 3, column 22, some need "B".
 No type is a supertype of all of them.
-Write the type argument explicitly, as in "G#[Type1](s, B)".
+Write the generic type argument explicitly, as in "G#[Type1](s, B)".
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 B:{}
@@ -5874,8 +5874,8 @@ U:{ .m: base.Void -> {'s .j: base.Void -> H#({ .get -> s }, B) }.j }
 
 While inspecting ".m(_,_)" line 3
 This call to method "read Id.id(_)" cannot typecheck.
-Wrong number of type arguments for ".id(_)".
-This method expects 1 type argument: "X"; but this call provides no type arguments.
+Wrong number of generic type arguments for ".id(_)".
+This method expects 1 generic type argument: "X"; but this call provides no generic type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 i.id[read](a)
@@ -5890,8 +5890,8 @@ User:{ read .m(i:Id,a:mut A):mut A-> i.id[](a); }
 
 While inspecting ".a" line 4 > ".go(_)" line 4
 This call to method "Id#(_)" cannot typecheck.
-Wrong number of type arguments for "#(_)".
-This method expects 1 type argument: "T"; but this call provides no type arguments.
+Wrong number of generic type arguments for "#(_)".
+This method expects 1 generic type argument: "T"; but this call provides no generic type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Id#(x)
@@ -5907,8 +5907,8 @@ User:{ .go(x: Foo): mut K -> { read .a -> Id#[imm](x); .b -> Id#[imm](x) } }
 
 While inspecting ".m(_,_)" line 3
 This call to method "read Id.id(_)" cannot typecheck.
-Wrong number of type arguments for ".id(_)".
-This method expects 1 type argument: "X"; but this call provides no type arguments.
+Wrong number of generic type arguments for ".id(_)".
+This method expects 1 generic type argument: "X"; but this call provides no generic type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 i.id[read](a)
@@ -5978,9 +5978,9 @@ A:{ .m[X](x: X, y: X): X -> y; .k: Box[A] -> this.m(C, D) }
    |                                                                          ^^^^^^^^^^^^
 
 While inspecting method call ".m(_,_)"
-The type argument "X" of ".m" is inferred from the arguments, but they disagree: some need "C", some need "D".
+The generic type argument "X" of ".m" is inferred from the arguments, but they disagree: some need "C", some need "D".
 No type is a supertype of all of them.
-Write the type argument explicitly, as in "this.m[Type1](C, D)".
+Write the generic type argument explicitly, as in "this.m[Type1](C, D)".
 """, List.of("""
 Box[T]:{}
 C:Box[A],Box[C]{}
@@ -5992,9 +5992,9 @@ A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(
    |                                                                          ^^^^^^^^^^^^
 
 While inspecting method call ".m(_,_)"
-The type argument "X" of ".m" is inferred from the arguments, but they disagree: some need "C", some need "D".
+The generic type argument "X" of ".m" is inferred from the arguments, but they disagree: some need "C", some need "D".
 No type is a supertype of all of them.
-Write the type argument explicitly, as in "this.m[Type1](C, D)".
+Write the generic type argument explicitly, as in "this.m[Type1](C, D)".
 """, List.of("""
 Box[T]:{}
 C:Box[C],Box[A]{}

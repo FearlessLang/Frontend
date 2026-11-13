@@ -92,8 +92,8 @@ A:{ .a: A; .a: A }
    |   --~~~~~~~~~~~~~~~~~~~~~^--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Generic type "X" is not in scope.
-No generic parameters are declared here.
+Generic type parameter "X" is not in scope.
+No generic type parameters are declared here.
 """, List.of("""
 A[X:*]:{ .foo(x: X): X -> B{ x }.argh }
 B:{ read .argh: read/imm X }
@@ -221,8 +221,8 @@ A:{ #: A -> this.eat(read/imm A); .eat(a: A): A -> a }
    |     ~~~~~~~~~~~~^---------
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
-Generic type "A" is not in scope.
-No generic parameters are declared here.
+Generic type parameter "A" is not in scope.
+No generic type parameters are declared here.
 """, List.of("""
 A:{ #: read/imm A -> this# }
 """));}
@@ -324,8 +324,8 @@ Bad:Person{}
 005|   }}
 
 While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Generic type "N" is not in scope inside the type declaration "Person".
-A type declaration only sees the generic types it declares itself; here "Person" declares none.
+Generic type parameter "N" is not in scope inside the type declaration "Person".
+A type declaration only sees the generic type parameters it declares itself; here "Person" declares none.
 Hint: funnel "N" into "Person" by writing "Person[N:..]", restating the bounds of "N".
 """, List.of("""
 Str:{}
@@ -371,9 +371,9 @@ BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
 002| BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[Z]{} }
    |                                      ------------~~^~--
 
-While inspecting generic types > super types declaration > method body > method declaration > type declaration body > type declaration > full file
-Generic type "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
+While inspecting generic type arguments > super types declaration > method body > method declaration > type declaration body > type declaration > full file
+Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:mut]:{}
@@ -388,9 +388,9 @@ BreakOuter[Z:mut]:{ #: BreakInner[Z] -> BreakInner[Z:mut]: A[Z]{} }
 002| BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A[Z] -> A[Z] } }
    |                                                 ~~~~~~^~--------
 
-While inspecting generic types > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Generic type "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
+While inspecting generic type arguments > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:*]:{}
@@ -405,9 +405,9 @@ BreakOuter[Z:*]:{ #: BreakInner[Z] -> BreakInner[Z:*]:{ .z: A[Z] -> A[Z] } }
 002| BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[mut Z]{} }
    |                                                  --~~~~^-
 
-While inspecting generic types > super types declaration > method body > method declaration > type declaration body > type declaration > full file
-Generic type "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
+While inspecting generic type arguments > super types declaration > method body > method declaration > type declaration body > type declaration > full file
+Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:mut]:{}
@@ -418,9 +418,9 @@ BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[mut Z]{} }
 002| BreakOuter[Y:*,Z:*]:{ #: BreakInner[Y] -> BreakInner[Y:*]:{ .z: A[Z] -> A[Z] } }
    |                                                             ~~~~~~^~--------
 
-While inspecting generic types > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Generic type "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic types it declares itself; here "BreakInner" declares "Y".
+While inspecting generic type arguments > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
+Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares "Y".
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Y:..,Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:*]:{}
@@ -443,8 +443,8 @@ BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z[Z:*](z: Z): Z -> z } }
    |                                                          -------^~~------
 
 While inspecting generic bounds declaration > method body > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Generic type "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
+Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A:{}
@@ -456,8 +456,8 @@ BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A -> Inner2[Z:*]: A{} } }
    |                                                       ~~~~~~~~~~~~~^-----
 
 While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
-Generic type "Z" is not in scope inside the type declaration "BreakInner".
-A type declaration only sees the generic types it declares itself; here "BreakInner" declares none.
+Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
+A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
 Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A:{}
@@ -570,8 +570,8 @@ Longongongongongongongongongongongongongongongongongongongongongongongongongongo
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Hello[_]"
-Type declaration "Hello[_]" implements "base.Main" and has generic parameters.
-A type implementing "base.Main" must have zero generic parameters.
+Type declaration "Hello[_]" implements "base.Main" and has generic type parameters.
+A type implementing "base.Main" must have zero generic type parameters.
 """, List.of("""
 Hello[X]: base.Main{ .main -> base.Void }
 """));}
@@ -580,8 +580,8 @@ Hello[X]: base.Main{ .main -> base.Void }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Runner[_]"
-Type declaration "Runner[_]" implements "base.Main" and has generic parameters.
-A type implementing "base.Main" must have zero generic parameters.
+Type declaration "Runner[_]" implements "base.Main" and has generic type parameters.
+A type implementing "base.Main" must have zero generic type parameters.
 """, List.of("""
 Runner[X]: base.Main{ .go: X }
 """));}
@@ -590,8 +590,8 @@ Runner[X]: base.Main{ .go: X }
    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Free[_]"
-Object literal "Free[_]" implements "base.Main" and has generic parameters.
-A type implementing "base.Main" must have zero generic parameters.
+Object literal "Free[_]" implements "base.Main" and has generic type parameters.
+A type implementing "base.Main" must have zero generic type parameters.
 """, List.of("""
 Box: { .mk[X]: base.Main -> Free[X]: base.Main{ .main -> base.Void{}; .id(y: X): X -> y } }
 """));}
@@ -600,8 +600,8 @@ Box: { .mk[X]: base.Main -> Free[X]: base.Main{ .main -> base.Void{}; .id(y: X):
    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.Main"
-Object literal instance of "base.Main" implements "base.Main" and has generic parameters.
-A type implementing "base.Main" must have zero generic parameters.
+Object literal instance of "base.Main" implements "base.Main" and has generic type parameters.
+A type implementing "base.Main" must have zero generic type parameters.
 """, List.of("""
 Box: { .mk[X]: base.Main -> { .main -> base.Void{}; .id(y: X): X -> y } }
 """));}
@@ -610,8 +610,8 @@ Box: { .mk[X]: base.Main -> { .main -> base.Void{}; .id(y: X): X -> y } }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "NoGui[_]"
-Type declaration "NoGui[_]" implements "base.SystemAttenuator" and has generic parameters.
-A concrete type implementing "base.SystemAttenuator" must have zero generic parameters.
+Type declaration "NoGui[_]" implements "base.SystemAttenuator" and has generic type parameters.
+A concrete type implementing "base.SystemAttenuator" must have zero generic type parameters.
 """, List.of("""
 NoGui[X]: base.SystemAttenuator{ # -> base.Void }
 """));}
@@ -623,8 +623,8 @@ Shape[X]: base.SystemAttenuator{ .extra: X }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Twice[_]"
-Type declaration "Twice[_]" implements "base.InfoMain" and has generic parameters.
-A concrete type implementing "base.InfoMain" must have zero generic parameters.
+Type declaration "Twice[_]" implements "base.InfoMain" and has generic type parameters.
+A concrete type implementing "base.InfoMain" must have zero generic type parameters.
 """, List.of("""
 Twice[X]: base.InfoMain{ .main -> base.Void }
 """));}
@@ -636,8 +636,8 @@ Shape[X]: base.InfoMain{ .extra: X }
    | ^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Pub[_]"
-Type declaration "Pub[_]" implements "base.DataRead" and has generic parameters.
-A concrete type implementing "base.DataRead" must have zero generic parameters.
+Type declaration "Pub[_]" implements "base.DataRead" and has generic type parameters.
+A concrete type implementing "base.DataRead" must have zero generic type parameters.
 """, List.of("""
 Pub[X]: base.DataRead{}
 """));}
@@ -646,8 +646,8 @@ Pub[X]: base.DataRead{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Diary[_]"
-Type declaration "Diary[_]" implements "base.DataRead" and has generic parameters.
-A concrete type implementing "base.DataRead" must have zero generic parameters.
+Type declaration "Diary[_]" implements "base.DataRead" and has generic type parameters.
+A concrete type implementing "base.DataRead" must have zero generic type parameters.
 """, List.of("""
 Diary[X]: base.DataEdit{}
 """));}
@@ -705,7 +705,7 @@ C: B{}
 
 While inspecting type declaration "A"
 Type declaration "A" implements `base.Final["foo"]`.
-The type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+The generic type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
 """, List.of("""
 A: base.Final["foo"]{}
 """));}
@@ -715,7 +715,7 @@ A: base.Final["foo"]{}
 
 While inspecting type declaration "A"
 Type declaration "A" implements "base.Final[A]".
-The type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+The generic type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
 """, List.of("""
 A: base.Final[A]{}
 """));}
@@ -724,8 +724,8 @@ A: base.Final[A]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "MyLog[_]"
-Type declaration "MyLog[_]" implements "base.FileLog" and has generic parameters.
-A concrete type implementing "base.FileLog" must have zero generic parameters.
+Type declaration "MyLog[_]" implements "base.FileLog" and has generic type parameters.
+A concrete type implementing "base.FileLog" must have zero generic type parameters.
 """, List.of("""
 MyLog[X]: base.FileLog{ .name -> base.Nope! }
 """));}
@@ -734,8 +734,8 @@ MyLog[X]: base.FileLog{ .name -> base.Nope! }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Steps[_]"
-Type declaration "Steps[_]" implements "base.InMemoryLog[_]" and has generic parameters.
-A concrete type implementing "base.InMemoryLog[_]" must have zero generic parameters.
+Type declaration "Steps[_]" implements "base.InMemoryLog[_]" and has generic type parameters.
+A concrete type implementing "base.InMemoryLog[_]" must have zero generic type parameters.
 """, List.of("""
 Steps[X]: base.InMemoryLog[X]{ .name -> base.Nope! }
 """));}
@@ -744,8 +744,8 @@ Steps[X]: base.InMemoryLog[X]{ .name -> base.Nope! }
    |                                       ^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.InMemoryLog[_]"
-Object literal instance of "base.InMemoryLog[_]" implements "base.InMemoryLog[_]" and has generic parameters.
-A concrete type implementing "base.InMemoryLog[_]" must have zero generic parameters.
+Object literal instance of "base.InMemoryLog[_]" implements "base.InMemoryLog[_]" and has generic type parameters.
+A concrete type implementing "base.InMemoryLog[_]" must have zero generic type parameters.
 """, List.of("""
 Box: { .mk[X]: base.InMemoryLog[X] -> { .name -> base.Nope! } }
 """));}
@@ -785,7 +785,7 @@ Icon2: {}
 While inspecting type declaration "One"
 Type declaration "One" implements `base.OpenWith[Box[Icon],"foo"]`.
 "Box[Icon]" is not a valid icon.
-Only concrete types with zero generic arguments are valid icons.
+Only concrete types with zero generic type arguments are valid icons.
 """, List.of("""
 One: base.Main, base.OpenWith[Box[Icon],"foo"]{ .main -> base.Void }
 Box[X]: {}
@@ -1082,7 +1082,7 @@ A:{}
    |   ^
 
 While inspecting a type name
-Type parameter "X" is declared in package "p".
+Generic type parameter "X" is declared in package "p".
 Name "X" is also used in a "use" directive.
 """, List.of("""
 use base.Nat as X;
@@ -1094,7 +1094,7 @@ A[X]:{}
 
 While inspecting type declaration "A[_]"
 Type declaration "A[_]" implements "base.Final[X]".
-The type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+The generic type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
 """, List.of("""
 A[X]: base.Final[X]{}
 """));}
@@ -1119,7 +1119,7 @@ A: base.WidenTo[A], base.WidenTo[base.Nat]{}
 While inspecting type declaration "M[_]"
 Type declaration "M[_]" implements `base.OpenWith[X,"foo"]`.
 "X" is not a valid icon.
-Only concrete types with zero generic arguments are valid icons.
+Only concrete types with zero generic type arguments are valid icons.
 """, List.of("""
 Icon:{}
 M[X]: base.Main, base.OpenWith[X,"foo"]{ .main -> base.Void }

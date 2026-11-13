@@ -1174,7 +1174,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "F[_,_]"
 Type inference concluded that this object literal implements "F[Int,F[?,?]]",
-but it could not infer type argument 2 for type parameter "R" of "F[_,_]".
+but it could not infer generic type argument 2 for generic type parameter "R" of "F[_,_]".
 Error 7 WellFormedness
 """, List.of("""
 F[A,R]:{#(A):R}

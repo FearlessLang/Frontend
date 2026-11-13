@@ -72,7 +72,7 @@ that is: use double quotes (`"`) instead of single quotes ("'").
     var name= disp(lit.content());
     throw Code.UnexpectedToken.of(
       "Literal "+name+" is directly followed by \"[\".\n"
-    +"Number and string literals take no generic arguments.\n"
+    +"Number and string literals take no generic type arguments.\n"
     +"Remove the \"[...]\" after "+name+".")
       .addFrame("a literal", new Span(file, s.startLine(), s.startCol(), t.line(), t.span(file).endCol()));
   }

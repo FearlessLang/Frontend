@@ -207,13 +207,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       if (arities.isEmpty()){ return Optional.empty(); }
       var targetPkg= typedPkg.isEmpty() ? contextPkg : typedPkg;
       var e= err.get()
-        .line("Name "+disp(typedSimple)+" is not declared with "+count(tn.arity(), "type parameter")+" in package "+disp(targetPkg)+".")
+        .line("Name "+disp(typedSimple)+" is not declared with "+count(tn.arity(), "generic type parameter")+" in package "+disp(targetPkg)+".")
         .line("Name "+disp(typedSimple)+" is only declared with "
           +(arities.size() == 1
-            ? count(arities.getFirst(), "type parameter")+"."
-            : Join.of(arities, "the following numbers of type parameters: ", ", ", ".")
+            ? count(arities.getFirst(), "generic type parameter")+"."
+            : Join.of(arities, "the following numbers of generic type parameters: ", ", ", ".")
           ))
-        .line("Did you accidentally add or omit a type parameter?");
+        .line("Did you accidentally add or omit a generic type parameter?");
       return Optional.of(typeName(e, tn));
     }
     private FearlessException undeclaredInPkg(){
@@ -337,7 +337,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .filter(x -> allNames.contains(x.name()) || use.contains(x.name()))
       .findFirst().get();
     return err()
-      .line("Type parameter "+disp(n.name())+" is declared in package "+disp(pkgName)+".")
+      .line("Generic type parameter "+disp(n.name())+" is declared in package "+disp(pkgName)+".")
       .line("Name "+disp(n.name())+" is also used "+(use.contains(n.name()) ? "in a \"use\" directive." : "as a type name."))
       .wf()
       .addFrame("a type name", n.span().inner);
@@ -345,7 +345,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException duplicatedBound(List<RC> es, T.X n){
     var dup= redeclaredElement(es);
     return err()
-      .line("Duplicate reference capability in the type parameter "+disp(n.name())+".")
+      .line("Duplicate reference capability in the generic type parameter "+disp(n.name())+".")
       .line("Reference capability "+disp(dup.name())+" is repeated.")
       .wf()
       .addSpan(n.span().inner);
@@ -430,7 +430,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       ));
     var m= err().methodSig(at.mName());
     if (rcDiffers){ return wf(e.line("They differ in reference capability, and an overriding method must keep it, so no method "+m+" can implement all of them."), at); }
-    if (x.isPresent()){ return wf(e.line("They are different types and "+option(false, x.get())+" is a type parameter, so no method "+m+" can implement all of them."), at); }
+    if (x.isPresent()){ return wf(e.line("They are different types and "+option(false, x.get())+" is a generic type parameter, so no method "+m+" can implement all of them."), at); }
     return wf(e.line(up(err().expRepr(at.lit()))+" must declare a method "+m+" explicitly choosing the desired option."), at);
   }
   private String option(boolean showImm, IT o){
@@ -439,7 +439,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
-      .line("The number of type parameters disagrees for method "+err().methodSig(at.mName())
+      .line("The number of generic type parameters disagrees for method "+err().methodSig(at.mName())
         +" with "+count(at.mName().arity(), "parameter")+".")
       .line(Join.of(res.stream().map(Err::disp), "Different options are present in the implemented types: ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" cannot implement all of those types.");
@@ -448,10 +448,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
     var sB= disp(superBs.stream().map(b -> new B("-", b.rcs())).toList());
     return wf(invalidMethImpl(at)
-      .line("The method "+err().methodSig(at.mName())+" declares "+count(userBs.size(), "type parameter")+", but supertypes declare "+superBs.size()+".")
+      .line("The method "+err().methodSig(at.mName())+" declares "+count(userBs.size(), "generic type parameter")+", but supertypes declare "+superBs.size()+".")
       .line("Local declaration: "+disp(userBs)+".")
       .line("From supertypes: "+sB+".")
-      .line("Change the local number of type parameters to "+superBs.size()+", or adjust the supertypes."), at);
+      .line("Change the local number of generic type parameters to "+superBs.size()+", or adjust the supertypes."), at);
   }
   public FearlessException methodBsDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     assert res.size() >= 2;
@@ -461,8 +461,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var opts= Join.of(res.stream().map(bs -> disp(bs.get(i))).distinct().sorted(), "", " and ", ".");
     var m= err().methodSig(at.mName());
     return wf(invalidMethImpl(at)
-      .line("Supertypes disagree on the capability bounds for type parameter "+(i+1)+" of "+m+".")
-      .line("Type parameter names may differ across supertypes; only the position matters.")
+      .line("Supertypes disagree on the capability bounds for generic type parameter "+(i+1)+" of "+m+".")
+      .line("Generic type parameter names may differ across supertypes; only the position matters.")
       .line("Different supertypes declare: "+opts)
       .line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes.")
       .line("Make the supertypes agree on these bounds, or remove one of the conflicting supertypes."), at);
@@ -476,7 +476,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var uB= disp(u);
     var sB= disp(new B("-", s.rcs()));
     return wf(invalidMethImpl(at)
-      .line("The local declaration uses different capability bounds than the supertypes for type parameter "+(i+1)+" of "+m+".")
+      .line("The local declaration uses different capability bounds than the supertypes for generic type parameter "+(i+1)+" of "+m+".")
       .line("Local: "+uB+".")
       .line("From supertypes: "+sB+".")
       .line("The parameter name may differ; only the position matters.")
@@ -490,7 +490,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException captureNotFunnelled(E.X x, IT t, E.Literal owner){
     var xs= B.xs(owner.bs());
     var missing= t.ftv().filter(X -> !xs.contains(X)).findFirst().get();
-    var uses= t instanceof IT.RCC ? ", using the generic type "+disp(missing)+"." : ".";
+    var uses= t instanceof IT.RCC ? ", using the generic type parameter "+disp(missing)+"." : ".";
     return wf(err()
       .line("Parameter "+disp(x.name())+" has type "+err().typeRepr(t)+uses)
       .line(Err.funnel(missing, owner.name().simpleName(), xs)), x);
@@ -507,10 +507,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private FearlessException typeArgAmbiguous(E at, String x, String ofFrom, List<IT> cands, List<TName> common, String example, Function<TName,core.E.Literal> decs){
     var cs= cands.stream().map(err(h -> h, n -> n, decs, List.of())::typeRepr).toList();
     var xs= Err.disp(x);
-    var e= err().line("The type argument "+xs+" of "+ofFrom+", but they disagree: some need "+Join.of(cs, "", ", some need ", "")+".");
+    var e= err().line("The generic type argument "+xs+" of "+ofFrom+", but they disagree: some need "+Join.of(cs, "", ", some need ", "")+".");
     if (common.isEmpty()){ e.line("No type is a supertype of all of them."); }
     else{ e.line(up(xs)+" could be "+Join.of(common.stream().map(n -> disp(err().tNameA(n))), "", " or ", "")+": each is a supertype of "+Join.of(cs, "", " and ", "")+". The choice is ambiguous."); }
-    return wf(e.line("Write the type argument explicitly, as in "+disp(example)+"."), at);
+    return wf(e.line("Write the generic type argument explicitly, as in "+disp(example)+"."), at);
   }
   public String typeName(TName n){ return err().tNameA(n); }
   public String callWithTargs(E.Call c, List<IT> targs, int k, String example){
@@ -529,8 +529,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var s= unknown.size() == 1 ? "" : "s";
     return wf(err()
       .line("Type inference concluded that this object literal implements "+disp(head)+",")
-      .line("but it could not infer type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
-        +" for type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i))), "", " and ", "", "")
+      .line("but it could not infer generic type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
+        +" for generic type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i))), "", " and ", "", "")
         +" of "+err().tNameADisp(c.name())+"."), at);
   }
   public FearlessException methodNotInferred(E.Literal at, M.Sig s){
@@ -545,7 +545,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException literalImplementsTypeParameter(E.Literal at, IT t){
     return wf(err()
       .line(up(err().expRepr(at))+" cannot implement "+err().typeRepr(t)+".")
-      .line(err().typeRepr(t)+" is a type parameter; object literals can only implement nominal types."), at);
+      .line(err().typeRepr(t)+" is a generic type parameter; object literals can only implement nominal types."), at);
   }
   public FearlessException typeGrowsForever(E at){
     return wf(err()
@@ -616,13 +616,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException namedGeneric(E.Literal owner, TName t, String what){
     return wf(err()
-      .line(up(err().expRepr(owner))+" implements "+err().tNameADisp(t)+" and has generic parameters.")
-      .line(what+" implementing "+err().tNameADisp(t)+" must have zero generic parameters."), owner);
+      .line(up(err().expRepr(owner))+" implements "+err().tNameADisp(t)+" and has generic type parameters.")
+      .line(what+" implementing "+err().tNameADisp(t)+" must have zero generic type parameters."), owner);
   }
   public FearlessException finalNotMethodName(E.Literal owner, IT.C c){
     return wf(err()
       .line(up(err().expRepr(owner))+" implements "+claimRepr(owner, c)+".")
-      .line("The type argument of "+err().tNameADisp(LiteralDeclarations.finalMethods)+" is a string literal type holding a method name, like "+disp("\".name\"")+" or "+disp("\"+\"")+"."), owner);
+      .line("The generic type argument of "+err().tNameADisp(LiteralDeclarations.finalMethods)+" is a string literal type holding a method name, like "+disp("\".name\"")+" or "+disp("\"+\"")+"."), owner);
   }
   public FearlessException finalImplemented(E.Literal owner, M m, TName origin, String name){
     var ctx= up(err().expRepr(owner));
@@ -641,7 +641,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException claimIconNotConcrete(E.Literal owner, IT.C c){
     return wf(claim(owner, c)
       .line(err().typeRepr(c.ts().getFirst())+" is not a valid icon.")
-      .line("Only concrete types with zero generic arguments are valid icons."), owner);
+      .line("Only concrete types with zero generic type arguments are valid icons."), owner);
   }
   public FearlessException claimExtNotStr(E.Literal owner, IT.C c){
     var examples= c.name().simpleName().equals("Shortcut") ? disp("\"fapp042\"") : disp("\"ffile347\"")+", "+disp("\"xml\"")+" or "+disp("\"txt\"");

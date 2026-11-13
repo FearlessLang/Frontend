@@ -133,8 +133,8 @@ In file: [###].fear
    |       ---------~~^~~~~~~~~~~~~~~~
 
 While inspecting generic bounds declaration > method body > method declaration > type declaration body > type declaration > full file
-Generic type "C" is not in scope.
-Declared generics: "X".
+Generic type parameter "C" is not in scope.
+Declared generic type parameters: "X".
 Error 2 UnexpectedToken
 """, """
 A[X]:{.foo:AA->B[C]:{.bar:BB->BB}; }
@@ -1106,7 +1106,7 @@ In file: [###].fear
    | --~~^^^----
 
 While inspecting generic bounds declaration > type declaration > full file
-Invalid bound for generic "X".
+Invalid bound for generic type parameter "X".
 Only "*" or "**" are allowed here.
 Write: [X: *]   meaning mut,read,imm
    or: [X: **]  meaning everything.
@@ -1121,7 +1121,7 @@ In file: [###].fear
    | --~^----
 
 While inspecting generic bounds declaration > type declaration > full file
-Missing bound for generic "X" after ":".
+Missing bound for generic type parameter "X" after ":".
 Write: [X] alone (note, no colon) as a shortcut for [X: imm]
    or: [X: *]   meaning mut,read,imm
    or: [X: **]  meaning everything
@@ -1137,7 +1137,7 @@ In file: [###].fear
    | --~^------
 
 While inspecting generic bounds declaration > type declaration > full file
-Missing bound for generic "X" after ":".
+Missing bound for generic type parameter "X" after ":".
 Write: [X] alone (note, no colon) as a shortcut for [X: imm]
    or: [X: *]   meaning mut,read,imm
    or: [X: **]  meaning everything
@@ -3078,8 +3078,8 @@ In file: [###].fear
    |     ---------------~~~~~~~~~~~^---
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
-Generic type "X" is not in scope.
-Declared generics: "Y".
+Generic type parameter "X" is not in scope.
+Declared generic type parameters: "Y".
 Error 2 UnexpectedToken
 """, """
 A:{ .t[Y](x:mut X, y:read/imm X):X -> x }
@@ -3678,7 +3678,7 @@ In file: [###].fear
    | --^^^^^^^^----
 
 While inspecting generic bounds declaration > type declaration > full file
-Missing generic type name declaration.
+Missing generic type parameter name.
 Found instead: "base.Nat".
 Expected: "type name".
 Error 2 UnexpectedToken
