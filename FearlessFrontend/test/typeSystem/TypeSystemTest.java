@@ -5315,6 +5315,10 @@ A:{ .k: imm S -> read S{'s .m -> s}; .j: iso S -> imm S{'s .m -> s} }
 S:{ read .m: base.F[S] }
 A:{ .k: iso S -> imm S{'s .m -> { s } } }
 """));}
+@Test void captureFreeNestedSelfIsImmInEveryMethod(){ok(List.of("""
+A:base.CaptureFree{ mut .bar: A }
+User:{ #: mut A -> mut B:A{'self mut .bar: A -> self } }
+"""));}
 @Test void captureFreeTopLevelThisIsImmInEveryMethod(){ok(List.of("""
 A: base.CaptureFree, base.F[A]{ #: A -> this }
 B: base.CaptureFree{ read .me: imm A -> A; mut .self: imm B -> this }
