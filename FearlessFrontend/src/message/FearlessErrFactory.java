@@ -30,7 +30,6 @@ import metaParser.Message;
 import metaParser.NameSuggester;
 import metaParser.Span;
 import utils.Join;
-import utils.Push;
 
 public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
   Optional<TName> lastTop= Optional.empty();
@@ -248,14 +247,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
         Xs, s -> s)).addSpan(at);
   }
   public FearlessException genericNotFunnelled(Token X, Span at, String owner, List<String> Xs){
-    var x= disp(X.content());
-    var dec= disp(owner);
-    var funnelled= disp(Join.of(Push.of(Xs, X.content()).stream().map(s -> s+":.."), owner+"[", ",", "]", ""));
-    return Code.UnexpectedToken.of(
-      "Generic type "+x+" is not in scope inside the type declaration "+dec+".\n"
-      +"A type declaration only sees the generic types it declares itself; "
-      +expected("here "+dec+" declares none", "here "+dec+" declares ", "here "+dec+" declares ", Xs, s -> s)
-      +"Hint: funnel "+x+" into "+dec+" by writing "+funnelled+", restating the bounds of "+x+".").addSpan(at);
+    return Code.UnexpectedToken.of(Err.funnel(X.content(), owner, Xs)).addSpan(at);
   }
   public FearlessException patternNameRedeclared(Span at, String name){
     return Code.UnexpectedToken.of("Name "+disp(name)+" is already in scope.\n"
