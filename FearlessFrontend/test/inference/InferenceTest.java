@@ -1251,8 +1251,7 @@ In file: [###]/in_memory1.fear
    |   ^^
 
 While inspecting a type name
-Generic type parameter "X" is declared in package "p".
-Name "X" is also used as a type name.
+Generic type parameter "X" has the same name as type "X" of package "p".
 Error 7 WellFormedness
 """,
   List.of("""

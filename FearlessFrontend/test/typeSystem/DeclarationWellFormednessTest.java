@@ -1082,8 +1082,7 @@ A:{}
    |   ^
 
 While inspecting a type name
-Generic type parameter "X" is declared in package "p".
-Name "X" is also used in a "use" directive.
+Generic type parameter "X" has the same name as type "X" of a "use" directive.
 """, List.of("""
 use base.Nat as X;
 A[X]:{}

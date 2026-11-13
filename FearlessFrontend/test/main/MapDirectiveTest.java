@@ -2176,8 +2176,7 @@ In file: [###].fear
    |        ^
 
 While inspecting a type name
-Generic type parameter "X" is declared in package "b".
-Name "X" is also used in a "use" directive.
+Generic type parameter "X" has the same name as type "X" of a "use" directive.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """
 use a.A as X;

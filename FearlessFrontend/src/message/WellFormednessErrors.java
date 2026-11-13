@@ -336,9 +336,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var n= allXs.values().stream().flatMap(Set::stream)
       .filter(x -> allNames.contains(x.name()) || use.contains(x.name()))
       .findFirst().get();
+    var of= use.contains(n.name()) ? "a \"use\" directive." : "package "+disp(pkgName)+".";
     return err()
-      .line("Generic type parameter "+disp(n.name())+" is declared in package "+disp(pkgName)+".")
-      .line("Name "+disp(n.name())+" is also used "+(use.contains(n.name()) ? "in a \"use\" directive." : "as a type name."))
+      .line("Generic type parameter "+disp(n.name())+" has the same name as type "+disp(n.name())+" of "+of)
       .wf()
       .addFrame("a type name", n.span().inner);
   }
