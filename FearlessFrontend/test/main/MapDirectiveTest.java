@@ -2186,10 +2186,13 @@ B:{ .m[X](x:X):X -> x }
 In file: [###].fear
 
 001| B:a.A,a.A{}
-   | --^^^^^^^--
+   | ^^^^^^^^^^^
 
-While inspecting type declaration > full file
+While inspecting type declaration "B"
 Duplicate supertype in type declaration: "a.A".
+Remove one of them.
+
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """
 B:a.A,a.A{}
@@ -2212,12 +2215,15 @@ B:a.Box[a.A],a.Box[imm a.A]{}
   @Test void sweepDuplicatedAliasedSupertype(){ fail("""
 In file: [###].fear
 
-001| use a.A as X;
 002| B:X,X{}
-   | --^^^--
+   | ^^^^^^^
 
-While inspecting type declaration > full file
+While inspecting type declaration "B"
 Duplicate supertype in type declaration: "X".
+Remove one of them.
+
+Name "X" stands for "a.A" because of "use a.A as X".
+Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """
 use a.A as X;

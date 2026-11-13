@@ -904,6 +904,19 @@ A[X:*]:{ .no: mut A[X] }
 @Test void readTypeNestedInReadType(){ok(List.of("""
 A[X:*]:{ .no: read A[read A[X]] }
 """));}
+@Test void supertypeWrittenTwice(){failWf("""
+001| A:B,C,B,D{}
+   | ^^^^^^^^^^^
+
+While inspecting type declaration "A"
+Duplicate supertype in type declaration: "B".
+Remove one of them.
+""", List.of("""
+A:B,C,B,D{}
+B:{}
+C:{}
+D:{}
+"""));}
 @Test void supertypeWithAndWithoutDefaultImm(){failWf("""
 003| B:A[Foo],A[imm Foo]{}
    | ^^^^^^^^^^^^^^^^^^^^^

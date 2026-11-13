@@ -2999,25 +2999,6 @@ A:B,C,D{
    .return{x};
  }
 """); }
-@Test void duplicatedSupertype1(){ fail("""
-In file: [###].fear
-
-001| A:B,C,B,D{
-   |   ^^^^^^^
-   | ... 3 lines ...
-005|  }
-
-While inspecting type declaration > full file
-Duplicate supertype in type declaration: "B".
-Error 7 WellFormedness
-""", """
-A:B,C,B,D{
- mut .ban(y):Bar->Block#
-   .let x={2}
-   .return{x};
- }
-"""); }
-
 @Test void absMeth(){ fail("""
 In file: [###].fear
 

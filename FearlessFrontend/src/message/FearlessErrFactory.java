@@ -119,12 +119,6 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
         "The directive "+disp(use)+" clashes with the earlier "+disp(earlier)+".\n"
     ).addSpan(at);
   }
-  public FearlessException duplicatedImpl(List<T.C> cs, Span at){
-    var c= redeclaredElement(cs);
-    return Code.WellFormedness.of(
-      "Duplicate supertype in type declaration: "+disp(c.name().s()+genArity(c.name().arity()))+".\n"
-    ).addSpan(at);
-  }
 
   public FearlessException nameNotInScope(Token name, Span at, List<String> inScope){
     return Code.UnexpectedToken.of(() -> nameNotInScopeMsg(name, inScope)).addSpan(at);

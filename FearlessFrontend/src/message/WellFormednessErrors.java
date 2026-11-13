@@ -354,7 +354,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var first= spelling(d.cs().get(i));
     var second= spelling(d.cs().get(j));
     return err()
-      .line("Duplicate supertype in type declaration: "+disp(first)+" and "+disp(second)+" denote the same type.")
+      .line("Duplicate supertype in type declaration: "+disp(first)+(first.equals(second) ? "." : " and "+disp(second)+" denote the same type."))
       .line("Remove one of them.")
       .wf()
       .addFrame("type declaration "+staticTypeDecName(d.name()), d.span().inner);
