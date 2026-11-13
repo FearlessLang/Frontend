@@ -293,13 +293,21 @@ final class ReconcileTest{
     reconcile(identity, command(), List.of(ext), List.of(ext));
     reconcile(identity, command(), List.of(ext));
   }
-  @Test void aDefaultValueSetByHandAmongTheExtensionsOfTheIdentityIsNoExtension(){
-    if (!Fs.isWindows()){ return; }
+  @Test void anEntryWrittenByHandInTheRegistrationOfTheIdentityIsNoExtension(){
     reconcile(identity, command(), List.of(ext));
-    var declared= hkcu+identity+"\\Capabilities\\FileAssociations";
-    importReg(regKey(declared, "", identity+ext));
-    reconcile(identity, command(), List.of(ext));
-    Err.strCmp("[###] "+identity+ext, regOut("query", declared, "/ve"));
+    if (!Fs.isWindows()){
+      var file= Fs.isMac() ? MacAssociations.home.resolve(identity+".app").resolve("Contents").resolve("Info.plist") : tmp.resolve("home").resolve("applications").resolve(identity+".desktop");
+      var written= Fs.readUtf8(file);
+      Fs.writeUtf8(file, written+(Fs.isMac() ? "<!-- "+ext+" -->\n" : "MimeType=\n"));
+      reconcile(identity, command(), List.of(ext));
+      assertEquals(written, Fs.readUtf8(file));
+    }
+    if (Fs.isWindows()){
+      var declared= hkcu+identity+"\\Capabilities\\FileAssociations";
+      importReg(regKey(declared, "", identity+ext));
+      reconcile(identity, command(), List.of(ext));
+      Err.strCmp("[###] "+identity+ext, regOut("query", declared, "/ve"));
+    }
     reconcile(identity, command(), List.of());
     assertEquals(List.of(), FileAssociations.identities(family));
   }
