@@ -29,7 +29,7 @@ final class FsSymbolicLinkTest{
     try{ return Files.createSymbolicLink(link, target); }
     catch (FileSystemException e){
       if (!Fs.isWindows()){ throw new UncheckedIOException(e); }
-      return fail("Agent on Windows: this process can not create symbolic links, so this test can not check them. Turn on Developer Mode (Settings, System, For developers), or run the tests with the privilege to create symbolic links.");
+      return fail("Agent on Windows: this process cannot create symbolic links, so this test cannot check them. Turn on Developer Mode (Settings, System, For developers), or run the tests with the privilege to create symbolic links.");
     }
     catch (IOException e){ throw new UncheckedIOException(e); }
   }

@@ -277,15 +277,15 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return e.wf();
   }
   public FearlessException mapInBase(String directive){
-    return mapErr("A map can not apply to source code inside folders named "+disp("_base"), directive).wf();
+    return mapErr("A map cannot apply to source code inside folders named "+disp("_base"), directive).wf();
   }
   private Err mapErr(String head, String directive){ return err().line(head+":").line(directive); }
   public FearlessException mapOfAnExistingPackage(String in, String directive){
-    return mapErr("A map can not give package name "+disp(in)+", because folders named "+disp("_"+in)+" exist", directive)
+    return mapErr("A map cannot give package name "+disp(in)+", because folders named "+disp("_"+in)+" exist", directive)
       .line("With no map, package name "+disp(in)+" refers to the code inside folders named "+disp("_"+in)+".").wf();
   }
   public FearlessException mapToItself(String directive){
-    return mapErr("A map can not refer to the code inside folders named "+disp("_"+pkgName)+" for source code inside folders named "+disp("_"+pkgName), directive)
+    return mapErr("A map cannot refer to the code inside folders named "+disp("_"+pkgName)+" for source code inside folders named "+disp("_"+pkgName), directive)
       .line(inFolders(pkgName)+" uses the simple names of its own types.").wf();
   }
   private String notLower(String out, boolean sameRank){ return "the code inside folders named "+disp("_"+out)+", which has "+(sameRank ? "the same rank as" : "a higher rank than")+" the code inside folders named "+disp("_"+pkgName); }
@@ -300,7 +300,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return e.line("Expected: "+disp(expected+";")+".").wf();
   }
   private static Err missingPkg(Err e, String ctx, String pkg, List<String> visible, Optional<String> known){
-    e.line(inFolders(ctx)+" can not use package name "+disp(pkg)+".");
+    e.line(inFolders(ctx)+" cannot use package name "+disp(pkg)+".");
     var vs= visible.stream().filter(p -> !p.equals(ctx)).toList();
     known.or(() -> vs.isEmpty() ? Optional.empty() : NameSuggester.suggest(pkg, vs, (_,_,b) -> b)).ifPresent(b -> e.line("Did you mean "+disp(b)+" ?"));
     if (!vs.isEmpty()){ e.line(Join.of(vs.stream().map(Err::disp), "Visible package names: ", ", ", ".")); }

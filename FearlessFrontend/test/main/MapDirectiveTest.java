@@ -127,7 +127,7 @@ In file: [###].fear
    |              ^^^^
 
 While inspecting a type name
-Source code inside folders named "_b" can not use package name "c".
+Source code inside folders named "_b" cannot use package name "c".
 Did you mean "a" ?
 Visible package names: "a", "base".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -196,7 +196,7 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Source code inside folders named "_b" can not use package name "c".
+Source code inside folders named "_b" cannot use package name "c".
 Did you mean "a" ?
 Visible package names: "a", "base".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -228,7 +228,7 @@ In file: [###].fear
    |     ^^^^
 
 While inspecting package header
-Source code inside folders named "_b" can not use package name "zz".
+Source code inside folders named "_b" cannot use package name "zz".
 Visible package names: "base".
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
@@ -276,7 +276,7 @@ In file: [###].fear
    |     ^^^
 
 While inspecting package header
-Source code inside folders named "_b" can not use package name "c".
+Source code inside folders named "_b" cannot use package name "c".
 Did you mean "a" ?
 Visible package names: "a", "base".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -403,7 +403,7 @@ In file: [###].fear
    |         ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting a type name
-Source code inside folders named "_b" can not use package name "webserver_v12".
+Source code inside folders named "_b" cannot use package name "webserver_v12".
 Did you mean "webserver" ?
 Visible package names: "base", "webserver".
 Source code inside folders named "_b" uses package name "webserver" to refer to the code inside folders named "_webserver_v12", because of "map webserver as _webserver_v12 in _b", written in fear:/_b/_rank_app.fear.
@@ -452,7 +452,7 @@ In file: [###].fear
    |        ^^^^^^^^^
 
 While inspecting a type name
-Source code inside folders named "_b" can not use package name "base".
+Source code inside folders named "_b" cannot use package name "base".
 Did you mean "bb" ?
 Visible package names: "bb".
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -775,7 +775,7 @@ In file: [###].fear
    |               ^^^^
 
 While inspecting a type name
-Source code inside folders named "_b" can not use package name "c".
+Source code inside folders named "_b" cannot use package name "c".
 Did you mean "a" ?
 Visible package names: "a", "base".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1448,7 +1448,7 @@ In file: [###].fear
    |              ^^^^^^^^
 
 While inspecting a type name
-Source code inside folders named "_b" can not use package name "c__v_".
+Source code inside folders named "_b" cannot use package name "c__v_".
 Did you mean "a" ?
 Visible package names: "a", "base".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c__v_", because of "map a as _c__v_ in _b", written in fear:/_b/_rank_app.fear.
@@ -1463,7 +1463,7 @@ In file: [###].fear
    |               ^^^^^
 
 While inspecting a type name
-Source code inside folders named "_b" can not use package name "in".
+Source code inside folders named "_b" cannot use package name "in".
 Did you mean "as" ?
 Visible package names: "as", "base".
 Source code inside folders named "_b" uses package name "as" to refer to the code inside folders named "_in", because of "map as as _in in _b", written in fear:/_b/_rank_app.fear.
@@ -1637,7 +1637,7 @@ In file: [###].fear
    |         ^^^^^^^^
 
 While inspecting a type name
-Source code inside folders named "_base" can not use package name "bse".
+Source code inside folders named "_base" cannot use package name "bse".
 Error 7 WellFormedness
 """, """
 Str:{}
@@ -1650,7 +1650,7 @@ In file: [###].fear
    |          ^^^^^^
 
 While inspecting a type name
-Source code inside folders named "_base" can not use package name "bse".
+Source code inside folders named "_base" cannot use package name "bse".
 Error 7 WellFormedness
 """, """
 Str:{}
@@ -1663,7 +1663,7 @@ In file: [###].fear
    |     ^^^^
 
 While inspecting package header
-Source code inside folders named "_base" can not use package name "zz".
+Source code inside folders named "_base" cannot use package name "zz".
 Error 7 WellFormedness
 """, """
 use zz.A as X;
@@ -1678,7 +1678,7 @@ In file: [###].fear
    |         ^^^^^^^^^^^^^^^
 
 While inspecting a type name
-Source code inside folders named "_b" can not use package name "json_v2".
+Source code inside folders named "_b" cannot use package name "json_v2".
 Did you mean "json" ?
 Visible package names: "base", "json", "json_v1".
 """+jsonNote+"""
@@ -1694,7 +1694,7 @@ In file: [###].fear
    |     ^^^^^^^^^^^^^^
 
 While inspecting package header
-Source code inside folders named "_b" can not use package name "json_v2".
+Source code inside folders named "_b" cannot use package name "json_v2".
 Did you mean "json" ?
 Visible package names: "base", "json", "json_v1".
 """+jsonNote+"""
@@ -1711,7 +1711,7 @@ In file: [###].fear
    |         ^^^^^^^^^^^^^^^
 
 While inspecting a type name
-Source code inside folders named "_b" can not use package name "json_v3".
+Source code inside folders named "_b" cannot use package name "json_v3".
 Did you mean "json_v1" ?
 Visible package names: "base", "json", "json_v1".
 Error 7 WellFormedness
