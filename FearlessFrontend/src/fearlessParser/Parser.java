@@ -349,14 +349,10 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
 
   List<T.C> parseImpl(){
-    var start= index();
-    var res= parseFront("", true,
+    return parseFront("", true,
       curlyRight,
       p -> p.splitBy("super types declaration", commaSkip, Parser::parseC)
     ).orElseThrow(() -> errFactory().missing(remainingSpan(), "type declaration body", List.of(OCurly), this));
-    var duplicated= Set.copyOf(res).size() < res.size();
-    if (duplicated){ throw errFactory().duplicatedImpl(res, spanAround(back(start), index())); }
-    return res;
   }
   void checkCommonTopLevelIssues(){
     if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).get()); }
