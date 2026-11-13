@@ -9,10 +9,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -38,6 +43,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.opentest4j.AssertionFailedError;
 
 import fileAssociations.FileAssociations;
+import fileAssociations.Ico;
 import fileAssociations.Icon;
 import fileAssociations.LinuxAssociations;
 import fileAssociations.MacAssociations;
@@ -86,7 +92,9 @@ final class AssociationsTest{
   private final Map<String,List<Declared>> types= new HashMap<>();
   private final Map<String,Path> holders= new HashMap<>();
   private final List<Path> registered= new ArrayList<>();
+  private final Path lockFolder= FileAssociations.lockFolder;
   @BeforeEach void desktop(){
+    FileAssociations.lockFolder = root.resolve("data");
     if (Fs.isWindows()){ cleanUp(); WindowsAssociations.notifyShell = () -> ran.add(List.of("SHChangeNotify")); return; }
     if (Fs.isMac()){ macDesktop(); return; }
     home = root.resolve("home");
@@ -118,6 +126,10 @@ final class AssociationsTest{
     MacAssociations.reload = List.of("touch", root.resolve("reloaded").toString());
   }
   @AfterEach void restore(){
+    desktopRestored();
+    FileAssociations.lockFolder = lockFolder;
+  }
+  private void desktopRestored(){
     if (Fs.isWindows()){ cleanUp(); WindowsAssociations.notifyShell = notifyShell; return; }
     if (Fs.isMac()){ macRestore(); return; }
     LinuxAssociations.env = env;
@@ -229,6 +241,7 @@ final class AssociationsTest{
     FileAssociations.reconcile(identity, "Fearless Manager", family, Fs.isMac() ? macCommand : command, icons, taken, windows, program, replaced::add,
       s -> new IllegalStateException("ambiguous "+s),
       s -> new IllegalStateException("notOurs "+s),
+      s -> new IllegalStateException("notTaken "+s),
       s -> new IllegalStateException("notWritable "+s),
       s -> new IllegalStateException("halfDone "+s));
   }
@@ -275,14 +288,22 @@ final class AssociationsTest{
   private Path bundle(){ return MacAssociations.home.resolve(identity+".app"); }
   private Path contents(String file){ return bundle().resolve("Contents").resolve(file); }
   private List<String> files(){ return Fs.walk(bundle(), s -> s.filter(Files::isRegularFile).map(f -> bundle().relativize(f).toString()).sorted().toList()); }
-  private static String document(String ext, String rank, String type){
+  private String icns(String ext){
+    var image= Ico.png(icon(("."+ext).hashCode() & 0xffffff));
+    var bytes= ByteBuffer.allocate(16 + image.length).put("icns".getBytes(StandardCharsets.UTF_8)).putInt(16 + image.length).put("ic08".getBytes(StandardCharsets.UTF_8)).putInt(8 + image.length).put(image).array();
+    return LinuxAssociations.hash(bytes)+".icns";
+  }
+  private List<String> bundleFiles(String... icns){
+    return Stream.concat(Stream.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/en.lproj/InfoPlist.strings"), Stream.of(icns).map(i -> "Contents/Resources/"+i)).sorted().toList();
+  }
+  private String document(String ext, String rank, String type){
     return "<dict><key>CFBundleTypeRole</key><string>Viewer</string>"
-      +"<key>CFBundleTypeIconFile</key><string>"+ext+".icns</string><key>LSHandlerRank</key><string>"+rank+"</string>"
+      +"<key>CFBundleTypeIconFile</key><string>"+icns(ext)+"</string><key>LSHandlerRank</key><string>"+rank+"</string>"
       +"<key>LSItemContentTypes</key><array><string>"+type+"</string></array></dict>\n";
   }
-  private static String exported(String ext){
+  private String exported(String ext){
     return "<dict><key>UTTypeIdentifier</key><string>fearlessmanaged0-001."+ext+"</string>"
-      +"<key>UTTypeIconFile</key><string>"+ext+".icns</string><key>UTTypeConformsTo</key><array><string>public.data</string></array>"
+      +"<key>UTTypeIconFile</key><string>"+icns(ext)+"</string><key>UTTypeConformsTo</key><array><string>public.data</string></array>"
       +"<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>"+ext+"</string></array></dict></dict>\n";
   }
   private void plistIs(String documents, String exported){ assertEquals(MacAssociations.plist(identity, "Fearless Manager", documents, exported), Fs.readUtf8(contents("Info.plist"))); }
@@ -318,7 +339,7 @@ final class AssociationsTest{
   </array>
   </dict></plist>
   """, Fs.readUtf8(contents("Info.plist")));
-      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/en.lproj/InfoPlist.strings", "Contents/Resources/fapp123.icns"), files());
+      assertEquals(bundleFiles(icns("fapp123")), files());
       assertEquals("CFBundleDisplayName = \"Fearless Manager\";\n", Fs.readUtf8(contents("Resources/en.lproj/InfoPlist.strings")));
       assertEquals(List.of(bundle()), registered);
       assertFalse(Files.exists(root.resolve("reloaded")));
@@ -600,7 +621,7 @@ final class AssociationsTest{
       var locked= fileExts+".ffile942\\UserChoice";
       importReg(regKey(free, "ProgId", "otherProgram.ffile901")+regKey(locked, "ProgId", "otherProgram.ffile942"));
       deny(locked, "Delete");
-      try{ assertEquals("notWritable "+locked, refusedTaking(List.of(".ffile901", ".ffile942"), ".ffile901", ".ffile942")); }
+      try{ assertEquals("notTaken {.ffile942="+locked+"}", refusedTaking(List.of(".ffile901", ".ffile942"), ".ffile901", ".ffile942")); }
       finally{ permit(locked, "Delete"); }
       assertTrue(exists(free));
       assertTrue(exists(locked));
@@ -613,7 +634,7 @@ final class AssociationsTest{
       holders.put(".htm", Path.of("/Applications/Browser.app"));
       ReconcileTest.pick("public.html", "other");
       var before= ReconcileTest.choicesOfTheDesk();
-      withReadOnly(preferencesFile(), () -> assertEquals("notWritable "+preferencesFile(), refusedTaking(List.of(".htm"), ".htm")));
+      withReadOnly(preferencesFile(), () -> assertEquals("notTaken {.htm="+preferencesFile()+"}", refusedTaking(List.of(".htm"), ".htm")));
       assertEquals(before, ReconcileTest.choicesOfTheDesk());
       assertFalse(Files.exists(bundle()));
       assertFalse(Files.exists(root.resolve("reloaded")));
@@ -628,7 +649,7 @@ final class AssociationsTest{
     assertTrue(etc.toFile().setWritable(false));
     try{
       assertFalse(Files.isWritable(etc), "This test needs a user that the permission denies: run the tests as a normal user, not as root.");
-      assertEquals("notWritable "+etc, refusedTaking(List.of(".htm"), ".htm"));
+      assertEquals("notTaken {.htm="+etc+"}", refusedTaking(List.of(".htm"), ".htm"));
     }
     finally{ etc.toFile().setWritable(true); }
     assertEquals(text, Fs.readUtf8(config));
@@ -673,7 +694,7 @@ final class AssociationsTest{
     if (Fs.isMac()){
       reconcile(".fearless");
       plistIs(document("fearless", "Owner", "fearlessmanaged0-001.fearless"), exported("fearless"));
-      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/en.lproj/InfoPlist.strings", "Contents/Resources/fearless.icns"), files());
+      assertEquals(bundleFiles(icns("fearless")), files());
       assertEquals(List.of(bundle()), registered);
       holders.put(".fearless", sketch.bundle());
       assertEquals("notOurs {.fearless=Sketch}", refused(".fearless"));
@@ -700,7 +721,7 @@ final class AssociationsTest{
       reconcile(".fapp123", ".ffile042");
       reconcile(".fapp123");
       plistIs(document("fapp123", "Owner", "fearlessmanaged0-001.fapp123"), exported("fapp123"));
-      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/en.lproj/InfoPlist.strings", "Contents/Resources/fapp123.icns"), files());
+      assertEquals(bundleFiles(icns("fapp123")), files());
       return;
     }
     reconcile(".fearless", ".htm", ".ffile042");
@@ -917,7 +938,7 @@ final class AssociationsTest{
     if (Fs.isMac()){
       reconcile(List.of(game, tool), ".fearless");
       plistIs(document("fearless", "Owner", "fearlessmanaged0-001.fearless"), exported("fearless"));
-      assertEquals(List.of("Contents/Info.plist", "Contents/MacOS/fearlessManaged0_001", "Contents/Resources/_program.icns", "Contents/Resources/en.lproj/InfoPlist.strings", "Contents/Resources/fearless.icns"), files());
+      assertEquals(bundleFiles(icns("fearless")), files());
       assertEquals(List.of(identity), FileAssociations.identities(family));
       return;
     }
@@ -1027,7 +1048,7 @@ Terminal=false
     }
     if (Fs.isMac()){
       reconcile(".fapp123");
-      var icns= ByteBuffer.wrap(Fs.of(() -> Files.readAllBytes(contents("Resources/fapp123.icns"))));
+      var icns= ByteBuffer.wrap(Fs.of(() -> Files.readAllBytes(contents("Resources/"+icns("fapp123")))));
       var image= new byte[icns.capacity() - 16];
       icns.get(16, image);
       assertEquals(List.of(0x69636e73, icns.capacity(), 0x69633038, image.length + 8), List.of(icns.getInt(0), icns.getInt(4), icns.getInt(8), icns.getInt(12)));
@@ -1214,5 +1235,27 @@ Terminal=false
     ran.clear();
     reconcile();
     assertEquals(List.of(), ran);
+  }
+  @Test void extensionsWithTheSameImageShareOneIconFile(){
+    var png= icon(0x0000ff);
+    reconcile(List.of(new Icon(".ffile901", png, png), new Icon(".ffile942", png, png)));
+    if (Fs.isMac()){
+      assertEquals(5, files().size(), files().toString());
+      Err.strCmp("[###]<key>CFBundleDocumentTypes</key><array>\n<dict>[###]<key>LSItemContentTypes</key><array><string>fearlessmanaged0-001.ffile901</string><string>fearlessmanaged0-001.ffile942</string></array></dict>\n</array>[###]", Fs.readUtf8(contents("Info.plist")));
+      return;
+    }
+    if (Fs.isLinux()){ assertEquals(1, icons().size()); }
+  }
+  @Test void reconcileAndEradicateAllHoldTheLockOfTheFamilyFromStartToEnd(){
+    Fs.ensureDir(FileAssociations.lockFolder);
+    try (var ch= FileChannel.open(FileAssociations.lockFolder.resolve("fearlessAssociations.lock"), StandardOpenOption.CREATE, StandardOpenOption.WRITE)){
+      ch.lock();
+      assertThrows(OverlappingFileLockException.class, () -> reconcile(".ffile901"));
+      assertThrows(OverlappingFileLockException.class, () -> FileAssociations.eradicateAll(family, IllegalStateException::new));
+    }
+    catch (IOException e){ throw new UncheckedIOException(e); }
+    assertEquals(List.of(), FileAssociations.identities(family));
+    reconcile(".ffile901");
+    assertEquals(List.of(identity), FileAssociations.identities(family));
   }
 }
