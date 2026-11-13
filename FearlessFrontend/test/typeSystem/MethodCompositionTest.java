@@ -109,7 +109,8 @@ C:{ .m: C }
 
 While inspecting type declaration "A"
 Return type disagreement for method "imm .m" with 0 parameters.
-Different options are present in the implemented types: "B", "C".
+Different options are present in the implemented types.
+Candidates: "B", "C".
 Type declaration "A" must declare a method ".m" explicitly choosing the desired option.
 """, List.of("""
 A:B,C{}
@@ -122,7 +123,8 @@ C:{ .m: C }
 
 While inspecting type declaration "AA"
 Return type disagreement for method "imm .m" with 0 parameters.
-Different options are present in the implemented types: "B", "C".
+Different options are present in the implemented types.
+Candidates: "B", "C".
 Type declaration "AA" must declare a method ".m" explicitly choosing the desired option.
 """, List.of("""
 A:AA{ .m: Int }
@@ -202,7 +204,7 @@ C:{ .m(c:Foo): Foo -> c }
 
 While inspecting type declaration "A"
 Ambiguous implementation for method ".m(_)" with 1 parameter.
-Different options are present in the implemented types:
+Different options are present in the implemented types.
 Candidates: "B", "C".
 Type declaration "A" must declare a method ".m(_)" explicitly implementing the desired behaviour.
 """, List.of("""
@@ -224,7 +226,7 @@ D:A,C{}
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types:
+Different options are present in the implemented types.
 Candidates: "A", "B".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
@@ -260,7 +262,8 @@ List[T:*]:{}
 
 While inspecting type declaration "A"
 Return type disagreement for method "imm .kk" with 0 parameters.
-Different options are present in the implemented types: "A", "List[A]".
+Different options are present in the implemented types.
+Candidates: "A", "List[A]".
 Type declaration "A" must declare a method ".kk" explicitly choosing the desired option.
 """, List.of("""
 A:B[A],C[List[A]]{}
@@ -473,7 +476,8 @@ Bar[X:*]:{ .m: Foo[X] -> Foo[X:*]:{} }
 
 While inspecting type declaration "D"
 Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
-Different options are present in the implemented types: "base.Int", "base.Float".
+Different options are present in the implemented types.
+Candidates: "base.Int", "base.Float".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 """, List.of("""
 A[X:*]:{ .m(x:X):X->x }
@@ -668,7 +672,7 @@ User:{ #:D->D:X,C{} }
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types:
+Different options are present in the implemented types.
 Candidates: "B", "C".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
@@ -685,7 +689,7 @@ D:X,B,C{}
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types:
+Different options are present in the implemented types.
 Candidates: "A", "B".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
@@ -902,7 +906,8 @@ A:Foo[imm Bar],Foo[mut Beer]{ .get: Both -> Both }
 
 While inspecting type declaration "A"
 Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types: "imm Bar", "mut Beer".
+Different options are present in the implemented types.
+Candidates: "imm Bar", "mut Beer".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
 Bar:{}
@@ -932,7 +937,8 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
 
 While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types: "Y", "imm Y".
+Different options are present in the implemented types.
+Candidates: "Y", "imm Y".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
 Foo[T:*]:{ .get: T }
@@ -963,7 +969,8 @@ A[Y:imm]:Foo[Y],Bar[Y]{}
 
 While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types: "Y", "Bar".
+Different options are present in the implemented types.
+Candidates: "Y", "Bar".
 They are different types and "Y" is a generic type parameter, so no method ".get" can implement all of them.
 """, List.of("""
 Bar:{}
@@ -976,7 +983,8 @@ A[Y:imm]:Foo[Y],Foo[Bar]{}
 
 While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types: "Y", "imm Bar".
+Different options are present in the implemented types.
+Candidates: "Y", "imm Bar".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
 Bar:{}
@@ -1011,7 +1019,8 @@ User:{ .asFoo(a: A[Baz]): Foo[Baz] -> a; .get(a: A[Baz]): Baz -> a.get; .make: A
 
 While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types: "Y", "read/imm Y".
+Different options are present in the implemented types.
+Candidates: "Y", "read/imm Y".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
 Foo[X:imm,mut]:{ .get: X }
@@ -1030,7 +1039,8 @@ A:Foo,Bar{}
 
 While inspecting type declaration "A"
 Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types: "T", "read/imm T".
+Different options are present in the implemented types.
+Candidates: "T", "read/imm T".
 They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
 Foo:{ .get[T:mut]: T }
