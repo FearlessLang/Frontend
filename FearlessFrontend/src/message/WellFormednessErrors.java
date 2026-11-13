@@ -211,9 +211,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
         .line("Name "+disp(typedSimple)+" is only declared with "
           +(arities.size() == 1
             ? count(arities.getFirst(), "generic type parameter")+"."
-            : Join.of(arities, "the following numbers of generic type parameters: ", ", ", ".")
+            : "other numbers of generic type parameters.\n"+Join.of(arities.stream().map(n -> disp(typedSimple+genArity(n))), "Candidates: ", ", ", ".")
           ))
-        .line("Did you accidentally add or omit a generic type parameter?");
+        .line("Did you accidentally add or omit a generic type argument?");
       return Optional.of(typeName(e, tn));
     }
     private FearlessException undeclaredInPkg(){
