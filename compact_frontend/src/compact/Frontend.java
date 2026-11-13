@@ -624,13 +624,13 @@ import java.util.stream.*;
     M method(List<B>b,IG g,Literal l,R sp,R w,M m){var bs=l.anon?b:l.b;
       g.push(m.s.r,bs);if(l.anon&&!w.c.name.equals(l.name))sup.put(l.name,w.c);
       g.declare(l.self,sp==null?u:l.self(has(l.cs,cf)?imm:m.s.r));
-      g.push(m.s.r,bs);g.declare(m);
+      g.declare(m);
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
-      var args=zip(m.v,m.s.types,(x,t)->late?meet(t,g.get(x)):t);g.removeLast();
+      var args=zip(m.v,m.s.types,(x,t)->late?meet(t,g.get(x)):t);
       g.removeLast();return m.signature(m.s.types(args,meet(m.s.t,e.t()))).body(e);
     }
     List<T>erase(List<T>types,List<String>mb){
-      return mb.size()==0?types:map(types,t->t instanceof R w?bound(w,erase(w.c.types,mb)):mb.contains(t.v())?u:t);
+      return mb.size()==0?types:map(types,t->t instanceof R w?w.withTs(erase(w.c.types,mb)):mb.contains(t.v())?u:t);
     }
     List<T>refine(List<String>v,T t,T a){
       return a==u?qs(v.size()):switch(t){

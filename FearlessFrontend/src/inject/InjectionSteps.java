@@ -437,12 +437,10 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var litBs= l.infName() ? bs : l.bs();
     g.newScope(m.sig().rc().get(), litBs, l);
     g.declare(l.thisName(), selfPrecise.<IT>map(s -> new IT.RCC(captureFree(l) ? Optional.of(RC.imm) : m.sig().rc(), s.c(), s.span())).orElse(IT.U.Instance));
-    g.newScope(m.sig().rc().get(), litBs, l);
     assert m.sig().m().get().arity() == m.xs().size();
     Streams.zip(m.xs(), m.sig().ts()).forEach((x,t) -> g.declare(x, t.get()));
     var e= nextStar(Push.of(litBs, m.sig().bs().get()), g, meet(m.impl().get().e(), m.sig().ret().get()));
     var args= updateArgs(m, g);
-    g.popScope();
     g.popScope();
   /*The meet below narrows a method's return type to the type of its body, so a literal only ever
   gets more precise than what the use site asked for. What keeps that from destroying an invariant
@@ -476,7 +474,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return ts.stream().map(t -> dropMethBs(t, methBs)).toList();
   }
   IT dropMethBs(IT t, List<String> methBs){
-    if (t instanceof IT.RCC rcc){ return withTsNormBs(rcc, dropMethBs(rcc.c().ts(), methBs)); }
+    if (t instanceof IT.RCC rcc){ return rcc.withTs(dropMethBs(rcc.c().ts(), methBs)); }
     return xName(t).filter(methBs::contains).isPresent() ? IT.U.Instance : t;
   }
   List<IT> refine(List<String> xs, IT t, IT t1){
