@@ -1093,7 +1093,8 @@ In file: [###].fear
    | ------^---
 
 While inspecting super types declaration > type declaration > full file
-Name "X" is used as a type name, but "X" is already a generic type parameter in scope.
+Generic type parameter "X" is in scope here.
+Name "X" is also used as a type name.
 Error 2 UnexpectedToken
 """, """
 A[X]: X {}

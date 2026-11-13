@@ -319,7 +319,8 @@ A[X:*]:{ .m(x: X): X -> x; .k: X -> this.m({}) }
    |        --~~~~~~~~^--
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-Name "X" is used as a type name, but "X" is already a generic type parameter in scope.
+Generic type parameter "X" is in scope here.
+Name "X" is also used as a type name.
 """, List.of("""
 A[X:*]:{ #: X -> X }
 """));}

@@ -186,7 +186,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     ).addSpan(s).addSpan(at);
   }
   public FearlessException typeNameConflictsGeneric(Token name, Span at){
-    return Code.UnexpectedToken.of("Name "+disp(name.content())+" is used as a type name, but "+disp(name.content())+" is already a generic type parameter in scope.").addSpan(at);
+    var x= disp(name.content());
+    return Code.UnexpectedToken.of("Generic type parameter "+x+" is in scope here.\nName "+x+" is also used as a type name.").addSpan(at);
   }
   public FearlessException privateTypeName(TName name, Span at){
     return Code.UnexpectedToken.of(
