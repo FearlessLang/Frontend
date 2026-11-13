@@ -562,7 +562,7 @@ In file: [###].fear
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-The number of type parameters disagrees for method ".foo" with 0 parameters.
+The number of generic type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
 Error 7 WellFormedness
@@ -578,7 +578,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-The number of type parameters disagrees for method ".foo" with 0 parameters.
+The number of generic type parameters disagrees for method ".foo" with 0 parameters.
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
 Error 7 WellFormedness
@@ -840,9 +840,9 @@ In file: [###].fear
    |                 ^^
 
 While inspecting a type name
-Name "F" is not declared with 2 type parameters in package "p".
-Name "F" is only declared with 0 type parameters.
-Did you accidentally add or omit a type parameter?
+Name "F" is not declared with 2 generic type parameters in package "p".
+Name "F" is only declared with 0 generic type parameters.
+Did you accidentally add or omit a generic type parameter?
 Error 7 WellFormedness
 """, List.of("""
 F:{#[A,B](A):B}
@@ -859,8 +859,8 @@ In file: [###].fear
 
 While inspecting type declaration "D"
 Invalid method implementation for "D.id(_)".
-Supertypes disagree on the capability bounds for type parameter 1 of ".id(_)".
-Type parameter names may differ across supertypes; only the position matters.
+Supertypes disagree on the capability bounds for generic type parameter 1 of ".id(_)".
+Generic type parameter names may differ across supertypes; only the position matters.
 Different supertypes declare: "X:imm" and "Y:read".
 Type declaration "D" cannot implement all of those supertypes.
 Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.
@@ -879,8 +879,8 @@ In file: [###].fear
 
 While inspecting type declaration "D"
 Invalid method implementation for "D.id(_)".
-Supertypes disagree on the capability bounds for type parameter 1 of ".id(_)".
-Type parameter names may differ across supertypes; only the position matters.
+Supertypes disagree on the capability bounds for generic type parameter 1 of ".id(_)".
+Generic type parameter names may differ across supertypes; only the position matters.
 Different supertypes declare: "X:imm" and "Y:read".
 Type declaration "D" cannot implement all of those supertypes.
 Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.
@@ -900,10 +900,10 @@ In file: [###].fear
 
 While inspecting type declaration "E"
 Invalid method implementation for "E.m(_,_)".
-The method ".m(_,_)" declares 1 type parameter, but supertypes declare 2.
+The method ".m(_,_)" declares 1 generic type parameter, but supertypes declare 2.
 Local declaration: "[U:imm]".
 From supertypes: "[-:imm, -:imm]".
-Change the local number of type parameters to 2, or adjust the supertypes.
+Change the local number of generic type parameters to 2, or adjust the supertypes.
 Error 7 WellFormedness
 """, List.of("""
 A:{.m[X,Y](x:X,y:Y):X}
@@ -1173,9 +1173,9 @@ In file: [###].fear
    |               ^^^^^^^^^^^
 
 While inspecting a type name
-Name "Block" is not declared with 2 type parameters in package "base".
-Name "Block" is only declared with the following numbers of type parameters: 0, 1.
-Did you accidentally add or omit a type parameter?
+Name "Block" is not declared with 2 generic type parameters in package "base".
+Name "Block" is only declared with the following numbers of generic type parameters: 0, 1.
+Did you accidentally add or omit a generic type parameter?
 Error 7 WellFormedness
 """, List.of("""
 User:{
@@ -1190,9 +1190,9 @@ In file: [###].fear
    |               ^^^^^^
 
 While inspecting a type name
-Name "Block" is not declared with 2 type parameters in package "base".
-Name "Block" is only declared with the following numbers of type parameters: 0, 1.
-Did you accidentally add or omit a type parameter?
+Name "Block" is not declared with 2 generic type parameters in package "base".
+Name "Block" is only declared with the following numbers of generic type parameters: 0, 1.
+Did you accidentally add or omit a generic type parameter?
 
 Name "Block" stands for "base.Block" because of "use base.Block as Block".
 Error 7 WellFormedness
@@ -1242,7 +1242,7 @@ In file: [###]/in_memory1.fear
    |   ^^
 
 While inspecting a type name
-Type parameter "X" is declared in package "p".
+Generic type parameter "X" is declared in package "p".
 Name "X" is also used as a type name.
 Error 7 WellFormedness
 """,
@@ -1277,7 +1277,7 @@ In file: [###].fear
    |   ^^
 
 While inspecting the file
-Duplicate reference capability in the type parameter "A".
+Duplicate reference capability in the generic type parameter "A".
 Reference capability "imm" is repeated.
 Error 7 WellFormedness
 """,
@@ -1291,7 +1291,7 @@ In file: [###].fear
    |         ^^
 
 While inspecting the file
-Duplicate reference capability in the type parameter "A".
+Duplicate reference capability in the generic type parameter "A".
 Reference capability "imm" is repeated.
 Error 7 WellFormedness
 """,

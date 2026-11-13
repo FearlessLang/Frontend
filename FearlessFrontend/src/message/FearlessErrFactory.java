@@ -225,14 +225,14 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException badBound(T.X name, Span at){
     var x= name.name();
-    return Code.UnexpectedToken.of("Invalid bound for generic "+disp(x)+".\n"
+    return Code.UnexpectedToken.of("Invalid bound for generic type parameter "+disp(x)+".\n"
       +"Only \"*\" or \"**\" are allowed here.\n"
       +"Write: ["+x+": *]   meaning mut,read,imm\n"
       +"   or: ["+x+": **]  meaning everything.\n").addSpan(at);
   }
   public FearlessException missingBound(T.X name, Span at){
     var x= name.name();
-    return Code.UnexpectedToken.of("Missing bound for generic "+disp(x)+" after \":\".\n"
+    return Code.UnexpectedToken.of("Missing bound for generic type parameter "+disp(x)+" after \":\".\n"
       +"Write: ["+x+"] alone (note, no colon) as a shortcut for ["+x+": imm]\n"
       +"   or: ["+x+": *]   meaning mut,read,imm\n"
       +"   or: ["+x+": **]  meaning everything\n"
@@ -240,10 +240,10 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException genericNotInScope(Token X, Span at, Collection<String> Xs){
     return Code.UnexpectedToken.of(() ->
-      "Generic type "+disp(X.content())+" is not in scope.\n"
+      "Generic type parameter "+disp(X.content())+" is not in scope.\n"
       +expected(
-        "No generic parameters are declared here",
-        "Declared generics: ", "Declared generics: ",
+        "No generic type parameters are declared here",
+        "Declared generic type parameters: ", "Declared generic type parameters: ",
         Xs, s -> s)).addSpan(at);
   }
   public FearlessException genericNotFunnelled(Token X, Span at, String owner, List<String> Xs){

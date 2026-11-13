@@ -182,9 +182,9 @@ In file: [###].fear
    |         ^^^^
 
 While inspecting a type name
-Name "B" is not declared with 1 type parameter in package "b".
-Name "B" is only declared with 0 type parameters.
-Did you accidentally add or omit a type parameter?
+Name "B" is not declared with 1 generic type parameter in package "b".
+Name "B" is only declared with 0 generic type parameters.
+Did you accidentally add or omit a generic type parameter?
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
 B:{.m(x:b.B[B]):B->this}
@@ -365,9 +365,9 @@ In file: [###].fear
    |         ^^
 
 While inspecting a type name
-Name "A" is not declared with 1 type parameter in package "c".
-Name "A" is only declared with 0 type parameters.
-Did you accidentally add or omit a type parameter?
+Name "A" is not declared with 1 generic type parameter in package "c".
+Name "A" is only declared with 0 generic type parameters.
+Did you accidentally add or omit a generic type parameter?
 
 Name "X" stands for "c.A" because of "use c.A as X".
 Error 7 WellFormedness
@@ -382,9 +382,9 @@ In file: [###].fear
    |         ^^
 
 While inspecting a type name
-Name "A" is not declared with 1 type parameter in package "a".
-Name "A" is only declared with 0 type parameters.
-Did you accidentally add or omit a type parameter?
+Name "A" is not declared with 1 generic type parameter in package "a".
+Name "A" is only declared with 0 generic type parameters.
+Did you accidentally add or omit a generic type parameter?
 
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1733,8 +1733,8 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 The type "a.Box[mut B]" is invalid.
-Type argument 1 ("mut B") does not satisfy the bounds
-for type parameter "X" in "a.Box[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds
+for generic type parameter "X" in "a.Box[_]".
 Here "X" can only use capability "imm".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1753,8 +1753,8 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 The type "Bx[mut B]" is invalid.
-Type argument 1 ("mut B") does not satisfy the bounds
-for type parameter "X" in "Bx[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds
+for generic type parameter "X" in "Bx[_]".
 Here "X" can only use capability "imm".
 
 Name "Bx" stands for "a.Box" because of "use a.Box as Bx".
@@ -1775,8 +1775,8 @@ In file: [###].fear
 
 While inspecting method call "#(_)" > ".m(_,_)" line 1
 The call to "#(_)" is invalid.
-Type argument 1 ("mut B") does not satisfy the bounds
-for type parameter "X" in "a.G#(_)".
+Generic type argument 1 ("mut B") does not satisfy the bounds
+for generic type parameter "X" in "a.G#(_)".
 Here "X" can only use capability "imm".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2077,8 +2077,8 @@ In file: [###].fear
 
 While inspecting ".m(_)" line 1
 This call to method "a.Pairer.pair(_,_)" cannot typecheck.
-Wrong number of type arguments for ".pair(_,_)".
-This method expects 2 type arguments: "X" and "Y"; but this call provides 1 type argument.
+Wrong number of generic type arguments for ".pair(_,_)".
+This method expects 2 generic type arguments: "X" and "Y"; but this call provides 1 generic type argument.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
@@ -2175,7 +2175,7 @@ In file: [###].fear
    |        ^
 
 While inspecting a type name
-Type parameter "X" is declared in package "b".
+Generic type parameter "X" is declared in package "b".
 Name "X" is also used in a "use" directive.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """
@@ -2269,10 +2269,10 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.Sup"
 Invalid method implementation for "a.Sup.f(_)".
-The method ".f(_)" declares 2 type parameters, but supertypes declare 1.
+The method ".f(_)" declares 2 generic type parameters, but supertypes declare 1.
 Local declaration: "[X:imm, Y:imm]".
 From supertypes: "[-:imm]".
-Change the local number of type parameters to 1, or adjust the supertypes.
+Change the local number of generic type parameters to 1, or adjust the supertypes.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2287,7 +2287,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.Sup"
 Invalid method implementation for "a.Sup.id(_)".
-The local declaration uses different capability bounds than the supertypes for type parameter 1 of ".id(_)".
+The local declaration uses different capability bounds than the supertypes for generic type parameter 1 of ".id(_)".
 Local: "X:imm,read".
 From supertypes: "-:imm".
 The parameter name may differ; only the position matters.
@@ -2305,9 +2305,9 @@ In file: [###].fear
    |                                                                                         ^^^^^
 
 While inspecting parameter "beer"
-Parameter "beer" has type "a.Beer[X]", using the generic type "X".
-Generic type "X" is not in scope inside the type declaration "Foo".
-A type declaration only sees the generic types it declares itself; here "Foo" declares none.
+Parameter "beer" has type "a.Beer[X]", using the generic type parameter "X".
+Generic type parameter "X" is not in scope inside the type declaration "Foo".
+A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
 Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2322,9 +2322,9 @@ In file: [###].fear
    |                                                              ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "a.Y", some need "a.Z".
+The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "a.Y", some need "a.Z".
 "T" could be "a.A" or "a.B2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
-Write the type argument explicitly, as in "this.both[a.A](y, z)".
+Write the generic type argument explicitly, as in "this.both[a.A](y, z)".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2338,9 +2338,9 @@ In file: [###].fear
    |                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "bb.ThenElse[_]"
-The type argument "R" of "bb.ThenElse[_]" is inferred from the method bodies, but they disagree: some need "a.Y", some need "a.Z".
+The generic type argument "R" of "bb.ThenElse[_]" is inferred from the method bodies, but they disagree: some need "a.Y", some need "a.Z".
 "R" could be "a.S1" or "a.S2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
-Write the type argument explicitly, as in "bb.ThenElse[a.S1]{...}".
+Write the generic type argument explicitly, as in "bb.ThenElse[a.S1]{...}".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -2358,7 +2358,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.T0[_]"
 Type inference concluded that this object literal implements "a.T0[?]",
-but it could not infer type argument 1 for type parameter "X" of "a.T0[_]".
+but it could not infer generic type argument 1 for generic type parameter "X" of "a.T0[_]".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2490,8 +2490,8 @@ In file: [###].fear
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Hello[_]"
-Type declaration "Hello[_]" implements "bb.Main" and has generic parameters.
-A type implementing "bb.Main" must have zero generic parameters.
+Type declaration "Hello[_]" implements "bb.Main" and has generic type parameters.
+A type implementing "bb.Main" must have zero generic type parameters.
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2506,7 +2506,7 @@ In file: [###].fear
 
 While inspecting type declaration "A"
 Type declaration "A" implements `bb.Final["foo"]`.
-The type argument of "bb.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+The generic type argument of "bb.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2570,7 +2570,7 @@ In file: [###].fear
 While inspecting type declaration "One"
 Type declaration "One" implements `bb.OpenWith[a.Box[a.Icon],"foo"]`.
 "a.Box[a.Icon]" is not a valid icon.
-Only concrete types with zero generic arguments are valid icons.
+Only concrete types with zero generic type arguments are valid icons.
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2777,9 +2777,9 @@ In file: [###].fear
    |                                                                           ^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".two(_,_,_)"
-The type argument "T" of ".two" is inferred from the arguments, but they disagree: some need "a.Y", some need "a.Z".
+The generic type argument "T" of ".two" is inferred from the arguments, but they disagree: some need "a.Y", some need "a.Z".
 "T" could be "a.A" or "a.B2": each is a supertype of "a.Y" and "a.Z". The choice is ambiguous.
-Write the type argument explicitly, as in "this.two[d.Q,a.A](q, y, z)".
+Write the generic type argument explicitly, as in "this.two[d.Q,a.A](q, y, z)".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "d" to refer to the code inside folders named "_e", because of "map d as _e in _b", written in fear:/_b/_rank_app.fear.

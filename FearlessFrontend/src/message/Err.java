@@ -27,8 +27,8 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var dec= disp(owner);
     var declares= Xs.isEmpty() ? "none" : Join.of(Xs.stream().map(Err::disp), "", ", ", "", "");
     var funnelled= disp(Join.of(Push.of(Xs, X).stream().map(s -> s+":.."), owner+"[", ",", "]", ""));
-    return "Generic type "+x+" is not in scope inside the type declaration "+dec+".\n"
-      +"A type declaration only sees the generic types it declares itself; here "+dec+" declares "+declares+".\n"
+    return "Generic type parameter "+x+" is not in scope inside the type declaration "+dec+".\n"
+      +"A type declaration only sees the generic type parameters it declares itself; here "+dec+" declares "+declares+".\n"
       +"Hint: funnel "+x+" into "+dec+" by writing "+funnelled+", restating the bounds of "+x+".";
   }
   public static String genArity(int n){ return Join.of(Collections.nCopies(n, "_"), "[", ",", "]", ""); }
@@ -137,12 +137,12 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   public Err pTypeArgBounds(String what, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
     var badStr= typeRepr(true, bad);
     var e= line("The "+what+" is invalid.")
-      .line("Type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
-      .line("for type parameter "+paramName+" in "+kindingTarget+".")
+      .line("Generic type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
+      .line("for generic type parameter "+paramName+" in "+kindingTarget+".")
       .line("Here "+paramName+" can only use "+allowedStr+".");
     var capabilityHidden= bad instanceof T.X || bad instanceof T.ReadImmX;
     if (!capabilityHidden){ return e; }
-    return e.line("But type argument "+badStr+" can use capabilities "+gotStr+".");
+    return e.line("But generic type argument "+badStr+" can use capabilities "+gotStr+".");
   }
   public Err invalidMethImpl(String pre, Literal l, MName m){
     return line("Invalid method signature overriding for "+methodSig(pre, l, m)+".");

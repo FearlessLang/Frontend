@@ -307,10 +307,10 @@ B:{ .m[X:*](x: X): Foo }
 
 While inspecting type declaration "A"
 Invalid method implementation for "A.m".
-The method ".m" declares 2 type parameters, but supertypes declare 1.
+The method ".m" declares 2 generic type parameters, but supertypes declare 1.
 Local declaration: "[X:imm,mut,read, Y:imm,mut,read]".
 From supertypes: "[-:imm,mut,read]".
-Change the local number of type parameters to 1, or adjust the supertypes.
+Change the local number of generic type parameters to 1, or adjust the supertypes.
 """, List.of("""
 Foo:{}
 A:B{ .m[X:*,Y:*]: Foo }
@@ -322,7 +322,7 @@ B:{ .m[X:*]: Foo }
 
 While inspecting type declaration "A"
 Invalid method implementation for "A.m".
-The local declaration uses different capability bounds than the supertypes for type parameter 1 of ".m".
+The local declaration uses different capability bounds than the supertypes for generic type parameter 1 of ".m".
 Local: "X:imm".
 From supertypes: "-:imm,mut,read".
 The parameter name may differ; only the position matters.
@@ -964,7 +964,7 @@ A[Y:imm]:Foo[Y],Bar[Y]{}
 While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types: "Y", "Bar".
-They are different types and "Y" is a type parameter, so no method ".get" can implement all of them.
+They are different types and "Y" is a generic type parameter, so no method ".get" can implement all of them.
 """, List.of("""
 Bar:{}
 Foo[T:*]:{ .get: T }
