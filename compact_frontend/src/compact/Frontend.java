@@ -559,7 +559,6 @@ import java.util.stream.*;
       if(a==null||b==null)return or(a,b);var x=a.h();var y=b.h();return x==y||y==iso?x:x==iso?y:read;
     }
     List<T>meet(List<T>a,List<T>z){return zip(a,z,this::meet);}
-    List<T>meet(List<List<T>>tss){return tss.stream().reduce(this::meet).get();}
     E solve(List<B>b,IG g,E e){
       while(true){var s=g.snap();var oe=next(b,g,e);
         if(oe.equals(e)&&s.equals(g.snap()))return e;
@@ -612,8 +611,8 @@ import java.util.stream.*;
       var all=cs.stream().filter(c->c.p instanceof R?!c.eq:!c.in).map(ref).reduce(join.apply(shape,cs.stream().filter(c->c.in&&!(c.p instanceof R)).map(ref).reduce(qs(v.size()),join)),this::meet);
       return normalize(bs,map(Stream.of(given,shape,all).reduce((p,z)->zip(p,z,(a,x)->a.tv()?a:x)).get(),this::up));
     }
-    M instantiate(R w,M m){var h=signature(w,m.s.m,m.s.r,null);var a=h==null?null:push(w.c.types,vars(m.s.b));
-      var n=h==null?m:m.signature(m.s.types(rename(h.ps,h.v,a),rename(h.ret,h.v,a)));return n;
+    M instantiate(R w,M m){var h=signature(w,m.s.m,m.s.r,null);if(h==null)return m;var a=push(w.c.types,vars(m.s.b));
+      return m.signature(m.s.types(rename(h.ps,h.v,a),rename(h.ret,h.v,a)));
     }
     T up(T t){if(!(t instanceof R(var r,var c)))return t;var h=sup.getOrDefault(c.name,c);return new R(r,h).withTs(map(h.types,this::up));}
     C self(C c){
@@ -647,7 +646,7 @@ import java.util.stream.*;
         if(up!=null)return propagate(v,r,up);var down=sup(r,cc.c.name);return down==null?qs(v.size()):propagate(v,down,a);
       }
       var res=zip(c.types,cc.c.types,(t,ti)->t instanceof R rr&&!(ti instanceof R ci&&ci.c.name.equals(rr.c.name))?qs(v.size()):refine(v,t,ti));
-      return meet(push(qs(v.size()),res));
+      return res.stream().reduce(qs(v.size()),this::meet);
     }
     E ascribe(E arg,T expected,N called){
       if(!(expected instanceof R exp))return arg;

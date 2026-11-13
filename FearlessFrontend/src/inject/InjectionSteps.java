@@ -192,7 +192,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   List<IT> join(List<IT> t1, List<IT> t2){ return Streams.zip(t1, t2).map(this::join).toList(); }
   List<IT> meet(List<IT> t1, List<IT> t2){ return Streams.zip(t1, t2).map(this::meet).toList(); }
-  List<IT> meet(List<List<IT>> tss){ return tss.stream().reduce(this::meet).get(); }
   E nextStar(List<B> bs, Gamma g, E e){
     var start= e;
     if (e.done(g)){ return e; }
@@ -511,7 +510,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       return qMarks(xs.size());
     }
     var res= Streams.zip(c.ts(), cc.c().ts()).map((t,ti) -> refineArg(xs, t, ti)).toList();
-    return res.isEmpty() ? qMarks(xs.size()) : meet(res);
+    return res.stream().reduce(qMarks(xs.size()), this::meet);
   }
   private List<IT> refineArg(List<String> xs, IT t, IT t1){
     var otherHead= t instanceof IT.RCC r && !(t1 instanceof IT.RCC cc && cc.c().name().equals(r.c().name()));
