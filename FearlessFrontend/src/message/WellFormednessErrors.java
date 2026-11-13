@@ -423,7 +423,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var rcDiffers= res.stream().map(t -> t instanceof IT.RCC r ? EnumSet.of(r.rc().orElse(RC.imm)) : Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var e= err()
-      .line(msg+" for method "+methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
+      .line(msg+" for method "+methodSig(rc, at.mName())+".")
       .line(Join.of(
         res.stream().map(o -> option(rcDiffers, o)),
         "Different options are present in the implemented types: ", ", ", "."
@@ -439,8 +439,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
-      .line("The number of type parameters disagrees for method "+err().methodSig(at.mName())
-        +" with "+count(at.mName().arity(), "parameter")+".")
+      .line("The number of type parameters disagrees for method "+err().methodSig(at.mName())+".")
       .line(Join.of(res.stream().map(Err::disp), "Different options are present in the implemented types: ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" cannot implement all of those types.");
     return wf(e, at);
@@ -569,7 +568,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException ambiguousImplementationFor(List<TName> options, Agreement at){
     return wf(err()
-      .line("Ambiguous implementation for method "+err().methodSig(at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
+      .line("Ambiguous implementation for method "+err().methodSig(at.mName())+".")
       .line("Different options are present in the implemented types:")
       .line(Join.of(options.stream().map(err()::tNameADisp), "Candidates: ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" must declare a method "+err().methodSig(at.mName())+" explicitly implementing the desired behaviour."), at);

@@ -2832,7 +2832,7 @@ In file: [###].fear
 009|  }
 
 While inspecting type declaration body > type declaration > full file
-Method ".foo" with 0 parameters redeclared.
+Method ".foo" redeclared.
 A method with the same name, arity and reference capability is already present.
 Error 7 WellFormedness
 """, """
@@ -2855,7 +2855,7 @@ In file: [###].fear
 008|    .return{x};
 
 While inspecting type declaration body > type declaration > full file
-Method ".ban(_)" with 1 parameter redeclared.
+Method ".ban(_)" redeclared.
 A method with the same name, arity and reference capability is already present.
 Error 7 WellFormedness
 """, """
@@ -2881,7 +2881,7 @@ In file: [###].fear
 009|  }
 
 While inspecting type declaration body > type declaration > full file
-Method ".foo" with 0 parameters redeclared.
+Method ".foo" redeclared.
 A method with the same name, arity and reference capability is already present.
 Error 7 WellFormedness
 """, """
@@ -3007,7 +3007,7 @@ In file: [###].fear
    |    -------^^^^^^^^--
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-Abstract method declaration for ".foo" with 0 parameters.
+Abstract method declaration for ".foo".
 Only top level methods can be abstract.
 Error 7 WellFormedness
 """, """
@@ -3610,7 +3610,7 @@ In file: [###].fear
    | --~~^^^^^^^^^^^^~~~~~~~~~~~~~~~~~~~~~
 
 While inspecting type declaration body > type declaration > full file
-Method ".foo" with 0 parameters mixes an explicit and an inferred reference capability.
+Method ".foo" mixes an explicit and an inferred reference capability.
 Once one overload of ".foo" declares a reference capability, every overload of that method must.
 Error 7 WellFormedness
 """, """

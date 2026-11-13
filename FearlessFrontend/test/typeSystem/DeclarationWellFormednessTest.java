@@ -81,7 +81,7 @@ A[T:*,T:*]:{ .foo(a: T, b: T): A }
    | --~~~~~~~~~^^^^^~~
 
 While inspecting type declaration body > type declaration > full file
-Method ".a" with 0 parameters redeclared.
+Method ".a" redeclared.
 A method with the same name, arity and reference capability is already present.
 """, List.of("""
 A:{ .a: A; .a: A }
@@ -233,7 +233,7 @@ A:{ #: read/imm A -> this# }
    |              -~~^^^^^^^~~
 
 While inspecting method declaration > typed literal > method body > method declaration > type declaration body > type declaration > full file
-Abstract method declaration for ".foo" with 0 parameters.
+Abstract method declaration for ".foo".
 Only top level methods can be abstract.
 """, List.of("""
 A:{ .foo: A }

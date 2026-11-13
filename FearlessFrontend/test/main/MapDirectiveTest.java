@@ -91,7 +91,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .m" with 0 parameters.
+Return type disagreement for method "imm .m".
 Different options are present in the implemented types: "a.A", "a.A2".
 Type declaration "B" must declare a method ".m" explicitly choosing the desired option.
 
@@ -2236,7 +2236,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
+Type disagreement about parameter 1 for method "imm .m(_)".
 Different options are present in the implemented types: "a.P", "a.Q".
 Type declaration "B" must declare a method ".m(_)" explicitly choosing the desired option.
 
@@ -2252,7 +2252,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .m" with 0 parameters.
+Return type disagreement for method "imm .m".
 Different options are present in the implemented types: "imm a.P", "mut a.P".
 They differ in reference capability, and an overriding method must keep it, so no method ".m" can implement all of them.
 
@@ -2387,7 +2387,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Ambiguous implementation for method ".m" with 0 parameters.
+Ambiguous implementation for method ".m".
 Different options are present in the implemented types:
 Candidates: "a.I1", "a.I2".
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
@@ -3031,7 +3031,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Ambiguous implementation for method ".m" with 0 parameters.
+Ambiguous implementation for method ".m".
 Different options are present in the implemented types:
 Candidates: "X", "a.I2".
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
@@ -3051,7 +3051,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Ambiguous implementation for method ".m" with 0 parameters.
+Ambiguous implementation for method ".m".
 Different options are present in the implemented types:
 Candidates: "d.I2", "a.I1".
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
@@ -3069,7 +3069,7 @@ In file: [###].fear
    | -----~~~~~~~~~~~~~~~~^^^^^^^^^^^^~~~
 
 While inspecting type declaration body > type declaration > full file
-Method ".k" with 0 parameters redeclared.
+Method ".k" redeclared.
 A method with the same name, arity and reference capability is already present.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """

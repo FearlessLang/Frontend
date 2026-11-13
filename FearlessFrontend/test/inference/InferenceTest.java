@@ -502,7 +502,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .foo" with 0 parameters.
+Return type disagreement for method "imm .foo".
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -517,7 +517,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .foo" with 0 parameters.
+Return type disagreement for method "imm .foo".
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -532,7 +532,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about parameter 2 for method "imm .foo(_,_)" with 2 parameters.
+Type disagreement about parameter 2 for method "imm .foo(_,_)".
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -547,7 +547,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about parameter 2 for method "imm .foo(_,_)" with 2 parameters.
+Type disagreement about parameter 2 for method "imm .foo(_,_)".
 Different options are present in the implemented types: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -562,7 +562,7 @@ In file: [###].fear
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-The number of type parameters disagrees for method ".foo" with 0 parameters.
+The number of type parameters disagrees for method ".foo".
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
 Error 7 WellFormedness
@@ -578,7 +578,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-The number of type parameters disagrees for method ".foo" with 0 parameters.
+The number of type parameters disagrees for method ".foo".
 Different options are present in the implemented types: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
 Error 7 WellFormedness
@@ -684,7 +684,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Ambiguous implementation for method ".foo" with 0 parameters.
+Ambiguous implementation for method ".foo".
 Different options are present in the implemented types:
 Candidates: "A2", "A3".
 Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
@@ -934,7 +934,7 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
+Type disagreement about parameter 1 for method "imm .m(_)".
 Different options are present in the implemented types: "Twice[Pair[X,Y]]", "Twice[Pair[Y,X]]".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 Error 7 WellFormedness
@@ -1322,7 +1322,7 @@ In file: [###].fear
    | --~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^~
 
 While inspecting type declaration body > type declaration > full file
-Method ".m" with 0 parameters redeclared.
+Method ".m" redeclared.
 A method with the same name, arity and reference capability is already present.
 Error 7 WellFormedness
 """,
