@@ -185,7 +185,7 @@ In file: [###].fear
 While inspecting a type name
 Name "B" is not declared with 1 generic type parameter in package "b".
 Name "B" is only declared with 0 generic type parameters.
-Did you accidentally add or omit a generic type parameter?
+Did you accidentally add or omit a generic type argument?
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
 B:{.m(x:b.B[B]):B->this}
@@ -368,7 +368,7 @@ In file: [###].fear
 While inspecting a type name
 Name "A" is not declared with 1 generic type parameter in package "c".
 Name "A" is only declared with 0 generic type parameters.
-Did you accidentally add or omit a generic type parameter?
+Did you accidentally add or omit a generic type argument?
 
 Name "X" stands for "c.A" because of "use c.A as X".
 Error 7 WellFormedness
@@ -385,7 +385,7 @@ In file: [###].fear
 While inspecting a type name
 Name "A" is not declared with 1 generic type parameter in package "a".
 Name "A" is only declared with 0 generic type parameters.
-Did you accidentally add or omit a generic type parameter?
+Did you accidentally add or omit a generic type argument?
 
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
