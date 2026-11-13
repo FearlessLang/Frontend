@@ -116,7 +116,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var thisType= new T.RCC(l.rc(), new T.C(l.name(), dom(l.bs(), span)), span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
     k().check(l, bs1, thisType);
-    litOk(v.discard(g.filterFTV(l), l), l, _l.rc().isoToMut());
+    litOk(v.discard(g.filterFTV(l), l), l, captureFree(_l) ? imm : _l.rc().isoToMut());
     if (selfNamed && !uses(_l, _l.thisName())){ throw tsE().selfNameDeadCode(_l); }
     l.ms().stream().filter(m -> m.e().isPresent()).forEach(m -> checkCallable(l, m));
     l.ms().forEach(m -> checkImplemented(l, m, l));
