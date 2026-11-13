@@ -503,7 +503,8 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Return type disagreement for method "imm .foo" with 0 parameters.
-Different options are present in the implemented types: "A1", "A2".
+Different options are present in the implemented types.
+Candidates: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
 A1:{ .foo:A1;}
@@ -518,7 +519,8 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Return type disagreement for method "imm .foo" with 0 parameters.
-Different options are present in the implemented types: "A1", "A2".
+Different options are present in the implemented types.
+Candidates: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
 A1:{ .foo:A1;}
@@ -533,7 +535,8 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Type disagreement about parameter 2 for method "imm .foo(_,_)" with 2 parameters.
-Different options are present in the implemented types: "A1", "A2".
+Different options are present in the implemented types.
+Candidates: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
@@ -548,7 +551,8 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Type disagreement about parameter 2 for method "imm .foo(_,_)" with 2 parameters.
-Different options are present in the implemented types: "A1", "A2".
+Different options are present in the implemented types.
+Candidates: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
 A1:{ .foo(a:A1,b:A1):A1;}
@@ -563,7 +567,8 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 The number of generic type parameters disagrees for method ".foo" with 0 parameters.
-Different options are present in the implemented types: "[X:imm]", "[]".
+Different options are present in the implemented types.
+Candidates: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
 Error 7 WellFormedness
 """, List.of("""
@@ -579,7 +584,8 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 The number of generic type parameters disagrees for method ".foo" with 0 parameters.
-Different options are present in the implemented types: "[X:imm]", "[]".
+Different options are present in the implemented types.
+Candidates: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those types.
 Error 7 WellFormedness
 """, List.of("""
@@ -628,7 +634,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Cannot infer the name for a method with 0 parameters.
-Many abstract methods with 0 parameters could be selected:
+More than one abstract method with 0 parameters could be selected.
 Candidates: "imm .foo", "imm .bar".
 Error 7 WellFormedness
 """, List.of("""
@@ -644,7 +650,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Cannot infer the name for a method with 1 parameter.
-Many methods with 1 parameter could be selected:
+More than one method with 1 parameter could be selected.
 Candidates: "imm .baz(_)", "imm .beer(_)".
 Error 7 WellFormedness
 """, List.of("""
@@ -685,7 +691,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".foo" with 0 parameters.
-Different options are present in the implemented types:
+Different options are present in the implemented types.
 Candidates: "A2", "A3".
 Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
 Error 7 WellFormedness
@@ -935,7 +941,8 @@ In file: [###].fear
 
 While inspecting type declaration "D"
 Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
-Different options are present in the implemented types: "Twice[Pair[X,Y]]", "Twice[Pair[Y,X]]".
+Different options are present in the implemented types.
+Candidates: "Twice[Pair[X,Y]]", "Twice[Pair[Y,X]]".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 Error 7 WellFormedness
 """, List.of("""

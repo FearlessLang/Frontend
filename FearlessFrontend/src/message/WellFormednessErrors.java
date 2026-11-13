@@ -424,10 +424,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var e= err()
       .line(msg+" for method "+methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
-      .line(Join.of(
-        res.stream().map(o -> option(rcDiffers, o)),
-        "Different options are present in the implemented types: ", ", ", "."
-      ));
+      .line("Different options are present in the implemented types.")
+      .line(Join.of(res.stream().map(o -> option(rcDiffers, o)), "Candidates: ", ", ", "."));
     var m= err().methodSig(at.mName());
     if (rcDiffers){ return wf(e.line("They differ in reference capability, and an overriding method must keep it, so no method "+m+" can implement all of them."), at); }
     if (x.isPresent()){ return wf(e.line("They are different types and "+option(false, x.get())+" is a generic type parameter, so no method "+m+" can implement all of them."), at); }
@@ -441,7 +439,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var e= err()
       .line("The number of generic type parameters disagrees for method "+err().methodSig(at.mName())
         +" with "+count(at.mName().arity(), "parameter")+".")
-      .line(Join.of(res.stream().map(Err::disp), "Different options are present in the implemented types: ", ", ", "."))
+      .line("Different options are present in the implemented types.")
+      .line(Join.of(res.stream().map(Err::disp), "Candidates: ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" cannot implement all of those types.");
     return wf(e, at);
   }
@@ -555,7 +554,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException ambiguousImpl(E.Literal origin, boolean abs, M m, List<M.Sig> options){
     return wf(err()
       .line("Cannot infer the name for a method with "+count(m.sig().ts().size(), "parameter")+".")
-      .line("Many"+(abs ? " abstract" : "")+" methods with "+count(m.sig().ts().size(), "parameter")+" could be selected:")
+      .line("More than one"+(abs ? " abstract" : "")+" method with "+count(m.sig().ts().size(), "parameter")+" could be selected.")
       .line(Join.of(
         options.stream().map(mi -> methodSig(mi.rc().get()+" ", mi.m().get())),
         "Candidates: ", ", ", "."
@@ -564,7 +563,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException ambiguousImplementationFor(List<TName> options, Agreement at){
     return wf(err()
       .line("Ambiguous implementation for method "+err().methodSig(at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
-      .line("Different options are present in the implemented types:")
+      .line("Different options are present in the implemented types.")
       .line(Join.of(options.stream().map(err()::tNameADisp), "Candidates: ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" must declare a method "+err().methodSig(at.mName())+" explicitly implementing the desired behaviour."), at);
   }
