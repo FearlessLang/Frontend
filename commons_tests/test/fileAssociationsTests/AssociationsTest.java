@@ -2,9 +2,9 @@ package fileAssociationsTests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -14,7 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,24 +42,32 @@ import fileAssociations.LinuxAssociations;
 import fileAssociations.MacAssociations;
 import fileAssociations.MacAssociations.Declared;
 import fileAssociations.WindowIcon;
+import fileAssociations.WindowsAssociations;
 import tools.Fs;
+import tools.OpenPath;
 import utils.Err;
+import utils.Push;
+import utils.Range;
 
 /// FileAssociations.reconcile on Linux, against a desktop made of the folders of a test.
 /// FileAssociations.reconcile on macOS, against a folder of a test for the helper bundles and the types a test declares.
+/// FileAssociations.reconcile on Windows, against keys of the registry of the current user with an identity, a family and extensions that only this test uses.
 final class AssociationsTest{
   static{ Err.setUp(AssertionFailedError.class, Assertions::assertEquals, Assertions::assertTrue); }
-  private static final Predicate<String> family= s -> s.contains("earless");
-  private static final String identity= "fearlessManaged0_001";
-  private static final Path command= Path.of("/opt/fearlessManaged0_001/bin/fearlessManaged0_001");
+  private static final String probe= "fearlessAssociationsProbe";
+  private static final Predicate<String> family= Fs.isWindows() ? s -> s.startsWith(probe) : s -> s.contains("earless");
+  private static final String identity= Fs.isWindows() ? probe+"0_001" : "fearlessManaged0_001";
+  private static final String older= probe+"0_000";
+  private static final Path command= Fs.isWindows() ? Path.of("C:\\Program Files\\it's here", identity+".exe") : Path.of("/opt/fearlessManaged0_001/bin/fearlessManaged0_001");
   private static final Path macCommand= Path.of("/Applications/it's here/fearlessManaged0_001.app/Contents/MacOS/fearlessManaged0_001");
   private static final Declared html= new Declared("public.html", Path.of("/System/Library/CoreServices/CoreTypes.bundle"));
   private static final Declared sketch= new Declared("com.example.sketch", Path.of("/Applications/Sketch.app"));
-  private static final String windowsDesk= """
-    WindowsAssociations keeps an identity in keys of the registry of the current user: Software\\<identity>, Classes\\<identity>.<ext>, Classes\\<ext>, RegisteredApplications.
-    Check this on those keys with an identity and a family that only this test uses, as ReconcileTest does: never the family of this class,
-    which on a desk also holds the Fearless programs installed there.""";
-  private static void onWindows(String what){ if (Fs.isWindows()){ fail("Agent on Windows: "+what+"\n"+windowsDesk); } }
+  private static final String user= "HKEY_CURRENT_USER\\Software\\";
+  private static final String classes= user+"Classes\\";
+  private static final String fileExts= user+"Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\";
+  private static final String registeredApplications= user+"RegisteredApplications";
+  private static final String machine= "HKEY_LOCAL_MACHINE\\Software\\";
+  private static final List<String> winExtensions= List.of(".ffile901", ".ffile942", ".fassochtm", ".fassocqux", ".fassocprobe");
   @TempDir Path root;
   private Path home;
   private Path sys;
@@ -71,11 +81,12 @@ final class AssociationsTest{
   private final Function<String,Optional<Path>> holder= MacAssociations.holder;
   private final String preferences= MacAssociations.preferences;
   private final List<String> reload= MacAssociations.reload;
+  private final Runnable notifyShell= WindowsAssociations.notifyShell;
   private final Map<String,List<Declared>> types= new HashMap<>();
   private final Map<String,Path> holders= new HashMap<>();
   private final List<Path> registered= new ArrayList<>();
   @BeforeEach void desktop(){
-    if (Fs.isWindows()){ return; }
+    if (Fs.isWindows()){ cleanUp(); WindowsAssociations.notifyShell = () -> ran.add(List.of("SHChangeNotify")); return; }
     if (Fs.isMac()){ macDesktop(); return; }
     home = root.resolve("home");
     sys = root.resolve("sys");
@@ -106,7 +117,7 @@ final class AssociationsTest{
     MacAssociations.reload = List.of("touch", root.resolve("reloaded").toString());
   }
   @AfterEach void restore(){
-    if (Fs.isWindows()){ return; }
+    if (Fs.isWindows()){ cleanUp(); WindowsAssociations.notifyShell = notifyShell; return; }
     if (Fs.isMac()){ macRestore(); return; }
     LinuxAssociations.env = env;
     LinuxAssociations.run = run;
@@ -120,6 +131,79 @@ final class AssociationsTest{
     Fs.ofV(() -> Files.deleteIfExists(preferencesFile()));
     MacAssociations.preferences = preferences;
     MacAssociations.reload = reload;
+  }
+  private static void cleanUp(){
+    FileAssociations.eradicateAll(family, IllegalStateException::new);
+    for (var e : winExtensions){
+      reg("delete", classes+e, "/f");
+      reg("delete", classes+"otherProgram"+e, "/f");
+      reg("delete", fileExts+e, "/f");
+    }
+    reg("delete", user+identity, "/f");
+  }
+  private static Optional<String> reg(String... args){
+    var p= Fs.of(new ProcessBuilder(Push.of("reg", List.of(args))).redirectErrorStream(true)::start);
+    var out= new String(Fs.of(() -> p.getInputStream().readAllBytes()), StandardCharsets.UTF_8);
+    return p.onExit().join().exitValue() == 0 ? Optional.of(out) : Optional.empty();
+  }
+  private static boolean exists(String key){ return reg("query", key).isPresent(); }
+  private static String data(String line){
+    var end= line.indexOf(' ', line.indexOf("    REG_") + 4);
+    return end < 0 ? "" : line.substring(end).strip();
+  }
+  private static Map<String,String> values(String key){
+    var res= new LinkedHashMap<String,String>();
+    reg("query", key).orElse("").lines().filter(l -> l.contains("    REG_")).forEach(l -> res.put(l.substring(0, l.indexOf("    REG_")).strip(), data(l)));
+    return res;
+  }
+  private static Optional<String> value(String key, String name){
+    var found= name.isEmpty() ? reg("query", key, "/ve") : reg("query", key, "/v", name);
+    return found.flatMap(out -> out.lines().filter(l -> l.contains("    REG_")).findFirst()).map(AssociationsTest::data);
+  }
+  private static String regKey(String key, String name, String data){
+    var shown= name.isEmpty() ? "@" : "\""+name+"\"";
+    return "\r\n["+key+"]\r\n"+shown+"=\""+data.replace("\\", "\\\\").replace("\"", "\\\"")+"\"\r\n";
+  }
+  private boolean imported(String keys){
+    var text= "\uFEFFWindows Registry Editor Version 5.00\r\n"+keys;
+    var bytes= new byte[2*text.length()];
+    for (int i : Range.of(0, text.length())){ bytes[2*i] = (byte)text.charAt(i); bytes[2*i+1] = (byte)(text.charAt(i) >> 8); }
+    var file= root.resolve("keys.reg");
+    Fs.ofV(() -> Files.write(file, bytes));
+    return reg("import", file.toString()).isPresent();
+  }
+  private void importReg(String keys){ assertTrue(imported(keys), keys); }
+  private static void deny(String key, String rights){ permission(key, rights, "AddAccessRule"); }
+  private static void permit(String key, String rights){ permission(key, rights, "RemoveAccessRule"); }
+  private static void permission(String key, String rights, String change){
+    var script= "$ErrorActionPreference='Stop';"
+      +"$k=[Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('"+key.substring("HKEY_CURRENT_USER\\".length())+"','ReadWriteSubTree','ChangePermissions,ReadPermissions');"
+      +"$a=$k.GetAccessControl();"
+      +"[void]$a."+change+"((New-Object Security.AccessControl.RegistryAccessRule([Security.Principal.WindowsIdentity]::GetCurrent().User,'"+rights+"','Deny')));"
+      +"$k.SetAccessControl($a)";
+    var encoded= Base64.getEncoder().encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
+    var p= Fs.of(new ProcessBuilder("powershell", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded).redirectErrorStream(true)::start);
+    var out= new String(Fs.of(() -> p.getInputStream().readAllBytes()), StandardCharsets.UTF_8);
+    assertEquals(0, p.onExit().join().exitValue(), out);
+  }
+  private AutoCloseable aside(String key){
+    var file= root.resolve(key.hashCode()+".reg");
+    var kept= reg("export", key, file.toString(), "/y").isPresent();
+    reg("delete", key, "/f");
+    return () -> { reg("delete", key, "/f"); if (kept){ assertTrue(reg("import", file.toString()).isPresent()); } };
+  }
+  private static final String needsAdmin= "This test writes keys of HKEY_LOCAL_MACHINE with \"reg import\": it needs an administrator on this desk.";
+  private AutoCloseable allUsers(String name){
+    var progId= name+".ffile901";
+    var keys= regKey(machine+name+"\\Capabilities\\FileAssociations", ".ffile901", progId)
+      +regKey(machine+"Classes\\"+progId+"\\shell\\open\\command", "", "\"C:\\Program Files\\"+name+".exe\" \"%1\"")
+      +regKey(machine+"RegisteredApplications", name, "Software\\"+name+"\\Capabilities");
+    assertTrue(imported(keys), needsAdmin);
+    return () -> {
+      reg("delete", machine+name, "/f");
+      reg("delete", machine+"Classes\\"+progId, "/f");
+      reg("delete", machine+"RegisteredApplications", "/v", name, "/f");
+    };
   }
   private Path icon(int rgb){
     var file= root.resolve("in").resolve(Integer.toHexString(rgb)+".png");
@@ -136,8 +220,11 @@ final class AssociationsTest{
   private void taking(List<String> taken, String... extensions){ reconcile(identity, List.of(), taken, extensions); }
   private void reconcile(List<WindowIcon> windows, String... extensions){ reconcile(identity, windows, List.of(), extensions); }
   private void reconcile(String identity, List<WindowIcon> windows, List<String> taken, String... extensions){
+    reconcile(identity, windows, taken, Stream.of(extensions).map(e -> { var png= icon(e.hashCode() & 0xffffff); return new Icon(e, png, png); }).toList());
+  }
+  private void reconcile(List<Icon> icons){ reconcile(identity, List.of(), List.of(), icons); }
+  private void reconcile(String identity, List<WindowIcon> windows, List<String> taken, List<Icon> icons){
     var program= icon(0x123456);
-    var icons= Stream.of(extensions).map(e -> { var png= icon(e.hashCode() & 0xffffff); return new Icon(e, png, png); }).toList();
     FileAssociations.reconcile(identity, "Fearless Manager", family, Fs.isMac() ? macCommand : command, icons, taken, windows, program, replaced::add,
       s -> new IllegalStateException("ambiguous "+s),
       s -> new IllegalStateException("notOurs "+s),
@@ -156,6 +243,7 @@ final class AssociationsTest{
     return Fs.of(() -> { try (var s= Files.list(mimetypes())){ return s.map(p -> p.getFileName().toString()).sorted().toList(); }});
   }
   private List<List<String>> rebuilt(){
+    if (Fs.isWindows()){ return List.of(List.of("SHChangeNotify")); }
     return List.of(List.of("update-mime-database", home.resolve("mime").toString()), List.of("update-desktop-database", home.resolve("applications").toString()));
   }
   private String mimeInfo(String... types){
@@ -198,9 +286,16 @@ final class AssociationsTest{
   }
   private void plistIs(String documents, String exported){ assertEquals(MacAssociations.plist(identity, "Fearless Manager", documents, exported), Fs.readUtf8(contents("Info.plist"))); }
   @Test void anExtensionNoProgramDeclaresGetsATypeOfTheIdentity(){
-    onWindows("""
-      Classes\\.ffile001 names the ProgId <identity>.ffile001, which Classes\\.ffile001\\OpenWithProgids and Software\\<identity>\\Capabilities\\FileAssociations also list,
-      and RegisteredApplications names Software\\<identity>\\Capabilities (WindowsAssociations.setup). Check every one of those keys after reconcile(".ffile001").""");
+    if (Fs.isWindows()){
+      reconcile(".ffile901");
+      var progId= identity+".ffile901";
+      assertEquals(Optional.of(progId), value(classes+".ffile901", ""));
+      assertEquals(Map.of(progId, ""), values(classes+".ffile901\\OpenWithProgids"));
+      assertEquals(Map.of(".ffile901", progId), values(user+identity+"\\Capabilities\\FileAssociations"));
+      assertEquals(Optional.of("Software\\"+identity+"\\Capabilities"), value(registeredApplications, identity));
+      assertEquals(rebuilt(), ran);
+      return;
+    }
     if (Fs.isMac()){
       reconcile(".fapp123");
       Err.strCmp("""
@@ -235,8 +330,11 @@ final class AssociationsTest{
     assertEquals(rebuilt(), ran);
   }
   @Test void theProgramOfTheIdentityRunsTheCommandOnTheOpenedFile(){
-    onWindows("""
-      Classes\\<identity>.<ext>\\shell\\open\\command is "<command>" "%1". Check it after reconcile, with a command whose folder holds a space and an apostrophe, as on macOS.""");
+    if (Fs.isWindows()){
+      reconcile(".ffile901");
+      assertEquals(Optional.of("\"C:\\Program Files\\it's here\\"+identity+".exe\" \"%1\""), value(classes+identity+".ffile901\\shell\\open\\command", ""));
+      return;
+    }
     if (Fs.isMac()){
       reconcile(".fapp123");
       assertEquals("#!/bin/sh\nexec '/Applications/it'\\''s here/fearlessManaged0_001.app/Contents/MacOS/fearlessManaged0_001' FearlessCommandOpened\n", Fs.readUtf8(contents("MacOS/"+identity)));
@@ -252,9 +350,15 @@ final class AssociationsTest{
     return new String(Fs.of(p.getInputStream()::readAllBytes), StandardCharsets.UTF_8).strip();
   }
   @Test void theDesktopKnowsTheTypeOfTheIdentityUntilTheIdentityIsRemoved(){
-    onWindows("""
-      Explorer finds the program of an extension through the registry, as AssocQueryStringW does (OpenPath.noProgramOpens).
-      Check that after reconcile(".fcommonsprobe") OpenPath.noProgramOpens of a file a.fcommonsprobe is false, and that after FileAssociations.eradicateAll it is true.""");
+    if (Fs.isWindows()){
+      var file= root.resolve("a.fassocprobe");
+      assertTrue(OpenPath.noProgramOpens(file));
+      reconcile(".fassocprobe");
+      assertFalse(OpenPath.noProgramOpens(file));
+      FileAssociations.eradicateAll(family, IllegalStateException::new);
+      assertTrue(OpenPath.noProgramOpens(file));
+      return;
+    }
     if (Fs.isMac()){
       MacAssociations.declared = declared;
       MacAssociations.register = register;
@@ -281,9 +385,15 @@ final class AssociationsTest{
     assertFalse(Fs.readUtf8(globs).contains("application/x-fearless-fcommonsprobe"));
   }
   @Test void aSystemExtensionIsOpenedBelowEveryTypeTheSystemGivesIt(){
-    onWindows("""
-      reconcile(".htm") makes Classes\\.htm name the ProgId <identity>.htm, and keeps the ProgId that Classes\\.htm named before in Software\\<identity>\\PreviousDefaults.
-      Check that, and that FileAssociations.eradicateAll puts that ProgId back as the default of Classes\\.htm.""");
+    if (Fs.isWindows()){
+      importReg(regKey(classes+".fassochtm", "", "otherProgram.fassochtm"));
+      taking(List.of(".fassochtm"), ".fassochtm");
+      assertEquals(Optional.of(identity+".fassochtm"), value(classes+".fassochtm", ""));
+      assertEquals(Optional.of("otherProgram.fassochtm"), value(user+identity+"\\PreviousDefaults", ".fassochtm"));
+      FileAssociations.eradicateAll(family, IllegalStateException::new);
+      assertEquals(Optional.of("otherProgram.fassochtm"), value(classes+".fassochtm", ""));
+      return;
+    }
     if (Fs.isMac()){
       types.put("htm", List.of(html));
       reconcile(".htm", ".fapp123");
@@ -299,9 +409,15 @@ final class AssociationsTest{
     assertEquals(rebuilt(), ran);
   }
   @Test void theProgramOpeningTheSystemTypeOfASystemExtensionHoldsItUntilTaken(){
-    onWindows("""
-      The ProgId of another program as the default of Classes\\.htm makes reconcile(".htm") refuse with notOurs naming that program, unless .htm is taken.
-      Check that, that reconcile with .htm taken makes Classes\\.htm name the ProgId of the identity, and that the ProgId of the other program stays in Classes\\.htm\\OpenWithProgids.""");
+    if (Fs.isWindows()){
+      importReg(regKey(classes+".fassochtm", "", "otherProgram.fassochtm")+regKey(classes+".fassochtm\\OpenWithProgids", "otherProgram.fassochtm", ""));
+      assertEquals("notOurs {.fassochtm=otherProgram}", refused(".fassochtm"));
+      assertEquals(List.of(), FileAssociations.identities(family));
+      taking(List.of(".fassochtm"), ".fassochtm");
+      assertEquals(Optional.of(identity+".fassochtm"), value(classes+".fassochtm", ""));
+      assertEquals(Map.of("otherProgram.fassochtm", "", identity+".fassochtm", ""), values(classes+".fassochtm\\OpenWithProgids"));
+      return;
+    }
     if (Fs.isMac()){
       types.put("htm", List.of(html));
       holders.put(".htm", Path.of("/Applications/Browser.app"));
@@ -364,10 +480,23 @@ final class AssociationsTest{
     ran.clear();
   }
   @Test void aPreferenceForATypeOfTheIdentityIsRemovedFromEveryListOnlyWhenEveryHeldExtensionIsTaken(){
-    onWindows("""
-      A UserChoice or a UserChoiceLatest naming another program for an extension makes reconcile refuse with notOurs naming that program, unless the extension is taken;
-      reconcile with the extension taken deletes both keys. ReconcileTest.aPreferenceOfTheUserForAnotherProgramIsRefusedUntilTakenAndTakingRemovesIt checks the UserChoice.
-      Make choices of each kind for several extensions, and check that one refusal lists all of them, and that nothing is written.""");
+    if (Fs.isWindows()){
+      reconcile(".fassochtm", ".fassocqux");
+      importReg(regKey(fileExts+".fassochtm\\UserChoice", "ProgId", "otherProgram.fassochtm")
+        +regKey(fileExts+".fassocqux\\UserChoiceLatest\\ProgId", "ProgId", "browser.fassocqux"));
+      var written= reg("query", user+identity, "/s").orElseThrow();
+      ran.clear();
+      assertEquals("notOurs {.fassochtm=otherProgram, .fassocqux=browser}", refused(".fassochtm", ".fassocqux"));
+      assertEquals("notOurs {.fassocqux=browser}", refusedTaking(List.of(".fassochtm"), ".fassochtm", ".fassocqux"));
+      assertTrue(exists(fileExts+".fassochtm\\UserChoice"));
+      assertEquals(written, reg("query", user+identity, "/s").orElseThrow());
+      assertEquals(List.of(), ran);
+      taking(List.of(".fassochtm", ".fassocqux"), ".fassochtm", ".fassocqux");
+      assertFalse(exists(fileExts+".fassochtm\\UserChoice"));
+      assertFalse(exists(fileExts+".fassocqux\\UserChoiceLatest"));
+      assertEquals(rebuilt(), ran);
+      return;
+    }
     if (Fs.isMac()){
       reconcile(".htm", ".txt");
       holders.put(".htm", Path.of("/Applications/Browser.app"));
@@ -396,9 +525,22 @@ final class AssociationsTest{
     assertEquals(rebuilt(), ran);
   }
   @Test void takingAnExtensionChangesThePreferencesWhereTheDeskReadsThem(){
-    onWindows("""
-      reconcile with an extension taken deletes the keys UserChoice and UserChoiceLatest of that extension, and nothing else under Explorer\\FileExts\\<ext>.
-      Check that OpenWithList and OpenWithProgids of other programs stay.""");
+    if (Fs.isWindows()){
+      var choice= fileExts+".ffile901\\UserChoice";
+      importReg(regKey(choice, "ProgId", "otherProgram.ffile901")
+        +regKey(fileExts+".ffile901\\UserChoiceLatest\\ProgId", "ProgId", "otherProgram.ffile901")
+        +regKey(fileExts+".ffile901\\OpenWithList", "a", "otherProgram.exe")
+        +regKey(fileExts+".ffile901\\OpenWithProgids", "otherProgram.ffile901", ""));
+      deny(choice, "SetValue");
+      try{ taking(List.of(".ffile901"), ".ffile901"); }
+      finally{ if (exists(choice)){ permit(choice, "SetValue"); } }
+      assertFalse(exists(choice));
+      assertFalse(exists(fileExts+".ffile901\\UserChoiceLatest"));
+      assertEquals(Map.of("a", "otherProgram.exe"), values(fileExts+".ffile901\\OpenWithList"));
+      assertEquals(Map.of("otherProgram.ffile901", ""), values(fileExts+".ffile901\\OpenWithProgids"));
+      reconcile(".ffile901");
+      return;
+    }
     if (Fs.isMac()){
       types.put("htm", List.of(html));
       reconcile(".htm");
@@ -423,9 +565,19 @@ final class AssociationsTest{
     reconcile(".htm");
   }
   @Test void aPreferenceTheUserCanNotChangeIsRefusedBeforeWritingAnything(){
-    onWindows("""
-      Windows protects a UserChoice with a permission that denies changes to the user. Investigate whether RegDeleteTreeW removes such a key,
-      then make two choices, one the user can not remove, and check that reconcile with both extensions taken refuses with notWritable naming that key and removes neither choice.""");
+    if (Fs.isWindows()){
+      var free= fileExts+".ffile901\\UserChoice";
+      var locked= fileExts+".ffile942\\UserChoice";
+      importReg(regKey(free, "ProgId", "otherProgram.ffile901")+regKey(locked, "ProgId", "otherProgram.ffile942"));
+      deny(locked, "Delete");
+      try{ assertEquals("notWritable "+locked, refusedTaking(List.of(".ffile901", ".ffile942"), ".ffile901", ".ffile942")); }
+      finally{ permit(locked, "Delete"); }
+      assertTrue(exists(free));
+      assertTrue(exists(locked));
+      assertEquals(List.of(), FileAssociations.identities(family));
+      assertEquals(List.of(), ran);
+      return;
+    }
     if (Fs.isMac()){
       types.put("htm", List.of(html));
       holders.put(".htm", Path.of("/Applications/Browser.app"));
@@ -453,9 +605,15 @@ final class AssociationsTest{
     assertEquals(List.of(), ran);
   }
   @Test void aFearlessExtensionAnotherProgramHoldsIsNotOurs(){
-    onWindows("""
-      Classes\\.ffile042 naming the ProgId of another program as its default makes reconcile(".ffile042") refuse with notOurs naming that program, and write nothing
-      (ReconcileTest.anExtensionAProgramOutsideTheFamilyHoldsIsRefusedUntilTakenWhateverItsKind checks it). Check that a ProgId of another program only listed in Classes\\.ffile042\\OpenWithProgids makes no refusal.""");
+    if (Fs.isWindows()){
+      importReg(regKey(classes+".ffile942", "", "otherProgram.ffile942")+regKey(classes+".ffile901\\OpenWithProgids", "otherProgram.ffile901", ""));
+      assertEquals("notOurs {.ffile942=otherProgram}", refused(".ffile901", ".ffile942"));
+      assertEquals(List.of(), FileAssociations.identities(family));
+      assertFalse(exists(classes+identity+".ffile901"));
+      reconcile(".ffile901");
+      assertEquals(Map.of("otherProgram.ffile901", "", identity+".ffile901", ""), values(classes+".ffile901\\OpenWithProgids"));
+      return;
+    }
     if (Fs.isMac()){
       types.put("ffile042", List.of(sketch));
       holders.put(".ffile042", sketch.bundle());
@@ -471,9 +629,17 @@ final class AssociationsTest{
     reconcile(".ffile052", ".fapp001");
     assertEquals("MimeType=application/x-fearless-ffile052;application/x-fearless-fapp001;", mimeTypes());
   }
-  @Test void theExtensionFearlessKeepsTheTypeOfTheFamily(){
-    onWindows("""
-      .fearless gets the ProgId <identity>.fearless, and another program as the default of Classes\\.fearless makes reconcile(".fearless") refuse with notOurs. Check both.""");
+  @Test void theExtensionFearlessKeepsTheTypeOfTheFamily() throws Exception{
+    if (Fs.isWindows()){
+      try (var _= aside(classes+".fearless"); var _= aside(fileExts+".fearless")){
+        reconcile(".fearless");
+        assertEquals(Optional.of(identity+".fearless"), value(classes+".fearless", ""));
+        FileAssociations.eradicateAll(family, IllegalStateException::new);
+        importReg(regKey(classes+".fearless", "", "otherProgram.fearless"));
+        assertEquals("notOurs {.fearless=otherProgram}", refused(".fearless"));
+      }
+      return;
+    }
     if (Fs.isMac()){
       reconcile(".fearless");
       plistIs(document("fearless", "Owner", "fearlessmanaged0-001.fearless"), exported("fearless"));
@@ -491,9 +657,15 @@ final class AssociationsTest{
     assertEquals("notOurs {.fearless=vim}", refused(".fearless"));
   }
   @Test void releasingAnExtensionLeavesTheIdentityWithoutIt(){
-    onWindows("""
-      A reconcile with fewer extensions deletes Classes\\<identity>.<ext> and the value <ext> of Software\\<identity>\\Capabilities\\FileAssociations of each released extension,
-      and keeps the keys of the others. Check that.""");
+    if (Fs.isWindows()){
+      reconcile(".ffile901", ".fassochtm", ".ffile942");
+      reconcile(".ffile901", ".ffile942");
+      assertEquals(Map.of(".ffile901", identity+".ffile901", ".ffile942", identity+".ffile942"), values(user+identity+"\\Capabilities\\FileAssociations"));
+      assertFalse(exists(classes+identity+".fassochtm"));
+      assertTrue(exists(classes+identity+".ffile901"));
+      assertTrue(exists(classes+identity+".ffile942"));
+      return;
+    }
     if (Fs.isMac()){
       reconcile(".fapp123", ".ffile042");
       reconcile(".fapp123");
@@ -512,9 +684,13 @@ final class AssociationsTest{
     assertEquals(rebuilt(), ran);
   }
   @Test void anExtensionMatchesTheTypesOfTheSystemInTheLetterCaseTheSystemSays(){
-    onWindows("""
-      The registry finds the key of an extension in any letter case: Classes\\.HTM is Classes\\.htm.
-      Check that another program listed under Classes\\.HTM\\OpenWithProgids stays listed after reconcile(".htm"), and that the ProgId of the identity is the default of that key.""");
+    if (Fs.isWindows()){
+      importReg(regKey(classes+".FASSOCHTM\\OpenWithProgids", "otherProgram.fassochtm", ""));
+      reconcile(".fassochtm");
+      assertEquals(Optional.of(identity+".fassochtm"), value(classes+".FASSOCHTM", ""));
+      assertEquals(Map.of("otherProgram.fassochtm", "", identity+".fassochtm", ""), values(classes+".fassochtm\\OpenWithProgids"));
+      return;
+    }
     if (Fs.isMac()){
       MacAssociations.declared = declared;
       assertEquals(declared.apply("htm"), declared.apply("HTM"));
@@ -528,9 +704,17 @@ final class AssociationsTest{
       "-c\"><glob pattern=\"*.c\" weight=\"100\"/><sub-class-of type=\"text/x-csrc\"/>"), Fs.readUtf8(packageFile()));
   }
   @Test void theTypesTheFamilyDeclaredAreNotTypesOfOtherPrograms(){
-    onWindows("""
-      The keys an older identity of the family left (Classes\\<older identity>.<ext>, the default of Classes\\<ext> naming it) do not make reconcile refuse with notOurs.
-      Check that, and that reconcile deletes those keys.""");
+    if (Fs.isWindows()){
+      var old= older+".ffile901";
+      importReg(regKey(classes+old+"\\shell\\open\\command", "", "\"C:\\Program Files\\"+older+".exe\" \"%1\"")
+        +regKey(classes+".ffile901", "", old)
+        +regKey(classes+".ffile901\\OpenWithProgids", old, ""));
+      reconcile(".ffile901");
+      assertFalse(exists(classes+old));
+      assertEquals(Optional.of(identity+".ffile901"), value(classes+".ffile901", ""));
+      assertEquals(Map.of(identity+".ffile901", ""), values(classes+".ffile901\\OpenWithProgids"));
+      return;
+    }
     if (Fs.isMac()){
       types.put("fapp123", List.of(new Declared("fearlessmanaged0-001.fapp123", bundle()), sketch));
       types.put("ffile123", List.of(new Declared("fearlessmanaged0-001.ffile123", bundle())));
@@ -554,9 +738,13 @@ final class AssociationsTest{
     assertFalse(Files.exists(mimetypes().resolve(old+"-1.png")));
   }
   @Test void anExtensionWithATypeOfAnotherProgramIsOpenedBelowThatType(){
-    onWindows("""
-      A system extension whose Classes\\.qux names the ProgId of another program is taken over when taken: Classes\\.qux names the ProgId of the identity,
-      and the ProgId of the other program stays in Classes\\.qux\\OpenWithProgids. Check that.""");
+    if (Fs.isWindows()){
+      importReg(regKey(classes+".fassocqux", "", "otherProgram.fassocqux")+regKey(classes+".fassocqux\\OpenWithProgids", "otherProgram.fassocqux", ""));
+      taking(List.of(".fassocqux"), ".fassocqux");
+      assertEquals(Optional.of(identity+".fassocqux"), value(classes+".fassocqux", ""));
+      assertEquals(Map.of("otherProgram.fassocqux", "", identity+".fassocqux", ""), values(classes+".fassocqux\\OpenWithProgids"));
+      return;
+    }
     if (Fs.isMac()){
       types.put("sketch", List.of(sketch, html));
       reconcile(".sketch");
@@ -575,9 +763,15 @@ final class AssociationsTest{
       "-qux\"><glob pattern=\"*.qux\" weight=\"100\"/><sub-class-of type=\"text/x-qux\"/>"), Fs.readUtf8(packageFile()));
   }
   @Test void anUnchangedSetWritesNothingAndRefreshesTheDesktopAgain(){
-    onWindows("""
-      A reconcile with the set the registry already holds writes no registry value (WindowsAssociations.alreadyMatches) and still notifies the shell.
-      Check that a value the test adds under Software\\<identity> stays: a new setup would first delete that key.""");
+    if (Fs.isWindows()){
+      reconcile(".ffile901", ".fassochtm");
+      importReg(regKey(user+identity, "kept", "by the test"));
+      ran.clear();
+      reconcile(".ffile901", ".fassochtm");
+      assertEquals(Optional.of("by the test"), value(user+identity, "kept"));
+      assertEquals(rebuilt(), ran);
+      return;
+    }
     if (Fs.isMac()){
       reconcile(".fapp123");
       var written= Fs.of(() -> Files.getLastModifiedTime(contents("Info.plist")));
@@ -596,9 +790,15 @@ final class AssociationsTest{
     assertEquals(rebuilt(), ran);
   }
   @Test void aChangeTheDeskRefusesIsReported(){
-    onWindows("""
-      A registry write that Windows refuses (a key of the identity whose permissions deny changes to the user) ends reconcile with halfDone naming the Windows function, the key and the text Windows gives for the error code.
-      Check that, and remove the permission after the test.""");
+    if (Fs.isWindows()){
+      var key= user+identity;
+      importReg(regKey(key, "kept", "by the test"));
+      deny(key, "CreateSubKey,SetValue");
+      try{ Err.strCmp("halfDone RegSetKeyValueW "+key+"\\Capabilities ApplicationName\n[###]", refused(".ffile901")); }
+      finally{ permit(key, "CreateSubKey,SetValue"); }
+      assertEquals(Map.of("kept", "by the test"), values(key));
+      return;
+    }
     if (Fs.isMac()){
       MacAssociations.register = _ -> -43;
       Err.strCmp("halfDone LSRegisterURL [###]/home/fearlessManaged0_001.app\n-43", refused(".fapp123"));
@@ -615,10 +815,16 @@ final class AssociationsTest{
     assertFalse(Files.exists(desktopFile()));
     assertEquals(List.of(), ran);
   }
-  @Test void aRegistrationOfTheIdentityTheUserCanNotChangeIsRefusedBeforeWritingAnything(){
-    onWindows("""
-      Investigate an identity registered under HKEY_LOCAL_MACHINE\\Software\\Classes, which the user can not change, while WindowsAssociations reads only HKEY_CURRENT_USER.
-      Then check that reconcile refuses before writing, or say in ReconciliatorDesign why such an identity is not one of the family.""");
+  @Test void aRegistrationOfTheIdentityTheUserCanNotChangeIsRefusedBeforeWritingAnything() throws Exception{
+    if (Fs.isWindows()){
+      try (var _= allUsers(identity)){
+        reconcile(".ffile901");
+        assertEquals(List.of(identity), FileAssociations.identities(family));
+        assertEquals(Optional.of(identity+".ffile901"), value(machine+identity+"\\Capabilities\\FileAssociations", ".ffile901"));
+        assertTrue(exists(machine+"Classes\\"+identity+".ffile901"));
+      }
+      return;
+    }
     if (Fs.isMac()){
       reconcile(".fapp123");
       withReadOnly(MacAssociations.home, () -> {
@@ -641,9 +847,12 @@ final class AssociationsTest{
     assertTrue(Files.exists(desktopFile()));
   }
   @Test void anEntryOfAWindowClassTheUserCanNotChangeIsRefusedBeforeWritingAnything(){
-    onWindows("""
-      WindowsAssociations writes nothing for a window class (see aWindowOfAProgramShowsTheIconOfItsProject).
-      When that test has its Windows form, make this test check that a part of it the user can not change is refused before writing anything.""");
+    if (Fs.isWindows()){
+      var unread= new WindowIcon("fearless-1a2b-game.IconsGame", "Game", Path.of("C:\\projects\\game"), root.resolve("nowhere").resolve("game.png"));
+      reconcile(List.of(unread), ".ffile901");
+      assertEquals(List.of(identity), FileAssociations.identities(family));
+      return;
+    }
     if (Fs.isMac()){
       var game= new WindowIcon("fearless-1a2b-game.IconsGame", "Game", Path.of("/projects/game"), icon(0x00ff00));
       reconcile(List.of(game), ".fapp123");
@@ -664,10 +873,15 @@ final class AssociationsTest{
     assertTrue(Files.exists(desktopFile()));
   }
   @Test void aWindowOfAProgramShowsTheIconOfItsProject(){
-    onWindows("""
-      reconcile gets the window classes (WindowIcon) of the programs of the projects, and WindowsAssociations ignores them.
-      Investigate how the taskbar shows the windows of a program that the manager starts (the icon of the window, the AppUserModelID of the process),
-      then check that such a window shows the icon of its project, or say in ReconciliatorDesign why Windows needs nothing from reconcile.""");
+    if (Fs.isWindows()){
+      var game= new WindowIcon("fearless-1a2b-game.IconsGame", "Game", Path.of("C:\\projects\\game"), icon(0x00ff00));
+      reconcile(List.of(game), ".ffile901");
+      var written= reg("query", user+identity, "/s").orElseThrow()+reg("query", classes+identity+".ffile901", "/s").orElseThrow();
+      FileAssociations.eradicateAll(family, IllegalStateException::new);
+      reconcile(".ffile901");
+      assertEquals(written, reg("query", user+identity, "/s").orElseThrow()+reg("query", classes+identity+".ffile901", "/s").orElseThrow());
+      return;
+    }
     var game= new WindowIcon("fearless-1a2b-game.IconsGame", "Game", Path.of("/projects/game"), icon(0x00ff00));
     var tool= new WindowIcon("fearless-1a2b-game.IconsTool", "Game", Path.of("/projects/game"), icon(0x00ff00));
     if (Fs.isMac()){
@@ -702,9 +916,17 @@ Terminal=false
     assertEquals(List.of(), windowEntries());
   }
   @Test void aRegistrationOfAnotherProgramThatCanNotBeReadIsIgnored(){
-    onWindows("""
-      Investigate what RegGetValueW gives for a value of another program under Classes\\.ffile001 that holds a newline or an unpaired surrogate,
-      then check that reconcile(".ffile001") still reads the other values of that key.""");
+    if (Fs.isWindows()){
+      importReg("\r\n["+classes+".ffile901]\r\n\"half\uD800\"=\"x\"\r\n\"lines\"=hex(1):61,00,0a,00,62,00,00,00\r\n"
+        +"\r\n["+classes+".ffile901\\OpenWithProgids]\r\n\"half\uD800.ffile901\"=\"\"\r\n\"otherProgram.ffile901\"=\"\"\r\n");
+      reconcile(".ffile901");
+      assertEquals(Optional.of(identity+".ffile901"), value(classes+".ffile901", ""));
+      FileAssociations.eradicateAll(family, IllegalStateException::new);
+      assertNotEquals(Optional.of(identity+".ffile901"), value(classes+".ffile901", ""));
+      assertEquals(Optional.of("a"), value(classes+".ffile901", "lines"));
+      assertEquals(2, values(classes+".ffile901\\OpenWithProgids").size());
+      return;
+    }
     if (Fs.isMac()){
       MacAssociations.declared = declared;
       var unreadable= Fs.of(root::toRealPath).resolve("other.app");
@@ -729,9 +951,21 @@ Terminal=false
     assertTrue(Files.exists(desktopFile()));
   }
   @Test void removingEveryIdentityRemovesWhatIdentitiesAlreadyGoneLeft(){
-    onWindows("""
-      Investigate whether FileAssociations.eradicateAll finds the keys of an identity whose Software\\<identity> is gone but whose Classes\\<identity>.<ext> stays,
-      then check that eradicateAll removes them and leaves the keys of other programs.""");
+    if (Fs.isWindows()){
+      var gone= older+".ffile901";
+      importReg(regKey(classes+gone+"\\shell\\open\\command", "", "\"C:\\Program Files\\"+older+".exe\" \"%1\"")
+        +regKey(classes+".ffile901", "", gone)
+        +regKey(classes+".ffile901\\OpenWithProgids", gone, "")
+        +regKey(classes+".ffile901\\OpenWithProgids", "otherProgram.ffile901", "")
+        +regKey(classes+"otherProgram.ffile901\\shell\\open\\command", "", "\"C:\\Program Files\\other.exe\" \"%1\""));
+      FileAssociations.eradicateAll(family, IllegalStateException::new);
+      assertFalse(exists(classes+gone));
+      assertNotEquals(Optional.of(gone), value(classes+".ffile901", ""));
+      assertEquals(Map.of("otherProgram.ffile901", ""), values(classes+".ffile901\\OpenWithProgids"));
+      assertTrue(exists(classes+"otherProgram.ffile901\\shell\\open\\command"));
+      assertEquals(rebuilt(), ran);
+      return;
+    }
     if (Fs.isMac()){
       var gone= MacAssociations.home.resolve("fearlessBin0_001.app");
       Fs.writeUtf8(gone.resolve("Contents").resolve("MacOS").resolve("fearlessBin0_001"), "");
@@ -752,9 +986,15 @@ Terminal=false
     assertEquals(List.of(), ran);
   }
   @Test void eachReconcileWritesTheIconsOfItsExtensions(){
-    onWindows("""
-      The default of Classes\\<identity>.<ext>\\DefaultIcon is the .ico of the extension (Icon.ico) followed by ",0".
-      Check that, and that a reconcile with another .ico for the extension writes the new one.""");
+    if (Fs.isWindows()){
+      var first= root.resolve("first.ico");
+      var second= root.resolve("second.ico");
+      reconcile(List.of(new Icon(".ffile901", first, icon(1))));
+      assertEquals(Optional.of(first+",0"), value(classes+identity+".ffile901\\DefaultIcon", ""));
+      reconcile(List.of(new Icon(".ffile901", second, icon(1))));
+      assertEquals(Optional.of(second+",0"), value(classes+identity+".ffile901\\DefaultIcon", ""));
+      return;
+    }
     if (Fs.isMac()){
       reconcile(".fapp123");
       var icns= ByteBuffer.wrap(Fs.of(() -> Files.readAllBytes(contents("Resources/fapp123.icns"))));
@@ -782,9 +1022,20 @@ Terminal=false
     assertEquals(1, icons().stream().filter(n -> n.matches(identity+"-[0-9a-f]+\\.png")).count());
   }
   @Test void removingTheIdentityRemovesEverythingItWrote(){
-    onWindows("""
-      FileAssociations.eradicateAll deletes Software\\<identity>, the value <identity> of RegisteredApplications, Classes\\<identity>.<ext>,
-      and Classes\\<ext> when nothing else is left in it. Check every one.""");
+    if (Fs.isWindows()){
+      importReg(regKey(classes+".fassochtm\\OpenWithProgids", "otherProgram.fassochtm", ""));
+      reconcile(".ffile901", ".fassochtm");
+      ran.clear();
+      FileAssociations.eradicateAll(family, IllegalStateException::new);
+      assertEquals(rebuilt(), ran);
+      assertFalse(exists(user+identity));
+      assertEquals(Optional.empty(), value(registeredApplications, identity));
+      assertFalse(exists(classes+identity+".ffile901"));
+      assertFalse(exists(classes+identity+".fassochtm"));
+      assertFalse(exists(classes+".ffile901"));
+      assertEquals(Map.of("otherProgram.fassochtm", ""), values(classes+".fassochtm\\OpenWithProgids"));
+      return;
+    }
     if (Fs.isMac()){
       reconcile(".fapp123");
       FileAssociations.eradicateAll(family, IllegalStateException::new);
@@ -802,10 +1053,17 @@ Terminal=false
     assertFalse(Files.exists(desktopFile()));
     assertFalse(Files.exists(packageFile()));
   }
-  @Test void anIdentityTheSystemKeepsForAllUsersIsFoundAndReplaced(){
-    onWindows("""
-      Investigate an older identity registered for all users (under HKEY_LOCAL_MACHINE), which WindowsAssociations does not read,
-      then check that reconcile finds and replaces it, or say in ReconciliatorDesign why it does not.""");
+  @Test void anIdentityTheSystemKeepsForAllUsersIsFoundAndReplaced() throws Exception{
+    if (Fs.isWindows()){
+      try (var _= allUsers(older)){
+        assertEquals(List.of(), FileAssociations.identities(family));
+        reconcile(".ffile901");
+        assertEquals(List.of(), replaced);
+        assertEquals(List.of(identity), FileAssociations.identities(family));
+        assertTrue(exists(machine+"Classes\\"+older+".ffile901"));
+      }
+      return;
+    }
     if (Fs.isMac()){
       var installed= root.resolve("Applications").resolve("fearlessManaged0_000.app").resolve("Contents").resolve("Info.plist");
       Fs.writeUtf8(installed, MacAssociations.plist("fearlessManaged0_000", "Fearless Manager", "", ""));
@@ -823,9 +1081,16 @@ Terminal=false
     assertEquals(List.of(identity), FileAssociations.identities(family));
   }
   @Test void aFamilyRegistrationInAnotherLayoutDeclaresNoTypeOfAnotherProgram(){
-    onWindows("""
-      A registration of the family written by hand (as in ReconcileTest.aFamilyRegistrationNotWrittenByReconcileNamesNoCommand), with keys Classes\\<older identity>.<ext>,
-      does not make the extension a type of another program. Check that reconcile of that extension is not refused with notOurs.""");
+    if (Fs.isWindows()){
+      var old= older+".ffile901";
+      importReg(regKey(user+older+"\\Capabilities\\FileAssociations", ".ffile901", old)
+        +regKey(classes+old+"\\shell\\open\\command", "", "C:\\Program Files\\"+older+".exe \"%1\"")
+        +regKey(classes+".ffile901", "", old)
+        +regKey(classes+".ffile901\\OpenWithProgids", old, ""));
+      reconcile(".ffile901");
+      assertEquals(List.of(identity), FileAssociations.identities(family));
+      return;
+    }
     if (Fs.isMac()){
       MacAssociations.declared = declared;
       MacAssociations.register = register;
@@ -874,9 +1139,15 @@ Terminal=false
     assertEquals(List.of(identity), FileAssociations.identities(family));
   }
   @Test void aReconcileRefreshesOnlyWhatItChanges(){
-    onWindows("""
-      Investigate how a test sees the notification of the shell (SHChangeNotify in WindowsAssociations),
-      then check that one reconcile notifies the shell once, and that a reconcile with no extension and no identity notifies nothing.""");
+    if (Fs.isWindows()){
+      reconcile(".ffile901", ".fassochtm", ".ffile942");
+      assertEquals(rebuilt(), ran);
+      FileAssociations.eradicateAll(family, IllegalStateException::new);
+      ran.clear();
+      reconcile();
+      assertEquals(List.of(), ran);
+      return;
+    }
     if (Fs.isMac()){
       reconcile(".fapp123");
       assertEquals(List.of(bundle()), registered);
@@ -887,9 +1158,17 @@ Terminal=false
     assertEquals(rebuilt(), ran);
   }
   @Test void noExtensionLeavesNothingOfTheIdentity(){
-    onWindows("""
-      After reconcile with no extension no key of the identity is left (Software\\<identity>, the value of RegisteredApplications, Classes\\<identity>.<ext>),
-      and a second reconcile with no extension notifies nothing. Check that (ReconcileTest.aReconcileWithNoExtensionsRemovesTheIdentity checks only the identities).""");
+    if (Fs.isWindows()){
+      reconcile(".ffile901");
+      reconcile();
+      assertFalse(exists(user+identity));
+      assertEquals(Optional.empty(), value(registeredApplications, identity));
+      assertFalse(exists(classes+identity+".ffile901"));
+      ran.clear();
+      reconcile();
+      assertEquals(List.of(), ran);
+      return;
+    }
     if (Fs.isMac()){
       reconcile(".fearless");
       reconcile();
