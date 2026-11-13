@@ -578,11 +578,10 @@ import java.util.stream.*;
       l=l.t(!l.anon?sp:l.cs.size()==1?new R(l.r,l.cs.get(0)):or(sp,l.t));if(!(l.t instanceof R(_,var c)))yield l;
       var d=l;l=l.anon&&!c.name.equals(l.name)?l.header(push(c,parents(c)),pair(l.ms,map(required(from(c.name)).ms,m->alpha(m,c,d,B.v(b))),l)):expand(l);
     }else if(instance(l)&&cache.containsKey(l.name))yield l;
-      var w=(R)l.t;var res=new Vector<M>();var types=w.c.types;var low=qs(types.size());for(var mi:l.ms){
-        var next=mi.e==null?header(w,mi):method(b,g,l,sp,w,mi);
-        types=meet(types,next.types);low=zip(low,next.low,this::join);res.add(next.m);
-      }
-      w=bound(w,map(zip(types,low,(x,lo)->x==u?lo:x),this::up));l=l.header(l.cs,res).t(w);var name=l.name;
+      var w0=(R)l.t;var ms=new Vector<M>();for(var mi:l.ms)ms.add(mi.e==null?mi:method(b,g,l,sp,w0,mi));var cn=new Vector<Con>();
+      for(var m:ms){var h=signature(w0,m.s.m,m.s.r,null);if(h!=null){var mb=B.v(m.s.b);zip(h.ps,erase(m.s.types,mb),(p,a)->cn.add(new Con(p,a,false,true)));cn.add(new Con(h.ret,erase(list(m.s.t),mb).get(0),true,true));}}
+      var d=from(w0.c.name);var w=bound(w0,map(d==null?w0.c.types:decide(B.v(d.b),w0.c.types,qs(d.b.size()),cn),this::up));
+      l=l.header(l.cs,map(ms,m->instantiate(w,m))).t(w);var name=l.name;
       if(!w.tv()||!all(l.ms,m->all(m.s.all(),T::tv))||cache.containsKey(name)&&!instance(l))yield l;
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
       var cap=or(l.r,w.r);if(cap!=null)cap=cap.h();var instance=instance(l);
@@ -593,9 +592,9 @@ import java.util.stream.*;
       }
       case Call c->{var e1=solve(b,g,c.e);MS m;
       if(!(e1.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
-      var n=m.cas.size();var k=m.mb.size();var y=push(c.y,qs(k)).subList(0,k);var ret=refine(m.v,m.ret,c.t);
-      var all=normalize(push(m.cb,m.mb),map(Stream.of(push(m.cas,c.written?y:qs(k)),meet(list(m.ret instanceof R?ret:qs(m.v.size()),arguments(m,c.es,true))),meet(list(push(m.cas,y),arguments(m,c.es,false),ret)))
-        .reduce((p,q)->zip(p,q,(a,z)->a.tv()?a:z)).get(),this::up));
+      var n=m.cas.size();var k=m.mb.size();var y=push(c.y,qs(k)).subList(0,k);
+      var cs=push(new Con(m.ret,c.t,false,true),zip(m.ps,c.es,(p,x)->new Con(p,x.t(),true,!(x instanceof Literal l&&instance(l)))));
+      var all=normalize(push(m.cb,m.mb),map(decide(m.v,push(m.cas,c.written?y:qs(k)),push(m.cas,y),cs),this::up));
       var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v,all))));
       yield new Call(meet(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v,all)),c.written);
       }
@@ -606,10 +605,16 @@ import java.util.stream.*;
       return m==null?null:new MS(m.s.r,push(B.v(d.b),B.v(m.s.b)),d.b,w.c.types,m.s.b,m.s.types,m.s.t);
     }
     boolean instance(Literal l){return l.anon&&all(l.ms,m->m.e==null);}
-    List<T>arguments(MS m,List<E>es,boolean eq){var lower=qs(m.v.size());var exact=new Vector<List<T>>();
-      for(int i=0;i<es.size();i++){var p=m.ps.get(i);var e=es.get(i);var a=refine(m.v,p,e.t());
-        if(!(p instanceof R))lower=eq?lower:zip(lower,a,this::join);else if(!eq||!(e instanceof Literal l&&instance(l)))exact.add(a);}
-      return meet(push(lower,exact));
+    record Con(T p,T a,boolean in,boolean eq){}
+    List<T>decide(List<String>v,List<T>given,List<T>weak,List<Con>cs){
+      Function<Con,List<T>>ref=c->refine(v,c.p,c.a);var q=qs(v.size());
+      var low=cs.stream().filter(c->c.in&&!(c.p instanceof R)).map(ref).reduce(q,(a,z)->zip(a,z,this::join));
+      var shape=cs.stream().filter(c->c.eq&&c.p instanceof R).map(ref).reduce(given,this::meet);
+      var all=meet(cs.stream().filter(c->c.p instanceof R?!c.eq:!c.in).map(ref).reduce(zip(shape,low,this::keep),this::meet),weak);
+      return Stream.of(given,shape,all).reduce((p,z)->zip(p,z,(a,x)->a.tv()?a:x)).get();
+    }
+    M instantiate(R w,M m){var h=signature(w,m.s.m,m.s.r,null);var a=h==null?null:push(w.c.types,vars(m.s.b));
+      var n=h==null?m:m.signature(m.s.types(rename(h.ps,h.v,a),rename(h.ret,h.v,a)));return n.e==null?n:n.body(meet(n.e,n.s.t));
     }
     T up(T t){if(!(t instanceof R(var r,var c)))return t;var h=sup.getOrDefault(c.name,c);return new R(r,h).withTs(map(h.types,this::up));}
     C self(C c){
@@ -617,22 +622,13 @@ import java.util.stream.*;
       var ss=c.types.stream().flatMap(t->t instanceof R(_,var a)&&parents(a).contains(c)?Stream.of(a):Stream.of()).distinct().toList();
       return ss.size()==1?ss.get(0):c;
     }
-    record TSM(List<T>types,List<T>low,M m){}
-    TSM header(R w,M m){
-      var s=m.s;var h=signature(w,s.m,s.r,null);if(h==null)return new TSM(w.c.types,qs(w.c.types.size()),m);
-      var Xs=B.v(h.cb);var byArg=zip(h.ps,s.types,(t,it)->refine(Xs,t,it));var bare=!(h.ret instanceof R);var ret=refine(Xs,h.ret,s.t);
-      var low=zip(w.c.types,ret,(d,r)->bare&&d==u?r:u);List<T>ex=zip(ret,low,(r,lo)->lo==u?r:u);var v=bound(w,zip(w.c.types,meet(push(byArg,ex)),this::keep));
-      var a=push(v.c.types,vars(s.b));
-      return new TSM(erase(v.c.types,B.v(s.b)),erase(low,B.v(s.b)),m.signature(s.types(rename(h.ps,h.v,a),rename(h.ret,h.v,a))));
-    }
-    TSM method(List<B>b,IG g,Literal l,R sp,R w,M m){var bs=l.anon?b:l.b;
+    M method(List<B>b,IG g,Literal l,R sp,R w,M m){var bs=l.anon?b:l.b;
       g.push(m.s.r,bs);if(l.anon&&!w.c.name.equals(l.name))sup.put(l.name,w.c);
       g.declare(l.self,sp==null?u:new R(sp.r==iso?mut:sp.r,sp.c));
       g.push(m.s.r,bs);g.declare(m);
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
       var args=zip(m.v,m.s.types,(x,t)->late?meet(t,g.get(x)):t);g.removeLast();
-      g.removeLast();var h=header(w,m.signature(m.s.types(args,meet(m.s.t,e.t()))));
-      return new TSM(h.types,h.low,h.m.body(meet(e,h.m.s.t)));
+      g.removeLast();return m.signature(m.s.types(args,meet(m.s.t,e.t()))).body(e);
     }
     T keep(T decided,T body){
       if(decided.v()!=null&&decided.v().equals(body.v()))return decided;

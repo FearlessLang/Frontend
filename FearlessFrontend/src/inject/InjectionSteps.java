@@ -6,6 +6,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -192,7 +193,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return Optional.of(x == y || y == RC.iso ? x : x == RC.iso ? y : RC.read);
   }
   List<IT> join(List<IT> t1, List<IT> t2){ return Streams.zip(t1, t2).map(this::join).toList(); }
-  List<IT> join(List<List<IT>> tss){ return tss.stream().reduce(this::join).get(); }
   List<IT> meet(List<IT> t1, List<IT> t2){ return Streams.zip(t1, t2).map(this::meet).toList(); }
   List<IT> meet(List<List<IT>> tss){ return tss.stream().reduce(this::meet).get(); }
   E nextStar(List<B> bs, Gamma g, E e){
@@ -319,12 +319,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (noChange){ return c; }
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
-  private List<IT> fromArgs(MSigL m, List<E> es, boolean eq){
-    var n= m.nCls()+m.bsArity();
-    var lower= Streams.zip(m.ps0(), es).filter((p,e) -> !eq && !(p instanceof IT.RCC)).map((p,e) -> refine(m.xs(), p, e.t()));
-    var exact= Streams.zip(m.ps0(), es).filter((p,e) -> p instanceof IT.RCC && !(eq && emptyLiteral(e))).map((p,e) -> refine(m.xs(), p, e.t()));
-    return meet(Streams.of(Stream.of(join(Streams.of(Stream.of(qMarks(n)), lower).toList())), exact).toList());
-  }
   private static IT deFresh(Gamma g, IT t){
     if (!(t instanceof IT.RCC rcc)){ return t; }
     var o= g._owner(rcc.c().name());
@@ -333,13 +327,18 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private List<IT> decidedThen(E.Call c, MSigL m){
     var targs= MSigL.fixTargs(c.targs(), m.bsArity());
-    var args= fromArgs(m, c.es(), false);
-    var fromRet= refine(m.xs(), m.ret0(), c.t());
-    var all= meet(List.of(Push.of(m.clsArgs(), targs), args, fromRet));
-    var written= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
-    var exactRet= m.ret0() instanceof IT.RCC ? fromRet : qMarks(fromRet.size());
-    var eqs= meet(List.of(exactRet, fromArgs(m, c.es(), true)));
-    return Stream.of(written, eqs, all).reduce((p,q) -> Streams.zip(p, q).map((a,b) -> a.isTV() ? a : b).toList()).get();
+    var given= Push.of(m.clsArgs(), writtenTargs(c) ? targs : qMarks(m.bsArity()));
+    var args= Streams.zip(m.ps0(), c.es()).map((p,e) -> new Con(p, e.t(), true, !emptyLiteral(e))).toList();
+    return decide(m.xs(), given, Push.of(m.clsArgs(), targs), Push.of(new Con(m.ret0(), c.t(), false, true), args));
+  }
+  private record Con(IT declared, IT actual, boolean in, boolean eq){}
+  private List<IT> decide(List<String> xs, List<IT> given, List<IT> weak, List<Con> cons){
+    Function<Con, List<IT>> ref= c -> refine(xs, c.declared(), c.actual());
+    var lower= cons.stream().filter(c -> c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(qMarks(xs.size()), this::join);
+    var shape= cons.stream().filter(c -> c.eq() && c.declared() instanceof IT.RCC).map(ref).reduce(given, this::meet);
+    var lifted= Streams.zip(shape, lower).map(this::keepDecided).toList();
+    var all= meet(cons.stream().filter(c -> c.declared() instanceof IT.RCC ? !c.eq() : !c.in()).map(ref).reduce(lifted, this::meet), weak);
+    return Stream.of(given, shape, all).reduce((p,q) -> Streams.zip(p, q).map((a,b) -> a.isTV() ? a : b).toList()).get();
   }
   private static boolean emptyLiteral(E e){ return e instanceof E.Type tt ? tt.src().inner instanceof fearlessFullGrammar.E.Literal : e instanceof E.Literal l && l.infName() && l.ms().isEmpty(); }
   static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
@@ -363,23 +362,19 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       l = anon ? meths.expandLiteral(l, c, bs) : meths.expandDeclaration(l, true);
     }
     if (!(l.t() instanceof IT.RCC rcc)){ return l; }
-    var res= new ArrayList<M>(l.ms().size());
+    var solved= new ArrayList<M>(l.ms().size());
     var rcci= withTsNormBs(rcc, rcc.c().ts());
-    var exact= rcc.c().ts();
-    var lower= qMarks(exact.size());
     for (var mi : l.ms()){
       assert mi.impl().isEmpty() || selfPrecise.isEmpty() || rcc.isTV();
-      var next= mi.impl().isEmpty() ? header(rcci, mi) : nextMStarOp(bs, g, l, selfPrecise, rcci, mi);
-      assert next.m == mi || !next.m.equals(mi);
-      exact = meet(exact, next.ts);
-      lower = join(lower, next.lower);
-      res.add(next.m);
+      solved.add(mi.impl().isEmpty() ? mi : nextMStarOp(bs, g, l, selfPrecise, rcci, mi));
     }
-    var ts= orLower(exact, lower).stream().map(t -> deFresh(g, t)).toList();
-    var ms= norm(l.ms(), Collections.unmodifiableList(res));
+    var d= meths._from(rcc.c().name());
+    var decided= d == null ? rcc.c().ts() : decide(B.xs(d.bs()), rcc.c().ts(), qMarks(d.bs().size()), solved.stream().flatMap(m -> constraints(rcci, m)).toList());
+    var ts= decided.stream().map(t -> deFresh(g, t)).toList();
+    var t= withTsNormBs(rcc, ts);
+    var ms= norm(l.ms(), Streams.zip(l.ms(), solved).map((mi, m) -> instantiate(t, mi, m)).toList());
     var noChange= ms == l.ms() && ts.equals(rcc.c().ts());
     if (noChange){ return commitToTable(g, bs, l, rcc); }
-    var t= withTsNormBs(rcc, ts);
     return commitToTable(g, bs, l.withMsT(ms, t), t);
   }
   private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT.RCC rcc){
@@ -440,12 +435,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   private List<Optional<IT>> updateArgs(M m, Gamma g){
     return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !late ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
   }
-  record TSM(List<IT> ts, List<IT> lower, M m){
-    TSM(List<IT> ts, M m){ this(ts, qMarks(ts.size()), m); }
-  }
-  private record Refined(List<IT> exact, List<IT> lower){}
-  private static List<IT> orLower(List<IT> exact, List<IT> lower){ return Streams.zip(exact, lower).map((x,lo) -> x instanceof IT.U ? lo : x).toList(); }
-  TSM nextMStarOp(List<B> bs, Gamma g, E.Literal l, Optional<IT.RCC> selfPrecise, IT.RCC rcc, M m){
+  M nextMStarOp(List<B> bs, Gamma g, E.Literal l, Optional<IT.RCC> selfPrecise, IT.RCC rcc, M m){
     assert m.impl().isPresent();
     var litBs= l.infName() ? bs : l.bs();
     g.newScope(m.sig().rc().get(), litBs, l);
@@ -464,33 +454,24 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   fills the type arguments still unknown. See the five tests named in TypeSystemTest, next to
   blockLetInfersItsTypeFromTheLambdaBody, for what base needs the meet itself for.*/
     var ret= meet(m.sig().ret().get(), e.t());
-    var h= header(rcc, m.withSig(m.sig().withTsT(args, ret)));
-    var impl= m.impl().get().withE(meet(e, h.m().sig().ret().get()));
-    var noChange= h.m().sig().equals(m.sig()) && impl == m.impl().get();
-    return new TSM(h.ts(), h.lower(), noChange ? m : new M(h.m().sig(), m.xs(), m.names(), Optional.of(impl)));
+    return new M(m.sig().withTsT(args, ret), m.xs(), m.names(), Optional.of(new M.Impl(m.impl().get().m(), e)));
   }
-  private TSM header(IT.RCC rcc, M m){
+  private Stream<Con> constraints(IT.RCC rcc, M m){
     var sig= m.sig();
     var oh= methodHeader(rcc, sig.m().get(), sig.rc());
-    if (oh.isEmpty()){ return new TSM(rcc.c().ts(), m); }
-    var r= refineClsTsFromHeader(rcc, sig, oh.get());
-    var h= oh.get().withClsArgs(withTsNormBs(rcc, orLower(r.exact(), r.lower())).c().ts());
+    if (oh.isEmpty()){ return Stream.of(); }
     var methXs= B.xs(sig.bs().get());
-    assert h.bsArity() == methXs.size();
-    var xs= MSigL.toXs(sig.span(), methXs);
-    var norm= sig.withTsT(h.ps0().stream().map(p -> Optional.of(h.inst(p, xs))).toList(), h.inst(h.ret0(), xs));
-    return new TSM(dropMethBs(withTsNormBs(rcc, r.exact()).c().ts(), methXs), dropMethBs(r.lower(), methXs), m.withSig(norm));
+    var ps= Streams.zip(oh.get().ps0(), sig.ts()).map((p,a) -> new Con(p, dropMethBs(a.get(), methXs), false, true));
+    return Stream.concat(ps, Stream.of(new Con(oh.get().ret0(), dropMethBs(sig.ret().get(), methXs), true, true)));
   }
-  private Refined refineClsTsFromHeader(IT.RCC rcc, M.Sig improvedSig, MSigL h){
-    var Xs= B.xs(h.clsBs());
-    var bareRet= !(h.ret0() instanceof IT.RCC);
-    var fromRet= refine(Xs, h.ret0(), improvedSig.ret().get());
-    var lower= Streams.zip(rcc.c().ts(), fromRet).map((d,f) -> bareRet && d.undecided() ? f : IT.U.Instance).toList();
-    var exactRet= Streams.zip(rcc.c().ts(), fromRet).map((d,f) -> bareRet && d.undecided() ? IT.U.Instance : f).toList();
-    var fromBody= meet(Streams.of(
-      Streams.zip(h.ps0(), improvedSig.ts()).map((t,it) -> refine(Xs, t, it.get())),
-      Stream.of(exactRet)).toList());
-    return new Refined(Streams.zip(rcc.c().ts(), fromBody).map(this::keepDecided).toList(), lower);
+  private M instantiate(IT.RCC t, M orig, M m){
+    var sig= m.sig();
+    var xs= MSigL.toXs(sig.span(), B.xs(sig.bs().get()));
+    var norm= methodHeader(t, sig.m().get(), sig.rc()).map(h -> sig.withTsT(h.ps0().stream().map(p -> Optional.of(h.inst(p, xs))).toList(), h.inst(h.ret0(), xs))).orElse(sig);
+    if (orig.impl().isEmpty()){ return orig.withSig(norm); }
+    var impl= orig.impl().get().withE(meet(m.impl().get().e(), norm.ret().get()));
+    var noChange= norm.equals(orig.sig()) && impl == orig.impl().get();
+    return noChange ? orig : new M(norm, orig.xs(), orig.names(), Optional.of(impl));
   }
   private IT keepDecided(IT decided, IT fromBody){
     var decidedSameX= xName(decided).isPresent() && xName(decided).equals(xName(fromBody));
