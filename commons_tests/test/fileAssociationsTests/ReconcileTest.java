@@ -64,7 +64,9 @@ final class ReconcileTest{
   private final List<String> reload= MacAssociations.reload;
   private final List<String> claims= new ArrayList<>();
   private final Map<String,Path> holders= new HashMap<>();
+  private final Path lockFolder= FileAssociations.lockFolder;
   @BeforeEach void desktop(){
+    FileAssociations.lockFolder = tmp.resolve("data");
     if (Fs.isWindows()){ cleanUp(); return; }
     if (Fs.isMac()){
       MacAssociations.home = tmp.resolve("home");
@@ -83,6 +85,10 @@ final class ReconcileTest{
     LinuxAssociations.run = (_,_) -> {};
   }
   @AfterEach void restore(){
+    desktopRestored();
+    FileAssociations.lockFolder = lockFolder;
+  }
+  private void desktopRestored(){
     FileAssociations.eradicateAll(family, IllegalStateException::new);
     if (Fs.isWindows()){ cleanUp(); return; }
     if (Fs.isMac()){
@@ -151,6 +157,7 @@ final class ReconcileTest{
     FileAssociations.reconcile(identity, identity, family, command, icons, taken, List.of(), png(), replaced::add,
       s -> new IllegalStateException("ambiguous "+s),
       s -> new IllegalStateException("notOurs "+s),
+      s -> new IllegalStateException("notTaken "+s),
       s -> new IllegalStateException("notWritable "+s),
       s -> new IllegalStateException("halfDone "+s));
   }
