@@ -607,10 +607,9 @@ import java.util.stream.*;
     boolean instance(Literal l){return l.anon&&all(l.ms,m->m.e==null);}
     record Con(T p,T a,boolean in,boolean eq){}
     List<T>decide(List<String>v,List<T>given,List<Con>cs){
-      Function<Con,List<T>>ref=c->refine(v,c.p,c.a);var q=qs(v.size());
-      var low=cs.stream().filter(c->c.in&&!(c.p instanceof R)).map(ref).reduce(q,(a,z)->zip(a,z,this::join));
+      Function<Con,List<T>>ref=c->refine(v,c.p,c.a);BinaryOperator<List<T>>join=(a,z)->zip(a,z,this::join);
       var shape=cs.stream().filter(c->c.eq&&c.p instanceof R).map(ref).reduce(given,this::meet);
-      var all=cs.stream().filter(c->c.p instanceof R?!c.eq:!c.in).map(ref).reduce(zip(shape,low,this::keep),this::meet);
+      var all=cs.stream().filter(c->c.p instanceof R?!c.eq:!c.in).map(ref).reduce(join.apply(shape,cs.stream().filter(c->c.in&&!(c.p instanceof R)).map(ref).reduce(qs(v.size()),join)),this::meet);
       return Stream.of(given,shape,all).reduce((p,z)->zip(p,z,(a,x)->a.tv()?a:x)).get();
     }
     M instantiate(R w,M m){var h=signature(w,m.s.m,m.s.r,null);var a=h==null?null:push(w.c.types,vars(m.s.b));
@@ -629,11 +628,6 @@ import java.util.stream.*;
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
       var args=zip(m.v,m.s.types,(x,t)->late?meet(t,g.get(x)):t);g.removeLast();
       g.removeLast();return m.signature(m.s.types(args,meet(m.s.t,e.t()))).body(e);
-    }
-    T keep(T decided,T body){
-      if(!(decided instanceof R(var aRc,var aC)&&body instanceof R b))return meet(decided,body);
-      if(!aC.name.equals(b.c.name)){var s=sup(b,aC.name);return s==null?decided:keep(decided,s);}
-      return b.with(or(aRc,b.r),zip(aC.types,b.c.types,this::keep));
     }
     List<T>erase(List<T>types,List<String>mb){
       return mb.size()==0?types:map(types,t->t instanceof R w?bound(w,erase(w.c.types,mb)):mb.contains(t.v())?u:t);

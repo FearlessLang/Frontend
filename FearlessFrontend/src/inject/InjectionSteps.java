@@ -332,9 +332,8 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   private record Con(IT declared, IT actual, boolean in, boolean eq){}
   private List<IT> decide(List<String> xs, List<IT> given, List<Con> cons){
     Function<Con, List<IT>> ref= c -> refine(xs, c.declared(), c.actual());
-    var lower= cons.stream().filter(c -> c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(qMarks(xs.size()), this::join);
     var shape= cons.stream().filter(c -> c.eq() && c.declared() instanceof IT.RCC).map(ref).reduce(given, this::meet);
-    var lifted= Streams.zip(shape, lower).map(this::keepDecided).toList();
+    var lifted= join(shape, cons.stream().filter(c -> c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(qMarks(xs.size()), this::join));
     var all= cons.stream().filter(c -> c.declared() instanceof IT.RCC ? !c.eq() : !c.in()).map(ref).reduce(lifted, this::meet);
     return Stream.of(given, shape, all).reduce((p,q) -> Streams.zip(p, q).map((a,b) -> a.isTV() ? a : b).toList()).get();
   }
@@ -471,14 +470,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var impl= orig.impl().get().withE(m.impl().get().e());
     var noChange= norm.equals(orig.sig()) && impl == orig.impl().get();
     return noChange ? orig : new M(norm, orig.xs(), orig.names(), Optional.of(impl));
-  }
-  private IT keepDecided(IT decided, IT fromBody){
-    if (!(decided instanceof IT.RCC(var aRc, var aC, _) && fromBody instanceof IT.RCC b)){ return meet(decided, fromBody); }
-    if (!aC.name().equals(b.c().name())){
-      var asDecided= adaptedSuperTs(b, aC.name());
-      return asDecided.size() != 1 ? decided : keepDecided(decided, asDecided.getFirst());
-    }
-    return b.withRCTs(aRc.or(b::rc), Streams.zip(aC.ts(), b.c().ts()).map(this::keepDecided).toList());
   }
   List<IT> dropMethBs(List<IT> ts, List<String> methBs){
     if (methBs.isEmpty()){ return ts; }
