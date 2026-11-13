@@ -17,10 +17,20 @@ import metaParser.Span;
 import typeSystem.TypeSystem.*;
 import utils.Bug;
 import utils.Join;
+import utils.Push;
 
 public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
+  static String funnel(String X, String owner, List<String> Xs){
+    var x= disp(X);
+    var dec= disp(owner);
+    var declares= Xs.isEmpty() ? "none" : Join.of(Xs.stream().map(Err::disp), "", ", ", "", "");
+    var funnelled= disp(Join.of(Push.of(Xs, X).stream().map(s -> s+":.."), owner+"[", ",", "]", ""));
+    return "Generic type "+x+" is not in scope inside the type declaration "+dec+".\n"
+      +"A type declaration only sees the generic types it declares itself; here "+dec+" declares "+declares+".\n"
+      +"Hint: funnel "+x+" into "+dec+" by writing "+funnelled+", restating the bounds of "+x+".";
+  }
   public static String genArity(int n){ return Join.of(Collections.nCopies(n, "_"), "[", ",", "]", ""); }
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser and the well formedness errors only
   static <A> A redeclaredElement(List<A> es){
