@@ -304,7 +304,7 @@ import java.util.stream.*;
     R self(RC r){return new R(r,new C(name,vars(b)));}
   }
   record M(S s,List<String>v,E e){
-    M(S s){this(s,Collections.nCopies(s.types.size(),"_"),null);}
+    M(S s){this(s,seq(s.types.size(),i->"_"),null);}
     M signature(S s){return new M(s,v,e);}M body(E e){return new M(s,v,e);}
     M o(N a,N b){return Objects.equals(s.o,a)?signature(s.o(b)):this;}
   }
@@ -345,7 +345,7 @@ import java.util.stream.*;
   static List<T>rename(List<T>tsi,List<String>v,List<T>types){return map(tsi,ti->rename(ti,v,types));}
   static Stream<String>typeFree(List<T>ts){return ts.stream().flatMap(T::ftv);}
   static List<T>vars(List<B>b){return map(b,e->new X(e.x));}
-  static List<T>qs(int n){return Collections.nCopies(n,u);}
+  static List<T>qs(int n){return seq(n,i->u);}
   record MS(RC r,List<B>bs,List<T>cas,List<B>mb,List<T>ps,T ret){List<String>v(){return B.v(bs);}}
   static Stream<String>free(IG g,E e){return switch(e){
     case E.X(var name,var t)->cat(t.ftv(),Stream.ofNullable(g.get(name)).flatMap(T::ftv));
@@ -381,9 +381,9 @@ import java.util.stream.*;
       }
     }
     N f(N tn){
-      var pN=tn.pk();if(pN.isEmpty()&&primitive(tn.s))return tn.qualify("base");
-      var full=new N(pN.isEmpty()?p.map.getOrDefault(tn.s,p.name+"."+tn.s):p.map.getOrDefault(pN,pN)+"."+tn.simple(),tn.arity);
-      no(!pN.isEmpty()&&(pN.equals(p.name)||p.map.containsValue(pN)||p.map.containsValue(full.s))||!(full.pk().equals(p.name)?p.names.contains(new N(full.simple(),full.arity)):other.containsKey(full)));return full;
+      var pN=tn.pk();var e=pN.isEmpty();if(e&&primitive(tn.s))return tn.qualify("base");
+      var full=new N(e?p.map.getOrDefault(tn.s,p.name+"."+tn.s):p.map.getOrDefault(pN,pN)+"."+tn.simple(),tn.arity);
+      no(!e&&(pN.equals(p.name)||any(list(pN,full.s),p.map::containsValue))||!(full.pk().equals(p.name)?p.names.contains(new N(full.simple(),full.arity)):other.containsKey(full)));return full;
     }
     T type(T t){return t instanceof R(var r,var c)?new R(r,constructor(c)):t;}
     E expr(P e){return switch(e){
