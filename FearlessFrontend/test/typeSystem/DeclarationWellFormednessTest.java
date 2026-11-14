@@ -234,7 +234,7 @@ A:{ #: read/imm A -> this# }
 
 While inspecting method declaration > typed literal > method body > method declaration > type declaration body > type declaration > full file
 Abstract method declaration for ".foo" with 0 parameters.
-Only top level methods can be abstract.
+Only the methods of a top level type declaration can be abstract.
 """, List.of("""
 A:{ .foo: A }
 B:A{}
