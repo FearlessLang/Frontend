@@ -303,7 +303,7 @@ Ex:{
 
 While inspecting type declaration "Bad"
 The type "Person" is not standalone: it is declared inside a method body.
-Only a standalone type can be extended or mentioned by name.
+Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)

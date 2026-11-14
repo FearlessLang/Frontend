@@ -1898,7 +1898,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "Foo" > ".v" line 3 > ".m" line 3
 The type "Foo" is not standalone: it is declared inside a method body.
-Only a standalone type can be extended or mentioned by name.
+Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "bb.CaptureFree".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -2676,8 +2676,8 @@ In file: [###].fear
    |                                           ^^
 
 While inspecting object literal "{...}" (line 2)
-The inference concluded that the object literal at line 2, column 43 should extend the object literal at line 2, column 19;
-but an object literal can only extend a standalone type.
+The inference concluded that the object literal at line 2, column 43 should implement the object literal at line 2, column 19.
+An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "bb.CaptureFree".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.

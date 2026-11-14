@@ -5839,8 +5839,8 @@ U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
    |                                                 ^^
 
 While inspecting object literal "{...}" (line 2)
-The inference concluded that the object literal at line 2, column 49 should extend the object literal at line 2, column 22;
-but an object literal can only extend a standalone type.
+The inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
+An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
@@ -5851,8 +5851,8 @@ U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, {}) }.j }
    |                                                 ^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal "{...}" (line 2)
-The inference concluded that the object literal at line 2, column 49 should extend the object literal at line 2, column 22;
-but an object literal can only extend a standalone type.
+The inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
+An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
@@ -5868,7 +5868,7 @@ U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, s) }.j }
 
 While inspecting object literal instance of "Foo" > ".v" line 3 > ".m" line 3
 The type "Foo" is not standalone: it is declared inside a method body.
-Only a standalone type can be extended or mentioned by name.
+Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
