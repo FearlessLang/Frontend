@@ -7,7 +7,7 @@ import java.util.stream.*;
 public class Print{
   public static String lines(List<Literal>ls){return join(ls,"\n");}
   static String join(Collection<?>l,String sep){return l.stream().map(Print::of).collect(Collectors.joining(sep));}
-  static String wrap(Collection<?>l,String ends,String sep){return l.isEmpty()?"":ends.charAt(0)+join(l,sep)+ends.charAt(1);}
+  static String wrap(Collection<?>l,String ends,String sep){return l.size()==0?"":ends.charAt(0)+join(l,sep)+ends.charAt(1);}
   static String r(RC r){return r==RC.imm?"":r+" ";}
   static String of(Object o){return switch(o){
     case N(var s,_)->s;
