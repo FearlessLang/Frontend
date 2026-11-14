@@ -51,7 +51,7 @@ public final class TypeInMethodTest extends testUtils.FearlessTestBase{
 
 While inspecting object literal instance of "A" > ".m" line 2
 The type "A" is not standalone: it is declared inside a method body.
-Only a standalone type can be extended or mentioned by name.
+Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -63,7 +63,7 @@ A
 
 While inspecting object literal instance of "a.A" > ".m" line 1
 The type "a.A" is not standalone: it is declared inside a method body.
-Only a standalone type can be extended or mentioned by name.
+Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -105,7 +105,7 @@ B:{.m:A->A}
 
 While inspecting object literal instance of "A" > ".m" line 3
 The type "A" is not standalone: it is declared inside a method body.
-Only a standalone type can be extended or mentioned by name.
+Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "CF".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -122,7 +122,7 @@ B:{.m:A->A}
 
 While inspecting type declaration "B"
 The type "A" is not standalone: it is declared inside a method body.
-Only a standalone type can be extended or mentioned by name.
+Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -343,7 +343,7 @@ B:{.m:a.A->a.A}
 
 While inspecting type declaration "B"
 The type "a.A" is not standalone: it is declared inside a method body.
-Only a standalone type can be extended or mentioned by name.
+Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
