@@ -468,7 +468,7 @@ The call to ".m(_)" is invalid.
 Generic type argument 1 ("Z") does not satisfy the bounds
 for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
-But generic type argument "Z" can use capabilities "mut".
+But generic type argument "Z" can only use capability "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Util.m[imm,Z](z)
@@ -491,7 +491,7 @@ The call to ".m(_)" is invalid.
 Generic type argument 1 ("Z") does not satisfy the bounds
 for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
-But generic type argument "Z" can use capabilities "mut".
+But generic type argument "Z" can only use capability "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Util.m[imm,Z](z)
@@ -561,7 +561,7 @@ The type "Foo[Y]" is invalid.
 Generic type argument 1 ("Y") does not satisfy the bounds
 for generic type parameter "X" in "Foo[_]".
 Here "X" can only use capability "mut".
-But generic type argument "Y" can use capabilities "imm" or "mut" or "read".
+But generic type argument "Y" can only use capabilities "imm" or "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{.bar[Y:*]:Foo[Y]->Foo[Y]}
@@ -657,7 +657,7 @@ The type "Person[N]" is invalid.
 Generic type argument 1 ("N") does not satisfy the bounds
 for generic type parameter "N" in "Person[_]".
 Here "N" can only use capability "imm".
-But generic type argument "N" can use capabilities "imm" or "mut" or "read".
+But generic type argument "N" can only use capabilities "imm" or "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 FPerson:{#[N:*](name:Str,age:imm N):Person[N]->Person[N]{.name:Str->name;.age:N->age}}
@@ -695,7 +695,7 @@ The type "Person[N]" is invalid.
 Generic type argument 1 ("N") does not satisfy the bounds
 for generic type parameter "N" in "Person[_]".
 Here "N" can only use capability "imm".
-But generic type argument "N" can use capabilities "imm" or "mut" or "read".
+But generic type argument "N" can only use capabilities "imm" or "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Fresh[N:*]:Person[N]{.name:Str->name;.age:N->age}
@@ -755,7 +755,7 @@ The type "Foo[X]" is invalid.
 Generic type argument 1 ("X") does not satisfy the bounds
 for generic type parameter "X" in "Foo[_]".
 Here "X" can only use capability "mut".
-But generic type argument "X" can use capabilities "mut" or "read".
+But generic type argument "X" can only use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Foo[X:mut]:{}
