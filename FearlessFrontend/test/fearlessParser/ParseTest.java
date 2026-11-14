@@ -3122,8 +3122,10 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "'bar'".
-Simple string literals are of form `"..."`, not "'...'";
-that is: use double quotes (`"`) instead of single quotes ("'").
+Single quotes do not form string literals.
+String literals are written as:
+  "bar"
+  `bar`
 Error 2 UnexpectedToken
 """, """
 A{ .foo:A ->
@@ -3186,8 +3188,10 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "'a/b'".
-Simple string literals are of form `"..."`, not "'...'";
-that is: use double quotes (`"`) instead of single quotes ("'").
+Single quotes do not form string literals.
+String literals are written as:
+  "a/b"
+  `a/b`
 Error 2 UnexpectedToken
 """, """
 A:{ .foo:A ->
