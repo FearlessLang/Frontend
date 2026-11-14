@@ -255,7 +255,7 @@ import java.util.stream.*;
   Set<RC>ii=caps(iso,imm),plain=caps(iso,imm,mut,read),allRC=EnumSet.allOf(RC.class);
   static N base(String s,int n){return new N("base."+s,n);}static boolean has(List<C>cs,N magic){return any(cs,c->c.name.equals(magic));}
   static boolean primitive(String name){return name.matches("[-+0-9\"`].*");}
-  static String quoted(T t){var s=t instanceof R(_,var e)?e.name.simple():"";no(!s.matches("[\"`].*"));return s.substring(1,s.length()-1);}
+  static String quoted(T t){var s=t instanceof R e?e.c.name.simple():"";no(!s.matches("[\"`].*"));return s.substring(1,s.length()-1);}
   static Literal from(N n,Function<N,Literal>map,Map<N,Literal>other){
     var res=or(map.apply(n),other.get(n));var s=n.simple();
     if(res!=null||!primitive(s))return res;
@@ -278,7 +278,7 @@ import java.util.stream.*;
       public RC erc(){return r;}
     }
     enum U implements T{Instance}
-    default String v(){return switch(this){case X x->x.name;case RX(_,var x)->x.name;case RI(var x)->x.name;default->null;};}
+    default String v(){return switch(this){case X x->x.name;case RX r->r.x.name;case RI(var x)->x.name;default->null;};}
     default T rc(RC r){return this==u?this:this instanceof R w?new R(r,w.c):new RX(r,new X(v()));}
     default Stream<String>ftv(){return this instanceof R w?typeFree(w.c.types):Stream.ofNullable(v());}
     default T ri(){return switch(this){
@@ -348,7 +348,7 @@ import java.util.stream.*;
   static List<T>qs(int n){return seq(n,i->u);}
   record MS(RC r,List<B>bs,List<T>cas,List<B>mb,List<T>ps,T ret){List<String>v(){return B.v(bs);}}
   static Stream<String>free(IG g,E e){return switch(e){
-    case E.X(var name,var t)->cat(t.ftv(),Stream.ofNullable(g.get(name)).flatMap(T::ftv));
+    case E.X x->cat(x.t.ftv(),Stream.ofNullable(g.get(x.name)).flatMap(T::ftv));
     case Literal l->cat(l.b.stream().map(B::x),supFree(l.cs),methodFree(g,l.ms));
     case Call c->cat(free(g,c.e),typeFree(c.y),c.es.stream().flatMap(x->free(g,x)));
   };}
@@ -385,7 +385,7 @@ import java.util.stream.*;
       var full=new N(e?p.map.getOrDefault(tn.s,p.name+"."+tn.s):p.map.getOrDefault(pN,pN)+"."+tn.simple(),tn.arity);
       no(!e&&(pN.equals(p.name)||any(list(pN,full.s),p.map::containsValue))||!(full.pk().equals(p.name)?p.names.contains(new N(full.simple(),full.arity)):other.containsKey(full)));return full;
     }
-    T type(T t){return t instanceof R(var r,var c)?new R(r,constructor(c)):t;}
+    T type(T t){return t instanceof R w?new R(w.r,constructor(w.c)):t;}
     E expr(P e){return switch(e){
       case P.X x->new E.X(x.name,u);case P.Implicit _->new E.X(implicits.getLast(),u);
       case P.Typed t->literal(t.r,list(constructor(t.c)),or(t.l,new P.Lit("_",list())));
@@ -463,7 +463,7 @@ import java.util.stream.*;
         no(f.matches("con|prn|aux|nul|(com|lpt)[1-9]|_rank_.*")||f.length()+d.name.pk().length()>184);
       }
       var cl=filter(supers,c->claims.contains(c.name));no(cl.size()>0&&!has(supers,main));var exts=new HashSet<String>();
-      for(var c:cl){no(!(c.types.get(0)instanceof R(_,var i)&&i.types.size()==0));if(c.types.size()==1)continue;
+      for(var c:cl){no(!(c.types.get(0)instanceof R i&&i.c.types.size()==0));if(c.types.size()==1)continue;
         var ext=quoted(c.types.get(1));
         no(!ext.matches("[a-z0-9]{1,16}")||ext.equals("fearless")||c.name.simple().equals("Shortcut")!=ext.matches("fapp[0-9]{3}")||!exts.add(ext));
       }
@@ -527,7 +527,7 @@ import java.util.stream.*;
     T meet(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
       if(a instanceof R p&&z instanceof R q)return p.c.name.equals(q.c.name)?p.with(meet(p.r,q.r),meet(p.c.types,q.c.types)):or(below(p,q),or(below(q,p),p));
-      return a instanceof RX p&&z instanceof RX(var rc2,var q)&&p.x.equals(q)?p.rc(meet(p.r,rc2)):a;
+      return a instanceof RX p&&z instanceof RX q&&p.x.equals(q.x)?p.rc(meet(p.r,q.r)):a;
     }
     RC meet(RC a,RC b){
       return a==null||b==null?or(a,b):Collections.min(list(a.h(),b.h()));
@@ -556,7 +556,7 @@ import java.util.stream.*;
     E next(List<B>b,IG g,E e){return switch(e){
       case E.X x->{
         var o=g.get(x.name);var a=o;var i=g.indexOf(find(g,f->f.vars.containsKey(x.name)));for(var f:g.subList(i+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);}var z=x.t;if(a.equals(z))yield x;
-        var t=z==u?null:o==u?z instanceof R(_,var c)?new R(null,c):z
+        var t=z==u?null:o==u?z instanceof R w?new R(null,w.c):z
           :o instanceof R p&&z instanceof R q&&p.c.name.equals(q.c.name)?meet(o,z):null;
         if(t!=null)g.get(i).vars.put(x.name,t);yield x.t(meet(a,z));
       }
@@ -573,7 +573,7 @@ import java.util.stream.*;
       var cap=or(l.r,w.r);if(cap!=null)cap=cap.h();var instance=instance(l);
       var own=w.c.name.equals(name);no(!own&&!w.c.name.visible()&&!w.c.name.pk().equals(p.name));
       l=new Literal(cap,name1,bs,distinct(bs,own?parents(w.c):push(w.c,parents(w.c))),l.self,map(l.ms,mi->mi.o(name,name1)),w,true,true);if(!instance)magic(l);
-      if(own)l=l.t(l.self(cap));register(l);var s=sup(w,widen);yield !instance?l:l.t(new R(cap,s!=null&&s.c.types.get(0) instanceof R(_,var c)?c:w.c));
+      if(own)l=l.t(l.self(cap));register(l);var s=sup(w,widen);yield !instance?l:l.t(new R(cap,s!=null&&s.c.types.get(0) instanceof R q?q.c:w.c));
       }
       case Call c->{var e1=solve(b,g,c.e);MS m;
       if(!(e1.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
@@ -618,8 +618,8 @@ import java.util.stream.*;
     List<T>refine(List<String>v,T t,T a){
       return a==u?qs(v.size()):switch(t){
         case X x->seq(v.size(),i->v.get(i).equals(x.name)?a:u);
-        case RX(_,var x)->refine(v,x,switch(a){
-          case RX(_,var p)->p;case RI(var p)->p;case R(_,var c)->new R(null,c);default->a;
+        case RX r->refine(v,r.x,switch(a){
+          case RX q->q.x;case RI(var p)->p;case R w->new R(null,w.c);default->a;
         });
         case RI(var x)->refine(v,x,a instanceof RI(var p)?p:a);default->propagate(v,(R)t,a);
       };
@@ -675,7 +675,7 @@ import java.util.stream.*;
     }
     void kind(List<B>b,T t,Set<RC>al){no(!kinded(b,t,al));}
     static Set<RC>kinds(List<B>b,T t){return switch(t){
-      case R(var r,_)->caps(or(r,read));case RX(var r,_)->caps(r);
+      case R w->caps(or(w.r,read));case RX x->caps(x.r);
       case RI(var x)->EnumSet.copyOf(map(kinds(b,x),RC::ri));default->B.get(b,t.v()).caps;
     };}
     boolean sub(List<B>b,T a,T z){return a.equals(z)
@@ -718,9 +718,9 @@ import java.util.stream.*;
     void check(G g,Literal l){
       if(has(l.cs,identity)){var m=l.ms.get(0);no(!switch(m.e){
         case null->true;
-        case E.X(var name,_)->name.equals(m.v.get(0));
-        case Call c->c.e instanceof E.X(var recv,_)&&recv.equals(m.v.get(0))&&c.name.equals(new N(".as",1))
-          &&m.s.types.get(0) instanceof R(_,var cc)&&has(decs.apply(cc.name).cs,container);
+        case E.X x->x.name.equals(m.v.get(0));
+        case Call c->c.e instanceof E.X x&&x.name.equals(m.v.get(0))&&c.name.equals(new N(".as",1))
+          &&m.s.types.get(0) instanceof R cc&&has(decs.apply(cc.c.name).cs,container);
         default->false;
       });}
       for(var parent:l.cs){kind(l.b,new R(imm,parent),allRC);var sup=decs.apply(parent.name);no(!inst(sup));for(var m:filter(sup.ms,x->x.s.o.equals(sup.name))){
@@ -736,7 +736,7 @@ import java.util.stream.*;
     S canonical(Literal l,N name,RC r){return required(find(l.ms,m->m.s.m.equals(name)&&m.s.r==r)).s;}
     static boolean equivalent(List<B>b,T p,T q){
       return p.equals(q)||(p instanceof R(var aRc,var aC)&&q instanceof R(var bRc,var bC)?aRc==bRc&&aC.name.equals(bC.name)&&!zip(aC.types,bC.types,(s,t)->equivalent(b,s,t)).contains(false)
-        :p.rc(imm) instanceof RX(_,var x)&&p.rc(imm).equals(q.rc(imm))&&B.get(b,x.name).caps.size()==1&&kinds(b,p).equals(kinds(b,q)));
+        :p.rc(imm) instanceof RX x&&p.rc(imm).equals(q.rc(imm))&&B.get(b,x.x.name).caps.size()==1&&kinds(b,p).equals(kinds(b,q)));
     }
     T best(List<B>b,List<S>ms){var types=map(ms,S::t);return find(types,p->!any(types,q->!q.equals(p)&&sub(b,q,p)));}
     S apply(List<B>d,S m,RC[]receiver,RC[]args,int at,RC[]result){
