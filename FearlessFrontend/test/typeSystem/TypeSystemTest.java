@@ -5337,6 +5337,10 @@ A:{ .k: imm S -> read S{'s .m -> s}; .j: iso S -> imm S{'s .m -> s} }
 S:{ read .m: base.F[S] }
 A:{ .k: iso S -> imm S{'s .m -> { s } } }
 """));}
+@Test void captureFreeNestedSelfIsImmInEveryMethod(){ok(List.of("""
+A:base.CaptureFree{ mut .bar: A }
+User:{ #: mut A -> mut B:A{'self mut .bar: A -> self } }
+"""));}
 @Test void captureFreeTopLevelThisIsImmInEveryMethod(){ok(List.of("""
 A: base.CaptureFree, base.F[A]{ #: A -> this }
 B: base.CaptureFree{ read .me: imm A -> A; mut .self: imm B -> this }
@@ -6081,6 +6085,20 @@ A:{
   .ig3(a: A): A -> a;
   .k[X,Y](x: X, v: Y): A -> this.app(x, {y -> this.ig({ .foo -> this.ig2(v).ig3(this.ig2(y)) })});
   }
+"""));}
+@Test void writtenLiteralArgumentDecidesATypeArgument(){ok(List.of("""
+Sup:{}
+Sub:Sup{}
+Box[X]:{}
+K:{ #[X](a: X, b: Box[X]): X -> a }
+M:{ .m(y: Sub): Sup -> K#(y, Box[Sup]) }
+"""));}
+@Test void writtenEmptyLiteralArgumentDecidesATypeArgument(){ok(List.of("""
+Sup:{}
+Sub:Sup{}
+Box[X]:{}
+K:{ #[X](a: X, b: Box[X]): X -> a }
+M:{ .m(y: Sub): Sup -> K#(y, Box[Sup]{}) }
 """));}
 @Test void emptyLiteralArgumentDoesNotDecideATypeArgument(){ok(List.of("""
 Sup:{}
