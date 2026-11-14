@@ -145,7 +145,7 @@ import java.util.stream.*;
       var c=name();List<T>types=see(Square)?items(comma,Parser::type):list();return new C(c.arity(types.size()),types);
     }
     N name(){var s=take(heads).content;
-      var res=new N(s,0);no(!res.pk().isEmpty()&&!res.visible());return res;
+      var res=new N(s,0);no(res.pk().length()>0&&!res.visible());return res;
     }
     T type(){
       if(fwd(see(RIcap)))return new RI(variable(false));var r=optCap();
@@ -350,7 +350,7 @@ import java.util.stream.*;
   static Stream<String>typeFree(List<T>ts){return ts.stream().flatMap(T::ftv);}
   static List<T>vars(List<B>b){return map(b,e->new X(e.x));}
   static List<T>qs(int n){return Collections.nCopies(n,u);}
-  record MS(RC r,List<String>v,List<B>cb,List<T>cas,List<B>mb,List<T>ps,T ret){}
+  record MS(RC r,List<B>bs,List<T>cas,List<B>mb,List<T>ps,T ret){List<String>v(){return B.v(bs);}}
   static Stream<String>free(IG g,E e){return switch(e){
     case E.X(var name,var t)->cat(t.ftv(),Stream.ofNullable(g.get(name)).flatMap(T::ftv));
     case Literal l->cat(l.b.stream().map(B::x),supFree(l.cs),methodFree(g,l.ms));
@@ -537,18 +537,16 @@ import java.util.stream.*;
     T meet(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
       if(a instanceof R p&&z instanceof R q)return p.c.name.equals(q.c.name)?p.with(meet(p.r,q.r),meet(p.c.types,q.c.types)):or(below(p,q),or(below(q,p),p));
-      if(!(a instanceof RX p&&z instanceof RX(var rc2,var q))||!p.x.equals(q))return a;
-      return p.rc(meet(p.r,rc2));
+      return a instanceof RX p&&z instanceof RX(var rc2,var q)&&p.x.equals(q)?p.rc(meet(p.r,rc2)):a;
     }
     RC meet(RC a,RC b){
       return a==null||b==null?or(a,b):Collections.min(list(a.h(),b.h()));
     }
     T join(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
-      var cands=list(a,z);for(var top:cands){var res=above(top,cands);if(res!=null)return res;}
-      if(all(cands,c->c instanceof R)&&cands.get(0) instanceof R r0){var heads=filter(map(parents(r0.c),C::name),h->all(cands,c->sup((R)c,h) instanceof R s&&s.c.equals(sup(r0,h).c)));
-        var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&has(from(h2).cs,h)));if(minimal.size()==1)return above(sup(r0,minimal.get(0)),cands);}
-      return u;
+      var cands=list(a,z);var res=or(above(a,cands),above(z,cands));if(res!=null||!(a instanceof R r0&&z instanceof R r1))return or(res,u);
+      var heads=filter(map(parents(r0.c),C::name),h->sup(r0,h) instanceof R s&&sup(r1,h) instanceof R q&&s.c.equals(q.c));
+      var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&has(from(h2).cs,h)));return minimal.size()==1?above(sup(r0,minimal.get(0)),cands):u;
     }
     T above(T top,List<T>cands){
       T res=top;for(var c:cands){var up=c instanceof R r&&top instanceof R rt?r.c.name.equals(rt.c.name)?c:sup(r,rt.c.name):Objects.equals(c.v(),top.v())?c:null;if(up==null)return null;
@@ -577,7 +575,7 @@ import java.util.stream.*;
       var d=l;l=l.anon&&!c.name.equals(l.name)?l.header(push(c,parents(c)),pair(l.ms,map(required(from(c.name)).ms,m->alpha(m,c,d,B.v(b))),l)):expand(l);
     }else if(instance(l)&&cache.containsKey(l.name))yield l;
       var w0=(R)l.t;var ms=new Vector<M>();if(l.anon&&!w0.c.name.equals(l.name))sup.put(l.name,w0.c);for(var mi:l.ms)ms.add(mi.e==null?mi:method(b,g,l,mi));var cn=new Vector<Con>();
-      for(var m:ms){var h=signature(w0,m.s.m,m.s.r,null);if(h!=null){var mb=B.v(m.s.b);zip(h.ps,erase(m.s.types,mb),(p,a)->cn.add(new Con(p,a,false,true)));cn.add(new Con(h.ret,erase(list(m.s.t),mb).get(0),true,true));}}
+      for(var m:ms){var h=signature(w0,m.s.m,m.s.r,null);if(h!=null){var a=erase(m.s.all(),B.v(m.s.b));zip(h.ps,a,(p,z)->cn.add(new Con(p,z,false,true)));cn.add(new Con(h.ret,a.getLast(),true,true));}}
       var d=from(w0.c.name);var w=w0.withTs(d==null?map(w0.c.types,this::up):decide(d.b,w0.c.types,cn));
       l=l.header(l.cs,map(ms,m->instantiate(w,m))).t(w);var name=l.name;
       if(!w.tv()||!all(l.ms,m->all(m.s.all(),T::tv))||cache.containsKey(name)&&!instance(l))yield l;
@@ -591,16 +589,15 @@ import java.util.stream.*;
       case Call c->{var e1=solve(b,g,c.e);MS m;
       if(!(e1.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
       var n=m.cas.size();var k=m.mb.size();
-      var cs=push(new Con(m.ret,c.t,false,true),zip(m.ps,c.es,(p,x)->new Con(p,x.t(),true,!empty(x))));
-      var all=decide(push(m.cb,m.mb),push(m.cas,c.written?push(c.y,qs(k)).subList(0,k):qs(k)),cs);
-      var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v,all))));
-      yield new Call(meet(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v,all)),c.written);
+      var all=decide(m.bs,push(m.cas,c.written?push(c.y,qs(k)).subList(0,k):qs(k)),push(new Con(m.ret,c.t,false,true),zip(m.ps,c.es,(p,x)->new Con(p,x.t(),true,!empty(x)))));
+      var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v(),all))));
+      yield new Call(meet(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v(),all)),c.written);
       }
     };}
     MS signature(R w,N name,RC favorite,RC hint){
       var d=from(w.c.name);if(d==null)return null;var r=or(w.r==iso?hint:w.r,imm).h();
       var m=find(map(favorite!=null?list(favorite):list(r==iso?imm:r,read,imm,mut),o->find(d.ms,x->x.s.m.equals(name)&&x.s.r==o)),x->x!=null);
-      return m==null?null:new MS(m.s.r,push(B.v(d.b),B.v(m.s.b)),d.b,w.c.types,m.s.b,m.s.types,m.s.t);
+      return m==null?null:new MS(m.s.r,push(d.b,m.s.b),w.c.types,m.s.b,m.s.types,m.s.t);
     }
     boolean instance(Literal l){return l.anon&&all(l.ms,m->m.e==null);}
     boolean empty(E e){return e instanceof Literal l&&instance(l)&&inferred.contains(l.name.s);}
@@ -612,7 +609,7 @@ import java.util.stream.*;
       return zip(map(Stream.of(given,shape,all).reduce((p,z)->zip(p,z,(a,x)->a.tv()?a:x)).get(),this::up),map(bs,B::caps),this::normalize);
     }
     M instantiate(R w,M m){var h=signature(w,m.s.m,m.s.r,null);if(h==null)return m;var a=push(w.c.types,vars(m.s.b));
-      return m.signature(m.s.types(rename(h.ps,h.v,a),rename(h.ret,h.v,a)));
+      return m.signature(m.s.types(rename(h.ps,h.v(),a),rename(h.ret,h.v(),a)));
     }
     T up(T t){if(!(t instanceof R(var r,var c)))return t;var h=sup.getOrDefault(c.name,c);return new R(r,h).withTs(map(h.types,this::up));}
     C self(C c){
@@ -730,7 +727,7 @@ import java.util.stream.*;
       return e instanceof E.X v?v.name.equals(x)?1:0:active&&e instanceof Literal?0:e.children().mapToLong(c->count(x,c,active)).sum();
     }
     List<T>reqs(List<B>b,T got,List<T>rs){
-      return rs.isEmpty()?list(got):map(rs,r->sub(b,got,r)?got:null);
+      return rs.size()==0?list(got):map(rs,r->sub(b,got,r)?got:null);
     }
     boolean cf(List<B>b,G g,E e){
       return e instanceof E.X x?g.bind(x.name)==null||all(kinds(b,g.bind(x.name)),RC::ii):e.children().allMatch(c->cf(b,g,c));
