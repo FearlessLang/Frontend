@@ -317,14 +317,13 @@ import java.util.stream.*;
   static<A>A required(A a){no(a==null);return a;}
   record Frame(RC r,List<B>b,HashMap<String,T>vars){}
   class IG extends Vector<Frame>{
-    IG(){push(null,list());}
     T get(String x){return find(map(this,f->f.vars.get(x)),t->t!=null);}
     static T adapt(T t,RC r,List<B>b){if(t==u)return t;var caps=TS.kinds(b,t);
       return r==imm||ii.containsAll(caps)?t.rc(imm):r==read||!caps(imm,mut,read).containsAll(caps)?t.ri():t;
     }
     void push(RC r,List<B>b){add(new Frame(r,b,new HashMap<>()));}
     Object declare(String x,T t){return getLast().vars.put(x,t);}
-    void declare(Literal l,M m){declare(l.self,l.r==null?u:l.self(has(l.cs,cf)?imm:m.s.r));zip(m.v,m.s.types,this::declare);}
+    void declare(List<B>b,Literal l,M m){push(m.s.r,b);declare(l.self,l.r==null?u:l.self(has(l.cs,cf)?imm:m.s.r));zip(m.v,m.s.types,this::declare);}
     Object snap(){return map(this,f->new HashMap<>(f.vars));}
   }
   static C normC(C c){return((R)norm(new R(null,c))).c;}
@@ -513,7 +512,7 @@ import java.util.stream.*;
       no(!all(res,t->TS.equivalent(push(lit.b,ss.get(0).b),fill(res.get(0)),fill(t))));return res.get(0);
     }
     M body(Literal di,M m){
-      if(m.e==null)return m;var ei=meet(m.e,m.s.t);cap=deep*size(ei);var g=new IG();g.declare(di,m);var b=push(di.b,m.s.b);
+      if(m.e==null)return m;var ei=meet(m.e,m.s.t);cap=deep*size(ei);var g=new IG();g.declare(di.b,di,m);var b=push(di.b,m.s.b);
       late=false;var e1=solve(b,g,ei);late=true;return m.body(core(b,solve(b,g,e1),m.e));
     }
     E meet(E e,T t){
@@ -608,7 +607,7 @@ import java.util.stream.*;
       return ss.size()==1?ss.get(0):c;
     }
     M method(List<B>b,IG g,Literal l,M m){var bs=l.anon?b:l.b;
-      g.push(m.s.r,bs);g.declare(l,m);
+      g.declare(bs,l,m);
       var e=solve(push(bs,m.s.b),g,meet(m.e,m.s.t));
       var args=zip(m.v,m.s.types,(x,t)->late?meet(t,g.get(x)):t);
       g.removeLast();return m.signature(m.s.types(args,meet(m.s.t,e.t()))).body(e);
@@ -665,7 +664,6 @@ import java.util.stream.*;
     G map(UnaryOperator<T>f){return tail==null?this:new G(tail.map(f),name,t==null?null:f.apply(t));}
     T bind(String x){return tail==null?null:name.equals(x)?t:tail.bind(x);}
   }
-  record MT(RC r,List<T>types,T t){}
   RC[]reading={imm,iso,readH,iso,mutH,readH},flexy={imm,iso,imm,iso,mutH,readH},hyg={imm,mutH,readH,iso,mutH,readH},strong={imm,iso,imm,iso,iso,imm};
   record TS(Function<N,Literal>decs){
     static void check(List<Literal>tops,Map<N,Literal>other){var map=new HashMap<N,Literal>();
@@ -697,7 +695,7 @@ import java.util.stream.*;
       if(!(type(b,g,c.e,list()).get(0) instanceof R h))throw new Fail();var d=decs.apply(h.c.name);
       var s=canonical(d,c.name,c.r);
       no(s.b.size()!=c.y.size()||zip(c.y,s.b,(t,p)->kinded(b,t,p.caps)).contains(false));
-      var q=s.subst(s.b,B.v(push(d.b,s.b)),push(h.c.types,c.y));var base=new MT(s.r,q.types,q.t);
+      var base=s.subst(s.b,B.v(push(d.b,s.b)),push(h.c.types,c.y));
       var app=cat(Stream.of(base,apply(b,base,flexy,flexy,-1,flexy),apply(b,base,strong,strong,-1,strong),apply(b,base,reading,reading,-1,hyg),apply(b,base,hyg,flexy,-1,hyg)),
         range(base.types.size()).mapToObj(i->apply(b,base,flexy,flexy,i,hyg))).distinct().filter(m->h.r.sub(m.r)).toList();
       var possible=new Vector<>(app);range(c.es.size()).forEach(i->{
@@ -740,9 +738,9 @@ import java.util.stream.*;
       return p.equals(q)||(p instanceof R(var aRc,var aC)&&q instanceof R(var bRc,var bC)?aRc==bRc&&aC.name.equals(bC.name)&&!zip(aC.types,bC.types,(s,t)->equivalent(b,s,t)).contains(false)
         :p.rc(imm) instanceof RX(_,var x)&&p.rc(imm).equals(q.rc(imm))&&B.get(b,x.name).caps.size()==1&&kinds(b,p).equals(kinds(b,q)));
     }
-    T best(List<B>b,List<MT>ms){var types=map(ms,MT::t);return find(types,p->!any(types,q->!q.equals(p)&&sub(b,q,p)));}
-    MT apply(List<B>d,MT m,RC[]receiver,RC[]args,int at,RC[]result){
-      return new MT(receiver[m.r.ordinal()],seq(m.types.size(),j->adapt(d,m.types.get(j),j==at?hyg:args,(p,q)->q.sub(p))),adapt(d,m.t,result,RC::sub));
+    T best(List<B>b,List<S>ms){var types=map(ms,S::t);return find(types,p->!any(types,q->!q.equals(p)&&sub(b,q,p)));}
+    S apply(List<B>d,S m,RC[]receiver,RC[]args,int at,RC[]result){
+      return new S(receiver[m.r.ordinal()],m.m,m.b,seq(m.types.size(),j->adapt(d,m.types.get(j),j==at?hyg:args,(p,q)->q.sub(p))),adapt(d,m.t,result,RC::sub),m.o,m.abs,m.idx);
     }
     T adapt(List<B>d,T t,RC[]mode,BiPredicate<RC,RC>le){
       if(t.erc()!=null)return t.rc(mode[t.erc().ordinal()]);var x=t.v();
