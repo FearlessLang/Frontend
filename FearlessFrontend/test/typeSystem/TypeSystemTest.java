@@ -1638,7 +1638,9 @@ User:{ #(a:read A):A->a.m[read] }
 While inspecting ".m(_,_,_)" line 7
 This call to method "read Pairer.pair(_,_)" cannot typecheck.
 Wrong number of generic type arguments for ".pair(_,_)".
-This method expects 2 generic type arguments: "X" and "Y"; but this call provides 1 generic type argument.
+Method ".pair(_,_)" declares 2 generic type parameters.
+Declared generic type parameters: "X", "Y".
+This call provides 1 generic type argument.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 p.pair[read,mut A](a,b)
@@ -1654,6 +1656,31 @@ User:{
 }
 """));}
 
+@Test void methodTArgsArityError_noneDeclared(){fail("""
+007|   read .m(i:Id,a:mut A):mut A->
+008|     i.id[mut A](a);
+   |     -^^^^---------
+
+While inspecting ".m(_,_)" line 7
+This call to method "read Id.id(_)" cannot typecheck.
+Wrong number of generic type arguments for ".id(_)".
+Method ".id(_)" declares no generic type parameters.
+This call provides 1 generic type argument.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+i.id[read,mut A](a)
+""", List.of("""
+
+A:{}
+Id:{
+  read .id(x:mut A):mut A->x;
+}
+User:{
+  read .m(i:Id,a:mut A):mut A->
+    i.id[mut A](a);
+}
+"""));}
+
 @Test void methodTArgsArityError_twoMoreThanNeeded(){fail("""
 009|   read .m(i:Id,a:mut A):mut A->
 010|     i.id[mut A,mut B,mut C](a);
@@ -1662,7 +1689,9 @@ User:{
 While inspecting ".m(_,_)" line 9
 This call to method "read Id.id(_)" cannot typecheck.
 Wrong number of generic type arguments for ".id(_)".
-This method expects 1 generic type argument: "X"; but this call provides 3 generic type arguments.
+Method ".id(_)" declares 1 generic type parameter.
+Declared generic type parameters: "X".
+This call provides 3 generic type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 i.id[read,mut A,mut B,mut C](a)
@@ -2270,7 +2299,9 @@ A:{
 While inspecting ".bar" line 3
 This call to method "A.id(_)" cannot typecheck.
 Wrong number of generic type arguments for ".id(_)".
-This method expects 1 generic type argument: "X"; but this call provides 2 generic type arguments.
+Method ".id(_)" declares 1 generic type parameter.
+Declared generic type parameters: "X".
+This call provides 2 generic type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.id[imm,A,A](this)
@@ -5901,7 +5932,9 @@ U:{ .m: base.Void -> {'s .j: base.Void -> H#({ .get -> s }, B) }.j }
 While inspecting ".m(_,_)" line 3
 This call to method "read Id.id(_)" cannot typecheck.
 Wrong number of generic type arguments for ".id(_)".
-This method expects 1 generic type argument: "X"; but this call provides no generic type arguments.
+Method ".id(_)" declares 1 generic type parameter.
+Declared generic type parameters: "X".
+This call provides no generic type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 i.id[read](a)
@@ -5917,7 +5950,9 @@ User:{ read .m(i:Id,a:mut A):mut A-> i.id[](a); }
 While inspecting ".a" line 4 > ".go(_)" line 4
 This call to method "Id#(_)" cannot typecheck.
 Wrong number of generic type arguments for "#(_)".
-This method expects 1 generic type argument: "T"; but this call provides no generic type arguments.
+Method "#(_)" declares 1 generic type parameter.
+Declared generic type parameters: "T".
+This call provides no generic type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Id#(x)
@@ -5934,7 +5969,9 @@ User:{ .go(x: Foo): mut K -> { read .a -> Id#[imm](x); .b -> Id#[imm](x) } }
 While inspecting ".m(_,_)" line 3
 This call to method "read Id.id(_)" cannot typecheck.
 Wrong number of generic type arguments for ".id(_)".
-This method expects 1 generic type argument: "X"; but this call provides no generic type arguments.
+Method ".id(_)" declares 1 generic type parameter.
+Declared generic type parameters: "X".
+This call provides no generic type arguments.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 i.id[read](a)

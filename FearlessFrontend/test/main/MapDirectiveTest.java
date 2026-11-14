@@ -2079,7 +2079,9 @@ In file: [###].fear
 While inspecting ".m(_)" line 1
 This call to method "a.Pairer.pair(_,_)" cannot typecheck.
 Wrong number of generic type arguments for ".pair(_,_)".
-This method expects 2 generic type arguments: "X" and "Y"; but this call provides 1 generic type argument.
+Method ".pair(_,_)" declares 2 generic type parameters.
+Declared generic type parameters: "X", "Y".
+This call provides 1 generic type argument.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
