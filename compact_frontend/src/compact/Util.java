@@ -15,8 +15,8 @@ import java.util.stream.*;
   @SafeVarargs static<A>List<A>list(A...v){return List.of(v);}
   static boolean dup(List<?>l){return l.stream().distinct().count()<l.size();}
   static<V>List<V>push(List<V>a,List<V>b){return cat(a.stream(),b.stream()).toList();}
-  static<V>List<V>push(List<V>a,V b){return cat(a.stream(),Stream.of(b)).toList();}
-  static<V>List<V>push(V a,List<V>b){return cat(Stream.of(a),b.stream()).toList();}
+  static<V>List<V>push(List<V>a,V b){return Util.<V>push(a,list(b));}
+  static<V>List<V>push(V a,List<V>b){return Util.<V>push(list(a),b);}
   static<A,B,R>List<R>zip(List<A>as,List<B>b,BiFunction<A,B,R>f){return seq(as.size(),i->f.apply(as.get(i),b.get(i)));}
   @SafeVarargs static<V>Stream<V>cat(Stream<V>...ss){return Stream.of(ss).flatMap(s->s);}
 }
