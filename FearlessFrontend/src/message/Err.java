@@ -142,7 +142,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       .line("Here "+paramName+" can only use "+allowedStr+".");
     var capabilityHidden= bad instanceof T.X || bad instanceof T.ReadImmX;
     if (!capabilityHidden){ return e; }
-    return e.line("But generic type argument "+badStr+" can use capabilities "+gotStr+".");
+    return e.line("But generic type argument "+badStr+" can only use "+gotStr+".");
   }
   public Err invalidMethImpl(String pre, Literal l, MName m){
     return line("Invalid method signature overriding for "+methodSig(pre, l, m)+".");

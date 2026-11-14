@@ -536,7 +536,7 @@ The type "A[Y]" is invalid.
 Generic type argument 1 ("Y") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
-But generic type argument "Y" can use capabilities "read".
+But generic type argument "Y" can only use capability "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User[Y:read]:A[Y]{}
