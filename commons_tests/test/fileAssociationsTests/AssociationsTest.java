@@ -396,7 +396,7 @@ final class AssociationsTest{
       FileAssociations.eradicateAll(family, IllegalStateException::new);
       assertEquals(List.of(), declared.apply("fcommonsprobe"));
       assertFalse(Files.exists(probe));
-      assertEquals(0, Fs.of(new ProcessBuilder("/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister", "-u", probe.toString()).inheritIO()::start).onExit().join().exitValue());
+      unregister(probe);
       return;
     }
     LinuxAssociations.run = run;
@@ -459,12 +459,30 @@ final class AssociationsTest{
     assertEquals("MimeType=application/x-fearless-htm;", mimeTypes());
     assertEquals("[Default Applications]\ntext/html=browser.desktop\n[Added Associations]\ntext/html=browser.desktop;\n", Fs.readUtf8(root.resolve("config").resolve("mimeapps.list")));
   }
+  private static void unregister(Path bundle){
+    assertEquals(0, Fs.of(new ProcessBuilder("/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister", "-u", bundle.toString()).inheritIO()::start).onExit().join().exitValue());
+  }
+  private static String exportedBy(String type, String parent, String ext){
+    return "<dict><key>UTTypeIdentifier</key><string>"+type+"</string><key>UTTypeConformsTo</key><array><string>"+parent+"</string></array>"
+      +"<key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>"+ext+"</string></array></dict></dict>\n";
+  }
   @Test void aTypeWithNoProgramOfItsOwnIsHeldByTheProgramOfItsNearestParentType(){
-    if (Fs.isMac()){ fail("""
-      Agent on macOS: on Linux an extension whose type no program opens is held by the program of the nearest parent type of that type (the file subclasses of the MIME database).
-      On macOS a type conforms to other types (UTTypeConformsTo), and MacAssociations.holder asks LaunchServices which application opens a file named x<ext>.
-      Find on this desk an extension whose type no application opens as its own type, while an application opens a type it conforms to (for example .log, public.log, conforming to public.plain-text).
-      Make the macOS form check, with the real MacAssociations.holder, that reconcile refuses that extension with notOurs naming that application until the extension is taken."""); }
+    if (Fs.isMac()){
+      MacAssociations.declared = declared;
+      MacAssociations.holder = holder;
+      var other= Fs.of(root::toRealPath).resolve("other.app");
+      Fs.writeUtf8(other.resolve("Contents").resolve("Info.plist"), MacAssociations.plist("otherProgram", "Other", "", exportedBy("com.example.ffile995", "public.plain-text", "ffile995")));
+      assertEquals(0, register.applyAsInt(other));
+      try{
+        var text= holder.apply(".txt").orElseThrow().getFileName().toString();
+        assertEquals("notOurs {.ffile995="+text.substring(0, text.length() - 4)+"}", refused(".ffile995"));
+        taking(List.of(".ffile995"), ".ffile995");
+        plistIs(document("ffile995", "Alternate", "com.example.ffile995"), "");
+        assertEquals(choices("com.example.ffile995"), ReconcileTest.choicesOfTheDesk());
+      }
+      finally{ unregister(other); }
+      return;
+    }
     if (Fs.isWindows()){ fail("""
       Agent on Windows: on Linux an extension whose type no program opens is held by the program of the nearest parent type of that type (the file subclasses of the MIME database).
       On Windows an extension with no ProgId of its own can still be opened through its PerceivedType (Classes\\SystemFileAssociations\\<perceived type>) or through Classes\\*.
@@ -486,11 +504,17 @@ final class AssociationsTest{
     reconcile(".md");
   }
   @Test void aProgramRemovedFromATypeOfTheIdentityLeavesTheExtensionToTheProgramOfTheParentType(){
-    if (Fs.isMac()){ fail("""
-      Agent on macOS: on Linux the user can remove the program of the identity from a type of the identity ([Removed Associations] of mimeapps.list);
-      the extension of that type then opens with the program of the parent type, which holds the extension until the extension is taken, and taking it removes that line.
-      Find whether the user can do the same on macOS to a type the helper bundle opens as owner, other than the choice in LSHandlers that aPreferenceForATypeOfTheIdentityIsRemovedFromEveryListOnlyWhenEveryHeldExtensionIsTaken checks.
-      Make the macOS form check that change, or say in ReconciliatorDesign that on macOS that choice is the only way, and make the macOS form check that taking the extension removes a choice in LSHandlers of a type the helper bundle opens as alternate."""); }
+    if (Fs.isMac()){
+      types.put("htm", List.of(html));
+      reconcile(".htm");
+      ReconcileTest.pick("public.html", "com.apple.Safari");
+      holders.put(".htm", Path.of("/Applications/Safari.app"));
+      assertEquals("notOurs {.htm=Safari}", refused(".htm"));
+      taking(List.of(".htm"), ".htm");
+      plistIs(document("htm", "Alternate", "public.html"), "");
+      assertEquals(choices("public.html"), ReconcileTest.choicesOfTheDesk());
+      return;
+    }
     if (Fs.isWindows()){ fail("""
       Agent on Windows: on Linux the user can remove the program of the identity from a type of the identity ([Removed Associations] of mimeapps.list);
       the extension of that type then opens with the program of the parent type, which holds the extension until the extension is taken, and taking it removes that line.
@@ -507,11 +531,33 @@ final class AssociationsTest{
     reconcile(".htm");
   }
   @Test void anEntryOfTheUserHidesTheTypesOfTheEntryOfTheSameNameInTheSystem(){
-    if (Fs.isMac()){ fail("""
-      Agent on macOS: on Linux the .desktop file of a program in the folder of the user hides the .desktop file of the same name in a folder of the system, with the types that file lists.
-      On macOS two applications can have the same CFBundleIdentifier, one in ~/Applications and one in /Applications, declaring different types.
-      Investigate which of the two LaunchServices uses for MacAssociations.declared and MacAssociations.holder, and make the macOS form check that reconcile follows the types of that application,
-      or say in ReconciliatorDesign why macOS has no such case, and make the macOS form check what reconcile does with the two applications."""); }
+    if (Fs.isMac()){
+      MacAssociations.declared = declared;
+      MacAssociations.holder = holder;
+      var desk= Fs.of(() -> Files.createTempDirectory(Path.of(System.getProperty("user.home")), "fearlessAssociationsTest"));
+      var system= desk.resolve("Applications").resolve("otherEditor.app");
+      var mine= desk.resolve("home").resolve("Applications").resolve("otherEditor.app");
+      var opened= "<dict><key>CFBundleTypeRole</key><string>Viewer</string><key>LSHandlerRank</key><string>Owner</string><key>LSItemContentTypes</key><array><string>com.example.ffile994</string></array></dict>\n";
+      Fs.writeUtf8(system.resolve("Contents").resolve("Info.plist"), MacAssociations.plist("otherEditor", "Editor", opened, exportedBy("com.example.ffile994", "public.data", "ffile994")));
+      Fs.writeUtf8(mine.resolve("Contents").resolve("Info.plist"), MacAssociations.plist("otherEditor", "Editor", "", ""));
+      for (var b : List.of(system, mine)){
+        var script= b.resolve("Contents").resolve("MacOS").resolve("otherEditor");
+        Fs.writeUtf8(script, "#!/bin/sh\n");
+        assertTrue(script.toFile().setExecutable(true));
+      }
+      try{
+        assertEquals(0, register.applyAsInt(system));
+        assertEquals(0, register.applyAsInt(mine));
+        assertEquals(Optional.of(system), holder.apply(".ffile994"));
+        assertEquals("notOurs {.ffile994=otherEditor}", refused(".ffile994"));
+      }
+      finally{
+        unregister(system);
+        unregister(mine);
+        Fs.rmTree(desk);
+      }
+      return;
+    }
     if (Fs.isWindows()){ fail("""
       Agent on Windows: on Linux the .desktop file of a program in the folder of the user hides the .desktop file of the same name in a folder of the system, with the types that file lists.
       On Windows HKEY_CLASSES_ROOT shows the key Software\\Classes\\<name> of HKEY_CURRENT_USER in place of the key of the same name of HKEY_LOCAL_MACHINE.
