@@ -462,9 +462,9 @@ import java.util.stream.*;
       var implied=flat(d.cs,c->parents(c).stream());
       var supers=distinct(d.b,push(d.cs,implied.stream().sorted(Comparator.comparing(Print::of)).toList()));
       var signatures=flat(filter(d.cs,c->!implied.contains(c)),c->from(c.name).ms.stream().map(m->alpha(m,c,d,list())));
-      return magic(d.header(supers,pair(d.ms,signatures,d)),supers);
+      return magic(d.header(supers,pair(d.ms,signatures,d)));
     }
-    Literal magic(Literal d,List<C>supers){no(filter(supers,c->c.name.equals(widen)).size()>1);
+    Literal magic(Literal d){var supers=d.cs;no(filter(supers,c->c.name.equals(widen)).size()>1);
       if(has(supers,identity)){var m=d.ms.get(0);no(d.ms.size()!=1||m.e==null&&!m.s.abs&&!has(from(m.s.o).cs,identity));}
       if(has(supers,log)){var s=d.name.simple();no(s.matches(".*('|_[a-z]).*"));var f=s.replaceAll("[A-Z]","_$0").toLowerCase(Locale.ROOT).substring(1);
         no(f.matches("con|prn|aux|nul|(com|lpt)[1-9]|_rank_.*")||f.length()+d.name.pk().length()>184);
@@ -576,20 +576,20 @@ import java.util.stream.*;
     }else if(instance(l)&&cache.containsKey(l.name))yield l;
       var w0=(R)l.t;var ms=new Vector<M>();if(l.anon&&!w0.c.name.equals(l.name))sup.put(l.name,w0.c);for(var mi:l.ms)ms.add(mi.e==null?mi:method(b,g,l,mi));var cn=new Vector<Con>();
       for(var m:ms){var h=signature(w0,m.s.m,m.s.r,null);if(h!=null){var a=erase(m.s.all(),B.v(m.s.b));zip(h.ps,a,(p,z)->cn.add(new Con(p,z,false,true)));cn.add(new Con(h.ret,a.getLast(),true,true));}}
-      var d=from(w0.c.name);var w=w0.withTs(d==null?map(w0.c.types,this::up):decide(d.b,w0.c.types,cn));
+      var d=from(w0.c.name);var w=w0.withTs(d==null?w0.c.types:decide(d.b,w0.c.types,cn));
       l=l.header(l.cs,map(ms,m->instantiate(w,m))).t(w);var name=l.name;
       if(!w.tv()||!all(l.ms,m->all(m.s.all(),T::tv))||cache.containsKey(name)&&!instance(l))yield l;
       var bs=cat(methodFree(g,l.ms),supFree(l.cs),w.ftv()).distinct().map(x->B.get(b,x)).toList();var name1=name.arity(bs.size());
       var cap=or(l.r,w.r);if(cap!=null)cap=cap.h();var instance=instance(l);
       var own=w.c.name.equals(name);no(!own&&!w.c.name.visible()&&!w.c.name.pk().equals(p.name));
       var cs=distinct(bs,own?parents(w.c):push(w.c,parents(w.c)));
-      l=new Literal(cap,name1,bs,cs,l.self,map(l.ms,mi->mi.o(name,name1)),w,true,true);if(!instance)magic(l,cs);
+      l=new Literal(cap,name1,bs,cs,l.self,map(l.ms,mi->mi.o(name,name1)),w,true,true);if(!instance)magic(l);
       if(own)l=l.t(l.self(cap));register(l);var s=sup(w,widen);yield !instance?l:l.t(new R(cap,s!=null&&s.c.types.get(0) instanceof R(_,var c)?c:w.c));
       }
       case Call c->{var e1=solve(b,g,c.e);MS m;
       if(!(e1.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
       var n=m.cas.size();var k=m.mb.size();
-      var all=decide(m.bs,push(m.cas,c.written?push(c.y,qs(k)).subList(0,k):qs(k)),push(new Con(m.ret,c.t,false,true),zip(m.ps,c.es,(p,x)->new Con(p,x.t(),true,!empty(x)))));
+      var all=decide(m.bs,push(m.cas,push(c.written?c.y:list(),qs(k)).subList(0,k)),push(new Con(m.ret,c.t,false,true),zip(m.ps,c.es,(p,x)->new Con(p,x.t(),true,!empty(x)))));
       var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v(),all))));
       yield new Call(meet(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v(),all)),c.written);
       }
@@ -711,8 +711,7 @@ import java.util.stream.*;
       if(!(type(b,g,c.e,list()).get(0) instanceof R h))throw new Fail();var d=decs.apply(h.c.name);
       var s=canonical(d,c.name,c.r);
       no(s.b.size()!=c.y.size()||zip(c.y,s.b,(t,p)->kinded(b,t,p.caps)).contains(false));
-      var v=B.v(push(d.b,s.b));var ts0=push(h.c.types,c.y);
-      var base=new MT(s.r,rename(s.types,v,ts0),rename(s.t,v,ts0));
+      var q=s.subst(s.b,B.v(push(d.b,s.b)),push(h.c.types,c.y));var base=new MT(s.r,q.types,q.t);
       var app=cat(Stream.of(base,apply(b,base,flexy,flexy,-1,flexy),apply(b,base,strong,strong,-1,strong),apply(b,base,reading,reading,-1,hyg),apply(b,base,hyg,flexy,-1,hyg)),
         range(base.types.size()).mapToObj(i->apply(b,base,flexy,flexy,i,hyg))).distinct().filter(m->h.r.sub(m.r)).toList();
       var possible=new Vector<>(app);range(c.es.size()).forEach(i->{
