@@ -386,7 +386,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException noAbstractMethod(Sig sig, Span at){
     var msg= "Abstract method declaration for "+methodSig("", sig.m().get())+" with "+count(sig.m().get().arity(), "parameter")
-      +".\nOnly top level methods can be abstract.\n";
+      +".\nOnly the methods of a top level type declaration can be abstract.\n";
     return Code.WellFormedness.of(msg).addSpan(at);
   }
 }
