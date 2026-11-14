@@ -23,8 +23,7 @@ import java.util.stream.*;
     no(any(uses,strings::contains)||any(flat(ds,d->d.owner.gen.used.stream()),x->strings.contains(x)||uses.contains(x)));
     var map=new HashMap<>(override);for(var u:head.uses){no(map.containsValue(u.in.pk()));var p=map.getOrDefault(u.in.pk(),u.in.pk());
       var in=p+"."+u.in.simple();map.put(u.out,in);no(p.equals(pk)||!any(other.keySet(),e->e.s.equals(in)));
-    }var ctx=new Methods(new Pkg(pk,map,ds,new HashSet<>(names)),other);
-    var res=ctx.headers();TS.check(res,other);return res;
+    }var res=new Methods(new Pkg(pk,map,ds,new HashSet<>(names)),other).headers();TS.check(res,other);return res;
   }
   enum RC{
     imm,mut,read,iso,mutH,readH;
@@ -144,8 +143,7 @@ import java.util.stream.*;
     C constructor(){
       var c=name();List<T>types=see(Square)?items(comma,Parser::type):list();return new C(c.arity(types.size()),types);
     }
-    N name(){var s=take(heads).content;
-      var res=new N(s,0);no(res.pk().length()>0&&!res.visible());return res;
+    N name(){var res=new N(take(heads).content,0);no(res.pk().length()>0&&!res.visible());return res;
     }
     T type(){
       if(fwd(see(RIcap)))return new RI(variable(false));var r=optCap();
@@ -169,9 +167,8 @@ import java.util.stream.*;
     }
     Pat pattern(){return see(Low)?new Pat.Name(binder()):group(Parser::destruct);}
     Pat.Des destruct(){
-      var id=tokens.get(limit).content.substring(1);
       var chains=by(comma,p->p.by(q->{q.take();return 0;},q->q.take(Dot).content));
-      no(chains.size()==0||any(chains,List::isEmpty));var res=new Pat.Des(chains,id);
+      no(chains.size()==0||any(chains,List::isEmpty));var res=new Pat.Des(chains,tokens.get(limit).content.substring(1));
       no(res.names().anyMatch(x->!matches(x,Low)||matches(x,Cap)));return res;
     }
     P.Args arguments(){
@@ -203,8 +200,8 @@ import java.util.stream.*;
       no(dup(v));names.owner.vars.used.addAll(v);return new PS(r,m,b,ps,t);
     }
     Par parameter(){
-      var named=see(Low,Hole,Curly);var x=named&&!fwd(see(Hole))?pattern():null;
-      return new Par(x,named?fwd(see(Colon))?type():u:type());
+      var named=see(Low,Hole,Curly);
+      return new Par(named&&!fwd(see(Hole))?pattern():null,named?fwd(see(Colon))?type():u:type());
     }
     List<B>bounds(boolean mustNew){var res=items(Parser::boundEnd,p->p.bound(mustNew));no(dup(B.v(res)));return res;}
     B bound(boolean mustNew){
@@ -263,8 +260,8 @@ import java.util.stream.*;
     var res=or(map.apply(n),other.get(n));var s=n.simple();
     if(res!=null||!primitive(s))return res;
     var lit=matches(s,Str,Raw)?str:matches(s,UI)?nat:matches(s,SI)?integer:floating;
-    var sup=from(lit,map,other);var ms=map(sup.ms,m->m.signature(new S(m.s.r,m.s.m,m.s.b,m.s.types,m.s.t,n,false,m.s.idx)));
-    return new Literal(imm,n,list(),push(new C(lit,list()),sup.cs),"this",ms,u,true,false);
+    var sup=from(lit,map,other);
+    return new Literal(imm,n,list(),push(new C(lit,list()),sup.cs),"this",map(sup.ms,m->m.signature(new S(m.s.r,m.s.m,m.s.b,m.s.types,m.s.t,n,false,m.s.idx))),u,true,false);
   }
   T u=U.Instance;
   interface T{
@@ -422,8 +419,7 @@ import java.util.stream.*;
       }),y->y);if(m.implicit){
         var p=fresh("impl");ps=push(ps,p);implicits.add(p);
       }if(patterns){var w=new HashMap<String,String>();p.map.forEach((k,v)->w.put(v,k));
-        var fl=lambda(map(xpats,xe->new Par(new Pat.Name(xe.x),u)),body);
-        body=new P.Call(new P.Typed(imm,new C(new N(p.name.equals("base")?"Destruct":w.getOrDefault("base.Destruct",w.getOrDefault("base","base")+".Destruct"),0),list()),null),"#",null,null,push(map(xpats,XE::e),fl));
+        body=new P.Call(new P.Typed(imm,new C(new N(p.name.equals("base")?"Destruct":w.getOrDefault("base.Destruct",w.getOrDefault("base","base")+".Destruct"),0),list()),null),"#",null,null,push(map(xpats,XE::e),lambda(map(xpats,xe->new Par(new Pat.Name(xe.x),u)),body)));
       }
       var e=expr(body);if(m.implicit)implicits.removeLast();return new M(s,ps,e);
     }
@@ -460,9 +456,7 @@ import java.util.stream.*;
     Literal from(N name){return Frontend.from(name,cache::get,other);}
     Literal expand(Literal d){
       var implied=flat(d.cs,c->parents(c).stream());
-      var supers=distinct(d.b,push(d.cs,implied.stream().sorted(Comparator.comparing(Print::of)).toList()));
-      var signatures=flat(filter(d.cs,c->!implied.contains(c)),c->from(c.name).ms.stream().map(m->alpha(m,c,d,list())));
-      return magic(d.header(supers,pair(d.ms,signatures,d)));
+      return magic(d.header(distinct(d.b,push(d.cs,implied.stream().sorted(Comparator.comparing(Print::of)).toList())),pair(d.ms,flat(filter(d.cs,c->!implied.contains(c)),c->from(c.name).ms.stream().map(m->alpha(m,c,d,list()))),d)));
     }
     Literal magic(Literal d){var supers=d.cs;no(filter(supers,c->c.name.equals(widen)).size()>1);
       if(has(supers,identity)){var m=d.ms.get(0);no(d.ms.size()!=1||m.e==null&&!m.s.abs&&!has(from(m.s.o).cs,identity));}
@@ -482,8 +476,8 @@ import java.util.stream.*;
       cache.put(d.name,new Literal(or(d.r,imm),d.name,d.b,map(d.cs,Frontend::normC),d.self,map(d.ms,m->m.signature(merge(m.s,m.s))),u,true,false));
     }
     M name(M m,Vector<S>ss){
-      var arity=m.s.types.size();for(var abs:list(true,false)){
-        var match=filter(ss,s->s.m.arity==arity&&(s.abs||!abs));ss.removeAll(match);
+      for(var abs:list(true,false)){
+        var match=filter(ss,s->s.m.arity==m.s.types.size()&&(s.abs||!abs));ss.removeAll(match);
         var count=match.stream().map(S::m).distinct().count();no(count>1);if(count==1){var s=m.s;
           return m.signature(new S(s.r,match.get(0).m,s.b,s.types,s.t,s.o,s.abs,s.idx));
         }
