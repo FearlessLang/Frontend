@@ -404,15 +404,15 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Raised when checking method calls.
   public FearlessException methodTArgsArityError(Literal d, Call c, List<B> bs){
     var expected= bs.size();
-    var args= Join.of(bs.stream().map(b -> disp(b.x())), ": ", " and ", "", "");
     var got= c.targs().size(); assert got != expected;
-    var expS= expected == 0 ? "no generic type arguments" : count(expected, "generic type argument")+args;
+    var sig= err().methodSig(c.name());
+    var expS= expected == 0 ? "no generic type parameters" : count(expected, "generic type parameter");
     var gotS= got == 0 ? "no generic type arguments" : count(got, "generic type argument");
-    return withCallSpans(err()
-      .pCallCantBeSatisfied(d, c)
-      .line("Wrong number of generic type arguments for "+err().methodSig(c.name())+".")
-      .line("This method expects "+expS+"; but this call provides "+gotS+".")
-      .ex(c), c);
+    var e= err().pCallCantBeSatisfied(d, c)
+      .line("Wrong number of generic type arguments for "+sig+".")
+      .line("Method "+sig+" declares "+expS+".");
+    if (expected != 0){ e.line("Declared generic type parameters: "+Join.of(bs.stream().map(b -> disp(b.x())), "", ", ", ".")); }
+    return withCallSpans(e.line("This call provides "+gotS+".").ex(c), c);
   }
   ///Methods exist for call c, but the receiver capability is too weak for all the available promotions.
   ///No promotion accepts this receiver, so the call cannot succeed regardless of argument types.
