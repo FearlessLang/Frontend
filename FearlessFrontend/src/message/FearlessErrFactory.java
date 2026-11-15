@@ -208,8 +208,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException spaceBeforeId(Span at, String id){
     return Code.UnexpectedToken.of(
-      "Found spacing between closed curly and destruct id "+disp(id)+"."
-      +"\nThere must be no space between the closed curly and the destruct id.")
+      "Space between \"}\" and "+disp(id)+" in a nominal pattern.\n"
+      +"Valid: \"{.a.b, .c}id\".\n"
+      +"Invalid: \"{.a.b, .c} id\".")
       .addSpan(at);
   }
   public FearlessException emptyDestructPattern(Span at){

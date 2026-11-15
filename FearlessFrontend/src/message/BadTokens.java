@@ -29,8 +29,8 @@ public final class BadTokens{
       .put(OSquareArg, BadTokens::squareAfterLiteral)
       .putStr(BadOSquare, Code.UnexpectedToken::of, """
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
-Write "Foo[Bar]" not "Foo [Bar]".
-Write "x.foo[read]" not "x.foo [read]".
+Valid: "Foo[Bar]", "x.foo[read]".
+Invalid: "Foo [Bar]", "x.foo [read]".
 """, "common ambiguities")
       .putStr(BadUppercaseId, Code.UnexpectedToken::of, """
 Package names are restricted to be valid filenames on all operating systems.
