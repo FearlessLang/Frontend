@@ -323,16 +323,16 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private List<IT> decidedThen(Gamma g, E.Call c, MSigL m){
     var given= Push.of(m.clsArgs(), writtenTargs(c) ? MSigL.fixTargs(c.targs(), m.bsArity()) : qMarks(m.bsArity()));
-    var args= Streams.zip(m.ps0(), c.es()).map((p,e) -> new Con(p, e.t(), true, !emptyLiteral(e))).toList();
-    return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.t(), false, true), args));
+    var args= Streams.zip(m.ps0(), c.es()).map((p,e) -> new Con(p, emptyLiteral(e) ? IT.U.Instance : e.t(), true)).toList();
+    return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.t(), false), args));
   }
-  private record Con(IT declared, IT actual, boolean in, boolean eq){}
+  private record Con(IT declared, IT actual, boolean in){}
   private List<IT> decide(Gamma g, List<B> bs, List<IT> given, List<Con> cons){
     var xs= B.xs(bs);
     Function<Con, List<IT>> ref= c -> refine(xs, c.declared(), c.actual());
-    var shape= cons.stream().filter(c -> c.eq() && c.declared() instanceof IT.RCC).map(ref).reduce(given, this::meet);
+    var shape= cons.stream().filter(c -> c.declared() instanceof IT.RCC).map(ref).reduce(given, this::meet);
     var lifted= join(shape, cons.stream().filter(c -> c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(qMarks(xs.size()), this::join));
-    var all= cons.stream().filter(c -> c.declared() instanceof IT.RCC ? !c.eq() : !c.in()).map(ref).reduce(lifted, this::meet);
+    var all= cons.stream().filter(c -> !c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(lifted, this::meet);
     var res= Streams.zip(shape, all).map((a,b) -> a.isTV() ? a : b).toList();
     return normToBounds(bs, res.stream().map(t -> deFresh(g, t)).toList());
   }
@@ -452,8 +452,8 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var oh= methodHeader(rcc, sig.m().get(), sig.rc());
     if (oh.isEmpty()){ return Stream.of(); }
     var methXs= B.xs(sig.bs().get());
-    var ps= Streams.zip(oh.get().ps0(), sig.ts()).map((p,a) -> new Con(p, dropMethBs(a.get(), methXs), false, true));
-    return Stream.concat(ps, Stream.of(new Con(oh.get().ret0(), dropMethBs(sig.ret().get(), methXs), true, true)));
+    var ps= Streams.zip(oh.get().ps0(), sig.ts()).map((p,a) -> new Con(p, dropMethBs(a.get(), methXs), false));
+    return Stream.concat(ps, Stream.of(new Con(oh.get().ret0(), dropMethBs(sig.ret().get(), methXs), true)));
   }
   private static boolean captureFree(E.Literal l){ return l.cs().stream().anyMatch(c -> c.name().equals(LiteralDeclarations.captureFree)); }
   private M instantiate(IT.RCC t, M orig, M m){
