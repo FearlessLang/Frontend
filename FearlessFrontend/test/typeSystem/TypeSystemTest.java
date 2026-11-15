@@ -1332,7 +1332,7 @@ In file: [###].fear
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Current"
-Invalid method implementation for "Current.id(_)".
+Invalid method signature for "Current.id(_)".
 The local declaration uses different capability bounds than the supertypes for generic type parameter 1 of ".id(_)".
 Local: "X:imm,read".
 From supertypes: "-:imm".
@@ -1352,7 +1352,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Sub"
-Invalid method implementation for "Sub.f(_)".
+Invalid method signature for "Sub.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertypes declare 1.
 Local declaration: "[X:imm, Y:imm]".
 From supertypes: "[-:imm]".
@@ -1369,7 +1369,7 @@ Sub:Sup{ imm .f[X:imm,Y:imm](x:imm X):base.Void; }
    | ----------------^^^^^^^^^^^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "Current"
-Invalid method signature overriding for "Current.g(_)".
+Invalid method signature for "Current.g(_)".
 The method ".g(_)" accepts parameter 1 of type "imm P".
 But "Parent.g(_)" requires "read P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
@@ -1388,7 +1388,7 @@ Current:Parent{ imm .g(x:imm P):base.Void; }
    | ---------^^^^^^^^^^^^^^^---
 
 While inspecting type declaration "Sub"
-Invalid method signature overriding for "Sub.h".
+Invalid method signature for "Sub.h".
 The method ".h" returns type "read P".
 But "Sup.h" returns type "imm P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
@@ -1938,7 +1938,7 @@ User:{
    |   --------------------------------~~~~^^^~~~~
 
 While inspecting ".caller(_,_)" line 3
-This call to method ".f(_,_)" cannot typecheck.
+This call to method "A.f(_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
@@ -1967,7 +1967,7 @@ A:{
    |   -------------------------------~~~~^^^~~~~
 
 While inspecting ".caller(_,_)" line 3
-This call to method ".f(_,_)" cannot typecheck.
+This call to method "A.f(_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
@@ -2317,7 +2317,7 @@ A:{
    |   --------------------------------~~~~^^^~~~~
 
 While inspecting ".caller(_,_)" line 3
-This call to method ".f(_,_)" cannot typecheck.
+This call to method "A.f(_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
@@ -2346,7 +2346,7 @@ A:{
    |   --------------------------------~~~~^^^~~~~~~~~~~~~~~~
 
 While inspecting ".caller(_,_)" line 4
-This call to method ".f(_,_)" cannot typecheck.
+This call to method "A.f(_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
@@ -4678,7 +4678,7 @@ without binders and capturing "other" is then reported as a capture error.*/
    | -------^^^^^^^^^^^---------------
 
 While inspecting type declaration "B"
-Invalid method signature overriding for "B.m1".
+Invalid method signature for "B.m1".
 The method ".m1" returns type "P".
 But "A.m1" returns type "Q", which is not a supertype of "P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
@@ -5615,7 +5615,7 @@ A:{ .m[X:*,Y:*](x:mut X):mut Y -> x }
    |     -------------~~~~~~~~^^^^^^^^^^^^^^^^--
 
 While inspecting object literal instance of "iso Box[A]" > ".m" line 4
-Invalid method signature overriding for "Box[A].get(_)".
+Invalid method signature for "Box[A].get(_)".
 The method ".get(_)" accepts parameter 1 of type "B".
 But "Box[_].get(_)" requires "A", which is not a subtype of "B".
 The two types are unrelated.
