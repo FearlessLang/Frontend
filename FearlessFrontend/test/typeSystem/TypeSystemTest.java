@@ -6274,4 +6274,72 @@ F1[X:**,R:**]:{ #(x: X): R }
 Ap:{ #[X:**,R:**](f: F1[X,R]): R -> this#f }
 User:{ .use: read G -> Ap#{x -> read G{ Use#x }} }
 """));}
+@Test void receiverTypeArgumentAndADifferentTypeArgumentOfAnArgumentIsATypeError(){fail("""
+004| User:{ .m(x: Box[A], y: Box[B]): Box[A] -> x.put(y) }
+   |        ------------------------------------~^^^^^~~
+
+While inspecting ".m(_,_)" line 4
+This call to method "Box[_].put(_)" cannot typecheck.
+Argument 1 has type "Box[B]".
+That is not a subtype of "Box[A]" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.put(y)
+""", List.of("""
+A:{}
+B:A{}
+Box[T]:{ .put(b: Box[T]): Box[T] -> this }
+User:{ .m(x: Box[A], y: Box[B]): Box[A] -> x.put(y) }
+"""));}
+@Test void emptyLiteralArgumentNextToATypedArgumentGivesNoConstraint(){ok(List.of("""
+Sup:{ .k: Sup }
+Closed[T]:Sup{ read .close: read T }
+A:Closed[A]{ .close->this; .k->this }
+Ids:{ #[X](a: X, b: X): X -> a }
+User:{ .m(c: Closed[A]): Sup -> Ids#({}, c) }
+"""));}
+@Test void argumentOfACallOnAReceiverOfUnknownTypeDecidesTheTypeOfTheReceiver(){ok(List.of("""
+A:{ .foo(a: A): A -> a }
+Id:{ #(a: A): A -> a }
+F[T,R]:{ #(t: T): R }
+Use:{ #[T,R](f: F[T,R]): Use -> this }
+User:{ .m: Use -> Use#{x -> x.foo(Id#x)} }
+"""));}
+@Test void siblingsWithAChainOfCommonSupertypesInferTheLowest(){ok(List.of("""
+Living:{}
+Animal:Living{ .me: Animal -> this }
+Cat:Animal{}
+Dog:Animal{}
+Ids:{ #[X](a: X, b: X): X -> a }
+User:{ .m(c: Cat, d: Dog): Animal -> Ids#(c, d).me }
+"""));}
+@Test void typeGrowsForeverInsideAnArgument(){failWf("""
+007| Use:{ .go: N -> Take#{ .m(x) -> Pair#(x, Wrap#(x)) } }
+   |                                          ^^^^^^^^
+
+While inspecting method call "#(_)"
+Type inference finds no type for method call "#(_)".
+Each round of inference nests its type one level deeper, as "Box[Box[Box[...]]]"; it would grow without bound.
+""", List.of("""
+N:{}
+Box[X]:{}
+Wrap:{ #[Y](y: Y): Box[Y] -> {} }
+Pair:{ #[T](a: T, b: T): N -> N }
+Foo[X]:{ .m(x: X): N }
+Take:{ #[Z](f: Foo[Z]): N -> N }
+Use:{ .go: N -> Take#{ .m(x) -> Pair#(x, Wrap#(x)) } }
+"""));}
+@Test void selfNameCallInALiteralOfUnknownCapabilityDoesNotDecideATypeArgument(){failWf("""
+004| User:{ .go: A -> Take#{'s .mk -> A; .get -> s.mk }.mk }
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "Foo[_]"
+Type inference concluded that this object literal implements "Foo[?]",
+but it could not infer generic type argument 1 for generic type parameter "T" of "Foo[_]".
+""", List.of("""
+A:{}
+Foo[T]:{ .mk: A; .get: T }
+Take:{ #[T](f: Foo[T]): Foo[T] -> f }
+User:{ .go: A -> Take#{'s .mk -> A; .get -> s.mk }.mk }
+"""));}
 }
