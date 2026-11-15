@@ -1374,7 +1374,7 @@ Flows:{
 }
 
 User:{.go:Bool->
-  // mapping has 2 method binders [K,E], but we pass 3 targs: inference drops the extra one (MSigL.fixTargs).
+  // mapping has 2 method binders [K,E], but we pass 3 targs: inference does not use them.
   Flows.flow.mapping[KeyElem[Str,Info],Str,Info]({
     .key(e)->e.key;
     .elem(e)->e.elem;
@@ -1401,7 +1401,7 @@ Flows:{
 }
 
 User:{.go:Bool->
-  // only 1 targ, should be 2: inference pads the missing one with an unknown type (MSigL.fixTargs).
+  // only 1 targ, should be 2: inference does not use it.
   Flows.flow.mapping[Str]({
     .key(e)->e.key;
     .elem(e)->e.elem;
@@ -1417,14 +1417,14 @@ User:{.go:Bool->
 ~mut p.KeyElem[K:imm,E:imm]:{'this .key:K; .elem:E}
 ~mut p.Str:{'this }
 ~mut p.True:{'this }
-~mut p.User:{'this .go:p.Bool->p.Flows.flow[read].mapping[imm,p.KeyElem[p.Str,p.Info],p.Str,p.Info](imm p._AUser:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],p.KeyElem[p.Str,p.Info],p.Str]{'_ .key(e:p.KeyElem[p.Str,p.Info]):p.KeyElem[p.Str,p.Info]->e.key[imm]; .elem(e:p.KeyElem[p.Str,p.Info]):p.Str->e.elem[imm]})}
+~mut p.User:{'this .go:p.Bool->p.Flows.flow[read].mapping[imm,p.KeyElem[p.Str,p.Info],p.Str,p.Info](imm p._AUser:p.KeyElemMapper[p.KeyElem[p.Str,p.Info],p.Str,p.Info]{'_ .key(e:p.KeyElem[p.Str,p.Info]):p.Str->e.key[imm]; .elem(e:p.KeyElem[p.Str,p.Info]):p.Info->e.elem[imm]})}
 """, List.of("""
 Str:{} Info:{} Bool:{} True:{} False:{}
 KeyElem[K,E]:{.key:K;.elem:E;}
 KeyElemMapper[A,K,E]:{.key(A):K;.elem(A):E;}
 
 Flow[TTT]:{
-  // Here K/E are USED in the parameter type, so trimming/padding really affects inference.
+  // Here K/E are USED in the parameter type, so using the written targs would affect inference.
   .mapping[K,E](m:KeyElemMapper[TTT,K,E]):Bool;
 }
 
@@ -1435,7 +1435,7 @@ Flows:{
 }
 
 User:{.go:Bool->
-  // 3 targs given to a 2-binder method: inference drops the extra one (MSigL.fixTargs), so TTT does not leak.
+  // 3 targs given to a 2-binder method: inference does not use them, so TTT does not leak.
   Flows.flow.mapping[KeyElem[Str,Info],Str,Info]({
     .key(e)->e.key;
     .elem(e)->e.elem;

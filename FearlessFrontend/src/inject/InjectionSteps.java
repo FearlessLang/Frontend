@@ -322,7 +322,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return new IT.RCC(rcc.rc(), head, rcc.span()).withTs(head.ts().stream().map(ti -> deFresh(g, ti)).toList());
   }
   private List<IT> decidedThen(Gamma g, E.Call c, MSigL m){
-    var given= Push.of(m.clsArgs(), writtenTargs(c) ? MSigL.fixTargs(c.targs(), m.bsArity()) : qMarks(m.bsArity()));
+    var given= Push.of(m.clsArgs(), writtenTargs(c) && c.targs().size() == m.bsArity() ? c.targs() : qMarks(m.bsArity()));
     var args= Streams.zip(m.ps0(), c.es()).map((p,e) -> new Con(p, emptyLiteral(e) ? IT.U.Instance : e.t(), true)).toList();
     return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.t(), false), args));
   }
