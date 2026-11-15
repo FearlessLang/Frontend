@@ -534,16 +534,16 @@ import java.util.stream.*;
     }
     T join(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
-      var cands=list(a,z);var res=or(above(a,cands),above(z,cands));if(res!=null||!(a instanceof R r0&&z instanceof R r1))return or(res,u);
+      var res=or(above(a,z),above(z,a));if(res!=null||!(a instanceof R r0&&z instanceof R r1))return or(res,u);
       var heads=filter(map(parents(r0.c),C::name),h->sup(r0,h) instanceof R s&&sup(r1,h) instanceof R q&&s.c.equals(q.c));
-      var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&has(from(h2).cs,h)));return minimal.size()==1?above(sup(r0,minimal.get(0)),cands):u;
+      var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&has(from(h2).cs,h)));return minimal.size()==1?above(sup(r0,minimal.get(0)),z):u;
     }
-    T above(T top,List<T>cands){
-      T res=top;for(var c:cands){var up=c instanceof R r&&top instanceof R rt?r.c.name.equals(rt.c.name)?c:sup(r,rt.c.name):Objects.equals(c.v(),top.v())?c:null;if(up==null)return null;
-        res=res instanceof R p&&up instanceof R q?zip(p.c.types,q.c.types,(x,y)->x.tv()&&y.tv()&&!x.equals(y)).contains(true)?null:p.with(lub(p.r,q.r),meet(p.c.types,q.c.types)):res instanceof RX p&&up instanceof RX q?p.rc(lub(p.r,q.r)):meet(res,up);if(res==null)return null;}return res;
+    T above(T top,T c){
+      var up=c instanceof R r&&top instanceof R rt?r.c.name.equals(rt.c.name)?c:sup(r,rt.c.name):Objects.equals(c.v(),top.v())?c:null;
+      return up==null?null:top instanceof R p&&up instanceof R q?zip(p.c.types,q.c.types,(x,y)->x.tv()&&y.tv()&&!x.equals(y)).contains(true)?null:p.with(lub(p.r,q.r),meet(p.c.types,q.c.types)):top instanceof RX p&&up instanceof RX q?p.rc(lub(p.r,q.r)):top;
     }
     RC lub(RC a,RC b){
-      return a==null||b==null?or(a,b):a.h()==b.h()||b.h()==iso?a.h():a.h()==iso?b.h():read;
+      return a==null?b:b==null||a.h()==b.h()||b.h()==iso?a.h():a.h()==iso?b.h():read;
     }
     List<T>meet(List<T>a,List<T>z){return zip(a,z,this::meet);}
     E solve(List<B>b,IG g,E e){
