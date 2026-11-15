@@ -105,7 +105,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (e instanceof E.Type tt){ return meetT(tt, t); }
     var typedLit= e instanceof E.Literal l && l.t().isTV();
     if (typedLit){ return e; }
-    e = prototypeAscribeRootReceiver(e, t, Optional.empty());
+    e = prototypeAscribeRootReceiver(e, t);
     return e.withT(meet(e.t(), t));
   }
   private IT _below(RCC sub, RCC sup){
@@ -530,16 +530,16 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (headKnown){ return false; }
     return l.t().undecided();
   }
-  private E prototypeAscribeRootReceiver(E arg, IT expected, Optional<MName> called){
-    if (!(expected instanceof IT.RCC exp)){ return arg; }
-    return switch (arg){
-      case E.Call c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, Optional.of(c.name())), c.es());
-      case E.Literal l when !needsPrototypeAscription(l) -> arg;
-      case E.Literal l when called.map(name -> implementable(exp.c().name()) && !declares(l, name)).orElse(true) -> l.withT(prototypeHead(exp, l.span()));
-      case E.Literal l when l.ms().isEmpty() -> arg;
+  private E prototypeAscribeRootReceiver(E arg, IT expected){
+    if (!(arg instanceof E.Call c && expected instanceof IT.RCC exp)){ return arg; }
+    var receiver= switch (c.e()){
+      case E.Literal l when !needsPrototypeAscription(l) -> l;
+      case E.Literal l when implementable(exp.c().name()) && !declares(l, c.name()) -> l.withT(prototypeHead(exp, l.span()));
+      case E.Literal l when l.ms().isEmpty() -> l;
       case E.Literal l -> itself(l);
-      default -> arg;
+      default -> prototypeAscribeRootReceiver(c.e(), expected);
     };
+    return c.withEEs(receiver, c.es());
   }
   private static boolean declares(E.Literal l, MName name){
     return l.ms().stream().map(M::sig).anyMatch(s -> s.m().equals(Optional.of(name)) && s.ret().isPresent() && s.ts().stream().allMatch(Optional::isPresent));
