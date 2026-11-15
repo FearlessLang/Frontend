@@ -1037,9 +1037,8 @@ In file: [###].fear
    |     ------^^^^^~~~~~
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-Capability readH used.
-Capabilities readH and mutH are not allowed on object literals.
-Use one of read, mut, imm, iso.
+Capability "readH" is not allowed on object literals.
+Allowed capabilities: "read", "mut", "imm", "iso".
 Error 2 UnexpectedToken
 """, """
 A:{ .m -> readH +5{} }
@@ -1051,9 +1050,8 @@ In file: [###].fear
    |     ------^^^^~~~~~
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-Capability mutH used.
-Capabilities readH and mutH are not allowed on object literals.
-Use one of read, mut, imm, iso.
+Capability "mutH" is not allowed on object literals.
+Allowed capabilities: "read", "mut", "imm", "iso".
 Error 2 UnexpectedToken
 """, """
 A:{ .m -> mutH -5{} }
@@ -2787,9 +2785,8 @@ In file: [###].fear
    |   --^^^~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Capability iso used.
-Capabilities iso, readH and mutH are not allowed on method declarations.
-Use one of read, mut, imm.
+Capability "iso" is not allowed on method declarations.
+Allowed capabilities: "read", "mut", "imm".
 Error 2 UnexpectedToken
 """, """
 A:{ iso .foo:Bar }
@@ -2801,9 +2798,8 @@ In file: [###].fear
    |   --^^^^^~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Capability readH used.
-Capabilities iso, readH and mutH are not allowed on method declarations.
-Use one of read, mut, imm.
+Capability "readH" is not allowed on method declarations.
+Allowed capabilities: "read", "mut", "imm".
 Error 2 UnexpectedToken
 
 """, """
@@ -2816,9 +2812,8 @@ In file: [###].fear
    |   --^^^^~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Capability mutH used.
-Capabilities iso, readH and mutH are not allowed on method declarations.
-Use one of read, mut, imm.
+Capability "mutH" is not allowed on method declarations.
+Allowed capabilities: "read", "mut", "imm".
 Error 2 UnexpectedToken
 """, """
 A:{ mutH .foo:Bar }

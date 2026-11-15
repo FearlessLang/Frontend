@@ -20,9 +20,8 @@ Box[T:*]:{ mut .get: T; read .rget: read T; read .riget: read/imm T }
    |     ^^^~~~~~~~~~~~--------
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
-Capability iso used.
-Capabilities iso, readH and mutH are not allowed on method declarations.
-Use one of read, mut, imm.
+Capability "iso" is not allowed on method declarations.
+Allowed capabilities: "read", "mut", "imm".
 """, List.of("""
 A:{ iso .m1: iso A -> this }
 """));}
