@@ -349,16 +349,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     }
     var rcs= sameArity.stream().map(Sig::rc).sorted().toList();
     var availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
-    var explicit= !(c.src().inner instanceof fearlessFullGrammar.E.Call fc) || fc.targs().flatMap(fearlessFullGrammar.E.CallSquare::rc).isPresent();
-    var e2= err()
+    return withCallSpans(err()
       .pCallCantBeSatisfied(c)
       .line(err().methodSig(c.name())+" exists on "+on+", but not with the requested capability.")
-      .line(explicit
-        ? "This call requires the existence of a "+disp(c.rc())+" method."
-        : "This call does not state a capability and none could be inferred, so "+disp(c.rc())+" is assumed.")
-      .line("Available capabilities for this method: "+availRc);
-    if (!explicit){ e2.line("Hint: state the capability after the method name, as in "+disp(c.name().s()+"["+rcs.getFirst()+"]")+"."); }
-    return withCallSpans(e2.ex(c), c);
+      .line("This call requires the existence of a "+disp(c.rc())+" method.")
+      .line("Available capabilities for this method: "+availRc)
+      .ex(c), c);
   }
   private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
     var receiverIsThis= c.e() instanceof X(var xName, _) && xName.equals("this");
