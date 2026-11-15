@@ -517,7 +517,7 @@ import java.util.stream.*;
     }
     E meet(E e,T t){
       if(!(e instanceof Literal l&&l.t.tv())){var a=ascribe(e,t);return a.t(meet(a.t(),t));}
-      if(!(empty(l)&&l.cs.size()>0&&meet(l.t,t) instanceof R m&&m.tv()))return e;
+      if(!(empty(l)&&l.cs.size()>0&&meet(l.t,t) instanceof R m))return e;
       var r=new R(m.r,self(m.c));return r.equals(new R(l.r,l.cs.get(0)))?e:new Literal(null,l.name,list(),list(),l.self,list(),r,true,false);
     }
     T below(R sub,R sup){
