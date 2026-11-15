@@ -3103,7 +3103,7 @@ In file: [###].fear
 005|  }
 
 While inspecting type declaration > full file
-Missing type declaration (:) symbol.
+Missing type declaration colon.
 Found instead: a group in {..}.
 Expected: ":".
 Error 2 UnexpectedToken
