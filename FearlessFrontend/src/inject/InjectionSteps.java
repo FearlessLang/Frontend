@@ -105,7 +105,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (e instanceof E.Type tt){ return meetT(tt, t); }
     var typedLit= e instanceof E.Literal l && l.t().isTV();
     if (typedLit){ return e; }
-    e = prototypeAscribeRootReceiver(e, t, Optional.empty());
+    e = prototypeAscribeRootReceiver(e, t);
     return e.withT(meet(e.t(), t));
   }
   private IT _below(RCC sub, RCC sup){
@@ -322,18 +322,18 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return new IT.RCC(rcc.rc(), head, rcc.span()).withTs(head.ts().stream().map(ti -> deFresh(g, ti)).toList());
   }
   private List<IT> decidedThen(Gamma g, E.Call c, MSigL m){
-    var given= Push.of(m.clsArgs(), writtenTargs(c) ? MSigL.fixTargs(c.targs(), m.bsArity()) : qMarks(m.bsArity()));
-    var args= Streams.zip(m.ps0(), c.es()).map((p,e) -> new Con(p, e.t(), true, !emptyLiteral(e))).toList();
-    return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.t(), false, true), args));
+    var given= Push.of(m.clsArgs(), writtenTargs(c) && c.targs().size() == m.bsArity() ? c.targs() : qMarks(m.bsArity()));
+    var args= Streams.zip(m.ps0(), c.es()).map((p,e) -> new Con(p, emptyLiteral(e) ? IT.U.Instance : e.t(), true)).toList();
+    return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.t(), false), args));
   }
-  private record Con(IT declared, IT actual, boolean in, boolean eq){}
+  private record Con(IT declared, IT actual, boolean in){}
   private List<IT> decide(Gamma g, List<B> bs, List<IT> given, List<Con> cons){
     var xs= B.xs(bs);
     Function<Con, List<IT>> ref= c -> refine(xs, c.declared(), c.actual());
-    var shape= cons.stream().filter(c -> c.eq() && c.declared() instanceof IT.RCC).map(ref).reduce(given, this::meet);
+    var shape= cons.stream().filter(c -> c.declared() instanceof IT.RCC).map(ref).reduce(given, this::meet);
     var lifted= join(shape, cons.stream().filter(c -> c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(qMarks(xs.size()), this::join));
-    var all= cons.stream().filter(c -> c.declared() instanceof IT.RCC ? !c.eq() : !c.in()).map(ref).reduce(lifted, this::meet);
-    var res= Stream.of(given, shape, all).reduce((p,q) -> Streams.zip(p, q).map((a,b) -> a.isTV() ? a : b).toList()).get();
+    var all= cons.stream().filter(c -> !c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(lifted, this::meet);
+    var res= Streams.zip(shape, all).map((a,b) -> a.isTV() ? a : b).toList();
     return normToBounds(bs, res.stream().map(t -> deFresh(g, t)).toList());
   }
   private static boolean emptyLiteral(E e){ return e instanceof E.Type tt ? tt.src().inner instanceof fearlessFullGrammar.E.Literal : e instanceof E.Literal l && l.infName() && l.ms().isEmpty(); }
@@ -363,7 +363,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       solved.add(mi.impl().isEmpty() ? mi : nextMStarOp(bs, g, l, selfPrecise, rcc, mi));
     }
     var d= meths._from(rcc.c().name());
-    var ts= d == null ? rcc.c().ts().stream().map(t -> deFresh(g, t)).toList() : decide(g, d.bs(), rcc.c().ts(), solved.stream().flatMap(m -> constraints(rcc, m)).toList());
+    var ts= decide(g, d == null ? l.bs() : d.bs(), rcc.c().ts(), solved.stream().flatMap(m -> constraints(rcc, m)).toList());
     var t= rcc.withTs(ts);
     var ms= norm(l.ms(), Streams.zip(l.ms(), solved).map((mi, m) -> instantiate(t, mi, m)).toList());
     var noChange= ms == l.ms() && ts.equals(rcc.c().ts());
@@ -378,7 +378,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var localBs= freeNames.distinct().map(x -> B.get(bs, x)).toList();
     var newName= name.withArity(localBs.size());
     var ms= fixArity(l.ms(), name, newName);
-    var orc= l.rc().or(rcc::rc).map(InjectionSteps::noH);
+    var orc= rcc.rc().map(InjectionSteps::noH);
     assert l.infName();
     assert l.bs().isEmpty();
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
@@ -396,7 +396,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private E.Type literalAsType(E.Literal l, IT.RCC rcc){
     if (!l.thisName().equals("_")){ throw meths.p().err().selfNameDeadCode(l); }
-    var written= new IT.RCC(l.rc().or(rcc::rc).map(InjectionSteps::noH), rcc.c(), rcc.span());
+    var written= new IT.RCC(rcc.rc().map(InjectionSteps::noH), rcc.c(), rcc.span());
     notForeignPrivate(l, written);
     return new E.Type(written, preferred(written), l.src(), l.g());
   }
@@ -452,8 +452,8 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var oh= methodHeader(rcc, sig.m().get(), sig.rc());
     if (oh.isEmpty()){ return Stream.of(); }
     var methXs= B.xs(sig.bs().get());
-    var ps= Streams.zip(oh.get().ps0(), sig.ts()).map((p,a) -> new Con(p, dropMethBs(a.get(), methXs), false, true));
-    return Stream.concat(ps, Stream.of(new Con(oh.get().ret0(), dropMethBs(sig.ret().get(), methXs), true, true)));
+    var ps= Streams.zip(oh.get().ps0(), sig.ts()).map((p,a) -> new Con(p, dropMethBs(a.get(), methXs), false));
+    return Stream.concat(ps, Stream.of(new Con(oh.get().ret0(), dropMethBs(sig.ret().get(), methXs), true)));
   }
   private static boolean captureFree(E.Literal l){ return l.cs().stream().anyMatch(c -> c.name().equals(LiteralDeclarations.captureFree)); }
   private M instantiate(IT.RCC t, M orig, M m){
@@ -530,16 +530,16 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (headKnown){ return false; }
     return l.t().undecided();
   }
-  private E prototypeAscribeRootReceiver(E arg, IT expected, Optional<MName> called){
-    if (!(expected instanceof IT.RCC exp)){ return arg; }
-    return switch (arg){
-      case E.Call c -> c.withEEs(prototypeAscribeRootReceiver(c.e(), expected, Optional.of(c.name())), c.es());
-      case E.Literal l when !needsPrototypeAscription(l) -> arg;
-      case E.Literal l when called.map(name -> implementable(exp.c().name()) && !declares(l, name)).orElse(true) -> l.withT(prototypeHead(exp, l.span()));
-      case E.Literal l when l.ms().isEmpty() -> arg;
+  private E prototypeAscribeRootReceiver(E arg, IT expected){
+    if (!(arg instanceof E.Call c && expected instanceof IT.RCC exp)){ return arg; }
+    var receiver= switch (c.e()){
+      case E.Literal l when !needsPrototypeAscription(l) -> l;
+      case E.Literal l when implementable(exp.c().name()) && !declares(l, c.name()) -> l.withT(prototypeHead(exp, l.span()));
+      case E.Literal l when l.ms().isEmpty() -> l;
       case E.Literal l -> itself(l);
-      default -> arg;
+      default -> prototypeAscribeRootReceiver(c.e(), expected);
     };
+    return c.withEEs(receiver, c.es());
   }
   private static boolean declares(E.Literal l, MName name){
     return l.ms().stream().map(M::sig).anyMatch(s -> s.m().equals(Optional.of(name)) && s.ret().isPresent() && s.ts().stream().allMatch(Optional::isPresent));

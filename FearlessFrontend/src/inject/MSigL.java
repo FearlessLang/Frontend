@@ -24,10 +24,5 @@ record MSigL(RC rc, List<String> xs, List<B> clsBs, List<IT> clsArgs, List<B> me
     var ts= Push.of(clsArgs, targs);//performance? we could cache this result since targs is fixed and used over and over
     return TypeRename.of(t, xs, ts);
   }
-  static List<IT> fixTargs(List<IT> targs, int n){
-    var k= targs.size();
-    if (k > n){ return targs.subList(0, n); }
-    return Push.of(targs, InjectionSteps.qMarks(n-k));
-  }
   static List<IT> toXs(TSpan span, List<String> targetBs){ return targetBs.stream().<IT>map(n -> new IT.X(n, span)).toList(); }
 }
