@@ -913,8 +913,8 @@ In file: [###].fear
 While inspecting common ambiguities
 Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
-Write "Foo[Bar]" not "Foo [Bar]".
-Write "x.foo[read]" not "x.foo [read]".
+Valid: "Foo[Bar]", "x.foo[read]".
+Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
 """, """
 A:{ x -> x.foo [read] }
@@ -928,8 +928,8 @@ In file: [###].fear
 While inspecting common ambiguities
 Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
-Write "Foo[Bar]" not "Foo [Bar]".
-Write "x.foo[read]" not "x.foo [read]".
+Valid: "Foo[Bar]", "x.foo[read]".
+Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
 """, """
 A:{ x -> x.foo/*c*/[read] }
@@ -943,8 +943,8 @@ In file: [###].fear
 While inspecting common ambiguities
 Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
-Write "Foo[Bar]" not "Foo [Bar]".
-Write "x.foo[read]" not "x.foo [read]".
+Valid: "Foo[Bar]", "x.foo[read]".
+Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
 """, """
 A:{ .m: B/*c*/[C] -> this.m }
@@ -958,8 +958,8 @@ In file: [###].fear
 While inspecting common ambiguities
 Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
-Write "Foo[Bar]" not "Foo [Bar]".
-Write "x.foo[read]" not "x.foo [read]".
+Valid: "Foo[Bar]", "x.foo[read]".
+Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
 """, """
 A:{ x -> x +/*c*/[read] x }
@@ -973,8 +973,8 @@ In file: [###].fear
 While inspecting common ambiguities
 Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
-Write "Foo[Bar]" not "Foo [Bar]".
-Write "x.foo[read]" not "x.foo [read]".
+Valid: "Foo[Bar]", "x.foo[read]".
+Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
 """, """
 A:{ x -> x.foo//c
@@ -989,8 +989,8 @@ In file: [###].fear
 While inspecting common ambiguities
 Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
-Write "Foo[Bar]" not "Foo [Bar]".
-Write "x.foo[read]" not "x.foo [read]".
+Valid: "Foo[Bar]", "x.foo[read]".
+Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
 """, """
 A:{ .m: A -> 1/*c*/[A] }
@@ -1004,8 +1004,8 @@ In file: [###].fear
 While inspecting common ambiguities
 Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
-Write "Foo[Bar]" not "Foo [Bar]".
-Write "x.foo[read]" not "x.foo [read]".
+Valid: "Foo[Bar]", "x.foo[read]".
+Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
 """, """
 A:{ .m: A -> 1/*c*/[] }
@@ -1019,8 +1019,8 @@ In file: [###].fear
 While inspecting common ambiguities
 Unrecognized text "[".
 Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
-Write "Foo[Bar]" not "Foo [Bar]".
-Write "x.foo[read]" not "x.foo [read]".
+Valid: "Foo[Bar]", "x.foo[read]".
+Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
 """, """
 A:{ .m: A -> "a"/*c*/[A] }
@@ -1170,8 +1170,9 @@ In file: [###].fear
    |     ---~~~~~^^^~~---
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
-Found spacing between closed curly and destruct id "Bob".
-There must be no space between the closed curly and the destruct id.
+Space between "}" and "Bob" in a nominal pattern.
+Valid: "{.a.b, .c}id".
+Invalid: "{.a.b, .c} id".
 Error 2 UnexpectedToken
 """, """
 A:{ .m({.a} Bob:X):X }
@@ -3265,7 +3266,7 @@ In file: [###].fear
 003|   .elem(top:T, tail: Stack[T]): R,
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Expected semicolon or closed curly.
+Expected semicolon or closing curly brace.
 Expected one of: ";", "}".
 Error 4 ExtraTokenInGroup
 """, """

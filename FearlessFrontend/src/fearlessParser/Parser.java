@@ -249,7 +249,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   M parseMethod(boolean top){
     var res= parseMethodAux(top);
-    expectEnd("semicolon or closed curly", SemiColon, CCurly);
+    expectEnd("semicolon or closing curly brace", SemiColon, CCurly);
     return res;
   }
   M parseMethodWithSig(Sig sig){
