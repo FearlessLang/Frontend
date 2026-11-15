@@ -869,7 +869,6 @@ Supertypes disagree on the capability bounds for generic type parameter 1 of ".i
 Generic type parameter names may differ across supertypes; only the position matters.
 Different supertypes declare: "X:imm" and "Y:read".
 Type declaration "D" cannot implement all of those supertypes.
-Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.
 Error 7 WellFormedness
 """, List.of("""
 Box[K]:{.get:K;}
@@ -889,7 +888,6 @@ Supertypes disagree on the capability bounds for generic type parameter 1 of ".i
 Generic type parameter names may differ across supertypes; only the position matters.
 Different supertypes declare: "X:imm" and "Y:read".
 Type declaration "D" cannot implement all of those supertypes.
-Make the supertypes agree on these bounds, or remove one of the conflicting supertypes.
 Error 7 WellFormedness
 """, List.of("""
 Box[K]:{.get:K;}
@@ -909,7 +907,6 @@ Invalid method signature for "E.m(_,_)".
 The method ".m(_,_)" declares 1 generic type parameter, but supertypes declare 2.
 Local declaration: "[U:imm]".
 From supertypes: "[-:imm, -:imm]".
-Change the local number of generic type parameters to 2, or adjust the supertypes.
 Error 7 WellFormedness
 """, List.of("""
 A:{.m[X,Y](x:X,y:Y):X}

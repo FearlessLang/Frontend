@@ -1337,7 +1337,6 @@ The local declaration uses different capability bounds than the supertypes for g
 Local: "X:imm,read".
 From supertypes: "-:imm".
 The parameter name may differ; only the position matters.
-Change the local bounds to match the supertypes, or adjust the supertypes.
 Error 7 WellFormedness
 """, List.of("""
 P:{}
@@ -1356,7 +1355,6 @@ Invalid method signature for "Sub.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertypes declare 1.
 Local declaration: "[X:imm, Y:imm]".
 From supertypes: "[-:imm]".
-Change the local number of generic type parameters to 1, or adjust the supertypes.
 Error 7 WellFormedness
 """, List.of("""
 P:{}
@@ -1583,7 +1581,7 @@ User:{
 While inspecting ".m(_,_)" line 6
 This call to method ".zap(_)" cannot typecheck.
 ".zap(_)" exists on type "Z", but not with the requested capability.
-This call requires the existence of a "mut" method.
+This call requires a method with capability "mut".
 Available capabilities for this method: "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1605,7 +1603,7 @@ User:{
 While inspecting ".u" line 2
 This call to method ".k" cannot typecheck.
 ".k" exists on object literal instance of "A", but not with the requested capability.
-This call requires the existence of a "read" method.
+This call requires a method with capability "read".
 Available capabilities for this method: "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1621,7 +1619,7 @@ U:{ .u: base.Void -> mut A{ read .m: base.Void -> base.Void; mut .k: base.Void -
 While inspecting "#(_)" line 2
 This call to method ".m" cannot typecheck.
 ".m" exists on type "A", but not with the requested capability.
-This call requires the existence of a "read" method.
+This call requires a method with capability "read".
 Available capabilities for this method: "imm" and "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -2141,7 +2139,7 @@ A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 While inspecting ".bar" line 1
 This call to method ".foo123" cannot typecheck.
 ".foo123" exists on type "A", but not with the requested capability.
-This call requires the existence of a "read" method.
+This call requires a method with capability "read".
 Available capabilities for this method: "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
