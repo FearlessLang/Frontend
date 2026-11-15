@@ -313,7 +313,6 @@ Invalid method signature for "A.m".
 The method ".m" declares 2 generic type parameters, but supertypes declare 1.
 Local declaration: "[X:imm,mut,read, Y:imm,mut,read]".
 From supertypes: "[-:imm,mut,read]".
-Change the local number of generic type parameters to 1, or adjust the supertypes.
 """, List.of("""
 Foo:{}
 A:B{ .m[X:*,Y:*]: Foo }
@@ -329,7 +328,6 @@ The local declaration uses different capability bounds than the supertypes for g
 Local: "X:imm".
 From supertypes: "-:imm,mut,read".
 The parameter name may differ; only the position matters.
-Change the local bounds to match the supertypes, or adjust the supertypes.
 """, List.of("""
 Foo:{}
 A:B{ .m[X:imm]: Foo }

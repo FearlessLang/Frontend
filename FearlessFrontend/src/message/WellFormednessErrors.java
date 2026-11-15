@@ -449,8 +449,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return wf(invalidMethImpl(at)
       .line("The method "+err().methodSig(at.mName())+" declares "+count(userBs.size(), "generic type parameter")+", but supertypes declare "+superBs.size()+".")
       .line("Local declaration: "+disp(userBs)+".")
-      .line("From supertypes: "+sB+".")
-      .line("Change the local number of generic type parameters to "+superBs.size()+", or adjust the supertypes."), at);
+      .line("From supertypes: "+sB+"."), at);
   }
   public FearlessException methodBsDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     assert res.size() >= 2;
@@ -463,8 +462,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Supertypes disagree on the capability bounds for generic type parameter "+(i+1)+" of "+m+".")
       .line("Generic type parameter names may differ across supertypes; only the position matters.")
       .line("Different supertypes declare: "+opts)
-      .line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes.")
-      .line("Make the supertypes agree on these bounds, or remove one of the conflicting supertypes."), at);
+      .line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at);
   }
   public FearlessException methodBsDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
     assert userBs.size() == superBs.size();
@@ -478,8 +476,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("The local declaration uses different capability bounds than the supertypes for generic type parameter "+(i+1)+" of "+m+".")
       .line("Local: "+uB+".")
       .line("From supertypes: "+sB+".")
-      .line("The parameter name may differ; only the position matters.")
-      .line("Change the local bounds to match the supertypes, or adjust the supertypes."), at);
+      .line("The parameter name may differ; only the position matters."), at);
   }
   private int firstRcsDisagreementIndex(List<List<B>> res){
     return IntStream.range(0, res.getFirst().size())

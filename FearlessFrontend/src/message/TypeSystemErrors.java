@@ -352,7 +352,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     return withCallSpans(err()
       .pCallCantBeSatisfied(c)
       .line(err().methodSig(c.name())+" exists on "+on+", but not with the requested capability.")
-      .line("This call requires the existence of a "+disp(c.rc())+" method.")
+      .line("This call requires a method with capability "+disp(c.rc())+".")
       .line("Available capabilities for this method: "+availRc)
       .ex(c), c);
   }
