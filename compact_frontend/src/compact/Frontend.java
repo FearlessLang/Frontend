@@ -516,7 +516,7 @@ import java.util.stream.*;
       late=false;var e1=solve(b,g,ei);late=true;return m.body(core(b,solve(b,g,e1),m.e));
     }
     E meet(E e,T t){
-      if(!(e instanceof Literal l&&l.t.tv())){var a=ascribe(e,t,null);return a.t(meet(a.t(),t));}
+      if(!(e instanceof Literal l&&l.t.tv())){var a=ascribe(e,t);return a.t(meet(a.t(),t));}
       if(!(empty(l)&&l.cs.size()>0&&meet(l.t,t) instanceof R m&&m.tv()))return e;
       var r=new R(m.r,self(m.c));return r.equals(new R(l.r,l.cs.get(0)))?e:new Literal(null,l.name,list(),list(),l.self,list(),r,true,false);
     }
@@ -631,13 +631,9 @@ import java.util.stream.*;
       }
       return zip(c.types,cc.c.types,(t,ti)->t instanceof R rr&&!(ti instanceof R ci&&ci.c.name.equals(rr.c.name))?qs(v.size()):refine(v,t,ti)).stream().reduce(qs(v.size()),this::meet);
     }
-    E ascribe(E arg,T expected,N called){
-      if(!(expected instanceof R exp))return arg;
-      return switch(arg){
-        case Call c->c.children(ascribe(c.e,expected,c.name),c.es);
-        case Literal l->!l.anon||l.cs.size()>0||l.t!=u?arg:called==null||!any(l.ms,m->called.equals(m.s.m)&&!m.s.all().contains(u))?l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size())))):new Literal(imm,l.name,l.b,l.cs,l.self,l.ms,l.self(imm),true,false);
-        default->arg;
-      };
+    E ascribe(E arg,T expected){
+      if(!(arg instanceof Call c&&expected instanceof R exp))return arg;
+      return c.children(!(c.e instanceof Literal l&&l.anon&&l.cs.size()==0&&l.t==u)?ascribe(c.e,expected):any(l.ms,m->c.name.equals(m.s.m)&&!m.s.all().contains(u))?new Literal(imm,l.name,l.b,l.cs,l.self,l.ms,l.self(imm),true,false):l.t(new R(exp.r,new C(exp.c.name,qs(exp.c.types.size())))),c.es);
     }
     E core(List<B>ctx,E exp,E orig){return switch(exp){
       case E.X x->x.t(u);
