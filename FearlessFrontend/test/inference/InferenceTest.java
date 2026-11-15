@@ -1362,7 +1362,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Type declaration "B" implements method ".h".
-The body of method "B.h" needs to be duplicated to satisfy multiple RC overloads from the supertypes.
+The body of method "B.h" needs to be duplicated to satisfy multiple reference capability overloads from the supertypes.
 However, it contains object literal "MyAge".
 Object literals with their own unique explicit type cannot be duplicated.
 Error 7 WellFormedness

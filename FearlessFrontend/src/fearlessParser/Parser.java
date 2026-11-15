@@ -382,7 +382,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var outer= names;
     names = top ? names.add(List.of(), Xs) : names.setFunnelledXs(c.s(), Xs);
     c = c.withArity(Xs.size());
-    expect("type declaration (:) symbol", Colon);
+    expect("type declaration colon", Colon);
     var cs= parseImpl();
     assert peek(_CurlyGroup);
     var l= parseGroup("type declaration body", p -> p.parseLiteral(top));
