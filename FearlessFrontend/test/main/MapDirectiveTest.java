@@ -1333,7 +1333,7 @@ In file: [###].fear
    |                                    --------------------------------~~~~^^^~~~~~~~~~~~~
 
 While inspecting ".caller(_,_)" line 1
-This call to method ".f(_,_)" cannot typecheck.
+This call to method "A.f(_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
@@ -1795,7 +1795,7 @@ In file: [###].fear
    | ------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid method signature overriding for "B.g(_)".
+Invalid method signature for "B.g(_)".
 The method ".g(_)" accepts parameter 1 of type "a.Q".
 But "a.Parent.g(_)" requires "a.P", which is not a subtype of "a.Q".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
@@ -1815,7 +1815,7 @@ In file: [###].fear
    | ------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid method signature overriding for "B.g(_)".
+Invalid method signature for "B.g(_)".
 The method ".g(_)" accepts parameter 1 of type "read a.P".
 But "a.Parent.g(_)" requires "imm a.P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
@@ -1835,7 +1835,7 @@ In file: [###].fear
    | ---------^^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid method signature overriding for "B.h".
+Invalid method signature for "B.h".
 The method ".h" returns type "read a.Q".
 But "a.Sup.h" returns type "imm a.Q".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
@@ -1855,7 +1855,7 @@ In file: [###].fear
    | ---------^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid method signature overriding for "B.h".
+Invalid method signature for "B.h".
 The method ".h" returns type "a.P".
 But "a.Sup.h" returns type "a.Q", which is not a supertype of "a.P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
@@ -1875,7 +1875,7 @@ In file: [###].fear
    | -----^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid method signature overriding for "B.h".
+Invalid method signature for "B.h".
 The method ".h" returns type "a.P".
 But "S.h" returns type "a.Q", which is not a supertype of "a.P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
@@ -2273,7 +2273,7 @@ In file: [###].fear
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "a.Sup"
-Invalid method implementation for "a.Sup.f(_)".
+Invalid method signature for "a.Sup.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertypes declare 1.
 Local declaration: "[X:imm, Y:imm]".
 From supertypes: "[-:imm]".
@@ -2291,7 +2291,7 @@ In file: [###].fear
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "a.Sup"
-Invalid method implementation for "a.Sup.id(_)".
+Invalid method signature for "a.Sup.id(_)".
 The local declaration uses different capability bounds than the supertypes for generic type parameter 1 of ".id(_)".
 Local: "X:imm,read".
 From supertypes: "-:imm".

@@ -90,7 +90,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private FearlessException wf(Err e, Agreement at){ return e.wf().addFrame(err().expRepr(at.lit()), at.span()); }
   private FearlessException wf(Err e, M.Sig s, E.Literal origin){ return e.wf().addSpan(s.span().inner).addFrame(err().expRepr(origin), origin.span().inner); }
   private FearlessException wfUse(Err e, TName tn){ return e.wf().addFrame("package header", TSpan.fromPos(tn.pos(), tn.s().length()).inner); }
-  private Err invalidMethImpl(Agreement at){ return err().line("Invalid method implementation for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(), at.lit(), at.mName())+"."); }
+  private Err invalidMethImpl(Agreement at){ return err().line("Invalid method signature for "+err().methodSig(at.rc().orElse(RC.imm).toStrSpace(), at.lit(), at.mName())+"."); }
   public FearlessException notClean(FileFull f){
     var e= err()
       .line("Package directives outside of rank file.")

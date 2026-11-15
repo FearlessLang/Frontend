@@ -586,7 +586,7 @@ A:{
    |   ----------------------------~~~~^^^^~~~~~~~~~~~~~~~~~~~
 
 While inspecting ".call(_)" line 3
-This call to method ".m1(_,_,_,_)" cannot typecheck.
+This call to method "A.m1(_,_,_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:

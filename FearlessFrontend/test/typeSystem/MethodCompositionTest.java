@@ -43,7 +43,7 @@ B:A{ .foo(b:A):B }
    | -----^^^^^^^^^^^^^--
 
 While inspecting type declaration "B"
-Invalid method signature overriding for "B.foo(_)".
+Invalid method signature for "B.foo(_)".
 The method ".foo(_)" accepts parameter 1 of type "B".
 But "A.foo(_)" requires "A", which is not a subtype of "B".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
@@ -60,7 +60,7 @@ B:A{ .foo(b:B):Int }
    | -------^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid method signature overriding for "A.foo(_)".
+Invalid method signature for "A.foo(_)".
 The method ".foo(_)" accepts parameter 1 of type "A".
 But "B.foo(_)" requires "B", which is not a subtype of "A".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
@@ -86,7 +86,7 @@ B:{ .m: Int }
    | -----^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid method signature overriding for "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Str".
 But "B.m" returns type "Int", which is not a supertype of "Str".
 The two types are unrelated.
@@ -150,7 +150,7 @@ D:{ .m: D }
    | ---------^^^^^--
 
 While inspecting type declaration "A"
-Invalid method signature overriding for "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "D".
 But "B.m" returns type "B", which is not a supertype of "D".
 It is instead a subtype: you are weakening the result instead of strengthening it.
@@ -168,7 +168,7 @@ D:{ .m: B }
    | ---------------^^^^^^^^^--
 
 While inspecting type declaration "A[_]"
-Invalid method signature overriding for "A[_].m(_)".
+Invalid method signature for "A[_].m(_)".
 The method ".m(_)" returns type "A".
 But "A[_,_].m(_)" returns type "A[X,X]", which is not a supertype of "A".
 The two types are unrelated.
@@ -309,7 +309,7 @@ B:{ .m[X:*](x: X): Foo }
    |      ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Invalid method implementation for "A.m".
+Invalid method signature for "A.m".
 The method ".m" declares 2 generic type parameters, but supertypes declare 1.
 Local declaration: "[X:imm,mut,read, Y:imm,mut,read]".
 From supertypes: "[-:imm,mut,read]".
@@ -324,7 +324,7 @@ B:{ .m[X:*]: Foo }
    |      ^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Invalid method implementation for "A.m".
+Invalid method signature for "A.m".
 The local declaration uses different capability bounds than the supertypes for generic type parameter 1 of ".m".
 Local: "X:imm".
 From supertypes: "-:imm,mut,read".
@@ -349,7 +349,7 @@ Bi[AA:*,BB:*]:{}
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid method signature overriding for "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
 But "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
@@ -366,7 +366,7 @@ Break[X:*]:{}
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid method signature overriding for "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
 But "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
@@ -383,7 +383,7 @@ Break[X:*]:{}
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid method signature overriding for "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
 But "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
@@ -400,7 +400,7 @@ Break[X:*]:{ .b: X }
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid method signature overriding for "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
 But "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
@@ -417,7 +417,7 @@ Break[X:*]:{ .b: X }
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid method signature overriding for "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
 But "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
@@ -434,7 +434,7 @@ Break[X:*]:{ .b: Break[X] }
    | -----^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid method signature overriding for "A.m".
+Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
 But "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
@@ -789,7 +789,7 @@ User:{ .viaSup(s: Sup[Baz]): Baz -> s.h(Baz); .use: Baz -> this.viaSup(Sub[Baz])
    | ---------^^^^^^^^^^^^^--
 
 While inspecting type declaration "Sub"
-Invalid method signature overriding for "mut Sub.h".
+Invalid method signature for "mut Sub.h".
 The method ".h" returns type "iso P".
 But "mut Sup.h" returns type "mut P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
@@ -806,7 +806,7 @@ Sub:Sup{ mut .h: iso P }
    | ---------^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "Sub"
-Invalid method signature overriding for "Sub.g(_)".
+Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "read P".
 But "Sup.g(_)" requires "mut P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
@@ -823,7 +823,7 @@ Sub:Sup{ .g(x: read P): P }
    | ---------^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "Sub"
-Invalid method signature overriding for "Sub.g(_)".
+Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "readH P".
 But "Sup.g(_)" requires "mutH P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
@@ -840,7 +840,7 @@ Sub:Sup{ .g(x: readH P): P }
    | -----------------^^^^^^^^^^^--
 
 While inspecting type declaration "Sub[_]"
-Invalid method signature overriding for "Sub[_].h(_)".
+Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
 But "Sup[_].h(_)" returns type "read/imm X".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
@@ -856,7 +856,7 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
    |        ------------------~~~~~^^^^^^^^^^^^^^^^^^--
 
 While inspecting object literal instance of "iso Sup" > "#" line 3
-Invalid method signature overriding for "mut Sup.h".
+Invalid method signature for "mut Sup.h".
 The method ".h" returns type "iso P".
 But "mut Sup.h" returns type "mut P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
@@ -886,7 +886,7 @@ A:Foo[Bar],Foo[Beer]{ .get: Both -> Both }
    | ------------------------------^^^^^^^^^^^^^^^^^^--
 
 While inspecting type declaration "A"
-Invalid method signature overriding for "A.get".
+Invalid method signature for "A.get".
 The method ".get" returns type "imm Both".
 But "Foo[_].get" returns type "mut Beer".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
@@ -920,7 +920,7 @@ A:Foo[imm Bar],Foo[mut Beer]{}
    | -----------------^^^^^^^^^^^--
 
 While inspecting type declaration "Sub[_]"
-Invalid method signature overriding for "Sub[_].h(_)".
+Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
 But "Sup[_].h(_)" returns type "imm X".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.

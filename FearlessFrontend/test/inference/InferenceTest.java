@@ -864,7 +864,7 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Invalid method implementation for "D.id(_)".
+Invalid method signature for "D.id(_)".
 Supertypes disagree on the capability bounds for generic type parameter 1 of ".id(_)".
 Generic type parameter names may differ across supertypes; only the position matters.
 Different supertypes declare: "X:imm" and "Y:read".
@@ -884,7 +884,7 @@ In file: [###].fear
    |       ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "D"
-Invalid method implementation for "D.id(_)".
+Invalid method signature for "D.id(_)".
 Supertypes disagree on the capability bounds for generic type parameter 1 of ".id(_)".
 Generic type parameter names may differ across supertypes; only the position matters.
 Different supertypes declare: "X:imm" and "Y:read".
@@ -905,7 +905,7 @@ In file: [###].fear
    |     ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "E"
-Invalid method implementation for "E.m(_,_)".
+Invalid method signature for "E.m(_,_)".
 The method ".m(_,_)" declares 1 generic type parameter, but supertypes declare 2.
 Local declaration: "[U:imm]".
 From supertypes: "[-:imm, -:imm]".

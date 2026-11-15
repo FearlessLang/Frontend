@@ -498,12 +498,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Raised when checking method calls.
   ///Error details
   ///  - What arguments satisfy what promotion and why (best type <: required type1, required type 2 etc)
-  public FearlessException methodPromotionsDisagreeOnArguments(Call c, ArgMatrix mat){
+  public FearlessException methodPromotionsDisagreeOnArguments(Literal d, Call c, ArgMatrix mat){
     var args= mat.okByArg().size();
     assert args > 0;
     assert mat.resByArg().size() == args;
     var e= err()
-      .pCallCantBeSatisfied(c)
+      .pCallCantBeSatisfied(d, c)
       .line("Each argument is compatible with at least one promotion, but no single promotion fits all arguments.")
       .blank()
       .line("Compatible promotions by argument:");
