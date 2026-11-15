@@ -378,7 +378,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var localBs= freeNames.distinct().map(x -> B.get(bs, x)).toList();
     var newName= name.withArity(localBs.size());
     var ms= fixArity(l.ms(), name, newName);
-    var orc= l.rc().or(rcc::rc).map(InjectionSteps::noH);
+    var orc= rcc.rc().map(InjectionSteps::noH);
     assert l.infName();
     assert l.bs().isEmpty();
     var noMeth= l.ms().stream().allMatch(m -> m.impl().isEmpty());
@@ -396,7 +396,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private E.Type literalAsType(E.Literal l, IT.RCC rcc){
     if (!l.thisName().equals("_")){ throw meths.p().err().selfNameDeadCode(l); }
-    var written= new IT.RCC(l.rc().or(rcc::rc).map(InjectionSteps::noH), rcc.c(), rcc.span());
+    var written= new IT.RCC(rcc.rc().map(InjectionSteps::noH), rcc.c(), rcc.span());
     notForeignPrivate(l, written);
     return new E.Type(written, preferred(written), l.src(), l.g());
   }
