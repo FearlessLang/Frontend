@@ -188,9 +188,8 @@ A:A{}
    |     -------------^^^^~~
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-Capability mutH used.
-Capabilities readH and mutH are not allowed on object literals.
-Use one of read, mut, imm, iso.
+Capability "mutH" is not allowed on object literals.
+Allowed capabilities: "read", "mut", "imm", "iso".
 """, List.of("""
 A:{ #: mutH A -> mutH A }
 """));}
@@ -199,9 +198,8 @@ A:{ #: mutH A -> mutH A }
    |     --------------^^^^^~~
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-Capability readH used.
-Capabilities readH and mutH are not allowed on object literals.
-Use one of read, mut, imm, iso.
+Capability "readH" is not allowed on object literals.
+Allowed capabilities: "read", "mut", "imm", "iso".
 """, List.of("""
 A:{ #: readH A -> readH A }
 """));}
