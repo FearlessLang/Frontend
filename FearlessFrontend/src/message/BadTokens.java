@@ -36,11 +36,18 @@ Write "x.foo[read]" not "x.foo [read]".
 Package names are restricted to be valid filenames on all operating systems.
 Names like aux, nul, lpt2 are invalid on Windows.
 """, "package names")
-      .putStr(BadSStrQuote, Code.UnexpectedToken::of, """
-Simple string literals are of form `"..."`, not "'...'";
-that is: use double quotes (`"`) instead of single quotes ("'").
-""", "common ambiguities")
+      .put(BadSStrQuote, (_, t, tz) -> singleQuoteString(t, tz))
 ;}
+  private static Stream<Token> singleQuoteString(Token t, Tokenizer tz){
+    var c= t.content();
+    var in= c.substring(1, c.length()-1);
+    throw Code.UnexpectedToken.of("Unrecognized text "+disp(c)+".\n"
+      +"Single quotes do not form string literals.\n"
+      +"String literals are written as:\n"
+      +"  \""+in+"\"\n"
+      +"  `"+in+"`")
+      .addFrame("common ambiguities", t.span(tz.fileName()));
+  }
   private static Stream<Token> strayBlockCommentCloser(int idx, Token t, Tokenizer tokenizer){
     var file= tokenizer.fileName();
     var hit= findPseudoOpenerBefore(idx, tokenizer);
