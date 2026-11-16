@@ -47,7 +47,7 @@ public final class TypeInMethodTest extends testUtils.FearlessTestBase{
   }
   private static final String byName= """
 002| B:{.m:A->A}
-   |    ------^^
+   |    ------^
 
 While inspecting object literal instance of "A" > ".m" line 2
 The type "A" is not standalone: it is declared inside a method body.
@@ -59,7 +59,7 @@ A
 """;
   private static final String byNameOtherPkg= """
 001| B:{.m:a.A->a.A}
-   |    --------^^^^
+   |    --------^^^
 
 While inspecting object literal instance of "a.A" > ".m" line 1
 The type "a.A" is not standalone: it is declared inside a method body.
@@ -101,7 +101,7 @@ B:{.m:A->A}
 
   @Test void typeInMethodCapturingNothingByNameUseAlias(){ fail("""
 003| B:{.m:A->A}
-   |    ------^^
+   |    ------^
 
 While inspecting object literal instance of "A" > ".m" line 3
 The type "A" is not standalone: it is declared inside a method body.
@@ -289,7 +289,7 @@ B:{.m: base.Void -> a.Take#({})}
 In file: [###].fear
 
 001| B:{.m: base.Void -> a.Take#(a.S)}
-   |    -------------------------^^^^
+   |    -------------------------^^^-
 
 While inspecting object literal instance of "iso a.S" > ".m" line 1
 This object literal is missing a required method.

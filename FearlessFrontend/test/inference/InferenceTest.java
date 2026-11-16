@@ -25,7 +25,7 @@ A:{}
 In file: [###].fear
 
 002| B:{}
-   | ^^
+   | ^
 
 While inspecting a type name
 Name clash: name "B" is declared in package "p".
@@ -116,7 +116,7 @@ p.C:{'this}
 In file: [###].fear
 
 001| A:{ .f:Z->A }
-   |        ^^
+   |        ^
 
 While inspecting a type name
 Type "Z" is not declared in package "p" and is not made visible via "use".
@@ -136,7 +136,7 @@ p.A:{'this .m:base.Void@p.A;->base.Void:?;}
 In file: [###].fear
 
 002| D:{}
-   | ^^
+   | ^
 
 While inspecting a type name
 Name clash: name "D" is declared in package "p".
@@ -201,7 +201,7 @@ p.A:{'this\
 In file: [###].fear
 
 002| A:{}
-   | ^^
+   | ^
 
 While inspecting a type name
 Name clash: name "A" is declared in package "p".
@@ -215,7 +215,7 @@ Error 7 WellFormedness
 In file: [###].fear
 
 001| A:{ .m:D->D }
-   |        ^^
+   |        ^
 
 While inspecting a type name
 Type "D" is not declared in package "p" and is not made visible via "use".
@@ -228,7 +228,7 @@ Error 7 WellFormedness
 In file: [###].fear
 
 001| B:{} A:{}
-   |      ^^
+   |      ^
 
 While inspecting a type name
 Duplicate type declaration for "A".
@@ -240,7 +240,7 @@ Error 7 WellFormedness
 In file: [###].fear
 
 001| A:{}
-   | ^^
+   | ^
 
 While inspecting a type name
 Duplicate type declaration for "A".
@@ -356,7 +356,7 @@ C:{}
 In file: [###].fear
 
 002| B:A{}
-   |   ^^
+   |   ^
 
 While inspecting type declarations
 Circular implementation relation found involving "A".
@@ -369,7 +369,7 @@ B:A{}
 In file: [###]/in_memory1.fear
 
 001| B:A{}
-   |   ^^
+   |   ^
 
 While inspecting type declarations
 Circular implementation relation found involving "A".
@@ -843,7 +843,7 @@ B:A1,A2{ }
 In file: [###].fear
 
 003|   .foo[X](x:X,f:F[X,X]):X->f#x;
-   |                 ^^
+   |                 ^
 
 While inspecting a type name
 Name "F" is not declared with 2 generic type parameters in package "p".
@@ -968,7 +968,7 @@ User:{
 In file: [###].fear
 
 007|   .foo2[C,D]:User->KK[C,D]:{ .k[K]:K->this.withGG[C,D]({a,b,c->Any!})}.k[K];
-   |                                                                          ^^
+   |                                                                          ^
 
 While inspecting a type name
 Type "K" is not declared in package "p" and is not made visible via "use".
@@ -1012,7 +1012,7 @@ User:{.m:User->
 In file: [###].fear
 
 001| A:base.Widen[A]{}
-   |   ^^^^^^^^^^^
+   |   ^^^^^^^^^^
 
 While inspecting a type name
 Type "Widen" is not declared in package "base".
@@ -1048,7 +1048,7 @@ C:A,B{}
 In file: [###].fear
 
 003|   .foo(x:Missing):Missing;
-   |          ^^^^^^^^
+   |          ^^^^^^^
 
 While inspecting a type name
 Type "Missing" is not declared in package "p" and is not made visible via "use".
@@ -1065,7 +1065,7 @@ User:{
 In file: [###].fear
 
 004|   .foo(x:Fod):Fod;
-   |          ^^^^
+   |          ^^^
 
 While inspecting a type name
 Type "Fod" is not declared in package "p" and is not made visible via "use".
@@ -1084,7 +1084,7 @@ User:{
 In file: [###].fear
 
 004|   .foo(x:GG):G;
-   |          ^^^
+   |          ^^
 
 While inspecting a type name
 Type "GG" is not declared in package "p" and is not made visible via "use".
@@ -1102,7 +1102,7 @@ User:{
 In file: [###].fear
 
 003|   .foo(x:F):F;
-   |          ^^
+   |          ^
 
 While inspecting a type name
 Type "F" is not declared in package "p" and is not made visible via "use".
@@ -1121,7 +1121,7 @@ User:{
 In file: [###].fear
 
 003|   .foo(xs:Blok):Blok;
-   |           ^^^^^
+   |           ^^^^
 
 While inspecting a type name
 Type "Blok" is not declared in package "p" and is not made visible via "use".
@@ -1140,7 +1140,7 @@ User:{
 In file: [###].fear
 
 003|   .foo(x:basee.F):basee.F;
-   |          ^^^^^^^^
+   |          ^^^^^^^
 
 While inspecting a type name
 Source code inside folders named "_p" cannot use package name "basee".
@@ -1158,7 +1158,7 @@ User:{
 In file: [###].fear
 
 003|   .foo(x:base.Foo):base.Foo;
-   |          ^^^^^^^^^
+   |          ^^^^^^^^
 
 While inspecting a type name
 Type "Foo" is not declared in package "base".
@@ -1174,7 +1174,7 @@ User:{
 In file: [###].fear
 
 002|   .foo[X,Y](x:base.Block[X,Y]):base.Block[X,Y];
-   |               ^^^^^^^^^^^
+   |               ^^^^^^^^^^
 
 While inspecting a type name
 Name "Block" is not declared with 2 generic type parameters in package "base".
@@ -1192,7 +1192,7 @@ User:{
 In file: [###].fear
 
 003|   .foo[X,Y](x:Block[X,Y]):Block[X,Y];
-   |               ^^^^^^
+   |               ^^^^^
 
 While inspecting a type name
 Name "Block" is not declared with 2 generic type parameters in package "base".
@@ -1212,7 +1212,7 @@ User:{
 In file: [###].fear
 
 002| User:{ .foo(x:FOo):FOo; }
-   |               ^^^^
+   |               ^^^
 
 While inspecting a type name
 Type "FOo" is not declared in package "p" and is not made visible via "use".
@@ -1228,7 +1228,7 @@ User:{ .foo(x:FOo):FOo; }
 In file: [###].fear
 
 004| User:{ .foo(x:Abc):Abc; }
-   |               ^^^^
+   |               ^^^
 
 While inspecting a type name
 Type "Abc" is not declared in package "p" and is not made visible via "use".
@@ -1263,7 +1263,7 @@ Y[X:imm]:{}
 In file: [###].fear
 
 001| X:{.bar:base.Void}
-   | ^^
+   | ^
 
 While inspecting a type name
 Duplicate type declaration for "X".

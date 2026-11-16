@@ -23,7 +23,7 @@ User:{ .weaken(box:mut Box[mut Cell]):read Box[mut Cell]->box; }
 """);}
 @Test void rejectsDirectMutableToImmutableAlias(){fail("""
 006| User:{ .freeze(cell:mut Cell):imm Cell->cell; }
-   |        ---------------------------------^^^^^
+   |        ---------------------------------^^^^
 
 While inspecting parameter "cell" > ".freeze(_)" line 6
 The body of method ".freeze(_)" of type declaration "User" is an expression returning "mut Cell".
@@ -36,7 +36,7 @@ User:{ .freeze(cell:mut Cell):imm Cell->cell; }
 """);}
 @Test void rejectsImmutableAliasToCapturedMutableCell(){fail("""
 006| User:{ .freeze(box:mut Box[mut Cell]):mut Box[imm Cell]->box; }
-   |        --------------------------------------------------^^^^
+   |        --------------------------------------------------^^^
 
 While inspecting parameter "box" > ".freeze(_)" line 6
 The body of method ".freeze(_)" of type declaration "User" is an expression returning "mut Box[mut Cell]".
@@ -49,7 +49,7 @@ User:{ .freeze(box:mut Box[mut Cell]):mut Box[imm Cell]->box; }
 """);}
 @Test void rejectsMutableAliasToImmutableArgument(){fail("""
 006| User:{ .thaw(box:mut Box[imm Cell]):mut Box[mut Cell]->box; }
-   |        ------------------------------------------------^^^^
+   |        ------------------------------------------------^^^
 
 While inspecting parameter "box" > ".thaw(_)" line 6
 The body of method ".thaw(_)" of type declaration "User" is an expression returning "mut Box[Cell]".

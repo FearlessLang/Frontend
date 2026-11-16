@@ -294,7 +294,7 @@ C:{ .withTArg(a:A): Foo -> a.m[Foo]; .noTArg(a:A): Foo -> a.m }
 """));}
 @Test void overrideCanNotNameTheInheritedTypeParameter(){failWf("""
 002| A:B{ .m(x: X): Foo }
-   |            ^^
+   |            ^
 
 While inspecting a type name
 Type "X" is not declared in package "p" and is not made visible via "use".

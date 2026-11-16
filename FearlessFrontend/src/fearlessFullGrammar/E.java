@@ -50,19 +50,20 @@ public sealed interface E extends core.Src.SrcObj{
     @Override public String toString(){ return "CallSquare[rc="+rc+",ts="+ts+"]"; }
   }
   //if pat is present, this is an x=e posts, if absent this is a normal meth call.
-  record Call(E e, MName name, Optional<CallSquare> targs, boolean pars, Optional<XPat> pat, List<E> es, Pos pos) implements E{
+  record Call(E e, MName name, Optional<CallSquare> targs, Optional<Pos> close, Optional<XPat> pat, List<E> es, Pos pos) implements E{
     public Call{
-      assert nonNull(e, name, targs, pat, pos);
+      assert nonNull(e, name, targs, close, pat, pos);
       assert unmodifiable(es, "E.Call.es");
       assert pat.isPresent() || eq(es.size(), name.arity(), "Call arity");
-      assert pars || es.size() < 2;
+      assert close.isPresent() || es.size() < 2;
       assert validOpt(pat, _ -> eq(es.size(), 1, "invalid equal sugar"));
       assert validOpt(pat, _ -> eq(name.arity(), 2, "invalid equal sugar"));
     }
     @Override public String toString(){ return "Call["+e+"]"+name
       +targs.map(Object::toString).orElse("")
-      +pars+pat.map(Object::toString).orElse("")+es; }
+      +close.isPresent()+pat.map(Object::toString).orElse("")+es; }
     @Override public TSpan span(){
+      if (close.isPresent()){ return TSpan.merge(e.span(), TSpan.fromPos(close.get())); }
       if (!es.isEmpty()){ return TSpan.merge(e.span(), es.getLast().span()); }
       return TSpan.merge(e.span(), targs.map(t -> TSpan.fromPos(t.endPos())).orElseGet(() -> TSpan.fromPos(pos, name.s().length())));
     }
