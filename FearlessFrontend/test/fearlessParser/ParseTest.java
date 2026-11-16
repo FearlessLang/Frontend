@@ -3893,5 +3893,44 @@ Error 2 UnexpectedToken
 """, """
 A:{ .size: A -> A.Size }
 """);}
+@Test void equalsInsteadOfArrow(){fail("""
+In file: [###].fear
+
+001| A:{ .size: base.Nat = 3 }
+   |   --~~~~~~~~~~~~~~~~^~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected "=" after the method signature.
+A method body follows "->", as in ".size: Nat -> 3".
+Error 2 UnexpectedToken
+""", """
+A:{ .size: base.Nat = 3 }
+""");}
+@Test void colonInsteadOfArrow(){fail("""
+In file: [###].fear
+
+001| A:{ .me(a: A): A : a }
+   |   --~~~~~~~~~~~~~^~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected ":" after the method signature.
+A method body follows "->", as in ".size: Nat -> 3".
+Error 2 UnexpectedToken
+""", """
+A:{ .me(a: A): A : a }
+""");}
+@Test void fatArrowInsteadOfArrow(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A -> A{ .me(a: A): A => a } }
+   |               --~~~~~~~~~~~~~^^~~--
+
+While inspecting method declaration > typed literal > method body > method declaration > type declaration body > type declaration > full file
+Unexpected "=>" after the method signature.
+A method body follows "->", as in ".size: Nat -> 3".
+Error 2 UnexpectedToken
+""", """
+A:{ .m: A -> A{ .me(a: A): A => a } }
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

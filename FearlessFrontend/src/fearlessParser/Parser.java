@@ -274,6 +274,8 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (!hasSig){ return new M(empty(), of(parseMethodBody()), tspan()); }
     var sig= parseSig();
     if (peek(Arrow)){ throw errFactory().missingMethodBody(span(peek().get()).get()); }
+    var arrowLike= peek(Eq, Colon) || peekIf(t -> t.content().equals("=>"));
+    if (arrowLike){ throw errFactory().arrowLike(span(peek().get()).get(), peek().get().content()); }
     if (!top){ throw errFactory().noAbstractMethod(sig, span()); }
     return new M(of(sig), empty(), tspan());
   }

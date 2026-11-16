@@ -59,6 +59,11 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       "Missing method body after \"->\".\n"
     +"The body of a method is the expression after \"->\".\n").addSpan(at);
   }
+  public FearlessException arrowLike(Span at, String found){
+    return Code.UnexpectedToken.of(
+      "Unexpected "+disp(found)+" after the method signature.\n"
+    +"A method body follows \"->\", as in \".size: Nat -> 3\".\n").addSpan(at);
+  }
   public FearlessException straySemicolon(Span at){
     return Code.UnexpectedToken.of(
       "Extra semicolon: no method declaration comes before this \";\".\n"
