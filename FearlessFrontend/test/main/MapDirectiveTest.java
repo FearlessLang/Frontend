@@ -892,7 +892,7 @@ That is not a subtype of "a.A" (the type required by the method signature).
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.put(d)
+x.put(d)
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.Box[a.A], d:a.D):a.Box[a.A]->x.put(d)}
 """); }
@@ -911,7 +911,7 @@ Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.put(d)
+x.put(d)
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
 B:{.m(x:a.Box[X], d:a.D):a.Box[X]->x.put(d)}

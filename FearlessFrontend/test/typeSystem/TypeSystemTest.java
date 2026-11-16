@@ -41,7 +41,7 @@ Argument 1 has type "T1".
 That is not a subtype of "T0[T1]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.m(this)
+this.m(this)
 """, List.of("""
 T0[X]:{ }
 T1:T0[T0[T1]]{ .m(a: T0[T1]): T1 -> this.m(this) }
@@ -75,7 +75,7 @@ Argument 1 has type "T1[X]".
 That is not a subtype of "T0[T1[X]]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.m(this)
+this.m(this)
 """, List.of("""
 T0[X]:{ }
 T1[X]:T0[T0[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
@@ -94,7 +94,7 @@ Argument 1 has type "T1[X]".
 That is not a subtype of "T0[T1[X]]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.m(this)
+this.m(this)
 """, List.of("""
 T0[X]:{ }
 T1[X]:T0[T1[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
@@ -1265,7 +1265,7 @@ The receiver is of type "X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
--#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](x.foo)))))
+Id#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](x.foo)))))
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
 User:{ .m[X:*](x: X): X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
@@ -1280,7 +1280,7 @@ The receiver is of type "read X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "read X" was introduced: (compression indicated by `-`)
--#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](x.foo)))))
+Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](x.foo)))))
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
 Box[T:*]:{}
@@ -1297,7 +1297,7 @@ The receiver is of type "read/imm X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "read/imm X" was introduced: (compression indicated by `-`)
--#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](x.foo)))))
+Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](x.foo)))))
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
 User:{ .m[X:*](x: read/imm X): read/imm X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
@@ -1767,7 +1767,7 @@ That is not a subtype of "A" (the type required by the method signature).
 Hint: Fearless has no operator precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--+(this)
+this+(this)
 """, List.of("""
 A:{}
 Plus:{
@@ -1786,7 +1786,7 @@ Argument 1 has type "read B".
 That is not a subtype of "mut A" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--#(AsRead#(aaaa))
+Need#(AsRead#(aaaa))
 """, List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -1805,7 +1805,7 @@ Argument 1 has type "B".
 That is not a subtype of "mut A" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--#[mut](b)
+n#[mut](b)
 """, List.of("""
 A:{}
 B:{}
@@ -3609,7 +3609,7 @@ is implemented with an expression returning "read Opt[E]".
 Method call "read Var[_].get" has type "read Opt[E]" instead of a subtype of "read Opt[read/imm E]".
 
 See inferred typing context below for how type "read Opt[read/imm E]" was introduced: (compression indicated by `-`)
-Slots:{#[E:*](e:mut Var[mut Opt[E]]):mut Slot[E]->mut Slot[E:*]:{e.get[mut];e.get[read]}}
+Slots:{#[E:*](e:mut Var[mut Opt[E]]):mut Slot[E]->mut Slot[E:*]:{e.get[mut];read .opt:read Opt[read/imm E]->e.get[read]}}
 """, List.of("""
 Opt[E:*]:{}
 Var[E:imm,mut,read]:{ read .get: read/imm E; mut .get: E; }
@@ -4203,7 +4203,7 @@ is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "Person".
 
 See inferred typing context below for how type "Person" was introduced: (compression indicated by `-`)
-User:{(-)->cs.as[read,Person](base.BaseId[read Customer,Person]{(-)->::})}
+User:{.n(cs:read base.MList[mut Customer]):base.MList[Person]->cs.as[read,Person](base.BaseId[read Customer,Person]{#(_aimpl:read Customer):Person->::})}
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4656,7 +4656,7 @@ is implemented with an expression returning "mut Opt[E]".
 Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
 
 See inferred typing context below for how type "Opt[E]" was introduced: (compression indicated by `-`)
--.let[mut,mut Opt[E]](-,mut Continuation[mut Opt[E],Opt[E]]{(-,-)->_aeqS.return[mut](mut MF[Opt[E]]{o})})
+-#[imm,Opt[E]].let[mut,mut Opt[E]](mut MF[-]{-},mut Continuation[mut Opt[E],Opt[E]]{mut #(o:mut Opt[E],_aeqS:mut Block[Opt[E]]):Opt[E]->_aeqS.return[mut](mut MF[Opt[E]]{mut #:Opt[E]->o})})
 """, List.of("""
 use base.MF as MF;
 Blocks: { #[R:*]: mut Block[R] -> {} }
@@ -5502,7 +5502,7 @@ The body of method ".m" of type declaration "U" is an expression returning "A".
 Method call "mut base.Block[_].let(_,_)" has type "A" instead of a subtype of "iso A".
 
 See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
-U:{base.Block#[imm,A].let[mut,A](mut base.ReturnStmt[-]{A},mut base.Continuation[-,-,-]{(-,-)->-.return[mut](-)})}
+U:{.m:iso A->-#[imm,A].let[mut,A](mut base.ReturnStmt[A]{A},mut base.Continuation[-,-,-]{(-,-)->-.return[mut](-)})}
 """, List.of("""
 A:{}
 U:{ .m: iso A -> base.Block#.let v1 = {A} .return {v1} }
@@ -5541,7 +5541,7 @@ Argument 2 has type "base.Void".
 That is not a subtype of "X" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--#[imm,X](-,y)
+Pick#[imm,X](x,y)
 """, List.of("""
 Pick:{ #[T:*](a:T, b:T):T -> a }
 C[X:*]:{ .m(x:X, y:base.Void):X -> Pick#(x,y) }
@@ -5556,7 +5556,7 @@ Argument 2 has type "iso B".
 That is not a subtype of "A" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--#[imm,A](-,B,-)
+Pick3#[imm,A](A,B,C)
 """, List.of("""
 Pick3:{ #[T:*](a:T, b:T, c:T):T -> a }
 A:{}
@@ -5941,7 +5941,7 @@ Argument 2 has type "iso B".
 That is not a subtype of the anonymous type of the object literal at line 4, column 22 (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--#[imm,_BU](-,B)
+H#[imm,_BU](Box[_BU]{.get:_BU->s},B)
 """, List.of("""
 Box[E:*]:{ .get: E }
 H:{ #[X:*](b: Box[X], x: X): base.Void -> base.Void }
@@ -6097,7 +6097,7 @@ Argument 1 has type "iso C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.m[imm,base.Void](C)
+this.m[imm,base.Void](C)
 """, List.of("""
 Box[T]:{}
 C:Box[A],Box[C]{}
@@ -6113,7 +6113,7 @@ Argument 1 has type "iso C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.m[imm,base.Void](C)
+this.m[imm,base.Void](C)
 """, List.of("""
 Box[T]:{}
 C:Box[C],Box[A]{}
@@ -6309,7 +6309,7 @@ Argument 1 has type "Box[B]".
 That is not a subtype of "Box[A]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.put(y)
+x.put(y)
 """, List.of("""
 A:{}
 B:A{}

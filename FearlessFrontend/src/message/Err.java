@@ -189,15 +189,16 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return label+" has type "+Join.of(got.stream().map(t -> typeRepr(skipImm, t)), "", " or ", "")
       +" instead of a subtype of "+typeRepr(skipImm, expected)+".";
   }
-  FearlessException ex(E e){
-    return ex("Compressed relevant code with inferred types: (compression indicated by `-`)", e);
+  FearlessException ex(E e){ return ex(e, e); }
+  FearlessException ex(E e, E focus){
+    return ex("Compressed relevant code with inferred types: (compression indicated by `-`)", e, focus);
   }
-  FearlessException exInferMsg(E e, String req){
-    return ex("See inferred typing context below for how type "+req+" was introduced: (compression indicated by `-`)", e);
+  FearlessException exInferMsg(E e, E focus, String req){
+    return ex("See inferred typing context below for how type "+req+" was introduced: (compression indicated by `-`)", e, focus);
   }
-  FearlessException ex(String footerHdr, core.E footerE){
+  FearlessException ex(String footerHdr, core.E footerE, core.E focus){
     var body= text();
-    var footer= _cp.apply(true).limit(footerE, 120).stripTrailing();
+    var footer= _cp.apply(true).limit(footerE, focus, 120).stripTrailing();
     return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.get().stream(), "", "\n", "\n\n", "")+footerHdr+"\n"+footer);
   }
   FearlessException wf(){

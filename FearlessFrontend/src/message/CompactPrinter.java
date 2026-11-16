@@ -1,10 +1,13 @@
 package message;
 
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import core.*;
 import core.E.*;
@@ -15,13 +18,18 @@ import utils.Streams;
 
 public final class CompactPrinter{
   public CompactPrinter(String mainPkg, Map<String,String> uses, Consumer<String> printed){ t= new TypeNamePrinter(mainPkg, uses, printed); }
-  public String limit(E e, int limit){
+  public String limit(E e, E focus, int limit){
     assert limit >= 0;
+    onPath(e, focus);
     var root= ofE(e);
-    while (render(root).length() > limit){
+    var len= render(root).length();
+    while (len > limit){
       var k= new BestPicker().pick(root);
       if (!k.isCompactable()){ break; }
       k.compact();
+      var shorter= render(root).length();
+      if (shorter >= len){ k.keep(); continue; }
+      len = shorter;
     }
     return render(root);
   }
@@ -30,6 +38,17 @@ public final class CompactPrinter{
     root.accString(this);
     return sb.toString();
   }
+  private final Set<E> path= Collections.newSetFromMap(new IdentityHashMap<>());
+  private boolean onPath(E e, E focus){
+    var res= e == focus || switch (e){
+      case X _, Type _ -> false;
+      case Call c -> Stream.concat(Stream.of(c.e()), c.es().stream()).anyMatch(ei -> onPath(ei, focus));
+      case Literal l -> l.ms().stream().anyMatch(m -> m.e().filter(ei -> onPath(ei, focus)).isPresent());
+    };
+    if (res){ path.add(e); }
+    return res;
+  }
+  private Compactable k(Optional<E> e){ return Compactable.of(e.filter(path::contains).isPresent()); }
   StringBuilder sb= new StringBuilder();
   TypeNamePrinter t;
   public String msgT(T t){
@@ -39,11 +58,12 @@ public final class CompactPrinter{
   CompactPrinter append(String s){ sb.append(s); return this; }
   String bounds(List<B> bs){ return Join.of(bs.stream().map(B::compactToString), "[", ",", "]", ""); }
   public static final class Compactable{
-    public static final Compactable no= new Compactable(false);
-    boolean compacted; private Compactable(boolean can){ compacted= !can; }
-    public static Compactable of(){ return new Compactable(true); }
+    public static final Compactable no= new Compactable(false, false);
+    boolean compacted; boolean pinned; private Compactable(boolean can, boolean pinned){ compacted= !can; this.pinned= pinned; }
+    public static Compactable of(boolean pinned){ return new Compactable(true, pinned); }
     public boolean isCompactable(){ return !compacted; }
-    public void compact(){ assert !compacted; compacted = true; }
+    public void compact(){ assert !compacted && !pinned; compacted = true; }
+    void keep(){ assert compacted; compacted = false; pinned = true; }
   }
   interface Acc<XX>{ void acc(XX x, CompactPrinter sb); }
   static <XX> void wrap(CompactPrinter sb, String open, String close, List<XX> xs, String sep, Acc<XX> a){
@@ -142,10 +162,10 @@ public final class CompactPrinter{
   PE ofCall(Call c){
     var targs= ofTs(c.targs());
     var args= ofEs(c.es());
-    return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, Compactable.of());
+    return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, k(Optional.of(c)));
   }
   PE ofLit(Literal l){
-    var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.xs(), m.e().map(this::ofE))).toList();
+    var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.xs(), m.e())).toList();
     var priv= l.infName();
     var name= priv ? ""
       : t.of(l.name())+bounds(l.bs())+":"; // name[bs]:
@@ -153,7 +173,7 @@ public final class CompactPrinter{
     var cs= ofCs(l.src(), onlyFirstC ? List.of(l.cs().getFirst()) : l.cs());
     var top= l.thisName().equals("this");
     var rc= top ? RC.imm : l.rc();
-    return new PLit(rc, priv, name, cs, l.thisName(), ms, Compactable.of());
+    return new PLit(rc, priv, name, cs, l.thisName(), ms, k(Optional.of(l)));
   }
   List<PE> ofEs(List<E> es){ return es.stream().map(this::ofE).toList(); }
   List<PT> ofTs(List<T> ts){ return ts.stream().map(this::ofT).toList(); }
@@ -164,7 +184,7 @@ public final class CompactPrinter{
     case T.RCC(var rc, var c, _) -> new PTRCC(rc, ofC(c));
   };}
   PC ofC(T.C c){
-    return new PC(t.of(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.no : Compactable.of());
+    return new PC(t.of(c.name()), ofTs(c.ts()), c.ts().isEmpty() ? Compactable.no : Compactable.of(false));
   }
   List<PC> ofCs(Src src, List<T.C> cs){
     List<fearlessFullGrammar.T.C> oCs= switch (src.inner){
@@ -184,9 +204,9 @@ public final class CompactPrinter{
     var s= real.getOrDefault(n.s(), n.pkgName().isEmpty() ? t.mainPkg()+"."+n.s() : real.getOrDefault(n.pkgName(), n.pkgName())+"."+n.simpleName());
     return new TName(s, n.arity(), n.pos());
   }
-  PM ofM(Sig s, List<String> xs, Optional<PE> body){
+  PM ofM(Sig s, List<String> xs, Optional<E> body){
     var bs= bounds(s.bs());
-    return new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), body, Compactable.of());
+    return new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), body.map(this::ofE), k(body));
   }
   public String sig(Sig s){
     var pm= ofM(s, Collections.nCopies(s.m().arity(), "_"), Optional.empty());
