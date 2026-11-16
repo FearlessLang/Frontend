@@ -339,7 +339,7 @@ In file: [###].fear
    |   -~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 """, """
@@ -352,7 +352,7 @@ In file: [###].fear
    |   -~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 """, """
@@ -377,7 +377,7 @@ In file: [###].fear
    |   -~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~--
 
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 """, """
@@ -390,7 +390,7 @@ In file: [###].fear
    |   -~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~--
 
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 """, """
@@ -1181,7 +1181,7 @@ In file: [###].fear
    |   --~~~^^~~~--
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
-This destructuring pattern extracts nothing.
+This nominal pattern extracts nothing.
 Write at least one chain, for example {.a}, instead of an empty {}.
 Error 2 UnexpectedToken
 """, """
@@ -1196,7 +1196,7 @@ In file: [###].fear
    |     ---^^^^^^~~---
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
-This destructuring pattern has an empty chain between commas.
+This nominal pattern has an empty chain between commas.
 Each comma must separate two non-empty chains; remove the stray comma, for example write {.a,.b} instead of {.a,,.b} or {,.a}.
 Error 2 UnexpectedToken
 """, """

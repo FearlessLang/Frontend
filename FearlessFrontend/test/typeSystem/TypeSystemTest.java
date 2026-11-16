@@ -6348,7 +6348,7 @@ Method "#(_,_,_)" inside the object literal instance of "mut base.MF[base.Nat,ba
 is implemented with an expression returning "base.Nat".
 Parameter "a" has type "base.Nat" instead of a subtype of "base.Str".
 
-Name "_ax" is parameter "x", renamed by the desugaring of a destructuring pattern in the same method.
+Name "_ax" is parameter "x", renamed by the desugaring of a nominal pattern in the same method.
 
 Relevant code with inferred types, where "_", "{...}" and method signatures without types mark omitted code:
 User:{.u(Pt,x:base.Str):base.Str->base.Destruct#[imm,base.Nat,base.Nat,base.Str,base.Str](_.a,_.b,_ax,mut base.MF[base.Nat,base.Nat,base.Str,base.Str]{mut #(a:base.Nat,b:base.Nat,x:base.Str):base.Str->a})}
@@ -6380,7 +6380,7 @@ Method "#(_)" inside the object literal instance of "mut base.MF[P,U]" (line 2)
 is implemented with an expression returning "P".
 Parameter "a" has type "P" instead of a subtype of "U".
 
-Name "_adiv" is a parameter added by the desugaring of a destructuring pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
+Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
 
 Relevant code with inferred types:
 U:{.u(P):U->base.Destruct#[imm,P,U](_adiv.a,mut base.MF[P,U]{mut #(a:P):U->a})}
@@ -6397,7 +6397,7 @@ Method "#(_,_)" inside the object literal instance of "mut base.MF[P,P,A]" (line
 is implemented with an expression returning "P".
 Parameter "xyzwb" has type "P" instead of a subtype of "A".
 
-Name "_adiv" is a parameter added by the desugaring of a destructuring pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
+Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
 
 Relevant code with inferred types:
 B:{.u(P,xyzwb:P):A->base.Destruct#[imm,P,P,A](_adiv.a,_axyzw,mut base.MF[P,P,A]{mut #(a:P,xyzwb:P):A->xyzwb})}

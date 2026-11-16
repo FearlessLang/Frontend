@@ -218,7 +218,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +".\nType names starting with \"_\" can only be used in their own package, and only by their simple name.\n").addSpan(at);
   }
   public FearlessException underscoreInEqSugar(MName m, Span at){
-    return Code.UnexpectedToken.of("The equals sugar cannot bind \"_\": it needs a name or a destructuring pattern.\n"
+    return Code.UnexpectedToken.of("The equals sugar cannot bind \"_\": it needs a name or a nominal pattern.\n"
       +eqSugarUse(m)).addSpan(at);
   }
   public FearlessException missingExprAfterEq(MName m, Span at){
@@ -237,13 +237,13 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException emptyDestructPattern(Span at){
     return Code.UnexpectedToken.of(
-      "This destructuring pattern extracts nothing.\n"
+      "This nominal pattern extracts nothing.\n"
       +"Write at least one chain, for example {.a}, instead of an empty {}.")
       .addSpan(at);
   }
   public FearlessException emptyDestructChain(Span at){
     return Code.UnexpectedToken.of(
-      "This destructuring pattern has an empty chain between commas.\n"
+      "This nominal pattern has an empty chain between commas.\n"
       +"Each comma must separate two non-empty chains; remove the stray comma, for example write {.a,.b} instead of {.a,,.b} or {,.a}.")
       .addSpan(at);
   }
