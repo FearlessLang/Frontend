@@ -30,7 +30,7 @@ public final class BadTokens{
       .put(BadUnopenedBlockCommentClose, BadTokens::strayBlockCommentCloser)
       .put(OSquareArg, BadTokens::squareAfterLiteral)
       .putStr(BadOSquare, Code.UnexpectedToken::of, """
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+A "[" opening generic type arguments, or the capability of a method call, directly follows the name, with no space.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 """, "common ambiguities")
