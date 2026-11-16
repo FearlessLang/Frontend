@@ -467,7 +467,7 @@ C:B,D{}
 004| User:{ #:C->C:B,D{} }
    |        -----^^^^^^^
 
-While inspecting object literal "iso C" > "#" line 4
+While inspecting object literal "iso C" > method "User#" (line 4)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "C".
@@ -488,7 +488,7 @@ C:D,B{}
 007| User:{ #:D->D:E,F{} }
    |        -----^^^^^^^
 
-While inspecting object literal "iso D" > "#" line 7
+While inspecting object literal "iso D" > method "User#" (line 7)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
@@ -542,7 +542,7 @@ User:{ #:D->D:P,Q{} }
 007| User:{ #:D->D:P,Q{} }
    |        -----^^^^^^^
 
-While inspecting object literal "iso D" > "#" line 7
+While inspecting object literal "iso D" > method "User#" (line 7)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
@@ -560,7 +560,7 @@ User:{ #:D->D:P,Q{} }
 006| User:{ #:D->D:A1,A2{} }
    |        -----^^^^^^^^^
 
-While inspecting object literal "iso D" > "#" line 6
+While inspecting object literal "iso D" > method "User#" (line 6)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
@@ -661,7 +661,7 @@ User:{ #:mut D->D:X,B{} }
 003| User:{ #:C->C:A,B{} }
    |        -----^^^^^^^
 
-While inspecting object literal "iso C" > "#" line 3
+While inspecting object literal "iso C" > method "User#" (line 3)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
@@ -675,7 +675,7 @@ User:{ #:C->C:A,B{} }
 003| User:{ #:C->C:B{} }
    |        -----^^^^^
 
-While inspecting object literal "iso C" > "#" line 3
+While inspecting object literal "iso C" > method "User#" (line 3)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
@@ -780,7 +780,7 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
 003| User:{ #: mut Sup -> mut Sup{ mut .h: iso P -> P } }
    |        --------------~~~~~~~~~^^^^^^^^^^^^^^^^^^~~
 
-While inspecting object literal instance of "iso Sup" > "#" line 3
+While inspecting object literal instance of "iso Sup" > method "User#" (line 3)
 Invalid method signature for "mut Sup.h".
 The method ".h" returns type "iso P".
 But "mut Sup.h" returns type "mut P".

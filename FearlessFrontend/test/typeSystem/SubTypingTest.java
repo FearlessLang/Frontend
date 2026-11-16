@@ -16,7 +16,7 @@ Sub:{ .m(x: A): A -> x }
 002| Sub:{ .m(x: A): B -> x }
    |       ---------------^
 
-While inspecting parameter "x" > ".m(_)" line 2
+While inspecting parameter "x" > method "Sub.m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "A".
 Parameter "x" has type "A" instead of a subtype of "B".
 """, List.of("""
@@ -31,7 +31,7 @@ Sub:{ .m(x: A): B -> x }
 002| Sub:{ .m(x: B): A -> x }
    |       ---------------^
 
-While inspecting parameter "x" > ".m(_)" line 2
+While inspecting parameter "x" > method "Sub.m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "B".
 Parameter "x" has type "B" instead of a subtype of "A".
 """, List.of("""
@@ -46,7 +46,7 @@ Sub:{ .m(x: imm A): read A -> x }
 002| Sub:{ .m(x: read A): imm A -> x }
    |       ------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 2
+While inspecting parameter "x" > method "Sub.m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "read A".
 Parameter "x" has type "read A" instead of a subtype of "imm A".
 """, List.of("""
@@ -57,7 +57,7 @@ Sub:{ .m(x: read A): imm A -> x }
 002| Sub:{ .m(x: mut A): imm A -> x }
    |       -----------------------^
 
-While inspecting parameter "x" > ".m(_)" line 2
+While inspecting parameter "x" > method "Sub.m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "mut A".
 Parameter "x" has type "mut A" instead of a subtype of "imm A".
 """, List.of("""
@@ -72,7 +72,7 @@ Sub:{ .m(x: C): A -> x }
 002| Sub:{ .m(x: A): C -> x }
    |       ---------------^
 
-While inspecting parameter "x" > ".m(_)" line 2
+While inspecting parameter "x" > method "Sub.m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "A".
 Parameter "x" has type "A" instead of a subtype of "C".
 """, List.of("""
@@ -87,7 +87,7 @@ Sub:{ .m(x: E): A -> x }
 002| Sub:{ .m(x: A): E -> x }
    |       ---------------^
 
-While inspecting parameter "x" > ".m(_)" line 2
+While inspecting parameter "x" > method "Sub.m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "A".
 Parameter "x" has type "A" instead of a subtype of "E".
 """, List.of("""
@@ -124,7 +124,7 @@ Sub:{ .toMutH(x: mut A): mutH A -> x; .toRead(x: mut A): read A -> x }
 002| Sub:{ .m(x: mutH A): read A -> x }
    |       -------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 2
+While inspecting parameter "x" > method "Sub.m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "mutH A".
 Parameter "x" has type "mutH A" instead of a subtype of "read A".
 """, List.of("""
@@ -141,7 +141,7 @@ Sub:{ .m(x: SortedList[Int]): List[Int] -> x }
 004| Sub:{ .m(x: SortedList[Int]): List[mut Int] -> x }
    |       -----------------------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 4
+While inspecting parameter "x" > method "Sub.m(_)" (line 4)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[Int]".
 Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[mut Int]".
 """, List.of("""
@@ -154,7 +154,7 @@ Sub:{ .m(x: SortedList[Int]): List[mut Int] -> x }
 004| Sub:{ .m(x: SortedList[Int]): List[read Int] -> x }
    |       ------------------------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 4
+While inspecting parameter "x" > method "Sub.m(_)" (line 4)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[Int]".
 Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[read Int]".
 """, List.of("""
@@ -167,7 +167,7 @@ Sub:{ .m(x: SortedList[Int]): List[read Int] -> x }
 004| Sub:{ .m(x: SortedList[read Int]): List[Int] -> x }
    |       ------------------------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 4
+While inspecting parameter "x" > method "Sub.m(_)" (line 4)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[read Int]".
 Parameter "x" has type "SortedList[read Int]" instead of a subtype of "List[Int]".
 """, List.of("""
@@ -186,7 +186,7 @@ Sub:{ .m[X:*](x: SortedList[X]): List[X] -> x }
 004| Sub:{ .m[X:*](x: SortedList[X]): List[Int] -> x }
    |       ----------------------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 4
+While inspecting parameter "x" > method "Sub.m(_)" (line 4)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[X]".
 Parameter "x" has type "SortedList[X]" instead of a subtype of "List[Int]".
 """, List.of("""
@@ -199,7 +199,7 @@ Sub:{ .m[X:*](x: SortedList[X]): List[Int] -> x }
 004| Sub:{ .m[X:*](x: SortedList[Int]): List[X] -> x }
    |       ----------------------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 4
+While inspecting parameter "x" > method "Sub.m(_)" (line 4)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[Int]".
 Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[X]".
 """, List.of("""
@@ -212,7 +212,7 @@ Sub:{ .m[X:*](x: SortedList[Int]): List[X] -> x }
 006| Sub:{ .m(x: SortedList[ColouredPoint]): SortedList[Point] -> x }
    |       -------------------------------------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 6
+While inspecting parameter "x" > method "Sub.m(_)" (line 6)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[ColouredPoint]".
 Parameter "x" has type "SortedList[ColouredPoint]" instead of a subtype of "SortedList[Point]".
 """, List.of("""
@@ -227,7 +227,7 @@ Sub:{ .m(x: SortedList[ColouredPoint]): SortedList[Point] -> x }
 006| Sub:{ .m(x: SortedList[Point]): SortedList[ColouredPoint] -> x }
    |       -------------------------------------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 6
+While inspecting parameter "x" > method "Sub.m(_)" (line 6)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[Point]".
 Parameter "x" has type "SortedList[Point]" instead of a subtype of "SortedList[ColouredPoint]".
 """, List.of("""
@@ -242,7 +242,7 @@ Sub:{ .m(x: SortedList[Point]): SortedList[ColouredPoint] -> x }
 002| Sub:{ .m[X:*](x: X): read Foo -> x }
    |       ---------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 2
+While inspecting parameter "x" > method "Sub.m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "X".
 Parameter "x" has type "X" instead of a subtype of "read Foo".
 """, List.of("""
@@ -257,7 +257,7 @@ Sub:{ .m[X:mut](x: Box[X]): Box[mut X] -> x; .n[X:mut](x: Box[mut X]): Box[X] ->
 002| Sub:{ .m[X:mut,read](x: Box[X]): Box[mut X] -> x }
    |       -----------------------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 2
+While inspecting parameter "x" > method "Sub.m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "Box[X]".
 Parameter "x" has type "Box[X]" instead of a subtype of "Box[mut X]".
 """, List.of("""
@@ -285,7 +285,7 @@ Sub[Y:imm]:Sup[Y]{ .m(x) -> x }
 002| Sub:{ .m[X:mut,read](x: Box[read X]): Box[read/imm X] -> x }
    |       ---------------------------------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 2
+While inspecting parameter "x" > method "Sub.m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "Box[read X]".
 Parameter "x" has type "Box[read X]" instead of a subtype of "Box[read/imm X]".
 """, List.of("""
