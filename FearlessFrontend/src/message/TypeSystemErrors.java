@@ -429,7 +429,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert reqs.size() == res.size();
     assert res.stream().noneMatch(Reason::isEmpty);
     assert reqs.stream().allMatch(r -> canon(r.t()).equals(canon(declared)));
-    if (isWrongUnderlyingType(ts, bs, canon(declared), res)){ return wrongUnderlyingTypeErr(ts, bs, d, c, argi, declared, res); }
+    if (isWrongUnderlyingType(ts, bs, canon(declared), res)){ return wrongUnderlyingTypeErr(ts, d, c, argi, declared, res); }
     var gotHdr= headerBest(res);
     var r= Streams.zip(res, reqs).filter((ri,q) -> rcOnlyMismatch(ri.best, q.t())).map((ri,_) -> ri).findFirst().orElse(res.getFirst());
     var e= err()
@@ -443,7 +443,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var footer= r.footerE.get();
     return withCallSpans(e.ex(footer, c.es().get(argi)), c.es().get(argi), c);
   }
-  private FearlessException wrongUnderlyingTypeErr(TypeSystem ts, List<B> bs, Literal d, Call c, int argi, T declared, List<Reason> res){
+  private FearlessException wrongUnderlyingTypeErr(TypeSystem ts, Literal d, Call c, int argi, T declared, List<Reason> res){
     var gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both
     //should make an attempt to say what the generics in the result should have been instantiate to instead
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
@@ -451,7 +451,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr instanceof T.RCC ? canon(gotHdr) : gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, declared)+" (the type required by the method signature).");
-    if (lambdaFits(ts, bs, c.es().get(argi), declared, gotHdr)){ e.line("Write the argument inside curly braces: the curly braces make an object literal instance of "+err().typeRepr(true, declared)+", whose single method returns the argument."); }
     addNoPrecedenceHintIfOperator(e, ts.scope(), c);
     return withCallSpans(e.ex(c, c.es().get(argi)), c.es().get(argi), c);
   }
@@ -466,15 +465,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private static boolean isWrongUnderlyingType(TypeSystem ts, List<B> bs, T reqCanon, List<Reason> res){
     return res.stream().map(r -> canon(r.best)).noneMatch(r -> ts.isSub(bs, r, reqCanon));
-  }
-  private boolean lambdaFits(TypeSystem ts, List<B> bs, E arg, T declared, T got){
-    var captureKeepsType= !(arg instanceof X) || got.explicitRC().filter(r -> r == RC.mut || r.isReadOrImm()).isPresent();
-    if (!captureKeepsType || !(declared instanceof T.RCC(var rc, var c, _)) || rc != RC.mut || foreignSealed(c.name())){ return false; }
-    var d= decs.apply(c.name());
-    var abs= d.ms().stream().map(M::sig).filter(Sig::abs).toList();
-    if (abs.size() != 1 || !abs.getFirst().ts().isEmpty() || abs.getFirst().rc() != RC.mut){ return false; }
-    var ret= TypeRename.of(abs.getFirst().ret(), B.xs(d.bs()), c.ts());
-    return ts.isSub(bs, got, ret);
   }
   private static T canon(T t){ return t.withRC(RC.imm); }
 
