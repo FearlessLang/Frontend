@@ -2172,7 +2172,7 @@ In file: [###].fear
 002| B:{ .m[X](x:X):X -> x }
    |        ^
 
-While inspecting a type name
+While inspecting generic type parameter "X"
 Generic type parameter "X" is declared in package "b".
 Name "X" is also used in a "use" directive.
 Error 7 WellFormedness

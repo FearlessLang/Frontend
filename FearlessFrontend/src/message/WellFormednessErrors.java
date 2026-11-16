@@ -340,7 +340,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Generic type parameter "+disp(n.name())+" is declared in package "+disp(pkgName)+".")
       .line("Name "+disp(n.name())+" is also used "+(use.contains(n.name()) ? "in a \"use\" directive." : "as a type name."))
       .wf()
-      .addFrame("a type name", n.span().inner);
+      .addFrame("generic type parameter "+disp(n.name()), n.span().inner);
   }
   public FearlessException duplicatedBound(List<RC> es, T.X n){
     var dup= redeclaredElement(es);

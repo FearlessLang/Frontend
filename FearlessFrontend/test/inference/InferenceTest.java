@@ -1237,7 +1237,7 @@ In file: [###]/in_memory1.fear
 001| Y[X:imm]:{}
    |   ^
 
-While inspecting a type name
+While inspecting generic type parameter "X"
 Generic type parameter "X" is declared in package "p".
 Name "X" is also used as a type name.
 Error 7 WellFormedness
