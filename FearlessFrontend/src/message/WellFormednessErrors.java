@@ -399,7 +399,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException noSourceToInferFrom(E.Literal origin, M m){
     var s= m.sig();
     if (s.m().isEmpty()){ return methodNotInferred(origin, s); }
-    var name= methodSig(s.rc().map(RC::toStrSpace).orElse(""), s.m().get());
+    var name= methodSig(s.rc().map(r -> r.toStrSpace(false)).orElse(""), s.m().get());
     var allParHasType= s.ts().stream().allMatch(Optional::isPresent);
     var e= allParHasType
       ? err().line("Missing return type for method "+name+".").line("Add an explicit return type before \"->\".")

@@ -1087,4 +1087,17 @@ Sup1:{ .id[X:imm](x:Sup1):Sup1 }
 Sup2:{ .id(x:Sup1):Sup1 }
 A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
 """));}
+@Test void anImmMethodDoesNotInheritFromAMutMethod(){failWf("""
+002| B:A{ imm .m -> this }
+   | -----^^^^^^^^^^^^^^--
+
+While inspecting type declaration "B"
+Missing return type for method "imm .m".
+Add an explicit return type before "->".
+A method can omit types in its signature only when a supertype has a method "imm .m" to inherit the missing types from.
+No supertype of type declaration "B" has a method "imm .m".
+""", List.of("""
+A:{ mut .m: A }
+B:A{ imm .m -> this }
+"""));}
 }
