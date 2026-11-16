@@ -2269,7 +2269,7 @@ While inspecting object literal instance of "a.Sup"
 Invalid method signature for "a.Sup.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertypes declare 1.
 Local declaration: "[X:imm, Y:imm]".
-From supertypes: "[-:imm]".
+From supertypes: "[X:imm]".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2284,10 +2284,10 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.Sup"
 Invalid method signature for "a.Sup.id(_)".
-The local declaration uses different capability bounds than the supertypes for generic type parameter 1 of ".id(_)".
-Local: "X:imm,read".
-From supertypes: "-:imm".
-The parameter name may differ; only the position matters.
+The method ".id(_)" declares different capability bounds than the supertypes for generic type parameter 1.
+Local declaration: "X:imm,read".
+From supertypes: "X:imm".
+Generic type parameter names may differ from the supertypes; only the position matters.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness

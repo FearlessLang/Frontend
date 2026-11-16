@@ -443,11 +443,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return wf(e, at);
   }
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
-    var sB= disp(superBs.stream().map(b -> new B("-", b.rcs())).toList());
     return wf(invalidMethImpl(at)
       .line("The method "+err().methodSig(at.mName())+" declares "+count(userBs.size(), "generic type parameter")+", but supertypes declare "+superBs.size()+".")
       .line("Local declaration: "+disp(userBs)+".")
-      .line("From supertypes: "+sB+"."), at);
+      .line("From supertypes: "+disp(superBs)+"."), at);
   }
   public FearlessException methodBsDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     assert res.size() >= 2;
@@ -468,13 +467,11 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var u= userBs.get(i);
     var s= superBs.get(i);
     var m= err().methodSig(at.mName());
-    var uB= disp(u);
-    var sB= disp(new B("-", s.rcs()));
     return wf(invalidMethImpl(at)
-      .line("The local declaration uses different capability bounds than the supertypes for generic type parameter "+(i+1)+" of "+m+".")
-      .line("Local: "+uB+".")
-      .line("From supertypes: "+sB+".")
-      .line("The parameter name may differ; only the position matters."), at);
+      .line("The method "+m+" declares different capability bounds than the supertypes for generic type parameter "+(i+1)+".")
+      .line("Local declaration: "+disp(u)+".")
+      .line("From supertypes: "+disp(s)+".")
+      .line("Generic type parameter names may differ from the supertypes; only the position matters."), at);
   }
   private int firstRcsDisagreementIndex(List<List<B>> res){
     return IntStream.range(0, res.getFirst().size())

@@ -1329,10 +1329,10 @@ In file: [###].fear
 
 While inspecting type declaration "Current"
 Invalid method signature for "Current.id(_)".
-The local declaration uses different capability bounds than the supertypes for generic type parameter 1 of ".id(_)".
-Local: "X:imm,read".
-From supertypes: "-:imm".
-The parameter name may differ; only the position matters.
+The method ".id(_)" declares different capability bounds than the supertypes for generic type parameter 1.
+Local declaration: "X:imm,read".
+From supertypes: "X:imm".
+Generic type parameter names may differ from the supertypes; only the position matters.
 Error 7 WellFormedness
 """, List.of("""
 P:{}
@@ -1350,7 +1350,7 @@ While inspecting type declaration "Sub"
 Invalid method signature for "Sub.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertypes declare 1.
 Local declaration: "[X:imm, Y:imm]".
-From supertypes: "[-:imm]".
+From supertypes: "[X:imm]".
 Error 7 WellFormedness
 """, List.of("""
 P:{}
