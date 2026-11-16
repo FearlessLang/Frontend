@@ -26,7 +26,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 File ended while parsing a "{" group.
 This "{" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed""", List.of("X:{"));}
 @Test void noExplicitThisSelfName(){failParse("""
 001| A:{ .m1: A -> {'this} }
@@ -210,7 +210,7 @@ A:{ #: readH A -> readH A }
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: "read/imm".
-Expected one of: "name", "type name", "(", "{".
+Expected one of: name, type name, "(", "{".
 """, List.of("""
 A:{ #: A -> this.eat(read/imm A); .eat(a: A): A -> a }
 """));}

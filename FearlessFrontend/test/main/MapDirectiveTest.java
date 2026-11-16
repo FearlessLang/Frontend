@@ -1528,7 +1528,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing folder name.
 Found instead: "_com1".
-Expected: "folder name: the _ symbol followed by a package name".
+Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, Map.of(), Map.of(), """
 map a as _com1 in _b;
@@ -1548,7 +1548,7 @@ In file: [###].fear
 
 While inspecting header element > file header > full file
 Missing folder name.
-Expected: "folder name: the _ symbol followed by a package name".
+Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, Map.of("c", cA), Map.of("a", "c"), """
 map a as _c in _b instead of _d,;
@@ -1611,7 +1611,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing folder name.
 Found instead: "_cC".
-Expected: "folder name: the _ symbol followed by a package name".
+Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, Map.of("c", cA), Map.of("a", "c"), """
 map a as _cC in _b;

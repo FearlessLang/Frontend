@@ -7,22 +7,22 @@ import java.util.stream.Stream;
 import metaParser.TokenMatch;
 
 public enum TokenKind implements metaParser.TokenKind{
-  Ws("\\s+", " white space or new line"),
-  LineComment("//[^\\n]*", "//.."),
-  BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", "/*..*/"),
+  Ws("\\s+", "white space or new line"),
+  LineComment("//[^\\n]*", "line comment"),
+  BlockComment("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/", "block comment"),
   BadUnclosedBlockComment("(?s)/\\*(?!.*?\\*/).*"),
   BadUnopenedBlockCommentClose("\\*/"),
 
   Arrow("->"),
-  ORound("\\(", "("),
-  CRound("\\)", ")"),
-  OCurly("\\{", "{"),
-  CCurlyId("\\}[A-Za-z0-9_]+'*", "}id"),
-  CCurly("\\}", "}"),
-  OSquareArg("(?<=[A-Za-z0-9_'`\\x22\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])(?<!\\x2A/)\\[", "["),//correctly not working for preceding literals
+  ORound("\\(", "\"(\""),
+  CRound("\\)", "\")\""),
+  OCurly("\\{", "\"{\""),
+  CCurlyId("\\}[A-Za-z0-9_]+'*", "\"}\""),
+  CCurly("\\}", "\"}\""),
+  OSquareArg("(?<=[A-Za-z0-9_'`\\x22\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])(?<!\\x2A/)\\[", "\"[\""),//correctly not working for preceding literals
   BadOSquare("\\["),
-  CSquare("\\]", "]"),
-  Underscore("_", "underscore"),
+  CSquare("\\]", "\"]\""),
+  Underscore("_", "\"_\""),
   Comma(","),
   SemiColon(";"),
   ColonColon("::"),
@@ -45,9 +45,9 @@ public enum TokenKind implements metaParser.TokenKind{
   UnsignedInt("[0-9](?:[0-9_]*[0-9])?", "unsigned number (eg. 23)"),
   BadUStrUnclosed("\\x22[^\\x22\\x0A]*(?=\\x0A|\\z)"),
   BadSStrUnclosed("`[^`\\x0A]*(?=\\x0A|\\z)"),
-  UStr("\\x22[^\\x22\\x0A]*\\x22", "\"...\""),
-  SStr("`[^`\\x0A]*`", "`...`"),
-  DotName("\\._*[a-z][A-Za-z0-9_]*'*", ".name"),
+  UStr("\\x22[^\\x22\\x0A]*\\x22", "string literal"),
+  SStr("`[^`\\x0A]*`", "string literal"),
+  DotName("\\._*[a-z][A-Za-z0-9_]*'*", "method name (eg. .foo)"),
   UppercaseId(
     "(?:"+core.TName.pkgNameRegex+"\\x2E)?_*[A-Z][A-Za-z0-9_]*'*",
     "type name"),//correctly allows only one '.' since packages are not nested inside each others
@@ -80,7 +80,7 @@ public enum TokenKind implements metaParser.TokenKind{
   private final TokenMatch match;
   public final String human;
 
-  TokenKind(String regex){ this(regex, regex); }
+  TokenKind(String regex){ this(regex, "\""+regex+"\""); }
   TokenKind(String regex, String human){
     this.match= TokenMatch.fromRegex(regex);
     this.human= human;

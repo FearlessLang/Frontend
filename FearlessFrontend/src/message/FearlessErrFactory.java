@@ -245,7 +245,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +expected(
         "No generic type parameters are declared here",
         "Declared generic type parameters: ", "Declared generic type parameters: ",
-        Xs, s -> s)).addSpan(at);
+        Xs, Err::disp)).addSpan(at);
   }
   public FearlessException genericNotFunnelled(Token X, Span at, String owner, List<String> Xs){
     return Code.UnexpectedToken.of(Err.funnel(X.content(), owner, Xs)).addSpan(at);
@@ -296,8 +296,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   private static String expected(Collection<TokenKind> items){ return expected("", "Expected: ", "Expected one of: ", items, tk -> tk.human); }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
-    return Join.of(items.stream().map(e -> disp(f.apply(e))),
-      items.size() == 1 ? pre1 : preMany, ", ", ".\n", pre0.isEmpty() ? "" : pre0+".\n");
+    var labels= items.stream().map(f).distinct().toList();
+    return Join.of(labels, labels.size() == 1 ? pre1 : preMany, ", ", ".\n", pre0.isEmpty() ? "" : pre0+".\n");
   }
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     var head= what.isBlank()
