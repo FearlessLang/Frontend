@@ -57,7 +57,7 @@ In file: [###].fear
    |        ----------^^^^^^^^^
 
 While inspecting object literal instance of "base.Void" > method ".fromC" (line 1)
-The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
+The body of method ".fromC" of type declaration "B" is an expression returning "base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -467,7 +467,7 @@ In file: [###].fear
    |     --------^
 
 While inspecting object literal instance of "bb.Nat" > method ".m" (line 1)
-The body of method ".m" of type declaration "B" is an expression returning "iso bb.Nat".
+The body of method ".m" of type declaration "B" is an expression returning "bb.Nat".
 Object literal is of type "bb.Nat" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -920,7 +920,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "base.Void" > method ".fromC" (line 1) > method ".m" (line 1)
 Method ".fromC" inside the object literal instance of "a.A" (line 1)
-is implemented with an expression returning "iso base.Void".
+is implemented with an expression returning "base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -953,7 +953,7 @@ In file: [###].fear
    |     --------^^^^
 
 While inspecting object literal instance of "bb.Str" > method ".m" (line 1)
-The body of method ".m" of type declaration "B" is an expression returning "iso bb.Str".
+The body of method ".m" of type declaration "B" is an expression returning "bb.Str".
 Object literal is of type "bb.Str" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -970,7 +970,7 @@ In file: [###].fear
    |     --------^
 
 While inspecting object literal instance of "N" > method ".m" (line 2)
-The body of method ".m" of type declaration "B" is an expression returning "iso N".
+The body of method ".m" of type declaration "B" is an expression returning "N".
 Object literal is of type "N" instead of a subtype of "B".
 
 Name "N" stands for "bb.Nat" because of "use bb.Nat as N".
@@ -989,7 +989,7 @@ In file: [###].fear
    |     -------------^^
 
 While inspecting object literal instance of "bb.Int" > method ".m" (line 1)
-The body of method ".m" of type declaration "B" is an expression returning "iso bb.Int".
+The body of method ".m" of type declaration "B" is an expression returning "bb.Int".
 Object literal is of type "bb.Int" instead of a subtype of "bb.Nat".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -1063,7 +1063,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "B" > method ".fromC" (line 2) > method ".m" (line 2)
 Method ".fromC" inside the object literal instance of "X" (line 2)
-is implemented with an expression returning "iso B".
+is implemented with an expression returning "B".
 Object literal is of type "B" instead of a subtype of "X".
 
 Name "X" stands for "a.A" because of "use a.A as X".
@@ -2807,7 +2807,7 @@ In file: [###].fear
    |     ----------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > method ".k" (line 2)
-The body of method ".k" of type declaration "B" is an expression returning "iso L".
+The body of method ".k" of type declaration "B" is an expression returning "L".
 Object literal is of type "L" instead of a subtype of "a.A".
 
 """+noteA+"""
@@ -2827,7 +2827,7 @@ In file: [###].fear
    |     -----------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > method ".k" (line 3)
-The body of method ".k" of type declaration "B" is an expression returning "iso L".
+The body of method ".k" of type declaration "B" is an expression returning "L".
 Object literal is of type "L" instead of a subtype of "a.A2".
 
 """+noteA+"""
@@ -2848,7 +2848,7 @@ In file: [###].fear
    |     ---------------^
 
 While inspecting object literal instance of "bb.Nat" > method ".m(_)" (line 1)
-The body of method ".m(_)" of type declaration "B" is an expression returning "iso bb.Nat".
+The body of method ".m(_)" of type declaration "B" is an expression returning "bb.Nat".
 Object literal is of type "bb.Nat" instead of a subtype of "B".
 
 """+noteBb+"""
@@ -2943,7 +2943,7 @@ In file: [###].fear
    |     -------------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > method ".k" (line 2)
-The body of method ".k" of type declaration "B" is an expression returning "iso L".
+The body of method ".k" of type declaration "B" is an expression returning "L".
 Object literal is of type "L" instead of a subtype of "bb.Str".
 
 """+noteBb+"""

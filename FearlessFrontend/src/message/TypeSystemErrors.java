@@ -230,7 +230,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var l= s.l();
     var m= s.m();
     assert !got.isEmpty();
-    var got0= err().typeRepr(true, got.best);
+    var promoted= (at instanceof Literal || at instanceof Type) && got.best instanceof T.RCC r && r.rc() == RC.iso;
+    var got0= promoted ? err().expReprDirect(true, at) : err().typeRepr(true, got.best);
     var e= err();
     var meth= err().methodSig(m.sig().m());
     var top= l.thisName().equals("this");

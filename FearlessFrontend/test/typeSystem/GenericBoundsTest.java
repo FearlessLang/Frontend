@@ -37,7 +37,7 @@ B:A[FortyTwo]{ .count -> FortyTwo; .sum -> FortyTwo{} }
    |                                    --------^^^^^^^^^^
 
 While inspecting object literal instance of "FortyThree" > method ".sum" (line 5)
-The body of method ".sum" of type declaration "B" is an expression returning "iso FortyThree".
+The body of method ".sum" of type declaration "B" is an expression returning "FortyThree".
 Object literal is of type "FortyThree" instead of a subtype of "FortyTwo".
 
 Relevant code with inferred types:

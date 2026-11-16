@@ -877,7 +877,7 @@ User:{
 
 While inspecting object literal instance of "Foo" > method "#(_)" (line 7) > method ".m" (line 7)
 Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 7)
-is implemented with an expression returning "iso Foo".
+is implemented with an expression returning "Foo".
 Object literal is of type "Foo" instead of a subtype of "Car".
 
 Relevant code with inferred types:
@@ -917,7 +917,7 @@ User:{
    |   ----------------^^^^^^
 
 While inspecting object literal "AA" > method ".m" (line 4)
-The body of method ".m" of type declaration "User" is an expression returning "iso AA".
+The body of method ".m" of type declaration "User" is an expression returning "AA".
 Object literal is of type "AA" instead of a subtype of "B".
 
 Relevant code with inferred types:
@@ -2597,7 +2597,7 @@ Main:{ .m(s:S): S -> { .get(x) -> x }.get(s) }
    |         ---------------^^^^
 
 While inspecting object literal instance of "base.Float" > method ".m" (line 1)
-The body of method ".m" of type declaration "Main" is an expression returning "iso base.Float".
+The body of method ".m" of type declaration "Main" is an expression returning "base.Float".
 Object literal is of type "base.Float" instead of a subtype of "base.Int".
 
 Relevant code with inferred types:
@@ -3984,7 +3984,7 @@ User:{.f(c:C[A]):C[B]->c;}
    |       -----------------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "C[A]" > method ".f(_)" (line 4)
-The body of method ".f(_)" of type declaration "User" is an expression returning "iso C[A]".
+The body of method ".f(_)" of type declaration "User" is an expression returning "C[A]".
 Object literal is of type "C[A]" instead of a subtype of "C[B]".
 
 Relevant code with inferred types:
@@ -4058,7 +4058,7 @@ ExtStr:"beer"{}
    |    -----------^^^^^
 
 While inspecting object literal instance of "Sup" > method ".m" (line 3)
-The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
+The body of method ".m" of type declaration "B" is an expression returning "Sup".
 Object literal is of type "Sup" instead of a subtype of "Target".
 
 Relevant code with inferred types:
@@ -4074,7 +4074,7 @@ B:{.m:Target->Sup{}}
    |    -----------^^^^^
 
 While inspecting object literal instance of "Sup" > method ".m" (line 3)
-The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
+The body of method ".m" of type declaration "B" is an expression returning "Sup".
 Object literal is of type "Sup" instead of a subtype of "Target".
 
 Relevant code with inferred types:
@@ -4090,7 +4090,7 @@ B:{.m:Target->Sup{}}
    |    -----------^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "Sup" > method ".m" (line 3)
-The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
+The body of method ".m" of type declaration "B" is an expression returning "Sup".
 Object literal is of type "Sup" instead of a subtype of "Target".
 
 Relevant code with inferred types:
@@ -5380,7 +5380,7 @@ A:base.CaptureFree{ imm .foo: A -> base.Block#.let x= {this} .return {x} }
    |               --------^^^^^^^^^
 
 While inspecting object literal instance of "base.Void" > method ".str" (line 1)
-The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
+The body of method ".str" of type declaration "A" is an expression returning "base.Void".
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
 
 Relevant code with inferred types:
@@ -5393,7 +5393,7 @@ A:base.ToStr{ .str -> base.Void }
    |         --------^^^^^^^^^
 
 While inspecting object literal instance of "base.Void" > method ".str" (line 2)
-The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
+The body of method ".str" of type declaration "A" is an expression returning "base.Void".
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
 
 Relevant code with inferred types:
@@ -6447,7 +6447,7 @@ User:{ .u(a:A): A -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -
    |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.Str" > method ".m" (line 1)
-The body of method ".m" of type declaration "B" is an expression returning "iso base.Str".
+The body of method ".m" of type declaration "B" is an expression returning "base.Str".
 Object literal is of type "base.Str" instead of a subtype of "B".
 
 Relevant code with inferred types:
