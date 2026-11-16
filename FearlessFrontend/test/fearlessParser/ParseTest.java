@@ -3839,5 +3839,33 @@ Error 0 Unclosed
 """, """
 A[X:foo]:{}
 """);}
+@Test void lowercaseTypeDeclarationName(){fail("""
+In file: [###].fear
+
+001| point:{ .x: base.Nat -> 3 }
+   | ^^^^^~---------------------
+
+While inspecting file header > full file
+A file cannot start with "point".
+A file starts with the "use" and "map" directives, if any, and then the type declarations.
+A type declaration starts with a type name, like "Point:{..}", and a type name starts with an uppercase letter.
+Error 2 UnexpectedToken
+""", """
+point:{ .x: base.Nat -> 3 }
+""");}
+@Test void javaClassDeclaration(){fail("""
+In file: [###].fear
+
+001| class Point{ }
+   | ^^^^^---------
+
+While inspecting file header > full file
+A file cannot start with "class".
+A file starts with the "use" and "map" directives, if any, and then the type declarations.
+A type declaration starts with a type name, like "Point:{..}", and a type name starts with an uppercase letter.
+Error 2 UnexpectedToken
+""", """
+class Point{ }
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

@@ -75,6 +75,13 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +"Likely cause: an extra \"}\" closed a type declaration unintentionally.\n"
       ).addSpan(at);
   }
+  public FearlessException notADirective(Span at, String name){
+    return Code.UnexpectedToken.of(
+      "A file cannot start with "+disp(name)+".\n"
+    +"A file starts with the \"use\" and \"map\" directives, if any, and then the type declarations.\n"
+    +"A type declaration starts with a type name, like \"Point:{..}\", and a type name starts with an uppercase letter.\n"
+    ).addSpan(at);
+  }
   @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
     assert nonNull(from, parser, expectedTerminatorTokens);
     var instead= "Expected "+what;

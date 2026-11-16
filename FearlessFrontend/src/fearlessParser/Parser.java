@@ -450,6 +450,8 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var acc= new HeadAcc();
     if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).get()); }
     if (!peek(LowercaseId)){ return acc; }
+    var directive= peekValidate(_map) || peekValidate(_use);
+    if (!directive){ throw errFactory().notADirective(span(peek().get()).get(), peek().get().content()); }
     expectLast("semicolon", SemiColon);
     splitBy("header element", semiSkip, p -> p.parseHeaderElement(acc));
     return acc;
