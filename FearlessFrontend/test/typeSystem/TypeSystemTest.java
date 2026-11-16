@@ -1262,7 +1262,7 @@ User:{
 
 While inspecting method ".m(_)" (line 2)
 This call to method ".foo" cannot typecheck.
-The receiver is of type "X". This is a generic type parameter.
+The receiver has type "X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1277,7 +1277,7 @@ User:{ .m[X:*](x: X): X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
 
 While inspecting method ".m(_)" (line 4)
 This call to method ".foo" cannot typecheck.
-The receiver is of type "read X". This is a generic type parameter.
+The receiver has type "read X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1294,7 +1294,7 @@ User:Sup[Box[User]]{ .m[X:*](x: read X): read X -> Id#(Id#(Id#(Id#(Id#(x.foo))))
 
 While inspecting method ".m(_)" (line 2)
 This call to method ".foo" cannot typecheck.
-The receiver is of type "read/imm X". This is a generic type parameter.
+The receiver has type "read/imm X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1315,7 +1315,7 @@ User:{ .m[X:*](x: X): base.Void -> Ig#(Mk#(x)) }
 
 While inspecting method ".m(_)" (line 2)
 This call to method ".foo" cannot typecheck.
-The receiver is of type "X". This is a generic type parameter.
+The receiver has type "X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -2304,7 +2304,7 @@ User:{ #: read A -> read C:A,B{ .m -> Z } }
 
 While inspecting method ".bar(_)" (line 3)
 This call to method ".foo123" cannot typecheck.
-The receiver is of type "X". This is a generic type parameter.
+The receiver has type "X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)

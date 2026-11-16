@@ -763,7 +763,7 @@ User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
 
 While inspecting method ".use(_)" (line 2)
 This call to method ".foo" cannot typecheck.
-The receiver is of type "read/imm Y". This is a generic type parameter.
+The receiver has type "read/imm Y", where "Y" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)

@@ -309,7 +309,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var best= TypeScope.bestInterestingScope(s, List.of(recvType));
     return withCallSpans(err()
       .pCallCantBeSatisfied(c)
-      .line("The receiver is of type "+err().typeRepr(true, recvType)+". This is a generic type parameter.")
+      .line("The receiver has type "+err().typeRepr(true, recvType)+", where "+disp(((T.RCX)recvType.withRC(RC.imm)).x().name())+" is a generic type parameter.")
       .line("Generic type parameters cannot be receivers of method calls.")
       .ex(best.contextE(), c), c.e(), c);
   }
