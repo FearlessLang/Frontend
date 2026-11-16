@@ -1934,7 +1934,7 @@ B:{ mut .baz(m:mut a.M):read a.M -> { .bar -> m } }
 In file: [###].fear
 
 001| B:{.m(x:a.A):a.A->a.A{'s .fromC -> x}}
-   |    ---------------^^^----------------
+   |    ---------------^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "a.A" > ".m(_)" line 1
 The self name "s" is dead code.
@@ -2095,7 +2095,7 @@ B:{.m(p:a.Pairer):B->p.pair[B](this, this)}
 In file: [###].fear
 
 001| B:{.f:a.D->a.Need#(read a.A2{})}
-   |    --------~~~~~~~~~~~~~^^^^~~~
+   |    --------~~~~~~~~^^^^^^^^^^^~
 
 While inspecting ".f" line 1
 This call to method "a.Need#(_)" cannot typecheck.
@@ -2759,7 +2759,7 @@ Main:{ .m:bb.Float -> +0.1 }
 In file: [###].fear
 
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
-   |     ---------^-------------------------------
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 2
 The self name "s" is dead code.
@@ -2795,7 +2795,7 @@ U:{ .two[S,T](s:S, x:T, y:T):a.A -> a.A; .use(q:d.Q, y:a.Y, z:a.Z):a.A -> this.t
 In file: [###].fear
 
 003| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
-   |     ---------^-------------------------------
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 3
 The self name "s" is dead code.
@@ -2836,7 +2836,7 @@ B:{ .k:X -> X{'s .fromC -> this} }
 In file: [###].fear
 
 002| B:{ .k:a.A -> L{ .m0(x) -> x; } }
-   |     ----------^----------------
+   |     ----------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 2
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
@@ -2856,7 +2856,7 @@ B:{ .k:a.A -> L{ .m0(x) -> x; } }
 In file: [###].fear
 
 003| B:{ .k:a.A2 -> L{ .m0(x) -> x; } }
-   |     -----------^----------------
+   |     -----------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 3
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
@@ -2934,7 +2934,7 @@ B:{.m(x:z.A, q:d.Q):a.A->x}
 In file: [###].fear
 
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
-   |     ---------^-------------------------------
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 2
 The self name "s" is dead code.
@@ -2952,7 +2952,7 @@ B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
 In file: [###].fear
 
 004| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
-   |     ---------^-------------------------------
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 4
 The self name "s" is dead code.
@@ -2972,7 +2972,7 @@ B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
 In file: [###].fear
 
 002| B:{ .k:bb.Str -> L{ .m0(x) -> x; } }
-   |     -------------^----------------
+   |     -------------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 2
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
@@ -2992,7 +2992,7 @@ B:{ .k:bb.Str -> L{ .m0(x) -> x; } }
 In file: [###].fear
 
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
-   |     ---------^-------------------------------
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 2
 The self name "s" is dead code.

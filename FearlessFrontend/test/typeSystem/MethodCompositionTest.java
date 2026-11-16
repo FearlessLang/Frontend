@@ -851,7 +851,7 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
 """));}
 @Test void overrideInLiteralStrengthensResultCapability(){fail("""
 003| User:{ #: mut Sup -> mut Sup{ mut .h: iso P -> P } }
-   |        ------------------~~~~~^^^^^^^^^^^^^^^^^^--
+   |        --------------~~~~~~~~~^^^^^^^^^^^^^^^^^^~~
 
 While inspecting object literal instance of "iso Sup" > "#" line 3
 Invalid method signature for "mut Sup.h".

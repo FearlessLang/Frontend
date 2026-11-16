@@ -488,7 +488,7 @@ Bs:{ #: B -> B{'b .foo -> b } }
 """));}
 @Test void mustImplementMethodsInLambdaFail(){fail("""
 003| Bs:{ #: B -> B{} }
-   |      --------^--
+   |      --------^^^
 
 While inspecting object literal instance of "iso B" > "#" line 3
 This object literal is missing a required method.
@@ -665,7 +665,7 @@ Fake: base.DataRead{ .name -> base.Nope! }
 """));}
 @Test void finalMethodImplementedInALiteral(){failWf("""
 001| Forge: { #: base.DataRead -> base.DataRead{ .name -> base.Nope! } }
-   |                              ^^^^^^^^^^^^^
+   |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.DataRead"
 Object literal instance of "base.DataRead" implements method ".name".

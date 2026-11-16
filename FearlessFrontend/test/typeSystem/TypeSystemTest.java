@@ -622,7 +622,7 @@ User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
 @Test void typeNotWellKinded_typeExpressionViolatesBounds(){fail("""
 004|   .break(cell:imm Cell):base.Void ->
 005|     Thaw[mut Cell].apply(cell).set(1);
-   |     ^^^^
+   |     ^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "Thaw[mut Cell]" > ".break(_)" line 4
 The type "Thaw[mut Cell]" is invalid.
@@ -1401,7 +1401,7 @@ Sub:Sup{ imm .h():read P; }
 
 @Test void callableMethodStillAbstract_missingRequiredMethod_anonLiteral(){ fail("""
 006|   imm .m():Sup->Sup{ imm .h:base.Void->base.Void{} }
-   |   --------------^^^---------------------------------
+   |   --------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "iso Sup" > ".m" line 6
 This object literal is missing a required method.
@@ -1623,7 +1623,7 @@ User:{
 """)); }
 @Test void methodNotDeclared_wrongReceiverRc_onObjectLiteralInstance(){fail("""
 002| U:{ .u: base.Void -> mut A{ read .m: base.Void -> base.Void; mut .k: base.Void -> base.Void }.k[read] }
-   |     ---------------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^~~~~~~
+   |     -----------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^~~~~~~
 
 While inspecting ".u" line 2
 This call to method ".k" cannot typecheck.
@@ -1931,7 +1931,7 @@ A:{
 @Test void argFromObjectLiteral_defaultImm_hintToAnnotate(){fail("""
 005|   .f:B->
 006|     Need#(read A{});
-   |     -----------^---
+   |     ------^^^^^^^^-
 
 While inspecting ".f" line 5
 This call to method "Need#(_)" cannot typecheck.
@@ -2903,7 +2903,7 @@ iso B
 """));}
 @Test void byNameFail2(){fail("""
 003|  Main:{ .m:B -> B{.bar:A->A} }
-   |         --------^-----------
+   |         --------^^^^^^^^^^^^
 
 While inspecting object literal instance of "iso B" > ".m" line 3
 This object literal is missing a required method.
@@ -2954,7 +2954,7 @@ B:A,base.CaptureFree{read .get:read A->this;mut .get:mut A->this}
 """));}
 @Test void byNameAbstractMutMut(){fail("""
 003|  Main:{ .m:mut B -> mut B }
-   |         ----------------^
+   |         ------------^^^^^
 
 While inspecting object literal instance of "iso B" > ".m" line 3
 This object literal is missing a required method.
@@ -4007,7 +4007,7 @@ User:{.f(c:C[A]):C[B]->c;}
 """));}
 @Test void genHeadReportedObjLit(){fail("""
 004| User:{.f(c:C[A]):C[B]->C[A]{ .foo:A->A };}
-   |       -----------------^----------------
+   |       -----------------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "C[A]" > ".f(_)" line 4
 The body of method ".f(_)" of type declaration "User" is an expression returning "iso C[A]".
@@ -4026,7 +4026,7 @@ User:{.f(c:C[A]):C[B]->C[A]{ .foo:A->A };}
 In file: [###].fear
 
 006|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
-   |                                            ^^^^^^^^^
+   |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.Void"
 Object literal instance of "base.Void" implements sealed type "base.Void".
@@ -4081,7 +4081,7 @@ ExtStr:"beer"{}
 
 @Test void tsWidenAnonLiteralHeadVsRequiredType(){fail("""
 003| B:{.m:Target->Sup{}}
-   |    -----------^^^--
+   |    -----------^^^^^
 
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
@@ -4097,7 +4097,7 @@ B:{.m:Target->Sup{}}
 
 @Test void tsWidenAnonLiteralHeadControlNoWiden(){fail("""
 003| B:{.m:Target->Sup{}}
-   |    -----------^^^--
+   |    -----------^^^^^
 
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
@@ -4113,7 +4113,7 @@ B:{.m:Target->Sup{}}
 
 @Test void tsWidenAnonLiteralHeadMissingMethod(){fail("""
 003| B:{.m:Target->Sup{.foo->base.Str}}
-   |    -----------^^^----------------
+   |    -----------^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
@@ -4511,7 +4511,7 @@ User:{ .m: Need -> Need#{} }
 """));}
 @Test void writtenHeadIsNotSelfArgument(){fail("""
 004| User:{ .m: Need -> Need#(Closed[A]{}) }
-   |        ------------------^^^^^^------
+   |        ------------------^^^^^^^^^^^-
 
 While inspecting object literal instance of "iso Closed[A]" > ".m" line 4
 This object literal is missing a required method.
@@ -4869,7 +4869,7 @@ Make:{ #: iso A -> imm A{'self read .me: imm A -> self } }
 """));}
 @Test void selfNameDeadCode(){fail("""
 002| Make:{ #: A -> A{'self read .get: base.Nat -> 0 } }
-   |        --------^---------------------------------
+   |        --------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "A" > "#" line 2
 The self name "self" is dead code.
@@ -4931,7 +4931,7 @@ User:{ .nested(css: L[L[C]]): C -> C; .t: C -> this.nested(Ls#(Ls#(C))) }
 @Test void argFromObjectLiteral_mutHParam_hintToWriteMutLiteral(){fail("""
 005|   .f:B->
 006|     Need#(read A{});
-   |     -----------^---
+   |     ------^^^^^^^^-
 
 While inspecting ".f" line 5
 This call to method "Need#(_)" cannot typecheck.
@@ -4954,7 +4954,7 @@ User:{
 @Test void bodyFromObjectLiteral_wrongNominal_noHintToChangeRC(){fail("""
 004|   .f:mut A->
 005|     read C{};
-   |          ^
+   |     ^^^^^^^^
 
 While inspecting object literal instance of "read C" > ".f" line 4
 The body of method ".f" of type declaration "User" is an expression returning "read C".
@@ -5635,7 +5635,7 @@ A:{ .m[X:*,Y:*](x:mut X):mut Y -> x }
 """));}
 @Test void literalMethodParameterUnrelatedToTheTypeArgument(){fail("""
 004| U:{ .m:Box[A] -> Box[A]{ .get(x:B):B -> x } }
-   |     -------------~~~~~~~~^^^^^^^^^^^^^^^^--
+   |     -------------~~~~~~~~^^^^^^^^^^^^^^^^~~
 
 While inspecting object literal instance of "iso Box[A]" > ".m" line 4
 Invalid method signature for "Box[A].get(_)".
@@ -5779,7 +5779,7 @@ U:{ .m: base.Void -> Ig#(F#(Mk#, base.Void)) }
 """));}
 @Test void literalWithAMethodForAnExplicitTypeParameterArgument(){fail("""
 003| H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
-   |          ---------------^--------------------
+   |          ---------------^^^^^^^^^^^^^^^^^^^^-
 
 While inspecting object literal instance of "iso A" > ".m" line 3
 Object literal instance of "iso A" cannot implement "X".
@@ -5794,7 +5794,7 @@ H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
 """));}
 @Test void literalForAnExplicitTypeParameterArgument(){fail("""
 003| H[X:*]:{ .m: X -> G#[X](A{}) }
-   |          ---------------^---
+   |          ---------------^^^-
 
 While inspecting object literal instance of "A" > ".m" line 3
 Object literal instance of "A" cannot implement "X".

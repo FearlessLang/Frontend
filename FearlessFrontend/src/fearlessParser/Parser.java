@@ -67,7 +67,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   Optional<RC> parseOptRC(){ return parseIf(peek(RCap), this::parseRC); }
   T.RCC parseRCC(int startPos, Optional<RC> rc){
     var c= parseC();
-    return new T.RCC(rc, c, new TSpan(spanAround(startPos, index())));
+    return new T.RCC(rc, c, new TSpan(spanAround(startPos, index()-1)));
   }
   T.C parseC(){
     var c= parseTName();
@@ -100,12 +100,12 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var redeclared= mustNew && declared;
     if (redeclared){ throw errFactory().nameRedeclared(c, span(c).get()); }
     if (!mustNew){ checkXInScope(c); }
-    return new T.X(c.content(), new TSpan(spanAround(startPos, index())));
+    return new T.X(c.content(), new TSpan(spanAround(startPos, index()-1)));
   }
   T.X parseTX(int startPos){
     var c= expectValidate("type name", UppercaseId, _XId);
     checkXInScope(c);
-    return new T.X(c.content(), new TSpan(spanAround(startPos, index())));
+    return new T.X(c.content(), new TSpan(spanAround(startPos, index()-1)));
   }
   private void checkXInScope(Token c){
     if (names.XIn(c.content())){ return; }
@@ -388,7 +388,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     assert peek(_CurlyGroup);
     var l= parseGroup("type declaration body", p -> p.parseLiteral(top));
     names = outer;
-    var span= new TSpan(spanAround(startPos, index()));
+    var span= new TSpan(spanAround(startPos, index()-1));
     return new Declaration(c, bs, cs, l.withSpan(span));
   }
   FileFull parseFileFull(){

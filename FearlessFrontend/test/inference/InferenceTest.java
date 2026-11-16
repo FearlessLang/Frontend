@@ -1245,7 +1245,7 @@ User:{ .foo(x:Abc):Abc; }
 In file: [###]/in_memory1.fear
 
 001| Y[X:imm]:{}
-   |   ^^
+   |   ^
 
 While inspecting a type name
 Generic type parameter "X" is declared in package "p".
@@ -1280,7 +1280,7 @@ X:{.bar:base.Void}
 In file: [###].fear
 
 001| X[A:imm,mut,imm]:{.bar:base.Void}
-   |   ^^
+   |   ^
 
 While inspecting the file
 Duplicate reference capability in the generic type parameter "A".
@@ -1294,7 +1294,7 @@ X[A:imm,mut,imm]:{.bar:base.Void}
 In file: [###].fear
 
 001| X:{.bar[A:imm,mut,imm]:base.Void}
-   |         ^^
+   |         ^
 
 While inspecting the file
 Duplicate reference capability in the generic type parameter "A".

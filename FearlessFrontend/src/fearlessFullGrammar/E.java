@@ -37,7 +37,7 @@ public sealed interface E extends core.Src.SrcObj{
   record TypedLiteral(T.RCC t, Optional<Literal> l, Pos pos) implements E{
     public TypedLiteral{ assert nonNull(t, l, pos); }
     @Override public String toString(){ return "TypedLiteral"+t+l.map(Object::toString).orElse(""); }
-    @Override public TSpan span(){ return TSpan.fromPos(pos, t.c().name().s().length()); }
+    @Override public TSpan span(){ return l.map(li -> TSpan.merge(t.span(), li.span())).orElse(t.span()); }
   }
   record DeclarationLiteral(Optional<RC> rc, Declaration dec) implements E{
     public DeclarationLiteral{ assert nonNull(rc, dec); }
