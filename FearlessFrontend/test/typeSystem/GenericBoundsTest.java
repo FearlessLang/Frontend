@@ -40,7 +40,7 @@ While inspecting object literal instance of "FortyThree" > method ".sum" (line 5
 The body of method ".sum" of type declaration "B" is an expression returning "iso FortyThree".
 Object literal is of type "FortyThree" instead of a subtype of "FortyTwo".
 
-See inferred typing context below for how type "FortyTwo" was introduced: (compression indicated by `-`)
+Compressed relevant code with inferred types: (compression indicated by `-`)
 B:A[FortyTwo]{.count:FortyTwo->FortyTwo;.sum:FortyTwo->FortyThree}
 """, List.of("""
 Res1:{} Res2:{}
@@ -57,7 +57,7 @@ While inspecting parameter "n" > method ".sum(_)" (line 4)
 The body of method ".sum(_)" of type declaration "B" is an expression returning "mut FortyTwo".
 Parameter "n" has type "mut FortyTwo" instead of a subtype of "imm FortyTwo".
 
-See inferred typing context below for how type "FortyTwo" was introduced: (compression indicated by `-`)
+Compressed relevant code with inferred types: (compression indicated by `-`)
 B:A[FortyTwo]{mut .count:FortyTwo->FortyTwo;mut .sum(n:mut FortyTwo):FortyTwo->n}
 """, List.of("""
 Res1:{}
@@ -119,7 +119,7 @@ While inspecting method call ".m(_)" > method ".k(_)" (line 4)
 The body of method ".k(_)" of type declaration "Bar" is an expression returning "mut Beer[Y]".
 Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "iso Beer[Y]".
 
-See inferred typing context below for how type "iso Beer[Y]" was introduced: (compression indicated by `-`)
+Compressed relevant code with inferred types: (compression indicated by `-`)
 Bar:{.k[Y:*](y:Y):iso Beer[Y]->Foo.m[imm,Y](y)}
 """, List.of("""
 Baz:{}
@@ -139,7 +139,7 @@ While inspecting method call ".m(_)" > method ".k(_)" (line 4)
 The body of method ".k(_)" of type declaration "Bar" is an expression returning "mut Beer[Y]".
 Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "Beer[Y]".
 
-See inferred typing context below for how type "Beer[Y]" was introduced: (compression indicated by `-`)
+Compressed relevant code with inferred types: (compression indicated by `-`)
 Bar:{.k[Y:*](y:Y):Beer[Y]->Foo.m[imm,Y](y)}
 """, List.of("""
 Baz:{}
@@ -373,7 +373,7 @@ Method call "A#(_,_)" has type "mut Foo" instead of a subtype of "iso Foo".
 Type required by each promotion:
 - "iso Foo"  (As declared, Strengthen result)
 
-See inferred typing context below for how type "iso Foo" was introduced: (compression indicated by `-`)
+Compressed relevant code with inferred types: (compression indicated by `-`)
 Bad:{#[Y:mut,mutH,readH](y:Y,isoF:iso Foo):iso Foo->Expect.isoFoo(A#[imm,Y](y,isoF))}
 """, List.of("""
 Foo:{}
@@ -524,7 +524,7 @@ Type required by each promotion:
 - "mut Foo"  (As declared)
 - "iso Foo"  (Strengthen result)
 
-See inferred typing context below for how type "mut Foo" was introduced: (compression indicated by `-`)
+Compressed relevant code with inferred types: (compression indicated by `-`)
 Break:{.m(f:Foo):Foo->A#[imm,mut Foo](f)}
 """, List.of("""
 Foo:{}
@@ -790,7 +790,7 @@ The body of method ".m(_)" of type declaration "A" is an expression returning "m
 Object literal is of type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
 Hint: write "iso Fresh[_]" if you need an "iso" object literal.
 
-See inferred typing context below for how type "iso Box[X]" was introduced: (compression indicated by `-`)
+Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{.m[X](x:X):iso Box[X]->mut Fresh[X:*]:Box[X]{mut .get:X->x}}
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }

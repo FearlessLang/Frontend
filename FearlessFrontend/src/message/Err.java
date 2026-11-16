@@ -191,15 +191,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   FearlessException ex(E e){ return ex(e, e); }
   FearlessException ex(E e, E focus){
-    return ex("Compressed relevant code with inferred types: (compression indicated by `-`)", e, focus);
-  }
-  FearlessException exInferMsg(E e, E focus, String req){
-    return ex("See inferred typing context below for how type "+req+" was introduced: (compression indicated by `-`)", e, focus);
-  }
-  FearlessException ex(String footerHdr, core.E footerE, core.E focus){
     var body= text();
-    var footer= _cp.apply(true).limit(footerE, focus, 120).stripTrailing();
-    return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.get().stream(), "", "\n", "\n\n", "")+footerHdr+"\n"+footer);
+    var footer= _cp.apply(true).limit(e, focus, 120).stripTrailing();
+    return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.get().stream(), "", "\n", "\n\n", "")+"Compressed relevant code with inferred types: (compression indicated by `-`)\n"+footer);
   }
   FearlessException wf(){
     assert sb.length() != 0;
