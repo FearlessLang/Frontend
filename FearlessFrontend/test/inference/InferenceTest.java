@@ -839,8 +839,8 @@ In file: [###].fear
    |                 ^
 
 While inspecting a type name
-Name "F" is not declared with 2 generic type parameters in package "p".
-Name "F" is only declared with 0 generic type parameters.
+Type "F" is not declared with 2 generic type parameters in package "p".
+Type "F" is only declared with 0 generic type parameters.
 Did you accidentally add or omit a generic type argument?
 Error 7 WellFormedness
 """, List.of("""
@@ -1167,8 +1167,8 @@ In file: [###].fear
    |               ^^^^^^^^^^
 
 While inspecting a type name
-Name "Block" is not declared with 2 generic type parameters in package "base".
-Name "Block" is only declared with other numbers of generic type parameters.
+Type "Block" is not declared with 2 generic type parameters in package "base".
+Type "Block" is only declared with other numbers of generic type parameters.
 Candidates: "Block", "Block[_]".
 Did you accidentally add or omit a generic type argument?
 Error 7 WellFormedness
@@ -1185,8 +1185,8 @@ In file: [###].fear
    |               ^^^^^
 
 While inspecting a type name
-Name "Block" is not declared with 2 generic type parameters in package "base".
-Name "Block" is only declared with other numbers of generic type parameters.
+Type "Block" is not declared with 2 generic type parameters in package "base".
+Type "Block" is only declared with other numbers of generic type parameters.
 Candidates: "Block", "Block[_]".
 Did you accidentally add or omit a generic type argument?
 

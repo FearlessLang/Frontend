@@ -182,8 +182,8 @@ In file: [###].fear
    |         ^^^
 
 While inspecting a type name
-Name "B" is not declared with 1 generic type parameter in package "b".
-Name "B" is only declared with 0 generic type parameters.
+Type "B" is not declared with 1 generic type parameter in package "b".
+Type "B" is only declared with 0 generic type parameters.
 Did you accidentally add or omit a generic type argument?
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
@@ -365,8 +365,8 @@ In file: [###].fear
    |         ^
 
 While inspecting a type name
-Name "A" is not declared with 1 generic type parameter in package "c".
-Name "A" is only declared with 0 generic type parameters.
+Type "A" is not declared with 1 generic type parameter in package "c".
+Type "A" is only declared with 0 generic type parameters.
 Did you accidentally add or omit a generic type argument?
 
 Name "X" stands for "c.A" because of "use c.A as X".
@@ -382,8 +382,8 @@ In file: [###].fear
    |         ^
 
 While inspecting a type name
-Name "A" is not declared with 1 generic type parameter in package "a".
-Name "A" is only declared with 0 generic type parameters.
+Type "A" is not declared with 1 generic type parameter in package "a".
+Type "A" is only declared with 0 generic type parameters.
 Did you accidentally add or omit a generic type argument?
 
 Name "X" stands for "a.A" because of "use a.A as X".

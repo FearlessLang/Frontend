@@ -207,8 +207,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       if (arities.isEmpty()){ return Optional.empty(); }
       var targetPkg= typedPkg.isEmpty() ? contextPkg : typedPkg;
       var e= err.get()
-        .line("Name "+disp(typedSimple)+" is not declared with "+count(tn.arity(), "generic type parameter")+" in package "+disp(targetPkg)+".")
-        .line("Name "+disp(typedSimple)+" is only declared with "
+        .line("Type "+disp(typedSimple)+" is not declared with "+count(tn.arity(), "generic type parameter")+" in package "+disp(targetPkg)+".")
+        .line("Type "+disp(typedSimple)+" is only declared with "
           +(arities.size() == 1
             ? count(arities.getFirst(), "generic type parameter")+"."
             : "other numbers of generic type parameters.\n"+Join.of(arities.stream().map(n -> disp(typedSimple+genArity(n))), "Candidates: ", ", ", ".")
