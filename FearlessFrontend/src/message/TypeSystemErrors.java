@@ -277,7 +277,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private String whyDropMutInImm(String subject, Change.NoT why){
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    +up(subject)+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
+    +up(subject)+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l().withRC(RC.imm))
     +" (line "+why.l().span().inner.startLine()+").\n"
     +"Hint: capture an immutable copy instead, or move this use outside the object literal.";
   }

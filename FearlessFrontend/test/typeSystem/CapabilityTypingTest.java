@@ -262,7 +262,7 @@ A:{ read .m[T:mut,imm,read,readH,mutH](par: T) : read L[mutH T] -> mut L[mutH T]
 
 While inspecting parameter "par" > method ".absMeth" (line 3) > method ".m(_)" (line 3)
 Parameter "par" has type "mut B".
-Parameter "par" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "iso L" (line 3).
+Parameter "par" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "L" (line 3).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -294,7 +294,7 @@ A:{ read .m(par: read B) : imm L -> imm L{.absMeth->par} }
 
 While inspecting parameter "a" > method "#" (line 2) > method "#(_)" (line 2)
 Parameter "a" has type "mut A".
-Parameter "a" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "iso Foo" (line 2).
+Parameter "a" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "Foo" (line 2).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)

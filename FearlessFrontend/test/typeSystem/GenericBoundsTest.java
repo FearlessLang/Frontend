@@ -802,7 +802,7 @@ A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 
 While inspecting parameter "x" > method ".get" (line 2) > method ".m(_)" (line 2)
 Parameter "x" has type "X".
-Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "iso Fresh[_]" (line 2).
+Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "Fresh[_]" (line 2).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -850,7 +850,7 @@ Box[X:imm]:{ .get: X }
 Get[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](b: Box[X]): mut Get[X] -> mut Fresh[X:imm]:Get[X]{ .get -> b.get } }
 """));}@Test void mutableOuterBoundIsoLiteralDoesNotCapture(){fail("""
-[###]Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "iso Fresh[_]" (line 2).
+[###]Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "Fresh[_]" (line 2).
 [###]
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
