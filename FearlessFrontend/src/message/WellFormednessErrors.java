@@ -458,7 +458,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var i= firstRcsDisagreementIndex(res);
     var opts= Join.of(res.stream().map(bs -> disp(bs.get(i))).distinct().sorted(), "", " and ", ".");
     var m= err().methodSig(at.mName());
-    return wf(invalidMethImpl(at)
+    return wf(err()
       .line("Supertypes disagree on the capability bounds for generic type parameter "+(i+1)+" of "+m+".")
       .line("Generic type parameter names may differ across supertypes; only the position matters.")
       .line("Different supertypes declare: "+opts)
