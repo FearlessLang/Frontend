@@ -562,7 +562,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Supertypes disagree on the number of generic type parameters of method ".foo" with 0 parameters.
-Candidates: "[X:imm]", "[]".
+Candidates: 1 generic type parameter, 0 generic type parameters.
 Type declaration "B" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -578,7 +578,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Supertypes disagree on the number of generic type parameters of method ".foo" with 0 parameters.
-Candidates: "[X:imm]", "[]".
+Candidates: 1 generic type parameter, 0 generic type parameters.
 Type declaration "B" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -858,7 +858,7 @@ In file: [###].fear
 While inspecting type declaration "D"
 Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
 Generic type parameter names may differ across supertypes; only the position matters.
-Candidates: "X:imm", "Y:read".
+Candidates: "imm", "read".
 Type declaration "D" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -876,7 +876,7 @@ In file: [###].fear
 While inspecting type declaration "D"
 Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
 Generic type parameter names may differ across supertypes; only the position matters.
-Candidates: "X:imm", "Y:read".
+Candidates: "imm", "read".
 Type declaration "D" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""

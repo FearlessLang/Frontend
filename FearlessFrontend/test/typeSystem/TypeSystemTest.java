@@ -1331,7 +1331,7 @@ While inspecting type declaration "Current"
 Invalid method signature for "Current.id(_)".
 The method ".id(_)" declares different capability bounds than the supertypes for generic type parameter 1.
 Local declaration: "X:imm,read".
-From supertypes: "X:imm".
+Capability bounds in the supertypes: "imm".
 Generic type parameter names may differ from the supertypes; only the position matters.
 Error 7 WellFormedness
 """, List.of("""

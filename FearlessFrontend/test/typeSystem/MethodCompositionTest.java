@@ -319,7 +319,7 @@ While inspecting type declaration "A"
 Invalid method signature for "A.m".
 The method ".m" declares different capability bounds than the supertypes for generic type parameter 1.
 Local declaration: "X:imm".
-From supertypes: "X:imm,mut,read".
+Capability bounds in the supertypes: "imm,mut,read".
 Generic type parameter names may differ from the supertypes; only the position matters.
 """, List.of("""
 Foo:{}
@@ -1045,5 +1045,46 @@ Box[T:*]:{}
 Foo:{ .get[T:mut]: Box[T] }
 Bar:{ .get[T:mut]: Box[mut T] }
 A:Foo,Bar{}
+"""));}
+@Test void overrideBoundsAreComparedByPositionNotByName(){failWf("""
+002| C:A{.m[Y:imm,X:imm](x:Y,y:X):Y->x}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "C"
+Invalid method signature for "C.m(_,_)".
+The method ".m(_,_)" declares different capability bounds than the supertypes for generic type parameter 2.
+Local declaration: "X:imm".
+Capability bounds in the supertypes: "mut".
+Generic type parameter names may differ from the supertypes; only the position matters.
+""", List.of("""
+A:{.m[X:imm,Y:mut](x:X,y:Y):X}
+C:A{.m[Y:imm,X:imm](x:Y,y:X):Y->x}
+"""));}
+@Test void supertypesDisagreeOnBoundsInsideAGenericMethod(){failWf("""
+003| A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+   |                         ^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Both"
+Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
+Generic type parameter names may differ across supertypes; only the position matters.
+Candidates: "imm", "read".
+Object literal "Both" cannot implement all of those supertypes.
+""", List.of("""
+Sup1:{ .id[X:imm](x:X):X }
+Sup2:{ .id[X:read](x:X):X }
+A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+"""));}
+@Test void supertypesDisagreeOnGenericArityInsideAGenericMethod(){failWf("""
+003| A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+   |                         ^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Both"
+Supertypes disagree on the number of generic type parameters of method ".id(_)" with 1 parameter.
+Candidates: 1 generic type parameter, 0 generic type parameters.
+Object literal "Both" cannot implement all of those supertypes.
+""", List.of("""
+Sup1:{ .id[X:imm](x:Sup1):Sup1 }
+Sup2:{ .id(x:Sup1):Sup1 }
+A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
 """));}
 }

@@ -430,7 +430,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var e= err()
       .line("Supertypes disagree on the number of generic type parameters of method "+err().methodSig(at.mName())
         +" with "+count(at.mName().arity(), "parameter")+".")
-      .line(Join.of(res.stream().map(Err::disp), "Candidates: ", ", ", "."))
+      .line(Join.of(res.stream().map(bs -> count(bs.size(), "generic type parameter")).distinct(), "Candidates: ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes.");
     return wf(e, at);
   }
@@ -443,7 +443,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var n= res.getFirst().size();
     assert res.stream().allMatch(bs -> bs.size() == n);
     var i= firstRcsDisagreementIndex(res);
-    var opts= Join.of(res.stream().map(bs -> disp(bs.get(i))).distinct().sorted(), "Candidates: ", ", ", ".");
+    var opts= Join.of(res.stream().map(bs -> disp(Join.of(bs.get(i).rcs().stream(), "", ",", ""))).distinct().sorted(), "Candidates: ", ", ", ".");
     var m= err().methodSig(at.mName());
     return wf(err()
       .line("Supertypes disagree on the capability bounds of generic type parameter "+(i+1)+" of method "+m+" with "+count(at.mName().arity(), "parameter")+".")
@@ -460,7 +460,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return wf(invalidMethImpl(at)
       .line("The method "+m+" declares different capability bounds than the supertypes for generic type parameter "+(i+1)+".")
       .line("Local declaration: "+disp(u)+".")
-      .line("From supertypes: "+disp(new B(u.x(), s.rcs()))+".")
+      .line("Capability bounds in the supertypes: "+disp(Join.of(s.rcs().stream(), "", ",", ""))+".")
       .line("Generic type parameter names may differ from the supertypes; only the position matters."), at);
   }
   private int firstRcsDisagreementIndex(List<List<B>> res){
