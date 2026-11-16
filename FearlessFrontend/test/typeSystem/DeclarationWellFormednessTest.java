@@ -176,7 +176,7 @@ A:{ .m1(a: A): A -> {.m1(a) -> a} }
 """));}
 @Test void lambdaImplementingItself(){failWf("""
 001| A:A{}
-   |   ^^
+   |   ^
 
 While inspecting type declarations
 Circular implementation relation found involving "A".
@@ -255,7 +255,7 @@ A:{ #: base.Str -> "Hello" }
 """));}
 @Test void duplicatedDeclarationTopLevelAndInline(){failWf("""
 002| B:{ #: A -> A:{} }
-   |             ^^
+   |             ^
 
 While inspecting a type name
 Duplicate type declaration for "A".
@@ -265,7 +265,7 @@ B:{ #: A -> A:{} }
 """));}
 @Test void duplicatedInlineDeclarations(){failWf("""
 002| C:{ #: A -> A:{} }
-   |             ^^
+   |             ^
 
 While inspecting a type name
 Duplicate type declaration for "A".
@@ -352,7 +352,7 @@ FPerson:{ #[N:imm](name: Str, age: N): Person[N] -> Person2[N] }
 """));}
 @Test void nonExistentImplInline(){failWf("""
 002| BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
-   |                                                 ^^^^^^
+   |                                                 ^^^^^
 
 While inspecting a type name
 Type "Break" is not declared in package "p" and is not made visible via "use".
@@ -482,7 +482,7 @@ Bs:{ #: B -> B{'b .foo -> b } }
 """));}
 @Test void mustImplementMethodsInLambdaFail(){fail("""
 003| Bs:{ #: B -> B{} }
-   |      --------^^-
+   |      --------^^^
 
 While inspecting object literal instance of "iso B" > "#" line 3
 This object literal is missing a required method.
@@ -656,7 +656,7 @@ Fake: base.DataRead{ .name -> base.Nope! }
 """));}
 @Test void finalMethodImplementedInALiteral(){failWf("""
 001| Forge: { #: base.DataRead -> base.DataRead{ .name -> base.Nope! } }
-   |                              ^^^^^^^^^^^^^^
+   |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.DataRead"
 Object literal instance of "base.DataRead" implements method ".name".
@@ -957,7 +957,7 @@ A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
 """));}
 @Test void supertypeSimpleAndQualified(){failWf("""
 002| B:A,p.A{}
-   |     ^^^^
+   |     ^^^
 
 While inspecting a type name
 The full type name "p.A" is invalid in source code inside folders named "_p".
@@ -968,7 +968,7 @@ B:A,p.A{}
 """));}
 @Test void supertypeUseAliasAndQualified(){failWf("""
 002| B:CF,base.CaptureFree{}
-   |      ^^^^^^^^^^^^^^^^^
+   |      ^^^^^^^^^^^^^^^^
 
 While inspecting a type name
 The full type name "base.CaptureFree" is invalid in source code inside folders named "_p".
@@ -979,7 +979,7 @@ B:CF,base.CaptureFree{}
 """));}
 @Test void supertypeDifferentSpellingOfTypeArgument(){failWf("""
 003| B:A[Foo],A[p.Foo]{}
-   |            ^^^^^^
+   |            ^^^^^
 
 While inspecting a type name
 The full type name "p.Foo" is invalid in source code inside folders named "_p".

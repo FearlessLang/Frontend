@@ -70,7 +70,7 @@ B:a.A{ .fromC -> base.Void }
 In file: [###].fear
 
 001| B:{.k(x:a.A):B->x.m}
-   |    -------------^^^^
+   |    -------------^^^
 
 While inspecting method call ".m" > ".k(_)" line 1
 The body of method ".k(_)" of type declaration "B" is an expression returning "a.A".
@@ -100,7 +100,7 @@ B:a.A,a.A2{}
 In file: [###].fear
 
 001| B:{.m(x:a.A):B->this}
-   |         ^^^^
+   |         ^^^
 
 While inspecting a type name
 Type "A" is not declared in package "a".
@@ -121,7 +121,7 @@ B:{.m(x:a.A):a.A->x.fromC}
 In file: [###].fear
 
 001| B:{.m(x:a.A):c.A->x.fromC}
-   |              ^^^^
+   |              ^^^
 
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "c".
@@ -150,7 +150,7 @@ B:{.m(x:X):B->x.self; .self:X->this}
 In file: [###].fear
 
 001| B:{.m(x:b.B):B->this}
-   |         ^^^^
+   |         ^^^
 
 While inspecting a type name
 The full type name "b.B" is invalid in source code inside folders named "_b".
@@ -163,7 +163,7 @@ B:{.m(x:b.B):B->this}
 In file: [###].fear
 
 001| B:{.m(x:b.Z):B->this}
-   |         ^^^^
+   |         ^^^
 
 While inspecting a type name
 Type "Z" is not declared in package "b".
@@ -176,7 +176,7 @@ B:{.m(x:b.Z):B->this}
 In file: [###].fear
 
 001| B:{.m(x:b.B[B]):B->this}
-   |         ^^^^
+   |         ^^^
 
 While inspecting a type name
 Name "B" is not declared with 1 generic type parameter in package "b".
@@ -190,7 +190,7 @@ B:{.m(x:b.B[B]):B->this}
 In file: [###].fear
 
 001| B:{.m(x:c.Z):B->this}
-   |         ^^^^
+   |         ^^^
 
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "c".
@@ -205,7 +205,7 @@ B:{.m(x:c.Z):B->this}
 In file: [###].fear
 
 002| B:{.m(x:b.B):B->this}
-   |         ^^^^
+   |         ^^^
 
 While inspecting a type name
 The full type name "b.B" is invalid in source code inside folders named "_b".
@@ -236,7 +236,7 @@ B:{}
 In file: [###].fear
 
 001| B:{.m(x:a.Z):B->this}
-   |         ^^^^
+   |         ^^^
 
 While inspecting a type name
 Type "Z" is not declared in package "a".
@@ -286,7 +286,7 @@ B:{.m(x:X):X->x.fromC}
 In file: [###].fear
 
 002| B:{.m(x:X):c.A->x.fromC}
-   |            ^^^^
+   |            ^^^
 
 While inspecting a type name
 The full type name "c.A" is invalid in source code inside folders named "_b".
@@ -300,7 +300,7 @@ B:{.m(x:X):c.A->x.fromC}
 In file: [###].fear
 
 002| B:{.m(x:X):a.A->x.fromC}
-   |            ^^^^
+   |            ^^^
 
 While inspecting a type name
 The full type name "a.A" is invalid in source code inside folders named "_b".
@@ -316,7 +316,7 @@ B:{.m(x:X):a.A->x.fromC}
 In file: [###].fear
 
 002| B:{.m(x:A):A->x.fromA}
-   |    -----------~^^^^^^^
+   |    -----------~^^^^^^
 
 While inspecting ".m(_)" line 2
 This call to method ".fromA" cannot typecheck.
@@ -336,7 +336,7 @@ B:{.m(x:A):A->x.fromA}
 In file: [###].fear
 
 002| B:{.m(x:X):X->x.fromA}
-   |    -----------~^^^^^^^
+   |    -----------~^^^^^^
 
 While inspecting ".m(_)" line 2
 This call to method ".fromA" cannot typecheck.
@@ -353,7 +353,7 @@ B:{.m(x:X):X->x.fromA}
 In file: [###].fear
 
 002| B:{.m(x:X[B]):B->this}
-   |         ^^
+   |         ^
 
 While inspecting a type name
 Name "A" is not declared with 1 generic type parameter in package "c".
@@ -370,7 +370,7 @@ B:{.m(x:X[B]):B->this}
 In file: [###].fear
 
 002| B:{.m(x:X[B]):B->this}
-   |         ^^
+   |         ^
 
 While inspecting a type name
 Name "A" is not declared with 1 generic type parameter in package "a".
@@ -391,7 +391,7 @@ B:{.m(x:old.Server, y:webserver.Server):webserver.Server->y.v13; .k(x:old.Server
 In file: [###].fear
 
 001| B:{.m(x:webserver_v12.Server):webserver.Server->x.v12}
-   |         ^^^^^^^^^^^^^^^^^^^^^
+   |         ^^^^^^^^^^^^^^^^^^^^
 
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "webserver_v12".
@@ -541,7 +541,7 @@ B:{ .k:a.S -> a.S }
 In file: [###].fear
 
 001| B:{.m(x:Server):B->this}
-   |         ^^^^^^^
+   |         ^^^^^^
 
 While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
@@ -558,7 +558,7 @@ B:{.m(x:Server):B->this}
 In file: [###].fear
 
 002| B:{.m(x:Server):B->this}
-   |         ^^^^^^^
+   |         ^^^^^^
 
 While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
@@ -576,7 +576,7 @@ B:{.m(x:Server):B->this}
 In file: [###].fear
 
 002| B:{.m(x:a.Serve):B->this}
-   |         ^^^^^^^^
+   |         ^^^^^^^
 
 While inspecting a type name
 Type "Serve" is not declared in package "a".
@@ -594,7 +594,7 @@ B:{.m(x:a.Serve):B->this}
 In file: [###].fear
 
 002| B:{.m(x:a.Z):B->this}
-   |         ^^^^
+   |         ^^^
 
 While inspecting a type name
 Type "Z" is not declared in package "a".
@@ -611,7 +611,7 @@ B:{.m(x:a.Z):B->this}
 In file: [###].fear
 
 002| B:{.m(x:d.Server):B->this}
-   |         ^^^^^^^^^
+   |         ^^^^^^^^
 
 While inspecting a type name
 Type "Server" is not declared in package "d".
@@ -629,7 +629,7 @@ B:{.m(x:d.Server):B->this}
 In file: [###].fear
 
 001| B:{.m(x:a.Server):B->this}
-   |         ^^^^^^^^^
+   |         ^^^^^^^^
 
 While inspecting a type name
 Type "Server" is not declared in package "a".
@@ -646,7 +646,7 @@ Server:{}
 In file: [###].fear
 
 001| B:{.m(x:d.Server):B->this}
-   |         ^^^^^^^^^
+   |         ^^^^^^^^
 
 While inspecting a type name
 Type "Server" is not declared in package "d".
@@ -664,7 +664,7 @@ B:{.m(x:d.Server):B->this}
 In file: [###].fear
 
 001| B:{.m(x:a.Box[a.A]):B->x.get}
-   |    --------------------^^^^^^
+   |    --------------------^^^^^
 
 While inspecting method call ".get" > ".m(_)" line 1
 The body of method ".m(_)" of type declaration "B" is an expression returning "a.A".
@@ -678,7 +678,7 @@ B:{.m(x:a.Box[a.A]):B->x.get}
 In file: [###].fear
 
 001| B:{.m(x:a.Box[B]):a.A->x.get}
-   |    --------------------^^^^^^
+   |    --------------------^^^^^
 
 While inspecting method call ".get" > ".m(_)" line 1
 The body of method ".m(_)" of type declaration "B" is an expression returning "B".
@@ -692,7 +692,7 @@ B:{.m(x:a.Box[B]):a.A->x.get}
 In file: [###].fear
 
 002| B:{.m(x:a.Box[X]):B->x.get}
-   |    ------------------^^^^^^
+   |    ------------------^^^^^
 
 While inspecting method call ".get" > ".m(_)" line 2
 The body of method ".m(_)" of type declaration "B" is an expression returning "X".
@@ -708,7 +708,7 @@ B:{.m(x:a.Box[X]):B->x.get}
 In file: [###].fear
 
 003| B:{.m(x:Bx[X]):B->x.get}
-   |    ---------------^^^^^^
+   |    ---------------^^^^^
 
 While inspecting method call ".get" > ".m(_)" line 3
 The body of method ".m(_)" of type declaration "B" is an expression returning "X".
@@ -726,7 +726,7 @@ B:{.m(x:Bx[X]):B->x.get}
 In file: [###].fear
 
 002| B:{.m(x:a.Box[a.A]):B->this}
-   |               ^^^^
+   |               ^^^
 
 While inspecting a type name
 The full type name "a.A" is invalid in source code inside folders named "_b".
@@ -742,7 +742,7 @@ B:{.m(x:a.Box[a.A]):B->this}
 In file: [###].fear
 
 001| B:{.m(x:a.Box[c.A]):B->this}
-   |               ^^^^
+   |               ^^^
 
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "c".
@@ -767,7 +767,7 @@ B:{.m(x:OldServer, y:web.Server):web.Server->y.v2; .k(x:OldServer):OldServer->x.
 In file: [###].fear
 
 002| B:{.m(x:OldServer):web.Server->x}
-   |    ----------------------------^^
+   |    ----------------------------^
 
 While inspecting parameter "x" > ".m(_)" line 2
 The body of method ".m(_)" of type declaration "B" is an expression returning "OldServer".
@@ -784,7 +784,7 @@ B:{.m(x:OldServer):web.Server->x}
 In file: [###].fear
 
 002| B:{.m(x:OldServer, y:web.Server):web.Server->x.v2}
-   |    ------------------------------------------~^^^^
+   |    ------------------------------------------~^^^
 
 While inspecting ".m(_,_)" line 2
 This call to method ".v2" cannot typecheck.
@@ -804,7 +804,7 @@ B:{.m(x:OldServer, y:web.Server):web.Server->x.v2}
 In file: [###].fear
 
 001| B:{.m(x:a.A):a.A->x.nope}
-   |    ---------------~^^^^^^
+   |    ---------------~^^^^^
 
 While inspecting ".m(_)" line 1
 This call to method ".nope" cannot typecheck.
@@ -821,7 +821,7 @@ B:{.m(x:a.A):a.A->x.nope}
 In file: [###].fear
 
 001| B:{.m(x:read a.A):mut a.A->x}
-   |    ------------------------^^
+   |    ------------------------^
 
 While inspecting parameter "x" > ".m(_)" line 1
 The body of method ".m(_)" of type declaration "B" is an expression returning "read a.A".
@@ -839,7 +839,7 @@ B:{.k(x:mut X):read X->x; .j(x:mut a.Box[X]):read a.Box[X]->x; .d(x:mut a.D):rea
 In file: [###].fear
 
 001| B:{.m(x:a.Box[a.A], d:a.D):a.Box[a.A]->x.put(d)}
-   |    ------------------------------------~^^^^^~~
+   |    ------------------------------------~~~~~~^~
 
 While inspecting ".m(_,_)" line 1
 This call to method "a.Box[_].put(_)" cannot typecheck.
@@ -854,7 +854,7 @@ B:{.m(x:a.Box[a.A], d:a.D):a.Box[a.A]->x.put(d)}
 In file: [###].fear
 
 002| B:{.m(x:a.Box[X], d:a.D):a.Box[X]->x.put(d)}
-   |    --------------------------------~^^^^^~~
+   |    --------------------------------~~~~~~^~
 
 While inspecting ".m(_,_)" line 2
 This call to method "a.Box[_].put(_)" cannot typecheck.
@@ -871,7 +871,7 @@ B:{.m(x:a.Box[X], d:a.D):a.Box[X]->x.put(d)}
 In file: [###].fear
 
 001| B:{.m:a.A->a.A{.fromC->base.Void}}
-   |    ------------~~~~~~~~^^^^^^^^^^
+   |    ------------~~~~~~~~^^^^^^^^^-
 
 While inspecting object literal instance of "base.Void" > ".fromC" line 1 > ".m" line 1
 Method ".fromC" inside the object literal instance of "iso a.A" (line 1)
@@ -948,7 +948,7 @@ B:{ .m:bb.Nat -> +5 }
 In file: [###].fear
 
 001| B:{.m(x:a.B):B->x}
-   |    -------------^^
+   |    -------------^
 
 While inspecting parameter "x" > ".m(_)" line 1
 The body of method ".m(_)" of type declaration "B" is an expression returning "a.B".
@@ -962,7 +962,7 @@ B:{.m(x:a.B):B->x}
 In file: [###].fear
 
 001| B:{.m(x:a.A):B->x.n}
-   |    -------------^^^^
+   |    -------------^^^
 
 While inspecting method call ".n" > ".m(_)" line 1
 The body of method ".m(_)" of type declaration "B" is an expression returning "bb.Nat".
@@ -995,7 +995,7 @@ B:{.m(x:a.G, d:Dd):Dd->x.id[Dd](d); .k(x:a.G, d:Dd):Dd->x.id(d)}
 In file: [###].fear
 
 002| B:{.m:X->X{.fromC->B}}
-   |    --------~~~~~~~~^^
+   |    --------~~~~~~~~^-
 
 While inspecting object literal instance of "B" > ".fromC" line 2 > ".m" line 2
 Method ".fromC" inside the object literal instance of "iso X" (line 2)
@@ -1021,7 +1021,7 @@ B:{ .m:N -> 5; .k(x:N):N -> x+5; .s:S -> "hi"; .i:bb.Int -> +5; .f:bb.Float -> 1
 In file: [###].fear
 
 002| B:{.m(x:Server):B->this}
-   |         ^^^^^^^
+   |         ^^^^^^
 
 While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
@@ -1036,7 +1036,7 @@ B:{.m(x:Server):B->this}
 In file: [###].fear
 
 002| B:{.m(x:Server):B->this}
-   |         ^^^^^^^
+   |         ^^^^^^
 
 While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
@@ -1056,7 +1056,7 @@ B:{.m(x:Server):B->this}
 In file: [###].fear
 
 002| B:{.m(x:Qqqqqq):B->this}
-   |         ^^^^^^^
+   |         ^^^^^^
 
 While inspecting a type name
 Type "Qqqqqq" is not declared in package "b" and is not made visible via "use".
@@ -1074,7 +1074,7 @@ B:{.m(x:Qqqqqq):B->this}
 In file: [###].fear
 
 001| B:{.m(x:bb.Strr):B->this}
-   |         ^^^^^^^^
+   |         ^^^^^^^
 
 While inspecting a type name
 Type "Strr" is not declared in package "bb".
@@ -1090,7 +1090,7 @@ B:{.m(x:bb.Strr):B->this}
 In file: [###].fear
 
 002| B:{.m(x:bb.Strr):B->this}
-   |         ^^^^^^^^
+   |         ^^^^^^^
 
 While inspecting a type name
 Type "Strr" is not declared in package "bb".
@@ -1108,7 +1108,7 @@ B:{.m(x:bb.Strr):B->this}
 In file: [###].fear
 
 001| B:{.m(x:Str):B->this}
-   |         ^^^^
+   |         ^^^
 
 While inspecting a type name
 Type "Str" is not declared in package "b" and is not made visible via "use".
@@ -1126,7 +1126,7 @@ B:{.m(x:Str):B->this}
 In file: [###].fear
 
 001| B:{.m(x:Server):B->this}
-   |         ^^^^^^^
+   |         ^^^^^^
 
 While inspecting a type name
 Type "Server" is not declared in package "b" and is not made visible via "use".
@@ -1144,7 +1144,7 @@ B:{.m(x:Server):B->this}
 In file: [###].fear
 
 001| B:{.m(x:b.B):B->this}
-   |         ^^^^
+   |         ^^^
 
 While inspecting a type name
 The full type name "b.B" is invalid in source code inside folders named "_b".
@@ -1204,7 +1204,7 @@ B:{ .m:X->{ .k->B; }; }
 In file: [###].fear
 
 003| A:{ .f(aaaa:mut A):B->Need#(a.IdRO#[read A](aaaa)); }
-   |     ------------------~~~~^^~~~~~~~~~~~~~~~~~~~~~-
+   |     ------------------~~~~~~^^^^^^^^^^^^^^^^^^^^^~
 
 While inspecting ".f(_)" line 3
 This call to method "Need#(_)" cannot typecheck.
@@ -1227,7 +1227,7 @@ A:{ .f(aaaa:mut A):B->Need#(a.IdRO#[read A](aaaa)); }
 In file: [###].fear
 
 004| A:{ .f(aaaa:mut A):B->Need#(Ro#[read A](aaaa)); }
-   |     ------------------~~~~^^~~~~~~~~~~~~~~~~~-
+   |     ------------------~~~~~~^^^^^^^^^^^^^^^^^~
 
 While inspecting ".f(_)" line 4
 This call to method "Need#(_)" cannot typecheck.
@@ -1252,7 +1252,7 @@ A:{ .f(aaaa:mut A):B->Need#(Ro#[read A](aaaa)); }
 In file: [###].fear
 
 001| A:{ .f(p:read A, q:mut A):A->this; .caller(x:readH A, y:mutH A):A->this.f(a.Id#(x), y); }
-   |                                    --------------------------------~~~~^^^~~~~~~~~~~~~
+   |                                    --------------------------------~~~~^^~~~~~~~~~~~~~
 
 While inspecting ".caller(_,_)" line 1
 This call to method "A.f(_,_)" cannot typecheck.
@@ -1279,7 +1279,7 @@ A:{ .f(p:read A, q:mut A):A->this; .caller(x:readH A, y:mutH A):A->this.f(a.Id#(
 In file: [###].fear
 
 001| B:{.m(x:z.A):a.A->x}
-   |    ---------------^^
+   |    ---------------^
 
 While inspecting parameter "x" > ".m(_)" line 1
 The body of method ".m(_)" of type declaration "B" is an expression returning "z.A".
@@ -1294,7 +1294,7 @@ B:{.m(x:z.A):a.A->x}
 In file: [###].fear
 
 003| B:{.m(x:Dd):X->x}
-   |    ------------^^
+   |    ------------^
 
 While inspecting parameter "x" > ".m(_)" line 3
 The body of method ".m(_)" of type declaration "B" is an expression returning "Dd".
@@ -1312,7 +1312,7 @@ B:{.m(x:Dd):X->x}
 In file: [###].fear
 
 003| B:{.m(x:Y):X->x}
-   |    -----------^^
+   |    -----------^
 
 While inspecting parameter "x" > ".m(_)" line 3
 The body of method ".m(_)" of type declaration "B" is an expression returning "Y".
@@ -1356,7 +1356,7 @@ B:{.m(x:a.A):a.A->x.fromC}
 In file: [###].fear
 
 001| B:{.m(x:a.A):c__v_.A->x.fromC}
-   |              ^^^^^^^^
+   |              ^^^^^^^
 
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "c__v_".
@@ -1371,7 +1371,7 @@ B:{.m(x:a.A):c__v_.A->x.fromC}
 In file: [###].fear
 
 001| B:{.m(x:as.A):in.A->x.fromC}
-   |               ^^^^^
+   |               ^^^^
 
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "in".
@@ -1415,7 +1415,7 @@ B:{.m(x:a.A):a.A->x.fromC}
 In file: [###].fear
 
 001| B:{.m(x:A):B->this}
-   |         ^^
+   |         ^
 
 While inspecting a type name
 Type "A" is not declared in package "b" and is not made visible via "use".
@@ -1544,7 +1544,7 @@ B:{}
 In file: [###].fear
 
 002| A:{.m(x:bse.Str):A->this}
-   |         ^^^^^^^^
+   |         ^^^^^^^
 
 While inspecting a type name
 Source code inside folders named "_base" cannot use package name "bse".
@@ -1557,7 +1557,7 @@ A:{.m(x:bse.Str):A->this}
 In file: [###].fear
 
 002| A:{.m:A->bse.A{}}
-   |          ^^^^^^
+   |          ^^^^^
 
 While inspecting a type name
 Source code inside folders named "_base" cannot use package name "bse".
@@ -1585,7 +1585,7 @@ Str:{}
 In file: [###].fear
 
 001| B:{.m(x:json_v2.Parser):json.Parser->x.v2}
-   |         ^^^^^^^^^^^^^^^
+   |         ^^^^^^^^^^^^^^
 
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "json_v2".
@@ -1618,7 +1618,7 @@ B:{.m(x:P):P->x.v2}
 In file: [###].fear
 
 001| B:{.m(x:json_v3.Parser):json.Parser->x.v2}
-   |         ^^^^^^^^^^^^^^^
+   |         ^^^^^^^^^^^^^^
 
 While inspecting a type name
 Source code inside folders named "_b" cannot use package name "json_v3".
@@ -1814,7 +1814,7 @@ B:{ mut .baz(m:mut a.M):read a.M -> { .bar -> m } }
 In file: [###].fear
 
 001| B:{.m(x:a.A):a.A->a.A{'s .fromC -> x}}
-   |    ---------------^^^^---------------
+   |    ---------------^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "a.A" > ".m(_)" line 1
 The self name "s" is dead code.
@@ -1830,7 +1830,7 @@ B:{.m(x:a.A):a.A->a.A{'s .fromC -> x}}
 In file: [###].fear
 
 001| B:{.k:a.F -> a.F{ .m(x) -> a.Use2#(x, x) }}
-   |                   -----------------^^~~~
+   |                   -----------------^~~~-
 
 While inspecting ".m(_)" line 1 > ".k" line 1
 Iso parameter "x" violates the single-use rule in method "a.F.m(_)" (line 1).
@@ -1847,7 +1847,7 @@ B:{.k:a.F -> a.F{ .m(x) -> a.Use2#(x, x) }}
 In file: [###].fear
 
 001| B:{ .m(x:mut a.D):a.G -> a.G{ # -> a.Ignore#(x) } }
-   |     --------------------------~~~~~~~~~~~~~~~^^--
+   |     --------------------------~~~~~~~~~~~~~~~^~--
 
 While inspecting parameter "x" > "#" line 1 > ".m(_)" line 1
 Parameter "x" has type "mut a.D".
@@ -1863,7 +1863,7 @@ B:{ .m(x:mut a.D):a.G -> a.G{ # -> a.Ignore#(x) } }
 In file: [###].fear
 
 001| B:{ #(d:a.D):a.G -> {d} }
-   |     -----------------^^
+   |     -----------------^-
 
 While inspecting parameter "d" > "#" line 1 > "#(_)" line 1
 Object literal instance of "iso a.G" (line 1) implements "bb.CaptureFree".
@@ -1879,7 +1879,7 @@ B:{ #(d:a.D):a.G -> {d} }
 In file: [###].fear
 
 001| B:{.m(x:a.A):a.A->x.fromC(x)}
-   |    ---------------~^^^^^^^~~
+   |    ---------------~^^^^^^~~~
 
 While inspecting ".m(_)" line 1
 This call to method ".fromC(_)" cannot typecheck.
@@ -1896,7 +1896,7 @@ B:{.m(x:a.A):a.A->x.fromC(x)}
 In file: [###].fear
 
 001| B:{.m(x:mut a.R):a.R->x.go[read]}
-   |    -------------------~^^^^~~~~~~
+   |    -------------------~^^^~~~~~~
 
 While inspecting ".m(_)" line 1
 This call to method ".go" cannot typecheck.
@@ -1913,7 +1913,7 @@ B:{.m(x:mut a.R):a.R->x.go[read]}
 In file: [###].fear
 
 001| B:{.m(x:read a.R):a.R->x.go}
-   |    --------------------~^^^^
+   |    --------------------^~~~
 
 While inspecting ".m(_)" line 1
 This call to method "mut a.R.go" cannot typecheck.
@@ -1933,7 +1933,7 @@ B:{.m(x:read a.R):a.R->x.go}
 In file: [###].fear
 
 001| B:{.m(p:a.Pairer):B->p.pair[B](this, this)}
-   |    ------------------~^^^^^^~~~~~~~~~~~~~~
+   |    ------------------~^^^^^~~~~~~~~~~~~~~~
 
 While inspecting ".m(_)" line 1
 This call to method "a.Pairer.pair(_,_)" cannot typecheck.
@@ -1951,7 +1951,7 @@ B:{.m(p:a.Pairer):B->p.pair[B](this, this)}
 In file: [###].fear
 
 001| B:{.f:a.D->a.Need#(read a.A2{})}
-   |    --------~~~~~~^^~~~~~~~~~~--
+   |    --------~~~~~~~~^^^^^^^^^^^~
 
 While inspecting ".f" line 1
 This call to method "a.Need#(_)" cannot typecheck.
@@ -2010,7 +2010,7 @@ I:bb.BaseId[I,I]{ #(x) -> this }
 In file: [###].fear
 
 002| A:{}
-   | ^^
+   | ^
 
 While inspecting a type name
 Name clash: name "A" is declared in package "b".
@@ -2154,7 +2154,7 @@ B:{ .k:a.Sup -> a.Sup{ .id[X:imm,read](x:X):base.Void -> base.Void } }
 In file: [###].fear
 
 001| B:{ read .m[X:imm,mut,read](beer:a.Beer[X]):read Foo -> read Foo:{ read .k:base.Void -> beer.bar } }
-   |                                                                                         ^^^^^
+   |                                                                                         ^^^^
 
 While inspecting parameter "beer"
 Parameter "beer" has type "a.Beer[X]", using the generic type parameter "X".
@@ -2605,7 +2605,7 @@ Main:{ .m:bb.Float -> +0.1 }
 In file: [###].fear
 
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
-   |     ---------^^------------------------------
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 2
 The self name "s" is dead code.
@@ -2638,7 +2638,7 @@ U:{ .two[S,T](s:S, x:T, y:T):a.A -> a.A; .use(q:d.Q, y:a.Y, z:a.Z):a.A -> this.t
 In file: [###].fear
 
 003| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
-   |     ---------^^------------------------------
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 3
 The self name "s" is dead code.
@@ -2654,7 +2654,7 @@ B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
 In file: [###].fear
 
 002| B:{ .k:X -> X{'s .fromC -> this} }
-   |     -------------~~~~~~~~~~^^^^^
+   |     -------------~~~~~~~~~~^^^^-
 
 While inspecting parameter "this" > ".fromC" line 2 > ".k" line 2
 Method ".fromC" inside the object literal instance of "iso X" (line 2)
@@ -2675,7 +2675,7 @@ B:{ .k:X -> X{'s .fromC -> this} }
 In file: [###].fear
 
 002| B:{ .k:a.A -> L{ .m0(x) -> x; } }
-   |     ----------^^---------------
+   |     ----------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 2
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
@@ -2692,7 +2692,7 @@ B:{ .k:a.A -> L{ .m0(x) -> x; } }
 In file: [###].fear
 
 003| B:{ .k:a.A2 -> L{ .m0(x) -> x; } }
-   |     -----------^^---------------
+   |     -----------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 3
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
@@ -2726,7 +2726,7 @@ B:{ .m(x:a.A):B -> 5 }
 In file: [###].fear
 
 001| B:{.m(x:a.A, n:bb.Nat):B->x}
-   |    -----------------------^^
+   |    -----------------------^
 
 While inspecting parameter "x" > ".m(_,_)" line 1
 The body of method ".m(_,_)" of type declaration "B" is an expression returning "a.A".
@@ -2742,7 +2742,7 @@ B:{.m(x:a.A, n:bb.Nat):B->x}
 In file: [###].fear
 
 001| B:{.m(x:z.A, q:d.Q):a.A->x}
-   |    ----------------------^^
+   |    ----------------------^
 
 While inspecting parameter "x" > ".m(_,_)" line 1
 The body of method ".m(_,_)" of type declaration "B" is an expression returning "z.A".
@@ -2758,7 +2758,7 @@ B:{.m(x:z.A, q:d.Q):a.A->x}
 In file: [###].fear
 
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
-   |     ---------^^------------------------------
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 2
 The self name "s" is dead code.
@@ -2773,7 +2773,7 @@ B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
 In file: [###].fear
 
 004| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
-   |     ---------^^------------------------------
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 4
 The self name "s" is dead code.
@@ -2790,7 +2790,7 @@ B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
 In file: [###].fear
 
 002| B:{ .k:bb.Str -> L{ .m0(x) -> x; } }
-   |     -------------^^---------------
+   |     -------------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 2
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
@@ -2807,7 +2807,7 @@ B:{ .k:bb.Str -> L{ .m0(x) -> x; } }
 In file: [###].fear
 
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
-   |     ---------^^------------------------------
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "L" > ".k" line 2
 The self name "s" is dead code.

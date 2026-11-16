@@ -33,7 +33,7 @@ U:{ .u: T1 -> T1{ .m: A -> A{ .k: A -> A } } }
   ok(List.of("A:{ .a: A } User:{ .u: A -> "+open+"A{ .a -> this.u }"+" }".repeat(300)+" }"));}
 @Test void expansiveSupertypeArgumentNotASubtype(){fail("""
 002| T1:T0[T0[T1]]{ .m(a: T0[T1]): T1 -> this.m(this) }
-   |                ---------------------~~~~^^^~~~~~
+   |                ---------------------~~~~~~~^^^^~
 
 While inspecting ".m(_)" line 2
 This call to method "T1.m(_)" cannot typecheck.
@@ -61,7 +61,7 @@ T1:T0[T0[T1]]{ .m: T0[T1] -> this }
 """));}
 @Test void expansiveGenericSupertypeArgumentNotASubtype(){fail("""
 002| T1[X]:T0[T0[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
-   |                      ---------------------------~~~~^^^~~~~~
+   |                      ---------------------------~~~~~~~^^^^~
 
 While inspecting ".m(_)" line 2
 This call to method "T1[_].m(_)" cannot typecheck.
@@ -77,7 +77,7 @@ T1[X]:T0[T0[T1[X]]]{ .m(a: T0[T0[T1[X]]]): T1[X] -> this.m(this) }
 """));}
 @Test void growingSupertypeArgumentNotASubtype(){fail("""
 002| T1[X]:T0[T1[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
-   |                      ---------------------------~~~~^^^~~~~~
+   |                      ---------------------------~~~~~~~^^^^~
 
 While inspecting ".m(_)" line 2
 This call to method "T1[_].m(_)" cannot typecheck.
@@ -333,7 +333,7 @@ A:{ .foo:base.Todo->{ ! -> this } }
 """));}
 @Test void unnamedLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
-   |                               -------------------~~~~^^^^^
+   |                               -------------------~~~~^^^^
 
 While inspecting ".foo" line 1 > "#" line 1
 This call to method ".bar" cannot typecheck.
@@ -357,7 +357,7 @@ Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> ba
 """));}
 @Test void namedEnclosingLiteralThisMisbinding_getsEnclosingLiteralHint(){fail("""
 001| Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
-   |                                                                   -----------------~~~~^^^^^
+   |                                                                   -----------------~~~~^^^^
 
 While inspecting ".a" line 1 > ".foo" line 1 > "#" line 1
 This call to method ".bar" cannot typecheck.
@@ -374,7 +374,7 @@ Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void 
 """));}
 @Test void anonEnclosingLiteralThisMisbinding_hintDoesNotShowFreshName(){fail("""
 002| Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
-   |                   -------------------~~~~^^^^^
+   |                   -------------------~~~~^^^^
 
 While inspecting ".foo" line 2 > "#" line 2
 This call to method ".bar" cannot typecheck.
@@ -399,7 +399,7 @@ Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
 """));}
 @Test void anonReceiverTypeArgBounds_doesNotShowFreshName(){fail("""
 002| Outer:{ #: G -> {'self .foo[X:imm]: base.Void -> base.Void; .bar: base.Void -> self.foo[mut Outer]; } }
-   |         ----------------------------------------------------~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^--
+   |         ----------------------------------------------------~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^---
 
 While inspecting method call ".foo" > ".bar" line 2 > "#" line 2
 The call to ".foo" is invalid.
@@ -431,7 +431,7 @@ Outer:{ #: G -> {'self .bar -> base.Void; .v -> Boxes#(self) } }
 """));}
 @Test void tsMiniFail(){fail("""
 001| A:{.foo123:A->this.ba}
-   |    -----------~~~~^^^^
+   |    -----------~~~~^^^
 
 While inspecting ".foo123" line 1
 This call to method ".ba" cannot typecheck.
@@ -444,7 +444,7 @@ A:{.foo123:A->this.ba}
 """));}
 @Test void emptyLiteralArgumentOfUndeclaredMethod(){fail("""
 001| A:{ .m(x: B): B -> x.foo({}); }
-   |     ---------------~^^^^^~~-
+   |     ---------------~^^^^~~~~
 
 While inspecting ".m(_)" line 1
 This call to method ".foo(_)" cannot typecheck.
@@ -665,7 +665,7 @@ User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
 @Test void typeNotWellKinded_typeExpressionViolatesBounds(){fail("""
 004|   .break(cell:imm Cell):base.Void ->
 005|     Thaw[mut Cell].apply(cell).set(1);
-   |     ^^^^^
+   |     ^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "Thaw[mut Cell]" > ".break(_)" line 4
 The type "Thaw[mut Cell]" is invalid.
@@ -713,7 +713,7 @@ User:{
 
 @Test void notAffineIso_usedDirectlyTwice_sameCall(){ fail("""
 004| User:{ imm .bad(x:iso B):Unit->Use2#(x,x); }
-   |        ------------------------------^^~~
+   |        ------------------------------^~~-
 
 While inspecting ".bad(_)" line 4
 Iso parameter "x" violates the single-use rule in method "User.bad(_)" (line 4).
@@ -729,7 +729,7 @@ User:{ imm .bad(x:iso B):Unit->Use2#(x,x); }
 
 @Test void notAffineIso_usedDirectlyAndCaptured_literalArg(){ fail("""
 007|   imm .bad(xyz:iso B):Unit->Mix#(xyz, imm KK:K{ imm .k:Unit->UseImm#(xyz); });
-   |   -------------------------------^^^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~----
+   |   -------------------------------^^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-----
 
 While inspecting ".bad(_)" line 7
 Iso parameter "xyz" violates the single-use rule in method "User.bad(_)" (line 7).
@@ -749,7 +749,7 @@ User:{
 
 @Test void notAffineIso_usedDirectlyAndCaptured_twice_twoLiterals(){ fail("""
 008|   imm .bad(x:iso B):Unit->Mix2#(x,
-   |                                 ^^
+   |                                 ^
 009|     imm K1:K{ imm .k:Unit->UseImm#(x); },
 
 While inspecting ".bad(_)" line 8
@@ -773,7 +773,7 @@ User:{
 """));}
 @Test void notAffineIso_implicitParameterUsedDirectlyTwice(){ fail("""
 004| User:{ .bad:base.F[iso B,Unit]->{ Use2#(::,::) } }
-   |                                   ------^^^~~~
+   |                                   ------^^~~~-
 
 While inspecting "#(_)" line 4 > ".bad" line 4
 Iso parameter "::" violates the single-use rule in method "read base.F[iso B,Unit]#(_)" (line 4).
@@ -802,7 +802,7 @@ User:{ .bad({.a,.b}:iso B):B->a }
 
 @Test void methodBodyWrongType_xWrongNominal_shortNames(){ fail("""
 004|   imm .m(x:imm A):B->x;
-   |   -------------------^^
+   |   -------------------^
 
 While inspecting parameter "x" > ".m(_)" line 4
 The body of method ".m(_)" of type declaration "User" is an expression returning "A".
@@ -818,7 +818,7 @@ User:{
 @Test void methodBodyWrongType_xWrongNominal_longNames_indent(){ fail("""
 004|   imm .veryLongMethodName(veryVeryLongParamName:imm Alpha):Beta->
 005|     veryVeryLongParamName;
-   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |     ^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting parameter "veryVeryLongParamName" > ".veryLongMethodName(_)" line 4
 The body of method ".veryLongMethodName(_)" of type declaration "User" is an expression returning "Alpha".
@@ -834,7 +834,7 @@ User:{
 
 @Test void methodBodyWrongType_callWrongType_namedCallee(){ fail("""
 005|   imm .m():B->MakeA#({  }    );
-   |   ------------^^^^^^^^^^^-----
+   |   ------------^^^^^^^^^^^^^^^^
 
 While inspecting method call "#(_)" > ".m" line 5
 The body of method ".m" of type declaration "User" is an expression returning "A".
@@ -850,7 +850,7 @@ User:{
 
 @Test void methodBodyWrongType_callWrongType_rcOnly(){ fail("""
 004|   imm .m():mut A->MakeA#({  }    );
-   |   ----------------^^^^^^^^^^^-----
+   |   ----------------^^^^^^^^^^^^^^^^
 
 While inspecting method call "#(_)" > ".m" line 4
 The body of method ".m" of type declaration "User" is an expression returning "A".
@@ -866,7 +866,7 @@ User:{
 @Test void methodBodyWrongType_callWrongType_rcOnly_nested(){ fail("""
 005|   imm .m():Get->mut Get{
 006|     mut .get:mut A->MakeA#({});
-   |     ----------------^^^^^^^^^-
+   |     ----------------^^^^^^^^^^
 007|   };
 
 While inspecting method call "#(_)" > ".get" line 6 > ".m" line 5
@@ -886,7 +886,7 @@ User:{
 
 @Test void methodBodyWrongType_inferredContextShowsInferredGenericInstantiation(){fail("""
 007|   imm .m():Car->Apply#(Person,{_->Foo});
-   |   -----------------------------~~~^^^^-
+   |   -----------------------------~~~^^^--
 
 While inspecting object literal instance of "Foo" > "#(_)" line 7 > ".m" line 7
 Method "#(_)" inside the object literal instance of "iso F[Person,Car]" (line 7)
@@ -906,7 +906,7 @@ User:{
 """));}
 @Test void methodBodyWrongType_callWrongType_nestedCall(){ fail("""
 006|   imm .m():B->Wrap#(Mk#({}));
-   |   ------------^^^^^^^^^^^^--
+   |   ------------^^^^^^^^^^^^^^
 
 While inspecting method call "#(_)" > ".m" line 6
 The body of method ".m" of type declaration "User" is an expression returning "A".
@@ -1048,7 +1048,7 @@ Foo:{#(a:A):G->
 """));}
 @Test void drop_capFree(){fail("""
 003| Foo:{#(a:A):G->{a}}
-   |      -----------^^
+   |      -----------^-
 
 While inspecting parameter "a" > "#" line 3 > "#(_)" line 3
 Object literal instance of "iso G" (line 3) implements "base.CaptureFree".
@@ -1063,7 +1063,7 @@ Foo:{#(a:A):G->{a}}
 @Test void drop(){fail("""
 007|   read .m(loooooong:mut A):mut A->Do2[mut A]#(
 008|     Capture#({#():base.Void->Ignore#(loooooong)}),
-   |               -----------------------^^^^^^^^^^
+   |               -----------------------^^^^^^^^^-
 009|     loooooong
 010|   );
 
@@ -1088,7 +1088,7 @@ User:{
 @Test void drop_hygienicMutH(){fail("""
 007|   read .m(loooooong:mutH A):mutH A->Do2H[mutH A]#(
 008|     Capture#({#():base.Void->Ignore#(loooooong)}),
-   |               -----------------------^^^^^^^^^^
+   |               -----------------------^^^^^^^^^-
 009|     loooooong
 010|   );
 
@@ -1113,7 +1113,7 @@ User:{
 @Test void drop_hygienicMutH2(){fail("""
 005|   read .m(loooooong:mutH A):imm G->
 006|     {#():base.Void->IgnoreH#(loooooong)};
-   |      ------------------------^^^^^^^^^^
+   |      ------------------------^^^^^^^^^-
 
 While inspecting parameter "loooooong" > "#" line 6 > ".m(_)" line 5
 Parameter "loooooong" has type "mutH A".
@@ -1140,7 +1140,7 @@ User:{
 
 @Test void drop_ftv_notPropagatedIntoExplicitFoo(){failWf("""
 005|       read Foo:{ read .m:Bar -> beer.bar() };
-   |                                 ^^^^^
+   |                                 ^^^^
 
 While inspecting parameter "beer"
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
@@ -1191,7 +1191,7 @@ Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """));}
 @Test void drop_ftv_notPropagatedTypeReachesNestedLiteral(){failWf("""
 007|       read Foo:{ read .m:Bar -> Do#{ beer.bar } };
-   |                                      ^^^^^
+   |                                      ^^^^
 
 While inspecting parameter "beer"
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
@@ -1226,7 +1226,7 @@ Hint: funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of
 @Test void drop_hygienicsAllowedByTypeParam(){fail("""
 002|   read .m[X:imm,mut,read,readH,mutH](beer:X):G[X]->
 003|     G[X:imm,mut,read,readH,mutH]:{ read .get: X->beer; }
-   |                                    --------------^^^^^
+   |                                    --------------^^^^
 
 While inspecting parameter "beer" > ".get" line 3 > ".m(_)" line 2
 Parameter "beer" has type "X".
@@ -1241,7 +1241,7 @@ User:{
 
 @Test void receiverIsTypeParamDeepInsideCalls(){fail("""
 002| User:{ .m[X:*](x: X): X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
-   |        ----------------------------------------~^^^^^----
+   |        ----------------------------------------^~~~~-----
 
 While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
@@ -1253,7 +1253,7 @@ User:{ .m[X:*](x: X): X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
 """));}
 @Test void receiverIsReadTypeParamDeepInsideCalls(){fail("""
 004| User:Sup[Box[User]]{ .m[X:*](x: read X): read X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
-   |                      --------------------------------------------------~^^^^^----
+   |                      --------------------------------------------------^~~~~-----
 
 While inspecting ".m(_)" line 4
 This call to method ".foo" cannot typecheck.
@@ -1267,7 +1267,7 @@ User:Sup[Box[User]]{ .m[X:*](x: read X): read X -> Id#(Id#(Id#(Id#(Id#(x.foo))))
 """));}
 @Test void receiverIsReadImmTypeParamDeepInsideCalls(){fail("""
 002| User:{ .m[X:*](x: read/imm X): read/imm X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
-   |        ----------------------------------------------------------~^^^^^----
+   |        ----------------------------------------------------------^~~~~-----
 
 While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
@@ -1285,7 +1285,7 @@ User:{ .m[X:*](x: X): base.Void -> Ig#(Mk#(x)) }
 """));}
 @Test void receiverIsTypeParam(){fail("""
 002|   .m[X:**](x:X):X->x.foo;
-   |   -----------------~^^^^^
+   |   -----------------^~~~~
 
 While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
@@ -1367,7 +1367,7 @@ Sub:Sup{ imm .h():read P; }
 
 @Test void callableMethodStillAbstract_missingRequiredMethod_anonLiteral(){ fail("""
 006|   imm .m():Sup->Sup{ imm .h:base.Void->base.Void{} }
-   |   --------------^^^^--------------------------------
+   |   --------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "iso Sup" > ".m" line 6
 This object literal is missing a required method.
@@ -1407,7 +1407,7 @@ User:{
 @Test void methodNotDeclared_noSuchName_typeHasNoMethods(){fail("""
 003|   read .m(e:Empty):base.Void->
 004|     e.nope();
-   |     -^^^^^^
+   |     -^^^^^--
 
 While inspecting ".m(_)" line 3
 This call to method ".nope" cannot typecheck.
@@ -1424,7 +1424,7 @@ User:{
 @Test void methodNotDeclared_noSuchName_didYouMean(){fail("""
 007|   read .m(o:Ops):base.Void->
 008|     read Runner{ o.sise() };
-   |                  ~^^^^^^-
+   |                  -^^^^^--
 
 While inspecting ".run" line 8 > ".m(_)" line 7
 This call to method ".sise" cannot typecheck.
@@ -1448,7 +1448,7 @@ User:{
 @Test void methodNotDeclared_noSuchName_listAvailable(){fail("""
 007|   read .m(o:Ops):base.Void->
 008|     o.xyzzy();
-   |     -^^^^^^^
+   |     -^^^^^^--
 
 While inspecting ".m(_)" line 7
 This call to method ".xyzzy" cannot typecheck.
@@ -1473,7 +1473,7 @@ User:{
 @Test void methodNotDeclared_noSuchName_listAvailable_useVoid(){fail("""
 008|   read .m(o:Ops):Woid->
 009|     o.xyzzy();
-   |     -^^^^^^^
+   |     -^^^^^^--
 
 While inspecting ".m(_)" line 8
 This call to method ".xyzzy" cannot typecheck.
@@ -1500,7 +1500,7 @@ User:{
 @Test void methodNotDeclared_wrongArity_listsAvailableArities(){fail("""
 007|   read .m(m:Mixer, a:A):A->
 008|     m.mix(a, a, a);
-   |     -^^^^^--------
+   |     -^^^^---------
 
 While inspecting ".m(_,_)" line 7
 This call to method ".mix(_,_,_)" cannot typecheck.
@@ -1522,7 +1522,7 @@ User:{
 @Test void methodNotDeclared_wrongArity_listsAritiesInNumericOrder(){fail("""
 007|   read .m(m:Mixer, a:A):A->
 008|     m.mix(a);
-   |     -^^^^^--
+   |     -^^^^---
 
 While inspecting ".m(_,_)" line 7
 This call to method ".mix(_)" cannot typecheck.
@@ -1543,7 +1543,7 @@ User:{
 @Test void methodNotDeclared_wrongReceiverRc_mutNeedsMutButOnlyReadExists(){fail("""
 006|   mut .m(z:mut Z, a:A):A->
 007|     z.zap[mut](a);
-   |     -^^^^^-------
+   |     -^^^^--------
 
 While inspecting ".m(_,_)" line 6
 This call to method ".zap(_)" cannot typecheck.
@@ -1562,7 +1562,7 @@ User:{
 """)); }
 @Test void methodNotDeclared_wrongReceiverRc_onObjectLiteralInstance(){fail("""
 002| U:{ .u: base.Void -> mut A{ read .m: base.Void -> base.Void; mut .k: base.Void -> base.Void }.k[read] }
-   |     ---------------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^~~~~~
+   |     -----------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^~~~~~~
 
 While inspecting ".u" line 2
 This call to method ".k" cannot typecheck.
@@ -1575,7 +1575,7 @@ U:{ .u: base.Void -> mut A{ read .m: base.Void -> base.Void; mut .k: base.Void -
 """)); }
 @Test void methodNotDeclared_wrongReceiverRc_twoOtherCapabilitiesExist(){fail("""
 002| User:{ #(a:read A):A->a.m[read] }
-   |        ---------------~^^^~~~~~
+   |        ---------------~^^~~~~~~
 
 While inspecting "#(_)" line 2
 This call to method ".m" cannot typecheck.
@@ -1589,7 +1589,7 @@ User:{ #(a:read A):A->a.m[read] }
 @Test void methodTArgsArityError_oneLessThanNeeded(){fail("""
 007|   read .m(p:Pairer,a:mut A,b:mut B):mut A->
 008|     p.pair[mut A](a,b);
-   |     -^^^^^^-----------
+   |     -^^^^^------------
 
 While inspecting ".m(_,_,_)" line 7
 This call to method "read Pairer.pair(_,_)" cannot typecheck.
@@ -1612,7 +1612,7 @@ User:{
 @Test void methodTArgsArityError_noneDeclared(){fail("""
 007|   read .m(i:Id,a:mut A):mut A->
 008|     i.id[mut A](a);
-   |     -^^^^---------
+   |     -^^^----------
 
 While inspecting ".m(_,_)" line 7
 This call to method "read Id.id(_)" cannot typecheck.
@@ -1634,7 +1634,7 @@ User:{
 @Test void methodTArgsArityError_twoMoreThanNeeded(){fail("""
 009|   read .m(i:Id,a:mut A):mut A->
 010|     i.id[mut A,mut B,mut C](a);
-   |     -^^^^---------------------
+   |     -^^^----------------------
 
 While inspecting ".m(_,_)" line 9
 This call to method "read Id.id(_)" cannot typecheck.
@@ -1659,7 +1659,7 @@ User:{
 @Test void rcvBlocksCall(){fail("""
 004|   read .m(a:A):A->
 005|     this.zap(a);
-   |     ----^^^^^--
+   |     ^^^^-------
 
 While inspecting ".m(_)" line 4
 This call to method "mut User.zap(_)" cannot typecheck.
@@ -1679,7 +1679,7 @@ User:{
 """)); }
 @Test void operatorArgMismatch_getsNoPrecedenceHint(){fail("""
 005|   .go:Plus->this + this.other;
-   |   ----------~~~~~^~~~~~~-----
+   |   ----------~~~~~~~^^^^------
 
 While inspecting ".go" line 5
 This call to method "Plus+(_)" cannot typecheck.
@@ -1696,7 +1696,7 @@ Plus:{
 """));}
 @Test void hopelessArg_wrongNominal_suppressesPromotionsAndReason(){fail("""
 005|   .f(aaaa:mut B):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
-   |                                    -------------~~~~^^~~~~~~~~~~~~~-
+   |                                    -------------~~~~~~^^^^^^^^^^^^^~
 
 While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Need#(_)" cannot typecheck.
@@ -1712,7 +1712,7 @@ A:{
 """));}
 @Test void hopelessArg_wrongNominal_mutHReceiver_showsDeclaredType(){fail("""
 005|   .f(n:mutH Need, b:B):B->n#b
-   |   ------------------------~^^
+   |   ------------------------~~^
 
 While inspecting ".f(_,_)" line 5
 This call to method "mut Need#(_)" cannot typecheck.
@@ -1729,7 +1729,7 @@ User:{
 
 @Test void hopelessArg_calls_pArgHasType_baselineConsistent(){fail("""
 005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
-   |                                    -------------~~~~^^~~~~~~~~~~~~~-
+   |                                    -------------~~~~~~^^^^^^^^^^^^^~
 
 While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Need#(_)" cannot typecheck.
@@ -1751,7 +1751,7 @@ A:{
 
 @Test void noVar2Fail_viewpointAdaptation_reasonShown(){fail("""
 005|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa);}
-   |                                    -------------~~~~^^~~~~~~~~~~~~~~~~
+   |                                    -------------~~~~~~~~~~~~~~~~~^^^^~
 
 While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Skip#(_)" cannot typecheck.
@@ -1810,7 +1810,7 @@ A:{
 @Test void argFromGenericCall_boundForcesRead_inferenceHint(){fail("""
 005|   .f(aaaa:mut A):B->
 006|     Need#(IdRO#[read A](aaaa));
-   |     ----^^-------------------
+   |     ------^^^^^^^^^^^^^^^^^^^-
 
 While inspecting ".f(_)" line 5
 This call to method "Need#(_)" cannot typecheck.
@@ -1834,7 +1834,7 @@ A:{
 @Test void argFromObjectLiteral_defaultImm_hintToAnnotate(){fail("""
 005|   .f:B->
 006|     Need#(read A{});
-   |     ----^^-------
+   |     ------^^^^^^^^-
 
 While inspecting ".f" line 5
 This call to method "Need#(_)" cannot typecheck.
@@ -1858,7 +1858,7 @@ User:{
 
 @Test void promotionsDisagree_mergesIdenticalBlocks_readH_mutH(){fail("""
 003|   .caller(x:readH A, y:mutH A):A->this.f(x,y);
-   |   --------------------------------~~~~^^^~~~~
+   |   --------------------------------~~~~^^~~~~~
 
 While inspecting ".caller(_,_)" line 3
 This call to method "A.f(_,_)" cannot typecheck.
@@ -1884,7 +1884,7 @@ A:{
 
 @Test void promotionsDisagree_dontOverMergeAcrossDifferentArgs_mutH_mutH(){fail("""
 003|   .caller(x:mutH A, y:mutH A):A->this.f(x,y);
-   |   -------------------------------~~~~^^^~~~~
+   |   -------------------------------~~~~^^~~~~~
 
 While inspecting ".caller(_,_)" line 3
 This call to method "A.f(_,_)" cannot typecheck.
@@ -1914,7 +1914,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo123;}
 
 @Test void tsOkIndirectFail1(){fail("""
 001| A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
-   |                            --------~~~~^^^^^^^^
+   |                            --------~~~~^^^^^^^
 
 While inspecting ".bar" line 1
 This call to method ".foO123" cannot typecheck.
@@ -1931,7 +1931,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
 
 @Test void tsOkIndirectFail2(){fail("""
 001| A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
-   |                            --------~~~~^^^^^^^
+   |                            --------~~~~^^^^^^
 
 While inspecting ".bar" line 1
 This call to method ".foo23" cannot typecheck.
@@ -1947,7 +1947,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
 
 @Test void tsOkIndirectFail3(){fail("""
 001| A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
-   |                            --------~~~~^^^^^^^^^
+   |                            --------~~~~^^^^^^^^
 
 While inspecting ".bar" line 1
 This call to method ".foo1123" cannot typecheck.
@@ -1963,7 +1963,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
 
 @Test void tsOkIndirectFail4(){fail("""
 003|   .bar:A->this.foo123(this);
-   |   --------~~~~^^^^^^^^~~~~~
+   |   --------~~~~^^^^^^^~~~~~~
 
 While inspecting ".bar" line 3
 This call to method ".foo123(_)" cannot typecheck.
@@ -1980,7 +1980,7 @@ A:{
 
 @Test void tsOkIndirectFail4spaces(){fail("""
 003|   .bar:A->this.foo123(this      );
-   |   --------~~~~^^^^^^^^~~~~-------
+   |   --------~~~~^^^^^^^~~~~~~~~~~~~
 
 While inspecting ".bar" line 3
 This call to method ".foo123(_)" cannot typecheck.
@@ -1996,7 +1996,7 @@ A:{
 """));}
 @Test void tsOkIndirectFail5(){fail("""
 001| A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
-   |                            ------------~~~~^^^^^^^^
+   |                            ------------^^^^~~~~~~~
 
 While inspecting ".bar" line 1
 This call to method "A.foo123" cannot typecheck.
@@ -2007,7 +2007,7 @@ A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
 """));}
 @Test void tsOkIndirectFail6a(){fail("""
 001| A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
-   |                            -------------~~~~^^^^^^^^
+   |                            -------------^^^^~~~~~~~
 
 While inspecting ".bar" line 1
 This call to method "A.foo123" cannot typecheck.
@@ -2018,7 +2018,7 @@ A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
 """));}//With inference we infer [imm] (next case)
 @Test void tsOkIndirectFail6b(){fail("""
 001| A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
-   |                            -------------~~~~^^^^^^^^~~~~~
+   |                            -------------^^^^~~~~~~~~~~~~
 
 While inspecting ".bar" line 1
 This call to method "A.foo123" cannot typecheck.
@@ -2029,7 +2029,7 @@ A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 """));}
 @Test void tsOkIndirectFail6c(){fail("""
 001| A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
-   |                            -------------~~~~^^^^^^^^~~~~~~
+   |                            -------------~~~~^^^^^^^~~~~~~
 
 While inspecting ".bar" line 1
 This call to method ".foo123" cannot typecheck.
@@ -2049,7 +2049,7 @@ Make:{ #: mut Counter -> mut Counter{'self
 
 @Test void tsOkIndirectFail7(){fail("""
 001| A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
-   |                                ------------~~~~^^^^^^^^
+   |                                ------------^^^^~~~~~~~
 
 While inspecting ".bar" line 1
 This call to method "mut A.foo123" cannot typecheck.
@@ -2064,7 +2064,7 @@ A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
 """));}
 @Test void tsOkIndirectFail8(){fail("""
 001| A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
-   |                                                            -------------~~~~^^^^^^^^~~~~~
+   |                                                            -------------^^^^~~~~~~~~~~~~
 
 While inspecting ".bar" line 1
 This call to method "A.foo123" cannot typecheck.
@@ -2080,7 +2080,7 @@ A:{mut .foo123:A->this.foo123; read .foo123:A->this.foo123; imm .bar:A->this.foo
 @Test void tsOkIndirectFail10(){fail("""
 006|   read .bar:A->
 007|     this.foo123[mut];
-   |     ----^^^^^^^^-----
+   |     ^^^^------------
 
 While inspecting ".bar" line 6
 This call to method "mut A.foo123" cannot typecheck.
@@ -2102,7 +2102,7 @@ A:{
 """));}
 @Test void baseTypeError(){fail("""
 001| A:{ .bar(b:B):A->b; }
-   |     -------------^^
+   |     -------------^
 
 While inspecting parameter "b" > ".bar(_)" line 1
 The body of method ".bar(_)" of type declaration "A" is an expression returning "B".
@@ -2152,7 +2152,7 @@ User:{ #: read A -> read C:A,B{ .m -> Z } }
 """));}
 @Test void methodReceiverNotRcc(){fail("""
 003|   .bar[X:imm,mut,read](x:X):A->x.foo123;
-   |   -----------------------------~^^^^^^^^
+   |   -----------------------------^~~~~~~~
 
 While inspecting ".bar(_)" line 3
 This call to method ".foo123" cannot typecheck.
@@ -2167,7 +2167,7 @@ A:{
 
 @Test void methodTArgsArityError(){fail("""
 003|   .bar:A->this.id[A,A](this);
-   |   --------~~~~^^^^~~~~~~~~~~
+   |   --------~~~~^^^~~~~~~~~~~~
 
 While inspecting ".bar" line 3
 This call to method "A.id(_)" cannot typecheck.
@@ -2184,7 +2184,7 @@ A:{
 
 @Test void methodArgsDisagree(){fail("""
 003|   .caller(x:readH A, y:mutH A):A->this.f(x,y);
-   |   --------------------------------~~~~^^^~~~~
+   |   --------------------------------~~~~^^~~~~~
 
 While inspecting ".caller(_,_)" line 3
 This call to method "A.f(_,_)" cannot typecheck.
@@ -2210,7 +2210,7 @@ A:{
 
 @Test void methodArgsDisagree2(){fail("""
 004|   .caller(x:readH A, y:mutH A):A->this.f(x,ID#[mutH A]y);
-   |   --------------------------------~~~~^^^~~~~~~~~~~~~~~~
+   |   --------------------------------~~~~^^~~~~~~~~~~~~~~~~
 
 While inspecting ".caller(_,_)" line 4
 This call to method "A.f(_,_)" cannot typecheck.
@@ -2244,7 +2244,7 @@ A:{
 """));}
 @Test void noVar1Fail(){fail("""
 004|   .f(aaaa:mut A):B->imm BB:B{.foo:B->Skip#(aaaa);}
-   |   ---------------------------~~~~~~~~~~~~~~^^^^^--
+   |   ---------------------------~~~~~~~~~~~~~~^^^^~--
 
 While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
 Parameter "aaaa" has type "mut A".
@@ -2260,7 +2260,7 @@ A:{
 
 @Test void noVar1FailAnon(){fail("""
 004|   .f(aaaa:mut A):B->imm B{.foo:B->Skip#(aaaa);}
-   |   ------------------------~~~~~~~~~~~~~~^^^^^--
+   |   ------------------------~~~~~~~~~~~~~~^^^^~--
 
 While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
 Parameter "aaaa" has type "mut A".
@@ -2299,7 +2299,7 @@ A:{
 
 @Test void hopelessArg_calls_pArgHasType(){fail("""
 006|   .f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
-   |                                    -------------~~~~^^~~~~~~~~~~~~~-
+   |                                    -------------~~~~~~^^^^^^^^^^^^^~
 
 While inspecting ".foo" line 6 > ".f(_)" line 6
 This call to method "Need#(_)" cannot typecheck.
@@ -2385,7 +2385,7 @@ Outer:{ .m: base.Void -> { .a: base.Void -> base.Void{} }.a }
 """));}
 @Test void err_anonReceiverSealedHeadReturnsSelf(){fail("""
 001| Outer:{ .m: base.Void -> {'self .a: Outer -> self}.a }
-   |         ------------------------~~~~~~~~~~~~~^^^^^--
+   |         ------------------------~~~~~~~~~~~~~^^^^---
 
 While inspecting parameter "self" > ".a" line 1 > ".m" line 1
 Method ".a" inside the object literal "{...}" (line 1)
@@ -2706,7 +2706,7 @@ Hint: add an implementation for ".foo" inside the object literal.
 """));}
 @Test void byNameFail2(){fail("""
 003|  Main:{ .m:B -> B{.bar:A->A} }
-   |         --------^^----------
+   |         --------^^^^^^^^^^^^
 
 While inspecting object literal instance of "iso B" > ".m" line 3
 This object literal is missing a required method.
@@ -2727,7 +2727,7 @@ Hint: add an implementation for ".foo" inside the object literal.
 
 @Test void captureFreeThisIsNotMut(){fail("""
 002|  B:A,base.CaptureFree{ .get->this; }
-   |                        ------^^^^^
+   |                        ------^^^^
 
 While inspecting parameter "this" > ".get" line 2
 The body of method ".get" of type declaration "B" is an expression returning "B".
@@ -2753,7 +2753,7 @@ A method written without a receiver capability also implements "mut .get": write
 """));}
 @Test void byNameAbstractMutMut(){fail("""
 003|  Main:{ .m:mut B -> mut B }
-   |         ----------------^
+   |         ------------^^^^^
 
 While inspecting object literal instance of "iso B" > ".m" line 3
 This object literal is missing a required method.
@@ -3397,7 +3397,7 @@ Box[E:*]: _Box[E]{
 003| Slots:{ #[E:*](e: mut Var[mut Opt[E]]): mut Slot[E] -> mut Slot[E:*]:{
 004|   mut  .opt: mut Opt[E] -> e.get;
 005|   read .opt: read Opt[read/imm E] -> e.get;
-   |   -----------------------------------^^^^^^
+   |   -----------------------------------^^^^^
 006|   } }
 
 While inspecting method call ".get" > ".opt" line 5 > "#(_)" line 3
@@ -3431,7 +3431,7 @@ Slots:{ #[E:*](e: mut Var[mut Opt[E]]): mut Slot[E] -> mut Slot[E:*]:{
 """));}
 @Test void readOptOfMutNotReadOptOfRead(){fail("""
 003| User:{ .u(o: read Opt[mut X]): read Opt[read X] -> o; }
-   |        --------------------------------------------^^
+   |        --------------------------------------------^
 
 While inspecting parameter "o" > ".u(_)" line 3
 The body of method ".u(_)" of type declaration "User" is an expression returning "read Opt[mut X]".
@@ -3782,7 +3782,7 @@ User:{.f(httpServerPort:A):A->serverPort;}
 """));}
 @Test void genHeadReported(){fail("""
 004| User:{.f(c:C[A]):C[B]->c;}
-   |       -----------------^^
+   |       -----------------^
 
 While inspecting parameter "c" > ".f(_)" line 4
 The body of method ".f(_)" of type declaration "User" is an expression returning "C[A]".
@@ -3795,7 +3795,7 @@ User:{.f(c:C[A]):C[B]->c;}
 """));}
 @Test void genHeadReportedObjLit(){fail("""
 004| User:{.f(c:C[A]):C[B]->C[A]{ .foo:A->A };}
-   |       -----------------^^---------------
+   |       -----------------^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "C[A]" > ".f(_)" line 4
 The body of method ".f(_)" of type declaration "User" is an expression returning "iso C[A]".
@@ -3811,7 +3811,7 @@ User:{.f(c:C[A]):C[B]->C[A]{ .foo:A->A };}
 In file: [###].fear
 
 006|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{ .foo(s:Sup):Sup->s } }
-   |                                            ^^^^^^^^^^
+   |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "base.Void"
 Object literal instance of "base.Void" implements sealed type "base.Void".
@@ -3865,7 +3865,7 @@ ExtStr:"beer"{}
 
 @Test void tsWidenAnonLiteralHeadVsRequiredType(){fail("""
 003| B:{.m:Target->Sup{}}
-   |    -----------^^^^-
+   |    -----------^^^^^
 
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
@@ -3878,7 +3878,7 @@ B:{.m:Target->Sup{}}
 
 @Test void tsWidenAnonLiteralHeadControlNoWiden(){fail("""
 003| B:{.m:Target->Sup{}}
-   |    -----------^^^^-
+   |    -----------^^^^^
 
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
@@ -3891,7 +3891,7 @@ B:{.m:Target->Sup{}}
 
 @Test void tsWidenAnonLiteralHeadMissingMethod(){fail("""
 003| B:{.m:Target->Sup{.foo->base.Str}}
-   |    -----------^^^^---------------
+   |    -----------^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
@@ -3970,7 +3970,7 @@ User:{ .n(cs: mut base.MList[Customer]): base.MList[Person] -> cs.as{::} }
 """));}
 @Test void baseIdAsReadListOfMutElements(){fail("""
 003| User:{ .n(cs: read base.MList[mut Customer]): base.MList[Person] -> cs.as{::} }
-   |        -------------------------------------------------------------------^^^
+   |        -------------------------------------------------------------------^^-
 
 While inspecting parameter "::" > "#(_)" line 3 > ".n(_)" line 3
 Method "#(_)" inside the object literal instance of "iso base.BaseId[read Customer,Person]" (line 3)
@@ -4007,7 +4007,7 @@ User:{ .m(c: Customer): base.Void -> Boxes#(c,{x -> x}).get.n }
 """));}
 @Test void baseIdNotSubtype(){fail("""
 003| User:{ .m: base.BaseId[Person,Customer] -> {::} }
-   |        -------------------------------------^^^
+   |        -------------------------------------^^-
 
 While inspecting parameter "::" > "#(_)" line 3 > ".m" line 3
 Method "#(_)" inside the object literal instance of "iso base.BaseId[Person,Customer]" (line 3)
@@ -4278,7 +4278,7 @@ User:{ .m: Need -> Need#{} }
 """));}
 @Test void writtenHeadIsNotSelfArgument(){fail("""
 004| User:{ .m: Need -> Need#(Closed[A]{}) }
-   |        ------------------^^^^^^^-----
+   |        ------------------^^^^^^^^^^^-
 
 While inspecting object literal instance of "iso Closed[A]" > ".m" line 4
 This object literal is missing a required method.
@@ -4403,7 +4403,7 @@ TypeSystem.methodTableOk rather than reporting a user error.*/
 011|   mut .take(s: mut Set[E], e: E): Opt[E] -> Blocks#
 012|     .let o = {s.opt(e)}
 013|     .return {o};
-   |              ^^
+   |              ^
 
 While inspecting parameter "o" > "#" line 13 > "#(_,_)" line 11 > ".take(_,_)" line 11
 Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13)
@@ -4573,7 +4573,7 @@ Make:{ #(a:iso A): iso Box -> iso Box{ read .get: A -> a } }
 002| Make:{ #: iso Counter -> iso Counter{'self
 003|   mut .inc: mut Counter -> self;
 004|   read .get: read Counter -> self.inc[mut];
-   |   ---------------------------~~~~^^^^^~~~~~
+   |   ---------------------------^^^^~~~~~~~~~
 005|   } }
 
 While inspecting ".get" line 4 > "#" line 2
@@ -4608,7 +4608,7 @@ Make:{ #: iso A -> imm A{'self read .me: imm A -> self } }
 """));}
 @Test void selfNameDeadCode(){fail("""
 002| Make:{ #: A -> A{'self read .get: base.Nat -> 0 } }
-   |        --------^^--------------------------------
+   |        --------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "A" > "#" line 2
 The self name "self" is dead code.
@@ -4667,7 +4667,7 @@ User:{ .nested(css: L[L[C]]): C -> C; .t: C -> this.nested(Ls#(Ls#(C))) }
 @Test void argFromObjectLiteral_mutHParam_hintToWriteMutLiteral(){fail("""
 005|   .f:B->
 006|     Need#(read A{});
-   |     ----^^-------
+   |     ------^^^^^^^^-
 
 While inspecting ".f" line 5
 This call to method "Need#(_)" cannot typecheck.
@@ -4690,7 +4690,7 @@ User:{
 @Test void bodyFromObjectLiteral_wrongNominal_noHintToChangeRC(){fail("""
 004|   .f:mut A->
 005|     read C{};
-   |          ^^
+   |     ^^^^^^^^
 
 While inspecting object literal instance of "read C" > ".f" line 4
 The body of method ".f" of type declaration "User" is an expression returning "read C".
@@ -5006,7 +5006,7 @@ User:{ .m: Animal -> Let#(Mk#, {b -> Two#(Let#(Animal, {a -> NeedAnimal#(b.get)}
 """));}
 @Test void variableTypeArgumentGivenAsASupertypeThenAsASubtypeIsTheSubtype(){fail("""
 010| User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Animal), b.put(Cat))}) }
-   |                                 ----------~^^^^^~~~~~~~-------------
+   |                                 ----------~~~~~~^^^^^^~-------------
 
 While inspecting "#(_)" line 10 > ".m" line 10
 This call to method "Box[_].put(_)" cannot typecheck.
@@ -5026,7 +5026,7 @@ User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Animal), b.put(Cat))}) }
 """));}
 @Test void variableTypeArgumentGivenAsASubtypeThenAsASupertypeIsTheSubtype(){fail("""
 010| User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Cat), b.put(Animal))}) }
-   |                                 ----------------------~^^^^^~~~~~~~-
+   |                                 ----------------------~~~~~~^^^^^^~-
 
 While inspecting "#(_)" line 10 > ".m" line 10
 This call to method "Box[_].put(_)" cannot typecheck.
@@ -5103,7 +5103,7 @@ User:{ .m: Animal -> Let#(Mk#, {b -> b.add(Animal).put(Cat)}) }
 """));}
 @Test void chainOnAVariableGivenASubtypeThenASupertypeIsTheSubtype(){fail("""
 007| User:{ .m: Animal -> Let#(Mk#, {b -> b.add(Cat).put(Animal)}) }
-   |                                 -----~~~~~~~~~~^^^^^~~~~~~~
+   |                                 -----~~~~~~~~~~~~~~~^^^^^^~
 
 While inspecting "#(_)" line 7 > ".m" line 7
 This call to method "Box[_].put(_)" cannot typecheck.
@@ -5129,7 +5129,7 @@ User:{ .m: Animal -> Let#(Mk#, {b -> b.add(Cat).put(Animal)}) }
 """));}
 @Test void methodTypeArgumentDecidedWithoutAVariableThenTheVariableRequiredAsAnUnrelatedTypeIsRejected(){fail("""
 009| User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat).name, NeedDog#(x))} }
-   |                           ------------------------------~~~~~~~^^~~-
+   |                           ------------------------------~~~~~~~~~^~-
 
 While inspecting "#(_)" line 9 > ".m" line 9
 This call to method "NeedDog#(_)" cannot typecheck.
@@ -5148,7 +5148,7 @@ User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat).name, NeedDog#(x))} }
 """));}
 @Test void variableRequiredThenAMethodTypeArgumentDecidedWithoutTheVariableAsAnUnrelatedTypeIsRejected(){fail("""
 009| User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, Cat).name)} }
-   |                           -----------------------~~~~^^~~~~~~~------
+   |                           -----------------------~~~~~~^~~~~~~------
 
 While inspecting "#(_)" line 9 > ".m" line 9
 This call to method "Pick#(_,_)" cannot typecheck.
@@ -5192,7 +5192,7 @@ User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#[Animal](x, Cat).name)} }
 """));}
 @Test void argumentCallTypeArgumentDecidedWithoutAVariableThenTheVariableRequiredAsAnUnrelatedTypeIsRejected(){fail("""
 009| User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat), NeedDog#(x))} }
-   |                           -------------------------~~~~~~~^^~~-
+   |                           -------------------------~~~~~~~~~^~-
 
 While inspecting "#(_)" line 9 > ".m" line 9
 This call to method "NeedDog#(_)" cannot typecheck.
@@ -5211,7 +5211,7 @@ User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat), NeedDog#(x))} }
 """));}
 @Test void variableRequiredThenAnArgumentCallTypeArgumentDecidedWithoutTheVariableAsAnUnrelatedTypeIsRejected(){fail("""
 009| User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, Cat))} }
-   |                           -----------------------~~~~^^~~~~~~~-
+   |                           -----------------------~~~~~~^~~~~~~-
 
 While inspecting "#(_)" line 9 > ".m" line 9
 This call to method "Pick#(_,_)" cannot typecheck.
@@ -5233,7 +5233,7 @@ User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, Cat))} }
 """));}
 @Test void argumentCallTypeArgumentDecidedFromAParameterThenTheVariableRequiredAsAnUnrelatedTypeIsRejected(){fail("""
 009| User:{ .m(c: Cat): Animal -> Use#{x -> Two#(Pick#(x, c), NeedDog#(x))} }
-   |                                   -----------------------~~~~~~~^^~~-
+   |                                   -----------------------~~~~~~~~~^~-
 
 While inspecting "#(_)" line 9 > ".m(_)" line 9
 This call to method "NeedDog#(_)" cannot typecheck.
@@ -5252,7 +5252,7 @@ User:{ .m(c: Cat): Animal -> Use#{x -> Two#(Pick#(x, c), NeedDog#(x))} }
 """));}
 @Test void variableRequiredThenAnArgumentCallTypeArgumentDecidedFromAParameterAsAnUnrelatedTypeIsRejected(){fail("""
 009| User:{ .m(c: Cat): Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, c))} }
-   |                                   -----------------------~~~~^^~~~~~-
+   |                                   -----------------------~~~~~~^~~~~-
 
 While inspecting "#(_)" line 9 > ".m(_)" line 9
 This call to method "Pick#(_,_)" cannot typecheck.
@@ -5320,7 +5320,7 @@ User:{ .m: Animal -> Let#(Mk#, {b -> Two#(NeedAnimal#(b.get), Let#(b.get, {c -> 
 """));}
 @Test void variableTypeArgumentGivenInTwoStatementsAsASupertypeThenAsASubtypeIsTheSubtype(){fail("""
 007| User:{ .m: Animal -> base.Block#.let b= {Mk#} .let a= {b.put(Animal)} .let c= {b.put(Cat)} .return {a} }
-   |                      ----------------------------------~^^^^^~~~~~~~----------------------------------
+   |                      ----------------------------------~~~~~~^^^^^^~----------------------------------
 
 While inspecting "#" line 7 > "#(_,_)" line 7 > ".m" line 7
 This call to method "Box[_].put(_)" cannot typecheck.
@@ -5337,7 +5337,7 @@ User:{ .m: Animal -> base.Block#.let b= {Mk#} .let a= {b.put(Animal)} .let c= {b
 """));}
 @Test void variableTypeArgumentGivenInTwoStatementsAsASubtypeThenAsASupertypeIsTheSubtype(){fail("""
 007| User:{ .m: Animal -> base.Block#.let b= {Mk#} .let a= {b.put(Cat)} .let c= {b.put(Animal)} .return {a} }
-   |                                 --------------------------------------------~^^^^^~~~~~~~-------------
+   |                                 --------------------------------------------~~~~~~^^^^^^~-------------
 
 While inspecting "#" line 7 > "#(_,_)" line 7 > "#(_,_)" line 7 > ".m" line 7
 This call to method "Box[_].put(_)" cannot typecheck.
@@ -5663,7 +5663,7 @@ U:{ .mk[R]: R; .two[T](a: T, b: T, c: Box[T]): A; .use(y: Y, z: Z): A -> this.tw
 """));}
 @Test void unrelatedCandidatesNestedInInferredTypeArgument(){failWf("""
 007| User:{ .go(a: A, b: B): A -> Ign#(Mk#.m(a, b)) }
-   |                              ^^^^^^^^^^^^^^^^
+   |                              ^^^^^^^^^^^^^^^^^
 
 While inspecting method call "#(_)"
 The generic type argument "T" of "#" is inferred from the arguments, but they disagree: some need "Bar[A]", some need "Bar[B]".
@@ -5864,7 +5864,7 @@ B[X:*]:{ .m(x:mut X, y:read X):read X -> Pick#(x,y) }
 """));}
 @Test void pickOfATypeParameterAndVoid(){fail("""
 002| C[X:*]:{ .m(x:X, y:base.Void):X -> Pick#(x,y) }
-   |          --------------------------~~~~^^~~~~
+   |          --------------------------~~~~~~~~^~
 
 While inspecting ".m(_,_)" line 2
 This call to method "Pick#(_,_)" cannot typecheck.
@@ -5879,7 +5879,7 @@ C[X:*]:{ .m(x:X, y:base.Void):X -> Pick#(x,y) }
 """));}
 @Test void pickOfThreeUnrelatedTypes(){fail("""
 005| U:{ .m:A -> Pick3#(A,B,C) }
-   |     --------~~~~~^^~~~~~~
+   |     --------~~~~~~~~~^~~~
 
 While inspecting ".m" line 5
 This call to method "Pick3#(_,_,_)" cannot typecheck.
@@ -5957,7 +5957,7 @@ A:{ .m[X:*,Y:*](x:mut X):mut Y -> x }
 """));}
 @Test void literalMethodParameterUnrelatedToTheTypeArgument(){fail("""
 004| U:{ .m:Box[A] -> Box[A]{ .get(x:B):B -> x } }
-   |     -------------~~~~~~~~^^^^^^^^^^^^^^^^--
+   |     -------------~~~~~~~~^^^^^^^^^^^^^^^^~~
 
 While inspecting object literal instance of "iso Box[A]" > ".m" line 4
 Invalid method signature for "Box[A].get(_)".
@@ -6008,7 +6008,7 @@ U:{ .m: base.Void -> Ig#(F#({ .a(x) -> base.Void; .b -> base.Void })) }
 """));}
 @Test void lambdaMethodReturningThroughThisBeforeItsTypeIsKnown(){fail("""
 004| U:{ .m: base.Void -> Ig#(F#({ .a -> this.b; .b -> base.Void })) }
-   |                               ------~~~~^^^
+   |                               ------~~~~^^
 
 While inspecting ".a" line 4 > ".m" line 4
 This call to method ".b" cannot typecheck.
@@ -6086,7 +6086,7 @@ U:{ .m: base.Void -> Ig#(F#(Mk#, base.Void)) }
 """));}
 @Test void literalWithAMethodForAnExplicitTypeParameterArgument(){fail("""
 003| H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
-   |          ---------------^^-------------------
+   |          ---------------^^^^^^^^^^^^^^^^^^^^-
 
 While inspecting object literal instance of "iso A" > ".m" line 3
 Object literal instance of "A" is required to be of type "X".
@@ -6098,7 +6098,7 @@ H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
 """));}
 @Test void literalForAnExplicitTypeParameterArgument(){fail("""
 003| H[X:*]:{ .m: X -> G#[X](A{}) }
-   |          ---------------^^--
+   |          ---------------^^^-
 
 While inspecting object literal instance of "A" > ".m" line 3
 Object literal instance of "A" is required to be of type "X".
@@ -6225,7 +6225,7 @@ U:{ .m: A -> A{'s .k -> s; .v -> H#(s.k, { .get -> s }) } }
 """));}
 @Test void literalReturningAnAnonymousSelfName(){fail("""
 004| U:{ .m: base.Void -> {'s .j: base.Void -> H#({ .get -> s }, B) }.j }
-   |                          -----------------~^^~~~~~~~~~~~~~~~~~
+   |                          -----------------~~~~~~~~~~~~~~~~~~^~
 
 While inspecting ".j" line 4 > ".m" line 4
 This call to method "H#(_,_)" cannot typecheck.
@@ -6242,7 +6242,7 @@ U:{ .m: base.Void -> {'s .j: base.Void -> H#({ .get -> s }, B) }.j }
 """));}
 @Test void methodTArgsArityError_emptyBrackets(){fail("""
 003| User:{ read .m(i:Id,a:mut A):mut A-> i.id[](a); }
-   |        ------------------------------~^^^^~~~~
+   |        ------------------------------~^^^~~~~~
 
 While inspecting ".m(_,_)" line 3
 This call to method "read Id.id(_)" cannot typecheck.
@@ -6257,7 +6257,7 @@ User:{ read .m(i:Id,a:mut A):mut A-> i.id[](a); }
 """));}
 @Test void methodTArgsArityError_capabilityOnlyBrackets(){fail("""
 004| User:{ .go(x: Foo): mut K -> { read .a -> Id#[imm](x); .b -> Id#[imm](x) } }
-   |                                -----------~~^^~~~~~~~
+   |                                -----------~~^~~~~~~~~
 
 While inspecting ".a" line 4 > ".go(_)" line 4
 This call to method "Id#(_)" cannot typecheck.
@@ -6273,7 +6273,7 @@ User:{ .go(x: Foo): mut K -> { read .a -> Id#[imm](x); .b -> Id#[imm](x) } }
 """));}
 @Test void methodTArgsArityError_onlyACapability(){fail("""
 003| User:{ read .m(i:Id,a:mut A):mut A-> i.id[read](a); }
-   |        ------------------------------~^^^^~~~~~~~~
+   |        ------------------------------~^^^~~~~~~~~~
 
 While inspecting ".m(_,_)" line 3
 This call to method "read Id.id(_)" cannot typecheck.
@@ -6320,7 +6320,7 @@ A:{ .k(x: mut Bar): base.Void -> mut Foo:{ mut .z: base.Void -> x.b }.z }
 """));}
 @Test void declaredReceiverLiteralSelfNameIsNotImm(){fail("""
 002| A:{ .k: base.Void -> read Foo:{'s read .z: base.Void -> Use#s }.z }
-   |                                   ----------------------~~~^^
+   |                                   ----------------------~~~~^
 
 While inspecting ".z" line 2 > ".k" line 2
 This call to method "Use#(_)" cannot typecheck.
@@ -6369,7 +6369,7 @@ A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(
 """));}
 @Test void argumentImplementingAGenericHeadTwiceIsAmbiguous(){fail("""
 003| A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
-   |                                  ---------~~~~^^^~~
+   |                                  ---------~~~~~~~^~
 
 While inspecting ".k" line 3
 This call to method "A.m(_)" cannot typecheck.
@@ -6385,7 +6385,7 @@ A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
 """));}
 @Test void argumentImplementingAGenericHeadTwiceInTheOtherOrderIsAmbiguous(){fail("""
 003| A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
-   |                                  ---------~~~~^^^~~
+   |                                  ---------~~~~~~~^~
 
 While inspecting ".k" line 3
 This call to method "A.m(_)" cannot typecheck.
@@ -6609,7 +6609,7 @@ User:{ .use: read G -> Ap#{x -> read G{ Use#x }} }
 """));}
 @Test void receiverTypeArgumentAndADifferentTypeArgumentOfAnArgumentIsATypeError(){fail("""
 004| User:{ .m(x: Box[A], y: Box[B]): Box[A] -> x.put(y) }
-   |        ------------------------------------~^^^^^~~
+   |        ------------------------------------~~~~~~^~
 
 While inspecting ".m(_,_)" line 4
 This call to method "Box[_].put(_)" cannot typecheck.
@@ -6732,7 +6732,7 @@ U:{ .m(a:N, b:N): W -> a + b.get }
 """));}
 @Test void aMethodTakingTheImplicitParameterIsPrintedWithTheTypeOfItsParameter(){fail("""
 006| User:{ .u(a:A): B -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }) }
-   |        --------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--------------------------------------------------------------
+   |        --------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call "#(_,_)" > ".u(_)" line 6
 The body of method ".u(_)" of type declaration "User" is an expression returning "G".

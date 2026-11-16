@@ -213,11 +213,11 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     var m= new fearlessFullGrammar.M(of(sig), of(res), false, c.span());
     var par2= new fearlessFullGrammar.E.Literal(empty(), List.of(m), c.span());
     return new fearlessFullGrammar.E.Call(
-      c.e(), c.name(), c.targs(), true, empty(), List.of(par1, par2), c.pos());
+      c.e(), c.name(), c.targs(), of(c.span().endPos()), empty(), List.of(par1, par2), c.pos());
   }
   private fearlessFullGrammar.E replaceAtom(fearlessFullGrammar.E par, fearlessFullGrammar.E atom){
     if (!(par instanceof fearlessFullGrammar.E.Call c)){ return atom; }
-    return new fearlessFullGrammar.E.Call(replaceAtom(c.e(), atom), c.name(), c.targs(), c.pars(), c.pat(), c.es(), c.pos());
+    return new fearlessFullGrammar.E.Call(replaceAtom(c.e(), atom), c.name(), c.targs(), c.close(), c.pat(), c.es(), c.pos());
   }
   private fearlessFullGrammar.E extractAtom(fearlessFullGrammar.E par){
     while (par instanceof fearlessFullGrammar.E.Call c){ par = c.e(); }
@@ -229,6 +229,6 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     return new fearlessFullGrammar.E.TypedLiteral(new fearlessFullGrammar.T.RCC(empty(), c, s), empty(), p);
   }
   private fearlessFullGrammar.E call(fearlessFullGrammar.E e, String m, List<fearlessFullGrammar.E> args, Pos p){
-    return new fearlessFullGrammar.E.Call(e, new MName(m, args.size()), empty(), true, empty(), args, p);
+    return new fearlessFullGrammar.E.Call(e, new MName(m, args.size()), empty(), of(p), empty(), args, p);
   }
 }
