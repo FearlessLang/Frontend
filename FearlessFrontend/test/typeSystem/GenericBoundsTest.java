@@ -805,9 +805,6 @@ While inspecting parameter "x" > method ".get" (line 2) > method ".m(_)" (line 2
 Parameter "x" has type "X".
 Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "Fresh[_]" (line 2).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Relevant code with inferred types:
-x
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
@@ -821,9 +818,6 @@ Parameter "b" has type "Box[X]".
 That type is not well kinded under the generic type parameters of object literal "read Fresh[_]" (line 3): "X:imm,mut,read".
 The bounds declared by the object literal are all it knows about its generic type parameters,
 and thus parameter "b" cannot be captured.
-
-Relevant code with inferred types:
-b
 """, List.of("""
 Box[X:imm]:{ .get: X }
 Get[X:imm,mut,read]:{ read .get: read/imm X }
@@ -838,9 +832,6 @@ Parameter "b" has type "Box[X]".
 That type is not well kinded under the generic type parameters of object literal "mut Fresh[_]" (line 3): "X:imm,mut,read".
 The bounds declared by the object literal are all it knows about its generic type parameters,
 and thus parameter "b" cannot be captured.
-
-Relevant code with inferred types:
-b
 """, List.of("""
 Box[X:imm]:{ .get: X }
 Get[X:imm,mut,read]:{ mut .get: X }

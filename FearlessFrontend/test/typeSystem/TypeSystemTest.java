@@ -637,9 +637,6 @@ The type "Thaw[mut Cell]" is invalid.
 Generic type argument 1 ("mut Cell") does not satisfy the bounds
 for generic type parameter "X" in "Thaw[_]".
 Here "X" can only use capability "imm".
-
-Relevant code with inferred types:
-Thaw[mut Cell]
 """, List.of("""
 Cell:{ read .get:base.Nat; mut .set(value:base.Nat):base.Void; }
 Thaw[X:imm]:{ .apply(x:imm X):X -> x; }
@@ -1039,9 +1036,6 @@ User:{
 While inspecting parameter "a" > method "#" (line 5) > method "#(_)" (line 3)
 Object literal instance of "G" (line 4) implements "base.CaptureFree".
 Thus parameter "a" (line 5) cannot be captured in that object literal.
-
-Relevant code with inferred types:
-a
 """, List.of("""
 A:{}
 G:base.CaptureFree{ #:A; }
@@ -1058,9 +1052,6 @@ Foo:{#(a:A):G->
 While inspecting parameter "a" > method "#" (line 3) > method "#(_)" (line 3)
 Object literal instance of "G" (line 3) implements "base.CaptureFree".
 Thus parameter "a" (line 3) cannot be captured in that object literal.
-
-Relevant code with inferred types:
-a
 """, List.of("""
 A:{}
 G:base.CaptureFree{ #:A; }
@@ -1079,9 +1070,6 @@ While inspecting parameter "loooooong" > method "#" (line 8) > method ".m(_)" (l
 Parameter "loooooong" has type "mut A".
 Parameter "loooooong" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "G" (line 8).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Relevant code with inferred types:
-loooooong
 """, List.of("""
 A:{}
 G:{ #(): base.Void; }
@@ -1107,9 +1095,6 @@ While inspecting parameter "loooooong" > method "#" (line 8) > method ".m(_)" (l
 Parameter "loooooong" has type "mutH A".
 The type of parameter "loooooong" is hygienic (readH or mutH)
 and thus it cannot be captured in the object literal instance of "G" (line 8).
-
-Relevant code with inferred types:
-loooooong
 """, List.of("""
 A:{}
 G:{ #(): base.Void; }
@@ -1133,9 +1118,6 @@ While inspecting parameter "loooooong" > method "#" (line 6) > method ".m(_)" (l
 Parameter "loooooong" has type "mutH A".
 The type of parameter "loooooong" is hygienic (readH or mutH)
 and thus it cannot be captured in the object literal instance of "G" (line 6).
-
-Relevant code with inferred types:
-loooooong
 """, List.of("""
 A:{}
 G:{ #(): base.Void; }
@@ -1249,9 +1231,6 @@ While inspecting parameter "beer" > method ".get" (line 3) > method ".m(_)" (lin
 Parameter "beer" has type "X".
 The type of parameter "beer" can be instantiated with a hygienic capability (readH or mutH)
 and thus it cannot be captured in the object literal "G[_]" (line 3).
-
-Relevant code with inferred types:
-beer
 """, List.of("""
 User:{
   read .m[X:imm,mut,read,readH,mutH](beer:X):G[X]->
@@ -2419,9 +2398,6 @@ While inspecting parameter "aaaa" > method ".foo" (line 4) > method ".f(_)" (lin
 Parameter "aaaa" has type "mut A".
 Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal "BB" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Relevant code with inferred types:
-aaaa
 """, List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
@@ -2438,9 +2414,6 @@ While inspecting parameter "aaaa" > method ".foo" (line 4) > method ".f(_)" (lin
 Parameter "aaaa" has type "mut A".
 Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "B" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Relevant code with inferred types:
-aaaa
 """, List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
@@ -2900,9 +2873,6 @@ This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
 Hint: add an implementation for ".foo" inside the object literal.
-
-Relevant code with inferred types:
-B
 """, List.of("""
  A:{.foo:A}
  B:A{}
@@ -2968,9 +2938,6 @@ This object literal is missing a required method.
 Missing: "mut .foo".
 Required by: "A".
 Hint: add an implementation for ".foo" inside the object literal.
-
-Relevant code with inferred types:
-mut B
 """, List.of("""
  A:{mut .foo:A}
  B:A{}
@@ -4262,9 +4229,6 @@ While inspecting the file
 Type declaration "MyId" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
-
-Relevant code with inferred types:
-Person
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4525,9 +4489,6 @@ This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
 Hint: add an implementation for ".close" inside the object literal.
-
-Relevant code with inferred types:
-Closed[A]
 """, List.of("""
 Closed[T]:{ read .close: read T }
 A:Closed[A]{ .close->this }
@@ -4543,9 +4504,6 @@ This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
 Hint: add an implementation for ".close" inside the object literal.
-
-Relevant code with inferred types:
-read Closed[B]
 """, List.of("""
 Closed[T]:{ read .close: read T }
 B:{}
@@ -4561,9 +4519,6 @@ This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_,_]".
 Hint: add an implementation for ".close" inside the object literal.
-
-Relevant code with inferred types:
-read Closed[A,B]
 """, List.of("""
 Closed[T,E]:{ read .close: read T }
 A:Closed[A,B]{ .close->this }
@@ -4580,9 +4535,6 @@ This object literal is missing a required method.
 Missing: "imm .name".
 Required by: "A".
 Hint: add an implementation for ".name" inside the object literal.
-
-Relevant code with inferred types:
-read A
 """, List.of("""
 Closed[T]:{ read .close: read T }
 A:Closed[A]{ .name: A }
@@ -4761,9 +4713,6 @@ While inspecting parameter "c" > method ".run" (line 4) > method ".f(_,_)" (line
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Relevant code with inferred types:
-c
 """, List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }
@@ -4784,9 +4733,6 @@ While inspecting parameter "c" > method ".get" (line 4) > method ".f(_,_)" (line
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Box" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Relevant code with inferred types:
-c
 """, List.of("""
 Foo:{}
 Box:{ mut .get: mut Foo; read .get: read Foo }
@@ -4807,9 +4753,6 @@ While inspecting parameter "c" > method ".run" (line 4) > method ".f(_,_)" (line
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Relevant code with inferred types:
-c
 """, List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }
@@ -5602,9 +5545,6 @@ While inspecting the file
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
-
-Relevant code with inferred types:
-this
 """, List.of("""
 I: base.BaseId[I,I]{ #(x)->this }
 """));}
@@ -5810,9 +5750,6 @@ H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
 While inspecting object literal instance of "A" > method ".m" (line 3)
 Object literal instance of "A" cannot implement "X".
 "X" is a generic type parameter; object literals can only implement nominal types.
-
-Relevant code with inferred types:
-A
 """, List.of("""
 G:{ #[T:*](x: T): T -> x }
 A:{}
@@ -5842,9 +5779,6 @@ This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
 Hint: add an implementation for ".k" inside the object literal.
-
-Relevant code with inferred types:
-A
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A:{ .k: A; .v: base.Void }
@@ -5859,9 +5793,6 @@ This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
 Hint: add an implementation for ".k" inside the object literal.
-
-Relevant code with inferred types:
-A
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A0:{}
@@ -5904,9 +5835,6 @@ While inspecting object literal instance of "Foo" > method ".v" (line 3) > metho
 The type "Foo" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
-
-Relevant code with inferred types:
-Foo
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A:{ .k: A; .v: base.Void }

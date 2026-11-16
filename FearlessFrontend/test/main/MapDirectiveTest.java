@@ -549,9 +549,6 @@ Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-
-Relevant code with inferred types:
-a.S
 Error 8 TypeError""",Map.of("c", sealedC), Map.of("a", "c"), """
 B:{ .k:a.S -> a.S }
 """); }
@@ -946,9 +943,6 @@ Required by: "a.Box[_]".
 Hint: add an implementation for ".get" inside the object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-
-Relevant code with inferred types:
-a.Box[a.A]
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m:a.Box[a.A]->{}}
 """); }
@@ -1894,9 +1888,6 @@ Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "bb.CaptureFree".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-
-Relevant code with inferred types:
-Foo
 Error 8 TypeError
 """, Map.of(), mapBb, """
 G:{ #[X:*](a:X, b:X):bb.Void -> bb.Void }
@@ -1972,9 +1963,6 @@ Parameter "x" can observe mutation; thus it cannot be captured in the "imm" obje
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-
-Relevant code with inferred types:
-x
 Error 8 TypeError
 """, Map.of("c", "D:{} G:{ #:base.Void } Ignore:{ #(x:read D):base.Void -> {} }"), mapA, """
 B:{ .m(x:mut a.D):a.G -> a.G{ # -> a.Ignore#(x) } }
@@ -1991,9 +1979,6 @@ Thus parameter "d" (line 1) cannot be captured in that object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-
-Relevant code with inferred types:
-d
 Error 8 TypeError
 """, Map.of("c", "D:{} G:base.CaptureFree{ #:D }"), mapABb, """
 B:{ #(d:a.D):a.G -> {d} }
@@ -2140,9 +2125,6 @@ The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-
-Relevant code with inferred types:
-this
 Error 8 TypeError
 """, Map.of(), mapBb, """
 I:bb.BaseId[I,I]{ #(x) -> this }

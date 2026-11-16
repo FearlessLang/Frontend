@@ -186,6 +186,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   FearlessException ex(E e){ return ex(e, e); }
   FearlessException ex(E e, E focus){
+    if (e instanceof X || e instanceof Type){ return withNotes(Code.TypeError); }
     var body= text();
     var cp= _cp.apply(true);
     var footer= cp.limit(e, focus, 120).stripTrailing();
@@ -194,7 +195,10 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   FearlessException wf(){
     assert sb.length() != 0;
+    return withNotes(Code.WellFormedness);
+  }
+  private FearlessException withNotes(Code code){
     var body= text();
-    return Code.WellFormedness.of(() -> body+Join.of(notes.apply(body).stream(), "\n\n", "\n", "", ""));
+    return code.of(() -> body+Join.of(notes.apply(body).stream(), "\n\n", "\n", "", ""));
   }
 }

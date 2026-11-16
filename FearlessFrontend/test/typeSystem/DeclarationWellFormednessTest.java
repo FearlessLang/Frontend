@@ -495,9 +495,6 @@ This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
 Hint: add an implementation for ".foo" inside the object literal.
-
-Relevant code with inferred types:
-B
 """, List.of("""
 A:{ .foo: A }
 B:A{}
