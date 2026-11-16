@@ -20,7 +20,7 @@ public final class Gamma{
   /** Never as Map/Set key (nondiscriminating equals/hashCode). */
   @NeverAsKey
   public static final class GammaSignature{
-    Map<String,List<IT>> shot;
+    Map<String,IT> shot;
     int tables;
     final HashMap<Monotonicity.Slot,ArrayList<Object>> monotonicity= new HashMap<>();
     //public GammaSignature clear(){ hash = 0; return this;}//more performance
@@ -129,12 +129,11 @@ public final class Gamma{
   public void tableGrew(){ tables += 1; }
   public boolean represents(GammaSignature sig){ return sig.tables == tables && snapshot().equals(sig.shot); }
   public void sign(GammaSignature sig){ sig.shot = snapshot(); sig.tables = tables; }
-  public Map<String,List<IT>> snapshot(){
-    var res= new HashMap<String,List<IT>>();
-    for (int i : Range.of(0, size)){ res.put(xs[i], List.of(ts[i], learned[i])); }
+  public Map<String,IT> snapshot(){
+    var res= new HashMap<String,IT>();
+    for (int i : Range.of(0, size)){ res.put(xs[i], ts[i]); }
     return res;
   }
-  public boolean changed(Map<String,List<IT>> shot){ return !shot.equals(snapshot()); }
   private int indexOf(String x){
     assert x != null;
     if (size > indexThreshold){ return idx.getOrDefault(x, -1); }
