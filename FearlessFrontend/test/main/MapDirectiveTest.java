@@ -327,7 +327,7 @@ This call to method ".fromA" cannot typecheck.
 Method ".fromA" is not declared on type "A".
 
 Available methods on type "A":
--       .fromC:A
+- .fromC:A
 
 Name "A" stands for "a.A" because of "use a.A as A".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -350,7 +350,7 @@ This call to method ".fromA" cannot typecheck.
 Method ".fromA" is not declared on type "X".
 
 Available methods on type "X":
--       .fromC:X
+- .fromC:X
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 x.fromA
@@ -489,8 +489,8 @@ This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on type "bb.Nat".
 
 Available methods on type "bb.Nat":
--       *(bb.Nat):bb.Nat
--       +(bb.Nat):bb.Nat
+- *(bb.Nat):bb.Nat
+- +(bb.Nat):bb.Nat
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
@@ -826,7 +826,7 @@ Method ".v2" is not declared on type "OldServer".
 Did you mean ".v1" ?
 
 Available methods on type "OldServer":
--       .v1:OldServer
+- .v1:OldServer
 
 Name "OldServer" stands for "legacy.Server" because of "use legacy.Server as OldServer".
 Source code inside folders named "_b" uses package name "legacy" to refer to the code inside folders named "_web_v1", because of "map legacy as _web_v1 in _b", written in fear:/_b/_rank_app.fear.
@@ -848,7 +848,7 @@ This call to method ".nope" cannot typecheck.
 Method ".nope" is not declared on type "a.A".
 
 Available methods on type "a.A":
--       .fromC:a.A
+- .fromC:a.A
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
