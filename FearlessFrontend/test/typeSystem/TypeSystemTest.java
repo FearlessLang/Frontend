@@ -3616,7 +3616,7 @@ is implemented with an expression returning "read Opt[E]".
 Method call "read Var[_].get" has type "read Opt[E]" instead of a subtype of "read Opt[read/imm E]".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Slots:{#[E:*](e:mut Var[mut Opt[E]]):mut Slot[E]->mut Slot[E:*]:{e.get[mut];read .opt:read Opt[read/imm E]->e.get[read]}}
+Slots:{#[E:*](e:mut Var[mut Opt[E]]):mut Slot[E]->mut Slot[E:*]:{mut .opt->e.get[mut];read .opt:read Opt[read/imm E]->e.get[read]}}
 """, List.of("""
 Opt[E:*]:{}
 Var[E:imm,mut,read]:{ read .get: read/imm E; mut .get: E; }
@@ -5512,7 +5512,7 @@ The body of method ".m" of type declaration "U" is an expression returning "A".
 Method call "mut base.Block[_].let(_,_)" has type "A" instead of a subtype of "iso A".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-U:{.m:iso A->-#[imm,A].let[mut,A](mut base.ReturnStmt[A]{A},mut base.Continuation[-,-,-]{(-,-)->-.return[mut](-)})}
+U:{.m:iso A->-#[imm,A].let[mut,A](mut base.ReturnStmt[A]{-},mut base.Continuation[-,-,-]{-})}
 """, List.of("""
 A:{}
 U:{ .m: iso A -> base.Block#.let v1 = {A} .return {v1} }

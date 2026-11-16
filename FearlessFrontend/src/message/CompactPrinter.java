@@ -135,23 +135,20 @@ public final class CompactPrinter{
   }
   public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{
     @Override public void accString(CompactPrinter sb){
-      if (!k.isCompactable()){ accCompactedMeth(sb); return; }
-      sb.append(rc.toStrSpace());
-      sb.append(m);
+      sb.append(rc.toStrSpace()).append(m);
+      if (k.isCompactable()){ accSig(sb); }
+      else{ wrap(sb, "(", ")", xs, ",", (x,b) -> b.append(x)); }
+      body.ifPresent(e -> { sb.append("->"); e.accString(sb); });
+    }
+    private void accSig(CompactPrinter sb){
       sb.append(bs);
       wrap(sb, "(", ")", Streams.zip(xs, ts).<Consumer<CompactPrinter>>map((x,t) -> b -> param(b, x, t)).toList(), ",", Consumer::accept);
       sb.append(":");
       ret.accString(sb);
-      body.ifPresent(e -> { sb.append("->"); e.accString(sb); });
     }
     private static void param(CompactPrinter b, String x, PT t){
       if (!x.equals("_")){ b.append(x).append(":"); }
       t.accString(b);
-    }
-    private void accCompactedMeth(CompactPrinter sb){
-      if (body.isEmpty()){ sb.append(m); wrap(sb, "(", ")", xs, ",", (_,b) -> b.append("-")); return; }
-      wrap(sb, "(", ")->", xs, ",", (_,b) -> b.append("-"));
-      body.get().accString(sb);
     }
   }
   public PE ofE(E e){ return switch (e){
