@@ -148,7 +148,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("This object literal is missing a required method.")
       .line("Missing: "+methodSig(s.rc()+" ", s.m())+".")
       .line("Required by: "+err().tNameADisp(s.origin())+".");
-    if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.").ex(at)); }
+    if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Add an implementation for "+err().methodSig(s.m())+" inside the object literal.").ex(at)); }
     var name= t.type().c().name();
     return addExpFrame(at, e
       .line("Sealed types can only be implemented in their own package.")
@@ -244,7 +244,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private void captureFreeHint(Err e, Literal l, M m){
     var mut= methodSig("mut ", m.sig().m());
-    e.line("Hint: "+err().expRepr(l)+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method.")
+    e.line(up(err().expRepr(l))+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method.")
       .line("A value of "+err().tNameADisp(l.name())+" is never \"mut\", so "+mut+" can stay abstract.")
       .line("A method written without a receiver capability also implements "+mut+": write the receiver capability, as in "+methodSig("read ", m.sig().m())+".");
   }
@@ -273,7 +273,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
     +up(subject)+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l().withRC(RC.imm))
     +" (line "+why.l().span().inner.startLine()+").\n"
-    +"Hint: capture an immutable copy instead, or move this use outside the object literal.";
+    +"Capture an immutable copy instead, or move this use outside the object literal.";
   }
   private String whyDropNotKinded(String subject, Change.NoT why){
     var bounds= disp(Join.of(why.l().bs(), "", ", ", "", ""));
@@ -358,20 +358,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       if (!(s instanceof TypeScope.Method(var l, _, _))){ continue; }
       var has= l.ms().stream().anyMatch(m -> m.sig().m().s().equals(name));
       if (!has){ continue; }
-      var sig= err().methodSig(c.name());
-      var lit= l.infName() ? err().bestNameNoRc(l) : "of type "+err().tNameADisp(l.name());
+      var lit= "Method "+err().methodSig(c.name())+" is declared in the "+err().expRepr(l.withRC(RC.imm));
       var selfName= l.thisName();
-      e.line("Hint:")
-       .line("The method parameter \"this\" here has "+on+".")
-       .blank();
-      if (!selfName.equals("_")){
-        e.line("The method "+sig+" is defined in the object literal "+lit+"; the parameter "
-             +"referring to its instances is named "+disp(selfName)+".");
-        return;
-      }
-      e.line("The method "+sig+" is defined in the object literal "+lit+".")
-       .line("No parameter refers to instances of this literal.")
-       .line("To declare one, use the single quote as in the example below:")
+      e.line("Parameter \"this\" has "+on+".");
+      if (!selfName.equals("_")){ e.line(lit+", whose self name is "+disp(selfName)+"."); return; }
+      e.line(lit+", which has no self name.")
+       .line("A self name is declared with a single quote, as \"'rect\" in the example below:")
        .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
        .line("    .area: Nat -> width * height;")
        .line("    .str: Str -> \"area: \"+(rect.area.str);")
@@ -453,7 +445,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr instanceof T.RCC ? canon(gotHdr) : gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, declared)+" (the type required by the method signature).");
-    if (lambdaFits(ts, bs, c.es().get(argi), declared, gotHdr)){ e.line("Hint: write the argument inside curly braces: the curly braces make an object literal instance of "+err().typeRepr(true, declared)+", whose single method returns the argument."); }
+    if (lambdaFits(ts, bs, c.es().get(argi), declared, gotHdr)){ e.line("Write the argument inside curly braces: the curly braces make an object literal instance of "+err().typeRepr(true, declared)+", whose single method returns the argument."); }
     addNoPrecedenceHintIfOperator(e, ts.scope(), c);
     return withCallSpans(e.ex(c, c.es().get(argi)), c.es().get(argi), c);
   }
@@ -462,7 +454,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var notOperator= name.startsWith(".") || name.equals("#");
     var receiver= s.outer() instanceof TypeScope.CallSite(var p, _) && p.e() == c;
     if (notOperator || !receiver){ return; }
-    e.line("Hint: Fearless has no operator precedence, so an expression like \"a.get + b.get\" "
+    e.line("Fearless has no operator precedence, so an expression like \"a.get + b.get\" "
          +"parses as \"(a.get + b).get\", not \"a.get + (b.get)\". "
          +"If this argument needed a method applied to it first, wrap it in parentheses.");
   }

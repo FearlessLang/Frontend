@@ -78,7 +78,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +"Top level code can only contain type declarations.\n"
       +"A type declaration starts with a type name, like \"Point:{..}\".\n"
       +"Found instead: "+found(found)+".\n"
-      +"Likely cause: an extra \"}\" closed a type declaration unintentionally.\n"
+      +"An extra \"}\" may have closed a type declaration unintentionally.\n"
       ).addSpan(at);
   }
   public FearlessException notADirective(Span at, String name){
@@ -200,7 +200,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var ex= hints.getFirst();
     return Code.WellFormedness.of(
       base
-    +"Likely cause: method declaration missing \".\" before the name.\n"
+    +"A method declaration may be missing \".\" before its name.\n"
     +Join.of(hints.stream().map(Err::disp),
       "Found unnamed methods with parameters: ", ", ", ".\n")
     +"To declare a method named "+disp(ex)+", write \"."+ex+"\" (dot "+ex+").\n"

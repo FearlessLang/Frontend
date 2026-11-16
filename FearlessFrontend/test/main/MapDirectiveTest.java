@@ -940,7 +940,7 @@ While inspecting object literal instance of "a.Box[a.A]" > method ".m" (line 1)
 This object literal is missing a required method.
 Missing: "imm .get".
 Required by: "a.Box[_]".
-Hint: add an implementation for ".get" inside the object literal.
+Add an implementation for ".get" inside the object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
@@ -1954,7 +1954,7 @@ In file: [###].fear
 While inspecting parameter "x" > method "#" (line 1) > method ".m(_)" (line 1)
 Parameter "x" has type "mut a.D".
 Parameter "x" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "a.G" (line 1).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
@@ -2071,7 +2071,7 @@ While inspecting method ".f" (line 1)
 This call to method "a.Need#(_)" cannot typecheck.
 Argument 1 has type "read a.A2".
 Object literal is of type "read a.A2" instead of a subtype of "mut a.A2".
-Hint: write "mut a.A2" if you need a "mut" object literal.
+Write "mut a.A2" if you need a "mut" object literal.
 
 Type required by each promotion:
 - "mut a.A2" (As declared)
@@ -2273,7 +2273,7 @@ While inspecting parameter "beer"
 Parameter "beer" has type "a.Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
-Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2673,7 +2673,7 @@ Integer literal is out of range for "bb.Int".
 "bb.Int" must be representable as a 64-bit signed integer.
 Valid range: -9223372036854775808 .. 9223372036854775807.
 This literal is: "421381834238972893748972389723".
-Hint: if you need arbitrary precision numbers, use "bb.Num".
+If you need arbitrary precision numbers, use "bb.Num".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2691,7 +2691,7 @@ Natural literal is out of range for "bb.Nat".
 "bb.Nat" must be representable as a 64-bit unsigned integer.
 Valid range: 0 .. 18446744073709551615.
 This literal is: "421381834238972893748972389723".
-Hint: if you need arbitrary precision numbers, use "bb.Num".
+If you need arbitrary precision numbers, use "bb.Num".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2710,7 +2710,7 @@ Float literal is not exactly representable as "bb.Float".
 This literal is: "+0.1".
 If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
 Write "+0.1soft" to accept that rounding.
-Hint: if you need arbitrary precision numbers, use "bb.Num".
+If you need arbitrary precision numbers, use "bb.Num".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -3062,7 +3062,7 @@ Integer literal is out of range for "I".
 "I" must be representable as a 64-bit signed integer.
 Valid range: -9223372036854775808 .. 9223372036854775807.
 This literal is: "421381834238972893748972389723".
-Hint: if you need arbitrary precision numbers, use "bb.Num".
+If you need arbitrary precision numbers, use "bb.Num".
 
 Name "I" stands for "bb.Int" because of "use bb.Int as I".
 """+noteBb+"""

@@ -789,7 +789,7 @@ A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> { S
 While inspecting object literal "mut Fresh[_]" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "A" is an expression returning "mut Fresh[X]".
 Object literal is of type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
-Hint: write "iso Fresh[_]" if you need an "iso" object literal.
+Write "iso Fresh[_]" if you need an "iso" object literal.
 
 Relevant code with inferred types:
 A:{.m[X](x:X):iso Box[X]->mut Fresh[X:*]:Box[X]{mut .get:X->x}}
@@ -804,7 +804,7 @@ A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 While inspecting parameter "x" > method ".get" (line 2) > method ".m(_)" (line 2)
 Parameter "x" has type "X".
 Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "Fresh[_]" (line 2).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }

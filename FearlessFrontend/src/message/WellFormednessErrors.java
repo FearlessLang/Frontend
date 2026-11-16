@@ -722,5 +722,5 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(numHint())
       .wf().addSpan(at);
   }
-  private String numHint(){ return "Hint: if you need arbitrary precision numbers, use "+disp(err().cp().t.of(new TName("base.Num", 0, Pos.unknown)))+"."; }
+  private String numHint(){ return "If you need arbitrary precision numbers, use "+disp(err().cp().t.of(new TName("base.Num", 0, Pos.unknown)))+"."; }
 }

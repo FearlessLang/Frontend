@@ -504,7 +504,7 @@ While inspecting object literal "C" > method "#" (line 4)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "C".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Relevant code with inferred types:
 C:B,D{.m:A}
@@ -528,7 +528,7 @@ While inspecting object literal "D" > method "#" (line 7)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Relevant code with inferred types:
 D:E,F{.m:R}
@@ -585,7 +585,7 @@ While inspecting object literal "D" > method "#" (line 7)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Relevant code with inferred types:
 D:P,Q{.m:R}
@@ -606,7 +606,7 @@ While inspecting object literal "D" > method "#" (line 6)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Relevant code with inferred types:
 D:A1,A2{.m:R}
@@ -710,7 +710,7 @@ While inspecting object literal "C" > method "#" (line 3)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Relevant code with inferred types:
 C:A,B{}
@@ -727,7 +727,7 @@ While inspecting object literal "C" > method "#" (line 3)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Relevant code with inferred types:
 C:B{}

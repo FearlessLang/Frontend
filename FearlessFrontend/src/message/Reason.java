@@ -52,7 +52,7 @@ public final class Reason{
     var why= rc == expected.rc() ? "." : " (needed to satisfy the "+disp(expected.rc())+" requirement).";
     var e= es.err()
       .line(base)
-      .line("Hint: write "+es.err().expReprDirect(false, blameOk)
+      .line("Write "+es.err().expReprDirect(false, blameOk)
       +" if you need "+(rc == RC.iso ? "an " : "a ")+disp(rc)+" object literal"+why);
     return new Reason(got, e.text(), es.printed(), () -> baseFooterE(ts.scope(), got, expected));
   }

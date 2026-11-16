@@ -28,7 +28,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var funnelled= disp(Join.of(Push.of(Xs, X).stream().map(s -> s+":.."), owner+"[", ",", "]", ""));
     return "Generic type parameter "+x+" is not in scope inside the type declaration "+dec+".\n"
       +"A type declaration only sees the generic type parameters it declares itself; here "+dec+" declares "+declares+".\n"
-      +"Hint: funnel "+x+" into "+dec+" by writing "+funnelled+", restating the bounds of "+x+".";
+      +"Funnel "+x+" into "+dec+" by writing "+funnelled+", restating the bounds of "+x+".";
   }
   public static String genArity(int n){ return Join.of(Collections.nCopies(n, "_"), "[", ",", "]", ""); }
   static String staticTypeDecName(TName name){ return disp(name.simpleName()+genArity(name.arity())); }//for the parser and the well formedness errors only
@@ -63,7 +63,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   String onTypeOrAnon(Literal l){ return typeOrAnon(l, "object literal instance of ", ""); }
   String theTypeOrObjectLiteral(Literal l){ return typeOrAnon(l, "type ", "object literal "); }
-  public String bestNameNoRc(Literal l){ return bestNamePkg0(showInstanceOf(l), bestLitName(true, true, l)); }
   T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()), t.ts()); }//Correct to not propagate here
   String typeRepr(inference.IT t){ return typeRepr(true, t); }
   String typeRepr(boolean skipImm, inference.IT t){ return t.isTV() ? typeRepr(skipImm, TypeRename.itToT(t)) : disp(typeReprRaw(t)); }
