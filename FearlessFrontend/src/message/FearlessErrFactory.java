@@ -137,15 +137,15 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var s= redeclaredMethSpan(ms, p);
     return Code.WellFormedness.of(
       "Method "+methodSig("", name.name())+" with "+count(name.name().arity(), "parameter")+" redeclared.\n"
-    +"A method with the same name, arity and reference capability is already present.\n")
+    +"A method with the same name, arity and capability is already present.\n")
       .addSpan(s).addSpan(at);
   }
   public FearlessException methodMixedExplicitRC(List<M> ms, MName name, Span at){
     Predicate<M> p= mi -> mi.sig().filter(s -> s.m().equals(Optional.of(name)) && s.rc().isEmpty()).isPresent();
     var s= redeclaredMethSpan(ms, p);
     return Code.WellFormedness.of(
-      "Method "+methodSig("", name)+" with "+count(name.arity(), "parameter")+" mixes an explicit and an inferred reference capability.\n"
-    +"Once one overload of "+methodSig("", name)+" declares a reference capability, every overload of that method must.\n"
+      "Method "+methodSig("", name)+" with "+count(name.arity(), "parameter")+" mixes an explicit and an inferred capability.\n"
+    +"Once one overload of "+methodSig("", name)+" declares a capability, every overload of that method must.\n"
     ).addSpan(s).addSpan(at);
   }
   public int parCount(M m){//-1 == explicitly named method
@@ -280,7 +280,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +(one ? "the name " : "the names ")+Join.of(bad.stream().map(Err::disp), "", ", ", "")
       +(one ? ", which is not a valid parameter name.\n" : ", which are not valid parameter names.\n")
       +(rcs.size() == bad.size() ? "" : "A name can only have \"'\" at its end, but here the id follows a method name ending with \"'\".\n")
-      +(rcs.isEmpty() ? "" : "Reference capabilities, like "+disp(rcs.getFirst())+", cannot be parameter names.\n")
+      +(rcs.isEmpty() ? "" : "Capabilities, like "+disp(rcs.getFirst())+", cannot be parameter names.\n")
       +fix.map(d -> "For example "+disp(patternRepr(d))+" is accepted.\n").orElse("No choice of id makes all the names of this pattern valid.\n")
       ).addSpan(at);
   }

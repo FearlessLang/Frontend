@@ -1818,7 +1818,7 @@ While inspecting type declaration "B"
 Invalid method signature for "B.g(_)".
 The method ".g(_)" accepts parameter 1 of type "read a.P".
 But "a.Parent.g(_)" requires "imm a.P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
@@ -1838,7 +1838,7 @@ While inspecting type declaration "B"
 Invalid method signature for "B.h".
 The method ".h" returns type "read a.Q".
 But "a.Sup.h" returns type "imm a.Q".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
@@ -2259,7 +2259,7 @@ While inspecting type declaration "B"
 Return type disagreement for method "imm .m" with 0 parameters.
 Different options are present in the implemented types.
 Candidates: "imm a.P", "mut a.P".
-They differ in reference capability, and an overriding method must keep it, so no method ".m" can implement all of them.
+They differ in capability, and an overriding method must keep it, so no method ".m" can implement all of them.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -3073,7 +3073,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".k" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, arity and capability is already present.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """
 B:a.A{ .k:B -> this; .k:B -> this; }

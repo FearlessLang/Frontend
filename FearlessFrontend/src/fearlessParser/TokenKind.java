@@ -30,7 +30,7 @@ public enum TokenKind implements metaParser.TokenKind{
   Eq("="),
   SQuote("'"),
   ReadImm("read/imm"),//note: must be before read
-  RCap("readH|mutH|imm|iso|read|mut", "reference capability"),
+  RCap("readH|mutH|imm|iso|read|mut", "capability"),
 
   // Signed float: +12.34, -1.0e-3 ; requires at least one digit on each side of '.'
   SignedFloat(

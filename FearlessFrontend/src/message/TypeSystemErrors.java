@@ -124,7 +124,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       "returns type "+err().typeRepr(false, parent.ret()),
       capabilityLocked);
   }
-  private static final String capabilityLocked= "An overriding method can refine the types of its parameters and result, but not their reference capabilities.";
+  private static final String capabilityLocked= "An overriding method can refine the types of its parameters and result, but not their capabilities.";
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
   public FearlessException methodOverrideSignatureMismatchCovariance(TypeSystem ts, List<B> ctx, Literal l, Sig current, Sig parent){

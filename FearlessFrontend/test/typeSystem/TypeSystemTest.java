@@ -1370,7 +1370,7 @@ While inspecting type declaration "Current"
 Invalid method signature for "Current.g(_)".
 The method ".g(_)" accepts parameter 1 of type "imm P".
 But "Parent.g(_)" requires "read P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Current:Parent{.g(x:P):base.Void}
@@ -1389,7 +1389,7 @@ While inspecting type declaration "Sub"
 Invalid method signature for "Sub.h".
 The method ".h" returns type "read P".
 But "Sup.h" returns type "imm P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub:Sup{.h:read P}

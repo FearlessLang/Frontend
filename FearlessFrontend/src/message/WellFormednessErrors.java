@@ -345,8 +345,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException duplicatedBound(List<RC> es, T.X n){
     var dup= redeclaredElement(es);
     return err()
-      .line("Duplicate reference capability in the generic type parameter "+disp(n.name())+".")
-      .line("Reference capability "+disp(dup.name())+" is repeated.")
+      .line("Duplicate capability in the generic type parameter "+disp(n.name())+".")
+      .line("Capability "+disp(dup.name())+" is repeated.")
       .wf()
       .addSpan(n.span().inner);
   }
@@ -427,7 +427,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Different options are present in the implemented types.")
       .line(Join.of(res.stream().map(o -> option(rcDiffers, o)), "Candidates: ", ", ", "."));
     var m= err().methodSig(at.mName());
-    if (rcDiffers){ return wf(e.line("They differ in reference capability, and an overriding method must keep it, so no method "+m+" can implement all of them."), at); }
+    if (rcDiffers){ return wf(e.line("They differ in capability, and an overriding method must keep it, so no method "+m+" can implement all of them."), at); }
     if (x.isPresent()){ return wf(e.line("They are different types and "+option(false, x.get())+" is a generic type parameter, so no method "+m+" can implement all of them."), at); }
     return wf(e.line(up(err().expRepr(at.lit()))+" must declare a method "+m+" explicitly choosing the desired option."), at);
   }
@@ -578,7 +578,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
-      .line("The body of method "+err().methodSig("", owner, m.sig().m().get())+" needs to be duplicated to satisfy multiple reference capability overloads from the supertypes.")
+      .line("The body of method "+err().methodSig("", owner, m.sig().m().get())+" needs to be duplicated to satisfy multiple capability overloads from the supertypes.")
       .line("However, it contains "+err().expRepr(in)+".")
       .line("Object literals with their own unique explicit type cannot be duplicated."), owner);
   }

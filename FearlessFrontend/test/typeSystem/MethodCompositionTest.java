@@ -790,7 +790,7 @@ While inspecting type declaration "Sub"
 Invalid method signature for "mut Sub.h".
 The method ".h" returns type "iso P".
 But "mut Sup.h" returns type "mut P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub:Sup{mut .h:iso P}
@@ -807,7 +807,7 @@ While inspecting type declaration "Sub"
 Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "read P".
 But "Sup.g(_)" requires "mut P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub:Sup{.g(x:read P):P}
@@ -824,7 +824,7 @@ While inspecting type declaration "Sub"
 Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "readH P".
 But "Sup.g(_)" requires "mutH P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub:Sup{.g(x:readH P):P}
@@ -841,7 +841,7 @@ While inspecting type declaration "Sub[_]"
 Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
 But "Sup[_].h(_)" returns type "read/imm X".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub[X:*]:Sup[X]{.h(x:X):X}
@@ -857,7 +857,7 @@ While inspecting object literal instance of "iso Sup" > method "#" (line 3)
 Invalid method signature for "mut Sup.h".
 The method ".h" returns type "iso P".
 But "mut Sup.h" returns type "mut P".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Sup{mut .h:iso P->P}
@@ -887,7 +887,7 @@ While inspecting type declaration "A"
 Invalid method signature for "A.get".
 The method ".get" returns type "imm Both".
 But "Foo[_].get" returns type "mut Beer".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:Foo[Bar],Foo[mut Beer]{.get:Both->Both}
@@ -906,7 +906,7 @@ While inspecting type declaration "A"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types.
 Candidates: "imm Bar", "mut Beer".
-They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+They differ in capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
 Bar:{}
 Beer:{}
@@ -921,7 +921,7 @@ While inspecting type declaration "Sub[_]"
 Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
 But "Sup[_].h(_)" returns type "imm X".
-An overriding method can refine the types of its parameters and result, but not their reference capabilities.
+An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Sub[X:*]:Sup[X]{.h(x:X):X}
@@ -937,7 +937,7 @@ While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types.
 Candidates: "Y", "imm Y".
-They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+They differ in capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
 Foo[T:*]:{ .get: T }
 A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
@@ -983,7 +983,7 @@ While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types.
 Candidates: "Y", "imm Bar".
-They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+They differ in capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
 Bar:{}
 Foo[T:*]:{ .get: T }
@@ -1019,7 +1019,7 @@ While inspecting type declaration "A[_]"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types.
 Candidates: "Y", "read/imm Y".
-They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+They differ in capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
 Foo[X:imm,mut]:{ .get: X }
 Bar[X:imm,mut]:{ .get: read/imm X }
@@ -1039,7 +1039,7 @@ While inspecting type declaration "A"
 Return type disagreement for method "imm .get" with 0 parameters.
 Different options are present in the implemented types.
 Candidates: "T", "read/imm T".
-They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+They differ in capability, and an overriding method must keep it, so no method ".get" can implement all of them.
 """, List.of("""
 Foo:{ .get[T:mut]: T }
 Bar:{ .get[T:mut]: read/imm T }

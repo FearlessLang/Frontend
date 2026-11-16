@@ -2830,7 +2830,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".foo" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, arity and capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2853,7 +2853,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".ban(_)" with 1 parameter redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, arity and capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2879,7 +2879,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".foo" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, arity and capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -3611,8 +3611,8 @@ In file: [###].fear
    | --~~^^^^^^^^^^^^~~~~~~~~~~~~~~~~~~~~~
 
 While inspecting type declaration body > type declaration > full file
-Method ".foo" with 0 parameters mixes an explicit and an inferred reference capability.
-Once one overload of ".foo" declares a reference capability, every overload of that method must.
+Method ".foo" with 0 parameters mixes an explicit and an inferred capability.
+Once one overload of ".foo" declares a capability, every overload of that method must.
 Error 7 WellFormedness
 """, """
 A:{ .foo:A->this; mut .foo:A->this; }
@@ -3811,7 +3811,7 @@ In file: [###].fear
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
 Nominal pattern "{.b, .read}" declares the name "read", which is not a valid parameter name.
-Reference capabilities, like "read", cannot be parameter names.
+Capabilities, like "read", cannot be parameter names.
 For example "{.b, .read}1" is accepted.
 Error 2 UnexpectedToken
 """, """
@@ -3822,7 +3822,7 @@ In file: [###].fear
 [###]
 Nominal pattern "{.a', .i}mm" declares the names "a'mm", "imm", which are not valid parameter names.
 A name can only have "'" at its end, but here the id follows a method name ending with "'".
-Reference capabilities, like "imm", cannot be parameter names.
+Capabilities, like "imm", cannot be parameter names.
 For example "{.a', .i}" is accepted.
 Error 2 UnexpectedToken
 """, """
@@ -3832,7 +3832,7 @@ A:{.m({.a', .i}mm:A):A}
 In file: [###].fear
 [###]
 Nominal pattern "{.a', .read, .mut}" declares the names "read", "mut", which are not valid parameter names.
-Reference capabilities, like "read", cannot be parameter names.
+Capabilities, like "read", cannot be parameter names.
 No choice of id makes all the names of this pattern valid.
 Error 2 UnexpectedToken
 """, """

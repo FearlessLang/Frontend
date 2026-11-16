@@ -1283,8 +1283,8 @@ In file: [###].fear
    |   ^
 
 While inspecting the file
-Duplicate reference capability in the generic type parameter "A".
-Reference capability "imm" is repeated.
+Duplicate capability in the generic type parameter "A".
+Capability "imm" is repeated.
 Error 7 WellFormedness
 """,
   List.of("""
@@ -1297,8 +1297,8 @@ In file: [###].fear
    |         ^
 
 While inspecting the file
-Duplicate reference capability in the generic type parameter "A".
-Reference capability "imm" is repeated.
+Duplicate capability in the generic type parameter "A".
+Capability "imm" is repeated.
 Error 7 WellFormedness
 """,
   List.of("""
@@ -1329,7 +1329,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".m" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, arity and capability is already present.
 Error 7 WellFormedness
 """,
 List.of("""
@@ -1359,7 +1359,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Type declaration "B" implements method ".h".
-The body of method "B.h" needs to be duplicated to satisfy multiple reference capability overloads from the supertypes.
+The body of method "B.h" needs to be duplicated to satisfy multiple capability overloads from the supertypes.
 However, it contains object literal "MyAge".
 Object literals with their own unique explicit type cannot be duplicated.
 Error 7 WellFormedness

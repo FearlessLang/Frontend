@@ -63,7 +63,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var c= parseRCC(startPos, rc);
     return new E.TypedLiteral(c, parseIf(peek(_CurlyGroup), () -> parseGroup("typed literal", p -> p.parseLiteral(false))), pos);
   }
-  RC parseRC(){ return RC.valueOf(expect("reference capability", RCap).content()); }
+  RC parseRC(){ return RC.valueOf(expect("capability", RCap).content()); }
   Optional<RC> parseOptRC(){ return parseIf(peek(RCap), this::parseRC); }
   T.RCC parseRCC(int startPos, Optional<RC> rc){
     var c= parseC();
