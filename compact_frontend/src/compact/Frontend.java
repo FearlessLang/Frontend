@@ -578,11 +578,19 @@ import java.util.stream.*;
       case Call c->{var e1=solve(b,g,c.e);MS m;
       if(!(e1.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
       var n=m.cas.size();var k=m.mb.size();
-      var all=decide(m.bs,push(m.cas,c.written&&c.y.size()==k?c.y:qs(k)),push(new Con(m.ret,c.t,false),zip(m.ps,c.es,(p,x)->new Con(p,empty(x)?u:x.t(),true))));
-      var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v(),all))));
-      yield new Call(meet(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v(),all)),c.written);
+      var given=push(m.cas,c.written&&c.y.size()==k?c.y:qs(k));var cs=zip(m.ps,c.es,(p,x)->new Con(p,empty(x)?u:x.t(),true));
+      var all=decide(m.bs,given,push(new Con(m.ret,c.t,false),cs));
+      var ys=all.subList(n,all.size());var slot=e1 instanceof E.X&&!w.tv();
+      var ws=slot?slots(g,((E.X)e1).name,new R(null,w.c),decide(m.bs,given,cs).subList(0,n),all.subList(0,n)):all.subList(0,n);var a=push(ws,ys);
+      var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v(),a))));
+      yield new Call(slot?e1:meet(e1,w.withTs(ws)),c.name,m.r,ys,es,meet(c.t,rename(m.ret,m.v(),a)),c.written);
       }
     };}
+    List<T>slots(IG g,String x,R w,List<T>low,List<T>high){var v=find(g,f->f.vars.containsKey(x)).vars;
+      if(v.get(x+" l") instanceof R o&&o.c.name.equals(w.c.name)){low=zip(o.c.types,low,this::joinOrFirst);high=zip(((R)v.get(x+" h")).c.types,high,(a,z)->meet(a,z));}
+      v.put(x+" l",w.withTs(low));v.put(x+" h",w.withTs(high));var res=zip(low,high,this::joinOrFirst);v.put(x+" ",w.withTs(res));return res;
+    }
+    T joinOrFirst(T a,T z){var j=join(a,z);return j==u?a:j;}
     MS signature(R w,N name,RC favorite,RC hint){
       var d=from(w.c.name);if(d==null)return null;var r=or(w.r==iso?hint:w.r,imm).h();
       var m=find(map(favorite!=null?list(favorite):list(r==iso?imm:r,read,imm,mut),o->find(d.ms,x->x.s.m.equals(name)&&x.s.r==o)),x->x!=null);
@@ -609,7 +617,7 @@ import java.util.stream.*;
     M method(List<B>b,IG g,Literal l,M m){var bs=l.anon?b:l.b;var s=m.s;
       g.declare(bs,l,m);
       var e=solve(push(bs,s.b),g,meet(m.e,s.t));
-      var args=zip(m.v,s.types,(x,t)->late?meet(t,g.get(x)):t);
+      var args=zip(m.v,s.types,(x,t)->late?meet(meet(t,g.get(x)),g.getLast().vars.getOrDefault(x+" ",u)):t);
       g.removeLast();return m.signature(s.types(args,meet(s.t,e.t()))).body(e);
     }
     List<T>erase(List<T>types,List<String>mb){

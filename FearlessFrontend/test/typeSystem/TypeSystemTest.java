@@ -5228,6 +5228,200 @@ NeedSeq:{ #(s: Seq[Cat]): Animal -> Cat }
 NeedList:{ #(l: List[Cat]): Animal -> Cat }
 User:{ .m: Use -> Use#{x -> Two#(NeedSeq#x, NeedList#x)} }
 """));}
+@Test void typeArgumentOfALambdaParameterIsTheSupertypeOfTwoArgumentsInAnyOrder(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{
+  .m1: Animal -> Let#(Mk#, {b -> Two#(b.put(Cat), b.put(Animal))});
+  .m2: Animal -> Let#(Mk#, {b -> Two#(b.put(Animal), b.put(Cat))});
+  }
+"""));}
+@Test void typeArgumentOfALambdaParameterIsTheCommonSupertypeOfTwoArgumentsInAnyOrder(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{
+  .m1: Animal -> Let#(Mk#, {b -> Two#(b.put(Cat), b.put(Dog))});
+  .m2: Animal -> Let#(Mk#, {b -> Two#(b.put(Dog), b.put(Cat))});
+  }
+"""));}
+@Test void typeArgumentOfALambdaParameterIsTheSupertypeOfAnArgumentInANestedLambdaInAnyOrder(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{
+  .m1: Animal -> Let#(Mk#, {b -> Two#(b.put(Cat), Let#(Cat, {c -> b.put(Animal)}))});
+  .m2: Animal -> Let#(Mk#, {b -> Two#(Let#(Cat, {c -> b.put(Animal)}), b.put(Cat))});
+  .m3: Animal -> Let#(Mk#, {b -> Two#(b.put(Animal), Let#(Cat, {c -> b.put(Cat)}))});
+  .m4: Animal -> Let#(Mk#, {b -> Two#(Let#(Cat, {c -> b.put(Cat)}), b.put(Animal))});
+  }
+"""));}
+@Test void typeArgumentOfALambdaParameterIsTheOneOfAnExpectedTypeInAnyOrder(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+NeedBoxAnimal:{ #(b: Box[Animal]): Animal -> Cat }
+NeedBoxCat:{ #(b: Box[Cat]): Animal -> Cat }
+User:{
+  .m1: Animal -> Let#(Mk#, {b -> Two#(NeedBoxAnimal#b, b.put(Cat))});
+  .m2: Animal -> Let#(Mk#, {b -> Two#(b.put(Cat), NeedBoxAnimal#b)});
+  }
+"""));}
+@Test void typeArgumentOfALambdaParameterIsTheArgumentWhenAResultIsExpectedAsASupertypeInAnyOrder(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+User:{
+  .m1: Animal -> Let#(Mk#, {b -> Two#(b.put(Cat), NeedAnimal#(b.get))});
+  .m2: Animal -> Let#(Mk#, {b -> Two#(NeedAnimal#(b.get), b.put(Cat))});
+  .m3: Animal -> Let#(Mk#, {b -> Two#(NeedAnimal#(b.get), Two#(b.put(Cat), b.get.purr))});
+  .m4: Animal -> Let#(Mk#, {b -> Two#(Two#(b.get.purr, b.put(Cat)), NeedAnimal#(b.get))});
+  }
+"""));}
+@Test void typeArgumentOfALambdaParameterIsTheSubtypeOfTwoExpectedResultsInAnyOrder(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+User:{
+  .m1: Animal -> Let#(Mk#, {b -> Two#(NeedAnimal#(b.get), NeedCat#(b.get))});
+  .m2: Animal -> Let#(Mk#, {b -> Two#(NeedCat#(b.get), NeedAnimal#(b.get))});
+  }
+"""));}
+@Test void resultOfACallOnALambdaParameterHasTheTypeArgumentOfAnEarlierSupertypeArgument(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Pair:{ #[A,B](a: A, b: B): Animal -> Animal }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> Pair#(b.put(Animal), b.add(Cat))}) }
+"""));}
+@Test void typeArgumentOfALambdaParameterIsTheSupertypeOfTwoArgumentsAroundACallOnAResultInAnyOrder(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{
+  .m1: Animal -> Let#(Mk#, {b -> Two#(b.add(Cat).put(Cat), b.put(Animal))});
+  .m2: Animal -> Let#(Mk#, {b -> Two#(b.put(Animal), b.add(Cat).put(Cat))});
+  }
+"""));}
+@Test void typeArgumentOfALambdaParameterLearnedFromAnArgumentReachesALaterCall(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{
+  .m1: Animal -> Let#(Mk#, {b -> Two#(b.put(Cat), b.get.purr)});
+  .m2: Animal -> Let#(Mk#, {b -> Two#(b.get.purr, b.put(Cat))});
+  }
+"""));}
+@Test void typeArgumentOfALambdaParameterWhoseHeadGetsMoreSpecificIsTheSupertypeOfTwoArguments(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Sup[T]:{ .put(t: T): Animal -> Animal }
+Sub[T]:Sup[T]{}
+NeedSup:{ #[T](s: Sup[T]): Animal -> Cat }
+NeedSub:{ #[T](s: Sub[T]): Animal -> Cat }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A,R](f: F[A,R]): Use -> this }
+User:{ .m: Use -> Use#{x -> Two#(NeedSup#x, Two#(x.put(Cat), Two#(NeedSub#x, x.put(Animal))))} }
+"""));}
+@Test void typeArgumentOfALambdaParameterWithAnExpectedTypeAndASupertypeArgumentExpectedTypeFirst(){fail("""
+011| User:{ .m: Animal -> Let#(Mk#, {b -> Two#(NeedBoxCat#b, b.put(Animal))}) }
+   |                                 ------------------------~^^^^^~~~~~~~-
+
+While inspecting "#(_)" line 11 > ".m" line 11
+This call to method "Box[_].put(_)" cannot typecheck.
+Argument 1 has type "iso Animal".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.put(Animal)
+""", List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+NeedBoxAnimal:{ #(b: Box[Animal]): Animal -> Cat }
+NeedBoxCat:{ #(b: Box[Cat]): Animal -> Cat }
+User:{ .m: Animal -> Let#(Mk#, {b -> Two#(NeedBoxCat#b, b.put(Animal))}) }
+"""));}
+@Test void typeArgumentOfALambdaParameterWithAnExpectedTypeAndASupertypeArgumentArgumentFirst(){fail("""
+011| User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Animal), NeedBoxCat#b)}) }
+   |                                 ----------~^^^^^~~~~~~~---------------
+
+While inspecting "#(_)" line 11 > ".m" line 11
+This call to method "Box[_].put(_)" cannot typecheck.
+Argument 1 has type "iso Animal".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.put(Animal)
+""", List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+NeedBoxAnimal:{ #(b: Box[Animal]): Animal -> Cat }
+NeedBoxCat:{ #(b: Box[Cat]): Animal -> Cat }
+User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Animal), NeedBoxCat#b)}) }
+"""));}
 @Test void lambdaParameterCapturedAfterItsOtherUseIsInferredFromTheOtherUse(){ok(List.of("""
 A:{ mut .m: A -> A }
 Mut:{ #(a: mut A): A -> a.m }

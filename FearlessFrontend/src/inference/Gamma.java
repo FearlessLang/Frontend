@@ -20,7 +20,7 @@ public final class Gamma{
   /** Never as Map/Set key (nondiscriminating equals/hashCode). */
   @NeverAsKey
   public static final class GammaSignature{
-    Map<String,IT> shot;
+    Map<String,List<IT>> shot;
     int tables;
     final HashMap<Monotonicity.Slot,ArrayList<Object>> monotonicity= new HashMap<>();
     //public GammaSignature clear(){ hash = 0; return this;}//more performance
@@ -34,6 +34,8 @@ public final class Gamma{
 
   private String[] xs= new String[initialBindings];
   private IT[]     ts= new IT[initialBindings];
+  private IT[] lows= new IT[initialBindings];
+  private IT[] highs= new IT[initialBindings];
   private int[] declDepth= new int[initialBindings];
   private int size= 0;
 
@@ -65,6 +67,8 @@ public final class Gamma{
     var n= 2 * size;
     xs = Arrays.copyOf(xs, n);
     ts = Arrays.copyOf(ts, n);
+    lows = Arrays.copyOf(lows, n);
+    highs = Arrays.copyOf(highs, n);
     declDepth = Arrays.copyOf(declDepth, n);
   }
   public void popScope(){
@@ -113,6 +117,8 @@ public final class Gamma{
     if (size == xs.length){ growBindings(); }
     xs[size] = x;
     ts[size] = t;
+    lows[size] = IT.U.Instance;
+    highs[size] = IT.U.Instance;
     declDepth[size] = depth - 1;
     idx.put(x, size);
     size += 1;
@@ -120,15 +126,18 @@ public final class Gamma{
   public void update(String x, IT t){
     ts[indexOf(x)] = t;
   }
+  public IT low(String x){ return lows[indexOf(x)]; }
+  public IT high(String x){ return highs[indexOf(x)]; }
+  public void slots(String x, IT low, IT high){ lows[indexOf(x)] = low; highs[indexOf(x)] = high; }
   public void tableGrew(){ tables += 1; }
   public boolean represents(GammaSignature sig){ return sig.tables == tables && snapshot().equals(sig.shot); }
   public void sign(GammaSignature sig){ sig.shot = snapshot(); sig.tables = tables; }
-  public Map<String,IT> snapshot(){
-    var res= new HashMap<String,IT>();
-    for (int i : Range.of(0, size)){ res.put(xs[i], ts[i]); }
+  public Map<String,List<IT>> snapshot(){
+    var res= new HashMap<String,List<IT>>();
+    for (int i : Range.of(0, size)){ res.put(xs[i], List.of(ts[i], lows[i], highs[i])); }
     return res;
   }
-  public boolean changed(Map<String,IT> shot){ return !shot.equals(snapshot()); }
+  public boolean changed(Map<String,List<IT>> shot){ return !shot.equals(snapshot()); }
   private int indexOf(String x){
     assert x != null;
     if (size > indexThreshold){ return idx.getOrDefault(x, -1); }

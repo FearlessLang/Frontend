@@ -303,11 +303,12 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var m= om.get();
     assert m.ps0().size() == c.es().size();
-    var all= decidedThen(g, c, m);
+    var all= decidedThen(g, c, m, c.t());
     assert all.size() == m.nCls()+m.bsArity();
     var clsTs= all.subList(0, m.nCls());
     var targs= all.subList(m.nCls(), all.size());
-    if (direct.isPresent()){ e = meet(e, rcc.withTs(clsTs)); }
+    if (direct.isPresent() && e instanceof E.X x && !rcc.isTV()){ clsTs = slots(g, x.name(), rcc.withRCTs(Optional.empty(), decidedThen(g, c, m, IT.U.Instance).subList(0, m.nCls())), clsTs); }
+    else if (direct.isPresent()){ e = meet(e, rcc.withTs(clsTs)); }
     m = m.withClsArgs(clsTs);
     var it= meet(c.t(), m.ret(targs));
     var es1= nextStar(bs, g, meetWithTargs(c.es(), m, targs));
@@ -315,16 +316,33 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (noChange){ return c; }
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
+  private List<IT> slots(Gamma g, String x, IT.RCC low, List<IT> high){
+    if (g.low(x) instanceof IT.RCC old && old.c().name().equals(low.c().name())){
+      low = low.withTs(joinOrFirst(old.c().ts(), low.c().ts()));
+      high = meet(((IT.RCC)g.high(x)).c().ts(), high);
+    }
+    g.slots(x, low, low.withTs(high));
+    return joinOrFirst(low.c().ts(), high);
+  }
+  private IT slot(Gamma g, String x){
+    if (!(g.low(x) instanceof IT.RCC low)){ return IT.U.Instance; }
+    return low.withTs(joinOrFirst(low.c().ts(), ((IT.RCC)g.high(x)).c().ts()));
+  }
+  private List<IT> joinOrFirst(List<IT> ts1, List<IT> ts2){ return Streams.zip(ts1, ts2).map(this::joinOrFirst).toList(); }
+  private IT joinOrFirst(IT t1, IT t2){
+    var res= join(t1, t2);
+    return res instanceof IT.Amb ? t1 : res;
+  }
   private static IT deFresh(Gamma g, IT t){
     if (!(t instanceof IT.RCC rcc)){ return t; }
     var o= g._owner(rcc.c().name());
     var head= o != null && o.infName() && o.t() instanceof IT.RCC h && !h.c().name().equals(o.name()) ? h.c() : rcc.c();
     return new IT.RCC(rcc.rc(), head, rcc.span()).withTs(head.ts().stream().map(ti -> deFresh(g, ti)).toList());
   }
-  private List<IT> decidedThen(Gamma g, E.Call c, MSigL m){
+  private List<IT> decidedThen(Gamma g, E.Call c, MSigL m, IT ret){
     var given= Push.of(m.clsArgs(), writtenTargs(c) && c.targs().size() == m.bsArity() ? c.targs() : qMarks(m.bsArity()));
     var args= Streams.zip(m.ps0(), c.es()).map((p,e) -> new Con(p, emptyLiteral(e) ? IT.U.Instance : e.t(), true)).toList();
-    return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.t(), false), args));
+    return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), ret, false), args));
   }
   private record Con(IT declared, IT actual, boolean in){}
   private List<IT> decide(Gamma g, List<B> bs, List<IT> given, List<Con> cons){
@@ -426,7 +444,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       .allMatch(m -> m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t -> t.get().isTV()));
   }
   private List<Optional<IT>> updateArgs(M m, Gamma g){
-    return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !late ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
+    return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !late ? oi : Optional.of(meet(meet(oi.get(), g.get(x)), slot(g, x)))).toList();
   }
   M nextMStarOp(List<B> bs, Gamma g, E.Literal l, Optional<IT.RCC> selfPrecise, IT.RCC rcc, M m){
     assert m.impl().isPresent();
