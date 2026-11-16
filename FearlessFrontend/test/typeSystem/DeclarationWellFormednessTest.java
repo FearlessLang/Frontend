@@ -82,7 +82,7 @@ A[T:*,T:*]:{ .foo(a: T, b: T): A }
 
 While inspecting type declaration body > type declaration > full file
 Method ".a" with 0 parameters redeclared.
-A method with the same name, arity and capability is already present.
+A method with the same name, number of parameters and capability is already present.
 """, List.of("""
 A:{ .a: A; .a: A }
 """));}

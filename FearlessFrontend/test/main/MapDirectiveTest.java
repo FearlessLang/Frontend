@@ -3031,7 +3031,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".k" with 0 parameters redeclared.
-A method with the same name, arity and capability is already present.
+A method with the same name, number of parameters and capability is already present.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """
 B:a.A{ .k:B -> this; .k:B -> this; }

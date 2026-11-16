@@ -160,7 +160,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var s= redeclaredMethSpan(ms, p);
     return Code.WellFormedness.of(
       "Method "+methodSig("", name.name())+" with "+count(name.name().arity(), "parameter")+" redeclared.\n"
-    +"A method with the same name, arity and capability is already present.\n")
+    +"A method with the same name, number of parameters and capability is already present.\n")
       .addSpan(s).addSpan(at);
   }
   public FearlessException methodMixedExplicitRC(List<M> ms, MName name, Span at){
@@ -195,16 +195,16 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       .flatMap(this::potentialMethodNames)
       .distinct().toList();
     var base= "Method with inferred name and "+count(count, "parameter")+" redeclared.\n"
-    +"A method with the inferred name and the same parameter count is already present above.\n";
+    +"A method with inferred name and the same number of parameters is already present above.\n";
     if (hints.isEmpty()){ return Code.WellFormedness.of(base).addSpan(s).addSpan(at); }
     var ex= hints.getFirst();
     return Code.WellFormedness.of(
       base
     +"A method declaration may be missing \".\" before its name.\n"
     +Join.of(hints.stream().map(Err::disp),
-      "Found unnamed methods with parameters: ", ", ", ".\n")
+      "First parameters of the methods with inferred name: ", ", ", ".\n")
     +"To declare a method named "+disp(ex)+", write \"."+ex+"\" (dot "+ex+").\n"
-    +"Without the dot, "+disp(ex)+" is interpreted as a parameter name for an anonymous method.\n"
+    +"Without the dot, "+disp(ex)+" is the first parameter of a method with inferred name.\n"
     ).addSpan(s).addSpan(at);
   }
   public FearlessException typeNameConflictsGeneric(Token name, Span at){

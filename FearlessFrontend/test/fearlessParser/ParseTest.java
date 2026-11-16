@@ -2828,7 +2828,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".foo" with 0 parameters redeclared.
-A method with the same name, arity and capability is already present.
+A method with the same name, number of parameters and capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2851,7 +2851,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".ban(_)" with 1 parameter redeclared.
-A method with the same name, arity and capability is already present.
+A method with the same name, number of parameters and capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2877,7 +2877,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".foo" with 0 parameters redeclared.
-A method with the same name, arity and capability is already present.
+A method with the same name, number of parameters and capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2903,11 +2903,11 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present above.
 A method declaration may be missing "." before its name.
-Found unnamed methods with parameters: "a", "b".
+First parameters of the methods with inferred name: "a", "b".
 To declare a method named "a", write ".a" (dot a).
-Without the dot, "a" is interpreted as a parameter name for an anonymous method.
+Without the dot, "a" is the first parameter of a method with inferred name.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2933,11 +2933,11 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameters redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present above.
 A method declaration may be missing "." before its name.
-Found unnamed methods with parameters: "a", "b".
+First parameters of the methods with inferred name: "a", "b".
 To declare a method named "a", write ".a" (dot a).
-Without the dot, "a" is interpreted as a parameter name for an anonymous method.
+Without the dot, "a" is the first parameter of a method with inferred name.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2963,11 +2963,11 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameters redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present above.
 A method declaration may be missing "." before its name.
-Found unnamed methods with parameters: "b", "a".
+First parameters of the methods with inferred name: "b", "a".
 To declare a method named "b", write ".b" (dot b).
-Without the dot, "b" is interpreted as a parameter name for an anonymous method.
+Without the dot, "b" is the first parameter of a method with inferred name.
 Error 7 WellFormedness
 """, """
 A:{
@@ -3297,11 +3297,11 @@ In file: [###].fear
 
 While inspecting type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present above.
 A method declaration may be missing "." before its name.
-Found unnamed methods with parameters: "x", "y".
+First parameters of the methods with inferred name: "x", "y".
 To declare a method named "x", write ".x" (dot x).
-Without the dot, "x" is interpreted as a parameter name for an anonymous method.
+Without the dot, "x" is the first parameter of a method with inferred name.
 Error 7 WellFormedness
 """, """
 Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
@@ -3693,7 +3693,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present above.
 Error 7 WellFormedness
 """, """
 A:{ #(x:A):A; #(x:A,y:A):A }
@@ -3707,7 +3707,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 0 parameters redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present above.
 Error 7 WellFormedness
 """, """
 A:{ this; this }
