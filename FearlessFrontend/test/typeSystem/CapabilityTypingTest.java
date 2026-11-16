@@ -73,8 +73,8 @@ Method ".a1" inside the object literal instance of "mut Container" (line 2)
 is implemented with an expression returning "read A".
 Parameter "a" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
-Capture adaptation trace:
-"mut A" --setToRead(line 2)--> "read A".
+Capturing changes the type of parameter "a":
+- "mut A" becomes "read A" inside the "read" method ".a1" (line 2).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 ContainerF:{#(a:mut A):mutH Container->mut Container{read .a1:mut A->a;mut .a2:mut A->a}}
@@ -92,8 +92,8 @@ Method ".get" inside the object literal instance of "mut Get[mut X]" (line 2)
 is implemented with an expression returning "read X".
 Parameter "x" has type "read X" instead of a subtype of "mut X".
 Note: the declared type "mut X" would instead be a valid subtype.
-Capture adaptation trace:
-"mut X" --setToRead(line 2)--> "read X".
+Capturing changes the type of parameter "x":
+- "mut X" becomes "read X" inside the "read" method ".get" (line 2).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{.m[X:*](x:mut X):mut Get[mut X]->mut Get[mut X]{read .get:mut X->x}}
@@ -1002,8 +1002,8 @@ Method ".get" inside the object literal instance of "mut Get[X]" (line 2)
 is implemented with an expression returning "read/imm X".
 Parameter "x" has type "read/imm X" instead of a subtype of "X".
 Note: the declared type "X" would instead be a valid subtype.
-Capture adaptation trace:
-"X" --setToReadImm(line 2)--> "read/imm X".
+Capturing changes the type of parameter "x":
+- "X" becomes "read/imm X" inside the "mut" method ".get" (line 2).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{.m[X:mut,iso](x:X):mut Get[X]->mut Get[X]{mut .get:X->x}}

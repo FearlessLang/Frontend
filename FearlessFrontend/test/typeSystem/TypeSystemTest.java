@@ -939,8 +939,8 @@ Method ".get" inside the object literal instance of "read Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
-Capture adaptation trace:
-"mut A" --setToRead(line 5)--> "read A".
+Capturing changes the type of parameter "loooooong":
+- "mut A" becomes "read A" inside the "read" method ".get" (line 5).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User:{read .m(loooooong:mut A):mut A->read Get{read .get:mut A->loooooong}}
@@ -962,8 +962,8 @@ Method ".get" inside the object literal instance of "read Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
-Capture adaptation trace:
-"mut A" --setToRead(line 5)--> "read A".
+Capturing changes the type of parameter "loooooong":
+- "mut A" becomes "read A" inside the "read" method ".get" (line 5).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User:{read .m(loooooong:mut A):read Get->read Get{read .get:iso A->loooooong}}
@@ -985,8 +985,8 @@ Method ".get" inside the object literal instance of "read Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
-Capture adaptation trace:
-"mut A" --setToRead(line 5)--> "read A".
+Capturing changes the type of parameter "loooooong":
+- "mut A" becomes "read A" inside the "read" method ".get" (line 5).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User:{read .m(loooooong:mut A):mut A->read Get{read .get:iso A->loooooong}}
@@ -1009,8 +1009,9 @@ Method ".get" inside the object literal instance of "mut Get" (line 6)
 is implemented with an expression returning "A".
 Parameter "loooooong" has type "imm A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
-Capture adaptation trace:
-"mut A" --setToRead(line 6)--> "read A" --strengthenToImm(line 6)--> "A".
+Capturing changes the type of parameter "loooooong":
+- "mut A" becomes "read A" inside the "read" method ".wrap" (line 6).
+- "read A" becomes "imm A" inside the "imm" method ".get" (line 6).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User:{read .m(loooooong:mut A):mut A->read Wrap{read .wrap:Get->mut Get{.get:iso A->loooooong}}}
@@ -1850,8 +1851,8 @@ Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A".
 Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
-Capture adaptation trace:
-"mut A" --setToRead(line 5)--> "read A".
+Capturing changes the type of parameter "aaaa":
+- "mut A" becomes "read A" inside the "read" method ".foo" (line 5).
 
 Type required by each promotion:
 - "mut A"  (As declared)

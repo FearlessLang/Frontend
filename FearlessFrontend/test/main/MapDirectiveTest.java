@@ -2127,8 +2127,8 @@ Method ".get" inside the object literal instance of "read a.Get" (line 1)
 is implemented with an expression returning "read a.D".
 Parameter "x" has type "read a.D" instead of a subtype of "mut a.D".
 Note: the declared type "mut a.D" would instead be a valid subtype.
-Capture adaptation trace:
-"mut a.D" --setToRead(line 1)--> "read a.D".
+Capturing changes the type of parameter "x":
+- "mut a.D" becomes "read a.D" inside the "read" method ".get" (line 1).
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
