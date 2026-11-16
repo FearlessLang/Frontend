@@ -2,6 +2,7 @@ package message;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -146,7 +147,7 @@ public final class CompactPrinter{
     @Override public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace()).append(m);
       if (k.isCompactable()){ accSig(sb); }
-      else{ wrap(sb, "(", ")", xs, ",", (x,b) -> b.append(x)); }
+      else if (!xs.equals(List.of("::"))){ wrap(sb, "(", ")", xs, ",", (x,b) -> b.append(x)); }
       body.ifPresent(e -> { sb.append("->"); e.accString(sb); });
     }
     private void accSig(CompactPrinter sb){
@@ -156,23 +157,29 @@ public final class CompactPrinter{
       ret.accString(sb);
     }
     private static void param(CompactPrinter b, String x, PT t){
-      if (!x.equals("_")){ b.append(x).append(":"); }
+      if (!x.equals("_") && !x.equals("::")){ b.append(x).append(":"); }
       t.accString(b);
     }
   }
   public PE ofE(E e){ return switch (e){
-    case X(var name, var src) -> new PX(src.inner instanceof fearlessFullGrammar.E.Implicit ? "::" : name);
+    case X(var name, var src) -> ofX(name, src);
     case Type(var type, _) -> new PTypeE(ofT(type));
     case Call c -> ofCall(c);
     case Literal l -> ofLit(l);
   };}
+  private final Set<String> implicits= new HashSet<>();
+  PE ofX(String name, Src src){
+    if (!(src.inner instanceof fearlessFullGrammar.E.Implicit)){ return new PX(name); }
+    implicits.add(name);
+    return new PX("::");
+  }
   PE ofCall(Call c){
     var targs= ofTs(c.targs());
     var args= ofEs(c.es());
     return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, k(Optional.of(c)));
   }
   PE ofLit(Literal l){
-    var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.names(), m.e())).toList();
+    var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.xs(), m.names(), m.e())).toList();
     var priv= l.infName();
     var name= priv ? ""
       : t.of(l.name())+bounds(l.bs())+":"; // name[bs]:
@@ -211,12 +218,14 @@ public final class CompactPrinter{
     var s= real.getOrDefault(n.s(), n.pkgName().isEmpty() ? t.mainPkg()+"."+n.s() : real.getOrDefault(n.pkgName(), n.pkgName())+"."+n.simpleName());
     return new TName(s, n.arity(), n.pos());
   }
-  PM ofM(Sig s, List<String> xs, Optional<E> body){
-    var bs= bounds(s.bs());
-    return new PM(s.rc(), s.m().s(), bs, xs, ofTs(s.ts()), ofT(s.ret()), body.map(this::ofE), k(body));
+  PM ofM(Sig s, List<String> xs, List<String> names, Optional<E> body){
+    var e= body.map(this::ofE);
+    var implicit= xs.stream().anyMatch(implicits::contains);
+    return new PM(s.rc(), s.m().s(), bounds(s.bs()), implicit ? List.of("::") : names, ofTs(s.ts()), ofT(s.ret()), e, k(body));
   }
   public String sig(Sig s){
-    var pm= ofM(s, Collections.nCopies(s.m().arity(), "_"), Optional.empty());
+    var xs= Collections.nCopies(s.m().arity(), "_");
+    var pm= ofM(s, xs, xs, Optional.empty());
     assert sb.isEmpty();
     pm.accString(this);
     return sb.toString();

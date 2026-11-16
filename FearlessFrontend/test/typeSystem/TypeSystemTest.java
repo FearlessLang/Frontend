@@ -6424,6 +6424,24 @@ N:{ +(n:N): N -> this; .get: N -> this }
 W:{}
 U:{ .m(a:N, b:N): W -> a + b.get }
 """));}
+@Test void aCompressedMethodTakingTheImplicitParameterIsPrintedWithoutParameters(){fail("""
+005| User:{ .u(a:A): A -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }, this) }
+   |        --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^~
+
+While inspecting method ".u(_)" (line 5)
+This call to method "Use#(_,_,_)" cannot typecheck.
+Argument 3 has type "User".
+That is not a subtype of "A" (the type required by the method signature).
+
+Relevant code with inferred types, where "_", "{...}" and method signatures without types mark omitted code:
+Use#(F{#->::.fooooooooooooooooooooooooooooooooooooooo},G{.m->::.fooooooooooooooooooooooooooooooooooooooo;.k:A->A},this)
+""", List.of("""
+A:{ .fooooooooooooooooooooooooooooooooooooooo: A -> this }
+F:{ #(a:A): A }
+G:{ .m(a:A): A; .k: A }
+Use:{ #(f:F, g:G, b:A): A -> b }
+User:{ .u(a:A): A -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }, this) }
+"""));}
 @Test void aLongLiteralIsPrintedInFull(){fail("""
 001| B:{ .m: B -> "a string literal longer than fifteen" }
    |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
