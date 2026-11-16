@@ -40,7 +40,7 @@ While inspecting object literal instance of "FortyThree" > method ".sum" (line 5
 The body of method ".sum" of type declaration "B" is an expression returning "iso FortyThree".
 Object literal is of type "FortyThree" instead of a subtype of "FortyTwo".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:A[FortyTwo]{.count:FortyTwo->FortyTwo;.sum:FortyTwo->FortyThree}
 """, List.of("""
 Res1:{} Res2:{}
@@ -57,7 +57,7 @@ While inspecting parameter "n" > method ".sum(_)" (line 4)
 The body of method ".sum(_)" of type declaration "B" is an expression returning "mut FortyTwo".
 Parameter "n" has type "mut FortyTwo" instead of a subtype of "imm FortyTwo".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:A[FortyTwo]{mut .count:FortyTwo->FortyTwo;mut .sum(n:mut FortyTwo):FortyTwo->n}
 """, List.of("""
 Res1:{}
@@ -119,7 +119,7 @@ While inspecting method call ".m(_)" > method ".k(_)" (line 4)
 The body of method ".k(_)" of type declaration "Bar" is an expression returning "mut Beer[Y]".
 Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "iso Beer[Y]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Bar:{.k[Y:*](y:Y):iso Beer[Y]->Foo.m[imm,Y](y)}
 """, List.of("""
 Baz:{}
@@ -139,7 +139,7 @@ While inspecting method call ".m(_)" > method ".k(_)" (line 4)
 The body of method ".k(_)" of type declaration "Bar" is an expression returning "mut Beer[Y]".
 Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "Beer[Y]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Bar:{.k[Y:*](y:Y):Beer[Y]->Foo.m[imm,Y](y)}
 """, List.of("""
 Baz:{}
@@ -375,7 +375,7 @@ Method call "A#(_,_)" has type "mut Foo" instead of a subtype of "iso Foo".
 Type required by each promotion:
 - "iso Foo" (As declared, Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Bad:{#[Y:mut,mutH,readH](y:Y,isoF:iso Foo):iso Foo->Expect.isoFoo(A#[imm,Y](y,isoF))}
 """, List.of("""
 Foo:{}
@@ -393,7 +393,7 @@ Generic type argument 1 ("mutH Foo") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capabilities "imm" or "mut".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Foo:{.bar:A[mutH Foo]->A[mutH Foo]}
 """, List.of("""
 A[X:imm,mut]:{}
@@ -409,7 +409,7 @@ Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Break:A[Break]{}
 """, List.of("""
 A[X:mut]:{}
@@ -425,7 +425,7 @@ Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Break:A[Break]{}
 """, List.of("""
 A[X:mut]:{ .a1: X }
@@ -445,7 +445,7 @@ Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 BreakInner:A[Break]{}
 """, List.of("""
 A[X:mut]:{}
@@ -472,7 +472,7 @@ for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Util.m[imm,Z](z)
 """, List.of("""
 Foo:{}
@@ -495,7 +495,7 @@ for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Util.m[imm,Z](z)
 """, List.of("""
 Foo:{}
@@ -525,7 +525,7 @@ Type required by each promotion:
 - "mut Foo" (As declared)
 - "iso Foo" (Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Break:{.m(f:Foo):Foo->A#[imm,mut Foo](f)}
 """, List.of("""
 Foo:{}
@@ -542,7 +542,7 @@ Generic type argument 1 ("imm Foo") does not satisfy the bounds
 for generic type parameter "X" in "A#(_)".
 Here "X" can only use capability "mut".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A#[imm,Foo](f)
 """, List.of("""
 Foo:{}
@@ -564,7 +564,7 @@ for generic type parameter "X" in "Foo[_]".
 Here "X" can only use capability "mut".
 But generic type argument "Y" can only use capabilities "imm" or "mut" or "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A:{.bar[Y:*]:Foo[Y]->Foo[Y]}
 """, List.of("""
 Foo[X:mut]:{}
@@ -660,7 +660,7 @@ for generic type parameter "N" in "Person[_]".
 Here "N" can only use capability "imm".
 But generic type argument "N" can only use capabilities "imm" or "mut" or "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 FPerson:{#[N:*](name:Str,age:imm N):Person[N]->Person[N]{.name:Str->name;.age:N->age}}
 """, List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
@@ -698,7 +698,7 @@ for generic type parameter "N" in "Person[_]".
 Here "N" can only use capability "imm".
 But generic type argument "N" can only use capabilities "imm" or "mut" or "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Fresh[N:*]:Person[N]{.name:Str->name;.age:N->age}
 """, List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
@@ -758,7 +758,7 @@ for generic type parameter "X" in "Foo[_]".
 Here "X" can only use capability "mut".
 But generic type argument "X" can only use capabilities "mut" or "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 mut Foo[X:mut]:{}
 """, List.of("""
 A:{ .m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]:{} }
@@ -791,7 +791,7 @@ The body of method ".m(_)" of type declaration "A" is an expression returning "m
 Object literal is of type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
 Hint: write "iso Fresh[_]" if you need an "iso" object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A:{.m[X](x:X):iso Box[X]->mut Fresh[X:*]:Box[X]{mut .get:X->x}}
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
@@ -806,7 +806,7 @@ Parameter "x" has type "X".
 Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "Fresh[_]" (line 2).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
@@ -822,7 +822,7 @@ That type is not well kinded under the generic type parameters of object literal
 The bounds declared by the object literal are all it knows about its generic type parameters,
 and thus parameter "b" cannot be captured.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 b
 """, List.of("""
 Box[X:imm]:{ .get: X }
@@ -839,7 +839,7 @@ That type is not well kinded under the generic type parameters of object literal
 The bounds declared by the object literal are all it knows about its generic type parameters,
 and thus parameter "b" cannot be captured.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 b
 """, List.of("""
 Box[X:imm]:{ .get: X }

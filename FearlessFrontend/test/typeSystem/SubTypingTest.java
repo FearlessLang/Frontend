@@ -20,7 +20,7 @@ While inspecting parameter "x" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "A".
 Parameter "x" has type "A" instead of a subtype of "B".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:A):B->x}
 """, List.of("""
 A:{} B:{}
@@ -38,7 +38,7 @@ While inspecting parameter "x" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "B".
 Parameter "x" has type "B" instead of a subtype of "A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:B):A->x}
 """, List.of("""
 A:B{} B:{}
@@ -56,7 +56,7 @@ While inspecting parameter "x" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "read A".
 Parameter "x" has type "read A" instead of a subtype of "imm A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:read A):A->x}
 """, List.of("""
 A:{}
@@ -70,7 +70,7 @@ While inspecting parameter "x" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "mut A".
 Parameter "x" has type "mut A" instead of a subtype of "imm A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:mut A):A->x}
 """, List.of("""
 A:{}
@@ -88,7 +88,7 @@ While inspecting parameter "x" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "A".
 Parameter "x" has type "A" instead of a subtype of "C".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:A):C->x}
 """, List.of("""
 A:{} B:A{} C:B{}
@@ -106,7 +106,7 @@ While inspecting parameter "x" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "A".
 Parameter "x" has type "A" instead of a subtype of "E".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:A):E->x}
 """, List.of("""
 A:{} B:A{} C:B{} D:C{} E:D{}
@@ -146,7 +146,7 @@ While inspecting parameter "x" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "mutH A".
 Parameter "x" has type "mutH A" instead of a subtype of "read A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:mutH A):read A->x}
 """, List.of("""
 A:{}
@@ -166,7 +166,7 @@ While inspecting parameter "x" > method ".m(_)" (line 4)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[Int]".
 Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[mut Int]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:SortedList[Int]):List[mut Int]->x}
 """, List.of("""
 Int:{}
@@ -182,7 +182,7 @@ While inspecting parameter "x" > method ".m(_)" (line 4)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[Int]".
 Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[read Int]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:SortedList[Int]):List[read Int]->x}
 """, List.of("""
 Int:{}
@@ -198,7 +198,7 @@ While inspecting parameter "x" > method ".m(_)" (line 4)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[read Int]".
 Parameter "x" has type "SortedList[read Int]" instead of a subtype of "List[Int]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:SortedList[read Int]):List[Int]->x}
 """, List.of("""
 Int:{}
@@ -220,7 +220,7 @@ While inspecting parameter "x" > method ".m(_)" (line 4)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[X]".
 Parameter "x" has type "SortedList[X]" instead of a subtype of "List[Int]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m[X:*](x:SortedList[X]):List[Int]->x}
 """, List.of("""
 Int:{}
@@ -236,7 +236,7 @@ While inspecting parameter "x" > method ".m(_)" (line 4)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[Int]".
 Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[X]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m[X:*](x:SortedList[Int]):List[X]->x}
 """, List.of("""
 Int:{}
@@ -252,7 +252,7 @@ While inspecting parameter "x" > method ".m(_)" (line 6)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[ColouredPoint]".
 Parameter "x" has type "SortedList[ColouredPoint]" instead of a subtype of "SortedList[Point]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:SortedList[ColouredPoint]):SortedList[Point]->x}
 """, List.of("""
 Int:{}
@@ -270,7 +270,7 @@ While inspecting parameter "x" > method ".m(_)" (line 6)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "SortedList[Point]".
 Parameter "x" has type "SortedList[Point]" instead of a subtype of "SortedList[ColouredPoint]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m(x:SortedList[Point]):SortedList[ColouredPoint]->x}
 """, List.of("""
 Int:{}
@@ -288,7 +288,7 @@ While inspecting parameter "x" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "X".
 Parameter "x" has type "X" instead of a subtype of "read Foo".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m[X:*](x:X):read Foo->x}
 """, List.of("""
 Foo:{}
@@ -306,7 +306,7 @@ While inspecting parameter "x" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "Box[X]".
 Parameter "x" has type "Box[X]" instead of a subtype of "Box[mut X]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m[X:mut,read](x:Box[X]):Box[mut X]->x}
 """, List.of("""
 Box[T:*]:{}
@@ -337,7 +337,7 @@ While inspecting parameter "x" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "Sub" is an expression returning "Box[read X]".
 Parameter "x" has type "Box[read X]" instead of a subtype of "Box[read/imm X]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:{.m[X:mut,read](x:Box[read X]):Box[read/imm X]->x}
 """, List.of("""
 Box[T:*]:{}

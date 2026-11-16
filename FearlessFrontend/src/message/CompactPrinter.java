@@ -31,9 +31,11 @@ public final class CompactPrinter{
       var shorter= render(root).length();
       if (shorter >= len){ k.keep(); continue; }
       len = shorter;
+      omitted = true;
     }
     return render(root);
   }
+  boolean omitted;
   private String render(PE root){
     sb.setLength(0);
     root.accString(this);
@@ -98,7 +100,7 @@ public final class CompactPrinter{
   }
   public record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k) implements PE{
     @Override public void accString(CompactPrinter sb){
-      Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b) -> b.append("-");
+      Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b) -> b.append("_");
       acc.acc(recv, sb);
       sb.append(m);
       accTargs(sb, rc, targs);
@@ -110,7 +112,7 @@ public final class CompactPrinter{
       sb.append(rc.toStrSpace());
       if (!priv){ sb.append(name); }
       else if (!cs.isEmpty()){ cs.getFirst().accString(sb); }
-      if (!k.isCompactable()){ sb.append("{-}"); return; }
+      if (!k.isCompactable()){ sb.append("{...}"); return; }
       if (!priv){ wrap(sb, "", "", cs, ",", PC::accString); }
       if (ms.isEmpty()){ sb.append("{}"); return; }
       var selfHidden= self.equals("this") || self.equals("_");
@@ -130,7 +132,7 @@ public final class CompactPrinter{
   public record PC(String name, List<PT> ts, Compactable k) implements PN{
     @Override public void accString(CompactPrinter sb){
       sb.append(name);
-      wrap(sb, "[", "]", ts, ",", k.isCompactable() ? PN::accString : (_,b) -> b.append("-"));
+      wrap(sb, "[", "]", ts, ",", k.isCompactable() ? PN::accString : (_,b) -> b.append("_"));
     }
   }
   public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{

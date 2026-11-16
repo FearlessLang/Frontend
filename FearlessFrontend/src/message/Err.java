@@ -187,8 +187,10 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   FearlessException ex(E e){ return ex(e, e); }
   FearlessException ex(E e, E focus){
     var body= text();
-    var footer= _cp.apply(true).limit(e, focus, 120).stripTrailing();
-    return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.apply(body+"\n"+footer).stream(), "", "\n", "\n\n", "")+"Compressed relevant code with inferred types: (compression indicated by `-`)\n"+footer);
+    var cp= _cp.apply(true);
+    var footer= cp.limit(e, focus, 120).stripTrailing();
+    var header= "Relevant code with inferred types"+(cp.omitted ? ", where \"_\", \"{...}\" and method signatures without types mark omitted code:\n" : ":\n");
+    return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.apply(body+"\n"+footer).stream(), "", "\n", "\n\n", "")+header+footer);
   }
   FearlessException wf(){
     assert sb.length() != 0;

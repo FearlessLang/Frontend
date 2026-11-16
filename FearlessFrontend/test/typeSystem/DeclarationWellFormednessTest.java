@@ -304,7 +304,7 @@ The type "Person" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Bad:Person{}
 """, List.of("""
 Str:{} Nat:{}
@@ -475,7 +475,7 @@ Missing: "imm .foo".
 Required by: "A".
 Hint: add an implementation for ".foo" inside the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:A{}
 """, List.of("""
 A:{ .foo: A }
@@ -496,7 +496,7 @@ Missing: "imm .foo".
 Required by: "A".
 Hint: add an implementation for ".foo" inside the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B
 """, List.of("""
 A:{ .foo: A }

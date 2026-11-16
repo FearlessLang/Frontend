@@ -42,7 +42,7 @@ While inspecting method call ".b" > method ".doThing" (line 1)
 The body of method ".doThing" of type declaration "A" is an expression returning "mutH B".
 Method call "read A.b" has type "mutH B" instead of a subtype of "mut B".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A:{read .b:mutH B->mut B;read .doThing:mut B->this.b[read]}
 """, List.of("""
 A:{ read .b: mutH B -> {}; read .doThing: mut B -> this.b }
@@ -76,7 +76,7 @@ Note: the declared type "mut A" would instead be a valid subtype.
 Capturing changes the type of parameter "a":
 - "mut A" becomes "read A" inside the "read" method ".a1" (line 2).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 ContainerF:{#(a:mut A):mutH Container->mut Container{read .a1:mut A->a;mut .a2:mut A->a}}
 """, List.of("""
 A:{}
@@ -93,7 +93,7 @@ Parameter "this" has type "read A" instead of a subtype of "mut A".
 The capability of the methods changes the type of parameter "this":
 - "mut A" becomes "read A" inside the "read" method ".me" (line 1).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A:{read .me:mut A->this}
 """, List.of("""
 A:{ read .me: mut A -> this }
@@ -109,7 +109,7 @@ Parameter "this" has type "read A" instead of a subtype of "mut A".
 The capability of the methods changes the type of parameter "this":
 - "mut A" becomes "read A" inside the "read" method ".me" (line 2).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A:{read .me:mut F->mut F{mut .get:mut A->this}}
 """, List.of("""
 F:{ mut .get: mut A }
@@ -130,7 +130,7 @@ Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 b.x[mut]
 """, List.of("""
 B:{ mut .x: B }
@@ -152,7 +152,7 @@ Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.mm[mut]
 """, List.of("""
 A:{ read .m: A -> this.mm; mut .mm: A -> A }
@@ -169,7 +169,7 @@ Note: the declared type "mut X" would instead be a valid subtype.
 Capturing changes the type of parameter "x":
 - "mut X" becomes "read X" inside the "read" method ".get" (line 2).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A:{.m[X:*](x:mut X):mut Get[mut X]->mut Get[mut X]{read .get:mut X->x}}
 """, List.of("""
 Get[Y:*]:{ read .get: Y }
@@ -188,7 +188,7 @@ Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.b.foo[mut]
 """, List.of("""
 Void:{}
@@ -208,7 +208,7 @@ Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.b.foo[mut]
 """, List.of("""
 Void:{}
@@ -228,7 +228,7 @@ Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.b.foo[mut]
 """, List.of("""
 Void:{}
@@ -247,7 +247,7 @@ Parameter "prisoner" has type "readH B".
 The type of parameter "prisoner" is hygienic (readH or mutH)
 and thus it cannot be captured in the object literal instance of "mut A[readH B]" (line 2).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 prisoner
 """, List.of("""
 A[X:imm,mut,read,readH]:{ mut .prison: X }
@@ -262,7 +262,7 @@ Parameter "x" has type "X".
 The type of parameter "x" can be instantiated with a hygienic capability (readH or mutH)
 and thus it cannot be captured in the object literal instance of "mut A[X]" (line 2).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x
 """, List.of("""
 A[X:mut,imm,read,mutH,readH]:{ mut .prison: X }
@@ -296,7 +296,7 @@ While inspecting method call ".absMeth" > method "#" (line 4)
 The body of method "#" of type declaration "C" is an expression returning "B".
 Method call "read L[_].absMeth" has type "B" instead of a subtype of "mutH B".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 C:{#:mutH B->A.m[read](B).absMeth[read]}
 """, List.of("""
 B:{}
@@ -323,7 +323,7 @@ Parameter "par" has type "T".
 The type of parameter "par" can be instantiated with a hygienic capability (readH or mutH)
 and thus it cannot be captured in the object literal instance of "mut L[mutH T]" (line 3).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 par
 """, List.of("""
 B:{}
@@ -339,7 +339,7 @@ Parameter "par" has type "mut B".
 Parameter "par" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "L" (line 3).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 par
 """, List.of("""
 B:{}
@@ -355,7 +355,7 @@ Parameter "par" has type "read B".
 Parameter "par" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "L" (line 3).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 par
 """, List.of("""
 B:{}
@@ -371,7 +371,7 @@ Parameter "a" has type "mut A".
 Parameter "a" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "Foo" (line 2).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a
 """, List.of("""
 A:{}
@@ -402,7 +402,7 @@ While inspecting parameter "a" > method ".foo(_,_)" (line 2)
 The body of method ".foo(_,_)" of type declaration "B" is an expression returning "mut A".
 Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:{.foo(a:mut A,aa:mutH A):iso A->a}
 """, List.of("""
 A:{ mut .a: iso A -> B.foo(this, this) }
@@ -416,7 +416,7 @@ While inspecting parameter "a" > method ".foo(_,_)" (line 2)
 The body of method ".foo(_,_)" of type declaration "B" is an expression returning "mut A".
 Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:{.foo(a:mut A,aa:mut A):iso A->a}
 """, List.of("""
 A:{ mut .a: iso A -> B.foo(this, this) }
@@ -430,7 +430,7 @@ While inspecting parameter "a" > method ".foo(_)" (line 2)
 The body of method ".foo(_)" of type declaration "B" is an expression returning "mut A".
 Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:{.foo(a:mut A):iso A->a}
 """, List.of("""
 A:{ mut .a(randomSharedMut: mut A): iso A -> B.foo(this) }
@@ -450,7 +450,7 @@ While inspecting method call ".name" > method ".mutate(_)" (line 3)
 The body of method ".mutate(_)" of type declaration "Usage" is an expression returning "mutH Ref[Name]".
 Method call "mut Person.name" has type "mutH Ref[Name]" instead of a subtype of "iso Ref[Name]".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Usage:{.mutate(p:mutH Person):iso Ref[Name]->p.name[mut]}
 """, List.of("""
 Void:{} Name:{}
@@ -471,7 +471,7 @@ Iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 2
 It is used directly 2 times.
 An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.break(x1,x1)
 """, List.of("""
 Caps:{} Void:{}
@@ -486,7 +486,7 @@ Iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 3
 It is used directly and also captured into object literals.
 An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.breakTwo(x1,B{.x:Caps->x1})
 """, List.of("""
 Caps:{} Void:{}
@@ -537,7 +537,7 @@ While inspecting method call ".get" > method "#(_)" (line 3)
 The body of method "#(_)" of type declaration "Test" is an expression returning "readH Foo".
 Method call "read Box[_].get" has type "readH Foo" instead of a subtype of "Foo".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Test:{#(r:readH Box[Foo]):Foo->r.get[read]}
 """, List.of("""
 Foo:{}
@@ -573,7 +573,7 @@ While inspecting parameter "this" > method ".m1" (line 2)
 The body of method ".m1" of type declaration "B" is an expression returning "mut B".
 Parameter "this" has type "mut B" instead of a subtype of "A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:A{.m1:A->this;mut .m1:A->this;.m2:A->this.m1}
 """, List.of("""
 A:{ imm .m1: A; mut .m1: A; .m2: A }
@@ -603,7 +603,7 @@ While inspecting method call ".m1" > method ".aRead(_)" (line 4)
 The body of method ".aRead(_)" of type declaration "Test" is an expression returning "read B".
 Method call "read A.m1" has type "read B" instead of a subtype of "mut A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Test:{read .aRead(a:read A):mut A->a.m1[read];mut .aMut(a:mut A):mut A->a.m1[mut]}
 """, List.of("""
 A:{ read .m1: read B -> {}; mut .m1: mut A -> this }
@@ -636,7 +636,7 @@ While inspecting method call ".m1" > method ".call(_)" (line 1)
 The body of method ".call(_)" of type declaration "A" is an expression returning "mutH A".
 Method call "mut A.m1" has type "mutH A" instead of a subtype of "mut A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A:{mut .m1:mut A->this;.call(a:mutH A):mut A->a.m1[mut]}
 """, List.of("""
 A:{ mut .m1: mut A -> this; .call(a: mutH A): mut A -> a.m1 }
@@ -675,7 +675,7 @@ Promotion failures:
 - Argument 4 fails:    Allow mutH argument 3
   Parameter "a" has type "mutH A" instead of a subtype of "iso A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.m1(A,iso A,a,a)
 """, List.of("""
 A:{
@@ -695,7 +695,7 @@ Parameter "a" has type "mutH A" instead of a subtype of "iso A".
 Type required by each promotion:
 - "iso A" (Allow mutH receiver)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A:{mut .m1(a1:A,a2:iso A,a3:mut A,a4:mut A):mut A->this;.call(a:mutH A):mutH A->a.m1[mut](A,iso A,a,iso A)}
 """, List.of("""
 A:{
@@ -739,7 +739,7 @@ While inspecting parameter "x" > method "#(_)" (line 1)
 The body of method "#(_)" of type declaration "A[_]" is an expression returning "X".
 Parameter "x" has type "X" instead of a subtype of "read/imm X".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A[X:**]:{#(x:X):read/imm X->x}
 """, List.of("""
 A[X:**]:{ #(x: X): read/imm X -> x }
@@ -762,7 +762,7 @@ Type required by each promotion:
 - "read/imm Y" (As declared)
 - "imm Y" (Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 C:{.m[Y:*](y:read Y):read/imm Y->A.m[imm,Y](y)}
 """, List.of("""
 Foo:{}
@@ -822,7 +822,7 @@ While inspecting method call ".get" > method ".use(_)" (line 2)
 The body of method ".use(_)" of type declaration "User" is an expression returning "read/imm Y".
 Method call "Box[_].get" has type "read/imm Y" instead of a subtype of "iso Y".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 User:{.use[Y:imm,iso](b:Box[Y]):iso Y->b.get}
 """, List.of("""
 Box[X:iso,imm]:{ .get: read/imm X }
@@ -837,7 +837,7 @@ This call to method ".foo" cannot typecheck.
 The receiver has type "read/imm Y", where "Y" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 User:{.use[Y:imm,iso](b:Box[Y]):Box[Y]->b.get.foo}
 """, List.of("""
 Box[X:iso,imm]:{ .get: read/imm X }
@@ -892,7 +892,7 @@ Missing: "mut .m".
 Required by: "B".
 Hint: add an implementation for ".m" inside the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 mut B
 """, List.of("""
 B:{ mut .m: B }
@@ -1076,7 +1076,7 @@ Note: the declared type "X" would instead be a valid subtype.
 Capturing changes the type of parameter "x":
 - "X" becomes "read/imm X" inside the "mut" method ".get" (line 2).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A:{.m[X:mut,iso](x:X):mut Get[X]->mut Get[X]{mut .get:X->x}}
 """, List.of("""
 Get[Y:**]:{ mut .get: Y }

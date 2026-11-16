@@ -54,7 +54,7 @@ The type "A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A
 """;
   private static final String byNameOtherPkg= """
@@ -66,7 +66,7 @@ The type "a.A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.A
 """;
 
@@ -108,7 +108,7 @@ The type "A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "CF".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A
 """, List.of("""
 use base.CaptureFree as CF;
@@ -125,7 +125,7 @@ The type "A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:A{}
 """, List.of("""
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
@@ -276,7 +276,7 @@ Required by: "a.S".
 Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.S
 Error 8 TypeError""", """
 S:base.Sealed{ .foo: base.Void }
@@ -298,7 +298,7 @@ Required by: "a.S".
 Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.S
 Error 8 TypeError""", """
 S:base.Sealed{ .foo: base.Void }
@@ -346,7 +346,7 @@ The type "a.A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:a.A{}
 """, """
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
