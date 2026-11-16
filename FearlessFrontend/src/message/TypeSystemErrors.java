@@ -339,7 +339,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     }
     var sameArity= sameName.stream().filter(s -> s.m().arity() == c.es().size()).toList();
     if (sameArity.isEmpty()){
-      var avail= Join.of(sameName.stream().map(s -> Integer.toString(s.m().arity())).distinct().sorted(), "", " or ", "");
+      var avail= Join.of(sameName.stream().map(s -> s.m().arity()).distinct().sorted().map(String::valueOf), "", " or ", "");
       var forms= sameName.stream().map(s -> methodSig("", s.m())).distinct().sorted().toList();
       return withCallSpans(err()
         .pCallCantBeSatisfied(c)
