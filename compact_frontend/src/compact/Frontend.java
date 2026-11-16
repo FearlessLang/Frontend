@@ -324,7 +324,6 @@ import java.util.stream.*;
     void push(RC r,List<B>b){add(new Frame(r,b,new HashMap<>()));}
     Object declare(String x,T t){getLast().vars.put("'"+x,t);return getLast().vars.put(x,t);}
     void declare(List<B>b,Literal l,M m){push(m.s.r,b);declare(l.self,l.r==null?u:l.self(has(l.cs,cf)?imm:m.s.r));zip(m.v,m.s.types,this::declare);}
-    Object snap(){return map(this,f->new HashMap<>(f.vars));}
   }
   static C normC(C c){return((R)norm(new R(null,c))).c;}
   static T norm(T t){no(!t.tv());return fill(t);}
@@ -547,18 +546,16 @@ import java.util.stream.*;
     }
     List<T>meet(List<T>a,List<T>z){return zip(a,z,this::meet);}
     E solve(List<B>b,IG g,E e){
-      while(true){var s=g.snap();var oe=next(b,g,e);
-        if(oe.equals(e)&&s.equals(g.snap()))return e;
+      while(true){var oe=next(b,g,e);
+        if(oe.equals(e))return e;
         no(oe.t().depth()>cap);e=oe;
       }
     }
     List<E>solve(List<B>b,IG g,List<E>es){return map(es,ei->solve(b,g,ei));}
     E next(List<B>b,IG g,E e){return switch(e){
       case E.X x->{
-        var h=find(g,f->f.vars.containsKey(x.name));var o=h.vars.get(x.name);var k="'"+x.name;var q=h.vars.get(k);var a=o;var p=q;for(var f:g.subList(g.indexOf(h)+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);p=IG.adapt(p,f.r,f.b);}var z=x.t;if(a.equals(z))yield x;
-        var t=z==u||p.equals(z)?null:q==u?z instanceof R w?new R(null,w.c):z
-          :q instanceof R&&z instanceof R?meet(q,z):null;
-        if(t!=null)h.vars.put(k,t);yield x.t(meet(a,z));
+        var h=find(g,f->f.vars.containsKey(x.name));var o=h.vars.get(x.name);var k="'"+x.name;var z=x.t;var q=h.vars.get(k);if(q==u)q=z instanceof R w?new R(null,w.c):z;var a=o;var p=q;for(var f:g.subList(g.indexOf(h)+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);p=IG.adapt(p,f.r,f.b);}if(a.equals(z))yield x;
+        h.vars.put(k,p.equals(z)||!(q instanceof R&&z instanceof R)?q:meet(q,z));yield x.t(meet(a,z));
       }
       case Literal l->{if(!l.expanded){if(l.anon&&l.cs.size()==0)inferred.add(l.name.s);
       l=l.t(!l.anon?l.self(l.r):l.cs.size()==1?new R(l.r,l.cs.get(0)):l.t);if(!(l.t instanceof R(_,var c)))yield l;

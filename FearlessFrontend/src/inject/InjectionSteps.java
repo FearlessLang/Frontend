@@ -31,7 +31,7 @@ import utils.Streams;
 Inference fix-point core loop relies on identity for E.
 Core loop relies on `oe == e` to detect stabilization in O(1) and avoid a deep
 `equals(e)` walk each iteration:
-`if (oe == e && !g.changed(s)){ e.sign(g); return e; }`
+`if (oe == e){ e.sign(g); return e; }`
 Any rewrite of terms containing Es MUST return the original
 instance (==) if no structural change is performed.
 
@@ -196,16 +196,14 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var start= e;
     if (e.done(g)){ return e; }
     while (true){
-      var s= g.snapshot();
       var oe= next(bs, g, e);
       assert oe == e || !oe.equals(e) : "Allocated equal E:"+e.getClass()+"\n"+e;
-      var stable= oe == e && !g.changed(s);
-      if (stable){
+      if (oe == e){
         e.sign(g);
         assert e == start || !e.equals(start);
         return e;
       }
-      //if (oe.equals(e) && !g.changed(s)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
+      //if (oe.equals(e)){ e.sign(g); return e; }//this line is useful for debugging when == gets buggy
       var forever= oe.t().depth() > cap;
       if (forever){ throw meths.p().err().typeGrowsForever(oe); }
       e = oe;
@@ -276,12 +274,12 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var t1= g.getWithRC(x.name());
     var t2= x.t();
     if (t1.equals(t2)){ return x; }
-    if (!t2.undecided() && !g.learnedWithRC(x.name()).equals(t2)){ updateG(g, x.name(), g.learned(x.name()), t2); }
+    if (!t2.undecided()){ updateG(g, x.name(), t2); }
     return x.withT(meet(t1, t2));
   }
-  private void updateG(Gamma g, String x, IT t1, IT t2){
-    if (t1.undecided()){ g.update(x, t2 instanceof IT.RCC(_, var c, var span) ? new RCC(Optional.empty(), c, span) : t2); return; }
-    if (t1 instanceof IT.RCC && t2 instanceof IT.RCC){ g.update(x, meet(t1, t2)); }
+  private void updateG(Gamma g, String x, IT t2){
+    if (g.learned(x).undecided()){ g.update(x, t2 instanceof IT.RCC(_, var c, var span) ? new RCC(Optional.empty(), c, span) : t2); }
+    if (g.learned(x) instanceof IT.RCC t1 && t2 instanceof IT.RCC && !g.learnedWithRC(x).equals(t2)){ g.update(x, meet(t1, t2)); }
   }
   private E nextT(E.Type t){
     if (!t.t().undecided()){ return t; }
