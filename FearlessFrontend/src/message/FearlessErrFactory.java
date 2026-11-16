@@ -51,7 +51,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var n= staticTypeDecName(lastTop.get());
     var hint= lastTop.get().s()+(lastTop.get().arity() == 0 ? ":..{...}" : "[..]:..{...}");
     return "Top level type declarations do not end with \";\".\n"
-         +"The definition of "+n+" ends with a semicolon. Remove it.\n"
+         +"The declaration of "+n+" ends with a semicolon. Remove it.\n"
          +"Write: "+disp(hint)+"\n"
          +"Not:   "+disp(hint+";")+"\n";
   }
@@ -417,8 +417,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     return "A type name starts with an uppercase letter, after the package name if any, as in \"Point\" or \"base.Nat\".\n";
   }
   public FearlessException badTopSelfName(Span at, String name){
-    var msg= "Self name "+disp(name)+" is invalid in a top level type.\n"
-      +"The self name of a top level type can only be \"this\".\n";
+    var msg= "Self name "+disp(name)+" is invalid in a top level type declaration.\n"
+      +"The self name of a top level type declaration can only be \"this\".\n";
     return Code.WellFormedness.of(msg).addSpan(at);
   }
   public FearlessException noAbstractMethod(Sig sig, Span at){

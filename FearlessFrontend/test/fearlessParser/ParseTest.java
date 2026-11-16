@@ -168,8 +168,8 @@ In file: [###].fear
    | --~~~^^^~~~~~~~~~~~~~~~~~
 
 While inspecting type declaration body > type declaration > full file
-Self name "abc" is invalid in a top level type.
-The self name of a top level type can only be "this".
+Self name "abc" is invalid in a top level type declaration.
+The self name of a top level type declaration can only be "this".
 Error 7 WellFormedness
 """, """
 A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be this or nothing
@@ -3432,7 +3432,7 @@ In file: [###].fear
 
 While inspecting type declaration > full file
 Top level type declarations do not end with ";".
-The definition of "B" ends with a semicolon. Remove it.
+The declaration of "B" ends with a semicolon. Remove it.
 Write: "B:..{...}"
 Not:   "B:..{...};"
 Error 2 UnexpectedToken

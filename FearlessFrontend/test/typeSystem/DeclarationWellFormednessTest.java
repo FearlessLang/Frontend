@@ -128,8 +128,8 @@ Foo:{ .m1: Foo -> Foo{ 'unique
 003|   }
 
 While inspecting type declaration body > type declaration > full file
-Self name "self" is invalid in a top level type.
-The self name of a top level type can only be "this".
+Self name "self" is invalid in a top level type declaration.
+The self name of a top level type declaration can only be "this".
 """, List.of("""
 A:{ 'self
   .me: A -> self;
