@@ -64,7 +64,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private FearlessException overrideErr(Literal l, Sig current, Sig parent, String got, String want, String why){
     var e= err()
-      .invalidMethImpl(current.rc().toStrSpace(), l, current.m())
+      .line("Invalid method signature for "+err().methodSig(current.rc().toStrSpace(), l, current.m())+".")
       .line("The method "+err().methodSig(current.m())+" "+got+".")
       .line("But "+err().methodSig(current.rc().toStrSpace(), parent.origin(), current.m())+" "+want+".")
       .line(why);
