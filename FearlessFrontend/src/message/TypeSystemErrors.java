@@ -351,7 +351,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Available capabilities for this method: "+availRc)
       .ex(c), c);
   }
-  private static boolean isSelfName(TypeScope s, String x){
+  static boolean isSelfName(TypeScope s, String x){
     return Stream.iterate(s, si -> !si.isTop(), TypeScope::outer).anyMatch(si -> si instanceof TypeScope.Method(var l, _, _) && l.thisName().equals(x));
   }
   private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
@@ -406,7 +406,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(d, c)
       .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
       .line(Join.of(needed, "This call requires a receiver with capability ", " or ", "."));
-    if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.WithT w && !(w instanceof Change.Same)){ e.line(Reason.adaptation(this, x, w)); }
+    if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.WithT w && !(w instanceof Change.Same)){ e.line(Reason.adaptation(this, isSelfName(s, x.name()), x, w)); }
     if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.Same(T.RCC t) && t.rc() == RC.imm && !isSelfName(s, x.name())){
       e.line(up(err().expRepr(x))+" has type "+err().typeRepr(false, t)+": a type written without a capability, as "+err().typeRepr(true, t)+", is \"imm\".");
     }

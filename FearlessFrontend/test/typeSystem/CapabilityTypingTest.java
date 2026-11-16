@@ -113,6 +113,22 @@ A:{read .me:mut F->mut F{mut .get:mut A->this}}
 F:{ mut .get: mut A }
 A:{ read .me: mut F -> mut F{ .get -> this } }
 """));}
+@Test void thisCapturedInAReadMethodOfALiteralInAMutMethodHasNoDeclaredNote(){fail("""
+002| A:{ mut .me: mut F -> mut F{ read .get -> this } }
+   |     -------------------------~~~~~~~~~~~~~^^^^--
+
+While inspecting parameter "this" > method ".get" (line 2) > method ".me" (line 2)
+Method ".get" inside the object literal instance of "mut F" (line 2) is implemented with an expression returning "read A".
+Parameter "this" has type "read A" instead of a subtype of "mut A".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".get" (line 2).
+
+Relevant code with inferred types:
+A:{mut .me:mut F->mut F{read .get:mut A->this}}
+""", List.of("""
+F:{ read .get: mut A }
+A:{ mut .me: mut F -> mut F{ read .get -> this } }
+"""));}
 @Test void isoReceiverCapturedInALiteralIsImm(){fail("""
 003| A:{ .m(b: iso B): F -> { b.x } }
    |     ---------------------^~~--
