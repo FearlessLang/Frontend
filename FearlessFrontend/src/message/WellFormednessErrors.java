@@ -123,8 +123,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     if (heads.isEmpty()){
       return badRank(err()
         .line("No rank file found for package "+disp(pkgName)+".")
-        .line("Each package must have exactly one source file whose name is its rank,")
-        .line("in some folder inside the project folder."))
+        .line("Each package must have exactly one source file whose name is its rank, in some folder inside the project folder."))
         .wf();
     }
     var e= err()
@@ -520,8 +519,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var ts= IntStream.range(0, c.ts().size()).mapToObj(i -> unknown.contains(i) ? "Type"+(i+1) : err().typeReprRaw(c.ts().get(i))).toList();
     var example= err().cp().t.of(c.name())+Join.of(ts, "[", ",", "]")+"{...}";
     return wf(err()
-      .line("Type inference concluded that this object literal implements "+disp(head)+",")
-      .line("but it could not infer generic type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
+      .line("Type inference concluded that this object literal implements "+disp(head)+", but it could not infer generic type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
         +" for generic type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i))), "", " and ", "", "")
         +" of "+err().tNameADisp(c.name())+".")
       .line("Write the generic type argument"+s+" explicitly, as in "+disp(example)+"."), at);
@@ -621,8 +619,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
-      .line(err().tNameADisp(origin)+" implements "+disp(err().cp().t.of(LiteralDeclarations.finalMethods)+"[\""+name+"\"]")+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
-      .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(name)+"."), owner);
+      .line(err().tNameADisp(origin)+" implements "+disp(err().cp().t.of(LiteralDeclarations.finalMethods)+"[\""+name+"\"]")+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+", thus "+err().expRepr(owner)+" cannot override any method named "+disp(name)+"."), owner);
   }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
     var ctx= err().expRepr(owner);
@@ -659,8 +656,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException claimExtTwice(E.Literal owner, IT.C first, IT.C second, String ext){
     return wf(err()
-      .line(up(err().expRepr(owner))+" claims the extension "+disp(ext)+" more than once:")
-      .line("both "+claimRepr(owner, first)+" and "+claimRepr(owner, second)+" claim it.")
+      .line(up(err().expRepr(owner))+" claims the extension "+disp(ext)+" more than once: both "+claimRepr(owner, first)+" and "+claimRepr(owner, second)+" claim it.")
       .line("A main can claim each extension at most once, across all its "+err().tNameADisp(LiteralDeclarations.claims.get(1))+" and "+err().tNameADisp(LiteralDeclarations.claims.get(3))+", since one extension has one icon."), owner);
   }
   private String chooseOne(IT.C c){ return "or implement "+err().tNameADisp(LiteralDeclarations.claims.get(LiteralDeclarations.claims.indexOf(c.name())-1))+" to let the Fearless manager choose one"; }

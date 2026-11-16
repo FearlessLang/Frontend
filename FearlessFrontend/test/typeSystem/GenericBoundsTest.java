@@ -283,8 +283,7 @@ A[X:*]:{ #: X -> {this}* }
    |                                                            ^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "Match[_,_]"
-Type inference concluded that this object literal implements "Match[R5,?]",
-but it could not infer generic type argument 2 for generic type parameter "R" of "Match[_,_]".
+Type inference concluded that this object literal implements "Match[R5,?]", but it could not infer generic type argument 2 for generic type parameter "R" of "Match[_,_]".
 Write the generic type argument explicitly, as in "Match[R5,Type2]{...}".
 """, List.of("""
 Any:{#[T:*]:T->Any#}
@@ -297,8 +296,7 @@ B[R5:*]: { mut .loop(f: mut Flow[R5]): mut B[R5] -> f.match{ .return(rv) -> Any#
    |                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "Match[_,_,_]"
-Type inference concluded that this object literal implements "Match[R5,R6,?]",
-but it could not infer generic type argument 3 for generic type parameter "R" of "Match[_,_,_]".
+Type inference concluded that this object literal implements "Match[R5,R6,?]", but it could not infer generic type argument 3 for generic type parameter "R" of "Match[_,_,_]".
 Write the generic type argument explicitly, as in "Match[R5,R6,Type3]{...}".
 """, List.of("""
 Any:{#[T:*]:T->Any#}
@@ -389,8 +387,7 @@ Bad:{ #[Y:mut,mutH,readH](y: Y, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[Y](y
 
 While inspecting type declaration "Foo"
 The type "A[mutH Foo]" is invalid.
-Generic type argument 1 ("mutH Foo") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("mutH Foo") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capabilities "imm" or "mut".
 
 Relevant code with inferred types:
@@ -405,8 +402,7 @@ Foo:{ .bar: A[mutH Foo] -> A[mutH Foo] }
 
 While inspecting type declaration "Break"
 The type "A[Break]" is invalid.
-Generic type argument 1 ("imm Break") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("imm Break") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
 Relevant code with inferred types:
@@ -421,8 +417,7 @@ Break:A[imm Break]{}
 
 While inspecting type declaration "Break"
 The type "A[Break]" is invalid.
-Generic type argument 1 ("imm Break") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("imm Break") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
 Relevant code with inferred types:
@@ -441,8 +436,7 @@ Break:A[mut Break]{}
 
 While inspecting object literal "BreakInner" > method "#" (line 3)
 The type "A[Break]" is invalid.
-Generic type argument 1 ("imm Break") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("imm Break") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
 Relevant code with inferred types:
@@ -467,8 +461,7 @@ Break:{ #: imm Break -> A#(imm Break) }
 
 While inspecting method call ".m(_)" > method ".f(_)" (line 3)
 This call to method "Util.m(_)" cannot typecheck.
-Generic type argument 1 ("Z") does not satisfy the bounds
-for generic type parameter "Y" in "Util.m(_)".
+Generic type argument 1 ("Z") does not satisfy the bounds for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
 
@@ -490,8 +483,7 @@ A:{ .f[Z:imm](z: Z): Foo -> Util.m(z) }
 
 While inspecting method call ".m(_)" > method ".f(_)" (line 3)
 This call to method "Util.m(_)" cannot typecheck.
-Generic type argument 1 ("Z") does not satisfy the bounds
-for generic type parameter "Y" in "Util.m(_)".
+Generic type argument 1 ("Z") does not satisfy the bounds for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
 
@@ -505,8 +497,7 @@ A[Z:mut]:{ .f(z: Z): Foo -> Util.m(z) }
 @Test void literalTypeArgumentOutsideTheBoundIsAKindingError(){fail("""
 [###]
 The type "Foo[Y]" is invalid.
-Generic type argument 1 ("Y") does not satisfy the bounds
-for generic type parameter "X" in "Foo[_]".
+Generic type argument 1 ("Y") does not satisfy the bounds for generic type parameter "X" in "Foo[_]".
 Here "X" can only use capability "imm".
 [###]""", List.of("""
 Foo[X:imm]:{ .get: X }
@@ -538,8 +529,7 @@ Break:{ .m(f: imm Foo): imm Foo -> A#(f) }
 
 While inspecting method call "#(_)" > method ".m(_)" (line 3)
 This call to method "A#(_)" cannot typecheck.
-Generic type argument 1 ("imm Foo") does not satisfy the bounds
-for generic type parameter "X" in "A#(_)".
+Generic type argument 1 ("imm Foo") does not satisfy the bounds for generic type parameter "X" in "A#(_)".
 Here "X" can only use capability "mut".
 
 Relevant code with inferred types:
@@ -559,8 +549,7 @@ Break:{ #: mut Break -> A#(mut Break) }
 
 While inspecting type declaration "A"
 The type "Foo[Y]" is invalid.
-Generic type argument 1 ("Y") does not satisfy the bounds
-for generic type parameter "X" in "Foo[_]".
+Generic type argument 1 ("Y") does not satisfy the bounds for generic type parameter "X" in "Foo[_]".
 Here "X" can only use capability "mut".
 But generic type argument "Y" can only use capabilities "imm" or "mut" or "read".
 
@@ -655,8 +644,7 @@ Ex:{
 
 While inspecting type declaration "FPerson"
 The type "Person[N]" is invalid.
-Generic type argument 1 ("N") does not satisfy the bounds
-for generic type parameter "N" in "Person[_]".
+Generic type argument 1 ("N") does not satisfy the bounds for generic type parameter "N" in "Person[_]".
 Here "N" can only use capability "imm".
 But generic type argument "N" can only use capabilities "imm" or "mut" or "read".
 
@@ -693,8 +681,7 @@ Ex:{
 
 While inspecting object literal "Fresh[_]" > method "#(_,_)" (line 2)
 The type "Person[N]" is invalid.
-Generic type argument 1 ("N") does not satisfy the bounds
-for generic type parameter "N" in "Person[_]".
+Generic type argument 1 ("N") does not satisfy the bounds for generic type parameter "N" in "Person[_]".
 Here "N" can only use capability "imm".
 But generic type argument "N" can only use capabilities "imm" or "mut" or "read".
 
@@ -753,8 +740,7 @@ Box[X:imm,Y:imm]:{ .x: X; .y: Y }
 
 While inspecting object literal "mut Foo[_]" > method ".m" (line 1)
 The type "Foo[X]" is invalid.
-Generic type argument 1 ("X") does not satisfy the bounds
-for generic type parameter "X" in "Foo[_]".
+Generic type argument 1 ("X") does not satisfy the bounds for generic type parameter "X" in "Foo[_]".
 Here "X" can only use capability "mut".
 But generic type argument "X" can only use capabilities "mut" or "read".
 
@@ -816,8 +802,7 @@ A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 While inspecting parameter "b" > method ".get" (line 3) > method ".m(_)" (line 3)
 Parameter "b" has type "Box[X]".
 That type is not well kinded under the generic type parameters of object literal "read Fresh[_]" (line 3): "X:imm,mut,read".
-The bounds declared by the object literal are all it knows about its generic type parameters,
-and thus parameter "b" cannot be captured.
+The bounds declared by the object literal are all it knows about its generic type parameters, and thus parameter "b" cannot be captured.
 """, List.of("""
 Box[X:imm]:{ .get: X }
 Get[X:imm,mut,read]:{ read .get: read/imm X }
@@ -830,8 +815,7 @@ A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get
 While inspecting parameter "b" > method ".get" (line 3) > method ".m(_)" (line 3)
 Parameter "b" has type "Box[X]".
 That type is not well kinded under the generic type parameters of object literal "mut Fresh[_]" (line 3): "X:imm,mut,read".
-The bounds declared by the object literal are all it knows about its generic type parameters,
-and thus parameter "b" cannot be captured.
+The bounds declared by the object literal are all it knows about its generic type parameters, and thus parameter "b" cannot be captured.
 """, List.of("""
 Box[X:imm]:{ .get: X }
 Get[X:imm,mut,read]:{ mut .get: X }

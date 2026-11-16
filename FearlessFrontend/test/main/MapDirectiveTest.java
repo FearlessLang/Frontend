@@ -919,8 +919,7 @@ In file: [###].fear
    |    ------------~~~~~~~~^^^^^^^^^-
 
 While inspecting object literal instance of "base.Void" > method ".fromC" (line 1) > method ".m" (line 1)
-Method ".fromC" inside the object literal instance of "a.A" (line 1)
-is implemented with an expression returning "base.Void".
+Method ".fromC" inside the object literal instance of "a.A" (line 1) is implemented with an expression returning "base.Void".
 Object literal has type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1062,8 +1061,7 @@ In file: [###].fear
    |    --------~~~~~~~~^-
 
 While inspecting object literal instance of "B" > method ".fromC" (line 2) > method ".m" (line 2)
-Method ".fromC" inside the object literal instance of "X" (line 2)
-is implemented with an expression returning "B".
+Method ".fromC" inside the object literal instance of "X" (line 2) is implemented with an expression returning "B".
 Object literal has type "B" instead of a subtype of "X".
 
 Name "X" stands for "a.A" because of "use a.A as X".
@@ -1714,8 +1712,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 The type "a.Box[mut B]" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "a.Box[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "a.Box[_]".
 Here "X" can only use capability "imm".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1734,8 +1731,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 The type "Bx[mut B]" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "Bx[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "Bx[_]".
 Here "X" can only use capability "imm".
 
 Name "Bx" stands for "a.Box" because of "use a.Box as Bx".
@@ -1756,8 +1752,7 @@ In file: [###].fear
 
 While inspecting method call "#(_)" > method ".m(_,_)" (line 1)
 This call to method "a.G#(_)" cannot typecheck.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "a.G#(_)".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "a.G#(_)".
 Here "X" can only use capability "imm".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1985,8 +1980,7 @@ In file: [###].fear
 
 While inspecting method ".m(_)" (line 1)
 This call to method ".fromC(_)" cannot typecheck.
-There is a method ".fromC" on type "a.A",
-but with a different number of arguments.
+There is a method ".fromC" on type "a.A", but with a different number of arguments.
 This call supplies 1, but available methods take 0.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2092,8 +2086,7 @@ In file: [###].fear
    |     ------------------------------------------^--
 
 While inspecting parameter "x" > method ".get" (line 1) > method ".m(_)" (line 1)
-Method ".get" inside the object literal instance of "read a.Get" (line 1)
-is implemented with an expression returning "read a.D".
+Method ".get" inside the object literal instance of "read a.Get" (line 1) is implemented with an expression returning "read a.D".
 Parameter "x" has type "read a.D" instead of a subtype of "mut a.D".
 Note: the declared type "mut a.D" would instead be a valid subtype.
 Capturing changes the type of parameter "x":
@@ -2322,8 +2315,7 @@ In file: [###].fear
    |                           ^^
 
 While inspecting object literal instance of "a.T0[_]"
-Type inference concluded that this object literal implements "a.T0[?]",
-but it could not infer generic type argument 1 for generic type parameter "X" of "a.T0[_]".
+Type inference concluded that this object literal implements "a.T0[?]", but it could not infer generic type argument 1 for generic type parameter "X" of "a.T0[_]".
 Write the generic type argument explicitly, as in "a.T0[Type1]{...}".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2486,8 +2478,7 @@ In file: [###].fear
 
 While inspecting type declaration "Fake"
 Type declaration "Fake" implements method ".name".
-"bb.Named" implements `bb.Final[".name"]` and type declaration "Fake" implements "bb.Named",
-thus type declaration "Fake" cannot override any method named ".name".
+"bb.Named" implements `bb.Final[".name"]` and type declaration "Fake" implements "bb.Named", thus type declaration "Fake" cannot override any method named ".name".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2502,8 +2493,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Type declaration "B" implements method ".foo".
-"a.A" implements `base.Final[".foo"]` and type declaration "B" implements "a.A",
-thus type declaration "B" cannot override any method named ".foo".
+"a.A" implements `base.Final[".foo"]` and type declaration "B" implements "a.A", thus type declaration "B" cannot override any method named ".foo".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2618,8 +2608,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Two"
-Type declaration "Two" claims the extension "foo" more than once:
-both `bb.OpenWith[Icon,"foo"]` and `bb.OpenWith[Icon2,"foo"]` claim it.
+Type declaration "Two" claims the extension "foo" more than once: both `bb.OpenWith[Icon,"foo"]` and `bb.OpenWith[Icon2,"foo"]` claim it.
 A main can claim each extension at most once, across all its "bb.OpenWith[_,_]" and "bb.Shortcut[_,_]", since one extension has one icon.
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -2779,8 +2768,7 @@ In file: [###].fear
    |     -------------~~~~~~~~~~^^^^-
 
 While inspecting parameter "this" > method ".fromC" (line 2) > method ".k" (line 2)
-Method ".fromC" inside the object literal instance of "X" (line 2)
-is implemented with an expression returning "B".
+Method ".fromC" inside the object literal instance of "X" (line 2) is implemented with an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "X".
 
 Name "X" stands for "a.A" because of "use a.A as X".

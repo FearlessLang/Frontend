@@ -144,8 +144,7 @@ T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
    |                                                              ^^
 
 While inspecting object literal instance of "T0[_,_]"
-Type inference concluded that this object literal implements "T0[?,?]",
-but it could not infer generic type arguments 1 and 2 for generic type parameters "X0" and "X1" of "T0[_,_]".
+Type inference concluded that this object literal implements "T0[?,?]", but it could not infer generic type arguments 1 and 2 for generic type parameters "X0" and "X1" of "T0[_,_]".
 Write the generic type arguments explicitly, as in "T0[Type1,Type2]{...}".
 """, List.of("""
 T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
@@ -155,8 +154,7 @@ T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
    |                              ^^^^^^
 
 While inspecting object literal instance of "T0[_]"
-Type inference concluded that this object literal implements "T0[?]",
-but it could not infer generic type argument 1 for generic type parameter "X" of "T0[_]".
+Type inference concluded that this object literal implements "T0[?]", but it could not infer generic type argument 1 for generic type parameter "X" of "T0[_]".
 Write the generic type argument explicitly, as in "T0[Type1]{...}".
 """, List.of("""
 T0[X]:{ .m: T0[base.Void] -> {this}.m }
@@ -166,8 +164,7 @@ T0[X]:{ .m: T0[base.Void] -> {this}.m }
    |      ---------------~~~~~~~~~~~~^^^^--
 
 While inspecting parameter "this" > method ".k" (line 2) > method ".m" (line 2)
-Method ".k" inside the object literal instance of "T1" (line 2)
-is implemented with an expression returning "T1".
+Method ".k" inside the object literal instance of "T1" (line 2) is implemented with an expression returning "T1".
 Parameter "this" has type "T1" instead of a subtype of "Z[Y]".
 
 Relevant code with inferred types:
@@ -212,8 +209,7 @@ B:Sup{ .m[X](x:X):F[X]->{ .k(y)->x } }
    |        ---------~~~~~~~^--
 
 While inspecting parameter "x" > method ".k(_)" (line 3) > method ".m(_)" (line 3)
-Method ".k(_)" inside the object literal instance of "G" (line 3)
-is implemented with an expression returning "imm X".
+Method ".k(_)" inside the object literal instance of "G" (line 3) is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 
 Name "_AX" stands for generic type parameter "X" of an inherited method, renamed because "X" already names a type or another generic type parameter.
@@ -235,8 +231,7 @@ B:Sup{ .m(x)->{ .k(y)->x }; .q[X]:Sup->this }
    |     ------------------~~~~~^^^^--
 
 While inspecting parameter "this" > method "!" (line 2) > method ".foo" (line 2)
-Method "!" inside the object literal instance of "base.Todo" (line 2)
-is implemented with an expression returning "A".
+Method "!" inside the object literal instance of "base.Todo" (line 2) is implemented with an expression returning "A".
 Parameter "this" has type "A" instead of a subtype of "_AR".
 
 Name "_AR" stands for generic type parameter "R" of an inherited method, renamed because "R" already names a type or another generic type parameter.
@@ -320,8 +315,7 @@ Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
 
 While inspecting method call ".foo" > method ".bar" (line 2) > method "#" (line 2)
 This call to method "G.foo" cannot typecheck.
-Generic type argument 1 ("mut Outer") does not satisfy the bounds
-for generic type parameter "X" in "G.foo".
+Generic type argument 1 ("mut Outer") does not satisfy the bounds for generic type parameter "X" in "G.foo".
 Here "X" can only use capability "imm".
 
 Relevant code with inferred types:
@@ -335,8 +329,7 @@ Outer:{ #: G -> {'self .foo[X:imm]: base.Void -> base.Void; .bar: base.Void -> s
    |         ----------------------------------~~~~~~^^^^^^^^^^^^--
 
 While inspecting method call "#(_)" > method ".v" (line 4) > method "#" (line 4)
-Method ".v" inside the object literal instance of "G" (line 4)
-is implemented with an expression returning "Box[G]".
+Method ".v" inside the object literal instance of "G" (line 4) is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
 
 Relevant code with inferred types:
@@ -384,8 +377,7 @@ B:{}
 
 While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 
 Relevant code with inferred types:
@@ -402,8 +394,7 @@ User:{ imm .m(a:imm A[mut B]):base.Void; }
 
 While inspecting type declaration "User"
 The type "A[B,mut C]" is invalid.
-Generic type argument 2 ("mut C") does not satisfy the bounds
-for generic type parameter "Y" in "A[_,_]".
+Generic type argument 2 ("mut C") does not satisfy the bounds for generic type parameter "Y" in "A[_,_]".
 Here "Y" can only use capabilities "iso" or "read".
 
 Relevant code with inferred types:
@@ -421,8 +412,7 @@ User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
 
 While inspecting type declaration "User"
 The type "B[mut C]" is invalid.
-Generic type argument 1 ("mut C") does not satisfy the bounds
-for generic type parameter "Y" in "B[_]".
+Generic type argument 1 ("mut C") does not satisfy the bounds for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
 
 Relevant code with inferred types:
@@ -440,8 +430,7 @@ User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
 
 While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capabilities "imm" or "mutH" or "readH".
 
 Relevant code with inferred types:
@@ -458,8 +447,7 @@ User:A[mut B]{ .foo(b:B):B->b;}
 
 While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 
 Relevant code with inferred types:
@@ -476,8 +464,7 @@ User:{ imm .m(a:imm B):imm A[mut B]; }
 
 While inspecting method call ".id(_)" > method ".m(_,_)" (line 3)
 This call to method "A.id(_)" cannot typecheck.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capability "imm".
 
 Relevant code with inferred types:
@@ -494,8 +481,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".pair(_,_)" > method ".m(_,_,_)" (line 5)
 This call to method "A.pair(_,_)" cannot typecheck.
-Generic type argument 2 ("mut C") does not satisfy the bounds
-for generic type parameter "Y" in "A.pair(_,_)".
+Generic type argument 2 ("mut C") does not satisfy the bounds for generic type parameter "Y" in "A.pair(_,_)".
 Here "Y" can only use capability "read".
 
 Relevant code with inferred types:
@@ -514,8 +500,7 @@ User:{ imm .m(a:imm A,b:imm B,c:imm C):base.Void->a.pair[imm B,mut C](b,c); }
 
 While inspecting method call ".use(_)" > method ".m(_,_,_)" (line 4)
 The type "B[mut C]" is invalid.
-Generic type argument 1 ("mut C") does not satisfy the bounds
-for generic type parameter "Y" in "B[_]".
+Generic type argument 1 ("mut C") does not satisfy the bounds for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
 
 Relevant code with inferred types:
@@ -533,8 +518,7 @@ User:{ imm .m(a:imm A,b:imm B[C],c:imm C):base.Void->a.use[B[mut C]](b); }
 
 While inspecting type declaration "User[_]"
 The type "A[Y]" is invalid.
-Generic type argument 1 ("Y") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("Y") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 But generic type argument "Y" can only use capability "read".
 
@@ -551,8 +535,7 @@ User[Y:read]:A[Y]{}
 
 While inspecting type declaration "User"
 The type "B[mut C]" is invalid.
-Generic type argument 1 ("mut C") does not satisfy the bounds
-for generic type parameter "Y" in "B[_]".
+Generic type argument 1 ("mut C") does not satisfy the bounds for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "read".
 
 Relevant code with inferred types:
@@ -570,8 +553,7 @@ User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
 
 While inspecting method call ".id(_)" > method ".m(_,_)" (line 3)
 This call to method "A.id(_)" cannot typecheck.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "imm" or "read".
 
 Relevant code with inferred types:
@@ -589,8 +571,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".id(_)" > method ".m(_,_)" (line 3)
 This call to method "A.id(_)" cannot typecheck.
-Generic type argument 1 ("imm B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+Generic type argument 1 ("imm B") does not satisfy the bounds for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
 Relevant code with inferred types:
@@ -607,8 +588,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
 
 While inspecting method call ".id(_)" > method ".m(_,_)" (line 3)
 This call to method "A.id(_)" cannot typecheck.
-Generic type argument 1 ("imm B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+Generic type argument 1 ("imm B") does not satisfy the bounds for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
 Relevant code with inferred types:
@@ -626,8 +606,7 @@ User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
 
 While inspecting object literal instance of "Thaw[mut Cell]" > method ".break(_)" (line 4)
 The type "Thaw[mut Cell]" is invalid.
-Generic type argument 1 ("mut Cell") does not satisfy the bounds
-for generic type parameter "X" in "Thaw[_]".
+Generic type argument 1 ("mut Cell") does not satisfy the bounds for generic type parameter "X" in "Thaw[_]".
 Here "X" can only use capability "imm".
 """, List.of("""
 Cell:{ read .get:base.Nat; mut .set(value:base.Nat):base.Void; }
@@ -846,8 +825,7 @@ User:{
 007|   };
 
 While inspecting method call "#(_)" > method ".get" (line 6) > method ".m" (line 5)
-Method ".get" inside the object literal instance of "mut Get" (line 5)
-is implemented with an expression returning "A".
+Method ".get" inside the object literal instance of "mut Get" (line 5) is implemented with an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
 
 Relevant code with inferred types:
@@ -868,8 +846,7 @@ User:{
    |   -----------------------------~~~^^^--
 
 While inspecting object literal instance of "Foo" > method "#(_)" (line 7) > method ".m" (line 7)
-Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 7)
-is implemented with an expression returning "Foo".
+Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 7) is implemented with an expression returning "Foo".
 Object literal has type "Foo" instead of a subtype of "Car".
 
 Relevant code with inferred types:
@@ -927,8 +904,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > method ".get" (line 5) > method ".m(_)" (line 4)
-Method ".get" inside the object literal instance of "read Get" (line 5)
-is implemented with an expression returning "read A".
+Method ".get" inside the object literal instance of "read Get" (line 5) is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capturing changes the type of parameter "loooooong":
@@ -950,8 +926,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > method ".get" (line 5) > method ".m(_)" (line 4)
-Method ".get" inside the object literal instance of "read Get" (line 5)
-is implemented with an expression returning "read A".
+Method ".get" inside the object literal instance of "read Get" (line 5) is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capturing changes the type of parameter "loooooong":
@@ -973,8 +948,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > method ".get" (line 5) > method ".m(_)" (line 4)
-Method ".get" inside the object literal instance of "read Get" (line 5)
-is implemented with an expression returning "read A".
+Method ".get" inside the object literal instance of "read Get" (line 5) is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capturing changes the type of parameter "loooooong":
@@ -997,8 +971,7 @@ User:{
    |                ---------^^^^^^^^^--
 
 While inspecting parameter "loooooong" > method ".get" (line 6) > method ".wrap" (line 6) > method ".m(_)" (line 5)
-Method ".get" inside the object literal instance of "mut Get" (line 6)
-is implemented with an expression returning "A".
+Method ".get" inside the object literal instance of "mut Get" (line 6) is implemented with an expression returning "A".
 Parameter "loooooong" has type "imm A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capturing changes the type of parameter "loooooong":
@@ -1085,8 +1058,7 @@ User:{
 
 While inspecting parameter "loooooong" > method "#" (line 8) > method ".m(_)" (line 7)
 Parameter "loooooong" has type "mutH A".
-The type of parameter "loooooong" is hygienic (readH or mutH)
-and thus it cannot be captured in the object literal instance of "G" (line 8).
+The type of parameter "loooooong" is hygienic (readH or mutH) and thus it cannot be captured in the object literal instance of "G" (line 8).
 """, List.of("""
 A:{}
 G:{ #(): base.Void; }
@@ -1108,8 +1080,7 @@ User:{
 
 While inspecting parameter "loooooong" > method "#" (line 6) > method ".m(_)" (line 5)
 Parameter "loooooong" has type "mutH A".
-The type of parameter "loooooong" is hygienic (readH or mutH)
-and thus it cannot be captured in the object literal instance of "G" (line 6).
+The type of parameter "loooooong" is hygienic (readH or mutH) and thus it cannot be captured in the object literal instance of "G" (line 6).
 """, List.of("""
 A:{}
 G:{ #(): base.Void; }
@@ -1221,8 +1192,7 @@ Funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of "X".
 
 While inspecting parameter "beer" > method ".get" (line 3) > method ".m(_)" (line 2)
 Parameter "beer" has type "X".
-The type of parameter "beer" can be instantiated with a hygienic capability (readH or mutH)
-and thus it cannot be captured in the object literal "G[_]" (line 3).
+The type of parameter "beer" can be instantiated with a hygienic capability (readH or mutH) and thus it cannot be captured in the object literal "G[_]" (line 3).
 """, List.of("""
 User:{
   read .m[X:imm,mut,read,readH,mutH](beer:X):G[X]->
@@ -1529,8 +1499,7 @@ User:{
 
 While inspecting method ".m(_,_)" (line 7)
 This call to method ".mix(_,_,_)" cannot typecheck.
-There are methods ".mix(_)" and ".mix(_,_)" on type "Mixer",
-but with a different number of arguments.
+There are methods ".mix(_)" and ".mix(_,_)" on type "Mixer", but with a different number of arguments.
 This call supplies 3, but available methods take 1 or 2.
 
 Relevant code with inferred types:
@@ -1554,8 +1523,7 @@ User:{
 
 While inspecting method ".m(_,_)" (line 7)
 This call to method ".mix(_)" cannot typecheck.
-There are methods ".mix(_,_)" and ".mix(_,_,_,_,_,_,_,_,_,_)" on type "Mixer",
-but with a different number of arguments.
+There are methods ".mix(_,_)" and ".mix(_,_,_,_,_,_,_,_,_,_)" on type "Mixer", but with a different number of arguments.
 This call supplies 1, but available methods take 2 or 10.
 
 Relevant code with inferred types:
@@ -1922,8 +1890,7 @@ A:{
 
 While inspecting method call "#(_)" > method ".f(_)" (line 6)
 This call to method "IdRO#(_)" cannot typecheck.
-Generic type argument 1 ("mut A") does not satisfy the bounds
-for generic type parameter "X" in "IdRO#(_)".
+Generic type argument 1 ("mut A") does not satisfy the bounds for generic type parameter "X" in "IdRO#(_)".
 Here "X" can only use capabilities "imm" or "read".
 
 Relevant code with inferred types:
@@ -2106,8 +2073,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
 
 While inspecting method ".bar" (line 3)
 This call to method ".foo123(_)" cannot typecheck.
-There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
-but with a different number of arguments.
+There are methods ".foo123" and ".foo123(_,_,_)" on type "A", but with a different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
 
 Relevant code with inferred types:
@@ -2126,8 +2092,7 @@ A:{
 
 While inspecting method ".bar" (line 3)
 This call to method ".foo123(_)" cannot typecheck.
-There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
-but with a different number of arguments.
+There are methods ".foo123" and ".foo123(_,_,_)" on type "A", but with a different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
 
 Relevant code with inferred types:
@@ -2577,8 +2542,7 @@ Outer:{ .m: base.Void -> { .a: base.Void -> base.Void{} }.a }
    |         ------------------------~~~~~~~~~~~~~^^^^---
 
 While inspecting parameter "self" > method ".a" (line 1) > method ".m" (line 1)
-Method ".a" inside the object literal "{...}" (line 1)
-is implemented with an expression returning the anonymous type of the object literal at line 1, column 26.
+Method ".a" inside the object literal "{...}" (line 1) is implemented with an expression returning the anonymous type of the object literal at line 1, column 26.
 Parameter "self" has type the anonymous type of the object literal at line 1, column 26 instead of a subtype of "Outer".
 
 Relevant code with inferred types:
@@ -3611,8 +3575,7 @@ Box[E:*]: _Box[E]{
 006|   } }
 
 While inspecting method call ".get" > method ".opt" (line 5) > method "#(_)" (line 3)
-Method ".opt" inside the object literal "mut Slot[_]" (line 3)
-is implemented with an expression returning "read Opt[E]".
+Method ".opt" inside the object literal "mut Slot[_]" (line 3) is implemented with an expression returning "read Opt[E]".
 Method call "read Var[_].get" has type "read Opt[E]" instead of a subtype of "read Opt[read/imm E]".
 
 Relevant code with inferred types, where "_", "{...}" and method signatures without types mark omitted code:
@@ -4205,8 +4168,7 @@ User:{ .n(cs: mut base.MList[Customer]): base.MList[Person] -> cs.as{::} }
    |        -------------------------------------------------------------------^^-
 
 While inspecting parameter "::" > method "#(_)" (line 3) > method ".n(_)" (line 3)
-Method "#(_)" inside the object literal instance of "base.BaseId[read Customer,Person]" (line 3)
-is implemented with an expression returning "read Customer".
+Method "#(_)" inside the object literal instance of "base.BaseId[read Customer,Person]" (line 3) is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "Person".
 
 Relevant code with inferred types:
@@ -4243,8 +4205,7 @@ User:{ .m(c: Customer): base.Void -> Boxes#(c,{x -> x}).get.n }
    |        -------------------------------------^^-
 
 While inspecting parameter "::" > method "#(_)" (line 3) > method ".m" (line 3)
-Method "#(_)" inside the object literal instance of "base.BaseId[Person,Customer]" (line 3)
-is implemented with an expression returning "Person".
+Method "#(_)" inside the object literal instance of "base.BaseId[Person,Customer]" (line 3) is implemented with an expression returning "Person".
 Parameter "::" has type "Person" instead of a subtype of "Customer".
 
 Relevant code with inferred types:
@@ -4643,8 +4604,7 @@ TypeSystem.methodTableOk rather than reporting a user error.*/
    |              ^
 
 While inspecting parameter "o" > method "#" (line 13) > method "#(_,_)" (line 11) > method ".take(_,_)" (line 11)
-Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13)
-is implemented with an expression returning "mut Opt[E]".
+Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13) is implemented with an expression returning "mut Opt[E]".
 Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
 
 Name "_aeqS" is a parameter added by the desugaring of "=": ".let x = {a}.return {b}" stands for ".let({a}, {x, _aeqS -> _aeqS.return {b}})".
@@ -6330,8 +6290,7 @@ Use:{ .go: N -> Take#{ .m(x) -> Pair#(x, Wrap#(x)) } }
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "Foo[_]"
-Type inference concluded that this object literal implements "Foo[?]",
-but it could not infer generic type argument 1 for generic type parameter "T" of "Foo[_]".
+Type inference concluded that this object literal implements "Foo[?]", but it could not infer generic type argument 1 for generic type parameter "T" of "Foo[_]".
 Write the generic type argument explicitly, as in "Foo[Type1]{...}".
 """, List.of("""
 A:{}
@@ -6344,8 +6303,7 @@ User:{ .go: A -> Take#{'s .mk -> A; .get -> s.mk }.mk }
    |        ------------------------------------------^
 
 While inspecting parameter "a" > method "#(_,_,_)" (line 2) > method ".u(_,_)" (line 2)
-Method "#(_,_,_)" inside the object literal instance of "mut base.MF[base.Nat,base.Nat,base.Str,base.Str]" (line 2)
-is implemented with an expression returning "base.Nat".
+Method "#(_,_,_)" inside the object literal instance of "mut base.MF[base.Nat,base.Nat,base.Str,base.Str]" (line 2) is implemented with an expression returning "base.Nat".
 Parameter "a" has type "base.Nat" instead of a subtype of "base.Str".
 
 Name "_ax" is parameter "x", renamed by the desugaring of a nominal pattern in the same method.
@@ -6376,8 +6334,7 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
    |     ------------------^
 
 While inspecting parameter "a" > method "#(_)" (line 2) > method ".u(_)" (line 2)
-Method "#(_)" inside the object literal instance of "mut base.MF[P,U]" (line 2)
-is implemented with an expression returning "P".
+Method "#(_)" inside the object literal instance of "mut base.MF[P,U]" (line 2) is implemented with an expression returning "P".
 Parameter "a" has type "P" instead of a subtype of "U".
 
 Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
@@ -6393,8 +6350,7 @@ U:{ .u({.a}: P): U -> a }
    |     ----------------------------^^^^^
 
 While inspecting parameter "xyzwb" > method "#(_,_)" (line 3) > method ".u(_,_)" (line 3)
-Method "#(_,_)" inside the object literal instance of "mut base.MF[P,P,A]" (line 3)
-is implemented with an expression returning "P".
+Method "#(_,_)" inside the object literal instance of "mut base.MF[P,P,A]" (line 3) is implemented with an expression returning "P".
 Parameter "xyzwb" has type "P" instead of a subtype of "A".
 
 Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".

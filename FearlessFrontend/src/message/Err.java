@@ -135,8 +135,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   public Err pTypeArgBounds(String first, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
     var badStr= typeRepr(false, bad);
     var e= line(first)
-      .line("Generic type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
-      .line("for generic type parameter "+paramName+" in "+kindingTarget+".")
+      .line("Generic type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds for generic type parameter "+paramName+" in "+kindingTarget+".")
       .line("Here "+paramName+" can only use "+allowedStr+".");
     var capabilityHidden= bad instanceof T.X || bad instanceof T.ReadImmX;
     if (!capabilityHidden){ return e; }

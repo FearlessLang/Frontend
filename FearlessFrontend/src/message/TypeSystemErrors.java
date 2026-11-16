@@ -235,8 +235,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var top= l.thisName().equals("this");
     e.line(top
       ? "The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."
-      : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+")"
-        +"\nis implemented with an expression returning "+got0+".");
+      : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+") is implemented with an expression returning "+got0+".");
     e.line(up(got.info(printed)));
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ captureFreeHint(e, l, m); }
@@ -280,13 +279,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
     +"That type is not well kinded under the generic type parameters of "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+"): "+bounds+".\n"
-    +"The bounds declared by the object literal are all it knows about its generic type parameters,\n"
+    +"The bounds declared by the object literal are all it knows about its generic type parameters, "
     +"and thus "+subject+" cannot be captured.\n";
   }
   private String whyDropReadHMutH(String subject, Change.NoT why){
     var explicitH= why.atDrop().explicitH()
-      ? "The type of "+subject+" is hygienic (readH or mutH)\n"
-      : "The type of "+subject+" can be instantiated with a hygienic capability (readH or mutH)\n";
+      ? "The type of "+subject+" is hygienic (readH or mutH) "
+      : "The type of "+subject+" can be instantiated with a hygienic capability (readH or mutH) ";
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
     +explicitH+"and thus it cannot be captured in the "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n";
@@ -338,7 +337,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       var forms= sameName.stream().map(s -> methodSig("", s.m())).distinct().sorted().toList();
       return withCallSpans(err()
         .pCallCantBeSatisfied(c)
-        .line((forms.size() == 1 ? "There is a method " : "There are methods ")+Join.of(forms, "", " and ", "")+" on "+on+",\nbut with a different number of arguments.")
+        .line((forms.size() == 1 ? "There is a method " : "There are methods ")+Join.of(forms, "", " and ", "")+" on "+on+", but with a different number of arguments.")
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .ex(c), c);
     }
