@@ -1941,18 +1941,12 @@ User:{
 
 While inspecting method ".caller(_,_)" (line 3)
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
-
-Compatible promotions by argument:
+Arguments 1 and 2 need different promotions, but a call uses one promotion for all its arguments.
 - Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
-- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
-
-Promotion failures:
-- Argument 1 fails:    As declared
-  Parameter "x" has type "readH A" instead of a subtype of "read A".
-- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
+  Argument 1 fails with: Allow mutH argument 2.
   Parameter "x" has type "readH A" instead of a subtype of "imm A".
-- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
+- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
+  Argument 2 fails with: Allow readH arguments, Allow mutH argument 1.
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
 Relevant code with inferred types:
@@ -1970,18 +1964,12 @@ A:{
 
 While inspecting method ".caller(_,_)" (line 3)
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
-
-Compatible promotions by argument:
+Arguments 1 and 2 need different promotions, but a call uses one promotion for all its arguments.
 - Argument 1 has type "mutH A" and is compatible with: Allow mutH argument 1.
-- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
-
-Promotion failures:
-- Argument 1 fails:    As declared
-  Parameter "x" has type "mutH A" instead of a subtype of "mut A".
-- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 2
+  Argument 1 fails with: Allow mutH argument 2.
   Parameter "x" has type "mutH A" instead of a subtype of "iso A".
-- Argument 2 fails:    Allow mutH argument 1
+- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
+  Argument 2 fails with: Allow mutH argument 1.
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
 Relevant code with inferred types:
@@ -2330,18 +2318,12 @@ A:{
 
 While inspecting method ".caller(_,_)" (line 3)
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
-
-Compatible promotions by argument:
+Arguments 1 and 2 need different promotions, but a call uses one promotion for all its arguments.
 - Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
-- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
-
-Promotion failures:
-- Argument 1 fails:    As declared
-  Parameter "x" has type "readH A" instead of a subtype of "read A".
-- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
+  Argument 1 fails with: Allow mutH argument 2.
   Parameter "x" has type "readH A" instead of a subtype of "imm A".
-- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
+- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
+  Argument 2 fails with: Allow readH arguments, Allow mutH argument 1.
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
 Relevant code with inferred types:
@@ -2359,18 +2341,12 @@ A:{
 
 While inspecting method ".caller(_,_)" (line 4)
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
-
-Compatible promotions by argument:
+Arguments 1 and 2 need different promotions, but a call uses one promotion for all its arguments.
 - Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
-- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
-
-Promotion failures:
-- Argument 1 fails:    As declared
-  Parameter "x" has type "readH A" instead of a subtype of "read A".
-- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
+  Argument 1 fails with: Allow mutH argument 2.
   Parameter "x" has type "readH A" instead of a subtype of "imm A".
-- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
+- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
+  Argument 2 fails with: Allow readH arguments, Allow mutH argument 1.
   Method call "ID#(_)" has type "mutH A" instead of a subtype of "iso A".
 
 Relevant code with inferred types:

@@ -3,6 +3,7 @@ package message;
 import static message.Err.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -491,18 +492,16 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var args= mat.okByArg().size();
     assert args > 0;
     assert mat.resByArg().size() == args;
-    var e= err()
-      .pCallCantBeSatisfied(d, c)
-      .line("Each argument is compatible with at least one promotion, but no single promotion fits all arguments.")
+    var e= err().pCallCantBeSatisfied(d, c);
+    for (int i : Range.of(0, args)){
+      for (int j : Range.of(i+1, args)){
+        if (Collections.disjoint(mat.okByArg().get(i), mat.okByArg().get(j))){ return conflictingArguments(e, c, mat, i, j); }
+      }
+    }
+    e.line("Each argument is compatible with at least one promotion, but no single promotion fits all arguments.")
       .blank()
       .line("Compatible promotions by argument:");
-    for (int argi : Range.of(0, args)){
-      var ok= mat.okByArg().get(argi);
-      assert !ok.isEmpty();
-      var promos= ok.stream().map(i -> mat.candidate(i).promotion()).distinct().toList();
-      var got= err().typeRepr(false, headerBest(mat.resByArg().get(argi)));
-      e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos, "", ", ", "")+".");
-    }
+    for (int argi : Range.of(0, args)){ e.bullet(compatible(mat, argi)); }
     e.blank().line("Promotion failures:");
     var byArg= IntStream.range(0, args)
       .mapToObj(_ -> new LinkedHashMap<String,ArrayList<String>>()).toList();
@@ -518,5 +517,22 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       byArg.get(argi).forEach((info,names) -> e.bullet("Argument "+(argi+1)+Join.of(names, " fails:    ", ", ", "\n")+info));
     }
     return withCallSpans(e.ex(c), c);
+  }
+  private FearlessException conflictingArguments(Err e, Call c, ArgMatrix mat, int i, int j){
+    e.line("Arguments "+(i+1)+" and "+(j+1)+" need different promotions, but a call uses one promotion for all its arguments.");
+    conflictBullet(e, mat, i, j);
+    conflictBullet(e, mat, j, i);
+    return withCallSpans(e.ex(c), c);
+  }
+  private void conflictBullet(Err e, ArgMatrix mat, int argi, int other){
+    var pi= mat.okByArg().get(other).getFirst();
+    e.bullet(compatible(mat, argi)+"\nArgument "+(argi+1)+" fails with: "+mat.candidate(pi).promotion()+".\n"+up(mat.resByArg().get(argi).get(pi).info(printed)));
+  }
+  private String compatible(ArgMatrix mat, int argi){
+    var ok= mat.okByArg().get(argi);
+    assert !ok.isEmpty();
+    var promos= ok.stream().map(i -> mat.candidate(i).promotion()).distinct().toList();
+    var got= err().typeRepr(false, headerBest(mat.resByArg().get(argi)));
+    return "Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos, "", ", ", "")+".";
   }
 }

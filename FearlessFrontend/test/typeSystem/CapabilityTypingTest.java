@@ -641,20 +641,12 @@ A:{
 
 While inspecting method ".call(_)" (line 3)
 This call to method "A.m1(_,_,_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
-
-Compatible promotions by argument:
-- Argument 1 has type "iso A" and is compatible with: As declared, Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1, Allow mutH argument 2, Allow mutH argument 3, Allow mutH argument 4.
-- Argument 2 has type "iso A" and is compatible with: As declared, Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1, Allow mutH argument 2, Allow mutH argument 3, Allow mutH argument 4.
+Arguments 3 and 4 need different promotions, but a call uses one promotion for all its arguments.
 - Argument 3 has type "mutH A" and is compatible with: Allow mutH argument 3.
-- Argument 4 has type "mutH A" and is compatible with: Allow mutH argument 4.
-
-Promotion failures:
-- Argument 3 fails:    As declared
-  Parameter "a" has type "mutH A" instead of a subtype of "mut A".
-- Argument 3 fails:    Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1, Allow mutH argument 2, Allow mutH argument 4
+  Argument 3 fails with: Allow mutH argument 4.
   Parameter "a" has type "mutH A" instead of a subtype of "iso A".
-- Argument 4 fails:    Allow mutH argument 3
+- Argument 4 has type "mutH A" and is compatible with: Allow mutH argument 4.
+  Argument 4 fails with: Allow mutH argument 3.
   Parameter "a" has type "mutH A" instead of a subtype of "iso A".
 
 Relevant code with inferred types:
