@@ -9,12 +9,12 @@ import java.util.Optional;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import core.*;
 import core.E.*;
 import utils.Bug;
 import utils.Join;
+import utils.Push;
 import utils.Range;
 import utils.Streams;
 
@@ -46,7 +46,7 @@ public final class CompactPrinter{
   private boolean onPath(E e, E focus){
     var res= e == focus || switch (e){
       case X _, Type _ -> false;
-      case Call c -> Stream.concat(Stream.of(c.e()), c.es().stream()).anyMatch(ei -> onPath(ei, focus));
+      case Call c -> Push.of(c.e(), c.es()).stream().anyMatch(ei -> onPath(ei, focus));
       case Literal l -> l.ms().stream().anyMatch(m -> m.e().filter(ei -> onPath(ei, focus)).isPresent());
     };
     if (res){ path.add(e); }
