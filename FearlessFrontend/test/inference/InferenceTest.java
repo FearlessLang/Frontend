@@ -166,11 +166,9 @@ In file: [###].fear
 
 While inspecting type declaration "A"
 Missing return type for method ".use(_)".
-Add an explicit return type before '->'.
-Alternatively (less common), if you intended to override and omit the signature,
-the signature must be inherited from a supertype.
-Cannot infer signature of method ".use(_)".
-No supertype has a method named ".use(_)" with 1 parameter.
+Add an explicit return type before "->".
+A method can omit types in its signature only when a supertype has a method ".use(_)" to inherit the missing types from.
+No supertype of type declaration "A" has a method ".use(_)".
 Error 7 WellFormedness
 """, List.of(
 "A:{ .id:A->A; .id[X](x:A):A->x; .use:A->A; .use(x:A)->x.id(); }"));}
@@ -182,8 +180,9 @@ In file: [###].fear
    | ---------------^^^^^^^^^^---
 
 While inspecting type declaration "A"
-Cannot infer signature of method ".use(_)".
-No supertype has a method named ".use(_)" with 1 parameter.
+Missing parameter types for method ".use(_)".
+A method can omit types in its signature only when a supertype has a method ".use(_)" to inherit the missing types from.
+No supertype of type declaration "A" has a method ".use(_)".
 Error 7 WellFormedness
 """, List.of(
 "A:{ .use:A->A; .use(x)->x; }"));}
@@ -1303,7 +1302,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Cannot infer signature and name for a method with 0 parameters.
-No supertype has a method with 0 parameters.
+No supertype of type declaration "B" has a method with 0 parameters.
 Error 7 WellFormedness
 """,
   List.of("""

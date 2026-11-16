@@ -397,24 +397,16 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return null;
   }
   public FearlessException noSourceToInferFrom(E.Literal origin, M m){
-    var size= m.sig().ts().size();
-    if (m.sig().m().isEmpty()){
-      return wf(err()
-        .line("Cannot infer signature and name for a method with "+count(size, "parameter")+".")
-        .line("No supertype has a method with "+count(size, "parameter")+"."), m.sig(), origin);
-    }
-    var name= err().methodSig(m.sig().m().get());
-    var allParHasType= m.sig().ts().stream().allMatch(Optional::isPresent);
-    var e= err();
-    if (allParHasType){
-      e.line("Missing return type for method "+name+".")
-       .line("Add an explicit return type before '->'.")
-       .line("Alternatively (less common), if you intended to override and omit the signature,")
-       .line("the signature must be inherited from a supertype.");
-    }
+    var s= m.sig();
+    if (s.m().isEmpty()){ return methodNotInferred(origin, s); }
+    var name= methodSig(s.rc().map(RC::toStrSpace).orElse(""), s.m().get());
+    var allParHasType= s.ts().stream().allMatch(Optional::isPresent);
+    var e= allParHasType
+      ? err().line("Missing return type for method "+name+".").line("Add an explicit return type before \"->\".")
+      : err().line("Missing parameter types for method "+name+".");
     return wf(e
-      .line("Cannot infer signature of method "+name+".")
-      .line("No supertype has a method named "+name+" with "+count(size, "parameter")+"."), m.sig(), origin);
+      .line("A method can omit types in its signature only when a supertype has a method "+name+" to inherit the missing types from.")
+      .line("No supertype of "+err().expRepr(origin)+" has a method "+name+"."), s, origin);
   }
   public String retTypeDisagreement(){ return "the return type"; }
   public String paramTypeDisagreement(int i){ return "the type of parameter "+(i+1); }

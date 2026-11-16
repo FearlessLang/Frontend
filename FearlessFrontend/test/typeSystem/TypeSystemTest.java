@@ -2580,11 +2580,9 @@ Outer:{ .m: base.Void -> {'self .a: Outer -> self}.a }
 
 While inspecting object literal instance of "_AOute"
 Missing return type for method ".a".
-Add an explicit return type before '->'.
-Alternatively (less common), if you intended to override and omit the signature,
-the signature must be inherited from a supertype.
-Cannot infer signature of method ".a".
-No supertype has a method named ".a" with 0 parameters.
+Add an explicit return type before "->".
+A method can omit types in its signature only when a supertype has a method ".a" to inherit the missing types from.
+No supertype of object literal instance of "_AOute" has a method ".a".
 """, List.of("""
 Outer:{ .m: base.Void -> { .a -> base.Void{} }.a }
 """));}
@@ -5729,8 +5727,9 @@ U:{ .m: base.Void -> Ig#(F#({ .a -> this.b; .b -> base.Void })) }
    |              --^^^^^^^^^^^^^^^--
 
 While inspecting object literal instance of "A"
-Cannot infer signature of method ".foo(_)".
-No supertype has a method named ".foo(_)" with 1 parameter.
+Missing parameter types for method ".foo(_)".
+A method can omit types in its signature only when a supertype has a method ".foo(_)" to inherit the missing types from.
+No supertype of object literal instance of "A" has a method ".foo(_)".
 """, List.of("""
 A:{}
 U:{ .m: A -> { .foo(x): A -> x }.foo(A) }
