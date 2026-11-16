@@ -6385,6 +6385,24 @@ P:{ .a: P; .q: Q }
 Q:{ .r: P }
 U:{ .u({.q.z, .a}: P): P -> a }
 """));}
+@Test void aMethodOfAnAnonymousLiteralIsDeclaredBeforeAnArgumentWithUnknownHead(){fail("""
+003| U:{ .u: Sup -> G#(Sup{'s .k -> s; .extra: Sup -> s }.extra.zz, {y -> y}) }
+   |     --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^-----------
+
+While inspecting method ".u" (line 3)
+This call to method ".zz" cannot typecheck.
+Method ".zz" is not declared on type "Sup".
+
+Available methods on type "Sup":
+- .k:Sup
+
+Relevant code with inferred types:
+Sup{'s .k:Sup->s;.extra:Sup->s}.extra.zz
+""", List.of("""
+Sup:{ .k: Sup }
+G:{ #[A:*,B:*](a: A, f: base.F[A,B]): B -> f#a }
+U:{ .u: Sup -> G#(Sup{'s .k -> s; .extra: Sup -> s }.extra.zz, {y -> y}) }
+"""));}
 @Test void aParameterWrittenWithoutCapabilityIsImmAsReceiverOfAMutMethod(){fail("""
 002| U:{ .m(c: Counter): Counter -> c.inc }
    |     ---------------------------^~~~~

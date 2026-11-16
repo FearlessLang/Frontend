@@ -84,7 +84,7 @@ public record ToCore(List<B> ctx, Methods meths, List<core.Sig> frames){
   private void undeclared(inference.E e, core.E c){
     if (!(e instanceof inference.E.Call ie && c instanceof core.E.Call cc)){ return; }
     undeclared(ie.e(), cc.e());
-    if (!(ie.e().t() instanceof IT.RCC r)){ return; }
+    if (!(ie.e().t() instanceof IT.RCC r) || ie.e() instanceof inference.E.Literal){ return; }
     var d= meths._from(r.c().name());
     var declared= d == null || d.ms().stream().anyMatch(m -> m.sig().m().equals(ie.name()));
     if (declared){ return; }
