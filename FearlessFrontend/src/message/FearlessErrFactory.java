@@ -278,9 +278,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +"It is declared by a nominal pattern: a pattern like \"{.a.b, .c}id\" declares the names \"bid\" and \"cid\".\n").addSpan(at);
   }
   public FearlessException patternsGetTooManyParameters(Span at, List<XPat.Destruct> ps, int n){
-    return Code.UnexpectedToken.of("This method header gets "+n+" parameters by using the nominal "+(ps.size() == 1 ? "pattern " : "patterns ")
+    return Code.UnexpectedToken.of("This method signature gets "+n+" parameters by using the nominal "+(ps.size() == 1 ? "pattern " : "patterns ")
       +Join.of(ps.stream().map(p -> disp(patternRepr(p))), "", " and ", "")+".\n"
-      +"A method header cannot use nominal patterns to get more than 32 parameters.\n").addSpan(at);
+      +"A method signature cannot use nominal patterns to get more than 32 parameters.\n").addSpan(at);
   }
   public FearlessException implicitWithParameters(Span at, int n){
     return Code.UnexpectedToken.of("This method declares "+count(n, "parameter")+" and its body uses \"::\".\n"
