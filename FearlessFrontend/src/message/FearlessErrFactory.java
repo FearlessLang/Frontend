@@ -64,7 +64,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       "Extra semicolon: no method declaration comes before this \";\".\n"
     +"Methods are separated by a single \";\". Remove this semicolon.\n").addSpan(at);
   }
-  private static String found(Token t){ return t.tokens().isEmpty() ? disp(t.content()) : "a "+t.kind().human; }
+  private static String found(Token t){ return disp(t.tokens().isEmpty() ? t.content() : t.tokens().getFirst().content()+"..."+t.tokens().getLast().content()); }
   public FearlessException topLevelNotATypeDeclaration(Span at, Token found){
     return Code.UnexpectedToken.of(() ->
       lastTop.map(t -> "This should probably be inside the declaration of "+staticTypeDecName(t)+".\n")
@@ -319,8 +319,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var eof= stop.is(_EOF);
     var isCloser= stop.is(CRound, CSquare, CCurly, CCurlyId);
     var isBarrier= !eof && !isCloser;
-    var openLabel= disp(open.kind().human);
-    var stopLabel= eof ? "end of group" : disp(stop.kind().human);
+    var openLabel= disp(open.content());
+    var stopLabel= eof ? "end of group" : disp(stop.content());
     var base=
       sof
         ? "Unopened "+stopLabel+".\n"
@@ -348,7 +348,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var file= tokenizer.fileName();
     var where= BadTokens.describeFree(hiddenContainer);
     var msg=
-      "Unclosed "+disp(open.kind().human)+" group.\n"
+      "Unclosed "+disp(open.content())+" group.\n"
     +"Found a matching closer inside a"+where+" between here and the stopping point.\n"
     +"Did you mean to place the closer outside the"+where+"?\n"
     +expected("", "Otherwise expected: ", "Otherwise expected one of: ", expectedClosers, tk -> tk.human);
@@ -363,7 +363,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var file= tokenizer.fileName();
     var where= BadTokens.describeFree(hiddenContainer);
     var msg=
-      "Unopened "+disp(stop.kind().human)+".\n"
+      "Unopened "+disp(stop.content())+".\n"
     +"Found a matching opener hidden inside a"+where+" before this point.\n"
     +"Did you mean to place the opener outside the"+where+"?";
     var primary= metaParser.Token.makeSpan(file, hiddenFragment, stop);

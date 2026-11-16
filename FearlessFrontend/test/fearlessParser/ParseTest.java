@@ -3099,7 +3099,7 @@ In file: [###].fear
 
 While inspecting type declaration > full file
 Missing type declaration colon.
-Found instead: a group in {..}.
+Found instead: "{...}".
 Expected: ":".
 Error 2 UnexpectedToken
 """, """
@@ -3482,7 +3482,7 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Missing generic bounds.
-Found instead: a group in [..].
+Found instead: "[...]".
 Expected: ":".
 Error 2 UnexpectedToken
 """, """
@@ -3496,7 +3496,7 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > type declaration > full file
 Missing generic bounds.
-Found instead: a group in [..].
+Found instead: "[...]".
 Expected: ":".
 Error 2 UnexpectedToken
 """, """
@@ -3585,7 +3585,7 @@ While inspecting type declaration > full file
 This is not a top level type declaration.
 Top level code can only contain type declarations.
 A type declaration starts with a type name, like "Point:{..}".
-Found instead: a group in (..).
+Found instead: "(...)".
 Likely cause: an extra "}" closed a type declaration unintentionally.
 Error 2 UnexpectedToken
 """, """
@@ -3837,6 +3837,20 @@ No choice of id makes all the names of this pattern valid.
 Error 2 UnexpectedToken
 """, """
 A:{.m({.a', .read, .mut}:A):A}
+""");}
+@Test void unclosedSquareBeforeANameNamesTheName(){fail("""
+In file: [###].fear
+
+001| A[X:foo]:{}
+   |  ---^^^
+
+While inspecting groups of parenthesis
+Unclosed "[" group before "foo".
+This "foo" may be unintended.
+Otherwise expected: "]".
+Error 0 Unclosed
+""", """
+A[X:foo]:{}
 """);}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?
