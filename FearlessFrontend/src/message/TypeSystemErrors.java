@@ -9,6 +9,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import inject.TypeRename;
 import metaParser.NameSuggester;
@@ -350,6 +351,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Available capabilities for this method: "+availRc)
       .ex(c), c);
   }
+  private static boolean isSelfName(TypeScope s, String x){
+    return Stream.iterate(s, si -> !si.isTop(), TypeScope::outer).anyMatch(si -> si instanceof TypeScope.Method(var l, _, _) && l.thisName().equals(x));
+  }
   private void addEnclosingLiteralHintIfReceiverIsThis(Err e, TypeScope scope, Call c, String name, String on){
     var receiverIsThis= c.e() instanceof X(var xName, _) && xName.equals("this");
     if (!receiverIsThis){ return; }
@@ -396,13 +400,16 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Methods exist for call c, but the receiver capability is too weak for all the available promotions.
   ///No promotion accepts this receiver, so the call cannot succeed regardless of argument types.
   ///Raised when checking method calls.
-  public FearlessException receiverRCBlocksCall(Literal d, Call c, RC recvRc, List<MType> promos, Gamma g){
+  public FearlessException receiverRCBlocksCall(TypeScope s, Literal d, Call c, RC recvRc, List<MType> promos, Gamma g){
     var needed= promos.stream().map(MType::rc).distinct().sorted().map(Err::disp).toList();
     var e= err()
       .pCallCantBeSatisfied(d, c)
       .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
       .line(Join.of(needed, "This call requires a receiver with capability ", " or ", "."));
     if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.WithT w && !(w instanceof Change.Same)){ e.line(Reason.adaptation(this, x, w)); }
+    if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.Same(T.RCC t) && t.rc() == RC.imm && !isSelfName(s, x.name())){
+      e.line(up(err().expRepr(x))+" has type "+err().typeRepr(false, t)+": a type written without a capability, as "+err().typeRepr(true, t)+", is \"imm\".");
+    }
     return withCallSpans(e.pReceiverRequiredByPromotion(promos).ex(c), c.e(), c);
   }
   ///For argument index argi in call c, the argument's type does not satisfy any promotion's requirement.

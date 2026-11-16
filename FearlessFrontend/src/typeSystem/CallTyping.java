@@ -25,7 +25,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     c.expectedRes().inner = base.t();
     var promos= MultiMeth.of(bs, base, true);
     var app= promos.stream().filter(m -> rcc0.rc().isSubType(m.rc())).toList();
-    if (app.isEmpty()){ throw ts.tsE().receiverRCBlocksCall(d, c, rcc0.rc(), MultiMeth.of(bs, base, mayBeH(rcc0.rc(), base)), g); }
+    if (app.isEmpty()){ throw ts.tsE().receiverRCBlocksCall(ts.scope(), d, c, rcc0.rc(), MultiMeth.of(bs, base, mayBeH(rcc0.rc(), base)), g); }
     var mat= typeArgsOnce(d, rcc0.rc(), base, app);
     var possible= mat.candidatesOkForAllArgs();//This is indexes of MTypes allowed by the arguments
     if (possible.isEmpty()){ throw ts.tsE().methodPromotionsDisagreeOnArguments(d, c, mat); }

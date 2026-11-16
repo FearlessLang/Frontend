@@ -6385,6 +6385,26 @@ P:{ .a: P; .q: Q }
 Q:{ .r: P }
 U:{ .u({.q.z, .a}: P): P -> a }
 """));}
+@Test void aParameterWrittenWithoutCapabilityIsImmAsReceiverOfAMutMethod(){fail("""
+002| U:{ .m(c: Counter): Counter -> c.inc }
+   |     ---------------------------^~~~~
+
+While inspecting method ".m(_)" (line 2)
+This call to method "mut Counter.inc" cannot typecheck.
+The receiver (the expression before the method name) has capability "imm".
+This call requires a receiver with capability "mut" or "iso".
+Parameter "c" has type "imm Counter": a type written without a capability, as "Counter", is "imm".
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result)
+
+Relevant code with inferred types:
+c.inc[mut]
+""", List.of("""
+Counter:{ mut .inc: Counter }
+U:{ .m(c: Counter): Counter -> c.inc }
+"""));}
 @Test void aFreshNameStandingForTwoNamesGetsNoNote(){fail("""
 003| B:{ .u({.a}: P, xyzwb: P): A -> xyzwb }
    |     ----------------------------^^^^^
