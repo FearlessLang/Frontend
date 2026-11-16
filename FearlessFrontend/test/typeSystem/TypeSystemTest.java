@@ -5170,6 +5170,64 @@ F1[X:*,R:*]:{ mut #(x: X): R }
 Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
 U:{ .use: A -> Ap#{x -> Two#(mut G{ # -> Imm#x }, Mut#x)} }
 """));}
+@Test void lambdaParameterUsedAsASubtypeThenAsASupertypeIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A,R](f: F[A,R]): Use -> this }
+User:{ .m: Use -> Use#{x -> Two#(NeedCat#x, NeedAnimal#x)} }
+"""));}
+@Test void lambdaParameterUsedAsASupertypeThenAsASubtypeIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A,R](f: F[A,R]): Use -> this }
+User:{ .m: Use -> Use#{x -> Two#(NeedAnimal#x, NeedCat#x)} }
+"""));}
+@Test void lambdaParameterUsedAsASupertypeThenAsASubtypeCallsAMethodOfTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A,R](f: F[A,R]): Use -> this }
+User:{ .m: Use -> Use#{x -> Two#(NeedAnimal#x, Two#(NeedCat#x, x.purr))} }
+"""));}
+@Test void lambdaParameterUsedAsTwoSupertypesThenAsTheirCommonSubtypeIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A,R](f: F[A,R]): Use -> this }
+Pet:{ .pet: Pet -> this }
+Cat2:Animal,Pet{}
+NeedPet:{ #(p: Pet): Animal -> Cat }
+NeedCat2:{ #(c: Cat2): Animal -> c }
+User:{ .m: Use -> Use#{x -> Two#(NeedAnimal#x, Two#(NeedPet#x, NeedCat2#x))} }
+"""));}
+@Test void lambdaParameterUsedAsAGenericSupertypeThenAsASubtypeIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A,R](f: F[A,R]): Use -> this }
+Seq[T]:{ .seq: Animal -> Cat }
+List[T]:Seq[T]{}
+NeedSeq:{ #(s: Seq[Cat]): Animal -> Cat }
+NeedList:{ #(l: List[Cat]): Animal -> Cat }
+User:{ .m: Use -> Use#{x -> Two#(NeedSeq#x, NeedList#x)} }
+"""));}
 @Test void lambdaParameterCapturedAfterItsOtherUseIsInferredFromTheOtherUse(){ok(List.of("""
 A:{ mut .m: A -> A }
 Mut:{ #(a: mut A): A -> a.m }

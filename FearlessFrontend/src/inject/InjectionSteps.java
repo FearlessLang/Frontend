@@ -280,7 +280,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private void updateG(Gamma g, String x, IT t1, IT t2){
     if (t1.undecided()){ g.update(x, t2 instanceof IT.RCC(_, var c, var span) ? new RCC(Optional.empty(), c, span) : t2); return; }
-    if (t1 instanceof IT.RCC a && t2 instanceof IT.RCC b && a.c().name().equals(b.c().name())){ g.update(x, meet(t1, t2)); }
+    if (t1 instanceof IT.RCC && t2 instanceof IT.RCC){ g.update(x, meet(t1, t2)); }
   }
   private E nextT(E.Type t){
     if (!t.t().undecided()){ return t; }

@@ -557,7 +557,7 @@ import java.util.stream.*;
       case E.X x->{
         var h=find(g,f->f.vars.containsKey(x.name));var o=h.vars.get(x.name);var a=o;for(var f:g.subList(g.indexOf(h)+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);}var z=x.t;if(a.equals(z))yield x;
         var t=z==u?null:o==u?z instanceof R w?new R(null,w.c):z
-          :o instanceof R p&&z instanceof R q&&p.c.name.equals(q.c.name)?meet(o,z):null;
+          :o instanceof R&&z instanceof R?meet(o,z):null;
         if(t!=null)h.vars.put(x.name,t);yield x.t(meet(a,z));
       }
       case Literal l->{if(!l.expanded){if(l.anon&&l.cs.size()==0)inferred.add(l.name.s);
