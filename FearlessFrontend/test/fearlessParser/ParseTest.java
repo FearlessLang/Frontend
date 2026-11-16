@@ -4054,5 +4054,31 @@ Error 2 UnexpectedToken
 """, """
 A:{ .me(mut a: A): A -> a }
 """);}
+@Test void spaceAfterTheDotOfAMethodName(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A -> this. me }
+   |                   ^
+
+While inspecting a method name
+Unrecognized text ".".
+A "." starts a method name and is directly followed by it, as in ".foo".
+Error 2 UnexpectedToken
+""", """
+A:{ .me: A -> this. me }
+""");}
+@Test void dollarInCode(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A -> $this }
+   |               ^
+
+While inspecting the file
+Unrecognized text "$".
+This character can only appear inside string literals and comments.
+Error 2 UnexpectedToken
+""", """
+A:{ .me: A -> $this }
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

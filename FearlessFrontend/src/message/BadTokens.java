@@ -40,6 +40,12 @@ Names like aux, nul, lpt2 are invalid on Windows.
 """, "package names")
       .put(BadSStrQuote, (_, t, tz) -> singleQuoteString(t, tz))
       .put(BadDotName, (_, t, tz) -> uppercaseMethodName(t, tz))
+      .putStr(BadDot, Code.UnexpectedToken::of, """
+A "." starts a method name and is directly followed by it, as in ".foo".
+""", "a method name")
+      .putStr(BadChar, Code.UnexpectedToken::of, """
+This character can only appear inside string literals and comments.
+""", "")
 ;}
   private static Stream<Token> uppercaseMethodName(Token t, Tokenizer tz){
     var c= t.content();
