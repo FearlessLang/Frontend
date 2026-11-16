@@ -1759,6 +1759,24 @@ Plus:{
   .go:Plus->this + this.other;
 }
 """));}
+@Test void operatorArgMismatchNotFollowedByACallGetsNoPrecedenceHint(){fail("""
+004|   .go:Plus->this + this;
+   |   ----------~~~~~~~^^^^
+
+While inspecting method ".go" (line 4)
+This call to method "Plus+(_)" cannot typecheck.
+Argument 1 has type "Plus".
+That is not a subtype of "A" (the type required by the method signature).
+
+Relevant code with inferred types:
+this + this
+""", List.of("""
+A:{}
+Plus:{
+  +(x:A):Plus->this;
+  .go:Plus->this + this;
+}
+"""));}
 @Test void hopelessArg_wrongNominal_suppressesPromotionsAndReason(){fail("""
 005|   .f(aaaa:mut B):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
    |                                    -------------~~~~~~^^^^^^^^^^^^^~
