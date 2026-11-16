@@ -72,13 +72,19 @@ public final class Reason{
     var noDeclaredNote= !rcOnly || declared.equals(got);
     if (noDeclaredNote){ return new Reason(got, base, es.printed(), () -> baseFooterE(ts.scope(), got, req.t())); }
     var e= es.err().line(base);
-    e.line(declaredOkExpected
+    var self= isSelf(cur, x.name());
+    if (!self){ e.line(declaredOkExpected
       ? "Note: the declared type "+es.err().typeRepr(false, declared)+" would instead be a valid subtype."
       : "Note: the declared type "+es.err().typeRepr(false, declared)+" also does not satisfy the requirement."
-    );
-    e.line("Capturing changes the type of "+es.err().expRepr(x)+":"+vpaTrace(es, cur));
+    ); }
+    e.line((self ? "The capability of the methods changes the type of " : "Capturing changes the type of ")+es.err().expRepr(x)+":"+vpaTrace(es, cur));
     return new Reason(got, e.text(), es.printed(), () -> baseFooterE(ts.scope(), got, req.t()));
   }
+  private static boolean isSelf(WithT cur, String x){ return switch (cur){
+    case Same _ -> false;
+    case KeepStrengthenToImm(var l, _, _, var tail) -> tail instanceof Same ? l.thisName().equals(x) : isSelf(tail, x);
+    case KeepSetToReadImm(var l, _, _, var tail) -> tail instanceof Same ? l.thisName().equals(x) : isSelf(tail, x);
+  };}
   private static String vpaTrace(TypeSystemErrors es, WithT cur){ return switch (cur){
     case Same _ -> "";
     case KeepStrengthenToImm(_, var m, var to, var tail) -> traceKeep(es, tail, to, m);

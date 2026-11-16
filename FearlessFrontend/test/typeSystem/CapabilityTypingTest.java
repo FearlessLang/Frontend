@@ -83,6 +83,38 @@ A:{}
 ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }
 Container:{ read .a1: mut A; mut .a2: mut A }
 """));}
+@Test void thisOfAReadMethodIsReadWithNoDeclaredNote(){fail("""
+001| A:{ read .me: mut A -> this }
+   |     -------------------^^^^
+
+While inspecting parameter "this" > method ".me" (line 1)
+The body of method ".me" of type declaration "A" is an expression returning "read A".
+Parameter "this" has type "read A" instead of a subtype of "mut A".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".me" (line 1).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+A:{read .me:mut A->this}
+""", List.of("""
+A:{ read .me: mut A -> this }
+"""));}
+@Test void thisCapturedInALiteralOfAReadMethodIsRead(){fail("""
+002| A:{ read .me: mut F -> mut F{ .get -> this } }
+   |     --------------------------~~~~~~~~^^^^--
+
+While inspecting parameter "this" > method ".get" (line 2) > method ".me" (line 2)
+Method ".get" inside the object literal instance of "mut F" (line 2)
+is implemented with an expression returning "read A".
+Parameter "this" has type "read A" instead of a subtype of "mut A".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".me" (line 2).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+A:{read .me:mut F->mut F{mut .get:mut A->this}}
+""", List.of("""
+F:{ mut .get: mut A }
+A:{ read .me: mut F -> mut F{ .get -> this } }
+"""));}
 @Test void mutTypeVariableCaptureInReadMethodShowsDeclaredNote(){fail("""
 002| A:{ .m[X:*](x: mut X): mut Get[mut X] -> mut Get[mut X]{ read .get: mut X -> x } }
    |     -----------------------------------------------------~~~~~~~~~~~~~~~~~~~~^--
