@@ -41,7 +41,7 @@ The body of method ".sum" of type declaration "B" is an expression returning "is
 Object literal is of type "FortyThree" instead of a subtype of "FortyTwo".
 
 See inferred typing context below for how type "FortyTwo" was introduced: (compression indicated by `-`)
-B:A[FortyTwo]{.count:FortyTwo->FortyTwo;.sum:FortyTwo->For-ree}
+B:A[FortyTwo]{.count:FortyTwo->FortyTwo;.sum:FortyTwo->FortyThree}
 """, List.of("""
 Res1:{} Res2:{}
 FortyTwo:{ .get: Res1 -> Res1 }
@@ -444,7 +444,7 @@ for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Bre-ner:A[Break]{}
+iso BreakInner:A[Break]{}
 """, List.of("""
 A[X:mut]:{}
 Break:{}

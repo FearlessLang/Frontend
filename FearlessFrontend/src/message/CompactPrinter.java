@@ -14,7 +14,7 @@ import utils.Range;
 import utils.Streams;
 
 public final class CompactPrinter{
-  public CompactPrinter(String mainPkg, Map<String,String> uses, Consumer<String> printed, boolean trunk){ t= new TypeNamePrinter(trunk, mainPkg, uses, printed); }
+  public CompactPrinter(String mainPkg, Map<String,String> uses, Consumer<String> printed){ t= new TypeNamePrinter(mainPkg, uses, printed); }
   public String limit(E e, int limit){
     assert limit >= 0;
     var root= ofE(e);
