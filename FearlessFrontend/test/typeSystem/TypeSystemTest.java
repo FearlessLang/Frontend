@@ -1774,6 +1774,38 @@ base.Block#[imm,Nat].return[mut](5)
 """, List.of("""
 use base.Nat as Nat; A:{ #: Nat -> base.Block#.return 5 }
 """));}
+@Test void aMutParameterWhereAnImmLambdaIsExpectedGetsNoCurlyBracesHint(){fail("""
+003| U:{ .take(g: Get): B -> B; .m(x: mut B): B -> this.take(x) }
+   |                            -------------------~~~~~~~~~~^~
+
+While inspecting method ".m(_)" (line 3)
+This call to method "U.take(_)" cannot typecheck.
+Argument 1 has type "B".
+That is not a subtype of "Get" (the type required by the method signature).
+
+Relevant code with inferred types:
+this.take(x)
+""", List.of("""
+B:{}
+Get:{ .get: mut B }
+U:{ .take(g: Get): B -> B; .m(x: mut B): B -> this.take(x) }
+"""));}
+@Test void anIsoParameterWhereAMutLambdaIsExpectedGetsNoCurlyBracesHint(){fail("""
+003| U:{ .take(g: mut Get): B -> B; .m(x: iso B): B -> this.take(x) }
+   |                                -------------------~~~~~~~~~~^~
+
+While inspecting method ".m(_)" (line 3)
+This call to method "U.take(_)" cannot typecheck.
+Argument 1 has type "B".
+That is not a subtype of "mut Get" (the type required by the method signature).
+
+Relevant code with inferred types:
+this.take(x)
+""", List.of("""
+B:{}
+Get:{ mut .get: mut B }
+U:{ .take(g: mut Get): B -> B; .m(x: iso B): B -> this.take(x) }
+"""));}
 @Test void operatorArgMismatchNotFollowedByACallGetsNoPrecedenceHint(){fail("""
 004|   .go:Plus->this + this;
    |   ----------~~~~~~~^^^^
