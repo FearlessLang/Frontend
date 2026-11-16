@@ -6424,4 +6424,17 @@ N:{ +(n:N): N -> this; .get: N -> this }
 W:{}
 U:{ .m(a:N, b:N): W -> a + b.get }
 """));}
+@Test void aLongLiteralIsPrintedInFull(){fail("""
+001| B:{ .m: B -> "a string literal longer than fifteen" }
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.Str" > method ".m" (line 1)
+The body of method ".m" of type declaration "B" is an expression returning "iso base.Str".
+Object literal is of type "base.Str" instead of a subtype of "B".
+
+Relevant code with inferred types:
+B:{.m:B->"a string literal longer than fifteen"}
+""", List.of("""
+B:{ .m: B -> "a string literal longer than fifteen" }
+"""));}
 }

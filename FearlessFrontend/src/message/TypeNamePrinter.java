@@ -18,9 +18,6 @@ public record TypeNamePrinter(String mainPkg, Map<String,String> uses, Consumer<
   private static String dropBaseForLit(String s){
     if (!s.startsWith("base.")){ return s; }
     var r= s.substring(5);
-    if (!LiteralDeclarations.isPrimitiveLiteral(r)){ return s; }
-    var d= r.length();
-    if (d <= 15){ return r; }
-    return r.substring(0, 5)+"-"+r.substring(d-5);
+    return LiteralDeclarations.isPrimitiveLiteral(r) ? r : s;
   }
 }
