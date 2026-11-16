@@ -41,7 +41,7 @@ public final class Reason{
   }
   private static String base(TypeSystemErrors es, TypeSystem ts, E blame, List<B> bs, T got, T expected){
     var skipImm= !ts.isSub(bs, got, expected.withRC(RC.imm));
-    return "Object literal is of type "+es.err().expReprDirect(skipImm, blame)+" instead of a subtype of "+es.err().typeRepr(skipImm, expected)+".";
+    return "Object literal has type "+es.err().expReprDirect(skipImm, blame)+" instead of a subtype of "+es.err().typeRepr(skipImm, expected)+".";
   }
   private static Reason hintExplicitRC(TypeSystemErrors es, TypeSystem ts, T got, String base, T.RCC expected, RC rc, E blame){
     E blameOk= switch (blame){

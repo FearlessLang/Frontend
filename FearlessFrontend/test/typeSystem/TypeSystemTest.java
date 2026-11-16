@@ -870,7 +870,7 @@ User:{
 While inspecting object literal instance of "Foo" > method "#(_)" (line 7) > method ".m" (line 7)
 Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 7)
 is implemented with an expression returning "Foo".
-Object literal is of type "Foo" instead of a subtype of "Car".
+Object literal has type "Foo" instead of a subtype of "Car".
 
 Relevant code with inferred types:
 User:{.m:Car->Apply#(Person,F[Person,Car]{#(Person):Car->Foo})}
@@ -910,7 +910,7 @@ User:{
 
 While inspecting object literal "AA" > method ".m" (line 4)
 The body of method ".m" of type declaration "User" is an expression returning "AA".
-Object literal is of type "AA" instead of a subtype of "B".
+Object literal has type "AA" instead of a subtype of "B".
 
 Relevant code with inferred types:
 User:{.m:B->AA:A{}}
@@ -1973,7 +1973,7 @@ A:{
 While inspecting method ".f" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-Object literal is of type "read A" instead of a subtype of "mut A".
+Object literal has type "read A" instead of a subtype of "mut A".
 Write "mut A" if you need a "mut" object literal.
 
 Type required by each promotion:
@@ -2631,7 +2631,7 @@ Main:{ .m(s:S): S -> { .get(x) -> x }.get(s) }
 
 While inspecting object literal instance of "base.Float" > method ".m" (line 1)
 The body of method ".m" of type declaration "Main" is an expression returning "base.Float".
-Object literal is of type "base.Float" instead of a subtype of "base.Int".
+Object literal has type "base.Float" instead of a subtype of "base.Int".
 
 Relevant code with inferred types:
 Main:{.m:base.Int->+1.5}
@@ -4018,7 +4018,7 @@ User:{.f(c:C[A]):C[B]->c;}
 
 While inspecting object literal instance of "C[A]" > method ".f(_)" (line 4)
 The body of method ".f(_)" of type declaration "User" is an expression returning "C[A]".
-Object literal is of type "C[A]" instead of a subtype of "C[B]".
+Object literal has type "C[A]" instead of a subtype of "C[B]".
 
 Relevant code with inferred types:
 User:{.f(c:C[A]):C[B]->C[A]{.foo:A->A}}
@@ -4092,7 +4092,7 @@ ExtStr:"beer"{}
 
 While inspecting object literal instance of "Sup" > method ".m" (line 3)
 The body of method ".m" of type declaration "B" is an expression returning "Sup".
-Object literal is of type "Sup" instead of a subtype of "Target".
+Object literal has type "Sup" instead of a subtype of "Target".
 
 Relevant code with inferred types:
 B:{.m:Target->Sup}
@@ -4108,7 +4108,7 @@ B:{.m:Target->Sup{}}
 
 While inspecting object literal instance of "Sup" > method ".m" (line 3)
 The body of method ".m" of type declaration "B" is an expression returning "Sup".
-Object literal is of type "Sup" instead of a subtype of "Target".
+Object literal has type "Sup" instead of a subtype of "Target".
 
 Relevant code with inferred types:
 B:{.m:Target->Sup}
@@ -4124,7 +4124,7 @@ B:{.m:Target->Sup{}}
 
 While inspecting object literal instance of "Sup" > method ".m" (line 3)
 The body of method ".m" of type declaration "B" is an expression returning "Sup".
-Object literal is of type "Sup" instead of a subtype of "Target".
+Object literal has type "Sup" instead of a subtype of "Target".
 
 Relevant code with inferred types:
 B:{.m:Target->Sup{.foo:base.Str->base.Str}}
@@ -4923,7 +4923,7 @@ User:{ .nested(css: L[L[C]]): C -> C; .t: C -> this.nested(Ls#(Ls#(C))) }
 While inspecting method ".f" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-Object literal is of type "read A" instead of a subtype of "mutH A".
+Object literal has type "read A" instead of a subtype of "mutH A".
 Write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
 
 Type required by each promotion:
@@ -4944,7 +4944,7 @@ User:{
 
 While inspecting object literal instance of "read C" > method ".f" (line 4)
 The body of method ".f" of type declaration "User" is an expression returning "read C".
-Object literal is of type "read C" instead of a subtype of "mut A".
+Object literal has type "read C" instead of a subtype of "mut A".
 
 Relevant code with inferred types:
 User:{.f:mut A->read C}
@@ -5414,7 +5414,7 @@ A:base.CaptureFree{ imm .foo: A -> base.Block#.let x= {this} .return {x} }
 
 While inspecting object literal instance of "base.Void" > method ".str" (line 1)
 The body of method ".str" of type declaration "A" is an expression returning "base.Void".
-Object literal is of type "base.Void" instead of a subtype of "base.Str".
+Object literal has type "base.Void" instead of a subtype of "base.Str".
 
 Relevant code with inferred types:
 A:base.ToStr{read .str:base.Str->base.Void}
@@ -5427,7 +5427,7 @@ A:base.ToStr{ .str -> base.Void }
 
 While inspecting object literal instance of "base.Void" > method ".str" (line 2)
 The body of method ".str" of type declaration "A" is an expression returning "base.Void".
-Object literal is of type "base.Void" instead of a subtype of "base.Str".
+Object literal has type "base.Void" instead of a subtype of "base.Str".
 
 Relevant code with inferred types:
 A:Show{read .str:base.Str->base.Void}
@@ -6478,7 +6478,7 @@ User:{ .u(a:A): A -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -
 
 While inspecting object literal instance of "base.Str" > method ".m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "base.Str".
-Object literal is of type "base.Str" instead of a subtype of "B".
+Object literal has type "base.Str" instead of a subtype of "B".
 
 Relevant code with inferred types:
 B:{.m:B->"a string literal longer than fifteen"}

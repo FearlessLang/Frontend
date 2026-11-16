@@ -58,7 +58,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "base.Void" > method ".fromC" (line 1)
 The body of method ".fromC" of type declaration "B" is an expression returning "base.Void".
-Object literal is of type "base.Void" instead of a subtype of "a.A".
+Object literal has type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
@@ -468,7 +468,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Nat" > method ".m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "bb.Nat".
-Object literal is of type "bb.Nat" instead of a subtype of "B".
+Object literal has type "bb.Nat" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
@@ -921,7 +921,7 @@ In file: [###].fear
 While inspecting object literal instance of "base.Void" > method ".fromC" (line 1) > method ".m" (line 1)
 Method ".fromC" inside the object literal instance of "a.A" (line 1)
 is implemented with an expression returning "base.Void".
-Object literal is of type "base.Void" instead of a subtype of "a.A".
+Object literal has type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
@@ -954,7 +954,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Str" > method ".m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "bb.Str".
-Object literal is of type "bb.Str" instead of a subtype of "B".
+Object literal has type "bb.Str" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
@@ -971,7 +971,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "N" > method ".m" (line 2)
 The body of method ".m" of type declaration "B" is an expression returning "N".
-Object literal is of type "N" instead of a subtype of "B".
+Object literal has type "N" instead of a subtype of "B".
 
 Name "N" stands for "bb.Nat" because of "use bb.Nat as N".
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -990,7 +990,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Int" > method ".m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "bb.Int".
-Object literal is of type "bb.Int" instead of a subtype of "bb.Nat".
+Object literal has type "bb.Int" instead of a subtype of "bb.Nat".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
@@ -1064,7 +1064,7 @@ In file: [###].fear
 While inspecting object literal instance of "B" > method ".fromC" (line 2) > method ".m" (line 2)
 Method ".fromC" inside the object literal instance of "X" (line 2)
 is implemented with an expression returning "B".
-Object literal is of type "B" instead of a subtype of "X".
+Object literal has type "B" instead of a subtype of "X".
 
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2070,7 +2070,7 @@ In file: [###].fear
 While inspecting method ".f" (line 1)
 This call to method "a.Need#(_)" cannot typecheck.
 Argument 1 has type "read a.A2".
-Object literal is of type "read a.A2" instead of a subtype of "mut a.A2".
+Object literal has type "read a.A2" instead of a subtype of "mut a.A2".
 Write "mut a.A2" if you need a "mut" object literal.
 
 Type required by each promotion:
@@ -2802,7 +2802,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > method ".k" (line 2)
 The body of method ".k" of type declaration "B" is an expression returning "L".
-Object literal is of type "L" instead of a subtype of "a.A".
+Object literal has type "L" instead of a subtype of "a.A".
 
 """+noteA+"""
 
@@ -2822,7 +2822,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > method ".k" (line 3)
 The body of method ".k" of type declaration "B" is an expression returning "L".
-Object literal is of type "L" instead of a subtype of "a.A2".
+Object literal has type "L" instead of a subtype of "a.A2".
 
 """+noteA+"""
 
@@ -2843,7 +2843,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Nat" > method ".m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "bb.Nat".
-Object literal is of type "bb.Nat" instead of a subtype of "B".
+Object literal has type "bb.Nat" instead of a subtype of "B".
 
 """+noteBb+"""
 
@@ -2938,7 +2938,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > method ".k" (line 2)
 The body of method ".k" of type declaration "B" is an expression returning "L".
-Object literal is of type "L" instead of a subtype of "bb.Str".
+Object literal has type "L" instead of a subtype of "bb.Str".
 
 """+noteBb+"""
 

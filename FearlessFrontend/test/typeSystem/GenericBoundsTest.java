@@ -38,7 +38,7 @@ B:A[FortyTwo]{ .count -> FortyTwo; .sum -> FortyTwo{} }
 
 While inspecting object literal instance of "FortyThree" > method ".sum" (line 5)
 The body of method ".sum" of type declaration "B" is an expression returning "FortyThree".
-Object literal is of type "FortyThree" instead of a subtype of "FortyTwo".
+Object literal has type "FortyThree" instead of a subtype of "FortyTwo".
 
 Relevant code with inferred types:
 B:A[FortyTwo]{.count:FortyTwo->FortyTwo;.sum:FortyTwo->FortyThree}
@@ -788,7 +788,7 @@ A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> { S
 
 While inspecting object literal "mut Fresh[_]" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "A" is an expression returning "mut Fresh[X]".
-Object literal is of type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
+Object literal has type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
 Write "iso Fresh[_]" if you need an "iso" object literal.
 
 Relevant code with inferred types:
