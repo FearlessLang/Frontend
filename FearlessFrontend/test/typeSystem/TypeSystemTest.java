@@ -1578,7 +1578,7 @@ User:{
 
 While inspecting method ".m(_,_)" (line 6)
 This call to method ".zap(_)" cannot typecheck.
-".zap(_)" exists on type "Z", but not with the requested capability.
+Method ".zap(_)" exists on type "Z", but not with the requested capability.
 This call requires a method with capability "mut".
 Available capabilities for this method: "read".
 
@@ -1600,7 +1600,7 @@ User:{
 
 While inspecting method ".u" (line 2)
 This call to method ".k" cannot typecheck.
-".k" exists on object literal instance of "A", but not with the requested capability.
+Method ".k" exists on object literal instance of "A", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "mut".
 
@@ -1616,7 +1616,7 @@ U:{ .u: base.Void -> mut A{ read .m: base.Void -> base.Void; mut .k: base.Void -
 
 While inspecting method "#(_)" (line 2)
 This call to method ".m" cannot typecheck.
-".m" exists on type "A", but not with the requested capability.
+Method ".m" exists on type "A", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "imm" and "mut".
 
@@ -2191,7 +2191,7 @@ A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 
 While inspecting method ".bar" (line 1)
 This call to method ".foo123" cannot typecheck.
-".foo123" exists on type "A", but not with the requested capability.
+Method ".foo123" exists on type "A", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "imm".
 

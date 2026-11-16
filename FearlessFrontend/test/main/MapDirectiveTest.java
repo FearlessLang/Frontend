@@ -2005,7 +2005,7 @@ In file: [###].fear
 
 While inspecting method ".m(_)" (line 1)
 This call to method ".go" cannot typecheck.
-".go" exists on type "a.R", but not with the requested capability.
+Method ".go" exists on type "a.R", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "mut".
 

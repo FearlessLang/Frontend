@@ -346,7 +346,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
     return withCallSpans(err()
       .pCallCantBeSatisfied(c)
-      .line(err().methodSig(c.name())+" exists on "+on+", but not with the requested capability.")
+      .line("Method "+err().methodSig(c.name())+" exists on "+on+", but not with the requested capability.")
       .line("This call requires a method with capability "+disp(c.rc())+".")
       .line("Available capabilities for this method: "+availRc)
       .ex(c), c);
