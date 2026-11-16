@@ -306,8 +306,6 @@ B:{ .m[X:*](x: X): Foo }
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
 The method ".m" declares 2 generic type parameters, but supertypes declare 1.
-Local declaration: "[X:imm,mut,read, Y:imm,mut,read]".
-From supertypes: "[X:imm,mut,read]".
 """, List.of("""
 Foo:{}
 A:B{ .m[X:*,Y:*]: Foo }

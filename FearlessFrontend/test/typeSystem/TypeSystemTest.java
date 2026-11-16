@@ -1349,8 +1349,6 @@ In file: [###].fear
 While inspecting type declaration "Sub"
 Invalid method signature for "Sub.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertypes declare 1.
-Local declaration: "[X:imm, Y:imm]".
-From supertypes: "[X:imm]".
 Error 7 WellFormedness
 """, List.of("""
 P:{}
