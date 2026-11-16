@@ -5409,6 +5409,162 @@ F[A,R]:{ #(a: A): R }
 Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
 User:{ .m: Animal -> Let#(Mk#, {b -> b.add(Cat).put(Animal)}) }
 """));}
+@Test void variableTypeArgumentGivenTwoValuesWithTheSameWidenToIsTheWidenToTarget(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Dog:Animal, base.WidenTo[Animal]{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Id:{ #[T](t: T): T -> t }
+User:{ .m(c: Cat, d: Dog): Animal -> Let#(Mk#, {b -> Two#(b.put(c), b.put(d))}) }
+"""));}
+@Test void variableTypeArgumentGivenTwoValuesWithTheSameWidenToInTheOtherOrderIsTheWidenToTarget(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Dog:Animal, base.WidenTo[Animal]{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Id:{ #[T](t: T): T -> t }
+User:{ .m(c: Cat, d: Dog): Animal -> Let#(Mk#, {b -> Two#(b.put(d), b.put(c))}) }
+"""));}
+@Test void variableTypeArgumentGivenAValueWithWidenToThenASupertypeIsTheSupertype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Dog:Animal, base.WidenTo[Animal]{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Id:{ #[T](t: T): T -> t }
+User:{ .m(c: Cat): Animal -> Let#(Mk#, {b -> Two#(b.put(c), b.put(Animal))}) }
+"""));}
+@Test void variableTypeArgumentGivenTwoValuesWithTheSameWidenToInTwoStatementsIsTheWidenToTarget(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Dog:Animal, base.WidenTo[Animal]{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Id:{ #[T](t: T): T -> t }
+User:{ .m(c: Cat, d: Dog): Animal -> base.Block#.let b= {Mk#} .let x= {b.put(c)} .let y= {b.put(d)} .return {x} }
+"""));}
+@Test void chainOnAVariableGivenAValueWithWidenToThenASupertypeIsTheSupertype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Dog:Animal, base.WidenTo[Animal]{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Id:{ #[T](t: T): T -> t }
+User:{ .m(c: Cat): Animal -> Let#(Mk#, {b -> b.add(c).put(Animal)}) }
+"""));}
+@Test void chainOnATypeArgumentToDecideGivenTwoValuesWithTheSameWidenToIsTheWidenToTarget(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Dog:Animal, base.WidenTo[Animal]{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Id:{ #[T](t: T): T -> t }
+User:{ .m(c: Cat, d: Dog): Animal -> Mk#.add(c).put(d) }
+"""));}
+@Test void variableTypeArgumentGivenAValueWithWidenToThenRequiredAsTheTypeOfTheValueIsTheTypeOfTheValue(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Dog:Animal, base.WidenTo[Animal]{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Id:{ #[T](t: T): T -> t }
+User:{ .m(c: Cat): Animal -> Let#(Mk#, {b -> Two#(b.put(c), NeedCat#(b.get))}) }
+"""));}
+@Test void variableTypeArgumentRequiredAsTheTypeOfAValueWithWidenToThenGivenTheValueIsTheTypeOfTheValue(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Dog:Animal, base.WidenTo[Animal]{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Id:{ #[T](t: T): T -> t }
+User:{ .m(c: Cat): Animal -> Let#(Mk#, {b -> Two#(NeedCat#(b.get), b.put(c))}) }
+"""));}
+@Test void chainOnAVariableGivenAValueWithWidenToLosesTheMethodsOfTheTypeOfTheValue(){fail("""
+011| User:{ .m(c: Cat): Animal -> Let#(Mk#, {b -> b.add(c).get.purr}) }
+   |                                         -----~~~~~~~~~~~~^^^^^^
+
+While inspecting "#(_)" line 11 > ".m(_)" line 11
+This call to method ".purr" cannot typecheck.
+Method ".purr" is not declared on type "Animal".
+
+Available methods on type "Animal":
+-       .name:Animal
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+b.add(c).get.purr
+""", List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Dog:Animal, base.WidenTo[Animal]{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Id:{ #[T](t: T): T -> t }
+User:{ .m(c: Cat): Animal -> Let#(Mk#, {b -> b.add(c).get.purr}) }
+"""));}
+@Test void chainOnAVariableWithAWrittenTypeArgumentKeepsTheMethodsOfTheTypeOfTheValue(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Dog:Animal, base.WidenTo[Animal]{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Id:{ #[T](t: T): T -> t }
+User:{ .m(c: Cat): Animal -> Let#(Mk#[Cat], {b -> b.add(c).get.purr}) }
+"""));}
+@Test void methodTypeArgumentGivenAValueWithWidenToIsTheTypeOfTheValue(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Dog:Animal, base.WidenTo[Animal]{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Id:{ #[T](t: T): T -> t }
+User:{ .m(c: Cat): Animal -> Id#(c).purr }
+"""));}
 @Test void methodTypeArgumentDecidedWithoutAVariableThenTheVariableRequiredAsAnUnrelatedTypeIsRejected(){fail("""
 009| User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat).name, NeedDog#(x))} }
    |                           ------------------------------~~~~~~~^^~~-

@@ -237,6 +237,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     if (c.isEmpty() || !(OneOr.of("WidenTo has one type argument", c.get().c().ts().stream()) instanceof IT.RCC(_, var widC, _))){ return type; }
     return new IT.RCC(type.rc(), widC, type.span());
   }
+  private List<IT> preferred(int n, List<IT> ts){ return IntStream.range(0, ts.size()).mapToObj(i -> i < n && ts.get(i) instanceof IT.RCC r ? preferred(r) : ts.get(i)).toList(); }
   private RC overloadNorm(Optional<RC> rc){ return rc.map(r -> r == RC.iso ? RC.imm : noH(r)).orElse(RC.imm); }
   private Optional<core.M> oneFromGuessRC(List<core.M> ms, RC rc){
     return Stream.of(rc, RC.read, RC.imm, RC.mut).flatMap(r -> OneOr.opt("Not well formed ms", ms.stream().filter(m -> m.sig().rc() == r)).stream()).findFirst();
@@ -324,14 +325,14 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   private List<IT> decidedThen(Gamma g, E.Call c, MSigL m){
     var given= Push.of(m.clsArgs(), writtenTargs(c) && c.targs().size() == m.bsArity() ? c.targs() : qMarks(m.bsArity()));
     var args= Streams.zip(m.ps0(), c.es()).map((p,e) -> new Con(p, emptyLiteral(e) ? IT.U.Instance : e.t(), true)).toList();
-    return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.t(), false), args));
+    return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.t(), false), args), m.nCls());
   }
   private record Con(IT declared, IT actual, boolean in){}
-  private List<IT> decide(Gamma g, List<B> bs, List<IT> given, List<Con> cons){
+  private List<IT> decide(Gamma g, List<B> bs, List<IT> given, List<Con> cons, int n){
     var xs= B.xs(bs);
     Function<Con, List<IT>> ref= c -> refine(xs, c.declared(), c.actual());
     var shape= cons.stream().filter(c -> c.declared() instanceof IT.RCC).map(ref).reduce(given, this::meet);
-    var lifted= join(shape, cons.stream().filter(c -> c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(qMarks(xs.size()), this::join));
+    var lifted= join(shape, cons.stream().filter(c -> c.in() && !(c.declared() instanceof IT.RCC)).map(c -> preferred(n, ref.apply(c))).reduce(qMarks(xs.size()), this::join));
     var all= cons.stream().filter(c -> !c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(lifted, this::meet);
     var res= Streams.zip(shape, all).map((a,b) -> a.isTV() ? a : b).toList();
     return normToBounds(bs, res.stream().map(t -> deFresh(g, t)).toList());
@@ -363,7 +364,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       solved.add(mi.impl().isEmpty() ? mi : nextMStarOp(bs, g, l, selfPrecise, rcc, mi));
     }
     var d= meths._from(rcc.c().name());
-    var ts= decide(g, d == null ? l.bs() : d.bs(), rcc.c().ts(), solved.stream().flatMap(m -> constraints(rcc, m)).toList());
+    var ts= decide(g, d == null ? l.bs() : d.bs(), rcc.c().ts(), solved.stream().flatMap(m -> constraints(rcc, m)).toList(), 0);
     var t= rcc.withTs(ts);
     var ms= norm(l.ms(), Streams.zip(l.ms(), solved).map((mi, m) -> instantiate(t, mi, m)).toList());
     var noChange= ms == l.ms() && ts.equals(rcc.c().ts());
