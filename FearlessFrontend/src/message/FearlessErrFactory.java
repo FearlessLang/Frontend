@@ -126,7 +126,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException forgotSpace(Span at, String name){
     return Code.UnexpectedToken.of(
-      "Missing space before \"->\" in "+disp(name)+".\n"
+      "Method name "+disp(name)+" ends with \"->\": a space may be missing before \"->\".\n"
       +"Did you mean "+disp(name.substring(0, name.length()-2)+" ->")+" ?\n"
     ).addSpan(at);
   }

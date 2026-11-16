@@ -3375,7 +3375,7 @@ In file: [###].fear
 005| }
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Missing space before "->" in "!!!->".
+Method name "!!!->" ends with "->": a space may be missing before "->".
 Did you mean "!!! ->" ?
 Error 2 UnexpectedToken
 """, """
