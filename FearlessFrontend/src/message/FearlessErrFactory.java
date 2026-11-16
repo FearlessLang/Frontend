@@ -89,10 +89,17 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
     assert nonNull(from, parser, expectedTerminatorTokens);
+    var t= parser.peek().get();
     var instead= "Expected "+what;
-    var msg= expected("Extra content in the current group", instead+": ", instead+".\nExpected one of: ", expectedTerminatorTokens, tk -> tk.human);
-    var here= parser.peek().get().span(from.fileName());
-    return Code.ExtraTokenInGroup.of(msg).addSpan(here).addSpan(from);
+    var msg= expected("Unexpected "+found(t)+": the code before it is already complete", instead+": ", instead+".\nExpected one of: ", expectedTerminatorTokens, tk -> tk.human);
+    return Code.ExtraTokenInGroup.of(msg+afterTypeHint(t, parser.peek(-1))).addSpan(t.span(from.fileName())).addSpan(from);
+  }
+  private static String afterTypeHint(Token t, Optional<Token> prev){
+    var type= prev.filter(p -> p.is(Token.typeName)).map(Token::content);
+    if (type.isEmpty()){ return ""; }
+    if (t.is(RCap)){ return "A capability is written before the type: "+disp(t.content()+" "+type.get())+", not "+disp(type.get()+" "+t.content())+".\n"; }
+    if (t.content().startsWith("<")){ return "Generic type arguments are written in square brackets, as in \"List[A]\".\n"; }
+    return "";
   }
   @Override public FearlessException probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx, Parser parser){
     return Code.ProbeError.of("Probe stalled while scanning "+groupLabel).addSpan(at);

@@ -3932,5 +3932,45 @@ Error 2 UnexpectedToken
 """, """
 A:{ .m: A -> A{ .me(a: A): A => a } }
 """);}
+@Test void capabilityAfterTheReturnType(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A mut -> this }
+   |   --~~~~~~~^^^~~~~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected "mut": the code before it is already complete.
+A capability is written before the type: "mut A", not "A mut".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .me: A mut -> this }
+""");}
+@Test void capabilityAfterTheParameterType(){fail("""
+In file: [###].fear
+
+001| A:{ .me(a: A mut): A -> a }
+   |     ----~~~~~^^^----
+
+While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
+Expected comma, colon or arrow.
+Expected one of: ",", ":", "->".
+A capability is written before the type: "mut A", not "A mut".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .me(a: A mut): A -> a }
+""");}
+@Test void angleBracketsForGenericTypeArguments(){fail("""
+In file: [###].fear
+
+001| A:{ .me: List<A> -> this }
+   |     ---------^~~--------
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected "<": the code before it is already complete.
+Generic type arguments are written in square brackets, as in "List[A]".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .me: List<A> -> this }
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?
