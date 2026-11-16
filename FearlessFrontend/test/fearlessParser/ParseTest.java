@@ -3897,12 +3897,38 @@ In file: [###].fear
 001| A:{ .size: A -> A.Size }
    |                  ^^^^^
 
+While inspecting a name
+"A.Size" is neither a type name nor a method call.
+A package name and a method name start with a lowercase letter, as in "a.Size" (type "Size" of package "a") and "A.size" (method ".size" called on "A").
+Error 2 UnexpectedToken
+""", """
+A:{ .size: A -> A.Size }
+""");}
+@Test void uppercaseMethodNameAfterAQualifiedTypeName(){fail("""
+In file: [###].fear
+
+001| A:{ .size: A -> base.Nat.Size }
+   |                         ^^^^^
+
 While inspecting a method name
 Method name ".Size" starts with an uppercase letter.
 A method name starts with a lowercase letter after the ".", like ".size".
 Error 2 UnexpectedToken
 """, """
-A:{ .size: A -> A.Size }
+A:{ .size: A -> base.Nat.Size }
+""");}
+@Test void uppercasePackageName(){fail("""
+In file: [###].fear
+
+001| A:{ .size: Base.Nat -> 3 }
+   |                ^^^^
+
+While inspecting a name
+"Base.Nat" is neither a type name nor a method call.
+A package name and a method name start with a lowercase letter, as in "base.Nat" (type "Nat" of package "base") and "Base.nat" (method ".nat" called on "Base").
+Error 2 UnexpectedToken
+""", """
+A:{ .size: Base.Nat -> 3 }
 """);}
 @Test void equalsInsteadOfArrow(){fail("""
 In file: [###].fear

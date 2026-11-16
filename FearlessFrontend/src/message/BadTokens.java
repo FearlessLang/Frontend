@@ -39,7 +39,7 @@ Package names are restricted to be valid filenames on all operating systems.
 Names like aux, nul, lpt2 are invalid on Windows.
 """, "package names")
       .put(BadSStrQuote, (_, t, tz) -> singleQuoteString(t, tz))
-      .put(BadDotName, (_, t, tz) -> uppercaseMethodName(t, tz))
+      .put(BadDotName, BadTokens::uppercaseMethodName)
       .putStr(BadDot, Code.UnexpectedToken::of, """
 A "." starts a method name and is directly followed by it, as in ".foo".
 """, "a method name")
@@ -47,12 +47,20 @@ A "." starts a method name and is directly followed by it, as in ".foo".
 This character can only appear inside string literals and comments.
 """, "")
 ;}
-  private static Stream<Token> uppercaseMethodName(Token t, Tokenizer tz){
+  private static Stream<Token> uppercaseMethodName(int idx, Token t, Tokenizer tz){
     var c= t.content();
     var fix= Pattern.compile("[A-Z]").matcher(c).replaceFirst(m -> m.group().toLowerCase(Locale.ROOT));
-    throw Code.UnexpectedToken.of("Method name "+disp(c)+" starts with an uppercase letter.\n"
-      +"A method name starts with a lowercase letter after the \".\", like "+disp(fix)+".")
-      .addFrame("a method name", t.span(tz.fileName()));
+    var r= tz.allTokens().get(idx - 1).content();
+    var pkg= r.toLowerCase(Locale.ROOT);
+    var call= !r.matches("[A-Z][A-Za-z0-9_]*");
+    var msg= call
+      ? "Method name "+disp(c)+" starts with an uppercase letter.\n"
+        +"A method name starts with a lowercase letter after the \".\", like "+disp(fix)+"."
+      : disp(r+c)+" is neither a type name nor a method call.\n"
+        +"A package name and a method name start with a lowercase letter, as in "
+        +disp(pkg+c)+" (type "+disp(c.substring(1))+" of package "+disp(pkg)+") and "
+        +disp(r+fix)+" (method "+disp(fix)+" called on "+disp(r)+").";
+    throw Code.UnexpectedToken.of(msg).addFrame(call ? "a method name" : "a name", t.span(tz.fileName()));
   }
   private static Stream<Token> singleQuoteString(Token t, Tokenizer tz){
     var c= t.content();
