@@ -677,6 +677,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Tab 0x09].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """, """
 A:{ \t .m(x:C):C->x.foo(,) }
@@ -1223,6 +1224,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Form Feed 0x0C].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{ .m():X\f}");
@@ -1235,6 +1237,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [No-Break Space 0x00A0].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\u00A0.m():X }");
@@ -1249,6 +1252,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Zero Width Joiner 0x200D].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\u200D\u00A0\uFEFF\u202E.m():X }");
@@ -1263,6 +1267,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Right-To-Left Override 0x202E].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\u202E\u00A0\u200D\u200C.m():X }");
@@ -1277,6 +1282,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Byte Order Mark 0xFEFF].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\uFEFF\u200B\u3000.m():X }");
@@ -1290,6 +1296,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Ideographic Space 0x3000].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\u3000\u200B\u200F\u00A0.m():X }");
@@ -1303,6 +1310,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [U+01F600].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\uD83D\uDE00\u00A0\u200D.m():X }");

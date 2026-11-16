@@ -35,7 +35,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   Optional<TName> lastTop= Optional.empty();
   public void noteTop(TName t){ lastTop = Optional.of(t); }
   @Override public FearlessException illegalCharAt(Span at, int cp, Tokenizer tokenizer){
-    return Code.UnexpectedToken.of("Illegal character "+Message.displayChar(cp)+".").addFrame(new Frame("", at));
+    return Code.UnexpectedToken.of("Illegal character "+Message.displayChar(cp)+".\n"
+      +"Source code contains only the printable ASCII characters, space and new line.").addFrame(new Frame("", at));
   }
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels, Parser parser){
     assert nonNull(at, what, expectedLabels);
