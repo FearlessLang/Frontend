@@ -119,7 +119,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     if (selfNamed && !uses(_l, _l.thisName())){ throw tsE().selfNameDeadCode(_l); }
     l.ms().stream().filter(m -> m.e().isPresent()).forEach(m -> checkCallable(l, m));
     l.ms().forEach(m -> checkImplemented(l, m, _l));
-    return reqs(l, bs1, thisType, rs);
+    return reqs(_l, bs1, thisType, rs);
   }
   private void checkImplemented(Literal l, M m, E blame){
     if (!m.sig().abs()){ return; }

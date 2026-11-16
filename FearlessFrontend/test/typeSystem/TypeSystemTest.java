@@ -913,7 +913,7 @@ User:{
 
 While inspecting object literal "AA" > method ".m" (line 4)
 The body of method ".m" of type declaration "User" is an expression returning "iso AA".
-Object literal is of type "iso AA" instead of a subtype of "B".
+Object literal is of type "AA" instead of a subtype of "B".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User:{.m:B->AA:A{}}
@@ -4014,7 +4014,7 @@ User:{.f(c:C[A]):C[B]->c;}
 
 While inspecting object literal instance of "C[A]" > method ".f(_)" (line 4)
 The body of method ".f(_)" of type declaration "User" is an expression returning "iso C[A]".
-Object literal is of type "iso C[A]" instead of a subtype of "C[B]".
+Object literal is of type "C[A]" instead of a subtype of "C[B]".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User:{.f(c:C[A]):C[B]->C[A]{.foo:A->A}}
@@ -4120,7 +4120,7 @@ B:{.m:Target->Sup{}}
 
 While inspecting object literal instance of "Sup" > method ".m" (line 3)
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
-Object literal is of type "iso Sup" instead of a subtype of "Target".
+Object literal is of type "Sup" instead of a subtype of "Target".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 B:{.m:Target->Sup{.foo:base.Str->base.Str}}
@@ -5785,12 +5785,12 @@ U:{ .m: base.Void -> Ig#(F#(Mk#, base.Void)) }
 003| H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
    |          ---------------^^^^^^^^^^^^^^^^^^^^-
 
-While inspecting object literal instance of "iso A" > method ".m" (line 3)
-Object literal instance of "iso A" cannot implement "X".
+While inspecting object literal instance of "A" > method ".m" (line 3)
+Object literal instance of "A" cannot implement "X".
 "X" is a generic type parameter; object literals can only implement nominal types.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso A{.k:base.Void->base.Void}
+A{.k:base.Void->base.Void}
 """, List.of("""
 G:{ #[T:*](x: T): T -> x }
 A:{ .k: base.Void }

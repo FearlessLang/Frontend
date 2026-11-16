@@ -2836,7 +2836,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > method ".k" (line 2)
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
-Object literal is of type "iso L" instead of a subtype of "a.A".
+Object literal is of type "L" instead of a subtype of "a.A".
 
 """+noteA+"""
 
@@ -2856,7 +2856,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > method ".k" (line 3)
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
-Object literal is of type "iso L" instead of a subtype of "a.A2".
+Object literal is of type "L" instead of a subtype of "a.A2".
 
 """+noteA+"""
 
@@ -2972,7 +2972,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > method ".k" (line 2)
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
-Object literal is of type "iso L" instead of a subtype of "bb.Str".
+Object literal is of type "L" instead of a subtype of "bb.Str".
 
 """+noteBb+"""
 
