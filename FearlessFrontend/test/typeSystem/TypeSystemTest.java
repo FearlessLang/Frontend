@@ -4055,7 +4055,7 @@ The body of method ".h(_)" of type declaration "User" is an expression returning
 Parameter "::" has type "Sup" instead of a subtype of "base.Void".
 
 See inferred typing context below for how type "base.Void" was introduced: (compression indicated by `-`)
-User:Sup{.h(_aimpl:Sup):base.Void->::}
+User:Sup{.h(Sup):base.Void->::}
 Error 8 TypeError
 """, List.of("""
 
@@ -4203,7 +4203,7 @@ is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "Person".
 
 See inferred typing context below for how type "Person" was introduced: (compression indicated by `-`)
-User:{.n(cs:read base.MList[mut Customer]):base.MList[Person]->cs.as[read,Person](base.BaseId[read Customer,Person]{#(_aimpl:read Customer):Person->::})}
+User:{.n(cs:read base.MList[mut Customer]):base.MList[Person]->cs.as[read,Person](base.BaseId[read Customer,Person]{#(read Customer):Person->::})}
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4241,7 +4241,7 @@ is implemented with an expression returning "Person".
 Parameter "::" has type "Person" instead of a subtype of "Customer".
 
 See inferred typing context below for how type "Customer" was introduced: (compression indicated by `-`)
-User:{.m:base.BaseId[Person,Customer]->base.BaseId[Person,Customer]{#(_aimpl:Person):Customer->::}}
+User:{.m:base.BaseId[Person,Customer]->base.BaseId[Person,Customer]{#(Person):Customer->::}}
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4273,7 +4273,7 @@ The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Other.cs.as[imm,Person](base.BaseId[Customer,Person]{#(_aimpl:Customer):Person->::})
+Other.cs.as[imm,Person](base.BaseId[Customer,Person]{#(Customer):Person->::})
 """, List.of("""
 Person:{}
 Customer:Person{}

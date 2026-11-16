@@ -166,7 +166,7 @@ public final class CompactPrinter{
     return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, k(Optional.of(c)));
   }
   PE ofLit(Literal l){
-    var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.xs(), m.e())).toList();
+    var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.names(), m.e())).toList();
     var priv= l.infName();
     var name= priv ? ""
       : t.of(l.name())+bounds(l.bs())+":"; // name[bs]:
