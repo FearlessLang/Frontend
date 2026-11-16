@@ -486,7 +486,6 @@ In file: [###].fear
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected: type name.
 Error 2 UnexpectedToken
 """, """
 A:{ .m(): -> (Block#.let x={5}) .use(x) }
@@ -580,7 +579,6 @@ In file: [###].fear
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected: type name.
 Error 2 UnexpectedToken
 """, """
 A:{ .m(a,,b):C }
@@ -620,7 +618,6 @@ In file: [###].fear
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected: type name.
 Error 2 UnexpectedToken
 """, """
 A:{ .m(,x:C):C->x }
@@ -633,7 +630,6 @@ In file: [###].fear
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected: type name.
 Error 2 UnexpectedToken
 """, """
 A:{ .m(y:C,,x:C):C->x }
@@ -735,7 +731,6 @@ In file: [###].fear
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected: type name.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -2243,7 +2238,6 @@ In file: [###].fear
 
 While inspecting header element > file header > full file
 Missing "in" keyword.
-Expected: "in".
 Error 2 UnexpectedToken
 """, """
 map goo as _boo;
@@ -2366,7 +2360,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing "of" keyword.
 Found instead: "_foo_v4".
-Expected: "of".
 Error 2 UnexpectedToken
 """, """
 map foo as _foo_v5 in _lib instead _foo_v4;
@@ -2451,7 +2444,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing "as" keyword.
 Found instead: "_foo_v5".
-Expected: "as".
 Error 2 UnexpectedToken
 """, """
 map foo _foo_v5 in _lib;
@@ -2493,7 +2485,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing "as" keyword.
 Found instead: ".bar".
-Expected: "as".
 Error 2 UnexpectedToken
 """, """
 map foo.bar as _foo_v5 in _lib;
@@ -2589,7 +2580,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing "in" keyword.
 Found instead: "_lib".
-Expected: "in".
 Error 2 UnexpectedToken
 """, """
 map foo as _foo_v5 _lib;
@@ -2647,7 +2637,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing simple type name.
 Found instead: "beer.F1".
-Expected: type name.
 Error 2 UnexpectedToken
 """, """
 
@@ -2663,7 +2652,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing type name.
 Found instead: "a1".
-Expected: type name.
 Error 2 UnexpectedToken
 """, """
 use a1 as F1;
@@ -2752,7 +2740,6 @@ In file: [###].fear
 While inspecting type declaration > full file
 Missing simple type name.
 Found instead: "foo.A".
-Expected: type name.
 Error 2 UnexpectedToken
 """, """
 foo.A:{  }

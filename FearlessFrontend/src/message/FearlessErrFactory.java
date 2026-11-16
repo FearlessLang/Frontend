@@ -39,7 +39,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels, Parser parser){
     assert nonNull(at, what, expectedLabels);
-    return Code.UnexpectedToken.of("Missing "+(what.isBlank() ? "element" : what)+".\n"+expected(expectedLabels)).addSpan(at);
+    return Code.UnexpectedToken.of("Missing "+(what.isBlank() ? "element" : what)+".\n"+expected(what, expectedLabels)).addSpan(at);
   }
   public FearlessException topLevelSemicolon(Span at){ return Code.UnexpectedToken.of(this::topLevelSemicolonMsg).addSpan(at); }
   private String topLevelSemicolonMsg(){
@@ -294,7 +294,10 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       owner+" cannot declare multiple "+plural+" with the same name.\n"
       +singular+" "+disp(redeclaredElement(names))+" is repeated.").addSpan(at);
   }
-  private static String expected(Collection<TokenKind> items){ return expected("", "Expected: ", "Expected one of: ", items, tk -> tk.human); }
+  private static String expected(String what, Collection<TokenKind> items){
+    var named= items.size() == 1 && what.contains(items.iterator().next().human);
+    return named ? "" : expected("", "Expected: ", "Expected one of: ", items, tk -> tk.human);
+  }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
     var labels= items.stream().map(f).distinct().toList();
     return Join.of(labels, labels.size() == 1 ? pre1 : preMany, ", ", ".\n", pre0.isEmpty() ? "" : pre0+".\n");
@@ -377,7 +380,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var msg=
       "Missing "+(what.isBlank() ? "element" : what)+".\n"
     +"Found instead: "+found(found)+".\n"
-    +expected(expectedTokens);
+    +expected(what, expectedTokens);
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   public FearlessException badTopSelfName(Span at, String name){

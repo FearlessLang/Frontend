@@ -1564,7 +1564,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing "of" keyword.
 Found instead: "_d".
-Expected: "of".
 Error 2 UnexpectedToken
 """, Map.of("c", cA), Map.of("a", "c"), """
 map a as _c in _b instead _d;
