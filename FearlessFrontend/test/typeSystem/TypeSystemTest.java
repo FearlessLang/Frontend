@@ -1244,7 +1244,7 @@ Hint: funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of
 
 While inspecting parameter "beer" > method ".get" (line 3) > method ".m(_)" (line 2)
 Parameter "beer" has type "X".
-The type of parameter "beer" can be instantiated with hygienics (readH or mutH)
+The type of parameter "beer" can be instantiated with a hygienic capability (readH or mutH)
 and thus it cannot be captured in the object literal "G[_]" (line 3).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)

@@ -185,7 +185,7 @@ B:{ .break(prisoner: readH B): mut A[readH B] -> {prisoner} }
 
 While inspecting parameter "x" > method ".prison" (line 2) > method ".break(_)" (line 2)
 Parameter "x" has type "X".
-The type of parameter "x" can be instantiated with hygienics (readH or mutH)
+The type of parameter "x" can be instantiated with a hygienic capability (readH or mutH)
 and thus it cannot be captured in the object literal instance of "mut A[X]" (line 2).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -246,7 +246,7 @@ A:{ read .m[T:*](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
 
 While inspecting parameter "par" > method ".absMeth" (line 3) > method ".m(_)" (line 3)
 Parameter "par" has type "T".
-The type of parameter "par" can be instantiated with hygienics (readH or mutH)
+The type of parameter "par" can be instantiated with a hygienic capability (readH or mutH)
 and thus it cannot be captured in the object literal instance of "mut L[mutH T]" (line 3).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
