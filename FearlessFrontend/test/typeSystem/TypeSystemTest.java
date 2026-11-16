@@ -6430,4 +6430,22 @@ U:{.u(P):U->base.Destruct#[imm,P,U](_adiv.a,mut base.MF[P,U]{mut #(a:P):U->a})}
 P:{ .a: P }
 U:{ .u({.a}: P): U -> a }
 """));}
+@Test void aFreshNameStandingForTwoNamesGetsNoNote(){fail("""
+003| B:{ .u({.a}: P, xyzwb: P): A -> xyzwb }
+   |     ----------------------------^^^^^
+
+While inspecting parameter "xyzwb" > method "#(_,_)" (line 3) > method ".u(_,_)" (line 3)
+Method "#(_,_)" inside the object literal instance of "mut base.MF[P,P,A]" (line 3)
+is implemented with an expression returning "P".
+Parameter "xyzwb" has type "P" instead of a subtype of "A".
+
+Name "_adiv" is a parameter added by the desugaring of a destructuring pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+B:{.u(P,xyzwb:P):A->base.Destruct#[imm,P,P,A](_adiv.a,_axyzw,mut base.MF[P,P,A]{mut #(a:P,xyzwb:P):A->xyzwb})}
+""", List.of("""
+P:{ .a: P }
+A:{ .u({.a}: P, xyzwa: P): P -> a }
+B:{ .u({.a}: P, xyzwb: P): A -> xyzwb }
+"""));}
 }

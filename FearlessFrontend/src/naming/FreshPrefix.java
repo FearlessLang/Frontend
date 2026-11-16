@@ -12,7 +12,7 @@ public record FreshPrefix(
     HashSet<String> allGenericNames,
     HashMap<TName,OwnerState> owners,
     String pkgName,
-    HashSet<String> written,
+    HashSet<String> noNote,
     HashMap<String,String> notes){
   private static final char[] up= "ABCDEFGHJKMNPQRSTUVWXYZ".toCharArray();
   private static final char[] low= "abcdefghjkmnpqrstuvwxyz".toCharArray();
@@ -33,8 +33,8 @@ public record FreshPrefix(
       for (var x : xs.get(owner)){ genNames.add(x.name()); }
       allGenericNames.addAll(genNames);
       var vars= new HashSet<>(params.get(owner));
-      written.addAll(genNames);
-      written.addAll(vars);
+      noNote.addAll(genNames);
+      noNote.addAll(vars);
       owners.put(owner, new OwnerState(genNames, new HashMap<>(), vars, new HashMap<>()));
     }
   }
@@ -45,7 +45,11 @@ public record FreshPrefix(
     return res;
   }
   public String note(String name, Function<String,String> note){
-    if (!written.contains(name)){ notes.putIfAbsent(name, note.apply(name)); }
+    var text= note.apply(name);
+    var clash= noNote.contains(name) || !notes.getOrDefault(name, text).equals(text);
+    if (!clash){ notes.put(name, text); return name; }
+    noNote.add(name);
+    notes.remove(name);
     return name;
   }
   public boolean isFreshGeneric(TName owner, String x, List<String> scope){ return !owners.get(owner).gen().contains(x) && !usedTopTypes.contains(x) && !scope.contains(x); }
