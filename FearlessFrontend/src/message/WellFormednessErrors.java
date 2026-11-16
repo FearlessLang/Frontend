@@ -552,7 +552,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(Join.of(
         options.stream().map(mi -> methodSig(mi.rc().get()+" ", mi.m().get())),
         "Candidates: ", ", ", "."
-      )), m.sig(), origin);
+      ))
+      .line("Write the name of the method, choosing one of the candidates."), m.sig(), origin);
   }
   public FearlessException ambiguousImplementationFor(List<TName> options, Agreement at){
     return wf(err()
