@@ -433,16 +433,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert reqs.stream().allMatch(r -> canon(r.t()).equals(canon(declared)));
     if (isWrongUnderlyingType(ts, bs, canon(declared), res)){ return wrongUnderlyingTypeErr(d, c, argi, declared, res); }
     var gotHdr= headerBest(res);
-    var any= reqs.stream().map(TRequirement::t).map(t -> err().typeRepr(false, t)).distinct().toList();
     var r= Streams.zip(res, reqs).filter((ri,q) -> rcOnlyMismatch(ri.best, q.t())).map((ri,_) -> ri).findFirst().orElse(res.getFirst());
     var e= err()
       .pCallCantBeSatisfied(d, c)
-      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
-      .notInSubtypeList(any)
+      .line("Argument "+(argi+1)+" has type "+err().typeRepr(false, gotHdr)+".")
       .line(up(r.info(printed)))
       .blank()
       .line("Type required by each promotion:");
-    reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+"  ("+q.reqName()+")"));
+    reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+" ("+q.reqName()+")"));
     addNoPrecedenceHintIfOperator(e, c);
     var footer= r.footerE.get();
     return withCallSpans(e.ex(footer, c.es().get(argi)), c.es().get(argi), c);
@@ -499,8 +497,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     for (int argi : Range.of(0, args)){
       var ok= mat.okByArg().get(argi);
       assert !ok.isEmpty();
-      var promos= ok.stream().map(i -> mat.candidate(i).promotion()).distinct().sorted().toList();
-      var got= err().typeRepr(true, headerBest(mat.resByArg().get(argi)));
+      var promos= ok.stream().map(i -> mat.candidate(i).promotion()).distinct().toList();
+      var got= err().typeRepr(false, headerBest(mat.resByArg().get(argi)));
       e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos, "", ", ", "")+".");
     }
     e.blank().line("Promotion failures:");

@@ -1818,12 +1818,11 @@ User:{
 While inspecting method ".foo" (line 5) > method ".f(_)" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Method call "AsRead#(_)" has type "read A" instead of a subtype of "mut A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
@@ -1843,15 +1842,14 @@ A:{
 While inspecting method ".foo" (line 5) > method ".f(_)" (line 5)
 This call to method "Skip#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capturing changes the type of parameter "aaaa":
 - "mut A" becomes "read A" inside the "read" method ".foo" (line 5).
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa)}}
@@ -1905,12 +1903,11 @@ A:{
 While inspecting method ".f(_)" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Method call "IdRO#(_)" has type "read A" instead of a subtype of "mut A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{.f(aaaa:mut A):B->Need#(IdRO#[imm,read A](aaaa))}
@@ -1932,13 +1929,12 @@ A:{
 While inspecting method ".f" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Object literal is of type "read A" instead of a subtype of "mut A".
 Hint: write "mut A" if you need a "mut" object literal.
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 User:{.f:B->Need#(read A)}
@@ -2465,12 +2461,11 @@ A:{
 While inspecting method ".foo" (line 6) > method ".f(_)" (line 6)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Method call "AsRead#(_)" has type "read A" instead of a subtype of "mut A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
@@ -4932,7 +4927,6 @@ User:{ .nested(css: L[L[C]]): C -> C; .t: C -> this.nested(Ls#(Ls#(C))) }
 While inspecting method ".f" (line 5)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mutH A" or "iso A".
 Object literal is of type "read A" instead of a subtype of "mutH A".
 Hint: write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
 
@@ -6041,7 +6035,7 @@ Argument 1 has type "read Foo".
 Parameter "s" has type "read Foo" instead of a subtype of "imm Foo".
 
 Type required by each promotion:
-- "imm Foo"  (As declared, Strengthen result)
+- "imm Foo" (As declared, Strengthen result)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{.k:base.Void->read Foo:{'s read .z:base.Void->Use#(s)}.z[read]}

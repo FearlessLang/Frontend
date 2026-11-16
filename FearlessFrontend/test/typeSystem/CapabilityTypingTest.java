@@ -588,8 +588,8 @@ This call to method "A.m1(_,_,_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
 Compatible promotions by argument:
-- Argument 1 has type "iso A" and is compatible with: Allow mutH argument 3, Allow mutH argument 4, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1, Allow mutH argument 2, As declared, Strengthen result, Strengthen hygienic result.
-- Argument 2 has type "iso A" and is compatible with: Allow mutH argument 3, Allow mutH argument 4, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1, Allow mutH argument 2, As declared, Strengthen result, Strengthen hygienic result.
+- Argument 1 has type "iso A" and is compatible with: As declared, Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1, Allow mutH argument 2, Allow mutH argument 3, Allow mutH argument 4.
+- Argument 2 has type "iso A" and is compatible with: As declared, Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1, Allow mutH argument 2, Allow mutH argument 3, Allow mutH argument 4.
 - Argument 3 has type "mutH A" and is compatible with: Allow mutH argument 3.
 - Argument 4 has type "mutH A" and is compatible with: Allow mutH argument 4.
 
@@ -619,7 +619,7 @@ Argument 3 has type "mutH A".
 Parameter "a" has type "mutH A" instead of a subtype of "iso A".
 
 Type required by each promotion:
-- "iso A"  (Allow mutH receiver)
+- "iso A" (Allow mutH receiver)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{mut .m1(a1:A,a2:iso A,a3:mut A,a4:mut A):mut A->this;.call(a:mutH A):mutH A->a.m1[mut](A,iso A,a,iso A)}
@@ -682,12 +682,11 @@ C:{ .m[Y:*](y: read Y): read Y -> A.m[Y](y) }
 While inspecting method ".m(_)" (line 3)
 This call to method "A.m(_)" cannot typecheck.
 Argument 1 has type "read Y".
-That is not a subtype of any of "read/imm Y" or "imm Y".
 Parameter "y" has type "read Y" instead of a subtype of "read/imm Y".
 
 Type required by each promotion:
-- "read/imm Y"  (As declared)
-- "imm Y"  (Strengthen result)
+- "read/imm Y" (As declared)
+- "imm Y" (Strengthen result)
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 C:{.m[Y:*](y:read Y):read/imm Y->A.m[imm,Y](y)}
