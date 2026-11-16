@@ -56,7 +56,7 @@ In file: [###].fear
 001| B:a.A{ .fromC -> base.Void }
    |        ----------^^^^^^^^^
 
-While inspecting object literal instance of "base.Void" > ".fromC" line 1
+While inspecting object literal instance of "base.Void" > method ".fromC" (line 1)
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
 
@@ -73,7 +73,7 @@ In file: [###].fear
 001| B:{.k(x:a.A):B->x.m}
    |    -------------^^^
 
-While inspecting method call ".m" > ".k(_)" line 1
+While inspecting method call ".m" > method ".k(_)" (line 1)
 The body of method ".k(_)" of type declaration "B" is an expression returning "a.A".
 Method call "a.A.m" has type "a.A" instead of a subtype of "B".
 
@@ -322,7 +322,7 @@ In file: [###].fear
 002| B:{.m(x:A):A->x.fromA}
    |    -----------~^^^^^^
 
-While inspecting ".m(_)" line 2
+While inspecting method ".m(_)" (line 2)
 This call to method ".fromA" cannot typecheck.
 Method ".fromA" is not declared on type "A".
 
@@ -345,7 +345,7 @@ In file: [###].fear
 002| B:{.m(x:X):X->x.fromA}
    |    -----------~^^^^^^
 
-While inspecting ".m(_)" line 2
+While inspecting method ".m(_)" (line 2)
 This call to method ".fromA" cannot typecheck.
 Method ".fromA" is not declared on type "X".
 
@@ -467,7 +467,7 @@ In file: [###].fear
 001| B:{ .m:B -> 5 }
    |     --------^
 
-While inspecting object literal instance of "bb.Nat" > ".m" line 1
+While inspecting object literal instance of "bb.Nat" > method ".m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Nat".
 Object literal is of type "bb.Nat" instead of a subtype of "B".
 
@@ -484,7 +484,7 @@ In file: [###].fear
 001| B:{ .m:B -> 5.foo }
    |     --------~^^^^
 
-While inspecting ".m" line 1
+While inspecting method ".m" (line 1)
 This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on type "bb.Nat".
 
@@ -542,7 +542,7 @@ In file: [###].fear
 001| B:{ .k:a.S -> a.S }
    |     ----------^^^
 
-While inspecting object literal instance of "iso a.S" > ".k" line 1
+While inspecting object literal instance of "iso a.S" > method ".k" (line 1)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "a.S".
@@ -685,7 +685,7 @@ In file: [###].fear
 001| B:{.m(x:a.Box[a.A]):B->x.get}
    |    --------------------^^^^^
 
-While inspecting method call ".get" > ".m(_)" line 1
+While inspecting method call ".get" > method ".m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "a.A".
 Method call "a.Box[_].get" has type "a.A" instead of a subtype of "B".
 
@@ -702,7 +702,7 @@ In file: [###].fear
 001| B:{.m(x:a.Box[B]):a.A->x.get}
    |    --------------------^^^^^
 
-While inspecting method call ".get" > ".m(_)" line 1
+While inspecting method call ".get" > method ".m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "B".
 Method call "a.Box[_].get" has type "B" instead of a subtype of "a.A".
 
@@ -719,7 +719,7 @@ In file: [###].fear
 002| B:{.m(x:a.Box[X]):B->x.get}
    |    ------------------^^^^^
 
-While inspecting method call ".get" > ".m(_)" line 2
+While inspecting method call ".get" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "B" is an expression returning "X".
 Method call "a.Box[_].get" has type "X" instead of a subtype of "B".
 
@@ -738,7 +738,7 @@ In file: [###].fear
 003| B:{.m(x:Bx[X]):B->x.get}
    |    ---------------^^^^^
 
-While inspecting method call ".get" > ".m(_)" line 3
+While inspecting method call ".get" > method ".m(_)" (line 3)
 The body of method ".m(_)" of type declaration "B" is an expression returning "X".
 Method call "Bx[_].get" has type "X" instead of a subtype of "B".
 
@@ -800,7 +800,7 @@ In file: [###].fear
 002| B:{.m(x:OldServer):web.Server->x}
    |    ----------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 2
+While inspecting parameter "x" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "B" is an expression returning "OldServer".
 Parameter "x" has type "OldServer" instead of a subtype of "web.Server".
 
@@ -820,7 +820,7 @@ In file: [###].fear
 002| B:{.m(x:OldServer, y:web.Server):web.Server->x.v2}
    |    ------------------------------------------~^^^
 
-While inspecting ".m(_,_)" line 2
+While inspecting method ".m(_,_)" (line 2)
 This call to method ".v2" cannot typecheck.
 Method ".v2" is not declared on type "OldServer".
 Did you mean ".v1" ?
@@ -843,7 +843,7 @@ In file: [###].fear
 001| B:{.m(x:a.A):a.A->x.nope}
    |    ---------------~^^^^^
 
-While inspecting ".m(_)" line 1
+While inspecting method ".m(_)" (line 1)
 This call to method ".nope" cannot typecheck.
 Method ".nope" is not declared on type "a.A".
 
@@ -863,7 +863,7 @@ In file: [###].fear
 001| B:{.m(x:read a.A):mut a.A->x}
    |    ------------------------^
 
-While inspecting parameter "x" > ".m(_)" line 1
+While inspecting parameter "x" > method ".m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "read a.A".
 Parameter "x" has type "read a.A" instead of a subtype of "mut a.A".
 
@@ -884,7 +884,7 @@ In file: [###].fear
 001| B:{.m(x:a.Box[a.A], d:a.D):a.Box[a.A]->x.put(d)}
    |    ------------------------------------~~~~~~^~
 
-While inspecting ".m(_,_)" line 1
+While inspecting method ".m(_,_)" (line 1)
 This call to method "a.Box[_].put(_)" cannot typecheck.
 Argument 1 has type "a.D".
 That is not a subtype of "a.A" (the type required by the method signature).
@@ -902,7 +902,7 @@ In file: [###].fear
 002| B:{.m(x:a.Box[X], d:a.D):a.Box[X]->x.put(d)}
    |    --------------------------------~~~~~~^~
 
-While inspecting ".m(_,_)" line 2
+While inspecting method ".m(_,_)" (line 2)
 This call to method "a.Box[_].put(_)" cannot typecheck.
 Argument 1 has type "a.D".
 That is not a subtype of "X" (the type required by the method signature).
@@ -922,7 +922,7 @@ In file: [###].fear
 001| B:{.m:a.A->a.A{.fromC->base.Void}}
    |    ------------~~~~~~~~^^^^^^^^^-
 
-While inspecting object literal instance of "base.Void" > ".fromC" line 1 > ".m" line 1
+While inspecting object literal instance of "base.Void" > method ".fromC" (line 1) > method ".m" (line 1)
 Method ".fromC" inside the object literal instance of "iso a.A" (line 1)
 is implemented with an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
@@ -940,7 +940,7 @@ In file: [###].fear
 001| B:{.m:a.Box[a.A]->{}}
    |    ---------------^^
 
-While inspecting object literal instance of "iso a.Box[a.A]" > ".m" line 1
+While inspecting object literal instance of "iso a.Box[a.A]" > method ".m" (line 1)
 This object literal is missing a required method.
 Missing: "imm .get".
 Required by: "a.Box[_]".
@@ -959,7 +959,7 @@ In file: [###].fear
 001| B:{ .m:B -> "hi" }
    |     --------^^^^
 
-While inspecting object literal instance of "bb.Str" > ".m" line 1
+While inspecting object literal instance of "bb.Str" > method ".m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Str".
 Object literal is of type "bb.Str" instead of a subtype of "B".
 
@@ -976,7 +976,7 @@ In file: [###].fear
 002| B:{ .m:B -> 5 }
    |     --------^
 
-While inspecting object literal instance of "N" > ".m" line 2
+While inspecting object literal instance of "N" > method ".m" (line 2)
 The body of method ".m" of type declaration "B" is an expression returning "iso N".
 Object literal is of type "N" instead of a subtype of "B".
 
@@ -995,7 +995,7 @@ In file: [###].fear
 001| B:{ .m:bb.Nat -> +5 }
    |     -------------^^
 
-While inspecting object literal instance of "bb.Int" > ".m" line 1
+While inspecting object literal instance of "bb.Int" > method ".m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Int".
 Object literal is of type "bb.Int" instead of a subtype of "bb.Nat".
 
@@ -1012,7 +1012,7 @@ In file: [###].fear
 001| B:{.m(x:a.B):B->x}
    |    -------------^
 
-While inspecting parameter "x" > ".m(_)" line 1
+While inspecting parameter "x" > method ".m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "a.B".
 Parameter "x" has type "a.B" instead of a subtype of "B".
 
@@ -1029,7 +1029,7 @@ In file: [###].fear
 001| B:{.m(x:a.A):B->x.n}
    |    -------------^^^
 
-While inspecting method call ".n" > ".m(_)" line 1
+While inspecting method call ".n" > method ".m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "bb.Nat".
 Method call "a.A.n" has type "bb.Nat" instead of a subtype of "B".
 
@@ -1047,7 +1047,7 @@ In file: [###].fear
 001| B:{.m(x:a.G, d:a.D):B->x.id[a.D](d)}
    |    --------------------^^^^^^^^^^^^
 
-While inspecting method call ".id(_)" > ".m(_,_)" line 1
+While inspecting method call ".id(_)" > method ".m(_,_)" (line 1)
 The body of method ".m(_,_)" of type declaration "B" is an expression returning "a.D".
 Method call "a.G.id(_)" has type "a.D" instead of a subtype of "B".
 
@@ -1068,7 +1068,7 @@ In file: [###].fear
 002| B:{.m:X->X{.fromC->B}}
    |    --------~~~~~~~~^-
 
-While inspecting object literal instance of "B" > ".fromC" line 2 > ".m" line 2
+While inspecting object literal instance of "B" > method ".fromC" (line 2) > method ".m" (line 2)
 Method ".fromC" inside the object literal instance of "iso X" (line 2)
 is implemented with an expression returning "iso B".
 Object literal is of type "B" instead of a subtype of "X".
@@ -1278,7 +1278,7 @@ In file: [###].fear
 003| A:{ .f(aaaa:mut A):B->Need#(a.IdRO#[read A](aaaa)); }
    |     ------------------~~~~~~^^^^^^^^^^^^^^^^^^^^^~
 
-While inspecting ".f(_)" line 3
+While inspecting method ".f(_)" (line 3)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A".
@@ -1304,7 +1304,7 @@ In file: [###].fear
 004| A:{ .f(aaaa:mut A):B->Need#(Ro#[read A](aaaa)); }
    |     ------------------~~~~~~^^^^^^^^^^^^^^^^^~
 
-While inspecting ".f(_)" line 4
+While inspecting method ".f(_)" (line 4)
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A".
@@ -1332,7 +1332,7 @@ In file: [###].fear
 001| A:{ .f(p:read A, q:mut A):A->this; .caller(x:readH A, y:mutH A):A->this.f(a.Id#(x), y); }
    |                                    --------------------------------~~~~^^~~~~~~~~~~~~~
 
-While inspecting ".caller(_,_)" line 1
+While inspecting method ".caller(_,_)" (line 1)
 This call to method "A.f(_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
@@ -1362,7 +1362,7 @@ In file: [###].fear
 001| B:{.m(x:z.A):a.A->x}
    |    ---------------^
 
-While inspecting parameter "x" > ".m(_)" line 1
+While inspecting parameter "x" > method ".m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "z.A".
 Parameter "x" has type "z.A" instead of a subtype of "a.A".
 
@@ -1380,7 +1380,7 @@ In file: [###].fear
 003| B:{.m(x:Dd):X->x}
    |    ------------^
 
-While inspecting parameter "x" > ".m(_)" line 3
+While inspecting parameter "x" > method ".m(_)" (line 3)
 The body of method ".m(_)" of type declaration "B" is an expression returning "Dd".
 Parameter "x" has type "Dd" instead of a subtype of "X".
 
@@ -1401,7 +1401,7 @@ In file: [###].fear
 003| B:{.m(x:Y):X->x}
    |    -----------^
 
-While inspecting parameter "x" > ".m(_)" line 3
+While inspecting parameter "x" > method ".m(_)" (line 3)
 The body of method ".m(_)" of type declaration "B" is an expression returning "Y".
 Parameter "x" has type "Y" instead of a subtype of "X".
 
@@ -1774,7 +1774,7 @@ In file: [###].fear
 001| B:{.m(g:a.G, b:mut B):a.G->g#[mut B](b)}
    |    ------------------------^^^^^^^^^^^^
 
-While inspecting method call "#(_)" > ".m(_,_)" line 1
+While inspecting method call "#(_)" > method ".m(_,_)" (line 1)
 The call to "#(_)" is invalid.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "a.G#(_)".
@@ -1896,7 +1896,7 @@ In file: [###].fear
 003| U:{ .m:A -> Foo:A{'s .k -> s; .v -> G#(s, {}) } }
    |     --------------------------~~~~~~~~~~~~^^~--
 
-While inspecting object literal instance of "Foo" > ".v" line 3 > ".m" line 3
+While inspecting object literal instance of "Foo" > method ".v" (line 3) > method ".m" (line 3)
 The type "Foo" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "bb.CaptureFree".
@@ -1917,7 +1917,7 @@ In file: [###].fear
 001| B:{ mut .baz(m:mut a.M):read a.M -> { .bar -> m } }
    |     --------------------------------~~^^^^^^^^^~~
 
-While inspecting object literal instance of "read a.M" > ".baz(_)" line 1
+While inspecting object literal instance of "read a.M" > method ".baz(_)" (line 1)
 The method "mut a.M.bar" is dead code.
 The object literal instance of "a.M" is "read", so it will never be seen as "mut".
 But it implements method "mut .bar", which requires a "mut" receiver.
@@ -1936,7 +1936,7 @@ In file: [###].fear
 001| B:{.m(x:a.A):a.A->a.A{'s .fromC -> x}}
    |    ---------------^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "a.A" > ".m(_)" line 1
+While inspecting object literal instance of "a.A" > method ".m(_)" (line 1)
 The self name "s" is dead code.
 No method of the object literal instance of "a.A" uses it.
 Remove "'s" from the object literal.
@@ -1955,7 +1955,7 @@ In file: [###].fear
 001| B:{.k:a.F -> a.F{ .m(x) -> a.Use2#(x, x) }}
    |                   -----------------^~~~-
 
-While inspecting ".m(_)" line 1 > ".k" line 1
+While inspecting method ".m(_)" (line 1) > method ".k" (line 1)
 Iso parameter "x" violates the single-use rule in method "a.F.m(_)" (line 1).
 It is used directly 2 times.
 Iso parameters can be used directly at most once.
@@ -1975,7 +1975,7 @@ In file: [###].fear
 001| B:{ .m(x:mut a.D):a.G -> a.G{ # -> a.Ignore#(x) } }
    |     --------------------------~~~~~~~~~~~~~~~^~--
 
-While inspecting parameter "x" > "#" line 1 > ".m(_)" line 1
+While inspecting parameter "x" > method "#" (line 1) > method ".m(_)" (line 1)
 Parameter "x" has type "mut a.D".
 Parameter "x" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "a.G" (line 1).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
@@ -1994,7 +1994,7 @@ In file: [###].fear
 001| B:{ #(d:a.D):a.G -> {d} }
    |     -----------------^-
 
-While inspecting parameter "d" > "#" line 1 > "#(_)" line 1
+While inspecting parameter "d" > method "#" (line 1) > method "#(_)" (line 1)
 Object literal instance of "iso a.G" (line 1) implements "bb.CaptureFree".
 Thus parameter "d" (line 1) cannot be captured in that object literal.
 
@@ -2013,7 +2013,7 @@ In file: [###].fear
 001| B:{.m(x:a.A):a.A->x.fromC(x)}
    |    ---------------~^^^^^^~~~
 
-While inspecting ".m(_)" line 1
+While inspecting method ".m(_)" (line 1)
 This call to method ".fromC(_)" cannot typecheck.
 There is a method ".fromC" on type "a.A",
 but with a different number of arguments.
@@ -2033,7 +2033,7 @@ In file: [###].fear
 001| B:{.m(x:mut a.R):a.R->x.go[read]}
    |    -------------------~^^^~~~~~~
 
-While inspecting ".m(_)" line 1
+While inspecting method ".m(_)" (line 1)
 This call to method ".go" cannot typecheck.
 ".go" exists on type "a.R", but not with the requested capability.
 This call requires a method with capability "read".
@@ -2053,7 +2053,7 @@ In file: [###].fear
 001| B:{.m(x:read a.R):a.R->x.go}
    |    --------------------^~~~
 
-While inspecting ".m(_)" line 1
+While inspecting method ".m(_)" (line 1)
 This call to method "mut a.R.go" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
@@ -2076,7 +2076,7 @@ In file: [###].fear
 001| B:{.m(p:a.Pairer):B->p.pair[B](this, this)}
    |    ------------------~^^^^^~~~~~~~~~~~~~~~
 
-While inspecting ".m(_)" line 1
+While inspecting method ".m(_)" (line 1)
 This call to method "a.Pairer.pair(_,_)" cannot typecheck.
 Wrong number of generic type arguments for ".pair(_,_)".
 Method ".pair(_,_)" declares 2 generic type parameters.
@@ -2097,7 +2097,7 @@ In file: [###].fear
 001| B:{.f:a.D->a.Need#(read a.A2{})}
    |    --------~~~~~~~~^^^^^^^^^^^~
 
-While inspecting ".f" line 1
+While inspecting method ".f" (line 1)
 This call to method "a.Need#(_)" cannot typecheck.
 Argument 1 has type "read a.A2".
 That is not a subtype of any of "mut a.A2" or "iso a.A2".
@@ -2122,7 +2122,7 @@ In file: [###].fear
 001| B:{ read .m(x:mut a.D):mut a.D -> read a.Get{ x } }
    |     ------------------------------------------^--
 
-While inspecting parameter "x" > ".get" line 1 > ".m(_)" line 1
+While inspecting parameter "x" > method ".get" (line 1) > method ".m(_)" (line 1)
 Method ".get" inside the object literal instance of "read a.Get" (line 1)
 is implemented with an expression returning "read a.D".
 Parameter "x" has type "read a.D" instead of a subtype of "mut a.D".
@@ -2761,7 +2761,7 @@ In file: [###].fear
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
    |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "L" > ".k" line 2
+While inspecting object literal instance of "L" > method ".k" (line 2)
 The self name "s" is dead code.
 No method of the object literal instance of "L" uses it.
 Remove "'s" from the object literal.
@@ -2797,7 +2797,7 @@ In file: [###].fear
 003| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
    |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "L" > ".k" line 3
+While inspecting object literal instance of "L" > method ".k" (line 3)
 The self name "s" is dead code.
 No method of the object literal instance of "L" uses it.
 Remove "'s" from the object literal.
@@ -2816,7 +2816,7 @@ In file: [###].fear
 002| B:{ .k:X -> X{'s .fromC -> this} }
    |     -------------~~~~~~~~~~^^^^-
 
-While inspecting parameter "this" > ".fromC" line 2 > ".k" line 2
+While inspecting parameter "this" > method ".fromC" (line 2) > method ".k" (line 2)
 Method ".fromC" inside the object literal instance of "iso X" (line 2)
 is implemented with an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "X".
@@ -2838,7 +2838,7 @@ In file: [###].fear
 002| B:{ .k:a.A -> L{ .m0(x) -> x; } }
    |     ----------^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "L" > ".k" line 2
+While inspecting object literal instance of "L" > method ".k" (line 2)
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
 Object literal is of type "iso L" instead of a subtype of "a.A".
 
@@ -2858,7 +2858,7 @@ In file: [###].fear
 003| B:{ .k:a.A2 -> L{ .m0(x) -> x; } }
    |     -----------^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "L" > ".k" line 3
+While inspecting object literal instance of "L" > method ".k" (line 3)
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
 Object literal is of type "iso L" instead of a subtype of "a.A2".
 
@@ -2879,7 +2879,7 @@ In file: [###].fear
 001| B:{ .m(x:a.A):B -> 5 }
    |     ---------------^
 
-While inspecting object literal instance of "bb.Nat" > ".m(_)" line 1
+While inspecting object literal instance of "bb.Nat" > method ".m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "iso bb.Nat".
 Object literal is of type "bb.Nat" instead of a subtype of "B".
 
@@ -2898,7 +2898,7 @@ In file: [###].fear
 001| B:{.m(x:a.A, n:bb.Nat):B->x}
    |    -----------------------^
 
-While inspecting parameter "x" > ".m(_,_)" line 1
+While inspecting parameter "x" > method ".m(_,_)" (line 1)
 The body of method ".m(_,_)" of type declaration "B" is an expression returning "a.A".
 Parameter "x" has type "a.A" instead of a subtype of "B".
 
@@ -2917,7 +2917,7 @@ In file: [###].fear
 001| B:{.m(x:z.A, q:d.Q):a.A->x}
    |    ----------------------^
 
-While inspecting parameter "x" > ".m(_,_)" line 1
+While inspecting parameter "x" > method ".m(_,_)" (line 1)
 The body of method ".m(_,_)" of type declaration "B" is an expression returning "z.A".
 Parameter "x" has type "z.A" instead of a subtype of "a.A".
 
@@ -2936,7 +2936,7 @@ In file: [###].fear
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
    |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "L" > ".k" line 2
+While inspecting object literal instance of "L" > method ".k" (line 2)
 The self name "s" is dead code.
 No method of the object literal instance of "L" uses it.
 Remove "'s" from the object literal.
@@ -2954,7 +2954,7 @@ In file: [###].fear
 004| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
    |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "L" > ".k" line 4
+While inspecting object literal instance of "L" > method ".k" (line 4)
 The self name "s" is dead code.
 No method of the object literal instance of "L" uses it.
 Remove "'s" from the object literal.
@@ -2974,7 +2974,7 @@ In file: [###].fear
 002| B:{ .k:bb.Str -> L{ .m0(x) -> x; } }
    |     -------------^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "L" > ".k" line 2
+While inspecting object literal instance of "L" > method ".k" (line 2)
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
 Object literal is of type "iso L" instead of a subtype of "bb.Str".
 
@@ -2994,7 +2994,7 @@ In file: [###].fear
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
    |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "L" > ".k" line 2
+While inspecting object literal instance of "L" > method ".k" (line 2)
 The self name "s" is dead code.
 No method of the object literal instance of "L" uses it.
 Remove "'s" from the object literal.

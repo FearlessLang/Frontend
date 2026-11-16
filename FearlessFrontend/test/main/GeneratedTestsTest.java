@@ -97,7 +97,7 @@ In file: fear:/___DBG___/p_test.fear
 001| T:{ .a: A -> A.zz }
    |     ---------~^^^
 
-While inspecting ".a" line 1
+While inspecting method ".a" (line 1)
 This call to method ".zz" cannot typecheck.
 Method ".zz" is not declared on type "A".
 
@@ -139,7 +139,7 @@ In file: fear:/___DBG___/_rank_app999.fear
 005| //> A.zz
    |     -^^^
 
-While inspecting ".a" line 5
+While inspecting method ".a" (line 5)
 This call to method ".zz" cannot typecheck.
 Method ".zz" is not declared on type "A".
 
@@ -169,7 +169,7 @@ In file: fear:/___DBG___/in_memory1.fear
 002| //> B.zz
    |     -^^^
 
-While inspecting ".u" line 2
+While inspecting method ".u" (line 2)
 This call to method ".zz" cannot typecheck.
 Method ".zz" is not declared on type "B".
 

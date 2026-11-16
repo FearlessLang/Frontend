@@ -36,7 +36,7 @@ B:A[FortyTwo]{ .count -> FortyTwo; .sum -> FortyTwo{} }
 005| B:A[FortyTwo]{ .count -> FortyTwo; .sum -> FortyThree }
    |                                    --------^^^^^^^^^^
 
-While inspecting object literal instance of "FortyThree" > ".sum" line 5
+While inspecting object literal instance of "FortyThree" > method ".sum" (line 5)
 The body of method ".sum" of type declaration "B" is an expression returning "iso FortyThree".
 Object literal is of type "FortyThree" instead of a subtype of "FortyTwo".
 
@@ -53,7 +53,7 @@ B:A[FortyTwo]{ .count -> FortyTwo; .sum -> FortyThree }
 004| B:A[FortyTwo]{ .count -> FortyTwo; .sum(n) -> n }
    |                                    -----------^
 
-While inspecting parameter "n" > ".sum(_)" line 4
+While inspecting parameter "n" > method ".sum(_)" (line 4)
 The body of method ".sum(_)" of type declaration "B" is an expression returning "mut FortyTwo".
 Parameter "n" has type "mut FortyTwo" instead of a subtype of "imm FortyTwo".
 
@@ -115,7 +115,7 @@ Test:{ #: B -> Anon:A,B{'self .foo -> self } }
 004| Bar:{ .k[Y:*](y: Y): iso Beer[Y] -> Foo.m[Y](y) }
    |       ------------------------------^^^^^^^^^^^
 
-While inspecting method call ".m(_)" > ".k(_)" line 4
+While inspecting method call ".m(_)" > method ".k(_)" (line 4)
 The body of method ".k(_)" of type declaration "Bar" is an expression returning "mut Beer[Y]".
 Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "iso Beer[Y]".
 
@@ -135,7 +135,7 @@ Break:{
 004| Bar:{ .k[Y:*](y: Y): imm Beer[Y] -> Foo.m[Y](y) }
    |       ------------------------------^^^^^^^^^^^
 
-While inspecting method call ".m(_)" > ".k(_)" line 4
+While inspecting method call ".m(_)" > method ".k(_)" (line 4)
 The body of method ".k(_)" of type declaration "Bar" is an expression returning "mut Beer[Y]".
 Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "Beer[Y]".
 
@@ -365,7 +365,7 @@ Concrete:{ #(y: mutH Foo, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[mutH Foo](
 004| Bad:{ #[Y:mut,mutH,readH](y: Y, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[Y](y, isoF)) }
    |       -----------------------------------------------------~~~~~~~~~~~~~~^^^^^^^^^^^^^^~
 
-While inspecting "#(_,_)" line 4
+While inspecting method "#(_,_)" (line 4)
 This call to method "Expect.isoFoo(_)" cannot typecheck.
 Argument 1 has type "mut Foo".
 Method call "A#(_,_)" has type "mut Foo" instead of a subtype of "iso Foo".
@@ -437,7 +437,7 @@ Break:A[mut Break]{}
 003| BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
    |              -----------------~~~~~~~~~~~~^^^^^^^^^^^^~~
 
-While inspecting object literal "iso BreakInner" > "#" line 3
+While inspecting object literal "iso BreakInner" > method "#" (line 3)
 The type "A[Break]" is invalid.
 Generic type argument 1 ("Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
@@ -463,7 +463,7 @@ Break:{ #: imm Break -> A#(imm Break) }
 003| A:{ .f[Z:mut](z: Z): Foo -> Util.m(z) }
    |     ------------------------^^^^^^^^^
 
-While inspecting method call ".m(_)" > ".f(_)" line 3
+While inspecting method call ".m(_)" > method ".f(_)" (line 3)
 The call to ".m(_)" is invalid.
 Generic type argument 1 ("Z") does not satisfy the bounds
 for generic type parameter "Y" in "Util.m(_)".
@@ -486,7 +486,7 @@ A:{ .f[Z:imm](z: Z): Foo -> Util.m(z) }
 003| A[Z:mut]:{ .f(z: Z): Foo -> Util.m(z) }
    |            -----------------^^^^^^^^^
 
-While inspecting method call ".m(_)" > ".f(_)" line 3
+While inspecting method call ".m(_)" > method ".f(_)" (line 3)
 The call to ".m(_)" is invalid.
 Generic type argument 1 ("Z") does not satisfy the bounds
 for generic type parameter "Y" in "Util.m(_)".
@@ -514,7 +514,7 @@ A:{ .m[Y:imm,mut](y: imm Y): Foo[imm Y] -> Foo[Y]{ .get -> y } }
 003| Break:{ .m(f: imm Foo): imm Foo -> A#(f) }
    |         ---------------------------~~~^~
 
-While inspecting ".m(_)" line 3
+While inspecting method ".m(_)" (line 3)
 This call to method "A#(_)" cannot typecheck.
 Argument 1 has type "Foo".
 That is not a subtype of any of "mut Foo" or "iso Foo".
@@ -535,7 +535,7 @@ Break:{ .m(f: imm Foo): imm Foo -> A#(f) }
 003| Break:{ .m(f: imm Foo): imm Foo -> A#[imm Foo](f) }
    |         ---------------------------^^^^^^^^^^^^^^
 
-While inspecting method call "#(_)" > ".m(_)" line 3
+While inspecting method call "#(_)" > method ".m(_)" (line 3)
 The call to "#(_)" is invalid.
 Generic type argument 1 ("Foo") does not satisfy the bounds
 for generic type parameter "X" in "A#(_)".
@@ -690,7 +690,7 @@ Ex:{
    | ... 2 lines ...
 005|   }}
 
-While inspecting object literal "iso Fresh[_]" > "#(_,_)" line 2
+While inspecting object literal "iso Fresh[_]" > method "#(_,_)" (line 2)
 The type "Person[N]" is invalid.
 Generic type argument 1 ("N") does not satisfy the bounds
 for generic type parameter "N" in "Person[_]".
@@ -750,7 +750,7 @@ Box[X:imm,Y:imm]:{ .x: X; .y: Y }
 001| A:{ .m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]:{} }
    |     --------------------------------------^^^^~~~~~~~~~
 
-While inspecting object literal "iso Foo[_]" > ".m" line 1
+While inspecting object literal "iso Foo[_]" > method ".m" (line 1)
 The type "Foo[X]" is invalid.
 Generic type argument 1 ("X") does not satisfy the bounds
 for generic type parameter "X" in "Foo[_]".
@@ -785,7 +785,7 @@ A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> { S
 002| A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
    |     -----------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal "mut Fresh[_]" > ".m(_)" line 2
+While inspecting object literal "mut Fresh[_]" > method ".m(_)" (line 2)
 The body of method ".m(_)" of type declaration "A" is an expression returning "mut Fresh[X]".
 Object literal is of type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
 Hint: write "iso Fresh[_]" if you need an "iso" object literal.
@@ -800,7 +800,7 @@ A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 002| A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
    |     -----------------------------------------------------------------~~~~~~~~^--
 
-While inspecting parameter "x" > ".get" line 2 > ".m(_)" line 2
+While inspecting parameter "x" > method ".get" (line 2) > method ".m(_)" (line 2)
 Parameter "x" has type "X".
 Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "iso Fresh[_]" (line 2).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
@@ -815,7 +815,7 @@ A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 003| A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }
    |     ------------------------------------------------------------------------~~~~~~~~^~~~~--
 
-While inspecting parameter "b" > ".get" line 3 > ".m(_)" line 3
+While inspecting parameter "b" > method ".get" (line 3) > method ".m(_)" (line 3)
 Parameter "b" has type "Box[X]".
 That type is not well kinded under the generic type parameters of object literal "iso Fresh[_]" (line 3): "X:imm,mut,read".
 The bounds declared by the object literal are all it knows about its generic type parameters,
@@ -832,7 +832,7 @@ A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get
 003| A:{ .m[X:imm](b: Box[X]): mut Get[X] -> mut Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }
    |     ----------------------------------------------------------------------~~~~~~~~^~~~~--
 
-While inspecting parameter "b" > ".get" line 3 > ".m(_)" line 3
+While inspecting parameter "b" > method ".get" (line 3) > method ".m(_)" (line 3)
 Parameter "b" has type "Box[X]".
 That type is not well kinded under the generic type parameters of object literal "iso Fresh[_]" (line 3): "X:imm,mut,read".
 The bounds declared by the object literal are all it knows about its generic type parameters,

@@ -469,7 +469,7 @@ Bs:{ #: B -> B: A{'b .foo -> b } }
 002| Bs:{ #: B -> B: A{} }
    |      --------^^^^^^
 
-While inspecting object literal "iso B" > "#" line 2
+While inspecting object literal "iso B" > method "#" (line 2)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
@@ -490,7 +490,7 @@ Bs:{ #: B -> B{'b .foo -> b } }
 003| Bs:{ #: B -> B{} }
    |      --------^^^
 
-While inspecting object literal instance of "iso B" > "#" line 3
+While inspecting object literal instance of "iso B" > method "#" (line 3)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".

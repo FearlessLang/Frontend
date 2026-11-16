@@ -38,7 +38,7 @@ B:{}
 001| A:{ read .b: mutH B -> {}; read .doThing: mut B -> this.b }
    |                            ------------------------^^^^^^
 
-While inspecting method call ".b" > ".doThing" line 1
+While inspecting method call ".b" > method ".doThing" (line 1)
 The body of method ".doThing" of type declaration "A" is an expression returning "mutH B".
 Method call "read A.b" has type "mutH B" instead of a subtype of "mut B".
 
@@ -68,7 +68,7 @@ B:{ read .get: read A }
 002| ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }
    |              ---------------------------------~~~~~~~^------------
 
-While inspecting parameter "a" > ".a1" line 2 > "#(_)" line 2
+While inspecting parameter "a" > method ".a1" (line 2) > method "#(_)" (line 2)
 Method ".a1" inside the object literal instance of "mut Container" (line 2)
 is implemented with an expression returning "read A".
 Parameter "a" has type "read A" instead of a subtype of "mut A".
@@ -87,7 +87,7 @@ Container:{ read .a1: mut A; mut .a2: mut A }
 002| A:{ .m[X:*](x: mut X): mut Get[mut X] -> mut Get[mut X]{ read .get: mut X -> x } }
    |     -----------------------------------------------------~~~~~~~~~~~~~~~~~~~~^--
 
-While inspecting parameter "x" > ".get" line 2 > ".m(_)" line 2
+While inspecting parameter "x" > method ".get" (line 2) > method ".m(_)" (line 2)
 Method ".get" inside the object literal instance of "mut Get[mut X]" (line 2)
 is implemented with an expression returning "read X".
 Parameter "x" has type "read X" instead of a subtype of "mut X".
@@ -105,7 +105,7 @@ A:{ .m[X:*](x: mut X): mut Get[mut X] -> mut Get[mut X]{ read .get: mut X -> x }
 002| A:{ .b: imm B -> {}; .doThing: Void -> this.b.foo.ret }
    |                      ------------------^^^^^^~~~~----
 
-While inspecting ".doThing" line 2
+While inspecting method ".doThing" (line 2)
 This call to method "mut B.foo" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso".
@@ -125,7 +125,7 @@ B:{ mut .foo: mut B -> this; mut .ret: Void -> {} }
 002| A:{ .b: readH B -> {}; .doThing: Void -> this.b.foo.ret }
    |                        ------------------^^^^^^~~~~----
 
-While inspecting ".doThing" line 2
+While inspecting method ".doThing" (line 2)
 This call to method "mut B.foo" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso".
@@ -145,7 +145,7 @@ B:{ mut .foo: mut B -> this; mut .ret: Void -> {} }
 002| A:{ .b: read B -> {}; .doThing: Void -> this.b.foo.ret }
    |                       ------------------^^^^^^~~~~----
 
-While inspecting ".doThing" line 2
+While inspecting method ".doThing" (line 2)
 This call to method "mut B.foo" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso".
@@ -168,7 +168,7 @@ A:{ read .self: readH A -> this }
 002| B:{ .break(prisoner: readH B): mut A[readH B] -> {prisoner} }
    |     ----------------------------------------------^^^^^^^^-
 
-While inspecting parameter "prisoner" > ".prison" line 2 > ".break(_)" line 2
+While inspecting parameter "prisoner" > method ".prison" (line 2) > method ".break(_)" (line 2)
 Parameter "prisoner" has type "readH B".
 The type of parameter "prisoner" is hygienic (readH or mutH)
 and thus it cannot be captured in the object literal instance of "mut A[readH B]" (line 2).
@@ -183,7 +183,7 @@ B:{ .break(prisoner: readH B): mut A[readH B] -> {prisoner} }
 002| B[X:mut,imm,read,mutH,readH]:{ .break(x: X): mut A[X] -> { x } }
    |                                ----------------------------^--
 
-While inspecting parameter "x" > ".prison" line 2 > ".break(_)" line 2
+While inspecting parameter "x" > method ".prison" (line 2) > method ".break(_)" (line 2)
 Parameter "x" has type "X".
 The type of parameter "x" can be instantiated with hygienics (readH or mutH)
 and thus it cannot be captured in the object literal instance of "mut A[X]" (line 2).
@@ -218,7 +218,7 @@ User:{ .m({.d, .e}: P, {.a, .b, .c}: mutH P): P -> e }
 004| C:{ #: mutH B -> A.m(B).absMeth }
    |     -------------^^^^^^^^^^^^^^
 
-While inspecting method call ".absMeth" > "#" line 4
+While inspecting method call ".absMeth" > method "#" (line 4)
 The body of method "#" of type declaration "C" is an expression returning "B".
 Method call "read L[_].absMeth" has type "B" instead of a subtype of "mutH B".
 
@@ -244,7 +244,7 @@ A:{ read .m[T:*](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
 003| A:{ read .m[T:mut,imm,read,readH,mutH](par: T) : read L[mutH T] -> mut L[mutH T]{.absMeth->par} }
    |     -----------------------------------------------------------------------------~~~~~~~~~~^^^-
 
-While inspecting parameter "par" > ".absMeth" line 3 > ".m(_)" line 3
+While inspecting parameter "par" > method ".absMeth" (line 3) > method ".m(_)" (line 3)
 Parameter "par" has type "T".
 The type of parameter "par" can be instantiated with hygienics (readH or mutH)
 and thus it cannot be captured in the object literal instance of "mut L[mutH T]" (line 3).
@@ -260,7 +260,7 @@ A:{ read .m[T:mut,imm,read,readH,mutH](par: T) : read L[mutH T] -> mut L[mutH T]
 003| A:{ read .m(par: mut B) : iso L -> iso L{.absMeth->par} }
    |     -------------------------------------~~~~~~~~~~^^^-
 
-While inspecting parameter "par" > ".absMeth" line 3 > ".m(_)" line 3
+While inspecting parameter "par" > method ".absMeth" (line 3) > method ".m(_)" (line 3)
 Parameter "par" has type "mut B".
 Parameter "par" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "iso L" (line 3).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
@@ -276,7 +276,7 @@ A:{ read .m(par: mut B) : iso L -> iso L{.absMeth->par} }
 003| A:{ read .m(par: read B) : imm L -> imm L{.absMeth->par} }
    |     --------------------------------------~~~~~~~~~~^^^-
 
-While inspecting parameter "par" > ".absMeth" line 3 > ".m(_)" line 3
+While inspecting parameter "par" > method ".absMeth" (line 3) > method ".m(_)" (line 3)
 Parameter "par" has type "read B".
 Parameter "par" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "L" (line 3).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
@@ -292,7 +292,7 @@ A:{ read .m(par: read B) : imm L -> imm L{.absMeth->par} }
 002| Foos:{ #(a: mut A): iso Foo -> iso Foo{a} }
    |        --------------------------------^-
 
-While inspecting parameter "a" > "#" line 2 > "#(_)" line 2
+While inspecting parameter "a" > method "#" (line 2) > method "#(_)" (line 2)
 Parameter "a" has type "mut A".
 Parameter "a" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "iso Foo" (line 2).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
@@ -324,7 +324,7 @@ Container:{ mut .a1: mut A; mut .a2: mut A }
 002| B:{ .foo(a: mut A, aa: mutH A): iso A -> a }
    |     -------------------------------------^
 
-While inspecting parameter "a" > ".foo(_,_)" line 2
+While inspecting parameter "a" > method ".foo(_,_)" (line 2)
 The body of method ".foo(_,_)" of type declaration "B" is an expression returning "mut A".
 Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
@@ -338,7 +338,7 @@ B:{ .foo(a: mut A, aa: mutH A): iso A -> a }
 002| B:{ .foo(a: mut A, aa: mut A): iso A -> a }
    |     ------------------------------------^
 
-While inspecting parameter "a" > ".foo(_,_)" line 2
+While inspecting parameter "a" > method ".foo(_,_)" (line 2)
 The body of method ".foo(_,_)" of type declaration "B" is an expression returning "mut A".
 Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
@@ -352,7 +352,7 @@ B:{ .foo(a: mut A, aa: mut A): iso A -> a }
 002| B:{ .foo(a: mut A): iso A -> a }
    |     -------------------------^
 
-While inspecting parameter "a" > ".foo(_)" line 2
+While inspecting parameter "a" > method ".foo(_)" (line 2)
 The body of method ".foo(_)" of type declaration "B" is an expression returning "mut A".
 Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
@@ -372,7 +372,7 @@ Ref[X:*]:{ read .get: read/imm X; mut .set(x: X): Void }
 003| Usage:{ .mutate(p: mutH Person): iso Ref[Name] -> p.name }
    |         ------------------------------------------^^^^^^
 
-While inspecting method call ".name" > ".mutate(_)" line 3
+While inspecting method call ".name" > method ".mutate(_)" (line 3)
 The body of method ".mutate(_)" of type declaration "Usage" is an expression returning "mutH Ref[Name]".
 Method call "mut Person.name" has type "mutH Ref[Name]" instead of a subtype of "iso Ref[Name]".
 
@@ -392,7 +392,7 @@ A:{ .notBreak(x1: iso Caps, x2: iso Caps): Void -> this.notBreak(x1, x2) }
 002| A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
    |     -------------------------------------------------------^^~~~~-
 
-While inspecting ".break(_,_)" line 2
+While inspecting method ".break(_,_)" (line 2)
 Iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 2).
 It is used directly 2 times.
 Iso parameters can be used directly at most once.
@@ -408,7 +408,7 @@ A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
 003|   .break(x1: iso Caps, x2: iso Caps): Void -> this.breakTwo(x1, B{ x1 });
    |   ----------------------------------------------------------^^~~~~~~~---
 
-While inspecting ".break(_,_)" line 3
+While inspecting method ".break(_,_)" (line 3)
 Iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 3).
 It is used directly and also captured into object literals.
 An iso parameter must be either captured, or used directly once (but not both).
@@ -461,7 +461,7 @@ Test:{ #(r: readH Box[Foo]): readH Foo -> r.get }
 003| Test:{ #(r: readH Box[Foo]): Foo -> r.get }
    |        -----------------------------^^^^^
 
-While inspecting method call ".get" > "#(_)" line 3
+While inspecting method call ".get" > method "#(_)" (line 3)
 The body of method "#(_)" of type declaration "Test" is an expression returning "readH Foo".
 Method call "read Box[_].get" has type "readH Foo" instead of a subtype of "Foo".
 
@@ -497,7 +497,7 @@ B:A{ .m1 -> this; .m2 -> this.m1 }
 002| B:A{ .m1 -> this; .m2 -> this.m1 }
    |      -------^^^^
 
-While inspecting parameter "this" > ".m1" line 2
+While inspecting parameter "this" > method ".m1" (line 2)
 The body of method ".m1" of type declaration "B" is an expression returning "mut B".
 Parameter "this" has type "mut B" instead of a subtype of "A".
 
@@ -527,7 +527,7 @@ Test:{
 004|   read .aRead(a: read A): mut A -> a.m1;
    |   ---------------------------------^^^^
 
-While inspecting method call ".m1" > ".aRead(_)" line 4
+While inspecting method call ".m1" > method ".aRead(_)" (line 4)
 The body of method ".aRead(_)" of type declaration "Test" is an expression returning "read B".
 Method call "read A.m1" has type "read B" instead of a subtype of "mut A".
 
@@ -560,7 +560,7 @@ A:{ mut .m1: mut A -> this; .call(a: mutH A): mutH A -> a.m1 }
 001| A:{ mut .m1: mut A -> this; .call(a: mutH A): mut A -> a.m1 }
    |                             ---------------------------^^^^
 
-While inspecting method call ".m1" > ".call(_)" line 1
+While inspecting method call ".m1" > method ".call(_)" (line 1)
 The body of method ".call(_)" of type declaration "A" is an expression returning "mutH A".
 Method call "mut A.m1" has type "mutH A" instead of a subtype of "mut A".
 
@@ -585,7 +585,7 @@ A:{
 003|   .call(a: mutH A): mutH A -> this.m1(imm A, iso A, a, a);
    |   ----------------------------~~~~^^^~~~~~~~~~~~~~~~~~~~~
 
-While inspecting ".call(_)" line 3
+While inspecting method ".call(_)" (line 3)
 This call to method "A.m1(_,_,_,_)" cannot typecheck.
 Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
 
@@ -615,7 +615,7 @@ A:{
 003|   .call(a: mutH A): mutH A -> a.m1(imm A, iso A, a, iso A);
    |   ----------------------------~~~~~~~~~~~~~~~~~~~^~~~~~~~~
 
-While inspecting ".call(_)" line 3
+While inspecting method ".call(_)" (line 3)
 This call to method "mut A.m1(_,_,_,_)" cannot typecheck.
 Argument 3 has type "mutH A".
 Parameter "a" has type "mutH A" instead of a subtype of "iso A".
@@ -663,7 +663,7 @@ A[X:mut]:{ #(x: X): read/imm X -> x }
 001| A[X:**]:{ #(x: X): read/imm X -> x }
    |           -----------------------^
 
-While inspecting parameter "x" > "#(_)" line 1
+While inspecting parameter "x" > method "#(_)" (line 1)
 The body of method "#(_)" of type declaration "A[_]" is an expression returning "X".
 Parameter "x" has type "X" instead of a subtype of "read/imm X".
 
@@ -681,7 +681,7 @@ C:{ .m[Y:*](y: read Y): read Y -> A.m[Y](y) }
 003| C:{ .m[Y:*](y: read Y): read/imm Y -> A.m[Y](y) }
    |     ----------------------------------~~~~~~~^~
 
-While inspecting ".m(_)" line 3
+While inspecting method ".m(_)" (line 3)
 This call to method "A.m(_)" cannot typecheck.
 Argument 1 has type "read Y".
 That is not a subtype of any of "read/imm Y" or "imm Y".
@@ -747,7 +747,7 @@ User:{ .use[Y:iso,imm](b: Box[Y]): read/imm Y -> b.get }
 002| User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
    |        -------------------------------------^^^^^
 
-While inspecting method call ".get" > ".use(_)" line 2
+While inspecting method call ".get" > method ".use(_)" (line 2)
 The body of method ".use(_)" of type declaration "User" is an expression returning "read/imm Y".
 Method call "Box[_].get" has type "read/imm Y" instead of a subtype of "iso Y".
 
@@ -761,7 +761,7 @@ User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
 002| User:{ .use[Y:iso,imm](b: Box[Y]): Box[Y] -> b.get.foo }
    |        --------------------------------------^^^^^~~~~
 
-While inspecting ".use(_)" line 2
+While inspecting method ".use(_)" (line 2)
 This call to method ".foo" cannot typecheck.
 The receiver is of type "read/imm Y". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
@@ -815,7 +815,7 @@ User:{
 002| A:{ .b: mutH B -> {} }
    |     --------------^^
 
-While inspecting object literal instance of "iso B" > ".b" line 2
+While inspecting object literal instance of "iso B" > method ".b" (line 2)
 This object literal is missing a required method.
 Missing: "mut .m".
 Required by: "B".
@@ -997,7 +997,7 @@ A:{ .m[X:iso,read](x: X): mut Get[read/imm X] -> mut Get[read/imm X]{ mut .get: 
 002| A:{ .m[X:iso,mut](x: X): mut Get[X] -> mut Get[X]{ mut .get: X -> x } }
    |     -----------------------------------------------~~~~~~~~~~~~~~~^--
 
-While inspecting parameter "x" > ".get" line 2 > ".m(_)" line 2
+While inspecting parameter "x" > method ".get" (line 2) > method ".m(_)" (line 2)
 Method ".get" inside the object literal instance of "mut Get[X]" (line 2)
 is implemented with an expression returning "read/imm X".
 Parameter "x" has type "read/imm X" instead of a subtype of "X".

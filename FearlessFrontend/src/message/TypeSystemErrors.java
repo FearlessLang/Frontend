@@ -53,7 +53,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .ex(m.e().get()).addSpan(m.e().get().span().inner);
   }
   public FearlessException mCallFrame(M m, FearlessException fe){
-    return fe.addFrame(err().methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
+    return fe.addFrame("method "+err().methodSig(m.sig().m())+" (line "+m.sig().span().inner.startLine()+")", m.sig().span().inner);
   }
   private FearlessException withCallSpans(FearlessException ex, Call c){ return withCallSpans(ex, TSpan.fromPos(c.pos(), c.name().s().length()), c); }
   private FearlessException withCallSpans(FearlessException ex, TSpan at, Call c){
