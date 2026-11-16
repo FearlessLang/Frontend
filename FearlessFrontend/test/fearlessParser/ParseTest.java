@@ -2662,6 +2662,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing type name.
 Found instead: "a1".
+A type name starts with an uppercase letter, after the package name if any, as in "Point" or "base.Nat".
 Error 2 UnexpectedToken
 """, """
 use a1 as F1;
@@ -4024,6 +4025,34 @@ Fearless has no "new": an object literal, like "A{}" or "A", creates an object.
 Error 6 MissingSeparator
 """, """
 A:{ .a: A -> new A() }
+""");}
+@Test void lowercaseReturnType(){fail("""
+In file: [###].fear
+
+001| A:{ .me: a -> this }
+   |     ~~~~~^--------
+
+While inspecting method signature > method declaration > type declaration body > type declaration > full file
+Missing type name.
+Found instead: "a".
+A type name starts with an uppercase letter, after the package name if any, as in "Point" or "base.Nat".
+Error 2 UnexpectedToken
+""", """
+A:{ .me: a -> this }
+""");}
+@Test void capabilityBeforeTheParameterName(){fail("""
+In file: [###].fear
+
+001| A:{ .me(mut a: A): A -> a }
+   |     ----~~~~^~~~----
+
+While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
+Missing type name.
+Found instead: "a".
+A capability is written before the type of parameter "a", not before its name.
+Error 2 UnexpectedToken
+""", """
+A:{ .me(mut a: A): A -> a }
 """);}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

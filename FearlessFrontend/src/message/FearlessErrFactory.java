@@ -403,8 +403,15 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var msg=
       "Missing "+(what.isBlank() ? "element" : what)+".\n"
     +"Found instead: "+found(found)+".\n"
-    +expected(what, expectedTokens);
+    +expected(what, expectedTokens)
+    +lowercaseTypeHint(what, found, parser);
     return Code.UnexpectedToken.of(msg).addSpan(at);
+  }
+  private static String lowercaseTypeHint(String what, Token found, Parser parser){
+    if (!what.endsWith("type name") || !found.is(LowercaseId)){ return ""; }
+    var parameter= parser.peek(-1).filter(t -> t.is(RCap)).isPresent() && parser.peek(1).filter(t -> t.is(Colon)).isPresent();
+    if (parameter){ return "A capability is written before the type of parameter "+disp(found.content())+", not before its name.\n"; }
+    return "A type name starts with an uppercase letter, after the package name if any, as in \"Point\" or \"base.Nat\".\n";
   }
   public FearlessException badTopSelfName(Span at, String name){
     var msg= "Self name "+disp(name)+" is invalid in a top level type.\n"
