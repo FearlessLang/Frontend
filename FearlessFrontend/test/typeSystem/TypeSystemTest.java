@@ -112,7 +112,7 @@ The body of method ".m" of type declaration "T1[_]" is an expression returning "
 Parameter "this" has type "T1[X]" instead of a subtype of "T0[T1[X]]".
 
 See inferred typing context below for how type "T0[T1[X]]" was introduced: (compression indicated by `-`)
-T1[X:imm]:T0[T1[T1[X]]]{.m:T0[T1[X]]->this}
+T1[X]:T0[T1[T1[X]]]{.m:T0[T1[X]]->this}
 """, List.of("""
 T0[X]:{ }
 T1[X]:T0[T1[T1[X]]]{ .m: T0[T1[X]] -> this }
@@ -134,7 +134,7 @@ The body of method ".k" of type declaration "T1[_]" is an expression returning "
 Method call "T1[_].m(_)" has type "T1[T1[X]]" instead of a subtype of "T1[X]".
 
 See inferred typing context below for how type "T1[X]" was introduced: (compression indicated by `-`)
-T1[X:imm]:T0[T1[T1[X]]]{.m[Y:imm](a:T0[Y]):Y->a.get;.k:T1[X]->this.m[imm,T1[T1[X]]](this)}
+T1[X]:T0[T1[T1[X]]]{.m[Y](a:T0[Y]):Y->a.get;.k:T1[X]->this.m[imm,T1[T1[X]]](this)}
 """, List.of("""
 T0[X]:{ .get: X }
 T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
@@ -169,7 +169,7 @@ is implemented with an expression returning "T1".
 Parameter "this" has type "T1" instead of a subtype of "Z[Y]".
 
 See inferred typing context below for how type "Z[Y]" was introduced: (compression indicated by `-`)
-T1:{.m[Y:imm]:T1->T1{.k:Z[Y]->this}}
+T1:{.m[Y]:T1->T1{.k:Z[Y]->this}}
 """, List.of("""
 Z[X]:{ }
 T1:{ .m[Y]: T1 -> { .k: Z[Y] -> this } }
@@ -188,7 +188,7 @@ The body of method ".foo(_,_)" of type declaration "B[_]" is an expression retur
 Parameter "b" has type "_BX" instead of a subtype of "_AX".
 
 See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
-B[X:imm]:A{.foo[_AX:imm,_BX:imm](a:_AX,b:_BX):_AX->b}
+B[X]:A{.foo[_AX,_BX](a:_AX,b:_BX):_AX->b}
 """, List.of("""
 A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
 B[X]:A{ .foo(a,b)->b }
@@ -213,7 +213,7 @@ is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 
 See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
-B:Sup{.m[X:imm](x:X):G->G{.k[_AX:imm](y:_AX):_AX->x}}
+B:Sup{.m[X](x:X):G->G{.k[_AX](y:_AX):_AX->x}}
 """, List.of("""
 G:{ .k[X](y:X):X; }
 Sup:{ .m[X](x:X):G; }
@@ -234,7 +234,7 @@ is implemented with an expression returning "A".
 Parameter "this" has type "A" instead of a subtype of "_AR".
 
 See inferred typing context below for how type "_AR" was introduced: (compression indicated by `-`)
-A:{.foo:-.Todo->-.Todo{![_AR:**]:_AR->this}}
+A:{.foo:base.Todo->base.Todo{![_AR:**]:_AR->this}}
 """, List.of("""
 R:{}
 A:{ .foo:base.Todo->{ ! -> this } }
@@ -259,7 +259,7 @@ To declare one, use the single quote as in the example below:
   }}
 
 Available methods on type "Outer":
--       #:Inner
+- #:Inner
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.bar
@@ -279,7 +279,7 @@ The method parameter "this" here has type "Outer".
 The method ".bar" is defined in the object literal of type "Inner"; the parameter referring to its instances is named "self".
 
 Available methods on type "Outer":
--       #:Inner
+- #:Inner
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.bar
@@ -306,7 +306,7 @@ To declare one, use the single quote as in the example below:
   }}
 
 Available methods on type "Outer":
--       #:G
+- #:G
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.bar
@@ -340,7 +340,7 @@ is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
 
 See inferred typing context below for how type "base.Void" was introduced: (compression indicated by `-`)
-Outer:{#:G->G{'self .bar:-.Void->-.Void;.v:-.Void->Boxes#[imm,G](self)}}
+Outer:{#:G->G{'self .bar:base.Void->base.Void;.v:base.Void->Boxes#[imm,G](self)}}
 """, List.of("""
 Box[E]:{ .get: E }
 Boxes:{ #[E](e: E): Box[E] -> {.get -> e} }
@@ -356,7 +356,7 @@ This call to method ".ba" cannot typecheck.
 Method ".ba" is not declared on type "A".
 
 Available methods on type "A":
--       .foo123:A
+- .foo123:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.ba
@@ -389,7 +389,7 @@ for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-User:{.m(a:A[mut B]):-.Void}
+User:{.m(a:A[mut B]):base.Void}
 """, List.of("""
 A[X:imm]:{}
 B:{}
@@ -407,7 +407,7 @@ for generic type parameter "Y" in "A[_,_]".
 Here "Y" can only use capabilities "iso" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-User:{.m(a:A[B,mut C]):-.Void}
+User:{.m(a:A[B,mut C]):base.Void}
 """, List.of("""
 A[X:imm,Y:read,iso]:{}
 B:{}
@@ -426,7 +426,7 @@ for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-User:{.m(a:A[B[mut C]]):-.Void}
+User:{.m(a:A[B[mut C]]):base.Void}
 """, List.of("""
 A[X:imm]:{}
 B[Y:imm]:{}
@@ -556,7 +556,7 @@ for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-User:{.m(x:A[B[mut C]]):-.Void}
+User:{.m(x:A[B[mut C]]):base.Void}
 """, List.of("""
 A[X:imm]:{}
 B[Y:read]:{}
@@ -819,7 +819,7 @@ The body of method ".m" of type declaration "User" is an expression returning "A
 Method call "MakeA#(_)" has type "A" instead of a subtype of "B".
 
 See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
-User:{.m:B->MakeA#(-.Void)}
+User:{.m:B->MakeA#(base.Void)}
 """, List.of("""
 A:{}
 B:{}
@@ -838,7 +838,7 @@ The body of method ".m" of type declaration "User" is an expression returning "A
 Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
-User:{.m:mut A->MakeA#(-.Void)}
+User:{.m:mut A->MakeA#(base.Void)}
 """, List.of("""
 A:{}
 MakeA:{ #(u:base.Void):A->A{} }
@@ -859,7 +859,7 @@ is implemented with an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
-User:{.m:Get->mut Get{mut .get:mut A->MakeA#(-.Void)}}
+User:{.m:Get->mut Get{mut .get:mut A->MakeA#(base.Void)}}
 """, List.of("""
 A:{}
 MakeA:{ #(u:base.Void):A->A{} }
@@ -901,7 +901,7 @@ The body of method ".m" of type declaration "User" is an expression returning "A
 Method call "Wrap#(_)" has type "A" instead of a subtype of "B".
 
 See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
-User:{.m:B->Wrap#(Mk#(-.Void))}
+User:{.m:B->Wrap#(Mk#(base.Void))}
 """, List.of("""
 A:{}
 B:{}
@@ -1373,7 +1373,7 @@ But "Parent.g(_)" requires "read P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Current:Parent{.g(x:P):-.Void}
+Current:Parent{.g(x:P):base.Void}
 """, List.of("""
 
 P:{}
@@ -1410,7 +1410,7 @@ Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Sup{.h:-.Void->-.Void}
+iso Sup{.h:base.Void->base.Void}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -1432,7 +1432,7 @@ Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Bad:Sup{.h:-.Void->-.Void}
+iso Bad:Sup{.h:base.Void->base.Void}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -1475,8 +1475,8 @@ Method ".sise" is not declared on type "Ops".
 Did you mean ".size" ?
 
 Available methods on type "Ops":
--  read .sign:base.Void
--  read .size:base.Void
+- read .sign:base.Void
+- read .size:base.Void
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 o.sise
@@ -1501,9 +1501,9 @@ This call to method ".xyzzy" cannot typecheck.
 Method ".xyzzy" is not declared on type "Ops".
 
 Available methods on type "Ops":
--  read .alpha:base.Void
--  read .beta:base.Void
--  read .gamma:base.Void
+- read .alpha:base.Void
+- read .beta:base.Void
+- read .gamma:base.Void
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 o.xyzzy
@@ -1529,9 +1529,9 @@ This call to method ".xyzzy" cannot typecheck.
 Method ".xyzzy" is not declared on type "Ops".
 
 Available methods on type "Ops":
--  read .alpha:Woid
--  read .beta:Woid
--  read .gamma:Woid
+- read .alpha:Woid
+- read .beta:Woid
+- read .gamma:Woid
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 o.xyzzy
@@ -1632,7 +1632,7 @@ This call requires a method with capability "read".
 Available capabilities for this method: "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-mut A{read .m:-.Void->-.Void;mut .k:-.Void->-.Void}.k[read]
+mut A{read .m:base.Void->base.Void;mut .k:base.Void->base.Void}.k[read]
 """, List.of("""
 A:{ read .m: base.Void }
 U:{ .u: base.Void -> mut A{ read .m: base.Void -> base.Void; mut .k: base.Void -> base.Void }.k[read] }
@@ -2028,9 +2028,9 @@ Method ".foO123" is not declared on type "A".
 Did you mean ".foo123" ?
 
 Available methods on type "A":
--       .bar:A
--   mut .bob(A):A
--       .foo123:A
+-     .bar:A
+- mut .bob(A):A
+-     .foo123:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foO123
@@ -2048,8 +2048,8 @@ Method ".foo23" is not declared on type "A".
 Did you mean ".foo123" ?
 
 Available methods on type "A":
--       .bar:A
--       .foo123:A
+- .bar:A
+- .foo123:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo23
@@ -2067,8 +2067,8 @@ Method ".foo1123" is not declared on type "A".
 Did you mean ".foo123" ?
 
 Available methods on type "A":
--       .bar:A
--       .foo123:A
+- .bar:A
+- .foo123:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo1123
@@ -2505,7 +2505,7 @@ This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on object literal instance of "A".
 
 Available methods on object literal instance of "A":
--       .bar:A
+- .bar:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A{.bar:A->A}.foo
@@ -2567,7 +2567,7 @@ is implemented with an expression returning the anonymous type of the object lit
 Parameter "self" has type the anonymous type of the object literal at line 1, column 26 instead of a subtype of "Outer".
 
 See inferred typing context below for how type "Outer" was introduced: (compression indicated by `-`)
-Outer:{.m:-.Void->{'self .a:Outer->self}.a}
+Outer:{.m:base.Void->{'self .a:Outer->self}.a}
 """, List.of("""
 Outer:{ .m: base.Void -> {'self .a: Outer -> self}.a }
 """));}
@@ -2621,7 +2621,7 @@ The body of method ".m" of type declaration "Main" is an expression returning "i
 Object literal is of type "base.Float" instead of a subtype of "base.Int".
 
 See inferred typing context below for how type "base.Int" was introduced: (compression indicated by `-`)
-Main:{.m:-.Int->+1.5}
+Main:{.m:base.Int->+1.5}
 """, List.of("""
  Main:{ .m:base.Int -> +1.5 }
 """));}
@@ -2937,7 +2937,7 @@ A value of "B" is never "mut", so "mut .get" can stay abstract.
 A method written without a receiver capability also implements "mut .get": write the receiver capability, as in "read .get".
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
-B:A,-.Cap-ree{read .get:read A->this;mut .get:mut A->this}
+B:A,base.CaptureFree{read .get:read A->this;mut .get:mut A->this}
 """, List.of("""
  A:{ read .get: read A; mut .get: mut A; }
  B:A,base.CaptureFree{ .get->this; }
@@ -4055,7 +4055,7 @@ The body of method ".h(_)" of type declaration "User" is an expression returning
 Parameter "::" has type "Sup" instead of a subtype of "base.Void".
 
 See inferred typing context below for how type "base.Void" was introduced: (compression indicated by `-`)
-User:Sup{.h(_aimpl:Sup):-.Void->::}
+User:Sup{.h(Sup):base.Void->::}
 Error 8 TypeError
 """, List.of("""
 
@@ -4120,7 +4120,7 @@ The body of method ".m" of type declaration "B" is an expression returning "iso 
 Object literal is of type "iso Sup" instead of a subtype of "Target".
 
 See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
-B:{.m:Target->Sup{.foo:-.Str->-.Str}}
+B:{.m:Target->Sup{.foo:base.Str->base.Str}}
 """, List.of("""
 Sup:base.WidenTo[Target]{ .foo:base.Str }
 Target:Sup{ .extra:base.Str }
@@ -4203,7 +4203,7 @@ is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "Person".
 
 See inferred typing context below for how type "Person" was introduced: (compression indicated by `-`)
-User:{.n(cs:read -.MList[mut Customer]):-.MList[Person]->cs.as[read,Person](-.BaseId[read Customer,Person]{(-)->::})}
+User:{(-)->cs.as[read,Person](base.BaseId[read Customer,Person]{(-)->::})}
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4241,7 +4241,7 @@ is implemented with an expression returning "Person".
 Parameter "::" has type "Person" instead of a subtype of "Customer".
 
 See inferred typing context below for how type "Customer" was introduced: (compression indicated by `-`)
-User:{.m:-.BaseId[Person,Customer]->-.BaseId[Person,Customer]{#(_aimpl:Person):Customer->::}}
+User:{.m:base.BaseId[Person,Customer]->base.BaseId[Person,Customer]{#(Person):Customer->::}}
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4273,7 +4273,7 @@ The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-Other.cs.as[imm,Person](-.BaseId[Customer,Person]{#(_aimpl:Customer):Person->::})
+Other.cs.as[imm,Person](base.BaseId[Customer,Person]{#(Customer):Person->::})
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4656,7 +4656,7 @@ is implemented with an expression returning "mut Opt[E]".
 Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
 
 See inferred typing context below for how type "Opt[E]" was introduced: (compression indicated by `-`)
--.let[mut,mut Opt[E]](-,mut Con-ion[mut Opt[E],Opt[E]]{(-,-)->_aeqS.return[mut](mut MF[Opt[E]]{o})})
+-.let[mut,mut Opt[E]](-,mut Continuation[mut Opt[E],Opt[E]]{(-,-)->_aeqS.return[mut](mut MF[Opt[E]]{o})})
 """, List.of("""
 use base.MF as MF;
 Blocks: { #[R:*]: mut Block[R] -> {} }
@@ -4877,7 +4877,7 @@ No method of the object literal instance of "A" uses it.
 Remove "'self" from the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-A{'self read .get:-.Nat->0}
+A{'self read .get:base.Nat->0}
 """, List.of("""
 A:{ read .get: base.Nat }
 Make:{ #: A -> A{'self read .get: base.Nat -> 0 } }
@@ -5122,10 +5122,10 @@ This call to method ".a" cannot typecheck.
 Method ".a" is not declared on "{...}".
 
 Available methods on "{...}":
--       .b:base.Void
+- .b:base.Void
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-{.b:-.Void->-.Void}.a
+{.b:base.Void->base.Void}.a
 """, List.of("""
 App:{ .m: base.Nat -> {.b:base.Void->base.Void;}.a }
 """));}
@@ -5630,7 +5630,7 @@ The body of method ".m(_)" of type declaration "U[_]" is an expression returning
 Method call "K[_].get" has type "Box[Box[Box[[###]" instead of a subtype of "Box[Box[X]]".
 
 See inferred typing context below for how type "Box[Box[X]]" was introduced: (compression indicated by `-`)
-U[X:imm]:{.m(k:K[[###]]):Box[Box[X]]->k.get}
+U[X]:{.m(k:K[[###]]):Box[Box[X]]->k.get}
 """, List.of("""
 A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }
 U[X]:{ .m(k: K[D]): Box[Box[X]] -> k.get }
@@ -5827,7 +5827,7 @@ The body of method ".str" of type declaration "A" is an expression returning "is
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
 
 See inferred typing context below for how type "base.Str" was introduced: (compression indicated by `-`)
-A:-.ToStr{read .str:-.Str->-.Void}
+A:base.ToStr{read .str:base.Str->base.Void}
 """, List.of("""
 A:base.ToStr{ .str -> base.Void }
 """));}
@@ -5840,7 +5840,7 @@ The body of method ".str" of type declaration "A" is an expression returning "is
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
 
 See inferred typing context below for how type "base.Str" was introduced: (compression indicated by `-`)
-A:Show{read .str:-.Str->-.Void}
+A:Show{read .str:base.Str->base.Void}
 """, List.of("""
 use base.ToStr as Show;
 A:Show{ .str -> base.Void }
@@ -5898,7 +5898,7 @@ The body of method ".m" of type declaration "U" is an expression returning "A".
 Method call "mut base.Block[_].let(_,_)" has type "A" instead of a subtype of "iso A".
 
 See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
-U:{-.Block#[imm,A].let[mut,A](mut -.Ret-tmt[A]{A},mut -.Con-ion[A,mut -.Block[-],A]{(-,-)->-.return[mut](-)})}
+U:{base.Block#[imm,A].let[mut,A](mut base.ReturnStmt[-]{A},mut base.Continuation[-,-,-]{(-,-)->-.return[mut](-)})}
 """, List.of("""
 A:{}
 U:{ .m: iso A -> base.Block#.let v1 = {A} .return {v1} }
@@ -6069,7 +6069,7 @@ The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-x.as(-.BaseId[Box,Box]{#(y:Box):Box->y})
+x.as(base.BaseId[Box,Box]{#(y:Box):Box->y})
 """, List.of("""
 Box:{ .as(f: base.BaseId[Box,Box]):Box -> this }
 I: base.BaseId[Box,Box]{ #(x)->x.as{ #(y)->y } }
@@ -6106,7 +6106,7 @@ To declare one, use the single quote as in the example below:
   }}
 
 Available methods on type "U":
--       .m:base.Void
+- .m:base.Void
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.b
@@ -6182,7 +6182,7 @@ Object literal instance of "iso A" cannot implement "X".
 "X" is a generic type parameter; object literals can only implement nominal types.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso A{.k:-.Void->-.Void}
+iso A{.k:base.Void->base.Void}
 """, List.of("""
 G:{ #[T:*](x: T): T -> x }
 A:{ .k: base.Void }
@@ -6444,7 +6444,7 @@ Type required by each promotion:
 - "imm Foo"  (As declared, Strengthen result)
 
 See inferred typing context below for how type "imm Foo" was introduced: (compression indicated by `-`)
-A:{.k:-.Void->read Foo:{'s read .z:-.Void->Use#(s)}.z[read]}
+A:{.k:base.Void->read Foo:{'s read .z:base.Void->Use#(s)}.z[read]}
 """, List.of("""
 Use:{ #(f: Foo): base.Void -> base.Void }
 A:{ .k: base.Void -> read Foo:{'s read .z: base.Void -> Use#s }.z }
@@ -6493,7 +6493,7 @@ Argument 1 has type "iso C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.m[imm,-.Void](C)
+-.m[imm,base.Void](C)
 """, List.of("""
 Box[T]:{}
 C:Box[A],Box[C]{}
@@ -6509,7 +6509,7 @@ Argument 1 has type "iso C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.m[imm,-.Void](C)
+-.m[imm,base.Void](C)
 """, List.of("""
 Box[T]:{}
 C:Box[C],Box[A]{}
@@ -6762,5 +6762,18 @@ A:{}
 Foo[T]:{ .mk: A; .get: T }
 Take:{ #[T](f: Foo[T]): Foo[T] -> f }
 User:{ .go: A -> Take#{'s .mk -> A; .get -> s.mk }.mk }
+"""));}
+@Test void aLongLiteralIsPrintedInFull(){fail("""
+001| B:{ .m: B -> "a string literal longer than fifteen" }
+   |     ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "base.Str" > ".m" line 1
+The body of method ".m" of type declaration "B" is an expression returning "iso base.Str".
+Object literal is of type "base.Str" instead of a subtype of "B".
+
+See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+B:{.m:B->"a string literal longer than fifteen"}
+""", List.of("""
+B:{ .m: B -> "a string literal longer than fifteen" }
 """));}
 }

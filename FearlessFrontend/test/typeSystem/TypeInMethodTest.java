@@ -67,7 +67,7 @@ Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
--.A
+a.A
 """;
 
   @Test void topLevelTypeByName(){ ok(List.of("""
@@ -277,7 +277,7 @@ Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso -.S
+iso a.S
 Error 8 TypeError""", """
 S:base.Sealed{ .foo: base.Void }
 Take:{ #(p:S): base.Void -> base.Void }
@@ -299,7 +299,7 @@ Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso -.S
+iso a.S
 Error 8 TypeError""", """
 S:base.Sealed{ .foo: base.Void }
 Take:{ #(p:S): base.Void -> base.Void }
@@ -347,7 +347,7 @@ Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-B:-.A{}
+B:a.A{}
 """, """
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
 """, """

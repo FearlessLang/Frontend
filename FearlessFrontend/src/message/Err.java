@@ -40,7 +40,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       .findFirst().get();
   }
 
-  String tNameA(TName n){ return cp().t.ofFull(n)+genArity(n.arity()); }     // "A[_]"
+  String tNameA(TName n){ return cp().t.of(n)+genArity(n.arity()); }     // "A[_]"
   String tNameADisp(TName n){ return disp(tNameA(n)); }                      // displayString("A[_]")
   private boolean showInstanceOf(Literal l){ return l.infName() && !l.cs().isEmpty(); }
   private String bestLitName(boolean skipRc, boolean skipImm, Literal l){
@@ -69,7 +69,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(inference.IT t){ return typeRepr(true, t); }
   String typeRepr(boolean skipImm, inference.IT t){ return t.isTV() ? typeRepr(skipImm, TypeRename.itToT(t)) : disp(typeReprRaw(t)); }
   String typeReprRaw(inference.IT t){ return switch (t){
-    case inference.IT.RCC(var rc, var c, _) -> rc.map(RC::toStrSpace).orElse("")+cp().t.ofFull(c.name())+Join.of(c.ts().stream().map(this::typeReprRaw), "[", ",", "]", "");
+    case inference.IT.RCC(var rc, var c, _) -> rc.map(RC::toStrSpace).orElse("")+cp().t.of(c.name())+Join.of(c.ts().stream().map(this::typeReprRaw), "[", ",", "]", "");
     case inference.IT.U _, inference.IT.Amb _ -> "?";
     default -> typeReprRaw(true, TypeRename.itToT(t));
   };}
@@ -77,7 +77,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   private String typeReprRaw(inference.IT t, int levels){
     if (!(t instanceof inference.IT.RCC(var rc, var c, _)) || c.ts().isEmpty()){ return typeReprRaw(t); }
     var ts= levels == 0 ? "[...]" : Join.of(c.ts().stream().map(ti -> typeReprRaw(ti, levels-1)), "[", ",", "]", "");
-    return rc.map(RC::toStrSpace).orElse("")+cp().t.ofFull(c.name())+ts;
+    return rc.map(RC::toStrSpace).orElse("")+cp().t.of(c.name())+ts;
   }
   String typeRepr(boolean skipImm, T t){
     if (t instanceof T.RCC r && _anon(r.c().name()) instanceof Literal l){ return "the anonymous type of the object literal at "+at(l.span().inner); }

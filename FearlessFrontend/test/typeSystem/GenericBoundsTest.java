@@ -41,7 +41,7 @@ The body of method ".sum" of type declaration "B" is an expression returning "is
 Object literal is of type "FortyThree" instead of a subtype of "FortyTwo".
 
 See inferred typing context below for how type "FortyTwo" was introduced: (compression indicated by `-`)
-B:A[FortyTwo]{.count:FortyTwo->FortyTwo;.sum:FortyTwo->For-ree}
+B:A[FortyTwo]{.count:FortyTwo->FortyTwo;.sum:FortyTwo->FortyThree}
 """, List.of("""
 Res1:{} Res2:{}
 FortyTwo:{ .get: Res1 -> Res1 }
@@ -444,7 +444,7 @@ for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Bre-ner:A[Break]{}
+iso BreakInner:A[Break]{}
 """, List.of("""
 A[X:mut]:{}
 Break:{}
@@ -791,7 +791,7 @@ Object literal is of type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
 Hint: write "iso Fresh[_]" if you need an "iso" object literal.
 
 See inferred typing context below for how type "iso Box[X]" was introduced: (compression indicated by `-`)
-A:{.m[X:imm](x:X):iso Box[X]->mut Fresh[X:*]:Box[X]{mut .get:X->x}}
+A:{.m[X](x:X):iso Box[X]->mut Fresh[X:*]:Box[X]{mut .get:X->x}}
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }

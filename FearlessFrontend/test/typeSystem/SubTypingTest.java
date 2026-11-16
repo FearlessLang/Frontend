@@ -167,7 +167,7 @@ The body of method ".m(_)" of type declaration "Sub" is an expression returning 
 Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[mut Int]".
 
 See inferred typing context below for how type "List[mut Int]" was introduced: (compression indicated by `-`)
-Sub:{.m(x:Sor-ist[Int]):List[mut Int]->x}
+Sub:{.m(x:SortedList[Int]):List[mut Int]->x}
 """, List.of("""
 Int:{}
 List[T:*]:{ read .get: read/imm T }
@@ -183,7 +183,7 @@ The body of method ".m(_)" of type declaration "Sub" is an expression returning 
 Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[read Int]".
 
 See inferred typing context below for how type "List[read Int]" was introduced: (compression indicated by `-`)
-Sub:{.m(x:Sor-ist[Int]):List[read Int]->x}
+Sub:{.m(x:SortedList[Int]):List[read Int]->x}
 """, List.of("""
 Int:{}
 List[T:*]:{ read .get: read/imm T }
@@ -199,7 +199,7 @@ The body of method ".m(_)" of type declaration "Sub" is an expression returning 
 Parameter "x" has type "SortedList[read Int]" instead of a subtype of "List[Int]".
 
 See inferred typing context below for how type "List[Int]" was introduced: (compression indicated by `-`)
-Sub:{.m(x:Sor-ist[read Int]):List[Int]->x}
+Sub:{.m(x:SortedList[read Int]):List[Int]->x}
 """, List.of("""
 Int:{}
 List[T:*]:{ read .get: read/imm T }
@@ -221,7 +221,7 @@ The body of method ".m(_)" of type declaration "Sub" is an expression returning 
 Parameter "x" has type "SortedList[X]" instead of a subtype of "List[Int]".
 
 See inferred typing context below for how type "List[Int]" was introduced: (compression indicated by `-`)
-Sub:{.m[X:*](x:Sor-ist[X]):List[Int]->x}
+Sub:{.m[X:*](x:SortedList[X]):List[Int]->x}
 """, List.of("""
 Int:{}
 List[T:*]:{ read .get: read/imm T }
@@ -237,7 +237,7 @@ The body of method ".m(_)" of type declaration "Sub" is an expression returning 
 Parameter "x" has type "SortedList[Int]" instead of a subtype of "List[X]".
 
 See inferred typing context below for how type "List[X]" was introduced: (compression indicated by `-`)
-Sub:{.m[X:*](x:Sor-ist[Int]):List[X]->x}
+Sub:{.m[X:*](x:SortedList[Int]):List[X]->x}
 """, List.of("""
 Int:{}
 List[T:*]:{ read .get: read/imm T }
@@ -253,7 +253,7 @@ The body of method ".m(_)" of type declaration "Sub" is an expression returning 
 Parameter "x" has type "SortedList[ColouredPoint]" instead of a subtype of "SortedList[Point]".
 
 See inferred typing context below for how type "SortedList[Point]" was introduced: (compression indicated by `-`)
-Sub:{.m(x:Sor-ist[Col-int]):Sor-ist[Point]->x}
+Sub:{.m(x:SortedList[ColouredPoint]):SortedList[Point]->x}
 """, List.of("""
 Int:{}
 Point:{ .x: Int; .y: Int }
@@ -271,7 +271,7 @@ The body of method ".m(_)" of type declaration "Sub" is an expression returning 
 Parameter "x" has type "SortedList[Point]" instead of a subtype of "SortedList[ColouredPoint]".
 
 See inferred typing context below for how type "SortedList[ColouredPoint]" was introduced: (compression indicated by `-`)
-Sub:{.m(x:Sor-ist[Point]):Sor-ist[Col-int]->x}
+Sub:{.m(x:SortedList[Point]):SortedList[ColouredPoint]->x}
 """, List.of("""
 Int:{}
 Point:{ .x: Int; .y: Int }
