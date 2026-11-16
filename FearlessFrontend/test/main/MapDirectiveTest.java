@@ -91,8 +91,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .m" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .m" with 0 parameters.
 Candidates: "a.A", "a.A2".
 Type declaration "B" must declare a method ".m" explicitly choosing the desired option.
 
@@ -2235,8 +2234,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
-Different options are present in the implemented types.
+Supertypes disagree on the type of parameter 1 of method "imm .m(_)" with 1 parameter.
 Candidates: "a.P", "a.Q".
 Type declaration "B" must declare a method ".m(_)" explicitly choosing the desired option.
 
@@ -2252,10 +2250,9 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .m" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .m" with 0 parameters.
 Candidates: "imm a.P", "mut a.P".
-They differ in capability, and an overriding method must keep it, so no method ".m" can implement all of them.
+The candidates differ in capability, and an overriding method must keep the capability, so no method ".m" can implement all the candidates.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2387,8 +2384,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "a.I1", "a.I2".
+Implemented by the supertypes "a.I1", "a.I2".
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -3031,8 +3027,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "X", "a.I2".
+Implemented by the supertypes "X", "a.I2".
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
 
 Name "X" stands for "a.I1" because of "use a.I1 as X".
@@ -3051,8 +3046,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "d.I2", "a.I1".
+Implemented by the supertypes "d.I2", "a.I1".
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
 
 """+noteD+"\n"+noteA+"""

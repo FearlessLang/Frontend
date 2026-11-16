@@ -108,8 +108,7 @@ C:{ .m: C }
    | ^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .m" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .m" with 0 parameters.
 Candidates: "B", "C".
 Type declaration "A" must declare a method ".m" explicitly choosing the desired option.
 """, List.of("""
@@ -122,8 +121,7 @@ C:{ .m: C }
    | ^^^^^^^^
 
 While inspecting type declaration "AA"
-Return type disagreement for method "imm .m" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .m" with 0 parameters.
 Candidates: "B", "C".
 Type declaration "AA" must declare a method ".m" explicitly choosing the desired option.
 """, List.of("""
@@ -204,8 +202,7 @@ C:{ .m(c:Foo): Foo -> c }
 
 While inspecting type declaration "A"
 Ambiguous implementation for method ".m(_)" with 1 parameter.
-Different options are present in the implemented types.
-Candidates: "B", "C".
+Implemented by the supertypes "B", "C".
 Type declaration "A" must declare a method ".m(_)" explicitly implementing the desired behaviour.
 """, List.of("""
 Foo:{}
@@ -226,8 +223,7 @@ D:A,C{}
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "A", "B".
+Implemented by the supertypes "A", "B".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
 R:{}
@@ -261,8 +257,7 @@ List[T:*]:{}
    | ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .kk" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .kk" with 0 parameters.
 Candidates: "A", "List[A]".
 Type declaration "A" must declare a method ".kk" explicitly choosing the desired option.
 """, List.of("""
@@ -473,8 +468,7 @@ Bar[X:*]:{ .m: Foo[X] -> Foo[X:*]:{} }
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
-Different options are present in the implemented types.
+Supertypes disagree on the type of parameter 1 of method "imm .m(_)" with 1 parameter.
 Candidates: "base.Int", "base.Float".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 """, List.of("""
@@ -670,8 +664,7 @@ User:{ #:D->D:X,C{} }
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "B", "C".
+Implemented by the supertypes "B", "C".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
 R:{}
@@ -687,8 +680,7 @@ D:X,B,C{}
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "A", "B".
+Implemented by the supertypes "A", "B".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
 R:{}
@@ -903,10 +895,9 @@ A:Foo[imm Bar],Foo[mut Beer]{ .get: Both -> Both }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "imm Bar", "mut Beer".
-They differ in capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+The candidates differ in capability, and an overriding method must keep the capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Bar:{}
 Beer:{}
@@ -934,10 +925,9 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "Y", "imm Y".
-They differ in capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+The candidates differ in capability, and an overriding method must keep the capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Foo[T:*]:{ .get: T }
 A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
@@ -966,10 +956,9 @@ A[Y:imm]:Foo[Y],Bar[Y]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "Y", "Bar".
-They are different types and "Y" is a generic type parameter, so no method ".get" can implement all of them.
+The candidates are different types and "Y" is a generic type parameter, so no method ".get" can implement all the candidates.
 """, List.of("""
 Bar:{}
 Foo[T:*]:{ .get: T }
@@ -980,10 +969,9 @@ A[Y:imm]:Foo[Y],Foo[Bar]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "Y", "imm Bar".
-They differ in capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+The candidates differ in capability, and an overriding method must keep the capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Bar:{}
 Foo[T:*]:{ .get: T }
@@ -1016,10 +1004,9 @@ User:{ .asFoo(a: A[Baz]): Foo[Baz] -> a; .get(a: A[Baz]): Baz -> a.get; .make: A
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "Y", "read/imm Y".
-They differ in capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+The candidates differ in capability, and an overriding method must keep the capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Foo[X:imm,mut]:{ .get: X }
 Bar[X:imm,mut]:{ .get: read/imm X }
@@ -1036,10 +1023,9 @@ A:Foo,Bar{}
    | ^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "T", "read/imm T".
-They differ in capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+The candidates differ in capability, and an overriding method must keep the capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Foo:{ .get[T:mut]: T }
 Bar:{ .get[T:mut]: read/imm T }

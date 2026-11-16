@@ -416,19 +416,18 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Cannot infer signature of method "+name+".")
       .line("No supertype has a method named "+name+" with "+count(size, "parameter")+"."), m.sig(), origin);
   }
-  public String retTypeDisagreement(){ return "Return type disagreement"; }
-  public String paramTypeDisagreement(int i){ return "Type disagreement about parameter "+(i+1); }
+  public String retTypeDisagreement(){ return "the return type"; }
+  public String paramTypeDisagreement(int i){ return "the type of parameter "+(i+1); }
   public FearlessException noAgreement(Agreement at, List<B> bs, List<IT> res, String msg){
     var rc= at.rc().map(r -> r.toStrSpace(false)).orElse("");
     var rcDiffers= res.stream().map(t -> t instanceof IT.RCC r ? EnumSet.of(r.rc().orElse(RC.imm)) : Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var e= err()
-      .line(msg+" for method "+methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
-      .line("Different options are present in the implemented types.")
+      .line("Supertypes disagree on "+msg+" of method "+methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
       .line(Join.of(res.stream().map(o -> option(rcDiffers, o)), "Candidates: ", ", ", "."));
     var m= err().methodSig(at.mName());
-    if (rcDiffers){ return wf(e.line("They differ in capability, and an overriding method must keep it, so no method "+m+" can implement all of them."), at); }
-    if (x.isPresent()){ return wf(e.line("They are different types and "+option(false, x.get())+" is a generic type parameter, so no method "+m+" can implement all of them."), at); }
+    if (rcDiffers){ return wf(e.line("The candidates differ in capability, and an overriding method must keep the capability, so no method "+m+" can implement all the candidates."), at); }
+    if (x.isPresent()){ return wf(e.line("The candidates are different types and "+option(false, x.get())+" is a generic type parameter, so no method "+m+" can implement all the candidates."), at); }
     return wf(e.line(up(err().expRepr(at.lit()))+" must declare a method "+m+" explicitly choosing the desired option."), at);
   }
   private String option(boolean showImm, IT o){
@@ -437,11 +436,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     var e= err()
-      .line("The number of generic type parameters disagrees for method "+err().methodSig(at.mName())
+      .line("Supertypes disagree on the number of generic type parameters of method "+err().methodSig(at.mName())
         +" with "+count(at.mName().arity(), "parameter")+".")
-      .line("Different options are present in the implemented types.")
       .line(Join.of(res.stream().map(Err::disp), "Candidates: ", ", ", "."))
-      .line(up(err().expRepr(at.lit()))+" cannot implement all of those types.");
+      .line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes.");
     return wf(e, at);
   }
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
@@ -456,12 +454,12 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var n= res.getFirst().size();
     assert res.stream().allMatch(bs -> bs.size() == n);
     var i= firstRcsDisagreementIndex(res);
-    var opts= Join.of(res.stream().map(bs -> disp(bs.get(i))).distinct().sorted(), "", " and ", ".");
+    var opts= Join.of(res.stream().map(bs -> disp(bs.get(i))).distinct().sorted(), "Candidates: ", ", ", ".");
     var m= err().methodSig(at.mName());
     return wf(err()
-      .line("Supertypes disagree on the capability bounds for generic type parameter "+(i+1)+" of "+m+".")
+      .line("Supertypes disagree on the capability bounds of generic type parameter "+(i+1)+" of method "+m+" with "+count(at.mName().arity(), "parameter")+".")
       .line("Generic type parameter names may differ across supertypes; only the position matters.")
-      .line("Different supertypes declare: "+opts)
+      .line(opts)
       .line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at);
   }
   public FearlessException methodBsDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
@@ -560,8 +558,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException ambiguousImplementationFor(List<TName> options, Agreement at){
     return wf(err()
       .line("Ambiguous implementation for method "+err().methodSig(at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
-      .line("Different options are present in the implemented types.")
-      .line(Join.of(options.stream().map(err()::tNameADisp), "Candidates: ", ", ", "."))
+      .line(Join.of(options.stream().map(err()::tNameADisp), "Implemented by the supertypes ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" must declare a method "+err().methodSig(at.mName())+" explicitly implementing the desired behaviour."), at);
   }
   public FearlessException multipleWidenTo(E.Literal owner, List<IT.C> widen){
