@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -483,12 +482,13 @@ final class AssociationsTest{
       finally{ unregister(other); }
       return;
     }
-    if (Fs.isWindows()){ fail("""
-      Agent on Windows: on Linux an extension whose type no program opens is held by the program of the nearest parent type of that type (the file subclasses of the MIME database).
-      On Windows an extension with no ProgId of its own can still be opened through its PerceivedType (Classes\\SystemFileAssociations\\<perceived type>) or through Classes\\*.
-      Investigate whether Explorer opens a file of a test extension holding only PerceivedType=text with a program, and whether WindowsAssociations sees that program as the holder.
-      Make the Windows form check that reconcile refuses that extension with notOurs naming that program until the extension is taken,
-      or say in ReconciliatorDesign why such an extension has no holder on Windows, and make the Windows form check that reconcile takes that extension with no refusal."""); }
+    if (Fs.isWindows()){
+      importReg(regKey(classes+".fassocprobe", "PerceivedType", "text"));
+      reconcile(".fassocprobe");
+      assertEquals(Optional.of(identity+".fassocprobe"), value(classes+".fassocprobe", ""));
+      assertEquals(Optional.of("text"), value(classes+".fassocprobe", "PerceivedType"));
+      return;
+    }
     sysMime("globs2", "50:text/markdown:*.md\n50:text/x-log:*.log\n");
     sysMime("subclasses", "text/markdown text/plain\ntext/x-doc text/plain\ntext/x-log text/x-doc\n");
     Fs.writeUtf8(sys.resolve("applications").resolve("editor.desktop"), "[Desktop Entry]\nMimeType=text/plain;\n");
@@ -515,12 +515,17 @@ final class AssociationsTest{
       assertEquals(choices("public.html"), ReconcileTest.choicesOfTheDesk());
       return;
     }
-    if (Fs.isWindows()){ fail("""
-      Agent on Windows: on Linux the user can remove the program of the identity from a type of the identity ([Removed Associations] of mimeapps.list);
-      the extension of that type then opens with the program of the parent type, which holds the extension until the extension is taken, and taking it removes that line.
-      On Windows the user removes a program from the "Open with" choices of an extension through FileExts\\<ext>\\OpenWithProgids and FileExts\\<ext>\\OpenWithList.
-      Investigate which program holds a test extension after the user removes the ProgId of the identity there, and make the Windows form check that reconcile refuses that extension until the extension is taken,
-      and what taking the extension changes in those keys."""); }
+    if (Fs.isWindows()){
+      reconcile(".fassochtm");
+      importReg(regKey(fileExts+".fassochtm\\OpenWithProgids", "otherProgram.fassochtm", "")+regKey(fileExts+".fassochtm\\OpenWithList", "a", "otherProgram.exe"));
+      var written= reg("query", user+identity, "/s").orElseThrow();
+      reconcile(".fassochtm");
+      assertEquals(written, reg("query", user+identity, "/s").orElseThrow());
+      assertEquals(Optional.of(identity+".fassochtm"), value(classes+".fassochtm", ""));
+      assertEquals(Map.of("otherProgram.fassochtm", ""), values(fileExts+".fassochtm\\OpenWithProgids"));
+      assertEquals(Map.of("a", "otherProgram.exe"), values(fileExts+".fassochtm\\OpenWithList"));
+      return;
+    }
     typesOfTheIdentity(".htm");
     Fs.writeUtf8(home.resolve("mime").resolve("subclasses"), "application/x-fearless-htm text/html\n");
     var config= root.resolve("config").resolve("mimeapps.list");
@@ -558,11 +563,18 @@ final class AssociationsTest{
       }
       return;
     }
-    if (Fs.isWindows()){ fail("""
-      Agent on Windows: on Linux the .desktop file of a program in the folder of the user hides the .desktop file of the same name in a folder of the system, with the types that file lists.
-      On Windows HKEY_CLASSES_ROOT shows the key Software\\Classes\\<name> of HKEY_CURRENT_USER in place of the key of the same name of HKEY_LOCAL_MACHINE.
-      Write in HKEY_LOCAL_MACHINE\\Software\\Classes a test extension naming the ProgId of another program, and in HKEY_CURRENT_USER\\Software\\Classes a key of the same name naming no program (as allUsers does, with an administrator),
-      and make the Windows form check that reconcile reads that extension as HKEY_CLASSES_ROOT shows it."""); }
+    if (Fs.isWindows()){
+      assertTrue(imported(regKey(machine+"Classes\\.fassocprobe", "", "otherProgram.fassocprobe")), needsAdmin);
+      try{
+        importReg(regKey(classes+".fassocprobe", "PerceivedType", "text"));
+        assertEquals("notOurs {.fassocprobe=otherProgram}", refused(".fassocprobe"));
+        importReg(regKey(classes+".fassocprobe", "", ""));
+        reconcile(".fassocprobe");
+        assertEquals(Optional.of(identity+".fassocprobe"), value("HKEY_CLASSES_ROOT\\.fassocprobe", ""));
+      }
+      finally{ reg("delete", machine+"Classes\\.fassocprobe", "/f"); }
+      return;
+    }
     sysMime("globs2", "50:text/markdown:*.md\n");
     Fs.writeUtf8(sys.resolve("applications").resolve("editor.desktop"), "[Desktop Entry]\nMimeType=text/markdown;\n");
     assertEquals("notOurs {.md=editor}", refused(".md"));
