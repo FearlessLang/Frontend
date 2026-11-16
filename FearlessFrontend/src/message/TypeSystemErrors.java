@@ -284,8 +284,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private String whyDropReadHMutH(String subject, Change.NoT why){
     var explicitH= why.atDrop().explicitH()
-      ? "The type of "+subject+" is hygienic (readH or mutH) "
-      : "The type of "+subject+" can be instantiated with a hygienic capability (readH or mutH) ";
+      ? "The type of "+subject+" is hygienic (\"readH\" or \"mutH\") "
+      : "The type of "+subject+" can be instantiated with a hygienic capability (\"readH\" or \"mutH\") ";
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
     +explicitH+"and thus it cannot be captured in the "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n";

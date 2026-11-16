@@ -35,19 +35,19 @@ public enum TokenKind implements metaParser.TokenKind{
   // Signed float: +12.34, -1.0e-3 ; requires at least one digit on each side of '.'
   SignedFloat(
     "[+-](?:[0-9](?:[0-9_]*[0-9])?)\\.(?:[0-9](?:[0-9_]*[0-9])?)"
-    +"(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?(?:soft)?", "signed number (eg. -23.0045)"),
+    +"(?:[eE][+-]?[0-9](?:[0-9_]*[0-9])?)?(?:soft)?", "signed number (like \"-23.0045\")"),
   UnSignedFloat(
     "[0-9](?:[0-9_]*[0-9])?\\x2E(?:[0-9](?:[0-9_]*[0-9])?)"
-    +"(?:[eE][\\x2B\\x2D]?[0-9](?:[0-9_]*[0-9])?)?(?:soft)?", "unsigned number (eg. 23.0045)"),
+    +"(?:[eE][\\x2B\\x2D]?[0-9](?:[0-9_]*[0-9])?)?(?:soft)?", "unsigned number (like \"23.0045\")"),
   // Signed int: +45, -10, +1_000
-  SignedInt("[+-][0-9](?:[0-9_]*[0-9])?", "signed number (eg. -23)"),
+  SignedInt("[+-][0-9](?:[0-9_]*[0-9])?", "signed number (like \"-23\")"),
   // Unsigned int: 0, 42, 1_000_000
-  UnsignedInt("[0-9](?:[0-9_]*[0-9])?", "unsigned number (eg. 23)"),
+  UnsignedInt("[0-9](?:[0-9_]*[0-9])?", "unsigned number (like \"23\")"),
   BadUStrUnclosed("\\x22[^\\x22\\x0A]*(?=\\x0A|\\z)"),
   BadSStrUnclosed("`[^`\\x0A]*(?=\\x0A|\\z)"),
   UStr("\\x22[^\\x22\\x0A]*\\x22", "string literal"),
   SStr("`[^`\\x0A]*`", "string literal"),
-  DotName("\\._*[a-z][A-Za-z0-9_]*'*", "method name (eg. .foo)"),
+  DotName("\\._*[a-z][A-Za-z0-9_]*'*", "method name (like \".foo\")"),
   BadDotName("\\._*[A-Z][A-Za-z0-9_]*'*"),
   BadDot("\\."),
   BadChar("[@$]"),
@@ -61,7 +61,7 @@ public enum TokenKind implements metaParser.TokenKind{
   //[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F:\\x7C#]
   //forbid:  /*   */   //
   //(?!/\\x2A|\\x2A/|//)
-  Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+", "binary operator (eg. +, *, -)"),
+  Op        ( "(?:(?!/\\x2A|\\x2A/|//)[\\x5C/#\\x2A\\x2D\\x2B%<>=!&\\x5E~\\x3F\\x7C])+", "binary operator (like \"+\", \"*\", \"-\")"),
   // tokens that are never considered for matching, but useful for asserts and for labelling special cases
   _XId("_*[A-Z][A-Za-z0-9_]*'*", "type name"),
   _pkgName(core.TName.pkgNameRegex,//"(?!(?:con|prn|aux|nul)(?![a-z0-9_])|(?:com|lpt)[1-9](?![a-z0-9_]))[a-z][a-z0-9_]*"

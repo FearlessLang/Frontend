@@ -498,7 +498,7 @@ In file: [###].fear
 
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Missing method name.
-Expected one of: method name (eg. .foo), binary operator (eg. +, *, -).
+Expected one of: method name (like ".foo"), binary operator (like "+", "*", "-").
 Error 2 UnexpectedToken
 """, """
 A:{ .m -> (Block#.let x={5}) .use(x) }
@@ -1104,8 +1104,8 @@ In file: [###].fear
 While inspecting generic bounds declaration > type declaration > full file
 Invalid bound for generic type parameter "X".
 Only "*" or "**" are allowed here.
-Write: [X: *]   meaning mut,read,imm
-   or: [X: **]  meaning everything.
+"X:*" allows the capabilities "imm", "mut" and "read".
+"X:**" allows every capability.
 Error 2 UnexpectedToken
 """, """
 A[X:***]:{}
@@ -1118,10 +1118,10 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Missing bound for generic type parameter "X" after ":".
-Write: [X] alone (note, no colon) as a shortcut for [X: imm]
-   or: [X: *]   meaning mut,read,imm
-   or: [X: **]  meaning everything
-   or something like: [X: imm, read]  meaning imm or read.
+"X" with no ":" allows only the capability "imm".
+"X:*" allows the capabilities "imm", "mut" and "read".
+"X:**" allows every capability.
+A list, as in "X:imm,read", allows the capabilities in the list.
 Error 2 UnexpectedToken
 """, """
 A[X:]:{}
@@ -1134,10 +1134,10 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Missing bound for generic type parameter "X" after ":".
-Write: [X] alone (note, no colon) as a shortcut for [X: imm]
-   or: [X: *]   meaning mut,read,imm
-   or: [X: **]  meaning everything
-   or something like: [X: imm, read]  meaning imm or read.
+"X" with no ":" allows only the capability "imm".
+"X:*" allows the capabilities "imm", "mut" and "read".
+"X:**" allows every capability.
+A list, as in "X:imm,read", allows the capabilities in the list.
 Error 2 UnexpectedToken
 """, """
 A[X:,Y]:{}
@@ -1182,7 +1182,7 @@ In file: [###].fear
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
 This nominal pattern extracts nothing.
-Write at least one chain, for example {.a}, instead of an empty {}.
+Write at least one chain, for example "{.a}", instead of an empty "{}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m({}):X }
@@ -1197,7 +1197,7 @@ In file: [###].fear
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
 This nominal pattern has an empty chain between commas.
-Each comma must separate two non-empty chains; remove the stray comma, for example write {.a,.b} instead of {.a,,.b} or {,.a}.
+Each comma must separate two non-empty chains; remove the stray comma, for example write "{.a,.b}" instead of "{.a,,.b}" or "{,.a}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m({,}Bob:X):X }
@@ -2765,7 +2765,7 @@ In file: [###].fear
 While inspecting package names
 Unrecognized text "aux.Bar".
 Package names are restricted to be valid filenames on all operating systems.
-Names like aux, nul, lpt2 are invalid on Windows.
+Names like "aux", "nul", "lpt2" are invalid on Windows.
 Error 2 UnexpectedToken
 """, """
 A:{ .foo:aux.Bar }
@@ -3415,7 +3415,7 @@ In file: [###].fear
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing method name.
 Found instead: "h".
-Expected one of: method name (eg. .foo), binary operator (eg. +, *, -).
+Expected one of: method name (like ".foo"), binary operator (like "+", "*", "-").
 Error 2 UnexpectedToken
 """, """
 User:{
