@@ -4118,5 +4118,18 @@ Error 6 MissingSeparator
 """, """
 A:{ .m: A -> x -> x }
 """);}
+@Test void leftArrowAfterTheReturnType(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A <- this }
+   |     ------^^~~~~~
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Expected semicolon or closing curly brace.
+Expected one of: ";", "}".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .m: A <- this }
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

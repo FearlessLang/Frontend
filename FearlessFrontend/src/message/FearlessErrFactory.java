@@ -99,7 +99,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var type= prev.filter(p -> p.is(Token.typeName)).map(Token::content);
     if (type.isEmpty()){ return ""; }
     if (t.is(RCap)){ return "A capability is written before the type: "+disp(t.content()+" "+type.get())+", not "+disp(type.get()+" "+t.content())+".\n"; }
-    if (t.content().startsWith("<")){ return "Generic type arguments are written in square brackets, as in \"List[A]\".\n"; }
+    if (t.content().equals("<")){ return "Generic type arguments are written in square brackets, as in \"List[A]\".\n"; }
     return "";
   }
   @Override public FearlessException probeStalledIn(String groupLabel, Span at, int startIdx, int endIdx, Parser parser){
