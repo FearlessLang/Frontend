@@ -2554,6 +2554,9 @@ A:{}
 @Test void anonReceiverSealedHeadSelfCall(){ok(List.of("""
 Outer:{ .m: base.Void -> {'self .a: base.Void -> base.Void{}; .b: base.Void -> self.a }.b }
 """));}
+@Test void anonReceiverSealedHeadSelfCallOfAReadMethod(){ok(List.of("""
+Outer:{ .m: base.Void -> {'self read .a: base.Void -> base.Void{}; .b: base.Void -> self.a }.b }
+"""));}
 @Test void anonReceiverSealedHead(){ok(List.of("""
 Outer:{ .m: base.Void -> { .a: base.Void -> base.Void{} }.a }
 """));}
@@ -5732,6 +5735,46 @@ F1[X:*,R:*]:{ mut #(x: X): R }
 Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
 U:{ .use: A -> Ap#{x -> Two#(Mut#x, mut G{ # -> Imm#x })} }
 """));}
+@Test void lambdaParameterUsedAsAMutSupertypeThenCapturedAsAnImmSubtypeIsTheMutSubtype(){ok(List.of("""
+A:{ mut .m: A -> A }
+B:A{}
+Mut:{ #(a: mut A): A -> a.m }
+Imm:{ #(b: B): A -> b }
+G:{ imm #: A }
+Two:{ #[X:*,Y:*](a: X, b: Y): X -> a }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U:{ .use: A -> Ap#{x -> Two#(Mut#x, mut G{ # -> Imm#x })} }
+"""));}
+@Test void lambdaParameterCapturedAsAnImmSubtypeThenUsedAsAMutSupertypeIsTheMutSubtype(){ok(List.of("""
+A:{ mut .m: A -> A }
+B:A{}
+Mut:{ #(a: mut A): A -> a.m }
+Imm:{ #(b: B): A -> b }
+G:{ imm #: A }
+Two:{ #[X:*,Y:*](a: X, b: Y): Y -> b }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U:{ .use: A -> Ap#{x -> Two#(mut G{ # -> Imm#x }, Mut#x)} }
+"""));}
+@Test void lambdaParameterUsedAsAMutTypeParameterThenCapturedAsImmIsMut(){ok(List.of("""
+Mut[T:imm,mut]:{ #(a: mut T): mut T -> a }
+Imm[T:imm,mut]:{ #(a: imm T): imm T -> a }
+G[T:imm,mut]:{ imm #: imm T }
+Two:{ #[X:*,Y:*](a: X, b: Y): X -> a }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U[T:imm,mut]:{ .use: mut T -> Ap#{x -> Two#(Mut[T]#x, mut G[T]{ # -> Imm[T]#x })} }
+"""));}
+@Test void lambdaParameterCapturedAsAnImmTypeParameterThenUsedAsMutIsMut(){ok(List.of("""
+Mut[T:imm,mut]:{ #(a: mut T): mut T -> a }
+Imm[T:imm,mut]:{ #(a: imm T): imm T -> a }
+G[T:imm,mut]:{ imm #: imm T }
+Two:{ #[X:*,Y:*](a: X, b: Y): Y -> b }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U[T:imm,mut]:{ .use: mut T -> Ap#{x -> Two#(mut G[T]{ # -> Imm[T]#x }, Mut[T]#x)} }
+"""));}
 @Test void lambdaParameterOnlyCapturedInAnImmMethodIsImm(){ok(List.of("""
 A:{ mut .m: A -> A }
 Imm:{ #(a: A): A -> a }
@@ -6762,6 +6805,22 @@ C:base.WidenTo[C]{}
 B:C{}
 A:{ .m: B -> {} }
 """));}
+@Test void siblingsWithTheSameWidenToJoinToTheirCommonSupertype(){ok(List.of("""
+A:{ .k: A -> this } Y:A,base.WidenTo[A]{} Z:A,base.WidenTo[A]{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
+"""));}
+@Test void siblingsWithTheSameWidenToAndTwoCommonSupertypesCannotBeInferred(){failWf("""
+002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+   |                                                          ^^^^^^^^^^^^^^^
+
+While inspecting method call ".both(_,_)"
+The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+"T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
+Write the generic type argument explicitly, as in "this.both[A](y, z)".
+""", List.of("""
+A:{} B:{} Y:A,B,base.WidenTo[A]{} Z:A,B,base.WidenTo[A]{}
+U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+"""));}
 @Test void emptyLiteralArgumentWithAnExpectedNumberLiteralType(){ok(List.of("""
 A:{ .m(x: 45): A -> A; .k: A -> this.m({}) }
 """));}
@@ -6769,6 +6828,18 @@ A:{ .m(x: 45): A -> A; .k: A -> this.m({}) }
 C:{ .k: C }
 B:C,base.WidenTo[C]{ .k: B -> this }
 A:{ .m: C -> B }
+"""));}
+@Test void typeNameExpressionReceiverInfersTheTypeArgumentsOfAMethodOfItsOwnType(){ok(List.of("""
+C:{}
+Box[T]:{}
+B:C,base.WidenTo[C]{ .wrap[T](t: T): Box[T] -> {} }
+A:{ .m: Box[C] -> B.wrap(C) }
+"""));}
+@Test void typeNameExpressionReceiverGivesAnExpectedTypeToALambdaArgument(){ok(List.of("""
+C:{}
+F[X,R]:{ #(x: X): R }
+B:C,base.WidenTo[C]{ .use[R](f: F[B,R]): R -> f#this; .k: B -> this }
+A:{ .m: B -> B.use{b -> b.k} }
 """));}
 @Test void typeNameExpressionWidenedPastAnIntermediateOverride(){ok(List.of("""
 C:{ .k: C -> this }

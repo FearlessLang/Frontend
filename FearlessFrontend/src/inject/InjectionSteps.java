@@ -55,9 +55,9 @@ Offensive style: Optional.get() is intentional where invariants guarantee presen
 absence indicates a bug and should crash.
 */
 
-public record InjectionSteps(Methods meths, int cap, boolean late){
+public record InjectionSteps(Methods meths, int cap){
   public static List<core.E.Literal> steps(Methods meths, List<E.Literal> tops){
-    var s= new InjectionSteps(meths, deepest(meths), false);
+    var s= new InjectionSteps(meths, deepest(meths));
     assert tops.stream().allMatch(l -> l.thisName().equals("this"));
     //No! at this point they have been (correctly) divided in layers assert tops.stream().sorted().toList().equals(tops);
     return tops.stream()
@@ -95,10 +95,10 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     var g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
     var bs= Push.of(di.bs(), m.sig().bs().get());
-    var limit= cap*size(ei);
-    ei = new InjectionSteps(meths, limit, false).nextStar(bs, g, ei);
-    g.tableGrew();
-    ei = new InjectionSteps(meths, limit, true).nextStar(bs, g, ei);
+    var s= new InjectionSteps(meths, cap*size(ei));
+    ei = s.nextStar(bs, g, ei);
+    g.latePass();
+    ei = s.nextStar(bs, g, ei);
     return new core.M(mCore.sig(), xs, m.names(), Optional.of(new ToCore(bs, meths).of(ei, e)));
   }
   E meet(E e, IT t){
@@ -278,8 +278,10 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return x.withT(meet(t1, t2));
   }
   private void updateG(Gamma g, String x, IT t2){
-    if (g.learned(x).undecided()){ g.update(x, t2 instanceof IT.RCC(_, var c, var span) ? new RCC(Optional.empty(), c, span) : t2); }
-    if (g.learned(x) instanceof IT.RCC t1 && t2 instanceof IT.RCC && !g.learnedWithRC(x).equals(t2)){ g.update(x, meet(t1, t2)); }
+    var open= stripRCAlsoThisSide(t2);
+    g.update(x, meet(g.learned(x), open));
+    if (g.learnedWithRC(x).equals(t2)){ return; }
+    g.update(x, open instanceof IT.X && g.learned(x).equals(open) ? t2 : meet(g.learned(x), t2));
   }
   private E nextT(E.Type t){
     if (!t.t().undecided()){ return t; }
@@ -295,7 +297,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
     var e= nextStar(bs, g, c.e());
-    if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
+    if (!((e instanceof E.Type tt ? tt.type() : e.t()) instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var guess= overloadNorm(rcc.rc().map(rc -> rc == RC.iso ? c.t().explicitRC().orElse(rc) : rc));
     var direct= methodHeader(rcc, c.name(), c.rc(), guess);
     var om= direct.isPresent() ? direct : methodHeader((IT.RCC)deFresh(g, rcc), c.name(), c.rc(), guess);
@@ -310,8 +312,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     m = m.withClsArgs(clsTs);
     var it= meet(c.t(), m.ret(targs));
     var es1= nextStar(bs, g, meetWithTargs(c.es(), m, targs));
-    var noChange= e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
-    if (noChange){ return c; }
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
   private static IT deFresh(Gamma g, IT t){
@@ -365,8 +365,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var ts= decide(g, d == null ? l.bs() : d.bs(), rcc.c().ts(), solved.stream().flatMap(m -> constraints(rcc, m)).toList(), 0);
     var t= rcc.withTs(ts);
     var ms= norm(l.ms(), Streams.zip(l.ms(), solved).map((mi, m) -> instantiate(t, mi, m)).toList());
-    var noChange= ms == l.ms() && ts.equals(rcc.c().ts());
-    if (noChange){ return commitToTable(g, bs, l, rcc); }
     return commitToTable(g, bs, l.withMsT(ms, t), t);
   }
   private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT.RCC rcc){
@@ -425,7 +423,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       .allMatch(m -> m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t -> t.get().isTV()));
   }
   private List<Optional<IT>> updateArgs(M m, Gamma g){
-    return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !late ? oi : Optional.of(meet(oi.get(), g.learned(x)))).toList();
+    return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !g.late() ? oi : Optional.of(meet(oi.get(), g.learned(x)))).toList();
   }
   M nextMStarOp(List<B> bs, Gamma g, E.Literal l, Optional<IT.RCC> selfPrecise, IT.RCC rcc, M m){
     assert m.impl().isPresent();
