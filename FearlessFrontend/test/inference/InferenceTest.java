@@ -1349,8 +1349,8 @@ In file: [###].fear
 While inspecting type declaration "B"
 Type declaration "B" implements method ".h".
 The body of method "B.h" needs to be duplicated to satisfy multiple capability overloads from the supertypes.
-However, it contains object literal "MyAge".
-Object literals with their own unique explicit type cannot be duplicated.
+However, the body declares type "MyAge".
+A body declaring a type cannot be duplicated, since a type has only one declaration.
 Error 7 WellFormedness
 """, List.of("""
 Age:{}

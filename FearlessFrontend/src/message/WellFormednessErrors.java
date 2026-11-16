@@ -565,8 +565,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
       .line("The body of method "+err().methodSig("", owner, m.sig().m().get())+" needs to be duplicated to satisfy multiple capability overloads from the supertypes.")
-      .line("However, it contains "+err().expRepr(in)+".")
-      .line("Object literals with their own unique explicit type cannot be duplicated."), owner);
+      .line("However, the body declares type "+err().tNameADisp(in.name())+".")
+      .line("A body declaring a type cannot be duplicated, since a type has only one declaration."), owner);
   }
   public FearlessException baseIdNotOnlyHash(E.Literal owner){
     var ctx= up(err().expRepr(owner));
