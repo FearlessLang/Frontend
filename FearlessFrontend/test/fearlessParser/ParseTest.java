@@ -864,6 +864,7 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
+This method body contains "->": a ";" may be missing between two method declarations.
 Error 6 MissingSeparator
 """, """
 A:{
@@ -2230,6 +2231,7 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
+This method body contains "->": a ";" may be missing between two method declarations.
 Error 6 MissingSeparator
 """, """
 A: base.Main{ .foo->A .beer->B}
@@ -3979,6 +3981,49 @@ Generic type arguments are written in square brackets, as in "List[A]".
 Error 4 ExtraTokenInGroup
 """, """
 A:{ .me: List<A> -> this }
+""");}
+@Test void missingSemicolonBetweenMethods(){fail("""
+In file: [###].fear
+
+002|   .a: A -> this
+003|   .b: A -> this
+   |       ^
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+This method body contains "->": a ";" may be missing between two method declarations.
+Error 6 MissingSeparator
+""", """
+A:{
+  .a: A -> this
+  .b: A -> this
+  }
+""");}
+@Test void javaReturn(){fail("""
+In file: [###].fear
+
+001| A:{ .a: A -> return this; }
+   |   --~~~~~~~~~^^^^^^~~~~~---
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+Fearless has no "return": the body of a method is a single expression, and its value is the result of the method.
+Error 6 MissingSeparator
+""", """
+A:{ .a: A -> return this; }
+""");}
+@Test void javaNew(){fail("""
+In file: [###].fear
+
+001| A:{ .a: A -> new A() }
+   |   --~~~~~~~~~^^^~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+Fearless has no "new": an object literal, like "A{}" or "A", creates an object.
+Error 6 MissingSeparator
+""", """
+A:{ .a: A -> new A() }
 """);}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

@@ -328,9 +328,12 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       : "Unrecognized text "+disp(what)+".";
     return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
   }
-  public FearlessException missingSemicolonOrOperator(Span at){
+  public FearlessException missingSemicolonOrOperator(Span at, String before, boolean arrow){
     return Code.MissingSeparator.of(
       "There is a missing semicolon \";\", operator, or method name here or earlier.\n"
+      +(before.equals("return") ? "Fearless has no \"return\": the body of a method is a single expression, and its value is the result of the method.\n" : "")
+      +(before.equals("new") ? "Fearless has no \"new\": an object literal, like \"A{}\" or \"A\", creates an object.\n" : "")
+      +(arrow ? "This method body contains \"->\": a \";\" may be missing between two method declarations.\n" : "")
       ).addSpan(at);
   }
   @Override public FearlessException groupHalt(

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.FearlessException;
@@ -499,7 +500,8 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   private void eatPost(){//Guaranteed to advance or error (fwdIf true implies we advanced)
     if (fwdIf(hasPost())){ fwdIf(peek(_SquareGroup)); return; }
-    throw errFactory().missingSemicolonOrOperator(spanAround(index()-1, index()-1));
+    var arrow= IntStream.range(0, limit()).anyMatch(i -> peekAbs(i).get().is(Arrow));
+    throw errFactory().missingSemicolonOrOperator(spanAround(index()-1, index()-1), peek(-1).map(Token::content).orElse(""), arrow);
   }
 
   TSpan tspan(){ return new TSpan(span()); }
