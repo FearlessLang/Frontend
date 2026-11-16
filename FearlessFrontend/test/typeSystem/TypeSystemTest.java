@@ -678,8 +678,7 @@ User:{
 While inspecting method ".bad(_)" (line 4)
 Iso parameter "x" violates the single-use rule in method "User.bad(_)" (line 4).
 It is used directly 2 times.
-Iso parameters can be used directly at most once.
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Use2#(x,x)
@@ -697,8 +696,7 @@ User:{ imm .bad(x:iso B):Unit->Use2#(x,x); }
 While inspecting method ".bad(_)" (line 7)
 Iso parameter "xyz" violates the single-use rule in method "User.bad(_)" (line 7).
 It is used directly and also captured into object literals.
-An iso parameter must be either captured, or used directly once (but not both).
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Mix#(xyz,KK:K{.k:Unit->UseImm#(xyz)})
@@ -721,8 +719,7 @@ User:{
 While inspecting method ".bad(_)" (line 8)
 Iso parameter "x" violates the single-use rule in method "User.bad(_)" (line 8).
 It is used directly and also captured into object literals.
-An iso parameter must be either captured, or used directly once (but not both).
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Mix2#(x,K1:K{.k:Unit->UseImm#(x)},K2:K{.k:Unit->UseImm#(x)})
@@ -747,8 +744,7 @@ User:{
 While inspecting method "#(_)" (line 4) > method ".bad" (line 4)
 Iso parameter "::" violates the single-use rule in method "read base.F[iso B,Unit]#(_)" (line 4).
 It is used directly 2 times.
-Iso parameters can be used directly at most once.
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 Use2#(::,::)
@@ -764,8 +760,7 @@ User:{ .bad:base.F[iso B,Unit]->{ Use2#(::,::) } }
 While inspecting method ".bad(_)" (line 2)
 Iso parameter "{.a, .b}" violates the single-use rule in method "User.bad(_)" (line 2).
 It is used directly 2 times.
-Iso parameters can be used directly at most once.
-Allowed: capture into object literals as "imm", or use directly once.
+An iso parameter can either be captured into object literals, where it is seen as "imm", or be used directly once.
 [###]
 """, List.of("""
 B:{ .a:B->this; .b:B->this; }

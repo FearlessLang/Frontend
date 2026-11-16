@@ -204,8 +204,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var ms= err().methodSig(m.sig().rc().toStrSpace(), l, m.sig().m());
     var x= disp(paramRepr(l, m, name, usages.getFirst()));
     var e= err().line("Iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+line+").");
-    var ex= isoMisuse(e, earlyErrOnMoreThenOnceDirectly, usages.size())
-      .line("Allowed: capture into object literals as "+disp(RC.imm)+", or use directly once.")
+    var ex= e.line(earlyErrOnMoreThenOnceDirectly ? "It is used directly "+usages.size()+" times." : "It is used directly and also captured into object literals.")
+      .line("An iso parameter can either be captured into object literals, where it is seen as "+disp(RC.imm)+", or be used directly once.")
       .ex(m.e().get());
     for (var u : usages){ ex.addSpan(u.span().inner); }
     return ex;
@@ -221,12 +221,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var gm= OneOr.of("Malformed methods", ms.stream().filter(mi -> mi.span().inner.equals(m.sig().span().inner)));
     var xp= gm.sig().get().parameters().get(m.xs().indexOf(name)).xp().get();
     return xp instanceof fearlessFullGrammar.XPat.Destruct d ? FearlessErrFactory.patternRepr(d) : name;
-  }
-  private static Err isoMisuse(Err e, boolean moreThanOnceDirectly, int usages){
-    if (moreThanOnceDirectly){ return e.line("It is used directly "+usages+" times.").line("Iso parameters can be used directly at most once."); }
-    return e
-      .line("It is used directly and also captured into object literals.")
-      .line("An iso parameter must be either captured, or used directly once (but not both).");
   }
   ///Expression at method body has a type that does not meet its result requirement(s).
   ///"body has wrong type" error; can only trigger if all current-expressions at are well typed.
