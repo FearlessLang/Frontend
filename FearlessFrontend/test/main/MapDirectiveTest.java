@@ -2662,7 +2662,7 @@ In file: [###].fear
    |                                           ^^
 
 While inspecting object literal "{...}" (line 2)
-The inference concluded that the object literal at line 2, column 43 should implement the object literal at line 2, column 19.
+Type inference concluded that the object literal at line 2, column 43 should implement the object literal at line 2, column 19.
 An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "bb.CaptureFree".
 

@@ -5865,7 +5865,7 @@ U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
    |                                                 ^^
 
 While inspecting object literal "{...}" (line 2)
-The inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
+Type inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
 An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 """, List.of("""
@@ -5877,7 +5877,7 @@ U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, {}) }.j }
    |                                                 ^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal "{...}" (line 2)
-The inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
+Type inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
 An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 """, List.of("""
