@@ -535,7 +535,7 @@ import java.util.stream.*;
     T join(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
       var res=or(above(a,z),above(z,a));if(res!=null||!(a instanceof R r0&&z instanceof R r1))return or(res,u);
-      var heads=filter(map(parents(r0.c),C::name),h->sup(r0,h) instanceof R s&&sup(r1,h) instanceof R q&&s.c.equals(q.c));
+      var heads=filter(map(parents(r0.c),C::name),h->!h.equals(widen)&&sup(r0,h) instanceof R s&&sup(r1,h) instanceof R q&&s.c.equals(q.c));
       var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&has(from(h2).cs,h)));return minimal.size()==1?above(sup(r0,minimal.get(0)),z):u;
     }
     T above(T top,T c){
@@ -576,7 +576,7 @@ import java.util.stream.*;
       if(own)l=l.t(l.self(cap));register(l);var s=sup(w,widen);yield !instance?l:l.t(new R(cap,s!=null&&s.c.types.get(0) instanceof R q?q.c:w.c));
       }
       case Call c->{var e1=solve(b,g,c.e);MS m;
-      if(!(e1.t() instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
+      if(!((e1 instanceof Literal l&&instance(l)&&cache.containsKey(l.name)?new R(l.r,l.cs.get(0)):e1.t()) instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
       var n=m.cas.size();var k=m.mb.size();
       var all=decide(m.bs,push(m.cas,c.written&&c.y.size()==k?c.y:qs(k)),push(new Con(m.ret,c.t,false),zip(m.ps,c.es,(p,x)->new Con(p,empty(x)?u:x.t(),true))));
       var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v(),all))));

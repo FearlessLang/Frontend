@@ -296,7 +296,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
     var e= nextStar(bs, g, c.e());
-    if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
+    if (!((e instanceof E.Type tt ? tt.type() : e.t()) instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var guess= overloadNorm(rcc.rc().map(rc -> rc == RC.iso ? c.t().explicitRC().orElse(rc) : rc));
     var direct= methodHeader(rcc, c.name(), c.rc(), guess);
     var om= direct.isPresent() ? direct : methodHeader((IT.RCC)deFresh(g, rcc), c.name(), c.rc(), guess);
