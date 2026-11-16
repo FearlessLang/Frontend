@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.Locale;
@@ -19,7 +18,7 @@ import utils.Bug;
 import utils.Join;
 import utils.Push;
 
-public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
+public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> _cp, Function<String,List<String>> notes, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
   static String funnel(String X, String owner, List<String> Xs){
@@ -189,11 +188,11 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   FearlessException ex(E e, E focus){
     var body= text();
     var footer= _cp.apply(true).limit(e, focus, 120).stripTrailing();
-    return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.get().stream(), "", "\n", "\n\n", "")+"Compressed relevant code with inferred types: (compression indicated by `-`)\n"+footer);
+    return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.apply(body+"\n"+footer).stream(), "", "\n", "\n\n", "")+"Compressed relevant code with inferred types: (compression indicated by `-`)\n"+footer);
   }
   FearlessException wf(){
     assert sb.length() != 0;
     var body= text();
-    return Code.WellFormedness.of(() -> body+Join.of(notes.get().stream(), "\n\n", "\n", "", ""));
+    return Code.WellFormedness.of(() -> body+Join.of(notes.apply(body).stream(), "\n\n", "\n", "", ""));
   }
 }

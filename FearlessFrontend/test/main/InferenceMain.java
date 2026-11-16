@@ -1,6 +1,7 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ import tools.SourceOracle.Ref;
 
 public final class InferenceMain extends FrontendLogicMain{
   @Override Package makePackage(String name, Map<String,String> map, Map<String,String> writtenIn, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
-    return new Package(name, map, writtenIn, uses, decs, names, new Package.Logger(true, new ArrayList<>()));
+    return new Package(name, map, writtenIn, uses, decs, names, new Package.Logger(true, new ArrayList<>()), new HashMap<>());
   }
   public Methods ofMethods(String pkgName, List<Ref> files, SourceOracle o, OtherPackages other, boolean infer){
     var rawAST= parseFiles(files);

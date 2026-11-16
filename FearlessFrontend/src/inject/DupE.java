@@ -23,6 +23,7 @@ public record DupE(FreshPrefix fresh, E.Literal out, M m, WellFormednessErrors e
     if (!l.infName()){ throw err.duplicatedNamedLiteral(out, m, l); }
     var oldName= l.name();
     var newName= fresh.freshTopType(oldName, oldName.arity());
+    fresh.note(newName.simpleName(), n -> WellFormednessErrors.freshType(n, l.src().inner.span().inner));
     var ms= l.ms().stream().map(m -> ofM(m, oldName, newName)).toList();
     return new E.Literal(l.rc(), newName, l.bs(), l.cs(), l.thisName(), ms, l.t(), l.src(), true, l.infHead(), new Gamma.GammaSignature());
   }

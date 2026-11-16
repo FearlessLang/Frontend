@@ -187,6 +187,8 @@ While inspecting parameter "b" > method ".foo(_,_)" (line 2)
 The body of method ".foo(_,_)" of type declaration "B[_]" is an expression returning "_BX".
 Parameter "b" has type "_BX" instead of a subtype of "_AX".
 
+Name "_BX" stands for generic type parameter "X" of an inherited method, renamed because "X" already names a type or another generic type parameter.
+
 Compressed relevant code with inferred types: (compression indicated by `-`)
 B[X]:A{.foo[_AX,_BX](a:_AX,b:_BX):_AX->b}
 """, List.of("""
@@ -212,6 +214,8 @@ Method ".k(_)" inside the object literal instance of "G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 
+Name "_AX" stands for generic type parameter "X" of an inherited method, renamed because "X" already names a type or another generic type parameter.
+
 Compressed relevant code with inferred types: (compression indicated by `-`)
 B:Sup{.m[X](x:X):G->G{.k[_AX](y:_AX):_AX->x}}
 """, List.of("""
@@ -232,6 +236,8 @@ While inspecting parameter "this" > method "!" (line 2) > method ".foo" (line 2)
 Method "!" inside the object literal instance of "base.Todo" (line 2)
 is implemented with an expression returning "A".
 Parameter "this" has type "A" instead of a subtype of "_AR".
+
+Name "_AR" stands for generic type parameter "R" of an inherited method, renamed because "R" already names a type or another generic type parameter.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A:{.foo:base.Todo->base.Todo{![_AR:**]:_AR->this}}
@@ -4654,6 +4660,8 @@ Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13)
 is implemented with an expression returning "mut Opt[E]".
 Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
 
+Name "_aeqS" is a parameter added by the desugaring of "=": ".let x = {a}.return {b}" stands for ".let({a}, {x, _aeqS -> _aeqS.return {b}})".
+
 Compressed relevant code with inferred types: (compression indicated by `-`)
 -#[imm,Opt[E]].let[mut,mut Opt[E]](mut MF[-]{-},mut Continuation[mut Opt[E],Opt[E]]{mut #(o:mut Opt[E],_aeqS:mut Block[Opt[E]]):Opt[E]->_aeqS.return[mut](mut MF[Opt[E]]{mut #:Opt[E]->o})})
 """, List.of("""
@@ -5941,6 +5949,8 @@ This call to method "H#(_,_)" cannot typecheck.
 Argument 2 has type "B".
 That is not a subtype of the anonymous type of the object literal at line 4, column 22 (the type required by the method signature).
 
+Name "_BU" stands for the anonymous type of the object literal at line 4, column 22.
+
 Compressed relevant code with inferred types: (compression indicated by `-`)
 H#[imm,_BU](Box[_BU]{.get:_BU->s},B)
 """, List.of("""
@@ -6367,5 +6377,54 @@ A:{}
 Foo[T]:{ .mk: A; .get: T }
 Take:{ #[T](f: Foo[T]): Foo[T] -> f }
 User:{ .go: A -> Take#{'s .mk -> A; .get -> s.mk }.mk }
+"""));}
+@Test void aParameterBesideADestructuringPatternIsPrintedWithANote(){fail("""
+002| User:{ .u({.a,.b}: Pt, x: base.Str): base.Str -> a }
+   |        ------------------------------------------^
+
+While inspecting parameter "a" > method "#(_,_,_)" (line 2) > method ".u(_,_)" (line 2)
+Method "#(_,_,_)" inside the object literal instance of "mut base.MF[base.Nat,base.Nat,base.Str,base.Str]" (line 2)
+is implemented with an expression returning "base.Nat".
+Parameter "a" has type "base.Nat" instead of a subtype of "base.Str".
+
+Name "_ax" is parameter "x", renamed by the desugaring of a destructuring pattern in the same method.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+User:{.u(Pt,x:base.Str):base.Str->base.Destruct#[imm,base.Nat,base.Nat,base.Str,base.Str](-.a,-.b,_ax,mut base.MF[base.Nat,base.Nat,base.Str,base.Str]{mut #(a:base.Nat,b:base.Nat,x:base.Str):base.Str->a})}
+""", List.of("""
+Pt:{ .a: base.Nat; .b: base.Nat }
+User:{ .u({.a,.b}: Pt, x: base.Str): base.Str -> a }
+"""));}
+@Test void aRenamedGenericTypeParameterAsACandidateIsPrintedWithANote(){failWf("""
+003| A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+   |                         ^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Both"
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
+Candidates: "_AX", "Sup1".
+The candidates are different types and "_AX" is a generic type parameter, so no method ".get" can implement all the candidates.
+
+Name "_AX" stands for generic type parameter "X" of an inherited method, renamed because "X" already names a type or another generic type parameter.
+""", List.of("""
+Sup1:{ .get[X]:X }
+Sup2:{ .get[X]:Sup1 }
+A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+"""));}
+@Test void aDestructuringParameterIsPrintedWithANote(){fail("""
+002| U:{ .u({.a}: P): U -> a }
+   |     ------------------^
+
+While inspecting parameter "a" > method "#(_)" (line 2) > method ".u(_)" (line 2)
+Method "#(_)" inside the object literal instance of "mut base.MF[P,U]" (line 2)
+is implemented with an expression returning "P".
+Parameter "a" has type "P" instead of a subtype of "U".
+
+Name "_adiv" is a parameter added by the desugaring of a destructuring pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+U:{.u(P):U->base.Destruct#[imm,P,U](_adiv.a,mut base.MF[P,U]{mut #(a:P):U->a})}
+""", List.of("""
+P:{ .a: P }
+U:{ .u({.a}: P): U -> a }
 """));}
 }
