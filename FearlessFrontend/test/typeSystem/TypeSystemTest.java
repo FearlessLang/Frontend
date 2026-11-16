@@ -5228,6 +5228,344 @@ NeedSeq:{ #(s: Seq[Cat]): Animal -> Cat }
 NeedList:{ #(l: List[Cat]): Animal -> Cat }
 User:{ .m: Use -> Use#{x -> Two#(NeedSeq#x, NeedList#x)} }
 """));}
+@Test void variableTypeArgumentRequiredAsASubtypeThenAsASupertypeIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> Two#(NeedCat#(b.get), NeedAnimal#(b.get))}) }
+"""));}
+@Test void variableTypeArgumentRequiredAsASupertypeThenAsASubtypeIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> Two#(NeedAnimal#(b.get), NeedCat#(b.get))}) }
+"""));}
+@Test void variableTypeArgumentRequiredAsASubtypeBetweenTwoSupertypesIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+Three:{ #(a: Animal, b: Animal, c: Animal): Animal -> a }
+User:{ .m: Animal -> Let#(Mk#, {b -> Three#(NeedAnimal#(b.get), NeedCat#(b.get), NeedAnimal#(b.get))}) }
+"""));}
+@Test void variableTypeArgumentRequiredInANestedLambdaThenOutsideIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> Two#(Let#(Animal, {a -> NeedAnimal#(b.get)}), NeedCat#(b.get))}) }
+"""));}
+@Test void variableTypeArgumentGivenAsASupertypeThenAsASubtypeIsTheSubtype(){fail("""
+010| User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Animal), b.put(Cat))}) }
+   |                                 ----------~^^^^^~~~~~~~-------------
+
+While inspecting "#(_)" line 10 > ".m" line 10
+This call to method "Box[_].put(_)" cannot typecheck.
+Argument 1 has type "iso Animal".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.put(Animal)
+""", List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Animal), b.put(Cat))}) }
+"""));}
+@Test void variableTypeArgumentGivenAsASubtypeThenAsASupertypeIsTheSubtype(){fail("""
+010| User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Cat), b.put(Animal))}) }
+   |                                 ----------------------~^^^^^~~~~~~~-
+
+While inspecting "#(_)" line 10 > ".m" line 10
+This call to method "Box[_].put(_)" cannot typecheck.
+Argument 1 has type "iso Animal".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.put(Animal)
+""", List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Cat), b.put(Animal))}) }
+"""));}
+@Test void variableTypeArgumentGivenAsASupertypeThenAsASubtypeWithWidenToIsTheSupertype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Animal), b.put(Cat))}) }
+"""));}
+@Test void variableTypeArgumentGivenAsASubtypeWithWidenToThenAsASupertypeIsTheSupertype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Cat), b.put(Animal))}) }
+"""));}
+@Test void variableWithAWrittenTypeArgumentIsGivenASupertypeThenASubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#[Animal], {b -> Two#(b.put(Animal), b.put(Cat))}) }
+"""));}
+@Test void variableWithAWrittenTypeArgumentIsGivenASubtypeThenASupertype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#[Animal], {b -> Two#(b.put(Cat), b.put(Animal))}) }
+"""));}
+@Test void chainOnAVariableGivenASupertypeThenASubtypeIsTheSupertype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> b.add(Animal).put(Cat)}) }
+"""));}
+@Test void chainOnAVariableGivenASubtypeThenASupertypeIsTheSubtype(){fail("""
+007| User:{ .m: Animal -> Let#(Mk#, {b -> b.add(Cat).put(Animal)}) }
+   |                                 -----~~~~~~~~~~^^^^^~~~~~~~
+
+While inspecting "#(_)" line 7 > ".m" line 7
+This call to method "Box[_].put(_)" cannot typecheck.
+Argument 1 has type "iso Animal".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.put(Animal)
+""", List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> b.add(Cat).put(Animal)}) }
+"""));}
+@Test void chainOnAVariableGivenASubtypeWithWidenToThenASupertypeIsTheSupertype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal, base.WidenTo[Animal]{ .purr: Cat -> this }
+Box[T]:{ .put(t: T): Animal -> Animal; .add(t: T): Box[T] -> this }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> b.add(Cat).put(Animal)}) }
+"""));}
+@Test void methodTypeArgumentDecidedWithoutAVariableThenTheVariableRequiredAsAnUnrelatedTypeIsRejected(){fail("""
+009| User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat).name, NeedDog#(x))} }
+   |                           ------------------------------~~~~~~~^^~~-
+
+While inspecting "#(_)" line 9 > ".m" line 9
+This call to method "NeedDog#(_)" cannot typecheck.
+Argument 1 has type "Cat".
+That is not a subtype of "Dog" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#(x)
+""", List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): T -> a }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat).name, NeedDog#(x))} }
+"""));}
+@Test void variableRequiredThenAMethodTypeArgumentDecidedWithoutTheVariableAsAnUnrelatedTypeIsRejected(){fail("""
+009| User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, Cat).name)} }
+   |                           -----------------------~~~~^^~~~~~~~------
+
+While inspecting "#(_)" line 9 > ".m" line 9
+This call to method "Pick#(_,_)" cannot typecheck.
+Argument 1 has type "Dog".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#[imm,Cat](x,-)
+""", List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): T -> a }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, Cat).name)} }
+"""));}
+@Test void variableNextToAWrittenMethodTypeArgumentThenRequiredAsASubtypeIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): T -> a }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(Pick#[Animal](x, Cat).name, NeedDog#(x))} }
+"""));}
+@Test void variableRequiredAsASubtypeThenNextToAWrittenMethodTypeArgumentIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Dog:Animal{ .bark: Dog -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): T -> a }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#[Animal](x, Cat).name)} }
+"""));}
+@Test void variableTypeArgumentRequiredThroughANestedLambdaParameterThenAsASupertypeIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> Two#(Let#(b.get, {c -> NeedCat#(c)}), NeedAnimal#(b.get))}) }
+"""));}
+@Test void variableTypeArgumentRequiredAsASupertypeThenThroughANestedLambdaParameterIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+F[A,R]:{ #(a: A): R }
+Let:{ #[A,R](a: A, f: F[A,R]): R -> f#a }
+User:{ .m: Animal -> Let#(Mk#, {b -> Two#(NeedAnimal#(b.get), Let#(b.get, {c -> NeedCat#(c)}))}) }
+"""));}
+@Test void variableTypeArgumentGivenInTwoStatementsAsASupertypeThenAsASubtypeIsTheSubtype(){fail("""
+007| User:{ .m: Animal -> base.Block#.let b= {Mk#} .let a= {b.put(Animal)} .let c= {b.put(Cat)} .return {a} }
+   |                      ----------------------------------~^^^^^~~~~~~~----------------------------------
+
+While inspecting "#" line 7 > "#(_,_)" line 7 > ".m" line 7
+This call to method "Box[_].put(_)" cannot typecheck.
+Argument 1 has type "iso Animal".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.put(Animal)
+""", List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+User:{ .m: Animal -> base.Block#.let b= {Mk#} .let a= {b.put(Animal)} .let c= {b.put(Cat)} .return {a} }
+"""));}
+@Test void variableTypeArgumentGivenInTwoStatementsAsASubtypeThenAsASupertypeIsTheSubtype(){fail("""
+007| User:{ .m: Animal -> base.Block#.let b= {Mk#} .let a= {b.put(Cat)} .let c= {b.put(Animal)} .return {a} }
+   |                                 --------------------------------------------~^^^^^~~~~~~~-------------
+
+While inspecting "#" line 7 > "#(_,_)" line 7 > "#(_,_)" line 7 > ".m" line 7
+This call to method "Box[_].put(_)" cannot typecheck.
+Argument 1 has type "iso Animal".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.put(Animal)
+""", List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+User:{ .m: Animal -> base.Block#.let b= {Mk#} .let a= {b.put(Cat)} .let c= {b.put(Animal)} .return {a} }
+"""));}
+@Test void variableTypeArgumentRequiredInTwoStatementsAsASupertypeThenAsASubtypeIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+User:{ .m: Animal -> base.Block#.let b= {Mk#} .let a= {NeedAnimal#(b.get)} .let c= {NeedCat#(b.get)} .return {a} }
+"""));}
+@Test void variableTypeArgumentRequiredInTwoStatementsAsASubtypeThenAsASupertypeIsTheSubtype(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+User:{ .m: Animal -> base.Block#.let b= {Mk#} .let a= {NeedCat#(b.get)} .let c= {NeedAnimal#(b.get)} .return {a} }
+"""));}
+@Test void variableWithAWrittenTypeArgumentIsGivenASubtypeThenASupertypeInTwoStatements(){ok(List.of("""
+Animal:{ .name: Animal -> this }
+Cat:Animal{ .purr: Cat -> this }
+NeedAnimal:{ #(a: Animal): Animal -> a }
+NeedCat:{ #(c: Cat): Animal -> c }
+Box[T]:{ .put(t: T): Animal -> Animal; .get: T -> this.get }
+Mk:{ #[T]: Box[T] -> Box[T] }
+User:{ .m: Animal -> base.Block#.let b= {Mk#[Animal]} .let a= {b.put(Cat)} .let c= {b.put(Animal)} .return {a} }
+"""));}
 @Test void lambdaParameterCapturedAfterItsOtherUseIsInferredFromTheOtherUse(){ok(List.of("""
 A:{ mut .m: A -> A }
 Mut:{ #(a: mut A): A -> a.m }
@@ -6398,11 +6736,11 @@ User:{ .m(c: Cat, d: Dog): Animal -> Ids#(c, d).me }
 """));}
 @Test void typeGrowsForeverInsideAnArgument(){failWf("""
 007| Use:{ .go: N -> Take#{ .m(x) -> Pair#(x, Wrap#(x)) } }
-   |                                          ^^^^^^^^
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting method call "#(_)"
-Type inference finds no type for method call "#(_)".
-Each round of inference nests its type one level deeper, as "Box[Box[Box[...]]]"; it would grow without bound.
+While inspecting object literal instance of "Foo[_]"
+Type inference finds no type for object literal instance of "Foo[_]".
+Each round of inference nests its type one level deeper, as "Foo[Box[Box[...]]]"; it would grow without bound.
 """, List.of("""
 N:{}
 Box[X]:{}

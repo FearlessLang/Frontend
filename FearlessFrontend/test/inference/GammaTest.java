@@ -28,8 +28,8 @@ public final class GammaTest{
 
     var t2= X("Foo");
     g.update("x", t2);
-    assertFalse(g.represents(s1), "updating x must change signature");
-    assertSame(t2, g.get("x"));
+    assertTrue(g.represents(s1), "updating x must not change signature");
+    assertSame(t2, g.learned("x"));
   }
 
   // 2) Inner declare does not affect parent after pop (sign/represents)
@@ -67,39 +67,11 @@ public final class GammaTest{
     var t2= X("Foo");
     g.update("x", t2); // x declared at parent depth
 
-    assertFalse(g.represents(childBefore), "child must see parent var update");
+    assertTrue(g.represents(childBefore), "the update is not part of the child signature");
 
     g.popScope();
-    assertFalse(g.represents(parentBefore), "parent signature must reflect the update after pop");
-    assertSame(t2, g.get("x"));
-  }
-
-  // 4) Three-scope visibility: updates only affect scopes that can see the binding
-  @Test void three_scopes_visibility_matrix_with_signatures(){
-    var g= new Gamma();
-    g.declare("x", X("X0"));
-    var sigRootAfterX= new Gamma.GammaSignature();
-    g.sign(sigRootAfterX);
-
-    g.newScope(RC.mut, List.of(), null); // depth 2
-    g.declare("y", X("Y0"));
-    g.declare("z", X("Z0")); // declare z at middle depth
-    var sigMidAfterYZ= new Gamma.GammaSignature();
-    g.sign(sigMidAfterYZ);
-
-    g.newScope(RC.mut, List.of(), null); // depth 3
-    var sigInnerBefore= new Gamma.GammaSignature();
-    g.sign(sigInnerBefore);
-
-    // Update z (declared at middle). Only inner (and middle) should change now.
-    g.update("z", X("Z1"));
-    assertFalse(g.represents(sigInnerBefore), "inner must change due to z update at middle");
-
-    g.popScope(); // back to middle
-    assertFalse(g.represents(sigMidAfterYZ), "middle must reflect its own z update");
-
-    g.popScope(); // back to root
-    assertTrue(g.represents(sigRootAfterX), "root should be unchanged by middle-only updates after pop");
+    assertTrue(g.represents(parentBefore), "the update is not part of the parent signature");
+    assertSame(t2, g.learned("x"));
   }
 
   // 5) get on unknown throws by design
@@ -147,7 +119,7 @@ public final class GammaTest{
 
     var t= X("T_updated");
     g.update("v31", t);
-    assertFalse(g.represents(sigChildStart)); // child sees update
+    assertTrue(g.represents(sigChildStart));
 
     // Snapshot child's post-update signature; after pop, parent should match it
     var sigChildAfter= new Gamma.GammaSignature();
@@ -155,14 +127,14 @@ public final class GammaTest{
 
     g.popScope();
     assertTrue(g.represents(sigChildAfter), "update to parent-declared var must remain after pop");
-    assertSame(t, g.get("v31"));
+    assertSame(t, g.learned("v31"));
 
     g.newScope(RC.mut, List.of(), null);
     for (int i : Range.of(0, 10)){ g.declare("w"+i, X("W"+i)); }
     g.popScope();
 
     assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("w0"));
-    assertSame(t, g.get("v31"));
+    assertSame(t, g.learned("v31"));
 
     // Inner-only declares should not disturb parent after pop
     assertTrue(g.represents(sigChildAfter));
@@ -232,15 +204,6 @@ public final class GammaTest{
     assertEquals(sAB.shot, sBA.shot, "signature must be order-independent across declares");
   }
 
-  // 15) snapshot/changed semantics: changed should be false after snapshot, true after a change
-  @Test void snapshot_and_changed_semantics(){
-    var g= new Gamma();
-    var s= g.snapshot();
-    assertFalse(g.changed(s), "immediately after snapshot, changed() should be false");
-    g.declare("x", X("X"));
-    assertTrue(g.changed(s), "after a change, changed() should be true");
-  }
-
   // 16) Nesting and bindings grow past the initial capacities
   @Test void deep_scopes_and_many_bindings_grow(){
     var g= new Gamma();
@@ -254,7 +217,7 @@ public final class GammaTest{
     assertEquals(X("T0"), g.get("v0_0"));
     assertEquals(X("T999"), g.get("v999_9"));
     g.update("v0_0", X("U"));
-    assertEquals(X("U"), g.get("v0_0"));
+    assertEquals(X("U"), g.learned("v0_0"));
     for (int _ : Range.of(0, n)){ g.popScope(); }
     assertTrue(g.represents(root));
     assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("v0_0"));

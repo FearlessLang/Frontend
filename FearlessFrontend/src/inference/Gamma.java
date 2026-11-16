@@ -34,6 +34,7 @@ public final class Gamma{
 
   private String[] xs= new String[initialBindings];
   private IT[]     ts= new IT[initialBindings];
+  private IT[]     learned= new IT[initialBindings];
   private int[] declDepth= new int[initialBindings];
   private int size= 0;
 
@@ -65,6 +66,7 @@ public final class Gamma{
     var n= 2 * size;
     xs = Arrays.copyOf(xs, n);
     ts = Arrays.copyOf(ts, n);
+    learned = Arrays.copyOf(learned, n);
     declDepth = Arrays.copyOf(declDepth, n);
   }
   public void popScope(){
@@ -74,9 +76,11 @@ public final class Gamma{
     size = newSize;
     depth -= 1;
   }
-  public IT getWithRC(String x){
+  public IT getWithRC(String x){ return withRC(ts, x); }
+  public IT learnedWithRC(String x){ return withRC(learned, x); }
+  private IT withRC(IT[] from, String x){
     var i= indexOf(x);         // offensive: -1 would crash later
-    var t= ts[i];              // the stored (true) type
+    var t= from[i];            // the stored (true) type
     for (var s= declDepth[i] + 1; s < depth; s += 1){ t = adapt(t, rcs[s], bss[s]); }
     return t;
   }
@@ -105,6 +109,7 @@ public final class Gamma{
     return null;
   }
   public IT get(String x){ return ts[indexOf(x)]; }
+  public IT learned(String x){ return learned[indexOf(x)]; }
   public IT _get(String x){ var i= indexOf(x); return i == -1 ? null : ts[i]; }
 
   public void declare(String x, IT t){
@@ -113,12 +118,13 @@ public final class Gamma{
     if (size == xs.length){ growBindings(); }
     xs[size] = x;
     ts[size] = t;
+    learned[size] = t;
     declDepth[size] = depth - 1;
     idx.put(x, size);
     size += 1;
   }
   public void update(String x, IT t){
-    ts[indexOf(x)] = t;
+    learned[indexOf(x)] = t;
   }
   public void tableGrew(){ tables += 1; }
   public boolean represents(GammaSignature sig){ return sig.tables == tables && snapshot().equals(sig.shot); }
@@ -128,7 +134,6 @@ public final class Gamma{
     for (int i : Range.of(0, size)){ res.put(xs[i], ts[i]); }
     return res;
   }
-  public boolean changed(Map<String,IT> shot){ return !shot.equals(snapshot()); }
   private int indexOf(String x){
     assert x != null;
     if (size > indexThreshold){ return idx.getOrDefault(x, -1); }
