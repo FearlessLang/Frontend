@@ -1759,6 +1759,21 @@ Plus:{
   .go:Plus->this + this.other;
 }
 """));}
+@Test void aValueWhereALambdaIsExpectedGetsTheCurlyBracesHint(){fail("""
+001| use base.Nat as Nat; A:{ #: Nat -> base.Block#.return 5 }
+   |                          ----------~~~~~~~~~~~~~~~~~~~^
+
+While inspecting method "#" (line 1)
+This call to method "mut base.Block[_].return(_)" cannot typecheck.
+Argument 1 has type "Nat".
+That is not a subtype of "mut base.ReturnStmt[Nat]" (the type required by the method signature).
+Hint: write the argument inside curly braces: "{...}" is an object literal whose single method returns the code inside.
+
+Relevant code with inferred types:
+base.Block#[imm,Nat].return[mut](5)
+""", List.of("""
+use base.Nat as Nat; A:{ #: Nat -> base.Block#.return 5 }
+"""));}
 @Test void operatorArgMismatchNotFollowedByACallGetsNoPrecedenceHint(){fail("""
 004|   .go:Plus->this + this;
    |   ----------~~~~~~~^^^^
