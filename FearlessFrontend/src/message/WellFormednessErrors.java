@@ -409,10 +409,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var names= sup.stream().map(si -> si.m().s()).distinct().sorted().toList();
     var best= s.m().filter(_ -> !names.isEmpty()).flatMap(n -> NameSuggester.bestName(n.s(), names));
     var e= s.m().isEmpty() ? unnamedNotInferred(origin, s, sup) : missingTypes(origin, s, best.isEmpty());
-    if (!sup.isEmpty()){ e.line(Join.of(sup.stream().map(WellFormednessErrors::supSig).distinct().sorted(), "Methods of the supertypes: ", ", ", ".")); }
     best.ifPresent(b -> e.line(Join.of(sup.stream().filter(si -> si.m().s().equals(b)).map(WellFormednessErrors::supSig).distinct(), "Did you mean ", " or ", " ?")));
     m.names().stream().filter(x -> s.m().isEmpty() && names.contains("."+x)).findFirst()
       .ifPresent(x -> e.line(disp(x)+" is read as a parameter name: a method name starts with \".\", as in "+disp("."+x)+"."));
+    if (!sup.isEmpty()){ e.line(Join.of(sup.stream().map(WellFormednessErrors::supSig).distinct().sorted(), "Methods of the supertypes: ", ", ", ".")); }
     return wf(e, s, origin);
   }
   private static String supSig(core.Sig s){ return methodSig(s.rc().toStrSpace(), s.m()); }

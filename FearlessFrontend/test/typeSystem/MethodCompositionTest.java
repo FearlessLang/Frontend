@@ -1095,8 +1095,8 @@ While inspecting type declaration "B"
 Missing return type for method "imm .m".
 A method can omit types in its signature only when a supertype has a method "imm .m" to inherit the missing types from.
 No supertype of type declaration "B" has a method "imm .m".
-Methods of the supertypes: "mut .m".
 Did you mean "mut .m" ?
+Methods of the supertypes: "mut .m".
 """, List.of("""
 A:{ mut .m: A }
 B:A{ imm .m -> this }
@@ -1109,8 +1109,8 @@ While inspecting object literal instance of "OM[_]"
 Missing return type for method ".some".
 A method can omit types in its signature only when a supertype has a method ".some" to inherit the missing types from.
 No supertype of object literal instance of "OM[_]" has a method ".some".
-Methods of the supertypes: ".empty", ".some(_)".
 Did you mean ".some(_)" ?
+Methods of the supertypes: ".empty", ".some(_)".
 """, List.of("""
 A:{}
 OM[R]:{ .some(a: A): R; .empty: R }
@@ -1125,8 +1125,8 @@ While inspecting object literal instance of "IfM[_]"
 Missing return type for method ".els".
 A method can omit types in its signature only when a supertype has a method ".els" to inherit the missing types from.
 No supertype of object literal instance of "IfM[_]" has a method ".els".
-Methods of the supertypes: ".else", ".then".
 Did you mean ".else" ?
+Methods of the supertypes: ".else", ".then".
 """, List.of("""
 A:{}
 IfM[R]:{ .then: R; .else: R }
@@ -1140,8 +1140,8 @@ U:{ .u: A -> B.if{ .then -> A; .els -> A } }
 While inspecting type declaration "West"
 Cannot infer signature and name for a method with 1 parameter.
 No supertype of type declaration "West" has a method with 1 parameter.
-Methods of the supertypes: ".turn".
 "turn" is read as a parameter name: a method name starts with ".", as in ".turn".
+Methods of the supertypes: ".turn".
 """, List.of("""
 Direction:{ .turn: Direction }
 North:Direction{ .turn -> North }
