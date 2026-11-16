@@ -1778,7 +1778,7 @@ Plus:{
 
 While inspecting method ".foo" (line 5) > method ".f(_)" (line 5)
 This call to method "Need#(_)" cannot typecheck.
-Argument 1 has type "read B".
+Argument 1 has type "B".
 That is not a subtype of "mut A" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -5542,7 +5542,7 @@ C[X:*]:{ .m(x:X, y:base.Void):X -> Pick#(x,y) }
 
 While inspecting method ".m" (line 5)
 This call to method "Pick3#(_,_,_)" cannot typecheck.
-Argument 2 has type "iso B".
+Argument 2 has type "B".
 That is not a subtype of "A" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -5927,7 +5927,7 @@ U:{ .m: A -> A{'s .k -> s; .v -> H#(s.k, { .get -> s }) } }
 
 While inspecting method ".j" (line 4) > method ".m" (line 4)
 This call to method "H#(_,_)" cannot typecheck.
-Argument 2 has type "iso B".
+Argument 2 has type "B".
 That is not a subtype of the anonymous type of the object literal at line 4, column 22 (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -6083,7 +6083,7 @@ A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(
 
 While inspecting method ".k" (line 3)
 This call to method "A.m(_)" cannot typecheck.
-Argument 1 has type "iso C".
+Argument 1 has type "C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -6099,7 +6099,7 @@ A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
 
 While inspecting method ".k" (line 3)
 This call to method "A.m(_)" cannot typecheck.
-Argument 1 has type "iso C".
+Argument 1 has type "C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)

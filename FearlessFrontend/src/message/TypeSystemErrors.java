@@ -451,7 +451,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
     var e= err()
       .pCallCantBeSatisfied(d, c)
-      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
+      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr instanceof T.RCC ? canon(gotHdr) : gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, declared)+" (the type required by the method signature).");
     addNoPrecedenceHintIfOperator(e, c);
     return withCallSpans(e.ex(c, c.es().get(argi)), c.es().get(argi), c);
