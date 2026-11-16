@@ -94,7 +94,9 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var instead= "Expected "+what;
     var complete= parser.peek(-1).isPresent() ? ": the code before it is already complete" : "";
     var msg= expected("Unexpected "+found(t)+complete, instead+": ", instead+".\nExpected one of: ", expectedTerminatorTokens, tk -> tk.human);
-    return Code.ExtraTokenInGroup.of(msg+afterTypeHint(t, parser.peek(-1))).addSpan(t.span(from.fileName())).addSpan(from);
+    var nextMethod= t.is(DotName) && !complete.isEmpty() && (what.isEmpty() || expectedTerminatorTokens.contains(CCurly));
+    var semi= nextMethod ? "A \";\" may be missing before "+disp(t.content())+", between two method declarations.\n" : "";
+    return Code.ExtraTokenInGroup.of(msg+afterTypeHint(t, parser.peek(-1))+semi).addSpan(t.span(from.fileName())).addSpan(from);
   }
   private static String afterTypeHint(Token t, Optional<Token> prev){
     var type= prev.filter(p -> p.is(Token.typeName)).map(Token::content);

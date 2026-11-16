@@ -3982,6 +3982,46 @@ Error 4 ExtraTokenInGroup
 """, """
 A:{ .me: A mut -> this }
 """);}
+@Test void missingSemicolonAfterAnAbstractMethod(){fail("""
+In file: [###].fear
+
+001| Direction:{ .turn: Direction .reverse: Direction -> this.turn.turn }
+   |             -----------------^^^^^^^^~~~~~~~~~~~------------------
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected ".reverse": the code before it is already complete.
+A ";" may be missing before ".reverse", between two method declarations.
+Error 4 ExtraTokenInGroup
+""", """
+Direction:{ .turn: Direction .reverse: Direction -> this.turn.turn }
+""");}
+@Test void missingSemicolonBetweenTwoAbstractMethods(){fail("""
+In file: [###].fear
+
+001| Direction:{ .turn: Direction .reverse: Direction }
+   |             -----------------^^^^^^^^~~~~~~~~~~~
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Expected semicolon or closing curly brace.
+Expected one of: ";", "}".
+A ";" may be missing before ".reverse", between two method declarations.
+Error 4 ExtraTokenInGroup
+""", """
+Direction:{ .turn: Direction .reverse: Direction }
+""");}
+@Test void aMethodNameInsideParametersGetsNoSemicolonHint(){fail("""
+In file: [###].fear
+
+001| A:{ .m(a: A .b): A -> a }
+   |     ---~~~~~^^----
+
+While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
+Expected comma, colon or arrow.
+Expected one of: ",", ":", "->".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .m(a: A .b): A -> a }
+""");}
 @Test void capabilityAfterTheParameterType(){fail("""
 In file: [###].fear
 
