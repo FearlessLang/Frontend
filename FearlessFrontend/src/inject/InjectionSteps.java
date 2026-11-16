@@ -55,9 +55,9 @@ Offensive style: Optional.get() is intentional where invariants guarantee presen
 absence indicates a bug and should crash.
 */
 
-public record InjectionSteps(Methods meths, int cap, boolean late){
+public record InjectionSteps(Methods meths, int cap){
   public static List<core.E.Literal> steps(Methods meths, List<E.Literal> tops){
-    var s= new InjectionSteps(meths, deepest(meths), false);
+    var s= new InjectionSteps(meths, deepest(meths));
     assert tops.stream().allMatch(l -> l.thisName().equals("this"));
     //No! at this point they have been (correctly) divided in layers assert tops.stream().sorted().toList().equals(tops);
     return tops.stream()
@@ -95,10 +95,10 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     var g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
     var bs= Push.of(di.bs(), m.sig().bs().get());
-    var limit= cap*size(ei);
-    ei = new InjectionSteps(meths, limit, false).nextStar(bs, g, ei);
-    g.tableGrew();
-    ei = new InjectionSteps(meths, limit, true).nextStar(bs, g, ei);
+    var s= new InjectionSteps(meths, cap*size(ei));
+    ei = s.nextStar(bs, g, ei);
+    g.latePass();
+    ei = s.nextStar(bs, g, ei);
     return new core.M(mCore.sig(), xs, m.names(), Optional.of(new ToCore(bs, meths).of(ei, e)));
   }
   E meet(E e, IT t){
@@ -422,7 +422,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       .allMatch(m -> m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t -> t.get().isTV()));
   }
   private List<Optional<IT>> updateArgs(M m, Gamma g){
-    return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !late ? oi : Optional.of(meet(oi.get(), g.learned(x)))).toList();
+    return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !g.late() ? oi : Optional.of(meet(oi.get(), g.learned(x)))).toList();
   }
   M nextMStarOp(List<B> bs, Gamma g, E.Literal l, Optional<IT.RCC> selfPrecise, IT.RCC rcc, M m){
     assert m.impl().isPresent();

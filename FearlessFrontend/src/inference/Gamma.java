@@ -21,7 +21,7 @@ public final class Gamma{
   @NeverAsKey
   public static final class GammaSignature{
     Map<String,IT> shot;
-    int tables;
+    boolean late;
     final HashMap<Monotonicity.Slot,ArrayList<Object>> monotonicity= new HashMap<>();
     //public GammaSignature clear(){ hash = 0; return this;}//more performance
     public GammaSignature clear(){ return new GammaSignature(); }//more safe
@@ -44,7 +44,7 @@ public final class Gamma{
   private List<B>[] bss= (List<B>[])new List<?>[initialDepth];
   private E.Literal[] owners= new E.Literal[initialDepth];
   private int depth= 1;
-  private int tables= 0;
+  private boolean late;
 
   private final HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
   public void newScope(RC rc, List<B> bs, E.Literal owner){
@@ -126,9 +126,10 @@ public final class Gamma{
   public void update(String x, IT t){
     learned[indexOf(x)] = t;
   }
-  public void tableGrew(){ tables += 1; }
-  public boolean represents(GammaSignature sig){ return sig.tables == tables && snapshot().equals(sig.shot); }
-  public void sign(GammaSignature sig){ sig.shot = snapshot(); sig.tables = tables; }
+  public void latePass(){ late = true; }
+  public boolean late(){ return late; }
+  public boolean represents(GammaSignature sig){ return sig.late == late && snapshot().equals(sig.shot); }
+  public void sign(GammaSignature sig){ sig.shot = snapshot(); sig.late = late; }
   public Map<String,IT> snapshot(){
     var res= new HashMap<String,IT>();
     for (int i : Range.of(0, size)){ res.put(xs[i], ts[i]); }
