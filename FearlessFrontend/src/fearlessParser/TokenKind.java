@@ -48,6 +48,7 @@ public enum TokenKind implements metaParser.TokenKind{
   UStr("\\x22[^\\x22\\x0A]*\\x22", "string literal"),
   SStr("`[^`\\x0A]*`", "string literal"),
   DotName("\\._*[a-z][A-Za-z0-9_]*'*", "method name (eg. .foo)"),
+  BadDotName("\\._*[A-Z][A-Za-z0-9_]*'*"),
   UppercaseId(
     "(?:"+core.TName.pkgNameRegex+"\\x2E)?_*[A-Z][A-Za-z0-9_]*'*",
     "type name"),//correctly allows only one '.' since packages are not nested inside each others

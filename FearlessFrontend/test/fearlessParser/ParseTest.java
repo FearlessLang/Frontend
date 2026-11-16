@@ -3867,5 +3867,31 @@ Error 2 UnexpectedToken
 """, """
 class Point{ }
 """);}
+@Test void uppercaseMethodName(){fail("""
+In file: [###].fear
+
+001| A:{ .Size: A -> this }
+   |     ^^^^^
+
+While inspecting a method name
+Method name ".Size" starts with an uppercase letter.
+A method name starts with a lowercase letter after the ".", like ".size".
+Error 2 UnexpectedToken
+""", """
+A:{ .Size: A -> this }
+""");}
+@Test void uppercaseMethodNameInACall(){fail("""
+In file: [###].fear
+
+001| A:{ .size: A -> A.Size }
+   |                  ^^^^^
+
+While inspecting a method name
+Method name ".Size" starts with an uppercase letter.
+A method name starts with a lowercase letter after the ".", like ".size".
+Error 2 UnexpectedToken
+""", """
+A:{ .size: A -> A.Size }
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

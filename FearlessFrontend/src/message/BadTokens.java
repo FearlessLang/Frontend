@@ -3,7 +3,9 @@ package message;
 import static fearlessParser.TokenKind.*;
 import static message.Err.*;
 
+import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import core.FearlessException;
@@ -37,7 +39,15 @@ Package names are restricted to be valid filenames on all operating systems.
 Names like aux, nul, lpt2 are invalid on Windows.
 """, "package names")
       .put(BadSStrQuote, (_, t, tz) -> singleQuoteString(t, tz))
+      .put(BadDotName, (_, t, tz) -> uppercaseMethodName(t, tz))
 ;}
+  private static Stream<Token> uppercaseMethodName(Token t, Tokenizer tz){
+    var c= t.content();
+    var fix= Pattern.compile("[A-Z]").matcher(c).replaceFirst(m -> m.group().toLowerCase(Locale.ROOT));
+    throw Code.UnexpectedToken.of("Method name "+disp(c)+" starts with an uppercase letter.\n"
+      +"A method name starts with a lowercase letter after the \".\", like "+disp(fix)+".")
+      .addFrame("a method name", t.span(tz.fileName()));
+  }
   private static Stream<Token> singleQuoteString(Token t, Tokenizer tz){
     var c= t.content();
     var in= c.substring(1, c.length()-1);
