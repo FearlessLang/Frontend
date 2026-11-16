@@ -311,8 +311,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     m = m.withClsArgs(clsTs);
     var it= meet(c.t(), m.ret(targs));
     var es1= nextStar(bs, g, meetWithTargs(c.es(), m, targs));
-    var noChange= e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
-    if (noChange){ return c; }
     return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
   }
   private static IT deFresh(Gamma g, IT t){
@@ -366,8 +364,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var ts= decide(g, d == null ? l.bs() : d.bs(), rcc.c().ts(), solved.stream().flatMap(m -> constraints(rcc, m)).toList());
     var t= rcc.withTs(ts);
     var ms= norm(l.ms(), Streams.zip(l.ms(), solved).map((mi, m) -> instantiate(t, mi, m)).toList());
-    var noChange= ms == l.ms() && ts.equals(rcc.c().ts());
-    if (noChange){ return commitToTable(g, bs, l, rcc); }
     return commitToTable(g, bs, l.withMsT(ms, t), t);
   }
   private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT.RCC rcc){

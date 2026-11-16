@@ -2554,6 +2554,9 @@ A:{}
 @Test void anonReceiverSealedHeadSelfCall(){ok(List.of("""
 Outer:{ .m: base.Void -> {'self .a: base.Void -> base.Void{}; .b: base.Void -> self.a }.b }
 """));}
+@Test void anonReceiverSealedHeadSelfCallOfAReadMethod(){ok(List.of("""
+Outer:{ .m: base.Void -> {'self read .a: base.Void -> base.Void{}; .b: base.Void -> self.a }.b }
+"""));}
 @Test void anonReceiverSealedHead(){ok(List.of("""
 Outer:{ .m: base.Void -> { .a: base.Void -> base.Void{} }.a }
 """));}
