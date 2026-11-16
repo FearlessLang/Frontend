@@ -403,7 +403,7 @@ Foo:{ .bar: A[mutH Foo] -> A[mutH Foo] }
 
 While inspecting type declaration "Break"
 The type "A[Break]" is invalid.
-Generic type argument 1 ("Break") does not satisfy the bounds
+Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
@@ -419,7 +419,7 @@ Break:A[imm Break]{}
 
 While inspecting type declaration "Break"
 The type "A[Break]" is invalid.
-Generic type argument 1 ("Break") does not satisfy the bounds
+Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
@@ -439,7 +439,7 @@ Break:A[mut Break]{}
 
 While inspecting object literal "BreakInner" > method "#" (line 3)
 The type "A[Break]" is invalid.
-Generic type argument 1 ("Break") does not satisfy the bounds
+Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
@@ -537,7 +537,7 @@ Break:{ .m(f: imm Foo): imm Foo -> A#(f) }
 
 While inspecting method call "#(_)" > method ".m(_)" (line 3)
 The call to "#(_)" is invalid.
-Generic type argument 1 ("Foo") does not satisfy the bounds
+Generic type argument 1 ("imm Foo") does not satisfy the bounds
 for generic type parameter "X" in "A#(_)".
 Here "X" can only use capability "mut".
 

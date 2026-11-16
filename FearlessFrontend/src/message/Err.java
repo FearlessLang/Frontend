@@ -135,7 +135,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   String text(){ return sb.toString().stripTrailing(); }
   public Err pTypeArgBounds(String what, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
-    var badStr= typeRepr(true, bad);
+    var badStr= typeRepr(false, bad);
     var e= line("The "+what+" is invalid.")
       .line("Generic type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
       .line("for generic type parameter "+paramName+" in "+kindingTarget+".")

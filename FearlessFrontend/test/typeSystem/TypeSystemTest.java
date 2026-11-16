@@ -589,7 +589,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".id(_)" > method ".m(_,_)" (line 3)
 The call to ".id(_)" is invalid.
-Generic type argument 1 ("B") does not satisfy the bounds
+Generic type argument 1 ("imm B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
@@ -607,7 +607,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
 
 While inspecting method call ".id(_)" > method ".m(_,_)" (line 3)
 The call to ".id(_)" is invalid.
-Generic type argument 1 ("B") does not satisfy the bounds
+Generic type argument 1 ("imm B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
