@@ -164,7 +164,7 @@ T0[X]:{ .m: T0[base.Void] -> {this}.m }
    |      ---------------~~~~~~~~~~~~^^^^--
 
 While inspecting parameter "this" > method ".k" (line 2) > method ".m" (line 2)
-Method ".k" inside the object literal instance of "iso T1" (line 2)
+Method ".k" inside the object literal instance of "T1" (line 2)
 is implemented with an expression returning "T1".
 Parameter "this" has type "T1" instead of a subtype of "Z[Y]".
 
@@ -208,7 +208,7 @@ B:Sup{ .m[X](x:X):F[X]->{ .k(y)->x } }
    |        ---------~~~~~~~^--
 
 While inspecting parameter "x" > method ".k(_)" (line 3) > method ".m(_)" (line 3)
-Method ".k(_)" inside the object literal instance of "iso G" (line 3)
+Method ".k(_)" inside the object literal instance of "G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 
@@ -229,7 +229,7 @@ B:Sup{ .m(x)->{ .k(y)->x }; .q[X]:Sup->this }
    |     ------------------~~~~~^^^^--
 
 While inspecting parameter "this" > method "!" (line 2) > method ".foo" (line 2)
-Method "!" inside the object literal instance of "iso base.Todo" (line 2)
+Method "!" inside the object literal instance of "base.Todo" (line 2)
 is implemented with an expression returning "A".
 Parameter "this" has type "A" instead of a subtype of "_AR".
 
@@ -335,7 +335,7 @@ Outer:{ #: G -> {'self .foo[X:imm]: base.Void -> base.Void; .bar: base.Void -> s
    |         ----------------------------------~~~~~~^^^^^^^^^^^^--
 
 While inspecting method call "#(_)" > method ".v" (line 4) > method "#" (line 4)
-Method ".v" inside the object literal instance of "iso G" (line 4)
+Method ".v" inside the object literal instance of "G" (line 4)
 is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
 
@@ -854,7 +854,7 @@ User:{
 007|   };
 
 While inspecting method call "#(_)" > method ".get" (line 6) > method ".m" (line 5)
-Method ".get" inside the object literal instance of "iso Get" (line 5)
+Method ".get" inside the object literal instance of "mut Get" (line 5)
 is implemented with an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
 
@@ -876,7 +876,7 @@ User:{
    |   -----------------------------~~~^^^--
 
 While inspecting object literal instance of "Foo" > method "#(_)" (line 7) > method ".m" (line 7)
-Method "#(_)" inside the object literal instance of "iso F[Person,Car]" (line 7)
+Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 7)
 is implemented with an expression returning "iso Foo".
 Object literal is of type "Foo" instead of a subtype of "Car".
 
@@ -1033,7 +1033,7 @@ User:{
 006|   }
 
 While inspecting parameter "a" > method "#" (line 5) > method "#(_)" (line 3)
-Object literal instance of "iso G" (line 4) implements "base.CaptureFree".
+Object literal instance of "G" (line 4) implements "base.CaptureFree".
 Thus parameter "a" (line 5) cannot be captured in that object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1052,7 +1052,7 @@ Foo:{#(a:A):G->
    |      -----------^-
 
 While inspecting parameter "a" > method "#" (line 3) > method "#(_)" (line 3)
-Object literal instance of "iso G" (line 3) implements "base.CaptureFree".
+Object literal instance of "G" (line 3) implements "base.CaptureFree".
 Thus parameter "a" (line 3) cannot be captured in that object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1403,14 +1403,14 @@ Sub:Sup{ imm .h():read P; }
 006|   imm .m():Sup->Sup{ imm .h:base.Void->base.Void{} }
    |   --------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "iso Sup" > method ".m" (line 6)
+While inspecting object literal instance of "Sup" > method ".m" (line 6)
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Sup{.h:base.Void->base.Void}
+Sup{.h:base.Void->base.Void}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -1425,14 +1425,14 @@ User:{
 006|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{} }
    |   --------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal "iso Bad" > method ".m" (line 6)
+While inspecting object literal "Bad" > method ".m" (line 6)
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Bad:Sup{.h:base.Void->base.Void}
+Bad:Sup{.h:base.Void->base.Void}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -2888,14 +2888,14 @@ Error 7 WellFormedness
 003|  Main:{ .m:B -> B }
    |         --------^
 
-While inspecting object literal instance of "iso B" > method ".m" (line 3)
+While inspecting object literal instance of "B" > method ".m" (line 3)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
 Hint: add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso B
+B
 """, List.of("""
  A:{.foo:A}
  B:A{}
@@ -2905,14 +2905,14 @@ iso B
 003|  Main:{ .m:B -> B{.bar:A->A} }
    |         --------^^^^^^^^^^^^
 
-While inspecting object literal instance of "iso B" > method ".m" (line 3)
+While inspecting object literal instance of "B" > method ".m" (line 3)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "B".
 Hint: add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso B{.bar:A->A}
+B{.bar:A->A}
 """, List.of("""
  A:{.foo:A->A}
  B:A{.foo:A}
@@ -2956,14 +2956,14 @@ B:A,base.CaptureFree{read .get:read A->this;mut .get:mut A->this}
 003|  Main:{ .m:mut B -> mut B }
    |         ------------^^^^^
 
-While inspecting object literal instance of "iso B" > method ".m" (line 3)
+While inspecting object literal instance of "mut B" > method ".m" (line 3)
 This object literal is missing a required method.
 Missing: "mut .foo".
 Required by: "A".
 Hint: add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso B
+mut B
 """, List.of("""
  A:{mut .foo:A}
  B:A{}
@@ -4198,7 +4198,7 @@ User:{ .n(cs: mut base.MList[Customer]): base.MList[Person] -> cs.as{::} }
    |        -------------------------------------------------------------------^^-
 
 While inspecting parameter "::" > method "#(_)" (line 3) > method ".n(_)" (line 3)
-Method "#(_)" inside the object literal instance of "iso base.BaseId[read Customer,Person]" (line 3)
+Method "#(_)" inside the object literal instance of "base.BaseId[read Customer,Person]" (line 3)
 is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "Person".
 
@@ -4236,7 +4236,7 @@ User:{ .m(c: Customer): base.Void -> Boxes#(c,{x -> x}).get.n }
    |        -------------------------------------^^-
 
 While inspecting parameter "::" > method "#(_)" (line 3) > method ".m" (line 3)
-Method "#(_)" inside the object literal instance of "iso base.BaseId[Person,Customer]" (line 3)
+Method "#(_)" inside the object literal instance of "base.BaseId[Person,Customer]" (line 3)
 is implemented with an expression returning "Person".
 Parameter "::" has type "Person" instead of a subtype of "Customer".
 
@@ -4513,14 +4513,14 @@ User:{ .m: Need -> Need#{} }
 004| User:{ .m: Need -> Need#(Closed[A]{}) }
    |        ------------------^^^^^^^^^^^-
 
-While inspecting object literal instance of "iso Closed[A]" > method ".m" (line 4)
+While inspecting object literal instance of "Closed[A]" > method ".m" (line 4)
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
 Hint: add an implementation for ".close" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Closed[A]
+Closed[A]
 """, List.of("""
 Closed[T]:{ read .close: read T }
 A:Closed[A]{ .close->this }
@@ -4531,14 +4531,14 @@ User:{ .m: Need -> Need#(Closed[A]{}) }
 004| User:{ .m: Need -> Need#{} }
    |        -----------------^^
 
-While inspecting object literal instance of "iso Closed[B]" > method ".m" (line 4)
+While inspecting object literal instance of "read Closed[B]" > method ".m" (line 4)
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
 Hint: add an implementation for ".close" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Closed[B]
+read Closed[B]
 """, List.of("""
 Closed[T]:{ read .close: read T }
 B:{}
@@ -4549,14 +4549,14 @@ User:{ .m: Need -> Need#{} }
 005| User:{ .m: Need -> Need#{} }
    |        -----------------^^
 
-While inspecting object literal instance of "iso Closed[A,B]" > method ".m" (line 5)
+While inspecting object literal instance of "read Closed[A,B]" > method ".m" (line 5)
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_,_]".
 Hint: add an implementation for ".close" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Closed[A,B]
+read Closed[A,B]
 """, List.of("""
 Closed[T,E]:{ read .close: read T }
 A:Closed[A,B]{ .close->this }
@@ -4568,14 +4568,14 @@ User:{ .m: Need -> Need#{} }
 004| User:{ .m: Need -> Need#{} }
    |        -----------------^^
 
-While inspecting object literal instance of "iso A" > method ".m" (line 4)
+While inspecting object literal instance of "read A" > method ".m" (line 4)
 This object literal is missing a required method.
 Missing: "imm .name".
 Required by: "A".
 Hint: add an implementation for ".name" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso A
+read A
 """, List.of("""
 Closed[T]:{ read .close: read T }
 A:Closed[A]{ .name: A }
@@ -5637,14 +5637,14 @@ A:{ .m[X:*,Y:*](x:mut X):mut Y -> x }
 004| U:{ .m:Box[A] -> Box[A]{ .get(x:B):B -> x } }
    |     -------------~~~~~~~~^^^^^^^^^^^^^^^^~~
 
-While inspecting object literal instance of "iso Box[A]" > method ".m" (line 4)
+While inspecting object literal instance of "Box[A]" > method ".m" (line 4)
 Invalid method signature for "Box[A].get(_)".
 The method ".get(_)" accepts parameter 1 of type "B".
 But "Box[_].get(_)" requires "A", which is not a subtype of "B".
 The two types are unrelated.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Box[A]{.get(x:B):B->x}
+Box[A]{.get(x:B):B->x}
 """, List.of("""
 A:{}
 B:{}
@@ -5826,14 +5826,14 @@ U:{ .m: A -> {'s .k -> s; .v -> G#(s, { .k -> s; .v -> base.Void }) } }
 003| U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
    |     -----------------------~~~~~~~~~~~~^^~--
 
-While inspecting object literal instance of "iso A" > method ".v" (line 3) > method ".m" (line 3)
+While inspecting object literal instance of "A" > method ".v" (line 3) > method ".m" (line 3)
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso A
+A
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A:{ .k: A; .v: base.Void }
@@ -5843,14 +5843,14 @@ U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
 004| U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
    |     -----------------------~~~~~~~~~~~~^^~--
 
-While inspecting object literal instance of "iso A" > method ".v" (line 4) > method ".m" (line 4)
+While inspecting object literal instance of "A" > method ".v" (line 4) > method ".m" (line 4)
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
 Hint: add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso A
+A
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A0:{}

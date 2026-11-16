@@ -437,14 +437,14 @@ Break:A[mut Break]{}
 003| BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
    |              -----------------~~~~~~~~~~~~^^^^^^^^^^^^~~
 
-While inspecting object literal "iso BreakInner" > method "#" (line 3)
+While inspecting object literal "BreakInner" > method "#" (line 3)
 The type "A[Break]" is invalid.
 Generic type argument 1 ("Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso BreakInner:A[Break]{}
+BreakInner:A[Break]{}
 """, List.of("""
 A[X:mut]:{}
 Break:{}
@@ -690,7 +690,7 @@ Ex:{
    | ... 2 lines ...
 005|   }}
 
-While inspecting object literal "iso Fresh[_]" > method "#(_,_)" (line 2)
+While inspecting object literal "Fresh[_]" > method "#(_,_)" (line 2)
 The type "Person[N]" is invalid.
 Generic type argument 1 ("N") does not satisfy the bounds
 for generic type parameter "N" in "Person[_]".
@@ -698,7 +698,7 @@ Here "N" can only use capability "imm".
 But generic type argument "N" can only use capabilities "imm" or "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Fresh[N:*]:Person[N]{.name:Str->name;.age:N->age}
+Fresh[N:*]:Person[N]{.name:Str->name;.age:N->age}
 """, List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[imm N] -> Fresh[N:*]:Person[N]{
@@ -750,7 +750,7 @@ Box[X:imm,Y:imm]:{ .x: X; .y: Y }
 001| A:{ .m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]:{} }
    |     --------------------------------------^^^^~~~~~~~~~
 
-While inspecting object literal "iso Foo[_]" > method ".m" (line 1)
+While inspecting object literal "mut Foo[_]" > method ".m" (line 1)
 The type "Foo[X]" is invalid.
 Generic type argument 1 ("X") does not satisfy the bounds
 for generic type parameter "X" in "Foo[_]".
@@ -758,7 +758,7 @@ Here "X" can only use capability "mut".
 But generic type argument "X" can only use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Foo[X:mut]:{}
+mut Foo[X:mut]:{}
 """, List.of("""
 A:{ .m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]:{} }
 """));}
@@ -817,7 +817,7 @@ A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 
 While inspecting parameter "b" > method ".get" (line 3) > method ".m(_)" (line 3)
 Parameter "b" has type "Box[X]".
-That type is not well kinded under the generic type parameters of object literal "iso Fresh[_]" (line 3): "X:imm,mut,read".
+That type is not well kinded under the generic type parameters of object literal "read Fresh[_]" (line 3): "X:imm,mut,read".
 The bounds declared by the object literal are all it knows about its generic type parameters,
 and thus parameter "b" cannot be captured.
 
@@ -834,7 +834,7 @@ A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get
 
 While inspecting parameter "b" > method ".get" (line 3) > method ".m(_)" (line 3)
 Parameter "b" has type "Box[X]".
-That type is not well kinded under the generic type parameters of object literal "iso Fresh[_]" (line 3): "X:imm,mut,read".
+That type is not well kinded under the generic type parameters of object literal "mut Fresh[_]" (line 3): "X:imm,mut,read".
 The bounds declared by the object literal are all it knows about its generic type parameters,
 and thus parameter "b" cannot be captured.
 

@@ -89,9 +89,8 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var rc= t.type().rc();
     var getIso= (rc.isReadOrImm() && !hasAbstractMut(ll)) || rc == mut;
     var l= ll.withRC(getIso ? iso : rc);
-    var tt= getIso ? new Type(t.type().withRC(iso), t.src()) : t;
-    l.ms().forEach(m -> checkImplemented(l, m, tt));
-    return reqs(t, bs, tt.type(), rs);//reqs correctly used for two similar things
+    l.ms().forEach(m -> checkImplemented(l, m, t));
+    return reqs(t, bs, t.type().withRC(l.rc()), rs);//reqs correctly used for two similar things
   }
   public static boolean hasInstance(Literal l){
     return l.thisName().equals("this") || captureFree(l);
@@ -115,11 +114,11 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var l= getIso ? _l.withRC(iso) : _l;
     var thisType= new T.RCC(l.rc(), new T.C(l.name(), dom(l.bs(), span)), span);
     assert B.xs(bs1).containsAll(B.xs(l.bs()));
-    k().check(l, bs1, thisType);
-    litOk(v.discard(g.filterFTV(l), l), l, captureFree(_l) ? imm : _l.rc().isoToMut());
+    k().check(_l, bs1, thisType);
+    litOk(v.discard(g.filterFTV(_l), _l), _l, captureFree(_l) ? imm : _l.rc().isoToMut());
     if (selfNamed && !uses(_l, _l.thisName())){ throw tsE().selfNameDeadCode(_l); }
     l.ms().stream().filter(m -> m.e().isPresent()).forEach(m -> checkCallable(l, m));
-    l.ms().forEach(m -> checkImplemented(l, m, l));
+    l.ms().forEach(m -> checkImplemented(l, m, _l));
     return reqs(l, bs1, thisType, rs);
   }
   private void checkImplemented(Literal l, M m, E blame){

@@ -815,14 +815,14 @@ User:{
 002| A:{ .b: mutH B -> {} }
    |     --------------^^
 
-While inspecting object literal instance of "iso B" > method ".b" (line 2)
+While inspecting object literal instance of "mut B" > method ".b" (line 2)
 This object literal is missing a required method.
 Missing: "mut .m".
 Required by: "B".
 Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso B
+mut B
 """, List.of("""
 B:{ mut .m: B }
 A:{ .b: mutH B -> {} }

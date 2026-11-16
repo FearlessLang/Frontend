@@ -542,7 +542,7 @@ In file: [###].fear
 001| B:{ .k:a.S -> a.S }
    |     ----------^^^
 
-While inspecting object literal instance of "iso a.S" > method ".k" (line 1)
+While inspecting object literal instance of "a.S" > method ".k" (line 1)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "a.S".
@@ -552,7 +552,7 @@ Type "a.S" is in package "a".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso a.S
+a.S
 Error 8 TypeError""",Map.of("c", sealedC), Map.of("a", "c"), """
 B:{ .k:a.S -> a.S }
 """); }
@@ -923,7 +923,7 @@ In file: [###].fear
    |    ------------~~~~~~~~^^^^^^^^^-
 
 While inspecting object literal instance of "base.Void" > method ".fromC" (line 1) > method ".m" (line 1)
-Method ".fromC" inside the object literal instance of "iso a.A" (line 1)
+Method ".fromC" inside the object literal instance of "a.A" (line 1)
 is implemented with an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
 
@@ -940,7 +940,7 @@ In file: [###].fear
 001| B:{.m:a.Box[a.A]->{}}
    |    ---------------^^
 
-While inspecting object literal instance of "iso a.Box[a.A]" > method ".m" (line 1)
+While inspecting object literal instance of "a.Box[a.A]" > method ".m" (line 1)
 This object literal is missing a required method.
 Missing: "imm .get".
 Required by: "a.Box[_]".
@@ -949,7 +949,7 @@ Hint: add an implementation for ".get" inside the object literal.
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso a.Box[a.A]
+a.Box[a.A]
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m:a.Box[a.A]->{}}
 """); }
@@ -1069,7 +1069,7 @@ In file: [###].fear
    |    --------~~~~~~~~^-
 
 While inspecting object literal instance of "B" > method ".fromC" (line 2) > method ".m" (line 2)
-Method ".fromC" inside the object literal instance of "iso X" (line 2)
+Method ".fromC" inside the object literal instance of "X" (line 2)
 is implemented with an expression returning "iso B".
 Object literal is of type "B" instead of a subtype of "X".
 
@@ -1995,7 +1995,7 @@ In file: [###].fear
    |     -----------------^-
 
 While inspecting parameter "d" > method "#" (line 1) > method "#(_)" (line 1)
-Object literal instance of "iso a.G" (line 1) implements "bb.CaptureFree".
+Object literal instance of "a.G" (line 1) implements "bb.CaptureFree".
 Thus parameter "d" (line 1) cannot be captured in that object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2817,7 +2817,7 @@ In file: [###].fear
    |     -------------~~~~~~~~~~^^^^-
 
 While inspecting parameter "this" > method ".fromC" (line 2) > method ".k" (line 2)
-Method ".fromC" inside the object literal instance of "iso X" (line 2)
+Method ".fromC" inside the object literal instance of "X" (line 2)
 is implemented with an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "X".
 

@@ -508,14 +508,14 @@ C:B,D{}
 004| User:{ #:C->C:B,D{} }
    |        -----^^^^^^^
 
-While inspecting object literal "iso C" > method "#" (line 4)
+While inspecting object literal "C" > method "#" (line 4)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "C".
 Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso C:B,D{.m:A}
+C:B,D{.m:A}
 """, List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
@@ -532,14 +532,14 @@ C:D,B{}
 007| User:{ #:D->D:E,F{} }
    |        -----^^^^^^^
 
-While inspecting object literal "iso D" > method "#" (line 7)
+While inspecting object literal "D" > method "#" (line 7)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
 Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso D:E,F{.m:R}
+D:E,F{.m:R}
 """, List.of("""
 R:{}
 A:{ .m: R -> R }
@@ -589,14 +589,14 @@ User:{ #:D->D:P,Q{} }
 007| User:{ #:D->D:P,Q{} }
    |        -----^^^^^^^
 
-While inspecting object literal "iso D" > method "#" (line 7)
+While inspecting object literal "D" > method "#" (line 7)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
 Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso D:P,Q{.m:R}
+D:P,Q{.m:R}
 """, List.of("""
 R:{}
 J:{ .m: R -> R }
@@ -610,14 +610,14 @@ User:{ #:D->D:P,Q{} }
 006| User:{ #:D->D:A1,A2{} }
    |        -----^^^^^^^^^
 
-While inspecting object literal "iso D" > method "#" (line 6)
+While inspecting object literal "D" > method "#" (line 6)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
 Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso D:A1,A2{.m:R}
+D:A1,A2{.m:R}
 """, List.of("""
 R:{}
 I1:{ .m: R -> R }
@@ -716,14 +716,14 @@ User:{ #:mut D->D:X,B{} }
 003| User:{ #:C->C:A,B{} }
    |        -----^^^^^^^
 
-While inspecting object literal "iso C" > method "#" (line 3)
+While inspecting object literal "C" > method "#" (line 3)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
 Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso C:A,B{}
+C:A,B{}
 """, List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
@@ -733,14 +733,14 @@ User:{ #:C->C:A,B{} }
 003| User:{ #:C->C:B{} }
    |        -----^^^^^
 
-While inspecting object literal "iso C" > method "#" (line 3)
+While inspecting object literal "C" > method "#" (line 3)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
 Hint: add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso C:B{}
+C:B{}
 """, List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
@@ -853,14 +853,14 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
 003| User:{ #: mut Sup -> mut Sup{ mut .h: iso P -> P } }
    |        --------------~~~~~~~~~^^^^^^^^^^^^^^^^^^~~
 
-While inspecting object literal instance of "iso Sup" > method "#" (line 3)
+While inspecting object literal instance of "mut Sup" > method "#" (line 3)
 Invalid method signature for "mut Sup.h".
 The method ".h" returns type "iso P".
 But "mut Sup.h" returns type "mut P".
 An overriding method can refine the types of its parameters and result, but not their capabilities.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Sup{mut .h:iso P->P}
+mut Sup{mut .h:iso P->P}
 """, List.of("""
 P:{}
 Sup:{ mut .h: mut P }

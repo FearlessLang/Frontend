@@ -269,7 +269,7 @@ In file: [###].fear
 001| B:{.m: base.Void -> a.Take#({})}
    |    -------------------------^^-
 
-While inspecting object literal instance of "iso a.S" > method ".m" (line 1)
+While inspecting object literal instance of "a.S" > method ".m" (line 1)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "a.S".
@@ -277,7 +277,7 @@ Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso a.S
+a.S
 Error 8 TypeError""", """
 S:base.Sealed{ .foo: base.Void }
 Take:{ #(p:S): base.Void -> base.Void }
@@ -291,7 +291,7 @@ In file: [###].fear
 001| B:{.m: base.Void -> a.Take#(a.S)}
    |    -------------------------^^^-
 
-While inspecting object literal instance of "iso a.S" > method ".m" (line 1)
+While inspecting object literal instance of "a.S" > method ".m" (line 1)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "a.S".
@@ -299,7 +299,7 @@ Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
-iso a.S
+a.S
 Error 8 TypeError""", """
 S:base.Sealed{ .foo: base.Void }
 Take:{ #(p:S): base.Void -> base.Void }
