@@ -76,6 +76,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     return new T.C(c.withArity(ts.size()), of(ts));
   }
   TName parseTName(){
+    if (!peekIf(Token::isTypeName)){ expect("type name", UppercaseId); }
     var c= expect("type name", Token.typeName);
     var s= c.content();
     if (names.XIn(s)){ throw errFactory().typeNameConflictsGeneric(c, span(c).get()); }

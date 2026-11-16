@@ -2663,7 +2663,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing type name.
 Found instead: "a1".
-Expected one of: type name, signed number (eg. -23.0045), unsigned number (eg. 23.0045), signed number (eg. -23), unsigned number (eg. 23), string literal.
+Expected: type name.
 Error 2 UnexpectedToken
 """, """
 use a1 as F1;
