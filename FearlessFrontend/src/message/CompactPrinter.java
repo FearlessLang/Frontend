@@ -99,12 +99,19 @@ public final class CompactPrinter{
     @Override public void accString(CompactPrinter sb){ t.accString(sb); }
   }
   public record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k) implements PE{
+    boolean infix(){ return args.size() == 1 && !m.startsWith(".") && !m.equals("#"); }
     @Override public void accString(CompactPrinter sb){
       Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b) -> b.append("_");
-      acc.acc(recv, sb);
-      sb.append(m);
+      accGrouped(sb, acc, recv, recv instanceof PCall c && c.infix());
+      sb.append(infix() ? " "+m : m);
       accTargs(sb, rc, targs);
-      wrap(sb, "(", ")", args, ",", acc);
+      if (!infix()){ wrap(sb, "(", ")", args, ",", acc); return; }
+      sb.append(" ");
+      accGrouped(sb, acc, args.getFirst(), args.getFirst() instanceof PCall);
+    }
+    private void accGrouped(CompactPrinter sb, Acc<PE> acc, PE e, boolean group){
+      var g= group && k.isCompactable();
+      wrap(sb, g ? "(" : "", g ? ")" : "", List.of(e), "", acc);
     }
   }
   public record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k) implements PE{

@@ -1750,7 +1750,7 @@ That is not a subtype of "A" (the type required by the method signature).
 Hint: Fearless has no operator precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
 
 Relevant code with inferred types:
-this+(this)
+this + this
 """, List.of("""
 A:{}
 Plus:{
@@ -6403,10 +6403,25 @@ Argument 4 has type "U".
 That is not a subtype of "Apple1234567890" (the type required by the method signature).
 
 Relevant code with inferred types, where "_", "{...}" and method signatures without types mark omitted code:
-Use#(_+(_),_+(_),appleAppleApple1234567890+(appleAppleApple1234567890),this)
+Use#(_ + _,_ + _,appleAppleApple1234567890 + appleAppleApple1234567890,this)
 """, List.of("""
 Apple1234567890:{ +(x:Apple1234567890): Apple1234567890 -> this }
 Use:{ #(a:Apple1234567890, b:Apple1234567890, c:Apple1234567890, u:Apple1234567890): Use -> this }
 U:{ .m(appleAppleApple1234567890:Apple1234567890): Use -> Use#(appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, this) }
+"""));}
+@Test void anOperatorCallIsPrintedInfixAndGroupedWhenItIsAReceiver(){fail("""
+003| U:{ .m(a:N, b:N): W -> a + b.get }
+   |     -------------------^^^^^^^^^
+
+While inspecting method call ".get" > method ".m(_,_)" (line 3)
+The body of method ".m(_,_)" of type declaration "U" is an expression returning "N".
+Method call "N.get" has type "N" instead of a subtype of "W".
+
+Relevant code with inferred types:
+U:{.m(a:N,b:N):W->(a + b).get}
+""", List.of("""
+N:{ +(n:N): N -> this; .get: N -> this }
+W:{}
+U:{ .m(a:N, b:N): W -> a + b.get }
 """));}
 }
