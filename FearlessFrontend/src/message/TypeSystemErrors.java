@@ -453,7 +453,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr instanceof T.RCC ? canon(gotHdr) : gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, declared)+" (the type required by the method signature).");
-    if (lambdaFits(ts, bs, c.es().get(argi), declared, gotHdr)){ e.line("Hint: write the argument inside curly braces: \"{...}\" is an object literal whose single method returns the code inside."); }
+    if (lambdaFits(ts, bs, c.es().get(argi), declared, gotHdr)){ e.line("Hint: write the argument inside curly braces: the curly braces make an object literal instance of "+err().typeRepr(true, declared)+", whose single method returns the argument."); }
     addNoPrecedenceHintIfOperator(e, ts.scope(), c);
     return withCallSpans(e.ex(c, c.es().get(argi)), c.es().get(argi), c);
   }

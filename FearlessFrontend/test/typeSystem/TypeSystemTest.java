@@ -1767,7 +1767,7 @@ While inspecting method "#" (line 1)
 This call to method "mut base.Block[_].return(_)" cannot typecheck.
 Argument 1 has type "Nat".
 That is not a subtype of "mut base.ReturnStmt[Nat]" (the type required by the method signature).
-Hint: write the argument inside curly braces: "{...}" is an object literal whose single method returns the code inside.
+Hint: write the argument inside curly braces: the curly braces make an object literal instance of "mut base.ReturnStmt[Nat]", whose single method returns the argument.
 
 Relevant code with inferred types:
 base.Block#[imm,Nat].return[mut](5)
