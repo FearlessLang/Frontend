@@ -1573,6 +1573,31 @@ User:{
     m.mix(a, a, a);
 }
 """)); }
+
+@Test void methodNotDeclared_wrongArity_listsAritiesInNumericOrder(){fail("""
+007|   read .m(m:Mixer, a:A):A->
+008|     m.mix(a);
+   |     -^^^^^--
+
+While inspecting ".m(_,_)" line 7
+This call to method ".mix(_)" cannot typecheck.
+There are methods ".mix(_,_)" and ".mix(_,_,_,_,_,_,_,_,_,_)" on type "Mixer",
+but with a different number of arguments.
+This call supplies 1, but available methods take 2 or 10.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+m.mix(a)
+""", List.of("""
+A:{}
+Mixer:{
+  read .mix(x:A, y:A):A->x;
+  read .mix(x1:A, x2:A, x3:A, x4:A, x5:A, x6:A, x7:A, x8:A, x9:A, x10:A):A->x1;
+}
+User:{
+  read .m(m:Mixer, a:A):A->
+    m.mix(a);
+}
+""")); }
 @Test void methodNotDeclared_wrongReceiverRc_mutNeedsMutButOnlyReadExists(){fail("""
 006|   mut .m(z:mut Z, a:A):A->
 007|     z.zap[mut](a);
