@@ -882,7 +882,7 @@ B:{.k(x:mut X):read X->x; .j(x:mut a.Box[X]):read a.Box[X]->x; .d(x:mut a.D):rea
 In file: [###].fear
 
 001| B:{.m(x:a.Box[a.A], d:a.D):a.Box[a.A]->x.put(d)}
-   |    ------------------------------------~^^^^~~~
+   |    ------------------------------------~~~~~~^~
 
 While inspecting ".m(_,_)" line 1
 This call to method "a.Box[_].put(_)" cannot typecheck.
@@ -900,7 +900,7 @@ B:{.m(x:a.Box[a.A], d:a.D):a.Box[a.A]->x.put(d)}
 In file: [###].fear
 
 002| B:{.m(x:a.Box[X], d:a.D):a.Box[X]->x.put(d)}
-   |    --------------------------------~^^^^~~~
+   |    --------------------------------~~~~~~^~
 
 While inspecting ".m(_,_)" line 2
 This call to method "a.Box[_].put(_)" cannot typecheck.
@@ -1276,7 +1276,7 @@ B:{ .m:X->{ .k->B; }; }
 In file: [###].fear
 
 003| A:{ .f(aaaa:mut A):B->Need#(a.IdRO#[read A](aaaa)); }
-   |     ------------------~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+   |     ------------------~~~~~~^^^^^^^^^^^^^^^^^^^^^~
 
 While inspecting ".f(_)" line 3
 This call to method "Need#(_)" cannot typecheck.
@@ -1302,7 +1302,7 @@ A:{ .f(aaaa:mut A):B->Need#(a.IdRO#[read A](aaaa)); }
 In file: [###].fear
 
 004| A:{ .f(aaaa:mut A):B->Need#(Ro#[read A](aaaa)); }
-   |     ------------------~~~~^~~~~~~~~~~~~~~~~~~~
+   |     ------------------~~~~~~^^^^^^^^^^^^^^^^^~
 
 While inspecting ".f(_)" line 4
 This call to method "Need#(_)" cannot typecheck.
@@ -2051,7 +2051,7 @@ B:{.m(x:mut a.R):a.R->x.go[read]}
 In file: [###].fear
 
 001| B:{.m(x:read a.R):a.R->x.go}
-   |    --------------------~^^^
+   |    --------------------^~~~
 
 While inspecting ".m(_)" line 1
 This call to method "mut a.R.go" cannot typecheck.
@@ -2095,7 +2095,7 @@ B:{.m(p:a.Pairer):B->p.pair[B](this, this)}
 In file: [###].fear
 
 001| B:{.f:a.D->a.Need#(read a.A2{})}
-   |    --------~~~~~~^~~~~~~~~~~~~~
+   |    --------~~~~~~~~~~~~~^^^^~~~
 
 While inspecting ".f" line 1
 This call to method "a.Need#(_)" cannot typecheck.

@@ -363,7 +363,7 @@ Concrete:{ #(y: mutH Foo, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[mutH Foo](
 """));}
 @Test void nonHygienicBoundsBlockIsoPromotionOfAnArgument(){fail("""
 004| Bad:{ #[Y:mut,mutH,readH](y: Y, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[Y](y, isoF)) }
-   |       -----------------------------------------------------~~~~~~^^^^^^^~~~~~~~~~~~~~~~~
+   |       -----------------------------------------------------~~~~~~~~~~~~~~^^^^^^^^^^^^^^~
 
 While inspecting "#(_,_)" line 4
 This call to method "Expect.isoFoo(_)" cannot typecheck.
@@ -512,7 +512,7 @@ A:{ .m[Y:imm,mut](y: imm Y): Foo[imm Y] -> Foo[Y]{ .get -> y } }
 """));}
 @Test void immParameterCannotSatisfyAMutBound(){fail("""
 003| Break:{ .m(f: imm Foo): imm Foo -> A#(f) }
-   |         ---------------------------~^~~~
+   |         ---------------------------~~~^~
 
 While inspecting ".m(_)" line 3
 This call to method "A#(_)" cannot typecheck.

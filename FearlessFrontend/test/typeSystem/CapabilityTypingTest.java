@@ -103,7 +103,7 @@ A:{ .m[X:*](x: mut X): mut Get[mut X] -> mut Get[mut X]{ read .get: mut X -> x }
 """));}
 @Test void noCallMutFromImm(){fail("""
 002| A:{ .b: imm B -> {}; .doThing: Void -> this.b.foo.ret }
-   |                      ------------------~~~~~~^^^^----
+   |                      ------------------^^^^^^~~~~----
 
 While inspecting ".doThing" line 2
 This call to method "mut B.foo" cannot typecheck.
@@ -123,7 +123,7 @@ B:{ mut .foo: mut B -> this; mut .ret: Void -> {} }
 """));}
 @Test void noCallMutFromReadH(){fail("""
 002| A:{ .b: readH B -> {}; .doThing: Void -> this.b.foo.ret }
-   |                        ------------------~~~~~~^^^^----
+   |                        ------------------^^^^^^~~~~----
 
 While inspecting ".doThing" line 2
 This call to method "mut B.foo" cannot typecheck.
@@ -143,7 +143,7 @@ B:{ mut .foo: mut B -> this; mut .ret: Void -> {} }
 """));}
 @Test void noCallMutFromRead(){fail("""
 002| A:{ .b: read B -> {}; .doThing: Void -> this.b.foo.ret }
-   |                       ------------------~~~~~~^^^^----
+   |                       ------------------^^^^^^~~~~----
 
 While inspecting ".doThing" line 2
 This call to method "mut B.foo" cannot typecheck.
@@ -613,7 +613,7 @@ A:{
 """));}
 @Test void mutHReceiverAndMutHArgumentCannotBothBePromoted(){fail("""
 003|   .call(a: mutH A): mutH A -> a.m1(imm A, iso A, a, iso A);
-   |   ----------------------------~^^^~~~~~~~~~~~~~~~~~~~~~~~~
+   |   ----------------------------~~~~~~~~~~~~~~~~~~~^~~~~~~~~
 
 While inspecting ".call(_)" line 3
 This call to method "mut A.m1(_,_,_,_)" cannot typecheck.
@@ -679,7 +679,7 @@ C:{ .m[Y:*](y: read Y): read Y -> A.m[Y](y) }
 """));}
 @Test void readCannotBeLaunderedIntoImm(){fail("""
 003| C:{ .m[Y:*](y: read Y): read/imm Y -> A.m[Y](y) }
-   |     ----------------------------------~^^~~~~~~
+   |     ----------------------------------~~~~~~~^~
 
 While inspecting ".m(_)" line 3
 This call to method "A.m(_)" cannot typecheck.
@@ -759,7 +759,7 @@ User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
 """));}
 @Test void readImmResultOfIsoImmBoundAsReceiver(){fail("""
 002| User:{ .use[Y:iso,imm](b: Box[Y]): Box[Y] -> b.get.foo }
-   |        --------------------------------------~~~~~^^^^
+   |        --------------------------------------^^^^^~~~~
 
 While inspecting ".use(_)" line 2
 This call to method ".foo" cannot typecheck.

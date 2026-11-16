@@ -55,8 +55,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException mCallFrame(M m, FearlessException fe){
     return fe.addFrame(err().methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
   }
-  private FearlessException withCallSpans(FearlessException ex, Call c){
-    return ex.addSpan(TSpan.fromPos(c.pos(), c.name().s().length()).inner).addSpan(c.span().inner);
+  private FearlessException withCallSpans(FearlessException ex, Call c){ return withCallSpans(ex, TSpan.fromPos(c.pos(), c.name().s().length()), c); }
+  private FearlessException withCallSpans(FearlessException ex, TSpan at, Call c){
+    return ex.addSpan(at.inner).addSpan(c.span().inner);
   }
   private FearlessException addExpFrame(E toErr, FearlessException err){
     return err.addFrame(err().expRepr(toErr), toErr.span().inner);
@@ -310,7 +311,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(c)
       .line("The receiver is of type "+err().typeRepr(true, recvType)+". This is a generic type parameter.")
       .line("Generic type parameters cannot be receivers of method calls.")
-      .exInferMsg(best.contextE(), c, err().typeRepr(true, recvType)), c);
+      .exInferMsg(best.contextE(), c, err().typeRepr(true, recvType)), c.e().span(), c);
   }
   ///No method matches call c.
   ///Sub-errors for more clarity
@@ -417,7 +418,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
       .line(Join.of(needed, "This call requires a receiver with capability ", " or ", "."))
       .pReceiverRequiredByPromotion(promos)
-      .ex(c), c);
+      .ex(c), c.e().span(), c);
   }
   ///For argument index argi in call c, the argument's type does not satisfy any promotion's requirement.
   ///Receiver and arguments are well typed, but this argument does not match any promotion.
@@ -450,7 +451,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+"  ("+q.reqName()+")"));
     addNoPrecedenceHintIfOperator(e, c);
     var footer= r.footerE.get();
-    return withCallSpans(e.exInferMsg(footer, c.es().get(argi), err().typeRepr(false, reqs.getFirst().t())), c);
+    return withCallSpans(e.exInferMsg(footer, c.es().get(argi), err().typeRepr(false, reqs.getFirst().t())), c.es().get(argi).span(), c);
   }
   private FearlessException wrongUnderlyingTypeErr(Literal d, Call c, int argi, T declared, List<Reason> res){
     var gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both
@@ -461,7 +462,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, declared)+" (the type required by the method signature).");
     addNoPrecedenceHintIfOperator(e, c);
-    return withCallSpans(e.ex(c, c.es().get(argi)), c);
+    return withCallSpans(e.ex(c, c.es().get(argi)), c.es().get(argi).span(), c);
   }
   private void addNoPrecedenceHintIfOperator(Err e, Call c){
     var s= c.name().s();
