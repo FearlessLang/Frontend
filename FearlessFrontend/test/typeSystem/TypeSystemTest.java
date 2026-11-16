@@ -2578,11 +2578,11 @@ Outer:{ .m: base.Void -> {'self .a: Outer -> self}.a }
 001| Outer:{ .m: base.Void -> { .a -> base.Void{} }.a }
    |                          --^^^^^^^^^^^^^^^^^--
 
-While inspecting object literal instance of "_AOute"
+While inspecting object literal "{...}"
 Missing return type for method ".a".
 Add an explicit return type before "->".
 A method can omit types in its signature only when a supertype has a method ".a" to inherit the missing types from.
-No supertype of object literal instance of "_AOute" has a method ".a".
+No supertype of object literal "{...}" has a method ".a".
 """, List.of("""
 Outer:{ .m: base.Void -> { .a -> base.Void{} }.a }
 """));}
