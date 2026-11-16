@@ -358,8 +358,8 @@ In file: [###].fear
 002| B:A{}
    |   ^
 
-While inspecting type declarations
-Circular implementation relation found involving "A".
+While inspecting supertype "A"
+Type declaration "A" implements itself, directly or through its supertypes.
 Error 7 WellFormedness
 """, List.of("""
 A:B{}
@@ -371,8 +371,8 @@ In file: [###]/in_memory1.fear
 001| B:A{}
    |   ^
 
-While inspecting type declarations
-Circular implementation relation found involving "A".
+While inspecting supertype "A"
+Type declaration "A" implements itself, directly or through its supertypes.
 Error 7 WellFormedness
 """, List.of("""
 A:B{}

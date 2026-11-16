@@ -380,9 +380,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var color= new HashMap<TName,Integer>(rem.size());
     var name= rem.keySet().stream().map(k -> _dfs(rem, k, color)).filter(Objects::nonNull).findFirst().get();
     return err()
-      .line("Circular implementation relation found involving "+err().tNameADisp(name)+".")
+      .line("Type declaration "+err().tNameADisp(name)+" implements itself, directly or through its supertypes.")
       .wf()
-      .addFrame("type declarations", name.approxSpan().inner);
+      .addFrame("supertype "+err().tNameADisp(name), name.approxSpan().inner);
   }
   private TName _dfs(Map<TName,E.Literal> rem, TName u, HashMap<TName,Integer> color){
     var cu= color.get(u);
