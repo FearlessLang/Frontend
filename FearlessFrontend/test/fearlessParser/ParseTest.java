@@ -880,7 +880,7 @@ A:{
 In file: [###].fear
 
 001| A: a b c } f e
-   | ^^^^^^^^^^
+   |          ^
 
 While inspecting groups of parenthesis
 Unopened "}".
@@ -1847,7 +1847,7 @@ A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> ((1 + 2)) ) }
-   |   ^^^^^^^^^^^^^^^^^^^^^^^
+   |   ----------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -1863,7 +1863,7 @@ A:{ .m:Str -> ((1 + 2)) ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> Foo[Bar] ] ) }
-   |   ^^^^^^^^^^^^^^^^^^^^^^
+   |   ^---------------------
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -1878,7 +1878,7 @@ A:{ .m:Str -> Foo[Bar] ] ) }
 In file: [###].fear
 
 001| A:{ .m(a,b):Str -> (a + b)) }
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   ------------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -1894,7 +1894,7 @@ A:{ .m(a,b):Str -> (a + b)) }
 In file: [###].fear
 
 001| A:{ .m:Str -> A[mut,imm]] ) }
-   |   ^^^^^^^^^^^^^^^^^^^^^^^
+   |   ^----------------------
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -1909,7 +1909,7 @@ A:{ .m:Str -> A[mut,imm]] ) }
 In file: [###].fear
 
 001| A:{ .m(foo,bar):Str -> (foo + bar))
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   --------------------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -1925,7 +1925,7 @@ A:{ .m(foo,bar):Str -> (foo + bar))
 In file: [###].fear
 
 001| A:{ .m:Str -> A[X,Y,Z]]
-   |   ^^^^^^^^^^^^^^^^^^^^^
+   |   --------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -1941,7 +1941,7 @@ A:{ .m:Str -> A[X,Y,Z]]
 In file: [###].fear
 
 001| A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   ---------------------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -1957,7 +1957,7 @@ A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   ^---------------------------
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -1972,7 +1972,7 @@ A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
 In file: [###].fear
 
 001| A:{ .m:Str -> (((x))) ) }
-   |   ^^^^^^^^^^^^^^^^^^^^^
+   |   --------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -1988,7 +1988,7 @@ A:{ .m:Str -> (((x))) ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> A[B[X]] ] }
-   |   ^^^^^^^^^^^^^^^^^^^^^
+   |   --------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -2004,7 +2004,7 @@ A:{ .m:Str -> A[B[X]] ] }
 In file: [###].fear
 
 001| A:{ .m:Str -> (1 + 2 ] }
-   |               ^^^^^^^^
+   |               ^-------
 
 While inspecting groups of parenthesis
 Wrong closer for "(" group.
@@ -2019,7 +2019,7 @@ A:{ .m:Str -> (1 + 2 ] }
 In file: [###].fear
 
 001| A:{ .m:Str -> E[1,2) }
-   |                ^^^^^
+   |                ^----
 
 While inspecting groups of parenthesis
 Wrong closer for "[" group.
@@ -2063,7 +2063,7 @@ A:{ .m:Str -> E[1, 2, 3
 In file: [###].fear
 
 001| A:{ .m:Str -> { x: 1 ) }
-   |               ^^^^^^^^
+   |               -------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -2079,7 +2079,7 @@ A:{ .m:Str -> { x: 1 ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> { x: 1 ) }
-   |               ^^^^^^^^
+   |               -------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
@@ -2096,7 +2096,7 @@ B:{} C:{}
 In file: [###].fear
 
 001| A:{ .m:Str -> ( 1 + 2; ) }
-   |               ^^^^^^^^
+   |               -------^
 
 While inspecting groups of parenthesis
 Unclosed "(" group before ";".
@@ -2112,7 +2112,7 @@ A:{ .m:Str -> ( 1 + 2; ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> ( Foo[ { a } ) ] }
-   |                    ^^^
+   |                    ^--
 
 While inspecting groups of parenthesis
 Unclosed "[" group before "{".
@@ -2141,7 +2141,7 @@ A:{ .m:Str -> { a: 1, b: 2
 In file: [###].fear
 
 001| A:{ .m:A -> this.foo( }
-   |                     ^^^
+   |                     ^--
 
 While inspecting groups of parenthesis
 Wrong closer for "(" group.
@@ -2156,7 +2156,7 @@ A:{ .m:A -> this.foo( }
 In file: [###].fear
 
 001| A:{ .m:A -> this.foo( } B:{} C:{};
-   |                     ^^^
+   |                     ^--
 
 While inspecting groups of parenthesis
 Wrong closer for "(" group.

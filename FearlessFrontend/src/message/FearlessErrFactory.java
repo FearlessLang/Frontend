@@ -336,9 +336,10 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     };
     var other= hint.isEmpty() ? "Expected" : "Otherwise expected";
     var expected= sof ? "" : expected("", other+": ", other+" one of: ", expectedClosers, tk -> tk.human);
-    var span= eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
+    var focus= sof || likely == LikelyCause.StrayCloser ? stop : open;
+    var span= sof ? stop.span(file) : eof ? open.span(file) : metaParser.Token.makeSpan(file, open, stop);
     var code= sof ? Code.Unopened : (eof || isBarrier) ? Code.Unclosed : Code.UnexpectedToken;
-    return code.of(base+hint+expected).addFrame("groups of parenthesis", span);
+    return code.of(base+hint+expected).addSpan(focus.span(file)).addFrame("groups of parenthesis", span);
   }
   @Override public FearlessException eatenCloserBetween(
       Token open, Token stop, Collection<TokenKind> expectedClosers,
