@@ -2,7 +2,6 @@ package typeSystem;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import core.*;
 import core.E.*;
@@ -26,15 +25,7 @@ public sealed interface TypeScope{
     @Override public E contextE(){ return l; }
     @Override public List<T> mentionedTs(){ return l.cs().stream().flatMap(c -> c.ts().stream()).toList(); }
   }
-  default TypeScope pushCallRec(Call c){
-    var es= c.es().stream().map(this::omit).toList();
-    return new CallSite(new Call(c.e(), c.name(), c.rc(), c.targs(), es, c.expectedRes(), c.src()), this);
-  }
-  default E omit(E e){ return new X("-", e.src()); }
-  default TypeScope pushCallArgi(Call c, int i){
-    var es= IntStream.range(0, c.es().size()).mapToObj(j -> j == i ? c.es().get(j) : omit(c.es().get(j))).toList();
-    return new CallSite(new Call(omit(c.e()), c.name(), c.rc(), c.targs(), es, c.expectedRes(), c.src()), this);
-  }
+  default TypeScope pushCall(Call c){ return new CallSite(c, this); }
   record CallSite(Call c, TypeScope outer) implements TypeScope{
     @Override public E contextE(){ return c; }
     @Override public List<T> mentionedTs(){ return c.targs(); }

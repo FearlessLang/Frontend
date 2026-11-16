@@ -62,7 +62,7 @@ Object literal is of type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "a.A" was introduced:
 B:a.A{.fromC:a.A->base.Void}
 Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
 B:a.A{ .fromC -> base.Void }
@@ -79,7 +79,7 @@ Method call "a.A.m" has type "a.A" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.k(x:a.A):B->x.m}
 Error 8 TypeError""", Map.of("c", "A:{.m:A->this}"), Map.of("a", "c"), """
 B:{.k(x:a.A):B->x.m}
@@ -332,7 +332,7 @@ Available methods on type "A":
 Name "A" stands for "a.A" because of "use a.A as A".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x.fromA
 Error 8 TypeError
 """, Map.of("c", cA), Map.of("a", "c"), """
@@ -352,7 +352,7 @@ Method ".fromA" is not declared on type "X".
 Available methods on type "X":
 -       .fromC:X
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x.fromA
 Error 8 TypeError
 """, Map.of("c", cA), Map.of(), """
@@ -473,7 +473,7 @@ Object literal is of type "bb.Nat" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m:B->5}
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 B:{ .m:B -> 5 }
@@ -494,7 +494,7 @@ Available methods on type "bb.Nat":
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 5.foo
 Error 8 TypeError""",Map.of(), Map.of("bb", "base"), """
 B:{ .m:B -> 5.foo }
@@ -550,9 +550,6 @@ Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso a.S
 Error 8 TypeError""",Map.of("c", sealedC), Map.of("a", "c"), """
 B:{ .k:a.S -> a.S }
 """); }
@@ -691,7 +688,7 @@ Method call "a.Box[_].get" has type "a.A" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m(x:a.Box[a.A]):B->x.get}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.Box[a.A]):B->x.get}
@@ -708,7 +705,7 @@ Method call "a.Box[_].get" has type "B" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "a.A" was introduced:
 B:{.m(x:a.Box[B]):a.A->x.get}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.Box[B]):a.A->x.get}
@@ -726,7 +723,7 @@ Method call "a.Box[_].get" has type "X" instead of a subtype of "B".
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m(x:a.Box[X]):B->x.get}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
@@ -746,7 +743,7 @@ Name "X" stands for "a.A" because of "use a.A as X".
 Name "Bx" stands for "a.Box" because of "use a.Box as Bx".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m(x:Bx[X]):B->x.get}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.Box as Bx;
@@ -808,7 +805,7 @@ Name "OldServer" stands for "legacy.Server" because of "use legacy.Server as Old
 Source code inside folders named "_b" uses package name "legacy" to refer to the code inside folders named "_web_v1", because of "map legacy as _web_v1 in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "web" to refer to the code inside folders named "_web_v2", because of "map web as _web_v2 in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "web.Server" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "web.Server" was introduced:
 B:{.m(x:OldServer):web.Server->x}
 Error 8 TypeError""", webVersions, legacyAndWeb, """
 use legacy.Server as OldServer;
@@ -831,7 +828,7 @@ Available methods on type "OldServer":
 Name "OldServer" stands for "legacy.Server" because of "use legacy.Server as OldServer".
 Source code inside folders named "_b" uses package name "legacy" to refer to the code inside folders named "_web_v1", because of "map legacy as _web_v1 in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x.v2
 Error 8 TypeError""", webVersions, legacyAndWeb, """
 use legacy.Server as OldServer;
@@ -852,7 +849,7 @@ Available methods on type "a.A":
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x.nope
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.A):a.A->x.nope}
@@ -869,7 +866,7 @@ Parameter "x" has type "read a.A" instead of a subtype of "mut a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "mut a.A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut a.A" was introduced:
 B:{.m(x:read a.A):mut a.A->x}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:read a.A):mut a.A->x}
@@ -891,8 +888,8 @@ That is not a subtype of "a.A" (the type required by the method signature).
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.put(d)
+Relevant code with inferred types:
+x.put(d)
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.Box[a.A], d:a.D):a.Box[a.A]->x.put(d)}
 """); }
@@ -910,8 +907,8 @@ That is not a subtype of "X" (the type required by the method signature).
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.put(d)
+Relevant code with inferred types:
+x.put(d)
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
 B:{.m(x:a.Box[X], d:a.D):a.Box[X]->x.put(d)}
@@ -929,7 +926,7 @@ Object literal is of type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "a.A" was introduced:
 B:{.m:a.A->a.A{.fromC:a.A->base.Void}}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m:a.A->a.A{.fromC->base.Void}}
@@ -947,9 +944,6 @@ Required by: "a.Box[_]".
 Hint: add an implementation for ".get" inside the object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso a.Box[a.A]
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m:a.Box[a.A]->{}}
 """); }
@@ -965,7 +959,7 @@ Object literal is of type "bb.Str" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m:B->"hi"}
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 B:{ .m:B -> "hi" }
@@ -983,7 +977,7 @@ Object literal is of type "N" instead of a subtype of "B".
 Name "N" stands for "bb.Nat" because of "use bb.Nat as N".
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m:B->5}
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 use bb.Nat as N;
@@ -1001,7 +995,7 @@ Object literal is of type "bb.Int" instead of a subtype of "bb.Nat".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "bb.Nat" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "bb.Nat" was introduced:
 B:{.m:bb.Nat->+5}
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 B:{ .m:bb.Nat -> +5 }
@@ -1018,7 +1012,7 @@ Parameter "x" has type "a.B" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m(x:a.B):B->x}
 Error 8 TypeError""", Map.of("c", "B:{.fromC:B->this}"), Map.of("a", "c"), """
 B:{.m(x:a.B):B->x}
@@ -1036,7 +1030,7 @@ Method call "a.A.n" has type "bb.Nat" instead of a subtype of "B".
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m(x:a.A):B->x.n}
 Error 8 TypeError""", Map.of("c", "A:{.n:base.Nat->5}"), Map.of("a", "c", "bb", "base"), """
 B:{.m(x:a.A):B->x.n}
@@ -1053,7 +1047,7 @@ Method call "a.G.id(_)" has type "a.D" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m(x:a.G,d:a.D):B->x.id[imm,a.D](d)}
 Error 8 TypeError""", Map.of("c", "D:{} G:{.id[X](x:X):X->x}"), Map.of("a", "c"), """
 B:{.m(x:a.G, d:a.D):B->x.id[a.D](d)}
@@ -1076,7 +1070,7 @@ Object literal is of type "B" instead of a subtype of "X".
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "X" was introduced:
 B:{.m:X->X{.fromC:X->B}}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
@@ -1291,7 +1285,7 @@ Type required by each promotion:
 """+noteA+"""
 
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 A:{.f(aaaa:mut A):B->Need#(a.IdRO#[imm,read A](aaaa))}
 Error 8 TypeError""", Map.of("c", cIds), Map.of("a", "c"), """
 B:{}
@@ -1318,7 +1312,7 @@ Name "Ro" stands for "a.IdRO" because of "use a.IdRO as Ro".
 """+noteA+"""
 
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 A:{.f(aaaa:mut A):B->Need#(Ro#[imm,read A](aaaa))}
 Error 8 TypeError""", Map.of("c", cIds), Map.of("a", "c"), """
 use a.IdRO as Ro;
@@ -1351,7 +1345,7 @@ Promotion failures:
 """+noteA+"""
 
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.f(a.Id#[imm,read A](x),y)
 Error 8 TypeError""", Map.of("c", cIds), Map.of("a", "c"), """
 A:{ .f(p:read A, q:mut A):A->this; .caller(x:readH A, y:mutH A):A->this.f(a.Id#(x), y); }
@@ -1369,7 +1363,7 @@ Parameter "x" has type "z.A" instead of a subtype of "a.A".
 Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_c", because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "a.A" was introduced:
 B:{.m(x:z.A):a.A->x}
 Error 8 TypeError""", Map.of("c", cA, "e", aA), Map.of("z", "c", "a", "e"), """
 B:{.m(x:z.A):a.A->x}
@@ -1388,7 +1382,7 @@ Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
 
 
-See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "X" was introduced:
 B:{.m(x:Dd):X->x}
 Error 8 TypeError""", Map.of("c", cA, "d", dA), Map.of("a", "c"), """
 use d.A as Dd;
@@ -1411,7 +1405,7 @@ Source code inside folders named "_b" uses package name "z" to refer to the code
 """+noteA+"""
 
 
-See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "X" was introduced:
 B:{.m(x:Y):X->x}
 Error 8 TypeError""", Map.of("c", cA, "e", dA), Map.of("a", "c", "z", "e"), """
 use a.A as X;
@@ -1740,7 +1734,7 @@ Here "X" can only use capability "imm".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:{.m(x:a.Box[mut B]):B->this}
 Error 8 TypeError
 """, Map.of("c", "Box[X:imm]:{}"), mapA, """
@@ -1761,7 +1755,7 @@ Here "X" can only use capability "imm".
 Name "Bx" stands for "a.Box" because of "use a.Box as Bx".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:{.m(x:Bx[mut B]):B->this}
 Error 8 TypeError
 """, Map.of("c", "Box[X:imm]:{}"), mapA, """
@@ -1782,7 +1776,7 @@ Here "X" can only use capability "imm".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 g#[imm,mut B](b)
 Error 8 TypeError
 """, Map.of("c", "G:{ #[X:imm](x:X):G->this }"), mapA, """
@@ -1802,7 +1796,7 @@ It is instead a supertype: you are strengthening the parameter instead of weaken
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:a.Parent{.g(x:a.Q):base.Void->base.Void}
 Error 8 TypeError
 """, Map.of("c", cOver), mapA, """
@@ -1822,7 +1816,7 @@ An overriding method can refine the types of its parameters and result, but not 
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:a.Parent{.g(x:read a.P):base.Void->base.Void}
 Error 8 TypeError
 """, Map.of("c", cOver), mapA, """
@@ -1842,7 +1836,7 @@ An overriding method can refine the types of its parameters and result, but not 
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:a.Sup{.h:read a.Q->a.Q}
 Error 8 TypeError
 """, Map.of("c", cOver), mapA, """
@@ -1862,7 +1856,7 @@ It is instead a subtype: you are weakening the result instead of strengthening i
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:a.Sup{.h:a.P->a.P}
 Error 8 TypeError
 """, Map.of("c", cOver), mapA, """
@@ -1883,7 +1877,7 @@ It is instead a subtype: you are weakening the result instead of strengthening i
 Name "S" stands for "a.Sup" because of "use a.Sup as S".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:S{.h:a.P->a.P}
 Error 8 TypeError
 """, Map.of("c", cOver), mapA, """
@@ -1902,9 +1896,6 @@ Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "bb.CaptureFree".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-Foo
 Error 8 TypeError
 """, Map.of(), mapBb, """
 G:{ #[X:*](a:X, b:X):bb.Void -> bb.Void }
@@ -1924,7 +1915,7 @@ But it implements method "mut .bar", which requires a "mut" receiver.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 read a.M{mut .bar:mut a.M->m}
 Error 8 TypeError
 """, Map.of("c", "M:{ mut .bar:mut M }"), mapA, """
@@ -1943,7 +1934,7 @@ Remove "'s" from the object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.A{'s .fromC:a.A->x}
 Error 8 TypeError
 """, Map.of("c", cA), mapA, """
@@ -1963,7 +1954,7 @@ Allowed: capture into object literals as "imm", or use directly once.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.Use2#(x,x)
 Error 8 TypeError
 """, Map.of("c", "D:{} F:{ .m(x:iso D):D } Use2:{ #(a:iso D, b:iso D):D -> a }"), mapA, """
@@ -1981,9 +1972,6 @@ Parameter "x" can observe mutation; thus it cannot be captured in the "imm" obje
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-x
 Error 8 TypeError
 """, Map.of("c", "D:{} G:{ #:base.Void } Ignore:{ #(x:read D):base.Void -> {} }"), mapA, """
 B:{ .m(x:mut a.D):a.G -> a.G{ # -> a.Ignore#(x) } }
@@ -2000,9 +1988,6 @@ Thus parameter "d" (line 1) cannot be captured in that object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-d
 Error 8 TypeError
 """, Map.of("c", "D:{} G:base.CaptureFree{ #:D }"), mapABb, """
 B:{ #(d:a.D):a.G -> {d} }
@@ -2021,7 +2006,7 @@ This call supplies 1, but available methods take 0.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x.fromC(x)
 Error 8 TypeError
 """, Map.of("c", cA), mapA, """
@@ -2041,7 +2026,7 @@ Available capabilities for this method: "mut".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x.go[read]
 Error 8 TypeError
 """, Map.of("c", "R:{ mut .go:R }"), mapA, """
@@ -2064,7 +2049,7 @@ Receiver required by each promotion:
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x.go[mut]
 Error 8 TypeError
 """, Map.of("c", "R:{ mut .go:R }"), mapA, """
@@ -2085,7 +2070,7 @@ This call provides 1 generic type argument.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 p.pair[imm,B](this,this)
 Error 8 TypeError
 """, Map.of("c", "Pairer:{ .pair[X,Y](x:X, y:Y):X -> x }"), mapA, """
@@ -2110,7 +2095,7 @@ Type required by each promotion:
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "mut a.A2" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut a.A2" was introduced:
 B:{.f:a.D->a.Need#(read a.A2)}
 Error 8 TypeError
 """, Map.of("c", "D:{} A2:{ mut .foo:A2 } Need:{ #(x:mut A2):D -> D }"), mapA, """
@@ -2132,7 +2117,7 @@ Capture adaptation trace:
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "mut a.D" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut a.D" was introduced:
 B:{read .m(x:mut a.D):mut a.D->read a.Get{read .get:mut a.D->x}}
 Error 8 TypeError
 """, Map.of("c", "D:{} Get:{ read .get:mut D }"), mapA, """
@@ -2150,9 +2135,6 @@ The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-this
 Error 8 TypeError
 """, Map.of(), mapBb, """
 I:bb.BaseId[I,I]{ #(x) -> this }
@@ -2766,7 +2748,7 @@ The self name "s" is dead code.
 No method of the object literal instance of "L" uses it.
 Remove "'s" from the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 L{'s .m0(x:a.A):a.A->x;.m1(x:a.A):a.A->x}
 Error 8 TypeError
 """, Map.of("c", "A:{}"), Map.of("a", "c"), """
@@ -2802,7 +2784,7 @@ The self name "s" is dead code.
 No method of the object literal instance of "L" uses it.
 Remove "'s" from the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 L{'s .m0(x:X):X->x;.m1(x:X):X->x}
 Error 8 TypeError
 """, Map.of("c", "A:{}"), mapA, """
@@ -2825,7 +2807,7 @@ Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
 
 
-See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "X" was introduced:
 B:{.k:X->X{'s .fromC:X->this}}
 Error 8 TypeError
 """, Map.of("c", cA), mapA, """
@@ -2845,7 +2827,7 @@ Object literal is of type "iso L" instead of a subtype of "a.A".
 """+noteA+"""
 
 
-See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "a.A" was introduced:
 B:{.k:a.A->L{.m0(x:a.A):a.A->x}}
 Error 8 TypeError
 """, Map.of("c", "A:{}"), mapA, """
@@ -2865,7 +2847,7 @@ Object literal is of type "iso L" instead of a subtype of "a.A2".
 """+noteA+"""
 
 
-See inferred typing context below for how type "a.A2" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "a.A2" was introduced:
 B:{.k:a.A2->L{.m0(x:X):X->x}}
 Error 8 TypeError
 """, Map.of("c", "A:{} A2:{}"), mapA, """
@@ -2886,7 +2868,7 @@ Object literal is of type "bb.Nat" instead of a subtype of "B".
 """+noteBb+"""
 
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m(x:a.A):B->5}
 Error 8 TypeError
 """, Map.of("c", cA), mapABb, """
@@ -2905,7 +2887,7 @@ Parameter "x" has type "a.A" instead of a subtype of "B".
 """+noteA+"""
 
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m(x:a.A,n:bb.Nat):B->x}
 Error 8 TypeError
 """, Map.of("c", cA), mapABb, """
@@ -2924,7 +2906,7 @@ Parameter "x" has type "z.A" instead of a subtype of "a.A".
 Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_c", because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "a.A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "a.A" was introduced:
 B:{.m(x:z.A,q:d.Q):a.A->x}
 Error 8 TypeError
 """, Map.of("c", cA, "e", aA, "f", "Q:{}"), Map.of("z", "c", "a", "e", "d", "f"), """
@@ -2941,7 +2923,7 @@ The self name "s" is dead code.
 No method of the object literal instance of "L" uses it.
 Remove "'s" from the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 L{'s .m0(x:bb.Nat):bb.Nat->x;.m1(x:bb.Str):bb.Str->x}
 Error 8 TypeError
 """, Map.of(), mapBb, """
@@ -2959,7 +2941,7 @@ The self name "s" is dead code.
 No method of the object literal instance of "L" uses it.
 Remove "'s" from the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 L{'s .m0(x:N):N->x;.m1(x:S):S->x}
 Error 8 TypeError
 """, Map.of(), mapBb, """
@@ -2981,7 +2963,7 @@ Object literal is of type "iso L" instead of a subtype of "bb.Str".
 """+noteBb+"""
 
 
-See inferred typing context below for how type "bb.Str" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "bb.Str" was introduced:
 B:{.k:bb.Str->L{.m0(x:bb.Nat):bb.Nat->x}}
 Error 8 TypeError
 """, Map.of(), mapBb, """
@@ -2999,7 +2981,7 @@ The self name "s" is dead code.
 No method of the object literal instance of "L" uses it.
 Remove "'s" from the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 L{'s .m0(x:a.Box[d.Q]):a.Box[d.Q]->x;.m1(x:a.Box[d.Q]):a.Box[d.Q]->x}
 Error 8 TypeError
 """, Map.of("c", "Box[T]:{}", "e", "Q:{}"), Map.of("a", "c", "d", "e"), """

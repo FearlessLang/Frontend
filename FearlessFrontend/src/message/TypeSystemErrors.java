@@ -245,7 +245,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     e.line(up(got.info(printed)));
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ captureFreeHint(e, l, m); }
-    return addExpFrame(at, e.exInferMsg(got.footerE.get(), req0).addSpan(at.span().inner));
+    return addExpFrame(at, e.exInferMsg(got.footerE.get(), at, req0).addSpan(at.span().inner));
   }
   private void captureFreeHint(Err e, Literal l, M m){
     var mut= methodSig("mut ", m.sig().m());
@@ -310,7 +310,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(c)
       .line("The receiver is of type "+err().typeRepr(true, recvType)+". This is a generic type parameter.")
       .line("Generic type parameters cannot be receivers of method calls.")
-      .exInferMsg(best.contextE(), err().typeRepr(true, recvType)), c);
+      .exInferMsg(best.contextE(), c, err().typeRepr(true, recvType)), c);
   }
   ///No method matches call c.
   ///Sub-errors for more clarity
@@ -438,7 +438,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert reqs.size() == res.size();
     assert res.stream().noneMatch(Reason::isEmpty);
     assert reqs.stream().allMatch(r -> canon(r.t()).equals(canon(declared)));
-    if (isWrongUnderlyingType(ts, bs, canon(declared), res)){ return wrongUnderlyingTypeErr(ts, d, c, argi, declared, res); }
+    if (isWrongUnderlyingType(ts, bs, canon(declared), res)){ return wrongUnderlyingTypeErr(d, c, argi, declared, res); }
     var gotHdr= headerBest(res);
     var any= reqs.stream().map(TRequirement::t).map(t -> err().typeRepr(false, t)).distinct().toList();
     var r= Streams.zip(res, reqs).filter((ri,q) -> rcOnlyMismatch(ri.best, q.t())).map((ri,_) -> ri).findFirst().orElse(res.getFirst());
@@ -452,9 +452,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+"  ("+q.reqName()+")"));
     addNoPrecedenceHintIfOperator(e, c);
     var footer= r.footerE.get();
-    return withCallSpans(e.exInferMsg(footer, err().typeRepr(false, reqs.getFirst().t())), c);
+    return withCallSpans(e.exInferMsg(footer, c.es().get(argi), err().typeRepr(false, reqs.getFirst().t())), c);
   }
-  private FearlessException wrongUnderlyingTypeErr(TypeSystem ts, Literal d, Call c, int argi, T declared, List<Reason> res){
+  private FearlessException wrongUnderlyingTypeErr(Literal d, Call c, int argi, T declared, List<Reason> res){
     var gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both
     //should make an attempt to say what the generics in the result should have been instantiate to instead
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
@@ -463,7 +463,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, declared)+" (the type required by the method signature).");
     addNoPrecedenceHintIfOperator(e, c);
-    return withCallSpans(e.ex(ts.scope().pushCallArgi(c, argi).contextE()), c);
+    return withCallSpans(e.ex(c, c.es().get(argi)), c);
   }
   private void addNoPrecedenceHintIfOperator(Err e, Call c){
     var s= c.name().s();

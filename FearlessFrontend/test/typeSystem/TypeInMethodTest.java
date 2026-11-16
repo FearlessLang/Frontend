@@ -53,9 +53,6 @@ While inspecting object literal instance of "A" > ".m" line 2
 The type "A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-A
 """;
   private static final String byNameOtherPkg= """
 001| B:{.m:a.A->a.A}
@@ -65,9 +62,6 @@ While inspecting object literal instance of "a.A" > ".m" line 1
 The type "a.A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-a.A
 """;
 
   @Test void topLevelTypeByName(){ ok(List.of("""
@@ -107,9 +101,6 @@ While inspecting object literal instance of "A" > ".m" line 3
 The type "A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "CF".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-A
 """, List.of("""
 use base.CaptureFree as CF;
 A0:{.m:A->A:{}}
@@ -125,7 +116,7 @@ The type "A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:A{}
 """, List.of("""
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
@@ -275,9 +266,6 @@ Missing: "imm .foo".
 Required by: "a.S".
 Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso a.S
 Error 8 TypeError""", """
 S:base.Sealed{ .foo: base.Void }
 Take:{ #(p:S): base.Void -> base.Void }
@@ -297,9 +285,6 @@ Missing: "imm .foo".
 Required by: "a.S".
 Sealed types can only be implemented in their own package.
 Type "a.S" is in package "a".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso a.S
 Error 8 TypeError""", """
 S:base.Sealed{ .foo: base.Void }
 Take:{ #(p:S): base.Void -> base.Void }
@@ -346,7 +331,7 @@ The type "a.A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:a.A{}
 """, """
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
