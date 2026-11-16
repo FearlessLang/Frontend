@@ -21,6 +21,7 @@ import core.TName;
 import core.TSpan;
 import utils.OneOr;
 import utils.Push;
+import utils.Range;
 import utils.Streams;
 import fearlessFullGrammar.E.Call;
 import fearlessFullGrammar.Parameter;
@@ -81,7 +82,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
     if (p.xp().isEmpty()){ return "_"; }
     return switch (p.xp().get()){
       case XPat.Name(var x) -> hasPat && !x.name().equals("_") ? freshVar(x.name(), n -> WellFormednessErrors.freshRenamed(n, x.name())) : x.name();
-      case XPat.Destruct(_, _) -> freshVar("div", WellFormednessErrors::freshDestruct);
+      case XPat.Destruct _ -> freshVar("div", WellFormednessErrors::freshDestruct);
     };
   }
   private String freshVar(String hint, Function<String,String> note){ return meths.fresh().note(meths.fresh().freshVar(currentTop, hint), note); }
@@ -147,12 +148,12 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
       .toList();
   }
   Stream<XE> xpat(XPat xp, String lowered, TSpan span){ return switch (xp){
-    case XPat.Destruct d -> Streams.zip(d.extract(), d.parameterNames().toList()).map((e,x) -> xpat(e, x, lowered, span));
+    case XPat.Destruct d -> Streams.zipI(d.extract(), d.parameterNames().toList()).map((i,e,x) -> xpat(e, d.at().get(i), x, lowered));
     case XPat.Name(var x) -> x.name().equals(lowered) ? Stream.of() : Stream.of(new XE(x.name(), new fearlessFullGrammar.E.X(lowered, span.pos())));
     };}
-  XE xpat(List<MName> pat, String x, String fresh, TSpan span){
-    fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, span.pos());
-    for (var m : pat){ res = call(res, m.s(), List.of(), span.pos()); }
+  XE xpat(List<MName> pat, List<Pos> at, String x, String fresh){
+    fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, at.getFirst());
+    for (int i : Range.of(pat)){ res = call(res, pat.get(i).s(), List.of(), at.get(i)); }
     return new XE(x, res);
   }
   private E.Literal liftLiteral(Optional<RC> rc, List<IT.C> impl, Optional<String> thisName, List<M> ms, Src src){

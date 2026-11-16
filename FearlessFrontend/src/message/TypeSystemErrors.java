@@ -51,8 +51,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("Only those two shapes are the identity function.")
       .ex(m.e().get()).addSpan(m.e().get().span().inner);
   }
-  public FearlessException mCallFrame(M m, FearlessException fe){
-    return fe.addFrame("method "+err().methodSig(m.sig().m())+" (line "+m.sig().span().inner.startLine()+")", m.sig().span().inner);
+  public FearlessException mCallFrame(Sig s, FearlessException fe){
+    return fe.addFrame("method "+err().methodSig(s.m())+" (line "+s.span().inner.startLine()+")", s.span().inner);
   }
   private FearlessException withCallSpans(FearlessException ex, Call c){ return ex.addSpan(TSpan.fromPos(c.pos(), c.name().s().length()).inner).addSpan(c.span().inner); }
   private FearlessException withCallSpans(FearlessException ex, E at, Call c){

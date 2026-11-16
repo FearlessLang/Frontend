@@ -6345,6 +6345,46 @@ U:{.u(P):U->base.Destruct#[imm,P,U](_adiv.a,mut base.MF[P,U]{mut #(a:P):U->a})}
 P:{ .a: P }
 U:{ .u({.a}: P): U -> a }
 """));}
+@Test void aNominalPatternNamingAMissingMethodPointsAtTheMethod(){fail("""
+002| U:{ .u({.a,.c}: P): P -> a }
+   |     -------^^-------------
+
+While inspecting method ".u(_)" (line 2)
+This call to method ".c" cannot typecheck.
+Method ".c" is not declared on type "P".
+
+Available methods on type "P":
+- .a:P
+- .b:P
+
+Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
+
+Relevant code with inferred types:
+_adiv.c
+""", List.of("""
+P:{ .a: P; .b: P }
+U:{ .u({.a,.c}: P): P -> a }
+"""));}
+@Test void aNominalPatternNamingAMissingMethodInAChainPointsAtTheMethod(){fail("""
+003| U:{ .u({.q.z, .a}: P): P -> a }
+   |     ----~~^^-----------------
+
+While inspecting method ".u(_)" (line 3)
+This call to method ".z" cannot typecheck.
+Method ".z" is not declared on type "Q".
+
+Available methods on type "Q":
+- .r:P
+
+Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
+
+Relevant code with inferred types:
+_adiv.q.z
+""", List.of("""
+P:{ .a: P; .q: Q }
+Q:{ .r: P }
+U:{ .u({.q.z, .a}: P): P -> a }
+"""));}
 @Test void aFreshNameStandingForTwoNamesGetsNoNote(){fail("""
 003| B:{ .u({.a}: P, xyzwb: P): A -> xyzwb }
    |     ----------------------------^^^^^
