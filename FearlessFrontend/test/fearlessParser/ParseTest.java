@@ -4106,5 +4106,17 @@ Error 2 UnexpectedToken
 """, """
 A:{ .me: A -> $this }
 """);}
+@Test void arrowInABodyWithNoMethodNameBeforeIt(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A -> x -> x }
+   |   --~~~~~~~~~^~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+Error 6 MissingSeparator
+""", """
+A:{ .m: A -> x -> x }
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?
