@@ -115,6 +115,48 @@ A:{read .me:mut F->mut F{mut .get:mut A->this}}
 F:{ mut .get: mut A }
 A:{ read .me: mut F -> mut F{ .get -> this } }
 """));}
+@Test void isoReceiverCapturedInALiteralIsImm(){fail("""
+003| A:{ .m(b: iso B): F -> { b.x } }
+   |     ---------------------^~~--
+
+While inspecting method "#" (line 3) > method ".m(_)" (line 3)
+This call to method "mut B.x" cannot typecheck.
+The receiver (the expression before the method name) has capability "imm".
+This call requires a receiver with capability "mut" or "iso".
+Capturing changes the type of parameter "b":
+- "iso B" becomes "imm B" inside the "mut" method "#" (line 3).
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result)
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+b.x[mut]
+""", List.of("""
+B:{ mut .x: B }
+F:{ mut #: B }
+A:{ .m(b: iso B): F -> { b.x } }
+"""));}
+@Test void thisReceiverOfAReadMethodIsRead(){fail("""
+001| A:{ read .m: A -> this.mm; mut .mm: A -> A }
+   |     --------------^^^^~~~
+
+While inspecting method ".m" (line 1)
+This call to method "mut A.mm" cannot typecheck.
+The receiver (the expression before the method name) has capability "read".
+This call requires a receiver with capability "mut" or "iso".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".m" (line 1).
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result)
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+this.mm[mut]
+""", List.of("""
+A:{ read .m: A -> this.mm; mut .mm: A -> A }
+"""));}
 @Test void mutTypeVariableCaptureInReadMethodShowsDeclaredNote(){fail("""
 002| A:{ .m[X:*](x: mut X): mut Get[mut X] -> mut Get[mut X]{ read .get: mut X -> x } }
    |     -----------------------------------------------------~~~~~~~~~~~~~~~~~~~~^--

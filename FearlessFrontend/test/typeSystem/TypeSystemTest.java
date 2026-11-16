@@ -1737,6 +1737,8 @@ While inspecting method ".m(_)" (line 4)
 This call to method "mut User.zap(_)" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
+The capability of the methods changes the type of parameter "this":
+- "mut User" becomes "read User" inside the "read" method ".m(_)" (line 4).
 
 Receiver required by each promotion:
 - "mut" (As declared)
@@ -2129,6 +2131,8 @@ While inspecting method ".bar" (line 1)
 This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".bar" (line 1).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123
@@ -2143,6 +2147,8 @@ While inspecting method ".bar" (line 1)
 This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".bar" (line 1).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123
@@ -2180,6 +2186,8 @@ While inspecting method ".bar" (line 1)
 This call to method "mut A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "imm A" inside the "imm" method ".bar" (line 1).
 
 Receiver required by each promotion:
 - "mut" (As declared)
@@ -2198,6 +2206,8 @@ While inspecting method ".bar" (line 1)
 This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".bar" (line 1).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo123
@@ -2217,6 +2227,8 @@ While inspecting method ".bar" (line 6)
 This call to method "mut A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".bar" (line 6).
 
 Receiver required by each promotion:
 - "mut" (As declared)
@@ -4829,6 +4841,8 @@ While inspecting method ".get" (line 4) > method "#" (line 2)
 This call to method "mut Counter.inc" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
+The capability of the methods changes the type of parameter "self":
+- "mut Counter" becomes "read Counter" inside the "read" method ".get" (line 4).
 
 Receiver required by each promotion:
 - "mut" (As declared)

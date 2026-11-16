@@ -77,8 +77,11 @@ public final class Reason{
       ? "Note: the declared type "+es.err().typeRepr(false, declared)+" would instead be a valid subtype."
       : "Note: the declared type "+es.err().typeRepr(false, declared)+" also does not satisfy the requirement."
     ); }
-    e.line((self ? "The capability of the methods changes the type of " : "Capturing changes the type of ")+es.err().expRepr(x)+":"+vpaTrace(es, cur));
+    e.line(adaptation(es, x, cur));
     return new Reason(got, e.text(), es.printed(), () -> baseFooterE(ts.scope(), got, req.t()));
+  }
+  static String adaptation(TypeSystemErrors es, X x, WithT cur){
+    return (isSelf(cur, x.name()) ? "The capability of the methods changes the type of " : "Capturing changes the type of ")+es.err().expRepr(x)+":"+vpaTrace(es, cur);
   }
   private static boolean isSelf(WithT cur, String x){ return switch (cur){
     case Same _ -> false;

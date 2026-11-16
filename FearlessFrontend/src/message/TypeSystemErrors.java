@@ -18,6 +18,7 @@ import pkgmerge.Package;
 import typeSystem.TypeSystem.*;
 import typeSystem.ArgMatrix;
 import typeSystem.Change;
+import typeSystem.Gamma;
 import typeSystem.TypeScope;
 import typeSystem.TypeSystem;
 import utils.Bug;
@@ -405,14 +406,14 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///Methods exist for call c, but the receiver capability is too weak for all the available promotions.
   ///No promotion accepts this receiver, so the call cannot succeed regardless of argument types.
   ///Raised when checking method calls.
-  public FearlessException receiverRCBlocksCall(Literal d, Call c, RC recvRc, List<MType> promos){
+  public FearlessException receiverRCBlocksCall(Literal d, Call c, RC recvRc, List<MType> promos, Gamma g){
     var needed= promos.stream().map(MType::rc).distinct().sorted().map(Err::disp).toList();
-    return withCallSpans(err()
+    var e= err()
       .pCallCantBeSatisfied(d, c)
       .line("The receiver (the expression before the method name) has capability "+disp(recvRc)+".")
-      .line(Join.of(needed, "This call requires a receiver with capability ", " or ", "."))
-      .pReceiverRequiredByPromotion(promos)
-      .ex(c), c.e(), c);
+      .line(Join.of(needed, "This call requires a receiver with capability ", " or ", "."));
+    if (c.e() instanceof X x && g.bind(x.name()).current() instanceof Change.WithT w && !(w instanceof Change.Same)){ e.line(Reason.adaptation(this, x, w)); }
+    return withCallSpans(e.pReceiverRequiredByPromotion(promos).ex(c), c.e(), c);
   }
   ///For argument index argi in call c, the argument's type does not satisfy any promotion's requirement.
   ///Receiver and arguments are well typed, but this argument does not match any promotion.
