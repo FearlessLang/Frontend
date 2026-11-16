@@ -404,17 +404,35 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     color.put(u, 2);
     return null;
   }
-  public FearlessException noSourceToInferFrom(E.Literal origin, M m){
+  public FearlessException noSourceToInferFrom(E.Literal origin, M m, List<core.Sig> sup){
     var s= m.sig();
-    if (s.m().isEmpty()){ return methodNotInferred(origin, s); }
+    var names= sup.stream().map(si -> si.m().s()).distinct().sorted().toList();
+    var best= s.m().filter(_ -> !names.isEmpty()).flatMap(n -> NameSuggester.bestName(n.s(), names));
+    var e= s.m().isEmpty() ? unnamedNotInferred(origin, s, sup) : missingTypes(origin, s, best.isEmpty());
+    if (!sup.isEmpty()){ e.line(Join.of(sup.stream().map(WellFormednessErrors::supSig).distinct().sorted(), "Methods of the supertypes: ", ", ", ".")); }
+    best.ifPresent(b -> e.line(Join.of(sup.stream().filter(si -> si.m().s().equals(b)).map(WellFormednessErrors::supSig).distinct(), "Did you mean ", " or ", " ?")));
+    m.names().stream().filter(x -> s.m().isEmpty() && names.contains("."+x)).findFirst()
+      .ifPresent(x -> e.line(disp(x)+" is read as a parameter name: a method name starts with \".\", as in "+disp("."+x)+"."));
+    return wf(e, s, origin);
+  }
+  private static String supSig(core.Sig s){ return methodSig(s.rc().toStrSpace(), s.m()); }
+  private Err missingTypes(E.Literal origin, M.Sig s, boolean addReturnType){
     var name= methodSig(s.rc().map(r -> r.toStrSpace(false)).orElse(""), s.m().get());
     var allParHasType= s.ts().stream().allMatch(Optional::isPresent);
-    var e= allParHasType
-      ? err().line("Missing return type for method "+name+".").line("Add an explicit return type before \"->\".")
-      : err().line("Missing parameter types for method "+name+".");
-    return wf(e
+    var e= err().line((allParHasType ? "Missing return type" : "Missing parameter types")+" for method "+name+".");
+    if (allParHasType && addReturnType){ e.line("Add an explicit return type before \"->\"."); }
+    return e
       .line("A method can omit types in its signature only when a supertype has a method "+name+" to inherit the missing types from.")
-      .line("No supertype of "+err().expRepr(origin)+" has a method "+name+"."), s, origin);
+      .line("No supertype of "+err().expRepr(origin)+" has a method "+name+".");
+  }
+  private Err unnamedNotInferred(E.Literal origin, M.Sig s, List<core.Sig> sup){
+    var n= s.ts().size();
+    var taken= sup.stream().anyMatch(si -> si.m().arity() == n);
+    return err()
+      .line("Cannot infer signature and name for a method with "+count(n, "parameter")+".")
+      .line(taken
+        ? "Each method with "+count(n, "parameter")+" of the supertypes is already implemented by another method of "+err().expRepr(origin)+"."
+        : "No supertype of "+err().expRepr(origin)+" has a method with "+count(n, "parameter")+".");
   }
   public String retTypeDisagreement(){ return "the return type"; }
   public String paramTypeDisagreement(int i){ return "the type of parameter "+(i+1); }

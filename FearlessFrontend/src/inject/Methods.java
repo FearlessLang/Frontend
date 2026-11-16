@@ -230,7 +230,7 @@ public record Methods(
       if (count == 1){ return withName(match.getFirst().m().get(), m); }
       if (count > 1){ throw p.err().ambiguousImpl(origin, abs, m, match); }
     }
-    throw p.err().noSourceToInferFrom(origin, m);
+    throw p.err().noSourceToInferFrom(origin, m, superSigs(origin));
   }
   List<M> pairWithSig(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){
     var res= new ArrayList<M>();
@@ -341,9 +341,13 @@ public record Methods(
   }
   M toCompleteM(M m, E.Literal origin){
     var s= m.sig();
-    var ts= s.ts().stream().map(t -> Optional.of(t.orElseThrow(() -> p.err().noSourceToInferFrom(origin, m)))).toList();
-    var res= s.ret().orElseThrow(() -> p.err().noSourceToInferFrom(origin, m));
+    var ts= s.ts().stream().map(t -> Optional.of(t.orElseThrow(() -> p.err().noSourceToInferFrom(origin, m, superSigs(origin))))).toList();
+    var res= s.ret().orElseThrow(() -> p.err().noSourceToInferFrom(origin, m, superSigs(origin)));
     return m.withSig(new M.Sig(s.rc().orElse(RC.imm), s.m().get(), s.bs().orElse(List.of()), ts, res, origin.name(), m.impl().isEmpty(), s.span()));
+  }
+  private List<core.Sig> superSigs(E.Literal origin){
+    var cs= origin.t() instanceof IT.RCC r && !r.c().name().equals(origin.name()) ? List.of(r.c()) : origin.cs();
+    return cs.stream().flatMap(c -> Stream.ofNullable(_from(c.name()))).flatMap(d -> d.ms().stream()).map(core.M::sig).toList();
   }
   private IT agreement(Agreement at, List<M.Sig> ss, Function<M.Sig,IT> f, String msg){
     var res= ss.stream().map(f).distinct().toList();
