@@ -287,7 +287,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       ? "The type of "+subject+" is hygienic (\"readH\" or \"mutH\") "
       : "The type of "+subject+" can be instantiated with a hygienic capability (\"readH\" or \"mutH\") ";
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    +explicitH+"and thus it cannot be captured in the "+err().expRepr(why.l())
+    +explicitH+"and thus "+subject+" cannot be captured in the "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n";
   }
   private String whyDropCapFree(String subject, int useLine, Change.NoT why){

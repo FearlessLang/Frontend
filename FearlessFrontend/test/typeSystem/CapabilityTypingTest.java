@@ -241,7 +241,7 @@ A:{ read .self: readH A -> this }
 
 While inspecting parameter "prisoner" > method ".prison" (line 2) > method ".break(_)" (line 2)
 Parameter "prisoner" has type "readH B".
-The type of parameter "prisoner" is hygienic ("readH" or "mutH") and thus it cannot be captured in the object literal instance of "mut A[readH B]" (line 2).
+The type of parameter "prisoner" is hygienic ("readH" or "mutH") and thus parameter "prisoner" cannot be captured in the object literal instance of "mut A[readH B]" (line 2).
 """, List.of("""
 A[X:imm,mut,read,readH]:{ mut .prison: X }
 B:{ .break(prisoner: readH B): mut A[readH B] -> {prisoner} }
@@ -252,7 +252,7 @@ B:{ .break(prisoner: readH B): mut A[readH B] -> {prisoner} }
 
 While inspecting parameter "x" > method ".prison" (line 2) > method ".break(_)" (line 2)
 Parameter "x" has type "X".
-The type of parameter "x" can be instantiated with a hygienic capability ("readH" or "mutH") and thus it cannot be captured in the object literal instance of "mut A[X]" (line 2).
+The type of parameter "x" can be instantiated with a hygienic capability ("readH" or "mutH") and thus parameter "x" cannot be captured in the object literal instance of "mut A[X]" (line 2).
 """, List.of("""
 A[X:mut,imm,read,mutH,readH]:{ mut .prison: X }
 B[X:mut,imm,read,mutH,readH]:{ .break(x: X): mut A[X] -> { x } }
@@ -309,7 +309,7 @@ A:{ read .m[T:*](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
 
 While inspecting parameter "par" > method ".absMeth" (line 3) > method ".m(_)" (line 3)
 Parameter "par" has type "T".
-The type of parameter "par" can be instantiated with a hygienic capability ("readH" or "mutH") and thus it cannot be captured in the object literal instance of "mut L[mutH T]" (line 3).
+The type of parameter "par" can be instantiated with a hygienic capability ("readH" or "mutH") and thus parameter "par" cannot be captured in the object literal instance of "mut L[mutH T]" (line 3).
 """, List.of("""
 B:{}
 L[X:mut,imm,read,readH,mutH]:{ mut .absMeth: imm X }
