@@ -92,7 +92,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     assert nonNull(from, parser, expectedTerminatorTokens);
     var t= parser.peek().get();
     var instead= "Expected "+what;
-    var msg= expected("Unexpected "+found(t)+": the code before it is already complete", instead+": ", instead+".\nExpected one of: ", expectedTerminatorTokens, tk -> tk.human);
+    var complete= parser.peek(-1).isPresent() ? ": the code before it is already complete" : "";
+    var msg= expected("Unexpected "+found(t)+complete, instead+": ", instead+".\nExpected one of: ", expectedTerminatorTokens, tk -> tk.human);
     return Code.ExtraTokenInGroup.of(msg+afterTypeHint(t, parser.peek(-1))).addSpan(t.span(from.fileName())).addSpan(from);
   }
   private static String afterTypeHint(Token t, Optional<Token> prev){

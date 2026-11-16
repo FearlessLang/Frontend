@@ -4131,5 +4131,19 @@ Error 4 ExtraTokenInGroup
 """, """
 A:{ .m: A <- this }
 """);}
+@Test void extraContentWithNothingBefore(){fail("""
+In file: [###].fear
+
+001| Use base.Nat as N;
+   | ^^^---------------
+002| A:{}
+
+While inspecting full file
+Unexpected "Use".
+Error 4 ExtraTokenInGroup
+""", """
+Use base.Nat as N;
+A:{}
+""");}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?
