@@ -155,7 +155,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1359,7 +1359,7 @@ In file: [###].fear
 
 While inspecting a string literal
 String literal [Double Quote (") 0x22] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+A comment opening sign is present later on this line; the string may be meant to end before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1376,7 +1376,7 @@ In file: [###].fear
 
 While inspecting a string literal
 String literal [Backtick (`) 0x60] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+A comment opening sign is present later on this line; the string may be meant to end before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1394,7 +1394,7 @@ In file: [###].fear
 
 While inspecting a string literal
 String literal [Backtick (`) 0x60] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+A comment opening sign is present later on this line; the string may be meant to end before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1412,7 +1412,7 @@ In file: [###].fear
 
 While inspecting a string literal
 String literal [Backtick (`) 0x60] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+A comment opening sign is present later on this line; the string may be meant to end before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1466,7 +1466,7 @@ In file: [###].fear
 While inspecting a string literal
 String literal [Double Quote (") 0x22] reaches the end of the line.
 A preceding block comment "/* ... */" on this line contains that quote.
-Did it swallow the intended opening quote?
+That block comment may hold the intended opening quote.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1502,7 +1502,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
-Did you mean to place the opener outside the string/comment?
+The opener may belong outside the string literal.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1523,7 +1523,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
-Did you mean to place the opener outside the string/comment?
+The opener may belong outside the string literal.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1543,7 +1543,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
-Did you mean to place the opener outside the string/comment?
+The opener may belong outside the string literal.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1568,7 +1568,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a line comment "//" before this point.
-Did you mean to place the opener outside the string/comment?
+The opener may belong outside the line comment "//".
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1633,7 +1633,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1649,7 +1649,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1666,7 +1666,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
-Did you mean to place the closer outside the block comment "/* ... */"?
+The closer may belong outside the block comment "/* ... */".
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1682,7 +1682,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a line comment "//" between here and the stopping point.
-Did you mean to place the closer outside the line comment "//"?
+The closer may belong outside the line comment "//".
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1699,7 +1699,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "(" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected: ")".
 Error 0 Unclosed
 """, """
@@ -1715,7 +1715,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "[" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected: "]".
 Error 0 Unclosed
 """, """
@@ -1731,7 +1731,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1747,7 +1747,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
-Did you mean to place the closer outside the block comment "/* ... */"?
+The closer may belong outside the block comment "/* ... */".
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1763,7 +1763,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "[" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
-Did you mean to place the closer outside the block comment "/* ... */"?
+The closer may belong outside the block comment "/* ... */".
 Otherwise expected: "]".
 Error 0 Unclosed
 """, """
@@ -1779,7 +1779,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a string literal before this point.
-Did you mean to place the opener outside the string literal?
+The opener may belong outside the string literal.
 Error 1 Unopened
 """, """
 A:{ .m:Str -> "call (" ) }
@@ -1794,7 +1794,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a line comment "//" before this point.
-Did you mean to place the opener outside the line comment "//"?
+The opener may belong outside the line comment "//".
 Error 1 Unopened
 """, """
 A:{ .m:Str -> // ( swallowed
@@ -1810,7 +1810,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened "]".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
-Did you mean to place the opener outside the block comment "/* ... */"?
+The opener may belong outside the block comment "/* ... */".
 Error 1 Unopened
 """, """
 A:{ .m:Str -> /* [ hidden */ ] }
@@ -1825,7 +1825,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened "}".
 Found a matching opener hidden inside a string literal before this point.
-Did you mean to place the opener outside the string literal?
+The opener may belong outside the string literal.
 Error 1 Unopened
 """, """
 .m:Str -> "start { here" }
@@ -1840,7 +1840,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
-Did you mean to place the opener outside the block comment "/* ... */"?
+The opener may belong outside the block comment "/* ... */".
 Error 1 Unopened
 """, """
 A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
@@ -2181,7 +2181,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -3204,7 +3204,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a line comment "//" between here and the stopping point.
-Did you mean to place the closer outside the line comment "//"?
+The closer may belong outside the line comment "//".
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -3375,7 +3375,7 @@ In file: [###].fear
 005| }
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Did you forget a space in "!!!->" ?
+Missing space before "->" in "!!!->".
 Did you mean "!!! ->" ?
 Error 2 UnexpectedToken
 """, """

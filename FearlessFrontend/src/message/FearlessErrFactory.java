@@ -126,7 +126,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   public FearlessException forgotSpace(Span at, String name){
     return Code.UnexpectedToken.of(
-      "Did you forget a space in "+disp(name)+" ?\n"
+      "Missing space before \"->\" in "+disp(name)+".\n"
       +"Did you mean "+disp(name.substring(0, name.length()-2)+" ->")+" ?\n"
     ).addSpan(at);
   }
@@ -379,7 +379,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var msg=
       "Unclosed "+disp(open.content())+" group.\n"
     +"Found a matching closer inside a"+where+" between here and the stopping point.\n"
-    +"Did you mean to place the closer outside the"+where+"?\n"
+    +"The closer may belong outside the"+where+".\n"
     +expected("", "Otherwise expected: ", "Otherwise expected one of: ", expectedClosers, tk -> tk.human);
     var primary= metaParser.Token.makeSpan(file, open, hiddenFragment);
     var secondary= metaParser.Token.makeSpan(file, open, hiddenContainer);
@@ -394,7 +394,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var msg=
       "Unopened "+disp(stop.content())+".\n"
     +"Found a matching opener hidden inside a"+where+" before this point.\n"
-    +"Did you mean to place the opener outside the"+where+"?";
+    +"The opener may belong outside the"+where+".";
     var primary= metaParser.Token.makeSpan(file, hiddenFragment, stop);
     var secondary= metaParser.Token.makeSpan(file, hiddenContainer, stop);
     return Code.Unopened.of(msg).addSpan(primary).addFrame("groups of parenthesis", secondary);

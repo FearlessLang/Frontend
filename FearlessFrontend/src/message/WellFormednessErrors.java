@@ -222,7 +222,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
             ? count(arities.getFirst(), "generic type parameter")+"."
             : "other numbers of generic type parameters.\n"+Join.of(arities.stream().map(n -> disp(typedSimple+genArity(n))), "Candidates: ", ", ", ".")
           ))
-        .line("Did you accidentally add or omit a generic type argument?");
+        .line("A generic type argument may be extra or missing.");
       return Optional.of(typeName(e, tn));
     }
     private FearlessException undeclaredInPkg(){
