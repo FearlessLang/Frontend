@@ -277,8 +277,10 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return x.withT(meet(t1, t2));
   }
   private void updateG(Gamma g, String x, IT t2){
-    if (g.learned(x).undecided()){ g.update(x, t2 instanceof IT.RCC(_, var c, var span) ? new RCC(Optional.empty(), c, span) : t2); }
-    if (g.learned(x) instanceof IT.RCC t1 && t2 instanceof IT.RCC && !g.learnedWithRC(x).equals(t2)){ g.update(x, meet(t1, t2)); }
+    var open= stripRCAlsoThisSide(t2);
+    g.update(x, meet(g.learned(x), open));
+    if (g.learnedWithRC(x).equals(t2)){ return; }
+    g.update(x, open instanceof IT.X && g.learned(x).equals(open) ? t2 : meet(g.learned(x), t2));
   }
   private E nextT(E.Type t){
     if (!t.t().undecided()){ return t; }

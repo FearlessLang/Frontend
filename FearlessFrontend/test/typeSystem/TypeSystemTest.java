@@ -5576,6 +5576,46 @@ F1[X:*,R:*]:{ mut #(x: X): R }
 Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
 U:{ .use: A -> Ap#{x -> Two#(Mut#x, mut G{ # -> Imm#x })} }
 """));}
+@Test void lambdaParameterUsedAsAMutSupertypeThenCapturedAsAnImmSubtypeIsTheMutSubtype(){ok(List.of("""
+A:{ mut .m: A -> A }
+B:A{}
+Mut:{ #(a: mut A): A -> a.m }
+Imm:{ #(b: B): A -> b }
+G:{ imm #: A }
+Two:{ #[X:*,Y:*](a: X, b: Y): X -> a }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U:{ .use: A -> Ap#{x -> Two#(Mut#x, mut G{ # -> Imm#x })} }
+"""));}
+@Test void lambdaParameterCapturedAsAnImmSubtypeThenUsedAsAMutSupertypeIsTheMutSubtype(){ok(List.of("""
+A:{ mut .m: A -> A }
+B:A{}
+Mut:{ #(a: mut A): A -> a.m }
+Imm:{ #(b: B): A -> b }
+G:{ imm #: A }
+Two:{ #[X:*,Y:*](a: X, b: Y): Y -> b }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U:{ .use: A -> Ap#{x -> Two#(mut G{ # -> Imm#x }, Mut#x)} }
+"""));}
+@Test void lambdaParameterUsedAsAMutTypeParameterThenCapturedAsImmIsMut(){ok(List.of("""
+Mut[T:imm,mut]:{ #(a: mut T): mut T -> a }
+Imm[T:imm,mut]:{ #(a: imm T): imm T -> a }
+G[T:imm,mut]:{ imm #: imm T }
+Two:{ #[X:*,Y:*](a: X, b: Y): X -> a }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U[T:imm,mut]:{ .use: mut T -> Ap#{x -> Two#(Mut[T]#x, mut G[T]{ # -> Imm[T]#x })} }
+"""));}
+@Test void lambdaParameterCapturedAsAnImmTypeParameterThenUsedAsMutIsMut(){ok(List.of("""
+Mut[T:imm,mut]:{ #(a: mut T): mut T -> a }
+Imm[T:imm,mut]:{ #(a: imm T): imm T -> a }
+G[T:imm,mut]:{ imm #: imm T }
+Two:{ #[X:*,Y:*](a: X, b: Y): Y -> b }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U[T:imm,mut]:{ .use: mut T -> Ap#{x -> Two#(mut G[T]{ # -> Imm[T]#x }, Mut[T]#x)} }
+"""));}
 @Test void lambdaParameterOnlyCapturedInAnImmMethodIsImm(){ok(List.of("""
 A:{ mut .m: A -> A }
 Imm:{ #(a: A): A -> a }
