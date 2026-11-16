@@ -29,7 +29,7 @@ public final class GammaTest{
     var t2= X("Foo");
     g.update("x", t2);
     assertFalse(g.represents(s1), "updating x must change signature");
-    assertSame(t2, g.get("x"));
+    assertSame(t2, g.learned("x"));
   }
 
   // 2) Inner declare does not affect parent after pop (sign/represents)
@@ -71,7 +71,7 @@ public final class GammaTest{
 
     g.popScope();
     assertFalse(g.represents(parentBefore), "parent signature must reflect the update after pop");
-    assertSame(t2, g.get("x"));
+    assertSame(t2, g.learned("x"));
   }
 
   // 4) Three-scope visibility: updates only affect scopes that can see the binding
@@ -155,14 +155,14 @@ public final class GammaTest{
 
     g.popScope();
     assertTrue(g.represents(sigChildAfter), "update to parent-declared var must remain after pop");
-    assertSame(t, g.get("v31"));
+    assertSame(t, g.learned("v31"));
 
     g.newScope(RC.mut, List.of(), null);
     for (int i : Range.of(0, 10)){ g.declare("w"+i, X("W"+i)); }
     g.popScope();
 
     assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("w0"));
-    assertSame(t, g.get("v31"));
+    assertSame(t, g.learned("v31"));
 
     // Inner-only declares should not disturb parent after pop
     assertTrue(g.represents(sigChildAfter));
@@ -254,7 +254,7 @@ public final class GammaTest{
     assertEquals(X("T0"), g.get("v0_0"));
     assertEquals(X("T999"), g.get("v999_9"));
     g.update("v0_0", X("U"));
-    assertEquals(X("U"), g.get("v0_0"));
+    assertEquals(X("U"), g.learned("v0_0"));
     for (int _ : Range.of(0, n)){ g.popScope(); }
     assertTrue(g.represents(root));
     assertThrows(ArrayIndexOutOfBoundsException.class, () -> g.get("v0_0"));

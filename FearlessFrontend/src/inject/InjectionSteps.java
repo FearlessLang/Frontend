@@ -133,7 +133,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return x1.withRC(meetRcNoH(Optional.of(x1.rc()), Optional.of(rc2)).get());
   }
   static Optional<RC> meetRcNoH(Optional<RC> a, Optional<RC> b){
-    if (a.isEmpty()){ return b; }
+    if (a.isEmpty()){ return b.map(InjectionSteps::noH); }
     if (b.isEmpty()){ return a; }
     var x= noH(a.get());
     var y= noH(b.get());
@@ -275,7 +275,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var t1= g.getWithRC(x.name());
     var t2= x.t();
     if (t1.equals(t2)){ return x; }
-    if (!t2.undecided()){ updateG(g, x.name(), t1Base, t2); }
+    if (!t2.undecided() && !g.learnedWithRC(x.name()).equals(t2)){ updateG(g, x.name(), g.learned(x.name()), t2); }
     return x.withT(meet(t1, t2));
   }
   private void updateG(Gamma g, String x, IT t1, IT t2){
@@ -426,7 +426,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       .allMatch(m -> m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t -> t.get().isTV()));
   }
   private List<Optional<IT>> updateArgs(M m, Gamma g){
-    return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !late ? oi : Optional.of(meet(oi.get(), g.get(x)))).toList();
+    return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !late ? oi : Optional.of(meet(oi.get(), g.learned(x)))).toList();
   }
   M nextMStarOp(List<B> bs, Gamma g, E.Literal l, Optional<IT.RCC> selfPrecise, IT.RCC rcc, M m){
     assert m.impl().isPresent();
