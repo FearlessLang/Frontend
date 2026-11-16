@@ -517,11 +517,14 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException literalHeadNotInferred(E.Literal at, IT.C c, List<Integer> unknown, List<String> xs){
     var head= err().cp().t.of(c.name())+Join.of(c.ts().stream().map(err()::typeReprRaw), "[", ",", "]", "");
     var s= unknown.size() == 1 ? "" : "s";
+    var ts= IntStream.range(0, c.ts().size()).mapToObj(i -> unknown.contains(i) ? "Type"+(i+1) : err().typeReprRaw(c.ts().get(i))).toList();
+    var example= err().cp().t.of(c.name())+Join.of(ts, "[", ",", "]")+"{...}";
     return wf(err()
       .line("Type inference concluded that this object literal implements "+disp(head)+",")
       .line("but it could not infer generic type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
         +" for generic type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i))), "", " and ", "", "")
-        +" of "+err().tNameADisp(c.name())+"."), at);
+        +" of "+err().tNameADisp(c.name())+".")
+      .line("Write the generic type argument"+s+" explicitly, as in "+disp(example)+"."), at);
   }
   public FearlessException methodNotInferred(E.Literal at, M.Sig s){
     var n= s.ts().size();

@@ -285,6 +285,7 @@ A[X:*]:{ #: X -> {this}* }
 While inspecting object literal instance of "Match[_,_]"
 Type inference concluded that this object literal implements "Match[R5,?]",
 but it could not infer generic type argument 2 for generic type parameter "R" of "Match[_,_]".
+Write the generic type argument explicitly, as in "Match[R5,Type2]{...}".
 """, List.of("""
 Any:{#[T:*]:T->Any#}
 Flow[T:*]: { mut .match[R:*](m: mut Match[T,R]): R }
@@ -298,6 +299,7 @@ B[R5:*]: { mut .loop(f: mut Flow[R5]): mut B[R5] -> f.match{ .return(rv) -> Any#
 While inspecting object literal instance of "Match[_,_,_]"
 Type inference concluded that this object literal implements "Match[R5,R6,?]",
 but it could not infer generic type argument 3 for generic type parameter "R" of "Match[_,_,_]".
+Write the generic type argument explicitly, as in "Match[R5,R6,Type3]{...}".
 """, List.of("""
 Any:{#[T:*]:T->Any#}
 Flow[T:*,U:*]: { mut .match[R:*](m: mut Match[T,U,R]): R }

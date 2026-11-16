@@ -146,6 +146,7 @@ T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
 While inspecting object literal instance of "T0[_,_]"
 Type inference concluded that this object literal implements "T0[?,?]",
 but it could not infer generic type arguments 1 and 2 for generic type parameters "X0" and "X1" of "T0[_,_]".
+Write the generic type arguments explicitly, as in "T0[Type1,Type2]{...}".
 """, List.of("""
 T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
 """));}
@@ -156,6 +157,7 @@ T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
 While inspecting object literal instance of "T0[_]"
 Type inference concluded that this object literal implements "T0[?]",
 but it could not infer generic type argument 1 for generic type parameter "X" of "T0[_]".
+Write the generic type argument explicitly, as in "T0[Type1]{...}".
 """, List.of("""
 T0[X]:{ .m: T0[base.Void] -> {this}.m }
 """));}
@@ -6372,6 +6374,7 @@ Use:{ .go: N -> Take#{ .m(x) -> Pair#(x, Wrap#(x)) } }
 While inspecting object literal instance of "Foo[_]"
 Type inference concluded that this object literal implements "Foo[?]",
 but it could not infer generic type argument 1 for generic type parameter "T" of "Foo[_]".
+Write the generic type argument explicitly, as in "Foo[Type1]{...}".
 """, List.of("""
 A:{}
 Foo[T]:{ .mk: A; .get: T }

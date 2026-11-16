@@ -2348,6 +2348,7 @@ In file: [###].fear
 While inspecting object literal instance of "a.T0[_]"
 Type inference concluded that this object literal implements "a.T0[?]",
 but it could not infer generic type argument 1 for generic type parameter "X" of "a.T0[_]".
+Write the generic type argument explicitly, as in "a.T0[Type1]{...}".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
