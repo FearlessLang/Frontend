@@ -1,6 +1,7 @@
 package message;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +57,7 @@ public final class CompactPrinter{
     return sb.toString();
   }
   CompactPrinter append(String s){ sb.append(s); return this; }
-  String bounds(List<B> bs){ return Join.of(bs.stream().map(B::compactToString), "[", ",", "]", ""); }
+  String bounds(List<B> bs){ return Join.of(bs.stream().map(b -> b.rcs().equals(EnumSet.of(RC.imm)) ? b.x() : b.compactToString()), "[", ",", "]", ""); }
   public static final class Compactable{
     public static final Compactable no= new Compactable(false, false);
     boolean compacted; boolean pinned; private Compactable(boolean can, boolean pinned){ compacted= !can; this.pinned= pinned; }

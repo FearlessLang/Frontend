@@ -791,7 +791,7 @@ Object literal is of type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
 Hint: write "iso Fresh[_]" if you need an "iso" object literal.
 
 See inferred typing context below for how type "iso Box[X]" was introduced: (compression indicated by `-`)
-A:{.m[X:imm](x:X):iso Box[X]->mut Fresh[X:*]:Box[X]{mut .get:X->x}}
+A:{.m[X](x:X):iso Box[X]->mut Fresh[X:*]:Box[X]{mut .get:X->x}}
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }

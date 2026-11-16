@@ -112,7 +112,7 @@ The body of method ".m" of type declaration "T1[_]" is an expression returning "
 Parameter "this" has type "T1[X]" instead of a subtype of "T0[T1[X]]".
 
 See inferred typing context below for how type "T0[T1[X]]" was introduced: (compression indicated by `-`)
-T1[X:imm]:T0[T1[T1[X]]]{.m:T0[T1[X]]->this}
+T1[X]:T0[T1[T1[X]]]{.m:T0[T1[X]]->this}
 """, List.of("""
 T0[X]:{ }
 T1[X]:T0[T1[T1[X]]]{ .m: T0[T1[X]] -> this }
@@ -134,7 +134,7 @@ The body of method ".k" of type declaration "T1[_]" is an expression returning "
 Method call "T1[_].m(_)" has type "T1[T1[X]]" instead of a subtype of "T1[X]".
 
 See inferred typing context below for how type "T1[X]" was introduced: (compression indicated by `-`)
-T1[X:imm]:T0[T1[T1[X]]]{.m[Y:imm](a:T0[Y]):Y->a.get;.k:T1[X]->this.m[imm,T1[T1[X]]](this)}
+T1[X]:T0[T1[T1[X]]]{.m[Y](a:T0[Y]):Y->a.get;.k:T1[X]->this.m[imm,T1[T1[X]]](this)}
 """, List.of("""
 T0[X]:{ .get: X }
 T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
@@ -169,7 +169,7 @@ is implemented with an expression returning "T1".
 Parameter "this" has type "T1" instead of a subtype of "Z[Y]".
 
 See inferred typing context below for how type "Z[Y]" was introduced: (compression indicated by `-`)
-T1:{.m[Y:imm]:T1->T1{.k:Z[Y]->this}}
+T1:{.m[Y]:T1->T1{.k:Z[Y]->this}}
 """, List.of("""
 Z[X]:{ }
 T1:{ .m[Y]: T1 -> { .k: Z[Y] -> this } }
@@ -188,7 +188,7 @@ The body of method ".foo(_,_)" of type declaration "B[_]" is an expression retur
 Parameter "b" has type "_BX" instead of a subtype of "_AX".
 
 See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
-B[X:imm]:A{.foo[_AX:imm,_BX:imm](a:_AX,b:_BX):_AX->b}
+B[X]:A{.foo[_AX,_BX](a:_AX,b:_BX):_AX->b}
 """, List.of("""
 A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
 B[X]:A{ .foo(a,b)->b }
@@ -213,7 +213,7 @@ is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 
 See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
-B:Sup{.m[X:imm](x:X):G->G{.k[_AX:imm](y:_AX):_AX->x}}
+B:Sup{.m[X](x:X):G->G{.k[_AX](y:_AX):_AX->x}}
 """, List.of("""
 G:{ .k[X](y:X):X; }
 Sup:{ .m[X](x:X):G; }
@@ -5234,7 +5234,7 @@ The body of method ".m(_)" of type declaration "U[_]" is an expression returning
 Method call "K[_].get" has type "Box[Box[Box[[###]" instead of a subtype of "Box[Box[X]]".
 
 See inferred typing context below for how type "Box[Box[X]]" was introduced: (compression indicated by `-`)
-U[X:imm]:{.m(k:K[[###]]):Box[Box[X]]->k.get}
+U[X]:{.m(k:K[[###]]):Box[Box[X]]->k.get}
 """, List.of("""
 A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }
 U[X]:{ .m(k: K[D]): Box[Box[X]] -> k.get }
