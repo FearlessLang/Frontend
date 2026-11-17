@@ -1,0 +1,20 @@
+A simplified language to study the inference.
+The simplified language avoids two complications of Fearless:
+reference capabilities, and the inference of method signatures (writing just .m->).
+
+Core language:
+e::= x | L | e.m[Ts](es)
+L::= C[Xs]:Ts{Ms}
+M::= m[Xs](x1:T1..xn:Tn):T; | m[Xs](x1:T1..xn:Tn):T->e;
+T::= X | C[Ts]
+
+Inference layer:
+ie::= x:iT | iL:iT | ie.m[iTs](ies) | ie.m(ies)
+iL::= C[Xs]:iTs{iMs} | {iMs}
+iM::= m[Xs](x1:iT1..xn:iTn):iT; | m[Xs](x1:iT1..xn:iTn):iT->ie;
+iT::= ? | X | C[iTs]
+
+User surface language:
+se::= x | sL | se.m[Ts](ses) | se.m(ses)
+sL::= C[Xs]:Ts{sMs} | {sMs}
+sM::= m[Xs](x1:T1..xn:Tn):T; | m[Xs](x1:T1..xn:Tn):T->se;
