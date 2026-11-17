@@ -21,6 +21,7 @@ import core.TName;
 import core.TSpan;
 import utils.OneOr;
 import utils.Push;
+import utils.Range;
 import utils.Streams;
 import fearlessFullGrammar.E.Call;
 import fearlessFullGrammar.Parameter;
@@ -30,6 +31,7 @@ import utils.Pos;
 import inference.E;
 import inference.IT;
 import inference.M;
+import message.WellFormednessErrors;
 import pkgmerge.Package;
 
 public record InjectionToInferenceVisitor(Methods meths, TName currentTop, ArrayList<String> implicits, Function<TName,TName> f, ArrayList<E.Literal> decs){
@@ -79,10 +81,11 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   String parameterToName(Parameter p, boolean hasPat){
     if (p.xp().isEmpty()){ return "_"; }
     return switch (p.xp().get()){
-      case XPat.Name(var x) -> hasPat && !x.name().equals("_") ? meths.fresh().freshVar(currentTop, x.name()) : x.name();
-      case XPat.Destruct(_, _) -> meths.fresh().freshVar(currentTop, "div");
+      case XPat.Name(var x) -> hasPat && !x.name().equals("_") ? freshVar(x.name(), n -> WellFormednessErrors.freshRenamed(n, x.name())) : x.name();
+      case XPat.Destruct _ -> freshVar("div", WellFormednessErrors::freshDestruct);
     };
   }
+  private String freshVar(String hint, Function<String,String> note){ return meths.fresh().note(meths.fresh().freshVar(currentTop, hint), note); }
   List<M> mapM(List<fearlessFullGrammar.M> ms){ return ms.stream().map(this::visitM).toList(); }
   String writtenName(Parameter p){ return p.xp().map(x -> x instanceof XPat.Name(var n) ? n.name() : "_").orElse("_"); }
   M.Sig visitMSig(fearlessFullGrammar.M mm){
@@ -145,16 +148,17 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
       .toList();
   }
   Stream<XE> xpat(XPat xp, String lowered, TSpan span){ return switch (xp){
-    case XPat.Destruct d -> Streams.zip(d.extract(), d.parameterNames().toList()).map((e,x) -> xpat(e, x, lowered, span));
+    case XPat.Destruct d -> Streams.zipI(d.extract(), d.parameterNames().toList()).map((i,e,x) -> xpat(e, d.at().get(i), x, lowered));
     case XPat.Name(var x) -> x.name().equals(lowered) ? Stream.of() : Stream.of(new XE(x.name(), new fearlessFullGrammar.E.X(lowered, span.pos())));
     };}
-  XE xpat(List<MName> pat, String x, String fresh, TSpan span){
-    fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, span.pos());
-    for (var m : pat){ res = call(res, m.s(), List.of(), span.pos()); }
+  XE xpat(List<MName> pat, List<Pos> at, String x, String fresh){
+    fearlessFullGrammar.E res= new fearlessFullGrammar.E.X(fresh, at.getFirst());
+    for (int i : Range.of(pat)){ res = call(res, pat.get(i).s(), List.of(), at.get(i)); }
     return new XE(x, res);
   }
   private E.Literal liftLiteral(Optional<RC> rc, List<IT.C> impl, Optional<String> thisName, List<M> ms, Src src){
     var name= meths.fresh().freshTopType(currentTop, 0);
+    meths.fresh().note(name.simpleName(), n -> WellFormednessErrors.freshType(n, src.inner.span().inner));
     return new E.Literal(rc, name, List.of(), impl, thisName.orElse("_"), ms, src, true);
   }
   //Here new FreeXs().ftvMs(ms) is all since by construction no Cs and no inferred type;
@@ -204,7 +208,7 @@ public record InjectionToInferenceVisitor(Methods meths, TName currentTop, Array
   private Call desugarCPat(Call c){
     var pat= c.pat().get();
     var par1= OneOr.of("Equals sugar has one argument", c.es().stream());
-    var fresh= new fearlessFullGrammar.E.X(meths.fresh().freshVar(currentTop, "eqS"), c.pos());
+    var fresh= new fearlessFullGrammar.E.X(freshVar("eqS", WellFormednessErrors::freshEq), c.pos());
     var res= replaceAtom(par1, fresh);
     par1 = extractAtom(par1);
     var param1= new Parameter(of(pat), empty());

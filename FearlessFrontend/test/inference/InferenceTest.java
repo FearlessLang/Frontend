@@ -630,6 +630,7 @@ While inspecting type declaration "B"
 Cannot infer the name for a method with 0 parameters.
 More than one abstract method with 0 parameters could be selected.
 Candidates: "imm .foo", "imm .bar".
+Write the name of the method, choosing one of the candidates.
 Error 7 WellFormedness
 """, List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }
@@ -646,6 +647,7 @@ While inspecting type declaration "B"
 Cannot infer the name for a method with 1 parameter.
 More than one method with 1 parameter could be selected.
 Candidates: "imm .baz(_)", "imm .beer(_)".
+Write the name of the method, choosing one of the candidates.
 Error 7 WellFormedness
 """, List.of("""
 A1:{ .foo():A1; .baz(x:A1):A1->this.baz(x); .beer(x:A1):A1->this.foo; }

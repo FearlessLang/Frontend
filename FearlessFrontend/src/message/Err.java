@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.Locale;
@@ -21,7 +20,7 @@ import utils.Join;
 import utils.Push;
 import utils.Streams;
 
-public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
+public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> _cp, Function<String,List<String>> notes, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }
   public static String disp(Object o){ return Message.displayString(o.toString()); }
   static String funnel(String X, String owner, List<String> Xs){
@@ -226,9 +225,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     assert sb.length() != 0;
     return withNotes(Code.WellFormedness);
   }
-  private String withNotes(String body){ return body+Join.of(notes.get().stream(), "\n\n", "\n", "", ""); }
+  private String withNotes(String body, String text){ return body+Join.of(notes.apply(text).stream(), "\n\n", "\n", "", ""); }
   private FearlessException withNotes(Code code){
     var body= text();
-    return code.of(() -> withNotes(body));
+    return code.of(() -> withNotes(body, body));
   }
 }

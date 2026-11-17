@@ -120,7 +120,7 @@ public class FrontendLogicMain{
   Package mergeToPackage(String pkgName, Map<Ref,FileFull> raw, Map<String,String> override, OtherPackages other){
     assert !raw.isEmpty();
     var writtenIn= writtenIn(override);
-    var err= new WellFormednessErrors(pkgName, Map.of(), writtenIn, new LinkedHashSet<>());
+    var err= new WellFormednessErrors(pkgName, Map.of(), writtenIn, new LinkedHashSet<>(), Map.of());
     var headPkg= findHeadUri(err, raw.keySet());
     raw.entrySet().stream()
       .filter(e -> !e.getKey().equals(headPkg) && !e.getValue().noDirectives())
@@ -133,7 +133,7 @@ public class FrontendLogicMain{
     return makePackage(pkgName, directives(err, override, head.uses(), other), writtenIn, head.uses(), ds, names);
   }
   public Function<TName,String> names(String pkgName, Map<String,String> override, List<Ref> files, OtherPackages other){
-    var err= new WellFormednessErrors(pkgName, Map.of(), writtenIn(override), new LinkedHashSet<>());
+    var err= new WellFormednessErrors(pkgName, Map.of(), writtenIn(override), new LinkedHashSet<>(), Map.of());
     var head= findHeadUri(err, Set.copyOf(files));
     var map= directives(err, override, Parse.from(head.fearURI(), head.loadString()).uses(), other);
     return t -> Package.nameOf(pkgName, map, t);
@@ -148,7 +148,7 @@ public class FrontendLogicMain{
     return override.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> e.getValue().substring(e.getValue().indexOf(' ')+1)));
   }
   Package makePackage(String name, Map<String,String> map, Map<String,String> writtenIn, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names){
-    return new Package(name, map, writtenIn, uses, decs, names, new Package.Logger(false, null));//this method exists to change logger in mocking
+    return new Package(name, map, writtenIn, uses, decs, names, new Package.Logger(false, null), new HashMap<>());//this method exists to change logger in mocking
   }
   //map a as _b in _c //inside _c, the package name a stands for the code inside _b
   private void accUses(WellFormednessErrors err, HashMap<String,String> map, List<FileFull.Use> uses, OtherPackages other){

@@ -46,15 +46,23 @@ import java.util.EnumSet;
 import utils.Push;
 import utils.Streams;
 
-public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<String,String> writtenIn, LinkedHashSet<String> printed){
-  public WellFormednessErrors(String pkgName){ this(pkgName, Map.of(), Map.of(), new LinkedHashSet<>()); }
+public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<String,String> writtenIn, LinkedHashSet<String> printed, Map<String,String> fresh){
+  public WellFormednessErrors(String pkgName){ this(pkgName, Map.of(), Map.of(), new LinkedHashSet<>(), Map.of()); }
   Err err(){ return err(List.of()); }
   private Err err(List<String> steps){ return err(y -> y, x -> x, _ -> null, steps); }
   Err err(Function<core.T.C,core.T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,core.E.Literal> decs, List<String> steps){
     var written= written(map);
-    return new Err(publicHead, preferredForFresh, decs, quiet -> new CompactPrinter(pkgName, written, quiet ? _ -> {} : printed::add), () -> notes(written, steps), new StringBuilder());
+    return new Err(publicHead, preferredForFresh, decs, quiet -> new CompactPrinter(pkgName, written, quiet ? _ -> {} : printed::add), text -> notes(written, steps, text), new StringBuilder());
   }
-  private List<String> notes(Map<String,String> written, List<String> steps){ return Stream.concat(steps.stream(), printed.stream().flatMap(n -> note(written, n))).distinct().sorted(nameFirst).toList(); }
+  private List<String> notes(Map<String,String> written, List<String> steps, String text){
+    var freshNotes= Stream.of(text.split("[^A-Za-z0-9_]+")).filter(fresh::containsKey).map(fresh::get);
+    return Streams.of(steps.stream(), printed.stream().flatMap(n -> note(written, n)), freshNotes).distinct().sorted(nameFirst).toList();
+  }
+  public static String freshType(String n, Span s){ return "Name "+disp(n)+" stands for the anonymous type of the object literal at "+at(s)+"."; }
+  public static String freshGeneric(String n, String x){ return "Name "+disp(n)+" stands for generic type parameter "+disp(x)+" of an inherited method, renamed because "+disp(x)+" already names a type or another generic type parameter."; }
+  public static String freshEq(String n){ return "Name "+disp(n)+" is a parameter added by the desugaring of \"=\": "+disp(".let x = {a}.return {b}")+" stands for "+disp(".let({a}, {x, "+n+" -> "+n+".return {b}})")+"."; }
+  public static String freshDestruct(String n){ return "Name "+disp(n)+" is a parameter added by the desugaring of a nominal pattern: for a parameter "+disp("{.a, .b}: P")+", "+disp(n)+" is that parameter, and "+disp("a")+" and "+disp("b")+" stand for "+disp(n+".a")+" and "+disp(n+".b")+"."; }
+  public static String freshRenamed(String n, String x){ return "Name "+disp(n)+" is parameter "+disp(x)+", renamed by the desugaring of a nominal pattern in the same method."; }
   public static Map<String,String> written(Map<String,String> map){
     return map.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
   }
@@ -532,11 +540,14 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException literalHeadNotInferred(E.Literal at, IT.C c, List<Integer> unknown, List<String> xs){
     var head= err().cp().t.of(c.name())+Join.of(c.ts().stream().map(err()::typeReprRaw), "[", ",", "]", "");
     var s= unknown.size() == 1 ? "" : "s";
+    var ts= IntStream.range(0, c.ts().size()).mapToObj(i -> unknown.contains(i) ? "Type"+(i+1) : err().typeReprRaw(c.ts().get(i))).toList();
+    var example= err().cp().t.of(c.name())+Join.of(ts, "[", ",", "]")+"{...}";
     return wf(err()
       .line("Type inference concluded that this object literal implements "+disp(head)+",")
       .line("but it could not infer generic type argument"+s+" "+Join.of(unknown.stream().map(i -> i+1), "", " and ", "", "")
         +" for generic type parameter"+s+" "+Join.of(unknown.stream().map(i -> disp(xs.get(i))), "", " and ", "", "")
-        +" of "+err().tNameADisp(c.name())+"."), at);
+        +" of "+err().tNameADisp(c.name())+".")
+      .line("Write the generic type argument"+s+" explicitly, as in "+disp(example)+"."), at);
   }
   public FearlessException methodNotInferred(E.Literal at, M.Sig s){
     var n= s.ts().size();
@@ -564,7 +575,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(Join.of(
         options.stream().map(mi -> methodSig(mi.rc().get()+" ", mi.m().get())),
         "Candidates: ", ", ", "."
-      )), m.sig(), origin);
+      ))
+      .line("Write the name of the method, choosing one of the candidates."), m.sig(), origin);
   }
   public FearlessException ambiguousImplementationFor(List<TName> options, Agreement at){
     return wf(err()

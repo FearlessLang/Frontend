@@ -142,6 +142,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     checkNewXs(xs);
     if (xpat.isPresent() && xpat.get() instanceof XPat.Destruct d && xs.size() > 31){ throw errFactory().eqSugarPatternTooManyNames(span(), d); }
     names = names.add(xs, List.of());//zero if xpat is empty
+    if (xpat.isPresent() && end()){ throw errFactory().missingCallAfterEq(m, xpat.get(), xs, atom.span().inner); }
     if (xpat.isPresent()){ atom = parsePost(atom); while (!end()){ atom = parsePost(atom); } }
     return new E.Call(receiver, m.withArity(xpat.isPresent() ? 2 : 1), sq, empty(), xpat, List.of(atom), pos);//note: arity 2 is special case for = sugar
   }
@@ -154,7 +155,6 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     return peekOrder(t -> t.is(LowercaseId, _CurlyGroup), t -> t.is(Eq));
   }
   MName parseMName(){ return new MName(expect("method name", DotName, Op).content(), 0); }
-  MName parseDotName(){ return new MName(expect("method name", DotName).content(), 0); }
   XPat parseXPat(){
     if (peek(LowercaseId, Underscore)){ return new XPat.Name(parseDecX()); }
     var res= parseGroup("nominal pattern", Parser::parseDestruct);
@@ -168,11 +168,11 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var chains= splitBy("nominal pattern", commaSkip, Parser::parseChain);
     if (chains.isEmpty()){ throw errFactory().emptyDestructPattern(span()); }
     if (chains.stream().anyMatch(List::isEmpty)){ throw errFactory().emptyDestructChain(span()); }
-    var res= new XPat.Destruct(chains, id);
+    var res= new XPat.Destruct(chains.stream().map(c -> c.stream().map(t -> new MName(t.content(), 0)).toList()).toList(), id, chains.stream().map(c -> c.stream().map(this::pos).toList()).toList());
     if (res.invalidNames().findAny().isPresent()){ throw errFactory().patternNameInvalid(span(), res); }
     return res;
   }
-  List<MName> parseChain(){ return splitBy("", anyLeft, Parser::parseDotName); }
+  List<Token> parseChain(){ return splitBy("", anyLeft, p -> p.expect("method name", DotName)); }
 
   E.CallSquare parseCallSquare(){
     expect("method call generic type argument", OSquareArg);

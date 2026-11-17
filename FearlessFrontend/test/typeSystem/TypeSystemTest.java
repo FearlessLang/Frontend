@@ -131,6 +131,7 @@ T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
 While inspecting object literal instance of "T0[_,_]"
 Type inference concluded that this object literal implements "T0[?,?]",
 but it could not infer generic type arguments 1 and 2 for generic type parameters "X0" and "X1" of "T0[_,_]".
+Write the generic type arguments explicitly, as in "T0[Type1,Type2]{...}".
 """, List.of("""
 T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
 """));}
@@ -141,6 +142,7 @@ T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
 While inspecting object literal instance of "T0[_]"
 Type inference concluded that this object literal implements "T0[?]",
 but it could not infer generic type argument 1 for generic type parameter "X" of "T0[_]".
+Write the generic type argument explicitly, as in "T0[Type1]{...}".
 """, List.of("""
 T0[X]:{ .m: T0[base.Void] -> {this}.m }
 """));}
@@ -6703,6 +6705,7 @@ Use:{ .go: N -> Take#{ .m(x) -> Pair#(x, Wrap#(x)) } }
 While inspecting object literal instance of "Foo[_]"
 Type inference concluded that this object literal implements "Foo[?]",
 but it could not infer generic type argument 1 for generic type parameter "T" of "Foo[_]".
+Write the generic type argument explicitly, as in "Foo[Type1]{...}".
 """, List.of("""
 A:{}
 Foo[T]:{ .mk: A; .get: T }
@@ -6801,5 +6804,132 @@ Receiver required by each promotion:
 """, List.of("""
 Counter:{ mut .inc: Counter }
 U:{ .m(c: Counter): Counter -> c.inc }
+"""));}
+@Test void aParameterBesideADestructuringPatternIsPrintedWithANote(){fail("""
+002| User:{ .u({.a,.b}: Pt, x: base.Str): base.Str -> a }
+   |        ------------------------------------------^
+
+While inspecting parameter "a" > "#(_,_,_)" line 2 > ".u(_,_)" line 2
+Method "#(_,_,_)" inside the object literal instance of "iso base.MF[base.Nat,base.Nat,base.Str,base.Str]" (line 2)
+is implemented with an expression returning "base.Nat".
+Parameter "a" has type "base.Nat" instead of a subtype of "base.Str".
+
+Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
+Name "_ax" is parameter "x", renamed by the desugaring of a nominal pattern in the same method.
+
+See inferred typing context below for how type "base.Str" was introduced: (compression indicated by `-`)
+User:{(-,-)->-.Destruct#[imm,-.Nat,-.Nat,-.Str,-.Str](_adiv.a,_adiv.b,_ax,mut -.MF[-,-,-,-]{(-,-,-)->a})}
+""", List.of("""
+Pt:{ .a: base.Nat; .b: base.Nat }
+User:{ .u({.a,.b}: Pt, x: base.Str): base.Str -> a }
+"""));}
+@Test void aRenamedGenericTypeParameterAsACandidateIsPrintedWithANote(){failWf("""
+003| A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+   |                         ^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Both"
+Return type disagreement for method "imm .get" with 0 parameters.
+Different options are present in the implemented types.
+Candidates: "_AX", "Sup1".
+They are different types and "_AX" is a generic type parameter, so no method ".get" can implement all of them.
+
+Name "_AX" stands for generic type parameter "X" of an inherited method, renamed because "X" already names a type or another generic type parameter.
+""", List.of("""
+Sup1:{ .get[X]:X }
+Sup2:{ .get[X]:Sup1 }
+A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+"""));}
+@Test void aDestructuringParameterIsPrintedWithANote(){fail("""
+002| U:{ .u({.a}: P): U -> a }
+   |     ------------------^
+
+While inspecting parameter "a" > "#(_)" line 2 > ".u(_)" line 2
+Method "#(_)" inside the object literal instance of "iso base.MF[P,U]" (line 2)
+is implemented with an expression returning "P".
+Parameter "a" has type "P" instead of a subtype of "U".
+
+Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
+
+See inferred typing context below for how type "U" was introduced: (compression indicated by `-`)
+U:{.u(_adiv:P):U->-.Destruct#[imm,P,U](_adiv.a,mut -.MF[P,U]{mut #(a:P):U->a})}
+""", List.of("""
+P:{ .a: P }
+U:{ .u({.a}: P): U -> a }
+"""));}
+@Test void aNominalPatternNamingAMissingMethodPointsAtTheMethod(){fail("""
+002| U:{ .u({.a,.c}: P): P -> a }
+   |     -------^^^------------
+
+While inspecting ".u(_)" line 2
+This call to method ".c" cannot typecheck.
+Method ".c" is not declared on type "P".
+
+Available methods on type "P":
+-       .a:P
+-       .b:P
+
+Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+_adiv.c
+""", List.of("""
+P:{ .a: P; .b: P }
+U:{ .u({.a,.c}: P): P -> a }
+"""));}
+@Test void aNominalPatternNamingAMissingMethodInAChainPointsAtTheMethod(){fail("""
+003| U:{ .u({.q.z, .a}: P): P -> a }
+   |     ----~~^^^----------------
+
+While inspecting ".u(_)" line 3
+This call to method ".z" cannot typecheck.
+Method ".z" is not declared on type "Q".
+
+Available methods on type "Q":
+-       .r:P
+
+Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+_adiv.q.z
+""", List.of("""
+P:{ .a: P; .q: Q }
+Q:{ .r: P }
+U:{ .u({.q.z, .a}: P): P -> a }
+"""));}
+@Test void aFreshNameStandingForTwoNamesGetsNoNote(){fail("""
+003| B:{ .u({.a}: P, xyzwb: P): A -> xyzwb }
+   |     ----------------------------^^^^^
+
+While inspecting parameter "xyzwb" > "#(_,_)" line 3 > ".u(_,_)" line 3
+Method "#(_,_)" inside the object literal instance of "iso base.MF[P,P,A]" (line 3)
+is implemented with an expression returning "P".
+Parameter "xyzwb" has type "P" instead of a subtype of "A".
+
+Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
+
+See inferred typing context below for how type "A" was introduced: (compression indicated by `-`)
+B:{.u(_adiv:P,_axyzw:P):A->-.Destruct#[imm,P,P,A](_adiv.a,_axyzw,mut -.MF[P,P,A]{mut #(a:P,xyzwb:P):A->xyzwb})}
+""", List.of("""
+P:{ .a: P }
+A:{ .u({.a}: P, xyzwa: P): P -> a }
+B:{ .u({.a}: P, xyzwb: P): A -> xyzwb }
+"""));}
+@Test void aMethodOfAnAnonymousLiteralIsDeclaredBeforeAnArgumentWithUnknownHead(){fail("""
+003| U:{ .u: Sup -> G#(Sup{'s .k -> s; .extra: Sup -> s }.extra.zz, {y -> y}) }
+   |     --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^----------
+
+While inspecting ".u" line 3
+This call to method ".zz" cannot typecheck.
+Method ".zz" is not declared on type "Sup".
+
+Available methods on type "Sup":
+-       .k:Sup
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+Sup{'s .k:Sup->s;.extra:Sup->s}.extra.zz
+""", List.of("""
+Sup:{ .k: Sup }
+G:{ #[A:*,B:*](a: A, f: base.F[A,B]): B -> f#a }
+U:{ .u: Sup -> G#(Sup{'s .k -> s; .extra: Sup -> s }.extra.zz, {y -> y}) }
 """));}
 }

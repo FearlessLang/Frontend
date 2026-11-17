@@ -25,6 +25,7 @@ import fearlessParser.Parser;
 import inference.E;
 import inference.IT;
 import inference.M;
+import message.WellFormednessErrors;
 import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
@@ -92,7 +93,8 @@ public record Methods(
       if (fresh.isFreshGeneric(child.name(), x, scope)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
-      var newX= new IT.X(fresh.freshGeneric(child.name(), x, Push.of(B.xs(s.bs()), scope)), child.name().approxSpan());
+      var newName= fresh.note(fresh.freshGeneric(child.name(), x, Push.of(B.xs(s.bs()), scope)), n -> WellFormednessErrors.freshGeneric(n, x));
+      var newX= new IT.X(newName, child.name().approxSpan());
       fullTs.add(newX);
       newBs.add(new B(newX.name(), b.rcs()));
     }
@@ -196,7 +198,7 @@ public record Methods(
     assert InjectionToInferenceVisitor.duplicatedSupertypes(d.bs(), d.cs()).isEmpty();
     assert !d.infName() || !d.thisName().equals("_") || d.ms().stream().anyMatch(m -> m.impl().isPresent());
     p.log().logInferenceDeclaration(d, cs);
-    var ms= d.ms().stream().map(new ToCore(List.of(), this)::mSynthetic).toList();
+    var ms= d.ms().stream().map(new ToCore(List.of(), this, List.of())::mSynthetic).toList();
     cache.put(d.name(), new core.E.Literal(d.rc().orElse(RC.imm), d.name(), d.bs(), cs, d.thisName(), ms, d.src(), d.infName()));
   }
   List<M> inferMNames(List<M> ms, ArrayList<M.Sig> ss, E.Literal origin){

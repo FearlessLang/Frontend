@@ -2,6 +2,7 @@ package pkgmerge;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +16,8 @@ import message.TypeNamePrinter;
 import message.WellFormednessErrors;
 import utils.Join;
 
-public record Package(String name, Map<String,String> map, Map<String,String> writtenIn, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names, Logger log){
-  public WellFormednessErrors err(){ return new WellFormednessErrors(name, map, writtenIn, new LinkedHashSet<>()); }
+public record Package(String name, Map<String,String> map, Map<String,String> writtenIn, List<FileFull.Use> uses, List<Declaration> decs, DeclaredNames names, Logger log, HashMap<String,String> fresh){
+  public WellFormednessErrors err(){ return new WellFormednessErrors(name, map, writtenIn, new LinkedHashSet<>(), fresh); }
   public static String writtenPkg(Map<String,String> map, String pkg){ return WellFormednessErrors.written(map).getOrDefault(pkg, pkg); }
   public static List<String> visible(Map<String,String> map, Collection<TName> other){
     return other.stream().map(t -> writtenPkg(map, t.pkgName())).distinct().sorted().toList();
