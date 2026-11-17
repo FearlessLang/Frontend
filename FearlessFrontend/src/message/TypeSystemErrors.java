@@ -2,15 +2,13 @@ package message;
 
 import static message.Err.*;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 
 import inject.TypeRename;
 import metaParser.NameSuggester;
@@ -76,17 +74,17 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   public FearlessException typeNotWellKinded(E toErr, KindingTarget target, int index, EnumSet<RC> bounds, EnumSet<RC> got){
     assert index >= 0;
     var err= switch (target){
-      case T.C c -> typeNotWellKinded("type "+err().typeRepr(c), c, index, caps(bounds), caps(got));
+      case T.C c -> typeNotWellKinded("The type "+err().typeRepr(c)+" is invalid.", c, index, caps(bounds), caps(got));
       case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t, c, index, caps(bounds), caps(got));
     };
     var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
     return addExpFrame(toErr, err.ex(toErr).addSpan(span));
   }
   private static String caps(EnumSet<RC> rcs){ return (rcs.size() == 1 ? "capability " : "capabilities ")+Join.of(rcs.stream().map(Err::disp).sorted(), "", " or ", ""); }
-  private Err typeNotWellKinded(String name, T.C c, int index, String allowedStr, String gotStr){
+  private Err typeNotWellKinded(String first, T.C c, int index, String allowedStr, String gotStr){
     var bad= c.ts().get(index);
     var bs= decs.apply(c.name()).bs();
-    return err().pTypeArgBounds(name, err().tNameADisp(c.name()), disp(bs.get(index).x()), index, bad, allowedStr, gotStr);
+    return err().pTypeArgBounds(first, err().tNameADisp(c.name()), disp(bs.get(index).x()), index, bad, allowedStr, gotStr);
   }
   private Err typeNotWellKindedSig(T.C t, E.Call c, int index, String allowedStr, String gotStr){
     var d= decs.apply(t.name());
@@ -94,7 +92,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var param= m.sig().bs().get(index);
     var decName= err().methodSig(c.rc().toStrSpace(), d, c.name()); // p.A.m(...)
     var bad= c.targs().get(index);
-    return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, bad, allowedStr, gotStr);
+    return err().pTypeArgBounds("This call to method "+decName+" cannot typecheck.", decName, disp(param.x()), index, bad, allowedStr, gotStr);
   }
   ///Overriding method in literal l is not a valid subtype of inherited method.
   ///Raised when checking object literals
@@ -308,7 +306,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var best= TypeScope.bestInterestingScope(s, List.of(recvType));
     return withCallSpans(err()
       .pCallCantBeSatisfied(c)
-      .line("The receiver is of type "+err().typeRepr(true, recvType)+". This is a generic type parameter.")
+      .line("The receiver has type "+err().typeRepr(true, recvType)+", where "+disp(((T.RCX)recvType.withRC(RC.imm)).x().name())+" is a generic type parameter.")
       .line("Generic type parameters cannot be receivers of method calls.")
       .exInferMsg(best.contextE(), err().typeRepr(true, recvType)), c);
   }
@@ -438,37 +436,44 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     assert reqs.size() == res.size();
     assert res.stream().noneMatch(Reason::isEmpty);
     assert reqs.stream().allMatch(r -> canon(r.t()).equals(canon(declared)));
-    if (isWrongUnderlyingType(ts, bs, canon(declared), res)){ return wrongUnderlyingTypeErr(ts, d, c, argi, declared, res); }
+    if (isWrongUnderlyingType(ts, bs, canon(declared), res)){ return wrongUnderlyingTypeErr(ts, bs, d, c, argi, declared, res); }
     var gotHdr= headerBest(res);
-    var any= reqs.stream().map(TRequirement::t).map(t -> err().typeRepr(false, t)).distinct().toList();
     var r= Streams.zip(res, reqs).filter((ri,q) -> rcOnlyMismatch(ri.best, q.t())).map((ri,_) -> ri).findFirst().orElse(res.getFirst());
     var e= err()
       .pCallCantBeSatisfied(d, c)
-      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
-      .notInSubtypeList(any)
+      .line("Argument "+(argi+1)+" has type "+err().typeRepr(false, gotHdr)+".")
       .line(up(r.info(printed)))
       .blank()
       .line("Type required by each promotion:");
-    reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+"  ("+q.reqName()+")"));
-    addNoPrecedenceHintIfOperator(e, c);
+    reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+" ("+q.reqName()+")"));
+    addNoPrecedenceHintIfOperator(e, ts.scope(), c);
     var footer= r.footerE.get();
     return withCallSpans(e.exInferMsg(footer, err().typeRepr(false, reqs.getFirst().t())), c);
   }
-  private FearlessException wrongUnderlyingTypeErr(TypeSystem ts, Literal d, Call c, int argi, T declared, List<Reason> res){
+  private FearlessException wrongUnderlyingTypeErr(TypeSystem ts, List<B> bs, Literal d, Call c, int argi, T declared, List<Reason> res){
     var gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both
     //should make an attempt to say what the generics in the result should have been instantiate to instead
     //in particular here we are in a methCall, so we can talk about OUR type args impacting the expected argument type
     var e= err()
       .pCallCantBeSatisfied(d, c)
-      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
+      .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr instanceof T.RCC ? canon(gotHdr) : gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, declared)+" (the type required by the method signature).");
-    addNoPrecedenceHintIfOperator(e, c);
+    if (lambdaFits(ts, bs, c.es().get(argi), declared, gotHdr)){ e.line("Write the argument inside curly braces: the curly braces make an object literal instance of "+err().typeRepr(true, declared)+", whose single method returns the argument."); }
+    addNoPrecedenceHintIfOperator(e, ts.scope(), c);
     return withCallSpans(e.ex(ts.scope().pushCallArgi(c, argi).contextE()), c);
   }
-  private void addNoPrecedenceHintIfOperator(Err e, Call c){
-    var s= c.name().s();
-    var notOperator= s.startsWith(".") || s.equals("#");
-    if (notOperator){ return; }
+  private boolean lambdaFits(TypeSystem ts, List<B> bs, E arg, T declared, T got){
+    var literal= arg instanceof Type t && LiteralDeclarations.isPrimitiveLiteral(t.type().c().name().simpleName());
+    if (!literal || !(declared instanceof T.RCC(var rc, var c, _)) || rc != RC.mut || foreignSealed(c.name())){ return false; }
+    var abs= decs.apply(c.name()).ms().stream().map(M::sig).filter(Sig::abs).toList();
+    if (abs.size() != 1 || !abs.getFirst().ts().isEmpty() || abs.getFirst().rc() != RC.mut){ return false; }
+    return ts.isSub(bs, got, TypeRename.of(abs.getFirst().ret(), B.xs(decs.apply(c.name()).bs()), c.ts()));
+  }
+  private void addNoPrecedenceHintIfOperator(Err e, TypeScope s, Call c){
+    var name= c.name().s();
+    var notOperator= name.startsWith(".") || name.equals("#");
+    var receiver= s.outer() instanceof TypeScope.CallSite(var p, _) && p.e() == c;
+    if (notOperator || !receiver){ return; }
     e.line("Hint: Fearless has no operator precedence, so an expression like \"a.get + b.get\" "
          +"parses as \"(a.get + b).get\", not \"a.get + (b.get)\". "
          +"If this argument needed a method applied to it first, wrap it in parentheses.");
@@ -496,34 +501,27 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   ///  - What arguments satisfy what promotion and why (best type <: required type1, required type 2 etc)
   public FearlessException methodPromotionsDisagreeOnArguments(Literal d, Call c, ArgMatrix mat){
     var args= mat.okByArg().size();
-    assert args > 0;
     assert mat.resByArg().size() == args;
-    var e= err()
-      .pCallCantBeSatisfied(d, c)
-      .line("Each argument is compatible with at least one promotion, but no single promotion fits all arguments.")
-      .blank()
-      .line("Compatible promotions by argument:");
-    for (int argi : Range.of(0, args)){
-      var ok= mat.okByArg().get(argi);
-      assert !ok.isEmpty();
-      var promos= ok.stream().map(i -> mat.candidate(i).promotion()).distinct().sorted().toList();
-      var got= err().typeRepr(true, headerBest(mat.resByArg().get(argi)));
-      e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos, "", ", ", "")+".");
+    for (int i : Range.of(0, args)){
+      for (int j : Range.of(i+1, args)){
+        if (Collections.disjoint(mat.okByArg().get(i), mat.okByArg().get(j))){ return conflictingArguments(d, c, mat, i, j); }
+      }
     }
-    e.blank().line("Promotion failures:");
-    var byArg= IntStream.range(0, args)
-      .mapToObj(_ -> new LinkedHashMap<String,ArrayList<String>>()).toList();
-    var promosN= mat.resByArg().getFirst().size();
-    for (int pi : Range.of(0, promosN)){
-      var argi= IntStream.range(0, args).filter(a -> !mat.okByArg().get(a).contains(pi)).findFirst().getAsInt();
-      var r= mat.resByArg().get(argi).get(pi);
-      assert !r.isEmpty();
-      byArg.get(argi).computeIfAbsent(up(r.info(printed)), _ -> new ArrayList<>())
-        .add(mat.candidate(pi).promotion());
-    }
-    for (int argi : Range.of(0, args)){
-      byArg.get(argi).forEach((info,names) -> e.bullet("Argument "+(argi+1)+Join.of(names, " fails:    ", ", ", "\n")+info));
-    }
+    throw Bug.unreachable();
+  }
+  private FearlessException conflictingArguments(Literal d, Call c, ArgMatrix mat, int i, int j){
+    var e= err().pCallCantBeSatisfied(d, c)
+      .line("Arguments "+(i+1)+" and "+(j+1)+" need different promotions, but a call uses one promotion for all its arguments.");
+    conflictBullet(e, mat, i, j);
+    conflictBullet(e, mat, j, i);
     return withCallSpans(e.ex(c), c);
+  }
+  private void conflictBullet(Err e, ArgMatrix mat, int argi, int other){
+    var promos= mat.okByArg().get(argi).stream().map(i -> mat.candidate(i).promotion()).distinct().toList();
+    var got= err().typeRepr(false, headerBest(mat.resByArg().get(argi)));
+    var pi= mat.okByArg().get(other).getFirst();
+    e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos, "", ", ", "")+".\n"
+      +"Argument "+(argi+1)+" fails with: "+mat.candidate(pi).promotion()+".\n"
+      +up(mat.resByArg().get(argi).get(pi).info(printed)));
   }
 }

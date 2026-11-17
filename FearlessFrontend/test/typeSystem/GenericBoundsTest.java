@@ -371,7 +371,7 @@ Argument 1 has type "mut Foo".
 Method call "A#(_,_)" has type "mut Foo" instead of a subtype of "iso Foo".
 
 Type required by each promotion:
-- "iso Foo"  (As declared, Strengthen result)
+- "iso Foo" (As declared, Strengthen result)
 
 See inferred typing context below for how type "iso Foo" was introduced: (compression indicated by `-`)
 Bad:{#[Y:mut,mutH,readH](y:Y,isoF:iso Foo):iso Foo->Expect.isoFoo(A#[imm,Y](y,isoF))}
@@ -403,7 +403,7 @@ Foo:{ .bar: A[mutH Foo] -> A[mutH Foo] }
 
 While inspecting type declaration "Break"
 The type "A[Break]" is invalid.
-Generic type argument 1 ("Break") does not satisfy the bounds
+Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
@@ -419,7 +419,7 @@ Break:A[imm Break]{}
 
 While inspecting type declaration "Break"
 The type "A[Break]" is invalid.
-Generic type argument 1 ("Break") does not satisfy the bounds
+Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
@@ -439,7 +439,7 @@ Break:A[mut Break]{}
 
 While inspecting object literal "iso BreakInner" > "#" line 3
 The type "A[Break]" is invalid.
-Generic type argument 1 ("Break") does not satisfy the bounds
+Generic type argument 1 ("imm Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
 
@@ -464,7 +464,7 @@ Break:{ #: imm Break -> A#(imm Break) }
    |     ------------------------^^^^^^^^^
 
 While inspecting method call ".m(_)" > ".f(_)" line 3
-The call to ".m(_)" is invalid.
+This call to method "Util.m(_)" cannot typecheck.
 Generic type argument 1 ("Z") does not satisfy the bounds
 for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
@@ -487,7 +487,7 @@ A:{ .f[Z:imm](z: Z): Foo -> Util.m(z) }
    |            -----------------^^^^^^^^^
 
 While inspecting method call ".m(_)" > ".f(_)" line 3
-The call to ".m(_)" is invalid.
+This call to method "Util.m(_)" cannot typecheck.
 Generic type argument 1 ("Z") does not satisfy the bounds
 for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
@@ -516,13 +516,12 @@ A:{ .m[Y:imm,mut](y: imm Y): Foo[imm Y] -> Foo[Y]{ .get -> y } }
 
 While inspecting ".m(_)" line 3
 This call to method "A#(_)" cannot typecheck.
-Argument 1 has type "Foo".
-That is not a subtype of any of "mut Foo" or "iso Foo".
+Argument 1 has type "imm Foo".
 Parameter "f" has type "imm Foo" instead of a subtype of "mut Foo".
 
 Type required by each promotion:
-- "mut Foo"  (As declared)
-- "iso Foo"  (Strengthen result)
+- "mut Foo" (As declared)
+- "iso Foo" (Strengthen result)
 
 See inferred typing context below for how type "mut Foo" was introduced: (compression indicated by `-`)
 Break:{.m(f:Foo):Foo->A#[imm,mut Foo](f)}
@@ -536,8 +535,8 @@ Break:{ .m(f: imm Foo): imm Foo -> A#(f) }
    |         ---------------------------^^^^^^^^^^^^^^
 
 While inspecting method call "#(_)" > ".m(_)" line 3
-The call to "#(_)" is invalid.
-Generic type argument 1 ("Foo") does not satisfy the bounds
+This call to method "A#(_)" cannot typecheck.
+Generic type argument 1 ("imm Foo") does not satisfy the bounds
 for generic type parameter "X" in "A#(_)".
 Here "X" can only use capability "mut".
 

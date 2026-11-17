@@ -1281,12 +1281,11 @@ In file: [###].fear
 While inspecting ".f(_)" line 3
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Method call "a.IdRO#(_)" has type "read A" instead of a subtype of "mut A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 """+noteA+"""
 
@@ -1307,12 +1306,11 @@ In file: [###].fear
 While inspecting ".f(_)" line 4
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Method call "Ro#(_)" has type "read A" instead of a subtype of "mut A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 Name "Ro" stands for "a.IdRO" because of "use a.IdRO as Ro".
 """+noteA+"""
@@ -1334,18 +1332,12 @@ In file: [###].fear
 
 While inspecting ".caller(_,_)" line 1
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
-
-Compatible promotions by argument:
+Arguments 1 and 2 need different promotions, but a call uses one promotion for all its arguments.
 - Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
-- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
-
-Promotion failures:
-- Argument 1 fails:    As declared
-  Method call "a.Id#(_)" has type "readH A" instead of a subtype of "read A".
-- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
+  Argument 1 fails with: Allow mutH argument 2.
   Method call "a.Id#(_)" has type "readH A" instead of a subtype of "A".
-- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
+- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
+  Argument 2 fails with: Allow readH arguments, Allow mutH argument 1.
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
 """+noteA+"""
@@ -1775,7 +1767,7 @@ In file: [###].fear
    |    ------------------------^^^^^^^^^^^^
 
 While inspecting method call "#(_)" > ".m(_,_)" line 1
-The call to "#(_)" is invalid.
+This call to method "a.G#(_)" cannot typecheck.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "a.G#(_)".
 Here "X" can only use capability "imm".
@@ -2100,13 +2092,12 @@ In file: [###].fear
 While inspecting ".f" line 1
 This call to method "a.Need#(_)" cannot typecheck.
 Argument 1 has type "read a.A2".
-That is not a subtype of any of "mut a.A2" or "iso a.A2".
 Object literal is of type "read a.A2" instead of a subtype of "mut a.A2".
 Hint: write "mut a.A2" if you need a "mut" object literal.
 
 Type required by each promotion:
-- "mut a.A2"  (As declared)
-- "iso a.A2"  (Strengthen result)
+- "mut a.A2" (As declared)
+- "iso a.A2" (Strengthen result)
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 

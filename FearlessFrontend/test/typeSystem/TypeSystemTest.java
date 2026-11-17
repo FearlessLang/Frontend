@@ -319,7 +319,7 @@ Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
    |         ----------------------------------------------------~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^--
 
 While inspecting method call ".foo" > ".bar" line 2 > "#" line 2
-The call to ".foo" is invalid.
+This call to method "G.foo" cannot typecheck.
 Generic type argument 1 ("mut Outer") does not satisfy the bounds
 for generic type parameter "X" in "G.foo".
 Here "X" can only use capability "imm".
@@ -475,7 +475,7 @@ User:{ imm .m(a:imm B):imm A[mut B]; }
    |        -----------------------------------^^^^^^^^^^^^^^
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
-The call to ".id(_)" is invalid.
+This call to method "A.id(_)" cannot typecheck.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capability "imm".
@@ -493,7 +493,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
    |        -------------------------------------------^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting method call ".pair(_,_)" > ".m(_,_,_)" line 5
-The call to ".pair(_,_)" is invalid.
+This call to method "A.pair(_,_)" cannot typecheck.
 Generic type argument 2 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "A.pair(_,_)".
 Here "Y" can only use capability "read".
@@ -569,7 +569,7 @@ User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
    |        -----------------------------------^^^^^^^^^^^^^^
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
-The call to ".id(_)" is invalid.
+This call to method "A.id(_)" cannot typecheck.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "imm" or "read".
@@ -588,8 +588,8 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
    |        -----------------------------------^^^^^^^
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
-The call to ".id(_)" is invalid.
-Generic type argument 1 ("B") does not satisfy the bounds
+This call to method "A.id(_)" cannot typecheck.
+Generic type argument 1 ("imm B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
@@ -606,8 +606,8 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
    |        --------------------------------^^^^^^^
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
-The call to ".id(_)" is invalid.
-Generic type argument 1 ("B") does not satisfy the bounds
+This call to method "A.id(_)" cannot typecheck.
+Generic type argument 1 ("imm B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
@@ -1261,7 +1261,7 @@ User:{
 
 While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
-The receiver is of type "X". This is a generic type parameter.
+The receiver has type "X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
@@ -1276,7 +1276,7 @@ User:{ .m[X:*](x: X): X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
 
 While inspecting ".m(_)" line 4
 This call to method ".foo" cannot typecheck.
-The receiver is of type "read X". This is a generic type parameter.
+The receiver has type "read X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "read X" was introduced: (compression indicated by `-`)
@@ -1293,7 +1293,7 @@ User:Sup[Box[User]]{ .m[X:*](x: read X): read X -> Id#(Id#(Id#(Id#(Id#(x.foo))))
 
 While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
-The receiver is of type "read/imm X". This is a generic type parameter.
+The receiver has type "read/imm X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "read/imm X" was introduced: (compression indicated by `-`)
@@ -1314,7 +1314,7 @@ User:{ .m[X:*](x: X): base.Void -> Ig#(Mk#(x)) }
 
 While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
-The receiver is of type "X". This is a generic type parameter.
+The receiver has type "X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
@@ -1776,13 +1776,31 @@ Plus:{
   .go:Plus->this + this.other;
 }
 """));}
+@Test void operatorArgMismatchNotFollowedByACallGetsNoPrecedenceHint(){fail("""
+004|   .go:Plus->this + this;
+   |   ----------~~~~~^~~~~~~
+
+While inspecting ".go" line 4
+This call to method "Plus+(_)" cannot typecheck.
+Argument 1 has type "Plus".
+That is not a subtype of "A" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-+(this)
+""", List.of("""
+A:{}
+Plus:{
+  +(x:A):Plus->this;
+  .go:Plus->this + this;
+}
+"""));}
 @Test void hopelessArg_wrongNominal_suppressesPromotionsAndReason(){fail("""
 005|   .f(aaaa:mut B):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa));}
    |                                    -------------~~~~^^~~~~~~~~~~~~~-
 
 While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Need#(_)" cannot typecheck.
-Argument 1 has type "read B".
+Argument 1 has type "B".
 That is not a subtype of "mut A" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1822,12 +1840,11 @@ User:{
 While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Method call "AsRead#(_)" has type "read A" instead of a subtype of "mut A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
@@ -1847,15 +1864,14 @@ A:{
 While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Skip#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa)}}
@@ -1883,7 +1899,7 @@ A:{
    |           ^^^^^^^^^^^
 
 While inspecting method call "#(_)" > ".f(_)" line 6
-The call to "#(_)" is invalid.
+This call to method "IdRO#(_)" cannot typecheck.
 Generic type argument 1 ("mut A") does not satisfy the bounds
 for generic type parameter "X" in "IdRO#(_)".
 Here "X" can only use capabilities "imm" or "read".
@@ -1909,12 +1925,11 @@ A:{
 While inspecting ".f(_)" line 5
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Method call "IdRO#(_)" has type "read A" instead of a subtype of "mut A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):B->Need#(IdRO#[imm,read A](aaaa))}
@@ -1936,13 +1951,12 @@ A:{
 While inspecting ".f" line 5
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Object literal is of type "read A" instead of a subtype of "mut A".
 Hint: write "mut A" if you need a "mut" object literal.
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 User:{.f:B->Need#(read A)}
@@ -1962,18 +1976,12 @@ User:{
 
 While inspecting ".caller(_,_)" line 3
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
-
-Compatible promotions by argument:
+Arguments 1 and 2 need different promotions, but a call uses one promotion for all its arguments.
 - Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
-- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
-
-Promotion failures:
-- Argument 1 fails:    As declared
-  Parameter "x" has type "readH A" instead of a subtype of "read A".
-- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
+  Argument 1 fails with: Allow mutH argument 2.
   Parameter "x" has type "readH A" instead of a subtype of "imm A".
-- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
+- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
+  Argument 2 fails with: Allow readH arguments, Allow mutH argument 1.
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1991,18 +1999,12 @@ A:{
 
 While inspecting ".caller(_,_)" line 3
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
-
-Compatible promotions by argument:
+Arguments 1 and 2 need different promotions, but a call uses one promotion for all its arguments.
 - Argument 1 has type "mutH A" and is compatible with: Allow mutH argument 1.
-- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
-
-Promotion failures:
-- Argument 1 fails:    As declared
-  Parameter "x" has type "mutH A" instead of a subtype of "mut A".
-- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 2
+  Argument 1 fails with: Allow mutH argument 2.
   Parameter "x" has type "mutH A" instead of a subtype of "iso A".
-- Argument 2 fails:    Allow mutH argument 1
+- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
+  Argument 2 fails with: Allow mutH argument 1.
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -2303,7 +2305,7 @@ User:{ #: read A -> read C:A,B{ .m -> Z } }
 
 While inspecting ".bar(_)" line 3
 This call to method ".foo123" cannot typecheck.
-The receiver is of type "X". This is a generic type parameter.
+The receiver has type "X", where "X" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
@@ -2341,18 +2343,12 @@ A:{
 
 While inspecting ".caller(_,_)" line 3
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
-
-Compatible promotions by argument:
+Arguments 1 and 2 need different promotions, but a call uses one promotion for all its arguments.
 - Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
-- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
-
-Promotion failures:
-- Argument 1 fails:    As declared
-  Parameter "x" has type "readH A" instead of a subtype of "read A".
-- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
+  Argument 1 fails with: Allow mutH argument 2.
   Parameter "x" has type "readH A" instead of a subtype of "imm A".
-- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
+- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
+  Argument 2 fails with: Allow readH arguments, Allow mutH argument 1.
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -2370,18 +2366,12 @@ A:{
 
 While inspecting ".caller(_,_)" line 4
 This call to method "A.f(_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
-
-Compatible promotions by argument:
+Arguments 1 and 2 need different promotions, but a call uses one promotion for all its arguments.
 - Argument 1 has type "readH A" and is compatible with: Allow readH arguments, Allow mutH argument 1.
-- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
-
-Promotion failures:
-- Argument 1 fails:    As declared
-  Parameter "x" has type "readH A" instead of a subtype of "read A".
-- Argument 1 fails:    Strengthen result, Strengthen hygienic result, Allow mutH receiver, Allow mutH argument 2
+  Argument 1 fails with: Allow mutH argument 2.
   Parameter "x" has type "readH A" instead of a subtype of "imm A".
-- Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
+- Argument 2 has type "mutH A" and is compatible with: Allow mutH argument 2.
+  Argument 2 fails with: Allow readH arguments, Allow mutH argument 1.
   Method call "ID#(_)" has type "mutH A" instead of a subtype of "iso A".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -2469,12 +2459,11 @@ A:{
 While inspecting ".foo" line 6 > ".f(_)" line 6
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mut A" or "iso A".
 Method call "AsRead#(_)" has type "read A" instead of a subtype of "mut A".
 
 Type required by each promotion:
-- "mut A"  (As declared)
-- "iso A"  (Strengthen result)
+- "mut A" (As declared)
+- "iso A" (Strengthen result)
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
@@ -4936,7 +4925,6 @@ User:{ .nested(css: L[L[C]]): C -> C; .t: C -> this.nested(Ls#(Ls#(C))) }
 While inspecting ".f" line 5
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
-That is not a subtype of any of "mutH A" or "iso A".
 Object literal is of type "read A" instead of a subtype of "mutH A".
 Hint: write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
 
@@ -5283,7 +5271,7 @@ User:{ .m: Animal -> Let#(Mk#, {b -> Two#(Let#(Animal, {a -> NeedAnimal#(b.get)}
 
 While inspecting "#(_)" line 10 > ".m" line 10
 This call to method "Box[_].put(_)" cannot typecheck.
-Argument 1 has type "iso Animal".
+Argument 1 has type "Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -5306,7 +5294,7 @@ User:{ .m: Animal -> Let#(Mk#, {b -> Two#(b.put(Animal), b.put(Cat))}) }
 
 While inspecting "#(_)" line 10 > ".m" line 10
 This call to method "Box[_].put(_)" cannot typecheck.
-Argument 1 has type "iso Animal".
+Argument 1 has type "Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -5386,7 +5374,7 @@ User:{ .m: Animal -> Let#(Mk#, {b -> b.add(Animal).put(Cat)}) }
 
 While inspecting "#(_)" line 7 > ".m" line 7
 This call to method "Box[_].put(_)" cannot typecheck.
-Argument 1 has type "iso Animal".
+Argument 1 has type "Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -5505,7 +5493,7 @@ User:{ .m: Animal -> Let#(Mk#, {b -> Two#(NeedAnimal#(b.get), Let#(b.get, {c -> 
 
 While inspecting "#" line 7 > "#(_,_)" line 7 > ".m" line 7
 This call to method "Box[_].put(_)" cannot typecheck.
-Argument 1 has type "iso Animal".
+Argument 1 has type "Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -5525,7 +5513,7 @@ User:{ .m: Animal -> base.Block#.let b= {Mk#} .let a= {b.put(Animal)} .let c= {b
 
 While inspecting "#" line 7 > "#(_,_)" line 7 > "#(_,_)" line 7 > ".m" line 7
 This call to method "Box[_].put(_)" cannot typecheck.
-Argument 1 has type "iso Animal".
+Argument 1 has type "Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -5948,7 +5936,7 @@ C[X:*]:{ .m(x:X, y:base.Void):X -> Pick#(x,y) }
 
 While inspecting ".m" line 5
 This call to method "Pick3#(_,_,_)" cannot typecheck.
-Argument 2 has type "iso B".
+Argument 2 has type "B".
 That is not a subtype of "A" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -6333,7 +6321,7 @@ U:{ .m: A -> A{'s .k -> s; .v -> H#(s.k, { .get -> s }) } }
 
 While inspecting ".j" line 4 > ".m" line 4
 This call to method "H#(_,_)" cannot typecheck.
-Argument 2 has type "iso B".
+Argument 2 has type "B".
 That is not a subtype of the anonymous type of the object literal at line 4, column 22 (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -6441,7 +6429,7 @@ Argument 1 has type "read Foo".
 Parameter "s" has type "read Foo" instead of a subtype of "imm Foo".
 
 Type required by each promotion:
-- "imm Foo"  (As declared, Strengthen result)
+- "imm Foo" (As declared, Strengthen result)
 
 See inferred typing context below for how type "imm Foo" was introduced: (compression indicated by `-`)
 A:{.k:-.Void->read Foo:{'s read .z:-.Void->Use#(s)}.z[read]}
@@ -6489,7 +6477,7 @@ A:{ .m[X](x: X, y: X): X -> y; .ig[Y](y: Y): A -> this; .k: A -> this.ig(this.m(
 
 While inspecting ".k" line 3
 This call to method "A.m(_)" cannot typecheck.
-Argument 1 has type "iso C".
+Argument 1 has type "C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -6505,7 +6493,7 @@ A:{ .m[X](b: Box[X]): A -> this; .k: A -> this.m(C) }
 
 While inspecting ".k" line 3
 This call to method "A.m(_)" cannot typecheck.
-Argument 1 has type "iso C".
+Argument 1 has type "C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -6762,5 +6750,52 @@ A:{}
 Foo[T]:{ .mk: A; .get: T }
 Take:{ #[T](f: Foo[T]): Foo[T] -> f }
 User:{ .go: A -> Take#{'s .mk -> A; .get -> s.mk }.mk }
+"""));}
+@Test void aValueWhereALambdaIsExpectedGetsTheCurlyBracesHint(){fail("""
+001| use base.Nat as Nat; A:{ #: Nat -> base.Block#.return 5 }
+   |                          ----------~~~~~~~~~~~^^^^^^^~~
+
+While inspecting "#" line 1
+This call to method "mut base.Block[_].return(_)" cannot typecheck.
+Argument 1 has type "Nat".
+That is not a subtype of "mut base.ReturnStmt[Nat]" (the type required by the method signature).
+Write the argument inside curly braces: the curly braces make an object literal instance of "mut base.ReturnStmt[Nat]", whose single method returns the argument.
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.return[mut](5)
+""", List.of("""
+use base.Nat as Nat; A:{ #: Nat -> base.Block#.return 5 }
+"""));}
+@Test void aMutParameterWhereAnImmLambdaIsExpectedGetsNoCurlyBracesHint(){fail("""
+003| U:{ .take(g: Get): B -> B; .m(x: mut B): B -> this.take(x) }
+   |                            -------------------~~~~^^^^^^~~
+
+While inspecting ".m(_)" line 3
+This call to method "U.take(_)" cannot typecheck.
+Argument 1 has type "B".
+That is not a subtype of "Get" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.take(x)
+""", List.of("""
+B:{}
+Get:{ .get: mut B }
+U:{ .take(g: Get): B -> B; .m(x: mut B): B -> this.take(x) }
+"""));}
+@Test void anIsoParameterWhereAMutLambdaIsExpectedGetsNoCurlyBracesHint(){fail("""
+003| U:{ .take(g: mut Get): B -> B; .m(x: iso B): B -> this.take(x) }
+   |                                -------------------~~~~^^^^^^~~
+
+While inspecting ".m(_)" line 3
+This call to method "U.take(_)" cannot typecheck.
+Argument 1 has type "B".
+That is not a subtype of "mut Get" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-.take(x)
+""", List.of("""
+B:{}
+Get:{ mut .get: mut B }
+U:{ .take(g: mut Get): B -> B; .m(x: iso B): B -> this.take(x) }
 """));}
 }

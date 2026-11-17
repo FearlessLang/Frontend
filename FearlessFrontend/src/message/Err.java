@@ -134,9 +134,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return got.withRC(RC.imm).equals(req.withRC(RC.imm));
   }
   String text(){ return sb.toString().stripTrailing(); }
-  public Err pTypeArgBounds(String what, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
-    var badStr= typeRepr(true, bad);
-    var e= line("The "+what+" is invalid.")
+  public Err pTypeArgBounds(String first, String kindingTarget, String paramName, int index, T bad, String allowedStr, String gotStr){
+    var badStr= typeRepr(false, bad);
+    var e= line(first)
       .line("Generic type argument "+(index+1)+" ("+badStr+") does not satisfy the bounds")
       .line("for generic type parameter "+paramName+" in "+kindingTarget+".")
       .line("Here "+paramName+" can only use "+allowedStr+".");
@@ -169,10 +169,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   Err pCallCantBeSatisfied(Literal d, Call c){
     return line("This call to method "+methodSig(c.rc().toStrSpace(), d, c.name())+" cannot typecheck.");
   }
-  Err notInSubtypeList(List<String> options){
-    if (options.size() == 1){ return this; }
-    return line(Join.of(options, "That is not a subtype of any of ", " or ", "."));
-  }
   Err pCallCantBeSatisfied(Call c){
     return line("This call to method "+methodSig(c.name())+" cannot typecheck.");
   }
@@ -182,7 +178,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     blank().line("Receiver required by each promotion:");
     byRc.keySet().stream()
       .sorted()
-      .forEach(rc -> bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(), "", " / ", "")+")"));
+      .forEach(rc -> bullet(disp(rc)+" ("+Join.of(byRc.get(rc).stream().distinct(), "", ", ", "")+")"));
     return this;
   }
   public String gotMsg(boolean skipImm, String label, List<T> got, T expected){

@@ -587,20 +587,12 @@ A:{
 
 While inspecting ".call(_)" line 3
 This call to method "A.m1(_,_,_,_)" cannot typecheck.
-Each argument is compatible with at least one promotion, but no single promotion fits all arguments.
-
-Compatible promotions by argument:
-- Argument 1 has type "iso A" and is compatible with: Allow mutH argument 3, Allow mutH argument 4, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1, Allow mutH argument 2, As declared, Strengthen result, Strengthen hygienic result.
-- Argument 2 has type "iso A" and is compatible with: Allow mutH argument 3, Allow mutH argument 4, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1, Allow mutH argument 2, As declared, Strengthen result, Strengthen hygienic result.
+Arguments 3 and 4 need different promotions, but a call uses one promotion for all its arguments.
 - Argument 3 has type "mutH A" and is compatible with: Allow mutH argument 3.
-- Argument 4 has type "mutH A" and is compatible with: Allow mutH argument 4.
-
-Promotion failures:
-- Argument 3 fails:    As declared
-  Parameter "a" has type "mutH A" instead of a subtype of "mut A".
-- Argument 3 fails:    Strengthen result, Strengthen hygienic result, Allow readH arguments, Allow mutH receiver, Allow mutH argument 1, Allow mutH argument 2, Allow mutH argument 4
+  Argument 3 fails with: Allow mutH argument 4.
   Parameter "a" has type "mutH A" instead of a subtype of "iso A".
-- Argument 4 fails:    Allow mutH argument 3
+- Argument 4 has type "mutH A" and is compatible with: Allow mutH argument 4.
+  Argument 4 fails with: Allow mutH argument 3.
   Parameter "a" has type "mutH A" instead of a subtype of "iso A".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -621,7 +613,7 @@ Argument 3 has type "mutH A".
 Parameter "a" has type "mutH A" instead of a subtype of "iso A".
 
 Type required by each promotion:
-- "iso A"  (Allow mutH receiver)
+- "iso A" (Allow mutH receiver)
 
 See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
 A:{mut .m1(a1:A,a2:iso A,a3:mut A,a4:mut A):mut A->this;.call(a:mutH A):mutH A->a.m1[mut](A,iso A,a,iso A)}
@@ -684,12 +676,11 @@ C:{ .m[Y:*](y: read Y): read Y -> A.m[Y](y) }
 While inspecting ".m(_)" line 3
 This call to method "A.m(_)" cannot typecheck.
 Argument 1 has type "read Y".
-That is not a subtype of any of "read/imm Y" or "imm Y".
 Parameter "y" has type "read Y" instead of a subtype of "read/imm Y".
 
 Type required by each promotion:
-- "read/imm Y"  (As declared)
-- "imm Y"  (Strengthen result)
+- "read/imm Y" (As declared)
+- "imm Y" (Strengthen result)
 
 See inferred typing context below for how type "read/imm Y" was introduced: (compression indicated by `-`)
 C:{.m[Y:*](y:read Y):read/imm Y->A.m[imm,Y](y)}
@@ -763,7 +754,7 @@ User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
 
 While inspecting ".use(_)" line 2
 This call to method ".foo" cannot typecheck.
-The receiver is of type "read/imm Y". This is a generic type parameter.
+The receiver has type "read/imm Y", where "Y" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
 See inferred typing context below for how type "read/imm Y" was introduced: (compression indicated by `-`)
