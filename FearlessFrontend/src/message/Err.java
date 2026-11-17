@@ -121,7 +121,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case inference.E.X(var name, _, _, _) -> "parameter "+disp(name);
     case inference.E.Literal l -> l.thisName().equals("this")
       ? "type declaration "+tNameADisp(l.name())
-      : l.infName() && l.cs().isEmpty() && !(l.t() instanceof inference.IT.RCC) ? "object literal "+disp(anonRepr)
+      : l.infName() && l.cs().isEmpty() && !(l.t() instanceof inference.IT.RCC r && !r.c().name().equals(l.name())) ? "object literal "+disp(anonRepr)
       : "object literal "+bestNamePkg0(l.infName(), bestLitName(l));
     case inference.E.Type t -> "object literal instance of "+tNameADisp(t.type().c().name());
     };}
@@ -143,9 +143,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var capabilityHidden= bad instanceof T.X || bad instanceof T.ReadImmX;
     if (!capabilityHidden){ return e; }
     return e.line("But generic type argument "+badStr+" can only use "+gotStr+".");
-  }
-  public Err invalidMethImpl(String pre, Literal l, MName m){
-    return line("Invalid method signature for "+methodSig(pre, l, m)+".");
   }
 
   Err line(String s){

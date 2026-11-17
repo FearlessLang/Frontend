@@ -87,8 +87,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .m" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .m" with 0 parameters.
 Candidates: "a.A", "a.A2".
 Type declaration "B" must declare a method ".m" explicitly choosing the desired option.
 
@@ -179,8 +178,8 @@ In file: [###].fear
    |         ^^^
 
 While inspecting a type name
-Name "B" is not declared with 1 generic type parameter in package "b".
-Name "B" is only declared with 0 generic type parameters.
+Type "B" is not declared with 1 generic type parameter in package "b".
+Type "B" is only declared with 0 generic type parameters.
 Did you accidentally add or omit a generic type argument?
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
@@ -356,8 +355,8 @@ In file: [###].fear
    |         ^
 
 While inspecting a type name
-Name "A" is not declared with 1 generic type parameter in package "c".
-Name "A" is only declared with 0 generic type parameters.
+Type "A" is not declared with 1 generic type parameter in package "c".
+Type "A" is only declared with 0 generic type parameters.
 Did you accidentally add or omit a generic type argument?
 
 Name "X" stands for "c.A" because of "use c.A as X".
@@ -373,8 +372,8 @@ In file: [###].fear
    |         ^
 
 While inspecting a type name
-Name "A" is not declared with 1 generic type parameter in package "a".
-Name "A" is only declared with 0 generic type parameters.
+Type "A" is not declared with 1 generic type parameter in package "a".
+Type "A" is only declared with 0 generic type parameters.
 Did you accidentally add or omit a generic type argument?
 
 Name "X" stands for "a.A" because of "use a.A as X".
@@ -1165,11 +1164,9 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.A"
 Missing return type for method ".k".
-Add an explicit return type before '->'.
-Alternatively (less common), if you intended to override and omit the signature,
-the signature must be inherited from a supertype.
-Cannot infer signature of method ".k".
-No supertype has a method named ".k" with 0 parameters.
+Add an explicit return type before "->".
+A method can omit types in its signature only when a supertype has a method ".k" to inherit the missing types from.
+No supertype of object literal instance of "a.A" has a method ".k".
 
 """+noteA+"""
 
@@ -1185,11 +1182,9 @@ In file: [###].fear
 
 While inspecting object literal instance of "X"
 Missing return type for method ".k".
-Add an explicit return type before '->'.
-Alternatively (less common), if you intended to override and omit the signature,
-the signature must be inherited from a supertype.
-Cannot infer signature of method ".k".
-No supertype has a method named ".k" with 0 parameters.
+Add an explicit return type before "->".
+A method can omit types in its signature only when a supertype has a method ".k" to inherit the missing types from.
+No supertype of object literal instance of "X" has a method ".k".
 
 Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
@@ -1900,7 +1895,7 @@ In file: [###].fear
 
 While inspecting ".m(_)" line 1
 This call to method ".go" cannot typecheck.
-".go" exists on type "a.R", but not with the requested capability.
+Method ".go" exists on type "a.R", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "mut".
 
@@ -2026,7 +2021,7 @@ In file: [###].fear
 002| B:{ .m[X](x:X):X -> x }
    |        ^
 
-While inspecting a type name
+While inspecting generic type parameter "X"
 Generic type parameter "X" is declared in package "b".
 Name "X" is also used in a "use" directive.
 Error 7 WellFormedness
@@ -2088,8 +2083,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
-Different options are present in the implemented types.
+Supertypes disagree on the type of parameter 1 of method "imm .m(_)" with 1 parameter.
 Candidates: "a.P", "a.Q".
 Type declaration "B" must declare a method ".m(_)" explicitly choosing the desired option.
 
@@ -2105,10 +2099,9 @@ In file: [###].fear
    | ^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .m" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .m" with 0 parameters.
 Candidates: "imm a.P", "mut a.P".
-They differ in reference capability, and an overriding method must keep it, so no method ".m" can implement all of them.
+The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".m" can implement all the candidates.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2124,8 +2117,6 @@ In file: [###].fear
 While inspecting object literal instance of "a.Sup"
 Invalid method signature for "a.Sup.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertypes declare 1.
-Local declaration: "[X:imm, Y:imm]".
-From supertypes: "[-:imm]".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2140,10 +2131,10 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.Sup"
 Invalid method signature for "a.Sup.id(_)".
-The local declaration uses different capability bounds than the supertypes for generic type parameter 1 of ".id(_)".
-Local: "X:imm,read".
-From supertypes: "-:imm".
-The parameter name may differ; only the position matters.
+The method ".id(_)" declares different capability bounds than the supertypes for generic type parameter 1.
+Local declaration: "X:imm,read".
+Capability bounds in the supertypes: "imm".
+Generic type parameter names may differ from the supertypes; only the position matters.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2240,8 +2231,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "a.I1", "a.I2".
+Implemented by the supertypes "a.I1", "a.I2".
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2523,7 +2513,7 @@ In file: [###].fear
    |                                           ^^
 
 While inspecting object literal "{...}" (line 2)
-The inference concluded that the object literal at line 2, column 43 should implement the object literal at line 2, column 19.
+Type inference concluded that the object literal at line 2, column 43 should implement the object literal at line 2, column 19.
 An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "bb.CaptureFree".
 
@@ -2826,11 +2816,9 @@ In file: [###].fear
 
 While inspecting object literal instance of "a.Box[_]"
 Missing return type for method ".k".
-Add an explicit return type before '->'.
-Alternatively (less common), if you intended to override and omit the signature,
-the signature must be inherited from a supertype.
-Cannot infer signature of method ".k".
-No supertype has a method named ".k" with 0 parameters.
+Add an explicit return type before "->".
+A method can omit types in its signature only when a supertype has a method ".k" to inherit the missing types from.
+No supertype of object literal instance of "a.Box[_]" has a method ".k".
 
 """+noteA+"""
 
@@ -2847,8 +2835,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "X", "a.I2".
+Implemented by the supertypes "X", "a.I2".
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
 
 Name "X" stands for "a.I1" because of "use a.I1 as X".
@@ -2867,8 +2854,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "d.I2", "a.I1".
+Implemented by the supertypes "d.I2", "a.I1".
 Type declaration "B" must declare a method ".m" explicitly implementing the desired behaviour.
 
 """+noteD+"\n"+noteA+"""

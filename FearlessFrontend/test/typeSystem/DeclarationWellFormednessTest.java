@@ -178,8 +178,8 @@ A:{ .m1(a: A): A -> {.m1(a) -> a} }
 001| A:A{}
    |   ^
 
-While inspecting type declarations
-Circular implementation relation found involving "A".
+While inspecting supertype "A"
+Type declaration "A" implements itself, directly or through its supertypes.
 """, List.of("""
 A:A{}
 """));}
@@ -1083,7 +1083,7 @@ A:{}
 002| A[X]:{}
    |   ^
 
-While inspecting a type name
+While inspecting generic type parameter "X"
 Generic type parameter "X" is declared in package "p".
 Name "X" is also used in a "use" directive.
 """, List.of("""
