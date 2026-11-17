@@ -69,8 +69,7 @@ B:{ read .get: read A }
    |              ---------------------------------~~~~~~~^^-----------
 
 While inspecting parameter "a" > ".a1" line 2 > "#(_)" line 2
-Method ".a1" inside the object literal instance of "mut Container" (line 2)
-is implemented with an expression returning "read A".
+Method ".a1" inside the object literal instance of "mut Container" (line 2) is implemented with an expression returning "read A".
 Parameter "a" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
@@ -88,8 +87,7 @@ Container:{ read .a1: mut A; mut .a2: mut A }
    |     -----------------------------------------------------~~~~~~~~~~~~~~~~~~~~^--
 
 While inspecting parameter "x" > ".get" line 2 > ".m(_)" line 2
-Method ".get" inside the object literal instance of "mut Get[mut X]" (line 2)
-is implemented with an expression returning "read X".
+Method ".get" inside the object literal instance of "mut Get[mut X]" (line 2) is implemented with an expression returning "read X".
 Parameter "x" has type "read X" instead of a subtype of "mut X".
 Note: the declared type "mut X" would instead be a valid subtype.
 Capture adaptation trace:
@@ -170,8 +168,7 @@ A:{ read .self: readH A -> this }
 
 While inspecting parameter "prisoner" > ".prison" line 2 > ".break(_)" line 2
 Parameter "prisoner" has type "readH B".
-The type of parameter "prisoner" is hygienic (readH or mutH)
-and thus it cannot be captured in the object literal instance of "mut A[readH B]" (line 2).
+The type of parameter "prisoner" is hygienic ("readH" or "mutH") and thus parameter "prisoner" cannot be captured in the object literal instance of "mut A[readH B]" (line 2).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 prisoner
@@ -185,8 +182,7 @@ B:{ .break(prisoner: readH B): mut A[readH B] -> {prisoner} }
 
 While inspecting parameter "x" > ".prison" line 2 > ".break(_)" line 2
 Parameter "x" has type "X".
-The type of parameter "x" can be instantiated with hygienics (readH or mutH)
-and thus it cannot be captured in the object literal instance of "mut A[X]" (line 2).
+The type of parameter "x" can be instantiated with hygienics ("readH" or "mutH") and thus parameter "x" cannot be captured in the object literal instance of "mut A[X]" (line 2).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 x
@@ -246,8 +242,7 @@ A:{ read .m[T:*](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
 
 While inspecting parameter "par" > ".absMeth" line 3 > ".m(_)" line 3
 Parameter "par" has type "T".
-The type of parameter "par" can be instantiated with hygienics (readH or mutH)
-and thus it cannot be captured in the object literal instance of "mut L[mutH T]" (line 3).
+The type of parameter "par" can be instantiated with hygienics ("readH" or "mutH") and thus parameter "par" cannot be captured in the object literal instance of "mut L[mutH T]" (line 3).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 par
@@ -263,7 +258,7 @@ A:{ read .m[T:mut,imm,read,readH,mutH](par: T) : read L[mutH T] -> mut L[mutH T]
 While inspecting parameter "par" > ".absMeth" line 3 > ".m(_)" line 3
 Parameter "par" has type "mut B".
 Parameter "par" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "iso L" (line 3).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 par
@@ -279,7 +274,7 @@ A:{ read .m(par: mut B) : iso L -> iso L{.absMeth->par} }
 While inspecting parameter "par" > ".absMeth" line 3 > ".m(_)" line 3
 Parameter "par" has type "read B".
 Parameter "par" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "L" (line 3).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 par
@@ -295,7 +290,7 @@ A:{ read .m(par: read B) : imm L -> imm L{.absMeth->par} }
 While inspecting parameter "a" > "#" line 2 > "#(_)" line 2
 Parameter "a" has type "mut A".
 Parameter "a" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "iso Foo" (line 2).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 a
@@ -819,7 +814,7 @@ While inspecting object literal instance of "iso B" > ".b" line 2
 This object literal is missing a required method.
 Missing: "mut .m".
 Required by: "B".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso B
@@ -998,8 +993,7 @@ A:{ .m[X:iso,read](x: X): mut Get[read/imm X] -> mut Get[read/imm X]{ mut .get: 
    |     -----------------------------------------------~~~~~~~~~~~~~~~^--
 
 While inspecting parameter "x" > ".get" line 2 > ".m(_)" line 2
-Method ".get" inside the object literal instance of "mut Get[X]" (line 2)
-is implemented with an expression returning "read/imm X".
+Method ".get" inside the object literal instance of "mut Get[X]" (line 2) is implemented with an expression returning "read/imm X".
 Parameter "x" has type "read/imm X" instead of a subtype of "X".
 Note: the declared type "X" would instead be a valid subtype.
 Capture adaptation trace:

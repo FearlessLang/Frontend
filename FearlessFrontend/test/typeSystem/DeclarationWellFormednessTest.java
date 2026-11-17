@@ -82,7 +82,7 @@ A[T:*,T:*]:{ .foo(a: T, b: T): A }
 
 While inspecting type declaration body > type declaration > full file
 Method ".a" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 """, List.of("""
 A:{ .a: A; .a: A }
 """));}
@@ -128,8 +128,8 @@ Foo:{ .m1: Foo -> Foo{ 'unique
 003|   }
 
 While inspecting type declaration body > type declaration > full file
-Self name "self" is invalid in a top level type.
-The self name of a top level type can only be "this".
+Self name "self" is invalid in a top level type declaration.
+The self name of a top level type declaration can only be "this".
 """, List.of("""
 A:{ 'self
   .me: A -> self;
@@ -324,7 +324,7 @@ Bad:Person{}
 While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "N" is not in scope inside the type declaration "Person".
 A type declaration only sees the generic type parameters it declares itself; here "Person" declares none.
-Hint: funnel "N" into "Person" by writing "Person[N:..]", restating the bounds of "N".
+Funnel "N" into "Person" by writing "Person[N:..]", restating the bounds of "N".
 """, List.of("""
 Str:{}
 FPerson:{ #[N:*](name: Str, age: N): Person -> Person:{
@@ -372,7 +372,7 @@ BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
 While inspecting generic type arguments > super types declaration > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:mut]:{}
 BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[Z]{} }
@@ -389,7 +389,7 @@ BreakOuter[Z:mut]:{ #: BreakInner[Z] -> BreakInner[Z:mut]: A[Z]{} }
 While inspecting generic type arguments > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:*]:{}
 BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A[Z] -> A[Z] } }
@@ -406,7 +406,7 @@ BreakOuter[Z:*]:{ #: BreakInner[Z] -> BreakInner[Z:*]:{ .z: A[Z] -> A[Z] } }
 While inspecting generic type arguments > super types declaration > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:mut]:{}
 BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[mut Z]{} }
@@ -419,7 +419,7 @@ BreakOuter[Z:mut]:{ #: BreakInner -> BreakInner: A[mut Z]{} }
 While inspecting generic type arguments > method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares "Y".
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Y:..,Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Y:..,Z:..]", restating the bounds of "Z".
 """, List.of("""
 A[X:*]:{}
 BreakOuter[Y:*,Z:*]:{ #: BreakInner[Y] -> BreakInner[Y:*]:{ .z: A[Z] -> A[Z] } }
@@ -443,7 +443,7 @@ BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z[Z:*](z: Z): Z -> z } }
 While inspecting generic bounds declaration > method body > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A:{}
 BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A -> Inner2[Z:*]: A{} } }
@@ -456,7 +456,7 @@ BreakOuter[Z:*]:{ #: BreakInner -> BreakInner:{ .z: A -> Inner2[Z:*]: A{} } }
 While inspecting method signature > method declaration > type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Generic type parameter "Z" is not in scope inside the type declaration "BreakInner".
 A type declaration only sees the generic type parameters it declares itself; here "BreakInner" declares none.
-Hint: funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
+Funnel "Z" into "BreakInner" by writing "BreakInner[Z:..]", restating the bounds of "Z".
 """, List.of("""
 A:{}
 BreakOuter[Z:*]:{ #(z: Z): BreakInner -> BreakInner:{ .z: read/imm Z -> z } }
@@ -473,7 +473,7 @@ While inspecting object literal "iso B" > "#" line 2
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
-Hint: add an implementation for ".foo" inside the object literal.
+Add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso B:A{}
@@ -494,7 +494,7 @@ While inspecting object literal instance of "iso B" > "#" line 3
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
-Hint: add an implementation for ".foo" inside the object literal.
+Add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso B
@@ -658,8 +658,7 @@ Shape[X]: base.DataRead{ .extra: X }
 
 While inspecting type declaration "Fake"
 Type declaration "Fake" implements method ".name".
-"base.Named" implements `base.Final[".name"]` and type declaration "Fake" implements "base.Named",
-thus type declaration "Fake" cannot override any method named ".name".
+"base.Named" implements `base.Final[".name"]` and type declaration "Fake" implements "base.Named", thus type declaration "Fake" cannot override any method named ".name".
 """, List.of("""
 Fake: base.DataRead{ .name -> base.Nope! }
 """));}
@@ -669,8 +668,7 @@ Fake: base.DataRead{ .name -> base.Nope! }
 
 While inspecting object literal instance of "base.DataRead"
 Object literal instance of "base.DataRead" implements method ".name".
-"base.Named" implements `base.Final[".name"]` and object literal instance of "base.DataRead" implements "base.Named",
-thus object literal instance of "base.DataRead" cannot override any method named ".name".
+"base.Named" implements `base.Final[".name"]` and object literal instance of "base.DataRead" implements "base.Named", thus object literal instance of "base.DataRead" cannot override any method named ".name".
 """, List.of("""
 Forge: { #: base.DataRead -> base.DataRead{ .name -> base.Nope! } }
 """));}
@@ -680,8 +678,7 @@ Forge: { #: base.DataRead -> base.DataRead{ .name -> base.Nope! } }
 
 While inspecting type declaration "B"
 Type declaration "B" implements method ".foo(_)".
-"A" implements `base.Final[".foo"]` and type declaration "B" implements "A",
-thus type declaration "B" cannot override any method named ".foo".
+"A" implements `base.Final[".foo"]` and type declaration "B" implements "A", thus type declaration "B" cannot override any method named ".foo".
 """, List.of("""
 A: base.Final[".foo"]{ .foo: A -> this; }
 B: A{ .foo(x: A): A -> x }
@@ -768,8 +765,7 @@ Icon: {}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Two"
-Type declaration "Two" claims the extension "foo" more than once:
-both `base.OpenWith[Icon,"foo"]` and `base.OpenWith[Icon2,"foo"]` claim it.
+Type declaration "Two" claims the extension "foo" more than once: both `base.OpenWith[Icon,"foo"]` and `base.OpenWith[Icon2,"foo"]` claim it.
 A main can claim each extension at most once, across all its "base.OpenWith[_,_]" and "base.Shortcut[_,_]", since one extension has one icon.
 """, List.of("""
 Two: base.Main, base.OpenWith[Icon,"foo"], base.Shortcut[Icon,"fapp001"], base.OpenWith[Icon2,"foo"]{ .main -> base.Void }
@@ -1153,8 +1149,7 @@ M: base.Main, base.OpenWith[Icon,"fearless"]{ .main -> base.Void }
 
 While inspecting type declaration "B"
 Type declaration "B" implements method ".a".
-"A" implements `base.Final[".a"]` and type declaration "B" implements "A",
-thus type declaration "B" cannot override any method named ".a".
+"A" implements `base.Final[".a"]` and type declaration "B" implements "A", thus type declaration "B" cannot override any method named ".a".
 """, List.of("""
 A: base.Final[".a"]{ .a: A -> this }
 B: base.Final[".b"], A{ .b: B -> this; .a: A -> this }
@@ -1176,8 +1171,7 @@ As a rule of thumb: final applications use appNNN; shared libraries often use wo
 Error 7 WellFormedness""", SourceOracle.debugBuilder().put(0, "A:{}").putURI(URI.create("fear:/___DBG___/_rank_other000.fear"), "B:{}").build());}
 @Test void noRankFile(){typeFailRaw("""
 No rank file found for package "p".
-Each package must have exactly one source file whose name is its rank,
-in some folder inside the project folder.
+Each package must have exactly one source file whose name is its rank, in some folder inside the project folder.
 Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
 The rank file is the file whose name matches the rank name.
 

@@ -144,8 +144,7 @@ T1[X]:T0[T1[T1[X]]]{ .m[Y](a: T0[Y]): Y -> a.get; .k: T1[X] -> this.m(this) }
    |                                                              ^^
 
 While inspecting object literal instance of "T0[_,_]"
-Type inference concluded that this object literal implements "T0[?,?]",
-but it could not infer generic type arguments 1 and 2 for generic type parameters "X0" and "X1" of "T0[_,_]".
+Type inference concluded that this object literal implements "T0[?,?]", but it could not infer generic type arguments 1 and 2 for generic type parameters "X0" and "X1" of "T0[_,_]".
 """, List.of("""
 T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
 """));}
@@ -154,8 +153,7 @@ T0[X0,X1]:{ .m2(x: X0): base.Void; .m0: T0[X0, base.Void] -> {}.m0 }
    |                              ^^^^^^
 
 While inspecting object literal instance of "T0[_]"
-Type inference concluded that this object literal implements "T0[?]",
-but it could not infer generic type argument 1 for generic type parameter "X" of "T0[_]".
+Type inference concluded that this object literal implements "T0[?]", but it could not infer generic type argument 1 for generic type parameter "X" of "T0[_]".
 """, List.of("""
 T0[X]:{ .m: T0[base.Void] -> {this}.m }
 """));}
@@ -164,8 +162,7 @@ T0[X]:{ .m: T0[base.Void] -> {this}.m }
    |      ---------------~~~~~~~~~~~~^^^^--
 
 While inspecting parameter "this" > ".k" line 2 > ".m" line 2
-Method ".k" inside the object literal instance of "iso T1" (line 2)
-is implemented with an expression returning "T1".
+Method ".k" inside the object literal instance of "iso T1" (line 2) is implemented with an expression returning "T1".
 Parameter "this" has type "T1" instead of a subtype of "Z[Y]".
 
 See inferred typing context below for how type "Z[Y]" was introduced: (compression indicated by `-`)
@@ -208,8 +205,7 @@ B:Sup{ .m[X](x:X):F[X]->{ .k(y)->x } }
    |        ---------~~~~~~~^--
 
 While inspecting parameter "x" > ".k(_)" line 3 > ".m(_)" line 3
-Method ".k(_)" inside the object literal instance of "iso G" (line 3)
-is implemented with an expression returning "imm X".
+Method ".k(_)" inside the object literal instance of "iso G" (line 3) is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 
 See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
@@ -229,8 +225,7 @@ B:Sup{ .m(x)->{ .k(y)->x }; .q[X]:Sup->this }
    |     ------------------~~~~~^^^^--
 
 While inspecting parameter "this" > "!" line 2 > ".foo" line 2
-Method "!" inside the object literal instance of "iso base.Todo" (line 2)
-is implemented with an expression returning "A".
+Method "!" inside the object literal instance of "iso base.Todo" (line 2) is implemented with an expression returning "A".
 Parameter "this" has type "A" instead of a subtype of "_AR".
 
 See inferred typing context below for how type "_AR" was introduced: (compression indicated by `-`)
@@ -246,12 +241,9 @@ A:{ .foo:base.Todo->{ ! -> this } }
 While inspecting ".foo" line 1 > "#" line 1
 This call to method ".bar" cannot typecheck.
 Method ".bar" is not declared on type "Outer".
-Hint:
-The method parameter "this" here has type "Outer".
-
-The method ".bar" is defined in the object literal of type "Inner".
-No parameter refers to instances of this literal.
-To declare one, use the single quote as in the example below:
+Parameter "this" has type "Outer".
+Method ".bar" is declared in the object literal "Inner", which has no self name.
+A self name is declared with a single quote, as "'rect" in the example below:
   Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect
     .area: Nat -> width * height;
     .str: Str -> "area: "+(rect.area.str);
@@ -273,10 +265,8 @@ Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> ba
 While inspecting ".a" line 1 > ".foo" line 1 > "#" line 1
 This call to method ".bar" cannot typecheck.
 Method ".bar" is not declared on type "Outer".
-Hint:
-The method parameter "this" here has type "Outer".
-
-The method ".bar" is defined in the object literal of type "Inner"; the parameter referring to its instances is named "self".
+Parameter "this" has type "Outer".
+Method ".bar" is declared in the object literal "Inner", whose self name is "self".
 
 Available methods on type "Outer":
 -       #:Inner
@@ -293,12 +283,9 @@ Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void 
 While inspecting ".foo" line 2 > "#" line 2
 This call to method ".bar" cannot typecheck.
 Method ".bar" is not declared on type "Outer".
-Hint:
-The method parameter "this" here has type "Outer".
-
-The method ".bar" is defined in the object literal instance of "G".
-No parameter refers to instances of this literal.
-To declare one, use the single quote as in the example below:
+Parameter "this" has type "Outer".
+Method ".bar" is declared in the object literal instance of "G", which has no self name.
+A self name is declared with a single quote, as "'rect" in the example below:
   Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect
     .area: Nat -> width * height;
     .str: Str -> "area: "+(rect.area.str);
@@ -320,8 +307,7 @@ Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
 
 While inspecting method call ".foo" > ".bar" line 2 > "#" line 2
 The call to ".foo" is invalid.
-Generic type argument 1 ("mut Outer") does not satisfy the bounds
-for generic type parameter "X" in "G.foo".
+Generic type argument 1 ("mut Outer") does not satisfy the bounds for generic type parameter "X" in "G.foo".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -335,8 +321,7 @@ Outer:{ #: G -> {'self .foo[X:imm]: base.Void -> base.Void; .bar: base.Void -> s
    |         ----------------------------------~~~~~~^^^^^^^^^^^^--
 
 While inspecting method call "#(_)" > ".v" line 4 > "#" line 4
-Method ".v" inside the object literal instance of "iso G" (line 4)
-is implemented with an expression returning "Box[G]".
+Method ".v" inside the object literal instance of "iso G" (line 4) is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
 
 See inferred typing context below for how type "base.Void" was introduced: (compression indicated by `-`)
@@ -384,8 +369,7 @@ B:{}
 
 While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -402,8 +386,7 @@ User:{ imm .m(a:imm A[mut B]):base.Void; }
 
 While inspecting type declaration "User"
 The type "A[B,mut C]" is invalid.
-Generic type argument 2 ("mut C") does not satisfy the bounds
-for generic type parameter "Y" in "A[_,_]".
+Generic type argument 2 ("mut C") does not satisfy the bounds for generic type parameter "Y" in "A[_,_]".
 Here "Y" can only use capabilities "iso" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -421,8 +404,7 @@ User:{ imm .m(a:imm A[imm B,mut C]):base.Void; }
 
 While inspecting type declaration "User"
 The type "B[mut C]" is invalid.
-Generic type argument 1 ("mut C") does not satisfy the bounds
-for generic type parameter "Y" in "B[_]".
+Generic type argument 1 ("mut C") does not satisfy the bounds for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -440,8 +422,7 @@ User:{ imm .m(a:imm A[B[mut C]]):base.Void; }
 
 While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capabilities "imm" or "mutH" or "readH".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -458,8 +439,7 @@ User:A[mut B]{ .foo(b:B):B->b;}
 
 While inspecting type declaration "User"
 The type "A[mut B]" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -476,8 +456,7 @@ User:{ imm .m(a:imm B):imm A[mut B]; }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -494,8 +473,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".pair(_,_)" > ".m(_,_,_)" line 5
 The call to ".pair(_,_)" is invalid.
-Generic type argument 2 ("mut C") does not satisfy the bounds
-for generic type parameter "Y" in "A.pair(_,_)".
+Generic type argument 2 ("mut C") does not satisfy the bounds for generic type parameter "Y" in "A.pair(_,_)".
 Here "Y" can only use capability "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -514,8 +492,7 @@ User:{ imm .m(a:imm A,b:imm B,c:imm C):base.Void->a.pair[imm B,mut C](b,c); }
 
 While inspecting method call ".use(_)" > ".m(_,_,_)" line 4
 The type "B[mut C]" is invalid.
-Generic type argument 1 ("mut C") does not satisfy the bounds
-for generic type parameter "Y" in "B[_]".
+Generic type argument 1 ("mut C") does not satisfy the bounds for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -533,8 +510,7 @@ User:{ imm .m(a:imm A,b:imm B[C],c:imm C):base.Void->a.use[B[mut C]](b); }
 
 While inspecting type declaration "User[_]"
 The type "A[Y]" is invalid.
-Generic type argument 1 ("Y") does not satisfy the bounds
-for generic type parameter "X" in "A[_]".
+Generic type argument 1 ("Y") does not satisfy the bounds for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 But generic type argument "Y" can only use capability "read".
 
@@ -551,8 +527,7 @@ User[Y:read]:A[Y]{}
 
 While inspecting type declaration "User"
 The type "B[mut C]" is invalid.
-Generic type argument 1 ("mut C") does not satisfy the bounds
-for generic type parameter "Y" in "B[_]".
+Generic type argument 1 ("mut C") does not satisfy the bounds for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -570,8 +545,7 @@ User:{ imm .m(x:imm A[B[mut C]]):base.Void; }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "imm" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -589,8 +563,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id[mut B](b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
-Generic type argument 1 ("B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+Generic type argument 1 ("B") does not satisfy the bounds for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -607,8 +580,7 @@ User:{ imm .m(a:imm A,b:imm B):base.Void->a.id(b); }
 
 While inspecting method call ".id(_)" > ".m(_,_)" line 3
 The call to ".id(_)" is invalid.
-Generic type argument 1 ("B") does not satisfy the bounds
-for generic type parameter "X" in "A.id(_)".
+Generic type argument 1 ("B") does not satisfy the bounds for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -626,8 +598,7 @@ User:{ imm .m(a:imm A,b:imm B):read B->a.id(b); }
 
 While inspecting object literal instance of "Thaw[mut Cell]" > ".break(_)" line 4
 The type "Thaw[mut Cell]" is invalid.
-Generic type argument 1 ("mut Cell") does not satisfy the bounds
-for generic type parameter "X" in "Thaw[_]".
+Generic type argument 1 ("mut Cell") does not satisfy the bounds for generic type parameter "X" in "Thaw[_]".
 Here "X" can only use capability "imm".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -854,8 +825,7 @@ User:{
 007|   };
 
 While inspecting method call "#(_)" > ".get" line 6 > ".m" line 5
-Method ".get" inside the object literal instance of "iso Get" (line 5)
-is implemented with an expression returning "A".
+Method ".get" inside the object literal instance of "iso Get" (line 5) is implemented with an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
@@ -876,9 +846,8 @@ User:{
    |   -----------------------------~~~^^^^-
 
 While inspecting object literal instance of "Foo" > "#(_)" line 7 > ".m" line 7
-Method "#(_)" inside the object literal instance of "iso F[Person,Car]" (line 7)
-is implemented with an expression returning "iso Foo".
-Object literal is of type "Foo" instead of a subtype of "Car".
+Method "#(_)" inside the object literal instance of "iso F[Person,Car]" (line 7) is implemented with an expression returning "iso Foo".
+Object literal has type "Foo" instead of a subtype of "Car".
 
 See inferred typing context below for how type "Car" was introduced: (compression indicated by `-`)
 User:{.m:Car->Apply#(Person,F[Person,Car]{#(Person):Car->Foo})}
@@ -918,7 +887,7 @@ User:{
 
 While inspecting object literal "AA" > ".m" line 4
 The body of method ".m" of type declaration "User" is an expression returning "iso AA".
-Object literal is of type "iso AA" instead of a subtype of "B".
+Object literal has type "iso AA" instead of a subtype of "B".
 
 See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
 User:{.m:B->AA:A{}}
@@ -935,8 +904,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > ".get" line 5 > ".m(_)" line 4
-Method ".get" inside the object literal instance of "read Get" (line 5)
-is implemented with an expression returning "read A".
+Method ".get" inside the object literal instance of "read Get" (line 5) is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
@@ -958,8 +926,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > ".get" line 5 > ".m(_)" line 4
-Method ".get" inside the object literal instance of "read Get" (line 5)
-is implemented with an expression returning "read A".
+Method ".get" inside the object literal instance of "read Get" (line 5) is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
@@ -981,8 +948,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > ".get" line 5 > ".m(_)" line 4
-Method ".get" inside the object literal instance of "read Get" (line 5)
-is implemented with an expression returning "read A".
+Method ".get" inside the object literal instance of "read Get" (line 5) is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
@@ -1005,8 +971,7 @@ User:{
    |                ---------^^^^^^^^^--
 
 While inspecting parameter "loooooong" > ".get" line 6 > ".wrap" line 6 > ".m(_)" line 5
-Method ".get" inside the object literal instance of "mut Get" (line 6)
-is implemented with an expression returning "A".
+Method ".get" inside the object literal instance of "mut Get" (line 6) is implemented with an expression returning "A".
 Parameter "loooooong" has type "imm A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
@@ -1074,7 +1039,7 @@ Foo:{#(a:A):G->{a}}
 While inspecting parameter "loooooong" > "#" line 8 > ".m(_)" line 7
 Parameter "loooooong" has type "mut A".
 Parameter "loooooong" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "G" (line 8).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 loooooong
@@ -1101,8 +1066,7 @@ User:{
 
 While inspecting parameter "loooooong" > "#" line 8 > ".m(_)" line 7
 Parameter "loooooong" has type "mutH A".
-The type of parameter "loooooong" is hygienic (readH or mutH)
-and thus it cannot be captured in the object literal instance of "G" (line 8).
+The type of parameter "loooooong" is hygienic ("readH" or "mutH") and thus parameter "loooooong" cannot be captured in the object literal instance of "G" (line 8).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 loooooong
@@ -1127,8 +1091,7 @@ User:{
 
 While inspecting parameter "loooooong" > "#" line 6 > ".m(_)" line 5
 Parameter "loooooong" has type "mutH A".
-The type of parameter "loooooong" is hygienic (readH or mutH)
-and thus it cannot be captured in the object literal instance of "G" (line 6).
+The type of parameter "loooooong" is hygienic ("readH" or "mutH") and thus parameter "loooooong" cannot be captured in the object literal instance of "G" (line 6).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 loooooong
@@ -1159,7 +1122,7 @@ While inspecting parameter "beer"
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
-Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
   Beer[X:imm,mut,read]:{ read .bar: Bar; }
@@ -1176,7 +1139,7 @@ While inspecting parameter "x"
 Parameter "x" has type "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
-Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
   User:{
@@ -1192,7 +1155,7 @@ While inspecting parameter "beer"
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
-Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
   Beer[X:imm,mut,read]:{ read .bar: Bar; }
@@ -1210,7 +1173,7 @@ While inspecting parameter "beer"
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
-Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
   Beer[X:imm,mut,read]:{ read .bar: Bar; }
@@ -1226,7 +1189,7 @@ Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 Parameter "beer" has type "Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares "Z".
-Hint: funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of "X".
 """, List.of("""
   Bar:{}
   Beer[X:imm,mut,read]:{ read .bar: Bar; }
@@ -1243,8 +1206,7 @@ Hint: funnel "X" into "Foo" by writing "Foo[Z:..,X:..]", restating the bounds of
 
 While inspecting parameter "beer" > ".get" line 3 > ".m(_)" line 2
 Parameter "beer" has type "X".
-The type of parameter "beer" can be instantiated with hygienics (readH or mutH)
-and thus it cannot be captured in the object literal "G[_]" (line 3).
+The type of parameter "beer" can be instantiated with hygienics ("readH" or "mutH") and thus parameter "beer" cannot be captured in the object literal "G[_]" (line 3).
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 beer
@@ -1407,7 +1369,7 @@ While inspecting object literal instance of "iso Sup" > ".m" line 6
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
-Hint: add an implementation for ".k" inside the object literal.
+Add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Sup{.h:-.Void->-.Void}
@@ -1429,7 +1391,7 @@ While inspecting object literal "iso Bad" > ".m" line 6
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
-Hint: add an implementation for ".k" inside the object literal.
+Add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Bad:Sup{.h:-.Void->-.Void}
@@ -1556,8 +1518,7 @@ User:{
 
 While inspecting ".m(_,_)" line 7
 This call to method ".mix(_,_,_)" cannot typecheck.
-There are methods ".mix(_)" and ".mix(_,_)" on type "Mixer",
-but with a different number of arguments.
+There are methods ".mix(_)" and ".mix(_,_)" on type "Mixer", but with a different number of arguments.
 This call supplies 3, but available methods take 1 or 2.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1581,8 +1542,7 @@ User:{
 
 While inspecting ".m(_,_)" line 7
 This call to method ".mix(_)" cannot typecheck.
-There are methods ".mix(_,_)" and ".mix(_,_,_,_,_,_,_,_,_,_)" on type "Mixer",
-but with a different number of arguments.
+There are methods ".mix(_,_)" and ".mix(_,_,_,_,_,_,_,_,_,_)" on type "Mixer", but with a different number of arguments.
 This call supplies 1, but available methods take 2 or 10.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1764,7 +1724,7 @@ While inspecting ".go" line 5
 This call to method "Plus+(_)" cannot typecheck.
 Argument 1 has type "Plus".
 That is not a subtype of "A" (the type required by the method signature).
-Hint: Fearless has no operator precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
+Fearless has no operator precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 -+(this)
@@ -1884,8 +1844,7 @@ A:{
 
 While inspecting method call "#(_)" > ".f(_)" line 6
 The call to "#(_)" is invalid.
-Generic type argument 1 ("mut A") does not satisfy the bounds
-for generic type parameter "X" in "IdRO#(_)".
+Generic type argument 1 ("mut A") does not satisfy the bounds for generic type parameter "X" in "IdRO#(_)".
 Here "X" can only use capabilities "imm" or "read".
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -1937,8 +1896,8 @@ While inspecting ".f" line 5
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A".
-Object literal is of type "read A" instead of a subtype of "mut A".
-Hint: write "mut A" if you need a "mut" object literal.
+Object literal has type "read A" instead of a subtype of "mut A".
+Write "mut A" if you need a "mut" object literal.
 
 Type required by each promotion:
 - "mut A"  (As declared)
@@ -2082,8 +2041,7 @@ A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
 
 While inspecting ".bar" line 3
 This call to method ".foo123(_)" cannot typecheck.
-There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
-but with a different number of arguments.
+There are methods ".foo123" and ".foo123(_,_,_)" on type "A", but with a different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -2102,8 +2060,7 @@ A:{
 
 While inspecting ".bar" line 3
 This call to method ".foo123(_)" cannot typecheck.
-There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
-but with a different number of arguments.
+There are methods ".foo123" and ".foo123(_,_,_)" on type "A", but with a different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
@@ -2408,7 +2365,7 @@ A:{
 While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
 Parameter "aaaa" has type "mut A".
 Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal "BB" (line 4).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 aaaa
@@ -2427,7 +2384,7 @@ A:{
 While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
 Parameter "aaaa" has type "mut A".
 Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "B" (line 4).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 aaaa
@@ -2562,8 +2519,7 @@ Outer:{ .m: base.Void -> { .a: base.Void -> base.Void{} }.a }
    |         ------------------------~~~~~~~~~~~~~^^^^^--
 
 While inspecting parameter "self" > ".a" line 1 > ".m" line 1
-Method ".a" inside the object literal "{...}" (line 1)
-is implemented with an expression returning the anonymous type of the object literal at line 1, column 26.
+Method ".a" inside the object literal "{...}" (line 1) is implemented with an expression returning the anonymous type of the object literal at line 1, column 26.
 Parameter "self" has type the anonymous type of the object literal at line 1, column 26 instead of a subtype of "Outer".
 
 See inferred typing context below for how type "Outer" was introduced: (compression indicated by `-`)
@@ -2618,7 +2574,7 @@ Main:{ .m(s:S): S -> { .get(x) -> x }.get(s) }
 
 While inspecting object literal instance of "base.Float" > ".m" line 1
 The body of method ".m" of type declaration "Main" is an expression returning "iso base.Float".
-Object literal is of type "base.Float" instead of a subtype of "base.Int".
+Object literal has type "base.Float" instead of a subtype of "base.Int".
 
 See inferred typing context below for how type "base.Int" was introduced: (compression indicated by `-`)
 Main:{.m:-.Int->+1.5}
@@ -2636,7 +2592,7 @@ Integer literal is out of range for "base.Int".
 "base.Int" must be representable as a 64-bit signed integer.
 Valid range: -9223372036854775808 .. 9223372036854775807.
 This literal is: "421381834238972893748972389723".
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Int -> +421381834238972893748972389723 }
@@ -2652,7 +2608,7 @@ Natural literal is out of range for "base.Nat".
 "base.Nat" must be representable as a 64-bit unsigned integer.
 Valid range: 0 .. 18446744073709551615.
 This literal is: "421381834238972893748972389723".
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Nat -> 421381834238972893748972389723 }
@@ -2700,7 +2656,7 @@ Float literal is not exactly representable as "base.Float".
 This literal is: "+1.0e-99999999999".
 If rounded, the nearest representable value is "+0.0".
 Write "+1.0e-99999999999soft" to accept that rounding.
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +1.0e-99999999999 }
@@ -2790,7 +2746,7 @@ Float literal is not exactly representable as "base.Float".
 This literal is: "+1.0e-400".
 If rounded, the nearest representable value is "+0.0".
 Write "+1.0e-400soft" to accept that rounding.
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +1.0e-400 }
@@ -2807,7 +2763,7 @@ Float literal is not exactly representable as "base.Float".
 This literal is: "+0.1".
 If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
 Write "+0.1soft" to accept that rounding.
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +0.1 }
@@ -2824,7 +2780,7 @@ Float literal is not exactly representable as "base.Float".
 This literal is: "+0.2".
 If rounded, the nearest representable value is "+0.200000000000000011102230246251565404236316680908203125".
 Write "+0.2soft" to accept that rounding.
-Hint: if you need arbitrary precision numbers, use "base.Num".
+If you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +0.2 }
@@ -2892,7 +2848,7 @@ While inspecting object literal instance of "iso B" > ".m" line 3
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
-Hint: add an implementation for ".foo" inside the object literal.
+Add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso B
@@ -2909,7 +2865,7 @@ While inspecting object literal instance of "iso B" > ".m" line 3
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "B".
-Hint: add an implementation for ".foo" inside the object literal.
+Add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso B{.bar:A->A}
@@ -2932,7 +2888,7 @@ iso B{.bar:A->A}
 While inspecting parameter "this" > ".get" line 2
 The body of method ".get" of type declaration "B" is an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "mut A".
-Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
+Type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 A value of "B" is never "mut", so "mut .get" can stay abstract.
 A method written without a receiver capability also implements "mut .get": write the receiver capability, as in "read .get".
 
@@ -2960,7 +2916,7 @@ While inspecting object literal instance of "iso B" > ".m" line 3
 This object literal is missing a required method.
 Missing: "mut .foo".
 Required by: "A".
-Hint: add an implementation for ".foo" inside the object literal.
+Add an implementation for ".foo" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso B
@@ -3604,8 +3560,7 @@ Box[E:*]: _Box[E]{
 006|   } }
 
 While inspecting method call ".get" > ".opt" line 5 > "#(_)" line 3
-Method ".opt" inside the object literal "mut Slot[_]" (line 3)
-is implemented with an expression returning "read Opt[E]".
+Method ".opt" inside the object literal "mut Slot[_]" (line 3) is implemented with an expression returning "read Opt[E]".
 Method call "read Var[_].get" has type "read Opt[E]" instead of a subtype of "read Opt[read/imm E]".
 
 See inferred typing context below for how type "read Opt[read/imm E]" was introduced: (compression indicated by `-`)
@@ -4011,7 +3966,7 @@ User:{.f(c:C[A]):C[B]->c;}
 
 While inspecting object literal instance of "C[A]" > ".f(_)" line 4
 The body of method ".f(_)" of type declaration "User" is an expression returning "iso C[A]".
-Object literal is of type "iso C[A]" instead of a subtype of "C[B]".
+Object literal has type "iso C[A]" instead of a subtype of "C[B]".
 
 See inferred typing context below for how type "C[B]" was introduced: (compression indicated by `-`)
 User:{.f(c:C[A]):C[B]->C[A]{.foo:A->A}}
@@ -4085,7 +4040,7 @@ ExtStr:"beer"{}
 
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
-Object literal is of type "Sup" instead of a subtype of "Target".
+Object literal has type "Sup" instead of a subtype of "Target".
 
 See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
 B:{.m:Target->Sup}
@@ -4101,7 +4056,7 @@ B:{.m:Target->Sup{}}
 
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
-Object literal is of type "Sup" instead of a subtype of "Target".
+Object literal has type "Sup" instead of a subtype of "Target".
 
 See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
 B:{.m:Target->Sup}
@@ -4117,7 +4072,7 @@ B:{.m:Target->Sup{}}
 
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
-Object literal is of type "iso Sup" instead of a subtype of "Target".
+Object literal has type "iso Sup" instead of a subtype of "Target".
 
 See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
 B:{.m:Target->Sup{.foo:-.Str->-.Str}}
@@ -4198,8 +4153,7 @@ User:{ .n(cs: mut base.MList[Customer]): base.MList[Person] -> cs.as{::} }
    |        -------------------------------------------------------------------^^^
 
 While inspecting parameter "::" > "#(_)" line 3 > ".n(_)" line 3
-Method "#(_)" inside the object literal instance of "iso base.BaseId[read Customer,Person]" (line 3)
-is implemented with an expression returning "read Customer".
+Method "#(_)" inside the object literal instance of "iso base.BaseId[read Customer,Person]" (line 3) is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "Person".
 
 See inferred typing context below for how type "Person" was introduced: (compression indicated by `-`)
@@ -4236,8 +4190,7 @@ User:{ .m(c: Customer): base.Void -> Boxes#(c,{x -> x}).get.n }
    |        -------------------------------------^^^
 
 While inspecting parameter "::" > "#(_)" line 3 > ".m" line 3
-Method "#(_)" inside the object literal instance of "iso base.BaseId[Person,Customer]" (line 3)
-is implemented with an expression returning "Person".
+Method "#(_)" inside the object literal instance of "iso base.BaseId[Person,Customer]" (line 3) is implemented with an expression returning "Person".
 Parameter "::" has type "Person" instead of a subtype of "Customer".
 
 See inferred typing context below for how type "Customer" was introduced: (compression indicated by `-`)
@@ -4517,7 +4470,7 @@ While inspecting object literal instance of "iso Closed[A]" > ".m" line 4
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
-Hint: add an implementation for ".close" inside the object literal.
+Add an implementation for ".close" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Closed[A]
@@ -4535,7 +4488,7 @@ While inspecting object literal instance of "iso Closed[B]" > ".m" line 4
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
-Hint: add an implementation for ".close" inside the object literal.
+Add an implementation for ".close" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Closed[B]
@@ -4553,7 +4506,7 @@ While inspecting object literal instance of "iso Closed[A,B]" > ".m" line 5
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_,_]".
-Hint: add an implementation for ".close" inside the object literal.
+Add an implementation for ".close" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso Closed[A,B]
@@ -4572,7 +4525,7 @@ While inspecting object literal instance of "iso A" > ".m" line 4
 This object literal is missing a required method.
 Missing: "imm .name".
 Required by: "A".
-Hint: add an implementation for ".name" inside the object literal.
+Add an implementation for ".name" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso A
@@ -4651,8 +4604,7 @@ TypeSystem.methodTableOk rather than reporting a user error.*/
    |              ^^
 
 While inspecting parameter "o" > "#" line 13 > "#(_,_)" line 11 > ".take(_,_)" line 11
-Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13)
-is implemented with an expression returning "mut Opt[E]".
+Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13) is implemented with an expression returning "mut Opt[E]".
 Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
 
 See inferred typing context below for how type "Opt[E]" was introduced: (compression indicated by `-`)
@@ -4751,7 +4703,7 @@ User:{ .f: read Sup -> Ids#({ .g -> Foo }) }
 While inspecting parameter "c" > ".run" line 4 > ".f(_,_)" line 4
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 c
@@ -4774,7 +4726,7 @@ User:{ .f(s: mut Sup, c: mut Foo): Foo -> Two#(s, mut Sup{ .run -> c }) }
 While inspecting parameter "c" > ".get" line 4 > ".f(_,_)" line 4
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Box" (line 4).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 c
@@ -4797,7 +4749,7 @@ User:{ .f(s: mut Box, c: mut Foo): Foo -> Two#(s, mut Box{ .get -> c }) }
 While inspecting parameter "c" > ".run" line 4 > ".f(_,_)" line 4
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 c
@@ -4937,8 +4889,8 @@ While inspecting ".f" line 5
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read A".
 That is not a subtype of any of "mutH A" or "iso A".
-Object literal is of type "read A" instead of a subtype of "mutH A".
-Hint: write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
+Object literal has type "read A" instead of a subtype of "mutH A".
+Write "mut A" if you need a "mut" object literal (needed to satisfy the "mutH" requirement).
 
 Type required by each promotion:
 [###]
@@ -4958,7 +4910,7 @@ User:{
 
 While inspecting object literal instance of "read C" > ".f" line 4
 The body of method ".f" of type declaration "User" is an expression returning "read C".
-Object literal is of type "read C" instead of a subtype of "mut A".
+Object literal has type "read C" instead of a subtype of "mut A".
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
 User:{.f:mut A->read C}
@@ -5824,7 +5776,7 @@ A:base.CaptureFree{ imm .foo: A -> base.Block#.let x= {this} .return {x} }
 
 While inspecting object literal instance of "base.Void" > ".str" line 1
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
-Object literal is of type "base.Void" instead of a subtype of "base.Str".
+Object literal has type "base.Void" instead of a subtype of "base.Str".
 
 See inferred typing context below for how type "base.Str" was introduced: (compression indicated by `-`)
 A:-.ToStr{read .str:-.Str->-.Void}
@@ -5837,7 +5789,7 @@ A:base.ToStr{ .str -> base.Void }
 
 While inspecting object literal instance of "base.Void" > ".str" line 2
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
-Object literal is of type "base.Void" instead of a subtype of "base.Str".
+Object literal has type "base.Void" instead of a subtype of "base.Str".
 
 See inferred typing context below for how type "base.Str" was introduced: (compression indicated by `-`)
 A:Show{read .str:-.Str->-.Void}
@@ -6093,12 +6045,9 @@ U:{ .m: base.Void -> Ig#(F#({ .a(x) -> base.Void; .b -> base.Void })) }
 While inspecting ".a" line 4 > ".m" line 4
 This call to method ".b" cannot typecheck.
 Method ".b" is not declared on type "U".
-Hint:
-The method parameter "this" here has type "U".
-
-The method ".b" is defined in the object literal instance of "Two[base.Void]".
-No parameter refers to instances of this literal.
-To declare one, use the single quote as in the example below:
+Parameter "this" has type "U".
+Method ".b" is declared in the object literal instance of "Two[base.Void]", which has no self name.
+A self name is declared with a single quote, as "'rect" in the example below:
   Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect
     .area: Nat -> width * height;
     .str: Str -> "area: "+(rect.area.str);
@@ -6226,7 +6175,7 @@ While inspecting object literal instance of "iso A" > ".v" line 3 > ".m" line 3
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
-Hint: add an implementation for ".k" inside the object literal.
+Add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso A
@@ -6243,7 +6192,7 @@ While inspecting object literal instance of "iso A" > ".v" line 4 > ".m" line 4
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
-Hint: add an implementation for ".k" inside the object literal.
+Add an implementation for ".k" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso A
@@ -6755,8 +6704,7 @@ Use:{ .go: N -> Take#{ .m(x) -> Pair#(x, Wrap#(x)) } }
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal instance of "Foo[_]"
-Type inference concluded that this object literal implements "Foo[?]",
-but it could not infer generic type argument 1 for generic type parameter "T" of "Foo[_]".
+Type inference concluded that this object literal implements "Foo[?]", but it could not infer generic type argument 1 for generic type parameter "T" of "Foo[_]".
 """, List.of("""
 A:{}
 Foo[T]:{ .mk: A; .get: T }

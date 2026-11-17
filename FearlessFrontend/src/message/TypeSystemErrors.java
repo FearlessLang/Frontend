@@ -147,7 +147,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("This object literal is missing a required method.")
       .line("Missing: "+methodSig(s.rc()+" ", s.m())+".")
       .line("Required by: "+err().tNameADisp(s.origin())+".");
-    if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Hint: add an implementation for "+err().methodSig(s.m())+" inside the object literal.").ex(at)); }
+    if (!(at instanceof Type t && foreignSealed(t.type().c().name()))){ return addExpFrame(at, e.line("Add an implementation for "+err().methodSig(s.m())+" inside the object literal.").ex(at)); }
     var name= t.type().c().name();
     return addExpFrame(at, e
       .line("Sealed types can only be implemented in their own package.")
@@ -240,8 +240,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var top= l.thisName().equals("this");
     e.line(top
       ? "The body of method "+meth+" of "+err().expRepr(l)+" is an expression returning "+got0+"."
-      : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+")"
-        +"\nis implemented with an expression returning "+got0+".");
+      : "Method "+meth+" inside the "+err().expRepr(l)+" (line "+l.span().inner.startLine()+") is implemented with an expression returning "+got0+".");
     e.line(up(got.info(printed)));
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ captureFreeHint(e, l, m); }
@@ -249,7 +248,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private void captureFreeHint(Err e, Literal l, M m){
     var mut= methodSig("mut ", m.sig().m());
-    e.line("Hint: "+err().expRepr(l)+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method.")
+    e.line(up(err().expRepr(l))+" implements "+err().tNameADisp(LiteralDeclarations.captureFree)+", so parameter "+disp(l.thisName())+" is \"imm\" in every method.")
       .line("A value of "+err().tNameADisp(l.name())+" is never \"mut\", so "+mut+" can stay abstract.")
       .line("A method written without a receiver capability also implements "+mut+": write the receiver capability, as in "+methodSig("read ", m.sig().m())+".");
   }
@@ -278,22 +277,22 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
     +up(subject)+" can observe mutation; thus it cannot be captured in the "+disp(why.l().rc())+" "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n"
-    +"Hint: capture an immutable copy instead, or move this use outside the object literal.";
+    +"Capture an immutable copy instead, or move this use outside the object literal.";
   }
   private String whyDropNotKinded(String subject, Change.NoT why){
     var bounds= disp(Join.of(why.l().bs(), "", ", ", "", ""));
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
     +"That type is not well kinded under the generic type parameters of "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+"): "+bounds+".\n"
-    +"The bounds declared by the object literal are all it knows about its generic type parameters,\n"
+    +"The bounds declared by the object literal are all it knows about its generic type parameters, "
     +"and thus "+subject+" cannot be captured.\n";
   }
   private String whyDropReadHMutH(String subject, Change.NoT why){
     var explicitH= why.atDrop().explicitH()
-      ? "The type of "+subject+" is hygienic (readH or mutH)\n"
-      : "The type of "+subject+" can be instantiated with hygienics (readH or mutH)\n";
+      ? "The type of "+subject+" is hygienic (\"readH\" or \"mutH\") "
+      : "The type of "+subject+" can be instantiated with hygienics (\"readH\" or \"mutH\") ";
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
-    +explicitH+"and thus it cannot be captured in the "+err().expRepr(why.l())
+    +explicitH+"and thus "+subject+" cannot be captured in the "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n";
   }
   private String whyDropCapFree(String subject, int useLine, Change.NoT why){
@@ -343,7 +342,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       var forms= sameName.stream().map(s -> methodSig("", s.m())).distinct().sorted().toList();
       return withCallSpans(err()
         .pCallCantBeSatisfied(c)
-        .line((forms.size() == 1 ? "There is a method " : "There are methods ")+Join.of(forms, "", " and ", "")+" on "+on+",\nbut with a different number of arguments.")
+        .line((forms.size() == 1 ? "There is a method " : "There are methods ")+Join.of(forms, "", " and ", "")+" on "+on+", but with a different number of arguments.")
         .line("This call supplies "+c.es().size()+", but available methods take "+avail+".")
         .ex(c), c);
     }
@@ -363,20 +362,12 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       if (!(s instanceof TypeScope.Method(var l, _, _))){ continue; }
       var has= l.ms().stream().anyMatch(m -> m.sig().m().s().equals(name));
       if (!has){ continue; }
-      var sig= err().methodSig(c.name());
-      var lit= l.infName() ? err().bestNameNoRc(l) : "of type "+err().tNameADisp(l.name());
+      var lit= "Method "+err().methodSig(c.name())+" is declared in the "+err().expRepr(l.withRC(RC.imm));
       var selfName= l.thisName();
-      e.line("Hint:")
-       .line("The method parameter \"this\" here has "+on+".")
-       .blank();
-      if (!selfName.equals("_")){
-        e.line("The method "+sig+" is defined in the object literal "+lit+"; the parameter "
-             +"referring to its instances is named "+disp(selfName)+".");
-        return;
-      }
-      e.line("The method "+sig+" is defined in the object literal "+lit+".")
-       .line("No parameter refers to instances of this literal.")
-       .line("To declare one, use the single quote as in the example below:")
+      e.line("Parameter \"this\" has "+on+".");
+      if (!selfName.equals("_")){ e.line(lit+", whose self name is "+disp(selfName)+"."); return; }
+      e.line(lit+", which has no self name.")
+       .line("A self name is declared with a single quote, as \"'rect\" in the example below:")
        .line("  Rectangles: { #(width: Nat, height: Nat): Rectangle -> Rectangle:{'rect")
        .line("    .area: Nat -> width * height;")
        .line("    .str: Str -> \"area: \"+(rect.area.str);")
@@ -469,7 +460,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var s= c.name().s();
     var notOperator= s.startsWith(".") || s.equals("#");
     if (notOperator){ return; }
-    e.line("Hint: Fearless has no operator precedence, so an expression like \"a.get + b.get\" "
+    e.line("Fearless has no operator precedence, so an expression like \"a.get + b.get\" "
          +"parses as \"(a.get + b).get\", not \"a.get + (b.get)\". "
          +"If this argument needed a method applied to it first, wrap it in parentheses.");
   }

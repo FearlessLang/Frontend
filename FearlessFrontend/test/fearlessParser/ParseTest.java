@@ -155,7 +155,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
 """, """
@@ -168,8 +168,8 @@ In file: [###].fear
    | --~~~^^^~~~~~~~~~~~~~~~~~
 
 While inspecting type declaration body > type declaration > full file
-Self name "abc" is invalid in a top level type.
-The self name of a top level type can only be "this".
+Self name "abc" is invalid in a top level type declaration.
+The self name of a top level type declaration can only be "this".
 Error 7 WellFormedness
 """, """
 A:{ 'abc .foo:A->A + A; } //ill formed: the first layer has to be this or nothing
@@ -339,7 +339,7 @@ In file: [###].fear
    |   -~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 """, """
@@ -352,7 +352,7 @@ In file: [###].fear
    |   -~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 """, """
@@ -377,7 +377,7 @@ In file: [###].fear
    |   -~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~--
 
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 """, """
@@ -390,7 +390,7 @@ In file: [###].fear
    |   -~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~--
 
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
-The equals sugar cannot bind "_": it needs a name or a destructuring pattern.
+The equals sugar cannot bind "_": it needs a name or a nominal pattern.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 """, """
@@ -1107,8 +1107,8 @@ In file: [###].fear
 While inspecting generic bounds declaration > type declaration > full file
 Invalid bound for generic type parameter "X".
 Only "*" or "**" are allowed here.
-Write: [X: *]   meaning mut,read,imm
-   or: [X: **]  meaning everything.
+"X:*" allows the capabilities "imm", "mut" and "read".
+"X:**" allows every capability.
 Error 2 UnexpectedToken
 """, """
 A[X:***]:{}
@@ -1121,10 +1121,10 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Missing bound for generic type parameter "X" after ":".
-Write: [X] alone (note, no colon) as a shortcut for [X: imm]
-   or: [X: *]   meaning mut,read,imm
-   or: [X: **]  meaning everything
-   or something like: [X: imm, read]  meaning imm or read.
+"X" with no ":" allows only the capability "imm".
+"X:*" allows the capabilities "imm", "mut" and "read".
+"X:**" allows every capability.
+A list, as in "X:imm,read", allows the capabilities in the list.
 Error 2 UnexpectedToken
 """, """
 A[X:]:{}
@@ -1137,10 +1137,10 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Missing bound for generic type parameter "X" after ":".
-Write: [X] alone (note, no colon) as a shortcut for [X: imm]
-   or: [X: *]   meaning mut,read,imm
-   or: [X: **]  meaning everything
-   or something like: [X: imm, read]  meaning imm or read.
+"X" with no ":" allows only the capability "imm".
+"X:*" allows the capabilities "imm", "mut" and "read".
+"X:**" allows every capability.
+A list, as in "X:imm,read", allows the capabilities in the list.
 Error 2 UnexpectedToken
 """, """
 A[X:,Y]:{}
@@ -1184,8 +1184,8 @@ In file: [###].fear
    |   --~~~^^~~~--
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
-This destructuring pattern extracts nothing.
-Write at least one chain, for example {.a}, instead of an empty {}.
+This nominal pattern extracts nothing.
+Write at least one chain, for example "{.a}", instead of an empty "{}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m({}):X }
@@ -1199,8 +1199,8 @@ In file: [###].fear
    |     ---^^^^^^~~---
 
 While inspecting nominal pattern > method parameters declaration > method declaration > type declaration body > type declaration > full file
-This destructuring pattern has an empty chain between commas.
-Each comma must separate two non-empty chains; remove the stray comma, for example write {.a,.b} instead of {.a,,.b} or {,.a}.
+This nominal pattern has an empty chain between commas.
+Each comma must separate two non-empty chains; remove the stray comma, for example write "{.a,.b}" instead of "{.a,,.b}" or "{,.a}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m({,}Bob:X):X }
@@ -1355,7 +1355,7 @@ In file: [###].fear
 
 While inspecting a string literal
 String literal [Double Quote (") 0x22] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+A comment opening sign is present later on this line; the string may be meant to end before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1372,7 +1372,7 @@ In file: [###].fear
 
 While inspecting a string literal
 String literal [Backtick (`) 0x60] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+A comment opening sign is present later on this line; the string may be meant to end before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1390,7 +1390,7 @@ In file: [###].fear
 
 While inspecting a string literal
 String literal [Backtick (`) 0x60] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+A comment opening sign is present later on this line; the string may be meant to end before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1408,7 +1408,7 @@ In file: [###].fear
 
 While inspecting a string literal
 String literal [Backtick (`) 0x60] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+A comment opening sign is present later on this line; the string may be meant to end before it.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1462,7 +1462,7 @@ In file: [###].fear
 While inspecting a string literal
 String literal [Double Quote (") 0x22] reaches the end of the line.
 A preceding block comment "/* ... */" on this line contains that quote.
-Did it swallow the intended opening quote?
+That block comment may hold the intended opening quote.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1498,7 +1498,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
-Did you mean to place the opener outside the string/comment?
+The opener may belong outside the string literal.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1519,7 +1519,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
-Did you mean to place the opener outside the string/comment?
+The opener may belong outside the string literal.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1539,7 +1539,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a string literal before this point.
-Did you mean to place the opener outside the string/comment?
+The opener may belong outside the string literal.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1564,7 +1564,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a line comment "//" before this point.
-Did you mean to place the opener outside the string/comment?
+The opener may belong outside the line comment "//".
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1629,7 +1629,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
 """, """
@@ -1645,7 +1645,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
 """, """
@@ -1662,7 +1662,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
-Did you mean to place the closer outside the block comment "/* ... */"?
+The closer may belong outside the block comment "/* ... */".
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
 """, """
@@ -1678,7 +1678,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a line comment "//" between here and the stopping point.
-Did you mean to place the closer outside the line comment "//"?
+The closer may belong outside the line comment "//".
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
 """, """
@@ -1695,7 +1695,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "(" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected: ")".
 Error 0 Unclosed
 """, """
@@ -1711,7 +1711,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "[" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected: "]".
 Error 0 Unclosed
 """, """
@@ -1727,7 +1727,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
 """, """
@@ -1743,7 +1743,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
-Did you mean to place the closer outside the block comment "/* ... */"?
+The closer may belong outside the block comment "/* ... */".
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
 """, """
@@ -1759,7 +1759,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "[" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
-Did you mean to place the closer outside the block comment "/* ... */"?
+The closer may belong outside the block comment "/* ... */".
 Otherwise expected: "]".
 Error 0 Unclosed
 """, """
@@ -1775,7 +1775,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a string literal before this point.
-Did you mean to place the opener outside the string literal?
+The opener may belong outside the string literal.
 Error 1 Unopened
 """, """
 A:{ .m:Str -> "call (" ) }
@@ -1790,7 +1790,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a line comment "//" before this point.
-Did you mean to place the opener outside the line comment "//"?
+The opener may belong outside the line comment "//".
 Error 1 Unopened
 """, """
 A:{ .m:Str -> // ( swallowed
@@ -1806,7 +1806,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened "]".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
-Did you mean to place the opener outside the block comment "/* ... */"?
+The opener may belong outside the block comment "/* ... */".
 Error 1 Unopened
 """, """
 A:{ .m:Str -> /* [ hidden */ ] }
@@ -1821,7 +1821,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened "}".
 Found a matching opener hidden inside a string literal before this point.
-Did you mean to place the opener outside the string literal?
+The opener may belong outside the string literal.
 Error 1 Unopened
 """, """
 .m:Str -> "start { here" }
@@ -1836,7 +1836,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unopened ")".
 Found a matching opener hidden inside a block comment "/* ... */" before this point.
-Did you mean to place the opener outside the block comment "/* ... */"?
+The opener may belong outside the block comment "/* ... */".
 Error 1 Unopened
 """, """
 A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
@@ -2177,7 +2177,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+The closer may belong outside the string literal.
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
 """, """
@@ -2767,7 +2767,7 @@ In file: [###].fear
 While inspecting package names
 Unrecognized text "aux.Bar".
 Package names are restricted to be valid filenames on all operating systems.
-Names like aux, nul, lpt2 are invalid on Windows.
+Names like "aux", "nul", "lpt2" are invalid on Windows.
 Error 2 UnexpectedToken
 """, """
 A:{ .foo:aux.Bar }
@@ -2830,7 +2830,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".foo" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2853,7 +2853,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".ban(_)" with 1 parameter redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2879,7 +2879,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".foo" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2905,11 +2905,11 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
-A method with the inferred name and the same parameter count is already present above.
-Likely cause: method declaration missing "." before the name.
-Found unnamed methods with parameters: "a", "b".
+A method with inferred name and the same number of parameters is already present above.
+A method declaration may be missing "." before its name.
+First parameters of the methods with inferred name: "a", "b".
 To declare a method named "a", write ".a" (dot a).
-Without the dot, "a" is interpreted as a parameter name for an anonymous method.
+Without the dot, "a" is the first parameter of a method with inferred name.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2935,11 +2935,11 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameters redeclared.
-A method with the inferred name and the same parameter count is already present above.
-Likely cause: method declaration missing "." before the name.
-Found unnamed methods with parameters: "a", "b".
+A method with inferred name and the same number of parameters is already present above.
+A method declaration may be missing "." before its name.
+First parameters of the methods with inferred name: "a", "b".
 To declare a method named "a", write ".a" (dot a).
-Without the dot, "a" is interpreted as a parameter name for an anonymous method.
+Without the dot, "a" is the first parameter of a method with inferred name.
 Error 7 WellFormedness
 """, """
 A:{
@@ -2965,11 +2965,11 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 2 parameters redeclared.
-A method with the inferred name and the same parameter count is already present above.
-Likely cause: method declaration missing "." before the name.
-Found unnamed methods with parameters: "b", "a".
+A method with inferred name and the same number of parameters is already present above.
+A method declaration may be missing "." before its name.
+First parameters of the methods with inferred name: "b", "a".
 To declare a method named "b", write ".b" (dot b).
-Without the dot, "b" is interpreted as a parameter name for an anonymous method.
+Without the dot, "b" is the first parameter of a method with inferred name.
 Error 7 WellFormedness
 """, """
 A:{
@@ -3206,7 +3206,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a line comment "//" between here and the stopping point.
-Did you mean to place the closer outside the line comment "//"?
+The closer may belong outside the line comment "//".
 Otherwise expected one of: "}id", "}".
 Error 0 Unclosed
 """, """
@@ -3299,11 +3299,11 @@ In file: [###].fear
 
 While inspecting type declaration body > method body > method declaration > type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
-A method with the inferred name and the same parameter count is already present above.
-Likely cause: method declaration missing "." before the name.
-Found unnamed methods with parameters: "x", "y".
+A method with inferred name and the same number of parameters is already present above.
+A method declaration may be missing "." before its name.
+First parameters of the methods with inferred name: "x", "y".
 To declare a method named "x", write ".x" (dot x).
-Without the dot, "x" is interpreted as a parameter name for an anonymous method.
+Without the dot, "x" is the first parameter of a method with inferred name.
 Error 7 WellFormedness
 """, """
 Foo:{ .m : Point -> Point:{ x:base.Nat->0; y:base.Nat->0;} }
@@ -3377,7 +3377,7 @@ In file: [###].fear
 005| }
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Did you forget a space in "!!!->" ?
+Method name "!!!->" ends with "->": a space may be missing before "->".
 Did you mean "!!! ->" ?
 Error 2 UnexpectedToken
 """, """
@@ -3434,7 +3434,7 @@ In file: [###].fear
 
 While inspecting type declaration > full file
 Top level type declarations do not end with ";".
-The definition of "B" ends with a semicolon. Remove it.
+The declaration of "B" ends with a semicolon. Remove it.
 Write: "B:..{...}"
 Not:   "B:..{...};"
 Error 2 UnexpectedToken
@@ -3568,7 +3568,7 @@ This should probably be inside the declaration of "A".
 Top level code can only contain type declarations.
 A type declaration starts with a type name, like "Point:{..}".
 Found instead: ".foo".
-Likely cause: an extra "}" closed a type declaration unintentionally.
+An extra "}" may have closed a type declaration unintentionally.
 Error 2 UnexpectedToken
 """, """
 A:{}
@@ -3586,7 +3586,7 @@ This is not a top level type declaration.
 Top level code can only contain type declarations.
 A type declaration starts with a type name, like "Point:{..}".
 Found instead: a group in (..).
-Likely cause: an extra "}" closed a type declaration unintentionally.
+An extra "}" may have closed a type declaration unintentionally.
 Error 2 UnexpectedToken
 """, """
 ()
@@ -3695,7 +3695,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 1 parameter redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present above.
 Error 7 WellFormedness
 """, """
 A:{ #(x:A):A; #(x:A,y:A):A }
@@ -3709,7 +3709,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method with inferred name and 0 parameters redeclared.
-A method with the inferred name and the same parameter count is already present above.
+A method with inferred name and the same number of parameters is already present above.
 Error 7 WellFormedness
 """, """
 A:{ this; this }
@@ -3758,8 +3758,8 @@ In file: [###].fear
 
 [###]
 While inspecting method declaration > type declaration body > type declaration > full file
-This method header gets 33 parameters by using the nominal patterns "{.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16}" and "{.a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}".
-A method header cannot use nominal patterns to get more than 32 parameters.
+This method signature gets 33 parameters by using the nominal patterns "{.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16}" and "{.a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}".
+A method signature cannot use nominal patterns to get more than 32 parameters.
 Error 2 UnexpectedToken
 """, """
 A:{.m(x:A, {.a1, .a2, .a3, .a4, .a5, .a6, .a7, .a8, .a9, .a10, .a11, .a12, .a13, .a14, .a15, .a16}:A, {.a17, .a18, .a19, .a20, .a21, .a22, .a23, .a24, .a25, .a26, .a27, .a28, .a29, .a30, .a31, .a32}:A):A->x}
