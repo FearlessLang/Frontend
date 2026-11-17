@@ -512,7 +512,7 @@ While inspecting object literal "iso C" > "#" line 4
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "C".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso C:B,D{.m:A}
@@ -536,7 +536,7 @@ While inspecting object literal "iso D" > "#" line 7
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso D:E,F{.m:R}
@@ -593,7 +593,7 @@ While inspecting object literal "iso D" > "#" line 7
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso D:P,Q{.m:R}
@@ -614,7 +614,7 @@ While inspecting object literal "iso D" > "#" line 6
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso D:A1,A2{.m:R}
@@ -720,7 +720,7 @@ While inspecting object literal "iso C" > "#" line 3
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso C:A,B{}
@@ -737,7 +737,7 @@ While inspecting object literal "iso C" > "#" line 3
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
-Hint: add an implementation for ".m" inside the object literal.
+Add an implementation for ".m" inside the object literal.
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 iso C:B{}

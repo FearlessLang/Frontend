@@ -41,7 +41,7 @@ public final class Reason{
   }
   private static String base(TypeSystemErrors es, TypeSystem ts, E blame, List<B> bs, T got, T expected){
     var skipImm= !ts.isSub(bs, got, expected.withRC(RC.imm));
-    return "Object literal is of type "+es.err().expReprDirect(skipImm, blame)+" instead of a subtype of "+es.err().typeRepr(skipImm, expected)+".";
+    return "Object literal has type "+es.err().expReprDirect(skipImm, blame)+" instead of a subtype of "+es.err().typeRepr(skipImm, expected)+".";
   }
   private static Reason hintExplicitRC(TypeSystemErrors es, TypeSystem ts, T got, String base, T.RCC expected, RC rc, E blame){
     E blameOk= switch (blame){
@@ -52,7 +52,7 @@ public final class Reason{
     var why= rc == expected.rc() ? "." : " (needed to satisfy the "+disp(expected.rc())+" requirement).";
     var e= es.err()
       .line(base)
-      .line("Hint: write "+es.err().expReprDirect(false, blameOk)
+      .line("Write "+es.err().expReprDirect(false, blameOk)
       +" if you need "+(rc == RC.iso ? "an " : "a ")+disp(rc)+" object literal"+why);
     return new Reason(got, e.text(), es.printed(), () -> baseFooterE(ts.scope(), got, expected));
   }

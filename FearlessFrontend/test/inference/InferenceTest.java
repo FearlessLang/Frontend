@@ -61,8 +61,7 @@ B:{}
   FearlessException fe= assertThrows(FearlessException.class, () -> parsePackage("p", o, false));
   strCmp("""
 No rank file found for package "p".
-Each package must have exactly one source file whose name is its rank,
-in some folder inside the project folder.
+Each package must have exactly one source file whose name is its rank, in some folder inside the project folder.
 Every package must declare its rank: base, core, driver, worker, framework, accumulator, tool, or app.
 The rank file is the file whose name matches the rank name.
 
@@ -848,7 +847,7 @@ In file: [###].fear
 While inspecting a type name
 Name "F" is not declared with 2 generic type parameters in package "p".
 Name "F" is only declared with 0 generic type parameters.
-Did you accidentally add or omit a generic type argument?
+A generic type argument may be extra or missing.
 Error 7 WellFormedness
 """, List.of("""
 F:{#[A,B](A):B}
@@ -1180,7 +1179,7 @@ While inspecting a type name
 Name "Block" is not declared with 2 generic type parameters in package "base".
 Name "Block" is only declared with other numbers of generic type parameters.
 Candidates: "Block", "Block[_]".
-Did you accidentally add or omit a generic type argument?
+A generic type argument may be extra or missing.
 Error 7 WellFormedness
 """, List.of("""
 User:{
@@ -1198,7 +1197,7 @@ While inspecting a type name
 Name "Block" is not declared with 2 generic type parameters in package "base".
 Name "Block" is only declared with other numbers of generic type parameters.
 Candidates: "Block", "Block[_]".
-Did you accidentally add or omit a generic type argument?
+A generic type argument may be extra or missing.
 
 Name "Block" stands for "base.Block" because of "use base.Block as Block".
 Error 7 WellFormedness
@@ -1329,7 +1328,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".m" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 Error 7 WellFormedness
 """,
 List.of("""

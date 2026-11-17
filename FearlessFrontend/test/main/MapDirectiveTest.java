@@ -58,7 +58,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "base.Void" > ".fromC" line 1
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
-Object literal is of type "base.Void" instead of a subtype of "a.A".
+Object literal has type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
@@ -185,7 +185,7 @@ In file: [###].fear
 While inspecting a type name
 Name "B" is not declared with 1 generic type parameter in package "b".
 Name "B" is only declared with 0 generic type parameters.
-Did you accidentally add or omit a generic type argument?
+A generic type argument may be extra or missing.
 Error 7 WellFormedness
 """, Map.of(), Map.of(), """
 B:{.m(x:b.B[B]):B->this}
@@ -368,7 +368,7 @@ In file: [###].fear
 While inspecting a type name
 Name "A" is not declared with 1 generic type parameter in package "c".
 Name "A" is only declared with 0 generic type parameters.
-Did you accidentally add or omit a generic type argument?
+A generic type argument may be extra or missing.
 
 Name "X" stands for "c.A" because of "use c.A as X".
 Error 7 WellFormedness
@@ -385,7 +385,7 @@ In file: [###].fear
 While inspecting a type name
 Name "A" is not declared with 1 generic type parameter in package "a".
 Name "A" is only declared with 0 generic type parameters.
-Did you accidentally add or omit a generic type argument?
+A generic type argument may be extra or missing.
 
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -469,7 +469,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Nat" > ".m" line 1
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Nat".
-Object literal is of type "bb.Nat" instead of a subtype of "B".
+Object literal has type "bb.Nat" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
@@ -923,9 +923,8 @@ In file: [###].fear
    |    ------------~~~~~~~~^^^^^^^^^^
 
 While inspecting object literal instance of "base.Void" > ".fromC" line 1 > ".m" line 1
-Method ".fromC" inside the object literal instance of "iso a.A" (line 1)
-is implemented with an expression returning "iso base.Void".
-Object literal is of type "base.Void" instead of a subtype of "a.A".
+Method ".fromC" inside the object literal instance of "iso a.A" (line 1) is implemented with an expression returning "iso base.Void".
+Object literal has type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
@@ -944,7 +943,7 @@ While inspecting object literal instance of "iso a.Box[a.A]" > ".m" line 1
 This object literal is missing a required method.
 Missing: "imm .get".
 Required by: "a.Box[_]".
-Hint: add an implementation for ".get" inside the object literal.
+Add an implementation for ".get" inside the object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
@@ -961,7 +960,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Str" > ".m" line 1
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Str".
-Object literal is of type "bb.Str" instead of a subtype of "B".
+Object literal has type "bb.Str" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
@@ -978,7 +977,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "N" > ".m" line 2
 The body of method ".m" of type declaration "B" is an expression returning "iso N".
-Object literal is of type "N" instead of a subtype of "B".
+Object literal has type "N" instead of a subtype of "B".
 
 Name "N" stands for "bb.Nat" because of "use bb.Nat as N".
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -997,7 +996,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Int" > ".m" line 1
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Int".
-Object literal is of type "bb.Int" instead of a subtype of "bb.Nat".
+Object literal has type "bb.Int" instead of a subtype of "bb.Nat".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
@@ -1069,9 +1068,8 @@ In file: [###].fear
    |    --------~~~~~~~~^^
 
 While inspecting object literal instance of "B" > ".fromC" line 2 > ".m" line 2
-Method ".fromC" inside the object literal instance of "iso X" (line 2)
-is implemented with an expression returning "iso B".
-Object literal is of type "B" instead of a subtype of "X".
+Method ".fromC" inside the object literal instance of "iso X" (line 2) is implemented with an expression returning "iso B".
+Object literal has type "B" instead of a subtype of "X".
 
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1734,8 +1732,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 The type "a.Box[mut B]" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "a.Box[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "a.Box[_]".
 Here "X" can only use capability "imm".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1754,8 +1751,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 The type "Bx[mut B]" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "Bx[_]".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "Bx[_]".
 Here "X" can only use capability "imm".
 
 Name "Bx" stands for "a.Box" because of "use a.Box as Bx".
@@ -1776,8 +1772,7 @@ In file: [###].fear
 
 While inspecting method call "#(_)" > ".m(_,_)" line 1
 The call to "#(_)" is invalid.
-Generic type argument 1 ("mut B") does not satisfy the bounds
-for generic type parameter "X" in "a.G#(_)".
+Generic type argument 1 ("mut B") does not satisfy the bounds for generic type parameter "X" in "a.G#(_)".
 Here "X" can only use capability "imm".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1978,7 +1973,7 @@ In file: [###].fear
 While inspecting parameter "x" > "#" line 1 > ".m(_)" line 1
 Parameter "x" has type "mut a.D".
 Parameter "x" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "a.G" (line 1).
-Hint: capture an immutable copy instead, or move this use outside the object literal.
+Capture an immutable copy instead, or move this use outside the object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
@@ -2015,8 +2010,7 @@ In file: [###].fear
 
 While inspecting ".m(_)" line 1
 This call to method ".fromC(_)" cannot typecheck.
-There is a method ".fromC" on type "a.A",
-but with a different number of arguments.
+There is a method ".fromC" on type "a.A", but with a different number of arguments.
 This call supplies 1, but available methods take 0.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2101,8 +2095,8 @@ While inspecting ".f" line 1
 This call to method "a.Need#(_)" cannot typecheck.
 Argument 1 has type "read a.A2".
 That is not a subtype of any of "mut a.A2" or "iso a.A2".
-Object literal is of type "read a.A2" instead of a subtype of "mut a.A2".
-Hint: write "mut a.A2" if you need a "mut" object literal.
+Object literal has type "read a.A2" instead of a subtype of "mut a.A2".
+Write "mut a.A2" if you need a "mut" object literal.
 
 Type required by each promotion:
 - "mut a.A2"  (As declared)
@@ -2123,8 +2117,7 @@ In file: [###].fear
    |     ------------------------------------------^--
 
 While inspecting parameter "x" > ".get" line 1 > ".m(_)" line 1
-Method ".get" inside the object literal instance of "read a.Get" (line 1)
-is implemented with an expression returning "read a.D".
+Method ".get" inside the object literal instance of "read a.Get" (line 1) is implemented with an expression returning "read a.D".
 Parameter "x" has type "read a.D" instead of a subtype of "mut a.D".
 Note: the declared type "mut a.D" would instead be a valid subtype.
 Capture adaptation trace:
@@ -2311,7 +2304,7 @@ While inspecting parameter "beer"
 Parameter "beer" has type "a.Beer[X]", using the generic type parameter "X".
 Generic type parameter "X" is not in scope inside the type declaration "Foo".
 A type declaration only sees the generic type parameters it declares itself; here "Foo" declares none.
-Hint: funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
+Funnel "X" into "Foo" by writing "Foo[X:..]", restating the bounds of "X".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2360,8 +2353,7 @@ In file: [###].fear
    |                           ^^
 
 While inspecting object literal instance of "a.T0[_]"
-Type inference concluded that this object literal implements "a.T0[?]",
-but it could not infer generic type argument 1 for generic type parameter "X" of "a.T0[_]".
+Type inference concluded that this object literal implements "a.T0[?]", but it could not infer generic type argument 1 for generic type parameter "X" of "a.T0[_]".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2524,8 +2516,7 @@ In file: [###].fear
 
 While inspecting type declaration "Fake"
 Type declaration "Fake" implements method ".name".
-"bb.Named" implements `bb.Final[".name"]` and type declaration "Fake" implements "bb.Named",
-thus type declaration "Fake" cannot override any method named ".name".
+"bb.Named" implements `bb.Final[".name"]` and type declaration "Fake" implements "bb.Named", thus type declaration "Fake" cannot override any method named ".name".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2540,8 +2531,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Type declaration "B" implements method ".foo".
-"a.A" implements `base.Final[".foo"]` and type declaration "B" implements "a.A",
-thus type declaration "B" cannot override any method named ".foo".
+"a.A" implements `base.Final[".foo"]` and type declaration "B" implements "a.A", thus type declaration "B" cannot override any method named ".foo".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2656,8 +2646,7 @@ In file: [###].fear
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Two"
-Type declaration "Two" claims the extension "foo" more than once:
-both `bb.OpenWith[Icon,"foo"]` and `bb.OpenWith[Icon2,"foo"]` claim it.
+Type declaration "Two" claims the extension "foo" more than once: both `bb.OpenWith[Icon,"foo"]` and `bb.OpenWith[Icon2,"foo"]` claim it.
 A main can claim each extension at most once, across all its "bb.OpenWith[_,_]" and "bb.Shortcut[_,_]", since one extension has one icon.
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -2711,7 +2700,7 @@ Integer literal is out of range for "bb.Int".
 "bb.Int" must be representable as a 64-bit signed integer.
 Valid range: -9223372036854775808 .. 9223372036854775807.
 This literal is: "421381834238972893748972389723".
-Hint: if you need arbitrary precision numbers, use "bb.Num".
+If you need arbitrary precision numbers, use "bb.Num".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2729,7 +2718,7 @@ Natural literal is out of range for "bb.Nat".
 "bb.Nat" must be representable as a 64-bit unsigned integer.
 Valid range: 0 .. 18446744073709551615.
 This literal is: "421381834238972893748972389723".
-Hint: if you need arbitrary precision numbers, use "bb.Num".
+If you need arbitrary precision numbers, use "bb.Num".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2748,7 +2737,7 @@ Float literal is not exactly representable as "bb.Float".
 This literal is: "+0.1".
 If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
 Write "+0.1soft" to accept that rounding.
-Hint: if you need arbitrary precision numbers, use "bb.Num".
+If you need arbitrary precision numbers, use "bb.Num".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2817,8 +2806,7 @@ In file: [###].fear
    |     -------------~~~~~~~~~~^^^^^
 
 While inspecting parameter "this" > ".fromC" line 2 > ".k" line 2
-Method ".fromC" inside the object literal instance of "iso X" (line 2)
-is implemented with an expression returning "B".
+Method ".fromC" inside the object literal instance of "iso X" (line 2) is implemented with an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "X".
 
 Name "X" stands for "a.A" because of "use a.A as X".
@@ -2840,7 +2828,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > ".k" line 2
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
-Object literal is of type "iso L" instead of a subtype of "a.A".
+Object literal has type "iso L" instead of a subtype of "a.A".
 
 """+noteA+"""
 
@@ -2860,7 +2848,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > ".k" line 3
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
-Object literal is of type "iso L" instead of a subtype of "a.A2".
+Object literal has type "iso L" instead of a subtype of "a.A2".
 
 """+noteA+"""
 
@@ -2881,7 +2869,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Nat" > ".m(_)" line 1
 The body of method ".m(_)" of type declaration "B" is an expression returning "iso bb.Nat".
-Object literal is of type "bb.Nat" instead of a subtype of "B".
+Object literal has type "bb.Nat" instead of a subtype of "B".
 
 """+noteBb+"""
 
@@ -2976,7 +2964,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "L" > ".k" line 2
 The body of method ".k" of type declaration "B" is an expression returning "iso L".
-Object literal is of type "iso L" instead of a subtype of "bb.Str".
+Object literal has type "iso L" instead of a subtype of "bb.Str".
 
 """+noteBb+"""
 
@@ -3073,7 +3061,7 @@ In file: [###].fear
 
 While inspecting type declaration body > type declaration > full file
 Method ".k" with 0 parameters redeclared.
-A method with the same name, arity and reference capability is already present.
+A method with the same name, number of parameters and reference capability is already present.
 Error 7 WellFormedness
 """, Map.of("c", cA), mapA, """
 B:a.A{ .k:B -> this; .k:B -> this; }
@@ -3104,7 +3092,7 @@ Integer literal is out of range for "I".
 "I" must be representable as a 64-bit signed integer.
 Valid range: -9223372036854775808 .. 9223372036854775807.
 This literal is: "421381834238972893748972389723".
-Hint: if you need arbitrary precision numbers, use "bb.Num".
+If you need arbitrary precision numbers, use "bb.Num".
 
 Name "I" stands for "bb.Int" because of "use bb.Int as I".
 """+noteBb+"""
