@@ -55,9 +55,9 @@ Offensive style: Optional.get() is intentional where invariants guarantee presen
 absence indicates a bug and should crash.
 */
 
-public record InjectionSteps(Methods meths, int cap, boolean late){
+public record InjectionSteps(Methods meths, int cap){
   public static List<core.E.Literal> steps(Methods meths, List<E.Literal> tops){
-    var s= new InjectionSteps(meths, deepest(meths), false);
+    var s= new InjectionSteps(meths, deepest(meths));
     assert tops.stream().allMatch(l -> l.thisName().equals("this"));
     //No! at this point they have been (correctly) divided in layers assert tops.stream().sorted().toList().equals(tops);
     return tops.stream()
@@ -95,10 +95,10 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var ei= meet(e, TypeRename.tToIT(mCore.sig().ret()));
     var g= Gamma.of(xs, TypeRename.tToIT(mCore.sig().ts()), di.thisName(), thisType);
     var bs= Push.of(di.bs(), m.sig().bs().get());
-    var limit= cap*size(ei);
-    ei = new InjectionSteps(meths, limit, false).nextStar(bs, g, ei);
-    g.tableGrew();
-    ei = new InjectionSteps(meths, limit, true).nextStar(bs, g, ei);
+    var s= new InjectionSteps(meths, cap*size(ei));
+    ei = s.nextStar(bs, g, ei);
+    g.latePass();
+    ei = s.nextStar(bs, g, ei);
     return new core.M(mCore.sig(), xs, m.names(), Optional.of(new ToCore(bs, meths).of(ei, e)));
   }
   E meet(E e, IT t){
@@ -129,8 +129,10 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       var rc= meetRcNoH(x1.rc(), x2.rc());
       return x1.withRCTs(rc, meet(x1.c().ts(), x2.c().ts()));
     }
-    if (!(t1 instanceof IT.RCX x1 && t2 instanceof IT.RCX(var rc2, var x2)) || !x1.x().equals(x2)){ return t1; }
-    return x1.withRC(meetRcNoH(Optional.of(x1.rc()), Optional.of(rc2)).get());
+    if (!xName(t1).equals(xName(t2)) || t1 instanceof IT.X || t2 instanceof IT.X){ return t1; }
+    if (!(t1 instanceof IT.RCX x1)){ return meet(t2, t1); }
+    if (t2 instanceof IT.RCX(var rc2, _)){ return x1.withRC(meetRcNoH(Optional.of(x1.rc()), Optional.of(rc2)).get()); }
+    return noH(x1.rc()).compareTo(RC.read) < 0 ? t1 : t2;
   }
   static Optional<RC> meetRcNoH(Optional<RC> a, Optional<RC> b){
     if (a.isEmpty()){ return b.map(InjectionSteps::noH); }
@@ -212,8 +214,8 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   private List<E> nextStar(List<B> bs, Gamma g, List<E> es){
     return norm(es, es.stream().map(ei -> nextStar(bs, g, ei)).toList());
   }
-  private List<E> meetWithTargs(List<E> es, MSigL m, List<IT> targs){
-    var res= norm(es, Streams.zip(es, m.ps0()).map((e,p) -> meet(e, m.inst(p, targs))).toList());
+  private List<E> meetWithTargs(List<E> es, MSigL m, List<IT> all){
+    var res= norm(es, Streams.zip(es, m.ps0()).map((e,p) -> meet(e, TypeRename.of(p, m.xs(), all))).toList());
     assert notBackToOrigin(es, res);
     return res;
   }
@@ -268,7 +270,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i -> i == n ? t : IT.U.Instance).toList(); }
   private E nextX(Gamma g, E.X x){
     var t1Base= g.get(x.name());
-    var notIn= g.notFunnelledInto(x.name());
+    var notIn= g.notFunnelledInto(x.name(), t1Base);
     if (notIn.isPresent()){ throw meths.p().err().captureNotFunnelled(x, t1Base, notIn.get()); }
     var t1= g.getWithRC(x.name());
     var t2= x.t();
@@ -277,8 +279,11 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     return x.withT(meet(t1, t2));
   }
   private void updateG(Gamma g, String x, IT t2){
-    if (g.learned(x).undecided()){ g.update(x, t2 instanceof IT.RCC(_, var c, var span) ? new RCC(Optional.empty(), c, span) : t2); }
-    if (g.learned(x) instanceof IT.RCC t1 && t2 instanceof IT.RCC && !g.learnedWithRC(x).equals(t2)){ g.update(x, meet(t1, t2)); }
+    var open= stripRCAlsoThisSide(t2);
+    if (g.notFunnelledInto(x, open).isPresent()){ return; }
+    g.update(x, meet(g.learned(x), open));
+    if (g.seenImm(x) || g.withRC(x, open).equals(t2)){ return; }
+    g.update(x, open instanceof IT.X && g.learned(x).equals(open) ? t2 : meet(g.learned(x), t2));
   }
   private E nextT(E.Type t){
     if (!t.t().undecided()){ return t; }
@@ -294,24 +299,18 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
   }
   private E nextC(List<B> bs, Gamma g, E.Call c){
     var e= nextStar(bs, g, c.e());
-    if (!(e.t() instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
+    if (!((e instanceof E.Type tt ? tt.type() : e.t()) instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var guess= overloadNorm(rcc.rc().map(rc -> rc == RC.iso ? c.t().explicitRC().orElse(rc) : rc));
     var direct= methodHeader(rcc, c.name(), c.rc(), guess);
     var om= direct.isPresent() ? direct : methodHeader((IT.RCC)deFresh(g, rcc), c.name(), c.rc(), guess);
     if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var m= om.get();
     assert m.ps0().size() == c.es().size();
-    var all= decidedThen(g, c, m);
+    var es= nextStar(bs, g, meetWithTargs(c.es(), m, decidedThen(g, c, c.es(), m)));
+    var all= decidedThen(g, c, es, m);
     assert all.size() == m.nCls()+m.bsArity();
-    var clsTs= all.subList(0, m.nCls());
-    var targs= all.subList(m.nCls(), all.size());
-    if (direct.isPresent()){ e = meet(e, rcc.withTs(clsTs)); }
-    m = m.withClsArgs(clsTs);
-    var it= meet(c.t(), m.ret(targs));
-    var es1= nextStar(bs, g, meetWithTargs(c.es(), m, targs));
-    var noChange= e == c.e() && es1 == c.es() && targs.equals(c.targs()) && it.equals(c.t());
-    if (noChange){ return c; }
-    return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
+    if (direct.isPresent()){ e = meet(e, rcc.withTs(all.subList(0, m.nCls()))); }
+    return c.withMore(e, c.rc().orElse(m.rc()), all.subList(m.nCls(), all.size()), es, meet(c.t(), TypeRename.of(m.ret0(), m.xs(), all)));
   }
   private static IT deFresh(Gamma g, IT t){
     if (!(t instanceof IT.RCC rcc)){ return t; }
@@ -319,9 +318,9 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var head= o != null && o.infName() && o.t() instanceof IT.RCC h && !h.c().name().equals(o.name()) ? h.c() : rcc.c();
     return new IT.RCC(rcc.rc(), head, rcc.span()).withTs(head.ts().stream().map(ti -> deFresh(g, ti)).toList());
   }
-  private List<IT> decidedThen(Gamma g, E.Call c, MSigL m){
-    var given= Push.of(m.clsArgs(), writtenTargs(c) && c.targs().size() == m.bsArity() ? c.targs() : qMarks(m.bsArity()));
-    var args= Streams.zip(m.ps0(), c.es()).map((p,e) -> new Con(p, emptyLiteral(e) ? IT.U.Instance : e.t(), true)).toList();
+  private List<IT> decidedThen(Gamma g, E.Call c, List<E> es, MSigL m){
+    var given= Push.of(m.clsArgs(), c.targs().size() == m.bsArity() ? c.targs() : qMarks(m.bsArity()));
+    var args= Streams.zip(m.ps0(), es).map((p,e) -> new Con(p, emptyLiteral(e) ? IT.U.Instance : e.t(), true)).toList();
     return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.t(), false), args));
   }
   private record Con(IT declared, IT actual, boolean in){}
@@ -364,8 +363,6 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
     var ts= decide(g, d == null ? l.bs() : d.bs(), rcc.c().ts(), solved.stream().flatMap(m -> constraints(rcc, m)).toList());
     var t= rcc.withTs(ts);
     var ms= norm(l.ms(), Streams.zip(l.ms(), solved).map((mi, m) -> instantiate(t, mi, m)).toList());
-    var noChange= ms == l.ms() && ts.equals(rcc.c().ts());
-    if (noChange){ return commitToTable(g, bs, l, rcc); }
     return commitToTable(g, bs, l.withMsT(ms, t), t);
   }
   private E commitToTable(Gamma g, List<B> bs, E.Literal l, IT.RCC rcc){
@@ -424,7 +421,7 @@ public record InjectionSteps(Methods meths, int cap, boolean late){
       .allMatch(m -> m.sig().ret().get().isTV() && m.sig().ts().stream().allMatch(t -> t.get().isTV()));
   }
   private List<Optional<IT>> updateArgs(M m, Gamma g){
-    return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !late ? oi : Optional.of(meet(oi.get(), g.learned(x)))).toList();
+    return Streams.zip(m.xs(), m.sig().ts()).map((x,oi) -> x.equals("_") || !g.late() ? oi : Optional.of(meet(oi.get(), g.learned(x)))).toList();
   }
   M nextMStarOp(List<B> bs, Gamma g, E.Literal l, Optional<IT.RCC> selfPrecise, IT.RCC rcc, M m){
     assert m.impl().isPresent();

@@ -219,6 +219,35 @@ G:{ .k[X](y:X):X; }
 Sup:{ .m[X](x:X):G; }
 B:Sup{ .m(x)->{ .k(y)->x } }
 """));}
+@Test void keptInheritedMethodGenericOfAMutMethodMustNotBeShadowedByNestedLiteral(){fail("""
+003| B:Sup{ .m(x)->{ .k(y)->x } }
+   |        ---------~~~~~~~^--
+
+While inspecting parameter "x" > ".k(_)" line 3 > ".m(_)" line 3
+Method ".k(_)" inside the object literal instance of "iso G" (line 3)
+is implemented with an expression returning "imm X".
+Parameter "x" has type "imm X" instead of a subtype of "_AX".
+
+See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
+B:Sup{.m[X:imm](x:X):mut G->mut G{mut .k[_AX:imm](y:_AX):_AX->x}}
+""", List.of("""
+G:{ mut .k[X](y:X):X; }
+Sup:{ .m[X](x:X):mut G; }
+B:Sup{ .m(x)->{ .k(y)->x } }
+"""));}
+@Test void lambdaParameterReturnedAsTheMethodGenericOfANestedLiteral(){failWf("""
+004| User:{ .m: G -> Use#{x -> mut G{ .k(y) -> x }} }
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "F[_,_]"
+Type inference concluded that this object literal implements "F[?,mut G]",
+but it could not infer generic type argument 1 for generic type parameter "A" of "F[_,_]".
+""", List.of("""
+G:{ mut .k[X](y:X):X; }
+F[A:**,R:**]:{ #(a: A): R }
+Use:{ #[A:**](f: F[A,mut G]): G -> G }
+User:{ .m: G -> Use#{x -> mut G{ .k(y) -> x }} }
+"""));}
 @Test void freshMethodGenericMustNotCaptureKeptEnclosingGeneric(){ok(List.of("""
 F[T]:{ .k[X](y:X):T; }
 Sup:{ .m[_AX](x:_AX):F[_AX]; }
@@ -2553,6 +2582,9 @@ A:{}
 """));}
 @Test void anonReceiverSealedHeadSelfCall(){ok(List.of("""
 Outer:{ .m: base.Void -> {'self .a: base.Void -> base.Void{}; .b: base.Void -> self.a }.b }
+"""));}
+@Test void anonReceiverSealedHeadSelfCallOfAReadMethod(){ok(List.of("""
+Outer:{ .m: base.Void -> {'self read .a: base.Void -> base.Void{}; .b: base.Void -> self.a }.b }
 """));}
 @Test void anonReceiverSealedHead(){ok(List.of("""
 Outer:{ .m: base.Void -> { .a: base.Void -> base.Void{} }.a }
@@ -5475,6 +5507,116 @@ F[A,R]:{ #(a: A): R }
 Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
 User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#[Animal](x, Cat).name)} }
 """));}
+@Test void argumentCallTypeArgumentDecidedWithoutAVariableThenTheVariableRequiredAsAnUnrelatedTypeIsRejected(){fail("""
+009| User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat), NeedDog#(x))} }
+   |                           -------------------------~~~~~~~^^~~-
+
+While inspecting "#(_)" line 9 > ".m" line 9
+This call to method "NeedDog#(_)" cannot typecheck.
+Argument 1 has type "Cat".
+That is not a subtype of "Dog" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#(x)
+""", List.of("""
+Animal:{}
+Cat:Animal{}
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat), NeedDog#(x))} }
+"""));}
+@Test void variableRequiredThenAnArgumentCallTypeArgumentDecidedWithoutTheVariableAsAnUnrelatedTypeIsRejected(){fail("""
+009| User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, Cat))} }
+   |                           -----------------------~~~~^^~~~~~~~-
+
+While inspecting "#(_)" line 9 > ".m" line 9
+This call to method "Pick#(_,_)" cannot typecheck.
+Argument 1 has type "Dog".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#[imm,Cat](x,-)
+""", List.of("""
+Animal:{}
+Cat:Animal{}
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, Cat))} }
+"""));}
+@Test void argumentCallTypeArgumentDecidedFromAParameterThenTheVariableRequiredAsAnUnrelatedTypeIsRejected(){fail("""
+009| User:{ .m(c: Cat): Animal -> Use#{x -> Two#(Pick#(x, c), NeedDog#(x))} }
+   |                                   -----------------------~~~~~~~^^~~-
+
+While inspecting "#(_)" line 9 > ".m(_)" line 9
+This call to method "NeedDog#(_)" cannot typecheck.
+Argument 1 has type "Cat".
+That is not a subtype of "Dog" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#(x)
+""", List.of("""
+Animal:{}
+Cat:Animal{}
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m(c: Cat): Animal -> Use#{x -> Two#(Pick#(x, c), NeedDog#(x))} }
+"""));}
+@Test void variableRequiredThenAnArgumentCallTypeArgumentDecidedFromAParameterAsAnUnrelatedTypeIsRejected(){fail("""
+009| User:{ .m(c: Cat): Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, c))} }
+   |                                   -----------------------~~~~^^~~~~~-
+
+While inspecting "#(_)" line 9 > ".m(_)" line 9
+This call to method "Pick#(_,_)" cannot typecheck.
+Argument 1 has type "Dog".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#[imm,Cat](x,-)
+""", List.of("""
+Animal:{}
+Cat:Animal{}
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m(c: Cat): Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, c))} }
+"""));}
+@Test void argumentCallTypeArgumentDecidedFromATypeNameWithWidenToThenTheVariableRequiredAsASubtypeIsTheSubtype(){ok(List.of("""
+Animal:{}
+Cat:Animal, base.WidenTo[Animal]{}
+Dog:Animal, base.WidenTo[Animal]{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat), NeedDog#(x))} }
+"""));}
+@Test void variableRequiredAsASubtypeThenAnArgumentCallTypeArgumentDecidedFromATypeNameWithWidenToIsTheSubtype(){ok(List.of("""
+Animal:{}
+Cat:Animal, base.WidenTo[Animal]{}
+Dog:Animal, base.WidenTo[Animal]{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, Cat))} }
+"""));}
 @Test void variableTypeArgumentRequiredThroughANestedLambdaParameterThenAsASupertypeIsTheSubtype(){ok(List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5575,6 +5717,133 @@ Two:{ #[X:*,Y:*](a: X, b: Y): X -> a }
 F1[X:*,R:*]:{ mut #(x: X): R }
 Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
 U:{ .use: A -> Ap#{x -> Two#(Mut#x, mut G{ # -> Imm#x })} }
+"""));}
+@Test void lambdaParameterUsedAsAMutSupertypeThenCapturedAsAnImmSubtypeIsTheMutSubtype(){ok(List.of("""
+A:{ mut .m: A -> A }
+B:A{}
+Mut:{ #(a: mut A): A -> a.m }
+Imm:{ #(b: B): A -> b }
+G:{ imm #: A }
+Two:{ #[X:*,Y:*](a: X, b: Y): X -> a }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U:{ .use: A -> Ap#{x -> Two#(Mut#x, mut G{ # -> Imm#x })} }
+"""));}
+@Test void lambdaParameterCapturedAsAnImmSubtypeThenUsedAsAMutSupertypeIsTheMutSubtype(){ok(List.of("""
+A:{ mut .m: A -> A }
+B:A{}
+Mut:{ #(a: mut A): A -> a.m }
+Imm:{ #(b: B): A -> b }
+G:{ imm #: A }
+Two:{ #[X:*,Y:*](a: X, b: Y): Y -> b }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U:{ .use: A -> Ap#{x -> Two#(mut G{ # -> Imm#x }, Mut#x)} }
+"""));}
+@Test void lambdaParameterUsedAsAnImmTypeParameterThenAsReadImmIsImm(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:*]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asImm(x), this.asReadImm(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsAReadImmTypeParameterThenAsImmIsImm(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:*]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asReadImm(x), this.asImm(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsAReadTypeParameterThenAsReadImmIsReadImm(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:*]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asRead(x), this.asReadImm(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsAReadImmTypeParameterThenAsReadIsReadImm(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:*]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asReadImm(x), this.asRead(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsAMutTypeParameterThenAsReadImmIsMut(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:mut]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asMut(x), this.asReadImm(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsAReadImmTypeParameterThenAsMutIsMut(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:mut]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asReadImm(x), this.asMut(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsReadInsideAnImmLiteralIsImm(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+L0[R:**]:{ #: R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Lazy:{ #(f: L0[A]): A -> A }
+Read:{ #(a: read A): A -> A }
+User:{ .m: A -> Use#{x -> Lazy#{Read#x}} }
+"""));}
+@Test void lambdaParameterUsedAsAMutTypeParameterThenCapturedAsImmIsMut(){ok(List.of("""
+Mut[T:imm,mut]:{ #(a: mut T): mut T -> a }
+Imm[T:imm,mut]:{ #(a: imm T): imm T -> a }
+G[T:imm,mut]:{ imm #: imm T }
+Two:{ #[X:*,Y:*](a: X, b: Y): X -> a }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U[T:imm,mut]:{ .use: mut T -> Ap#{x -> Two#(Mut[T]#x, mut G[T]{ # -> Imm[T]#x })} }
+"""));}
+@Test void lambdaParameterCapturedAsAnImmTypeParameterThenUsedAsMutIsMut(){ok(List.of("""
+Mut[T:imm,mut]:{ #(a: mut T): mut T -> a }
+Imm[T:imm,mut]:{ #(a: imm T): imm T -> a }
+G[T:imm,mut]:{ imm #: imm T }
+Two:{ #[X:*,Y:*](a: X, b: Y): Y -> b }
+F1[X:*,R:*]:{ mut #(x: X): R }
+Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
+U[T:imm,mut]:{ .use: mut T -> Ap#{x -> Two#(mut G[T]{ # -> Imm[T]#x }, Mut[T]#x)} }
 """));}
 @Test void lambdaParameterOnlyCapturedInAnImmMethodIsImm(){ok(List.of("""
 A:{ mut .m: A -> A }
@@ -6606,6 +6875,22 @@ C:base.WidenTo[C]{}
 B:C{}
 A:{ .m: B -> {} }
 """));}
+@Test void siblingsWithTheSameWidenToJoinToTheirCommonSupertype(){ok(List.of("""
+A:{ .k: A -> this } Y:A,base.WidenTo[A]{} Z:A,base.WidenTo[A]{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
+"""));}
+@Test void siblingsWithTheSameWidenToAndTwoCommonSupertypesCannotBeInferred(){failWf("""
+002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+   |                                                          ^^^^^^^^^^^^^^^
+
+While inspecting method call ".both(_,_)"
+The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+"T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
+Write the generic type argument explicitly, as in "this.both[A](y, z)".
+""", List.of("""
+A:{} B:{} Y:A,B,base.WidenTo[A]{} Z:A,B,base.WidenTo[A]{}
+U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+"""));}
 @Test void emptyLiteralArgumentWithAnExpectedNumberLiteralType(){ok(List.of("""
 A:{ .m(x: 45): A -> A; .k: A -> this.m({}) }
 """));}
@@ -6613,6 +6898,18 @@ A:{ .m(x: 45): A -> A; .k: A -> this.m({}) }
 C:{ .k: C }
 B:C,base.WidenTo[C]{ .k: B -> this }
 A:{ .m: C -> B }
+"""));}
+@Test void typeNameExpressionReceiverInfersTheTypeArgumentsOfAMethodOfItsOwnType(){ok(List.of("""
+C:{}
+Box[T]:{}
+B:C,base.WidenTo[C]{ .wrap[T](t: T): Box[T] -> {} }
+A:{ .m: Box[C] -> B.wrap(C) }
+"""));}
+@Test void typeNameExpressionReceiverGivesAnExpectedTypeToALambdaArgument(){ok(List.of("""
+C:{}
+F[X,R]:{ #(x: X): R }
+B:C,base.WidenTo[C]{ .use[R](f: F[B,R]): R -> f#this; .k: B -> this }
+A:{ .m: B -> B.use{b -> b.k} }
 """));}
 @Test void typeNameExpressionWidenedPastAnIntermediateOverride(){ok(List.of("""
 C:{ .k: C -> this }

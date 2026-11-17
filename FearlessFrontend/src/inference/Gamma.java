@@ -21,7 +21,7 @@ public final class Gamma{
   @NeverAsKey
   public static final class GammaSignature{
     Map<String,IT> shot;
-    int tables;
+    boolean late;
     final HashMap<Monotonicity.Slot,ArrayList<Object>> monotonicity= new HashMap<>();
     //public GammaSignature clear(){ hash = 0; return this;}//more performance
     public GammaSignature clear(){ return new GammaSignature(); }//more safe
@@ -44,7 +44,7 @@ public final class Gamma{
   private List<B>[] bss= (List<B>[])new List<?>[initialDepth];
   private E.Literal[] owners= new E.Literal[initialDepth];
   private int depth= 1;
-  private int tables= 0;
+  private boolean late;
 
   private final HashMap<String,Integer> idx= new HashMap<>(indexThreshold * 10);
   public void newScope(RC rc, List<B> bs, E.Literal owner){
@@ -76,18 +76,16 @@ public final class Gamma{
     size = newSize;
     depth -= 1;
   }
-  public IT getWithRC(String x){ return withRC(ts, x); }
-  public IT learnedWithRC(String x){ return withRC(learned, x); }
-  private IT withRC(IT[] from, String x){
+  public boolean seenImm(String x){ return IntStream.range(declDepth[indexOf(x)] + 1, depth).anyMatch(s -> rcs[s] == RC.imm); }
+  public IT getWithRC(String x){ return withRC(x, get(x)); }
+  public IT withRC(String x, IT t){
     var i= indexOf(x);         // offensive: -1 would crash later
-    var t= from[i];            // the stored (true) type
     for (var s= declDepth[i] + 1; s < depth; s += 1){ t = adapt(t, rcs[s], bss[s]); }
     return t;
   }
-  public Optional<E.Literal> notFunnelledInto(String x){
-    var i= indexOf(x);
-    var xs= ts[i].ftv().toList();
-    return IntStream.range(declDepth[i] + 1, depth).filter(s -> !B.xs(bss[s]).containsAll(xs)).mapToObj(s -> owners[s]).findFirst();
+  public Optional<E.Literal> notFunnelledInto(String x, IT t){
+    var xs= t.ftv().toList();
+    return IntStream.range(declDepth[indexOf(x)] + 1, depth).filter(s -> !B.xs(bss[s]).containsAll(xs)).mapToObj(s -> owners[s]).findFirst();
   }
   private static IT adapt(IT t, RC rc, List<B> bs){ return switch (t){
     case IT.X(var x, _) -> adaptX(t, B.get(bs, x).rcs(), rc);
@@ -126,9 +124,10 @@ public final class Gamma{
   public void update(String x, IT t){
     learned[indexOf(x)] = t;
   }
-  public void tableGrew(){ tables += 1; }
-  public boolean represents(GammaSignature sig){ return sig.tables == tables && snapshot().equals(sig.shot); }
-  public void sign(GammaSignature sig){ sig.shot = snapshot(); sig.tables = tables; }
+  public void latePass(){ late = true; }
+  public boolean late(){ return late; }
+  public boolean represents(GammaSignature sig){ return sig.late == late && snapshot().equals(sig.shot); }
+  public void sign(GammaSignature sig){ sig.shot = snapshot(); sig.late = late; }
   public Map<String,IT> snapshot(){
     var res= new HashMap<String,IT>();
     for (int i : Range.of(0, size)){ res.put(xs[i], ts[i]); }

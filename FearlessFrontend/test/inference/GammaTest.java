@@ -52,8 +52,8 @@ public final class GammaTest{
     assertTrue(g.represents(parentBefore), "parent signature must match again after popping child");
   }
 
-  // 3) Update of outer var is visible to child and remains visible after pop
-  @Test void update_of_outer_var_is_visible_to_child_and_remains_after_pop(){
+  // 3) Update of outer var is part of no signature and remains learned after pop
+  @Test void update_of_outer_var_is_in_no_signature_and_remains_after_pop(){
     var g= new Gamma();
     g.declare("x", X("X"));
 
@@ -166,14 +166,19 @@ public final class GammaTest{
     assertSame(a0, g.get("a0"));
   }
 
-  // 12) Update with the same value is a no-op for the signature
-  @Test void update_with_same_value_is_noop_for_signature(){
+  // 12) The late pass makes the signatures of the first pass stale
+  @Test void late_pass_makes_first_pass_signatures_stale(){
     var g= new Gamma();
     g.declare("x", X("X"));
-    var before= new Gamma.GammaSignature();
-    g.sign(before);
-    g.update("x", X("X")); // equals, no change
-    assertTrue(g.represents(before), "updating to an equal value must not change signature");
+    var first= new Gamma.GammaSignature();
+    g.sign(first);
+    assertFalse(g.late());
+    g.latePass();
+    assertTrue(g.late());
+    assertFalse(g.represents(first), "a signature of the first pass must not represent the late pass");
+    var late= new Gamma.GammaSignature();
+    g.sign(late);
+    assertTrue(g.represents(late));
   }
 
   // 13) Declaring "_" must be a no-op for the signature and name table
