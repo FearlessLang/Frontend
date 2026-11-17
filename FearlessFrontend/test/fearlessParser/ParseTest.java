@@ -156,7 +156,7 @@ While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{ `x .foo:A->A + A; } //ill formed: the first layer has to be `this or nothing
@@ -486,7 +486,6 @@ In file: [###].fear
 
 While inspecting method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected: "type name".
 Error 2 UnexpectedToken
 """, """
 A:{ .m(): -> (Block#.let x={5}) .use(x) }
@@ -499,7 +498,7 @@ In file: [###].fear
 
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Missing method name.
-Expected one of: ".name", "binary operator (eg. +, *, -)".
+Expected one of: method name (like ".foo"), binary operator (like "+", "*", "-").
 Error 2 UnexpectedToken
 """, """
 A:{ .m -> (Block#.let x={5}) .use(x) }
@@ -580,7 +579,6 @@ In file: [###].fear
 
 While inspecting method parameters declaration > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected: "type name".
 Error 2 UnexpectedToken
 """, """
 A:{ .m(a,,b):C }
@@ -594,7 +592,7 @@ In file: [###].fear
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
-Expected one of: "name", "type name", "(", "{".
+Expected one of: name, type name, "(", "{".
 Error 2 UnexpectedToken
 """, """
 A:{ .m(x:C):C->x.foo(,) }
@@ -607,7 +605,7 @@ In file: [###].fear
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
-Expected one of: "name", "type name", "(", "{".
+Expected one of: name, type name, "(", "{".
 Error 2 UnexpectedToken
 """, """
 A:{ .m(x:C):C->x.foo(,a) }
@@ -620,7 +618,6 @@ In file: [###].fear
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected: "type name".
 Error 2 UnexpectedToken
 """, """
 A:{ .m(,x:C):C->x }
@@ -633,7 +630,6 @@ In file: [###].fear
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected: "type name".
 Error 2 UnexpectedToken
 """, """
 A:{ .m(y:C,,x:C):C->x }
@@ -649,7 +645,7 @@ In file: [###].fear
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: "x".
-Expected: "type name".
+Expected: type name.
 Error 2 UnexpectedToken
 """, """
 A:{}
@@ -666,7 +662,7 @@ In file: [###].fear
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: "x".
-Expected: "type name".
+Expected: type name.
 Error 2 UnexpectedToken
 """, """
 A:{ .k: A -> this }
@@ -681,6 +677,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Tab 0x09].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """, """
 A:{ \t .m(x:C):C->x.foo(,) }
@@ -695,7 +692,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 File ended while parsing a "{" group.
 This "{" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{
@@ -710,7 +707,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 File ended while parsing a "{" group.
 This "{" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{ fdfdds
@@ -735,7 +732,6 @@ In file: [###].fear
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
 Missing type name.
-Expected: "type name".
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -791,7 +787,7 @@ In file: [###].fear
 While inspecting method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: ".use".
-Expected one of: "name", "type name", "(", "{".
+Expected one of: name, type name, "(", "{".
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -809,7 +805,7 @@ In file: [###].fear
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
-Expected one of: "name", "type name", "(", "{".
+Expected one of: name, type name, "(", "{".
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -868,6 +864,7 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
+This method body contains "->": a ";" may be missing between two method declarations.
 Error 6 MissingSeparator
 """, """
 A:{
@@ -880,7 +877,7 @@ A:{
 In file: [###].fear
 
 001| A: a b c } f e
-   | ^^^^^^^^^^
+   |          ^
 
 While inspecting groups of parenthesis
 Unopened "}".
@@ -899,7 +896,7 @@ In file: [###].fear
 While inspecting method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: ":".
-Expected one of: "name", "type name", "(", "{".
+Expected one of: name, type name, "(", "{".
 Error 2 UnexpectedToken
 """, """
 A:{ .m -> :+45 }
@@ -912,7 +909,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+A "[" that opens generic type arguments or the capability of a method call is written directly after the name, with no space.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -927,7 +924,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+A "[" that opens generic type arguments or the capability of a method call is written directly after the name, with no space.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -942,7 +939,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+A "[" that opens generic type arguments or the capability of a method call is written directly after the name, with no space.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -957,7 +954,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+A "[" that opens generic type arguments or the capability of a method call is written directly after the name, with no space.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -972,7 +969,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+A "[" that opens generic type arguments or the capability of a method call is written directly after the name, with no space.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -988,7 +985,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+A "[" that opens generic type arguments or the capability of a method call is written directly after the name, with no space.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -1003,7 +1000,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+A "[" that opens generic type arguments or the capability of a method call is written directly after the name, with no space.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -1018,7 +1015,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+A "[" that opens generic type arguments or the capability of a method call is written directly after the name, with no space.
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -1215,7 +1212,7 @@ In file: [###].fear
 
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing expression.
-Expected one of: "name", "type name", "(", "{".
+Expected one of: name, type name, "(", "{".
 Error 2 UnexpectedToken
 """, """
 \uFEFFA:{ .m(x:C):C->x.foo(,) }
@@ -1228,6 +1225,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Form Feed 0x0C].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{ .m():X\f}");
@@ -1240,6 +1238,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [No-Break Space 0x00A0].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\u00A0.m():X }");
@@ -1254,6 +1253,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Zero Width Joiner 0x200D].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\u200D\u00A0\uFEFF\u202E.m():X }");
@@ -1268,6 +1268,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Right-To-Left Override 0x202E].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\u202E\u00A0\u200D\u200C.m():X }");
@@ -1282,6 +1283,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Byte Order Mark 0xFEFF].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\uFEFF\u200B\u3000.m():X }");
@@ -1295,6 +1297,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [Ideographic Space 0x3000].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\u3000\u200B\u200F\u00A0.m():X }");
@@ -1308,6 +1311,7 @@ In file: [###].fear
 
 While inspecting the file
 Illegal character [U+01F600].
+Source code contains only the printable ASCII characters, space and new line.
 Error 2 UnexpectedToken
 """,
 "A:{\uD83D\uDE00\u00A0\u200D.m():X }");
@@ -1630,7 +1634,7 @@ While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{ .m:Str -> "price is } dollars" ) }
@@ -1646,7 +1650,7 @@ While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{ .m:Str -> `oops } here` ) }
@@ -1663,7 +1667,7 @@ While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
 Did you mean to place the closer outside the block comment "/* ... */"?
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{ .m:Str -> /* } inside */ ) }
@@ -1679,7 +1683,7 @@ While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a line comment "//" between here and the stopping point.
 Did you mean to place the closer outside the line comment "//"?
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{ .m:Str -> // } swallowed
@@ -1728,7 +1732,7 @@ While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{ .m:Str -> { "inner } hidden"
@@ -1744,7 +1748,7 @@ While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a block comment "/* ... */" between here and the stopping point.
 Did you mean to place the closer outside the block comment "/* ... */"?
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{ .m:Str -> { /* } hidden */
@@ -1847,13 +1851,13 @@ A:{ .m:Str -> 1 + 2 /* ( */ + 3 ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> ((1 + 2)) ) }
-   |   ^^^^^^^^^^^^^^^^^^^^^^^
+   |   ----------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m:Str -> ((1 + 2)) ) }
@@ -1863,12 +1867,12 @@ A:{ .m:Str -> ((1 + 2)) ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> Foo[Bar] ] ) }
-   |   ^^^^^^^^^^^^^^^^^^^^^^
+   |   ^---------------------
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
-Expected one of: "}id", "}".
+Expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m:Str -> Foo[Bar] ] ) }
@@ -1878,13 +1882,13 @@ A:{ .m:Str -> Foo[Bar] ] ) }
 In file: [###].fear
 
 001| A:{ .m(a,b):Str -> (a + b)) }
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   ------------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m(a,b):Str -> (a + b)) }
@@ -1894,12 +1898,12 @@ A:{ .m(a,b):Str -> (a + b)) }
 In file: [###].fear
 
 001| A:{ .m:Str -> A[mut,imm]] ) }
-   |   ^^^^^^^^^^^^^^^^^^^^^^^
+   |   ^----------------------
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
-Expected one of: "}id", "}".
+Expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m:Str -> A[mut,imm]] ) }
@@ -1909,13 +1913,13 @@ A:{ .m:Str -> A[mut,imm]] ) }
 In file: [###].fear
 
 001| A:{ .m(foo,bar):Str -> (foo + bar))
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   --------------------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m(foo,bar):Str -> (foo + bar))
@@ -1925,13 +1929,13 @@ A:{ .m(foo,bar):Str -> (foo + bar))
 In file: [###].fear
 
 001| A:{ .m:Str -> A[X,Y,Z]]
-   |   ^^^^^^^^^^^^^^^^^^^^^
+   |   --------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
 This "]" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m:Str -> A[X,Y,Z]]
@@ -1941,13 +1945,13 @@ A:{ .m:Str -> A[X,Y,Z]]
 In file: [###].fear
 
 001| A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   ---------------------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
@@ -1957,12 +1961,12 @@ A:{ .m(x,y):Str -> (((x + y))) + 1 ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
-   |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |   ^---------------------------
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
-Expected one of: "}id", "}".
+Expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
@@ -1972,13 +1976,13 @@ A:{ .m:Str -> A[B[X,Y] , Z ] ] ]{} }
 In file: [###].fear
 
 001| A:{ .m:Str -> (((x))) ) }
-   |   ^^^^^^^^^^^^^^^^^^^^^
+   |   --------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m:Str -> (((x))) ) }
@@ -1988,13 +1992,13 @@ A:{ .m:Str -> (((x))) ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> A[B[X]] ] }
-   |   ^^^^^^^^^^^^^^^^^^^^^
+   |   --------------------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: "]".
 This "]" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m:Str -> A[B[X]] ] }
@@ -2004,7 +2008,7 @@ A:{ .m:Str -> A[B[X]] ] }
 In file: [###].fear
 
 001| A:{ .m:Str -> (1 + 2 ] }
-   |               ^^^^^^^^
+   |               ^-------
 
 While inspecting groups of parenthesis
 Wrong closer for "(" group.
@@ -2019,7 +2023,7 @@ A:{ .m:Str -> (1 + 2 ] }
 In file: [###].fear
 
 001| A:{ .m:Str -> E[1,2) }
-   |                ^^^^^
+   |                ^----
 
 While inspecting groups of parenthesis
 Wrong closer for "[" group.
@@ -2063,13 +2067,13 @@ A:{ .m:Str -> E[1, 2, 3
 In file: [###].fear
 
 001| A:{ .m:Str -> { x: 1 ) }
-   |               ^^^^^^^^
+   |               -------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m:Str -> { x: 1 ) }
@@ -2079,13 +2083,13 @@ A:{ .m:Str -> { x: 1 ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> { x: 1 ) }
-   |               ^^^^^^^^
+   |               -------^
 
 While inspecting groups of parenthesis
 Wrong closer for "{" group.
 Found instead: ")".
 This ")" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 2 UnexpectedToken
 """, """
 A:{ .m:Str -> { x: 1 ) }
@@ -2096,7 +2100,7 @@ B:{} C:{}
 In file: [###].fear
 
 001| A:{ .m:Str -> ( 1 + 2; ) }
-   |               ^^^^^^^^
+   |               -------^
 
 While inspecting groups of parenthesis
 Unclosed "(" group before ";".
@@ -2112,7 +2116,7 @@ A:{ .m:Str -> ( 1 + 2; ) }
 In file: [###].fear
 
 001| A:{ .m:Str -> ( Foo[ { a } ) ] }
-   |                    ^^^
+   |                    ^--
 
 While inspecting groups of parenthesis
 Unclosed "[" group before "{".
@@ -2131,7 +2135,7 @@ In file: [###].fear
 While inspecting groups of parenthesis
 File ended while parsing a "{" group.
 This "{" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{ .m:Str -> { a: 1, b: 2
@@ -2141,7 +2145,7 @@ A:{ .m:Str -> { a: 1, b: 2
 In file: [###].fear
 
 001| A:{ .m:A -> this.foo( }
-   |                     ^^^
+   |                     ^--
 
 While inspecting groups of parenthesis
 Wrong closer for "(" group.
@@ -2156,7 +2160,7 @@ A:{ .m:A -> this.foo( }
 In file: [###].fear
 
 001| A:{ .m:A -> this.foo( } B:{} C:{};
-   |                     ^^^
+   |                     ^--
 
 While inspecting groups of parenthesis
 Wrong closer for "(" group.
@@ -2178,7 +2182,7 @@ While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a string literal between here and the stopping point.
 Did you mean to place the closer outside the string literal?
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{ .m:Str -> { "json } aaa"
@@ -2227,6 +2231,7 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
+This method body contains "->": a ";" may be missing between two method declarations.
 Error 6 MissingSeparator
 """, """
 A: base.Main{ .foo->A .beer->B}
@@ -2243,7 +2248,6 @@ In file: [###].fear
 
 While inspecting header element > file header > full file
 Missing "in" keyword.
-Expected: "in".
 Error 2 UnexpectedToken
 """, """
 map goo as _boo;
@@ -2352,7 +2356,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing folder name.
 Found instead: "foo_v5".
-Expected: "folder name: the _ symbol followed by a package name".
+Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, """
 map foo as foo_v5 in _lib;
@@ -2366,7 +2370,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing "of" keyword.
 Found instead: "_foo_v4".
-Expected: "of".
 Error 2 UnexpectedToken
 """, """
 map foo as _foo_v5 in _lib instead _foo_v4;
@@ -2379,7 +2382,7 @@ In file: [###].fear
 
 While inspecting header element > file header > full file
 Missing folder name.
-Expected: "folder name: the _ symbol followed by a package name".
+Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, """
 map foo as _foo_v5 in _lib instead of;
@@ -2392,7 +2395,7 @@ In file: [###].fear
 
 While inspecting header element > file header > full file
 Missing folder name.
-Expected: "folder name: the _ symbol followed by a package name".
+Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, """
 map foo as _foo_v5 in _lib instead of _foo_v4,;
@@ -2406,7 +2409,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing folder name.
 Found instead: "foo_v4".
-Expected: "folder name: the _ symbol followed by a package name".
+Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, """
 map foo as _foo_v5 in _lib instead of foo_v4;
@@ -2437,7 +2440,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing folder name.
 Found instead: "lib".
-Expected: "folder name: the _ symbol followed by a package name".
+Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, """
 map foo as _foo_v5 in lib;
@@ -2451,7 +2454,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing "as" keyword.
 Found instead: "_foo_v5".
-Expected: "as".
 Error 2 UnexpectedToken
 """, """
 map foo _foo_v5 in _lib;
@@ -2465,7 +2467,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing package name.
 Found instead: "con".
-Expected: "id starting with a-z followed by any amount of a-z0-9 or the _ symbol".
+Expected: id starting with a-z followed by any amount of a-z0-9 or the _ symbol.
 Error 2 UnexpectedToken
 """, """
 map con as _foo_v5 in _lib;
@@ -2479,7 +2481,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing package name.
 Found instead: "Foo".
-Expected: "id starting with a-z followed by any amount of a-z0-9 or the _ symbol".
+Expected: id starting with a-z followed by any amount of a-z0-9 or the _ symbol.
 Error 2 UnexpectedToken
 """, """
 map Foo as _foo_v5 in _lib;
@@ -2493,7 +2495,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing "as" keyword.
 Found instead: ".bar".
-Expected: "as".
 Error 2 UnexpectedToken
 """, """
 map foo.bar as _foo_v5 in _lib;
@@ -2507,7 +2508,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing folder name.
 Found instead: "_con".
-Expected: "folder name: the _ symbol followed by a package name".
+Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, """
 map foo as _con in _lib;
@@ -2521,7 +2522,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing folder name.
 Found instead: "__foo".
-Expected: "folder name: the _ symbol followed by a package name".
+Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, """
 map foo as __foo in _lib;
@@ -2535,7 +2536,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing folder name.
 Found instead: "_nul".
-Expected: "folder name: the _ symbol followed by a package name".
+Expected: folder name: the _ symbol followed by a package name.
 Error 2 UnexpectedToken
 """, """
 map foo as _foo_v5 in _lib instead of _foo_v4, _nul;
@@ -2589,7 +2590,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing "in" keyword.
 Found instead: "_lib".
-Expected: "in".
 Error 2 UnexpectedToken
 """, """
 map foo as _foo_v5 _lib;
@@ -2647,7 +2647,6 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing simple type name.
 Found instead: "beer.F1".
-Expected: "type name".
 Error 2 UnexpectedToken
 """, """
 
@@ -2663,7 +2662,7 @@ In file: [###].fear
 While inspecting header element > file header > full file
 Missing type name.
 Found instead: "a1".
-Expected one of: "type name", "signed number (eg. -23.0045)", "unsigned number (eg. 23.0045)", "signed number (eg. -23)", "unsigned number (eg. 23)", "`...`", `"..."`.
+A type name starts with an uppercase letter, after the package name if any, as in "Point" or "base.Nat".
 Error 2 UnexpectedToken
 """, """
 use a1 as F1;
@@ -2752,7 +2751,6 @@ In file: [###].fear
 While inspecting type declaration > full file
 Missing simple type name.
 Found instead: "foo.A".
-Expected: "type name".
 Error 2 UnexpectedToken
 """, """
 foo.A:{  }
@@ -3099,7 +3097,7 @@ In file: [###].fear
 
 While inspecting type declaration > full file
 Missing type declaration colon.
-Found instead: a group in {..}.
+Found instead: "{...}".
 Expected: ":".
 Error 2 UnexpectedToken
 """, """
@@ -3207,7 +3205,7 @@ While inspecting groups of parenthesis
 Unclosed "{" group.
 Found a matching closer inside a line comment "//" between here and the stopping point.
 Did you mean to place the closer outside the line comment "//"?
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, """
 A:{ .foo:A ->
@@ -3417,7 +3415,7 @@ In file: [###].fear
 While inspecting arguments list > method body > method declaration > type declaration body > type declaration > full file
 Missing method name.
 Found instead: "h".
-Expected one of: ".name", "binary operator (eg. +, *, -)".
+Expected one of: method name (like ".foo"), binary operator (like "+", "*", "-").
 Error 2 UnexpectedToken
 """, """
 User:{
@@ -3482,7 +3480,7 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > type declaration > full file
 Missing generic bounds.
-Found instead: a group in [..].
+Found instead: "[...]".
 Expected: ":".
 Error 2 UnexpectedToken
 """, """
@@ -3496,7 +3494,7 @@ In file: [###].fear
 
 While inspecting generic bounds declaration > method signature > method declaration > type declaration body > type declaration > full file
 Missing generic bounds.
-Found instead: a group in [..].
+Found instead: "[...]".
 Expected: ":".
 Error 2 UnexpectedToken
 """, """
@@ -3585,7 +3583,7 @@ While inspecting type declaration > full file
 This is not a top level type declaration.
 Top level code can only contain type declarations.
 A type declaration starts with a type name, like "Point:{..}".
-Found instead: a group in (..).
+Found instead: "(...)".
 Likely cause: an extra "}" closed a type declaration unintentionally.
 Error 2 UnexpectedToken
 """, """
@@ -3653,7 +3651,7 @@ In file: [###].fear
 While inspecting method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: "_".
-Expected one of: "name", "type name", "(", "{".
+Expected one of: name, type name, "(", "{".
 Error 2 UnexpectedToken
 """, """
 A:{ .m:A->_ }
@@ -3667,7 +3665,7 @@ In file: [###].fear
 While inspecting method declaration > type declaration body > type declaration > full file
 Missing expression.
 Found instead: "_".
-Expected one of: "name", "type name", "(", "{".
+Expected one of: name, type name, "(", "{".
 Error 2 UnexpectedToken
 """, """
 A:{_ A +1.0 }
@@ -3681,7 +3679,7 @@ In file: [###].fear
 While inspecting generic bounds declaration > type declaration > full file
 Missing generic type parameter name.
 Found instead: "base.Nat".
-Expected: "type name".
+Expected: type name.
 Error 2 UnexpectedToken
 """, """
 A[base.Nat]:{}
@@ -3837,6 +3835,355 @@ No choice of id makes all the names of this pattern valid.
 Error 2 UnexpectedToken
 """, """
 A:{.m({.a', .read, .mut}:A):A}
+""");}
+@Test void unclosedSquareBeforeANameNamesTheName(){fail("""
+In file: [###].fear
+
+001| A[X:foo]:{}
+   |  ---^^^
+
+While inspecting groups of parenthesis
+Unclosed "[" group before "foo".
+This "foo" may be unintended.
+Otherwise expected: "]".
+Error 0 Unclosed
+""", """
+A[X:foo]:{}
+""");}
+@Test void lowercaseTypeDeclarationName(){fail("""
+In file: [###].fear
+
+001| point:{ .x: base.Nat -> 3 }
+   | ^^^^^~---------------------
+
+While inspecting file header > full file
+A file cannot start with "point".
+A file starts with the "use" and "map" directives, if any, and then the type declarations.
+A type declaration starts with a type name, like "Point:{..}", and a type name starts with an uppercase letter.
+Error 2 UnexpectedToken
+""", """
+point:{ .x: base.Nat -> 3 }
+""");}
+@Test void javaClassDeclaration(){fail("""
+In file: [###].fear
+
+001| class Point{ }
+   | ^^^^^---------
+
+While inspecting file header > full file
+A file cannot start with "class".
+A file starts with the "use" and "map" directives, if any, and then the type declarations.
+A type declaration starts with a type name, like "Point:{..}", and a type name starts with an uppercase letter.
+Error 2 UnexpectedToken
+""", """
+class Point{ }
+""");}
+@Test void uppercaseMethodName(){fail("""
+In file: [###].fear
+
+001| A:{ .Size: A -> this }
+   |     ^^^^^
+
+While inspecting a method name
+Method name ".Size" starts with an uppercase letter.
+A method name starts with a lowercase letter after the ".", like ".size".
+Error 2 UnexpectedToken
+""", """
+A:{ .Size: A -> this }
+""");}
+@Test void uppercaseMethodNameInACall(){fail("""
+In file: [###].fear
+
+001| A:{ .size: A -> A.Size }
+   |                  ^^^^^
+
+While inspecting a name
+"A.Size" is neither a type name nor a method call.
+A package name and a method name start with a lowercase letter, as in "a.Size" (type "Size" of package "a") and "A.size" (method ".size" called on "A").
+Error 2 UnexpectedToken
+""", """
+A:{ .size: A -> A.Size }
+""");}
+@Test void uppercaseMethodNameAfterAQualifiedTypeName(){fail("""
+In file: [###].fear
+
+001| A:{ .size: A -> base.Nat.Size }
+   |                         ^^^^^
+
+While inspecting a method name
+Method name ".Size" starts with an uppercase letter.
+A method name starts with a lowercase letter after the ".", like ".size".
+Error 2 UnexpectedToken
+""", """
+A:{ .size: A -> base.Nat.Size }
+""");}
+@Test void uppercasePackageName(){fail("""
+In file: [###].fear
+
+001| A:{ .size: Base.Nat -> 3 }
+   |                ^^^^
+
+While inspecting a name
+"Base.Nat" is neither a type name nor a method call.
+A package name and a method name start with a lowercase letter, as in "base.Nat" (type "Nat" of package "base") and "Base.nat" (method ".nat" called on "Base").
+Error 2 UnexpectedToken
+""", """
+A:{ .size: Base.Nat -> 3 }
+""");}
+@Test void equalsInsteadOfArrow(){fail("""
+In file: [###].fear
+
+001| A:{ .size: base.Nat = 3 }
+   |   --~~~~~~~~~~~~~~~~^~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected "=" after the method signature.
+A method body follows "->", as in ".size: Nat -> 3".
+Error 2 UnexpectedToken
+""", """
+A:{ .size: base.Nat = 3 }
+""");}
+@Test void colonInsteadOfArrow(){fail("""
+In file: [###].fear
+
+001| A:{ .me(a: A): A : a }
+   |   --~~~~~~~~~~~~~^~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected ":" after the method signature.
+A method body follows "->", as in ".size: Nat -> 3".
+Error 2 UnexpectedToken
+""", """
+A:{ .me(a: A): A : a }
+""");}
+@Test void fatArrowInsteadOfArrow(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A -> A{ .me(a: A): A => a } }
+   |               --~~~~~~~~~~~~~^^~~--
+
+While inspecting method declaration > typed literal > method body > method declaration > type declaration body > type declaration > full file
+Unexpected "=>" after the method signature.
+A method body follows "->", as in ".size: Nat -> 3".
+Error 2 UnexpectedToken
+""", """
+A:{ .m: A -> A{ .me(a: A): A => a } }
+""");}
+@Test void capabilityAfterTheReturnType(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A mut -> this }
+   |   --~~~~~~~^^^~~~~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected "mut": the code before it is already complete.
+A capability is written before the type: "mut A", not "A mut".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .me: A mut -> this }
+""");}
+@Test void missingSemicolonAfterAnAbstractMethod(){fail("""
+In file: [###].fear
+
+001| Direction:{ .turn: Direction .reverse: Direction -> this.turn.turn }
+   |             -----------------^^^^^^^^~~~~~~~~~~~------------------
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected ".reverse": the code before it is already complete.
+A ";" may be missing before ".reverse", between two method declarations.
+Error 4 ExtraTokenInGroup
+""", """
+Direction:{ .turn: Direction .reverse: Direction -> this.turn.turn }
+""");}
+@Test void missingSemicolonBetweenTwoAbstractMethods(){fail("""
+In file: [###].fear
+
+001| Direction:{ .turn: Direction .reverse: Direction }
+   |             -----------------^^^^^^^^~~~~~~~~~~~
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Expected semicolon or closing curly brace.
+Expected one of: ";", "}".
+A ";" may be missing before ".reverse", between two method declarations.
+Error 4 ExtraTokenInGroup
+""", """
+Direction:{ .turn: Direction .reverse: Direction }
+""");}
+@Test void aMethodNameInsideParametersGetsNoSemicolonHint(){fail("""
+In file: [###].fear
+
+001| A:{ .m(a: A .b): A -> a }
+   |     ---~~~~~^^----
+
+While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
+Expected comma, colon or arrow.
+Expected one of: ",", ":", "->".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .m(a: A .b): A -> a }
+""");}
+@Test void capabilityAfterTheParameterType(){fail("""
+In file: [###].fear
+
+001| A:{ .me(a: A mut): A -> a }
+   |     ----~~~~~^^^----
+
+While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
+Expected comma, colon or arrow.
+Expected one of: ",", ":", "->".
+A capability is written before the type: "mut A", not "A mut".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .me(a: A mut): A -> a }
+""");}
+@Test void angleBracketsForGenericTypeArguments(){fail("""
+In file: [###].fear
+
+001| A:{ .me: List<A> -> this }
+   |     ---------^~~--------
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected "<": the code before it is already complete.
+Generic type arguments are written in square brackets, as in "List[A]".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .me: List<A> -> this }
+""");}
+@Test void missingSemicolonBetweenMethods(){fail("""
+In file: [###].fear
+
+002|   .a: A -> this
+003|   .b: A -> this
+   |       ^
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+This method body contains "->": a ";" may be missing between two method declarations.
+Error 6 MissingSeparator
+""", """
+A:{
+  .a: A -> this
+  .b: A -> this
+  }
+""");}
+@Test void javaReturn(){fail("""
+In file: [###].fear
+
+001| A:{ .a: A -> return this; }
+   |   --~~~~~~~~~^^^^^^~~~~~---
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+Fearless has no "return": the body of a method is a single expression, and its value is the result of the method.
+Error 6 MissingSeparator
+""", """
+A:{ .a: A -> return this; }
+""");}
+@Test void javaNew(){fail("""
+In file: [###].fear
+
+001| A:{ .a: A -> new A() }
+   |   --~~~~~~~~~^^^~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+Fearless has no "new": an object literal, like "A{}" or "A", creates an object.
+Error 6 MissingSeparator
+""", """
+A:{ .a: A -> new A() }
+""");}
+@Test void lowercaseReturnType(){fail("""
+In file: [###].fear
+
+001| A:{ .me: a -> this }
+   |     ~~~~~^--------
+
+While inspecting method signature > method declaration > type declaration body > type declaration > full file
+Missing type name.
+Found instead: "a".
+A type name starts with an uppercase letter, after the package name if any, as in "Point" or "base.Nat".
+Error 2 UnexpectedToken
+""", """
+A:{ .me: a -> this }
+""");}
+@Test void capabilityBeforeTheParameterName(){fail("""
+In file: [###].fear
+
+001| A:{ .me(mut a: A): A -> a }
+   |     ----~~~~^~~~----
+
+While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
+Missing type name.
+Found instead: "a".
+A capability is written before the type of parameter "a", not before its name.
+Error 2 UnexpectedToken
+""", """
+A:{ .me(mut a: A): A -> a }
+""");}
+@Test void spaceAfterTheDotOfAMethodName(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A -> this. me }
+   |                   ^
+
+While inspecting a method name
+Unrecognized text ".".
+A "." starts a method name and is directly followed by it, as in ".foo".
+Error 2 UnexpectedToken
+""", """
+A:{ .me: A -> this. me }
+""");}
+@Test void dollarInCode(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A -> $this }
+   |               ^
+
+While inspecting the file
+Unrecognized text "$".
+This character can only appear inside string literals and comments.
+Error 2 UnexpectedToken
+""", """
+A:{ .me: A -> $this }
+""");}
+@Test void arrowInABodyWithNoMethodNameBeforeIt(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A -> x -> x }
+   |   --~~~~~~~~~^~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+Error 6 MissingSeparator
+""", """
+A:{ .m: A -> x -> x }
+""");}
+@Test void leftArrowAfterTheReturnType(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A <- this }
+   |     ------^^~~~~~
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Expected semicolon or closing curly brace.
+Expected one of: ";", "}".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .m: A <- this }
+""");}
+@Test void extraContentWithNothingBefore(){fail("""
+In file: [###].fear
+
+001| Use base.Nat as N;
+   | ^^^---------------
+002| A:{}
+
+While inspecting full file
+Unexpected "Use".
+Error 4 ExtraTokenInGroup
+""", """
+Use base.Nat as N;
+A:{}
 """);}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?
