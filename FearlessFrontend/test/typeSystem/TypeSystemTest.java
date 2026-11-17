@@ -219,6 +219,35 @@ G:{ .k[X](y:X):X; }
 Sup:{ .m[X](x:X):G; }
 B:Sup{ .m(x)->{ .k(y)->x } }
 """));}
+@Test void keptInheritedMethodGenericOfAMutMethodMustNotBeShadowedByNestedLiteral(){fail("""
+003| B:Sup{ .m(x)->{ .k(y)->x } }
+   |        ---------~~~~~~~^--
+
+While inspecting parameter "x" > ".k(_)" line 3 > ".m(_)" line 3
+Method ".k(_)" inside the object literal instance of "iso G" (line 3)
+is implemented with an expression returning "imm X".
+Parameter "x" has type "imm X" instead of a subtype of "_AX".
+
+See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
+B:Sup{.m[X:imm](x:X):mut G->mut G{mut .k[_AX:imm](y:_AX):_AX->x}}
+""", List.of("""
+G:{ mut .k[X](y:X):X; }
+Sup:{ .m[X](x:X):mut G; }
+B:Sup{ .m(x)->{ .k(y)->x } }
+"""));}
+@Test void lambdaParameterReturnedAsTheMethodGenericOfANestedLiteral(){failWf("""
+004| User:{ .m: G -> Use#{x -> mut G{ .k(y) -> x }} }
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting object literal instance of "F[_,_]"
+Type inference concluded that this object literal implements "F[?,mut G]",
+but it could not infer generic type argument 1 for generic type parameter "A" of "F[_,_]".
+""", List.of("""
+G:{ mut .k[X](y:X):X; }
+F[A:**,R:**]:{ #(a: A): R }
+Use:{ #[A:**](f: F[A,mut G]): G -> G }
+User:{ .m: G -> Use#{x -> mut G{ .k(y) -> x }} }
+"""));}
 @Test void freshMethodGenericMustNotCaptureKeptEnclosingGeneric(){ok(List.of("""
 F[T]:{ .k[X](y:X):T; }
 Sup:{ .m[_AX](x:_AX):F[_AX]; }
@@ -5600,6 +5629,93 @@ Two:{ #[X:*,Y:*](a: X, b: Y): Y -> b }
 F1[X:*,R:*]:{ mut #(x: X): R }
 Ap:{ #[X:*,R:*](f: mut F1[X,R]): R -> this#f }
 U:{ .use: A -> Ap#{x -> Two#(mut G{ # -> Imm#x }, Mut#x)} }
+"""));}
+@Test void lambdaParameterUsedAsAnImmTypeParameterThenAsReadImmIsImm(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:*]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asImm(x), this.asReadImm(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsAReadImmTypeParameterThenAsImmIsImm(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:*]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asReadImm(x), this.asImm(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsAReadTypeParameterThenAsReadImmIsReadImm(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:*]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asRead(x), this.asReadImm(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsAReadImmTypeParameterThenAsReadIsReadImm(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:*]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asReadImm(x), this.asRead(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsAMutTypeParameterThenAsReadImmIsMut(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:mut]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asMut(x), this.asReadImm(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsAReadImmTypeParameterThenAsMutIsMut(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Two:{ #(a: A, b: A): A -> a }
+G[T:mut]:{
+  .asImm(t: imm T): A -> A;
+  .asMut(t: mut T): A -> A;
+  .asRead(t: read T): A -> A;
+  .asReadImm(t: read/imm T): A -> A;
+  .m: A -> Use#{x -> Two#(this.asReadImm(x), this.asMut(x))};
+  }
+"""));}
+@Test void lambdaParameterUsedAsReadInsideAnImmLiteralIsImm(){ok(List.of("""
+A:{}
+F[X:**,R:**]:{ #(x: X): R }
+L0[R:**]:{ #: R }
+Use:{ #[X:**](f: F[X,A]): A -> A }
+Lazy:{ #(f: L0[A]): A -> A }
+Read:{ #(a: read A): A -> A }
+User:{ .m: A -> Use#{x -> Lazy#{Read#x}} }
 """));}
 @Test void lambdaParameterUsedAsAMutTypeParameterThenCapturedAsImmIsMut(){ok(List.of("""
 Mut[T:imm,mut]:{ #(a: mut T): mut T -> a }

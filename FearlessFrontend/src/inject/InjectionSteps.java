@@ -129,8 +129,10 @@ public record InjectionSteps(Methods meths, int cap){
       var rc= meetRcNoH(x1.rc(), x2.rc());
       return x1.withRCTs(rc, meet(x1.c().ts(), x2.c().ts()));
     }
-    if (!(t1 instanceof IT.RCX x1 && t2 instanceof IT.RCX(var rc2, var x2)) || !x1.x().equals(x2)){ return t1; }
-    return x1.withRC(meetRcNoH(Optional.of(x1.rc()), Optional.of(rc2)).get());
+    if (!xName(t1).equals(xName(t2)) || t1 instanceof IT.X || t2 instanceof IT.X){ return t1; }
+    if (!(t1 instanceof IT.RCX x1)){ return meet(t2, t1); }
+    if (t2 instanceof IT.RCX(var rc2, _)){ return x1.withRC(meetRcNoH(Optional.of(x1.rc()), Optional.of(rc2)).get()); }
+    return noH(x1.rc()).compareTo(RC.read) < 0 ? t1 : t2;
   }
   static Optional<RC> meetRcNoH(Optional<RC> a, Optional<RC> b){
     if (a.isEmpty()){ return b.map(InjectionSteps::noH); }
@@ -268,7 +270,7 @@ public record InjectionSteps(Methods meths, int cap){
   private List<IT> qMarks(int n, IT t, int tot){ return IntStream.range(0, tot).<IT>mapToObj(i -> i == n ? t : IT.U.Instance).toList(); }
   private E nextX(Gamma g, E.X x){
     var t1Base= g.get(x.name());
-    var notIn= g.notFunnelledInto(x.name());
+    var notIn= g.notFunnelledInto(x.name(), t1Base);
     if (notIn.isPresent()){ throw meths.p().err().captureNotFunnelled(x, t1Base, notIn.get()); }
     var t1= g.getWithRC(x.name());
     var t2= x.t();
@@ -278,8 +280,9 @@ public record InjectionSteps(Methods meths, int cap){
   }
   private void updateG(Gamma g, String x, IT t2){
     var open= stripRCAlsoThisSide(t2);
+    if (g.notFunnelledInto(x, open).isPresent()){ return; }
     g.update(x, meet(g.learned(x), open));
-    if (g.learnedWithRC(x).equals(t2)){ return; }
+    if (g.seenImm(x) || g.withRC(x, open).equals(t2)){ return; }
     g.update(x, open instanceof IT.X && g.learned(x).equals(open) ? t2 : meet(g.learned(x), t2));
   }
   private E nextT(E.Type t){

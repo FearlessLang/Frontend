@@ -41,7 +41,7 @@ import java.util.stream.*;
   }
   record B(String x,Set<RC>caps){
     static List<String>v(List<B>b){return b==null?list():map(b,B::x);}
-    static B get(List<B>b,String name){return find(b,e->e.x.equals(name));}
+    static B get(List<B>b,String name){return required(find(b,e->e.x.equals(name)));}
   }
   enum K{
     Ws("\\s+|//[^\\n]*|/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/"),
@@ -526,7 +526,8 @@ import java.util.stream.*;
     T meet(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
       if(a instanceof R p&&z instanceof R q)return p.c.name.equals(q.c.name)?p.with(meet(p.r,q.r),meet(p.c.types,q.c.types)):or(below(p,q),or(below(q,p),p));
-      return a instanceof RX p&&z instanceof RX q&&p.x.equals(q.x)?p.rc(meet(p.r,q.r)):a;
+      if(z.v()==null||!z.v().equals(a.v())||a instanceof X||z instanceof X)return a;if(!(a instanceof RX p))return meet(z,a);
+      return z instanceof RX q?p.rc(meet(p.r,q.r)):p.r.h().compareTo(read)<0?a:z;
     }
     RC meet(RC a,RC b){
       return b==null?a:Collections.min(list(or(a,b).h(),b.h()));
@@ -554,8 +555,8 @@ import java.util.stream.*;
     List<E>solve(List<B>b,IG g,List<E>es){return map(es,ei->solve(b,g,ei));}
     E next(List<B>b,IG g,E e){return switch(e){
       case E.X x->{
-        var h=find(g,f->f.vars.containsKey(x.name));var o=h.vars.get(x.name);var k="'"+x.name;var z=x.t;var s=strip(z);var q=meet(h.vars.get(k),s);var a=o;var p=q;for(var f:g.subList(g.indexOf(h)+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);p=IG.adapt(p,f.r,f.b);}if(a.equals(z))yield x;
-        h.vars.put(k,p.equals(z)?q:s instanceof X&&q.equals(s)?z:meet(q,z));yield x.t(meet(a,z));
+        var h=find(g,f->f.vars.containsKey(x.name));var o=h.vars.get(x.name);var k="'"+x.name;var z=x.t;var s=strip(z);var q=meet(h.vars.get(k),s);var a=o;var p=s;var i=false;for(var f:g.subList(g.indexOf(h)+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);p=IG.adapt(p,f.r,f.b);i|=f.r==imm;}if(a.equals(z))yield x;
+        h.vars.put(k,i||p.equals(z)?q:s instanceof X&&q.equals(s)?z:meet(q,z));yield x.t(meet(a,z));
       }
       case Literal l->{if(!l.expanded){if(l.anon&&l.cs.size()==0)inferred.add(l.name.s);
       l=l.t(!l.anon?l.self(l.r):l.cs.size()==1?new R(l.r,l.cs.get(0)):l.t);if(!(l.t instanceof R(_,var c)))yield l;

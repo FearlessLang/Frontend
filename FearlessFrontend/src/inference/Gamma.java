@@ -76,18 +76,16 @@ public final class Gamma{
     size = newSize;
     depth -= 1;
   }
-  public IT getWithRC(String x){ return withRC(ts, x); }
-  public IT learnedWithRC(String x){ return withRC(learned, x); }
-  private IT withRC(IT[] from, String x){
+  public boolean seenImm(String x){ return IntStream.range(declDepth[indexOf(x)] + 1, depth).anyMatch(s -> rcs[s] == RC.imm); }
+  public IT getWithRC(String x){ return withRC(x, get(x)); }
+  public IT withRC(String x, IT t){
     var i= indexOf(x);         // offensive: -1 would crash later
-    var t= from[i];            // the stored (true) type
     for (var s= declDepth[i] + 1; s < depth; s += 1){ t = adapt(t, rcs[s], bss[s]); }
     return t;
   }
-  public Optional<E.Literal> notFunnelledInto(String x){
-    var i= indexOf(x);
-    var xs= ts[i].ftv().toList();
-    return IntStream.range(declDepth[i] + 1, depth).filter(s -> !B.xs(bss[s]).containsAll(xs)).mapToObj(s -> owners[s]).findFirst();
+  public Optional<E.Literal> notFunnelledInto(String x, IT t){
+    var xs= t.ftv().toList();
+    return IntStream.range(declDepth[indexOf(x)] + 1, depth).filter(s -> !B.xs(bss[s]).containsAll(xs)).mapToObj(s -> owners[s]).findFirst();
   }
   private static IT adapt(IT t, RC rc, List<B> bs){ return switch (t){
     case IT.X(var x, _) -> adaptX(t, B.get(bs, x).rcs(), rc);
