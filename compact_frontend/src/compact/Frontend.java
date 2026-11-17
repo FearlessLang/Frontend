@@ -576,8 +576,8 @@ import java.util.stream.*;
       case Call c->{var e1=solve(b,g,c.e);MS m;
       if(!((e1 instanceof Literal l&&instance(l)&&cache.containsKey(l.name)?new R(l.r,l.cs.get(0)):e1.t()) instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
       var n=m.cas.size();var k=m.mb.size();
-      var all=decide(m.bs,push(m.cas,c.written&&c.y.size()==k?c.y:qs(k)),push(new Con(m.ret,c.t,false),zip(m.ps,c.es,(p,x)->new Con(p,empty(x)?u:x.t(),true))));
-      var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v(),all))));
+      Function<List<E>,List<T>>d=xs->decide(m.bs,push(m.cas,c.y.size()==k?c.y:qs(k)),push(new Con(m.ret,c.t,false),zip(m.ps,xs,(p,x)->new Con(p,empty(x)?u:x.t(),true))));
+      var pre=d.apply(c.es);var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v(),pre))));var all=d.apply(es);
       yield new Call(meet(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v(),all)),c.written);
       }
     };}

@@ -5507,6 +5507,116 @@ F[A,R]:{ #(a: A): R }
 Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
 User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#[Animal](x, Cat).name)} }
 """));}
+@Test void argumentCallTypeArgumentDecidedWithoutAVariableThenTheVariableRequiredAsAnUnrelatedTypeIsRejected(){fail("""
+009| User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat), NeedDog#(x))} }
+   |                           -------------------------~~~~~~~^^~~-
+
+While inspecting "#(_)" line 9 > ".m" line 9
+This call to method "NeedDog#(_)" cannot typecheck.
+Argument 1 has type "Cat".
+That is not a subtype of "Dog" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#(x)
+""", List.of("""
+Animal:{}
+Cat:Animal{}
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat), NeedDog#(x))} }
+"""));}
+@Test void variableRequiredThenAnArgumentCallTypeArgumentDecidedWithoutTheVariableAsAnUnrelatedTypeIsRejected(){fail("""
+009| User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, Cat))} }
+   |                           -----------------------~~~~^^~~~~~~~-
+
+While inspecting "#(_)" line 9 > ".m" line 9
+This call to method "Pick#(_,_)" cannot typecheck.
+Argument 1 has type "Dog".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#[imm,Cat](x,-)
+""", List.of("""
+Animal:{}
+Cat:Animal{}
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, Cat))} }
+"""));}
+@Test void argumentCallTypeArgumentDecidedFromAParameterThenTheVariableRequiredAsAnUnrelatedTypeIsRejected(){fail("""
+009| User:{ .m(c: Cat): Animal -> Use#{x -> Two#(Pick#(x, c), NeedDog#(x))} }
+   |                                   -----------------------~~~~~~~^^~~-
+
+While inspecting "#(_)" line 9 > ".m(_)" line 9
+This call to method "NeedDog#(_)" cannot typecheck.
+Argument 1 has type "Cat".
+That is not a subtype of "Dog" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#(x)
+""", List.of("""
+Animal:{}
+Cat:Animal{}
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m(c: Cat): Animal -> Use#{x -> Two#(Pick#(x, c), NeedDog#(x))} }
+"""));}
+@Test void variableRequiredThenAnArgumentCallTypeArgumentDecidedFromAParameterAsAnUnrelatedTypeIsRejected(){fail("""
+009| User:{ .m(c: Cat): Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, c))} }
+   |                                   -----------------------~~~~^^~~~~~-
+
+While inspecting "#(_)" line 9 > ".m(_)" line 9
+This call to method "Pick#(_,_)" cannot typecheck.
+Argument 1 has type "Dog".
+That is not a subtype of "Cat" (the type required by the method signature).
+
+Compressed relevant code with inferred types: (compression indicated by `-`)
+-#[imm,Cat](x,-)
+""", List.of("""
+Animal:{}
+Cat:Animal{}
+Dog:Animal{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m(c: Cat): Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, c))} }
+"""));}
+@Test void argumentCallTypeArgumentDecidedFromATypeNameWithWidenToThenTheVariableRequiredAsASubtypeIsTheSubtype(){ok(List.of("""
+Animal:{}
+Cat:Animal, base.WidenTo[Animal]{}
+Dog:Animal, base.WidenTo[Animal]{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(Pick#(x, Cat), NeedDog#(x))} }
+"""));}
+@Test void variableRequiredAsASubtypeThenAnArgumentCallTypeArgumentDecidedFromATypeNameWithWidenToIsTheSubtype(){ok(List.of("""
+Animal:{}
+Cat:Animal, base.WidenTo[Animal]{}
+Dog:Animal, base.WidenTo[Animal]{}
+Two:{ #(a: Animal, b: Animal): Animal -> a }
+NeedDog:{ #(d: Dog): Animal -> d }
+Pick:{ #[T](a: T, b: T): Animal -> Animal }
+F[A,R]:{ #(a: A): R }
+Use:{ #[A](f: F[A,Animal]): Animal -> Animal }
+User:{ .m: Animal -> Use#{x -> Two#(NeedDog#(x), Pick#(x, Cat))} }
+"""));}
 @Test void variableTypeArgumentRequiredThroughANestedLambdaParameterThenAsASupertypeIsTheSubtype(){ok(List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }

@@ -214,8 +214,8 @@ public record InjectionSteps(Methods meths, int cap){
   private List<E> nextStar(List<B> bs, Gamma g, List<E> es){
     return norm(es, es.stream().map(ei -> nextStar(bs, g, ei)).toList());
   }
-  private List<E> meetWithTargs(List<E> es, MSigL m, List<IT> targs){
-    var res= norm(es, Streams.zip(es, m.ps0()).map((e,p) -> meet(e, m.inst(p, targs))).toList());
+  private List<E> meetWithTargs(List<E> es, MSigL m, List<IT> all){
+    var res= norm(es, Streams.zip(es, m.ps0()).map((e,p) -> meet(e, TypeRename.of(p, m.xs(), all))).toList());
     assert notBackToOrigin(es, res);
     return res;
   }
@@ -306,15 +306,11 @@ public record InjectionSteps(Methods meths, int cap){
     if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
     var m= om.get();
     assert m.ps0().size() == c.es().size();
-    var all= decidedThen(g, c, m);
+    var es= nextStar(bs, g, meetWithTargs(c.es(), m, decidedThen(g, c, c.es(), m)));
+    var all= decidedThen(g, c, es, m);
     assert all.size() == m.nCls()+m.bsArity();
-    var clsTs= all.subList(0, m.nCls());
-    var targs= all.subList(m.nCls(), all.size());
-    if (direct.isPresent()){ e = meet(e, rcc.withTs(clsTs)); }
-    m = m.withClsArgs(clsTs);
-    var it= meet(c.t(), m.ret(targs));
-    var es1= nextStar(bs, g, meetWithTargs(c.es(), m, targs));
-    return c.withMore(e, c.rc().orElse(m.rc()), targs, es1, it);
+    if (direct.isPresent()){ e = meet(e, rcc.withTs(all.subList(0, m.nCls()))); }
+    return c.withMore(e, c.rc().orElse(m.rc()), all.subList(m.nCls(), all.size()), es, meet(c.t(), TypeRename.of(m.ret0(), m.xs(), all)));
   }
   private static IT deFresh(Gamma g, IT t){
     if (!(t instanceof IT.RCC rcc)){ return t; }
@@ -322,9 +318,9 @@ public record InjectionSteps(Methods meths, int cap){
     var head= o != null && o.infName() && o.t() instanceof IT.RCC h && !h.c().name().equals(o.name()) ? h.c() : rcc.c();
     return new IT.RCC(rcc.rc(), head, rcc.span()).withTs(head.ts().stream().map(ti -> deFresh(g, ti)).toList());
   }
-  private List<IT> decidedThen(Gamma g, E.Call c, MSigL m){
-    var given= Push.of(m.clsArgs(), writtenTargs(c) && c.targs().size() == m.bsArity() ? c.targs() : qMarks(m.bsArity()));
-    var args= Streams.zip(m.ps0(), c.es()).map((p,e) -> new Con(p, emptyLiteral(e) ? IT.U.Instance : e.t(), true)).toList();
+  private List<IT> decidedThen(Gamma g, E.Call c, List<E> es, MSigL m){
+    var given= Push.of(m.clsArgs(), c.targs().size() == m.bsArity() ? c.targs() : qMarks(m.bsArity()));
+    var args= Streams.zip(m.ps0(), es).map((p,e) -> new Con(p, emptyLiteral(e) ? IT.U.Instance : e.t(), true)).toList();
     return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.t(), false), args));
   }
   private record Con(IT declared, IT actual, boolean in){}
