@@ -331,7 +331,7 @@ public record InjectionSteps(Methods meths, int cap){
     var lifted= join(shape, cons.stream().filter(c -> c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(qMarks(xs.size()), this::join));
     var all= cons.stream().filter(c -> !c.in() && !(c.declared() instanceof IT.RCC)).map(ref).reduce(lifted, this::meet);
     var res= Streams.zip(shape, all).map((a,b) -> a.isTV() ? a : b).toList();
-    return normToBounds(bs, res.stream().map(t -> deFresh(g, t)).toList());
+    return Streams.zip(given, normToBounds(bs, res.stream().map(t -> deFresh(g, t)).toList())).map((a,b) -> a.isTV() ? a : b).toList();
   }
   private static boolean emptyLiteral(E e){ return e instanceof E.Type tt ? tt.src().inner instanceof fearlessFullGrammar.E.Literal : e instanceof E.Literal l && l.infName() && l.ms().isEmpty(); }
   static boolean writtenTargs(E.Call c){ return c.src().inner instanceof fearlessFullGrammar.E.Call sc && sc.targs().isPresent(); }
