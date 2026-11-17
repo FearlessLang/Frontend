@@ -14,10 +14,10 @@ import utils.Streams;
 
 public record FreeXs(Gamma g){
   Stream<String> ftvE(E e){ return switch (e){
-    case X(var name, var t, _, _) -> Stream.concat(t.ftv(), Stream.ofNullable(g._get(name)).flatMap(IT::ftv));
+    case X(var name, var t, _, _, _) -> Stream.concat(t.ftv(), Stream.ofNullable(g._get(name)).flatMap(IT::ftv));
     case Literal l -> Streams.of(l.bs().stream().map(B::x), ftvCs(l.cs()), ftvMs(l.ms()));
     //l.bs() alone is not enough because of inference order: we may have not inferred the l.bs() yet!
-    case Call(var ei, _, _, var targs, var es, _, _, _) -> Streams.of(ftvE(ei), ftvTs(targs), ftvEs(es));
+    case Call(var ei, _, _, var targs, var es, _, _, _, _) -> Streams.of(ftvE(ei), ftvTs(targs), ftvEs(es));
     case Type(var t, _, _, _) -> t.ftv();
   };}
   private Stream<String> ftvM(M m){

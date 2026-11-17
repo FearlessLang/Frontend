@@ -12,9 +12,9 @@ import naming.FreshPrefix;
 
 public record DupE(FreshPrefix fresh, E.Literal out, M m, WellFormednessErrors err){
   public E of(E e){ return switch (e){
-    case E.X(var name, var t, var src, _) -> new E.X(name, t, src, new Gamma.GammaSignature());
+    case E.X(var name, var t, var exp, var src, _) -> new E.X(name, t, exp, src, new Gamma.GammaSignature());
     case E.Type(var type, var t, var src, _) -> new E.Type(type, t, src, new Gamma.GammaSignature());
-    case E.Call c -> new E.Call(of(c.e()), c.name(), c.rc(), c.targs(), ofEs(c.es()), c.t(), c.src(), new Gamma.GammaSignature());
+    case E.Call c -> new E.Call(of(c.e()), c.name(), c.rc(), c.targs(), ofEs(c.es()), c.t(), c.exp(), c.src(), new Gamma.GammaSignature());
     case E.Literal l -> ofL(l);
   };}
   private List<E> ofEs(List<E> es){ return es.stream().map(this::of).toList(); }
@@ -24,7 +24,7 @@ public record DupE(FreshPrefix fresh, E.Literal out, M m, WellFormednessErrors e
     var oldName= l.name();
     var newName= fresh.freshTopType(oldName, oldName.arity());
     var ms= l.ms().stream().map(m -> ofM(m, oldName, newName)).toList();
-    return new E.Literal(l.rc(), newName, l.bs(), l.cs(), l.thisName(), ms, l.t(), l.src(), true, l.infHead(), new Gamma.GammaSignature());
+    return new E.Literal(l.rc(), newName, l.bs(), l.cs(), l.thisName(), ms, l.t(), l.exp(), l.src(), true, l.infHead(), new Gamma.GammaSignature());
   }
   public M ofM(M m, TName oldName, TName newName){
     var sig= m.sig();

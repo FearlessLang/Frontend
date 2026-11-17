@@ -103,10 +103,8 @@ public record InjectionSteps(Methods meths, int cap){
   }
   E meetSub(E e, IT t){
     if (e instanceof E.Type tt){ return meetSubT(tt, t); }
-    var typedLit= e instanceof E.Literal l && l.t().isTV();
-    if (typedLit){ return e; }
     e = prototypeAscribeRootReceiver(e, t);
-    return e.withT(meetSub(e.t(), t));
+    return e.withExp(meetSub(e.exp(), t));
   }
   private IT _below(RCC sub, RCC sup){
     var d= meths._from(sub.c().name());
@@ -268,11 +266,8 @@ public record InjectionSteps(Methods meths, int cap){
     var t1Base= g.get(x.name());
     var notIn= g.notFunnelledInto(x.name(), t1Base);
     if (notIn.isPresent()){ throw meths.p().err().captureNotFunnelled(x, t1Base, notIn.get()); }
-    var t1= g.getWithRC(x.name());
-    var t2= x.t();
-    if (t1.equals(t2)){ return x; }
-    if (!t2.undecided()){ updateG(g, x.name(), t2); }
-    return x.withT(meetSub(t1, t2));
+    if (!x.exp().undecided()){ updateG(g, x.name(), x.exp()); }
+    return x.withT(g.getWithRC(x.name()));
   }
   private void updateG(Gamma g, String x, IT t2){
     var open= stripRCAlsoThisSide(t2);
@@ -296,7 +291,7 @@ public record InjectionSteps(Methods meths, int cap){
   private E nextC(List<B> bs, Gamma g, E.Call c){
     var e= nextStar(bs, g, c.e());
     if (!((e instanceof E.Type tt ? tt.type() : e.t()) instanceof IT.RCC rcc)){ return c.withEEs(e, nextStar(bs, g, c.es())); }
-    var guess= overloadNorm(rcc.rc().map(rc -> rc == RC.iso ? c.t().explicitRC().orElse(rc) : rc));
+    var guess= overloadNorm(rcc.rc().map(rc -> rc == RC.iso ? c.exp().explicitRC().orElse(rc) : rc));
     var direct= methodHeader(rcc, c.name(), c.rc(), guess);
     var om= direct.isPresent() ? direct : methodHeader((IT.RCC)deFresh(g, rcc), c.name(), c.rc(), guess);
     if (om.isEmpty()){ return c.withEEs(e, nextStar(bs, g, c.es())); }
@@ -306,7 +301,7 @@ public record InjectionSteps(Methods meths, int cap){
     var all= decidedThen(g, c, es, m);
     assert all.size() == m.nCls()+m.bsArity();
     if (direct.isPresent()){ e = meetSub(e, rcc.withTs(all.subList(0, m.nCls()))); }
-    return c.withMore(e, c.rc().orElse(m.rc()), all.subList(m.nCls(), all.size()), es, meetSub(c.t(), TypeRename.of(m.ret0(), m.xs(), all)));
+    return c.withMore(e, c.rc().orElse(m.rc()), all.subList(m.nCls(), all.size()), es, TypeRename.of(m.ret0(), m.xs(), all));
   }
   private static IT deFresh(Gamma g, IT t){
     if (!(t instanceof IT.RCC rcc)){ return t; }
@@ -317,7 +312,7 @@ public record InjectionSteps(Methods meths, int cap){
   private List<IT> decidedThen(Gamma g, E.Call c, List<E> es, MSigL m){
     var given= Push.of(m.clsArgs(), c.targs().size() == m.bsArity() ? c.targs() : qMarks(m.bsArity()));
     var args= Streams.zip(m.ps0(), es).map((p,e) -> new Con(p, emptyLiteral(e) ? IT.U.Instance : e.t(), true)).toList();
-    return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.t(), false), args));
+    return decide(g, Push.of(m.clsBs(), m.methBs()), given, Push.of(new Con(m.ret0(), c.exp(), false), args));
   }
   private record Con(IT declared, IT actual, boolean in){}
   private List<IT> decide(Gamma g, List<B> bs, List<IT> given, List<Con> cons){
@@ -343,6 +338,9 @@ public record InjectionSteps(Methods meths, int cap){
     var selfPrecise= preciseSelf(l);
     if (!infHead){
       l = l.infName() && l.cs().size() == 1 ? l.withT(new IT.RCC(l.rc(), l.cs().getFirst(), l.name().approxSpan())) : selfPrecise.map(l::withT).orElse(l);
+    }
+    if (!l.t().isTV()){ l = l.withT(meetSub(l.t(), l.exp())); }
+    if (!infHead){
       if (!(l.t() instanceof IT.RCC(_, var c, _))){ return l; }//!infHead after passing this test means right now we can expand methods
       var anon= l.infName() && !c.name().equals(l.name());
       var o= anon ? g._owner(c.name()) : null;
@@ -378,7 +376,7 @@ public record InjectionSteps(Methods meths, int cap){
     notForeignPrivate(l, rcc);
     var cs= ToCore.distinctTypes(localBs, selfInferred ? meths.implied(rcc.c()) : Push.of(rcc.c(), meths.implied(rcc.c())));
     assert l.infHead();
-    l = new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, rcc, l.src(), l.infName(), l.infHead(), l.g());
+    l = new E.Literal(orc, newName, localBs, cs, l.thisName(), ms, rcc, l.exp(), l.src(), l.infName(), l.infHead(), l.g());
     meths.checkMagicSupertypes(l, cs);
     if (selfInferred){ l = l.withT(preciseSelf(l).get()); }
     assert !meths.cache().containsKey(name);
