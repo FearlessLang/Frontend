@@ -511,41 +511,40 @@ import java.util.stream.*;
       no(!all(res,t->TS.equivalent(push(lit.b,ss.get(0).b),fill(res.get(0)),fill(t))));return res.get(0);
     }
     M body(Literal di,M m){
-      if(m.e==null)return m;var ei=meet(m.e,m.s.t);cap=deep*size(ei);var g=new IG();g.declare(di.b,di,m);var b=push(di.b,m.s.b);
+      if(m.e==null)return m;var ei=meetSub(m.e,m.s.t);cap=deep*size(ei);var g=new IG();g.declare(di.b,di,m);var b=push(di.b,m.s.b);
       late=false;var e1=solve(b,g,ei);late=true;return m.body(core(b,solve(b,g,e1),m.e));
     }
-    E meet(E e,T t){
-      if(!(e instanceof Literal l&&l.t.tv())){var a=ascribe(e,t);return a.t(meet(a.t(),t));}
-      if(!(empty(l)&&l.cs.size()>0&&meet(l.t,t) instanceof R m))return e;
+    E meetSub(E e,T t){
+      if(!(e instanceof Literal l&&l.t.tv())){var a=ascribe(e,t);return a.t(meetSub(a.t(),t));}
+      if(!(empty(l)&&l.cs.size()>0&&meetSub(l.t,t) instanceof R m))return e;
       var r=new R(m.r,self(m.c));return r.equals(new R(l.r,l.cs.get(0)))?e:new Literal(null,l.name,list(),list(),l.self,list(),r,true,false);
     }
     T below(R sub,R sup){
       var d=from(sub.c.name);if(d==null||!has(d.cs,sup.c.name))return null;
-      var res=sub.with(meet(sub.r,sup.r),meet(sub.c.types,refine(B.v(d.b),new R(null,new C(sub.c.name,vars(d.b))),sup)));return res.tv()||!sup.tv()?res:sup;
+      var res=sub.with(meetSub(sub.r,sup.r),meetSub(sub.c.types,refine(B.v(d.b),new R(null,new C(sub.c.name,vars(d.b))),sup)));return res.tv()||!sup.tv()?res:sup;
     }
-    T meet(T a,T z){
+    T meetSub(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
-      if(a instanceof R p&&z instanceof R q)return p.c.name.equals(q.c.name)?p.with(meet(p.r,q.r),meet(p.c.types,q.c.types)):or(below(p,q),or(below(q,p),p));
-      if(z.v()==null||!z.v().equals(a.v())||a instanceof X||z instanceof X)return a;if(!(a instanceof RX p))return meet(z,a);
-      return z instanceof RX q?p.rc(meet(p.r,q.r)):p.r.h().compareTo(read)<0?a:z;
+      if(a instanceof R p&&z instanceof R q)return p.c.name.equals(q.c.name)?p.with(meetSub(p.r,q.r),meetSub(p.c.types,q.c.types)):or(below(p,q),or(below(q,p),p));
+      if(z.v()==null||!z.v().equals(a.v())||a instanceof X||z instanceof X)return a;if(!(a instanceof RX p))return meetSub(z,a);
+      return z instanceof RX q?p.rc(meetSub(p.r,q.r)):p.r.h().compareTo(read)<0?a:z;
     }
-    RC meet(RC a,RC b){
+    RC meetSub(RC a,RC b){
       return b==null?a:Collections.min(list(or(a,b).h(),b.h()));
     }
-    T join(T a,T z){
+    T meetSuper(T a,T z){
       if(z==u)return a;if(a==u||a.equals(z))return z;
-      var res=or(above(a,z),above(z,a));if(res!=null||!(a instanceof R r0&&z instanceof R r1))return or(res,u);
-      var heads=filter(map(parents(r0.c),C::name),h->!h.equals(widen)&&sup(r0,h) instanceof R s&&sup(r1,h) instanceof R q&&s.c.equals(q.c));
-      var minimal=filter(heads,h->!any(heads,h2->!h2.equals(h)&&has(from(h2).cs,h)));return minimal.size()==1?above(sup(r0,minimal.get(0)),z):u;
+      var p=wide(a);var q=wide(z);return or(above(a,z),or(above(z,a),or(above(p,q),or(above(q,p),u))));
     }
+    T wide(T t){return t instanceof R w&&sup(w,widen) instanceof R s&&s.c.types.get(0) instanceof R q?new R(w.r,q.c):t;}
     T above(T top,T c){
       var up=c instanceof R r&&top instanceof R rt?r.c.name.equals(rt.c.name)?c:sup(r,rt.c.name):Objects.equals(c.v(),top.v())?c:null;
-      return up==null?null:top instanceof R p&&up instanceof R q?zip(p.c.types,q.c.types,(x,y)->x.tv()&&y.tv()&&!x.equals(y)).contains(true)?null:p.with(lub(p.r,q.r),meet(p.c.types,q.c.types)):top instanceof RX p&&up instanceof RX q?p.rc(lub(p.r,q.r)):top;
+      return up==null?null:top instanceof R p&&up instanceof R q?zip(p.c.types,q.c.types,(x,y)->x.tv()&&y.tv()&&!x.equals(y)).contains(true)?null:p.with(lub(p.r,q.r),meetSub(p.c.types,q.c.types)):top instanceof RX p&&up instanceof RX q?p.rc(lub(p.r,q.r)):top;
     }
     RC lub(RC a,RC b){
       return a==null?b:b==null||a.h()==b.h()||b.h()==iso?a.h():a.h()==iso?b.h():read;
     }
-    List<T>meet(List<T>a,List<T>z){return zip(a,z,this::meet);}
+    List<T>meetSub(List<T>a,List<T>z){return zip(a,z,this::meetSub);}
     E solve(List<B>b,IG g,E e){
       while(true){var oe=next(b,g,e);
         if(oe.equals(e))return e;
@@ -555,8 +554,8 @@ import java.util.stream.*;
     List<E>solve(List<B>b,IG g,List<E>es){return map(es,ei->solve(b,g,ei));}
     E next(List<B>b,IG g,E e){return switch(e){
       case E.X x->{
-        var h=find(g,f->f.vars.containsKey(x.name));var o=h.vars.get(x.name);var k="'"+x.name;var z=x.t;var s=strip(z);var q=meet(h.vars.get(k),s);var a=o;var p=s;var i=false;for(var f:g.subList(g.indexOf(h)+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);p=IG.adapt(p,f.r,f.b);i|=f.r==imm;}if(a.equals(z))yield x;
-        h.vars.put(k,i||p.equals(z)?q:s instanceof X&&q.equals(s)?z:meet(q,z));yield x.t(meet(a,z));
+        var h=find(g,f->f.vars.containsKey(x.name));var o=h.vars.get(x.name);var k="'"+x.name;var z=x.t;var s=strip(z);var q=meetSub(h.vars.get(k),s);var a=o;var p=s;var i=false;for(var f:g.subList(g.indexOf(h)+1,g.size())){no(!B.v(f.b).containsAll(o.ftv().toList()));a=IG.adapt(a,f.r,f.b);p=IG.adapt(p,f.r,f.b);i|=f.r==imm;}if(a.equals(z))yield x;
+        h.vars.put(k,i||p.equals(z)?q:s instanceof X&&q.equals(s)?z:meetSub(q,z));yield x.t(meetSub(a,z));
       }
       case Literal l->{if(!l.expanded){if(l.anon&&l.cs.size()==0)inferred.add(l.name.s);
       l=l.t(!l.anon?l.self(l.r):l.cs.size()==1?new R(l.r,l.cs.get(0)):l.t);if(!(l.t instanceof R(_,var c)))yield l;
@@ -571,14 +570,14 @@ import java.util.stream.*;
       var cap=w.r==null?null:w.r.h();var instance=instance(l);
       var own=w.c.name.equals(name);no(!own&&!w.c.name.visible()&&!w.c.name.pk().equals(p.name));
       l=new Literal(cap,name1,bs,distinct(bs,own?parents(w.c):push(w.c,parents(w.c))),l.self,map(l.ms,mi->mi.o(name,name1)),w,true,true);if(!instance)magic(l);
-      if(own)l=l.t(l.self(cap));register(l);var s=sup(w,widen);yield !instance?l:l.t(new R(cap,s!=null&&s.c.types.get(0) instanceof R q?q.c:w.c));
+      if(own)l=l.t(l.self(cap));register(l);yield !instance?l:l.t(wide(new R(cap,w.c)));
       }
       case Call c->{var e1=solve(b,g,c.e);MS m;
       if(!((e1 instanceof Literal l&&instance(l)&&cache.containsKey(l.name)?new R(l.r,l.cs.get(0)):e1.t()) instanceof R w)||(m=signature(w,c.name,c.r,c.t.erc()))==null)yield c.children(e1,solve(b,g,c.es));
       var n=m.cas.size();var k=m.mb.size();
       Function<List<E>,List<T>>d=xs->decide(m.bs,push(m.cas,c.y.size()==k?c.y:qs(k)),push(new Con(m.ret,c.t,false),zip(m.ps,xs,(p,x)->new Con(p,empty(x)?u:x.t(),true))));
-      var pre=d.apply(c.es);var es=solve(b,g,zip(c.es,m.ps,(x,p)->meet(x,rename(p,m.v(),pre))));var all=d.apply(es);
-      yield new Call(meet(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meet(c.t,rename(m.ret,m.v(),all)),c.written);
+      var pre=d.apply(c.es);var es=solve(b,g,zip(c.es,m.ps,(x,p)->meetSub(x,rename(p,m.v(),pre))));var all=d.apply(es);
+      yield new Call(meetSub(e1,w.withTs(all.subList(0,n))),c.name,m.r,all.subList(n,all.size()),es,meetSub(c.t,rename(m.ret,m.v(),all)),c.written);
       }
     };}
     MS signature(R w,N name,RC favorite,RC hint){
@@ -590,9 +589,9 @@ import java.util.stream.*;
     boolean empty(E e){return e instanceof Literal l&&instance(l)&&inferred.contains(l.name.s);}
     record Con(T p,T a,boolean in){}
     List<T>decide(List<B>bs,List<T>given,List<Con>cs){var v=B.v(bs);
-      Function<Con,List<T>>ref=c->refine(v,c.p,c.a);BinaryOperator<List<T>>join=(a,z)->zip(a,z,this::join);
-      var shape=cs.stream().filter(c->c.p instanceof R).map(ref).reduce(given,this::meet);
-      var all=cs.stream().filter(c->!c.in&&!(c.p instanceof R)).map(ref).reduce(join.apply(shape,cs.stream().filter(c->c.in&&!(c.p instanceof R)).map(ref).reduce(qs(v.size()),join)),this::meet);
+      Function<Con,List<T>>ref=c->refine(v,c.p,c.a);BinaryOperator<List<T>>meetSuper=(a,z)->zip(a,z,this::meetSuper);
+      var shape=cs.stream().filter(c->c.p instanceof R).map(ref).reduce(given,this::meetSub);
+      var all=cs.stream().filter(c->!c.in&&!(c.p instanceof R)).map(ref).reduce(meetSuper.apply(shape,cs.stream().filter(c->c.in&&!(c.p instanceof R)).map(ref).reduce(qs(v.size()),meetSuper)),this::meetSub);
       return zip(given,zip(map(zip(shape,all,(a,x)->a.tv()?a:x),this::up),map(bs,B::caps),(t,al)->!(t instanceof R(var r,var c))?t:al.size()==1?t.rc(al.iterator().next()):r==null||r==iso&&!al.contains(iso)?new R(al.contains(imm)?null:read,c):t),(a,x)->a.tv()?a:x);
     }
     M instantiate(R w,M m){var h=signature(w,m.s.m,m.s.r,null);if(h==null)return m;var a=push(w.c.types,vars(m.s.b));
@@ -606,9 +605,9 @@ import java.util.stream.*;
     }
     M method(List<B>b,IG g,Literal l,M m){var bs=l.anon?b:l.b;var s=m.s;
       g.declare(bs,l,m);
-      var e=solve(push(bs,s.b),g,meet(m.e,s.t));
-      var args=zip(m.v,s.types,(x,t)->late?meet(t,g.get("'"+x)):t);
-      g.removeLast();return m.signature(s.types(args,meet(s.t,e.t()))).body(e);
+      var e=solve(push(bs,s.b),g,meetSub(m.e,s.t));
+      var args=zip(m.v,s.types,(x,t)->late?meetSub(t,g.get("'"+x)):t);
+      g.removeLast();return m.signature(s.types(args,meetSub(s.t,e.t()))).body(e);
     }
     List<T>erase(List<T>types,List<String>mb){
       return map(types,t->t instanceof R w?w.withTs(erase(w.c.types,mb)):mb.contains(t.v())?u:t);
@@ -626,7 +625,7 @@ import java.util.stream.*;
       if(!(a instanceof R cc))return qs(v.size());var c=r.c;if(!cc.c.name.equals(c.name)){var up=sup(cc,c.name);
         if(up!=null)return propagate(v,r,up);var down=sup(r,cc.c.name);return down==null?qs(v.size()):propagate(v,down,a);
       }
-      return zip(c.types,cc.c.types,(t,ti)->t instanceof R rr&&!(ti instanceof R ci&&ci.c.name.equals(rr.c.name))?qs(v.size()):refine(v,t,ti)).stream().reduce(qs(v.size()),this::meet);
+      return zip(c.types,cc.c.types,(t,ti)->t instanceof R rr&&!(ti instanceof R ci&&ci.c.name.equals(rr.c.name))?qs(v.size()):refine(v,t,ti)).stream().reduce(qs(v.size()),this::meetSub);
     }
     E ascribe(E arg,T expected){
       if(!(arg instanceof Call c&&expected instanceof R exp))return arg;
