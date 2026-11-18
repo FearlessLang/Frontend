@@ -267,6 +267,14 @@ final class InferTest{
     Seq[T]:{} List[T]:Seq[T]{} P:{ needSeq(s:Seq[Cat]):Animal; needList(l:List[Cat]):Animal; }
     User:{ m(h:H,p:P):H->h.use({app(x:?):?->h.two(p.needSeq(x),p.needList(x));}); }
     """); }
+  @Test void literalParameterTypeReachesAnotherUseOfTheParameter(){ ok("User:{m(h:H,p:P):H->h.use[Cat,Cat](_:F[Cat,Cat]{app(x:Cat):Cat->p.y[Cat](x,h.needCat(x));});}", """
+    P:{ y[T](a:T,v:Animal):T; }
+    User:{ m(h:H,p:P):H->h.use({app(x:?):?->p.y(x,h.needCat(x));}); }
+    """); }
+  @Test void literalParameterTypeReachesAnEarlierUseOfTheParameter(){ ok("User:{m(h:H,p:P):H->h.use[Cat,Cat](_:F[Cat,Cat]{app(x:Cat):Cat->p.y[Cat](h.needCat(x),x);});}", """
+    P:{ y[T](v:Animal,a:T):T; }
+    User:{ m(h:H,p:P):H->h.use({app(x:?):?->p.y(h.needCat(x),x);}); }
+    """); }
   @Test void literalParameterUsedOnlyAsAReceiverCannotBeInferred(){ fail("""
     The type arguments of the call "h.use[?,?](_:F[?,?]{app(x:?):?->x.purr();})" are not inferred
     """, """
