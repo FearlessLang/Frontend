@@ -1,0 +1,193 @@
+Simplified language inference
+program ::= sLs //every sL of the program has form C[Xs]:Ts{sMs}
+//Core language
+e   ::= x | L | e.m[Ts](es)
+L   ::= C[Xs]:Ts{Ms}
+M   ::= m[Xs](x1:T1..xn:Tn):T; | m[Xs](x1:T1..xn:Tn):T->e;
+T   ::= X | C[Ts]
+//Inference layer
+ie  ::= x:iT | iL:iT | ie.m[iTs](ies):iT | ie.m(ies):iT
+iL  ::= C[Xs]:iTs{iMs} | {iMs}
+iM  ::= m[Xs](x1:iT1..xn:iTn):iT; | m[Xs](x1:iT1..xn:iTn):iT->ie;
+iT  ::= ? | X | C[iTs] | Err
+//User surface language
+se  ::= x | sL | se.m[Ts](ses) | se.m(ses)
+sL  ::= C[Xs]:Ts{sMs} | {sMs}
+sM  ::= m[Xs](x1:T1..xn:Tn):T; | m[Xs](x1:sT1..xn:sTn):sT->se;
+sT  ::= T | ?
+Γ   ::= x1:iT1 .. xn:iTn
+//Note: in this restricted language
+//- a method of a sL of the program has no ? in the signature
+//- a literal with a name inside a method body has form C'[Xs]:C[Ts]{sMs} (exactly one supertype), and has type C[Ts]
+//- a literal inside a method body can ONLY define methods in C (not new ones), all with a body
+Pipeline for every method body of a sL of the program
+containing a surface expression se under Γ (including 'this') with return T
+
+- ie := inferenceOf(se, T)
+- Γ ⊢ ie ==>* Γ' ⊢ ie' //Γ and T extracted from the method signature
+- lower(se,ie') = e
+- Γ ⊢ e : T //finally, typing the method body
+//Note: inferenceOf(se,T) annotates se with T, a literal C'[Xs]:C[Ts]{sMs} with C[Ts], and all the rest with ?
+
+Obvious selectors:
+- typeOf(ie) = iT
+- withType(ie,iT) = ie'
+- methodHeader(iT,m) = iTs; C[Xs]; m[Xs'](x1 : T1 .. xn : Tn) : T0
+- methodHeader(ie,m)= methodHeader(typeOf(ie),m)
+//Note: methodHeader(C[iTs],m) do not already apply [Xs=iTs], instead produces a triple
+//iTs;C[Xs]; m[Xs'](..) that are ready to use in the needed context using appropriate alpha renaming
+//Here iTs is returned even if part of the input for convenience, so other parts of the rules can just use it
+//Note: m can be inherited by C[Xs] from a supertype C'[Ts']; then T0..Tn already have
+//the type parameters of C' replaced with Ts'
+
+Substitution: iT[Xs=iTs] //standard
+_______
+#Define iT ⊓ iT' = iT" and iTs ⊓ iTs' = iTs" //meet operator
+- (iT1..iTn) ⊓ (iT'1..iT'n) = (iT1⊓iT'1 .. iTn⊓iT'n)
+- ? ⊓ iT = iT
+- iT ⊓ ? = iT
+- X ⊓ X = X
+- C[iTs] ⊓ C[iTs'] = C[iTs⊓iTs']
+- iT ⊓ iT' = Err otherwise //that, meet is always defined
+_______
+#Define ie ⊓ iT = ie'
+  withType(ie,typeOf(ie) ⊓ iT)
+_______
+#Define iM ⊓ C[iTs] = iM' //undefined if methodHeader(C[iTs],m) undefined
+  iM  = m[Xs'](x1:iT1 .. xn:iTn):iT0->ie0;
+  methodHeader(C[iTs],m)= iTs; C[Xs]; m[Xs'](_:T1.._:Tn):T0
+  iM' = m[Xs'](x1:iT1⊓T1[Xs=iTs] .. xn:iTn⊓Tn[Xs=iTs]):iT0⊓T0[Xs=iTs]->ie0⊓T0[Xs=iTs];
+  //NOTE: 'this' changes scope here, how to handle it?
+_______
+#Define Xs ⊢ iT=iT' : iTs' //sub notation used in (refine)
+
+_______
+#Define close_Xs(iT) = iT'    close_Xs(iTs) = iTs'
+  close_Xs(?) = ?
+  close_Xs(Err) = Err
+  close_Xs(X) = ?        if X in Xs
+  close_Xs(X) = X        otherwise
+  close_Xs(C[iTs]) = C[ close_Xs(iTs) ]
+
+//Rule (refineXs) STARTS HERE
+---------------------------------------------------(refineXs)
+  X1..Xn X X'1..X'k ⊢ X=iT : ?1..?n iT ?1..?k
+  //selects an X inside Xs' by splitting Xs' as X1..Xn X X1'..Xk'
+//Rule (refineXsNope) STARTS HERE
+  X notin X1..Xn //can happen when we refine class generics and method generics are in scope
+---------------------------------------------------(refineXsNope)
+  X1..Xn ⊢ X=iT : ?1..?n
+//Rule (refine?) STARTS HERE
+---------------------------------------------------(refine?)
+  X1..Xn⊢ ?=iT : ?1..?n
+//Rule (refineErr) STARTS HERE
+---------------------------------------------------(refineErr)
+  X1..Xn⊢ Err=iT : ?1..?n
+//Rule (propagateXs) STARTS HERE
+  ∀ i∈1..k Xs ⊢ iTi=iT'i  : iTsi
+--------------------------------------------------(propagateXs)
+  X1..Xn ⊢ C[iT1..iTk]=C[iT'1..iT'k] : ?1..?n⊓iTs1⊓..⊓iTsk
+  //the first ?s are needed if n==0
+//Rule (propagateXs?) STARTS HERE
+--------------------------------------------------(propagateXs?)
+  X1..Xn ⊢ C[iTs]=? : ?1..?n
+//Rule (propagateXsErr) STARTS HERE
+--------------------------------------------------(propagateXsErr)
+  X1..Xn ⊢ C[iTs]=Err : ?1..?n
+//Rule (propagateXsDiff) STARTS HERE
+  either C != C' or size(iTs) != size(iTs')
+--------------------------------------------------(propagateXsDiff)
+  X1..Xn ⊢ C[iTs]=C'[iTs'] : ?1..?n
+
+_______
+#Define Γ ⊢ ie ==>* Γ' ⊢ ie' //read as reduce as much as possible
+  Γ ⊢ ie ==>* Γ ⊢ ie if ¬∃ Γ',ie' such that Γ ⊢ ie ==> Γ' ⊢ ie'
+  Γ ⊢ ie ==>* Γ ⊢ ie if Γ ⊢ ie ==> Γ ⊢ ie
+  Γ ⊢ ie ==>* Γ" ⊢ ie" if Γ ⊢ ie ==> Γ' ⊢ ie' and Γ' ⊢ ie' ==>* Γ" ⊢ ie"
+  //and Γ', ie' != Γ, ie
+_______
+#Define Γ ⊢ ie ==> Γ' ⊢ ie'
+
+//Rule (x) STARTS HERE
+-------------------------------------- (x)     //loop handled by ==>*
+  Γ, x:iT1 ⊢ x:iT2 ==> Γ, x:iT1 ⊓ iT2 ⊢ x:iT1 ⊓ iT2
+//Rule (call) STARTS HERE
+  ∀ i∈0..n Γi ⊢ iei ==>* Γ(i+1) ⊢ ie'i
+  methodHeader(ie'0,m) undefined
+  // may be because typeOf(ie'0) not of form C[_], or m not exists in C[_]
+-------------------------------------- (call)
+  Γ0 ⊢ ie0.m(ie1..ien):iT ==> Γ(n+1) ⊢ ie'0.m(ie'1..ie'n):iT
+//Rule (callI) STARTS HERE
+  ∀ i∈0..n Γi ⊢ iei ==>* Γ(i+1) ⊢ ie'i
+  methodHeader(ie'0,m) = iTs;C[Xs]; m[X1..Xk](_:T1.._:Tn):T0
+  ∀ i∈0..n iT'i = Ti[Xs,X1..Xk=iTs;?1..?k]
+-------------------------------------- (callI)
+  Γ0 ⊢ ie0.m(ie1..ien):iT ==> Γ(n+1) ⊢ ie'0.m[?1..?k](ie'1⊓iT'1..ie'n⊓iT'n):iT⊓iT'0
+//Rule (callRNope) STARTS HERE
+  ∀ i∈0..n Γi ⊢ iei ==>* Γ(i+1) ⊢ ie'i
+  methodHeader(ie'0,m) undefined
+----------------------------------------------------------- (callRNope)
+  Γ0 ⊢ ie0.m[iTs](ie1..ien):iT ==> Γ(n+1) ⊢ ie'0.m[iTs](ie'1..ie'n):iT
+//Rule (callR) STARTS HERE
+  ∀ i∈0..n Γi ⊢ iei ==>* Γ(i+1) ⊢ ie'i
+  methodHeader(ie'0,m) = iTs'; C[Xs]; m[Xs'](_:T1.._:Tn):T0
+  ∀ i∈1..n Xs,Xs' ⊢ Ti=typeOf(ie'i) : iTs'i//args
+  Xs,Xs' ⊢ T0=iT : iTs'0 //ret type
+  iTs" = (iTs';iTs) ⊓ iTs'0 ⊓ .. ⊓ iTs'n
+  ∀ i∈0..n iT"i = Ti[Xs,Xs'=iTs"]
+  iT" = C[Xs][Xs,Xs'=iTs"]
+----------------------------------------------------------- (callR)
+  Γ0 ⊢ ie0.m[iTs](ie1..ien):iT ==> Γ(n+1) ⊢ ie'0⊓iT".m[Xs'[Xs,Xs'=iTs"]](ie'1⊓iT"1..ie'n⊓iT"n):iT⊓iT"0
+//Rule (head) STARTS HERE
+  ∀ i∈1..n iMi ⊓ C[iTs] = iM'i
+  C' fresh, Xs the type parameters in scope
+----------------------------------------------------------- (head)
+  Γ ⊢ {iM1..iMn} : C[iTs] ==> Γ ⊢ C'[Xs]:C[iTs]{ iM'1..iM'n }:C[iTs]
+//Rule (headNope) STARTS HERE
+  there is an i∈1..n where iMi ⊓ C[iTs] is undefined
+----------------------------------------------------------- (headNope)
+  Γ ⊢ {iM1..iMn} : C[iTs] ==> Γ ⊢ {iM1..iMn} : C[iTs]
+//Rule (anon) STARTS HERE
+  ie1 = C'[Xs]:C[iTs1    ]{ iM1 ..iMn  } : C[iTs1    ]
+  ie2 = C'[Xs]:C[iTs(n+1)]{ iM'1..iM'n } : C[iTs(n+1)]
+  ∀ i∈1..n  Γi;C[iTsi] ⊢ iMi ==>* Γ(i+1);C[iTs(i+1)] ⊢ iM'i
+----------------------------------------------------------- (anon)
+  Γ1 ⊢ ie1 ==> Γ(n+1) ⊢ ie2
+//Rule (meth) STARTS HERE
+  iM  = m[Xs](x1:iT1 .. xn:iTn):iT0->ie;
+  Γ, this:C[iTs],x1:iT1 .. xn:iTn⊢ ie⊓iT0 ==>* Γ',this:_,x1:iT'1 .. xn:iT'n ⊢ ie'
+  iT'0 = typeOf(ie')
+  methodHeader(C[iTs],m) =iTs; C[Xs']; m[Xs](_:T1.._:Tn):T0
+  forall i in 0..n Xs' |- Ti=iT'i : iTsi
+  iTs' = iTs⊓iTs0⊓..⊓iTsn
+  methodHeader(C[iTs'],m) =iTs'; C[Xs']; m[Xs](_:T"1.._:T"n):T"0
+  iM' = m[Xs](x1:iT'1⊓T"1[Xs'=iTs'] .. xn:iT'n⊓T"n[Xs'=iTs']):iT'0⊓T"0[Xs'=iTs']->ie'⊓T"0[Xs'=iTs'];
+------------------------------------------------------------------ (meth)
+  Γ;C[iTs] ⊢ iM ==>* Γ';C[close_Xs(iTs')] ⊢ iM'
+
+//-------------------------------- less then 150 lines of formalism
+TODO: formally define angelicElaborate and the statement
+program |- angelicElaborate(Γ,se,T,e)
+TODO: read https://kelloggm.github.io/martinjkellogg.com/papers/ase2023-camera-ready.pdf
+if there is a unique elaboration, my system finds it
+{iMs}: F[A,B] MyF[A,B]
+MyF[A,B]:F[A,B]{}
+
+//{iMs}:? if this cannot be unlocked, we never enter into the ies of iMs
+
+_______
+#Define Γ ⊢/ ie //read as Γ,ie does not reduce (unused)
+  ¬∃ Γ',ie'.(Γ ⊢ ie ==> Γ' ⊢ ie')
+
+Optimizing (avoiding) re entries://not quite working?
+Once a Γ ⊢ ie ==>* Γ' ⊢ ie' completed,
+we know that Γ" ⊢ ie' ==>* Γ" ⊢ ie' if: //that is, no progress
+  Γ0 = FV(ie') //gets a gamma since syntax has x:iT
+  ∀ x in dom(Γ0) Γ0(x) = Γ"(x)
+This also means that
+Once a Γ ⊢ ie ==>* Γ' ⊢ iev completed, Γ" ⊢ iev ==>* Γ1 ⊢ iev' can be emulated by:
+ Γ0 = FV(iev) and iev = iev'
+ Γ1 = Γ0 ⊓ Γ"
+
+//On the (not) need of alpha: if no need of alpha in methSig (since two universes)
+//then the X1..Xk is still not alphaed, thus is still the same of what methSig can give us here?
