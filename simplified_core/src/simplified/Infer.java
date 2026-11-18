@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import utils.Join;
@@ -15,25 +16,25 @@ final class Infer{
   enum Kind{ Lower, Upper, Eq, Ctx }
   record Src(T pattern, T actual, Kind kind){}
   final Map<String,E.L> decs;
-  boolean force;
   Infer(Map<String,E.L> decs){ this.decs= decs; }
   static String of(String src){
     var p= new Parser(src);
     var i= new Infer(p.decs);
-    var res= p.top.stream().map(i::fix).toList();
+    var res= p.top.stream().map(i::dec).toList();
     res.forEach(l -> i.check(l, Map.of()));
     return Join.of(res, "", "\n", "", "");
   }
-  E fix(E e){
-    while (true){
-      var old= e;
-      force = false;
-      e = step(e, Map.of(), T.u);
-      if (!e.equals(old)){ continue; }
-      force = true;
-      e = step(e, Map.of(), T.u);
-      if (e.equals(old)){ return e; }
-    }
+  E dec(E e){
+    var res= norm(e, Map.of(), T.u, true);
+    assert res.equals(norm(res, Map.of(), T.u, true));
+    return res;
+  }
+  <R> R fix(R e, BiFunction<R,Boolean,R> round, boolean last){
+    var open= round.apply(e, false);
+    if (!open.equals(e)){ return fix(open, round, last); }
+    if (!last){ return e; }
+    var res= round.apply(e, true);
+    return res.equals(e) ? e : fix(res, round, last);
   }
   Stream<T.C> supers(T.C c){
     var d= decs.get(c.name());
@@ -67,50 +68,59 @@ final class Infer{
     case E.Call c -> c.targs().isEmpty() || !(type(c.e()) instanceof T.C rt) ? T.u : inst(sig(rt, c), c.targs().get()).ret();
   };}
   static M inst(M s, List<T> targs){ return s.subst(T.map(s.xs(), targs)); }
-  E step(E e, Map<String,T> g, T exp){ return switch (e){
+  E norm(E e, Map<String,T> g, T exp, boolean last){ return switch (e){
     case E.X(var x, var t) -> new E.X(x, t.fill(g.get(x)).fill(exp));
-    case E.Call c -> call(c, g, exp);
-    case E.L l -> lit(l, g, exp);
+    case E.Call c -> call(c, g, exp, last);
+    case E.L l -> lit(l, g, exp, last);
   };}
-  E call(E.Call c, Map<String,T> g, T exp){
-    var r= step(c.e(), g, T.u);
+  E call(E.Call c, Map<String,T> g, T exp, boolean last){
+    var r= norm(c.e(), g, T.u, last);
     if (!(type(r) instanceof T.C rt)){ return new E.Call(r, c.m(), c.targs(), c.es()); }
     var s= sig(rt, c);
     var targs= c.targs().orElse(Collections.nCopies(s.xs().size(), T.u));
-    var es= Streams.zip(c.es(), inst(s, targs).ts()).map((e, t) -> step(e, g, t)).toList();
-    var innerFirst= force && !(r.equals(c.e()) && es.equals(c.es()));
-    if (innerFirst){ return new E.Call(r, c.m(), Optional.of(targs), es); }
+    return fix(new E.Call(r, c.m(), Optional.of(targs), c.es()), (ci, commit) -> round(s, ci, g, exp, commit), last);
+  }
+  E.Call round(M s, E.Call c, Map<String,T> g, T exp, boolean commit){
+    var targs= c.targs().get();
+    var es= Streams.zip(c.es(), inst(s, targs).ts()).map((e, t) -> norm(e, g, t, commit)).toList();
+    var innerFirst= commit && !es.equals(c.es());
+    if (innerFirst){ return new E.Call(c.e(), c.m(), c.targs(), es); }
     var srcs= new ArrayList<Src>();
     Streams.zip(s.ts(), es).forEach((t, e) -> srcs.add(new Src(t, type(e), Kind.Lower)));
     srcs.add(new Src(s.ret(), exp, Kind.Ctx));
-    return new E.Call(r, c.m(), Optional.of(decide(s.xs(), targs, srcs)), es);
+    return new E.Call(c.e(), c.m(), Optional.of(decide(s.xs(), targs, srcs, commit)), es);
   }
-  E lit(E.L l, Map<String,T> g, T exp){
+  E lit(E.L l, Map<String,T> g, T exp, boolean last){
     var t= l.t().fill(exp);
     var noHead= l.anon() && l.ts().isEmpty();
-    if (noHead){ return new E.L("", List.of(), t instanceof T.C(var n, var ts) ? List.of(new T.C(n, Collections.nCopies(ts.size(), T.u))) : List.of(), l.ms(), t); }
-    var ms= l.ms().stream().map(m -> method(m, l, g)).toList();
-    var innerFirst= force && !ms.equals(l.ms());
-    var ts= l.anon() && !innerFirst ? List.of(head(l, ms, t)) : l.ts();
-    var done= ts.stream().allMatch(T::settled);
-    return new E.L(l.name(), l.xs(), ts, done ? ms.stream().map(m -> eff(m, ts)).toList() : ms, t);
+    var ts= noHead && t instanceof T.C(var n, var as) ? List.<T>of(new T.C(n, Collections.nCopies(as.size(), T.u))) : l.ts();
+    var res= new E.L(l.name(), l.xs(), ts, l.ms(), t);
+    var wait= l.anon() && ts.isEmpty();
+    return wait ? res : fix(res, (li, commit) -> round(li, g, commit), last);
   }
-  M method(M m, E.L l, Map<String,T> g){
+  E.L round(E.L l, Map<String,T> g, boolean commit){
+    var ms= l.ms().stream().map(m -> method(m, l, g, commit)).toList();
+    var innerFirst= commit && !ms.equals(l.ms());
+    var ts= l.anon() && !innerFirst ? List.of(head(l, ms, commit)) : l.ts();
+    var done= ts.stream().allMatch(T::settled);
+    return new E.L(l.name(), l.xs(), ts, done ? ms.stream().map(m -> eff(m, ts)).toList() : ms, l.t());
+  }
+  M method(M m, E.L l, Map<String,T> g, boolean last){
     if (m.e().isEmpty()){ return m; }
     var eff= eff(m, l.ts());
     var g2= new HashMap<>(g);
     g2.put("this", l.self());
     Streams.zip(m.ps(), eff.ts()).forEach(g2::put);
-    return new M(m.name(), m.xs(), m.ps(), m.ts(), m.ret(), Optional.of(step(m.e().get(), g2, eff.ret())));
+    return new M(m.name(), m.xs(), m.ps(), m.ts(), m.ret(), Optional.of(norm(m.e().get(), g2, eff.ret(), last)));
   }
-  T head(E.L l, List<M> ms, T t){
+  T head(E.L l, List<M> ms, boolean force){
     var head= (T.C)l.ts().getFirst();
     var xs= prime(decs.get(head.name()).xs());
     var pat= new T.C(head.name(), T.xs(xs));
     var srcs= new ArrayList<Src>();
-    srcs.add(new Src(pat, t, Kind.Ctx));
+    srcs.add(new Src(pat, l.t(), Kind.Ctx));
     ms.stream().filter(m -> m.e().isPresent()).forEach(m -> sig(pat, m.name()).ifPresent(s -> methodSrcs(m, s.rename(m.xs()), srcs)));
-    return new T.C(head.name(), decide(xs, head.ts(), srcs));
+    return new T.C(head.name(), decide(xs, head.ts(), srcs, force));
   }
   void methodSrcs(M m, M s, ArrayList<Src> srcs){
     var body= m.e().get();
@@ -124,10 +134,10 @@ final class Infer{
     case E.Call c -> Stream.concat(Stream.of(c.e()), c.es().stream()).flatMap(a -> occ(x, a));
     case E.L l -> l.ms().stream().flatMap(m -> m.e().stream()).flatMap(b -> occ(x, b));
   };}
-  List<T> decide(List<String> xs, List<T> cur, List<Src> srcs){
-    return Streams.zip(xs, cur).map((x, t) -> decide(x, t, srcs)).toList();
+  List<T> decide(List<String> xs, List<T> cur, List<Src> srcs, boolean force){
+    return Streams.zip(xs, cur).map((x, t) -> decide(x, t, srcs, force)).toList();
   }
-  T decide(String x, T cur, List<Src> all){
+  T decide(String x, T cur, List<Src> all, boolean force){
     var srcs= all.stream().filter(s -> s.pattern().has(x)).toList();
     var exact= new ArrayList<T>();
     srcs.stream().filter(s -> !top(x, s)).forEach(s -> exact(x, s, exact));
