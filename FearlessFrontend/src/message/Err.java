@@ -21,6 +21,7 @@ import typeSystem.TypeSystem.*;
 import utils.Bug;
 import utils.Join;
 import utils.Push;
+import utils.Streams;
 
 public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }
@@ -202,7 +203,10 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var look= new ArrayList<String>();
     inferred(cp, footerE, focus, Map.of(), look);
     if (look.isEmpty()){ return typeErr(); }
-    var header= "Code with inferred types"+(cp.omitted ? " (\"...\" marks omitted code)" : "")+"; look at "+Join.of(look.stream().distinct(), "", ", ", "")+":\n";
+    var ts= look.stream().distinct().toList();
+    var named= ts.getFirst().startsWith("\"");
+    var what= ts.size() == 1 ? (named ? "type " : "")+ts.getFirst()+" was" : "types "+Join.of(ts.stream(), "", " and ", "")+" were";
+    var header= "See inferred typing context below for how "+what+" introduced"+(cp.omitted ? " (\"...\" marks omitted code):\n" : ":\n");
     return Code.TypeError.of(() -> withNotes(body)+"\n\n"+header+footer);
   }
   private void inferred(CompactPrinter cp, E e, E focus, Map<String,String> binders, ArrayList<String> out){
@@ -220,24 +224,24 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     inferred(cp, arg.getFirst(), focus, binders, out);
   }
   private void inferredIn(CompactPrinter cp, Literal l, M m, E focus, Map<String,String> binders, ArrayList<String> out){
-    var sig= writtenSig(l, m) ? "" : "the types of method "+methodSig(m.sig().m());
+    var inferredSig= !writtenSig(l, m);
     var inner= new HashMap<>(binders);
-    m.xs().forEach(x -> inner.put(x, sig));
+    Streams.zip(m.xs(), m.sig().ts()).forEach((x,t) -> inner.put(x, inferredSig ? typeRepr(true, t) : ""));
     inner.put(l.thisName(), literalType(l));
-    if (m.e().get() == focus && !sig.isEmpty()){ out.add(sig); }
+    if (m.e().get() == focus && inferredSig){ out.add(typeRepr(true, m.sig().ret())); }
     inferred(cp, m.e().get(), focus, inner, out);
   }
   private void depends(E e, Map<String,String> binders, ArrayList<String> out){
     var found= switch (e){
-      case Call c -> inferredTargs(c) ? "the type arguments of "+expRepr(c) : "";
-      case Literal l -> literalType(l);
-      case X x -> binders.getOrDefault(x.name(), "");
-      case Type _ -> "";
+      case Call c -> inferredTargs(c) ? c.targs().stream().map(t -> typeRepr(true, t)).toList() : List.<String>of();
+      case Literal l -> List.of(literalType(l));
+      case X x -> List.of(binders.getOrDefault(x.name(), ""));
+      case Type _ -> List.<String>of();
     };
-    if (!found.isEmpty()){ out.add(found); }
+    found.stream().filter(s -> !s.isEmpty()).forEach(out::add);
     if (e instanceof Call c){ depends(c.e(), binders, out); }
   }
-  private String literalType(Literal l){ return l.src().inner instanceof fearlessFullGrammar.E.Literal && !l.cs().isEmpty() ? "the type of "+expRepr(l) : ""; }
+  private String literalType(Literal l){ return l.src().inner instanceof fearlessFullGrammar.E.Literal && !l.cs().isEmpty() ? expReprDirect(true, l) : ""; }
   private static boolean inferredTargs(Call c){
     var written= c.src().inner instanceof fearlessFullGrammar.E.Call(_, _, var sq, _, _, _, _) && sq.filter(s -> !s.ts().isEmpty()).isPresent();
     return !c.targs().isEmpty() && !written;

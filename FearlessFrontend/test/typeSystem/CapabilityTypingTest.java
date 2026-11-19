@@ -73,7 +73,7 @@ Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
 "mut A" --setToRead(line 2)--> "read A".
 
-Code with inferred types; look at the types of method ".a1":
+See inferred typing context below for how type "mut A" was introduced:
 ContainerF:{#(a:mut A):mutH Container->mut Container{read .a1:mut A->a;mut .a2:mut A->a}}
 """, List.of("""
 A:{}
@@ -444,7 +444,7 @@ While inspecting parameter "this" > ".m1" line 2
 The body of method ".m1" of type declaration "B" is an expression returning "mut B".
 Parameter "this" has type "mut B" instead of a subtype of "A".
 
-Code with inferred types; look at the types of method ".m1":
+See inferred typing context below for how type "A" was introduced:
 B:A{.m1:A->this;mut .m1:A->this;.m2:A->this.m1}
 """, List.of("""
 A:{ imm .m1: A; mut .m1: A; .m2: A }

@@ -62,7 +62,7 @@ Object literal is of type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Code with inferred types; look at the types of method ".fromC":
+See inferred typing context below for how type "a.A" was introduced:
 B:a.A{.fromC:a.A->base.Void}
 Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
 B:a.A{ .fromC -> base.Void }
@@ -881,7 +881,7 @@ Object literal is of type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Code with inferred types; look at the types of method ".fromC":
+See inferred typing context below for how type "a.A" was introduced:
 B:{.m:a.A->a.A{.fromC:a.A->base.Void}}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m:a.A->a.A{.fromC->base.Void}}
@@ -1007,7 +1007,7 @@ Object literal is of type "B" instead of a subtype of "X".
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Code with inferred types; look at the types of method ".fromC":
+See inferred typing context below for how type "X" was introduced:
 B:{.m:X->X{.fromC:X->B}}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
@@ -1810,7 +1810,7 @@ But it implements method "mut .bar", which requires a "mut" receiver.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Code with inferred types; look at the type of object literal instance of "read a.M":
+See inferred typing context below for how type "read a.M" was introduced:
 read a.M{mut .bar:mut a.M->m}
 Error 8 TypeError
 """, Map.of("c", "M:{ mut .bar:mut M }"), mapA, """
@@ -1991,7 +1991,7 @@ Capture adaptation trace:
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-Code with inferred types; look at the types of method ".get":
+See inferred typing context below for how type "mut a.D" was introduced:
 B:{read .m(x:mut a.D):mut a.D->read a.Get{read .get:mut a.D->x}}
 Error 8 TypeError
 """, Map.of("c", "D:{} Get:{ read .get:mut D }"), mapA, """
@@ -2675,7 +2675,7 @@ Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
 
 
-Code with inferred types; look at the types of method ".fromC":
+See inferred typing context below for how type "X" was introduced:
 B:{.k:X->X{'s .fromC:X->this}}
 Error 8 TypeError
 """, Map.of("c", cA), mapA, """
