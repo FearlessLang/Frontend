@@ -62,7 +62,7 @@ Object literal is of type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "a.A" was introduced:
+Relevant code with inferred types:
 B:a.A{.fromC:a.A->base.Void}
 Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
 B:a.A{ .fromC -> base.Void }
@@ -79,7 +79,7 @@ Method call "a.A.m" has type "a.A" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.k(x:a.A):B->x.m}
 Error 8 TypeError""", Map.of("c", "A:{.m:A->this}"), Map.of("a", "c"), """
 B:{.k(x:a.A):B->x.m}
@@ -473,7 +473,7 @@ Object literal is of type "bb.Nat" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.m:B->5}
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 B:{ .m:B -> 5 }
@@ -688,7 +688,7 @@ Method call "a.Box[_].get" has type "a.A" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.m(x:a.Box[a.A]):B->x.get}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.Box[a.A]):B->x.get}
@@ -705,7 +705,7 @@ Method call "a.Box[_].get" has type "B" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "a.A" was introduced:
+Relevant code with inferred types:
 B:{.m(x:a.Box[B]):a.A->x.get}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:a.Box[B]):a.A->x.get}
@@ -723,7 +723,7 @@ Method call "a.Box[_].get" has type "X" instead of a subtype of "B".
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.m(x:a.Box[X]):B->x.get}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
@@ -743,7 +743,7 @@ Name "X" stands for "a.A" because of "use a.A as X".
 Name "Bx" stands for "a.Box" because of "use a.Box as Bx".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.m(x:Bx[X]):B->x.get}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.Box as Bx;
@@ -805,7 +805,7 @@ Name "OldServer" stands for "legacy.Server" because of "use legacy.Server as Old
 Source code inside folders named "_b" uses package name "legacy" to refer to the code inside folders named "_web_v1", because of "map legacy as _web_v1 in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "web" to refer to the code inside folders named "_web_v2", because of "map web as _web_v2 in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "web.Server" was introduced:
+Relevant code with inferred types:
 B:{.m(x:OldServer):web.Server->x}
 Error 8 TypeError""", webVersions, legacyAndWeb, """
 use legacy.Server as OldServer;
@@ -866,7 +866,7 @@ Parameter "x" has type "read a.A" instead of a subtype of "mut a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "mut a.A" was introduced:
+Relevant code with inferred types:
 B:{.m(x:read a.A):mut a.A->x}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m(x:read a.A):mut a.A->x}
@@ -926,7 +926,7 @@ Object literal is of type "base.Void" instead of a subtype of "a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "a.A" was introduced:
+Relevant code with inferred types:
 B:{.m:a.A->a.A{.fromC:a.A->base.Void}}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m:a.A->a.A{.fromC->base.Void}}
@@ -959,7 +959,7 @@ Object literal is of type "bb.Str" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.m:B->"hi"}
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 B:{ .m:B -> "hi" }
@@ -977,7 +977,7 @@ Object literal is of type "N" instead of a subtype of "B".
 Name "N" stands for "bb.Nat" because of "use bb.Nat as N".
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.m:B->5}
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 use bb.Nat as N;
@@ -995,7 +995,7 @@ Object literal is of type "bb.Int" instead of a subtype of "bb.Nat".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "bb.Nat" was introduced:
+Relevant code with inferred types:
 B:{.m:bb.Nat->+5}
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
 B:{ .m:bb.Nat -> +5 }
@@ -1012,7 +1012,7 @@ Parameter "x" has type "a.B" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.m(x:a.B):B->x}
 Error 8 TypeError""", Map.of("c", "B:{.fromC:B->this}"), Map.of("a", "c"), """
 B:{.m(x:a.B):B->x}
@@ -1030,7 +1030,7 @@ Method call "a.A.n" has type "bb.Nat" instead of a subtype of "B".
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.m(x:a.A):B->x.n}
 Error 8 TypeError""", Map.of("c", "A:{.n:base.Nat->5}"), Map.of("a", "c", "bb", "base"), """
 B:{.m(x:a.A):B->x.n}
@@ -1047,7 +1047,7 @@ Method call "a.G.id(_)" has type "a.D" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.m(x:a.G,d:a.D):B->x.id[imm,a.D](d)}
 Error 8 TypeError""", Map.of("c", "D:{} G:{.id[X](x:X):X->x}"), Map.of("a", "c"), """
 B:{.m(x:a.G, d:a.D):B->x.id[a.D](d)}
@@ -1070,7 +1070,7 @@ Object literal is of type "B" instead of a subtype of "X".
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "X" was introduced:
+Relevant code with inferred types:
 B:{.m:X->X{.fromC:X->B}}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
@@ -1285,7 +1285,7 @@ Type required by each promotion:
 """+noteA+"""
 
 
-See inferred typing context below for how type "mut A" was introduced:
+Relevant code with inferred types:
 A:{.f(aaaa:mut A):B->Need#(a.IdRO#[imm,read A](aaaa))}
 Error 8 TypeError""", Map.of("c", cIds), Map.of("a", "c"), """
 B:{}
@@ -1312,7 +1312,7 @@ Name "Ro" stands for "a.IdRO" because of "use a.IdRO as Ro".
 """+noteA+"""
 
 
-See inferred typing context below for how type "mut A" was introduced:
+Relevant code with inferred types:
 A:{.f(aaaa:mut A):B->Need#(Ro#[imm,read A](aaaa))}
 Error 8 TypeError""", Map.of("c", cIds), Map.of("a", "c"), """
 use a.IdRO as Ro;
@@ -1363,7 +1363,7 @@ Parameter "x" has type "z.A" instead of a subtype of "a.A".
 Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_c", because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "a.A" was introduced:
+Relevant code with inferred types:
 B:{.m(x:z.A):a.A->x}
 Error 8 TypeError""", Map.of("c", cA, "e", aA), Map.of("z", "c", "a", "e"), """
 B:{.m(x:z.A):a.A->x}
@@ -1382,7 +1382,7 @@ Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
 
 
-See inferred typing context below for how type "X" was introduced:
+Relevant code with inferred types:
 B:{.m(x:Dd):X->x}
 Error 8 TypeError""", Map.of("c", cA, "d", dA), Map.of("a", "c"), """
 use d.A as Dd;
@@ -1405,7 +1405,7 @@ Source code inside folders named "_b" uses package name "z" to refer to the code
 """+noteA+"""
 
 
-See inferred typing context below for how type "X" was introduced:
+Relevant code with inferred types:
 B:{.m(x:Y):X->x}
 Error 8 TypeError""", Map.of("c", cA, "e", dA), Map.of("a", "c", "z", "e"), """
 use a.A as X;
@@ -2095,7 +2095,7 @@ Type required by each promotion:
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "mut a.A2" was introduced:
+Relevant code with inferred types:
 B:{.f:a.D->a.Need#(read a.A2)}
 Error 8 TypeError
 """, Map.of("c", "D:{} A2:{ mut .foo:A2 } Need:{ #(x:mut A2):D -> D }"), mapA, """
@@ -2117,7 +2117,7 @@ Capture adaptation trace:
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "mut a.D" was introduced:
+Relevant code with inferred types:
 B:{read .m(x:mut a.D):mut a.D->read a.Get{read .get:mut a.D->x}}
 Error 8 TypeError
 """, Map.of("c", "D:{} Get:{ read .get:mut D }"), mapA, """
@@ -2807,7 +2807,7 @@ Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
 
 
-See inferred typing context below for how type "X" was introduced:
+Relevant code with inferred types:
 B:{.k:X->X{'s .fromC:X->this}}
 Error 8 TypeError
 """, Map.of("c", cA), mapA, """
@@ -2827,7 +2827,7 @@ Object literal is of type "iso L" instead of a subtype of "a.A".
 """+noteA+"""
 
 
-See inferred typing context below for how type "a.A" was introduced:
+Relevant code with inferred types:
 B:{.k:a.A->L{.m0(x:a.A):a.A->x}}
 Error 8 TypeError
 """, Map.of("c", "A:{}"), mapA, """
@@ -2847,7 +2847,7 @@ Object literal is of type "iso L" instead of a subtype of "a.A2".
 """+noteA+"""
 
 
-See inferred typing context below for how type "a.A2" was introduced:
+Relevant code with inferred types:
 B:{.k:a.A2->L{.m0(x:X):X->x}}
 Error 8 TypeError
 """, Map.of("c", "A:{} A2:{}"), mapA, """
@@ -2868,7 +2868,7 @@ Object literal is of type "bb.Nat" instead of a subtype of "B".
 """+noteBb+"""
 
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.m(x:a.A):B->5}
 Error 8 TypeError
 """, Map.of("c", cA), mapABb, """
@@ -2887,7 +2887,7 @@ Parameter "x" has type "a.A" instead of a subtype of "B".
 """+noteA+"""
 
 
-See inferred typing context below for how type "B" was introduced:
+Relevant code with inferred types:
 B:{.m(x:a.A,n:bb.Nat):B->x}
 Error 8 TypeError
 """, Map.of("c", cA), mapABb, """
@@ -2906,7 +2906,7 @@ Parameter "x" has type "z.A" instead of a subtype of "a.A".
 Source code inside folders named "_b" uses package name "z" to refer to the code inside folders named "_c", because of "map z as _c in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_e", because of "map a as _e in _b", written in fear:/_b/_rank_app.fear.
 
-See inferred typing context below for how type "a.A" was introduced:
+Relevant code with inferred types:
 B:{.m(x:z.A,q:d.Q):a.A->x}
 Error 8 TypeError
 """, Map.of("c", cA, "e", aA, "f", "Q:{}"), Map.of("z", "c", "a", "e", "d", "f"), """
@@ -2963,7 +2963,7 @@ Object literal is of type "iso L" instead of a subtype of "bb.Str".
 """+noteBb+"""
 
 
-See inferred typing context below for how type "bb.Str" was introduced:
+Relevant code with inferred types:
 B:{.k:bb.Str->L{.m0(x:bb.Nat):bb.Nat->x}}
 Error 8 TypeError
 """, Map.of(), mapBb, """

@@ -190,18 +190,12 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       +" instead of a subtype of "+typeRepr(skipImm, expected)+".";
   }
   FearlessException ex(E e){ return ex(e, e); }
-  FearlessException ex(E e, E focus){
-    return ex("Relevant code with inferred types", e, focus);
-  }
-  FearlessException exInferMsg(E e, E focus, String req){
-    return ex("See inferred typing context below for how type "+req+" was introduced", e, focus);
-  }
-  FearlessException ex(String footerHdr, core.E footerE, core.E focus){
+  FearlessException ex(E footerE, E focus){
     if (footerE instanceof X || footerE instanceof Type){ return withNotes(Code.TypeError); }
     var body= text();
     var cp= _cp.apply(true);
     var footer= cp.limit(footerE, focus, 120).stripTrailing();
-    var header= footerHdr+(cp.omitted ? ", where \"_\", \"{...}\" and method signatures without types mark omitted code:\n" : ":\n");
+    var header= cp.omitted ? "Relevant code with inferred types (\"...\" marks omitted code):\n" : "Relevant code with inferred types:\n";
     return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.get().stream(), "", "\n", "\n\n", "")+header+footer);
   }
   FearlessException wf(){

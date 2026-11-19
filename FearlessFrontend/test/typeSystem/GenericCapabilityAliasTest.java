@@ -29,7 +29,7 @@ While inspecting parameter "cell" > ".freeze(_)" line 6
 The body of method ".freeze(_)" of type declaration "User" is an expression returning "mut Cell".
 Parameter "cell" has type "mut Cell" instead of a subtype of "imm Cell".
 
-See inferred typing context below for how type "Cell" was introduced:
+Relevant code with inferred types:
 User:{.freeze(cell:mut Cell):Cell->cell}
 """, """
 User:{ .freeze(cell:mut Cell):imm Cell->cell; }
@@ -42,7 +42,7 @@ While inspecting parameter "box" > ".freeze(_)" line 6
 The body of method ".freeze(_)" of type declaration "User" is an expression returning "mut Box[mut Cell]".
 Parameter "box" has type "mut Box[mut Cell]" instead of a subtype of "mut Box[Cell]".
 
-See inferred typing context below for how type "mut Box[Cell]" was introduced:
+Relevant code with inferred types:
 User:{.freeze(box:mut Box[mut Cell]):mut Box[Cell]->box}
 """, """
 User:{ .freeze(box:mut Box[mut Cell]):mut Box[imm Cell]->box; }
@@ -55,7 +55,7 @@ While inspecting parameter "box" > ".thaw(_)" line 6
 The body of method ".thaw(_)" of type declaration "User" is an expression returning "mut Box[Cell]".
 Parameter "box" has type "mut Box[Cell]" instead of a subtype of "mut Box[mut Cell]".
 
-See inferred typing context below for how type "mut Box[mut Cell]" was introduced:
+Relevant code with inferred types:
 User:{.thaw(box:mut Box[Cell]):mut Box[mut Cell]->box}
 """, """
 User:{ .thaw(box:mut Box[imm Cell]):mut Box[mut Cell]->box; }

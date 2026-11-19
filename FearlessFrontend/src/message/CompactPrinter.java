@@ -32,13 +32,13 @@ public final class CompactPrinter{
       var shorter= render(root).length();
       if (shorter >= len){ k.keep(); continue; }
       len = shorter;
-      omitted = true;
     }
     return render(root);
   }
   boolean omitted;
   private String render(PE root){
     sb.setLength(0);
+    omitted= false;
     root.accString(this);
     return sb.toString();
   }
@@ -60,6 +60,7 @@ public final class CompactPrinter{
     return sb.toString();
   }
   CompactPrinter append(String s){ sb.append(s); return this; }
+  CompactPrinter omit(){ omitted= true; return append("..."); }
   String bounds(List<B> bs){ return Join.of(bs.stream().map(b -> b.rcs().equals(EnumSet.of(RC.imm)) ? b.x() : b.compactToString()), "[", ",", "]", ""); }
   public static final class Compactable{
     public static final Compactable no= new Compactable(false, false);
@@ -102,17 +103,16 @@ public final class CompactPrinter{
   public record PCall(PE recv, String m, RC rc, List<PT> targs, List<PE> args, Compactable k) implements PE{
     boolean infix(){ return args.size() == 1 && !m.startsWith(".") && !m.equals("#"); }
     @Override public void accString(CompactPrinter sb){
-      Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b) -> b.append("_");
-      accGrouped(sb, acc, recv, recv instanceof PCall c && c.infix());
+      Acc<PE> acc= k.isCompactable() ? PN::accString : (_,b) -> b.omit();
+      accGrouped(sb, acc, recv, k.isCompactable() ? recv instanceof PCall c && c.infix() : !infix());
       sb.append(infix() ? " "+m : m);
       accTargs(sb, rc, targs);
       if (!infix()){ wrap(sb, "(", ")", args, ",", acc); return; }
       sb.append(" ");
-      accGrouped(sb, acc, args.getFirst(), args.getFirst() instanceof PCall);
+      accGrouped(sb, acc, args.getFirst(), k.isCompactable() && args.getFirst() instanceof PCall);
     }
     private void accGrouped(CompactPrinter sb, Acc<PE> acc, PE e, boolean group){
-      var g= group && k.isCompactable();
-      wrap(sb, g ? "(" : "", g ? ")" : "", List.of(e), "", acc);
+      wrap(sb, group ? "(" : "", group ? ")" : "", List.of(e), "", acc);
     }
   }
   public record PLit(RC rc, boolean priv, String name, List<PC> cs, String self, List<PM> ms, Compactable k) implements PE{
@@ -120,7 +120,7 @@ public final class CompactPrinter{
       sb.append(rc.toStrSpace());
       if (!priv){ sb.append(name); }
       else if (!cs.isEmpty()){ cs.getFirst().accString(sb); }
-      if (!k.isCompactable()){ sb.append("{...}"); return; }
+      if (!k.isCompactable()){ sb.append("{").omit().append("}"); return; }
       if (!priv){ wrap(sb, "", "", cs, ",", PC::accString); }
       if (ms.isEmpty()){ sb.append("{}"); return; }
       var selfHidden= self.equals("this") || self.equals("_");
@@ -140,21 +140,21 @@ public final class CompactPrinter{
   public record PC(String name, List<PT> ts, Compactable k) implements PN{
     @Override public void accString(CompactPrinter sb){
       sb.append(name);
-      wrap(sb, "[", "]", ts, ",", k.isCompactable() ? PN::accString : (_,b) -> b.append("_"));
+      wrap(sb, "[", "]", ts, ",", k.isCompactable() ? PN::accString : (_,b) -> b.omit());
     }
   }
   public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{
     @Override public void accString(CompactPrinter sb){
-      sb.append(rc.toStrSpace()).append(m);
-      if (k.isCompactable()){ accSig(sb); }
-      else if (!xs.equals(List.of("::"))){ wrap(sb, "(", ")", xs, ",", (x,b) -> b.append(x)); }
-      body.ifPresent(e -> { sb.append("->"); e.accString(sb); });
-    }
-    private void accSig(CompactPrinter sb){
-      sb.append(bs);
+      sb.append(rc.toStrSpace()).append(m).append(bs);
       wrap(sb, "(", ")", Streams.zip(xs, ts).<Consumer<CompactPrinter>>map((x,t) -> b -> param(b, x, t)).toList(), ",", Consumer::accept);
       sb.append(":");
       ret.accString(sb);
+      body.ifPresent(e -> accBody(sb, e));
+    }
+    private void accBody(CompactPrinter sb, PE e){
+      sb.append("->");
+      if (!k.isCompactable()){ sb.omit(); return; }
+      e.accString(sb);
     }
     private static void param(CompactPrinter b, String x, PT t){
       if (!x.equals("_") && !x.equals("::")){ b.append(x).append(":"); }

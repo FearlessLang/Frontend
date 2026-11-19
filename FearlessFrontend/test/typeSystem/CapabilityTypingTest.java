@@ -42,7 +42,7 @@ While inspecting method call ".b" > ".doThing" line 1
 The body of method ".doThing" of type declaration "A" is an expression returning "mutH B".
 Method call "read A.b" has type "mutH B" instead of a subtype of "mut B".
 
-See inferred typing context below for how type "mut B" was introduced:
+Relevant code with inferred types:
 A:{read .b:mutH B->mut B;read .doThing:mut B->this.b[read]}
 """, List.of("""
 A:{ read .b: mutH B -> {}; read .doThing: mut B -> this.b }
@@ -76,7 +76,7 @@ Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
 "mut A" --setToRead(line 2)--> "read A".
 
-See inferred typing context below for how type "mut A" was introduced:
+Relevant code with inferred types:
 ContainerF:{#(a:mut A):mutH Container->mut Container{read .a1:mut A->a;mut .a2:mut A->a}}
 """, List.of("""
 A:{}
@@ -95,7 +95,7 @@ Note: the declared type "mut X" would instead be a valid subtype.
 Capture adaptation trace:
 "mut X" --setToRead(line 2)--> "read X".
 
-See inferred typing context below for how type "mut X" was introduced:
+Relevant code with inferred types:
 A:{.m[X:*](x:mut X):mut Get[mut X]->mut Get[mut X]{read .get:mut X->x}}
 """, List.of("""
 Get[Y:*]:{ read .get: Y }
@@ -216,7 +216,7 @@ While inspecting method call ".absMeth" > "#" line 4
 The body of method "#" of type declaration "C" is an expression returning "B".
 Method call "read L[_].absMeth" has type "B" instead of a subtype of "mutH B".
 
-See inferred typing context below for how type "mutH B" was introduced:
+Relevant code with inferred types:
 C:{#:mutH B->A.m[read](B).absMeth[read]}
 """, List.of("""
 B:{}
@@ -310,7 +310,7 @@ While inspecting parameter "a" > ".foo(_,_)" line 2
 The body of method ".foo(_,_)" of type declaration "B" is an expression returning "mut A".
 Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
-See inferred typing context below for how type "iso A" was introduced:
+Relevant code with inferred types:
 B:{.foo(a:mut A,aa:mutH A):iso A->a}
 """, List.of("""
 A:{ mut .a: iso A -> B.foo(this, this) }
@@ -324,7 +324,7 @@ While inspecting parameter "a" > ".foo(_,_)" line 2
 The body of method ".foo(_,_)" of type declaration "B" is an expression returning "mut A".
 Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
-See inferred typing context below for how type "iso A" was introduced:
+Relevant code with inferred types:
 B:{.foo(a:mut A,aa:mut A):iso A->a}
 """, List.of("""
 A:{ mut .a: iso A -> B.foo(this, this) }
@@ -338,7 +338,7 @@ While inspecting parameter "a" > ".foo(_)" line 2
 The body of method ".foo(_)" of type declaration "B" is an expression returning "mut A".
 Parameter "a" has type "mut A" instead of a subtype of "iso A".
 
-See inferred typing context below for how type "iso A" was introduced:
+Relevant code with inferred types:
 B:{.foo(a:mut A):iso A->a}
 """, List.of("""
 A:{ mut .a(randomSharedMut: mut A): iso A -> B.foo(this) }
@@ -358,7 +358,7 @@ While inspecting method call ".name" > ".mutate(_)" line 3
 The body of method ".mutate(_)" of type declaration "Usage" is an expression returning "mutH Ref[Name]".
 Method call "mut Person.name" has type "mutH Ref[Name]" instead of a subtype of "iso Ref[Name]".
 
-See inferred typing context below for how type "iso Ref[Name]" was introduced:
+Relevant code with inferred types:
 Usage:{.mutate(p:mutH Person):iso Ref[Name]->p.name[mut]}
 """, List.of("""
 Void:{} Name:{}
@@ -447,7 +447,7 @@ While inspecting method call ".get" > "#(_)" line 3
 The body of method "#(_)" of type declaration "Test" is an expression returning "readH Foo".
 Method call "read Box[_].get" has type "readH Foo" instead of a subtype of "Foo".
 
-See inferred typing context below for how type "Foo" was introduced:
+Relevant code with inferred types:
 Test:{#(r:readH Box[Foo]):Foo->r.get[read]}
 """, List.of("""
 Foo:{}
@@ -483,7 +483,7 @@ While inspecting parameter "this" > ".m1" line 2
 The body of method ".m1" of type declaration "B" is an expression returning "mut B".
 Parameter "this" has type "mut B" instead of a subtype of "A".
 
-See inferred typing context below for how type "A" was introduced:
+Relevant code with inferred types:
 B:A{.m1:A->this;mut .m1:A->this;.m2:A->this.m1}
 """, List.of("""
 A:{ imm .m1: A; mut .m1: A; .m2: A }
@@ -513,7 +513,7 @@ While inspecting method call ".m1" > ".aRead(_)" line 4
 The body of method ".aRead(_)" of type declaration "Test" is an expression returning "read B".
 Method call "read A.m1" has type "read B" instead of a subtype of "mut A".
 
-See inferred typing context below for how type "mut A" was introduced:
+Relevant code with inferred types:
 Test:{read .aRead(a:read A):mut A->a.m1[read];mut .aMut(a:mut A):mut A->a.m1[mut]}
 """, List.of("""
 A:{ read .m1: read B -> {}; mut .m1: mut A -> this }
@@ -546,7 +546,7 @@ While inspecting method call ".m1" > ".call(_)" line 1
 The body of method ".call(_)" of type declaration "A" is an expression returning "mutH A".
 Method call "mut A.m1" has type "mutH A" instead of a subtype of "mut A".
 
-See inferred typing context below for how type "mut A" was introduced:
+Relevant code with inferred types:
 A:{mut .m1:mut A->this;.call(a:mutH A):mut A->a.m1[mut]}
 """, List.of("""
 A:{ mut .m1: mut A -> this; .call(a: mutH A): mut A -> a.m1 }
@@ -605,7 +605,7 @@ Parameter "a" has type "mutH A" instead of a subtype of "iso A".
 Type required by each promotion:
 - "iso A"  (Allow mutH receiver)
 
-See inferred typing context below for how type "iso A" was introduced:
+Relevant code with inferred types:
 A:{mut .m1(a1:A,a2:iso A,a3:mut A,a4:mut A):mut A->this;.call(a:mutH A):mutH A->a.m1[mut](A,iso A,a,iso A)}
 """, List.of("""
 A:{
@@ -649,7 +649,7 @@ While inspecting parameter "x" > "#(_)" line 1
 The body of method "#(_)" of type declaration "A[_]" is an expression returning "X".
 Parameter "x" has type "X" instead of a subtype of "read/imm X".
 
-See inferred typing context below for how type "read/imm X" was introduced:
+Relevant code with inferred types:
 A[X:**]:{#(x:X):read/imm X->x}
 """, List.of("""
 A[X:**]:{ #(x: X): read/imm X -> x }
@@ -673,7 +673,7 @@ Type required by each promotion:
 - "read/imm Y"  (As declared)
 - "imm Y"  (Strengthen result)
 
-See inferred typing context below for how type "read/imm Y" was introduced:
+Relevant code with inferred types:
 C:{.m[Y:*](y:read Y):read/imm Y->A.m[imm,Y](y)}
 """, List.of("""
 Foo:{}
@@ -733,7 +733,7 @@ While inspecting method call ".get" > ".use(_)" line 2
 The body of method ".use(_)" of type declaration "User" is an expression returning "read/imm Y".
 Method call "Box[_].get" has type "read/imm Y" instead of a subtype of "iso Y".
 
-See inferred typing context below for how type "iso Y" was introduced:
+Relevant code with inferred types:
 User:{.use[Y:imm,iso](b:Box[Y]):iso Y->b.get}
 """, List.of("""
 Box[X:iso,imm]:{ .get: read/imm X }
@@ -748,7 +748,7 @@ This call to method ".foo" cannot typecheck.
 The receiver is of type "read/imm Y". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
-See inferred typing context below for how type "read/imm Y" was introduced:
+Relevant code with inferred types:
 User:{.use[Y:imm,iso](b:Box[Y]):Box[Y]->b.get.foo}
 """, List.of("""
 Box[X:iso,imm]:{ .get: read/imm X }
@@ -984,7 +984,7 @@ Note: the declared type "X" would instead be a valid subtype.
 Capture adaptation trace:
 "X" --setToReadImm(line 2)--> "read/imm X".
 
-See inferred typing context below for how type "X" was introduced:
+Relevant code with inferred types:
 A:{.m[X:mut,iso](x:X):mut Get[X]->mut Get[X]{mut .get:X->x}}
 """, List.of("""
 Get[Y:**]:{ mut .get: Y }
