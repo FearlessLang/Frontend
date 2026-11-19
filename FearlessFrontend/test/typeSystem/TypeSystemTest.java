@@ -259,7 +259,7 @@ To declare one, use the single quote as in the example below:
   }}
 
 Available methods on type "Outer":
-- #:Inner
+-       #:Inner
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.bar
@@ -279,7 +279,7 @@ The method parameter "this" here has type "Outer".
 The method ".bar" is defined in the object literal of type "Inner"; the parameter referring to its instances is named "self".
 
 Available methods on type "Outer":
-- #:Inner
+-       #:Inner
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.bar
@@ -306,7 +306,7 @@ To declare one, use the single quote as in the example below:
   }}
 
 Available methods on type "Outer":
-- #:G
+-       #:G
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.bar
@@ -356,7 +356,7 @@ This call to method ".ba" cannot typecheck.
 Method ".ba" is not declared on type "A".
 
 Available methods on type "A":
-- .foo123:A
+-       .foo123:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.ba
@@ -1475,8 +1475,8 @@ Method ".sise" is not declared on type "Ops".
 Did you mean ".size" ?
 
 Available methods on type "Ops":
-- read .sign:base.Void
-- read .size:base.Void
+-  read .sign:base.Void
+-  read .size:base.Void
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 o.sise
@@ -1501,9 +1501,9 @@ This call to method ".xyzzy" cannot typecheck.
 Method ".xyzzy" is not declared on type "Ops".
 
 Available methods on type "Ops":
-- read .alpha:base.Void
-- read .beta:base.Void
-- read .gamma:base.Void
+-  read .alpha:base.Void
+-  read .beta:base.Void
+-  read .gamma:base.Void
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 o.xyzzy
@@ -1529,9 +1529,9 @@ This call to method ".xyzzy" cannot typecheck.
 Method ".xyzzy" is not declared on type "Ops".
 
 Available methods on type "Ops":
-- read .alpha:Woid
-- read .beta:Woid
-- read .gamma:Woid
+-  read .alpha:Woid
+-  read .beta:Woid
+-  read .gamma:Woid
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 o.xyzzy
@@ -2028,9 +2028,9 @@ Method ".foO123" is not declared on type "A".
 Did you mean ".foo123" ?
 
 Available methods on type "A":
--     .bar:A
-- mut .bob(A):A
--     .foo123:A
+-       .bar:A
+-   mut .bob(A):A
+-       .foo123:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foO123
@@ -2048,8 +2048,8 @@ Method ".foo23" is not declared on type "A".
 Did you mean ".foo123" ?
 
 Available methods on type "A":
-- .bar:A
-- .foo123:A
+-       .bar:A
+-       .foo123:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo23
@@ -2067,8 +2067,8 @@ Method ".foo1123" is not declared on type "A".
 Did you mean ".foo123" ?
 
 Available methods on type "A":
-- .bar:A
-- .foo123:A
+-       .bar:A
+-       .foo123:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.foo1123
@@ -2505,7 +2505,7 @@ This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on object literal instance of "A".
 
 Available methods on object literal instance of "A":
-- .bar:A
+-       .bar:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A{.bar:A->A}.foo
@@ -5122,7 +5122,7 @@ This call to method ".a" cannot typecheck.
 Method ".a" is not declared on "{...}".
 
 Available methods on "{...}":
-- .b:base.Void
+-       .b:base.Void
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 {.b:base.Void->base.Void}.a
@@ -6106,7 +6106,7 @@ To declare one, use the single quote as in the example below:
   }}
 
 Available methods on type "U":
-- .m:base.Void
+-       .m:base.Void
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 this.b

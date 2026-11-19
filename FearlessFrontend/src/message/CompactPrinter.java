@@ -192,6 +192,7 @@ public final class CompactPrinter{
   public String sig(Sig s){
     var pm= ofM(s, Collections.nCopies(s.m().arity(), "_"), Optional.empty());
     assert sb.isEmpty();
+    sb.append(" ".repeat(6-s.rc().toStrSpace().length()));//line up
     pm.accString(this);
     return sb.toString();
   }

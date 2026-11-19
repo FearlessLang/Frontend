@@ -102,8 +102,8 @@ This call to method ".zz" cannot typecheck.
 Method ".zz" is not declared on type "A".
 
 Available methods on type "A":
-- .m:A
-- .n:A
+-       .m:A
+-       .n:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A.zz
@@ -144,8 +144,8 @@ This call to method ".zz" cannot typecheck.
 Method ".zz" is not declared on type "A".
 
 Available methods on type "A":
-- .m:A
-- .n:A
+-       .m:A
+-       .n:A
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 A.zz
@@ -174,7 +174,7 @@ This call to method ".zz" cannot typecheck.
 Method ".zz" is not declared on type "B".
 
 Available methods on type "B":
-- .b:B
+-       .b:B
 
 Compressed relevant code with inferred types: (compression indicated by `-`)
 B.zz
