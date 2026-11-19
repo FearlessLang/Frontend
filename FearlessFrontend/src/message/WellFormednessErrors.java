@@ -51,7 +51,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private Err err(List<String> steps){ return err(y -> y, x -> x, _ -> null, steps); }
   Err err(Function<core.T.C,core.T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,core.E.Literal> decs, List<String> steps){
     var written= written(map);
-    return new Err(publicHead, preferredForFresh, decs, trunk -> new CompactPrinter(pkgName, written, trunk ? _ -> {} : printed::add, trunk), () -> notes(written, steps), new StringBuilder());
+    return new Err(publicHead, preferredForFresh, decs, quiet -> new CompactPrinter(pkgName, written, quiet ? _ -> {} : printed::add), () -> notes(written, steps), new StringBuilder());
   }
   private List<String> notes(Map<String,String> written, List<String> steps){ return Stream.concat(steps.stream(), printed.stream().flatMap(n -> note(written, n))).distinct().sorted(nameFirst).toList(); }
   public static Map<String,String> written(Map<String,String> map){
@@ -171,7 +171,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var pkg= resolved.pkgName();
     var notLower= ranks.containsKey(pkg) && !pkg.equals(pkgName) && all.stream().noneMatch(t -> t.pkgName().equals(pkg));
     if (notLower){ return typeName(ranks(err().line("The type name "+disp(written.s())+" refers to "+notLower(pkg, rankName(ranks.get(pkg)).equals(rankName(ranks.get(pkgName))))+"."), pkg, ranks.get(pkgName), ranks.get(pkg)), written); }
-    Function<TName,String> shown= t -> err().cp().t.ofFull(t.withoutPkgName().withPkgName(map.getOrDefault(t.pkgName(), t.pkgName())));
+    Function<TName,String> shown= t -> err().cp().t.of(t.withoutPkgName().withPkgName(map.getOrDefault(t.pkgName(), t.pkgName())));
     return new UndeclaredNameContext(
       () -> err(steps),
       written, pkgName, scope, all, shown, this::aliasShown,
@@ -180,7 +180,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     ).build();
   }
   private String aliasShown(String s){
-    Optional.ofNullable(map.get(s)).ifPresent(r -> err().cp().t.ofFull(new TName(r, 0, Pos.unknown)));
+    Optional.ofNullable(map.get(s)).ifPresent(r -> err().cp().t.of(new TName(r, 0, Pos.unknown)));
     return s;
   }
   private record UndeclaredNameContext(
@@ -312,7 +312,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   private Err mappedAway(String out, String in, List<String> visible){ return missingPkg(err(), pkgName, out, visible, Optional.of(in)).line(refersTo(pkgName, in, out, writtenIn)); }
   public FearlessException typeOfTheCurrentPackageQualified(TName tn, List<TName> options){
     var e= fullNameInvalid(err(), tn).line(inFolders(pkgName)+" uses the simple name "+disp(tn.simpleName())+" to refer to "+disp(tn.s())+".");
-    if (!options.isEmpty()){ e.line(Join.of(options.stream().map(o -> disp(err().cp().t.ofFull(o))).distinct(), "Did you mean ", " or ", " ?")); }
+    if (!options.isEmpty()){ e.line(Join.of(options.stream().map(o -> disp(err().cp().t.of(o))).distinct(), "Did you mean ", " or ", " ?")); }
     return typeName(e, tn);
   }
   public FearlessException typeWithAnAlias(TName tn, FileFull.Use u){
@@ -497,7 +497,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException literalHeadAmbiguous(E.Literal at, IT.C c, int i, String x, List<IT> cands, List<TName> common, Function<TName,core.E.Literal> decs){
     var example= common.isEmpty() ? "Type"+(i+1) : typeName(common.getFirst());
     var ts= IntStream.range(0, c.ts().size()).mapToObj(j -> j == i ? example : err().typeReprRaw(c.ts().get(j))).toList();
-    var lit= err().cp().t.ofFull(c.name())+Join.of(ts, "[", ",", "]")+"{...}";
+    var lit= err().cp().t.of(c.name())+Join.of(ts, "[", ",", "]")+"{...}";
     return typeArgAmbiguous(at, x, err().tNameADisp(c.name())+" is inferred from the method bodies", cands, common, lit, decs);
   }
   private FearlessException typeArgAmbiguous(E at, String x, String ofFrom, List<IT> cands, List<TName> common, String example, Function<TName,core.E.Literal> decs){
@@ -521,7 +521,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   };}
   private String src(E recv, MName m, String targs, List<E> es){ return src(recv)+m.s()+targs+Join.of(es.stream().map(this::src), "(", ", ", ")", ""); }
   public FearlessException literalHeadNotInferred(E.Literal at, IT.C c, List<Integer> unknown, List<String> xs){
-    var head= err().cp().t.ofFull(c.name())+Join.of(c.ts().stream().map(err()::typeReprRaw), "[", ",", "]", "");
+    var head= err().cp().t.of(c.name())+Join.of(c.ts().stream().map(err()::typeReprRaw), "[", ",", "]", "");
     var s= unknown.size() == 1 ? "" : "s";
     return wf(err()
       .line("Type inference concluded that this object literal implements "+disp(head)+",")
@@ -624,7 +624,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
-      .line(err().tNameADisp(origin)+" implements "+disp(err().cp().t.ofFull(LiteralDeclarations.finalMethods)+"[\""+name+"\"]")+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
+      .line(err().tNameADisp(origin)+" implements "+disp(err().cp().t.of(LiteralDeclarations.finalMethods)+"[\""+name+"\"]")+" and "+err().expRepr(owner)+" implements "+err().tNameADisp(origin)+",")
       .line("thus "+err().expRepr(owner)+" cannot override any method named "+disp(name)+"."), owner);
   }
   public FearlessException claimNotMain(E.Literal owner, TName claim){
@@ -725,5 +725,5 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line(numHint())
       .wf().addSpan(at);
   }
-  private String numHint(){ return "Hint: if you need arbitrary precision numbers, use "+disp(err().cp().t.ofFull(new TName("base.Num", 0, Pos.unknown)))+"."; }
+  private String numHint(){ return "Hint: if you need arbitrary precision numbers, use "+disp(err().cp().t.of(new TName("base.Num", 0, Pos.unknown)))+"."; }
 }

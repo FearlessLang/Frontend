@@ -77,7 +77,7 @@ Capture adaptation trace:
 "mut A" --setToRead(line 2)--> "read A".
 
 See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
-Con-erF:{#(a:mut A):mutH Container->mut Container{read .a1:mut A->a;mut .a2:mut A->a}}
+ContainerF:{#(a:mut A):mutH Container->mut Container{read .a1:mut A->a;mut .a2:mut A->a}}
 """, List.of("""
 A:{}
 ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }

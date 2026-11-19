@@ -1,6 +1,7 @@
 package message;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
@@ -14,7 +15,7 @@ import utils.Range;
 import utils.Streams;
 
 public final class CompactPrinter{
-  public CompactPrinter(String mainPkg, Map<String,String> uses, Consumer<String> printed, boolean trunk){ t= new TypeNamePrinter(trunk, mainPkg, uses, printed); }
+  public CompactPrinter(String mainPkg, Map<String,String> uses, Consumer<String> printed){ t= new TypeNamePrinter(mainPkg, uses, printed); }
   public String limit(E e, int limit){
     assert limit >= 0;
     var root= ofE(e);
@@ -37,7 +38,7 @@ public final class CompactPrinter{
     return sb.toString();
   }
   CompactPrinter append(String s){ sb.append(s); return this; }
-  String bounds(List<B> bs){ return Join.of(bs.stream().map(B::compactToString), "[", ",", "]", ""); }
+  String bounds(List<B> bs){ return Join.of(bs.stream().map(b -> b.rcs().equals(EnumSet.of(RC.imm)) ? b.x() : b.compactToString()), "[", ",", "]", ""); }
   public static final class Compactable{
     public static final Compactable no= new Compactable(false);
     boolean compacted; private Compactable(boolean can){ compacted= !can; }
@@ -145,7 +146,7 @@ public final class CompactPrinter{
     return new PCall(ofE(c.e()), c.name().s(), c.rc(), targs, args, Compactable.of());
   }
   PE ofLit(Literal l){
-    var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.xs(), m.e().map(this::ofE))).toList();
+    var ms= l.ms().stream().filter(m -> m.sig().origin().equals(l.name())).map(m -> ofM(m.sig(), m.names(), m.e().map(this::ofE))).toList();
     var priv= l.infName();
     var name= priv ? ""
       : t.of(l.name())+bounds(l.bs())+":"; // name[bs]:
