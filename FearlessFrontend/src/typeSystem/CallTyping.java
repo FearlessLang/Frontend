@@ -40,7 +40,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     return t.explicitH();
   }
   private T.RCC recvRcc(){
-    var cts= new TypeSystem(ts.scope().pushCallRec(this.c), ts.v());
+    var cts= new TypeSystem(ts.scope().pushCall(this.c), ts.v());
     var r= OneOr.of("One reason without requirements", cts.typeOf(bs, g, c.e(), List.of()).stream());
     assert r.isEmpty();//else would have thrown
     var t= r.best;
@@ -83,7 +83,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
   }
   private void accArgi(Literal d, RC recv, MType base, ArgMatrix acc, int argi){
     var reqs= argRequirements(acc.cs(), argi);
-    var cts= new TypeSystem(ts.scope().pushCallArgi(this.c, argi), ts.v());
+    var cts= new TypeSystem(ts.scope().pushCall(this.c), ts.v());
     var resByReq= cts.typeOf(bs, g, c.es().get(argi), reqs);
     assert resByReq.size() == reqs.size();
     if (resByReq.stream().noneMatch(Reason::isEmpty)){ throw argCannotMeetAnyPromotion(cts, d, recv, base, acc, argi, reqs, resByReq); }

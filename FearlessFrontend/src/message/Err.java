@@ -189,20 +189,27 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     return label+" has type "+Join.of(got.stream().map(t -> typeRepr(skipImm, t)), "", " or ", "")
       +" instead of a subtype of "+typeRepr(skipImm, expected)+".";
   }
-  FearlessException ex(E e){
-    return ex("Compressed relevant code with inferred types: (compression indicated by `-`)", e);
+  FearlessException ex(E e){ return ex(e, e); }
+  FearlessException ex(E e, E focus){
+    return ex("Relevant code with inferred types", e, focus);
   }
-  FearlessException exInferMsg(E e, String req){
-    return ex("See inferred typing context below for how type "+req+" was introduced: (compression indicated by `-`)", e);
+  FearlessException exInferMsg(E e, E focus, String req){
+    return ex("See inferred typing context below for how type "+req+" was introduced", e, focus);
   }
-  FearlessException ex(String footerHdr, core.E footerE){
+  FearlessException ex(String footerHdr, core.E footerE, core.E focus){
+    if (footerE instanceof X || footerE instanceof Type){ return withNotes(Code.TypeError); }
     var body= text();
-    var footer= _cp.apply(true).limit(footerE, 120).stripTrailing();
-    return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.get().stream(), "", "\n", "\n\n", "")+footerHdr+"\n"+footer);
+    var cp= _cp.apply(true);
+    var footer= cp.limit(footerE, focus, 120).stripTrailing();
+    var header= footerHdr+(cp.omitted ? ", where \"_\", \"{...}\" and method signatures without types mark omitted code:\n" : ":\n");
+    return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.get().stream(), "", "\n", "\n\n", "")+header+footer);
   }
   FearlessException wf(){
     assert sb.length() != 0;
+    return withNotes(Code.WellFormedness);
+  }
+  private FearlessException withNotes(Code code){
     var body= text();
-    return Code.WellFormedness.of(() -> body+Join.of(notes.get().stream(), "\n\n", "\n", "", ""));
+    return code.of(() -> body+Join.of(notes.get().stream(), "\n\n", "\n", "", ""));
   }
 }

@@ -105,7 +105,7 @@ Available methods on type "A":
 -       .m:A
 -       .n:A
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A.zz
 Error 8 TypeError
 """, """
@@ -147,7 +147,7 @@ Available methods on type "A":
 -       .m:A
 -       .n:A
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A.zz
 Error 8 TypeError
 """, List.of(pkgDocs), at(0, "T:{ .a: A ->\nA.zz\n  }", fixed(5, 5), shifted(5, 5), fixed(5, 9))); }
@@ -176,7 +176,7 @@ Method ".zz" is not declared on type "B".
 Available methods on type "B":
 -       .b:B
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B.zz
 Error 8 TypeError
 """, List.of(pkgDocs, other), at(0, "T:{ .a: A ->\nA.m\n  }", fixed(5, 5), shifted(5, 5), fixed(5, 8)), at(1, "U:{ .u: B ->\nB.zz\n  }", fixed(2, 5), shifted(2, 5), fixed(2, 9))); }

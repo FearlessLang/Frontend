@@ -40,8 +40,8 @@ This call to method "T1.m(_)" cannot typecheck.
 Argument 1 has type "T1".
 That is not a subtype of "T0[T1]" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.m(this)
+Relevant code with inferred types:
+this.m(this)
 """, List.of("""
 T0[X]:{ }
 T1:T0[T0[T1]]{ .m(a: T0[T1]): T1 -> this.m(this) }
@@ -59,7 +59,7 @@ While inspecting parameter "this" > ".m" line 2
 The body of method ".m" of type declaration "T1" is an expression returning "T1".
 Parameter "this" has type "T1" instead of a subtype of "T0[T1]".
 
-See inferred typing context below for how type "T0[T1]" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "T0[T1]" was introduced:
 T1:T0[T0[T1]]{.m:T0[T1]->this}
 """, List.of("""
 T0[X]:{ }
@@ -74,8 +74,8 @@ This call to method "T1[_].m(_)" cannot typecheck.
 Argument 1 has type "T1[X]".
 That is not a subtype of "T0[T1[X]]" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.m(this)
+Relevant code with inferred types:
+this.m(this)
 """, List.of("""
 T0[X]:{ }
 T1[X]:T0[T0[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
@@ -93,8 +93,8 @@ This call to method "T1[_].m(_)" cannot typecheck.
 Argument 1 has type "T1[X]".
 That is not a subtype of "T0[T1[X]]" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.m(this)
+Relevant code with inferred types:
+this.m(this)
 """, List.of("""
 T0[X]:{ }
 T1[X]:T0[T1[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
@@ -111,7 +111,7 @@ While inspecting parameter "this" > ".m" line 2
 The body of method ".m" of type declaration "T1[_]" is an expression returning "T1[X]".
 Parameter "this" has type "T1[X]" instead of a subtype of "T0[T1[X]]".
 
-See inferred typing context below for how type "T0[T1[X]]" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "T0[T1[X]]" was introduced:
 T1[X]:T0[T1[T1[X]]]{.m:T0[T1[X]]->this}
 """, List.of("""
 T0[X]:{ }
@@ -133,7 +133,7 @@ While inspecting method call ".m(_)" > ".k" line 2
 The body of method ".k" of type declaration "T1[_]" is an expression returning "T1[T1[X]]".
 Method call "T1[_].m(_)" has type "T1[T1[X]]" instead of a subtype of "T1[X]".
 
-See inferred typing context below for how type "T1[X]" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "T1[X]" was introduced:
 T1[X]:T0[T1[T1[X]]]{.m[Y](a:T0[Y]):Y->a.get;.k:T1[X]->this.m[imm,T1[T1[X]]](this)}
 """, List.of("""
 T0[X]:{ .get: X }
@@ -168,7 +168,7 @@ Method ".k" inside the object literal instance of "iso T1" (line 2)
 is implemented with an expression returning "T1".
 Parameter "this" has type "T1" instead of a subtype of "Z[Y]".
 
-See inferred typing context below for how type "Z[Y]" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "Z[Y]" was introduced:
 T1:{.m[Y]:T1->T1{.k:Z[Y]->this}}
 """, List.of("""
 Z[X]:{ }
@@ -187,7 +187,7 @@ While inspecting parameter "b" > ".foo(_,_)" line 2
 The body of method ".foo(_,_)" of type declaration "B[_]" is an expression returning "_BX".
 Parameter "b" has type "_BX" instead of a subtype of "_AX".
 
-See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "_AX" was introduced:
 B[X]:A{.foo[_AX,_BX](a:_AX,b:_BX):_AX->b}
 """, List.of("""
 A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
@@ -212,7 +212,7 @@ Method ".k(_)" inside the object literal instance of "iso G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 
-See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "_AX" was introduced:
 B:Sup{.m[X](x:X):G->G{.k[_AX](y:_AX):_AX->x}}
 """, List.of("""
 G:{ .k[X](y:X):X; }
@@ -228,8 +228,8 @@ Method ".k(_)" inside the object literal instance of "iso G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 
-See inferred typing context below for how type "_AX" was introduced: (compression indicated by `-`)
-B:Sup{.m[X:imm](x:X):mut G->mut G{mut .k[_AX:imm](y:_AX):_AX->x}}
+See inferred typing context below for how type "_AX" was introduced:
+B:Sup{.m[X](x:X):mut G->mut G{mut .k[_AX](y:_AX):_AX->x}}
 """, List.of("""
 G:{ mut .k[X](y:X):X; }
 Sup:{ .m[X](x:X):mut G; }
@@ -262,7 +262,7 @@ Method "!" inside the object literal instance of "iso base.Todo" (line 2)
 is implemented with an expression returning "A".
 Parameter "this" has type "A" instead of a subtype of "_AR".
 
-See inferred typing context below for how type "_AR" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "_AR" was introduced:
 A:{.foo:base.Todo->base.Todo{![_AR:**]:_AR->this}}
 """, List.of("""
 R:{}
@@ -290,7 +290,7 @@ To declare one, use the single quote as in the example below:
 Available methods on type "Outer":
 -       #:Inner
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.bar
 """, List.of("""
 Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
@@ -310,7 +310,7 @@ The method ".bar" is defined in the object literal of type "Inner"; the paramete
 Available methods on type "Outer":
 -       #:Inner
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.bar
 """, List.of("""
 Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
@@ -337,7 +337,7 @@ To declare one, use the single quote as in the example below:
 Available methods on type "Outer":
 -       #:G
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.bar
 """, List.of("""
 G:{ .foo: base.Void; .bar: base.Void; }
@@ -353,7 +353,7 @@ Generic type argument 1 ("mut Outer") does not satisfy the bounds
 for generic type parameter "X" in "G.foo".
 Here "X" can only use capability "imm".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 self.foo[imm,mut Outer]
 """, List.of("""
 G:{ .foo[X:imm]: base.Void; .bar: base.Void; }
@@ -368,7 +368,7 @@ Method ".v" inside the object literal instance of "iso G" (line 4)
 is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
 
-See inferred typing context below for how type "base.Void" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "base.Void" was introduced:
 Outer:{#:G->G{'self .bar:base.Void->base.Void;.v:base.Void->Boxes#[imm,G](self)}}
 """, List.of("""
 Box[E]:{ .get: E }
@@ -387,7 +387,7 @@ Method ".ba" is not declared on type "A".
 Available methods on type "A":
 -       .foo123:A
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.ba
 """, List.of("""
 A:{.foo123:A->this.ba}
@@ -401,7 +401,7 @@ This call to method ".foo(_)" cannot typecheck.
 Method ".foo(_)" is not declared on type "B".
 Type "B" does not have any methods.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x.foo({})
 """, List.of("""
 A:{ .m(x: B): B -> x.foo({}); }
@@ -417,7 +417,7 @@ Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 User:{.m(a:A[mut B]):base.Void}
 """, List.of("""
 A[X:imm]:{}
@@ -435,7 +435,7 @@ Generic type argument 2 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "A[_,_]".
 Here "Y" can only use capabilities "iso" or "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 User:{.m(a:A[B,mut C]):base.Void}
 """, List.of("""
 A[X:imm,Y:read,iso]:{}
@@ -454,7 +454,7 @@ Generic type argument 1 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 User:{.m(a:A[B[mut C]]):base.Void}
 """, List.of("""
 A[X:imm]:{}
@@ -473,7 +473,7 @@ Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capabilities "imm" or "mutH" or "readH".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 User:A[mut B]{.foo(b:B):B->b}
 """, List.of("""
 A[X:imm,readH,mutH]:{}
@@ -491,7 +491,7 @@ Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 User:{.m(a:B):A[mut B]}
 """, List.of("""
 A[X:imm]:{}
@@ -509,7 +509,7 @@ Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capability "imm".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.id[imm,mut B](b)
 """, List.of("""
 A:{ imm .id[X:imm](x:X):X->x }
@@ -527,7 +527,7 @@ Generic type argument 2 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "A.pair(_,_)".
 Here "Y" can only use capability "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.pair[imm,B,mut C](b,c)
 """, List.of("""
 
@@ -547,7 +547,7 @@ Generic type argument 1 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.use[imm,B[mut C]](b)
 """, List.of("""
 A:{ imm .use[X:imm](x:X):base.Void->{} }
@@ -567,7 +567,7 @@ for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 But generic type argument "Y" can only use capability "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 User[Y:read]:A[Y]{}
 """, List.of("""
 A[X:imm]:{}
@@ -584,7 +584,7 @@ Generic type argument 1 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 User:{.m(x:A[B[mut C]]):base.Void}
 """, List.of("""
 A[X:imm]:{}
@@ -603,7 +603,7 @@ Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "imm" or "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.id[imm,mut B](b)
 """, List.of("""
 A:{ imm .id[X:imm,read](x:X):X->x }
@@ -622,7 +622,7 @@ Generic type argument 1 ("B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.id[imm,B](b)
 """, List.of("""
 A:{ imm .id[X:mut,read](x:X):X->x }
@@ -640,7 +640,7 @@ Generic type argument 1 ("B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.id[imm,B](b)
 """, List.of("""
 A:{ imm .id[X:mut,iso](x:X):X->x }
@@ -658,9 +658,6 @@ The type "Thaw[mut Cell]" is invalid.
 Generic type argument 1 ("mut Cell") does not satisfy the bounds
 for generic type parameter "X" in "Thaw[_]".
 Here "X" can only use capability "imm".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-Thaw[mut Cell]
 """, List.of("""
 Cell:{ read .get:base.Nat; mut .set(value:base.Nat):base.Void; }
 Thaw[X:imm]:{ .apply(x:imm X):X -> x; }
@@ -710,7 +707,7 @@ It is used directly 2 times.
 Iso parameters can be used directly at most once.
 Allowed: capture into object literals as "imm", or use directly once.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Use2#(x,x)
 """, List.of("""
 Unit:{}
@@ -729,7 +726,7 @@ It is used directly and also captured into object literals.
 An iso parameter must be either captured, or used directly once (but not both).
 Allowed: capture into object literals as "imm", or use directly once.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Mix#(xyz,KK:K{.k:Unit->UseImm#(xyz)})
 """, List.of("""
 Unit:{}
@@ -753,7 +750,7 @@ It is used directly and also captured into object literals.
 An iso parameter must be either captured, or used directly once (but not both).
 Allowed: capture into object literals as "imm", or use directly once.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Mix2#(x,K1:K{.k:Unit->UseImm#(x)},K2:K{.k:Unit->UseImm#(x)})
 """, List.of("""
 
@@ -779,7 +776,7 @@ It is used directly 2 times.
 Iso parameters can be used directly at most once.
 Allowed: capture into object literals as "imm", or use directly once.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Use2#(::,::)
 """, List.of("""
 Unit:{}
@@ -809,7 +806,7 @@ While inspecting parameter "x" > ".m(_)" line 4
 The body of method ".m(_)" of type declaration "User" is an expression returning "A".
 Parameter "x" has type "A" instead of a subtype of "B".
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 User:{.m(x:A):B->x}
 """, List.of("""
 A:{}
@@ -828,7 +825,7 @@ While inspecting parameter "veryVeryLongParamName" > ".veryLongMethodName(_)" li
 The body of method ".veryLongMethodName(_)" of type declaration "User" is an expression returning "Alpha".
 Parameter "veryVeryLongParamName" has type "Alpha" instead of a subtype of "Beta".
 
-See inferred typing context below for how type "Beta" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "Beta" was introduced:
 User:{.veryLongMethodName(veryVeryLongParamName:Alpha):Beta->veryVeryLongParamName}
 """, List.of("""
 Alpha:{}
@@ -847,7 +844,7 @@ While inspecting method call "#(_)" > ".m" line 5
 The body of method ".m" of type declaration "User" is an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "B".
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 User:{.m:B->MakeA#(base.Void)}
 """, List.of("""
 A:{}
@@ -866,7 +863,7 @@ While inspecting method call "#(_)" > ".m" line 4
 The body of method ".m" of type declaration "User" is an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 User:{.m:mut A->MakeA#(base.Void)}
 """, List.of("""
 A:{}
@@ -887,7 +884,7 @@ Method ".get" inside the object literal instance of "iso Get" (line 5)
 is implemented with an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 User:{.m:Get->mut Get{mut .get:mut A->MakeA#(base.Void)}}
 """, List.of("""
 A:{}
@@ -909,7 +906,7 @@ Method "#(_)" inside the object literal instance of "iso F[Person,Car]" (line 7)
 is implemented with an expression returning "iso Foo".
 Object literal is of type "Foo" instead of a subtype of "Car".
 
-See inferred typing context below for how type "Car" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "Car" was introduced:
 User:{.m:Car->Apply#(Person,F[Person,Car]{#(Person):Car->Foo})}
 """, List.of("""
 Person:{}
@@ -929,7 +926,7 @@ While inspecting method call "#(_)" > ".m" line 6
 The body of method ".m" of type declaration "User" is an expression returning "A".
 Method call "Wrap#(_)" has type "A" instead of a subtype of "B".
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 User:{.m:B->Wrap#(Mk#(base.Void))}
 """, List.of("""
 A:{}
@@ -949,7 +946,7 @@ While inspecting object literal "AA" > ".m" line 4
 The body of method ".m" of type declaration "User" is an expression returning "iso AA".
 Object literal is of type "iso AA" instead of a subtype of "B".
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 User:{.m:B->AA:A{}}
 """, List.of("""
 A:{}
@@ -971,7 +968,7 @@ Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 User:{read .m(loooooong:mut A):mut A->read Get{read .get:mut A->loooooong}}
 """, List.of("""
 A:{}
@@ -994,7 +991,7 @@ Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 
-See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "iso A" was introduced:
 User:{read .m(loooooong:mut A):read Get->read Get{read .get:iso A->loooooong}}
 """, List.of("""
 A:{}
@@ -1017,7 +1014,7 @@ Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 
-See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "iso A" was introduced:
 User:{read .m(loooooong:mut A):mut A->read Get{read .get:iso A->loooooong}}
 """, List.of("""
 A:{}
@@ -1041,7 +1038,7 @@ Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 6)--> "read A" --strengthenToImm(line 6)--> "A".
 
-See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "iso A" was introduced:
 User:{read .m(loooooong:mut A):mut A->read Wrap{read .wrap:Get->mut Get{.get:iso A->loooooong}}}
 """, List.of("""
 A:{}
@@ -1064,9 +1061,6 @@ User:{
 While inspecting parameter "a" > "#" line 5 > "#(_)" line 3
 Object literal instance of "iso G" (line 4) implements "base.CaptureFree".
 Thus parameter "a" (line 5) cannot be captured in that object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-a
 """, List.of("""
 A:{}
 G:base.CaptureFree{ #:A; }
@@ -1083,9 +1077,6 @@ Foo:{#(a:A):G->
 While inspecting parameter "a" > "#" line 3 > "#(_)" line 3
 Object literal instance of "iso G" (line 3) implements "base.CaptureFree".
 Thus parameter "a" (line 3) cannot be captured in that object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-a
 """, List.of("""
 A:{}
 G:base.CaptureFree{ #:A; }
@@ -1104,9 +1095,6 @@ While inspecting parameter "loooooong" > "#" line 8 > ".m(_)" line 7
 Parameter "loooooong" has type "mut A".
 Parameter "loooooong" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "G" (line 8).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-loooooong
 """, List.of("""
 A:{}
 G:{ #(): base.Void; }
@@ -1132,9 +1120,6 @@ While inspecting parameter "loooooong" > "#" line 8 > ".m(_)" line 7
 Parameter "loooooong" has type "mutH A".
 The type of parameter "loooooong" is hygienic (readH or mutH)
 and thus it cannot be captured in the object literal instance of "G" (line 8).
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-loooooong
 """, List.of("""
 A:{}
 G:{ #(): base.Void; }
@@ -1158,9 +1143,6 @@ While inspecting parameter "loooooong" > "#" line 6 > ".m(_)" line 5
 Parameter "loooooong" has type "mutH A".
 The type of parameter "loooooong" is hygienic (readH or mutH)
 and thus it cannot be captured in the object literal instance of "G" (line 6).
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-loooooong
 """, List.of("""
 A:{}
 G:{ #(): base.Void; }
@@ -1274,9 +1256,6 @@ While inspecting parameter "beer" > ".get" line 3 > ".m(_)" line 2
 Parameter "beer" has type "X".
 The type of parameter "beer" can be instantiated with hygienics (readH or mutH)
 and thus it cannot be captured in the object literal "G[_]" (line 3).
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-beer
 """, List.of("""
 User:{
   read .m[X:imm,mut,read,readH,mutH](beer:X):G[X]->
@@ -1293,8 +1272,8 @@ This call to method ".foo" cannot typecheck.
 The receiver is of type "X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
-See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
--#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](x.foo)))))
+See inferred typing context below for how type "X" was introduced:
+Id#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](x.foo)))))
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
 User:{ .m[X:*](x: X): X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
@@ -1308,8 +1287,8 @@ This call to method ".foo" cannot typecheck.
 The receiver is of type "read X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
-See inferred typing context below for how type "read X" was introduced: (compression indicated by `-`)
--#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](x.foo)))))
+See inferred typing context below for how type "read X" was introduced:
+Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](x.foo)))))
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
 Box[T:*]:{}
@@ -1325,8 +1304,8 @@ This call to method ".foo" cannot typecheck.
 The receiver is of type "read/imm X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
-See inferred typing context below for how type "read/imm X" was introduced: (compression indicated by `-`)
--#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](x.foo)))))
+See inferred typing context below for how type "read/imm X" was introduced:
+Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](x.foo)))))
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
 User:{ .m[X:*](x: read/imm X): read/imm X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
@@ -1346,7 +1325,7 @@ This call to method ".foo" cannot typecheck.
 The receiver is of type "X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
-See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "X" was introduced:
 User:{.m[X:**](x:X):X->x.foo}
 """, List.of("""
 User:{
@@ -1401,7 +1380,7 @@ The method ".g(_)" accepts parameter 1 of type "imm P".
 But "Parent.g(_)" requires "read P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Current:Parent{.g(x:P):base.Void}
 """, List.of("""
 
@@ -1420,7 +1399,7 @@ The method ".h" returns type "read P".
 But "Sup.h" returns type "imm P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Sub:Sup{.h:read P}
 """, List.of("""
 P:{}
@@ -1438,7 +1417,7 @@ Missing: "imm .k".
 Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 iso Sup{.h:base.Void->base.Void}
 """, List.of("""
 Sup:{
@@ -1460,7 +1439,7 @@ Missing: "imm .k".
 Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 iso Bad:Sup{.h:base.Void->base.Void}
 """, List.of("""
 Sup:{
@@ -1483,7 +1462,7 @@ This call to method ".nope" cannot typecheck.
 Method ".nope" is not declared on type "Empty".
 Type "Empty" does not have any methods.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 e.nope
 """, List.of("""
 Empty:{}
@@ -1507,7 +1486,7 @@ Available methods on type "Ops":
 -  read .sign:base.Void
 -  read .size:base.Void
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 o.sise
 """, List.of("""
 Ops:{
@@ -1534,7 +1513,7 @@ Available methods on type "Ops":
 -  read .beta:base.Void
 -  read .gamma:base.Void
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 o.xyzzy
 """, List.of("""
 Ops:{
@@ -1562,7 +1541,7 @@ Available methods on type "Ops":
 -  read .beta:Woid
 -  read .gamma:Woid
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 o.xyzzy
 """, List.of("""
 use base.Void as Woid;
@@ -1589,7 +1568,7 @@ There are methods ".mix(_)" and ".mix(_,_)" on type "Mixer",
 but with a different number of arguments.
 This call supplies 3, but available methods take 1 or 2.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 m.mix(a,a,a)
 """, List.of("""
 A:{}
@@ -1614,7 +1593,7 @@ There are methods ".mix(_,_)" and ".mix(_,_,_,_,_,_,_,_,_,_)" on type "Mixer",
 but with a different number of arguments.
 This call supplies 1, but available methods take 2 or 10.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 m.mix(a)
 """, List.of("""
 A:{}
@@ -1638,7 +1617,7 @@ This call to method ".zap(_)" cannot typecheck.
 This call requires a method with capability "mut".
 Available capabilities for this method: "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 z.zap[mut](a)
 """, List.of("""
 A:{}
@@ -1660,7 +1639,7 @@ This call to method ".k" cannot typecheck.
 This call requires a method with capability "read".
 Available capabilities for this method: "mut".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 mut A{read .m:base.Void->base.Void;mut .k:base.Void->base.Void}.k[read]
 """, List.of("""
 A:{ read .m: base.Void }
@@ -1676,7 +1655,7 @@ This call to method ".m" cannot typecheck.
 This call requires a method with capability "read".
 Available capabilities for this method: "imm" and "mut".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 a.m[read]
 """, List.of("""
 A:{ mut .m:A; imm .m:A; }
@@ -1694,7 +1673,7 @@ Method ".pair(_,_)" declares 2 generic type parameters.
 Declared generic type parameters: "X", "Y".
 This call provides 1 generic type argument.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 p.pair[read,mut A](a,b)
 """, List.of("""
 A:{}
@@ -1719,7 +1698,7 @@ Wrong number of generic type arguments for ".id(_)".
 Method ".id(_)" declares no generic type parameters.
 This call provides 1 generic type argument.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 i.id[read,mut A](a)
 """, List.of("""
 
@@ -1745,7 +1724,7 @@ Method ".id(_)" declares 1 generic type parameter.
 Declared generic type parameters: "X".
 This call provides 3 generic type arguments.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 i.id[read,mut A,mut B,mut C](a)
 """, List.of("""
 
@@ -1775,7 +1754,7 @@ Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.zap[mut](a)
 """, List.of("""
 A:{}
@@ -1795,8 +1774,8 @@ Argument 1 has type "Plus".
 That is not a subtype of "A" (the type required by the method signature).
 Hint: Fearless has no operator precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--+(this)
+Relevant code with inferred types:
+this + this
 """, List.of("""
 A:{}
 Plus:{
@@ -1814,8 +1793,8 @@ This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read B".
 That is not a subtype of "mut A" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#(AsRead#(aaaa))
+Relevant code with inferred types:
+Need#(AsRead#(aaaa))
 """, List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -1833,8 +1812,8 @@ This call to method "mut Need#(_)" cannot typecheck.
 Argument 1 has type "B".
 That is not a subtype of "mut A" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#[mut](b)
+Relevant code with inferred types:
+n#[mut](b)
 """, List.of("""
 A:{}
 B:{}
@@ -1858,7 +1837,7 @@ Type required by each promotion:
 - "mut A"  (As declared)
 - "iso A"  (Strengthen result)
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
 """, List.of("""
 B:{}
@@ -1886,7 +1865,7 @@ Type required by each promotion:
 - "mut A"  (As declared)
 - "iso A"  (Strengthen result)
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa)}}
 """, List.of("""
 
@@ -1917,7 +1896,7 @@ Generic type argument 1 ("mut A") does not satisfy the bounds
 for generic type parameter "X" in "IdRO#(_)".
 Here "X" can only use capabilities "imm" or "read".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 IdRO#[imm,mut A](aaaa)
 """, List.of("""
 
@@ -1945,7 +1924,7 @@ Type required by each promotion:
 - "mut A"  (As declared)
 - "iso A"  (Strengthen result)
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 A:{.f(aaaa:mut A):B->Need#(IdRO#[imm,read A](aaaa))}
 """, List.of("""
 B:{}
@@ -1973,7 +1952,7 @@ Type required by each promotion:
 - "mut A"  (As declared)
 - "iso A"  (Strengthen result)
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 User:{.f:B->Need#(read A)}
 """, List.of("""
 B:{}
@@ -2005,7 +1984,7 @@ Promotion failures:
 - Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.f(x,y)
 """, List.of("""
 A:{
@@ -2034,7 +2013,7 @@ Promotion failures:
 - Argument 2 fails:    Allow mutH argument 1
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.f(x,y)
 """, List.of("""
 A:{
@@ -2061,7 +2040,7 @@ Available methods on type "A":
 -   mut .bob(A):A
 -       .foo123:A
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foO123
 """, List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
@@ -2080,7 +2059,7 @@ Available methods on type "A":
 -       .bar:A
 -       .foo123:A
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foo23
 """, List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
@@ -2099,7 +2078,7 @@ Available methods on type "A":
 -       .bar:A
 -       .foo123:A
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foo1123
 """, List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
@@ -2115,7 +2094,7 @@ There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
 but with a different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foo123(this)
 """, List.of("""
 A:{
@@ -2135,7 +2114,7 @@ There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
 but with a different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foo123(this)
 """, List.of("""
 A:{
@@ -2153,7 +2132,7 @@ This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "mut".
 This call requires a receiver with capability "imm".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foo123
 """, List.of("""
 A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
@@ -2167,7 +2146,7 @@ This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foo123
 """, List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
@@ -2181,7 +2160,7 @@ This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foo123
 """, List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
@@ -2196,7 +2175,7 @@ This call to method ".foo123" cannot typecheck.
 This call requires a method with capability "read".
 Available capabilities for this method: "imm".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foo123[read]
 """, List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
@@ -2222,7 +2201,7 @@ Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foo123[mut]
 """, List.of("""
 A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
@@ -2236,7 +2215,7 @@ This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foo123
 """, List.of("""
 A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
@@ -2259,7 +2238,7 @@ Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.foo123[mut]
 """, List.of("""
 A:{
@@ -2279,7 +2258,7 @@ While inspecting parameter "b" > ".bar(_)" line 1
 The body of method ".bar(_)" of type declaration "A" is an expression returning "B".
 Parameter "b" has type "B" instead of a subtype of "A".
 
-See inferred typing context below for how type "A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "A" was introduced:
 A:{.bar(b:B):A->b}
 """, List.of("""
 A:{ .bar(b:B):A->b; }
@@ -2298,7 +2277,7 @@ The method "mut B.bar" is dead code.
 The object literal instance of "B" is "read", so it will never be seen as "mut".
 But it implements method "mut .bar", which requires a "mut" receiver.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 read B{mut .bar:mut B->b}
 """, List.of("""
 B:{ mut .bar:mut B }
@@ -2335,7 +2314,7 @@ This call to method ".foo123" cannot typecheck.
 The receiver is of type "X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 
-See inferred typing context below for how type "X" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "X" was introduced:
 A:{.foo123:A->this.foo123;.bar[X:*](x:X):A->x.foo123}
 """, List.of("""
 A:{
@@ -2355,7 +2334,7 @@ Method ".id(_)" declares 1 generic type parameter.
 Declared generic type parameters: "X".
 This call provides 2 generic type arguments.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.id[imm,A,A](this)
 """, List.of("""
 A:{
@@ -2384,7 +2363,7 @@ Promotion failures:
 - Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.f(x,y)
 """, List.of("""
 A:{
@@ -2413,7 +2392,7 @@ Promotion failures:
 - Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Method call "ID#(_)" has type "mutH A" instead of a subtype of "iso A".
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.f(x,ID#[imm,mutH A](y))
 """, List.of("""
 ID:{#[T:**](x:T):T->x}
@@ -2438,9 +2417,6 @@ While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
 Parameter "aaaa" has type "mut A".
 Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal "BB" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-aaaa
 """, List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
@@ -2457,9 +2433,6 @@ While inspecting parameter "aaaa" > ".foo" line 4 > ".f(_)" line 4
 Parameter "aaaa" has type "mut A".
 Parameter "aaaa" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "B" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-aaaa
 """, List.of("""
 Skip:{#[X:**](X):B->B}
 B:{}
@@ -2505,7 +2478,7 @@ Type required by each promotion:
 - "mut A"  (As declared)
 - "iso A"  (Strengthen result)
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
 """, List.of("""
 
@@ -2536,7 +2509,7 @@ Method ".foo" is not declared on object literal instance of "A".
 Available methods on object literal instance of "A":
 -       .bar:A
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A{.bar:A->A}.foo
 """, List.of("""
 A:{}
@@ -2554,7 +2527,7 @@ This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on type "A".
 Type "A" does not have any methods.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A.foo
 """, List.of("""
 
@@ -2572,7 +2545,7 @@ This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on object literal instance of "B".
 Type "B" does not have any methods.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:{}.foo
 """, List.of("""
 A:{}
@@ -2598,7 +2571,7 @@ Method ".a" inside the object literal "{...}" (line 1)
 is implemented with an expression returning the anonymous type of the object literal at line 1, column 26.
 Parameter "self" has type the anonymous type of the object literal at line 1, column 26 instead of a subtype of "Outer".
 
-See inferred typing context below for how type "Outer" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "Outer" was introduced:
 Outer:{.m:base.Void->{'self .a:Outer->self}.a}
 """, List.of("""
 Outer:{ .m: base.Void -> {'self .a: Outer -> self}.a }
@@ -2652,7 +2625,7 @@ While inspecting object literal instance of "base.Float" > ".m" line 1
 The body of method ".m" of type declaration "Main" is an expression returning "iso base.Float".
 Object literal is of type "base.Float" instead of a subtype of "base.Int".
 
-See inferred typing context below for how type "base.Int" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "base.Int" was introduced:
 Main:{.m:base.Int->+1.5}
 """, List.of("""
  Main:{ .m:base.Int -> +1.5 }
@@ -2925,9 +2898,6 @@ This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
 Hint: add an implementation for ".foo" inside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso B
 """, List.of("""
  A:{.foo:A}
  B:A{}
@@ -2943,7 +2913,7 @@ Missing: "imm .foo".
 Required by: "B".
 Hint: add an implementation for ".foo" inside the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 iso B{.bar:A->A}
 """, List.of("""
  A:{.foo:A->A}
@@ -2968,7 +2938,7 @@ Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is
 A value of "B" is never "mut", so "mut .get" can stay abstract.
 A method written without a receiver capability also implements "mut .get": write the receiver capability, as in "read .get".
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 B:A,base.CaptureFree{read .get:read A->this;mut .get:mut A->this}
 """, List.of("""
  A:{ read .get: read A; mut .get: mut A; }
@@ -2993,9 +2963,6 @@ This object literal is missing a required method.
 Missing: "mut .foo".
 Required by: "A".
 Hint: add an implementation for ".foo" inside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso B
 """, List.of("""
  A:{mut .foo:A}
  B:A{}
@@ -3640,8 +3607,8 @@ Method ".opt" inside the object literal "mut Slot[_]" (line 3)
 is implemented with an expression returning "read Opt[E]".
 Method call "read Var[_].get" has type "read Opt[E]" instead of a subtype of "read Opt[read/imm E]".
 
-See inferred typing context below for how type "read Opt[read/imm E]" was introduced: (compression indicated by `-`)
-Slots:{#[E:*](e:mut Var[mut Opt[E]]):mut Slot[E]->mut Slot[E:*]:{e.get[mut];e.get[read]}}
+See inferred typing context below for how type "read Opt[read/imm E]" was introduced, where "_", "{...}" and method signatures without types mark omitted code:
+Slots:{#[E:*](e:mut Var[mut Opt[E]]):mut Slot[E]->mut Slot[E:*]:{mut .opt->e.get[mut];read .opt:read Opt[read/imm E]->e.get[read]}}
 """, List.of("""
 Opt[E:*]:{}
 Var[E:imm,mut,read]:{ read .get: read/imm E; mut .get: E; }
@@ -3675,7 +3642,7 @@ While inspecting parameter "o" > ".u(_)" line 3
 The body of method ".u(_)" of type declaration "User" is an expression returning "read Opt[mut X]".
 Parameter "o" has type "read Opt[mut X]" instead of a subtype of "read Opt[read X]".
 
-See inferred typing context below for how type "read Opt[read X]" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "read Opt[read X]" was introduced:
 User:{.u(o:read Opt[mut X]):read Opt[read X]->o}
 """, List.of("""
 Opt[E:*]:{}
@@ -4029,7 +3996,7 @@ While inspecting parameter "c" > ".f(_)" line 4
 The body of method ".f(_)" of type declaration "User" is an expression returning "C[A]".
 Parameter "c" has type "C[A]" instead of a subtype of "C[B]".
 
-See inferred typing context below for how type "C[B]" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "C[B]" was introduced:
 User:{.f(c:C[A]):C[B]->c}
 """, List.of("""
 A:{}
@@ -4045,7 +4012,7 @@ While inspecting object literal instance of "C[A]" > ".f(_)" line 4
 The body of method ".f(_)" of type declaration "User" is an expression returning "iso C[A]".
 Object literal is of type "iso C[A]" instead of a subtype of "C[B]".
 
-See inferred typing context below for how type "C[B]" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "C[B]" was introduced:
 User:{.f(c:C[A]):C[B]->C[A]{.foo:A->A}}
 """, List.of("""
 A:{}
@@ -4086,7 +4053,7 @@ While inspecting parameter "::" > ".h(_)" line 3
 The body of method ".h(_)" of type declaration "User" is an expression returning "Sup".
 Parameter "::" has type "Sup" instead of a subtype of "base.Void".
 
-See inferred typing context below for how type "base.Void" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "base.Void" was introduced:
 User:Sup{.h(Sup):base.Void->::}
 Error 8 TypeError
 """, List.of("""
@@ -4119,7 +4086,7 @@ While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
 Object literal is of type "Sup" instead of a subtype of "Target".
 
-See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "Target" was introduced:
 B:{.m:Target->Sup}
 """, List.of("""
 Sup:base.WidenTo[Target]{}
@@ -4135,7 +4102,7 @@ While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
 Object literal is of type "Sup" instead of a subtype of "Target".
 
-See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "Target" was introduced:
 B:{.m:Target->Sup}
 """, List.of("""
 Sup:{}
@@ -4151,7 +4118,7 @@ While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
 Object literal is of type "iso Sup" instead of a subtype of "Target".
 
-See inferred typing context below for how type "Target" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "Target" was introduced:
 B:{.m:Target->Sup{.foo:base.Str->base.Str}}
 """, List.of("""
 Sup:base.WidenTo[Target]{ .foo:base.Str }
@@ -4234,8 +4201,8 @@ Method "#(_)" inside the object literal instance of "iso base.BaseId[read Custom
 is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "Person".
 
-See inferred typing context below for how type "Person" was introduced: (compression indicated by `-`)
-User:{(-)->cs.as[read,Person](base.BaseId[read Customer,Person]{(-)->::})}
+See inferred typing context below for how type "Person" was introduced:
+User:{.n(cs:read base.MList[mut Customer]):base.MList[Person]->cs.as[read,Person](base.BaseId[read Customer,Person]{#(read Customer):Person->::})}
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4272,7 +4239,7 @@ Method "#(_)" inside the object literal instance of "iso base.BaseId[Person,Cust
 is implemented with an expression returning "Person".
 Parameter "::" has type "Person" instead of a subtype of "Customer".
 
-See inferred typing context below for how type "Customer" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "Customer" was introduced:
 User:{.m:base.BaseId[Person,Customer]->base.BaseId[Person,Customer]{#(Person):Customer->::}}
 """, List.of("""
 Person:{}
@@ -4287,9 +4254,6 @@ While inspecting the file
 Type declaration "MyId" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-Person
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4304,7 +4268,7 @@ Type declaration "MyId" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Other.cs.as[imm,Person](base.BaseId[Customer,Person]{#(Customer):Person->::})
 """, List.of("""
 Person:{}
@@ -4550,9 +4514,6 @@ This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
 Hint: add an implementation for ".close" inside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Closed[A]
 """, List.of("""
 Closed[T]:{ read .close: read T }
 A:Closed[A]{ .close->this }
@@ -4568,9 +4529,6 @@ This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
 Hint: add an implementation for ".close" inside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Closed[B]
 """, List.of("""
 Closed[T]:{ read .close: read T }
 B:{}
@@ -4586,9 +4544,6 @@ This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_,_]".
 Hint: add an implementation for ".close" inside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso Closed[A,B]
 """, List.of("""
 Closed[T,E]:{ read .close: read T }
 A:Closed[A,B]{ .close->this }
@@ -4605,9 +4560,6 @@ This object literal is missing a required method.
 Missing: "imm .name".
 Required by: "A".
 Hint: add an implementation for ".name" inside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso A
 """, List.of("""
 Closed[T]:{ read .close: read T }
 A:Closed[A]{ .name: A }
@@ -4687,8 +4639,8 @@ Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13)
 is implemented with an expression returning "mut Opt[E]".
 Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
 
-See inferred typing context below for how type "Opt[E]" was introduced: (compression indicated by `-`)
--.let[mut,mut Opt[E]](-,mut Continuation[mut Opt[E],Opt[E]]{(-,-)->_aeqS.return[mut](mut MF[Opt[E]]{o})})
+See inferred typing context below for how type "Opt[E]" was introduced, where "_", "{...}" and method signatures without types mark omitted code:
+_#[imm,Opt[E]].let[mut,mut Opt[E]](mut MF[_]{...},mut Continuation[mut Opt[E],Opt[E]]{mut #(o:mut Opt[E],_aeqS:mut Block[Opt[E]]):Opt[E]->_aeqS.return[mut](mut MF[Opt[E]]{mut #:Opt[E]->o})})
 """, List.of("""
 use base.MF as MF;
 Blocks: { #[R:*]: mut Block[R] -> {} }
@@ -4738,7 +4690,7 @@ The method ".m1" returns type "P".
 But "A.m1" returns type "Q", which is not a supertype of "P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 B:A{.m1:P->P;.m2:P->P}
 """, List.of("""
 P:{}
@@ -4784,9 +4736,6 @@ While inspecting parameter "c" > ".run" line 4 > ".f(_,_)" line 4
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-c
 """, List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }
@@ -4807,9 +4756,6 @@ While inspecting parameter "c" > ".get" line 4 > ".f(_,_)" line 4
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Box" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-c
 """, List.of("""
 Foo:{}
 Box:{ mut .get: mut Foo; read .get: read Foo }
@@ -4830,9 +4776,6 @@ While inspecting parameter "c" > ".run" line 4 > ".f(_,_)" line 4
 Parameter "c" has type "mut Foo".
 Parameter "c" can observe mutation; thus it cannot be captured in the "imm" object literal instance of "Sup" (line 4).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-c
 """, List.of("""
 Foo:{}
 Sup:{ mut .run: mut Foo }
@@ -4875,7 +4818,7 @@ Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 self.inc[mut]
 """, List.of("""
 Counter:{ mut .inc: mut Counter; read .get: read Counter }
@@ -4908,7 +4851,7 @@ The self name "self" is dead code.
 No method of the object literal instance of "A" uses it.
 Remove "'self" from the object literal.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 A{'self read .get:base.Nat->0}
 """, List.of("""
 A:{ read .get: base.Nat }
@@ -4992,7 +4935,7 @@ While inspecting object literal instance of "read C" > ".f" line 4
 The body of method ".f" of type declaration "User" is an expression returning "read C".
 Object literal is of type "read C" instead of a subtype of "mut A".
 
-See inferred typing context below for how type "mut A" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut A" was introduced:
 User:{.f:mut A->read C}
 """, List.of("""
 A:{ mut .foo:A}
@@ -5140,7 +5083,7 @@ This call to method ".a" cannot typecheck.
 Method ".a" is not declared on "{...}".
 Object literal "{...}" does not have any methods.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 {}.a
 """, List.of("""
 App:{ .m: base.Nat -> {}.a }
@@ -5156,7 +5099,7 @@ Method ".a" is not declared on "{...}".
 Available methods on "{...}":
 -       .b:base.Void
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 {.b:base.Void->base.Void}.a
 """, List.of("""
 App:{ .m: base.Nat -> {.b:base.Void->base.Void;}.a }
@@ -5318,8 +5261,8 @@ This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "iso Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.put(Animal)
+Relevant code with inferred types:
+b.put(Animal)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5341,8 +5284,8 @@ This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "iso Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.put(Animal)
+Relevant code with inferred types:
+b.put(Animal)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5421,8 +5364,8 @@ This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "iso Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.put(Animal)
+Relevant code with inferred types:
+b.add(Cat).put(Animal)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5450,8 +5393,8 @@ This call to method "NeedDog#(_)" cannot typecheck.
 Argument 1 has type "Cat".
 That is not a subtype of "Dog" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#(x)
+Relevant code with inferred types:
+NeedDog#(x)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5472,8 +5415,8 @@ This call to method "Pick#(_,_)" cannot typecheck.
 Argument 1 has type "Dog".
 That is not a subtype of "Cat" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#[imm,Cat](x,-)
+Relevant code with inferred types:
+Pick#[imm,Cat](x,Cat)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5516,8 +5459,8 @@ This call to method "NeedDog#(_)" cannot typecheck.
 Argument 1 has type "Cat".
 That is not a subtype of "Dog" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#(x)
+Relevant code with inferred types:
+NeedDog#(x)
 """, List.of("""
 Animal:{}
 Cat:Animal{}
@@ -5538,8 +5481,8 @@ This call to method "Pick#(_,_)" cannot typecheck.
 Argument 1 has type "Dog".
 That is not a subtype of "Cat" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#[imm,Cat](x,-)
+Relevant code with inferred types:
+Pick#[imm,Cat](x,Cat)
 """, List.of("""
 Animal:{}
 Cat:Animal{}
@@ -5560,8 +5503,8 @@ This call to method "NeedDog#(_)" cannot typecheck.
 Argument 1 has type "Cat".
 That is not a subtype of "Dog" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#(x)
+Relevant code with inferred types:
+NeedDog#(x)
 """, List.of("""
 Animal:{}
 Cat:Animal{}
@@ -5582,8 +5525,8 @@ This call to method "Pick#(_,_)" cannot typecheck.
 Argument 1 has type "Dog".
 That is not a subtype of "Cat" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#[imm,Cat](x,-)
+Relevant code with inferred types:
+Pick#[imm,Cat](x,c)
 """, List.of("""
 Animal:{}
 Cat:Animal{}
@@ -5650,8 +5593,8 @@ This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "iso Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.put(Animal)
+Relevant code with inferred types:
+b.put(Animal)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5670,8 +5613,8 @@ This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "iso Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.put(Animal)
+Relevant code with inferred types:
+b.put(Animal)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5898,7 +5841,7 @@ While inspecting method call ".get" > ".m(_)" line 2
 The body of method ".m(_)" of type declaration "U[_]" is an expression returning "Box[Box[Box[[###]".
 Method call "K[_].get" has type "Box[Box[Box[[###]" instead of a subtype of "Box[Box[X]]".
 
-See inferred typing context below for how type "Box[Box[X]]" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "Box[Box[X]]" was introduced:
 U[X]:{.m(k:K[[###]]):Box[Box[X]]->k.get}
 """, List.of("""
 A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }
@@ -6095,7 +6038,7 @@ While inspecting object literal instance of "base.Void" > ".str" line 1
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
 
-See inferred typing context below for how type "base.Str" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "base.Str" was introduced:
 A:base.ToStr{read .str:base.Str->base.Void}
 """, List.of("""
 A:base.ToStr{ .str -> base.Void }
@@ -6108,7 +6051,7 @@ While inspecting object literal instance of "base.Void" > ".str" line 2
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
 
-See inferred typing context below for how type "base.Str" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "base.Str" was introduced:
 A:Show{read .str:base.Str->base.Void}
 """, List.of("""
 use base.ToStr as Show;
@@ -6166,8 +6109,8 @@ While inspecting method call ".let(_,_)" > ".m" line 2
 The body of method ".m" of type declaration "U" is an expression returning "A".
 Method call "mut base.Block[_].let(_,_)" has type "A" instead of a subtype of "iso A".
 
-See inferred typing context below for how type "iso A" was introduced: (compression indicated by `-`)
-U:{base.Block#[imm,A].let[mut,A](mut base.ReturnStmt[-]{A},mut base.Continuation[-,-,-]{(-,-)->-.return[mut](-)})}
+See inferred typing context below for how type "iso A" was introduced, where "_", "{...}" and method signatures without types mark omitted code:
+U:{.m:iso A->_#[imm,A].let[mut,A](mut base.ReturnStmt[A]{...},mut base.Continuation[_,_,_]{...})}
 """, List.of("""
 A:{}
 U:{ .m: iso A -> base.Block#.let v1 = {A} .return {v1} }
@@ -6205,8 +6148,8 @@ This call to method "Pick#(_,_)" cannot typecheck.
 Argument 2 has type "base.Void".
 That is not a subtype of "X" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#[imm,X](-,y)
+Relevant code with inferred types:
+Pick#[imm,X](x,y)
 """, List.of("""
 Pick:{ #[T:*](a:T, b:T):T -> a }
 C[X:*]:{ .m(x:X, y:base.Void):X -> Pick#(x,y) }
@@ -6220,8 +6163,8 @@ This call to method "Pick3#(_,_,_)" cannot typecheck.
 Argument 2 has type "iso B".
 That is not a subtype of "A" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#[imm,A](-,B,-)
+Relevant code with inferred types:
+Pick3#[imm,A](A,B,C)
 """, List.of("""
 Pick3:{ #[T:*](a:T, b:T, c:T):T -> a }
 A:{}
@@ -6257,9 +6200,6 @@ While inspecting the file
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-this
 """, List.of("""
 I: base.BaseId[I,I]{ #(x)->this }
 """));}
@@ -6272,7 +6212,7 @@ Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this#(x)
 """, List.of("""
 I: base.BaseId[I,I]{ #(x)->this#(x) }
@@ -6293,7 +6233,7 @@ While inspecting parameter "x" > ".m(_)" line 1
 The body of method ".m(_)" of type declaration "A" is an expression returning "mut X".
 Parameter "x" has type "mut X" instead of a subtype of "mut Y".
 
-See inferred typing context below for how type "mut Y" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "mut Y" was introduced:
 A:{.m[X:*,Y:*](x:mut X):mut Y->x}
 """, List.of("""
 A:{ .m[X:*,Y:*](x:mut X):mut Y -> x }
@@ -6308,7 +6248,7 @@ The method ".get(_)" accepts parameter 1 of type "B".
 But "Box[_].get(_)" requires "A", which is not a subtype of "B".
 The two types are unrelated.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 iso Box[A]{.get(x:B):B->x}
 """, List.of("""
 A:{}
@@ -6337,7 +6277,7 @@ Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x.as(base.BaseId[Box,Box]{#(y:Box):Box->y})
 """, List.of("""
 Box:{ .as(f: base.BaseId[Box,Box]):Box -> this }
@@ -6377,7 +6317,7 @@ To declare one, use the single quote as in the example below:
 Available methods on type "U":
 -       .m:base.Void
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 this.b
 """, List.of("""
 Ig:{ #[Y:*](y: Y): base.Void -> base.Void }
@@ -6409,7 +6349,7 @@ Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x#(x)
 """, List.of("""
 I: base.BaseId[I,I]{ #(x)->x#(x) }
@@ -6423,7 +6363,7 @@ Type declaration "I[_]" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 x.as[imm,I[X]](this)
 """, List.of("""
 I[X:*]: base.BaseId[X,I[X]]{ #(x)->x.as[I[X]](this) }
@@ -6450,7 +6390,7 @@ While inspecting object literal instance of "iso A" > ".m" line 3
 Object literal instance of "iso A" cannot implement "X".
 "X" is a generic type parameter; object literals can only implement nominal types.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 iso A{.k:base.Void->base.Void}
 """, List.of("""
 G:{ #[T:*](x: T): T -> x }
@@ -6464,9 +6404,6 @@ H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
 While inspecting object literal instance of "A" > ".m" line 3
 Object literal instance of "A" cannot implement "X".
 "X" is a generic type parameter; object literals can only implement nominal types.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-A
 """, List.of("""
 G:{ #[T:*](x: T): T -> x }
 A:{}
@@ -6496,9 +6433,6 @@ This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
 Hint: add an implementation for ".k" inside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso A
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A:{ .k: A; .v: base.Void }
@@ -6513,9 +6447,6 @@ This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
 Hint: add an implementation for ".k" inside the object literal.
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-iso A
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A0:{}
@@ -6558,9 +6489,6 @@ While inspecting object literal instance of "Foo" > ".v" line 3 > ".m" line 3
 The type "Foo" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-Foo
 """, List.of("""
 G:{ #[X:*](a: X, b: X): base.Void -> base.Void }
 A:{ .k: A; .v: base.Void }
@@ -6605,8 +6533,8 @@ This call to method "H#(_,_)" cannot typecheck.
 Argument 2 has type "iso B".
 That is not a subtype of the anonymous type of the object literal at line 4, column 22 (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--#[imm,_BU](-,B)
+Relevant code with inferred types:
+H#[imm,_BU](Box[_BU]{.get:_BU->s},B)
 """, List.of("""
 Box[E:*]:{ .get: E }
 H:{ #[X:*](b: Box[X], x: X): base.Void -> base.Void }
@@ -6624,7 +6552,7 @@ Method ".id(_)" declares 1 generic type parameter.
 Declared generic type parameters: "X".
 This call provides no generic type arguments.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 i.id[read](a)
 """, List.of("""
 A:{}
@@ -6642,7 +6570,7 @@ Method "#(_)" declares 1 generic type parameter.
 Declared generic type parameters: "T".
 This call provides no generic type arguments.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 Id#(x)
 """, List.of("""
 Foo:{}
@@ -6661,7 +6589,7 @@ Method ".id(_)" declares 1 generic type parameter.
 Declared generic type parameters: "X".
 This call provides no generic type arguments.
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
+Relevant code with inferred types:
 i.id[read](a)
 """, List.of("""
 A:{}
@@ -6712,7 +6640,7 @@ Parameter "s" has type "read Foo" instead of a subtype of "imm Foo".
 Type required by each promotion:
 - "imm Foo"  (As declared, Strengthen result)
 
-See inferred typing context below for how type "imm Foo" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "imm Foo" was introduced:
 A:{.k:base.Void->read Foo:{'s read .z:base.Void->Use#(s)}.z[read]}
 """, List.of("""
 Use:{ #(f: Foo): base.Void -> base.Void }
@@ -6761,8 +6689,8 @@ This call to method "A.m(_)" cannot typecheck.
 Argument 1 has type "iso C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.m[imm,base.Void](C)
+Relevant code with inferred types:
+this.m[imm,base.Void](C)
 """, List.of("""
 Box[T]:{}
 C:Box[A],Box[C]{}
@@ -6777,8 +6705,8 @@ This call to method "A.m(_)" cannot typecheck.
 Argument 1 has type "iso C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.m[imm,base.Void](C)
+Relevant code with inferred types:
+this.m[imm,base.Void](C)
 """, List.of("""
 Box[T]:{}
 C:Box[C],Box[A]{}
@@ -7001,8 +6929,8 @@ This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "Box[B]".
 That is not a subtype of "Box[A]" (the type required by the method signature).
 
-Compressed relevant code with inferred types: (compression indicated by `-`)
--.put(y)
+Relevant code with inferred types:
+x.put(y)
 """, List.of("""
 A:{}
 B:A{}
@@ -7068,9 +6996,75 @@ While inspecting object literal instance of "base.Str" > ".m" line 1
 The body of method ".m" of type declaration "B" is an expression returning "iso base.Str".
 Object literal is of type "base.Str" instead of a subtype of "B".
 
-See inferred typing context below for how type "B" was introduced: (compression indicated by `-`)
+See inferred typing context below for how type "B" was introduced:
 B:{.m:B->"a string literal longer than fifteen"}
 """, List.of("""
 B:{ .m: B -> "a string literal longer than fifteen" }
+"""));}
+@Test void aCompressedMethodKeepsItsNameAndParameterNames(){fail("""
+004| U:{ .m(a:Apple1234): Use -> Use#(mut F{ .a(xxxxxxxxxx, y) -> xxxxxxxxxx; mut .b(x) -> x; .c -> a }, this) }
+   |     ------------------------~~~^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While inspecting ".m(_)" line 4
+This call to method "Use#(_,_)" cannot typecheck.
+Argument 2 has type "U".
+That is not a subtype of "Apple1234" (the type required by the method signature).
+
+Relevant code with inferred types, where "_", "{...}" and method signatures without types mark omitted code:
+Use#(mut F{.a(xxxxxxxxxx,y)->xxxxxxxxxx;mut .b(x:Apple1234):Apple1234->x;.c:Apple1234->a},this)
+""", List.of("""
+Apple1234:{}
+F:{ .a(x:Apple1234, y:Apple1234): Apple1234; mut .b(x:Apple1234): Apple1234; .c: Apple1234 }
+Use:{ #(f:mut F, a:Apple1234): Use -> this }
+U:{ .m(a:Apple1234): Use -> Use#(mut F{ .a(xxxxxxxxxx, y) -> xxxxxxxxxx; mut .b(x) -> x; .c -> a }, this) }
+"""));}
+@Test void aCompressedCallPrintsAHoleForItsReceiverAndArguments(){fail("""
+003| U:{ .m(appleAppleApple1234567890:Apple1234567890): Use -> Use#(appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, this) }
+   |     ------------------------------------------------------~~~^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While inspecting ".m(_)" line 3
+This call to method "Use#(_,_,_,_)" cannot typecheck.
+Argument 4 has type "U".
+That is not a subtype of "Apple1234567890" (the type required by the method signature).
+
+Relevant code with inferred types, where "_", "{...}" and method signatures without types mark omitted code:
+Use#(_ + _,_ + _,appleAppleApple1234567890 + appleAppleApple1234567890,this)
+""", List.of("""
+Apple1234567890:{ +(x:Apple1234567890): Apple1234567890 -> this }
+Use:{ #(a:Apple1234567890, b:Apple1234567890, c:Apple1234567890, u:Apple1234567890): Use -> this }
+U:{ .m(appleAppleApple1234567890:Apple1234567890): Use -> Use#(appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, this) }
+"""));}
+@Test void anOperatorCallIsPrintedInfixAndGroupedWhenItIsAReceiver(){fail("""
+003| U:{ .m(a:N, b:N): W -> a + b.get }
+   |     -------------------^^^^^^^^^
+
+While inspecting method call ".get" > ".m(_,_)" line 3
+The body of method ".m(_,_)" of type declaration "U" is an expression returning "N".
+Method call "N.get" has type "N" instead of a subtype of "W".
+
+See inferred typing context below for how type "W" was introduced:
+U:{.m(a:N,b:N):W->(a + b).get}
+""", List.of("""
+N:{ +(n:N): N -> this; .get: N -> this }
+W:{}
+U:{ .m(a:N, b:N): W -> a + b.get }
+"""));}
+@Test void aCompressedMethodTakingTheImplicitParameterIsPrintedWithoutParameters(){fail("""
+005| User:{ .u(a:A): A -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }, this) }
+   |        --------------~~~^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While inspecting ".u(_)" line 5
+This call to method "Use#(_,_,_)" cannot typecheck.
+Argument 3 has type "User".
+That is not a subtype of "A" (the type required by the method signature).
+
+Relevant code with inferred types, where "_", "{...}" and method signatures without types mark omitted code:
+Use#(F{#->::.fooooooooooooooooooooooooooooooooooooooo},G{.m->::.fooooooooooooooooooooooooooooooooooooooo;.k:A->A},this)
+""", List.of("""
+A:{ .fooooooooooooooooooooooooooooooooooooooo: A -> this }
+F:{ #(a:A): A }
+G:{ .m(a:A): A; .k: A }
+Use:{ #(f:F, g:G, b:A): A -> b }
+User:{ .u(a:A): A -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }, this) }
 """));}
 }
