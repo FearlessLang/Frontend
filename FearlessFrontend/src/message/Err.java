@@ -1,8 +1,11 @@
 package message;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -190,20 +193,73 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       +" instead of a subtype of "+typeRepr(skipImm, expected)+".";
   }
   FearlessException ex(E e){ return ex(e, e); }
+  FearlessException typeErr(){ return withNotes(Code.TypeError); }
   FearlessException ex(E footerE, E focus){
-    if (footerE instanceof X || footerE instanceof Type){ return withNotes(Code.TypeError); }
+    if (footerE instanceof X || footerE instanceof Type){ return typeErr(); }
     var body= text();
     var cp= _cp.apply(true);
     var footer= cp.limit(footerE, focus, 120).stripTrailing();
-    var header= cp.omitted ? "Relevant code with inferred types (\"...\" marks omitted code):\n" : "Relevant code with inferred types:\n";
-    return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.get().stream(), "", "\n", "\n\n", "")+header+footer);
+    var look= new ArrayList<String>();
+    inferred(cp, footerE, focus, Map.of(), look);
+    if (look.isEmpty()){ return typeErr(); }
+    var header= "Code with inferred types"+(cp.omitted ? " (\"...\" marks omitted code)" : "")+"; look at "+Join.of(look.stream().distinct(), "", ", ", "")+":\n";
+    return Code.TypeError.of(() -> withNotes(body)+"\n\n"+header+footer);
+  }
+  private void inferred(CompactPrinter cp, E e, E focus, Map<String,String> binders, ArrayList<String> out){
+    if (e == focus){ depends(e, binders, out); return; }
+    switch (e){
+      case Call c -> inferredIn(cp, c, focus, binders, out);
+      case Literal l -> l.ms().stream().filter(m -> m.e().filter(cp.path::contains).isPresent()).forEach(m -> inferredIn(cp, l, m, focus, binders, out));
+      case X _, Type _ -> throw Bug.unreachable();
+    }
+  }
+  private void inferredIn(CompactPrinter cp, Call c, E focus, Map<String,String> binders, ArrayList<String> out){
+    var arg= c.es().stream().filter(cp.path::contains).toList();
+    if (arg.isEmpty()){ inferred(cp, c.e(), focus, binders, out); return; }
+    if (arg.getFirst() == focus){ depends(c, binders, out); }
+    inferred(cp, arg.getFirst(), focus, binders, out);
+  }
+  private void inferredIn(CompactPrinter cp, Literal l, M m, E focus, Map<String,String> binders, ArrayList<String> out){
+    var sig= writtenSig(l, m) ? "" : "the types of method "+methodSig(m.sig().m());
+    var inner= new HashMap<>(binders);
+    m.xs().forEach(x -> inner.put(x, sig));
+    inner.put(l.thisName(), literalType(l));
+    if (m.e().get() == focus && !sig.isEmpty()){ out.add(sig); }
+    inferred(cp, m.e().get(), focus, inner, out);
+  }
+  private void depends(E e, Map<String,String> binders, ArrayList<String> out){
+    var found= switch (e){
+      case Call c -> inferredTargs(c) ? "the type arguments of "+expRepr(c) : "";
+      case Literal l -> literalType(l);
+      case X x -> binders.getOrDefault(x.name(), "");
+      case Type _ -> "";
+    };
+    if (!found.isEmpty()){ out.add(found); }
+    if (e instanceof Call c){ depends(c.e(), binders, out); }
+  }
+  private String literalType(Literal l){ return l.src().inner instanceof fearlessFullGrammar.E.Literal && !l.cs().isEmpty() ? "the type of "+expRepr(l) : ""; }
+  private static boolean inferredTargs(Call c){
+    var written= c.src().inner instanceof fearlessFullGrammar.E.Call(_, _, var sq, _, _, _, _) && sq.filter(s -> !s.ts().isEmpty()).isPresent();
+    return !c.targs().isEmpty() && !written;
+  }
+  private static boolean writtenSig(Literal l, M m){
+    List<fearlessFullGrammar.M> ms= switch (l.src().inner){
+      case fearlessFullGrammar.Declaration d -> d.l().methods();
+      case fearlessFullGrammar.E.TypedLiteral t -> t.l().map(fearlessFullGrammar.E.Literal::methods).orElse(List.of());
+      case fearlessFullGrammar.E.Literal fl -> fl.methods();
+      default -> throw Bug.of(l.src().inner.getClass().getSimpleName());
+    };
+    return ms.stream()
+      .filter(fm -> fm.span().inner.equals(m.sig().span().inner))
+      .anyMatch(fm -> !fm.hasImplicit() && fm.sig().filter(s -> s.t().isPresent() && s.parameters().stream().allMatch(p -> p.t().isPresent())).isPresent());
   }
   FearlessException wf(){
     assert sb.length() != 0;
     return withNotes(Code.WellFormedness);
   }
+  private String withNotes(String body){ return body+Join.of(notes.get().stream(), "\n\n", "\n", "", ""); }
   private FearlessException withNotes(Code code){
     var body= text();
-    return code.of(() -> body+Join.of(notes.get().stream(), "\n\n", "\n", "", ""));
+    return code.of(() -> withNotes(body));
   }
 }

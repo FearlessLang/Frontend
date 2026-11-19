@@ -115,9 +115,6 @@ While inspecting type declaration "B"
 The type "A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
-
-Relevant code with inferred types:
-B:A{}
 """, List.of("""
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
 B:A{}
@@ -330,9 +327,6 @@ While inspecting type declaration "B"
 The type "a.A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
-
-Relevant code with inferred types:
-B:a.A{}
 """, """
 A0:{.m(x:A0):A->A:{.foo:A0->x}}
 """, """

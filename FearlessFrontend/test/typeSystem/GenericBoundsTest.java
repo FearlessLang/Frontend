@@ -40,7 +40,7 @@ While inspecting object literal instance of "FortyThree" > ".sum" line 5
 The body of method ".sum" of type declaration "B" is an expression returning "iso FortyThree".
 Object literal is of type "FortyThree" instead of a subtype of "FortyTwo".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".sum":
 B:A[FortyTwo]{.count:FortyTwo->FortyTwo;.sum:FortyTwo->FortyThree}
 """, List.of("""
 Res1:{} Res2:{}
@@ -57,7 +57,7 @@ While inspecting parameter "n" > ".sum(_)" line 4
 The body of method ".sum(_)" of type declaration "B" is an expression returning "mut FortyTwo".
 Parameter "n" has type "mut FortyTwo" instead of a subtype of "imm FortyTwo".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".sum(_)":
 B:A[FortyTwo]{mut .count:FortyTwo->FortyTwo;mut .sum(n:mut FortyTwo):FortyTwo->n}
 """, List.of("""
 Res1:{}
@@ -118,9 +118,6 @@ Test:{ #: B -> Anon:A,B{'self .foo -> self } }
 While inspecting method call ".m(_)" > ".k(_)" line 4
 The body of method ".k(_)" of type declaration "Bar" is an expression returning "mut Beer[Y]".
 Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "iso Beer[Y]".
-
-Relevant code with inferred types:
-Bar:{.k[Y:*](y:Y):iso Beer[Y]->Foo.m[imm,Y](y)}
 """, List.of("""
 Baz:{}
 Beer[X:*]:{ mut .x: X; read .x: read X }
@@ -138,9 +135,6 @@ Break:{
 While inspecting method call ".m(_)" > ".k(_)" line 4
 The body of method ".k(_)" of type declaration "Bar" is an expression returning "mut Beer[Y]".
 Method call "Foo.m(_)" has type "mut Beer[Y]" instead of a subtype of "Beer[Y]".
-
-Relevant code with inferred types:
-Bar:{.k[Y:*](y:Y):Beer[Y]->Foo.m[imm,Y](y)}
 """, List.of("""
 Baz:{}
 Beer[X:*]:{ mut .x: X; read .x: read X }
@@ -372,9 +366,6 @@ Method call "A#(_,_)" has type "mut Foo" instead of a subtype of "iso Foo".
 
 Type required by each promotion:
 - "iso Foo"  (As declared, Strengthen result)
-
-Relevant code with inferred types:
-Bad:{#[Y:mut,mutH,readH](y:Y,isoF:iso Foo):iso Foo->Expect.isoFoo(A#[imm,Y](y,isoF))}
 """, List.of("""
 Foo:{}
 A:{ #[X:mut,mutH,readH](x: X, f: mut Foo): mut Foo -> f }
@@ -390,9 +381,6 @@ The type "A[mutH Foo]" is invalid.
 Generic type argument 1 ("mutH Foo") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capabilities "imm" or "mut".
-
-Relevant code with inferred types:
-Foo:{.bar:A[mutH Foo]->A[mutH Foo]}
 """, List.of("""
 A[X:imm,mut]:{}
 Foo:{ .bar: A[mutH Foo] -> A[mutH Foo] }
@@ -406,9 +394,6 @@ The type "A[Break]" is invalid.
 Generic type argument 1 ("Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
-
-Relevant code with inferred types:
-Break:A[Break]{}
 """, List.of("""
 A[X:mut]:{}
 Break:A[imm Break]{}
@@ -422,9 +407,6 @@ The type "A[Break]" is invalid.
 Generic type argument 1 ("Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
-
-Relevant code with inferred types:
-Break:A[Break]{}
 """, List.of("""
 A[X:mut]:{ .a1: X }
 Break:A[imm Break]{}
@@ -442,9 +424,6 @@ The type "A[Break]" is invalid.
 Generic type argument 1 ("Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "mut".
-
-Relevant code with inferred types:
-iso BreakInner:A[Break]{}
 """, List.of("""
 A[X:mut]:{}
 Break:{}
@@ -470,7 +449,7 @@ for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call ".m(_)":
 Util.m[imm,Z](z)
 """, List.of("""
 Foo:{}
@@ -493,7 +472,7 @@ for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call ".m(_)":
 Util.m[imm,Z](z)
 """, List.of("""
 Foo:{}
@@ -524,7 +503,7 @@ Type required by each promotion:
 - "mut Foo"  (As declared)
 - "iso Foo"  (Strengthen result)
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call "#(_)":
 Break:{.m(f:Foo):Foo->A#[imm,mut Foo](f)}
 """, List.of("""
 Foo:{}
@@ -540,9 +519,6 @@ The call to "#(_)" is invalid.
 Generic type argument 1 ("Foo") does not satisfy the bounds
 for generic type parameter "X" in "A#(_)".
 Here "X" can only use capability "mut".
-
-Relevant code with inferred types:
-A#[imm,Foo](f)
 """, List.of("""
 Foo:{}
 A:{ #[X:mut](x: X): X -> x }
@@ -562,9 +538,6 @@ Generic type argument 1 ("Y") does not satisfy the bounds
 for generic type parameter "X" in "Foo[_]".
 Here "X" can only use capability "mut".
 But generic type argument "Y" can only use capabilities "imm" or "mut" or "read".
-
-Relevant code with inferred types:
-A:{.bar[Y:*]:Foo[Y]->Foo[Y]}
 """, List.of("""
 Foo[X:mut]:{}
 A:{ .bar[Y:mut,read,imm]: imm Foo[Y] -> imm Foo[Y] }
@@ -658,9 +631,6 @@ Generic type argument 1 ("N") does not satisfy the bounds
 for generic type parameter "N" in "Person[_]".
 Here "N" can only use capability "imm".
 But generic type argument "N" can only use capabilities "imm" or "mut" or "read".
-
-Relevant code with inferred types:
-FPerson:{#[N:*](name:Str,age:imm N):Person[N]->Person[N]{.name:Str->name;.age:N->age}}
 """, List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[N] -> {
@@ -696,9 +666,6 @@ Generic type argument 1 ("N") does not satisfy the bounds
 for generic type parameter "N" in "Person[_]".
 Here "N" can only use capability "imm".
 But generic type argument "N" can only use capabilities "imm" or "mut" or "read".
-
-Relevant code with inferred types:
-iso Fresh[N:*]:Person[N]{.name:Str->name;.age:N->age}
 """, List.of("""
 Person[N:imm]:{ .name: Str; .age: N }
 FPerson:{ #[N:*](name: Str, age: imm N): Person[imm N] -> Fresh[N:*]:Person[N]{
@@ -756,9 +723,6 @@ Generic type argument 1 ("X") does not satisfy the bounds
 for generic type parameter "X" in "Foo[_]".
 Here "X" can only use capability "mut".
 But generic type argument "X" can only use capabilities "mut" or "read".
-
-Relevant code with inferred types:
-iso Foo[X:mut]:{}
 """, List.of("""
 A:{ .m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]:{} }
 """));}
@@ -789,9 +753,6 @@ While inspecting object literal "mut Fresh[_]" > ".m(_)" line 2
 The body of method ".m(_)" of type declaration "A" is an expression returning "mut Fresh[X]".
 Object literal is of type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
 Hint: write "iso Fresh[_]" if you need an "iso" object literal.
-
-Relevant code with inferred types:
-A:{.m[X](x:X):iso Box[X]->mut Fresh[X:*]:Box[X]{mut .get:X->x}}
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }

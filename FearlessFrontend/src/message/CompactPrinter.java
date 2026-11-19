@@ -42,7 +42,7 @@ public final class CompactPrinter{
     root.accString(this);
     return sb.toString();
   }
-  private final Set<E> path= Collections.newSetFromMap(new IdentityHashMap<>());
+  final Set<E> path= Collections.newSetFromMap(new IdentityHashMap<>());
   private boolean onPath(E e, E focus){
     var res= e == focus || switch (e){
       case X _, Type _ -> false;

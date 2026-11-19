@@ -50,7 +50,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line(up(err().expRepr(l))+" implements "+err().tNameADisp(LiteralDeclarations.baseId)+".")
       .line("The body of "+err().methodSig(m.sig().m())+" must be "+disp(x)+" or "+disp(x+".as{...}")+".")
       .line("Only those two shapes are the identity function.")
-      .ex(m.e().get()).addSpan(m.e().get().span().inner);
+      .typeErr().addSpan(m.e().get().span().inner);
   }
   public FearlessException mCallFrame(M m, FearlessException fe){
     return fe.addFrame(err().methodSig(m.sig().m())+" line "+m.sig().span().inner.startLine(), m.sig().span().inner);
@@ -309,7 +309,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(c)
       .line("The receiver is of type "+err().typeRepr(true, recvType)+". This is a generic type parameter.")
       .line("Generic type parameters cannot be receivers of method calls.")
-      .ex(best.contextE(), c), c);
+      .ex(best.contextE(), c.e()), c);
   }
   ///No method matches call c.
   ///Sub-errors for more clarity

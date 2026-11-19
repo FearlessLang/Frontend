@@ -28,9 +28,6 @@ User:{ .weaken(box:mut Box[mut Cell]):read Box[mut Cell]->box; }
 While inspecting parameter "cell" > ".freeze(_)" line 6
 The body of method ".freeze(_)" of type declaration "User" is an expression returning "mut Cell".
 Parameter "cell" has type "mut Cell" instead of a subtype of "imm Cell".
-
-Relevant code with inferred types:
-User:{.freeze(cell:mut Cell):Cell->cell}
 """, """
 User:{ .freeze(cell:mut Cell):imm Cell->cell; }
 """);}
@@ -41,9 +38,6 @@ User:{ .freeze(cell:mut Cell):imm Cell->cell; }
 While inspecting parameter "box" > ".freeze(_)" line 6
 The body of method ".freeze(_)" of type declaration "User" is an expression returning "mut Box[mut Cell]".
 Parameter "box" has type "mut Box[mut Cell]" instead of a subtype of "mut Box[Cell]".
-
-Relevant code with inferred types:
-User:{.freeze(box:mut Box[mut Cell]):mut Box[Cell]->box}
 """, """
 User:{ .freeze(box:mut Box[mut Cell]):mut Box[imm Cell]->box; }
 """);}
@@ -54,9 +48,6 @@ User:{ .freeze(box:mut Box[mut Cell]):mut Box[imm Cell]->box; }
 While inspecting parameter "box" > ".thaw(_)" line 6
 The body of method ".thaw(_)" of type declaration "User" is an expression returning "mut Box[Cell]".
 Parameter "box" has type "mut Box[Cell]" instead of a subtype of "mut Box[mut Cell]".
-
-Relevant code with inferred types:
-User:{.thaw(box:mut Box[Cell]):mut Box[mut Cell]->box}
 """, """
 User:{ .thaw(box:mut Box[imm Cell]):mut Box[mut Cell]->box; }
 """);}

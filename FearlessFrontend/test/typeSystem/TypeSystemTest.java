@@ -39,9 +39,6 @@ While inspecting ".m(_)" line 2
 This call to method "T1.m(_)" cannot typecheck.
 Argument 1 has type "T1".
 That is not a subtype of "T0[T1]" (the type required by the method signature).
-
-Relevant code with inferred types:
-this.m(this)
 """, List.of("""
 T0[X]:{ }
 T1:T0[T0[T1]]{ .m(a: T0[T1]): T1 -> this.m(this) }
@@ -58,9 +55,6 @@ T1:T0[T0[T1]]{ .m(a: T0[T0[T1]]): T1 -> this.m(this) }
 While inspecting parameter "this" > ".m" line 2
 The body of method ".m" of type declaration "T1" is an expression returning "T1".
 Parameter "this" has type "T1" instead of a subtype of "T0[T1]".
-
-Relevant code with inferred types:
-T1:T0[T0[T1]]{.m:T0[T1]->this}
 """, List.of("""
 T0[X]:{ }
 T1:T0[T0[T1]]{ .m: T0[T1] -> this }
@@ -73,9 +67,6 @@ While inspecting ".m(_)" line 2
 This call to method "T1[_].m(_)" cannot typecheck.
 Argument 1 has type "T1[X]".
 That is not a subtype of "T0[T1[X]]" (the type required by the method signature).
-
-Relevant code with inferred types:
-this.m(this)
 """, List.of("""
 T0[X]:{ }
 T1[X]:T0[T0[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
@@ -92,9 +83,6 @@ While inspecting ".m(_)" line 2
 This call to method "T1[_].m(_)" cannot typecheck.
 Argument 1 has type "T1[X]".
 That is not a subtype of "T0[T1[X]]" (the type required by the method signature).
-
-Relevant code with inferred types:
-this.m(this)
 """, List.of("""
 T0[X]:{ }
 T1[X]:T0[T1[T1[X]]]{ .m(a: T0[T1[X]]): T1[X] -> this.m(this) }
@@ -110,9 +98,6 @@ T1[X]:T0[T1[T1[X]]]{ .m(a: T0[T1[T1[X]]]): T1[X] -> this.m(this) }
 While inspecting parameter "this" > ".m" line 2
 The body of method ".m" of type declaration "T1[_]" is an expression returning "T1[X]".
 Parameter "this" has type "T1[X]" instead of a subtype of "T0[T1[X]]".
-
-Relevant code with inferred types:
-T1[X]:T0[T1[T1[X]]]{.m:T0[T1[X]]->this}
 """, List.of("""
 T0[X]:{ }
 T1[X]:T0[T1[T1[X]]]{ .m: T0[T1[X]] -> this }
@@ -133,7 +118,7 @@ While inspecting method call ".m(_)" > ".k" line 2
 The body of method ".k" of type declaration "T1[_]" is an expression returning "T1[T1[X]]".
 Method call "T1[_].m(_)" has type "T1[T1[X]]" instead of a subtype of "T1[X]".
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call ".m(_)":
 T1[X]:T0[T1[T1[X]]]{.m[Y](a:T0[Y]):Y->a.get;.k:T1[X]->this.m[imm,T1[T1[X]]](this)}
 """, List.of("""
 T0[X]:{ .get: X }
@@ -167,9 +152,6 @@ While inspecting parameter "this" > ".k" line 2 > ".m" line 2
 Method ".k" inside the object literal instance of "iso T1" (line 2)
 is implemented with an expression returning "T1".
 Parameter "this" has type "T1" instead of a subtype of "Z[Y]".
-
-Relevant code with inferred types:
-T1:{.m[Y]:T1->T1{.k:Z[Y]->this}}
 """, List.of("""
 Z[X]:{ }
 T1:{ .m[Y]: T1 -> { .k: Z[Y] -> this } }
@@ -187,7 +169,7 @@ While inspecting parameter "b" > ".foo(_,_)" line 2
 The body of method ".foo(_,_)" of type declaration "B[_]" is an expression returning "_BX".
 Parameter "b" has type "_BX" instead of a subtype of "_AX".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".foo(_,_)":
 B[X]:A{.foo[_AX,_BX](a:_AX,b:_BX):_AX->b}
 """, List.of("""
 A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
@@ -212,7 +194,7 @@ Method ".k(_)" inside the object literal instance of "iso G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".k(_)", the types of method ".m(_)":
 B:Sup{.m[X](x:X):G->G{.k[_AX](y:_AX):_AX->x}}
 """, List.of("""
 G:{ .k[X](y:X):X; }
@@ -228,7 +210,7 @@ Method ".k(_)" inside the object literal instance of "iso G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".k(_)", the types of method ".m(_)":
 B:Sup{.m[X](x:X):mut G->mut G{mut .k[_AX](y:_AX):_AX->x}}
 """, List.of("""
 G:{ mut .k[X](y:X):X; }
@@ -262,7 +244,7 @@ Method "!" inside the object literal instance of "iso base.Todo" (line 2)
 is implemented with an expression returning "A".
 Parameter "this" has type "A" instead of a subtype of "_AR".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method "!":
 A:{.foo:base.Todo->base.Todo{![_AR:**]:_AR->this}}
 """, List.of("""
 R:{}
@@ -289,9 +271,6 @@ To declare one, use the single quote as in the example below:
 
 Available methods on type "Outer":
 -       #:Inner
-
-Relevant code with inferred types:
-this.bar
 """, List.of("""
 Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
 """));}
@@ -309,9 +288,6 @@ The method ".bar" is defined in the object literal of type "Inner"; the paramete
 
 Available methods on type "Outer":
 -       #:Inner
-
-Relevant code with inferred types:
-this.bar
 """, List.of("""
 Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
 """));}
@@ -336,9 +312,6 @@ To declare one, use the single quote as in the example below:
 
 Available methods on type "Outer":
 -       #:G
-
-Relevant code with inferred types:
-this.bar
 """, List.of("""
 G:{ .foo: base.Void; .bar: base.Void; }
 Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
@@ -352,9 +325,6 @@ The call to ".foo" is invalid.
 Generic type argument 1 ("mut Outer") does not satisfy the bounds
 for generic type parameter "X" in "G.foo".
 Here "X" can only use capability "imm".
-
-Relevant code with inferred types:
-self.foo[imm,mut Outer]
 """, List.of("""
 G:{ .foo[X:imm]: base.Void; .bar: base.Void; }
 Outer:{ #: G -> {'self .foo[X:imm]: base.Void -> base.Void; .bar: base.Void -> self.foo[mut Outer]; } }
@@ -368,7 +338,7 @@ Method ".v" inside the object literal instance of "iso G" (line 4)
 is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".v", the type arguments of method call "#(_)":
 Outer:{#:G->G{'self .bar:base.Void->base.Void;.v:base.Void->Boxes#[imm,G](self)}}
 """, List.of("""
 Box[E]:{ .get: E }
@@ -386,9 +356,6 @@ Method ".ba" is not declared on type "A".
 
 Available methods on type "A":
 -       .foo123:A
-
-Relevant code with inferred types:
-this.ba
 """, List.of("""
 A:{.foo123:A->this.ba}
 """));}
@@ -400,9 +367,6 @@ While inspecting ".m(_)" line 1
 This call to method ".foo(_)" cannot typecheck.
 Method ".foo(_)" is not declared on type "B".
 Type "B" does not have any methods.
-
-Relevant code with inferred types:
-x.foo({})
 """, List.of("""
 A:{ .m(x: B): B -> x.foo({}); }
 B:{}
@@ -416,9 +380,6 @@ The type "A[mut B]" is invalid.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
-
-Relevant code with inferred types:
-User:{.m(a:A[mut B]):base.Void}
 """, List.of("""
 A[X:imm]:{}
 B:{}
@@ -434,9 +395,6 @@ The type "A[B,mut C]" is invalid.
 Generic type argument 2 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "A[_,_]".
 Here "Y" can only use capabilities "iso" or "read".
-
-Relevant code with inferred types:
-User:{.m(a:A[B,mut C]):base.Void}
 """, List.of("""
 A[X:imm,Y:read,iso]:{}
 B:{}
@@ -453,9 +411,6 @@ The type "B[mut C]" is invalid.
 Generic type argument 1 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
-
-Relevant code with inferred types:
-User:{.m(a:A[B[mut C]]):base.Void}
 """, List.of("""
 A[X:imm]:{}
 B[Y:imm]:{}
@@ -472,9 +427,6 @@ The type "A[mut B]" is invalid.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capabilities "imm" or "mutH" or "readH".
-
-Relevant code with inferred types:
-User:A[mut B]{.foo(b:B):B->b}
 """, List.of("""
 A[X:imm,readH,mutH]:{}
 B:{}
@@ -490,9 +442,6 @@ The type "A[mut B]" is invalid.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
-
-Relevant code with inferred types:
-User:{.m(a:B):A[mut B]}
 """, List.of("""
 A[X:imm]:{}
 B:{}
@@ -508,9 +457,6 @@ The call to ".id(_)" is invalid.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capability "imm".
-
-Relevant code with inferred types:
-a.id[imm,mut B](b)
 """, List.of("""
 A:{ imm .id[X:imm](x:X):X->x }
 B:{}
@@ -526,9 +472,6 @@ The call to ".pair(_,_)" is invalid.
 Generic type argument 2 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "A.pair(_,_)".
 Here "Y" can only use capability "read".
-
-Relevant code with inferred types:
-a.pair[imm,B,mut C](b,c)
 """, List.of("""
 
 A:{ imm .pair[X:imm,Y:read](x:X,y:Y):base.Void->{} }
@@ -546,9 +489,6 @@ The type "B[mut C]" is invalid.
 Generic type argument 1 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "imm".
-
-Relevant code with inferred types:
-a.use[imm,B[mut C]](b)
 """, List.of("""
 A:{ imm .use[X:imm](x:X):base.Void->{} }
 B[Y:imm]:{}
@@ -566,9 +506,6 @@ Generic type argument 1 ("Y") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
 Here "X" can only use capability "imm".
 But generic type argument "Y" can only use capability "read".
-
-Relevant code with inferred types:
-User[Y:read]:A[Y]{}
 """, List.of("""
 A[X:imm]:{}
 User[Y:read]:A[Y]{}
@@ -583,9 +520,6 @@ The type "B[mut C]" is invalid.
 Generic type argument 1 ("mut C") does not satisfy the bounds
 for generic type parameter "Y" in "B[_]".
 Here "Y" can only use capability "read".
-
-Relevant code with inferred types:
-User:{.m(x:A[B[mut C]]):base.Void}
 """, List.of("""
 A[X:imm]:{}
 B[Y:read]:{}
@@ -602,9 +536,6 @@ The call to ".id(_)" is invalid.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "imm" or "read".
-
-Relevant code with inferred types:
-a.id[imm,mut B](b)
 """, List.of("""
 A:{ imm .id[X:imm,read](x:X):X->x }
 B:{}
@@ -622,7 +553,7 @@ Generic type argument 1 ("B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call ".id(_)":
 a.id[imm,B](b)
 """, List.of("""
 A:{ imm .id[X:mut,read](x:X):X->x }
@@ -640,7 +571,7 @@ Generic type argument 1 ("B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call ".id(_)":
 a.id[imm,B](b)
 """, List.of("""
 A:{ imm .id[X:mut,iso](x:X):X->x }
@@ -706,9 +637,6 @@ Iso parameter "x" violates the single-use rule in method "User.bad(_)" (line 4).
 It is used directly 2 times.
 Iso parameters can be used directly at most once.
 Allowed: capture into object literals as "imm", or use directly once.
-
-Relevant code with inferred types:
-Use2#(x,x)
 """, List.of("""
 Unit:{}
 B:{}
@@ -725,9 +653,6 @@ Iso parameter "xyz" violates the single-use rule in method "User.bad(_)" (line 7
 It is used directly and also captured into object literals.
 An iso parameter must be either captured, or used directly once (but not both).
 Allowed: capture into object literals as "imm", or use directly once.
-
-Relevant code with inferred types:
-Mix#(xyz,KK:K{.k:Unit->UseImm#(xyz)})
 """, List.of("""
 Unit:{}
 B:{}
@@ -749,9 +674,6 @@ Iso parameter "x" violates the single-use rule in method "User.bad(_)" (line 8).
 It is used directly and also captured into object literals.
 An iso parameter must be either captured, or used directly once (but not both).
 Allowed: capture into object literals as "imm", or use directly once.
-
-Relevant code with inferred types:
-Mix2#(x,K1:K{.k:Unit->UseImm#(x)},K2:K{.k:Unit->UseImm#(x)})
 """, List.of("""
 
 Unit:{}
@@ -775,9 +697,6 @@ Iso parameter "::" violates the single-use rule in method "read base.F[iso B,Uni
 It is used directly 2 times.
 Iso parameters can be used directly at most once.
 Allowed: capture into object literals as "imm", or use directly once.
-
-Relevant code with inferred types:
-Use2#(::,::)
 """, List.of("""
 Unit:{}
 B:{}
@@ -805,9 +724,6 @@ User:{ .bad({.a,.b}:iso B):B->a }
 While inspecting parameter "x" > ".m(_)" line 4
 The body of method ".m(_)" of type declaration "User" is an expression returning "A".
 Parameter "x" has type "A" instead of a subtype of "B".
-
-Relevant code with inferred types:
-User:{.m(x:A):B->x}
 """, List.of("""
 A:{}
 B:{}
@@ -824,9 +740,6 @@ User:{
 While inspecting parameter "veryVeryLongParamName" > ".veryLongMethodName(_)" line 4
 The body of method ".veryLongMethodName(_)" of type declaration "User" is an expression returning "Alpha".
 Parameter "veryVeryLongParamName" has type "Alpha" instead of a subtype of "Beta".
-
-Relevant code with inferred types:
-User:{.veryLongMethodName(veryVeryLongParamName:Alpha):Beta->veryVeryLongParamName}
 """, List.of("""
 Alpha:{}
 Beta:{}
@@ -843,9 +756,6 @@ User:{
 While inspecting method call "#(_)" > ".m" line 5
 The body of method ".m" of type declaration "User" is an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "B".
-
-Relevant code with inferred types:
-User:{.m:B->MakeA#(base.Void)}
 """, List.of("""
 A:{}
 B:{}
@@ -862,9 +772,6 @@ User:{
 While inspecting method call "#(_)" > ".m" line 4
 The body of method ".m" of type declaration "User" is an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
-
-Relevant code with inferred types:
-User:{.m:mut A->MakeA#(base.Void)}
 """, List.of("""
 A:{}
 MakeA:{ #(u:base.Void):A->A{} }
@@ -883,9 +790,6 @@ While inspecting method call "#(_)" > ".get" line 6 > ".m" line 5
 Method ".get" inside the object literal instance of "iso Get" (line 5)
 is implemented with an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
-
-Relevant code with inferred types:
-User:{.m:Get->mut Get{mut .get:mut A->MakeA#(base.Void)}}
 """, List.of("""
 A:{}
 MakeA:{ #(u:base.Void):A->A{} }
@@ -906,7 +810,7 @@ Method "#(_)" inside the object literal instance of "iso F[Person,Car]" (line 7)
 is implemented with an expression returning "iso Foo".
 Object literal is of type "Foo" instead of a subtype of "Car".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method "#(_)":
 User:{.m:Car->Apply#(Person,F[Person,Car]{#(Person):Car->Foo})}
 """, List.of("""
 Person:{}
@@ -925,9 +829,6 @@ User:{
 While inspecting method call "#(_)" > ".m" line 6
 The body of method ".m" of type declaration "User" is an expression returning "A".
 Method call "Wrap#(_)" has type "A" instead of a subtype of "B".
-
-Relevant code with inferred types:
-User:{.m:B->Wrap#(Mk#(base.Void))}
 """, List.of("""
 A:{}
 B:{}
@@ -945,9 +846,6 @@ User:{
 While inspecting object literal "AA" > ".m" line 4
 The body of method ".m" of type declaration "User" is an expression returning "iso AA".
 Object literal is of type "iso AA" instead of a subtype of "B".
-
-Relevant code with inferred types:
-User:{.m:B->AA:A{}}
 """, List.of("""
 A:{}
 B:{}
@@ -968,7 +866,7 @@ Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".get":
 User:{read .m(loooooong:mut A):mut A->read Get{read .get:mut A->loooooong}}
 """, List.of("""
 A:{}
@@ -991,7 +889,7 @@ Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".get":
 User:{read .m(loooooong:mut A):read Get->read Get{read .get:iso A->loooooong}}
 """, List.of("""
 A:{}
@@ -1014,7 +912,7 @@ Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".get":
 User:{read .m(loooooong:mut A):mut A->read Get{read .get:iso A->loooooong}}
 """, List.of("""
 A:{}
@@ -1038,7 +936,7 @@ Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 6)--> "read A" --strengthenToImm(line 6)--> "A".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".get":
 User:{read .m(loooooong:mut A):mut A->read Wrap{read .wrap:Get->mut Get{.get:iso A->loooooong}}}
 """, List.of("""
 A:{}
@@ -1271,9 +1169,6 @@ While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
 The receiver is of type "X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
-
-Relevant code with inferred types:
-Id#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](Id#[imm,X](x.foo)))))
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
 User:{ .m[X:*](x: X): X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
@@ -1286,9 +1181,6 @@ While inspecting ".m(_)" line 4
 This call to method ".foo" cannot typecheck.
 The receiver is of type "read X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
-
-Relevant code with inferred types:
-Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](Id#[imm,read X](x.foo)))))
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
 Box[T:*]:{}
@@ -1303,9 +1195,6 @@ While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
 The receiver is of type "read/imm X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
-
-Relevant code with inferred types:
-Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](Id#[imm,read/imm X](x.foo)))))
 """, List.of("""
 Id:{ #[T:*](t: T): T -> t }
 User:{ .m[X:*](x: read/imm X): read/imm X -> Id#(Id#(Id#(Id#(Id#(x.foo))))) }
@@ -1324,9 +1213,6 @@ While inspecting ".m(_)" line 2
 This call to method ".foo" cannot typecheck.
 The receiver is of type "X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
-
-Relevant code with inferred types:
-User:{.m[X:**](x:X):X->x.foo}
 """, List.of("""
 User:{
   .m[X:**](x:X):X->x.foo;
@@ -1379,9 +1265,6 @@ Invalid method signature for "Current.g(_)".
 The method ".g(_)" accepts parameter 1 of type "imm P".
 But "Parent.g(_)" requires "read P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
-
-Relevant code with inferred types:
-Current:Parent{.g(x:P):base.Void}
 """, List.of("""
 
 P:{}
@@ -1398,9 +1281,6 @@ Invalid method signature for "Sub.h".
 The method ".h" returns type "read P".
 But "Sup.h" returns type "imm P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
-
-Relevant code with inferred types:
-Sub:Sup{.h:read P}
 """, List.of("""
 P:{}
 Sup:{ imm .h():imm P; }
@@ -1416,9 +1296,6 @@ This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
-
-Relevant code with inferred types:
-iso Sup{.h:base.Void->base.Void}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -1438,9 +1315,6 @@ This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
 Hint: add an implementation for ".k" inside the object literal.
-
-Relevant code with inferred types:
-iso Bad:Sup{.h:base.Void->base.Void}
 """, List.of("""
 Sup:{
   imm .h:base.Void;
@@ -1461,9 +1335,6 @@ While inspecting ".m(_)" line 3
 This call to method ".nope" cannot typecheck.
 Method ".nope" is not declared on type "Empty".
 Type "Empty" does not have any methods.
-
-Relevant code with inferred types:
-e.nope
 """, List.of("""
 Empty:{}
 User:{
@@ -1485,9 +1356,6 @@ Did you mean ".size" ?
 Available methods on type "Ops":
 -  read .sign:base.Void
 -  read .size:base.Void
-
-Relevant code with inferred types:
-o.sise
 """, List.of("""
 Ops:{
   read .size: base.Void->{};
@@ -1512,9 +1380,6 @@ Available methods on type "Ops":
 -  read .alpha:base.Void
 -  read .beta:base.Void
 -  read .gamma:base.Void
-
-Relevant code with inferred types:
-o.xyzzy
 """, List.of("""
 Ops:{
   read .alpha: base.Void->{};
@@ -1540,9 +1405,6 @@ Available methods on type "Ops":
 -  read .alpha:Woid
 -  read .beta:Woid
 -  read .gamma:Woid
-
-Relevant code with inferred types:
-o.xyzzy
 """, List.of("""
 use base.Void as Woid;
 Ops:{
@@ -1567,9 +1429,6 @@ This call to method ".mix(_,_,_)" cannot typecheck.
 There are methods ".mix(_)" and ".mix(_,_)" on type "Mixer",
 but with a different number of arguments.
 This call supplies 3, but available methods take 1 or 2.
-
-Relevant code with inferred types:
-m.mix(a,a,a)
 """, List.of("""
 A:{}
 Mixer:{
@@ -1592,9 +1451,6 @@ This call to method ".mix(_)" cannot typecheck.
 There are methods ".mix(_,_)" and ".mix(_,_,_,_,_,_,_,_,_,_)" on type "Mixer",
 but with a different number of arguments.
 This call supplies 1, but available methods take 2 or 10.
-
-Relevant code with inferred types:
-m.mix(a)
 """, List.of("""
 A:{}
 Mixer:{
@@ -1616,9 +1472,6 @@ This call to method ".zap(_)" cannot typecheck.
 ".zap(_)" exists on type "Z", but not with the requested capability.
 This call requires a method with capability "mut".
 Available capabilities for this method: "read".
-
-Relevant code with inferred types:
-z.zap[mut](a)
 """, List.of("""
 A:{}
 Z:{
@@ -1638,9 +1491,6 @@ This call to method ".k" cannot typecheck.
 ".k" exists on object literal instance of "A", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "mut".
-
-Relevant code with inferred types:
-mut A{read .m:base.Void->base.Void;mut .k:base.Void->base.Void}.k[read]
 """, List.of("""
 A:{ read .m: base.Void }
 U:{ .u: base.Void -> mut A{ read .m: base.Void -> base.Void; mut .k: base.Void -> base.Void }.k[read] }
@@ -1654,9 +1504,6 @@ This call to method ".m" cannot typecheck.
 ".m" exists on type "A", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "imm" and "mut".
-
-Relevant code with inferred types:
-a.m[read]
 """, List.of("""
 A:{ mut .m:A; imm .m:A; }
 User:{ #(a:read A):A->a.m[read] }
@@ -1672,9 +1519,6 @@ Wrong number of generic type arguments for ".pair(_,_)".
 Method ".pair(_,_)" declares 2 generic type parameters.
 Declared generic type parameters: "X", "Y".
 This call provides 1 generic type argument.
-
-Relevant code with inferred types:
-p.pair[read,mut A](a,b)
 """, List.of("""
 A:{}
 B:{}
@@ -1697,9 +1541,6 @@ This call to method "read Id.id(_)" cannot typecheck.
 Wrong number of generic type arguments for ".id(_)".
 Method ".id(_)" declares no generic type parameters.
 This call provides 1 generic type argument.
-
-Relevant code with inferred types:
-i.id[read,mut A](a)
 """, List.of("""
 
 A:{}
@@ -1723,9 +1564,6 @@ Wrong number of generic type arguments for ".id(_)".
 Method ".id(_)" declares 1 generic type parameter.
 Declared generic type parameters: "X".
 This call provides 3 generic type arguments.
-
-Relevant code with inferred types:
-i.id[read,mut A,mut B,mut C](a)
 """, List.of("""
 
 A:{}
@@ -1753,9 +1591,6 @@ This call requires a receiver with capability "mut" or "iso".
 Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
-
-Relevant code with inferred types:
-this.zap[mut](a)
 """, List.of("""
 A:{}
 User:{
@@ -1773,9 +1608,6 @@ This call to method "Plus+(_)" cannot typecheck.
 Argument 1 has type "Plus".
 That is not a subtype of "A" (the type required by the method signature).
 Hint: Fearless has no operator precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
-
-Relevant code with inferred types:
-this + this
 """, List.of("""
 A:{}
 Plus:{
@@ -1792,9 +1624,6 @@ While inspecting ".foo" line 5 > ".f(_)" line 5
 This call to method "Need#(_)" cannot typecheck.
 Argument 1 has type "read B".
 That is not a subtype of "mut A" (the type required by the method signature).
-
-Relevant code with inferred types:
-Need#(AsRead#(aaaa))
 """, List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -1811,9 +1640,6 @@ While inspecting ".f(_,_)" line 5
 This call to method "mut Need#(_)" cannot typecheck.
 Argument 1 has type "B".
 That is not a subtype of "mut A" (the type required by the method signature).
-
-Relevant code with inferred types:
-n#[mut](b)
 """, List.of("""
 A:{}
 B:{}
@@ -1836,9 +1662,6 @@ Method call "AsRead#(_)" has type "read A" instead of a subtype of "mut A".
 Type required by each promotion:
 - "mut A"  (As declared)
 - "iso A"  (Strengthen result)
-
-Relevant code with inferred types:
-A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
 """, List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -1864,9 +1687,6 @@ Capture adaptation trace:
 Type required by each promotion:
 - "mut A"  (As declared)
 - "iso A"  (Strengthen result)
-
-Relevant code with inferred types:
-A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Skip#[imm,mut A](aaaa)}}
 """, List.of("""
 
 Skip:{#[X:**](X):B->B}
@@ -1896,7 +1716,7 @@ Generic type argument 1 ("mut A") does not satisfy the bounds
 for generic type parameter "X" in "IdRO#(_)".
 Here "X" can only use capabilities "imm" or "read".
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call "#(_)":
 IdRO#[imm,mut A](aaaa)
 """, List.of("""
 
@@ -1923,9 +1743,6 @@ Method call "IdRO#(_)" has type "read A" instead of a subtype of "mut A".
 Type required by each promotion:
 - "mut A"  (As declared)
 - "iso A"  (Strengthen result)
-
-Relevant code with inferred types:
-A:{.f(aaaa:mut A):B->Need#(IdRO#[imm,read A](aaaa))}
 """, List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -1951,9 +1768,6 @@ Hint: write "mut A" if you need a "mut" object literal.
 Type required by each promotion:
 - "mut A"  (As declared)
 - "iso A"  (Strengthen result)
-
-Relevant code with inferred types:
-User:{.f:B->Need#(read A)}
 """, List.of("""
 B:{}
 Need:{ #(a:mut A):B->B{} }
@@ -1983,9 +1797,6 @@ Promotion failures:
   Parameter "x" has type "readH A" instead of a subtype of "imm A".
 - Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
-
-Relevant code with inferred types:
-this.f(x,y)
 """, List.of("""
 A:{
   .f(a:read A, b:mut A):A->this;
@@ -2012,9 +1823,6 @@ Promotion failures:
   Parameter "x" has type "mutH A" instead of a subtype of "iso A".
 - Argument 2 fails:    Allow mutH argument 1
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
-
-Relevant code with inferred types:
-this.f(x,y)
 """, List.of("""
 A:{
   .f(a:mut A, b:mut A):A->this;
@@ -2039,9 +1847,6 @@ Available methods on type "A":
 -       .bar:A
 -   mut .bob(A):A
 -       .foo123:A
-
-Relevant code with inferred types:
-this.foO123
 """, List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
 """));}
@@ -2058,9 +1863,6 @@ Did you mean ".foo123" ?
 Available methods on type "A":
 -       .bar:A
 -       .foo123:A
-
-Relevant code with inferred types:
-this.foo23
 """, List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
 """));}
@@ -2077,9 +1879,6 @@ Did you mean ".foo123" ?
 Available methods on type "A":
 -       .bar:A
 -       .foo123:A
-
-Relevant code with inferred types:
-this.foo1123
 """, List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
 """));}
@@ -2093,9 +1892,6 @@ This call to method ".foo123(_)" cannot typecheck.
 There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
 but with a different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
-
-Relevant code with inferred types:
-this.foo123(this)
 """, List.of("""
 A:{
   .foo123:A->this.foo123;
@@ -2113,9 +1909,6 @@ This call to method ".foo123(_)" cannot typecheck.
 There are methods ".foo123" and ".foo123(_,_,_)" on type "A",
 but with a different number of arguments.
 This call supplies 1, but available methods take 0 or 3.
-
-Relevant code with inferred types:
-this.foo123(this)
 """, List.of("""
 A:{
   .foo123:A->this.foo123;
@@ -2131,9 +1924,6 @@ While inspecting ".bar" line 1
 This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "mut".
 This call requires a receiver with capability "imm".
-
-Relevant code with inferred types:
-this.foo123
 """, List.of("""
 A:{.foo123:A->this.foo123; mut .bar:A->this.foo123;}
 """));}
@@ -2145,9 +1935,6 @@ While inspecting ".bar" line 1
 This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
-
-Relevant code with inferred types:
-this.foo123
 """, List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
 """));}//With inference we infer [imm] (next case)
@@ -2159,9 +1946,6 @@ While inspecting ".bar" line 1
 This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
-
-Relevant code with inferred types:
-this.foo123
 """, List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 """));}
@@ -2174,9 +1958,6 @@ This call to method ".foo123" cannot typecheck.
 ".foo123" exists on type "A", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "imm".
-
-Relevant code with inferred types:
-this.foo123[read]
 """, List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[read];}
 """));}
@@ -2200,9 +1981,6 @@ This call requires a receiver with capability "mut" or "iso".
 Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
-
-Relevant code with inferred types:
-this.foo123[mut]
 """, List.of("""
 A:{mut .foo123:A->this.foo123; imm .bar:A->this.foo123;}
 """));}
@@ -2214,9 +1992,6 @@ While inspecting ".bar" line 1
 This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
-
-Relevant code with inferred types:
-this.foo123
 """, List.of("""
 A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 """));}
@@ -2237,9 +2012,6 @@ This call requires a receiver with capability "mut" or "iso".
 Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
-
-Relevant code with inferred types:
-this.foo123[mut]
 """, List.of("""
 A:{
   mut .foo123:A->
@@ -2257,9 +2029,6 @@ A:{
 While inspecting parameter "b" > ".bar(_)" line 1
 The body of method ".bar(_)" of type declaration "A" is an expression returning "B".
 Parameter "b" has type "B" instead of a subtype of "A".
-
-Relevant code with inferred types:
-A:{.bar(b:B):A->b}
 """, List.of("""
 A:{ .bar(b:B):A->b; }
 B:{ }
@@ -2277,7 +2046,7 @@ The method "mut B.bar" is dead code.
 The object literal instance of "B" is "read", so it will never be seen as "mut".
 But it implements method "mut .bar", which requires a "mut" receiver.
 
-Relevant code with inferred types:
+Code with inferred types; look at the type of object literal instance of "read B":
 read B{mut .bar:mut B->b}
 """, List.of("""
 B:{ mut .bar:mut B }
@@ -2313,9 +2082,6 @@ While inspecting ".bar(_)" line 3
 This call to method ".foo123" cannot typecheck.
 The receiver is of type "X". This is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
-
-Relevant code with inferred types:
-A:{.foo123:A->this.foo123;.bar[X:*](x:X):A->x.foo123}
 """, List.of("""
 A:{
   .foo123:A->this.foo123;
@@ -2333,9 +2099,6 @@ Wrong number of generic type arguments for ".id(_)".
 Method ".id(_)" declares 1 generic type parameter.
 Declared generic type parameters: "X".
 This call provides 2 generic type arguments.
-
-Relevant code with inferred types:
-this.id[imm,A,A](this)
 """, List.of("""
 A:{
   .id[X:imm,mut,read](x:X):X->x;
@@ -2362,9 +2125,6 @@ Promotion failures:
   Parameter "x" has type "readH A" instead of a subtype of "imm A".
 - Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Parameter "y" has type "mutH A" instead of a subtype of "iso A".
-
-Relevant code with inferred types:
-this.f(x,y)
 """, List.of("""
 A:{
   .f(a:read A, b:mut A):A->this;
@@ -2391,9 +2151,6 @@ Promotion failures:
   Parameter "x" has type "readH A" instead of a subtype of "imm A".
 - Argument 2 fails:    Allow readH arguments, Allow mutH argument 1
   Method call "ID#(_)" has type "mutH A" instead of a subtype of "iso A".
-
-Relevant code with inferred types:
-this.f(x,ID#[imm,mutH A](y))
 """, List.of("""
 ID:{#[T:**](x:T):T->x}
 A:{
@@ -2477,9 +2234,6 @@ Method call "AsRead#(_)" has type "read A" instead of a subtype of "mut A".
 Type required by each promotion:
 - "mut A"  (As declared)
 - "iso A"  (Strengthen result)
-
-Relevant code with inferred types:
-A:{.f(aaaa:mut A):read B->read BB:B{read .foo:B->Need#(AsRead#(aaaa))}}
 """, List.of("""
 
 B:{}
@@ -2509,7 +2263,7 @@ Method ".foo" is not declared on object literal instance of "A".
 Available methods on object literal instance of "A":
 -       .bar:A
 
-Relevant code with inferred types:
+Code with inferred types; look at the type of object literal instance of "A":
 A{.bar:A->A}.foo
 """, List.of("""
 A:{}
@@ -2526,9 +2280,6 @@ While inspecting ".m" line 4
 This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on type "A".
 Type "A" does not have any methods.
-
-Relevant code with inferred types:
-A.foo
 """, List.of("""
 
 A:{}
@@ -2544,9 +2295,6 @@ While inspecting ".m" line 3
 This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on object literal instance of "B".
 Type "B" does not have any methods.
-
-Relevant code with inferred types:
-B:{}.foo
 """, List.of("""
 A:{}
  Main:{
@@ -2570,9 +2318,6 @@ While inspecting parameter "self" > ".a" line 1 > ".m" line 1
 Method ".a" inside the object literal "{...}" (line 1)
 is implemented with an expression returning the anonymous type of the object literal at line 1, column 26.
 Parameter "self" has type the anonymous type of the object literal at line 1, column 26 instead of a subtype of "Outer".
-
-Relevant code with inferred types:
-Outer:{.m:base.Void->{'self .a:Outer->self}.a}
 """, List.of("""
 Outer:{ .m: base.Void -> {'self .a: Outer -> self}.a }
 """));}
@@ -2624,9 +2369,6 @@ Main:{ .m(s:S): S -> { .get(x) -> x }.get(s) }
 While inspecting object literal instance of "base.Float" > ".m" line 1
 The body of method ".m" of type declaration "Main" is an expression returning "iso base.Float".
 Object literal is of type "base.Float" instead of a subtype of "base.Int".
-
-Relevant code with inferred types:
-Main:{.m:base.Int->+1.5}
 """, List.of("""
  Main:{ .m:base.Int -> +1.5 }
 """));}
@@ -2912,9 +2654,6 @@ This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "B".
 Hint: add an implementation for ".foo" inside the object literal.
-
-Relevant code with inferred types:
-iso B{.bar:A->A}
 """, List.of("""
  A:{.foo:A->A}
  B:A{.foo:A}
@@ -2938,7 +2677,7 @@ Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is
 A value of "B" is never "mut", so "mut .get" can stay abstract.
 A method written without a receiver capability also implements "mut .get": write the receiver capability, as in "read .get".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".get":
 B:A,base.CaptureFree{read .get:read A->this;mut .get:mut A->this}
 """, List.of("""
  A:{ read .get: read A; mut .get: mut A; }
@@ -3606,9 +3345,6 @@ While inspecting method call ".get" > ".opt" line 5 > "#(_)" line 3
 Method ".opt" inside the object literal "mut Slot[_]" (line 3)
 is implemented with an expression returning "read Opt[E]".
 Method call "read Var[_].get" has type "read Opt[E]" instead of a subtype of "read Opt[read/imm E]".
-
-Relevant code with inferred types ("..." marks omitted code):
-Slots:{#[E:*](e:mut Var[mut Opt[E]]):mut Slot[E]->mut Slot[E:*]:{mut .opt:mut Opt[E]->...;read .opt:read Opt[read/imm E]->e.get[read]}}
 """, List.of("""
 Opt[E:*]:{}
 Var[E:imm,mut,read]:{ read .get: read/imm E; mut .get: E; }
@@ -3641,9 +3377,6 @@ Slots:{ #[E:*](e: mut Var[mut Opt[E]]): mut Slot[E] -> mut Slot[E:*]:{
 While inspecting parameter "o" > ".u(_)" line 3
 The body of method ".u(_)" of type declaration "User" is an expression returning "read Opt[mut X]".
 Parameter "o" has type "read Opt[mut X]" instead of a subtype of "read Opt[read X]".
-
-Relevant code with inferred types:
-User:{.u(o:read Opt[mut X]):read Opt[read X]->o}
 """, List.of("""
 Opt[E:*]:{}
 X:{}
@@ -3995,9 +3728,6 @@ User:{.f(httpServerPort:A):A->serverPort;}
 While inspecting parameter "c" > ".f(_)" line 4
 The body of method ".f(_)" of type declaration "User" is an expression returning "C[A]".
 Parameter "c" has type "C[A]" instead of a subtype of "C[B]".
-
-Relevant code with inferred types:
-User:{.f(c:C[A]):C[B]->c}
 """, List.of("""
 A:{}
 B:{}
@@ -4011,9 +3741,6 @@ User:{.f(c:C[A]):C[B]->c;}
 While inspecting object literal instance of "C[A]" > ".f(_)" line 4
 The body of method ".f(_)" of type declaration "User" is an expression returning "iso C[A]".
 Object literal is of type "iso C[A]" instead of a subtype of "C[B]".
-
-Relevant code with inferred types:
-User:{.f(c:C[A]):C[B]->C[A]{.foo:A->A}}
 """, List.of("""
 A:{}
 B:{}
@@ -4053,7 +3780,7 @@ While inspecting parameter "::" > ".h(_)" line 3
 The body of method ".h(_)" of type declaration "User" is an expression returning "Sup".
 Parameter "::" has type "Sup" instead of a subtype of "base.Void".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".h(_)":
 User:Sup{.h(Sup):base.Void->::}
 Error 8 TypeError
 """, List.of("""
@@ -4085,9 +3812,6 @@ ExtStr:"beer"{}
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
 Object literal is of type "Sup" instead of a subtype of "Target".
-
-Relevant code with inferred types:
-B:{.m:Target->Sup}
 """, List.of("""
 Sup:base.WidenTo[Target]{}
 Target:Sup{}
@@ -4101,9 +3825,6 @@ B:{.m:Target->Sup{}}
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
 Object literal is of type "Sup" instead of a subtype of "Target".
-
-Relevant code with inferred types:
-B:{.m:Target->Sup}
 """, List.of("""
 Sup:{}
 Target:Sup{}
@@ -4117,9 +3838,6 @@ B:{.m:Target->Sup{}}
 While inspecting object literal instance of "Sup" > ".m" line 3
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
 Object literal is of type "iso Sup" instead of a subtype of "Target".
-
-Relevant code with inferred types:
-B:{.m:Target->Sup{.foo:base.Str->base.Str}}
 """, List.of("""
 Sup:base.WidenTo[Target]{ .foo:base.Str }
 Target:Sup{ .extra:base.Str }
@@ -4201,7 +3919,7 @@ Method "#(_)" inside the object literal instance of "iso base.BaseId[read Custom
 is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "Person".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method "#(_)":
 User:{.n(cs:read base.MList[mut Customer]):base.MList[Person]->cs.as[read,Person](base.BaseId[read Customer,Person]{#(read Customer):Person->::})}
 """, List.of("""
 Person:{}
@@ -4239,7 +3957,7 @@ Method "#(_)" inside the object literal instance of "iso base.BaseId[Person,Cust
 is implemented with an expression returning "Person".
 Parameter "::" has type "Person" instead of a subtype of "Customer".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method "#(_)":
 User:{.m:base.BaseId[Person,Customer]->base.BaseId[Person,Customer]{#(Person):Customer->::}}
 """, List.of("""
 Person:{}
@@ -4267,9 +3985,6 @@ While inspecting the file
 Type declaration "MyId" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
-
-Relevant code with inferred types:
-Other.cs.as[imm,Person](base.BaseId[Customer,Person]{#(Customer):Person->::})
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4639,7 +4354,7 @@ Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13)
 is implemented with an expression returning "mut Opt[E]".
 Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
 
-Relevant code with inferred types ("..." marks omitted code):
+Code with inferred types ("..." marks omitted code); look at the types of method "#", the types of method "#(_,_)":
 (...)#[imm,Opt[E]].let[mut,mut Opt[E]](mut MF[...]{...},mut Continuation[mut Opt[E],Opt[E]]{mut #(o:mut Opt[E],_aeqS:mut Block[Opt[E]]):Opt[E]->_aeqS.return[mut](mut MF[Opt[E]]{mut #:Opt[E]->o})})
 """, List.of("""
 use base.MF as MF;
@@ -4689,9 +4404,6 @@ Invalid method signature for "B.m1".
 The method ".m1" returns type "P".
 But "A.m1" returns type "Q", which is not a supertype of "P".
 It is instead a subtype: you are weakening the result instead of strengthening it.
-
-Relevant code with inferred types:
-B:A{.m1:P->P;.m2:P->P}
 """, List.of("""
 P:{}
 Q:P{}
@@ -4817,9 +4529,6 @@ This call requires a receiver with capability "mut" or "iso".
 Receiver required by each promotion:
 - "mut" (As declared)
 - "iso" (Strengthen result)
-
-Relevant code with inferred types:
-self.inc[mut]
 """, List.of("""
 Counter:{ mut .inc: mut Counter; read .get: read Counter }
 Make:{ #: iso Counter -> iso Counter{'self
@@ -4850,9 +4559,6 @@ While inspecting object literal instance of "A" > "#" line 2
 The self name "self" is dead code.
 No method of the object literal instance of "A" uses it.
 Remove "'self" from the object literal.
-
-Relevant code with inferred types:
-A{'self read .get:base.Nat->0}
 """, List.of("""
 A:{ read .get: base.Nat }
 Make:{ #: A -> A{'self read .get: base.Nat -> 0 } }
@@ -4934,9 +4640,6 @@ User:{
 While inspecting object literal instance of "read C" > ".f" line 4
 The body of method ".f" of type declaration "User" is an expression returning "read C".
 Object literal is of type "read C" instead of a subtype of "mut A".
-
-Relevant code with inferred types:
-User:{.f:mut A->read C}
 """, List.of("""
 A:{ mut .foo:A}
 C:{ mut .bar:C}
@@ -5082,9 +4785,6 @@ While inspecting ".m" line 1
 This call to method ".a" cannot typecheck.
 Method ".a" is not declared on "{...}".
 Object literal "{...}" does not have any methods.
-
-Relevant code with inferred types:
-{}.a
 """, List.of("""
 App:{ .m: base.Nat -> {}.a }
 """));}
@@ -5098,9 +4798,6 @@ Method ".a" is not declared on "{...}".
 
 Available methods on "{...}":
 -       .b:base.Void
-
-Relevant code with inferred types:
-{.b:base.Void->base.Void}.a
 """, List.of("""
 App:{ .m: base.Nat -> {.b:base.Void->base.Void;}.a }
 """));}
@@ -5260,9 +4957,6 @@ While inspecting "#(_)" line 10 > ".m" line 10
 This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "iso Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
-
-Relevant code with inferred types:
-b.put(Animal)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5283,9 +4977,6 @@ While inspecting "#(_)" line 10 > ".m" line 10
 This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "iso Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
-
-Relevant code with inferred types:
-b.put(Animal)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5363,9 +5054,6 @@ While inspecting "#(_)" line 7 > ".m" line 7
 This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "iso Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
-
-Relevant code with inferred types:
-b.add(Cat).put(Animal)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5392,9 +5080,6 @@ While inspecting "#(_)" line 9 > ".m" line 9
 This call to method "NeedDog#(_)" cannot typecheck.
 Argument 1 has type "Cat".
 That is not a subtype of "Dog" (the type required by the method signature).
-
-Relevant code with inferred types:
-NeedDog#(x)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5415,7 +5100,7 @@ This call to method "Pick#(_,_)" cannot typecheck.
 Argument 1 has type "Dog".
 That is not a subtype of "Cat" (the type required by the method signature).
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call "#(_,_)":
 Pick#[imm,Cat](x,Cat)
 """, List.of("""
 Animal:{ .name: Animal -> this }
@@ -5458,9 +5143,6 @@ While inspecting "#(_)" line 9 > ".m" line 9
 This call to method "NeedDog#(_)" cannot typecheck.
 Argument 1 has type "Cat".
 That is not a subtype of "Dog" (the type required by the method signature).
-
-Relevant code with inferred types:
-NeedDog#(x)
 """, List.of("""
 Animal:{}
 Cat:Animal{}
@@ -5481,7 +5163,7 @@ This call to method "Pick#(_,_)" cannot typecheck.
 Argument 1 has type "Dog".
 That is not a subtype of "Cat" (the type required by the method signature).
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call "#(_,_)":
 Pick#[imm,Cat](x,Cat)
 """, List.of("""
 Animal:{}
@@ -5502,9 +5184,6 @@ While inspecting "#(_)" line 9 > ".m(_)" line 9
 This call to method "NeedDog#(_)" cannot typecheck.
 Argument 1 has type "Cat".
 That is not a subtype of "Dog" (the type required by the method signature).
-
-Relevant code with inferred types:
-NeedDog#(x)
 """, List.of("""
 Animal:{}
 Cat:Animal{}
@@ -5525,7 +5204,7 @@ This call to method "Pick#(_,_)" cannot typecheck.
 Argument 1 has type "Dog".
 That is not a subtype of "Cat" (the type required by the method signature).
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call "#(_,_)":
 Pick#[imm,Cat](x,c)
 """, List.of("""
 Animal:{}
@@ -5592,9 +5271,6 @@ While inspecting "#" line 7 > "#(_,_)" line 7 > ".m" line 7
 This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "iso Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
-
-Relevant code with inferred types:
-b.put(Animal)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5612,9 +5288,6 @@ While inspecting "#" line 7 > "#(_,_)" line 7 > "#(_,_)" line 7 > ".m" line 7
 This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "iso Animal".
 That is not a subtype of "Cat" (the type required by the method signature).
-
-Relevant code with inferred types:
-b.put(Animal)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5840,9 +5513,6 @@ Use:{ .m[Y](c: Box[Y]): N -> Take#[D](c) }
 While inspecting method call ".get" > ".m(_)" line 2
 The body of method ".m(_)" of type declaration "U[_]" is an expression returning "Box[Box[Box[[###]".
 Method call "K[_].get" has type "Box[Box[Box[[###]" instead of a subtype of "Box[Box[X]]".
-
-Relevant code with inferred types:
-U[X]:{.m(k:K[[###]]):Box[Box[X]]->k.get}
 """, List.of("""
 A:{} Box[X]:{} K[X]:{ .get: Box[Box[X]] }
 U[X]:{ .m(k: K[D]): Box[Box[X]] -> k.get }
@@ -6038,7 +5708,7 @@ While inspecting object literal instance of "base.Void" > ".str" line 1
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".str":
 A:base.ToStr{read .str:base.Str->base.Void}
 """, List.of("""
 A:base.ToStr{ .str -> base.Void }
@@ -6051,7 +5721,7 @@ While inspecting object literal instance of "base.Void" > ".str" line 2
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
 
-Relevant code with inferred types:
+Code with inferred types; look at the types of method ".str":
 A:Show{read .str:base.Str->base.Void}
 """, List.of("""
 use base.ToStr as Show;
@@ -6109,7 +5779,7 @@ While inspecting method call ".let(_,_)" > ".m" line 2
 The body of method ".m" of type declaration "U" is an expression returning "A".
 Method call "mut base.Block[_].let(_,_)" has type "A" instead of a subtype of "iso A".
 
-Relevant code with inferred types ("..." marks omitted code):
+Code with inferred types ("..." marks omitted code); look at the type arguments of method call ".let(_,_)", the type arguments of method call "#":
 U:{.m:iso A->(...)#[imm,A].let[mut,A](mut base.ReturnStmt[A]{...},mut base.Continuation[...,...,...]{...})}
 """, List.of("""
 A:{}
@@ -6148,7 +5818,7 @@ This call to method "Pick#(_,_)" cannot typecheck.
 Argument 2 has type "base.Void".
 That is not a subtype of "X" (the type required by the method signature).
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call "#(_,_)":
 Pick#[imm,X](x,y)
 """, List.of("""
 Pick:{ #[T:*](a:T, b:T):T -> a }
@@ -6163,7 +5833,7 @@ This call to method "Pick3#(_,_,_)" cannot typecheck.
 Argument 2 has type "iso B".
 That is not a subtype of "A" (the type required by the method signature).
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call "#(_,_,_)":
 Pick3#[imm,A](A,B,C)
 """, List.of("""
 Pick3:{ #[T:*](a:T, b:T, c:T):T -> a }
@@ -6211,9 +5881,6 @@ While inspecting the file
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
-
-Relevant code with inferred types:
-this#(x)
 """, List.of("""
 I: base.BaseId[I,I]{ #(x)->this#(x) }
 """));}
@@ -6232,9 +5899,6 @@ B[X:*]:{ .m(x:mut X, y:iso X):mut X -> Pick#(x,y) }
 While inspecting parameter "x" > ".m(_)" line 1
 The body of method ".m(_)" of type declaration "A" is an expression returning "mut X".
 Parameter "x" has type "mut X" instead of a subtype of "mut Y".
-
-Relevant code with inferred types:
-A:{.m[X:*,Y:*](x:mut X):mut Y->x}
 """, List.of("""
 A:{ .m[X:*,Y:*](x:mut X):mut Y -> x }
 """));}
@@ -6247,9 +5911,6 @@ Invalid method signature for "Box[A].get(_)".
 The method ".get(_)" accepts parameter 1 of type "B".
 But "Box[_].get(_)" requires "A", which is not a subtype of "B".
 The two types are unrelated.
-
-Relevant code with inferred types:
-iso Box[A]{.get(x:B):B->x}
 """, List.of("""
 A:{}
 B:{}
@@ -6276,9 +5937,6 @@ While inspecting the file
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
-
-Relevant code with inferred types:
-x.as(base.BaseId[Box,Box]{#(y:Box):Box->y})
 """, List.of("""
 Box:{ .as(f: base.BaseId[Box,Box]):Box -> this }
 I: base.BaseId[Box,Box]{ #(x)->x.as{ #(y)->y } }
@@ -6316,9 +5974,6 @@ To declare one, use the single quote as in the example below:
 
 Available methods on type "U":
 -       .m:base.Void
-
-Relevant code with inferred types:
-this.b
 """, List.of("""
 Ig:{ #[Y:*](y: Y): base.Void -> base.Void }
 Two[X:*]:{ .a: X; .b: X }
@@ -6348,9 +6003,6 @@ While inspecting the file
 Type declaration "I" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
-
-Relevant code with inferred types:
-x#(x)
 """, List.of("""
 I: base.BaseId[I,I]{ #(x)->x#(x) }
 """));}
@@ -6362,9 +6014,6 @@ While inspecting the file
 Type declaration "I[_]" implements "base.BaseId[_,_]".
 The body of "#(_)" must be "x" or "x.as{...}".
 Only those two shapes are the identity function.
-
-Relevant code with inferred types:
-x.as[imm,I[X]](this)
 """, List.of("""
 I[X:*]: base.BaseId[X,I[X]]{ #(x)->x.as[I[X]](this) }
 """));}
@@ -6389,9 +6038,6 @@ U:{ .m: base.Void -> Ig#(F#(Mk#, base.Void)) }
 While inspecting object literal instance of "iso A" > ".m" line 3
 Object literal instance of "iso A" cannot implement "X".
 "X" is a generic type parameter; object literals can only implement nominal types.
-
-Relevant code with inferred types:
-iso A{.k:base.Void->base.Void}
 """, List.of("""
 G:{ #[T:*](x: T): T -> x }
 A:{ .k: base.Void }
@@ -6533,7 +6179,7 @@ This call to method "H#(_,_)" cannot typecheck.
 Argument 2 has type "iso B".
 That is not a subtype of the anonymous type of the object literal at line 4, column 22 (the type required by the method signature).
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call "#(_,_)":
 H#[imm,_BU](Box[_BU]{.get:_BU->s},B)
 """, List.of("""
 Box[E:*]:{ .get: E }
@@ -6551,9 +6197,6 @@ Wrong number of generic type arguments for ".id(_)".
 Method ".id(_)" declares 1 generic type parameter.
 Declared generic type parameters: "X".
 This call provides no generic type arguments.
-
-Relevant code with inferred types:
-i.id[read](a)
 """, List.of("""
 A:{}
 Id:{ read .id[X:imm,mut,read](x:X):X->x; }
@@ -6569,9 +6212,6 @@ Wrong number of generic type arguments for "#(_)".
 Method "#(_)" declares 1 generic type parameter.
 Declared generic type parameters: "T".
 This call provides no generic type arguments.
-
-Relevant code with inferred types:
-Id#(x)
 """, List.of("""
 Foo:{}
 Id:{ #[T:*](t: T): T -> t }
@@ -6588,9 +6228,6 @@ Wrong number of generic type arguments for ".id(_)".
 Method ".id(_)" declares 1 generic type parameter.
 Declared generic type parameters: "X".
 This call provides no generic type arguments.
-
-Relevant code with inferred types:
-i.id[read](a)
 """, List.of("""
 A:{}
 Id:{ read .id[X:imm,mut,read](x:X):X->x; }
@@ -6639,9 +6276,6 @@ Parameter "s" has type "read Foo" instead of a subtype of "imm Foo".
 
 Type required by each promotion:
 - "imm Foo"  (As declared, Strengthen result)
-
-Relevant code with inferred types:
-A:{.k:base.Void->read Foo:{'s read .z:base.Void->Use#(s)}.z[read]}
 """, List.of("""
 Use:{ #(f: Foo): base.Void -> base.Void }
 A:{ .k: base.Void -> read Foo:{'s read .z: base.Void -> Use#s }.z }
@@ -6689,7 +6323,7 @@ This call to method "A.m(_)" cannot typecheck.
 Argument 1 has type "iso C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call ".m(_)":
 this.m[imm,base.Void](C)
 """, List.of("""
 Box[T]:{}
@@ -6705,7 +6339,7 @@ This call to method "A.m(_)" cannot typecheck.
 Argument 1 has type "iso C".
 That is not a subtype of "Box[base.Void]" (the type required by the method signature).
 
-Relevant code with inferred types:
+Code with inferred types; look at the type arguments of method call ".m(_)":
 this.m[imm,base.Void](C)
 """, List.of("""
 Box[T]:{}
@@ -6928,9 +6562,6 @@ While inspecting ".m(_,_)" line 4
 This call to method "Box[_].put(_)" cannot typecheck.
 Argument 1 has type "Box[B]".
 That is not a subtype of "Box[A]" (the type required by the method signature).
-
-Relevant code with inferred types:
-x.put(y)
 """, List.of("""
 A:{}
 B:A{}
@@ -6995,76 +6626,74 @@ User:{ .go: A -> Take#{'s .mk -> A; .get -> s.mk }.mk }
 While inspecting object literal instance of "base.Str" > ".m" line 1
 The body of method ".m" of type declaration "B" is an expression returning "iso base.Str".
 Object literal is of type "base.Str" instead of a subtype of "B".
-
-Relevant code with inferred types:
-B:{.m:B->"a string literal longer than fifteen"}
 """, List.of("""
 B:{ .m: B -> "a string literal longer than fifteen" }
 """));}
 @Test void aMethodWithItsBodyOmittedKeepsItsSignature(){fail("""
-004| U:{ .m(a:Apple1234): Use -> Use#(mut F{ .a(xxxxxxxxxx, y) -> xxxxxxxxxx; mut .b(x) -> x; .c -> a }, this) }
-   |     ------------------------~~~^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+005| U:Sup{ .m(a) -> Use#(mut F{ .a(x) -> x.fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo; .b(x) -> x }) }
+   |        ---------^^^^^^^^^^^-------------------------------------------------------------------------------------------------
 
-While inspecting ".m(_)" line 4
-This call to method "Use#(_,_)" cannot typecheck.
-Argument 2 has type "U".
-That is not a subtype of "Apple1234" (the type required by the method signature).
+While inspecting method call "#(_)" > ".m(_)" line 5
+The body of method ".m(_)" of type declaration "U" is an expression returning "Use".
+Method call "Use#(_)" has type "Use" instead of a subtype of "A".
 
-Relevant code with inferred types ("..." marks omitted code):
-Use#(mut F{.a(xxxxxxxxxx:Apple1234,y:Apple1234):Apple1234->...;mut .b(x:Apple1234):Apple1234->x;.c:Apple1234->a},this)
+Code with inferred types ("..." marks omitted code); look at the types of method ".m(_)":
+U:Sup{.m(a:A):A->Use#(mut F{.a(x:A):A->...;.b(x:A):A->x})}
 """, List.of("""
-Apple1234:{}
-F:{ .a(x:Apple1234, y:Apple1234): Apple1234; mut .b(x:Apple1234): Apple1234; .c: Apple1234 }
-Use:{ #(f:mut F, a:Apple1234): Use -> this }
-U:{ .m(a:Apple1234): Use -> Use#(mut F{ .a(xxxxxxxxxx, y) -> xxxxxxxxxx; mut .b(x) -> x; .c -> a }, this) }
+A:{ .fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo: A -> this }
+F:{ .a(x:A): A; .b(x:A): A }
+Use:{ #(f:mut F): Use -> this }
+Sup:{ .m(a:A): A }
+U:Sup{ .m(a) -> Use#(mut F{ .a(x) -> x.fooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo; .b(x) -> x }) }
 """));}
 @Test void anOmittedReceiverOrArgumentIsPrintedAsThreeDots(){fail("""
-003| U:{ .m(appleAppleApple1234567890:Apple1234567890): Use -> Use#(appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, this) }
-   |     ------------------------------------------------------~~~^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+004| U:Sup{ .m(appleAppleApple1234567890) -> Use#(appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890) }
+   |        ---------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting ".m(_)" line 3
-This call to method "Use#(_,_,_,_)" cannot typecheck.
-Argument 4 has type "U".
-That is not a subtype of "Apple1234567890" (the type required by the method signature).
+While inspecting method call "#(_,_,_)" > ".m(_)" line 4
+The body of method ".m(_)" of type declaration "U" is an expression returning "Use".
+Method call "Use#(_,_,_)" has type "Use" instead of a subtype of "Apple1234567890".
 
-Relevant code with inferred types ("..." marks omitted code):
-Use#(... + ...,... + ...,appleAppleApple1234567890 + appleAppleApple1234567890,this)
+Code with inferred types ("..." marks omitted code); look at the types of method ".m(_)":
+U:Sup{.m(appleAppleApple1234567890:Apple1234567890):Apple1234567890->Use#(... + ...,... + ...,... + ...)}
 """, List.of("""
 Apple1234567890:{ +(x:Apple1234567890): Apple1234567890 -> this }
-Use:{ #(a:Apple1234567890, b:Apple1234567890, c:Apple1234567890, u:Apple1234567890): Use -> this }
-U:{ .m(appleAppleApple1234567890:Apple1234567890): Use -> Use#(appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, this) }
+Use:{ #(a:Apple1234567890, b:Apple1234567890, c:Apple1234567890): Use -> this }
+Sup:{ .m(appleAppleApple1234567890:Apple1234567890): Apple1234567890 }
+U:Sup{ .m(appleAppleApple1234567890) -> Use#(appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890, appleAppleApple1234567890 + appleAppleApple1234567890) }
 """));}
 @Test void anOperatorCallIsPrintedInfixAndGroupedWhenItIsAReceiver(){fail("""
-003| U:{ .m(a:N, b:N): W -> a + b.get }
-   |     -------------------^^^^^^^^^
+004| U:Sup{ .m(a, b) -> a + b.get }
+   |        ------------^^^^^^^^^
 
-While inspecting method call ".get" > ".m(_,_)" line 3
+While inspecting method call ".get" > ".m(_,_)" line 4
 The body of method ".m(_,_)" of type declaration "U" is an expression returning "N".
 Method call "N.get" has type "N" instead of a subtype of "W".
 
-Relevant code with inferred types:
-U:{.m(a:N,b:N):W->(a + b).get}
+Code with inferred types; look at the types of method ".m(_,_)":
+U:Sup{.m(a:N,b:N):W->(a + b).get}
 """, List.of("""
 N:{ +(n:N): N -> this; .get: N -> this }
 W:{}
-U:{ .m(a:N, b:N): W -> a + b.get }
+Sup:{ .m(a:N, b:N): W }
+U:Sup{ .m(a, b) -> a + b.get }
 """));}
 @Test void aMethodTakingTheImplicitParameterIsPrintedWithTheTypeOfItsParameter(){fail("""
-005| User:{ .u(a:A): A -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }, this) }
-   |        --------------~~~^^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+006| User:Sup{ .u(a) -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }) }
+   |           ---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^--------------------------------------------------------------
 
-While inspecting ".u(_)" line 5
-This call to method "Use#(_,_,_)" cannot typecheck.
-Argument 3 has type "User".
-That is not a subtype of "A" (the type required by the method signature).
+While inspecting method call "#(_,_)" > ".u(_)" line 6
+The body of method ".u(_)" of type declaration "User" is an expression returning "Use".
+Method call "Use#(_,_)" has type "Use" instead of a subtype of "A".
 
-Relevant code with inferred types ("..." marks omitted code):
-Use#(F{#(A):A->...},G{.m(A):A->::.fooooooooooooooooooooooooooooooooooooooo;.k:A->A},this)
+Code with inferred types ("..." marks omitted code); look at the types of method ".u(_)":
+User:Sup{.u(a:A):A->Use#(F{#(A):A->...},G{.m(A):A->::.fooooooooooooooooooooooooooooooooooooooo;.k:A->A})}
 """, List.of("""
 A:{ .fooooooooooooooooooooooooooooooooooooooo: A -> this }
 F:{ #(a:A): A }
 G:{ .m(a:A): A; .k: A }
-Use:{ #(f:F, g:G, b:A): A -> b }
-User:{ .u(a:A): A -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }, this) }
+Use:{ #(f:F, g:G): Use -> this }
+Sup:{ .u(a:A): A }
+User:Sup{ .u(a) -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }) }
 """));}
 }
