@@ -154,7 +154,7 @@ In file: fear:/___DBG___/_rank_app999.fear
 While inspecting groups of parenthesis
 File ended while parsing a "{" group.
 This "{" may be unintended.
-Otherwise expected one of: "}id", "}".
+Otherwise expected: "}".
 Error 0 Unclosed
 """, List.of(pkgDocs), at(0, "T:{ .a: A ->\nA.m{", fixed(5, 5), shifted(5, 5))); }
   @Test void testsFromTwoFilesAreReportedInTheirOwnFile(){ failAt("""

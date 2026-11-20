@@ -90,6 +90,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (fwdIf(peek(ReadImm))){ return new T.ReadImmX(parseTX(startPos)); }
     var rc= parseOptRC();
     if (peekIf(this::isTName)){ return parseRCC(startPos, rc); }
+    if (!peek(UppercaseId)){ expect("type name", Token.typeName); }
     var res= parseTX(startPos);
     return rc.map(r -> (T)new T.RCX(r, res)).orElse(res);
   }
