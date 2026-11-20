@@ -59,11 +59,9 @@ In file: [###].fear
 While inspecting object literal instance of "base.Void" > ".fromC" line 1
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
+Method ".fromC" does not write its whole signature, so it has the signature of "a.A.fromC": ".fromC:a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-
-See inferred typing context below for how type "a.A" was introduced:
-B:a.A{.fromC:a.A->base.Void}
 Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
 B:a.A{ .fromC -> base.Void }
 """); }
@@ -878,11 +876,9 @@ While inspecting object literal instance of "base.Void" > ".fromC" line 1 > ".m"
 Method ".fromC" inside the object literal instance of "iso a.A" (line 1)
 is implemented with an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
+Method ".fromC" does not write its whole signature, so it has the signature of "a.A.fromC": ".fromC:a.A".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-
-See inferred typing context below for how type "a.A" was introduced:
-B:{.m:a.A->a.A{.fromC:a.A->base.Void}}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 B:{.m:a.A->a.A{.fromC->base.Void}}
 """); }
@@ -1003,12 +999,10 @@ While inspecting object literal instance of "B" > ".fromC" line 2 > ".m" line 2
 Method ".fromC" inside the object literal instance of "iso X" (line 2)
 is implemented with an expression returning "iso B".
 Object literal is of type "B" instead of a subtype of "X".
+Method ".fromC" does not write its whole signature, so it has the signature of "X.fromC": ".fromC:X".
 
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-
-See inferred typing context below for how type "X" was introduced:
-B:{.m:X->X{.fromC:X->B}}
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
 use a.A as X;
 B:{.m:X->X{.fromC->B}}
@@ -1806,12 +1800,10 @@ In file: [###].fear
 While inspecting object literal instance of "read a.M" > ".baz(_)" line 1
 The method "mut a.M.bar" is dead code.
 The object literal instance of "a.M" is "read", so it will never be seen as "mut".
-But it implements method "mut .bar", which requires a "mut" receiver.
+Method ".bar" does not write its whole signature, so it has the signature of "a.M.bar": "mut .bar:mut a.M".
+Hint: "mut .bar" can stay abstract in a "read" object literal; to implement another method instead, write its receiver capability, as in "read .bar".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-
-See inferred typing context below for how type "read a.M" was introduced:
-read a.M{mut .bar:mut a.M->m}
 Error 8 TypeError
 """, Map.of("c", "M:{ mut .bar:mut M }"), mapA, """
 B:{ mut .baz(m:mut a.M):read a.M -> { .bar -> m } }
@@ -1988,11 +1980,9 @@ Parameter "x" has type "read a.D" instead of a subtype of "mut a.D".
 Note: the declared type "mut a.D" would instead be a valid subtype.
 Capture adaptation trace:
 "mut a.D" --setToRead(line 1)--> "read a.D".
+Method ".get" does not write its whole signature, so it has the signature of "a.Get.get": "read .get:mut a.D".
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
-
-See inferred typing context below for how type "mut a.D" was introduced:
-B:{read .m(x:mut a.D):mut a.D->read a.Get{read .get:mut a.D->x}}
 Error 8 TypeError
 """, Map.of("c", "D:{} Get:{ read .get:mut D }"), mapA, """
 B:{ read .m(x:mut a.D):mut a.D -> read a.Get{ x } }
@@ -2611,7 +2601,7 @@ Error 7 WellFormedness
 """, Map.of(), mapBb, """
 Main:{ .m:bb.Float -> +0.1 }
 """); }
-  @Test void aMappedNameOnlyInTheCompressedFooterAddsNoNote(){ fail("""
+  @Test void aMappedNameNotPrintedInTheErrorAddsNoNote(){ fail("""
 In file: [###].fear
 
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
@@ -2644,7 +2634,7 @@ Error 7 WellFormedness
 U:{ .two[S,T](s:S, x:T, y:T):a.A -> a.A; .use(q:d.Q, y:a.Y, z:a.Z):a.A -> this.two(q, y, z) }
 """); }
   static final String noteD= "Source code inside folders named \"_b\" uses package name \"d\" to refer to the code inside folders named \"_e\", because of \"map d as _e in _b\", written in fear:/_b/_rank_app.fear.";
-  @Test void aMappedAliasOnlyInTheCompressedFooterAddsNoNotes(){ fail("""
+  @Test void aMappedAliasNotPrintedInTheErrorAddsNoNotes(){ fail("""
 In file: [###].fear
 
 003| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
@@ -2660,7 +2650,7 @@ use a.A as X;
 L:{ .m0(x:X):X; .m1(x:X):X; }
 B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
 """); }
-  @Test void aMappedAliasInTheBodyAndInTheFooterAddsTheAliasNoteAndTheMapNoteOnce(){ fail("""
+  @Test void aMappedAliasPrintedTwiceAddsTheAliasNoteAndTheMapNoteOnce(){ fail("""
 In file: [###].fear
 
 002| B:{ .k:X -> X{'s .fromC -> this} }
@@ -2670,19 +2660,17 @@ While inspecting parameter "this" > ".fromC" line 2 > ".k" line 2
 Method ".fromC" inside the object literal instance of "iso X" (line 2)
 is implemented with an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "X".
+Method ".fromC" does not write its whole signature, so it has the signature of "X.fromC": ".fromC:X".
 
 Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
 
-
-See inferred typing context below for how type "X" was introduced:
-B:{.k:X->X{'s .fromC:X->this}}
 Error 8 TypeError
 """, Map.of("c", cA), mapA, """
 use a.A as X;
 B:{ .k:X -> X{'s .fromC -> this} }
 """); }
-  @Test void aMappedNameOnlyInTheReasonAndInTheFooterAddsOneNote(){ fail("""
+  @Test void aMappedNameOnlyInTheReasonAddsOneNote(){ fail("""
 In file: [###].fear
 
 002| B:{ .k:a.A -> L{ .m0(x) -> x; } }
@@ -2699,7 +2687,7 @@ Error 8 TypeError
 L:{ .m0(x:a.A):a.A; }
 B:{ .k:a.A -> L{ .m0(x) -> x; } }
 """); }
-  @Test void aMappedNameInTheReasonNextToAMappedAliasOnlyInTheFooterAddsOnlyTheMapNote(){ fail("""
+  @Test void aMappedNameInTheReasonNextToAMappedAliasNotPrintedAddsOnlyTheMapNote(){ fail("""
 In file: [###].fear
 
 003| B:{ .k:a.A2 -> L{ .m0(x) -> x; } }
@@ -2717,7 +2705,7 @@ use a.A as X;
 L:{ .m0(x:X):X; }
 B:{ .k:a.A2 -> L{ .m0(x) -> x; } }
 """); }
-  @Test void aBaseNameThroughAMapInTheBodyAndAMappedNameOnlyInTheFooterNoteOnlyTheBase(){ fail("""
+  @Test void aBaseNameThroughAMapInTheBodyAndAMappedNameNotPrintedNoteOnlyTheBase(){ fail("""
 In file: [###].fear
 
 001| B:{ .m(x:a.A):B -> 5 }
@@ -2733,7 +2721,7 @@ Error 8 TypeError
 """, Map.of("c", cA), mapABb, """
 B:{ .m(x:a.A):B -> 5 }
 """); }
-  @Test void aMappedNameInTheBodyAndABaseNameThroughAMapOnlyInTheFooterNoteOnlyTheMappedName(){ fail("""
+  @Test void aMappedNameInTheBodyAndABaseNameThroughAMapNotPrintedNoteOnlyTheMappedName(){ fail("""
 In file: [###].fear
 
 001| B:{.m(x:a.A, n:bb.Nat):B->x}
@@ -2749,7 +2737,7 @@ Error 8 TypeError
 """, Map.of("c", cA), mapABb, """
 B:{.m(x:a.A, n:bb.Nat):B->x}
 """); }
-  @Test void twoMappedNamesInTheBodyAndAThirdOnlyInTheFooterGiveTwoNotes(){ fail("""
+  @Test void twoMappedNamesInTheBodyAndAThirdNotPrintedGiveTwoNotes(){ fail("""
 In file: [###].fear
 
 001| B:{.m(x:z.A, q:d.Q):a.A->x}
@@ -2765,7 +2753,7 @@ Error 8 TypeError
 """, Map.of("c", cA, "e", aA, "f", "Q:{}"), Map.of("z", "c", "a", "e", "d", "f"), """
 B:{.m(x:z.A, q:d.Q):a.A->x}
 """); }
-  @Test void baseNamesThroughAMapOnlyInTheCompressedFooterAddNoNote(){ fail("""
+  @Test void baseNamesThroughAMapNotPrintedAddNoNote(){ fail("""
 In file: [###].fear
 
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
@@ -2780,7 +2768,7 @@ Error 8 TypeError
 L:{ .m0(x:bb.Nat):bb.Nat; .m1(x:bb.Str):bb.Str; }
 B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
 """); }
-  @Test void baseAliasesThroughAMapOnlyInTheCompressedFooterAddNoNotes(){ fail("""
+  @Test void baseAliasesThroughAMapNotPrintedAddNoNotes(){ fail("""
 In file: [###].fear
 
 004| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
@@ -2797,7 +2785,7 @@ use bb.Str as S;
 L:{ .m0(x:N):N; .m1(x:S):S; }
 B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }
 """); }
-  @Test void aBaseNameThroughAMapInTheReasonAndTheFooterAddsOneNote(){ fail("""
+  @Test void aBaseNameThroughAMapInTheReasonAddsOneNote(){ fail("""
 In file: [###].fear
 
 002| B:{ .k:bb.Str -> L{ .m0(x) -> x; } }
@@ -2814,7 +2802,7 @@ Error 8 TypeError
 L:{ .m0(x:bb.Nat):bb.Nat; }
 B:{ .k:bb.Str -> L{ .m0(x) -> x; } }
 """); }
-  @Test void mappedTypeArgumentsOnlyInTheCompressedFooterAddNoNote(){ fail("""
+  @Test void mappedTypeArgumentsNotPrintedAddNoNote(){ fail("""
 In file: [###].fear
 
 002| B:{ .k: L -> L{'s .m0(x) -> x; .m1(x) -> x; } }

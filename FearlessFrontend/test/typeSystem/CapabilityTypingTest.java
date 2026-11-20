@@ -72,9 +72,7 @@ Parameter "a" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
 "mut A" --setToRead(line 2)--> "read A".
-
-See inferred typing context below for how type "mut A" was introduced:
-ContainerF:{#(a:mut A):mutH Container->mut Container{read .a1:mut A->a;mut .a2:mut A->a}}
+Method ".a1" does not write its whole signature, so it has the signature of "Container.a1": "read .a1:mut A".
 """, List.of("""
 A:{}
 ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }
@@ -443,9 +441,7 @@ B:A{ .m1 -> this; .m2 -> this.m1 }
 While inspecting parameter "this" > ".m1" line 2
 The body of method ".m1" of type declaration "B" is an expression returning "mut B".
 Parameter "this" has type "mut B" instead of a subtype of "A".
-
-See inferred typing context below for how type "A" was introduced:
-B:A{.m1:A->this;mut .m1:A->this;.m2:A->this.m1}
+Method ".m1" does not write its whole signature, so it has the signature of "A.m1": "mut .m1:A".
 """, List.of("""
 A:{ imm .m1: A; mut .m1: A; .m2: A }
 B:A{ .m1 -> this; .m2 -> this.m1 }
@@ -736,6 +732,7 @@ While inspecting object literal instance of "iso B" > ".b" line 2
 This object literal is missing a required method.
 Missing: "mut .m".
 Required by: "B".
+This object literal is neither "imm" nor "read", so its "mut" methods must be implemented.
 Hint: add an implementation for ".m" inside the object literal.
 """, List.of("""
 B:{ mut .m: B }

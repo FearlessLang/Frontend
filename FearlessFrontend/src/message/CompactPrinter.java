@@ -231,4 +231,8 @@ public final class CompactPrinter{
     pm.accString(this);
     return sb.toString();
   }
+  public String sig(M m){
+    ofM(m.sig(), m.xs(), m.names(), Optional.empty()).accString(this);
+    return sb.toString();
+  }
 }
