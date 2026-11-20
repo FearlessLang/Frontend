@@ -1395,7 +1395,7 @@ User:{
 006|   imm .m():Sup->Bad:Sup{ imm .h:base.Void->base.Void{} }
    |   --------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal "iso Bad" > method "User.m" (line 6)
+While inspecting object literal "Bad" > method "User.m" (line 6)
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
@@ -3434,7 +3434,7 @@ Box[E:*]: _Box[E]{
 006|   } }
 
 While inspecting method call ".get" > method "Slot[_].opt" (line 5) > method "Slots#(_)" (line 3)
-Method ".opt" inside the object literal "mut Slot[_]" (line 3)
+Method ".opt" inside the object literal "Slot[_]" (line 3)
 is implemented with an expression returning "read Opt[E]".
 Method call "read Var[_].get" has type "read Opt[E]" instead of a subtype of "read Opt[read/imm E]".
 """, List.of("""

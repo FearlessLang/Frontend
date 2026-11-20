@@ -118,7 +118,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case X x -> "parameter "+disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());
     case Literal l -> l.thisName().equals("this")
       ? "type declaration "+tNameADisp(l.name())
-      : "object literal "+bestNamePkg0(showInstanceOf(l), bestLitName(showInstanceOf(l), true, l));
+      : "object literal "+bestNameNoRc(l);
     case Type(var t, _) -> "object literal instance of "+typeRepr(true, t.withRC(RC.imm));
     };}
   String expReprDirect(boolean skipImm, E toErr){ return switch (toErr){
