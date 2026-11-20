@@ -2358,7 +2358,7 @@ In file: [###].fear
 
 While inspecting type declaration "A"
 Type declaration "A" implements `bb.Final["foo"]`.
-The generic type argument of "bb.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+The generic type argument of "bb.Final[_]" is a type name in quotes holding a method name, like `".name"` or `"+"`.
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness
@@ -2438,8 +2438,8 @@ In file: [###].fear
 
 While inspecting type declaration "One"
 Type declaration "One" implements "bb.OpenWith[a.Icon,a.Icon]".
-The extension "a.Icon" is not a string literal type.
-An extension is written as a string literal type, like `"ffile347"`, `"xml"` or `"txt"`; or implement "bb.OpenWith[_]" to let the Fearless manager choose one.
+The extension "a.Icon" is not a type name in quotes.
+An extension is written as a type name in quotes, like `"ffile347"`, `"xml"` or `"txt"`; or implement "bb.OpenWith[_]" to let the Fearless manager choose one.
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -2556,10 +2556,9 @@ In file: [###].fear
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting the file
-Integer literal is out of range for "bb.Int".
+Type "+421381834238972893748972389723" is out of range for "bb.Int".
 "bb.Int" must be representable as a 64-bit signed integer.
 Valid range: -9223372036854775808 .. 9223372036854775807.
-This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "bb.Num".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -2574,10 +2573,9 @@ In file: [###].fear
    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting the file
-Natural literal is out of range for "bb.Nat".
+Type "421381834238972893748972389723" is out of range for "bb.Nat".
 "bb.Nat" must be representable as a 64-bit unsigned integer.
 Valid range: 0 .. 18446744073709551615.
-This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "bb.Num".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -2592,9 +2590,8 @@ In file: [###].fear
    |                       ^^^^
 
 While inspecting the file
-Float literal is not exactly representable as "bb.Float".
+Type "+0.1" is not exactly representable as "bb.Float".
 "bb.Float" must be representable exactly as a 64-bit IEEE 754 double.
-This literal is: "+0.1".
 If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
 Write "+0.1soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "bb.Num".
@@ -2915,10 +2912,9 @@ In file: [###].fear
    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting the file
-Integer literal is out of range for "I".
+Type "+421381834238972893748972389723" is out of range for "I".
 "I" must be representable as a 64-bit signed integer.
 Valid range: -9223372036854775808 .. 9223372036854775807.
-This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "bb.Num".
 
 Name "I" stands for "bb.Int" because of "use bb.Int as I".

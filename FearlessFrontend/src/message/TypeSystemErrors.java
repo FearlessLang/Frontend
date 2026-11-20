@@ -538,7 +538,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var s= c.name().s();
     var notOperator= s.startsWith(".") || s.equals("#");
     if (notOperator){ return; }
-    e.line("Hint: Fearless has no operator precedence, so an expression like \"a.get + b.get\" "
+    e.line("Hint: all method names have the same precedence, so an expression like \"a.get + b.get\" "
          +"parses as \"(a.get + b).get\", not \"a.get + (b.get)\". "
          +"If this argument needed a method applied to it first, wrap it in parentheses.");
   }

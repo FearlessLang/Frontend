@@ -618,7 +618,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException finalNotMethodName(E.Literal owner, IT.C c){
     return wf(err()
       .line(up(err().expRepr(owner))+" implements "+claimRepr(owner, c)+".")
-      .line("The generic type argument of "+err().tNameADisp(LiteralDeclarations.finalMethods)+" is a string literal type holding a method name, like "+disp("\".name\"")+" or "+disp("\"+\"")+"."), owner);
+      .line("The generic type argument of "+err().tNameADisp(LiteralDeclarations.finalMethods)+" is a type name in quotes holding a method name, like "+disp("\".name\"")+" or "+disp("\"+\"")+"."), owner);
   }
   public FearlessException finalImplemented(E.Literal owner, M m, TName origin, String name){
     var ctx= up(err().expRepr(owner));
@@ -642,8 +642,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException claimExtNotStr(E.Literal owner, IT.C c){
     var examples= c.name().simpleName().equals("Shortcut") ? disp("\"fapp042\"") : disp("\"ffile347\"")+", "+disp("\"xml\"")+" or "+disp("\"txt\"");
     return wf(claim(owner, c)
-      .line("The extension "+err().typeRepr(c.ts().get(1))+" is not a string literal type.")
-      .line("An extension is written as a string literal type, like "+examples+"; "+chooseOne(c)+"."), owner);
+      .line("The extension "+err().typeRepr(c.ts().get(1))+" is not a type name in quotes.")
+      .line("An extension is written as a type name in quotes, like "+examples+"; "+chooseOne(c)+"."), owner);
   }
   public FearlessException claimExtInvalid(E.Literal owner, IT.C c, String ext){
     return wf(claim(owner, c)
@@ -693,18 +693,17 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Remove "+disp("'"+l.thisName())+" from the object literal."), l);
   }
   public FearlessException intLiteralOutOfRange(TName lit){
-    return intOrNatLiteralOutOfRange(lit, LiteralDeclarations.baseInt, "Integer", "signed", LiteralDeclarations.intMin, LiteralDeclarations.intMax);
+    return intOrNatLiteralOutOfRange(lit, LiteralDeclarations.baseInt, "signed", LiteralDeclarations.intMin, LiteralDeclarations.intMax);
   }
   public FearlessException natLiteralOutOfRange(TName lit){
-    return intOrNatLiteralOutOfRange(lit, LiteralDeclarations.baseNat, "Natural", "unsigned", LiteralDeclarations.natMin, LiteralDeclarations.natMax);
+    return intOrNatLiteralOutOfRange(lit, LiteralDeclarations.baseNat, "unsigned", LiteralDeclarations.natMin, LiteralDeclarations.natMax);
   }
-  private FearlessException intOrNatLiteralOutOfRange(TName lit, TName type, String kind, String signed, BigInteger min, BigInteger max){
+  private FearlessException intOrNatLiteralOutOfRange(TName lit, TName type, String signed, BigInteger min, BigInteger max){
     var t= err().tNameADisp(type);
     return err()
-      .line(kind+" literal is out of range for "+t+".")
+      .line("Type "+disp(lit.simpleName())+" is out of range for "+t+".")
       .line(t+" must be representable as a 64-bit "+signed+" integer.")
       .line("Valid range: "+min+" .. "+max+".")
-      .line("This literal is: "+disp(LiteralDeclarations.big(lit.simpleName()))+".")
       .line(numHint())
       .wf().addSpan(lit.approxSpan().inner);
   }
@@ -715,11 +714,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var near= LiteralDeclarations.floatExactFearlessLit(nearD);
     var t= err().tNameADisp(LiteralDeclarations.baseFloat);
     var e= err()
-      .line("Float literal is not exactly representable as "+t+".")
-      .line(t+" must be representable exactly as a 64-bit IEEE 754 double.")
-      .line("This literal is: "+disp(raw)+".");
+      .line("Type "+disp(raw)+" is not exactly representable as "+t+".")
+      .line(t+" must be representable exactly as a 64-bit IEEE 754 double.");
     var at= lit.approxSpan().inner;
-    if (!Double.isFinite(d)){ return e.line("This literal overflows; the nearest representable value is "+disp(near)+".").wf().addSpan(at); }
+    if (!Double.isFinite(d)){ return e.line(disp(raw)+" overflows; the nearest representable value is "+disp(near)+".").wf().addSpan(at); }
     return e.line("If rounded, the nearest representable value is "+disp(near)+".")
       .line("Write "+disp(raw+LiteralDeclarations.softSuffix)+" to accept that rounding.")
       .line(numHint())

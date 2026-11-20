@@ -1685,7 +1685,7 @@ While inspecting ".go" line 5
 This call to method "Plus+(_)" cannot typecheck.
 Argument 1 has type "Plus".
 That is not a subtype of "A" (the type required by the method signature).
-Hint: Fearless has no operator precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
+Hint: all method names have the same precedence, so an expression like "a.get + b.get" parses as "(a.get + b).get", not "a.get + (b.get)". If this argument needed a method applied to it first, wrap it in parentheses.
 """, List.of("""
 A:{}
 Plus:{
@@ -2452,10 +2452,9 @@ In file: [###].fear
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting the file
-Integer literal is out of range for "base.Int".
+Type "+421381834238972893748972389723" is out of range for "base.Int".
 "base.Int" must be representable as a 64-bit signed integer.
 Valid range: -9223372036854775808 .. 9223372036854775807.
-This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
@@ -2468,10 +2467,9 @@ In file: [###].fear
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting the file
-Natural literal is out of range for "base.Nat".
+Type "421381834238972893748972389723" is out of range for "base.Nat".
 "base.Nat" must be representable as a 64-bit unsigned integer.
 Valid range: 0 .. 18446744073709551615.
-This literal is: "421381834238972893748972389723".
 Hint: if you need arbitrary precision numbers, use "base.Num".
 Error 7 WellFormedness
 """, List.of("""
@@ -2485,10 +2483,9 @@ In file: [###].fear
    |                          ^^^^^^^^
 
 While inspecting the file
-Float literal is not exactly representable as "base.Float".
+Type "+1.0e309" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
-This literal is: "+1.0e309".
-This literal overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
+"+1.0e309" overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +1.0e309 }
@@ -2500,10 +2497,9 @@ In file: [###].fear
    |                          ^^^^^^^^^^^^^^^^
 
 While inspecting the file
-Float literal is not exactly representable as "base.Float".
+Type "+1.0e99999999999" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
-This literal is: "+1.0e99999999999".
-This literal overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
+"+1.0e99999999999" overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +1.0e99999999999 }
@@ -2515,9 +2511,8 @@ In file: [###].fear
    |                          ^^^^^^^^^^^^^^^^^
 
 While inspecting the file
-Float literal is not exactly representable as "base.Float".
+Type "+1.0e-99999999999" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
-This literal is: "+1.0e-99999999999".
 If rounded, the nearest representable value is "+0.0".
 Write "+1.0e-99999999999soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "base.Num".
@@ -2534,9 +2529,8 @@ In file: [###].fear
 001| A:{ .m: A -> 1[A] }
    |              ^^
 
-While inspecting a literal
-Literal "1" is directly followed by "[".
-Number and string literals take no generic type arguments.
+While inspecting a type name
+Type "1" takes no generic type arguments.
 Remove the "[...]" after "1".
 Error 2 UnexpectedToken
 """, List.of("""
@@ -2548,9 +2542,8 @@ In file: [###].fear
 001| A:{ .m: A -> 1[] }
    |              ^^
 
-While inspecting a literal
-Literal "1" is directly followed by "[".
-Number and string literals take no generic type arguments.
+While inspecting a type name
+Type "1" takes no generic type arguments.
 Remove the "[...]" after "1".
 Error 2 UnexpectedToken
 """, List.of("""
@@ -2562,9 +2555,8 @@ In file: [###].fear
 001| A:{ .m: `a`[A] }
    |         ^^^^
 
-While inspecting a literal
-Literal "`a`" is directly followed by "[".
-Number and string literals take no generic type arguments.
+While inspecting a type name
+Type "`a`" takes no generic type arguments.
 Remove the "[...]" after "`a`".
 Error 2 UnexpectedToken
 """, List.of("""
@@ -2576,9 +2568,8 @@ In file: [###].fear
 001| A:{ .m: "a"[A] }
    |         ^^^^
 
-While inspecting a literal
-Literal `"a"` is directly followed by "[".
-Number and string literals take no generic type arguments.
+While inspecting a type name
+Type `"a"` takes no generic type arguments.
 Remove the "[...]" after `"a"`.
 Error 2 UnexpectedToken
 """, List.of("""
@@ -2590,9 +2581,8 @@ In file: [###].fear
 001| A:{ .m: A -> -1.5[] }
    |              ^^^^^
 
-While inspecting a literal
-Literal "-1.5" is directly followed by "[".
-Number and string literals take no generic type arguments.
+While inspecting a type name
+Type "-1.5" takes no generic type arguments.
 Remove the "[...]" after "-1.5".
 Error 2 UnexpectedToken
 """, List.of("""
@@ -2605,9 +2595,8 @@ In file: [###].fear
    |                          ^^^^^^^^^
 
 While inspecting the file
-Float literal is not exactly representable as "base.Float".
+Type "+1.0e-400" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
-This literal is: "+1.0e-400".
 If rounded, the nearest representable value is "+0.0".
 Write "+1.0e-400soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "base.Num".
@@ -2622,9 +2611,8 @@ In file: [###].fear
    |                          ^^^^
 
 While inspecting the file
-Float literal is not exactly representable as "base.Float".
+Type "+0.1" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
-This literal is: "+0.1".
 If rounded, the nearest representable value is "+0.1000000000000000055511151231257827021181583404541015625".
 Write "+0.1soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "base.Num".
@@ -2639,9 +2627,8 @@ In file: [###].fear
    |                          ^^^^
 
 While inspecting the file
-Float literal is not exactly representable as "base.Float".
+Type "+0.2" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
-This literal is: "+0.2".
 If rounded, the nearest representable value is "+0.200000000000000011102230246251565404236316680908203125".
 Write "+0.2soft" to accept that rounding.
 Hint: if you need arbitrary precision numbers, use "base.Num".
@@ -2685,10 +2672,9 @@ In file: [###].fear
    |                          ^^^^^^^^^^^^
 
 While inspecting the file
-Float literal is not exactly representable as "base.Float".
+Type "+1.0e309soft" is not exactly representable as "base.Float".
 "base.Float" must be representable exactly as a 64-bit IEEE 754 double.
-This literal is: "+1.0e309soft".
-This literal overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
+"+1.0e309soft" overflows; the nearest representable value is "+179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0".
 Error 7 WellFormedness
 """, List.of("""
  Main:{ .m:base.Float -> +1.0e309soft }

@@ -504,7 +504,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (fwdIf(hasPost())){ fwdIf(peek(_SquareGroup)); return; }
     var ts= IntStream.range(0, limit()).mapToObj(i -> peekAbs(i).get()).toList();
     var arrow= ts.stream().anyMatch(t -> t.is(Arrow)) && ts.stream().takeWhile(t -> !t.is(Arrow)).anyMatch(t -> t.is(DotName, Op));
-    throw errFactory().missingSemicolonOrOperator(spanAround(index()-1, index()-1), arrow);
+    throw errFactory().missingSemicolonOrMethodName(spanAround(index()-1, index()-1), arrow);
   }
 
   TSpan tspan(){ return new TSpan(span()); }
