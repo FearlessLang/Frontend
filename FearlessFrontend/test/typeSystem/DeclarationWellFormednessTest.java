@@ -694,7 +694,7 @@ C: B{}
 
 While inspecting type declaration "A"
 Type declaration "A" implements `base.Final["foo"]`.
-The generic type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+The generic type argument of "base.Final[_]" is a type name in quotes holding a method name, like `".name"` or `"+"`.
 """, List.of("""
 A: base.Final["foo"]{}
 """));}
@@ -704,7 +704,7 @@ A: base.Final["foo"]{}
 
 While inspecting type declaration "A"
 Type declaration "A" implements "base.Final[A]".
-The generic type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+The generic type argument of "base.Final[_]" is a type name in quotes holding a method name, like `".name"` or `"+"`.
 """, List.of("""
 A: base.Final[A]{}
 """));}
@@ -786,8 +786,8 @@ Icon: {}
 
 While inspecting type declaration "One"
 Type declaration "One" implements "base.OpenWith[Icon,Icon]".
-The extension "Icon" is not a string literal type.
-An extension is written as a string literal type, like `"ffile347"`, `"xml"` or `"txt"`; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
+The extension "Icon" is not a type name in quotes.
+An extension is written as a type name in quotes, like `"ffile347"`, `"xml"` or `"txt"`; or implement "base.OpenWith[_]" to let the Fearless manager choose one.
 """, List.of("""
 One: base.Main, base.OpenWith[Icon,Icon]{ .main -> base.Void }
 Icon: {}
@@ -1096,7 +1096,7 @@ A[X]:{}
 
 While inspecting type declaration "A[_]"
 Type declaration "A[_]" implements "base.Final[X]".
-The generic type argument of "base.Final[_]" is a string literal type holding a method name, like `".name"` or `"+"`.
+The generic type argument of "base.Final[_]" is a type name in quotes holding a method name, like `".name"` or `"+"`.
 """, List.of("""
 A[X]: base.Final[X]{}
 """));}

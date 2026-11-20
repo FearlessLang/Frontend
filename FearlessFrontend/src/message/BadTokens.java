@@ -44,7 +44,7 @@ Names like aux, nul, lpt2 are invalid on Windows.
 No space is allowed after ".".
 """, "")
       .putStr(BadChar, Code.UnexpectedToken::of, """
-This character can only appear inside string literals and comments.
+This character can only appear inside comments and inside type names in quotes, like `"a@b"`.
 """, "")
 ;}
   private static Stream<Token> uppercaseMethodName(int idx, Token t, Tokenizer tz){
@@ -63,8 +63,8 @@ This character can only appear inside string literals and comments.
     var c= t.content();
     var in= c.substring(1, c.length()-1);
     throw Code.UnexpectedToken.of("Unrecognized text "+disp(c)+".\n"
-      +"Single quotes do not form string literals.\n"
-      +"String literals are written as:\n"
+      +"Single quotes do not form type names.\n"
+      +"Type names in quotes use double quotes or backticks:\n"
       +"  \""+in+"\"\n"
       +"  `"+in+"`")
       .addFrame("common ambiguities", t.span(tz.fileName()));
@@ -88,7 +88,7 @@ This character can only appear inside string literals and comments.
     throw Code.UnexpectedToken.of(
       "Unopened block comment close \"*/\".\n"
     +"Found a \"/*\" "+where+" before this point.\n"
-    +"Did you mean to place the opener outside the string/comment?")
+    +"Did you mean to place the opener outside the"+describeFree(h)+"?")
       .addFrame("comments", primary);
   }
   private static Stream<Token> squareAfterLiteral(int idx, Token t, Tokenizer tz){
@@ -99,16 +99,15 @@ This character can only appear inside string literals and comments.
     var s= lit.span(file);
     var name= disp(lit.content());
     throw Code.UnexpectedToken.of(
-      "Literal "+name+" is directly followed by \"[\".\n"
-    +"Number and string literals take no generic type arguments.\n"
+      "Type "+name+" takes no generic type arguments.\n"
     +"Remove the \"[...]\" after "+name+".")
-      .addFrame("a literal", new Span(file, s.startLine(), s.startCol(), t.line(), t.span(file).endCol()));
+      .addFrame("a type name", new Span(file, s.startLine(), s.startCol(), t.line(), t.span(file).endCol()));
   }
   public static String describeFree(Token t){
     return switch (t.kind()){
       case LineComment -> " line comment \"//\"";
       case BlockComment -> " block comment \"/* ... */\"";
-      case UStr, SStr   -> " string literal";
+      case UStr, SStr   -> " type name in quotes";
       default -> throw Bug.of(t.toString());
     };
   }
@@ -124,7 +123,7 @@ This character can only appear inside string literals and comments.
     throw Bug.unreachable();
   }
   private static FearlessException strErr(Span at, int quoteChar, String more){
-    return Code.UnexpectedToken.of("String literal "+Message.displayChar(quoteChar)+" reaches the end of the line.\n"+more).addFrame("a string literal", at);
+    return Code.UnexpectedToken.of("Quote "+Message.displayChar(quoteChar)+" is not closed before the end of the line.\n"+more).addFrame("a type name", at);
   }
   private static Stream<Token> badBlockComment(Tokenizer tz, Token t){
     var file= tz.fileName();
@@ -146,7 +145,7 @@ This character can only appear inside string literals and comments.
     var idxComment= openSL == -1 ? openML : openML == -1 ? openSL : Math.min(openSL, openML);
     if (idxComment != -1){
       var after= new Span(file, b.startLine(), b.startCol(), b.endLine(), b.startCol() + idxComment);
-      throw strErr(after, quoteChar, "A comment opening sign is present later on this line; did you mean to close the string before it?");
+      throw strErr(after, quoteChar, "A comment opening sign is present later on this line; did you mean to close the quote before it?");
     }
     var all= tz.allTokens();
     var j= idx - 1;

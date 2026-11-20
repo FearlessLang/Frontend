@@ -155,8 +155,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unclosed "{" group.
-Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+Found a matching closer inside a type name in quotes between here and the stopping point.
+Did you mean to place the closer outside the type name in quotes?
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -366,7 +366,7 @@ In file: [###].fear
    |   -~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing semicolon ";", operator, or method name here or earlier.
+There is a missing semicolon ";" or method name here or earlier.
 Error 6 MissingSeparator
 """, """
 A:{Block#.let[base.Nat] s: _ = {5} .return: {2} }
@@ -868,7 +868,7 @@ In file: [###].fear
    | ^^
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing semicolon ";", operator, or method name here or earlier.
+There is a missing semicolon ";" or method name here or earlier.
 This method body contains "->": a ";" may be missing between two method declarations.
 Error 6 MissingSeparator
 """, """
@@ -1355,9 +1355,9 @@ In file: [###].fear
 003|     "foo // comment
    |     ^^^^^^
 
-While inspecting a string literal
-String literal [Double Quote (") 0x22] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+While inspecting a type name
+Quote [Double Quote (") 0x22] is not closed before the end of the line.
+A comment opening sign is present later on this line; did you mean to close the quote before it?
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1372,9 +1372,9 @@ In file: [###].fear
 003|     `bar // comment
    |     ^^^^^^
 
-While inspecting a string literal
-String literal [Backtick (`) 0x60] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+While inspecting a type name
+Quote [Backtick (`) 0x60] is not closed before the end of the line.
+A comment opening sign is present later on this line; did you mean to close the quote before it?
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1390,9 +1390,9 @@ In file: [###].fear
 003|     `bar /* comment */
    |     ^^^^^^
 
-While inspecting a string literal
-String literal [Backtick (`) 0x60] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+While inspecting a type name
+Quote [Backtick (`) 0x60] is not closed before the end of the line.
+A comment opening sign is present later on this line; did you mean to close the quote before it?
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1408,9 +1408,9 @@ In file: [###].fear
 003|     `bar /* comment
    |     ^^^^^^
 
-While inspecting a string literal
-String literal [Backtick (`) 0x60] reaches the end of the line.
-A comment opening sign is present later on this line; did you mean to close the string before it?
+While inspecting a type name
+Quote [Backtick (`) 0x60] is not closed before the end of the line.
+A comment opening sign is present later on this line; did you mean to close the quote before it?
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1427,8 +1427,8 @@ In file: [###].fear
 003|     "no close here
    |     ^^^^^^^^^^^^^^
 
-While inspecting a string literal
-String literal [Double Quote (") 0x22] reaches the end of the line.
+While inspecting a type name
+Quote [Double Quote (") 0x22] is not closed before the end of the line.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1444,8 +1444,8 @@ In file: [###].fear
 003|     `no close here
    |     ^^^^^^^^^^^^^^
 
-While inspecting a string literal
-String literal [Backtick (`) 0x60] reaches the end of the line.
+While inspecting a type name
+Quote [Backtick (`) 0x60] is not closed before the end of the line.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1461,8 +1461,8 @@ In file: [###].fear
 003|     /* something with a " on this last line */ "text that doesn't close
    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting a string literal
-String literal [Double Quote (") 0x22] reaches the end of the line.
+While inspecting a type name
+Quote [Double Quote (") 0x22] is not closed before the end of the line.
 A preceding block comment "/* ... */" on this line contains that quote.
 Did it swallow the intended opening quote?
 Error 2 UnexpectedToken
@@ -1479,8 +1479,8 @@ In file: [###].fear
 003|     /* no quote here */ "text that doesn't close
    |                         ^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting a string literal
-String literal [Double Quote (") 0x22] reaches the end of the line.
+While inspecting a type name
+Quote [Double Quote (") 0x22] is not closed before the end of the line.
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1499,8 +1499,8 @@ In file: [###].fear
 
 While inspecting comments
 Unopened block comment close "*/".
-Found a "/*" inside a string literal before this point.
-Did you mean to place the opener outside the string/comment?
+Found a "/*" inside a type name in quotes before this point.
+Did you mean to place the opener outside the type name in quotes?
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1520,8 +1520,8 @@ In file: [###].fear
 
 While inspecting comments
 Unopened block comment close "*/".
-Found a "/*" inside a string literal before this point.
-Did you mean to place the opener outside the string/comment?
+Found a "/*" inside a type name in quotes before this point.
+Did you mean to place the opener outside the type name in quotes?
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1540,8 +1540,8 @@ In file: [###].fear
 
 While inspecting comments
 Unopened block comment close "*/".
-Found a "/*" inside a string literal before this point.
-Did you mean to place the opener outside the string/comment?
+Found a "/*" inside a type name in quotes before this point.
+Did you mean to place the opener outside the type name in quotes?
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1566,7 +1566,7 @@ In file: [###].fear
 While inspecting comments
 Unopened block comment close "*/".
 Found a "/*" inside a line comment "//" before this point.
-Did you mean to place the opener outside the string/comment?
+Did you mean to place the opener outside the line comment "//"?
 Error 2 UnexpectedToken
 """, """
 A:{
@@ -1630,8 +1630,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unclosed "{" group.
-Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+Found a matching closer inside a type name in quotes between here and the stopping point.
+Did you mean to place the closer outside the type name in quotes?
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1646,8 +1646,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unclosed "{" group.
-Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+Found a matching closer inside a type name in quotes between here and the stopping point.
+Did you mean to place the closer outside the type name in quotes?
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1696,8 +1696,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unclosed "(" group.
-Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+Found a matching closer inside a type name in quotes between here and the stopping point.
+Did you mean to place the closer outside the type name in quotes?
 Otherwise expected: ")".
 Error 0 Unclosed
 """, """
@@ -1712,8 +1712,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unclosed "[" group.
-Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+Found a matching closer inside a type name in quotes between here and the stopping point.
+Did you mean to place the closer outside the type name in quotes?
 Otherwise expected: "]".
 Error 0 Unclosed
 """, """
@@ -1728,8 +1728,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unclosed "{" group.
-Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+Found a matching closer inside a type name in quotes between here and the stopping point.
+Did you mean to place the closer outside the type name in quotes?
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -1776,8 +1776,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unopened ")".
-Found a matching opener hidden inside a string literal before this point.
-Did you mean to place the opener outside the string literal?
+Found a matching opener hidden inside a type name in quotes before this point.
+Did you mean to place the opener outside the type name in quotes?
 Error 1 Unopened
 """, """
 A:{ .m:Str -> "call (" ) }
@@ -1822,8 +1822,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unopened "}".
-Found a matching opener hidden inside a string literal before this point.
-Did you mean to place the opener outside the string literal?
+Found a matching opener hidden inside a type name in quotes before this point.
+Did you mean to place the opener outside the type name in quotes?
 Error 1 Unopened
 """, """
 .m:Str -> "start { here" }
@@ -2178,8 +2178,8 @@ In file: [###].fear
 
 While inspecting groups of parenthesis
 Unclosed "{" group.
-Found a matching closer inside a string literal between here and the stopping point.
-Did you mean to place the closer outside the string literal?
+Found a matching closer inside a type name in quotes between here and the stopping point.
+Did you mean to place the closer outside the type name in quotes?
 Otherwise expected: "}".
 Error 0 Unclosed
 """, """
@@ -2228,7 +2228,7 @@ In file: [###].fear
    |             --~~~~~~~~^^^^^~~~-
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing semicolon ";", operator, or method name here or earlier.
+There is a missing semicolon ";" or method name here or earlier.
 This method body contains "->": a ";" may be missing between two method declarations.
 Error 6 MissingSeparator
 """, """
@@ -3114,8 +3114,8 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "'bar'".
-Single quotes do not form string literals.
-String literals are written as:
+Single quotes do not form type names.
+Type names in quotes use double quotes or backticks:
   "bar"
   `bar`
 Error 2 UnexpectedToken
@@ -3180,8 +3180,8 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "'a/b'".
-Single quotes do not form string literals.
-String literals are written as:
+Single quotes do not form type names.
+Type names in quotes use double quotes or backticks:
   "a/b"
   `a/b`
 Error 2 UnexpectedToken
@@ -3240,7 +3240,7 @@ In file: [###].fear
 004|   .return {Void}
 
 While inspecting method declaration > object literal > method body > method declaration > type declaration body > type declaration > full file
-There is a missing semicolon ";", operator, or method name here or earlier.
+There is a missing semicolon ";" or method name here or earlier.
 Error 6 MissingSeparator
 """, """
 A:{ .foo:A ->
@@ -4047,7 +4047,7 @@ In file: [###].fear
 
 While inspecting the file
 Unrecognized text "$".
-This character can only appear inside string literals and comments.
+This character can only appear inside comments and inside type names in quotes, like `"a@b"`.
 Error 2 UnexpectedToken
 """, """
 A:{ .me: A -> $this }
@@ -4060,7 +4060,7 @@ In file: [###].fear
 
 While inspecting the file
 Unrecognized text "@".
-This character can only appear inside string literals and comments.
+This character can only appear inside comments and inside type names in quotes, like `"a@b"`.
 Error 2 UnexpectedToken
 """, """
 A:{ .me: A -> @this }
@@ -4099,7 +4099,7 @@ In file: [###].fear
    |       ^
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing semicolon ";", operator, or method name here or earlier.
+There is a missing semicolon ";" or method name here or earlier.
 This method body contains "->": a ";" may be missing between two method declarations.
 Error 6 MissingSeparator
 """, """
@@ -4115,7 +4115,7 @@ In file: [###].fear
    |   --~~~~~~~~~^~~~~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
-There is a missing semicolon ";", operator, or method name here or earlier.
+There is a missing semicolon ";" or method name here or earlier.
 Error 6 MissingSeparator
 """, """
 A:{ .m: A -> x -> x }
