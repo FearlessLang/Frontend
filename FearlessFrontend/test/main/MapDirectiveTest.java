@@ -60,7 +60,7 @@ While inspecting object literal instance of "base.Void" > ".fromC" line 1
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
 Method ".fromC" inherited the signature from "a.A.fromC" as follows:
-.fromC:a.A
+.fromC: a.A
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
@@ -323,7 +323,7 @@ This call to method ".fromA" cannot typecheck.
 Method ".fromA" is not declared on type "A".
 
 Available methods on type "A":
--       .fromC:A
+-       .fromC: A
 
 Name "A" stands for "a.A" because of "use a.A as A".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -343,7 +343,7 @@ This call to method ".fromA" cannot typecheck.
 Method ".fromA" is not declared on type "X".
 
 Available methods on type "X":
--       .fromC:X
+-       .fromC: X
 Error 8 TypeError
 """, Map.of("c", cA), Map.of(), """
 use c.A as X;
@@ -476,8 +476,8 @@ This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on type "bb.Nat".
 
 Available methods on type "bb.Nat":
--       *(bb.Nat):bb.Nat
--       +(bb.Nat):bb.Nat
+-       *(bb.Nat): bb.Nat
+-       +(bb.Nat): bb.Nat
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""",Map.of(), Map.of("bb", "base"), """
@@ -792,7 +792,7 @@ Method ".v2" is not declared on type "OldServer".
 Did you mean ".v1" ?
 
 Available methods on type "OldServer":
--       .v1:OldServer
+-       .v1: OldServer
 
 Name "OldServer" stands for "legacy.Server" because of "use legacy.Server as OldServer".
 Source code inside folders named "_b" uses package name "legacy" to refer to the code inside folders named "_web_v1", because of "map legacy as _web_v1 in _b", written in fear:/_b/_rank_app.fear.
@@ -811,7 +811,7 @@ This call to method ".nope" cannot typecheck.
 Method ".nope" is not declared on type "a.A".
 
 Available methods on type "a.A":
--       .fromC:a.A
+-       .fromC: a.A
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
@@ -878,7 +878,7 @@ Method ".fromC" inside the object literal instance of "iso a.A" (line 1)
 is implemented with an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
 Method ".fromC" inherited the signature from "a.A.fromC" as follows:
-.fromC:a.A
+.fromC: a.A
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
@@ -1002,7 +1002,7 @@ Method ".fromC" inside the object literal instance of "iso X" (line 2)
 is implemented with an expression returning "iso B".
 Object literal is of type "B" instead of a subtype of "X".
 Method ".fromC" inherited the signature from "X.fromC" as follows:
-.fromC:X
+.fromC: X
 
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1804,7 +1804,7 @@ While inspecting object literal instance of "read a.M" > ".baz(_)" line 1
 The method "mut a.M.bar" is dead code.
 The object literal instance of "a.M" is "read", so it will never be seen as "mut".
 Method ".bar" inherited the signature from "a.M.bar" as follows:
-mut .bar:mut a.M
+mut .bar: mut a.M
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
@@ -1984,7 +1984,7 @@ Note: the declared type "mut a.D" would instead be a valid subtype.
 Capture adaptation trace:
 "mut a.D" --setToRead(line 1)--> "read a.D".
 Method ".get" inherited the signature from "a.Get.get" as follows:
-read .get:mut a.D
+read .get: mut a.D
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
@@ -2665,7 +2665,7 @@ Method ".fromC" inside the object literal instance of "iso X" (line 2)
 is implemented with an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "X".
 Method ".fromC" inherited the signature from "X.fromC" as follows:
-.fromC:X
+.fromC: X
 
 Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""

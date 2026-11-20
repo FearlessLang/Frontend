@@ -169,11 +169,92 @@ While inspecting parameter "b" > ".foo(_,_)" line 2
 The body of method ".foo(_,_)" of type declaration "B[_]" is an expression returning "_BX".
 Parameter "b" has type "_BX" instead of a subtype of "_AX".
 Method ".foo(_,_)" inherited the signature from "A.foo(_,_)" as follows:
-.foo[_AX,_BX](a:_AX,b:_BX):_AX
+.foo[_AX,_BX](a: _AX, b: _BX): _AX
 Generic type parameter "X" of "A.foo(_,_)" is named "_BX" here.
 """, List.of("""
 A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
 B[X]:A{ .foo(a,b)->b }
+"""));}
+@Test void renamedGenericsOfTwoNestedMethods(){fail("""
+003| B[X]:Sup{ .m(x)->{ .k(y)->x } }
+   |           ---------~~~~~~~^--
+
+While inspecting parameter "x" > ".k(_)" line 3 > ".m(_)" line 3
+Method ".k(_)" inside the object literal instance of "iso G" (line 3)
+is implemented with an expression returning "imm _AX".
+Parameter "x" has type "imm _AX" instead of a subtype of "_BX".
+Method ".k(_)" inherited the signature from "G.k(_)" as follows:
+.k[_BX](y: _BX): _BX
+Generic type parameter "X" of "G.k(_)" is named "_BX" here.
+Generic type parameter "X" of "Sup.m(_)" is named "_AX" here.
+""", List.of("""
+G:{ .k[X](y:X):X; }
+Sup:{ .m[X](x:X):G; }
+B[X]:Sup{ .m(x)->{ .k(y)->x } }
+"""));}
+@Test void threeRenamedGenericsOfOneMethod(){fail("""
+002| B[X,Y,Z]:A{ .foo(a,b,c)->b }
+   |             -------------^
+
+While inspecting parameter "b" > ".foo(_,_,_)" line 2
+The body of method ".foo(_,_,_)" of type declaration "B[_,_,_]" is an expression returning "_AY".
+Parameter "b" has type "_AY" instead of a subtype of "_AX".
+Method ".foo(_,_,_)" inherited the signature from "A.foo(_,_,_)" as follows:
+.foo[_AX,_AY,_AZ](a: _AX, b: _AY, c: _AZ): _AX
+Generic type parameters "X", "Y" and "Z" of "A.foo(_,_,_)" are named "_AX", "_AY" and "_AZ" here.
+""", List.of("""
+A:{ .foo[X,Y,Z](a:X,b:Y,c:Z):X; }
+B[X,Y,Z]:A{ .foo(a,b,c)->b }
+"""));}
+@Test void fiveRenamedGenericsOfOneMethod(){fail("""
+002| B[V,W,X,Y,Z]:A{ .foo(a,b,c,d,e)->e }
+   |                 -----------------^
+
+While inspecting parameter "e" > ".foo(_,_,_,_,_)" line 2
+The body of method ".foo(_,_,_,_,_)" of type declaration "B[_,_,_,_,_]" is an expression returning "_AZ".
+Parameter "e" has type "_AZ" instead of a subtype of "_AV".
+Method ".foo(_,_,_,_,_)" inherited the signature from "A.foo(_,_,_,_,_)" as follows:
+.foo[_AV,_AW,_AX,_AY,_AZ](a: _AV, b: _AW, c: _AX, d: _AY, e: _AZ): _AV
+Generic type parameters "V", "W", "X", "Y" and "Z" of "A.foo(_,_,_,_,_)" are named "_AV", "_AW", "_AX", "_AY" and "_AZ" here.
+""", List.of("""
+A:{ .foo[V,W,X,Y,Z](a:V,b:W,c:X,d:Y,e:Z):V; }
+B[V,W,X,Y,Z]:A{ .foo(a,b,c,d,e)->e }
+"""));}
+@Test void fourRenamedGenericsOfTwoNestedMethods(){fail("""
+003| B[X,Y]:Sup{ .m(x,y)->{ .k(a,b)->y } }
+   |             -----------~~~~~~~~~^--
+
+While inspecting parameter "y" > ".k(_,_)" line 3 > ".m(_,_)" line 3
+Method ".k(_,_)" inside the object literal instance of "iso G" (line 3)
+is implemented with an expression returning "imm _AY".
+Parameter "y" has type "imm _AY" instead of a subtype of "_BX".
+Method ".k(_,_)" inherited the signature from "G.k(_,_)" as follows:
+.k[_BX,_BY](a: _BX, b: _BY): _BX
+Generic type parameters "X" and "Y" of "G.k(_,_)" are named "_BX" and "_BY" here.
+Generic type parameters "X" and "Y" of "Sup.m(_,_)" are named "_AX" and "_AY" here.
+""", List.of("""
+G:{ .k[X,Y](a:X,b:Y):X; }
+Sup:{ .m[X,Y](x:X,y:Y):G; }
+B[X,Y]:Sup{ .m(x,y)->{ .k(a,b)->y } }
+"""));}
+@Test void fiveRenamedGenericsOfThreeNestedMethods(){fail("""
+004| B[X,Y]:Sup{ .m(x,y)->{ .k(a,b)->{ .h(z)->y } } }
+   |                        -----------~~~~~~~^--
+
+While inspecting parameter "y" > ".h(_)" line 4 > ".k(_,_)" line 4 > ".m(_,_)" line 4
+Method ".h(_)" inside the object literal instance of "iso H" (line 4)
+is implemented with an expression returning "imm _AY".
+Parameter "y" has type "imm _AY" instead of a subtype of "_CX".
+Method ".h(_)" inherited the signature from "H.h(_)" as follows:
+.h[_CX](z: _CX): _CX
+Generic type parameter "X" of "H.h(_)" is named "_CX" here.
+Generic type parameters "X" and "Y" of "G.k(_,_)" are named "_BX" and "_BY" here.
+Generic type parameters "X" and "Y" of "Sup.m(_,_)" are named "_AX" and "_AY" here.
+""", List.of("""
+H:{ .h[X](z:X):X; }
+G:{ .k[X,Y](a:X,b:Y):H; }
+Sup:{ .m[X,Y](x:X,y:Y):G; }
+B[X,Y]:Sup{ .m(x,y)->{ .k(a,b)->{ .h(z)->y } } }
 """));}
 @Test void keptInheritedMethodGenericMustNotBeCapturedByNestedLiteral(){ok(List.of("""
 F[T]:{ .k[X](y:X):T; }
@@ -194,7 +275,7 @@ Method ".k(_)" inside the object literal instance of "iso G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 Method ".k(_)" inherited the signature from "G.k(_)" as follows:
-.k[_AX](y:_AX):_AX
+.k[_AX](y: _AX): _AX
 Generic type parameter "X" of "G.k(_)" is named "_AX" here.
 """, List.of("""
 G:{ .k[X](y:X):X; }
@@ -210,7 +291,7 @@ Method ".k(_)" inside the object literal instance of "iso G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 Method ".k(_)" inherited the signature from "G.k(_)" as follows:
-mut .k[_AX](y:_AX):_AX
+mut .k[_AX](y: _AX): _AX
 Generic type parameter "X" of "G.k(_)" is named "_AX" here.
 """, List.of("""
 G:{ mut .k[X](y:X):X; }
@@ -244,7 +325,7 @@ Method "!" inside the object literal instance of "iso base.Todo" (line 2)
 is implemented with an expression returning "A".
 Parameter "this" has type "A" instead of a subtype of "_AR".
 Method "!" inherited the signature from "base.Todo!" as follows:
-![_AR:**]:_AR
+![_AR:**]: _AR
 Generic type parameter "R" of "base.Todo!" is named "_AR" here.
 """, List.of("""
 R:{}
@@ -270,7 +351,7 @@ To declare one, use the single quote as in the example below:
   }}
 
 Available methods on type "Outer":
--       #:Inner
+-       #: Inner
 """, List.of("""
 Outer: { #: Inner -> Inner: { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
 """));}
@@ -287,7 +368,7 @@ The method parameter "this" here has type "Outer".
 The method ".bar" is defined in the object literal of type "Inner"; the parameter referring to its instances is named "self".
 
 Available methods on type "Outer":
--       #:Inner
+-       #: Inner
 """, List.of("""
 Outer: { #: Inner -> Inner:{'self .foo: Innermost -> Innermost: { .a: base.Void -> this.bar; }; .bar: base.Void -> base.Void; } }
 """));}
@@ -311,7 +392,7 @@ To declare one, use the single quote as in the example below:
   }}
 
 Available methods on type "Outer":
--       #:G
+-       #: G
 """, List.of("""
 G:{ .foo: base.Void; .bar: base.Void; }
 Outer:{ #: G -> { .foo: base.Void -> this.bar; .bar: base.Void -> base.Void; } }
@@ -338,7 +419,7 @@ Method ".v" inside the object literal instance of "iso G" (line 4)
 is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
 Method ".v" inherited the signature from "G.v" as follows:
-.v:base.Void
+.v: base.Void
 
 See inferred typing context below for how type "G" was introduced:
 Outer:{#:G->G{'self .bar:base.Void->base.Void;.v:base.Void->Boxes#[imm,G](self)}}
@@ -357,7 +438,7 @@ This call to method ".ba" cannot typecheck.
 Method ".ba" is not declared on type "A".
 
 Available methods on type "A":
--       .foo123:A
+-       .foo123: A
 """, List.of("""
 A:{.foo123:A->this.ba}
 """));}
@@ -812,7 +893,7 @@ Method "#(_)" inside the object literal instance of "iso F[Person,Car]" (line 7)
 is implemented with an expression returning "iso Foo".
 Object literal is of type "Foo" instead of a subtype of "Car".
 Method "#(_)" inherited the signature from "F[Person,Car]#(_)" as follows:
-#(Person):Car
+#(Person): Car
 """, List.of("""
 Person:{}
 Car:{}
@@ -867,7 +948,7 @@ Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 Method ".get" inherited the signature from "Get.get" as follows:
-read .get:mut A
+read .get: mut A
 """, List.of("""
 A:{}
 Get:{ read .get: mut A; }
@@ -889,7 +970,7 @@ Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 Method ".get" inherited the signature from "Get.get" as follows:
-read .get:iso A
+read .get: iso A
 """, List.of("""
 A:{}
 Get:{ read .get: iso A; }
@@ -911,7 +992,7 @@ Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 Method ".get" inherited the signature from "Get.get" as follows:
-read .get:iso A
+read .get: iso A
 """, List.of("""
 A:{}
 Get:{ read .get: iso A; }
@@ -934,7 +1015,7 @@ Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 6)--> "read A" --strengthenToImm(line 6)--> "A".
 Method ".get" inherited the signature from "Get.get" as follows:
-.get:iso A
+.get: iso A
 """, List.of("""
 A:{}
 Get:{ imm .get: iso A; }
@@ -1351,8 +1432,8 @@ Method ".sise" is not declared on type "Ops".
 Did you mean ".size" ?
 
 Available methods on type "Ops":
--  read .sign:base.Void
--  read .size:base.Void
+-  read .sign: base.Void
+-  read .size: base.Void
 """, List.of("""
 Ops:{
   read .size: base.Void->{};
@@ -1374,9 +1455,9 @@ This call to method ".xyzzy" cannot typecheck.
 Method ".xyzzy" is not declared on type "Ops".
 
 Available methods on type "Ops":
--  read .alpha:base.Void
--  read .beta:base.Void
--  read .gamma:base.Void
+-  read .alpha: base.Void
+-  read .beta: base.Void
+-  read .gamma: base.Void
 """, List.of("""
 Ops:{
   read .alpha: base.Void->{};
@@ -1399,9 +1480,9 @@ This call to method ".xyzzy" cannot typecheck.
 Method ".xyzzy" is not declared on type "Ops".
 
 Available methods on type "Ops":
--  read .alpha:Woid
--  read .beta:Woid
--  read .gamma:Woid
+-  read .alpha: Woid
+-  read .beta: Woid
+-  read .gamma: Woid
 """, List.of("""
 use base.Void as Woid;
 Ops:{
@@ -1841,9 +1922,9 @@ Method ".foO123" is not declared on type "A".
 Did you mean ".foo123" ?
 
 Available methods on type "A":
--       .bar:A
--   mut .bob(A):A
--       .foo123:A
+-       .bar: A
+-   mut .bob(A): A
+-       .foo123: A
 """, List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foO123; mut .bob(a:A):A}
 """));}
@@ -1858,8 +1939,8 @@ Method ".foo23" is not declared on type "A".
 Did you mean ".foo123" ?
 
 Available methods on type "A":
--       .bar:A
--       .foo123:A
+-       .bar: A
+-       .foo123: A
 """, List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo23;}
 """));}
@@ -1874,8 +1955,8 @@ Method ".foo1123" is not declared on type "A".
 Did you mean ".foo123" ?
 
 Available methods on type "A":
--       .bar:A
--       .foo123:A
+-       .bar: A
+-       .foo123: A
 """, List.of("""
 A:{.foo123:A->this.foo123; .bar:A->this.foo1123;}
 """));}
@@ -2042,7 +2123,7 @@ While inspecting object literal instance of "read B" > ".baz(_)" line 2
 The method "mut B.bar" is dead code.
 The object literal instance of "B" is "read", so it will never be seen as "mut".
 Method ".bar" inherited the signature from "B.bar" as follows:
-mut .bar:mut B
+mut .bar: mut B
 """, List.of("""
 B:{ mut .bar:mut B }
 A:{ mut .baz(b: mut B):read B-> { .bar->b}; }
@@ -2256,7 +2337,7 @@ This call to method ".foo" cannot typecheck.
 Method ".foo" is not declared on object literal instance of "A".
 
 Available methods on object literal instance of "A":
--       .bar:A
+-       .bar: A
 """, List.of("""
 A:{}
 Main:{
@@ -2666,7 +2747,7 @@ While inspecting parameter "this" > ".get" line 2
 The body of method ".get" of type declaration "B" is an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "mut A".
 Method ".get" inherited the signature from "A.get" as follows:
-mut .get:mut A
+mut .get: mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 A value of "B" is never "mut", so "mut .get" can stay abstract.
 A method written without a receiver capability also implements "mut .get": write the receiver capability, as in "read .get".
@@ -3772,7 +3853,7 @@ While inspecting parameter "::" > ".h(_)" line 3
 The body of method ".h(_)" of type declaration "User" is an expression returning "Sup".
 Parameter "::" has type "Sup" instead of a subtype of "base.Void".
 Method ".h(_)" inherited the signature from "Sup.h(_)" as follows:
-.h(Sup):base.Void
+.h(Sup): base.Void
 Error 8 TypeError
 """, List.of("""
 
@@ -3910,7 +3991,7 @@ Method "#(_)" inside the object literal instance of "iso base.BaseId[read Custom
 is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "Person".
 Method "#(_)" inherited the signature from "base.BaseId[read Customer,Person]#(_)" as follows:
-#(read Customer):Person
+#(read Customer): Person
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -3947,7 +4028,7 @@ Method "#(_)" inside the object literal instance of "iso base.BaseId[Person,Cust
 is implemented with an expression returning "Person".
 Parameter "::" has type "Person" instead of a subtype of "Customer".
 Method "#(_)" inherited the signature from "base.BaseId[Person,Customer]#(_)" as follows:
-#(Person):Customer
+#(Person): Customer
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4343,7 +4424,7 @@ Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13)
 is implemented with an expression returning "mut Opt[E]".
 Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
 Method "#" inherited the signature from "MF[Opt[E]]#" as follows:
-mut #:Opt[E]
+mut #: Opt[E]
 """, List.of("""
 use base.MF as MF;
 Blocks: { #[R:*]: mut Block[R] -> {} }
@@ -4785,7 +4866,7 @@ This call to method ".a" cannot typecheck.
 Method ".a" is not declared on "{...}".
 
 Available methods on "{...}":
--       .b:base.Void
+-       .b: base.Void
 """, List.of("""
 App:{ .m: base.Nat -> {.b:base.Void->base.Void;}.a }
 """));}
@@ -5696,7 +5777,7 @@ While inspecting object literal instance of "base.Void" > ".str" line 1
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
 Method ".str" inherited the signature from "base.ToStr.str" as follows:
-read .str:base.Str
+read .str: base.Str
 """, List.of("""
 A:base.ToStr{ .str -> base.Void }
 """));}
@@ -5708,7 +5789,7 @@ While inspecting object literal instance of "base.Void" > ".str" line 2
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
 Method ".str" inherited the signature from "Show.str" as follows:
-read .str:base.Str
+read .str: base.Str
 """, List.of("""
 use base.ToStr as Show;
 A:Show{ .str -> base.Void }
@@ -5959,7 +6040,7 @@ To declare one, use the single quote as in the example below:
   }}
 
 Available methods on type "U":
--       .m:base.Void
+-       .m: base.Void
 """, List.of("""
 Ig:{ #[Y:*](y: Y): base.Void -> base.Void }
 Two[X:*]:{ .a: X; .b: X }

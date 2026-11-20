@@ -36,6 +36,7 @@ public final class CompactPrinter{
     return render(root);
   }
   boolean omitted;
+  boolean spaced;
   private String render(PE root){
     sb.setLength(0);
     omitted= false;
@@ -146,8 +147,8 @@ public final class CompactPrinter{
   public record PM(RC rc, String m, String bs, List<String> xs, List<PT> ts, PT ret, Optional<PE> body, Compactable k) implements PN{
     @Override public void accString(CompactPrinter sb){
       sb.append(rc.toStrSpace()).append(m).append(bs);
-      wrap(sb, "(", ")", Streams.zip(xs, ts).<Consumer<CompactPrinter>>map((x,t) -> b -> param(b, x, t)).toList(), ",", Consumer::accept);
-      sb.append(":");
+      wrap(sb, "(", ")", Streams.zip(xs, ts).<Consumer<CompactPrinter>>map((x,t) -> b -> param(b, x, t)).toList(), sb.spaced ? ", " : ",", Consumer::accept);
+      sb.append(sb.spaced ? ": " : ":");
       ret.accString(sb);
       body.ifPresent(e -> accBody(sb, e));
     }
@@ -157,7 +158,7 @@ public final class CompactPrinter{
       e.accString(sb);
     }
     private static void param(CompactPrinter b, String x, PT t){
-      if (!x.equals("_") && !x.equals("::")){ b.append(x).append(":"); }
+      if (!x.equals("_") && !x.equals("::")){ b.append(x).append(b.spaced ? ": " : ":"); }
       t.accString(b);
     }
   }
@@ -227,11 +228,13 @@ public final class CompactPrinter{
     var xs= Collections.nCopies(s.m().arity(), "_");
     var pm= ofM(s, xs, xs, Optional.empty());
     assert sb.isEmpty();
+    spaced = true;
     sb.append(" ".repeat(6-s.rc().toStrSpace().length()));//line up
     pm.accString(this);
     return sb.toString();
   }
   public String sig(M m){
+    spaced = true;
     ofM(m.sig(), m.xs(), m.names(), Optional.empty()).accString(this);
     return sb.toString();
   }
