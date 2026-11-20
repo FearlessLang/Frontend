@@ -780,7 +780,7 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
 003| User:{ #: mut Sup -> mut Sup{ mut .h: iso P -> P } }
    |        --------------~~~~~~~~~^^^^^^^^^^^^^^^^^^~~
 
-While inspecting object literal instance of "iso Sup" > method "User#" (line 3)
+While inspecting object literal instance of "Sup" > method "User#" (line 3)
 Invalid method signature for "mut Sup.h".
 The method ".h" returns type "iso P".
 But "mut Sup.h" returns type "mut P".

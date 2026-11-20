@@ -60,12 +60,8 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   private boolean anonLit(Literal l){ return l.infName() && l.cs().isEmpty(); }
   private static final String anonRepr= "{...}";
-  private String typeOrAnon(Literal l, String typePrefix, String anonPrefix){
-    if (anonLit(l)){ return anonPrefix+disp(anonRepr); }
-    return typePrefix+disp(bestLitName(false, true, l));
-  }
-  String onTypeOrAnon(Literal l){ return typeOrAnon(l, "object literal instance of ", ""); }
-  String theTypeOrObjectLiteral(Literal l){ return typeOrAnon(l, "type ", "object literal "); }
+  String onTypeOrAnon(Literal l){ return anonLit(l) ? disp(anonRepr) : "object literal instance of "+disp(bestLitName(true, true, l)); }
+  String theTypeOrObjectLiteral(Literal l){ return anonLit(l) ? "object literal "+disp(anonRepr) : "type "+disp(bestLitName(false, true, l)); }
   public String bestNameNoRc(Literal l){ return bestNamePkg0(showInstanceOf(l), bestLitName(true, true, l)); }
   T.C preferredForFresh(T.C t){ return new T.C(preferredForFresh.apply(t.name()).withArity(t.ts().size()), t.ts()); }//Correct to not propagate here
   String typeRepr(inference.IT t){ return typeRepr(true, t); }
@@ -122,8 +118,8 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case X x -> "parameter "+disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());
     case Literal l -> l.thisName().equals("this")
       ? "type declaration "+tNameADisp(l.name())
-      : "object literal "+bestNamePkg0(showInstanceOf(l), bestLitName(false, true, l));
-    case Type(var t, _) -> "object literal instance of "+typeRepr(true, t);
+      : "object literal "+bestNamePkg0(showInstanceOf(l), bestLitName(showInstanceOf(l), true, l));
+    case Type(var t, _) -> "object literal instance of "+typeRepr(true, t.withRC(RC.imm));
     };}
   String expReprDirect(boolean skipImm, E toErr){ return switch (toErr){
     case Literal l -> bestNamePkg0(false, bestLitName(false, skipImm, l));

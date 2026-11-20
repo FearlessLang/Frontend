@@ -91,7 +91,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var l= ll.withRC(getIso ? iso : rc);
     var tt= getIso ? new Type(t.type().withRC(iso), t.src()) : t;
     l.ms().forEach(m -> checkImplemented(l, m, tt));
-    return reqs(t, bs, tt.type(), rs);//reqs correctly used for two similar things
+    return reqs(tt, bs, tt.type(), rs);//reqs correctly used for two similar things
   }
   public static boolean hasInstance(Literal l){
     return l.thisName().equals("this") || captureFree(l);
