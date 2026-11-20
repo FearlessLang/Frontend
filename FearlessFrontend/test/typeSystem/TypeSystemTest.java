@@ -307,6 +307,7 @@ B:Sup{ .m(x)->{ .k(y)->x } }
 While inspecting object literal instance of "F[_,_]"
 Type inference concluded that this object literal implements "F[?,mut G]",
 but it could not infer generic type argument 1 for generic type parameter "A" of "F[_,_]".
+Write the generic type argument explicitly, as in "F[Type1,mut G]{...}".
 """, List.of("""
 G:{ mut .k[X](y:X):X; }
 F[A:**,R:**]:{ #(a: A): R }
@@ -6271,6 +6272,8 @@ This call to method "H#(_,_)" cannot typecheck.
 Argument 2 has type "iso B".
 That is not a subtype of the anonymous type of the object literal at line 4, column 22.
 
+Name "_BU" stands for the anonymous type of the object literal at line 4, column 22.
+
 See inferred typing context below for how type the anonymous type of the object literal at line 4, column 22 was introduced:
 H#[imm,_BU](Box[_BU]{.get:_BU->s},B)
 """, List.of("""
@@ -6809,16 +6812,12 @@ U:{ .m(c: Counter): Counter -> c.inc }
 002| User:{ .u({.a,.b}: Pt, x: base.Str): base.Str -> a }
    |        ------------------------------------------^
 
-While inspecting parameter "a" > "#(_,_,_)" line 2 > ".u(_,_)" line 2
+While inspecting parameter "a" > method "base.MF[base.Nat,base.Nat,base.Str,base.Str]#(_,_,_)" (line 2) > method "User.u(_,_)" (line 2)
 Method "#(_,_,_)" inside the object literal instance of "iso base.MF[base.Nat,base.Nat,base.Str,base.Str]" (line 2)
 is implemented with an expression returning "base.Nat".
 Parameter "a" has type "base.Nat" instead of a subtype of "base.Str".
-
-Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
-Name "_ax" is parameter "x", renamed by the desugaring of a nominal pattern in the same method.
-
-See inferred typing context below for how type "base.Str" was introduced: (compression indicated by `-`)
-User:{(-,-)->-.Destruct#[imm,-.Nat,-.Nat,-.Str,-.Str](_adiv.a,_adiv.b,_ax,mut -.MF[-,-,-,-]{(-,-,-)->a})}
+Method "#(_,_,_)" inherited the signature from "base.MF[base.Nat,base.Nat,base.Str,base.Str]#(_,_,_)" as follows:
+mut #(a: base.Nat, b: base.Nat, x: base.Str): base.Str
 """, List.of("""
 Pt:{ .a: base.Nat; .b: base.Nat }
 User:{ .u({.a,.b}: Pt, x: base.Str): base.Str -> a }
@@ -6828,12 +6827,10 @@ User:{ .u({.a,.b}: Pt, x: base.Str): base.Str -> a }
    |                         ^^^^^^^^^^^^^^^^
 
 While inspecting object literal "Both"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "_AX", "Sup1".
-They are different types and "_AX" is a generic type parameter, so no method ".get" can implement all of them.
-
-Name "_AX" stands for generic type parameter "X" of an inherited method, renamed because "X" already names a type or another generic type parameter.
+Generic type parameter "X" of "Sup1.get" is named "_AX" here.
+The candidates are different types and "_AX" is a generic type parameter, so no method ".get" can implement all the candidates.
 """, List.of("""
 Sup1:{ .get[X]:X }
 Sup2:{ .get[X]:Sup1 }
@@ -6843,54 +6840,41 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
 002| U:{ .u({.a}: P): U -> a }
    |     ------------------^
 
-While inspecting parameter "a" > "#(_)" line 2 > ".u(_)" line 2
+While inspecting parameter "a" > method "base.MF[P,U]#(_)" (line 2) > method "U.u(_)" (line 2)
 Method "#(_)" inside the object literal instance of "iso base.MF[P,U]" (line 2)
 is implemented with an expression returning "P".
 Parameter "a" has type "P" instead of a subtype of "U".
-
-Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
-
-See inferred typing context below for how type "U" was introduced: (compression indicated by `-`)
-U:{.u(_adiv:P):U->-.Destruct#[imm,P,U](_adiv.a,mut -.MF[P,U]{mut #(a:P):U->a})}
+Method "#(_)" inherited the signature from "base.MF[P,U]#(_)" as follows:
+mut #(a: P): U
 """, List.of("""
 P:{ .a: P }
 U:{ .u({.a}: P): U -> a }
 """));}
 @Test void aNominalPatternNamingAMissingMethodPointsAtTheMethod(){fail("""
 002| U:{ .u({.a,.c}: P): P -> a }
-   |     -------^^^------------
+   |     -------^^-------------
 
-While inspecting ".u(_)" line 2
+While inspecting method "U.u(_)" (line 2)
 This call to method ".c" cannot typecheck.
 Method ".c" is not declared on type "P".
 
 Available methods on type "P":
--       .a:P
--       .b:P
-
-Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-_adiv.c
+-       .a: P
+-       .b: P
 """, List.of("""
 P:{ .a: P; .b: P }
 U:{ .u({.a,.c}: P): P -> a }
 """));}
 @Test void aNominalPatternNamingAMissingMethodInAChainPointsAtTheMethod(){fail("""
 003| U:{ .u({.q.z, .a}: P): P -> a }
-   |     ----~~^^^----------------
+   |     ----~~^^-----------------
 
-While inspecting ".u(_)" line 3
+While inspecting method "U.u(_)" (line 3)
 This call to method ".z" cannot typecheck.
 Method ".z" is not declared on type "Q".
 
 Available methods on type "Q":
--       .r:P
-
-Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-_adiv.q.z
+-       .r: P
 """, List.of("""
 P:{ .a: P; .q: Q }
 Q:{ .r: P }
@@ -6900,15 +6884,12 @@ U:{ .u({.q.z, .a}: P): P -> a }
 003| B:{ .u({.a}: P, xyzwb: P): A -> xyzwb }
    |     ----------------------------^^^^^
 
-While inspecting parameter "xyzwb" > "#(_,_)" line 3 > ".u(_,_)" line 3
+While inspecting parameter "xyzwb" > method "base.MF[P,P,A]#(_,_)" (line 3) > method "B.u(_,_)" (line 3)
 Method "#(_,_)" inside the object literal instance of "iso base.MF[P,P,A]" (line 3)
 is implemented with an expression returning "P".
 Parameter "xyzwb" has type "P" instead of a subtype of "A".
-
-Name "_adiv" is a parameter added by the desugaring of a nominal pattern: for a parameter "{.a, .b}: P", "_adiv" is that parameter, and "a" and "b" stand for "_adiv.a" and "_adiv.b".
-
-See inferred typing context below for how type "A" was introduced: (compression indicated by `-`)
-B:{.u(_adiv:P,_axyzw:P):A->-.Destruct#[imm,P,P,A](_adiv.a,_axyzw,mut -.MF[P,P,A]{mut #(a:P,xyzwb:P):A->xyzwb})}
+Method "#(_,_)" inherited the signature from "base.MF[P,P,A]#(_,_)" as follows:
+mut #(a: P, xyzwb: P): A
 """, List.of("""
 P:{ .a: P }
 A:{ .u({.a}: P, xyzwa: P): P -> a }
@@ -6916,17 +6897,14 @@ B:{ .u({.a}: P, xyzwb: P): A -> xyzwb }
 """));}
 @Test void aMethodOfAnAnonymousLiteralIsDeclaredBeforeAnArgumentWithUnknownHead(){fail("""
 003| U:{ .u: Sup -> G#(Sup{'s .k -> s; .extra: Sup -> s }.extra.zz, {y -> y}) }
-   |     --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^----------
+   |     --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^-----------
 
-While inspecting ".u" line 3
+While inspecting method "U.u" (line 3)
 This call to method ".zz" cannot typecheck.
 Method ".zz" is not declared on type "Sup".
 
 Available methods on type "Sup":
--       .k:Sup
-
-Compressed relevant code with inferred types: (compression indicated by `-`)
-Sup{'s .k:Sup->s;.extra:Sup->s}.extra.zz
+-       .k: Sup
 """, List.of("""
 Sup:{ .k: Sup }
 G:{ #[A:*,B:*](a: A, f: base.F[A,B]): B -> f#a }

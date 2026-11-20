@@ -930,6 +930,7 @@ In file: [###].fear
 While inspecting type declaration "D"
 Supertypes disagree on the type of parameter 1 of method "imm .m(_)" with 1 parameter.
 Candidates: "Twice[Pair[X,Y]]", "Twice[Pair[Y,X]]".
+Generic type parameters "U" and "V" of "C.m(_)" are named "X" and "Y" here.
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 Error 7 WellFormedness
 """, List.of("""

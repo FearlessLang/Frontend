@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -59,7 +60,6 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return Streams.of(steps.stream(), printed.stream().flatMap(n -> note(written, n)), freshNotes).distinct().sorted(nameFirst).toList();
   }
   public static String freshType(String n, Span s){ return "Name "+disp(n)+" stands for the anonymous type of the object literal at "+at(s)+"."; }
-  public static String freshGeneric(String n, String x){ return "Name "+disp(n)+" stands for generic type parameter "+disp(x)+" of an inherited method, renamed because "+disp(x)+" already names a type or another generic type parameter."; }
   public static String freshEq(String n){ return "Name "+disp(n)+" is a parameter added by the desugaring of \"=\": "+disp(".let x = {a}.return {b}")+" stands for "+disp(".let({a}, {x, "+n+" -> "+n+".return {b}})")+"."; }
   public static String freshDestruct(String n){ return "Name "+disp(n)+" is a parameter added by the desugaring of a nominal pattern: for a parameter "+disp("{.a, .b}: P")+", "+disp(n)+" is that parameter, and "+disp("a")+" and "+disp("b")+" stand for "+disp(n+".a")+" and "+disp(n+".b")+"."; }
   public static String freshRenamed(String n, String x){ return "Name "+disp(n)+" is parameter "+disp(x)+", renamed by the desugaring of a nominal pattern in the same method."; }
@@ -442,18 +442,21 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public String retTypeDisagreement(){ return "the return type"; }
   public String paramTypeDisagreement(int i){ return "the type of parameter "+(i+1); }
-  public FearlessException noAgreement(Agreement at, List<B> bs, List<IT> res, String msg){
+  public FearlessException noAgreement(Agreement at, List<B> bs, List<M.Sig> ss, Function<M.Sig,IT> f, List<core.Sig> declared, String msg){
+    var res= ss.stream().map(f).distinct().toList();
     var rc= at.rc().map(r -> r.toStrSpace(false)).orElse("");
     var rcDiffers= res.stream().map(t -> t instanceof IT.RCC r ? EnumSet.of(r.rc().orElse(RC.imm)) : Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var e= err()
       .line("Supertypes disagree on "+msg+" of method "+methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
       .line(Join.of(res.stream().map(o -> option(rcDiffers, o)), "Candidates: ", ", ", "."));
+    Streams.zip(declared, ss).filterMap((d,s) -> renamed(d, s, n -> f.apply(s).ftv().anyMatch(n::equals))).distinct().forEach(e::line);
     var m= err().methodSig(at.mName());
     if (rcDiffers){ return wf(e.line("The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method "+m+" can implement all the candidates."), at); }
     if (x.isPresent()){ return wf(e.line("The candidates are different types and "+option(false, x.get())+" is a generic type parameter, so no method "+m+" can implement all the candidates."), at); }
     return wf(e.line(up(err().expRepr(at.lit()))+" must declare a method "+m+" explicitly choosing the desired option."), at);
   }
+  private Optional<String> renamed(core.Sig d, M.Sig s, Predicate<String> shown){ return Err.renamed(err().methodSig("", d.origin(), d.m()), d.bs(), s.bs().get(), shown); }
   private String option(boolean showImm, IT o){
     if (!(o instanceof IT.RCC rcc)){ return disp(o); }
     return err().typeRepr(!showImm, rcc);
@@ -463,7 +466,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Supertypes disagree on the number of generic type parameters of method "+err().methodSig(at.mName())
         +" with "+count(at.mName().arity(), "parameter")+".")
       .line(Join.of(ss.stream().map(s -> disp(s.bs().get())).distinct(), "Candidates: ", ", ", "."));
-    Streams.zip(declared, ss).filterMap((d,s) -> renamed(err().methodSig("", d.origin(), d.m()), d.bs(), s.bs().get())).distinct().forEach(e::line);
+    Streams.zip(declared, ss).filterMap((d,s) -> renamed(d, s, _ -> true)).distinct().forEach(e::line);
     return wf(e.line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at);
   }
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){

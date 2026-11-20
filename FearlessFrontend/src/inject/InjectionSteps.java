@@ -84,8 +84,8 @@ public record InjectionSteps(Methods meths, int cap){
     case E.Call c -> size(c.e())+c.targs().stream().mapToInt(InjectionSteps::size).sum()+c.es().stream().mapToInt(InjectionSteps::size).sum();
     case E.Literal l -> l.cs().stream().mapToInt(InjectionSteps::size).sum()+l.ms().stream().mapToInt(InjectionSteps::size).sum();
   };}
-  private core.E.Literal stepDec(core.E.Literal di, E.Literal li){ return di.withMs(Streams.zip(di.ms(), li.ms()).map((mCore, m) -> stepDecM(di, mCore, m)).toList()); }
-  private core.M stepDecM(core.E.Literal di, core.M mCore, M m){
+  private core.E.Literal stepDec(core.E.Literal di, E.Literal li){ return di.withMs(Streams.zip(di.ms(), li.ms()).map((mCore, m) -> stepDecM(di, li, mCore, m)).toList()); }
+  private core.M stepDecM(core.E.Literal di, E.Literal li, core.M mCore, M m){
     if (m.impl().isEmpty()){ return mCore; }//assert same type as m lifted to core
     var e= m.impl().get().e();
     var span= di.name().approxSpan();

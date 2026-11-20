@@ -25,7 +25,6 @@ import fearlessParser.Parser;
 import inference.E;
 import inference.IT;
 import inference.M;
-import message.WellFormednessErrors;
 import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
@@ -93,8 +92,7 @@ public record Methods(
       if (fresh.isFreshGeneric(child.name(), x, scope)){ newBs.add(b); continue; }
       assert !fullXs.contains(x);
       fullXs.add(x);
-      var newName= fresh.note(fresh.freshGeneric(child.name(), x, Push.of(B.xs(s.bs()), scope)), n -> WellFormednessErrors.freshGeneric(n, x));
-      var newX= new IT.X(newName, child.name().approxSpan());
+      var newX= new IT.X(fresh.freshGeneric(child.name(), x, Push.of(B.xs(s.bs()), scope)), child.name().approxSpan());
       fullTs.add(newX);
       newBs.add(new B(newX.name(), b.rcs()));
     }
@@ -357,7 +355,7 @@ public record Methods(
     var first= res.getFirst();
     var same= res.stream().allMatch(t -> TypeRename.eqModXRC(bs, first, t));
     if (same){ return res.getFirst(); }
-    throw p.err().noAgreement(at, bs, res, msg);
+    throw p.err().noAgreement(at, bs, ss, f, ss.stream().map(this::declared).toList(), msg);
   }
   //ssAligned is always grouped/bucketed by rc upstream (see pairWithSig callers), so rc is always uniform here.
   private RC rcAgreement(List<M.Sig> ssAligned){
