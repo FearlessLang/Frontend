@@ -1712,7 +1712,7 @@ West : {.turn-> North;}
 @Test void paramMatch1(){ okI("""
 p.A:{'this .foo:p.A@p.A;}
 p.B:{'this .of(p.A):p.A@p.B;(_adiv)->base.Destruct:?#(_adiv:?.foo():?,p._AB:$?{'_ ? [?](?):?@!;(foo)->foo:?;}:?):?;}
-p._AB:base.MF[p.A,p.A]{'_ mut #(p.A):p.A@p._AB;(foo)->foo:p.A;}
+p._AB:base.MF[p.A,p.A]{'_ mut #(p.A):p.A@p._AB;(foo)->foo:?;}
 ~-----------
 ~mut p.A:{'this .foo:p.A}
 ~mut p.B:{'this .of(_adiv:p.A):p.A->base.Destruct#[imm,p.A,p.A](_adiv.foo[imm], mut p._AB:base.MF[p.A,p.A]{'_ mut #(foo:p.A):p.A->foo})}

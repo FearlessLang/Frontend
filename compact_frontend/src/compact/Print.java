@@ -18,9 +18,9 @@ public class Print{
     case U _->"?";
     case C(var n,var ts)->n.s()+wrap(ts,"[]",",");
     case R(var r,var c)->(r==null?"AnyRC ":r(r))+of(c);
-    case E.X(var x,_)->x;
-    case E.Call(var e,var n,var r,var y,var es,_,_)->of(e)+of(n)+"["+r+(y.size()==0?"":","+join(y,","))+"]"+wrap(es,"()",", ");
-    case Literal(var r,var n,var b,var cs,var self,var ms,_,_,_)->r+" "+n.s()+wrap(b,"[]",",")+":"+join(cs,", ")+"{'"+self+" "+join(ms,"; ")+"}";
+    case E.X(var x,_,_)->x;
+    case E.Call(var e,var n,var r,var y,var es,_,_,_)->of(e)+of(n)+"["+r+(y.size()==0?"":","+join(y,","))+"]"+wrap(es,"()",", ");
+    case Literal(var r,var n,var b,var cs,var self,var ms,_,_,_,_)->r+" "+n.s()+wrap(b,"[]",",")+":"+join(cs,", ")+"{'"+self+" "+join(ms,"; ")+"}";
     case M(var s,var v,var e)->r(s.r())+of(s.m())+wrap(s.b(),"[]",",")+wrap(zip(v,s.types(),(x,t)->x+":"+of(t)),"()",", ")+":"+of(s.t())+(e==null?"":"->"+of(e));
     default->o.toString();
   };}

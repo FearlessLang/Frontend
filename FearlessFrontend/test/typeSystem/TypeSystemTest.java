@@ -4770,13 +4770,21 @@ U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): B -> this.both(y, z) }
 
 While inspecting method call ".both(_,_)"
 The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
-"T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
+"T" could be "A" or "B": each is a supertype of "Y" and "Z". Type inference widens a type only to the type argument of its "base.WidenTo[_]" supertype.
 Write the generic type argument explicitly, as in "this.both[A](y, z)".
 """, List.of("""
 A:{} B:{} Y:A,B{} Z:A,B{}
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
 """));}
-@Test void siblingsWithOneCommonSupertypeInferIt(){ok(List.of("""
+@Test void siblingsWithOneCommonSupertypeAndNoWidenToCannotBeInferred(){failWf("""
+002| U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
+   |                                                          ^^^^^^^^^^^^^^^
+
+While inspecting method call ".both(_,_)"
+The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
+"T" could be "A": "A" is a supertype of "Y" and "Z". Type inference widens a type only to the type argument of its "base.WidenTo[_]" supertype.
+Write the generic type argument explicitly, as in "this.both[A](y, z)".
+""", List.of("""
 A:{ .k: A -> this } Y:A{} Z:A{}
 U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
 """));}
@@ -4811,7 +4819,7 @@ U:{ .use(c: base.Bool, y: Y, z: Z): A -> Sink#(c ? { .then -> y; .else -> z }) }
 
 While inspecting object literal instance of "base.ThenElse[_]"
 The generic type argument "R" of "base.ThenElse[_]" is inferred from the method bodies, but they disagree: some need "Y", some need "Z".
-"R" could be "S1" or "S2": each is a supertype of "Y" and "Z". The choice is ambiguous.
+"R" could be "S1" or "S2": each is a supertype of "Y" and "Z". Type inference widens a type only to the type argument of its "base.WidenTo[_]" supertype.
 Write the generic type argument explicitly, as in "base.ThenElse[S1]{...}".
 """, List.of("""
 A:{} S1:{} S2:{} Y:S1,S2{} Z:S1,S2{}
@@ -4879,10 +4887,10 @@ A:{} B:{} Sup[T]:{ .k: T } Z:Sup[B]{ .k -> B }
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Sup[A], z: Z): A -> this.both(y, z) }
 """));}
 @Test void typesWithDifferentInvariantArgumentsJoinToACommonSupertypeAbove(){ok(List.of("""
-A:{} B:{} Top:{} Sup[T]:Top{ .k: T } Y:Sup[A]{ .k -> A } Z:Sup[B]{ .k -> B }
+A:{} B:{} Top:{} Sup[T]:Top{ .k: T } Y:Sup[A],base.WidenTo[Top]{ .k -> A } Z:Sup[B],base.WidenTo[Top]{ .k -> B }
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
 """));}@Test void aTypeAndASubtypeWithDifferentInvariantArgumentsJoinToACommonSupertypeAbove(){ok(List.of("""
-A:{} B:{} Top:{} Sup[T]:Top{ .k: T } Z:Sup[B]{ .k -> B }
+A:{} B:{} Top:{} Sup[T]:Top,base.WidenTo[Top]{ .k: T } Z:Sup[B]{ .k -> B }
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Sup[A], z: Z): A -> this.both(y, z) }
 """));}
 @Test void lambdaParameterCapturedBeforeItsOtherUseIsInferredAsWhenCapturedAfter(){ok(List.of("""
@@ -6492,16 +6500,32 @@ A:{ .m: B -> {} }
 A:{ .k: A -> this } Y:A,base.WidenTo[A]{} Z:A,base.WidenTo[A]{}
 U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
 """));}
-@Test void siblingsWithTheSameWidenToAndTwoCommonSupertypesCannotBeInferred(){failWf("""
+@Test void siblingsWithTheSameWidenToAndTwoCommonSupertypesJoinToTheWidenToTarget(){ok(List.of("""
+A:{ .k: A -> this } B:{} Y:A,B,base.WidenTo[A]{} Z:A,B,base.WidenTo[A]{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
+"""));}
+@Test void siblingsWithTheSameWidenToAndTwoCommonSupertypesJoinToTheWidenToTargetInTheOtherOrder(){ok(List.of("""
+A:{ .k: A -> this } B:{} Y:A,B,base.WidenTo[A]{} Z:A,B,base.WidenTo[A]{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(z, y).k }
+"""));}
+@Test void aTypeWithWidenToAndASubtypeOfTheWidenToTargetJoinToTheWidenToTarget(){ok(List.of("""
+A:{ .k: A -> this } Y:A,base.WidenTo[A]{} Z:A{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(y, z).k }
+"""));}
+@Test void aSubtypeOfTheWidenToTargetAndATypeWithWidenToJoinToTheWidenToTarget(){ok(List.of("""
+A:{ .k: A -> this } Y:A,base.WidenTo[A]{} Z:A{}
+U:{ .both[T](a: T, b: T): T -> a; .use(y: Y, z: Z): A -> this.both(z, y).k }
+"""));}
+@Test void siblingsWithDifferentWidenToCannotBeInferred(){failWf("""
 002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
    |                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
 The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
-"T" could be "A" or "B": each is a supertype of "Y" and "Z". The choice is ambiguous.
+"T" could be "A" or "B": each is a supertype of "Y" and "Z". Type inference widens a type only to the type argument of its "base.WidenTo[_]" supertype.
 Write the generic type argument explicitly, as in "this.both[A](y, z)".
 """, List.of("""
-A:{} B:{} Y:A,B,base.WidenTo[A]{} Z:A,B,base.WidenTo[A]{}
+A:{} B:{} Y:A,B,base.WidenTo[A]{} Z:A,B,base.WidenTo[B]{}
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
 """));}
 @Test void emptyLiteralArgumentWithAnExpectedNumberLiteralType(){ok(List.of("""
@@ -6633,11 +6657,11 @@ F[T,R]:{ #(t: T): R }
 Use:{ #[T,R](f: F[T,R]): Use -> this }
 User:{ .m: Use -> Use#{x -> x.foo(Id#x)} }
 """));}
-@Test void siblingsWithAChainOfCommonSupertypesInferTheLowest(){ok(List.of("""
+@Test void siblingsWithAChainOfCommonSupertypesJoinToTheirWidenToTarget(){ok(List.of("""
 Living:{}
 Animal:Living{ .me: Animal -> this }
-Cat:Animal{}
-Dog:Animal{}
+Cat:Animal,base.WidenTo[Animal]{}
+Dog:Animal,base.WidenTo[Animal]{}
 Ids:{ #[X](a: X, b: X): X -> a }
 User:{ .m(c: Cat, d: Dog): Animal -> Ids#(c, d).me }
 """));}

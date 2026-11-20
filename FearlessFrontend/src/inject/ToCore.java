@@ -23,7 +23,7 @@ import utils.Streams;
 
 public record ToCore(List<B> ctx, Methods meths){
   core.E of(inference.E exp, inference.E orig){ return switch (exp){
-    case inference.E.X(var name, _, var src, _) -> new core.E.X(name, src);
+    case inference.E.X(var name, _, _, var src, _) -> new core.E.X(name, src);
     case inference.E.Type(var type, _, var src, _) -> type(type, src);
     case inference.E.Literal le -> literal(le, orig);
     case inference.E.Call ce -> call(ce, callLike(orig, ce.name()));
@@ -163,7 +163,7 @@ public record ToCore(List<B> ctx, Methods meths){
   private record CallLike(inference.E e, List<inference.E> es, List<IT> targs){}
   private static CallLike callLike(inference.E o, MName name){
     return switch (o){
-      case inference.E.Call(var e, var n, _, var targs, var es, _, _, _) when n.equals(name) -> new CallLike(e, es, targs);
+      case inference.E.Call(var e, var n, _, var targs, var es, _, _, _, _) when n.equals(name) -> new CallLike(e, es, targs);
       default -> throw Bug.unreachable();
     };
   }

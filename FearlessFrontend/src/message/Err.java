@@ -132,7 +132,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     };}
   String expRepr(inference.E toErr){ return switch (toErr){
     case inference.E.Call c -> "method call "+methodSig(c.name());
-    case inference.E.X(var name, _, _, _) -> "parameter "+disp(name);
+    case inference.E.X(var name, _, _, _, _) -> "parameter "+disp(name);
     case inference.E.Literal l -> l.thisName().equals("this")
       ? "type declaration "+tNameADisp(l.name())
       : l.infName() && l.cs().isEmpty() && !(l.t() instanceof inference.IT.RCC r && !r.c().name().equals(l.name())) ? "object literal "+disp(anonRepr)

@@ -514,7 +514,10 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var xs= Err.disp(x);
     var e= err().line("The generic type argument "+xs+" of "+ofFrom+", but they disagree: some need "+Join.of(cs, "", ", some need ", "")+".");
     if (common.isEmpty()){ e.line("No type is a supertype of all of them."); }
-    else{ e.line(up(xs)+" could be "+Join.of(common.stream().map(n -> disp(err().tNameA(n))), "", " or ", "")+": each is a supertype of "+Join.of(cs, "", " and ", "")+". The choice is ambiguous."); }
+    else{
+      var names= Join.of(common.stream().map(n -> disp(err().tNameA(n))), "", " or ", "");
+      e.line(up(xs)+" could be "+names+": "+(common.size() == 1 ? names : "each")+" is a supertype of "+Join.of(cs, "", " and ", "")+". Type inference widens a type only to the type argument of its "+err().tNameADisp(LiteralDeclarations.widen)+" supertype.");
+    }
     return wf(e.line("Write the generic type argument explicitly, as in "+disp(example)+"."), at);
   }
   public String typeName(TName n){ return err().tNameA(n); }
