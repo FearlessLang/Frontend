@@ -1,6 +1,7 @@
 package fearlessParser;
 
 import org.junit.jupiter.api.Test;
+import java.util.List;
 
 public final class ParseTest extends testUtils.FearlessTestBase{
   static void ok(String expected, String input){ parseOkNormalized(expected, input); }
@@ -868,6 +869,7 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
+This method body contains "->": a ";" may be missing between two method declarations.
 Error 6 MissingSeparator
 """, """
 A:{
@@ -2227,6 +2229,7 @@ In file: [###].fear
 
 While inspecting method declaration > type declaration body > type declaration > full file
 There is a missing semicolon ";", operator, or method name here or earlier.
+This method body contains "->": a ";" may be missing between two method declarations.
 Error 6 MissingSeparator
 """, """
 A: base.Main{ .foo->A .beer->B}
@@ -4061,6 +4064,61 @@ This character can only appear inside string literals and comments.
 Error 2 UnexpectedToken
 """, """
 A:{ .me: A -> @this }
+""");}
+@Test void lowercaseTypeDeclarationNameInTheRankFile(){fail("""
+In file: [###].fear
+
+001| point:{ .x: base.Nat -> 3 }
+   | ^^^^^~---------------------
+
+While inspecting file header > full file
+A rank file cannot start with "point".
+A rank file starts with the "use" and "map" directives, if any, and then the type declarations, like "Point:{..}".
+Error 2 UnexpectedToken
+""", """
+point:{ .x: base.Nat -> 3 }
+""");}
+@Test void lowercaseTypeDeclarationName(){typeFailRaw("""
+In file: [###].fear
+
+001| point:{ .x: base.Nat -> 3 }
+   | ^^^^^~---------------------
+
+While inspecting file header > full file
+A file cannot start with "point".
+A file starts with the type declarations, like "Point:{..}".
+Error 2 UnexpectedToken
+""", List.of("A:{}", """
+point:{ .x: base.Nat -> 3 }
+"""));}
+@Test void missingSemicolonBetweenMethods(){fail("""
+In file: [###].fear
+
+002|   .a: A -> this
+003|   .b: A -> this
+   |       ^
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+This method body contains "->": a ";" may be missing between two method declarations.
+Error 6 MissingSeparator
+""", """
+A:{
+  .a: A -> this
+  .b: A -> this
+  }
+""");}
+@Test void arrowInABodyWithNoMethodNameBeforeIt(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A -> x -> x }
+   |   --~~~~~~~~~^~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+There is a missing semicolon ";", operator, or method name here or earlier.
+Error 6 MissingSeparator
+""", """
+A:{ .m: A -> x -> x }
 """);}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

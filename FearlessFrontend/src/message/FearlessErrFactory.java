@@ -29,6 +29,7 @@ import metaParser.Frame;
 import metaParser.Message;
 import metaParser.NameSuggester;
 import metaParser.Span;
+import tools.Fs;
 import utils.Join;
 
 public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,FearlessException,Tokenizer,Parser,FearlessErrFactory>{
@@ -79,6 +80,15 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +"Found instead: "+found(found)+".\n"
       +"Likely cause: an extra \"}\" closed a type declaration unintentionally.\n"
       ).addSpan(at);
+  }
+  public FearlessException notADirective(Span at, String name){
+    var rank= Fs.fileNameWithExtension(at.fileName().toString()).startsWith("_rank_");
+    var msg= rank
+      ? "A rank file cannot start with "+disp(name)+".\n"
+        +"A rank file starts with the \"use\" and \"map\" directives, if any, and then the type declarations, like \"Point:{..}\".\n"
+      : "A file cannot start with "+disp(name)+".\n"
+        +"A file starts with the type declarations, like \"Point:{..}\".\n";
+    return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
     assert nonNull(from, parser, expectedTerminatorTokens);
@@ -312,9 +322,10 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       : "Unrecognized text "+disp(what)+".";
     return Code.UnexpectedToken.of(head).addFrame(new Frame("", at));
   }
-  public FearlessException missingSemicolonOrOperator(Span at){
+  public FearlessException missingSemicolonOrOperator(Span at, boolean arrow){
     return Code.MissingSeparator.of(
       "There is a missing semicolon \";\", operator, or method name here or earlier.\n"
+      +(arrow ? "This method body contains \"->\": a \";\" may be missing between two method declarations.\n" : "")
       ).addSpan(at);
   }
   @Override public FearlessException groupHalt(
