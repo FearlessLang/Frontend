@@ -29,6 +29,7 @@ import metaParser.Span;
 import naming.FreshPrefix;
 import pkgmerge.Package;
 import tools.Fs;
+import utils.OneOr;
 import utils.Push;
 
 public record Methods(
@@ -290,14 +291,13 @@ public record Methods(
     return m.withSig(new M.Sig(rc, name, bs, ts, res, origin.name(), m.impl().isEmpty(), s.span()));
   }
   private List<B> agreementWithSize(List<M.Sig> ss, M.Sig s, Agreement at){
-    var allBounds= ss.stream().map(e -> e.bs().get()).distinct().toList();
-    if (s.bs().isEmpty()){ return agreementBs(at, allBounds); }
+    if (s.bs().isEmpty()){ return agreementBs(at, ss); }
     var userBs= s.bs().get();
     var superBsList= ss.stream().map(e -> e.bs().get()).toList();
     var superArities= superBsList.stream().map(List::size).distinct().toList();
-    if (superArities.size() != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at, superBsList); }
+    if (superArities.size() != 1){ throw arityDisagreement(at, ss); }
     if (superArities.getFirst() != userBs.size()){ throw p.err().methodGenericArityDisagreesWithSupers(at, userBs, superBsList.getFirst()); }
-    var supBs= agreementBs(at, allBounds);
+    var supBs= agreementBs(at, ss);
     assert supBs.size() == userBs.size();
     var supRCs= supBs.stream().map(B::rcs).toList();
     var userRCs= userBs.stream().map(B::rcs).toList();
@@ -312,7 +312,7 @@ public record Methods(
     assert !ss.isEmpty();
     if (ss.size() == 1){ return unnamed(ss.getFirst()); }
     var at= new Agreement(origin, ss.getFirst().rc(), ss.getFirst().m().get(), origin.span().inner);
-    var bs= agreementBs(at, ss.stream().map(e -> e.bs().get()).distinct().toList());
+    var bs= agreementBs(at, ss);
     var ssAligned= alignMethodSigsTo(ss, bs);
     var name= ssAligned.getFirst().m().get();
     var ts= IntStream.range(0, name.arity()).mapToObj(i -> Optional.of(pairWithTs(at, i, Optional.empty(), ssAligned))).toList();
@@ -365,12 +365,19 @@ public record Methods(
   }
   public record Agreement(E.Literal lit, Optional<RC> rc, MName mName, Span span){}
 
-  List<B> agreementBs(Agreement at, List<List<B>> res){
+  List<B> agreementBs(Agreement at, List<M.Sig> ss){
+    var res= ss.stream().map(e -> e.bs().get()).distinct().toList();
     var sizes= res.stream().map(List::size).distinct().count();
-    if (sizes != 1){ throw p.err().methodGenericArityDisagreementBetweenSupers(at, res); }
+    if (sizes != 1){ throw arityDisagreement(at, ss); }
     var bounds= res.stream().map(l -> l.stream().map(B::rcs).toList()).distinct().count();
     if (bounds == 1){ return res.getFirst(); }
     throw p.err().methodBsDisagreementBetweenSupers(at, res);
+  }
+  private FearlessException arityDisagreement(Agreement at, List<M.Sig> ss){
+    return p.err().methodGenericArityDisagreementBetweenSupers(at, ss, ss.stream().map(this::declared).toList());
+  }
+  private core.Sig declared(M.Sig s){
+    return OneOr.of("Malformed methods", _from(s.origin().get()).ms().stream().map(core.M::sig).filter(d -> d.origin().equals(s.origin().get()) && d.m().equals(s.m().get()) && d.rc() == s.rc().get()));
   }
   private List<M.Sig> alignMethodSigsTo(List<M.Sig> ss, List<B> bs){ return ss.stream().map(s -> alignMethodSigTo(s, bs)).toList(); }
   private M.Sig alignMethodSigTo(M.Sig superSig, List<B> targetBs){

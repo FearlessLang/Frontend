@@ -44,6 +44,7 @@ import utils.Join;
 import utils.Pos;
 import java.util.EnumSet;
 import utils.Push;
+import utils.Streams;
 
 public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<String,String> writtenIn, LinkedHashSet<String> printed){
   public WellFormednessErrors(String pkgName){ this(pkgName, Map.of(), Map.of(), new LinkedHashSet<>()); }
@@ -449,13 +450,13 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     if (!(o instanceof IT.RCC rcc)){ return disp(o); }
     return err().typeRepr(!showImm, rcc);
   }
-  public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
+  public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<M.Sig> ss, List<core.Sig> declared){
     var e= err()
       .line("Supertypes disagree on the number of generic type parameters of method "+err().methodSig(at.mName())
         +" with "+count(at.mName().arity(), "parameter")+".")
-      .line(Join.of(res.stream().map(Err::disp), "Candidates: ", ", ", "."))
-      .line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes.");
-    return wf(e, at);
+      .line(Join.of(ss.stream().map(s -> disp(s.bs().get())).distinct(), "Candidates: ", ", ", "."));
+    Streams.zip(declared, ss).filterMap((d,s) -> renamed(err().methodSig("", d.origin(), d.m()), d.bs(), s.bs().get())).distinct().forEach(e::line);
+    return wf(e.line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at);
   }
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
     return wf(invalidMethImpl(at)
