@@ -59,6 +59,11 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       "Missing method body after \"->\".\n"
     +"The body of a method is the expression after \"->\".\n").addSpan(at);
   }
+  public FearlessException afterSignature(Span at, Token found){
+    return Code.ExtraTokenInGroup.of(
+      "Unexpected "+found(found)+" after the method signature.\n"
+    +"A method signature can be followed by \";\" or by \"->\", as in \".size: Nat;\" or \".size: Nat -> 3\".\n").addSpan(at);
+  }
   public FearlessException straySemicolon(Span at){
     return Code.UnexpectedToken.of(
       "Extra semicolon: no method declaration comes before this \";\".\n"
@@ -77,8 +82,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   @Override public FearlessException extraContent(Span from, String what, Collection<TokenKind> expectedTerminatorTokens, Parser parser){
     assert nonNull(from, parser, expectedTerminatorTokens);
-    var instead= "Expected "+what;
-    var msg= expected("Extra content in the current group", instead+": ", instead+".\nExpected one of: ", expectedTerminatorTokens, tk -> tk.human);
+    var msg= expected("Extra content in the current group", "Expected: ", "Expected one of: ", expectedTerminatorTokens, tk -> tk.human);
     var here= parser.peek().get().span(from.fileName());
     return Code.ExtraTokenInGroup.of(msg).addSpan(here).addSpan(from);
   }

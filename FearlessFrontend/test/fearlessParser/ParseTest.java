@@ -2416,7 +2416,7 @@ In file: [###].fear
    | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^-
 
 While inspecting header element > file header > full file
-Expected semicolon: ";".
+Expected: ";".
 Error 4 ExtraTokenInGroup
 """, """
 map foo as _foo_v5 in _lib instead of _foo_v4 _foo_v3;
@@ -3254,8 +3254,8 @@ In file: [###].fear
 003|   .elem(top:T, tail: Stack[T]): R,
 
 While inspecting method declaration > type declaration body > type declaration > full file
-Expected semicolon or closing curly brace.
-Expected one of: ";", "}".
+Unexpected "," after the method signature.
+A method signature can be followed by ";" or by "->", as in ".size: Nat;" or ".size: Nat -> 3".
 Error 4 ExtraTokenInGroup
 """, """
 StackMatch[T,R]: {
@@ -3390,7 +3390,6 @@ In file: [###].fear
 003| }
 
 While inspecting method parameters declaration > method signature > method declaration > type declaration body > type declaration > full file
-Expected comma, colon or arrow.
 Expected one of: ",", ":", "->".
 Error 4 ExtraTokenInGroup
 """, """
@@ -3844,6 +3843,84 @@ Otherwise expected: "]".
 Error 0 Unclosed
 """, """
 A[X:foo]:{}
+""");}
+@Test void equalsInsteadOfArrow(){fail("""
+In file: [###].fear
+
+001| A:{ .size: base.Nat = 3 }
+   |   --~~~~~~~~~~~~~~~~^~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected "=" after the method signature.
+A method signature can be followed by ";" or by "->", as in ".size: Nat;" or ".size: Nat -> 3".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .size: base.Nat = 3 }
+""");}
+@Test void colonInsteadOfArrow(){fail("""
+In file: [###].fear
+
+001| A:{ .me(a: A): A : a }
+   |   --~~~~~~~~~~~~~^~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected ":" after the method signature.
+A method signature can be followed by ";" or by "->", as in ".size: Nat;" or ".size: Nat -> 3".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .me(a: A): A : a }
+""");}
+@Test void fatArrowInsteadOfArrow(){fail("""
+In file: [###].fear
+
+001| A:{ .m: A -> A{ .me(a: A): A => a } }
+   |               --~~~~~~~~~~~~~^^~~--
+
+While inspecting method declaration > typed literal > method body > method declaration > type declaration body > type declaration > full file
+Unexpected "=>" after the method signature.
+A method signature can be followed by ";" or by "->", as in ".size: Nat;" or ".size: Nat -> 3".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .m: A -> A{ .me(a: A): A => a } }
+""");}
+@Test void capabilityAfterTheReturnType(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A mut -> this }
+   |     ~~~~~~~^^^--------
+
+While inspecting method signature > method declaration > type declaration body > type declaration > full file
+Unexpected "mut" after the method signature.
+A method signature can be followed by ";" or by "->", as in ".size: Nat;" or ".size: Nat -> 3".
+Error 4 ExtraTokenInGroup
+""", """
+A:{ .me: A mut -> this }
+""");}
+@Test void missingSemicolonBeforeAMethodWithBody(){fail("""
+In file: [###].fear
+
+001| Direction:{ .turn: Direction .reverse: Direction -> this.turn.turn }
+   |             ~~~~~~~~~~~~~~~~~^^^^^^^^~~~~~~~~~~~------------------
+
+While inspecting method signature > method declaration > type declaration body > type declaration > full file
+Unexpected ".reverse" after the method signature.
+A method signature can be followed by ";" or by "->", as in ".size: Nat;" or ".size: Nat -> 3".
+Error 4 ExtraTokenInGroup
+""", """
+Direction:{ .turn: Direction .reverse: Direction -> this.turn.turn }
+""");}
+@Test void missingSemicolonBetweenTwoAbstractMethods(){fail("""
+In file: [###].fear
+
+001| Direction:{ .turn: Direction .reverse: Direction }
+   |           --~~~~~~~~~~~~~~~~~^^^^^^^^~~~~~~~~~~~--
+
+While inspecting method declaration > type declaration body > type declaration > full file
+Unexpected ".reverse" after the method signature.
+A method signature can be followed by ";" or by "->", as in ".size: Nat;" or ".size: Nat -> 3".
+Error 4 ExtraTokenInGroup
+""", """
+Direction:{ .turn: Direction .reverse: Direction }
 """);}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?
