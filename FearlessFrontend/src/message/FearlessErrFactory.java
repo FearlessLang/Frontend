@@ -287,7 +287,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var one= bad.size() == 1;
     var fix= Stream.of(Optional.<String>empty(), Optional.of("1"))
       .filter(id -> !id.equals(p.id()))
-      .map(id -> new XPat.Destruct(p.extract(), id))
+      .map(id -> new XPat.Destruct(p.extract(), id, p.at()))
       .filter(d -> d.invalidNames().findAny().isEmpty())
       .findFirst();
     return Code.UnexpectedToken.of("Nominal pattern "+disp(patternRepr(p))+" declares "
