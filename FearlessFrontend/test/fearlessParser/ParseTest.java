@@ -495,28 +495,28 @@ A:{ .m(): -> (Block#.let x={5}) .use(x) }
 @Test void useOutOfScopeBad(){fail("""
 In file: [###].fear
 
-001| A:{ .m -> (Block#.let x={5}) .use(x) }
+001| A:{ .m -> (Block#.let y={7}) .use(y) }
    |           ~~~~~~~~~~~~~~^^^~--------
 
 While inspecting expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
-Missing method call after the equals sugar ".let x = ...".
-The equals sugar is followed by the rest of the chain, which can use "x", as in "Block#.let x = {5}.return {x}".
+Missing method call after the equals sugar ".let y = ...".
+The equals sugar is followed by the rest of the chain, which can use "y", as in "Block#.let x = {5}.return {x}".
 Error 2 UnexpectedToken
 """, """
-A:{ .m -> (Block#.let x={5}) .use(x) }
+A:{ .m -> (Block#.let y={7}) .use(y) }
 """);}
 @Test void anEqualsSugarAtTheEndOfAMethodBody(){fail("""
 In file: [###].fear
 
-001| A:{ .m -> Block#.let x= {5} }
+001| A:{ .m -> Block#.let y= {7} }
    |     ------~~~~~~~~~~~~~~^^^
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
-Missing method call after the equals sugar ".let x = ...".
-The equals sugar is followed by the rest of the chain, which can use "x", as in "Block#.let x = {5}.return {x}".
+Missing method call after the equals sugar ".let y = ...".
+The equals sugar is followed by the rest of the chain, which can use "y", as in "Block#.let x = {5}.return {x}".
 Error 2 UnexpectedToken
 """, """
-A:{ .m -> Block#.let x= {5} }
+A:{ .m -> Block#.let y= {7} }
 """);}
 @Test void aNominalPatternEqualsSugarAtTheEndOfAMethodBody(){fail("""
 In file: [###].fear
