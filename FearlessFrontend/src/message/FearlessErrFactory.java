@@ -39,7 +39,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
   }
   @Override public FearlessException missing(Span at, String what, List<TokenKind> expectedLabels, Parser parser){
     assert nonNull(at, what, expectedLabels);
-    return Code.UnexpectedToken.of("Missing "+(what.isBlank() ? "element" : what)+".\n"+expected(expectedLabels)).addSpan(at);
+    return Code.UnexpectedToken.of("Missing "+(what.isBlank() ? "element" : what)+".\n"+expected(what, expectedLabels)).addSpan(at);
   }
   public FearlessException topLevelSemicolon(Span at){ return Code.UnexpectedToken.of(this::topLevelSemicolonMsg).addSpan(at); }
   private String topLevelSemicolonMsg(){
@@ -64,7 +64,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       "Extra semicolon: no method declaration comes before this \";\".\n"
     +"Methods are separated by a single \";\". Remove this semicolon.\n").addSpan(at);
   }
-  private static String found(Token t){ return t.tokens().isEmpty() ? disp(t.content()) : "a "+t.kind().human; }
+  private static String found(Token t){ return disp(t.tokens().isEmpty() ? t.content() : t.tokens().getFirst().content()+"..."+t.tokens().getLast().content()); }
   public FearlessException topLevelNotATypeDeclaration(Span at, Token found){
     return Code.UnexpectedToken.of(() ->
       lastTop.map(t -> "This should probably be inside the declaration of "+staticTypeDecName(t)+".\n")
@@ -245,7 +245,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +expected(
         "No generic type parameters are declared here",
         "Declared generic type parameters: ", "Declared generic type parameters: ",
-        Xs, s -> s)).addSpan(at);
+        Xs, Err::disp)).addSpan(at);
   }
   public FearlessException genericNotFunnelled(Token X, Span at, String owner, List<String> Xs){
     return Code.UnexpectedToken.of(Err.funnel(X.content(), owner, Xs)).addSpan(at);
@@ -294,10 +294,13 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       owner+" cannot declare multiple "+plural+" with the same name.\n"
       +singular+" "+disp(redeclaredElement(names))+" is repeated.").addSpan(at);
   }
-  private static String expected(Collection<TokenKind> items){ return expected("", "Expected: ", "Expected one of: ", items, tk -> tk.human); }
+  private static String expected(String what, Collection<TokenKind> items){
+    var named= items.size() == 1 && what.contains(items.iterator().next().human);
+    return named ? "" : expected("", "Expected: ", "Expected one of: ", items, tk -> tk.human);
+  }
   private static <EE> String expected(String pre0, String pre1, String preMany, Collection<EE> items, Function<EE,String> f){
-    return Join.of(items.stream().map(e -> disp(f.apply(e))),
-      items.size() == 1 ? pre1 : preMany, ", ", ".\n", pre0.isEmpty() ? "" : pre0+".\n");
+    var labels= items.stream().map(f).distinct().toList();
+    return Join.of(labels, labels.size() == 1 ? pre1 : preMany, ", ", ".\n", pre0.isEmpty() ? "" : pre0+".\n");
   }
   @Override public FearlessException unrecognizedTextAt(Span at, String what, Tokenizer tokenizer){
     var head= what.isBlank()
@@ -319,8 +322,8 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var eof= stop.is(_EOF);
     var isCloser= stop.is(CRound, CSquare, CCurly, CCurlyId);
     var isBarrier= !eof && !isCloser;
-    var openLabel= disp(open.kind().human);
-    var stopLabel= eof ? "end of group" : disp(stop.kind().human);
+    var openLabel= disp(open.content());
+    var stopLabel= eof ? "end of group" : disp(stop.content());
     var base=
       sof
         ? "Unopened "+stopLabel+".\n"
@@ -347,7 +350,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var file= tokenizer.fileName();
     var where= BadTokens.describeFree(hiddenContainer);
     var msg=
-      "Unclosed "+disp(open.kind().human)+" group.\n"
+      "Unclosed "+disp(open.content())+" group.\n"
     +"Found a matching closer inside a"+where+" between here and the stopping point.\n"
     +"Did you mean to place the closer outside the"+where+"?\n"
     +expected("", "Otherwise expected: ", "Otherwise expected one of: ", expectedClosers, tk -> tk.human);
@@ -362,7 +365,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var file= tokenizer.fileName();
     var where= BadTokens.describeFree(hiddenContainer);
     var msg=
-      "Unopened "+disp(stop.kind().human)+".\n"
+      "Unopened "+disp(stop.content())+".\n"
     +"Found a matching opener hidden inside a"+where+" before this point.\n"
     +"Did you mean to place the opener outside the"+where+"?";
     var primary= metaParser.Token.makeSpan(file, hiddenFragment, stop);
@@ -376,7 +379,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     var msg=
       "Missing "+(what.isBlank() ? "element" : what)+".\n"
     +"Found instead: "+found(found)+".\n"
-    +expected(expectedTokens);
+    +expected(what, expectedTokens);
     return Code.UnexpectedToken.of(msg).addSpan(at);
   }
   public FearlessException badTopSelfName(Span at, String name){
