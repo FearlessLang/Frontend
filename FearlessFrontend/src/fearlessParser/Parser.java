@@ -265,20 +265,25 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   private static List<String> bsXs(Optional<List<B>> bs){ return bs.orElse(List.of()).stream().map(b -> b.x().name()).toList(); }
   M parseMethodAux(boolean top){//assumes to be called on only the tokens of this specific method
-    var m= parseFront("method signature", false, arrowSkip, Parser::parseSig)
+    var m= parseFront("method signature", false, arrowSkip, Parser::parseWholeSig)
       .map(this::parseMethodWithSig);
     if (m.isPresent()){ return m.get(); }
     var hasSig= peek(DotName, Op)
       || peekOrder(t -> t.is(RCap), t -> t.is(DotName, Op));
     if (!hasSig){ return new M(empty(), of(parseMethodBody()), tspan()); }
-    var sig= parseSig();
-    if (peek(Arrow)){ throw errFactory().missingMethodBody(span(peek().get()).get()); }
+    var sig= parseWholeSig();
     if (!top){ throw errFactory().noAbstractMethod(sig, span()); }
     return new M(of(sig), empty(), tspan());
   }
   E parseMethodBody(){
     guard(Parser::checkAbruptExprEnd);
     return parseRemaining("method body", Parser::parseE);
+  }
+  Sig parseWholeSig(){
+    var sig= parseSig();
+    if (peek(Arrow)){ throw errFactory().missingMethodBody(span(peek().get()).get()); }
+    if (!end()){ throw errFactory().afterSignature(span(peek().get()).get(), peek().get()); }
+    return sig;
   }
   Sig parseSig(){
     var rc= parseOptRC();
