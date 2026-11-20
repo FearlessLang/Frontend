@@ -912,7 +912,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+No space is allowed before "[".
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -927,7 +927,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+No space is allowed before "[".
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -942,7 +942,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+No space is allowed before "[".
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -957,7 +957,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+No space is allowed before "[".
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -972,7 +972,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+No space is allowed before "[".
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -988,7 +988,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+No space is allowed before "[".
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -1003,7 +1003,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+No space is allowed before "[".
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -1018,7 +1018,7 @@ In file: [###].fear
 
 While inspecting common ambiguities
 Unrecognized text "[".
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+No space is allowed before "[".
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
@@ -3921,6 +3921,146 @@ A method signature can be followed by ";" or by "->", as in ".size: Nat;" or ".s
 Error 4 ExtraTokenInGroup
 """, """
 Direction:{ .turn: Direction .reverse: Direction }
+""");}
+@Test void uppercaseMethodName(){fail("""
+In file: [###].fear
+
+001| A:{ .Size: A -> this }
+   |     ^^^^^
+
+While inspecting a method name
+".Size" is not valid as a method name.
+Error 2 UnexpectedToken
+""", """
+A:{ .Size: A -> this }
+""");}
+@Test void uppercaseMethodNameInACall(){fail("""
+In file: [###].fear
+
+001| A:{ .size: A -> this.size.Size }
+   |                          ^^^^^
+
+While inspecting a method name
+".Size" is not valid as a method name.
+Error 2 UnexpectedToken
+""", """
+A:{ .size: A -> this.size.Size }
+""");}
+@Test void uppercaseMethodNameAfterAQualifiedTypeName(){fail("""
+In file: [###].fear
+
+001| A:{ .size: A -> base.Nat.Size }
+   |                         ^^^^^
+
+While inspecting a method name
+".Size" is not valid as a method name.
+Error 2 UnexpectedToken
+""", """
+A:{ .size: A -> base.Nat.Size }
+""");}
+@Test void uppercaseMethodNameAfterATypeName(){fail("""
+In file: [###].fear
+
+001| A:{ .size: A -> A.Size }
+   |                  ^^^^^
+
+While inspecting a name
+"A.Size" is neither a type name nor a method call.
+A package name and a method name start with a lowercase letter, as in "a.Size" (type "Size" of package "a") and "A.size" (method ".size" called on "A").
+Error 2 UnexpectedToken
+""", """
+A:{ .size: A -> A.Size }
+""");}
+@Test void uppercasePackageName(){fail("""
+In file: [###].fear
+
+001| A:{ .size: Base.Nat -> 3 }
+   |                ^^^^
+
+While inspecting a name
+"Base.Nat" is neither a type name nor a method call.
+A package name and a method name start with a lowercase letter, as in "base.Nat" (type "Nat" of package "base") and "Base.nat" (method ".nat" called on "Base").
+Error 2 UnexpectedToken
+""", """
+A:{ .size: Base.Nat -> 3 }
+""");}
+@Test void spaceAfterTheDotOfAMethodName(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A -> this. me }
+   |                   ^
+
+While inspecting the file
+Unrecognized text ".".
+No space is allowed after ".".
+Error 2 UnexpectedToken
+""", """
+A:{ .me: A -> this. me }
+""");}
+@Test void newLineAfterTheDotOfAMethodName(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A -> this.
+   |                   ^
+
+While inspecting the file
+Unrecognized text ".".
+No space is allowed after ".".
+Error 2 UnexpectedToken
+""", """
+A:{ .me: A -> this.
+  me }
+""");}
+@Test void spaceAfterTheDotOfAPackageName(){fail("""
+In file: [###].fear
+
+001| A:{ .me: base. Nat -> this }
+   |              ^
+
+While inspecting the file
+Unrecognized text ".".
+No space is allowed after ".".
+Error 2 UnexpectedToken
+""", """
+A:{ .me: base. Nat -> this }
+""");}
+@Test void roundAfterADot(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A -> this.(this) }
+   |                   ^
+
+While inspecting the file
+Unrecognized text.
+Error 2 UnexpectedToken
+""", """
+A:{ .me: A -> this.(this) }
+""");}
+@Test void dollarInCode(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A -> $this }
+   |               ^
+
+While inspecting the file
+Unrecognized text "$".
+This character can only appear inside string literals and comments.
+Error 2 UnexpectedToken
+""", """
+A:{ .me: A -> $this }
+""");}
+@Test void atInCode(){fail("""
+In file: [###].fear
+
+001| A:{ .me: A -> @this }
+   |               ^
+
+While inspecting the file
+Unrecognized text "@".
+This character can only appear inside string literals and comments.
+Error 2 UnexpectedToken
+""", """
+A:{ .me: A -> @this }
 """);}
 }
 //TODO: Crucial test is /*Opt[X]*/{.match[R](m:OptMatch[X,R]):R}//can match use X? Yes? no? why?

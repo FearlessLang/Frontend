@@ -3,7 +3,9 @@ package message;
 import static fearlessParser.TokenKind.*;
 import static message.Err.*;
 
+import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import core.FearlessException;
@@ -28,7 +30,7 @@ public final class BadTokens{
       .put(BadUnopenedBlockCommentClose, BadTokens::strayBlockCommentCloser)
       .put(OSquareArg, BadTokens::squareAfterLiteral)
       .putStr(BadOSquare, Code.UnexpectedToken::of, """
-Here we expect "[" as a generic/RC argument opener and must follow the name with no space.
+No space is allowed before "[".
 Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 """, "common ambiguities")
@@ -37,7 +39,26 @@ Package names are restricted to be valid filenames on all operating systems.
 Names like aux, nul, lpt2 are invalid on Windows.
 """, "package names")
       .put(BadSStrQuote, (_, t, tz) -> singleQuoteString(t, tz))
+      .put(BadDotName, BadTokens::uppercaseMethodName)
+      .putStr(BadDot, Code.UnexpectedToken::of, """
+No space is allowed after ".".
+""", "")
+      .putStr(BadChar, Code.UnexpectedToken::of, """
+This character can only appear inside string literals and comments.
+""", "")
 ;}
+  private static Stream<Token> uppercaseMethodName(int idx, Token t, Tokenizer tz){
+    var c= t.content();
+    var r= tz.allTokens().get(idx - 1).content();
+    var at= t.span(tz.fileName());
+    if (!r.matches("[A-Z][A-Za-z0-9_]*")){ throw Code.UnexpectedToken.of(disp(c)+" is not valid as a method name.").addFrame("a method name", at); }
+    var fix= Pattern.compile("[A-Z]").matcher(c).replaceFirst(m -> m.group().toLowerCase(Locale.ROOT));
+    var pkg= r.toLowerCase(Locale.ROOT);
+    throw Code.UnexpectedToken.of(disp(r+c)+" is neither a type name nor a method call.\n"
+      +"A package name and a method name start with a lowercase letter, as in "
+      +disp(pkg+c)+" (type "+disp(c.substring(1))+" of package "+disp(pkg)+") and "
+      +disp(r+fix)+" (method "+disp(fix)+" called on "+disp(r)+").").addFrame("a name", at);
+  }
   private static Stream<Token> singleQuoteString(Token t, Tokenizer tz){
     var c= t.content();
     var in= c.substring(1, c.length()-1);

@@ -48,6 +48,9 @@ public enum TokenKind implements metaParser.TokenKind{
   UStr("\\x22[^\\x22\\x0A]*\\x22", "type name (like \"Point\", \"base.Nat\", \"12\", \"-3.5\", `\"abc\"`)"),
   SStr("`[^`\\x0A]*`", "type name (like \"Point\", \"base.Nat\", \"12\", \"-3.5\", `\"abc\"`)"),
   DotName("\\._*[a-z][A-Za-z0-9_]*'*", "method name (like \".foo\", \"+\", \"*\", \"-\")"),
+  BadDotName("\\._*[A-Z][A-Za-z0-9_]*'*"),
+  BadDot("\\.(?=\\s)"),
+  BadChar("[@$]"),
   UppercaseId(
     "(?:"+core.TName.pkgNameRegex+"\\x2E)?_*[A-Z][A-Za-z0-9_]*'*",
     "type name (like \"Point\", \"base.Nat\", \"12\", \"-3.5\", `\"abc\"`)"),//correctly allows only one '.' since packages are not nested inside each others
