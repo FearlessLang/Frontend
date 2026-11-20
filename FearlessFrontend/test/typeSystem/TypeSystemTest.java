@@ -170,10 +170,24 @@ The body of method ".foo(_,_)" of type declaration "B[_]" is an expression retur
 Parameter "b" has type "_BX" instead of a subtype of "_AX".
 Method ".foo(_,_)" inherited the signature from "A.foo(_,_)" as follows:
 .foo[_AX,_BX](a: _AX, b: _BX): _AX
-Generic type parameter "X" of "A.foo(_,_)" is named "_BX" here.
+Generic type parameters "_AX" and "X" of "A.foo(_,_)" are named "_AX" and "_BX" here.
 """, List.of("""
 A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
 B[X]:A{ .foo(a,b)->b }
+"""));}
+@Test void oneRenamedGenericAmongKeptOnes(){fail("""
+002| B[X]:A{ .foo(a,b,c)->b }
+   |         -------------^
+
+While inspecting parameter "b" > ".foo(_,_,_)" line 2
+The body of method ".foo(_,_,_)" of type declaration "B[_]" is an expression returning "_AX".
+Parameter "b" has type "_AX" instead of a subtype of "Y".
+Method ".foo(_,_,_)" inherited the signature from "A.foo(_,_,_)" as follows:
+.foo[Y,_AX,Z](a: Y, b: _AX, c: Z): Y
+Generic type parameters "Y", "X" and "Z" of "A.foo(_,_,_)" are named "Y", "_AX" and "Z" here.
+""", List.of("""
+A:{ .foo[Y,X,Z](a:Y,b:X,c:Z):Y; }
+B[X]:A{ .foo(a,b,c)->b }
 """));}
 @Test void renamedGenericsOfTwoNestedMethods(){fail("""
 003| B[X]:Sup{ .m(x)->{ .k(y)->x } }

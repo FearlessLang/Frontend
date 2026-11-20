@@ -84,12 +84,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var parent= parent(l, m.sig());
     var written= fm.flatMap(fearlessFullGrammar.M::sig).flatMap(fearlessFullGrammar.Sig::bs).isPresent();
     if (fm.isEmpty() || written || parent.isEmpty()){ return Optional.empty(); }
-    var renamed= Streams.zip(declared(parent.get(), m.sig()).get().bs(), m.sig().bs()).filter((ps,h) -> !ps.x().equals(h.x()));
-    var from= renamed.map((p,_) -> disp(p.x())).toList();
-    if (from.isEmpty()){ return Optional.empty(); }
+    var pairs= Streams.zip(declared(parent.get(), m.sig()).get().bs(), m.sig().bs());
+    var from= pairs.map((p,_) -> disp(p.x())).toList();
+    var to= pairs.map((_,h) -> disp(h.x())).toList();
+    if (from.equals(to)){ return Optional.empty(); }
     var many= from.size() > 1;
     return Optional.of("Generic type parameter"+(many ? "s " : " ")+and(from)+" of "+parentSig(parent.get(), m.sig())
-      +(many ? " are named " : " is named ")+and(renamed.map((_,h) -> disp(h.x())).toList())+" here.");
+      +(many ? " are named " : " is named ")+and(to)+" here.");
   }
   private static String and(List<String> xs){
     if (xs.size() == 1){ return xs.getFirst(); }
