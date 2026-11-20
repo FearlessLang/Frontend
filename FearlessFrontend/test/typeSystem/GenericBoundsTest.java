@@ -417,7 +417,7 @@ Break:A[mut Break]{}
 003| BreakOuter:{ #: BreakInner -> BreakInner: A[imm Break]{} }
    |              -----------------~~~~~~~~~~~~^^^^^^^^^^^^~~
 
-While inspecting object literal "iso BreakInner" > method "BreakOuter#" (line 3)
+While inspecting object literal "BreakInner" > method "BreakOuter#" (line 3)
 The type "A[Break]" is invalid.
 Generic type argument 1 ("Break") does not satisfy the bounds
 for generic type parameter "X" in "A[_]".
@@ -658,7 +658,7 @@ Ex:{
    | ... 2 lines ...
 005|   }}
 
-While inspecting object literal "iso Fresh[_]" > method "FPerson#(_,_)" (line 2)
+While inspecting object literal "Fresh[_]" > method "FPerson#(_,_)" (line 2)
 The type "Person[N]" is invalid.
 Generic type argument 1 ("N") does not satisfy the bounds
 for generic type parameter "N" in "Person[_]".
@@ -715,7 +715,7 @@ Box[X:imm,Y:imm]:{ .x: X; .y: Y }
 001| A:{ .m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]:{} }
    |     --------------------------------------^^^^~~~~~~~~~
 
-While inspecting object literal "iso Foo[_]" > method "A.m" (line 1)
+While inspecting object literal "Foo[_]" > method "A.m" (line 1)
 The type "Foo[X]" is invalid.
 Generic type argument 1 ("X") does not satisfy the bounds
 for generic type parameter "X" in "Foo[_]".
@@ -747,7 +747,7 @@ A:{ .m[X:imm](x: X): mut Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> { S
 002| A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
    |     -----------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal "mut Fresh[_]" > method "A.m(_)" (line 2)
+While inspecting object literal "Fresh[_]" > method "A.m(_)" (line 2)
 The body of method ".m(_)" of type declaration "A" is an expression returning "mut Fresh[X]".
 Object literal is of type "mut Fresh[_]" instead of a subtype of "iso Box[X]".
 Hint: write "iso Fresh[_]" if you need an "iso" object literal.
@@ -761,7 +761,7 @@ A:{ .m[X:imm](x: X): iso Box[X] -> mut Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 
 While inspecting parameter "x" > method "Fresh[_].get" (line 2) > method "A.m(_)" (line 2)
 Parameter "x" has type "X".
-Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "iso Fresh[_]" (line 2).
+Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "Fresh[_]" (line 2).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
@@ -773,7 +773,7 @@ A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 
 While inspecting parameter "b" > method "Fresh[_].get" (line 3) > method "A.m(_)" (line 3)
 Parameter "b" has type "Box[X]".
-That type is not well kinded under the generic type parameters of object literal "iso Fresh[_]" (line 3): "X:imm,mut,read".
+That type is not well kinded under the generic type parameters of object literal "Fresh[_]" (line 3): "X:imm,mut,read".
 The bounds declared by the object literal are all it knows about its generic type parameters,
 and thus parameter "b" cannot be captured.
 """, List.of("""
@@ -787,7 +787,7 @@ A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get
 
 While inspecting parameter "b" > method "Fresh[_].get" (line 3) > method "A.m(_)" (line 3)
 Parameter "b" has type "Box[X]".
-That type is not well kinded under the generic type parameters of object literal "iso Fresh[_]" (line 3): "X:imm,mut,read".
+That type is not well kinded under the generic type parameters of object literal "Fresh[_]" (line 3): "X:imm,mut,read".
 The bounds declared by the object literal are all it knows about its generic type parameters,
 and thus parameter "b" cannot be captured.
 """, List.of("""
@@ -800,8 +800,13 @@ Box[X:imm]:{ .get: X }
 Get[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm](b: Box[X]): mut Get[X] -> mut Fresh[X:imm]:Get[X]{ .get -> b.get } }
 """));}@Test void mutableOuterBoundIsoLiteralDoesNotCapture(){fail("""
-[###]Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "iso Fresh[_]" (line 2).
-[###]
+002| A:{ .m[X:imm,mut](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
+   |     ---------------------------------------------------------------------~~~~~~~~^--
+
+While inspecting parameter "x" > method "Fresh[_].get" (line 2) > method "A.m(_)" (line 2)
+Parameter "x" has type "X".
+Parameter "x" can observe mutation; thus it cannot be captured in the "iso" object literal "Fresh[_]" (line 2).
+Hint: capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 Box[X:imm,mut,read]:{ mut .get: X }
 A:{ .m[X:imm,mut](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x } }
