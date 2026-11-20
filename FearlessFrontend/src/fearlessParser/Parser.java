@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import core.FearlessException;
@@ -454,6 +455,8 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var acc= new HeadAcc();
     if (peek(SemiColon)){ throw errFactory().topLevelSemicolon(span(peek().get()).get()); }
     if (!peek(LowercaseId)){ return acc; }
+    var directive= peekValidate(_map) || peekValidate(_use);
+    if (!directive){ throw errFactory().notADirective(span(peek().get()).get(), peek().get().content()); }
     expectLast("semicolon", SemiColon);
     splitBy("header element", semiSkip, p -> p.parseHeaderElement(acc));
     return acc;
@@ -499,7 +502,9 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   }
   private void eatPost(){//Guaranteed to advance or error (fwdIf true implies we advanced)
     if (fwdIf(hasPost())){ fwdIf(peek(_SquareGroup)); return; }
-    throw errFactory().missingSemicolonOrOperator(spanAround(index()-1, index()-1));
+    var ts= IntStream.range(0, limit()).mapToObj(i -> peekAbs(i).get()).toList();
+    var arrow= ts.stream().anyMatch(t -> t.is(Arrow)) && ts.stream().takeWhile(t -> !t.is(Arrow)).anyMatch(t -> t.is(DotName, Op));
+    throw errFactory().missingSemicolonOrOperator(spanAround(index()-1, index()-1), arrow);
   }
 
   TSpan tspan(){ return new TSpan(span()); }
