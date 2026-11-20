@@ -182,7 +182,6 @@ In file: [###].fear
    | ---------------^^^^^^^^^^---
 
 While inspecting type declaration "A"
-Missing parameter types for method ".use(_)".
 Cannot infer signature of method ".use(_)".
 No supertype has a method named ".use(_)" with 1 parameter.
 Error 7 WellFormedness
@@ -359,8 +358,8 @@ In file: [###].fear
 002| B:A{}
    |   ^
 
-While inspecting supertype "A"
-Type declaration "A" implements itself, directly or through its supertypes.
+While inspecting type declarations
+Circular implementation relation found involving "A".
 Error 7 WellFormedness
 """, List.of("""
 A:B{}
@@ -372,8 +371,8 @@ In file: [###]/in_memory1.fear
 001| B:A{}
    |   ^
 
-While inspecting supertype "A"
-Type declaration "A" implements itself, directly or through its supertypes.
+While inspecting type declarations
+Circular implementation relation found involving "A".
 Error 7 WellFormedness
 """, List.of("""
 A:B{}
@@ -564,7 +563,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Supertypes disagree on the number of generic type parameters of method ".foo" with 0 parameters.
-Candidates: 1 generic type parameter, 0 generic type parameters.
+Candidates: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -580,7 +579,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Supertypes disagree on the number of generic type parameters of method ".foo" with 0 parameters.
-Candidates: 1 generic type parameter, 0 generic type parameters.
+Candidates: "[X:imm]", "[]".
 Type declaration "B" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""

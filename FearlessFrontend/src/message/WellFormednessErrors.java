@@ -380,9 +380,9 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var color= new HashMap<TName,Integer>(rem.size());
     var name= rem.keySet().stream().map(k -> _dfs(rem, k, color)).filter(Objects::nonNull).findFirst().get();
     return err()
-      .line("Type declaration "+err().tNameADisp(name)+" implements itself, directly or through its supertypes.")
+      .line("Circular implementation relation found involving "+err().tNameADisp(name)+".")
       .wf()
-      .addFrame("supertype "+err().tNameADisp(name), name.approxSpan().inner);
+      .addFrame("type declarations", name.approxSpan().inner);
   }
   private TName _dfs(Map<TName,E.Literal> rem, TName u, HashMap<TName,Integer> color){
     var cu= color.get(u);
@@ -400,7 +400,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var s= m.sig();
     var names= sup.stream().map(si -> si.m().s()).distinct().sorted().toList();
     var best= s.m().filter(_ -> !names.isEmpty()).flatMap(n -> NameSuggester.bestName(n.s(), names));
-    var e= s.m().isEmpty() ? unnamedNotInferred(origin, s, sup) : missingTypes(origin, s, best.isEmpty());
+    var e= s.m().isEmpty() ? unnamedNotInferred(origin, s, sup) : missingTypes(s, best.isEmpty());
     best.ifPresent(b -> e.line(Join.of(sup.stream().filter(si -> si.m().s().equals(b)).map(WellFormednessErrors::supSig).distinct(), "Did you mean ", " or ", " ?")));
     m.names().stream().filter(x -> s.m().isEmpty() && names.contains("."+x)).findFirst()
       .ifPresent(x -> e.line(disp(x)+" is read as a parameter name: a method name starts with \".\", as in "+disp("."+x)+"."));
@@ -408,10 +408,11 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return wf(e, s, origin);
   }
   private static String supSig(core.Sig s){ return methodSig(s.rc().toStrSpace(), s.m()); }
-  private Err missingTypes(E.Literal origin, M.Sig s, boolean addReturnType){
+  private Err missingTypes(M.Sig s, boolean addReturnType){
     var name= methodSig(s.rc().map(r -> r.toStrSpace(false)).orElse(""), s.m().get());
     var allParHasType= s.ts().stream().allMatch(Optional::isPresent);
-    var e= err().line((allParHasType ? "Missing return type" : "Missing parameter types")+" for method "+name+".");
+    var e= err();
+    if (allParHasType){ e.line("Missing return type for method "+name+"."); }
     if (allParHasType && addReturnType){ e
       .line("Add an explicit return type before \"->\".")
       .line("Alternatively (less common), if you intended to override and omit the signature,")
@@ -452,7 +453,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var e= err()
       .line("Supertypes disagree on the number of generic type parameters of method "+err().methodSig(at.mName())
         +" with "+count(at.mName().arity(), "parameter")+".")
-      .line(Join.of(res.stream().map(bs -> count(bs.size(), "generic type parameter")).distinct(), "Candidates: ", ", ", "."))
+      .line(Join.of(res.stream().map(Err::disp), "Candidates: ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes.");
     return wf(e, at);
   }

@@ -6036,7 +6036,6 @@ U:{ .m: base.Void -> Ig#(F#({ .a -> this.b; .b -> base.Void })) }
    |              --^^^^^^^^^^^^^^^--
 
 While inspecting object literal instance of "A"
-Missing parameter types for method ".foo(_)".
 Cannot infer signature of method ".foo(_)".
 No supertype has a method named ".foo(_)" with 1 parameter.
 """, List.of("""

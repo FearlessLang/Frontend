@@ -1008,7 +1008,7 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
 
 While inspecting object literal "Both"
 Supertypes disagree on the number of generic type parameters of method ".id(_)" with 1 parameter.
-Candidates: 1 generic type parameter, 0 generic type parameters.
+Candidates: "[X:imm]", "[]".
 Object literal "Both" cannot implement all of those supertypes.
 """, List.of("""
 Sup1:{ .id[X:imm](x:Sup1):Sup1 }
