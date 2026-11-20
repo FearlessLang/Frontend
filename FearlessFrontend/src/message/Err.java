@@ -191,8 +191,9 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   }
   FearlessException ex(E e){ return ex(e, e); }
   FearlessException typeErr(){ return withNotes(Code.TypeError); }
-  FearlessException ex(E footerE, E focus){
-    var ts= inferredTargs(focus).stream().distinct().toList();
+  FearlessException ex(E footerE, E focus){ return ex(footerE, focus, List.of()); }
+  FearlessException ex(E footerE, E focus, List<T> inferred){
+    var ts= Push.of(inferred.stream().map(t -> typeRepr(true, t)).toList(), inferredTargs(focus)).stream().distinct().toList();
     if (footerE instanceof X || footerE instanceof Type || ts.isEmpty()){ return typeErr(); }
     var body= text();
     var cp= _cp.apply(true);

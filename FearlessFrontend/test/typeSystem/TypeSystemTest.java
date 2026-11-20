@@ -168,7 +168,8 @@ User:{ .m(b:B[User]):A -> b.foo[User,A](this,b) }
 While inspecting parameter "b" > ".foo(_,_)" line 2
 The body of method ".foo(_,_)" of type declaration "B[_]" is an expression returning "_BX".
 Parameter "b" has type "_BX" instead of a subtype of "_AX".
-Method ".foo(_,_)" does not write its whole signature, so it has the signature of "A.foo(_,_)": ".foo[_AX,_BX](a:_AX,b:_BX):_AX".
+Method ".foo(_,_)" inherited the signature from "A.foo(_,_)" as follows:
+.foo[_AX,_BX](a:_AX,b:_BX):_AX
 Generic type parameter "X" of "A.foo(_,_)" is named "_BX" here.
 """, List.of("""
 A:{ .foo[_AX,X](a:_AX,b:X):_AX; }
@@ -192,7 +193,8 @@ While inspecting parameter "x" > ".k(_)" line 3 > ".m(_)" line 3
 Method ".k(_)" inside the object literal instance of "iso G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
-Method ".k(_)" does not write its whole signature, so it has the signature of "G.k(_)": ".k[_AX](y:_AX):_AX".
+Method ".k(_)" inherited the signature from "G.k(_)" as follows:
+.k[_AX](y:_AX):_AX
 Generic type parameter "X" of "G.k(_)" is named "_AX" here.
 """, List.of("""
 G:{ .k[X](y:X):X; }
@@ -207,7 +209,8 @@ While inspecting parameter "x" > ".k(_)" line 3 > ".m(_)" line 3
 Method ".k(_)" inside the object literal instance of "iso G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
-Method ".k(_)" does not write its whole signature, so it has the signature of "G.k(_)": "mut .k[_AX](y:_AX):_AX".
+Method ".k(_)" inherited the signature from "G.k(_)" as follows:
+mut .k[_AX](y:_AX):_AX
 Generic type parameter "X" of "G.k(_)" is named "_AX" here.
 """, List.of("""
 G:{ mut .k[X](y:X):X; }
@@ -240,7 +243,8 @@ While inspecting parameter "this" > "!" line 2 > ".foo" line 2
 Method "!" inside the object literal instance of "iso base.Todo" (line 2)
 is implemented with an expression returning "A".
 Parameter "this" has type "A" instead of a subtype of "_AR".
-Method "!" does not write its whole signature, so it has the signature of "base.Todo!": "![_AR:**]:_AR".
+Method "!" inherited the signature from "base.Todo!" as follows:
+![_AR:**]:_AR
 Generic type parameter "R" of "base.Todo!" is named "_AR" here.
 """, List.of("""
 R:{}
@@ -333,7 +337,8 @@ While inspecting method call "#(_)" > ".v" line 4 > "#" line 4
 Method ".v" inside the object literal instance of "iso G" (line 4)
 is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
-Method ".v" does not write its whole signature, so it has the signature of "G.v": ".v:base.Void".
+Method ".v" inherited the signature from "G.v" as follows:
+.v:base.Void
 
 See inferred typing context below for how type "G" was introduced:
 Outer:{#:G->G{'self .bar:base.Void->base.Void;.v:base.Void->Boxes#[imm,G](self)}}
@@ -549,7 +554,9 @@ The call to ".id(_)" is invalid.
 Generic type argument 1 ("B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "mut" or "read".
-This call writes no generic type arguments: inference chose "B" for "X".
+
+See inferred typing context below for how type "B" was introduced:
+a.id[imm,B](b)
 """, List.of("""
 A:{ imm .id[X:mut,read](x:X):X->x }
 B:{}
@@ -565,7 +572,9 @@ The call to ".id(_)" is invalid.
 Generic type argument 1 ("B") does not satisfy the bounds
 for generic type parameter "X" in "A.id(_)".
 Here "X" can only use capabilities "iso" or "mut".
-This call writes no generic type arguments: inference chose "B" for "X".
+
+See inferred typing context below for how type "B" was introduced:
+a.id[imm,B](b)
 """, List.of("""
 A:{ imm .id[X:mut,iso](x:X):X->x }
 B:{}
@@ -802,7 +811,8 @@ While inspecting object literal instance of "Foo" > "#(_)" line 7 > ".m" line 7
 Method "#(_)" inside the object literal instance of "iso F[Person,Car]" (line 7)
 is implemented with an expression returning "iso Foo".
 Object literal is of type "Foo" instead of a subtype of "Car".
-Method "#(_)" does not write its whole signature, so it has the signature of "F[Person,Car]#(_)": "#(Person):Car".
+Method "#(_)" inherited the signature from "F[Person,Car]#(_)" as follows:
+#(Person):Car
 """, List.of("""
 Person:{}
 Car:{}
@@ -856,7 +866,8 @@ Parameter "loooooong" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
-Method ".get" does not write its whole signature, so it has the signature of "Get.get": "read .get:mut A".
+Method ".get" inherited the signature from "Get.get" as follows:
+read .get:mut A
 """, List.of("""
 A:{}
 Get:{ read .get: mut A; }
@@ -877,7 +888,8 @@ Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
-Method ".get" does not write its whole signature, so it has the signature of "Get.get": "read .get:iso A".
+Method ".get" inherited the signature from "Get.get" as follows:
+read .get:iso A
 """, List.of("""
 A:{}
 Get:{ read .get: iso A; }
@@ -898,7 +910,8 @@ Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
-Method ".get" does not write its whole signature, so it has the signature of "Get.get": "read .get:iso A".
+Method ".get" inherited the signature from "Get.get" as follows:
+read .get:iso A
 """, List.of("""
 A:{}
 Get:{ read .get: iso A; }
@@ -920,7 +933,8 @@ Parameter "loooooong" has type "imm A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
 Capture adaptation trace:
 "mut A" --setToRead(line 6)--> "read A" --strengthenToImm(line 6)--> "A".
-Method ".get" does not write its whole signature, so it has the signature of "Get.get": ".get:iso A".
+Method ".get" inherited the signature from "Get.get" as follows:
+.get:iso A
 """, List.of("""
 A:{}
 Get:{ imm .get: iso A; }
@@ -1698,7 +1712,9 @@ The call to "#(_)" is invalid.
 Generic type argument 1 ("mut A") does not satisfy the bounds
 for generic type parameter "X" in "IdRO#(_)".
 Here "X" can only use capabilities "imm" or "read".
-This call writes no generic type arguments: inference chose "mut A" for "X".
+
+See inferred typing context below for how type "mut A" was introduced:
+IdRO#[imm,mut A](aaaa)
 """, List.of("""
 
 B:{}
@@ -2025,8 +2041,8 @@ A:{ mut .baz(b: B):B->{}; }
 While inspecting object literal instance of "read B" > ".baz(_)" line 2
 The method "mut B.bar" is dead code.
 The object literal instance of "B" is "read", so it will never be seen as "mut".
-Method ".bar" does not write its whole signature, so it has the signature of "B.bar": "mut .bar:mut B".
-Hint: "mut .bar" can stay abstract in a "read" object literal; to implement another method instead, write its receiver capability, as in "read .bar".
+Method ".bar" inherited the signature from "B.bar" as follows:
+mut .bar:mut B
 """, List.of("""
 B:{ mut .bar:mut B }
 A:{ mut .baz(b: mut B):read B-> { .bar->b}; }
@@ -2649,7 +2665,8 @@ Hint: add an implementation for ".foo" inside the object literal.
 While inspecting parameter "this" > ".get" line 2
 The body of method ".get" of type declaration "B" is an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "mut A".
-Method ".get" does not write its whole signature, so it has the signature of "A.get": "mut .get:mut A".
+Method ".get" inherited the signature from "A.get" as follows:
+mut .get:mut A
 Hint: type declaration "B" implements "base.CaptureFree", so parameter "this" is "imm" in every method.
 A value of "B" is never "mut", so "mut .get" can stay abstract.
 A method written without a receiver capability also implements "mut .get": write the receiver capability, as in "read .get".
@@ -3754,7 +3771,8 @@ In file: [###].fear
 While inspecting parameter "::" > ".h(_)" line 3
 The body of method ".h(_)" of type declaration "User" is an expression returning "Sup".
 Parameter "::" has type "Sup" instead of a subtype of "base.Void".
-Method ".h(_)" does not write its whole signature, so it has the signature of "Sup.h(_)": ".h(Sup):base.Void".
+Method ".h(_)" inherited the signature from "Sup.h(_)" as follows:
+.h(Sup):base.Void
 Error 8 TypeError
 """, List.of("""
 
@@ -3891,7 +3909,8 @@ While inspecting parameter "::" > "#(_)" line 3 > ".n(_)" line 3
 Method "#(_)" inside the object literal instance of "iso base.BaseId[read Customer,Person]" (line 3)
 is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "Person".
-Method "#(_)" does not write its whole signature, so it has the signature of "base.BaseId[read Customer,Person]#(_)": "#(read Customer):Person".
+Method "#(_)" inherited the signature from "base.BaseId[read Customer,Person]#(_)" as follows:
+#(read Customer):Person
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -3927,7 +3946,8 @@ While inspecting parameter "::" > "#(_)" line 3 > ".m" line 3
 Method "#(_)" inside the object literal instance of "iso base.BaseId[Person,Customer]" (line 3)
 is implemented with an expression returning "Person".
 Parameter "::" has type "Person" instead of a subtype of "Customer".
-Method "#(_)" does not write its whole signature, so it has the signature of "base.BaseId[Person,Customer]#(_)": "#(Person):Customer".
+Method "#(_)" inherited the signature from "base.BaseId[Person,Customer]#(_)" as follows:
+#(Person):Customer
 """, List.of("""
 Person:{}
 Customer:Person{}
@@ -4322,7 +4342,8 @@ While inspecting parameter "o" > "#" line 13 > "#(_,_)" line 11 > ".take(_,_)" l
 Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13)
 is implemented with an expression returning "mut Opt[E]".
 Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
-Method "#" does not write its whole signature, so it has the signature of "MF[Opt[E]]#": "mut #:Opt[E]".
+Method "#" inherited the signature from "MF[Opt[E]]#" as follows:
+mut #:Opt[E]
 """, List.of("""
 use base.MF as MF;
 Blocks: { #[R:*]: mut Block[R] -> {} }
@@ -5066,7 +5087,9 @@ While inspecting "#(_)" line 9 > ".m" line 9
 This call to method "Pick#(_,_)" cannot typecheck.
 Argument 1 has type "Dog".
 That is not a subtype of "Cat".
-The method signature requires "T", and inference chose "Cat" for "T".
+
+See inferred typing context below for how type "Cat" was introduced:
+Pick#[imm,Cat](x,Cat)
 """, List.of("""
 Animal:{ .name: Animal -> this }
 Cat:Animal{ .purr: Cat -> this }
@@ -5127,7 +5150,9 @@ While inspecting "#(_)" line 9 > ".m" line 9
 This call to method "Pick#(_,_)" cannot typecheck.
 Argument 1 has type "Dog".
 That is not a subtype of "Cat".
-The method signature requires "T", and inference chose "Cat" for "T".
+
+See inferred typing context below for how type "Cat" was introduced:
+Pick#[imm,Cat](x,Cat)
 """, List.of("""
 Animal:{}
 Cat:Animal{}
@@ -5166,7 +5191,9 @@ While inspecting "#(_)" line 9 > ".m(_)" line 9
 This call to method "Pick#(_,_)" cannot typecheck.
 Argument 1 has type "Dog".
 That is not a subtype of "Cat".
-The method signature requires "T", and inference chose "Cat" for "T".
+
+See inferred typing context below for how type "Cat" was introduced:
+Pick#[imm,Cat](x,c)
 """, List.of("""
 Animal:{}
 Cat:Animal{}
@@ -5668,7 +5695,8 @@ A:base.CaptureFree{ imm .foo: A -> base.Block#.let x= {this} .return {x} }
 While inspecting object literal instance of "base.Void" > ".str" line 1
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
-Method ".str" does not write its whole signature, so it has the signature of "base.ToStr.str": "read .str:base.Str".
+Method ".str" inherited the signature from "base.ToStr.str" as follows:
+read .str:base.Str
 """, List.of("""
 A:base.ToStr{ .str -> base.Void }
 """));}
@@ -5679,7 +5707,8 @@ A:base.ToStr{ .str -> base.Void }
 While inspecting object literal instance of "base.Void" > ".str" line 2
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "base.Str".
-Method ".str" does not write its whole signature, so it has the signature of "Show.str": "read .str:base.Str".
+Method ".str" inherited the signature from "Show.str" as follows:
+read .str:base.Str
 """, List.of("""
 use base.ToStr as Show;
 A:Show{ .str -> base.Void }
@@ -5774,7 +5803,9 @@ While inspecting ".m(_,_)" line 2
 This call to method "Pick#(_,_)" cannot typecheck.
 Argument 2 has type "base.Void".
 That is not a subtype of "X".
-The method signature requires "T", and inference chose "X" for "T".
+
+See inferred typing context below for how type "X" was introduced:
+Pick#[imm,X](x,y)
 """, List.of("""
 Pick:{ #[T:*](a:T, b:T):T -> a }
 C[X:*]:{ .m(x:X, y:base.Void):X -> Pick#(x,y) }
@@ -5787,7 +5818,9 @@ While inspecting ".m" line 5
 This call to method "Pick3#(_,_,_)" cannot typecheck.
 Argument 2 has type "iso B".
 That is not a subtype of "A".
-The method signature requires "T", and inference chose "A" for "T".
+
+See inferred typing context below for how type "A" was introduced:
+Pick3#[imm,A](A,B,C)
 """, List.of("""
 Pick3:{ #[T:*](a:T, b:T, c:T):T -> a }
 A:{}
@@ -6131,7 +6164,9 @@ While inspecting ".j" line 4 > ".m" line 4
 This call to method "H#(_,_)" cannot typecheck.
 Argument 2 has type "iso B".
 That is not a subtype of the anonymous type of the object literal at line 4, column 22.
-The method signature requires "X", and inference chose the anonymous type of the object literal at line 4, column 22 for "X".
+
+See inferred typing context below for how type the anonymous type of the object literal at line 4, column 22 was introduced:
+H#[imm,_BU](Box[_BU]{.get:_BU->s},B)
 """, List.of("""
 Box[E:*]:{ .get: E }
 H:{ #[X:*](b: Box[X], x: X): base.Void -> base.Void }
@@ -6273,7 +6308,9 @@ While inspecting ".k" line 3
 This call to method "A.m(_)" cannot typecheck.
 Argument 1 has type "iso C".
 That is not a subtype of "Box[base.Void]".
-The method signature requires "Box[X]", and inference chose "base.Void" for "X".
+
+See inferred typing context below for how type "base.Void" was introduced:
+this.m[imm,base.Void](C)
 """, List.of("""
 Box[T]:{}
 C:Box[A],Box[C]{}
@@ -6287,7 +6324,9 @@ While inspecting ".k" line 3
 This call to method "A.m(_)" cannot typecheck.
 Argument 1 has type "iso C".
 That is not a subtype of "Box[base.Void]".
-The method signature requires "Box[X]", and inference chose "base.Void" for "X".
+
+See inferred typing context below for how type "base.Void" was introduced:
+this.m[imm,base.Void](C)
 """, List.of("""
 Box[T]:{}
 C:Box[C],Box[A]{}

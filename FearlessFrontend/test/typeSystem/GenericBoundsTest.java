@@ -39,7 +39,8 @@ B:A[FortyTwo]{ .count -> FortyTwo; .sum -> FortyTwo{} }
 While inspecting object literal instance of "FortyThree" > ".sum" line 5
 The body of method ".sum" of type declaration "B" is an expression returning "iso FortyThree".
 Object literal is of type "FortyThree" instead of a subtype of "FortyTwo".
-Method ".sum" does not write its whole signature, so it has the signature of "A[FortyTwo].sum": ".sum:FortyTwo".
+Method ".sum" inherited the signature from "A[FortyTwo].sum" as follows:
+.sum:FortyTwo
 """, List.of("""
 Res1:{} Res2:{}
 FortyTwo:{ .get: Res1 -> Res1 }
@@ -54,7 +55,8 @@ B:A[FortyTwo]{ .count -> FortyTwo; .sum -> FortyThree }
 While inspecting parameter "n" > ".sum(_)" line 4
 The body of method ".sum(_)" of type declaration "B" is an expression returning "mut FortyTwo".
 Parameter "n" has type "mut FortyTwo" instead of a subtype of "imm FortyTwo".
-Method ".sum(_)" does not write its whole signature, so it has the signature of "A[FortyTwo].sum(_)": "mut .sum(n:mut FortyTwo):FortyTwo".
+Method ".sum(_)" inherited the signature from "A[FortyTwo].sum(_)" as follows:
+mut .sum(n:mut FortyTwo):FortyTwo
 """, List.of("""
 Res1:{}
 FortyTwo:{ .get: Res1 -> Res1 }
@@ -444,7 +446,9 @@ Generic type argument 1 ("Z") does not satisfy the bounds
 for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
-This call writes no generic type arguments: inference chose "Z" for "Y".
+
+See inferred typing context below for how type "Z" was introduced:
+Util.m[imm,Z](z)
 """, List.of("""
 Foo:{}
 Util:{ .m[Y:imm](y: Y): Foo -> Foo }
@@ -465,7 +469,9 @@ Generic type argument 1 ("Z") does not satisfy the bounds
 for generic type parameter "Y" in "Util.m(_)".
 Here "Y" can only use capability "imm".
 But generic type argument "Z" can only use capability "mut".
-This call writes no generic type arguments: inference chose "Z" for "Y".
+
+See inferred typing context below for how type "Z" was introduced:
+Util.m[imm,Z](z)
 """, List.of("""
 Foo:{}
 Util:{ .m[Y:imm](y: Y): Foo -> Foo }
@@ -490,11 +496,13 @@ This call to method "A#(_)" cannot typecheck.
 Argument 1 has type "Foo".
 That is not a subtype of any of "mut Foo" or "iso Foo".
 Parameter "f" has type "imm Foo" instead of a subtype of "mut Foo".
-The method signature requires "X", and inference chose "mut Foo" for "X".
 
 Type required by each promotion:
 - "mut Foo"  (As declared)
 - "iso Foo"  (Strengthen result)
+
+See inferred typing context below for how type "mut Foo" was introduced:
+Break:{.m(f:Foo):Foo->A#[imm,mut Foo](f)}
 """, List.of("""
 Foo:{}
 A:{ #[X:mut](x: X): X -> x }

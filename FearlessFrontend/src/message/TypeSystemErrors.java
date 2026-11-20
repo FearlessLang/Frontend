@@ -77,7 +77,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     if (fm.isEmpty() || wholeSig(fm.get(), m.sig()) || parent.isEmpty()){ return Optional.empty(); }
     var c= parent.get();
     var pm= methodSig(err().cp().msgT(new T.RCC(RC.imm, c, c.span())), m.sig().m());
-    var res= "Method "+err().methodSig(m.sig().m())+" does not write its whole signature, so it has the signature of "+pm+": "+disp(err().cp().sig(m))+".";
+    var res= "Method "+err().methodSig(m.sig().m())+" inherited the signature from "+pm+" as follows:\n"+err().cp().sig(m);
     var renamed= Streams.zip(declared(c, m.sig()).get().bs(), m.sig().bs()).filter((ps,h) -> !ps.x().equals(h.x()));
     var from= renamed.map((p,_) -> disp(p.x())).toList();
     if (from.isEmpty()){ return Optional.of(res); }
@@ -116,7 +116,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       case KindingTarget.CallKinding(var t, var c) -> typeNotWellKindedSig(t, c, index, caps(bounds), caps(got));
     };
     var span= toErr.span().inner.contained(target.span().inner) ? target.span().inner : toErr.span().inner;
-    return addExpFrame(toErr, err.typeErr().addSpan(span));
+    return addExpFrame(toErr, err.ex(toErr).addSpan(span));
   }
   private static String caps(EnumSet<RC> rcs){ return (rcs.size() == 1 ? "capability " : "capabilities ")+Join.of(rcs.stream().map(Err::disp).sorted(), "", " or ", ""); }
   private Err typeNotWellKinded(String name, T.C c, int index, String allowedStr, String gotStr){
@@ -130,20 +130,16 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var param= m.sig().bs().get(index);
     var decName= err().methodSig(c.rc().toStrSpace(), d, c.name()); // p.A.m(...)
     var bad= c.targs().get(index);
-    var e= err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, bad, allowedStr, gotStr);
-    if (!Err.inferredTargs(c)){ return e; }
-    return e.line("This call writes no generic type arguments: inference chose "+err().typeRepr(true, bad)+" for "+disp(param.x())+".");
+    return err().pTypeArgBounds("call to "+err().methodSig(c.name()), decName, disp(param.x()), index, bad, allowedStr, gotStr);
   }
-  private Optional<String> inferredInParam(Literal d, Call c, int argi){
-    if (!Err.inferredTargs(c)){ return Optional.empty(); }
+  private List<T> inferredInParam(Literal d, Call c, int argi){
+    if (!Err.inferredTargs(c)){ return List.of(); }
     var s= OneOr.of("Malformed methods", d.ms().stream().map(M::sig).filter(si -> si.m().equals(c.name()) && si.rc() == c.rc()));
     var param= s.ts().get(argi);
-    var chosen= IntStream.range(0, s.bs().size())
+    return IntStream.range(0, s.bs().size())
       .filter(i -> mentions(param, s.bs().get(i).x()))
-      .mapToObj(i -> err().typeRepr(true, c.targs().get(i))+" for "+disp(s.bs().get(i).x()))
+      .mapToObj(c.targs()::get)
       .toList();
-    if (chosen.isEmpty()){ return Optional.empty(); }
-    return Optional.of("The method signature requires "+err().typeRepr(true, param)+", and inference chose "+Join.of(chosen, "", " and ", "")+".");
   }
   private static boolean mentions(T t, String x){ return switch (t){
     case T.X(var n, _) -> n.equals(x);
@@ -245,11 +241,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var e= err()
       .line("The method "+err().methodSig(s.rc().toStrSpace(), l, s.m())+" is dead code.")
       .line("The "+err().expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".");
-    var inherited= inheritedSig(l, got);
-    if (inherited.isEmpty()){ e.line("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver."); }
-    inherited.ifPresent(i -> e
-      .line(i)
-      .line("Hint: "+m+" can stay abstract in "+(l.rc() == RC.imm ? "an " : "a ")+disp(l.rc())+" object literal; to implement another method instead, write its receiver capability, as in "+methodSig(l.rc()+" ", s.m())+"."));
+    e.line(inheritedSig(l, got).orElse("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver."));
     return addExpFrame(l, e.typeErr().addSpan(s.span().inner));
   }
   public FearlessException selfNameDeadCode(Literal l){
@@ -508,14 +500,13 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
       .notInSubtypeList(any)
-      .line(up(r.info(printed)));
-    inferredInParam(d, c, argi).ifPresent(e::line);
-    e.blank()
+      .line(up(r.info(printed)))
+      .blank()
       .line("Type required by each promotion:");
     reqs.forEach(q -> e.bullet(err().typeRepr(false, q.t())+"  ("+q.reqName()+")"));
     addNoPrecedenceHintIfOperator(e, c);
     var footer= r.footerE.get();
-    return withCallSpans(e.ex(footer, c.es().get(argi)), c);
+    return withCallSpans(e.ex(footer, c.es().get(argi), inferredInParam(d, c, argi)), c);
   }
   private FearlessException wrongUnderlyingTypeErr(Literal d, Call c, int argi, T declared, List<Reason> res){
     var gotHdr= headerBest(res);//TODO: Eventually this will need to be matched with the meth body subtype and both
@@ -526,9 +517,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .pCallCantBeSatisfied(d, c)
       .line("Argument "+(argi+1)+" has type "+err().typeRepr(true, gotHdr)+".")
       .line("That is not a subtype of "+err().typeRepr(true, declared)+(inferred.isEmpty() ? " (the type required by the method signature)." : "."));
-    inferred.ifPresent(e::line);
     addNoPrecedenceHintIfOperator(e, c);
-    return withCallSpans(e.ex(c, c.es().get(argi)), c);
+    return withCallSpans(e.ex(c, c.es().get(argi), inferred), c);
   }
   private void addNoPrecedenceHintIfOperator(Err e, Call c){
     var s= c.name().s();

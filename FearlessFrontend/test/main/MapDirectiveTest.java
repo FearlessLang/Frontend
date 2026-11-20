@@ -59,7 +59,8 @@ In file: [###].fear
 While inspecting object literal instance of "base.Void" > ".fromC" line 1
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
-Method ".fromC" does not write its whole signature, so it has the signature of "a.A.fromC": ".fromC:a.A".
+Method ".fromC" inherited the signature from "a.A.fromC" as follows:
+.fromC:a.A
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cA), Map.of("a", "c"), """
@@ -876,7 +877,8 @@ While inspecting object literal instance of "base.Void" > ".fromC" line 1 > ".m"
 Method ".fromC" inside the object literal instance of "iso a.A" (line 1)
 is implemented with an expression returning "iso base.Void".
 Object literal is of type "base.Void" instead of a subtype of "a.A".
-Method ".fromC" does not write its whole signature, so it has the signature of "a.A.fromC": ".fromC:a.A".
+Method ".fromC" inherited the signature from "a.A.fromC" as follows:
+.fromC:a.A
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of("c", cBox), Map.of("a", "c"), """
@@ -999,7 +1001,8 @@ While inspecting object literal instance of "B" > ".fromC" line 2 > ".m" line 2
 Method ".fromC" inside the object literal instance of "iso X" (line 2)
 is implemented with an expression returning "iso B".
 Object literal is of type "B" instead of a subtype of "X".
-Method ".fromC" does not write its whole signature, so it has the signature of "X.fromC": ".fromC:X".
+Method ".fromC" inherited the signature from "X.fromC" as follows:
+.fromC:X
 
 Name "X" stands for "a.A" because of "use a.A as X".
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1800,8 +1803,8 @@ In file: [###].fear
 While inspecting object literal instance of "read a.M" > ".baz(_)" line 1
 The method "mut a.M.bar" is dead code.
 The object literal instance of "a.M" is "read", so it will never be seen as "mut".
-Method ".bar" does not write its whole signature, so it has the signature of "a.M.bar": "mut .bar:mut a.M".
-Hint: "mut .bar" can stay abstract in a "read" object literal; to implement another method instead, write its receiver capability, as in "read .bar".
+Method ".bar" inherited the signature from "a.M.bar" as follows:
+mut .bar:mut a.M
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
@@ -1980,7 +1983,8 @@ Parameter "x" has type "read a.D" instead of a subtype of "mut a.D".
 Note: the declared type "mut a.D" would instead be a valid subtype.
 Capture adaptation trace:
 "mut a.D" --setToRead(line 1)--> "read a.D".
-Method ".get" does not write its whole signature, so it has the signature of "a.Get.get": "read .get:mut a.D".
+Method ".get" inherited the signature from "a.Get.get" as follows:
+read .get:mut a.D
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError
@@ -2660,7 +2664,8 @@ While inspecting parameter "this" > ".fromC" line 2 > ".k" line 2
 Method ".fromC" inside the object literal instance of "iso X" (line 2)
 is implemented with an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "X".
-Method ".fromC" does not write its whole signature, so it has the signature of "X.fromC": ".fromC:X".
+Method ".fromC" inherited the signature from "X.fromC" as follows:
+.fromC:X
 
 Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
