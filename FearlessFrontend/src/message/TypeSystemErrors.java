@@ -271,8 +271,8 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var x= disp(p.map(FearlessErrFactory::patternRepr).orElse(usages.getFirst().src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : name));
     var e= err().line("Iso parameter "+x+" violates the single-use rule in method "+ms+" (line "+line+").");
     p.filter(_ -> earlyErrOnMoreThenOnceDirectly).ifPresent(d -> e.line("The pattern "+x+" calls "+Join.of(d.extract().stream().map(ns -> disp(ns.getFirst().s())), "", " and ", "")+" on it."));
-    var ex= isoMisuse(e, earlyErrOnMoreThenOnceDirectly, usages.size())
-      .line("Allowed: capture into object literals as "+disp(RC.imm)+", or use directly once.")
+    var ex= e.line(earlyErrOnMoreThenOnceDirectly ? "It is used directly "+usages.size()+" times." : "It is used directly and also captured into object literals.")
+      .line("An iso parameter can either be captured into object literals, where it is seen as "+disp(RC.imm)+", or be used directly once.")
       .typeErr();
     for (var u : usages){ ex.addSpan(u.span().inner); }
     return ex;
@@ -281,12 +281,6 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     if (usage.src().inner instanceof fearlessFullGrammar.E.Implicit){ return Optional.empty(); }
     var xp= srcM(l, m.sig()).get().sig().get().parameters().get(m.xs().indexOf(name)).xp().get();
     return xp instanceof fearlessFullGrammar.XPat.Destruct d ? Optional.of(d) : Optional.empty();
-  }
-  private static Err isoMisuse(Err e, boolean moreThanOnceDirectly, int usages){
-    if (moreThanOnceDirectly){ return e.line("It is used directly "+usages+" times.").line("Iso parameters can be used directly at most once."); }
-    return e
-      .line("It is used directly and also captured into object literals.")
-      .line("An iso parameter must be either captured, or used directly once (but not both).");
   }
   ///Expression at method body has a type that does not meet its result requirement(s).
   ///"body has wrong type" error; can only trigger if all current-expressions at are well typed.
@@ -356,7 +350,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private String whyDropReadHMutH(String subject, Change.NoT why){
     var explicitH= why.atDrop().explicitH()
       ? "The type of "+subject+" is hygienic (readH or mutH)\n"
-      : "The type of "+subject+" can be instantiated with hygienics (readH or mutH)\n";
+      : "The type of "+subject+" can be instantiated with a hygienic capability (readH or mutH)\n";
     return up(subject)+" has type "+err().typeRepr(true, why.atDrop())+".\n"
     +explicitH+"and thus it cannot be captured in the "+err().expRepr(why.l())
     +" (line "+why.l().span().inner.startLine()+").\n";
