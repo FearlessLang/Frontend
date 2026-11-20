@@ -70,6 +70,8 @@ Method ".a1" inside the object literal instance of "mut Container" (line 2)
 is implemented with an expression returning "read A".
 Parameter "a" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
+Capturing changes the type of parameter "a":
+- "mut A" becomes "read A" inside the "read" method ".a1" (line 2).
 Capture adaptation trace:
 "mut A" --setToRead(line 2)--> "read A".
 Method ".a1" inherited the signature from "Container.a1" as follows:
@@ -78,6 +80,96 @@ read .a1: mut A
 A:{}
 ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }
 Container:{ read .a1: mut A; mut .a2: mut A }
+"""));}
+@Test void thisOfAReadMethodIsReadWithNoDeclaredNote(){fail("""
+001| A:{ read .me: mut A -> this }
+   |     -------------------^^^^
+
+While inspecting parameter "this" > method "A.me" (line 1)
+The body of method ".me" of type declaration "A" is an expression returning "read A".
+Parameter "this" has type "read A" instead of a subtype of "mut A".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".me" (line 1).
+Capture adaptation trace:
+"mut A" --setToRead(line 1)--> "read A".
+""", List.of("""
+A:{ read .me: mut A -> this }
+"""));}
+@Test void thisCapturedInALiteralOfAReadMethodIsRead(){fail("""
+002| A:{ read .me: mut F -> mut F{ .get -> this } }
+   |     --------------------------~~~~~~~~^^^^--
+
+While inspecting parameter "this" > method "F.get" (line 2) > method "A.me" (line 2)
+Method ".get" inside the object literal instance of "mut F" (line 2)
+is implemented with an expression returning "read A".
+Parameter "this" has type "read A" instead of a subtype of "mut A".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".me" (line 2).
+Capture adaptation trace:
+"mut A" --setToRead(line 2)--> "read A".
+Method ".get" inherited the signature from "F.get" as follows:
+mut .get: mut A
+""", List.of("""
+F:{ mut .get: mut A }
+A:{ read .me: mut F -> mut F{ .get -> this } }
+"""));}
+@Test void thisCapturedInAReadMethodOfALiteralInAMutMethodHasNoDeclaredNote(){fail("""
+002| A:{ mut .me: mut F -> mut F{ read .get -> this } }
+   |     -------------------------~~~~~~~~~~~~~^^^^--
+
+While inspecting parameter "this" > method "F.get" (line 2) > method "A.me" (line 2)
+Method ".get" inside the object literal instance of "mut F" (line 2)
+is implemented with an expression returning "read A".
+Parameter "this" has type "read A" instead of a subtype of "mut A".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".get" (line 2).
+Capture adaptation trace:
+"mut A" --setToRead(line 2)--> "read A".
+Method ".get" inherited the signature from "F.get" as follows:
+read .get: mut A
+""", List.of("""
+F:{ read .get: mut A }
+A:{ mut .me: mut F -> mut F{ read .get -> this } }
+"""));}
+@Test void isoReceiverCapturedInALiteralIsImm(){fail("""
+003| A:{ .m(b: iso B): F -> { b.x } }
+   |     ---------------------^~~--
+
+While inspecting method "F#" (line 3) > method "A.m(_)" (line 3)
+This call to method "mut B.x" cannot typecheck.
+The receiver (the expression before the method name) has capability "imm".
+This call requires a receiver with capability "mut" or "iso".
+Capturing changes the type of parameter "b":
+- "iso B" becomes "imm B" inside the "mut" method "#" (line 3).
+Capture adaptation trace:
+"iso B" --strengthenToImm(line 3)--> "B".
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result)
+""", List.of("""
+B:{ mut .x: B }
+F:{ mut #: B }
+A:{ .m(b: iso B): F -> { b.x } }
+"""));}
+@Test void thisReceiverOfAReadMethodIsRead(){fail("""
+001| A:{ read .m: A -> this.mm; mut .mm: A -> A }
+   |     --------------^^^^~~~
+
+While inspecting method "A.m" (line 1)
+This call to method "mut A.mm" cannot typecheck.
+The receiver (the expression before the method name) has capability "read".
+This call requires a receiver with capability "mut" or "iso".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".m" (line 1).
+Capture adaptation trace:
+"mut A" --setToRead(line 1)--> "read A".
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result)
+""", List.of("""
+A:{ read .m: A -> this.mm; mut .mm: A -> A }
 """));}
 @Test void mutTypeVariableCaptureInReadMethodShowsDeclaredNote(){fail("""
 002| A:{ .m[X:*](x: mut X): mut Get[mut X] -> mut Get[mut X]{ read .get: mut X -> x } }
@@ -88,6 +180,8 @@ Method ".get" inside the object literal instance of "mut Get[mut X]" (line 2)
 is implemented with an expression returning "read X".
 Parameter "x" has type "read X" instead of a subtype of "mut X".
 Note: the declared type "mut X" would instead be a valid subtype.
+Capturing changes the type of parameter "x":
+- "mut X" becomes "read X" inside the "read" method ".get" (line 2).
 Capture adaptation trace:
 "mut X" --setToRead(line 2)--> "read X".
 """, List.of("""
@@ -915,6 +1009,8 @@ Method ".get" inside the object literal instance of "mut Get[X]" (line 2)
 is implemented with an expression returning "read/imm X".
 Parameter "x" has type "read/imm X" instead of a subtype of "X".
 Note: the declared type "X" would instead be a valid subtype.
+Capturing changes the type of parameter "x":
+- "X" becomes "read/imm X" inside the "mut" method ".get" (line 2).
 Capture adaptation trace:
 "X" --setToReadImm(line 2)--> "read/imm X".
 """, List.of("""

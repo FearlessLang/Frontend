@@ -945,6 +945,8 @@ Method ".get" inside the object literal instance of "read Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
+Capturing changes the type of parameter "loooooong":
+- "mut A" becomes "read A" inside the "read" method ".get" (line 5).
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 Method ".get" inherited the signature from "Get.get" as follows:
@@ -967,6 +969,8 @@ Method ".get" inside the object literal instance of "read Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
+Capturing changes the type of parameter "loooooong":
+- "mut A" becomes "read A" inside the "read" method ".get" (line 5).
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 Method ".get" inherited the signature from "Get.get" as follows:
@@ -989,6 +993,8 @@ Method ".get" inside the object literal instance of "read Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
+Capturing changes the type of parameter "loooooong":
+- "mut A" becomes "read A" inside the "read" method ".get" (line 5).
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 Method ".get" inherited the signature from "Get.get" as follows:
@@ -1012,6 +1018,9 @@ Method ".get" inside the object literal instance of "mut Get" (line 6)
 is implemented with an expression returning "A".
 Parameter "loooooong" has type "imm A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
+Capturing changes the type of parameter "loooooong":
+- "mut A" becomes "read A" inside the "read" method ".wrap" (line 6).
+- "read A" becomes "imm A" inside the "imm" method ".get" (line 6).
 Capture adaptation trace:
 "mut A" --setToRead(line 6)--> "read A" --strengthenToImm(line 6)--> "A".
 Method ".get" inherited the signature from "Get.get" as follows:
@@ -1663,6 +1672,10 @@ While inspecting method "User.m(_)" (line 4)
 This call to method "mut User.zap(_)" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
+The capability of the methods changes the type of parameter "this":
+- "mut User" becomes "read User" inside the "read" method ".m(_)" (line 4).
+Capture adaptation trace:
+"mut User" --setToRead(line 4)--> "read User".
 
 Receiver required by each promotion:
 - "mut" (As declared)
@@ -1757,6 +1770,8 @@ Argument 1 has type "read A".
 That is not a subtype of any of "mut A" or "iso A".
 Parameter "aaaa" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
+Capturing changes the type of parameter "aaaa":
+- "mut A" becomes "read A" inside the "read" method ".foo" (line 5).
 Capture adaptation trace:
 "mut A" --setToRead(line 5)--> "read A".
 
@@ -2011,6 +2026,10 @@ While inspecting method "A.bar" (line 1)
 This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".bar" (line 1).
+Capture adaptation trace:
+"mut A" --setToRead(line 1)--> "read A".
 """, List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123;}
 """));}//With inference we infer [imm] (next case)
@@ -2022,6 +2041,10 @@ While inspecting method "A.bar" (line 1)
 This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".bar" (line 1).
+Capture adaptation trace:
+"mut A" --setToRead(line 1)--> "read A".
 """, List.of("""
 A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 """));}
@@ -2053,6 +2076,10 @@ While inspecting method "A.bar" (line 1)
 This call to method "mut A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "imm".
 This call requires a receiver with capability "mut" or "iso".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "imm A" inside the "imm" method ".bar" (line 1).
+Capture adaptation trace:
+"mut A" --strengthenToImm(line 1)--> "A".
 
 Receiver required by each promotion:
 - "mut" (As declared)
@@ -2068,6 +2095,10 @@ While inspecting method "A.bar" (line 1)
 This call to method "A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "imm".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".bar" (line 1).
+Capture adaptation trace:
+"mut A" --setToRead(line 1)--> "read A".
 """, List.of("""
 A:{mut .foo123:A->this.foo123; imm .foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 """));}
@@ -2084,6 +2115,10 @@ While inspecting method "A.bar" (line 6)
 This call to method "mut A.foo123" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
+The capability of the methods changes the type of parameter "this":
+- "mut A" becomes "read A" inside the "read" method ".bar" (line 6).
+Capture adaptation trace:
+"mut A" --setToRead(line 6)--> "read A".
 
 Receiver required by each promotion:
 - "mut" (As declared)
@@ -4578,6 +4613,10 @@ While inspecting method "Counter.get" (line 4) > method "Make#" (line 2)
 This call to method "mut Counter.inc" cannot typecheck.
 The receiver (the expression before the method name) has capability "read".
 This call requires a receiver with capability "mut" or "iso".
+The capability of the methods changes the type of parameter "self":
+- "mut Counter" becomes "read Counter" inside the "read" method ".get" (line 4).
+Capture adaptation trace:
+"mut Counter" --setToRead(line 4)--> "read Counter".
 
 Receiver required by each promotion:
 - "mut" (As declared)
@@ -6745,5 +6784,22 @@ F:{ #(a:A): A }
 G:{ .m(a:A): A; .k: A }
 Use:{ #[X](f:F, g:X): X -> g }
 User:{ .u(a:A): B -> Use#({::.fooooooooooooooooooooooooooooooooooooooo}, G{ .m -> ::.fooooooooooooooooooooooooooooooooooooooo; .k -> A }) }
+"""));}
+@Test void aParameterWrittenWithoutCapabilityIsImmAsReceiverOfAMutMethod(){fail("""
+002| U:{ .m(c: Counter): Counter -> c.inc }
+   |     ---------------------------^~~~~
+
+While inspecting method "U.m(_)" (line 2)
+This call to method "mut Counter.inc" cannot typecheck.
+The receiver (the expression before the method name) has capability "imm".
+This call requires a receiver with capability "mut" or "iso".
+Parameter "c" has type "imm Counter": a type written without a capability, as "Counter", is "imm".
+
+Receiver required by each promotion:
+- "mut" (As declared)
+- "iso" (Strengthen result)
+""", List.of("""
+Counter:{ mut .inc: Counter }
+U:{ .m(c: Counter): Counter -> c.inc }
 """));}
 }

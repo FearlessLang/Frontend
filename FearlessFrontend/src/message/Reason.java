@@ -72,24 +72,34 @@ public final class Reason{
     var noDeclaredNote= !rcOnly || declared.equals(got);
     if (noDeclaredNote){ return new Reason(got, base, es.printed(), () -> baseFooterE(ts.scope(), got, req.t())); }
     var e= es.err().line(base);
-    e.line(declaredOkExpected
+    var self= TypeSystemErrors.isSelfName(ts.scope(), x.name());
+    if (!self){ e.line(declaredOkExpected
       ? "Note: the declared type "+es.err().typeRepr(true, declared)+" would instead be a valid subtype."
       : "Note: the declared type "+es.err().typeRepr(true, declared)+" also does not satisfy the requirement."
-    );
-    var trace= vpaTrace(es, cur);
-    if (!trace.isEmpty()){ e.line("Capture adaptation trace:\n"+trace+"."); }
+    ); }
+    e.line(adaptation(es, self, x, cur));
     return new Reason(got, e.text(), es.printed(), () -> baseFooterE(ts.scope(), got, req.t()));
   }
-  private static String vpaTrace(TypeSystemErrors es, WithT cur){ return switch (cur){
+  static String adaptation(TypeSystemErrors es, boolean self, X x, WithT cur){
+    return (self ? "The capability of the methods changes the type of " : "Capturing changes the type of ")+es.err().expRepr(x)+":"+steps(es, cur)
+      +"\nCapture adaptation trace:\n"+vpaTrace(es, cur)+".";
+  }
+  private static String steps(TypeSystemErrors es, WithT cur){ return switch (cur){
     case Same _ -> "";
+    case KeepStrengthenToImm(_, var m, var to, var tail) -> step(es, tail, to, m);
+    case KeepSetToReadImm(_, var m, var to, var tail) -> step(es, tail, to, m);
+  };}
+  private static String step(TypeSystemErrors es, WithT tail, T to, M m){
+    var s= m.sig();
+    return steps(es, tail)+"\n- "+es.err().typeRepr(false, tail.currentT())+" becomes "+es.err().typeRepr(false, to)
+      +" inside the "+disp(s.rc())+" method "+es.err().methodSig(s.m())+" (line "+s.span().inner.startLine()+").";
+  }
+  private static String vpaTrace(TypeSystemErrors es, WithT cur){ return switch (cur){
+    case Same(var t) -> es.err().typeRepr(true, t);
     case KeepStrengthenToImm(_, var m, var to, var tail) -> traceKeep(es, tail, "strengthenToImm", to, m);
     case KeepSetToReadImm(_, var m, var to, var tail) -> traceKeep(es, tail, to.explicitRC().isPresent() ? "setToRead" : "setToReadImm", to, m);
   };}
   private static String traceKeep(TypeSystemErrors es, WithT tail, String op, T to, M m){
-    var prev= vpaTrace(es, tail);
-    if (tail.currentT().equals(to)){ return prev; }
-    var edge= " --"+op+"(line "+m.sig().span().inner.startLine()+")--> "+es.err().typeRepr(true, to);
-    if (prev.isEmpty()){ return es.err().typeRepr(true, tail.currentT())+edge; }
-    return prev+edge;
+    return vpaTrace(es, tail)+" --"+op+"(line "+m.sig().span().inner.startLine()+")--> "+es.err().typeRepr(true, to);
   }
 }

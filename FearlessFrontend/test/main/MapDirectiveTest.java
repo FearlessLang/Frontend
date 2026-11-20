@@ -1979,6 +1979,8 @@ Method ".get" inside the object literal instance of "read a.Get" (line 1)
 is implemented with an expression returning "read a.D".
 Parameter "x" has type "read a.D" instead of a subtype of "mut a.D".
 Note: the declared type "mut a.D" would instead be a valid subtype.
+Capturing changes the type of parameter "x":
+- "mut a.D" becomes "read a.D" inside the "read" method ".get" (line 1).
 Capture adaptation trace:
 "mut a.D" --setToRead(line 1)--> "read a.D".
 Method ".get" inherited the signature from "a.Get.get" as follows:
