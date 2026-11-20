@@ -49,7 +49,7 @@ public final class TypeInMethodTest extends testUtils.FearlessTestBase{
 002| B:{.m:A->A}
    |    ------^
 
-While inspecting object literal instance of "A" > ".m" line 2
+While inspecting object literal instance of "A" > method "B.m" (line 2)
 The type "A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
@@ -58,7 +58,7 @@ A type is standalone if it is declared at top level, or if it implements "base.C
 001| B:{.m:a.A->a.A}
    |    --------^^^
 
-While inspecting object literal instance of "a.A" > ".m" line 1
+While inspecting object literal instance of "a.A" > method "B.m" (line 1)
 The type "a.A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
@@ -97,7 +97,7 @@ B:{.m:A->A}
 003| B:{.m:A->A}
    |    ------^
 
-While inspecting object literal instance of "A" > ".m" line 3
+While inspecting object literal instance of "A" > method "B.m" (line 3)
 The type "A" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "CF".
@@ -257,7 +257,7 @@ In file: [###].fear
 001| B:{.m: base.Void -> a.Take#({})}
    |    -------------------------^^-
 
-While inspecting object literal instance of "iso a.S" > ".m" line 1
+While inspecting object literal instance of "iso a.S" > method "B.m" (line 1)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "a.S".
@@ -276,7 +276,7 @@ In file: [###].fear
 001| B:{.m: base.Void -> a.Take#(a.S)}
    |    -------------------------^^^-
 
-While inspecting object literal instance of "iso a.S" > ".m" line 1
+While inspecting object literal instance of "iso a.S" > method "B.m" (line 1)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "a.S".
