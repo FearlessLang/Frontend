@@ -559,7 +559,7 @@ A:{ .m ->
 In file: [###].fear
 
 001| A:{ .m ->
-002| (   (    Block#.let x= .use(x)    )      )
+002| (   (    Block#.let y= .use(y)    )      )
    | ----~~~~~~~~~~~~~~~~~~~^^^^^^^~~~~~-------
 
 While inspecting expression in round parenthesis > expression in round parenthesis > method body > method declaration > type declaration body > type declaration > full file
@@ -568,7 +568,7 @@ Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 """, """
 A:{ .m ->
-(   (    Block#.let x= .use(x)    )      )
+(   (    Block#.let y= .use(y)    )      )
  }
 """);}
 
@@ -909,7 +909,7 @@ A:{ .m -> :+45 }
 @Test void err_bad_open_square_with_space(){fail("""
 In file: [###].fear
 
-001| A:{ x -> x.foo [read] }
+001| A:{ y -> y.bar [mut] }
    |                ^
 
 While inspecting common ambiguities
@@ -919,12 +919,12 @@ Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
 """, """
-A:{ x -> x.foo [read] }
+A:{ y -> y.bar [mut] }
 """);}
 @Test void err_bad_open_square_after_block_comment_method(){fail("""
 In file: [###].fear
 
-001| A:{ x -> x.foo/*c*/[read] }
+001| A:{ y -> y.bar/*c*/[mut] }
    |                    ^
 
 While inspecting common ambiguities
@@ -934,7 +934,7 @@ Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
 """, """
-A:{ x -> x.foo/*c*/[read] }
+A:{ y -> y.bar/*c*/[mut] }
 """);}
 @Test void err_bad_open_square_after_block_comment_type(){fail("""
 In file: [###].fear
@@ -969,7 +969,7 @@ A:{ x -> x +/*c*/[read] x }
 @Test void err_bad_open_square_after_line_comment(){fail("""
 In file: [###].fear
 
-002| [read] }
+002| [mut] }
    | ^
 
 While inspecting common ambiguities
@@ -979,8 +979,8 @@ Valid: "Foo[Bar]", "x.foo[read]".
 Invalid: "Foo [Bar]", "x.foo [read]".
 Error 2 UnexpectedToken
 """, """
-A:{ x -> x.foo//c
-[read] }
+A:{ y -> y.bar//c
+[mut] }
 """);}
 @Test void err_bad_open_square_after_number_and_block_comment(){fail("""
 In file: [###].fear
@@ -1061,7 +1061,7 @@ A:{ .m -> mutH -5{} }
 @Test void err_missing_expr_after_eq_sugar(){fail("""
 In file: [###].fear
 
-001| A:{ .m -> Block#.let x= .use(x) }
+001| A:{ .m -> Block#.let y= .use(y) }
    |     ------~~~~~~~~~~~~~~^^^^^^^
 
 While inspecting method body > method declaration > type declaration body > type declaration > full file
@@ -1069,7 +1069,7 @@ Missing expression after "=" in the equals sugar.
 Use: ".let x = expression" or ".let {a,b} = expression".
 Error 2 UnexpectedToken
 """, """
-A:{ .m -> Block#.let x= .use(x) }
+A:{ .m -> Block#.let y= .use(y) }
 """);}
 
 @Test void err_name_redeclared_param(){fail("""
@@ -2757,16 +2757,16 @@ foo.A:{  }
 @Test void badTName(){ fail("""
 In file: [###].fear
 
-001| A:{ .foo:aux.Bar }
+001| A:{ .foo:con.Bar }
    |          ^^^^^^^
 
 While inspecting package names
-Unrecognized text "aux.Bar".
+Unrecognized text "con.Bar".
 Package names are restricted to be valid filenames on all operating systems.
 Names like aux, nul, lpt2 are invalid on Windows.
 Error 2 UnexpectedToken
 """, """
-A:{ .foo:aux.Bar }
+A:{ .foo:con.Bar }
 """); }
 
 @Test void mutMethOk(){ ok("""
@@ -3850,15 +3850,15 @@ A[X:foo]:{}
 @Test void equalsInsteadOfArrow(){fail("""
 In file: [###].fear
 
-001| A:{ .size: base.Nat = 3 }
-   |   --~~~~~~~~~~~~~~~~^~~--
+001| A:{ .width: base.Int = 7 }
+   |   --~~~~~~~~~~~~~~~~~^~~--
 
 While inspecting method declaration > type declaration body > type declaration > full file
 Unexpected "=" after the method signature.
 A method signature can be followed by ";" or by "->", as in ".size: Nat;" or ".size: Nat -> 3".
 Error 4 ExtraTokenInGroup
 """, """
-A:{ .size: base.Nat = 3 }
+A:{ .width: base.Int = 7 }
 """);}
 @Test void colonInsteadOfArrow(){fail("""
 In file: [###].fear
@@ -4068,28 +4068,28 @@ A:{ .me: A -> @this }
 @Test void lowercaseTypeDeclarationNameInTheRankFile(){fail("""
 In file: [###].fear
 
-001| point:{ .x: base.Nat -> 3 }
+001| shape:{ .x: base.Nat -> 3 }
    | ^^^^^~---------------------
 
 While inspecting file header > full file
-A rank file cannot start with "point".
+A rank file cannot start with "shape".
 A rank file starts with the "use" and "map" directives, if any, and then the type declarations, like "Point:{..}".
 Error 2 UnexpectedToken
 """, """
-point:{ .x: base.Nat -> 3 }
+shape:{ .x: base.Nat -> 3 }
 """);}
 @Test void lowercaseTypeDeclarationName(){typeFailRaw("""
 In file: [###].fear
 
-001| point:{ .x: base.Nat -> 3 }
+001| shape:{ .x: base.Nat -> 3 }
    | ^^^^^~---------------------
 
 While inspecting file header > full file
-A file cannot start with "point".
+A file cannot start with "shape".
 A file starts with the type declarations, like "Point:{..}".
 Error 2 UnexpectedToken
 """, List.of("A:{}", """
-point:{ .x: base.Nat -> 3 }
+shape:{ .x: base.Nat -> 3 }
 """));}
 @Test void missingSemicolonBetweenMethods(){fail("""
 In file: [###].fear
