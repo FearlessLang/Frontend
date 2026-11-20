@@ -83,7 +83,7 @@ S2:S{}
 In file: fear:/___DBG___/p_test.fear
 
 001| A:{}
-   | ^^
+   | ^
 
 While inspecting a type name
 Duplicate type declaration for "A".

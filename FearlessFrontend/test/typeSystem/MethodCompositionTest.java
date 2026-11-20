@@ -279,7 +279,7 @@ C:{ .withTArg(a:A): Foo -> a.m[Foo]; .noTArg(a:A): Foo -> a.m }
 """));}
 @Test void overrideCanNotNameTheInheritedTypeParameter(){failWf("""
 002| A:B{ .m(x: X): Foo }
-   |            ^^
+   |            ^
 
 While inspecting a type name
 Type "X" is not declared in package "p" and is not made visible via "use".
@@ -788,7 +788,7 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
 """));}
 @Test void overrideInLiteralStrengthensResultCapability(){fail("""
 003| User:{ #: mut Sup -> mut Sup{ mut .h: iso P -> P } }
-   |        ------------------~~~~~^^^^^^^^^^^^^^^^^^--
+   |        --------------~~~~~~~~~^^^^^^^^^^^^^^^^^^~~
 
 While inspecting object literal instance of "iso Sup" > "#" line 3
 Invalid method signature for "mut Sup.h".

@@ -104,10 +104,10 @@ public final class ToString{
       if (cs.rc().isPresent() && !cs.ts().isEmpty()){ append(","); }
       append("", cs.ts(), this::visitT, ",", "]");
       });
-    append(c.pars() ? "(" : (c.es().isEmpty() ? "" : " "));
+    append(c.close().isPresent() ? "(" : (c.es().isEmpty() ? "" : " "));
     c.pat().ifPresent(pat -> visitXPat(pat).append("= "));
     append("", c.es(), this::visitE, ", ", "");
-    append(c.pars() ? ")" : "");
+    append(c.close().isPresent() ? ")" : "");
     return res;
   }
   private Declaration visitInnerDeclaration(Declaration d){

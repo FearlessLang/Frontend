@@ -68,7 +68,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
   Optional<RC> parseOptRC(){ return parseIf(peek(RCap), this::parseRC); }
   T.RCC parseRCC(int startPos, Optional<RC> rc){
     var c= parseC();
-    return new T.RCC(rc, c, new TSpan(spanAround(startPos, index())));
+    return new T.RCC(rc, c, new TSpan(spanAround(startPos, index()-1)));
   }
   T.C parseC(){
     var c= parseTName();
@@ -102,12 +102,12 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     var redeclared= mustNew && declared;
     if (redeclared){ throw errFactory().nameRedeclared(c, span(c).get()); }
     if (!mustNew){ checkXInScope(c); }
-    return new T.X(c.content(), new TSpan(spanAround(startPos, index())));
+    return new T.X(c.content(), new TSpan(spanAround(startPos, index()-1)));
   }
   T.X parseTX(int startPos){
     var c= expectValidate("type name", UppercaseId, _XId);
     checkXInScope(c);
-    return new T.X(c.content(), new TSpan(spanAround(startPos, index())));
+    return new T.X(c.content(), new TSpan(spanAround(startPos, index()-1)));
   }
   private void checkXInScope(Token c){
     if (names.XIn(c.content())){ return; }
@@ -122,19 +122,20 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
       var s= num.content().substring(1);
       var p= new Pos(span().fileName(), num.line(), num.column() + 1);
       var rcc= new T.RCC(empty(), new T.C(new TName(s, 0, p), empty()), TSpan.fromPos(p, s.length()));
-      return new E.Call(receiver, mm, empty(), false, empty(), List.of(new E.TypedLiteral(rcc, empty(), p)), pos);
+      return new E.Call(receiver, mm, empty(), empty(), empty(), List.of(new E.TypedLiteral(rcc, empty(), p)), pos);
     }
     var m= parseMName();
     var sq= parseIf(peek(_SquareGroup), () -> parseGroup("method call generic type arguments", Parser::parseCallSquare));
     if (peek(_RoundGroup)){
+      var close= new TSpan(span(peek().get()).get()).endPos();
       var es= parseGroupSep("", "arguments list", Parser::parseE, ORound, CRound, commaExp);
-      return new E.Call(receiver, m.withArity(es.size()), sq, true, empty(), es, pos);
+      return new E.Call(receiver, m.withArity(es.size()), sq, of(close), empty(), es, pos);
     }
     var xpat= parseIf(eqSugar(), () -> fwd(parseXPat()));
     var noArgument= end() || hasPost();
     if (noArgument){
       if (xpat.isPresent()){ throw errFactory().missingExprAfterEq(m, remainingSpan()); }
-      return new E.Call(receiver, m, sq, false, empty(), List.of(), pos);
+      return new E.Call(receiver, m, sq, empty(), empty(), List.of(), pos);
     }
     var atom= parseAtom();//we need to avoid parsing the posts if e0 + e1 + e2
     var xs= xsOf(xpat).toList();
@@ -142,7 +143,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     if (xpat.isPresent() && xpat.get() instanceof XPat.Destruct d && xs.size() > 31){ throw errFactory().eqSugarPatternTooManyNames(span(), d); }
     names = names.add(xs, List.of());//zero if xpat is empty
     if (xpat.isPresent()){ atom = parsePost(atom); while (!end()){ atom = parsePost(atom); } }
-    return new E.Call(receiver, m.withArity(xpat.isPresent() ? 2 : 1), sq, false, xpat, List.of(atom), pos);//note: arity 2 is special case for = sugar
+    return new E.Call(receiver, m.withArity(xpat.isPresent() ? 2 : 1), sq, empty(), xpat, List.of(atom), pos);//note: arity 2 is special case for = sugar
   }
   boolean eqSugar(){
     if (peekOrder(t -> t.is(Underscore), t -> t.is(Eq))){
@@ -394,7 +395,7 @@ public final class Parser extends MetaParser<Token,TokenKind,FearlessException,T
     assert peek(_CurlyGroup);
     var l= parseGroup("type declaration body", p -> p.parseLiteral(top));
     names = outer;
-    var span= new TSpan(spanAround(startPos, index()));
+    var span= new TSpan(spanAround(startPos, index()-1));
     return new Declaration(c, bs, cs, l.withSpan(span));
   }
   FileFull parseFileFull(){

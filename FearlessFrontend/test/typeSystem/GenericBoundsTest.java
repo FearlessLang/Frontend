@@ -355,7 +355,7 @@ Concrete:{ #(y: mutH Foo, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[mutH Foo](
 """));}
 @Test void nonHygienicBoundsBlockIsoPromotionOfAnArgument(){fail("""
 004| Bad:{ #[Y:mut,mutH,readH](y: Y, isoF: iso Foo): iso Foo -> Expect.isoFoo(A#[Y](y, isoF)) }
-   |       -----------------------------------------------------~~~~~~^^^^^^^^~~~~~~~~~~~~~~-
+   |       -----------------------------------------------------~~~~~~~~~~~~~~^^^^^^^^^^^^^^~
 
 While inspecting "#(_,_)" line 4
 This call to method "Expect.isoFoo(_)" cannot typecheck.
@@ -489,7 +489,7 @@ A:{ .m[Y:imm,mut](y: imm Y): Foo[imm Y] -> Foo[Y]{ .get -> y } }
 """));}
 @Test void immParameterCannotSatisfyAMutBound(){fail("""
 003| Break:{ .m(f: imm Foo): imm Foo -> A#(f) }
-   |         ---------------------------~^^~~
+   |         ---------------------------~~~^~
 
 While inspecting ".m(_)" line 3
 This call to method "A#(_)" cannot typecheck.
@@ -713,7 +713,7 @@ Box[X:imm,Y:imm]:{ .x: X; .y: Y }
 """));}
 @Test void funnelWithNarrowerBounds(){fail("""
 001| A:{ .m[X:mut,read]: mut Foo[mut X] -> mut Foo[X:mut]:{} }
-   |     --------------------------------------^^^^^~~~~~~~~
+   |     --------------------------------------^^^^~~~~~~~~~
 
 While inspecting object literal "iso Foo[_]" > ".m" line 1
 The type "Foo[X]" is invalid.
@@ -769,7 +769,7 @@ A:{ .m[X:imm](x: X): iso Box[X] -> iso Fresh[X:imm,mut,read]:Box[X]{ .get -> x }
 """));}
 @Test void wideLiteralBoundDropsCaptureNotKindedUnderIt(){fail("""
 003| A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }
-   |     ------------------------------------------------------------------------~~~~~~~~^^~~~--
+   |     ------------------------------------------------------------------------~~~~~~~~^~~~~--
 
 While inspecting parameter "b" > ".get" line 3 > ".m(_)" line 3
 Parameter "b" has type "Box[X]".
@@ -783,7 +783,7 @@ A:{ .m[X:imm](b: Box[X]): read Get[X] -> read Fresh[X:imm,mut,read]:Get[X]{ .get
 """));}
 @Test void wideLiteralBoundDropsCaptureNotKindedUnderItMut(){fail("""
 003| A:{ .m[X:imm](b: Box[X]): mut Get[X] -> mut Fresh[X:imm,mut,read]:Get[X]{ .get -> b.get } }
-   |     ----------------------------------------------------------------------~~~~~~~~^^~~~--
+   |     ----------------------------------------------------------------------~~~~~~~~^~~~~--
 
 While inspecting parameter "b" > ".get" line 3 > ".m(_)" line 3
 Parameter "b" has type "Box[X]".

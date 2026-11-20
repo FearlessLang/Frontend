@@ -63,7 +63,7 @@ B:{ read .get: read A }
 """));}
 @Test void mutHResultLiteralReadMethodCannotReturnMutCapture(){fail("""
 002| ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }
-   |              ---------------------------------~~~~~~~^^-----------
+   |              ---------------------------------~~~~~~~^------------
 
 While inspecting parameter "a" > ".a1" line 2 > "#(_)" line 2
 Method ".a1" inside the object literal instance of "mut Container" (line 2)
@@ -96,7 +96,7 @@ A:{ .m[X:*](x: mut X): mut Get[mut X] -> mut Get[mut X]{ read .get: mut X -> x }
 """));}
 @Test void noCallMutFromImm(){fail("""
 002| A:{ .b: imm B -> {}; .doThing: Void -> this.b.foo.ret }
-   |                      ------------------~~~~~~^^^^^---
+   |                      ------------------^^^^^^~~~~----
 
 While inspecting ".doThing" line 2
 This call to method "mut B.foo" cannot typecheck.
@@ -113,7 +113,7 @@ B:{ mut .foo: mut B -> this; mut .ret: Void -> {} }
 """));}
 @Test void noCallMutFromReadH(){fail("""
 002| A:{ .b: readH B -> {}; .doThing: Void -> this.b.foo.ret }
-   |                        ------------------~~~~~~^^^^^---
+   |                        ------------------^^^^^^~~~~----
 
 While inspecting ".doThing" line 2
 This call to method "mut B.foo" cannot typecheck.
@@ -130,7 +130,7 @@ B:{ mut .foo: mut B -> this; mut .ret: Void -> {} }
 """));}
 @Test void noCallMutFromRead(){fail("""
 002| A:{ .b: read B -> {}; .doThing: Void -> this.b.foo.ret }
-   |                       ------------------~~~~~~^^^^^---
+   |                       ------------------^^^^^^~~~~----
 
 While inspecting ".doThing" line 2
 This call to method "mut B.foo" cannot typecheck.
@@ -150,7 +150,7 @@ A:{ read .self: readH A -> this }
 """));}
 @Test void noCaptureOfReadHInMutLiteral(){fail("""
 002| B:{ .break(prisoner: readH B): mut A[readH B] -> {prisoner} }
-   |     ----------------------------------------------^^^^^^^^^
+   |     ----------------------------------------------^^^^^^^^-
 
 While inspecting parameter "prisoner" > ".prison" line 2 > ".break(_)" line 2
 Parameter "prisoner" has type "readH B".
@@ -217,7 +217,7 @@ A:{ read .m[T:*](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
 """));}
 @Test void noCaptureAsMutHInMutLiteral(){fail("""
 003| A:{ read .m[T:mut,imm,read,readH,mutH](par: T) : read L[mutH T] -> mut L[mutH T]{.absMeth->par} }
-   |     -----------------------------------------------------------------------------~~~~~~~~~~^^^^
+   |     -----------------------------------------------------------------------------~~~~~~~~~~^^^-
 
 While inspecting parameter "par" > ".absMeth" line 3 > ".m(_)" line 3
 Parameter "par" has type "T".
@@ -230,7 +230,7 @@ A:{ read .m[T:mut,imm,read,readH,mutH](par: T) : read L[mutH T] -> mut L[mutH T]
 """));}
 @Test void noMutCaptureInIsoLiteral(){fail("""
 003| A:{ read .m(par: mut B) : iso L -> iso L{.absMeth->par} }
-   |     -------------------------------------~~~~~~~~~~^^^^
+   |     -------------------------------------~~~~~~~~~~^^^-
 
 While inspecting parameter "par" > ".absMeth" line 3 > ".m(_)" line 3
 Parameter "par" has type "mut B".
@@ -243,7 +243,7 @@ A:{ read .m(par: mut B) : iso L -> iso L{.absMeth->par} }
 """));}
 @Test void noReadCaptureInImmLiteral(){fail("""
 003| A:{ read .m(par: read B) : imm L -> imm L{.absMeth->par} }
-   |     --------------------------------------~~~~~~~~~~^^^^
+   |     --------------------------------------~~~~~~~~~~^^^-
 
 While inspecting parameter "par" > ".absMeth" line 3 > ".m(_)" line 3
 Parameter "par" has type "read B".
@@ -256,7 +256,7 @@ A:{ read .m(par: read B) : imm L -> imm L{.absMeth->par} }
 """));}
 @Test void isoLiteralCannotCaptureMut(){fail("""
 002| Foos:{ #(a: mut A): iso Foo -> iso Foo{a} }
-   |        --------------------------------^^
+   |        --------------------------------^-
 
 While inspecting parameter "a" > "#" line 2 > "#(_)" line 2
 Parameter "a" has type "mut A".
@@ -341,7 +341,7 @@ A:{ .notBreak(x1: iso Caps, x2: iso Caps): Void -> this.notBreak(x1, x2) }
 """));}
 @Test void isoUsedTwiceDirectly(){fail("""
 002| A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
-   |     -------------------------------------------------------^^^~~~~
+   |     -------------------------------------------------------^^~~~~-
 
 While inspecting ".break(_,_)" line 2
 Iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 2).
@@ -354,7 +354,7 @@ A:{ .break(x1: iso Caps, x2: iso Caps): Void -> this.break(x1, x1) }
 """));}
 @Test void isoUsedDirectlyAndCaptured(){fail("""
 003|   .break(x1: iso Caps, x2: iso Caps): Void -> this.breakTwo(x1, B{ x1 });
-   |   ----------------------------------------------------------^^^~~~~~~---
+   |   ----------------------------------------------------------^^~~~~~~~---
 
 While inspecting ".break(_,_)" line 3
 Iso parameter "x1" violates the single-use rule in method "A.break(_,_)" (line 3).
@@ -437,7 +437,7 @@ B:A{ .m1 -> this; .m2 -> this.m1 }
 """));}
 @Test void dispatchWhenMultipleCandidatesDisagree(){fail("""
 002| B:A{ .m1 -> this; .m2 -> this.m1 }
-   |      -------^^^^^
+   |      -------^^^^
 
 While inspecting parameter "this" > ".m1" line 2
 The body of method ".m1" of type declaration "B" is an expression returning "mut B".
@@ -466,7 +466,7 @@ Test:{
 """));}
 @Test void callingMultiSigWrongExpectedType(){fail("""
 004|   read .aRead(a: read A): mut A -> a.m1;
-   |   ---------------------------------^^^^^
+   |   ---------------------------------^^^^
 
 While inspecting method call ".m1" > ".aRead(_)" line 4
 The body of method ".aRead(_)" of type declaration "Test" is an expression returning "read B".
@@ -518,7 +518,7 @@ A:{
 """));}
 @Test void onlyOneMutHArgumentCanBePromoted(){fail("""
 003|   .call(a: mutH A): mutH A -> this.m1(imm A, iso A, a, a);
-   |   ----------------------------~~~~^^^^~~~~~~~~~~~~~~~~~~~
+   |   ----------------------------~~~~^^^~~~~~~~~~~~~~~~~~~~~
 
 While inspecting ".call(_)" line 3
 This call to method "A.m1(_,_,_,_)" cannot typecheck.
@@ -545,7 +545,7 @@ A:{
 """));}
 @Test void mutHReceiverAndMutHArgumentCannotBothBePromoted(){fail("""
 003|   .call(a: mutH A): mutH A -> a.m1(imm A, iso A, a, iso A);
-   |   ----------------------------~^^^^~~~~~~~~~~~~~~~~~~~~~~~
+   |   ----------------------------~~~~~~~~~~~~~~~~~~~^~~~~~~~~
 
 While inspecting ".call(_)" line 3
 This call to method "mut A.m1(_,_,_,_)" cannot typecheck.
@@ -605,7 +605,7 @@ C:{ .m[Y:*](y: read Y): read Y -> A.m[Y](y) }
 """));}
 @Test void readCannotBeLaunderedIntoImm(){fail("""
 003| C:{ .m[Y:*](y: read Y): read/imm Y -> A.m[Y](y) }
-   |     ----------------------------------~^^^~~~~~
+   |     ----------------------------------~~~~~~~^~
 
 While inspecting ".m(_)" line 3
 This call to method "A.m(_)" cannot typecheck.
@@ -677,7 +677,7 @@ User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
 """));}
 @Test void readImmResultOfIsoImmBoundAsReceiver(){fail("""
 002| User:{ .use[Y:iso,imm](b: Box[Y]): Box[Y] -> b.get.foo }
-   |        --------------------------------------~~~~~^^^^
+   |        --------------------------------------^^^^^~~~~
 
 While inspecting ".use(_)" line 2
 This call to method ".foo" cannot typecheck.
