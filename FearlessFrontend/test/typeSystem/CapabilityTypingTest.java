@@ -73,7 +73,7 @@ Note: the declared type "mut A" would instead be a valid subtype.
 Capture adaptation trace:
 "mut A" --setToRead(line 2)--> "read A".
 Method ".a1" inherited the signature from "Container.a1" as follows:
-read .a1:mut A
+read .a1: mut A
 """, List.of("""
 A:{}
 ContainerF:{ #(a: mut A): mutH Container -> { .a1 -> a; .a2 -> a } }
@@ -443,7 +443,7 @@ While inspecting parameter "this" > ".m1" line 2
 The body of method ".m1" of type declaration "B" is an expression returning "mut B".
 Parameter "this" has type "mut B" instead of a subtype of "A".
 Method ".m1" inherited the signature from "A.m1" as follows:
-mut .m1:A
+mut .m1: A
 """, List.of("""
 A:{ imm .m1: A; mut .m1: A; .m2: A }
 B:A{ .m1 -> this; .m2 -> this.m1 }

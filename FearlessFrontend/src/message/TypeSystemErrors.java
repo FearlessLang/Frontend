@@ -71,19 +71,29 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private static boolean wholeSig(fearlessFullGrammar.M fm, Sig s){
     return !fm.hasImplicit() && fm.sig().filter(gs -> (gs.rc().isPresent() || s.rc() == RC.imm) && gs.t().isPresent() && gs.parameters().stream().allMatch(p -> p.t().isPresent())).isPresent();
   }
+  private Optional<T.C> parent(Literal l, Sig s){ return l.cs().stream().filter(c -> declared(c, s).isPresent()).findFirst(); }
+  private String parentSig(T.C c, Sig s){ return methodSig(err().cp().msgT(new T.RCC(RC.imm, c, c.span())), s.m()); }
   private Optional<String> inheritedSig(Literal l, M m){
     var fm= srcM(l, m.sig());
-    var parent= l.cs().stream().filter(c -> declared(c, m.sig()).isPresent()).findFirst();
+    var parent= parent(l, m.sig());
     if (fm.isEmpty() || wholeSig(fm.get(), m.sig()) || parent.isEmpty()){ return Optional.empty(); }
-    var c= parent.get();
-    var pm= methodSig(err().cp().msgT(new T.RCC(RC.imm, c, c.span())), m.sig().m());
-    var res= "Method "+err().methodSig(m.sig().m())+" inherited the signature from "+pm+" as follows:\n"+err().cp().sig(m);
-    var renamed= Streams.zip(declared(c, m.sig()).get().bs(), m.sig().bs()).filter((ps,h) -> !ps.x().equals(h.x()));
+    return Optional.of("Method "+err().methodSig(m.sig().m())+" inherited the signature from "+parentSig(parent.get(), m.sig())+" as follows:\n"+err().cp().sig(m));
+  }
+  private Optional<String> renamedGenerics(Literal l, M m){
+    var fm= srcM(l, m.sig());
+    var parent= parent(l, m.sig());
+    var written= fm.flatMap(fearlessFullGrammar.M::sig).flatMap(fearlessFullGrammar.Sig::bs).isPresent();
+    if (fm.isEmpty() || written || parent.isEmpty()){ return Optional.empty(); }
+    var renamed= Streams.zip(declared(parent.get(), m.sig()).get().bs(), m.sig().bs()).filter((ps,h) -> !ps.x().equals(h.x()));
     var from= renamed.map((p,_) -> disp(p.x())).toList();
-    if (from.isEmpty()){ return Optional.of(res); }
+    if (from.isEmpty()){ return Optional.empty(); }
     var many= from.size() > 1;
-    return Optional.of(res+"\nGeneric type parameter"+(many ? "s " : " ")+Join.of(from, "", " and ", "")+" of "+pm
-      +(many ? " are named " : " is named ")+Join.of(renamed.map((_,h) -> disp(h.x())), "", " and ", "")+" here.");
+    return Optional.of("Generic type parameter"+(many ? "s " : " ")+and(from)+" of "+parentSig(parent.get(), m.sig())
+      +(many ? " are named " : " is named ")+and(renamed.map((_,h) -> disp(h.x())).toList())+" here.");
+  }
+  private static String and(List<String> xs){
+    if (xs.size() == 1){ return xs.getFirst(); }
+    return Join.of(xs.subList(0, xs.size()-1), "", ", ", "")+" and "+xs.getLast();
   }
   private Optional<Sig> declared(T.C c, Sig s){
     return decs.apply(c.name()).ms().stream().map(M::sig).filter(ps -> ps.origin().equals(c.name()) && ps.m().equals(s.m()) && ps.rc() == s.rc()).findFirst();
@@ -242,6 +252,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       .line("The method "+err().methodSig(s.rc().toStrSpace(), l, s.m())+" is dead code.")
       .line("The "+err().expRepr(l.withRC(RC.imm))+" is "+disp(l.rc())+", so it will never be seen as "+disp(RC.mut)+".");
     e.line(inheritedSig(l, got).orElse("But it implements method "+m+", which requires a "+disp(RC.mut)+" receiver."));
+    renamedGenerics(l, got).ifPresent(e::line);
     return addExpFrame(l, e.typeErr().addSpan(s.span().inner));
   }
   public FearlessException selfNameDeadCode(Literal l){
@@ -297,6 +308,9 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
         +"\nis implemented with an expression returning "+got0+".");
     e.line(up(got.info(printed)));
     inheritedSig(l, m).ifPresent(e::line);
+    for (TypeScope it= s; !it.isTop(); it = it.outer()){
+      if (it instanceof TypeScope.Method(var li, var mi, _)){ renamedGenerics(li, mi).ifPresent(e::line); }
+    }
     var thisNotMut= at instanceof X x && x.name().equals(l.thisName()) && m.sig().rc() == RC.mut && LiteralDeclarations.has(l.cs(), LiteralDeclarations.captureFree);
     if (thisNotMut){ captureFreeHint(e, l, m); }
     return addExpFrame(at, e.ex(got.footerE.get(), at).addSpan(at.span().inner));

@@ -102,8 +102,8 @@ This call to method ".zz" cannot typecheck.
 Method ".zz" is not declared on type "A".
 
 Available methods on type "A":
--       .m:A
--       .n:A
+-       .m: A
+-       .n: A
 Error 8 TypeError
 """, """
 T:{ .a: A -> A.zz }
@@ -141,8 +141,8 @@ This call to method ".zz" cannot typecheck.
 Method ".zz" is not declared on type "A".
 
 Available methods on type "A":
--       .m:A
--       .n:A
+-       .m: A
+-       .n: A
 Error 8 TypeError
 """, List.of(pkgDocs), at(0, "T:{ .a: A ->\nA.zz\n  }", fixed(5, 5), shifted(5, 5), fixed(5, 9))); }
   @Test void anUnclosedGroupIsReportedWhereItsOpenerIsInThePackage(){ failAt("""
@@ -168,7 +168,7 @@ This call to method ".zz" cannot typecheck.
 Method ".zz" is not declared on type "B".
 
 Available methods on type "B":
--       .b:B
+-       .b: B
 Error 8 TypeError
 """, List.of(pkgDocs, other), at(0, "T:{ .a: A ->\nA.m\n  }", fixed(5, 5), shifted(5, 5), fixed(5, 8)), at(1, "U:{ .u: B ->\nB.zz\n  }", fixed(2, 5), shifted(2, 5), fixed(2, 9))); }
   @Test void testsFromTwoFilesSeeEachOther(){
