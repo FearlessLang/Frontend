@@ -149,7 +149,7 @@ T0[X]:{ .m: T0[base.Void] -> {this}.m }
    |      ---------------~~~~~~~~~~~~^^^^--
 
 While inspecting parameter "this" > method "T1.k" (line 2) > method "T1.m" (line 2)
-Method ".k" inside the object literal instance of "iso T1" (line 2)
+Method ".k" inside the object literal instance of "T1" (line 2)
 is implemented with an expression returning "T1".
 Parameter "this" has type "T1" instead of a subtype of "Z[Y]".
 """, List.of("""
@@ -180,7 +180,7 @@ B[X]:A{ .foo(a,b)->b }
    |           ---------~~~~~~~^--
 
 While inspecting parameter "x" > method "G.k(_)" (line 3) > method "B[_].m(_)" (line 3)
-Method ".k(_)" inside the object literal instance of "iso G" (line 3)
+Method ".k(_)" inside the object literal instance of "G" (line 3)
 is implemented with an expression returning "imm _AX".
 Parameter "x" has type "imm _AX" instead of a subtype of "_BX".
 Method ".k(_)" inherited the signature from "G.k(_)" as follows:
@@ -225,7 +225,7 @@ B[V,W,X,Y,Z]:A{ .foo(a,b,c,d,e)->e }
    |             -----------~~~~~~~~~^--
 
 While inspecting parameter "y" > method "G.k(_,_)" (line 3) > method "B[_,_].m(_,_)" (line 3)
-Method ".k(_,_)" inside the object literal instance of "iso G" (line 3)
+Method ".k(_,_)" inside the object literal instance of "G" (line 3)
 is implemented with an expression returning "imm _AY".
 Parameter "y" has type "imm _AY" instead of a subtype of "_BX".
 Method ".k(_,_)" inherited the signature from "G.k(_,_)" as follows:
@@ -242,7 +242,7 @@ B[X,Y]:Sup{ .m(x,y)->{ .k(a,b)->y } }
    |                        -----------~~~~~~~^--
 
 While inspecting parameter "y" > method "H.h(_)" (line 4) > method "G.k(_,_)" (line 4) > method "B[_,_].m(_,_)" (line 4)
-Method ".h(_)" inside the object literal instance of "iso H" (line 4)
+Method ".h(_)" inside the object literal instance of "H" (line 4)
 is implemented with an expression returning "imm _AY".
 Parameter "y" has type "imm _AY" instead of a subtype of "_CX".
 Method ".h(_)" inherited the signature from "H.h(_)" as follows:
@@ -271,7 +271,7 @@ B:Sup{ .m[X](x:X):F[X]->{ .k(y)->x } }
    |        ---------~~~~~~~^--
 
 While inspecting parameter "x" > method "G.k(_)" (line 3) > method "B.m(_)" (line 3)
-Method ".k(_)" inside the object literal instance of "iso G" (line 3)
+Method ".k(_)" inside the object literal instance of "G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 Method ".k(_)" inherited the signature from "G.k(_)" as follows:
@@ -287,7 +287,7 @@ B:Sup{ .m(x)->{ .k(y)->x } }
    |        ---------~~~~~~~^--
 
 While inspecting parameter "x" > method "G.k(_)" (line 3) > method "B.m(_)" (line 3)
-Method ".k(_)" inside the object literal instance of "iso G" (line 3)
+Method ".k(_)" inside the object literal instance of "G" (line 3)
 is implemented with an expression returning "imm X".
 Parameter "x" has type "imm X" instead of a subtype of "_AX".
 Method ".k(_)" inherited the signature from "G.k(_)" as follows:
@@ -321,7 +321,7 @@ B:Sup{ .m(x)->{ .k(y)->x }; .q[X]:Sup->this }
    |     ------------------~~~~~^^^^--
 
 While inspecting parameter "this" > method "base.Todo!" (line 2) > method "A.foo" (line 2)
-Method "!" inside the object literal instance of "iso base.Todo" (line 2)
+Method "!" inside the object literal instance of "base.Todo" (line 2)
 is implemented with an expression returning "A".
 Parameter "this" has type "A" instead of a subtype of "_AR".
 Method "!" inherited the signature from "base.Todo!" as follows:
@@ -415,7 +415,7 @@ Outer:{ #: G -> {'self .foo[X:imm]: base.Void -> base.Void; .bar: base.Void -> s
    |         ----------------------------------~~~~~~^^^^^^^^^^^^--
 
 While inspecting method call "#(_)" > method "G.v" (line 4) > method "Outer#" (line 4)
-Method ".v" inside the object literal instance of "iso G" (line 4)
+Method ".v" inside the object literal instance of "G" (line 4)
 is implemented with an expression returning "Box[G]".
 Method call "Boxes#(_)" has type "Box[G]" instead of a subtype of "base.Void".
 Method ".v" inherited the signature from "G.v" as follows:
@@ -870,7 +870,7 @@ User:{
 007|   };
 
 While inspecting method call "#(_)" > method "Get.get" (line 6) > method "User.m" (line 5)
-Method ".get" inside the object literal instance of "iso Get" (line 5)
+Method ".get" inside the object literal instance of "Get" (line 5)
 is implemented with an expression returning "A".
 Method call "MakeA#(_)" has type "A" instead of a subtype of "mut A".
 """, List.of("""
@@ -889,9 +889,9 @@ User:{
    |   -----------------------------~~~^^^--
 
 While inspecting object literal instance of "Foo" > method "F[Person,Car]#(_)" (line 7) > method "User.m" (line 7)
-Method "#(_)" inside the object literal instance of "iso F[Person,Car]" (line 7)
+Method "#(_)" inside the object literal instance of "F[Person,Car]" (line 7)
 is implemented with an expression returning "iso Foo".
-Object literal is of type "Foo" instead of a subtype of "Car".
+Object literal is of type "iso Foo" instead of a subtype of "Car".
 Method "#(_)" inherited the signature from "F[Person,Car]#(_)" as follows:
 #(Person): Car
 """, List.of("""
@@ -941,7 +941,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > method "Get.get" (line 5) > method "User.m(_)" (line 4)
-Method ".get" inside the object literal instance of "read Get" (line 5)
+Method ".get" inside the object literal instance of "Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
@@ -965,7 +965,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > method "Get.get" (line 5) > method "User.m(_)" (line 4)
-Method ".get" inside the object literal instance of "read Get" (line 5)
+Method ".get" inside the object literal instance of "Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
@@ -989,7 +989,7 @@ User:{
    |               ^^^^^^^^^
 
 While inspecting parameter "loooooong" > method "Get.get" (line 5) > method "User.m(_)" (line 4)
-Method ".get" inside the object literal instance of "read Get" (line 5)
+Method ".get" inside the object literal instance of "Get" (line 5)
 is implemented with an expression returning "read A".
 Parameter "loooooong" has type "read A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
@@ -1014,7 +1014,7 @@ User:{
    |                ---------^^^^^^^^^--
 
 While inspecting parameter "loooooong" > method "Get.get" (line 6) > method "Wrap.wrap" (line 6) > method "User.m(_)" (line 5)
-Method ".get" inside the object literal instance of "mut Get" (line 6)
+Method ".get" inside the object literal instance of "Get" (line 6)
 is implemented with an expression returning "A".
 Parameter "loooooong" has type "imm A" instead of a subtype of "iso A".
 Note: the declared type "mut A" also does not satisfy the requirement.
@@ -1044,7 +1044,7 @@ User:{
 006|   }
 
 While inspecting parameter "a" > method "G#" (line 5) > method "Foo#(_)" (line 3)
-Object literal instance of "iso G" (line 4) implements "base.CaptureFree".
+Object literal instance of "G" (line 4) implements "base.CaptureFree".
 Thus parameter "a" (line 5) cannot be captured in that object literal.
 """, List.of("""
 A:{}
@@ -1060,7 +1060,7 @@ Foo:{#(a:A):G->
    |      -----------^-
 
 While inspecting parameter "a" > method "G#" (line 3) > method "Foo#(_)" (line 3)
-Object literal instance of "iso G" (line 3) implements "base.CaptureFree".
+Object literal instance of "G" (line 3) implements "base.CaptureFree".
 Thus parameter "a" (line 3) cannot be captured in that object literal.
 """, List.of("""
 A:{}
@@ -1376,7 +1376,7 @@ Sub:Sup{ imm .h():read P; }
 006|   imm .m():Sup->Sup{ imm .h:base.Void->base.Void{} }
    |   --------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting object literal instance of "iso Sup" > method "User.m" (line 6)
+While inspecting object literal instance of "Sup" > method "User.m" (line 6)
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "Sup".
@@ -2152,7 +2152,7 @@ A:{ mut .baz(b: B):B->{}; }
 002| A:{ mut .baz(b: mut B):read B-> { .bar->b}; }
    |     ----------------------------~~^^^^^^^~
 
-While inspecting object literal instance of "read B" > method "A.baz(_)" (line 2)
+While inspecting object literal instance of "B" > method "A.baz(_)" (line 2)
 The method "mut B.bar" is dead code.
 The object literal instance of "B" is "read", so it will never be seen as "mut".
 Method ".bar" inherited the signature from "B.bar" as follows:
@@ -2474,7 +2474,7 @@ Main:{ .m(s:S): S -> { .get(x) -> x }.get(s) }
 
 While inspecting object literal instance of "base.Float" > method "Main.m" (line 1)
 The body of method ".m" of type declaration "Main" is an expression returning "iso base.Float".
-Object literal is of type "base.Float" instead of a subtype of "base.Int".
+Object literal is of type "iso base.Float" instead of a subtype of "base.Int".
 """, List.of("""
  Main:{ .m:base.Int -> +1.5 }
 """));}
@@ -2727,7 +2727,7 @@ Error 7 WellFormedness
 003|  Main:{ .m:B -> B }
    |         --------^
 
-While inspecting object literal instance of "iso B" > method "Main.m" (line 3)
+While inspecting object literal instance of "B" > method "Main.m" (line 3)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
@@ -2741,7 +2741,7 @@ Hint: add an implementation for ".foo" inside the object literal.
 003|  Main:{ .m:B -> B{.bar:A->A} }
    |         --------^^^^^^^^^^^^
 
-While inspecting object literal instance of "iso B" > method "Main.m" (line 3)
+While inspecting object literal instance of "B" > method "Main.m" (line 3)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "B".
@@ -2788,7 +2788,7 @@ A method written without a receiver capability also implements "mut .get": write
 003|  Main:{ .m:mut B -> mut B }
    |         ------------^^^^^
 
-While inspecting object literal instance of "iso B" > method "Main.m" (line 3)
+While inspecting object literal instance of "B" > method "Main.m" (line 3)
 This object literal is missing a required method.
 Missing: "mut .foo".
 Required by: "A".
@@ -3902,7 +3902,7 @@ ExtStr:"beer"{}
 
 While inspecting object literal instance of "Sup" > method "B.m" (line 3)
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
-Object literal is of type "Sup" instead of a subtype of "Target".
+Object literal is of type "iso Sup" instead of a subtype of "Target".
 """, List.of("""
 Sup:base.WidenTo[Target]{}
 Target:Sup{}
@@ -3915,7 +3915,7 @@ B:{.m:Target->Sup{}}
 
 While inspecting object literal instance of "Sup" > method "B.m" (line 3)
 The body of method ".m" of type declaration "B" is an expression returning "iso Sup".
-Object literal is of type "Sup" instead of a subtype of "Target".
+Object literal is of type "iso Sup" instead of a subtype of "Target".
 """, List.of("""
 Sup:{}
 Target:Sup{}
@@ -4006,7 +4006,7 @@ User:{ .n(cs: mut base.MList[Customer]): base.MList[Person] -> cs.as{::} }
    |        -------------------------------------------------------------------^^-
 
 While inspecting parameter "::" > method "base.BaseId[read Customer,Person]#(_)" (line 3) > method "User.n(_)" (line 3)
-Method "#(_)" inside the object literal instance of "iso base.BaseId[read Customer,Person]" (line 3)
+Method "#(_)" inside the object literal instance of "base.BaseId[read Customer,Person]" (line 3)
 is implemented with an expression returning "read Customer".
 Parameter "::" has type "read Customer" instead of a subtype of "Person".
 Method "#(_)" inherited the signature from "base.BaseId[read Customer,Person]#(_)" as follows:
@@ -4043,7 +4043,7 @@ User:{ .m(c: Customer): base.Void -> Boxes#(c,{x -> x}).get.n }
    |        -------------------------------------^^-
 
 While inspecting parameter "::" > method "base.BaseId[Person,Customer]#(_)" (line 3) > method "User.m" (line 3)
-Method "#(_)" inside the object literal instance of "iso base.BaseId[Person,Customer]" (line 3)
+Method "#(_)" inside the object literal instance of "base.BaseId[Person,Customer]" (line 3)
 is implemented with an expression returning "Person".
 Parameter "::" has type "Person" instead of a subtype of "Customer".
 Method "#(_)" inherited the signature from "base.BaseId[Person,Customer]#(_)" as follows:
@@ -4313,7 +4313,7 @@ User:{ .m: Need -> Need#{} }
 004| User:{ .m: Need -> Need#(Closed[A]{}) }
    |        ------------------^^^^^^^^^^^-
 
-While inspecting object literal instance of "iso Closed[A]" > method "User.m" (line 4)
+While inspecting object literal instance of "Closed[A]" > method "User.m" (line 4)
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
@@ -4328,7 +4328,7 @@ User:{ .m: Need -> Need#(Closed[A]{}) }
 004| User:{ .m: Need -> Need#{} }
    |        -----------------^^
 
-While inspecting object literal instance of "iso Closed[B]" > method "User.m" (line 4)
+While inspecting object literal instance of "Closed[B]" > method "User.m" (line 4)
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_]".
@@ -4343,7 +4343,7 @@ User:{ .m: Need -> Need#{} }
 005| User:{ .m: Need -> Need#{} }
    |        -----------------^^
 
-While inspecting object literal instance of "iso Closed[A,B]" > method "User.m" (line 5)
+While inspecting object literal instance of "Closed[A,B]" > method "User.m" (line 5)
 This object literal is missing a required method.
 Missing: "read .close".
 Required by: "Closed[_,_]".
@@ -4359,7 +4359,7 @@ User:{ .m: Need -> Need#{} }
 004| User:{ .m: Need -> Need#{} }
    |        -----------------^^
 
-While inspecting object literal instance of "iso A" > method "User.m" (line 4)
+While inspecting object literal instance of "A" > method "User.m" (line 4)
 This object literal is missing a required method.
 Missing: "imm .name".
 Required by: "A".
@@ -4439,7 +4439,7 @@ TypeSystem.methodTableOk rather than reporting a user error.*/
    |              ^
 
 While inspecting parameter "o" > method "MF[Opt[E]]#" (line 13) > method "Continuation[mut Opt[E],Opt[E]]#(_,_)" (line 11) > method "User[_].take(_,_)" (line 11)
-Method "#" inside the object literal instance of "mut MF[Opt[E]]" (line 13)
+Method "#" inside the object literal instance of "MF[Opt[E]]" (line 13)
 is implemented with an expression returning "mut Opt[E]".
 Parameter "o" has type "mut Opt[E]" instead of a subtype of "imm Opt[E]".
 Method "#" inherited the signature from "MF[Opt[E]]#" as follows:
@@ -4729,7 +4729,7 @@ User:{
 005|     read C{};
    |     ^^^^^^^^
 
-While inspecting object literal instance of "read C" > method "User.f" (line 4)
+While inspecting object literal instance of "C" > method "User.f" (line 4)
 The body of method ".f" of type declaration "User" is an expression returning "read C".
 Object literal is of type "read C" instead of a subtype of "mut A".
 """, List.of("""
@@ -5798,7 +5798,7 @@ A:base.CaptureFree{ imm .foo: A -> base.Block#.let x= {this} .return {x} }
 
 While inspecting object literal instance of "base.Void" > method "A.str" (line 1)
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
-Object literal is of type "base.Void" instead of a subtype of "base.Str".
+Object literal is of type "iso base.Void" instead of a subtype of "base.Str".
 Method ".str" inherited the signature from "base.ToStr.str" as follows:
 read .str: base.Str
 """, List.of("""
@@ -5810,7 +5810,7 @@ A:base.ToStr{ .str -> base.Void }
 
 While inspecting object literal instance of "base.Void" > method "A.str" (line 2)
 The body of method ".str" of type declaration "A" is an expression returning "iso base.Void".
-Object literal is of type "base.Void" instead of a subtype of "base.Str".
+Object literal is of type "iso base.Void" instead of a subtype of "base.Str".
 Method ".str" inherited the signature from "Show.str" as follows:
 read .str: base.Str
 """, List.of("""
@@ -5996,7 +5996,7 @@ A:{ .m[X:*,Y:*](x:mut X):mut Y -> x }
 004| U:{ .m:Box[A] -> Box[A]{ .get(x:B):B -> x } }
    |     -------------~~~~~~~~^^^^^^^^^^^^^^^^~~
 
-While inspecting object literal instance of "iso Box[A]" > method "U.m" (line 4)
+While inspecting object literal instance of "Box[A]" > method "U.m" (line 4)
 Invalid method signature for "Box[A].get(_)".
 The method ".get(_)" accepts parameter 1 of type "B".
 But "Box[_].get(_)" requires "A", which is not a subtype of "B".
@@ -6125,7 +6125,7 @@ U:{ .m: base.Void -> Ig#(F#(Mk#, base.Void)) }
 003| H[X:*]:{ .m: X -> G#[X](A{ .k -> base.Void }) }
    |          ---------------^^^^^^^^^^^^^^^^^^^^-
 
-While inspecting object literal instance of "iso A" > method "H[_].m" (line 3)
+While inspecting object literal instance of "A" > method "H[_].m" (line 3)
 Object literal instance of "A" is required to be of type "X".
 "X" is a generic type parameter; an object literal is always of a nominal type.
 """, List.of("""
@@ -6164,7 +6164,7 @@ U:{ .m: A -> {'s .k -> s; .v -> G#(s, { .k -> s; .v -> base.Void }) } }
 003| U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
    |     -----------------------~~~~~~~~~~~~^^~--
 
-While inspecting object literal instance of "iso A" > method "A.v" (line 3) > method "U.m" (line 3)
+While inspecting object literal instance of "A" > method "A.v" (line 3) > method "U.m" (line 3)
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
@@ -6178,7 +6178,7 @@ U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
 004| U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
    |     -----------------------~~~~~~~~~~~~^^~--
 
-While inspecting object literal instance of "iso A" > method "A.v" (line 4) > method "U.m" (line 4)
+While inspecting object literal instance of "A" > method "A.v" (line 4) > method "U.m" (line 4)
 This object literal is missing a required method.
 Missing: "imm .k".
 Required by: "A".
@@ -6715,7 +6715,7 @@ User:{ .go: A -> Take#{'s .mk -> A; .get -> s.mk }.mk }
 
 While inspecting object literal instance of "base.Str" > method "B.m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso base.Str".
-Object literal is of type "base.Str" instead of a subtype of "B".
+Object literal is of type "iso base.Str" instead of a subtype of "B".
 """, List.of("""
 B:{ .m: B -> "a string literal longer than fifteen" }
 """));}

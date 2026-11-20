@@ -58,7 +58,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "base.Void" > method "B.fromC" (line 1)
 The body of method ".fromC" of type declaration "B" is an expression returning "iso base.Void".
-Object literal is of type "base.Void" instead of a subtype of "a.A".
+Object literal is of type "iso base.Void" instead of a subtype of "a.A".
 Method ".fromC" inherited the signature from "a.A.fromC" as follows:
 .fromC: a.A
 
@@ -458,7 +458,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Nat" > method "B.m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Nat".
-Object literal is of type "bb.Nat" instead of a subtype of "B".
+Object literal is of type "iso bb.Nat" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
@@ -525,7 +525,7 @@ In file: [###].fear
 001| B:{ .k:a.S -> a.S }
    |     ----------^^^
 
-While inspecting object literal instance of "iso a.S" > method "B.k" (line 1)
+While inspecting object literal instance of "a.S" > method "B.k" (line 1)
 This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "a.S".
@@ -873,9 +873,9 @@ In file: [###].fear
    |    ------------~~~~~~~~^^^^^^^^^-
 
 While inspecting object literal instance of "base.Void" > method "a.A.fromC" (line 1) > method "B.m" (line 1)
-Method ".fromC" inside the object literal instance of "iso a.A" (line 1)
+Method ".fromC" inside the object literal instance of "a.A" (line 1)
 is implemented with an expression returning "iso base.Void".
-Object literal is of type "base.Void" instead of a subtype of "a.A".
+Object literal is of type "iso base.Void" instead of a subtype of "a.A".
 Method ".fromC" inherited the signature from "a.A.fromC" as follows:
 .fromC: a.A
 
@@ -889,7 +889,7 @@ In file: [###].fear
 001| B:{.m:a.Box[a.A]->{}}
    |    ---------------^^
 
-While inspecting object literal instance of "iso a.Box[a.A]" > method "B.m" (line 1)
+While inspecting object literal instance of "a.Box[a.A]" > method "B.m" (line 1)
 This object literal is missing a required method.
 Missing: "imm .get".
 Required by: "a.Box[_]".
@@ -907,7 +907,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Str" > method "B.m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Str".
-Object literal is of type "bb.Str" instead of a subtype of "B".
+Object literal is of type "iso bb.Str" instead of a subtype of "B".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
@@ -921,7 +921,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "N" > method "B.m" (line 2)
 The body of method ".m" of type declaration "B" is an expression returning "iso N".
-Object literal is of type "N" instead of a subtype of "B".
+Object literal is of type "iso N" instead of a subtype of "B".
 
 Name "N" stands for "bb.Nat" because of "use bb.Nat as N".
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
@@ -937,7 +937,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Int" > method "B.m" (line 1)
 The body of method ".m" of type declaration "B" is an expression returning "iso bb.Int".
-Object literal is of type "bb.Int" instead of a subtype of "bb.Nat".
+Object literal is of type "iso bb.Int" instead of a subtype of "bb.Nat".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 8 TypeError""", Map.of(), Map.of("bb", "base"), """
@@ -997,9 +997,9 @@ In file: [###].fear
    |    --------~~~~~~~~^-
 
 While inspecting object literal instance of "B" > method "X.fromC" (line 2) > method "B.m" (line 2)
-Method ".fromC" inside the object literal instance of "iso X" (line 2)
+Method ".fromC" inside the object literal instance of "X" (line 2)
 is implemented with an expression returning "iso B".
-Object literal is of type "B" instead of a subtype of "X".
+Object literal is of type "iso B" instead of a subtype of "X".
 Method ".fromC" inherited the signature from "X.fromC" as follows:
 .fromC: X
 
@@ -1798,7 +1798,7 @@ In file: [###].fear
 001| B:{ mut .baz(m:mut a.M):read a.M -> { .bar -> m } }
    |     --------------------------------~~^^^^^^^^^~~
 
-While inspecting object literal instance of "read a.M" > method "B.baz(_)" (line 1)
+While inspecting object literal instance of "a.M" > method "B.baz(_)" (line 1)
 The method "mut a.M.bar" is dead code.
 The object literal instance of "a.M" is "read", so it will never be seen as "mut".
 Method ".bar" inherited the signature from "a.M.bar" as follows:
@@ -1865,7 +1865,7 @@ In file: [###].fear
    |     -----------------^-
 
 While inspecting parameter "d" > method "a.G#" (line 1) > method "B#(_)" (line 1)
-Object literal instance of "iso a.G" (line 1) implements "bb.CaptureFree".
+Object literal instance of "a.G" (line 1) implements "bb.CaptureFree".
 Thus parameter "d" (line 1) cannot be captured in that object literal.
 
 Source code inside folders named "_b" uses package name "a" to refer to the code inside folders named "_c", because of "map a as _c in _b", written in fear:/_b/_rank_app.fear.
@@ -1975,7 +1975,7 @@ In file: [###].fear
    |     ------------------------------------------^--
 
 While inspecting parameter "x" > method "a.Get.get" (line 1) > method "B.m(_)" (line 1)
-Method ".get" inside the object literal instance of "read a.Get" (line 1)
+Method ".get" inside the object literal instance of "a.Get" (line 1)
 is implemented with an expression returning "read a.D".
 Parameter "x" has type "read a.D" instead of a subtype of "mut a.D".
 Note: the declared type "mut a.D" would instead be a valid subtype.
@@ -2653,7 +2653,7 @@ In file: [###].fear
    |     -------------~~~~~~~~~~^^^^-
 
 While inspecting parameter "this" > method "X.fromC" (line 2) > method "B.k" (line 2)
-Method ".fromC" inside the object literal instance of "iso X" (line 2)
+Method ".fromC" inside the object literal instance of "X" (line 2)
 is implemented with an expression returning "B".
 Parameter "this" has type "B" instead of a subtype of "X".
 Method ".fromC" inherited the signature from "X.fromC" as follows:
@@ -2710,7 +2710,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "bb.Nat" > method "B.m(_)" (line 1)
 The body of method ".m(_)" of type declaration "B" is an expression returning "iso bb.Nat".
-Object literal is of type "bb.Nat" instead of a subtype of "B".
+Object literal is of type "iso bb.Nat" instead of a subtype of "B".
 
 """+noteBb+"""
 

@@ -484,7 +484,7 @@ Bs:{ #: B -> B{'b .foo -> b } }
 003| Bs:{ #: B -> B{} }
    |      --------^^^
 
-While inspecting object literal instance of "iso B" > method "Bs#" (line 3)
+While inspecting object literal instance of "B" > method "Bs#" (line 3)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".

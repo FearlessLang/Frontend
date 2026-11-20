@@ -66,7 +66,7 @@ B:{ read .get: read A }
    |              ---------------------------------~~~~~~~^------------
 
 While inspecting parameter "a" > method "Container.a1" (line 2) > method "ContainerF#(_)" (line 2)
-Method ".a1" inside the object literal instance of "mut Container" (line 2)
+Method ".a1" inside the object literal instance of "Container" (line 2)
 is implemented with an expression returning "read A".
 Parameter "a" has type "read A" instead of a subtype of "mut A".
 Note: the declared type "mut A" would instead be a valid subtype.
@@ -100,7 +100,7 @@ A:{ read .me: mut A -> this }
    |     --------------------------~~~~~~~~^^^^--
 
 While inspecting parameter "this" > method "F.get" (line 2) > method "A.me" (line 2)
-Method ".get" inside the object literal instance of "mut F" (line 2)
+Method ".get" inside the object literal instance of "F" (line 2)
 is implemented with an expression returning "read A".
 Parameter "this" has type "read A" instead of a subtype of "mut A".
 The capability of the methods changes the type of parameter "this":
@@ -118,7 +118,7 @@ A:{ read .me: mut F -> mut F{ .get -> this } }
    |     -------------------------~~~~~~~~~~~~~^^^^--
 
 While inspecting parameter "this" > method "F.get" (line 2) > method "A.me" (line 2)
-Method ".get" inside the object literal instance of "mut F" (line 2)
+Method ".get" inside the object literal instance of "F" (line 2)
 is implemented with an expression returning "read A".
 Parameter "this" has type "read A" instead of a subtype of "mut A".
 The capability of the methods changes the type of parameter "this":
@@ -176,7 +176,7 @@ A:{ read .m: A -> this.mm; mut .mm: A -> A }
    |     -----------------------------------------------------~~~~~~~~~~~~~~~~~~~~^--
 
 While inspecting parameter "x" > method "Get[mut X].get" (line 2) > method "A.m(_)" (line 2)
-Method ".get" inside the object literal instance of "mut Get[mut X]" (line 2)
+Method ".get" inside the object literal instance of "Get[mut X]" (line 2)
 is implemented with an expression returning "read X".
 Parameter "x" has type "read X" instead of a subtype of "mut X".
 Note: the declared type "mut X" would instead be a valid subtype.
@@ -249,7 +249,7 @@ A:{ read .self: readH A -> this }
 While inspecting parameter "prisoner" > method "A[readH B].prison" (line 2) > method "B.break(_)" (line 2)
 Parameter "prisoner" has type "readH B".
 The type of parameter "prisoner" is hygienic (readH or mutH)
-and thus it cannot be captured in the object literal instance of "mut A[readH B]" (line 2).
+and thus it cannot be captured in the object literal instance of "A[readH B]" (line 2).
 """, List.of("""
 A[X:imm,mut,read,readH]:{ mut .prison: X }
 B:{ .break(prisoner: readH B): mut A[readH B] -> {prisoner} }
@@ -261,7 +261,7 @@ B:{ .break(prisoner: readH B): mut A[readH B] -> {prisoner} }
 While inspecting parameter "x" > method "A[X].prison" (line 2) > method "B[_].break(_)" (line 2)
 Parameter "x" has type "X".
 The type of parameter "x" can be instantiated with hygienics (readH or mutH)
-and thus it cannot be captured in the object literal instance of "mut A[X]" (line 2).
+and thus it cannot be captured in the object literal instance of "A[X]" (line 2).
 """, List.of("""
 A[X:mut,imm,read,mutH,readH]:{ mut .prison: X }
 B[X:mut,imm,read,mutH,readH]:{ .break(x: X): mut A[X] -> { x } }
@@ -316,7 +316,7 @@ A:{ read .m[T:*](par: mut T) : mut L[mut T] -> mut L[mut T]{.absMeth->par} }
 While inspecting parameter "par" > method "L[mutH T].absMeth" (line 3) > method "A.m(_)" (line 3)
 Parameter "par" has type "T".
 The type of parameter "par" can be instantiated with hygienics (readH or mutH)
-and thus it cannot be captured in the object literal instance of "mut L[mutH T]" (line 3).
+and thus it cannot be captured in the object literal instance of "L[mutH T]" (line 3).
 """, List.of("""
 B:{}
 L[X:mut,imm,read,readH,mutH]:{ mut .absMeth: imm X }
@@ -328,7 +328,7 @@ A:{ read .m[T:mut,imm,read,readH,mutH](par: T) : read L[mutH T] -> mut L[mutH T]
 
 While inspecting parameter "par" > method "L.absMeth" (line 3) > method "A.m(_)" (line 3)
 Parameter "par" has type "mut B".
-Parameter "par" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "iso L" (line 3).
+Parameter "par" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "L" (line 3).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 B:{}
@@ -354,7 +354,7 @@ A:{ read .m(par: read B) : imm L -> imm L{.absMeth->par} }
 
 While inspecting parameter "a" > method "Foo#" (line 2) > method "Foos#(_)" (line 2)
 Parameter "a" has type "mut A".
-Parameter "a" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "iso Foo" (line 2).
+Parameter "a" can observe mutation; thus it cannot be captured in the "iso" object literal instance of "Foo" (line 2).
 Hint: capture an immutable copy instead, or move this use outside the object literal.
 """, List.of("""
 A:{}
@@ -824,7 +824,7 @@ User:{
 002| A:{ .b: mutH B -> {} }
    |     --------------^^
 
-While inspecting object literal instance of "iso B" > method "A.b" (line 2)
+While inspecting object literal instance of "B" > method "A.b" (line 2)
 This object literal is missing a required method.
 Missing: "mut .m".
 Required by: "B".
@@ -1005,7 +1005,7 @@ A:{ .m[X:iso,read](x: X): mut Get[read/imm X] -> mut Get[read/imm X]{ mut .get: 
    |     -----------------------------------------------~~~~~~~~~~~~~~~^--
 
 While inspecting parameter "x" > method "Get[X].get" (line 2) > method "A.m(_)" (line 2)
-Method ".get" inside the object literal instance of "mut Get[X]" (line 2)
+Method ".get" inside the object literal instance of "Get[X]" (line 2)
 is implemented with an expression returning "read/imm X".
 Parameter "x" has type "read/imm X" instead of a subtype of "X".
 Note: the declared type "X" would instead be a valid subtype.

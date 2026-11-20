@@ -38,7 +38,7 @@ B:A[FortyTwo]{ .count -> FortyTwo; .sum -> FortyTwo{} }
 
 While inspecting object literal instance of "FortyThree" > method "B.sum" (line 5)
 The body of method ".sum" of type declaration "B" is an expression returning "iso FortyThree".
-Object literal is of type "FortyThree" instead of a subtype of "FortyTwo".
+Object literal is of type "iso FortyThree" instead of a subtype of "FortyTwo".
 Method ".sum" inherited the signature from "A[FortyTwo].sum" as follows:
 .sum: FortyTwo
 """, List.of("""

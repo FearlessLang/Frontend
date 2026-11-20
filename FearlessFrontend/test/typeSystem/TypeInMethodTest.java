@@ -257,7 +257,7 @@ In file: [###].fear
 001| B:{.m: base.Void -> a.Take#({})}
    |    -------------------------^^-
 
-While inspecting object literal instance of "iso a.S" > method "B.m" (line 1)
+While inspecting object literal instance of "a.S" > method "B.m" (line 1)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "a.S".
@@ -276,7 +276,7 @@ In file: [###].fear
 001| B:{.m: base.Void -> a.Take#(a.S)}
    |    -------------------------^^^-
 
-While inspecting object literal instance of "iso a.S" > method "B.m" (line 1)
+While inspecting object literal instance of "a.S" > method "B.m" (line 1)
 This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "a.S".
