@@ -1,0 +1,226 @@
+Simplified language inference
+program ::= sLs //every sL of the program has form C[Xs]:Ts{sMs}
+//Core language
+ce   ::= x | cL | ce.m[cTs](ces)
+cL   ::= C[Xs]:cTs{cMs}
+cM   ::= m[Xs](x1:cT1..xn:cTn):cT; | m[Xs](x1:cT1..xn:cTn):cT->ce;
+cT   ::= X | C[cTs]
+//Inference layer
+e  ::= x:T | L:T | e.m[Ts](es):T | e.m(es):T
+L  ::= C[Xs]:Ts{Ms} | {Ms}
+M  ::= m[Xs](x1:T1..xn:Tn):T; | m[Xs](x1:T1..xn:Tn):T->e;
+T  ::= ? | X | C[Ts]
+//User surface language
+se  ::= x | sL | se.m[sTs](ses) | se.m(ses)
+sL  ::= C[Xs]:cTs{sMs} | {sMs}//cTs intended here
+sM  ::= m[Xs](x1:sT1..xn:sTn):sT; | m[Xs](x1:sT1..xn:sTn):sT->se;
+sT  ::= cT | ?
+Γ   ::= x1:T1 .. xn:Tn
+Program::= sLs
+Well formedness:
+- a method of a sL of the program has no ? in the signature
+- all the literals with a name have a unique name C //so Ls maps a name C to one literal
+- in a literal, all method names are distinct //no overloading: m alone selects the method
+- in a signature, all the x are distinct and all the X are distinct
+- there is no shadowing of X or x //so [Xs=Ts] and Γ,x:T need no renaming
+- inheritance relations are acyclic //so sources(C[cTs]) terminates
+- a literal with a name inside a method body is not a supertype of any literal //'final types'
+- a literal with a name has no free type variables //all the X used in C[Xs]:cTs{sMs} are in Xs
+- the Xs of a literal C[Xs]:cTs{sMs} inside a method body are type variables in scope
+
+Pipeline for every method body of a sL top level in the program
+containing a surface expression se under Γ (including 'this') with return T
+
+- e := inferenceOf(se, T)
+- Γ ⊢ e ==>* Γ' ⊢ e':_ //Γ and T extracted from the method signature
+- lower(se,e') = ce
+- Γ ⊢ ce : cT //finally, typing the method body
+//Note: inferenceOf(se,T) annotates se with T.
+All sub expressions are annotated with :?
+
+Obvious selectors:
+- typeOf(e) = T
+- withType(e,T) = e'
+- name(mtype) = m
+- methodHeader(e,m)= methodHeader(typeOf(e),m)
+- lower(se,e) = ce
+//Note: lower(se,e) is undefined if e contains a ? or a call of form e.m(es):T
+//Note: lower turns {Ms}:C[cTs] into C'[Xs]:C[cTs]{cMs} with C' fresh and Xs the type variables in scope
+
+Substitution: T[Xs=Ts] //standard
+_______
+#Define Ls //the table of the literals with a name, available to all notations and rules
+  Ls = all the sL of form C[Xs]:cTs{sMs} in the program, including the ones inside method bodies
+_______
+#Define mtype ::= m[Xs]:sT1..sTn->sT0 //alpha renaming of the Xs is automatic
+  mtypeOf(m[Xs](x1:sT1..xn:sTn):sT0 _) = m[Xs]:sT1..sTn->sT0
+_______
+#Define sources(C[cTs]) = mtypes //the methods declared in C and in the supertypes of C
+  C[Xs]:C1[cTs1]..Cn[cTsn]{sM1..sMk} ∈ Ls
+  mtypes = sources(C1[cTs1][Xs=cTs])..sources(Cn[cTsn][Xs=cTs])
+  sources(C[cTs]) = mtypeOf(sM1)[Xs=cTs]..mtypeOf(sMk)[Xs=cTs] mtypes
+_______
+#Define meth(C[cTs],m) = mtype iff
+  mtype ∈ sources(C[cTs])
+  name(mtype) = m
+  mtype contains no ?
+  //the typing of cL requires all the mtype of sources(C[cTs]) with name m to be equal
+_______
+#Define methodHeader(T,m) = Ts; C[Xs]; m[Xs'](_:cT1.._:cTn):cT0 //undefined if T not of form C[_]
+  C[Xs]:_{_} ∈ Ls
+  meth(C[Xs],m) = m[Xs']:cT1..cTn->cT0
+  methodHeader(C[Ts],m) = Ts; C[Xs]; m[Xs'](_:cT1.._:cTn):cT0
+//Note: methodHeader(C[Ts],m) do not already apply [Xs=Ts], instead produces a triple
+//Ts;C[Xs]; m[Xs'](..) that are ready to use in the needed context using appropriate alpha renaming
+//Here Ts is returned even if part of the input for convenience, so other parts of the rules can just use it
+_______
+#Define T ⊓ T' = T" and Ts ⊓ Ts' = Ts" //meet operator
+- (T1..Tn) ⊓ (T'1..T'n) = (T1⊓T'1 .. Tn⊓T'n)
+- ? ⊓ T = T
+- T ⊓ ? = T
+- X ⊓ X = X
+- C[Ts] ⊓ C[Ts'] = C[Ts⊓Ts']
+- T ⊓ T' undefined otherwise //a rule using an undefined meet does not apply
+_______
+#Define e ⊓ T = e'
+  withType(e,typeOf(e) ⊓ T)
+_______
+#Define M ⊓ C[Ts] = M' //undefined if methodHeader(C[Ts],m) undefined
+  methodHeader(C[Ts],m)= Ts; C[Xs]; m[Xs'](_:cT1.._:cTn):cT0
+  ∀ i∈0..n T'i = Ti⊓cTi[Xs=Ts]
+  (m[Xs'](x1:T1 .. xn:Tn):T0;) ⊓ C[Ts] = m[Xs'](x1:T'1 .. xn:T'n):T'0;
+  (m[Xs'](x1:T1 .. xn:Tn):T0->e;) ⊓ C[Ts] = m[Xs'](x1:T'1 .. xn:T'n):T'0->e⊓T'0;
+  //NOTE: 'this' changes scope here, how to handle it?
+_______
+#Define Xs ⊢ T=T' : Ts' //sub notation used in (refine)
+
+_______
+#Define close_Xs(T) = T'    close_Xs(Ts) = Ts'
+  close_Xs(?) = ?
+  close_Xs(X) = ?        if X in Xs
+  close_Xs(X) = X        otherwise
+  close_Xs(C[Ts]) = C[ close_Xs(Ts) ]
+
+//Rule (refineXs) STARTS HERE
+---------------------------------------------------(refineXs)
+  X1..Xn X X'1..X'k ⊢ X=T : ?1..?n T ?1..?k
+  //selects an X inside Xs' by splitting Xs' as X1..Xn X X1'..Xk'
+//Rule (refineXsNope) STARTS HERE
+  X notin X1..Xn //can happen when we refine class generics and method generics are in scope
+---------------------------------------------------(refineXsNope)
+  X1..Xn ⊢ X=T : ?1..?n
+//Rule (refine?) STARTS HERE
+---------------------------------------------------(refine?)
+  X1..Xn⊢ ?=T : ?1..?n
+//Rule (propagateXs) STARTS HERE
+  ∀ i∈1..k Xs ⊢ Ti=T'i  : Tsi
+--------------------------------------------------(propagateXs)
+  X1..Xn ⊢ C[T1..Tk]=C[T'1..T'k] : ?1..?n⊓Ts1⊓..⊓Tsk
+  //the first ?s are needed if n==0
+//Rule (propagateXs?) STARTS HERE
+--------------------------------------------------(propagateXs?)
+  X1..Xn ⊢ C[Ts]=? : ?1..?n
+//Rule (propagateXsDiff) STARTS HERE
+  either C != C' or size(Ts) != size(Ts')
+--------------------------------------------------(propagateXsDiff)
+  X1..Xn ⊢ C[Ts]=C'[Ts'] : ?1..?n
+
+_______
+#Define Γ ⊢ e ==>* Γ' ⊢ e' //read as reduce as much as possible
+  Γ ⊢ e ==>* Γ ⊢ e if ¬∃ Γ',e' such that Γ ⊢ e ==> Γ' ⊢ e'
+  Γ ⊢ e ==>* Γ ⊢ e if Γ ⊢ e ==> Γ ⊢ e
+  Γ ⊢ e ==>* Γ" ⊢ e" if Γ ⊢ e ==> Γ' ⊢ e' and Γ' ⊢ e' ==>* Γ" ⊢ e"
+  //and Γ', e' != Γ, e
+_______
+#Define Γ ⊢ e ==> Γ' ⊢ e'
+
+//Rule (x) STARTS HERE
+-------------------------------------- (x)     //loop handled by ==>*
+  Γ, x:T1 ⊢ x:T2 ==> Γ, x:T1 ⊓ T2 ⊢ x:T1 ⊓ T2
+//Rule (call) STARTS HERE
+  ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
+  methodHeader(e'0,m) undefined
+  // may be because typeOf(e'0) not of form C[_], or m not exists in C[_]
+-------------------------------------- (call)
+  Γ0 ⊢ e0.m(e1..en):T ==> Γ(n+1) ⊢ e'0.m(e'1..e'n):T
+//Rule (callI) STARTS HERE
+  ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
+  methodHeader(e'0,m) = Ts;C[Xs]; m[X1..Xk](_:cT1.._:cTn):cT0
+  ∀ i∈0..n T'i = cTi[Xs,X1..Xk=Ts;?1..?k]
+-------------------------------------- (callI)
+  Γ0 ⊢ e0.m(e1..en):T ==> Γ(n+1) ⊢ e'0.m[?1..?k](e'1⊓T'1..e'n⊓T'n):T⊓T'0
+//Rule (callRNope) STARTS HERE
+  ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
+  methodHeader(e'0,m) undefined
+----------------------------------------------------------- (callRNope)
+  Γ0 ⊢ e0.m[Ts](e1..en):T ==> Γ(n+1) ⊢ e'0.m[Ts](e'1..e'n):T
+//Rule (callR) STARTS HERE
+  ∀ i∈0..n Γi ⊢ ei ==>* Γ(i+1) ⊢ e'i
+  methodHeader(e'0,m) = Ts'; C[Xs]; m[Xs'](_:cT1.._:cTn):cT0
+  ∀ i∈1..n Xs,Xs' ⊢ cTi=typeOf(e'i) : Ts'i//args
+  Xs,Xs' ⊢ cT0=T : Ts'0 //ret type
+  Ts" = (Ts';Ts) ⊓ Ts'0 ⊓ .. ⊓ Ts'n
+  ∀ i∈0..n T"i = cTi[Xs,Xs'=Ts"]
+  T" = C[Xs][Xs,Xs'=Ts"]
+----------------------------------------------------------- (callR)
+  Γ0 ⊢ e0.m[Ts](e1..en):T ==> Γ(n+1) ⊢ e'0⊓T".m[Xs'[Xs,Xs'=Ts"]](e'1⊓T"1..e'n⊓T"n):T⊓T"0
+//Rule (anon) STARTS HERE
+  e1 = { M1 ..Mn  } : C[Ts1    ]
+  e2 = { M'1..M'n } : C[Ts(n+1)]
+  ∀ i∈1..n  Γi;C[Tsi] ⊢ Mi ==>* Γ(i+1);C[Ts(i+1)] ⊢ M'i
+----------------------------------------------------------- (anon)
+  Γ1 ⊢ e1 ==> Γ(n+1) ⊢ e2
+//Rule (named) STARTS HERE
+  e1 = C[Xs]:Ts{ M1 ..Mn  } : T
+  e2 = C[Xs]:Ts{ M'1..M'n } : T⊓C[Xs]
+  ∀ i∈1..n  Γi;C[Xs] ⊢ Mi ==>* Γ(i+1);C[Xs] ⊢ M'i
+----------------------------------------------------------- (named)
+  Γ1 ⊢ e1 ==> Γ(n+1) ⊢ e2
+//Rule (meth) STARTS HERE
+  M ⊓ C[Ts] = m[Xs](x1:T1 .. xn:Tn):T0->e;
+  Γ, this:C[Ts],x1:T1 .. xn:Tn⊢ e ==>* Γ',this:_,x1:T'1 .. xn:T'n ⊢ e'
+  T'0 = typeOf(e')
+  methodHeader(C[Ts],m) =Ts; C[Xs']; m[Xs](_:cT1.._:cTn):cT0
+  ∀ i∈0..n Xs' ⊢ cTi=T'i : Tsi
+  Ts' = Ts⊓Ts0⊓..⊓Tsn
+  M' = (m[Xs](x1:T'1 .. xn:T'n):T'0->e';) ⊓ C[Ts']
+------------------------------------------------------------------ (meth)
+  Γ;C[Ts] ⊢ M ==>* Γ';C[close_Xs(Ts')] ⊢ M'
+//Rule (methAbs) STARTS HERE
+  M  = m[Xs](x1:T1 .. xn:Tn):T0;
+------------------------------------------------------------------ (methAbs)
+  Γ;C[Ts] ⊢ M ==>* Γ;C[Ts] ⊢ M ⊓ C[Ts]
+//Rule (methNew) STARTS HERE
+  M  = m[Xs](x1:cT1 .. xn:cTn):cT0->e;
+  methodHeader(C[Ts],m) undefined
+  Γ, this:C[Ts],x1:cT1 .. xn:cTn⊢ e⊓cT0 ==>* Γ',this:_,x1:cT1 .. xn:cTn ⊢ e'
+------------------------------------------------------------------ (methNew)
+  Γ;C[Ts] ⊢ M ==>* Γ';C[Ts] ⊢ m[Xs](x1:cT1 .. xn:cTn):cT0->e';
+//Note: no rule applies to a method with a ? in the signature when methodHeader(C[Ts],m) is undefined
+
+//-------------------------------- less then 150 lines of formalism
+TODO: formally define angelicElaborate and the statement
+program |- angelicElaborate(Γ,se,T,ce)
+TODO: read https://kelloggm.github.io/martinjkellogg.com/papers/ase2023-camera-ready.pdf
+if there is a unique elaboration, my system finds it
+{Ms}: F[A,B] MyF[A,B]
+MyF[A,B]:F[A,B]{}
+
+//{Ms}:? if this cannot be unlocked, we never enter into the es of Ms
+
+_______
+#Define Γ ⊢/ e //read as Γ,e does not reduce (unused)
+  ¬∃ Γ',e'.(Γ ⊢ e ==> Γ' ⊢ e')
+
+Optimizing (avoiding) re entries://not quite working?
+Once a Γ ⊢ e ==>* Γ' ⊢ e' completed,
+we know that Γ" ⊢ e' ==>* Γ" ⊢ e' if: //that is, no progress
+  Γ0 = FV(e') //gets a gamma since syntax has x:T
+  ∀ x in dom(Γ0) Γ0(x) = Γ"(x)
+This also means that
+Once a Γ ⊢ e ==>* Γ' ⊢ ev completed, Γ" ⊢ ev ==>* Γ1 ⊢ ev' can be emulated by:
+ Γ0 = FV(ev) and ev = ev'
+ Γ1 = Γ0 ⊓ Γ"
+
+//On the (not) need of alpha: if no need of alpha in methSig (since two universes)
+//then the X1..Xk is still not alphaed, thus is still the same of what methSig can give us here?
