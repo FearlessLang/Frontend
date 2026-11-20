@@ -1,7 +1,6 @@
 package naming;
 
 import java.util.*;
-import java.util.function.Function;
 
 import core.TName;
 import pkgmerge.Package;
@@ -12,7 +11,6 @@ public record FreshPrefix(
     HashSet<String> allGenericNames,
     HashMap<TName,OwnerState> owners,
     String pkgName,
-    HashSet<String> noNote,
     HashMap<String,String> notes){
   private static final char[] up= "ABCDEFGHJKMNPQRSTUVWXYZ".toCharArray();
   private static final char[] low= "abcdefghjkmnpqrstuvwxyz".toCharArray();
@@ -22,7 +20,7 @@ public record FreshPrefix(
       HashSet<String> vars,
       HashMap<String,Integer> varSeq){}
   public FreshPrefix(Package p){
-    this(new HashSet<>(), new HashMap<>(), new HashSet<>(), new HashMap<>(), p.name(), new HashSet<>(), p.fresh());
+    this(new HashSet<>(), new HashMap<>(), new HashSet<>(), new HashMap<>(), p.name(), p.fresh());
     for (var tn : p.names().decNames()){ usedTopTypes.add(tn.simpleName()); }
     usedTopTypes.addAll(p.map().keySet());
     var xs= p.names().allXs();
@@ -33,8 +31,6 @@ public record FreshPrefix(
       for (var x : xs.get(owner)){ genNames.add(x.name()); }
       allGenericNames.addAll(genNames);
       var vars= new HashSet<>(params.get(owner));
-      noNote.addAll(genNames);
-      noNote.addAll(vars);
       owners.put(owner, new OwnerState(genNames, new HashMap<>(), vars, new HashMap<>()));
     }
   }
@@ -43,14 +39,6 @@ public record FreshPrefix(
     var res= new TName(pkgName+"."+cand, arity, hint.pos());//all fresh names should start with _ to be pkg private
     aliasOwner(hint, res);
     return res;
-  }
-  public String note(String name, Function<String,String> note){
-    var text= note.apply(name);
-    var clash= noNote.contains(name) || !notes.getOrDefault(name, text).equals(text);
-    if (!clash){ notes.put(name, text); return name; }
-    noNote.add(name);
-    notes.remove(name);
-    return name;
   }
   public boolean isFreshGeneric(TName owner, String x, List<String> scope){ return !owners.get(owner).gen().contains(x) && !usedTopTypes.contains(x) && !scope.contains(x); }
   public String freshGeneric(TName owner, String hint, List<String> siblings){

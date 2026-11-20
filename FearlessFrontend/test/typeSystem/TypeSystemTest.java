@@ -6808,21 +6808,7 @@ Receiver required by each promotion:
 Counter:{ mut .inc: Counter }
 U:{ .m(c: Counter): Counter -> c.inc }
 """));}
-@Test void aParameterBesideADestructuringPatternIsPrintedWithANote(){fail("""
-002| User:{ .u({.a,.b}: Pt, x: base.Str): base.Str -> a }
-   |        ------------------------------------------^
-
-While inspecting parameter "a" > method "base.MF[base.Nat,base.Nat,base.Str,base.Str]#(_,_,_)" (line 2) > method "User.u(_,_)" (line 2)
-Method "#(_,_,_)" inside the object literal instance of "iso base.MF[base.Nat,base.Nat,base.Str,base.Str]" (line 2)
-is implemented with an expression returning "base.Nat".
-Parameter "a" has type "base.Nat" instead of a subtype of "base.Str".
-Method "#(_,_,_)" inherited the signature from "base.MF[base.Nat,base.Nat,base.Str,base.Str]#(_,_,_)" as follows:
-mut #(a: base.Nat, b: base.Nat, x: base.Str): base.Str
-""", List.of("""
-Pt:{ .a: base.Nat; .b: base.Nat }
-User:{ .u({.a,.b}: Pt, x: base.Str): base.Str -> a }
-"""));}
-@Test void aRenamedGenericTypeParameterAsACandidateIsPrintedWithANote(){failWf("""
+@Test void aRenamedGenericTypeParameterAsACandidateSaysItsOriginalName(){failWf("""
 003| A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
    |                         ^^^^^^^^^^^^^^^^
 
@@ -6835,20 +6821,6 @@ The candidates are different types and "_AX" is a generic type parameter, so no 
 Sup1:{ .get[X]:X }
 Sup2:{ .get[X]:Sup1 }
 A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
-"""));}
-@Test void aDestructuringParameterIsPrintedWithANote(){fail("""
-002| U:{ .u({.a}: P): U -> a }
-   |     ------------------^
-
-While inspecting parameter "a" > method "base.MF[P,U]#(_)" (line 2) > method "U.u(_)" (line 2)
-Method "#(_)" inside the object literal instance of "iso base.MF[P,U]" (line 2)
-is implemented with an expression returning "P".
-Parameter "a" has type "P" instead of a subtype of "U".
-Method "#(_)" inherited the signature from "base.MF[P,U]#(_)" as follows:
-mut #(a: P): U
-""", List.of("""
-P:{ .a: P }
-U:{ .u({.a}: P): U -> a }
 """));}
 @Test void aNominalPatternNamingAMissingMethodPointsAtTheMethod(){fail("""
 002| U:{ .u({.a,.c}: P): P -> a }
@@ -6879,21 +6851,6 @@ Available methods on type "Q":
 P:{ .a: P; .q: Q }
 Q:{ .r: P }
 U:{ .u({.q.z, .a}: P): P -> a }
-"""));}
-@Test void aFreshNameStandingForTwoNamesGetsNoNote(){fail("""
-003| B:{ .u({.a}: P, xyzwb: P): A -> xyzwb }
-   |     ----------------------------^^^^^
-
-While inspecting parameter "xyzwb" > method "base.MF[P,P,A]#(_,_)" (line 3) > method "B.u(_,_)" (line 3)
-Method "#(_,_)" inside the object literal instance of "iso base.MF[P,P,A]" (line 3)
-is implemented with an expression returning "P".
-Parameter "xyzwb" has type "P" instead of a subtype of "A".
-Method "#(_,_)" inherited the signature from "base.MF[P,P,A]#(_,_)" as follows:
-mut #(a: P, xyzwb: P): A
-""", List.of("""
-P:{ .a: P }
-A:{ .u({.a}: P, xyzwa: P): P -> a }
-B:{ .u({.a}: P, xyzwb: P): A -> xyzwb }
 """));}
 @Test void aMethodOfAnAnonymousLiteralIsDeclaredBeforeAnArgumentWithUnknownHead(){fail("""
 003| U:{ .u: Sup -> G#(Sup{'s .k -> s; .extra: Sup -> s }.extra.zz, {y -> y}) }

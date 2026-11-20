@@ -60,9 +60,6 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return Streams.of(steps.stream(), printed.stream().flatMap(n -> note(written, n)), freshNotes).distinct().sorted(nameFirst).toList();
   }
   public static String freshType(String n, Span s){ return "Name "+disp(n)+" stands for the anonymous type of the object literal at "+at(s)+"."; }
-  public static String freshEq(String n){ return "Name "+disp(n)+" is a parameter added by the desugaring of \"=\": "+disp(".let x = {a}.return {b}")+" stands for "+disp(".let({a}, {x, "+n+" -> "+n+".return {b}})")+"."; }
-  public static String freshDestruct(String n){ return "Name "+disp(n)+" is a parameter added by the desugaring of a nominal pattern: for a parameter "+disp("{.a, .b}: P")+", "+disp(n)+" is that parameter, and "+disp("a")+" and "+disp("b")+" stand for "+disp(n+".a")+" and "+disp(n+".b")+"."; }
-  public static String freshRenamed(String n, String x){ return "Name "+disp(n)+" is parameter "+disp(x)+", renamed by the desugaring of a nominal pattern in the same method."; }
   public static Map<String,String> written(Map<String,String> map){
     return map.entrySet().stream().collect(Collectors.toUnmodifiableMap(Map.Entry::getValue, Map.Entry::getKey));
   }
