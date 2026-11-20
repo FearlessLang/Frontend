@@ -7031,4 +7031,49 @@ B:{}
 F:{ #(x: B): B }
 U:{ .take(f: F): B -> B; .m: B -> this.take(B) }
 """));}
+@Test void aNominalPatternNamingAMissingMethodPointsAtTheMethod(){fail("""
+002| U:{ .u({.a,.c}: P): P -> a }
+   |     -------^^-------------
+
+While inspecting method "U.u(_)" (line 2)
+This call to method ".c" cannot typecheck.
+Method ".c" is not declared on type "P".
+
+Available methods on type "P":
+-       .a: P
+-       .b: P
+""", List.of("""
+P:{ .a: P; .b: P }
+U:{ .u({.a,.c}: P): P -> a }
+"""));}
+@Test void aNominalPatternNamingAMissingMethodInAChainPointsAtTheMethod(){fail("""
+003| U:{ .u({.q.z, .a}: P): P -> a }
+   |     ----~~^^-----------------
+
+While inspecting method "U.u(_)" (line 3)
+This call to method ".z" cannot typecheck.
+Method ".z" is not declared on type "Q".
+
+Available methods on type "Q":
+-       .r: P
+""", List.of("""
+P:{ .a: P; .q: Q }
+Q:{ .r: P }
+U:{ .u({.q.z, .a}: P): P -> a }
+"""));}
+@Test void aMethodOfAnAnonymousLiteralIsDeclaredBeforeAnArgumentWithUnknownHead(){fail("""
+003| U:{ .u: Sup -> G#(Sup{'s .k -> s; .extra: Sup -> s }.extra.zz, {y -> y}) }
+   |     --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^-----------
+
+While inspecting method "U.u" (line 3)
+This call to method ".zz" cannot typecheck.
+Method ".zz" is not declared on type "Sup".
+
+Available methods on type "Sup":
+-       .k: Sup
+""", List.of("""
+Sup:{ .k: Sup }
+G:{ #[A:*,B:*](a: A, f: base.F[A,B]): B -> f#a }
+U:{ .u: Sup -> G#(Sup{'s .k -> s; .extra: Sup -> s }.extra.zz, {y -> y}) }
+"""));}
 }

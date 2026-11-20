@@ -14,14 +14,18 @@ import core.TName;
 import core.TSpan;
 import inference.Gamma;
 import inference.IT;
+import message.TypeSystemErrors;
+import typeSystem.TypeScope;
 import offensiveUtils.EqTransparent;
 import utils.Bug;
 import utils.OneOr;
 import utils.Pos;
 import utils.Push;
+import utils.Range;
 import utils.Streams;
 
-public record ToCore(List<B> ctx, Methods meths){
+public record ToCore(List<B> ctx, Methods meths, List<ToCore.Frame> frames){
+  public record Frame(inference.E.Literal at, core.Sig s){}
   core.E of(inference.E exp, inference.E orig){ return switch (exp){
     case inference.E.X(var name, _, var src, _) -> new core.E.X(name, src);
     case inference.E.Type(var type, _, var src, _) -> type(type, src);
@@ -44,7 +48,7 @@ public record ToCore(List<B> ctx, Methods meths){
     var bs= !e.infName() ? e.bs() : Streams.of(B.xs(e.bs()).stream(), free.ftvCs(e.cs()), free.ftvMs(e.ms()), free.ftvMs(o.ms())).distinct().map(x -> B.get(ctx, x)).toList();
     assert !e.infName() || B.xs(ctx).containsAll(B.xs(bs));
     var name= e.name().withArity(bs.size());
-    var inner= new ToCore(e.infName() ? Push.of(ctx, bs).stream().distinct().toList() : bs, meths);
+    var inner= new ToCore(e.infName() ? Push.of(ctx, bs).stream().distinct().toList() : bs, meths, frames);
     if (!(e.t() instanceof IT.RCC) && !e.t().undecided()){ throw meths.p().err().literalImplementsTypeParameter(e, e.t()); }
     var csIT= distinctTypes(inner.ctx(), Push.of(o.cs(), e.cs()));
     for (var c : csIT){ checkHead(e, c); }
@@ -69,7 +73,27 @@ public record ToCore(List<B> ctx, Methods meths){
     return m.withSig(new core.Sig(s.rc(), s.m(), s.bs(), s.ts(), s.ret(), to, s.abs(), s.span()));
   }
 
-  private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){ return Streams.zip(es, oEs).map(this::of).toList(); }
+  private List<core.E> mapArgs(List<inference.E> es, List<inference.E> oEs){
+    var res= new ArrayList<core.E>();
+    for (int i : Range.of(es)){
+      var headUnknown= es.get(i) instanceof inference.E.Literal l && l.t() instanceof IT.RCC t && !t.isTV();
+      if (headUnknown){ Streams.zip(es.subList(0, i), res).forEach(this::undeclared); }
+      res.add(of(es.get(i), oEs.get(i)));
+    }
+    return Collections.unmodifiableList(res);
+  }
+  private void undeclared(inference.E e, core.E c){
+    if (!(e instanceof inference.E.Call ie && c instanceof core.E.Call cc)){ return; }
+    undeclared(ie.e(), cc.e());
+    if (!(ie.e().t() instanceof IT.RCC r) || ie.e() instanceof inference.E.Literal){ return; }
+    var d= meths._from(r.c().name());
+    var declared= d == null || d.ms().stream().anyMatch(m -> m.sig().m().equals(ie.name()));
+    if (declared){ return; }
+    var tsE= new TypeSystemErrors(meths::from, meths.p(), new LinkedHashSet<>());
+    var fe= tsE.methodNotDeclared(TypeScope.top(), cc, d);
+    for (var f : frames.reversed()){ fe = tsE.mCallFrame(f.at(), f.s(), fe); }
+    throw fe;
+  }
   core.E.Call call(inference.E.Call e, CallLike o){
     var rc= e.rc().orElse(RC.imm);
     var targs= InjectionSteps.writtenTargs(e) ? o.targs : e.targs();
@@ -145,7 +169,7 @@ public record ToCore(List<B> ctx, Methods meths){
     }
     var ei= e.impl().get();
     var oi= o.impl().get();
-    var inner= new ToCore(Push.of(ctx, s.bs()).stream().distinct().toList(), meths);
+    var inner= new ToCore(Push.of(ctx, s.bs()).stream().distinct().toList(), meths, Push.of(frames, new Frame(at, s)));
     return new core.M(s, e.xs(), e.names(), Optional.of(inner.of(ei.e(), oi.e())));
   }
   core.Sig sig(inference.M.Sig inf, inference.M.Sig usr, inference.E.Literal at){

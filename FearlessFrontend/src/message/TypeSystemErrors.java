@@ -92,8 +92,10 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   private Optional<Sig> declared(T.C c, Sig s){
     return decs.apply(c.name()).ms().stream().map(M::sig).filter(ps -> ps.origin().equals(c.name()) && ps.m().equals(s.m()) && ps.rc() == s.rc()).findFirst();
   }
-  public FearlessException mCallFrame(Literal l, M m, FearlessException fe){
-    return fe.addFrame("method "+err().methodSig("", l, m.sig().m())+" (line "+m.sig().span().inner.startLine()+")", m.sig().span().inner);
+  public FearlessException mCallFrame(Literal l, M m, FearlessException fe){ return mCallFrame(err().methodSig("", l, m.sig().m()), m.sig(), fe); }
+  public FearlessException mCallFrame(inference.E.Literal l, Sig s, FearlessException fe){ return mCallFrame(err().methodSig("", l, s.m()), s, fe); }
+  private static FearlessException mCallFrame(String m, Sig s, FearlessException fe){
+    return fe.addFrame("method "+m+" (line "+s.span().inner.startLine()+")", s.span().inner);
   }
   private FearlessException withCallSpans(FearlessException ex, Call c){
     return ex.addSpan(TSpan.fromPos(c.pos(), c.name().s().length()).inner).addSpan(c.span().inner);

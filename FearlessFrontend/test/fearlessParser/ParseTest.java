@@ -461,7 +461,7 @@ Call[Call[TypedLiteralRCC[rc=Optional.empty,c=C[name=
 Block/0,ts=Optional.empty]]]
 #false[]]
 .letfalseDestruct[extract=[[.name,.size],[.age]],
-id=Optional[Bob]][Call[Literal[]]
+id=Optional[Bob],at=[[unknown:1:23,unknown:1:28],[unknown:1:34]]][Call[Literal[]]
 .usetrue[sizeBob,ageBob]]]]]]]]
 """, """
 A:{ .m -> Block#.let {.name.size,.age}Bob = {} .use(sizeBob,ageBob) }
