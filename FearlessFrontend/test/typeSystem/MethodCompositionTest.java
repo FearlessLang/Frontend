@@ -47,9 +47,6 @@ Invalid method signature for "B.foo(_)".
 The method ".foo(_)" accepts parameter 1 of type "B".
 But "A.foo(_)" requires "A", which is not a subtype of "B".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
-
-Relevant code with inferred types:
-B:A{.foo(b:B):Int}
 """, List.of("""
 Str:{} Int:{}
 A:{ .foo(a:A):Str }
@@ -64,9 +61,6 @@ Invalid method signature for "A.foo(_)".
 The method ".foo(_)" accepts parameter 1 of type "A".
 But "B.foo(_)" requires "B", which is not a subtype of "A".
 It is instead a supertype: you are strengthening the parameter instead of weakening it.
-
-Relevant code with inferred types:
-A:B,C{.foo(a:A):A}
 """, List.of("""
 A:B,C{ .foo(a:A):A }
 B:{ .foo(b:B):B }
@@ -90,9 +84,6 @@ Invalid method signature for "A.m".
 The method ".m" returns type "Str".
 But "B.m" returns type "Int", which is not a supertype of "Str".
 The two types are unrelated.
-
-Relevant code with inferred types:
-A:B{.m:Str}
 """, List.of("""
 Int:{} Str:{}
 A:B{ .m: Str }
@@ -154,9 +145,6 @@ Invalid method signature for "A.m".
 The method ".m" returns type "D".
 But "B.m" returns type "B", which is not a supertype of "D".
 It is instead a subtype: you are weakening the result instead of strengthening it.
-
-Relevant code with inferred types:
-A:B,C,D{.m:D}
 """, List.of("""
 A:B,C,D{ .m: D }
 B:D{ .m: B }
@@ -172,9 +160,6 @@ Invalid method signature for "A[_].m(_)".
 The method ".m(_)" returns type "A".
 But "A[_,_].m(_)" returns type "A[X,X]", which is not a supertype of "A".
 The two types are unrelated.
-
-Relevant code with inferred types:
-A[X:*]:A[X,X]{.m(b:A):A}
 """, List.of("""
 A:A[A],A[A,A]{ .m(a:A):A }
 A[X:*]:A[X,X]{ .m(b:A):A }
@@ -351,9 +336,6 @@ Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
 But "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
-
-Relevant code with inferred types:
-A:B{.m:Break[A]}
 """, List.of("""
 A:B{ .m: Break[A] }
 B:{ .m: Break[B] }
@@ -368,9 +350,6 @@ Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
 But "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
-
-Relevant code with inferred types:
-A:B{.m:Break[B]}
 """, List.of("""
 A:B{ .m: Break[B] }
 B:{ .m: Break[A] }
@@ -385,9 +364,6 @@ Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
 But "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
-
-Relevant code with inferred types:
-A:B{.m:Break[A]}
 """, List.of("""
 A:B{ .m: Break[A] }
 B:{ .m: Break[B] }
@@ -402,9 +378,6 @@ Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
 But "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
-
-Relevant code with inferred types:
-A:B{.m:Break[B]}
 """, List.of("""
 A:B{ .m: Break[B] }
 B:{ .m: Break[A] }
@@ -419,9 +392,6 @@ Invalid method signature for "A.m".
 The method ".m" returns type "Break[A]".
 But "B.m" returns type "Break[B]", which is not a supertype of "Break[A]".
 The two types are unrelated.
-
-Relevant code with inferred types:
-A:B{.m:Break[A]}
 """, List.of("""
 A:B{ .m: Break[A] }
 B:{ .m: Break[B] }
@@ -436,9 +406,6 @@ Invalid method signature for "A.m".
 The method ".m" returns type "Break[B]".
 But "B.m" returns type "Break[A]", which is not a supertype of "Break[B]".
 The two types are unrelated.
-
-Relevant code with inferred types:
-A:B{.m:Break[B]}
 """, List.of("""
 A:B{ .m: Break[B] }
 B:{ .m: Break[A] }
@@ -513,9 +480,6 @@ This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "C".
 Hint: add an implementation for ".m" inside the object literal.
-
-Relevant code with inferred types:
-iso C:B,D{.m:A}
 """, List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
@@ -537,9 +501,6 @@ This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
 Hint: add an implementation for ".m" inside the object literal.
-
-Relevant code with inferred types:
-iso D:E,F{.m:R}
 """, List.of("""
 R:{}
 A:{ .m: R -> R }
@@ -594,9 +555,6 @@ This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
 Hint: add an implementation for ".m" inside the object literal.
-
-Relevant code with inferred types:
-iso D:P,Q{.m:R}
 """, List.of("""
 R:{}
 J:{ .m: R -> R }
@@ -615,9 +573,6 @@ This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "D".
 Hint: add an implementation for ".m" inside the object literal.
-
-Relevant code with inferred types:
-iso D:A1,A2{.m:R}
 """, List.of("""
 R:{}
 I1:{ .m: R -> R }
@@ -721,9 +676,6 @@ This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
 Hint: add an implementation for ".m" inside the object literal.
-
-Relevant code with inferred types:
-iso C:A,B{}
 """, List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
@@ -738,9 +690,6 @@ This object literal is missing a required method.
 Missing: "imm .m".
 Required by: "B".
 Hint: add an implementation for ".m" inside the object literal.
-
-Relevant code with inferred types:
-iso C:B{}
 """, List.of("""
 A:{ .m:A->this }
 B:A{ .m:A }
@@ -791,9 +740,6 @@ Invalid method signature for "mut Sub.h".
 The method ".h" returns type "iso P".
 But "mut Sup.h" returns type "mut P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
-
-Relevant code with inferred types:
-Sub:Sup{mut .h:iso P}
 """, List.of("""
 P:{}
 Sup:{ mut .h: mut P }
@@ -808,9 +754,6 @@ Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "read P".
 But "Sup.g(_)" requires "mut P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
-
-Relevant code with inferred types:
-Sub:Sup{.g(x:read P):P}
 """, List.of("""
 P:{}
 Sup:{ .g(x: mut P): P }
@@ -825,9 +768,6 @@ Invalid method signature for "Sub.g(_)".
 The method ".g(_)" accepts parameter 1 of type "readH P".
 But "Sup.g(_)" requires "mutH P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
-
-Relevant code with inferred types:
-Sub:Sup{.g(x:readH P):P}
 """, List.of("""
 P:{}
 Sup:{ .g(x: mutH P): P }
@@ -842,9 +782,6 @@ Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
 But "Sup[_].h(_)" returns type "read/imm X".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
-
-Relevant code with inferred types:
-Sub[X:*]:Sup[X]{.h(x:X):X}
 """, List.of("""
 Sup[X:*]:{ .h(x: X): read/imm X }
 Sub[X:*]:Sup[X]{ .h(x: X): X }
@@ -858,9 +795,6 @@ Invalid method signature for "mut Sup.h".
 The method ".h" returns type "iso P".
 But "mut Sup.h" returns type "mut P".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
-
-Relevant code with inferred types:
-iso Sup{mut .h:iso P->P}
 """, List.of("""
 P:{}
 Sup:{ mut .h: mut P }
@@ -888,9 +822,6 @@ Invalid method signature for "A.get".
 The method ".get" returns type "imm Both".
 But "Foo[_].get" returns type "mut Beer".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
-
-Relevant code with inferred types:
-A:Foo[Bar],Foo[mut Beer]{.get:Both->Both}
 """, List.of("""
 Bar:{}
 Beer:{}
@@ -922,9 +853,6 @@ Invalid method signature for "Sub[_].h(_)".
 The method ".h(_)" returns type "X".
 But "Sup[_].h(_)" returns type "imm X".
 An overriding method can refine the types of its parameters and result, but not their reference capabilities.
-
-Relevant code with inferred types:
-Sub[X:*]:Sup[X]{.h(x:X):X}
 """, List.of("""
 Sup[X:*]:{ .h(x: X): imm X }
 Sub[X:*]:Sup[X]{ .h(x: X): X }

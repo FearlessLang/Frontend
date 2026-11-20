@@ -59,7 +59,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
   public void check(List<B> bs, Gamma g, E e, T expected){
     var got= OneOr.of("One reason per requirement", typeOf(bs, g, e, List.of(new TRequirement("", expected))).stream());
     if (got.isEmpty()){ return; }
-    throw tsE().methodBodyWrongType((TypeScope.Method)scope, e, got, expected);
+    throw tsE().methodBodyWrongType((TypeScope.Method)scope, e, got);
   }
   List<Reason> typeOf(List<B> bs, Gamma g, E e, List<TRequirement> rs){ return switch (e){
     case X x -> checkX(bs, g, x, rs);

@@ -36,11 +36,11 @@ final class BestPicker{
     for (var m : x.ms()){ visit(m, depth); }
   }
   void visitPM(PM x, int depth){
-    if (x.k().isCompactable() && !x.k().pinned){
+    if (!x.k().pinned){
       for (var t : x.ts()){ visit(t, depth); }
       visit(x.ret(), depth);
     }
-    x.body().ifPresent(b -> visit(b, depth));
+    if (x.k().isCompactable()){ x.body().ifPresent(b -> visit(b, depth)); }
   }
   void consider(PN n, int score){
     if (!n.k().isCompactable() || n.k().pinned){ return; }

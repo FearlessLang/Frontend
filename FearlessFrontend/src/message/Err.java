@@ -190,26 +190,34 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
       +" instead of a subtype of "+typeRepr(skipImm, expected)+".";
   }
   FearlessException ex(E e){ return ex(e, e); }
-  FearlessException ex(E e, E focus){
-    return ex("Relevant code with inferred types", e, focus);
-  }
-  FearlessException exInferMsg(E e, E focus, String req){
-    return ex("See inferred typing context below for how type "+req+" was introduced", e, focus);
-  }
-  FearlessException ex(String footerHdr, core.E footerE, core.E focus){
-    if (footerE instanceof X || footerE instanceof Type){ return withNotes(Code.TypeError); }
+  FearlessException typeErr(){ return withNotes(Code.TypeError); }
+  FearlessException ex(E footerE, E focus){ return ex(footerE, focus, List.of()); }
+  FearlessException ex(E footerE, E focus, List<T> inferred){
+    var ts= Push.of(inferred.stream().map(t -> typeRepr(true, t)).toList(), inferredTargs(focus)).stream().distinct().toList();
+    if (footerE instanceof X || footerE instanceof Type || ts.isEmpty()){ return typeErr(); }
     var body= text();
     var cp= _cp.apply(true);
     var footer= cp.limit(footerE, focus, 120).stripTrailing();
-    var header= footerHdr+(cp.omitted ? ", where \"_\", \"{...}\" and method signatures without types mark omitted code:\n" : ":\n");
-    return Code.TypeError.of(() -> body+"\n\n"+Join.of(notes.get().stream(), "", "\n", "\n\n", "")+header+footer);
+    var what= ts.size() == 1 ? "type "+ts.getFirst()+" was" : "types "+Join.of(ts.stream(), "", " and ", "")+" were";
+    var header= "See inferred typing context below for how "+what+" introduced"+(cp.omitted ? " (\"...\" marks omitted code):\n" : ":\n");
+    return Code.TypeError.of(() -> withNotes(body)+"\n\n"+header+footer);
+  }
+  private List<String> inferredTargs(E e){
+    if (!(e instanceof Call c)){ return List.of(); }
+    var own= inferredTargs(c) ? c.targs().stream().map(t -> typeRepr(true, t)).toList() : List.<String>of();
+    return Push.of(own, inferredTargs(c.e()));
+  }
+  static boolean inferredTargs(Call c){
+    var written= c.src().inner instanceof fearlessFullGrammar.E.Call(_, _, var sq, _, _, _, _) && sq.filter(s -> !s.ts().isEmpty()).isPresent();
+    return !c.targs().isEmpty() && !written;
   }
   FearlessException wf(){
     assert sb.length() != 0;
     return withNotes(Code.WellFormedness);
   }
+  private String withNotes(String body){ return body+Join.of(notes.get().stream(), "\n\n", "\n", "", ""); }
   private FearlessException withNotes(Code code){
     var body= text();
-    return code.of(() -> body+Join.of(notes.get().stream(), "\n\n", "\n", "", ""));
+    return code.of(() -> withNotes(body));
   }
 }

@@ -303,9 +303,6 @@ While inspecting type declaration "Bad"
 The type "Person" is not standalone: it is declared inside a method body.
 Only a standalone type can be implemented or mentioned by name.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
-
-Relevant code with inferred types:
-Bad:Person{}
 """, List.of("""
 Str:{} Nat:{}
 FPerson:{ #(name: Str, age: Nat): Person -> Person:{
@@ -474,9 +471,6 @@ This object literal is missing a required method.
 Missing: "imm .foo".
 Required by: "A".
 Hint: add an implementation for ".foo" inside the object literal.
-
-Relevant code with inferred types:
-iso B:A{}
 """, List.of("""
 A:{ .foo: A }
 Bs:{ #: B -> B: A{} }
