@@ -412,10 +412,14 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var name= methodSig(s.rc().map(r -> r.toStrSpace(false)).orElse(""), s.m().get());
     var allParHasType= s.ts().stream().allMatch(Optional::isPresent);
     var e= err().line((allParHasType ? "Missing return type" : "Missing parameter types")+" for method "+name+".");
-    if (allParHasType && addReturnType){ e.line("Add an explicit return type before \"->\"."); }
+    if (allParHasType && addReturnType){ e
+      .line("Add an explicit return type before \"->\".")
+      .line("Alternatively (less common), if you intended to override and omit the signature,")
+      .line("the signature must be inherited from a supertype.");
+    }
     return e
-      .line("A method can omit types in its signature only when a supertype has a method "+name+" to inherit the missing types from.")
-      .line("No supertype of "+err().expRepr(origin)+" has a method "+name+".");
+      .line("Cannot infer signature of method "+name+".")
+      .line("No supertype has a method named "+name+" with "+count(s.ts().size(), "parameter")+".");
   }
   private Err unnamedNotInferred(E.Literal origin, M.Sig s, List<core.Sig> sup){
     var n= s.ts().size();

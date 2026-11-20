@@ -1165,8 +1165,10 @@ In file: [###].fear
 While inspecting object literal instance of "a.A"
 Missing return type for method ".k".
 Add an explicit return type before "->".
-A method can omit types in its signature only when a supertype has a method ".k" to inherit the missing types from.
-No supertype of object literal instance of "a.A" has a method ".k".
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".k".
+No supertype has a method named ".k" with 0 parameters.
 
 """+noteA+"""
 
@@ -1183,8 +1185,10 @@ In file: [###].fear
 While inspecting object literal instance of "X"
 Missing return type for method ".k".
 Add an explicit return type before "->".
-A method can omit types in its signature only when a supertype has a method ".k" to inherit the missing types from.
-No supertype of object literal instance of "X" has a method ".k".
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".k".
+No supertype has a method named ".k" with 0 parameters.
 
 Name "X" stands for "a.A" because of "use a.A as X".
 """+noteA+"""
@@ -2817,8 +2821,10 @@ In file: [###].fear
 While inspecting object literal instance of "a.Box[_]"
 Missing return type for method ".k".
 Add an explicit return type before "->".
-A method can omit types in its signature only when a supertype has a method ".k" to inherit the missing types from.
-No supertype of object literal instance of "a.Box[_]" has a method ".k".
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".k".
+No supertype has a method named ".k" with 0 parameters.
 
 """+noteA+"""
 

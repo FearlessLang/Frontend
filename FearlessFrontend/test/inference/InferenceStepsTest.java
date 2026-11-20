@@ -490,8 +490,10 @@ In file: [###].fear
 While inspecting object literal instance of "A"
 Missing return type for method ".m".
 Add an explicit return type before "->".
-A method can omit types in its signature only when a supertype has a method ".m" to inherit the missing types from.
-No supertype of object literal instance of "A" has a method ".m".
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".m".
+No supertype has a method named ".m" with 0 parameters.
 Error 7 WellFormedness
 """, List.of("""
 A:{}
@@ -1695,8 +1697,10 @@ In file: [###]_rank_app999.fear
 While inspecting type declaration "North"
 Missing return type for method ".turn".
 Add an explicit return type before "->".
-A method can omit types in its signature only when a supertype has a method ".turn" to inherit the missing types from.
-No supertype of type declaration "North" has a method ".turn".
+Alternatively (less common), if you intended to override and omit the signature,
+the signature must be inherited from a supertype.
+Cannot infer signature of method ".turn".
+No supertype has a method named ".turn" with 0 parameters.
 Error 7 WellFormedness
 """, List.of("""
 North: {.turn-> East; }

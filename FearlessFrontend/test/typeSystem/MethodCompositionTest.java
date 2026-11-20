@@ -1021,8 +1021,8 @@ A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
 
 While inspecting type declaration "B"
 Missing return type for method "imm .m".
-A method can omit types in its signature only when a supertype has a method "imm .m" to inherit the missing types from.
-No supertype of type declaration "B" has a method "imm .m".
+Cannot infer signature of method "imm .m".
+No supertype has a method named "imm .m" with 0 parameters.
 Did you mean "mut .m" ?
 Methods of the supertypes: "mut .m".
 """, List.of("""
@@ -1035,8 +1035,8 @@ B:A{ imm .m -> this }
 
 While inspecting object literal instance of "OM[_]"
 Missing return type for method ".some".
-A method can omit types in its signature only when a supertype has a method ".some" to inherit the missing types from.
-No supertype of object literal instance of "OM[_]" has a method ".some".
+Cannot infer signature of method ".some".
+No supertype has a method named ".some" with 0 parameters.
 Did you mean ".some(_)" ?
 Methods of the supertypes: ".empty", ".some(_)".
 """, List.of("""
@@ -1051,8 +1051,8 @@ U:{ .u: A -> O.match{ .some -> A; .empty -> A } }
 
 While inspecting object literal instance of "IfM[_]"
 Missing return type for method ".els".
-A method can omit types in its signature only when a supertype has a method ".els" to inherit the missing types from.
-No supertype of object literal instance of "IfM[_]" has a method ".els".
+Cannot infer signature of method ".els".
+No supertype has a method named ".els" with 0 parameters.
 Did you mean ".else" ?
 Methods of the supertypes: ".else", ".then".
 """, List.of("""
