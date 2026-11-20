@@ -489,7 +489,7 @@ In file: [###].fear
 
 While inspecting object literal instance of "A"
 Missing return type for method ".m".
-Add an explicit return type before '->'.
+Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".m".
@@ -1696,7 +1696,7 @@ In file: [###]_rank_app999.fear
 
 While inspecting type declaration "North"
 Missing return type for method ".turn".
-Add an explicit return type before '->'.
+Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".turn".

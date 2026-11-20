@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.Locale;
+import java.util.Optional;
 
 import core.*;
 import core.E.*;
@@ -18,6 +19,7 @@ import typeSystem.TypeSystem.*;
 import utils.Bug;
 import utils.Join;
 import utils.Push;
+import utils.Streams;
 
 public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredForFresh, Function<TName,Literal> _decs, Function<Boolean,CompactPrinter> _cp, Supplier<List<String>> notes, StringBuilder sb){
   CompactPrinter cp(){ return _cp.apply(false); }
@@ -103,6 +105,18 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
   String typeRepr(T.C t){ return disp(cp().msgT(new T.RCC(RC.imm, preferredForFresh(t), t.span()))); }
   static String count(int n, String noun){ return n+" "+noun+(n == 1 ? "" : "s"); }
   static String up(String s){ return s.substring(0, 1).toUpperCase(Locale.ROOT)+s.substring(1); }
+  static Optional<String> renamed(String parentSig, List<B> declared, List<B> here){
+    var renamed= Streams.zip(declared, here).filter((d,h) -> !d.x().equals(h.x()));
+    var from= renamed.map((d,_) -> disp(d.x())).toList();
+    if (from.isEmpty()){ return Optional.empty(); }
+    var many= from.size() > 1;
+    return Optional.of("Generic type parameter"+(many ? "s " : " ")+and(from)+" of "+parentSig
+      +(many ? " are named " : " is named ")+and(renamed.map((_,h) -> disp(h.x())).toList())+" here.");
+  }
+  private static String and(List<String> xs){
+    if (xs.size() == 1){ return xs.getFirst(); }
+    return Join.of(xs.subList(0, xs.size()-1), "", ", ", "")+" and "+xs.getLast();
+  }
   String expRepr(E toErr){ return switch (toErr){
     case Call c -> "method call "+methodSig(c.name());
     case X x -> "parameter "+disp(x.src().inner instanceof fearlessFullGrammar.E.Implicit ? "::" : x.name());
@@ -121,7 +135,7 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     case inference.E.X(var name, _, _, _) -> "parameter "+disp(name);
     case inference.E.Literal l -> l.thisName().equals("this")
       ? "type declaration "+tNameADisp(l.name())
-      : l.infName() && l.cs().isEmpty() && !(l.t() instanceof inference.IT.RCC) ? "object literal "+disp(anonRepr)
+      : l.infName() && l.cs().isEmpty() && !(l.t() instanceof inference.IT.RCC r && !r.c().name().equals(l.name())) ? "object literal "+disp(anonRepr)
       : "object literal "+bestNamePkg0(l.infName(), bestLitName(l));
     case inference.E.Type t -> "object literal instance of "+tNameADisp(t.type().c().name());
     };}
@@ -143,9 +157,6 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     var capabilityHidden= bad instanceof T.X || bad instanceof T.ReadImmX;
     if (!capabilityHidden){ return e; }
     return e.line("But generic type argument "+badStr+" can only use "+gotStr+".");
-  }
-  public Err invalidMethImpl(String pre, Literal l, MName m){
-    return line("Invalid method signature for "+methodSig(pre, l, m)+".");
   }
 
   Err line(String s){

@@ -166,7 +166,7 @@ In file: [###].fear
 
 While inspecting type declaration "A"
 Missing return type for method ".use(_)".
-Add an explicit return type before '->'.
+Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".use(_)".
@@ -502,8 +502,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .foo" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
 Candidates: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -518,8 +517,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Return type disagreement for method "imm .foo" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .foo" with 0 parameters.
 Candidates: "A1", "A2".
 Type declaration "B" must declare a method ".foo" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -534,8 +532,7 @@ In file: [###].fear
    | ^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about parameter 2 for method "imm .foo(_,_)" with 2 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the type of parameter 2 of method "imm .foo(_,_)" with 2 parameters.
 Candidates: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -550,8 +547,7 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-Type disagreement about parameter 2 for method "imm .foo(_,_)" with 2 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the type of parameter 2 of method "imm .foo(_,_)" with 2 parameters.
 Candidates: "A1", "A2".
 Type declaration "B" must declare a method ".foo(_,_)" explicitly choosing the desired option.
 Error 7 WellFormedness""", List.of("""
@@ -566,10 +562,9 @@ In file: [###].fear
    | ^^^^^^^^^
 
 While inspecting type declaration "B"
-The number of generic type parameters disagrees for method ".foo" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the number of generic type parameters of method ".foo" with 0 parameters.
 Candidates: "[X:imm]", "[]".
-Type declaration "B" cannot implement all of those types.
+Type declaration "B" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
 A1:{ .foo[X:imm]():A1;}
@@ -583,10 +578,9 @@ In file: [###].fear
    |          ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "B"
-The number of generic type parameters disagrees for method ".foo" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the number of generic type parameters of method ".foo" with 0 parameters.
 Candidates: "[X:imm]", "[]".
-Type declaration "B" cannot implement all of those types.
+Type declaration "B" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
 A1:{ .foo[X:imm]():A1;}
@@ -691,8 +685,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Ambiguous implementation for method ".foo" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "A2", "A3".
+Implemented by the supertypes "A2", "A3".
 Type declaration "B" must declare a method ".foo" explicitly implementing the desired behaviour.
 Error 7 WellFormedness
 """, List.of("""
@@ -846,8 +839,8 @@ In file: [###].fear
    |                 ^
 
 While inspecting a type name
-Name "F" is not declared with 2 generic type parameters in package "p".
-Name "F" is only declared with 0 generic type parameters.
+Type "F" is not declared with 2 generic type parameters in package "p".
+Type "F" is only declared with 0 generic type parameters.
 Did you accidentally add or omit a generic type argument?
 Error 7 WellFormedness
 """, List.of("""
@@ -864,10 +857,9 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Invalid method signature for "D.id(_)".
-Supertypes disagree on the capability bounds for generic type parameter 1 of ".id(_)".
+Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
 Generic type parameter names may differ across supertypes; only the position matters.
-Different supertypes declare: "X:imm" and "Y:read".
+Candidates: "imm", "read".
 Type declaration "D" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -883,10 +875,9 @@ In file: [###].fear
    |       ^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "D"
-Invalid method signature for "D.id(_)".
-Supertypes disagree on the capability bounds for generic type parameter 1 of ".id(_)".
+Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
 Generic type parameter names may differ across supertypes; only the position matters.
-Different supertypes declare: "X:imm" and "Y:read".
+Candidates: "imm", "read".
 Type declaration "D" cannot implement all of those supertypes.
 Error 7 WellFormedness
 """, List.of("""
@@ -905,8 +896,6 @@ In file: [###].fear
 While inspecting type declaration "E"
 Invalid method signature for "E.m(_,_)".
 The method ".m(_,_)" declares 1 generic type parameter, but supertypes declare 2.
-Local declaration: "[U:imm]".
-From supertypes: "[-:imm, -:imm]".
 Error 7 WellFormedness
 """, List.of("""
 A:{.m[X,Y](x:X,y:Y):X}
@@ -937,8 +926,7 @@ In file: [###].fear
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
-Different options are present in the implemented types.
+Supertypes disagree on the type of parameter 1 of method "imm .m(_)" with 1 parameter.
 Candidates: "Twice[Pair[X,Y]]", "Twice[Pair[Y,X]]".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 Error 7 WellFormedness
@@ -1177,8 +1165,8 @@ In file: [###].fear
    |               ^^^^^^^^^^
 
 While inspecting a type name
-Name "Block" is not declared with 2 generic type parameters in package "base".
-Name "Block" is only declared with other numbers of generic type parameters.
+Type "Block" is not declared with 2 generic type parameters in package "base".
+Type "Block" is only declared with other numbers of generic type parameters.
 Candidates: "Block", "Block[_]".
 Did you accidentally add or omit a generic type argument?
 Error 7 WellFormedness
@@ -1195,8 +1183,8 @@ In file: [###].fear
    |               ^^^^^
 
 While inspecting a type name
-Name "Block" is not declared with 2 generic type parameters in package "base".
-Name "Block" is only declared with other numbers of generic type parameters.
+Type "Block" is not declared with 2 generic type parameters in package "base".
+Type "Block" is only declared with other numbers of generic type parameters.
 Candidates: "Block", "Block[_]".
 Did you accidentally add or omit a generic type argument?
 
@@ -1247,7 +1235,7 @@ In file: [###]/in_memory1.fear
 001| Y[X:imm]:{}
    |   ^
 
-While inspecting a type name
+While inspecting generic type parameter "X"
 Generic type parameter "X" is declared in package "p".
 Name "X" is also used as a type name.
 Error 7 WellFormedness
@@ -1313,7 +1301,7 @@ In file: [###].fear
 
 While inspecting type declaration "B"
 Cannot infer signature and name for a method with 0 parameters.
-No supertype has a method with 0 parameters.
+No supertype of type declaration "B" has a method with 0 parameters.
 Error 7 WellFormedness
 """,
   List.of("""
@@ -1360,8 +1348,8 @@ In file: [###].fear
 While inspecting type declaration "B"
 Type declaration "B" implements method ".h".
 The body of method "B.h" needs to be duplicated to satisfy multiple reference capability overloads from the supertypes.
-However, it contains object literal "MyAge".
-Object literals with their own unique explicit type cannot be duplicated.
+However, the body declares type "MyAge".
+A body declaring a type cannot be duplicated, since a type has only one declaration.
 Error 7 WellFormedness
 """, List.of("""
 Age:{}

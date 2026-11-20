@@ -84,16 +84,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var parent= parent(l, m.sig());
     var written= fm.flatMap(fearlessFullGrammar.M::sig).flatMap(fearlessFullGrammar.Sig::bs).isPresent();
     if (fm.isEmpty() || written || parent.isEmpty()){ return Optional.empty(); }
-    var renamed= Streams.zip(declared(parent.get(), m.sig()).get().bs(), m.sig().bs()).filter((ps,h) -> !ps.x().equals(h.x()));
-    var from= renamed.map((p,_) -> disp(p.x())).toList();
-    if (from.isEmpty()){ return Optional.empty(); }
-    var many= from.size() > 1;
-    return Optional.of("Generic type parameter"+(many ? "s " : " ")+and(from)+" of "+parentSig(parent.get(), m.sig())
-      +(many ? " are named " : " is named ")+and(renamed.map((_,h) -> disp(h.x())).toList())+" here.");
-  }
-  private static String and(List<String> xs){
-    if (xs.size() == 1){ return xs.getFirst(); }
-    return Join.of(xs.subList(0, xs.size()-1), "", ", ", "")+" and "+xs.getLast();
+    return renamed(parentSig(parent.get(), m.sig()), declared(parent.get(), m.sig()).get().bs(), m.sig().bs());
   }
   private Optional<Sig> declared(T.C c, Sig s){
     return decs.apply(c.name()).ms().stream().map(M::sig).filter(ps -> ps.origin().equals(c.name()) && ps.m().equals(s.m()) && ps.rc() == s.rc()).findFirst();
@@ -113,7 +104,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
   }
   private FearlessException overrideErr(Literal l, Sig current, Sig parent, String got, String want, String why){
     var e= err()
-      .invalidMethImpl(current.rc().toStrSpace(), l, current.m())
+      .line("Invalid method signature for "+err().methodSig(current.rc().toStrSpace(), l, current.m())+".")
       .line("The method "+err().methodSig(current.m())+" "+got+".")
       .line("But "+err().methodSig(current.rc().toStrSpace(), parent.origin(), current.m())+" "+want+".")
       .line(why);
@@ -423,7 +414,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var availRc= Join.of(rcs.stream().map(Err::disp), "", " and ", ".");
     return withCallSpans(err()
       .pCallCantBeSatisfied(c)
-      .line(err().methodSig(c.name())+" exists on "+on+", but not with the requested capability.")
+      .line("Method "+err().methodSig(c.name())+" exists on "+on+", but not with the requested capability.")
       .line("This call requires a method with capability "+disp(c.rc())+".")
       .line("Available capabilities for this method: "+availRc)
       .typeErr(), c);

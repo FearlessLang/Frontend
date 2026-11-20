@@ -44,6 +44,7 @@ import utils.Join;
 import utils.Pos;
 import java.util.EnumSet;
 import utils.Push;
+import utils.Streams;
 
 public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<String,String> writtenIn, LinkedHashSet<String> printed){
   public WellFormednessErrors(String pkgName){ this(pkgName, Map.of(), Map.of(), new LinkedHashSet<>()); }
@@ -207,8 +208,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       if (arities.isEmpty()){ return Optional.empty(); }
       var targetPkg= typedPkg.isEmpty() ? contextPkg : typedPkg;
       var e= err.get()
-        .line("Name "+disp(typedSimple)+" is not declared with "+count(tn.arity(), "generic type parameter")+" in package "+disp(targetPkg)+".")
-        .line("Name "+disp(typedSimple)+" is only declared with "
+        .line("Type "+disp(typedSimple)+" is not declared with "+count(tn.arity(), "generic type parameter")+" in package "+disp(targetPkg)+".")
+        .line("Type "+disp(typedSimple)+" is only declared with "
           +(arities.size() == 1
             ? count(arities.getFirst(), "generic type parameter")+"."
             : "other numbers of generic type parameters.\n"+Join.of(arities.stream().map(n -> disp(typedSimple+genArity(n))), "Candidates: ", ", ", ".")
@@ -340,7 +341,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("Generic type parameter "+disp(n.name())+" is declared in package "+disp(pkgName)+".")
       .line("Name "+disp(n.name())+" is also used "+(use.contains(n.name()) ? "in a \"use\" directive." : "as a type name."))
       .wf()
-      .addFrame("a type name", n.span().inner);
+      .addFrame("generic type parameter "+disp(n.name()), n.span().inner);
   }
   public FearlessException duplicatedBound(List<RC> es, T.X n){
     var dup= redeclaredElement(es);
@@ -396,72 +397,82 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     color.put(u, 2);
     return null;
   }
-  public FearlessException noSourceToInferFrom(E.Literal origin, M m){
-    var size= m.sig().ts().size();
-    if (m.sig().m().isEmpty()){
-      return wf(err()
-        .line("Cannot infer signature and name for a method with "+count(size, "parameter")+".")
-        .line("No supertype has a method with "+count(size, "parameter")+"."), m.sig(), origin);
-    }
-    var name= err().methodSig(m.sig().m().get());
-    var allParHasType= m.sig().ts().stream().allMatch(Optional::isPresent);
-    var e= err();
-    if (allParHasType){
-      e.line("Missing return type for method "+name+".")
-       .line("Add an explicit return type before '->'.")
-       .line("Alternatively (less common), if you intended to override and omit the signature,")
-       .line("the signature must be inherited from a supertype.");
-    }
-    return wf(e
-      .line("Cannot infer signature of method "+name+".")
-      .line("No supertype has a method named "+name+" with "+count(size, "parameter")+"."), m.sig(), origin);
+  public FearlessException noSourceToInferFrom(E.Literal origin, M m, List<core.Sig> sup){
+    var s= m.sig();
+    var names= sup.stream().map(si -> si.m().s()).distinct().sorted().toList();
+    var best= s.m().filter(_ -> !names.isEmpty()).flatMap(n -> NameSuggester.bestName(n.s(), names));
+    var e= s.m().isEmpty() ? unnamedNotInferred(origin, s, sup) : missingTypes(s, best.isEmpty());
+    best.ifPresent(b -> e.line(Join.of(sup.stream().filter(si -> si.m().s().equals(b)).map(WellFormednessErrors::supSig).distinct(), "Did you mean ", " or ", " ?")));
+    m.names().stream().filter(x -> s.m().isEmpty() && names.contains("."+x)).findFirst()
+      .ifPresent(x -> e.line(disp(x)+" is read as a parameter name: a method name starts with \".\", as in "+disp("."+x)+"."));
+    if (!sup.isEmpty()){ e.line(Join.of(sup.stream().map(WellFormednessErrors::supSig).distinct().sorted(), "Methods of the supertypes: ", ", ", ".")); }
+    return wf(e, s, origin);
   }
-  public String retTypeDisagreement(){ return "Return type disagreement"; }
-  public String paramTypeDisagreement(int i){ return "Type disagreement about parameter "+(i+1); }
+  private static String supSig(core.Sig s){ return methodSig(s.rc().toStrSpace(), s.m()); }
+  private Err missingTypes(M.Sig s, boolean addReturnType){
+    var name= methodSig(s.rc().map(r -> r.toStrSpace(false)).orElse(""), s.m().get());
+    var allParHasType= s.ts().stream().allMatch(Optional::isPresent);
+    var e= err();
+    if (allParHasType){ e.line("Missing return type for method "+name+"."); }
+    if (allParHasType && addReturnType){ e
+      .line("Add an explicit return type before \"->\".")
+      .line("Alternatively (less common), if you intended to override and omit the signature,")
+      .line("the signature must be inherited from a supertype.");
+    }
+    return e
+      .line("Cannot infer signature of method "+name+".")
+      .line("No supertype has a method named "+name+" with "+count(s.ts().size(), "parameter")+".");
+  }
+  private Err unnamedNotInferred(E.Literal origin, M.Sig s, List<core.Sig> sup){
+    var n= s.ts().size();
+    var taken= sup.stream().anyMatch(si -> si.m().arity() == n);
+    return err()
+      .line("Cannot infer signature and name for a method with "+count(n, "parameter")+".")
+      .line(taken
+        ? "Each method with "+count(n, "parameter")+" of the supertypes is already implemented by another method of "+err().expRepr(origin)+"."
+        : "No supertype of "+err().expRepr(origin)+" has a method with "+count(n, "parameter")+".");
+  }
+  public String retTypeDisagreement(){ return "the return type"; }
+  public String paramTypeDisagreement(int i){ return "the type of parameter "+(i+1); }
   public FearlessException noAgreement(Agreement at, List<B> bs, List<IT> res, String msg){
     var rc= at.rc().map(r -> r.toStrSpace(false)).orElse("");
     var rcDiffers= res.stream().map(t -> t instanceof IT.RCC r ? EnumSet.of(r.rc().orElse(RC.imm)) : Kinding.intrinsicRCs(bs, TypeRename.itToT(t))).distinct().count() > 1;
     var x= res.stream().filter(t -> !(t instanceof IT.RCC)).findFirst();
     var e= err()
-      .line(msg+" for method "+methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
-      .line("Different options are present in the implemented types.")
+      .line("Supertypes disagree on "+msg+" of method "+methodSig(rc, at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
       .line(Join.of(res.stream().map(o -> option(rcDiffers, o)), "Candidates: ", ", ", "."));
     var m= err().methodSig(at.mName());
-    if (rcDiffers){ return wf(e.line("They differ in reference capability, and an overriding method must keep it, so no method "+m+" can implement all of them."), at); }
-    if (x.isPresent()){ return wf(e.line("They are different types and "+option(false, x.get())+" is a generic type parameter, so no method "+m+" can implement all of them."), at); }
+    if (rcDiffers){ return wf(e.line("The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method "+m+" can implement all the candidates."), at); }
+    if (x.isPresent()){ return wf(e.line("The candidates are different types and "+option(false, x.get())+" is a generic type parameter, so no method "+m+" can implement all the candidates."), at); }
     return wf(e.line(up(err().expRepr(at.lit()))+" must declare a method "+m+" explicitly choosing the desired option."), at);
   }
   private String option(boolean showImm, IT o){
     if (!(o instanceof IT.RCC rcc)){ return disp(o); }
     return err().typeRepr(!showImm, rcc);
   }
-  public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<List<B>> res){
+  public FearlessException methodGenericArityDisagreementBetweenSupers(Agreement at, List<M.Sig> ss, List<core.Sig> declared){
     var e= err()
-      .line("The number of generic type parameters disagrees for method "+err().methodSig(at.mName())
+      .line("Supertypes disagree on the number of generic type parameters of method "+err().methodSig(at.mName())
         +" with "+count(at.mName().arity(), "parameter")+".")
-      .line("Different options are present in the implemented types.")
-      .line(Join.of(res.stream().map(Err::disp), "Candidates: ", ", ", "."))
-      .line(up(err().expRepr(at.lit()))+" cannot implement all of those types.");
-    return wf(e, at);
+      .line(Join.of(ss.stream().map(s -> disp(s.bs().get())).distinct(), "Candidates: ", ", ", "."));
+    Streams.zip(declared, ss).filterMap((d,s) -> renamed(err().methodSig("", d.origin(), d.m()), d.bs(), s.bs().get())).distinct().forEach(e::line);
+    return wf(e.line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at);
   }
   public FearlessException methodGenericArityDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
-    var sB= disp(superBs.stream().map(b -> new B("-", b.rcs())).toList());
     return wf(invalidMethImpl(at)
-      .line("The method "+err().methodSig(at.mName())+" declares "+count(userBs.size(), "generic type parameter")+", but supertypes declare "+superBs.size()+".")
-      .line("Local declaration: "+disp(userBs)+".")
-      .line("From supertypes: "+sB+"."), at);
+      .line("The method "+err().methodSig(at.mName())+" declares "+count(userBs.size(), "generic type parameter")+", but supertypes declare "+superBs.size()+"."), at);
   }
   public FearlessException methodBsDisagreementBetweenSupers(Agreement at, List<List<B>> res){
     assert res.size() >= 2;
     var n= res.getFirst().size();
     assert res.stream().allMatch(bs -> bs.size() == n);
     var i= firstRcsDisagreementIndex(res);
-    var opts= Join.of(res.stream().map(bs -> disp(bs.get(i))).distinct().sorted(), "", " and ", ".");
+    var opts= Join.of(res.stream().map(bs -> disp(Join.of(bs.get(i).rcs().stream(), "", ",", ""))).distinct().sorted(), "Candidates: ", ", ", ".");
     var m= err().methodSig(at.mName());
-    return wf(invalidMethImpl(at)
-      .line("Supertypes disagree on the capability bounds for generic type parameter "+(i+1)+" of "+m+".")
+    return wf(err()
+      .line("Supertypes disagree on the capability bounds of generic type parameter "+(i+1)+" of method "+m+" with "+count(at.mName().arity(), "parameter")+".")
       .line("Generic type parameter names may differ across supertypes; only the position matters.")
-      .line("Different supertypes declare: "+opts)
+      .line(opts)
       .line(up(err().expRepr(at.lit()))+" cannot implement all of those supertypes."), at);
   }
   public FearlessException methodBsDisagreesWithSupers(Agreement at, List<B> userBs, List<B> superBs){
@@ -470,13 +481,11 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     var u= userBs.get(i);
     var s= superBs.get(i);
     var m= err().methodSig(at.mName());
-    var uB= disp(u);
-    var sB= disp(new B("-", s.rcs()));
     return wf(invalidMethImpl(at)
-      .line("The local declaration uses different capability bounds than the supertypes for generic type parameter "+(i+1)+" of "+m+".")
-      .line("Local: "+uB+".")
-      .line("From supertypes: "+sB+".")
-      .line("The parameter name may differ; only the position matters."), at);
+      .line("The method "+m+" declares different capability bounds than the supertypes for generic type parameter "+(i+1)+".")
+      .line("Local declaration: "+disp(u)+".")
+      .line("Capability bounds in the supertypes: "+disp(Join.of(s.rcs().stream(), "", ",", ""))+".")
+      .line("Generic type parameter names may differ from the supertypes; only the position matters."), at);
   }
   private int firstRcsDisagreementIndex(List<List<B>> res){
     return IntStream.range(0, res.getFirst().size())
@@ -560,8 +569,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   public FearlessException ambiguousImplementationFor(List<TName> options, Agreement at){
     return wf(err()
       .line("Ambiguous implementation for method "+err().methodSig(at.mName())+" with "+count(at.mName().arity(), "parameter")+".")
-      .line("Different options are present in the implemented types.")
-      .line(Join.of(options.stream().map(err()::tNameADisp), "Candidates: ", ", ", "."))
+      .line(Join.of(options.stream().map(err()::tNameADisp), "Implemented by the supertypes ", ", ", "."))
       .line(up(err().expRepr(at.lit()))+" must declare a method "+err().methodSig(at.mName())+" explicitly implementing the desired behaviour."), at);
   }
   public FearlessException multipleWidenTo(E.Literal owner, List<IT.C> widen){
@@ -579,8 +587,8 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
     return wf(err()
       .line(ctx+" implements method "+err().methodSig(m.sig().m().get())+".")
       .line("The body of method "+err().methodSig("", owner, m.sig().m().get())+" needs to be duplicated to satisfy multiple reference capability overloads from the supertypes.")
-      .line("However, it contains "+err().expRepr(in)+".")
-      .line("Object literals with their own unique explicit type cannot be duplicated."), owner);
+      .line("However, the body declares type "+err().tNameADisp(in.name())+".")
+      .line("A body declaring a type cannot be duplicated, since a type has only one declaration."), owner);
   }
   public FearlessException baseIdNotOnlyHash(E.Literal owner){
     var ctx= up(err().expRepr(owner));
@@ -681,7 +689,7 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException implementsAnonymousType(E.Literal l, E.Literal owner){
     return err()
-      .line("The inference concluded that the object literal at "+at(l.span().inner)+" should implement the object literal at "+at(owner.span().inner)+".")
+      .line("Type inference concluded that the object literal at "+at(l.span().inner)+" should implement the object literal at "+at(owner.span().inner)+".")
       .line("An object literal can only implement a standalone type.")
       .line("A type is standalone if it is declared at top level, or if it implements "+err().tNameADisp(LiteralDeclarations.captureFree)+".")
       .wf().addFrame("object literal "+disp("{...}")+" (line "+l.span().inner.startLine()+")", l.span().inner);

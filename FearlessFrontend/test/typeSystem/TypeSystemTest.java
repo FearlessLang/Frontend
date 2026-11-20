@@ -1305,10 +1305,10 @@ In file: [###].fear
 
 While inspecting type declaration "Current"
 Invalid method signature for "Current.id(_)".
-The local declaration uses different capability bounds than the supertypes for generic type parameter 1 of ".id(_)".
-Local: "X:imm,read".
-From supertypes: "-:imm".
-The parameter name may differ; only the position matters.
+The method ".id(_)" declares different capability bounds than the supertypes for generic type parameter 1.
+Local declaration: "X:imm,read".
+Capability bounds in the supertypes: "imm".
+Generic type parameter names may differ from the supertypes; only the position matters.
 Error 7 WellFormedness
 """, List.of("""
 P:{}
@@ -1325,8 +1325,6 @@ In file: [###].fear
 While inspecting type declaration "Sub"
 Invalid method signature for "Sub.f(_)".
 The method ".f(_)" declares 2 generic type parameters, but supertypes declare 1.
-Local declaration: "[X:imm, Y:imm]".
-From supertypes: "[-:imm]".
 Error 7 WellFormedness
 """, List.of("""
 P:{}
@@ -1547,7 +1545,7 @@ User:{
 
 While inspecting ".m(_,_)" line 6
 This call to method ".zap(_)" cannot typecheck.
-".zap(_)" exists on type "Z", but not with the requested capability.
+Method ".zap(_)" exists on type "Z", but not with the requested capability.
 This call requires a method with capability "mut".
 Available capabilities for this method: "read".
 """, List.of("""
@@ -1566,7 +1564,7 @@ User:{
 
 While inspecting ".u" line 2
 This call to method ".k" cannot typecheck.
-".k" exists on object literal instance of "A", but not with the requested capability.
+Method ".k" exists on object literal instance of "A", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "mut".
 """, List.of("""
@@ -1579,7 +1577,7 @@ U:{ .u: base.Void -> mut A{ read .m: base.Void -> base.Void; mut .k: base.Void -
 
 While inspecting "#(_)" line 2
 This call to method ".m" cannot typecheck.
-".m" exists on type "A", but not with the requested capability.
+Method ".m" exists on type "A", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "imm" and "mut".
 """, List.of("""
@@ -2033,7 +2031,7 @@ A:{.foo123:A->this.foo123; read .bar:A->this.foo123[imm];}
 
 While inspecting ".bar" line 1
 This call to method ".foo123" cannot typecheck.
-".foo123" exists on type "A", but not with the requested capability.
+Method ".foo123" exists on type "A", but not with the requested capability.
 This call requires a method with capability "read".
 Available capabilities for this method: "imm".
 """, List.of("""
@@ -2398,9 +2396,9 @@ Outer:{ .m: base.Void -> {'self .a: Outer -> self}.a }
 001| Outer:{ .m: base.Void -> { .a -> base.Void{} }.a }
    |                          --^^^^^^^^^^^^^^^^^--
 
-While inspecting object literal instance of "_AOute"
+While inspecting object literal "{...}"
 Missing return type for method ".a".
-Add an explicit return type before '->'.
+Add an explicit return type before "->".
 Alternatively (less common), if you intended to override and omit the signature,
 the signature must be inherited from a supertype.
 Cannot infer signature of method ".a".
@@ -6157,7 +6155,7 @@ U:{ .m: A -> A{'s .k -> s; .v -> G#(s, {}) } }
    |                                                 ^^
 
 While inspecting object literal "{...}" (line 2)
-The inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
+Type inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
 An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 """, List.of("""
@@ -6169,7 +6167,7 @@ U:{ .m: base.Void -> {'s .j: base.Void -> G#(s, {}) }.j }
    |                                                 ^^^^^^^^^^^^^^^^^^^
 
 While inspecting object literal "{...}" (line 2)
-The inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
+Type inference concluded that the object literal at line 2, column 49 should implement the object literal at line 2, column 22.
 An object literal can only implement a standalone type.
 A type is standalone if it is declared at top level, or if it implements "base.CaptureFree".
 """, List.of("""

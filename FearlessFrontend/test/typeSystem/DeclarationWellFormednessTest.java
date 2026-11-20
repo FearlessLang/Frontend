@@ -1083,7 +1083,7 @@ A:{}
 002| A[X]:{}
    |   ^
 
-While inspecting a type name
+While inspecting generic type parameter "X"
 Generic type parameter "X" is declared in package "p".
 Name "X" is also used in a "use" directive.
 """, List.of("""

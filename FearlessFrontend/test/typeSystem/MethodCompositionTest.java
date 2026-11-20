@@ -99,8 +99,7 @@ C:{ .m: C }
    | ^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .m" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .m" with 0 parameters.
 Candidates: "B", "C".
 Type declaration "A" must declare a method ".m" explicitly choosing the desired option.
 """, List.of("""
@@ -113,8 +112,7 @@ C:{ .m: C }
    | ^^^^^^^^
 
 While inspecting type declaration "AA"
-Return type disagreement for method "imm .m" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .m" with 0 parameters.
 Candidates: "B", "C".
 Type declaration "AA" must declare a method ".m" explicitly choosing the desired option.
 """, List.of("""
@@ -189,8 +187,7 @@ C:{ .m(c:Foo): Foo -> c }
 
 While inspecting type declaration "A"
 Ambiguous implementation for method ".m(_)" with 1 parameter.
-Different options are present in the implemented types.
-Candidates: "B", "C".
+Implemented by the supertypes "B", "C".
 Type declaration "A" must declare a method ".m(_)" explicitly implementing the desired behaviour.
 """, List.of("""
 Foo:{}
@@ -211,8 +208,7 @@ D:A,C{}
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "A", "B".
+Implemented by the supertypes "A", "B".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
 R:{}
@@ -246,8 +242,7 @@ List[T:*]:{}
    | ^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .kk" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .kk" with 0 parameters.
 Candidates: "A", "List[A]".
 Type declaration "A" must declare a method ".kk" explicitly choosing the desired option.
 """, List.of("""
@@ -296,8 +291,6 @@ B:{ .m[X:*](x: X): Foo }
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
 The method ".m" declares 2 generic type parameters, but supertypes declare 1.
-Local declaration: "[X:imm,mut,read, Y:imm,mut,read]".
-From supertypes: "[-:imm,mut,read]".
 """, List.of("""
 Foo:{}
 A:B{ .m[X:*,Y:*]: Foo }
@@ -309,10 +302,10 @@ B:{ .m[X:*]: Foo }
 
 While inspecting type declaration "A"
 Invalid method signature for "A.m".
-The local declaration uses different capability bounds than the supertypes for generic type parameter 1 of ".m".
-Local: "X:imm".
-From supertypes: "-:imm,mut,read".
-The parameter name may differ; only the position matters.
+The method ".m" declares different capability bounds than the supertypes for generic type parameter 1.
+Local declaration: "X:imm".
+Capability bounds in the supertypes: "imm,mut,read".
+Generic type parameter names may differ from the supertypes; only the position matters.
 """, List.of("""
 Foo:{}
 A:B{ .m[X:imm]: Foo }
@@ -440,8 +433,7 @@ Bar[X:*]:{ .m: Foo[X] -> Foo[X:*]:{} }
    | ^^^^^^^
 
 While inspecting type declaration "D"
-Type disagreement about parameter 1 for method "imm .m(_)" with 1 parameter.
-Different options are present in the implemented types.
+Supertypes disagree on the type of parameter 1 of method "imm .m(_)" with 1 parameter.
 Candidates: "base.Int", "base.Float".
 Type declaration "D" must declare a method ".m(_)" explicitly choosing the desired option.
 """, List.of("""
@@ -625,8 +617,7 @@ User:{ #:D->D:X,C{} }
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "B", "C".
+Implemented by the supertypes "B", "C".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
 R:{}
@@ -642,8 +633,7 @@ D:X,B,C{}
 
 While inspecting type declaration "D"
 Ambiguous implementation for method ".m" with 0 parameters.
-Different options are present in the implemented types.
-Candidates: "A", "B".
+Implemented by the supertypes "A", "B".
 Type declaration "D" must declare a method ".m" explicitly implementing the desired behaviour.
 """, List.of("""
 R:{}
@@ -834,10 +824,9 @@ A:Foo[imm Bar],Foo[mut Beer]{ .get: Both -> Both }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "imm Bar", "mut Beer".
-They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Bar:{}
 Beer:{}
@@ -862,10 +851,9 @@ Sub[X:*]:Sup[X]{ .h(x: X): X }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "Y", "imm Y".
-They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Foo[T:*]:{ .get: T }
 A[Y:imm,mut]:Foo[Y],Foo[imm Y]{}
@@ -894,10 +882,9 @@ A[Y:imm]:Foo[Y],Bar[Y]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "Y", "Bar".
-They are different types and "Y" is a generic type parameter, so no method ".get" can implement all of them.
+The candidates are different types and "Y" is a generic type parameter, so no method ".get" can implement all the candidates.
 """, List.of("""
 Bar:{}
 Foo[T:*]:{ .get: T }
@@ -908,10 +895,9 @@ A[Y:imm]:Foo[Y],Foo[Bar]{}
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "Y", "imm Bar".
-They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Bar:{}
 Foo[T:*]:{ .get: T }
@@ -944,10 +930,9 @@ User:{ .asFoo(a: A[Baz]): Foo[Baz] -> a; .get(a: A[Baz]): Baz -> a.get; .make: A
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "A[_]"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "Y", "read/imm Y".
-They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Foo[X:imm,mut]:{ .get: X }
 Bar[X:imm,mut]:{ .get: read/imm X }
@@ -964,10 +949,9 @@ A:Foo,Bar{}
    | ^^^^^^^^^^^
 
 While inspecting type declaration "A"
-Return type disagreement for method "imm .get" with 0 parameters.
-Different options are present in the implemented types.
+Supertypes disagree on the return type of method "imm .get" with 0 parameters.
 Candidates: "T", "read/imm T".
-They differ in reference capability, and an overriding method must keep it, so no method ".get" can implement all of them.
+The candidates differ in reference capability, and an overriding method must keep the reference capability, so no method ".get" can implement all the candidates.
 """, List.of("""
 Foo:{ .get[T:mut]: T }
 Bar:{ .get[T:mut]: read/imm T }
@@ -989,5 +973,132 @@ Box[T:*]:{}
 Foo:{ .get[T:mut]: Box[T] }
 Bar:{ .get[T:mut]: Box[mut T] }
 A:Foo,Bar{}
+"""));}
+@Test void overrideBoundsAreComparedByPositionNotByName(){failWf("""
+002| C:A{.m[Y:imm,X:imm](x:Y,y:X):Y->x}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "C"
+Invalid method signature for "C.m(_,_)".
+The method ".m(_,_)" declares different capability bounds than the supertypes for generic type parameter 2.
+Local declaration: "X:imm".
+Capability bounds in the supertypes: "mut".
+Generic type parameter names may differ from the supertypes; only the position matters.
+""", List.of("""
+A:{.m[X:imm,Y:mut](x:X,y:Y):X}
+C:A{.m[Y:imm,X:imm](x:Y,y:X):Y->x}
+"""));}
+@Test void supertypesDisagreeOnBoundsInsideAGenericMethod(){failWf("""
+003| A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+   |                         ^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Both"
+Supertypes disagree on the capability bounds of generic type parameter 1 of method ".id(_)" with 1 parameter.
+Generic type parameter names may differ across supertypes; only the position matters.
+Candidates: "imm", "read".
+Object literal "Both" cannot implement all of those supertypes.
+""", List.of("""
+Sup1:{ .id[X:imm](x:X):X }
+Sup2:{ .id[X:read](x:X):X }
+A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+"""));}
+@Test void supertypesDisagreeOnGenericArityInsideAGenericMethod(){failWf("""
+003| A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+   |                         ^^^^^^^^^^^^^^^^
+
+While inspecting object literal "Both"
+Supertypes disagree on the number of generic type parameters of method ".id(_)" with 1 parameter.
+Candidates: "[_AX:imm]", "[]".
+Generic type parameter "X" of "Sup1.id(_)" is named "_AX" here.
+Object literal "Both" cannot implement all of those supertypes.
+""", List.of("""
+Sup1:{ .id[X:imm](x:Sup1):Sup1 }
+Sup2:{ .id(x:Sup1):Sup1 }
+A:{ .m[X](x:X): Sup1 -> Both:Sup1,Sup2{} }
+"""));}
+@Test void anImmMethodDoesNotInheritFromAMutMethod(){failWf("""
+002| B:A{ imm .m -> this }
+   | -----^^^^^^^^^^^^^^--
+
+While inspecting type declaration "B"
+Missing return type for method "imm .m".
+Cannot infer signature of method "imm .m".
+No supertype has a method named "imm .m" with 0 parameters.
+Did you mean "mut .m" ?
+Methods of the supertypes: "mut .m".
+""", List.of("""
+A:{ mut .m: A }
+B:A{ imm .m -> this }
+"""));}
+@Test void aMethodWithTheWrongNumberOfParametersSuggestsTheMethodOfTheSupertype(){failWf("""
+004| U:{ .u: A -> O.match{ .some -> A; .empty -> A } }
+   |                     --^^^^^^^^^^---------------
+
+While inspecting object literal instance of "OM[_]"
+Missing return type for method ".some".
+Cannot infer signature of method ".some".
+No supertype has a method named ".some" with 0 parameters.
+Did you mean ".some(_)" ?
+Methods of the supertypes: ".empty", ".some(_)".
+""", List.of("""
+A:{}
+OM[R]:{ .some(a: A): R; .empty: R }
+O:{ .match[R](m: OM[R]): R -> m.empty }
+U:{ .u: A -> O.match{ .some -> A; .empty -> A } }
+"""));}
+@Test void aMisspelledMethodSuggestsTheMethodOfTheSupertype(){failWf("""
+004| U:{ .u: A -> B.if{ .then -> A; .els -> A } }
+   |                  --------------^^^^^^^^^--
+
+While inspecting object literal instance of "IfM[_]"
+Missing return type for method ".els".
+Cannot infer signature of method ".els".
+No supertype has a method named ".els" with 0 parameters.
+Did you mean ".else" ?
+Methods of the supertypes: ".else", ".then".
+""", List.of("""
+A:{}
+IfM[R]:{ .then: R; .else: R }
+B:{ .if[R](m: IfM[R]): R -> m.then }
+U:{ .u: A -> B.if{ .then -> A; .els -> A } }
+"""));}
+@Test void aMethodNameWithoutTheDotIsReadAsAParameterName(){failWf("""
+003| West:Direction{ turn -> North }
+   | ----------------^^^^^^^^^^^^^--
+
+While inspecting type declaration "West"
+Cannot infer signature and name for a method with 1 parameter.
+No supertype of type declaration "West" has a method with 1 parameter.
+"turn" is read as a parameter name: a method name starts with ".", as in ".turn".
+Methods of the supertypes: ".turn".
+""", List.of("""
+Direction:{ .turn: Direction }
+North:Direction{ .turn -> North }
+West:Direction{ turn -> North }
+"""));}
+@Test void aLambdaWithTooManyParametersListsTheMethodsOfTheSupertype(){failWf("""
+003| U:{ .u(f: F[A,A]): A -> A; .k: A -> this.u{ a, b -> a } }
+   |                                           --^^^^^^^^^--
+
+While inspecting object literal instance of "F[_,_]"
+Cannot infer signature and name for a method with 2 parameters.
+No supertype of object literal instance of "F[_,_]" has a method with 2 parameters.
+Methods of the supertypes: "#(_)".
+""", List.of("""
+A:{}
+F[X,R]:{ #(x: X): R }
+U:{ .u(f: F[A,A]): A -> A; .k: A -> this.u{ a, b -> a } }
+"""));}
+@Test void aMethodWithInferredNameWhoseSupertypeMethodIsTakenSaysSo(){failWf("""
+002| B:A{ .m(a) -> this; a -> this }
+   | --------------------^^^^^^^^^--
+
+While inspecting type declaration "B"
+Cannot infer signature and name for a method with 1 parameter.
+Each method with 1 parameter of the supertypes is already implemented by another method of type declaration "B".
+Methods of the supertypes: ".m(_)".
+""", List.of("""
+A:{ .m(a: A): A }
+B:A{ .m(a) -> this; a -> this }
 """));}
 }
