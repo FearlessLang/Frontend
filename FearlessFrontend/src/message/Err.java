@@ -169,6 +169,13 @@ public record Err(Function<T.C,T.C> publicHead, Function<TName,TName> preferredF
     if (noBlankYet){ sb.append('\n'); }
     return this;
   }
+  Err didYouMean(List<String> options){
+    assert !options.isEmpty();
+    if (options.size() == 1){ return line("Did you mean "+options.getFirst()+" ?"); }
+    line("Did you mean one of the following?");
+    options.forEach(this::bullet);
+    return this;
+  }
   Err bullet(String s){
     assert !s.isBlank();
     return line("- "+s.stripTrailing().replace("\n", "\n  "));
