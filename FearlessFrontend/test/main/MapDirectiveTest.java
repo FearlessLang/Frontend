@@ -2381,8 +2381,7 @@ In file: [###].fear
 
 While inspecting type declaration "Foo_bar"
 Type declaration "Foo_bar" implements "bb.FileLog", so it writes to a log file named after it.
-Type name "Foo_bar" has no file name.
-The name of a "bb.FileLog" type can only use letters, digits and underscores, and an underscore cannot be followed by a lowercase letter.
+Type name "Foo_bar" has no file name, because "foo_bar" is already the file name of type name "FooBar".
 
 Source code inside folders named "_b" uses package name "bb" to refer to the code inside folders named "_base", because of "map bb as _base in _b", written in fear:/_b/_rank_app.fear.
 Error 7 WellFormedness

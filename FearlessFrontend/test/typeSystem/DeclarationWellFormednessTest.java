@@ -523,10 +523,19 @@ Con: base.FileLog{ .name -> base.Nope! }
 
 While inspecting type declaration "Foo_bar"
 Type declaration "Foo_bar" implements "base.FileLog", so it writes to a log file named after it.
-Type name "Foo_bar" has no file name.
-The name of a "base.FileLog" type can only use letters, digits and underscores, and an underscore cannot be followed by a lowercase letter.
+Type name "Foo_bar" has no file name, because "foo_bar" is already the file name of type name "FooBar".
 """, List.of("""
 Foo_bar: base.FileLog{ .name -> base.Nope! }
+"""));}
+@Test void fileLogWithUnderscoresBeforeLowercaseAndDigit(){failWf("""
+001| _Log_x_9: base.FileLog{ .name -> base.Nope! }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+While inspecting type declaration "_Log_x_9"
+Type declaration "_Log_x_9" implements "base.FileLog", so it writes to a log file named after it.
+Type name "_Log_x_9" has no file name, because "_log_x_9" is already the file name of type name "_LogX_9".
+""", List.of("""
+_Log_x_9: base.FileLog{ .name -> base.Nope! }
 """));}
 @Test void fileLogWithAPrime(){failWf("""
 001| Log': base.FileLog{ .name -> base.Nope! }
@@ -534,8 +543,7 @@ Foo_bar: base.FileLog{ .name -> base.Nope! }
 
 While inspecting type declaration "Log'"
 Type declaration "Log'" implements "base.FileLog", so it writes to a log file named after it.
-Type name "Log'" has no file name.
-The name of a "base.FileLog" type can only use letters, digits and underscores, and an underscore cannot be followed by a lowercase letter.
+Type name "Log'" has no file name, because a file name can only contain lowercase letters, digits and "_".
 """, List.of("""
 Log': base.FileLog{ .name -> base.Nope! }
 """));}

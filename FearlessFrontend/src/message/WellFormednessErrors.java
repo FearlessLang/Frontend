@@ -609,11 +609,14 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
   }
   public FearlessException fileLogWithoutFileName(E.Literal owner){
     var ctx= up(err().expRepr(owner));
-    var fileLog= err().tNameADisp(LiteralDeclarations.fileLog);
+    var name= owner.name().simpleName();
+    var other= Fs.capFirst(name);
+    var why= Fs.fileNameOfType(other)
+      .map(f -> disp(f)+" is already the file name of type name "+disp(other)+".")
+      .orElse("a file name can only contain lowercase letters, digits and \"_\".");
     return wf(err()
-      .line(ctx+" implements "+fileLog+", so it writes to a log file named after it.")
-      .line("Type name "+disp(owner.name().simpleName())+" has no file name.")
-      .line("The name of a "+fileLog+" type can only use letters, digits and underscores, and an underscore cannot be followed by a lowercase letter."), owner);
+      .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.fileLog)+", so it writes to a log file named after it.")
+      .line("Type name "+disp(name)+" has no file name, because "+why), owner);
   }
   public FearlessException fileLogFileNameNotAllowed(E.Literal owner, String path, String why){
     var ctx= up(err().expRepr(owner));
