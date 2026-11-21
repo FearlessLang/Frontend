@@ -6903,4 +6903,57 @@ Receiver required by each promotion:
 Counter:{ mut .inc: Counter }
 U:{ .m(c: Counter): Counter -> c.inc }
 """));}
+@Test void aValueWhereALambdaIsExpectedGetsTheCurlyBracesHint(){fail("""
+001| use base.Nat as Nat; A:{ #: Nat -> base.Block#.return 5 }
+   |                          ----------~~~~~~~~~~~~~~~~~~~^
+
+While inspecting method "A#" (line 1)
+This call to method "mut base.Block[_].return(_)" cannot typecheck.
+Argument 1 has type "iso Nat".
+That is not a subtype of "mut base.ReturnStmt[Nat]" (the type required by the method signature).
+Hint: write the argument inside curly braces: the curly braces make an object literal instance of "base.ReturnStmt[Nat]", whose single method returns the argument.
+""", List.of("""
+use base.Nat as Nat; A:{ #: Nat -> base.Block#.return 5 }
+"""));}
+@Test void aMutParameterWhereAnImmLambdaIsExpectedGetsTheCurlyBracesHint(){fail("""
+003| U:{ .take(g: Get): B -> B; .m(x: mut B): B -> this.take(x) }
+   |                            -------------------~~~~~~~~~~^~
+
+While inspecting method "U.m(_)" (line 3)
+This call to method "U.take(_)" cannot typecheck.
+Argument 1 has type "mut B".
+That is not a subtype of "Get" (the type required by the method signature).
+Hint: write the argument inside curly braces: the curly braces make an object literal instance of "Get", whose single method returns the argument.
+""", List.of("""
+B:{}
+Get:{ .get: mut B }
+U:{ .take(g: Get): B -> B; .m(x: mut B): B -> this.take(x) }
+"""));}
+@Test void anIsoParameterWhereAMutLambdaIsExpectedGetsTheCurlyBracesHint(){fail("""
+003| U:{ .take(g: mut Get): B -> B; .m(x: iso B): B -> this.take(x) }
+   |                                -------------------~~~~~~~~~~^~
+
+While inspecting method "U.m(_)" (line 3)
+This call to method "U.take(_)" cannot typecheck.
+Argument 1 has type "iso B".
+That is not a subtype of "mut Get" (the type required by the method signature).
+Hint: write the argument inside curly braces: the curly braces make an object literal instance of "Get", whose single method returns the argument.
+""", List.of("""
+B:{}
+Get:{ mut .get: mut B }
+U:{ .take(g: mut Get): B -> B; .m(x: iso B): B -> this.take(x) }
+"""));}
+@Test void aValueWhereALambdaWithAParameterIsExpectedGetsNoCurlyBracesHint(){fail("""
+003| U:{ .take(f: F): B -> B; .m: B -> this.take(B) }
+   |                          ---------~~~~~~~~~~^~
+
+While inspecting method "U.m" (line 3)
+This call to method "U.take(_)" cannot typecheck.
+Argument 1 has type "iso B".
+That is not a subtype of "F" (the type required by the method signature).
+""", List.of("""
+B:{}
+F:{ #(x: B): B }
+U:{ .take(f: F): B -> B; .m: B -> this.take(B) }
+"""));}
 }
