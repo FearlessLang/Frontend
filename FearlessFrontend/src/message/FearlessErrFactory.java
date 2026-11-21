@@ -78,7 +78,7 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
       +"Top level code can only contain type declarations.\n"
       +"A type declaration starts with a type name, like \"Point:{..}\".\n"
       +"Found instead: "+found(found)+".\n"
-      +"Likely cause: an extra \"}\" closed a type declaration unintentionally.\n"
+      +lastTop.map(_ -> "Likely cause: an extra \"}\" closed a type declaration unintentionally.\n").orElse("")
       ).addSpan(at);
   }
   public FearlessException notADirective(Span at, String name){
@@ -173,10 +173,10 @@ public final class FearlessErrFactory implements ErrFactory<Token,TokenKind,Fear
     ).addSpan(at);
   }
   private Stream<String> potentialMethodNames(M m){
-    return m.sig().stream()
-      .flatMap(s -> s.parameters().stream().limit(1))
+    return m.sig().filter(s -> !s.hasParenthesis() && s.parameters().size() == 1).stream()
+      .flatMap(s -> s.parameters().stream())
       .flatMap(p -> p.xp().stream())
-      .flatMap(xp -> xp instanceof XPat.Name(var x) ? Stream.of(x.name()) : Stream.of());
+      .flatMap(xp -> xp instanceof XPat.Name(var x) && !x.name().equals("_") ? Stream.of(x.name()) : Stream.of());
   }
   public FearlessException methodNoNameRedeclared(List<M> ms, List<Integer> noNames, Span at){
     var count= redeclaredElement(noNames);
