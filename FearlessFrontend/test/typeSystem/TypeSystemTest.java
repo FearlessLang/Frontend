@@ -4925,16 +4925,16 @@ A:{} B:{} Y:A,B{} Z:A,B{}
 U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
 """));}
 @Test void siblingsWithTwoGenericCommonSupertypesCannotBeInferred(){failWf("""
-002| U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
-   |                                                          ^^^^^^^^^^^^^^^
+002| U:{ .both[T:*](a: T, b: T): A -> A; .use(y: mut Y[A], z: mut Z[A]): A -> this.both(y, z) }
+   |                                                                          ^^^^^^^^^^^^^^^
 
 While inspecting method call ".both(_,_)"
-The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "Y", some need "Z".
-"T" could be "G[A]" or "H[B]": each is a supertype of "Y" and "Z". The choice is ambiguous.
+The generic type argument "T" of ".both" is inferred from the arguments, but they disagree: some need "mut Y[A]", some need "mut Z[A]".
+"T" could be "mut G[A]" or "mut H[A]": each is a supertype of "mut Y[A]" and "mut Z[A]". The choice is ambiguous.
 Write the generic type argument explicitly, in place of "_" in "this.both[_](y, z)".
 """, List.of("""
-A:{} B:{} G[X:*]:{} H[X:*]:{} Y:G[A],H[B]{} Z:G[A],H[B]{}
-U:{ .both[T](a: T, b: T): A -> A; .use(y: Y, z: Z): A -> this.both(y, z) }
+A:{} G[X:*]:{} H[X:*]:{} Y[X:*]:G[X],H[X]{} Z[X:*]:G[X],H[X]{}
+U:{ .both[T:*](a: T, b: T): A -> A; .use(y: mut Y[A], z: mut Z[A]): A -> this.both(y, z) }
 """));}
 @Test void siblingsWithOneCommonSupertypeInferIt(){ok(List.of("""
 A:{ .k: A -> this } Y:A{} Z:A{}

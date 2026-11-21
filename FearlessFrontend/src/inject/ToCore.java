@@ -86,7 +86,7 @@ public record ToCore(List<B> ctx, Methods meths){
     var amb= ambs(t).findFirst();
     if (amb.isEmpty()){ return fillVoid(t, b); }
     var cs= amb.get().candidates().stream().map(c -> replace(t, amb.get(), c)).toList();
-    var common= t instanceof IT.Amb ? meths.commonSuperHeads(cs) : List.<IT.C>of();
+    var common= t instanceof IT.Amb ? meths.commonSupertypes(cs) : List.<IT.RCC>of();
     var err= meths.p().err();
     throw err.typeArgAmbiguous(e, b.x(), cs, common, err.callWithTargs(e, targs, i), meths::_from);
   }
@@ -117,7 +117,7 @@ public record ToCore(List<B> ctx, Methods meths){
     calls(e).forEach(this::targs);
     var xs= B.xs(meths.from(c.name()).bs());
     var head= e.t() instanceof IT.RCC t && t.c().name().equals(c.name()) ? t.c() : c;
-    for (int i : unknown){ if (head.ts().get(i) instanceof IT.Amb(var cs)){ throw meths.p().err().literalHeadAmbiguous(e, head, i, xs.get(i), cs, meths.commonSuperHeads(cs), meths::_from); } }
+    for (int i : unknown){ if (head.ts().get(i) instanceof IT.Amb(var cs)){ throw meths.p().err().literalHeadAmbiguous(e, head, i, xs.get(i), cs, meths.commonSupertypes(cs), meths::_from); } }
     throw meths.p().err().literalHeadNotInferred(e, c, unknown, xs);
   }
   private void targs(inference.E.Call c){ IntStream.range(0, c.targs().size()).forEach(i -> targ(c, c.targs(), i)); }

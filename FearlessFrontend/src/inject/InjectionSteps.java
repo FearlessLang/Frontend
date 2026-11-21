@@ -152,9 +152,9 @@ public record InjectionSteps(Methods meths, int cap){
     return common == null ? new IT.Amb(cands) : _aboveAll(common, cands);
   }
   private IT _commonSupertype(List<IT> cands){
-    var minimal= meths.commonSuperHeads(cands);
+    var minimal= meths.commonSupertypes(cands);
     if (minimal.size() != 1){ return null; }
-    return adaptedSuperTs((IT.RCC)cands.getFirst(), minimal.getFirst().name()).getFirst();
+    return adaptedSuperTs((IT.RCC)cands.getFirst(), minimal.getFirst().c().name()).getFirst();
   }
   private static List<IT> candidates(IT t){ return t instanceof IT.Amb(var cs) ? cs : List.of(t); }
   private IT _aboveAll(IT top, List<IT> cands){
