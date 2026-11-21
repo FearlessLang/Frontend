@@ -511,9 +511,13 @@ Applog: base.FileLog{ .name -> base.Nope! }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Con"
-Type declaration "Con" implements "base.FileLog", so it writes to the log file ".out/logs/_p/con.log".
-"con" is a Windows reserved device name.
-Rename "Con", so that its log file has a name allowed in a Fearless project.
+Type declaration "Con" implements "base.FileLog".
+A type can only implement "base.FileLog" when its type name corresponds to a valid log file name.
+This means that the type name:
+- does not end with "'";
+- has no "_" followed by a lowercase letter;
+- is none of "Con", "Prn", "Aux", "Nul", "Com1".."Com9", "Lpt1".."Lpt9";
+- does not start with "_Rank".
 """, List.of("""
 Con: base.FileLog{ .name -> base.Nope! }
 """));}
@@ -522,28 +526,43 @@ Con: base.FileLog{ .name -> base.Nope! }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Foo_bar"
-Type declaration "Foo_bar" implements "base.FileLog", so it writes to a log file named after it.
-Type name "Foo_bar" has no file name, because "foo_bar" is already the file name of type name "FooBar".
+Type declaration "Foo_bar" implements "base.FileLog".
+A type can only implement "base.FileLog" when its type name corresponds to a valid log file name.
+This means that the type name:
+- does not end with "'";
+- has no "_" followed by a lowercase letter;
+- is none of "Con", "Prn", "Aux", "Nul", "Com1".."Com9", "Lpt1".."Lpt9";
+- does not start with "_Rank".
 """, List.of("""
 Foo_bar: base.FileLog{ .name -> base.Nope! }
 """));}
-@Test void fileLogWithUnderscoresBeforeLowercaseAndDigit(){failWf("""
-001| _Log_x_9: base.FileLog{ .name -> base.Nope! }
+@Test void fileLogStartingWithRank(){failWf("""
+001| _Ranking: base.FileLog{ .name -> base.Nope! }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While inspecting type declaration "_Log_x_9"
-Type declaration "_Log_x_9" implements "base.FileLog", so it writes to a log file named after it.
-Type name "_Log_x_9" has no file name, because "_log_x_9" is already the file name of type name "_LogX_9".
+While inspecting type declaration "_Ranking"
+Type declaration "_Ranking" implements "base.FileLog".
+A type can only implement "base.FileLog" when its type name corresponds to a valid log file name.
+This means that the type name:
+- does not end with "'";
+- has no "_" followed by a lowercase letter;
+- is none of "Con", "Prn", "Aux", "Nul", "Com1".."Com9", "Lpt1".."Lpt9";
+- does not start with "_Rank".
 """, List.of("""
-_Log_x_9: base.FileLog{ .name -> base.Nope! }
+_Ranking: base.FileLog{ .name -> base.Nope! }
 """));}
 @Test void fileLogWithAPrime(){failWf("""
 001| Log': base.FileLog{ .name -> base.Nope! }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "Log'"
-Type declaration "Log'" implements "base.FileLog", so it writes to a log file named after it.
-Type name "Log'" has no file name, because a file name can only contain lowercase letters, digits and "_".
+Type declaration "Log'" implements "base.FileLog".
+A type can only implement "base.FileLog" when its type name corresponds to a valid log file name.
+This means that the type name:
+- does not end with "'";
+- has no "_" followed by a lowercase letter;
+- is none of "Con", "Prn", "Aux", "Nul", "Com1".."Com9", "Lpt1".."Lpt9";
+- does not start with "_Rank".
 """, List.of("""
 Log': base.FileLog{ .name -> base.Nope! }
 """));}
@@ -552,9 +571,13 @@ Log': base.FileLog{ .name -> base.Nope! }
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 While inspecting type declaration "_RankX"
-Type declaration "_RankX" implements "base.FileLog", so it writes to the log file ".out/logs/_p/_rank_x.log".
-Only rank files can start with "_rank_".
-Rename "_RankX", so that its log file has a name allowed in a Fearless project.
+Type declaration "_RankX" implements "base.FileLog".
+A type can only implement "base.FileLog" when its type name corresponds to a valid log file name.
+This means that the type name:
+- does not end with "'";
+- has no "_" followed by a lowercase letter;
+- is none of "Con", "Prn", "Aux", "Nul", "Com1".."Com9", "Lpt1".."Lpt9";
+- does not start with "_Rank".
 """, List.of("""
 _RankX: base.FileLog{ .name -> base.Nope! }
 """));}

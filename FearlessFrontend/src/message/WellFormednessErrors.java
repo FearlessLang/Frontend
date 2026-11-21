@@ -607,22 +607,22 @@ public record WellFormednessErrors(String pkgName, Map<String,String> map, Map<S
       .line("It inherits the implementation of "+err().methodSig(new MName("#", 1))+" from "+err().tNameADisp(origin)+", which does not implement "+err().tNameADisp(LiteralDeclarations.baseId)+".")
       .line("Method "+err().methodSig(new MName("#", 1))+" must be implemented here, or inherited from a type implementing "+err().tNameADisp(LiteralDeclarations.baseId)+"."), owner);
   }
-  public FearlessException fileLogWithoutFileName(E.Literal owner){
-    var ctx= up(err().expRepr(owner));
-    var name= owner.name().simpleName();
-    var other= Fs.capFirst(name);
-    var why= Fs.fileNameOfType(other)
-      .map(f -> disp(f)+" is already the file name of type name "+disp(other)+".")
-      .orElse("a file name can only contain lowercase letters, digits and \"_\".");
+  public FearlessException fileLogNameNotAllowed(E.Literal owner){
+    var fileLog= err().tNameADisp(LiteralDeclarations.fileLog);
     return wf(err()
-      .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.fileLog)+", so it writes to a log file named after it.")
-      .line("Type name "+disp(name)+" has no file name, because "+why), owner);
+      .line(up(err().expRepr(owner))+" implements "+fileLog+".")
+      .line("A type can only implement "+fileLog+" when its type name corresponds to a valid log file name.")
+      .line("This means that the type name:")
+      .line("- does not end with \"'\";")
+      .line("- has no \"_\" followed by a lowercase letter;")
+      .line("- is none of \"Con\", \"Prn\", \"Aux\", \"Nul\", \"Com1\"..\"Com9\", \"Lpt1\"..\"Lpt9\";")
+      .line("- does not start with \"_Rank\"."), owner);
   }
-  public FearlessException fileLogFileNameNotAllowed(E.Literal owner, String path, String why){
+  public FearlessException fileLogPathTooLong(E.Literal owner, String path){
     var ctx= up(err().expRepr(owner));
     return wf(err()
       .line(ctx+" implements "+err().tNameADisp(LiteralDeclarations.fileLog)+", so it writes to the log file "+disp(path)+".")
-      .line(why)
+      .line("The path is longer than 200 characters.")
       .line("Rename "+disp(owner.name().simpleName())+", so that its log file has a name allowed in a Fearless project."), owner);
   }
   public FearlessException namedGeneric(E.Literal owner, TName t, String what){
