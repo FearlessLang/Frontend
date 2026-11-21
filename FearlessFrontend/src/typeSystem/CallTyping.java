@@ -105,7 +105,7 @@ record CallTyping(TypeSystem ts, List<B> bs, Gamma g, Call c, List<TRequirement>
     var okRet= possible.stream()
       .filter(i -> ts.isSub(bs, mat.candidate(i).t(), req.t())).toList();
     if (!okRet.isEmpty()){ return Reason.pass(bestUnique(mat, okRet)); }
-    return Reason.callResultCannotHaveRequiredType(ts, d, c, req, bests(mat, possible), sig);
+    return Reason.callResultCannotHaveRequiredType(ts, bs, d, c, req, bests(mat, possible), sig);
   }
   //Unique unless the minimal types are a bare 'X' and some 'rc X'. A bare X stands for its whole
   //bound, so those two are incomparable, but both are sound and the "As declared" one comes first.

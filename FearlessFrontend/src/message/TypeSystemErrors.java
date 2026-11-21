@@ -299,7 +299,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
     var l= s.l();
     var m= s.m();
     assert !got.isEmpty();
-    var got0= err().typeRepr(!rcOnlyMismatch(got.best, s.m().sig().ret()), got.best);
+    var got0= err().typeRepr(!got.showImm, got.best);
     var e= err();
     var meth= err().methodSig(m.sig().m());
     var top= l.thisName().equals("this");
@@ -603,7 +603,7 @@ public record TypeSystemErrors(Function<TName,Literal> decs, Package pkg, Linked
       var ok= mat.okByArg().get(argi);
       assert !ok.isEmpty();
       var promos= ok.stream().map(i -> mat.candidate(i).promotion()).distinct().sorted().toList();
-      var got= err().typeRepr(true, headerBest(mat.resByArg().get(argi)));
+      var got= err().typeRepr(false, headerBest(mat.resByArg().get(argi)));
       e.bullet("Argument "+(argi+1)+" has type "+got+" and is compatible with: "+Join.of(promos, "", ", ", "")+".");
     }
     e.blank().line("Promotion failures:");

@@ -80,7 +80,7 @@ public record TypeSystem(TypeScope scope, ViewPointAdaptation v){
     var got= w.currentT();
     if (isSub(bs, got, r.t())){ return Reason.pass(got); }
     var declaredOk= isSub(bs, declared, r.t());
-    return Reason.parameterDoesNotHaveRequiredTypeHere(this, x, r, declared, w, declaredOk);
+    return Reason.parameterDoesNotHaveRequiredTypeHere(this, bs, x, r, declared, w, declaredOk);
   }
   private List<Reason> checkType(List<B> bs, Type t, List<TRequirement> rs){
     k().check(t, bs, t.type());
