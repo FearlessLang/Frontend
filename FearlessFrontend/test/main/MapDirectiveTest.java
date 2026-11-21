@@ -1708,7 +1708,7 @@ In file: [###].fear
    |    ------------------------^^^^^^^^^^^^
 
 While inspecting method call "#(_)" > method "B.m(_,_)" (line 1)
-The call to "#(_)" is invalid.
+This call to method "a.G#(_)" cannot typecheck.
 Generic type argument 1 ("mut B") does not satisfy the bounds
 for generic type parameter "X" in "a.G#(_)".
 Here "X" can only use capability "imm".
