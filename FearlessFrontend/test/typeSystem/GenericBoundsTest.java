@@ -363,7 +363,7 @@ Argument 1 has type "mut Foo".
 Method call "A#(_,_)" has type "mut Foo" instead of a subtype of "iso Foo".
 
 Type required by each promotion:
-- "iso Foo"  (As declared, Strengthen result)
+- "iso Foo" (As declared, Strengthen result)
 """, List.of("""
 Foo:{}
 A:{ #[X:mut,mutH,readH](x: X, f: mut Foo): mut Foo -> f }
@@ -493,13 +493,12 @@ A:{ .m[Y:imm,mut](y: imm Y): Foo[imm Y] -> Foo[Y]{ .get -> y } }
 
 While inspecting method "Break.m(_)" (line 3)
 This call to method "A#(_)" cannot typecheck.
-Argument 1 has type "Foo".
-That is not a subtype of any of "mut Foo" or "iso Foo".
+Argument 1 has type "imm Foo".
 Parameter "f" has type "imm Foo" instead of a subtype of "mut Foo".
 
 Type required by each promotion:
-- "mut Foo"  (As declared)
-- "iso Foo"  (Strengthen result)
+- "mut Foo" (As declared)
+- "iso Foo" (Strengthen result)
 
 See inferred typing context below for how type "mut Foo" was introduced:
 Break:{.m(f:Foo):Foo->A#[imm,mut Foo](f)}

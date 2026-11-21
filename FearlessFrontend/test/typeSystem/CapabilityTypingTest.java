@@ -648,7 +648,7 @@ Argument 3 has type "mutH A".
 Parameter "a" has type "mutH A" instead of a subtype of "iso A".
 
 Type required by each promotion:
-- "iso A"  (Allow mutH receiver)
+- "iso A" (Allow mutH receiver)
 """, List.of("""
 A:{
   mut .m1(a1: imm A, a2: iso A, a3: mut A, a4: mut A): mut A -> this;
@@ -705,12 +705,11 @@ C:{ .m[Y:*](y: read Y): read Y -> A.m[Y](y) }
 While inspecting method "C.m(_)" (line 3)
 This call to method "A.m(_)" cannot typecheck.
 Argument 1 has type "read Y".
-That is not a subtype of any of "read/imm Y" or "imm Y".
 Parameter "y" has type "read Y" instead of a subtype of "read/imm Y".
 
 Type required by each promotion:
-- "read/imm Y"  (As declared)
-- "imm Y"  (Strengthen result)
+- "read/imm Y" (As declared)
+- "imm Y" (Strengthen result)
 """, List.of("""
 Foo:{}
 A:{ .m[X:*](x: read/imm X): read/imm X -> x }
@@ -776,7 +775,7 @@ User:{ .use[Y:iso,imm](b: Box[Y]): iso Y -> b.get }
 
 While inspecting method "User.use(_)" (line 2)
 This call to method ".foo" cannot typecheck.
-The receiver is of type "read/imm Y". This is a generic type parameter.
+The receiver has type "read/imm Y", where "Y" is a generic type parameter.
 Generic type parameters cannot be receivers of method calls.
 """, List.of("""
 Box[X:iso,imm]:{ .get: read/imm X }
